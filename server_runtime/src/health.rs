@@ -152,11 +152,7 @@ mod tests {
             super::run_health_probe(timeout, async { false }).await
         ));
         assert!(!bool::from(
-            super::run_health_probe(timeout, async {
-                tokio::time::sleep(std::time::Duration::from_secs(2u64)).await;
-                true
-            })
-            .await
+            super::run_health_probe(timeout, std::future::pending::<bool>()).await
         ));
     }
 

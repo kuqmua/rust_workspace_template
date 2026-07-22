@@ -9,7 +9,7 @@ pub(super) fn client_uses_text_value(
 }
 pub(super) fn text_search_token_stream(
     spec: crate::model::FilterSpec,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     if !client_uses_text_value(spec).get() {
         return quote::quote! {compile_error!("text search client requires text value shape");}
             .into();

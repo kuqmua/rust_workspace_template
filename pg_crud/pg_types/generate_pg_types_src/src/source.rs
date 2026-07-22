@@ -883,7 +883,7 @@ pub fn build_generate_pg_types(
 #[must_use]
 pub fn generate_pg_types(
     input: macros_helpers::ts_writer::ProcMacro2TokenStreamRef<'_>,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     match parse_generate_pg_types(input)
         .and_then(build_generate_pg_types)
         .and_then(validate_generate_pg_types)
@@ -891,7 +891,7 @@ pub fn generate_pg_types(
         Ok(validated) => emit_generate_pg_types(validated),
         Err(error) => {
             let message = format!("failed to parse GeneratePgTypesConfig: {error}");
-            macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(
+            macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
                 quote::quote! { compile_error!(#message); },
             )
         }
@@ -900,7 +900,7 @@ pub fn generate_pg_types(
 #[must_use]
 pub fn emit_generate_pg_types(
     validated: ValidatedGeneratePgTypesConfig,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     panic_location::panic_location();
     let generate_pg_types_config = validated.config;
     let allow_clippy_arbitrary_src_item_ordering =
@@ -1038,7 +1038,7 @@ pub fn emit_generate_pg_types(
             let duplicate_found = pg_type_records.iter().any(|element| !check_accumulator.insert(*element));
             if duplicate_found {
                 let message_value = str_constants::DUPLICATE_PG_TYPE_CONFIG_ENTRY;
-                return macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(
+                return macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
                     quote::quote! {compile_error!(#message_value);},
                 );
             }
@@ -1653,7 +1653,7 @@ pub fn emit_generate_pg_types(
                         })
                     };
                     let generate_impl_ser_wrapping_self_zero_token_stream = |ts: &dyn quote::ToTokens|{
-                        pg_crud_macros_common::DeriveOrImpl::Impl(macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(generate_impl_ser_for_identifier_standard_non_null_origin_tokens(
+                        pg_crud_macros_common::DeriveOrImpl::Impl(macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(generate_impl_ser_for_identifier_standard_non_null_origin_tokens(
                             &generate_ser_cnt(&ts)
                         )))
                     };
@@ -1681,7 +1681,7 @@ pub fn emit_generate_pg_types(
                         | PgType::SqlxTypesIpnetworkIpNetworkAsInet => pg_crud_macros_common::DeriveOrImpl::Derive,
                         PgType::SqlxPgTypesPgMoneyAsMoney => generate_impl_ser_wrapping_self_zero_token_stream(&quote::quote! {.0}),
                         PgType::SqlxTypesMacAddressMacAddressAsMacAddr => generate_impl_ser_wrapping_self_zero_token_stream(&quote::quote! {.bytes()}),
-                        PgType::SqlxTypesChronoNaiveTimeAsTime => pg_crud_macros_common::DeriveOrImpl::Impl(macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(generate_impl_ser_for_identifier_standard_non_null_origin_tokens(&{
+                        PgType::SqlxTypesChronoNaiveTimeAsTime => pg_crud_macros_common::DeriveOrImpl::Impl(macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(generate_impl_ser_for_identifier_standard_non_null_origin_tokens(&{
                             let generate_field_inner_type_standard_non_null_token_stream_as_chrono_timelike_token_stream = |ts: &dyn quote::ToTokens| {
                                 quote::quote! {&(<#inner_type_standard_non_null_token_stream as chrono::Timelike>::#ts)}
                             };
@@ -1696,7 +1696,7 @@ pub fn emit_generate_pg_types(
                             );
                             generate_four_field_time_ser_token_stream(&hour_ser_field_token_stream, &min_ser_field_token_stream, &sec_ser_field_token_stream, &micro_ser_field_token_stream)
                         }))),
-                        PgType::SqlxTypesTimeTimeAsTime => pg_crud_macros_common::DeriveOrImpl::Impl(macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(generate_impl_ser_for_identifier_standard_non_null_origin_tokens(&{
+                        PgType::SqlxTypesTimeTimeAsTime => pg_crud_macros_common::DeriveOrImpl::Impl(macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(generate_impl_ser_for_identifier_standard_non_null_origin_tokens(&{
                             let generate_ser_field_self_zero_token_stream = |v: &dyn naming::DisplayPlusToTokens| generate_ser_field_token_stream(&v, &quote::quote! {&self.0.#v()});
                             let hour_ser_field_token_stream = generate_ser_field_self_zero_token_stream(&hour_snake_case);
                             let minute_ser_field_token_stream = generate_ser_field_self_zero_token_stream(&minute_snake_case);
@@ -1704,7 +1704,7 @@ pub fn emit_generate_pg_types(
                             let microsecond_ser_field_token_stream = generate_ser_field_self_zero_token_stream(&microsecond_snake_case);
                             generate_four_field_time_ser_token_stream(&hour_ser_field_token_stream, &minute_ser_field_token_stream, &second_ser_field_token_stream, &microsecond_ser_field_token_stream)
                         }))),
-                        PgType::SqlxPgTypesPgIntervalAsInterval => pg_crud_macros_common::DeriveOrImpl::Impl(macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(generate_impl_ser_for_identifier_standard_non_null_origin_tokens(&{
+                        PgType::SqlxPgTypesPgIntervalAsInterval => pg_crud_macros_common::DeriveOrImpl::Impl(macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(generate_impl_ser_for_identifier_standard_non_null_origin_tokens(&{
                             let generate_ser_field_handle_token_stream = |v: &dyn naming::DisplayPlusToTokens| generate_ser_field_token_stream(&v, &quote::quote! {&#self_dot_zero_token_stream.#v});
                             let months_ser_field_token_stream = generate_ser_field_handle_token_stream(&months_snake_case);
                             let days_ser_field_token_stream = generate_ser_field_handle_token_stream(&days_snake_case);
@@ -1717,7 +1717,7 @@ pub fn emit_generate_pg_types(
                                 #serde_ser_ser_struct_end_token_stream
                             }
                         }))),
-                        PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp => pg_crud_macros_common::DeriveOrImpl::Impl(macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(generate_impl_ser_for_identifier_standard_non_null_origin_tokens(&{
+                        PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp => pg_crud_macros_common::DeriveOrImpl::Impl(macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(generate_impl_ser_for_identifier_standard_non_null_origin_tokens(&{
                             enum DateOrTime {
                                 Date,
                                 Time,
@@ -1751,7 +1751,7 @@ pub fn emit_generate_pg_types(
                                 #serde_ser_ser_struct_end_token_stream
                             }
                         }))),
-                        PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz => pg_crud_macros_common::DeriveOrImpl::Impl(macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(generate_impl_ser_for_identifier_standard_non_null_origin_tokens(&{
+                        PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz => pg_crud_macros_common::DeriveOrImpl::Impl(macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(generate_impl_ser_for_identifier_standard_non_null_origin_tokens(&{
                             enum DateNaiveOrTime {
                                 Date,
                                 Time,
@@ -1778,11 +1778,11 @@ pub fn emit_generate_pg_types(
                                 #serde_ser_ser_struct_end_token_stream
                             }
                         }))),
-                        PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg | PgType::SqlxTypesUuidUuidAsUuidInitializationByClient => pg_crud_macros_common::DeriveOrImpl::Impl(macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(impl_ser_for_uuid_uuid_token_stream)),
-                        PgType::SqlxPgTypesPgRangeI32AsInt4Range | PgType::SqlxPgTypesPgRangeI64AsInt8Range => pg_crud_macros_common::DeriveOrImpl::Impl(macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(impl_ser_for_non_null_origin_start_end_token_stream)),
-                        PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange => pg_crud_macros_common::DeriveOrImpl::Impl(macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(generate_impl_ser_for_identifier_standard_non_null_origin_start_end_range_tokens(&sqlx_types_chrono_naive_date_as_non_null_date_origin_upper_camel_case))),
-                        PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => pg_crud_macros_common::DeriveOrImpl::Impl(macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(generate_impl_ser_for_identifier_standard_non_null_origin_start_end_range_tokens(&sqlx_types_chrono_naive_date_time_as_non_null_timestamp_origin_upper_camel_case))),
-                        PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => pg_crud_macros_common::DeriveOrImpl::Impl(macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(generate_impl_ser_for_identifier_standard_non_null_origin_start_end_range_tokens(&sqlx_types_chrono_date_time_sqlx_types_chrono_utc_as_non_null_timestamptz_origin_upper_camel_case))),
+                        PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg | PgType::SqlxTypesUuidUuidAsUuidInitializationByClient => pg_crud_macros_common::DeriveOrImpl::Impl(macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(impl_ser_for_uuid_uuid_token_stream)),
+                        PgType::SqlxPgTypesPgRangeI32AsInt4Range | PgType::SqlxPgTypesPgRangeI64AsInt8Range => pg_crud_macros_common::DeriveOrImpl::Impl(macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(impl_ser_for_non_null_origin_start_end_token_stream)),
+                        PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange => pg_crud_macros_common::DeriveOrImpl::Impl(macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(generate_impl_ser_for_identifier_standard_non_null_origin_start_end_range_tokens(&sqlx_types_chrono_naive_date_as_non_null_date_origin_upper_camel_case))),
+                        PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => pg_crud_macros_common::DeriveOrImpl::Impl(macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(generate_impl_ser_for_identifier_standard_non_null_origin_start_end_range_tokens(&sqlx_types_chrono_naive_date_time_as_non_null_timestamp_origin_upper_camel_case))),
+                        PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => pg_crud_macros_common::DeriveOrImpl::Impl(macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(generate_impl_ser_for_identifier_standard_non_null_origin_start_end_range_tokens(&sqlx_types_chrono_date_time_sqlx_types_chrono_utc_as_non_null_timestamptz_origin_upper_camel_case))),
                     }
                 },
                 pg_crud_macros_common::DeriveOrImpl::Derive
@@ -3167,7 +3167,7 @@ pub fn emit_generate_pg_types(
                         | PgType::SqlxPgTypesPgRangeI64AsInt8Range
                         | PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange
                         | PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange
-                        | PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(proc_macro2::TokenStream::new()),
+                        | PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(proc_macro2::TokenStream::new()),
                         PgType::StringAsText => pg_crud_macros_common::generate_impl_crate_is_string_empty_for_identifier_token_stream(
                             &identifier_origin_upper_camel_case,
                             &quote::quote! {self.0.is_empty()},
@@ -3179,12 +3179,12 @@ pub fn emit_generate_pg_types(
                             &quote::quote! {false},
                         ),
                     },
-                    pg_crud_macros_common::IsNullable::True => macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(proc_macro2::TokenStream::new()),
+                    pg_crud_macros_common::IsNullable::True => macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(proc_macro2::TokenStream::new()),
                 }
             } else {
-                macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(proc_macro2::TokenStream::new())
+                macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(proc_macro2::TokenStream::new())
             };
-            let empty_generated_token_stream = macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(proc_macro2::TokenStream::new());
+            let empty_generated_token_stream = macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(proc_macro2::TokenStream::new());
             let maybe_impl_ser_for_identifier_standard_non_null_origin_token_stream = match &ser_derive_or_impl {
                 pg_crud_macros_common::DeriveOrImpl::Derive => &empty_generated_token_stream,
                 pg_crud_macros_common::DeriveOrImpl::Impl(v) => v,
@@ -3708,7 +3708,7 @@ pub fn emit_generate_pg_types(
                     match &pg_type_pattern {
                         PgTypePattern::Standard => match &is_nullable {
                             pg_crud_macros_common::IsNullable::False => eq_token_stream,
-                            pg_crud_macros_common::IsNullable::True => macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(nullable_eq_operator_token_stream),
+                            pg_crud_macros_common::IsNullable::True => macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(nullable_eq_operator_token_stream),
                         },
                     }
                 },
@@ -3752,7 +3752,7 @@ pub fn emit_generate_pg_types(
             });
             let maybe_impl_sqlx_type_and_encode_for_identifier_create_token_stream = match &can_be_primary_key {
                 CanBePrimaryKey::False => pg_crud_macros_common::generate_impl_sqlx_type_and_encode_for_identifier_token_stream(&identifier_create_upper_camel_case, &identifier_origin_upper_camel_case, &sqlx_encode_self_dot_zero_token_stream),
-                CanBePrimaryKey::True => macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(proc_macro2::TokenStream::new()),
+                CanBePrimaryKey::True => macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(proc_macro2::TokenStream::new()),
             };
             let maybe_impl_as_ref_and_borrow_for_identifier_create_token_stream = match &can_be_primary_key {
                 CanBePrimaryKey::False => generate_impl_wrapper_traits_token_stream(&identifier_create_upper_camel_case, &identifier_origin_upper_camel_case, ShouldImplFrom::True),
@@ -3802,20 +3802,20 @@ pub fn emit_generate_pg_types(
                 }
                 let generate_common_pg_type_filters = || {
                     vec![pg_crud_macros_common::filters::PgTypeFilter::Eq {
-                        identifier: macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(quote::quote! {#identifier_table_type_upper_camel_case}),
+                        identifier: macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(quote::quote! {#identifier_table_type_upper_camel_case}),
                     }]
                 };
                 let generate_greater_than_filter = || pg_crud_macros_common::filters::PgTypeFilter::GreaterThan {
-                    identifier: macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(quote::quote! {#identifier_standard_non_null_table_type_upper_camel_case}),
+                    identifier: macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(quote::quote! {#identifier_standard_non_null_table_type_upper_camel_case}),
                 };
                 let generate_between_filter = || pg_crud_macros_common::filters::PgTypeFilter::Between {
-                    identifier: macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(quote::quote! {#identifier_standard_non_null_table_type_upper_camel_case}),
+                    identifier: macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(quote::quote! {#identifier_standard_non_null_table_type_upper_camel_case}),
                 };
                 let generate_in_filter = || pg_crud_macros_common::filters::PgTypeFilter::In {
-                    identifier: macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(quote::quote! {#identifier_table_type_upper_camel_case}),
+                    identifier: macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(quote::quote! {#identifier_table_type_upper_camel_case}),
                 };
                 let generate_before_filter = || pg_crud_macros_common::filters::PgTypeFilter::Before {
-                    identifier: macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(quote::quote! {#identifier_standard_non_null_table_type_upper_camel_case}),
+                    identifier: macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(quote::quote! {#identifier_standard_non_null_table_type_upper_camel_case}),
                 };
                 match &pg_type_pattern {
                     PgTypePattern::Standard => {
@@ -3825,7 +3825,7 @@ pub fn emit_generate_pg_types(
                         );
                         let generate_ranges_common_filter_vec = || {
                             let generate_range_identifier_token_stream = || {
-                                macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(
+                                macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
                                     quote::quote! {#identifier_standard_non_null_table_type_upper_camel_case},
                                 )
                             };
@@ -3977,7 +3977,7 @@ pub fn emit_generate_pg_types(
                     &import,
                 )
             } else {
-                macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(proc_macro2::TokenStream::new())
+                macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(proc_macro2::TokenStream::new())
             };
             let impl_as_ref_and_borrow_for_identifier_read_token_stream =
                 generate_impl_wrapper_traits_token_stream(&identifier_read_upper_camel_case, &identifier_origin_upper_camel_case, ShouldImplFrom::True);
@@ -5385,7 +5385,7 @@ pub fn emit_generate_pg_types(
             proc_macro2::TokenStream::new()
         };
         let maybe_impl_pg_type_not_primary_key_for_identifier_token_stream = if matches!(&is_non_null_standard_can_be_primary_key, IsNonNullStandardCanBePrimaryKey::True) {
-            macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(proc_macro2::TokenStream::new())
+            macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(proc_macro2::TokenStream::new())
         } else {
             pg_crud_macros_common::generate_impl_pg_type_not_primary_key_for_identifier_token_stream(&import, &identifier)
         };
@@ -5709,12 +5709,17 @@ pub fn emit_generate_pg_types(
             }
         }
     };
-    macros_helpers::ts_writer::maybe_write_token_stream_into_file(
+    if let Err(error) = macros_helpers::ts_writer::maybe_write_token_stream_into_file(
         generate_pg_types_config.pg_table_cols_write_into_file,
         str_constants::PG_TABLE_COLS_USING_PG_TYPES,
         macros_helpers::ts_writer::ProcMacro2TokenStreamRef::from(&pg_table_cols_token_stream),
         &macros_helpers::ts_writer::FormatWithCargofmt::True,
-    );
+    ) {
+        let message = format!("failed to write generated PG table columns: {error}");
+        return macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
+            quote::quote! { compile_error!(#message); },
+        );
+    }
     let generated = {
         let ts = parse_strs_to_ts2_vec(
             pg_crud_macros_common::ParseTokenStreamStrings::from(pg_type_array),
@@ -5725,12 +5730,17 @@ pub fn emit_generate_pg_types(
             &ts,
         )
     };
-    macros_helpers::ts_writer::maybe_write_token_stream_into_file(
+    if let Err(error) = macros_helpers::ts_writer::maybe_write_token_stream_into_file(
         generate_pg_types_config.whole_write_into_file,
         str_constants::CODE_STYLE_GENERATE_PG_TYPES_MACRO_NAME,
         macros_helpers::ts_writer::ProcMacro2TokenStreamRef::from(generated.as_ref()),
         &macros_helpers::ts_writer::FormatWithCargofmt::True,
-    );
+    ) {
+        let message = format!("failed to write generated PG types: {error}");
+        return macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
+            quote::quote! { compile_error!(#message); },
+        );
+    }
     generated
 }
 

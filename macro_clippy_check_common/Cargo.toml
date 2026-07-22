@@ -11,9 +11,10 @@ edition = "2024"
 [dependencies]
 str_constants = { workspace = true }
 macros_helpers = { workspace = true, optional = true }
+server_runtime = { workspace = true, optional = true }
 
 [features]
-test-utils = ["dep:macros_helpers"]
+test-utils = ["dep:macros_helpers", "dep:server_runtime"]
 
 [lints]
 workspace = true

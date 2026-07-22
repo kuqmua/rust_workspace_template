@@ -51,16 +51,34 @@ enum ConstantPart {
     Fragment(SynIdent),
     Literal(SynLitStr),
 }
+struct ConstantParts(Vec<ConstantPart>);
+impl From<Vec<ConstantPart>> for ConstantParts {
+    fn from(value: Vec<ConstantPart>) -> Self {
+        Self(value)
+    }
+}
+struct Constants(Vec<Constant>);
+impl From<Vec<Constant>> for Constants {
+    fn from(value: Vec<Constant>) -> Self {
+        Self(value)
+    }
+}
+struct Fragments(Vec<Fragment>);
+impl From<Vec<Fragment>> for Fragments {
+    fn from(value: Vec<Fragment>) -> Self {
+        Self(value)
+    }
+}
 
 struct Constant {
     name: SynIdent,
-    parts: Vec<ConstantPart>,
+    parts: ConstantParts,
     visibility: Option<SynVisibility>,
 }
 
 struct DefineStrConstantsInput {
-    constants: Vec<Constant>,
-    fragments: Vec<Fragment>,
+    constants: Constants,
+    fragments: Fragments,
 }
 
 impl syn::parse::Parse for DefineStrConstantsInput {
@@ -106,18 +124,18 @@ impl syn::parse::Parse for DefineStrConstantsInput {
                     syn::Token![,],
                 )?
                 .into_iter()
-                .collect();
+                .collect::<Vec<ConstantPart>>();
             let _: syn::Token![;] = constant_content.parse()?;
             constants.push(Constant {
                 name,
-                parts,
+                parts: ConstantParts::from(parts),
                 visibility,
             });
         }
         if input.is_empty() {
             Ok(Self {
-                constants,
-                fragments,
+                constants: Constants::from(constants),
+                fragments: Fragments::from(fragments),
             })
         } else {
             Err(input.error(stringify!(
@@ -130,7 +148,7 @@ impl syn::parse::Parse for DefineStrConstantsInput {
 #[proc_macro]
 pub fn define_str_constants(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let expand = |parsed: DefineStrConstantsInput| {
-        let fragments = parsed.fragments.into_iter().try_fold(
+        let fragments = parsed.fragments.0.into_iter().try_fold(
             std::collections::HashMap::new(),
             |mut fragments, fragment| {
                 let name = fragment.name.0.to_string();
@@ -145,63 +163,65 @@ pub fn define_str_constants(input: proc_macro::TokenStream) -> proc_macro::Token
             },
         )?;
 
-        let (_, _, generated) = parsed.constants.into_iter().try_fold(
-            (
-                std::collections::HashSet::new(),
-                std::collections::HashMap::new(),
-                Vec::new(),
-            ),
-            |(mut names, mut values, mut generated), constant| {
-                if !names.insert(constant.name.0.to_string()) {
-                    return Err(syn::Error::new(
-                        constant.name.0.span(),
-                        stringify!(ad857256 duplicate string constant name),
-                    ));
-                }
-                let value = constant.parts.into_iter().try_fold(
-                    String::new(),
-                    |mut value, part| match part {
-                        ConstantPart::Fragment(identifier) => {
-                            let Some(fragment) = fragments.get(&identifier.0.to_string()) else {
-                                return Err(syn::Error::new(
-                                    identifier.0.span(),
-                                    stringify!(bb09ab55 unknown string fragment),
-                                ));
-                            };
-                            value.push_str(fragment);
-                            Ok(value)
-                        }
-                        ConstantPart::Literal(literal) => {
-                            value.push_str(&literal.0.value());
-                            Ok(value)
-                        }
-                    },
-                )?;
-                if let Some(previous_name) =
-                    values.insert(value.clone(), constant.name.0.to_string())
-                {
-                    return Err(syn::Error::new(
-                        constant.name.0.span(),
-                        format!(
-                            "2370f7b3: string constant duplicates the value of {previous_name}"
-                        ),
-                    ));
-                }
-                let name = constant.name.0;
-                let literal = syn::LitStr::new(&value, proc_macro2::Span::call_site());
-                if let Some(visibility) = constant.visibility {
-                    let syn_visibility = visibility.0;
-                    generated.push(quote::quote! {
-                        #syn_visibility const #name: &str = #literal;
-                    });
-                } else {
-                    generated.push(quote::quote! {
-                        pub const #name: &str = #literal;
-                    });
-                }
-                Ok((names, values, generated))
-            },
-        )?;
+        let (_, _, generated) =
+            parsed.constants.0.into_iter().try_fold(
+                (
+                    std::collections::HashSet::new(),
+                    std::collections::HashMap::new(),
+                    Vec::new(),
+                ),
+                |(mut names, mut values, mut generated), constant| {
+                    if !names.insert(constant.name.0.to_string()) {
+                        return Err(syn::Error::new(
+                            constant.name.0.span(),
+                            stringify!(ad857256 duplicate string constant name),
+                        ));
+                    }
+                    let value = constant.parts.0.into_iter().try_fold(
+                        String::new(),
+                        |mut value, part| match part {
+                            ConstantPart::Fragment(identifier) => {
+                                let Some(fragment) = fragments.get(&identifier.0.to_string())
+                                else {
+                                    return Err(syn::Error::new(
+                                        identifier.0.span(),
+                                        stringify!(bb09ab55 unknown string fragment),
+                                    ));
+                                };
+                                value.push_str(fragment);
+                                Ok(value)
+                            }
+                            ConstantPart::Literal(literal) => {
+                                value.push_str(&literal.0.value());
+                                Ok(value)
+                            }
+                        },
+                    )?;
+                    if let Some(previous_name) =
+                        values.insert(value.clone(), constant.name.0.to_string())
+                    {
+                        return Err(syn::Error::new(
+                            constant.name.0.span(),
+                            format!(
+                                "2370f7b3: string constant duplicates the value of {previous_name}"
+                            ),
+                        ));
+                    }
+                    let name = constant.name.0;
+                    let literal = syn::LitStr::new(&value, proc_macro2::Span::call_site());
+                    if let Some(visibility) = constant.visibility {
+                        let syn_visibility = visibility.0;
+                        generated.push(quote::quote! {
+                            #syn_visibility const #name: &str = #literal;
+                        });
+                    } else {
+                        generated.push(quote::quote! {
+                            pub const #name: &str = #literal;
+                        });
+                    }
+                    Ok((names, values, generated))
+                },
+            )?;
         Ok(quote::quote! { #(#generated)* })
     };
     match syn::parse::<DefineStrConstantsInput>(input).and_then(expand) {

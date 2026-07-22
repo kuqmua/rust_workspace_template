@@ -1067,7 +1067,7 @@ str_constants_macros::define_str_constants! {
         pub CODE_STYLE_STRING_GUARD_DETECTION_FIXTURE = [WORD_FN, " ", WORD_F_2, "() { consume(\"ordinary\"); outer!(", WORD_INNER, "(\"", WORD_MACRO, "\")); }"];
         pub CODE_STYLE_CI_WORKFLOW_PATH = [".", WORD_GITHUB, "/workflows/ci.", WORD_YML];
         pub CODE_STYLE_WORKSPACE_MANIFEST_PATH = ["../", WORD_CARGO, ".", WORD_TOML];
-        pub CODE_STYLE_GENERATED_RUST_TOKEN_STREAM_IDENTIFIER = ["GeneratedRustTokenStream"];
+        pub CODE_STYLE_GENERATED_RUST_TOKEN_STREAM_IDENTIFIER = ["ProcMacro2GeneratedRustTokenStream"];
         pub CODE_STYLE_GENERATED_RUST_TOKEN_STREAM_REASON = [WORD_PUBLIC, " ", WORD_MACRO, "-", WORD_HELPER_2, " ", WORD_API, " ", WORD_NAME_2, " describes ", WORD_GENERATED, " ", WORD_RUST, " tokens ", WORD_AND_2, " ", WORD_IS_2, " ", WORD_ALREADY, " ", WORD_USED, " across generator ", WORD_CRATES];
         pub CODE_STYLE_EXPECT_METHOD_NAME = [WORD_EXPECT];
         pub CODE_STYLE_PANIC_METHOD_NAME = [WORD_PANIC];
@@ -1077,6 +1077,7 @@ str_constants_macros::define_str_constants! {
         pub WORKSPACE_TEST_RUNNER_GENERATE_PG_TYPES_WORKLOAD = [WORD_ALLOC, "-", WORD_WORKLOAD, "-", WORD_GENERATE, "-", WORD_PG, "-", WORD_TYPES, "-", WORD_SRC];
         pub WORKSPACE_TEST_RUNNER_ADMIN_CONTRACT_FIXTURE = ["admin-contract-fixture"];
         pub WORKSPACE_TEST_RUNNER_ADMIN_CONTRACT_FIXTURE_FILE = ["admin_contract_fixture.json"];
+        pub WORKSPACE_TEST_RUNNER_ADMIN_FIXTURE_STRING_INVALID = ["administrator fixture string is invalid"];
         pub WORKSPACE_TEST_RUNNER_MAJOR_PAGE_FAULTS_PREFIX = ["codex_major_page_faults="];
         pub WORKSPACE_TEST_RUNNER_MEMUSAGE_PATH = ["/", WORD_USR, "/", WORD_LIB, "/x86_64-linux-gnu/", WORD_LIBMEMUSAGE, ".", WORD_SO];
         pub WORKSPACE_TEST_RUNNER_LIBMEMUSAGE_TOOL = [WORD_LIBMEMUSAGE];
@@ -2799,7 +2800,6 @@ str_constants_macros::define_str_constants! {
         pub CODE_STYLE_I128 = ["i128"];
         pub CODE_STYLE_ISIZE = ["isize"];
         pub CODE_STYLE_MAP_ERR = ["map_err"];
-        pub CODE_STYLE_REVIEWED_PUBLIC_FIELD_PATH_PARTS = ["config_lib/config_lib_macros/|git_info/|location_lib/location_test/|location_lib/src/location.rs|macros_helpers/|pg_crud/|route_validators/src/test_hlp.rs|route_validators/src/hdr_val.rs|server_admin/src/generated_tables.rs|server_app_state/|server_config/|tests/src/code_style/|to_err_string/|workspace_test_runner/"];
         pub CODE_STYLE_SERDE_JSON_ADMIN_AUDIT_DETAILS = ["SerdeJsonAdminAuditDetails"];
         pub CODE_STYLE_U8 = ["u8"];
         pub CODE_STYLE_U16 = ["u16"];
@@ -3369,29 +3369,121 @@ pub const MACRO_CLIPPY_CARGO_TEST_LIB_ARGS: [&str; 4] = [
 pub const PG_CRUD_SERDE_BETWEEN_FIELDS: &[&str] = &[PG_CRUD_START_FIELD, PG_CRUD_END_FIELD];
 pub const PG_CRUD_SERDE_PG_TYPE_WHERE_FIELDS: &[&str] = &[PG_CRUD_OPERATOR_FIELD, PG_CRUD_V_FIELD];
 
-pub const CODE_STYLE_CLIPPY_LINT_EXCEPTIONS: [&str; 22] = [
-    SHARED_VALUES_DISALLOWED_FIELDS,
-    SHARED_VALUES_UNNECESSARY_TRAILING_COMMA,
-    SHARED_VALUES_MANUAL_POP_IF,
-    SHARED_VALUES_ASSIGN_OPS,
-    SHARED_VALUES_EXTEND_FROM_SLICE,
-    SHARED_VALUES_MATCH_ON_VEC_ITEMS,
-    SHARED_VALUES_MISALIGNED_TRANSMUTE,
-    SHARED_VALUES_OPTION_MAP_OR_ERR_OK,
-    SHARED_VALUES_PUB_ENUM_VARIANT_NAMES,
-    SHARED_VALUES_RANGE_STEP_BY_ZERO,
-    SHARED_VALUES_REGEX_MACRO,
-    SHARED_VALUES_REPLACE_CONSTS,
-    SHARED_VALUES_SHOULD_ASSERT_EQ,
-    SHARED_VALUES_STRING_TO_STRING,
-    SHARED_VALUES_UNSAFE_VECTOR_INITIALIZATION,
-    SHARED_VALUES_UNSTABLE_AS_MUT_SLICE,
-    SHARED_VALUES_UNSTABLE_AS_SLICE,
-    SHARED_VALUES_UNUSED_COLLECT,
-    SHARED_VALUES_WRONG_PUB_SELF_CONVENTION,
-    SHARED_VALUES_MANUAL_NOOP_WAKER,
-    SHARED_VALUES_MANUAL_OPTION_ZIP,
-    SHARED_VALUES_USELESS_BORROWS_IN_FORMATTING,
+pub const CODE_STYLE_CLIPPY_LINT_EXCEPTIONS: [&str; 0] = [];
+pub const CODE_STYLE_DIRECT_FS_OWNER_SUFFIXES: [&str; 9] = [
+    "/config_lib/src/lib.rs",
+    "/config_lib/src/types.rs",
+    "/file_storage/src/lib.rs",
+    "/initialize_environment_files/src/main.rs",
+    CODE_STYLE_MACRO_CLIPPY_FS_OWNER_SUFFIX,
+    CODE_STYLE_MACROS_HLP_TEST_FS_OWNER_SUFFIX,
+    CODE_STYLE_MACROS_HLP_WRITE_STRING_FS_OWNER_SUFFIX,
+    "/macros_helpers/src/write_token_stream_into_file.rs",
+    CODE_STYLE_WORKSPACE_SCAFFOLD_FS_OWNER_SUFFIX,
+];
+pub const CODE_STYLE_DIRECT_FS_OWNER_REASONS: [&str; 9] = [
+    "configuration loader owns process environment and configuration file access",
+    "configuration domain types own environment-backed initialization",
+    "file storage owns persisted file lifecycle operations",
+    "environment initializer owns workspace manifest and environment file generation",
+    "macro Clippy fixture builder owns temporary crate filesystem operations",
+    "macro helper test fixture owns deterministic temporary file assertions",
+    "generated string writer owns generated source file comparison and updates",
+    "token stream writer owns rustfmt execution for generated source files",
+    "workspace scaffold owns template traversal and generated workspace writes",
+];
+pub const CODE_STYLE_DOMAIN_FIXTURE_PATH: &str = "../tests/src/domain_type_policy_fixture.rs";
+pub const CODE_STYLE_LOCATION_TEST_SRC: &str = "../location_lib/location_test/src";
+pub const CODE_STYLE_LOCATION_TEST_REASON: &str = "location macro fixture deliberately exposes raw Vec fields required by the macro input contract";
+pub const CODE_STYLE_PG_CRUD_COMMON_BENCHES: &str = "../pg_crud/pg_crud_common/benches";
+pub const CODE_STYLE_PG_CRUD_COMMON_BENCHES_REASON: &str =
+    "benchmark-only boundaries are outside the production domain API";
+pub const CODE_STYLE_LEPTOS_CRATE: &str = "leptos";
+pub const CODE_STYLE_MACRO_CLIPPY_FS_OWNER_SUFFIX: &str = "/macro_clippy_check_common/src/lib.rs";
+pub const CODE_STYLE_MACROS_HLP_TEST_FS_OWNER_SUFFIX: &str = "/macros_helpers/src/test_hlp.rs";
+pub const CODE_STYLE_MACROS_HLP_WRITE_STRING_FS_OWNER_SUFFIX: &str =
+    "/macros_helpers/src/write_string_into_file.rs";
+pub const CODE_STYLE_PRELUDE_MODULE: &str = "prelude";
+pub const CODE_STYLE_REVIEWED_PUBLIC_FIELDS: &str = "REVIEWED_PUBLIC_FIELDS";
+pub const CODE_STYLE_TEST_CRATE_NAMES: [&str; 6] = [
+    SHARED_VALUES_GENERATE_PG_TABLE_TEST,
+    SHARED_VALUES_GENERATE_PG_TYPES_TEST,
+    SHARED_VALUES_GENERATE_WHERE_FILTERS_TEST,
+    "location_test",
+    "tests",
+    "workspace_test_runner",
+];
+pub const CODE_STYLE_TEST_CRATE_REASONS: [&str; 6] = [
+    "generated PG table validation crate is test-only",
+    "generated PG type validation crate is test-only",
+    "generated where-filter validation crate is test-only",
+    "location macro contract fixture is test-only",
+    "code-style and integration analyzer crate is test-only",
+    "workspace orchestration runner executes tests and measurements only",
+];
+pub const CODE_STYLE_TESTS_SRC_ROOT: &str = "../tests/src";
+pub const CODE_STYLE_UNBOUNDED_READ_OWNER_SUFFIXES: [&str; 0] = [];
+pub const CODE_STYLE_WORKSPACE_SCAFFOLD_FS_OWNER_SUFFIX: &str = "/workspace_scaffold/src/main.rs";
+pub const CODE_STYLE_ROUTE_VALIDATORS_TEST_HLP_SUFFIX: &str = "/route_validators/src/test_hlp.rs";
+pub const CODE_STYLE_RUNTIME_TEST_HELPER_SUFFIXES: [&str; 2] = [
+    CODE_STYLE_MACROS_HLP_TEST_FS_OWNER_SUFFIX,
+    CODE_STYLE_ROUTE_VALIDATORS_TEST_HLP_SUFFIX,
+];
+pub const CODE_STYLE_RUNTIME_TEST_HELPER_REASONS: [&str; 2] = [
+    "macro helper assertions intentionally panic on deterministic test-fixture failures",
+    "route validator test fixtures intentionally panic on invalid local test setup",
+];
+pub const CODE_STYLE_RUNTIME_ARC_OWNER_SUFFIXES: [&str; 4] = [
+    SERVER_SRC_MAIN_RS,
+    SERVER_ADMIN_SRC_PASSWORD_RS,
+    SERVER_RUNTIME_SRC_BOUNDED_READ_RS,
+    SERVER_RUNTIME_SRC_LIMITS_RS,
+];
+pub const CODE_STYLE_RUNTIME_ARC_OWNER_REASONS: [&str; 4] = [
+    "server composition shares immutable application state across request tasks",
+    "password hashing shares the cross-thread concurrency limit",
+    "bounded reads share a Tokio semaphore across asynchronous readers",
+    "runtime limits share immutable concurrency budgets across tasks",
+];
+pub const CODE_STYLE_FACADE_REEXPORT_SUFFIXES: [&str; 7] = [
+    FRONTEND_CONTRACT_SRC_LIB_RS,
+    PG_CRUD_PG_CRUD_COMMON_SRC_LIB_RS,
+    PG_CRUD_PG_TABLE_GENERATE_PG_TABLE_SRC_SRC_LIB_RS,
+    PG_CRUD_PG_TYPES_GENERATE_PG_TYPES_SRC_SRC_LIB_RS,
+    PG_CRUD_WHERE_FILTERS_GENERATE_WHERE_FILTERS_SRC_SRC_LIB_RS,
+    SERVER_ADMIN_SRC_LIB_RS,
+    SERVER_RUNTIME_SRC_LIB_RS,
+];
+pub const CODE_STYLE_FACADE_REEXPORT_REASONS: [&str; 7] = [
+    "frontend contract facade exports its public transport API",
+    "PG CRUD common facade exports shared domain primitives",
+    "PG table generator facade exports source pipeline entrypoints",
+    "PG types generator facade exports source pipeline entrypoints",
+    "where-filter generator facade exports source pipeline entrypoints",
+    "server administrator facade exports its public service API",
+    "server runtime facade exports shared runtime boundaries",
+];
+pub const CODE_STYLE_LEPTOS_PRELUDE_SUFFIXES: [&str; 2] =
+    [SERVER_ADMIN_FRONTEND_SRC_APP_RS, SSR_SOURCE_PATH];
+pub const CODE_STYLE_LEPTOS_PRELUDE_REASONS: [&str; 2] = [
+    "Leptos CSR view macro expansion requires attribute traits in lexical scope",
+    "Leptos SSR view macro expansion requires attribute traits in lexical scope",
+];
+pub const CODE_STYLE_SINGLE_SOURCE_OWNER_SUFFIXES: [&str; 6] = [
+    SERVER_RUNTIME_SRC_BOUNDED_READ_RS,
+    PG_CRUD_PG_CRUD_COMMON_SRC_SQL_IDENTIFIER_RS,
+    PG_CRUD_COMMON_SRC_PG_ERROR_RS,
+    MACROS_HELPERS_SRC_TOOL_COMMAND_RS,
+    STR_CONSTANTS_SRC_LIB_RS,
+    CODE_STYLE_WORKSPACE_SCAFFOLD_FS_OWNER_SUFFIX,
+];
+pub const CODE_STYLE_SINGLE_SOURCE_OWNER_REASONS: [&str; 6] = [
+    "bounded-read implementation necessarily performs the underlying bounded filesystem read",
+    "SQL identifier wrapper owns validation and SQL identifier vocabulary",
+    "PostgreSQL error classifier centrally owns SQLSTATE interpretation",
+    "tool command wrapper centrally owns process command construction",
+    "string constant crate centrally owns reusable production string constants",
+    "workspace scaffold owns embedded generated SQL and deployment templates",
 ];
 pub const CODE_STYLE_STRING_LITERAL_MACRO_BOUNDARIES: &[&str] = &[
     SHARED_VALUES_ASSERT,
@@ -4105,6 +4197,41 @@ pub const LOCALHOST_EPHEMERAL_SOCKET: &str = "127.0.0.1:0";
 pub const INTEGRATION_NOTIFICATION_MESSAGE: &str = "integration notification";
 pub const HTTP_APPLICATION_JSON: &str = "application/json";
 pub const WORKSPACE_SCAFFOLD_SRC: &str = "../workspace_scaffold/src/";
+pub const CODE_STYLE_LINT_PROBE_CRATE_NAME_ARG: &str = "--crate-name";
+pub const CODE_STYLE_LINT_PROBE_CRATE_NAME: &str = "code_style_lint_probe";
+pub const CODE_STYLE_LINT_PROBE_CRATE_TYPE_ARG: &str = "--crate-type";
+pub const CODE_STYLE_LINT_PROBE_EDITION_ARG: &str = "--edition";
+pub const CODE_STYLE_LINT_PROBE_EDITION: &str = "2024";
+pub const CODE_STYLE_LINT_PROBE_EMIT_METADATA_ARG: &str = "--emit=metadata";
+pub const CODE_STYLE_LINT_PROBE_OUTPUT_ARG: &str = "-o";
+pub const CODE_STYLE_LINT_PROBE_DENY_ARG: &str = "-D";
+pub const CODE_STYLE_LINT_PROBE_UNKNOWN_LINTS: &str = "unknown-lints";
+pub const CODE_STYLE_LINT_PROBE_INPUT_PATH: &str = "/dev/null";
+pub const CODE_STYLE_LINT_PROBE_UNSTABLE_DIAGNOSTIC: &str = "lint is unstable";
+pub const WORKSPACE_SCAFFOLD_DOUBLE_UNDERSCORE: &str = "__";
+pub const WORKSPACE_SCAFFOLD_NODE_MODULES: &str = "node_modules";
+pub const WORKSPACE_SCAFFOLD_TEMPLATE_REPOSITORY_URL: &str =
+    "https://github.com/kuqmua/rust_workspace_template";
+pub const WORKSPACE_SCAFFOLD_TEMPLATE_PROJECT_SNAKE: &str = "rust_workspace_template";
+pub const WORKSPACE_SCAFFOLD_TEMPLATE_PROJECT_KEBAB: &str = "rust-workspace-template";
+pub const WORKSPACE_SCAFFOLD_TEMPLATE_PROJECT_TITLE: &str = "Rust microservice workspace template";
+pub const WORKSPACE_SCAFFOLD_NOTIFICATION_SERVICE: &str = "notification_service";
+pub const WORKSPACE_SCAFFOLD_NOTIFICATION_SERVICE_KEBAB: &str = "notification-service";
+pub const WORKSPACE_SCAFFOLD_NOTIFICATION_UPPER: &str = "NOTIFICATION";
+pub const WORKSPACE_SCAFFOLD_NOTIFICATION_TITLE: &str = "Notification";
+pub const WORKSPACE_SCAFFOLD_NOTIFICATION_LOWER: &str = "notification";
+pub const WORKSPACE_SCAFFOLD_NOTIFICATION_PORT: &str = "8081";
+pub const WORKSPACE_SCAFFOLD_NOTIFICATION_CONFIG: &str = "notification_service_config";
+pub const WORKSPACE_SCAFFOLD_NOTIFICATION_CONTRACT: &str = "notification_service_contract";
+pub const WORKSPACE_SCAFFOLD_MANIFEST_MEMBER_MARKER: &str = "  \"notification_service_contract\",";
+pub const WORKSPACE_SCAFFOLD_MANIFEST_DEPENDENCY_MARKER: &str = "notification_service_contract = { path = \"./notification_service_contract\", version = \"0.1.0\" }";
+pub const WORKSPACE_SCAFFOLD_NOTIFICATION_K8S_PATH: &str =
+    "deploy/k8s/base/notification-service.yaml";
+pub const WORKSPACE_SCAFFOLD_K8S_BASE_PATH: &str = "deploy/k8s/base";
+pub const WORKSPACE_SCAFFOLD_KUSTOMIZATION_PATH: &str = "deploy/k8s/base/kustomization.yaml";
+pub const WORKSPACE_SCAFFOLD_KUSTOMIZATION_MARKER: &str = "  - notification-service.yaml";
+pub const WORKSPACE_SCAFFOLD_STR_CONSTANTS_PATH: &str = "str_constants/src/lib.rs";
+pub const WORKSPACE_SCAFFOLD_PROJECT_COMMAND: &str = "project";
 pub const ADMIN_HTML_FORM_TEXT_TOO_LONG: &str =
     "administrator HTML form text exceeds the size limit";
 pub const ADMIN_HTML_FORM_KEY_TOO_LONG: &str = "administrator HTML form key exceeds the size limit";

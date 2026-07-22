@@ -4,6 +4,8 @@ pub struct StdWrittenFilePath(std::path::PathBuf);
 pub struct StdWrittenFilePathRef<'path_lt>(&'path_lt std::path::Path);
 #[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub struct StringFileContentRef<'cnt_lt>(&'cnt_lt str);
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
+struct GeneratedFileMaximumBytes(usize);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct ShouldWriteString(bool);
 impl std::ops::Not for ShouldWriteString {
@@ -38,6 +40,18 @@ impl WritePathOutcome {
         }
     }
 }
+fn validate_existing_file_text(
+    path: StdWrittenFilePathRef<'_>,
+    maximum_bytes: GeneratedFileMaximumBytes,
+) -> std::io::Result<()> {
+    server_runtime::read_bounded_file(
+        server_runtime::StdPathRef::from(path.as_ref()),
+        server_runtime::BoundedReadMaximumBytes::from(maximum_bytes.0),
+    )
+    .and_then(server_runtime::BoundedText::try_from)
+    .map(|_text| ())
+    .map_err(std::io::Error::other)
+}
 #[allow(clippy::single_call_fn)] // write-decision logic is split out to keep file write path minimal and focused
 fn should_write_string_into_file(
     path: StdWrittenFilePathRef<'_>,
@@ -62,7 +76,10 @@ fn should_write_string_into_file(
                     if offset == string_cnt_ref.len() {
                         return Ok(ShouldWriteString::from(false));
                     }
-                    let _validated_old_cnt = std::fs::read_to_string(path_ref)?;
+                    validate_existing_file_text(
+                        path,
+                        GeneratedFileMaximumBytes::from(string_cnt_ref.len()),
+                    )?;
                     return Ok(ShouldWriteString::from(true));
                 }
                 let end = offset.checked_add(read_len).ok_or_else(|| {
@@ -71,14 +88,20 @@ fn should_write_string_into_file(
                     )
                 })?;
                 let Some(new_chunk) = string_cnt_ref.as_bytes().get(offset..end) else {
-                    let _validated_old_cnt = std::fs::read_to_string(path_ref)?;
+                    validate_existing_file_text(
+                        path,
+                        GeneratedFileMaximumBytes::from(string_cnt_ref.len()),
+                    )?;
                     return Ok(ShouldWriteString::from(true));
                 };
                 let Some(old_chunk_read) = old_chunk.get(..read_len) else {
                     return Err(std::io::Error::other(str_constants::F83D470A_GENERATED_FILE_COMPARISON_READ_LENGTH_EXCEEDS_BUFFER));
                 };
                 if old_chunk_read != new_chunk {
-                    let _validated_old_cnt = std::fs::read_to_string(path_ref)?;
+                    validate_existing_file_text(
+                        path,
+                        GeneratedFileMaximumBytes::from(string_cnt_ref.len()),
+                    )?;
                     return Ok(ShouldWriteString::from(true));
                 }
                 offset = end;
@@ -182,15 +205,6 @@ where
 {
     try_write_string_into_file_with_outcome(file_name, string_cnt).map(WritePathOutcome::into_path)
 }
-pub fn write_string_into_file<P>(file_name: P, string_cnt: StringFileContentRef<'_>)
-where
-    P: AsRef<std::path::Path>,
-{
-    let _pth = crate::panic_if_err::panic_if_err(
-        try_write_string_into_file(file_name, string_cnt),
-        |error| format!("4f3094e1:{error}"),
-    );
-}
 #[cfg(test)]
 mod tests {
     fn cnt(v: &str) -> super::StringFileContentRef<'_> {
@@ -240,7 +254,8 @@ mod tests {
             str_constants::MACROS_HELPERS_WRITE_FILE,
         ));
         let path = crate::rs_file_path::rs_file_path(&base);
-        super::write_string_into_file(&base, cnt(str_constants::XYZ));
+        let _path =
+            super::try_write_string_into_file(&base, cnt(str_constants::XYZ)).expect("4f3094e1");
         assert_content_and_cleanup(path.as_ref(), str_constants::XYZ);
     }
     #[test]

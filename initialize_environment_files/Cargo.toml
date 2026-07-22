@@ -11,6 +11,7 @@ categories = ["development-tools"]
 edition = "2024"
 
 [dependencies]
+server_runtime = { workspace = true }
 str_constants = { workspace = true }
 thiserror = { workspace = true }
 toml = { workspace = true }

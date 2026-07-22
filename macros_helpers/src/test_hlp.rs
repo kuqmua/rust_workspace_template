@@ -62,6 +62,11 @@ pub(crate) fn cleanup_test_file(path: impl AsRef<std::path::Path>) {
     }
 }
 pub(crate) fn assert_file_content(path: StdAssertFilePath<'_>, exp: ExpectedFileContent<'_>) {
-    let cnt = std::fs::read_to_string(path.0).expect("d5ec6712");
-    assert_eq!(cnt, exp.0);
+    let cnt = server_runtime::read_bounded_file(
+        server_runtime::StdPathRef::from(path.0),
+        server_runtime::BoundedReadMaximumBytes::from(exp.0.len()),
+    )
+    .and_then(server_runtime::BoundedText::try_from)
+    .expect("d5ec6712");
+    assert_eq!(cnt.as_ref(), exp.0);
 }

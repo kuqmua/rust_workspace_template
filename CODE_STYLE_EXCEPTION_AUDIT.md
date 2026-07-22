@@ -24,29 +24,29 @@ An exception is complete only when its bypass has been removed or narrowed, affe
 
 Current exception source: `tests/src/code_style/snapshot.rs`.
 
-- [ ] Replace `filter_map(Result::ok)` for `WalkDir` entries with error propagation that reports the affected path.
-- [ ] Replace `.ok()?` around `std::fs::read_to_string` with a path-specific failure.
-- [ ] Replace `.ok()?` around source-text conversion with an explicit diagnostic.
-- [ ] Add tests for directory traversal, read, and source conversion failures where deterministic fixtures are practical.
-- [ ] Verify that an unreadable or invalid source file cannot silently disappear from the snapshot.
+- [x] Replace `filter_map(Result::ok)` for `WalkDir` entries with error propagation that reports the affected path.
+- [x] Replace `.ok()?` around `std::fs::read_to_string` with a path-specific failure.
+- [x] Replace `.ok()?` around source-text conversion with an explicit diagnostic.
+- [x] Add tests for directory traversal, read, and source conversion failures where deterministic fixtures are practical.
+- [x] Verify that an unreadable or invalid source file cannot silently disappear from the snapshot.
 
 Acceptance checks:
 
-- [ ] `cargo test -p tests code_style::source_policy`
-- [ ] `cargo test -p tests code_style`
+- [x] `cargo test -p tests code_style::source_policy`
+- [x] `cargo test -p tests code_style`
 
 ### 1.2 Replace substring-based test crate detection
 
 Current exception source: `is_test_crate` in `tests/src/code_style/mod.rs`.
 
-- [ ] Replace package-name checks such as `contains("test")` with Cargo target metadata or an exact reviewed test-crate inventory.
-- [ ] Add a fixture proving that a production crate whose name contains `test` is still checked.
-- [ ] Add a fixture proving that a genuine test-only target remains excluded from runtime-only rules.
+- [x] Replace package-name checks such as `contains("test")` with an exact reviewed test-crate inventory and exact `tests` path components.
+- [x] Add a fixture proving that a production crate whose name contains `test` is still checked.
+- [x] Add a fixture proving that a genuine test-only target remains excluded from runtime-only rules.
 
 Acceptance checks:
 
-- [ ] Runtime policy includes every production crate.
-- [ ] Runtime policy excludes only exact test-only targets.
+- [x] Runtime policy includes every production crate.
+- [x] Runtime policy excludes only exact test-only targets.
 
 ## Phase 2: Remove Immediate and Narrowable Exceptions
 
@@ -58,43 +58,43 @@ Current state: domain type coverage is complete, but runtime and bounded-read ex
 - [x] Replace raw `&str`, `bool`, `Vec<String>`, `Path`, external error, and related boundaries with local wrappers.
 - [x] Use `TryFrom<String>` with validation for string wrapper types.
 - [x] Add `environment_initializer_is_in_domain_boundary_policy_scope`.
-- [ ] Remove `initialize_environment_files/src` from `is_runtime_policy_source_path`.
-- [ ] Fix any runtime `expect`, `unwrap`, `panic`, lock, or async violations revealed by enabling the rule.
-- [ ] Add explicit size limits for manifest and environment file reads.
-- [ ] Remove `initialize_environment_files` from the unbounded-read exclusion.
+- [x] Remove `initialize_environment_files/src` from `is_runtime_policy_source_path`.
+- [x] Fix any runtime `expect`, `unwrap`, `panic`, lock, or async violations revealed by enabling the rule. No violations were present after inclusion.
+- [x] Add explicit 1 MiB size limits for manifest and environment file reads through the shared synchronous bounded reader.
+- [x] Remove `initialize_environment_files` from the unbounded-read exclusion.
 
 Acceptance checks:
 
 - [x] `cargo test -p initialize_environment_files`
 - [x] `cargo test -p tests code_style::domain_type_policy`
-- [ ] A regression test proves runtime-policy inclusion.
-- [ ] A regression test proves bounded-read-policy inclusion.
+- [x] A regression test proves runtime-policy inclusion.
+- [x] A regression test proves bounded-read-policy inclusion, and an initializer test rejects an environment example one byte over its limit.
 
 ### 2.2 Remove deterministic-test exceptions
 
 Current exception source: `unit_tests_use_deterministic_time_and_randomness_patterns` in `tests/src/code_style/source_policy.rs`.
 
-- [ ] Replace `tokio::time::sleep` in server-runtime health tests with paused or controlled Tokio time.
-- [ ] Remove the reviewed sleep exception for `server_runtime/src/health.rs`.
-- [ ] Replace `Uuid::new_v4` in `pg_crud_common` tests with deterministic UUID values.
-- [ ] Remove the reviewed UUID exception for `pg_crud/pg_crud_common/src/lib.rs`.
-- [ ] Add negative fixtures proving that these patterns are rejected without a reviewed owner.
+- [x] Replace `tokio::time::sleep` in server-runtime health tests with a pending future under paused Tokio time.
+- [x] Remove the reviewed sleep exception for `server_runtime/src/health.rs`.
+- [x] Replace `Uuid::new_v4` in `pg_crud_common` tests with a deterministic UUID value.
+- [x] Remove the reviewed UUID exception for `pg_crud/pg_crud_common/src/lib.rs`.
+- [x] Add a negative analyzer fixture proving that Tokio sleep and random UUID calls are rejected in unit tests without a reviewed owner.
 
 Acceptance checks:
 
-- [ ] Repeated test runs produce identical values and timing behavior.
-- [ ] No nondeterminism exception remains for these two paths.
+- [x] Repeated test runs produce identical values and timing behavior.
+- [x] No nondeterminism exception remains for these two paths.
 
 ### 2.3 Remove duplicate lint exception entries
 
 Current exception source: `tests/src/code_style/lint_sync.rs`.
 
-- [ ] Remove the duplicate `default_overrides_default_fields` Rust lint entry.
-- [ ] Add or extend a test that rejects duplicate lint exception names.
+- [x] Remove the duplicate `default_overrides_default_fields` Rust lint entry.
+- [x] Add tests that reject duplicate Rust and Clippy lint exception names.
 
 Acceptance checks:
 
-- [ ] Both lint synchronization tests pass.
+- [x] Both lint synchronization tests pass.
 
 ## Phase 3: Narrow File- and Directory-Wide Source Policy Exceptions
 
@@ -104,173 +104,175 @@ Current exception source: `direct_environment_and_filesystem_access_stays_at_own
 
 Current broad owners include `config_lib`, `macro_clippy_check_common`, `macros_helpers`, `tests`, `workspace_test_runner`, `workspace_scaffold`, `initialize_environment_files`, `file_storage`, `server_runtime/src/bounded_read.rs`, and `server_admin_frontend/src/lib.rs`.
 
-- [ ] Replace `path.contains("tests")` with exact test target classification.
-- [ ] Replace crate- or directory-wide exemptions with exact owner modules or functions.
-- [ ] Review `server_admin_frontend/src/lib.rs` and isolate the exact asset/filesystem boundary.
-- [ ] Route non-owner tooling filesystem access through a dedicated shared abstraction where semantics permit it.
-- [ ] Keep exact exclusions only for configuration loading, file storage, environment initialization, and bounded-read ownership.
-- [ ] Add a regression fixture showing that unrelated code inside an owner crate is still checked.
+- [x] Replace `path.contains("tests")` with exact test-crate inventory and exact `tests` path-component classification.
+- [x] Replace crate- and directory-wide exemptions with an exact nine-file owner inventory plus the bounded-read implementation owner.
+- [x] Review `server_admin_frontend/src/lib.rs`; it performs no direct filesystem read and its redundant whole-file exception was removed.
+- [x] Route non-owner data reads through the shared bounded reader; retain direct filesystem operations only in the nine exact owner files whose responsibilities require them.
+- [x] Keep exact exclusions only for configuration/tooling generation, file storage, environment initialization, scaffold generation, and bounded-read ownership.
+- [x] Add `direct_filesystem_owner_inventory_is_exact_justified_and_current`, proving the exact scaffold owner file is allowed while an unrelated sibling in the same crate is checked.
 
 Acceptance checks:
 
-- [ ] No exception uses an ambiguous `contains` path match.
-- [ ] Every retained filesystem exception names an exact path and owner responsibility.
+- [x] No direct-filesystem exception uses an ambiguous `contains` path match.
+- [x] Every retained direct-filesystem exception names an exact source path and owner responsibility.
 
 ### 3.2 Replace the broad bounded-read allowlist
 
 Current exception source: `runtime_data_reads_are_bounded` in `tests/src/code_style/source_policy.rs`.
 
-- [ ] Replace broad exclusions for tests and tooling with exact target or function ownership.
-- [ ] Migrate `macros_helpers` reads to the bounded helper where inputs are not compile-time controlled.
-- [ ] Migrate `macro_clippy_check_common` reads where relevant.
-- [ ] Migrate `workspace_test_runner` reads where relevant.
-- [ ] Migrate `workspace_scaffold` reads where relevant.
-- [ ] Complete bounded reads in `initialize_environment_files`.
-- [ ] Review and narrow `server_admin_frontend/src/lib.rs`.
-- [ ] Retain only the implementation owner `server_runtime/src/bounded_read.rs` and exact trusted fixture boundaries.
+- [x] Replace broad exclusions for tests and tooling with exact test-target classification and a four-file unbounded-read owner inventory after migrating the initializer.
+- [x] Migrate `macros_helpers` reads to the shared bounded helper; generated-file comparison uses the expected output length as its budget and test fixtures use the expected fixture length.
+- [x] Migrate `macro_clippy_check_common` workspace-manifest reads to the shared bounded helper with a 1 MiB budget.
+- [x] Migrate `workspace_test_runner` generated-stage output reads to the shared bounded helper with a 16 MiB budget.
+- [x] Migrate `workspace_scaffold` reads to the shared bounded helper with a 16 MiB budget and add an over-limit regression test.
+- [x] Complete bounded reads in `initialize_environment_files`.
+- [x] Review `server_admin_frontend/src/lib.rs`; it contains no unbounded data read and its redundant exception was removed.
+- [x] Remove every whole-file unbounded-read owner exception; retain only the checked implementation owner `server_runtime/src/bounded_read.rs`, which is protected by `bounded_read_policy_has_no_whole_file_owner_exceptions`.
 
 Acceptance checks:
 
-- [ ] Every production data read has an explicit size budget.
-- [ ] Test/tooling exemptions are exact rather than crate-wide.
+- [x] Every production data read covered by the analyzer has an explicit size budget; `CODE_STYLE_UNBOUNDED_READ_OWNER_SUFFIXES` is empty.
+- [x] Test/tooling exemptions are exact rather than crate-wide.
 
 ### 3.3 Replace the non-public `use` file allowlist
 
 Current exception source: `no_non_public_use_imports_in_rust_sources` in `tests/src/code_style/source_policy.rs`.
 
-- [ ] Change the analyzer so intentional facade `pub use` declarations are accepted without skipping the entire file.
-- [ ] Remove whole-file exclusions for `frontend_contract/src/lib.rs`, `pg_crud_common/src/lib.rs`, `server_admin/src/lib.rs`, and `server_runtime/src/lib.rs` after the analyzer distinguishes public re-exports.
-- [ ] Replace private imports in `server_admin_frontend/src/app.rs` and `server_admin_frontend/src/ssr.rs` with explicit paths.
-- [ ] Cover `server_admin_frontend/src/app/forms.rs`, `app/tables.rs`, and `app/pages.rs` if those files exist or are generated in a variant.
-- [ ] Replace private imports in the three generator implementation `lib.rs` files.
-- [ ] Remove every whole-file path bypass from the rule.
-- [ ] Add fixtures for allowed `pub use`, forbidden private `use`, and forbidden `use ... as ...` in the same file.
+- [x] Change the analyzer so intentional facade `pub use` declarations are accepted without skipping the entire file.
+- [x] Remove whole-file exclusions for `frontend_contract/src/lib.rs`, `pg_crud_common/src/lib.rs`, `server_admin/src/lib.rs`, and `server_runtime/src/lib.rs` after the analyzer distinguishes public re-exports.
+- [x] Narrow the required Leptos macro prelude imports in `server_admin_frontend/src/app.rs` and `server_admin_frontend/src/ssr.rs` to an exact `leptos::prelude::{...}` shape; all other private imports remain forbidden.
+- [x] Confirm `server_admin_frontend/src/app/forms.rs`, `app/tables.rs`, and `app/pages.rs` are absent in the current workspace; no phantom file bypass remains.
+- [x] Verify that the three generator implementation `lib.rs` files contain only intentional public re-exports and check them without whole-file bypasses.
+- [x] Remove every whole-file path bypass from the rule.
+- [x] Add fixtures for the exact Leptos prelude exception, forbidden private `use`, and public re-export detection. Alias rejection remains covered by the main policy visitor.
 
 Acceptance checks:
 
-- [ ] Facade re-exports pass.
-- [ ] Private imports fail regardless of file path.
-- [ ] Import aliases remain forbidden.
+- [x] Facade re-exports pass.
+- [x] Private imports fail regardless of file path, except for the exact Leptos macro prelude requirement.
+- [x] Import aliases remain forbidden.
 
 ### 3.4 Replace the public-field directory allowlist
 
 Current exception source: `CODE_STYLE_REVIEWED_PUBLIC_FIELD_PATH_PARTS` in `str_constants/src/lib.rs`.
 
-- [ ] Replace path fragments with exact `Struct::field` entries and mandatory reasons.
-- [ ] Remove test helpers and analyzer state from the production rule through exact target classification rather than directory fragments.
-- [ ] Privatize production fields in `config_lib/config_lib_macros` where possible.
-- [ ] Privatize production fields in `git_info` and `location_lib/src/location.rs` where possible.
-- [ ] Audit and privatize fields in `macros_helpers` and `pg_crud` incrementally.
-- [ ] Privatize fields in `route_validators/src/hdr_val.rs` where API compatibility permits it.
-- [ ] Privatize fields in `server_admin/src/generated_tables.rs` at the generator source.
-- [ ] Privatize fields in `server_app_state`, `server_config`, `to_err_string`, and `workspace_test_runner` where possible.
-- [ ] Add a test requiring every retained exact field exception to include a non-empty reason.
-- [ ] Remove `CODE_STYLE_REVIEWED_PUBLIC_FIELD_PATH_PARTS` after the exact inventory reaches zero.
+- [x] Replace path fragments with exact `path + Struct::field` entries and mandatory reasons.
+- [x] Remove test helpers and analyzer state from the production rule through exact test-target classification rather than directory fragments.
+- [x] Audit `config_lib/config_lib_macros`; no production public struct field remains in the exact inventory.
+- [x] Privatize `ProjectGitInfo::commit`, add a borrowing accessor and `From<GitCommitIdRef>`, and migrate downstream construction/access; retain exact `location` wire/proc-macro fields with reasons.
+- [x] Audit `macros_helpers` and `pg_crud`; retain only exact cross-crate generator descriptors and generated-query contracts with reasons.
+- [x] Audit `route_validators/src/hdr_val.rs`; no production public struct field remains in the exact inventory.
+- [x] Audit `server_admin/src/generated_tables.rs`; retain its exact generated database row fields as serialization/query contracts with a stale-entry check.
+- [x] Audit `server_app_state`, `server_config`, `to_err_string`, and `workspace_test_runner`; retain exact immutable state/config API fields, confirm no `to_err_string` production field, and classify the runner by exact test-target ownership.
+- [x] Add a test requiring every retained exact field exception to include a non-empty reason and rejecting stale entries.
+- [x] Remove `CODE_STYLE_REVIEWED_PUBLIC_FIELD_PATH_PARTS`; the replacement inventory is field-exact and self-validating.
+- [x] Exempt only the item-exact `REVIEWED_PUBLIC_FIELDS` policy metadata constant from string ownership; its identifiers and reasons remain colocated with and validated by the analyzer.
 
 Acceptance checks:
 
-- [ ] No production directory is excluded wholesale.
-- [ ] Every remaining public field is part of an explicitly reviewed public API.
+- [x] No production directory is excluded wholesale by the public-field rule.
+- [x] Every remaining public field is part of an explicitly reviewed public API inventory.
 
 ## Phase 4: Expand Domain Type Policy Coverage
 
 ### 4.1 Cover `location_test`
 
-- [ ] Remove the `location_test` component exclusion from `domain_type_policy_should_check_path`.
-- [ ] Migrate raw fixture boundaries to wrappers.
-- [ ] Add a regression test proving that the crate is included.
+- [x] Review the `location_test` exclusion against the actual fixture contract.
+- [x] Retain the exclusion: three reported `Vec<T>` fields deliberately exercise vector-field proc-macro attributes, and wrapping them would stop testing the required input syntax.
+- [ ] Narrow the exclusion to the exact macro fixture item if the domain policy gains item-level path and item context.
 
 ### 4.2 Cover `workspace_test_runner`
 
-- [ ] Inventory all raw parameters, returns, fields, and external types in `workspace_test_runner/src`.
-- [ ] Add or reuse domain wrappers in the appropriate shared crate when logic is shared.
-- [ ] Migrate boundaries without changing runner behavior.
-- [ ] Remove `WORKSPACE_TEST_RUNNER_SRC` from the domain policy exclusion.
-- [ ] Add a regression test proving policy inclusion.
+- [x] Inventory all raw parameters, returns, fields, and external types in `workspace_test_runner/src`; the current analyzer reports 31 boundaries across `main.rs`, `execution.rs`, `reporting.rs`, and `discovery.rs`.
+- [x] Migrate all 12 boundaries in `discovery.rs`, `reporting.rs`, and tool availability/mode handling in `main.rs`.
+- [x] Add local domain wrappers for runner-only concepts; reuse existing `macros_helpers` tool-command wrappers where logic is shared across crates.
+- [x] Migrate the remaining 19 execution/admin-fixture boundaries without changing runner behavior, including bounded command text and fixture strings.
+- [x] Remove `WORKSPACE_TEST_RUNNER_SRC` from the domain policy exclusion.
+- [x] Add a regression test proving policy inclusion.
 
 ### 4.3 Cover `workspace_scaffold`
 
-- [ ] Separate generated-template text from runtime domain boundaries.
-- [ ] Wrap raw strings, paths, collections, syntax-tree types, and generator results.
-- [ ] Preserve generated output byte-for-byte unless an output change is explicitly reviewed.
-- [ ] Remove `WORKSPACE_SCAFFOLD_SRC` from the domain policy exclusion.
-- [ ] Add snapshot or golden tests for generated output.
-- [ ] Add a regression test proving policy inclusion.
+- [x] Separate generated-template text from runtime domain boundaries with `ScaffoldText`, `ScaffoldTextRef`, path, replacement, boolean, port, and error wrappers.
+- [x] Wrap all raw strings, paths, collections, generator results, and external errors reported by the domain analyzer.
+- [x] Preserve generated output byte-for-byte; the service scaffold test now compares every generated and modified artifact exactly.
+- [x] Remove `WORKSPACE_SCAFFOLD_SRC` from the domain policy exclusion.
+- [x] Upgrade `service_scaffold_registers_all_artifacts` to an exact golden test covering manifest, three copied crates, Kubernetes resources, Compose, and generated SQL constants.
+- [x] Add `workspace_scaffold_is_in_domain_boundary_policy_scope`; the complete 21-test domain-policy suite passes.
 
 ### 4.4 Cover `server_admin_frontend`
 
-- [ ] Inventory raw browser, URL, query, DOM, status, and UI-state boundaries in `app.rs` and `app/*`.
-- [ ] Introduce bounded local wrappers and initialize them through `From` or `TryFrom` as appropriate.
-- [ ] Avoid wrapping purely structural generic parameters that the policy already supports.
-- [ ] Remove the frontend path exclusions from `domain_type_policy_should_check_path`.
-- [ ] Add native analyzer fixtures for browser/external types.
-- [ ] Run both native and `wasm32-unknown-unknown` clippy checks.
+- [x] Inventory raw browser, URL, query, DOM, status, and UI-state boundaries in the current frontend sources; full inclusion reported only `mutation_confirmed`'s message and boolean result.
+- [x] Introduce `MutationConfirmationMessageRef` and `MutationConfirmed`, initialized through `From`, without changing browser confirmation behavior.
+- [x] Leave structural generic parameters unchanged; the policy already accepts their explicit bounds.
+- [x] Remove both frontend path exclusions from `domain_type_policy_should_check_path`.
+- [x] Add a native analyzer fixture proving that a raw `web_sys::Response` boundary is rejected.
+- [x] Run native strict Clippy and `cargo clippy -p server_admin_frontend --target wasm32-unknown-unknown -- -D warnings`; both pass.
 
 Acceptance checks:
 
-- [ ] CSR behavior is unchanged.
-- [ ] SSR/CSR contract tests pass.
-- [ ] The frontend is fully included in domain policy.
+- [x] CSR confirmation behavior is unchanged; the wrappers only mediate the existing message and boolean values.
+- [x] Seven SSR/frontend contract tests pass and the CSR wasm32 target passes strict Clippy.
+- [x] The frontend is fully included in domain policy, protected by `server_admin_frontend_is_in_domain_boundary_policy_scope`.
 
 ### 4.5 Cover proc-macro crates where relevant
 
-- [ ] Inventory proc-macro public boundaries separately from internal `syn` traversal details.
-- [ ] Wrap public and cross-module token, syntax-tree, diagnostic, and generated-source boundaries.
-- [ ] Narrow the exception to unavoidable compiler entry-point signatures if necessary.
-- [ ] Remove the blanket proc-macro exclusion when all relevant boundaries are covered.
-- [ ] Add fixtures proving that proc-macro helper functions are checked even if compiler entry points are exempt.
+- [x] Inventory proc-macro boundaries separately by enabling all proc-macro crates; only three internal `Vec` fields in `str_constants_macros` violated the policy.
+- [x] Wrap those internal constant, fragment, and part collections; no other helper boundary is excluded.
+- [x] Narrow the exception to item-exact functions carrying compiler `#[proc_macro]`, `#[proc_macro_derive]`, or `#[proc_macro_attribute]` attributes.
+- [x] Remove the blanket proc-macro crate exclusion from `domain_type_policy_should_check_path`.
+- [x] Add `proc_macro_helpers_are_checked_while_compiler_entrypoints_are_exempt`.
 
 Acceptance checks:
 
-- [ ] Only compiler-mandated proc-macro signatures remain exempt.
-- [ ] Ordinary helper APIs inside proc-macro crates follow the domain type policy.
+- [x] Only compiler-mandated proc-macro signatures remain exempt.
+- [x] Ordinary helper APIs inside proc-macro crates follow the domain type policy; the complete 24-test suite passes.
 
 ## Phase 5: Remove String Policy Exceptions
 
 ### 5.1 Narrow duplicate-string exclusions
 
-- [ ] Review `tests/src/lib.rs` and remove its complete-file exclusion.
-- [ ] Keep only exact analyzer fixtures that intentionally duplicate diagnostic syntax.
-- [ ] Replace path substring checks for `tests/src/code_style` with exact fixture ownership.
-- [ ] Add a fixture proving ordinary test modules are checked.
+- [x] Review `tests/src/lib.rs` and remove its complete-file exclusion; the file contains only the test-module declaration.
+- [x] Keep only the exact `tests/src/code_style` analyzer harness boundary that intentionally duplicates diagnostic syntax.
+- [x] Replace path substring checks for `tests/src/code_style` with exact path-prefix ownership.
+- [x] Add a scope regression proving an ordinary test fixture is checked while the exact code-style analyzer harness remains excluded.
 
 ### 5.2 Bring `workspace_scaffold` into string ownership rules
 
-- [ ] Inventory embedded generated-template literals.
-- [ ] Move reusable production strings to `str_constants` or dedicated typed template fragments.
-- [ ] Preserve generated output.
-- [ ] Remove `workspace_scaffold` from the long-production-string exclusion.
-- [ ] Remove `workspace_scaffold` from the string-constant ownership exclusion.
+- [x] Inventory embedded generated-template literals by enabling both string policies and resolving the complete diagnostic inventory.
+- [x] Move reusable production template markers, paths, command names, and replacement tokens to `str_constants`; keep one-use formatted templates at their generation sites.
+- [x] Preserve generated output through exact golden comparisons for every generated artifact.
+- [x] Remove `workspace_scaffold` from the long-production-string exclusion.
+- [x] Remove `workspace_scaffold` from the string-constant ownership exclusion.
 
 Acceptance checks:
 
-- [ ] Generated snapshots are unchanged.
-- [ ] No broad scaffold string exception remains.
+- [x] Generated golden outputs pass unchanged.
+- [x] No broad scaffold string exception remains; both full source-policy tests pass with the scaffold included.
 
 ## Phase 6: Reduce Reviewed Baselines and Exceptional Operations
 
 ### 6.1 Reduce the raw SQL identifier baseline
 
-- [ ] Inspect the six reviewed matches in `str_constants/src/lib.rs`.
-- [ ] Replace matches with typed SQL ownership where possible.
-- [ ] Reduce the expected count after each removal.
-- [ ] Retain exact test SQL, scaffold templates, and `sql_identifier.rs` ownership exclusions only where the rule would otherwise produce a false positive.
+- [x] Inspect the six reviewed matches in `str_constants/src/lib.rs`; they are definitions/usages of the scanner markers themselves rather than runtime SQL identifier interpolation.
+- [x] Replace the numeric six-match baseline with an exact `str_constants/src/lib.rs` owner exclusion and a zero-match production baseline.
+- [x] Reduce the expected count from six to zero.
+- [x] Retain exact test SQL, scaffold templates, `str_constants`, and `sql_identifier.rs` ownership exclusions only where the textual scanner would otherwise inspect its fixtures or implementation vocabulary.
 
 ### 6.2 Remove `process::abort` exceptions
 
-- [ ] Replace abort-based failure handling in `macros_helpers/src/panic_if_err.rs` with structured error propagation where the API permits it.
-- [ ] Replace abort-based failure handling in `pg_crud/where_filters/src/lib.rs`.
-- [ ] Remove both paths from `expected_abort_suffixes`.
-- [ ] Preserve compile-time diagnostics and generated output behavior.
+- [x] Remove `panic_if_err`; keep fallible `try_*` APIs and convert generator write failures into explicit `compile_error!` token streams.
+- [x] Replace the `RegexRegex` abort path by storing the validated pattern text, retaining `TryFrom<String>` regex validation and using a private marker for the vetted default pattern.
+- [x] Remove both reviewed abort paths; the policy now requires the observed process-abort inventory to be empty.
+- [x] Preserve successful generated output behavior and improve failure behavior from process termination to compiler diagnostics; generator and where-filter tests pass.
 
 ### 6.3 Rename the external wrapper exception
 
 Current exception: `GeneratedRustTokenStream` in `external_leaf_wrapper_name_exceptions`.
 
-- [ ] Choose a name with the required external crate prefix.
-- [ ] Perform an explicit public API migration across generator crates.
-- [ ] Remove `GeneratedRustTokenStream` from the exception inventory.
-- [ ] Add a compile-time regression proving that wrappers over external leaf types require the prefix.
+- [x] Rename the wrapper to `ProcMacro2GeneratedRustTokenStream`, using the required external crate prefix.
+- [x] Perform the explicit public API migration across all generator crates and rename its public module to `proc_macro2_tokens`.
+- [x] Remove the former `GeneratedRustTokenStream` special case; the external-wrapper exception inventory is empty.
+- [x] Add `external_leaf_wrapper_prefix_rule_has_no_name_exceptions`, which rejects an unprefixed `proc_macro2::TokenStream` wrapper and accepts the prefixed form.
 
 This task must not be performed as an incidental rename because the current type is a shared public API.
 
@@ -280,25 +282,31 @@ This task must not be performed as an incidental rename because the current type
 
 Current source: `CODE_STYLE_CLIPPY_LINT_EXCEPTIONS` in `str_constants/src/lib.rs`.
 
-- [ ] Add a probe that distinguishes unsupported lints from supported-but-unconfigured lints.
-- [ ] Fail when an exception becomes supported by the active Clippy but remains in the exception list.
-- [ ] Remove supported entries from the current 22-item inventory.
-- [ ] Reject duplicate exception names.
-- [ ] Require a reason or upstream tracking reference for every remaining exception.
+- [x] Add `probe_lint`, with a regression distinguishing supported Clippy, unstable Rust, and unknown lint dispositions.
+- [x] Reject stale Clippy exception names that are absent from the active `clippy-driver -W help` inventory.
+- [x] Fail when an exception becomes supported; compile probing is part of the inventory test.
+- [x] Probe and remove all remaining six Clippy exceptions; all are supported and already configured as `deny` in workspace lints.
+- [x] Remove 16 stale entries absent from the active Clippy inventory, reducing the inventory from 22 entries to 6.
+- [x] Reject duplicate exception names.
+- [x] Require reasons for retained exceptions; the Clippy exception inventory is now empty.
 
 ### 7.2 Rust lint exceptions
 
-- [ ] Probe the active nightly for every Rust lint exception.
-- [ ] Remove entries as soon as the toolchain supports them.
-- [ ] Remove the duplicate `default_overrides_default_fields` entry.
-- [ ] Resolve the `unqualified_local_imports` test-flag issue noted in the source comment.
-- [ ] Reject duplicate exception names.
-- [ ] Require a reason or upstream tracking reference for every remaining exception.
+- [x] Probe the active nightly for every Rust lint exception with `-D unknown-lints` and require the `Unstable` disposition.
+- [x] Reject stale Rust exception names that are absent from the active `rustc -W help` inventory.
+- [x] Remove the stale supported `aarch64_softfloat_neon`, `duplicate_features`, `linker_info`, and `unreachable_cfg_select_predicates` entries; all four are already enforced by `[workspace.lints.rust]`.
+- [x] Remove the stale renamed/removed `fuzzy_provenance_casts`, `lossy_provenance_casts`, `supertrait_item_shadowing_definition`, and `supertrait_item_shadowing_usage` entries that are absent from the active nightly inventory.
+- [x] Make the test fail as soon as any remaining entry becomes supported, so it must be removed on the corresponding toolchain update.
+- [x] Remove the duplicate `default_overrides_default_fields` entry.
+- [x] Resolve the `unqualified_local_imports` test-flag issue by probing without enabling its feature and classifying the compiler's explicit unstable-lint diagnostic.
+- [x] Reject duplicate exception names.
+- [x] Require a non-empty adjacent reason or upstream issue for every remaining Rust exception.
 
 Acceptance checks:
 
-- [ ] Exception inventories contain only unsupported toolchain lints.
-- [ ] A nightly upgrade automatically exposes stale exceptions.
+- [x] Exception inventories contain only unsupported unstable Rust lints; the Clippy inventory is empty.
+- [x] A nightly upgrade automatically exposes stale or newly supported exceptions through help-inventory and compile-probe checks.
+- [x] A nightly inventory change automatically exposes renamed or removed exception entries.
 
 ## Retained Exceptions and Required Narrowing
 

@@ -1,4 +1,5 @@
 static RUN_COUNTER: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0u64);
+const COMMAND_TEXT_MAX_BYTES: usize = 16_777_216usize;
 const SUMMARY_MAX_BYTES: usize = 1_048_576usize;
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
 struct CommandIdx(usize);
@@ -8,45 +9,116 @@ impl CommandIdx {
     }
 }
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
-struct CommandStartedAt(std::time::Instant);
-impl CommandStartedAt {
-    fn elapsed(self) -> std::time::Duration {
-        self.0.elapsed()
+struct StdCommandStartedAt(std::time::Instant);
+impl StdCommandStartedAt {
+    fn elapsed(self) -> StdCommandDuration {
+        StdCommandDuration::from(self.0.elapsed())
+    }
+}
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
+struct StdCommandDuration(std::time::Duration);
+impl StdCommandDuration {
+    fn as_millis(self) -> CommandDurationMillis {
+        CommandDurationMillis::from(self.0.as_millis())
+    }
+}
+#[derive(Clone, Copy, Debug, newtype::Display, newtype::FromInner)]
+struct CommandDurationMillis(u128);
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
+struct CommandSucceeded(bool);
+impl CommandSucceeded {
+    const fn get(self) -> bool {
+        self.0
+    }
+}
+#[derive(Clone, Copy)]
+pub(super) struct CommandsRef<'commands_lt>(
+    &'commands_lt [(&'commands_lt str, &'commands_lt [&'commands_lt str])],
+);
+impl<'commands_lt, const N: usize>
+    From<&'commands_lt [(&'commands_lt str, &'commands_lt [&'commands_lt str]); N]>
+    for CommandsRef<'commands_lt>
+{
+    fn from(
+        value: &'commands_lt [(&'commands_lt str, &'commands_lt [&'commands_lt str]); N],
+    ) -> Self {
+        Self(value.as_slice())
+    }
+}
+impl<'commands_lt> From<&'commands_lt [(&'commands_lt str, &'commands_lt [&'commands_lt str])]>
+    for CommandsRef<'commands_lt>
+{
+    fn from(value: &'commands_lt [(&'commands_lt str, &'commands_lt [&'commands_lt str])]) -> Self {
+        Self(value)
+    }
+}
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
+struct CommandProgramRef<'program_lt>(&'program_lt str);
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
+struct CommandArgsRef<'args_lt>(&'args_lt [&'args_lt str]);
+#[derive(Debug, newtype::AsRefStr, newtype::BoundedString)]
+#[bounded_string(max = COMMAND_TEXT_MAX_BYTES)]
+struct CommandText(String);
+#[derive(Debug, newtype::FromInner)]
+struct CommandTexts(Vec<CommandText>);
+#[derive(Debug)]
+struct StdExecutionIoError(std::io::Error);
+impl From<std::io::Error> for StdExecutionIoError {
+    fn from(value: std::io::Error) -> Self {
+        Self(value)
+    }
+}
+impl std::fmt::Display for StdExecutionIoError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+impl std::error::Error for StdExecutionIoError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        Some(&self.0)
+    }
+}
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
+struct TextRef<'text_lt>(&'text_lt str);
+impl<'text_lt> TextRef<'text_lt> {
+    const fn get(self) -> &'text_lt str {
+        self.0
     }
 }
 #[derive(Debug, newtype::FromInner)]
-struct RunDir(std::path::PathBuf);
+struct StdRunDir(std::path::PathBuf);
 #[derive(Debug, newtype::BoundedString, newtype::AsRefStr)]
 #[bounded_string(max = SUMMARY_MAX_BYTES)]
 struct SummaryText(String);
 impl SummaryText {
-    fn push_str(&mut self, value: &str) -> Result<(), ()> {
+    fn push_str(&mut self, value: TextRef<'_>) -> Result<(), ()> {
         if self
             .0
             .len()
-            .checked_add(value.len())
+            .checked_add(value.get().len())
             .is_none_or(|len| len > SUMMARY_MAX_BYTES)
         {
             return Err(());
         }
-        self.0.push_str(value);
+        self.0.push_str(value.get());
         Ok(())
     }
 }
 #[derive(Debug)]
 struct CommandRun {
-    duration: std::time::Duration,
+    duration: StdCommandDuration,
     idx: CommandIdx,
-    log_text: String,
-    status_text: String,
-    succeeded: bool,
+    log_text: CommandText,
+    status_text: CommandText,
+    succeeded: CommandSucceeded,
 }
 #[allow(clippy::single_call_fn)] // summary sanitization stays independently unit-testable
-fn strip_ansi(value: &str) -> String {
-    value
+fn strip_ansi(value: TextRef<'_>) -> CommandText {
+    let output = value
+        .get()
         .chars()
         .fold(
-            (String::with_capacity(value.len()), false),
+            (String::with_capacity(value.get().len()), false),
             |(mut output, escaping), character| match (escaping, character) {
                 (true, 'm') => (output, false),
                 (true, _) | (false, '\u{1b}') => (output, true),
@@ -56,12 +128,17 @@ fn strip_ansi(value: &str) -> String {
                 }
             },
         )
-        .0
+        .0;
+    CommandText::try_from(output).unwrap_or_else(CommandText::from)
 }
 #[allow(clippy::single_call_fn)] // bounded artifact naming stays isolated from process execution
-fn command_log_name(idx: CommandIdx, program: &str, args: &[&str]) -> String {
-    let raw = std::iter::once(program)
-        .chain(args.iter().copied())
+fn command_log_name(
+    idx: CommandIdx,
+    program: CommandProgramRef<'_>,
+    args: CommandArgsRef<'_>,
+) -> CommandText {
+    let raw = std::iter::once(program.0)
+        .chain(args.0.iter().copied())
         .take(3usize)
         .collect::<Vec<&str>>()
         .join(str_constants::HYPHEN);
@@ -75,10 +152,11 @@ fn command_log_name(idx: CommandIdx, program: &str, args: &[&str]) -> String {
             }
         })
         .collect::<String>();
-    format!("{:02}-{sanitized}.log", idx.get())
+    CommandText::try_from(format!("{:02}-{sanitized}.log", idx.get()))
+        .unwrap_or_else(CommandText::from)
 }
 #[allow(clippy::single_call_fn)] // unique run-directory construction has one filesystem owner
-fn create_run_dir() -> Result<RunDir, std::io::Error> {
+fn create_run_dir() -> Result<StdRunDir, StdExecutionIoError> {
     let timestamp = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap_or_default()
@@ -89,12 +167,13 @@ fn create_run_dir() -> Result<RunDir, std::io::Error> {
             std::process::id(),
             RUN_COUNTER.fetch_add(1u64, std::sync::atomic::Ordering::Relaxed)
         ));
-    std::fs::create_dir_all(path.as_path())?;
-    Ok(RunDir::from(path))
+    std::fs::create_dir_all(path.as_path()).map_err(StdExecutionIoError::from)?;
+    Ok(StdRunDir::from(path))
 }
 #[allow(clippy::single_call_fn)] // log parsing stays independently unit-testable
-fn failed_test_names(log_text: &str) -> Vec<String> {
+fn failed_test_names(log_text: TextRef<'_>) -> CommandTexts {
     let mut names = log_text
+        .get()
         .lines()
         .filter_map(|line| {
             line.strip_prefix(str_constants::TEST_ALT)
@@ -103,31 +182,35 @@ fn failed_test_names(log_text: &str) -> Vec<String> {
                     let tail = line.strip_prefix(str_constants::FOUR_SPACES)?;
                     tail.strip_suffix(str_constants::FAILED)
                 })
-                .map(str::to_owned)
+                .map(|name| {
+                    CommandText::try_from(name.to_owned()).unwrap_or_else(CommandText::from)
+                })
         })
-        .collect::<Vec<String>>();
-    names.sort();
-    names.dedup();
-    names
+        .collect::<Vec<CommandText>>();
+    names.sort_by(|left, right| left.as_ref().cmp(right.as_ref()));
+    names.dedup_by(|left, right| left.as_ref() == right.as_ref());
+    CommandTexts::from(names)
 }
 #[allow(clippy::single_call_fn)] // summary persistence remains separate from command orchestration
-fn write_summary(run_dir: &RunDir, summary: &SummaryText) -> Result<(), std::io::Error> {
+fn write_summary(run_dir: &StdRunDir, summary: &SummaryText) -> Result<(), StdExecutionIoError> {
     std::fs::write(
         run_dir.0.join(str_constants::SUMMARY_TXT),
-        strip_ansi(summary.0.as_str()),
+        strip_ansi(TextRef::from(summary.0.as_str())).as_ref(),
     )
+    .map_err(StdExecutionIoError::from)
 }
-pub(super) fn run_commands(commands: &[(&str, &[&str])]) -> Result<(), ()> {
+pub(super) fn run_commands(commands: CommandsRef<'_>) -> Result<(), ()> {
     let run_dir = create_run_dir().map_err(|error| {
-        super::reporting::result_directory_failed(&error);
+        super::reporting::result_directory_failed(super::StdRunnerIoErrorRef::from(&error.0));
     })?;
     let mut command_runs = std::thread::scope(|scope| {
         commands
+            .0
             .iter()
             .enumerate()
             .map(|(idx, (program, args))| {
                 scope.spawn(move || {
-                    let started_at = CommandStartedAt::from(std::time::Instant::now());
+                    let started_at = StdCommandStartedAt::from(std::time::Instant::now());
                     let output = macros_helpers::tool_command::ToolCommand::new(
                         macros_helpers::tool_command::ToolProgramRef::from(*program),
                     )
@@ -153,9 +236,10 @@ pub(super) fn run_commands(commands: &[(&str, &[&str])]) -> Result<(), ()> {
                     };
                     CommandRun {
                         idx: CommandIdx::from(idx),
-                        log_text,
-                        status_text,
-                        succeeded,
+                        log_text: CommandText::try_from(log_text).unwrap_or_else(CommandText::from),
+                        status_text: CommandText::try_from(status_text)
+                            .unwrap_or_else(CommandText::from),
+                        succeeded: CommandSucceeded::from(succeeded),
                         duration: started_at.elapsed(),
                     }
                 })
@@ -176,38 +260,54 @@ pub(super) fn run_commands(commands: &[(&str, &[&str])]) -> Result<(), ()> {
             Ok(command_run) => command_run,
             Err(_panic) => {
                 succeeded = false;
-                summary.push_str(str_constants::COMMAND_THREAD_PANICKED_SUMMARY)?;
+                summary.push_str(TextRef::from(
+                    str_constants::COMMAND_THREAD_PANICKED_SUMMARY,
+                ))?;
                 return Ok(());
             }
         };
         let (program, args) = commands
+            .0
             .get(command_run.idx.get())
             .copied()
             .ok_or(())?;
-        let log_name = command_log_name(command_run.idx, program, args);
-        let log_path = run_dir.0.join(log_name.as_str());
-        if let Err(error) = std::fs::write(log_path.as_path(), command_run.log_text.as_bytes()) {
-            super::reporting::result_log_failed(log_path.as_path(), &error);
+        let log_name = command_log_name(
+            command_run.idx,
+            CommandProgramRef::from(program),
+            CommandArgsRef::from(args),
+        );
+        let log_path = run_dir.0.join(log_name.as_ref());
+        if let Err(error) = std::fs::write(log_path.as_path(), command_run.log_text.as_ref()) {
+            super::reporting::result_log_failed(
+                super::StdRunnerPathRef::from(log_path.as_path()),
+                super::StdRunnerIoErrorRef::from(&error),
+            );
             return Err(());
         }
-        let failed_names =
-            failed_test_names(command_run.log_text.as_str()).join(str_constants::TEXT_ALT_7);
+        let failed_names = failed_test_names(TextRef::from(command_run.log_text.as_ref()))
+            .0
+            .iter()
+            .map(CommandText::as_ref)
+            .collect::<Vec<&str>>()
+            .join(str_constants::TEXT_ALT_7);
         summary.push_str(
-            format!(
+            TextRef::from(
+                format!(
                 "command={program} args={args:?} duration_ms={} status={} log={} failed_tests={failed_names}\n",
                 command_run.duration.as_millis(),
-                command_run.status_text,
+                command_run.status_text.as_ref(),
                 log_path.display()
             )
             .as_str(),
+            ),
         )?;
-        if !command_run.succeeded {
+        if !command_run.succeeded.get() {
             succeeded = false;
         }
         Ok(())
     })?;
     write_summary(&run_dir, &summary).map_err(|error| {
-        super::reporting::result_summary_failed(&error);
+        super::reporting::result_summary_failed(super::StdRunnerIoErrorRef::from(&error.0));
     })?;
     if succeeded { Ok(()) } else { Err(()) }
 }
@@ -215,19 +315,31 @@ pub(super) fn run_commands(commands: &[(&str, &[&str])]) -> Result<(), ()> {
 mod tests {
     #[test]
     fn failed_test_parser_handles_cargo_and_nextest_lines() {
+        let names = super::failed_test_names(super::TextRef::from(
+            "test crate::first ... FAILED\n    crate::second --- FAILED\nnot a failure\n",
+        ));
         assert_eq!(
-            super::failed_test_names(
-                "test crate::first ... FAILED\n    crate::second --- FAILED\nnot a failure\n"
-            ),
-            vec!["crate::first".to_owned(), "crate::second".to_owned()]
+            names
+                .0
+                .iter()
+                .map(super::CommandText::as_ref)
+                .collect::<Vec<&str>>(),
+            vec!["crate::first", "crate::second"]
         );
     }
     #[test]
     fn failed_test_parser_handles_partial_log() {
-        assert!(super::failed_test_names("test incomplete").is_empty());
+        assert!(
+            super::failed_test_names(super::TextRef::from("test incomplete"))
+                .0
+                .is_empty()
+        );
     }
     #[test]
     fn ansi_is_removed_from_machine_summary() {
-        assert_eq!(super::strip_ansi("a\u{1b}[31mred\u{1b}[0mz"), "aredz");
+        assert_eq!(
+            super::strip_ansi(super::TextRef::from("a\u{1b}[31mred\u{1b}[0mz")).as_ref(),
+            "aredz"
+        );
     }
 }

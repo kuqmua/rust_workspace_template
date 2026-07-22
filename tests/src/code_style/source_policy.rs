@@ -1,3 +1,140 @@
+const REVIEWED_PUBLIC_FIELDS: &[ReviewedPublicFields] = &[
+    ReviewedPublicFields {
+        fields: &["file", "line", "column"],
+        path_suffix: "location_lib/src/location.rs",
+        reason: "location proc-macro output exposes occurrence coordinates as its public data contract",
+        struct_name: "Occr",
+    },
+    ReviewedPublicFields {
+        fields: &["secs", "nanos"],
+        path_suffix: "location_lib/src/location.rs",
+        reason: "serialized duration representation is a public wire-format helper",
+        struct_name: "StdTimeDuration",
+    },
+    ReviewedPublicFields {
+        fields: &["identifier", "type0", "vis"],
+        path_suffix: "macros_helpers/src/syn_field.rs",
+        reason: "macro generators consume the parsed field descriptor across crate boundaries",
+        struct_name: "SynField",
+    },
+    ReviewedPublicFields {
+        fields: &[
+            "bulk_item_budget",
+            "config",
+            "idempotency_response_budget",
+            "pg_pool",
+            "project_git_info",
+        ],
+        path_suffix: "server_app_state/src/lib.rs",
+        reason: "Axum state consumers in service crates require direct access to shared immutable state",
+        struct_name: "ServerAppState",
+    },
+    ReviewedPublicFields {
+        fields: &["greater_than", "create", "variant"],
+        path_suffix: "pg_crud/pg_crud_common/src/lib.rs",
+        reason: "public generator test descriptor is constructed by downstream generated test crates",
+        struct_name: "PgTypeGreaterThanTest",
+    },
+    ReviewedPublicFields {
+        fields: &["create", "variant", "len_greater_than"],
+        path_suffix: "pg_crud/pg_crud_common/src/lib.rs",
+        reason: "public generator test descriptor is constructed by downstream generated test crates",
+        struct_name: "PgTypeLenGreaterThanTest",
+    },
+    ReviewedPublicFields {
+        fields: &["column", "order"],
+        path_suffix: "pg_crud/pg_crud_common/src/lib.rs",
+        reason: "generated query code constructs this public typed ordering contract",
+        struct_name: "OrderBy",
+    },
+    ReviewedPublicFields {
+        fields: &["v"],
+        path_suffix: "pg_crud/pg_crud_common/src/lib.rs",
+        reason: "generated filter code constructs this public generic value contract",
+        struct_name: "V",
+    },
+    ReviewedPublicFields {
+        fields: &[
+            "cors_allow_origin",
+            "content_security_policy",
+            "database_url",
+            "admin_jwt_secret",
+            "admin_token_audience",
+            "admin_token_issuer",
+            "trusted_proxy_ranges_text",
+            "admin_access_token_ttl_seconds",
+            "admin_password_hash_concurrency",
+            "admin_refresh_token_ttl_seconds",
+            "admin_session_limit",
+            "admin_sign_in_rate_limit",
+            "pg_pool_acquire_timeout_seconds",
+            "pg_pool_idle_timeout_seconds",
+            "pg_pool_max_lifetime_seconds",
+            "maximum_size_of_http_body_in_bytes",
+            "service_socket_address",
+            "pg_pool_max_connections",
+            "pg_pool_min_connections",
+            "timezone",
+            "src_place_type",
+            "tracing_level",
+            "tracing_format",
+            "enable_api_git_commit_check",
+            "admin_cookie_secure",
+            "admin_swagger_enabled",
+            "http_gzip_enabled",
+        ],
+        path_suffix: "server_config/src/lib.rs",
+        reason: "service entry points consume the validated immutable workspace configuration contract",
+        struct_name: "Config",
+    },
+    ReviewedPublicFields {
+        fields: &["id", "user_id", "role_id", "created_at"],
+        path_suffix: "server_admin/src/generated_tables.rs",
+        reason: "generated database row model is a public serialization and query contract",
+        struct_name: "AdminUserRoles",
+    },
+    ReviewedPublicFields {
+        fields: &["id", "role_id", "permission_id", "created_at"],
+        path_suffix: "server_admin/src/generated_tables.rs",
+        reason: "generated database row model is a public serialization and query contract",
+        struct_name: "AdminRolePermissions",
+    },
+    ReviewedPublicFields {
+        fields: &["id", "name", "is_system", "created_at", "updated_at"],
+        path_suffix: "server_admin/src/generated_tables.rs",
+        reason: "generated database row model is a public serialization and query contract",
+        struct_name: "AdminRoles",
+    },
+    ReviewedPublicFields {
+        fields: &["id", "name", "created_at"],
+        path_suffix: "server_admin/src/generated_tables.rs",
+        reason: "generated database row model is a public serialization and query contract",
+        struct_name: "AdminPermissions",
+    },
+    ReviewedPublicFields {
+        fields: &[
+            "id",
+            "site_name",
+            "tab_title",
+            "main_logo",
+            "primary_color",
+            "default_admin_route",
+            "organization_name",
+            "organization_contacts",
+            "support_url",
+            "updated_at",
+        ],
+        path_suffix: "server_admin/src/generated_tables.rs",
+        reason: "generated database row model is a public serialization and query contract",
+        struct_name: "AdminSystemSettings",
+    },
+];
+struct ReviewedPublicFields {
+    fields: &'static [&'static str],
+    path_suffix: &'static str,
+    reason: &'static str,
+    struct_name: &'static str,
+}
 #[test]
 fn all_files_are_english_only() {
     let mut ers = super::snapshot::with_codebase_snapshot(|snapshot| {
@@ -157,32 +294,66 @@ fn runtime_struct_fields_do_not_expose_untyped_json_values() {
 
 #[test]
 fn new_runtime_structs_keep_fields_private() {
-    let reviewed_public_field_path_parts =
-        str_constants::CODE_STYLE_REVIEWED_PUBLIC_FIELD_PATH_PARTS
-            .split('|')
-            .filter(|part| !part.is_empty())
-            .collect::<Vec<&str>>();
     super::snapshot::with_codebase_snapshot(|snapshot| {
-        let violations = snapshot
+        let mut matched = std::collections::BTreeSet::<(String, String)>::new();
+        let mut violations = Vec::new();
+        snapshot
             .rs_files()
             .iter()
             .filter(|source_file| {
-                let path = source_file.path().as_ref().to_string_lossy();
-                !reviewed_public_field_path_parts
-                    .iter()
-                    .any(|allowed| path.contains(allowed))
+                !super::is_test_crate_source_path(super::types::StdPathRef::from(
+                    source_file.path().as_ref(),
+                ))
+                .get()
             })
-            .flat_map(|source_file| {
+            .for_each(|source_file| {
                 let mut visitor = super::PublicStructFieldVisitor::default();
                 syn::visit::Visit::visit_file(&mut visitor, source_file.ast().as_ref());
-                visitor.violations.into_iter().map(|item| {
-                    format!(
-                        "{} exposes a public field in {item}",
-                        source_file.path().as_ref().display()
+                visitor.violations.into_iter().for_each(|item| {
+                    let path = source_file.path().as_ref();
+                    let reviewed_match = REVIEWED_PUBLIC_FIELDS.iter().find(|reviewed| {
+                        path.ends_with(reviewed.path_suffix)
+                            && reviewed
+                                .fields
+                                .iter()
+                                .any(|field| item == format!("{}::{field}", reviewed.struct_name))
+                    });
+                    if let Some(reviewed) = reviewed_match {
+                        let _inserted =
+                            matched.insert((reviewed.path_suffix.to_owned(), item.clone()));
+                    } else {
+                        violations.push(format!(
+                            "{} exposes an unreviewed public field in {item}",
+                            path.display()
+                        ));
+                    }
+                });
+            });
+        let expected = REVIEWED_PUBLIC_FIELDS
+            .iter()
+            .flat_map(|reviewed| {
+                reviewed.fields.iter().map(|field| {
+                    (
+                        reviewed.path_suffix.to_owned(),
+                        format!("{}::{field}", reviewed.struct_name),
                     )
                 })
             })
-            .collect::<Vec<String>>();
+            .collect::<std::collections::BTreeSet<(String, String)>>();
+        if matched != expected {
+            violations.push(format!(
+                "public field exception inventory is stale; expected={expected:#?}, matched={matched:#?}"
+            ));
+        }
+        REVIEWED_PUBLIC_FIELDS
+            .iter()
+            .filter(|reviewed| reviewed.reason.trim().is_empty())
+            .for_each(|reviewed| {
+                violations.push(format!(
+                    "{}::{} public field exception has no reason",
+                    reviewed.path_suffix, reviewed.struct_name
+                ));
+            });
         assert!(violations.is_empty(), "{violations:#?}");
     });
 }
@@ -213,17 +384,9 @@ fn direct_environment_and_filesystem_access_stays_at_owned_boundaries() {
         super::types::StaticStr::from(str_constants::VALUE_321360D4),
         super::types::SourceTextRef::from(str_constants::DIRECT_ENVIRONMENT_OR_FILESYSTEM_ACCESS_EXISTS_OUTSIDE_APPROVED_CONFIGURATION_TOOLING_TEST_AND),
         |path, ast, ers| {
-            let path_text = path.to_string_lossy();
-            if path_text.contains(str_constants::CONFIG_LIB)
-                || path_text.contains(str_constants::MACRO_CLIPPY_CHECK_COMMON)
-                || path_text.contains(str_constants::MACROS_HELPERS)
-                || path_text.contains(str_constants::TESTS)
-                || path_text.contains(str_constants::WORKSPACE_TEST_RUNNER)
-                || path_text.contains(str_constants::WORKSPACE_SCAFFOLD_SRC)
-                || path_text.contains(str_constants::INITIALIZE_ENVIRONMENT_FILES)
-                || path_text.contains(str_constants::FILE_STORAGE)
-                || path_text.ends_with(str_constants::SERVER_RUNTIME_SRC_BOUNDED_READ_RS)
-                || path_text.ends_with(str_constants::SERVER_ADMIN_FRONTEND_SRC_LIB_RS)
+            if super::is_test_crate_source_path(super::types::StdPathRef::from(path)).get()
+                || super::is_direct_fs_owner_source_path(super::types::StdPathRef::from(path)).get()
+                || path.ends_with(str_constants::SERVER_RUNTIME_SRC_BOUNDED_READ_RS)
             {
                 return;
             }
@@ -243,6 +406,120 @@ fn direct_environment_and_filesystem_access_stays_at_owned_boundaries() {
     );
 }
 #[test]
+fn direct_filesystem_owner_inventory_is_exact_justified_and_current() {
+    assert_eq!(
+        str_constants::CODE_STYLE_DIRECT_FS_OWNER_SUFFIXES.len(),
+        str_constants::CODE_STYLE_DIRECT_FS_OWNER_REASONS.len(),
+        "6e1a9c30"
+    );
+    let workspace_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .expect("4d82f1b7");
+    let missing_or_unjustified = str_constants::CODE_STYLE_DIRECT_FS_OWNER_SUFFIXES
+        .iter()
+        .zip(str_constants::CODE_STYLE_DIRECT_FS_OWNER_REASONS)
+        .filter(|(suffix, reason)| {
+            reason.trim().is_empty()
+                || !workspace_root
+                    .join(suffix.trim_start_matches('/'))
+                    .is_file()
+        })
+        .collect::<Vec<(&&str, &str)>>();
+    assert!(
+        missing_or_unjustified.is_empty(),
+        "c70b25ea {missing_or_unjustified:?}"
+    );
+    assert!(
+        super::is_direct_fs_owner_source_path(super::types::StdPathRef::from(
+            std::path::Path::new("../workspace_scaffold/src/main.rs")
+        ))
+        .get(),
+        "b39e07d4"
+    );
+    assert!(
+        !super::is_direct_fs_owner_source_path(super::types::StdPathRef::from(
+            std::path::Path::new("../workspace_scaffold/src/unrelated.rs")
+        ))
+        .get(),
+        "f1428b6c"
+    );
+}
+#[test]
+fn retained_path_exception_inventories_are_exact_justified_unique_and_current() {
+    let workspace_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .expect("28d4f1a9");
+    let validate = |suffixes: &[&str], reasons: &[&str]| {
+        assert_eq!(suffixes.len(), reasons.len(), "5c71e8b3");
+        assert_eq!(
+            suffixes
+                .iter()
+                .collect::<std::collections::BTreeSet<_>>()
+                .len(),
+            suffixes.len(),
+            "ac308f64"
+        );
+        let invalid = suffixes
+            .iter()
+            .zip(reasons)
+            .filter(|(suffix, reason)| {
+                let relative = suffix.trim_start_matches("../").trim_start_matches('/');
+                reason.trim().is_empty() || !workspace_root.join(relative).is_file()
+            })
+            .collect::<Vec<(&&str, &&str)>>();
+        assert!(invalid.is_empty(), "e91b2d7c {invalid:?}");
+    };
+    validate(
+        str_constants::CODE_STYLE_RUNTIME_TEST_HELPER_SUFFIXES.as_slice(),
+        str_constants::CODE_STYLE_RUNTIME_TEST_HELPER_REASONS.as_slice(),
+    );
+    validate(
+        str_constants::CODE_STYLE_RUNTIME_ARC_OWNER_SUFFIXES.as_slice(),
+        str_constants::CODE_STYLE_RUNTIME_ARC_OWNER_REASONS.as_slice(),
+    );
+    validate(
+        str_constants::CODE_STYLE_FACADE_REEXPORT_SUFFIXES.as_slice(),
+        str_constants::CODE_STYLE_FACADE_REEXPORT_REASONS.as_slice(),
+    );
+    validate(
+        str_constants::CODE_STYLE_LEPTOS_PRELUDE_SUFFIXES.as_slice(),
+        str_constants::CODE_STYLE_LEPTOS_PRELUDE_REASONS.as_slice(),
+    );
+    validate(
+        str_constants::CODE_STYLE_SINGLE_SOURCE_OWNER_SUFFIXES.as_slice(),
+        str_constants::CODE_STYLE_SINGLE_SOURCE_OWNER_REASONS.as_slice(),
+    );
+    assert!(
+        !str_constants::CODE_STYLE_LOCATION_TEST_REASON.is_empty()
+            && workspace_root
+                .join(str_constants::CODE_STYLE_LOCATION_TEST_SRC.trim_start_matches("../"),)
+                .is_dir(),
+        "d47c0e26"
+    );
+    assert!(
+        !str_constants::CODE_STYLE_PG_CRUD_COMMON_BENCHES_REASON.is_empty()
+            && workspace_root
+                .join(str_constants::CODE_STYLE_PG_CRUD_COMMON_BENCHES.trim_start_matches("../"),)
+                .is_dir(),
+        "631fb5d8"
+    );
+    assert_eq!(
+        str_constants::CODE_STYLE_TEST_CRATE_NAMES.len(),
+        str_constants::CODE_STYLE_TEST_CRATE_REASONS.len(),
+        "fa64b9c1"
+    );
+    let workspace_crates = super::workspace_crate_names();
+    let invalid_test_crates = str_constants::CODE_STYLE_TEST_CRATE_NAMES
+        .iter()
+        .zip(str_constants::CODE_STYLE_TEST_CRATE_REASONS)
+        .filter(|(name, reason)| reason.trim().is_empty() || !workspace_crates.contains(**name))
+        .collect::<Vec<(&&str, &str)>>();
+    assert!(
+        invalid_test_crates.is_empty(),
+        "b208d75e {invalid_test_crates:?}"
+    );
+}
+#[test]
 fn runtime_data_reads_are_bounded() {
     super::assert_rs_ast_ers_empty_with_ctx(
         super::types::StaticStr::from(str_constants::VALUE_37B593CE),
@@ -251,14 +528,11 @@ fn runtime_data_reads_are_bounded() {
         ),
         |path, ast, ers| {
             let path_text = path.to_string_lossy();
-            if path_text.contains(str_constants::TESTS)
-                || path_text.contains(str_constants::MACROS_HELPERS)
-                || path_text.contains(str_constants::MACRO_CLIPPY_CHECK_COMMON)
-                || path_text.contains(str_constants::WORKSPACE_TEST_RUNNER)
-                || path_text.contains(str_constants::WORKSPACE_SCAFFOLD_SRC)
-                || path_text.contains(str_constants::INITIALIZE_ENVIRONMENT_FILES)
+            if super::is_test_crate_source_path(super::types::StdPathRef::from(path)).get()
+                || str_constants::CODE_STYLE_UNBOUNDED_READ_OWNER_SUFFIXES
+                    .iter()
+                    .any(|suffix| path_text.ends_with(suffix))
                 || path_text.ends_with(str_constants::SERVER_RUNTIME_SRC_BOUNDED_READ_RS)
-                || path_text.ends_with(str_constants::SERVER_ADMIN_FRONTEND_SRC_LIB_RS)
             {
                 return;
             }
@@ -278,13 +552,38 @@ fn runtime_data_reads_are_bounded() {
     );
 }
 #[test]
+fn environment_initializer_is_in_bounded_read_policy_scope() {
+    assert!(
+        !str_constants::CODE_STYLE_UNBOUNDED_READ_OWNER_SUFFIXES
+            .iter()
+            .any(|suffix| suffix.contains(str_constants::INITIALIZE_ENVIRONMENT_FILES)),
+        "920fde35"
+    );
+}
+#[test]
+fn workspace_scaffold_is_in_bounded_read_policy_scope() {
+    assert!(
+        !str_constants::CODE_STYLE_UNBOUNDED_READ_OWNER_SUFFIXES
+            .contains(&str_constants::CODE_STYLE_WORKSPACE_SCAFFOLD_FS_OWNER_SUFFIX),
+        "54b718ca"
+    );
+}
+#[test]
+fn bounded_read_policy_has_no_whole_file_owner_exceptions() {
+    assert!(
+        str_constants::CODE_STYLE_UNBOUNDED_READ_OWNER_SUFFIXES.is_empty(),
+        "b71f043c"
+    );
+}
+#[test]
 fn raw_runtime_sql_identifier_inventory_matches_reviewed_baseline() {
     let mut observed = std::collections::BTreeMap::<String, usize>::new();
     super::for_each_rs_file_content(|path, content| {
         let path_text = path.to_string_lossy();
-        if path_text.contains(str_constants::TESTS)
-            || path_text.contains(str_constants::WORKSPACE_SCAFFOLD_SRC)
+        if super::is_test_crate_source_path(super::types::StdPathRef::from(path)).get()
+            || path_text.ends_with(str_constants::CODE_STYLE_WORKSPACE_SCAFFOLD_FS_OWNER_SUFFIX)
             || path_text.ends_with(str_constants::PG_CRUD_PG_CRUD_COMMON_SRC_SQL_IDENTIFIER_RS)
+            || path_text.ends_with(str_constants::STR_CONSTANTS_SRC_LIB_RS)
         {
             return;
         }
@@ -308,10 +607,7 @@ fn raw_runtime_sql_identifier_inventory_matches_reviewed_baseline() {
             let _previous = observed.insert(relative, count);
         }
     });
-    let expected = std::collections::BTreeMap::from([(
-        str_constants::STR_CONSTANTS_SRC_LIB_RS.to_owned(),
-        6usize,
-    )]);
+    let expected = std::collections::BTreeMap::new();
     assert_eq!(observed, expected, "raw SQL identifier baseline changed");
 }
 #[test]
@@ -322,7 +618,10 @@ fn production_pg_error_classification_is_centralized() {
             .iter()
             .filter(|source_file| {
                 let path = source_file.path().as_ref().to_string_lossy();
-                !path.contains(str_constants::TESTS)
+                !super::is_test_crate_source_path(super::types::StdPathRef::from(
+                    source_file.path().as_ref(),
+                ))
+                .get()
                     && !path.ends_with(str_constants::PG_CRUD_COMMON_SRC_PG_ERROR_RS)
                     && !path.ends_with(str_constants::STR_CONSTANTS_SRC_LIB_RS)
                     && (source_file
@@ -390,19 +689,9 @@ fn abort_and_transmute_calls_match_reviewed_baseline() {
         });
     });
     observed_abort_paths.sort();
-    let expected_abort_suffixes = [
-        str_constants::MACROS_HELPERS_SRC_PANIC_IF_ERR_RS,
-        str_constants::PG_CRUD_WHERE_FILTERS_SRC_LIB_RS,
-    ];
-    let baseline_matches = observed_abort_paths.len() == expected_abort_suffixes.len()
-        && expected_abort_suffixes.iter().all(|suffix| {
-            observed_abort_paths
-                .iter()
-                .any(|path| path.ends_with(suffix))
-        });
-    if !baseline_matches {
+    if !observed_abort_paths.is_empty() {
         ers.push(format!(
-            "abort inventory changed; reviewed suffixes={expected_abort_suffixes:?}, observed={observed_abort_paths:?}"
+            "process abort calls are forbidden; observed={observed_abort_paths:?}"
         ));
     }
     super::assert_joined_ers_empty_with_ctx(
@@ -424,16 +713,39 @@ fn unit_tests_use_deterministic_time_and_randomness_patterns() {
                     test_depth: super::types::AnalyzerCount::default(),
                 },
             );
-            visitor.calls.into_iter().for_each(|call| {
-                let reviewed = path.ends_with(str_constants::SERVER_RUNTIME_SRC_HEALTH_RS)
-                    && call == str_constants::TOKIO_PATH_TIME_PATH_SLEEP
-                    || path.ends_with(str_constants::PG_CRUD_PG_CRUD_COMMON_SRC_LIB_RS)
-                        && call == str_constants::UUID_PATH_UUID_PATH_NEW_V4;
-                if !reviewed {
-                    ers.push(format!("{}: nondeterministic `{call}`", path.display()));
-                }
-            });
+            visitor
+                .calls
+                .into_iter()
+                .for_each(|call| ers.push(format!("{}: nondeterministic `{call}`", path.display())));
         },
+    );
+}
+#[test]
+fn unit_test_nondeterminism_visitor_rejects_sleep_and_random_uuid() {
+    let ast = syn::parse_file(
+        "
+#[test]
+fn nondeterministic_test() {
+    tokio::time::sleep(std::time::Duration::from_secs(1));
+    uuid::Uuid::new_v4();
+}
+",
+    )
+    .expect("9354f086");
+    let visitor = super::visit_syn_file(
+        super::types::SynFileRef::from(&ast),
+        super::TestNondeterminismVisitor {
+            calls: super::types::DiagnosticMsgs::default(),
+            test_depth: super::types::AnalyzerCount::default(),
+        },
+    );
+    assert_eq!(
+        visitor.calls.as_slice(),
+        [
+            str_constants::TOKIO_PATH_TIME_PATH_SLEEP,
+            str_constants::UUID_PATH_UUID_PATH_NEW_V4,
+        ],
+        "fa8d2bb1"
     );
 }
 #[test]
@@ -513,24 +825,19 @@ fn no_non_public_use_imports_in_rust_sources() {
         super::types::SourceTextRef::from(str_constants::USE_IMPORTS_FOUND_OUTSIDE_EXPLICIT_FACADE_RE_EXPORT_FILES_PREFER_EXPLICIT_PATHS),
         |path, ast, ers| {
             let path_text = path.to_string_lossy();
-            if path_text.ends_with(str_constants::SERVER_ADMIN_FRONTEND_SRC_APP_RS)
-                || path_text.ends_with(str_constants::SSR_SOURCE_PATH)
-                || path_text.ends_with(str_constants::SERVER_ADMIN_FRONTEND_SRC_APP_FORMS_RS)
-                || path_text.ends_with(str_constants::SERVER_ADMIN_FRONTEND_SRC_APP_TABLES_RS)
-                || path_text.ends_with(str_constants::SERVER_ADMIN_FRONTEND_SRC_APP_PAGES_RS)
-                || path_text.ends_with(str_constants::FRONTEND_CONTRACT_SRC_LIB_RS)
-                || path_text.ends_with(str_constants::PG_CRUD_PG_CRUD_COMMON_SRC_LIB_RS)
-                || path_text.ends_with(str_constants::PG_CRUD_PG_TABLE_GENERATE_PG_TABLE_SRC_SRC_LIB_RS)
-                || path_text.ends_with(str_constants::PG_CRUD_PG_TYPES_GENERATE_PG_TYPES_SRC_SRC_LIB_RS)
-                || path_text.ends_with(str_constants::PG_CRUD_WHERE_FILTERS_GENERATE_WHERE_FILTERS_SRC_SRC_LIB_RS)
-                || path_text.ends_with(str_constants::SERVER_ADMIN_SRC_LIB_RS)
-                || path_text.ends_with(str_constants::SERVER_RUNTIME_SRC_LIB_RS)
-            {
-                return;
-            }
+            let allows_leptos_prelude_import =
+                str_constants::CODE_STYLE_LEPTOS_PRELUDE_SUFFIXES
+                    .iter()
+                    .any(|suffix| path_text.ends_with(suffix));
+            let allows_public_reexports = str_constants::CODE_STYLE_FACADE_REEXPORT_SUFFIXES
+                .iter()
+                .any(|suffix| path_text.ends_with(suffix));
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
                 super::UseImportVisitor {
+                    allow_leptos_prelude_import: super::types::AnalyzerBool::from(
+                        allows_leptos_prelude_import,
+                    ),
                     found_non_public_use_import: super::types::AnalyzerBool::default(),
                     found_use_rename: super::types::AnalyzerBool::default(),
                     public_use_roots: super::types::SourceTextList::default(),
@@ -542,17 +849,14 @@ fn no_non_public_use_imports_in_rust_sources() {
                     path.display()
                 ));
             }
-            ers.extend(
-                visitor
-                    .public_use_roots
-                    .iter()
-                    .map(|public_use_root| {
+            if !allows_public_reexports {
+                ers.extend(visitor.public_use_roots.iter().map(|public_use_root| {
                         format!(
-                            "{}: found public use import rooted at `{public_use_root}`; use the explicit path at the usage site",
-                            path.display()
+                        "{}: found public use import rooted at `{public_use_root}`; use the explicit path at the usage site",
+                        path.display()
                         )
-                    }),
-            );
+                    }));
+            }
             if visitor.found_use_rename.get() {
                 ers.push(format!(
                         "{}: found use rename with `as`; use the original item name or rename the item at its definition",
@@ -560,6 +864,40 @@ fn no_non_public_use_imports_in_rust_sources() {
                     ));
             }
         },
+    );
+}
+#[test]
+fn use_import_policy_narrows_facade_and_leptos_exceptions() {
+    let ast = syn::parse_file(
+        "use leptos::prelude::{ElementChild};\nuse std::fmt::Debug;\npub use facade::Item;",
+    )
+    .expect("7b9e6f31");
+    let visitor = super::visit_syn_file(
+        super::types::SynFileRef::from(&ast),
+        super::UseImportVisitor {
+            allow_leptos_prelude_import: super::types::AnalyzerBool::from(true),
+            found_non_public_use_import: super::types::AnalyzerBool::default(),
+            found_use_rename: super::types::AnalyzerBool::default(),
+            public_use_roots: super::types::SourceTextList::default(),
+        },
+    );
+    assert!(visitor.found_non_public_use_import.get(), "ac09626a");
+    assert!(!visitor.found_use_rename.get(), "c2bff14e");
+    assert_eq!(visitor.public_use_roots.len(), 1usize, "3f4798c8");
+
+    let leptos_ast = syn::parse_file("use leptos::prelude::{ElementChild};").expect("56f86b52");
+    let leptos_visitor = super::visit_syn_file(
+        super::types::SynFileRef::from(&leptos_ast),
+        super::UseImportVisitor {
+            allow_leptos_prelude_import: super::types::AnalyzerBool::from(true),
+            found_non_public_use_import: super::types::AnalyzerBool::default(),
+            found_use_rename: super::types::AnalyzerBool::default(),
+            public_use_roots: super::types::SourceTextList::default(),
+        },
+    );
+    assert!(
+        !leptos_visitor.found_non_public_use_import.get(),
+        "5969a9a3"
     );
 }
 #[test]
@@ -613,10 +951,7 @@ fn no_duplicated_string_literals_in_non_policy_test_code() {
     let mut literal_locations_by_value = std::collections::BTreeMap::<String, Vec<String>>::new();
     super::for_each_rs_syn_file(|path, ast| {
         let path_text = path.display().to_string();
-        if !path_text.contains(str_constants::TESTS_SRC)
-            || path_text.contains(str_constants::TESTS_SRC_CODE_STYLE_ALT)
-            || path_text.ends_with(str_constants::TESTS_SRC_LIB_RS)
-        {
+        if !super::is_non_policy_test_source_path(super::types::StdPathRef::from(path)).get() {
             return;
         }
         let visitor = super::visit_syn_file(
@@ -652,14 +987,31 @@ fn no_duplicated_string_literals_in_non_policy_test_code() {
     );
 }
 #[test]
+fn ordinary_test_fixture_is_in_duplicate_string_policy_scope() {
+    assert!(
+        super::is_non_policy_test_source_path(super::types::StdPathRef::from(
+            std::path::Path::new(str_constants::CODE_STYLE_DOMAIN_FIXTURE_PATH)
+        ))
+        .get(),
+        "f2ec448d"
+    );
+    assert!(
+        !super::is_non_policy_test_source_path(super::types::StdPathRef::from(
+            std::path::Path::new(str_constants::TESTS_SRC_CODE_STYLE)
+        ))
+        .get(),
+        "8df61a91"
+    );
+}
+#[test]
 fn long_production_string_literals_are_reused() {
     let mut literal_locations_by_crate_and_value =
         std::collections::BTreeMap::<(String, String), Vec<String>>::new();
     super::for_each_rs_syn_file(|path, ast| {
         let path_text = path.display().to_string();
-        if path_text.contains(str_constants::TESTS)
-            || path_text.contains(str_constants::WORKSPACE_SCAFFOLD_SRC)
-            || path_text.contains(str_constants::TESTS_SRC_CODE_STYLE_ALT)
+        if super::is_test_crate_source_path(super::types::StdPathRef::from(path)).get()
+            || super::is_code_style_meta_harness_source_path(super::types::StdPathRef::from(path))
+                .get()
         {
             return;
         }
@@ -707,10 +1059,7 @@ fn string_constants_are_declared_only_in_str_constants() {
             str_constants::STRING_CONSTANTS_FOUND_OUTSIDE_STR_CONSTANTS,
         ),
         |path, ast, ers| {
-            let path_text = path.to_string_lossy();
-            if path_text.contains(str_constants::STR_CONSTANTS)
-                || path_text.contains(str_constants::WORKSPACE_SCAFFOLD_SRC)
-            {
+            if path.ends_with(str_constants::STR_CONSTANTS_SRC_LIB_RS) {
                 return;
             }
             let visitor = super::visit_syn_file(

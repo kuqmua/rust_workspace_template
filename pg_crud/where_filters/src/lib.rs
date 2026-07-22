@@ -2,6 +2,7 @@ generate_where_filters::generate_where_filters!({
     "pg_types_write_into_file": "False",
     "whole_write_into_file": "False"
 });
+const REGEX_PATTERN_MAX_BYTES: usize = 1_048_576usize;
 #[derive(
     Debug,
     Default,
@@ -38,15 +39,47 @@ impl pg_crud_common::DefaultSomeOneElement for EncodeFormat {
 #[derive(
     Debug,
     Clone,
+    PartialEq,
+    Eq,
     serde::Serialize,
     serde::Deserialize,
     optml::Optml,
     newtype::AsRefOwned,
     newtype::Display,
-    newtype::FromInner,
 )]
 #[serde(try_from = "String", into = "String")]
-pub struct RegexRegex(regex::Regex);
+pub struct RegexRegex(String);
+#[derive(Clone, Copy, Debug)]
+struct DefaultRegexPattern;
+impl From<DefaultRegexPattern> for RegexRegex {
+    fn from(_value: DefaultRegexPattern) -> Self {
+        Self(String::from(str_constants::A_Z_PLUS))
+    }
+}
+#[derive(Debug)]
+pub struct RegexError(regex::Error);
+impl From<regex::Error> for RegexError {
+    fn from(value: regex::Error) -> Self {
+        Self(value)
+    }
+}
+impl std::fmt::Display for RegexError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+impl std::error::Error for RegexError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        Some(&self.0)
+    }
+}
+#[derive(Debug, thiserror::Error)]
+pub enum RegexRegexTryFromStringError {
+    #[error("regular expression pattern is invalid")]
+    Regex(#[from] RegexError),
+    #[error("regular expression pattern exceeds the size limit")]
+    TooLong,
+}
 impl<'schema_lt> utoipa::ToSchema<'schema_lt> for RegexRegex {
     fn schema() -> (
         &'schema_lt str,
@@ -61,26 +94,20 @@ impl<'schema_lt> utoipa::ToSchema<'schema_lt> for RegexRegex {
     }
 }
 impl TryFrom<String> for RegexRegex {
-    type Error = regex::Error;
+    type Error = RegexRegexTryFromStringError;
     fn try_from(v: String) -> Result<Self, Self::Error> {
-        regex::Regex::new(&v).map(Self::from)
+        if v.len() > REGEX_PATTERN_MAX_BYTES {
+            return Err(RegexRegexTryFromStringError::TooLong);
+        }
+        let _validated_regex = regex::Regex::new(&v).map_err(RegexError::from)?;
+        Ok(Self(v))
     }
 }
 impl From<RegexRegex> for String {
     fn from(v: RegexRegex) -> Self {
-        v.0.as_str().to_owned()
+        v.0
     }
 }
-// #[automatically_derived]
-// impl ::core::marker::StructuralPartialEq for RegexRegex {}
-// #[automatically_derived]
-impl PartialEq for RegexRegex {
-    #[inline]
-    fn eq(&self, other: &Self) -> bool {
-        self.0.as_str() == other.0.as_str()
-    }
-}
-//todo add some logic? for regex validation?
 #[allow(unused_qualifications)]
 #[allow(clippy::absolute_paths)]
 #[allow(clippy::arbitrary_source_item_ordering)]
@@ -108,13 +135,7 @@ const _: () = {
 };
 impl pg_crud_common::DefaultSomeOneElement for RegexRegex {
     fn default_some_one_element() -> Self {
-        match regex::Regex::new(str_constants::A_Z_PLUS) {
-            Ok(v) => Self::from(v),
-            Err(error) => {
-                eprintln!("22a9eda5: {error}");
-                std::process::abort();
-            }
-        }
+        Self::from(DefaultRegexPattern)
     }
 }
 #[derive(
@@ -872,11 +893,11 @@ mod tests {
     #[test]
     fn regex_regex_eq_compares_pattern_content() {
         let left =
-            super::RegexRegex::from(regex::Regex::new(str_constants::D_PLUS).expect("8342ad27"));
+            super::RegexRegex::try_from(String::from(str_constants::D_PLUS)).expect("8342ad27");
         let right =
-            super::RegexRegex::from(regex::Regex::new(str_constants::D_PLUS).expect("4d0fa8e3"));
+            super::RegexRegex::try_from(String::from(str_constants::D_PLUS)).expect("4d0fa8e3");
         let other =
-            super::RegexRegex::from(regex::Regex::new(str_constants::A_Z_PLUS).expect("abcc9a72"));
+            super::RegexRegex::try_from(String::from(str_constants::A_Z_PLUS)).expect("abcc9a72");
         assert_eq!(left, right);
         assert_ne!(left, other);
     }

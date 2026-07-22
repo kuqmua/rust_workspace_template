@@ -141,17 +141,21 @@ struct PublicStructFieldVisitor {
     violations: types::DiagnosticMsgs,
 }
 impl<'ast> syn::visit::Visit<'ast> for PublicStructFieldVisitor {
-    fn visit_field(&mut self, i: &'ast syn::Field) {
-        if matches!(i.vis, syn::Visibility::Public(_)) {
-            self.violations
-                .push(str_constants::CODE_STYLE_UNNAMED_ITEM.to_owned());
-        }
-        syn::visit::visit_field(self, i);
-    }
     fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
         if has_test_only_cfg_attr(types::SynItemRef::from(&syn::Item::Struct(i.clone()))).get() {
             return;
         }
+        i.fields
+            .iter()
+            .enumerate()
+            .filter(|(_, field)| matches!(field.vis, syn::Visibility::Public(_)))
+            .for_each(|(index, field)| {
+                let field_name = field
+                    .ident
+                    .as_ref()
+                    .map_or_else(|| index.to_string(), ToString::to_string);
+                self.violations.push(format!("{}::{field_name}", i.ident));
+            });
         syn::visit::visit_item_struct(self, i);
     }
 }
@@ -436,6 +440,12 @@ impl<'ast> syn::visit::Visit<'ast> for UnboundedReadVisitor {
         }
         syn::visit::visit_expr_method_call(self, i);
     }
+    fn visit_item(&mut self, i: &'ast syn::Item) {
+        if has_test_only_cfg_attr(types::SynItemRef::from(i)).get() {
+            return;
+        }
+        syn::visit::visit_item(self, i);
+    }
 }
 impl<'ast> syn::visit::Visit<'ast> for DirectPathCallVisitor {
     fn visit_expr_call(&mut self, i: &'ast syn::ExprCall) {
@@ -517,6 +527,7 @@ impl<'ast> syn::visit::Visit<'ast> for TestNondeterminismVisitor {
     }
 }
 struct UseImportVisitor {
+    allow_leptos_prelude_import: types::AnalyzerBool,
     found_non_public_use_import: types::AnalyzerBool,
     found_use_rename: types::AnalyzerBool,
     public_use_roots: types::SourceTextList,
@@ -537,6 +548,12 @@ impl UseImportVisitor {
     }
 }
 impl<'ast> syn::visit::Visit<'ast> for UseImportVisitor {
+    fn visit_item(&mut self, i: &'ast syn::Item) {
+        if has_test_only_cfg_attr(types::SynItemRef::from(i)).get() {
+            return;
+        }
+        syn::visit::visit_item(self, i);
+    }
     fn visit_item_use(&mut self, i: &'ast syn::ItemUse) {
         if matches!(i.vis, syn::Visibility::Public(_)) {
             if let Some(root) = match &i.tree {
@@ -551,7 +568,20 @@ impl<'ast> syn::visit::Visit<'ast> for UseImportVisitor {
                     .push(String::from(str_constants::ASTERISK));
             }
         } else {
-            self.found_non_public_use_import.set_true();
+            let is_leptos_prelude_import = if let syn::UseTree::Path(leptos) = &i.tree
+                && let syn::UseTree::Path(prelude) = leptos.tree.as_ref()
+            {
+                leptos.ident == str_constants::CODE_STYLE_LEPTOS_CRATE
+                    && prelude.ident == str_constants::CODE_STYLE_PRELUDE_MODULE
+                    && matches!(prelude.tree.as_ref(), syn::UseTree::Group(_))
+            } else {
+                false
+            };
+            let is_allowed_leptos_import =
+                self.allow_leptos_prelude_import.get() && is_leptos_prelude_import;
+            if !is_allowed_leptos_import {
+                self.found_non_public_use_import.set_true();
+            }
         }
         if Self::use_tree_contains_rename(types::SynUseTreeRef::from(&i.tree)).get() {
             self.found_use_rename.set_true();
@@ -730,6 +760,9 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
         syn::visit::visit_impl_item_fn(self, i);
     }
     fn visit_item_const(&mut self, i: &'ast syn::ItemConst) {
+        if i.ident == str_constants::CODE_STYLE_REVIEWED_PUBLIC_FIELDS {
+            return;
+        }
         let mut literal_visitor = TestStringLiteralVisitor {
             values: types::SourceTextList::default(),
         };
@@ -1981,15 +2014,8 @@ impl ExternalLeafWrapperNameVisitor<'_> {
     }
 }
 #[allow(clippy::single_call_fn)] // named exception source keeps policy data separate from its validation loop
-fn external_leaf_wrapper_name_exceptions() -> [ExternalLeafWrapperNameException; 1] {
-    [ExternalLeafWrapperNameException {
-        identifier: types::StaticStr::from(
-            str_constants::CODE_STYLE_GENERATED_RUST_TOKEN_STREAM_IDENTIFIER,
-        ),
-        reason: types::StaticStr::from(
-            str_constants::CODE_STYLE_GENERATED_RUST_TOKEN_STREAM_REASON,
-        ),
-    }]
+fn external_leaf_wrapper_name_exceptions() -> [ExternalLeafWrapperNameException; 0] {
+    []
 }
 #[allow(clippy::single_call_fn)] // validates every external wrapper naming exception has an explicit reason before matching idents
 fn is_external_leaf_wrapper_name_exception(
@@ -2285,24 +2311,21 @@ fn compare_lints_vecs(
         .iter()
         .copied()
         .collect::<std::collections::HashSet<&str>>();
-    let (lints_not_in_cargo_toml, lints_missing_by_exception) = split_lints_missing_from_cargo(
+    let stale_exceptions = lints_not_in_cargo_toml_vec_exceptions
+        .get()
+        .iter()
+        .copied()
+        .filter(|lint| !lints_to_check_set.as_ref().contains(*lint))
+        .collect::<Vec<&str>>();
+    assert!(stale_exceptions.is_empty(), "31c5955d {stale_exceptions:?}");
+    let (lints_not_in_cargo_toml, _reviewed_missing_lints) = split_lints_missing_from_cargo(
         lints_to_check,
         types::StdSourceTextRefSet::from(lints_from_cargo_set.as_ref()),
         types::StdSourceTextRefSet::from(&lints_exceptions_set),
     );
-    let missing_by_exception_message = lints_missing_by_exception
-        .into_iter()
-        .map(|lint| {
-            format!("todo!() {rust_or_clippy_name} {lint} 158b5c43-05fa-4b8f-b6fe-9cda49d26997")
-        })
-        .collect::<Vec<String>>()
-        .join(str_constants::NEWLINE);
-    if !missing_by_exception_message.is_empty() {
-        println!("{missing_by_exception_message}");
-    }
     assert!(
         lints_not_in_cargo_toml.is_empty(),
-        "d2b7ba9f {lints_not_in_cargo_toml:?}"
+        "d2b7ba9f {rust_or_clippy_name} {lints_not_in_cargo_toml:?}"
     );
     let outdated_lints_in_file = collect_missing_items(
         lints_vec_from_cargo_toml,
@@ -3214,50 +3237,19 @@ fn string_wrapper_names(ast: types::SynFileRef<'_>) -> types::StdSourceTextSet {
 }
 #[allow(clippy::single_call_fn)] // keeps domain policy exception handling centralized and documented
 fn domain_type_policy_should_check_path(path: types::StdPathRef<'_>) -> types::AnalyzerBool {
-    let location_test_component = format!(
-        "{}{}",
-        str_constants::LOCATION.to_ascii_lowercase(),
-        str_constants::TEST
-    );
     if path
         .as_ref()
-        .starts_with(str_constants::WORKSPACE_TEST_RUNNER_SRC)
+        .starts_with(str_constants::CODE_STYLE_PG_CRUD_COMMON_BENCHES)
         || path
             .as_ref()
-            .starts_with(str_constants::WORKSPACE_SCAFFOLD_SRC)
-        || path
-            .as_ref()
-            .components()
-            .any(|component| component.as_os_str() == str_constants::BENCHES)
-        || path.as_ref().components().any(|component| {
-            component.as_os_str() == std::ffi::OsStr::new(location_test_component.as_str())
-        })
-    {
-        return types::AnalyzerBool::default();
-    }
-    if path
-        .as_ref()
-        .ends_with(str_constants::SERVER_ADMIN_FRONTEND_SRC_APP_RS)
-        || path
-            .as_ref()
-            .starts_with(str_constants::SERVER_ADMIN_FRONTEND_SRC_APP)
+            .starts_with(str_constants::CODE_STYLE_LOCATION_TEST_SRC)
     {
         return types::AnalyzerBool::default();
     }
     let Some(cargo_toml_path) = nearest_cargo_toml_path(path) else {
         return types::AnalyzerBool::default();
     };
-    let Some(manifest) = read_toml_table(types::StdPathRef::from(cargo_toml_path.as_ref())) else {
-        return types::AnalyzerBool::default();
-    };
-    let is_proc_macro = manifest
-        .as_ref()
-        .get(str_constants::LIB)
-        .and_then(toml::Value::as_table)
-        .and_then(|lib| lib.get(str_constants::PROC_MACRO))
-        .and_then(toml::Value::as_bool)
-        .unwrap_or(false);
-    types::AnalyzerBool::from(!is_proc_macro)
+    types::AnalyzerBool::from(cargo_toml_path.as_ref().is_file())
 }
 #[allow(clippy::single_call_fn)] // helper-return text wrappers live in the code-style meta harness types module
 fn is_code_style_meta_harness_source_path(path: types::StdPathRef<'_>) -> types::AnalyzerBool {
@@ -3627,8 +3619,10 @@ fn identifier_to_upper_camel_fragment(
 }
 #[allow(clippy::single_call_fn)] // centralizes production-source filtering for panic/expect/unwrap policy
 fn is_runtime_policy_source_path(path: types::StdPathRef<'_>) -> types::AnalyzerBool {
-    if path.as_ref().file_name().and_then(std::ffi::OsStr::to_str)
-        == Some(str_constants::TEST_HLP_RS)
+    let path_text = path.as_ref().to_string_lossy();
+    if str_constants::CODE_STYLE_RUNTIME_TEST_HELPER_SUFFIXES
+        .iter()
+        .any(|suffix| path_text.ends_with(suffix))
     {
         return types::AnalyzerBool::default();
     }
@@ -3636,12 +3630,6 @@ fn is_runtime_policy_source_path(path: types::StdPathRef<'_>) -> types::Analyzer
         .as_ref()
         .components()
         .any(|component| component.as_os_str() == str_constants::SRC_ALT)
-    {
-        return types::AnalyzerBool::default();
-    }
-    if path
-        .as_ref()
-        .starts_with(str_constants::INITIALIZE_ENVIRONMENT_FILES_SRC)
     {
         return types::AnalyzerBool::default();
     }
@@ -3664,7 +3652,7 @@ fn nearest_cargo_toml_path(path: types::StdPathRef<'_>) -> Option<types::StdPath
         .find(|cargo_toml_path| cargo_toml_path.exists())
         .map(types::StdPathBuf::from)
 }
-#[allow(clippy::single_call_fn)] // package-name based test crate filter keeps generated/test-only crates outside runtime policy
+#[allow(clippy::single_call_fn)] // exact package inventory keeps generated/test-only crates outside runtime policy
 fn is_test_crate(parsed: types::TomlTableRef<'_>) -> types::AnalyzerBool {
     types::AnalyzerBool::from(
         parsed
@@ -3673,11 +3661,43 @@ fn is_test_crate(parsed: types::TomlTableRef<'_>) -> types::AnalyzerBool {
             .and_then(toml::Value::as_table)
             .and_then(|package| package.get(str_constants::NAME))
             .and_then(toml::Value::as_str)
-            .is_some_and(|name| {
-                name == str_constants::TESTS_ALT
-                    || name.contains(str_constants::TEST)
-                    || name.ends_with(str_constants::TEST_ALT_3)
-            }),
+            .is_some_and(|name| str_constants::CODE_STYLE_TEST_CRATE_NAMES.contains(&name)),
+    )
+}
+#[allow(clippy::single_call_fn)] // resolves exact Cargo package ownership for source-policy test exclusions
+fn is_test_crate_source_path(path: types::StdPathRef<'_>) -> types::AnalyzerBool {
+    if path
+        .as_ref()
+        .components()
+        .any(|component| component.as_os_str() == str_constants::TESTS_ALT)
+    {
+        return types::AnalyzerBool::from(true);
+    }
+    nearest_cargo_toml_path(path)
+        .and_then(|cargo_toml_path| {
+            read_toml_table(types::StdPathRef::from(cargo_toml_path.as_ref()))
+        })
+        .map_or_else(types::AnalyzerBool::default, |manifest| {
+            is_test_crate(types::TomlTableRef::from(manifest.as_ref()))
+        })
+}
+#[allow(clippy::single_call_fn)] // exact path helper is shared by the duplicate-string policy and its scope regression
+fn is_non_policy_test_source_path(path: types::StdPathRef<'_>) -> types::AnalyzerBool {
+    types::AnalyzerBool::from(
+        path.as_ref()
+            .starts_with(str_constants::CODE_STYLE_TESTS_SRC_ROOT)
+            && !path
+                .as_ref()
+                .starts_with(str_constants::TESTS_SRC_CODE_STYLE),
+    )
+}
+#[allow(clippy::single_call_fn)] // exact owner-path matching is shared by direct-filesystem policy and its scope regression
+fn is_direct_fs_owner_source_path(path: types::StdPathRef<'_>) -> types::AnalyzerBool {
+    let path_text = path.as_ref().to_string_lossy();
+    types::AnalyzerBool::from(
+        str_constants::CODE_STYLE_DIRECT_FS_OWNER_SUFFIXES
+            .iter()
+            .any(|suffix| path_text.ends_with(suffix)),
     )
 }
 #[allow(clippy::single_call_fn)] // proc-macro crates are allowed to panic by repository policy

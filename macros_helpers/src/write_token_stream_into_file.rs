@@ -75,18 +75,16 @@ pub fn maybe_write_token_stream_into_file<P>(
     file_name: P,
     ts: ProcMacro2TokenStreamRef<'_>,
     format_with_cargofmt: &FormatWithCargofmt,
-) where
+) -> std::io::Result<()>
+where
     P: AsRef<std::path::Path>,
 {
-    crate::panic_if_err::panic_if_err(
-        try_maybe_write_token_stream_into_file(
-            should_write_token_stream_into_file,
-            file_name,
-            ts,
-            format_with_cargofmt,
-        ),
-        |error| format!("5ecc3880:{error}"),
-    );
+    try_maybe_write_token_stream_into_file(
+        should_write_token_stream_into_file,
+        file_name,
+        ts,
+        format_with_cargofmt,
+    )
 }
 #[cfg(test)]
 mod tests {
@@ -103,7 +101,8 @@ mod tests {
             &base,
             super::ProcMacro2TokenStreamRef::from(&ts),
             &super::FormatWithCargofmt::False,
-        );
+        )
+        .expect("5ecc3880");
         let _error = std::fs::metadata(&path).expect_err(str_constants::VALUE_7BE5F201);
     }
     #[test]
@@ -120,7 +119,8 @@ mod tests {
             &base,
             super::ProcMacro2TokenStreamRef::from(&ts),
             &super::FormatWithCargofmt::False,
-        );
+        )
+        .expect("04f83dc1");
         crate::test_hlp::assert_file_content(
             crate::test_hlp::StdAssertFilePath::new(path.as_ref()),
             crate::test_hlp::ExpectedFileContent::new(&expected),

@@ -2,7 +2,9 @@ mod discovery;
 mod execution;
 mod reporting;
 const DIRECT_GENERATION_REPEAT_COUNT: usize = 5;
+const ADMIN_FIXTURE_STRING_MAX_LEN: usize = 1_048_576usize;
 const MEASURE_REPEAT_COUNT: usize = 1000;
+const RUNNER_MODE_MAX_LEN: usize = 1_024usize;
 const SQL_BUILDER_MEASURE_SERIES_COUNT: usize = 5;
 const STATIC_COMMANDS: [(&str, &[&str]); 3] = [
     (
@@ -153,6 +155,33 @@ impl ToolPath {
         self.0
     }
 }
+#[derive(Clone, Copy, newtype::FromInner)]
+struct ToolAvailable(bool);
+impl ToolAvailable {
+    const fn get(self) -> bool {
+        self.0
+    }
+}
+#[derive(Clone, Copy, newtype::FromInner)]
+struct StdRunnerIoErrorRef<'error_lt>(&'error_lt std::io::Error);
+impl<'error_lt> StdRunnerIoErrorRef<'error_lt> {
+    const fn get(self) -> &'error_lt std::io::Error {
+        self.0
+    }
+}
+#[derive(Clone, Copy, newtype::FromInner)]
+struct StdRunnerPathRef<'path_lt>(&'path_lt std::path::Path);
+impl<'path_lt> StdRunnerPathRef<'path_lt> {
+    const fn get(self) -> &'path_lt std::path::Path {
+        self.0
+    }
+}
+#[derive(Debug, newtype::AsRefStr, newtype::BoundedString)]
+#[bounded_string(max = RUNNER_MODE_MAX_LEN)]
+struct RunnerMode(String);
+#[derive(Debug, newtype::BoundedString)]
+#[bounded_string(max = ADMIN_FIXTURE_STRING_MAX_LEN)]
+struct AdminFixtureString(String);
 #[derive(Clone, Copy)]
 struct AllocationTool {
     name: ToolName,
@@ -659,8 +688,8 @@ fn run_alloc_workload_where_filters_query_part() -> Result<(), ()> {
     );
     Ok(())
 }
-fn cargo_subcommand_available(subcommand: &str) -> bool {
-    let args = [subcommand, str_constants::VERSION];
+fn cargo_subcommand_available(subcommand: ToolName) -> ToolAvailable {
+    let args = [subcommand.get(), str_constants::VERSION];
     macros_helpers::tool_command::ToolCommand::new(
         macros_helpers::tool_command::ToolProgramRef::from(
             str_constants::WORKSPACE_TEST_RUNNER_CARGO,
@@ -671,6 +700,7 @@ fn cargo_subcommand_available(subcommand: &str) -> bool {
     ))
     .output()
     .is_ok_and(|output| output.status.success())
+    .into()
 }
 #[allow(
     clippy::needless_for_each,
@@ -691,7 +721,7 @@ fn print_optional_release_tools() {
     .for_each(|tool| {
         println!(
             "release_tool={tool} available={}",
-            cargo_subcommand_available(tool)
+            cargo_subcommand_available(ToolName::from(tool)).get()
         );
     });
 }
@@ -699,7 +729,7 @@ fn print_optional_release_tools() {
 fn run_release() -> Result<(), ()> {
     print_optional_release_tools();
     let mut commands = Vec::<(&str, &[&str])>::from(STATIC_COMMANDS);
-    if cargo_subcommand_available(str_constants::NEXTEST) {
+    if cargo_subcommand_available(ToolName::from(str_constants::NEXTEST)).get() {
         commands.extend(NEXTEST_COMMANDS);
     } else {
         commands.extend(CARGO_TEST_COMMANDS);
@@ -731,27 +761,33 @@ fn run_release() -> Result<(), ()> {
         ),
     ]
     .into_iter()
-    .filter(|(subcommand, _args)| cargo_subcommand_available(subcommand))
+    .filter(|(subcommand, _args)| cargo_subcommand_available(ToolName::from(*subcommand)).get())
     .for_each(|(_subcommand, args)| {
         commands.push((str_constants::WORKSPACE_TEST_RUNNER_CARGO, args));
     });
-    execution::run_commands(commands.as_slice())
+    execution::run_commands(execution::CommandsRef::from(commands.as_slice()))
 }
 fn run_workspace_tests() -> Result<(), ()> {
-    if cargo_subcommand_available(str_constants::NEXTEST) {
+    if cargo_subcommand_available(ToolName::from(str_constants::NEXTEST)).get() {
         println!("test_executor=nextest");
-        execution::run_commands(&NEXTEST_COMMANDS)
+        execution::run_commands(execution::CommandsRef::from(&NEXTEST_COMMANDS))
     } else {
         println!("test_executor=cargo fallback=true");
-        execution::run_commands(&CARGO_TEST_COMMANDS)
+        execution::run_commands(execution::CommandsRef::from(&CARGO_TEST_COMMANDS))
     }
 }
-fn admin_fixture_string<Value>(value: String) -> Result<Value, ()>
+fn admin_fixture_string<Value>(value: impl TryInto<AdminFixtureString>) -> Result<Value, ()>
 where
     Value: TryFrom<String>,
     Value::Error: std::fmt::Display,
 {
-    Value::try_from(value).map_err(|error| {
+    let bounded_value = value.try_into().map_err(|_error| {
+        eprintln!(
+            "{}",
+            str_constants::WORKSPACE_TEST_RUNNER_ADMIN_FIXTURE_STRING_INVALID
+        );
+    })?;
+    Value::try_from(bounded_value.0).map_err(|error| {
         eprintln!("{error}");
     })
 }
@@ -1033,18 +1069,20 @@ fn write_admin_contract_fixture() -> Result<(), ()> {
 }
 fn main() {
     let mode = discovery::mode();
-    let result = match mode.as_deref() {
-        None | Some(str_constants::STATIC) => execution::run_commands(&STATIC_COMMANDS),
+    let result = match mode.as_ref().map(RunnerMode::as_ref) {
+        None | Some(str_constants::STATIC) => {
+            execution::run_commands(execution::CommandsRef::from(&STATIC_COMMANDS))
+        }
         Some(str_constants::DATABASE) => {
             match std::env::var(str_constants::ENV_NAMES_DATABASE_URL) {
                 Ok(database_url) => {
                     match macros_helpers::test_database::validate_test_database_url(
                         macros_helpers::test_database::UrlRef::from(database_url.as_str()),
                     ) {
-                        Ok(_target) => execution::run_commands(&[(
+                        Ok(_target) => execution::run_commands(execution::CommandsRef::from(&[(
                             str_constants::WORKSPACE_TEST_RUNNER_CARGO,
-                            &str_constants::WORKSPACE_TEST_RUNNER_CARGO_TEST_DATABASE_ARGS,
-                        )]),
+                            &str_constants::WORKSPACE_TEST_RUNNER_CARGO_TEST_DATABASE_ARGS[..],
+                        )])),
                         Err(error) => {
                             eprintln!("database test guard rejected DATABASE_URL: {error}");
                             Err(())
@@ -1081,11 +1119,11 @@ fn main() {
             }),
         Some(str_constants::TESTS_ALT) => run_workspace_tests(),
         Some(str_constants::HEAVY_LOAD) => {
-            if cargo_subcommand_available(str_constants::NEXTEST) {
-                execution::run_commands(&[(
+            if cargo_subcommand_available(ToolName::from(str_constants::NEXTEST)).get() {
+                execution::run_commands(execution::CommandsRef::from(&[(
                     str_constants::WORKSPACE_TEST_RUNNER_CARGO,
-                    &str_constants::WORKSPACE_TEST_RUNNER_NEXTEST_HEAVY_ARGS,
-                )])
+                    &str_constants::WORKSPACE_TEST_RUNNER_NEXTEST_HEAVY_ARGS[..],
+                )]))
             } else {
                 eprintln!("heavy-load mode requires cargo-nextest; optional tool is unavailable");
                 Err(())
@@ -1095,10 +1133,8 @@ fn main() {
         Some(str_constants::MEASURE) => {
             let allocation_tools_printed: Result<(), std::convert::Infallible> =
                 allocation_tools().iter().try_fold((), |(), tool| {
-                    let available = discovery::tool_available(tool.path.get());
-                    let name = tool.name.get();
-                    let path = tool.path.get();
-                    reporting::allocation_tool(name, path, available);
+                    let available = discovery::tool_available(tool.path);
+                    reporting::allocation_tool(tool.name, tool.path, available);
                     Ok(())
                 });
             match allocation_tools_printed {
@@ -1297,10 +1333,17 @@ fn main() {
                 );
                 std::process::exit(1);
             }
-            let generate_pg_table_tests_stage_output = match std::fs::read_to_string(
-                generate_pg_table_with_tests_dir.join(str_constants::GENERATE_PG_TABLE_TESTS_RS),
-            ) {
-                Ok(content) => (content.len(), content.lines().count()),
+            let generate_pg_table_tests_stage_output_path =
+                generate_pg_table_with_tests_dir.join(str_constants::GENERATE_PG_TABLE_TESTS_RS);
+            let generate_pg_table_tests_stage_output = match server_runtime::read_bounded_file(
+                server_runtime::StdPathRef::from(
+                    generate_pg_table_tests_stage_output_path.as_path(),
+                ),
+                server_runtime::BoundedReadMaximumBytes::from(16_777_216usize),
+            )
+            .and_then(server_runtime::BoundedText::try_from)
+            {
+                Ok(content) => (content.as_ref().len(), content.as_ref().lines().count()),
                 Err(error) => {
                     eprintln!(
                         "measurement=generate_pg_table_tests_stage_output status=read_failed error={error}"
@@ -1555,15 +1598,18 @@ fn main() {
                 }
             }
         }
-        Some(str_constants::ALL_ALT) => execution::run_commands(&STATIC_COMMANDS)
-            .and_then(|()| run_workspace_tests())
-            .and_then(|()| {
-                macro_generation_measurements()
-                    .iter()
-                    .try_fold((), |(), (measurement_name, args)| {
-                        measure_cargo_command(*measurement_name, *args)
-                    })
-            }),
+        Some(str_constants::ALL_ALT) => {
+            execution::run_commands(execution::CommandsRef::from(&STATIC_COMMANDS))
+                .and_then(|()| run_workspace_tests())
+                .and_then(|()| {
+                    macro_generation_measurements().iter().try_fold(
+                        (),
+                        |(), (measurement_name, args)| {
+                            measure_cargo_command(*measurement_name, *args)
+                        },
+                    )
+                })
+        }
         Some(other) => {
             eprintln!(
                 "unknown mode `{other}`; expected `static`, `database`, `tests`, `heavy-load`, `release`, `macro-generation`, `measure`, `all`, or `alloc-workload-*`"

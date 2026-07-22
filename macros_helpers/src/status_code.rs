@@ -77,7 +77,7 @@ impl StatusCode {
     #[must_use]
     pub fn to_http_status_code_token_stream(
         &self,
-    ) -> crate::generated_rust_token_stream::GeneratedRustTokenStream {
+    ) -> crate::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
         let ts = match *self {
             Self::Continue100 => quote::quote! {CONTINUE},
             Self::SwitchingProtocols101 => quote::quote! {SWITCHING_PROTOCOLS},
@@ -142,19 +142,19 @@ impl StatusCode {
                 quote::quote! {NETWORK_AUTHENTICATION_REQUIRED}
             }
         };
-        crate::generated_rust_token_stream::GeneratedRustTokenStream::from(
+        crate::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
             quote::quote! {http::StatusCode::#ts},
         )
     }
     #[must_use]
     pub fn to_proc_macro_attr_view_token_stream(
         &self,
-    ) -> crate::generated_rust_token_stream::GeneratedRustTokenStream {
+    ) -> crate::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
         match format!("#[{self}]").parse::<proc_macro2::TokenStream>() {
-            Ok(v) => crate::generated_rust_token_stream::GeneratedRustTokenStream::from(v),
+            Ok(v) => crate::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(v),
             Err(error) => {
                 let message = error.to_string();
-                crate::generated_rust_token_stream::GeneratedRustTokenStream::from(
+                crate::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
                     quote::quote! {compile_error!(#message);},
                 )
             }
@@ -163,8 +163,8 @@ impl StatusCode {
     #[must_use]
     pub fn to_status_code_description_token_stream(
         &self,
-    ) -> crate::generated_rust_token_stream::GeneratedRustTokenStream {
-        crate::generated_rust_token_stream::GeneratedRustTokenStream::from(match *self {
+    ) -> crate::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
+        crate::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(match *self {
             Self::Continue100 => quote::quote! {"continue"},
             Self::SwitchingProtocols101 => quote::quote! {"switching protocols"},
             Self::Processing102 => quote::quote! {"processing"},
@@ -242,8 +242,8 @@ impl StatusCode {
     #[must_use]
     pub fn to_status_code_token_stream(
         &self,
-    ) -> crate::generated_rust_token_stream::GeneratedRustTokenStream {
-        crate::generated_rust_token_stream::GeneratedRustTokenStream::from(match *self {
+    ) -> crate::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
+        crate::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(match *self {
             Self::Continue100 => quote::quote! {100},
             Self::SwitchingProtocols101 => quote::quote! {101},
             Self::Processing102 => quote::quote! {102},

@@ -74,30 +74,6 @@ where
         Err(MacroAttrError::AttrNotList)
     }
 }
-#[must_use]
-pub fn get_macro_attr<'lt, A, S>(attrs: A, attr_path: S) -> SynMacroAttrRef<'lt>
-where
-    A: IntoIterator<Item = &'lt syn::Attribute>,
-    S: AsRef<str> + Copy,
-{
-    crate::panic_if_err::panic_if_err(try_get_macro_attr(attrs, attr_path), |error| {
-        format!("68acaa15:{error}:{}", attr_path.as_ref())
-    })
-}
-#[must_use]
-pub fn get_macro_attr_meta_list_token_stream<'lt, A, S>(
-    attrs: A,
-    attr_path: S,
-) -> ProcMacro2MacroAttrMetaListTokenStreamRef<'lt>
-where
-    A: IntoIterator<Item = &'lt syn::Attribute>,
-    S: AsRef<str> + Copy,
-{
-    crate::panic_if_err::panic_if_err(
-        try_get_macro_attr_meta_list_token_stream(attrs, attr_path),
-        |error| format!("9d057161:{error}:{}", attr_path.as_ref()),
-    )
-}
 #[cfg(test)]
 mod tests {
     fn attrs() -> Vec<syn::Attribute> {
@@ -109,7 +85,8 @@ mod tests {
     #[test]
     fn get_macro_attr_ignores_spaces_in_lookup_path() {
         let attrs = attrs();
-        let attr = super::get_macro_attr(&attrs, str_constants::SQLX_PATH_TYPE_NAME);
+        let attr = super::try_get_macro_attr(&attrs, str_constants::SQLX_PATH_TYPE_NAME)
+            .expect("193fa8d2");
         assert!(
             quote::quote! {#attr}
                 .to_string()
@@ -119,7 +96,8 @@ mod tests {
     #[test]
     fn get_macro_attr_meta_list_token_stream_returns_list_tokens() {
         let attrs = attrs();
-        let ts = super::get_macro_attr_meta_list_token_stream(&attrs, str_constants::SERDE);
+        let ts = super::try_get_macro_attr_meta_list_token_stream(&attrs, str_constants::SERDE)
+            .expect("647b0c3e");
         assert_eq!(ts.to_string(), "default");
     }
     #[test]

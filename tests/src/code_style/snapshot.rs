@@ -57,15 +57,19 @@ impl CodebaseSnapshot {
             .packages
             .iter()
             .filter(|package| workspace_members.as_ref().contains(&package.id))
-            .filter_map(|package| {
+            .map(|package| {
                 let path = package.manifest_path.as_std_path().to_path_buf();
-                let content = std::fs::read_to_string(&path).ok()?;
-                let parsed = content.parse::<toml::Table>().ok()?;
-                Some(CargoTomlSourceFile {
+                let content = std::fs::read_to_string(&path).unwrap_or_else(|error| {
+                    panic!("50da433e failed to read {}: {error}", path.display())
+                });
+                let parsed = content.parse::<toml::Table>().unwrap_or_else(|error| {
+                    panic!("96f2c78a failed to parse {}: {error}", path.display())
+                });
+                CargoTomlSourceFile {
                     content: super::types::SourceText::try_from(content).expect("84f6a0d2"),
                     parsed: super::types::TomlTable::from(parsed),
                     path: super::types::StdPathBuf::from(path),
-                })
+                }
             })
             .collect();
         let cargo_toml_by_path =
@@ -137,10 +141,23 @@ impl CodebaseSnapshot {
         self.cargo_toml_file(path)
             .map(|cargo_toml| cargo_toml.parsed.clone())
             .or_else(|| {
-                let v = std::fs::read_to_string(path.as_ref()).ok()?;
-                v.parse::<toml::Table>()
-                    .ok()
-                    .map(super::types::TomlTable::from)
+                path.as_ref().exists().then(|| {
+                    let value = std::fs::read_to_string(path.as_ref()).unwrap_or_else(|error| {
+                        panic!(
+                            "e12179c5 failed to read {}: {error}",
+                            path.as_ref().display()
+                        )
+                    });
+                    value.parse::<toml::Table>().map_or_else(
+                        |error| {
+                            panic!(
+                                "77b2d82b failed to parse {}: {error}",
+                                path.as_ref().display()
+                            )
+                        },
+                        super::types::TomlTable::from,
+                    )
+                })
             })
     }
     pub(super) fn rs_files(&self) -> &[RsSourceFile] {
@@ -195,14 +212,56 @@ fn project_source_files_uncached() -> impl Iterator<Item = ProjectSourceFile> {
                     )
                     .get())
         })
-        .filter_map(Result::ok)
+        .map(project_walk_entry)
         .filter(|entry| !entry.file_type().is_dir())
-        .filter_map(|entry| {
-            let path = entry.into_path();
-            let content = std::fs::read_to_string(&path).ok()?;
-            Some(ProjectSourceFile {
-                content: super::types::SourceText::try_from(content).ok()?,
-                path: super::types::StdPathBuf::from(path),
-            })
+        .map(|entry| project_source_file(entry.into_path()))
+}
+fn project_walk_entry(entry: walkdir::Result<walkdir::DirEntry>) -> walkdir::DirEntry {
+    entry.unwrap_or_else(|error| panic!("1e4b17b0 walk failed: {error}"))
+}
+fn project_source_file(path: std::path::PathBuf) -> ProjectSourceFile {
+    let raw_content = std::fs::read_to_string(&path)
+        .unwrap_or_else(|error| panic!("68a041c3 failed to read {}: {error}", path.display()));
+    let content = project_source_content(path.as_path(), raw_content);
+    ProjectSourceFile {
+        content,
+        path: super::types::StdPathBuf::from(path),
+    }
+}
+fn project_source_content(path: &std::path::Path, raw_content: String) -> super::types::SourceText {
+    super::types::SourceText::try_from(raw_content)
+        .unwrap_or_else(|error| panic!("e27f9e15 invalid source {}: {error}", path.display()))
+}
+#[test]
+fn invalid_project_source_content_fails_snapshot_loading() {
+    let oversized = "x".repeat(16_777_217usize);
+    assert!(
+        std::panic::catch_unwind(|| {
+            project_source_content(std::path::Path::new("oversized.rs"), oversized)
         })
+        .is_err(),
+        "28fb322e"
+    );
+}
+#[test]
+fn missing_project_source_file_fails_snapshot_loading() {
+    let missing = std::path::PathBuf::from("code_style_snapshot_missing_source.rs");
+    assert!(
+        std::panic::catch_unwind(|| project_source_file(missing)).is_err(),
+        "46045b88"
+    );
+}
+#[test]
+fn walk_error_fails_snapshot_loading() {
+    assert!(
+        std::panic::catch_unwind(|| {
+            let missing = walkdir::WalkDir::new("code_style_snapshot_missing_directory")
+                .into_iter()
+                .next()
+                .expect("1da2f4ed");
+            project_walk_entry(missing)
+        })
+        .is_err(),
+        "6a6e2aac"
+    );
 }

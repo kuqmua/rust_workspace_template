@@ -61,10 +61,9 @@ fn runtime_arc_usage_is_limited_to_cross_thread_state() {
                 super::types::SynFileRef::from(ast),
                 super::RuntimeArcVisitor {
                     allow_arc_value_usage: super::types::AnalyzerBool::from(
-                        path.ends_with(str_constants::SERVER_SRC_MAIN_RS)
-                            || path.ends_with(str_constants::SERVER_ADMIN_SRC_PASSWORD_RS)
-                            || path.ends_with(str_constants::SERVER_RUNTIME_SRC_BOUNDED_READ_RS)
-                            || path.ends_with(str_constants::SERVER_RUNTIME_SRC_LIMITS_RS),
+                        str_constants::CODE_STYLE_RUNTIME_ARC_OWNER_SUFFIXES
+                            .iter()
+                            .any(|suffix| path.ends_with(suffix)),
                     ),
                     ers: super::types::DiagnosticMsgs::default(),
                 },
@@ -76,6 +75,50 @@ fn runtime_arc_usage_is_limited_to_cross_thread_state() {
                     .map(|error| format!("{}: {error}", path.display())),
             );
         },
+    );
+}
+#[test]
+fn runtime_test_crate_detection_uses_exact_package_names() {
+    let production = "[package]\nname = \"contest_service\""
+        .parse::<toml::Table>()
+        .expect("85acd272");
+    let test_crate = "[package]\nname = \"location_test\""
+        .parse::<toml::Table>()
+        .expect("50b60550");
+    assert!(
+        !super::is_test_crate(super::types::TomlTableRef::from(&production)).get(),
+        "3db51a9b"
+    );
+    assert!(
+        super::is_test_crate(super::types::TomlTableRef::from(&test_crate)).get(),
+        "6a5afda4"
+    );
+}
+#[test]
+fn runtime_test_helper_exclusion_is_file_exact() {
+    assert!(
+        !super::is_runtime_policy_source_path(super::types::StdPathRef::from(
+            std::path::Path::new("../macros_helpers/src/test_hlp.rs")
+        ))
+        .get(),
+        "2e8a5d90"
+    );
+    assert!(
+        super::is_runtime_policy_source_path(super::types::StdPathRef::from(std::path::Path::new(
+            "../server/src/test_hlp.rs"
+        )))
+        .get(),
+        "76c1f4b3"
+    );
+}
+#[test]
+fn environment_initializer_is_in_runtime_policy_scope() {
+    assert!(
+        super::is_runtime_policy_source_path(super::types::StdPathRef::from(std::path::Path::new(
+            "../initialize_environment_files/src/main.rs"
+        )))
+        .get(),
+        "86c8a1dd"
     );
 }
 #[test]

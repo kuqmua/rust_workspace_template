@@ -361,7 +361,7 @@ async fn version(auth: super::AdminAuthReq) -> axum::response::Response {
                 str_constants::VERSION_ALT.to_owned(),
             ),
             server_admin_frontend::ssr::AdminSsrText::try_from(
-                git_info::project_git_info().commit.to_string(),
+                git_info::project_git_info().commit().to_string(),
             ),
         ) {
             (Ok(title), Ok(text)) => {

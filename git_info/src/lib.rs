@@ -196,7 +196,18 @@ pub struct ValidateProjectCommitError(ProjectGitCommitLinkRef);
     Debug, serde_derive::Serialize, Clone, Copy, Hash, PartialEq, Eq, Default, optml::Optml,
 )]
 pub struct ProjectGitInfo<'commit_lt> {
-    pub commit: GitCommitIdRef<'commit_lt>,
+    commit: GitCommitIdRef<'commit_lt>,
+}
+impl<'commit_lt> ProjectGitInfo<'commit_lt> {
+    #[must_use]
+    pub const fn commit(&self) -> GitCommitIdRef<'commit_lt> {
+        self.commit
+    }
+}
+impl<'commit_lt> From<GitCommitIdRef<'commit_lt>> for ProjectGitInfo<'commit_lt> {
+    fn from(value: GitCommitIdRef<'commit_lt>) -> Self {
+        Self { commit: value }
+    }
 }
 impl AsRef<str> for ProjectGitInfo<'_> {
     fn as_ref(&self) -> &str {
@@ -275,9 +286,9 @@ where
 }
 #[must_use]
 pub fn project_git_info() -> ProjectGitInfo<'static> {
-    ProjectGitInfo {
-        commit: GitCommitIdRef::from(str_constants::GIT_INFO_PROJECT_GIT_COMMIT_ID),
-    }
+    ProjectGitInfo::from(GitCommitIdRef::from(
+        str_constants::GIT_INFO_PROJECT_GIT_COMMIT_ID,
+    ))
 }
 #[must_use]
 pub fn is_project_commit<'commit_lt, CommitIdTy>(commit_id: CommitIdTy) -> IsProjectCommit

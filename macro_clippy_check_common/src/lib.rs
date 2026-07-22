@@ -96,8 +96,13 @@ categories = ["category"]
     );
     let path_lib_rs = crate_path.join(str_constants::SRC_LIB_RS);
     let path_cargo_toml = crate_path.join(str_constants::CARGO_TOML);
-    let workspace_cargo_toml = std::fs::read_to_string(root.join(str_constants::CARGO_TOML))
-        .unwrap_or_else(|error| panic!("bf40d675: {error}"));
+    let workspace_manifest_path = root.join(str_constants::CARGO_TOML);
+    let workspace_cargo_toml = server_runtime::read_bounded_file(
+        server_runtime::StdPathRef::from(workspace_manifest_path.as_path()),
+        server_runtime::BoundedReadMaximumBytes::from(1_048_576usize),
+    )
+    .and_then(server_runtime::BoundedText::try_from)
+    .unwrap_or_else(|error| panic!("bf40d675: {error}"));
     let root_path = root.display().to_string();
     let cargo_toml_extra = extra_cnt.lines().fold(
         String::with_capacity(extra_cnt.len()),
@@ -122,7 +127,7 @@ categories = ["category"]
                     })
                 };
                 let mut in_workspace_deps = false;
-                let mut workspace_lines = workspace_cargo_toml.lines();
+                let mut workspace_lines = workspace_cargo_toml.as_ref().lines();
                 let mut dep_entry = loop {
                     let Some(workspace_line) = workspace_lines.next() else {
                         panic!("1bb3996c");

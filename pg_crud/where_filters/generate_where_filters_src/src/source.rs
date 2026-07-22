@@ -999,12 +999,17 @@ pub fn emit_generate_where_filters(
             <pg_crud_macros_common::filters::PgTypeFilter as strum::IntoEnumIterator>::iter()
                 .map(|element| generate_filters_token_stream(&element));
         let gend = quote::quote! {#(#filter_array_token_stream)*};
-        macros_helpers::ts_writer::maybe_write_token_stream_into_file(
+        if let Err(error) = macros_helpers::ts_writer::maybe_write_token_stream_into_file(
             generate_where_filters_config.pg_types_write_into_file,
             str_constants::GENERATE_WHERE_FILTERS_PG_TYPES,
             macros_helpers::ts_writer::ProcMacro2TokenStreamRef::from(&gend),
             &macros_helpers::ts_writer::FormatWithCargofmt::True,
-        );
+        ) {
+            let message = format!("failed to write generated where-filter PG types: {error}");
+            return ProcMacro2GenerateWhereFiltersTokenStream::from(
+                quote::quote! { compile_error!(#message); },
+            );
+        }
         gend
     };
     let imports_token_stream = quote::quote! {
@@ -1033,12 +1038,17 @@ pub fn emit_generate_where_filters(
         }
         pub use #generate_where_filters_mod::*;
     };
-    macros_helpers::ts_writer::maybe_write_token_stream_into_file(
+    if let Err(error) = macros_helpers::ts_writer::maybe_write_token_stream_into_file(
         generate_where_filters_config.whole_write_into_file,
         str_constants::CODE_STYLE_GENERATE_WHERE_FILTERS_MACRO_NAME,
         macros_helpers::ts_writer::ProcMacro2TokenStreamRef::from(&gend),
         &macros_helpers::ts_writer::FormatWithCargofmt::True,
-    );
+    ) {
+        let message = format!("failed to write generated where-filter output: {error}");
+        return ProcMacro2GenerateWhereFiltersTokenStream::from(
+            quote::quote! { compile_error!(#message); },
+        );
+    }
     ProcMacro2GenerateWhereFiltersTokenStream::from(gend)
 }
 

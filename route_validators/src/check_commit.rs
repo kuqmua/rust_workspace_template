@@ -121,7 +121,7 @@ mod tests {
         mk_headers_with_commit(str_constants::TEST_VALUES_WRONG_COMMIT)
     }
     fn mk_headers_with_project_commit() -> crate::test_hlp::AxumTestHeaders {
-        mk_headers_with_commit(git_info::project_git_info().commit.as_ref())
+        mk_headers_with_commit(git_info::project_git_info().commit().as_ref())
     }
     fn mk_headers_with_non_utf8_commit() -> crate::test_hlp::AxumTestHeaders {
         mk_headers_with_commit_header_value(crate::test_hlp::non_utf8_header_value())
@@ -268,7 +268,7 @@ mod tests {
             super::read_commit_header_str(crate::hdr_val::AxumHeadersRef::from(&headers))
                 .map(crate::hdr_val::HeaderStrRef::get),
             str_constants::E1D07F53,
-            &git_info::project_git_info().commit.as_ref(),
+            &git_info::project_git_info().commit().as_ref(),
         );
     }
     #[test]
@@ -334,7 +334,7 @@ mod tests {
     fn validate_commit_header_value_accepts_project_commit() {
         crate::test_hlp::expect_ok(
             super::validate_commit_header_value(crate::hdr_val::HeaderStrRef::from(
-                git_info::project_git_info().commit.as_ref(),
+                git_info::project_git_info().commit().as_ref(),
             )),
             str_constants::VALUE_5EF927D2,
         );
@@ -373,7 +373,7 @@ mod tests {
     #[test]
     fn project_commit_is_recognized_by_git_info_helper() {
         assert!(git_info::is_project_commit(
-            git_info::project_git_info().commit
+            git_info::project_git_info().commit()
         ));
     }
     #[test]

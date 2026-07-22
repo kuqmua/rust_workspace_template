@@ -2,20 +2,20 @@
 #[derive(Debug, Clone, strum_macros::Display, strum_macros::EnumIter, optml::Optml)]
 pub enum PgTypeFilter {
     Eq {
-        identifier: macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream,
+        identifier: macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
     },
     GreaterThan {
-        identifier: macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream,
+        identifier: macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
     },
     Between {
-        identifier: macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream,
+        identifier: macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
     },
     In {
-        identifier: macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream,
+        identifier: macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
     },
     Regex,
     Before {
-        identifier: macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream,
+        identifier: macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
     },
     CurrentDate,
     GreaterThanCurrentDate,
@@ -25,34 +25,34 @@ pub enum PgTypeFilter {
     GreaterThanCurrentTime,
     EqToEncodedStringRepresentation,
     FindRangesWithinGivenRange {
-        identifier: macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream,
+        identifier: macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
     },
     FindRangesThatFullyContainTheGivenRange {
-        identifier: macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream,
+        identifier: macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
     },
     StrictlyToLeftOfRange {
-        identifier: macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream,
+        identifier: macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
     },
     StrictlyToRightOfRange {
-        identifier: macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream,
+        identifier: macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
     },
     IncludedLowerBound {
-        identifier: macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream,
+        identifier: macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
     },
     ExcludedUpperBound {
-        identifier: macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream,
+        identifier: macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
     },
     GreaterThanIncludedLowerBound {
-        identifier: macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream,
+        identifier: macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
     },
     GreaterThanExcludedUpperBound {
-        identifier: macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream,
+        identifier: macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
     },
     OverlapWithRange {
-        identifier: macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream,
+        identifier: macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
     },
     AdjacentWithRange {
-        identifier: macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream,
+        identifier: macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
     },
     RangeLen,
     //BitVecPositionEq,//currently deactivated
@@ -60,7 +60,7 @@ pub enum PgTypeFilter {
 impl PgFilter for PgTypeFilter {
     fn maybe_generic(
         &self,
-    ) -> Option<macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream> {
+    ) -> Option<macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream> {
         match &self {
             Self::Eq { identifier }
             | Self::GreaterThan { identifier }
@@ -90,9 +90,9 @@ impl PgFilter for PgTypeFilter {
     }
     fn prefix_where_self_upper_camel_case(
         &self,
-    ) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+    ) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
         let v = naming::parameter::PgTypeWhereSelfUpperCamelCase::from_display(&self.ucc());
-        macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(
+        macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
             quote::quote! {#v},
         )
     }
@@ -138,9 +138,9 @@ impl PgFilter for PgTypeFilter {
 pub trait PgFilter {
     fn maybe_generic(
         &self,
-    ) -> Option<macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream>;
+    ) -> Option<macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream>;
     fn prefix_where_self_upper_camel_case(
         &self,
-    ) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream;
+    ) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream;
     fn ucc(&self) -> &'static dyn naming::DisplayPlusToTokens;
 }

@@ -454,6 +454,115 @@ fn environment_initializer_is_in_domain_boundary_policy_scope() {
     );
 }
 #[test]
+fn workspace_test_runner_is_in_domain_boundary_policy_scope() {
+    assert!(
+        super::domain_type_policy_should_check_path(super::types::StdPathRef::from(
+            std::path::Path::new(str_constants::WORKSPACE_TEST_RUNNER_SRC)
+        ))
+        .get(),
+        "446a3bb7"
+    );
+}
+#[test]
+fn workspace_scaffold_is_in_domain_boundary_policy_scope() {
+    assert!(
+        super::domain_type_policy_should_check_path(super::types::StdPathRef::from(
+            std::path::Path::new(str_constants::WORKSPACE_SCAFFOLD_SRC)
+        ))
+        .get(),
+        "c1a7e4d9"
+    );
+}
+#[test]
+fn server_admin_frontend_is_in_domain_boundary_policy_scope() {
+    assert!(
+        super::domain_type_policy_should_check_path(super::types::StdPathRef::from(
+            std::path::Path::new(str_constants::SERVER_ADMIN_FRONTEND_SRC_APP_RS)
+        ))
+        .get(),
+        "73e9c20f"
+    );
+}
+#[test]
+fn domain_fixture_directory_exclusions_are_owner_exact() {
+    assert!(
+        !super::domain_type_policy_should_check_path(super::types::StdPathRef::from(
+            std::path::Path::new("../location_lib/location_test/src/lib.rs")
+        ))
+        .get(),
+        "4ab6e2d1"
+    );
+    assert!(
+        super::domain_type_policy_should_check_path(super::types::StdPathRef::from(
+            std::path::Path::new("../location_lib/location/src/location_test.rs")
+        ))
+        .get(),
+        "d8c3175f"
+    );
+    assert!(
+        !super::domain_type_policy_should_check_path(super::types::StdPathRef::from(
+            std::path::Path::new("../pg_crud/pg_crud_common/benches/query.rs")
+        ))
+        .get(),
+        "09e5a6bc"
+    );
+    assert!(
+        super::domain_type_policy_should_check_path(super::types::StdPathRef::from(
+            std::path::Path::new("../server/benches/query.rs")
+        ))
+        .get(),
+        "e5f21c07"
+    );
+}
+#[test]
+fn domain_type_policy_reports_raw_browser_external_types_natively() {
+    let ast = syn::parse_file("fn browser(response: web_sys::Response) {}").expect("d031ea92");
+    let repo_crates = std::collections::BTreeSet::new();
+    let repo_types = std::collections::BTreeSet::new();
+    let visitor = super::visit_syn_file(
+        super::types::SynFileRef::from(&ast),
+        super::DomainTypePolicyVisitor {
+            ers: super::types::DiagnosticMsgs::default(),
+            closure_body_scan_depth: super::types::AnalyzerCount::default(),
+            generic_scopes: Vec::new(),
+            repo_crates: super::types::StdStdSourceTextSetRef::from(&repo_crates),
+            repo_types: super::types::StdStdSourceTextSetRef::from(&repo_types),
+        },
+    );
+    assert_eq!(visitor.ers.len(), 1usize, "79ce162a {:#?}", visitor.ers);
+    assert!(
+        visitor
+            .ers
+            .first()
+            .is_some_and(|error| error.contains("web_sys")),
+        "bd624f03"
+    );
+}
+#[test]
+fn proc_macro_helpers_are_checked_while_compiler_entrypoints_are_exempt() {
+    let ast = syn::parse_file(
+        "#[proc_macro]\npub fn entry(input: proc_macro::TokenStream) -> proc_macro::TokenStream { input }\nfn helper(values: Vec<String>) {}",
+    )
+    .expect("5a1d8c34");
+    let repo_crates = std::collections::BTreeSet::new();
+    let repo_types = std::collections::BTreeSet::new();
+    let visitor = super::visit_syn_file(
+        super::types::SynFileRef::from(&ast),
+        super::DomainTypePolicyVisitor {
+            ers: super::types::DiagnosticMsgs::default(),
+            closure_body_scan_depth: super::types::AnalyzerCount::default(),
+            generic_scopes: Vec::new(),
+            repo_crates: super::types::StdStdSourceTextSetRef::from(&repo_crates),
+            repo_types: super::types::StdStdSourceTextSetRef::from(&repo_types),
+        },
+    );
+    assert_eq!(visitor.ers.len(), 2usize, "c82fb6d1 {:#?}", visitor.ers);
+    assert!(
+        visitor.ers.iter().all(|error| error.contains("helper")),
+        "109eb4a7"
+    );
+}
+#[test]
 fn domain_type_policy_checks_explicit_closure_parameter_types() {
     let ast = syn::parse_file(
         str_constants::NEWLINE_STRUCT_SOURCETEXT_BOX_STR_NEWLINE_FN_DEMO_NEWLINE_LET_PATH_CB,
@@ -665,5 +774,32 @@ fn external_leaf_tuple_wrappers_include_crate_name() {
                     .map(|error| format!("{}: {error}", path.display())),
             );
         },
+    );
+}
+#[test]
+fn external_leaf_wrapper_prefix_rule_has_no_name_exceptions() {
+    assert!(
+        super::external_leaf_wrapper_name_exceptions().is_empty(),
+        "5f29c4e8"
+    );
+    let ast: syn::File = syn::parse_quote! {
+        struct GeneratedTokens(proc_macro2::TokenStream);
+        struct ProcMacro2GeneratedTokens(proc_macro2::TokenStream);
+    };
+    let repo_crates = std::collections::BTreeSet::new();
+    let visitor = super::visit_syn_file(
+        super::types::SynFileRef::from(&ast),
+        super::ExternalLeafWrapperNameVisitor {
+            ers: super::types::DiagnosticMsgs::default(),
+            repo_crates: super::types::StdStdSourceTextSetRef::from(&repo_crates),
+        },
+    );
+    assert_eq!(visitor.ers.len(), 1usize, "9db6310a {:#?}", visitor.ers);
+    assert!(
+        visitor
+            .ers
+            .first()
+            .is_some_and(|error| error.contains("GeneratedTokens")),
+        "e7340ba2"
     );
 }

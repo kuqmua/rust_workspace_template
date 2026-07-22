@@ -1,3 +1,5 @@
+const ENV_FILE_MAX_BYTES: usize = 1_048_576usize;
+const WORKSPACE_MANIFEST_MAX_BYTES: usize = 1_048_576usize;
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum RunMode {
     Apply,
@@ -27,6 +29,11 @@ impl TryFrom<String> for EnvContent {
         } else {
             Ok(Self(value))
         }
+    }
+}
+impl From<server_runtime::BoundedText> for EnvContent {
+    fn from(value: server_runtime::BoundedText) -> Self {
+        Self(value.into_inner())
     }
 }
 impl AsRef<str> for EnvContent {
@@ -139,6 +146,20 @@ impl AsRef<std::path::Path> for StdWorkspaceRootRef<'_> {
         self.0
     }
 }
+#[derive(Clone, Copy)]
+struct StdInitPathRef<'path_lt>(&'path_lt std::path::Path);
+impl<'path_lt> From<&'path_lt std::path::Path> for StdInitPathRef<'path_lt> {
+    fn from(value: &'path_lt std::path::Path) -> Self {
+        Self(value)
+    }
+}
+#[derive(Clone, Copy)]
+struct InitMaxBytes(usize);
+impl From<usize> for InitMaxBytes {
+    fn from(value: usize) -> Self {
+        Self(value)
+    }
+}
 struct InitEntries(Vec<InitializationEntry>);
 impl From<Vec<InitializationEntry>> for InitEntries {
     fn from(value: Vec<InitializationEntry>) -> Self {
@@ -158,6 +179,23 @@ impl std::fmt::Display for StdInitIoError {
     }
 }
 impl std::error::Error for StdInitIoError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        Some(&self.0)
+    }
+}
+#[derive(Debug)]
+struct ServerRuntimeBoundedReadError(server_runtime::BoundedReadError);
+impl From<server_runtime::BoundedReadError> for ServerRuntimeBoundedReadError {
+    fn from(value: server_runtime::BoundedReadError) -> Self {
+        Self(value)
+    }
+}
+impl std::fmt::Display for ServerRuntimeBoundedReadError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+impl std::error::Error for ServerRuntimeBoundedReadError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         Some(&self.0)
     }
@@ -196,12 +234,12 @@ enum InitializeError {
     #[error("failed to read environment example")]
     ReadExample {
         #[source]
-        source: StdInitIoError,
+        source: ServerRuntimeBoundedReadError,
     },
     #[error("failed to read workspace manifest")]
     ReadManifest {
         #[source]
-        source: StdInitIoError,
+        source: ServerRuntimeBoundedReadError,
     },
     #[error(transparent)]
     String(#[from] InitStringError),
@@ -210,6 +248,19 @@ enum InitializeError {
         #[source]
         source: StdInitIoError,
     },
+}
+fn read_bounded_content(
+    path: StdInitPathRef<'_>,
+    maximum_bytes: InitMaxBytes,
+) -> Result<EnvContent, ServerRuntimeBoundedReadError> {
+    let bytes = server_runtime::read_bounded_file(
+        server_runtime::StdPathRef::from(path.0),
+        server_runtime::BoundedReadMaximumBytes::from(maximum_bytes.0),
+    )
+    .map_err(ServerRuntimeBoundedReadError::from)?;
+    server_runtime::BoundedText::try_from(bytes)
+        .map(EnvContent::from)
+        .map_err(ServerRuntimeBoundedReadError::from)
 }
 #[allow(
     clippy::single_call_fn,
@@ -280,12 +331,13 @@ fn merge_missing_assignments(
     reason = "separates manifest validation from filesystem mutation"
 )]
 fn workspace_members(root: StdWorkspaceRootRef<'_>) -> Result<WorkspaceMembers, InitializeError> {
-    let manifest = std::fs::read_to_string(root.as_ref().join(str_constants::CARGO_TOML)).map_err(
-        |source| InitializeError::ReadManifest {
-            source: source.into(),
-        },
-    )?;
-    let value = toml::from_str::<toml::Value>(&manifest).map_err(|source| {
+    let manifest_path = root.as_ref().join(str_constants::CARGO_TOML);
+    let manifest = read_bounded_content(
+        StdInitPathRef::from(manifest_path.as_path()),
+        InitMaxBytes::from(WORKSPACE_MANIFEST_MAX_BYTES),
+    )
+    .map_err(|source| InitializeError::ReadManifest { source })?;
+    let value = toml::from_str::<toml::Value>(manifest.as_ref()).map_err(|source| {
         InitializeError::ManifestParse {
             source: source.into(),
         }
@@ -328,22 +380,21 @@ fn initialize(
             if !example_path.exists() {
                 return Ok(entries);
             }
-            let content = std::fs::read_to_string(example_path).map_err(|source| {
-                InitializeError::ReadExample {
-                    source: source.into(),
-                }
-            })?;
+            let content = read_bounded_content(
+                StdInitPathRef::from(example_path.as_path()),
+                InitMaxBytes::from(ENV_FILE_MAX_BYTES),
+            )
+            .map_err(|source| InitializeError::ReadExample { source })?;
             let environment_path = root.as_ref().join(member.as_ref()).join(str_constants::ENV);
             let status = if environment_path.exists() {
-                let current =
-                    std::fs::read_to_string(environment_path.as_path()).map_err(|source| {
-                        InitializeError::ReadExample {
-                            source: source.into(),
-                        }
-                    })?;
+                let current = read_bounded_content(
+                    StdInitPathRef::from(environment_path.as_path()),
+                    InitMaxBytes::from(ENV_FILE_MAX_BYTES),
+                )
+                .map_err(|source| InitializeError::ReadExample { source })?;
                 match merge_missing_assignments(
-                    EnvContentRef::from(current.as_str()),
-                    EnvContentRef::from(content.as_str()),
+                    EnvContentRef::from(current.as_ref()),
+                    EnvContentRef::from(content.as_ref()),
                 )? {
                     None => InitializationStatus::SkippedExisting,
                     Some(_merged) if mode == RunMode::DryRun => InitializationStatus::WouldUpdate,
@@ -359,15 +410,15 @@ fn initialize(
             } else if mode == RunMode::DryRun {
                 InitializationStatus::WouldCreate
             } else {
-                std::fs::write(environment_path, content.as_bytes()).map_err(|source| {
-                    InitializeError::WriteEnvironment {
+                std::fs::write(environment_path, content.as_ref().as_bytes()).map_err(
+                    |source| InitializeError::WriteEnvironment {
                         source: source.into(),
-                    }
-                })?;
+                    },
+                )?;
                 InitializationStatus::Created
             };
             entries.push(InitializationEntry {
-                keys: environment_keys(EnvContentRef::from(content.as_str()))?,
+                keys: environment_keys(EnvContentRef::from(content.as_ref()))?,
                 member,
                 status,
             });
@@ -490,5 +541,26 @@ mod tests {
             Err(super::InitializeError::InvalidMember { .. })
         ));
         std::fs::remove_dir_all(root).expect("d9154402");
+    }
+    #[test]
+    fn oversized_environment_example_is_rejected() {
+        let root = fixture();
+        std::fs::write(
+            root.join(str_constants::SERVICE_ENV_EXAMPLE),
+            str_constants::A_ALT.repeat(super::ENV_FILE_MAX_BYTES.saturating_add(1usize)),
+        )
+        .expect("f6290e85");
+        assert!(matches!(
+            super::initialize(
+                super::StdWorkspaceRootRef::from(root.as_path()),
+                super::RunMode::DryRun
+            ),
+            Err(super::InitializeError::ReadExample {
+                source: super::ServerRuntimeBoundedReadError(
+                    server_runtime::BoundedReadError::ExceedsMaximum { .. }
+                )
+            })
+        ));
+        std::fs::remove_dir_all(root).expect("7d83384c");
     }
 }

@@ -2,14 +2,14 @@
 pub fn parse_strs_to_ts2_vec(
     v: crate::ParseTokenStreamStrings,
     uuid: crate::ParseErrorIdRef<'_>,
-) -> crate::GeneratedRustTokenStreamVec {
+) -> crate::ProcMacro2GeneratedRustTokenStreamVec {
     v.into_generated_vec(uuid)
 }
 #[must_use]
 pub fn generate_mod_with_pub_use_token_stream(
     mod_name: &dyn quote::ToTokens,
-    content_token_stream: &crate::GeneratedRustTokenStreamVec,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+    content_token_stream: &crate::ProcMacro2GeneratedRustTokenStreamVec,
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     quote::quote! {
         #[allow(unused_qualifications)]
         #[allow(unused_variables)]
@@ -58,7 +58,7 @@ pub fn generate_match_ok_assign_or_return_err_token_stream(
     expr_token_stream: &dyn quote::ToTokens,
     assign_target_token_stream: &dyn quote::ToTokens,
     ok_v_token_stream: &dyn quote::ToTokens,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     let names = crate::NamesCtx::new();
     #[allow(non_snake_case)]
     let (ErrorSnakeCase,) = (&names.ErrorSnakeCase,);
@@ -78,7 +78,7 @@ pub fn generate_match_ok_assign_or_return_err_token_stream(
 pub fn generate_match_ok_or_return_err_token_stream(
     expr_token_stream: &dyn quote::ToTokens,
     ok_v_token_stream: &dyn quote::ToTokens,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     let names = crate::NamesCtx::new();
     #[allow(non_snake_case)]
     let (ErrorSnakeCase,) = (&names.ErrorSnakeCase,);
@@ -98,7 +98,7 @@ pub fn generate_match_not_empty_unique_vec_try_new_some_or_none_token_stream(
     expr_token_stream: &dyn quote::ToTokens,
     ok_v_token_stream: &dyn quote::ToTokens,
     panic_uuid: crate::PanicUuidRef<'_>,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     let panic_uuid_token_stream = generate_quotes::dq_token_stream(panic_uuid.as_ref());
     quote::quote! {
         match #expr_token_stream {
@@ -116,7 +116,7 @@ pub fn generate_if_let_some_match_ok_assign_query_or_return_err_token_stream(
     expr_token_stream: &dyn quote::ToTokens,
     some_v_token_stream: &dyn quote::ToTokens,
     ok_v_token_stream: &dyn quote::ToTokens,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     let names = crate::NamesCtx::new();
     #[allow(non_snake_case)]
     let (QuerySnakeCase, VSnakeCase) = (&names.QuerySnakeCase, &names.VSnakeCase);

@@ -286,7 +286,7 @@ impl Location {
             line: line.into(),
             column: column.into(),
             commit: LocationCommit::try_from(
-                git_info::project_git_info().commit.as_ref().to_owned(),
+                git_info::project_git_info().commit().as_ref().to_owned(),
             )
             .unwrap_or_else(LocationCommit::from),
             duration: StdLocationDuration::from(

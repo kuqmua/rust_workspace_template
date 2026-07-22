@@ -164,26 +164,26 @@ impl NamesCtx {
 #[derive(Debug, Clone, optml::Optml)]
 pub enum DeriveOrImpl {
     Derive,
-    Impl(macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream),
+    Impl(macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream),
 }
 #[derive(Debug, Clone, Default, newtype::FromInner)]
-pub struct GeneratedRustTokenStreamVec(
-    Vec<macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream>,
+pub struct ProcMacro2GeneratedRustTokenStreamVec(
+    Vec<macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream>,
 );
-impl quote::ToTokens for GeneratedRustTokenStreamVec {
+impl quote::ToTokens for ProcMacro2GeneratedRustTokenStreamVec {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         self.0
             .iter()
             .for_each(|element| quote::ToTokens::to_tokens(element, tokens));
     }
 }
-impl FromIterator<macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream>
-    for GeneratedRustTokenStreamVec
+impl FromIterator<macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream>
+    for ProcMacro2GeneratedRustTokenStreamVec
 {
     fn from_iter<T>(iter: T) -> Self
     where
         T: IntoIterator<
-            Item = macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream,
+            Item = macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
         >,
     {
         Self::from(iter.into_iter().collect::<Vec<_>>())
@@ -228,7 +228,10 @@ pub struct WrapIntoBraces(bool);
 pub struct ParseTokenStreamStrings(Vec<String>);
 impl ParseTokenStreamStrings {
     #[must_use]
-    pub fn into_generated_vec(self, uuid: ParseErrorIdRef<'_>) -> GeneratedRustTokenStreamVec {
+    pub fn into_generated_vec(
+        self,
+        uuid: ParseErrorIdRef<'_>,
+    ) -> ProcMacro2GeneratedRustTokenStreamVec {
         self.0
             .into_iter()
             .map(
@@ -240,7 +243,7 @@ impl ParseTokenStreamStrings {
                     }
                 },
             )
-            .collect::<GeneratedRustTokenStreamVec>()
+            .collect::<ProcMacro2GeneratedRustTokenStreamVec>()
     }
 }
 #[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
@@ -279,8 +282,8 @@ impl IsNullable {
     #[must_use]
     pub fn maybe_optional_wrap(
         &self,
-        ts: macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream,
-    ) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+        ts: macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
+    ) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
         match &self {
             Self::False => ts,
             Self::True => quote::quote! {Option<#ts>}.into(),
@@ -289,8 +292,8 @@ impl IsNullable {
     #[must_use]
     pub fn maybe_some_wrap(
         &self,
-        ts: macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream,
-    ) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+        ts: macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
+    ) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
         match &self {
             Self::False => ts,
             Self::True => quote::quote! {Some(#ts)}.into(),
@@ -330,8 +333,8 @@ pub enum Import {
 impl Import {
     fn all_enum_variants(
         self,
-    ) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
-        macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(match self {
+    ) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
+        macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(match self {
             Self::Crate => quote::quote! { crate::AllEnumVariants },
             Self::PgCrudCommon => quote::quote! { pg_crud_common::AllEnumVariants },
         })
@@ -439,7 +442,7 @@ impl EqOperatorHandle {
     pub fn to_tokens_path(
         &self,
         import: &Import,
-    ) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+    ) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
         let names = NamesCtx::new();
         #[allow(non_snake_case)]
         let (EqOperatorUpperCamelCase,) = (&names.EqOperatorUpperCamelCase,);
@@ -492,7 +495,7 @@ pub fn generate_pg_type_where_token_stream<T>(
     should_derive_utoipa_to_schema: &ShouldDeriveUtoipaToSchema,
     should_derive_schemars_json_schema: &ShouldDSchemarsJsonSchema,
     is_query_bind_mut: &IsQueryBindMut,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream
 where
     T: filters::PgFilter,
 {
@@ -518,7 +521,7 @@ where
         let vrts_token_stream = variants.iter().map(|element| {
             let element_upper_camel_case = element.ucc();
             let prefix_where_self_upper_camel_case = element.prefix_where_self_upper_camel_case();
-            let optional_type_token_stream: Option<macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream> =
+            let optional_type_token_stream: Option<macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream> =
                 element.maybe_generic();
             let type_token_stream =
                 optional_type_token_stream.map_or_else(proc_macro2::TokenStream::new, |v| quote::quote! {<#v>});
@@ -604,7 +607,7 @@ where
 pub fn generate_impl_to_err_string_no_generics_token_stream(
     identifier: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     macros_helpers::generate_impl_to_err_string_token_stream::generate_impl_to_err_string_token_stream(
         &proc_macro2::TokenStream::new(),
         identifier,
@@ -614,7 +617,7 @@ pub fn generate_impl_to_err_string_no_generics_token_stream(
 }
 pub fn generate_impl_display_and_to_err_string_debug_token_stream(
     identifier: &dyn quote::ToTokens,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     let impl_display_token_stream =
         macros_helpers::generate_impl_display_token_stream::generate_impl_display_token_stream(
             &proc_macro2::TokenStream::new(),
@@ -634,7 +637,7 @@ pub fn generate_impl_display_and_to_err_string_debug_token_stream(
 }
 #[must_use]
 pub fn pg_crud_common_query_part_error_token_stream()
--> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+-> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     let names = NamesCtx::new();
     #[allow(non_snake_case)]
     let (QueryPartErrorUpperCamelCase,) = (&names.QueryPartErrorUpperCamelCase,);
@@ -643,7 +646,7 @@ pub fn pg_crud_common_query_part_error_token_stream()
 #[must_use]
 pub fn generate_dimension_number_pagination_token_stream(
     dimension_number: DimensionNumber,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     let identifier = quote::format_ident!("dimension{}_pagination", dimension_number.get());
     quote::quote! {#identifier}.into()
 }
@@ -660,17 +663,17 @@ pub fn generate_struct_identifier_with_number_els_double_quoted_token_stream(
 }
 pub fn generate_sqlx_types_json_type_declaration_token_stream(
     type_token_stream: &dyn quote::ToTokens,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     quote::quote! {sqlx::types::Json<#type_token_stream>}.into()
 }
 pub fn generate_optional_type_declaration_token_stream(
     type_token_stream: &dyn quote::ToTokens,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     quote::quote! {Option<#type_token_stream>}.into()
 }
 pub fn generate_vec_tokens_declaration_token_stream(
     type_token_stream: &dyn quote::ToTokens,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     quote::quote! {Vec<#type_token_stream>}.into()
 }
 pub fn generate_de_double_quoted_token_stream(
@@ -702,7 +705,7 @@ pub fn generate_impl_default_some_one_element_token_stream(
     identifier: &dyn quote::ToTokens,
     identifier_generic_token_stream: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     let names = NamesCtx::new();
     #[allow(non_snake_case)]
     let (DefaultSomeOneElementSnakeCase,) = (&names.DefaultSomeOneElementSnakeCase,);
@@ -720,7 +723,7 @@ pub fn generate_impl_all_variants_default_some_one_element_token_stream(
     import: &Import,
     identifier: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     let names = NamesCtx::new();
     #[allow(non_snake_case)]
     let (AllVariantsDefaultSomeOneElementSnakeCase,) =
@@ -742,7 +745,7 @@ pub fn generate_impl_default_some_one_element_max_page_size_token_stream(
     identifier: &dyn quote::ToTokens,
     identifier_generic_token_stream: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     let names = NamesCtx::new();
     #[allow(non_snake_case)]
     let (DefaultSomeOneElementMaxPageSizeSnakeCase,) =
@@ -761,7 +764,7 @@ pub fn generate_impl_all_variants_default_some_one_element_max_page_size_token_s
     import: &Import,
     identifier: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     let names = NamesCtx::new();
     #[allow(non_snake_case)]
     let (AllVariantsDefaultSomeOneElementMaxPageSizeSnakeCase,) =
@@ -782,7 +785,7 @@ pub fn generate_impl_all_variants_default_some_one_element_max_page_size_token_s
 pub fn generate_impl_pg_crud_common_default_some_one_element_token_stream(
     identifier: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     generate_impl_default_some_one_element_token_stream(
         &proc_macro2::TokenStream::new(),
         &Import::PgCrudCommon,
@@ -795,7 +798,7 @@ pub fn generate_impl_pg_crud_default_some_one_element_token_stream(
     identifier: &dyn quote::ToTokens,
     lt_token_stream: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     generate_impl_default_some_one_element_token_stream(
         &proc_macro2::TokenStream::new(),
         &Import::PgCrudCommon,
@@ -807,7 +810,7 @@ pub fn generate_impl_pg_crud_default_some_one_element_token_stream(
 pub fn generate_impl_pg_crud_common_all_variants_default_some_one_element_token_stream(
     identifier: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     generate_impl_all_variants_default_some_one_element_token_stream(
         &Import::PgCrudCommon,
         identifier,
@@ -817,7 +820,7 @@ pub fn generate_impl_pg_crud_common_all_variants_default_some_one_element_token_
 pub fn generate_impl_pg_crud_all_variants_default_some_one_element_token_stream(
     identifier: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     generate_impl_all_variants_default_some_one_element_token_stream(
         &Import::PgCrudCommon,
         identifier,
@@ -827,7 +830,7 @@ pub fn generate_impl_pg_crud_all_variants_default_some_one_element_token_stream(
 pub fn generate_impl_pg_crud_common_default_some_one_element_max_page_size_token_stream(
     identifier: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     generate_impl_default_some_one_element_max_page_size_token_stream(
         &proc_macro2::TokenStream::new(),
         &Import::PgCrudCommon,
@@ -840,7 +843,7 @@ pub fn generate_impl_pg_crud_default_some_one_element_max_page_size_token_stream
     identifier: &dyn quote::ToTokens,
     lt_token_stream: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     generate_impl_default_some_one_element_max_page_size_token_stream(
         &proc_macro2::TokenStream::new(),
         &Import::PgCrudCommon,
@@ -852,7 +855,7 @@ pub fn generate_impl_pg_crud_default_some_one_element_max_page_size_token_stream
 pub fn generate_impl_pg_crud_all_variants_default_some_one_element_max_page_size_token_stream(
     identifier: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     generate_impl_all_variants_default_some_one_element_max_page_size_token_stream(
         &Import::PgCrudCommon,
         identifier,
@@ -870,7 +873,7 @@ pub fn impl_pg_type_where_filter_for_identifier_token_stream(
     is_query_bind_mut: &IsQueryBindMut,
     query_bind_token_stream: &dyn quote::ToTokens,
     import: &Import,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     let names = NamesCtx::new();
     #[allow(non_snake_case)]
     let (
@@ -910,7 +913,7 @@ pub fn impl_pg_type_where_filter_for_identifier_token_stream(
 pub fn generate_impl_sqlx_encode_sqlx_pg_for_identifier_token_stream(
     identifier_token_stream: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     quote::quote! {
         impl sqlx::Encode<'_, sqlx::Postgres> for #identifier_token_stream {
             fn encode_by_ref(&self, buf: &mut sqlx::postgres::PgArgumentBuffer) -> Result<sqlx::encode::IsNull, Box<dyn std::error::Error + Send + Sync>> {
@@ -923,7 +926,7 @@ pub fn generate_impl_sqlx_decode_sqlx_pg_for_identifier_token_stream(
     identifier_token_stream: &dyn quote::ToTokens,
     type_token_stream: &dyn quote::ToTokens,
     ok_v_match_token_stream: &dyn quote::ToTokens,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     let names = NamesCtx::new();
     #[allow(non_snake_case)]
     let (ValueSnakeCase,) = (&names.ValueSnakeCase,);
@@ -941,7 +944,7 @@ pub fn generate_impl_sqlx_decode_sqlx_pg_for_identifier_token_stream(
 pub fn generate_impl_sqlx_type_for_identifier_token_stream(
     identifier_token_stream: &dyn quote::ToTokens,
     type_token_stream: &dyn quote::ToTokens,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     quote::quote! {
         impl sqlx::Type<sqlx::Postgres> for #identifier_token_stream {
             fn compatible(ty: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
@@ -958,7 +961,7 @@ pub fn generate_impl_sqlx_type_and_encode_for_identifier_token_stream(
     identifier_token_stream: &dyn quote::ToTokens,
     type_token_stream: &dyn quote::ToTokens,
     encode_token_stream: &dyn quote::ToTokens,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     let impl_type_token_stream = generate_impl_sqlx_type_for_identifier_token_stream(
         identifier_token_stream,
         type_token_stream,
@@ -1008,7 +1011,7 @@ pub fn generate_impl_pg_type_token_stream(
     select_only_updated_ids_query_part_token_stream: &dyn quote::ToTokens,
     is_select_only_updated_ids_query_bind_mut: &IsSelectOnlyUpdatedIdsQueryBindMut,
     select_only_updated_ids_query_bind_token_stream: &dyn quote::ToTokens,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     let names = NamesCtx::new();
     #[allow(non_snake_case)]
     let (
@@ -1145,7 +1148,7 @@ pub fn generate_impl_pg_type_token_stream(
 pub fn generate_impl_pg_type_not_primary_key_for_identifier_token_stream(
     import: &Import,
     identifier: &dyn quote::ToTokens,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     let identifier_create_upper_camel_case =
         naming::parameter::SelfCreateUpperCamelCase::from_tokens(&identifier);
     let allow_clippy_arbitrary_src_item_ordering =
@@ -1164,13 +1167,13 @@ pub fn generate_impl_pg_type_not_primary_key_for_identifier_token_stream(
 }
 #[must_use]
 pub fn pg_crud_common_query_part_error_checked_add_initialization_token_stream()
--> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+-> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     quote::quote! {pg_crud_common::QueryPartError::CheckedAdd { location: location_macros::location!() }}.into()
 }
 pub fn generate_impl_crate_is_string_empty_for_identifier_token_stream(
     identifier: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     quote::quote! {
         impl pg_crud_common::IsStringEmpty for #identifier {
             fn is_string_empty(&self) -> pg_crud_common::IsStringEmptyRes {
@@ -1183,7 +1186,7 @@ pub fn generate_impl_crate_is_string_empty_for_identifier_token_stream(
 pub fn generate_match_try_new_in_de_token_stream(
     identifier: &dyn quote::ToTokens,
     initialization_token_stream: &dyn quote::ToTokens,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     quote::quote! {
         match #identifier::try_new(#initialization_token_stream) {
             Ok(v) => Ok(v),
@@ -1199,8 +1202,8 @@ pub fn generate_impl_de_for_struct_token_stream(
     generate_type_token_stream: &dyn Fn(
         &syn::Ident,
         &syn::Type,
-    ) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+    ) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     let allow_clippy_arbitrary_src_item_ordering =
         token_patterns::AllowClippyArbitrarySrcItemOrdering;
     let raw_identifier_token_stream = quote::format_ident!("{}Raw", identifier.to_string());
@@ -1245,8 +1248,8 @@ pub fn generate_impl_de_for_struct_by_fields_token_stream(
     generate_type_token_stream: &dyn Fn(
         &syn::Ident,
         &syn::Type,
-    ) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+    ) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     let allow_clippy_arbitrary_src_item_ordering =
         token_patterns::AllowClippyArbitrarySrcItemOrdering;
     let raw_identifier_token_stream = quote::format_ident!("{}Raw", identifier.to_string());
@@ -1289,13 +1292,13 @@ pub fn generate_impl_de_for_struct_by_fields_token_stream(
 }
 pub fn wrap_into_scopes_token_stream(
     ts: &dyn quote::ToTokens,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     quote::quote! {(#ts)}.into()
 }
 pub fn maybe_wrap_into_braces_token_stream(
     ts: &dyn quote::ToTokens,
     wrap: WrapIntoBraces,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     if bool::from(wrap) {
         wrap_into_scopes_token_stream(&ts)
     } else {
@@ -1305,13 +1308,13 @@ pub fn maybe_wrap_into_braces_token_stream(
 pub fn generate_v_declaration_token_stream(
     import: &Import,
     ts: &dyn quote::ToTokens,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     quote::quote! {#import::V<#ts>}.into()
 }
 pub fn generate_v_initialization_token_stream(
     import: &Import,
     ts: &dyn quote::ToTokens,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     let names = NamesCtx::new();
     #[allow(non_snake_case)]
     let (VSnakeCase,) = (&names.VSnakeCase,);
@@ -1321,7 +1324,7 @@ pub fn impl_pg_type_eq_operator_for_identifier_token_stream(
     import: &Import,
     identifier: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     let names = NamesCtx::new();
     #[allow(non_snake_case)]
     let (EqOperatorUpperCamelCase, PgTypeEqOperatorUpperCamelCase) = (
@@ -1340,7 +1343,7 @@ pub fn impl_pg_type_eq_operator_for_identifier_token_stream(
 #[must_use]
 pub fn generate_query_part_error_write_into_buffer_token_stream(
     import: Import,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     quote::quote! {
         #import::QueryPartError::WriteIntoBuffer {
             location: location_macros::location!()
@@ -1351,7 +1354,7 @@ pub fn generate_query_part_error_write_into_buffer_token_stream(
 #[must_use]
 pub fn generate_return_err_query_part_error_write_into_buffer_token_stream(
     import: Import,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     let ts = generate_query_part_error_write_into_buffer_token_stream(import);
     quote::quote! {return Err(#ts);}.into()
 }

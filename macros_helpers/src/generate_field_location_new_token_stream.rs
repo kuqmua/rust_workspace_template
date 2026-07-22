@@ -10,7 +10,7 @@ pub fn generate_field_location_new_token_stream(
     file: FieldLocationFile,
     line: FieldLocationLine,
     column: FieldLocationColumn,
-) -> crate::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> crate::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     let location_snake_case = naming::LocationSnakeCase;
     let location_new_token_stream = {
         let file_token_stream = generate_quotes::dq_token_stream(&file.0);
@@ -35,7 +35,7 @@ pub fn generate_field_location_new_token_stream(
             )
         }
     };
-    crate::generated_rust_token_stream::GeneratedRustTokenStream::from(
+    crate::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
         quote::quote! {#location_snake_case: #location_new_token_stream},
     )
 }

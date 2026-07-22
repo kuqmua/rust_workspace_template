@@ -9,4 +9,4 @@
     newtype::IntoInnerFrom,
     newtype::ToTokens,
 )]
-pub struct GeneratedRustTokenStream(proc_macro2::TokenStream);
+pub struct ProcMacro2GeneratedRustTokenStream(proc_macro2::TokenStream);

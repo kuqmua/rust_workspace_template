@@ -105,6 +105,25 @@ enum AdminMutationMethod {
     Post,
     Put,
 }
+#[derive(Clone, Copy, Debug)]
+struct MutationConfirmationMessageRef<'message_lt>(&'message_lt str);
+impl<'message_lt> From<&'message_lt str> for MutationConfirmationMessageRef<'message_lt> {
+    fn from(value: &'message_lt str) -> Self {
+        Self(value)
+    }
+}
+#[derive(Clone, Copy, Debug)]
+struct MutationConfirmed(bool);
+impl From<bool> for MutationConfirmed {
+    fn from(value: bool) -> Self {
+        Self(value)
+    }
+}
+impl From<MutationConfirmed> for bool {
+    fn from(value: MutationConfirmed) -> Self {
+        value.0
+    }
+}
 
 impl AdminMutationMethod {
     const fn get(self) -> &'static str {
@@ -421,14 +440,14 @@ fn show_mutation_error(error: &AdminTableLoadError) {
     root.set_class_name(str_constants::ADMIN_FIELD_ERROR_CLASS);
 }
 
-fn mutation_confirmed(message: &str) -> bool {
+fn mutation_confirmed(message: MutationConfirmationMessageRef<'_>) -> MutationConfirmed {
     if let Some(Ok(confirmed)) =
-        web_sys::window().map(|window| window.confirm_with_message(message))
+        web_sys::window().map(|window| window.confirm_with_message(message.0))
     {
-        confirmed
+        MutationConfirmed::from(confirmed)
     } else {
         show_mutation_error(&AdminTableLoadError::Fetch);
-        false
+        MutationConfirmed::from(false)
     }
 }
 
@@ -790,7 +809,7 @@ fn AdminUsersView(
                             }
                         }>{if bool::from(is_banned) { "Unban" } else { "Ban" }}</button> })}
                         {can_delete.then(|| leptos::view! { <button class="danger-button" type="button" on:click=move |_event| {
-                            if mutation_confirmed("Delete this user?") && let Ok(path) = AdminCsrApiUrl::try_from(format!("{}{}/{}", str_constants::API_V1, str_constants::ADMIN_API_USERS_PATH, delete_user_id)) {
+                            if bool::from(mutation_confirmed(MutationConfirmationMessageRef::from("Delete this user?"))) && let Ok(path) = AdminCsrApiUrl::try_from(format!("{}{}/{}", str_constants::API_V1, str_constants::ADMIN_API_USERS_PATH, delete_user_id)) {
                                 reload_after(AdminMutationMethod::Delete, path, server_admin_contract::AdminNoBody);
                             }
                         }>"Delete"</button> })}
@@ -889,7 +908,7 @@ fn AdminRolesView(
                             }
                         }>"Save permissions"</button> })}
                         {can_delete.then(|| leptos::view! { <button class="danger-button" type="button" disabled=bool::from(item.is_system()) on:click=move |_event| {
-                            if mutation_confirmed("Delete this role?") && let Ok(path) = AdminCsrApiUrl::try_from(format!("{}{}/{}", str_constants::API_V1, str_constants::ADMIN_API_ROLES_PATH, delete_role_id)) {
+                            if bool::from(mutation_confirmed(MutationConfirmationMessageRef::from("Delete this role?"))) && let Ok(path) = AdminCsrApiUrl::try_from(format!("{}{}/{}", str_constants::API_V1, str_constants::ADMIN_API_ROLES_PATH, delete_role_id)) {
                                 reload_after(AdminMutationMethod::Delete, path, server_admin_contract::AdminNoBody);
                             }
                         }>"Delete"</button> })}
@@ -949,7 +968,7 @@ fn AdminSessionsView(
                     <td data-label="expires">{item.expires_at().to_string()}</td>
                     <td data-label="current">{item.is_current().to_string()}</td>
                     <td data-label="actions"><div class="table-actions"><button type="button" on:click=move |_event| {
-                        if mutation_confirmed("Revoke this session?") && let Ok(path) = AdminCsrApiUrl::try_from(format!("{}{}/{}", str_constants::API_V1, str_constants::ADMIN_API_SESSIONS_PATH, revoke_session_id)) {
+                        if bool::from(mutation_confirmed(MutationConfirmationMessageRef::from("Revoke this session?"))) && let Ok(path) = AdminCsrApiUrl::try_from(format!("{}{}/{}", str_constants::API_V1, str_constants::ADMIN_API_SESSIONS_PATH, revoke_session_id)) {
                             reload_after(AdminMutationMethod::Delete, path, server_admin_contract::AdminNoBody);
                         }
                     }>"Revoke session"</button></div></td>

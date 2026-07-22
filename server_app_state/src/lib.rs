@@ -86,7 +86,7 @@ impl app_state::GetSqlxPgPool for ServerAppState<'_> {
 }
 impl AsRef<str> for ServerAppState<'_> {
     fn as_ref(&self) -> &str {
-        self.project_git_info.commit.as_ref()
+        self.project_git_info.as_ref()
     }
 }
 #[cfg(feature = "test-utils")]
@@ -217,9 +217,9 @@ pub fn mk_test_server_app_state() -> ServerAppState<'static> {
 mod tests {
     #[allow(clippy::single_call_fn)] // shared fixture keeps commit test input consistent across ServerAppState tests
     fn mk_git_info() -> git_info::ProjectGitInfo<'static> {
-        git_info::ProjectGitInfo {
-            commit: git_info::GitCommitIdRef::from(str_constants::TEST_VALUES_COMMIT),
-        }
+        git_info::ProjectGitInfo::from(git_info::GitCommitIdRef::from(
+            str_constants::TEST_VALUES_COMMIT,
+        ))
     }
     fn env<T>(value: &str) -> T
     where

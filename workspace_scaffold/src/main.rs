@@ -1,3 +1,4 @@
+const SCAFFOLD_TEXT_MAX_BYTES: usize = 16_777_216usize;
 #[derive(Clone, Copy, Debug)]
 struct ProjectNameRef<'value>(&'value str);
 impl<'value> From<&'value str> for ProjectNameRef<'value> {
@@ -21,6 +22,78 @@ impl From<u16> for ServicePort {
         Self(value)
     }
 }
+#[derive(Clone, Debug, newtype::AsRefStr, newtype::BoundedString, newtype::Display)]
+#[bounded_string(max = SCAFFOLD_TEXT_MAX_BYTES)]
+struct ScaffoldText(String);
+#[derive(Clone, Copy, Debug)]
+struct ScaffoldTextRef<'text_lt>(&'text_lt str);
+impl<'text_lt> From<&'text_lt str> for ScaffoldTextRef<'text_lt> {
+    fn from(value: &'text_lt str) -> Self {
+        Self(value)
+    }
+}
+#[derive(Clone, Copy, Debug)]
+struct StdScaffoldPathRef<'path_lt>(&'path_lt std::path::Path);
+impl<'path_lt> From<&'path_lt std::path::Path> for StdScaffoldPathRef<'path_lt> {
+    fn from(value: &'path_lt std::path::Path) -> Self {
+        Self(value)
+    }
+}
+#[derive(Clone, Copy, Debug)]
+struct ReplacementsRef<'replacements_lt>(&'replacements_lt [(&'replacements_lt str, String)]);
+impl<'replacements_lt> From<&'replacements_lt [(&'replacements_lt str, String)]>
+    for ReplacementsRef<'replacements_lt>
+{
+    fn from(value: &'replacements_lt [(&'replacements_lt str, String)]) -> Self {
+        Self(value)
+    }
+}
+#[derive(Clone, Copy, Debug)]
+struct ShouldSkip(bool);
+impl From<bool> for ShouldSkip {
+    fn from(value: bool) -> Self {
+        Self(value)
+    }
+}
+impl From<ShouldSkip> for bool {
+    fn from(value: ShouldSkip) -> Self {
+        value.0
+    }
+}
+#[derive(Debug)]
+struct StdScaffoldIoError(std::io::Error);
+impl From<std::io::Error> for StdScaffoldIoError {
+    fn from(value: std::io::Error) -> Self {
+        Self(value)
+    }
+}
+impl std::fmt::Display for StdScaffoldIoError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+impl std::error::Error for StdScaffoldIoError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        Some(&self.0)
+    }
+}
+#[derive(Debug)]
+struct ServerRuntimeBoundedReadError(server_runtime::BoundedReadError);
+impl From<server_runtime::BoundedReadError> for ServerRuntimeBoundedReadError {
+    fn from(value: server_runtime::BoundedReadError) -> Self {
+        Self(value)
+    }
+}
+impl std::fmt::Display for ServerRuntimeBoundedReadError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+impl std::error::Error for ServerRuntimeBoundedReadError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        Some(&self.0)
+    }
+}
 
 #[derive(Debug, thiserror::Error)]
 enum ScaffoldError {
@@ -29,11 +102,13 @@ enum ScaffoldError {
     )]
     Arguments,
     #[error("workspace operation failed: {0}")]
-    Io(#[from] std::io::Error),
+    Io(#[from] StdScaffoldIoError),
     #[error("workspace file does not contain the expected template marker")]
     Marker,
     #[error("project or service name must be non-empty lowercase snake_case ASCII")]
     ProjectName,
+    #[error("workspace content read failed: {0}")]
+    Read(#[from] ServerRuntimeBoundedReadError),
     #[error("repository URL must use https:// and must not end with /")]
     RepositoryUrl,
     #[error("service destination already exists")]
@@ -41,13 +116,18 @@ enum ScaffoldError {
     #[error("service port must be greater than zero")]
     ServicePort,
 }
+impl From<std::io::Error> for ScaffoldError {
+    fn from(value: std::io::Error) -> Self {
+        Self::Io(StdScaffoldIoError::from(value))
+    }
+}
 
 fn validate_project_name(value: ProjectNameRef<'_>) -> Result<(), ScaffoldError> {
     let text = value.0;
     if text.is_empty()
         || text.starts_with('_')
         || text.ends_with('_')
-        || text.contains("__")
+        || text.contains(str_constants::WORKSPACE_SCAFFOLD_DOUBLE_UNDERSCORE)
         || !text
             .bytes()
             .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'_')
@@ -62,18 +142,19 @@ fn validate_project_name(value: ProjectNameRef<'_>) -> Result<(), ScaffoldError>
     reason = "project command owns repository URL validation"
 )]
 fn validate_repository_url(value: RepositoryUrlRef<'_>) -> Result<(), ScaffoldError> {
-    if !value.0.starts_with("https://") || value.0.ends_with('/') {
+    if !value.0.starts_with(str_constants::HTTPS_SCHEME_PREFIX) || value.0.ends_with('/') {
         return Err(ScaffoldError::RepositoryUrl);
     }
     Ok(())
 }
 
-fn kebab_case(value: ProjectNameRef<'_>) -> String {
-    value.0.replace('_', "-")
+fn kebab_case(value: ProjectNameRef<'_>) -> ScaffoldText {
+    ScaffoldText::try_from(value.0.replace('_', str_constants::HYPHEN))
+        .unwrap_or_else(ScaffoldText::from)
 }
 
-fn title_case(value: ProjectNameRef<'_>) -> String {
-    value
+fn title_case(value: ProjectNameRef<'_>) -> ScaffoldText {
+    let output = value
         .0
         .split('_')
         .filter(|part| !part.is_empty())
@@ -84,41 +165,68 @@ fn title_case(value: ProjectNameRef<'_>) -> String {
             })
         })
         .collect::<Vec<String>>()
-        .join(" ")
+        .join(str_constants::SPACE);
+    ScaffoldText::try_from(output).unwrap_or_else(ScaffoldText::from)
 }
 
 #[allow(
     clippy::single_call_fn,
     reason = "service scaffold owns identifier case conversion"
 )]
-fn upper_camel_case(value: ProjectNameRef<'_>) -> String {
-    title_case(value).replace(' ', "")
+fn upper_camel_case(value: ProjectNameRef<'_>) -> ScaffoldText {
+    ScaffoldText::try_from(
+        title_case(value)
+            .as_ref()
+            .replace(' ', str_constants::EMPTY),
+    )
+    .unwrap_or_else(ScaffoldText::from)
 }
 
 #[allow(
     clippy::single_call_fn,
     reason = "identity traversal owns ignored directory policy"
 )]
-fn should_skip(path: &std::path::Path) -> bool {
-    path.components().any(|component| {
+fn should_skip(path: StdScaffoldPathRef<'_>) -> ShouldSkip {
+    ShouldSkip::from(path.0.components().any(|component| {
         matches!(
             component.as_os_str().to_str(),
-            Some(".git" | "target" | "node_modules")
+            Some(
+                str_constants::GIT
+                    | str_constants::TARGET
+                    | str_constants::WORKSPACE_SCAFFOLD_NODE_MODULES
+            )
         )
-    })
+    }))
+}
+
+fn read_bounded_text(
+    path: StdScaffoldPathRef<'_>,
+) -> Result<ScaffoldText, ServerRuntimeBoundedReadError> {
+    let bytes = server_runtime::read_bounded_file(
+        server_runtime::StdPathRef::from(path.0),
+        server_runtime::BoundedReadMaximumBytes::from(SCAFFOLD_TEXT_MAX_BYTES),
+    )
+    .map_err(ServerRuntimeBoundedReadError::from)?;
+    let text = server_runtime::BoundedText::try_from(bytes)
+        .map_err(ServerRuntimeBoundedReadError::from)?
+        .into_inner();
+    Ok(ScaffoldText::try_from(text).unwrap_or_else(ScaffoldText::from))
 }
 
 fn replace_file(
-    path: &std::path::Path,
-    replacements: &[(&str, String)],
+    path: StdScaffoldPathRef<'_>,
+    replacements: ReplacementsRef<'_>,
 ) -> Result<(), ScaffoldError> {
-    let Ok(mut contents) = std::fs::read_to_string(path) else {
+    let Ok(contents) = read_bounded_text(path) else {
         return Ok(());
     };
-    contents = replacements.iter().fold(contents, |value, (from, to)| {
-        value.replace(from, to.as_str())
-    });
-    std::fs::write(path, contents)?;
+    let updated_contents = replacements
+        .0
+        .iter()
+        .fold(contents.as_ref().to_owned(), |value, (from, to)| {
+            value.replace(from, to.as_str())
+        });
+    std::fs::write(path.0, updated_contents)?;
     Ok(())
 }
 
@@ -127,25 +235,31 @@ fn replace_file(
     reason = "project command owns identity traversal"
 )]
 fn rename_identity(
-    root: &std::path::Path,
+    root: StdScaffoldPathRef<'_>,
     project_name: ProjectNameRef<'_>,
     repository_url: RepositoryUrlRef<'_>,
 ) -> Result<(), ScaffoldError> {
     let replacements = [
         (
-            "https://github.com/kuqmua/rust_workspace_template",
+            str_constants::WORKSPACE_SCAFFOLD_TEMPLATE_REPOSITORY_URL,
             repository_url.0.to_owned(),
         ),
-        ("rust_workspace_template", project_name.0.to_owned()),
-        ("rust-workspace-template", kebab_case(project_name)),
         (
-            "Rust microservice workspace template",
-            title_case(project_name),
+            str_constants::WORKSPACE_SCAFFOLD_TEMPLATE_PROJECT_SNAKE,
+            project_name.0.to_owned(),
+        ),
+        (
+            str_constants::WORKSPACE_SCAFFOLD_TEMPLATE_PROJECT_KEBAB,
+            kebab_case(project_name).as_ref().to_owned(),
+        ),
+        (
+            str_constants::WORKSPACE_SCAFFOLD_TEMPLATE_PROJECT_TITLE,
+            title_case(project_name).as_ref().to_owned(),
         ),
     ];
-    let mut pending = vec![root.to_path_buf()];
+    let mut pending = vec![root.0.to_path_buf()];
     while let Some(path) = pending.pop() {
-        if should_skip(path.as_path()) {
+        if bool::from(should_skip(StdScaffoldPathRef::from(path.as_path()))) {
             continue;
         }
         if path.is_dir() {
@@ -154,50 +268,56 @@ fn rename_identity(
                 Ok::<(), std::io::Error>(())
             })?;
         } else {
-            replace_file(path.as_path(), &replacements)?;
+            replace_file(
+                StdScaffoldPathRef::from(path.as_path()),
+                ReplacementsRef::from(replacements.as_slice()),
+            )?;
         }
     }
     Ok(())
 }
 
 fn copy_template_tree(
-    source: &std::path::Path,
-    destination: &std::path::Path,
-    replacements: &[(&str, String)],
+    source: StdScaffoldPathRef<'_>,
+    destination: StdScaffoldPathRef<'_>,
+    replacements: ReplacementsRef<'_>,
 ) -> Result<(), ScaffoldError> {
-    std::fs::create_dir_all(destination)?;
-    std::fs::read_dir(source)?.try_for_each(|entry_result| {
+    std::fs::create_dir_all(destination.0)?;
+    std::fs::read_dir(source.0)?.try_for_each(|entry_result| {
         let entry = entry_result?;
         let source_path = entry.path();
-        let destination_path = destination.join(entry.file_name());
+        let destination_path = destination.0.join(entry.file_name());
         if source_path.is_dir() {
             copy_template_tree(
-                source_path.as_path(),
-                destination_path.as_path(),
+                StdScaffoldPathRef::from(source_path.as_path()),
+                StdScaffoldPathRef::from(destination_path.as_path()),
                 replacements,
             )
         } else {
             let _copied_bytes = std::fs::copy(source_path, destination_path.as_path())?;
-            replace_file(destination_path.as_path(), replacements)
+            replace_file(
+                StdScaffoldPathRef::from(destination_path.as_path()),
+                replacements,
+            )
         }
     })?;
     Ok(())
 }
 
 fn insert_once(
-    path: &std::path::Path,
-    marker: &str,
-    replacement: &str,
+    path: StdScaffoldPathRef<'_>,
+    marker: ScaffoldTextRef<'_>,
+    replacement: ScaffoldTextRef<'_>,
 ) -> Result<(), ScaffoldError> {
-    let contents = std::fs::read_to_string(path)?;
-    if contents.contains(replacement) {
+    let contents = read_bounded_text(path)?;
+    if contents.as_ref().contains(replacement.0) {
         return Ok(());
     }
-    let updated = contents.replacen(marker, replacement, 1usize);
-    if updated == contents {
+    let updated = contents.as_ref().replacen(marker.0, replacement.0, 1usize);
+    if updated == contents.as_ref() {
         return Err(ScaffoldError::Marker);
     }
-    std::fs::write(path, updated)?;
+    std::fs::write(path.0, updated)?;
     Ok(())
 }
 
@@ -206,7 +326,7 @@ fn insert_once(
     reason = "service command owns complete scaffold composition"
 )]
 fn scaffold_service(
-    root: &std::path::Path,
+    root: StdScaffoldPathRef<'_>,
     service_name: ProjectNameRef<'_>,
     port: ServicePort,
 ) -> Result<(), ScaffoldError> {
@@ -219,61 +339,105 @@ fn scaffold_service(
     let contract = format!("{service}_contract");
     if [service, config.as_str(), contract.as_str()]
         .iter()
-        .any(|path| root.join(path).exists())
+        .any(|path| root.0.join(path).exists())
     {
         return Err(ScaffoldError::ServiceExists);
     }
     let kebab = kebab_case(service_name);
     let upper_snake = service.to_ascii_uppercase();
     let replacements = [
-        ("notification_service", service.to_owned()),
-        ("notification-service", kebab.clone()),
-        ("NOTIFICATION", upper_snake.clone()),
-        ("Notification", upper_camel_case(service_name)),
-        ("notification", service.to_owned()),
-        ("8081", port.0.to_string()),
+        (
+            str_constants::WORKSPACE_SCAFFOLD_NOTIFICATION_SERVICE,
+            service.to_owned(),
+        ),
+        (
+            str_constants::WORKSPACE_SCAFFOLD_NOTIFICATION_SERVICE_KEBAB,
+            kebab.as_ref().to_owned(),
+        ),
+        (
+            str_constants::WORKSPACE_SCAFFOLD_NOTIFICATION_UPPER,
+            upper_snake.clone(),
+        ),
+        (
+            str_constants::WORKSPACE_SCAFFOLD_NOTIFICATION_TITLE,
+            upper_camel_case(service_name).as_ref().to_owned(),
+        ),
+        (
+            str_constants::WORKSPACE_SCAFFOLD_NOTIFICATION_LOWER,
+            service.to_owned(),
+        ),
+        (
+            str_constants::WORKSPACE_SCAFFOLD_NOTIFICATION_PORT,
+            port.0.to_string(),
+        ),
     ];
     copy_template_tree(
-        root.join("notification_service").as_path(),
-        root.join(service).as_path(),
-        &replacements,
+        StdScaffoldPathRef::from(
+            root.0
+                .join(str_constants::WORKSPACE_SCAFFOLD_NOTIFICATION_SERVICE)
+                .as_path(),
+        ),
+        StdScaffoldPathRef::from(root.0.join(service).as_path()),
+        ReplacementsRef::from(replacements.as_slice()),
     )?;
     copy_template_tree(
-        root.join("notification_service_config").as_path(),
-        root.join(config.as_str()).as_path(),
-        &replacements,
+        StdScaffoldPathRef::from(
+            root.0
+                .join(str_constants::WORKSPACE_SCAFFOLD_NOTIFICATION_CONFIG)
+                .as_path(),
+        ),
+        StdScaffoldPathRef::from(root.0.join(config.as_str()).as_path()),
+        ReplacementsRef::from(replacements.as_slice()),
     )?;
     copy_template_tree(
-        root.join("notification_service_contract").as_path(),
-        root.join(contract.as_str()).as_path(),
-        &replacements,
+        StdScaffoldPathRef::from(
+            root.0
+                .join(str_constants::WORKSPACE_SCAFFOLD_NOTIFICATION_CONTRACT)
+                .as_path(),
+        ),
+        StdScaffoldPathRef::from(root.0.join(contract.as_str()).as_path()),
+        ReplacementsRef::from(replacements.as_slice()),
     )?;
 
-    let manifest = root.join("Cargo.toml");
+    let manifest = root.0.join(str_constants::CARGO_TOML);
     insert_once(
-        manifest.as_path(),
-        "  \"notification_service_contract\",",
-        format!(
-            "  \"notification_service_contract\",\n  \"{service}\",\n  \"{config}\",\n  \"{contract}\"," 
-        )
-        .as_str(),
+        StdScaffoldPathRef::from(manifest.as_path()),
+        ScaffoldTextRef::from(str_constants::WORKSPACE_SCAFFOLD_MANIFEST_MEMBER_MARKER),
+        ScaffoldTextRef::from(
+            format!(
+                "  \"notification_service_contract\",\n  \"{service}\",\n  \"{config}\",\n  \"{contract}\"," 
+            )
+            .as_str(),
+        ),
     )?;
-    let dependency_marker = "notification_service_contract = { path = \"./notification_service_contract\", version = \"0.1.0\" }";
+    let dependency_marker = str_constants::WORKSPACE_SCAFFOLD_MANIFEST_DEPENDENCY_MARKER;
     insert_once(
-        manifest.as_path(),
-        dependency_marker,
-        format!(
-            "{dependency_marker}\n{service} = {{ path = \"./{service}\", version = \"0.1.0\" }}\n{config} = {{ path = \"./{config}\", version = \"0.1.0\" }}\n{contract} = {{ path = \"./{contract}\", version = \"0.1.0\" }}"
-        )
-        .as_str(),
+        StdScaffoldPathRef::from(manifest.as_path()),
+        ScaffoldTextRef::from(dependency_marker),
+        ScaffoldTextRef::from(
+            format!(
+                "{dependency_marker}\n{service} = {{ path = \"./{service}\", version = \"0.1.0\" }}\n{config} = {{ path = \"./{config}\", version = \"0.1.0\" }}\n{contract} = {{ path = \"./{contract}\", version = \"0.1.0\" }}"
+            )
+            .as_str(),
+        ),
     )?;
 
-    let k8s_source = root.join("deploy/k8s/base/notification-service.yaml");
+    let k8s_source = root
+        .0
+        .join(str_constants::WORKSPACE_SCAFFOLD_NOTIFICATION_K8S_PATH);
     let k8s_file_name = format!("{kebab}.yaml");
-    let k8s_destination = root.join("deploy/k8s/base").join(k8s_file_name.as_str());
+    let k8s_destination = root
+        .0
+        .join(str_constants::WORKSPACE_SCAFFOLD_K8S_BASE_PATH)
+        .join(k8s_file_name.as_str());
     let _copied_bytes = std::fs::copy(k8s_source, k8s_destination.as_path())?;
-    replace_file(k8s_destination.as_path(), &replacements)?;
-    let mut k8s_contents = std::fs::read_to_string(k8s_destination.as_path())?;
+    replace_file(
+        StdScaffoldPathRef::from(k8s_destination.as_path()),
+        ReplacementsRef::from(replacements.as_slice()),
+    )?;
+    let mut k8s_contents = read_bounded_text(StdScaffoldPathRef::from(k8s_destination.as_path()))?
+        .as_ref()
+        .to_owned();
     k8s_contents.push_str(
         format!(
             "\n---\napiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata:\n  name: {kebab}-access\n  namespace: rust-workspace-template\nspec:\n  podSelector:\n    matchLabels:\n      app.kubernetes.io/name: {kebab}\n  ingress:\n    - from:\n        - podSelector:\n            matchLabels:\n              app.kubernetes.io/name: application\n      ports:\n        - protocol: TCP\n          port: {port}\n  egress:\n    - to:\n        - namespaceSelector:\n            matchLabels:\n              kubernetes.io/metadata.name: database\n          podSelector:\n            matchLabels:\n              app.kubernetes.io/name: {kebab}-postgresql\n      ports:\n        - protocol: TCP\n          port: 5432\n    - to:\n        - namespaceSelector:\n            matchLabels:\n              kubernetes.io/metadata.name: kube-system\n          podSelector:\n            matchLabels:\n              k8s-app: kube-dns\n      ports:\n        - protocol: UDP\n          port: 53\n        - protocol: TCP\n          port: 53\n  policyTypes: [\"Ingress\", \"Egress\"]\n",
@@ -282,32 +446,44 @@ fn scaffold_service(
         .as_str(),
     );
     std::fs::write(k8s_destination.as_path(), k8s_contents)?;
-    let kustomization = root.join("deploy/k8s/base/kustomization.yaml");
+    let kustomization = root
+        .0
+        .join(str_constants::WORKSPACE_SCAFFOLD_KUSTOMIZATION_PATH);
     insert_once(
-        kustomization.as_path(),
-        "  - notification-service.yaml",
-        format!("  - notification-service.yaml\n  - {k8s_file_name}").as_str(),
+        StdScaffoldPathRef::from(kustomization.as_path()),
+        ScaffoldTextRef::from(str_constants::WORKSPACE_SCAFFOLD_KUSTOMIZATION_MARKER),
+        ScaffoldTextRef::from(
+            format!("  - notification-service.yaml\n  - {k8s_file_name}").as_str(),
+        ),
     )?;
 
     let compose = format!(
         "services:\n  {service}_database:\n    image: postgres:16-bookworm@sha256:92620daddcd947f8d5ab5ba66e848702fe443d87fed30c4cea8e389fd78dfc55\n    environment:\n      POSTGRES_DB: {service}\n      POSTGRES_USER: {service}\n      POSTGRES_PASSWORD: ${{{upper_snake}_POSTGRES_PASSWORD:?set {upper_snake}_POSTGRES_PASSWORD}}\n    healthcheck:\n      test: [\"CMD-SHELL\", \"pg_isready -U {service} -d {service}\"]\n      interval: 5s\n      timeout: 3s\n      retries: 20\n    networks: [application]\n    volumes: [{service}_database_data:/var/lib/postgresql/data]\n  {service}:\n    build:\n      context: .\n      dockerfile: {service}/Dockerfile\n    depends_on:\n      {service}_database:\n        condition: service_healthy\n    environment:\n      {upper_snake}_DATABASE_URL: postgres://{service}:${{{upper_snake}_POSTGRES_PASSWORD:?set {upper_snake}_POSTGRES_PASSWORD}}@{service}_database:5432/{service}\n      {upper_snake}_SERVICE_SOCKET_ADDRESS: 0.0.0.0:{port}\n      MAXIMUM_SIZE_OF_HTTP_BODY_IN_BYTES: \"8192\"\n      PG_POOL_MAX_CONNECTIONS: \"10\"\n      REQUEST_TIMEOUT_SECONDS: \"30\"\n      TRACING_FORMAT: text\n    networks: [application]\n    ports: [\"127.0.0.1:{port}:{port}\"]\n    read_only: true\n    restart: unless-stopped\n    tmpfs: [/tmp:size=16m,mode=1777]\nvolumes:\n  {service}_database_data:\n",
         port = port.0,
     );
-    std::fs::write(root.join(format!("docker-compose.{service}.yml")), compose)?;
+    std::fs::write(
+        root.0.join(format!("docker-compose.{service}.yml")),
+        compose,
+    )?;
 
-    let constants = root.join("str_constants/src/lib.rs");
+    let constants = root
+        .0
+        .join(str_constants::WORKSPACE_SCAFFOLD_STR_CONSTANTS_PATH);
     let sql_constant = format!(
         "\npub const {upper_snake}_INSERT_SQL: &str = \"INSERT INTO {service}s (id, message) VALUES ($1, $2)\";\n"
     );
-    let mut constants_contents = std::fs::read_to_string(constants.as_path())?;
+    let mut constants_contents = read_bounded_text(StdScaffoldPathRef::from(constants.as_path()))?
+        .as_ref()
+        .to_owned();
     constants_contents.push_str(sql_constant.as_str());
     std::fs::write(constants, constants_contents)?;
     Ok(())
 }
 
-fn workspace_root() -> Result<&'static std::path::Path, ScaffoldError> {
+fn workspace_root() -> Result<StdScaffoldPathRef<'static>, ScaffoldError> {
     std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
+        .map(StdScaffoldPathRef::from)
         .ok_or(ScaffoldError::Arguments)
 }
 
@@ -318,7 +494,7 @@ fn workspace_root() -> Result<&'static std::path::Path, ScaffoldError> {
 fn run() -> Result<(), ScaffoldError> {
     let mut arguments = std::env::args().skip(1usize);
     match arguments.next().as_deref() {
-        Some("project") => {
+        Some(str_constants::WORKSPACE_SCAFFOLD_PROJECT_COMMAND) => {
             let name = arguments.next().ok_or(ScaffoldError::Arguments)?;
             let repository_url = arguments.next().ok_or(ScaffoldError::Arguments)?;
             if arguments.next().is_some() {
@@ -330,7 +506,7 @@ fn run() -> Result<(), ScaffoldError> {
             validate_repository_url(repository_url_ref)?;
             rename_identity(workspace_root()?, name_ref, repository_url_ref)
         }
-        Some("service") => {
+        Some(str_constants::SERVICE) => {
             let name = arguments.next().ok_or(ScaffoldError::Arguments)?;
             let port = arguments
                 .next()
@@ -356,6 +532,11 @@ fn main() {
 
 #[cfg(test)]
 mod tests {
+    fn assert_file_content(path: &std::path::Path, expected: &str) {
+        let actual = std::fs::read_to_string(path).expect("371dbe92");
+        assert_eq!(actual, expected, "239c17b0: {}", path.display());
+    }
+
     fn write(path: &std::path::Path, value: &str) {
         if let Some(parent) = path.parent() {
             std::fs::create_dir_all(parent).expect("2f0ad03a");
@@ -367,9 +548,9 @@ mod tests {
     fn validates_and_converts_project_names() {
         let valid = super::ProjectNameRef::from("order_platform");
         super::validate_project_name(valid).expect("96de3a80");
-        assert_eq!(super::kebab_case(valid), "order-platform");
-        assert_eq!(super::title_case(valid), "Order Platform");
-        assert_eq!(super::upper_camel_case(valid), "OrderPlatform");
+        assert_eq!(super::kebab_case(valid).as_ref(), "order-platform");
+        assert_eq!(super::title_case(valid).as_ref(), "Order Platform");
+        assert_eq!(super::upper_camel_case(valid).as_ref(), "OrderPlatform");
         assert!(super::validate_project_name(super::ProjectNameRef("Order-Platform")).is_err());
     }
 
@@ -385,6 +566,30 @@ mod tests {
             ))
             .is_err()
         );
+    }
+
+    #[test]
+    fn rejects_scaffold_text_over_size_limit() {
+        let path = std::env::temp_dir().join(format!(
+            "workspace-scaffold-oversize-test-{}",
+            std::process::id()
+        ));
+        std::fs::write(
+            path.as_path(),
+            vec![b'x'; super::SCAFFOLD_TEXT_MAX_BYTES.saturating_add(1usize)],
+        )
+        .expect("d97e30ac");
+        let result = super::read_bounded_text(super::StdScaffoldPathRef::from(path.as_path()));
+        assert!(
+            matches!(
+                result,
+                Err(super::ServerRuntimeBoundedReadError(
+                    server_runtime::BoundedReadError::ExceedsMaximum { .. }
+                ))
+            ),
+            "8f32bc16"
+        );
+        std::fs::remove_file(path).expect("51cd7b2e");
     }
 
     #[test]
@@ -423,22 +628,42 @@ mod tests {
         );
         write(root.join("str_constants/src/lib.rs").as_path(), "");
         super::scaffold_service(
-            root.as_path(),
+            super::StdScaffoldPathRef::from(root.as_path()),
             super::ProjectNameRef::from("order_service"),
             super::ServicePort::from(8082u16),
         )
         .expect("4bff1d79");
-        assert!(root.join("order_service/src/main.rs").is_file());
-        assert!(root.join("docker-compose.order_service.yml").is_file());
-        assert!(
-            std::fs::read_to_string(root.join("Cargo.toml"))
-                .expect("371dbe92")
-                .contains("order_service_contract")
+        assert_file_content(
+            root.join("Cargo.toml").as_path(),
+            "[workspace]\nmembers = [\n  \"notification_service_contract\",\n  \"order_service\",\n  \"order_service_config\",\n  \"order_service_contract\",\n]\n[workspace.dependencies]\nnotification_service_contract = { path = \"./notification_service_contract\", version = \"0.1.0\" }\norder_service = { path = \"./order_service\", version = \"0.1.0\" }\norder_service_config = { path = \"./order_service_config\", version = \"0.1.0\" }\norder_service_contract = { path = \"./order_service_contract\", version = \"0.1.0\" }\n",
         );
-        assert!(
-            std::fs::read_to_string(root.join("deploy/k8s/base/order-service.yaml"))
-                .expect("239c17b0")
-                .contains("port: 8082")
+        assert_file_content(
+            root.join("order_service/src/main.rs").as_path(),
+            "struct OrderService; const PORT: u16 = 8082; const SQL: &str = str_constants::ORDER_SERVICE_INSERT_SQL;",
+        );
+        assert_file_content(
+            root.join("order_service_config/src/lib.rs").as_path(),
+            "struct OrderServiceConfig;",
+        );
+        assert_file_content(
+            root.join("order_service_contract/src/lib.rs").as_path(),
+            "struct OrderServiceContract;",
+        );
+        assert_file_content(
+            root.join("deploy/k8s/base/order-service.yaml").as_path(),
+            "metadata:\n  name: order-service\ncontainerPort: 8082\n\n---\napiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata:\n  name: order-service-access\n  namespace: rust-workspace-template\nspec:\n  podSelector:\n    matchLabels:\n      app.kubernetes.io/name: order-service\n  ingress:\n    - from:\n        - podSelector:\n            matchLabels:\n              app.kubernetes.io/name: application\n      ports:\n        - protocol: TCP\n          port: 8082\n  egress:\n    - to:\n        - namespaceSelector:\n            matchLabels:\n              kubernetes.io/metadata.name: database\n          podSelector:\n            matchLabels:\n              app.kubernetes.io/name: order-service-postgresql\n      ports:\n        - protocol: TCP\n          port: 5432\n    - to:\n        - namespaceSelector:\n            matchLabels:\n              kubernetes.io/metadata.name: kube-system\n          podSelector:\n            matchLabels:\n              k8s-app: kube-dns\n      ports:\n        - protocol: UDP\n          port: 53\n        - protocol: TCP\n          port: 53\n  policyTypes: [\"Ingress\", \"Egress\"]\n",
+        );
+        assert_file_content(
+            root.join("deploy/k8s/base/kustomization.yaml").as_path(),
+            "resources:\n  - notification-service.yaml\n  - order-service.yaml\n",
+        );
+        assert_file_content(
+            root.join("docker-compose.order_service.yml").as_path(),
+            "services:\n  order_service_database:\n    image: postgres:16-bookworm@sha256:92620daddcd947f8d5ab5ba66e848702fe443d87fed30c4cea8e389fd78dfc55\n    environment:\n      POSTGRES_DB: order_service\n      POSTGRES_USER: order_service\n      POSTGRES_PASSWORD: ${ORDER_SERVICE_POSTGRES_PASSWORD:?set ORDER_SERVICE_POSTGRES_PASSWORD}\n    healthcheck:\n      test: [\"CMD-SHELL\", \"pg_isready -U order_service -d order_service\"]\n      interval: 5s\n      timeout: 3s\n      retries: 20\n    networks: [application]\n    volumes: [order_service_database_data:/var/lib/postgresql/data]\n  order_service:\n    build:\n      context: .\n      dockerfile: order_service/Dockerfile\n    depends_on:\n      order_service_database:\n        condition: service_healthy\n    environment:\n      ORDER_SERVICE_DATABASE_URL: postgres://order_service:${ORDER_SERVICE_POSTGRES_PASSWORD:?set ORDER_SERVICE_POSTGRES_PASSWORD}@order_service_database:5432/order_service\n      ORDER_SERVICE_SERVICE_SOCKET_ADDRESS: 0.0.0.0:8082\n      MAXIMUM_SIZE_OF_HTTP_BODY_IN_BYTES: \"8192\"\n      PG_POOL_MAX_CONNECTIONS: \"10\"\n      REQUEST_TIMEOUT_SECONDS: \"30\"\n      TRACING_FORMAT: text\n    networks: [application]\n    ports: [\"127.0.0.1:8082:8082\"]\n    read_only: true\n    restart: unless-stopped\n    tmpfs: [/tmp:size=16m,mode=1777]\nvolumes:\n  order_service_database_data:\n",
+        );
+        assert_file_content(
+            root.join("str_constants/src/lib.rs").as_path(),
+            "\npub const ORDER_SERVICE_INSERT_SQL: &str = \"INSERT INTO order_services (id, message) VALUES ($1, $2)\";\n",
         );
         std::fs::remove_dir_all(root).expect("6f608418");
     }

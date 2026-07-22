@@ -18,9 +18,9 @@ impl<'value_lt> From<Vec<&'value_lt str>> for TableTestNames<'value_lt> {
 }
 fn compile_error_token_stream(
     message: CompileErrorMessage<'_>,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     let message_value = message.0;
-    macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(
+    macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
         quote::quote! {compile_error!(#message_value);},
     )
 }
@@ -50,14 +50,14 @@ fn compile_error_token_stream(
 #[allow(unused_variables)]
 pub fn generate_pg_table(
     input: macros_helpers::ts_writer::ProcMacro2TokenStreamRef<'_>,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     let validated = match crate::pipeline::parse_generate_pg_table(input)
         .and_then(crate::pipeline::build_generate_pg_table)
         .and_then(crate::pipeline::validate_generate_pg_table)
     {
         Ok(validated) => validated,
         Err(error) => {
-            return macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(
+            return macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
                 match error {
                     crate::pipeline::GeneratePgTablePipelineError::Build(pipeline_error)
                     | crate::pipeline::GeneratePgTablePipelineError::Parse(pipeline_error)
@@ -76,7 +76,7 @@ pub fn generate_pg_table(
 #[allow(unused_variables)]
 pub fn emit_generate_pg_table(
     validated: crate::pipeline::SynValidatedGeneratePgTableInput,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     #[allow(clippy::arbitrary_source_item_ordering)]
     #[derive(Debug, optml::Optml)]
     struct SynVariant {
@@ -728,7 +728,7 @@ pub fn emit_generate_pg_table(
         primary_key_attr_name: GeneratePgTablePrimaryKeyAttrName<'_>,
     ) -> Result<
         GeneratePgTableFieldEmissionModel,
-        macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream,
+        macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
     > {
         let syn_field = field_ref.get();
         let Some(field_identifier) = syn_field.ident.clone() else {
@@ -829,7 +829,7 @@ pub fn emit_generate_pg_table(
                 })
             })
             .map_err(|error| {
-                macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(
+                macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
                     error.into_compile_error(),
                 )
             })?;
@@ -855,7 +855,7 @@ pub fn emit_generate_pg_table(
         syn_field: syn::Field,
     ) -> Result<
         GeneratePgTableVariantFieldEmission,
-        macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream,
+        macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
     > {
         let Some(identifier) = syn_field.ident else {
             return Err(compile_error_token_stream(CompileErrorMessage::from(
@@ -898,7 +898,7 @@ pub fn emit_generate_pg_table(
         field_ref: SynGeneratePgTableFieldRef<'_>,
     ) -> Result<
         Option<macros_helpers::location_data::LocationFieldAttr>,
-        macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream,
+        macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
     > {
         let field = field_ref.get();
         let Some(field_identifier) = field.ident.as_ref() else {
@@ -932,7 +932,7 @@ pub fn emit_generate_pg_table(
         syn_variant: syn::Variant,
     ) -> Result<
         GeneratePgTableVariantEmission,
-        macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream,
+        macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
     > {
         let syn::Fields::Named(fields_named) = syn_variant.fields else {
             return Err(compile_error_token_stream(CompileErrorMessage::from(
@@ -946,7 +946,7 @@ pub fn emit_generate_pg_table(
                 accumulator.push(generate_pg_table_variant_field_model_stage(field)?);
                 Ok::<
                     Vec<GeneratePgTableVariantFieldEmission>,
-                    macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream,
+                    macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
                 >(accumulator)
             },
         )?;
@@ -961,7 +961,7 @@ pub fn emit_generate_pg_table(
         primary_key_attr_name: GeneratePgTablePrimaryKeyAttrName<'_>,
     ) -> Result<
         GeneratePgTableFieldsEmissionModel,
-        macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream,
+        macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
     > {
         match crate::parse::struct_shape(workspace_macro_helpers::SynDeriveInputRef::from(
             input.get(),
@@ -1049,21 +1049,31 @@ pub fn emit_generate_pg_table(
         input: &SynGeneratePgTableDeriveInput,
     ) -> Result<
         GeneratePgTableEmissionModel,
-        macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream,
+        macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
     > {
         let di = input.get();
-        let config = match serde_json::from_str::<GeneratePgTableConfig>(
-            &macros_helpers::attr_reader::get_macro_attr_meta_list_token_stream(
+        let config_attr =
+            match macros_helpers::attr_reader::try_get_macro_attr_meta_list_token_stream(
                 &di.attrs,
                 str_constants::PG_CRUD_GENERATE_PG_TABLE_CONFIG_PATH,
-            )
-            .to_string(),
-        ) {
+            ) {
+                Ok(config_attr) => config_attr,
+                Err(error) => {
+                    let message =
+                        format!("failed to read GeneratePgTableConfig attribute: {error}");
+                    return Err(
+                    macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
+                        quote::quote! { compile_error!(#message); },
+                    ),
+                );
+                }
+            };
+        let config = match serde_json::from_str::<GeneratePgTableConfig>(&config_attr.to_string()) {
             Ok(v) => v,
             Err(error) => {
                 let message = format!("failed to parse GeneratePgTableConfig: {error}");
                 return Err(
-                    macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(
+                    macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
                         quote::quote! { compile_error!(#message); },
                     ),
                 );
@@ -1141,7 +1151,7 @@ pub fn emit_generate_pg_table(
                             variants_accumulator.push(generate_pg_table_variant_model_stage(variant)?);
                             Ok::<
                                 Vec<GeneratePgTableVariantEmission>,
-                                macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream,
+                                macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
                             >(variants_accumulator)
                         },
                     )?;
@@ -1186,7 +1196,7 @@ pub fn emit_generate_pg_table(
         model: GeneratePgTableFieldsEmissionModel,
     ) -> Result<
         GeneratePgTableFieldsEmissionModel,
-        macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream,
+        macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
     > {
         if model
             .fields
@@ -1218,12 +1228,17 @@ pub fn emit_generate_pg_table(
         config: &GeneratePgTableConfig,
         tests_token_stream: ProcMacro2GeneratePgTableTestsTokenStream,
     ) -> ProcMacro2GeneratePgTableTestsTokenStream {
-        macros_helpers::ts_writer::maybe_write_token_stream_into_file(
+        if let Err(error) = macros_helpers::ts_writer::maybe_write_token_stream_into_file(
             config.tests_write_into_file,
             str_constants::GENERATE_PG_TABLE_TESTS,
             macros_helpers::ts_writer::ProcMacro2TokenStreamRef::from(tests_token_stream.as_ref()),
             &macros_helpers::ts_writer::FormatWithCargofmt::True,
-        );
+        ) {
+            let message = format!("failed to write generated PG table tests: {error}");
+            return ProcMacro2GeneratePgTableTestsTokenStream::from(
+                quote::quote! { compile_error!(#message); },
+            );
+        }
         match config.tests_write_into_file {
             macros_helpers::ts_writer::ShouldWriteTokenStreamIntoFile::False => {
                 ProcMacro2GeneratePgTableTestsTokenStream::from(proc_macro2::TokenStream::new())
@@ -1236,20 +1251,30 @@ pub fn emit_generate_pg_table(
         config: &GeneratePgTableConfig,
         common_token_stream: &ProcMacro2GeneratePgTableCommonTokenStream,
         whole_token_stream: ProcMacro2GeneratePgTableWholeTokenStream,
-    ) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
-        macros_helpers::ts_writer::maybe_write_token_stream_into_file(
+    ) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
+        if let Err(error) = macros_helpers::ts_writer::maybe_write_token_stream_into_file(
             config.common_write_into_file,
             str_constants::GENERATE_PG_TABLE_COMMON,
             macros_helpers::ts_writer::ProcMacro2TokenStreamRef::from(common_token_stream.as_ref()),
             &macros_helpers::ts_writer::FormatWithCargofmt::True,
-        );
-        macros_helpers::ts_writer::maybe_write_token_stream_into_file(
+        ) {
+            let message = format!("failed to write generated PG table common output: {error}");
+            return macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
+                quote::quote! { compile_error!(#message); },
+            );
+        }
+        if let Err(error) = macros_helpers::ts_writer::maybe_write_token_stream_into_file(
             config.whole_write_into_file,
             str_constants::GENERATE_PG_TABLE,
             macros_helpers::ts_writer::ProcMacro2TokenStreamRef::from(whole_token_stream.as_ref()),
             &macros_helpers::ts_writer::FormatWithCargofmt::True,
-        );
-        macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(
+        ) {
+            let message = format!("failed to write generated PG table output: {error}");
+            return macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
+                quote::quote! { compile_error!(#message); },
+            );
+        }
+        macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
             whole_token_stream.into_inner(),
         )
     }
@@ -1792,7 +1817,7 @@ pub fn emit_generate_pg_table(
         .collect::<Vec<_>>();
     let primary_key_field_type = &primary_key_field.type0;
     if fields_without_primary_key_idxs.is_empty() {
-        return macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(
+        return macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
             syn::Error::new_spanned(
                 &**primary_key_field_type,
                 str_constants::UPDATE_OPERATIONS_REQUIRE_AT_LEAST_ONE_NON_PRIMARY_KEY_FIELD,
@@ -1807,7 +1832,7 @@ pub fn emit_generate_pg_table(
         if primary_key_type_name.starts_with(str_constants::OPTIONAL)
             || primary_key_type_name.contains(str_constants::ASNULLABLE)
         {
-            return macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(
+            return macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
                 syn::Error::new_spanned(
                     &**primary_key_field_type,
                     str_constants::PRIMARY_KEY_TYPE_MUST_BE_NON_NULLABLE,
@@ -3538,7 +3563,7 @@ pub fn emit_generate_pg_table(
     let identifier_update_token_stream = {
         let generate_optional_v_field_type_as_pg_type_update_token_stream: &dyn Fn(
             &dyn quote::ToTokens,
-        ) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream = &|syn_type| {
+        ) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream = &|syn_type| {
             let syn_type_as_pg_type_update_token_stream = generate_as_pg_type_update_token_stream(&syn_type);
             pg_crud_macros_common::generate_optional_type_declaration_token_stream(
                 &quote::quote! {#path_v_token_stream<#syn_type_as_pg_type_update_token_stream>},
@@ -4423,7 +4448,7 @@ pub fn emit_generate_pg_table(
         |field_ref: SynGeneratePgTableIdentifierRef<'_>,
          ty_ref: SynGeneratePgTableTypeRef<'_>,
          location_attr: GeneratePgTableVariantLocationAttr|
-         -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+         -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
             let field = field_ref.get();
             let ty = ty_ref.get();
             let string_token_stream = token_patterns::StringTokenStream;
@@ -4568,7 +4593,7 @@ pub fn emit_generate_pg_table(
             };
                 quote::quote! {#field: #element_type_with_serde_token_stream}
             };
-            macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(
+            macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
                 quote::quote! {#ts,},
             )
         };
@@ -5120,7 +5145,7 @@ pub fn emit_generate_pg_table(
                     let commit_header_addition_token_stream = quote::quote! {
                         .header(
                             &"commit".to_owned(),
-                            git_info::project_git_info().commit.as_ref(),
+                            git_info::project_git_info().commit().as_ref(),
                         )
                     };
                     let app_json_double_quoted_token_stream = generate_quotes::dq_token_stream(&str_constants::APPLICATION_JSON);

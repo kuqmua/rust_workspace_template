@@ -74,14 +74,14 @@ impl LocationFieldAttr {
     #[must_use]
     pub fn to_attr_view_token_stream(
         &self,
-    ) -> crate::generated_rust_token_stream::GeneratedRustTokenStream {
+    ) -> crate::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
         match format!(
             "#[{}]",
             crate::attr_identifier_str::AttrIdentifierStr::attr_identifier_str(self).as_ref()
         )
         .parse::<proc_macro2::TokenStream>()
         {
-            Ok(v) => crate::generated_rust_token_stream::GeneratedRustTokenStream::from(v),
+            Ok(v) => crate::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(v),
             Err(error) => compile_error_token_stream(CompileErrorMessage::from(&error.to_string())),
         }
     }
@@ -97,16 +97,16 @@ impl<'message_lt> From<&'message_lt String> for CompileErrorMessage<'message_lt>
 pub struct SynVariantRef<'variant_lt>(&'variant_lt syn::Variant);
 fn compile_error_token_stream(
     message: CompileErrorMessage<'_>,
-) -> crate::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> crate::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     let message_value = message.0;
-    crate::generated_rust_token_stream::GeneratedRustTokenStream::from(
+    crate::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
         quote::quote! {compile_error!(#message_value);},
     )
 }
 #[must_use]
 pub fn generate_serde_version_of_named_syn_variant(
     v: SynVariantRef<'_>,
-) -> crate::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> crate::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     let variant = v.0;
     let hash_map_upper_camel_case = naming::HashMapUpperCamelCase;
     let location_snake_case = naming::LocationSnakeCase;
@@ -283,9 +283,9 @@ pub fn generate_serde_version_of_named_syn_variant(
             };
             quote::quote! {#element_c25b655e_identifier: #element_type_with_serde_token_stream}
         };
-        crate::generated_rust_token_stream::GeneratedRustTokenStream::from(quote::quote! {#ts,})
+        crate::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(quote::quote! {#ts,})
     });
-    crate::generated_rust_token_stream::GeneratedRustTokenStream::from(quote::quote! {
+    crate::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(quote::quote! {
         #element_identifier {
             #(#fields_with_serde_token_stream)*
         }

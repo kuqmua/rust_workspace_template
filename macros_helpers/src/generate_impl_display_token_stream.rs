@@ -3,7 +3,7 @@ pub fn generate_impl_display_token_stream(
     ident_token_stream: &dyn quote::ToTokens,
     ident_generics_token_stream: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> crate::generated_rust_token_stream::GeneratedRustTokenStream {
+) -> crate::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     let self_snake_case = naming::SelfSnakeCase;
     quote::quote! {
         impl #impl_generics_token_stream std::fmt::Display for #ident_token_stream #ident_generics_token_stream {
