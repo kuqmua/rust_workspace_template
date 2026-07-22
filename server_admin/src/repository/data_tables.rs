@@ -94,8 +94,9 @@ struct DataSystemSettingsFlt(
 struct DataUserRolesFlt(crate::generated_tables::StdOptionalOptionalAdminUserRolesWhereMany);
 #[derive(Clone, newtype::FromInner)]
 struct DataUsersFlt(crate::generated_tables::StdOptionalOptionalAdminUsersWhereMany);
-#[derive(newtype::FromInner, newtype::IntoInnerFrom)]
-struct DataFilterJsonValue(serde_json::Value);
+#[derive(newtype::AsRefStr, newtype::BoundedString)]
+#[bounded_string(max = 1_048_576usize)]
+struct DataFltJson(String);
 
 #[derive(Clone)]
 enum DataFlt {
@@ -183,7 +184,7 @@ fn filter_wire_value(
     table: server_admin_contract::AdminDataTable,
     field: frontend_contract::FormFieldNameRef<'_>,
     value: frontend_contract::FormValueRef<'_>,
-) -> Result<DataFilterJsonValue, super::AdminRepositoryError> {
+) -> Result<frontend_contract::FilterWireJson, super::AdminRepositoryError> {
     let parsed = match table {
         server_admin_contract::AdminDataTable::Permissions => {
             crate::generated_tables::AdminPermissions::frontend_filter_value(field, value)
@@ -212,15 +213,13 @@ fn filter_wire_value(
     }
     .ok_or(super::AdminRepositoryError::InvalidStoredValue)?
     .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?;
-    serde_json::from_str::<serde_json::Value>(parsed.as_ref())
-        .map(DataFilterJsonValue::from)
-        .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)
+    Ok(parsed)
 }
 
 fn filter_payload(
     table: server_admin_contract::AdminDataTable,
     query: &server_admin_contract::AdminDataTableFilterQuery,
-) -> Result<Option<DataFilterJsonValue>, super::AdminRepositoryError> {
+) -> Result<Option<DataFltJson>, super::AdminRepositoryError> {
     let (Some(field), Some(operation)) = (query.field(), query.operation()) else {
         return if query.field().is_none()
             && query.operation().is_none()
@@ -243,11 +242,13 @@ fn filter_payload(
         return Err(super::AdminRepositoryError::InvalidStoredValue);
     }
     let parse_value = |value: &server_admin_contract::AdminFilterValue| {
-        filter_wire_value(
+        let wire_value = filter_wire_value(
             table,
             frontend_contract::FormFieldNameRef::from(field.as_ref()),
             frontend_contract::FormValueRef::from(value.as_ref()),
-        )
+        )?;
+        serde_json::from_str::<serde_json::Value>(wire_value.as_ref())
+            .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)
     };
     let mut body = serde_json::Map::new();
     let _body_operator_replaced = body.insert(
@@ -270,14 +271,10 @@ fn filter_payload(
                 .ok_or(super::AdminRepositoryError::InvalidStoredValue)
                 .and_then(parse_value)?;
             let mut range = serde_json::Map::new();
-            let _range_start_replaced = range.insert(
-                str_constants::PG_CRUD_START_FIELD.to_owned(),
-                serde_json::Value::from(start),
-            );
-            let _range_end_replaced = range.insert(
-                str_constants::PG_CRUD_END_FIELD.to_owned(),
-                serde_json::Value::from(end),
-            );
+            let _range_start_replaced =
+                range.insert(str_constants::PG_CRUD_START_FIELD.to_owned(), start);
+            let _range_end_replaced =
+                range.insert(str_constants::PG_CRUD_END_FIELD.to_owned(), end);
             let _body_range_replaced = body.insert(
                 str_constants::PG_CRUD_V_FIELD.to_owned(),
                 serde_json::Value::Object(range),
@@ -299,7 +296,6 @@ fn filter_payload(
                             .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?;
                     parse_value(&typed_value)
                 })
-                .map(|value| value.map(serde_json::Value::from))
                 .collect::<Result<Vec<_>, super::AdminRepositoryError>>()?;
             let _body_list_replaced = body.insert(
                 str_constants::PG_CRUD_V_FIELD.to_owned(),
@@ -320,10 +316,8 @@ fn filter_payload(
                     str_constants::SERVER_ADMIN_FILTER_REGEX_SENSITIVE.to_owned(),
                 ),
             );
-            let _body_regex_value_replaced = body.insert(
-                str_constants::PG_CRUD_V_FIELD.to_owned(),
-                serde_json::Value::from(value),
-            );
+            let _body_regex_value_replaced =
+                body.insert(str_constants::PG_CRUD_V_FIELD.to_owned(), value);
         }
         frontend_contract::FilterValueShape::EncodedText => {
             if query.end().is_some() {
@@ -351,10 +345,8 @@ fn filter_payload(
                 .value()
                 .ok_or(super::AdminRepositoryError::InvalidStoredValue)
                 .and_then(parse_value)?;
-            let _body_scalar_replaced = body.insert(
-                str_constants::PG_CRUD_V_FIELD.to_owned(),
-                serde_json::Value::from(value),
-            );
+            let _body_scalar_replaced =
+                body.insert(str_constants::PG_CRUD_V_FIELD.to_owned(), value);
         }
     }
     let mut operation_entry = serde_json::Map::new();
@@ -374,9 +366,11 @@ fn filter_payload(
         field.as_ref().to_owned(),
         serde_json::Value::Object(field_filters),
     );
-    Ok(Some(DataFilterJsonValue::from(serde_json::Value::Object(
-        where_many,
-    ))))
+    let json = serde_json::to_string(&serde_json::Value::Object(where_many))
+        .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?;
+    DataFltJson::try_from(json)
+        .map(Some)
+        .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)
 }
 
 fn data_filter(
@@ -386,47 +380,48 @@ fn data_filter(
     let Some(payload_wrapper) = filter_payload(table, query)? else {
         return Ok(None);
     };
-    let payload = serde_json::Value::from(payload_wrapper);
     let invalid = |_error| super::AdminRepositoryError::InvalidStoredValue;
     match table {
-        server_admin_contract::AdminDataTable::Permissions => serde_json::from_value::<
+        server_admin_contract::AdminDataTable::Permissions => serde_json::from_str::<
             crate::generated_tables::StdOptionalOptionalAdminPermissionsWhereMany,
-        >(payload)
+        >(payload_wrapper.as_ref())
         .map(DataPermissionsFlt::from)
         .map(DataFlt::Permissions)
         .map(Some)
         .map_err(invalid),
-        server_admin_contract::AdminDataTable::RolePermissions => serde_json::from_value::<
-            crate::generated_tables::StdOptionalOptionalAdminRolePermissionsWhereMany,
-        >(payload)
-        .map(DataRolePermissionsFlt::from)
-        .map(DataFlt::RolePermissions)
-        .map(Some)
-        .map_err(invalid),
-        server_admin_contract::AdminDataTable::Roles => serde_json::from_value::<
+        server_admin_contract::AdminDataTable::RolePermissions => {
+            serde_json::from_str::<
+                crate::generated_tables::StdOptionalOptionalAdminRolePermissionsWhereMany,
+            >(payload_wrapper.as_ref())
+            .map(DataRolePermissionsFlt::from)
+            .map(DataFlt::RolePermissions)
+            .map(Some)
+            .map_err(invalid)
+        }
+        server_admin_contract::AdminDataTable::Roles => serde_json::from_str::<
             crate::generated_tables::StdOptionalOptionalAdminRolesWhereMany,
-        >(payload)
+        >(payload_wrapper.as_ref())
         .map(DataRolesFlt::from)
         .map(DataFlt::Roles)
         .map(Some)
         .map_err(invalid),
-        server_admin_contract::AdminDataTable::SystemSettings => serde_json::from_value::<
+        server_admin_contract::AdminDataTable::SystemSettings => serde_json::from_str::<
             crate::generated_tables::StdOptionalOptionalAdminSystemSettingsWhereMany,
-        >(payload)
+        >(payload_wrapper.as_ref())
         .map(DataSystemSettingsFlt::from)
         .map(DataFlt::SystemSettings)
         .map(Some)
         .map_err(invalid),
-        server_admin_contract::AdminDataTable::UserRoles => serde_json::from_value::<
+        server_admin_contract::AdminDataTable::UserRoles => serde_json::from_str::<
             crate::generated_tables::StdOptionalOptionalAdminUserRolesWhereMany,
-        >(payload)
+        >(payload_wrapper.as_ref())
         .map(DataUserRolesFlt::from)
         .map(DataFlt::UserRoles)
         .map(Some)
         .map_err(invalid),
-        server_admin_contract::AdminDataTable::Users => serde_json::from_value::<
+        server_admin_contract::AdminDataTable::Users => serde_json::from_str::<
             crate::generated_tables::StdOptionalOptionalAdminUsersWhereMany,
-        >(payload)
+        >(payload_wrapper.as_ref())
         .map(DataUsersFlt::from)
         .map(DataFlt::Users)
         .map(Some)
