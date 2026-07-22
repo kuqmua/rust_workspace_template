@@ -79,8 +79,8 @@ impl AdminLoadState {
 enum AdminTableLoadError {
     #[error("The table request failed.")]
     Fetch,
-    #[error("The server returned status {0}.")]
-    Http(AdminHttpStatus),
+    #[error("The server returned status {0} for {1}.")]
+    Http(AdminHttpStatus, AdminCsrApiUrl),
     #[error("The table query is invalid.")]
     Query,
     #[error("The table response was invalid.")]
@@ -90,7 +90,7 @@ enum AdminTableLoadError {
 #[derive(Clone, Copy, Debug, newtype::Display, newtype::FromInner)]
 struct AdminHttpStatus(u16);
 
-#[derive(Clone, Debug, newtype::AsRefStr, newtype::BoundedString)]
+#[derive(Clone, Debug, newtype::AsRefStr, newtype::BoundedString, newtype::Display)]
 #[bounded_string(max = 16_384usize, chars)]
 struct AdminCsrApiUrl(String);
 
@@ -314,9 +314,10 @@ where
     let response = wasm_bindgen::JsCast::dyn_into::<web_sys::Response>(response_value)
         .map_err(|_error| AdminTableLoadError::Response)?;
     if !response.ok() {
-        return Err(AdminTableLoadError::Http(AdminHttpStatus::from(
-            response.status(),
-        )));
+        return Err(AdminTableLoadError::Http(
+            AdminHttpStatus::from(response.status()),
+            url.clone(),
+        ));
     }
     let text_promise =
         web_sys::Response::text(&response).map_err(|_error| AdminTableLoadError::Response)?;
@@ -386,10 +387,9 @@ where
     .map_err(|_error| AdminTableLoadError::Fetch)?;
     let response = wasm_bindgen::JsCast::dyn_into::<web_sys::Response>(response_value)
         .map_err(|_error| AdminTableLoadError::Response)?;
-    response
-        .ok()
-        .then_some(())
-        .ok_or_else(|| AdminTableLoadError::Http(AdminHttpStatus::from(response.status())))
+    response.ok().then_some(()).ok_or_else(|| {
+        AdminTableLoadError::Http(AdminHttpStatus::from(response.status()), path.clone())
+    })
 }
 
 fn reload_after<RequestBody>(

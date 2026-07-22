@@ -557,7 +557,7 @@ pub fn render_admin_csr(
         &AdminSsrText::try_from(title).unwrap_or_else(AdminSsrText::from),
         leptos::view! {
             <div id=str_constants::ADMIN_CSR_ROOT_ID style=primary_color><p class="loading-state" role="status">"Loading\u{2026}"</p></div>
-            <script type="module" src="/admin/assets/csr-bootstrap.js"></script>
+            <script type="module" src="/admin/assets/csr-bootstrap.js?v=20260722-16"></script>
         },
     )
 }
@@ -955,7 +955,7 @@ mod tests {
         assert!(html.as_ref().contains("id=\"admin-csr-root\""));
         assert!(
             html.as_ref()
-                .contains("src=\"/admin/assets/csr-bootstrap.js\"")
+                .contains("src=\"/admin/assets/csr-bootstrap.js?v=20260722-16\"")
         );
         assert!(!html.as_ref().contains("<nav"));
         assert!(!html.as_ref().contains("<table"));

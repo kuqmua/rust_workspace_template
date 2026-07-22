@@ -286,7 +286,8 @@ fn assert_admin_csr_shell(body: &AdminHtmlTestBody) {
         "CSR root is missing"
     );
     assert!(
-        body.0.contains("src=\"/admin/assets/csr-bootstrap.js\""),
+        body.0
+            .contains("src=\"/admin/assets/csr-bootstrap.js?v=20260722-16\""),
         "CSR bootstrap script is missing"
     );
     assert!(!body.0.contains("<table"), "server rendered a data table");
