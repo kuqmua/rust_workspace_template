@@ -1,99 +1,27 @@
 const SCAFFOLD_TEXT_MAX_BYTES: usize = 16_777_216usize;
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 struct ProjectNameRef<'value>(&'value str);
-impl<'value> From<&'value str> for ProjectNameRef<'value> {
-    fn from(value: &'value str) -> Self {
-        Self(value)
-    }
-}
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 struct RepositoryUrlRef<'value>(&'value str);
-impl<'value> From<&'value str> for RepositoryUrlRef<'value> {
-    fn from(value: &'value str) -> Self {
-        Self(value)
-    }
-}
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 struct ServicePort(u16);
-impl From<u16> for ServicePort {
-    fn from(value: u16) -> Self {
-        Self(value)
-    }
-}
 #[derive(Clone, Debug, newtype::AsRefStr, newtype::BoundedString, newtype::Display)]
 #[bounded_string(max = SCAFFOLD_TEXT_MAX_BYTES)]
 struct ScaffoldText(String);
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 struct ScaffoldTextRef<'text_lt>(&'text_lt str);
-impl<'text_lt> From<&'text_lt str> for ScaffoldTextRef<'text_lt> {
-    fn from(value: &'text_lt str) -> Self {
-        Self(value)
-    }
-}
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 struct StdScaffoldPathRef<'path_lt>(&'path_lt std::path::Path);
-impl<'path_lt> From<&'path_lt std::path::Path> for StdScaffoldPathRef<'path_lt> {
-    fn from(value: &'path_lt std::path::Path) -> Self {
-        Self(value)
-    }
-}
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 struct ReplacementsRef<'replacements_lt>(&'replacements_lt [(&'replacements_lt str, String)]);
-impl<'replacements_lt> From<&'replacements_lt [(&'replacements_lt str, String)]>
-    for ReplacementsRef<'replacements_lt>
-{
-    fn from(value: &'replacements_lt [(&'replacements_lt str, String)]) -> Self {
-        Self(value)
-    }
-}
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
 struct ShouldSkip(bool);
-impl From<bool> for ShouldSkip {
-    fn from(value: bool) -> Self {
-        Self(value)
-    }
-}
-impl From<ShouldSkip> for bool {
-    fn from(value: ShouldSkip) -> Self {
-        value.0
-    }
-}
-#[derive(Debug)]
+#[derive(Debug, newtype::Display, newtype::ErrorTransparent, newtype::FromInner)]
 struct StdScaffoldIoError(std::io::Error);
-impl From<std::io::Error> for StdScaffoldIoError {
-    fn from(value: std::io::Error) -> Self {
-        Self(value)
-    }
-}
-impl std::fmt::Display for StdScaffoldIoError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
-impl std::error::Error for StdScaffoldIoError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        Some(&self.0)
-    }
-}
-#[derive(Debug)]
+#[derive(Debug, newtype::Display, newtype::ErrorTransparent, newtype::FromInner)]
 struct ServerRuntimeBoundedReadError(server_runtime::BoundedReadError);
-impl From<server_runtime::BoundedReadError> for ServerRuntimeBoundedReadError {
-    fn from(value: server_runtime::BoundedReadError) -> Self {
-        Self(value)
-    }
-}
-impl std::fmt::Display for ServerRuntimeBoundedReadError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
-impl std::error::Error for ServerRuntimeBoundedReadError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        Some(&self.0)
-    }
-}
 
 #[derive(Debug, thiserror::Error)]
 enum ScaffoldError {

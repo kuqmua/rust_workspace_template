@@ -61,23 +61,8 @@ struct CommandArgsRef<'args_lt>(&'args_lt [&'args_lt str]);
 struct CommandText(String);
 #[derive(Debug, newtype::FromInner)]
 struct CommandTexts(Vec<CommandText>);
-#[derive(Debug)]
+#[derive(Debug, newtype::Display, newtype::ErrorTransparent, newtype::FromInner)]
 struct StdExecutionIoError(std::io::Error);
-impl From<std::io::Error> for StdExecutionIoError {
-    fn from(value: std::io::Error) -> Self {
-        Self(value)
-    }
-}
-impl std::fmt::Display for StdExecutionIoError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
-impl std::error::Error for StdExecutionIoError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        Some(&self.0)
-    }
-}
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
 struct TextRef<'text_lt>(&'text_lt str);
 impl<'text_lt> TextRef<'text_lt> {

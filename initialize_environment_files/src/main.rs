@@ -19,204 +19,69 @@ struct InitializationEntry {
     member: WorkspaceMember,
     status: InitializationStatus,
 }
-#[derive(Debug, Eq, PartialEq)]
-struct EnvContent(String);
-impl TryFrom<String> for EnvContent {
-    type Error = InitStringError;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > usize::try_from(isize::MAX).unwrap_or(usize::MAX) {
-            Err(InitStringError)
-        } else {
-            Ok(Self(value))
-        }
+#[derive(Debug, Eq, PartialEq, newtype::AsRefStr, newtype::TryFrom)]
+#[try_from(error = InitStringError, validator = |value: &String| {
+    if value.len() > usize::try_from(isize::MAX).unwrap_or(usize::MAX) {
+        Err(InitStringError)
+    } else {
+        Ok(())
     }
-}
+})]
+struct EnvContent(String);
 impl From<server_runtime::BoundedText> for EnvContent {
     fn from(value: server_runtime::BoundedText) -> Self {
         Self(value.into_inner())
     }
 }
-impl AsRef<str> for EnvContent {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
-    }
-}
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, newtype::AsRefStr, newtype::FromInner)]
 struct EnvContentRef<'content_lt>(&'content_lt str);
-impl<'content_lt> From<&'content_lt str> for EnvContentRef<'content_lt> {
-    fn from(value: &'content_lt str) -> Self {
-        Self(value)
+#[derive(Debug, Eq, Ord, PartialEq, PartialOrd, newtype::AsRefStr, newtype::TryFrom)]
+#[try_from(error = InitStringError, validator = |value: &String| {
+    if value.is_empty() || value.len() > 1_024usize {
+        Err(InitStringError)
+    } else {
+        Ok(())
     }
-}
-impl AsRef<str> for EnvContentRef<'_> {
-    fn as_ref(&self) -> &str {
-        self.0
-    }
-}
-#[derive(Debug, Eq, Ord, PartialEq, PartialOrd)]
+})]
 struct EnvKey(String);
-impl TryFrom<String> for EnvKey {
-    type Error = InitStringError;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.is_empty() || value.len() > 1_024usize {
-            Err(InitStringError)
-        } else {
-            Ok(Self(value))
-        }
-    }
-}
-impl AsRef<str> for EnvKey {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
-    }
-}
 impl std::borrow::Borrow<str> for EnvKey {
     fn borrow(&self) -> &str {
         self.0.as_str()
     }
 }
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, newtype::FromInner)]
 struct EnvKeys(Vec<EnvKey>);
-impl From<Vec<EnvKey>> for EnvKeys {
-    fn from(value: Vec<EnvKey>) -> Self {
-        Self(value)
-    }
-}
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, newtype::FromInner, newtype::IntoInnerFrom)]
 struct MemberSafe(bool);
-impl From<bool> for MemberSafe {
-    fn from(value: bool) -> Self {
-        Self(value)
+#[derive(
+    Debug, Eq, Ord, PartialEq, PartialOrd, newtype::AsRefStr, newtype::Display, newtype::TryFrom,
+)]
+#[try_from(error = InitStringError, validator = |value: &String| {
+    if value.is_empty() || value.len() > 4_096usize {
+        Err(InitStringError)
+    } else {
+        Ok(())
     }
-}
-impl From<MemberSafe> for bool {
-    fn from(value: MemberSafe) -> Self {
-        value.0
-    }
-}
-#[derive(Debug, Eq, Ord, PartialEq, PartialOrd)]
+})]
 struct WorkspaceMember(String);
-impl TryFrom<String> for WorkspaceMember {
-    type Error = InitStringError;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.is_empty() || value.len() > 4_096usize {
-            Err(InitStringError)
-        } else {
-            Ok(Self(value))
-        }
-    }
-}
-impl AsRef<str> for WorkspaceMember {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
-    }
-}
-impl std::fmt::Display for WorkspaceMember {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, newtype::AsRefStr, newtype::FromInner)]
 struct WorkspaceMemberRef<'member_lt>(&'member_lt str);
-impl<'member_lt> From<&'member_lt str> for WorkspaceMemberRef<'member_lt> {
-    fn from(value: &'member_lt str) -> Self {
-        Self(value)
-    }
-}
-impl AsRef<str> for WorkspaceMemberRef<'_> {
-    fn as_ref(&self) -> &str {
-        self.0
-    }
-}
+#[derive(newtype::FromInner)]
 struct WorkspaceMembers(Vec<WorkspaceMember>);
-impl From<Vec<WorkspaceMember>> for WorkspaceMembers {
-    fn from(value: Vec<WorkspaceMember>) -> Self {
-        Self(value)
-    }
-}
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, newtype::AsRefTarget, newtype::FromInner)]
 struct StdWorkspaceRootRef<'root_lt>(&'root_lt std::path::Path);
-impl<'root_lt> From<&'root_lt std::path::Path> for StdWorkspaceRootRef<'root_lt> {
-    fn from(value: &'root_lt std::path::Path) -> Self {
-        Self(value)
-    }
-}
-impl AsRef<std::path::Path> for StdWorkspaceRootRef<'_> {
-    fn as_ref(&self) -> &std::path::Path {
-        self.0
-    }
-}
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, newtype::FromInner)]
 struct StdInitPathRef<'path_lt>(&'path_lt std::path::Path);
-impl<'path_lt> From<&'path_lt std::path::Path> for StdInitPathRef<'path_lt> {
-    fn from(value: &'path_lt std::path::Path) -> Self {
-        Self(value)
-    }
-}
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, newtype::FromInner)]
 struct InitMaxBytes(usize);
-impl From<usize> for InitMaxBytes {
-    fn from(value: usize) -> Self {
-        Self(value)
-    }
-}
+#[derive(newtype::FromInner)]
 struct InitEntries(Vec<InitializationEntry>);
-impl From<Vec<InitializationEntry>> for InitEntries {
-    fn from(value: Vec<InitializationEntry>) -> Self {
-        Self(value)
-    }
-}
-#[derive(Debug)]
+#[derive(Debug, newtype::Display, newtype::ErrorTransparent, newtype::FromInner)]
 struct StdInitIoError(std::io::Error);
-impl From<std::io::Error> for StdInitIoError {
-    fn from(value: std::io::Error) -> Self {
-        Self(value)
-    }
-}
-impl std::fmt::Display for StdInitIoError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
-impl std::error::Error for StdInitIoError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        Some(&self.0)
-    }
-}
-#[derive(Debug)]
+#[derive(Debug, newtype::Display, newtype::ErrorTransparent, newtype::FromInner)]
 struct ServerRuntimeBoundedReadError(server_runtime::BoundedReadError);
-impl From<server_runtime::BoundedReadError> for ServerRuntimeBoundedReadError {
-    fn from(value: server_runtime::BoundedReadError) -> Self {
-        Self(value)
-    }
-}
-impl std::fmt::Display for ServerRuntimeBoundedReadError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
-impl std::error::Error for ServerRuntimeBoundedReadError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        Some(&self.0)
-    }
-}
-#[derive(Debug)]
+#[derive(Debug, newtype::Display, newtype::ErrorTransparent, newtype::FromInner)]
 struct TomlInitError(toml::de::Error);
-impl From<toml::de::Error> for TomlInitError {
-    fn from(value: toml::de::Error) -> Self {
-        Self(value)
-    }
-}
-impl std::fmt::Display for TomlInitError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
-impl std::error::Error for TomlInitError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        Some(&self.0)
-    }
-}
 #[derive(Debug, thiserror::Error)]
 #[error("environment initializer string value is invalid")]
 struct InitStringError;
