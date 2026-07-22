@@ -634,6 +634,66 @@ struct ForwardingDerefVisitor {
     ers: types::DiagnosticMsgs,
     inner_types: std::collections::BTreeMap<String, syn::Type>,
 }
+struct ForwardingBorrowVisitor {
+    ers: types::DiagnosticMsgs,
+}
+impl ForwardingBorrowVisitor {
+    #[allow(
+        clippy::single_call_fn,
+        reason = "the expression-shape predicate keeps the visitor branch readable"
+    )]
+    fn is_inner_borrow_expr(expr: &syn::Expr) -> bool {
+        if Self::is_inner_field(expr) {
+            return true;
+        }
+        if let syn::Expr::Reference(reference) = expr {
+            return Self::is_inner_field(reference.expr.as_ref());
+        }
+        if let syn::Expr::MethodCall(call) = expr {
+            return Self::is_inner_field(call.receiver.as_ref());
+        }
+        false
+    }
+    fn is_inner_field(expr: &syn::Expr) -> bool {
+        let syn::Expr::Field(field) = expr else {
+            return false;
+        };
+        let syn::Expr::Path(receiver) = field.base.as_ref() else {
+            return false;
+        };
+        receiver
+            .path
+            .is_ident(str_constants::CODE_STYLE_SELF_VALUE_IDENTIFIER)
+            && matches!(&field.member, syn::Member::Unnamed(index) if index.index == 0u32)
+    }
+}
+impl<'ast> syn::visit::Visit<'ast> for ForwardingBorrowVisitor {
+    fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
+        let is_borrow_impl = i.trait_.as_ref().is_some_and(|(_, path, _)| {
+            path.segments.last().is_some_and(|segment| {
+                segment.ident == str_constants::CODE_STYLE_BORROW_TRAIT_IDENTIFIER
+            })
+        });
+        let forwards_inner = i.items.iter().any(|item| {
+            let syn::ImplItem::Fn(function) = item else {
+                return false;
+            };
+            function.sig.ident == str_constants::CODE_STYLE_BORROW_FN_IDENTIFIER
+                && function.block.stmts.len() == 1usize
+                && function.block.stmts.first().is_some_and(|statement| {
+                    let syn::Stmt::Expr(expression, None) = statement else {
+                        return false;
+                    };
+                    Self::is_inner_borrow_expr(expression)
+                })
+        });
+        if is_borrow_impl && forwards_inner {
+            self.ers
+                .push(str_constants::CODE_STYLE_MANUAL_FORWARDING_BORROW.to_owned());
+        }
+        syn::visit::visit_item_impl(self, i);
+    }
+}
 impl ForwardingDerefVisitor {
     #[allow(
         clippy::single_call_fn,

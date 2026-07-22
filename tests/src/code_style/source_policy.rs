@@ -1130,6 +1130,37 @@ fn tuple_newtypes_derive_deref_inner_instead_of_implementing_forwarding_deref() 
     );
 }
 #[test]
+fn tuple_newtypes_derive_borrow_instead_of_implementing_forwarding_borrow() {
+    super::assert_rs_ast_ers_empty_with_ctx(
+        super::types::StaticStr::from("a514f872"),
+        super::types::SourceTextRef::from(
+            "manual forwarding Borrow implementations found; derive the matching newtype::Borrow macro instead",
+        ),
+        |path, ast, ers| {
+            let required_foundation_impl = (
+                std::path::Path::new("newtype/src/lib.rs"),
+                "a proc-macro crate cannot invoke its own derive macro",
+            );
+            if !required_foundation_impl.1.is_empty() && path.ends_with(required_foundation_impl.0)
+            {
+                return;
+            }
+            let visitor = super::visit_syn_file(
+                super::types::SynFileRef::from(ast),
+                super::ForwardingBorrowVisitor {
+                    ers: super::types::DiagnosticMsgs::default(),
+                },
+            );
+            ers.extend(
+                visitor
+                    .ers
+                    .into_iter()
+                    .map(|error| format!("{}: {error}", path.display())),
+            );
+        },
+    );
+}
+#[test]
 fn no_duplicated_string_literals_in_non_policy_test_code() {
     let mut literal_locations_by_value = std::collections::BTreeMap::<String, Vec<String>>::new();
     super::for_each_rs_syn_file(|path, ast| {

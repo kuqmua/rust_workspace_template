@@ -77,6 +77,10 @@ enum NewtypeOption {
     AsRefStr,
     AsRefTarget,
     AsSlice,
+    BorrowInner,
+    BorrowOwned,
+    BorrowPath,
+    BorrowStr,
     DebugRedacted,
     DebugTransparent,
     DerefInner,
@@ -415,6 +419,42 @@ pub fn as_slice(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
         ProcMacroInputTokenStream::from(input),
         NewtypeOption::AsSlice,
+        None,
+    )
+    .into()
+}
+#[proc_macro_derive(BorrowInner)]
+pub fn borrow_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    derive_newtype_option(
+        ProcMacroInputTokenStream::from(input),
+        NewtypeOption::BorrowInner,
+        None,
+    )
+    .into()
+}
+#[proc_macro_derive(BorrowOwned)]
+pub fn borrow_owned(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    derive_newtype_option(
+        ProcMacroInputTokenStream::from(input),
+        NewtypeOption::BorrowOwned,
+        None,
+    )
+    .into()
+}
+#[proc_macro_derive(BorrowPath)]
+pub fn borrow_path(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    derive_newtype_option(
+        ProcMacroInputTokenStream::from(input),
+        NewtypeOption::BorrowPath,
+        None,
+    )
+    .into()
+}
+#[proc_macro_derive(BorrowStr)]
+pub fn borrow_str(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    derive_newtype_option(
+        ProcMacroInputTokenStream::from(input),
+        NewtypeOption::BorrowStr,
         None,
     )
     .into()
@@ -888,6 +928,58 @@ fn generate_newtype_token_stream_with_attrs(
             }
         }
     });
+    let borrow_str_token_stream = attrs.contains(NewtypeOption::BorrowStr).get().then(|| {
+        quote::quote! {
+            #[allow(single_use_lifetimes)]
+            impl #impl_generics std::borrow::Borrow<str> for #identifier #ty_generics #where_clause {
+                fn borrow(&self) -> &str {
+                    std::borrow::Borrow::<str>::borrow(&self.0)
+                }
+            }
+        }
+    });
+    let borrow_inner_token_stream = if attrs.contains(NewtypeOption::BorrowInner).get() {
+        let syn::Type::Reference(inner_ref_ty) = inner_ty_ref else {
+            return Err(syn::Error::new_spanned(
+                inner_ty_ref,
+                str_constants::MACRO_DIAGNOSTICS_AS_REF_INNER_SHARED_REF_ERROR,
+            ));
+        };
+        let target_ty = &inner_ref_ty.elem;
+        Some(quote::quote! {
+            #[allow(single_use_lifetimes)]
+            impl #impl_generics std::borrow::Borrow<#target_ty> for #identifier #ty_generics #where_clause {
+                fn borrow(&self) -> &#target_ty {
+                    self.0
+                }
+            }
+        })
+    } else {
+        None
+    };
+    let borrow_owned_token_stream = attrs.contains(NewtypeOption::BorrowOwned).get().then(|| {
+        quote::quote! {
+            #[allow(single_use_lifetimes)]
+            impl #impl_generics std::borrow::Borrow<#inner_ty_ref> for #identifier #ty_generics #where_clause {
+                fn borrow(&self) -> &#inner_ty_ref {
+                    &self.0
+                }
+            }
+        }
+    });
+    let borrow_path_token_stream = attrs.contains(NewtypeOption::BorrowPath).get().then(|| {
+        quote::quote! {
+            #[allow(single_use_lifetimes)]
+            impl #impl_generics std::borrow::Borrow<std::path::Path> for #identifier #ty_generics #where_clause
+            where
+                #inner_ty_ref: std::borrow::Borrow<std::path::Path>,
+            {
+                fn borrow(&self) -> &std::path::Path {
+                    std::borrow::Borrow::<std::path::Path>::borrow(&self.0)
+                }
+            }
+        }
+    });
     let deref_inner_token_stream = attrs.contains(NewtypeOption::DerefInner).get().then(|| {
         quote::quote! {
             #[allow(single_use_lifetimes)]
@@ -1048,6 +1140,10 @@ fn generate_newtype_token_stream_with_attrs(
         #as_ref_owned_token_stream
         #as_ref_target_token_stream
         #as_slice_token_stream
+        #borrow_str_token_stream
+        #borrow_inner_token_stream
+        #borrow_owned_token_stream
+        #borrow_path_token_stream
         #deref_inner_token_stream
         #deref_target_token_stream
         #deref_mut_inner_token_stream

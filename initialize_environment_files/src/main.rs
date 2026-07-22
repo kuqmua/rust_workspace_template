@@ -35,7 +35,9 @@ impl From<server_runtime::BoundedText> for EnvContent {
 }
 #[derive(Clone, Copy, newtype::AsRefStr, newtype::FromInner)]
 struct EnvContentRef<'content_lt>(&'content_lt str);
-#[derive(Debug, Eq, Ord, PartialEq, PartialOrd, newtype::AsRefStr, newtype::TryFrom)]
+#[derive(
+    Debug, Eq, Ord, PartialEq, PartialOrd, newtype::AsRefStr, newtype::BorrowStr, newtype::TryFrom,
+)]
 #[try_from(error = InitStringError, validator = |value: &String| {
     if value.is_empty() || value.len() > 1_024usize {
         Err(InitStringError)
@@ -44,11 +46,6 @@ struct EnvContentRef<'content_lt>(&'content_lt str);
     }
 })]
 struct EnvKey(String);
-impl std::borrow::Borrow<str> for EnvKey {
-    fn borrow(&self) -> &str {
-        self.0.as_str()
-    }
-}
 #[derive(Debug, Eq, PartialEq, newtype::FromInner)]
 struct EnvKeys(Vec<EnvKey>);
 #[derive(Clone, Copy, newtype::FromInner, newtype::IntoInnerFrom)]

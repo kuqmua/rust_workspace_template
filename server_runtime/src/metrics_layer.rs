@@ -63,14 +63,8 @@ struct StdHttpMetricsPathEntries(
 #[derive(Clone, Debug, newtype::FromInner)]
 struct MetricsSharedString(metrics::SharedString);
 
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq, newtype::BorrowStr)]
 struct HttpMetricsPathText(String);
-
-impl std::borrow::Borrow<str> for HttpMetricsPathText {
-    fn borrow(&self) -> &str {
-        self.0.as_str()
-    }
-}
 
 impl TryFrom<String> for HttpMetricsPathText {
     type Error = HttpMetricsPathTextError;

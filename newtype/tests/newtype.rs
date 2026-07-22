@@ -49,6 +49,7 @@ mod tests {
         Eq,
         newtype::AsRefStr,
         newtype::BoundedString,
+        newtype::BorrowStr,
         newtype::DerefTarget,
         newtype::Display,
         newtype::Getter,
@@ -63,7 +64,15 @@ mod tests {
     #[derive(Debug, Clone, PartialEq, Eq, newtype::FromInner, newtype::ToErrStringDebug)]
     struct DebugValue(Vec<u8>);
     #[derive(
-        Debug, Clone, Copy, PartialEq, Eq, newtype::AsRef, newtype::FromInner, newtype::IntoInner,
+        Debug,
+        Clone,
+        Copy,
+        PartialEq,
+        Eq,
+        newtype::AsRef,
+        newtype::BorrowOwned,
+        newtype::FromInner,
+        newtype::IntoInner,
     )]
     struct InnerValue(u16);
     #[derive(
@@ -113,8 +122,10 @@ mod tests {
     struct OwnedValue(Vec<u8>);
     #[derive(Debug, Clone, PartialEq, Eq, newtype::AsRefTarget, newtype::FromInner)]
     struct OwnedSliceValue(Vec<u8>);
-    #[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
+    #[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::BorrowInner, newtype::FromInner)]
     struct SliceValueRef<'value_lt>(&'value_lt [u8]);
+    #[derive(newtype::BorrowPath, newtype::FromInner)]
+    struct StdPathBuf(std::path::PathBuf);
     #[derive(newtype::DebugTransparent, newtype::FromInner)]
     struct TransparentDebugValue(u16);
     #[derive(newtype::DebugRedacted, newtype::FromInner)]
@@ -347,6 +358,21 @@ mod tests {
         let inner = ReferentValue(str_constants::LEFT, str_constants::RIGHT);
         let v = ReferentValueRef::from(&inner);
         assert_eq!(AsRef::<ReferentValue<'_>>::as_ref(&v), &inner);
+    }
+    #[test]
+    fn borrow_impls_are_generated() {
+        let string =
+            StringValue::try_from(String::from(str_constants::ABC_ALT_3)).expect("f37f2ed0");
+        assert_eq!(std::borrow::Borrow::<str>::borrow(&string), "abc");
+        let owned = InnerValue::from(7u16);
+        assert_eq!(*std::borrow::Borrow::<u16>::borrow(&owned), 7u16);
+        let path = StdPathBuf::from(std::path::PathBuf::from(str_constants::ABC_ALT_3));
+        assert_eq!(
+            std::borrow::Borrow::<std::path::Path>::borrow(&path),
+            std::path::Path::new(str_constants::ABC_ALT_3)
+        );
+        let inner = SliceValueRef::from(str_constants::ABC_ALT_3.as_bytes());
+        assert_eq!(std::borrow::Borrow::<[u8]>::borrow(&inner), b"abc");
     }
     #[test]
     fn owned_inner_impls_are_generated() {

@@ -167,15 +167,11 @@ pub(super) struct StdStdSourceTextSetRef<'text_lt>(&'text_lt std::collections::B
     PartialOrd,
     Ord,
     newtype::AsRefTarget,
+    newtype::BorrowPath,
     newtype::DerefTarget,
     newtype::FromInner,
 )]
 pub(super) struct StdPathBuf(std::path::PathBuf);
-impl std::borrow::Borrow<std::path::Path> for StdPathBuf {
-    fn borrow(&self) -> &std::path::Path {
-        &self.0
-    }
-}
 #[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub(super) struct StdPathRef<'path_lt>(&'path_lt std::path::Path);
 #[derive(Debug, Clone, newtype::AsRefOwned, newtype::FromInner)]

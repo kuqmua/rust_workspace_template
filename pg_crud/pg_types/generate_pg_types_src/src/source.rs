@@ -5605,6 +5605,7 @@ pub fn emit_generate_pg_types(
                     self.0.as_str()
                 }
             }
+
             impl sqlx::Type<sqlx::Postgres> for StringAsNonNullTextSecret {
                 fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
                     <String as sqlx::Type<sqlx::Postgres>>::type_info()
