@@ -444,6 +444,16 @@ fn domain_boundaries_use_repository_declared_types() {
     );
 }
 #[test]
+fn environment_initializer_is_in_domain_boundary_policy_scope() {
+    assert!(
+        super::domain_type_policy_should_check_path(super::types::StdPathRef::from(
+            std::path::Path::new("initialize_environment_files/src/main.rs")
+        ))
+        .get(),
+        "c4a791e2"
+    );
+}
+#[test]
 fn domain_type_policy_checks_explicit_closure_parameter_types() {
     let ast = syn::parse_file(
         str_constants::NEWLINE_STRUCT_SOURCETEXT_BOX_STR_NEWLINE_FN_DEMO_NEWLINE_LET_PATH_CB,

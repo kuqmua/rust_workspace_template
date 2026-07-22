@@ -455,8 +455,16 @@ td details form button:hover {
   position: relative;
 }
 
-th:has(.table-column-filter[open]) {
-  z-index: 4;
+.table-column-filter[open] {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: clamp(16px, 3vw, 32px);
+  overflow-y: auto;
+  background: var(--background);
+  padding: clamp(16px, 4vw, 56px);
 }
 
 .table-column-filter > summary {
@@ -475,26 +483,60 @@ th:has(.table-column-filter[open]) {
   color: #fff;
 }
 
-.table-filter-operations {
-  position: absolute;
-  z-index: 5;
-  top: calc(100% + 6px);
-  right: 0;
-  display: grid;
-  gap: 8px;
-  width: min(360px, calc(100vw - 32px));
-  padding: 12px;
-  border: 1px solid var(--border);
+.table-column-filter[open] > summary {
+  position: sticky;
+  z-index: 1;
+  top: 0;
+  justify-self: end;
+  min-height: 42px;
+  border-color: var(--border-strong);
+  border-radius: var(--radius-sm);
   background: var(--surface);
-  box-shadow: var(--shadow-sm);
+  color: var(--text);
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.table-filter-close-label {
+  display: none;
+}
+
+.table-column-filter[open] .table-filter-open-label {
+  display: none;
+}
+
+.table-column-filter[open] .table-filter-close-label {
+  display: inline;
+}
+
+.table-filter-operations {
+  display: grid;
+  align-content: start;
+  gap: 16px;
+  width: min(960px, 100%);
+  margin: 0 auto;
+  padding: clamp(20px, 4vw, 48px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow);
   white-space: normal;
+}
+
+.table-filter-operations h2 {
+  margin: 0;
+  color: var(--text);
+  font-size: clamp(22px, 3vw, 34px);
 }
 
 .table-filter-form {
   display: grid;
-  grid-template-columns: minmax(120px, 1fr) minmax(150px, 2fr) auto;
+  grid-template-columns: minmax(140px, 1fr) minmax(220px, 2fr) auto;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
 }
 
 .table-filter-form span {
@@ -990,6 +1032,18 @@ pre {
     grid-template-columns: 1fr;
     gap: 14px;
     padding: 16px;
+  }
+
+  .table-column-filter[open] {
+    padding: 12px;
+  }
+
+  .table-filter-operations {
+    padding: 20px 16px;
+  }
+
+  .table-filter-form {
+    grid-template-columns: 1fr;
   }
 
   .table-actions,

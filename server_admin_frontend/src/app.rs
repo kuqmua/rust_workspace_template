@@ -546,14 +546,16 @@ fn AdminDataGrid(
                     let filter_count = column.filters().len().to_string();
                     let is_active_field = query.filter_field.as_ref().map(AsRef::<str>::as_ref) == Some(field.as_str());
                     let filter_label = format!("Filter {label}");
+                    let filter_title = format!("Filter by {label}");
                     leptos::view! {
                         <th data-field=field.clone() data-filter-count=filter_count>
                             <div class="table-column-heading">
                                 <span>{label}</span>
                                 {(supports_filters && !column.filters().is_empty()).then(|| leptos::view! {
                                     <details class="table-column-filter" open=is_active_field>
-                                        <summary class=("active", is_active_field) aria-label=filter_label>"Filter"</summary>
-                                        <div class="table-filter-operations">
+                                        <summary class=("active", is_active_field) aria-label=filter_label.clone()><span class="table-filter-open-label">"Filter"</span><span class="table-filter-close-label">"Close"</span></summary>
+                                        <div class="table-filter-operations" role="dialog" aria-modal="true" aria-label=filter_label>
+                                            <h2>{filter_title}</h2>
                                             {is_active_field.then(|| leptos::view! { <a class="table-filter-clear" href=clear_href.clone()>"Clear"</a> })}
                                             {column.filters().iter().map(|filter| {
                                                 let operation = filter.operation();

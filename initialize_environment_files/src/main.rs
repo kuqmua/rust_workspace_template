@@ -13,50 +13,220 @@ enum InitializationStatus {
 }
 #[derive(Debug, Eq, PartialEq)]
 struct InitializationEntry {
-    keys: Vec<String>,
-    member: String,
+    keys: EnvKeys,
+    member: WorkspaceMember,
     status: InitializationStatus,
 }
+#[derive(Debug, Eq, PartialEq)]
+struct EnvContent(String);
+impl TryFrom<String> for EnvContent {
+    type Error = InitStringError;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.len() > usize::try_from(isize::MAX).unwrap_or(usize::MAX) {
+            Err(InitStringError)
+        } else {
+            Ok(Self(value))
+        }
+    }
+}
+impl AsRef<str> for EnvContent {
+    fn as_ref(&self) -> &str {
+        self.0.as_str()
+    }
+}
+#[derive(Clone, Copy)]
+struct EnvContentRef<'content_lt>(&'content_lt str);
+impl<'content_lt> From<&'content_lt str> for EnvContentRef<'content_lt> {
+    fn from(value: &'content_lt str) -> Self {
+        Self(value)
+    }
+}
+impl AsRef<str> for EnvContentRef<'_> {
+    fn as_ref(&self) -> &str {
+        self.0
+    }
+}
+#[derive(Debug, Eq, Ord, PartialEq, PartialOrd)]
+struct EnvKey(String);
+impl TryFrom<String> for EnvKey {
+    type Error = InitStringError;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.is_empty() || value.len() > 1_024usize {
+            Err(InitStringError)
+        } else {
+            Ok(Self(value))
+        }
+    }
+}
+impl AsRef<str> for EnvKey {
+    fn as_ref(&self) -> &str {
+        self.0.as_str()
+    }
+}
+impl std::borrow::Borrow<str> for EnvKey {
+    fn borrow(&self) -> &str {
+        self.0.as_str()
+    }
+}
+#[derive(Debug, Eq, PartialEq)]
+struct EnvKeys(Vec<EnvKey>);
+impl From<Vec<EnvKey>> for EnvKeys {
+    fn from(value: Vec<EnvKey>) -> Self {
+        Self(value)
+    }
+}
+#[derive(Clone, Copy)]
+struct MemberSafe(bool);
+impl From<bool> for MemberSafe {
+    fn from(value: bool) -> Self {
+        Self(value)
+    }
+}
+impl From<MemberSafe> for bool {
+    fn from(value: MemberSafe) -> Self {
+        value.0
+    }
+}
+#[derive(Debug, Eq, Ord, PartialEq, PartialOrd)]
+struct WorkspaceMember(String);
+impl TryFrom<String> for WorkspaceMember {
+    type Error = InitStringError;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.is_empty() || value.len() > 4_096usize {
+            Err(InitStringError)
+        } else {
+            Ok(Self(value))
+        }
+    }
+}
+impl AsRef<str> for WorkspaceMember {
+    fn as_ref(&self) -> &str {
+        self.0.as_str()
+    }
+}
+impl std::fmt::Display for WorkspaceMember {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+#[derive(Clone, Copy)]
+struct WorkspaceMemberRef<'member_lt>(&'member_lt str);
+impl<'member_lt> From<&'member_lt str> for WorkspaceMemberRef<'member_lt> {
+    fn from(value: &'member_lt str) -> Self {
+        Self(value)
+    }
+}
+impl AsRef<str> for WorkspaceMemberRef<'_> {
+    fn as_ref(&self) -> &str {
+        self.0
+    }
+}
+struct WorkspaceMembers(Vec<WorkspaceMember>);
+impl From<Vec<WorkspaceMember>> for WorkspaceMembers {
+    fn from(value: Vec<WorkspaceMember>) -> Self {
+        Self(value)
+    }
+}
+#[derive(Clone, Copy)]
+struct StdWorkspaceRootRef<'root_lt>(&'root_lt std::path::Path);
+impl<'root_lt> From<&'root_lt std::path::Path> for StdWorkspaceRootRef<'root_lt> {
+    fn from(value: &'root_lt std::path::Path) -> Self {
+        Self(value)
+    }
+}
+impl AsRef<std::path::Path> for StdWorkspaceRootRef<'_> {
+    fn as_ref(&self) -> &std::path::Path {
+        self.0
+    }
+}
+struct InitEntries(Vec<InitializationEntry>);
+impl From<Vec<InitializationEntry>> for InitEntries {
+    fn from(value: Vec<InitializationEntry>) -> Self {
+        Self(value)
+    }
+}
+#[derive(Debug)]
+struct StdInitIoError(std::io::Error);
+impl From<std::io::Error> for StdInitIoError {
+    fn from(value: std::io::Error) -> Self {
+        Self(value)
+    }
+}
+impl std::fmt::Display for StdInitIoError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+impl std::error::Error for StdInitIoError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        Some(&self.0)
+    }
+}
+#[derive(Debug)]
+struct TomlInitError(toml::de::Error);
+impl From<toml::de::Error> for TomlInitError {
+    fn from(value: toml::de::Error) -> Self {
+        Self(value)
+    }
+}
+impl std::fmt::Display for TomlInitError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+impl std::error::Error for TomlInitError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        Some(&self.0)
+    }
+}
+#[derive(Debug, thiserror::Error)]
+#[error("environment initializer string value is invalid")]
+struct InitStringError;
 #[derive(Debug, thiserror::Error)]
 enum InitializeError {
     #[error("workspace member path is invalid: {member}")]
-    InvalidMember { member: String },
+    InvalidMember { member: WorkspaceMember },
     #[error("failed to parse workspace manifest")]
     ManifestParse {
         #[source]
-        source: toml::de::Error,
+        source: TomlInitError,
     },
     #[error("workspace manifest does not contain a members array")]
     MembersMissing,
     #[error("failed to read environment example")]
     ReadExample {
         #[source]
-        source: std::io::Error,
+        source: StdInitIoError,
     },
     #[error("failed to read workspace manifest")]
     ReadManifest {
         #[source]
-        source: std::io::Error,
+        source: StdInitIoError,
     },
+    #[error(transparent)]
+    String(#[from] InitStringError),
     #[error("failed to write environment file")]
     WriteEnvironment {
         #[source]
-        source: std::io::Error,
+        source: StdInitIoError,
     },
 }
 #[allow(
     clippy::single_call_fn,
     reason = "keeps lexical path validation independently testable and reviewable"
 )]
-fn member_is_safe(member: &str) -> bool {
-    !member.is_empty()
-        && std::path::Path::new(member).is_relative()
-        && std::path::Path::new(member)
-            .components()
-            .all(|component| matches!(component, std::path::Component::Normal(_)))
+fn member_is_safe(member: WorkspaceMemberRef<'_>) -> MemberSafe {
+    MemberSafe::from(
+        !member.as_ref().is_empty()
+            && std::path::Path::new(member.as_ref()).is_relative()
+            && std::path::Path::new(member.as_ref())
+                .components()
+                .all(|component| matches!(component, std::path::Component::Normal(_))),
+    )
 }
-fn environment_keys(content: &str) -> Vec<String> {
+fn environment_keys(content: EnvContentRef<'_>) -> Result<EnvKeys, InitStringError> {
     content
+        .as_ref()
         .lines()
         .filter_map(|source_line| {
             let trimmed_line = source_line.trim();
@@ -64,22 +234,28 @@ fn environment_keys(content: &str) -> Vec<String> {
                 .then(|| {
                     trimmed_line
                         .split_once('=')
-                        .map(|(key, _value)| key.trim().to_owned())
+                        .map(|(key, _value)| EnvKey::try_from(key.trim().to_owned()))
                 })
                 .flatten()
         })
-        .collect()
+        .collect::<Result<Vec<EnvKey>, InitStringError>>()
+        .map(EnvKeys::from)
 }
 #[allow(
     clippy::needless_for_each,
     clippy::single_call_fn,
     reason = "isolates the testable merge algorithm and repository policy forbids for loops"
 )]
-fn merge_missing_assignments(current: &str, example: &str) -> Option<String> {
-    let current_keys = environment_keys(current)
+fn merge_missing_assignments(
+    current: EnvContentRef<'_>,
+    example: EnvContentRef<'_>,
+) -> Result<Option<EnvContent>, InitStringError> {
+    let current_keys = environment_keys(current)?
+        .0
         .into_iter()
-        .collect::<std::collections::BTreeSet<String>>();
+        .collect::<std::collections::BTreeSet<EnvKey>>();
     let missing = example
+        .as_ref()
         .lines()
         .filter(|line| {
             line.split_once('=')
@@ -87,9 +263,9 @@ fn merge_missing_assignments(current: &str, example: &str) -> Option<String> {
         })
         .collect::<Vec<&str>>();
     if missing.is_empty() {
-        return None;
+        return Ok(None);
     }
-    let mut merged = current.to_owned();
+    let mut merged = current.as_ref().to_owned();
     if !merged.is_empty() && !merged.ends_with('\n') {
         merged.push('\n');
     }
@@ -97,17 +273,23 @@ fn merge_missing_assignments(current: &str, example: &str) -> Option<String> {
         merged.push_str(line);
         merged.push('\n');
     });
-    Some(merged)
+    EnvContent::try_from(merged).map(Some)
 }
 #[allow(
     clippy::single_call_fn,
     reason = "separates manifest validation from filesystem mutation"
 )]
-fn workspace_members(root: &std::path::Path) -> Result<Vec<String>, InitializeError> {
-    let manifest = std::fs::read_to_string(root.join(str_constants::CARGO_TOML))
-        .map_err(|source| InitializeError::ReadManifest { source })?;
-    let value = toml::from_str::<toml::Value>(&manifest)
-        .map_err(|source| InitializeError::ManifestParse { source })?;
+fn workspace_members(root: StdWorkspaceRootRef<'_>) -> Result<WorkspaceMembers, InitializeError> {
+    let manifest = std::fs::read_to_string(root.as_ref().join(str_constants::CARGO_TOML)).map_err(
+        |source| InitializeError::ReadManifest {
+            source: source.into(),
+        },
+    )?;
+    let value = toml::from_str::<toml::Value>(&manifest).map_err(|source| {
+        InitializeError::ManifestParse {
+            source: source.into(),
+        }
+    })?;
     let members = value
         .get(str_constants::WORKSPACE)
         .and_then(|workspace| workspace.get(str_constants::MEMBERS))
@@ -116,62 +298,82 @@ fn workspace_members(root: &std::path::Path) -> Result<Vec<String>, InitializeEr
     members
         .iter()
         .filter_map(toml::Value::as_str)
-        .map(|member| {
-            if member_is_safe(member) {
-                Ok(member.to_owned())
+        .map(|raw_member| {
+            let member = WorkspaceMember::try_from(raw_member.to_owned())?;
+            if bool::from(member_is_safe(WorkspaceMemberRef::from(member.as_ref()))) {
+                Ok(member)
             } else {
-                Err(InitializeError::InvalidMember {
-                    member: member.to_owned(),
-                })
+                Err(InitializeError::InvalidMember { member })
             }
         })
-        .collect()
+        .collect::<Result<Vec<WorkspaceMember>, InitializeError>>()
+        .map(WorkspaceMembers::from)
 }
 #[allow(
     clippy::single_call_fn,
     reason = "provides one testable dry-run and apply entry point"
 )]
 fn initialize(
-    root: &std::path::Path,
+    root: StdWorkspaceRootRef<'_>,
     mode: RunMode,
-) -> Result<Vec<InitializationEntry>, InitializeError> {
-    workspace_members(root)?.into_iter().try_fold(
-        Vec::new(),
-        |mut entries, member| -> Result<Vec<InitializationEntry>, InitializeError> {
-            let example_path = root.join(member.as_str()).join(str_constants::ENV_EXAMPLE);
+) -> Result<InitEntries, InitializeError> {
+    workspace_members(root)?
+        .0
+        .into_iter()
+        .try_fold(Vec::new(), |mut entries, member| {
+            let example_path = root
+                .as_ref()
+                .join(member.as_ref())
+                .join(str_constants::ENV_EXAMPLE);
             if !example_path.exists() {
                 return Ok(entries);
             }
-            let content = std::fs::read_to_string(example_path)
-                .map_err(|source| InitializeError::ReadExample { source })?;
-            let environment_path = root.join(member.as_str()).join(str_constants::ENV);
+            let content = std::fs::read_to_string(example_path).map_err(|source| {
+                InitializeError::ReadExample {
+                    source: source.into(),
+                }
+            })?;
+            let environment_path = root.as_ref().join(member.as_ref()).join(str_constants::ENV);
             let status = if environment_path.exists() {
-                let current = std::fs::read_to_string(environment_path.as_path())
-                    .map_err(|source| InitializeError::ReadExample { source })?;
-                match merge_missing_assignments(current.as_str(), content.as_str()) {
+                let current =
+                    std::fs::read_to_string(environment_path.as_path()).map_err(|source| {
+                        InitializeError::ReadExample {
+                            source: source.into(),
+                        }
+                    })?;
+                match merge_missing_assignments(
+                    EnvContentRef::from(current.as_str()),
+                    EnvContentRef::from(content.as_str()),
+                )? {
                     None => InitializationStatus::SkippedExisting,
                     Some(_merged) if mode == RunMode::DryRun => InitializationStatus::WouldUpdate,
                     Some(merged) => {
-                        std::fs::write(environment_path, merged.as_bytes())
-                            .map_err(|source| InitializeError::WriteEnvironment { source })?;
+                        std::fs::write(environment_path, merged.as_ref().as_bytes()).map_err(
+                            |source| InitializeError::WriteEnvironment {
+                                source: source.into(),
+                            },
+                        )?;
                         InitializationStatus::Updated
                     }
                 }
             } else if mode == RunMode::DryRun {
                 InitializationStatus::WouldCreate
             } else {
-                std::fs::write(environment_path, content.as_bytes())
-                    .map_err(|source| InitializeError::WriteEnvironment { source })?;
+                std::fs::write(environment_path, content.as_bytes()).map_err(|source| {
+                    InitializeError::WriteEnvironment {
+                        source: source.into(),
+                    }
+                })?;
                 InitializationStatus::Created
             };
             entries.push(InitializationEntry {
-                keys: environment_keys(content.as_str()),
+                keys: environment_keys(EnvContentRef::from(content.as_str()))?,
                 member,
                 status,
             });
             Ok(entries)
-        },
-    )
+        })
+        .map(InitEntries::from)
 }
 fn main() -> Result<(), InitializeError> {
     let mode = if std::env::args().any(|argument| argument == str_constants::DRY_RUN) {
@@ -182,14 +384,23 @@ fn main() -> Result<(), InitializeError> {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .ok_or(InitializeError::MembersMissing)?;
-    initialize(root, mode)?.into_iter().for_each(|entry| {
-        println!(
-            "member={} status={:?} keys={}",
-            entry.member,
-            entry.status,
-            entry.keys.join(",")
-        );
-    });
+    initialize(StdWorkspaceRootRef::from(root), mode)?
+        .0
+        .into_iter()
+        .for_each(|entry| {
+            println!(
+                "member={} status={:?} keys={}",
+                entry.member.as_ref(),
+                entry.status,
+                entry
+                    .keys
+                    .0
+                    .iter()
+                    .map(EnvKey::as_ref)
+                    .collect::<Vec<&str>>()
+                    .join(",")
+            );
+        });
     Ok(())
 }
 #[cfg(test)]
@@ -215,15 +426,23 @@ mod tests {
     #[test]
     fn dry_run_apply_and_repeat_are_safe_and_idempotent() {
         let root = fixture();
-        let dry = super::initialize(root.as_path(), super::RunMode::DryRun).expect("93ce4136");
+        let dry = super::initialize(
+            super::StdWorkspaceRootRef::from(root.as_path()),
+            super::RunMode::DryRun,
+        )
+        .expect("93ce4136");
         assert_eq!(
-            dry.first().expect("14b080ca").status,
+            dry.0.first().expect("14b080ca").status,
             super::InitializationStatus::WouldCreate
         );
         assert!(!root.join("service/.env").exists());
-        let applied = super::initialize(root.as_path(), super::RunMode::Apply).expect("d58ed6a5");
+        let applied = super::initialize(
+            super::StdWorkspaceRootRef::from(root.as_path()),
+            super::RunMode::Apply,
+        )
+        .expect("d58ed6a5");
         assert_eq!(
-            applied.first().expect("c366cc59").status,
+            applied.0.first().expect("c366cc59").status,
             super::InitializationStatus::Created
         );
         std::fs::write(
@@ -231,18 +450,26 @@ mod tests {
             str_constants::SECRET_CUSTOM_NEWLINE,
         )
         .expect("2d67b058");
-        let updated = super::initialize(root.as_path(), super::RunMode::Apply).expect("546af7b6");
+        let updated = super::initialize(
+            super::StdWorkspaceRootRef::from(root.as_path()),
+            super::RunMode::Apply,
+        )
+        .expect("546af7b6");
         assert_eq!(
-            updated.first().expect("195600ec").status,
+            updated.0.first().expect("195600ec").status,
             super::InitializationStatus::Updated
         );
         let updated_content =
             std::fs::read_to_string(root.join(str_constants::SERVICE_ENV)).expect("bd9f5208");
         assert!(updated_content.contains("SECRET=custom"));
         assert!(updated_content.contains("PUBLIC=value"));
-        let repeated = super::initialize(root.as_path(), super::RunMode::Apply).expect("a452843a");
+        let repeated = super::initialize(
+            super::StdWorkspaceRootRef::from(root.as_path()),
+            super::RunMode::Apply,
+        )
+        .expect("a452843a");
         assert_eq!(
-            repeated.first().expect("37a0752c").status,
+            repeated.0.first().expect("37a0752c").status,
             super::InitializationStatus::SkippedExisting
         );
         std::fs::remove_dir_all(root).expect("bd9180ca");
@@ -256,7 +483,10 @@ mod tests {
         )
         .expect("350646f2");
         assert!(matches!(
-            super::initialize(root.as_path(), super::RunMode::DryRun),
+            super::initialize(
+                super::StdWorkspaceRootRef::from(root.as_path()),
+                super::RunMode::DryRun
+            ),
             Err(super::InitializeError::InvalidMember { .. })
         ));
         std::fs::remove_dir_all(root).expect("d9154402");

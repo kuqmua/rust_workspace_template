@@ -83,7 +83,7 @@ impl TryFrom<String> for AdminSsrHtml {
 fn render_document(title: &AdminSsrText, body: impl IntoAny) -> AdminSsrHtml {
     let rendered_body = body.render_admin_ssr();
     AdminSsrHtml::try_from(format!(
-        "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>{title}</title><link rel=\"stylesheet\" href=\"/admin/assets/style.css?v=20260722-15\"></head><body>{}</body></html>",
+        "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>{title}</title><link rel=\"stylesheet\" href=\"/admin/assets/style.css?v=20260722-18\"></head><body>{}</body></html>",
         rendered_body.0
     ))
     .unwrap_or_else(AdminSsrHtml::from)
@@ -338,14 +338,16 @@ fn data_table_grid(
                 };
                 let is_active_field = active_field.as_deref() == Some(field.as_str());
                 let filter_label = format!("Filter {label}");
+                let filter_title = format!("Filter by {label}");
                 leptos::view! {
                     <th data-field=field.clone() data-filter-count=filter_count>
                         <div class="table-column-heading">
                             <span>{label}</span>
                             {(supports_filters && !column.filters().is_empty()).then(|| leptos::view! {
                                 <details class="table-column-filter" open=is_active_field>
-                                    <summary class=("active", is_active_field) aria-label=filter_label>"Filter"</summary>
-                                    <div class="table-filter-operations">
+                                    <summary class=("active", is_active_field) aria-label=filter_label.clone()><span class="table-filter-open-label">"Filter"</span><span class="table-filter-close-label">"Close"</span></summary>
+                                    <div class="table-filter-operations" role="dialog" aria-modal="true" aria-label=filter_label>
+                                        <h2>{filter_title}</h2>
                                         {is_active_field.then(|| leptos::view! { <a class="table-filter-clear" href=clear_href.clone()>"Clear"</a> })}
                                         {column.filters().iter().map(|filter| {
                                             let operation = filter.operation();
@@ -834,6 +836,17 @@ mod tests {
             filters_html
                 .as_ref()
                 .contains("aria-label=\"Filter Login name\"")
+        );
+        assert!(
+            filters_html
+                .as_ref()
+                .contains("role=\"dialog\" aria-modal=\"true\"")
+        );
+        assert!(filters_html.as_ref().contains(">Filter by Login name</h2>"));
+        assert!(
+            filters_html
+                .as_ref()
+                .contains("class=\"table-filter-close-label\">Close</span>")
         );
         assert!(
             filters_html
