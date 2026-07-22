@@ -185,34 +185,6 @@ fn render_admin_page_with_table_access(
     )
 }
 
-fn table_filters(
-    page: server_admin_contract::AdminPage,
-    query: &server_admin_contract::AdminTableQuery,
-    sort_fields: &[server_admin_contract::AdminTableSortField],
-) -> impl leptos::prelude::IntoView {
-    let action = String::from(page.path());
-    let search = query.search().as_ref().to_owned();
-    let selected_sort = query.sort().as_ref().to_owned();
-    let ascending = matches!(
-        query.direction(),
-        server_admin_contract::AdminSortDirection::Asc
-    );
-    let limit = u16::from(query.limit()).to_string();
-    leptos::view! {
-        <form class="table-tools" method="get" action=action>
-            <label><span>"Search"</span><input name="search" value=search /></label>
-            <label><span>"Sort"</span><select name="sort">
-                <option value="" selected=selected_sort.is_empty()>"Default"</option>
-                {sort_fields.iter().copied().map(|field| { let key = field.key().as_ref().to_owned(); let selected = key == selected_sort; leptos::view! { <option value=key selected=selected>{field.label().as_ref().to_owned()}</option> } }).collect::<Vec<_>>()}
-            </select></label>
-            <label><span>"Direction"</span><select name="direction"><option value="asc" selected=ascending>"Ascending"</option><option value="desc" selected=!ascending>"Descending"</option></select></label>
-            <input name="limit" type="hidden" value=limit />
-            <input name="offset" type="hidden" value="0" />
-            <button type="submit">"Apply"</button>
-        </form>
-    }
-}
-
 fn table_pagination(
     page: server_admin_contract::AdminPage,
     query: &server_admin_contract::AdminTableQuery,
@@ -225,9 +197,6 @@ fn table_pagination(
         || String::from(page.path()),
         |value| value.frontend_path().to_string(),
     );
-    let search = query.search().as_ref().to_owned();
-    let sort = query.sort().as_ref().to_owned();
-    let direction = query.direction().as_ref().to_owned();
     let limit = u16::from(query.limit());
     let offset = u32::from(query.offset());
     let previous_offset = offset.saturating_sub(u32::from(limit));
@@ -249,8 +218,7 @@ fn table_pagination(
     leptos::view! {
         <nav class="table-pagination" aria-label="Table pages">
             <form class="table-page-size" method="get" action=action.clone()>
-                <input type="hidden" name="search" value=search.clone() /><input type="hidden" name="sort" value=sort.clone() />
-                <input type="hidden" name="direction" value=direction.clone() />
+                {crate::shared::admin_table_query_hidden_inputs(query.search(), query.sort(), &crate::shared::AdminTableQueryDirection::Ssr(query.direction()), query.limit())}
                 {crate::shared::admin_filter_hidden_inputs(filter_field, filter_operation.as_ref(), filter_value, filter_end)}
                 {crate::shared::admin_audit_hidden_inputs(audit_action, audit_resource, audit_resource_id, audit_user_login)}
                 <input type="hidden" name="offset" value="0" />
@@ -258,16 +226,14 @@ fn table_pagination(
                 <button type="submit">"Apply"</button>
             </form>
             <form method="get" action=action.clone()>
-                <input type="hidden" name="search" value=search.clone() /><input type="hidden" name="sort" value=sort.clone() />
-                <input type="hidden" name="direction" value=direction.clone() /><input type="hidden" name="limit" value=limit.to_string() />
+                {crate::shared::admin_table_query_hidden_inputs(query.search(), query.sort(), &crate::shared::AdminTableQueryDirection::Ssr(query.direction()), query.limit())}
                 {crate::shared::admin_filter_hidden_inputs(filter_field, filter_operation.as_ref(), filter_value, filter_end)}
                 {crate::shared::admin_audit_hidden_inputs(audit_action, audit_resource, audit_resource_id, audit_user_login)}
                 <input type="hidden" name="offset" value=previous_offset.to_string() /><button type="submit" disabled=previous_disabled>"Previous"</button>
             </form>
             <span>{format!("{}-{} of {}", u64::from(offset).saturating_add(1u64).min(u64::from(total)), u64::from(offset).saturating_add(u64::from(limit)).min(u64::from(total)), total)}</span>
             <form method="get" action=action>
-                <input type="hidden" name="search" value=search /><input type="hidden" name="sort" value=sort />
-                <input type="hidden" name="direction" value=direction /><input type="hidden" name="limit" value=limit.to_string() />
+                {crate::shared::admin_table_query_hidden_inputs(query.search(), query.sort(), &crate::shared::AdminTableQueryDirection::Ssr(query.direction()), query.limit())}
                 {crate::shared::admin_filter_hidden_inputs(filter_field, filter_operation.as_ref(), filter_value, filter_end)}
                 {crate::shared::admin_audit_hidden_inputs(audit_action, audit_resource, audit_resource_id, audit_user_login)}
                 <input type="hidden" name="offset" value=next_offset.to_string() /><button type="submit" disabled=next_disabled>"Next"</button>
@@ -312,7 +278,7 @@ pub fn render_users(
         bool::from(admin.has_permission(server_admin_contract::AdminPermission::UserRolesUpdate));
     let content = leptos::view! {
         <section class="table-page">
-        {table_filters(server_admin_contract::AdminPage::Users, query, &server_admin_contract::AdminTableSortField::USER)}
+        {crate::shared::admin_table_filters(server_admin_contract::AdminFrontendPath::Users, query.search(), query.sort(), crate::shared::AdminTableFilterDirection::from(query.direction()), query.limit(), &server_admin_contract::AdminTableSortField::USER, crate::shared::AdminTableFilterPresentation::Ssr)}
         {can_create.then(|| leptos::view! { <details class="mutation-form"><summary>"Create user"</summary><form method="post" action=server_admin_contract::AdminHtmlAction::UserCreate.get()>
             <label><span>"Login"</span><input name="login" required /></label><label><span>"Display name"</span><input name="display_name" required /></label>
             <label><span>"Password"</span><input name="password" type="password" required /></label><button type="submit">"Create user"</button>
@@ -358,7 +324,7 @@ pub fn render_roles(
     );
     let content = leptos::view! {
         <section class="table-page">
-        {table_filters(server_admin_contract::AdminPage::Roles, query, &server_admin_contract::AdminTableSortField::ROLE)}
+        {crate::shared::admin_table_filters(server_admin_contract::AdminFrontendPath::Roles, query.search(), query.sort(), crate::shared::AdminTableFilterDirection::from(query.direction()), query.limit(), &server_admin_contract::AdminTableSortField::ROLE, crate::shared::AdminTableFilterPresentation::Ssr)}
         {can_create.then(|| leptos::view! { <details class="mutation-form"><summary>"Create role"</summary><form method="post" action=server_admin_contract::AdminHtmlAction::RoleCreate.get()><label><span>"Name"</span><input name="name" required /></label><button type="submit">"Create role"</button></form></details> })}
         <div class="table-scroll"><table><thead><tr><th>"id"</th><th>"name"</th><th>"system"</th><th>"permissions"</th><th>"actions"</th></tr></thead>
         <tbody>{page.items().iter().map(|item| { let expected_permission_ids = item.permission_ids().iter().map(ToString::to_string).collect::<Vec<_>>().join(","); leptos::view! {
@@ -389,7 +355,7 @@ pub fn render_permissions(
 ) -> AdminSsrHtml {
     let content = leptos::view! {
         <section class="table-page">
-        {table_filters(server_admin_contract::AdminPage::Permissions, query, &server_admin_contract::AdminTableSortField::PERMISSION)}
+        {crate::shared::admin_table_filters(server_admin_contract::AdminFrontendPath::Permissions, query.search(), query.sort(), crate::shared::AdminTableFilterDirection::from(query.direction()), query.limit(), &server_admin_contract::AdminTableSortField::PERMISSION, crate::shared::AdminTableFilterPresentation::Ssr)}
         <div class="table-scroll"><table><thead><tr><th>"id"</th><th>"permission"</th></tr></thead>
         <tbody>{page.items().iter().map(|item| leptos::view! {
             <tr><td data-label="id">{item.id().to_string()}</td><td data-label="permission">{item.name().to_string()}</td></tr>
@@ -586,10 +552,7 @@ pub fn render_audit(
 ) -> AdminSsrHtml {
     let content = leptos::view! {
         <section class="table-page">
-        <form class="audit-filters" method="get" action=server_admin_contract::AdminFrontendPath::Audit.get()>
-            <label><span>"Action"</span><input name="action" value=filters.action().map(ToString::to_string).unwrap_or_default() /></label><label><span>"Resource"</span><input name="resource" value=filters.resource().map(ToString::to_string).unwrap_or_default() /></label><label><span>"Resource ID"</span><input name="resource_id" value=filters.resource_id().map(ToString::to_string).unwrap_or_default() /></label>
-            <label><span>"User login"</span><input name="user_login" value=filters.user_login().map(ToString::to_string).unwrap_or_default() /></label><input name="limit" type="hidden" value=u16::from(query.limit()).to_string() /><input name="offset" type="hidden" value="0" /><button type="submit">"Apply"</button>
-        </form>
+        {crate::shared::admin_audit_filters(filters.action(), filters.resource(), filters.resource_id(), filters.user_login(), query.limit())}
         <div class="table-scroll"><table><thead><tr><th>"time"</th><th>"user"</th><th>"action"</th><th>"resource"</th><th>"result"</th></tr></thead><tbody>{page.items().iter().map(|item| leptos::view! {
             <tr><td data-label="time">{item.created_at().to_string()}</td><td data-label="user">{item.user_login().map(ToString::to_string).unwrap_or_default()}</td><td data-label="action">{item.action().to_string()}</td><td data-label="resource">{item.resource().to_string()}</td><td data-label="result">{item.succeeded().to_string()}</td></tr>
         }).collect::<Vec<_>>()}</tbody></table></div>
@@ -976,6 +939,27 @@ mod tests {
                 .as_ref()
                 .contains("name=\"action\" value=\"create\"")
         );
+    }
+
+    #[test]
+    fn shared_table_filters_preserve_ssr_limit_submission() {
+        let html = crate::shared::admin_table_filters(
+            server_admin_contract::AdminFrontendPath::Users,
+            server_admin_contract::AdminTableQuery::default().search(),
+            server_admin_contract::AdminTableQuery::default().sort(),
+            crate::shared::AdminTableFilterDirection::from(
+                server_admin_contract::AdminSortDirection::Asc,
+            ),
+            server_admin_contract::AdminPageLimit::default(),
+            &server_admin_contract::AdminTableSortField::USER,
+            crate::shared::AdminTableFilterPresentation::Ssr,
+        )
+        .render_admin_ssr();
+        assert!(
+            html.as_ref()
+                .contains("<input name=\"limit\" type=\"hidden\"")
+        );
+        assert!(!html.as_ref().contains("name=\"limit\" type=\"number\""));
     }
 
     #[test]

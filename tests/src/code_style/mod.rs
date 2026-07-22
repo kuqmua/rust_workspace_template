@@ -2,6 +2,7 @@ mod cargo_policy;
 mod ci_policy;
 mod domain_type_policy;
 mod lint_sync;
+mod reuse_policy;
 mod route_contract_policy;
 mod runtime_policy;
 mod snapshot;

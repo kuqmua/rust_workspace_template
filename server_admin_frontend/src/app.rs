@@ -565,22 +565,16 @@ fn AdminPagination(
     let next_offset = offset.saturating_add(u32::from(limit));
     let total_value = u64::from(total);
     let next_disabled = u64::from(next_offset) >= total_value;
-    let search = query.search.as_ref().to_owned();
-    let sort = query.sort.as_ref().to_owned();
-    let direction = query
-        .direction
-        .map(|value| value.to_string())
-        .unwrap_or_default();
     leptos::view! {
         <nav class="table-pagination" aria-label="Table pages">
             <form method="get" action=action.get()>
-                <input type="hidden" name="search" value=search.clone() /><input type="hidden" name="sort" value=sort.clone() /><input type="hidden" name="direction" value=direction.clone() /><input type="hidden" name="limit" value=limit.to_string() />
+                {crate::shared::admin_table_query_hidden_inputs(&query.search, &query.sort, &crate::shared::AdminTableQueryDirection::Csr(query.direction.clone()), query.limit)}
                 {crate::shared::admin_audit_hidden_inputs(query.action.as_ref(), query.resource.as_ref(), query.resource_id.as_ref(), query.user_login.as_ref())}
                 <input type="hidden" name="offset" value=previous_offset.to_string() /><button type="submit" disabled=offset == 0u32>"Previous"</button>
             </form>
             <span>{format!("{}-{} of {}", u64::from(offset).saturating_add(1u64).min(total_value), u64::from(offset).saturating_add(u64::from(limit)).min(total_value), total_value)}</span>
             <form method="get" action=action.get()>
-                <input type="hidden" name="search" value=search /><input type="hidden" name="sort" value=sort /><input type="hidden" name="direction" value=direction /><input type="hidden" name="limit" value=limit.to_string() />
+                {crate::shared::admin_table_query_hidden_inputs(&query.search, &query.sort, &crate::shared::AdminTableQueryDirection::Csr(query.direction), query.limit)}
                 {crate::shared::admin_audit_hidden_inputs(query.action.as_ref(), query.resource.as_ref(), query.resource_id.as_ref(), query.user_login.as_ref())}
                 <input type="hidden" name="offset" value=next_offset.to_string() /><button type="submit" disabled=next_disabled>"Next"</button>
             </form>
@@ -608,7 +602,7 @@ fn AdminUsersView(
         bool::from(admin.has_permission(server_admin_contract::AdminPermission::UserRolesUpdate));
     leptos::view! {
         <section class="table-page" data-renderer="csr">
-            {crate::shared::admin_table_filters(server_admin_contract::AdminFrontendPath::Users, &query.search, &query.sort, query.direction.as_ref(), query.limit, &server_admin_contract::AdminTableSortField::USER)}
+            {crate::shared::admin_table_filters(server_admin_contract::AdminFrontendPath::Users, &query.search, &query.sort, crate::shared::AdminTableFilterDirection::from_csr(query.direction.as_ref()), query.limit, &server_admin_contract::AdminTableSortField::USER, crate::shared::AdminTableFilterPresentation::Csr)}
             {can_create.then(|| leptos::view! { <form class="mutation-form" on:submit=move |event| {
                 event.prevent_default();
                 let request = (
@@ -726,7 +720,7 @@ fn AdminRolesView(
     );
     leptos::view! {
         <section class="table-page" data-renderer="csr">
-            {crate::shared::admin_table_filters(server_admin_contract::AdminFrontendPath::Roles, &query.search, &query.sort, query.direction.as_ref(), query.limit, &server_admin_contract::AdminTableSortField::ROLE)}
+            {crate::shared::admin_table_filters(server_admin_contract::AdminFrontendPath::Roles, &query.search, &query.sort, crate::shared::AdminTableFilterDirection::from_csr(query.direction.as_ref()), query.limit, &server_admin_contract::AdminTableSortField::ROLE, crate::shared::AdminTableFilterPresentation::Csr)}
             {can_create.then(|| leptos::view! { <form class="mutation-form" on:submit=move |event| {
                 event.prevent_default();
                 if let (Ok(name), Ok(path)) = (
@@ -801,7 +795,7 @@ fn AdminPermissionsView(
 ) -> impl leptos::prelude::IntoView {
     leptos::view! {
         <section class="table-page" data-renderer="csr">
-            {crate::shared::admin_table_filters(server_admin_contract::AdminFrontendPath::Permissions, &query.search, &query.sort, query.direction.as_ref(), query.limit, &server_admin_contract::AdminTableSortField::PERMISSION)}
+            {crate::shared::admin_table_filters(server_admin_contract::AdminFrontendPath::Permissions, &query.search, &query.sort, crate::shared::AdminTableFilterDirection::from_csr(query.direction.as_ref()), query.limit, &server_admin_contract::AdminTableSortField::PERMISSION, crate::shared::AdminTableFilterPresentation::Csr)}
             <div class="table-scroll"><table><thead><tr><th>"id"</th><th>"permission"</th></tr></thead>
             <tbody>{page.items().iter().map(|item| leptos::view! {
                 <tr><td data-label="id">{item.id().to_string()}</td><td data-label="permission">{item.name().to_string()}</td></tr>
@@ -980,36 +974,9 @@ fn AdminAuditView(
     page: server_admin_contract::AdminAuditPage,
     query: AdminCsrQuery,
 ) -> impl leptos::prelude::IntoView {
-    let action = query
-        .action
-        .as_ref()
-        .map(ToString::to_string)
-        .unwrap_or_default();
-    let resource = query
-        .resource
-        .as_ref()
-        .map(ToString::to_string)
-        .unwrap_or_default();
-    let resource_id = query
-        .resource_id
-        .as_ref()
-        .map(ToString::to_string)
-        .unwrap_or_default();
-    let user_login = query
-        .user_login
-        .as_ref()
-        .map(ToString::to_string)
-        .unwrap_or_default();
-    let limit = u16::from(query.limit).to_string();
     leptos::view! {
         <section class="table-page" data-renderer="csr">
-            <form class="audit-filters" method="get" action=server_admin_contract::AdminFrontendPath::Audit.get()>
-                <label><span>"Action"</span><input name="action" value=action /></label>
-                <label><span>"Resource"</span><input name="resource" value=resource /></label>
-                <label><span>"Resource ID"</span><input name="resource_id" value=resource_id /></label>
-                <label><span>"User login"</span><input name="user_login" value=user_login /></label>
-                <input name="limit" type="hidden" value=limit /><input name="offset" type="hidden" value="0" /><button type="submit">"Apply"</button>
-            </form>
+            {crate::shared::admin_audit_filters(query.action.as_ref(), query.resource.as_ref(), query.resource_id.as_ref(), query.user_login.as_ref(), query.limit)}
             <div class="table-scroll"><table><thead><tr><th>"time"</th><th>"user"</th><th>"action"</th><th>"resource"</th><th>"resource_id"</th><th>"success"</th><th>"details"</th></tr></thead>
             <tbody>{page.items().iter().map(|item| leptos::view! {
                 <tr>

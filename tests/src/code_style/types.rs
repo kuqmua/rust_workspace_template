@@ -156,6 +156,25 @@ impl<'text_lt> SourceTextListRef<'text_lt> {
     newtype::IntoIterator,
 )]
 pub(super) struct StdSourceTextSet(std::collections::BTreeSet<String>);
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, newtype::FromInner)]
+pub(super) struct FunctionBodyHash(u64);
+#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::DerefTarget, newtype::FromInner)]
+pub(super) struct RegexRegexRef<'regex_lt>(&'regex_lt regex::Regex);
+#[derive(Debug, Default, newtype::DerefInner, newtype::FromInner, newtype::IntoInnerFrom)]
+pub(super) struct StdFunctionBodyLocationsMap(
+    std::collections::BTreeMap<FunctionBodyHash, SourceTextList>,
+);
+#[derive(Debug, newtype::DerefMutTarget, newtype::DerefTarget, newtype::FromInner)]
+pub(super) struct StdFunctionBodyLocationsMapMutRef<'map_lt>(
+    &'map_lt mut std::collections::BTreeMap<FunctionBodyHash, SourceTextList>,
+);
+impl<'map_lt> From<&'map_lt mut StdFunctionBodyLocationsMap>
+    for StdFunctionBodyLocationsMapMutRef<'map_lt>
+{
+    fn from(value: &'map_lt mut StdFunctionBodyLocationsMap) -> Self {
+        Self(&mut value.0)
+    }
+}
 #[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub(super) struct StdStdSourceTextSetRef<'text_lt>(&'text_lt std::collections::BTreeSet<String>);
 #[derive(
