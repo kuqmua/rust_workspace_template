@@ -34,18 +34,18 @@ impl CreateNotificationRes {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr, serde::Serialize, utoipa::ToSchema)]
-#[serde(transparent)]
+#[derive(
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::AsRefStr,
+    serde::Deserialize,
+    serde::Serialize,
+    utoipa::ToSchema,
+)]
+#[serde(try_from = "String")]
 pub struct NotificationMessage(String);
-impl<'de> serde::Deserialize<'de> for NotificationMessage {
-    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
-    where
-        Deserializer: serde::Deserializer<'de>,
-    {
-        let value = <String as serde::Deserialize>::deserialize(deserializer)?;
-        Self::try_from(value).map_err(serde::de::Error::custom)
-    }
-}
 #[derive(
     Clone,
     Copy,

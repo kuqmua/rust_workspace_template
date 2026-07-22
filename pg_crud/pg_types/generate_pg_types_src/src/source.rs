@@ -566,9 +566,11 @@ impl TryFrom<PgTypeRecordRaw> for PgTypeRecord {
         }
     }
 }
-#[derive(Debug, newtype::DerefTarget, newtype::IntoInnerFrom)]
+#[derive(Debug, newtype::DerefTarget, newtype::IntoInnerFrom, serde::Deserialize)]
+#[serde(try_from = "Vec<PgTypeRecord>")]
 struct GeneratePgTypeRecords(Vec<PgTypeRecord>);
-#[derive(Debug, newtype::DerefTarget)]
+#[derive(Debug, newtype::DerefTarget, serde::Deserialize)]
+#[serde(try_from = "Vec<PgType>")]
 struct GeneratePgTypes(Vec<PgType>);
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 struct GeneratePgTypesLengthError;
@@ -598,24 +600,6 @@ impl TryFrom<Vec<PgType>> for GeneratePgTypes {
         } else {
             Ok(Self(value))
         }
-    }
-}
-impl<'de> serde::Deserialize<'de> for GeneratePgTypeRecords {
-    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
-    where
-        Deserializer: serde::Deserializer<'de>,
-    {
-        let value = <Vec<PgTypeRecord> as serde::Deserialize>::deserialize(deserializer)?;
-        Self::try_from(value).map_err(serde::de::Error::custom)
-    }
-}
-impl<'de> serde::Deserialize<'de> for GeneratePgTypes {
-    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
-    where
-        Deserializer: serde::Deserializer<'de>,
-    {
-        let value = <Vec<PgType> as serde::Deserialize>::deserialize(deserializer)?;
-        Self::try_from(value).map_err(serde::de::Error::custom)
     }
 }
 #[derive(Debug, serde::Deserialize, optml::Optml)]

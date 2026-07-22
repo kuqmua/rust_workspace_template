@@ -40,23 +40,40 @@ pub struct ApiProblemStatus(u16);
     Eq,
     newtype::AsRefStr,
     newtype::BoundedString,
+    serde::Deserialize,
     serde::Serialize,
     utoipa::ToSchema,
 )]
 #[bounded_string(max = 1024usize)]
-#[serde(transparent)]
+#[serde(try_from = "String")]
 pub struct ApiProblemDetail(String);
 #[derive(
-    Clone, Debug, Default, PartialEq, Eq, newtype::BoundedString, serde::Serialize, utoipa::ToSchema,
+    Clone,
+    Debug,
+    Default,
+    PartialEq,
+    Eq,
+    newtype::BoundedString,
+    serde::Deserialize,
+    serde::Serialize,
+    utoipa::ToSchema,
 )]
 #[bounded_string(max = 128usize)]
-#[serde(transparent)]
+#[serde(try_from = "String")]
 pub struct ApiProblemRequestId(String);
 #[derive(
-    Clone, Debug, Default, PartialEq, Eq, newtype::BoundedString, serde::Serialize, utoipa::ToSchema,
+    Clone,
+    Debug,
+    Default,
+    PartialEq,
+    Eq,
+    newtype::BoundedString,
+    serde::Deserialize,
+    serde::Serialize,
+    utoipa::ToSchema,
 )]
 #[bounded_string(max = 128usize)]
-#[serde(transparent)]
+#[serde(try_from = "String")]
 pub struct ApiProblemField(String);
 #[derive(Clone, Debug, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema)]
 pub struct ApiProblemViolation {
@@ -64,7 +81,15 @@ pub struct ApiProblemViolation {
     field: ApiProblemField,
 }
 #[derive(
-    Clone, Debug, Default, PartialEq, Eq, serde::Serialize, utoipa::ToSchema, newtype::TryFrom,
+    Clone,
+    Debug,
+    Default,
+    PartialEq,
+    Eq,
+    serde::Deserialize,
+    serde::Serialize,
+    utoipa::ToSchema,
+    newtype::TryFrom,
 )]
 #[try_from(validator = |value: &Vec<ApiProblemViolation>| {
     if value.len() > 128usize {
@@ -73,7 +98,7 @@ pub struct ApiProblemViolation {
         Ok(())
     }
 })]
-#[serde(transparent)]
+#[serde(try_from = "Vec<ApiProblemViolation>")]
 pub(crate) struct ApiProblemViolations(Vec<ApiProblemViolation>);
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) struct ApiProblemViolationsError;
@@ -83,42 +108,6 @@ impl std::fmt::Display for ApiProblemViolationsError {
     }
 }
 impl std::error::Error for ApiProblemViolationsError {}
-impl<'de> serde::Deserialize<'de> for ApiProblemDetail {
-    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
-    where
-        Deserializer: serde::Deserializer<'de>,
-    {
-        let value = <String as serde::Deserialize>::deserialize(deserializer)?;
-        Self::try_from(value).map_err(serde::de::Error::custom)
-    }
-}
-impl<'de> serde::Deserialize<'de> for ApiProblemRequestId {
-    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
-    where
-        Deserializer: serde::Deserializer<'de>,
-    {
-        let value = <String as serde::Deserialize>::deserialize(deserializer)?;
-        Self::try_from(value).map_err(serde::de::Error::custom)
-    }
-}
-impl<'de> serde::Deserialize<'de> for ApiProblemField {
-    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
-    where
-        Deserializer: serde::Deserializer<'de>,
-    {
-        let value = <String as serde::Deserialize>::deserialize(deserializer)?;
-        Self::try_from(value).map_err(serde::de::Error::custom)
-    }
-}
-impl<'de> serde::Deserialize<'de> for ApiProblemViolations {
-    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
-    where
-        Deserializer: serde::Deserializer<'de>,
-    {
-        let value = <Vec<ApiProblemViolation> as serde::Deserialize>::deserialize(deserializer)?;
-        Self::try_from(value).map_err(serde::de::Error::custom)
-    }
-}
 #[derive(Clone, Debug, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema)]
 pub struct ApiProblem {
     detail: ApiProblemDetail,

@@ -65,8 +65,14 @@ pub struct TokioAdminAcquireError(tokio::sync::AcquireError);
 pub struct Argon2AdminPasswordHashError(argon2::password_hash::Error);
 #[derive(newtype::DebugTransparent, newtype::FromInner)]
 pub struct SqlxAdminError(sqlx::Error);
-#[derive(newtype::DebugRedacted, newtype::FromInner)]
+#[derive(newtype::DebugRedacted, newtype::FromInner, serde::Deserialize)]
+#[serde(try_from = "String")]
 pub struct AdminPassword(SecrecyAdminString);
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+pub enum AdminPasswordTryFromStringError {
+    #[error("{}", str_constants::ADMINISTRATOR_PASSWORD_LENGTH_IS_INVALID)]
+    InvalidLength,
+}
 impl<'schema_lt> utoipa::ToSchema<'schema_lt> for AdminPassword {
     fn schema() -> (
         &'schema_lt str,
@@ -84,20 +90,15 @@ impl<'schema_lt> utoipa::ToSchema<'schema_lt> for AdminPassword {
         )
     }
 }
-impl<'de> serde::Deserialize<'de> for AdminPassword {
-    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
-    where
-        Deserializer: serde::Deserializer<'de>,
-    {
-        let value = <String as serde::Deserialize>::deserialize(deserializer)?;
+impl TryFrom<String> for AdminPassword {
+    type Error = AdminPasswordTryFromStringError;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
         let len = value.chars().count();
         if !(server_admin_contract::ADMIN_PASSWORD_MIN_CHARS
             ..=server_admin_contract::ADMIN_PASSWORD_MAX_CHARS)
             .contains(&len)
         {
-            return Err(serde::de::Error::custom(
-                str_constants::ADMINISTRATOR_PASSWORD_LENGTH_IS_INVALID,
-            ));
+            return Err(AdminPasswordTryFromStringError::InvalidLength);
         }
         Ok(Self::from(SecrecyAdminString::from(
             secrecy::SecretBox::new(Box::new(value)),

@@ -126,7 +126,8 @@ impl TryFrom<String> for AdminHtmlFormKey {
             .ok_or(AdminHtmlFormKeyError)
     }
 }
-#[derive(Debug)]
+#[derive(Debug, serde::Deserialize)]
+#[serde(try_from = "std::collections::BTreeMap<AdminHtmlFormKey, AdminHtmlFormText>")]
 struct StdAdminHtmlSelected(std::collections::BTreeMap<AdminHtmlFormKey, AdminHtmlFormText>);
 impl TryFrom<std::collections::BTreeMap<AdminHtmlFormKey, AdminHtmlFormText>>
     for StdAdminHtmlSelected
@@ -138,15 +139,6 @@ impl TryFrom<std::collections::BTreeMap<AdminHtmlFormKey, AdminHtmlFormText>>
         (value.len() <= ADMIN_HTML_FORM_SELECTED_MAX_ITEMS)
             .then_some(Self(value))
             .ok_or(StdAdminHtmlSelectedError)
-    }
-}
-impl<'de> serde::Deserialize<'de> for StdAdminHtmlSelected {
-    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
-    where
-        Deserializer: serde::Deserializer<'de>,
-    {
-        let value = <std::collections::BTreeMap<AdminHtmlFormKey, AdminHtmlFormText> as serde::Deserialize>::deserialize(deserializer)?;
-        Self::try_from(value).map_err(serde::de::Error::custom)
     }
 }
 

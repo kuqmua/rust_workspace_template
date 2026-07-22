@@ -672,9 +672,17 @@ pub struct AdminBool(bool);
 pub struct AdminPageOffset(u32);
 
 #[derive(
-    Clone, Copy, Debug, PartialEq, Eq, newtype::IntoInnerFrom, serde::Serialize, utoipa::ToSchema,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    newtype::IntoInnerFrom,
+    serde::Deserialize,
+    serde::Serialize,
+    utoipa::ToSchema,
 )]
-#[serde(transparent)]
+#[serde(try_from = "u16")]
 pub struct AdminPageLimit(u16);
 struct AdminDefaultPageLimit;
 impl From<AdminDefaultPageLimit> for AdminPageLimit {
@@ -695,15 +703,6 @@ impl TryFrom<u16> for AdminPageLimit {
         } else {
             Err(AdminPageLimitError)
         }
-    }
-}
-impl<'de> serde::Deserialize<'de> for AdminPageLimit {
-    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
-    where
-        Deserializer: serde::Deserializer<'de>,
-    {
-        let value = u16::deserialize(deserializer)?;
-        Self::try_from(value).map_err(serde::de::Error::custom)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -1079,279 +1078,289 @@ impl<'de, T: serde::Deserialize<'de>> serde::Deserialize<'de> for AdminBoundedVe
     }
 }
 #[derive(
-    Clone, Debug, serde::Serialize, utoipa::ToSchema, newtype::AsRefTarget, newtype::IntoInnerFrom,
+    Clone,
+    Debug,
+    serde::Deserialize,
+    serde::Serialize,
+    utoipa::ToSchema,
+    newtype::AsRefTarget,
+    newtype::IntoInnerFrom,
 )]
-#[serde(transparent)]
+#[serde(from = "AdminBoundedVec<AdminPermissionValue>")]
 pub struct AdminPermissionValues(#[schema(max_items = 10000)] Vec<AdminPermissionValue>);
+impl From<AdminBoundedVec<AdminPermissionValue>> for AdminPermissionValues {
+    fn from(value: AdminBoundedVec<AdminPermissionValue>) -> Self {
+        Self(value.0)
+    }
+}
 impl TryFrom<Vec<AdminPermissionValue>> for AdminPermissionValues {
     type Error = AdminCollectionError;
     fn try_from(value: Vec<AdminPermissionValue>) -> Result<Self, Self::Error> {
         AdminBoundedVec::try_from(value).map(|bounded| Self(bounded.0))
     }
 }
-impl<'de> serde::Deserialize<'de> for AdminPermissionValues {
-    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
-    where
-        Deserializer: serde::Deserializer<'de>,
-    {
-        let bounded = <AdminBoundedVec<AdminPermissionValue> as serde::Deserialize>::deserialize(
-            deserializer,
-        )?;
-        Self::try_from(bounded.0).map_err(serde::de::Error::custom)
+#[derive(
+    Clone,
+    Debug,
+    serde::Deserialize,
+    serde::Serialize,
+    utoipa::ToSchema,
+    newtype::AsRefTarget,
+    newtype::IntoInnerFrom,
+)]
+#[serde(from = "AdminBoundedVec<AdminRoleName>")]
+pub struct AdminRoleNames(#[schema(max_items = 10000)] Vec<AdminRoleName>);
+impl From<AdminBoundedVec<AdminRoleName>> for AdminRoleNames {
+    fn from(value: AdminBoundedVec<AdminRoleName>) -> Self {
+        Self(value.0)
     }
 }
-#[derive(
-    Clone, Debug, serde::Serialize, utoipa::ToSchema, newtype::AsRefTarget, newtype::IntoInnerFrom,
-)]
-#[serde(transparent)]
-pub struct AdminRoleNames(#[schema(max_items = 10000)] Vec<AdminRoleName>);
 impl TryFrom<Vec<AdminRoleName>> for AdminRoleNames {
     type Error = AdminCollectionError;
     fn try_from(value: Vec<AdminRoleName>) -> Result<Self, Self::Error> {
         AdminBoundedVec::try_from(value).map(|bounded| Self(bounded.0))
     }
 }
-impl<'de> serde::Deserialize<'de> for AdminRoleNames {
-    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
-    where
-        Deserializer: serde::Deserializer<'de>,
-    {
-        let bounded =
-            <AdminBoundedVec<AdminRoleName> as serde::Deserialize>::deserialize(deserializer)?;
-        Self::try_from(bounded.0).map_err(serde::de::Error::custom)
+#[derive(
+    Clone,
+    Debug,
+    serde::Deserialize,
+    serde::Serialize,
+    utoipa::ToSchema,
+    newtype::AsRefTarget,
+    newtype::IntoInnerFrom,
+)]
+#[serde(from = "AdminBoundedVec<AdminRoleId>")]
+pub struct AdminRoleIds(#[schema(max_items = 10000)] Vec<AdminRoleId>);
+impl From<AdminBoundedVec<AdminRoleId>> for AdminRoleIds {
+    fn from(value: AdminBoundedVec<AdminRoleId>) -> Self {
+        Self(value.0)
     }
 }
-#[derive(
-    Clone, Debug, serde::Serialize, utoipa::ToSchema, newtype::AsRefTarget, newtype::IntoInnerFrom,
-)]
-#[serde(transparent)]
-pub struct AdminRoleIds(#[schema(max_items = 10000)] Vec<AdminRoleId>);
 impl TryFrom<Vec<AdminRoleId>> for AdminRoleIds {
     type Error = AdminCollectionError;
     fn try_from(value: Vec<AdminRoleId>) -> Result<Self, Self::Error> {
         AdminBoundedVec::try_from(value).map(|bounded| Self(bounded.0))
     }
 }
-impl<'de> serde::Deserialize<'de> for AdminRoleIds {
-    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
-    where
-        Deserializer: serde::Deserializer<'de>,
-    {
-        let bounded =
-            <AdminBoundedVec<AdminRoleId> as serde::Deserialize>::deserialize(deserializer)?;
-        Self::try_from(bounded.0).map_err(serde::de::Error::custom)
+#[derive(
+    Clone,
+    Debug,
+    serde::Deserialize,
+    serde::Serialize,
+    utoipa::ToSchema,
+    newtype::AsRefTarget,
+    newtype::IntoInnerFrom,
+)]
+#[serde(from = "AdminBoundedVec<AdminPermissionId>")]
+pub struct AdminPermissionIds(#[schema(max_items = 10000)] Vec<AdminPermissionId>);
+impl From<AdminBoundedVec<AdminPermissionId>> for AdminPermissionIds {
+    fn from(value: AdminBoundedVec<AdminPermissionId>) -> Self {
+        Self(value.0)
     }
 }
-#[derive(
-    Clone, Debug, serde::Serialize, utoipa::ToSchema, newtype::AsRefTarget, newtype::IntoInnerFrom,
-)]
-#[serde(transparent)]
-pub struct AdminPermissionIds(#[schema(max_items = 10000)] Vec<AdminPermissionId>);
 impl TryFrom<Vec<AdminPermissionId>> for AdminPermissionIds {
     type Error = AdminCollectionError;
     fn try_from(value: Vec<AdminPermissionId>) -> Result<Self, Self::Error> {
         AdminBoundedVec::try_from(value).map(|bounded| Self(bounded.0))
     }
 }
-impl<'de> serde::Deserialize<'de> for AdminPermissionIds {
-    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
-    where
-        Deserializer: serde::Deserializer<'de>,
-    {
-        let bounded =
-            <AdminBoundedVec<AdminPermissionId> as serde::Deserialize>::deserialize(deserializer)?;
-        Self::try_from(bounded.0).map_err(serde::de::Error::custom)
+#[derive(
+    Clone,
+    Debug,
+    serde::Deserialize,
+    serde::Serialize,
+    utoipa::ToSchema,
+    newtype::AsRefTarget,
+    newtype::IntoInnerFrom,
+)]
+#[serde(from = "AdminBoundedVec<AdminUserSummary>")]
+pub struct AdminUserSummaries(#[schema(max_items = 10000)] Vec<AdminUserSummary>);
+impl From<AdminBoundedVec<AdminUserSummary>> for AdminUserSummaries {
+    fn from(value: AdminBoundedVec<AdminUserSummary>) -> Self {
+        Self(value.0)
     }
 }
-#[derive(
-    Clone, Debug, serde::Serialize, utoipa::ToSchema, newtype::AsRefTarget, newtype::IntoInnerFrom,
-)]
-#[serde(transparent)]
-pub struct AdminUserSummaries(#[schema(max_items = 10000)] Vec<AdminUserSummary>);
 impl TryFrom<Vec<AdminUserSummary>> for AdminUserSummaries {
     type Error = AdminCollectionError;
     fn try_from(value: Vec<AdminUserSummary>) -> Result<Self, Self::Error> {
         AdminBoundedVec::try_from(value).map(|bounded| Self(bounded.0))
     }
 }
-impl<'de> serde::Deserialize<'de> for AdminUserSummaries {
-    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
-    where
-        Deserializer: serde::Deserializer<'de>,
-    {
-        let bounded =
-            <AdminBoundedVec<AdminUserSummary> as serde::Deserialize>::deserialize(deserializer)?;
-        Self::try_from(bounded.0).map_err(serde::de::Error::custom)
+#[derive(
+    Clone,
+    Debug,
+    serde::Deserialize,
+    serde::Serialize,
+    utoipa::ToSchema,
+    newtype::AsRefTarget,
+    newtype::IntoInnerFrom,
+)]
+#[serde(from = "AdminBoundedVec<AdminRoleSummary>")]
+pub struct AdminRoleSummaries(#[schema(max_items = 10000)] Vec<AdminRoleSummary>);
+impl From<AdminBoundedVec<AdminRoleSummary>> for AdminRoleSummaries {
+    fn from(value: AdminBoundedVec<AdminRoleSummary>) -> Self {
+        Self(value.0)
     }
 }
-#[derive(
-    Clone, Debug, serde::Serialize, utoipa::ToSchema, newtype::AsRefTarget, newtype::IntoInnerFrom,
-)]
-#[serde(transparent)]
-pub struct AdminRoleSummaries(#[schema(max_items = 10000)] Vec<AdminRoleSummary>);
 impl TryFrom<Vec<AdminRoleSummary>> for AdminRoleSummaries {
     type Error = AdminCollectionError;
     fn try_from(value: Vec<AdminRoleSummary>) -> Result<Self, Self::Error> {
         AdminBoundedVec::try_from(value).map(|bounded| Self(bounded.0))
     }
 }
-impl<'de> serde::Deserialize<'de> for AdminRoleSummaries {
-    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
-    where
-        Deserializer: serde::Deserializer<'de>,
-    {
-        let bounded =
-            <AdminBoundedVec<AdminRoleSummary> as serde::Deserialize>::deserialize(deserializer)?;
-        Self::try_from(bounded.0).map_err(serde::de::Error::custom)
+#[derive(
+    Clone,
+    Debug,
+    serde::Deserialize,
+    serde::Serialize,
+    utoipa::ToSchema,
+    newtype::AsRefTarget,
+    newtype::IntoInnerFrom,
+)]
+#[serde(from = "AdminBoundedVec<AdminPermissionSummary>")]
+pub struct AdminPermissionSummaries(#[schema(max_items = 10000)] Vec<AdminPermissionSummary>);
+impl From<AdminBoundedVec<AdminPermissionSummary>> for AdminPermissionSummaries {
+    fn from(value: AdminBoundedVec<AdminPermissionSummary>) -> Self {
+        Self(value.0)
     }
 }
-#[derive(
-    Clone, Debug, serde::Serialize, utoipa::ToSchema, newtype::AsRefTarget, newtype::IntoInnerFrom,
-)]
-#[serde(transparent)]
-pub struct AdminPermissionSummaries(#[schema(max_items = 10000)] Vec<AdminPermissionSummary>);
 impl TryFrom<Vec<AdminPermissionSummary>> for AdminPermissionSummaries {
     type Error = AdminCollectionError;
     fn try_from(value: Vec<AdminPermissionSummary>) -> Result<Self, Self::Error> {
         AdminBoundedVec::try_from(value).map(|bounded| Self(bounded.0))
     }
 }
-impl<'de> serde::Deserialize<'de> for AdminPermissionSummaries {
-    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
-    where
-        Deserializer: serde::Deserializer<'de>,
-    {
-        let bounded = <AdminBoundedVec<AdminPermissionSummary> as serde::Deserialize>::deserialize(
-            deserializer,
-        )?;
-        Self::try_from(bounded.0).map_err(serde::de::Error::custom)
+#[derive(
+    Clone,
+    Debug,
+    serde::Deserialize,
+    serde::Serialize,
+    utoipa::ToSchema,
+    newtype::AsRefTarget,
+    newtype::IntoInnerFrom,
+)]
+#[serde(from = "AdminBoundedVec<AdminAuditView>")]
+pub struct AdminAuditViews(#[schema(max_items = 10000)] Vec<AdminAuditView>);
+impl From<AdminBoundedVec<AdminAuditView>> for AdminAuditViews {
+    fn from(value: AdminBoundedVec<AdminAuditView>) -> Self {
+        Self(value.0)
     }
 }
-#[derive(
-    Clone, Debug, serde::Serialize, utoipa::ToSchema, newtype::AsRefTarget, newtype::IntoInnerFrom,
-)]
-#[serde(transparent)]
-pub struct AdminAuditViews(#[schema(max_items = 10000)] Vec<AdminAuditView>);
 impl TryFrom<Vec<AdminAuditView>> for AdminAuditViews {
     type Error = AdminCollectionError;
     fn try_from(value: Vec<AdminAuditView>) -> Result<Self, Self::Error> {
         AdminBoundedVec::try_from(value).map(|bounded| Self(bounded.0))
     }
 }
-impl<'de> serde::Deserialize<'de> for AdminAuditViews {
-    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
-    where
-        Deserializer: serde::Deserializer<'de>,
-    {
-        let bounded =
-            <AdminBoundedVec<AdminAuditView> as serde::Deserialize>::deserialize(deserializer)?;
-        Self::try_from(bounded.0).map_err(serde::de::Error::custom)
+#[derive(
+    Clone,
+    Debug,
+    serde::Deserialize,
+    serde::Serialize,
+    utoipa::ToSchema,
+    newtype::AsRefTarget,
+    newtype::IntoInnerFrom,
+)]
+#[serde(from = "AdminBoundedVec<AdminText>")]
+pub struct AdminTexts(#[schema(max_items = 10000)] Vec<AdminText>);
+impl From<AdminBoundedVec<AdminText>> for AdminTexts {
+    fn from(value: AdminBoundedVec<AdminText>) -> Self {
+        Self(value.0)
     }
 }
-#[derive(
-    Clone, Debug, serde::Serialize, utoipa::ToSchema, newtype::AsRefTarget, newtype::IntoInnerFrom,
-)]
-#[serde(transparent)]
-pub struct AdminTexts(#[schema(max_items = 10000)] Vec<AdminText>);
 impl TryFrom<Vec<AdminText>> for AdminTexts {
     type Error = AdminCollectionError;
     fn try_from(value: Vec<AdminText>) -> Result<Self, Self::Error> {
         AdminBoundedVec::try_from(value).map(|bounded| Self(bounded.0))
     }
 }
-impl<'de> serde::Deserialize<'de> for AdminTexts {
-    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
-    where
-        Deserializer: serde::Deserializer<'de>,
-    {
-        let bounded =
-            <AdminBoundedVec<AdminText> as serde::Deserialize>::deserialize(deserializer)?;
-        Self::try_from(bounded.0).map_err(serde::de::Error::custom)
+#[derive(
+    Clone,
+    Debug,
+    serde::Deserialize,
+    serde::Serialize,
+    utoipa::ToSchema,
+    newtype::AsRefTarget,
+    newtype::IntoInnerFrom,
+)]
+#[serde(from = "AdminBoundedVec<AdminDataRow>")]
+pub struct AdminDataRows(#[schema(max_items = 10000)] Vec<AdminDataRow>);
+impl From<AdminBoundedVec<AdminDataRow>> for AdminDataRows {
+    fn from(value: AdminBoundedVec<AdminDataRow>) -> Self {
+        Self(value.0)
     }
 }
-#[derive(
-    Clone, Debug, serde::Serialize, utoipa::ToSchema, newtype::AsRefTarget, newtype::IntoInnerFrom,
-)]
-#[serde(transparent)]
-pub struct AdminDataRows(#[schema(max_items = 10000)] Vec<AdminDataRow>);
 impl TryFrom<Vec<AdminDataRow>> for AdminDataRows {
     type Error = AdminCollectionError;
     fn try_from(value: Vec<AdminDataRow>) -> Result<Self, Self::Error> {
         AdminBoundedVec::try_from(value).map(|bounded| Self(bounded.0))
     }
 }
-impl<'de> serde::Deserialize<'de> for AdminDataRows {
-    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
-    where
-        Deserializer: serde::Deserializer<'de>,
-    {
-        let bounded =
-            <AdminBoundedVec<AdminDataRow> as serde::Deserialize>::deserialize(deserializer)?;
-        Self::try_from(bounded.0).map_err(serde::de::Error::custom)
+#[derive(
+    Clone,
+    Debug,
+    serde::Deserialize,
+    serde::Serialize,
+    utoipa::ToSchema,
+    newtype::AsRefTarget,
+    newtype::IntoInnerFrom,
+)]
+#[serde(from = "AdminBoundedVec<AdminDataTable>")]
+pub struct AdminDataTables(#[schema(max_items = 10000)] Vec<AdminDataTable>);
+impl From<AdminBoundedVec<AdminDataTable>> for AdminDataTables {
+    fn from(value: AdminBoundedVec<AdminDataTable>) -> Self {
+        Self(value.0)
     }
 }
-#[derive(
-    Clone, Debug, serde::Serialize, utoipa::ToSchema, newtype::AsRefTarget, newtype::IntoInnerFrom,
-)]
-#[serde(transparent)]
-pub struct AdminDataTables(#[schema(max_items = 10000)] Vec<AdminDataTable>);
 impl TryFrom<Vec<AdminDataTable>> for AdminDataTables {
     type Error = AdminCollectionError;
     fn try_from(value: Vec<AdminDataTable>) -> Result<Self, Self::Error> {
         AdminBoundedVec::try_from(value).map(|bounded| Self(bounded.0))
     }
 }
-impl<'de> serde::Deserialize<'de> for AdminDataTables {
-    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
-    where
-        Deserializer: serde::Deserializer<'de>,
-    {
-        let bounded =
-            <AdminBoundedVec<AdminDataTable> as serde::Deserialize>::deserialize(deserializer)?;
-        Self::try_from(bounded.0).map_err(serde::de::Error::custom)
+#[derive(
+    Clone,
+    Debug,
+    serde::Deserialize,
+    serde::Serialize,
+    utoipa::ToSchema,
+    newtype::AsRefTarget,
+    newtype::IntoInnerFrom,
+)]
+#[serde(from = "AdminBoundedVec<AdminOptionalSetting>")]
+pub struct AdminOptionalSettings(#[schema(max_items = 10000)] Vec<AdminOptionalSetting>);
+impl From<AdminBoundedVec<AdminOptionalSetting>> for AdminOptionalSettings {
+    fn from(value: AdminBoundedVec<AdminOptionalSetting>) -> Self {
+        Self(value.0)
     }
 }
-#[derive(
-    Clone, Debug, serde::Serialize, utoipa::ToSchema, newtype::AsRefTarget, newtype::IntoInnerFrom,
-)]
-#[serde(transparent)]
-pub struct AdminOptionalSettings(#[schema(max_items = 10000)] Vec<AdminOptionalSetting>);
 impl TryFrom<Vec<AdminOptionalSetting>> for AdminOptionalSettings {
     type Error = AdminCollectionError;
     fn try_from(value: Vec<AdminOptionalSetting>) -> Result<Self, Self::Error> {
         AdminBoundedVec::try_from(value).map(|bounded| Self(bounded.0))
     }
 }
-impl<'de> serde::Deserialize<'de> for AdminOptionalSettings {
-    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
-    where
-        Deserializer: serde::Deserializer<'de>,
-    {
-        let bounded = <AdminBoundedVec<AdminOptionalSetting> as serde::Deserialize>::deserialize(
-            deserializer,
-        )?;
-        Self::try_from(bounded.0).map_err(serde::de::Error::custom)
+#[derive(
+    Clone,
+    Debug,
+    serde::Deserialize,
+    serde::Serialize,
+    utoipa::ToSchema,
+    newtype::AsRefTarget,
+    newtype::IntoInnerFrom,
+)]
+#[serde(from = "AdminBoundedVec<AdminSessionView>")]
+pub struct AdminSessionViews(#[schema(max_items = 10000)] Vec<AdminSessionView>);
+impl From<AdminBoundedVec<AdminSessionView>> for AdminSessionViews {
+    fn from(value: AdminBoundedVec<AdminSessionView>) -> Self {
+        Self(value.0)
     }
 }
-#[derive(
-    Clone, Debug, serde::Serialize, utoipa::ToSchema, newtype::AsRefTarget, newtype::IntoInnerFrom,
-)]
-#[serde(transparent)]
-pub struct AdminSessionViews(#[schema(max_items = 10000)] Vec<AdminSessionView>);
 impl TryFrom<Vec<AdminSessionView>> for AdminSessionViews {
     type Error = AdminCollectionError;
     fn try_from(value: Vec<AdminSessionView>) -> Result<Self, Self::Error> {
         AdminBoundedVec::try_from(value).map(|bounded| Self(bounded.0))
-    }
-}
-impl<'de> serde::Deserialize<'de> for AdminSessionViews {
-    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
-    where
-        Deserializer: serde::Deserializer<'de>,
-    {
-        let bounded =
-            <AdminBoundedVec<AdminSessionView> as serde::Deserialize>::deserialize(deserializer)?;
-        Self::try_from(bounded.0).map_err(serde::de::Error::custom)
     }
 }
 #[allow(
@@ -2077,9 +2086,14 @@ impl AdminDataFilter {
         ))
     }
 }
-#[derive(Clone, Debug, serde::Serialize, utoipa::ToSchema)]
-#[serde(transparent)]
+#[derive(Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema)]
+#[serde(from = "AdminBoundedVec<AdminDataFilter>")]
 pub struct AdminDataFilters(#[schema(max_items = 100)] Vec<AdminDataFilter>);
+impl From<AdminBoundedVec<AdminDataFilter>> for AdminDataFilters {
+    fn from(value: AdminBoundedVec<AdminDataFilter>) -> Self {
+        Self(value.0)
+    }
+}
 impl TryFrom<Vec<AdminDataFilter>> for AdminDataFilters {
     type Error = AdminCollectionError;
     fn try_from(value: Vec<AdminDataFilter>) -> Result<Self, Self::Error> {
@@ -2090,16 +2104,6 @@ impl AdminDataFilters {
     #[must_use]
     pub const fn as_slice(&self) -> &[AdminDataFilter] {
         self.0.as_slice()
-    }
-}
-impl<'de> serde::Deserialize<'de> for AdminDataFilters {
-    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
-    where
-        Deserializer: serde::Deserializer<'de>,
-    {
-        let bounded =
-            <AdminBoundedVec<AdminDataFilter> as serde::Deserialize>::deserialize(deserializer)?;
-        Self::try_from(bounded.0).map_err(serde::de::Error::custom)
     }
 }
 #[derive(
@@ -2128,9 +2132,14 @@ impl From<frontend_contract::InputKind> for AdminDataInputKind {
         }
     }
 }
-#[derive(Clone, Debug, serde::Serialize, utoipa::ToSchema)]
-#[serde(transparent)]
+#[derive(Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema)]
+#[serde(from = "AdminBoundedVec<AdminDataColumn>")]
 pub struct AdminDataColumns(#[schema(max_items = 10000)] Vec<AdminDataColumn>);
+impl From<AdminBoundedVec<AdminDataColumn>> for AdminDataColumns {
+    fn from(value: AdminBoundedVec<AdminDataColumn>) -> Self {
+        Self(value.0)
+    }
+}
 impl TryFrom<Vec<AdminDataColumn>> for AdminDataColumns {
     type Error = AdminCollectionError;
     fn try_from(value: Vec<AdminDataColumn>) -> Result<Self, Self::Error> {
@@ -2141,16 +2150,6 @@ impl AdminDataColumns {
     #[must_use]
     pub const fn as_slice(&self) -> &[AdminDataColumn] {
         self.0.as_slice()
-    }
-}
-impl<'de> serde::Deserialize<'de> for AdminDataColumns {
-    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
-    where
-        Deserializer: serde::Deserializer<'de>,
-    {
-        let bounded =
-            <AdminBoundedVec<AdminDataColumn> as serde::Deserialize>::deserialize(deserializer)?;
-        Self::try_from(bounded.0).map_err(serde::de::Error::custom)
     }
 }
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]

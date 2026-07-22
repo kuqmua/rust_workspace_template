@@ -7,6 +7,7 @@ const LOC_COMMIT_MAX_LEN: usize = 1_048_576;
     PartialEq,
     Eq,
     Clone,
+    serde::Deserialize,
     serde::Serialize,
     utoipa::ToSchema,
     schemars::JsonSchema,
@@ -16,16 +17,8 @@ const LOC_COMMIT_MAX_LEN: usize = 1_048_576;
     newtype::Display,
 )]
 #[bounded_string(max = LOC_FILE_MAX_LEN )]
+#[serde(try_from = "String")]
 pub struct LocationFile(String);
-impl<'de> serde::Deserialize<'de> for LocationFile {
-    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
-    where
-        Deserializer: serde::Deserializer<'de>,
-    {
-        let value = <String as serde::Deserialize>::deserialize(deserializer)?;
-        Self::try_from(value).map_err(serde::de::Error::custom)
-    }
-}
 #[derive(
     Debug,
     PartialEq,
@@ -63,6 +56,7 @@ pub struct LocationColumn(u32);
     PartialEq,
     Eq,
     Clone,
+    serde::Deserialize,
     serde::Serialize,
     utoipa::ToSchema,
     schemars::JsonSchema,
@@ -71,16 +65,8 @@ pub struct LocationColumn(u32);
     newtype::AsRefStr,
 )]
 #[bounded_string(max = LOC_COMMIT_MAX_LEN )]
+#[serde(try_from = "String")]
 pub struct LocationCommit(String);
-impl<'de> serde::Deserialize<'de> for LocationCommit {
-    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
-    where
-        Deserializer: serde::Deserializer<'de>,
-    {
-        let value = <String as serde::Deserialize>::deserialize(deserializer)?;
-        Self::try_from(value).map_err(serde::de::Error::custom)
-    }
-}
 #[derive(
     Debug,
     PartialEq,
