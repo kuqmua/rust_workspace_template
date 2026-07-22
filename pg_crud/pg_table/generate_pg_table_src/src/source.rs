@@ -473,15 +473,8 @@ pub fn emit_generate_pg_table(
     }
     #[derive(Debug, serde::Deserialize)]
     #[serde(from = "Vec<String>")]
-    #[derive(newtype::FromInner)]
+    #[derive(newtype::DerefInner, newtype::FromInner)]
     struct GeneratePgTableDbColumns(Vec<String>);
-
-    impl std::ops::Deref for GeneratePgTableDbColumns {
-        type Target = Vec<String>;
-        fn deref(&self) -> &Self::Target {
-            &self.0
-        }
-    }
     #[derive(Clone, Copy, Debug, Default, serde::Deserialize)]
     enum GeneratePgTableApiMode {
         AppendOnly,
@@ -498,26 +491,12 @@ pub fn emit_generate_pg_table(
 
     #[derive(Debug, Default, serde::Deserialize)]
     #[serde(from = "Vec<String>")]
-    #[derive(newtype::FromInner)]
+    #[derive(newtype::DerefInner, newtype::FromInner)]
     struct StdCreateExcludeFields(Vec<String>);
-
-    impl std::ops::Deref for StdCreateExcludeFields {
-        type Target = Vec<String>;
-        fn deref(&self) -> &Self::Target {
-            &self.0
-        }
-    }
     #[derive(Debug, Default, serde::Deserialize)]
     #[serde(from = "Vec<String>")]
-    #[derive(newtype::FromInner)]
+    #[derive(newtype::DerefInner, newtype::FromInner)]
     struct StdReadExcludeFields(Vec<String>);
-
-    impl std::ops::Deref for StdReadExcludeFields {
-        type Target = Vec<String>;
-        fn deref(&self) -> &Self::Target {
-            &self.0
-        }
-    }
     struct GeneratePgTableEmissionModel {
         config: GeneratePgTableConfig,
         error_variants_by_attr:

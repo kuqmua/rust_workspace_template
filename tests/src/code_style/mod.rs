@@ -630,6 +630,89 @@ impl<'ast> syn::visit::Visit<'ast> for ConstantAliasVisitor {
         syn::visit::visit_item_const(self, i);
     }
 }
+struct ForwardingDerefVisitor {
+    ers: types::DiagnosticMsgs,
+    inner_types: std::collections::BTreeMap<String, syn::Type>,
+}
+impl ForwardingDerefVisitor {
+    #[allow(
+        clippy::single_call_fn,
+        reason = "the expression-shape predicate keeps the visitor branch readable"
+    )]
+    fn is_inner_ref_expr(expr: &syn::Expr) -> bool {
+        let syn::Expr::Reference(reference) = expr else {
+            return false;
+        };
+        let syn::Expr::Field(field) = reference.expr.as_ref() else {
+            return false;
+        };
+        let syn::Expr::Path(receiver) = field.base.as_ref() else {
+            return false;
+        };
+        receiver
+            .path
+            .is_ident(str_constants::CODE_STYLE_SELF_VALUE_IDENTIFIER)
+            && matches!(&field.member, syn::Member::Unnamed(index) if index.index == 0u32)
+    }
+}
+impl<'ast> syn::visit::Visit<'ast> for ForwardingDerefVisitor {
+    fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
+        let is_deref_impl = i.trait_.as_ref().is_some_and(|(_, path, _)| {
+            path.segments.last().is_some_and(|segment| {
+                segment.ident == str_constants::CODE_STYLE_DEREF_TRAIT_IDENTIFIER
+            })
+        });
+        let wrapped_type_name = if let syn::Type::Path(path) = i.self_ty.as_ref() {
+            path.path
+                .segments
+                .last()
+                .map(|segment| segment.ident.to_string())
+        } else {
+            None
+        };
+        let target_type = i.items.iter().find_map(|item| {
+            let syn::ImplItem::Type(associated_type) = item else {
+                return None;
+            };
+            (associated_type.ident == str_constants::CODE_STYLE_TARGET_ASSOCIATED_TYPE_IDENTIFIER)
+                .then_some(&associated_type.ty)
+        });
+        let targets_inner = wrapped_type_name
+            .as_ref()
+            .and_then(|name| self.inner_types.get(name))
+            .zip(target_type)
+            .is_some_and(|(inner_type, deref_target_type)| inner_type == deref_target_type);
+        let forwards_inner = i.items.iter().any(|item| {
+            let syn::ImplItem::Fn(function) = item else {
+                return false;
+            };
+            function.sig.ident == str_constants::CODE_STYLE_DEREF_FN_IDENTIFIER
+                && function.block.stmts.len() == 1usize
+                && function.block.stmts.first().is_some_and(|statement| {
+                    let syn::Stmt::Expr(expression, None) = statement else {
+                        return false;
+                    };
+                    Self::is_inner_ref_expr(expression)
+                })
+        });
+        if is_deref_impl && targets_inner && forwards_inner {
+            self.ers
+                .push(str_constants::CODE_STYLE_MANUAL_FORWARDING_DEREF.to_owned());
+        }
+        syn::visit::visit_item_impl(self, i);
+    }
+    fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
+        if let syn::Fields::Unnamed(fields) = &i.fields
+            && fields.unnamed.len() == 1usize
+            && let Some(field) = fields.unnamed.first()
+        {
+            let _previous = self
+                .inner_types
+                .insert(i.ident.to_string(), field.ty.clone());
+        }
+        syn::visit::visit_item_struct(self, i);
+    }
+}
 struct ForwardingDisplayVisitor {
     ers: types::DiagnosticMsgs,
 }
