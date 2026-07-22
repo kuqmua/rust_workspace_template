@@ -175,29 +175,6 @@ impl std::ops::Deref for StdSharedServerAppState {
         self.0.as_ref()
     }
 }
-#[derive(Clone, Debug)]
-struct ClientIpRateLimitKeyExtractor {
-    trusted_proxy_ranges: server_runtime::TrustedProxyRanges,
-}
-impl tower_governor::key_extractor::KeyExtractor for ClientIpRateLimitKeyExtractor {
-    type Key = std::net::IpAddr;
-    fn extract<Body>(
-        &self,
-        req: &axum::http::Request<Body>,
-    ) -> Result<Self::Key, tower_governor::errors::GovernorError> {
-        let peer = req
-            .extensions()
-            .get::<axum::extract::ConnectInfo<std::net::SocketAddr>>()
-            .map(|value| value.0)
-            .ok_or(tower_governor::errors::GovernorError::UnableToExtractKey)?;
-        Ok(*server_runtime::resolve_client_ip(
-            server_runtime::HttpHeaderMapRef::from(req.headers()),
-            server_runtime::StdSocketAddr::from(peer),
-            &self.trusted_proxy_ranges,
-        )
-        .as_ref())
-    }
-}
 struct TokioServerRuntime(tokio::runtime::Runtime);
 impl From<tokio::runtime::Runtime> for TokioServerRuntime {
     fn from(value: tokio::runtime::Runtime) -> Self {
@@ -233,8 +210,6 @@ enum RunServerError {
     ContentSecurityPolicy(ServerRuntimeContentSecurityPolicyError),
     #[error("invalid CORS allow-origin configuration: {0}")]
     CorsAllowOrigin(server_runtime::HttpCorsAllowOriginHeaderValuesError),
-    #[error("failed to build governor config")]
-    GovernorConfig,
     #[error("failed to install metrics recorder: {0}")]
     MetricsRecorder(MetricsExporterPrometheusBuildError),
     #[error("failed to connect to postgres: {0}")]
@@ -249,10 +224,6 @@ enum RunServerError {
     RuntimeTimeout(ServerRuntimeRequestTimeoutError),
     #[error("server failed: {0}")]
     Serve(ServerRuntimeServeError),
-    #[error("invalid trusted proxy range: {0}")]
-    TrustedProxyRange(server_runtime::TrustedProxyRangeParseError),
-    #[error("invalid trusted proxy range list: {0}")]
-    TrustedProxyRanges(server_runtime::TrustedProxyRangesError),
 }
 #[allow(clippy::single_call_fn)] // keeps validated maintenance policy separate from startup orchestration
 fn mk_admin_cleanup_cfg() -> Result<server_admin::AdminCleanupCfg, RunServerError> {
@@ -515,18 +486,6 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
             })?,
         ));
     let swagger_enabled = *config.admin_swagger_enabled;
-    let trusted_proxy_range_values = config
-        .trusted_proxy_ranges_text
-        .0
-        .split(',')
-        .map(str::trim)
-        .map(str::to_owned)
-        .map(server_runtime::TrustedProxyRange::try_from)
-        .collect::<Result<Vec<server_runtime::TrustedProxyRange>, _>>()
-        .map_err(RunServerError::TrustedProxyRange)?;
-    let trusted_proxy_ranges =
-        server_runtime::TrustedProxyRanges::try_from(trusted_proxy_range_values)
-            .map_err(RunServerError::TrustedProxyRanges)?;
     let content_security_policy = server_runtime::HttpContentSecurityPolicy::try_from(
         config.content_security_policy.as_ref().to_owned(),
     )
@@ -599,24 +558,11 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
             server_app_state::ServerAppState<'static>,
         >::clone(app_state.get())),
     ));
-    let governor_conf = std::sync::Arc::new(
-        tower_governor::governor::GovernorConfigBuilder::default()
-            .key_extractor(ClientIpRateLimitKeyExtractor {
-                trusted_proxy_ranges,
-            })
-            .per_second(2)
-            .burst_size(10)
-            .finish()
-            .ok_or(RunServerError::GovernorConfig)?,
-    );
     let request_timeout =
         server_runtime::StdRequestTimeout::try_from(std::time::Duration::from_secs(30u64))
             .map_err(|error| {
                 RunServerError::RuntimeTimeout(ServerRuntimeRequestTimeoutError::from(error))
             })?;
-    let rate_limited_api_routes = api_routes
-        .0
-        .layer(tower_governor::GovernorLayer::new(governor_conf));
     let router = server_runtime::RequestIdLayer.apply(
         server_runtime::HttpMetricsLayer::default().apply(
             server_runtime::SecurityHeadersLayer::from(server_runtime::ForwardedProtoTrust::Ignore)
@@ -627,7 +573,7 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
                         axum::Router::new()
                             .nest(
                                 str_constants::API_V1,
-                                operational_routes.merge(rate_limited_api_routes).layer(
+                                operational_routes.merge(api_routes.0).layer(
                                     axum::extract::DefaultBodyLimit::max(maximum_http_body_bytes),
                                 ),
                             )
@@ -761,34 +707,6 @@ mod tests {
             Some(&axum::http::HeaderValue::from_static(
                 server_admin_contract::AdminFrontendPath::SignIn.get()
             ))
-        );
-    }
-    #[test]
-    fn rate_limit_key_uses_forwarded_client_only_for_trusted_proxy() {
-        let trusted_proxy_range = server_runtime::TrustedProxyRange::try_from(
-            str_constants::VALUE_127_0_0_1_32.to_owned(),
-        )
-        .expect("5c81d907");
-        let extractor = super::ClientIpRateLimitKeyExtractor {
-            trusted_proxy_ranges: server_runtime::TrustedProxyRanges::try_from(vec![
-                trusted_proxy_range,
-            ])
-            .expect("9f2a9017"),
-        };
-        let mut request = axum::http::Request::builder()
-            .header(
-                str_constants::RUNTIME_FORWARDED_FOR_HEADER_NAME,
-                str_constants::VALUE_203_0_113_9,
-            )
-            .body(())
-            .expect("b2604d91");
-        let _previous_peer = request.extensions_mut().insert(axum::extract::ConnectInfo(
-            std::net::SocketAddr::from((std::net::Ipv4Addr::LOCALHOST, 4_321u16)),
-        ));
-        assert_eq!(
-            tower_governor::key_extractor::KeyExtractor::extract(&extractor, &request)
-                .expect("a97e5b21"),
-            std::net::IpAddr::V4(std::net::Ipv4Addr::new(203u8, 0u8, 113u8, 9u8))
         );
     }
     #[test]
