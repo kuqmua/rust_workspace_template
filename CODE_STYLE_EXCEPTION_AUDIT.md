@@ -15,8 +15,8 @@ An exception is complete only when its bypass has been removed or narrowed, affe
 - [x] Removed `initialize_environment_files/src` from the domain type policy exclusion.
 - [x] Migrated the resulting 21 raw domain boundaries to repository wrapper types.
 - [x] Added a regression test proving that `initialize_environment_files/src/main.rs` is checked by the domain boundary policy.
-- [ ] Remove or narrow the remaining actionable exceptions in this plan.
-- [ ] Run the final completion audit and confirm that every unchecked item is either completed or explicitly moved to the retained-exception section with evidence.
+- [x] Remove or narrow the remaining actionable exceptions in this plan.
+- [x] Run the final completion audit and confirm that every unchecked item is either completed or explicitly moved to the retained-exception section with evidence.
 
 ## Phase 1: Eliminate Coverage Gaps
 
@@ -179,7 +179,7 @@ Acceptance checks:
 
 - [x] Review the `location_test` exclusion against the actual fixture contract.
 - [x] Retain the exclusion: three reported `Vec<T>` fields deliberately exercise vector-field proc-macro attributes, and wrapping them would stop testing the required input syntax.
-- [ ] Narrow the exclusion to the exact macro fixture item if the domain policy gains item-level path and item context.
+- **Retain / not done:** Narrowing to the exact macro fixture item is not implemented because the domain-policy analyzer currently has file-path context, not item-level path and item context. The exact `location_test` fixture-directory exclusion remains protected by `domain_fixture_directory_exclusions_are_owner_exact`.
 
 ### 4.2 Cover `workspace_test_runner`
 
@@ -331,34 +331,34 @@ The following exclusions match an intentional policy boundary. They are not remo
 
 Required narrowing checks:
 
-- [ ] Every retained exception uses exact paths, items, or target metadata instead of substring matching.
-- [ ] Every retained exception has a non-empty reason adjacent to its declaration.
-- [ ] A code-style test rejects stale exception entries that no longer match source code.
-- [ ] A code-style test rejects exception inventories with duplicate entries.
+- [x] Every retained exception uses exact paths, items, or target metadata instead of substring matching.
+- [x] Every retained exception has a non-empty reason adjacent to its declaration.
+- [x] A code-style test rejects stale exception entries that no longer match source code.
+- [x] A code-style test rejects exception inventories with duplicate entries.
 
 ## Verification Gates for Every Phase
 
 Run these checks before marking any phase complete:
 
-- [ ] `cargo fmt`
-- [ ] `cargo clippy --all-targets --all-features -- -D warnings`
-- [ ] `cargo test -p tests code_style`
-- [ ] Tests for every crate modified by the phase.
-- [ ] `git diff --check`
+- [x] `cargo fmt`
+- [x] `cargo clippy --all-targets --all-features -- -D warnings`
+- [x] `cargo test -p tests code_style`
+- [x] Tests for every crate modified by the phase.
+- [x] `git diff --check`
 
 Additional checks when relevant:
 
-- [ ] `cargo clippy -p server_admin_frontend --target wasm32-unknown-unknown -- -D warnings`
-- [ ] Generator snapshot or golden tests.
-- [ ] Repeated deterministic test execution.
-- [ ] API compatibility review for public wrapper renames or field privatization.
+- [x] `cargo clippy -p server_admin_frontend --target wasm32-unknown-unknown -- -D warnings`
+- [x] Generator snapshot or golden tests.
+- [x] Repeated deterministic test execution.
+- [x] API compatibility review for public wrapper renames or field privatization.
 
 ## Final Completion Audit
 
-- [ ] Every actionable exception in this document is removed or narrowed.
-- [ ] Every retained exception is exact, justified, and protected by a stale-entry test.
-- [ ] No filesystem or parse error can silently reduce code-style coverage.
-- [ ] No production crate is excluded through ambiguous path or package-name substring matching.
-- [ ] No whole production file is skipped when an item-level exception is sufficient.
-- [ ] All lint exception entries are unsupported by the active toolchain and contain reasons.
-- [ ] Full workspace formatting, clippy, code-style, crate, target, and generator checks pass.
+- [x] Every actionable exception in this document is removed or narrowed.
+- [x] Every retained exception is exact, justified, and protected by a stale-entry test.
+- [x] No filesystem or parse error can silently reduce code-style coverage.
+- [x] No production crate is excluded through ambiguous path or package-name substring matching.
+- [x] No whole production file is skipped when an item-level exception is sufficient.
+- [x] All lint exception entries are unsupported by the active toolchain and contain reasons.
+- [x] Full workspace formatting, clippy, code-style, crate, target, and generator checks pass.
