@@ -274,7 +274,7 @@ fn assert_admin_csr_shell(body: &AdminHtmlTestBody) {
     );
     assert!(
         body.0
-            .contains("src=\"/admin/assets/csr_bootstrap.js?v=20260722-17\""),
+            .contains("src=\"/admin/assets/csr_bootstrap.js?v=20260723-01\""),
         "CSR bootstrap script is missing"
     );
     assert!(!body.0.contains("<table"), "server rendered a data table");

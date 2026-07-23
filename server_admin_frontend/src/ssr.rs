@@ -421,7 +421,7 @@ pub fn render_admin_csr(
         &AdminSsrText::try_from(title).unwrap_or_else(AdminSsrText::from),
         leptos::view! {
             <div id=str_constants::ADMIN_CSR_ROOT_ID style=primary_color><p class="loading-state" role="status">"Loading\u{2026}"</p></div>
-            <script type="module" src="/admin/assets/csr_bootstrap.js?v=20260722-17"></script>
+            <script type="module" src="/admin/assets/csr_bootstrap.js?v=20260723-01"></script>
         },
     )
 }
@@ -800,6 +800,38 @@ mod tests {
     }
 
     #[test]
+    fn header_items_stay_stable_between_static_and_table_pages() {
+        let metrics = super::render_admin_page(
+            server_admin_contract::AdminPage::Metrics,
+            super::AdminSsrHtml::try_from(String::new()).expect("f2d57bb4"),
+        );
+        let cleanup_status = super::render_admin_page_with_table_access(
+            server_admin_contract::AdminPage::Tables,
+            super::AdminSsrHtml::try_from(String::new()).expect("7f46cfd6"),
+            None,
+            None,
+            Some(server_admin_contract::AdminDataTable::CleanupStatus),
+        );
+        let normalized_header = |html: &super::AdminSsrHtml| {
+            html.as_ref()
+                .split_once("<header")
+                .and_then(|(_prefix, header_tail)| header_tail.split_once("</header>"))
+                .map_or_else(String::new, |(header, _suffix)| {
+                    header
+                        .replace(" class=\"active\"", "")
+                        .replace(" class=\"\"", "")
+                })
+        };
+        let metrics_header = normalized_header(&metrics);
+        let cleanup_status_header = normalized_header(&cleanup_status);
+
+        assert!(!metrics_header.is_empty());
+        assert_eq!(metrics_header, cleanup_status_header);
+        assert!(metrics_header.contains(">swagger_ui</a>"));
+        assert!(!metrics_header.contains(">api</a>"));
+    }
+
+    #[test]
     fn csr_page_contains_only_bootstrap_shell() {
         let admin = server_admin_contract::AuthenticatedAdmin::new(
             server_admin_contract::AdminDisplayName::try_from(str_constants::ADMIN.to_owned())
@@ -837,7 +869,7 @@ mod tests {
         assert!(html.as_ref().contains("id=\"admin-csr-root\""));
         assert!(
             html.as_ref()
-                .contains("src=\"/admin/assets/csr_bootstrap.js?v=20260722-17\"")
+                .contains("src=\"/admin/assets/csr_bootstrap.js?v=20260723-01\"")
         );
         assert!(!html.as_ref().contains("<nav"));
         assert!(!html.as_ref().contains("<table"));
