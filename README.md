@@ -52,6 +52,26 @@ http://127.0.0.1:8081/health/live
 http://127.0.0.1:8081/health/ready
 ```
 
+## Distributed tracing
+
+Both backend services create OpenTelemetry server spans for incoming requests, preserve an
+incoming W3C `traceparent`/`tracestate` context, and export spans to an OTLP/HTTP collector. HTTP
+requests executed through `server_runtime::ReqwestClient::execute` create client spans and inject
+the current W3C trace context automatically.
+
+The exporter uses the standard OpenTelemetry environment variables. A typical production
+configuration is:
+
+```text
+OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://otel-collector:4318/v1/traces
+OTEL_EXPORTER_OTLP_TIMEOUT=10000
+OTEL_RESOURCE_ATTRIBUTES=service.namespace=backend,deployment.environment.name=production
+```
+
+`service.name` is always set by each binary. If no endpoint is configured, the OpenTelemetry SDK
+uses its standard OTLP/HTTP default. The tracer provider is flushed and shut down after HTTP and
+background-task graceful shutdown completes.
+
 Development credentials are not production defaults. Production deployments must supply secrets,
 exact allowed origins, secure cookies, immutable image tags and managed database URLs.
 

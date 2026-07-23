@@ -4,10 +4,6 @@ pub enum ServiceTracingFormat {
     Text,
 }
 
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
-#[error("{0}")]
-pub struct TracingSubscriberInitError(tracing_subscriber::util::TryInitError);
-
 #[derive(Debug, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct TokioServiceRuntime(tokio::runtime::Runtime);
 
@@ -21,35 +17,6 @@ pub fn build_service_runtime() -> Result<TokioServiceRuntime, StdServiceRuntimeI
         .build()
         .map(TokioServiceRuntime)
         .map_err(StdServiceRuntimeIoError)
-}
-
-pub fn initialize_service_tracing(
-    format: ServiceTracingFormat,
-) -> Result<(), TracingSubscriberInitError> {
-    let filter = tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_error| {
-        tracing_subscriber::EnvFilter::new(str_constants::CONFIG_TRACING_INFO)
-    });
-    match format {
-        ServiceTracingFormat::Json => tracing_subscriber::util::SubscriberInitExt::try_init(
-            tracing_subscriber::layer::SubscriberExt::with(
-                tracing_subscriber::layer::SubscriberExt::with(
-                    tracing_subscriber::registry(),
-                    filter,
-                ),
-                tracing_subscriber::fmt::layer().json(),
-            ),
-        ),
-        ServiceTracingFormat::Text => tracing_subscriber::util::SubscriberInitExt::try_init(
-            tracing_subscriber::layer::SubscriberExt::with(
-                tracing_subscriber::layer::SubscriberExt::with(
-                    tracing_subscriber::registry(),
-                    filter,
-                ),
-                tracing_subscriber::fmt::layer(),
-            ),
-        ),
-    }
-    .map_err(TracingSubscriberInitError)
 }
 
 pub async fn wait_for_service_shutdown_signal() -> Result<(), StdServiceRuntimeIoError> {

@@ -96,6 +96,10 @@ enum NotificationServiceError {
     Database(SqlxNotificationDatabaseError),
     #[error("notification metrics recorder initialization failed: {0}")]
     Metrics(MetricsExporterPrometheusNotificationBuildError),
+    #[error("notification observability initialization failed: {0}")]
+    ObservabilityInit(NotificationObservabilityInitError),
+    #[error("notification observability shutdown failed: {0}")]
+    ObservabilityShutdown(NotificationObservabilityShutdownError),
     #[error("notification database migration failed: {0}")]
     Migration(SqlxNotificationMigrationError),
     #[error("notification service failed: {0}")]
@@ -122,6 +126,14 @@ struct NotificationServeError(server_runtime::ServeWithGracefulShutdownError);
 
 #[derive(Debug, newtype::FromInner, newtype::Display)]
 struct MetricsExporterPrometheusNotificationBuildError(metrics_exporter_prometheus::BuildError);
+
+#[derive(Debug, newtype::FromInner, newtype::Display)]
+struct NotificationObservabilityInitError(server_runtime::ObservabilityInitError);
+
+#[derive(Debug, newtype::FromInner, newtype::Display)]
+struct NotificationObservabilityShutdownError(
+    server_runtime::OpentelemetrySdkObservabilityShutdownError,
+);
 
 async fn create_notification(
     state: AxumNotificationState,
@@ -320,11 +332,31 @@ async fn main() -> StdNotificationExitCode {
     } else {
         server_runtime::ServiceTracingFormat::Text
     };
-    if let Err(error) = server_runtime::initialize_service_tracing(tracing_format) {
-        eprintln!("notification service tracing initialization failed: {error}");
-        return StdNotificationExitCode::from(std::process::ExitCode::FAILURE);
+    let observability = match server_runtime::initialize_service_observability(
+        tracing_format,
+        server_runtime::ServiceName::from(env!("CARGO_PKG_NAME")),
+    ) {
+        Ok(value) => value,
+        Err(error) => {
+            eprintln!(
+                "{}",
+                NotificationServiceError::ObservabilityInit(
+                    NotificationObservabilityInitError::from(error)
+                )
+            );
+            return StdNotificationExitCode::from(std::process::ExitCode::FAILURE);
+        }
+    };
+    let run_result = run(config).await;
+    if let Err(error) = run_result.as_ref() {
+        tracing::error!(error = %error, "notification service terminated with an error");
     }
-    match run(config).await {
+    let shutdown_result = observability.shutdown().map_err(|error| {
+        NotificationServiceError::ObservabilityShutdown(
+            NotificationObservabilityShutdownError::from(error),
+        )
+    });
+    match run_result.and(shutdown_result) {
         Ok(()) => StdNotificationExitCode::from(std::process::ExitCode::SUCCESS),
         Err(error) => {
             eprintln!("{error}");

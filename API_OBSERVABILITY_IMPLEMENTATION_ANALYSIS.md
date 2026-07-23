@@ -23,25 +23,7 @@
 
 ## Что обязательно внедрить первым
 
-### 1. Полноценный OpenTelemetry вместо простой передачи заголовков
 
-Сейчас `traceparent` валидируется и может быть передан дальше, но это ещё не distributed tracing:
-
-- входящий контекст не становится родителем `tracing` span;
-- новые `trace_id` и `span_id` не создаются через OpenTelemetry;
-- spans не экспортируются по OTLP;
-- нет связи между server span и downstream client span.
-
-Нужно добавить в общий runtime:
-
-- извлечение W3C trace context на входе;
-- создание server span;
-- создание client span для исходящих запросов;
-- автоматическую инъекцию контекста;
-- OTLP exporter;
-- корректный graceful shutdown tracer provider.
-
-Это наиболее важный пробел.
 
 ### 2. Исправить HTTP span
 

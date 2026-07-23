@@ -21,6 +21,12 @@ struct ServerRuntimeRunIntervalError(server_runtime::StdRunIntervalTryFromDurati
 struct ServerRuntimeBackgroundTaskShutdownError(server_runtime::BackgroundTaskShutdownError);
 #[derive(Debug, thiserror::Error, newtype::FromInner)]
 #[error("{0}")]
+struct ServerObservabilityInitError(server_runtime::ObservabilityInitError);
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[error("{0}")]
+struct ServerObservabilityShutdownError(server_runtime::OpentelemetrySdkObservabilityShutdownError);
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[error("{0}")]
 struct ServerAdminCleanupCfgError(server_admin::AdminCleanupCfgError);
 
 #[derive(Debug, thiserror::Error, newtype::FromInner)]
@@ -76,6 +82,10 @@ enum RunServerError {
     CorsAllowOrigin(server_runtime::HttpCorsAllowOriginHeaderValuesError),
     #[error("failed to install metrics recorder: {0}")]
     MetricsRecorder(MetricsExporterPrometheusBuildError),
+    #[error("failed to initialize observability: {0}")]
+    ObservabilityInit(ServerObservabilityInitError),
+    #[error("failed to shut down observability: {0}")]
+    ObservabilityShutdown(ServerObservabilityShutdownError),
     #[error("failed to connect to postgres: {0}")]
     PgConnect(SqlxServerPgConnectError),
     #[error("postgres minimum connections must not exceed maximum connections")]
@@ -208,30 +218,6 @@ fn mk_app_state(
         pg_pool,
         project_git_info: git_info::project_git_info(),
     }))
-}
-#[allow(clippy::single_call_fn)] // tracing initialization is split out so runtime bootstrap stays focused
-fn initialization_tracing(format: config_lib::types::TracingFormat) {
-    let subscriber = tracing_subscriber::layer::SubscriberExt::with(
-        tracing_subscriber::registry(),
-        tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| {
-            tracing_subscriber::EnvFilter::new(str_constants::CONFIG_TRACING_INFO)
-        }),
-    );
-    if format == config_lib::types::TracingFormat::Json {
-        tracing_subscriber::util::SubscriberInitExt::init(
-            tracing_subscriber::layer::SubscriberExt::with(
-                subscriber,
-                tracing_subscriber::fmt::layer().json(),
-            ),
-        );
-    } else {
-        tracing_subscriber::util::SubscriberInitExt::init(
-            tracing_subscriber::layer::SubscriberExt::with(
-                subscriber,
-                tracing_subscriber::fmt::layer(),
-            ),
-        );
-    }
 }
 #[allow(clippy::single_call_fn)] // runtime builder is shared by main and can be reused by startup tests
 fn mk_runtime() -> Result<TokioServerRuntime, RunServerError> {
@@ -543,8 +529,32 @@ fn main() -> StdServerExitCode {
             return StdServerExitCode::from(std::process::ExitCode::FAILURE);
         }
     };
-    initialization_tracing(config.tracing_format);
-    match mk_runtime().and_then(|runtime| runtime.0.block_on(run_server(config))) {
+    let tracing_format = if config.tracing_format == config_lib::types::TracingFormat::Json {
+        server_runtime::ServiceTracingFormat::Json
+    } else {
+        server_runtime::ServiceTracingFormat::Text
+    };
+    let observability = match server_runtime::initialize_service_observability(
+        tracing_format,
+        server_runtime::ServiceName::from(env!("CARGO_PKG_NAME")),
+    ) {
+        Ok(value) => value,
+        Err(error) => {
+            eprintln!(
+                "{}",
+                RunServerError::ObservabilityInit(ServerObservabilityInitError::from(error))
+            );
+            return StdServerExitCode::from(std::process::ExitCode::FAILURE);
+        }
+    };
+    let run_result = mk_runtime().and_then(|runtime| runtime.0.block_on(run_server(config)));
+    if let Err(error) = run_result.as_ref() {
+        tracing::error!(error = %error, "server terminated with an error");
+    }
+    let shutdown_result = observability.shutdown().map_err(|error| {
+        RunServerError::ObservabilityShutdown(ServerObservabilityShutdownError::from(error))
+    });
+    match run_result.and(shutdown_result) {
         Ok(()) => StdServerExitCode::from(std::process::ExitCode::SUCCESS),
         Err(error) => {
             eprintln!("{error}");

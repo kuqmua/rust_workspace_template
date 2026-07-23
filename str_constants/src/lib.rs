@@ -4187,6 +4187,10 @@ pub const ADMIN_OPENAPI_SIGN_IN_OPERATION_ID_POINTER: &str =
 pub const MOCK_NOTIFICATION_PROVIDER_CLOSED: &str = "mock notification provider is closed";
 pub const TRACEPARENT: &str = "traceparent";
 pub const TRACESTATE: &str = "tracestate";
+pub const OTEL_ERROR_STATUS: &str = "ERROR";
+pub const OTEL_NAME: &str = "otel.name";
+pub const OTEL_STATUS_CODE: &str = "otel.status_code";
+pub const OTEL_HTTP_RESPONSE_STATUS_CODE: &str = "http.response.status_code";
 pub const X_REQUEST_ID: &str = "x-request-id";
 pub const TRACEPARENT_W3C_VERSION_00_FORMAT: &str =
     "traceparent must use the W3C version 00 format";

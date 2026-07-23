@@ -24,6 +24,7 @@ mod limits;
 mod metrics_layer;
 mod multipart;
 mod notification;
+mod observability;
 mod origin;
 mod outbound_url;
 mod path_policy;
@@ -141,6 +142,11 @@ pub use notification::{
     NotificationMessageError, NotificationRequest, NotificationSender, NotificationServiceState,
     notification_router,
 };
+pub use observability::{
+    ObservabilityGuard, ObservabilityInitError, OpentelemetryOtlpExporterBuildError,
+    OpentelemetrySdkObservabilityShutdownError, ServiceName, TracingSubscriberInitError,
+    initialize_service_observability,
+};
 pub use origin::{
     AllowedOrigin, AllowedOriginError, AllowedOrigins, AllowedOriginsError, HttpOriginHeadersRef,
     RequestOriginAllowed, request_origin_allowed,
@@ -189,8 +195,7 @@ pub use secure_cookie::{
     HttpSetCookieHeaderValue, StdCookieMaxAgeSeconds, build_secure_strict_cookie,
 };
 pub use service_bootstrap::{
-    ServiceTracingFormat, StdServiceRuntimeIoError, TokioServiceRuntime,
-    TracingSubscriberInitError, build_service_runtime, initialize_service_tracing,
+    ServiceTracingFormat, StdServiceRuntimeIoError, TokioServiceRuntime, build_service_runtime,
     wait_for_service_shutdown_signal,
 };
 pub use single_flight::{
@@ -208,8 +213,10 @@ pub use text_policy::{
     PasswordTextRef, validate_password_policy,
 };
 pub use trace_context::{
+    HttpHostRef, HttpMethodRef, HttpOpentelemetryHeaderMapMut, HttpOpentelemetryHeaderMapRef,
     HttpTraceParent, HttpTraceParentError, HttpTraceState, HttpTraceStateError,
-    OutboundTraceContext, ReqwestRequestBuilder,
+    OpentelemetryContext, OutboundTraceContext, ReqwestRequest, ReqwestRequestBuilder,
+    extract_remote_trace_context, inject_trace_context,
 };
 pub use wire_token::{VersionedUrlSafeWireTokenText, VersionedUrlSafeWireTokenTextError};
 #[derive(Debug, newtype::FromInner, newtype::IntoInnerFrom)]
@@ -264,7 +271,71 @@ impl ReqwestClientPolicy {
 #[derive(Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 pub struct ReqwestClientBuildError(reqwest::Error);
+#[derive(Debug, newtype::FromInner)]
+struct TracingHttpClientSpan(tracing::Span);
+
 impl ReqwestClient {
+    pub async fn execute(
+        &self,
+        mut request: ReqwestRequest,
+    ) -> Result<ReqwestResponse, ReqwestError> {
+        let span = Self::prepare_observed_http_request(&mut request);
+        tracing::Instrument::instrument(
+            async {
+                match self.0.execute(request.into_inner()).await {
+                    Ok(response) => {
+                        let _client_status_record = tracing::Span::current().record(
+                            str_constants::OTEL_HTTP_RESPONSE_STATUS_CODE,
+                            response.status().as_u16(),
+                        );
+                        if response.status().is_server_error() {
+                            let _client_error_record = tracing::Span::current().record(
+                                str_constants::OTEL_STATUS_CODE,
+                                str_constants::OTEL_ERROR_STATUS,
+                            );
+                        }
+                        Ok(ReqwestResponse::from(response))
+                    }
+                    Err(error) => {
+                        let _client_error_record = tracing::Span::current().record(
+                            str_constants::OTEL_STATUS_CODE,
+                            str_constants::OTEL_ERROR_STATUS,
+                        );
+                        Err(ReqwestError::from(error))
+                    }
+                }
+            },
+            span.0,
+        )
+        .await
+    }
+
+    #[allow(clippy::single_call_fn)] // shared preparation keeps production execution and deterministic propagation tests on the same implementation
+    fn prepare_observed_http_request(request: &mut ReqwestRequest) -> TracingHttpClientSpan {
+        let method = request.method().to_string();
+        let host = request
+            .host()
+            .map_or_else(String::new, |value| value.to_string());
+        let span = tracing::info_span!(
+            "http.client",
+            otel.kind = "client",
+            otel.name = tracing::field::Empty,
+            otel.status_code = tracing::field::Empty,
+            "http.request.method" = %method,
+            "server.address" = %host,
+            "http.response.status_code" = tracing::field::Empty,
+        );
+        let _client_name_record =
+            span.record(str_constants::OTEL_NAME, format_args!("{method} {host}"));
+        inject_trace_context(
+            &OpentelemetryContext::from(tracing_opentelemetry::OpenTelemetrySpanExt::context(
+                &span,
+            )),
+            request.headers_mut(),
+        );
+        TracingHttpClientSpan::from(span)
+    }
+
     pub fn try_new(policy: ReqwestClientPolicy) -> Result<Self, ReqwestClientBuildError> {
         reqwest::Client::builder()
             .connect_timeout(policy.connect_timeout.0)
@@ -334,6 +405,8 @@ where
     >;
     type Response = axum::response::Response;
     fn call(&mut self, mut req: axum::extract::Request) -> Self::Future {
+        let remote_context =
+            extract_remote_trace_context(HttpOpentelemetryHeaderMapRef::from(req.headers()));
         let request_id_and_header_value = [
             str_constants::HTTP_HEADER_NAMES_X_REQUEST_ID,
             str_constants::RUNTIME_CORRELATION_ID_HEADER_NAME,
@@ -356,7 +429,30 @@ where
             }
         });
         let started_at = tokio::time::Instant::now();
-        let span = tracing::info_span!("http.request", request_id = %request_id_and_header_value.0, method = %req.method(), path = %req.uri().path());
+        let route = req
+            .extensions()
+            .get::<axum::extract::MatchedPath>()
+            .map_or_else(|| req.uri().path(), axum::extract::MatchedPath::as_str);
+        let span = tracing::info_span!(
+            "http.request",
+            otel.kind = "server",
+            otel.name = tracing::field::Empty,
+            otel.status_code = tracing::field::Empty,
+            request_id = %request_id_and_header_value.0,
+            "http.request.method" = %req.method(),
+            "http.route" = %route,
+            "http.response.status_code" = tracing::field::Empty,
+        );
+        let _server_name_record = span.record(
+            str_constants::OTEL_NAME,
+            format_args!("{} {route}", req.method()),
+        );
+        if let Err(error) = tracing_opentelemetry::OpenTelemetrySpanExt::set_parent(
+            &span,
+            (*remote_context).clone(),
+        ) {
+            tracing::warn!(error = %error, "failed to attach remote OpenTelemetry parent");
+        }
         let _previous_extension_request_id =
             req.extensions_mut().insert(request_id_and_header_value.0);
         let response_future = tower::Service::call(&mut self.inner, req);
@@ -368,6 +464,16 @@ where
                     duration_ms = started_at.elapsed().as_millis(),
                     "http request completed"
                 );
+                let _server_status_record = tracing::Span::current().record(
+                    str_constants::OTEL_HTTP_RESPONSE_STATUS_CODE,
+                    response.status().as_u16(),
+                );
+                if response.status().is_server_error() {
+                    let _server_error_record = tracing::Span::current().record(
+                        str_constants::OTEL_STATUS_CODE,
+                        str_constants::OTEL_ERROR_STATUS,
+                    );
+                }
                 let _previous_header_request_id = response.headers_mut().insert(
                     http::HeaderName::from_static(str_constants::HTTP_HEADER_NAMES_X_REQUEST_ID),
                     request_id_and_header_value.1.clone(),
@@ -923,6 +1029,127 @@ mod tests {
                 .get(str_constants::RUNTIME_CORRELATION_ID_HEADER_NAME),
             Some(generated)
         );
+    }
+    #[tokio::test(flavor = "current_thread")]
+    async fn request_span_uses_remote_parent_and_server_kind() {
+        opentelemetry::global::set_text_map_propagator(
+            opentelemetry_sdk::propagation::TraceContextPropagator::new(),
+        );
+        let exporter = opentelemetry_sdk::trace::InMemorySpanExporterBuilder::new().build();
+        let tracer_provider = opentelemetry_sdk::trace::SdkTracerProvider::builder()
+            .with_simple_exporter(exporter.clone())
+            .build();
+        let tracer =
+            opentelemetry::trace::TracerProvider::tracer(&tracer_provider, "server-runtime-test");
+        let subscriber = tracing_subscriber::layer::SubscriberExt::with(
+            tracing_subscriber::registry(),
+            tracing_opentelemetry::layer().with_tracer(tracer),
+        );
+        let dispatch = tracing::Dispatch::new(subscriber);
+        let _dispatch_guard = tracing::dispatcher::set_default(&dispatch);
+        let router = axum::Router::from(super::RequestIdLayer.apply(super::AxumRouter::from(
+            axum::Router::new().route(
+                "/users/{user_id}",
+                axum::routing::get(async || http::StatusCode::OK),
+            ),
+        )));
+        let response = tower::ServiceExt::oneshot(
+            router,
+            axum::extract::Request::builder()
+                .uri("/users/42")
+                .header(
+                    str_constants::TRACEPARENT,
+                    str_constants::TRACEPARENT_TEST_VALUE,
+                )
+                .body(axum::body::Body::empty())
+                .expect("f56d84cc"),
+        )
+        .await
+        .expect("20b587e3");
+        assert_eq!(response.status(), http::StatusCode::OK);
+        drop(response);
+        let spans = exporter.get_finished_spans().expect("88d108d2");
+        let request_span = spans
+            .iter()
+            .find(|span| span.name == "GET /users/{user_id}")
+            .expect("fc30b586");
+        let expected_trace_id = str_constants::TRACEPARENT_TEST_VALUE
+            .get(3usize..35usize)
+            .expect("34620ae8");
+        let expected_parent_span_id = str_constants::TRACEPARENT_TEST_VALUE
+            .get(36usize..52usize)
+            .expect("9c70ecdf");
+        assert_eq!(
+            request_span.span_context.trace_id().to_string(),
+            expected_trace_id
+        );
+        assert_eq!(
+            request_span.parent_span_id.to_string(),
+            expected_parent_span_id
+        );
+        assert!(request_span.parent_span_is_remote);
+        assert_eq!(
+            request_span.span_kind,
+            opentelemetry::trace::SpanKind::Server
+        );
+        tracer_provider.shutdown().expect("d478940b");
+    }
+    #[test]
+    fn observed_client_preparation_injects_context_and_creates_child_span() {
+        opentelemetry::global::set_text_map_propagator(
+            opentelemetry_sdk::propagation::TraceContextPropagator::new(),
+        );
+        let exporter = opentelemetry_sdk::trace::InMemorySpanExporterBuilder::new().build();
+        let tracer_provider = opentelemetry_sdk::trace::SdkTracerProvider::builder()
+            .with_simple_exporter(exporter.clone())
+            .build();
+        let tracer = opentelemetry::trace::TracerProvider::tracer(
+            &tracer_provider,
+            "server-runtime-client-test",
+        );
+        let subscriber = tracing_subscriber::layer::SubscriberExt::with(
+            tracing_subscriber::registry(),
+            tracing_opentelemetry::layer().with_tracer(tracer),
+        );
+        let dispatch = tracing::Dispatch::new(subscriber);
+        let _dispatch_guard = tracing::dispatcher::set_default(&dispatch);
+        let url = reqwest::Url::parse(str_constants::HTTPS_EXAMPLE_COM).expect("a0c9b8a8");
+        let mut request =
+            super::ReqwestRequest::from(reqwest::Request::new(http::Method::GET, url));
+        let root_span = tracing::info_span!("caller");
+        let prepared_client_span = root_span
+            .in_scope(|| super::ReqwestClient::prepare_observed_http_request(&mut request));
+        let prepared_request = request.into_inner();
+        assert!(
+            prepared_request
+                .headers()
+                .get(str_constants::TRACEPARENT)
+                .is_some()
+        );
+        drop(prepared_client_span);
+        drop(root_span);
+        let spans = exporter.get_finished_spans().expect("a472015a");
+        let caller_span = spans
+            .iter()
+            .find(|span| span.name == "caller")
+            .expect("87c0e547");
+        let exported_client_span = spans
+            .iter()
+            .find(|span| span.name == "GET example.com")
+            .expect("5bfcb617");
+        assert_eq!(
+            exported_client_span.span_context.trace_id(),
+            caller_span.span_context.trace_id()
+        );
+        assert_eq!(
+            exported_client_span.parent_span_id,
+            caller_span.span_context.span_id()
+        );
+        assert_eq!(
+            exported_client_span.span_kind,
+            opentelemetry::trace::SpanKind::Client
+        );
+        tracer_provider.shutdown().expect("721ff26e");
     }
     #[tokio::test]
     async fn security_headers_only_trust_forwarded_proto_when_configured() {
