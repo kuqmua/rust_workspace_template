@@ -21,7 +21,8 @@ impl<Login, DisplayName, Role, SecretSource>
         }
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DebugDisplay, newtype::Error)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[error("{self:?}")]
 pub struct DevelopmentIdentitySpecsError;
 
 #[derive(Clone, Debug, Eq, PartialEq)]

@@ -30,10 +30,12 @@ impl StdRangeContains {
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 struct StdTrustedProxyPrefixBits(u8);
 
-#[derive(Debug, newtype::Display, newtype::Error, newtype::FromInner)]
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[error("{0}")]
 pub struct StdAddrParseError(std::net::AddrParseError);
 
-#[derive(Debug, newtype::Display, newtype::Error, newtype::FromInner)]
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[error("{0}")]
 pub struct StdParseIntError(std::num::ParseIntError);
 
 #[derive(Debug, thiserror::Error)]

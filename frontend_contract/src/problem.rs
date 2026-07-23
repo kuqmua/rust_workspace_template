@@ -123,7 +123,8 @@ impl ApiProblemViolations {
         }
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DebugDisplay, newtype::Error)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[error("{self:?}")]
 pub(crate) struct ApiProblemViolationsError;
 #[derive(Clone, Debug, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema)]
 pub struct ApiProblem {

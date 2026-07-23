@@ -4,13 +4,15 @@ pub enum ServiceTracingFormat {
     Text,
 }
 
-#[derive(Debug, newtype::Display, newtype::Error, newtype::FromInner)]
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[error("{0}")]
 pub struct TracingSubscriberInitError(tracing_subscriber::util::TryInitError);
 
 #[derive(Debug, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct TokioServiceRuntime(tokio::runtime::Runtime);
 
-#[derive(Debug, newtype::Display, newtype::Error, newtype::FromInner)]
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[error("{0}")]
 pub struct StdServiceRuntimeIoError(std::io::Error);
 
 pub fn build_service_runtime() -> Result<TokioServiceRuntime, StdServiceRuntimeIoError> {

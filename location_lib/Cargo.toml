@@ -19,5 +19,6 @@ git_info = { workspace = true }
 config_lib = { workspace = true }
 optml = { workspace = true }
 newtype = { workspace = true }
+thiserror = { workspace = true }
 [lints]
 workspace = true

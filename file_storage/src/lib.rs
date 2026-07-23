@@ -2,7 +2,8 @@ const MAXIMUM_FILE_BYTES: usize = 104_857_600usize;
 const MAXIMUM_OPERATION_ID_BYTES: usize = 128usize;
 const MAXIMUM_PATH_BYTES: usize = 4_096usize;
 
-#[derive(Debug, newtype::ErrorTransparent, newtype::FromInner, newtype::Display)]
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[error(transparent)]
 pub struct StdFileStorageIoError(std::io::Error);
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
 struct StdStoragePathRef<'value_lt>(&'value_lt std::path::Path);

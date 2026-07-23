@@ -2,7 +2,8 @@
 struct TracingLevelName(&'static str);
 #[derive(Debug)]
 struct StdEnvVarResult(Result<String, std::env::VarError>);
-#[derive(Debug, PartialEq, Eq, newtype::Display, newtype::ErrorTransparent, newtype::FromInner)]
+#[derive(Debug, PartialEq, Eq, thiserror::Error, newtype::FromInner)]
+#[error(transparent)]
 struct StdEnvVarError(std::env::VarError);
 impl TryFrom<Result<String, std::env::VarError>> for StdEnvVarResult {
     type Error = super::ConfigLibStringWrapperTryFromStringError;

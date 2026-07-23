@@ -38,20 +38,13 @@ pub(super) fn text_search_token_stream(
         }
         #[derive(Debug, Clone, PartialEq, Eq, newtype::AsRefStr, newtype::IntoInnerFrom)]
         pub struct TextSearchPattern(String);
-        #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+        #[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
         pub enum TextSearchValueError {
+            #[error("text search value must not be empty")]
             Empty,
+            #[error("text search value exceeds {maximum_bytes} bytes: got {actual_bytes}")]
             TooLong { actual_bytes: usize, maximum_bytes: usize },
         }
-        impl std::fmt::Display for TextSearchValueError {
-            fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                match self {
-                    Self::Empty => formatter.write_str("text search value must not be empty"),
-                    Self::TooLong { actual_bytes, maximum_bytes } => write!(formatter, "text search value exceeds {maximum_bytes} bytes: got {actual_bytes}"),
-                }
-            }
-        }
-        impl std::error::Error for TextSearchValueError {}
         pub fn build_text_search_pattern(value: &str, mode: TextSearchMode) -> Result<TextSearchPattern, TextSearchValueError> {
             if value.is_empty() {
                 return Err(TextSearchValueError::Empty);

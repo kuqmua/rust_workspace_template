@@ -2,19 +2,25 @@ const ADMIN_CLEANUP_INTERVAL_SECONDS: u64 = 300u64;
 #[derive(Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 struct StdServerIoError(std::io::Error);
-#[derive(Debug, newtype::ErrorTransparent, newtype::FromInner, newtype::Display)]
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[error(transparent)]
 struct ServerRuntimeServeError(server_runtime::ServeWithGracefulShutdownError);
-#[derive(Debug, newtype::ErrorTransparent, newtype::FromInner, newtype::Display)]
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[error(transparent)]
 struct MetricsExporterPrometheusBuildError(metrics_exporter_prometheus::BuildError);
 #[derive(Clone, Debug, newtype::FromInner)]
 struct MetricsExporterPrometheusHandle(metrics_exporter_prometheus::PrometheusHandle);
-#[derive(Debug, newtype::Display, newtype::Error, newtype::FromInner)]
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[error("{0}")]
 struct ServerRuntimeRequestTimeoutError(server_runtime::StdRequestTimeoutTryFromDurationError);
-#[derive(Debug, newtype::Display, newtype::Error, newtype::FromInner)]
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[error("{0}")]
 struct ServerRuntimeRunIntervalError(server_runtime::StdRunIntervalTryFromDurationError);
-#[derive(Debug, newtype::Display, newtype::Error, newtype::FromInner)]
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[error("{0}")]
 struct ServerRuntimeBackgroundTaskShutdownError(server_runtime::BackgroundTaskShutdownError);
-#[derive(Debug, newtype::Display, newtype::Error, newtype::FromInner)]
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[error("{0}")]
 struct ServerAdminCleanupCfgError(server_admin::AdminCleanupCfgError);
 
 #[derive(Debug, thiserror::Error, newtype::FromInner)]
@@ -29,7 +35,8 @@ struct ServerAdminMigrateError(server_admin::AdminMigrateError);
 #[derive(Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 struct ServerAdminAuthSvcStateBuildError(server_admin::auth::AdminAuthSvcStateBuildError);
-#[derive(Debug, newtype::Display, newtype::Error, newtype::FromInner)]
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[error("{0}")]
 struct ServerRuntimeContentSecurityPolicyError(server_runtime::HttpContentSecurityPolicyError);
 #[derive(newtype::FromInner)]
 struct AxumApiRoutes(axum::Router);

@@ -69,8 +69,8 @@ impl HealthComponents {
         }
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DisplayConst, newtype::Error)]
-#[display_const(str_constants::HEALTH_COMPONENTS_LENGTH_EXCEEDS_LIMIT)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[error("{}", str_constants::HEALTH_COMPONENTS_LENGTH_EXCEEDS_LIMIT)]
 pub struct HealthComponentsError;
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, utoipa::ToSchema)]
 pub struct HealthReport {

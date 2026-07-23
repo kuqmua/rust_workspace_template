@@ -63,7 +63,8 @@ pub struct TokioAdminJoinError(tokio::task::JoinError);
 pub struct TokioAdminAcquireError(tokio::sync::AcquireError);
 #[derive(Clone, Copy, newtype::DebugTransparent, newtype::FromInner)]
 pub struct Argon2AdminPasswordHashError(argon2::password_hash::Error);
-#[derive(newtype::DebugTransparent, newtype::FromInner)]
+#[derive(newtype::DebugTransparent, thiserror::Error, newtype::FromInner)]
+#[error(transparent)]
 pub struct SqlxAdminError(sqlx::Error);
 impl From<AdminIdTryFromI64Error> for SqlxAdminError {
     fn from(value: AdminIdTryFromI64Error) -> Self {
@@ -465,54 +466,23 @@ impl AdminCleanupRows {
         Self::from(self.0.saturating_add(rhs.0))
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::Error)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum AdminCleanupCfgError {
+    #[error("{}", str_constants::CLEANUP_BATCH_SIZE_MUST_BE_BETWEEN_1_AND_10000)]
     BatchSizeOutOfRange,
+    #[error("{}", str_constants::CLEANUP_RETENTION_MUST_BE_GREATER_THAN_ZERO)]
     RetentionMustBePositive,
 }
-impl std::fmt::Display for AdminCleanupCfgError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::BatchSizeOutOfRange => {
-                f.write_str(str_constants::CLEANUP_BATCH_SIZE_MUST_BE_BETWEEN_1_AND_10000)
-            }
-            Self::RetentionMustBePositive => {
-                f.write_str(str_constants::CLEANUP_RETENTION_MUST_BE_GREATER_THAN_ZERO)
-            }
-        }
-    }
-}
-#[derive(Debug)]
+#[derive(Debug, thiserror::Error)]
 pub enum AdminCleanupError {
+    #[error("{}", str_constants::ADMIN_CLEANUP_ROWS_EXCEED_I64)]
     Count,
-    Idempotency(pg_table::SqlxPgTableIdempotencyError),
-    IdempotencyConfig(pg_table::PgTableIdempotencyCleanupValueTryFromI64Error),
-    Pg(SqlxAdminError),
-}
-impl std::fmt::Display for AdminCleanupError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Count => f.write_str(str_constants::ADMIN_CLEANUP_ROWS_EXCEED_I64),
-            Self::Idempotency(error) => write!(f, "idempotency cleanup failed: {error}"),
-            Self::IdempotencyConfig(error) => std::fmt::Display::fmt(error, f),
-            Self::Pg(error) => write!(f, "administrator table cleanup failed: {error:?}"),
-        }
-    }
-}
-impl std::error::Error for AdminCleanupError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        match self {
-            Self::Count => None,
-            Self::Idempotency(error) => Some(error),
-            Self::IdempotencyConfig(error) => Some(error),
-            Self::Pg(error) => Some(&error.0),
-        }
-    }
-}
-impl From<pg_table::PgTableIdempotencyCleanupValueTryFromI64Error> for AdminCleanupError {
-    fn from(value: pg_table::PgTableIdempotencyCleanupValueTryFromI64Error) -> Self {
-        Self::IdempotencyConfig(value)
-    }
+    #[error("idempotency cleanup failed: {0}")]
+    Idempotency(#[source] pg_table::SqlxPgTableIdempotencyError),
+    #[error(transparent)]
+    IdempotencyConfig(#[from] pg_table::PgTableIdempotencyCleanupValueTryFromI64Error),
+    #[error("administrator table cleanup failed: {0:?}")]
+    Pg(#[source] SqlxAdminError),
 }
 impl TryFrom<i64> for AdminCleanupBatchSize {
     type Error = AdminCleanupCfgError;

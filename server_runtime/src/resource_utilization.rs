@@ -22,7 +22,8 @@ impl From<ResourceUtilizationKnownPercent> for ResourceUtilizationPercent {
         }
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DebugDisplay, newtype::Error)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[error("{self:?}")]
 pub struct ResourceUtilizationPercentTryFromU8Error;
 
 impl ResourceUtilizationPercent {

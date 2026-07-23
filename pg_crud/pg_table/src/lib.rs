@@ -27,8 +27,8 @@ pub struct PgTableIdempotencyRoute(String);
 pub struct PgTableIdempotencyRequestHash([u8; 32usize]);
 #[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget)]
 pub struct PgTableIdempotencyBody(Vec<u8>);
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DisplayConst, newtype::Error)]
-#[display_const(str_constants::IDEMPOTENCY_RESPONSE_EXCEEDS_THE_STORAGE_LIMIT)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[error("{}", str_constants::IDEMPOTENCY_RESPONSE_EXCEEDS_THE_STORAGE_LIMIT)]
 pub struct PgTableIdempotencyBodyError;
 impl TryFrom<Vec<u8>> for PgTableIdempotencyBody {
     type Error = PgTableIdempotencyBodyError;
@@ -74,7 +74,8 @@ impl PgTableIdempotencyResponseStatus {
         }
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DebugDisplay, newtype::Error)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[error("{self:?}")]
 pub struct PgTableIdempotencyResponseStatusTryFromU16Error;
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::Display, newtype::FromInner)]
 pub struct PgTableIdempotencyTextBytes(usize);
@@ -110,9 +111,11 @@ impl PgTableIdempotencyCleanupBatchSize {
         }
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DebugDisplay, newtype::Error)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum PgTableIdempotencyCleanupValueTryFromI64Error {
+    #[error("{self:?}")]
     Negative,
+    #[error("{self:?}")]
     NotPositive,
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom)]
@@ -122,28 +125,15 @@ pub struct SqlxPgTablePgConnectionRef<'connection_lt>(&'connection_lt mut sqlx::
 #[derive(Clone, Copy, Debug, Eq, PartialEq, sqlx::Type, newtype::Display)]
 #[sqlx(transparent)]
 pub struct PgTableRevision(i64);
-#[derive(Debug, newtype::FromInner)]
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[error(transparent)]
 pub struct StdPgTableRevisionParseIntError(std::num::ParseIntError);
-#[derive(Debug)]
+#[derive(Debug, thiserror::Error)]
 pub enum PgTableRevisionTryFromStringError {
-    Invalid(StdPgTableRevisionParseIntError),
+    #[error("{}", str_constants::REVISION_MUST_BE_A_DECIMAL_INTEGER)]
+    Invalid(#[source] StdPgTableRevisionParseIntError),
+    #[error("{}", str_constants::REVISION_MUST_NOT_BE_NEGATIVE)]
     Negative,
-}
-impl std::fmt::Display for PgTableRevisionTryFromStringError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Invalid(_error) => f.write_str(str_constants::REVISION_MUST_BE_A_DECIMAL_INTEGER),
-            Self::Negative => f.write_str(str_constants::REVISION_MUST_NOT_BE_NEGATIVE),
-        }
-    }
-}
-impl std::error::Error for PgTableRevisionTryFromStringError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        match self {
-            Self::Invalid(error) => Some(&error.0),
-            Self::Negative => None,
-        }
-    }
 }
 impl TryFrom<String> for PgTableRevision {
     type Error = PgTableRevisionTryFromStringError;
@@ -182,39 +172,23 @@ pub enum PgTableIdempotencyBegin {
     InProgress,
     Replay(PgTableIdempotencyReplay),
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::Error)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum PgTableIdempotencyTextError {
+    #[error("{}", str_constants::IDEMPOTENCY_TEXT_MUST_NOT_BE_EMPTY)]
     Empty,
+    #[error("{}", str_constants::IDEMPOTENCY_METHOD_MUST_BE_POST_PATCH_OR_DELETE)]
     InvalidMethod,
+    #[error("{}", str_constants::IDEMPOTENCY_ROUTE_MUST_START_WITH_A_SLASH)]
     InvalidRoute,
+    #[error("idempotency text exceeds {maximum_bytes} bytes: got {actual_bytes}")]
     TooLong {
         actual_bytes: PgTableIdempotencyTextBytes,
         maximum_bytes: PgTableIdempotencyTextBytes,
     },
 }
-impl std::fmt::Display for PgTableIdempotencyTextError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Empty => f.write_str(str_constants::IDEMPOTENCY_TEXT_MUST_NOT_BE_EMPTY),
-            Self::InvalidMethod => {
-                f.write_str(str_constants::IDEMPOTENCY_METHOD_MUST_BE_POST_PATCH_OR_DELETE)
-            }
-            Self::InvalidRoute => {
-                f.write_str(str_constants::IDEMPOTENCY_ROUTE_MUST_START_WITH_A_SLASH)
-            }
-            Self::TooLong {
-                actual_bytes,
-                maximum_bytes,
-            } => write!(
-                f,
-                "idempotency text exceeds {maximum_bytes} bytes: got {actual_bytes}"
-            ),
-        }
-    }
-}
-#[derive(Debug, newtype::DisplayConst, newtype::ErrorTransparent, newtype::FromInner)]
-#[display_const(str_constants::POSTGRESQL_IDEMPOTENCY_OPERATION_FAILED)]
-pub struct SqlxPgTableIdempotencyError(sqlx::Error);
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[error("{}", str_constants::POSTGRESQL_IDEMPOTENCY_OPERATION_FAILED)]
+pub struct SqlxPgTableIdempotencyError(#[source] sqlx::Error);
 impl to_err_string::ToErrString for SqlxPgTableIdempotencyError {
     fn to_err_string(&self) -> to_err_string::ErrorText {
         to_err_string::ErrorText::try_from(self.to_string())

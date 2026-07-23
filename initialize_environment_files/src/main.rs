@@ -85,11 +85,14 @@ struct StdInitPathRef<'path_lt>(&'path_lt std::path::Path);
 struct InitMaxBytes(usize);
 #[derive(newtype::FromInner)]
 struct InitEntries(Vec<InitializationEntry>);
-#[derive(Debug, newtype::Display, newtype::ErrorTransparent, newtype::FromInner)]
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[error(transparent)]
 struct StdInitIoError(std::io::Error);
-#[derive(Debug, newtype::Display, newtype::ErrorTransparent, newtype::FromInner)]
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[error(transparent)]
 struct ServerRuntimeBoundedReadError(server_runtime::BoundedReadError);
-#[derive(Debug, newtype::Display, newtype::ErrorTransparent, newtype::FromInner)]
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[error(transparent)]
 struct TomlInitError(toml::de::Error);
 #[derive(Debug, thiserror::Error)]
 #[error("environment initializer string value is invalid")]

@@ -3,7 +3,8 @@ const FRONTEND_CONTRACT_BODY_MAX_BYTES: usize = 16_777_216usize;
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("frontend contract body exceeds its maximum byte length")]
 pub struct FrontendContractBodyError;
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DebugDisplay, newtype::Error)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[error("{self:?}")]
 pub struct HttpStatusTryFromU16Error;
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum KnownHttpStatus {

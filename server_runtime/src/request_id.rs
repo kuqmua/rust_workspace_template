@@ -11,10 +11,14 @@ impl TryFrom<String> for RequestId {
         }
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DisplayConst, newtype::Error)]
-#[display_const(str_constants::REQUEST_ID_MUST_BE_NON_EMPTY_ASCII_UP_TO_128_BYTES)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[error(
+    "{}",
+    str_constants::REQUEST_ID_MUST_BE_NON_EMPTY_ASCII_UP_TO_128_BYTES
+)]
 pub struct RequestIdTryFromStringError;
-#[derive(Debug, newtype::ErrorTransparent, newtype::FromInner, newtype::Display)]
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[error(transparent)]
 pub struct HttpHeaderToStrError(http::header::ToStrError);
 #[derive(Debug, thiserror::Error)]
 pub enum RequestIdTryFromHttpHeaderValueError {

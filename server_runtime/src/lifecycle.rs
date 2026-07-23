@@ -3,7 +3,8 @@ pub enum BackgroundTaskOutcome {
     Completed,
     ShutdownRequested,
 }
-#[derive(Debug, newtype::ErrorTransparent, newtype::FromInner, newtype::Display)]
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[error(transparent)]
 pub struct TokioTaskJoinError(tokio::task::JoinError);
 #[derive(Debug, newtype::FromInner)]
 pub struct TokioAbortTask(tokio::task::JoinHandle<()>);
@@ -84,8 +85,8 @@ impl TryFrom<std::time::Duration> for StdRunInterval {
         }
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DisplayConst, newtype::Error)]
-#[display_const(str_constants::RUN_INTERVAL_MUST_BE_GREATER_THAN_ZERO)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[error("{}", str_constants::RUN_INTERVAL_MUST_BE_GREATER_THAN_ZERO)]
 pub struct StdRunIntervalTryFromDurationError;
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct StdRequestTimeout(std::time::Duration);
@@ -104,8 +105,8 @@ impl TryFrom<std::time::Duration> for StdRequestTimeout {
         }
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DisplayConst, newtype::Error)]
-#[display_const(str_constants::REQUEST_TIMEOUT_MUST_BE_GREATER_THAN_ZERO)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[error("{}", str_constants::REQUEST_TIMEOUT_MUST_BE_GREATER_THAN_ZERO)]
 pub struct StdRequestTimeoutTryFromDurationError;
 pub async fn abort_and_wait_task(task: TokioAbortTask) -> Result<(), TokioTaskJoinError> {
     task.0.abort();

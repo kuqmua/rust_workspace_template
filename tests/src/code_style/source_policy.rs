@@ -1098,16 +1098,16 @@ fn tuple_newtypes_derive_display_instead_of_implementing_forwarding_display() {
     );
 }
 #[test]
-fn empty_error_implementations_derive_newtype_error() {
+fn error_implementations_derive_thiserror_error() {
     super::assert_rs_ast_ers_empty_with_ctx(
         super::types::StaticStr::from("8b7f213d"),
         super::types::SourceTextRef::from(
-            "empty Error implementations found; derive newtype::Error instead",
+            "manual Error implementations found; derive thiserror::Error instead",
         ),
         |path, ast, ers| {
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::EmptyErrorImplVisitor {
+                super::ManualErrorImplVisitor {
                     ers: super::types::DiagnosticMsgs::default(),
                 },
             );
@@ -1118,6 +1118,30 @@ fn empty_error_implementations_derive_newtype_error() {
                     .map(|error| format!("{}: {error}", path.display())),
             );
         },
+    );
+}
+#[test]
+fn error_implementation_source_uses_only_thiserror_derive() {
+    let forbidden_newtype_derive = concat!("newtype::", "Error");
+    let forbidden_manual_impl = concat!("impl std::error::", "Error for");
+    let mut ers = Vec::new();
+    super::for_each_rs_file_content(|path, source| {
+        [forbidden_newtype_derive, forbidden_manual_impl]
+            .into_iter()
+            .filter(|forbidden| source.contains(forbidden))
+            .for_each(|forbidden| {
+                ers.push(format!(
+                    "{}: contains forbidden `{forbidden}`",
+                    path.display()
+                ));
+            });
+    });
+    super::assert_joined_ers_empty_with_ctx(
+        super::types::SourceTextListRef::from(ers.as_slice()),
+        super::types::StaticStr::from("d0572d4d"),
+        super::types::SourceTextRef::from(
+            "Error implementations must use only derive thiserror::Error",
+        ),
     );
 }
 #[test]

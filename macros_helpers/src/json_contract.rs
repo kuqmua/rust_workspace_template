@@ -1,6 +1,7 @@
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct JsonFixtureRef<'fixture_lt>(&'fixture_lt str);
-#[derive(Debug, newtype::Display, newtype::ErrorTransparent, newtype::FromInner)]
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[error(transparent)]
 pub struct SerdeJsonError(serde_json::Error);
 #[derive(Debug, thiserror::Error)]
 pub enum ContractError {

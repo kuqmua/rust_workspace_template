@@ -98,7 +98,12 @@ impl<'msgs_lt> From<&'msgs_lt mut SourceTextList> for DiagnosticMsgsMutRef<'msgs
 }
 #[derive(Debug, Clone, newtype::AsRefStr)]
 pub(super) struct SourceText(Box<str>);
-#[derive(Debug, Clone, Copy, newtype::Error)]
+#[derive(Debug, Clone, Copy, thiserror::Error)]
+#[error(
+    "source text length {} exceeds max {}",
+    .len.get(),
+    SOURCE_TEXT_MAX_LEN
+)]
 pub(super) struct SourceTextTryFromStringError {
     len: AnalyzerCount,
 }
@@ -111,16 +116,6 @@ impl TryFrom<String> for SourceText {
             });
         }
         Ok(Self(value.into_boxed_str()))
-    }
-}
-impl std::fmt::Display for SourceTextTryFromStringError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "source text length {} exceeds max {}",
-            self.len.get(),
-            SOURCE_TEXT_MAX_LEN
-        )
     }
 }
 impl From<SourceText> for String {

@@ -4,21 +4,14 @@ const TRACE_STATE_MAX_LEN: usize = 512;
 #[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
 pub struct HttpTraceParent(String);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::Error)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum HttpTraceParentError {
+    #[error("{}", str_constants::TRACEPARENT_W3C_VERSION_00_FORMAT)]
     Format,
+    #[error("{}", str_constants::TRACEPARENT_PARENT_ID_NOT_ZERO)]
     ZeroParentId,
+    #[error("{}", str_constants::TRACEPARENT_TRACE_ID_NOT_ZERO)]
     ZeroTraceId,
-}
-
-impl std::fmt::Display for HttpTraceParentError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Format => f.write_str(str_constants::TRACEPARENT_W3C_VERSION_00_FORMAT),
-            Self::ZeroParentId => f.write_str(str_constants::TRACEPARENT_PARENT_ID_NOT_ZERO),
-            Self::ZeroTraceId => f.write_str(str_constants::TRACEPARENT_TRACE_ID_NOT_ZERO),
-        }
-    }
 }
 
 impl TryFrom<String> for HttpTraceParent {
@@ -57,8 +50,8 @@ impl TryFrom<String> for HttpTraceParent {
 #[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
 pub struct HttpTraceState(String);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DisplayConst, newtype::Error)]
-#[display_const(str_constants::TRACESTATE_PRINTABLE_ASCII_MAX_512)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[error("{}", str_constants::TRACESTATE_PRINTABLE_ASCII_MAX_512)]
 pub struct HttpTraceStateError;
 
 impl TryFrom<String> for HttpTraceState {

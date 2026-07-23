@@ -21,8 +21,11 @@ impl TryFrom<usize> for StdAsyncRunHistoryMaximumLen {
             .ok_or(StdAsyncRunHistoryMaximumLenTryFromUsizeError)
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DisplayConst, newtype::Error)]
-#[display_const(str_constants::RUN_HISTORY_MAXIMUM_LENGTH_MUST_BE_GREATER_THAN_ZERO)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[error(
+    "{}",
+    str_constants::RUN_HISTORY_MAXIMUM_LENGTH_MUST_BE_GREATER_THAN_ZERO
+)]
 pub struct StdAsyncRunHistoryMaximumLenTryFromUsizeError;
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct StdAsyncRunHistoryReportCount(usize);

@@ -90,7 +90,6 @@ enum NewtypeOption {
     DerefMutTarget,
     DerefTarget,
     Display,
-    ErrorTransparent,
     From,
     Getter,
     IntoInner,
@@ -658,28 +657,6 @@ pub fn display_const(input_token_stream: proc_macro::TokenStream) -> proc_macro:
     }
     .into()
 }
-#[proc_macro_derive(ErrorTransparent)]
-pub fn error_transparent(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::ErrorTransparent,
-        None,
-    )
-    .into()
-}
-#[proc_macro_derive(Error)]
-pub fn error(input_token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let input = match syn::parse::<syn::DeriveInput>(input_token_stream) {
-        Ok(value) => value,
-        Err(error) => return error.into_compile_error().into(),
-    };
-    let identifier = &input.ident;
-    let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
-    quote::quote! {
-        impl #impl_generics std::error::Error for #identifier #ty_generics #where_clause {}
-    }
-    .into()
-}
 #[proc_macro_derive(FromInner)]
 pub fn from_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
@@ -890,14 +867,9 @@ pub fn wire_enum(input_token_stream: proc_macro::TokenStream) -> proc_macro::Tok
                 }
             }
         }
-        #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+        #[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
+        #[error("{}", #error_message)]
         pub struct #error_identifier;
-        impl std::fmt::Display for #error_identifier {
-            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                f.write_str(#error_message)
-            }
-        }
-        impl std::error::Error for #error_identifier {}
         impl TryFrom<&str> for #identifier {
             type Error = #error_identifier;
             fn try_from(value: &str) -> Result<Self, Self::Error> {
@@ -1016,19 +988,6 @@ fn generate_newtype_token_stream_with_attrs(
             }
         }
     });
-    let error_transparent_token_stream = attrs
-        .contains(NewtypeOption::ErrorTransparent)
-        .get()
-        .then(|| {
-            quote::quote! {
-                #[allow(single_use_lifetimes)]
-                impl #impl_generics std::error::Error for #identifier #ty_generics #where_clause {
-                    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-                        Some(&self.0)
-                    }
-                }
-            }
-        });
     let not_inner_token_stream = attrs.contains(NewtypeOption::NotInner).get().then(|| {
         let mut not_generics = input_ref.generics.clone();
         not_generics
@@ -1369,7 +1328,6 @@ fn generate_newtype_token_stream_with_attrs(
         #display_token_stream
         #clone_inner_token_stream
         #default_inner_token_stream
-        #error_transparent_token_stream
         #not_inner_token_stream
         #partial_eq_inner_token_stream
         #as_mut_token_stream

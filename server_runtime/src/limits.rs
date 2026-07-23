@@ -13,8 +13,8 @@ impl TryFrom<u64> for RetryAfterSecs {
         }
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DisplayConst, newtype::Error)]
-#[display_const(str_constants::RETRY_AFTER_SECONDS_MUST_BE_GREATER_THAN_ZERO)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[error("{}", str_constants::RETRY_AFTER_SECONDS_MUST_BE_GREATER_THAN_ZERO)]
 pub struct RetryAfterSecsTryFromU64Error;
 impl TryFrom<RetryAfterSecs> for http::HeaderValue {
     type Error = http::header::InvalidHeaderValue;
@@ -43,7 +43,8 @@ impl StdArcTokioSemaphore {
     }
 }
 
-#[derive(Debug, newtype::ErrorTransparent, newtype::FromInner, newtype::Display)]
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[error(transparent)]
 pub struct TokioAcquireError(tokio::sync::AcquireError);
 #[derive(Debug, thiserror::Error)]
 pub enum AcquirePermitError {

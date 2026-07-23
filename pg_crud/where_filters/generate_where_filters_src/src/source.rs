@@ -16,20 +16,15 @@ pub struct BuiltGenerateWhereFiltersModel {
 }
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct ValidatedGenerateWhereFiltersConfig(ParsedGenerateWhereFiltersConfig);
-#[derive(Debug, newtype::FromInner)]
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[error(transparent)]
 pub struct SerdeJsonGenerateWhereFiltersError(serde_json::Error);
-#[derive(Debug, newtype::Error)]
+#[derive(Debug, thiserror::Error)]
 pub enum GenerateWhereFiltersPipelineError {
+    #[error("{}", str_constants::INVALID_FILTER_SPECIFICATION)]
     InvalidContract,
+    #[error("{0}")]
     Parse(SerdeJsonGenerateWhereFiltersError),
-}
-impl std::fmt::Display for GenerateWhereFiltersPipelineError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::InvalidContract => f.write_str(str_constants::INVALID_FILTER_SPECIFICATION),
-            Self::Parse(error) => error.0.fmt(f),
-        }
-    }
 }
 pub fn parse_generate_where_filters(
     input: ProcMacro2GenerateWhereFiltersInput<'_>,

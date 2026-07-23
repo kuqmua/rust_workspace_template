@@ -16,6 +16,7 @@ server_runtime = { workspace = true }
 str_constants = { workspace = true }
 synchronization_service_runtime = { workspace = true }
 tokio = { workspace = true }
+thiserror = { workspace = true }
 
 [dev-dependencies]
 

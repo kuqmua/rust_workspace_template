@@ -20,22 +20,18 @@ impl SynValidatedGeneratePgTableInput {
     }
 }
 
-#[derive(Debug, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(Debug, thiserror::Error, newtype::FromInner, newtype::IntoInnerFrom)]
+#[error(transparent)]
 pub struct SynGeneratePgTablePipelineError(syn::Error);
 
-#[derive(Debug, newtype::Error)]
+#[derive(Debug, thiserror::Error)]
 pub enum GeneratePgTablePipelineError {
+    #[error("{0}")]
     Build(SynGeneratePgTablePipelineError),
+    #[error("{0}")]
     Parse(SynGeneratePgTablePipelineError),
+    #[error("{0}")]
     Validate(SynGeneratePgTablePipelineError),
-}
-
-impl std::fmt::Display for GeneratePgTablePipelineError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Parse(error) | Self::Build(error) | Self::Validate(error) => error.0.fmt(f),
-        }
-    }
 }
 
 pub fn parse_generate_pg_table(

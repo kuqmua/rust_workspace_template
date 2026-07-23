@@ -25,5 +25,6 @@ macros_helpers = { workspace = true }
 naming = { workspace = true }
 token_patterns = { workspace = true }
 optml = { workspace = true }
+thiserror = { workspace = true }
 [lints]
 workspace = true

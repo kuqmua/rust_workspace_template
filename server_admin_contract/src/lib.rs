@@ -418,7 +418,12 @@ pub struct AdminAuditTimestamp(String);
 pub const ADMIN_AUDIT_DETAILS_MAX_BYTES: usize = 4096usize;
 #[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd, newtype::FromInner)]
 pub struct AdminAuditDetailsBytes(usize);
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::Error, newtype::FromInner)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error, newtype::FromInner)]
+#[error(
+    "administrator audit details contain {} bytes, maximum is {} bytes",
+    .0.0,
+    ADMIN_AUDIT_DETAILS_MAX_BYTES
+)]
 pub struct AdminAuditDetailsTooLarge(AdminAuditDetailsBytes);
 impl AdminAuditDetailsTooLarge {
     #[must_use]
@@ -428,15 +433,6 @@ impl AdminAuditDetailsTooLarge {
     #[must_use]
     pub fn maximum_bytes(self) -> AdminAuditDetailsBytes {
         AdminAuditDetailsBytes::from(ADMIN_AUDIT_DETAILS_MAX_BYTES)
-    }
-}
-impl std::fmt::Display for AdminAuditDetailsTooLarge {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "administrator audit details contain {} bytes, maximum is {} bytes",
-            self.0.0, ADMIN_AUDIT_DETAILS_MAX_BYTES
-        )
     }
 }
 #[derive(
@@ -550,8 +546,8 @@ pub enum AdminTableSortField {
     UserLogin,
     UserStatus,
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq, newtype::DisplayConst, newtype::Error)]
-#[display_const(str_constants::UNKNOWN_ADMIN_TABLE_SORT_FIELD)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, thiserror::Error)]
+#[error("{}", str_constants::UNKNOWN_ADMIN_TABLE_SORT_FIELD)]
 pub struct AdminTableSortFieldTryFromKeyError;
 #[derive(Clone, Copy, Debug, PartialEq, Eq, newtype::FromInner)]
 pub struct AdminTableSortKeyRef<'value_lt>(&'value_lt str);
@@ -741,7 +737,8 @@ impl AdminAuditLogId {
         self.0
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DebugDisplay, newtype::Error)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[error("{self:?}")]
 pub struct AdminIdTryFromI64Error;
 #[derive(
     Clone,
@@ -811,8 +808,8 @@ impl TryFrom<u16> for AdminPageLimit {
         }
     }
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq, newtype::DisplayConst, newtype::Error)]
-#[display_const(str_constants::ADMIN_PAGE_LIMIT_ERROR)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, thiserror::Error)]
+#[error("{}", str_constants::ADMIN_PAGE_LIMIT_ERROR)]
 pub struct AdminPageLimitError;
 
 #[derive(
@@ -1113,18 +1110,13 @@ impl AdminSignInReq {
     }
 }
 const ADMIN_COLLECTION_MAX_ITEMS: usize = 10_000usize;
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::Error)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum AdminCollectionError {
+    #[error(
+        "{}",
+        str_constants::ADMINISTRATOR_COLLECTION_EXCEEDS_MAXIMUM_ITEM_COUNT
+    )]
     TooLong,
-}
-impl std::fmt::Display for AdminCollectionError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::TooLong => {
-                f.write_str(str_constants::ADMINISTRATOR_COLLECTION_EXCEEDS_MAXIMUM_ITEM_COUNT)
-            }
-        }
-    }
 }
 struct AdminBoundedVec<T>(Vec<T>);
 impl<T> TryFrom<Vec<T>> for AdminBoundedVec<T> {

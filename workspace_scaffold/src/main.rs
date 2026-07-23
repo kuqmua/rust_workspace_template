@@ -18,9 +18,11 @@ struct StdScaffoldPathRef<'path_lt>(&'path_lt std::path::Path);
 struct ReplacementsRef<'replacements_lt>(&'replacements_lt [(&'replacements_lt str, String)]);
 #[derive(Clone, Copy, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
 struct ShouldSkip(bool);
-#[derive(Debug, newtype::Display, newtype::ErrorTransparent, newtype::FromInner)]
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[error(transparent)]
 struct StdScaffoldIoError(std::io::Error);
-#[derive(Debug, newtype::Display, newtype::ErrorTransparent, newtype::FromInner)]
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[error(transparent)]
 struct ServerRuntimeBoundedReadError(server_runtime::BoundedReadError);
 
 #[derive(Debug, thiserror::Error)]

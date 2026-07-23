@@ -57,7 +57,8 @@ impl From<DefaultRegexPattern> for RegexRegex {
         Self(String::from(str_constants::A_Z_PLUS))
     }
 }
-#[derive(Debug, newtype::ErrorTransparent, newtype::FromInner, newtype::Display)]
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[error(transparent)]
 pub struct RegexError(regex::Error);
 #[derive(Debug, thiserror::Error)]
 pub enum RegexRegexTryFromStringError {

@@ -18,8 +18,8 @@ struct TokioMockNotificationReceiver(
     tokio::sync::mpsc::UnboundedReceiver<server_runtime::NotificationMessage>,
 );
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DisplayConst, newtype::Error)]
-#[display_const(str_constants::MOCK_NOTIFICATION_PROVIDER_CLOSED)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[error("{}", str_constants::MOCK_NOTIFICATION_PROVIDER_CLOSED)]
 pub struct MockNotificationProviderClosed;
 
 impl MockNotificationInbox {

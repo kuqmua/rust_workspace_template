@@ -17,18 +17,12 @@ impl JsonContractSnapshot {
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct JsonSnapshotDynamicFieldRef<'value_lt>(&'value_lt str);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::Error)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum JsonContractSnapshotError {
+    #[error("{}", str_constants::JSON_SNAPSHOT_TOO_LONG_ERROR)]
     TooLong,
+    #[error("{}", str_constants::JSON_SNAPSHOT_SERIALIZATION_ERROR)]
     Serialization,
-}
-impl std::fmt::Display for JsonContractSnapshotError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Serialization => f.write_str(str_constants::JSON_SNAPSHOT_SERIALIZATION_ERROR),
-            Self::TooLong => f.write_str(str_constants::JSON_SNAPSHOT_TOO_LONG_ERROR),
-        }
-    }
 }
 
 pub fn canonical_json_contract_snapshot<Payload>(

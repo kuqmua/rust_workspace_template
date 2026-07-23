@@ -97,7 +97,8 @@ impl LocationColumn {
         }
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DebugDisplay, newtype::Error)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[error("{self:?}")]
 pub struct LocationCoordinateTryFromU32Error;
 #[derive(
     Debug,
@@ -358,7 +359,8 @@ impl StdTimeDurationNanos {
         }
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DebugDisplay, newtype::Error)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[error("{self:?}")]
 pub struct StdTimeDurationNanosTryFromU32Error;
 impl std::fmt::Display for Location {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

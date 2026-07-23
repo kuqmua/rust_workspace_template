@@ -82,9 +82,8 @@ pub enum PgRateLimitValidationError {
     MustBePositive,
 }
 
-#[derive(
-    Debug, newtype::ErrorTransparent, newtype::FromInner, newtype::IntoInnerFrom, newtype::Display,
-)]
+#[derive(Debug, thiserror::Error, newtype::FromInner, newtype::IntoInnerFrom)]
+#[error(transparent)]
 pub struct SqlxPgRateLimitError(sqlx::Error);
 
 #[derive(Debug, thiserror::Error)]

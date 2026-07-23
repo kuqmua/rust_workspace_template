@@ -22,6 +22,7 @@ server_admin = { workspace = true }
 serde_json = { workspace = true }
 server_runtime = { workspace = true }
 token_patterns = { workspace = true }
+thiserror = { workspace = true }
 utoipa = { workspace = true }
 where_filters = { workspace = true }
 [lints]

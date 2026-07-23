@@ -261,7 +261,8 @@ impl ReqwestClientPolicy {
         }
     }
 }
-#[derive(Debug, newtype::ErrorTransparent, newtype::FromInner, newtype::Display)]
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[error(transparent)]
 pub struct ReqwestClientBuildError(reqwest::Error);
 impl ReqwestClient {
     pub fn try_new(policy: ReqwestClientPolicy) -> Result<Self, ReqwestClientBuildError> {
@@ -619,7 +620,8 @@ where
         self.inner.poll_ready(cx)
     }
 }
-#[derive(Debug, newtype::ErrorTransparent, newtype::FromInner, newtype::Display)]
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[error(transparent)]
 pub struct StdServeIoError(std::io::Error);
 #[derive(Debug, thiserror::Error)]
 pub enum ServeWithGracefulShutdownError {

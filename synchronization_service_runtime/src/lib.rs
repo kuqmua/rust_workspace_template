@@ -6,14 +6,9 @@ pub struct SynchronizationRuntimeConfiguration {
     retry_policy: server_runtime::RetryPolicy,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::Error)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[error("{}", std::any::type_name::<Self>())]
 pub struct SynchronizationPayloadTooLarge;
-
-impl std::fmt::Display for SynchronizationPayloadTooLarge {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(std::any::type_name::<Self>())
-    }
-}
 
 #[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget)]
 pub struct SynchronizationPayload(Vec<u8>);

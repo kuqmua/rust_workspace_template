@@ -27,5 +27,6 @@ token_patterns = { workspace = true }
 workspace_macro_helpers = { workspace = true }
 pg_crud_macros_common = { workspace = true }
 optml = { workspace = true }
+thiserror = { workspace = true }
 [lints]
 workspace = true

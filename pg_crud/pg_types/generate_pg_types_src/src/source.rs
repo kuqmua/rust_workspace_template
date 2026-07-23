@@ -572,7 +572,8 @@ struct GeneratePgTypeRecords(Vec<PgTypeRecord>);
 #[derive(Debug, newtype::DerefTarget, serde::Deserialize)]
 #[serde(try_from = "Vec<PgType>")]
 struct GeneratePgTypes(Vec<PgType>);
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DebugDisplay, newtype::Error)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[error("{self:?}")]
 struct GeneratePgTypesLengthError;
 impl TryFrom<Vec<PgTypeRecord>> for GeneratePgTypeRecords {
     type Error = GeneratePgTypesLengthError;
@@ -760,19 +761,14 @@ impl ValidatedGeneratePgTypesConfig {
         self.entry_count
     }
 }
-#[derive(Debug, newtype::FromInner)]
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[error(transparent)]
 pub struct SerdeJsonGeneratePgTypesError(serde_json::Error);
 
-#[derive(Debug, newtype::Error)]
+#[derive(Debug, thiserror::Error)]
 pub enum GeneratePgTypesPipelineError {
+    #[error("{0}")]
     Parse(SerdeJsonGeneratePgTypesError),
-}
-impl std::fmt::Display for GeneratePgTypesPipelineError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Parse(error) => error.0.fmt(f),
-        }
-    }
 }
 pub fn parse_generate_pg_types(
     input: macros_helpers::ts_writer::ProcMacro2TokenStreamRef<'_>,

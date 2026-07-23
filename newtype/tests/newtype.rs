@@ -138,15 +138,6 @@ mod tests {
     struct TransparentDebugValue(u16);
     #[derive(newtype::DebugRedacted, newtype::FromInner)]
     struct RedactedDebugValue(Vec<u8>);
-    #[derive(Debug, newtype::Display, newtype::ErrorTransparent, newtype::FromInner)]
-    struct StdTransparentErrorValue(std::io::Error);
-    #[derive(Debug, newtype::Error)]
-    struct MarkerError;
-    impl std::fmt::Display for MarkerError {
-        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            f.write_str("marker error")
-        }
-    }
     #[derive(newtype::FromInner, newtype::NotInner)]
     struct BoolValue(bool);
     #[derive(Debug, newtype::DebugDisplay)]
@@ -184,15 +175,6 @@ mod tests {
         } else {
             Ok(())
         }
-    }
-    #[test]
-    fn marker_error_derive_implements_std_error() {
-        fn assert_error<Error>()
-        where
-            Error: std::error::Error,
-        {
-        }
-        assert_error::<MarkerError>();
     }
     #[test]
     fn not_inner_forwards_to_inner_value() {
@@ -313,14 +295,6 @@ mod tests {
         assert!(output.contains(str_constants::REDACTED_ALT_3));
         assert!(!output.contains(str_constants::SECRET));
         assert_eq!(value.0, str_constants::SECRET.as_bytes());
-    }
-    #[test]
-    fn transparent_error_exposes_inner_source() {
-        let value = StdTransparentErrorValue::from(std::io::Error::other(str_constants::ERROR));
-        assert_eq!(
-            std::error::Error::source(&value).map(ToString::to_string),
-            Some(String::from(str_constants::ERROR))
-        );
     }
     #[test]
     fn mutable_reference_as_mut_is_generated() {

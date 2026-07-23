@@ -42,21 +42,25 @@ impl StdBoundedReadConcurrency {
         )))
     }
 }
-#[derive(Debug, newtype::ErrorTransparent, newtype::FromInner, newtype::Display)]
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[error(transparent)]
 pub struct StdIoError(std::io::Error);
 #[derive(Debug)]
 pub enum IoErrorPresenceDisposition {
     Missing,
     Other(StdIoError),
 }
-#[derive(Debug, newtype::ErrorTransparent, newtype::FromInner, newtype::Display)]
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[error(transparent)]
 pub struct ReqwestError(reqwest::Error);
-#[derive(Debug, newtype::ErrorTransparent, newtype::FromInner, newtype::Display)]
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[error(transparent)]
 pub struct StdFromUtf8Error(std::string::FromUtf8Error);
 #[derive(Debug, newtype::FromInner)]
 pub struct ReqwestResponse(reqwest::Response);
 
-#[derive(Debug, newtype::ErrorTransparent, newtype::FromInner, newtype::Display)]
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[error(transparent)]
 pub struct SerdeJsonError(serde_json::Error);
 #[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
 pub struct BoundedJsonText(String);

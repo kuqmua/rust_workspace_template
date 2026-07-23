@@ -224,7 +224,8 @@ impl AdminAuditLogId {
         self.0
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DebugDisplay, newtype::Error)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[error("{self:?}")]
 pub struct AdminIdTryFromI64Error;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
 pub struct AdminPermissionName(super::AdminPermission);

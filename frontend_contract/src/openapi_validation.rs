@@ -7,13 +7,14 @@ pub struct OpenApiContractText(String);
 #[derive(Clone, Copy, Debug, newtype::Display, newtype::FromInner)]
 pub struct OpenApiContractTextError(OpenApiContractTextTryFromStringError);
 
-#[derive(Debug, newtype::Display, newtype::ErrorTransparent, newtype::FromInner)]
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[error(transparent)]
 pub struct SerdeJsonOpenApiSerializationError(serde_json::Error);
 
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct RuntimeRoutesRef<'value_lt>(&'value_lt [crate::RouteMetadata]);
 
-#[derive(Debug, newtype::DebugDisplay, newtype::Error)]
+#[derive(Debug, newtype::DebugDisplay, thiserror::Error)]
 pub enum OpenApiValidationError {
     DocumentSerialization(SerdeJsonOpenApiSerializationError),
     MissingOperationId(OpenApiContractText, OpenApiContractText),
@@ -79,7 +80,7 @@ impl OpenApiOperationExpectation {
     }
 }
 
-#[derive(Debug, newtype::DebugDisplay, newtype::Error)]
+#[derive(Debug, newtype::DebugDisplay, thiserror::Error)]
 pub enum OpenApiOperationValidationError {
     DocumentSerialization(SerdeJsonOpenApiSerializationError),
     MissingContentType,
@@ -101,7 +102,7 @@ pub enum OpenApiSchemaMismatch {
     Type,
 }
 
-#[derive(Debug, newtype::DebugDisplay, newtype::Error)]
+#[derive(Debug, newtype::DebugDisplay, thiserror::Error)]
 pub enum OpenApiPayloadValidationError {
     DocumentSerialization(SerdeJsonOpenApiSerializationError),
     Mismatch(OpenApiSchemaMismatch),

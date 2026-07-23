@@ -51,7 +51,8 @@ impl FieldLocationColumn {
         }
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DebugDisplay, newtype::Error)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[error("{self:?}")]
 pub struct FieldLocationCoordinateTryFromU32Error;
 #[must_use]
 pub fn generate_field_location_new_token_stream(

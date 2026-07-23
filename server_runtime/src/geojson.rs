@@ -15,7 +15,8 @@ impl TryFrom<String> for GeoJsonDocumentText {
     }
 }
 
-#[derive(Debug, newtype::Display, newtype::Error, newtype::FromInner)]
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[error("{0}")]
 pub struct SerdeJsonGeoJsonError(serde_json::Error);
 
 #[derive(Debug, thiserror::Error)]

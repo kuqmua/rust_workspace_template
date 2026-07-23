@@ -777,7 +777,7 @@ impl<'ast> syn::visit::Visit<'ast> for ForwardingDerefVisitor {
 struct ForwardingDisplayVisitor {
     ers: types::DiagnosticMsgs,
 }
-struct EmptyErrorImplVisitor {
+struct ManualErrorImplVisitor {
     ers: types::DiagnosticMsgs,
 }
 struct ManualNotImplVisitor {
@@ -837,17 +837,17 @@ impl<'ast> syn::visit::Visit<'ast> for ManualNotImplVisitor {
         syn::visit::visit_item_impl(self, i);
     }
 }
-impl<'ast> syn::visit::Visit<'ast> for EmptyErrorImplVisitor {
+impl<'ast> syn::visit::Visit<'ast> for ManualErrorImplVisitor {
     fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
         let is_error_impl = i.trait_.as_ref().is_some_and(|(_, path, _)| {
             path.segments.last().is_some_and(|segment| {
                 segment.ident == str_constants::CODE_STYLE_ERROR_TRAIT_IDENTIFIER
             })
         });
-        if is_error_impl && i.items.is_empty() {
+        if is_error_impl {
             let start = syn::spanned::Spanned::span(i).start();
             self.ers.push(format!(
-                "empty Error implementation at {}:{}; derive newtype::Error instead",
+                "manual Error implementation at {}:{}; derive thiserror::Error instead",
                 start.line, start.column
             ));
         }

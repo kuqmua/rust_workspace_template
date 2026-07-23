@@ -55,7 +55,8 @@ struct CommandArgsRef<'args_lt>(&'args_lt [&'args_lt str]);
 struct CommandText(String);
 #[derive(Debug, newtype::FromInner)]
 struct CommandTexts(Vec<CommandText>);
-#[derive(Debug, newtype::Display, newtype::ErrorTransparent, newtype::FromInner)]
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[error(transparent)]
 struct StdExecutionIoError(std::io::Error);
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
 struct TextRef<'text_lt>(&'text_lt str);

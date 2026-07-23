@@ -81,7 +81,8 @@ impl StdAdminFailureThreshold {
         }
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DebugDisplay, newtype::Error)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[error("{self:?}")]
 pub struct AdminAuthPositiveValueError;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
 pub struct StdAdminFailureDelayMillis(u64);
