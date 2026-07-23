@@ -18,6 +18,7 @@ pub use domain::{
     StdAdminStrRef, StdAdminString, UuidAdminValue,
 };
 pub use generated_auth::{AdminGeneratedAuthLayer, AdminGeneratedAuthService};
+pub use pg_table::CombinationOfAppStateLogicTraits;
 pub use server_admin_contract::{
     AdminDisplayName, AdminLogin, AdminPermission, AdminPermissionTryFromStrError, AdminRoleName,
 };

@@ -477,32 +477,15 @@ pub fn render_settings(
     admin: &server_admin_contract::AuthenticatedAdmin,
     branding: &server_admin_contract::AdminBrandingView,
 ) -> AdminSsrHtml {
-    let site_name = AsRef::<str>::as_ref(view.site_name()).to_owned();
-    let default_admin_route = AsRef::<str>::as_ref(view.default_admin_route()).to_owned();
-    let tab_title = view
-        .tab_title()
-        .map(|value| AsRef::<str>::as_ref(value).to_owned())
-        .unwrap_or_default();
-    let main_logo = view
-        .main_logo()
-        .map(|value| AsRef::<str>::as_ref(value).to_owned())
-        .unwrap_or_default();
-    let primary_color = view
-        .primary_color()
-        .map(|value| AsRef::<str>::as_ref(value).to_owned())
-        .unwrap_or_default();
-    let organization_name = view
-        .organization_name()
-        .map(|value| AsRef::<str>::as_ref(value).to_owned())
-        .unwrap_or_default();
-    let organization_contacts = view
-        .organization_contacts()
-        .map(|value| AsRef::<str>::as_ref(value).to_owned())
-        .unwrap_or_default();
-    let support_url = view
-        .support_url()
-        .map(|value| AsRef::<str>::as_ref(value).to_owned())
-        .unwrap_or_default();
+    let values = crate::shared::AdminSettingsFormValues::from(view);
+    let site_name = values.site_name().as_ref().to_owned();
+    let default_admin_route = values.default_route().as_ref().to_owned();
+    let tab_title = values.tab_title().as_ref().to_owned();
+    let main_logo = values.main_logo().as_ref().to_owned();
+    let primary_color = values.primary_color().as_ref().to_owned();
+    let organization_name = values.organization_name().as_ref().to_owned();
+    let organization_contacts = values.organization_contacts().as_ref().to_owned();
+    let support_url = values.support_url().as_ref().to_owned();
     let can_update = bool::from(
         admin.has_permission(server_admin_contract::AdminPermission::SystemSettingsUpdate),
     );

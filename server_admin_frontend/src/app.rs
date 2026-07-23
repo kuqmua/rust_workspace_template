@@ -42,17 +42,6 @@ enum AdminLoadState {
     ),
 }
 
-#[derive(Clone, Copy, Debug)]
-enum AdminCsrPage {
-    Permissions,
-    Profile,
-    Roles,
-    Sessions,
-    Settings,
-    Tables,
-    Users,
-}
-
 impl AdminLoadState {
     const fn admin(&self) -> Option<&server_admin_contract::AuthenticatedAdmin> {
         match self {
@@ -240,37 +229,28 @@ impl AdminCsrQuery {
     }
 }
 
-impl AdminCsrPage {
-    fn from_location() -> Result<Self, AdminTableLoadError> {
-        let pathname = web_sys::window()
-            .ok_or(AdminTableLoadError::Fetch)?
-            .location()
-            .pathname()
-            .map_err(|_error| AdminTableLoadError::Fetch)?;
-        if server_admin_contract::AdminDataTable::from_frontend_path(
-            server_admin_contract::AdminPagePathRef::from(pathname.as_str()),
-        )
-        .is_some()
-        {
-            return Ok(Self::Tables);
-        }
-        server_admin_contract::AdminPage::specs()
-            .iter()
-            .find(|spec| spec.path().as_ref() == pathname)
-            .map(|spec| spec.page())
-            .and_then(|page| match page {
-                server_admin_contract::AdminPage::Permissions => Some(Self::Permissions),
-                server_admin_contract::AdminPage::Profile => Some(Self::Profile),
-                server_admin_contract::AdminPage::Roles => Some(Self::Roles),
-                server_admin_contract::AdminPage::Sessions => Some(Self::Sessions),
-                server_admin_contract::AdminPage::Settings => Some(Self::Settings),
-                server_admin_contract::AdminPage::Tables => Some(Self::Tables),
-                server_admin_contract::AdminPage::Users => Some(Self::Users),
-                server_admin_contract::AdminPage::Metrics
-                | server_admin_contract::AdminPage::OpenApi
-                | server_admin_contract::AdminPage::Version => None,
-            })
-            .ok_or(AdminTableLoadError::Query)
+fn csr_page_from_location() -> Result<server_admin_contract::AdminPage, AdminTableLoadError> {
+    let pathname = web_sys::window()
+        .ok_or(AdminTableLoadError::Fetch)?
+        .location()
+        .pathname()
+        .map_err(|_error| AdminTableLoadError::Fetch)?;
+    let page = if server_admin_contract::AdminDataTable::from_frontend_path(
+        server_admin_contract::AdminPagePathRef::from(pathname.as_str()),
+    )
+    .is_some()
+    {
+        server_admin_contract::AdminPage::Tables
+    } else {
+        server_admin_contract::AdminPage::from_path(server_admin_contract::AdminPagePathRef::from(
+            pathname.as_str(),
+        ))
+        .ok_or(AdminTableLoadError::Query)?
+    };
+    if bool::from(page.supports_csr()) {
+        Ok(page)
+    } else {
+        Err(AdminTableLoadError::Query)
     }
 }
 
@@ -412,7 +392,7 @@ fn mutation_confirmed(message: MutationConfirmationMessageRef<'_>) -> MutationCo
     reason = "browser page loads run exclusively on wasm_bindgen_futures::spawn_local"
 )]
 async fn fetch_page(
-    page: AdminCsrPage,
+    page: server_admin_contract::AdminPage,
     query: &AdminCsrQuery,
 ) -> Result<AdminLoadState, AdminTableLoadError> {
     let search = web_sys::window()
@@ -423,12 +403,8 @@ async fn fetch_page(
     let me_url = admin_api_url(server_admin_contract::AdminRoute::Me)?;
     let admin = fetch_json::<server_admin_contract::AuthenticatedAdmin>(&me_url).await?;
     let route = match page {
-        AdminCsrPage::Permissions => server_admin_contract::AdminRoute::Permissions,
-        AdminCsrPage::Profile => return Ok(AdminLoadState::Profile(admin)),
-        AdminCsrPage::Roles => server_admin_contract::AdminRoute::Roles,
-        AdminCsrPage::Sessions => server_admin_contract::AdminRoute::Sessions,
-        AdminCsrPage::Settings => server_admin_contract::AdminRoute::Settings,
-        AdminCsrPage::Tables => {
+        server_admin_contract::AdminPage::Profile => return Ok(AdminLoadState::Profile(admin)),
+        server_admin_contract::AdminPage::Tables => {
             let Some(url) = query.api_url()? else {
                 return Ok(AdminLoadState::Empty(admin));
             };
@@ -436,34 +412,42 @@ async fn fetch_page(
                 .await
                 .map(|value| AdminLoadState::Table(admin, value));
         }
-        AdminCsrPage::Users => server_admin_contract::AdminRoute::Users,
+        server_admin_contract::AdminPage::Permissions
+        | server_admin_contract::AdminPage::Roles
+        | server_admin_contract::AdminPage::Sessions
+        | server_admin_contract::AdminPage::Settings
+        | server_admin_contract::AdminPage::Users => page.spec().route(),
+        server_admin_contract::AdminPage::Metrics
+        | server_admin_contract::AdminPage::OpenApi
+        | server_admin_contract::AdminPage::Version => return Err(AdminTableLoadError::Query),
     };
-    let suffix = match page {
-        AdminCsrPage::Permissions | AdminCsrPage::Roles | AdminCsrPage::Users => search,
-        AdminCsrPage::Profile
-        | AdminCsrPage::Sessions
-        | AdminCsrPage::Settings
-        | AdminCsrPage::Tables => String::new(),
+    let suffix = if bool::from(page.uses_table_query()) {
+        search
+    } else {
+        String::new()
     };
     let url = admin_api_url_with_suffix(route, AdminCsrApiUrlSuffixRef::from(suffix.as_str()))?;
     match page {
-        AdminCsrPage::Permissions => fetch_json(&url)
+        server_admin_contract::AdminPage::Permissions => fetch_json(&url)
             .await
             .map(|value| AdminLoadState::Permissions(admin, value)),
-        AdminCsrPage::Profile => Ok(AdminLoadState::Profile(admin)),
-        AdminCsrPage::Roles => fetch_json(&url)
+        server_admin_contract::AdminPage::Profile => Ok(AdminLoadState::Profile(admin)),
+        server_admin_contract::AdminPage::Roles => fetch_json(&url)
             .await
             .map(|value| AdminLoadState::Roles(admin, value)),
-        AdminCsrPage::Sessions => fetch_json(&url)
+        server_admin_contract::AdminPage::Sessions => fetch_json(&url)
             .await
             .map(|value| AdminLoadState::Sessions(admin, value)),
-        AdminCsrPage::Settings => fetch_json(&url)
+        server_admin_contract::AdminPage::Settings => fetch_json(&url)
             .await
             .map(|value| AdminLoadState::Settings(admin, value)),
-        AdminCsrPage::Tables => Ok(AdminLoadState::Empty(admin)),
-        AdminCsrPage::Users => fetch_json(&url)
+        server_admin_contract::AdminPage::Tables => Ok(AdminLoadState::Empty(admin)),
+        server_admin_contract::AdminPage::Users => fetch_json(&url)
             .await
             .map(|value| AdminLoadState::Users(admin, value)),
+        server_admin_contract::AdminPage::Metrics
+        | server_admin_contract::AdminPage::OpenApi
+        | server_admin_contract::AdminPage::Version => Err(AdminTableLoadError::Query),
     }
 }
 
@@ -791,7 +775,7 @@ fn AdminSessionsView(
             <div class="table-scroll"><table><thead><tr><th>"session"</th><th>"created"</th><th>"expires"</th><th>"current"</th><th>"actions"</th></tr></thead>
             <tbody>{page.items().iter().map(|item| {
                 let session_id = item.id().to_string();
-                let revoke_session_id = session_id.clone();
+                let revoke_session_id = item.id().clone();
                 leptos::view! {
                 <tr>
                     <td data-label="session">{session_id}</td>
@@ -799,7 +783,7 @@ fn AdminSessionsView(
                     <td data-label="expires">{item.expires_at().to_string()}</td>
                     <td data-label="current">{item.is_current().to_string()}</td>
                     <td data-label="actions"><div class="table-actions"><button type="button" on:click=move |_event| {
-                        if bool::from(mutation_confirmed(MutationConfirmationMessageRef::from("Revoke this session?"))) && let Ok(session_id) = server_admin_contract::AdminSessionIdentifier::try_from(revoke_session_id) && let Ok(path) = admin_route_path_url(server_admin_contract::admin_parameterized_route_path::<server_admin_contract::AdminRevokeSessionRoute>(&session_id)) {
+                        if bool::from(mutation_confirmed(MutationConfirmationMessageRef::from("Revoke this session?"))) && let Ok(path) = admin_route_path_url(server_admin_contract::admin_parameterized_route_path::<server_admin_contract::AdminRevokeSessionRoute>(&revoke_session_id)) {
                             reload_after(AdminMutationMethod::Delete, path, server_admin_contract::AdminNoBody);
                         }
                     }>"Revoke session"</button></div></td>
@@ -861,39 +845,17 @@ fn AdminSettingsView(
     let can_update = bool::from(
         admin.has_permission(server_admin_contract::AdminPermission::SystemSettingsUpdate),
     );
-    let default_route =
-        leptos::prelude::RwSignal::new(page.default_admin_route().as_ref().to_owned());
-    let main_logo = leptos::prelude::RwSignal::new(
-        page.main_logo()
-            .map(|value| value.as_ref().to_owned())
-            .unwrap_or_default(),
-    );
-    let organization_contacts = leptos::prelude::RwSignal::new(
-        page.organization_contacts()
-            .map(|value| value.as_ref().to_owned())
-            .unwrap_or_default(),
-    );
-    let organization_name = leptos::prelude::RwSignal::new(
-        page.organization_name()
-            .map(|value| value.as_ref().to_owned())
-            .unwrap_or_default(),
-    );
-    let primary_color = leptos::prelude::RwSignal::new(
-        page.primary_color()
-            .map(|value| value.as_ref().to_owned())
-            .unwrap_or_default(),
-    );
-    let site_name = leptos::prelude::RwSignal::new(page.site_name().as_ref().to_owned());
-    let support_url = leptos::prelude::RwSignal::new(
-        page.support_url()
-            .map(|value| value.as_ref().to_owned())
-            .unwrap_or_default(),
-    );
-    let tab_title = leptos::prelude::RwSignal::new(
-        page.tab_title()
-            .map(|value| value.as_ref().to_owned())
-            .unwrap_or_default(),
-    );
+    let values = crate::shared::AdminSettingsFormValues::from(&page);
+    let default_route = leptos::prelude::RwSignal::new(values.default_route().as_ref().to_owned());
+    let main_logo = leptos::prelude::RwSignal::new(values.main_logo().as_ref().to_owned());
+    let organization_contacts =
+        leptos::prelude::RwSignal::new(values.organization_contacts().as_ref().to_owned());
+    let organization_name =
+        leptos::prelude::RwSignal::new(values.organization_name().as_ref().to_owned());
+    let primary_color = leptos::prelude::RwSignal::new(values.primary_color().as_ref().to_owned());
+    let site_name = leptos::prelude::RwSignal::new(values.site_name().as_ref().to_owned());
+    let support_url = leptos::prelude::RwSignal::new(values.support_url().as_ref().to_owned());
+    let tab_title = leptos::prelude::RwSignal::new(values.tab_title().as_ref().to_owned());
     leptos::view! {
         <section class="settings-grid" data-renderer="csr"><article class="settings-card"><form class="settings-form" on:submit=move |event| {
             event.prevent_default();
@@ -929,14 +891,14 @@ fn AdminSettingsView(
                 reload_after(AdminMutationMethod::Patch, path, server_admin_contract::AdminUpdateSettingsReq::new(Some(request_default_route), request_main_logo, request_organization_contacts, request_organization_name, request_primary_color, Some(request_site_name), request_support_url, request_tab_title, request_clear));
             }
         }>
-            <label><span>"Default route"</span><input disabled=!can_update value=page.default_admin_route().as_ref().to_owned() on:input=move |event| leptos::prelude::Set::set(&default_route, leptos::prelude::event_target_value(&event)) /></label>
-            <label><span>"Site name"</span><input disabled=!can_update value=page.site_name().as_ref().to_owned() on:input=move |event| leptos::prelude::Set::set(&site_name, leptos::prelude::event_target_value(&event)) /></label>
-            <label><span>"Tab title"</span><input disabled=!can_update value=page.tab_title().map(|value| value.as_ref().to_owned()).unwrap_or_default() on:input=move |event| leptos::prelude::Set::set(&tab_title, leptos::prelude::event_target_value(&event)) /></label>
-            <label><span>"Organization"</span><input disabled=!can_update value=page.organization_name().map(|value| value.as_ref().to_owned()).unwrap_or_default() on:input=move |event| leptos::prelude::Set::set(&organization_name, leptos::prelude::event_target_value(&event)) /></label>
-            <label><span>"Contacts"</span><input disabled=!can_update value=page.organization_contacts().map(|value| value.as_ref().to_owned()).unwrap_or_default() on:input=move |event| leptos::prelude::Set::set(&organization_contacts, leptos::prelude::event_target_value(&event)) /></label>
-            <label><span>"Support URL"</span><input disabled=!can_update value=page.support_url().map(|value| value.as_ref().to_owned()).unwrap_or_default() on:input=move |event| leptos::prelude::Set::set(&support_url, leptos::prelude::event_target_value(&event)) /></label>
-            <label><span>"Primary color"</span><input disabled=!can_update value=page.primary_color().map(|value| value.as_ref().to_owned()).unwrap_or_default() on:input=move |event| leptos::prelude::Set::set(&primary_color, leptos::prelude::event_target_value(&event)) /></label>
-            <label><span>"Main logo"</span><input disabled=!can_update value=page.main_logo().map(|value| value.as_ref().to_owned()).unwrap_or_default() on:input=move |event| leptos::prelude::Set::set(&main_logo, leptos::prelude::event_target_value(&event)) /></label>
+            <label><span>"Default route"</span><input disabled=!can_update value=leptos::prelude::Get::get(&default_route) on:input=move |event| leptos::prelude::Set::set(&default_route, leptos::prelude::event_target_value(&event)) /></label>
+            <label><span>"Site name"</span><input disabled=!can_update value=leptos::prelude::Get::get(&site_name) on:input=move |event| leptos::prelude::Set::set(&site_name, leptos::prelude::event_target_value(&event)) /></label>
+            <label><span>"Tab title"</span><input disabled=!can_update value=leptos::prelude::Get::get(&tab_title) on:input=move |event| leptos::prelude::Set::set(&tab_title, leptos::prelude::event_target_value(&event)) /></label>
+            <label><span>"Organization"</span><input disabled=!can_update value=leptos::prelude::Get::get(&organization_name) on:input=move |event| leptos::prelude::Set::set(&organization_name, leptos::prelude::event_target_value(&event)) /></label>
+            <label><span>"Contacts"</span><input disabled=!can_update value=leptos::prelude::Get::get(&organization_contacts) on:input=move |event| leptos::prelude::Set::set(&organization_contacts, leptos::prelude::event_target_value(&event)) /></label>
+            <label><span>"Support URL"</span><input disabled=!can_update value=leptos::prelude::Get::get(&support_url) on:input=move |event| leptos::prelude::Set::set(&support_url, leptos::prelude::event_target_value(&event)) /></label>
+            <label><span>"Primary color"</span><input disabled=!can_update value=leptos::prelude::Get::get(&primary_color) on:input=move |event| leptos::prelude::Set::set(&primary_color, leptos::prelude::event_target_value(&event)) /></label>
+            <label><span>"Main logo"</span><input disabled=!can_update value=leptos::prelude::Get::get(&main_logo) on:input=move |event| leptos::prelude::Set::set(&main_logo, leptos::prelude::event_target_value(&event)) /></label>
             <button type="submit" disabled=!can_update>"Save settings"</button>
         </form></article></section>
     }
@@ -982,7 +944,7 @@ fn AdminNav(admin: server_admin_contract::AuthenticatedAdmin) -> impl leptos::pr
 #[leptos::component]
 fn AdminApp() -> impl leptos::prelude::IntoView {
     let query_result = AdminCsrQuery::from_location();
-    let page_result = AdminCsrPage::from_location();
+    let page_result = csr_page_from_location();
     let initial_state = match (&page_result, &query_result) {
         (Ok(_page), Ok(_query)) => AdminLoadState::Loading,
         (Err(error), _) | (_, Err(error)) => AdminLoadState::Error(error.clone()),

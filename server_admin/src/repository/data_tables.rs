@@ -2,7 +2,7 @@
 
 fn data_columns(
     table: server_admin_contract::AdminDataTable,
-    column_names: crate::StdAdminStrRef<'_>,
+    column_names: server_admin_contract::AdminDataColumnsCsvRef<'_>,
 ) -> Result<server_admin_contract::AdminDataColumns, super::AdminRepositoryError> {
     let generated_fields = crate::generated_tables::AdminGeneratedTable::for_data_table(table)
         .map(crate::generated_tables::AdminGeneratedTable::field_contracts);
@@ -48,28 +48,64 @@ fn data_columns(
         .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)
 }
 
+fn base_sql(
+    table: server_admin_contract::AdminDataTable,
+) -> Result<(crate::StdAdminString, crate::StdAdminString), super::AdminRepositoryError> {
+    let spec = table.spec();
+    let table_name = table.to_string();
+    let mut count = str_constants::SERVER_ADMIN_DATA_COUNT_PREFIX.to_owned();
+    count.push_str(table_name.as_str());
+    let mut data = spec.columns().get().split(',').enumerate().fold(
+        str_constants::SERVER_ADMIN_DATA_SELECT_ARRAY_PREFIX.to_owned(),
+        |mut sql, (index, column)| {
+            if index > 0usize {
+                sql.push_str(str_constants::TEXT_ALT_7);
+            }
+            sql.push_str(str_constants::SERVER_ADMIN_DATA_SELECT_COLUMN_PREFIX);
+            sql.push_str(column);
+            sql.push_str(str_constants::SERVER_ADMIN_DATA_SELECT_COLUMN_SUFFIX);
+            sql
+        },
+    );
+    data.push_str(str_constants::SERVER_ADMIN_DATA_SELECT_FROM);
+    data.push_str(table_name.as_str());
+    data.push_str(str_constants::SERVER_ADMIN_FILTER_ORDER_BY_SEPARATOR);
+    data.push_str(spec.order().get());
+    data.push_str(str_constants::SERVER_ADMIN_FILTER_LIMIT_SEPARATOR);
+    Ok((
+        crate::StdAdminString::try_from(count)
+            .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+        crate::StdAdminString::try_from(data)
+            .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+    ))
+}
+
 #[derive(Clone, newtype::FromInner)]
-struct DataPermissionsFlt(crate::generated_tables::StdOptionalOptionalAdminPermissionsWhereMany);
+pub(crate) struct DataPermissionsFlt(
+    crate::generated_tables::StdOptionalOptionalAdminPermissionsWhereMany,
+);
 #[derive(Clone, newtype::FromInner)]
-struct DataRolePermissionsFlt(
+pub(crate) struct DataRolePermissionsFlt(
     crate::generated_tables::StdOptionalOptionalAdminRolePermissionsWhereMany,
 );
 #[derive(Clone, newtype::FromInner)]
-struct DataRolesFlt(crate::generated_tables::StdOptionalOptionalAdminRolesWhereMany);
+pub(crate) struct DataRolesFlt(crate::generated_tables::StdOptionalOptionalAdminRolesWhereMany);
 #[derive(Clone, newtype::FromInner)]
-struct DataSystemSettingsFlt(
+pub(crate) struct DataSystemSettingsFlt(
     crate::generated_tables::StdOptionalOptionalAdminSystemSettingsWhereMany,
 );
 #[derive(Clone, newtype::FromInner)]
-struct DataUserRolesFlt(crate::generated_tables::StdOptionalOptionalAdminUserRolesWhereMany);
+pub(crate) struct DataUserRolesFlt(
+    crate::generated_tables::StdOptionalOptionalAdminUserRolesWhereMany,
+);
 #[derive(Clone, newtype::FromInner)]
-struct DataUsersFlt(crate::generated_tables::StdOptionalOptionalAdminUsersWhereMany);
+pub(crate) struct DataUsersFlt(crate::generated_tables::StdOptionalOptionalAdminUsersWhereMany);
 #[derive(newtype::AsRefStr, newtype::BoundedString)]
 #[bounded_string(max = 1_048_576usize)]
 struct DataFltJson(String);
 
 #[derive(Clone)]
-enum DataFlt {
+pub(crate) enum DataFlt {
     Permissions(DataPermissionsFlt),
     RolePermissions(DataRolePermissionsFlt),
     Roles(DataRolesFlt),
@@ -327,61 +363,10 @@ fn data_filter(
     let Some(payload_wrapper) = filter_payload(table, query)? else {
         return Ok(None);
     };
-    let invalid = |_error| super::AdminRepositoryError::InvalidStoredValue;
-    match table {
-        server_admin_contract::AdminDataTable::Permissions => serde_json::from_str::<
-            crate::generated_tables::StdOptionalOptionalAdminPermissionsWhereMany,
-        >(payload_wrapper.as_ref())
-        .map(DataPermissionsFlt::from)
-        .map(DataFlt::Permissions)
+    crate::generated_tables::AdminGeneratedTable::for_data_table(table)
+        .ok_or(super::AdminRepositoryError::InvalidStoredValue)?
+        .parse_filter(crate::StdAdminStrRef::from(payload_wrapper.as_ref()))
         .map(Some)
-        .map_err(invalid),
-        server_admin_contract::AdminDataTable::RolePermissions => {
-            serde_json::from_str::<
-                crate::generated_tables::StdOptionalOptionalAdminRolePermissionsWhereMany,
-            >(payload_wrapper.as_ref())
-            .map(DataRolePermissionsFlt::from)
-            .map(DataFlt::RolePermissions)
-            .map(Some)
-            .map_err(invalid)
-        }
-        server_admin_contract::AdminDataTable::Roles => serde_json::from_str::<
-            crate::generated_tables::StdOptionalOptionalAdminRolesWhereMany,
-        >(payload_wrapper.as_ref())
-        .map(DataRolesFlt::from)
-        .map(DataFlt::Roles)
-        .map(Some)
-        .map_err(invalid),
-        server_admin_contract::AdminDataTable::SystemSettings => serde_json::from_str::<
-            crate::generated_tables::StdOptionalOptionalAdminSystemSettingsWhereMany,
-        >(payload_wrapper.as_ref())
-        .map(DataSystemSettingsFlt::from)
-        .map(DataFlt::SystemSettings)
-        .map(Some)
-        .map_err(invalid),
-        server_admin_contract::AdminDataTable::UserRoles => serde_json::from_str::<
-            crate::generated_tables::StdOptionalOptionalAdminUserRolesWhereMany,
-        >(payload_wrapper.as_ref())
-        .map(DataUserRolesFlt::from)
-        .map(DataFlt::UserRoles)
-        .map(Some)
-        .map_err(invalid),
-        server_admin_contract::AdminDataTable::Users => serde_json::from_str::<
-            crate::generated_tables::StdOptionalOptionalAdminUsersWhereMany,
-        >(payload_wrapper.as_ref())
-        .map(DataUsersFlt::from)
-        .map(DataFlt::Users)
-        .map(Some)
-        .map_err(invalid),
-        server_admin_contract::AdminDataTable::AccessSessions
-        | server_admin_contract::AdminDataTable::AuditLog
-        | server_admin_contract::AdminDataTable::CleanupStatus
-        | server_admin_contract::AdminDataTable::LoginAttempts
-        | server_admin_contract::AdminDataTable::RateLimits
-        | server_admin_contract::AdminDataTable::RefreshTokens => {
-            Err(super::AdminRepositoryError::InvalidStoredValue)
-        }
-    }
 }
 
 fn filtered_sql(
@@ -423,69 +408,9 @@ pub(crate) async fn read(
     table: server_admin_contract::AdminDataTable,
     query: &server_admin_contract::AdminDataTableQuery,
 ) -> Result<server_admin_contract::AdminDataTableView, super::AdminRepositoryError> {
-    let (column_names, base_count_sql, base_sql) = match table {
-        server_admin_contract::AdminDataTable::AccessSessions => (
-            str_constants::SERVER_ADMIN_DATA_SESSION_COLUMNS,
-            str_constants::SERVER_ADMIN_DATA_COUNT_ACCESS_SESSIONS_SQL,
-            str_constants::SERVER_ADMIN_DATA_ACCESS_SESSIONS_SQL,
-        ),
-        server_admin_contract::AdminDataTable::AuditLog => (
-            str_constants::SERVER_ADMIN_DATA_AUDIT_LOG_COLUMNS,
-            str_constants::SERVER_ADMIN_DATA_COUNT_AUDIT_LOG_SQL,
-            str_constants::SERVER_ADMIN_DATA_AUDIT_LOG_SQL,
-        ),
-        server_admin_contract::AdminDataTable::CleanupStatus => (
-            str_constants::SERVER_ADMIN_DATA_CLEANUP_STATUS_COLUMNS,
-            str_constants::SERVER_ADMIN_DATA_COUNT_CLEANUP_STATUS_SQL,
-            str_constants::SERVER_ADMIN_DATA_CLEANUP_STATUS_SQL,
-        ),
-        server_admin_contract::AdminDataTable::LoginAttempts => (
-            str_constants::SERVER_ADMIN_DATA_LOGIN_ATTEMPTS_COLUMNS,
-            str_constants::SERVER_ADMIN_DATA_COUNT_LOGIN_ATTEMPTS_SQL,
-            str_constants::SERVER_ADMIN_DATA_LOGIN_ATTEMPTS_SQL,
-        ),
-        server_admin_contract::AdminDataTable::Permissions => (
-            str_constants::SERVER_ADMIN_DATA_PERMISSIONS_COLUMNS,
-            str_constants::SERVER_ADMIN_DATA_COUNT_PERMISSIONS_SQL,
-            str_constants::SERVER_ADMIN_DATA_PERMISSIONS_SQL,
-        ),
-        server_admin_contract::AdminDataTable::RateLimits => (
-            str_constants::SERVER_ADMIN_DATA_RATE_LIMITS_COLUMNS,
-            str_constants::SERVER_ADMIN_DATA_COUNT_RATE_LIMITS_SQL,
-            str_constants::SERVER_ADMIN_DATA_RATE_LIMITS_SQL,
-        ),
-        server_admin_contract::AdminDataTable::RefreshTokens => (
-            str_constants::SERVER_ADMIN_DATA_SESSION_COLUMNS,
-            str_constants::SERVER_ADMIN_DATA_COUNT_REFRESH_TOKENS_SQL,
-            str_constants::SERVER_ADMIN_DATA_REFRESH_TOKENS_SQL,
-        ),
-        server_admin_contract::AdminDataTable::RolePermissions => (
-            str_constants::SERVER_ADMIN_DATA_ROLE_PERMISSIONS_COLUMNS,
-            str_constants::SERVER_ADMIN_DATA_COUNT_ROLE_PERMISSIONS_SQL,
-            str_constants::SERVER_ADMIN_DATA_ROLE_PERMISSIONS_SQL,
-        ),
-        server_admin_contract::AdminDataTable::Roles => (
-            str_constants::SERVER_ADMIN_DATA_ROLES_COLUMNS,
-            str_constants::SERVER_ADMIN_DATA_COUNT_ROLES_SQL,
-            str_constants::SERVER_ADMIN_DATA_ROLES_SQL,
-        ),
-        server_admin_contract::AdminDataTable::SystemSettings => (
-            str_constants::SERVER_ADMIN_DATA_SYSTEM_SETTINGS_COLUMNS,
-            str_constants::SERVER_ADMIN_DATA_COUNT_SYSTEM_SETTINGS_SQL,
-            str_constants::SERVER_ADMIN_DATA_SYSTEM_SETTINGS_SQL,
-        ),
-        server_admin_contract::AdminDataTable::UserRoles => (
-            str_constants::SERVER_ADMIN_DATA_USER_ROLES_COLUMNS,
-            str_constants::SERVER_ADMIN_DATA_COUNT_USER_ROLES_SQL,
-            str_constants::SERVER_ADMIN_DATA_USER_ROLES_SQL,
-        ),
-        server_admin_contract::AdminDataTable::Users => (
-            str_constants::SERVER_ADMIN_DATA_USERS_COLUMNS,
-            str_constants::SELECT_COUNT_ASTERISK_FROM_ADMIN_USERS,
-            str_constants::SERVER_ADMIN_DATA_USERS_SQL,
-        ),
-    };
-    let columns = data_columns(table, crate::StdAdminStrRef::from(column_names))?;
+    let spec = table.spec();
+    let columns = data_columns(table, spec.columns())?;
+    let (base_count_sql, base_sql) = base_sql(table)?;
     let filter = data_filter(table, query.filter())?;
     let mut increment = pg_crud_common::QueryPartIncrement::from(0u64);
     let fragment = filter
@@ -496,16 +421,16 @@ pub(crate) async fn read(
     let (count_sql, sql) = fragment.as_ref().map_or_else(
         || {
             Ok((
-                crate::StdAdminString::try_from(base_count_sql.to_owned())
+                crate::StdAdminString::try_from(base_count_sql.as_ref().to_owned())
                     .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
-                crate::StdAdminString::try_from(base_sql.to_owned())
+                crate::StdAdminString::try_from(base_sql.as_ref().to_owned())
                     .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
             ))
         },
         |filter_fragment| {
             filtered_sql(
-                crate::StdAdminStrRef::from(base_count_sql),
-                crate::StdAdminStrRef::from(base_sql),
+                crate::StdAdminStrRef::from(base_count_sql.as_ref().as_str()),
+                crate::StdAdminStrRef::from(base_sql.as_ref().as_str()),
                 filter_fragment,
                 increment,
             )
@@ -606,7 +531,9 @@ mod tests {
     fn generated_table_fields_supply_client_column_metadata() {
         let columns = super::data_columns(
             server_admin_contract::AdminDataTable::Users,
-            crate::StdAdminStrRef::from(str_constants::SERVER_ADMIN_DATA_USERS_COLUMNS),
+            server_admin_contract::AdminDataTable::Users
+                .spec()
+                .columns(),
         )
         .expect("f3c897af");
         let id = columns
@@ -676,9 +603,11 @@ mod tests {
             pg_crud_common::QueryPartFragment::try_from(String::from("where login = $1"))
                 .expect("45d292b8");
 
+        let (base_count, base_data) =
+            super::base_sql(server_admin_contract::AdminDataTable::Users).expect("44c43299");
         let (_count, data) = super::filtered_sql(
-            crate::StdAdminStrRef::from(str_constants::SELECT_COUNT_ASTERISK_FROM_ADMIN_USERS),
-            crate::StdAdminStrRef::from(str_constants::SERVER_ADMIN_DATA_USERS_SQL),
+            crate::StdAdminStrRef::from(base_count.as_ref().as_str()),
+            crate::StdAdminStrRef::from(base_data.as_ref().as_str()),
             &fragment,
             pg_crud_common::QueryPartIncrement::from(1u64),
         )
@@ -686,5 +615,29 @@ mod tests {
 
         assert!(data.as_ref().contains("where login = $1"));
         assert!(data.as_ref().contains("LIMIT $2 OFFSET $3"));
+    }
+
+    #[test]
+    #[allow(clippy::needless_for_each)] // iterator form is required by the workspace no-for-loop policy
+    fn table_spec_generates_bounded_projection_and_count_sql_for_every_table() {
+        server_admin_contract::AdminDataTable::ALL
+            .into_iter()
+            .for_each(|table| {
+                let (count, data) = super::base_sql(table).expect("5f714b28");
+                let table_name = table.to_string();
+                assert!(count.as_ref().contains(table_name.as_str()));
+                assert!(data.as_ref().contains(table_name.as_str()));
+                table.spec().columns().get().split(',').for_each(|column| {
+                    assert!(data.as_ref().contains(column));
+                });
+                assert!(
+                    data.as_ref()
+                        .contains(str_constants::SERVER_ADMIN_DATA_SELECT_COLUMN_SUFFIX)
+                );
+                assert!(
+                    data.as_ref()
+                        .ends_with(str_constants::SERVER_ADMIN_FILTER_LIMIT_SEPARATOR)
+                );
+            });
     }
 }

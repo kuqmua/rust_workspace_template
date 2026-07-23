@@ -136,29 +136,16 @@ fn mk_api_routes(
     metrics_handle: MetricsExporterPrometheusHandle,
 ) -> AxumApiRoutes {
     let generated_admin_auth_state = admin_auth_state.clone();
-    let generated_table_routes =
-        server_admin::generated_tables::AdminRoles::routes(std::sync::Arc::<
-            server_app_state::ServerAppState<'static>,
-        >::clone(app_state.get()))
-        .merge(
-            server_admin::generated_tables::AdminRolePermissions::routes(std::sync::Arc::<
-                server_app_state::ServerAppState<'static>,
-            >::clone(
-                app_state.get()
-            )),
-        )
-        .merge(server_admin::generated_tables::AdminPermissions::routes(
-            std::sync::Arc::<server_app_state::ServerAppState<'static>>::clone(app_state.get()),
-        ))
-        .merge(server_admin::generated_tables::AdminSystemSettings::routes(
-            std::sync::Arc::<server_app_state::ServerAppState<'static>>::clone(app_state.get()),
-        ))
-        .merge(server_admin::generated_tables::AdminUsers::routes(
-            std::sync::Arc::<server_app_state::ServerAppState<'static>>::clone(app_state.get()),
-        ))
-        .merge(server_admin::generated_tables::AdminUserRoles::routes(
-            std::sync::Arc::<server_app_state::ServerAppState<'static>>::clone(app_state.get()),
-        ));
+    let generated_table_logic_state: std::sync::Arc<
+        dyn server_admin::CombinationOfAppStateLogicTraits,
+    > = std::sync::Arc::<server_app_state::ServerAppState<'static>>::clone(app_state.get());
+    let generated_table_state =
+        server_admin::generated_tables::StdSharedAdminGeneratedTableState::from(
+            generated_table_logic_state,
+        );
+    let generated_table_routes = axum::Router::from(
+        server_admin::generated_tables::generated_routes(&generated_table_state),
+    );
     let documented_admin_routes = if *app_state.config.admin_swagger_enabled {
         generated_table_routes.route(
             str_constants::OPENAPI_JSON,

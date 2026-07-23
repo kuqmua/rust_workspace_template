@@ -332,6 +332,60 @@ impl<'value_lt> AdminDataTableStrRef<'value_lt> {
         self.0
     }
 }
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::AsRefInner, newtype::FromInner)]
+pub struct AdminDataColumnsCsvRef<'value_lt>(&'value_lt str);
+impl<'value_lt> AdminDataColumnsCsvRef<'value_lt> {
+    #[must_use]
+    pub const fn get(self) -> &'value_lt str {
+        self.0
+    }
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::AsRefInner, newtype::FromInner)]
+pub struct AdminDataOrderRef<'value_lt>(&'value_lt str);
+impl<'value_lt> AdminDataOrderRef<'value_lt> {
+    #[must_use]
+    pub const fn get(self) -> &'value_lt str {
+        self.0
+    }
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct AdminDataTableSpec {
+    columns: AdminDataColumnsCsvRef<'static>,
+    order: AdminDataOrderRef<'static>,
+    permission: AdminPermission,
+    supports_filters: AdminBool,
+}
+impl AdminDataTableSpec {
+    const fn new(
+        columns: AdminDataColumnsCsvRef<'static>,
+        order: AdminDataOrderRef<'static>,
+        permission: AdminPermission,
+        supports_filters: AdminBool,
+    ) -> Self {
+        Self {
+            columns,
+            order,
+            permission,
+            supports_filters,
+        }
+    }
+    #[must_use]
+    pub const fn columns(self) -> AdminDataColumnsCsvRef<'static> {
+        self.columns
+    }
+    #[must_use]
+    pub const fn order(self) -> AdminDataOrderRef<'static> {
+        self.order
+    }
+    #[must_use]
+    pub const fn permission(self) -> AdminPermission {
+        self.permission
+    }
+    #[must_use]
+    pub const fn supports_filters(self) -> AdminBool {
+        self.supports_filters
+    }
+}
 impl AdminDataTable {
     pub const PG_ORDER: [Self; 12] = [
         Self::Users,
@@ -350,7 +404,7 @@ impl AdminDataTable {
 
     #[must_use]
     pub fn supports_filters(self) -> AdminBool {
-        AdminBool::from(matches!(self, Self::RolePermissions))
+        self.spec().supports_filters()
     }
 
     #[must_use]
@@ -369,20 +423,93 @@ impl AdminDataTable {
     }
 
     #[must_use]
-    pub const fn permission(self) -> AdminPermission {
+    pub fn permission(self) -> AdminPermission {
+        self.spec().permission()
+    }
+
+    #[must_use]
+    pub fn spec(self) -> AdminDataTableSpec {
         match self {
-            Self::AccessSessions => AdminPermission::AccessSessionsRead,
-            Self::AuditLog => AdminPermission::AuditLogRead,
-            Self::CleanupStatus => AdminPermission::CleanupStatusRead,
-            Self::LoginAttempts => AdminPermission::LoginAttemptsRead,
-            Self::Permissions => AdminPermission::PermissionsRead,
-            Self::RateLimits => AdminPermission::RateLimitsRead,
-            Self::RefreshTokens => AdminPermission::RefreshTokensRead,
-            Self::RolePermissions => AdminPermission::RolePermissionsRead,
-            Self::Roles => AdminPermission::RolesRead,
-            Self::SystemSettings => AdminPermission::SystemSettingsRead,
-            Self::UserRoles => AdminPermission::UserRolesRead,
-            Self::Users => AdminPermission::UsersRead,
+            Self::AccessSessions => AdminDataTableSpec::new(
+                AdminDataColumnsCsvRef::from(str_constants::SERVER_ADMIN_DATA_SESSION_COLUMNS),
+                AdminDataOrderRef::from(str_constants::SERVER_ADMIN_DATA_ORDER_CREATED_AT),
+                AdminPermission::AccessSessionsRead,
+                AdminBool::from(false),
+            ),
+            Self::AuditLog => AdminDataTableSpec::new(
+                AdminDataColumnsCsvRef::from(str_constants::SERVER_ADMIN_DATA_AUDIT_LOG_COLUMNS),
+                AdminDataOrderRef::from(str_constants::SERVER_ADMIN_DATA_ORDER_CREATED_AT),
+                AdminPermission::AuditLogRead,
+                AdminBool::from(false),
+            ),
+            Self::CleanupStatus => AdminDataTableSpec::new(
+                AdminDataColumnsCsvRef::from(
+                    str_constants::SERVER_ADMIN_DATA_CLEANUP_STATUS_COLUMNS,
+                ),
+                AdminDataOrderRef::from(str_constants::SERVER_ADMIN_DATA_ORDER_SINGLETON),
+                AdminPermission::CleanupStatusRead,
+                AdminBool::from(false),
+            ),
+            Self::LoginAttempts => AdminDataTableSpec::new(
+                AdminDataColumnsCsvRef::from(
+                    str_constants::SERVER_ADMIN_DATA_LOGIN_ATTEMPTS_COLUMNS,
+                ),
+                AdminDataOrderRef::from(str_constants::SERVER_ADMIN_DATA_ORDER_ATTEMPTED_AT),
+                AdminPermission::LoginAttemptsRead,
+                AdminBool::from(false),
+            ),
+            Self::Permissions => AdminDataTableSpec::new(
+                AdminDataColumnsCsvRef::from(str_constants::SERVER_ADMIN_DATA_PERMISSIONS_COLUMNS),
+                AdminDataOrderRef::from(str_constants::SQL_NAMES_ID),
+                AdminPermission::PermissionsRead,
+                AdminBool::from(false),
+            ),
+            Self::RateLimits => AdminDataTableSpec::new(
+                AdminDataColumnsCsvRef::from(str_constants::SERVER_ADMIN_DATA_RATE_LIMITS_COLUMNS),
+                AdminDataOrderRef::from(str_constants::SERVER_ADMIN_DATA_ORDER_WINDOW),
+                AdminPermission::RateLimitsRead,
+                AdminBool::from(false),
+            ),
+            Self::RefreshTokens => AdminDataTableSpec::new(
+                AdminDataColumnsCsvRef::from(str_constants::SERVER_ADMIN_DATA_SESSION_COLUMNS),
+                AdminDataOrderRef::from(str_constants::SERVER_ADMIN_DATA_ORDER_CREATED_AT),
+                AdminPermission::RefreshTokensRead,
+                AdminBool::from(false),
+            ),
+            Self::RolePermissions => AdminDataTableSpec::new(
+                AdminDataColumnsCsvRef::from(
+                    str_constants::SERVER_ADMIN_DATA_ROLE_PERMISSIONS_COLUMNS,
+                ),
+                AdminDataOrderRef::from(str_constants::SQL_NAMES_ID),
+                AdminPermission::RolePermissionsRead,
+                AdminBool::from(true),
+            ),
+            Self::Roles => AdminDataTableSpec::new(
+                AdminDataColumnsCsvRef::from(str_constants::SERVER_ADMIN_DATA_ROLES_COLUMNS),
+                AdminDataOrderRef::from(str_constants::SQL_NAMES_ID),
+                AdminPermission::RolesRead,
+                AdminBool::from(false),
+            ),
+            Self::SystemSettings => AdminDataTableSpec::new(
+                AdminDataColumnsCsvRef::from(
+                    str_constants::SERVER_ADMIN_DATA_SYSTEM_SETTINGS_COLUMNS,
+                ),
+                AdminDataOrderRef::from(str_constants::SQL_NAMES_ID),
+                AdminPermission::SystemSettingsRead,
+                AdminBool::from(false),
+            ),
+            Self::UserRoles => AdminDataTableSpec::new(
+                AdminDataColumnsCsvRef::from(str_constants::SERVER_ADMIN_DATA_USER_ROLES_COLUMNS),
+                AdminDataOrderRef::from(str_constants::SQL_NAMES_ID),
+                AdminPermission::UserRolesRead,
+                AdminBool::from(false),
+            ),
+            Self::Users => AdminDataTableSpec::new(
+                AdminDataColumnsCsvRef::from(str_constants::SERVER_ADMIN_DATA_USERS_COLUMNS),
+                AdminDataOrderRef::from(str_constants::SQL_NAMES_ID),
+                AdminPermission::UsersRead,
+                AdminBool::from(false),
+            ),
         }
     }
 }
@@ -765,28 +892,79 @@ pub struct AdminBool(bool);
     PartialEq,
     Eq,
     serde::Serialize,
-    serde::Deserialize,
     utoipa::ToSchema,
     newtype::Display,
     newtype::FromInner,
     newtype::IntoInnerFrom,
 )]
-#[serde(from = "u32")]
 pub struct AdminPageOffset(u32);
+struct AdminPageOffsetVisitor;
+impl serde::de::Visitor<'_> for AdminPageOffsetVisitor {
+    type Value = AdminPageOffset;
+    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(str_constants::ADMIN_PAGE_OFFSET_EXPECTING)
+    }
+    fn visit_str<Error>(self, v: &str) -> Result<Self::Value, Error>
+    where
+        Error: serde::de::Error,
+    {
+        v.parse::<u32>()
+            .map(AdminPageOffset::from)
+            .map_err(serde::de::Error::custom)
+    }
+    fn visit_u64<Error>(self, v: u64) -> Result<Self::Value, Error>
+    where
+        Error: serde::de::Error,
+    {
+        u32::try_from(v)
+            .map(AdminPageOffset::from)
+            .map_err(serde::de::Error::custom)
+    }
+}
+impl<'de> serde::Deserialize<'de> for AdminPageOffset {
+    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
+    where
+        Deserializer: serde::Deserializer<'de>,
+    {
+        let value = deserializer.deserialize_any(AdminPageOffsetVisitor)?;
+        Ok(Self::from(u32::from(value)))
+    }
+}
 
 #[derive(
-    Clone,
-    Copy,
-    Debug,
-    PartialEq,
-    Eq,
-    newtype::IntoInnerFrom,
-    serde::Deserialize,
-    serde::Serialize,
-    utoipa::ToSchema,
+    Clone, Copy, Debug, PartialEq, Eq, newtype::IntoInnerFrom, serde::Serialize, utoipa::ToSchema,
 )]
-#[serde(try_from = "u16")]
 pub struct AdminPageLimit(u16);
+struct AdminPageLimitVisitor;
+impl serde::de::Visitor<'_> for AdminPageLimitVisitor {
+    type Value = AdminPageLimit;
+    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(str_constants::ADMIN_PAGE_LIMIT_EXPECTING)
+    }
+    fn visit_str<Error>(self, v: &str) -> Result<Self::Value, Error>
+    where
+        Error: serde::de::Error,
+    {
+        let parsed = v.parse::<u16>().map_err(serde::de::Error::custom)?;
+        AdminPageLimit::try_from(parsed).map_err(serde::de::Error::custom)
+    }
+    fn visit_u64<Error>(self, v: u64) -> Result<Self::Value, Error>
+    where
+        Error: serde::de::Error,
+    {
+        let parsed = u16::try_from(v).map_err(serde::de::Error::custom)?;
+        AdminPageLimit::try_from(parsed).map_err(serde::de::Error::custom)
+    }
+}
+impl<'de> serde::Deserialize<'de> for AdminPageLimit {
+    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
+    where
+        Deserializer: serde::Deserializer<'de>,
+    {
+        let value = deserializer.deserialize_any(AdminPageLimitVisitor)?;
+        Self::try_from(u16::from(value)).map_err(serde::de::Error::custom)
+    }
+}
 struct AdminDefaultPageLimit;
 impl From<AdminDefaultPageLimit> for AdminPageLimit {
     fn from(_value: AdminDefaultPageLimit) -> Self {
@@ -3040,20 +3218,11 @@ impl AdminHtmlAction {
     }
 }
 impl AdminFrontendPath {
-    pub const ALL_PAGES: [Self; 12] = [
-        Self::Root,
-        Self::SignIn,
-        Self::Users,
-        Self::Roles,
-        Self::Sessions,
-        Self::Permissions,
-        Self::Profile,
-        Self::Settings,
-        Self::Tables,
-        Self::Metrics,
-        Self::Version,
-        Self::OpenApi,
-    ];
+    pub fn all_pages() -> impl Iterator<Item = Self> {
+        [Self::Root, Self::SignIn]
+            .into_iter()
+            .chain(AdminPage::specs().iter().map(|spec| spec.frontend_path()))
+    }
     #[must_use]
     pub fn get(self) -> &'static str {
         <&'static str>::from(self)
@@ -3073,6 +3242,7 @@ impl From<AdminDataTable> for AdminDataTableFrontendPath {
 pub enum AdminPage {
     #[page_catalog_page(
         capability = AdminPageCapability::Always,
+        metadata = AdminPageClientMode::CsrTableQuery,
         path = AdminFrontendPath::Users,
         route = AdminRoute::Users,
         title = AdminPageTitle::Users,
@@ -3080,6 +3250,7 @@ pub enum AdminPage {
     Users,
     #[page_catalog_page(
         capability = AdminPageCapability::Always,
+        metadata = AdminPageClientMode::CsrTableQuery,
         path = AdminFrontendPath::Roles,
         route = AdminRoute::Roles,
         title = AdminPageTitle::Roles,
@@ -3087,6 +3258,7 @@ pub enum AdminPage {
     Roles,
     #[page_catalog_page(
         capability = AdminPageCapability::Always,
+        metadata = AdminPageClientMode::CsrTableQuery,
         path = AdminFrontendPath::Permissions,
         route = AdminRoute::Permissions,
         title = AdminPageTitle::Permissions,
@@ -3094,6 +3266,7 @@ pub enum AdminPage {
     Permissions,
     #[page_catalog_page(
         capability = AdminPageCapability::Always,
+        metadata = AdminPageClientMode::Csr,
         path = AdminFrontendPath::Settings,
         route = AdminRoute::Settings,
         title = AdminPageTitle::Settings,
@@ -3101,6 +3274,7 @@ pub enum AdminPage {
     Settings,
     #[page_catalog_page(
         capability = AdminPageCapability::Always,
+        metadata = AdminPageClientMode::Csr,
         path = AdminFrontendPath::Tables,
         route = AdminRoute::DataTables,
         title = AdminPageTitle::Tables,
@@ -3108,6 +3282,7 @@ pub enum AdminPage {
     Tables,
     #[page_catalog_page(
         capability = AdminPageCapability::Always,
+        metadata = AdminPageClientMode::Csr,
         path = AdminFrontendPath::Sessions,
         route = AdminRoute::Sessions,
         title = AdminPageTitle::Sessions,
@@ -3115,6 +3290,7 @@ pub enum AdminPage {
     Sessions,
     #[page_catalog_page(
         capability = AdminPageCapability::Always,
+        metadata = AdminPageClientMode::Ssr,
         path = AdminFrontendPath::Metrics,
         route = AdminRoute::Metrics,
         title = AdminPageTitle::Metrics,
@@ -3122,6 +3298,7 @@ pub enum AdminPage {
     Metrics,
     #[page_catalog_page(
         capability = AdminPageCapability::Always,
+        metadata = AdminPageClientMode::Ssr,
         path = AdminFrontendPath::Version,
         route = AdminRoute::Version,
         title = AdminPageTitle::Version,
@@ -3129,6 +3306,7 @@ pub enum AdminPage {
     Version,
     #[page_catalog_page(
         capability = AdminPageCapability::Always,
+        metadata = AdminPageClientMode::Csr,
         path = AdminFrontendPath::Profile,
         route = AdminRoute::ChangeOwnPassword,
         title = AdminPageTitle::Profile,
@@ -3136,6 +3314,7 @@ pub enum AdminPage {
     Profile,
     #[page_catalog_page(
         capability = AdminPageCapability::Swagger,
+        metadata = AdminPageClientMode::Ssr,
         path = AdminFrontendPath::OpenApi,
         route = AdminRoute::OpenApi,
         title = AdminPageTitle::Api,
@@ -3146,6 +3325,20 @@ pub enum AdminPage {
 pub enum AdminPageCapability {
     Always,
     Swagger,
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum AdminPageClientMode {
+    Csr,
+    CsrTableQuery,
+    Ssr,
+}
+impl AdminPageClientMode {
+    fn supports_csr(self) -> AdminBool {
+        AdminBool::from(matches!(self, Self::Csr | Self::CsrTableQuery))
+    }
+    fn uses_table_query(self) -> AdminBool {
+        AdminBool::from(matches!(self, Self::CsrTableQuery))
+    }
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum AdminPageTitle {
@@ -3163,6 +3356,7 @@ enum AdminPageTitle {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct AdminPageSpec {
     capability: AdminPageCapability,
+    client_mode: AdminPageClientMode,
     page: AdminPage,
     path: AdminFrontendPath,
     route: AdminRoute,
@@ -3171,6 +3365,7 @@ pub struct AdminPageSpec {
 impl AdminPageSpec {
     const fn new(
         capability: AdminPageCapability,
+        client_mode: AdminPageClientMode,
         page: AdminPage,
         path: AdminFrontendPath,
         route: AdminRoute,
@@ -3178,6 +3373,7 @@ impl AdminPageSpec {
     ) -> Self {
         Self {
             capability,
+            client_mode,
             page,
             path,
             route,
@@ -3187,6 +3383,14 @@ impl AdminPageSpec {
     #[must_use]
     pub const fn capability(self) -> AdminPageCapability {
         self.capability
+    }
+    #[must_use]
+    pub const fn client_mode(self) -> AdminPageClientMode {
+        self.client_mode
+    }
+    #[must_use]
+    pub const fn frontend_path(self) -> AdminFrontendPath {
+        self.path
     }
     #[must_use]
     pub const fn page(self) -> AdminPage {
@@ -3237,6 +3441,14 @@ impl AdminPage {
         Self::Version,
     ];
 
+    #[must_use]
+    pub fn supports_csr(self) -> AdminBool {
+        self.spec().client_mode().supports_csr()
+    }
+    #[must_use]
+    pub fn uses_table_query(self) -> AdminBool {
+        self.spec().client_mode().uses_table_query()
+    }
     #[must_use]
     pub fn path(self) -> frontend_contract::ContractStr {
         self.spec().path()
@@ -3560,6 +3772,21 @@ mod tests {
     }
     #[test]
     fn administrator_routes_use_snake_case_segments() {
+        let frontend_paths = super::AdminFrontendPath::all_pages()
+            .map(super::AdminFrontendPath::get)
+            .collect::<Vec<_>>();
+        assert_eq!(
+            frontend_paths.len(),
+            super::AdminPage::specs().len().saturating_add(2usize)
+        );
+        assert_eq!(
+            frontend_paths
+                .iter()
+                .copied()
+                .collect::<std::collections::BTreeSet<_>>()
+                .len(),
+            frontend_paths.len()
+        );
         assert!(
             [
                 super::AdminRoute::Audit,
@@ -3571,11 +3798,7 @@ mod tests {
             .iter()
             .all(|route| !route.path().as_ref().contains('-'))
         );
-        assert!(
-            super::AdminFrontendPath::ALL_PAGES
-                .iter()
-                .all(|path| !path.get().contains('-'))
-        );
+        assert!(frontend_paths.iter().all(|path| !path.contains('-')));
         assert!(
             super::AdminHtmlAction::ALL
                 .iter()
@@ -3718,6 +3941,30 @@ mod tests {
             ]
         );
         assert_eq!(
+            super::AdminPage::all()
+                .filter(|page| bool::from(page.supports_csr()))
+                .collect::<Vec<_>>(),
+            vec![
+                super::AdminPage::Users,
+                super::AdminPage::Roles,
+                super::AdminPage::Permissions,
+                super::AdminPage::Settings,
+                super::AdminPage::Tables,
+                super::AdminPage::Sessions,
+                super::AdminPage::Profile,
+            ]
+        );
+        assert_eq!(
+            super::AdminPage::all()
+                .filter(|page| bool::from(page.uses_table_query()))
+                .collect::<Vec<_>>(),
+            vec![
+                super::AdminPage::Users,
+                super::AdminPage::Roles,
+                super::AdminPage::Permissions,
+            ]
+        );
+        assert_eq!(
             super::AdminPage::NAV_ORDER.map(|page| page.spec().route_name().to_string()),
             [
                 String::from("swagger_ui"),
@@ -3763,6 +4010,20 @@ mod tests {
             ]
         );
         super::AdminDataTable::ALL.into_iter().for_each(|table| {
+            let spec = table.spec();
+            let columns = spec.columns().get().split(',').collect::<Vec<_>>();
+            assert!(!columns.is_empty());
+            assert_eq!(
+                columns
+                    .iter()
+                    .copied()
+                    .collect::<std::collections::BTreeSet<_>>()
+                    .len(),
+                columns.len()
+            );
+            assert!(!spec.order().get().is_empty());
+            assert_eq!(spec.permission(), table.permission());
+            assert_eq!(spec.supports_filters(), table.supports_filters());
             assert_eq!(
                 super::AdminDataTable::try_from(table.to_string()).expect("0596134b"),
                 table
@@ -3805,6 +4066,19 @@ mod tests {
             u16::from(serde_json::from_str::<super::AdminPageLimit>("100").expect("d4d7c99a")),
             100u16
         );
+    }
+    #[test]
+    fn pagination_values_deserialize_from_url_query_strings() {
+        let limit = <super::AdminPageLimit as serde::Deserialize>::deserialize(
+            serde::de::value::StrDeserializer::<serde::de::value::Error>::new("100"),
+        )
+        .expect("a6aa5b42");
+        let offset = <super::AdminPageOffset as serde::Deserialize>::deserialize(
+            serde::de::value::StrDeserializer::<serde::de::value::Error>::new("42"),
+        )
+        .expect("799e47b0");
+        assert_eq!(u16::from(limit), 100u16);
+        assert_eq!(u32::from(offset), 42u32);
     }
     #[test]
     fn administrator_identifiers_require_positive_database_values() {

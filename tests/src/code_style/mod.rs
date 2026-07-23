@@ -1,5 +1,6 @@
 mod cargo_policy;
 mod ci_policy;
+mod deployment_policy;
 mod domain_type_policy;
 mod lint_sync;
 mod reuse_policy;

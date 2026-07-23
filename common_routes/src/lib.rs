@@ -384,6 +384,12 @@ pub fn common_routes(app_state_b9fc2d94: StdArcCommonRoutesAppState) -> AxumComm
 #[allow(clippy::arbitrary_source_item_ordering)] // fixtures remain adjacent to the tests that exercise their route state
 mod tests {
     #[test]
+    fn repository_owned_common_routes_use_snake_case_segments() {
+        assert!(!str_constants::COMMON_ROUTES_SWAGGER_UI.contains('-'));
+        assert!(!str_constants::COMMON_ROUTES_GIT_INFO.contains('-'));
+    }
+
+    #[test]
     fn health_reports_distinguish_liveness_and_dependency_readiness() {
         let live = super::HealthReport::liveness();
         assert_eq!(live.status(), super::HealthStatus::Ok);

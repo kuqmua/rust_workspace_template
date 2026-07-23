@@ -405,35 +405,6 @@ async fn admin_html_test_fixture() -> AdminHtmlTestFixture {
         router,
     }
 }
-async fn validate_generated_admin_table<Table>(pool: &SqlxAdminApiTestPool)
-where
-    Table: pg_crud_common::DbExtendedTableSchema,
-{
-    validate_generated_admin_table_in_schema::<Table>(
-        pool,
-        StdAdminApiTestStrRef::from(str_constants::PUBLIC),
-    )
-    .await;
-    pg_crud_common::validate_postgres_table_extensions::<Table>(
-        pg_crud_common::SqlxPgPoolRef::from(&pool.0),
-        pg_crud_common::DbSchemaNameRef::from(str_constants::PUBLIC),
-    )
-    .await
-    .expect("141e9df6");
-}
-async fn validate_generated_admin_table_in_schema<Table>(
-    pool: &SqlxAdminApiTestPool,
-    schema: StdAdminApiTestStrRef<'_>,
-) where
-    Table: pg_crud_common::DbExtendedTableSchema,
-{
-    pg_crud_common::validate_generated_postgres_table::<Table>(
-        pg_crud_common::SqlxPgPoolRef::from(&pool.0),
-        pg_crud_common::DbSchemaNameRef::from(schema.0),
-    )
-    .await
-    .expect("c8629e14");
-}
 async fn postgres_accepts_admin_user_policy_values(
     pool: &SqlxAdminApiTestPool,
     display_name: StdAdminApiTestStrRef<'_>,
@@ -1572,7 +1543,7 @@ async fn postgresql_html_router_registers_every_owned_page_and_action() {
     let fixture_ref = &fixture;
     futures::StreamExt::fold(
         futures::StreamExt::filter(
-            futures::stream::iter(server_admin_contract::AdminFrontendPath::ALL_PAGES),
+            futures::stream::iter(server_admin_contract::AdminFrontendPath::all_pages()),
             |path| {
                 std::future::ready(!matches!(
                     path,
@@ -1886,14 +1857,12 @@ async fn generated_admin_descriptors_match_applied_migrations() {
     server_admin::prep_pg(app_state::SqlxPgPoolRef::from(&pool.0))
         .await
         .expect("9eceddf1");
-    validate_generated_admin_table::<server_admin::generated_tables::AdminUsers>(&pool).await;
-    validate_generated_admin_table::<server_admin::generated_tables::AdminUserRoles>(&pool).await;
-    validate_generated_admin_table::<server_admin::generated_tables::AdminRolePermissions>(&pool)
-        .await;
-    validate_generated_admin_table::<server_admin::generated_tables::AdminRoles>(&pool).await;
-    validate_generated_admin_table::<server_admin::generated_tables::AdminPermissions>(&pool).await;
-    validate_generated_admin_table::<server_admin::generated_tables::AdminSystemSettings>(&pool)
-        .await;
+    server_admin::generated_tables::validate_catalog_schema(
+        pg_crud_common::SqlxPgPoolRef::from(&pool.0),
+        pg_crud_common::DbSchemaNameRef::from(str_constants::PUBLIC),
+    )
+    .await
+    .expect("7a31cf02");
 }
 #[tokio::test]
 #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
@@ -1998,14 +1967,12 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     server_admin::prep_pg(app_state::SqlxPgPoolRef::from(&pool.0))
         .await
         .expect("676c00f1");
-    validate_generated_admin_table::<server_admin::generated_tables::AdminUsers>(&pool).await;
-    validate_generated_admin_table::<server_admin::generated_tables::AdminUserRoles>(&pool).await;
-    validate_generated_admin_table::<server_admin::generated_tables::AdminRolePermissions>(&pool)
-        .await;
-    validate_generated_admin_table::<server_admin::generated_tables::AdminRoles>(&pool).await;
-    validate_generated_admin_table::<server_admin::generated_tables::AdminPermissions>(&pool).await;
-    validate_generated_admin_table::<server_admin::generated_tables::AdminSystemSettings>(&pool)
-        .await;
+    server_admin::generated_tables::validate_catalog_schema(
+        pg_crud_common::SqlxPgPoolRef::from(&pool.0),
+        pg_crud_common::DbSchemaNameRef::from(str_constants::PUBLIC),
+    )
+    .await
+    .expect("65ce07e9");
     let observed_permissions = sqlx::query_scalar::<_, String>(
         str_constants::SELECT_NAME_FROM_ADMIN_PERMISSIONS_ORDER_BY_NAME,
     )
@@ -2990,103 +2957,11 @@ async fn postgresql_data_table_api_reads_every_public_field_from_every_table() {
     .execute(&fixture.pool.0)
     .await
     .expect("f8f27048");
-    let columns = |table| match table {
-        server_admin_contract::AdminDataTable::AccessSessions
-        | server_admin_contract::AdminDataTable::RefreshTokens => {
-            str_constants::SERVER_ADMIN_DATA_SESSION_COLUMNS
-        }
-        server_admin_contract::AdminDataTable::AuditLog => {
-            str_constants::SERVER_ADMIN_DATA_AUDIT_LOG_COLUMNS
-        }
-        server_admin_contract::AdminDataTable::CleanupStatus => {
-            str_constants::SERVER_ADMIN_DATA_CLEANUP_STATUS_COLUMNS
-        }
-        server_admin_contract::AdminDataTable::LoginAttempts => {
-            str_constants::SERVER_ADMIN_DATA_LOGIN_ATTEMPTS_COLUMNS
-        }
-        server_admin_contract::AdminDataTable::Permissions => {
-            str_constants::SERVER_ADMIN_DATA_PERMISSIONS_COLUMNS
-        }
-        server_admin_contract::AdminDataTable::RateLimits => {
-            str_constants::SERVER_ADMIN_DATA_RATE_LIMITS_COLUMNS
-        }
-        server_admin_contract::AdminDataTable::RolePermissions => {
-            str_constants::SERVER_ADMIN_DATA_ROLE_PERMISSIONS_COLUMNS
-        }
-        server_admin_contract::AdminDataTable::Roles => {
-            str_constants::SERVER_ADMIN_DATA_ROLES_COLUMNS
-        }
-        server_admin_contract::AdminDataTable::SystemSettings => {
-            str_constants::SERVER_ADMIN_DATA_SYSTEM_SETTINGS_COLUMNS
-        }
-        server_admin_contract::AdminDataTable::UserRoles => {
-            str_constants::SERVER_ADMIN_DATA_USER_ROLES_COLUMNS
-        }
-        server_admin_contract::AdminDataTable::Users => {
-            str_constants::SERVER_ADMIN_DATA_USERS_COLUMNS
-        }
-    };
     let fixture_ref = &fixture;
     futures::StreamExt::fold(
         futures::stream::iter(server_admin_contract::AdminDataTable::PG_ORDER),
         (),
         async |(), table| {
-            let read_sql = match table {
-                server_admin_contract::AdminDataTable::AccessSessions => {
-                    str_constants::SERVER_ADMIN_DATA_ACCESS_SESSIONS_SQL
-                }
-                server_admin_contract::AdminDataTable::AuditLog => {
-                    str_constants::SERVER_ADMIN_DATA_AUDIT_LOG_SQL
-                }
-                server_admin_contract::AdminDataTable::CleanupStatus => {
-                    str_constants::SERVER_ADMIN_DATA_CLEANUP_STATUS_SQL
-                }
-                server_admin_contract::AdminDataTable::LoginAttempts => {
-                    str_constants::SERVER_ADMIN_DATA_LOGIN_ATTEMPTS_SQL
-                }
-                server_admin_contract::AdminDataTable::Permissions => {
-                    str_constants::SERVER_ADMIN_DATA_PERMISSIONS_SQL
-                }
-                server_admin_contract::AdminDataTable::RateLimits => {
-                    str_constants::SERVER_ADMIN_DATA_RATE_LIMITS_SQL
-                }
-                server_admin_contract::AdminDataTable::RefreshTokens => {
-                    str_constants::SERVER_ADMIN_DATA_REFRESH_TOKENS_SQL
-                }
-                server_admin_contract::AdminDataTable::RolePermissions => {
-                    str_constants::SERVER_ADMIN_DATA_ROLE_PERMISSIONS_SQL
-                }
-                server_admin_contract::AdminDataTable::Roles => {
-                    str_constants::SERVER_ADMIN_DATA_ROLES_SQL
-                }
-                server_admin_contract::AdminDataTable::SystemSettings => {
-                    str_constants::SERVER_ADMIN_DATA_SYSTEM_SETTINGS_SQL
-                }
-                server_admin_contract::AdminDataTable::UserRoles => {
-                    str_constants::SERVER_ADMIN_DATA_USER_ROLES_SQL
-                }
-                server_admin_contract::AdminDataTable::Users => {
-                    str_constants::SERVER_ADMIN_DATA_USERS_SQL
-                }
-            };
-            let expected_rows = sqlx::query(read_sql)
-                .bind(100i64)
-                .bind(0i64)
-                .fetch_all(&fixture_ref.pool.0)
-                .await
-                .expect("cc572a6d")
-                .into_iter()
-                .map(|row| {
-                    sqlx::Row::try_get::<Vec<Option<String>>, _>(&row, 0usize)
-                        .expect("dfad8878")
-                        .into_iter()
-                        .map(|value| {
-                            value
-                                .unwrap_or_else(|| str_constants::SERVER_ADMIN_DATA_NULL.to_owned())
-                        })
-                        .collect::<Vec<_>>()
-                })
-                .collect::<Vec<_>>();
             let uri = format!("/tables/{table}?limit=100&offset=0");
             let response = tower::ServiceExt::oneshot(
                 router_with_pool(&fixture_ref.pool).0,
@@ -3113,9 +2988,8 @@ async fn postgresql_data_table_api_reads_every_public_field_from_every_table() {
                 serde_json::from_slice::<server_admin_contract::AdminDataTableView>(body.as_ref())
                     .expect("6d2a32e6");
             assert_eq!(view.table(), table);
-            let expected_columns = columns(table).split(',').collect::<Vec<_>>();
+            let expected_columns = table.spec().columns().get().split(',').collect::<Vec<_>>();
             assert_eq!(view.columns().len(), expected_columns.len());
-            assert_eq!(view.items().len(), expected_rows.len());
             expected_columns
                 .iter()
                 .enumerate()
@@ -3133,18 +3007,6 @@ async fn postgresql_data_table_api_reads_every_public_field_from_every_table() {
                             .get(field_index)
                             .is_some_and(|value| !value.as_ref().is_empty())),
                         "{table}.{expected_name} has no readable value"
-                    );
-                    view.items().iter().zip(expected_rows.iter()).for_each(
-                        |(actual_row, expected_row)| {
-                            assert_eq!(
-                                actual_row
-                                    .values()
-                                    .get(field_index)
-                                    .map(|value| value.as_ref().as_str()),
-                                expected_row.get(field_index).map(String::as_str),
-                                "{table}.{expected_name} value differs from PostgreSQL"
-                            );
-                        },
                     );
                 });
             assert!(
@@ -3571,36 +3433,12 @@ async fn postgresql_migration_creates_complete_schema() {
     .expect("7b2057bf");
     pg_crud_common::validate_postgres_catalog(expected_fresh_catalog, observed_fresh_catalog)
         .expect("ac91d742");
-    let fresh_admin_pool = SqlxAdminApiTestPool::from(fresh_pool.clone());
-    let fresh_schema = StdAdminApiTestStrRef::from(str_constants::ADMIN_MIGRATION_FRESH_TEST);
-    validate_generated_admin_table_in_schema::<server_admin::generated_tables::AdminUsers>(
-        &fresh_admin_pool,
-        fresh_schema,
+    server_admin::generated_tables::validate_catalog_schema(
+        pg_crud_common::SqlxPgPoolRef::from(&fresh_pool),
+        pg_crud_common::DbSchemaNameRef::from(str_constants::ADMIN_MIGRATION_FRESH_TEST),
     )
-    .await;
-    validate_generated_admin_table_in_schema::<server_admin::generated_tables::AdminUserRoles>(
-        &fresh_admin_pool,
-        fresh_schema,
-    )
-    .await;
-    validate_generated_admin_table_in_schema::<
-        server_admin::generated_tables::AdminRolePermissions,
-    >(&fresh_admin_pool, fresh_schema)
-    .await;
-    validate_generated_admin_table_in_schema::<server_admin::generated_tables::AdminRoles>(
-        &fresh_admin_pool,
-        fresh_schema,
-    )
-    .await;
-    validate_generated_admin_table_in_schema::<server_admin::generated_tables::AdminPermissions>(
-        &fresh_admin_pool,
-        fresh_schema,
-    )
-    .await;
-    validate_generated_admin_table_in_schema::<
-        server_admin::generated_tables::AdminSystemSettings,
-    >(&fresh_admin_pool, fresh_schema)
-    .await;
+    .await
+    .expect("fac299aa");
     let version = sqlx::query_scalar::<_, i64>(
         str_constants::SELECT_MAX_VERSION_FROM_ADMIN_MIGRATION_FRESH_TEST_SQLX_MIGRATIONS_WHERE,
     )

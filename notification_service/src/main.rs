@@ -478,6 +478,41 @@ mod tests {
     }
 
     #[test]
+    fn open_api_operation_and_statuses_come_from_the_typed_route() {
+        let metadata = <notification_service_contract::CreateNotificationRoute as frontend_contract::TypedRoute>::metadata();
+        let document = serde_json::to_value(super::NotificationApiRouteRegistry::open_api())
+            .expect("3d8a056d");
+        let operation = document
+            .get(str_constants::PATHS)
+            .and_then(|paths| paths.get(metadata.path().as_ref()))
+            .and_then(|path| path.get(metadata.method().as_ref().to_ascii_lowercase()))
+            .expect("fb8bb06a");
+        assert_eq!(
+            operation
+                .get(str_constants::OPERATION_ID_JSON)
+                .and_then(serde_json::Value::as_str),
+            Some(metadata.openapi_operation_id().as_ref()),
+        );
+        let observed_statuses = operation
+            .get(str_constants::RESPONSES)
+            .and_then(serde_json::Value::as_object)
+            .expect("251c95e8")
+            .keys()
+            .cloned()
+            .collect::<std::collections::BTreeSet<_>>();
+        let expected_statuses =
+            std::iter::once(metadata.success_status().transport_status().to_string())
+                .chain(
+                    metadata
+                        .error_statuses()
+                        .iter()
+                        .map(|status| status.transport_status().to_string()),
+                )
+                .collect::<std::collections::BTreeSet<_>>();
+        assert_eq!(observed_statuses, expected_statuses);
+    }
+
+    #[test]
     fn api_problem_preserves_server_diagnostic_but_keeps_validation_expected() {
         let server_response = axum::response::IntoResponse::into_response(
             super::HttpNotificationApiProblem::Persistence(server_runtime::ObservedError::capture(

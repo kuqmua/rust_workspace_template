@@ -12,15 +12,18 @@ edition = "2024"
 [dependencies]
 str_constants = { workspace = true }
 tracing = { workspace = true }
-reqwest = { workspace = true }
 serde = { workspace = true }
-http-body = { workspace = true }
-axum = { workspace = true }
-time = { workspace = true }
-sqlx = { workspace = true }
 serde_json = { workspace = true }
-http = { workspace = true }
 to_err_string_macros = { workspace = true }
 newtype = { workspace = true }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+axum = { workspace = true }
+http = { workspace = true }
+http-body = { workspace = true }
+reqwest = { workspace = true }
+sqlx = { workspace = true }
+time = { workspace = true }
+
 [lints]
 workspace = true

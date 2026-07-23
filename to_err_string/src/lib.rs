@@ -1,15 +1,20 @@
 const ERROR_TEXT_MAX_LEN: usize = 1_048_576;
 to_err_string_macros::impl_to_err_string_with!(i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, f32, f64, bool, char => |v| v.to_string());
+#[cfg(not(target_arch = "wasm32"))]
 to_err_string_macros::impl_to_err_string_with!(reqwest::header::HeaderMap, http_body::SizeHint => |v| format!("{v:#?}"));
+to_err_string_macros::impl_to_err_string_with!(
+    usize,
+    std::io::Error,
+    serde_json::Error
+    => |v| v.to_string()
+);
+#[cfg(not(target_arch = "wasm32"))]
 to_err_string_macros::impl_to_err_string_with!(
     http::header::ToStrError,
     axum::Error,
-    usize,
     time::error::ComponentRange,
     sqlx::types::uuid::Error,
-    std::io::Error,
     sqlx::Error,
-    serde_json::Error,
     reqwest::Error,
     reqwest::StatusCode,
     axum::extract::rejection::JsonDataError,

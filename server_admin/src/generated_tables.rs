@@ -212,6 +212,46 @@ impl AdminGeneratedTable {
         }
     }
 
+    pub(crate) fn parse_filter(
+        self,
+        payload: crate::StdAdminStrRef<'_>,
+    ) -> Result<crate::repository::data_tables::DataFlt, crate::repository::AdminRepositoryError>
+    {
+        let parsed = match self {
+            Self::Permissions => {
+                serde_json::from_str::<StdOptionalOptionalAdminPermissionsWhereMany>(payload.get())
+                    .map(crate::repository::data_tables::DataPermissionsFlt::from)
+                    .map(crate::repository::data_tables::DataFlt::Permissions)
+            }
+            Self::RolePermissions => serde_json::from_str::<
+                StdOptionalOptionalAdminRolePermissionsWhereMany,
+            >(payload.get())
+            .map(crate::repository::data_tables::DataRolePermissionsFlt::from)
+            .map(crate::repository::data_tables::DataFlt::RolePermissions),
+            Self::Roles => {
+                serde_json::from_str::<StdOptionalOptionalAdminRolesWhereMany>(payload.get())
+                    .map(crate::repository::data_tables::DataRolesFlt::from)
+                    .map(crate::repository::data_tables::DataFlt::Roles)
+            }
+            Self::SystemSettings => serde_json::from_str::<
+                StdOptionalOptionalAdminSystemSettingsWhereMany,
+            >(payload.get())
+            .map(crate::repository::data_tables::DataSystemSettingsFlt::from)
+            .map(crate::repository::data_tables::DataFlt::SystemSettings),
+            Self::UserRoles => {
+                serde_json::from_str::<StdOptionalOptionalAdminUserRolesWhereMany>(payload.get())
+                    .map(crate::repository::data_tables::DataUserRolesFlt::from)
+                    .map(crate::repository::data_tables::DataFlt::UserRoles)
+            }
+            Self::Users => {
+                serde_json::from_str::<StdOptionalOptionalAdminUsersWhereMany>(payload.get())
+                    .map(crate::repository::data_tables::DataUsersFlt::from)
+                    .map(crate::repository::data_tables::DataFlt::Users)
+            }
+        };
+        parsed.map_err(|_error| crate::repository::AdminRepositoryError::InvalidStoredValue)
+    }
+
     pub(crate) const fn for_data_table(
         table: server_admin_contract::AdminDataTable,
     ) -> Option<Self> {
@@ -240,6 +280,50 @@ impl AdminGeneratedTable {
             Self::SystemSettings => AdminSystemSettingsOpenApi::open_api(),
             Self::UserRoles => AdminUserRolesOpenApi::open_api(),
         })
+    }
+
+    fn routes(self, app_state: &StdSharedAdminGeneratedTableState) -> server_runtime::AxumRouter {
+        server_runtime::AxumRouter::from(match self {
+            Self::Roles => AdminRoles::routes(std::sync::Arc::clone(&app_state.0)),
+            Self::RolePermissions => {
+                AdminRolePermissions::routes(std::sync::Arc::clone(&app_state.0))
+            }
+            Self::Users => AdminUsers::routes(std::sync::Arc::clone(&app_state.0)),
+            Self::Permissions => AdminPermissions::routes(std::sync::Arc::clone(&app_state.0)),
+            Self::SystemSettings => {
+                AdminSystemSettings::routes(std::sync::Arc::clone(&app_state.0))
+            }
+            Self::UserRoles => AdminUserRoles::routes(std::sync::Arc::clone(&app_state.0)),
+        })
+    }
+
+    async fn validate_schema(
+        self,
+        pool: pg_crud_common::SqlxPgPoolRef<'_>,
+        schema: pg_crud_common::DbSchemaNameRef<'_>,
+    ) -> Result<(), AdminGeneratedTablesValidationError> {
+        async fn validate<Table>(
+            pool: pg_crud_common::SqlxPgPoolRef<'_>,
+            schema: pg_crud_common::DbSchemaNameRef<'_>,
+        ) -> Result<(), AdminGeneratedTablesValidationError>
+        where
+            Table: pg_crud_common::DbExtendedTableSchema,
+        {
+            pg_crud_common::validate_generated_postgres_table::<Table>(pool, schema)
+                .await
+                .map_err(AdminGeneratedTablesValidationError::from)?;
+            pg_crud_common::validate_postgres_table_extensions::<Table>(pool, schema)
+                .await
+                .map_err(AdminGeneratedTablesValidationError::from)
+        }
+        match self {
+            Self::Roles => validate::<AdminRoles>(pool, schema).await,
+            Self::RolePermissions => validate::<AdminRolePermissions>(pool, schema).await,
+            Self::Users => validate::<AdminUsers>(pool, schema).await,
+            Self::Permissions => validate::<AdminPermissions>(pool, schema).await,
+            Self::SystemSettings => validate::<AdminSystemSettings>(pool, schema).await,
+            Self::UserRoles => validate::<AdminUserRoles>(pool, schema).await,
+        }
     }
 
     pub(crate) fn route_contract(
@@ -331,10 +415,41 @@ impl AdminGeneratedRouteContract {
 }
 #[derive(Clone, newtype::IntoInnerFrom, newtype::FromInner)]
 pub struct UtoipaAdminOpenApi(utoipa::openapi::OpenApi);
+#[derive(Clone, newtype::DebugRedacted, newtype::FromInner)]
+pub struct StdSharedAdminGeneratedTableState(
+    std::sync::Arc<dyn pg_table::CombinationOfAppStateLogicTraits>,
+);
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[error(transparent)]
+pub struct AdminGeneratedTablesValidationError(pg_crud_common::DbSchemaConformanceError);
 impl std::fmt::Debug for UtoipaAdminOpenApi {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(str_constants::UTOIPAADMINOPENAPI)
     }
+}
+#[must_use]
+pub fn generated_routes(
+    app_state: &StdSharedAdminGeneratedTableState,
+) -> server_runtime::AxumRouter {
+    server_runtime::AxumRouter::from(
+        AdminGeneratedTable::ALL
+            .into_iter()
+            .fold(axum::Router::new(), |routes, table| {
+                routes.merge(axum::Router::from(table.routes(app_state)))
+            }),
+    )
+}
+pub async fn validate_catalog_schema(
+    pool: pg_crud_common::SqlxPgPoolRef<'_>,
+    schema: pg_crud_common::DbSchemaNameRef<'_>,
+) -> Result<(), AdminGeneratedTablesValidationError> {
+    futures::future::try_join_all(
+        AdminGeneratedTable::ALL
+            .into_iter()
+            .map(|table| table.validate_schema(pool, schema)),
+    )
+    .await
+    .map(|_validated| ())
 }
 #[must_use]
 pub fn generated_open_api() -> UtoipaAdminOpenApi {

@@ -3,19 +3,28 @@
     reason = "fields are ordered by decreasing alignment as enforced by optml"
 )]
 #[derive(Debug, try_from_env::TryFromEnv, optml::Optml)]
+#[config(env_example)]
 pub struct Config {
     #[config(secret)]
     #[config(getter)]
+    #[config(
+        example = "postgres://notification_service:change-me@127.0.0.1:5432/notification_service"
+    )]
     notification_database_url: config_lib::DatabaseUrl,
     #[config(getter)]
+    #[config(example = "8192")]
     maximum_size_of_http_body_in_bytes: config_lib::MaximumSizeOfHttpBodyInBytes,
     #[config(getter)]
+    #[config(example = "30")]
     request_timeout_seconds: config_lib::RequestTimeoutSeconds,
     #[config(getter)]
+    #[config(example = "127.0.0.1:8081")]
     notification_service_socket_address: config_lib::ServiceSocketAddress,
     #[config(getter)]
+    #[config(example = "10")]
     pg_pool_max_connections: config_lib::PgPoolMaxConnections,
     #[config(getter)]
+    #[config(example = "text")]
     tracing_format: config_lib::types::TracingFormat,
 }
 

@@ -31,6 +31,7 @@ struct PageCatalogArgs {
 }
 struct PageCatalogPageArgs {
     capability: SynExpr,
+    metadata: SynExpr,
     path: SynExpr,
     route: SynExpr,
     title: SynExpr,
@@ -72,6 +73,7 @@ impl syn::parse::Parse for PageCatalogArgs {
 impl syn::parse::Parse for PageCatalogPageArgs {
     fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
         let mut capability = None;
+        let mut metadata = None;
         let mut path = None;
         let mut route = None;
         let mut title = None;
@@ -80,6 +82,8 @@ impl syn::parse::Parse for PageCatalogPageArgs {
             let _equals = input.parse::<syn::Token![=]>()?;
             if name == str_constants::PAGE_CATALOG_CAPABILITY {
                 capability = Some(SynExpr::from(input.parse::<syn::Expr>()?));
+            } else if name == str_constants::PAGE_CATALOG_METADATA {
+                metadata = Some(SynExpr::from(input.parse::<syn::Expr>()?));
             } else if name == str_constants::ROUTE_CATALOG_PATH {
                 path = Some(SynExpr::from(input.parse::<syn::Expr>()?));
             } else if name == str_constants::PAGE_CATALOG_ROUTE {
@@ -98,6 +102,8 @@ impl syn::parse::Parse for PageCatalogPageArgs {
         }
         Ok(Self {
             capability: capability
+                .ok_or_else(|| input.error(str_constants::PAGE_CATALOG_PAGE_REQUIRES_FIELDS))?,
+            metadata: metadata
                 .ok_or_else(|| input.error(str_constants::PAGE_CATALOG_PAGE_REQUIRES_FIELDS))?,
             path: path
                 .ok_or_else(|| input.error(str_constants::PAGE_CATALOG_PAGE_REQUIRES_FIELDS))?,
@@ -1236,6 +1242,10 @@ pub fn derive_page_catalog(input_token_stream: proc_macro::TokenStream) -> proc_
         .iter()
         .map(|(_identifier, page)| &page.path.0)
         .collect::<Vec<_>>();
+    let metadata = pages
+        .iter()
+        .map(|(_identifier, page)| &page.metadata.0)
+        .collect::<Vec<_>>();
     let routes = pages
         .iter()
         .map(|(_identifier, page)| &page.route.0)
@@ -1255,6 +1265,7 @@ pub fn derive_page_catalog(input_token_stream: proc_macro::TokenStream) -> proc_
             #(
                 #spec::new(
                     #capabilities,
+                    #metadata,
                     #identifier::#identifiers,
                     #paths,
                     #routes,

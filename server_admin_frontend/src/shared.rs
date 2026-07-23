@@ -9,6 +9,80 @@ use leptos::prelude::{
     AriaAttributes, ClassAttribute, CustomAttribute, ElementChild, GlobalAttributes,
 };
 
+#[derive(Clone, Debug, newtype::AsRefStr, newtype::FromInner)]
+pub(crate) struct AdminSettingInputValue(Box<str>);
+
+#[derive(Clone, Debug)]
+pub(crate) struct AdminSettingsFormValues {
+    default_route: AdminSettingInputValue,
+    main_logo: AdminSettingInputValue,
+    organization_contacts: AdminSettingInputValue,
+    organization_name: AdminSettingInputValue,
+    primary_color: AdminSettingInputValue,
+    site_name: AdminSettingInputValue,
+    support_url: AdminSettingInputValue,
+    tab_title: AdminSettingInputValue,
+}
+impl From<&server_admin_contract::AdminSettingsView> for AdminSettingsFormValues {
+    fn from(value: &server_admin_contract::AdminSettingsView) -> Self {
+        fn optional<Value>(value: Option<&Value>) -> AdminSettingInputValue
+        where
+            Value: AsRef<str>,
+        {
+            AdminSettingInputValue::from(
+                value
+                    .map(|item| item.as_ref().to_owned())
+                    .unwrap_or_default()
+                    .into_boxed_str(),
+            )
+        }
+        Self {
+            default_route: AdminSettingInputValue::from(
+                value
+                    .default_admin_route()
+                    .as_ref()
+                    .to_owned()
+                    .into_boxed_str(),
+            ),
+            main_logo: optional(value.main_logo()),
+            organization_contacts: optional(value.organization_contacts()),
+            organization_name: optional(value.organization_name()),
+            primary_color: optional(value.primary_color()),
+            site_name: AdminSettingInputValue::from(
+                value.site_name().as_ref().to_owned().into_boxed_str(),
+            ),
+            support_url: optional(value.support_url()),
+            tab_title: optional(value.tab_title()),
+        }
+    }
+}
+impl AdminSettingsFormValues {
+    pub(crate) const fn default_route(&self) -> &AdminSettingInputValue {
+        &self.default_route
+    }
+    pub(crate) const fn main_logo(&self) -> &AdminSettingInputValue {
+        &self.main_logo
+    }
+    pub(crate) const fn organization_contacts(&self) -> &AdminSettingInputValue {
+        &self.organization_contacts
+    }
+    pub(crate) const fn organization_name(&self) -> &AdminSettingInputValue {
+        &self.organization_name
+    }
+    pub(crate) const fn primary_color(&self) -> &AdminSettingInputValue {
+        &self.primary_color
+    }
+    pub(crate) const fn site_name(&self) -> &AdminSettingInputValue {
+        &self.site_name
+    }
+    pub(crate) const fn support_url(&self) -> &AdminSettingInputValue {
+        &self.support_url
+    }
+    pub(crate) const fn tab_title(&self) -> &AdminSettingInputValue {
+        &self.tab_title
+    }
+}
+
 #[derive(Clone, Copy, Debug)]
 pub(crate) enum AdminTableFilterDirection {
     Asc,

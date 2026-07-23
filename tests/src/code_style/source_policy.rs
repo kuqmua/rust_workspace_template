@@ -262,6 +262,133 @@ fn generated_admin_table_consumers_use_the_shared_catalog() {
             assert!(!source.contains(forbidden), "8b137dd2");
             assert!(source.contains("AdminGeneratedTable"), "e1c82f79");
         });
+        let server_main = snapshot
+            .rs_files()
+            .iter()
+            .find(|file| file.path().as_ref().ends_with("server/src/main.rs"))
+            .expect("148223ec")
+            .content()
+            .as_ref();
+        [
+            "AdminRoles::routes",
+            "AdminRolePermissions::routes",
+            "AdminUsers::routes",
+            "AdminPermissions::routes",
+            "AdminSystemSettings::routes",
+            "AdminUserRoles::routes",
+        ]
+        .iter()
+        .for_each(|forbidden| {
+            assert!(!server_main.contains(forbidden), "d01c1dd0");
+        });
+        assert!(
+            server_main.contains("generated_tables::generated_routes"),
+            "af786d19"
+        );
+        let admin_api = snapshot
+            .rs_files()
+            .iter()
+            .find(|file| {
+                file.path()
+                    .as_ref()
+                    .ends_with("server_admin/tests/admin_api.rs")
+            })
+            .expect("e26d929b")
+            .content()
+            .as_ref();
+        [
+            "validate_generated_admin_table::<",
+            "validate_generated_admin_table_in_schema::<",
+        ]
+        .iter()
+        .for_each(|forbidden| {
+            assert!(!admin_api.contains(forbidden), "535813a1");
+        });
+        assert!(
+            admin_api.contains("generated_tables::validate_catalog_schema"),
+            "de411cae"
+        );
+    });
+}
+#[test]
+#[allow(clippy::needless_for_each)] // iterator form is required by the workspace no-for-loop policy
+fn administrator_data_table_queries_come_from_the_typed_spec() {
+    super::snapshot::with_codebase_snapshot(|snapshot| {
+        let repository = snapshot
+            .rs_files()
+            .iter()
+            .find(|file| {
+                file.path()
+                    .as_ref()
+                    .ends_with("server_admin/src/repository/data_tables.rs")
+            })
+            .expect("3ac24886")
+            .content()
+            .as_ref();
+        let admin_api = snapshot
+            .rs_files()
+            .iter()
+            .find(|file| {
+                file.path()
+                    .as_ref()
+                    .ends_with("server_admin/tests/admin_api.rs")
+            })
+            .expect("1049d34b")
+            .content()
+            .as_ref();
+        [
+            "SERVER_ADMIN_DATA_USERS_SQL",
+            "SERVER_ADMIN_DATA_COUNT_ACCESS_SESSIONS_SQL",
+            "SERVER_ADMIN_DATA_USERS_COLUMNS",
+        ]
+        .iter()
+        .for_each(|legacy_source| {
+            assert!(!repository.contains(legacy_source), "7012056f");
+            assert!(!admin_api.contains(legacy_source), "36154b24");
+        });
+        assert!(repository.contains("let spec = table.spec()"), "67b8279d");
+        assert!(admin_api.contains("table.spec().columns()"), "92c41cb0");
+    });
+}
+#[test]
+fn administrator_csr_page_behavior_comes_from_the_page_catalog() {
+    super::snapshot::with_codebase_snapshot(|snapshot| {
+        let app = snapshot
+            .rs_files()
+            .iter()
+            .find(|file| {
+                file.path()
+                    .as_ref()
+                    .ends_with("server_admin_frontend/src/app.rs")
+            })
+            .expect("58e2110e")
+            .content()
+            .as_ref();
+        assert!(!app.contains("AdminCsrPage"), "438888fd");
+        assert!(app.contains("page.supports_csr()"), "d3ec99c6");
+        assert!(app.contains("page.uses_table_query()"), "256ac244");
+        assert!(app.contains("page.spec().route()"), "fe0906a9");
+        let ssr = snapshot
+            .rs_files()
+            .iter()
+            .find(|file| {
+                file.path()
+                    .as_ref()
+                    .ends_with("server_admin_frontend/src/ssr.rs")
+            })
+            .expect("2c589b2b")
+            .content()
+            .as_ref();
+        assert!(
+            app.contains("shared::AdminSettingsFormValues::from"),
+            "3ca65c5b"
+        );
+        assert!(
+            ssr.contains("shared::AdminSettingsFormValues::from"),
+            "9f904035"
+        );
+        assert!(!app.contains("page.main_logo()"), "67c3d270");
+        assert!(!ssr.contains("view.main_logo()"), "6201410d");
     });
 }
 #[test]
