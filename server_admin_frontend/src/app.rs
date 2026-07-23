@@ -12,10 +12,6 @@ use leptos::prelude::{
 
 #[derive(Clone, Debug)]
 enum AdminLoadState {
-    Audit(
-        server_admin_contract::AuthenticatedAdmin,
-        server_admin_contract::AdminAuditPage,
-    ),
     Empty(server_admin_contract::AuthenticatedAdmin),
     Error(AdminTableLoadError),
     Loading,
@@ -48,7 +44,6 @@ enum AdminLoadState {
 
 #[derive(Clone, Copy, Debug)]
 enum AdminCsrPage {
-    Audit,
     Permissions,
     Profile,
     Roles,
@@ -61,8 +56,7 @@ enum AdminCsrPage {
 impl AdminLoadState {
     const fn admin(&self) -> Option<&server_admin_contract::AuthenticatedAdmin> {
         match self {
-            Self::Audit(admin, _)
-            | Self::Permissions(admin, _)
+            Self::Permissions(admin, _)
             | Self::Roles(admin, _)
             | Self::Sessions(admin, _)
             | Self::Settings(admin, _)
@@ -124,7 +118,6 @@ impl AdminMutationMethod {
 
 #[derive(Clone, Debug, Default)]
 struct AdminCsrQuery {
-    action: Option<server_admin_contract::AdminText>,
     direction: Option<server_admin_contract::AdminText>,
     filter_end: Option<server_admin_contract::AdminFilterValue>,
     filter_field: Option<server_admin_contract::AdminFilterField>,
@@ -132,12 +125,9 @@ struct AdminCsrQuery {
     filter_value: Option<server_admin_contract::AdminFilterValue>,
     limit: server_admin_contract::AdminPageLimit,
     offset: server_admin_contract::AdminPageOffset,
-    resource: Option<server_admin_contract::AdminText>,
-    resource_id: Option<server_admin_contract::AdminText>,
     search: server_admin_contract::AdminTableSearch,
     sort: server_admin_contract::AdminTableSortKey,
     table: Option<server_admin_contract::AdminDataTable>,
-    user_login: Option<server_admin_contract::AdminLogin>,
 }
 
 impl AdminCsrQuery {
@@ -174,11 +164,6 @@ impl AdminCsrQuery {
             server_admin_contract::AdminPagePathRef::from(pathname.as_str()),
         );
         Ok(Self {
-            action: params
-                .get(str_constants::ADMIN_ACTION_QUERY_KEY)
-                .map(server_admin_contract::AdminText::try_from)
-                .transpose()
-                .map_err(|_error| AdminTableLoadError::Query)?,
             direction: params
                 .get(str_constants::ADMIN_DIRECTION_QUERY_KEY)
                 .map(server_admin_contract::AdminText::try_from)
@@ -216,16 +201,6 @@ impl AdminCsrQuery {
                     server_admin_contract::AdminPageOffset::default,
                     server_admin_contract::AdminPageOffset::from,
                 ),
-            resource: params
-                .get(str_constants::ADMIN_RESOURCE_QUERY_KEY)
-                .map(server_admin_contract::AdminText::try_from)
-                .transpose()
-                .map_err(|_error| AdminTableLoadError::Query)?,
-            resource_id: params
-                .get(str_constants::ADMIN_RESOURCE_ID_QUERY_KEY)
-                .map(server_admin_contract::AdminText::try_from)
-                .transpose()
-                .map_err(|_error| AdminTableLoadError::Query)?,
             search: params
                 .get(str_constants::ADMIN_SEARCH_QUERY_KEY)
                 .map(server_admin_contract::AdminTableSearch::try_from)
@@ -239,11 +214,6 @@ impl AdminCsrQuery {
                 .map_err(|_error| AdminTableLoadError::Query)?
                 .unwrap_or_default(),
             table,
-            user_login: params
-                .get(str_constants::ADMIN_USER_LOGIN_QUERY_KEY)
-                .map(server_admin_contract::AdminLogin::try_from)
-                .transpose()
-                .map_err(|_error| AdminTableLoadError::Query)?,
         })
     }
 }
@@ -267,7 +237,6 @@ impl AdminCsrPage {
             .find(|spec| spec.path().as_ref() == pathname)
             .map(|spec| spec.page())
             .and_then(|page| match page {
-                server_admin_contract::AdminPage::Audit => Some(Self::Audit),
                 server_admin_contract::AdminPage::Permissions => Some(Self::Permissions),
                 server_admin_contract::AdminPage::Profile => Some(Self::Profile),
                 server_admin_contract::AdminPage::Roles => Some(Self::Roles),
@@ -437,7 +406,6 @@ async fn fetch_page(
     .map_err(|_error| AdminTableLoadError::Query)?;
     let admin = fetch_json::<server_admin_contract::AuthenticatedAdmin>(&me_url).await?;
     let path = match page {
-        AdminCsrPage::Audit => str_constants::ADMIN_API_AUDIT_LOG_PATH,
         AdminCsrPage::Permissions => str_constants::ADMIN_API_PERMISSIONS_PATH,
         AdminCsrPage::Profile => return Ok(AdminLoadState::Profile(admin)),
         AdminCsrPage::Roles => str_constants::ADMIN_API_ROLES_PATH,
@@ -454,10 +422,7 @@ async fn fetch_page(
         AdminCsrPage::Users => str_constants::ADMIN_API_USERS_PATH,
     };
     let suffix = match page {
-        AdminCsrPage::Audit
-        | AdminCsrPage::Permissions
-        | AdminCsrPage::Roles
-        | AdminCsrPage::Users => search,
+        AdminCsrPage::Permissions | AdminCsrPage::Roles | AdminCsrPage::Users => search,
         AdminCsrPage::Profile
         | AdminCsrPage::Sessions
         | AdminCsrPage::Settings
@@ -466,9 +431,6 @@ async fn fetch_page(
     let url = AdminCsrApiUrl::try_from(format!("{}{path}{suffix}", str_constants::API_V1))
         .map_err(|_error| AdminTableLoadError::Query)?;
     match page {
-        AdminCsrPage::Audit => fetch_json(&url)
-            .await
-            .map(|value| AdminLoadState::Audit(admin, value)),
         AdminCsrPage::Permissions => fetch_json(&url)
             .await
             .map(|value| AdminLoadState::Permissions(admin, value)),
@@ -569,13 +531,11 @@ fn AdminPagination(
         <nav class="table-pagination" aria-label="Table pages">
             <form method="get" action=action.get()>
                 {crate::shared::admin_table_query_hidden_inputs(&query.search, &query.sort, &crate::shared::AdminTableQueryDirection::Csr(query.direction.clone()), query.limit)}
-                {crate::shared::admin_audit_hidden_inputs(query.action.as_ref(), query.resource.as_ref(), query.resource_id.as_ref(), query.user_login.as_ref())}
                 <input type="hidden" name="offset" value=previous_offset.to_string() /><button type="submit" disabled=offset == 0u32>"Previous"</button>
             </form>
             <span>{format!("{}-{} of {}", u64::from(offset).saturating_add(1u64).min(total_value), u64::from(offset).saturating_add(u64::from(limit)).min(total_value), total_value)}</span>
             <form method="get" action=action.get()>
                 {crate::shared::admin_table_query_hidden_inputs(&query.search, &query.sort, &crate::shared::AdminTableQueryDirection::Csr(query.direction), query.limit)}
-                {crate::shared::admin_audit_hidden_inputs(query.action.as_ref(), query.resource.as_ref(), query.resource_id.as_ref(), query.user_login.as_ref())}
                 <input type="hidden" name="offset" value=next_offset.to_string() /><button type="submit" disabled=next_disabled>"Next"</button>
             </form>
         </nav>
@@ -840,7 +800,6 @@ fn AdminProfileView(
 ) -> impl leptos::prelude::IntoView {
     let current_password = leptos::prelude::RwSignal::new(String::new());
     let new_password = leptos::prelude::RwSignal::new(String::new());
-    let revoke_other_sessions = leptos::prelude::RwSignal::new(true);
     leptos::view! {
         <section class="profile-grid" data-renderer="csr">
             <article class="profile-card"><h2>"Account"</h2><dl>
@@ -866,14 +825,12 @@ fn AdminProfileView(
                         server_admin_contract::AdminChangeOwnPasswordReq::new(
                             current,
                             new_value,
-                            server_admin_contract::AdminBool::from(leptos::prelude::Get::get(&revoke_other_sessions)),
                         ),
                     );
                 }
             }>
                 <label><span>"Current password"</span><input type="password" required on:input=move |event| leptos::prelude::Set::set(&current_password, leptos::prelude::event_target_value(&event)) /></label>
                 <label><span>"New password"</span><input type="password" required on:input=move |event| leptos::prelude::Set::set(&new_password, leptos::prelude::event_target_value(&event)) /></label>
-                <label><input type="checkbox" checked=true on:change=move |event| leptos::prelude::Set::set(&revoke_other_sessions, leptos::prelude::event_target_checked(&event)) />"Revoke other sessions"</label>
                 <button type="submit">"Change password"</button>
             </form></article>
         </section>
@@ -970,32 +927,6 @@ fn AdminSettingsView(
 }
 
 #[leptos::component]
-fn AdminAuditView(
-    page: server_admin_contract::AdminAuditPage,
-    query: AdminCsrQuery,
-) -> impl leptos::prelude::IntoView {
-    leptos::view! {
-        <section class="table-page" data-renderer="csr">
-            {crate::shared::admin_audit_filters(query.action.as_ref(), query.resource.as_ref(), query.resource_id.as_ref(), query.user_login.as_ref(), query.limit)}
-            <div class="table-scroll"><table><thead><tr><th>"time"</th><th>"user"</th><th>"action"</th><th>"resource"</th><th>"resource_id"</th><th>"success"</th><th>"details"</th></tr></thead>
-            <tbody>{page.items().iter().map(|item| leptos::view! {
-                <tr>
-                    <td data-label="time">{item.created_at().to_string()}</td>
-                    <td data-label="user">{item.user_login().map(ToString::to_string).unwrap_or_default()}</td>
-                    <td data-label="action">{item.action().to_string()}</td>
-                    <td data-label="resource">{item.resource().to_string()}</td>
-                    <td data-label="resource_id">{item.resource_id().map(ToString::to_string).unwrap_or_default()}</td>
-                    <td data-label="success">{item.succeeded().to_string()}</td>
-                    <td data-label="details">{item.details().map(ToString::to_string).unwrap_or_default()}</td>
-                </tr>
-            }).collect::<Vec<_>>()}</tbody></table></div>
-            <p>{format!("{} total", page.total())}</p>
-            <AdminPagination action=server_admin_contract::AdminFrontendPath::Audit query=query total=page.total() />
-        </section>
-    }
-}
-
-#[leptos::component]
 fn AdminNav(admin: server_admin_contract::AuthenticatedAdmin) -> impl leptos::prelude::IntoView {
     let pathname = web_sys::window()
         .and_then(|window| window.location().pathname().ok())
@@ -1053,7 +984,6 @@ fn AdminApp() -> impl leptos::prelude::IntoView {
         <div class="app-shell">
         {move || leptos::prelude::Get::get(&state).admin().cloned().map(|admin| leptos::view! { <AdminNav admin=admin /> })}
         <main class="main-content">{move || match leptos::prelude::Get::get(&state) {
-            AdminLoadState::Audit(_admin, page) => leptos::prelude::IntoAny::into_any(leptos::view! { <AdminAuditView page=page query=query_result.clone().unwrap_or_default() /> }),
             AdminLoadState::Empty(_admin) => leptos::prelude::IntoAny::into_any(leptos::view! { <p class="empty-state">"Choose a table."</p> }),
             AdminLoadState::Error(error) => leptos::prelude::IntoAny::into_any(leptos::view! { <p class="field-error" role="alert">{error.to_string()}</p> }),
             AdminLoadState::Loading => leptos::prelude::IntoAny::into_any(leptos::view! { <p class="loading-state" role="status">"Loading\u{2026}"</p> }),

@@ -1532,28 +1532,18 @@ impl AdminSetUserPasswordReq {
 pub struct AdminChangeOwnPasswordReq {
     current_password: AdminPassword,
     new_password: AdminNewPassword,
-    revoke_other_sessions: AdminBool,
 }
 impl AdminChangeOwnPasswordReq {
     #[must_use]
-    pub const fn new(
-        current_password: AdminPassword,
-        new_password: AdminNewPassword,
-        revoke_other_sessions: AdminBool,
-    ) -> Self {
+    pub const fn new(current_password: AdminPassword, new_password: AdminNewPassword) -> Self {
         Self {
             current_password,
             new_password,
-            revoke_other_sessions,
         }
     }
     #[must_use]
-    pub fn into_parts(self) -> (AdminPassword, AdminNewPassword, AdminBool) {
-        (
-            self.current_password,
-            self.new_password,
-            self.revoke_other_sessions,
-        )
+    pub fn into_parts(self) -> (AdminPassword, AdminNewPassword) {
+        (self.current_password, self.new_password)
     }
 }
 #[derive(Clone, Copy, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
@@ -1956,45 +1946,6 @@ pub struct AdminAuditPage {
     next_cursor: Option<AdminAuditCursor>,
     #[schema(value_type = u64)]
     total: AdminPageTotal,
-}
-#[derive(Clone, Debug)]
-pub struct AdminAuditHtmlQuery {
-    action: Option<AdminText>,
-    resource: Option<AdminText>,
-    resource_id: Option<AdminText>,
-    user_login: Option<AdminLogin>,
-}
-impl AdminAuditHtmlQuery {
-    #[must_use]
-    pub const fn new(
-        action: Option<AdminText>,
-        resource: Option<AdminText>,
-        resource_id: Option<AdminText>,
-        user_login: Option<AdminLogin>,
-    ) -> Self {
-        Self {
-            action,
-            resource,
-            resource_id,
-            user_login,
-        }
-    }
-    #[must_use]
-    pub const fn action(&self) -> Option<&AdminText> {
-        self.action.as_ref()
-    }
-    #[must_use]
-    pub const fn resource(&self) -> Option<&AdminText> {
-        self.resource.as_ref()
-    }
-    #[must_use]
-    pub const fn resource_id(&self) -> Option<&AdminText> {
-        self.resource_id.as_ref()
-    }
-    #[must_use]
-    pub const fn user_login(&self) -> Option<&AdminLogin> {
-        self.user_login.as_ref()
-    }
 }
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
 pub struct AdminDataColumn {
@@ -2896,8 +2847,6 @@ pub struct AdminPagePathRef<'path_lt>(&'path_lt str);
 pub enum AdminFrontendPath {
     #[strum(serialize = "/admin/assets")]
     Assets,
-    #[strum(serialize = "/admin/audit-log")]
-    Audit,
     #[strum(serialize = "/admin/metrics")]
     Metrics,
     #[strum(serialize = "/admin/openapi.json")]
@@ -2982,7 +2931,7 @@ impl AdminHtmlAction {
     }
 }
 impl AdminFrontendPath {
-    pub const ALL_PAGES: [Self; 13] = [
+    pub const ALL_PAGES: [Self; 12] = [
         Self::Root,
         Self::SignIn,
         Self::Users,
@@ -2990,7 +2939,6 @@ impl AdminFrontendPath {
         Self::Sessions,
         Self::Permissions,
         Self::Profile,
-        Self::Audit,
         Self::Settings,
         Self::Tables,
         Self::Metrics,
@@ -3035,13 +2983,6 @@ pub enum AdminPage {
         title = AdminPageTitle::Permissions,
     )]
     Permissions,
-    #[page_catalog_page(
-        capability = AdminPageCapability::Always,
-        path = AdminFrontendPath::Audit,
-        route = AdminRoute::Audit,
-        title = AdminPageTitle::AuditLog,
-    )]
-    Audit,
     #[page_catalog_page(
         capability = AdminPageCapability::Always,
         path = AdminFrontendPath::Settings,
@@ -3100,7 +3041,6 @@ pub enum AdminPageCapability {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum AdminPageTitle {
     Api,
-    AuditLog,
     Metrics,
     Permissions,
     Profile,
@@ -3155,7 +3095,6 @@ impl AdminPageSpec {
     pub fn title(self) -> frontend_contract::ContractStr {
         frontend_contract::ContractStr::from(match self.title {
             AdminPageTitle::Api => str_constants::API_ALT,
-            AdminPageTitle::AuditLog => str_constants::AUDIT_LOG,
             AdminPageTitle::Metrics => str_constants::METRICS_ALT,
             AdminPageTitle::Permissions => str_constants::PERMISSIONS,
             AdminPageTitle::Profile => str_constants::PROFILE,
@@ -3220,6 +3159,24 @@ mod tests {
         let Err(_error) = serde_json::from_str::<Value>(json) else {
             panic!("30bbf690");
         };
+    }
+    #[test]
+    fn change_own_password_request_has_no_session_revocation_choice() {
+        let request = super::AdminChangeOwnPasswordReq::new(
+            super::AdminPassword::try_from(String::from("Current-password1")).expect("c10e4db7"),
+            super::AdminNewPassword::try_from(String::from("New-password2")).expect("5932a1fe"),
+        );
+        let json = serde_json::to_value(request).expect("06ba3ef9");
+        assert_eq!(
+            json,
+            serde_json::json!({
+                "current_password": "Current-password1",
+                "new_password": "New-password2",
+            })
+        );
+        assert_rejects_unknown_field::<super::AdminChangeOwnPasswordReq>(
+            r#"{"current_password":"Current-password1","new_password":"New-password2","revoke_other_sessions":false}"#,
+        );
     }
     #[test]
     fn administrator_collections_enforce_item_limit_for_construction_and_deserialization() {
@@ -3445,6 +3402,17 @@ mod tests {
             page == super::AdminPage::OpenApi
                 || page.spec().capability() == super::AdminPageCapability::Always
         }));
+    }
+    #[test]
+    fn removed_audit_log_page_is_not_a_frontend_route() {
+        assert_eq!(
+            super::AdminPage::from_path(super::AdminPagePathRef::from("/admin/audit-log")),
+            None
+        );
+        let Err(_error) = super::AdminDefaultRoute::try_from(String::from("/admin/audit-log"))
+        else {
+            panic!("61f0ab3e");
+        };
     }
     #[test]
     fn password_debug_is_redacted() {

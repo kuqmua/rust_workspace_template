@@ -419,7 +419,7 @@ pub(super) async fn change_own_password(
     request: super::AxumAdminJson<server_admin_contract::AdminChangeOwnPasswordReq>,
 ) -> Result<super::AxumAdminResponse, super::AdminApiError> {
     let actor = authenticate_mutation(&auth).await?;
-    let (current_password, new_password, revoke_other_sessions) = request.0.into_parts();
+    let (current_password, new_password) = request.0.into_parts();
     let expected_hash = super::super::repository::users::read_password_hash(
         super::super::repository::SqlxAdminRepositoryPoolRef::from(
             auth.state.as_ref().pool.as_ref(),
@@ -468,21 +468,19 @@ pub(super) async fn change_own_password(
     .get()
     .then_some(())
     .ok_or(super::AdminApiError::Conflict)?;
-    if bool::from(revoke_other_sessions) {
-        super::super::repository::sessions::revoke_other_access_sessions(
-            super::super::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
-            actor.id,
-            actor.session_id,
-        )
-        .await
-        .map_err(super::AdminApiError::from)?;
-        super::super::repository::sessions::revoke_user_refresh_tokens(
-            super::super::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
-            actor.id,
-        )
-        .await
-        .map_err(super::AdminApiError::from)?;
-    }
+    super::super::repository::sessions::revoke_other_access_sessions(
+        super::super::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
+        actor.id,
+        actor.session_id,
+    )
+    .await
+    .map_err(super::AdminApiError::from)?;
+    super::super::repository::sessions::revoke_user_refresh_tokens(
+        super::super::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
+        actor.id,
+    )
+    .await
+    .map_err(super::AdminApiError::from)?;
     super::record_audit_success_in_connection(
         super::SqlxAdminPgConnectionRef::from(&mut *tx),
         super::AdminAuditSuccessRef {

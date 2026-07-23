@@ -83,7 +83,7 @@ impl TryFrom<String> for AdminSsrHtml {
 fn render_document(title: &AdminSsrText, body: impl IntoAny) -> AdminSsrHtml {
     let rendered_body = body.render_admin_ssr();
     AdminSsrHtml::try_from(format!(
-        "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>{title}</title><link rel=\"stylesheet\" href=\"/admin/assets/style.css?v=20260723-21\"></head><body>{}</body></html>",
+        "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>{title}</title><link rel=\"stylesheet\" href=\"/admin/assets/style.css?v=20260723-23\"></head><body>{}</body></html>",
         rendered_body.0
     ))
     .unwrap_or_else(AdminSsrHtml::from)
@@ -191,7 +191,6 @@ fn table_pagination(
     total: server_admin_contract::AdminPageTotal,
     table: Option<server_admin_contract::AdminDataTable>,
     table_filter: Option<&server_admin_contract::AdminDataTableFilterQuery>,
-    audit: Option<&server_admin_contract::AdminAuditHtmlQuery>,
 ) -> impl leptos::prelude::IntoView {
     let action = table.map_or_else(
         || String::from(page.path()),
@@ -211,16 +210,11 @@ fn table_pagination(
     let filter_value =
         table_filter.and_then(server_admin_contract::AdminDataTableFilterQuery::value);
     let filter_end = table_filter.and_then(server_admin_contract::AdminDataTableFilterQuery::end);
-    let audit_action = audit.and_then(server_admin_contract::AdminAuditHtmlQuery::action);
-    let audit_resource = audit.and_then(server_admin_contract::AdminAuditHtmlQuery::resource);
-    let audit_resource_id = audit.and_then(server_admin_contract::AdminAuditHtmlQuery::resource_id);
-    let audit_user_login = audit.and_then(server_admin_contract::AdminAuditHtmlQuery::user_login);
     leptos::view! {
         <nav class="table-pagination" aria-label="Table pages">
             <form class="table-page-size" method="get" action=action.clone()>
                 {crate::shared::admin_table_query_hidden_inputs(query.search(), query.sort(), &crate::shared::AdminTableQueryDirection::Ssr(query.direction()), query.limit())}
                 {crate::shared::admin_filter_hidden_inputs(filter_field, filter_operation.as_ref(), filter_value, filter_end)}
-                {crate::shared::admin_audit_hidden_inputs(audit_action, audit_resource, audit_resource_id, audit_user_login)}
                 <input type="hidden" name="offset" value="0" />
                 <label><span>"Rows"</span><input name="limit" type="number" min="1" max="100" value=limit.to_string() /></label>
                 <button type="submit">"Apply"</button>
@@ -228,14 +222,12 @@ fn table_pagination(
             <form method="get" action=action.clone()>
                 {crate::shared::admin_table_query_hidden_inputs(query.search(), query.sort(), &crate::shared::AdminTableQueryDirection::Ssr(query.direction()), query.limit())}
                 {crate::shared::admin_filter_hidden_inputs(filter_field, filter_operation.as_ref(), filter_value, filter_end)}
-                {crate::shared::admin_audit_hidden_inputs(audit_action, audit_resource, audit_resource_id, audit_user_login)}
                 <input type="hidden" name="offset" value=previous_offset.to_string() /><button type="submit" disabled=previous_disabled>"Previous"</button>
             </form>
             <span>{format!("{}-{} of {}", u64::from(offset).saturating_add(1u64).min(u64::from(total)), u64::from(offset).saturating_add(u64::from(limit)).min(u64::from(total)), total)}</span>
             <form method="get" action=action>
                 {crate::shared::admin_table_query_hidden_inputs(query.search(), query.sort(), &crate::shared::AdminTableQueryDirection::Ssr(query.direction()), query.limit())}
                 {crate::shared::admin_filter_hidden_inputs(filter_field, filter_operation.as_ref(), filter_value, filter_end)}
-                {crate::shared::admin_audit_hidden_inputs(audit_action, audit_resource, audit_resource_id, audit_user_login)}
                 <input type="hidden" name="offset" value=next_offset.to_string() /><button type="submit" disabled=next_disabled>"Next"</button>
             </form>
         </nav>
@@ -295,7 +287,7 @@ pub fn render_users(
                 <form method="post" action=server_admin_contract::AdminHtmlAction::UserBan.get()><input type="hidden" name="user_id" value=item.id().to_string() /><input type="hidden" name="is_banned" value=(!bool::from(item.is_banned())).to_string() /><button type="submit">{if bool::from(item.is_banned()) { "Unban" } else { "Ban" }}</button></form> })}
                 {can_delete.then(|| leptos::view! { <details><summary>"Delete"</summary><form method="post" action=server_admin_contract::AdminHtmlAction::UserDelete.get()><input type="hidden" name="user_id" value=item.id().to_string() /><label><input type="checkbox" name="confirmation" value="true" required />"Confirm permanent deletion"</label><button class="danger-button" type="submit">"Delete user"</button></form></details> })}</td></tr>
         }}).collect::<Vec<_>>()}</tbody></table></div>
-        {table_pagination(server_admin_contract::AdminPage::Users, query, page.total(), None, None, None)}
+        {table_pagination(server_admin_contract::AdminPage::Users, query, page.total(), None, None)}
         </section>
     }.render_admin_ssr();
     render_admin_page_with_access(
@@ -335,7 +327,7 @@ pub fn render_roles(
                 {can_update.then(|| leptos::view! { <form method="post" action=server_admin_contract::AdminHtmlAction::RoleUpdate.get()><input type="hidden" name="role_id" value=item.id().to_string() /><input name="name" value=item.name().to_string() required /><button type="submit">"Save"</button></form> })}
                 {can_delete.then(|| leptos::view! { <details><summary>"Delete"</summary><form method="post" action=server_admin_contract::AdminHtmlAction::RoleDelete.get()><input type="hidden" name="role_id" value=item.id().to_string() /><label><input type="checkbox" name="confirmation" value="true" required />"Confirm permanent deletion"</label><button class="danger-button" type="submit" disabled=bool::from(item.is_system())>"Delete role"</button></form></details> })}</td></tr>
         }}).collect::<Vec<_>>()}</tbody></table></div>
-        {table_pagination(server_admin_contract::AdminPage::Roles, query, page.total(), None, None, None)}
+        {table_pagination(server_admin_contract::AdminPage::Roles, query, page.total(), None, None)}
         </section>
     }.render_admin_ssr();
     render_admin_page_with_access(
@@ -360,7 +352,7 @@ pub fn render_permissions(
         <tbody>{page.items().iter().map(|item| leptos::view! {
             <tr><td data-label="id">{item.id().to_string()}</td><td data-label="permission">{item.name().to_string()}</td></tr>
         }).collect::<Vec<_>>()}</tbody></table></div>
-        {table_pagination(server_admin_contract::AdminPage::Permissions, query, page.total(), None, None, None)}
+        {table_pagination(server_admin_contract::AdminPage::Permissions, query, page.total(), None, None)}
         </section>
     }
     .render_admin_ssr();
@@ -383,7 +375,7 @@ pub fn render_data_tables(
         {table.map(|view| leptos::view! {
             <section class="table-page">
                 {data_table_grid(view, query)}
-                {table_pagination(server_admin_contract::AdminPage::Tables, query.page(), view.total(), Some(view.table()), bool::from(view.table().supports_filters()).then_some(query.filter()), None)}
+                {table_pagination(server_admin_contract::AdminPage::Tables, query.page(), view.total(), Some(view.table()), bool::from(view.table().supports_filters()).then_some(query.filter()))}
             </section>
         })}
     }
@@ -447,7 +439,7 @@ pub fn render_sessions(
         <tbody>{page.items().iter().map(|item| leptos::view! {
             <tr><td data-label="session">{item.id().to_string()}</td><td data-label="created">{item.created_at().to_string()}</td><td data-label="expires">{item.expires_at().to_string()}</td><td data-label="current">{item.is_current().to_string()}</td><td data-label="actions"><details><summary>"Revoke"</summary><form method="post" action=server_admin_contract::AdminHtmlAction::SessionRevoke.get()><input type="hidden" name="session_id" value=item.id().to_string() /><label><input type="checkbox" name="confirmation" value="true" required />"Confirm session revocation"</label><button class="danger-button" type="submit">"Revoke session"</button></form></details></td></tr>
         }).collect::<Vec<_>>()}</tbody></table></div>
-        {table_pagination(server_admin_contract::AdminPage::Sessions, query, page.total(), None, None, None)}
+        {table_pagination(server_admin_contract::AdminPage::Sessions, query, page.total(), None, None)}
         </section>
     }.render_admin_ssr();
     render_admin_page_with_access(
@@ -474,7 +466,7 @@ pub fn render_profile(
         <section class="security-card"><form method="post" action=server_admin_contract::AdminHtmlAction::ProfilePassword.get()>
             <label><span>"Current password"</span><input name="current_password" type="password" required /></label>
             <label><span>"New password"</span><input name="new_password" type="password" required /></label>
-            <label><input name="revoke_other_sessions" type="checkbox" value="true" />"Revoke other sessions"</label><button type="submit">"Change password"</button>
+            <button type="submit">"Change password"</button>
         </form></section>
     }.render_admin_ssr();
     render_admin_page_with_access(
@@ -538,31 +530,6 @@ pub fn render_settings(
     }.render_admin_ssr();
     render_admin_page_with_access(
         server_admin_contract::AdminPage::Settings,
-        content,
-        Some(admin),
-        Some(branding),
-    )
-}
-
-#[must_use]
-pub fn render_audit(
-    page: &server_admin_contract::AdminAuditPage,
-    query: &server_admin_contract::AdminTableQuery,
-    filters: &server_admin_contract::AdminAuditHtmlQuery,
-    admin: &server_admin_contract::AuthenticatedAdmin,
-    branding: &server_admin_contract::AdminBrandingView,
-) -> AdminSsrHtml {
-    let content = leptos::view! {
-        <section class="table-page">
-        {crate::shared::admin_audit_filters(filters.action(), filters.resource(), filters.resource_id(), filters.user_login(), query.limit())}
-        <div class="table-scroll"><table><thead><tr><th>"time"</th><th>"user"</th><th>"action"</th><th>"resource"</th><th>"result"</th></tr></thead><tbody>{page.items().iter().map(|item| leptos::view! {
-            <tr><td data-label="time">{item.created_at().to_string()}</td><td data-label="user">{item.user_login().map(ToString::to_string).unwrap_or_default()}</td><td data-label="action">{item.action().to_string()}</td><td data-label="resource">{item.resource().to_string()}</td><td data-label="result">{item.succeeded().to_string()}</td></tr>
-        }).collect::<Vec<_>>()}</tbody></table></div>
-        {table_pagination(server_admin_contract::AdminPage::Audit, query, page.total(), None, None, Some(filters))}
-        </section>
-    }.render_admin_ssr();
-    render_admin_page_with_access(
-        server_admin_contract::AdminPage::Audit,
         content,
         Some(admin),
         Some(branding),
@@ -777,7 +744,7 @@ mod tests {
         assert!(!sign_in.as_ref().contains(".wasm"));
 
         let page = super::render_admin_page(
-            server_admin_contract::AdminPage::Audit,
+            server_admin_contract::AdminPage::Users,
             super::AdminSsrHtml::try_from(String::from("<p>ready</p>")).expect("c78bd3a1"),
         );
         assert!(page.as_ref().contains("<p>ready</p>"));
@@ -887,7 +854,6 @@ mod tests {
             server_admin_contract::AdminPageTotal::from(101u64),
             None,
             None,
-            None,
         )
         .render_admin_ssr();
         assert!(html.as_ref().contains("class=\"table-page-size\""));
@@ -917,7 +883,6 @@ mod tests {
             server_admin_contract::AdminPageTotal::from(101u64),
             Some(server_admin_contract::AdminDataTable::RolePermissions),
             Some(&table_filter),
-            None,
         )
         .render_admin_ssr();
         assert_eq!(
@@ -950,32 +915,6 @@ mod tests {
         );
         assert!(!filtered_html.as_ref().contains("name=\"table\""));
         assert!(!filtered_html.as_ref().contains("?table="));
-
-        let filters = server_admin_contract::AdminAuditHtmlQuery::new(
-            Some(
-                server_admin_contract::AdminText::try_from(
-                    str_constants::PG_CRUD_CREATE_PERMISSION_ACTION.to_owned(),
-                )
-                .expect("3f422443"),
-            ),
-            None,
-            None,
-            None,
-        );
-        let audit_html = super::table_pagination(
-            server_admin_contract::AdminPage::Audit,
-            &server_admin_contract::AdminTableQuery::default(),
-            server_admin_contract::AdminPageTotal::from(21u64),
-            None,
-            None,
-            Some(&filters),
-        )
-        .render_admin_ssr();
-        assert!(
-            audit_html
-                .as_ref()
-                .contains("name=\"action\" value=\"create\"")
-        );
     }
 
     #[test]
@@ -1056,11 +995,6 @@ mod tests {
         assert!(
             !html
                 .as_ref()
-                .contains(server_admin_contract::AdminFrontendPath::Audit.get())
-        );
-        assert!(
-            !html
-                .as_ref()
                 .contains(server_admin_contract::AdminFrontendPath::Settings.get())
         );
         assert!(
@@ -1116,7 +1050,7 @@ mod tests {
     fn sign_in_uses_server_side_color_without_logo() {
         let settings = server_admin_contract::AdminSettingsView::new(
             server_admin_contract::AdminDefaultRoute::try_from(
-                server_admin_contract::AdminFrontendPath::Audit
+                server_admin_contract::AdminFrontendPath::Users
                     .get()
                     .to_owned(),
             )

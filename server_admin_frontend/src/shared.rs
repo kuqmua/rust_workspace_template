@@ -137,47 +137,6 @@ pub(crate) fn admin_filter_hidden_inputs(
     }
 }
 
-pub(crate) fn admin_audit_hidden_inputs(
-    action: Option<&server_admin_contract::AdminText>,
-    resource: Option<&server_admin_contract::AdminText>,
-    resource_id: Option<&server_admin_contract::AdminText>,
-    user_login: Option<&server_admin_contract::AdminLogin>,
-) -> impl leptos::prelude::IntoView + use<> {
-    let action = action.map(ToString::to_string);
-    let resource = resource.map(ToString::to_string);
-    let resource_id = resource_id.map(ToString::to_string);
-    let user_login = user_login.map(ToString::to_string);
-    leptos::view! {
-        {action.map(|value| leptos::view! { <input type="hidden" name="action" value=value /> })}
-        {resource.map(|value| leptos::view! { <input type="hidden" name="resource" value=value /> })}
-        {resource_id.map(|value| leptos::view! { <input type="hidden" name="resource_id" value=value /> })}
-        {user_login.map(|value| leptos::view! { <input type="hidden" name="user_login" value=value /> })}
-    }
-}
-
-pub(crate) fn admin_audit_filters(
-    action: Option<&server_admin_contract::AdminText>,
-    resource: Option<&server_admin_contract::AdminText>,
-    resource_id: Option<&server_admin_contract::AdminText>,
-    user_login: Option<&server_admin_contract::AdminLogin>,
-    limit: server_admin_contract::AdminPageLimit,
-) -> impl leptos::prelude::IntoView + use<> {
-    let action = action.map(ToString::to_string).unwrap_or_default();
-    let resource = resource.map(ToString::to_string).unwrap_or_default();
-    let resource_id = resource_id.map(ToString::to_string).unwrap_or_default();
-    let user_login = user_login.map(ToString::to_string).unwrap_or_default();
-    let limit = u16::from(limit).to_string();
-    leptos::view! {
-        <form class="audit-filters" method="get" action=server_admin_contract::AdminFrontendPath::Audit.get()>
-            <label><span>"Action"</span><input name="action" value=action /></label>
-            <label><span>"Resource"</span><input name="resource" value=resource /></label>
-            <label><span>"Resource ID"</span><input name="resource_id" value=resource_id /></label>
-            <label><span>"User login"</span><input name="user_login" value=user_login /></label>
-            <input name="limit" type="hidden" value=limit /><input name="offset" type="hidden" value="0" /><button type="submit">"Apply"</button>
-        </form>
-    }
-}
-
 pub(crate) fn admin_data_table_grid(
     view: &server_admin_contract::AdminDataTableView,
     active_field: Option<&server_admin_contract::AdminFilterField>,

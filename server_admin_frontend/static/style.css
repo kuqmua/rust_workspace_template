@@ -366,6 +366,16 @@ p {
   padding: 24px;
 }
 
+.profile-grid > .security-card > form {
+  width: 100%;
+  max-width: none;
+}
+
+.profile-grid > .security-card > form button {
+  width: 100%;
+  justify-self: stretch;
+}
+
 .profile-card h2,
 .profile-grid > .security-card h2 {
   margin: 0 0 18px;
@@ -397,7 +407,6 @@ p {
 
 .security-card label,
 .settings-form label,
-.audit-filters label,
 .table-tools label,
 .mutation-form form label,
 td details form label {
@@ -408,7 +417,6 @@ td details form label {
 
 .security-card label > span,
 .settings-form label > span,
-.audit-filters label > span,
 .table-tools label > span,
 .mutation-form form label > span {
   display: block;
@@ -426,7 +434,6 @@ td details label:has(input[type="checkbox"]) {
 
 .security-card button,
 .settings-form button,
-.audit-filters button,
 .table-tools button,
 .mutation-form form button,
 td form button,
@@ -439,7 +446,6 @@ td details form button {
 
 .security-card button:hover,
 .settings-form button:hover,
-.audit-filters button:hover,
 .table-tools button:hover,
 .mutation-form form button:hover,
 td form button:hover,
@@ -448,7 +454,6 @@ td details form button:hover {
 }
 
 .table-tools,
-.audit-filters,
 .settings-form {
   border: 1px solid var(--border);
   border-radius: 0;
@@ -573,15 +578,6 @@ td details form button:hover {
 
 .table-scroll table {
   overflow: visible;
-}
-
-.audit-filters {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(140px, 1fr)) auto;
-  align-items: end;
-  gap: 12px;
-  margin-bottom: 16px;
-  padding: 16px;
 }
 
 .settings-form {
@@ -992,10 +988,6 @@ pre {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .audit-filters {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
   table {
     display: block;
     overflow-x: auto;
@@ -1054,7 +1046,6 @@ pre {
   }
 
   .table-tools,
-  .audit-filters,
   .settings-form,
   .mutation-form:is(form) {
     grid-template-columns: 1fr;

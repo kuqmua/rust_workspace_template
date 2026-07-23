@@ -1111,7 +1111,8 @@ async fn postgresql_html_settings_updates_and_reads_every_field_separately() {
     let fixture = admin_html_test_fixture().await;
     let site_name_a = StdAdminApiTestStrRef::from("HtmlSiteA");
     let site_name_b = StdAdminApiTestStrRef::from("HtmlSiteB");
-    let route_a = StdAdminApiTestStrRef::from("/admin/audit-log");
+    let route_a =
+        StdAdminApiTestStrRef::from(server_admin_contract::AdminFrontendPath::Users.get());
     let route_b = StdAdminApiTestStrRef::from("/admin/roles");
     let tab_title_a = StdAdminApiTestStrRef::from("HtmlTabA");
     let tab_title_b = StdAdminApiTestStrRef::from("HtmlTabB");
@@ -1426,11 +1427,33 @@ async fn postgresql_html_profile_reads_every_field_and_changes_own_password() {
     .fetch_one(&fixture.pool.0)
     .await
     .expect("c09b5e4e");
+    let (current_session_id, user_id) = sqlx::query_as::<_, (uuid::Uuid, i64)>(
+        "SELECT id, user_id FROM access_sessions WHERE revoked_at IS NULL",
+    )
+    .fetch_one(&fixture.pool.0)
+    .await
+    .expect("ae46b7c1");
+    let other_session_id = uuid::Uuid::from_u128(2u128);
+    let _inserted_other_session = sqlx::query(
+        "INSERT INTO access_sessions (id, user_id, token_identifier_hash, csrf_token_hash, token_context_hash, expires_at) VALUES ($1, $2, 'other-token-hash', 'other-csrf-hash', repeat('a', 64), NOW() + INTERVAL '1 hour')",
+    )
+    .bind(other_session_id)
+    .bind(user_id)
+    .execute(&fixture.pool.0)
+    .await
+    .expect("3e216ecd");
+    let _inserted_other_refresh_token = sqlx::query(
+        "INSERT INTO refresh_tokens (id, user_id, token_hash, expires_at) VALUES ($1, $2, 'other-refresh-hash', NOW() + INTERVAL '1 hour')",
+    )
+    .bind(uuid::Uuid::from_u128(3u128))
+    .bind(user_id)
+    .execute(&fixture.pool.0)
+    .await
+    .expect("d61fc342");
     let correct_password =
         serde_json::from_str::<String>(str_constants::CORRECT_PASSWORD).expect("c59b011a");
     let change_password_body = AdminHtmlTestFormBody::try_from(format!(
-        "current_password={correct_password}&new_password=Html-profile-pass2&revoke_other_sessions={}",
-        str_constants::TRUE,
+        "current_password={correct_password}&new_password=Html-profile-pass2",
     ))
     .expect("c93d69e3");
     let change_password_response = admin_html_response(
@@ -1451,13 +1474,29 @@ async fn postgresql_html_profile_reads_every_field_and_changes_own_password() {
     .await
     .expect("696330ca");
     assert_ne!(changed_password_hash, original_password_hash);
-    let active_session_count = sqlx::query_scalar::<_, i64>(
-        "SELECT COUNT(*) FROM access_sessions WHERE revoked_at IS NULL",
+    let current_session_revoked = sqlx::query_scalar::<_, bool>(
+        "SELECT revoked_at IS NOT NULL FROM access_sessions WHERE id = $1",
     )
+    .bind(current_session_id)
     .fetch_one(&fixture.pool.0)
     .await
     .expect("38923e84");
-    assert_eq!(active_session_count, 1i64);
+    assert!(!current_session_revoked);
+    let other_session_revoked = sqlx::query_scalar::<_, bool>(
+        "SELECT revoked_at IS NOT NULL FROM access_sessions WHERE id = $1",
+    )
+    .bind(other_session_id)
+    .fetch_one(&fixture.pool.0)
+    .await
+    .expect("f0168dc5");
+    assert!(other_session_revoked);
+    let active_refresh_token_count = sqlx::query_scalar::<_, i64>(
+        "SELECT COUNT(*) FROM refresh_tokens WHERE revoked_at IS NULL",
+    )
+    .fetch_one(&fixture.pool.0)
+    .await
+    .expect("740d6dc9");
+    assert_eq!(active_refresh_token_count, 0i64);
     let authenticated_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::GET),
@@ -1567,8 +1606,7 @@ async fn postgresql_html_router_registers_every_owned_page_and_action() {
             );
             if matches!(
                 path,
-                server_admin_contract::AdminFrontendPath::Audit
-                    | server_admin_contract::AdminFrontendPath::Profile
+                server_admin_contract::AdminFrontendPath::Profile
                     | server_admin_contract::AdminFrontendPath::Sessions
                     | server_admin_contract::AdminFrontendPath::Settings
             ) {

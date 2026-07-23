@@ -16,8 +16,6 @@ struct SignInForm {
 struct ChangePasswordForm {
     current_password: server_admin_contract::AdminPassword,
     new_password: server_admin_contract::AdminNewPassword,
-    #[serde(default)]
-    revoke_other_sessions: server_admin_contract::AdminBool,
 }
 
 #[derive(Debug, serde::Deserialize)]
@@ -342,10 +340,6 @@ async fn settings(auth: super::AdminAuthReq) -> axum::response::Response {
     csr_page(auth, server_admin_contract::AdminPage::Settings, None).await
 }
 
-async fn audit(auth: super::AdminAuthReq) -> axum::response::Response {
-    csr_page(auth, server_admin_contract::AdminPage::Audit, None).await
-}
-
 async fn version(auth: super::AdminAuthReq) -> axum::response::Response {
     match page_context(&auth).await {
         Ok((admin, branding)) => match (
@@ -425,7 +419,7 @@ async fn open_api(auth: super::AdminAuthReq) -> axum::response::Response {
 
 async fn root() -> axum::response::Response {
     axum::response::IntoResponse::into_response(axum::response::Redirect::to(
-        server_admin_contract::AdminFrontendPath::Audit.get(),
+        server_admin_contract::AdminFrontendPath::Users.get(),
     ))
 }
 
@@ -450,7 +444,6 @@ async fn change_password(
             let request = server_admin_contract::AdminChangeOwnPasswordReq::new(
                 form.current_password,
                 form.new_password,
-                form.revoke_other_sessions,
             );
             match super::handlers::change_own_password(auth, super::AxumAdminJson(request)).await {
                 Ok(_response) => {
@@ -793,7 +786,7 @@ async fn finish_sign_in(
         Ok(response) => {
             let source = response.0;
             let mut target = axum::response::IntoResponse::into_response(
-                axum::response::Redirect::to(server_admin_contract::AdminFrontendPath::Audit.get()),
+                axum::response::Redirect::to(server_admin_contract::AdminFrontendPath::Users.get()),
             );
             source
                 .headers()
@@ -878,10 +871,6 @@ pub(super) fn routes(
                 axum::routing::get(settings),
             )
             .route(
-                server_admin_contract::AdminFrontendPath::Audit.get(),
-                axum::routing::get(audit),
-            )
-            .route(
                 server_admin_contract::AdminFrontendPath::Version.get(),
                 axum::routing::get(version),
             )
@@ -951,6 +940,16 @@ pub(super) fn routes(
 
 #[cfg(test)]
 mod tests {
+    #[tokio::test]
+    async fn admin_root_redirects_to_users() {
+        let response = super::root().await;
+        assert_eq!(response.status(), http::StatusCode::SEE_OTHER);
+        assert_eq!(
+            response.headers().get(http::header::LOCATION),
+            Some(&http::HeaderValue::from_static("/admin/users"))
+        );
+    }
+
     #[test]
     fn successful_mutation_redirects_to_visible_server_feedback() {
         let response = super::success_redirect(server_admin_contract::AdminFrontendPath::Users);
