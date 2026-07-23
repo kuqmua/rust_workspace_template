@@ -605,7 +605,8 @@ pub async fn authorize_generated_request(
     }
     Ok(authenticated)
 }
-#[derive(newtype::DebugTransparent, newtype::FromInner)]
+#[derive(newtype::DebugTransparent, thiserror::Error, newtype::FromInner)]
+#[error(transparent)]
 pub struct HttpAdminHeaderValueError(http::header::InvalidHeaderValue);
 #[derive(Debug, thiserror::Error)]
 pub enum AdminApiError {
@@ -622,17 +623,17 @@ pub enum AdminApiError {
     #[error("administrator request validation failed")]
     Validation,
     #[error("administrator API database operation failed: {0:?}")]
-    Pg(super::SqlxAdminError),
+    Pg(#[source] super::SqlxAdminError),
     #[error("administrator password hashing failed: {0}")]
-    PasswordHash(super::AdminPasswordHashError),
+    PasswordHash(#[source] super::AdminPasswordHashError),
     #[error("administrator request body is too large")]
     PayloadTooLarge,
     #[error("administrator route does not support this HTTP method")]
     MethodNotAllowed,
     #[error("administrator session operation failed: {0}")]
-    Session(AdminSessionError),
+    Session(#[source] AdminSessionError),
     #[error("administrator response header is invalid: {0:?}")]
-    Header(HttpAdminHeaderValueError),
+    Header(#[source] HttpAdminHeaderValueError),
 }
 impl From<sqlx::Error> for AdminApiError {
     fn from(value: sqlx::Error) -> Self {
@@ -649,7 +650,7 @@ pub struct AxumAdminResponse(axum::response::Response);
 impl axum::response::IntoResponse for AdminApiError {
     fn into_response(self) -> axum::response::Response {
         let rate_limited = matches!(&self, Self::RateLimited);
-        let status = match self {
+        let status = match &self {
             Self::Authentication => http::StatusCode::UNAUTHORIZED,
             Self::Authorization | Self::Csrf => http::StatusCode::FORBIDDEN,
             Self::Conflict => http::StatusCode::CONFLICT,
@@ -661,6 +662,17 @@ impl axum::response::IntoResponse for AdminApiError {
                 http::StatusCode::INTERNAL_SERVER_ERROR
             }
         };
+        let optional_diagnostic = status.is_server_error().then(|| {
+            server_runtime::HttpErrorDiagnostic::capture(
+                server_runtime::HttpErrorTelemetry::new(
+                    server_runtime::HttpErrorType::from(str_constants::ADMIN_API_ERROR_TYPE),
+                    server_runtime::HttpErrorCode::from(
+                        str_constants::ADMIN_API_INTERNAL_ERROR_CODE,
+                    ),
+                ),
+                &self,
+            )
+        });
         let problem_status = frontend_contract::ApiProblemStatus::try_from(status.as_u16())
             .unwrap_or_else(|_error| {
                 frontend_contract::ApiProblemStatus::from(
@@ -680,6 +692,9 @@ impl axum::response::IntoResponse for AdminApiError {
                 http::header::RETRY_AFTER,
                 http::HeaderValue::from_static(str_constants::VALUE_60),
             );
+        }
+        if let Some(diagnostic) = optional_diagnostic {
+            let _previous_diagnostic = response.extensions_mut().insert(diagnostic);
         }
         response
     }
@@ -1278,6 +1293,19 @@ mod tests {
         assert_eq!(
             response.headers().get(http::header::RETRY_AFTER),
             Some(&http::HeaderValue::from_static("60")),
+        );
+    }
+    #[test]
+    fn server_error_response_preserves_http_diagnostic() {
+        let response = axum::response::IntoResponse::into_response(super::AdminApiError::Pg(
+            super::super::SqlxAdminError::from(sqlx::Error::RowNotFound),
+        ));
+        assert_eq!(response.status(), http::StatusCode::INTERNAL_SERVER_ERROR);
+        assert!(
+            response
+                .extensions()
+                .get::<server_runtime::HttpErrorDiagnostic>()
+                .is_some()
         );
     }
     #[test]

@@ -66,6 +66,11 @@ the configured trusted proxy ranges, in which case validated forwarded address h
 The spans also include method, response status, error classification, server address, trace/span
 identifiers and service name.
 
+HTTP `5xx` responses are logged once at the shared server boundary. The structured event contains
+the request, trace, service, route, method and status identifiers together with a stable error
+classification, the retained error chain, a captured backtrace and the current span trace.
+Expected `4xx` responses are not logged at `ERROR` level.
+
 The exporter uses the standard OpenTelemetry environment variables. A typical production
 configuration is:
 

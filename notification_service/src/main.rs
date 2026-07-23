@@ -22,8 +22,17 @@ struct AxumNotificationRouter(axum::Router);
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
 struct HttpNotificationStatusCode(http::StatusCode);
 
-#[derive(Debug, newtype::FromInner)]
-struct HttpNotificationApiProblem(http::StatusCode);
+#[derive(Debug, thiserror::Error)]
+enum HttpNotificationApiProblem {
+    #[error("notification metrics response rendering failed: {0}")]
+    Metrics(#[source] ServerRuntimeMetricsResponseBodyError),
+    #[error("notification persistence failed: {0}")]
+    Persistence(#[source] SqlxNotificationDatabaseError),
+    #[error("notification readiness probe failed: {0}")]
+    Readiness(#[source] SqlxNotificationDatabaseError),
+    #[error("notification request validation failed")]
+    Validation,
+}
 
 #[derive(Clone, Debug, newtype::FromInner)]
 struct MetricsExporterPrometheusHandle(metrics_exporter_prometheus::PrometheusHandle);
@@ -46,8 +55,32 @@ impl axum::response::IntoResponse for HttpNotificationStatusCode {
 }
 impl axum::response::IntoResponse for HttpNotificationApiProblem {
     fn into_response(self) -> axum::response::Response {
-        let status = self.0;
-        axum::response::IntoResponse::into_response((
+        let (status, error_code) = match &self {
+            Self::Metrics(_) => (
+                http::StatusCode::INTERNAL_SERVER_ERROR,
+                str_constants::NOTIFICATION_METRICS_ERROR_CODE,
+            ),
+            Self::Persistence(_) => (
+                http::StatusCode::INTERNAL_SERVER_ERROR,
+                str_constants::NOTIFICATION_PERSISTENCE_ERROR_CODE,
+            ),
+            Self::Readiness(_) => (
+                http::StatusCode::SERVICE_UNAVAILABLE,
+                str_constants::NOTIFICATION_READINESS_ERROR_CODE,
+            ),
+            Self::Validation => (
+                http::StatusCode::UNPROCESSABLE_ENTITY,
+                str_constants::NOTIFICATION_VALIDATION_ERROR_CODE,
+            ),
+        };
+        let telemetry = server_runtime::HttpErrorTelemetry::new(
+            server_runtime::HttpErrorType::from(str_constants::NOTIFICATION_API_ERROR_TYPE),
+            server_runtime::HttpErrorCode::from(error_code),
+        );
+        let optional_diagnostic = status
+            .is_server_error()
+            .then(|| server_runtime::HttpErrorDiagnostic::capture(telemetry, &self));
+        let mut response = axum::response::IntoResponse::into_response((
             status,
             axum::Json(frontend_contract::ApiProblem::from_status(
                 frontend_contract::ApiProblemStatus::try_from(status.as_u16()).unwrap_or_else(
@@ -58,7 +91,13 @@ impl axum::response::IntoResponse for HttpNotificationApiProblem {
                     },
                 ),
             )),
-        ))
+        ));
+        if let Some(diagnostic) = optional_diagnostic {
+            let _previous = response.extensions_mut().insert(diagnostic);
+        } else {
+            let _previous = response.extensions_mut().insert(telemetry);
+        }
+        response
     }
 }
 impl std::process::Termination for StdNotificationExitCode {
@@ -84,7 +123,7 @@ impl axum::extract::FromRequest<NotificationState> for AxumNotificationJson {
         <axum::Json<notification_service_contract::CreateNotificationReq> as axum::extract::FromRequest<NotificationState>>::from_request(req, state)
             .await
             .map(|axum::Json(value)| Self::from(value))
-            .map_err(|_error| HttpNotificationApiProblem::from(http::StatusCode::UNPROCESSABLE_ENTITY))
+            .map_err(|_error| HttpNotificationApiProblem::Validation)
     }
 }
 
@@ -112,7 +151,8 @@ enum NotificationServiceError {
 #[derive(Debug, newtype::FromInner, newtype::Display)]
 struct NotificationConfigError(notification_service_config::ConfigTryFromEnvError);
 
-#[derive(Debug, newtype::FromInner, newtype::Display)]
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[error(transparent)]
 struct SqlxNotificationDatabaseError(sqlx::Error);
 
 #[derive(Debug, newtype::FromInner, newtype::Display)]
@@ -134,6 +174,9 @@ struct NotificationObservabilityInitError(server_runtime::ObservabilityInitError
 struct NotificationObservabilityShutdownError(
     server_runtime::OpentelemetrySdkObservabilityShutdownError,
 );
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[error(transparent)]
+struct ServerRuntimeMetricsResponseBodyError(server_runtime::MetricsResponseBodyError);
 
 async fn create_notification(
     state: AxumNotificationState,
@@ -147,8 +190,7 @@ async fn create_notification(
         .execute(state.0.pool.as_ref())
         .await
         .map_err(|error| {
-            tracing::error!(error = %error, "notification persistence failed");
-            HttpNotificationApiProblem::from(http::StatusCode::INTERNAL_SERVER_ERROR)
+            HttpNotificationApiProblem::Persistence(SqlxNotificationDatabaseError::from(error))
         })?;
     Ok(AxumNotificationResponse::from(
         axum::response::IntoResponse::into_response((
@@ -163,20 +205,22 @@ async fn create_notification(
 async fn metrics(
     state: AxumNotificationState,
 ) -> Result<server_runtime::MetricsResponseBody, HttpNotificationApiProblem> {
-    server_runtime::MetricsResponseBody::try_from(state.0.metrics.0.render())
-        .map_err(|_error| HttpNotificationApiProblem::from(http::StatusCode::INTERNAL_SERVER_ERROR))
+    server_runtime::MetricsResponseBody::try_from(state.0.metrics.0.render()).map_err(|error| {
+        HttpNotificationApiProblem::Metrics(ServerRuntimeMetricsResponseBodyError::from(error))
+    })
 }
 
-async fn readiness(state: AxumNotificationState) -> HttpNotificationStatusCode {
+async fn readiness(
+    state: AxumNotificationState,
+) -> Result<HttpNotificationStatusCode, HttpNotificationApiProblem> {
     match sqlx::query(str_constants::COMMON_ROUTES_HEALTH_CHECK_SQL)
         .execute(state.0.pool.as_ref())
         .await
     {
-        Ok(_result) => HttpNotificationStatusCode::from(http::StatusCode::OK),
-        Err(error) => {
-            tracing::error!(error = %error, "notification readiness probe failed");
-            HttpNotificationStatusCode::from(http::StatusCode::SERVICE_UNAVAILABLE)
-        }
+        Ok(_result) => Ok(HttpNotificationStatusCode::from(http::StatusCode::OK)),
+        Err(error) => Err(HttpNotificationApiProblem::Readiness(
+            SqlxNotificationDatabaseError::from(error),
+        )),
     }
 }
 
@@ -400,6 +444,44 @@ mod tests {
             super::NotificationBodyMaximumBytes::from(
                 notification_service_contract::NOTIFICATION_API_BODY_MAX_BYTES,
             ),
+        );
+    }
+
+    #[test]
+    fn api_problem_preserves_server_diagnostic_but_keeps_validation_expected() {
+        let server_response = axum::response::IntoResponse::into_response(
+            super::HttpNotificationApiProblem::Persistence(
+                super::SqlxNotificationDatabaseError::from(sqlx::Error::RowNotFound),
+            ),
+        );
+        assert_eq!(
+            server_response.status(),
+            http::StatusCode::INTERNAL_SERVER_ERROR
+        );
+        assert!(
+            server_response
+                .extensions()
+                .get::<server_runtime::HttpErrorDiagnostic>()
+                .is_some()
+        );
+        let validation_response = axum::response::IntoResponse::into_response(
+            super::HttpNotificationApiProblem::Validation,
+        );
+        assert_eq!(
+            validation_response.status(),
+            http::StatusCode::UNPROCESSABLE_ENTITY
+        );
+        assert!(
+            validation_response
+                .extensions()
+                .get::<server_runtime::HttpErrorDiagnostic>()
+                .is_none()
+        );
+        assert!(
+            validation_response
+                .extensions()
+                .get::<server_runtime::HttpErrorTelemetry>()
+                .is_some()
         );
     }
 

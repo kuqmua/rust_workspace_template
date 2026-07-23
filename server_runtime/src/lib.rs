@@ -382,6 +382,52 @@ pub struct HttpErrorTelemetry {
     error_code: HttpErrorCode,
     error_type: HttpErrorType,
 }
+#[derive(Clone, Debug, newtype::Display, newtype::FromInner)]
+struct StdHttpErrorBacktrace(Box<str>);
+#[derive(Clone, Debug, newtype::Display, newtype::FromInner)]
+struct StdHttpErrorChain(Box<str>);
+#[derive(Clone, Debug, newtype::Display, newtype::FromInner)]
+struct TracingHttpSpanTrace(Box<str>);
+#[derive(Clone, Debug)]
+pub struct HttpErrorDiagnostic {
+    backtrace: StdHttpErrorBacktrace,
+    error_chain: StdHttpErrorChain,
+    span_trace: TracingHttpSpanTrace,
+    telemetry: HttpErrorTelemetry,
+}
+impl HttpErrorDiagnostic {
+    #[must_use]
+    pub fn capture(
+        telemetry: HttpErrorTelemetry,
+        error: &(dyn std::error::Error + 'static),
+    ) -> Self {
+        let mut error_chain = error.to_string();
+        let mut optional_source = error.source();
+        while let Some(source) = optional_source {
+            error_chain.push_str(str_constants::HTTP_ERROR_CHAIN_SEPARATOR);
+            error_chain.push_str(source.to_string().as_str());
+            optional_source = source.source();
+        }
+        let current_span = tracing::Span::current();
+        let span_trace = current_span.metadata().map_or_else(
+            || str_constants::HTTP_SPAN_UNAVAILABLE.to_owned(),
+            |metadata| format!("{current_span:?} [{}]", metadata.name()),
+        );
+        Self {
+            backtrace: StdHttpErrorBacktrace::from(
+                std::backtrace::Backtrace::force_capture()
+                    .to_string()
+                    .into_boxed_str(),
+            ),
+            error_chain: StdHttpErrorChain::from(error_chain.into_boxed_str()),
+            span_trace: TracingHttpSpanTrace::from(span_trace.into_boxed_str()),
+            telemetry,
+        }
+    }
+}
+#[derive(Debug, thiserror::Error)]
+#[error("{}", str_constants::HTTP_ERROR_WITHOUT_DIAGNOSTIC_CONTEXT)]
+struct HttpErrorWithoutDiagnosticContext;
 impl HttpErrorTelemetry {
     #[must_use]
     pub const fn new(error_type: HttpErrorType, error_code: HttpErrorCode) -> Self {
@@ -555,6 +601,13 @@ where
         let opentelemetry_span = opentelemetry::trace::TraceContextExt::span(&span_context);
         let trace_id = opentelemetry_span.span_context().trace_id().to_string();
         let span_id = opentelemetry_span.span_context().span_id().to_string();
+        let request_id = request_id_and_header_value.0.clone();
+        let http_method = req.method().clone();
+        let http_route = route.to_owned();
+        let service_name = self
+            .span_config
+            .as_ref()
+            .map_or_else(String::new, |config| config.service_name.to_string());
         let _trace_id_record = span.record(str_constants::OTEL_TRACE_ID, trace_id.as_str());
         let _span_id_record = span.record(str_constants::OTEL_SPAN_ID, span_id.as_str());
         let _previous_extension_request_id =
@@ -563,11 +616,6 @@ where
         Box::pin(tracing::Instrument::instrument(
             async move {
                 let mut response = response_future.await?;
-                tracing::info!(
-                    status = response.status().as_u16(),
-                    duration_ms = started_at.elapsed().as_millis(),
-                    "http request completed"
-                );
                 let _server_status_record = tracing::Span::current().record(
                     str_constants::OTEL_HTTP_RESPONSE_STATUS_CODE,
                     response.status().as_u16(),
@@ -590,10 +638,10 @@ where
                             HttpErrorCode::from(str_constants::OTEL_HTTP_4XX_ERROR_CODE),
                         )
                     };
-                    let error_telemetry = response
-                        .extensions()
-                        .get::<HttpErrorTelemetry>()
-                        .copied()
+                    let optional_diagnostic = response.extensions().get::<HttpErrorDiagnostic>();
+                    let error_telemetry = optional_diagnostic
+                        .map(|diagnostic| diagnostic.telemetry)
+                        .or_else(|| response.extensions().get::<HttpErrorTelemetry>().copied())
                         .unwrap_or(default_error_telemetry);
                     let _error_type_record = tracing::Span::current().record(
                         str_constants::OTEL_ERROR_TYPE,
@@ -602,6 +650,41 @@ where
                     let _error_code_record = tracing::Span::current().record(
                         str_constants::OTEL_ERROR_CODE,
                         tracing::field::display(error_telemetry.error_code),
+                    );
+                    if response.status().is_server_error() {
+                        let mut fallback_diagnostic = None;
+                        let diagnostic = optional_diagnostic.map_or_else(
+                            || {
+                                &*fallback_diagnostic.insert(HttpErrorDiagnostic::capture(
+                                    error_telemetry,
+                                    &HttpErrorWithoutDiagnosticContext,
+                                ))
+                            },
+                            |diagnostic| diagnostic,
+                        );
+                        tracing::error!(
+                            request_id = %request_id,
+                            trace_id = %trace_id,
+                            service_name = %service_name,
+                            http_route = %http_route,
+                            http_method = %http_method,
+                            http_status = response.status().as_u16(),
+                            error_code = %error_telemetry.error_code,
+                            error_type = %error_telemetry.error_type,
+                            error_chain = %diagnostic.error_chain,
+                            backtrace = %diagnostic.backtrace,
+                            span_trace = %diagnostic.span_trace,
+                            duration_ms = started_at.elapsed().as_millis(),
+                            "{}",
+                            str_constants::HTTP_REQUEST_FAILED
+                        );
+                    }
+                }
+                if !response.status().is_server_error() {
+                    tracing::info!(
+                        status = response.status().as_u16(),
+                        duration_ms = started_at.elapsed().as_millis(),
+                        "http request completed"
                     );
                 }
                 let _previous_header_request_id = response.headers_mut().insert(
@@ -910,6 +993,65 @@ where
 }
 #[cfg(test)]
 mod tests {
+    const HTTP_ERROR_EVENT_REQUIRED_FIELD_MASK: u16 = (1u16 << 11u16) - 1u16;
+    #[derive(Clone, Debug)]
+    struct HttpErrorEventCapture {
+        error_count: std::sync::Arc<std::sync::atomic::AtomicUsize>,
+        field_mask: std::sync::Arc<std::sync::atomic::AtomicU16>,
+    }
+    impl<Subscriber> tracing_subscriber::Layer<Subscriber> for HttpErrorEventCapture
+    where
+        Subscriber: tracing::Subscriber,
+    {
+        fn on_event(
+            &self,
+            event: &tracing::Event<'_>,
+            _context: tracing_subscriber::layer::Context<'_, Subscriber>,
+        ) {
+            if *event.metadata().level() != tracing::Level::ERROR {
+                return;
+            }
+            let _previous_count = self
+                .error_count
+                .fetch_add(1usize, std::sync::atomic::Ordering::SeqCst);
+            let mut visitor = HttpErrorEventFieldVisitor::default();
+            event.record(&mut visitor);
+            let _previous_mask = self
+                .field_mask
+                .fetch_or(visitor.mask, std::sync::atomic::Ordering::SeqCst);
+        }
+    }
+    #[derive(Debug, Default)]
+    struct HttpErrorEventFieldVisitor {
+        mask: u16,
+    }
+    impl HttpErrorEventFieldVisitor {
+        fn record_field(&mut self, field: &tracing::field::Field) {
+            let bit = match field.name() {
+                "request_id" => 1u16 << 0u16,
+                "trace_id" => 1u16 << 1u16,
+                "service_name" => 1u16 << 2u16,
+                "http_route" => 1u16 << 3u16,
+                "http_method" => 1u16 << 4u16,
+                "http_status" => 1u16 << 5u16,
+                "error_code" => 1u16 << 6u16,
+                "error_type" => 1u16 << 7u16,
+                "error_chain" => 1u16 << 8u16,
+                "backtrace" => 1u16 << 9u16,
+                "span_trace" => 1u16 << 10u16,
+                _other => 0u16,
+            };
+            self.mask |= bit;
+        }
+    }
+    impl tracing::field::Visit for HttpErrorEventFieldVisitor {
+        fn record_debug(&mut self, field: &tracing::field::Field, _value: &dyn std::fmt::Debug) {
+            self.record_field(field);
+        }
+        fn record_u64(&mut self, field: &tracing::field::Field, _value: u64) {
+            self.record_field(field);
+        }
+    }
     #[test]
     fn resource_budget_reservations_are_bounded_and_released() {
         let budget = super::ResourceBudget::new(
@@ -1396,6 +1538,116 @@ mod tests {
             Some(str_constants::OTEL_HTTP_4XX_ERROR_CODE)
         );
         tracer_provider.shutdown().expect("a4f89d4d");
+    }
+    #[tokio::test(flavor = "current_thread")]
+    async fn http_boundary_emits_one_complete_error_event_only_for_server_errors() {
+        #[derive(Debug, thiserror::Error)]
+        #[error("boundary test operation failed")]
+        struct BoundaryTestError {
+            #[source]
+            source: std::io::Error,
+        }
+        let error_count = std::sync::Arc::new(std::sync::atomic::AtomicUsize::new(0usize));
+        let field_mask = std::sync::Arc::new(std::sync::atomic::AtomicU16::new(0u16));
+        let subscriber = tracing_subscriber::layer::SubscriberExt::with(
+            tracing_subscriber::registry(),
+            HttpErrorEventCapture {
+                error_count: std::sync::Arc::clone(&error_count),
+                field_mask: std::sync::Arc::clone(&field_mask),
+            },
+        );
+        let dispatch = tracing::Dispatch::new(subscriber);
+        let _dispatch_guard = tracing::dispatcher::set_default(&dispatch);
+        let diagnostic = super::HttpErrorDiagnostic::capture(
+            super::HttpErrorTelemetry::new(
+                super::HttpErrorType::from("boundary.test"),
+                super::HttpErrorCode::from("boundary_failed"),
+            ),
+            &BoundaryTestError {
+                source: std::io::Error::other("nested source"),
+            },
+        );
+        assert!(
+            diagnostic
+                .error_chain
+                .0
+                .contains("boundary test operation failed: nested source")
+        );
+        assert!(!diagnostic.backtrace.0.to_string().is_empty());
+        assert!(!diagnostic.span_trace.0.is_empty());
+        let server_error_diagnostic = diagnostic.clone();
+        let router = axum::Router::from(
+            super::RequestIdLayer::with_span_config(super::HttpRequestSpanConfig::new(
+                super::ServiceName::from("boundary-test"),
+                super::StdSocketAddr::from(
+                    "127.0.0.1:8080"
+                        .parse::<std::net::SocketAddr>()
+                        .expect("c74109ca"),
+                ),
+                super::TrustedProxyRanges::default(),
+            ))
+            .apply(super::AxumRouter::from(
+                axum::Router::new()
+                    .route(
+                        "/failure",
+                        axum::routing::get(move || {
+                            let response_diagnostic = server_error_diagnostic.clone();
+                            async move {
+                                let mut response = axum::response::IntoResponse::into_response(
+                                    http::StatusCode::INTERNAL_SERVER_ERROR,
+                                );
+                                let _previous =
+                                    response.extensions_mut().insert(response_diagnostic);
+                                response
+                            }
+                        }),
+                    )
+                    .route(
+                        "/invalid",
+                        axum::routing::get(async || http::StatusCode::UNPROCESSABLE_ENTITY),
+                    ),
+            )),
+        );
+        let server_error_response = tower::ServiceExt::oneshot(
+            router.clone(),
+            axum::extract::Request::builder()
+                .uri("/failure")
+                .body(axum::body::Body::empty())
+                .expect("2b710c82"),
+        )
+        .await
+        .expect("33c72c1c");
+        assert_eq!(
+            server_error_response.status(),
+            http::StatusCode::INTERNAL_SERVER_ERROR
+        );
+        drop(server_error_response);
+        assert_eq!(
+            error_count.load(std::sync::atomic::Ordering::SeqCst),
+            1usize
+        );
+        assert_eq!(
+            field_mask.load(std::sync::atomic::Ordering::SeqCst),
+            HTTP_ERROR_EVENT_REQUIRED_FIELD_MASK
+        );
+        let client_error_response = tower::ServiceExt::oneshot(
+            router,
+            axum::extract::Request::builder()
+                .uri("/invalid")
+                .body(axum::body::Body::empty())
+                .expect("b362c5d1"),
+        )
+        .await
+        .expect("e271f216");
+        assert_eq!(
+            client_error_response.status(),
+            http::StatusCode::UNPROCESSABLE_ENTITY
+        );
+        drop(client_error_response);
+        assert_eq!(
+            error_count.load(std::sync::atomic::Ordering::SeqCst),
+            1usize
+        );
     }
     #[test]
     fn observed_client_preparation_injects_context_and_creates_child_span() {

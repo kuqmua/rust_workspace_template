@@ -4203,6 +4203,18 @@ pub const OTEL_STATUS_CODE: &str = "otel.status_code";
 pub const OTEL_TRACE_ID: &str = "trace_id";
 pub const OTEL_URL_PATH: &str = "url.path";
 pub const OTEL_HTTP_RESPONSE_STATUS_CODE: &str = "http.response.status_code";
+pub const HTTP_ERROR_WITHOUT_DIAGNOSTIC_CONTEXT: &str =
+    "HTTP server error response has no diagnostic context";
+pub const HTTP_ERROR_CHAIN_SEPARATOR: &str = ": ";
+pub const HTTP_REQUEST_FAILED: &str = "http request failed";
+pub const HTTP_SPAN_UNAVAILABLE: &str = "current tracing span is unavailable";
+pub const ADMIN_API_ERROR_TYPE: &str = "server_admin::auth::AdminApiError";
+pub const ADMIN_API_INTERNAL_ERROR_CODE: &str = "admin_api_internal";
+pub const NOTIFICATION_API_ERROR_TYPE: &str = "notification_service::HttpNotificationApiProblem";
+pub const NOTIFICATION_METRICS_ERROR_CODE: &str = "notification_metrics_render";
+pub const NOTIFICATION_PERSISTENCE_ERROR_CODE: &str = "notification_persistence";
+pub const NOTIFICATION_READINESS_ERROR_CODE: &str = "notification_readiness";
+pub const NOTIFICATION_VALIDATION_ERROR_CODE: &str = "notification_validation";
 pub const X_REQUEST_ID: &str = "x-request-id";
 pub const TRACEPARENT_W3C_VERSION_00_FORMAT: &str =
     "traceparent must use the W3C version 00 format";

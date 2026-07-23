@@ -43,11 +43,9 @@ Server span содержит `http.request.method`, `http.response.status_code`,
 стабильные значения по классу HTTP-статуса, которые API может заменить типизированным
 `HttpErrorTelemetry` в extensions ответа.
 
-### 3. Единое логирование ошибок на HTTP boundary
+### 3. Единое логирование ошибок на HTTP boundary — реализовано
 
-Сейчас middleware всегда пишет информационное событие о завершении запроса. Детальная ошибка логируется только в отдельных местах, например в notification service.
-
-Нужна единая граница, которая при `5xx` пишет ровно одно структурированное событие:
+Shared middleware при `5xx` пишет ровно одно структурированное `ERROR`-событие:
 
 ```text
 request_id
@@ -63,9 +61,14 @@ backtrace
 span_trace
 ```
 
-Middleware не сможет восстановить цепочку ошибки только из готового HTTP response. Поэтому тип API-ошибки должен сохранять диагностический объект до момента преобразования в response.
+`HttpErrorDiagnostic` захватывает цепочку `std::error::Error`, принудительный `Backtrace` и
+текущий tracing span в момент, когда типизированная API-ошибка ещё доступна. `AdminApiError` и
+ошибки notification service помещают этот объект в extensions ответа, откуда boundary извлекает
+его до отправки ответа. Если нет типизированной диагностики, boundary всё равно создаёт явно
+помеченный fallback вместо потери обязательных полей.
 
-Ожидаемые ответы `4xx` обычно не нужно логировать как `ERROR`.
+Локальные `ERROR`-события persistence/readiness удалены. Ответы `4xx` завершаются обычным
+информационным событием и не создают `ERROR`; их `error.type` и `error_code` остаются в span.
 
 ### 4. Общий тип диагностической ошибки
 
@@ -224,7 +227,7 @@ retries_total{operation}
 
 1. Перенести всю инициализацию observability в `server_runtime`.
 2. Улучшить HTTP span и заменить raw path на route template. Реализовано.
-3. Сделать единый error boundary и стабильные `error_code`.
+3. Сделать единый error boundary и стабильные `error_code`. Реализовано.
 4. Добавить `ErrorLayer`, `SpanTrace`, location и выборочный backtrace.
 5. Внедрить OpenTelemetry/OTLP и реальную propagation.
 6. Добавить resource/build/deployment metadata.
