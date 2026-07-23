@@ -2,6 +2,8 @@
 struct TracingLevelName(&'static str);
 #[derive(Debug)]
 struct StdEnvVarResult(Result<String, std::env::VarError>);
+#[derive(Debug, PartialEq, Eq, newtype::Display, newtype::ErrorTransparent, newtype::FromInner)]
+struct StdEnvVarError(std::env::VarError);
 impl TryFrom<Result<String, std::env::VarError>> for StdEnvVarResult {
     type Error = super::ConfigLibStringWrapperTryFromStringError;
     fn try_from(value: Result<String, std::env::VarError>) -> Result<Self, Self::Error> {
@@ -18,25 +20,30 @@ impl TryFrom<Result<String, std::env::VarError>> for StdEnvVarResult {
 struct EnvVarNameRef<'name_lt>(&'name_lt str);
 #[derive(Debug, Clone, Copy, newtype::FromInner)]
 struct EnvVarValueRef<'value_lt>(&'value_lt str);
-#[derive(Debug, Clone, Copy, newtype::FromInner)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Display, newtype::FromInner)]
 struct ParseCtxRef(&'static str);
-#[derive(Debug, Clone, PartialEq, Eq, newtype::AsRefStr, newtype::Display)]
-struct EnvParseError(String);
+#[derive(Debug, PartialEq, Eq, thiserror::Error)]
+enum EnvParseError {
+    #[error("environment variable value exceeds the size limit")]
+    ValueTooLong {
+        #[source]
+        source: super::ConfigLibStringWrapperTryFromStringError,
+    },
+    #[error("std::env::var(\"{name}\")")]
+    Read {
+        name: super::EnvVarName,
+        #[source]
+        source: StdEnvVarError,
+    },
+    #[error("{context}: {detail}")]
+    Parse {
+        context: ParseCtxRef,
+        detail: to_err_string::ErrorText,
+    },
+}
 impl From<super::ConfigLibStringWrapperTryFromStringError> for EnvParseError {
     fn from(value: super::ConfigLibStringWrapperTryFromStringError) -> Self {
-        Self(value.to_string())
-    }
-}
-impl TryFrom<String> for EnvParseError {
-    type Error = super::ConfigLibStringWrapperTryFromStringError;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > super::CONFIG_LIB_STRING_WRAPPER_MAX_LEN {
-            return Err(Self::Error::TooLong {
-                len: value.len(),
-                max: super::CONFIG_LIB_STRING_WRAPPER_MAX_LEN,
-            });
-        }
-        Ok(Self(value))
+        Self::ValueTooLong { source: value }
     }
 }
 #[allow(clippy::arbitrary_source_item_ordering)]
@@ -138,12 +145,13 @@ impl SrcPlaceType {
 #[allow(clippy::single_call_fn)] // helper centralizes env var context mapping for string parsers and is reused by enum parsing
 fn parse_from_env_var_with<T>(
     env_v: StdEnvVarResult,
-    env_var_name: EnvVarNameRef<'_>,
+    env_var_name: EnvVarNameRef<'static>,
     parse: impl FnOnce(EnvVarValueRef<'_>) -> Result<T, EnvParseError>,
 ) -> Result<T, EnvParseError> {
-    let raw_v = env_v.0.map_err(|error| {
-        EnvParseError::try_from(format!("std::env::var(\"{}\"): {error}", env_var_name.0))
-            .unwrap_or_else(EnvParseError::from)
+    let raw_v = env_v.0.map_err(|source| EnvParseError::Read {
+        name: super::EnvVarName::try_from(env_var_name.0.to_owned())
+            .unwrap_or_else(super::EnvVarName::from),
+        source: StdEnvVarError::from(source),
     })?;
     parse(EnvVarValueRef::from(raw_v.as_str()))
 }
@@ -156,15 +164,16 @@ where
     T: std::str::FromStr,
     T::Err: std::fmt::Display,
 {
-    T::from_str(v.0).map_err(|error| {
-        EnvParseError::try_from(format!("{}: {error}", parse_ctx.0))
-            .unwrap_or_else(EnvParseError::from)
+    T::from_str(v.0).map_err(|error| EnvParseError::Parse {
+        context: parse_ctx,
+        detail: to_err_string::ErrorText::try_from(error.to_string())
+            .unwrap_or_else(to_err_string::ErrorText::from),
     })
 }
 #[allow(clippy::single_call_fn)] // helper composes env var read + std::str::FromStr context mapping for reuse across enum env parsers
 fn parse_from_env_var_from_str<T>(
     env_v: StdEnvVarResult,
-    env_var_name: EnvVarNameRef<'_>,
+    env_var_name: EnvVarNameRef<'static>,
     parse_ctx: ParseCtxRef,
 ) -> Result<T, EnvParseError>
 where
@@ -270,12 +279,9 @@ mod tests {
             super::ParseCtxRef::from(str_constants::CONFIG_SRC_PLACE_TYPE_PARSE_CTX),
         )
         .expect_err(str_constants::VALUE_8C9F2A17);
-        assert!(
-            error
-                .as_ref()
-                .contains("<SrcPlaceType as std::str::FromStr>::from_str(&v):")
-        );
-        assert!(error.as_ref().contains("Unknown value: bad"));
+        let error_text = error.to_string();
+        assert!(error_text.contains("<SrcPlaceType as std::str::FromStr>::from_str(&v):"));
+        assert!(error_text.contains("Unknown value: bad"));
     }
     #[test]
     fn parse_from_env_var_with_wraps_missing_var_context() {
@@ -285,7 +291,17 @@ mod tests {
             |_v| Ok(()),
         );
         let error = parsed.expect_err(str_constants::D2F3B74A);
-        assert!(error.as_ref().contains("std::env::var(\"SRC_PLACE_TYPE\")"));
+        assert!(
+            error
+                .to_string()
+                .contains("std::env::var(\"SRC_PLACE_TYPE\")")
+        );
+        assert_eq!(
+            std::error::Error::source(&error)
+                .expect("e6fbfe6b")
+                .to_string(),
+            "environment variable not found"
+        );
     }
     #[test]
     fn parse_from_env_var_with_passes_value_into_parse_callback() {
@@ -313,7 +329,7 @@ mod tests {
             super::ParseCtxRef::from(str_constants::BOOL_PARSE),
         )
         .expect_err(str_constants::VALUE_7E4B3F19);
-        assert!(error.as_ref().contains("bool parse:"));
+        assert!(error.to_string().contains("bool parse:"));
     }
     #[test]
     fn parse_src_place_type_from_env_var_wraps_missing_var_context() {
@@ -321,7 +337,11 @@ mod tests {
             std::env::VarError::NotPresent,
         )))
         .expect_err(str_constants::VALUE_5A83F2BE);
-        assert!(error.as_ref().contains("std::env::var(\"SRC_PLACE_TYPE\")"));
+        assert!(
+            error
+                .to_string()
+                .contains("std::env::var(\"SRC_PLACE_TYPE\")")
+        );
     }
     #[test]
     fn parse_src_place_type_from_env_var_parses_ok_value() {
@@ -345,6 +365,6 @@ mod tests {
             super::ParseCtxRef::from(str_constants::BOOL_PARSE),
         )
         .expect_err(str_constants::VALUE_13FE8A6D);
-        assert!(error.as_ref().contains("bool parse:"));
+        assert!(error.to_string().contains("bool parse:"));
     }
 }

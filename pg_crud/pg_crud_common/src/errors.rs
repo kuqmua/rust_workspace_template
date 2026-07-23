@@ -1,5 +1,21 @@
-#[derive(Debug, Clone, PartialEq, Eq, optml::Optml, newtype::Display, newtype::IntoInner)]
-pub struct SqlxPostgresQueryBindError(String);
+#[derive(Debug, newtype::FromInner)]
+pub(crate) struct SqlxBoxDynError(sqlx::error::BoxDynError);
+impl std::fmt::Display for SqlxBoxDynError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(&self.0, f)
+    }
+}
+impl std::error::Error for SqlxBoxDynError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        Some(self.0.as_ref())
+    }
+}
+#[derive(Debug, thiserror::Error)]
+#[error("failed to bind PostgreSQL query parameter")]
+pub struct SqlxPostgresQueryBindError {
+    #[source]
+    source: SqlxBoxDynError,
+}
 #[derive(
     Debug,
     Clone,
@@ -16,26 +32,16 @@ pub enum PgCrudStringWrapperTryFromStringError {
     TooLong { len: usize, max: usize },
 }
 impl to_err_string::ToErrString for PgCrudStringWrapperTryFromStringError {
-    fn to_err_string(&self) -> to_err_string::ToErrStringValue {
-        to_err_string::ToErrStringValue::try_from(self.to_string())
-            .unwrap_or_else(to_err_string::ToErrStringValue::from)
+    fn to_err_string(&self) -> to_err_string::ErrorText {
+        to_err_string::ErrorText::try_from(self.to_string())
+            .unwrap_or_else(to_err_string::ErrorText::from)
     }
 }
-impl From<PgCrudStringWrapperTryFromStringError> for SqlxPostgresQueryBindError {
-    fn from(value: PgCrudStringWrapperTryFromStringError) -> Self {
-        Self(value.to_string())
-    }
-}
-impl TryFrom<String> for SqlxPostgresQueryBindError {
-    type Error = PgCrudStringWrapperTryFromStringError;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > crate::PG_CRUD_STRING_WRAPPER_MAX_LEN {
-            return Err(Self::Error::TooLong {
-                len: value.len(),
-                max: crate::PG_CRUD_STRING_WRAPPER_MAX_LEN,
-            });
+impl From<sqlx::error::BoxDynError> for SqlxPostgresQueryBindError {
+    fn from(source: sqlx::error::BoxDynError) -> Self {
+        Self {
+            source: SqlxBoxDynError::from(source),
         }
-        Ok(Self(value))
     }
 }
 #[derive(
@@ -69,5 +75,30 @@ impl From<PgCrudStringWrapperTryFromStringError> for QueryPartError {
             location: location_macros::location!(),
             error,
         }
+    }
+}
+pub fn mk_query_bind_err<Source>(source: Source) -> SqlxPostgresQueryBindError
+where
+    Source: std::error::Error + Send + Sync + 'static,
+{
+    let boxed: sqlx::error::BoxDynError = Box::new(source);
+    SqlxPostgresQueryBindError::from(boxed)
+}
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn query_bind_error_preserves_its_source() {
+        let error = super::mk_query_bind_err(std::io::Error::other(str_constants::ERROR));
+        let source = std::error::Error::source(&error).expect("c9d460e5");
+
+        assert_eq!(source.to_string(), str_constants::ERROR);
+        assert_eq!(
+            error.to_string(),
+            "failed to bind PostgreSQL query parameter"
+        );
+        assert_eq!(
+            source.source().expect("4e5bcc6b").to_string(),
+            str_constants::ERROR
+        );
     }
 }

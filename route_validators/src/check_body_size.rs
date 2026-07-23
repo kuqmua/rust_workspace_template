@@ -19,9 +19,9 @@ pub struct AxumBodySizeError(axum::Error);
 #[derive(Debug, newtype::FromInner)]
 pub struct HttpBodySizeHint(http_body::SizeHint);
 impl to_err_string::ToErrString for HttpBodySizeHint {
-    fn to_err_string(&self) -> to_err_string::ToErrStringValue {
-        to_err_string::ToErrStringValue::try_from(format!("{:#?}", self.0))
-            .unwrap_or_else(to_err_string::ToErrStringValue::from)
+    fn to_err_string(&self) -> to_err_string::ErrorText {
+        to_err_string::ErrorText::try_from(format!("{:#?}", self.0))
+            .unwrap_or_else(to_err_string::ErrorText::from)
     }
 }
 #[derive(

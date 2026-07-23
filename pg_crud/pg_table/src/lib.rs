@@ -152,9 +152,9 @@ impl std::fmt::Display for PgTableIdempotencyTextError {
 #[display_const(str_constants::POSTGRESQL_IDEMPOTENCY_OPERATION_FAILED)]
 pub struct SqlxPgTableIdempotencyError(sqlx::Error);
 impl to_err_string::ToErrString for SqlxPgTableIdempotencyError {
-    fn to_err_string(&self) -> to_err_string::ToErrStringValue {
-        to_err_string::ToErrStringValue::try_from(self.to_string())
-            .unwrap_or_else(to_err_string::ToErrStringValue::from)
+    fn to_err_string(&self) -> to_err_string::ErrorText {
+        to_err_string::ErrorText::try_from(self.to_string())
+            .unwrap_or_else(to_err_string::ErrorText::from)
     }
 }
 

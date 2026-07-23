@@ -3,25 +3,25 @@ const _: usize = str_constants::MACRO_DIAGNOSTICS_TUPLE_STRUCT_ERROR.len();
 mod tests {
     mod to_err_string {
         #[derive(Debug, Clone, PartialEq, Eq)]
-        pub(crate) struct ToErrStringValue(String);
+        pub(crate) struct ErrorText(String);
         #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-        pub(crate) enum ToErrStringValueTryFromStringError {
+        pub(crate) enum ErrorTextTryFromStringError {
             TooLong,
         }
-        impl std::fmt::Display for ToErrStringValueTryFromStringError {
+        impl std::fmt::Display for ErrorTextTryFromStringError {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 match self {
                     Self::TooLong => f.write_str(str_constants::TOO_LONG),
                 }
             }
         }
-        impl From<ToErrStringValueTryFromStringError> for ToErrStringValue {
-            fn from(value: ToErrStringValueTryFromStringError) -> Self {
+        impl From<ErrorTextTryFromStringError> for ErrorText {
+            fn from(value: ErrorTextTryFromStringError) -> Self {
                 Self(value.to_string())
             }
         }
-        impl TryFrom<String> for ToErrStringValue {
-            type Error = ToErrStringValueTryFromStringError;
+        impl TryFrom<String> for ErrorText {
+            type Error = ErrorTextTryFromStringError;
             fn try_from(value: String) -> Result<Self, Self::Error> {
                 if value.len() > 1024 {
                     return Err(Self::Error::TooLong);
@@ -29,13 +29,13 @@ mod tests {
                 Ok(Self(value))
             }
         }
-        impl AsRef<str> for ToErrStringValue {
+        impl AsRef<str> for ErrorText {
             fn as_ref(&self) -> &str {
                 self.0.as_str()
             }
         }
         pub(crate) trait ToErrString {
-            fn to_err_string(&self) -> ToErrStringValue;
+            fn to_err_string(&self) -> ErrorText;
         }
     }
     const STRING_VALUE_MAX_LEN: usize = 1_048_576;

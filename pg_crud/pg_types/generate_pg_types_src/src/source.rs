@@ -1400,13 +1400,13 @@ pub fn emit_generate_pg_types(
         let generate_typical_pg_query_query_bind_token_stream = |ts: &dyn quote::ToTokens| match &is_nullable {
             pg_crud_macros_common::IsNullable::False => quote::quote! {
                 if let Err(error) = #query_snake_case.as_mut().try_bind(#ts) {
-                    return Err(#import::SqlxPostgresQueryBindError::try_from(error.to_string()).unwrap_or_else(#import::SqlxPostgresQueryBindError::from));
+                    return Err(#import::SqlxPostgresQueryBindError::from(error));
                 }
                 Ok(#query_snake_case)
             },
             pg_crud_macros_common::IsNullable::True => quote::quote! {
                 if let Err(error) = #query_snake_case.as_mut().try_bind(#ts.0.0) {
-                    return Err(#import::SqlxPostgresQueryBindError::try_from(error.to_string()).unwrap_or_else(#import::SqlxPostgresQueryBindError::from));
+                    return Err(#import::SqlxPostgresQueryBindError::from(error));
                 }
                 Ok(#query_snake_case)
             },

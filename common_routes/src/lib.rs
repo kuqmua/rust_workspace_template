@@ -5,7 +5,6 @@
 //todo generate openapi spec
 const HEALTH_PROBE_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(2u64);
 const HEALTH_COMPONENTS_MAX_LEN: usize = 2usize;
-const NOT_FOUND_MSG_MAX_LEN: usize = 1_048_576;
 #[derive(Debug, serde::Serialize, utoipa::ToSchema, optml::Optml)]
 pub struct GitInfo {
     commit: git_info::StdGitCommitLinkCow,
@@ -13,12 +12,9 @@ pub struct GitInfo {
 #[derive(Debug, serde::Serialize, optml::Optml)]
 struct NotFoundHandle {
     commit: git_info::StdGitCommitLinkCow,
-    message: NotFoundMessage,
+    message: to_err_string::ErrorText,
     open_api_specification: OpenApiSpecificationPath,
 }
-#[derive(Debug, serde::Serialize, optml::Optml, newtype::BoundedString, newtype::Display)]
-#[bounded_string(max = NOT_FOUND_MSG_MAX_LEN, description = "not found message" )]
-struct NotFoundMessage(String);
 #[derive(Debug, Clone, Copy, serde::Serialize, optml::Optml, newtype::FromInner)]
 struct OpenApiSpecificationPath(&'static str);
 #[derive(Debug, Clone, Copy, optml::Optml, newtype::FromInner)]
@@ -206,16 +202,16 @@ const fn mk_git_info_payload(commit: git_info::StdGitCommitLinkCow) -> GitInfo {
     GitInfo { commit }
 }
 #[allow(clippy::single_call_fn)] // single source for no-route text reused by payload builder and tests
-fn mk_no_route_message(uri: AxumHttpUriRef<'_>) -> NotFoundMessage {
+fn mk_no_route_message(uri: AxumHttpUriRef<'_>) -> to_err_string::ErrorText {
     mk_no_route_message_for_suffix(get_uri_suffix(uri))
 }
 #[allow(clippy::single_call_fn)] // isolated for reuse in tests and payload builder when suffix is precomputed
-fn mk_no_route_message_for_suffix(uri_suffix: UriSuffixRef<'_>) -> NotFoundMessage {
+fn mk_no_route_message_for_suffix(uri_suffix: UriSuffixRef<'_>) -> to_err_string::ErrorText {
     let cap = no_route_message_capacity(uri_suffix);
     let mut message = String::with_capacity(cap.0);
     message.push_str(str_constants::COMMON_ROUTES_NO_ROUTE_MSG_PREFIX);
     message.push_str(uri_suffix.0);
-    NotFoundMessage::try_from(message).unwrap_or_else(NotFoundMessage::from)
+    to_err_string::ErrorText::try_from(message).unwrap_or_else(to_err_string::ErrorText::from)
 }
 #[allow(clippy::single_call_fn)] // isolated for reuse in tests and message builder
 fn no_route_message_capacity(uri_suffix: UriSuffixRef<'_>) -> NoRouteMessageCapacity {
@@ -242,7 +238,7 @@ fn mk_not_found_payload(
 }
 #[allow(clippy::single_call_fn)] // shared payload constructor keeps not-found response shape centralized
 fn mk_not_found_payload_with_message(
-    message: NotFoundMessage,
+    message: to_err_string::ErrorText,
     commit: git_info::StdGitCommitLinkCow,
 ) -> NotFoundHandle {
     NotFoundHandle {
@@ -462,10 +458,10 @@ mod tests {
         assert_not_found_payload(payload, exp_uri_suffix);
     }
     #[allow(clippy::single_call_fn)] // shared assertion keeps no-route message checks consistent across uri and suffix-based tests
-    fn assert_no_route_message(actual: &super::NotFoundMessage, uri_suffix: &str) {
+    fn assert_no_route_message(actual: &to_err_string::ErrorText, uri_suffix: &str) {
         assert_eq!(
-            actual.0,
-            super::mk_no_route_message_for_suffix(suffix_ref(uri_suffix)).0
+            actual.as_ref(),
+            super::mk_no_route_message_for_suffix(suffix_ref(uri_suffix)).as_ref()
         );
     }
     #[test]

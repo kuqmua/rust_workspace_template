@@ -298,19 +298,13 @@ pub fn emit_generate_where_filters(
         };
     let if_let_err_query_try_bind_self_v_to_string_token_stream = quote::quote! {
         if let Err(#error_snake_case) = #query_snake_case.as_mut().try_bind(#self_snake_case.#v_snake_case.to_string()) {
-            return Err(match #import::SqlxPostgresQueryBindError::try_from(#error_snake_case.to_string()) {
-                Ok(v) => v,
-                Err(bind_error) => #import::SqlxPostgresQueryBindError::from(bind_error),
-            });
+            return Err(#import::SqlxPostgresQueryBindError::from(#error_snake_case));
         }
         Ok(#query_snake_case)
     };
     let if_let_err_query_try_bind_self_v_token_stream = quote::quote! {
         if let Err(#error_snake_case) = #query_snake_case.as_mut().try_bind(#self_snake_case.#v_snake_case) {
-            return Err(match #import::SqlxPostgresQueryBindError::try_from(#error_snake_case.to_string()) {
-                Ok(v) => v,
-                Err(bind_error) => #import::SqlxPostgresQueryBindError::from(bind_error),
-            });
+            return Err(#import::SqlxPostgresQueryBindError::from(#error_snake_case));
         }
     };
     let query_bind_one_v_token_stream = quote::quote! {
@@ -611,10 +605,7 @@ pub fn emit_generate_where_filters(
                                 #maybe_dimensions_query_bind_token_stream
                                 for element in Vec::from(#self_snake_case.#v_snake_case) {
                                     if let Err(#error_snake_case) = #query_snake_case.as_mut().try_bind(element) {
-                                        return Err(match #import::SqlxPostgresQueryBindError::try_from(#error_snake_case.to_string()) {
-                                            Ok(v) => v,
-                                            Err(bind_error) => #import::SqlxPostgresQueryBindError::from(bind_error),
-                                        });
+                                        return Err(#import::SqlxPostgresQueryBindError::from(#error_snake_case));
                                     }
                                 }
                                 Ok(#query_snake_case)
@@ -753,10 +744,7 @@ pub fn emit_generate_where_filters(
                                 quote::quote! {
                                     #maybe_dimensions_query_bind_token_stream
                                     if let Err(#error_snake_case) = #query_snake_case.as_mut().try_bind(self.encoded_string_representation) {
-                                        return Err(match #import::SqlxPostgresQueryBindError::try_from(#error_snake_case.to_string()) {
-                                            Ok(v) => v,
-                                            Err(bind_error) => #import::SqlxPostgresQueryBindError::from(bind_error),
-                                        });
+                                        return Err(#import::SqlxPostgresQueryBindError::from(#error_snake_case));
                                     }
                                     Ok(#query_snake_case)
                                 },
@@ -846,10 +834,7 @@ pub fn emit_generate_where_filters(
                                 if matches!(&<T as #import::PgTypeEqOperator>::operator(&#self_snake_case.#v_snake_case), #import::EqOperator::Eq)
                                     && let Err(#error_snake_case) = #query_snake_case.as_mut().try_bind(#self_snake_case.#v_snake_case)
                                 {
-                                    return Err(match #import::SqlxPostgresQueryBindError::try_from(#error_snake_case.to_string()) {
-                                        Ok(v) => v,
-                                        Err(bind_error) => #import::SqlxPostgresQueryBindError::from(bind_error),
-                                    });
+                                    return Err(#import::SqlxPostgresQueryBindError::from(#error_snake_case));
                                 }
                                 Ok(#query_snake_case)
                             }

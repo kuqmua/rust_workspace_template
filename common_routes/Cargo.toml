@@ -19,6 +19,7 @@ app_state = { workspace = true }
 git_info = { workspace = true }
 optml = { workspace = true }
 newtype = { workspace = true }
+to_err_string = { workspace = true }
 [dev-dependencies]
 serde_json = { workspace = true }
 tokio = { workspace = true }

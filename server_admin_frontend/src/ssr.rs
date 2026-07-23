@@ -25,10 +25,6 @@ where
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
-#[error("administrator SSR error message exceeds the size limit")]
-pub struct AdminSsrErrorMessageTryFromStringError;
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("administrator SSR HTML exceeds the size limit")]
 pub struct AdminSsrHtmlTryFromStringError;
 impl From<AdminSsrHtmlTryFromStringError> for AdminSsrHtml {
@@ -46,13 +42,11 @@ impl From<AdminSsrTextTryFromStringError> for AdminSsrText {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct AdminSsrErrorMessage(String);
+pub struct AdminSsrErrorMessage(to_err_string::ErrorText);
 impl TryFrom<String> for AdminSsrErrorMessage {
-    type Error = AdminSsrErrorMessageTryFromStringError;
+    type Error = to_err_string::ErrorTextTryFromStringError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        (value.len() <= SSR_TEXT_MAX_BYTES)
-            .then_some(Self(value))
-            .ok_or(AdminSsrErrorMessageTryFromStringError)
+        to_err_string::ErrorText::try_from(value).map(Self)
     }
 }
 
@@ -108,7 +102,7 @@ pub fn render_sign_in(
         leptos::view! {
             <main class="auth-layout" style=primary_color>
                 <section class="auth-card">
-                    {error.map(|message| leptos::view! { <p class="field-error" role="alert">{message.0}</p> })}
+                    {error.map(|message| leptos::view! { <p class="field-error" role="alert">{message.0.to_string()}</p> })}
                     <form method="post" action=server_admin_contract::AdminHtmlAction::SignIn.get()>
                         <label><span>"Login"</span><input name="login" autocomplete="username" required /></label>
                         <label><span>"Password"</span><input name="password" type="password" autocomplete="current-password" required /></label>

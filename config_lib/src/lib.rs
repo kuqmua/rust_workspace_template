@@ -3,21 +3,10 @@ pub mod types;
 const CONFIG_LIB_STRING_WRAPPER_MAX_LEN: usize = 1_048_576;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct StdEnvVarOk(String);
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
 pub enum ConfigLibStringWrapperTryFromStringError {
+    #[error("config string wrapper length {len} exceeds maximum {max}")]
     TooLong { len: usize, max: usize },
-}
-impl std::fmt::Display for ConfigLibStringWrapperTryFromStringError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::TooLong { len, max } => {
-                write!(
-                    f,
-                    "config string wrapper length {len} exceeds maximum {max}"
-                )
-            }
-        }
-    }
 }
 impl From<ConfigLibStringWrapperTryFromStringError> for StdEnvVarOk {
     fn from(value: ConfigLibStringWrapperTryFromStringError) -> Self {

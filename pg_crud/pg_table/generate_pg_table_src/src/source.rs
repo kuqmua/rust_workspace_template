@@ -3060,7 +3060,7 @@ pub fn emit_generate_pg_table(
     let generate_query_pg_type_where_filter_query_bind_parameters_payload_where_query_token_stream =
         |operation: &Operation| {
             generate_match_query_bind_or_err_token_stream(
-                &quote::quote! {#import_token_stream PgTypeWhereFilter::query_bind(#ParametersSnakeCase.#PayloadSnakeCase.#WhereManySnakeCase, #import_token_stream SqlxPostgresQuery::from(#QuerySnakeCase)).map(#import_token_stream SqlxPostgresQuery::into_inner).map_err(#import_token_stream SqlxPostgresQueryBindError::into_inner)},
+                &quote::quote! {#import_token_stream PgTypeWhereFilter::query_bind(#ParametersSnakeCase.#PayloadSnakeCase.#WhereManySnakeCase, #import_token_stream SqlxPostgresQuery::from(#QuerySnakeCase)).map(#import_token_stream SqlxPostgresQuery::into_inner).map_err(|error| error.to_string())},
                 &quote::quote! {v_03a58371},
                 &generate_operation_error_initialization_eprintln_res_token_stream(
                     operation,
@@ -5832,7 +5832,7 @@ pub fn emit_generate_pg_table(
                     match &operation {
                         Operation::Cm => {
                             let ts = generate_match_query_bind_or_err_short_token_stream(
-                                &quote::quote! {element_7f862135.#CreateQueryBindSnakeCase(#import_token_stream SqlxPostgresQuery::from(#QuerySnakeCase)).map(#import_token_stream SqlxPostgresQuery::into_inner).map_err(#import_token_stream SqlxPostgresQueryBindError::into_inner)},
+                                &quote::quote! {element_7f862135.#CreateQueryBindSnakeCase(#import_token_stream SqlxPostgresQuery::from(#QuerySnakeCase)).map(#import_token_stream SqlxPostgresQuery::into_inner).map_err(|error| error.to_string())},
                                 &quote::quote! {v_011a3eb4},
                             );
                             quote::quote! {
@@ -5842,7 +5842,7 @@ pub fn emit_generate_pg_table(
                             }
                         }
                         Operation::Co => generate_match_query_bind_or_err_short_token_stream(
-                            &quote::quote! {#ParametersSnakeCase.#PayloadSnakeCase.#CreateQueryBindSnakeCase(#import_token_stream SqlxPostgresQuery::from(#QuerySnakeCase)).map(#import_token_stream SqlxPostgresQuery::into_inner).map_err(#import_token_stream SqlxPostgresQueryBindError::into_inner)},
+                            &quote::quote! {#ParametersSnakeCase.#PayloadSnakeCase.#CreateQueryBindSnakeCase(#import_token_stream SqlxPostgresQuery::from(#QuerySnakeCase)).map(#import_token_stream SqlxPostgresQuery::into_inner).map_err(|error| error.to_string())},
                             &quote::quote! {v_06f852cd},
                         ),
                         Operation::Rm => {
@@ -5851,7 +5851,7 @@ pub fn emit_generate_pg_table(
                                 &quote::quote! {#pg_crud_pg_type_where_filter_query_bind_token_stream(
                                     #ParametersSnakeCase.#PayloadSnakeCase.pagination,
                                     #import_token_stream SqlxPostgresQuery::from(#QuerySnakeCase),
-                                ).map(#import_token_stream SqlxPostgresQuery::into_inner).map_err(#import_token_stream SqlxPostgresQueryBindError::into_inner)},
+                                ).map(#import_token_stream SqlxPostgresQuery::into_inner).map_err(|error| error.to_string())},
                                 &quote::quote! {v_9f7e487b},
                             );
                             quote::quote! {
@@ -5863,7 +5863,7 @@ pub fn emit_generate_pg_table(
                             &quote::quote! {#pg_crud_pg_type_where_filter_query_bind_token_stream(
                                 #ParametersSnakeCase.#PayloadSnakeCase.#primary_key_field_identifier,
                                 #import_token_stream SqlxPostgresQuery::from(#QuerySnakeCase)
-                            ).map(#import_token_stream SqlxPostgresQuery::into_inner).map_err(#import_token_stream SqlxPostgresQueryBindError::into_inner)},
+                            ).map(#import_token_stream SqlxPostgresQuery::into_inner).map_err(|error| error.to_string())},
                             &quote::quote! {v_80ee6983},
                         ),
                         Operation::Um => {
@@ -5880,7 +5880,7 @@ pub fn emit_generate_pg_table(
                                                     quote::quote! {#as_pg_crud_pg_type_pg_type_token_stream #UpdateQueryBindSnakeCase(
                                                         v_2edaa480.#VSnakeCase.clone(),
                                                         #import_token_stream SqlxPostgresQuery::from(#QuerySnakeCase),
-                                                    ).map(#import_token_stream SqlxPostgresQuery::into_inner).map_err(#import_token_stream SqlxPostgresQueryBindError::into_inner)}
+                                                    ).map(#import_token_stream SqlxPostgresQuery::into_inner).map_err(|error| error.to_string())}
                                                 },
                                                 &quote::quote! {v_600e67dc},
                                             );
@@ -5899,7 +5899,7 @@ pub fn emit_generate_pg_table(
                                     &quote::quote! {#primary_key_field_type_as_pg_type_token_stream #UpdateQueryBindSnakeCase(
                                         element_a72f3eac.#primary_key_field_identifier,
                                         #import_token_stream SqlxPostgresQuery::from(#QuerySnakeCase),
-                                    ).map(#import_token_stream SqlxPostgresQuery::into_inner).map_err(#import_token_stream SqlxPostgresQueryBindError::into_inner)},
+                                    ).map(#import_token_stream SqlxPostgresQuery::into_inner).map_err(|error| error.to_string())},
                                     &quote::quote! {v_c40a4522},
                                 ),
                             );
@@ -5915,7 +5915,7 @@ pub fn emit_generate_pg_table(
                                                 quote::quote! {#as_pg_crud_pg_type_pg_type_token_stream select_only_updated_ids_query_bind(
                                                     &v_47030ac2.#VSnakeCase,
                                                     #import_token_stream SqlxPostgresQuery::from(#QuerySnakeCase)
-                                                ).map(#import_token_stream SqlxPostgresQuery::into_inner).map_err(#import_token_stream SqlxPostgresQueryBindError::into_inner)}
+                                                ).map(#import_token_stream SqlxPostgresQuery::into_inner).map_err(|error| error.to_string())}
                                             },
                                             &quote::quote! {v_c5b79b95},
                                         ),
@@ -5953,18 +5953,18 @@ pub fn emit_generate_pg_table(
                                 };
                             let binded_query_modifications_token_stream = generate_binded_query_token_stream(
                                 quote::quote! {v_ed87c152},
-                                quote::quote! {#UpdateQueryBindSnakeCase(v_ed87c152.#VSnakeCase.clone(), #import_token_stream SqlxPostgresQuery::from(#QuerySnakeCase)).map(#import_token_stream SqlxPostgresQuery::into_inner).map_err(#import_token_stream SqlxPostgresQueryBindError::into_inner)},
+                                quote::quote! {#UpdateQueryBindSnakeCase(v_ed87c152.#VSnakeCase.clone(), #import_token_stream SqlxPostgresQuery::from(#QuerySnakeCase)).map(#import_token_stream SqlxPostgresQuery::into_inner).map_err(|error| error.to_string())},
                             );
                             let binded_query_primary_key_modification_token_stream = generate_match_query_bind_or_err_short_token_stream(
                                 &quote::quote! {#primary_key_field_type_as_pg_type_token_stream #UpdateQueryBindSnakeCase(
                                     #UpdateForQuerySnakeCase.#primary_key_field_identifier,
                                     #import_token_stream SqlxPostgresQuery::from(#QuerySnakeCase),
-                                ).map(#import_token_stream SqlxPostgresQuery::into_inner).map_err(#import_token_stream SqlxPostgresQueryBindError::into_inner)},
+                                ).map(#import_token_stream SqlxPostgresQuery::into_inner).map_err(|error| error.to_string())},
                                 &quote::quote! {v_d64bac39},
                             );
                             let binded_query_select_only_updated_ids_query_bind_token_stream = generate_binded_query_token_stream(
                                 quote::quote! {v_b2902425},
-                                quote::quote! {select_only_updated_ids_query_bind(&v_b2902425.#VSnakeCase, #import_token_stream SqlxPostgresQuery::from(#QuerySnakeCase)).map(#import_token_stream SqlxPostgresQuery::into_inner).map_err(#import_token_stream SqlxPostgresQueryBindError::into_inner)},
+                                quote::quote! {select_only_updated_ids_query_bind(&v_b2902425.#VSnakeCase, #import_token_stream SqlxPostgresQuery::from(#QuerySnakeCase)).map(#import_token_stream SqlxPostgresQuery::into_inner).map_err(|error| error.to_string())},
                             );
                             let binded_optimistic_revision_token_stream = if optimistic_concurrency_enabled {
                                 quote::quote! {
@@ -5992,7 +5992,7 @@ pub fn emit_generate_pg_table(
                             &quote::quote! {#import_token_stream PgTypeWhereFilter::query_bind(
                                 #ParametersSnakeCase.#PayloadSnakeCase.#primary_key_field_identifier,
                                 #import_token_stream SqlxPostgresQuery::from(#QuerySnakeCase)
-                            ).map(#import_token_stream SqlxPostgresQuery::into_inner).map_err(#import_token_stream SqlxPostgresQueryBindError::into_inner)},
+                            ).map(#import_token_stream SqlxPostgresQuery::into_inner).map_err(|error| error.to_string())},
                             &quote::quote! {v_3099ea0f},
                         ),
                     }

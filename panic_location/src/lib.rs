@@ -1,30 +1,23 @@
 // Intentional process-wide state: std exposes the panic hook as one global slot, and this guard
 // prevents repeatedly replacing that hook from proc-macro entrypoints.
 static PANIC_HOOK_ONCE: std::sync::Once = std::sync::Once::new();
-const PANIC_WITH_LOCATION_MSG_MAX_LEN: usize = 1_048_576;
 #[derive(Clone, Copy, newtype::FromInner)]
 struct PanicFile<'file_lt>(&'file_lt str);
 #[derive(Clone, Copy, newtype::FromInner)]
 struct PanicLine(u32);
 #[derive(Clone, Copy, newtype::FromInner)]
 struct PanicColumn(u32);
-#[derive(newtype::BoundedString)]
-#[bounded_string(
-    max = PANIC_WITH_LOCATION_MSG_MAX_LEN,
-    description = "panic location message"
-)]
-struct PanicWithLocationMessage(String);
 #[allow(clippy::single_call_fn)] // keeps panic message construction reusable and testable in one place
 fn panic_with_location_message(
     file: PanicFile<'_>,
     line: PanicLine,
     column: PanicColumn,
-) -> PanicWithLocationMessage {
-    PanicWithLocationMessage::try_from(format!(
+) -> to_err_string::ErrorText {
+    to_err_string::ErrorText::try_from(format!(
         "panic occurred in {}:{}:{}",
         file.0, line.0, column.0
     ))
-    .unwrap_or_else(PanicWithLocationMessage::from)
+    .unwrap_or_else(to_err_string::ErrorText::from)
 }
 pub fn panic_location() {
     PANIC_HOOK_ONCE.call_once(|| {
@@ -37,7 +30,7 @@ pub fn panic_location() {
                         PanicLine(location.line()),
                         PanicColumn(location.column())
                     )
-                    .0
+                    .as_ref()
                 );
             } else {
                 eprintln!("{}", str_constants::PANIC_LOCATION_NO_LOCATION_MSG);
@@ -67,7 +60,7 @@ mod tests {
                 super::PanicLine(7),
                 super::PanicColumn(11)
             )
-            .0,
+            .as_ref(),
             "panic occurred in src/lib.rs:7:11"
         );
     }

@@ -22,9 +22,9 @@ pub fn impl_to_err_string_with(input: proc_macro::TokenStream) -> proc_macro::To
         .collect::<Vec<proc_macro2::TokenStream>>();
     quote::quote! {
         #(impl ToErrString for #types {
-            fn to_err_string(&self) -> ToErrStringValue {
+            fn to_err_string(&self) -> ErrorText {
                 let #value_identifier = self;
-                ToErrStringValue::try_from(#body).unwrap_or_else(ToErrStringValue::from)
+                ErrorText::try_from(#body).unwrap_or_else(ErrorText::from)
             }
         })*
     }
@@ -54,7 +54,7 @@ pub fn impl_to_err_string_const(input: proc_macro::TokenStream) -> proc_macro::T
     let (types, msgs): (Vec<_>, Vec<_>) = pairs.into_iter().unzip();
     quote::quote! {
         #(impl ToErrString for #types {
-            fn to_err_string(&self) -> ToErrStringValue {
+            fn to_err_string(&self) -> ErrorText {
                 static_str_to_owned(StaticStrToOwnedInput(#msgs))
             }
         })*
@@ -71,7 +71,7 @@ pub fn impl_to_err_string_as_ref_str(input: proc_macro::TokenStream) -> proc_mac
     .collect::<Vec<proc_macro2::TokenStream>>();
     quote::quote! {
         #(impl ToErrString for #types {
-            fn to_err_string(&self) -> ToErrStringValue {
+            fn to_err_string(&self) -> ErrorText {
                 as_ref_str_to_owned(self)
             }
         })*

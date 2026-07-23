@@ -19,6 +19,7 @@ newtype = { workspace = true }
 server_admin_contract = { workspace = true }
 str_constants = { workspace = true }
 thiserror = { workspace = true }
+to_err_string = { workspace = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 axum = { workspace = true }

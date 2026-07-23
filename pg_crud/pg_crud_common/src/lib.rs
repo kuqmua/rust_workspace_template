@@ -65,7 +65,7 @@ pub use db_schema_conformance::{
 };
 pub use errors::{
     PgCrudStringWrapperTryFromStringError, QueryPartError, QueryPartErrorWithSerde,
-    SqlxPostgresQueryBindError,
+    SqlxPostgresQueryBindError, mk_query_bind_err,
 };
 pub use filter_bind_plan::{
     FilterBindPlan, PgFilterBindValue, PgFilterBool, PgFilterI64, PgFilterText, PgFilterTextError,
@@ -592,9 +592,9 @@ where
         + for<'t_lt> PgTypeWhereFilter<'t_lt>
         + AllEnumVariantsArrayDefaultSomeOneElement,
 {
-    fn to_err_string(&self) -> to_err_string::ToErrStringValue {
-        to_err_string::ToErrStringValue::try_from(format!("{self:#?}"))
-            .unwrap_or_else(to_err_string::ToErrStringValue::from)
+    fn to_err_string(&self) -> to_err_string::ErrorText {
+        to_err_string::ErrorText::try_from(format!("{self:#?}"))
+            .unwrap_or_else(to_err_string::ErrorText::from)
     }
 }
 impl<T> AllEnumVariantsArrayDefaultSomeOneElement for NullableJsonObjPgTypeWhereFilter<T>
@@ -1061,12 +1061,10 @@ impl<'query_lt> PgTypeWhereFilter<'query_lt> for PaginationBase {
         mut query: SqlxPostgresQuery<'query_lt>,
     ) -> Result<SqlxPostgresQuery<'query_lt>, SqlxPostgresQueryBindError> {
         if let Err(error) = query.as_mut().try_bind(self.limit.get()) {
-            return Err(SqlxPostgresQueryBindError::try_from(error.to_string())
-                .unwrap_or_else(SqlxPostgresQueryBindError::from));
+            return Err(SqlxPostgresQueryBindError::from(error));
         }
         if let Err(error) = query.as_mut().try_bind(self.offset.get()) {
-            return Err(SqlxPostgresQueryBindError::try_from(error.to_string())
-                .unwrap_or_else(SqlxPostgresQueryBindError::from));
+            return Err(SqlxPostgresQueryBindError::from(error));
         }
         Ok(query)
     }
@@ -1757,9 +1755,9 @@ impl UnsignedPartOfI32Raw {
     }
 }
 impl to_err_string::ToErrString for UnsignedPartOfI32Raw {
-    fn to_err_string(&self) -> to_err_string::ToErrStringValue {
-        to_err_string::ToErrStringValue::try_from(self.to_string())
-            .unwrap_or_else(to_err_string::ToErrStringValue::from)
+    fn to_err_string(&self) -> to_err_string::ErrorText {
+        to_err_string::ErrorText::try_from(self.to_string())
+            .unwrap_or_else(to_err_string::ErrorText::from)
     }
 }
 impl TryFrom<i32> for UnsignedPartOfI32 {
@@ -1776,9 +1774,9 @@ impl TryFrom<i32> for UnsignedPartOfI32 {
     }
 }
 impl to_err_string::ToErrString for UnsignedPartOfI32 {
-    fn to_err_string(&self) -> to_err_string::ToErrStringValue {
-        to_err_string::ToErrStringValue::try_from(self.0.to_string())
-            .unwrap_or_else(to_err_string::ToErrStringValue::from)
+    fn to_err_string(&self) -> to_err_string::ErrorText {
+        to_err_string::ErrorText::try_from(self.0.to_string())
+            .unwrap_or_else(to_err_string::ErrorText::from)
     }
 }
 impl sqlx::Type<sqlx::Postgres> for UnsignedPartOfI32 {
@@ -1884,7 +1882,7 @@ impl TryFrom<i32> for NotZeroUnsignedPartOfI32 {
     }
 }
 impl to_err_string::ToErrString for NotZeroUnsignedPartOfI32 {
-    fn to_err_string(&self) -> to_err_string::ToErrStringValue {
+    fn to_err_string(&self) -> to_err_string::ErrorText {
         self.0.to_err_string()
     }
 }

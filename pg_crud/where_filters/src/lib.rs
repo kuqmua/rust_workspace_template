@@ -448,20 +448,10 @@ impl<'lt, T: Send + sqlx::Type<sqlx::Postgres> + for<'__> sqlx::Encode<'__, sqlx
     ) -> Result<pg_crud_common::SqlxPostgresQuery<'lt>, pg_crud_common::SqlxPostgresQueryBindError>
     {
         if let Err(error) = query.as_mut().try_bind(self.start) {
-            return Err(
-                match pg_crud_common::SqlxPostgresQueryBindError::try_from(error.to_string()) {
-                    Ok(v) => v,
-                    Err(bind_error) => pg_crud_common::SqlxPostgresQueryBindError::from(bind_error),
-                },
-            );
+            return Err(pg_crud_common::SqlxPostgresQueryBindError::from(error));
         }
         if let Err(error) = query.as_mut().try_bind(self.end) {
-            return Err(
-                match pg_crud_common::SqlxPostgresQueryBindError::try_from(error.to_string()) {
-                    Ok(v) => v,
-                    Err(bind_error) => pg_crud_common::SqlxPostgresQueryBindError::from(bind_error),
-                },
-            );
+            return Err(pg_crud_common::SqlxPostgresQueryBindError::from(error));
         }
         Ok(query)
     }
@@ -698,9 +688,9 @@ impl BoundedVecLen {
     }
 }
 impl to_err_string::ToErrString for BoundedVecLen {
-    fn to_err_string(&self) -> to_err_string::ToErrStringValue {
-        to_err_string::ToErrStringValue::try_from(self.to_string())
-            .unwrap_or_else(to_err_string::ToErrStringValue::from)
+    fn to_err_string(&self) -> to_err_string::ErrorText {
+        to_err_string::ErrorText::try_from(self.to_string())
+            .unwrap_or_else(to_err_string::ErrorText::from)
     }
 }
 enum Variant {
@@ -740,16 +730,7 @@ impl<
                 accumulator_query
                     .as_mut()
                     .try_bind(element)
-                    .map_err(
-                        |error| match pg_crud_common::SqlxPostgresQueryBindError::try_from(
-                            error.to_string(),
-                        ) {
-                            Ok(v) => v,
-                            Err(bind_error) => {
-                                pg_crud_common::SqlxPostgresQueryBindError::from(bind_error)
-                            }
-                        },
-                    )?;
+                    .map_err(pg_crud_common::SqlxPostgresQueryBindError::from)?;
                 Ok(accumulator_query)
             })
     }

@@ -344,9 +344,14 @@ pub struct FormValue(String);
 pub struct FormValueRef<'value_lt>(&'value_lt str);
 #[derive(Clone, Copy, Debug, PartialEq, Eq, newtype::AsRefStr, newtype::FromInner)]
 pub struct FormFieldNameRef<'field_lt>(&'field_lt str);
-#[derive(Clone, Debug, Default, PartialEq, Eq, newtype::BoundedString, newtype::Display)]
-#[bounded_string(max = 65536usize)]
-pub struct FormValueError(String);
+#[derive(Clone, Debug, Default, PartialEq, Eq, newtype::Display, newtype::FromInner)]
+pub struct FormValueError(to_err_string::ErrorText);
+impl TryFrom<String> for FormValueError {
+    type Error = to_err_string::ErrorTextTryFromStringError;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        to_err_string::ErrorText::try_from(value).map(Self)
+    }
+}
 #[derive(Clone, Debug, PartialEq, Eq, newtype::AsRefStr, newtype::BoundedString)]
 #[bounded_string(max = 1_048_576usize)]
 pub struct FilterWireJson(String);
@@ -891,9 +896,14 @@ impl TransportResponse {
 pub fn decode_api_problem(body: &TransportBody) -> Option<ApiProblem> {
     serde_json::from_slice(body.as_ref()).ok()
 }
-#[derive(Clone, Debug, Default, PartialEq, Eq, newtype::BoundedString, newtype::Display)]
-#[bounded_string(max = 65536usize)]
-pub struct TransportError(String);
+#[derive(Clone, Debug, Default, PartialEq, Eq, newtype::Display, newtype::FromInner)]
+pub struct TransportError(to_err_string::ErrorText);
+impl TryFrom<String> for TransportError {
+    type Error = to_err_string::ErrorTextTryFromStringError;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        to_err_string::ErrorText::try_from(value).map(Self)
+    }
+}
 pub trait Transport {
     fn send(
         &self,

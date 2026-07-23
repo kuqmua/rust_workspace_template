@@ -101,9 +101,9 @@ pub struct DisplayStruct {
 }
 //todo or maybe two different traits - display foreign type and convert into serializable and deserializable type
 impl to_err_string::ToErrString for DisplayStruct {
-    fn to_err_string(&self) -> to_err_string::ToErrStringValue {
-        to_err_string::ToErrStringValue::try_from(format!("{self:?}"))
-            .unwrap_or_else(to_err_string::ToErrStringValue::from)
+    fn to_err_string(&self) -> to_err_string::ErrorText {
+        to_err_string::ErrorText::try_from(format!("{self:?}"))
+            .unwrap_or_else(to_err_string::ErrorText::from)
     }
 }
 //todo rename fields
@@ -115,9 +115,9 @@ pub struct SerdeStruct {
     pub two: LocationTestFlag,
 }
 impl to_err_string::ToErrString for SerdeStruct {
-    fn to_err_string(&self) -> to_err_string::ToErrStringValue {
-        to_err_string::ToErrStringValue::try_from(format!("{self:?}"))
-            .unwrap_or_else(to_err_string::ToErrStringValue::from)
+    fn to_err_string(&self) -> to_err_string::ErrorText {
+        to_err_string::ErrorText::try_from(format!("{self:?}"))
+            .unwrap_or_else(to_err_string::ErrorText::from)
     }
 }
 fn location_test_text(value: String) -> LocationTestText {
