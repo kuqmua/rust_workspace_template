@@ -44,6 +44,9 @@ struct ServerAdminAuthSvcStateBuildError(server_admin::auth::AdminAuthSvcStateBu
 #[derive(Debug, thiserror::Error, newtype::FromInner)]
 #[error("{0}")]
 struct ServerRuntimeContentSecurityPolicyError(server_runtime::HttpContentSecurityPolicyError);
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[error("{0}")]
+struct ServerRuntimeTrustedProxyRangesParseError(server_runtime::TrustedProxyRangesParseError);
 #[derive(newtype::FromInner)]
 struct AxumApiRoutes(axum::Router);
 #[derive(Clone, newtype::DerefTarget, newtype::FromInner)]
@@ -98,6 +101,8 @@ enum RunServerError {
     RuntimeTimeout(ServerRuntimeRequestTimeoutError),
     #[error("server failed: {0}")]
     Serve(ServerRuntimeServeError),
+    #[error("invalid trusted proxy ranges: {0}")]
+    TrustedProxyRanges(ServerRuntimeTrustedProxyRangesParseError),
 }
 #[allow(clippy::single_call_fn)] // keeps validated maintenance policy separate from startup orchestration
 fn mk_admin_cleanup_cfg() -> Result<server_admin::AdminCleanupCfg, RunServerError> {
@@ -309,7 +314,18 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
     let tcp_listener = tokio::net::TcpListener::bind(service_socket_address)
         .await
         .map_err(|error| RunServerError::BindServiceSocket(StdServerIoError::from(error)))?;
-    tracing::info!(frontend = %service_socket_address);
+    let actual_service_socket_address = tcp_listener
+        .local_addr()
+        .map_err(|error| RunServerError::BindServiceSocket(StdServerIoError::from(error)))?;
+    tracing::info!(frontend = %actual_service_socket_address);
+    let trusted_proxy_ranges = server_runtime::parse_trusted_proxy_ranges(
+        server_runtime::TrustedProxyRangesTextRef::from(
+            config.trusted_proxy_ranges_text.0.as_str(),
+        ),
+    )
+    .map_err(|error| {
+        RunServerError::TrustedProxyRanges(ServerRuntimeTrustedProxyRangesParseError::from(error))
+    })?;
     let cors_origins = Vec::<axum::http::HeaderValue>::from(
         server_runtime::parse_cors_allow_origin(server_runtime::HttpCorsAllowOriginTextRef::from(
             config_lib::GetCorsAllowOrigin::get_cors_allow_origin(&config).as_str(),
@@ -413,7 +429,14 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
             .map_err(|error| {
                 RunServerError::RuntimeTimeout(ServerRuntimeRequestTimeoutError::from(error))
             })?;
-    let router = server_runtime::RequestIdLayer.apply(
+    let router = server_runtime::RequestIdLayer::with_span_config(
+        server_runtime::HttpRequestSpanConfig::new(
+            server_runtime::ServiceName::from(env!("CARGO_PKG_NAME")),
+            server_runtime::StdSocketAddr::from(actual_service_socket_address),
+            trusted_proxy_ranges,
+        ),
+    )
+    .apply(
         server_runtime::HttpMetricsLayer::default().apply(
             server_runtime::SecurityHeadersLayer::from(server_runtime::ForwardedProtoTrust::Ignore)
                 .with_content_security_policy(content_security_policy)

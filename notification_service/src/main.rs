@@ -280,11 +280,21 @@ async fn run(config: notification_service_config::Config) -> Result<(), Notifica
     let listener = tokio::net::TcpListener::bind(config.notification_service_socket_address().0)
         .await
         .map_err(|error| NotificationServiceError::Socket(StdNotificationIoError::from(error)))?;
+    let actual_service_socket_address = listener
+        .local_addr()
+        .map_err(|error| NotificationServiceError::Socket(StdNotificationIoError::from(error)))?;
     let timeout = server_runtime::StdRequestTimeout::try_from(std::time::Duration::from_secs(
         config.request_timeout_seconds().get(),
     ))
     .map_err(|_error| NotificationServiceError::Timeout)?;
-    let service_router = server_runtime::RequestIdLayer.apply(
+    let service_router = server_runtime::RequestIdLayer::with_span_config(
+        server_runtime::HttpRequestSpanConfig::new(
+            server_runtime::ServiceName::from(env!("CARGO_PKG_NAME")),
+            server_runtime::StdSocketAddr::from(actual_service_socket_address),
+            server_runtime::TrustedProxyRanges::default(),
+        ),
+    )
+    .apply(
         server_runtime::SecurityHeadersLayer::from(server_runtime::ForwardedProtoTrust::Ignore)
             .apply(
                 server_runtime::RequestTimeoutLayer::from(timeout).apply(

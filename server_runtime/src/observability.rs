@@ -1,4 +1,4 @@
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(Clone, Copy, Debug, newtype::Display, newtype::FromInner)]
 pub struct ServiceName(&'static str);
 
 #[derive(Debug, thiserror::Error, newtype::FromInner)]

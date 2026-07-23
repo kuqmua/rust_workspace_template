@@ -25,35 +25,23 @@
 
 
 
-### 2. Исправить HTTP span
+### 2. Исправить HTTP span — реализовано
 
-Сейчас в span попадает сырой `req.uri().path()`:
+Основным именем маршрута и значением `http.route` служит шаблон Axum `MatchedPath`. Если маршрут
+не сопоставлен, используется стабильное значение `__unmatched__`; сырой URL не попадает ни в имя
+span, ни в `http.route`.
 
-```rust
-path = %req.uri().path()
-```
+`url.path` записывается только для статического `MatchedPath`, который точно совпадает с путём
+запроса. Для динамического маршрута `/api/v1/users/{user_id}` сырой путь
+`/api/v1/users/123` намеренно не сохраняется, чтобы не раскрывать идентификатор и не создавать
+высокую cardinality.
 
-Для запроса `/api/v1/users/123` это приводит к высокой cardinality и потенциально раскрывает идентификаторы.
-
-Нужно записывать:
-
-```text
-http.route=/api/v1/users/{user_id}
-url.path=/api/v1/users/123
-```
-
-`url.path` следует добавлять только тогда, когда это действительно требуется и безопасно. Основным полем должен быть `MatchedPath`, а не сырой URL.
-
-Также следует добавить:
-
-- `http.request.method`;
-- `http.response.status_code`;
-- `error.type`;
-- `error_code`;
-- `server.address`;
-- `client.address` с учётом доверия к proxy;
-- `trace_id` и `span_id`;
-- `service.name`.
+Server span содержит `http.request.method`, `http.response.status_code`, `error.type`,
+`error_code`, `server.address`, `client.address`, `trace_id`, `span_id` и `service.name`.
+`client.address` берётся из адреса непосредственного соединения; forwarded-заголовки учитываются
+только для peer, входящего в настроенные доверенные proxy ranges. Для ошибок используются
+стабильные значения по классу HTTP-статуса, которые API может заменить типизированным
+`HttpErrorTelemetry` в extensions ответа.
 
 ### 3. Единое логирование ошибок на HTTP boundary
 
@@ -235,7 +223,7 @@ retries_total{operation}
 ## Рекомендуемый порядок
 
 1. Перенести всю инициализацию observability в `server_runtime`.
-2. Улучшить HTTP span и заменить raw path на route template.
+2. Улучшить HTTP span и заменить raw path на route template. Реализовано.
 3. Сделать единый error boundary и стабильные `error_code`.
 4. Добавить `ErrorLayer`, `SpanTrace`, location и выборочный backtrace.
 5. Внедрить OpenTelemetry/OTLP и реальную propagation.

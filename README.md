@@ -59,6 +59,13 @@ incoming W3C `traceparent`/`tracestate` context, and export spans to an OTLP/HTT
 requests executed through `server_runtime::ReqwestClient::execute` create client spans and inject
 the current W3C trace context automatically.
 
+Incoming HTTP spans use Axum's matched route template as `http.route`; unmatched requests receive
+the stable `__unmatched__` label. Raw `url.path` is emitted only for an exact static route, so
+dynamic identifiers are not exported. `client.address` uses the direct peer unless that peer is in
+the configured trusted proxy ranges, in which case validated forwarded address headers are used.
+The spans also include method, response status, error classification, server address, trace/span
+identifiers and service name.
+
 The exporter uses the standard OpenTelemetry environment variables. A typical production
 configuration is:
 

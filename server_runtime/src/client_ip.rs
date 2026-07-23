@@ -4,7 +4,10 @@ const TRUSTED_PROXY_RANGES_MAX_ITEMS: usize = 128usize;
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct HttpHeaderMapRef<'lt>(&'lt http::HeaderMap);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
+pub struct TrustedProxyRangesTextRef<'text_lt>(&'text_lt str);
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::Display, newtype::FromInner)]
 pub struct StdSocketAddr(std::net::SocketAddr);
 
 #[derive(
@@ -54,6 +57,13 @@ pub enum TrustedProxyRangeParseError {
     MissingPrefix,
     #[error("trusted proxy prefix exceeds address width")]
     PrefixExceedsAddressWidth,
+}
+#[derive(Debug, thiserror::Error)]
+pub enum TrustedProxyRangesParseError {
+    #[error("trusted proxy range is invalid: {0}")]
+    Range(TrustedProxyRangeParseError),
+    #[error("trusted proxy range list is invalid: {0}")]
+    Ranges(TrustedProxyRangesError),
 }
 impl TryFrom<String> for TrustedProxyRange {
     type Error = TrustedProxyRangeParseError;
@@ -181,6 +191,22 @@ pub fn resolve_client_ip(
             .unwrap_or(peer_ip),
     )
 }
+
+pub fn parse_trusted_proxy_ranges(
+    value: TrustedProxyRangesTextRef<'_>,
+) -> Result<TrustedProxyRanges, TrustedProxyRangesParseError> {
+    let ranges = value
+        .0
+        .split(',')
+        .map(str::trim)
+        .filter(|item| !item.is_empty())
+        .map(|item| {
+            TrustedProxyRange::try_from(item.to_owned())
+                .map_err(TrustedProxyRangesParseError::Range)
+        })
+        .collect::<Result<Vec<TrustedProxyRange>, TrustedProxyRangesParseError>>()?;
+    TrustedProxyRanges::try_from(ranges).map_err(TrustedProxyRangesParseError::Ranges)
+}
 #[must_use]
 pub fn resolve_header_text<'header>(
     headers: HttpHeaderMapRef<'header>,
@@ -232,6 +258,26 @@ mod tests {
         assert_eq!(
             super::TrustedProxyRanges::try_from(values),
             Err(super::TrustedProxyRangesError)
+        );
+    }
+    #[test]
+    fn trusted_proxy_ranges_text_parses_comma_separated_ranges() {
+        let ranges = super::parse_trusted_proxy_ranges(super::TrustedProxyRangesTextRef::from(
+            str_constants::VALUE_127_0_0_1_32_PATH_1_128,
+        ))
+        .expect("60ad1a64");
+        assert_eq!(
+            super::resolve_client_ip(
+                super::HttpHeaderMapRef::from(&http::HeaderMap::new()),
+                super::StdSocketAddr::from(
+                    "127.0.0.1:8080"
+                        .parse::<std::net::SocketAddr>()
+                        .expect("a6f1a8f9")
+                ),
+                &ranges,
+            )
+            .to_string(),
+            "127.0.0.1"
         );
     }
     #[test]

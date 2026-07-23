@@ -63,6 +63,7 @@ pub use child_process::{
 pub use client_ip::{
     HttpHeaderMapRef, StdAddrParseError, StdParseIntError, StdResolvedClientIp, StdSocketAddr,
     TrustedProxyRange, TrustedProxyRangeParseError, TrustedProxyRanges, TrustedProxyRangesError,
+    TrustedProxyRangesParseError, TrustedProxyRangesTextRef, parse_trusted_proxy_ranges,
     resolve_client_ip, resolve_header_text,
 };
 pub use cors::{
@@ -372,24 +373,79 @@ impl ServiceRuntime {
 #[derive(Debug, newtype::FromInner)]
 pub struct TokioTcpListener(tokio::net::TcpListener);
 
-#[derive(Clone, Copy, Debug, Default)]
-pub struct RequestIdLayer;
+#[derive(Clone, Copy, Debug, newtype::Display, newtype::FromInner)]
+pub struct HttpErrorCode(&'static str);
+#[derive(Clone, Copy, Debug, newtype::Display, newtype::FromInner)]
+pub struct HttpErrorType(&'static str);
+#[derive(Clone, Copy, Debug)]
+pub struct HttpErrorTelemetry {
+    error_code: HttpErrorCode,
+    error_type: HttpErrorType,
+}
+impl HttpErrorTelemetry {
+    #[must_use]
+    pub const fn new(error_type: HttpErrorType, error_code: HttpErrorCode) -> Self {
+        Self {
+            error_code,
+            error_type,
+        }
+    }
+}
+#[derive(Clone, Debug)]
+pub struct HttpRequestSpanConfig {
+    server_address: StdSocketAddr,
+    service_name: ServiceName,
+    trusted_proxy_ranges: TrustedProxyRanges,
+}
+impl HttpRequestSpanConfig {
+    #[must_use]
+    pub const fn new(
+        service_name: ServiceName,
+        server_address: StdSocketAddr,
+        trusted_proxy_ranges: TrustedProxyRanges,
+    ) -> Self {
+        Self {
+            server_address,
+            service_name,
+            trusted_proxy_ranges,
+        }
+    }
+}
+#[derive(Clone, Debug, Default)]
+pub struct RequestIdLayer {
+    span_config: Option<HttpRequestSpanConfig>,
+}
 impl RequestIdLayer {
     #[must_use]
     pub fn apply(self, router: AxumRouter) -> AxumRouter {
-        AxumRouter::from(router.0.layer(RequestIdTowerLayer))
+        AxumRouter::from(router.0.layer(RequestIdTowerLayer {
+            span_config: self.span_config,
+        }))
+    }
+
+    #[must_use]
+    pub const fn with_span_config(span_config: HttpRequestSpanConfig) -> Self {
+        Self {
+            span_config: Some(span_config),
+        }
     }
 }
-#[derive(Clone, Copy, Debug)]
-struct RequestIdTowerLayer;
+#[derive(Clone, Debug)]
+struct RequestIdTowerLayer {
+    span_config: Option<HttpRequestSpanConfig>,
+}
 #[derive(Clone, Debug)]
 struct RequestIdService<Service> {
     inner: Service,
+    span_config: Option<HttpRequestSpanConfig>,
 }
 impl<Service> tower::Layer<Service> for RequestIdTowerLayer {
     type Service = RequestIdService<Service>;
     fn layer(&self, inner: Service) -> Self::Service {
-        RequestIdService { inner }
+        RequestIdService {
+            inner,
+            span_config: self.span_config.clone(),
+        }
     }
 }
 impl<Service> tower::Service<axum::extract::Request> for RequestIdService<Service>
@@ -429,10 +485,25 @@ where
             }
         });
         let started_at = tokio::time::Instant::now();
-        let route = req
+        let matched_route = req
             .extensions()
             .get::<axum::extract::MatchedPath>()
-            .map_or_else(|| req.uri().path(), axum::extract::MatchedPath::as_str);
+            .map(axum::extract::MatchedPath::as_str);
+        let route = matched_route.unwrap_or(str_constants::HTTP_METRICS_UNMATCHED_PATH);
+        let safe_url_path = matched_route.filter(|matched_path| {
+            !matched_path.contains('{') && *matched_path == req.uri().path()
+        });
+        let client_address = self.span_config.as_ref().and_then(|span_config| {
+            req.extensions()
+                .get::<axum::extract::ConnectInfo<std::net::SocketAddr>>()
+                .map(|connect_info| {
+                    resolve_client_ip(
+                        HttpHeaderMapRef::from(req.headers()),
+                        StdSocketAddr::from(connect_info.0),
+                        &span_config.trusted_proxy_ranges,
+                    )
+                })
+        });
         let span = tracing::info_span!(
             "http.request",
             otel.kind = "server",
@@ -442,17 +513,50 @@ where
             "http.request.method" = %req.method(),
             "http.route" = %route,
             "http.response.status_code" = tracing::field::Empty,
+            "url.path" = tracing::field::Empty,
+            "error.type" = tracing::field::Empty,
+            error_code = tracing::field::Empty,
+            "server.address" = tracing::field::Empty,
+            "client.address" = tracing::field::Empty,
+            trace_id = tracing::field::Empty,
+            span_id = tracing::field::Empty,
+            "service.name" = tracing::field::Empty,
         );
         let _server_name_record = span.record(
             str_constants::OTEL_NAME,
             format_args!("{} {route}", req.method()),
         );
+        if let Some(path) = safe_url_path {
+            let _url_path_record = span.record(str_constants::OTEL_URL_PATH, path);
+        }
+        if let Some(span_config) = &self.span_config {
+            let _server_address_record = span.record(
+                str_constants::OTEL_SERVER_ADDRESS,
+                tracing::field::display(span_config.server_address),
+            );
+            let _service_name_record = span.record(
+                str_constants::OTEL_SERVICE_NAME,
+                tracing::field::display(&span_config.service_name),
+            );
+        }
+        if let Some(address) = client_address {
+            let _client_address_record = span.record(
+                str_constants::OTEL_CLIENT_ADDRESS,
+                tracing::field::display(address),
+            );
+        }
         if let Err(error) = tracing_opentelemetry::OpenTelemetrySpanExt::set_parent(
             &span,
             (*remote_context).clone(),
         ) {
             tracing::warn!(error = %error, "failed to attach remote OpenTelemetry parent");
         }
+        let span_context = tracing_opentelemetry::OpenTelemetrySpanExt::context(&span);
+        let opentelemetry_span = opentelemetry::trace::TraceContextExt::span(&span_context);
+        let trace_id = opentelemetry_span.span_context().trace_id().to_string();
+        let span_id = opentelemetry_span.span_context().span_id().to_string();
+        let _trace_id_record = span.record(str_constants::OTEL_TRACE_ID, trace_id.as_str());
+        let _span_id_record = span.record(str_constants::OTEL_SPAN_ID, span_id.as_str());
         let _previous_extension_request_id =
             req.extensions_mut().insert(request_id_and_header_value.0);
         let response_future = tower::Service::call(&mut self.inner, req);
@@ -472,6 +576,32 @@ where
                     let _server_error_record = tracing::Span::current().record(
                         str_constants::OTEL_STATUS_CODE,
                         str_constants::OTEL_ERROR_STATUS,
+                    );
+                }
+                if response.status().is_client_error() || response.status().is_server_error() {
+                    let default_error_telemetry = if response.status().is_server_error() {
+                        HttpErrorTelemetry::new(
+                            HttpErrorType::from(str_constants::OTEL_HTTP_SERVER_ERROR_TYPE),
+                            HttpErrorCode::from(str_constants::OTEL_HTTP_5XX_ERROR_CODE),
+                        )
+                    } else {
+                        HttpErrorTelemetry::new(
+                            HttpErrorType::from(str_constants::OTEL_HTTP_CLIENT_ERROR_TYPE),
+                            HttpErrorCode::from(str_constants::OTEL_HTTP_4XX_ERROR_CODE),
+                        )
+                    };
+                    let error_telemetry = response
+                        .extensions()
+                        .get::<HttpErrorTelemetry>()
+                        .copied()
+                        .unwrap_or(default_error_telemetry);
+                    let _error_type_record = tracing::Span::current().record(
+                        str_constants::OTEL_ERROR_TYPE,
+                        tracing::field::display(error_telemetry.error_type),
+                    );
+                    let _error_code_record = tracing::Span::current().record(
+                        str_constants::OTEL_ERROR_CODE,
+                        tracing::field::display(error_telemetry.error_code),
                     );
                 }
                 let _previous_header_request_id = response.headers_mut().insert(
@@ -976,12 +1106,14 @@ mod tests {
     #[tokio::test]
     async fn request_id_layer_propagates_existing_and_generated_values() {
         let make_router = || {
-            axum::Router::from(super::RequestIdLayer.apply(super::AxumRouter::from(
-                axum::Router::new().route(
-                    str_constants::SLASH,
-                    axum::routing::get(async || http::StatusCode::OK),
-                ),
-            )))
+            axum::Router::from(
+                super::RequestIdLayer::default().apply(super::AxumRouter::from(
+                    axum::Router::new().route(
+                        str_constants::SLASH,
+                        axum::routing::get(async || http::StatusCode::OK),
+                    ),
+                )),
+            )
         };
         let existing = http::HeaderValue::from_static(str_constants::EXISTING_REQUEST_ID);
         let existing_response = tower::ServiceExt::oneshot(
@@ -1047,27 +1179,49 @@ mod tests {
         );
         let dispatch = tracing::Dispatch::new(subscriber);
         let _dispatch_guard = tracing::dispatcher::set_default(&dispatch);
-        let router = axum::Router::from(super::RequestIdLayer.apply(super::AxumRouter::from(
-            axum::Router::new().route(
+        let trusted_proxy_ranges = super::TrustedProxyRanges::try_from(vec![
+            super::TrustedProxyRange::try_from(str_constants::VALUE_127_0_0_1_32.to_owned())
+                .expect("0bb46390"),
+        ])
+        .expect("04cbe253");
+        let router = axum::Router::from(
+            super::RequestIdLayer::with_span_config(super::HttpRequestSpanConfig::new(
+                super::ServiceName::from("server-runtime-test"),
+                super::StdSocketAddr::from(
+                    "127.0.0.1:8080"
+                        .parse::<std::net::SocketAddr>()
+                        .expect("773561fe"),
+                ),
+                trusted_proxy_ranges,
+            ))
+            .apply(super::AxumRouter::from(axum::Router::new().route(
                 "/users/{user_id}",
                 axum::routing::get(async || http::StatusCode::OK),
-            ),
-        )));
-        let response = tower::ServiceExt::oneshot(
-            router,
-            axum::extract::Request::builder()
-                .uri("/users/42")
-                .header(
-                    str_constants::TRACEPARENT,
-                    str_constants::TRACEPARENT_TEST_VALUE,
-                )
-                .body(axum::body::Body::empty())
-                .expect("f56d84cc"),
-        )
-        .await
-        .expect("20b587e3");
+            ))),
+        );
+        let mut request = axum::extract::Request::builder()
+            .uri("/users/42")
+            .header(
+                str_constants::TRACEPARENT,
+                str_constants::TRACEPARENT_TEST_VALUE,
+            )
+            .header(
+                str_constants::RUNTIME_FORWARDED_FOR_HEADER_NAME,
+                str_constants::VALUE_203_0_113_1,
+            )
+            .body(axum::body::Body::empty())
+            .expect("f56d84cc");
+        let _previous_connect_info = request.extensions_mut().insert(axum::extract::ConnectInfo(
+            "127.0.0.1:45000"
+                .parse::<std::net::SocketAddr>()
+                .expect("0f4a8de7"),
+        ));
+        let response = tower::ServiceExt::oneshot(router, request)
+            .await
+            .expect("20b587e3");
         assert_eq!(response.status(), http::StatusCode::OK);
         drop(response);
+        tracer_provider.force_flush().expect("8f53d724");
         let spans = exporter.get_finished_spans().expect("88d108d2");
         let request_span = spans
             .iter()
@@ -1092,7 +1246,156 @@ mod tests {
             request_span.span_kind,
             opentelemetry::trace::SpanKind::Server
         );
+        let attribute = |key| {
+            request_span
+                .attributes
+                .iter()
+                .find(|attribute| attribute.key.as_str() == key)
+                .map(|attribute| attribute.value.to_string())
+        };
+        assert_eq!(attribute("http.request.method").as_deref(), Some("GET"));
+        assert_eq!(attribute("http.route").as_deref(), Some("/users/{user_id}"));
+        assert_eq!(
+            attribute(str_constants::OTEL_HTTP_RESPONSE_STATUS_CODE).as_deref(),
+            Some("200")
+        );
+        assert_eq!(
+            attribute(str_constants::OTEL_SERVER_ADDRESS).as_deref(),
+            Some("127.0.0.1:8080")
+        );
+        assert_eq!(
+            attribute(str_constants::OTEL_CLIENT_ADDRESS).as_deref(),
+            Some(str_constants::VALUE_203_0_113_1)
+        );
+        assert_eq!(
+            attribute(str_constants::OTEL_SERVICE_NAME).as_deref(),
+            Some("server-runtime-test")
+        );
+        assert_eq!(
+            attribute(str_constants::OTEL_TRACE_ID).as_deref(),
+            Some(expected_trace_id)
+        );
+        assert_eq!(
+            attribute(str_constants::OTEL_SPAN_ID).as_deref(),
+            Some(request_span.span_context.span_id().to_string().as_str())
+        );
+        assert_eq!(attribute(str_constants::OTEL_URL_PATH), None);
         tracer_provider.shutdown().expect("d478940b");
+    }
+    #[tokio::test(flavor = "current_thread")]
+    async fn request_span_limits_url_path_and_records_error_telemetry() {
+        let exporter = opentelemetry_sdk::trace::InMemorySpanExporterBuilder::new().build();
+        let tracer_provider = opentelemetry_sdk::trace::SdkTracerProvider::builder()
+            .with_simple_exporter(exporter.clone())
+            .build();
+        let tracer =
+            opentelemetry::trace::TracerProvider::tracer(&tracer_provider, "http-span-test");
+        let subscriber = tracing_subscriber::layer::SubscriberExt::with(
+            tracing_subscriber::registry(),
+            tracing_opentelemetry::layer().with_tracer(tracer),
+        );
+        let dispatch = tracing::Dispatch::new(subscriber);
+        let _dispatch_guard = tracing::dispatcher::set_default(&dispatch);
+        let router = axum::Router::from(super::RequestIdLayer::default().apply(
+            super::AxumRouter::from(axum::Router::new().route(
+                "/status",
+                axum::routing::get(async || {
+                    let mut response = axum::response::IntoResponse::into_response(
+                        http::StatusCode::INTERNAL_SERVER_ERROR,
+                    );
+                    let _previous =
+                        response
+                            .extensions_mut()
+                            .insert(super::HttpErrorTelemetry::new(
+                                super::HttpErrorType::from("persistence.error"),
+                                super::HttpErrorCode::from("database_unavailable"),
+                            ));
+                    response
+                }),
+            )),
+        ));
+        let status_response = tower::ServiceExt::oneshot(
+            router.clone(),
+            axum::extract::Request::builder()
+                .uri("/status")
+                .body(axum::body::Body::empty())
+                .expect("bd141981"),
+        )
+        .await
+        .expect("22fb2978");
+        assert_eq!(
+            status_response.status(),
+            http::StatusCode::INTERNAL_SERVER_ERROR
+        );
+        drop(status_response);
+        let missing_response = tower::ServiceExt::oneshot(
+            router,
+            axum::extract::Request::builder()
+                .uri("/missing/private-123")
+                .body(axum::body::Body::empty())
+                .expect("18a1dc0e"),
+        )
+        .await
+        .expect("4dca0c87");
+        assert_eq!(missing_response.status(), http::StatusCode::NOT_FOUND);
+        drop(missing_response);
+        tracer_provider.force_flush().expect("38b83256");
+        let spans = exporter.get_finished_spans().expect("72d79c7e");
+        let status_span = spans
+            .iter()
+            .find(|span| span.name == "GET /status")
+            .expect("6e0f3748");
+        let status_attribute = |key| {
+            status_span
+                .attributes
+                .iter()
+                .find(|attribute| attribute.key.as_str() == key)
+                .map(|attribute| attribute.value.to_string())
+        };
+        assert_eq!(
+            status_attribute(str_constants::OTEL_URL_PATH).as_deref(),
+            Some("/status")
+        );
+        assert_eq!(
+            status_attribute(str_constants::OTEL_ERROR_TYPE).as_deref(),
+            Some("persistence.error")
+        );
+        assert_eq!(
+            status_attribute(str_constants::OTEL_ERROR_CODE).as_deref(),
+            Some("database_unavailable")
+        );
+        let unmatched_span = spans
+            .iter()
+            .find(|span| span.name == "GET __unmatched__")
+            .expect("aa6097d2");
+        assert!(
+            unmatched_span
+                .attributes
+                .iter()
+                .all(|attribute| attribute.value.to_string() != "/missing/private-123")
+        );
+        assert!(
+            unmatched_span
+                .attributes
+                .iter()
+                .all(|attribute| attribute.key.as_str() != str_constants::OTEL_URL_PATH)
+        );
+        let unmatched_attribute = |key| {
+            unmatched_span
+                .attributes
+                .iter()
+                .find(|attribute| attribute.key.as_str() == key)
+                .map(|attribute| attribute.value.to_string())
+        };
+        assert_eq!(
+            unmatched_attribute(str_constants::OTEL_ERROR_TYPE).as_deref(),
+            Some(str_constants::OTEL_HTTP_CLIENT_ERROR_TYPE)
+        );
+        assert_eq!(
+            unmatched_attribute(str_constants::OTEL_ERROR_CODE).as_deref(),
+            Some(str_constants::OTEL_HTTP_4XX_ERROR_CODE)
+        );
+        tracer_provider.shutdown().expect("a4f89d4d");
     }
     #[test]
     fn observed_client_preparation_injects_context_and_creates_child_span() {
