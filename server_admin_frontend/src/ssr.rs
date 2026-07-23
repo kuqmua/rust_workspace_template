@@ -83,7 +83,7 @@ impl TryFrom<String> for AdminSsrHtml {
 fn render_document(title: &AdminSsrText, body: impl IntoAny) -> AdminSsrHtml {
     let rendered_body = body.render_admin_ssr();
     AdminSsrHtml::try_from(format!(
-        "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>{title}</title><link rel=\"stylesheet\" href=\"/admin/assets/style.css?v=20260722-18\"></head><body>{}</body></html>",
+        "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>{title}</title><link rel=\"stylesheet\" href=\"/admin/assets/style.css?v=20260723-21\"></head><body>{}</body></html>",
         rendered_body.0
     ))
     .unwrap_or_else(AdminSsrHtml::from)
@@ -521,6 +521,7 @@ pub fn render_settings(
         admin.has_permission(server_admin_contract::AdminPermission::SystemSettingsUpdate),
     );
     let content = leptos::view! {
+        <section class="settings-grid"><article class="settings-card">
         {can_update.then(|| leptos::view! { <form class="settings-form" method="post" action=server_admin_contract::AdminHtmlAction::SettingsUpdate.get()>
             <label><span>"Site name"</span><input name="site_name" value=site_name required /></label>
             <label><span>"Default route"</span><input name="default_admin_route" value=default_admin_route required /></label>
@@ -533,6 +534,7 @@ pub fn render_settings(
             <button type="submit">"Save settings"</button>
         </form> })}
         {(!can_update).then(|| leptos::view! { <p>"Settings are read-only for this account."</p> })}
+        </article></section>
     }.render_admin_ssr();
     render_admin_page_with_access(
         server_admin_contract::AdminPage::Settings,
@@ -840,6 +842,41 @@ mod tests {
         assert!(!html.as_ref().contains("<nav"));
         assert!(!html.as_ref().contains("<table"));
         assert!(!html.as_ref().contains("<form"));
+    }
+
+    #[test]
+    fn settings_page_uses_centered_layout_container() {
+        let settings = server_admin_contract::AdminSettingsView::new(
+            server_admin_contract::AdminDefaultRoute::try_from(
+                server_admin_contract::AdminFrontendPath::Users
+                    .get()
+                    .to_owned(),
+            )
+            .expect("92b485cf"),
+            None,
+            None,
+            None,
+            None,
+            server_admin_contract::AdminSiteName::try_from(str_constants::ADMIN.to_owned())
+                .expect("bbf5f240"),
+            None,
+            None,
+        );
+        let admin = server_admin_contract::AuthenticatedAdmin::new(
+            server_admin_contract::AdminDisplayName::try_from(str_constants::ADMIN.to_owned())
+                .expect("a0eb7df6"),
+            server_admin_contract::AdminUserId::from(1i64),
+            server_admin_contract::AdminLogin::try_from(str_constants::ROOT.to_owned())
+                .expect("984553cd"),
+            server_admin_contract::AdminPermissionValues::try_from(Vec::new()).expect("86848eb5"),
+            server_admin_contract::AdminRoleNames::try_from(Vec::new()).expect("d3f8287b"),
+        );
+        let branding = server_admin_contract::AdminBrandingView::from_settings(&settings);
+        let html = super::render_settings(&settings, &admin, &branding);
+        assert!(
+            html.as_ref()
+                .contains("<section class=\"settings-grid\"><article class=\"settings-card\">")
+        );
     }
 
     #[test]

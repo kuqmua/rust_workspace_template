@@ -266,6 +266,27 @@ p {
   min-height: 0;
 }
 
+.main-content:has(.settings-grid) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.main-content > div:has(> .settings-grid) {
+  width: 100%;
+}
+
+.settings-grid {
+  display: grid;
+  width: 100%;
+  place-items: center;
+}
+
+.settings-card {
+  width: min(100%, 900px);
+}
+
 .table-page {
   display: flex;
   height: 100%;
@@ -565,14 +586,17 @@ td details form button:hover {
 
 .settings-form {
   display: grid;
+  width: 100%;
   max-width: 900px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: 18px;
   padding: 24px;
 }
 
 .settings-form button {
   grid-column: 1 / -1;
+  width: 100%;
+  justify-self: stretch;
 }
 
 .main-content > div > p:not(.flash-success),
@@ -1023,6 +1047,10 @@ pre {
     width: 100%;
     margin-left: 0;
     padding: 0;
+  }
+
+  .main-content:has(.settings-grid) {
+    padding: 16px;
   }
 
   .table-tools,
