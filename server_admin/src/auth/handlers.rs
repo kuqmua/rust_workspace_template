@@ -141,7 +141,7 @@ pub(super) async fn sign_in(
                 .password_hasher
                 .hash(password)
                 .await
-                .map_err(super::AdminApiError::PasswordHash)?,
+                .map_err(super::AdminApiError::password_hash)?,
         );
         super::record_login_attempt(
             state.as_ref(),
@@ -194,7 +194,7 @@ pub(super) async fn sign_in(
         super::SqlxAdminPgConnectionRef::from(&mut *tx),
     )
     .await
-    .map_err(super::AdminApiError::Session)?;
+    .map_err(super::AdminApiError::session)?;
     super::record_audit_success_in_connection(
         super::SqlxAdminPgConnectionRef::from(&mut *tx),
         super::AdminAuditSuccessRef {
@@ -285,7 +285,7 @@ pub(super) async fn refresh(
         super::SqlxAdminPgConnectionRef::from(&mut *tx),
     )
     .await
-    .map_err(super::AdminApiError::Session)?;
+    .map_err(super::AdminApiError::session)?;
     let login = super::super::repository::sessions::read_active_user_login(
         super::super::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
         admin_user_id,
@@ -438,7 +438,7 @@ pub(super) async fn change_own_password(
             expected_hash,
         )
         .await
-        .map_err(super::AdminApiError::PasswordHash)?
+        .map_err(super::AdminApiError::password_hash)?
         .get()
     {
         return Err(super::AdminApiError::Validation);
@@ -449,7 +449,7 @@ pub(super) async fn change_own_password(
         .password_hasher
         .hash(super::admin_new_password_from_contract(new_password))
         .await
-        .map_err(super::AdminApiError::PasswordHash)?;
+        .map_err(super::AdminApiError::password_hash)?;
     let mut tx = auth
         .state
         .as_ref()
@@ -681,7 +681,7 @@ pub(super) async fn create_user(
         .password_hasher
         .hash(password)
         .await
-        .map_err(super::AdminApiError::PasswordHash)?;
+        .map_err(super::AdminApiError::password_hash)?;
     let mut tx = auth
         .state
         .as_ref()
@@ -787,7 +787,7 @@ pub(super) async fn set_user_password(
         .password_hasher
         .hash(password)
         .await
-        .map_err(super::AdminApiError::PasswordHash)?;
+        .map_err(super::AdminApiError::password_hash)?;
     let mut tx = auth
         .state
         .as_ref()

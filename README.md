@@ -71,6 +71,11 @@ the request, trace, service, route, method and status identifiers together with 
 classification, the retained error chain, a captured backtrace and the current span trace.
 Expected `4xx` responses are not logged at `ERROR` level.
 
+Infrastructure failures are wrapped in the shared generic `ObservedError<E>` at the point where
+they become application errors. The wrapper preserves the typed source and stable error code while
+capturing the call-site location, backtrace and current tracing span. Normal validation and other
+expected client errors remain lightweight typed `thiserror` variants.
+
 The exporter uses the standard OpenTelemetry environment variables. A typical production
 configuration is:
 

@@ -25,6 +25,7 @@ mod metrics_layer;
 mod multipart;
 mod notification;
 mod observability;
+mod observed_error;
 mod origin;
 mod outbound_url;
 mod path_policy;
@@ -147,6 +148,10 @@ pub use observability::{
     ObservabilityGuard, ObservabilityInitError, OpentelemetryOtlpExporterBuildError,
     OpentelemetrySdkObservabilityShutdownError, ServiceName, TracingSubscriberInitError,
     initialize_service_observability,
+};
+pub use observed_error::{
+    ObservedError, ObservedErrorCode, StdObservedErrorBacktrace, StdPanicLocation,
+    TracingObservedErrorSpanTrace,
 };
 pub use origin::{
     AllowedOrigin, AllowedOriginError, AllowedOrigins, AllowedOriginsError, HttpOriginHeadersRef,
@@ -401,13 +406,6 @@ impl HttpErrorDiagnostic {
         telemetry: HttpErrorTelemetry,
         error: &(dyn std::error::Error + 'static),
     ) -> Self {
-        let mut error_chain = error.to_string();
-        let mut optional_source = error.source();
-        while let Some(source) = optional_source {
-            error_chain.push_str(str_constants::HTTP_ERROR_CHAIN_SEPARATOR);
-            error_chain.push_str(source.to_string().as_str());
-            optional_source = source.source();
-        }
         let current_span = tracing::Span::current();
         let span_trace = current_span.metadata().map_or_else(
             || str_constants::HTTP_SPAN_UNAVAILABLE.to_owned(),
@@ -419,9 +417,36 @@ impl HttpErrorDiagnostic {
                     .to_string()
                     .into_boxed_str(),
             ),
-            error_chain: StdHttpErrorChain::from(error_chain.into_boxed_str()),
+            error_chain: Self::error_chain(error),
             span_trace: TracingHttpSpanTrace::from(span_trace.into_boxed_str()),
             telemetry,
+        }
+    }
+
+    fn error_chain(error: &(dyn std::error::Error + 'static)) -> StdHttpErrorChain {
+        let mut error_chain = error.to_string();
+        let mut optional_source = error.source();
+        while let Some(source) = optional_source {
+            error_chain.push_str(str_constants::HTTP_ERROR_CHAIN_SEPARATOR);
+            error_chain.push_str(source.to_string().as_str());
+            optional_source = source.source();
+        }
+        StdHttpErrorChain::from(error_chain.into_boxed_str())
+    }
+
+    #[must_use]
+    pub fn from_observed<Source>(error_type: HttpErrorType, error: &ObservedError<Source>) -> Self
+    where
+        Source: std::error::Error + 'static,
+    {
+        Self {
+            backtrace: StdHttpErrorBacktrace::from(error.backtrace().to_string().into_boxed_str()),
+            error_chain: Self::error_chain(error),
+            span_trace: TracingHttpSpanTrace::from(error.span_trace().to_string().into_boxed_str()),
+            telemetry: HttpErrorTelemetry::new(
+                error_type,
+                HttpErrorCode::from(error.error_code().get()),
+            ),
         }
     }
 }

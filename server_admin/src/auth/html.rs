@@ -188,7 +188,7 @@ fn form_auth(mut auth: super::AdminAuthReq) -> Result<super::AdminAuthReq, super
     )
     .ok_or(super::AdminApiError::Csrf)?;
     let value = http::HeaderValue::from_str(token.as_ref()).map_err(|error| {
-        super::AdminApiError::Header(super::HttpAdminHeaderValueError::from(error))
+        super::AdminApiError::header(super::HttpAdminHeaderValueError::from(error))
     })?;
     let _previous = auth.headers.0.insert(
         http::HeaderName::from_static(str_constants::X_CSRF_TOKEN_ALT),

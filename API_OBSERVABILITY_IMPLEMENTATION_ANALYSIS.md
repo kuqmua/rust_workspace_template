@@ -61,18 +61,17 @@ backtrace
 span_trace
 ```
 
-`HttpErrorDiagnostic` захватывает цепочку `std::error::Error`, принудительный `Backtrace` и
-текущий tracing span в момент, когда типизированная API-ошибка ещё доступна. `AdminApiError` и
-ошибки notification service помещают этот объект в extensions ответа, откуда boundary извлекает
-его до отправки ответа. Если нет типизированной диагностики, boundary всё равно создаёт явно
-помеченный fallback вместо потери обязательных полей.
+`ObservedError<E>` захватывает исходную ошибку и диагностический контекст при переходе в
+application error. Перед возвратом ответа он преобразуется в `HttpErrorDiagnostic`, который
+помещается в extensions ответа и извлекается boundary. Если нет типизированной диагностики,
+boundary всё равно создаёт явно помеченный fallback вместо потери обязательных полей.
 
 Локальные `ERROR`-события persistence/readiness удалены. Ответы `4xx` завершаются обычным
 информационным событием и не создают `ERROR`; их `error.type` и `error_code` остаются в span.
 
-### 4. Общий тип диагностической ошибки
+### 4. Общий тип диагностической ошибки — реализовано
 
-Стоит разместить в shared crate обёртку примерно следующего назначения:
+В `server_runtime` размещена generic-обёртка:
 
 ```text
 ObservedError<E>
@@ -83,9 +82,13 @@ ObservedError<E>
 └── SpanTrace
 ```
 
-Она должна захватываться при переходе инфраструктурной ошибки в application error, а не для каждой обычной ошибки валидации.
+`ObservedError::capture` помечен `#[track_caller]`, сохраняет типизированный source, стабильный
+error code, фактический call-site, принудительный `std::backtrace::Backtrace` и текущий tracing
+span. Notification infrastructure errors и инфраструктурные варианты `AdminApiError` оборачиваются
+непосредственно в соответствующих `map_err`.
 
-Важно сохранить существующие типизированные `thiserror` enums. Не стоит превращать весь workspace в `anyhow`; он уместнее на границах запуска, фоновой задачи или запроса.
+Обычные validation/authentication/conflict/rate-limit варианты остаются лёгкими enum-вариантами
+без backtrace. Существующие типизированные `thiserror` enums сохранены; `anyhow` не добавлялся.
 
 ### 5. Расширить JSON tracing
 

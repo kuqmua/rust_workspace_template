@@ -535,7 +535,7 @@ async fn authenticate(
         &context_hash,
     )
     .await
-    .map_err(AdminApiError::Pg)?;
+    .map_err(AdminApiError::pg)?;
     if !active.get() {
         return Err(AdminApiError::Authentication);
     }
@@ -566,7 +566,7 @@ async fn validate_csrf(
         authenticated.id,
     )
     .await
-    .map_err(AdminApiError::Pg)?
+    .map_err(AdminApiError::pg)?
     .ok_or(AdminApiError::Csrf)?;
     if provided_hash.expose().as_ref() != expected.expose().as_ref() {
         return Err(AdminApiError::Csrf);
@@ -623,26 +623,59 @@ pub enum AdminApiError {
     #[error("administrator request validation failed")]
     Validation,
     #[error("administrator API database operation failed: {0:?}")]
-    Pg(#[source] super::SqlxAdminError),
+    Pg(#[source] server_runtime::ObservedError<super::SqlxAdminError>),
     #[error("administrator password hashing failed: {0}")]
-    PasswordHash(#[source] super::AdminPasswordHashError),
+    PasswordHash(#[source] server_runtime::ObservedError<super::AdminPasswordHashError>),
     #[error("administrator request body is too large")]
     PayloadTooLarge,
     #[error("administrator route does not support this HTTP method")]
     MethodNotAllowed,
     #[error("administrator session operation failed: {0}")]
-    Session(#[source] AdminSessionError),
+    Session(#[source] server_runtime::ObservedError<AdminSessionError>),
     #[error("administrator response header is invalid: {0:?}")]
-    Header(#[source] HttpAdminHeaderValueError),
+    Header(#[source] server_runtime::ObservedError<HttpAdminHeaderValueError>),
+}
+impl AdminApiError {
+    #[track_caller]
+    fn header(source: HttpAdminHeaderValueError) -> Self {
+        Self::Header(server_runtime::ObservedError::capture(
+            source,
+            server_runtime::ObservedErrorCode::from(str_constants::ADMIN_HEADER_ERROR_CODE),
+        ))
+    }
+
+    #[track_caller]
+    fn password_hash(source: super::AdminPasswordHashError) -> Self {
+        Self::PasswordHash(server_runtime::ObservedError::capture(
+            source,
+            server_runtime::ObservedErrorCode::from(str_constants::ADMIN_PASSWORD_HASH_ERROR_CODE),
+        ))
+    }
+
+    #[track_caller]
+    fn pg(source: super::SqlxAdminError) -> Self {
+        Self::Pg(server_runtime::ObservedError::capture(
+            source,
+            server_runtime::ObservedErrorCode::from(str_constants::ADMIN_DATABASE_ERROR_CODE),
+        ))
+    }
+
+    #[track_caller]
+    fn session(source: AdminSessionError) -> Self {
+        Self::Session(server_runtime::ObservedError::capture(
+            source,
+            server_runtime::ObservedErrorCode::from(str_constants::ADMIN_SESSION_ERROR_CODE),
+        ))
+    }
 }
 impl From<sqlx::Error> for AdminApiError {
     fn from(value: sqlx::Error) -> Self {
-        Self::Pg(super::SqlxAdminError::from(value))
+        Self::pg(super::SqlxAdminError::from(value))
     }
 }
 impl From<super::SqlxAdminError> for AdminApiError {
     fn from(value: super::SqlxAdminError) -> Self {
-        Self::Pg(value)
+        Self::pg(value)
     }
 }
 #[derive(Debug, newtype::IntoInnerFrom, newtype::FromInner)]
@@ -662,17 +695,29 @@ impl axum::response::IntoResponse for AdminApiError {
                 http::StatusCode::INTERNAL_SERVER_ERROR
             }
         };
-        let optional_diagnostic = status.is_server_error().then(|| {
-            server_runtime::HttpErrorDiagnostic::capture(
-                server_runtime::HttpErrorTelemetry::new(
-                    server_runtime::HttpErrorType::from(str_constants::ADMIN_API_ERROR_TYPE),
-                    server_runtime::HttpErrorCode::from(
-                        str_constants::ADMIN_API_INTERNAL_ERROR_CODE,
-                    ),
-                ),
-                &self,
-            )
-        });
+        let error_type = server_runtime::HttpErrorType::from(str_constants::ADMIN_API_ERROR_TYPE);
+        let optional_diagnostic = match &self {
+            Self::Pg(error) => Some(server_runtime::HttpErrorDiagnostic::from_observed(
+                error_type, error,
+            )),
+            Self::PasswordHash(error) => Some(server_runtime::HttpErrorDiagnostic::from_observed(
+                error_type, error,
+            )),
+            Self::Session(error) => Some(server_runtime::HttpErrorDiagnostic::from_observed(
+                error_type, error,
+            )),
+            Self::Header(error) => Some(server_runtime::HttpErrorDiagnostic::from_observed(
+                error_type, error,
+            )),
+            Self::Authentication
+            | Self::Authorization
+            | Self::Conflict
+            | Self::Csrf
+            | Self::MethodNotAllowed
+            | Self::PayloadTooLarge
+            | Self::RateLimited
+            | Self::Validation => None,
+        };
         let problem_status = frontend_contract::ApiProblemStatus::try_from(status.as_u16())
             .unwrap_or_else(|_error| {
                 frontend_contract::ApiProblemStatus::from(
@@ -718,7 +763,7 @@ async fn record_login_attempt(
         super::UuidAdminValue::from(uuid::Uuid::new_v4()),
     )
     .await
-    .map_err(AdminApiError::Pg)
+    .map_err(AdminApiError::pg)
 }
 #[derive(Debug, Clone, Copy)]
 struct AdminAuditSuccessRef<'value_lt> {
@@ -776,7 +821,7 @@ async fn load_authenticated_admin_from_db(
                 AdminApiError::Authentication
             }
             super::repository::AdminRepositoryError::Sqlx(sqlx_error) => {
-                AdminApiError::Pg(sqlx_error)
+                AdminApiError::pg(sqlx_error)
             }
         })?
         .ok_or(AdminApiError::Authentication)?;
@@ -811,7 +856,7 @@ fn append_session_cookies(
                 .append(http::header::SET_COOKIE, header)
         })
         .map(drop)
-        .map_err(|error| AdminApiError::Header(HttpAdminHeaderValueError::from(error)))
+        .map_err(|error| AdminApiError::header(HttpAdminHeaderValueError::from(error)))
 }
 fn append_access_session_cookies(
     response: &mut AxumAdminResponse,
@@ -841,7 +886,7 @@ fn append_access_session_cookies(
                     .append(http::header::SET_COOKIE, header)
             })
             .map(drop)
-            .map_err(|error| AdminApiError::Header(HttpAdminHeaderValueError::from(error)))
+            .map_err(|error| AdminApiError::header(HttpAdminHeaderValueError::from(error)))
     })
 }
 fn append_cleared_session_cookies(
@@ -864,7 +909,7 @@ fn append_cleared_session_cookies(
                     .append(http::header::SET_COOKIE, header)
             })
             .map(drop)
-            .map_err(|error| AdminApiError::Header(HttpAdminHeaderValueError::from(error)))
+            .map_err(|error| AdminApiError::header(HttpAdminHeaderValueError::from(error)))
     })
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
@@ -1294,10 +1339,16 @@ mod tests {
             response.headers().get(http::header::RETRY_AFTER),
             Some(&http::HeaderValue::from_static("60")),
         );
+        assert!(
+            response
+                .extensions()
+                .get::<server_runtime::HttpErrorDiagnostic>()
+                .is_none()
+        );
     }
     #[test]
     fn server_error_response_preserves_http_diagnostic() {
-        let response = axum::response::IntoResponse::into_response(super::AdminApiError::Pg(
+        let response = axum::response::IntoResponse::into_response(super::AdminApiError::pg(
             super::super::SqlxAdminError::from(sqlx::Error::RowNotFound),
         ));
         assert_eq!(response.status(), http::StatusCode::INTERNAL_SERVER_ERROR);

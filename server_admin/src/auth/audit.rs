@@ -19,7 +19,7 @@ pub(super) async fn record_success_in_connection(
         &details,
     )
     .await
-    .map_err(super::AdminApiError::Pg)
+    .map_err(super::AdminApiError::pg)
 }
 pub(super) async fn query_page(
     auth: super::AdminAuthReq,
@@ -48,7 +48,7 @@ pub(super) async fn query_page(
             super::AdminApiError::Validation
         }
         super::super::repository::AdminRepositoryError::Sqlx(sqlx_error) => {
-            super::AdminApiError::Pg(sqlx_error)
+            super::AdminApiError::pg(sqlx_error)
         }
     })?;
     Ok(page)
@@ -100,7 +100,7 @@ pub(super) async fn export_log(
             super::AdminApiError::Validation
         }
         super::super::repository::AdminRepositoryError::Sqlx(sqlx_error) => {
-            super::AdminApiError::Pg(sqlx_error)
+            super::AdminApiError::pg(sqlx_error)
         }
     })?;
     let mut csv = String::from(str_constants::AUDIT_CSV_HEADER);

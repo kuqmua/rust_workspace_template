@@ -50,7 +50,7 @@ pub(super) async fn enforce_rate_limit(
             super::AdminApiError::Validation
         }
         super::super::repository::AdminRateLimitRepositoryError::Sqlx(sqlx_error) => {
-            super::AdminApiError::Pg(sqlx_error)
+            super::AdminApiError::pg(sqlx_error)
         }
     })?;
     match decision {
