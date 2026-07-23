@@ -46,13 +46,7 @@ pub struct HealthComponent {
     status: HealthStatus,
 }
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, utoipa::ToSchema, newtype::TryFrom)]
-#[try_from(validator = |value: &Vec<HealthComponent>| {
-    if value.len() > HEALTH_COMPONENTS_MAX_LEN {
-        Err(HealthComponentsError)
-    } else {
-        Ok(())
-    }
-})]
+#[try_from(validator = HealthComponents::validate)]
 #[serde(transparent)]
 pub struct HealthComponents(Vec<HealthComponent>);
 impl From<[HealthComponent; 1]> for HealthComponents {
@@ -63,6 +57,16 @@ impl From<[HealthComponent; 1]> for HealthComponents {
 impl From<[HealthComponent; 2]> for HealthComponents {
     fn from(value: [HealthComponent; 2]) -> Self {
         Self(Vec::from(value))
+    }
+}
+impl HealthComponents {
+    #[allow(clippy::single_call_fn)] // derive-generated TryFrom owns the single validator call
+    const fn validate(value: &[HealthComponent]) -> Result<(), HealthComponentsError> {
+        if value.len() > HEALTH_COMPONENTS_MAX_LEN {
+            Err(HealthComponentsError)
+        } else {
+            Ok(())
+        }
     }
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DisplayConst, newtype::Error)]

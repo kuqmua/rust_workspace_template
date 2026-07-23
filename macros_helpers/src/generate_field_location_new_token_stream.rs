@@ -2,13 +2,10 @@
 #[derive(Debug, Clone, Copy, newtype::FromInner)]
 pub struct FieldLocationFile(&'static str);
 #[derive(Debug, Clone, Copy, newtype::TryFrom)]
-#[try_from(error = FieldLocationCoordinateTryFromU32Error, validator = |value: &u32| {
-    if *value == 0u32 {
-        Err(FieldLocationCoordinateTryFromU32Error)
-    } else {
-        Ok(())
-    }
-})]
+#[try_from(
+    error = FieldLocationCoordinateTryFromU32Error,
+    validator = FieldLocationLine::validate
+)]
 pub struct FieldLocationLine(u32);
 impl From<std::num::NonZeroU32> for FieldLocationLine {
     fn from(value: std::num::NonZeroU32) -> Self {
@@ -20,15 +17,20 @@ impl FieldLocationLine {
     pub fn first() -> Self {
         Self::from(std::num::NonZeroU32::MIN)
     }
+    #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
+    const fn validate(value: &u32) -> Result<(), FieldLocationCoordinateTryFromU32Error> {
+        if *value == 0u32 {
+            Err(FieldLocationCoordinateTryFromU32Error)
+        } else {
+            Ok(())
+        }
+    }
 }
 #[derive(Debug, Clone, Copy, newtype::TryFrom)]
-#[try_from(error = FieldLocationCoordinateTryFromU32Error, validator = |value: &u32| {
-    if *value == 0u32 {
-        Err(FieldLocationCoordinateTryFromU32Error)
-    } else {
-        Ok(())
-    }
-})]
+#[try_from(
+    error = FieldLocationCoordinateTryFromU32Error,
+    validator = FieldLocationColumn::validate
+)]
 pub struct FieldLocationColumn(u32);
 impl From<std::num::NonZeroU32> for FieldLocationColumn {
     fn from(value: std::num::NonZeroU32) -> Self {
@@ -39,6 +41,14 @@ impl FieldLocationColumn {
     #[must_use]
     pub fn first() -> Self {
         Self::from(std::num::NonZeroU32::MIN)
+    }
+    #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
+    const fn validate(value: &u32) -> Result<(), FieldLocationCoordinateTryFromU32Error> {
+        if *value == 0u32 {
+            Err(FieldLocationCoordinateTryFromU32Error)
+        } else {
+            Ok(())
+        }
     }
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DebugDisplay, newtype::Error)]

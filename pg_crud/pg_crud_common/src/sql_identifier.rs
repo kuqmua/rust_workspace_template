@@ -1,18 +1,22 @@
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd, newtype::AsRefStr, newtype::TryFrom)]
-#[try_from(validator = |value: &String| {
-    if value.len() > 128usize {
-        return Err(SqlIdentifierError::Invalid);
-    }
-    let mut bytes = value.bytes();
-    let first = bytes.next().ok_or(SqlIdentifierError::Empty)?;
-    if !(first.is_ascii_alphabetic() || first == b'_')
-        || !bytes.all(|byte| byte.is_ascii_alphanumeric() || byte == b'_')
-    {
-        return Err(SqlIdentifierError::Invalid);
-    }
-    Ok(())
-})]
+#[try_from(validator = SqlIdentifier::validate)]
 pub struct SqlIdentifier(String);
+impl SqlIdentifier {
+    #[allow(clippy::single_call_fn)] // derive-generated TryFrom owns the single validator call
+    fn validate(value: &str) -> Result<(), SqlIdentifierError> {
+        if value.len() > 128usize {
+            return Err(SqlIdentifierError::Invalid);
+        }
+        let mut bytes = value.bytes();
+        let first = bytes.next().ok_or(SqlIdentifierError::Empty)?;
+        if !(first.is_ascii_alphabetic() || first == b'_')
+            || !bytes.all(|byte| byte.is_ascii_alphanumeric() || byte == b'_')
+        {
+            return Err(SqlIdentifierError::Invalid);
+        }
+        Ok(())
+    }
+}
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum SqlIdentifierError {
     #[error("SQL identifier is empty")]

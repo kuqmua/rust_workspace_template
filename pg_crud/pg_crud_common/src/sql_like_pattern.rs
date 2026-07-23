@@ -18,13 +18,19 @@ pub struct SqlLikeInputRef<'value_lt>(&'value_lt str);
     newtype::AsRefStr,
     newtype::TryFrom,
 )]
-#[try_from(validator = |value: &String| if value.len() > super::PG_CRUD_STRING_WRAPPER_MAX_LEN {
-    Err(SqlLikePatternError)
-} else {
-    Ok(())
-})]
+#[try_from(validator = SqlLikePattern::validate)]
 #[serde(try_from = "String")]
 pub struct SqlLikePattern(String);
+impl SqlLikePattern {
+    #[allow(clippy::single_call_fn)] // derive-generated TryFrom owns the single validator call
+    const fn validate(value: &str) -> Result<(), SqlLikePatternError> {
+        if value.len() > super::PG_CRUD_STRING_WRAPPER_MAX_LEN {
+            Err(SqlLikePatternError)
+        } else {
+            Ok(())
+        }
+    }
+}
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("{}", str_constants::SQL_LIKE_PATTERN_EXCEEDS_MAXIMUM_LENGTH)]
 pub struct SqlLikePatternError;

@@ -7,40 +7,58 @@ pub struct JsonwebtokenAdminDecodingKey(jsonwebtoken::DecodingKey);
 #[derive(Debug, newtype::AsRefTarget, newtype::FromInner)]
 struct JsonwebtokenAdminDecodingKeys(Vec<JsonwebtokenAdminDecodingKey>);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::IntoInnerFrom, newtype::TryFrom)]
-#[try_from(error = AdminAuthPositiveValueError, validator = |value: &u64| {
-    if *value == 0u64 {
-        Err(AdminAuthPositiveValueError)
-    } else {
-        Ok(())
-    }
-})]
+#[try_from(
+    error = AdminAuthPositiveValueError,
+    validator = StdAdminAccessTtlSeconds::validate
+)]
 pub struct StdAdminAccessTtlSeconds(u64);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::IntoInnerFrom, newtype::TryFrom)]
-#[try_from(error = AdminAuthPositiveValueError, validator = |value: &u64| {
-    if *value == 0u64 {
-        Err(AdminAuthPositiveValueError)
-    } else {
-        Ok(())
+impl StdAdminAccessTtlSeconds {
+    #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
+    const fn validate(value: &u64) -> Result<(), AdminAuthPositiveValueError> {
+        if *value == 0u64 {
+            Err(AdminAuthPositiveValueError)
+        } else {
+            Ok(())
+        }
     }
-})]
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::IntoInnerFrom, newtype::TryFrom)]
+#[try_from(
+    error = AdminAuthPositiveValueError,
+    validator = StdAdminRefreshTtlSeconds::validate
+)]
 pub struct StdAdminRefreshTtlSeconds(u64);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::IntoInnerFrom, newtype::TryFrom)]
-#[try_from(error = AdminAuthPositiveValueError, validator = |value: &usize| {
-    if *value == 0usize {
-        Err(AdminAuthPositiveValueError)
-    } else {
-        Ok(())
+impl StdAdminRefreshTtlSeconds {
+    #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
+    const fn validate(value: &u64) -> Result<(), AdminAuthPositiveValueError> {
+        if *value == 0u64 {
+            Err(AdminAuthPositiveValueError)
+        } else {
+            Ok(())
+        }
     }
-})]
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::IntoInnerFrom, newtype::TryFrom)]
+#[try_from(
+    error = AdminAuthPositiveValueError,
+    validator = StdAdminSessionLimit::validate
+)]
 pub struct StdAdminSessionLimit(usize);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::IntoInnerFrom, newtype::TryFrom)]
-#[try_from(error = AdminAuthPositiveValueError, validator = |value: &i64| {
-    if *value <= 0i64 {
-        Err(AdminAuthPositiveValueError)
-    } else {
-        Ok(())
+impl StdAdminSessionLimit {
+    #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
+    const fn validate(value: &usize) -> Result<(), AdminAuthPositiveValueError> {
+        if *value == 0usize {
+            Err(AdminAuthPositiveValueError)
+        } else {
+            Ok(())
+        }
     }
-})]
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::IntoInnerFrom, newtype::TryFrom)]
+#[try_from(
+    error = AdminAuthPositiveValueError,
+    validator = StdAdminFailureThreshold::validate
+)]
 pub struct StdAdminFailureThreshold(i64);
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum AdminKnownFailureThreshold {
@@ -50,6 +68,16 @@ impl From<AdminKnownFailureThreshold> for StdAdminFailureThreshold {
     fn from(value: AdminKnownFailureThreshold) -> Self {
         match value {
             AdminKnownFailureThreshold::Default => Self(10i64),
+        }
+    }
+}
+impl StdAdminFailureThreshold {
+    #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
+    const fn validate(value: &i64) -> Result<(), AdminAuthPositiveValueError> {
+        if *value <= 0i64 {
+            Err(AdminAuthPositiveValueError)
+        } else {
+            Ok(())
         }
     }
 }

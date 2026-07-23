@@ -31,17 +31,24 @@ pub enum ApiProblemKind {
     newtype::TryFrom,
 )]
 #[serde(try_from = "u16")]
-#[try_from(error = crate::HttpStatusTryFromU16Error, validator = |value: &u16| {
-    if (100u16..1_000u16).contains(value) {
-        Ok(())
-    } else {
-        Err(crate::HttpStatusTryFromU16Error)
-    }
-})]
+#[try_from(
+    error = crate::HttpStatusTryFromU16Error,
+    validator = ApiProblemStatus::validate
+)]
 pub struct ApiProblemStatus(u16);
 impl From<crate::KnownHttpStatus> for ApiProblemStatus {
     fn from(value: crate::KnownHttpStatus) -> Self {
         Self(value.get())
+    }
+}
+impl ApiProblemStatus {
+    #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
+    fn validate(value: &u16) -> Result<(), crate::HttpStatusTryFromU16Error> {
+        if (100u16..1_000u16).contains(value) {
+            Ok(())
+        } else {
+            Err(crate::HttpStatusTryFromU16Error)
+        }
     }
 }
 #[derive(
@@ -103,15 +110,19 @@ pub struct ApiProblemViolation {
     utoipa::ToSchema,
     newtype::TryFrom,
 )]
-#[try_from(validator = |value: &Vec<ApiProblemViolation>| {
-    if value.len() > 128usize {
-        Err(ApiProblemViolationsError)
-    } else {
-        Ok(())
-    }
-})]
+#[try_from(validator = ApiProblemViolations::validate)]
 #[serde(try_from = "Vec<ApiProblemViolation>")]
 pub(crate) struct ApiProblemViolations(Vec<ApiProblemViolation>);
+impl ApiProblemViolations {
+    #[allow(clippy::single_call_fn)] // derive-generated TryFrom owns the single validator call
+    const fn validate(value: &[ApiProblemViolation]) -> Result<(), ApiProblemViolationsError> {
+        if value.len() > 128usize {
+            Err(ApiProblemViolationsError)
+        } else {
+            Ok(())
+        }
+    }
+}
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DebugDisplay, newtype::Error)]
 pub(crate) struct ApiProblemViolationsError;
 #[derive(Clone, Debug, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema)]

@@ -148,13 +148,18 @@ fn newtype_try_from_explicit_error_satisfies_string_wrapper_policy() {
         #[derive(newtype::TryFrom)]
         #[try_from(
             error = SharedValueError,
-            validator = |value: &String| if value.len() > 8usize {
-                Err(SharedValueError)
-            } else {
-                Ok(())
-            }
+            validator = Value::validate
         )]
         struct Value(String);
+        impl Value {
+            fn validate(value: &str) -> Result<(), SharedValueError> {
+                if value.len() > 8usize {
+                    Err(SharedValueError)
+                } else {
+                    Ok(())
+                }
+            }
+        }
     };
     let string_wrapper_names = super::string_wrapper_names(super::types::SynFileRef::from(&ast));
     let len_checked_function_names =

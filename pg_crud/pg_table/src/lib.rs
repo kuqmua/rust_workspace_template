@@ -44,13 +44,10 @@ impl TryFrom<Vec<u8>> for PgTableIdempotencyBody {
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::AsRefInner, newtype::FromInner)]
 pub struct PgTableIdempotencyBodyRef<'body_lt>(&'body_lt [u8]);
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::IntoInnerFrom, newtype::TryFrom)]
-#[try_from(error = PgTableIdempotencyResponseStatusTryFromU16Error, validator = |value: &u16| {
-    if (100u16..1_000u16).contains(value) {
-        Ok(())
-    } else {
-        Err(PgTableIdempotencyResponseStatusTryFromU16Error)
-    }
-})]
+#[try_from(
+    error = PgTableIdempotencyResponseStatusTryFromU16Error,
+    validator = PgTableIdempotencyResponseStatus::validate
+)]
 pub struct PgTableIdempotencyResponseStatus(u16);
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum PgTableIdempotencyKnownResponseStatus {
@@ -68,29 +65,51 @@ impl PgTableIdempotencyResponseStatus {
     pub fn internal_server_error() -> Self {
         Self::from(PgTableIdempotencyKnownResponseStatus::InternalServerError)
     }
+    #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
+    fn validate(value: &u16) -> Result<(), PgTableIdempotencyResponseStatusTryFromU16Error> {
+        if (100u16..1_000u16).contains(value) {
+            Ok(())
+        } else {
+            Err(PgTableIdempotencyResponseStatusTryFromU16Error)
+        }
+    }
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DebugDisplay, newtype::Error)]
 pub struct PgTableIdempotencyResponseStatusTryFromU16Error;
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::Display, newtype::FromInner)]
 pub struct PgTableIdempotencyTextBytes(usize);
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::TryFrom)]
-#[try_from(error = PgTableIdempotencyCleanupValueTryFromI64Error, validator = |value: &i64| {
-    if *value < 0i64 {
-        Err(PgTableIdempotencyCleanupValueTryFromI64Error::Negative)
-    } else {
-        Ok(())
-    }
-})]
+#[try_from(
+    error = PgTableIdempotencyCleanupValueTryFromI64Error,
+    validator = PgTableIdempotencyCleanupRetentionSeconds::validate
+)]
 pub struct PgTableIdempotencyCleanupRetentionSeconds(i64);
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::TryFrom)]
-#[try_from(error = PgTableIdempotencyCleanupValueTryFromI64Error, validator = |value: &i64| {
-    if *value <= 0i64 {
-        Err(PgTableIdempotencyCleanupValueTryFromI64Error::NotPositive)
-    } else {
-        Ok(())
+impl PgTableIdempotencyCleanupRetentionSeconds {
+    #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
+    const fn validate(value: &i64) -> Result<(), PgTableIdempotencyCleanupValueTryFromI64Error> {
+        if *value < 0i64 {
+            Err(PgTableIdempotencyCleanupValueTryFromI64Error::Negative)
+        } else {
+            Ok(())
+        }
     }
-})]
+}
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::TryFrom)]
+#[try_from(
+    error = PgTableIdempotencyCleanupValueTryFromI64Error,
+    validator = PgTableIdempotencyCleanupBatchSize::validate
+)]
 pub struct PgTableIdempotencyCleanupBatchSize(i64);
+impl PgTableIdempotencyCleanupBatchSize {
+    #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
+    const fn validate(value: &i64) -> Result<(), PgTableIdempotencyCleanupValueTryFromI64Error> {
+        if *value <= 0i64 {
+            Err(PgTableIdempotencyCleanupValueTryFromI64Error::NotPositive)
+        } else {
+            Ok(())
+        }
+    }
+}
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DebugDisplay, newtype::Error)]
 pub enum PgTableIdempotencyCleanupValueTryFromI64Error {
     Negative,

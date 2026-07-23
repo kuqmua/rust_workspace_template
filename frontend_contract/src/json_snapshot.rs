@@ -1,12 +1,18 @@
 const JSON_CONTRACT_SNAPSHOT_MAX_BYTES: usize = 1_048_576usize;
 
 #[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr, newtype::TryFrom)]
-#[try_from(validator = |value: &String| if value.len() > JSON_CONTRACT_SNAPSHOT_MAX_BYTES {
-    Err(JsonContractSnapshotError::TooLong)
-} else {
-    Ok(())
-})]
+#[try_from(validator = JsonContractSnapshot::validate)]
 pub struct JsonContractSnapshot(String);
+impl JsonContractSnapshot {
+    #[allow(clippy::single_call_fn)] // derive-generated TryFrom owns the single validator call
+    const fn validate(value: &str) -> Result<(), JsonContractSnapshotError> {
+        if value.len() > JSON_CONTRACT_SNAPSHOT_MAX_BYTES {
+            Err(JsonContractSnapshotError::TooLong)
+        } else {
+            Ok(())
+        }
+    }
+}
 
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct JsonSnapshotDynamicFieldRef<'value_lt>(&'value_lt str);

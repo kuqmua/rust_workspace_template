@@ -872,17 +872,24 @@ pub struct TransportPath(String);
 #[derive(
     Clone, Copy, Debug, PartialEq, Eq, newtype::Display, newtype::IntoInnerFrom, newtype::TryFrom,
 )]
-#[try_from(error = HttpStatusTryFromU16Error, validator = |value: &u16| {
-    if (100u16..1_000u16).contains(value) {
-        Ok(())
-    } else {
-        Err(HttpStatusTryFromU16Error)
-    }
-})]
+#[try_from(
+    error = HttpStatusTryFromU16Error,
+    validator = TransportStatus::validate
+)]
 pub struct TransportStatus(u16);
 impl From<KnownHttpStatus> for TransportStatus {
     fn from(value: KnownHttpStatus) -> Self {
         Self(value.get())
+    }
+}
+impl TransportStatus {
+    #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
+    fn validate(value: &u16) -> Result<(), HttpStatusTryFromU16Error> {
+        if (100u16..1_000u16).contains(value) {
+            Ok(())
+        } else {
+            Err(HttpStatusTryFromU16Error)
+        }
     }
 }
 #[derive(Clone, Debug, PartialEq, Eq, newtype::AsRefStr, newtype::BoundedString)]

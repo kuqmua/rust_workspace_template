@@ -4111,6 +4111,7 @@ pub const NEWTYPE_TRY_FROM_ERROR: &str = "error";
 pub const NEWTYPE_TRY_FROM_ERROR_DUPLICATE: &str = "duplicate newtype try_from error";
 pub const NEWTYPE_TRY_FROM_VALIDATOR: &str = "validator";
 pub const NEWTYPE_TRY_FROM_VALIDATOR_DUPLICATE: &str = "duplicate newtype try_from validator";
+pub const VALIDATE: &str = "validate";
 pub const NEWTYPE_TRY_FROM_VALIDATOR_REQUIRED: &str = "newtype try_from requires validator = path";
 pub const TEST_DUPLICATE: &str = "duplicate";
 pub const TEST_FIRST: &str = "first";

@@ -1478,10 +1478,12 @@ impl StringWrapperFromVisitor<'_> {
                         syn::visit::Visit::visit_expr(&mut visitor, &expr);
                         let path_is_len_checked = match &expr {
                             syn::Expr::Path(path) => {
-                                path.path.segments.last().is_some_and(|segment| {
-                                    self.len_checked_function_names
-                                        .contains(segment.ident.to_string().as_str())
-                                })
+                                let full_path = path_to_string(types::SynPathRef::from(&path.path));
+                                self.len_checked_function_names.contains(full_path.as_ref())
+                                    || path.path.segments.last().is_some_and(|segment| {
+                                        self.len_checked_function_names
+                                            .contains(segment.ident.to_string().as_str())
+                                    })
                             }
                             syn::Expr::Array(_)
                             | syn::Expr::Assign(_)
@@ -1572,6 +1574,27 @@ impl<'ast> syn::visit::Visit<'ast> for LenCheckedFunctionNameVisitor {
             let _: bool = self.names.insert(i.sig.ident.to_string());
         }
         syn::visit::visit_item_fn(self, i);
+    }
+    fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
+        let Some(type_name) = item_impl_self_ty_identifier(types::SynItemImplRef::from(i)) else {
+            syn::visit::visit_item_impl(self, i);
+            return;
+        };
+        i.items.iter().for_each(|item| {
+            let syn::ImplItem::Fn(method) = item else {
+                return;
+            };
+            let mut visitor = LenMethodCallVisitor {
+                found: types::AnalyzerBool::default(),
+            };
+            syn::visit::Visit::visit_block(&mut visitor, &method.block);
+            if visitor.found.get() {
+                let _: bool =
+                    self.names
+                        .insert(format!("{}::{}", type_name.as_ref(), method.sig.ident));
+            }
+        });
+        syn::visit::visit_item_impl(self, i);
     }
 }
 impl<'ast> syn::visit::Visit<'ast> for StringWrapperFromVisitor<'_> {
@@ -2180,6 +2203,7 @@ impl<'ast> syn::visit::Visit<'ast> for DomainTypePolicyVisitor<'_> {
                         &item_fn.sig.ident,
                     ))
                     .get()
+                        || method_is_private_newtype_validator(item_fn).get()
                     {
                         None
                     } else {
@@ -3300,6 +3324,13 @@ fn method_is_explicit_wrapper_accessor(
         identifier.as_ref().to_string().as_str(),
         str_constants::GET_ALT | str_constants::INTO_INNER
     ))
+}
+#[allow(clippy::single_call_fn)] // keeps the derive-validator boundary exception explicit and narrow
+fn method_is_private_newtype_validator(method: &syn::ImplItemFn) -> types::AnalyzerBool {
+    types::AnalyzerBool::from(
+        matches!(method.vis, syn::Visibility::Inherited)
+            && method.sig.ident == str_constants::VALIDATE,
+    )
 }
 fn type_path_ends_with_identifier(
     ty: types::SynTypeRef<'_>,

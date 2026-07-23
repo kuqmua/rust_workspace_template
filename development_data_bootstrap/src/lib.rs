@@ -1,16 +1,26 @@
 const DEVELOPMENT_IDENTITY_SPECS_MAX_LEN: usize = 1_024usize;
 
 #[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget, newtype::TryFrom)]
-#[try_from(validator = |value: &Vec<server_runtime::IdentitySpec<Login, DisplayName, Role, SecretSource>>| {
-    if value.len() > DEVELOPMENT_IDENTITY_SPECS_MAX_LEN {
-        Err(DevelopmentIdentitySpecsError)
-    } else {
-        Ok(())
-    }
-})]
+#[try_from(
+    validator = DevelopmentIdentitySpecs::<Login, DisplayName, Role, SecretSource>::validate
+)]
 pub struct DevelopmentIdentitySpecs<Login, DisplayName, Role, SecretSource>(
     Vec<server_runtime::IdentitySpec<Login, DisplayName, Role, SecretSource>>,
 );
+impl<Login, DisplayName, Role, SecretSource>
+    DevelopmentIdentitySpecs<Login, DisplayName, Role, SecretSource>
+{
+    #[allow(clippy::single_call_fn)] // derive-generated TryFrom owns the single validator call
+    const fn validate(
+        value: &[server_runtime::IdentitySpec<Login, DisplayName, Role, SecretSource>],
+    ) -> Result<(), DevelopmentIdentitySpecsError> {
+        if value.len() > DEVELOPMENT_IDENTITY_SPECS_MAX_LEN {
+            Err(DevelopmentIdentitySpecsError)
+        } else {
+            Ok(())
+        }
+    }
+}
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DebugDisplay, newtype::Error)]
 pub struct DevelopmentIdentitySpecsError;
 

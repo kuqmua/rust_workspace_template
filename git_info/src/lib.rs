@@ -26,16 +26,22 @@ impl PartialEq<&str> for GitCommitIdRef<'_> {
 )]
 #[try_from(
     error = GitInfoStringTryFromStringError,
-    validator = |value: &String| if value.len() > GIT_INFO_STRING_MAX_LEN {
-        Err(GitInfoStringTryFromStringError::TooLong {
-            len: value.len(),
-            max: GIT_INFO_STRING_MAX_LEN,
-        })
-    } else {
-        Ok(())
-    }
+    validator = GitCommitId::validate
 )]
 pub struct GitCommitId(String);
+impl GitCommitId {
+    #[allow(clippy::single_call_fn)] // derive-generated TryFrom owns the single validator call
+    const fn validate(value: &str) -> Result<(), GitInfoStringTryFromStringError> {
+        if value.len() > GIT_INFO_STRING_MAX_LEN {
+            Err(GitInfoStringTryFromStringError::TooLong {
+                len: value.len(),
+                max: GIT_INFO_STRING_MAX_LEN,
+            })
+        } else {
+            Ok(())
+        }
+    }
+}
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum GitInfoStringTryFromStringError {
     TooLong { len: usize, max: usize },
@@ -93,16 +99,22 @@ pub struct GitCommitIdFallback(Option<GitCommitId>);
 )]
 #[try_from(
     error = GitInfoStringTryFromStringError,
-    validator = |value: &String| if value.len() > GIT_INFO_STRING_MAX_LEN {
-        Err(GitInfoStringTryFromStringError::TooLong {
-            len: value.len(),
-            max: GIT_INFO_STRING_MAX_LEN,
-        })
-    } else {
-        Ok(())
-    }
+    validator = GitCommitLink::validate
 )]
 pub struct GitCommitLink(String);
+impl GitCommitLink {
+    #[allow(clippy::single_call_fn)] // derive-generated TryFrom owns the single validator call
+    const fn validate(value: &str) -> Result<(), GitInfoStringTryFromStringError> {
+        if value.len() > GIT_INFO_STRING_MAX_LEN {
+            Err(GitInfoStringTryFromStringError::TooLong {
+                len: value.len(),
+                max: GIT_INFO_STRING_MAX_LEN,
+            })
+        } else {
+            Ok(())
+        }
+    }
+}
 impl From<StdGitCommitLinkCow> for GitCommitLink {
     fn from(value: StdGitCommitLinkCow) -> Self {
         Self::try_from(value.0.into_owned()).unwrap_or_else(Self::from)

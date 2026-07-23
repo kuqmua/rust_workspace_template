@@ -20,14 +20,18 @@ struct InitializationEntry {
     status: InitializationStatus,
 }
 #[derive(Debug, Eq, PartialEq, newtype::AsRefStr, newtype::TryFrom)]
-#[try_from(error = InitStringError, validator = |value: &String| {
-    if value.len() > usize::try_from(isize::MAX).unwrap_or(usize::MAX) {
-        Err(InitStringError)
-    } else {
-        Ok(())
-    }
-})]
+#[try_from(error = InitStringError, validator = EnvContent::validate)]
 struct EnvContent(String);
+impl EnvContent {
+    #[allow(clippy::single_call_fn)] // derive-generated TryFrom owns the single validator call
+    fn validate(value: &str) -> Result<(), InitStringError> {
+        if value.len() > usize::try_from(isize::MAX).unwrap_or(usize::MAX) {
+            Err(InitStringError)
+        } else {
+            Ok(())
+        }
+    }
+}
 impl From<server_runtime::BoundedText> for EnvContent {
     fn from(value: server_runtime::BoundedText) -> Self {
         Self(value.into_inner())
@@ -38,14 +42,18 @@ struct EnvContentRef<'content_lt>(&'content_lt str);
 #[derive(
     Debug, Eq, Ord, PartialEq, PartialOrd, newtype::AsRefStr, newtype::BorrowStr, newtype::TryFrom,
 )]
-#[try_from(error = InitStringError, validator = |value: &String| {
-    if value.is_empty() || value.len() > 1_024usize {
-        Err(InitStringError)
-    } else {
-        Ok(())
-    }
-})]
+#[try_from(error = InitStringError, validator = EnvKey::validate)]
 struct EnvKey(String);
+impl EnvKey {
+    #[allow(clippy::single_call_fn)] // derive-generated TryFrom owns the single validator call
+    const fn validate(value: &str) -> Result<(), InitStringError> {
+        if value.is_empty() || value.len() > 1_024usize {
+            Err(InitStringError)
+        } else {
+            Ok(())
+        }
+    }
+}
 #[derive(Debug, Eq, PartialEq, newtype::FromInner)]
 struct EnvKeys(Vec<EnvKey>);
 #[derive(Clone, Copy, newtype::FromInner, newtype::IntoInnerFrom)]
@@ -53,14 +61,18 @@ struct MemberSafe(bool);
 #[derive(
     Debug, Eq, Ord, PartialEq, PartialOrd, newtype::AsRefStr, newtype::Display, newtype::TryFrom,
 )]
-#[try_from(error = InitStringError, validator = |value: &String| {
-    if value.is_empty() || value.len() > 4_096usize {
-        Err(InitStringError)
-    } else {
-        Ok(())
-    }
-})]
+#[try_from(error = InitStringError, validator = WorkspaceMember::validate)]
 struct WorkspaceMember(String);
+impl WorkspaceMember {
+    #[allow(clippy::single_call_fn)] // derive-generated TryFrom owns the single validator call
+    const fn validate(value: &str) -> Result<(), InitStringError> {
+        if value.is_empty() || value.len() > 4_096usize {
+            Err(InitStringError)
+        } else {
+            Ok(())
+        }
+    }
+}
 #[derive(Clone, Copy, newtype::AsRefStr, newtype::FromInner)]
 struct WorkspaceMemberRef<'member_lt>(&'member_lt str);
 #[derive(newtype::FromInner)]

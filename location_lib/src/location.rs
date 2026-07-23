@@ -34,13 +34,10 @@ pub struct LocationFile(String);
     newtype::TryFrom,
 )]
 #[serde(try_from = "u32")]
-#[try_from(error = LocationCoordinateTryFromU32Error, validator = |value: &u32| {
-    if *value == 0u32 {
-        Err(LocationCoordinateTryFromU32Error)
-    } else {
-        Ok(())
-    }
-})]
+#[try_from(
+    error = LocationCoordinateTryFromU32Error,
+    validator = LocationLine::validate
+)]
 pub struct LocationLine(u32);
 impl From<std::num::NonZeroU32> for LocationLine {
     fn from(value: std::num::NonZeroU32) -> Self {
@@ -51,6 +48,14 @@ impl LocationLine {
     #[must_use]
     pub fn first() -> Self {
         Self::from(std::num::NonZeroU32::MIN)
+    }
+    #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
+    const fn validate(value: &u32) -> Result<(), LocationCoordinateTryFromU32Error> {
+        if *value == 0u32 {
+            Err(LocationCoordinateTryFromU32Error)
+        } else {
+            Ok(())
+        }
     }
 }
 #[derive(
@@ -68,13 +73,10 @@ impl LocationLine {
     newtype::TryFrom,
 )]
 #[serde(try_from = "u32")]
-#[try_from(error = LocationCoordinateTryFromU32Error, validator = |value: &u32| {
-    if *value == 0u32 {
-        Err(LocationCoordinateTryFromU32Error)
-    } else {
-        Ok(())
-    }
-})]
+#[try_from(
+    error = LocationCoordinateTryFromU32Error,
+    validator = LocationColumn::validate
+)]
 pub struct LocationColumn(u32);
 impl From<std::num::NonZeroU32> for LocationColumn {
     fn from(value: std::num::NonZeroU32) -> Self {
@@ -85,6 +87,14 @@ impl LocationColumn {
     #[must_use]
     pub fn first() -> Self {
         Self::from(std::num::NonZeroU32::MIN)
+    }
+    #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
+    const fn validate(value: &u32) -> Result<(), LocationCoordinateTryFromU32Error> {
+        if *value == 0u32 {
+            Err(LocationCoordinateTryFromU32Error)
+        } else {
+            Ok(())
+        }
     }
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DebugDisplay, newtype::Error)]
@@ -333,14 +343,21 @@ pub struct StdTimeDurationSecs(u64);
 #[derive(
     Debug, Clone, Copy, utoipa::ToSchema, optml::Optml, newtype::DerefInner, newtype::TryFrom,
 )]
-#[try_from(error = StdTimeDurationNanosTryFromU32Error, validator = |value: &u32| {
-    if *value < 1_000_000_000u32 {
-        Ok(())
-    } else {
-        Err(StdTimeDurationNanosTryFromU32Error)
-    }
-})]
+#[try_from(
+    error = StdTimeDurationNanosTryFromU32Error,
+    validator = StdTimeDurationNanos::validate
+)]
 pub struct StdTimeDurationNanos(u32);
+impl StdTimeDurationNanos {
+    #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
+    const fn validate(value: &u32) -> Result<(), StdTimeDurationNanosTryFromU32Error> {
+        if *value < 1_000_000_000u32 {
+            Ok(())
+        } else {
+            Err(StdTimeDurationNanosTryFromU32Error)
+        }
+    }
+}
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DebugDisplay, newtype::Error)]
 pub struct StdTimeDurationNanosTryFromU32Error;
 impl std::fmt::Display for Location {

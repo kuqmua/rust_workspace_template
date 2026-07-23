@@ -6,13 +6,10 @@ const WARNING_PERCENT: u8 = 70u8;
 pub struct ResourceAmount(u64);
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, newtype::TryFrom)]
-#[try_from(error = ResourceUtilizationPercentTryFromU8Error, validator = |value: &u8| {
-    if *value <= 100u8 {
-        Ok(())
-    } else {
-        Err(ResourceUtilizationPercentTryFromU8Error)
-    }
-})]
+#[try_from(
+    error = ResourceUtilizationPercentTryFromU8Error,
+    validator = ResourceUtilizationPercent::validate
+)]
 pub struct ResourceUtilizationPercent(u8);
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum ResourceUtilizationKnownPercent {
@@ -32,6 +29,14 @@ impl ResourceUtilizationPercent {
     #[must_use]
     pub const fn get(self) -> u8 {
         self.0
+    }
+    #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
+    const fn validate(value: &u8) -> Result<(), ResourceUtilizationPercentTryFromU8Error> {
+        if *value <= 100u8 {
+            Ok(())
+        } else {
+            Err(ResourceUtilizationPercentTryFromU8Error)
+        }
     }
 }
 

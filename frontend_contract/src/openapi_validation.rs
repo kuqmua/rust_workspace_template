@@ -33,14 +33,21 @@ pub enum OpenApiValidationError {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::TryFrom)]
-#[try_from(error = crate::HttpStatusTryFromU16Error, validator = |value: &u16| {
-    if (100u16..1_000u16).contains(value) {
-        Ok(())
-    } else {
-        Err(crate::HttpStatusTryFromU16Error)
-    }
-})]
+#[try_from(
+    error = crate::HttpStatusTryFromU16Error,
+    validator = OpenApiResponseStatus::validate
+)]
 pub struct OpenApiResponseStatus(u16);
+impl OpenApiResponseStatus {
+    #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
+    fn validate(value: &u16) -> Result<(), crate::HttpStatusTryFromU16Error> {
+        if (100u16..1_000u16).contains(value) {
+            Ok(())
+        } else {
+            Err(crate::HttpStatusTryFromU16Error)
+        }
+    }
+}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum OpenApiSecurityExpectation {
