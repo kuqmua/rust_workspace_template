@@ -152,7 +152,8 @@ pub(crate) async fn query_audit_log(
                     .map(server_admin_contract::SerdeJsonAdminAuditDetails::try_from)
                     .transpose()
                     .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
-                server_admin_contract::AdminAuditLogId::from(row.0),
+                server_admin_contract::AdminAuditLogId::try_from(row.0)
+                    .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
                 server_admin_contract::AdminText::try_from(row.4)
                     .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
                 row.5
@@ -160,7 +161,10 @@ pub(crate) async fn query_audit_log(
                     .transpose()
                     .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
                 server_admin_contract::AdminBool::from(row.6),
-                row.1.map(server_admin_contract::AdminUserId::from),
+                row.1
+                    .map(server_admin_contract::AdminUserId::try_from)
+                    .transpose()
+                    .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
                 row.2
                     .map(server_admin_contract::AdminLogin::try_from)
                     .transpose()

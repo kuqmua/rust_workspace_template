@@ -114,11 +114,23 @@ impl StdAdminSocketAddr {
     newtype::Display,
     newtype::FromInner,
 )]
-#[serde(from = "i64")]
-pub struct AdminUserId(i64);
+#[serde(try_from = "i64")]
+pub struct AdminUserId(server_admin_contract::StdAdminPositiveI64);
+impl TryFrom<i64> for AdminUserId {
+    type Error = AdminIdTryFromI64Error;
+    fn try_from(value: i64) -> Result<Self, Self::Error> {
+        server_admin_contract::StdAdminPositiveI64::try_from(value)
+            .map(Self)
+            .map_err(|_error| AdminIdTryFromI64Error)
+    }
+}
 impl AdminUserId {
     #[must_use]
     pub const fn get(self) -> i64 {
+        self.0.get()
+    }
+    #[must_use]
+    pub const fn value(self) -> server_admin_contract::StdAdminPositiveI64 {
         self.0
     }
 }
@@ -136,11 +148,23 @@ impl AdminUserId {
     utoipa::ToSchema,
     newtype::FromInner,
 )]
-#[serde(from = "i64")]
-pub struct AdminRoleId(i64);
+#[serde(try_from = "i64")]
+pub struct AdminRoleId(server_admin_contract::StdAdminPositiveI64);
+impl TryFrom<i64> for AdminRoleId {
+    type Error = AdminIdTryFromI64Error;
+    fn try_from(value: i64) -> Result<Self, Self::Error> {
+        server_admin_contract::StdAdminPositiveI64::try_from(value)
+            .map(Self)
+            .map_err(|_error| AdminIdTryFromI64Error)
+    }
+}
 impl AdminRoleId {
     #[must_use]
     pub const fn get(self) -> i64 {
+        self.0.get()
+    }
+    #[must_use]
+    pub const fn value(self) -> server_admin_contract::StdAdminPositiveI64 {
         self.0
     }
 }
@@ -158,23 +182,49 @@ impl AdminRoleId {
     utoipa::ToSchema,
     newtype::FromInner,
 )]
-#[serde(from = "i64")]
-pub struct AdminPermissionId(i64);
+#[serde(try_from = "i64")]
+pub struct AdminPermissionId(server_admin_contract::StdAdminPositiveI64);
+impl TryFrom<i64> for AdminPermissionId {
+    type Error = AdminIdTryFromI64Error;
+    fn try_from(value: i64) -> Result<Self, Self::Error> {
+        server_admin_contract::StdAdminPositiveI64::try_from(value)
+            .map(Self)
+            .map_err(|_error| AdminIdTryFromI64Error)
+    }
+}
 impl AdminPermissionId {
     #[must_use]
     pub const fn get(self) -> i64 {
+        self.0.get()
+    }
+    #[must_use]
+    pub const fn value(self) -> server_admin_contract::StdAdminPositiveI64 {
         self.0
     }
 }
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, utoipa::ToSchema, newtype::FromInner,
 )]
-pub struct AdminAuditLogId(i64);
+pub struct AdminAuditLogId(server_admin_contract::StdAdminPositiveI64);
+impl TryFrom<i64> for AdminAuditLogId {
+    type Error = AdminIdTryFromI64Error;
+    fn try_from(value: i64) -> Result<Self, Self::Error> {
+        server_admin_contract::StdAdminPositiveI64::try_from(value)
+            .map(Self)
+            .map_err(|_error| AdminIdTryFromI64Error)
+    }
+}
 impl AdminAuditLogId {
     #[must_use]
     pub const fn get(self) -> i64 {
+        self.0.get()
+    }
+    #[must_use]
+    pub const fn value(self) -> server_admin_contract::StdAdminPositiveI64 {
         self.0
     }
 }
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DebugDisplay, newtype::Error)]
+pub struct AdminIdTryFromI64Error;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
 pub struct AdminPermissionName(super::AdminPermission);

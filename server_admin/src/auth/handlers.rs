@@ -705,7 +705,7 @@ pub(super) async fn create_user(
             login: &actor.login,
             resource: super::super::AdminAuditResource::User,
             resource_id: super::AdminAuditResourceId::User(super::super::AdminUserId::from(
-                user_id.get(),
+                user_id.value(),
             )),
             user_id: actor.id,
         },
@@ -716,7 +716,7 @@ pub(super) async fn create_user(
         axum::response::IntoResponse::into_response((
             http::StatusCode::CREATED,
             axum::Json(server_admin_contract::AdminCreateUserRes::new(
-                server_admin_contract::AdminUserId::from(user_id.get()),
+                server_admin_contract::AdminUserId::from(user_id.value()),
             )),
         )),
     ))
@@ -983,7 +983,7 @@ pub(super) async fn create_role(
         axum::response::IntoResponse::into_response((
             http::StatusCode::CREATED,
             axum::Json(server_admin_contract::AdminCreateRoleRes::new(
-                server_admin_contract::AdminRoleId::from(role_id.get()),
+                server_admin_contract::AdminRoleId::from(role_id.value()),
             )),
         )),
     ))

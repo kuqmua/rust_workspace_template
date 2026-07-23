@@ -39,6 +39,52 @@ const ADMIN_NEW_PASSWORD_IS_VALID: fn(&str) -> bool = |value| {
 };
 #[derive(
     Clone,
+    Copy,
+    Debug,
+    Hash,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    serde::Serialize,
+    newtype::Display,
+    newtype::FromInner,
+)]
+pub struct StdAdminPositiveI64(std::num::NonZeroI64);
+impl<'schema_lt> utoipa::ToSchema<'schema_lt> for StdAdminPositiveI64 {
+    fn schema() -> (
+        &'schema_lt str,
+        utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
+    ) {
+        (
+            stringify!(StdAdminPositiveI64),
+            utoipa::openapi::ObjectBuilder::new()
+                .schema_type(utoipa::openapi::SchemaType::Integer)
+                .format(Some(utoipa::openapi::SchemaFormat::KnownFormat(
+                    utoipa::openapi::KnownFormat::Int64,
+                )))
+                .minimum(Some(1.0))
+                .into(),
+        )
+    }
+}
+impl TryFrom<i64> for StdAdminPositiveI64 {
+    type Error = AdminIdTryFromI64Error;
+    fn try_from(value: i64) -> Result<Self, Self::Error> {
+        std::num::NonZeroI64::new(value)
+            .filter(|non_zero| non_zero.get().is_positive())
+            .map(Self)
+            .ok_or(AdminIdTryFromI64Error)
+    }
+}
+impl StdAdminPositiveI64 {
+    #[must_use]
+    pub const fn get(self) -> i64 {
+        self.0.get()
+    }
+}
+#[derive(
+    Clone,
     Debug,
     PartialEq,
     Eq,
@@ -580,10 +626,26 @@ impl AdminTableSortField {
     utoipa::ToSchema,
     newtype::Display,
     newtype::FromInner,
-    newtype::IntoInnerFrom,
 )]
-#[serde(from = "i64")]
-pub struct AdminUserId(i64);
+#[serde(try_from = "i64")]
+pub struct AdminUserId(#[schema(value_type = i64)] StdAdminPositiveI64);
+impl TryFrom<i64> for AdminUserId {
+    type Error = AdminIdTryFromI64Error;
+    fn try_from(value: i64) -> Result<Self, Self::Error> {
+        StdAdminPositiveI64::try_from(value).map(Self)
+    }
+}
+impl From<AdminUserId> for i64 {
+    fn from(value: AdminUserId) -> Self {
+        value.0.get()
+    }
+}
+impl AdminUserId {
+    #[must_use]
+    pub const fn value(self) -> StdAdminPositiveI64 {
+        self.0
+    }
+}
 #[derive(
     Clone,
     Copy,
@@ -596,10 +658,26 @@ pub struct AdminUserId(i64);
     utoipa::ToSchema,
     newtype::Display,
     newtype::FromInner,
-    newtype::IntoInnerFrom,
 )]
-#[serde(from = "i64")]
-pub struct AdminRoleId(i64);
+#[serde(try_from = "i64")]
+pub struct AdminRoleId(#[schema(value_type = i64)] StdAdminPositiveI64);
+impl TryFrom<i64> for AdminRoleId {
+    type Error = AdminIdTryFromI64Error;
+    fn try_from(value: i64) -> Result<Self, Self::Error> {
+        StdAdminPositiveI64::try_from(value).map(Self)
+    }
+}
+impl From<AdminRoleId> for i64 {
+    fn from(value: AdminRoleId) -> Self {
+        value.0.get()
+    }
+}
+impl AdminRoleId {
+    #[must_use]
+    pub const fn value(self) -> StdAdminPositiveI64 {
+        self.0
+    }
+}
 #[derive(
     Clone,
     Copy,
@@ -612,10 +690,26 @@ pub struct AdminRoleId(i64);
     utoipa::ToSchema,
     newtype::Display,
     newtype::FromInner,
-    newtype::IntoInnerFrom,
 )]
-#[serde(from = "i64")]
-pub struct AdminPermissionId(i64);
+#[serde(try_from = "i64")]
+pub struct AdminPermissionId(#[schema(value_type = i64)] StdAdminPositiveI64);
+impl TryFrom<i64> for AdminPermissionId {
+    type Error = AdminIdTryFromI64Error;
+    fn try_from(value: i64) -> Result<Self, Self::Error> {
+        StdAdminPositiveI64::try_from(value).map(Self)
+    }
+}
+impl From<AdminPermissionId> for i64 {
+    fn from(value: AdminPermissionId) -> Self {
+        value.0.get()
+    }
+}
+impl AdminPermissionId {
+    #[must_use]
+    pub const fn value(self) -> StdAdminPositiveI64 {
+        self.0
+    }
+}
 #[derive(
     Clone,
     Copy,
@@ -627,10 +721,28 @@ pub struct AdminPermissionId(i64);
     utoipa::ToSchema,
     newtype::Display,
     newtype::FromInner,
-    newtype::IntoInnerFrom,
 )]
-#[serde(from = "i64")]
-pub struct AdminAuditLogId(i64);
+#[serde(try_from = "i64")]
+pub struct AdminAuditLogId(#[schema(value_type = i64)] StdAdminPositiveI64);
+impl TryFrom<i64> for AdminAuditLogId {
+    type Error = AdminIdTryFromI64Error;
+    fn try_from(value: i64) -> Result<Self, Self::Error> {
+        StdAdminPositiveI64::try_from(value).map(Self)
+    }
+}
+impl From<AdminAuditLogId> for i64 {
+    fn from(value: AdminAuditLogId) -> Self {
+        value.0.get()
+    }
+}
+impl AdminAuditLogId {
+    #[must_use]
+    pub const fn value(self) -> StdAdminPositiveI64 {
+        self.0
+    }
+}
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DebugDisplay, newtype::Error)]
+pub struct AdminIdTryFromI64Error;
 #[derive(
     Clone,
     Copy,
@@ -3195,8 +3307,10 @@ mod tests {
     }
     #[test]
     fn administrator_collections_enforce_item_limit_for_construction_and_deserialization() {
-        let maximum_values =
-            vec![super::AdminRoleId::from(1i64); super::ADMIN_COLLECTION_MAX_ITEMS];
+        let maximum_values = vec![
+            super::AdminRoleId::try_from(1i64).expect("4cd8c4ef");
+            super::ADMIN_COLLECTION_MAX_ITEMS
+        ];
         let Ok(maximum_role_ids) = super::AdminRoleIds::try_from(maximum_values) else {
             panic!("bce86c7b");
         };
@@ -3205,7 +3319,7 @@ mod tests {
             super::ADMIN_COLLECTION_MAX_ITEMS
         );
         let oversized = vec![
-            super::AdminRoleId::from(1i64);
+            super::AdminRoleId::try_from(1i64).expect("1c1b920f");
             super::ADMIN_COLLECTION_MAX_ITEMS.saturating_add(1usize)
         ];
         assert!(matches!(
@@ -3225,7 +3339,7 @@ mod tests {
     fn authenticated_admin_checks_permissions_and_page_access() {
         let admin = super::AuthenticatedAdmin::new(
             super::AdminDisplayName::try_from(str_constants::ADMIN.to_owned()).expect("67f10787"),
-            super::AdminUserId::from(1i64),
+            super::AdminUserId::try_from(1i64).expect("da64f9f1"),
             super::AdminLogin::try_from(str_constants::ROOT.to_owned()).expect("ced445ee"),
             super::AdminPermissionValues::try_from(vec![
                 super::AdminPermissionValue::try_from(
@@ -3366,7 +3480,8 @@ mod tests {
     }
     #[test]
     fn route_contract_keeps_custom_action_policy_and_path_together() {
-        let route = super::AdminRoute::SetUserBan(super::AdminUserId::from(7));
+        let route =
+            super::AdminRoute::SetUserBan(super::AdminUserId::try_from(7).expect("8bed843c"));
         assert_eq!(route.path().as_ref(), "/api/v1/admin/users/7/ban");
         assert_eq!(
             route.contract().method(),
@@ -3676,5 +3791,12 @@ mod tests {
             u16::from(serde_json::from_str::<super::AdminPageLimit>("100").expect("d4d7c99a")),
             100u16
         );
+    }
+    #[test]
+    fn administrator_identifiers_require_positive_database_values() {
+        let _user_error = super::AdminUserId::try_from(0i64).expect_err("6088ff6a");
+        let _role_error = super::AdminRoleId::try_from(-1i64).expect_err("4406ffcc");
+        let _permission_error = super::AdminPermissionId::try_from(0i64).expect_err("f5d79bb8");
+        let _audit_error = super::AdminAuditLogId::try_from(-1i64).expect_err("3ca5fe6c");
     }
 }

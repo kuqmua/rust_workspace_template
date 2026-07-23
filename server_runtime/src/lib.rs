@@ -174,7 +174,8 @@ pub use resource_budget::{
 };
 pub use resource_utilization::{
     ResourceAmount, ResourceUtilization, ResourceUtilizationError, ResourceUtilizationPercent,
-    ResourceUtilizationStatus, calculate_resource_utilization,
+    ResourceUtilizationPercentTryFromU8Error, ResourceUtilizationStatus,
+    calculate_resource_utilization,
 };
 pub use retry::{
     RetryOutcome, RetryPolicy, StdRetryAttempts, StdRetryAttemptsError, StdRetryDelay,

@@ -13,9 +13,9 @@ mod repository;
 mod token;
 pub use db_schema::admin_catalog_snapshot;
 pub use domain::{
-    AdminAuditLogId, AdminPermissionId, AdminPermissionName, AdminRoleId, AdminUserId,
-    SecrecyAdminString, StdAdminBool, StdAdminNonZeroUsize, StdAdminSocketAddr, StdAdminStrRef,
-    StdAdminString, UuidAdminValue,
+    AdminAuditLogId, AdminIdTryFromI64Error, AdminPermissionId, AdminPermissionName, AdminRoleId,
+    AdminUserId, SecrecyAdminString, StdAdminBool, StdAdminNonZeroUsize, StdAdminSocketAddr,
+    StdAdminStrRef, StdAdminString, UuidAdminValue,
 };
 pub use generated_auth::{AdminGeneratedAuthLayer, AdminGeneratedAuthService};
 pub use server_admin_contract::{
@@ -65,6 +65,16 @@ pub struct TokioAdminAcquireError(tokio::sync::AcquireError);
 pub struct Argon2AdminPasswordHashError(argon2::password_hash::Error);
 #[derive(newtype::DebugTransparent, newtype::FromInner)]
 pub struct SqlxAdminError(sqlx::Error);
+impl From<AdminIdTryFromI64Error> for SqlxAdminError {
+    fn from(value: AdminIdTryFromI64Error) -> Self {
+        Self::from(sqlx::Error::Decode(Box::new(value)))
+    }
+}
+impl From<server_admin_contract::AdminIdTryFromI64Error> for SqlxAdminError {
+    fn from(value: server_admin_contract::AdminIdTryFromI64Error) -> Self {
+        Self::from(sqlx::Error::Decode(Box::new(value)))
+    }
+}
 #[derive(newtype::DebugRedacted, newtype::FromInner, serde::Deserialize)]
 #[serde(try_from = "String")]
 pub struct AdminPassword(SecrecyAdminString);
@@ -476,6 +486,7 @@ impl std::fmt::Display for AdminCleanupCfgError {
 pub enum AdminCleanupError {
     Count,
     Idempotency(pg_table::SqlxPgTableIdempotencyError),
+    IdempotencyConfig(pg_table::PgTableIdempotencyCleanupValueTryFromI64Error),
     Pg(SqlxAdminError),
 }
 impl std::fmt::Display for AdminCleanupError {
@@ -483,6 +494,7 @@ impl std::fmt::Display for AdminCleanupError {
         match self {
             Self::Count => f.write_str(str_constants::ADMIN_CLEANUP_ROWS_EXCEED_I64),
             Self::Idempotency(error) => write!(f, "idempotency cleanup failed: {error}"),
+            Self::IdempotencyConfig(error) => std::fmt::Display::fmt(error, f),
             Self::Pg(error) => write!(f, "administrator table cleanup failed: {error:?}"),
         }
     }
@@ -492,8 +504,14 @@ impl std::error::Error for AdminCleanupError {
         match self {
             Self::Count => None,
             Self::Idempotency(error) => Some(error),
+            Self::IdempotencyConfig(error) => Some(error),
             Self::Pg(error) => Some(&error.0),
         }
+    }
+}
+impl From<pg_table::PgTableIdempotencyCleanupValueTryFromI64Error> for AdminCleanupError {
+    fn from(value: pg_table::PgTableIdempotencyCleanupValueTryFromI64Error) -> Self {
+        Self::IdempotencyConfig(value)
     }
 }
 impl TryFrom<i64> for AdminCleanupBatchSize {
@@ -755,7 +773,7 @@ mod tests {
     #[test]
     fn access_token_round_trip_checks_issuer_and_audience() {
         let claims = super::AdminAccessClaims::new(
-            super::AdminUserId::from(7),
+            super::AdminUserId::try_from(7).expect("d6d3da8a"),
             super::AdminSessionId::from(super::UuidAdminValue::from(
                 uuid::Uuid::parse_str(str_constants::B871BD8F_7810_4D4B_94A1_5458D3016907)
                     .expect("05562da0"),
@@ -776,7 +794,10 @@ mod tests {
                 .expect("0c3975a1");
         let decoded =
             super::decode_access_token(&token, &secret, &issuer, &audience).expect("0ed905ff");
-        assert_eq!(decoded.user_id(), super::AdminUserId::from(7));
+        assert_eq!(
+            decoded.user_id(),
+            super::AdminUserId::try_from(7).expect("5b88f22a")
+        );
         assert_eq!(decoded.session_id(), claims.session_id());
         drop(
             super::decode_access_token(

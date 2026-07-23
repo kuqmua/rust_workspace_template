@@ -6,14 +6,67 @@ pub struct JsonwebtokenAdminEncodingKey(jsonwebtoken::EncodingKey);
 pub struct JsonwebtokenAdminDecodingKey(jsonwebtoken::DecodingKey);
 #[derive(Debug, newtype::AsRefTarget, newtype::FromInner)]
 struct JsonwebtokenAdminDecodingKeys(Vec<JsonwebtokenAdminDecodingKey>);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::IntoInnerFrom)]
 pub struct StdAdminAccessTtlSeconds(u64);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner, newtype::IntoInnerFrom)]
+impl TryFrom<u64> for StdAdminAccessTtlSeconds {
+    type Error = AdminAuthPositiveValueError;
+    fn try_from(value: u64) -> Result<Self, Self::Error> {
+        if value == 0u64 {
+            Err(AdminAuthPositiveValueError)
+        } else {
+            Ok(Self(value))
+        }
+    }
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::IntoInnerFrom)]
 pub struct StdAdminRefreshTtlSeconds(u64);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner, newtype::IntoInnerFrom)]
+impl TryFrom<u64> for StdAdminRefreshTtlSeconds {
+    type Error = AdminAuthPositiveValueError;
+    fn try_from(value: u64) -> Result<Self, Self::Error> {
+        if value == 0u64 {
+            Err(AdminAuthPositiveValueError)
+        } else {
+            Ok(Self(value))
+        }
+    }
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::IntoInnerFrom)]
 pub struct StdAdminSessionLimit(usize);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner, newtype::IntoInnerFrom)]
+impl TryFrom<usize> for StdAdminSessionLimit {
+    type Error = AdminAuthPositiveValueError;
+    fn try_from(value: usize) -> Result<Self, Self::Error> {
+        if value == 0usize {
+            Err(AdminAuthPositiveValueError)
+        } else {
+            Ok(Self(value))
+        }
+    }
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::IntoInnerFrom)]
 pub struct StdAdminFailureThreshold(i64);
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum AdminKnownFailureThreshold {
+    Default,
+}
+impl From<AdminKnownFailureThreshold> for StdAdminFailureThreshold {
+    fn from(value: AdminKnownFailureThreshold) -> Self {
+        match value {
+            AdminKnownFailureThreshold::Default => Self(10i64),
+        }
+    }
+}
+impl TryFrom<i64> for StdAdminFailureThreshold {
+    type Error = AdminAuthPositiveValueError;
+    fn try_from(value: i64) -> Result<Self, Self::Error> {
+        if value <= 0i64 {
+            Err(AdminAuthPositiveValueError)
+        } else {
+            Ok(Self(value))
+        }
+    }
+}
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DebugDisplay, newtype::Error)]
+pub struct AdminAuthPositiveValueError;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
 pub struct StdAdminFailureDelayMillis(u64);
 #[derive(Debug, Clone, Copy, newtype::FromInner, newtype::IntoInnerFrom)]
@@ -44,7 +97,7 @@ impl AdminAuthPolicy {
             audit_export_limit: StdAdminRateLimitCount::from(60i64),
             audit_export_window: StdAdminRateLimitWindowSeconds::from(60i32),
             failure_delay: StdAdminFailureDelayMillis::from(200u64),
-            failure_threshold: StdAdminFailureThreshold::from(10i64),
+            failure_threshold: StdAdminFailureThreshold::from(AdminKnownFailureThreshold::Default),
             mutation_limit: StdAdminRateLimitCount::from(300i64),
             mutation_window: StdAdminRateLimitWindowSeconds::from(60i32),
             refresh_limit: StdAdminRateLimitCount::from(60i64),
@@ -80,6 +133,8 @@ pub enum AdminAuthSvcStateBuildError {
     JwtSecret,
     #[error("administrator password hash concurrency is zero")]
     PasswordHashConcurrency,
+    #[error("administrator authentication numeric value is not positive")]
+    PositiveValue(#[source] AdminAuthPositiveValueError),
 }
 #[allow(clippy::single_call_fn)] // sign-in accepts existing credentials without applying the policy for newly assigned passwords
 fn admin_password_from_contract(
@@ -137,7 +192,7 @@ fn authenticated_admin_contract(
     Ok(server_admin_contract::AuthenticatedAdmin::new(
         server_admin_contract::AdminDisplayName::try_from(value.display_name.as_ref().to_owned())
             .map_err(|_error| AdminApiError::Validation)?,
-        server_admin_contract::AdminUserId::from(value.id.get()),
+        server_admin_contract::AdminUserId::from(value.id.value()),
         server_admin_contract::AdminLogin::try_from(value.login.as_ref().to_owned())
             .map_err(|_error| AdminApiError::Validation)?,
         server_admin_contract::AdminPermissionValues::try_from(permissions)
@@ -589,11 +644,15 @@ impl axum::response::IntoResponse for AdminApiError {
                 http::StatusCode::INTERNAL_SERVER_ERROR
             }
         };
+        let problem_status = frontend_contract::ApiProblemStatus::try_from(status.as_u16())
+            .unwrap_or_else(|_error| {
+                frontend_contract::ApiProblemStatus::from(
+                    frontend_contract::KnownHttpStatus::InternalServerError,
+                )
+            });
         let mut response = axum::response::IntoResponse::into_response((
             status,
-            axum::Json(frontend_contract::ApiProblem::from_status(
-                frontend_contract::ApiProblemStatus::from(status.as_u16()),
-            )),
+            axum::Json(frontend_contract::ApiProblem::from_status(problem_status)),
         ));
         let _previous_content_type = response.headers_mut().insert(
             http::header::CONTENT_TYPE,
@@ -1077,7 +1136,8 @@ impl AdminAuthSvcState {
             .map(str::to_owned)
             .collect::<Vec<String>>();
         Ok(Self {
-            access_ttl: StdAdminAccessTtlSeconds::from(access_ttl.get()),
+            access_ttl: StdAdminAccessTtlSeconds::try_from(access_ttl.get())
+                .map_err(AdminAuthSvcStateBuildError::PositiveValue)?,
             allowed_origins: server_runtime::AllowedOrigins::try_from(parsed_origins)
                 .map_err(|_error| AdminAuthSvcStateBuildError::AllowedOrigin)?,
             audience: audience.clone(),
@@ -1104,8 +1164,10 @@ impl AdminAuthSvcState {
                 )),
             ),
             pool,
-            refresh_ttl: StdAdminRefreshTtlSeconds::from(refresh_ttl.get()),
-            session_limit: StdAdminSessionLimit::from(session_limit.get()),
+            refresh_ttl: StdAdminRefreshTtlSeconds::try_from(refresh_ttl.get())
+                .map_err(AdminAuthSvcStateBuildError::PositiveValue)?,
+            session_limit: StdAdminSessionLimit::try_from(session_limit.get())
+                .map_err(AdminAuthSvcStateBuildError::PositiveValue)?,
             policy: AdminAuthPolicy::from_sign_in_limit(StdAdminRateLimitCount::from(
                 i64::try_from(sign_in_rate_limit.get()).unwrap_or(i64::MAX),
             )),
@@ -1255,15 +1317,19 @@ mod tests {
     #[test]
     fn audit_resource_identifier_uses_target_identifier() {
         assert_eq!(
-            super::AdminAuditResourceId::User(crate::AdminUserId::from(42i64))
-                .value()
-                .as_ref(),
+            super::AdminAuditResourceId::User(
+                crate::AdminUserId::try_from(42i64).expect("423b91b9"),
+            )
+            .value()
+            .as_ref(),
             "42"
         );
         assert_eq!(
-            super::AdminAuditResourceId::Role(crate::AdminRoleId::from(7i64))
-                .value()
-                .as_ref(),
+            super::AdminAuditResourceId::Role(
+                crate::AdminRoleId::try_from(7i64).expect("af8df9d2"),
+            )
+            .value()
+            .as_ref(),
             "7"
         );
         assert_eq!(

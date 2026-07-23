@@ -830,7 +830,7 @@ mod tests {
         let admin = server_admin_contract::AuthenticatedAdmin::new(
             server_admin_contract::AdminDisplayName::try_from(str_constants::ADMIN.to_owned())
                 .expect("642357a8"),
-            server_admin_contract::AdminUserId::from(1i64),
+            server_admin_contract::AdminUserId::try_from(1i64).expect("41856438"),
             server_admin_contract::AdminLogin::try_from(str_constants::ROOT.to_owned())
                 .expect("71a3b6e5"),
             server_admin_contract::AdminPermissionValues::try_from(Vec::new()).expect("8e3cf81f"),
@@ -891,7 +891,7 @@ mod tests {
         let admin = server_admin_contract::AuthenticatedAdmin::new(
             server_admin_contract::AdminDisplayName::try_from(str_constants::ADMIN.to_owned())
                 .expect("a0eb7df6"),
-            server_admin_contract::AdminUserId::from(1i64),
+            server_admin_contract::AdminUserId::try_from(1i64).expect("9ff62b22"),
             server_admin_contract::AdminLogin::try_from(str_constants::ROOT.to_owned())
                 .expect("984553cd"),
             server_admin_contract::AdminPermissionValues::try_from(Vec::new()).expect("86848eb5"),
@@ -1002,7 +1002,7 @@ mod tests {
         let admin = server_admin_contract::AuthenticatedAdmin::new(
             server_admin_contract::AdminDisplayName::try_from(str_constants::ADMIN.to_owned())
                 .expect("cdae3e58"),
-            server_admin_contract::AdminUserId::from(1i64),
+            server_admin_contract::AdminUserId::try_from(1i64).expect("4ff30835"),
             server_admin_contract::AdminLogin::try_from(str_constants::ROOT.to_owned())
                 .expect("9ae5b850"),
             server_admin_contract::AdminPermissionValues::try_from(vec![

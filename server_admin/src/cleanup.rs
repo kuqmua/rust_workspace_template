@@ -11,13 +11,13 @@ pub(super) async fn cleanup_admin_tables(
     .map_err(super::AdminCleanupError::Pg)?;
     let idempotency = pg_table::cleanup_pg_table_idempotency(
         pool,
-        pg_table::PgTableIdempotencyCleanupRetentionSeconds::from(
+        pg_table::PgTableIdempotencyCleanupRetentionSeconds::try_from(
             cfg.idempotency_completed_retention.0,
-        ),
-        pg_table::PgTableIdempotencyCleanupRetentionSeconds::from(
+        )?,
+        pg_table::PgTableIdempotencyCleanupRetentionSeconds::try_from(
             cfg.idempotency_pending_retention.0,
-        ),
-        pg_table::PgTableIdempotencyCleanupBatchSize::from(cfg.batch_size.0),
+        )?,
+        pg_table::PgTableIdempotencyCleanupBatchSize::try_from(cfg.batch_size.0)?,
     )
     .await
     .map_err(super::AdminCleanupError::Idempotency)?;

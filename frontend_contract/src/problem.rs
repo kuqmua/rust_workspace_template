@@ -27,11 +27,25 @@ pub enum ApiProblemKind {
     serde::Deserialize,
     serde::Serialize,
     utoipa::ToSchema,
-    newtype::FromInner,
     newtype::IntoInnerFrom,
 )]
-#[serde(from = "u16")]
+#[serde(try_from = "u16")]
 pub struct ApiProblemStatus(u16);
+impl TryFrom<u16> for ApiProblemStatus {
+    type Error = crate::HttpStatusTryFromU16Error;
+    fn try_from(value: u16) -> Result<Self, Self::Error> {
+        if (100u16..1_000u16).contains(&value) {
+            Ok(Self(value))
+        } else {
+            Err(crate::HttpStatusTryFromU16Error)
+        }
+    }
+}
+impl From<crate::KnownHttpStatus> for ApiProblemStatus {
+    fn from(value: crate::KnownHttpStatus) -> Self {
+        Self(value.get())
+    }
+}
 #[derive(
     Clone,
     Debug,

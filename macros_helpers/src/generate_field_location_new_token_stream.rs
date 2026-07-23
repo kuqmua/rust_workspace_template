@@ -1,10 +1,54 @@
 #[must_use]
 #[derive(Debug, Clone, Copy, newtype::FromInner)]
 pub struct FieldLocationFile(&'static str);
-#[derive(Debug, Clone, Copy, newtype::FromInner)]
+#[derive(Debug, Clone, Copy)]
 pub struct FieldLocationLine(u32);
-#[derive(Debug, Clone, Copy, newtype::FromInner)]
+impl TryFrom<u32> for FieldLocationLine {
+    type Error = FieldLocationCoordinateTryFromU32Error;
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        if value == 0u32 {
+            Err(FieldLocationCoordinateTryFromU32Error)
+        } else {
+            Ok(Self(value))
+        }
+    }
+}
+impl From<std::num::NonZeroU32> for FieldLocationLine {
+    fn from(value: std::num::NonZeroU32) -> Self {
+        Self(value.get())
+    }
+}
+impl FieldLocationLine {
+    #[must_use]
+    pub fn first() -> Self {
+        Self::from(std::num::NonZeroU32::MIN)
+    }
+}
+#[derive(Debug, Clone, Copy)]
 pub struct FieldLocationColumn(u32);
+impl TryFrom<u32> for FieldLocationColumn {
+    type Error = FieldLocationCoordinateTryFromU32Error;
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        if value == 0u32 {
+            Err(FieldLocationCoordinateTryFromU32Error)
+        } else {
+            Ok(Self(value))
+        }
+    }
+}
+impl From<std::num::NonZeroU32> for FieldLocationColumn {
+    fn from(value: std::num::NonZeroU32) -> Self {
+        Self(value.get())
+    }
+}
+impl FieldLocationColumn {
+    #[must_use]
+    pub fn first() -> Self {
+        Self::from(std::num::NonZeroU32::MIN)
+    }
+}
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DebugDisplay, newtype::Error)]
+pub struct FieldLocationCoordinateTryFromU32Error;
 #[must_use]
 pub fn generate_field_location_new_token_stream(
     file: FieldLocationFile,
@@ -25,12 +69,18 @@ pub fn generate_field_location_new_token_stream(
         quote::quote! {
             location_lib::location::Location::new(
                 file!(),
-                line!(),
-                column!(),
+                location_lib::location::LocationLine::from(
+                    std::num::NonZeroU32::new(line!()).unwrap_or(std::num::NonZeroU32::MIN),
+                ),
+                location_lib::location::LocationColumn::from(
+                    std::num::NonZeroU32::new(column!()).unwrap_or(std::num::NonZeroU32::MIN),
+                ),
                 Some(location_lib::location::Occr {
                     file: location_lib::location::LocationFile::try_from(String::from(#file_token_stream)).unwrap_or_else(location_lib::location::LocationFile::from),
-                    line: location_lib::location::LocationLine::from(#line_token_stream),
-                    column: location_lib::location::LocationColumn::from(#column_token_stream),
+                    line: location_lib::location::LocationLine::try_from(#line_token_stream)
+                        .unwrap_or_else(|_error| location_lib::location::LocationLine::first()),
+                    column: location_lib::location::LocationColumn::try_from(#column_token_stream)
+                        .unwrap_or_else(|_error| location_lib::location::LocationColumn::first()),
                 })
             )
         }

@@ -3,6 +3,36 @@ const FRONTEND_CONTRACT_BODY_MAX_BYTES: usize = 16_777_216usize;
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("frontend contract body exceeds its maximum byte length")]
 pub struct FrontendContractBodyError;
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DebugDisplay, newtype::Error)]
+pub struct HttpStatusTryFromU16Error;
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum KnownHttpStatus {
+    Conflict,
+    Created,
+    Forbidden,
+    InternalServerError,
+    NoContent,
+    Ok,
+    TooManyRequests,
+    Unauthorized,
+    UnprocessableEntity,
+}
+impl KnownHttpStatus {
+    #[must_use]
+    pub const fn get(self) -> u16 {
+        match self {
+            Self::Conflict => 409u16,
+            Self::Created => 201u16,
+            Self::Forbidden => 403u16,
+            Self::InternalServerError => 500u16,
+            Self::NoContent => 204u16,
+            Self::Ok => 200u16,
+            Self::TooManyRequests => 429u16,
+            Self::Unauthorized => 401u16,
+            Self::UnprocessableEntity => 422u16,
+        }
+    }
+}
 mod auth_session_keep_alive;
 mod json_snapshot;
 mod openapi_validation;
@@ -574,14 +604,14 @@ pub enum RouteErrorStatus {
 impl RouteErrorStatus {
     #[must_use]
     pub fn transport_status(self) -> TransportStatus {
-        TransportStatus::from(match self {
-            Self::Authentication => 401u16,
-            Self::Authorization => 403u16,
-            Self::Conflict => 409u16,
-            Self::Internal => 500u16,
-            Self::RateLimited => 429u16,
-            Self::Validation => 422u16,
-        })
+        match self {
+            Self::Authentication => TransportStatus::from(KnownHttpStatus::Unauthorized),
+            Self::Authorization => TransportStatus::from(KnownHttpStatus::Forbidden),
+            Self::Conflict => TransportStatus::from(KnownHttpStatus::Conflict),
+            Self::Internal => TransportStatus::from(KnownHttpStatus::InternalServerError),
+            Self::RateLimited => TransportStatus::from(KnownHttpStatus::TooManyRequests),
+            Self::Validation => TransportStatus::from(KnownHttpStatus::UnprocessableEntity),
+        }
     }
 }
 pub const PUBLIC_AUTH_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] = &[
@@ -643,11 +673,11 @@ pub const AUTHORIZED_DELETE_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] = &[
 impl SuccessStatus {
     #[must_use]
     pub fn transport_status(self) -> TransportStatus {
-        TransportStatus::from(match self {
-            Self::Code200 => 200u16,
-            Self::Code201 => 201u16,
-            Self::Code204 => 204u16,
-        })
+        match self {
+            Self::Code200 => TransportStatus::from(KnownHttpStatus::Ok),
+            Self::Code201 => TransportStatus::from(KnownHttpStatus::Created),
+            Self::Code204 => TransportStatus::from(KnownHttpStatus::NoContent),
+        }
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -839,10 +869,23 @@ pub struct TransportIfMatch(String);
 #[derive(Clone, Debug, Default, PartialEq, Eq, newtype::AsRefStr, newtype::BoundedString)]
 #[bounded_string(max = 8192usize)]
 pub struct TransportPath(String);
-#[derive(
-    Clone, Copy, Debug, PartialEq, Eq, newtype::Display, newtype::FromInner, newtype::IntoInnerFrom,
-)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, newtype::Display, newtype::IntoInnerFrom)]
 pub struct TransportStatus(u16);
+impl TryFrom<u16> for TransportStatus {
+    type Error = HttpStatusTryFromU16Error;
+    fn try_from(value: u16) -> Result<Self, Self::Error> {
+        if (100u16..1_000u16).contains(&value) {
+            Ok(Self(value))
+        } else {
+            Err(HttpStatusTryFromU16Error)
+        }
+    }
+}
+impl From<KnownHttpStatus> for TransportStatus {
+    fn from(value: KnownHttpStatus) -> Self {
+        Self(value.get())
+    }
+}
 #[derive(Clone, Debug, PartialEq, Eq, newtype::AsRefStr, newtype::BoundedString)]
 #[bounded_string(max = 128usize, min = 1usize)]
 pub struct TransportRetryAfter(String);
@@ -1006,7 +1049,9 @@ mod tests {
             (500u16, super::ApiProblemKind::Internal),
         ];
         cases.into_iter().for_each(|(status, expected_kind)| {
-            let problem = super::ApiProblem::from_status(super::ApiProblemStatus::from(status));
+            let problem = super::ApiProblem::from_status(
+                super::ApiProblemStatus::try_from(status).expect("ff774b42"),
+            );
             assert_eq!(problem.kind(), expected_kind);
             assert_eq!(u16::from(problem.status()), status);
             let serialized = serde_json::to_string(&problem).expect("f459312e");
@@ -1052,10 +1097,15 @@ mod tests {
     }
     #[test]
     fn response_interpretation_uses_shared_success_and_problem_contract() {
-        let problem = super::ApiProblem::from_status(super::ApiProblemStatus::from(401u16));
+        let problem = super::ApiProblem::from_status(
+            super::ApiProblemStatus::try_from(401u16).expect("b8fc4707"),
+        );
         let body = super::TransportBody::try_from(serde_json::to_vec(&problem).expect("f542a3cb"))
             .expect("864276f2");
-        let response = super::TransportResponse::new(body, super::TransportStatus::from(401u16));
+        let response = super::TransportResponse::new(
+            body,
+            super::TransportStatus::try_from(401u16).expect("a05ea02c"),
+        );
         let error = response
             .success_body(super::SuccessStatus::Code200.transport_status())
             .expect_err(str_constants::VALUE_5EEA7F90);
@@ -1073,7 +1123,7 @@ mod tests {
     fn transport_response_preserves_retry_after() {
         let response = super::TransportResponse::new(
             super::TransportBody::try_from(Vec::new()).expect("da32dc29"),
-            super::TransportStatus::from(429u16),
+            super::TransportStatus::try_from(429u16).expect("7a783a69"),
         )
         .with_retry_after(Some(
             super::TransportRetryAfter::try_from(str_constants::TEST_VALUE_30.to_owned())
@@ -1083,5 +1133,10 @@ mod tests {
             response.retry_after().map(AsRef::as_ref),
             Some(str_constants::TEST_VALUE_30)
         );
+    }
+    #[test]
+    fn http_status_wrappers_reject_values_below_protocol_range() {
+        let _transport_error = super::TransportStatus::try_from(99u16).expect_err("5d7c8801");
+        let _problem_error = super::ApiProblemStatus::try_from(99u16).expect_err("e65c913c");
     }
 }

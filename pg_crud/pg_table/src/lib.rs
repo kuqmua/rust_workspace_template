@@ -43,14 +43,68 @@ impl TryFrom<Vec<u8>> for PgTableIdempotencyBody {
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::AsRefInner, newtype::FromInner)]
 pub struct PgTableIdempotencyBodyRef<'body_lt>(&'body_lt [u8]);
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::IntoInnerFrom)]
 pub struct PgTableIdempotencyResponseStatus(u16);
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum PgTableIdempotencyKnownResponseStatus {
+    InternalServerError,
+}
+impl From<PgTableIdempotencyKnownResponseStatus> for PgTableIdempotencyResponseStatus {
+    fn from(value: PgTableIdempotencyKnownResponseStatus) -> Self {
+        match value {
+            PgTableIdempotencyKnownResponseStatus::InternalServerError => Self(500u16),
+        }
+    }
+}
+impl TryFrom<u16> for PgTableIdempotencyResponseStatus {
+    type Error = PgTableIdempotencyResponseStatusTryFromU16Error;
+    fn try_from(value: u16) -> Result<Self, Self::Error> {
+        if (100u16..1_000u16).contains(&value) {
+            Ok(Self(value))
+        } else {
+            Err(PgTableIdempotencyResponseStatusTryFromU16Error)
+        }
+    }
+}
+impl PgTableIdempotencyResponseStatus {
+    #[must_use]
+    pub fn internal_server_error() -> Self {
+        Self::from(PgTableIdempotencyKnownResponseStatus::InternalServerError)
+    }
+}
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DebugDisplay, newtype::Error)]
+pub struct PgTableIdempotencyResponseStatusTryFromU16Error;
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::Display, newtype::FromInner)]
 pub struct PgTableIdempotencyTextBytes(usize);
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct PgTableIdempotencyCleanupRetentionSeconds(i64);
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+impl TryFrom<i64> for PgTableIdempotencyCleanupRetentionSeconds {
+    type Error = PgTableIdempotencyCleanupValueTryFromI64Error;
+    fn try_from(value: i64) -> Result<Self, Self::Error> {
+        if value < 0i64 {
+            Err(PgTableIdempotencyCleanupValueTryFromI64Error::Negative)
+        } else {
+            Ok(Self(value))
+        }
+    }
+}
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct PgTableIdempotencyCleanupBatchSize(i64);
+impl TryFrom<i64> for PgTableIdempotencyCleanupBatchSize {
+    type Error = PgTableIdempotencyCleanupValueTryFromI64Error;
+    fn try_from(value: i64) -> Result<Self, Self::Error> {
+        if value <= 0i64 {
+            Err(PgTableIdempotencyCleanupValueTryFromI64Error::NotPositive)
+        } else {
+            Ok(Self(value))
+        }
+    }
+}
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DebugDisplay, newtype::Error)]
+pub enum PgTableIdempotencyCleanupValueTryFromI64Error {
+    Negative,
+    NotPositive,
+}
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct PgTableIdempotencyCleanupRows(u64);
 #[derive(Debug, newtype::AsMut, newtype::FromInner)]
@@ -345,7 +399,10 @@ pub async fn begin_pg_table_idempotency(
             };
             Ok(PgTableIdempotencyBegin::Replay(PgTableIdempotencyReplay {
                 response_body,
-                response_status: PgTableIdempotencyResponseStatus::from(response_status),
+                response_status: match PgTableIdempotencyResponseStatus::try_from(response_status) {
+                    Ok(value) => value,
+                    Err(_error) => return Ok(PgTableIdempotencyBegin::InProgress),
+                },
             }))
         }
         (None | Some(_), None) | (None, Some(_)) => Ok(PgTableIdempotencyBegin::InProgress),
@@ -1143,5 +1200,14 @@ mod tests {
             ),
             str_constants::UPDATE_USERS_SET_NAME_CASE_END_WHERE_ID_IN_DOLLAR_1_DOLLAR,
         );
+    }
+    #[test]
+    fn idempotency_numeric_values_enforce_protocol_and_cleanup_ranges() {
+        let _status_error =
+            super::PgTableIdempotencyResponseStatus::try_from(99u16).expect_err("822bee51");
+        let _retention_error = super::PgTableIdempotencyCleanupRetentionSeconds::try_from(-1i64)
+            .expect_err("0f74cd07");
+        let _batch_error =
+            super::PgTableIdempotencyCleanupBatchSize::try_from(0i64).expect_err("92ff15a3");
     }
 }

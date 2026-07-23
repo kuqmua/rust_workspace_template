@@ -222,11 +222,11 @@ fn success_redirect(path: server_admin_contract::AdminFrontendPath) -> axum::res
 }
 
 fn user_path(value: server_admin_contract::AdminUserId) -> super::super::AdminUserId {
-    super::super::AdminUserId::from(i64::from(value))
+    super::super::AdminUserId::from(value.value())
 }
 
 fn role_path(value: server_admin_contract::AdminRoleId) -> super::super::AdminRoleId {
-    super::super::AdminRoleId::from(i64::from(value))
+    super::super::AdminRoleId::from(value.value())
 }
 
 fn action_result(
@@ -262,8 +262,10 @@ fn role_ids(
         .split(',')
         .filter(|item| !item.is_empty())
         .map(|item| {
-            item.parse::<i64>()
-                .map(server_admin_contract::AdminRoleId::from)
+            let parsed = item
+                .parse::<i64>()
+                .map_err(|_error| super::AdminApiError::Validation)?;
+            server_admin_contract::AdminRoleId::try_from(parsed)
                 .map_err(|_error| super::AdminApiError::Validation)
         })
         .collect::<Result<Vec<_>, _>>()?;
@@ -279,8 +281,10 @@ fn permission_ids(
         .split(',')
         .filter(|item| !item.is_empty())
         .map(|item| {
-            item.parse::<i64>()
-                .map(server_admin_contract::AdminPermissionId::from)
+            let parsed = item
+                .parse::<i64>()
+                .map_err(|_error| super::AdminApiError::Validation)?;
+            server_admin_contract::AdminPermissionId::try_from(parsed)
                 .map_err(|_error| super::AdminApiError::Validation)
         })
         .collect::<Result<Vec<_>, _>>()?;

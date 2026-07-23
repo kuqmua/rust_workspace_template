@@ -10,7 +10,8 @@ pub(crate) async fn list_permission_catalog(
         .into_iter()
         .map(|(id, name)| {
             Ok(server_admin_contract::AdminPermissionSummary::new(
-                server_admin_contract::AdminPermissionId::from(id),
+                server_admin_contract::AdminPermissionId::try_from(id)
+                    .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
                 server_admin_contract::AdminPermissionValue::try_from(name)
                     .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
             ))
@@ -52,7 +53,8 @@ pub(crate) async fn list_permissions(
             .into_iter()
             .map(|(id, name)| {
                 Ok(server_admin_contract::AdminPermissionSummary::new(
-                    server_admin_contract::AdminPermissionId::from(id),
+                    server_admin_contract::AdminPermissionId::try_from(id)
+                        .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
                     server_admin_contract::AdminPermissionValue::try_from(name)
                         .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
                 ))

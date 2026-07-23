@@ -32,8 +32,18 @@ pub enum OpenApiValidationError {
     UnusedSchema(OpenApiContractText),
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct OpenApiResponseStatus(u16);
+impl TryFrom<u16> for OpenApiResponseStatus {
+    type Error = crate::HttpStatusTryFromU16Error;
+    fn try_from(value: u16) -> Result<Self, Self::Error> {
+        if (100u16..1_000u16).contains(&value) {
+            Ok(Self(value))
+        } else {
+            Err(crate::HttpStatusTryFromU16Error)
+        }
+    }
+}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum OpenApiSecurityExpectation {
@@ -553,7 +563,7 @@ mod tests {
                 str_constants::TEST_OPENAPI_OPERATION_ID.into(),
                 str_constants::TEST_OPENAPI_PATH.into(),
             ),
-            200u16.into(),
+            super::OpenApiResponseStatus::try_from(200u16).expect("9f6e9528"),
             str_constants::APPLICATION_JSON.into(),
             super::OpenApiSecurityExpectation::Public,
         );

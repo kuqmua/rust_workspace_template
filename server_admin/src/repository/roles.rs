@@ -23,7 +23,7 @@ pub(crate) async fn insert_role(
         .fetch_one(connection.0)
         .await
         .map_err(crate::SqlxAdminError::from)
-        .map(crate::AdminRoleId::from)
+        .and_then(|value| crate::AdminRoleId::try_from(value).map_err(crate::SqlxAdminError::from))
 }
 
 pub(crate) async fn update_role(
@@ -66,19 +66,21 @@ pub(crate) async fn list_role_catalog(
             .fetch_all(pool.0)
             .await
             .map_err(crate::SqlxAdminError::from)?;
-    let mut permission_ids_by_role = links.into_iter().fold(
+    let mut permission_ids_by_role = links.into_iter().try_fold(
         std::collections::HashMap::<i64, Vec<server_admin_contract::AdminPermissionId>>::new(),
         |mut values, (role_id, permission_id)| {
             values.entry(role_id).or_default().push(
-                server_admin_contract::AdminPermissionId::from(permission_id),
+                server_admin_contract::AdminPermissionId::try_from(permission_id)
+                    .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
             );
-            values
+            Ok::<_, super::AdminRepositoryError>(values)
         },
-    );
+    )?;
     rows.into_iter()
         .map(|(id, name, is_system)| {
             Ok(server_admin_contract::AdminRoleSummary::new(
-                server_admin_contract::AdminRoleId::from(id),
+                server_admin_contract::AdminRoleId::try_from(id)
+                    .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
                 server_admin_contract::AdminBool::from(is_system),
                 server_admin_contract::AdminRoleName::try_from(name)
                     .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
@@ -127,20 +129,22 @@ pub(crate) async fn list_roles(
             .fetch_all(pool.0)
             .await
             .map_err(crate::SqlxAdminError::from)?;
-    let mut permission_ids_by_role = links.into_iter().fold(
+    let mut permission_ids_by_role = links.into_iter().try_fold(
         std::collections::HashMap::<i64, Vec<server_admin_contract::AdminPermissionId>>::new(),
         |mut values, (role_id, permission_id)| {
             values.entry(role_id).or_default().push(
-                server_admin_contract::AdminPermissionId::from(permission_id),
+                server_admin_contract::AdminPermissionId::try_from(permission_id)
+                    .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
             );
-            values
+            Ok::<_, super::AdminRepositoryError>(values)
         },
-    );
+    )?;
     let items = rows
         .into_iter()
         .map(|(id, name, is_system)| {
             Ok(server_admin_contract::AdminRoleSummary::new(
-                server_admin_contract::AdminRoleId::from(id),
+                server_admin_contract::AdminRoleId::try_from(id)
+                    .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
                 server_admin_contract::AdminBool::from(is_system),
                 server_admin_contract::AdminRoleName::try_from(name)
                     .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,

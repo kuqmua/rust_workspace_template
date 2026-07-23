@@ -5,8 +5,31 @@ const WARNING_PERCENT: u8 = 70u8;
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, newtype::FromInner)]
 pub struct ResourceAmount(u64);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, newtype::FromInner)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct ResourceUtilizationPercent(u8);
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum ResourceUtilizationKnownPercent {
+    Max,
+}
+impl From<ResourceUtilizationKnownPercent> for ResourceUtilizationPercent {
+    fn from(value: ResourceUtilizationKnownPercent) -> Self {
+        match value {
+            ResourceUtilizationKnownPercent::Max => Self(100u8),
+        }
+    }
+}
+impl TryFrom<u8> for ResourceUtilizationPercent {
+    type Error = ResourceUtilizationPercentTryFromU8Error;
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        if value <= 100u8 {
+            Ok(Self(value))
+        } else {
+            Err(ResourceUtilizationPercentTryFromU8Error)
+        }
+    }
+}
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DebugDisplay, newtype::Error)]
+pub struct ResourceUtilizationPercentTryFromU8Error;
 
 impl ResourceUtilizationPercent {
     #[must_use]
@@ -73,10 +96,10 @@ pub fn calculate_resource_utilization(
         .saturating_mul(100u128)
         .div_euclid(u128::from(maximum.0))
         .min(100u128);
-    let percent = match u8::try_from(percent_u128) {
-        Ok(value) => ResourceUtilizationPercent::from(value),
-        Err(_error) => ResourceUtilizationPercent::from(100u8),
-    };
+    let percent_u8 = u8::try_from(percent_u128).unwrap_or(100u8);
+    let percent = ResourceUtilizationPercent::try_from(percent_u8).unwrap_or_else(|_error| {
+        ResourceUtilizationPercent::from(ResourceUtilizationKnownPercent::Max)
+    });
     let status = match percent.0 {
         REJECT_NON_ESSENTIAL_WRITES_PERCENT..=u8::MAX => {
             ResourceUtilizationStatus::RejectNonEssentialWrites
@@ -144,5 +167,9 @@ mod tests {
             ),
             Err(super::ResourceUtilizationError::ZeroMaximum)
         );
+    }
+    #[test]
+    fn percentage_rejects_values_above_one_hundred() {
+        let _error = super::ResourceUtilizationPercent::try_from(101u8).expect_err("7ba1d197");
     }
 }

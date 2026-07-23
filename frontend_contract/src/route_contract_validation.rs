@@ -17,8 +17,18 @@ pub enum RouteContractMismatch {
 #[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)]
 pub struct RouteContractMismatches(Vec<RouteContractMismatch>);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct HttpContractStatus(u16);
+impl TryFrom<u16> for HttpContractStatus {
+    type Error = crate::HttpStatusTryFromU16Error;
+    fn try_from(value: u16) -> Result<Self, Self::Error> {
+        if (100u16..1_000u16).contains(&value) {
+            Ok(Self(value))
+        } else {
+            Err(crate::HttpStatusTryFromU16Error)
+        }
+    }
+}
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct HttpContractBody(Vec<u8>);
@@ -221,13 +231,13 @@ mod tests {
         let result = futures::executor::block_on(super::run_http_contract_fixture(
             super::HttpContractExpectation::new(
                 metadata,
-                200u16.into(),
+                super::HttpContractStatus::try_from(200u16).expect("a76c9e6b"),
                 super::HttpContractBodyKind::Json,
             ),
             async |observed_metadata| {
                 super::HttpContractObservation::new(
                     observed_metadata,
-                    200u16.into(),
+                    super::HttpContractStatus::try_from(200u16).expect("d0abdccc"),
                     super::HttpContractBody::try_from(br#"{"ok":true}"#.to_vec())
                         .expect("08bddb5e"),
                 )

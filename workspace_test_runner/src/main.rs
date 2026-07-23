@@ -850,7 +850,7 @@ fn write_admin_contract_fixture() -> Result<(), ()> {
         admin_fixture_string::<server_admin_contract::AdminDisplayName>(String::from(
             str_constants::ADMIN,
         ))?,
-        server_admin_contract::AdminUserId::from(1i64),
+        server_admin_contract::AdminUserId::try_from(1i64).map_err(|error| eprintln!("{error}"))?,
         admin_fixture_string::<server_admin_contract::AdminLogin>(String::from(
             str_constants::ROOT,
         ))?,
@@ -869,23 +869,24 @@ fn write_admin_contract_fixture() -> Result<(), ()> {
                 eprintln!("administrator fixture user identifier overflow");
             })?;
             let is_alpha = index == 24i64;
+            let role_id = server_admin_contract::AdminRoleId::try_from(1i64)
+                .map_err(|error| eprintln!("{error}"))?;
             Ok(server_admin_contract::AdminUserSummary::new(
                 admin_fixture_string::<server_admin_contract::AdminDisplayName>(if is_alpha {
                     String::from(str_constants::ADMIN_FIXTURE_ALPHA_DISPLAY_NAME)
                 } else {
                     format!("User {number:02}")
                 })?,
-                server_admin_contract::AdminUserId::from(number),
+                server_admin_contract::AdminUserId::try_from(number)
+                    .map_err(|error| eprintln!("{error}"))?,
                 server_admin_contract::AdminBool::from(index & 1i64 == 0i64),
                 admin_fixture_string::<server_admin_contract::AdminLogin>(if is_alpha {
                     String::from(str_constants::ADMIN_FIXTURE_ALPHA_LOGIN)
                 } else {
                     format!("user_{number:02}")
                 })?,
-                server_admin_contract::AdminRoleIds::try_from(vec![
-                    server_admin_contract::AdminRoleId::from(1i64),
-                ])
-                .map_err(|error| eprintln!("{error}"))?,
+                server_admin_contract::AdminRoleIds::try_from(vec![role_id])
+                    .map_err(|error| eprintln!("{error}"))?,
             ))
         })
         .collect::<Result<Vec<_>, ()>>()?;
@@ -900,13 +901,14 @@ fn write_admin_contract_fixture() -> Result<(), ()> {
                 eprintln!("administrator fixture permission identifier overflow");
             })?;
             Ok(server_admin_contract::AdminPermissionSummary::new(
-                server_admin_contract::AdminPermissionId::from(identifier),
+                server_admin_contract::AdminPermissionId::try_from(identifier)
+                    .map_err(|error| eprintln!("{error}"))?,
                 permission,
             ))
         })
         .collect::<Result<Vec<_>, ()>>()?;
     let role_summary = server_admin_contract::AdminRoleSummary::new(
-        server_admin_contract::AdminRoleId::from(1i64),
+        server_admin_contract::AdminRoleId::try_from(1i64).map_err(|error| eprintln!("{error}"))?,
         server_admin_contract::AdminBool::from(false),
         admin_fixture_string::<server_admin_contract::AdminRoleName>(String::from(
             str_constants::ADMIN_FIXTURE_ROLE_NAME,
@@ -925,6 +927,10 @@ fn write_admin_contract_fixture() -> Result<(), ()> {
             str_constants::FIELD: str_constants::DISPLAY_NAME
         }))
         .map_err(|error| eprintln!("{error}"))?;
+    let audit_log_id = server_admin_contract::AdminAuditLogId::try_from(1i64)
+        .map_err(|error| eprintln!("{error}"))?;
+    let audit_user_id = server_admin_contract::AdminUserId::try_from(25i64)
+        .map_err(|error| eprintln!("{error}"))?;
     let audit = vec![server_admin_contract::AdminAuditView::new(
         admin_fixture_string::<server_admin_contract::AdminText>(String::from(
             str_constants::ADMIN_FIXTURE_AUDIT_ACTION,
@@ -933,7 +939,7 @@ fn write_admin_contract_fixture() -> Result<(), ()> {
             str_constants::ADMIN_FIXTURE_AUDIT_CREATED_AT,
         ))?,
         Some(audit_details),
-        server_admin_contract::AdminAuditLogId::from(1i64),
+        audit_log_id,
         admin_fixture_string::<server_admin_contract::AdminText>(String::from(
             str_constants::ADMIN_FIXTURE_AUDIT_RESOURCE,
         ))?,
@@ -941,7 +947,7 @@ fn write_admin_contract_fixture() -> Result<(), ()> {
             String::from(str_constants::ADMIN_FIXTURE_AUDIT_RESOURCE_ID),
         )?),
         server_admin_contract::AdminBool::from(true),
-        Some(server_admin_contract::AdminUserId::from(25i64)),
+        Some(audit_user_id),
         Some(admin_fixture_string::<server_admin_contract::AdminLogin>(
             String::from(str_constants::ADMIN_FIXTURE_ALPHA_LOGIN),
         )?),
@@ -1011,7 +1017,8 @@ fn write_admin_contract_fixture() -> Result<(), ()> {
         admin_fixture_string::<server_admin_contract::AdminAuditTimestamp>(String::from(
             str_constants::ADMIN_FIXTURE_AUDIT_CREATED_AT,
         ))?,
-        server_admin_contract::AdminAuditLogId::from(1i64),
+        server_admin_contract::AdminAuditLogId::try_from(1i64)
+            .map_err(|error| eprintln!("{error}"))?,
     );
     let audit_page = server_admin_contract::AdminAuditPage::new(
         server_admin_contract::AdminAuditViews::try_from(audit)

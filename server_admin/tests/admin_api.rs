@@ -2564,7 +2564,9 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     let assign_role_body =
         serde_json::to_string(&server_admin_contract::AdminSetUserRolesReq::new(
             empty_admin_role_ids(),
-            one_admin_role_id(server_admin_contract::AdminRoleId::from(role_id)),
+            one_admin_role_id(
+                server_admin_contract::AdminRoleId::try_from(role_id).expect("a82fc2e5"),
+            ),
         ))
         .expect("bf02e516");
     let assign_role_response = tower::ServiceExt::oneshot(
@@ -2602,7 +2604,9 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     assert_eq!(stale_role_response.status(), http::StatusCode::CONFLICT);
     let remove_role_body =
         serde_json::to_string(&server_admin_contract::AdminSetUserRolesReq::new(
-            one_admin_role_id(server_admin_contract::AdminRoleId::from(role_id)),
+            one_admin_role_id(
+                server_admin_contract::AdminRoleId::try_from(role_id).expect("c8994c27"),
+            ),
             empty_admin_role_ids(),
         ))
         .expect("23c416a1");
@@ -2669,7 +2673,9 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
             .expect("20b5fb03");
     let remove_last_admin_role_body =
         serde_json::to_string(&server_admin_contract::AdminSetUserRolesReq::new(
-            one_admin_role_id(server_admin_contract::AdminRoleId::from(admin_role_id)),
+            one_admin_role_id(
+                server_admin_contract::AdminRoleId::try_from(admin_role_id).expect("84fe96c8"),
+            ),
             empty_admin_role_ids(),
         ))
         .expect("1528b0d3");
@@ -3044,7 +3050,7 @@ async fn postgresql_generated_mutation_idempotency_contract() {
     pg_table::complete_pg_table_idempotency(
         app_state::SqlxPgPoolRef::from(&pool),
         &first_request,
-        pg_table::PgTableIdempotencyResponseStatus::from(201u16),
+        pg_table::PgTableIdempotencyResponseStatus::try_from(201u16).expect("4df2dd1f"),
         pg_table::PgTableIdempotencyBodyRef::from(response_body.as_slice()),
     )
     .await
@@ -3059,7 +3065,7 @@ async fn postgresql_generated_mutation_idempotency_contract() {
     assert_eq!(
         replay_value.into_parts(),
         (
-            pg_table::PgTableIdempotencyResponseStatus::from(201u16),
+            pg_table::PgTableIdempotencyResponseStatus::try_from(201u16).expect("f89d923d"),
             pg_table::PgTableIdempotencyBody::try_from(response_body.to_vec()).expect("4a01ed0e"),
         )
     );
@@ -3140,7 +3146,7 @@ async fn postgresql_generated_mutation_idempotency_contract() {
     pg_table::complete_pg_table_idempotency_in_connection(
         pg_table::SqlxPgTablePgConnectionRef::from(&mut *rollback_tx),
         &atomic,
-        pg_table::PgTableIdempotencyResponseStatus::from(201u16),
+        pg_table::PgTableIdempotencyResponseStatus::try_from(201u16).expect("98bb1db9"),
         pg_table::PgTableIdempotencyBodyRef::from(br#"{"id":1}"#.as_slice()),
     )
     .await
@@ -3176,9 +3182,9 @@ async fn postgresql_generated_mutation_idempotency_contract() {
     .expect("2c080f6d");
     let cleaned = pg_table::cleanup_pg_table_idempotency(
         app_state::SqlxPgPoolRef::from(&pool),
-        pg_table::PgTableIdempotencyCleanupRetentionSeconds::from(3_600i64),
-        pg_table::PgTableIdempotencyCleanupRetentionSeconds::from(3_600i64),
-        pg_table::PgTableIdempotencyCleanupBatchSize::from(2i64),
+        pg_table::PgTableIdempotencyCleanupRetentionSeconds::try_from(3_600i64).expect("52189299"),
+        pg_table::PgTableIdempotencyCleanupRetentionSeconds::try_from(3_600i64).expect("fa6dc1d7"),
+        pg_table::PgTableIdempotencyCleanupBatchSize::try_from(2i64).expect("1780d6b1"),
     )
     .await
     .expect("b1ba49cc");

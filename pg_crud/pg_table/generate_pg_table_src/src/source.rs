@@ -2330,8 +2330,10 @@ pub fn emit_generate_pg_table(
                 if *field_ref == LocationSnakeCase.to_string() {
                     macros_helpers::generate_field_location_new_token_stream::generate_field_location_new_token_stream(
                         macros_helpers::generate_field_location_new_token_stream::FieldLocationFile::from(location.file()),
-                        macros_helpers::generate_field_location_new_token_stream::FieldLocationLine::from(location.line()),
-                        macros_helpers::generate_field_location_new_token_stream::FieldLocationColumn::from(location.column()),
+                        macros_helpers::generate_field_location_new_token_stream::FieldLocationLine::try_from(location.line())
+                            .unwrap_or_else(|_error| macros_helpers::generate_field_location_new_token_stream::FieldLocationLine::first()),
+                        macros_helpers::generate_field_location_new_token_stream::FieldLocationColumn::try_from(location.column())
+                            .unwrap_or_else(|_error| macros_helpers::generate_field_location_new_token_stream::FieldLocationColumn::first()),
                     )
                     .into()
                 } else {
@@ -4254,7 +4256,8 @@ pub fn emit_generate_pg_table(
                     if pg_table::complete_pg_table_idempotency_in_connection(
                         pg_table::SqlxPgTablePgConnectionRef::from(#ExecutorSnakeCase.as_mut()),
                         &idempotency_request_0a0ae019,
-                        pg_table::PgTableIdempotencyResponseStatus::from(#desirable_status_token_stream.as_u16()),
+                        pg_table::PgTableIdempotencyResponseStatus::try_from(#desirable_status_token_stream.as_u16())
+                            .unwrap_or_else(|_error| pg_table::PgTableIdempotencyResponseStatus::internal_server_error()),
                         pg_table::PgTableIdempotencyBodyRef::from(response_body_649297c9.as_slice()),
                     ).await.is_err() {
                         let _rollback_result = #ExecutorSnakeCase.#RollbackSnakeCase().await;
@@ -5001,7 +5004,8 @@ pub fn emit_generate_pg_table(
                         } else {
                             let status_59091f23 = response_2b9f176e.status();
                             let problem_0ae0baf4 = frontend_contract::ApiProblem::from_status(
-                                frontend_contract::ApiProblemStatus::from(status_59091f23.as_u16()),
+                                frontend_contract::ApiProblemStatus::try_from(status_59091f23.as_u16())
+                                    .unwrap_or_else(|_error| frontend_contract::ApiProblemStatus::from(frontend_contract::KnownHttpStatus::InternalServerError)),
                             );
                             let body_94b3d116 = serde_json::to_vec(&problem_0ae0baf4).unwrap_or_default();
                             let mut normalized_8af76410 = axum::response::Response::new(axum::body::Body::from(body_94b3d116));
@@ -5184,8 +5188,10 @@ pub fn emit_generate_pg_table(
                 let return_error_token_stream = {
                     let field_location_new_token_stream = macros_helpers::generate_field_location_new_token_stream::generate_field_location_new_token_stream(
                         macros_helpers::generate_field_location_new_token_stream::FieldLocationFile::from(file!()),
-                        macros_helpers::generate_field_location_new_token_stream::FieldLocationLine::from(line!()),
-                        macros_helpers::generate_field_location_new_token_stream::FieldLocationColumn::from(column!()),
+                        macros_helpers::generate_field_location_new_token_stream::FieldLocationLine::try_from(line!())
+                            .unwrap_or_else(|_error| macros_helpers::generate_field_location_new_token_stream::FieldLocationLine::first()),
+                        macros_helpers::generate_field_location_new_token_stream::FieldLocationColumn::try_from(column!())
+                            .unwrap_or_else(|_error| macros_helpers::generate_field_location_new_token_stream::FieldLocationColumn::first()),
                     );
                     quote::quote! {
                         Err(#identifier_try_operation_error_upper_camel_case::#try_operation_logic_error_with_serde_upper_camel_case {
@@ -9814,7 +9820,8 @@ pub fn emit_generate_pg_table(
                                     http::StatusCode::METHOD_NOT_ALLOWED,
                                     [(http::header::CONTENT_TYPE, http::HeaderValue::from_static("application/problem+json"))],
                                     axum::Json(frontend_contract::ApiProblem::from_status(
-                                        frontend_contract::ApiProblemStatus::from(http::StatusCode::METHOD_NOT_ALLOWED.as_u16()),
+                                        frontend_contract::ApiProblemStatus::try_from(http::StatusCode::METHOD_NOT_ALLOWED.as_u16())
+                                            .unwrap_or_else(|_error| frontend_contract::ApiProblemStatus::from(frontend_contract::KnownHttpStatus::InternalServerError)),
                                     )),
                                 )
                             })
@@ -9823,7 +9830,8 @@ pub fn emit_generate_pg_table(
                                     http::StatusCode::NOT_FOUND,
                                     [(http::header::CONTENT_TYPE, http::HeaderValue::from_static("application/problem+json"))],
                                     axum::Json(frontend_contract::ApiProblem::from_status(
-                                        frontend_contract::ApiProblemStatus::from(http::StatusCode::NOT_FOUND.as_u16()),
+                                        frontend_contract::ApiProblemStatus::try_from(http::StatusCode::NOT_FOUND.as_u16())
+                                            .unwrap_or_else(|_error| frontend_contract::ApiProblemStatus::from(frontend_contract::KnownHttpStatus::InternalServerError)),
                                     )),
                                 )
                             })

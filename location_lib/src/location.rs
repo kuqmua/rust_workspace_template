@@ -31,10 +31,30 @@ pub struct LocationFile(String);
     schemars::JsonSchema,
     optml::Optml,
     newtype::Display,
-    newtype::FromInner,
 )]
-#[serde(from = "u32")]
+#[serde(try_from = "u32")]
 pub struct LocationLine(u32);
+impl TryFrom<u32> for LocationLine {
+    type Error = LocationCoordinateTryFromU32Error;
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        if value == 0u32 {
+            Err(LocationCoordinateTryFromU32Error)
+        } else {
+            Ok(Self(value))
+        }
+    }
+}
+impl From<std::num::NonZeroU32> for LocationLine {
+    fn from(value: std::num::NonZeroU32) -> Self {
+        Self(value.get())
+    }
+}
+impl LocationLine {
+    #[must_use]
+    pub fn first() -> Self {
+        Self::from(std::num::NonZeroU32::MIN)
+    }
+}
 #[derive(
     Debug,
     PartialEq,
@@ -47,10 +67,32 @@ pub struct LocationLine(u32);
     schemars::JsonSchema,
     optml::Optml,
     newtype::Display,
-    newtype::FromInner,
 )]
-#[serde(from = "u32")]
+#[serde(try_from = "u32")]
 pub struct LocationColumn(u32);
+impl TryFrom<u32> for LocationColumn {
+    type Error = LocationCoordinateTryFromU32Error;
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        if value == 0u32 {
+            Err(LocationCoordinateTryFromU32Error)
+        } else {
+            Ok(Self(value))
+        }
+    }
+}
+impl From<std::num::NonZeroU32> for LocationColumn {
+    fn from(value: std::num::NonZeroU32) -> Self {
+        Self(value.get())
+    }
+}
+impl LocationColumn {
+    #[must_use]
+    pub fn first() -> Self {
+        Self::from(std::num::NonZeroU32::MIN)
+    }
+}
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DebugDisplay, newtype::Error)]
+pub struct LocationCoordinateTryFromU32Error;
 #[derive(
     Debug,
     PartialEq,
@@ -255,22 +297,20 @@ impl Location {
         }
     }
     #[must_use]
-    pub fn new<FileTy, LineTy, ColumnTy>(
+    pub fn new<FileTy>(
         file: FileTy,
-        line: LineTy,
-        column: ColumnTy,
+        line: LocationLine,
+        column: LocationColumn,
         occr: Option<Occr>,
     ) -> Self
     where
         FileTy: AsRef<str>,
-        LineTy: Into<LocationLine>,
-        ColumnTy: Into<LocationColumn>,
     {
         Self {
             file: LocationFile::try_from(file.as_ref().to_owned())
                 .unwrap_or_else(LocationFile::from),
-            line: line.into(),
-            column: column.into(),
+            line,
+            column,
             commit: LocationCommit::try_from(
                 git_info::project_git_info().commit().as_ref().to_owned(),
             )
@@ -294,10 +334,20 @@ pub struct StdTimeDuration {
     Debug, Clone, Copy, utoipa::ToSchema, optml::Optml, newtype::DerefInner, newtype::FromInner,
 )]
 pub struct StdTimeDurationSecs(u64);
-#[derive(
-    Debug, Clone, Copy, utoipa::ToSchema, optml::Optml, newtype::DerefInner, newtype::FromInner,
-)]
+#[derive(Debug, Clone, Copy, utoipa::ToSchema, optml::Optml, newtype::DerefInner)]
 pub struct StdTimeDurationNanos(u32);
+impl TryFrom<u32> for StdTimeDurationNanos {
+    type Error = StdTimeDurationNanosTryFromU32Error;
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        if value < 1_000_000_000u32 {
+            Ok(Self(value))
+        } else {
+            Err(StdTimeDurationNanosTryFromU32Error)
+        }
+    }
+}
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DebugDisplay, newtype::Error)]
+pub struct StdTimeDurationNanosTryFromU32Error;
 impl std::fmt::Display for Location {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.fmt_place(
@@ -339,16 +389,16 @@ mod tests {
             .unwrap_or_else(super::LocationCommit::from),
             duration: super::StdLocationDuration::from(duration),
             occr,
-            line: super::LocationLine::from(10),
-            column: super::LocationColumn::from(20),
+            line: super::LocationLine::try_from(10).expect("fc5a52e8"),
+            column: super::LocationColumn::try_from(20).expect("8a180198"),
         }
     }
     fn test_occr() -> super::Occr {
         super::Occr {
             file: super::LocationFile::try_from(String::from(str_constants::SRC_ERROR_RS))
                 .unwrap_or_else(super::LocationFile::from),
-            line: super::LocationLine::from(30),
-            column: super::LocationColumn::from(40),
+            line: super::LocationLine::try_from(30).expect("1fbd3424"),
+            column: super::LocationColumn::try_from(40).expect("44a1f8ca"),
         }
     }
     fn fmt_place(
@@ -443,5 +493,12 @@ mod tests {
             serde::de::value::StringDeserializer::<serde::de::value::Error>::new(oversized),
         )
         .expect_err("7e50ddbb");
+    }
+    #[test]
+    fn coordinates_and_nanoseconds_reject_zero_based_or_overflowing_values() {
+        let _line_error = super::LocationLine::try_from(0u32).expect_err("f4dfc0b1");
+        let _column_error = super::LocationColumn::try_from(0u32).expect_err("86102562");
+        let _nanos_error =
+            super::StdTimeDurationNanos::try_from(1_000_000_000u32).expect_err("c342a3f2");
     }
 }

@@ -13,7 +13,7 @@ pub(crate) async fn insert_user(
         .fetch_one(connection.0)
         .await
         .map_err(crate::SqlxAdminError::from)
-        .map(crate::AdminUserId::from)
+        .and_then(|value| crate::AdminUserId::try_from(value).map_err(crate::SqlxAdminError::from))
 }
 
 pub(crate) async fn recent_login_failure_count(
@@ -37,14 +37,18 @@ pub(crate) async fn find_sign_in_user(
         .fetch_optional(pool.0)
         .await
         .map_err(crate::SqlxAdminError::from)
-        .map(|value| {
-            value.map(|(id, password_hash, is_banned)| super::AdminSignInUser {
-                id: crate::AdminUserId::from(id),
-                password_hash: crate::AdminPasswordHash::new(
-                    pg_types_text_misc::StringAsNonNullTextSecret::from(password_hash),
-                ),
-                is_banned: crate::StdAdminBool::from(is_banned),
-            })
+        .and_then(|value| {
+            value
+                .map(|(id, password_hash, is_banned)| {
+                    Ok(super::AdminSignInUser {
+                        id: crate::AdminUserId::try_from(id)?,
+                        password_hash: crate::AdminPasswordHash::new(
+                            pg_types_text_misc::StringAsNonNullTextSecret::from(password_hash),
+                        ),
+                        is_banned: crate::StdAdminBool::from(is_banned),
+                    })
+                })
+                .transpose()
         })
 }
 
@@ -57,7 +61,12 @@ pub(crate) async fn lock_refresh_token_user(
         .fetch_optional(connection.0)
         .await
         .map_err(crate::SqlxAdminError::from)
-        .map(|value| value.map(crate::AdminUserId::from))
+        .and_then(|value| {
+            value
+                .map(crate::AdminUserId::try_from)
+                .transpose()
+                .map_err(crate::SqlxAdminError::from)
+        })
 }
 
 pub(crate) async fn revoke_refresh_token(
@@ -180,23 +189,24 @@ pub(crate) async fn list_users(
         .fetch_all(pool.0)
         .await
         .map_err(crate::SqlxAdminError::from)?;
-    let mut role_ids_by_user = links.into_iter().fold(
+    let mut role_ids_by_user = links.into_iter().try_fold(
         std::collections::HashMap::<i64, Vec<server_admin_contract::AdminRoleId>>::new(),
         |mut values, (user_id, role_id)| {
-            values
-                .entry(user_id)
-                .or_default()
-                .push(server_admin_contract::AdminRoleId::from(role_id));
-            values
+            values.entry(user_id).or_default().push(
+                server_admin_contract::AdminRoleId::try_from(role_id)
+                    .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+            );
+            Ok::<_, super::AdminRepositoryError>(values)
         },
-    );
+    )?;
     let items = rows
         .into_iter()
         .map(|(id, login, display_name, is_banned)| {
             Ok(server_admin_contract::AdminUserSummary::new(
                 server_admin_contract::AdminDisplayName::try_from(display_name)
                     .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
-                server_admin_contract::AdminUserId::from(id),
+                server_admin_contract::AdminUserId::try_from(id)
+                    .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
                 server_admin_contract::AdminBool::from(is_banned),
                 server_admin_contract::AdminLogin::try_from(login)
                     .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,

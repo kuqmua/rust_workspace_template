@@ -50,7 +50,13 @@ impl axum::response::IntoResponse for HttpNotificationApiProblem {
         axum::response::IntoResponse::into_response((
             status,
             axum::Json(frontend_contract::ApiProblem::from_status(
-                frontend_contract::ApiProblemStatus::from(status.as_u16()),
+                frontend_contract::ApiProblemStatus::try_from(status.as_u16()).unwrap_or_else(
+                    |_error| {
+                        frontend_contract::ApiProblemStatus::from(
+                            frontend_contract::KnownHttpStatus::InternalServerError,
+                        )
+                    },
+                ),
             )),
         ))
     }
