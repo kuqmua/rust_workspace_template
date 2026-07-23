@@ -770,6 +770,36 @@ mod tests {
     }
 
     #[test]
+    fn header_table_labels_match_table_names_and_routes() {
+        let page = super::render_admin_page(
+            server_admin_contract::AdminPage::Users,
+            super::AdminSsrHtml::try_from(String::new()).expect("5a984c96"),
+        );
+
+        assert!(
+            server_admin_contract::AdminDataTable::PG_ORDER
+                .into_iter()
+                .all(|table| {
+                    let table_name = table.to_string();
+                    let route = table.frontend_path().to_string();
+                    let route_name = route
+                        .rsplit_once('/')
+                        .map(|(_prefix, name)| name)
+                        .expect("100762f4");
+                    let href = format!("href=\"{route}\"");
+                    let header_label = page
+                        .as_ref()
+                        .split_once(href.as_str())
+                        .and_then(|(_prefix, link_tail)| link_tail.split_once('>'))
+                        .and_then(|(_attributes, label_tail)| label_tail.split_once("</a>"))
+                        .map_or("", |(label, _suffix)| label);
+
+                    route_name == table_name && header_label == table_name
+                })
+        );
+    }
+
+    #[test]
     fn csr_page_contains_only_bootstrap_shell() {
         let admin = server_admin_contract::AuthenticatedAdmin::new(
             server_admin_contract::AdminDisplayName::try_from(str_constants::ADMIN.to_owned())
