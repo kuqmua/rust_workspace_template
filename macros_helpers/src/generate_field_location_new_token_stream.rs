@@ -1,18 +1,15 @@
 #[must_use]
 #[derive(Debug, Clone, Copy, newtype::FromInner)]
 pub struct FieldLocationFile(&'static str);
-#[derive(Debug, Clone, Copy)]
-pub struct FieldLocationLine(u32);
-impl TryFrom<u32> for FieldLocationLine {
-    type Error = FieldLocationCoordinateTryFromU32Error;
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        if value == 0u32 {
-            Err(FieldLocationCoordinateTryFromU32Error)
-        } else {
-            Ok(Self(value))
-        }
+#[derive(Debug, Clone, Copy, newtype::TryFrom)]
+#[try_from(error = FieldLocationCoordinateTryFromU32Error, validator = |value: &u32| {
+    if *value == 0u32 {
+        Err(FieldLocationCoordinateTryFromU32Error)
+    } else {
+        Ok(())
     }
-}
+})]
+pub struct FieldLocationLine(u32);
 impl From<std::num::NonZeroU32> for FieldLocationLine {
     fn from(value: std::num::NonZeroU32) -> Self {
         Self(value.get())
@@ -24,18 +21,15 @@ impl FieldLocationLine {
         Self::from(std::num::NonZeroU32::MIN)
     }
 }
-#[derive(Debug, Clone, Copy)]
-pub struct FieldLocationColumn(u32);
-impl TryFrom<u32> for FieldLocationColumn {
-    type Error = FieldLocationCoordinateTryFromU32Error;
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        if value == 0u32 {
-            Err(FieldLocationCoordinateTryFromU32Error)
-        } else {
-            Ok(Self(value))
-        }
+#[derive(Debug, Clone, Copy, newtype::TryFrom)]
+#[try_from(error = FieldLocationCoordinateTryFromU32Error, validator = |value: &u32| {
+    if *value == 0u32 {
+        Err(FieldLocationCoordinateTryFromU32Error)
+    } else {
+        Ok(())
     }
-}
+})]
+pub struct FieldLocationColumn(u32);
 impl From<std::num::NonZeroU32> for FieldLocationColumn {
     fn from(value: std::num::NonZeroU32) -> Self {
         Self(value.get())

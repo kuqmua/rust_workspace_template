@@ -6,43 +6,41 @@ pub struct JsonwebtokenAdminEncodingKey(jsonwebtoken::EncodingKey);
 pub struct JsonwebtokenAdminDecodingKey(jsonwebtoken::DecodingKey);
 #[derive(Debug, newtype::AsRefTarget, newtype::FromInner)]
 struct JsonwebtokenAdminDecodingKeys(Vec<JsonwebtokenAdminDecodingKey>);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::IntoInnerFrom)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::IntoInnerFrom, newtype::TryFrom)]
+#[try_from(error = AdminAuthPositiveValueError, validator = |value: &u64| {
+    if *value == 0u64 {
+        Err(AdminAuthPositiveValueError)
+    } else {
+        Ok(())
+    }
+})]
 pub struct StdAdminAccessTtlSeconds(u64);
-impl TryFrom<u64> for StdAdminAccessTtlSeconds {
-    type Error = AdminAuthPositiveValueError;
-    fn try_from(value: u64) -> Result<Self, Self::Error> {
-        if value == 0u64 {
-            Err(AdminAuthPositiveValueError)
-        } else {
-            Ok(Self(value))
-        }
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::IntoInnerFrom, newtype::TryFrom)]
+#[try_from(error = AdminAuthPositiveValueError, validator = |value: &u64| {
+    if *value == 0u64 {
+        Err(AdminAuthPositiveValueError)
+    } else {
+        Ok(())
     }
-}
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::IntoInnerFrom)]
+})]
 pub struct StdAdminRefreshTtlSeconds(u64);
-impl TryFrom<u64> for StdAdminRefreshTtlSeconds {
-    type Error = AdminAuthPositiveValueError;
-    fn try_from(value: u64) -> Result<Self, Self::Error> {
-        if value == 0u64 {
-            Err(AdminAuthPositiveValueError)
-        } else {
-            Ok(Self(value))
-        }
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::IntoInnerFrom, newtype::TryFrom)]
+#[try_from(error = AdminAuthPositiveValueError, validator = |value: &usize| {
+    if *value == 0usize {
+        Err(AdminAuthPositiveValueError)
+    } else {
+        Ok(())
     }
-}
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::IntoInnerFrom)]
+})]
 pub struct StdAdminSessionLimit(usize);
-impl TryFrom<usize> for StdAdminSessionLimit {
-    type Error = AdminAuthPositiveValueError;
-    fn try_from(value: usize) -> Result<Self, Self::Error> {
-        if value == 0usize {
-            Err(AdminAuthPositiveValueError)
-        } else {
-            Ok(Self(value))
-        }
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::IntoInnerFrom, newtype::TryFrom)]
+#[try_from(error = AdminAuthPositiveValueError, validator = |value: &i64| {
+    if *value <= 0i64 {
+        Err(AdminAuthPositiveValueError)
+    } else {
+        Ok(())
     }
-}
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::IntoInnerFrom)]
+})]
 pub struct StdAdminFailureThreshold(i64);
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum AdminKnownFailureThreshold {
@@ -52,16 +50,6 @@ impl From<AdminKnownFailureThreshold> for StdAdminFailureThreshold {
     fn from(value: AdminKnownFailureThreshold) -> Self {
         match value {
             AdminKnownFailureThreshold::Default => Self(10i64),
-        }
-    }
-}
-impl TryFrom<i64> for StdAdminFailureThreshold {
-    type Error = AdminAuthPositiveValueError;
-    fn try_from(value: i64) -> Result<Self, Self::Error> {
-        if value <= 0i64 {
-            Err(AdminAuthPositiveValueError)
-        } else {
-            Ok(Self(value))
         }
     }
 }

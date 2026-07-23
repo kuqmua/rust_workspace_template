@@ -869,18 +869,17 @@ pub struct TransportIfMatch(String);
 #[derive(Clone, Debug, Default, PartialEq, Eq, newtype::AsRefStr, newtype::BoundedString)]
 #[bounded_string(max = 8192usize)]
 pub struct TransportPath(String);
-#[derive(Clone, Copy, Debug, PartialEq, Eq, newtype::Display, newtype::IntoInnerFrom)]
-pub struct TransportStatus(u16);
-impl TryFrom<u16> for TransportStatus {
-    type Error = HttpStatusTryFromU16Error;
-    fn try_from(value: u16) -> Result<Self, Self::Error> {
-        if (100u16..1_000u16).contains(&value) {
-            Ok(Self(value))
-        } else {
-            Err(HttpStatusTryFromU16Error)
-        }
+#[derive(
+    Clone, Copy, Debug, PartialEq, Eq, newtype::Display, newtype::IntoInnerFrom, newtype::TryFrom,
+)]
+#[try_from(error = HttpStatusTryFromU16Error, validator = |value: &u16| {
+    if (100u16..1_000u16).contains(value) {
+        Ok(())
+    } else {
+        Err(HttpStatusTryFromU16Error)
     }
-}
+})]
+pub struct TransportStatus(u16);
 impl From<KnownHttpStatus> for TransportStatus {
     fn from(value: KnownHttpStatus) -> Self {
         Self(value.get())

@@ -43,7 +43,14 @@ impl TryFrom<Vec<u8>> for PgTableIdempotencyBody {
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::AsRefInner, newtype::FromInner)]
 pub struct PgTableIdempotencyBodyRef<'body_lt>(&'body_lt [u8]);
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::IntoInnerFrom)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::IntoInnerFrom, newtype::TryFrom)]
+#[try_from(error = PgTableIdempotencyResponseStatusTryFromU16Error, validator = |value: &u16| {
+    if (100u16..1_000u16).contains(value) {
+        Ok(())
+    } else {
+        Err(PgTableIdempotencyResponseStatusTryFromU16Error)
+    }
+})]
 pub struct PgTableIdempotencyResponseStatus(u16);
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum PgTableIdempotencyKnownResponseStatus {
@@ -53,16 +60,6 @@ impl From<PgTableIdempotencyKnownResponseStatus> for PgTableIdempotencyResponseS
     fn from(value: PgTableIdempotencyKnownResponseStatus) -> Self {
         match value {
             PgTableIdempotencyKnownResponseStatus::InternalServerError => Self(500u16),
-        }
-    }
-}
-impl TryFrom<u16> for PgTableIdempotencyResponseStatus {
-    type Error = PgTableIdempotencyResponseStatusTryFromU16Error;
-    fn try_from(value: u16) -> Result<Self, Self::Error> {
-        if (100u16..1_000u16).contains(&value) {
-            Ok(Self(value))
-        } else {
-            Err(PgTableIdempotencyResponseStatusTryFromU16Error)
         }
     }
 }
@@ -76,30 +73,24 @@ impl PgTableIdempotencyResponseStatus {
 pub struct PgTableIdempotencyResponseStatusTryFromU16Error;
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::Display, newtype::FromInner)]
 pub struct PgTableIdempotencyTextBytes(usize);
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::TryFrom)]
+#[try_from(error = PgTableIdempotencyCleanupValueTryFromI64Error, validator = |value: &i64| {
+    if *value < 0i64 {
+        Err(PgTableIdempotencyCleanupValueTryFromI64Error::Negative)
+    } else {
+        Ok(())
+    }
+})]
 pub struct PgTableIdempotencyCleanupRetentionSeconds(i64);
-impl TryFrom<i64> for PgTableIdempotencyCleanupRetentionSeconds {
-    type Error = PgTableIdempotencyCleanupValueTryFromI64Error;
-    fn try_from(value: i64) -> Result<Self, Self::Error> {
-        if value < 0i64 {
-            Err(PgTableIdempotencyCleanupValueTryFromI64Error::Negative)
-        } else {
-            Ok(Self(value))
-        }
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::TryFrom)]
+#[try_from(error = PgTableIdempotencyCleanupValueTryFromI64Error, validator = |value: &i64| {
+    if *value <= 0i64 {
+        Err(PgTableIdempotencyCleanupValueTryFromI64Error::NotPositive)
+    } else {
+        Ok(())
     }
-}
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+})]
 pub struct PgTableIdempotencyCleanupBatchSize(i64);
-impl TryFrom<i64> for PgTableIdempotencyCleanupBatchSize {
-    type Error = PgTableIdempotencyCleanupValueTryFromI64Error;
-    fn try_from(value: i64) -> Result<Self, Self::Error> {
-        if value <= 0i64 {
-            Err(PgTableIdempotencyCleanupValueTryFromI64Error::NotPositive)
-        } else {
-            Ok(Self(value))
-        }
-    }
-}
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DebugDisplay, newtype::Error)]
 pub enum PgTableIdempotencyCleanupValueTryFromI64Error {
     Negative,

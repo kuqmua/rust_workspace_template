@@ -5,7 +5,14 @@ const WARNING_PERCENT: u8 = 70u8;
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, newtype::FromInner)]
 pub struct ResourceAmount(u64);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, newtype::TryFrom)]
+#[try_from(error = ResourceUtilizationPercentTryFromU8Error, validator = |value: &u8| {
+    if *value <= 100u8 {
+        Ok(())
+    } else {
+        Err(ResourceUtilizationPercentTryFromU8Error)
+    }
+})]
 pub struct ResourceUtilizationPercent(u8);
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum ResourceUtilizationKnownPercent {
@@ -15,16 +22,6 @@ impl From<ResourceUtilizationKnownPercent> for ResourceUtilizationPercent {
     fn from(value: ResourceUtilizationKnownPercent) -> Self {
         match value {
             ResourceUtilizationKnownPercent::Max => Self(100u8),
-        }
-    }
-}
-impl TryFrom<u8> for ResourceUtilizationPercent {
-    type Error = ResourceUtilizationPercentTryFromU8Error;
-    fn try_from(value: u8) -> Result<Self, Self::Error> {
-        if value <= 100u8 {
-            Ok(Self(value))
-        } else {
-            Err(ResourceUtilizationPercentTryFromU8Error)
         }
     }
 }
