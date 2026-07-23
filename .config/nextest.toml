@@ -5,7 +5,7 @@ failure-output = "immediate"
 success-output = "never"
 
 [[profile.default.overrides]]
-filter = "package(gen_wh_flts_test) | package(gen_pg_json_test) | package(gen_pg_json_obj_test) | package(gen_pg_tbl_test) | package(gen_pg_types_test) | package(tests)"
+filter = "package(generate_pg_table_test) | package(generate_pg_types_test) | package(generate_where_filters_test) | package(tests)"
 test-group = "serial-file-tests"
 
 [test-groups.serial-file-tests]

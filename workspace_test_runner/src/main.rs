@@ -20,28 +20,20 @@ const STATIC_COMMANDS: [(&str, &[&str]); 3] = [
         &str_constants::WORKSPACE_TEST_RUNNER_CARGO_TEST_STYLE_ARGS,
     ),
 ];
-const CARGO_TEST_COMMANDS: [(&str, &[&str]); 3] = [
+const CARGO_TEST_COMMANDS: [(&str, &[&str]); 2] = [
     (
         str_constants::WORKSPACE_TEST_RUNNER_CARGO,
         &str_constants::WORKSPACE_TEST_RUNNER_CARGO_TEST_WORKSPACE_ARGS,
     ),
     (
         str_constants::WORKSPACE_TEST_RUNNER_CARGO,
-        &str_constants::WORKSPACE_TEST_RUNNER_CARGO_TEST_IGNORED_ARGS,
-    ),
-    (
-        str_constants::WORKSPACE_TEST_RUNNER_CARGO,
         &str_constants::WORKSPACE_TEST_RUNNER_CARGO_TEST_DOC_ARGS,
     ),
 ];
-const NEXTEST_COMMANDS: [(&str, &[&str]); 3] = [
+const NEXTEST_COMMANDS: [(&str, &[&str]); 2] = [
     (
         str_constants::WORKSPACE_TEST_RUNNER_CARGO,
         &str_constants::WORKSPACE_TEST_RUNNER_NEXTEST_WORKSPACE_ARGS,
-    ),
-    (
-        str_constants::WORKSPACE_TEST_RUNNER_CARGO,
-        &str_constants::WORKSPACE_TEST_RUNNER_NEXTEST_IGNORED_ARGS,
     ),
     (
         str_constants::WORKSPACE_TEST_RUNNER_CARGO,
@@ -1641,6 +1633,19 @@ mod tests {
         );
         assert!(
             str_constants::WORKSPACE_TEST_RUNNER_CARGO_TEST_DATABASE_ARGS.contains(&"--ignored")
+        );
+    }
+    #[test]
+    fn tests_mode_leaves_ignored_suite_to_database_mode() {
+        assert!(
+            super::CARGO_TEST_COMMANDS
+                .iter()
+                .all(|(_program, args)| !args.contains(&"--ignored"))
+        );
+        assert!(
+            super::NEXTEST_COMMANDS
+                .iter()
+                .all(|(_program, args)| !args.contains(&"--run-ignored"))
         );
     }
 }
