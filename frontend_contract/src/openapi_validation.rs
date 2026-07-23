@@ -1,6 +1,8 @@
 const OPENAPI_CONTRACT_TEXT_MAX_LEN: usize = 1_048_576usize;
 
-#[derive(Clone, Debug, Eq, PartialEq, newtype::BoundedString)]
+#[derive(
+    Clone, Debug, Eq, Ord, PartialEq, PartialOrd, newtype::AsRefStr, newtype::BoundedString,
+)]
 #[bounded_string(max = OPENAPI_CONTRACT_TEXT_MAX_LEN)]
 pub struct OpenApiContractText(String);
 
@@ -13,6 +15,30 @@ pub struct SerdeJsonOpenApiSerializationError(serde_json::Error);
 
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct RuntimeRoutesRef<'value_lt>(&'value_lt [crate::RouteMetadata]);
+
+#[derive(newtype::FromInner)]
+struct SerdeJsonOpenApiValueRef<'value_lt>(&'value_lt serde_json::Value);
+#[derive(newtype::FromInner)]
+struct SerdeJsonOpenApiSchemasRef<'value_lt>(&'value_lt serde_json::Map<String, serde_json::Value>);
+#[derive(newtype::FromInner)]
+struct OpenApiSchemaReferences(std::collections::BTreeSet<OpenApiContractText>);
+struct OpenApiSchemaReferenceAnalysis<'value_lt> {
+    references: OpenApiSchemaReferences,
+    schemas: SerdeJsonOpenApiSchemasRef<'value_lt>,
+}
+impl OpenApiSchemaReferenceAnalysis<'_> {
+    fn validate_references(&self) -> Result<(), OpenApiValidationError> {
+        self.references.0.iter().try_for_each(|reference| {
+            if self.schemas.0.contains_key(reference.as_ref()) {
+                Ok(())
+            } else {
+                Err(OpenApiValidationError::MissingSchemaReference(
+                    reference.clone(),
+                ))
+            }
+        })
+    }
+}
 
 #[derive(Debug, newtype::DebugDisplay, thiserror::Error)]
 pub enum OpenApiValidationError {
@@ -110,6 +136,62 @@ pub enum OpenApiPayloadValidationError {
     SchemaSerialization(SerdeJsonOpenApiSerializationError),
 }
 
+fn openapi_schema_references(
+    document: SerdeJsonOpenApiValueRef<'_>,
+) -> Result<OpenApiSchemaReferenceAnalysis<'_>, OpenApiValidationError> {
+    let schemas = document
+        .0
+        .pointer(str_constants::COMPONENTS_SCHEMAS_ALT)
+        .and_then(serde_json::Value::as_object)
+        .ok_or(OpenApiValidationError::MissingSchemas)?;
+    let mut references = std::collections::BTreeSet::new();
+    let mut pending = vec![document.0];
+    while let Some(current) = pending.pop() {
+        match current {
+            serde_json::Value::Array(values) => pending.extend(values),
+            serde_json::Value::Object(values) => {
+                if let Some(name) = values
+                    .get(str_constants::DOLLAR_REF)
+                    .and_then(serde_json::Value::as_str)
+                    .and_then(|reference| reference.strip_prefix(str_constants::COMPONENTS_SCHEMAS))
+                {
+                    let reference =
+                        OpenApiContractText::try_from(name.to_owned()).map_err(|error| {
+                            OpenApiValidationError::TextTooLong(OpenApiContractTextError::from(
+                                error,
+                            ))
+                        })?;
+                    let _inserted: bool = references.insert(reference);
+                }
+                pending.extend(values.values());
+            }
+            serde_json::Value::Bool(_)
+            | serde_json::Value::Null
+            | serde_json::Value::Number(_)
+            | serde_json::Value::String(_) => {}
+        }
+    }
+    Ok(OpenApiSchemaReferenceAnalysis {
+        references: OpenApiSchemaReferences::from(references),
+        schemas: SerdeJsonOpenApiSchemasRef::from(schemas),
+    })
+}
+
+pub fn validate_openapi_schema_references<Document>(
+    document: &Document,
+) -> Result<(), OpenApiValidationError>
+where
+    Document: serde::Serialize,
+{
+    let document_value = serde_json::to_value(document).map_err(|error| {
+        OpenApiValidationError::DocumentSerialization(SerdeJsonOpenApiSerializationError::from(
+            error,
+        ))
+    })?;
+    openapi_schema_references(SerdeJsonOpenApiValueRef::from(&document_value))?
+        .validate_references()
+}
+
 pub fn validate_openapi_contract<Document>(
     document: &Document,
     runtime_routes: RuntimeRoutesRef<'_>,
@@ -122,51 +204,17 @@ where
             error,
         ))
     })?;
-    let schemas = document_value
-        .pointer(str_constants::COMPONENTS_SCHEMAS_ALT)
-        .and_then(serde_json::Value::as_object)
-        .ok_or(OpenApiValidationError::MissingSchemas)?;
-    let mut references = std::collections::BTreeSet::new();
-    let mut pending = vec![&document_value];
-    while let Some(current) = pending.pop() {
-        match current {
-            serde_json::Value::Array(values) => pending.extend(values),
-            serde_json::Value::Object(values) => {
-                if let Some(name) = values
-                    .get(str_constants::DOLLAR_REF)
-                    .and_then(serde_json::Value::as_str)
-                    .and_then(|reference| reference.strip_prefix(str_constants::COMPONENTS_SCHEMAS))
-                {
-                    let _inserted: bool = references.insert(name.to_owned());
-                }
-                pending.extend(values.values());
-            }
-            serde_json::Value::Bool(_)
-            | serde_json::Value::Null
-            | serde_json::Value::Number(_)
-            | serde_json::Value::String(_) => {}
-        }
-    }
-    references.iter().try_for_each(|reference| {
-        if schemas.contains_key(reference) {
+    let schema_analysis =
+        openapi_schema_references(SerdeJsonOpenApiValueRef::from(&document_value))?;
+    schema_analysis.validate_references()?;
+    schema_analysis.schemas.0.keys().try_for_each(|name| {
+        let contract_name = OpenApiContractText::try_from(name.clone()).map_err(|error| {
+            OpenApiValidationError::TextTooLong(OpenApiContractTextError::from(error))
+        })?;
+        if schema_analysis.references.0.contains(&contract_name) {
             Ok(())
         } else {
-            Err(OpenApiValidationError::MissingSchemaReference(
-                OpenApiContractText::try_from(reference.clone()).map_err(|error| {
-                    OpenApiValidationError::TextTooLong(OpenApiContractTextError::from(error))
-                })?,
-            ))
-        }
-    })?;
-    schemas.keys().try_for_each(|name| {
-        if references.contains(name) {
-            Ok(())
-        } else {
-            Err(OpenApiValidationError::UnusedSchema(
-                OpenApiContractText::try_from(name.clone()).map_err(|error| {
-                    OpenApiValidationError::TextTooLong(OpenApiContractTextError::from(error))
-                })?,
-            ))
+            Err(OpenApiValidationError::UnusedSchema(contract_name))
         }
     })?;
 
@@ -548,6 +596,10 @@ mod tests {
         });
         assert!(matches!(
             super::validate_openapi_contract(&document, (&[][..]).into()),
+            Err(super::OpenApiValidationError::MissingSchemaReference(_))
+        ));
+        assert!(matches!(
+            super::validate_openapi_schema_references(&document),
             Err(super::OpenApiValidationError::MissingSchemaReference(_))
         ));
     }

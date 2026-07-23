@@ -154,6 +154,70 @@ fn admin_frontend_api_urls_come_from_typed_routes() {
     });
 }
 #[test]
+#[allow(clippy::needless_for_each)] // iterator form is required by the workspace no-for-loop policy
+fn service_route_handler_composition_uses_shared_registries() {
+    super::snapshot::with_codebase_snapshot(|snapshot| {
+        [
+            ("server_admin/src/auth/html.rs", 2usize),
+            ("notification_service/src/main.rs", 1usize),
+        ]
+        .iter()
+        .for_each(|(path_suffix, expected_registry_count)| {
+            let source = snapshot
+                .rs_files()
+                .iter()
+                .find(|file| file.path().as_ref().ends_with(path_suffix))
+                .expect("249edc4a")
+                .content()
+                .as_ref();
+            assert_eq!(
+                source
+                    .matches("frontend_contract::handler_registry")
+                    .count(),
+                *expected_registry_count,
+                "26aa4162"
+            );
+            assert!(!source.contains(".route("), "71f23fd6");
+        });
+    });
+}
+#[test]
+#[allow(clippy::needless_for_each)] // iterator form is required by the workspace no-for-loop policy
+fn typed_route_registries_own_request_bodies_and_schema_catalogs() {
+    super::snapshot::with_codebase_snapshot(|snapshot| {
+        [
+            "server_admin/src/auth/routes.rs",
+            "notification_service/src/main.rs",
+        ]
+        .iter()
+        .for_each(|path_suffix| {
+            let source = snapshot
+                .rs_files()
+                .iter()
+                .find(|file| file.path().as_ref().ends_with(path_suffix))
+                .expect("a63a8d31")
+                .content()
+                .as_ref();
+            assert!(!source.contains("components(schemas"), "94cc9de1");
+        });
+        [
+            "server_admin/src/auth.rs",
+            "notification_service/src/main.rs",
+        ]
+        .iter()
+        .for_each(|path_suffix| {
+            let source = snapshot
+                .rs_files()
+                .iter()
+                .find(|file| file.path().as_ref().ends_with(path_suffix))
+                .expect("5bde3d5c")
+                .content()
+                .as_ref();
+            assert!(!source.contains("request_body ="), "95cc867b");
+        });
+    });
+}
+#[test]
 fn config_reference_getters_use_generated_forwarding() {
     super::snapshot::with_codebase_snapshot(|snapshot| {
         let source = snapshot

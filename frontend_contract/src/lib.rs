@@ -52,7 +52,8 @@ pub use auth_session_keep_alive::{
     StdAuthSessionRefreshInterval,
 };
 pub use frontend_contract_macros::{
-    PageCatalog, RouteCatalog, RouteFamily, TypedRoute, route_openapi, route_registry,
+    PageCatalog, RouteCatalog, RouteFamily, TypedRoute, handler_registry, route_openapi,
+    route_registry,
 };
 pub use json_snapshot::{
     JsonContractSnapshot, JsonContractSnapshotError, JsonSnapshotDynamicFieldRef,
@@ -64,6 +65,7 @@ pub use openapi_validation::{
     OpenApiResponseStatus, OpenApiSchemaMismatch, OpenApiSecurityExpectation,
     OpenApiValidationError, RuntimeRoutesRef, SerdeJsonOpenApiSerializationError,
     validate_openapi_contract, validate_openapi_json_payload, validate_openapi_operations,
+    validate_openapi_schema_references,
 };
 pub use problem::{
     ApiProblem, ApiProblemDetail, ApiProblemField, ApiProblemKind, ApiProblemRequestId,
@@ -72,13 +74,15 @@ pub use problem::{
 pub use route::{
     AuthenticatedTransport, CoveredRoute, OpenApiSecuritySchemeRef, ParameterizedRoute,
     ParameterizedRoutePath, ParameterizedRoutePathTryFromStringError, PublicTransport,
-    RouteBodyLimit, RouteCoverageDescriptors, RouteFamily, RouteMetadata, RouteMetadataList,
-    RouteMethod, RouteRequest, RouteResponse, RouteSchemaContract, RouteSchemaContracts,
-    RouteTransport, TypedRoute, UtoipaOpenApiPathParameter, UtoipaOpenApiRouteSchema,
-    apply_openapi_error_contract, apply_openapi_path_parameter_contract,
-    apply_openapi_security_contract, apply_openapi_success_contract, client_request,
-    client_route_metadata, openapi_route_metadata, server_response, server_route_metadata,
-    typed_parameterized_route_path, typed_route_path,
+    RouteBodyLimit, RouteCoverageDescriptors, RouteFamily, RouteInFamily, RouteMetadata,
+    RouteMetadataList, RouteMethod, RouteRequest, RouteRequestBody, RouteResponse,
+    RouteSchemaContract, RouteSchemaContracts, RouteTransport, TypedRoute,
+    UtoipaOpenApiComponentsRefMut, UtoipaOpenApiPathParameter, UtoipaOpenApiRefMut,
+    UtoipaOpenApiRouteSchema, apply_openapi_error_contract, apply_openapi_path_parameter_contract,
+    apply_openapi_request_contract, apply_openapi_security_contract,
+    apply_openapi_success_contract, client_request, client_route_metadata, openapi_route_metadata,
+    register_openapi_route_schemas, register_openapi_schema, server_response,
+    server_route_metadata, typed_parameterized_route_path, typed_route_path,
 };
 pub use route_contract_validation::{
     HttpContractBody, HttpContractBodyKind, HttpContractExpectation, HttpContractMismatch,

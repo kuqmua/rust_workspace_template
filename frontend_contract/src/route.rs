@@ -144,6 +144,30 @@ impl RouteMetadata {
         )
     }
 }
+#[derive(newtype::FromInner)]
+pub struct UtoipaOpenApiComponentsRefMut<'value_lt>(
+    &'value_lt mut utoipa::openapi::schema::Components,
+);
+impl std::fmt::Debug for UtoipaOpenApiComponentsRefMut<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct(str_constants::UTOIPAOPENAPICOMPONENTSREFMUT)
+            .finish_non_exhaustive()
+    }
+}
+impl UtoipaOpenApiComponentsRefMut<'_> {
+    #[must_use]
+    pub fn reborrow(&mut self) -> UtoipaOpenApiComponentsRefMut<'_> {
+        UtoipaOpenApiComponentsRefMut::from(&mut *self.0)
+    }
+}
+#[derive(newtype::FromInner)]
+pub struct UtoipaOpenApiRefMut<'value_lt>(&'value_lt mut utoipa::openapi::OpenApi);
+impl std::fmt::Debug for UtoipaOpenApiRefMut<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct(str_constants::UTOIPAOPENAPIREFMUT)
+            .finish_non_exhaustive()
+    }
+}
 pub trait TypedRoute: Sized {
     type Request: serde::Serialize + serde::de::DeserializeOwned;
     type Response: serde::Serialize + serde::de::DeserializeOwned;
@@ -161,6 +185,16 @@ pub trait TypedRoute: Sized {
     fn openapi_path_parameter() -> Option<UtoipaOpenApiPathParameter> {
         None
     }
+    #[must_use]
+    fn request_body() -> RouteRequestBody {
+        RouteRequestBody::Absent
+    }
+    fn register_openapi_schemas(_components: UtoipaOpenApiComponentsRefMut<'_>) {}
+}
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum RouteRequestBody {
+    Absent,
+    Json,
 }
 #[derive(Clone, Debug)]
 pub struct RouteSchemaContract {
@@ -267,6 +301,7 @@ impl RouteBodyLimit {
     }
 }
 pub trait RouteFamily {
+    const ROUTE_COUNT: usize = 0usize;
     #[must_use]
     fn body_limit() -> Option<RouteBodyLimit> {
         None
@@ -283,6 +318,11 @@ pub trait RouteFamily {
             .collect::<Vec<_>>()
             .into()
     }
+}
+pub trait RouteInFamily<Family>
+where
+    Family: RouteFamily,
+{
 }
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RouteRequest<Route>
@@ -380,6 +420,76 @@ where
         .responses
         .responses
         .insert(status, utoipa::openapi::RefOr::T(response));
+}
+pub fn apply_openapi_request_contract<Route>(operation: &mut utoipa::openapi::path::Operation)
+where
+    Route: TypedRoute,
+{
+    operation.request_body = match Route::request_body() {
+        RouteRequestBody::Absent => None,
+        RouteRequestBody::Json => Route::openapi_request_schema().map(|schema| {
+            utoipa::openapi::request_body::RequestBodyBuilder::new()
+                .required(Some(utoipa::openapi::Required::True))
+                .content(
+                    str_constants::APPLICATION_JSON,
+                    utoipa::openapi::Content::new::<
+                        utoipa::openapi::RefOr<utoipa::openapi::Schema>,
+                    >(schema.into()),
+                )
+                .build()
+        }),
+    };
+}
+#[allow(clippy::needless_for_each)] // iterator form follows the workspace no-for-loop policy
+pub fn register_openapi_schema<'schema_lt, Schema>(components: UtoipaOpenApiComponentsRefMut<'_>)
+where
+    Schema: utoipa::ToSchema<'schema_lt>,
+{
+    let aliases = Schema::aliases();
+    if aliases.is_empty() {
+        let (name, schema) = Schema::schema();
+        let qualified_name = std::any::type_name::<Schema>()
+            .replace(str_constants::DOUBLE_COLON, str_constants::DOT);
+        let _previous_qualified_schema =
+            components.0.schemas.insert(qualified_name, schema.clone());
+        if let Some(crate_name) = std::any::type_name::<Schema>()
+            .split(str_constants::DOUBLE_COLON)
+            .next()
+        {
+            let _previous_crate_schema = components
+                .0
+                .schemas
+                .insert(format!("{crate_name}.{name}"), schema.clone());
+        }
+        let _previous_named_schema = components.0.schemas.insert(name.to_owned(), schema);
+    } else {
+        aliases.into_iter().for_each(|(name, schema)| {
+            let _previous_schema = components
+                .0
+                .schemas
+                .insert(name.to_owned(), utoipa::openapi::RefOr::T(schema));
+        });
+    }
+}
+pub fn register_openapi_route_schemas<Route>(document: UtoipaOpenApiRefMut<'_>)
+where
+    Route: TypedRoute,
+{
+    let components = document
+        .0
+        .components
+        .get_or_insert_with(utoipa::openapi::schema::Components::new);
+    let mut components = UtoipaOpenApiComponentsRefMut::from(components);
+    Route::register_openapi_schemas(components.reborrow());
+    register_openapi_schema::<crate::ApiProblem>(components.reborrow());
+    register_openapi_schema::<crate::ApiProblemDetail>(components.reborrow());
+    register_openapi_schema::<crate::ApiProblemField>(components.reborrow());
+    register_openapi_schema::<crate::ApiProblemKind>(components.reborrow());
+    register_openapi_schema::<crate::ApiProblemRequestId>(components.reborrow());
+    register_openapi_schema::<crate::ApiProblemStatus>(components.reborrow());
+    register_openapi_schema::<crate::ApiProblemViolation>(components.reborrow());
+    register_openapi_schema::<crate::FilterOperation>(components.reborrow());
+    register_openapi_schema::<crate::FilterValueShape>(components);
 }
 pub fn apply_openapi_path_parameter_contract<Route>(
     operation: &mut utoipa::openapi::path::Operation,

@@ -195,6 +195,7 @@ struct TypedRouteArgs {
     path: SynExpr,
     path_parameter: Option<SynType>,
     request: SynType,
+    request_body: Option<SynExpr>,
     response: SynType,
     success_status: SynExpr,
     transport: SynType,
@@ -214,7 +215,83 @@ struct SynRouteRegistryRoute(syn::Type);
 struct SynRouteRegistryBindings(syn::punctuated::Punctuated<RouteRegistryBinding, syn::Token![,]>);
 
 #[derive(newtype::FromInner)]
+struct SynRouteRegistrySchemas(Vec<syn::Type>);
+
+#[derive(newtype::FromInner)]
 struct SynRouteRegistryState(syn::Type);
+
+#[derive(newtype::FromInner)]
+struct SynRouteRegistryFamily(syn::Type);
+
+struct HandlerRegistryBinding {
+    handler: SynHandlerRegistryHandler,
+    path: SynHandlerRegistryPath,
+    routing: SynHandlerRegistryRouting,
+}
+#[derive(newtype::FromInner)]
+struct SynHandlerRegistryHandler(syn::Path);
+
+#[derive(newtype::FromInner)]
+struct SynHandlerRegistryPath(syn::Expr);
+
+#[derive(newtype::FromInner)]
+struct SynHandlerRegistryRouting(syn::Path);
+
+#[derive(newtype::FromInner)]
+struct SynHandlerRegistryBindings(
+    syn::punctuated::Punctuated<HandlerRegistryBinding, syn::Token![,]>,
+);
+
+#[derive(newtype::FromInner)]
+struct SynHandlerRegistryState(syn::Type);
+
+impl syn::parse::Parse for HandlerRegistryBinding {
+    fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
+        let content;
+        let _parenthesis = syn::parenthesized!(content in input);
+        let path = SynHandlerRegistryPath::from(content.parse::<syn::Expr>()?);
+        let _path_comma = content.parse::<syn::Token![,]>()?;
+        let routing = SynHandlerRegistryRouting::from(content.parse::<syn::Path>()?);
+        let _routing_comma = content.parse::<syn::Token![,]>()?;
+        let handler = SynHandlerRegistryHandler::from(content.parse::<syn::Path>()?);
+        Ok(Self {
+            handler,
+            path,
+            routing,
+        })
+    }
+}
+
+struct HandlerRegistryArgs {
+    bindings: SynHandlerRegistryBindings,
+    state: SynHandlerRegistryState,
+}
+
+impl syn::parse::Parse for HandlerRegistryArgs {
+    fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
+        let state_name = input.parse::<syn::Ident>()?;
+        if state_name != str_constants::STATE {
+            return Err(syn::Error::new_spanned(
+                state_name,
+                str_constants::HANDLER_REGISTRY_REQUIRES_STATE,
+            ));
+        }
+        let _equals = input.parse::<syn::Token![=]>()?;
+        let state = SynHandlerRegistryState::from(input.parse::<syn::Type>()?);
+        let _semicolon = input.parse::<syn::Token![;]>()?;
+        let bindings =
+            syn::punctuated::Punctuated::<HandlerRegistryBinding, syn::Token![,]>::parse_terminated(
+                input,
+            )?;
+        if bindings.is_empty() {
+            return Err(input.error(str_constants::HANDLER_REGISTRY_REQUIRES_BINDING));
+        }
+        Ok(Self {
+            bindings: SynHandlerRegistryBindings::from(bindings),
+            state,
+        })
+    }
+}
 
 impl syn::parse::Parse for RouteRegistryBinding {
     fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
@@ -230,7 +307,54 @@ struct RouteRegistryArgs {
     authenticated_security: SynExpr,
     bindings: SynRouteRegistryBindings,
     csrf_security: SynExpr,
+    family: SynRouteRegistryFamily,
+    schemas: SynRouteRegistrySchemas,
     state: SynRouteRegistryState,
+}
+
+#[proc_macro_attribute]
+pub fn handler_registry(
+    attribute_args: proc_macro::TokenStream,
+    input: proc_macro::TokenStream,
+) -> proc_macro::TokenStream {
+    let parsed_args = match syn::parse::<HandlerRegistryArgs>(attribute_args) {
+        Ok(value) => value,
+        Err(error) => return error.to_compile_error().into(),
+    };
+    let item = match syn::parse::<syn::ItemStruct>(input) {
+        Ok(value) => value,
+        Err(error) => return error.to_compile_error().into(),
+    };
+    let identifier = &item.ident;
+    let state = parsed_args.state.0;
+    let paths = parsed_args
+        .bindings
+        .0
+        .iter()
+        .map(|binding| &binding.path.0)
+        .collect::<Vec<_>>();
+    let routing = parsed_args
+        .bindings
+        .0
+        .iter()
+        .map(|binding| &binding.routing.0)
+        .collect::<Vec<_>>();
+    let handlers = parsed_args
+        .bindings
+        .0
+        .iter()
+        .map(|binding| &binding.handler.0)
+        .collect::<Vec<_>>();
+    quote::quote! {
+        #item
+        impl #identifier {
+            fn router() -> axum::Router<#state> {
+                axum::Router::new()
+                    #(.route(#paths, #routing(#handlers)))*
+            }
+        }
+    }
+    .into()
 }
 
 #[proc_macro_attribute]
@@ -264,13 +388,38 @@ impl syn::parse::Parse for RouteRegistryArgs {
         }
         let _equals = input.parse::<syn::Token![=]>()?;
         let state = SynRouteRegistryState::from(input.parse::<syn::Type>()?);
-        let _security_semicolon = input.parse::<syn::Token![;]>()?;
+        let _state_comma = input.parse::<syn::Token![,]>()?;
+        let family_name = input.parse::<syn::Ident>()?;
+        if family_name != str_constants::FAMILY {
+            return Err(syn::Error::new_spanned(
+                family_name,
+                str_constants::ROUTE_REGISTRY_REQUIRES_FAMILY,
+            ));
+        }
+        let _family_equals = input.parse::<syn::Token![=]>()?;
+        let family = SynRouteRegistryFamily::from(input.parse::<syn::Type>()?);
+        let _family_semicolon = input.parse::<syn::Token![;]>()?;
         let security_content;
-        let _parenthesis = syn::parenthesized!(security_content in input);
+        let _security_parenthesis = syn::parenthesized!(security_content in input);
         let authenticated_security = SynExpr::from(security_content.parse::<syn::Expr>()?);
         let _comma = security_content.parse::<syn::Token![,]>()?;
         let csrf_security = SynExpr::from(security_content.parse::<syn::Expr>()?);
-        let _semicolon = input.parse::<syn::Token![;]>()?;
+        let _security_semicolon = input.parse::<syn::Token![;]>()?;
+        let schemas_name = input.parse::<syn::Ident>()?;
+        if schemas_name != str_constants::SCHEMAS {
+            return Err(syn::Error::new_spanned(
+                schemas_name,
+                str_constants::ROUTE_REGISTRY_REQUIRES_SCHEMAS,
+            ));
+        }
+        let schemas_content;
+        let _schemas_parenthesis = syn::parenthesized!(schemas_content in input);
+        let schemas = syn::punctuated::Punctuated::<syn::Type, syn::Token![,]>::parse_terminated(
+            &schemas_content,
+        )?
+        .into_iter()
+        .collect::<Vec<_>>();
+        let _schemas_semicolon = input.parse::<syn::Token![;]>()?;
         let bindings =
             syn::punctuated::Punctuated::<RouteRegistryBinding, syn::Token![,]>::parse_terminated(
                 input,
@@ -282,6 +431,8 @@ impl syn::parse::Parse for RouteRegistryArgs {
             authenticated_security,
             bindings: SynRouteRegistryBindings::from(bindings),
             csrf_security,
+            family,
+            schemas: SynRouteRegistrySchemas::from(schemas),
             state,
         })
     }
@@ -325,10 +476,13 @@ pub fn route_registry(
         }
     };
     let identifier = &item.ident;
+    let unique_route_trait_identifier = quote::format_ident!("{}UniqueRoute", identifier);
     let openapi_identifier = quote::format_ident!("{}OpenApi", identifier);
     let state = parsed_args.state.0;
+    let family = parsed_args.family.0;
     let authenticated_security = parsed_args.authenticated_security.0;
     let csrf_security = parsed_args.csrf_security.0;
+    let schemas = parsed_args.schemas.0;
     let routes = parsed_args
         .bindings
         .0
@@ -341,6 +495,7 @@ pub fn route_registry(
         .iter()
         .map(|binding| &binding.handler.0)
         .collect::<Vec<_>>();
+    let route_count = routes.len();
     let openapi_paths = parsed_args
         .bindings
         .0
@@ -355,15 +510,35 @@ pub fn route_registry(
         .collect::<Vec<_>>();
     quote::quote! {
         #item
+        trait #unique_route_trait_identifier {}
+        #(impl #unique_route_trait_identifier for #routes {})*
+        const _: [(); <#family as frontend_contract::RouteFamily>::ROUTE_COUNT] =
+            [(); #route_count];
         #[allow(clippy::needless_for_each)]
         #[derive(utoipa::OpenApi)]
         #[openapi(paths(#(#handlers),*), #openapi_metadata)]
         struct #openapi_identifier;
         impl #identifier {
+            fn assert_route_family_membership<Route>()
+            where
+                Route: frontend_contract::RouteInFamily<#family> + #unique_route_trait_identifier,
+            {
+            }
             fn open_api() -> utoipa::openapi::OpenApi {
                 let mut document = <#openapi_identifier as utoipa::OpenApi>::openapi();
+                #({
+                    let components = document
+                        .components
+                        .get_or_insert_with(utoipa::openapi::schema::Components::new);
+                    frontend_contract::register_openapi_schema::<#schemas>(
+                        frontend_contract::UtoipaOpenApiComponentsRefMut::from(components)
+                    );
+                })*
                 document.paths = utoipa::openapi::path::Paths::new();
                 #({
+                    frontend_contract::register_openapi_route_schemas::<#routes>(
+                        frontend_contract::UtoipaOpenApiRefMut::from(&mut document)
+                    );
                     let metadata = <#routes as frontend_contract::TypedRoute>::metadata();
                     let mut source_path_item = <#openapi_paths as utoipa::Path>::path_item(None);
                     if let Some(mut operation) = source_path_item
@@ -371,6 +546,7 @@ pub fn route_registry(
                         .remove(&utoipa::openapi::path::PathItemType::Get)
                     {
                         operation.operation_id = Some(metadata.openapi_operation_id().as_ref().to_owned());
+                        frontend_contract::apply_openapi_request_contract::<#routes>(&mut operation);
                         frontend_contract::apply_openapi_success_contract::<#routes>(&mut operation);
                         frontend_contract::apply_openapi_error_contract::<#routes>(&mut operation);
                         frontend_contract::apply_openapi_path_parameter_contract::<#routes>(&mut operation);
@@ -402,6 +578,7 @@ pub fn route_registry(
                 document
             }
             fn router() -> axum::Router<#state> {
+                #(Self::assert_route_family_membership::<#routes>();)*
                 axum::Router::new()
                     #(.route(
                         frontend_contract::typed_route_path::<#routes>().as_ref(),
@@ -437,6 +614,7 @@ impl syn::parse::Parse for TypedRouteArgs {
         let mut path = None;
         let mut path_parameter = None;
         let mut request = None;
+        let mut request_body = None;
         let mut response = None;
         let mut success_status = None;
         let mut transport = None;
@@ -470,6 +648,9 @@ impl syn::parse::Parse for TypedRouteArgs {
                 }
                 str_constants::REQUEST => {
                     request = Some(SynType::from(input.parse::<syn::Type>()?));
+                }
+                str_constants::TYPED_ROUTE_FIELD_REQUEST_BODY => {
+                    request_body = Some(SynExpr::from(input.parse::<syn::Expr>()?));
                 }
                 str_constants::RESPONSE => {
                     response = Some(SynType::from(input.parse::<syn::Type>()?));
@@ -506,6 +687,7 @@ impl syn::parse::Parse for TypedRouteArgs {
             path_parameter,
             request: request
                 .ok_or_else(|| input.error(str_constants::TYPED_ROUTE_REQUIRES_REQUEST))?,
+            request_body,
             response: response
                 .ok_or_else(|| input.error(str_constants::TYPED_ROUTE_REQUIRES_RESPONSE))?,
             success_status: success_status
@@ -683,6 +865,10 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
     };
     let path = args.path.0;
     let request = args.request.0;
+    let request_body = args.request_body.map_or_else(
+        || quote::quote!(frontend_contract::RouteRequestBody::Absent),
+        |value| quote::ToTokens::into_token_stream(&value.0),
+    );
     let response = args.response.0;
     let response_schema = match &response {
         syn::Type::Path(type_path)
@@ -698,6 +884,20 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
         }
         _ => quote::quote! {
             Some(frontend_contract::UtoipaOpenApiRouteSchema::from(<#response as utoipa::ToSchema>::schema().1))
+        },
+    };
+    let response_schema_registration = match &response {
+        syn::Type::Path(type_path)
+            if type_path
+                .path
+                .segments
+                .last()
+                .is_some_and(|segment| segment.ident == str_constants::VEC) =>
+        {
+            proc_macro2::TokenStream::new()
+        }
+        _ => quote::quote! {
+            frontend_contract::register_openapi_schema::<#response>(components.reborrow());
         },
     };
     let success_status = args.success_status.0;
@@ -721,11 +921,24 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
             fn openapi_request_schema() -> Option<frontend_contract::UtoipaOpenApiRouteSchema> {
                 Some(frontend_contract::UtoipaOpenApiRouteSchema::from(<#request as utoipa::ToSchema>::schema().1))
             }
+            fn request_body() -> frontend_contract::RouteRequestBody {
+                #request_body
+            }
             fn openapi_response_schema() -> Option<frontend_contract::UtoipaOpenApiRouteSchema> {
                 #response_schema
             }
             fn openapi_path_parameter() -> Option<frontend_contract::UtoipaOpenApiPathParameter> {
                 #openapi_path_parameter
+            }
+            fn register_openapi_schemas(
+                mut components: frontend_contract::UtoipaOpenApiComponentsRefMut<'_>,
+            ) {
+                if <Self as frontend_contract::TypedRoute>::request_body()
+                    == frontend_contract::RouteRequestBody::Json
+                {
+                    frontend_contract::register_openapi_schema::<#request>(components.reborrow());
+                }
+                #response_schema_registration
             }
         }
         impl frontend_contract::CoveredRoute for #identifier {
@@ -879,6 +1092,7 @@ pub fn derive_route_catalog(input: proc_macro::TokenStream) -> proc_macro::Token
     let identifier = derive_input.ident;
     let family = args.family.0;
     let body_limit = args.body_limit.0;
+    let route_count = family_routes.len();
     quote::quote! {
         impl #identifier {
             #[must_use]
@@ -896,6 +1110,7 @@ pub fn derive_route_catalog(input: proc_macro::TokenStream) -> proc_macro::Token
         #[derive(Clone, Copy, Debug)]
         pub struct #family;
         impl frontend_contract::RouteFamily for #family {
+            const ROUTE_COUNT: usize = #route_count;
             fn body_limit() -> Option<frontend_contract::RouteBodyLimit> {
                 Some(frontend_contract::RouteBodyLimit::from(#body_limit))
             }
@@ -914,6 +1129,7 @@ pub fn derive_route_catalog(input: proc_macro::TokenStream) -> proc_macro::Token
                 ].into()
             }
         }
+        #(impl frontend_contract::RouteInFamily<#family> for #family_routes {})*
     }
     .into()
 }
@@ -1094,8 +1310,10 @@ pub fn derive_route_family(input: proc_macro::TokenStream) -> proc_macro::TokenS
     };
     let identifier = derive_input.ident;
     let route_types = routes.iter().collect::<Vec<_>>();
+    let route_count = route_types.len();
     quote::quote! {
         impl frontend_contract::RouteFamily for #identifier {
+            const ROUTE_COUNT: usize = #route_count;
             #body_limit
             fn coverage_descriptors() -> frontend_contract::RouteCoverageDescriptors {
                 vec![
@@ -1112,6 +1330,41 @@ pub fn derive_route_family(input: proc_macro::TokenStream) -> proc_macro::TokenS
                 ].into()
             }
         }
+        #(impl frontend_contract::RouteInFamily<#identifier> for #route_types {})*
     }
     .into()
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn route_registry_args_require_family_after_state() {
+        let result = syn::parse_str::<super::RouteRegistryArgs>(
+            "state = (), wrong = Family; (\"authenticated\", \"csrf\"); schemas(); (Route, handler),",
+        );
+        let Err(error) = result else {
+            panic!("da287c44");
+        };
+        assert!(
+            error
+                .to_string()
+                .contains(str_constants::ROUTE_REGISTRY_REQUIRES_FAMILY)
+        );
+    }
+
+    #[test]
+    fn route_registry_args_parse_family_and_bindings() {
+        let result = syn::parse_str::<super::RouteRegistryArgs>(
+            "state = (), family = Family; (\"authenticated\", \"csrf\"); schemas(Schema); (Route, handler),",
+        );
+        let Ok(args) = result else {
+            panic!("6282e207");
+        };
+        assert_eq!(args.bindings.0.len(), 1usize);
+        assert_eq!(args.schemas.0.len(), 1usize);
+        assert_eq!(
+            quote::ToTokens::to_token_stream(&args.family.0).to_string(),
+            str_constants::FAMILY_UPPER_CAMEL_CASE
+        );
+    }
 }

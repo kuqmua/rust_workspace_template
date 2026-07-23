@@ -219,6 +219,7 @@ fn authenticated_admin_contract(
 #[derive(Clone, Debug, serde::Deserialize, utoipa::IntoParams)]
 #[into_params(parameter_in = Query)]
 pub struct AdminAuditQuery {
+    #[param(inline)]
     action: Option<super::AdminAuditAction>,
     created_after: Option<server_admin_contract::AdminAuditTimestamp>,
     created_before: Option<server_admin_contract::AdminAuditTimestamp>,
@@ -230,9 +231,11 @@ pub struct AdminAuditQuery {
     #[serde(default)]
     #[param(value_type = u32)]
     offset: server_admin_contract::AdminPageOffset,
+    #[param(inline)]
     resource: Option<super::AdminAuditResource>,
     resource_id: Option<server_admin_contract::AdminText>,
     succeeded: Option<server_admin_contract::AdminBool>,
+    #[param(inline)]
     user_id: Option<super::AdminUserId>,
     user_login: Option<server_admin_contract::AdminLogin>,
 }
@@ -917,7 +920,7 @@ fn append_cleared_session_cookies(
     })
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[frontend_contract::route_openapi(request_body = server_admin_contract::AdminSignInReq, tag = "admin_auth")]
+#[frontend_contract::route_openapi(tag = "admin_auth")]
 async fn sign_in(
     auth: AdminAuthReq,
     peer: AdminPeerAddr,
@@ -931,7 +934,7 @@ async fn me(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiError> {
     handlers::me(auth).await
 }
 #[allow(clippy::single_call_fn)]
-#[frontend_contract::route_openapi(request_body = server_admin_contract::AdminChangeOwnPasswordReq, tag = "admin_auth")]
+#[frontend_contract::route_openapi(tag = "admin_auth")]
 async fn change_own_password(
     auth: AdminAuthReq,
     request: AxumAdminJson<server_admin_contract::AdminChangeOwnPasswordReq>,
@@ -990,7 +993,7 @@ async fn authorize_custom(
     Ok(authenticated)
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[frontend_contract::route_openapi(request_body = server_admin_contract::AdminCreateUserReq, tag = "admin_users")]
+#[frontend_contract::route_openapi(tag = "admin_users")]
 async fn create_user(
     auth: AdminAuthReq,
     request: AxumAdminJson<server_admin_contract::AdminCreateUserReq>,
@@ -998,7 +1001,7 @@ async fn create_user(
     handlers::create_user(auth, request).await
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[frontend_contract::route_openapi(request_body = server_admin_contract::AdminUpdateUserReq, tag = "admin_users")]
+#[frontend_contract::route_openapi(tag = "admin_users")]
 async fn update_user(
     auth: AdminAuthReq,
     path: AxumAdminPath<super::AdminUserId>,
@@ -1007,7 +1010,7 @@ async fn update_user(
     handlers::update_user(auth, path, request).await
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[frontend_contract::route_openapi(request_body = server_admin_contract::AdminSetUserPasswordReq, tag = "admin_users")]
+#[frontend_contract::route_openapi(tag = "admin_users")]
 async fn set_user_password(
     auth: AdminAuthReq,
     path: AxumAdminPath<super::AdminUserId>,
@@ -1016,7 +1019,7 @@ async fn set_user_password(
     handlers::set_user_password(auth, path, request).await
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[frontend_contract::route_openapi(request_body = server_admin_contract::AdminSetUserBanReq, tag = "admin_users")]
+#[frontend_contract::route_openapi(tag = "admin_users")]
 async fn set_user_ban(
     auth: AdminAuthReq,
     path: AxumAdminPath<super::AdminUserId>,
@@ -1033,7 +1036,7 @@ async fn delete_user(
     handlers::delete_user(auth, path).await
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[frontend_contract::route_openapi(request_body = server_admin_contract::AdminCreateRoleReq, tag = "admin_roles")]
+#[frontend_contract::route_openapi(tag = "admin_roles")]
 async fn create_role(
     auth: AdminAuthReq,
     request: AxumAdminJson<server_admin_contract::AdminCreateRoleReq>,
@@ -1041,7 +1044,7 @@ async fn create_role(
     handlers::create_role(auth, request).await
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[frontend_contract::route_openapi(request_body = server_admin_contract::AdminUpdateRoleReq, tag = "admin_roles")]
+#[frontend_contract::route_openapi(tag = "admin_roles")]
 async fn update_role(
     auth: AdminAuthReq,
     path: AxumAdminPath<super::AdminRoleId>,
@@ -1058,7 +1061,7 @@ async fn delete_role(
     handlers::delete_role(auth, path).await
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[frontend_contract::route_openapi(request_body = server_admin_contract::AdminSetRolePermissionsReq, tag = "admin_roles")]
+#[frontend_contract::route_openapi(tag = "admin_roles")]
 async fn set_role_permissions(
     auth: AdminAuthReq,
     path: AxumAdminPath<super::AdminRoleId>,
@@ -1067,7 +1070,7 @@ async fn set_role_permissions(
     handlers::set_role_permissions(auth, path, request).await
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[frontend_contract::route_openapi(request_body = server_admin_contract::AdminSetUserRolesReq, tag = "admin_users")]
+#[frontend_contract::route_openapi(tag = "admin_users")]
 async fn set_user_roles(
     auth: AdminAuthReq,
     path: AxumAdminPath<super::AdminUserId>,
@@ -1114,7 +1117,7 @@ async fn data_table(
     handlers::data_table(auth, path, query).await
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[frontend_contract::route_openapi(request_body = server_admin_contract::AdminUpdateSettingsReq, tag = "admin_settings")]
+#[frontend_contract::route_openapi(tag = "admin_settings")]
 async fn update_settings(
     auth: AdminAuthReq,
     request: AxumAdminJson<server_admin_contract::AdminUpdateSettingsReq>,
@@ -1439,6 +1442,10 @@ mod tests {
     }
     #[test]
     fn open_api_contains_auth_and_user_security_contracts() {
+        frontend_contract::validate_openapi_schema_references(&utoipa::openapi::OpenApi::from(
+            super::open_api(),
+        ))
+        .expect("2151641d");
         let document = serde_json::to_value(utoipa::openapi::OpenApi::from(super::open_api()))
             .expect("869d28d7");
         let paths = document

@@ -7,8 +7,9 @@ mod tests {
     fn env_example_matches_generated_config_descriptor_and_parsers() {
         let example_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
             .join(str_constants::SERVER_DOT_ENV_EXAMPLE);
-        let examples = std::fs::read_to_string(example_path)
-            .expect("2a8737dd")
+        let example_source = std::fs::read_to_string(example_path).expect("2a8737dd");
+        assert_eq!(example_source, server_config::Config::env_example());
+        let examples = example_source
             .lines()
             .filter_map(|line| line.split_once('='))
             .map(|(name, value)| (name.to_owned(), value.to_owned()))

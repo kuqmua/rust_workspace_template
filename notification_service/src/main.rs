@@ -169,6 +169,7 @@ struct NotificationObservabilityInitError(server_runtime::ObservabilityInitError
 struct NotificationObservabilityShutdownError(
     server_runtime::OpentelemetrySdkObservabilityShutdownError,
 );
+#[frontend_contract::route_openapi()]
 async fn create_notification(
     state: AxumNotificationState,
     request: AxumNotificationJson,
@@ -228,72 +229,68 @@ async fn readiness(
     }
 }
 
+async fn liveness() -> HttpNotificationStatusCode {
+    HttpNotificationStatusCode::from(http::StatusCode::OK)
+}
+
+async fn open_api() -> AxumNotificationResponse {
+    AxumNotificationResponse::from(axum::response::IntoResponse::into_response(axum::Json(
+        NotificationApiRouteRegistry::open_api(),
+    )))
+}
+
+#[frontend_contract::route_registry(
+    state = NotificationState,
+    family = notification_service_contract::NotificationRouteFamily;
+    ("", "");
+    schemas(
+        notification_service_contract::NotificationMessage,
+        notification_service_contract::UuidNotificationId
+    );
+    (
+        notification_service_contract::CreateNotificationRoute,
+        create_notification
+    ),
+)]
+#[openapi()]
+struct NotificationApiRouteRegistry;
+
+#[frontend_contract::handler_registry(
+    state = NotificationState;
+    (
+        str_constants::COMMON_ROUTES_HEALTH_LIVE,
+        axum::routing::get,
+        liveness
+    ),
+    (
+        str_constants::COMMON_ROUTES_HEALTH_READY,
+        axum::routing::get,
+        readiness
+    ),
+    (
+        str_constants::METRICS,
+        axum::routing::get,
+        metrics
+    ),
+    (
+        str_constants::OPENAPI_JSON_PATH,
+        axum::routing::get,
+        open_api
+    ),
+)]
+struct NotificationRouteRegistry;
+
 fn router(
     state: NotificationState,
     body_maximum_bytes: NotificationBodyMaximumBytes,
 ) -> AxumNotificationRouter {
     AxumNotificationRouter::from(
-        axum::Router::new()
-            .route(
-                str_constants::COMMON_ROUTES_HEALTH_LIVE,
-                axum::routing::get(async || http::StatusCode::OK),
-            )
-            .route(
-                str_constants::COMMON_ROUTES_HEALTH_READY,
-                axum::routing::get(readiness),
-            )
-            .route(
-                frontend_contract::typed_route_path::<
-                    notification_service_contract::CreateNotificationRoute,
-                >()
-                .as_ref(),
-                axum::routing::post(create_notification),
-            )
-            .route(str_constants::METRICS, axum::routing::get(metrics))
-            .route(
-                str_constants::OPENAPI_JSON_PATH,
-                axum::routing::get(async || {
-                    axum::Json(<NotificationOpenApi as utoipa::OpenApi>::openapi())
-                }),
-            )
+        NotificationRouteRegistry::router()
+            .merge(NotificationApiRouteRegistry::router())
             .layer(axum::extract::DefaultBodyLimit::max(body_maximum_bytes.0))
             .with_state(state),
     )
 }
-
-#[allow(
-    clippy::arbitrary_source_item_ordering,
-    clippy::needless_for_each,
-    reason = "utoipa derives operation iteration and the document remains next to its schema declaration"
-)]
-#[derive(utoipa::OpenApi)]
-#[openapi(
-    paths(create_notification_openapi),
-    components(schemas(
-        notification_service_contract::CreateNotificationReq,
-        notification_service_contract::CreateNotificationRes,
-        notification_service_contract::NotificationMessage,
-        notification_service_contract::UuidNotificationId,
-        frontend_contract::ApiProblem
-    ))
-)]
-struct NotificationOpenApi;
-
-#[utoipa::path(
-    post,
-    path = "/notifications",
-    request_body = notification_service_contract::CreateNotificationReq,
-    responses(
-        (status = 201, description = "Notification persisted", body = notification_service_contract::CreateNotificationRes),
-        (status = 422, description = "Invalid request", body = frontend_contract::ApiProblem),
-        (status = 500, description = "Persistence failure", body = frontend_contract::ApiProblem)
-    )
-)]
-#[allow(
-    dead_code,
-    reason = "utoipa references this operation through generated metadata"
-)]
-const fn create_notification_openapi() {}
 
 async fn shutdown_signal() {
     if let Err(error) = tokio::signal::ctrl_c().await {
@@ -443,12 +440,41 @@ mod tests {
                 str_constants::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION,
             )
             .expect("52a25be1");
-        let _router = super::router(
+        let router = super::router(
             state(pool),
             super::NotificationBodyMaximumBytes::from(
                 notification_service_contract::NOTIFICATION_API_BODY_MAX_BYTES,
             ),
-        );
+        )
+        .0;
+        let liveness_response = tower::ServiceExt::oneshot(
+            router.clone(),
+            http::Request::builder()
+                .uri(str_constants::COMMON_ROUTES_HEALTH_LIVE)
+                .body(axum::body::Body::empty())
+                .expect("ec467ec0"),
+        )
+        .await
+        .expect("717fb1f4");
+        assert_eq!(liveness_response.status(), http::StatusCode::OK);
+        let open_api_response = tower::ServiceExt::oneshot(
+            router,
+            http::Request::builder()
+                .uri(str_constants::OPENAPI_JSON_PATH)
+                .body(axum::body::Body::empty())
+                .expect("789db8f3"),
+        )
+        .await
+        .expect("2d37fbd2");
+        assert_eq!(open_api_response.status(), http::StatusCode::OK);
+    }
+
+    #[test]
+    fn open_api_has_no_unresolved_schema_references() {
+        frontend_contract::validate_openapi_schema_references(
+            &super::NotificationApiRouteRegistry::open_api(),
+        )
+        .expect("3e63ebd8");
     }
 
     #[test]

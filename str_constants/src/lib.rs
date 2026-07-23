@@ -1937,7 +1937,9 @@ str_constants_macros::define_str_constants! {
         pub USERS = [WORD_USERS];
         pub UTOIPAADMINAUTHOPENAPI = ["UtoipaAdminAuthOpenApi"];
         pub UTOIPAADMINOPENAPI = ["UtoipaAdminOpenApi"];
+        pub UTOIPAOPENAPICOMPONENTSREFMUT = ["UtoipaOpenApiComponentsRefMut"];
         pub UTOIPAOPENAPIPATHPARAMETER = ["UtoipaOpenApiPathParameter"];
+        pub UTOIPAOPENAPIREFMUT = ["UtoipaOpenApiRefMut"];
         pub UTOIPACOMMONROUTESOPENAPIDOCUMENT = ["UtoipaCommonRoutesOpenApiDocument"];
         pub V = ["V"];
         pub VEC = [WORD_VEC];
@@ -3890,6 +3892,18 @@ pub const ADMIN_ACCESS_TOKEN_TTL_SECONDS_ENV: &str = "ADMIN_ACCESS_TOKEN_TTL_SEC
 pub const INVALID_FILTER_SPECIFICATION: &str = "invalid filter specification";
 pub const GENERATE_PG_TABLE_REQUIRES_FIELD: &str = "generate_pg_table requires at least one field";
 pub const SERVER_DOT_ENV_EXAMPLE: &str = "../server/.env.example";
+pub const CONFIG_ENV_EXAMPLE_ATTRIBUTE: &str = "env_example";
+pub const CONFIG_ENV_EXAMPLE_REQUIRES_FIELD_EXAMPLE: &str =
+    "config env_example generation requires an example for every field";
+pub const UNSUPPORTED_CONFIG_FIELD_ATTRIBUTE: &str = "unsupported config field attribute";
+pub const HANDLER_REGISTRY_REQUIRES_STATE: &str =
+    "handler_registry requires `state = Type;` before route bindings";
+pub const HANDLER_REGISTRY_REQUIRES_BINDING: &str =
+    "handler_registry requires at least one `(path, routing, handler)` binding";
+pub const ROUTE_REGISTRY_REQUIRES_FAMILY: &str =
+    "route_registry requires `family = Type;` after its state type";
+pub const FAMILY: &str = "family";
+pub const FAMILY_UPPER_CAMEL_CASE: &str = "Family";
 pub const TYPED_ROUTE_METHOD_MUST_BE_STANDARD_HTTP_METHOD: &str =
     "typed_route method must be a standard HTTP method path";
 pub const ROUTE_FAMILY_BODY_LIMIT: &str = "route_family_body_limit";
@@ -3919,9 +3933,11 @@ pub const ROUTE_REGISTRY_REQUIRES_BINDING: &str = "route_registry requires a rou
 pub const ROUTE_REGISTRY_REQUIRES_OPENAPI_ATTRIBUTE: &str =
     "route_registry requires #[openapi(...)]";
 pub const ROUTE_REGISTRY_REQUIRES_STATE: &str = "route_registry requires state = Type";
+pub const ROUTE_REGISTRY_REQUIRES_SCHEMAS: &str = "route_registry requires schemas(Type, ...)";
 pub const OPENAPI: &str = "openapi";
 pub const STATE: &str = "state";
 pub const TYPED_ROUTE_DERIVE_REQUIRES_ATTRIBUTE: &str = "TypedRoute requires #[typed_route(...)]";
+pub const TYPED_ROUTE_FIELD_REQUEST_BODY: &str = "request_body";
 pub const APPLICATION_JSON_FIELD: &str = "content";
 pub const COLUMN_DEFAULT: &str = "column_default";
 pub const COLUMN_NAME: &str = "column_name";
@@ -3979,6 +3995,7 @@ pub const DOMAIN_VALUES_MUST_BE_DECLARED_BY_THEIR_OWNING_TYPED_API: &str =
     "domain route, permission, and operation values must be declared by their owning typed API";
 pub const VALUE_6B7E02A4: &str = "6b7e02a4";
 pub const DOT_DOT: &str = "..";
+pub const DOUBLE_COLON: &str = "::";
 pub const GET_LOWERCASE: &str = "get";
 pub const HEAD: &str = "HEAD";
 pub const INDEX_DEFINITION: &str = "indexdef";

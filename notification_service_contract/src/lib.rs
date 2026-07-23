@@ -59,6 +59,7 @@ pub struct NotificationMessage(String);
     utoipa::ToSchema,
 )]
 #[serde(from = "uuid::Uuid")]
+#[schema(value_type = String, format = "uuid")]
 pub struct UuidNotificationId(uuid::Uuid);
 
 #[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
@@ -71,6 +72,7 @@ pub struct UuidNotificationId(uuid::Uuid);
     openapi_operation_id = "create_notification",
     path = "/notifications",
     request = CreateNotificationReq,
+    request_body = frontend_contract::RouteRequestBody::Json,
     response = CreateNotificationRes,
     success_status = frontend_contract::SuccessStatus::Code201,
     transport = frontend_contract::PublicTransport

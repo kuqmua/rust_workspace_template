@@ -9,6 +9,12 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let try_from_std_env_var_ok_upper_camel_case = naming::TryFromStdEnvVarOkUpperCamelCase;
     let di: syn::DeriveInput = syn::parse(v).expect("e45f75c2");
     let identifier = &di.ident;
+    let generate_env_example = di.attrs.iter().any(|attribute| {
+        attribute.path().is_ident(str_constants::CONFIG)
+            && attribute
+                .parse_args::<syn::Ident>()
+                .is_ok_and(|value| value == str_constants::CONFIG_ENV_EXAMPLE_ATTRIBUTE)
+    });
     let identifier_try_from_env_error_upper_camel_case =
         naming::parameter::SelfTryFromEnvErrorUpperCamelCase::from_tokens(&identifier);
     let data_struct = match di.data {
@@ -19,10 +25,47 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
         syn::Fields::Named(v0) => v0.named,
         syn::Fields::Unnamed(_) | syn::Fields::Unit => panic!("330b2512"),
     };
+    let config_field_attributes = |field: &syn::Field| {
+        let mut example = None;
+        let mut getter = false;
+        let mut secret = false;
+        field
+            .attrs
+            .iter()
+            .filter(|attribute| attribute.path().is_ident(str_constants::CONFIG))
+            .try_for_each(|attribute| {
+                attribute.parse_nested_meta(|meta| {
+                    if meta.path.is_ident(str_constants::EXAMPLE) {
+                        example = Some(meta.value()?.parse::<syn::LitStr>()?);
+                        Ok(())
+                    } else if meta.path.is_ident(str_constants::GETTER) {
+                        getter = true;
+                        Ok(())
+                    } else if meta.path.is_ident(str_constants::SECRET) {
+                        secret = true;
+                        Ok(())
+                    } else {
+                        Err(meta.error(str_constants::UNSUPPORTED_CONFIG_FIELD_ATTRIBUTE))
+                    }
+                })
+            })?;
+        Ok((example, getter, secret))
+    };
+    let field_attributes = match fields_named
+        .iter()
+        .map(config_field_attributes)
+        .collect::<syn::Result<Vec<_>>>()
+    {
+        Ok(value) => value,
+        Err(error) => return error.to_compile_error().into(),
+    };
     let field_identifier = |field: &syn::Field, exp_id: &'static str| {
         field.ident.clone().unwrap_or_else(|| panic!("{exp_id}"))
     };
-    let config_descriptors = fields_named.iter().map(|field| {
+    let config_descriptors = fields_named
+        .iter()
+        .zip(field_attributes.iter())
+        .map(|(field, attributes)| {
         let descriptor_field_identifier =
             field_identifier(field, str_constants::VALUE_8B79A379);
         let field_type = &field.ty;
@@ -30,12 +73,7 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
             &naming_common::ToTokensToUpperSnakeCaseStr::case(&descriptor_field_identifier),
             identifier.span(),
         );
-        let sensitivity = if field.attrs.iter().any(|attribute| {
-            attribute.path().is_ident(str_constants::CONFIG)
-                && attribute
-                    .parse_args::<syn::Ident>()
-                    .is_ok_and(|value| value == str_constants::SECRET)
-        }) {
+        let sensitivity = if attributes.2 {
             quote::quote!(config_lib::ConfigFieldSensitivity::Secret)
         } else {
             quote::quote!(config_lib::ConfigFieldSensitivity::Public)
@@ -55,6 +93,48 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
             )
         }
     });
+    let env_example = if generate_env_example {
+        let lines = fields_named
+            .iter()
+            .zip(field_attributes.iter())
+            .map(|(field, attributes)| {
+                let example_field_identifier =
+                    field_identifier(field, str_constants::VALUE_8B79A379);
+                let env_name =
+                    naming_common::ToTokensToUpperSnakeCaseStr::case(&example_field_identifier);
+                let env_name_literal = syn::LitStr::new(&env_name, identifier.span());
+                attributes.0.as_ref().map_or_else(
+                    || {
+                        Err(syn::Error::new_spanned(
+                            field,
+                            str_constants::CONFIG_ENV_EXAMPLE_REQUIRES_FIELD_EXAMPLE,
+                        ))
+                    },
+                    |example| {
+                        Ok((
+                            env_name,
+                            quote::quote!(#env_name_literal, "=", #example, "\n"),
+                        ))
+                    },
+                )
+            })
+            .collect::<syn::Result<Vec<_>>>();
+        match lines {
+            Ok(mut generated_lines) => {
+                generated_lines.sort_by(|left, right| left.0.cmp(&right.0));
+                let line_tokens = generated_lines.iter().map(|line| &line.1);
+                quote::quote! {
+                    #[must_use]
+                    pub const fn env_example() -> &'static str {
+                        concat!(#(#line_tokens),*)
+                    }
+                }
+            }
+            Err(error) => return error.to_compile_error().into(),
+        }
+    } else {
+        proc_macro2::TokenStream::new()
+    };
     let error_token_stream = {
         let vrts_token_stream = fields_named.iter().map(|element| {
             let element_identifier = field_identifier(element, str_constants::VALUE_2ECB63C1);
@@ -134,14 +214,11 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
             }
         });
         let fields_token_stream = fields_named.iter().map(|element| &element.ident);
-        let getters_token_stream = fields_named.iter().filter_map(|field| {
-            let has_getter = field.attrs.iter().any(|attribute| {
-                attribute.path().is_ident(str_constants::CONFIG)
-                    && attribute
-                        .parse_args::<syn::Ident>()
-                        .is_ok_and(|value| value == str_constants::GETTER)
-            });
-            has_getter.then(|| {
+        let getters_token_stream = fields_named
+            .iter()
+            .zip(field_attributes.iter())
+            .filter(|(_field, attributes)| attributes.1)
+            .map(|(field, _attributes)| {
                 let getter_identifier = field_identifier(field, str_constants::VALUE_8B79A379);
                 let field_type = &field.ty;
                 quote::quote! {
@@ -150,10 +227,10 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
                         &self.#getter_identifier
                     }
                 }
-            })
-        });
+            });
         quote::quote! {
             impl #identifier {
+                #env_example
                 #(#getters_token_stream)*
                 pub fn field_descriptors() -> Vec<config_lib::ConfigFieldDescriptor> {
                     vec![#(#config_descriptors),*]

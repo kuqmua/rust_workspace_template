@@ -1,35 +1,64 @@
 #[allow(clippy::arbitrary_source_item_ordering)]
 #[derive(Debug, try_from_env::TryFromEnv, optml::Optml)]
+#[config(env_example)]
 pub struct Config {
-    //todo maybe auto generate .env and docker-compose environment variables. and maybe write in directly into files
+    #[config(example = "http://127.0.0.1:8080")]
     pub cors_allow_origin: config_lib::CorsAllowOrigin,
+    #[config(
+        example = "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; object-src 'none'; frame-ancestors 'none'"
+    )]
     pub content_security_policy: config_lib::ContentSecurityPolicy,
     #[config(secret)]
+    #[config(example = "postgres://postgres:change-me@127.0.0.1:5432/rust_workspace_template")]
     pub database_url: config_lib::DatabaseUrl,
     #[config(secret)]
+    #[config(example = "change-me-development-secret")]
     pub admin_jwt_secret: config_lib::AdminJwtSecret,
+    #[config(example = "rust-workspace-template")]
     pub admin_token_audience: config_lib::AdminTokenAudience,
+    #[config(example = "rust-workspace-template")]
     pub admin_token_issuer: config_lib::AdminTokenIssuer,
+    #[config(example = "127.0.0.1/32,::1/128")]
     pub trusted_proxy_ranges_text: config_lib::TrustedProxyRangesText,
+    #[config(example = "900")]
     pub admin_access_token_ttl_seconds: config_lib::AdminAccessTokenTtlSeconds,
+    #[config(example = "2")]
     pub admin_password_hash_concurrency: config_lib::AdminPasswordHashConcurrency,
+    #[config(example = "604800")]
     pub admin_refresh_token_ttl_seconds: config_lib::AdminRefreshTokenTtlSeconds,
+    #[config(example = "8")]
     pub admin_session_limit: config_lib::AdminSessionLimit,
+    #[config(example = "10")]
     pub admin_sign_in_rate_limit: config_lib::AdminSignInRateLimit,
+    #[config(example = "10")]
     pub pg_pool_acquire_timeout_seconds: config_lib::PgPoolAcquireTimeoutSeconds,
+    #[config(example = "600")]
     pub pg_pool_idle_timeout_seconds: config_lib::PgPoolIdleTimeoutSeconds,
+    #[config(example = "1800")]
     pub pg_pool_max_lifetime_seconds: config_lib::PgPoolMaxLifetimeSeconds,
+    #[config(example = "1048576")]
     pub maximum_size_of_http_body_in_bytes: config_lib::MaximumSizeOfHttpBodyInBytes,
+    #[config(example = "127.0.0.1:8080")]
     pub service_socket_address: config_lib::ServiceSocketAddress,
+    #[config(example = "10")]
     pub pg_pool_max_connections: config_lib::PgPoolMaxConnections,
+    #[config(example = "1")]
     pub pg_pool_min_connections: config_lib::PgPoolMinConnections,
+    #[config(example = "10800")]
     pub timezone: config_lib::ChronoTimezone,
+    #[config(example = "src")]
     pub src_place_type: config_lib::SrcPlaceType,
+    #[config(example = "info")]
     pub tracing_level: config_lib::TracingLevel,
+    #[config(example = "text")]
     pub tracing_format: config_lib::types::TracingFormat,
+    #[config(example = "true")]
     pub enable_api_git_commit_check: config_lib::EnableApiGitCommitCheck,
+    #[config(example = "false")]
     pub admin_cookie_secure: config_lib::AdminCookieSecure,
+    #[config(example = "true")]
     pub admin_swagger_enabled: config_lib::AdminSwaggerEnabled,
+    #[config(example = "true")]
     pub http_gzip_enabled: config_lib::HttpGzipEnabled,
 }
 impl config_lib::GetCorsAllowOrigin for Config {

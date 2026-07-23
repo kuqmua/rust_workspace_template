@@ -1,7 +1,69 @@
 #![allow(clippy::single_call_fn)] // public facade keeps stable auth module paths while this module owns router and OpenAPI composition
 #[frontend_contract::route_registry(
-    state = super::StdSharedAdminAuthSvcState;
+    state = super::StdSharedAdminAuthSvcState,
+    family = server_admin_contract::AdminAuthenticationRouteFamily;
     (str_constants::ADMIN_COOKIE, str_constants::ADMIN_CSRF);
+    schemas(
+        server_admin_contract::StdAdminPositiveI64,
+        server_admin_contract::AdminPermissionValues,
+        server_admin_contract::AdminRoleNames,
+        server_admin_contract::AdminRoleIds,
+        server_admin_contract::AdminPermissionIds,
+        server_admin_contract::AdminUserSummaries,
+        server_admin_contract::AdminRoleSummaries,
+        server_admin_contract::AdminPermissionSummaries,
+        server_admin_contract::AdminAuditViews,
+        server_admin_contract::AdminTexts,
+        server_admin_contract::AdminDataColumn,
+        server_admin_contract::AdminDataColumns,
+        server_admin_contract::AdminDataFilter,
+        server_admin_contract::AdminDataFilters,
+        server_admin_contract::AdminDataInputKind,
+        server_admin_contract::AdminDataRows,
+        server_admin_contract::AdminDataTables,
+        server_admin_contract::AdminOptionalSettings,
+        server_admin_contract::AdminSessionViews,
+        server_admin_contract::AdminSessionView,
+        server_admin_contract::AdminSessionTimestamp,
+        server_admin_contract::AdminSessionIdentifier,
+        server_admin_contract::AdminApiErrorCode,
+        server_admin_contract::AdminApiErrorBody,
+        server_admin_contract::AdminText,
+        server_admin_contract::AdminBool,
+        server_admin_contract::AdminPermissionValue,
+        server_admin_contract::AdminNewPassword,
+        server_admin_contract::AdminAuditView,
+        server_admin_contract::AdminAuditTimestamp,
+        server_admin_contract::AdminAuditLogId,
+        server_admin_contract::SerdeJsonAdminAuditDetails,
+        server_admin_contract::AdminOptionalSetting,
+        server_admin_contract::AdminDefaultRoute,
+        server_admin_contract::AdminMainLogo,
+        server_admin_contract::AdminOrganizationContacts,
+        server_admin_contract::AdminOrganizationName,
+        server_admin_contract::AdminPrimaryColor,
+        server_admin_contract::AdminSiteName,
+        server_admin_contract::AdminSupportUrl,
+        server_admin_contract::AdminTabTitle,
+        server_admin_contract::AdminUserSummary,
+        server_admin_contract::AdminRoleSummary,
+        server_admin_contract::AdminPermissionSummary,
+        server_admin_contract::AdminDataTable,
+        server_admin_contract::AdminDataRow,
+        crate::UuidAdminValue,
+        crate::AdminPassword,
+        crate::AdminLogin,
+        crate::AdminDisplayName,
+        crate::AdminRoleName,
+        crate::AdminUserId,
+        crate::AdminRoleId,
+        crate::AdminPermissionId,
+        crate::AdminPermission,
+        crate::AdminSessionId,
+        crate::AdminAuditLogId,
+        crate::AdminAuditAction,
+        crate::AdminAuditResource
+    );
     (server_admin_contract::AdminSignInRoute, super::sign_in),
     (server_admin_contract::AdminRefreshRoute, super::refresh),
     (server_admin_contract::AdminSignOutRoute, super::sign_out),
@@ -32,7 +94,6 @@
     (server_admin_contract::AdminDataTableRoute, super::data_table),
 )]
 #[openapi(
-    components(schemas(server_admin_contract::StdAdminPositiveI64, server_admin_contract::AdminPermissionValues, server_admin_contract::AdminRoleNames, server_admin_contract::AdminRoleIds, server_admin_contract::AdminPermissionIds, server_admin_contract::AdminUserSummaries, server_admin_contract::AdminRoleSummaries, server_admin_contract::AdminPermissionSummaries, server_admin_contract::AdminAuditViews, server_admin_contract::AdminTexts, server_admin_contract::AdminDataColumn, server_admin_contract::AdminDataColumns, server_admin_contract::AdminDataFilter, server_admin_contract::AdminDataFilters, server_admin_contract::AdminDataInputKind, server_admin_contract::AdminDataRows, server_admin_contract::AdminDataTables, server_admin_contract::AdminOptionalSettings, server_admin_contract::AdminSessionViews, server_admin_contract::AdminSignInReq, server_admin_contract::AdminSignInRes, server_admin_contract::AuthenticatedAdmin, server_admin_contract::AdminSessionView, server_admin_contract::AdminSessionTimestamp, server_admin_contract::AdminSessionIdentifier, frontend_contract::FilterOperation, frontend_contract::FilterValueShape, frontend_contract::ApiProblem, server_admin_contract::AdminApiErrorCode, server_admin_contract::AdminApiErrorBody, server_admin_contract::AdminText, server_admin_contract::AdminBool, server_admin_contract::AdminPermissionValue, server_admin_contract::AdminNewPassword, server_admin_contract::AdminChangeOwnPasswordReq, server_admin_contract::AdminCreateUserReq, server_admin_contract::AdminCreateUserRes, server_admin_contract::AdminUpdateUserReq, server_admin_contract::AdminSetUserPasswordReq, server_admin_contract::AdminSetUserBanReq, server_admin_contract::AdminSetUserRolesReq, server_admin_contract::AdminCreateRoleReq, server_admin_contract::AdminCreateRoleRes, server_admin_contract::AdminUpdateRoleReq, server_admin_contract::AdminSetRolePermissionsReq, server_admin_contract::AdminAuditView, server_admin_contract::AdminAuditTimestamp, server_admin_contract::SerdeJsonAdminAuditDetails, server_admin_contract::AdminUpdateSettingsReq, server_admin_contract::AdminOptionalSetting, server_admin_contract::AdminDefaultRoute, server_admin_contract::AdminMainLogo, server_admin_contract::AdminOrganizationContacts, server_admin_contract::AdminOrganizationName, server_admin_contract::AdminPrimaryColor, server_admin_contract::AdminSiteName, server_admin_contract::AdminSupportUrl, server_admin_contract::AdminTabTitle, server_admin_contract::AdminUserSummary, server_admin_contract::AdminRoleSummary, server_admin_contract::AdminPermissionSummary, server_admin_contract::AdminSettingsView, server_admin_contract::AdminBrandingView, server_admin_contract::AdminDataTable, server_admin_contract::AdminDataRow, server_admin_contract::AdminDataTableView, server_admin_contract::AdminDataTableCatalog, crate::UuidAdminValue, crate::AdminPassword, crate::AdminLogin, crate::AdminDisplayName, crate::AdminRoleName, crate::AdminUserId, crate::AdminRoleId, crate::AdminPermissionId, crate::AdminPermission, crate::AdminSessionId, crate::AdminAuditLogId, crate::AdminAuditAction, crate::AdminAuditResource)),
     tags((name = "admin_auth", description = "Administrator authentication and sessions"), (name = "admin_users", description = "Administrator user security operations"), (name = "admin_roles", description = "Administrator role security operations"), (name = "admin_audit", description = "Administrator audit log"), (name = "admin_settings", description = "Administrator system settings"), (name = "admin_tables", description = "Read-only administrator database views"))
 )]
 struct AdminAuthRouteRegistry;
