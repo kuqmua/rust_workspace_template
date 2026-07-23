@@ -478,7 +478,7 @@ pub(crate) async fn read(
 ) -> Result<server_admin_contract::AdminDataTableView, super::AdminRepositoryError> {
     let (column_names, base_count_sql, base_sql) = match table {
         server_admin_contract::AdminDataTable::AccessSessions => (
-            str_constants::SERVER_ADMIN_DATA_REFRESH_TOKENS_COLUMNS,
+            str_constants::SERVER_ADMIN_DATA_SESSION_COLUMNS,
             str_constants::SERVER_ADMIN_DATA_COUNT_ACCESS_SESSIONS_SQL,
             str_constants::SERVER_ADMIN_DATA_ACCESS_SESSIONS_SQL,
         ),
@@ -508,7 +508,7 @@ pub(crate) async fn read(
             str_constants::SERVER_ADMIN_DATA_RATE_LIMITS_SQL,
         ),
         server_admin_contract::AdminDataTable::RefreshTokens => (
-            str_constants::SERVER_ADMIN_DATA_REFRESH_TOKENS_COLUMNS,
+            str_constants::SERVER_ADMIN_DATA_SESSION_COLUMNS,
             str_constants::SERVER_ADMIN_DATA_COUNT_REFRESH_TOKENS_SQL,
             str_constants::SERVER_ADMIN_DATA_REFRESH_TOKENS_SQL,
         ),

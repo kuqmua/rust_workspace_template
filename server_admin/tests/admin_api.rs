@@ -2976,6 +2976,188 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
 }
 #[tokio::test]
 #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
+async fn postgresql_data_table_api_reads_every_public_field_from_every_table() {
+    let fixture = admin_html_test_fixture().await;
+    let _cleanup_status = sqlx::query(
+        "INSERT INTO cleanup_status (singleton, last_success_at, last_deleted_rows) VALUES (TRUE, NOW(), 0) ON CONFLICT (singleton) DO UPDATE SET last_success_at = EXCLUDED.last_success_at, last_deleted_rows = EXCLUDED.last_deleted_rows",
+    )
+    .execute(&fixture.pool.0)
+    .await
+    .expect("70dfa001");
+    let _rate_limit = sqlx::query(
+        "INSERT INTO rate_limits (scope, subject, request_count) VALUES ('api_field_test', 'api_field_test', 1) ON CONFLICT (scope, subject) DO UPDATE SET request_count = EXCLUDED.request_count",
+    )
+    .execute(&fixture.pool.0)
+    .await
+    .expect("f8f27048");
+    let columns = |table| match table {
+        server_admin_contract::AdminDataTable::AccessSessions
+        | server_admin_contract::AdminDataTable::RefreshTokens => {
+            str_constants::SERVER_ADMIN_DATA_SESSION_COLUMNS
+        }
+        server_admin_contract::AdminDataTable::AuditLog => {
+            str_constants::SERVER_ADMIN_DATA_AUDIT_LOG_COLUMNS
+        }
+        server_admin_contract::AdminDataTable::CleanupStatus => {
+            str_constants::SERVER_ADMIN_DATA_CLEANUP_STATUS_COLUMNS
+        }
+        server_admin_contract::AdminDataTable::LoginAttempts => {
+            str_constants::SERVER_ADMIN_DATA_LOGIN_ATTEMPTS_COLUMNS
+        }
+        server_admin_contract::AdminDataTable::Permissions => {
+            str_constants::SERVER_ADMIN_DATA_PERMISSIONS_COLUMNS
+        }
+        server_admin_contract::AdminDataTable::RateLimits => {
+            str_constants::SERVER_ADMIN_DATA_RATE_LIMITS_COLUMNS
+        }
+        server_admin_contract::AdminDataTable::RolePermissions => {
+            str_constants::SERVER_ADMIN_DATA_ROLE_PERMISSIONS_COLUMNS
+        }
+        server_admin_contract::AdminDataTable::Roles => {
+            str_constants::SERVER_ADMIN_DATA_ROLES_COLUMNS
+        }
+        server_admin_contract::AdminDataTable::SystemSettings => {
+            str_constants::SERVER_ADMIN_DATA_SYSTEM_SETTINGS_COLUMNS
+        }
+        server_admin_contract::AdminDataTable::UserRoles => {
+            str_constants::SERVER_ADMIN_DATA_USER_ROLES_COLUMNS
+        }
+        server_admin_contract::AdminDataTable::Users => {
+            str_constants::SERVER_ADMIN_DATA_USERS_COLUMNS
+        }
+    };
+    let fixture_ref = &fixture;
+    futures::StreamExt::fold(
+        futures::stream::iter(server_admin_contract::AdminDataTable::PG_ORDER),
+        (),
+        async |(), table| {
+            let read_sql = match table {
+                server_admin_contract::AdminDataTable::AccessSessions => {
+                    str_constants::SERVER_ADMIN_DATA_ACCESS_SESSIONS_SQL
+                }
+                server_admin_contract::AdminDataTable::AuditLog => {
+                    str_constants::SERVER_ADMIN_DATA_AUDIT_LOG_SQL
+                }
+                server_admin_contract::AdminDataTable::CleanupStatus => {
+                    str_constants::SERVER_ADMIN_DATA_CLEANUP_STATUS_SQL
+                }
+                server_admin_contract::AdminDataTable::LoginAttempts => {
+                    str_constants::SERVER_ADMIN_DATA_LOGIN_ATTEMPTS_SQL
+                }
+                server_admin_contract::AdminDataTable::Permissions => {
+                    str_constants::SERVER_ADMIN_DATA_PERMISSIONS_SQL
+                }
+                server_admin_contract::AdminDataTable::RateLimits => {
+                    str_constants::SERVER_ADMIN_DATA_RATE_LIMITS_SQL
+                }
+                server_admin_contract::AdminDataTable::RefreshTokens => {
+                    str_constants::SERVER_ADMIN_DATA_REFRESH_TOKENS_SQL
+                }
+                server_admin_contract::AdminDataTable::RolePermissions => {
+                    str_constants::SERVER_ADMIN_DATA_ROLE_PERMISSIONS_SQL
+                }
+                server_admin_contract::AdminDataTable::Roles => {
+                    str_constants::SERVER_ADMIN_DATA_ROLES_SQL
+                }
+                server_admin_contract::AdminDataTable::SystemSettings => {
+                    str_constants::SERVER_ADMIN_DATA_SYSTEM_SETTINGS_SQL
+                }
+                server_admin_contract::AdminDataTable::UserRoles => {
+                    str_constants::SERVER_ADMIN_DATA_USER_ROLES_SQL
+                }
+                server_admin_contract::AdminDataTable::Users => {
+                    str_constants::SERVER_ADMIN_DATA_USERS_SQL
+                }
+            };
+            let expected_rows = sqlx::query(read_sql)
+                .bind(100i64)
+                .bind(0i64)
+                .fetch_all(&fixture_ref.pool.0)
+                .await
+                .expect("cc572a6d")
+                .into_iter()
+                .map(|row| {
+                    sqlx::Row::try_get::<Vec<Option<String>>, _>(&row, 0usize)
+                        .expect("dfad8878")
+                        .into_iter()
+                        .map(|value| {
+                            value
+                                .unwrap_or_else(|| str_constants::SERVER_ADMIN_DATA_NULL.to_owned())
+                        })
+                        .collect::<Vec<_>>()
+                })
+                .collect::<Vec<_>>();
+            let uri = format!("/tables/{table}?limit=100&offset=0");
+            let response = tower::ServiceExt::oneshot(
+                router_with_pool(&fixture_ref.pool).0,
+                request_with_peer(
+                    HttpAdminApiTestMethod::from(http::Method::GET),
+                    StdAdminApiTestStrRef::from(uri.as_str()),
+                    StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+                    Some(StdAdminApiTestStrRef::from(fixture_ref.cookie.0.as_str())),
+                    None,
+                )
+                .0,
+            )
+            .await
+            .expect("4b58a9ba");
+            assert_eq!(
+                response.status(),
+                http::StatusCode::OK,
+                "table API {table} failed"
+            );
+            let body = axum::body::to_bytes(response.into_body(), 1_048_576usize)
+                .await
+                .expect("78547eed");
+            let view =
+                serde_json::from_slice::<server_admin_contract::AdminDataTableView>(body.as_ref())
+                    .expect("6d2a32e6");
+            assert_eq!(view.table(), table);
+            let expected_columns = columns(table).split(',').collect::<Vec<_>>();
+            assert_eq!(view.columns().len(), expected_columns.len());
+            assert_eq!(view.items().len(), expected_rows.len());
+            expected_columns
+                .iter()
+                .enumerate()
+                .for_each(|(field_index, expected_name)| {
+                    assert_eq!(
+                        view.columns()
+                            .get(field_index)
+                            .map(|column| column.name().as_ref().as_str()),
+                        Some(*expected_name),
+                        "{table}.{expected_name} is missing or out of order"
+                    );
+                    assert!(
+                        view.items().iter().all(|row| row
+                            .values()
+                            .get(field_index)
+                            .is_some_and(|value| !value.as_ref().is_empty())),
+                        "{table}.{expected_name} has no readable value"
+                    );
+                    view.items().iter().zip(expected_rows.iter()).for_each(
+                        |(actual_row, expected_row)| {
+                            assert_eq!(
+                                actual_row
+                                    .values()
+                                    .get(field_index)
+                                    .map(|value| value.as_ref().as_str()),
+                                expected_row.get(field_index).map(String::as_str),
+                                "{table}.{expected_name} value differs from PostgreSQL"
+                            );
+                        },
+                    );
+                });
+            assert!(
+                !view.items().is_empty(),
+                "table API {table} returned no rows"
+            );
+        },
+    )
+    .await;
+    fixture.lock.0.rollback().await.expect("83226fd7");
+}
+#[tokio::test]
+#[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
 async fn postgresql_generated_mutation_idempotency_contract() {
     let database_url = std::env::var(str_constants::ENV_NAMES_DATABASE_URL).expect("40c1e398");
     let pool = sqlx::postgres::PgPoolOptions::new()

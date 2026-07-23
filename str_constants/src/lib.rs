@@ -3246,7 +3246,7 @@ str_constants_macros::define_str_constants! {
         pub SERVER_ADMIN_DATA_LOGIN_ATTEMPTS_COLUMNS = ["id,login,ip_address,succeeded,attempted_at"];
         pub SERVER_ADMIN_DATA_PERMISSIONS_COLUMNS = ["id,name,created_at"];
         pub SERVER_ADMIN_DATA_RATE_LIMITS_COLUMNS = ["scope,subject,window_started_at,request_count"];
-        pub SERVER_ADMIN_DATA_REFRESH_TOKENS_COLUMNS = ["id,user_id,expires_at,created_at,revoked_at"];
+        pub SERVER_ADMIN_DATA_SESSION_COLUMNS = ["id,user_id,expires_at,created_at,revoked_at"];
         pub SERVER_ADMIN_DATA_ROLE_PERMISSIONS_COLUMNS = ["id,role_id,permission_id,created_at"];
         pub SERVER_ADMIN_DATA_ROLES_COLUMNS = ["id,name,is_system,created_at,updated_at"];
         pub SERVER_ADMIN_DATA_SYSTEM_SETTINGS_COLUMNS = ["id,site_name,tab_title,main_logo,primary_color,default_admin_route,organization_name,organization_contacts,support_url,updated_at"];
