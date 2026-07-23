@@ -2,10 +2,8 @@
 mod html;
 #[derive(newtype::DebugTransparent, newtype::FromInner)]
 pub struct JsonwebtokenAdminEncodingKey(jsonwebtoken::EncodingKey);
-#[derive(newtype::DebugTransparent, newtype::FromInner)]
-pub struct JsonwebtokenAdminDecodingKey(jsonwebtoken::DecodingKey);
 #[derive(Debug, newtype::AsRefTarget, newtype::FromInner)]
-struct JsonwebtokenAdminDecodingKeys(Vec<JsonwebtokenAdminDecodingKey>);
+struct JsonwebtokenAdminDecodingKeys(Vec<jsonwebtoken::DecodingKey>);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::IntoInnerFrom, newtype::TryFrom)]
 #[try_from(
     error = AdminAuthPositiveValueError,
@@ -520,7 +518,7 @@ async fn authenticate(
         .find_map(|decoding_key| {
             jsonwebtoken::decode::<super::AdminAccessClaims>(
                 token.as_ref(),
-                &decoding_key.0,
+                decoding_key,
                 &validation,
             )
             .ok()
@@ -1223,10 +1221,10 @@ impl AdminAuthSvcState {
                 .verification_secrets()
                 .iter()
                 .map(|verification_secret| {
-                    JsonwebtokenAdminDecodingKey::from(jsonwebtoken::DecodingKey::from_secret(
+                    jsonwebtoken::DecodingKey::from_secret(
                         secrecy::ExposeSecret::expose_secret(verification_secret.as_ref())
                             .as_bytes(),
-                    ))
+                    )
                 })
                 .collect::<Vec<_>>()
                 .into(),

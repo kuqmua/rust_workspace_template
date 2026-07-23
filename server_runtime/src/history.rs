@@ -1,11 +1,10 @@
 #[derive(Debug, newtype::FromInner)]
 struct StdVecDequeRunReports<RunReport>(std::collections::VecDeque<RunReport>);
 
-#[derive(Debug, newtype::FromInner)]
-struct TokioRwLockRunReports<RunReport>(tokio::sync::RwLock<StdVecDequeRunReports<RunReport>>);
-
 #[derive(Debug, newtype::CloneInner, newtype::FromInner)]
-struct StdArcSharedRunReports<RunReport>(std::sync::Arc<TokioRwLockRunReports<RunReport>>);
+struct StdArcSharedRunReports<RunReport>(
+    std::sync::Arc<tokio::sync::RwLock<StdVecDequeRunReports<RunReport>>>,
+);
 #[derive(Debug, newtype::CloneFields)]
 pub struct AsyncRunHistory<RunReport> {
     maximum_len: StdAsyncRunHistoryMaximumLen,
@@ -53,13 +52,13 @@ impl<RunReport: Send + Sync> AsyncRunHistory<RunReport> {
         ));
         Self {
             maximum_len,
-            reports: StdArcSharedRunReports::from(std::sync::Arc::from(
-                TokioRwLockRunReports::from(tokio::sync::RwLock::new(reports)),
-            )),
+            reports: StdArcSharedRunReports::from(std::sync::Arc::from(tokio::sync::RwLock::new(
+                reports,
+            ))),
         }
     }
     pub async fn push(&self, report: RunReport) {
-        let mut reports = self.reports.0.0.write().await;
+        let mut reports = self.reports.0.write().await;
         if reports.0.len() == self.maximum_len.0.get() {
             let _removed = reports.0.pop_front();
         }
@@ -68,7 +67,7 @@ impl<RunReport: Send + Sync> AsyncRunHistory<RunReport> {
 }
 impl<RunReport: Clone + Send + Sync> AsyncRunHistory<RunReport> {
     pub async fn snapshot(&self) -> AsyncRunHistorySnapshot<RunReport> {
-        let reports = self.reports.0.0.read().await;
+        let reports = self.reports.0.read().await;
         AsyncRunHistorySnapshot {
             latest_report: reports.0.back().cloned(),
             report_count: StdAsyncRunHistoryReportCount::from(reports.0.len()),

@@ -96,7 +96,7 @@ pub struct LeaseRegistry {
 }
 impl LeaseRegistry {
     pub async fn heartbeat(&self, id: &LeaseId) -> LeaseHeartbeat {
-        let mut inner = self.inner.0.0.write().await;
+        let mut inner = self.inner.0.write().await;
         let outcome = match inner.by_id.get_mut(id) {
             Some(entry) if entry.state != LeaseState::Stale => {
                 entry.heartbeat = TokioLeaseInstant::from(tokio::time::Instant::now());
@@ -115,7 +115,7 @@ impl LeaseRegistry {
     }
 
     pub async fn release(&self, id: &LeaseId) -> LeaseHeartbeat {
-        let mut inner = self.inner.0.0.write().await;
+        let mut inner = self.inner.0.write().await;
         let Some(entry) = inner.by_id.remove(id) else {
             return LeaseHeartbeat::Missing;
         };
@@ -129,7 +129,7 @@ impl LeaseRegistry {
         key: LeaseKey,
         maximum: StdLeaseRegistryMaximum,
     ) -> LeaseReservation {
-        let mut inner = self.inner.0.0.write().await;
+        let mut inner = self.inner.0.write().await;
         if let Some(existing_id) = inner.by_key.get(&key)
             && inner
                 .by_id
@@ -156,7 +156,7 @@ impl LeaseRegistry {
     }
 
     pub async fn stale(&self, timeout: StdLeaseStaleTimeout) -> LeaseIds {
-        let mut inner = self.inner.0.0.write().await;
+        let mut inner = self.inner.0.write().await;
         let now = tokio::time::Instant::now();
         LeaseIds::from(
             inner
@@ -177,13 +177,10 @@ impl LeaseRegistry {
 struct LeaseTextRef<'value_lt>(&'value_lt str);
 
 #[derive(Clone, Debug, Default, newtype::FromInner)]
-struct StdArcTokioLeaseRegistryRwLock(std::sync::Arc<TokioLeaseRegistryRwLock>);
+struct StdArcTokioLeaseRegistryRwLock(std::sync::Arc<tokio::sync::RwLock<LeaseRegistryInner>>);
 
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
 struct TokioLeaseInstant(tokio::time::Instant);
-
-#[derive(Debug, Default, newtype::FromInner)]
-struct TokioLeaseRegistryRwLock(tokio::sync::RwLock<LeaseRegistryInner>);
 
 #[allow(clippy::single_call_fn)] // keeps the two-index conflict update atomic and locally auditable
 fn remove_conflicting_entries(inner: &mut LeaseRegistryInner, id: &LeaseId, key: &LeaseKey) {

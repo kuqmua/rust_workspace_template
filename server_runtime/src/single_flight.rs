@@ -117,10 +117,7 @@ struct SingleFlightInner {
 }
 
 #[derive(Clone, Debug, Default, newtype::FromInner)]
-struct StdArcStdSingleFlightRwLock(std::sync::Arc<StdSingleFlightRwLock>);
-
-#[derive(Debug, Default, newtype::FromInner)]
-struct StdSingleFlightRwLock(std::sync::RwLock<SingleFlightInner>);
+struct StdArcStdSingleFlightRwLock(std::sync::Arc<std::sync::RwLock<SingleFlightInner>>);
 
 #[derive(Debug, newtype::DerefMutTarget, newtype::DerefTarget, newtype::FromInner)]
 struct StdSingleFlightWriteGuard<'value_lt>(
@@ -140,7 +137,7 @@ struct TokioSingleFlightReceiver(tokio::sync::watch::Receiver<SingleFlightSignal
 struct TokioSingleFlightSender(tokio::sync::watch::Sender<SingleFlightSignal>);
 
 fn write_inner(inner: &StdArcStdSingleFlightRwLock) -> StdSingleFlightWriteGuard<'_> {
-    match inner.0.0.write() {
+    match inner.0.write() {
         Ok(guard) => StdSingleFlightWriteGuard::from(guard),
         Err(poisoned) => StdSingleFlightWriteGuard::from(poisoned.into_inner()),
     }

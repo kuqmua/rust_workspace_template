@@ -3,11 +3,8 @@ pub struct ResourceBudgetMaximum(usize);
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct ResourceBudgetAmount(usize);
 
-#[derive(Debug, newtype::FromInner)]
-struct StdAtomicUsize(std::sync::atomic::AtomicUsize);
-
 #[derive(Clone, Debug, newtype::FromInner)]
-struct StdSharedAtomicUsize(std::sync::Arc<StdAtomicUsize>);
+struct StdSharedAtomicUsize(std::sync::Arc<std::sync::atomic::AtomicUsize>);
 
 impl TryFrom<usize> for ResourceBudgetMaximum {
     type Error = ResourceBudgetConfigError;
@@ -56,16 +53,16 @@ impl ResourceBudget {
     pub fn new(maximum: ResourceBudgetMaximum) -> Self {
         Self {
             maximum,
-            reserved: StdSharedAtomicUsize::from(std::sync::Arc::from(StdAtomicUsize::from(
+            reserved: StdSharedAtomicUsize::from(std::sync::Arc::from(
                 std::sync::atomic::AtomicUsize::new(0usize),
-            ))),
+            )),
         }
     }
     pub fn reserve(
         &self,
         amount: ResourceBudgetAmount,
     ) -> Result<ResourceBudgetReservation, ResourceBudgetReserveError> {
-        let result = self.reserved.0.0.try_update(
+        let result = self.reserved.0.try_update(
             std::sync::atomic::Ordering::AcqRel,
             std::sync::atomic::Ordering::Acquire,
             |current| {
@@ -87,14 +84,13 @@ impl ResourceBudget {
     }
     #[must_use]
     pub fn reserved(&self) -> ResourceBudgetAmount {
-        ResourceBudgetAmount::from(self.reserved.0.0.load(std::sync::atomic::Ordering::Acquire))
+        ResourceBudgetAmount::from(self.reserved.0.load(std::sync::atomic::Ordering::Acquire))
     }
 }
 impl Drop for ResourceBudgetReservation {
     fn drop(&mut self) {
         let _previous = self
             .reserved
-            .0
             .0
             .fetch_sub(self.amount.0, std::sync::atomic::Ordering::AcqRel);
     }

@@ -32,11 +32,8 @@ impl HealthSnapshot {
     }
 }
 
-#[derive(Debug, newtype::FromInner)]
-struct StdHealthReadinessAtomicBool(std::sync::atomic::AtomicBool);
-
 #[derive(Clone, Debug, newtype::FromInner)]
-struct StdSharedHealthReadiness(std::sync::Arc<StdHealthReadinessAtomicBool>);
+struct StdSharedHealthReadiness(std::sync::Arc<std::sync::atomic::AtomicBool>);
 
 #[derive(Clone, Debug)]
 pub struct HealthReadiness {
@@ -46,7 +43,7 @@ impl Default for HealthReadiness {
     fn default() -> Self {
         Self {
             shared: StdSharedHealthReadiness::from(std::sync::Arc::from(
-                StdHealthReadinessAtomicBool::from(std::sync::atomic::AtomicBool::new(false)),
+                std::sync::atomic::AtomicBool::new(false),
             )),
         }
     }
@@ -54,7 +51,7 @@ impl Default for HealthReadiness {
 impl HealthReadiness {
     #[must_use]
     pub fn snapshot(&self) -> HealthSnapshot {
-        let database = if self.shared.0.0.load(std::sync::atomic::Ordering::Acquire) {
+        let database = if self.shared.0.load(std::sync::atomic::Ordering::Acquire) {
             HealthComponentStatus::Ok
         } else {
             HealthComponentStatus::Error
@@ -66,7 +63,6 @@ impl HealthReadiness {
     }
     pub fn store_database_probe(&self, value: HealthProbeSucceeded) {
         self.shared
-            .0
             .0
             .store(bool::from(value), std::sync::atomic::Ordering::Release);
     }

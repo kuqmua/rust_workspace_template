@@ -25,7 +25,7 @@ struct HttpNotificationStatusCode(http::StatusCode);
 #[derive(Debug, thiserror::Error)]
 enum HttpNotificationApiProblem {
     #[error("notification metrics response rendering failed: {0}")]
-    Metrics(#[source] server_runtime::ObservedError<ServerRuntimeMetricsResponseBodyError>),
+    Metrics(#[source] server_runtime::ObservedError<server_runtime::MetricsResponseBodyError>),
     #[error("notification persistence failed: {0}")]
     Persistence(#[source] server_runtime::ObservedError<SqlxNotificationDatabaseError>),
     #[error("notification readiness probe failed: {0}")]
@@ -169,10 +169,6 @@ struct NotificationObservabilityInitError(server_runtime::ObservabilityInitError
 struct NotificationObservabilityShutdownError(
     server_runtime::OpentelemetrySdkObservabilityShutdownError,
 );
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
-#[error(transparent)]
-struct ServerRuntimeMetricsResponseBodyError(server_runtime::MetricsResponseBodyError);
-
 async fn create_notification(
     state: AxumNotificationState,
     request: AxumNotificationJson,
@@ -207,7 +203,7 @@ async fn metrics(
 ) -> Result<server_runtime::MetricsResponseBody, HttpNotificationApiProblem> {
     server_runtime::MetricsResponseBody::try_from(state.0.metrics.0.render()).map_err(|error| {
         HttpNotificationApiProblem::Metrics(server_runtime::ObservedError::capture(
-            ServerRuntimeMetricsResponseBodyError::from(error),
+            error,
             server_runtime::ObservedErrorCode::from(str_constants::NOTIFICATION_METRICS_ERROR_CODE),
         ))
     })
