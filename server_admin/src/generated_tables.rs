@@ -470,7 +470,7 @@ mod tests {
             .and_then(serde_json::Value::as_object)
             .expect("274479a7");
         assert_eq!(paths.len(), 34usize);
-        assert!(paths.contains_key("/auth/sign-in"));
+        assert!(paths.contains_key("/auth/sign_in"));
         assert!(!paths.contains_key("/auth/mfa"));
         assert!(paths.contains_key("/auth/sessions/{session_id}"));
         assert!(paths.contains_key("/users/{user_id}/password"));
@@ -483,7 +483,7 @@ mod tests {
         assert!(!paths.contains_key("/admin_permissions/dm"));
         assert!(paths.contains_key("/admin_system_settings/rm"));
         assert!(!paths.contains_key("/admin_system_settings/um"));
-        assert!(paths.contains_key("/system-settings"));
+        assert!(paths.contains_key("/system_settings"));
         assert!(!paths.contains_key("/admin_system_settings/cm"));
         assert!(!paths.contains_key("/admin_system_settings/dm"));
     }

@@ -2577,7 +2577,7 @@ impl AdminSessionView {
     obligations = frontend_contract::PUBLIC_MUTATING_ROUTE_COVERAGE_OBLIGATIONS,
     error_statuses = frontend_contract::PUBLIC_AUTH_ROUTE_ERROR_STATUSES,
     openapi_operation_id = "sign_in",
-    path = "/auth/sign-in",
+    path = "/auth/sign_in",
     request = AdminSignInReq,
     response = AdminSignInRes,
     success_status = frontend_contract::SuccessStatus::Code200,
@@ -2622,7 +2622,7 @@ pub struct AdminMeRoute;
 pub struct AdminChangeOwnPasswordRoute;
 
 #[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
-#[typed_route(error_statuses = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_ERROR_STATUSES, authentication = frontend_contract::AuthenticationRequirement::Authenticated, method = frontend_contract::RouteMethod::Post, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "sign_out", path = "/auth/sign-out", request = AdminNoBody, response = AdminNoBody, success_status = frontend_contract::SuccessStatus::Code204, transport = frontend_contract::AuthenticatedTransport)]
+#[typed_route(error_statuses = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_ERROR_STATUSES, authentication = frontend_contract::AuthenticationRequirement::Authenticated, method = frontend_contract::RouteMethod::Post, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "sign_out", path = "/auth/sign_out", request = AdminNoBody, response = AdminNoBody, success_status = frontend_contract::SuccessStatus::Code204, transport = frontend_contract::AuthenticatedTransport)]
 pub struct AdminSignOutRoute;
 
 #[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
@@ -2690,11 +2690,11 @@ pub struct AdminSetRolePermissionsRoute;
 pub struct AdminListPermissionsRoute;
 
 #[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
-#[typed_route(error_statuses = frontend_contract::AUTHORIZED_VALIDATED_READ_ROUTE_ERROR_STATUSES, authentication = admin_permission_requirement(AdminPermission::AuditLogRead), method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "audit_log", path = "/audit-log", request = AdminNoBody, response = AdminAuditPage, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)]
+#[typed_route(error_statuses = frontend_contract::AUTHORIZED_VALIDATED_READ_ROUTE_ERROR_STATUSES, authentication = admin_permission_requirement(AdminPermission::AuditLogRead), method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "audit_log", path = "/audit_log", request = AdminNoBody, response = AdminAuditPage, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)]
 pub struct AdminAuditLogRoute;
 
 #[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
-#[typed_route(error_statuses = frontend_contract::AUTHORIZED_VALIDATED_READ_ROUTE_ERROR_STATUSES, authentication = admin_permission_requirement(AdminPermission::AuditLogExport), method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "export_audit_log", path = "/audit-log/export", request = AdminNoBody, response = AdminAuditExport, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)]
+#[typed_route(error_statuses = frontend_contract::AUTHORIZED_VALIDATED_READ_ROUTE_ERROR_STATUSES, authentication = admin_permission_requirement(AdminPermission::AuditLogExport), method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "export_audit_log", path = "/audit_log/export", request = AdminNoBody, response = AdminAuditExport, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)]
 pub struct AdminAuditExportRoute;
 
 #[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
@@ -2710,11 +2710,11 @@ pub struct AdminDataTablesRoute;
 pub struct AdminDataTableRoute;
 
 #[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
-#[typed_route(error_statuses = frontend_contract::AUTHORIZED_READ_ROUTE_ERROR_STATUSES, authentication = admin_permission_requirement(AdminPermission::SystemSettingsRead), method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "settings", path = "/system-settings", request = AdminNoBody, response = AdminSettingsView, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)]
+#[typed_route(error_statuses = frontend_contract::AUTHORIZED_READ_ROUTE_ERROR_STATUSES, authentication = admin_permission_requirement(AdminPermission::SystemSettingsRead), method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "settings", path = "/system_settings", request = AdminNoBody, response = AdminSettingsView, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)]
 pub struct AdminSettingsRoute;
 
 #[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
-#[typed_route(error_statuses = frontend_contract::AUTHORIZED_MUTATING_ROUTE_ERROR_STATUSES, authentication = admin_permission_requirement(AdminPermission::SystemSettingsUpdate), method = frontend_contract::RouteMethod::Patch, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "update_settings", path = "/system-settings", request = AdminUpdateSettingsReq, response = AdminNoBody, success_status = frontend_contract::SuccessStatus::Code204, transport = frontend_contract::AuthenticatedTransport)]
+#[typed_route(error_statuses = frontend_contract::AUTHORIZED_MUTATING_ROUTE_ERROR_STATUSES, authentication = admin_permission_requirement(AdminPermission::SystemSettingsUpdate), method = frontend_contract::RouteMethod::Patch, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "update_settings", path = "/system_settings", request = AdminUpdateSettingsReq, response = AdminNoBody, success_status = frontend_contract::SuccessStatus::Code204, transport = frontend_contract::AuthenticatedTransport)]
 pub struct AdminUpdateSettingsRoute;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, frontend_contract::RouteCatalog)]
@@ -2851,7 +2851,7 @@ pub enum AdminFrontendPath {
     Metrics,
     #[strum(serialize = "/admin/openapi.json")]
     OpenApiDocument,
-    #[strum(serialize = "/admin/swagger-ui")]
+    #[strum(serialize = "/admin/swagger_ui")]
     OpenApi,
     #[strum(serialize = "/admin/permissions")]
     Permissions,
@@ -2863,9 +2863,9 @@ pub enum AdminFrontendPath {
     Sessions,
     #[strum(serialize = "/admin")]
     Root,
-    #[strum(serialize = "/admin/sign-in")]
+    #[strum(serialize = "/admin/sign_in")]
     SignIn,
-    #[strum(serialize = "/admin/system-settings")]
+    #[strum(serialize = "/admin/settings")]
     Settings,
     #[strum(serialize = "/admin/{table}")]
     Tables,
@@ -2890,9 +2890,9 @@ pub enum AdminHtmlAction {
     SessionRevoke,
     #[strum(serialize = "/admin/actions/settings/update")]
     SettingsUpdate,
-    #[strum(serialize = "/admin/actions/sign-in")]
+    #[strum(serialize = "/admin/actions/sign_in")]
     SignIn,
-    #[strum(serialize = "/admin/actions/sign-out")]
+    #[strum(serialize = "/admin/actions/sign_out")]
     SignOut,
     #[strum(serialize = "/admin/actions/users/ban")]
     UserBan,
@@ -2928,6 +2928,10 @@ impl AdminHtmlAction {
     #[must_use]
     pub fn get(self) -> &'static str {
         <&'static str>::from(self)
+    }
+    #[must_use]
+    pub fn route_name(self) -> frontend_contract::ContractStr {
+        admin_path_route_name(AdminPagePathRef::from(self.get()))
     }
 }
 impl AdminFrontendPath {
@@ -3088,6 +3092,10 @@ impl AdminPageSpec {
         frontend_contract::ContractStr::from(self.path.get())
     }
     #[must_use]
+    pub fn route_name(self) -> frontend_contract::ContractStr {
+        admin_path_route_name(AdminPagePathRef::from(self.path.get()))
+    }
+    #[must_use]
     pub const fn route(self) -> AdminRoute {
         self.route
     }
@@ -3106,6 +3114,13 @@ impl AdminPageSpec {
             AdminPageTitle::Version => str_constants::VERSION_ALT,
         })
     }
+}
+fn admin_path_route_name(path: AdminPagePathRef<'static>) -> frontend_contract::ContractStr {
+    frontend_contract::ContractStr::from(
+        path.0
+            .rsplit_once('/')
+            .map_or(path.0, |(_prefix, name)| name),
+    )
 }
 impl AdminPage {
     pub const NAV_ORDER: [Self; 6] = [
@@ -3415,6 +3430,30 @@ mod tests {
         };
     }
     #[test]
+    fn administrator_routes_use_snake_case_segments() {
+        assert!(
+            [
+                super::AdminRoute::Audit,
+                super::AdminRoute::AuditExport,
+                super::AdminRoute::Settings,
+                super::AdminRoute::SignIn,
+                super::AdminRoute::SignOut,
+            ]
+            .iter()
+            .all(|route| !route.path().as_ref().contains('-'))
+        );
+        assert!(
+            super::AdminFrontendPath::ALL_PAGES
+                .iter()
+                .all(|path| !path.get().contains('-'))
+        );
+        assert!(
+            super::AdminHtmlAction::ALL
+                .iter()
+                .all(|action| !action.get().contains('-'))
+        );
+    }
+    #[test]
     fn password_debug_is_redacted() {
         let password =
             super::AdminPassword::try_from(String::from(str_constants::SECRET)).expect("9f3f5164");
@@ -3549,11 +3588,26 @@ mod tests {
                 super::AdminPage::Version,
             ]
         );
+        assert_eq!(
+            super::AdminPage::NAV_ORDER.map(|page| page.spec().route_name().to_string()),
+            [
+                String::from("swagger_ui"),
+                String::from("metrics"),
+                String::from("profile"),
+                String::from("sessions"),
+                String::from("settings"),
+                String::from("version"),
+            ]
+        );
+        assert_eq!(
+            super::AdminHtmlAction::SignOut.route_name().as_ref(),
+            "sign_out"
+        );
         assert!(super::AdminPage::NAV_ORDER.iter().all(|page| {
-            let page_label = page.title().as_ref().to_ascii_lowercase().replace(' ', "_");
+            let page_label = page.spec().route_name();
             super::AdminDataTable::PG_ORDER
                 .iter()
-                .all(|table| table.to_string() != page_label)
+                .all(|table| table.to_string() != page_label.as_ref())
         }));
         assert_eq!(
             super::AdminDataTable::ALL

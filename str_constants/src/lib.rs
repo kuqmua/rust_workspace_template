@@ -4018,15 +4018,15 @@ pub const TRACE: &str = "TRACE";
 pub const YES: &str = "YES";
 pub const EMPTY: &str = "";
 pub const ADMIN_CSR_ROOT_ID: &str = "admin-csr-root";
-pub const ADMIN_API_AUDIT_LOG_PATH: &str = "/admin/audit-log";
+pub const ADMIN_API_AUDIT_LOG_PATH: &str = "/admin/audit_log";
 pub const ADMIN_ACTION_QUERY_KEY: &str = "action";
 pub const ADMIN_API_ME_PATH: &str = "/admin/auth/me";
 pub const ADMIN_API_PASSWORD_PATH: &str = "/admin/auth/password";
 pub const ADMIN_API_PERMISSIONS_PATH: &str = "/admin/permissions";
 pub const ADMIN_API_ROLES_PATH: &str = "/admin/roles";
 pub const ADMIN_API_SESSIONS_PATH: &str = "/admin/auth/sessions";
-pub const ADMIN_API_SIGN_OUT_PATH: &str = "/admin/auth/sign-out";
-pub const ADMIN_API_SETTINGS_PATH: &str = "/admin/system-settings";
+pub const ADMIN_API_SIGN_OUT_PATH: &str = "/admin/auth/sign_out";
+pub const ADMIN_API_SETTINGS_PATH: &str = "/admin/system_settings";
 pub const ADMIN_API_USERS_PATH: &str = "/admin/users";
 pub const ADMIN_FILTER_END_QUERY_KEY: &str = "filter_end";
 pub const ADMIN_FIELD_ERROR_CLASS: &str = "field-error";
@@ -4182,7 +4182,7 @@ pub const ADMIN_OPENAPI_ME_OPERATION_ID_POINTER: &str = "/paths/~1auth~1me/get/o
 pub const ADMIN_OPENAPI_REFRESH_OPERATION_ID_POINTER: &str =
     "/paths/~1auth~1refresh/post/operationId";
 pub const ADMIN_OPENAPI_SIGN_IN_OPERATION_ID_POINTER: &str =
-    "/paths/~1auth~1sign-in/post/operationId";
+    "/paths/~1auth~1sign_in/post/operationId";
 pub const MOCK_NOTIFICATION_PROVIDER_CLOSED: &str = "mock notification provider is closed";
 pub const TRACEPARENT: &str = "traceparent";
 pub const TRACESTATE: &str = "tracestate";

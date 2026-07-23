@@ -171,12 +171,12 @@ fn render_admin_page_with_table_access(
                         {server_admin_contract::AdminPage::NAV_ORDER.into_iter().filter(|item_page| admin.is_none_or(|value| bool::from(value.can_access(*item_page)))).map(|item_page| {
                             let item = item_page.spec();
                             let href = String::from(item.path());
-                            let label = item.title().as_ref().to_ascii_lowercase().replace(' ', "_");
+                            let label = item.route_name().as_ref().to_owned();
                             leptos::view! {
                                 <a class=(item_page == page).then_some("active") href=href>{label}</a>
                             }
                         }).collect::<Vec<_>>()}
-                        <form method="post" action=server_admin_contract::AdminHtmlAction::SignOut.get()><button type="submit">{str_constants::SIGN_OUT.to_ascii_lowercase().replace(' ', "_")}</button></form>
+                        <form method="post" action=server_admin_contract::AdminHtmlAction::SignOut.get()><button type="submit">{server_admin_contract::AdminHtmlAction::SignOut.route_name().as_ref().to_owned()}</button></form>
                     </nav>
                 </header>
                 <main class="main-content"><p id="saved" class="flash-success" role="status">"Changes saved."</p><div inner_html=content.0></div></main>
@@ -421,7 +421,7 @@ pub fn render_admin_csr(
         &AdminSsrText::try_from(title).unwrap_or_else(AdminSsrText::from),
         leptos::view! {
             <div id=str_constants::ADMIN_CSR_ROOT_ID style=primary_color><p class="loading-state" role="status">"Loading\u{2026}"</p></div>
-            <script type="module" src="/admin/assets/csr-bootstrap.js?v=20260722-17"></script>
+            <script type="module" src="/admin/assets/csr_bootstrap.js?v=20260722-17"></script>
         },
     )
 }
@@ -752,13 +752,16 @@ mod tests {
         assert!(!page.as_ref().contains("<h2"));
         assert!(!page.as_ref().contains("class=\"brand\""));
         assert!(!page.as_ref().contains("nav-dot"));
+        assert!(page.as_ref().contains(">swagger_ui</a>"));
+        assert!(page.as_ref().contains(">settings</a>"));
+        assert!(!page.as_ref().contains(">api</a>"));
         assert!(
             page.as_ref().contains(
                 format!(
                     "{}</button></form></nav>",
-                    str_constants::SIGN_OUT
-                        .to_ascii_lowercase()
-                        .replace(' ', "_")
+                    server_admin_contract::AdminHtmlAction::SignOut
+                        .route_name()
+                        .as_ref()
                 )
                 .as_str()
             )
@@ -804,7 +807,7 @@ mod tests {
         assert!(html.as_ref().contains("id=\"admin-csr-root\""));
         assert!(
             html.as_ref()
-                .contains("src=\"/admin/assets/csr-bootstrap.js?v=20260722-17\"")
+                .contains("src=\"/admin/assets/csr_bootstrap.js?v=20260722-17\"")
         );
         assert!(!html.as_ref().contains("<nav"));
         assert!(!html.as_ref().contains("<table"));

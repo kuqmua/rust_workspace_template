@@ -950,14 +950,15 @@ fn AdminNav(admin: server_admin_contract::AuthenticatedAdmin) -> impl leptos::pr
                 let spec = page.spec();
                 let href = spec.path().as_ref().to_owned();
                 let active = pathname == href;
-                leptos::view! { <a class=("active", active) href=href>{spec.title().as_ref().to_ascii_lowercase().replace(' ', "_")}</a> }
+                let label = spec.route_name().as_ref().to_owned();
+                leptos::view! { <a class=("active", active) href=href>{label}</a> }
             }).collect::<Vec<_>>()}
             <form on:submit=move |event| {
                 event.prevent_default();
                 if let Ok(path) = AdminCsrApiUrl::try_from(format!("{}{}", str_constants::API_V1, str_constants::ADMIN_API_SIGN_OUT_PATH)) {
                     reload_after(AdminMutationMethod::Post, path, server_admin_contract::AdminNoBody);
                 }
-            }><button type="submit">{str_constants::SIGN_OUT.to_ascii_lowercase().replace(' ', "_")}</button></form>
+            }><button type="submit">{server_admin_contract::AdminHtmlAction::SignOut.route_name().as_ref().to_owned()}</button></form>
         </nav></header>
     }
 }

@@ -1318,13 +1318,13 @@ mod tests {
             })
             .collect::<std::collections::BTreeSet<_>>();
         assert_eq!(documented_route_contracts, contracted_route_contracts);
-        assert!(paths.contains_key("/auth/sign-in"));
+        assert!(paths.contains_key("/auth/sign_in"));
         assert!(paths.contains_key("/auth/sessions/{session_id}"));
         assert!(paths.contains_key("/users/{user_id}/password"));
         assert!(paths.contains_key("/roles/{role_id}/permissions"));
         assert!(paths.contains_key("/permissions"));
-        assert!(paths.contains_key("/audit-log"));
-        assert!(paths.contains_key("/system-settings"));
+        assert!(paths.contains_key("/audit_log"));
+        assert!(paths.contains_key("/system_settings"));
         assert_eq!(
             document
                 .pointer(str_constants::ADMIN_OPENAPI_SIGN_IN_OPERATION_ID_POINTER)
