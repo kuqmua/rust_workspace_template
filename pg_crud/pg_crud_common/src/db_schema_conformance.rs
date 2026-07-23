@@ -467,13 +467,18 @@ where
             observed: observed_defaults.into(),
         });
     }
+    let public_schema_qualifier = format!("{}.", str_constants::PUBLIC);
+    let observed_schema_qualifier = format!("{}.", schema.0);
     let mut expected_objects = Table::checks_and_indexes()
         .iter()
         .map(|spec| {
             Ok(DbObjectSnapshot::new(
                 schema_text(spec.name.0.to_owned())?,
                 spec.kind,
-                schema_text(spec.definition.0.to_owned())?,
+                schema_text(spec.definition.0.replace(
+                    public_schema_qualifier.as_str(),
+                    observed_schema_qualifier.as_str(),
+                ))?,
             ))
         })
         .collect::<Result<Vec<_>, DbSchemaConformanceError>>()?;
