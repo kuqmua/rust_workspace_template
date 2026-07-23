@@ -3256,18 +3256,31 @@ impl AdminPage {
 impl AdminRoute {
     #[must_use]
     pub fn path(self) -> AdminRoutePath {
-        let suffix = String::from(self.catalog_path());
+        let suffix = self.catalog_path();
         if matches!(self, Self::Version) {
-            AdminRoutePath::try_from(suffix).unwrap_or_default()
+            AdminRoutePath::try_from(String::from(suffix)).unwrap_or_default()
         } else {
-            AdminRoutePath::try_from(format!(
-                "{}{}{suffix}",
-                str_constants::API_V1,
-                AdminFrontendPath::Root.get()
-            ))
-            .unwrap_or_default()
+            admin_api_route_path(suffix)
         }
     }
+}
+#[must_use]
+pub fn admin_parameterized_route_path<Route>(parameter: &Route::Parameter) -> AdminRoutePath
+where
+    Route: frontend_contract::ParameterizedRoute,
+{
+    admin_api_route_path(frontend_contract::typed_parameterized_route_path::<Route>(
+        parameter,
+    ))
+}
+fn admin_api_route_path(suffix: frontend_contract::ParameterizedRoutePath) -> AdminRoutePath {
+    AdminRoutePath::try_from(format!(
+        "{}{}{suffix}",
+        str_constants::API_V1,
+        AdminFrontendPath::Root.get(),
+        suffix = String::from(suffix),
+    ))
+    .unwrap_or_default()
 }
 #[cfg(test)]
 mod tests {
@@ -3491,6 +3504,14 @@ mod tests {
                 )
             )
         );
+    }
+    #[test]
+    fn parameterized_admin_route_path_uses_typed_route_metadata() {
+        let session_id = super::AdminSessionIdentifier::try_from(String::from("test-session"))
+            .expect("84d51132");
+        let path =
+            super::admin_parameterized_route_path::<super::AdminRevokeSessionRoute>(&session_id);
+        assert_eq!(path.as_ref(), "/api/v1/admin/auth/sessions/test-session");
     }
     #[test]
     fn html_action_inventory_has_unique_paths() {

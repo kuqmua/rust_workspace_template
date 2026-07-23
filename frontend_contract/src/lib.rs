@@ -12,8 +12,10 @@ pub enum KnownHttpStatus {
     Created,
     Forbidden,
     InternalServerError,
+    MethodNotAllowed,
     NoContent,
     Ok,
+    PayloadTooLarge,
     TooManyRequests,
     Unauthorized,
     UnprocessableEntity,
@@ -26,8 +28,10 @@ impl KnownHttpStatus {
             Self::Created => 201u16,
             Self::Forbidden => 403u16,
             Self::InternalServerError => 500u16,
+            Self::MethodNotAllowed => 405u16,
             Self::NoContent => 204u16,
             Self::Ok => 200u16,
+            Self::PayloadTooLarge => 413u16,
             Self::TooManyRequests => 429u16,
             Self::Unauthorized => 401u16,
             Self::UnprocessableEntity => 422u16,
@@ -599,6 +603,8 @@ pub enum RouteErrorStatus {
     Authorization,
     Conflict,
     Internal,
+    MethodNotAllowed,
+    PayloadTooLarge,
     RateLimited,
     Validation,
 }
@@ -610,6 +616,8 @@ impl RouteErrorStatus {
             Self::Authorization => TransportStatus::from(KnownHttpStatus::Forbidden),
             Self::Conflict => TransportStatus::from(KnownHttpStatus::Conflict),
             Self::Internal => TransportStatus::from(KnownHttpStatus::InternalServerError),
+            Self::MethodNotAllowed => TransportStatus::from(KnownHttpStatus::MethodNotAllowed),
+            Self::PayloadTooLarge => TransportStatus::from(KnownHttpStatus::PayloadTooLarge),
             Self::RateLimited => TransportStatus::from(KnownHttpStatus::TooManyRequests),
             Self::Validation => TransportStatus::from(KnownHttpStatus::UnprocessableEntity),
         }
@@ -617,35 +625,44 @@ impl RouteErrorStatus {
 }
 pub const PUBLIC_AUTH_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] = &[
     RouteErrorStatus::Authentication,
+    RouteErrorStatus::PayloadTooLarge,
     RouteErrorStatus::RateLimited,
     RouteErrorStatus::Internal,
 ];
-pub const PUBLIC_READ_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] =
-    &[RouteErrorStatus::Internal, RouteErrorStatus::RateLimited];
+pub const PUBLIC_READ_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] = &[
+    RouteErrorStatus::Internal,
+    RouteErrorStatus::PayloadTooLarge,
+    RouteErrorStatus::RateLimited,
+];
 pub const PUBLIC_MUTATING_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] = &[
+    RouteErrorStatus::PayloadTooLarge,
     RouteErrorStatus::Validation,
     RouteErrorStatus::RateLimited,
     RouteErrorStatus::Internal,
 ];
 pub const PUBLIC_REFRESH_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] = &[
     RouteErrorStatus::Authentication,
+    RouteErrorStatus::PayloadTooLarge,
     RouteErrorStatus::RateLimited,
     RouteErrorStatus::Internal,
 ];
 pub const AUTHENTICATED_READ_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] = &[
     RouteErrorStatus::Authentication,
+    RouteErrorStatus::PayloadTooLarge,
     RouteErrorStatus::RateLimited,
     RouteErrorStatus::Internal,
 ];
 pub const AUTHORIZED_READ_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] = &[
     RouteErrorStatus::Authentication,
     RouteErrorStatus::Authorization,
+    RouteErrorStatus::PayloadTooLarge,
     RouteErrorStatus::RateLimited,
     RouteErrorStatus::Internal,
 ];
 pub const AUTHORIZED_VALIDATED_READ_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] = &[
     RouteErrorStatus::Authentication,
     RouteErrorStatus::Authorization,
+    RouteErrorStatus::PayloadTooLarge,
     RouteErrorStatus::Validation,
     RouteErrorStatus::RateLimited,
     RouteErrorStatus::Internal,
@@ -653,6 +670,7 @@ pub const AUTHORIZED_VALIDATED_READ_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] = 
 pub const AUTHENTICATED_MUTATING_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] = &[
     RouteErrorStatus::Authentication,
     RouteErrorStatus::Authorization,
+    RouteErrorStatus::PayloadTooLarge,
     RouteErrorStatus::RateLimited,
     RouteErrorStatus::Internal,
 ];
@@ -660,6 +678,7 @@ pub const AUTHORIZED_MUTATING_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] = &[
     RouteErrorStatus::Authentication,
     RouteErrorStatus::Authorization,
     RouteErrorStatus::Conflict,
+    RouteErrorStatus::PayloadTooLarge,
     RouteErrorStatus::Validation,
     RouteErrorStatus::RateLimited,
     RouteErrorStatus::Internal,
@@ -668,6 +687,7 @@ pub const AUTHORIZED_DELETE_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] = &[
     RouteErrorStatus::Authentication,
     RouteErrorStatus::Authorization,
     RouteErrorStatus::Conflict,
+    RouteErrorStatus::PayloadTooLarge,
     RouteErrorStatus::RateLimited,
     RouteErrorStatus::Internal,
 ];

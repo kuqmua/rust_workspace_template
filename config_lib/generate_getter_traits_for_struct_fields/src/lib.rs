@@ -55,6 +55,14 @@ pub fn generate_getter_trait(input: proc_macro::TokenStream) -> proc_macro::Toke
         pub trait #get_identifier_upper_camel_case {
             fn #get_identifier_snake_case(&self) -> &#first_field_unnamed_type;
         }
+        impl<Value> #get_identifier_upper_camel_case for &Value
+        where
+            Value: #get_identifier_upper_camel_case + ?Sized,
+        {
+            fn #get_identifier_snake_case(&self) -> &#first_field_unnamed_type {
+                <Value as #get_identifier_upper_camel_case>::#get_identifier_snake_case(*self)
+            }
+        }
     };
     generated.into()
 }

@@ -136,6 +136,37 @@ struct ReviewedPublicFields {
     struct_name: &'static str,
 }
 #[test]
+fn admin_frontend_api_urls_come_from_typed_routes() {
+    super::snapshot::with_codebase_snapshot(|snapshot| {
+        let source = snapshot
+            .rs_files()
+            .iter()
+            .find(|file| {
+                file.path()
+                    .as_ref()
+                    .ends_with("server_admin_frontend/src/app.rs")
+            })
+            .expect("9d160586")
+            .content()
+            .as_ref();
+        assert!(!source.contains("str_constants::API_V1"), "24e5ceeb");
+        assert!(!source.contains("ADMIN_API_"), "72b66898");
+    });
+}
+#[test]
+fn config_reference_getters_use_generated_forwarding() {
+    super::snapshot::with_codebase_snapshot(|snapshot| {
+        let source = snapshot
+            .rs_files()
+            .iter()
+            .find(|file| file.path().as_ref().ends_with("server_config/src/lib.rs"))
+            .expect("e210ffd6")
+            .content()
+            .as_ref();
+        assert!(!source.contains(" for &Config"), "c0f0354a");
+    });
+}
+#[test]
 fn all_files_are_english_only() {
     let mut ers = super::snapshot::with_codebase_snapshot(|snapshot| {
         rayon::iter::ParallelIterator::reduce(

@@ -94,6 +94,17 @@ fn env_and_env_example_have_same_keys() {
     );
 }
 #[test]
+fn server_has_one_tracked_environment_example() {
+    assert!(
+        !std::path::Path::new("../server/.envexample").exists(),
+        "42fa780c"
+    );
+    assert!(
+        std::path::Path::new(str_constants::SERVER_DOT_ENV_EXAMPLE).is_file(),
+        "73be248d"
+    );
+}
+#[test]
 fn workspace_crates_must_use_workspace_dependencies() {
     super::assert_cargo_toml_ers_empty(
         super::types::StaticStr::from(str_constants::VALUE_5F8A6D17),

@@ -105,6 +105,29 @@ struct MutationConfirmationMessageRef<'message_lt>(&'message_lt str);
 #[derive(Clone, Copy, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
 struct MutationConfirmed(bool);
 
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
+struct AdminCsrApiUrlSuffixRef<'suffix_lt>(&'suffix_lt str);
+
+fn admin_api_url(
+    route: server_admin_contract::AdminRoute,
+) -> Result<AdminCsrApiUrl, AdminTableLoadError> {
+    admin_route_path_url(route.path())
+}
+
+fn admin_route_path_url(
+    path: server_admin_contract::AdminRoutePath,
+) -> Result<AdminCsrApiUrl, AdminTableLoadError> {
+    AdminCsrApiUrl::try_from(path.to_string()).map_err(|_error| AdminTableLoadError::Query)
+}
+
+fn admin_api_url_with_suffix(
+    route: server_admin_contract::AdminRoute,
+    suffix: AdminCsrApiUrlSuffixRef<'_>,
+) -> Result<AdminCsrApiUrl, AdminTableLoadError> {
+    AdminCsrApiUrl::try_from(format!("{}{}", route.path(), suffix.0))
+        .map_err(|_error| AdminTableLoadError::Query)
+}
+
 impl AdminMutationMethod {
     const fn get(self) -> &'static str {
         match self {
@@ -140,12 +163,11 @@ impl AdminCsrQuery {
             .location()
             .search()
             .map_err(|_error| AdminTableLoadError::Fetch)?;
-        AdminCsrApiUrl::try_from(format!(
-            "{}/admin/tables/{table}{search}",
-            str_constants::API_V1
-        ))
+        admin_api_url_with_suffix(
+            server_admin_contract::AdminRoute::DataTable(table),
+            AdminCsrApiUrlSuffixRef::from(search.as_str()),
+        )
         .map(Some)
-        .map_err(|_error| AdminTableLoadError::Query)
     }
 
     fn from_location() -> Result<Self, AdminTableLoadError> {
@@ -398,19 +420,14 @@ async fn fetch_page(
         .location()
         .search()
         .map_err(|_error| AdminTableLoadError::Fetch)?;
-    let me_url = AdminCsrApiUrl::try_from(format!(
-        "{}{}",
-        str_constants::API_V1,
-        str_constants::ADMIN_API_ME_PATH
-    ))
-    .map_err(|_error| AdminTableLoadError::Query)?;
+    let me_url = admin_api_url(server_admin_contract::AdminRoute::Me)?;
     let admin = fetch_json::<server_admin_contract::AuthenticatedAdmin>(&me_url).await?;
-    let path = match page {
-        AdminCsrPage::Permissions => str_constants::ADMIN_API_PERMISSIONS_PATH,
+    let route = match page {
+        AdminCsrPage::Permissions => server_admin_contract::AdminRoute::Permissions,
         AdminCsrPage::Profile => return Ok(AdminLoadState::Profile(admin)),
-        AdminCsrPage::Roles => str_constants::ADMIN_API_ROLES_PATH,
-        AdminCsrPage::Sessions => str_constants::ADMIN_API_SESSIONS_PATH,
-        AdminCsrPage::Settings => str_constants::ADMIN_API_SETTINGS_PATH,
+        AdminCsrPage::Roles => server_admin_contract::AdminRoute::Roles,
+        AdminCsrPage::Sessions => server_admin_contract::AdminRoute::Sessions,
+        AdminCsrPage::Settings => server_admin_contract::AdminRoute::Settings,
         AdminCsrPage::Tables => {
             let Some(url) = query.api_url()? else {
                 return Ok(AdminLoadState::Empty(admin));
@@ -419,7 +436,7 @@ async fn fetch_page(
                 .await
                 .map(|value| AdminLoadState::Table(admin, value));
         }
-        AdminCsrPage::Users => str_constants::ADMIN_API_USERS_PATH,
+        AdminCsrPage::Users => server_admin_contract::AdminRoute::Users,
     };
     let suffix = match page {
         AdminCsrPage::Permissions | AdminCsrPage::Roles | AdminCsrPage::Users => search,
@@ -428,8 +445,7 @@ async fn fetch_page(
         | AdminCsrPage::Settings
         | AdminCsrPage::Tables => String::new(),
     };
-    let url = AdminCsrApiUrl::try_from(format!("{}{path}{suffix}", str_constants::API_V1))
-        .map_err(|_error| AdminTableLoadError::Query)?;
+    let url = admin_api_url_with_suffix(route, AdminCsrApiUrlSuffixRef::from(suffix.as_str()))?;
     match page {
         AdminCsrPage::Permissions => fetch_json(&url)
             .await
@@ -572,7 +588,7 @@ fn AdminUsersView(
                 );
                 if let (Ok(display_name), Ok(login), Ok(password), Ok(path)) = (
                     request.0, request.1, request.2,
-                    AdminCsrApiUrl::try_from(format!("{}{}", str_constants::API_V1, str_constants::ADMIN_API_USERS_PATH)),
+                    admin_api_url(server_admin_contract::AdminRoute::CreateUser),
                 ) {
                     reload_after(AdminMutationMethod::Post, path, server_admin_contract::AdminCreateUserReq::new(display_name, login, password));
                 }
@@ -618,7 +634,7 @@ fn AdminUsersView(
                                 server_admin_contract::AdminDisplayName::try_from(leptos::prelude::Get::get(&display_name)).ok(),
                                 server_admin_contract::AdminLogin::try_from(leptos::prelude::Get::get(&login)).ok(),
                             );
-                            if let Ok(path) = AdminCsrApiUrl::try_from(format!("{}{}/{}", str_constants::API_V1, str_constants::ADMIN_API_USERS_PATH, update_user_id)) {
+                            if let Ok(path) = admin_api_url(server_admin_contract::AdminRoute::UpdateUser(update_user_id)) {
                                 reload_after(AdminMutationMethod::Patch, path, request);
                             }
                         }>"Save"</button> })}
@@ -626,7 +642,7 @@ fn AdminUsersView(
                         <button type="button" on:click=move |_event| {
                             if let (Ok(value), Ok(path)) = (
                                 server_admin_contract::AdminNewPassword::try_from(leptos::prelude::Get::get(&password)),
-                                AdminCsrApiUrl::try_from(format!("{}{}/{}/password", str_constants::API_V1, str_constants::ADMIN_API_USERS_PATH, password_user_id)),
+                                admin_api_url(server_admin_contract::AdminRoute::SetUserPassword(password_user_id)),
                             ) {
                                 reload_after(AdminMutationMethod::Post, path, server_admin_contract::AdminSetUserPasswordReq::new(value));
                             }
@@ -637,18 +653,18 @@ fn AdminUsersView(
                             if let (Ok(expected), Ok(selected), Ok(path)) = (
                                 expected,
                                 selected,
-                                AdminCsrApiUrl::try_from(format!("{}{}/{}/roles", str_constants::API_V1, str_constants::ADMIN_API_USERS_PATH, roles_user_id)),
+                                admin_api_url(server_admin_contract::AdminRoute::SetUserRoles(roles_user_id)),
                             ) {
                                 reload_after(AdminMutationMethod::Put, path, server_admin_contract::AdminSetUserRolesReq::new(expected, selected));
                             }
                         }>"Save roles"</button> })}
                         {can_update.then(|| leptos::view! { <button type="button" on:click=move |_event| {
-                            if let Ok(path) = AdminCsrApiUrl::try_from(format!("{}{}/{}/ban", str_constants::API_V1, str_constants::ADMIN_API_USERS_PATH, ban_user_id)) {
+                            if let Ok(path) = admin_api_url(server_admin_contract::AdminRoute::SetUserBan(ban_user_id)) {
                                 reload_after(AdminMutationMethod::Post, path, server_admin_contract::AdminSetUserBanReq::new(server_admin_contract::AdminBool::from(!bool::from(is_banned))));
                             }
                         }>{if bool::from(is_banned) { "Unban" } else { "Ban" }}</button> })}
                         {can_delete.then(|| leptos::view! { <button class="danger-button" type="button" on:click=move |_event| {
-                            if bool::from(mutation_confirmed(MutationConfirmationMessageRef::from("Delete this user?"))) && let Ok(path) = AdminCsrApiUrl::try_from(format!("{}{}/{}", str_constants::API_V1, str_constants::ADMIN_API_USERS_PATH, delete_user_id)) {
+                            if bool::from(mutation_confirmed(MutationConfirmationMessageRef::from("Delete this user?"))) && let Ok(path) = admin_api_url(server_admin_contract::AdminRoute::DeleteUser(delete_user_id)) {
                                 reload_after(AdminMutationMethod::Delete, path, server_admin_contract::AdminNoBody);
                             }
                         }>"Delete"</button> })}
@@ -685,7 +701,7 @@ fn AdminRolesView(
                 event.prevent_default();
                 if let (Ok(name), Ok(path)) = (
                     server_admin_contract::AdminRoleName::try_from(leptos::prelude::Get::get(&create_name)),
-                    AdminCsrApiUrl::try_from(format!("{}{}", str_constants::API_V1, str_constants::ADMIN_API_ROLES_PATH)),
+                    admin_api_url(server_admin_contract::AdminRoute::CreateRole),
                 ) {
                     reload_after(AdminMutationMethod::Post, path, server_admin_contract::AdminCreateRoleReq::new(name));
                 }
@@ -718,7 +734,7 @@ fn AdminRolesView(
                         {can_update.then(|| leptos::view! { <button type="button" on:click=move |_event| {
                             if let (Ok(value), Ok(path)) = (
                                 server_admin_contract::AdminRoleName::try_from(leptos::prelude::Get::get(&name)),
-                                AdminCsrApiUrl::try_from(format!("{}{}/{}", str_constants::API_V1, str_constants::ADMIN_API_ROLES_PATH, update_role_id)),
+                                admin_api_url(server_admin_contract::AdminRoute::UpdateRole(update_role_id)),
                             ) {
                                 reload_after(AdminMutationMethod::Patch, path, server_admin_contract::AdminUpdateRoleReq::new(value));
                             }
@@ -729,13 +745,13 @@ fn AdminRolesView(
                             if let (Ok(expected), Ok(selected), Ok(path)) = (
                                 expected,
                                 selected,
-                                AdminCsrApiUrl::try_from(format!("{}{}/{}/permissions", str_constants::API_V1, str_constants::ADMIN_API_ROLES_PATH, permissions_role_id)),
+                                admin_api_url(server_admin_contract::AdminRoute::SetRolePermissions(permissions_role_id)),
                             ) {
                                 reload_after(AdminMutationMethod::Put, path, server_admin_contract::AdminSetRolePermissionsReq::new(expected, selected));
                             }
                         }>"Save permissions"</button> })}
                         {can_delete.then(|| leptos::view! { <button class="danger-button" type="button" disabled=bool::from(item.is_system()) on:click=move |_event| {
-                            if bool::from(mutation_confirmed(MutationConfirmationMessageRef::from("Delete this role?"))) && let Ok(path) = AdminCsrApiUrl::try_from(format!("{}{}/{}", str_constants::API_V1, str_constants::ADMIN_API_ROLES_PATH, delete_role_id)) {
+                            if bool::from(mutation_confirmed(MutationConfirmationMessageRef::from("Delete this role?"))) && let Ok(path) = admin_api_url(server_admin_contract::AdminRoute::DeleteRole(delete_role_id)) {
                                 reload_after(AdminMutationMethod::Delete, path, server_admin_contract::AdminNoBody);
                             }
                         }>"Delete"</button> })}
@@ -783,7 +799,7 @@ fn AdminSessionsView(
                     <td data-label="expires">{item.expires_at().to_string()}</td>
                     <td data-label="current">{item.is_current().to_string()}</td>
                     <td data-label="actions"><div class="table-actions"><button type="button" on:click=move |_event| {
-                        if bool::from(mutation_confirmed(MutationConfirmationMessageRef::from("Revoke this session?"))) && let Ok(path) = AdminCsrApiUrl::try_from(format!("{}{}/{}", str_constants::API_V1, str_constants::ADMIN_API_SESSIONS_PATH, revoke_session_id)) {
+                        if bool::from(mutation_confirmed(MutationConfirmationMessageRef::from("Revoke this session?"))) && let Ok(session_id) = server_admin_contract::AdminSessionIdentifier::try_from(revoke_session_id) && let Ok(path) = admin_route_path_url(server_admin_contract::admin_parameterized_route_path::<server_admin_contract::AdminRevokeSessionRoute>(&session_id)) {
                             reload_after(AdminMutationMethod::Delete, path, server_admin_contract::AdminNoBody);
                         }
                     }>"Revoke session"</button></div></td>
@@ -817,7 +833,7 @@ fn AdminProfileView(
                 if let (Ok(current), Ok(new_value), Ok(path)) = (
                     request.0,
                     request.1,
-                    AdminCsrApiUrl::try_from(format!("{}{}", str_constants::API_V1, str_constants::ADMIN_API_PASSWORD_PATH)),
+                    admin_api_url(server_admin_contract::AdminRoute::ChangeOwnPassword),
                 ) {
                     reload_after(
                         AdminMutationMethod::Post,
@@ -907,7 +923,7 @@ fn AdminSettingsView(
                 (!support_url_value.is_empty()).then(|| server_admin_contract::AdminSupportUrl::try_from(support_url_value)).transpose(),
                 (!tab_title_value.is_empty()).then(|| server_admin_contract::AdminTabTitle::try_from(tab_title_value)).transpose(),
                 server_admin_contract::AdminOptionalSettings::try_from(clear),
-                AdminCsrApiUrl::try_from(format!("{}{}", str_constants::API_V1, str_constants::ADMIN_API_SETTINGS_PATH)),
+                admin_api_url(server_admin_contract::AdminRoute::UpdateSettings),
             );
             if let (Ok(request_default_route), Ok(request_main_logo), Ok(request_organization_contacts), Ok(request_organization_name), Ok(request_primary_color), Ok(request_site_name), Ok(request_support_url), Ok(request_tab_title), Ok(request_clear), Ok(path)) = values {
                 reload_after(AdminMutationMethod::Patch, path, server_admin_contract::AdminUpdateSettingsReq::new(Some(request_default_route), request_main_logo, request_organization_contacts, request_organization_name, request_primary_color, Some(request_site_name), request_support_url, request_tab_title, request_clear));
@@ -955,7 +971,7 @@ fn AdminNav(admin: server_admin_contract::AuthenticatedAdmin) -> impl leptos::pr
             }).collect::<Vec<_>>()}
             <form on:submit=move |event| {
                 event.prevent_default();
-                if let Ok(path) = AdminCsrApiUrl::try_from(format!("{}{}", str_constants::API_V1, str_constants::ADMIN_API_SIGN_OUT_PATH)) {
+                if let Ok(path) = admin_api_url(server_admin_contract::AdminRoute::SignOut) {
                     reload_after(AdminMutationMethod::Post, path, server_admin_contract::AdminNoBody);
                 }
             }><button type="submit">{server_admin_contract::AdminHtmlAction::SignOut.route_name().as_ref().to_owned()}</button></form>

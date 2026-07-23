@@ -634,6 +634,21 @@ pub enum AdminApiError {
     Header(#[source] server_runtime::ObservedError<HttpAdminHeaderValueError>),
 }
 impl AdminApiError {
+    const fn route_error_status(&self) -> frontend_contract::RouteErrorStatus {
+        match self {
+            Self::Authentication => frontend_contract::RouteErrorStatus::Authentication,
+            Self::Authorization | Self::Csrf => frontend_contract::RouteErrorStatus::Authorization,
+            Self::Conflict => frontend_contract::RouteErrorStatus::Conflict,
+            Self::MethodNotAllowed => frontend_contract::RouteErrorStatus::MethodNotAllowed,
+            Self::PayloadTooLarge => frontend_contract::RouteErrorStatus::PayloadTooLarge,
+            Self::RateLimited => frontend_contract::RouteErrorStatus::RateLimited,
+            Self::Validation => frontend_contract::RouteErrorStatus::Validation,
+            Self::Pg(_) | Self::PasswordHash(_) | Self::Session(_) | Self::Header(_) => {
+                frontend_contract::RouteErrorStatus::Internal
+            }
+        }
+    }
+
     #[track_caller]
     fn header(source: HttpAdminHeaderValueError) -> Self {
         Self::Header(server_runtime::ObservedError::capture(
@@ -680,19 +695,10 @@ impl From<super::SqlxAdminError> for AdminApiError {
 pub struct AxumAdminResponse(axum::response::Response);
 impl axum::response::IntoResponse for AdminApiError {
     fn into_response(self) -> axum::response::Response {
-        let rate_limited = matches!(&self, Self::RateLimited);
-        let status = match &self {
-            Self::Authentication => http::StatusCode::UNAUTHORIZED,
-            Self::Authorization | Self::Csrf => http::StatusCode::FORBIDDEN,
-            Self::Conflict => http::StatusCode::CONFLICT,
-            Self::MethodNotAllowed => http::StatusCode::METHOD_NOT_ALLOWED,
-            Self::PayloadTooLarge => http::StatusCode::PAYLOAD_TOO_LARGE,
-            Self::RateLimited => http::StatusCode::TOO_MANY_REQUESTS,
-            Self::Validation => http::StatusCode::UNPROCESSABLE_ENTITY,
-            Self::Pg(_) | Self::PasswordHash(_) | Self::Session(_) | Self::Header(_) => {
-                http::StatusCode::INTERNAL_SERVER_ERROR
-            }
-        };
+        let route_error_status = self.route_error_status();
+        let rate_limited = route_error_status == frontend_contract::RouteErrorStatus::RateLimited;
+        let status = http::StatusCode::from_u16(u16::from(route_error_status.transport_status()))
+            .unwrap_or(http::StatusCode::INTERNAL_SERVER_ERROR);
         let error_type = server_runtime::HttpErrorType::from(str_constants::ADMIN_API_ERROR_TYPE);
         let optional_diagnostic = match &self {
             Self::Pg(error) => Some(server_runtime::HttpErrorDiagnostic::from_observed(
