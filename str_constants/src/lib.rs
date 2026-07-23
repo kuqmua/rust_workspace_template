@@ -3938,6 +3938,9 @@ pub const OPENAPI: &str = "openapi";
 pub const STATE: &str = "state";
 pub const TYPED_ROUTE_DERIVE_REQUIRES_ATTRIBUTE: &str = "TypedRoute requires #[typed_route(...)]";
 pub const TYPED_ROUTE_FIELD_REQUEST_BODY: &str = "request_body";
+pub const TYPED_ROUTE_FIELD_ERROR_POLICY: &str = "error_policy";
+pub const TYPED_ROUTE_REQUIRES_ERROR_POLICY_OR_STATUSES: &str =
+    "typed_route requires exactly one of error_policy or error_statuses";
 pub const APPLICATION_JSON_FIELD: &str = "content";
 pub const COLUMN_DEFAULT: &str = "column_default";
 pub const COLUMN_NAME: &str = "column_name";

@@ -187,7 +187,7 @@ impl syn::parse::Parse for RouteCatalogRouteArgs {
 }
 struct TypedRouteArgs {
     authentication: SynExpr,
-    error_statuses: SynExpr,
+    errors: SynTypedRouteErrors,
     method: SynExpr,
     mutation: Option<SynExpr>,
     obligations: Option<SynExpr>,
@@ -199,6 +199,10 @@ struct TypedRouteArgs {
     response: SynType,
     success_status: SynExpr,
     transport: SynType,
+}
+enum SynTypedRouteErrors {
+    Policy(SynExpr),
+    Statuses(SynExpr),
 }
 
 struct RouteRegistryBinding {
@@ -530,14 +534,17 @@ pub fn route_registry(
                     let components = document
                         .components
                         .get_or_insert_with(utoipa::openapi::schema::Components::new);
+                    let mut schema_components =
+                        frontend_contract::UtoipaOpenApiComponentsRefMut::from(components);
                     frontend_contract::register_openapi_schema::<#schemas>(
-                        frontend_contract::UtoipaOpenApiComponentsRefMut::from(components)
+                        &mut schema_components
                     );
                 })*
                 document.paths = utoipa::openapi::path::Paths::new();
                 #({
+                    let mut open_api = frontend_contract::UtoipaOpenApiRefMut::from(&mut document);
                     frontend_contract::register_openapi_route_schemas::<#routes>(
-                        frontend_contract::UtoipaOpenApiRefMut::from(&mut document)
+                        &mut open_api
                     );
                     let metadata = <#routes as frontend_contract::TypedRoute>::metadata();
                     let mut source_path_item = <#openapi_paths as utoipa::Path>::path_item(None);
@@ -607,6 +614,7 @@ impl syn::parse::Parse for TypedRouteArgs {
     fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
         let mut method = None;
         let mut authentication = None;
+        let mut error_policy = None;
         let mut error_statuses = None;
         let mut mutation = None;
         let mut obligations = None;
@@ -627,6 +635,9 @@ impl syn::parse::Parse for TypedRouteArgs {
                 }
                 str_constants::TYPED_ROUTE_FIELD_ERROR_STATUSES => {
                     error_statuses = Some(SynExpr::from(input.parse::<syn::Expr>()?));
+                }
+                str_constants::TYPED_ROUTE_FIELD_ERROR_POLICY => {
+                    error_policy = Some(SynExpr::from(input.parse::<syn::Expr>()?));
                 }
                 str_constants::METHOD => {
                     method = Some(SynExpr::from(input.parse::<syn::Expr>()?));
@@ -672,11 +683,19 @@ impl syn::parse::Parse for TypedRouteArgs {
                 let _comma: syn::Token![,] = input.parse()?;
             }
         }
+        let errors = match (error_policy, error_statuses) {
+            (Some(policy), None) => SynTypedRouteErrors::Policy(policy),
+            (None, Some(statuses)) => SynTypedRouteErrors::Statuses(statuses),
+            (None, None) | (Some(_), Some(_)) => {
+                return Err(
+                    input.error(str_constants::TYPED_ROUTE_REQUIRES_ERROR_POLICY_OR_STATUSES)
+                );
+            }
+        };
         Ok(Self {
             authentication: authentication
                 .ok_or_else(|| input.error(str_constants::TYPED_ROUTE_REQUIRES_AUTHENTICATION))?,
-            error_statuses: error_statuses
-                .ok_or_else(|| input.error(str_constants::TYPED_ROUTE_REQUIRES_ERROR_STATUSES))?,
+            errors,
             method: method
                 .ok_or_else(|| input.error(str_constants::TYPED_ROUTE_REQUIRES_METHOD))?,
             mutation,
@@ -780,11 +799,17 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
         }
     };
     let authentication = args.authentication.0;
-    let error_statuses = args.error_statuses.0;
     let mutation = args.mutation.map_or_else(
         || quote::quote!(frontend_contract::RouteMutation::ReadOnly),
         |value| quote::ToTokens::into_token_stream(&value.0),
     );
+    let error_statuses = match args.errors {
+        SynTypedRouteErrors::Policy(value) => {
+            let policy = value.0;
+            quote::quote!((#policy).statuses(#authentication, #mutation))
+        }
+        SynTypedRouteErrors::Statuses(value) => quote::ToTokens::into_token_stream(&value.0),
+    };
     let obligations = args.obligations.map_or_else(
         || quote::quote!(&[]),
         |value| quote::ToTokens::into_token_stream(&value.0),
@@ -897,7 +922,7 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
             proc_macro2::TokenStream::new()
         }
         _ => quote::quote! {
-            frontend_contract::register_openapi_schema::<#response>(components.reborrow());
+            frontend_contract::register_openapi_schema::<#response>(components);
         },
     };
     let success_status = args.success_status.0;
@@ -921,6 +946,12 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
             fn openapi_request_schema() -> Option<frontend_contract::UtoipaOpenApiRouteSchema> {
                 Some(frontend_contract::UtoipaOpenApiRouteSchema::from(<#request as utoipa::ToSchema>::schema().1))
             }
+            fn openapi_request_body_schema() -> Option<frontend_contract::UtoipaOpenApiRouteSchema> {
+                let (name, _schema) = <#request as utoipa::ToSchema>::schema();
+                Some(frontend_contract::UtoipaOpenApiRouteSchema::from(
+                    utoipa::openapi::RefOr::Ref(utoipa::openapi::Ref::from_schema_name(name))
+                ))
+            }
             fn request_body() -> frontend_contract::RouteRequestBody {
                 #request_body
             }
@@ -931,12 +962,12 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
                 #openapi_path_parameter
             }
             fn register_openapi_schemas(
-                mut components: frontend_contract::UtoipaOpenApiComponentsRefMut<'_>,
+                components: &mut frontend_contract::UtoipaOpenApiComponentsRefMut<'_>,
             ) {
                 if <Self as frontend_contract::TypedRoute>::request_body()
                     == frontend_contract::RouteRequestBody::Json
                 {
-                    frontend_contract::register_openapi_schema::<#request>(components.reborrow());
+                    frontend_contract::register_openapi_schema::<#request>(components);
                 }
                 #response_schema_registration
             }
@@ -1337,6 +1368,40 @@ pub fn derive_route_family(input: proc_macro::TokenStream) -> proc_macro::TokenS
 
 #[cfg(test)]
 mod tests {
+    fn typed_route_args(errors: &str) -> String {
+        format!(
+            "authentication = Authentication, {errors} method = Method, openapi_operation_id = \"operation\", path = \"/path\", request = Request, response = Response, success_status = Status, transport = Transport"
+        )
+    }
+
+    #[test]
+    #[allow(clippy::needless_for_each)] // iterator form follows the workspace no-for-loop policy
+    fn typed_route_args_require_exactly_one_error_source() {
+        ["", "error_policy = Policy, error_statuses = Statuses,"]
+            .into_iter()
+            .for_each(|errors| {
+                let result =
+                    syn::parse_str::<super::TypedRouteArgs>(typed_route_args(errors).as_str());
+                let Err(error) = result else {
+                    panic!("f58d0a31");
+                };
+                assert!(
+                    error
+                        .to_string()
+                        .contains(str_constants::TYPED_ROUTE_REQUIRES_ERROR_POLICY_OR_STATUSES)
+                );
+            });
+        ["error_policy = Policy,", "error_statuses = Statuses,"]
+            .into_iter()
+            .for_each(|errors| {
+                let Ok(_args) =
+                    syn::parse_str::<super::TypedRouteArgs>(typed_route_args(errors).as_str())
+                else {
+                    panic!("470bf91c");
+                };
+            });
+    }
+
     #[test]
     fn route_registry_args_require_family_after_state() {
         let result = syn::parse_str::<super::RouteRegistryArgs>(

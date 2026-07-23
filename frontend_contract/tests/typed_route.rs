@@ -10,7 +10,7 @@ mod tests {
     #[derive(frontend_contract::TypedRoute)]
     #[typed_route(
         authentication = frontend_contract::AuthenticationRequirement::Public,
-        error_statuses = frontend_contract::PUBLIC_REFRESH_ROUTE_ERROR_STATUSES,
+        error_policy = frontend_contract::RouteErrorPolicy::Authentication,
         method = frontend_contract::RouteMethod::Get,
         mutation = frontend_contract::RouteMutation::ReadOnly,
         obligations = &[
@@ -67,9 +67,8 @@ mod tests {
     #[test]
     fn typed_route_registers_request_response_and_problem_schemas() {
         let mut document = utoipa::openapi::OpenApi::default();
-        frontend_contract::register_openapi_route_schemas::<TestRoute>(
-            frontend_contract::UtoipaOpenApiRefMut::from(&mut document),
-        );
+        let mut open_api = frontend_contract::UtoipaOpenApiRefMut::from(&mut document);
+        frontend_contract::register_openapi_route_schemas::<TestRoute>(&mut open_api);
         let schemas = &document.components.expect("307e6e5f").schemas;
         assert!(schemas.contains_key("TestRequest"));
         assert!(schemas.contains_key("TestResponse"));

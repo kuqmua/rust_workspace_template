@@ -1,41 +1,11 @@
 #![allow(clippy::single_call_fn)] // one bounded query serves the read-only table inspection boundary
 
-fn generated_field_contracts(
-    table: server_admin_contract::AdminDataTable,
-) -> Option<frontend_contract::FieldContracts> {
-    match table {
-        server_admin_contract::AdminDataTable::Permissions => {
-            Some(crate::generated_tables::AdminPermissions::frontend_fields())
-        }
-        server_admin_contract::AdminDataTable::RolePermissions => {
-            Some(crate::generated_tables::AdminRolePermissions::frontend_fields())
-        }
-        server_admin_contract::AdminDataTable::Roles => {
-            Some(crate::generated_tables::AdminRoles::frontend_fields())
-        }
-        server_admin_contract::AdminDataTable::SystemSettings => {
-            Some(crate::generated_tables::AdminSystemSettings::frontend_fields())
-        }
-        server_admin_contract::AdminDataTable::UserRoles => {
-            Some(crate::generated_tables::AdminUserRoles::frontend_fields())
-        }
-        server_admin_contract::AdminDataTable::Users => {
-            Some(crate::generated_tables::AdminUsers::frontend_fields())
-        }
-        server_admin_contract::AdminDataTable::AccessSessions
-        | server_admin_contract::AdminDataTable::AuditLog
-        | server_admin_contract::AdminDataTable::CleanupStatus
-        | server_admin_contract::AdminDataTable::LoginAttempts
-        | server_admin_contract::AdminDataTable::RateLimits
-        | server_admin_contract::AdminDataTable::RefreshTokens => None,
-    }
-}
-
 fn data_columns(
     table: server_admin_contract::AdminDataTable,
     column_names: crate::StdAdminStrRef<'_>,
 ) -> Result<server_admin_contract::AdminDataColumns, super::AdminRepositoryError> {
-    let generated_fields = generated_field_contracts(table);
+    let generated_fields = crate::generated_tables::AdminGeneratedTable::for_data_table(table)
+        .map(crate::generated_tables::AdminGeneratedTable::field_contracts);
     let columns = column_names
         .get()
         .split(',')
@@ -185,34 +155,10 @@ fn filter_wire_value(
     field: frontend_contract::FormFieldNameRef<'_>,
     value: frontend_contract::FormValueRef<'_>,
 ) -> Result<frontend_contract::FilterWireJson, super::AdminRepositoryError> {
-    let parsed = match table {
-        server_admin_contract::AdminDataTable::Permissions => {
-            crate::generated_tables::AdminPermissions::frontend_filter_value(field, value)
-        }
-        server_admin_contract::AdminDataTable::RolePermissions => {
-            crate::generated_tables::AdminRolePermissions::frontend_filter_value(field, value)
-        }
-        server_admin_contract::AdminDataTable::Roles => {
-            crate::generated_tables::AdminRoles::frontend_filter_value(field, value)
-        }
-        server_admin_contract::AdminDataTable::SystemSettings => {
-            crate::generated_tables::AdminSystemSettings::frontend_filter_value(field, value)
-        }
-        server_admin_contract::AdminDataTable::UserRoles => {
-            crate::generated_tables::AdminUserRoles::frontend_filter_value(field, value)
-        }
-        server_admin_contract::AdminDataTable::Users => {
-            crate::generated_tables::AdminUsers::frontend_filter_value(field, value)
-        }
-        server_admin_contract::AdminDataTable::AccessSessions
-        | server_admin_contract::AdminDataTable::AuditLog
-        | server_admin_contract::AdminDataTable::CleanupStatus
-        | server_admin_contract::AdminDataTable::LoginAttempts
-        | server_admin_contract::AdminDataTable::RateLimits
-        | server_admin_contract::AdminDataTable::RefreshTokens => None,
-    }
-    .ok_or(super::AdminRepositoryError::InvalidStoredValue)?
-    .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?;
+    let parsed = crate::generated_tables::AdminGeneratedTable::for_data_table(table)
+        .and_then(|generated| generated.filter_value(field, value))
+        .ok_or(super::AdminRepositoryError::InvalidStoredValue)?
+        .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?;
     Ok(parsed)
 }
 
@@ -231,8 +177,9 @@ fn filter_payload(
             Err(super::AdminRepositoryError::InvalidStoredValue)
         };
     };
-    let fields =
-        generated_field_contracts(table).ok_or(super::AdminRepositoryError::InvalidStoredValue)?;
+    let fields = crate::generated_tables::AdminGeneratedTable::for_data_table(table)
+        .map(crate::generated_tables::AdminGeneratedTable::field_contracts)
+        .ok_or(super::AdminRepositoryError::InvalidStoredValue)?;
     let field_contract = fields
         .as_ref()
         .iter()

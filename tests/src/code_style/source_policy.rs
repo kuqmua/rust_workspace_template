@@ -215,6 +215,53 @@ fn typed_route_registries_own_request_bodies_and_schema_catalogs() {
                 .as_ref();
             assert!(!source.contains("request_body ="), "95cc867b");
         });
+        [
+            "server_admin_contract/src/lib.rs",
+            "notification_service_contract/src/lib.rs",
+        ]
+        .iter()
+        .for_each(|path_suffix| {
+            let source = snapshot
+                .rs_files()
+                .iter()
+                .find(|file| file.path().as_ref().ends_with(path_suffix))
+                .expect("d07be29f")
+                .content()
+                .as_ref();
+            assert!(!source.contains("error_statuses ="), "5a8ed6cf");
+        });
+    });
+}
+#[test]
+#[allow(clippy::needless_for_each)] // iterator form is required by the workspace no-for-loop policy
+fn generated_admin_table_consumers_use_the_shared_catalog() {
+    super::snapshot::with_codebase_snapshot(|snapshot| {
+        [
+            (
+                "server_admin/src/generated_auth.rs",
+                "AdminRolesRouteContract",
+            ),
+            (
+                "server_admin/src/repository/data_tables.rs",
+                "AdminRoles::frontend_fields",
+            ),
+            (
+                "server_admin/src/repository/data_tables.rs",
+                "AdminRoles::frontend_filter_value",
+            ),
+        ]
+        .iter()
+        .for_each(|(path_suffix, forbidden)| {
+            let source = snapshot
+                .rs_files()
+                .iter()
+                .find(|file| file.path().as_ref().ends_with(path_suffix))
+                .expect("94a2f8c1")
+                .content()
+                .as_ref();
+            assert!(!source.contains(forbidden), "8b137dd2");
+            assert!(source.contains("AdminGeneratedTable"), "e1c82f79");
+        });
     });
 }
 #[test]

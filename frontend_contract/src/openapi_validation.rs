@@ -17,19 +17,23 @@ pub struct SerdeJsonOpenApiSerializationError(serde_json::Error);
 pub struct RuntimeRoutesRef<'value_lt>(&'value_lt [crate::RouteMetadata]);
 
 #[derive(newtype::FromInner)]
-struct SerdeJsonOpenApiValueRef<'value_lt>(&'value_lt serde_json::Value);
-#[derive(newtype::FromInner)]
-struct SerdeJsonOpenApiSchemasRef<'value_lt>(&'value_lt serde_json::Map<String, serde_json::Value>);
-#[derive(newtype::FromInner)]
-struct OpenApiSchemaReferences(std::collections::BTreeSet<OpenApiContractText>);
-struct OpenApiSchemaReferenceAnalysis<'value_lt> {
-    references: OpenApiSchemaReferences,
-    schemas: SerdeJsonOpenApiSchemasRef<'value_lt>,
-}
-impl OpenApiSchemaReferenceAnalysis<'_> {
-    fn validate_references(&self) -> Result<(), OpenApiValidationError> {
-        self.references.0.iter().try_for_each(|reference| {
-            if self.schemas.0.contains_key(reference.as_ref()) {
+struct StdOpenApiSchemaReferences(std::collections::BTreeSet<OpenApiContractText>);
+impl StdOpenApiSchemaReferences {
+    fn validate<Document>(&self, document: &Document) -> Result<(), OpenApiValidationError>
+    where
+        Document: serde::Serialize,
+    {
+        let document_value = serde_json::to_value(document).map_err(|error| {
+            OpenApiValidationError::DocumentSerialization(SerdeJsonOpenApiSerializationError::from(
+                error,
+            ))
+        })?;
+        let schemas = document_value
+            .pointer(str_constants::COMPONENTS_SCHEMAS_ALT)
+            .and_then(serde_json::Value::as_object)
+            .ok_or(OpenApiValidationError::MissingSchemas)?;
+        self.0.iter().try_for_each(|reference| {
+            if schemas.contains_key(reference.as_ref()) {
                 Ok(())
             } else {
                 Err(OpenApiValidationError::MissingSchemaReference(
@@ -137,15 +141,19 @@ pub enum OpenApiPayloadValidationError {
 }
 
 fn openapi_schema_references(
-    document: SerdeJsonOpenApiValueRef<'_>,
-) -> Result<OpenApiSchemaReferenceAnalysis<'_>, OpenApiValidationError> {
-    let schemas = document
-        .0
+    document: &impl serde::Serialize,
+) -> Result<StdOpenApiSchemaReferences, OpenApiValidationError> {
+    let document_value = serde_json::to_value(document).map_err(|error| {
+        OpenApiValidationError::DocumentSerialization(SerdeJsonOpenApiSerializationError::from(
+            error,
+        ))
+    })?;
+    let _schemas = document_value
         .pointer(str_constants::COMPONENTS_SCHEMAS_ALT)
         .and_then(serde_json::Value::as_object)
         .ok_or(OpenApiValidationError::MissingSchemas)?;
     let mut references = std::collections::BTreeSet::new();
-    let mut pending = vec![document.0];
+    let mut pending = vec![&document_value];
     while let Some(current) = pending.pop() {
         match current {
             serde_json::Value::Array(values) => pending.extend(values),
@@ -171,10 +179,7 @@ fn openapi_schema_references(
             | serde_json::Value::String(_) => {}
         }
     }
-    Ok(OpenApiSchemaReferenceAnalysis {
-        references: OpenApiSchemaReferences::from(references),
-        schemas: SerdeJsonOpenApiSchemasRef::from(schemas),
-    })
+    Ok(StdOpenApiSchemaReferences::from(references))
 }
 
 pub fn validate_openapi_schema_references<Document>(
@@ -188,8 +193,7 @@ where
             error,
         ))
     })?;
-    openapi_schema_references(SerdeJsonOpenApiValueRef::from(&document_value))?
-        .validate_references()
+    openapi_schema_references(&document_value)?.validate(&document_value)
 }
 
 pub fn validate_openapi_contract<Document>(
@@ -204,14 +208,17 @@ where
             error,
         ))
     })?;
-    let schema_analysis =
-        openapi_schema_references(SerdeJsonOpenApiValueRef::from(&document_value))?;
-    schema_analysis.validate_references()?;
-    schema_analysis.schemas.0.keys().try_for_each(|name| {
+    let references = openapi_schema_references(&document_value)?;
+    references.validate(&document_value)?;
+    let schemas = document_value
+        .pointer(str_constants::COMPONENTS_SCHEMAS_ALT)
+        .and_then(serde_json::Value::as_object)
+        .ok_or(OpenApiValidationError::MissingSchemas)?;
+    schemas.keys().try_for_each(|name| {
         let contract_name = OpenApiContractText::try_from(name.clone()).map_err(|error| {
             OpenApiValidationError::TextTooLong(OpenApiContractTextError::from(error))
         })?;
-        if schema_analysis.references.0.contains(&contract_name) {
+        if references.0.contains(&contract_name) {
             Ok(())
         } else {
             Err(OpenApiValidationError::UnusedSchema(contract_name))

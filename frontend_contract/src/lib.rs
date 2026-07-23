@@ -695,6 +695,47 @@ pub const AUTHORIZED_DELETE_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] = &[
     RouteErrorStatus::RateLimited,
     RouteErrorStatus::Internal,
 ];
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum RouteErrorPolicy {
+    Authentication,
+    Default,
+    Delete,
+    ValidatedRead,
+}
+impl RouteErrorPolicy {
+    #[must_use]
+    pub const fn statuses(
+        self,
+        authentication: AuthenticationRequirement,
+        mutation: RouteMutation,
+    ) -> &'static [RouteErrorStatus] {
+        match self {
+            Self::Authentication => PUBLIC_AUTH_ROUTE_ERROR_STATUSES,
+            Self::Delete => AUTHORIZED_DELETE_ROUTE_ERROR_STATUSES,
+            Self::ValidatedRead => AUTHORIZED_VALIDATED_READ_ROUTE_ERROR_STATUSES,
+            Self::Default => match (authentication, mutation) {
+                (AuthenticationRequirement::Public, RouteMutation::ReadOnly) => {
+                    PUBLIC_READ_ROUTE_ERROR_STATUSES
+                }
+                (AuthenticationRequirement::Public, RouteMutation::Mutating) => {
+                    PUBLIC_MUTATING_ROUTE_ERROR_STATUSES
+                }
+                (AuthenticationRequirement::Authenticated, RouteMutation::ReadOnly) => {
+                    AUTHENTICATED_READ_ROUTE_ERROR_STATUSES
+                }
+                (AuthenticationRequirement::Authenticated, RouteMutation::Mutating) => {
+                    AUTHENTICATED_MUTATING_ROUTE_ERROR_STATUSES
+                }
+                (AuthenticationRequirement::Permission(_), RouteMutation::ReadOnly) => {
+                    AUTHORIZED_READ_ROUTE_ERROR_STATUSES
+                }
+                (AuthenticationRequirement::Permission(_), RouteMutation::Mutating) => {
+                    AUTHORIZED_MUTATING_ROUTE_ERROR_STATUSES
+                }
+            },
+        }
+    }
+}
 impl SuccessStatus {
     #[must_use]
     pub fn transport_status(self) -> TransportStatus {
@@ -1125,6 +1166,44 @@ mod tests {
         assert_eq!(route.mutation(), super::MutationKind::Mutating);
         assert_eq!(route.method(), super::HttpMethod::Patch);
         assert_eq!(route.path().as_ref(), "/users/{id}");
+    }
+    #[test]
+    fn route_error_policy_derives_statuses_from_access_and_mutation() {
+        let permission = super::AuthenticationRequirement::Permission(super::ContractStr::from(
+            str_constants::PERMISSION,
+        ));
+        assert_eq!(
+            super::RouteErrorPolicy::Default.statuses(
+                super::AuthenticationRequirement::Public,
+                super::RouteMutation::ReadOnly,
+            ),
+            super::PUBLIC_READ_ROUTE_ERROR_STATUSES
+        );
+        assert_eq!(
+            super::RouteErrorPolicy::Default.statuses(
+                super::AuthenticationRequirement::Authenticated,
+                super::RouteMutation::Mutating,
+            ),
+            super::AUTHENTICATED_MUTATING_ROUTE_ERROR_STATUSES
+        );
+        assert_eq!(
+            super::RouteErrorPolicy::Default.statuses(permission, super::RouteMutation::Mutating,),
+            super::AUTHORIZED_MUTATING_ROUTE_ERROR_STATUSES
+        );
+        assert_eq!(
+            super::RouteErrorPolicy::Authentication
+                .statuses(permission, super::RouteMutation::ReadOnly),
+            super::PUBLIC_AUTH_ROUTE_ERROR_STATUSES
+        );
+        assert_eq!(
+            super::RouteErrorPolicy::Delete.statuses(permission, super::RouteMutation::Mutating),
+            super::AUTHORIZED_DELETE_ROUTE_ERROR_STATUSES
+        );
+        assert_eq!(
+            super::RouteErrorPolicy::ValidatedRead
+                .statuses(permission, super::RouteMutation::ReadOnly),
+            super::AUTHORIZED_VALIDATED_READ_ROUTE_ERROR_STATUSES
+        );
     }
     #[test]
     fn response_interpretation_uses_shared_success_and_problem_contract() {

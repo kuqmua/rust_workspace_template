@@ -167,6 +167,168 @@ pub struct AdminSystemSettings {
     pub updated_at:
         pg_types_chrono_net::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,
 }
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum AdminGeneratedTable {
+    Roles,
+    RolePermissions,
+    Users,
+    Permissions,
+    SystemSettings,
+    UserRoles,
+}
+impl AdminGeneratedTable {
+    pub(crate) const ALL: [Self; 6] = [
+        Self::Roles,
+        Self::RolePermissions,
+        Self::Users,
+        Self::Permissions,
+        Self::SystemSettings,
+        Self::UserRoles,
+    ];
+
+    pub(crate) fn field_contracts(self) -> frontend_contract::FieldContracts {
+        match self {
+            Self::Roles => AdminRoles::frontend_fields(),
+            Self::RolePermissions => AdminRolePermissions::frontend_fields(),
+            Self::Users => AdminUsers::frontend_fields(),
+            Self::Permissions => AdminPermissions::frontend_fields(),
+            Self::SystemSettings => AdminSystemSettings::frontend_fields(),
+            Self::UserRoles => AdminUserRoles::frontend_fields(),
+        }
+    }
+
+    pub(crate) fn filter_value(
+        self,
+        field: frontend_contract::FormFieldNameRef<'_>,
+        value: frontend_contract::FormValueRef<'_>,
+    ) -> Option<Result<frontend_contract::FilterWireJson, frontend_contract::FormValueError>> {
+        match self {
+            Self::Roles => AdminRoles::frontend_filter_value(field, value),
+            Self::RolePermissions => AdminRolePermissions::frontend_filter_value(field, value),
+            Self::Users => AdminUsers::frontend_filter_value(field, value),
+            Self::Permissions => AdminPermissions::frontend_filter_value(field, value),
+            Self::SystemSettings => AdminSystemSettings::frontend_filter_value(field, value),
+            Self::UserRoles => AdminUserRoles::frontend_filter_value(field, value),
+        }
+    }
+
+    pub(crate) const fn for_data_table(
+        table: server_admin_contract::AdminDataTable,
+    ) -> Option<Self> {
+        match table {
+            server_admin_contract::AdminDataTable::Permissions => Some(Self::Permissions),
+            server_admin_contract::AdminDataTable::RolePermissions => Some(Self::RolePermissions),
+            server_admin_contract::AdminDataTable::Roles => Some(Self::Roles),
+            server_admin_contract::AdminDataTable::SystemSettings => Some(Self::SystemSettings),
+            server_admin_contract::AdminDataTable::UserRoles => Some(Self::UserRoles),
+            server_admin_contract::AdminDataTable::Users => Some(Self::Users),
+            server_admin_contract::AdminDataTable::AccessSessions
+            | server_admin_contract::AdminDataTable::AuditLog
+            | server_admin_contract::AdminDataTable::CleanupStatus
+            | server_admin_contract::AdminDataTable::LoginAttempts
+            | server_admin_contract::AdminDataTable::RateLimits
+            | server_admin_contract::AdminDataTable::RefreshTokens => None,
+        }
+    }
+
+    fn open_api(self) -> UtoipaAdminOpenApi {
+        UtoipaAdminOpenApi::from(match self {
+            Self::Roles => AdminRolesOpenApi::open_api(),
+            Self::RolePermissions => AdminRolePermissionsOpenApi::open_api(),
+            Self::Users => AdminUsersOpenApi::open_api(),
+            Self::Permissions => AdminPermissionsOpenApi::open_api(),
+            Self::SystemSettings => AdminSystemSettingsOpenApi::open_api(),
+            Self::UserRoles => AdminUserRolesOpenApi::open_api(),
+        })
+    }
+
+    pub(crate) fn route_contract(
+        self,
+        path: crate::StdAdminStrRef<'_>,
+    ) -> Option<AdminGeneratedRouteContract> {
+        match self {
+            Self::Roles => AdminRolesRouteContract::for_path(path.get()).map(|contract| {
+                AdminGeneratedRouteContract::new(
+                    contract.permission().map(crate::StdAdminStrRef::from),
+                    crate::StdAdminBool::from(contract.mutates()),
+                    contract.frontend_contract().method(),
+                )
+            }),
+            Self::RolePermissions => {
+                AdminRolePermissionsRouteContract::for_path(path.get()).map(|contract| {
+                    AdminGeneratedRouteContract::new(
+                        contract.permission().map(crate::StdAdminStrRef::from),
+                        crate::StdAdminBool::from(contract.mutates()),
+                        contract.frontend_contract().method(),
+                    )
+                })
+            }
+            Self::Users => AdminUsersRouteContract::for_path(path.get()).map(|contract| {
+                AdminGeneratedRouteContract::new(
+                    contract.permission().map(crate::StdAdminStrRef::from),
+                    crate::StdAdminBool::from(contract.mutates()),
+                    contract.frontend_contract().method(),
+                )
+            }),
+            Self::Permissions => {
+                AdminPermissionsRouteContract::for_path(path.get()).map(|contract| {
+                    AdminGeneratedRouteContract::new(
+                        contract.permission().map(crate::StdAdminStrRef::from),
+                        crate::StdAdminBool::from(contract.mutates()),
+                        contract.frontend_contract().method(),
+                    )
+                })
+            }
+            Self::SystemSettings => {
+                AdminSystemSettingsRouteContract::for_path(path.get()).map(|contract| {
+                    AdminGeneratedRouteContract::new(
+                        contract.permission().map(crate::StdAdminStrRef::from),
+                        crate::StdAdminBool::from(contract.mutates()),
+                        contract.frontend_contract().method(),
+                    )
+                })
+            }
+            Self::UserRoles => AdminUserRolesRouteContract::for_path(path.get()).map(|contract| {
+                AdminGeneratedRouteContract::new(
+                    contract.permission().map(crate::StdAdminStrRef::from),
+                    crate::StdAdminBool::from(contract.mutates()),
+                    contract.frontend_contract().method(),
+                )
+            }),
+        }
+    }
+}
+#[derive(Clone, Copy, Debug)]
+pub(crate) struct AdminGeneratedRouteContract {
+    permission: Option<crate::StdAdminStrRef<'static>>,
+    mutates: crate::StdAdminBool,
+    method: frontend_contract::HttpMethod,
+}
+impl AdminGeneratedRouteContract {
+    const fn new(
+        permission: Option<crate::StdAdminStrRef<'static>>,
+        mutates: crate::StdAdminBool,
+        method: frontend_contract::HttpMethod,
+    ) -> Self {
+        Self {
+            permission,
+            mutates,
+            method,
+        }
+    }
+
+    pub(crate) const fn method(self) -> frontend_contract::HttpMethod {
+        self.method
+    }
+
+    pub(crate) const fn mutates(self) -> crate::StdAdminBool {
+        self.mutates
+    }
+
+    pub(crate) const fn permission(self) -> Option<crate::StdAdminStrRef<'static>> {
+        self.permission
+    }
+}
 #[derive(Clone, newtype::IntoInnerFrom, newtype::FromInner)]
 pub struct UtoipaAdminOpenApi(utoipa::openapi::OpenApi);
 impl std::fmt::Debug for UtoipaAdminOpenApi {
@@ -200,13 +362,14 @@ pub fn generated_open_api() -> UtoipaAdminOpenApi {
             | serde_json::Value::String(_) => {}
         }
     }
-    let mut document = AdminRolesOpenApi::open_api();
+    let mut document = utoipa::openapi::OpenApi::from(AdminGeneratedTable::ALL[0].open_api());
     document.merge(utoipa::openapi::OpenApi::from(crate::auth::open_api()));
-    document.merge(AdminRolePermissionsOpenApi::open_api());
-    document.merge(AdminUsersOpenApi::open_api());
-    document.merge(AdminPermissionsOpenApi::open_api());
-    document.merge(AdminSystemSettingsOpenApi::open_api());
-    document.merge(AdminUserRolesOpenApi::open_api());
+    AdminGeneratedTable::ALL[1..]
+        .iter()
+        .copied()
+        .for_each(|table| {
+            document.merge(utoipa::openapi::OpenApi::from(table.open_api()));
+        });
     let mut refs = std::collections::BTreeSet::new();
     if let Ok(value) = serde_json::to_value(&document) {
         collect_schema_refs(&value, &mut refs);
@@ -275,6 +438,56 @@ mod tests {
             | serde_json::Value::Number(_)
             | serde_json::Value::String(_) => {}
         }
+    }
+
+    #[test]
+    fn generated_table_catalog_maps_every_supported_data_table_once() {
+        let expected = [
+            (
+                super::AdminGeneratedTable::Roles,
+                server_admin_contract::AdminDataTable::Roles,
+            ),
+            (
+                super::AdminGeneratedTable::RolePermissions,
+                server_admin_contract::AdminDataTable::RolePermissions,
+            ),
+            (
+                super::AdminGeneratedTable::Users,
+                server_admin_contract::AdminDataTable::Users,
+            ),
+            (
+                super::AdminGeneratedTable::Permissions,
+                server_admin_contract::AdminDataTable::Permissions,
+            ),
+            (
+                super::AdminGeneratedTable::SystemSettings,
+                server_admin_contract::AdminDataTable::SystemSettings,
+            ),
+            (
+                super::AdminGeneratedTable::UserRoles,
+                server_admin_contract::AdminDataTable::UserRoles,
+            ),
+        ];
+        assert_eq!(super::AdminGeneratedTable::ALL.len(), expected.len());
+        expected.into_iter().for_each(|(generated, data_table)| {
+            assert!(super::AdminGeneratedTable::ALL.contains(&generated));
+            assert_eq!(
+                super::AdminGeneratedTable::for_data_table(data_table),
+                Some(generated)
+            );
+        });
+        [
+            server_admin_contract::AdminDataTable::AccessSessions,
+            server_admin_contract::AdminDataTable::AuditLog,
+            server_admin_contract::AdminDataTable::CleanupStatus,
+            server_admin_contract::AdminDataTable::LoginAttempts,
+            server_admin_contract::AdminDataTable::RateLimits,
+            server_admin_contract::AdminDataTable::RefreshTokens,
+        ]
+        .into_iter()
+        .for_each(|data_table| {
+            assert_eq!(super::AdminGeneratedTable::for_data_table(data_table), None);
+        });
     }
 
     #[test]

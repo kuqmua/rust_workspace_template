@@ -65,7 +65,7 @@ pub struct UuidNotificationId(uuid::Uuid);
 #[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
 #[typed_route(
     authentication = frontend_contract::AuthenticationRequirement::Public,
-    error_statuses = frontend_contract::PUBLIC_MUTATING_ROUTE_ERROR_STATUSES,
+    error_policy = frontend_contract::RouteErrorPolicy::Default,
     method = frontend_contract::RouteMethod::Post,
     mutation = frontend_contract::RouteMutation::Mutating,
     obligations = frontend_contract::PUBLIC_MUTATING_ROUTE_COVERAGE_OBLIGATIONS,

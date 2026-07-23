@@ -41,90 +41,32 @@ where
         let state = self.state.clone();
         Box::pin(async move {
             let path = req.uri().path();
-            let contract = crate::generated_tables::AdminRolesRouteContract::for_path(path)
-                .map(|contract| {
-                    (
-                        contract.permission(),
-                        contract.mutates(),
-                        contract.frontend_contract().method(),
-                    )
-                })
-                .or_else(|| {
-                    crate::generated_tables::AdminRolePermissionsRouteContract::for_path(path).map(
-                        |contract| {
-                            (
-                                contract.permission(),
-                                contract.mutates(),
-                                contract.frontend_contract().method(),
-                            )
-                        },
-                    )
-                })
-                .or_else(|| {
-                    crate::generated_tables::AdminPermissionsRouteContract::for_path(path).map(
-                        |contract| {
-                            (
-                                contract.permission(),
-                                contract.mutates(),
-                                contract.frontend_contract().method(),
-                            )
-                        },
-                    )
-                })
-                .or_else(|| {
-                    crate::generated_tables::AdminSystemSettingsRouteContract::for_path(path).map(
-                        |contract| {
-                            (
-                                contract.permission(),
-                                contract.mutates(),
-                                contract.frontend_contract().method(),
-                            )
-                        },
-                    )
-                })
-                .or_else(|| {
-                    crate::generated_tables::AdminUserRolesRouteContract::for_path(path).map(
-                        |contract| {
-                            (
-                                contract.permission(),
-                                contract.mutates(),
-                                contract.frontend_contract().method(),
-                            )
-                        },
-                    )
-                })
-                .or_else(|| {
-                    crate::generated_tables::AdminUsersRouteContract::for_path(path).map(
-                        |contract| {
-                            (
-                                contract.permission(),
-                                contract.mutates(),
-                                contract.frontend_contract().method(),
-                            )
-                        },
-                    )
-                })
+            let contract = crate::generated_tables::AdminGeneratedTable::ALL
+                .iter()
+                .copied()
+                .find_map(|table| table.route_contract(crate::StdAdminStrRef::from(path)))
+                .map(|contract| (contract.permission(), contract.mutates(), contract.method()))
                 .or_else(|| {
                     path.ends_with(server_admin_contract::AdminFrontendPath::OpenApiDocument.get())
                         .then_some((
-                            Some(
+                            Some(crate::StdAdminStrRef::from(
                                 server_admin_contract::AdminPermission::OpenApiRead
                                     .as_str()
                                     .get(),
-                            ),
-                            false,
+                            )),
+                            crate::StdAdminBool::from(false),
                             frontend_contract::HttpMethod::Get,
                         ))
                 })
                 .or_else(|| {
                     path.ends_with(server_admin_contract::AdminFrontendPath::Metrics.get())
                         .then_some((
-                            Some(
+                            Some(crate::StdAdminStrRef::from(
                                 server_admin_contract::AdminPermission::MetricsRead
                                     .as_str()
                                     .get(),
-                            ),
-                            false,
+                            )),
+                            crate::StdAdminBool::from(false),
                             frontend_contract::HttpMethod::Get,
                         ))
                 });
@@ -160,8 +102,8 @@ where
                 state.as_ref(),
                 crate::HttpAdminHeaderMapRef::from(req.headers()),
                 peer,
-                server_admin_contract::AdminPermissionStrRef::from(permission),
-                crate::StdAdminBool::from(mutates),
+                server_admin_contract::AdminPermissionStrRef::from(permission.get()),
+                mutates,
             )
             .await
             {
