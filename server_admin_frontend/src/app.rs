@@ -847,14 +847,15 @@ fn AdminSettingsView(
     );
     let values = crate::shared::AdminSettingsFormValues::from(&page);
     let signals = crate::shared::AdminSettingsFormSignals::new(&values);
-    let default_route = signals.default_route();
-    let main_logo = signals.main_logo();
-    let organization_contacts = signals.organization_contacts();
-    let organization_name = signals.organization_name();
-    let primary_color = signals.primary_color();
-    let site_name = signals.site_name();
-    let support_url = signals.support_url();
-    let tab_title = signals.tab_title();
+    let default_route = signals.get(server_admin_contract::AdminSetting::DefaultRoute);
+    let main_logo = signals.get(server_admin_contract::AdminSetting::MainLogo);
+    let organization_contacts =
+        signals.get(server_admin_contract::AdminSetting::OrganizationContacts);
+    let organization_name = signals.get(server_admin_contract::AdminSetting::OrganizationName);
+    let primary_color = signals.get(server_admin_contract::AdminSetting::PrimaryColor);
+    let site_name = signals.get(server_admin_contract::AdminSetting::SiteName);
+    let support_url = signals.get(server_admin_contract::AdminSetting::SupportUrl);
+    let tab_title = signals.get(server_admin_contract::AdminSetting::TabTitle);
     leptos::view! {
         <section class="settings-grid" data-renderer="csr"><article class="settings-card"><form class="settings-form" on:submit=move |event| {
             event.prevent_default();
@@ -866,14 +867,7 @@ fn AdminSettingsView(
             let site_name_value = site_name.value().as_ref().to_owned();
             let support_url_value = support_url.value().as_ref().to_owned();
             let tab_title_value = tab_title.value().as_ref().to_owned();
-            let clear = [
-                (main_logo_value.is_empty(), server_admin_contract::AdminOptionalSetting::MainLogo),
-                (organization_contacts_value.is_empty(), server_admin_contract::AdminOptionalSetting::OrganizationContacts),
-                (organization_name_value.is_empty(), server_admin_contract::AdminOptionalSetting::OrganizationName),
-                (primary_color_value.is_empty(), server_admin_contract::AdminOptionalSetting::PrimaryColor),
-                (support_url_value.is_empty(), server_admin_contract::AdminOptionalSetting::SupportUrl),
-                (tab_title_value.is_empty(), server_admin_contract::AdminOptionalSetting::TabTitle),
-            ].into_iter().filter_map(|(should_clear, setting)| should_clear.then_some(setting)).collect::<Vec<_>>();
+            let clear = signals.optional_settings_to_clear();
             let values = (
                 server_admin_contract::AdminDefaultRoute::try_from(default_route_value),
                 (!main_logo_value.is_empty()).then(|| server_admin_contract::AdminMainLogo::try_from(main_logo_value)).transpose(),
@@ -883,7 +877,7 @@ fn AdminSettingsView(
                 server_admin_contract::AdminSiteName::try_from(site_name_value),
                 (!support_url_value.is_empty()).then(|| server_admin_contract::AdminSupportUrl::try_from(support_url_value)).transpose(),
                 (!tab_title_value.is_empty()).then(|| server_admin_contract::AdminTabTitle::try_from(tab_title_value)).transpose(),
-                server_admin_contract::AdminOptionalSettings::try_from(clear),
+                clear,
                 admin_api_url(server_admin_contract::AdminRoute::UpdateSettings),
             );
             if let (Ok(request_default_route), Ok(request_main_logo), Ok(request_organization_contacts), Ok(request_organization_name), Ok(request_primary_color), Ok(request_site_name), Ok(request_support_url), Ok(request_tab_title), Ok(request_clear), Ok(path)) = values {
@@ -914,7 +908,7 @@ fn AdminNav(admin: server_admin_contract::AuthenticatedAdmin) -> impl leptos::pr
                 let href = table.frontend_path().to_string();
                 leptos::view! { <a class=("active", active_table == Some(table)) href=href>{name}</a> }
             }).collect::<Vec<_>>()}
-            {server_admin_contract::AdminPage::NAV_ORDER.into_iter().filter(|page| {
+            {server_admin_contract::AdminPage::navigation().filter(|page| {
                 bool::from(admin.can_access(*page))
             }).map(|page| {
                 let spec = page.spec();

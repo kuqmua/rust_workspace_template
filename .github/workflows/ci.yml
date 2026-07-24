@@ -7,7 +7,6 @@ on:
   workflow_dispatch:
 env:
   CARGO_TERM_COLOR: always
-  RUST_TOOLCHAIN: nightly-2026-07-12
 permissions:
   contents: read
 jobs:
@@ -17,8 +16,10 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - run: docker build --tag application:${{ github.sha }} .
+      # BEGIN GENERATED SERVICE BUILDS
+      - run: docker build --file Dockerfile --tag application:${{ github.sha }} .
       - run: docker build --file notification_service/Dockerfile --tag notification-service:${{ github.sha }} .
+      # END GENERATED SERVICE BUILDS
       - uses: aquasecurity/trivy-action@f19cc2b99c0f1c5f19db5882d7cf26c5a5cc7e49
         with:
           image-ref: application:${{ github.sha }}
@@ -37,9 +38,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - uses: dtolnay/rust-toolchain@efcb852328a9f50117170cc43094fb6f09eaf1ae
-        with:
-          toolchain: ${{ env.RUST_TOOLCHAIN }}
+      - uses: ./.github/actions/setup-rust
       - run: cargo metadata --locked --format-version 1 --no-deps > /dev/null
   format:
     if: github.event_name == 'push' || github.event_name == 'pull_request'
@@ -47,9 +46,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - uses: dtolnay/rust-toolchain@efcb852328a9f50117170cc43094fb6f09eaf1ae
+      - uses: ./.github/actions/setup-rust
         with:
-          toolchain: ${{ env.RUST_TOOLCHAIN }}
           components: rustfmt
       - run: cargo fmt --all -- --check
   repository-format:
@@ -86,9 +84,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - uses: dtolnay/rust-toolchain@efcb852328a9f50117170cc43094fb6f09eaf1ae
-        with:
-          toolchain: ${{ env.RUST_TOOLCHAIN }}
+      - uses: ./.github/actions/setup-rust
       - uses: taiki-e/install-action@59979a424d2584f3cdeca89833d69ca54b72d84f
         with:
           tool: cargo-machete
@@ -99,9 +95,8 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - uses: dtolnay/rust-toolchain@efcb852328a9f50117170cc43094fb6f09eaf1ae
+      - uses: ./.github/actions/setup-rust
         with:
-          toolchain: ${{ env.RUST_TOOLCHAIN }}
           components: llvm-tools-preview
       - uses: taiki-e/install-action@87d97b95c884523e049410b5322ea91b2acdbc89
         with:
@@ -126,9 +121,8 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - uses: dtolnay/rust-toolchain@efcb852328a9f50117170cc43094fb6f09eaf1ae
+      - uses: ./.github/actions/setup-rust
         with:
-          toolchain: ${{ env.RUST_TOOLCHAIN }}
           targets: wasm32-unknown-unknown
       - run: cargo test -p server_admin_frontend
       - run: cargo check -p server_admin_frontend --target wasm32-unknown-unknown
@@ -145,9 +139,8 @@ jobs:
             ~/.cargo/git
             target
           key: ${{ runner.os }}-clippy-${{ hashFiles('**/Cargo.lock') }}
-      - uses: dtolnay/rust-toolchain@efcb852328a9f50117170cc43094fb6f09eaf1ae
+      - uses: ./.github/actions/setup-rust
         with:
-          toolchain: ${{ env.RUST_TOOLCHAIN }}
           components: clippy
       - run: cargo clippy --locked --all-targets --all-features -- -D warnings
   docs:
@@ -156,9 +149,7 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - uses: dtolnay/rust-toolchain@efcb852328a9f50117170cc43094fb6f09eaf1ae
-        with:
-          toolchain: ${{ env.RUST_TOOLCHAIN }}
+      - uses: ./.github/actions/setup-rust
       - run: cargo doc --locked --workspace --all-features --no-deps
         env:
           RUSTDOCFLAGS: -D warnings
@@ -168,10 +159,10 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - uses: dtolnay/rust-toolchain@efcb852328a9f50117170cc43094fb6f09eaf1ae
+      - uses: ./.github/actions/setup-rust
         with:
-          toolchain: ${{ env.RUST_TOOLCHAIN }}
           components: clippy,rustfmt
+      - run: cargo run --locked -p workspace_scaffold -- deployment check
       - run: cargo test --locked -p tests code_style
       - run: cargo openapi-contract-suite
   database-tests:
@@ -194,9 +185,7 @@ jobs:
           --health-retries 10
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - uses: dtolnay/rust-toolchain@efcb852328a9f50117170cc43094fb6f09eaf1ae
-        with:
-          toolchain: ${{ env.RUST_TOOLCHAIN }}
+      - uses: ./.github/actions/setup-rust
       - run: cargo run --locked -p workspace_test_runner -- database
         env:
           SERVICE_SOCKET_ADDRESS: 127.0.0.1:8080
@@ -212,9 +201,7 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - uses: dtolnay/rust-toolchain@efcb852328a9f50117170cc43094fb6f09eaf1ae
-        with:
-          toolchain: ${{ env.RUST_TOOLCHAIN }}
+      - uses: ./.github/actions/setup-rust
       - run: cargo install --locked cargo-deny cargo-audit
       - run: cargo deny check
       - run: cargo audit
@@ -224,9 +211,7 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - uses: dtolnay/rust-toolchain@efcb852328a9f50117170cc43094fb6f09eaf1ae
-        with:
-          toolchain: ${{ env.RUST_TOOLCHAIN }}
+      - uses: ./.github/actions/setup-rust
       - run: cargo install --locked cargo-hack
       - run: cargo hack check --workspace --feature-powerset --depth 1 --locked
   semver:
@@ -237,9 +222,7 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           fetch-depth: 0
-      - uses: dtolnay/rust-toolchain@efcb852328a9f50117170cc43094fb6f09eaf1ae
-        with:
-          toolchain: ${{ env.RUST_TOOLCHAIN }}
+      - uses: ./.github/actions/setup-rust
       - run: cargo install --locked cargo-semver-checks
       - run: |
           cargo semver-checks --package newtype --baseline-rev "origin/${{ github.base_ref }}"
@@ -264,9 +247,7 @@ jobs:
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - uses: dtolnay/rust-toolchain@efcb852328a9f50117170cc43094fb6f09eaf1ae
-        with:
-          toolchain: ${{ env.RUST_TOOLCHAIN }}
+      - uses: ./.github/actions/setup-rust
       - run: cargo install --locked cargo-udeps
       - run: cargo udeps --workspace --all-targets --all-features --locked
   unused-dependencies:
@@ -275,9 +256,7 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - uses: dtolnay/rust-toolchain@efcb852328a9f50117170cc43094fb6f09eaf1ae
-        with:
-          toolchain: ${{ env.RUST_TOOLCHAIN }}
+      - uses: ./.github/actions/setup-rust
       - uses: taiki-e/install-action@b11d693c7febff734da6b5acd9cea3cbb8596ddd
         with:
           tool: cargo-udeps
@@ -288,8 +267,6 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - uses: dtolnay/rust-toolchain@efcb852328a9f50117170cc43094fb6f09eaf1ae
-        with:
-          toolchain: ${{ env.RUST_TOOLCHAIN }}
+      - uses: ./.github/actions/setup-rust
       - run: cargo bench --locked -p pg_crud_common --bench query_builders -- --save-baseline ci
       - run: cargo bench --locked -p pg_crud_common --bench query_builders -- --baseline ci

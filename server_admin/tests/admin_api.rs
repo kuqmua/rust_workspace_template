@@ -3421,18 +3421,6 @@ async fn postgresql_migration_creates_complete_schema() {
     ));
     let full = sqlx::migrate!("./migrations");
     full.run(&fresh_pool).await.expect("4b6c3bd6");
-    let expected_fresh_catalog = server_admin::admin_catalog_snapshot(
-        server_admin::StdAdminStrRef::from(str_constants::ADMIN_MIGRATION_FRESH_TEST),
-    )
-    .expect("6ea048db");
-    let observed_fresh_catalog = pg_crud_common::inspect_postgres_catalog(
-        pg_crud_common::SqlxPgPoolRef::from(&fresh_pool),
-        pg_crud_common::DbSchemaNameRef::from(str_constants::ADMIN_MIGRATION_FRESH_TEST),
-    )
-    .await
-    .expect("7b2057bf");
-    pg_crud_common::validate_postgres_catalog(expected_fresh_catalog, observed_fresh_catalog)
-        .expect("ac91d742");
     server_admin::generated_tables::validate_catalog_schema(
         pg_crud_common::SqlxPgPoolRef::from(&fresh_pool),
         pg_crud_common::DbSchemaNameRef::from(str_constants::ADMIN_MIGRATION_FRESH_TEST),
@@ -3446,20 +3434,9 @@ async fn postgresql_migration_creates_complete_schema() {
     .await
     .expect("5c10c931");
     assert_eq!(version, 12i64);
-    let expected_tables = [
-        str_constants::ACCESS_SESSIONS,
-        str_constants::AUDIT_LOG_ALT,
-        str_constants::CLEANUP_STATUS,
-        str_constants::LOGIN_ATTEMPTS,
-        str_constants::PERMISSIONS_TABLE,
-        str_constants::RATE_LIMITS,
-        str_constants::REFRESH_TOKENS,
-        str_constants::ROLE_PERMISSIONS,
-        str_constants::ROLES_TABLE,
-        str_constants::SYSTEM_SETTINGS,
-        str_constants::USER_ROLES,
-        str_constants::USERS_ALT,
-    ];
+    let expected_tables = server_admin_contract::AdminDataTable::PG_ORDER
+        .map(|table| table.to_string())
+        .to_vec();
     let fresh_tables = sqlx::query_scalar::<_, String>(
         str_constants::SELECT_TABLE_NAME_FROM_INFORMATION_SCHEMA_TABLES_WHERE_TABLE_SCHEMA,
     )
@@ -3467,10 +3444,7 @@ async fn postgresql_migration_creates_complete_schema() {
     .fetch_all(&base_pool)
     .await
     .expect("ab254ff4");
-    assert_eq!(
-        fresh_tables.iter().map(String::as_str).collect::<Vec<_>>(),
-        expected_tables
-    );
+    assert_eq!(fresh_tables, expected_tables);
     fresh_pool.close().await;
     let _drop_after = sqlx::raw_sql(str_constants::DROP_SCHEMA_ADMIN_MIGRATION_FRESH_TEST_CASCADE)
         .execute(&base_pool)

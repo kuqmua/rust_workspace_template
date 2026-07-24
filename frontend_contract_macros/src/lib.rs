@@ -235,18 +235,13 @@ struct SynRouteRegistryState(syn::Type);
 struct SynRouteRegistryFamily(syn::Type);
 
 struct HandlerRegistryBinding {
+    contract: SynHandlerRegistryContract,
     handler: SynHandlerRegistryHandler,
-    path: SynHandlerRegistryPath,
-    routing: SynHandlerRegistryRouting,
 }
 #[derive(newtype::FromInner)]
+struct SynHandlerRegistryContract(syn::Expr);
+#[derive(newtype::FromInner)]
 struct SynHandlerRegistryHandler(syn::Path);
-
-#[derive(newtype::FromInner)]
-struct SynHandlerRegistryPath(syn::Expr);
-
-#[derive(newtype::FromInner)]
-struct SynHandlerRegistryRouting(syn::Path);
 
 #[derive(newtype::FromInner)]
 struct SynHandlerRegistryBindings(
@@ -260,16 +255,10 @@ impl syn::parse::Parse for HandlerRegistryBinding {
     fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
         let content;
         let _parenthesis = syn::parenthesized!(content in input);
-        let path = SynHandlerRegistryPath::from(content.parse::<syn::Expr>()?);
-        let _path_comma = content.parse::<syn::Token![,]>()?;
-        let routing = SynHandlerRegistryRouting::from(content.parse::<syn::Path>()?);
-        let _routing_comma = content.parse::<syn::Token![,]>()?;
+        let contract = SynHandlerRegistryContract::from(content.parse::<syn::Expr>()?);
+        let _contract_comma = content.parse::<syn::Token![,]>()?;
         let handler = SynHandlerRegistryHandler::from(content.parse::<syn::Path>()?);
-        Ok(Self {
-            handler,
-            path,
-            routing,
-        })
+        Ok(Self { contract, handler })
     }
 }
 
@@ -338,17 +327,11 @@ pub fn handler_registry(
     };
     let identifier = &item.ident;
     let state = parsed_args.state.0;
-    let paths = parsed_args
+    let contracts = parsed_args
         .bindings
         .0
         .iter()
-        .map(|binding| &binding.path.0)
-        .collect::<Vec<_>>();
-    let routing = parsed_args
-        .bindings
-        .0
-        .iter()
-        .map(|binding| &binding.routing.0)
+        .map(|binding| &binding.contract.0)
         .collect::<Vec<_>>();
     let handlers = parsed_args
         .bindings
@@ -361,7 +344,13 @@ pub fn handler_registry(
         impl #identifier {
             fn router() -> axum::Router<#state> {
                 axum::Router::new()
-                    #(.route(#paths, #routing(#handlers)))*
+                    #(.route(
+                        frontend_contract::HandlerContract::path(#contracts).get(),
+                        frontend_contract::handler_method_router(
+                            frontend_contract::HandlerContract::method(#contracts),
+                            #handlers,
+                        ).into(),
+                    ))*
             }
         }
     }

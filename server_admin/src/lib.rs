@@ -2,7 +2,6 @@
 #![cfg_attr(test, allow(unused_crate_dependencies))] // tower is used by the separate admin_api integration test target
 pub mod auth;
 mod cleanup;
-mod db_schema;
 mod domain;
 mod generated_auth;
 pub mod generated_tables;
@@ -11,7 +10,6 @@ mod password;
 mod rbac;
 mod repository;
 mod token;
-pub use db_schema::admin_catalog_snapshot;
 pub use domain::{
     AdminAuditLogId, AdminIdTryFromI64Error, AdminPermissionId, AdminPermissionName, AdminRoleId,
     AdminUserId, SecrecyAdminString, StdAdminBool, StdAdminNonZeroUsize, StdAdminSocketAddr,

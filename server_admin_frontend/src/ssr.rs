@@ -162,7 +162,7 @@ fn render_admin_page_with_table_access(
                                 <a class=(active_table == Some(table)).then_some("active") href=href>{name}</a>
                             }
                         }).collect::<Vec<_>>()}
-                        {server_admin_contract::AdminPage::NAV_ORDER.into_iter().filter(|item_page| admin.is_none_or(|value| bool::from(value.can_access(*item_page)))).map(|item_page| {
+                        {server_admin_contract::AdminPage::navigation().filter(|item_page| admin.is_none_or(|value| bool::from(value.can_access(*item_page)))).map(|item_page| {
                             let item = item_page.spec();
                             let href = String::from(item.path());
                             let label = item.route_name().as_ref().to_owned();

@@ -7,6 +7,41 @@ struct RepositoryUrlRef<'value>(&'value str);
 
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
 struct ServicePort(u16);
+#[derive(Clone, Debug, newtype::AsRefStr, newtype::BoundedString)]
+#[bounded_string(max = SCAFFOLD_TEXT_MAX_BYTES)]
+struct ServiceDockerfile(String);
+#[derive(Clone, Debug, newtype::AsRefStr, newtype::BoundedString)]
+#[bounded_string(max = SCAFFOLD_TEXT_MAX_BYTES)]
+struct ServiceImage(String);
+#[derive(Debug, newtype::FromInner)]
+struct ServiceCatalogEntries(Vec<ServiceCatalogEntry>);
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
+struct ServiceCatalogEntriesRef<'entries_lt>(&'entries_lt [ServiceCatalogEntry]);
+#[derive(Debug)]
+struct ServiceCatalogEntry {
+    dockerfile: ServiceDockerfile,
+    image: ServiceImage,
+    release: ShouldRelease,
+}
+#[derive(Clone, Copy, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
+struct ShouldRelease(bool);
+#[derive(Default)]
+struct ServiceCatalogDraft {
+    dockerfile: Option<ServiceDockerfile>,
+    image: Option<ServiceImage>,
+    release: Option<ShouldRelease>,
+}
+impl ServiceCatalogDraft {
+    fn finish(self) -> Result<ServiceCatalogEntry, ScaffoldError> {
+        Ok(ServiceCatalogEntry {
+            dockerfile: self.dockerfile.ok_or(ScaffoldError::Catalog)?,
+            image: self.image.ok_or(ScaffoldError::Catalog)?,
+            release: self.release.ok_or(ScaffoldError::Catalog)?,
+        })
+    }
+}
+#[derive(Clone, Copy, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
+struct ShouldWrite(bool);
 #[derive(Clone, Debug, newtype::AsRefStr, newtype::BoundedString, newtype::Display)]
 #[bounded_string(max = SCAFFOLD_TEXT_MAX_BYTES)]
 struct ScaffoldText(String);
@@ -28,9 +63,13 @@ struct ServerRuntimeBoundedReadError(server_runtime::BoundedReadError);
 #[derive(Debug, thiserror::Error)]
 enum ScaffoldError {
     #[error(
-        "usage: workspace-scaffold project <snake_case_name> <repository_url> | service <snake_case_name> <port>"
+        "usage: workspace-scaffold project <snake_case_name> <repository_url> | service <snake_case_name> <port> | deployment <sync|check>"
     )]
     Arguments,
+    #[error("deployment service catalog is invalid")]
+    Catalog,
+    #[error("generated deployment projections are not synchronized")]
+    GeneratedDeployment,
     #[error("workspace operation failed: {0}")]
     Io(#[from] StdScaffoldIoError),
     #[error("workspace file does not contain the expected template marker")]
@@ -251,6 +290,202 @@ fn insert_once(
     Ok(())
 }
 
+fn catalog_string_value(
+    line: ScaffoldTextRef<'_>,
+    key: ScaffoldTextRef<'_>,
+) -> Result<Option<ScaffoldText>, ScaffoldError> {
+    line.0
+        .strip_prefix(key.0)
+        .and_then(|value| value.trim().strip_prefix('='))
+        .map(str::trim)
+        .and_then(|value| value.strip_prefix('"'))
+        .and_then(|value| value.strip_suffix('"'))
+        .map(str::to_owned)
+        .map(ScaffoldText::try_from)
+        .transpose()
+        .map_err(|_error| ScaffoldError::Catalog)
+}
+#[allow(
+    clippy::single_call_fn,
+    reason = "deployment synchronization owns catalog parsing"
+)]
+fn parse_service_catalog(
+    source: ScaffoldTextRef<'_>,
+) -> Result<ServiceCatalogEntries, ScaffoldError> {
+    let mut entries = Vec::new();
+    let mut current = None;
+    source.0.lines().try_for_each(|raw_line| {
+        let trimmed_line = raw_line.trim();
+        if trimmed_line == "[[service]]" {
+            if let Some(draft) = current.take() {
+                entries.push(ServiceCatalogDraft::finish(draft)?);
+            }
+            current = Some(ServiceCatalogDraft::default());
+            return Ok(());
+        }
+        let Some(draft) = current.as_mut() else {
+            return Ok(());
+        };
+        if let Some(value) = catalog_string_value(
+            ScaffoldTextRef::from(trimmed_line),
+            ScaffoldTextRef::from("dockerfile"),
+        )? {
+            draft.dockerfile = Some(
+                ServiceDockerfile::try_from(value.as_ref().to_owned())
+                    .map_err(|_error| ScaffoldError::Catalog)?,
+            );
+            return Ok(());
+        }
+        if let Some(value) = catalog_string_value(
+            ScaffoldTextRef::from(trimmed_line),
+            ScaffoldTextRef::from("image"),
+        )? {
+            draft.image = Some(
+                ServiceImage::try_from(value.as_ref().to_owned())
+                    .map_err(|_error| ScaffoldError::Catalog)?,
+            );
+            return Ok(());
+        }
+        if let Some(release) = trimmed_line
+            .strip_prefix("release")
+            .and_then(|release_text| {
+                release_text
+                    .trim()
+                    .strip_prefix('=')
+                    .map(str::trim)
+                    .and_then(|parsed_text| parsed_text.parse::<bool>().ok())
+            })
+        {
+            draft.release = Some(ShouldRelease::from(release));
+        }
+        Ok::<(), ScaffoldError>(())
+    })?;
+    if let Some(draft) = current {
+        entries.push(ServiceCatalogDraft::finish(draft)?);
+    }
+    if entries.is_empty() {
+        return Err(ScaffoldError::Catalog);
+    }
+    Ok(ServiceCatalogEntries::from(entries))
+}
+#[allow(
+    clippy::single_call_fn,
+    reason = "deployment synchronization owns the CI projection"
+)]
+fn render_ci_service_builds(entries: ServiceCatalogEntriesRef<'_>) -> ScaffoldText {
+    ScaffoldText::try_from(
+        entries
+            .0
+            .iter()
+            .filter(|entry| bool::from(entry.release))
+            .fold(String::new(), |mut output, entry| {
+                output.push_str("      - run: docker build --file ");
+                output.push_str(entry.dockerfile.as_ref());
+                output.push_str(" --tag ");
+                output.push_str(entry.image.as_ref());
+                output.push_str(":${{ github.sha }} .\n");
+                output
+            }),
+    )
+    .unwrap_or_else(ScaffoldText::from)
+}
+#[allow(
+    clippy::single_call_fn,
+    reason = "deployment synchronization owns the release projection"
+)]
+fn render_release_matrix(entries: ServiceCatalogEntriesRef<'_>) -> ScaffoldText {
+    ScaffoldText::try_from(
+        entries
+            .0
+            .iter()
+            .filter(|entry| bool::from(entry.release))
+            .fold(String::new(), |mut output, entry| {
+                output.push_str("          - name: ");
+                output.push_str(entry.image.as_ref());
+                output.push_str("\n            dockerfile: ");
+                output.push_str(entry.dockerfile.as_ref());
+                output.push('\n');
+                output
+            }),
+    )
+    .unwrap_or_else(ScaffoldText::from)
+}
+#[allow(
+    clippy::single_call_fn,
+    reason = "generated file synchronization owns marker replacement"
+)]
+fn replace_generated_section(
+    source: ScaffoldTextRef<'_>,
+    begin: ScaffoldTextRef<'_>,
+    end: ScaffoldTextRef<'_>,
+    generated: ScaffoldTextRef<'_>,
+) -> Result<ScaffoldText, ScaffoldError> {
+    let (prefix, after_begin) = source.0.split_once(begin.0).ok_or(ScaffoldError::Marker)?;
+    let (_previous, suffix) = after_begin.split_once(end.0).ok_or(ScaffoldError::Marker)?;
+    ScaffoldText::try_from(format!(
+        "{prefix}{}{generated}{}{suffix}",
+        begin.0,
+        end.0,
+        generated = generated.0
+    ))
+    .map_err(|_error| ScaffoldError::Catalog)
+}
+fn synchronize_generated_file(
+    path: StdScaffoldPathRef<'_>,
+    begin: ScaffoldTextRef<'_>,
+    end: ScaffoldTextRef<'_>,
+    generated: ScaffoldTextRef<'_>,
+    write_changes: ShouldWrite,
+) -> Result<(), ScaffoldError> {
+    let source = read_bounded_text(path)?;
+    let expected = replace_generated_section(
+        ScaffoldTextRef::from(source.as_ref()),
+        begin,
+        end,
+        generated,
+    )?;
+    if expected.as_ref() == source.as_ref() {
+        return Ok(());
+    }
+    if bool::from(write_changes) {
+        std::fs::write(path.0, expected.as_ref())?;
+        Ok(())
+    } else {
+        Err(ScaffoldError::GeneratedDeployment)
+    }
+}
+#[allow(
+    clippy::single_call_fn,
+    reason = "the deployment command owns all generated projections"
+)]
+fn synchronize_deployment_projections(
+    root: StdScaffoldPathRef<'_>,
+    write_changes: ShouldWrite,
+) -> Result<(), ScaffoldError> {
+    let catalog_path = root.0.join("deploy/services.toml");
+    let catalog = read_bounded_text(StdScaffoldPathRef::from(catalog_path.as_path()))?;
+    let entries = parse_service_catalog(ScaffoldTextRef::from(catalog.as_ref()))?;
+    let entries_ref = ServiceCatalogEntriesRef::from(entries.0.as_slice());
+    let ci = render_ci_service_builds(entries_ref);
+    let release = render_release_matrix(entries_ref);
+    let ci_path = root.0.join(".github/workflows/ci.yml");
+    synchronize_generated_file(
+        StdScaffoldPathRef::from(ci_path.as_path()),
+        ScaffoldTextRef::from("      # BEGIN GENERATED SERVICE BUILDS\n"),
+        ScaffoldTextRef::from("      # END GENERATED SERVICE BUILDS\n"),
+        ScaffoldTextRef::from(ci.as_ref()),
+        write_changes,
+    )?;
+    let release_path = root.0.join(".github/workflows/release.yml");
+    synchronize_generated_file(
+        StdScaffoldPathRef::from(release_path.as_path()),
+        ScaffoldTextRef::from("          # BEGIN GENERATED RELEASE MATRIX\n"),
+        ScaffoldTextRef::from("          # END GENERATED RELEASE MATRIX\n"),
+        ScaffoldTextRef::from(release.as_ref()),
+        write_changes,
+    )
+}
+
 #[allow(
     clippy::single_call_fn,
     reason = "service command owns complete scaffold composition"
@@ -387,26 +622,38 @@ fn scaffold_service(
         ),
     )?;
 
+    let config_example_path = root.0.join(config.as_str()).join(".env.example");
+    let config_example =
+        read_bounded_text(StdScaffoldPathRef::from(config_example_path.as_path()))?;
+    let database_key = format!("{upper_snake}_DATABASE_URL");
+    let socket_key = format!("{upper_snake}_SERVICE_SOCKET_ADDRESS");
+    let compose_environment = config_example
+        .as_ref()
+        .lines()
+        .map(|line| {
+            let (key, example) = line.split_once('=').ok_or(ScaffoldError::Catalog)?;
+            let value = if key == database_key {
+                format!(
+                    "postgres://{service}:${{{upper_snake}_POSTGRES_PASSWORD:?set {upper_snake}_POSTGRES_PASSWORD}}@{service}_database:5432/{service}"
+                )
+            } else if key == socket_key {
+                format!("0.0.0.0:{}", port.0)
+            } else {
+                example.to_owned()
+            };
+            Ok(format!("      {key}: \"{value}\"\n"))
+        })
+        .collect::<Result<String, ScaffoldError>>()?;
     let compose = format!(
-        "services:\n  {service}_database:\n    image: postgres:16-bookworm@sha256:92620daddcd947f8d5ab5ba66e848702fe443d87fed30c4cea8e389fd78dfc55\n    environment:\n      POSTGRES_DB: {service}\n      POSTGRES_USER: {service}\n      POSTGRES_PASSWORD: ${{{upper_snake}_POSTGRES_PASSWORD:?set {upper_snake}_POSTGRES_PASSWORD}}\n    healthcheck:\n      test: [\"CMD-SHELL\", \"pg_isready -U {service} -d {service}\"]\n      interval: 5s\n      timeout: 3s\n      retries: 20\n    networks: [application]\n    volumes: [{service}_database_data:/var/lib/postgresql/data]\n  {service}:\n    build:\n      context: .\n      dockerfile: {service}/Dockerfile\n    depends_on:\n      {service}_database:\n        condition: service_healthy\n    environment:\n      {upper_snake}_DATABASE_URL: postgres://{service}:${{{upper_snake}_POSTGRES_PASSWORD:?set {upper_snake}_POSTGRES_PASSWORD}}@{service}_database:5432/{service}\n      {upper_snake}_SERVICE_SOCKET_ADDRESS: 0.0.0.0:{port}\n      MAXIMUM_SIZE_OF_HTTP_BODY_IN_BYTES: \"8192\"\n      PG_POOL_MAX_CONNECTIONS: \"10\"\n      REQUEST_TIMEOUT_SECONDS: \"30\"\n      TRACING_FORMAT: text\n    healthcheck:\n      test: [\"CMD\", \"curl\", \"--fail\", \"--silent\", \"http://127.0.0.1:{port}/health/ready\"]\n      interval: 10s\n      timeout: 5s\n      retries: 12\n      start_period: 20s\n    networks: [application]\n    ports: [\"127.0.0.1:{port}:{port}\"]\n    read_only: true\n    restart: unless-stopped\n    tmpfs: [/tmp:size=16m,mode=1777]\nvolumes:\n  {service}_database_data:\n",
+        "services:\n  {service}_database:\n    image: postgres:16-bookworm@sha256:92620daddcd947f8d5ab5ba66e848702fe443d87fed30c4cea8e389fd78dfc55\n    environment:\n      POSTGRES_DB: {service}\n      POSTGRES_USER: {service}\n      POSTGRES_PASSWORD: ${{{upper_snake}_POSTGRES_PASSWORD:?set {upper_snake}_POSTGRES_PASSWORD}}\n    healthcheck:\n      test: [\"CMD-SHELL\", \"pg_isready -U {service} -d {service}\"]\n      interval: 5s\n      timeout: 3s\n      retries: 20\n    networks: [application]\n    volumes: [{service}_database_data:/var/lib/postgresql/data]\n  {service}:\n    build:\n      context: .\n      dockerfile: {service}/Dockerfile\n    depends_on:\n      {service}_database:\n        condition: service_healthy\n    environment:\n{environment}    healthcheck:\n      test: [\"CMD\", \"curl\", \"--fail\", \"--silent\", \"http://127.0.0.1:{port}/health/ready\"]\n      interval: 10s\n      timeout: 5s\n      retries: 12\n      start_period: 20s\n    networks: [application]\n    ports: [\"127.0.0.1:{port}:{port}\"]\n    read_only: true\n    restart: unless-stopped\n    tmpfs: [/tmp:size=16m,mode=1777]\nvolumes:\n  {service}_database_data:\n",
         port = port.0,
+        environment = compose_environment,
     );
     std::fs::write(
         root.0.join(format!("docker-compose.{service}.yml")),
         compose,
     )?;
 
-    let constants = root
-        .0
-        .join(str_constants::WORKSPACE_SCAFFOLD_STR_CONSTANTS_PATH);
-    let sql_constant = format!(
-        "\npub const {upper_snake}_INSERT_SQL: &str = \"INSERT INTO {service}s (id, message) VALUES ($1, $2)\";\n"
-    );
-    let mut constants_contents = read_bounded_text(StdScaffoldPathRef::from(constants.as_path()))?
-        .as_ref()
-        .to_owned();
-    constants_contents.push_str(sql_constant.as_str());
-    std::fs::write(constants, constants_contents)?;
     let service_catalog = root
         .0
         .join(str_constants::WORKSPACE_SCAFFOLD_SERVICE_CATALOG_PATH);
@@ -464,6 +711,17 @@ fn run() -> Result<(), ScaffoldError> {
             }
             scaffold_service(workspace_root()?, ProjectNameRef::from(name.as_str()), port)
         }
+        Some("deployment") => {
+            let write_changes = match arguments.next().as_deref() {
+                Some("sync") => ShouldWrite::from(true),
+                Some("check") => ShouldWrite::from(false),
+                Some(_) | None => return Err(ScaffoldError::Arguments),
+            };
+            if arguments.next().is_some() {
+                return Err(ScaffoldError::Arguments);
+            }
+            synchronize_deployment_projections(workspace_root()?, write_changes)
+        }
         Some(_) | None => Err(ScaffoldError::Arguments),
     }
 }
@@ -514,6 +772,65 @@ mod tests {
     }
 
     #[test]
+    fn deployment_projection_check_rejects_stale_generated_content() {
+        let path = std::env::temp_dir().join(format!(
+            "workspace-scaffold-generated-test-{}",
+            std::process::id()
+        ));
+        let begin = "BEGIN GENERATED\n";
+        let end = "END GENERATED\n";
+        write(
+            path.as_path(),
+            "header\nBEGIN GENERATED\nstale\nEND GENERATED\n",
+        );
+        let check = super::synchronize_generated_file(
+            super::StdScaffoldPathRef::from(path.as_path()),
+            super::ScaffoldTextRef::from(begin),
+            super::ScaffoldTextRef::from(end),
+            super::ScaffoldTextRef::from("current\n"),
+            super::ShouldWrite::from(false),
+        );
+        assert!(matches!(
+            check,
+            Err(super::ScaffoldError::GeneratedDeployment)
+        ));
+        super::synchronize_generated_file(
+            super::StdScaffoldPathRef::from(path.as_path()),
+            super::ScaffoldTextRef::from(begin),
+            super::ScaffoldTextRef::from(end),
+            super::ScaffoldTextRef::from("current\n"),
+            super::ShouldWrite::from(true),
+        )
+        .expect("5a7e3c91");
+        super::synchronize_generated_file(
+            super::StdScaffoldPathRef::from(path.as_path()),
+            super::ScaffoldTextRef::from(begin),
+            super::ScaffoldTextRef::from(end),
+            super::ScaffoldTextRef::from("current\n"),
+            super::ShouldWrite::from(false),
+        )
+        .expect("d2f8b4a6");
+        std::fs::remove_file(path).expect("9c1e6a3f");
+    }
+
+    #[test]
+    fn service_catalog_owns_ci_and_release_projection_values() {
+        let entries = super::parse_service_catalog(super::ScaffoldTextRef::from(
+            "[[service]]\ndockerfile = \"Dockerfile\"\nimage = \"application\"\nrelease = true\n\n[[service]]\ndockerfile = \"worker/Dockerfile\"\nimage = \"worker\"\nrelease = false\n",
+        ))
+        .expect("4e8b2d7a");
+        let entries_ref = super::ServiceCatalogEntriesRef::from(entries.0.as_slice());
+        assert_eq!(
+            super::render_ci_service_builds(entries_ref).as_ref(),
+            "      - run: docker build --file Dockerfile --tag application:${{ github.sha }} .\n"
+        );
+        assert_eq!(
+            super::render_release_matrix(entries_ref).as_ref(),
+            "          - name: application\n            dockerfile: Dockerfile\n"
+        );
+    }
+
+    #[test]
     fn rejects_scaffold_text_over_size_limit() {
         let path = std::env::temp_dir().join(format!(
             "workspace-scaffold-oversize-test-{}",
@@ -550,12 +867,17 @@ mod tests {
         );
         write(
             root.join("notification_service/src/main.rs").as_path(),
-            "struct Notification; const PORT: u16 = 8081; const SQL: &str = str_constants::NOTIFICATION_INSERT_SQL;",
+            "struct Notification; const PORT: u16 = 8081; fn insert_sql() -> &'static str { \"INSERT INTO notifications (id, message) VALUES ($1, $2)\" }",
         );
         write(
             root.join("notification_service_config/src/lib.rs")
                 .as_path(),
             "struct NotificationConfig;",
+        );
+        write(
+            root.join("notification_service_config/.env.example")
+                .as_path(),
+            "NOTIFICATION_DATABASE_URL=postgres://notification_service:change-me@127.0.0.1:5432/notification_service\nNOTIFICATION_SERVICE_SOCKET_ADDRESS=127.0.0.1:8081\nPG_POOL_MAX_CONNECTIONS=10\nREQUEST_TIMEOUT_SECONDS=30\nTRACING_FORMAT=text\n",
         );
         write(
             root.join("notification_service_contract/src/lib.rs")
@@ -575,7 +897,6 @@ mod tests {
             root.join("deploy/services.toml").as_path(),
             "[[service]]\ncrate = \"notification_service\"\n",
         );
-        write(root.join("str_constants/src/lib.rs").as_path(), "");
         super::scaffold_service(
             super::StdScaffoldPathRef::from(root.as_path()),
             super::ProjectNameRef::from("order_service"),
@@ -588,7 +909,7 @@ mod tests {
         );
         assert_file_content(
             root.join("order_service/src/main.rs").as_path(),
-            "struct OrderService; const PORT: u16 = 8082; const SQL: &str = str_constants::ORDER_SERVICE_INSERT_SQL;",
+            "struct OrderService; const PORT: u16 = 8082; fn insert_sql() -> &'static str { \"INSERT INTO order_services (id, message) VALUES ($1, $2)\" }",
         );
         assert_file_content(
             root.join("order_service_config/src/lib.rs").as_path(),
@@ -608,11 +929,7 @@ mod tests {
         );
         assert_file_content(
             root.join("docker-compose.order_service.yml").as_path(),
-            "services:\n  order_service_database:\n    image: postgres:16-bookworm@sha256:92620daddcd947f8d5ab5ba66e848702fe443d87fed30c4cea8e389fd78dfc55\n    environment:\n      POSTGRES_DB: order_service\n      POSTGRES_USER: order_service\n      POSTGRES_PASSWORD: ${ORDER_SERVICE_POSTGRES_PASSWORD:?set ORDER_SERVICE_POSTGRES_PASSWORD}\n    healthcheck:\n      test: [\"CMD-SHELL\", \"pg_isready -U order_service -d order_service\"]\n      interval: 5s\n      timeout: 3s\n      retries: 20\n    networks: [application]\n    volumes: [order_service_database_data:/var/lib/postgresql/data]\n  order_service:\n    build:\n      context: .\n      dockerfile: order_service/Dockerfile\n    depends_on:\n      order_service_database:\n        condition: service_healthy\n    environment:\n      ORDER_SERVICE_DATABASE_URL: postgres://order_service:${ORDER_SERVICE_POSTGRES_PASSWORD:?set ORDER_SERVICE_POSTGRES_PASSWORD}@order_service_database:5432/order_service\n      ORDER_SERVICE_SERVICE_SOCKET_ADDRESS: 0.0.0.0:8082\n      MAXIMUM_SIZE_OF_HTTP_BODY_IN_BYTES: \"8192\"\n      PG_POOL_MAX_CONNECTIONS: \"10\"\n      REQUEST_TIMEOUT_SECONDS: \"30\"\n      TRACING_FORMAT: text\n    healthcheck:\n      test: [\"CMD\", \"curl\", \"--fail\", \"--silent\", \"http://127.0.0.1:8082/health/ready\"]\n      interval: 10s\n      timeout: 5s\n      retries: 12\n      start_period: 20s\n    networks: [application]\n    ports: [\"127.0.0.1:8082:8082\"]\n    read_only: true\n    restart: unless-stopped\n    tmpfs: [/tmp:size=16m,mode=1777]\nvolumes:\n  order_service_database_data:\n",
-        );
-        assert_file_content(
-            root.join("str_constants/src/lib.rs").as_path(),
-            "\npub const ORDER_SERVICE_INSERT_SQL: &str = \"INSERT INTO order_services (id, message) VALUES ($1, $2)\";\n",
+            "services:\n  order_service_database:\n    image: postgres:16-bookworm@sha256:92620daddcd947f8d5ab5ba66e848702fe443d87fed30c4cea8e389fd78dfc55\n    environment:\n      POSTGRES_DB: order_service\n      POSTGRES_USER: order_service\n      POSTGRES_PASSWORD: ${ORDER_SERVICE_POSTGRES_PASSWORD:?set ORDER_SERVICE_POSTGRES_PASSWORD}\n    healthcheck:\n      test: [\"CMD-SHELL\", \"pg_isready -U order_service -d order_service\"]\n      interval: 5s\n      timeout: 3s\n      retries: 20\n    networks: [application]\n    volumes: [order_service_database_data:/var/lib/postgresql/data]\n  order_service:\n    build:\n      context: .\n      dockerfile: order_service/Dockerfile\n    depends_on:\n      order_service_database:\n        condition: service_healthy\n    environment:\n      ORDER_SERVICE_DATABASE_URL: \"postgres://order_service:${ORDER_SERVICE_POSTGRES_PASSWORD:?set ORDER_SERVICE_POSTGRES_PASSWORD}@order_service_database:5432/order_service\"\n      ORDER_SERVICE_SERVICE_SOCKET_ADDRESS: \"0.0.0.0:8082\"\n      PG_POOL_MAX_CONNECTIONS: \"10\"\n      REQUEST_TIMEOUT_SECONDS: \"30\"\n      TRACING_FORMAT: \"text\"\n    healthcheck:\n      test: [\"CMD\", \"curl\", \"--fail\", \"--silent\", \"http://127.0.0.1:8082/health/ready\"]\n      interval: 10s\n      timeout: 5s\n      retries: 12\n      start_period: 20s\n    networks: [application]\n    ports: [\"127.0.0.1:8082:8082\"]\n    read_only: true\n    restart: unless-stopped\n    tmpfs: [/tmp:size=16m,mode=1777]\nvolumes:\n  order_service_database_data:\n",
         );
         assert_file_content(
             root.join("deploy/services.toml").as_path(),

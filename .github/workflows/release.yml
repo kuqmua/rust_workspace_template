@@ -17,10 +17,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # BEGIN GENERATED RELEASE MATRIX
           - name: application
             dockerfile: Dockerfile
           - name: notification-service
             dockerfile: notification_service/Dockerfile
+          # END GENERATED RELEASE MATRIX
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - name: Authenticate to GHCR

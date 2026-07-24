@@ -13,8 +13,6 @@ use leptos::prelude::{
 #[derive(Clone, Debug, newtype::AsRefStr, newtype::FromInner)]
 pub(crate) struct AdminSettingInputValue(Box<str>);
 
-#[derive(Clone, Copy, Debug, newtype::AsRefStr, newtype::FromInner)]
-pub(crate) struct AdminSettingAttribute(&'static str);
 #[derive(Clone, Copy, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
 pub(crate) struct AdminSettingDisabled(bool);
 #[derive(Clone, Copy, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
@@ -28,79 +26,26 @@ impl LeptosAdminSettingSignal {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
-pub(crate) enum AdminSettingField {
-    DefaultRoute,
-    MainLogo,
-    OrganizationContacts,
-    OrganizationName,
-    PrimaryColor,
-    SiteName,
-    SupportUrl,
-    TabTitle,
-}
-#[derive(Clone, Copy, Debug)]
-enum AdminSettingInputKind {
-    Text,
-    TextArea,
-    Url,
-}
-impl AdminSettingField {
-    const fn input_kind(self) -> AdminSettingInputKind {
-        match self {
-            Self::OrganizationContacts => AdminSettingInputKind::TextArea,
-            Self::MainLogo | Self::SupportUrl => AdminSettingInputKind::Url,
-            Self::DefaultRoute
-            | Self::OrganizationName
-            | Self::PrimaryColor
-            | Self::SiteName
-            | Self::TabTitle => AdminSettingInputKind::Text,
-        }
-    }
-    fn label(self) -> AdminSettingAttribute {
-        AdminSettingAttribute::from(match self {
-            Self::DefaultRoute => str_constants::ADMIN_SETTING_DEFAULT_ROUTE_LABEL,
-            Self::MainLogo => str_constants::ADMIN_SETTING_MAIN_LOGO_LABEL,
-            Self::OrganizationContacts => str_constants::ADMIN_SETTING_ORGANIZATION_CONTACTS_LABEL,
-            Self::OrganizationName => str_constants::ADMIN_SETTING_ORGANIZATION_NAME_LABEL,
-            Self::PrimaryColor => str_constants::ADMIN_SETTING_PRIMARY_COLOR_LABEL,
-            Self::SiteName => str_constants::ADMIN_SETTING_SITE_NAME_LABEL,
-            Self::SupportUrl => str_constants::ADMIN_SETTING_SUPPORT_URL_LABEL,
-            Self::TabTitle => str_constants::ADMIN_SETTING_TAB_TITLE_LABEL,
-        })
-    }
-    fn name(self) -> AdminSettingAttribute {
-        AdminSettingAttribute::from(match self {
-            Self::DefaultRoute => str_constants::ADMIN_SETTING_DEFAULT_ROUTE_NAME,
-            Self::MainLogo => str_constants::ADMIN_SETTING_MAIN_LOGO_NAME,
-            Self::OrganizationContacts => str_constants::ADMIN_SETTING_ORGANIZATION_CONTACTS_NAME,
-            Self::OrganizationName => str_constants::ADMIN_SETTING_ORGANIZATION_NAME_NAME,
-            Self::PrimaryColor => str_constants::ADMIN_SETTING_PRIMARY_COLOR_NAME,
-            Self::SiteName => str_constants::ADMIN_SETTING_SITE_NAME_NAME,
-            Self::SupportUrl => str_constants::ADMIN_SETTING_SUPPORT_URL_NAME,
-            Self::TabTitle => str_constants::ADMIN_SETTING_TAB_TITLE_NAME,
-        })
-    }
-    fn required(self) -> AdminSettingRequired {
-        AdminSettingRequired::from(matches!(self, Self::DefaultRoute | Self::SiteName))
-    }
-}
-
 pub(crate) fn admin_setting_input(
-    field: AdminSettingField,
+    field: server_admin_contract::AdminSetting,
     value: LeptosAdminSettingSignal,
     disabled: AdminSettingDisabled,
 ) -> impl leptos::prelude::IntoView {
-    let label = field.label().as_ref().to_owned();
-    let name = field.name().as_ref().to_owned();
-    let required = bool::from(field.required());
+    let spec = field.spec();
+    let label = spec.label().as_ref().to_owned();
+    let name = spec.name().as_ref().to_owned();
+    let required = bool::from(spec.required());
     let disabled = bool::from(disabled);
     let value = value.0;
-    match field.input_kind() {
-        AdminSettingInputKind::Text | AdminSettingInputKind::Url => {
-            let input_type = match field.input_kind() {
-                AdminSettingInputKind::Url => str_constants::HTML_URL_INPUT_TYPE,
-                AdminSettingInputKind::Text | AdminSettingInputKind::TextArea => {
+    match spec.input_kind() {
+        server_admin_contract::AdminSettingInputKind::Text
+        | server_admin_contract::AdminSettingInputKind::Url => {
+            let input_type = match spec.input_kind() {
+                server_admin_contract::AdminSettingInputKind::Url => {
+                    str_constants::HTML_URL_INPUT_TYPE
+                }
+                server_admin_contract::AdminSettingInputKind::Text
+                | server_admin_contract::AdminSettingInputKind::TextArea => {
                     str_constants::HTML_TEXT_INPUT_TYPE
                 }
             };
@@ -118,17 +63,19 @@ pub(crate) fn admin_setting_input(
                 /></label>
             })
         }
-        AdminSettingInputKind::TextArea => leptos::prelude::IntoAny::into_any(leptos::view! {
-            <label><span>{label}</span><textarea
-                name=name
-                required=required
-                disabled=disabled
-                on:input=move |event| leptos::prelude::Set::set(
-                    &value,
-                    leptos::prelude::event_target_value(&event),
-                )
-            >{leptos::prelude::Get::get(&value)}</textarea></label>
-        }),
+        server_admin_contract::AdminSettingInputKind::TextArea => {
+            leptos::prelude::IntoAny::into_any(leptos::view! {
+                <label><span>{label}</span><textarea
+                    name=name
+                    required=required
+                    disabled=disabled
+                    on:input=move |event| leptos::prelude::Set::set(
+                        &value,
+                        leptos::prelude::event_target_value(&event),
+                    )
+                >{leptos::prelude::Get::get(&value)}</textarea></label>
+            })
+        }
     }
 }
 
@@ -172,29 +119,41 @@ impl AdminSettingsFormSignals {
             )),
         }
     }
-    pub(crate) const fn default_route(self) -> LeptosAdminSettingSignal {
-        self.default_route
+    pub(crate) const fn get(
+        self,
+        setting: server_admin_contract::AdminSetting,
+    ) -> LeptosAdminSettingSignal {
+        match setting {
+            server_admin_contract::AdminSetting::DefaultRoute => self.default_route,
+            server_admin_contract::AdminSetting::MainLogo => self.main_logo,
+            server_admin_contract::AdminSetting::OrganizationContacts => self.organization_contacts,
+            server_admin_contract::AdminSetting::OrganizationName => self.organization_name,
+            server_admin_contract::AdminSetting::PrimaryColor => self.primary_color,
+            server_admin_contract::AdminSetting::SiteName => self.site_name,
+            server_admin_contract::AdminSetting::SupportUrl => self.support_url,
+            server_admin_contract::AdminSetting::TabTitle => self.tab_title,
+        }
     }
-    pub(crate) const fn main_logo(self) -> LeptosAdminSettingSignal {
-        self.main_logo
-    }
-    pub(crate) const fn organization_contacts(self) -> LeptosAdminSettingSignal {
-        self.organization_contacts
-    }
-    pub(crate) const fn organization_name(self) -> LeptosAdminSettingSignal {
-        self.organization_name
-    }
-    pub(crate) const fn primary_color(self) -> LeptosAdminSettingSignal {
-        self.primary_color
-    }
-    pub(crate) const fn site_name(self) -> LeptosAdminSettingSignal {
-        self.site_name
-    }
-    pub(crate) const fn support_url(self) -> LeptosAdminSettingSignal {
-        self.support_url
-    }
-    pub(crate) const fn tab_title(self) -> LeptosAdminSettingSignal {
-        self.tab_title
+    #[cfg(target_arch = "wasm32")]
+    pub(crate) fn optional_settings_to_clear(
+        self,
+    ) -> Result<
+        server_admin_contract::AdminOptionalSettings,
+        server_admin_contract::AdminCollectionError,
+    > {
+        let values = server_admin_contract::AdminSetting::ALL
+            .into_iter()
+            .filter_map(|setting| match setting.spec().optionality() {
+                server_admin_contract::AdminSettingOptionality::Clearable(optional)
+                    if self.get(setting).value().as_ref().is_empty() =>
+                {
+                    Some(optional)
+                }
+                server_admin_contract::AdminSettingOptionality::Clearable(_optional)
+                | server_admin_contract::AdminSettingOptionality::Required => None,
+            })
+            .collect::<Vec<_>>();
+        server_admin_contract::AdminOptionalSettings::try_from(values)
     }
 }
 
@@ -203,14 +162,9 @@ pub(crate) fn admin_setting_inputs(
     disabled: AdminSettingDisabled,
 ) -> impl leptos::prelude::IntoView {
     leptos::view! {
-        {admin_setting_input(AdminSettingField::DefaultRoute, signals.default_route(), disabled)}
-        {admin_setting_input(AdminSettingField::SiteName, signals.site_name(), disabled)}
-        {admin_setting_input(AdminSettingField::TabTitle, signals.tab_title(), disabled)}
-        {admin_setting_input(AdminSettingField::OrganizationName, signals.organization_name(), disabled)}
-        {admin_setting_input(AdminSettingField::OrganizationContacts, signals.organization_contacts(), disabled)}
-        {admin_setting_input(AdminSettingField::SupportUrl, signals.support_url(), disabled)}
-        {admin_setting_input(AdminSettingField::PrimaryColor, signals.primary_color(), disabled)}
-        {admin_setting_input(AdminSettingField::MainLogo, signals.main_logo(), disabled)}
+        {server_admin_contract::AdminSetting::ALL.into_iter().map(|setting| {
+            admin_setting_input(setting, signals.get(setting), disabled)
+        }).collect::<Vec<_>>()}
     }
 }
 

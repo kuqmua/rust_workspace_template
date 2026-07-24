@@ -609,6 +609,23 @@ pub async fn authorize_generated_request(
 #[derive(newtype::DebugTransparent, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 pub struct HttpAdminHeaderValueError(http::header::InvalidHeaderValue);
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum AdminObservedErrorCode {
+    Database,
+    Header,
+    PasswordHash,
+    Session,
+}
+impl AdminObservedErrorCode {
+    const fn get(self) -> &'static str {
+        match self {
+            Self::Database => "admin_database",
+            Self::Header => "admin_response_header",
+            Self::PasswordHash => "admin_password_hash",
+            Self::Session => "admin_session",
+        }
+    }
+}
 #[derive(Debug, thiserror::Error)]
 pub enum AdminApiError {
     #[error("administrator authentication failed")]
@@ -656,7 +673,7 @@ impl AdminApiError {
     fn header(source: HttpAdminHeaderValueError) -> Self {
         Self::Header(server_runtime::ObservedError::capture(
             source,
-            server_runtime::ObservedErrorCode::from(str_constants::ADMIN_HEADER_ERROR_CODE),
+            server_runtime::ObservedErrorCode::from(AdminObservedErrorCode::Header.get()),
         ))
     }
 
@@ -664,7 +681,7 @@ impl AdminApiError {
     fn password_hash(source: super::AdminPasswordHashError) -> Self {
         Self::PasswordHash(server_runtime::ObservedError::capture(
             source,
-            server_runtime::ObservedErrorCode::from(str_constants::ADMIN_PASSWORD_HASH_ERROR_CODE),
+            server_runtime::ObservedErrorCode::from(AdminObservedErrorCode::PasswordHash.get()),
         ))
     }
 
@@ -672,7 +689,7 @@ impl AdminApiError {
     fn pg(source: super::SqlxAdminError) -> Self {
         Self::Pg(server_runtime::ObservedError::capture(
             source,
-            server_runtime::ObservedErrorCode::from(str_constants::ADMIN_DATABASE_ERROR_CODE),
+            server_runtime::ObservedErrorCode::from(AdminObservedErrorCode::Database.get()),
         ))
     }
 
@@ -680,7 +697,7 @@ impl AdminApiError {
     fn session(source: AdminSessionError) -> Self {
         Self::Session(server_runtime::ObservedError::capture(
             source,
-            server_runtime::ObservedErrorCode::from(str_constants::ADMIN_SESSION_ERROR_CODE),
+            server_runtime::ObservedErrorCode::from(AdminObservedErrorCode::Session.get()),
         ))
     }
 }

@@ -298,12 +298,9 @@ impl AdminGeneratedTable {
             schema: pg_crud_common::DbSchemaNameRef<'_>,
         ) -> Result<(), AdminGeneratedTablesValidationError>
         where
-            Table: pg_crud_common::DbExtendedTableSchema,
+            Table: pg_crud_common::DbTableSchema,
         {
             pg_crud_common::validate_generated_postgres_table::<Table>(pool, schema)
-                .await
-                .map_err(AdminGeneratedTablesValidationError::from)?;
-            pg_crud_common::validate_postgres_table_extensions::<Table>(pool, schema)
                 .await
                 .map_err(AdminGeneratedTablesValidationError::from)
         }

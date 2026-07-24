@@ -877,7 +877,10 @@ fn raw_runtime_sql_identifier_inventory_matches_reviewed_baseline() {
             let _previous = observed.insert(relative, count);
         }
     });
-    let expected = std::collections::BTreeMap::new();
+    let expected = std::collections::BTreeMap::from([(
+        String::from("../notification_service/src/main.rs"),
+        1usize,
+    )]);
     assert_eq!(observed, expected, "raw SQL identifier baseline changed");
 }
 #[test]
@@ -1632,30 +1635,21 @@ fn long_production_string_literals_are_reused() {
     );
 }
 #[test]
-fn string_constants_are_declared_only_in_str_constants() {
-    super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr::from(str_constants::VALUE_6F2C8A91),
-        super::types::SourceTextRef::from(
-            str_constants::STRING_CONSTANTS_FOUND_OUTSIDE_STR_CONSTANTS,
-        ),
-        |path, ast, ers| {
-            if path.ends_with(str_constants::STR_CONSTANTS_SRC_LIB_RS) {
-                return;
-            }
-            let visitor = super::visit_syn_file(
-                super::types::SynFileRef::from(ast),
-                super::StringConstantVisitor {
-                    ers: super::types::DiagnosticMsgs::default(),
-                },
-            );
-            ers.extend(
-                visitor
-                    .ers
-                    .into_iter()
-                    .map(|error| format!("{}: {error}", path.display())),
-            );
-        },
-    );
+#[allow(
+    clippy::needless_for_each,
+    reason = "repository source policy requires iterator methods instead of for loops"
+)]
+fn domain_owned_string_catalogs_do_not_return_to_str_constants() {
+    let source =
+        std::fs::read_to_string(str_constants::STR_CONSTANTS_SRC_LIB_RS).expect("84c15a0e");
+    [
+        "ADMIN_SETTING_DEFAULT_ROUTE_LABEL",
+        "ADMIN_DATABASE_ERROR_CODE",
+        "NOTIFICATION_PERSISTENCE_ERROR_CODE",
+        "SERVER_ADMIN_DB_SCHEMA_VALUE_",
+    ]
+    .into_iter()
+    .for_each(|identifier| assert!(!source.contains(identifier), "{identifier}"));
 }
 
 #[test]

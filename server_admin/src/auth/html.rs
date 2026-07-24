@@ -838,113 +838,91 @@ async fn sign_in(
 #[frontend_contract::handler_registry(
     state = super::StdSharedAdminAuthSvcState;
     (
-        server_admin_contract::AdminFrontendPath::Root.get(),
-        axum::routing::get,
+        server_admin_contract::AdminFrontendPath::Root,
         root
     ),
     (
-        server_admin_contract::AdminFrontendPath::SignIn.get(),
-        axum::routing::get,
+        server_admin_contract::AdminFrontendPath::SignIn,
         sign_in_page
     ),
     (
-        server_admin_contract::AdminFrontendPath::Tables.get(),
-        axum::routing::get,
+        server_admin_contract::AdminFrontendPath::Tables,
         data_tables
     ),
     (
-        server_admin_contract::AdminFrontendPath::Sessions.get(),
-        axum::routing::get,
+        server_admin_contract::AdminFrontendPath::Sessions,
         sessions
     ),
     (
-        server_admin_contract::AdminFrontendPath::Profile.get(),
-        axum::routing::get,
+        server_admin_contract::AdminFrontendPath::Profile,
         profile
     ),
     (
-        server_admin_contract::AdminFrontendPath::Settings.get(),
-        axum::routing::get,
+        server_admin_contract::AdminFrontendPath::Settings,
         settings
     ),
     (
-        server_admin_contract::AdminFrontendPath::Version.get(),
-        axum::routing::get,
+        server_admin_contract::AdminFrontendPath::Version,
         version
     ),
     (
-        server_admin_contract::AdminHtmlAction::SignIn.get(),
-        axum::routing::post,
+        server_admin_contract::AdminHtmlAction::SignIn,
         sign_in
     ),
     (
-        server_admin_contract::AdminHtmlAction::SignOut.get(),
-        axum::routing::post,
+        server_admin_contract::AdminHtmlAction::SignOut,
         sign_out
     ),
     (
-        server_admin_contract::AdminHtmlAction::ProfilePassword.get(),
-        axum::routing::post,
+        server_admin_contract::AdminHtmlAction::ProfilePassword,
         change_password
     ),
     (
-        server_admin_contract::AdminHtmlAction::SessionRevoke.get(),
-        axum::routing::post,
+        server_admin_contract::AdminHtmlAction::SessionRevoke,
         revoke_session
     ),
     (
-        server_admin_contract::AdminHtmlAction::UserCreate.get(),
-        axum::routing::post,
+        server_admin_contract::AdminHtmlAction::UserCreate,
         create_user
     ),
     (
-        server_admin_contract::AdminHtmlAction::UserUpdate.get(),
-        axum::routing::post,
+        server_admin_contract::AdminHtmlAction::UserUpdate,
         update_user
     ),
     (
-        server_admin_contract::AdminHtmlAction::UserPassword.get(),
-        axum::routing::post,
+        server_admin_contract::AdminHtmlAction::UserPassword,
         user_password
     ),
     (
-        server_admin_contract::AdminHtmlAction::UserBan.get(),
-        axum::routing::post,
+        server_admin_contract::AdminHtmlAction::UserBan,
         user_ban
     ),
     (
-        server_admin_contract::AdminHtmlAction::UserDelete.get(),
-        axum::routing::post,
+        server_admin_contract::AdminHtmlAction::UserDelete,
         delete_user
     ),
     (
-        server_admin_contract::AdminHtmlAction::UserRoles.get(),
-        axum::routing::post,
+        server_admin_contract::AdminHtmlAction::UserRoles,
         user_roles
     ),
     (
-        server_admin_contract::AdminHtmlAction::RoleCreate.get(),
-        axum::routing::post,
+        server_admin_contract::AdminHtmlAction::RoleCreate,
         create_role
     ),
     (
-        server_admin_contract::AdminHtmlAction::RoleUpdate.get(),
-        axum::routing::post,
+        server_admin_contract::AdminHtmlAction::RoleUpdate,
         update_role
     ),
     (
-        server_admin_contract::AdminHtmlAction::RoleDelete.get(),
-        axum::routing::post,
+        server_admin_contract::AdminHtmlAction::RoleDelete,
         delete_role
     ),
     (
-        server_admin_contract::AdminHtmlAction::RolePermissions.get(),
-        axum::routing::post,
+        server_admin_contract::AdminHtmlAction::RolePermissions,
         role_permissions
     ),
     (
-        server_admin_contract::AdminHtmlAction::SettingsUpdate.get(),
-        axum::routing::post,
+        server_admin_contract::AdminHtmlAction::SettingsUpdate,
         update_settings
     ),
 )]
@@ -953,8 +931,7 @@ struct AdminHtmlRouteRegistry;
 #[frontend_contract::handler_registry(
     state = super::StdSharedAdminAuthSvcState;
     (
-        server_admin_contract::AdminFrontendPath::OpenApi.get(),
-        axum::routing::get,
+        server_admin_contract::AdminFrontendPath::OpenApi,
         open_api
     ),
 )]

@@ -71,7 +71,7 @@ impl axum::response::IntoResponse for HttpNotificationApiProblem {
         };
         let telemetry = server_runtime::HttpErrorTelemetry::new(
             error_type,
-            server_runtime::HttpErrorCode::from(str_constants::NOTIFICATION_VALIDATION_ERROR_CODE),
+            server_runtime::HttpErrorCode::from(NotificationErrorCode::Validation.get()),
         );
         let mut response = axum::response::IntoResponse::into_response((
             status,
@@ -178,6 +178,21 @@ struct NotificationObservabilityInitError(server_runtime::ObservabilityInitError
 struct NotificationObservabilityShutdownError(
     server_runtime::OpentelemetrySdkObservabilityShutdownError,
 );
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum NotificationErrorCode {
+    MetricsRender,
+    Persistence,
+    Validation,
+}
+impl NotificationErrorCode {
+    const fn get(self) -> &'static str {
+        match self {
+            Self::MetricsRender => "notification_metrics_render",
+            Self::Persistence => "notification_persistence",
+            Self::Validation => "notification_validation",
+        }
+    }
+}
 #[frontend_contract::route_openapi()]
 async fn create_notification(
     state: AxumNotificationState,
@@ -185,7 +200,8 @@ async fn create_notification(
 ) -> Result<AxumNotificationResponse, HttpNotificationApiProblem> {
     let id = uuid::Uuid::new_v4();
     let message = request.0.into_message();
-    let _created = sqlx::query(str_constants::NOTIFICATION_INSERT_SQL)
+    let insert_sql = "INSERT INTO notifications (id, message) VALUES ($1, $2)";
+    let _created = sqlx::query(insert_sql)
         .bind(id)
         .bind(message.as_ref())
         .execute(state.0.pool.as_ref())
@@ -193,9 +209,7 @@ async fn create_notification(
         .map_err(|error| {
             HttpNotificationApiProblem::Persistence(server_runtime::ObservedError::capture(
                 SqlxNotificationDatabaseError::from(error),
-                server_runtime::ObservedErrorCode::from(
-                    str_constants::NOTIFICATION_PERSISTENCE_ERROR_CODE,
-                ),
+                server_runtime::ObservedErrorCode::from(NotificationErrorCode::Persistence.get()),
             ))
         })?;
     Ok(AxumNotificationResponse::from(
@@ -214,7 +228,7 @@ async fn metrics(
     server_runtime::MetricsResponseBody::try_from(state.0.metrics.0.render()).map_err(|error| {
         HttpNotificationApiProblem::Metrics(server_runtime::ObservedError::capture(
             error,
-            server_runtime::ObservedErrorCode::from(str_constants::NOTIFICATION_METRICS_ERROR_CODE),
+            server_runtime::ObservedErrorCode::from(NotificationErrorCode::MetricsRender.get()),
         ))
     })
 }
@@ -227,6 +241,22 @@ async fn open_api() -> AxumNotificationResponse {
     AxumNotificationResponse::from(axum::response::IntoResponse::into_response(axum::Json(
         document,
     )))
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum NotificationOperationalRoute {
+    Metrics,
+    OpenApi,
+}
+impl frontend_contract::HandlerContract for NotificationOperationalRoute {
+    fn method(self) -> frontend_contract::RouteMethod {
+        frontend_contract::RouteMethod::Get
+    }
+    fn path(self) -> frontend_contract::HandlerPath {
+        frontend_contract::HandlerPath::from(match self {
+            Self::Metrics => str_constants::METRICS,
+            Self::OpenApi => str_constants::OPENAPI_JSON,
+        })
+    }
 }
 
 #[frontend_contract::route_registry(
@@ -248,13 +278,11 @@ struct NotificationApiRouteRegistry;
 #[frontend_contract::handler_registry(
     state = NotificationState;
     (
-        str_constants::METRICS,
-        axum::routing::get,
+        NotificationOperationalRoute::Metrics,
         metrics
     ),
     (
-        str_constants::OPENAPI_JSON,
-        axum::routing::get,
+        NotificationOperationalRoute::OpenApi,
         open_api
     ),
 )]
@@ -506,7 +534,7 @@ mod tests {
             super::HttpNotificationApiProblem::Persistence(server_runtime::ObservedError::capture(
                 super::SqlxNotificationDatabaseError::from(sqlx::Error::RowNotFound),
                 server_runtime::ObservedErrorCode::from(
-                    str_constants::NOTIFICATION_PERSISTENCE_ERROR_CODE,
+                    super::NotificationErrorCode::Persistence.get(),
                 ),
             )),
         );

@@ -41,6 +41,7 @@ impl KnownHttpStatus {
     }
 }
 mod auth_session_keep_alive;
+mod handler_contract;
 mod json_snapshot;
 mod openapi_validation;
 mod problem;
@@ -56,6 +57,9 @@ pub use auth_session_keep_alive::{
 pub use frontend_contract_macros::{
     PageCatalog, RouteCatalog, RouteFamily, TypedRoute, UnitEnumCatalog, handler_registry,
     route_openapi, route_registry,
+};
+pub use handler_contract::{
+    AxumHandlerMethodRouter, HandlerContract, HandlerPath, handler_method_router,
 };
 pub use json_snapshot::{
     JsonContractSnapshot, JsonContractSnapshotError, JsonSnapshotDynamicFieldRef,

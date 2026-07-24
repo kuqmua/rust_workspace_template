@@ -2632,17 +2632,143 @@ pub struct AdminUpdateSettingsReq {
     support_url: Option<AdminSupportUrl>,
     tab_title: Option<AdminTabTitle>,
 }
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum AdminSettingInputKind {
+    Text,
+    TextArea,
+    Url,
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, newtype::AsRefStr, newtype::FromInner)]
+pub struct AdminSettingLabel(&'static str);
+#[derive(Clone, Copy, Debug, PartialEq, Eq, newtype::AsRefStr, newtype::FromInner)]
+pub struct AdminSettingName(&'static str);
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct AdminSettingSpec {
+    input_kind: AdminSettingInputKind,
+    label: AdminSettingLabel,
+    name: AdminSettingName,
+    optionality: AdminSettingOptionality,
+}
+impl AdminSettingSpec {
+    #[must_use]
+    pub const fn input_kind(self) -> AdminSettingInputKind {
+        self.input_kind
+    }
+    #[must_use]
+    pub const fn label(self) -> AdminSettingLabel {
+        self.label
+    }
+    #[must_use]
+    pub const fn name(self) -> AdminSettingName {
+        self.name
+    }
+    #[must_use]
+    pub const fn optionality(self) -> AdminSettingOptionality {
+        self.optionality
+    }
+    #[must_use]
+    pub fn required(self) -> AdminBool {
+        AdminBool::from(matches!(
+            self.optionality,
+            AdminSettingOptionality::Required
+        ))
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum AdminSettingOptionality {
+    Clearable(AdminOptionalSetting),
+    Required,
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, frontend_contract::UnitEnumCatalog)]
+pub enum AdminSetting {
+    DefaultRoute,
+    SiteName,
+    TabTitle,
+    OrganizationName,
+    OrganizationContacts,
+    SupportUrl,
+    PrimaryColor,
+    MainLogo,
+}
 #[derive(
-    Clone, Copy, Debug, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize, utoipa::ToSchema,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    Hash,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+    frontend_contract::UnitEnumCatalog,
 )]
 #[serde(rename_all = "snake_case")]
 pub enum AdminOptionalSetting {
-    MainLogo,
-    OrganizationContacts,
-    OrganizationName,
-    PrimaryColor,
-    SupportUrl,
     TabTitle,
+    OrganizationName,
+    OrganizationContacts,
+    SupportUrl,
+    PrimaryColor,
+    MainLogo,
+}
+impl AdminSetting {
+    #[must_use]
+    pub fn spec(self) -> AdminSettingSpec {
+        match self {
+            Self::DefaultRoute => AdminSettingSpec {
+                input_kind: AdminSettingInputKind::Text,
+                label: AdminSettingLabel::from("Default route"),
+                name: AdminSettingName::from("default_admin_route"),
+                optionality: AdminSettingOptionality::Required,
+            },
+            Self::SiteName => AdminSettingSpec {
+                input_kind: AdminSettingInputKind::Text,
+                label: AdminSettingLabel::from("Site name"),
+                name: AdminSettingName::from("site_name"),
+                optionality: AdminSettingOptionality::Required,
+            },
+            Self::TabTitle => AdminSettingSpec {
+                input_kind: AdminSettingInputKind::Text,
+                label: AdminSettingLabel::from("Tab title"),
+                name: AdminSettingName::from("tab_title"),
+                optionality: AdminSettingOptionality::Clearable(AdminOptionalSetting::TabTitle),
+            },
+            Self::OrganizationName => AdminSettingSpec {
+                input_kind: AdminSettingInputKind::Text,
+                label: AdminSettingLabel::from("Organization"),
+                name: AdminSettingName::from("organization_name"),
+                optionality: AdminSettingOptionality::Clearable(
+                    AdminOptionalSetting::OrganizationName,
+                ),
+            },
+            Self::OrganizationContacts => AdminSettingSpec {
+                input_kind: AdminSettingInputKind::TextArea,
+                label: AdminSettingLabel::from("Organization contacts"),
+                name: AdminSettingName::from("organization_contacts"),
+                optionality: AdminSettingOptionality::Clearable(
+                    AdminOptionalSetting::OrganizationContacts,
+                ),
+            },
+            Self::SupportUrl => AdminSettingSpec {
+                input_kind: AdminSettingInputKind::Url,
+                label: AdminSettingLabel::from("Support URL"),
+                name: AdminSettingName::from("support_url"),
+                optionality: AdminSettingOptionality::Clearable(AdminOptionalSetting::SupportUrl),
+            },
+            Self::PrimaryColor => AdminSettingSpec {
+                input_kind: AdminSettingInputKind::Text,
+                label: AdminSettingLabel::from("Primary color"),
+                name: AdminSettingName::from("primary_color"),
+                optionality: AdminSettingOptionality::Clearable(AdminOptionalSetting::PrimaryColor),
+            },
+            Self::MainLogo => AdminSettingSpec {
+                input_kind: AdminSettingInputKind::Url,
+                label: AdminSettingLabel::from("Main logo URL"),
+                name: AdminSettingName::from("main_logo"),
+                optionality: AdminSettingOptionality::Clearable(AdminOptionalSetting::MainLogo),
+            },
+        }
+    }
 }
 impl AdminUpdateSettingsReq {
     #[must_use]
@@ -2719,7 +2845,7 @@ impl AdminUpdateSettingsReq {
             .collect::<std::collections::HashSet<_>>();
         AdminBool::from(
             unique.len() == self.clear.as_ref().len()
-                && self.clear.as_ref().len() <= 6usize
+                && self.clear.as_ref().len() <= AdminOptionalSetting::ALL.len()
                 && !(self.main_logo.is_some() && unique.contains(&AdminOptionalSetting::MainLogo))
                 && !(self.organization_contacts.is_some()
                     && unique.contains(&AdminOptionalSetting::OrganizationContacts))
@@ -3131,7 +3257,15 @@ pub enum AdminFrontendPath {
     #[strum(serialize = "/admin/version")]
     Version,
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq, strum_macros::IntoStaticStr)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    strum_macros::IntoStaticStr,
+    frontend_contract::UnitEnumCatalog,
+)]
 pub enum AdminHtmlAction {
     #[strum(serialize = "/admin/actions/profile/password")]
     ProfilePassword,
@@ -3165,23 +3299,6 @@ pub enum AdminHtmlAction {
     UserUpdate,
 }
 impl AdminHtmlAction {
-    pub const ALL: [Self; 15] = [
-        Self::ProfilePassword,
-        Self::RoleCreate,
-        Self::RoleDelete,
-        Self::RolePermissions,
-        Self::RoleUpdate,
-        Self::SessionRevoke,
-        Self::SettingsUpdate,
-        Self::SignIn,
-        Self::SignOut,
-        Self::UserBan,
-        Self::UserCreate,
-        Self::UserDelete,
-        Self::UserPassword,
-        Self::UserRoles,
-        Self::UserUpdate,
-    ];
     #[must_use]
     pub fn get(self) -> &'static str {
         <&'static str>::from(self)
@@ -3189,6 +3306,14 @@ impl AdminHtmlAction {
     #[must_use]
     pub fn route_name(self) -> frontend_contract::ContractStr {
         admin_path_route_name(AdminPagePathRef::from(self.get()))
+    }
+}
+impl frontend_contract::HandlerContract for AdminHtmlAction {
+    fn method(self) -> frontend_contract::RouteMethod {
+        frontend_contract::RouteMethod::Post
+    }
+    fn path(self) -> frontend_contract::HandlerPath {
+        frontend_contract::HandlerPath::from(self.get())
     }
 }
 impl AdminFrontendPath {
@@ -3200,6 +3325,14 @@ impl AdminFrontendPath {
     #[must_use]
     pub fn get(self) -> &'static str {
         <&'static str>::from(self)
+    }
+}
+impl frontend_contract::HandlerContract for AdminFrontendPath {
+    fn method(self) -> frontend_contract::RouteMethod {
+        frontend_contract::RouteMethod::Get
+    }
+    fn path(self) -> frontend_contract::HandlerPath {
+        frontend_contract::HandlerPath::from(self.get())
     }
 }
 impl From<AdminDataTable> for AdminDataTableFrontendPath {
@@ -3216,7 +3349,7 @@ impl From<AdminDataTable> for AdminDataTableFrontendPath {
 pub enum AdminPage {
     #[page_catalog_page(
         capability = AdminPageCapability::Always,
-        metadata = AdminPageClientMode::CsrTableQuery,
+        metadata = AdminPageMetadata::new(AdminPageClientMode::CsrTableQuery, None),
         path = AdminFrontendPath::Users,
         route = AdminRoute::Users,
         title = AdminPageTitle::Users,
@@ -3224,7 +3357,7 @@ pub enum AdminPage {
     Users,
     #[page_catalog_page(
         capability = AdminPageCapability::Always,
-        metadata = AdminPageClientMode::CsrTableQuery,
+        metadata = AdminPageMetadata::new(AdminPageClientMode::CsrTableQuery, None),
         path = AdminFrontendPath::Roles,
         route = AdminRoute::Roles,
         title = AdminPageTitle::Roles,
@@ -3232,7 +3365,7 @@ pub enum AdminPage {
     Roles,
     #[page_catalog_page(
         capability = AdminPageCapability::Always,
-        metadata = AdminPageClientMode::CsrTableQuery,
+        metadata = AdminPageMetadata::new(AdminPageClientMode::CsrTableQuery, None),
         path = AdminFrontendPath::Permissions,
         route = AdminRoute::Permissions,
         title = AdminPageTitle::Permissions,
@@ -3240,7 +3373,10 @@ pub enum AdminPage {
     Permissions,
     #[page_catalog_page(
         capability = AdminPageCapability::Always,
-        metadata = AdminPageClientMode::Csr,
+        metadata = AdminPageMetadata::new(
+            AdminPageClientMode::Csr,
+            Some(AdminPageNavigation::Settings),
+        ),
         path = AdminFrontendPath::Settings,
         route = AdminRoute::Settings,
         title = AdminPageTitle::Settings,
@@ -3248,7 +3384,7 @@ pub enum AdminPage {
     Settings,
     #[page_catalog_page(
         capability = AdminPageCapability::Always,
-        metadata = AdminPageClientMode::Csr,
+        metadata = AdminPageMetadata::new(AdminPageClientMode::Csr, None),
         path = AdminFrontendPath::Tables,
         route = AdminRoute::DataTables,
         title = AdminPageTitle::Tables,
@@ -3256,7 +3392,10 @@ pub enum AdminPage {
     Tables,
     #[page_catalog_page(
         capability = AdminPageCapability::Always,
-        metadata = AdminPageClientMode::Csr,
+        metadata = AdminPageMetadata::new(
+            AdminPageClientMode::Csr,
+            Some(AdminPageNavigation::Sessions),
+        ),
         path = AdminFrontendPath::Sessions,
         route = AdminRoute::Sessions,
         title = AdminPageTitle::Sessions,
@@ -3264,7 +3403,10 @@ pub enum AdminPage {
     Sessions,
     #[page_catalog_page(
         capability = AdminPageCapability::Always,
-        metadata = AdminPageClientMode::Ssr,
+        metadata = AdminPageMetadata::new(
+            AdminPageClientMode::Ssr,
+            Some(AdminPageNavigation::Metrics),
+        ),
         path = AdminFrontendPath::Metrics,
         route = AdminRoute::Metrics,
         title = AdminPageTitle::Metrics,
@@ -3272,7 +3414,10 @@ pub enum AdminPage {
     Metrics,
     #[page_catalog_page(
         capability = AdminPageCapability::Always,
-        metadata = AdminPageClientMode::Ssr,
+        metadata = AdminPageMetadata::new(
+            AdminPageClientMode::Ssr,
+            Some(AdminPageNavigation::Version),
+        ),
         path = AdminFrontendPath::Version,
         route = AdminRoute::Version,
         title = AdminPageTitle::Version,
@@ -3280,7 +3425,10 @@ pub enum AdminPage {
     Version,
     #[page_catalog_page(
         capability = AdminPageCapability::Always,
-        metadata = AdminPageClientMode::Csr,
+        metadata = AdminPageMetadata::new(
+            AdminPageClientMode::Csr,
+            Some(AdminPageNavigation::Profile),
+        ),
         path = AdminFrontendPath::Profile,
         route = AdminRoute::ChangeOwnPassword,
         title = AdminPageTitle::Profile,
@@ -3288,7 +3436,10 @@ pub enum AdminPage {
     Profile,
     #[page_catalog_page(
         capability = AdminPageCapability::Swagger,
-        metadata = AdminPageClientMode::Ssr,
+        metadata = AdminPageMetadata::new(
+            AdminPageClientMode::Ssr,
+            Some(AdminPageNavigation::OpenApi),
+        ),
         path = AdminFrontendPath::OpenApi,
         route = AdminRoute::OpenApi,
         title = AdminPageTitle::Api,
@@ -3305,6 +3456,31 @@ pub enum AdminPageClientMode {
     Csr,
     CsrTableQuery,
     Ssr,
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum AdminPageNavigation {
+    OpenApi,
+    Metrics,
+    Profile,
+    Sessions,
+    Settings,
+    Version,
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct AdminPageMetadata {
+    client_mode: AdminPageClientMode,
+    navigation: Option<AdminPageNavigation>,
+}
+impl AdminPageMetadata {
+    const fn new(
+        client_mode: AdminPageClientMode,
+        navigation: Option<AdminPageNavigation>,
+    ) -> Self {
+        Self {
+            client_mode,
+            navigation,
+        }
+    }
 }
 impl AdminPageClientMode {
     fn supports_csr(self) -> AdminBool {
@@ -3330,7 +3506,7 @@ enum AdminPageTitle {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct AdminPageSpec {
     capability: AdminPageCapability,
-    client_mode: AdminPageClientMode,
+    metadata: AdminPageMetadata,
     page: AdminPage,
     path: AdminFrontendPath,
     route: AdminRoute,
@@ -3339,7 +3515,7 @@ pub struct AdminPageSpec {
 impl AdminPageSpec {
     const fn new(
         capability: AdminPageCapability,
-        client_mode: AdminPageClientMode,
+        metadata: AdminPageMetadata,
         page: AdminPage,
         path: AdminFrontendPath,
         route: AdminRoute,
@@ -3347,7 +3523,7 @@ impl AdminPageSpec {
     ) -> Self {
         Self {
             capability,
-            client_mode,
+            metadata,
             page,
             path,
             route,
@@ -3360,7 +3536,11 @@ impl AdminPageSpec {
     }
     #[must_use]
     pub const fn client_mode(self) -> AdminPageClientMode {
-        self.client_mode
+        self.metadata.client_mode
+    }
+    #[must_use]
+    pub const fn navigation(self) -> Option<AdminPageNavigation> {
+        self.metadata.navigation
     }
     #[must_use]
     pub const fn frontend_path(self) -> AdminFrontendPath {
@@ -3406,14 +3586,17 @@ fn admin_path_route_name(path: AdminPagePathRef<'static>) -> frontend_contract::
     )
 }
 impl AdminPage {
-    pub const NAV_ORDER: [Self; 6] = [
-        Self::OpenApi,
-        Self::Metrics,
-        Self::Profile,
-        Self::Sessions,
-        Self::Settings,
-        Self::Version,
-    ];
+    pub fn navigation() -> impl Iterator<Item = Self> {
+        let mut pages = Self::specs()
+            .iter()
+            .filter_map(|spec| {
+                spec.navigation()
+                    .map(|navigation| (navigation, spec.page()))
+            })
+            .collect::<Vec<_>>();
+        pages.sort_by_key(|(navigation, _page)| *navigation);
+        pages.into_iter().map(|(_navigation, page)| page)
+    }
 
     #[must_use]
     pub fn supports_csr(self) -> AdminBool {
@@ -3636,6 +3819,55 @@ mod tests {
         );
         assert!(bool::from(clear_logo.has_fields()));
         assert!(bool::from(clear_logo.is_valid()));
+    }
+
+    #[test]
+    fn setting_catalog_covers_read_and_update_wire_fields() {
+        let empty_clear = super::AdminOptionalSettings::try_from(Vec::new()).expect("7f3a9c2e");
+        let update = super::AdminUpdateSettingsReq::new(
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            empty_clear,
+        );
+        let update_fields = serde_json::to_value(update)
+            .expect("c84d1e6a")
+            .as_object()
+            .expect("49b2e7c1")
+            .keys()
+            .cloned()
+            .collect::<std::collections::BTreeSet<_>>();
+        let setting_fields = super::AdminSetting::ALL
+            .into_iter()
+            .map(|setting| setting.spec().name().as_ref().to_owned())
+            .collect::<std::collections::BTreeSet<_>>();
+        let mut expected_update_fields = setting_fields.clone();
+        let _inserted = expected_update_fields.insert(String::from("clear"));
+        assert_eq!(update_fields, expected_update_fields);
+
+        let view = super::AdminSettingsView::new(
+            super::AdminDefaultRoute::try_from(String::from("/admin/users")).expect("b6831fd4"),
+            None,
+            None,
+            None,
+            None,
+            super::AdminSiteName::try_from(String::from("Admin")).expect("e15c7a93"),
+            None,
+            None,
+        );
+        let view_fields = serde_json::to_value(view)
+            .expect("86d4a2f9")
+            .as_object()
+            .expect("21c9e5b7")
+            .keys()
+            .cloned()
+            .collect::<std::collections::BTreeSet<_>>();
+        assert_eq!(view_fields, setting_fields);
     }
     #[test]
     fn request_payloads_reject_unknown_fields() {
@@ -3904,8 +4136,8 @@ mod tests {
             ]
         );
         assert_eq!(
-            super::AdminPage::NAV_ORDER,
-            [
+            super::AdminPage::navigation().collect::<Vec<_>>(),
+            vec![
                 super::AdminPage::OpenApi,
                 super::AdminPage::Metrics,
                 super::AdminPage::Profile,
@@ -3939,8 +4171,10 @@ mod tests {
             ]
         );
         assert_eq!(
-            super::AdminPage::NAV_ORDER.map(|page| page.spec().route_name().to_string()),
-            [
+            super::AdminPage::navigation()
+                .map(|page| page.spec().route_name().to_string())
+                .collect::<Vec<_>>(),
+            vec![
                 String::from("swagger_ui"),
                 String::from("metrics"),
                 String::from("profile"),
@@ -3953,7 +4187,23 @@ mod tests {
             super::AdminHtmlAction::SignOut.route_name().as_ref(),
             "sign_out"
         );
-        assert!(super::AdminPage::NAV_ORDER.iter().all(|page| {
+        assert_eq!(
+            frontend_contract::HandlerContract::method(super::AdminHtmlAction::SignOut),
+            frontend_contract::RouteMethod::Post
+        );
+        assert_eq!(
+            frontend_contract::HandlerContract::path(super::AdminHtmlAction::SignOut).get(),
+            super::AdminHtmlAction::SignOut.get()
+        );
+        assert_eq!(
+            frontend_contract::HandlerContract::method(super::AdminFrontendPath::Settings),
+            frontend_contract::RouteMethod::Get
+        );
+        assert_eq!(
+            frontend_contract::HandlerContract::path(super::AdminFrontendPath::Settings).get(),
+            super::AdminFrontendPath::Settings.get()
+        );
+        assert!(super::AdminPage::navigation().all(|page| {
             let page_label = page.spec().route_name();
             super::AdminDataTable::PG_ORDER
                 .iter()

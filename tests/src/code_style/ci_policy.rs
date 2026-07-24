@@ -44,17 +44,22 @@ fn continuous_integration_uses_the_pinned_workspace_toolchain() {
         .expect("a43da13b");
     let workflow = workflow();
     assert!(
+        !workflow.as_ref().contains(toolchain),
+        "the workflow must consume rust-toolchain.toml instead of repeating its channel"
+    );
+    assert!(
+        !workflow.as_ref().contains("dtolnay/rust-toolchain"),
+        "Rust jobs must use the repository-owned toolchain setup action"
+    );
+    assert!(
         workflow
             .as_ref()
-            .contains(format!("RUST_TOOLCHAIN: {toolchain}").as_str())
+            .contains("uses: ./.github/actions/setup-rust")
     );
-    assert_eq!(
-        workflow
-            .as_ref()
-            .matches("toolchain: ${{ env.RUST_TOOLCHAIN }}")
-            .count(),
-        workflow.as_ref().matches("toolchain:").count()
-    );
+    let setup_action =
+        std::fs::read_to_string(repository_root.join(".github/actions/setup-rust/action.yml"))
+            .expect("830b79a6");
+    assert!(setup_action.contains("rustc --version"));
     let services = std::fs::read_to_string(repository_root.join("deploy/services.toml"))
         .expect("6b2f8d41")
         .parse::<toml::Table>()
@@ -108,6 +113,9 @@ fn workflow_jobs_have_timeouts_and_marketplace_actions_use_commit_shas() {
             current_job_has_timeout = true;
         }
         if let Some(action) = line.trim().strip_prefix(str_constants::USES) {
+            if action.starts_with("./") {
+                return;
+            }
             let revision = action.rsplit_once('@').map(|(_, revision)| revision);
             assert!(
                 revision.is_some_and(|value| {

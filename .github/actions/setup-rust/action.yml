@@ -1,0 +1,29 @@
+name: Setup workspace Rust toolchain
+description: Install the toolchain and default components declared in rust-toolchain.toml
+inputs:
+  components:
+    description: Additional components required by the current job
+    required: false
+    default: ""
+  targets:
+    description: Additional compilation targets required by the current job
+    required: false
+    default: ""
+runs:
+  using: composite
+  steps:
+    - name: Install workspace toolchain
+      shell: bash
+      run: rustc --version
+    - name: Install additional components
+      if: inputs.components != ''
+      shell: bash
+      run: |
+        IFS=',' read -r -a requested_components <<< "${{ inputs.components }}"
+        rustup component add "${requested_components[@]}"
+    - name: Install additional targets
+      if: inputs.targets != ''
+      shell: bash
+      run: |
+        IFS=',' read -r -a requested_targets <<< "${{ inputs.targets }}"
+        rustup target add "${requested_targets[@]}"
