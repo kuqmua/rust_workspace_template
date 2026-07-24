@@ -13,14 +13,45 @@ fn active_workflow_source(source: super::types::SourceTextRef<'_>) -> super::typ
         source
             .as_ref()
             .lines()
-            .map(|line| {
-                line.split_once('#')
-                    .map_or(line, |(active, _comment)| active)
-            })
+            .map(|line| active_yaml_line(super::types::SourceTextRef::from(line)).get())
             .collect::<Vec<&str>>()
             .join("\n"),
     )
     .expect("fd9f7861")
+}
+#[allow(
+    clippy::single_call_fn,
+    reason = "keeps YAML quote state isolated and fixture-testable"
+)]
+fn active_yaml_line(line: super::types::SourceTextRef<'_>) -> super::types::SourceTextRef<'_> {
+    let comment_start = line
+        .as_ref()
+        .char_indices()
+        .try_fold(
+            (false, false, false),
+            |(inside_single, inside_double, escaped), (index, character)| {
+                if character == '#' && !inside_single && !inside_double {
+                    return Err(index);
+                }
+                let next_escaped = inside_double && character == '\\' && !escaped;
+                let next_single = if character == '\'' && !inside_double && !escaped {
+                    !inside_single
+                } else {
+                    inside_single
+                };
+                let next_double = if character == '"' && !inside_single && !escaped {
+                    !inside_double
+                } else {
+                    inside_double
+                };
+                Ok((next_single, next_double, next_escaped))
+            },
+        )
+        .err();
+    super::types::SourceTextRef::from(comment_start.map_or_else(
+        || line.get(),
+        |index| line.get().get(..index).expect("1a9e2f84"),
+    ))
 }
 #[test]
 #[allow(
@@ -149,9 +180,11 @@ fn workflow_jobs_have_timeouts_and_marketplace_actions_use_commit_shas() {
 #[test]
 fn workflow_policy_ignores_commented_commands_and_actions() {
     let source = active_workflow_source(super::types::SourceTextRef::from(
-        "# cargo machete\n# uses: actions/checkout@0123456789012345678901234567890123456789\njobs:\n  check:\n    # timeout-minutes: 10\n    runs-on: ubuntu-latest\n",
+        "# cargo machete\n# uses: actions/checkout@0123456789012345678901234567890123456789\nname: \"quality # gate\"\nrun: 'printf #active'\njobs:\n  check:\n    # timeout-minutes: 10\n    runs-on: ubuntu-latest\n",
     ));
     assert!(!source.as_ref().contains(str_constants::CARGO_MACHETE));
     assert!(!source.as_ref().contains(str_constants::TIMEOUT_MINUTES));
     assert!(!source.as_ref().contains("actions/checkout"));
+    assert!(source.as_ref().contains("quality # gate"));
+    assert!(source.as_ref().contains("printf #active"));
 }

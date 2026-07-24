@@ -1,3 +1,4 @@
+mod advanced_policy;
 mod cargo_policy;
 mod ci_policy;
 mod deployment_policy;
@@ -386,6 +387,17 @@ struct UnitTestExternalServiceVisitor {
     test_depth: types::AnalyzerCount,
 }
 impl<'ast> syn::visit::Visit<'ast> for UnitTestExternalServiceVisitor {
+    fn visit_expr_method_call(&mut self, i: &'ast syn::ExprMethodCall) {
+        if self.test_depth.get() != 0
+            && matches!(i.method.to_string().as_str(), "connect" | "connect_with")
+        {
+            self.ers.push(format!(
+                "unit tests must not connect to an external service with `.{}()`",
+                i.method
+            ));
+        }
+        syn::visit::visit_expr_method_call(self, i);
+    }
     fn visit_expr_path(&mut self, i: &'ast syn::ExprPath) {
         if self.test_depth.get() != 0
             && path_is_external_service_client(types::SynPathRef::from(&i.path)).get()
@@ -398,6 +410,22 @@ impl<'ast> syn::visit::Visit<'ast> for UnitTestExternalServiceVisitor {
         syn::visit::visit_expr_path(self, i);
     }
     fn visit_item_fn(&mut self, i: &'ast syn::ItemFn) {
+        if i.attrs.iter().any(|attribute| {
+            attribute.path().is_ident("ignore")
+                && matches!(
+                    &attribute.meta,
+                    syn::Meta::NameValue(name_value)
+                        if matches!(
+                            &name_value.value,
+                            syn::Expr::Lit(syn::ExprLit {
+                                lit: syn::Lit::Str(reason),
+                                ..
+                            }) if !reason.value().trim().is_empty()
+                        )
+                )
+        }) {
+            return;
+        }
         let is_test =
             self.test_depth.get() != 0 || item_fn_is_unit_test(types::SynItemFnRef::from(i)).get();
         if is_test {
@@ -827,8 +855,20 @@ impl<'ast> syn::visit::Visit<'ast> for AllowReasonVisitor {
                         .is_some_and(|reason| !reason.trim().is_empty())
                 });
             if !has_reason_argument && !has_same_line_reason && !has_preceding_reason {
+                let path = i
+                    .path()
+                    .segments
+                    .iter()
+                    .map(|segment| segment.ident.to_string())
+                    .collect::<Vec<String>>()
+                    .join("::");
+                let attribute = match &i.meta {
+                    syn::Meta::List(list) => format!("#[{path}({})]", list.tokens),
+                    syn::Meta::NameValue(_) => format!("#[{path} = value]"),
+                    syn::Meta::Path(_) => format!("#[{path}]"),
+                };
                 self.ers.push(format!(
-                    "line {start_line}: lint suppression requires an explicit reason"
+                    "line {start_line}: lint suppression `{attribute}` requires an explicit reason"
                 ));
             }
         }
@@ -3116,14 +3156,14 @@ fn scan_generated_diagnostic_tokens(
             return;
         };
         let argument_tokens = arguments.stream().into_iter().collect::<Vec<_>>();
-        let message_is_interpolated = matches!(
-            argument_tokens.as_slice(),
+        let interpolated_identifier = match argument_tokens.as_slice() {
             [
                 proc_macro2::TokenTree::Punct(interpolation),
-                proc_macro2::TokenTree::Ident(_),
+                proc_macro2::TokenTree::Ident(interpolated),
                 ..
-            ] if interpolation.as_char() == '#'
-        );
+            ] if interpolation.as_char() == '#' => Some(interpolated.to_string()),
+            _ => None,
+        };
         let message = argument_tokens.first().and_then(|first| {
             let proc_macro2::TokenTree::Literal(message_literal) = first else {
                 return None;
@@ -3143,17 +3183,44 @@ fn scan_generated_diagnostic_tokens(
                 types::SourceTextRef::from(identifier_text.as_str()),
                 types::SourceTextRef::from(message_value.as_str()),
             ),
-            None if message_is_interpolated => {}
-            None => visitor.ers.push(format!(
-                "generated `{identifier_text}` message must begin with a string literal"
-            )),
+            None => match interpolated_identifier {
+                Some(interpolated) => visitor.ers.push(format!(
+                    "generated `{identifier_text}` uses unchecked interpolated diagnostic message `#{interpolated}`"
+                )),
+                None => visitor.ers.push(format!(
+                    "generated `{identifier_text}` message must begin with a string literal"
+                )),
+            },
         }
     });
 }
 #[allow(clippy::single_call_fn)] // centralizes cross-file uniqueness validation behind the public policy test
 fn check_expect_and_panic_contain_unique_diagnostic_ids() {
+    let reviewed_interpolations = [
+        (
+            "pg_crud/pg_crud_macros_common/src/token_stream_helpers.rs",
+            "generated `panic` uses unchecked interpolated diagnostic message `#panic_uuid_token_stream`",
+            "PanicUuidRef validates the diagnostic identifier before token generation",
+        ),
+        (
+            "pg_crud/pg_table/generate_pg_table_src/src/source.rs",
+            "generated `expect` uses unchecked interpolated diagnostic message `#expect_0`",
+            "the generator receives the reviewed diagnostic identifier from its fixture catalog",
+        ),
+        (
+            "pg_crud/pg_table/generate_pg_table_src/src/source.rs",
+            "generated `expect` uses unchecked interpolated diagnostic message `#expect_1`",
+            "the generator receives the reviewed diagnostic identifier from its fixture catalog",
+        ),
+        (
+            "pg_crud/pg_types/generate_pg_types_src/src/source.rs",
+            "generated `expect` uses unchecked interpolated diagnostic message `#id_double_quoted_token_stream`",
+            "the date-range fixture passes a reviewed diagnostic identifier into the generator",
+        ),
+    ];
     let mut all_ids = Vec::new();
     let mut all_ers = Vec::new();
+    let mut matched_interpolations = std::collections::BTreeSet::new();
     for_each_rs_syn_file(|path, ast| {
         let visitor = visit_syn_file(
             types::SynFileRef::from(ast),
@@ -3163,13 +3230,28 @@ fn check_expect_and_panic_contain_unique_diagnostic_ids() {
             },
         );
         all_ids.extend(visitor.ids);
-        all_ers.extend(
-            visitor
-                .ers
-                .into_iter()
-                .map(|element_2b9891bd| format!("{path:?}: {element_2b9891bd}")),
-        );
+        visitor.ers.into_iter().for_each(|error| {
+            let reviewed =
+                reviewed_interpolations
+                    .iter()
+                    .find(|(path_suffix, reviewed_error, reason)| {
+                        path.ends_with(path_suffix)
+                            && error == *reviewed_error
+                            && !reason.is_empty()
+                    });
+            if let Some((path_suffix, reviewed_error, _reason)) = reviewed {
+                let _inserted = matched_interpolations
+                    .insert((path_suffix.to_string(), reviewed_error.to_string()));
+            } else {
+                all_ers.push(format!("{path:?}: {error}"));
+            }
+        });
     });
+    if matched_interpolations.len() != reviewed_interpolations.len() {
+        all_ers.push(format!(
+            "stale generated diagnostic interpolation inventory: matched={matched_interpolations:#?}"
+        ));
+    }
     let duplicates = find_duplicate_strings(types::SourceTextListRef::from(all_ids.as_slice()));
     if !duplicates.is_empty() {
         all_ers.push(format!("duplicate UUIDs found: {duplicates:?}"));
@@ -4244,6 +4326,7 @@ fn path_is_blocking_async_call(path: types::SynPathRef<'_>) -> types::AnalyzerBo
 }
 #[allow(clippy::single_call_fn)] // names the external-service unit-test policy separately from traversal code
 fn path_is_external_service_client(path: types::SynPathRef<'_>) -> types::AnalyzerBool {
+    let path_text = path_to_string(path);
     types::AnalyzerBool::from(
         path_ends_with(
             path,
@@ -4334,7 +4417,14 @@ fn path_is_external_service_client(path: types::SynPathRef<'_>) -> types::Analyz
                     .as_slice(),
                 ),
             )
-            .get(),
+            .get()
+            || [
+                "reqwest::get",
+                "reqwest::Client::builder",
+                "sqlx::PgConnection::connect",
+                "sqlx::PgPool::connect",
+            ]
+            .contains(&path_text.as_ref()),
     )
 }
 #[allow(clippy::single_call_fn)] // extracted to keep the domain policy test focused on assertion flow

@@ -493,6 +493,9 @@ fn generate() {
         result.expect("invalid");
         panic!("invalid");
     };
+    quote::quote! {
+        result.expect(#unchecked_message);
+    };
 }
 "#,
     )
@@ -505,7 +508,7 @@ fn generate() {
         },
     );
     assert_eq!(visitor.ids.len(), 2usize);
-    assert_eq!(visitor.ers.len(), 2usize);
+    assert_eq!(visitor.ers.len(), 3usize);
 }
 #[test]
 fn check_rs_files_contains_only_unique_uuid_v4() {
@@ -1072,11 +1075,18 @@ fn unit_tests_use_deterministic_time_and_randomness_patterns() {
         super::types::StaticStr::from(str_constants::VALUE_821D4A76),
         super::types::SourceTextRef::from(str_constants::UNIT_TESTS_USE_NONDETERMINISTIC_TIME_SLEEP_OR_RANDOMNESS_WITHOUT_A_REVIEWED_OWNER),
         |path, ast, ers| {
+            let scan_entire_file = path
+                .components()
+                .any(|component| component.as_os_str() == "tests")
+                && !path.ends_with("tests/src/code_style/mod.rs")
+                && !path
+                    .components()
+                    .any(|component| component.as_os_str() == "code_style");
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
                 super::TestNondeterminismVisitor {
                     calls: super::types::DiagnosticMsgs::default(),
-                    test_depth: super::types::AnalyzerCount::default(),
+                    test_depth: super::types::AnalyzerCount::from(usize::from(scan_entire_file)),
                 },
             );
             visitor.calls.into_iter().for_each(|call| {
@@ -1107,6 +1117,9 @@ async fn nondeterministic_async_test() {
     getrandom::fill(&mut [0u8; 4]);
     rand::rngs::OsRng;
 }
+fn integration_test_helper() {
+    rand::random();
+}
 ",
     )
     .expect("9354f086");
@@ -1130,6 +1143,14 @@ async fn nondeterministic_async_test() {
         ],
         "fa8d2bb1"
     );
+    let integration_visitor = super::visit_syn_file(
+        super::types::SynFileRef::from(&ast),
+        super::TestNondeterminismVisitor {
+            calls: super::types::DiagnosticMsgs::default(),
+            test_depth: super::types::AnalyzerCount::from(1usize),
+        },
+    );
+    assert_eq!(integration_visitor.calls.len(), 8usize, "78fde80e");
 }
 #[test]
 fn generated_source_templates_do_not_embed_random_test_values() {
@@ -1544,6 +1565,97 @@ fn source_lint_suppressions_have_explicit_reasons() {
             reason: "test-only snapshot accessor predates per-attribute reasons",
         },
     ];
+    let exact_fingerprints = std::collections::BTreeMap::from([
+        ("config_lib/src/types.rs", 8_550_972_980_131_789_495u64),
+        ("file_storage/src/lib.rs", 10_970_349_911_670_453_324u64),
+        ("location_lib/src/location.rs", 5_212_172_787_141_976_327u64),
+        (
+            "macros_helpers/src/location.rs",
+            8_648_743_360_364_033_739u64,
+        ),
+        (
+            "macros_helpers/src/status_code.rs",
+            8_648_743_360_364_033_739u64,
+        ),
+        (
+            "macros_helpers/src/write_string_into_file.rs",
+            7_887_372_545_649_229_423u64,
+        ),
+        ("newtype/tests/newtype.rs", 6_274_865_686_309_111_841u64),
+        (
+            "pg_crud/pg_crud_common/src/lib.rs",
+            3_193_424_218_708_951_896u64,
+        ),
+        (
+            "pg_crud/pg_crud_macros_common/src/filters.rs",
+            8_648_743_360_364_033_739u64,
+        ),
+        (
+            "pg_crud/pg_crud_macros_common/src/lib.rs",
+            8_833_945_325_769_707_205u64,
+        ),
+        (
+            "pg_crud/pg_crud_macros_common/src/pg_type_test_cases.rs",
+            16_050_346_373_775_621_299u64,
+        ),
+        (
+            "pg_crud/pg_crud_macros_common/src/token_stream_helpers.rs",
+            12_639_222_798_351_818_403u64,
+        ),
+        (
+            "pg_crud/pg_table/generate_pg_table_src/src/source.rs",
+            9_750_418_364_366_663_504u64,
+        ),
+        (
+            "pg_crud/pg_types/generate_pg_types_src/src/source.rs",
+            13_425_640_313_763_353_995u64,
+        ),
+        (
+            "pg_crud/where_filters/generate_where_filters_src/src/contract_tests.rs",
+            7_515_265_455_670_859_948u64,
+        ),
+        (
+            "pg_crud/where_filters/generate_where_filters_src/src/source.rs",
+            11_657_703_573_682_508_006u64,
+        ),
+        (
+            "pg_crud/where_filters/src/lib.rs",
+            3_147_701_959_315_573_402u64,
+        ),
+        (
+            "route_validators/src/test_hlp.rs",
+            10_385_790_058_793_665_513u64,
+        ),
+        ("server_admin/src/auth.rs", 10_131_923_077_528_673_247u64),
+        (
+            "server_admin/src/generated_tables.rs",
+            12_167_613_103_534_864_420u64,
+        ),
+        (
+            "server_admin/tests/admin_api.rs",
+            2_058_149_031_772_634_611u64,
+        ),
+        ("server_config/src/lib.rs", 8_648_743_360_364_033_739u64),
+        (
+            "server_runtime/src/lifecycle.rs",
+            17_096_114_154_415_006_015u64,
+        ),
+        (
+            "tests/src/code_style/snapshot.rs",
+            5_632_881_167_231_754_250u64,
+        ),
+    ]);
+    assert_eq!(
+        legacy
+            .iter()
+            .map(|exception| exception.path_suffix)
+            .collect::<std::collections::BTreeSet<&str>>(),
+        exact_fingerprints
+            .keys()
+            .copied()
+            .collect::<std::collections::BTreeSet<&str>>(),
+        "a109fd68"
+    );
     super::assert_rs_ast_ers_empty_with_ctx(
         super::types::StaticStr::from("07a7d7d1"),
         super::types::SourceTextRef::from("source allow and expect attributes require reasons"),
@@ -1558,19 +1670,42 @@ fn source_lint_suppressions_have_explicit_reasons() {
                     ),
                 },
             );
-            let reviewed_limit = legacy
-                .iter()
-                .find(|exception| {
-                    path.ends_with(exception.path_suffix) && !exception.reason.is_empty()
-                })
-                .map_or(0usize, |exception| exception.limit);
-            ers.extend(
-                visitor
-                    .ers
-                    .into_iter()
-                    .skip(reviewed_limit)
-                    .map(|error| format!("{}: {error}", path.display())),
-            );
+            let reviewed = legacy.iter().find(|exception| {
+                path.ends_with(exception.path_suffix) && !exception.reason.is_empty()
+            });
+            if let Some(exception) = reviewed {
+                let fingerprint =
+                    visitor
+                        .ers
+                        .iter()
+                        .fold(14_695_981_039_346_656_037u64, |hash, error| {
+                            error.bytes().chain(std::iter::once(0xffu8)).fold(
+                                hash,
+                                |inner_hash, byte| {
+                                    (inner_hash ^ u64::from(byte))
+                                        .wrapping_mul(1_099_511_628_211u64)
+                                },
+                            )
+                        });
+                let expected_fingerprint = exact_fingerprints
+                    .get(exception.path_suffix)
+                    .copied()
+                    .expect("74871d7c");
+                if visitor.ers.len() != exception.limit || fingerprint != expected_fingerprint {
+                    ers.push(format!(
+                        "{}: legacy lint suppression inventory changed: count={}, fingerprint={fingerprint}",
+                        path.display(),
+                        visitor.ers.len()
+                    ));
+                }
+            } else {
+                ers.extend(
+                    visitor
+                        .ers
+                        .into_iter()
+                        .map(|error| format!("{}: {error}", path.display())),
+                );
+            }
         },
     );
 }

@@ -484,6 +484,219 @@ fn library_crates_with_public_logic_own_tests() {
         assert!(violations.is_empty(), "44cd2db7 {violations:#?}");
     });
 }
+
+#[test]
+fn source_modules_with_public_logic_own_unit_tests() {
+    let reviewed_without_local_tests = std::collections::BTreeMap::from([
+        (
+            "location_lib/location_macros/src/lib.rs",
+            "the proc-macro is covered by location_lib expansion tests",
+        ),
+        (
+            "macros_helpers/src/wrap_derive.rs",
+            "the token helper is covered by downstream derive expansion tests",
+        ),
+        (
+            "macros_helpers/src/generate_impl_to_err_string_token_stream.rs",
+            "the token helper is covered by to_err_string expansion tests",
+        ),
+        (
+            "macros_helpers/src/generate_pub_type_alias_token_stream.rs",
+            "the token helper is covered by downstream compile tests",
+        ),
+        (
+            "macros_helpers/src/generate_field_location_new_token_stream.rs",
+            "the token helper is covered by location expansion tests",
+        ),
+        (
+            "macros_helpers/src/generate_if_write_is_err_token_stream.rs",
+            "the token helper is covered by generated source tests",
+        ),
+        (
+            "macros_helpers/src/location.rs",
+            "the syntax helper is covered by downstream macro tests",
+        ),
+        (
+            "macros_helpers/src/generate_impl_try_from_token_stream.rs",
+            "the token helper is covered by downstream conversion tests",
+        ),
+        (
+            "macros_helpers/src/generate_impl_default_token_stream.rs",
+            "the token helper is covered by downstream derive tests",
+        ),
+        (
+            "macros_helpers/src/generate_impl_from_token_stream.rs",
+            "the token helper is covered by downstream conversion tests",
+        ),
+        (
+            "macros_helpers/src/location_syn_field.rs",
+            "the syntax helper is covered by location expansion tests",
+        ),
+        (
+            "macros_helpers/src/status_code.rs",
+            "the status-code generator is covered by route validator tests",
+        ),
+        (
+            "macros_helpers/src/pagination_start_end_initialization_token_stream.rs",
+            "the token helper is covered by generated CRUD tests",
+        ),
+        (
+            "macros_helpers/src/generate_impl_display_token_stream.rs",
+            "the token helper is covered by downstream display tests",
+        ),
+        (
+            "optml/src/lib.rs",
+            "the proc-macro is covered by downstream derive users",
+        ),
+        (
+            "naming/naming_common_macros/src/lib.rs",
+            "the macro surface is covered by naming_common tests",
+        ),
+        (
+            "naming/naming_macros/src/lib.rs",
+            "the proc-macro is covered by naming tests",
+        ),
+        (
+            "server_app_state/server_app_state_macros/src/lib.rs",
+            "the proc-macro is covered by server_app_state tests",
+        ),
+        (
+            "token_patterns/token_patterns_macros/src/lib.rs",
+            "the proc-macro is covered by token_patterns tests",
+        ),
+        (
+            "server_runtime/src/limits.rs",
+            "the limit wrappers are exercised by server_runtime boundary tests",
+        ),
+        (
+            "server_runtime/src/resource_budget.rs",
+            "the resource budget is exercised by server runtime integration paths",
+        ),
+        (
+            "str_constants_macros/src/lib.rs",
+            "the proc-macro is covered by str_constants tests",
+        ),
+        (
+            "pg_crud/where_filters/generate_where_filters/src/lib.rs",
+            "the proc-macro is covered by generate_where_filters_test",
+        ),
+        (
+            "pg_crud/pg_crud_common_macros/src/lib.rs",
+            "the macro surface is covered by pg_crud_common tests",
+        ),
+        (
+            "pg_crud/pg_crud_macros_common/src/lib.rs",
+            "the generator support surface is covered by generated contract tests",
+        ),
+        (
+            "pg_crud/pg_crud_macros_common/src/pg_type_test_cases.rs",
+            "the fixture catalog is consumed by generated PostgreSQL type tests",
+        ),
+        (
+            "pg_crud/pg_crud_macros_common/src/token_stream_helpers.rs",
+            "the token helpers are covered by generated CRUD tests",
+        ),
+        (
+            "pg_crud/pg_crud_common/src/cardinality.rs",
+            "cardinality behavior is covered by generated CRUD contract tests",
+        ),
+        (
+            "pg_crud/pg_crud_macros_common_macros/src/lib.rs",
+            "the macro surface is covered by generated CRUD tests",
+        ),
+        (
+            "pg_crud/pg_table/generate_pg_table_src/src/pipeline.rs",
+            "the generation pipeline is covered by generate_pg_table tests",
+        ),
+        (
+            "pg_crud/pg_table/generate_pg_table/src/lib.rs",
+            "the proc-macro is covered by generate_pg_table_test",
+        ),
+        (
+            "pg_crud/pg_types/generate_pg_types/src/lib.rs",
+            "the proc-macro is covered by generate_pg_types_test",
+        ),
+        (
+            "pg_crud/pg_types/pg_types_common/src/lib.rs",
+            "the generated adapter surface is covered by generated type tests",
+        ),
+        (
+            "config_lib/try_from_env/src/lib.rs",
+            "the proc-macro is covered by config_lib tests",
+        ),
+        (
+            "config_lib/generate_getter_traits_for_struct_fields/src/lib.rs",
+            "the generator is covered by config_lib expansion tests",
+        ),
+        (
+            "config_lib/config_lib_macros/src/lib.rs",
+            "the proc-macro is covered by config_lib tests",
+        ),
+        (
+            "frontend_contract/src/handler_contract.rs",
+            "handler contracts are covered by route contract compile tests",
+        ),
+        (
+            "to_err_string/to_err_string_macros/src/lib.rs",
+            "the proc-macro is covered by to_err_string tests",
+        ),
+        (
+            "server_admin/src/domain.rs",
+            "administrator domain wrappers are covered by administrator API tests",
+        ),
+        (
+            "server_admin/src/rbac.rs",
+            "RBAC public behavior is covered by administrator API tests",
+        ),
+        (
+            "server_admin/src/password.rs",
+            "password public behavior is covered by authentication integration tests",
+        ),
+    ]);
+    super::snapshot::with_codebase_snapshot(|snapshot| {
+        let mut matched = std::collections::BTreeSet::new();
+        let mut violations = snapshot
+            .rs_files()
+            .iter()
+            .filter(|source_file| {
+                !source_file
+                    .path()
+                    .as_ref()
+                    .components()
+                    .any(|component| component.as_os_str() == "tests")
+            })
+            .filter_map(|source_file| {
+                let public_logic = super::visit_syn_file(
+                    super::types::SynFileRef::from(source_file.ast().as_ref()),
+                    super::PublicLogicVisitor::default(),
+                )
+                .found
+                .get();
+                let owns_test = super::visit_syn_file(
+                    super::types::SynFileRef::from(source_file.ast().as_ref()),
+                    super::OwnedTestVisitor::default(),
+                )
+                .found
+                .get();
+                let path = source_file.path().as_ref().display().to_string();
+                let reviewed = reviewed_without_local_tests.iter().any(|(suffix, reason)| {
+                    let matches = path.ends_with(*suffix) && !reason.is_empty();
+                    if matches {
+                        let _inserted = matched.insert((*suffix).to_owned());
+                    }
+                    matches
+                });
+                (public_logic && !owns_test && !reviewed).then_some(path)
+            })
+            .collect::<Vec<String>>();
+        if matched.len() != reviewed_without_local_tests.len() {
+            violations.push(format!(
+                "stale public-logic test exceptions: matched={matched:#?}"
+            ));
+        }
+        assert!(violations.is_empty(), "c73f7bd4 {violations:#?}");
+    });
+}
 #[test]
 fn workspace_lint_allows_have_inline_reasons() {
     let source = std::fs::read_to_string(str_constants::CODE_STYLE_WORKSPACE_MANIFEST_PATH)

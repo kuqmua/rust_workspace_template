@@ -195,6 +195,12 @@ fn unit_tests_do_not_create_external_service_clients() {
         super::types::StaticStr::from(str_constants::D1F5B9C7),
         super::types::SourceTextRef::from(str_constants::UNIT_TESTS_CONTAIN_EXTERNAL_SERVICE_CLIENTS_USE_DETERMINISTIC_LOCAL_FAKES_INSTEAD),
         |path, ast, ers| {
+            if path
+                .components()
+                .any(|component| component.as_os_str() == "tests")
+            {
+                return;
+            }
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
                 super::UnitTestExternalServiceVisitor {
@@ -210,4 +216,52 @@ fn unit_tests_do_not_create_external_service_clients() {
             );
         },
     );
+}
+
+#[test]
+fn external_service_policy_rejects_http_database_and_socket_clients() {
+    let ast = syn::parse_file(
+        "#[test]
+         fn external_clients() {
+             reqwest::Client::builder();
+             reqwest::get(\"https://example.invalid\");
+             sqlx::postgres::PgPoolOptions::new().connect(\"postgres://example.invalid\");
+             sqlx::PgPool::connect(\"postgres://example.invalid\");
+             std::net::TcpStream::connect(\"127.0.0.1:1\");
+         }",
+    )
+    .expect("62a4c3a8");
+    let visitor = super::visit_syn_file(
+        super::types::SynFileRef::from(&ast),
+        super::UnitTestExternalServiceVisitor {
+            test_depth: super::types::AnalyzerCount::default(),
+            ers: super::types::DiagnosticMsgs::default(),
+        },
+    );
+    assert_eq!(visitor.ers.len(), 5usize, "e165d841");
+}
+
+#[test]
+fn external_service_policy_requires_a_reason_for_ignored_integration_tests() {
+    let ast = syn::parse_file(
+        "#[test]
+         #[ignore]
+         fn ignored_without_reason() {
+             reqwest::get(\"https://example.invalid\");
+         }
+         #[test]
+         #[ignore = \"requires an explicitly provisioned emulator\"]
+         fn ignored_with_reason() {
+             reqwest::get(\"https://example.invalid\");
+         }",
+    )
+    .expect("fa48e32b");
+    let visitor = super::visit_syn_file(
+        super::types::SynFileRef::from(&ast),
+        super::UnitTestExternalServiceVisitor {
+            test_depth: super::types::AnalyzerCount::default(),
+            ers: super::types::DiagnosticMsgs::default(),
+        },
+    );
+    assert_eq!(visitor.ers.len(), 1usize, "31fd7ca0");
 }
