@@ -2322,7 +2322,6 @@ fn string_constant_visitor_allows_only_reviewed_syntax_boundaries() {
         super::types::SynFileRef::from(&ast),
         super::StringConstantVisitor {
             ers: super::types::DiagnosticMsgs::default(),
-            only_declarations: super::types::AnalyzerBool::default(),
         },
     );
     assert!(visitor.ers.is_empty());
@@ -2335,7 +2334,6 @@ fn string_constant_visitor_detects_expression_and_nested_macro_literals() {
         super::types::SynFileRef::from(&ast),
         super::StringConstantVisitor {
             ers: super::types::DiagnosticMsgs::default(),
-            only_declarations: super::types::AnalyzerBool::default(),
         },
     );
     assert_eq!(visitor.ers.len(), 2usize);
@@ -2348,14 +2346,13 @@ fn all_string_constants_are_declared_in_str_constants() {
             str_constants::STRING_CONSTANTS_FOUND_OUTSIDE_STR_CONSTANTS,
         ),
         |path, ast, ers| {
-            if path.ends_with(str_constants::STR_CONSTANTS_SRC_LIB_RS) {
+            if super::is_str_constants_source_path(super::types::StdPathRef::from(path)).get() {
                 return;
             }
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::StringConstantVisitor {
+                super::StringConstantDeclarationVisitor {
                     ers: super::types::DiagnosticMsgs::default(),
-                    only_declarations: super::types::AnalyzerBool::from(true),
                 },
             );
             ers.extend(
@@ -2365,6 +2362,29 @@ fn all_string_constants_are_declared_in_str_constants() {
                     .map(|error| format!("{}: {error}", path.display())),
             );
         },
+    );
+}
+#[test]
+fn string_constant_policy_has_only_one_exact_source_exception() {
+    assert!(
+        super::is_str_constants_source_path(super::types::StdPathRef::from(std::path::Path::new(
+            str_constants::STR_CONSTANTS_SRC_LIB_RS,
+        )))
+        .get()
+    );
+    assert!(
+        [
+            "../copy/str_constants/src/lib.rs",
+            "str_constants/src/lib.rs",
+            "../str_constants/src/other.rs",
+        ]
+        .into_iter()
+        .all(|path| {
+            !super::is_str_constants_source_path(super::types::StdPathRef::from(
+                std::path::Path::new(path),
+            ))
+            .get()
+        })
     );
 }
 #[test]
@@ -2403,9 +2423,8 @@ define_str_constants! {
     .expect("02ec1d16");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
-        super::StringConstantVisitor {
+        super::StringConstantDeclarationVisitor {
             ers: super::types::DiagnosticMsgs::default(),
-            only_declarations: super::types::AnalyzerBool::from(true),
         },
     );
     assert_eq!(visitor.ers.len(), 8usize);

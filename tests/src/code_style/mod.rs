@@ -1557,17 +1557,110 @@ impl<'ast> syn::visit::Visit<'ast> for ProductionStringLiteralVisitor {
         syn::visit::visit_item_mod(self, i);
     }
 }
+struct StringConstantDeclarationVisitor {
+    ers: types::DiagnosticMsgs,
+}
+impl<'ast> syn::visit::Visit<'ast> for StringConstantDeclarationVisitor {
+    fn visit_impl_item_const(&mut self, i: &'ast syn::ImplItemConst) {
+        if type_stores_string_text(types::SynTypeRef::from(&i.ty)).get() {
+            self.ers.push(format!(
+                "associated string constant `{}` must be declared in str_constants",
+                i.ident
+            ));
+        }
+        syn::visit::visit_impl_item_const(self, i);
+    }
+    fn visit_impl_item_fn(&mut self, i: &'ast syn::ImplItemFn) {
+        if i.sig.constness.is_some() {
+            let mut literal_visitor = TestStringLiteralVisitor {
+                values: types::SourceTextList::default(),
+            };
+            syn::visit::Visit::visit_block(&mut literal_visitor, &i.block);
+            if !literal_visitor.values.is_empty() {
+                self.ers.push(format!(
+                    "const method `{}` contains string literals",
+                    i.sig.ident
+                ));
+            }
+        }
+        syn::visit::visit_impl_item_fn(self, i);
+    }
+    fn visit_item_const(&mut self, i: &'ast syn::ItemConst) {
+        if type_stores_string_text(types::SynTypeRef::from(i.ty.as_ref())).get() {
+            self.ers.push(format!(
+                "string constant `{}` must be declared in str_constants",
+                i.ident
+            ));
+        }
+        syn::visit::visit_item_const(self, i);
+    }
+    fn visit_item_fn(&mut self, i: &'ast syn::ItemFn) {
+        if i.sig.constness.is_some() {
+            let mut literal_visitor = TestStringLiteralVisitor {
+                values: types::SourceTextList::default(),
+            };
+            syn::visit::Visit::visit_block(&mut literal_visitor, &i.block);
+            if !literal_visitor.values.is_empty() {
+                self.ers.push(format!(
+                    "const function `{}` contains string literals",
+                    i.sig.ident
+                ));
+            }
+        }
+        syn::visit::visit_item_fn(self, i);
+    }
+    fn visit_item_static(&mut self, i: &'ast syn::ItemStatic) {
+        if type_stores_string_text(types::SynTypeRef::from(i.ty.as_ref())).get() {
+            self.ers.push(format!(
+                "string static `{}` must be declared in str_constants",
+                i.ident
+            ));
+        }
+        syn::visit::visit_item_static(self, i);
+    }
+    fn visit_macro(&mut self, i: &'ast syn::Macro) {
+        if i.path.segments.last().is_some_and(|segment| {
+            segment.ident == str_constants::SHARED_VALUES_DEFINE_STR_CONSTANTS
+        }) {
+            self.ers.push(
+                "define_str_constants! may only be invoked by the str_constants crate".to_owned(),
+            );
+        }
+        syn::visit::visit_macro(self, i);
+    }
+    fn visit_trait_item_const(&mut self, i: &'ast syn::TraitItemConst) {
+        if i.default.is_some() && type_stores_string_text(types::SynTypeRef::from(&i.ty)).get() {
+            self.ers.push(format!(
+                "trait string constant `{}` must be declared in str_constants",
+                i.ident
+            ));
+        }
+        syn::visit::visit_trait_item_const(self, i);
+    }
+    fn visit_trait_item_fn(&mut self, i: &'ast syn::TraitItemFn) {
+        if i.sig.constness.is_some()
+            && let Some(block) = &i.default
+        {
+            let mut literal_visitor = TestStringLiteralVisitor {
+                values: types::SourceTextList::default(),
+            };
+            syn::visit::Visit::visit_block(&mut literal_visitor, block);
+            if !literal_visitor.values.is_empty() {
+                self.ers.push(format!(
+                    "const trait method `{}` contains string literals",
+                    i.sig.ident
+                ));
+            }
+        }
+        syn::visit::visit_trait_item_fn(self, i);
+    }
+}
 struct StringConstantVisitor {
     ers: types::DiagnosticMsgs,
-    only_declarations: types::AnalyzerBool,
 }
 impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
     fn visit_attribute(&mut self, _i: &'ast syn::Attribute) {}
     fn visit_expr_call(&mut self, i: &'ast syn::ExprCall) {
-        if self.only_declarations.get() {
-            syn::visit::visit_expr_call(self, i);
-            return;
-        }
         if matches!(
             i.func.as_ref(),
             syn::Expr::Path(path)
@@ -1591,9 +1684,7 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
         syn::visit::visit_expr_call(self, i);
     }
     fn visit_expr_lit(&mut self, i: &'ast syn::ExprLit) {
-        if !self.only_declarations.get()
-            && let syn::Lit::Str(value) = &i.lit
-        {
+        if let syn::Lit::Str(value) = &i.lit {
             let start = value.span().start();
             let end = value.span().end();
             self.ers.push(format!(
@@ -1608,10 +1699,6 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
         syn::visit::visit_expr_lit(self, i);
     }
     fn visit_expr_method_call(&mut self, i: &'ast syn::ExprMethodCall) {
-        if self.only_declarations.get() {
-            syn::visit::visit_expr_method_call(self, i);
-            return;
-        }
         if i.method == str_constants::CODE_STYLE_EXPECT_METHOD_NAME {
             syn::visit::Visit::visit_expr(self, i.receiver.as_ref());
             return;
@@ -1619,16 +1706,6 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
         syn::visit::visit_expr_method_call(self, i);
     }
     fn visit_impl_item_const(&mut self, i: &'ast syn::ImplItemConst) {
-        if self.only_declarations.get() {
-            if type_stores_string_text(types::SynTypeRef::from(&i.ty)).get() {
-                self.ers.push(format!(
-                    "associated string constant `{}` must be declared in str_constants",
-                    i.ident
-                ));
-            }
-            syn::visit::visit_impl_item_const(self, i);
-            return;
-        }
         let mut literal_visitor = TestStringLiteralVisitor {
             values: types::SourceTextList::default(),
         };
@@ -1642,22 +1719,6 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
         syn::visit::visit_impl_item_const(self, i);
     }
     fn visit_impl_item_fn(&mut self, i: &'ast syn::ImplItemFn) {
-        if self.only_declarations.get() {
-            if i.sig.constness.is_some() {
-                let mut literal_visitor = TestStringLiteralVisitor {
-                    values: types::SourceTextList::default(),
-                };
-                syn::visit::Visit::visit_block(&mut literal_visitor, &i.block);
-                if !literal_visitor.values.is_empty() {
-                    self.ers.push(format!(
-                        "const method `{}` contains string literals",
-                        i.sig.ident
-                    ));
-                }
-            }
-            syn::visit::visit_impl_item_fn(self, i);
-            return;
-        }
         if i.sig.constness.is_some() {
             let mut literal_visitor = TestStringLiteralVisitor {
                 values: types::SourceTextList::default(),
@@ -1673,19 +1734,7 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
         syn::visit::visit_impl_item_fn(self, i);
     }
     fn visit_item_const(&mut self, i: &'ast syn::ItemConst) {
-        if !self.only_declarations.get()
-            && i.ident == str_constants::CODE_STYLE_REVIEWED_PUBLIC_FIELDS
-        {
-            return;
-        }
-        if self.only_declarations.get() {
-            if type_stores_string_text(types::SynTypeRef::from(i.ty.as_ref())).get() {
-                self.ers.push(format!(
-                    "string constant `{}` must be declared in str_constants",
-                    i.ident
-                ));
-            }
-            syn::visit::visit_item_const(self, i);
+        if i.ident == str_constants::CODE_STYLE_REVIEWED_PUBLIC_FIELDS {
             return;
         }
         let mut literal_visitor = TestStringLiteralVisitor {
@@ -1699,31 +1748,13 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
         syn::visit::visit_item_const(self, i);
     }
     fn visit_item_fn(&mut self, i: &'ast syn::ItemFn) {
-        if !self.only_declarations.get()
-            && i.attrs.iter().any(|attribute| {
-                attribute
-                    .path()
-                    .segments
-                    .last()
-                    .is_some_and(|segment| segment.ident == str_constants::TEST_ALT_3)
-            })
-        {
-            return;
-        }
-        if self.only_declarations.get() {
-            if i.sig.constness.is_some() {
-                let mut literal_visitor = TestStringLiteralVisitor {
-                    values: types::SourceTextList::default(),
-                };
-                syn::visit::Visit::visit_block(&mut literal_visitor, &i.block);
-                if !literal_visitor.values.is_empty() {
-                    self.ers.push(format!(
-                        "const function `{}` contains string literals",
-                        i.sig.ident
-                    ));
-                }
-            }
-            syn::visit::visit_item_fn(self, i);
+        if i.attrs.iter().any(|attribute| {
+            attribute
+                .path()
+                .segments
+                .last()
+                .is_some_and(|segment| segment.ident == str_constants::TEST_ALT_3)
+        }) {
             return;
         }
         if i.sig.constness.is_some() {
@@ -1741,7 +1772,7 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
         syn::visit::visit_item_fn(self, i);
     }
     fn visit_item_mod(&mut self, i: &'ast syn::ItemMod) {
-        if !self.only_declarations.get() && i.attrs.iter().any(|attribute| {
+        if i.attrs.iter().any(|attribute| {
             matches!(
                 &attribute.meta,
                 syn::Meta::List(list)
@@ -1758,16 +1789,6 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
         syn::visit::visit_item_mod(self, i);
     }
     fn visit_item_static(&mut self, i: &'ast syn::ItemStatic) {
-        if self.only_declarations.get() {
-            if type_stores_string_text(types::SynTypeRef::from(i.ty.as_ref())).get() {
-                self.ers.push(format!(
-                    "string static `{}` must be declared in str_constants",
-                    i.ident
-                ));
-            }
-            syn::visit::visit_item_static(self, i);
-            return;
-        }
         let mut literal_visitor = TestStringLiteralVisitor {
             values: types::SourceTextList::default(),
         };
@@ -1779,18 +1800,6 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
         syn::visit::visit_item_static(self, i);
     }
     fn visit_macro(&mut self, i: &'ast syn::Macro) {
-        if self.only_declarations.get() {
-            if i.path.segments.last().is_some_and(|segment| {
-                segment.ident == str_constants::SHARED_VALUES_DEFINE_STR_CONSTANTS
-            }) {
-                self.ers.push(
-                    "define_str_constants! may only be invoked by the str_constants crate"
-                        .to_owned(),
-                );
-            }
-            syn::visit::visit_macro(self, i);
-            return;
-        }
         let is_syntax_boundary = i.path.segments.last().is_some_and(|segment| {
             str_constants::CODE_STYLE_STRING_LITERAL_MACRO_BOUNDARIES
                 .contains(&segment.ident.to_string().as_str())
@@ -1831,17 +1840,6 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
         syn::visit::visit_macro(self, i);
     }
     fn visit_trait_item_const(&mut self, i: &'ast syn::TraitItemConst) {
-        if self.only_declarations.get() {
-            if i.default.is_some() && type_stores_string_text(types::SynTypeRef::from(&i.ty)).get()
-            {
-                self.ers.push(format!(
-                    "trait string constant `{}` must be declared in str_constants",
-                    i.ident
-                ));
-            }
-            syn::visit::visit_trait_item_const(self, i);
-            return;
-        }
         if let Some((_equals, expr)) = &i.default {
             let mut literal_visitor = TestStringLiteralVisitor {
                 values: types::SourceTextList::default(),
@@ -1857,24 +1855,6 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
         syn::visit::visit_trait_item_const(self, i);
     }
     fn visit_trait_item_fn(&mut self, i: &'ast syn::TraitItemFn) {
-        if self.only_declarations.get() {
-            if i.sig.constness.is_some()
-                && let Some(block) = &i.default
-            {
-                let mut literal_visitor = TestStringLiteralVisitor {
-                    values: types::SourceTextList::default(),
-                };
-                syn::visit::Visit::visit_block(&mut literal_visitor, block);
-                if !literal_visitor.values.is_empty() {
-                    self.ers.push(format!(
-                        "const trait method `{}` contains string literals",
-                        i.sig.ident
-                    ));
-                }
-            }
-            syn::visit::visit_trait_item_fn(self, i);
-            return;
-        }
         if i.sig.constness.is_some()
             && let Some(block) = &i.default
         {
@@ -4946,6 +4926,11 @@ fn nearest_cargo_toml_path(path: types::StdPathRef<'_>) -> Option<types::StdPath
         .map(|ancestor| ancestor.join(str_constants::CARGO_TOML))
         .find(|cargo_toml_path| cargo_toml_path.exists())
         .map(types::StdPathBuf::from)
+}
+fn is_str_constants_source_path(path: types::StdPathRef<'_>) -> types::AnalyzerBool {
+    types::AnalyzerBool::from(
+        path.as_ref() == std::path::Path::new(str_constants::STR_CONSTANTS_SRC_LIB_RS),
+    )
 }
 #[allow(clippy::single_call_fn)] // exact package inventory keeps generated/test-only crates outside runtime policy
 fn is_test_crate(parsed: types::TomlTableRef<'_>) -> types::AnalyzerBool {
