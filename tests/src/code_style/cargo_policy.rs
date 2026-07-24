@@ -183,6 +183,308 @@ default-features = true
     );
 }
 #[test]
+fn workspace_uses_one_async_runtime() {
+    super::snapshot::with_codebase_snapshot(|snapshot| {
+        let runtime_names = ["async-std", "glommio", "monoio", "smol", "tokio"];
+        let workspace_names = snapshot.workspace_crate_names();
+        let used = snapshot
+            .workspace_metadata()
+            .get()
+            .packages
+            .iter()
+            .filter(|package| workspace_names.as_ref().contains(package.name.as_str()))
+            .flat_map(|package| package.dependencies.iter())
+            .map(|dependency| dependency.name.as_str())
+            .filter(|name| runtime_names.contains(name))
+            .collect::<std::collections::BTreeSet<&str>>();
+        assert_eq!(
+            used,
+            std::collections::BTreeSet::from(["tokio"]),
+            "af25689c"
+        );
+    });
+}
+#[test]
+fn workspace_crates_do_not_enable_default_features() {
+    super::snapshot::with_codebase_snapshot(|snapshot| {
+        let workspace_names = snapshot.workspace_crate_names();
+        let violations = snapshot
+            .workspace_metadata()
+            .get()
+            .packages
+            .iter()
+            .filter(|package| workspace_names.as_ref().contains(package.name.as_str()))
+            .filter_map(|package| {
+                package
+                    .features
+                    .get("default")
+                    .filter(|features| !features.is_empty())
+                    .map(|features| format!("{}: {features:?}", package.name))
+            })
+            .collect::<Vec<String>>();
+        assert!(violations.is_empty(), "32f78ac2 {violations:#?}");
+    });
+}
+#[test]
+fn workspace_dependency_catalog_has_no_unused_entries() {
+    let workspace = super::workspace_table_from_cargo_toml();
+    let catalog = super::toml_val_as_table_ref(
+        super::types::TomlValueRef::from(
+            workspace
+                .as_ref()
+                .get(str_constants::DEPENDENCIES)
+                .expect("3e0ac397"),
+        ),
+        super::types::StaticStr::from("0c6249e6"),
+    );
+    super::snapshot::with_codebase_snapshot(|snapshot| {
+        let workspace_names = snapshot.workspace_crate_names();
+        let used = snapshot
+            .workspace_metadata()
+            .get()
+            .packages
+            .iter()
+            .filter(|package| workspace_names.as_ref().contains(package.name.as_str()))
+            .flat_map(|package| package.dependencies.iter())
+            .map(|dependency| dependency.name.as_str())
+            .collect::<std::collections::BTreeSet<&str>>();
+        let violations = catalog
+            .as_ref()
+            .iter()
+            .filter(|(name, dependency)| {
+                dependency
+                    .as_table()
+                    .is_some_and(|table| table.contains_key(str_constants::VERSION_ALT_3))
+                    && !used.contains(name.as_str())
+            })
+            .map(|(name, _)| name)
+            .collect::<Vec<&String>>();
+        assert!(violations.is_empty(), "57dd3daa {violations:#?}");
+    });
+}
+#[test]
+fn workspace_normal_dependency_graph_is_acyclic() {
+    super::snapshot::with_codebase_snapshot(|snapshot| {
+        let metadata = snapshot.workspace_metadata();
+        let workspace_names = snapshot.workspace_crate_names();
+        let mut remaining = metadata
+            .get()
+            .packages
+            .iter()
+            .filter(|package| workspace_names.as_ref().contains(package.name.as_str()))
+            .map(|package| {
+                (
+                    package.name.as_str(),
+                    package
+                        .dependencies
+                        .iter()
+                        .filter(|dependency| {
+                            dependency.kind == cargo_metadata::DependencyKind::Normal
+                                && workspace_names.as_ref().contains(dependency.name.as_str())
+                        })
+                        .map(|dependency| dependency.name.as_str())
+                        .collect::<std::collections::BTreeSet<&str>>(),
+                )
+            })
+            .collect::<std::collections::BTreeMap<&str, std::collections::BTreeSet<&str>>>();
+        loop {
+            let ready = remaining
+                .iter()
+                .filter(|(_, dependencies)| dependencies.is_empty())
+                .map(|(name, _)| *name)
+                .collect::<Vec<&str>>();
+            if ready.is_empty() {
+                break;
+            }
+            ready.iter().for_each(|name| {
+                let _removed_dependencies = remaining.remove(name);
+            });
+            remaining.values_mut().for_each(|dependencies| {
+                ready.iter().for_each(|name| {
+                    let _was_removed = dependencies.remove(name);
+                });
+            });
+        }
+        assert!(
+            remaining.is_empty(),
+            "85e729af dependency cycle: {remaining:#?}"
+        );
+    });
+}
+#[test]
+fn library_crates_with_public_logic_own_tests() {
+    struct TestOwnershipException {
+        crate_name: &'static str,
+        reason: &'static str,
+    }
+    let exceptions = [
+        TestOwnershipException {
+            crate_name: "app_state",
+            reason: "the crate is a facade over generated state traits",
+        },
+        TestOwnershipException {
+            crate_name: "config_lib_macros",
+            reason: "the proc-macro is exercised by config_lib integration tests",
+        },
+        TestOwnershipException {
+            crate_name: "generate_getter_traits_for_struct_fields",
+            reason: "the generator is exercised by config_lib compile-time expansion",
+        },
+        TestOwnershipException {
+            crate_name: "try_from_env",
+            reason: "the proc-macro is exercised by config_lib integration tests",
+        },
+        TestOwnershipException {
+            crate_name: "location_macros",
+            reason: "the proc-macro is exercised by location_lib tests",
+        },
+        TestOwnershipException {
+            crate_name: "naming",
+            reason: "the crate is a facade over tested naming crates",
+        },
+        TestOwnershipException {
+            crate_name: "naming_common_macros",
+            reason: "the generated macro surface is exercised by naming_common tests",
+        },
+        TestOwnershipException {
+            crate_name: "naming_macros",
+            reason: "the proc-macro is exercised by naming tests",
+        },
+        TestOwnershipException {
+            crate_name: "optml",
+            reason: "the proc-macro is exercised by downstream derive users",
+        },
+        TestOwnershipException {
+            crate_name: "pg_crud",
+            reason: "the crate is a facade over tested CRUD crates",
+        },
+        TestOwnershipException {
+            crate_name: "pg_crud_common_macros",
+            reason: "the macro surface is exercised by pg_crud_common tests",
+        },
+        TestOwnershipException {
+            crate_name: "pg_crud_macros_common",
+            reason: "the generator support crate is exercised by generated contract tests",
+        },
+        TestOwnershipException {
+            crate_name: "pg_crud_macros_common_macros",
+            reason: "the macro surface is exercised by generated CRUD tests",
+        },
+        TestOwnershipException {
+            crate_name: "generate_pg_table",
+            reason: "the proc-macro is exercised by generate_pg_table_test",
+        },
+        TestOwnershipException {
+            crate_name: "pg_types",
+            reason: "the crate is a facade over tested PostgreSQL type crates",
+        },
+        TestOwnershipException {
+            crate_name: "generate_pg_types",
+            reason: "the proc-macro is exercised by generate_pg_types_test",
+        },
+        TestOwnershipException {
+            crate_name: "pg_types_chrono_net",
+            reason: "the crate exports generated PostgreSQL type adapters",
+        },
+        TestOwnershipException {
+            crate_name: "pg_types_common",
+            reason: "the crate exports generated PostgreSQL type adapters",
+        },
+        TestOwnershipException {
+            crate_name: "pg_types_numeric",
+            reason: "the crate exports generated PostgreSQL type adapters",
+        },
+        TestOwnershipException {
+            crate_name: "pg_types_text_misc",
+            reason: "the crate exports generated PostgreSQL type adapters",
+        },
+        TestOwnershipException {
+            crate_name: "generate_where_filters",
+            reason: "the proc-macro is exercised by generate_where_filters_test",
+        },
+        TestOwnershipException {
+            crate_name: "server_app_state_macros",
+            reason: "the proc-macro is exercised by server_app_state tests",
+        },
+        TestOwnershipException {
+            crate_name: "str_constants_macros",
+            reason: "the proc-macro is exercised by str_constants tests",
+        },
+        TestOwnershipException {
+            crate_name: "to_err_string_macros",
+            reason: "the proc-macro is exercised by to_err_string tests",
+        },
+        TestOwnershipException {
+            crate_name: "token_patterns_macros",
+            reason: "the proc-macro is exercised by token_patterns tests",
+        },
+    ];
+    super::snapshot::with_codebase_snapshot(|snapshot| {
+        let workspace_names = snapshot.workspace_crate_names();
+        let workspace_directories = snapshot
+            .workspace_metadata()
+            .get()
+            .packages
+            .iter()
+            .filter(|package| workspace_names.as_ref().contains(package.name.as_str()))
+            .filter_map(|package| package.manifest_path.as_std_path().parent())
+            .collect::<Vec<&std::path::Path>>();
+        let violations = snapshot
+            .workspace_metadata()
+            .get()
+            .packages
+            .iter()
+            .filter(|package| workspace_names.as_ref().contains(package.name.as_str()))
+            .filter(|package| {
+                package.targets.iter().any(|target| {
+                    target.kind.iter().any(|kind| {
+                        matches!(
+                            kind,
+                            cargo_metadata::TargetKind::Lib | cargo_metadata::TargetKind::ProcMacro
+                        )
+                    })
+                })
+            })
+            .filter_map(|package| {
+                let crate_directory = package.manifest_path.as_std_path().parent()?;
+                let source_files = snapshot
+                    .rs_files()
+                    .iter()
+                    .filter(|source_file| {
+                        let source_path = source_file.path().as_ref();
+                        source_path.starts_with(crate_directory)
+                            && !workspace_directories.iter().any(|other_directory| {
+                                *other_directory != crate_directory
+                                    && source_path.starts_with(other_directory)
+                            })
+                    })
+                    .collect::<Vec<&super::snapshot::RsSourceFile>>();
+                let has_public_logic = source_files.iter().any(|source_file| {
+                    super::visit_syn_file(
+                        super::types::SynFileRef::from(source_file.ast().as_ref()),
+                        super::PublicLogicVisitor::default(),
+                    )
+                    .found
+                    .get()
+                });
+                let has_owned_test = source_files.iter().any(|source_file| {
+                    super::visit_syn_file(
+                        super::types::SynFileRef::from(source_file.ast().as_ref()),
+                        super::OwnedTestVisitor::default(),
+                    )
+                    .found
+                    .get()
+                });
+                let reviewed = exceptions.iter().any(|exception| {
+                    package.name == exception.crate_name && !exception.reason.is_empty()
+                });
+                (has_public_logic && !has_owned_test && !reviewed).then(|| package.name.to_string())
+            })
+            .collect::<Vec<String>>();
+        assert!(violations.is_empty(), "44cd2db7 {violations:#?}");
+    });
+}
+#[test]
 fn workspace_lint_allows_have_inline_reasons() {
     let source = std::fs::read_to_string(str_constants::CODE_STYLE_WORKSPACE_MANIFEST_PATH)
         .expect("68dcaf75");

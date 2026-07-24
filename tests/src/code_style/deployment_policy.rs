@@ -282,33 +282,51 @@ fn service_catalog_covers_every_build_and_runtime_projection() {
 fn unpinned_dockerfile_base_images(
     source: super::types::SourceTextRef<'_>,
 ) -> super::types::SourceTextList {
+    let from_parts = |line: &str| {
+        let words = line.split_ascii_whitespace().collect::<Vec<_>>();
+        if !words
+            .first()
+            .is_some_and(|directive| directive.eq_ignore_ascii_case("FROM"))
+        {
+            return None;
+        }
+        let image_index = words
+            .iter()
+            .enumerate()
+            .skip(1usize)
+            .find(|(_, word)| !word.starts_with("--"))
+            .map(|(index, _)| index)?;
+        let image = words.get(image_index)?.to_string();
+        let stage = words
+            .get(image_index.saturating_add(1usize))
+            .filter(|keyword| keyword.eq_ignore_ascii_case("AS"))
+            .and_then(|_| words.get(image_index.saturating_add(2usize)))
+            .map(|stage| (*stage).to_ascii_lowercase());
+        Some((image, stage))
+    };
     let stage_names = source
         .as_ref()
         .lines()
-        .filter_map(|line| {
-            let mut words = line.split_ascii_whitespace();
-            (words.next() == Some("FROM"))
-                .then(|| {
-                    let _image = words.next()?;
-                    (words.next() == Some("AS")).then(|| words.next().map(str::to_owned))?
-                })
-                .flatten()
-        })
+        .filter_map(from_parts)
+        .filter_map(|(_image, stage)| stage)
         .collect::<std::collections::BTreeSet<_>>();
     source
         .as_ref()
         .lines()
-        .filter_map(|line| {
-            let mut words = line.split_ascii_whitespace();
-            (words.next() == Some("FROM"))
-                .then(|| words.next())
-                .flatten()
-        })
+        .filter_map(from_parts)
+        .map(|(image, _stage)| image)
         .filter(|image| {
-            !stage_names.contains(*image)
-                && (!image.contains("@sha256:") || image.ends_with(":latest"))
+            let is_stage = stage_names.contains(&image.to_ascii_lowercase());
+            let is_scratch = image.eq_ignore_ascii_case("scratch");
+            let has_valid_digest = image.rsplit_once("@sha256:").is_some_and(|(name, digest)| {
+                !name.is_empty()
+                    && digest.len() == 64usize
+                    && digest
+                        .bytes()
+                        .all(|byte| byte.is_ascii_digit() || matches!(byte, b'a'..=b'f'))
+            });
+            !is_stage && !is_scratch && !has_valid_digest
         })
-        .map(str::to_owned)
         .collect::<Vec<String>>()
         .into()
 }
@@ -344,15 +362,19 @@ fn catalog_dockerfiles_pin_every_external_base_image_by_digest() {
 #[test]
 fn dockerfile_base_image_policy_rejects_latest_and_allows_named_stages() {
     let violations = unpinned_dockerfile_base_images(super::types::SourceTextRef::from(
-        "FROM rust:latest AS builder\nFROM builder AS packaged\nFROM alpine:3.22\n",
+        "from --platform=$BUILDPLATFORM rust:latest as builder\nFROM builder AS packaged\nFROM alpine:3.22\nFROM busybox@sha256:abcd\nFROM scratch\n",
     ));
     assert_eq!(
         violations.as_slice(),
-        [String::from("rust:latest"), String::from("alpine:3.22")]
+        [
+            String::from("rust:latest"),
+            String::from("alpine:3.22"),
+            String::from("busybox@sha256:abcd"),
+        ]
     );
     assert!(
         unpinned_dockerfile_base_images(super::types::SourceTextRef::from(
-            "FROM rust:1.90@sha256:0123456789abcdef AS builder\nFROM builder\n"
+            "FROM rust:1.90@sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef AS builder\nFROM BUILDER\n"
         ))
         .is_empty()
     );

@@ -1,12 +1,24 @@
 fn workflow() -> super::types::SourceText {
+    let source = std::fs::read_to_string(
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .expect("c02ae58b")
+            .join(str_constants::CODE_STYLE_CI_WORKFLOW_PATH),
+    )
+    .expect("da504e54");
+    active_workflow_source(super::types::SourceTextRef::from(source.as_str()))
+}
+fn active_workflow_source(source: super::types::SourceTextRef<'_>) -> super::types::SourceText {
     super::types::SourceText::try_from(
-        std::fs::read_to_string(
-            std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-                .parent()
-                .expect("c02ae58b")
-                .join(str_constants::CODE_STYLE_CI_WORKFLOW_PATH),
-        )
-        .expect("da504e54"),
+        source
+            .as_ref()
+            .lines()
+            .map(|line| {
+                line.split_once('#')
+                    .map_or(line, |(active, _comment)| active)
+            })
+            .collect::<Vec<&str>>()
+            .join("\n"),
     )
     .expect("fd9f7861")
 }
@@ -106,6 +118,10 @@ fn workflow_jobs_have_timeouts_and_marketplace_actions_use_commit_shas() {
             current_job_has_timeout = false;
         }
         if inside_job
+            && line.starts_with(str_constants::FOUR_SPACES)
+            && !line
+                .strip_prefix(str_constants::FOUR_SPACES)
+                .is_some_and(|remainder| remainder.starts_with(str_constants::TWO_SPACES))
             && line
                 .trim_start()
                 .starts_with(str_constants::TIMEOUT_MINUTES)
@@ -129,4 +145,13 @@ fn workflow_jobs_have_timeouts_and_marketplace_actions_use_commit_shas() {
         !inside_job || current_job_has_timeout,
         "a workflow job lacks timeout-minutes"
     );
+}
+#[test]
+fn workflow_policy_ignores_commented_commands_and_actions() {
+    let source = active_workflow_source(super::types::SourceTextRef::from(
+        "# cargo machete\n# uses: actions/checkout@0123456789012345678901234567890123456789\njobs:\n  check:\n    # timeout-minutes: 10\n    runs-on: ubuntu-latest\n",
+    ));
+    assert!(!source.as_ref().contains(str_constants::CARGO_MACHETE));
+    assert!(!source.as_ref().contains(str_constants::TIMEOUT_MINUTES));
+    assert!(!source.as_ref().contains("actions/checkout"));
 }

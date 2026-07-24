@@ -305,6 +305,11 @@ struct AsyncBlockingCallVisitor {
     ers: types::DiagnosticMsgs,
 }
 impl<'ast> syn::visit::Visit<'ast> for AsyncBlockingCallVisitor {
+    fn visit_expr_async(&mut self, i: &'ast syn::ExprAsync) {
+        self.async_fn_depth.saturating_inc();
+        syn::visit::visit_expr_async(self, i);
+        self.async_fn_depth.saturating_dec();
+    }
     fn visit_expr_call(&mut self, i: &'ast syn::ExprCall) {
         if self.async_fn_depth.get() != 0
             && expr_call_path(types::SynExprCallRef::from(i))
@@ -314,6 +319,16 @@ impl<'ast> syn::visit::Visit<'ast> for AsyncBlockingCallVisitor {
                 .push(str_constants::BLOCKING_CALL_INSIDE_ASYNC_FUNCTION.to_owned());
         }
         syn::visit::visit_expr_call(self, i);
+    }
+    fn visit_expr_closure(&mut self, i: &'ast syn::ExprClosure) {
+        let is_async = i.asyncness.is_some();
+        if is_async {
+            self.async_fn_depth.saturating_inc();
+        }
+        syn::visit::visit_expr_closure(self, i);
+        if is_async {
+            self.async_fn_depth.saturating_dec();
+        }
     }
     fn visit_expr_method_call(&mut self, i: &'ast syn::ExprMethodCall) {
         if self.async_fn_depth.get() != 0
@@ -329,6 +344,16 @@ impl<'ast> syn::visit::Visit<'ast> for AsyncBlockingCallVisitor {
         }
         syn::visit::visit_expr_method_call(self, i);
     }
+    fn visit_impl_item_fn(&mut self, i: &'ast syn::ImplItemFn) {
+        let is_async = i.sig.asyncness.is_some();
+        if is_async {
+            self.async_fn_depth.saturating_inc();
+        }
+        syn::visit::visit_impl_item_fn(self, i);
+        if is_async {
+            self.async_fn_depth.saturating_dec();
+        }
+    }
     fn visit_item(&mut self, i: &'ast syn::Item) {
         if has_test_only_cfg_attr(types::SynItemRef::from(i)).get() {
             return;
@@ -341,6 +366,16 @@ impl<'ast> syn::visit::Visit<'ast> for AsyncBlockingCallVisitor {
             self.async_fn_depth.saturating_inc();
         }
         syn::visit::visit_item_fn(self, i);
+        if is_async {
+            self.async_fn_depth.saturating_dec();
+        }
+    }
+    fn visit_trait_item_fn(&mut self, i: &'ast syn::TraitItemFn) {
+        let is_async = i.sig.asyncness.is_some();
+        if is_async {
+            self.async_fn_depth.saturating_inc();
+        }
+        syn::visit::visit_trait_item_fn(self, i);
         if is_async {
             self.async_fn_depth.saturating_dec();
         }
@@ -493,6 +528,30 @@ struct TestNondeterminismVisitor {
 struct SensitiveTextDebugDeriveVisitor {
     ers: types::DiagnosticMsgs,
 }
+struct SensitiveErrorFormatVisitor {
+    ers: types::DiagnosticMsgs,
+}
+struct GeneratedRandomnessVisitor {
+    calls: types::DiagnosticMsgs,
+}
+struct StaticStateVisitor {
+    identifiers: types::SourceTextList,
+}
+struct PrintMacroVisitor {
+    calls: types::DiagnosticMsgs,
+}
+#[derive(Default)]
+struct PublicLogicVisitor {
+    found: types::AnalyzerBool,
+}
+#[derive(Default)]
+struct OwnedTestVisitor {
+    found: types::AnalyzerBool,
+}
+struct AllowReasonVisitor {
+    ers: types::DiagnosticMsgs,
+    lines: types::SourceTextList,
+}
 struct DiagnosticIdVisitor {
     ers: types::DiagnosticMsgs,
     ids: types::SourceTextList,
@@ -530,6 +589,9 @@ impl<'ast> syn::visit::Visit<'ast> for DiagnosticIdVisitor {
         syn::visit::visit_expr_method_call(self, i);
     }
     fn visit_macro(&mut self, i: &'ast syn::Macro) {
+        if macro_path_is_quote(types::SynPathRef::from(&i.path)).get() {
+            scan_generated_diagnostic_tokens(&i.tokens, self);
+        }
         if i.path
             .segments
             .last()
@@ -575,22 +637,202 @@ impl<'ast> syn::visit::Visit<'ast> for SensitiveTextDebugDeriveVisitor {
         .get()
             && item_struct_wraps_text(types::SynItemStructRef::from(i)).get()
         {
-            ["Debug", "Display"].into_iter().for_each(|derive_name| {
-                if i.attrs.iter().any(|attr| {
-                    derive_attr_has_terminal(
-                        types::SynAttributeRef::from(attr),
-                        types::SourceTextRef::from(derive_name),
-                    )
-                    .get()
-                }) {
-                    self.ers.push(format!(
-                        "sensitive text wrapper `{}` derives `{derive_name}` without redaction",
-                        i.ident
-                    ));
-                }
-            });
+            ["Debug", "Display", "DebugTransparent", "DisplayTransparent"]
+                .into_iter()
+                .for_each(|derive_name| {
+                    if i.attrs.iter().any(|attr| {
+                        derive_attr_has_terminal(
+                            types::SynAttributeRef::from(attr),
+                            types::SourceTextRef::from(derive_name),
+                        )
+                        .get()
+                    }) {
+                        self.ers.push(format!(
+                            "sensitive text wrapper `{}` derives `{derive_name}` without redaction",
+                            i.ident
+                        ));
+                    }
+                });
         }
         syn::visit::visit_item_struct(self, i);
+    }
+}
+impl SensitiveErrorFormatVisitor {
+    fn inspect_fields(&mut self, attrs: &[syn::Attribute], fields: &syn::Fields) {
+        let templates = attrs
+            .iter()
+            .filter(|attr| attr.path().is_ident("error"))
+            .filter_map(|attr| match &attr.meta {
+                syn::Meta::List(list) => Some(list.tokens.to_string()),
+                syn::Meta::Path(_) | syn::Meta::NameValue(_) => None,
+            })
+            .collect::<Vec<String>>();
+        if templates.is_empty() {
+            return;
+        }
+        fields.iter().enumerate().for_each(|(index, field)| {
+            let named_placeholder = field.ident.as_ref().and_then(|identifier| {
+                sensitive_text_wrapper_identifier(types::SourceTextRef::from(
+                    identifier.to_string().as_str(),
+                ))
+                .get()
+                .then(|| format!("{{{identifier}"))
+            });
+            let tuple_placeholder = field
+                .ident
+                .is_none()
+                .then(|| format!("{{{index}"))
+                .filter(|_| type_contains_sensitive_text_or_bytes(&field.ty));
+            [named_placeholder, tuple_placeholder]
+                .into_iter()
+                .flatten()
+                .for_each(|field_placeholder| {
+                    if templates
+                        .iter()
+                        .any(|template| template.contains(field_placeholder.as_str()))
+                    {
+                        self.ers.push(format!(
+                            "error formatter exposes sensitive field placeholder `{field_placeholder}`"
+                        ));
+                    }
+                });
+        });
+    }
+}
+impl<'ast> syn::visit::Visit<'ast> for SensitiveErrorFormatVisitor {
+    fn visit_item_enum(&mut self, i: &'ast syn::ItemEnum) {
+        i.variants
+            .iter()
+            .for_each(|variant| self.inspect_fields(&variant.attrs, &variant.fields));
+        syn::visit::visit_item_enum(self, i);
+    }
+    fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
+        self.inspect_fields(&i.attrs, &i.fields);
+        syn::visit::visit_item_struct(self, i);
+    }
+}
+impl<'ast> syn::visit::Visit<'ast> for GeneratedRandomnessVisitor {
+    fn visit_macro(&mut self, i: &'ast syn::Macro) {
+        if macro_path_is_quote(types::SynPathRef::from(&i.path)).get() {
+            let compact = i
+                .tokens
+                .to_string()
+                .chars()
+                .filter(|character| !character.is_whitespace())
+                .collect::<String>();
+            [
+                str_constants::UUID_PATH_UUID_PATH_NEW_V4,
+                str_constants::UUID_PATH_UUID_PATH_NEW_V7,
+                str_constants::RAND_PATH_RNG,
+                str_constants::RAND_PATH_RANDOM,
+                str_constants::RAND_PATH_RANDOM_RANGE,
+                str_constants::RAND_PATH_THREAD_RNG,
+                str_constants::GETRANDOM_PATH_FILL,
+                str_constants::GETRANDOM_PATH_U32,
+                str_constants::GETRANDOM_PATH_U64,
+            ]
+            .into_iter()
+            .filter(|path| compact.contains(path))
+            .for_each(|path| self.calls.push(path.to_owned()));
+        }
+        syn::visit::visit_macro(self, i);
+    }
+}
+impl<'ast> syn::visit::Visit<'ast> for StaticStateVisitor {
+    fn visit_item_static(&mut self, i: &'ast syn::ItemStatic) {
+        self.identifiers.push(i.ident.to_string());
+        syn::visit::visit_item_static(self, i);
+    }
+}
+impl<'ast> syn::visit::Visit<'ast> for PrintMacroVisitor {
+    fn visit_macro(&mut self, i: &'ast syn::Macro) {
+        if i.path.segments.last().is_some_and(|segment| {
+            matches!(
+                segment.ident.to_string().as_str(),
+                "print" | "println" | "eprint" | "eprintln"
+            )
+        }) {
+            self.calls.push(
+                path_to_string(types::SynPathRef::from(&i.path))
+                    .as_ref()
+                    .to_owned(),
+            );
+        }
+        syn::visit::visit_macro(self, i);
+    }
+}
+impl<'ast> syn::visit::Visit<'ast> for PublicLogicVisitor {
+    fn visit_impl_item_fn(&mut self, i: &'ast syn::ImplItemFn) {
+        if matches!(i.vis, syn::Visibility::Public(_)) {
+            self.found.set_true();
+        }
+        syn::visit::visit_impl_item_fn(self, i);
+    }
+    fn visit_item_fn(&mut self, i: &'ast syn::ItemFn) {
+        if matches!(i.vis, syn::Visibility::Public(_)) {
+            self.found.set_true();
+        }
+        syn::visit::visit_item_fn(self, i);
+    }
+    fn visit_item_trait(&mut self, i: &'ast syn::ItemTrait) {
+        if matches!(i.vis, syn::Visibility::Public(_))
+            && i.items.iter().any(|item| {
+                matches!(
+                    item,
+                    syn::TraitItem::Fn(function) if function.default.is_some()
+                )
+            })
+        {
+            self.found.set_true();
+        }
+        syn::visit::visit_item_trait(self, i);
+    }
+}
+impl<'ast> syn::visit::Visit<'ast> for OwnedTestVisitor {
+    fn visit_attribute(&mut self, i: &'ast syn::Attribute) {
+        if i.path()
+            .segments
+            .last()
+            .is_some_and(|segment| segment.ident == str_constants::TEST_ALT_3)
+        {
+            self.found.set_true();
+        }
+        syn::visit::visit_attribute(self, i);
+    }
+}
+impl<'ast> syn::visit::Visit<'ast> for AllowReasonVisitor {
+    fn visit_attribute(&mut self, i: &'ast syn::Attribute) {
+        let is_lint_suppression = i.path().segments.last().is_some_and(|segment| {
+            matches!(segment.ident.to_string().as_str(), "allow" | "expect")
+        });
+        if is_lint_suppression {
+            let has_reason_argument = match &i.meta {
+                syn::Meta::List(list) => list.tokens.to_string().contains("reason ="),
+                syn::Meta::Path(_) | syn::Meta::NameValue(_) => false,
+            };
+            let span = syn::spanned::Spanned::span(i);
+            let start_line = span.start().line;
+            let end_line = span.end().line;
+            let has_same_line_reason = self
+                .lines
+                .get(end_line.saturating_sub(1usize))
+                .and_then(|line| line.split_once("//").map(|(_attribute, reason)| reason))
+                .is_some_and(|reason| !reason.trim().is_empty());
+            let has_preceding_reason = start_line
+                .checked_sub(2usize)
+                .and_then(|line_index| self.lines.get(line_index))
+                .is_some_and(|line| {
+                    line.trim_start()
+                        .strip_prefix("//")
+                        .is_some_and(|reason| !reason.trim().is_empty())
+                });
+            if !has_reason_argument && !has_same_line_reason && !has_preceding_reason {
+                self.ers.push(format!(
+                    "line {start_line}: lint suppression requires an explicit reason"
+                ));
+            }
+        }
+        syn::visit::visit_attribute(self, i);
     }
 }
 impl<'ast> syn::visit::Visit<'ast> for TestNondeterminismVisitor {
@@ -605,17 +847,36 @@ impl<'ast> syn::visit::Visit<'ast> for TestNondeterminismVisitor {
                     | str_constants::RAND_PATH_RANDOM
                     | str_constants::RAND_PATH_RANDOM_RANGE
                     | str_constants::RAND_PATH_THREAD_RNG
+                    | str_constants::GETRANDOM_PATH_FILL
+                    | str_constants::GETRANDOM_PATH_U32
+                    | str_constants::GETRANDOM_PATH_U64
                     | str_constants::STD_PATH_THREAD_PATH_SLEEP
+                    | str_constants::STD_PATH_TIME_PATH_INSTANT_PATH_NOW
                     | str_constants::STD_PATH_TIME_PATH_SYSTEMTIME_PATH_NOW
+                    | str_constants::TOKIO_PATH_TIME_PATH_INSTANT_PATH_NOW
                     | str_constants::TOKIO_PATH_TIME_PATH_SLEEP
                     | str_constants::UUID_PATH_UUID_PATH_NEW_V4
+                    | str_constants::UUID_PATH_UUID_PATH_NEW_V7
             ) || text.as_ref().ends_with(str_constants::PATH_UTC_PATH_NOW)
                 || text.as_ref().ends_with(str_constants::PATH_LOCAL_PATH_NOW)
+                || text.as_ref().ends_with(str_constants::PATH_FROM_OS_RNG)
             {
                 self.calls.push(text.as_ref().to_owned());
             }
         }
         syn::visit::visit_expr_call(self, i);
+    }
+    fn visit_expr_path(&mut self, i: &'ast syn::ExprPath) {
+        if self.test_depth.get() != 0 {
+            let text = path_to_string(types::SynPathRef::from(&i.path));
+            if matches!(
+                text.as_ref(),
+                str_constants::RAND_PATH_RNGS_PATH_OS_RNG | str_constants::RAND_CORE_PATH_OS_RNG
+            ) {
+                self.calls.push(text.as_ref().to_owned());
+            }
+        }
+        syn::visit::visit_expr_path(self, i);
     }
     fn visit_item_fn(&mut self, i: &'ast syn::ItemFn) {
         let is_test = item_fn_is_unit_test(types::SynItemFnRef::from(i)).get();
@@ -2659,15 +2920,20 @@ fn unowned_spawn_expr(expression: &syn::Expr) -> bool {
     let syn::Expr::Call(call) = expression else {
         return false;
     };
-    expr_call_path(types::SynExprCallRef::from(call)).is_some_and(|path| {
-        let text = path_to_string(path);
-        matches!(
-            text.as_ref(),
-            str_constants::TOKIO_PATH_SPAWN
-                | str_constants::TOKIO_PATH_TASK_PATH_SPAWN_BLOCKING
-                | str_constants::STD_PATH_THREAD_PATH_SPAWN
-        )
-    })
+    let Some(path) = expr_call_path(types::SynExprCallRef::from(call)) else {
+        return false;
+    };
+    let text = path_to_string(path);
+    if matches!(text.as_ref(), "drop" | "std::mem::drop" | "core::mem::drop") {
+        return call.args.first().is_some_and(unowned_spawn_expr);
+    }
+    matches!(
+        text.as_ref(),
+        str_constants::TOKIO_PATH_SPAWN
+            | str_constants::TOKIO_PATH_TASK_PATH_SPAWN_BLOCKING
+            | str_constants::TOKIO_PATH_TASK_PATH_SPAWN_LOCAL
+            | str_constants::STD_PATH_THREAD_PATH_SPAWN
+    )
 }
 #[allow(clippy::single_call_fn)] // keeps diagnostic-ID syntax validation named and fixture-tested
 fn diagnostic_id_prefix(value: types::SourceTextRef<'_>) -> Option<types::SourceTextRef<'_>> {
@@ -2696,6 +2962,80 @@ fn panic_uses_dynamic_diagnostic_id(value: types::SourceTextRef<'_>) -> types::A
             || value.as_ref().starts_with("{exp_id}")
             || value.as_ref().starts_with("{uuid}"),
     )
+}
+fn macro_path_is_quote(path: types::SynPathRef<'_>) -> types::AnalyzerBool {
+    types::AnalyzerBool::from(path.as_ref().segments.last().is_some_and(|segment| {
+        matches!(
+            segment.ident.to_string().as_str(),
+            "quote" | "quote_spanned"
+        )
+    }))
+}
+fn scan_generated_diagnostic_tokens(
+    tokens: &proc_macro2::TokenStream,
+    visitor: &mut DiagnosticIdVisitor,
+) {
+    let trees = tokens.clone().into_iter().collect::<Vec<_>>();
+    trees.iter().enumerate().for_each(|(index, token)| {
+        if let proc_macro2::TokenTree::Group(group) = token {
+            scan_generated_diagnostic_tokens(&group.stream(), visitor);
+        }
+        let proc_macro2::TokenTree::Ident(identifier) = token else {
+            return;
+        };
+        let identifier_text = identifier.to_string();
+        let is_expect = identifier_text == str_constants::CODE_STYLE_EXPECT_METHOD_NAME
+            && index.checked_sub(1usize).and_then(|previous| trees.get(previous)).is_some_and(
+                |previous| matches!(previous, proc_macro2::TokenTree::Punct(punct) if punct.as_char() == '.'),
+            );
+        let is_panic = identifier_text == str_constants::CODE_STYLE_PANIC_METHOD_NAME
+            && trees
+                .get(index.saturating_add(1usize))
+                .is_some_and(|next| matches!(next, proc_macro2::TokenTree::Punct(punct) if punct.as_char() == '!'));
+        if !is_expect && !is_panic {
+            return;
+        }
+        let group_index = index.saturating_add(if is_panic { 2usize } else { 1usize });
+        let Some(proc_macro2::TokenTree::Group(arguments)) = trees.get(group_index) else {
+            visitor
+                .ers
+                .push(format!("generated `{identifier_text}` has no argument group"));
+            return;
+        };
+        let argument_tokens = arguments.stream().into_iter().collect::<Vec<_>>();
+        let message_is_interpolated = matches!(
+            argument_tokens.as_slice(),
+            [
+                proc_macro2::TokenTree::Punct(interpolation),
+                proc_macro2::TokenTree::Ident(_),
+                ..
+            ] if interpolation.as_char() == '#'
+        );
+        let message = argument_tokens.first().and_then(|first| {
+            let proc_macro2::TokenTree::Literal(message_literal) = first else {
+                return None;
+            };
+            syn::parse_str::<syn::LitStr>(message_literal.to_string().as_str())
+                .ok()
+                .map(|parsed_literal| parsed_literal.value())
+        });
+        match message {
+            Some(message_value)
+                if is_panic
+                    && panic_uses_dynamic_diagnostic_id(types::SourceTextRef::from(
+                        message_value.as_str(),
+                    ))
+                    .get() => {}
+            Some(message_value) => visitor.record(
+                types::SourceTextRef::from(identifier_text.as_str()),
+                types::SourceTextRef::from(message_value.as_str()),
+            ),
+            None if message_is_interpolated => {}
+            None => visitor.ers.push(format!(
+                "generated `{identifier_text}` message must begin with a string literal"
+            )),
+        }
+    });
 }
 #[allow(clippy::single_call_fn)] // centralizes cross-file uniqueness validation behind the public policy test
 fn check_expect_and_panic_contain_unique_diagnostic_ids() {
@@ -2913,26 +3253,6 @@ fn text_content_hygiene_ers(source: types::SourceTextRef<'_>) -> types::Diagnost
             ));
         });
     ers
-}
-#[allow(clippy::single_call_fn)] // isolates the reviewed project text-file inventory from traversal
-fn text_hygiene_path(path: types::StdPathRef<'_>) -> types::AnalyzerBool {
-    let extension_is_text = path
-        .as_ref()
-        .extension()
-        .and_then(std::ffi::OsStr::to_str)
-        .is_some_and(|extension| {
-            is_allowed_english_check_ext(Some(types::SourceTextRef::from(extension))).get()
-                || matches!(extension, str_constants::MD_EXT | str_constants::SQL_EXT)
-        });
-    let file_name_is_text = path
-        .as_ref()
-        .file_name()
-        .and_then(std::ffi::OsStr::to_str)
-        .is_some_and(|file_name| {
-            file_name.eq_ignore_ascii_case(str_constants::DOCKERFILE_NAME)
-                || file_name == str_constants::GITIGNORE_NAME
-        });
-    types::AnalyzerBool::from(extension_is_text || file_name_is_text)
 }
 #[allow(clippy::single_call_fn)] // separates version shape assertion from dependency-table flow and keeps IDs stable
 fn validate_workspace_dep_version(v_table: types::TomlTableRef<'_>) {
@@ -4311,52 +4631,70 @@ fn derive_attr_has_terminal(
 #[allow(clippy::single_call_fn)] // keeps the reviewed sensitive-wrapper naming vocabulary in one policy helper
 fn sensitive_text_wrapper_identifier(identifier: types::SourceTextRef<'_>) -> types::AnalyzerBool {
     let identifier_text = identifier.as_ref();
-    let non_secret_token_metadata = ["TokenAudience", "TokenIssuer", "TokenPart"]
+    let lowercase = identifier_text.to_ascii_lowercase();
+    let non_secret_token_metadata = ["tokenaudience", "tokenissuer", "tokenpart"]
         .into_iter()
-        .any(|fragment| identifier_text.contains(fragment));
+        .any(|fragment| lowercase.contains(fragment));
     types::AnalyzerBool::from(
-        ["Password", "Secret", "Credential", "ApiKey", "CookieValue"]
+        ["password", "secret", "credential", "apikey", "cookievalue"]
             .into_iter()
-            .any(|fragment| identifier_text.contains(fragment))
-            || identifier_text.contains("Token") && !non_secret_token_metadata,
+            .any(|fragment| lowercase.contains(fragment))
+            || lowercase.contains("token") && !non_secret_token_metadata,
     )
 }
-#[allow(clippy::single_call_fn)] // limits the secret Debug policy to wrappers that directly contain text
+#[allow(clippy::single_call_fn)] // limits the secret Debug policy to wrappers that directly contain text or bytes
 fn item_struct_wraps_text(item: types::SynItemStructRef<'_>) -> types::AnalyzerBool {
-    let syn::Fields::Unnamed(fields) = &item.as_ref().fields else {
-        return types::AnalyzerBool::default();
-    };
-    if fields.unnamed.len() != 1usize {
-        return types::AnalyzerBool::default();
-    }
-    types::AnalyzerBool::from(fields.unnamed.first().is_some_and(|field| {
-        match &field.ty {
-            syn::Type::Path(path) => path
-                .path
-                .segments
-                .last()
-                .is_some_and(|segment| segment.ident == "String" || segment.ident == "str"),
-            syn::Type::Reference(reference) => matches!(
-                reference.elem.as_ref(),
-                syn::Type::Path(path)
-                    if path.path.segments.last().is_some_and(|segment| segment.ident == "str")
-            ),
-            syn::Type::Array(_)
-            | syn::Type::BareFn(_)
-            | syn::Type::Group(_)
-            | syn::Type::ImplTrait(_)
-            | syn::Type::Infer(_)
-            | syn::Type::Macro(_)
-            | syn::Type::Never(_)
-            | syn::Type::Paren(_)
-            | syn::Type::Ptr(_)
-            | syn::Type::Slice(_)
-            | syn::Type::TraitObject(_)
-            | syn::Type::Tuple(_)
-            | syn::Type::Verbatim(_)
-            | _ => false,
+    types::AnalyzerBool::from(
+        item.as_ref()
+            .fields
+            .iter()
+            .any(|field| type_contains_sensitive_text_or_bytes(&field.ty)),
+    )
+}
+fn type_contains_sensitive_text_or_bytes(ty: &syn::Type) -> bool {
+    match ty {
+        syn::Type::Array(array) => type_is_u8(array.elem.as_ref()),
+        syn::Type::Path(path) => path.path.segments.last().is_some_and(|segment| {
+            matches!(
+                segment.ident.to_string().as_str(),
+                "String" | "str" | "SecretBox"
+            ) || segment.ident == "Vec"
+                && matches!(
+                    &segment.arguments,
+                    syn::PathArguments::AngleBracketed(angle_arguments)
+                        if angle_arguments.args.iter().any(|argument| {
+                            matches!(
+                                argument,
+                                syn::GenericArgument::Type(element_type)
+                                    if type_is_u8(element_type)
+                            )
+                        })
+                )
+        }),
+        syn::Type::Reference(reference) => {
+            type_contains_sensitive_text_or_bytes(reference.elem.as_ref())
         }
-    }))
+        syn::Type::Slice(slice) => type_is_u8(slice.elem.as_ref()),
+        syn::Type::Group(group) => type_contains_sensitive_text_or_bytes(group.elem.as_ref()),
+        syn::Type::Paren(paren) => type_contains_sensitive_text_or_bytes(paren.elem.as_ref()),
+        syn::Type::BareFn(_)
+        | syn::Type::ImplTrait(_)
+        | syn::Type::Infer(_)
+        | syn::Type::Macro(_)
+        | syn::Type::Never(_)
+        | syn::Type::Ptr(_)
+        | syn::Type::TraitObject(_)
+        | syn::Type::Tuple(_)
+        | syn::Type::Verbatim(_)
+        | _ => false,
+    }
+}
+fn type_is_u8(ty: &syn::Type) -> bool {
+    matches!(
+        ty,
+        syn::Type::Path(path)
+            if path.path.segments.last().is_some_and(|segment| segment.ident == "u8")
+    )
 }
 #[allow(clippy::single_call_fn)] // keeps external-service error messages stable and readable
 fn path_to_string(path: types::SynPathRef<'_>) -> types::SourceText {

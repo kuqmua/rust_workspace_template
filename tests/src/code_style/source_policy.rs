@@ -481,6 +481,33 @@ fn fixture(result: Result<(), ()>) {
     assert_eq!(invalid_visitor.ers.len(), 2usize);
 }
 #[test]
+fn diagnostic_id_visitor_checks_generated_expect_and_panic_tokens() {
+    let ast = syn::parse_file(
+        r#"
+fn generate() {
+    quote::quote! {
+        result.expect("10d77b5f generated expect");
+        panic!("d6826d61 generated panic");
+    };
+    quote::quote! {
+        result.expect("invalid");
+        panic!("invalid");
+    };
+}
+"#,
+    )
+    .expect("227c291c");
+    let visitor = super::visit_syn_file(
+        super::types::SynFileRef::from(&ast),
+        super::DiagnosticIdVisitor {
+            ers: super::types::DiagnosticMsgs::default(),
+            ids: super::types::SourceTextList::default(),
+        },
+    );
+    assert_eq!(visitor.ids.len(), 2usize);
+    assert_eq!(visitor.ers.len(), 2usize);
+}
+#[test]
 fn check_rs_files_contains_only_unique_uuid_v4() {
     let regex = regex::Regex::new(str_constants::B_0_9A_FA_F_8_0_9A_FA_F_4_4).expect("e098a1ff");
     let mut seen = std::collections::HashSet::new();
@@ -694,6 +721,7 @@ fn spawn_tasks() {
     tokio::spawn(async {});
     let _ = tokio::task::spawn_blocking(|| {});
     let _handle = std::thread::spawn(|| {});
+    std::mem::drop(tokio::task::spawn_local(async {}));
     let handle = tokio::spawn(async {});
     supervise(handle);
 }
@@ -706,7 +734,7 @@ fn spawn_tasks() {
             ers: super::types::DiagnosticMsgs::default(),
         },
     );
-    assert_eq!(visitor.ers.len(), 3usize);
+    assert_eq!(visitor.ers.len(), 4usize);
 }
 #[test]
 fn direct_environment_and_filesystem_access_stays_at_owned_boundaries() {
@@ -1035,6 +1063,11 @@ fn abort_and_transmute_calls_match_reviewed_baseline() {
 }
 #[test]
 fn unit_tests_use_deterministic_time_and_randomness_patterns() {
+    let reviewed_calls = [(
+        "frontend_contract/src/auth_session_keep_alive.rs",
+        str_constants::STD_PATH_TIME_PATH_INSTANT_PATH_NOW,
+        "the test needs an opaque Instant identity and never observes elapsed wall time",
+    )];
     super::assert_rs_ast_ers_empty_with_ctx(
         super::types::StaticStr::from(str_constants::VALUE_821D4A76),
         super::types::SourceTextRef::from(str_constants::UNIT_TESTS_USE_NONDETERMINISTIC_TIME_SLEEP_OR_RANDOMNESS_WITHOUT_A_REVIEWED_OWNER),
@@ -1046,10 +1079,14 @@ fn unit_tests_use_deterministic_time_and_randomness_patterns() {
                     test_depth: super::types::AnalyzerCount::default(),
                 },
             );
-            visitor
-                .calls
-                .into_iter()
-                .for_each(|call| ers.push(format!("{}: nondeterministic `{call}`", path.display())));
+            visitor.calls.into_iter().for_each(|call| {
+                let reviewed = reviewed_calls.iter().any(|(suffix, reviewed_call, reason)| {
+                    path.ends_with(suffix) && call == *reviewed_call && !reason.is_empty()
+                });
+                if !reviewed {
+                    ers.push(format!("{}: nondeterministic `{call}`", path.display()));
+                }
+            });
         },
     );
 }
@@ -1065,7 +1102,10 @@ fn nondeterministic_test() {
 #[tokio::test]
 async fn nondeterministic_async_test() {
     std::time::SystemTime::now();
+    std::time::Instant::now();
     rand::rng();
+    getrandom::fill(&mut [0u8; 4]);
+    rand::rngs::OsRng;
 }
 ",
     )
@@ -1083,9 +1123,155 @@ async fn nondeterministic_async_test() {
             str_constants::TOKIO_PATH_TIME_PATH_SLEEP,
             str_constants::UUID_PATH_UUID_PATH_NEW_V4,
             str_constants::STD_PATH_TIME_PATH_SYSTEMTIME_PATH_NOW,
+            str_constants::STD_PATH_TIME_PATH_INSTANT_PATH_NOW,
             str_constants::RAND_PATH_RNG,
+            str_constants::GETRANDOM_PATH_FILL,
+            str_constants::RAND_PATH_RNGS_PATH_OS_RNG,
         ],
         "fa8d2bb1"
+    );
+}
+#[test]
+fn generated_source_templates_do_not_embed_random_test_values() {
+    super::assert_rs_ast_ers_empty_with_ctx(
+        super::types::StaticStr::from("59ca43b5"),
+        super::types::SourceTextRef::from(
+            "generated source templates must receive deterministic fixture values",
+        ),
+        |path, ast, ers| {
+            let visitor = super::visit_syn_file(
+                super::types::SynFileRef::from(ast),
+                super::GeneratedRandomnessVisitor {
+                    calls: super::types::DiagnosticMsgs::default(),
+                },
+            );
+            ers.extend(
+                visitor
+                    .calls
+                    .into_iter()
+                    .map(|call| format!("{}: generated `{call}`", path.display())),
+            );
+        },
+    );
+}
+#[test]
+fn generated_randomness_policy_inspects_quote_token_streams() {
+    let source = [
+        "fn generated() {",
+        "quote::quote! { uuid::Uuid::new_v4() };",
+        "quote::quote! { rand::random::<u64>() };",
+        "}",
+    ]
+    .join("\n");
+    let ast = syn::parse_file(source.as_str()).expect("04e98f91");
+    let visitor = super::visit_syn_file(
+        super::types::SynFileRef::from(&ast),
+        super::GeneratedRandomnessVisitor {
+            calls: super::types::DiagnosticMsgs::default(),
+        },
+    );
+    assert_eq!(visitor.calls.len(), 2usize);
+}
+#[test]
+fn process_static_state_matches_reviewed_inventory() {
+    struct StaticStateException {
+        identifier: &'static str,
+        path_suffix: &'static str,
+        reason: &'static str,
+    }
+    let exceptions = [
+        StaticStateException {
+            identifier: "PANIC_HOOK_ONCE",
+            path_suffix: "panic_location/src/lib.rs",
+            reason: "the process-wide panic hook must be installed exactly once",
+        },
+        StaticStateException {
+            identifier: "TEST_SEQ",
+            path_suffix: "macros_helpers/src/test_hlp.rs",
+            reason: "test-only sequence values keep generated fixture names distinct",
+        },
+        StaticStateException {
+            identifier: "TEST_SEQ",
+            path_suffix: "macro_clippy_check_common/src/lib.rs",
+            reason: "test-only sequence values keep generated fixture names distinct",
+        },
+        StaticStateException {
+            identifier: "SNAPSHOT",
+            path_suffix: "tests/src/code_style/snapshot.rs",
+            reason: "the test-only thread-local cache avoids repeated workspace scans",
+        },
+        StaticStateException {
+            identifier: "ADMIN_MIGRATOR",
+            path_suffix: "server_admin/src/migrations.rs",
+            reason: "sqlx embeds an immutable migration catalog at compile time",
+        },
+        StaticStateException {
+            identifier: "RUN_COUNTER",
+            path_suffix: "workspace_test_runner/src/execution.rs",
+            reason: "the CLI runner needs collision-free process-local artifact names",
+        },
+    ];
+    super::assert_rs_ast_ers_empty_with_ctx(
+        super::types::StaticStr::from("31f842cb"),
+        super::types::SourceTextRef::from("static state must have an exact reviewed owner"),
+        |path, ast, ers| {
+            let visitor = super::visit_syn_file(
+                super::types::SynFileRef::from(ast),
+                super::StaticStateVisitor {
+                    identifiers: super::types::SourceTextList::default(),
+                },
+            );
+            visitor.identifiers.into_iter().for_each(|identifier| {
+                let reviewed = exceptions.iter().any(|exception| {
+                    path.ends_with(exception.path_suffix)
+                        && exception.identifier == identifier
+                        && !exception.reason.is_empty()
+                });
+                if !reviewed {
+                    ers.push(format!(
+                        "{}: unreviewed static `{identifier}`",
+                        path.display()
+                    ));
+                }
+            });
+        },
+    );
+}
+#[test]
+fn library_print_macros_have_reviewed_terminal_owners() {
+    let reviewed_path_suffixes = [
+        "panic_location/src/lib.rs",
+        "config_lib/src/types.rs",
+        "workspace_test_runner/src/execution.rs",
+        "workspace_test_runner/src/reporting.rs",
+    ];
+    super::assert_rs_ast_ers_empty_with_ctx(
+        super::types::StaticStr::from("fc684512"),
+        super::types::SourceTextRef::from(
+            "library print macros are limited to reviewed process-boundary owners",
+        ),
+        |path, ast, ers| {
+            let is_library_source = path
+                .ancestors()
+                .find(|ancestor| ancestor.file_name().is_some_and(|name| name == "src"))
+                .is_some_and(|source_directory| source_directory.join("lib.rs").exists());
+            if !is_library_source
+                || reviewed_path_suffixes
+                    .iter()
+                    .any(|suffix| path.ends_with(suffix))
+            {
+                return;
+            }
+            let visitor = super::visit_syn_file(
+                super::types::SynFileRef::from(ast),
+                super::PrintMacroVisitor {
+                    calls: super::types::DiagnosticMsgs::default(),
+                },
+            );
+            visitor.calls.into_iter().for_each(|call| {
+                ers.push(format!("{}: unreviewed `{call}!`", path.display()));
+            });
+        },
     );
 }
 #[test]
@@ -1117,6 +1303,12 @@ fn sensitive_text_debug_policy_distinguishes_redacted_derives() {
         "
 #[derive(Debug, Display)]
 struct ApiTokenRef<'value_lt>(&'value_lt str);
+#[derive(DebugTransparent)]
+struct ApiKeyBytes {
+    value: Vec<u8>,
+}
+#[derive(DisplayTransparent)]
+struct PasswordHash([u8; 32]);
 #[derive(newtype::DebugRedacted)]
 struct ApiSecret(String);
 ",
@@ -1128,13 +1320,72 @@ struct ApiSecret(String);
             ers: super::types::DiagnosticMsgs::default(),
         },
     );
-    assert_eq!(visitor.ers.len(), 2usize);
+    assert_eq!(visitor.ers.len(), 4usize);
     assert!(
         visitor
             .ers
             .iter()
-            .all(|error| error.contains("ApiTokenRef"))
+            .any(|error| error.contains("ApiTokenRef"))
     );
+    assert!(
+        visitor
+            .ers
+            .iter()
+            .any(|error| error.contains("ApiKeyBytes"))
+    );
+    assert!(
+        visitor
+            .ers
+            .iter()
+            .any(|error| error.contains("PasswordHash"))
+    );
+}
+#[test]
+fn error_formatters_do_not_expose_sensitive_fields() {
+    super::assert_rs_ast_ers_empty_with_ctx(
+        super::types::StaticStr::from("fe402639"),
+        super::types::SourceTextRef::from(
+            "thiserror format strings must not interpolate secret text or bytes",
+        ),
+        |path, ast, ers| {
+            let visitor = super::visit_syn_file(
+                super::types::SynFileRef::from(ast),
+                super::SensitiveErrorFormatVisitor {
+                    ers: super::types::DiagnosticMsgs::default(),
+                },
+            );
+            ers.extend(
+                visitor
+                    .ers
+                    .into_iter()
+                    .map(|error| format!("{}: {error}", path.display())),
+            );
+        },
+    );
+}
+#[test]
+fn sensitive_error_format_policy_rejects_named_and_tuple_placeholders() {
+    let ast = syn::parse_file(
+        r#"
+#[derive(thiserror::Error)]
+enum AuthenticationError {
+    #[error("rejected secret: {secret}")]
+    Named { secret: String },
+    #[error("rejected password: {0:?}")]
+    Tuple(Vec<u8>),
+    #[error("token was rejected")]
+    Redacted { token: String },
+}
+"#,
+    )
+    .expect("d8cc09ca");
+    let visitor = super::visit_syn_file(
+        super::types::SynFileRef::from(&ast),
+        super::SensitiveErrorFormatVisitor {
+            ers: super::types::DiagnosticMsgs::default(),
+        },
+    );
+    assert_eq!(visitor.ers.len(), 2usize);
 }
 #[test]
 fn no_todo_or_unimplemented_macro_in_source_code() {
@@ -1163,6 +1414,187 @@ fn no_todo_or_unimplemented_macro_in_source_code() {
             );
         },
     );
+}
+#[test]
+fn source_lint_suppressions_have_explicit_reasons() {
+    struct LegacySuppression {
+        limit: usize,
+        path_suffix: &'static str,
+        reason: &'static str,
+    }
+    let legacy = [
+        LegacySuppression {
+            limit: 1,
+            path_suffix: "config_lib/src/types.rs",
+            reason: "environment fallback output predates per-attribute reasons",
+        },
+        LegacySuppression {
+            limit: 1,
+            path_suffix: "file_storage/src/lib.rs",
+            reason: "iterator control flow predates per-attribute reasons",
+        },
+        LegacySuppression {
+            limit: 7,
+            path_suffix: "location_lib/src/location.rs",
+            reason: "location macro compatibility predates per-attribute reasons",
+        },
+        LegacySuppression {
+            limit: 1,
+            path_suffix: "macros_helpers/src/location.rs",
+            reason: "location macro compatibility predates per-attribute reasons",
+        },
+        LegacySuppression {
+            limit: 1,
+            path_suffix: "macros_helpers/src/status_code.rs",
+            reason: "generated status-code shape predates per-attribute reasons",
+        },
+        LegacySuppression {
+            limit: 1,
+            path_suffix: "macros_helpers/src/write_string_into_file.rs",
+            reason: "filesystem helper control flow predates per-attribute reasons",
+        },
+        LegacySuppression {
+            limit: 1,
+            path_suffix: "newtype/tests/newtype.rs",
+            reason: "derive fixture intentionally retains an otherwise unused item",
+        },
+        LegacySuppression {
+            limit: 16,
+            path_suffix: "pg_crud/pg_crud_common/src/lib.rs",
+            reason: "generated SQL token shapes predate per-attribute reasons",
+        },
+        LegacySuppression {
+            limit: 1,
+            path_suffix: "pg_crud/pg_crud_macros_common/src/filters.rs",
+            reason: "generated filter token shapes predate per-attribute reasons",
+        },
+        LegacySuppression {
+            limit: 14,
+            path_suffix: "pg_crud/pg_crud_macros_common/src/lib.rs",
+            reason: "generated CRUD token shapes predate per-attribute reasons",
+        },
+        LegacySuppression {
+            limit: 13,
+            path_suffix: "pg_crud/pg_crud_macros_common/src/pg_type_test_cases.rs",
+            reason: "generated database fixtures predate per-attribute reasons",
+        },
+        LegacySuppression {
+            limit: 3,
+            path_suffix: "pg_crud/pg_crud_macros_common/src/token_stream_helpers.rs",
+            reason: "token-stream compatibility helpers predate per-attribute reasons",
+        },
+        LegacySuppression {
+            limit: 20,
+            path_suffix: "pg_crud/pg_table/generate_pg_table_src/src/source.rs",
+            reason: "generated table templates predate per-attribute reasons",
+        },
+        LegacySuppression {
+            limit: 11,
+            path_suffix: "pg_crud/pg_types/generate_pg_types_src/src/source.rs",
+            reason: "generated type templates predate per-attribute reasons",
+        },
+        LegacySuppression {
+            limit: 1,
+            path_suffix: "pg_crud/where_filters/generate_where_filters_src/src/contract_tests.rs",
+            reason: "generated contract fixtures predate per-attribute reasons",
+        },
+        LegacySuppression {
+            limit: 2,
+            path_suffix: "pg_crud/where_filters/generate_where_filters_src/src/source.rs",
+            reason: "generated filter templates predate per-attribute reasons",
+        },
+        LegacySuppression {
+            limit: 13,
+            path_suffix: "pg_crud/where_filters/src/lib.rs",
+            reason: "generated filter API shapes predate per-attribute reasons",
+        },
+        LegacySuppression {
+            limit: 1,
+            path_suffix: "route_validators/src/test_hlp.rs",
+            reason: "validator test helper shape predates per-attribute reasons",
+        },
+        LegacySuppression {
+            limit: 5,
+            path_suffix: "server_admin/src/auth.rs",
+            reason: "authentication compatibility paths predate per-attribute reasons",
+        },
+        LegacySuppression {
+            limit: 1,
+            path_suffix: "server_admin/src/generated_tables.rs",
+            reason: "generated table module predates per-attribute reasons",
+        },
+        LegacySuppression {
+            limit: 1,
+            path_suffix: "server_admin/tests/admin_api.rs",
+            reason: "integration fixture shape predates per-attribute reasons",
+        },
+        LegacySuppression {
+            limit: 1,
+            path_suffix: "server_config/src/lib.rs",
+            reason: "configuration API ordering predates per-attribute reasons",
+        },
+        LegacySuppression {
+            limit: 1,
+            path_suffix: "server_runtime/src/lifecycle.rs",
+            reason: "lifecycle select branches predate per-attribute reasons",
+        },
+        LegacySuppression {
+            limit: 1,
+            path_suffix: "tests/src/code_style/snapshot.rs",
+            reason: "test-only snapshot accessor predates per-attribute reasons",
+        },
+    ];
+    super::assert_rs_ast_ers_empty_with_ctx(
+        super::types::StaticStr::from("07a7d7d1"),
+        super::types::SourceTextRef::from("source allow and expect attributes require reasons"),
+        |path, ast, ers| {
+            let source = std::fs::read_to_string(path).expect("8d3bca08");
+            let visitor = super::visit_syn_file(
+                super::types::SynFileRef::from(ast),
+                super::AllowReasonVisitor {
+                    ers: super::types::DiagnosticMsgs::default(),
+                    lines: super::types::SourceTextList::from(
+                        source.lines().map(str::to_owned).collect::<Vec<String>>(),
+                    ),
+                },
+            );
+            let reviewed_limit = legacy
+                .iter()
+                .find(|exception| {
+                    path.ends_with(exception.path_suffix) && !exception.reason.is_empty()
+                })
+                .map_or(0usize, |exception| exception.limit);
+            ers.extend(
+                visitor
+                    .ers
+                    .into_iter()
+                    .skip(reviewed_limit)
+                    .map(|error| format!("{}: {error}", path.display())),
+            );
+        },
+    );
+}
+#[test]
+fn source_lint_reason_policy_accepts_argument_and_comment_reasons() {
+    let source = r#"
+#[allow(dead_code)]
+fn invalid() {}
+#[allow(dead_code)] // fixture is intentionally unused
+fn comment_reason() {}
+#[allow(dead_code, reason = "fixture is intentionally unused")]
+fn argument_reason() {}
+"#;
+    let ast = syn::parse_file(source).expect("ec218827");
+    let visitor = super::visit_syn_file(
+        super::types::SynFileRef::from(&ast),
+        super::AllowReasonVisitor {
+            ers: super::types::DiagnosticMsgs::default(),
+            lines: super::types::SourceTextList::from(
+                source.lines().map(str::to_owned).collect::<Vec<String>>(),
+            ),
+        },
+    );
+    assert_eq!(visitor.ers.len(), 1usize);
 }
 #[test]
 fn source_does_not_retain_commented_debug_statements() {
@@ -1196,23 +1628,35 @@ fn commented_debug_statement_policy_rejects_debug_macros_only() {
 }
 #[test]
 fn project_text_files_have_stable_line_endings_and_no_trailing_whitespace() {
+    let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .expect("fd1294e4");
+    let mut command = macros_helpers::tool_command::ToolCommand::new(
+        macros_helpers::tool_command::ToolProgramRef::from(str_constants::GIT_PROGRAM),
+    );
+    let _command = command
+        .current_dir(macros_helpers::tool_command::StdPathRef::from(
+            repository_root,
+        ))
+        .args(macros_helpers::tool_command::ToolArgsRef::from(
+            str_constants::GIT_LS_FILES_ARGS.as_slice(),
+        ));
+    let output = command.output().expect("e6c52471");
+    assert!(output.status.success(), "9041df16");
+    let tracked_paths = std::str::from_utf8(&output.stdout).expect("b9976fe8");
     let mut violations = Vec::<String>::new();
-    walkdir::WalkDir::new(str_constants::TEXT_ALT_9)
-        .into_iter()
-        .filter_entry(|entry| {
-            entry.file_name() != str_constants::TARGET && entry.file_name() != str_constants::GIT
-        })
-        .map(|entry| entry.expect("d808e460"))
-        .filter(|entry| !entry.file_type().is_dir())
-        .filter(|entry| {
-            super::text_hygiene_path(super::types::StdPathRef::from(entry.path())).get()
-        })
-        .for_each(|entry| {
-            let source = std::fs::read_to_string(entry.path()).expect("fe3ed3d9");
+    tracked_paths
+        .split_terminator('\0')
+        .for_each(|relative_path| {
+            let path = repository_root.join(relative_path);
+            let bytes = std::fs::read(path.as_path()).expect("d808e460");
+            let Ok(source) = std::str::from_utf8(bytes.as_slice()) else {
+                return;
+            };
             violations.extend(
-                super::text_content_hygiene_ers(super::types::SourceTextRef::from(source.as_str()))
+                super::text_content_hygiene_ers(super::types::SourceTextRef::from(source))
                     .into_iter()
-                    .map(|error| format!("{}: {error}", entry.path().display())),
+                    .map(|error| format!("{}: {error}", path.display())),
             );
         });
     assert!(violations.is_empty(), "8c22bed1 {violations:#?}");

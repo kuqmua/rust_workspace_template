@@ -7463,7 +7463,9 @@ pub fn emit_generate_pg_table(
             )
         };
         let primary_key_where_eq_uuid_new_v_token_stream =
-            generate_primary_key_where_eq_new_token_stream(&quote::quote! {uuid::Uuid::new_v4()});
+            generate_primary_key_where_eq_new_token_stream(
+                &quote::quote! {uuid::Uuid::from_u128(2u128)},
+            );
         let generate_primary_key_where_eq_into_inner_token_stream = |ts0: &dyn quote::ToTokens| {
             generate_primary_key_where_eq_new_token_stream(
                 &quote::quote! {#primary_key_as_pg_type_token_stream::into_inner(#ts0)},
@@ -8663,7 +8665,7 @@ pub fn emit_generate_pg_table(
             &quote::quote! {
                     generate_check_no_rows_from_identifier_try_ro_handle_primary_key(
                         &url_cloned,
-                        #primary_key_field_type_as_pg_type_read_token_stream::new(uuid::Uuid::new_v4()),
+                        #primary_key_field_type_as_pg_type_read_token_stream::new(uuid::Uuid::from_u128(3u128)),
                         #select_default_all_with_max_page_size_cloned_clone_token_stream,
                         &table_ro_cloned,
                     ).await;
@@ -9152,7 +9154,7 @@ pub fn emit_generate_pg_table(
                 &quote::quote! {
                         if let Err(#ErrorSnakeCase) = generate_try_dlo_handle(
                             &url_cloned,
-                            #primary_key_field_type_as_pg_type_read_token_stream::new(uuid::Uuid::new_v4()),
+                            #primary_key_field_type_as_pg_type_read_token_stream::new(uuid::Uuid::from_u128(4u128)),
                             &table_dlo_cloned
                         ).await {
                             if let #identifier_try_dlo_error_upper_camel_case::#identifier_dlo_error_with_serde_upper_camel_case {

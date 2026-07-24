@@ -19,6 +19,7 @@ pub(super) struct CodebaseSnapshot {
     project_source_files: Vec<ProjectSourceFile>,
     rs_files: Vec<RsSourceFile>,
     workspace_crate_names: super::types::StdSourceTextSet,
+    workspace_metadata: super::types::CargoMetadata,
 }
 impl ProjectSourceFile {
     pub(super) fn content(&self) -> &super::types::SourceText {
@@ -111,6 +112,7 @@ impl CodebaseSnapshot {
             cargo_toml_files,
             project_source_files,
             rs_files,
+            workspace_metadata: metadata,
             workspace_crate_names: super::types::StdSourceTextSet::from(workspace_crate_names),
         }
     }
@@ -166,6 +168,9 @@ impl CodebaseSnapshot {
     #[allow(clippy::single_call_fn)]
     pub(super) fn workspace_crate_names(&self) -> super::types::StdSourceTextSet {
         self.workspace_crate_names.clone()
+    }
+    pub(super) fn workspace_metadata(&self) -> super::types::CargoMetadataRef<'_> {
+        super::types::CargoMetadataRef::from(self.workspace_metadata.as_ref())
     }
 }
 pub(super) fn with_codebase_snapshot<R>(f: impl FnOnce(&CodebaseSnapshot) -> R) -> R {

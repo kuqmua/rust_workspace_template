@@ -157,6 +157,23 @@ async fn blocked() {
     std::net::TcpStream::connect("127.0.0.1:1");
     futures::executor::block_on(async {});
 }
+struct Service;
+impl Service {
+    async fn blocked_method() {
+        std::fs::metadata("input");
+    }
+}
+trait BlockedTrait {
+    async fn blocked_default() {
+        std::fs::canonicalize("input");
+    }
+}
+fn nested_async() {
+    let _future = async {
+        std::fs::write("output", []);
+    };
+    let _closure = async || std::fs::read_to_string("input");
+}
 fn synchronous_is_allowed() {
     std::fs::read("input");
 }
@@ -170,7 +187,7 @@ fn synchronous_is_allowed() {
             ers: super::types::DiagnosticMsgs::default(),
         },
     );
-    assert_eq!(visitor.ers.len(), 3usize);
+    assert_eq!(visitor.ers.len(), 7usize);
 }
 #[test]
 fn unit_tests_do_not_create_external_service_clients() {

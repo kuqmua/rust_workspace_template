@@ -3002,6 +3002,7 @@ str_constants_macros::define_str_constants! {
         pub USERS_ALT = [WORD_USERS_2];
         pub UTOIPA = [WORD_UTOIPA];
         pub UUID_PATH_UUID_PATH_NEW_V4 = [WORD_UUID, "::Uuid::new_v4"];
+        pub UUID_PATH_UUID_PATH_NEW_V7 = [WORD_UUID, "::Uuid::new_v7"];
         pub V_USIZE = [WORD_V, ":", WORD_USIZE];
         pub VALIDATE_GENERATE_PG_TABLE_FIELDS_MODEL_STAGE = ["validate_generate_pg_table_fields_model_stage"];
         pub VALIDATION_FAILED = [WORD_VALIDATION, " ", WORD_FAILED_2];
@@ -3109,14 +3110,23 @@ str_constants_macros::define_str_constants! {
         pub TOKIO_PATH_FS_PATH_READ_TO_STRING = [WORD_TOKIO, "::", WORD_FS, "::", WORD_READ_TO_STRING];
         pub TOKIO_PATH_SPAWN = [WORD_TOKIO, "::", WORD_SPAWN];
         pub TOKIO_PATH_TASK_PATH_SPAWN_BLOCKING = [WORD_TOKIO, "::", WORD_TASK, "::spawn_blocking"];
+        pub TOKIO_PATH_TASK_PATH_SPAWN_LOCAL = [WORD_TOKIO, "::", WORD_TASK, "::spawn_local"];
         pub STD_PATH_THREAD_PATH_SPAWN = [WORD_STD, "::", WORD_THREAD, "::", WORD_SPAWN];
         pub RAND_PATH_RNG = ["rand::rng"];
         pub RAND_PATH_RANDOM = ["rand::random"];
         pub RAND_PATH_RANDOM_RANGE = ["rand::random_range"];
         pub RAND_PATH_THREAD_RNG = ["rand::thread_rng"];
+        pub RAND_PATH_RNGS_PATH_OS_RNG = ["rand::rngs::OsRng"];
+        pub RAND_CORE_PATH_OS_RNG = ["rand_core::OsRng"];
+        pub GETRANDOM_PATH_FILL = ["getrandom::fill"];
+        pub GETRANDOM_PATH_U32 = ["getrandom::u32"];
+        pub GETRANDOM_PATH_U64 = ["getrandom::u64"];
         pub STD_PATH_THREAD_PATH_SLEEP = [WORD_STD, "::", WORD_THREAD, "::", WORD_SLEEP];
+        pub STD_PATH_TIME_PATH_INSTANT_PATH_NOW = [WORD_STD, "::", WORD_TIME, "::Instant::", WORD_NOW_2];
         pub STD_PATH_TIME_PATH_SYSTEMTIME_PATH_NOW = [WORD_STD, "::", WORD_TIME, "::SystemTime::", WORD_NOW_2];
+        pub TOKIO_PATH_TIME_PATH_INSTANT_PATH_NOW = [WORD_TOKIO, "::", WORD_TIME, "::Instant::", WORD_NOW_2];
         pub PATH_LOCAL_PATH_NOW = ["::Local::", WORD_NOW_2];
+        pub PATH_FROM_OS_RNG = ["::from_os_rng"];
         pub COMPILE_ERROR_TOKEN_STREAM = [WORD_COMPILE_ERROR_TOKEN_STREAM];
         pub TOML = [WORD_TOML];
         pub YML = [WORD_YML];
@@ -3643,10 +3653,8 @@ pub const BLOCKING_STD_NET_CALLS: [&str; 3] = [
     "std::net::TcpStream::connect",
     "std::net::UdpSocket::bind",
 ];
-pub const MD_EXT: &str = "md";
-pub const SQL_EXT: &str = "sql";
-pub const DOCKERFILE_NAME: &str = "dockerfile";
-pub const GITIGNORE_NAME: &str = ".gitignore";
+pub const GIT_PROGRAM: &str = "git";
+pub const GIT_LS_FILES_ARGS: [&str; 2] = ["ls-files", "-z"];
 pub const FILE_DELETE_STAGING_DIRECTORY: &str = ".delete_staging";
 pub const FILE_UPLOAD_STAGING_DIRECTORY: &str = ".upload_staging";
 pub const TEST_PATH_TRAVERSAL: &str = "../secret";

@@ -2196,42 +2196,42 @@ pub fn emit_generate_pg_types(
                                         &sqlx_types_chrono_naive_date_min_fn_token_stream,
                                         &quote::quote! {
                                             from_ymd_opt(-4713, 12, 31)
-                                                .expect("d25ee0e9")
+                                                .expect("d074927c")
                                         },
                                     ),
                                     generate_fn_identifier_inner_type_token_stream(
                                         &sqlx_types_chrono_naive_date_negative_less_typical_fn_token_stream,
                                         &quote::quote! {
                                             from_ymd_opt(-2000, 1, 1)
-                                                .expect("d25ee0e9")
+                                                .expect("c4e31c47")
                                         },
                                     ),
                                     generate_fn_identifier_inner_type_token_stream(
                                         &sqlx_types_chrono_naive_date_negative_more_typical_fn_token_stream,
                                         &quote::quote! {
                                             from_ymd_opt(-1000, 1, 1)
-                                                .expect("d25ee0e9")
+                                                .expect("22400727")
                                         },
                                     ),
                                     generate_fn_identifier_inner_type_token_stream(
                                         &sqlx_types_chrono_naive_date_near_zero_fn_token_stream,
                                         &quote::quote! {
                                             from_ymd_opt(0, 1, 1)
-                                                .expect("d25ee0e9")
+                                                .expect("05c3dc8c")
                                         },
                                     ),
                                     generate_fn_identifier_inner_type_token_stream(
                                         &sqlx_types_chrono_naive_date_positive_less_typical_fn_token_stream,
                                         &quote::quote! {
                                             from_ymd_opt(1000, 1, 1)
-                                                .expect("d25ee0e9")
+                                                .expect("56140676")
                                         },
                                     ),
                                     generate_fn_identifier_inner_type_token_stream(
                                         &sqlx_types_chrono_naive_date_positive_more_typical_fn_token_stream,
                                         &quote::quote! {
                                             from_ymd_opt(2000, 1, 1)
-                                                .expect("d25ee0e9")
+                                                .expect("739e0bc9")
                                         },
                                     ),
                                 ]
@@ -4730,7 +4730,7 @@ pub fn emit_generate_pg_types(
                     ]},
                     PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg => quote::quote! {Vec::new()},
                     PgType::SqlxTypesUuidUuidAsUuidInitializationByClient => quote::quote! {vec![
-                        sqlx::types::Uuid::new_v4()
+                        sqlx::types::Uuid::from_u128(1u128)
                     ]},
                     PgType::SqlxTypesIpnetworkIpNetworkAsInet => quote::quote! {vec![
                         <sqlx::types::ipnetwork::IpNetwork as std::str::FromStr>::from_str("192.168.0.0/24").expect("478dbded"),
