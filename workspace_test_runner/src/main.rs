@@ -6,40 +6,6 @@ const ADMIN_FIXTURE_STRING_MAX_LEN: usize = 1_048_576usize;
 const MEASURE_REPEAT_COUNT: usize = 1000;
 const RUNNER_MODE_MAX_LEN: usize = 1_024usize;
 const SQL_BUILDER_MEASURE_SERIES_COUNT: usize = 5;
-const STATIC_COMMANDS: [(&str, &[&str]); 3] = [
-    (
-        str_constants::WORKSPACE_TEST_RUNNER_CARGO,
-        &str_constants::WORKSPACE_TEST_RUNNER_CARGO_FMT_CHECK_ARGS,
-    ),
-    (
-        str_constants::WORKSPACE_TEST_RUNNER_CARGO,
-        &str_constants::WORKSPACE_TEST_RUNNER_CARGO_CLIPPY_ARGS,
-    ),
-    (
-        str_constants::WORKSPACE_TEST_RUNNER_CARGO,
-        &str_constants::WORKSPACE_TEST_RUNNER_CARGO_TEST_STYLE_ARGS,
-    ),
-];
-const CARGO_TEST_COMMANDS: [(&str, &[&str]); 2] = [
-    (
-        str_constants::WORKSPACE_TEST_RUNNER_CARGO,
-        &str_constants::WORKSPACE_TEST_RUNNER_CARGO_TEST_WORKSPACE_ARGS,
-    ),
-    (
-        str_constants::WORKSPACE_TEST_RUNNER_CARGO,
-        &str_constants::WORKSPACE_TEST_RUNNER_CARGO_TEST_DOC_ARGS,
-    ),
-];
-const NEXTEST_COMMANDS: [(&str, &[&str]); 2] = [
-    (
-        str_constants::WORKSPACE_TEST_RUNNER_CARGO,
-        &str_constants::WORKSPACE_TEST_RUNNER_NEXTEST_WORKSPACE_ARGS,
-    ),
-    (
-        str_constants::WORKSPACE_TEST_RUNNER_CARGO,
-        &str_constants::WORKSPACE_TEST_RUNNER_CARGO_TEST_DOC_ARGS,
-    ),
-];
 const CLEAN_ANSI_TEXT_MAX_LEN: usize = 16_777_216;
 #[derive(Clone, Copy, newtype::FromInner)]
 struct MeasurementName(&'static str);
@@ -720,11 +686,12 @@ fn print_optional_release_tools() {
 #[allow(clippy::single_call_fn)] // release orchestration is an explicit CLI mode boundary
 fn run_release() -> Result<(), ()> {
     print_optional_release_tools();
-    let mut commands = Vec::<(&str, &[&str])>::from(STATIC_COMMANDS);
+    let mut commands =
+        Vec::<(&str, &[&str])>::from(str_constants::WORKSPACE_TEST_RUNNER_STATIC_COMMANDS);
     if cargo_subcommand_available(ToolName::from(str_constants::NEXTEST)).get() {
-        commands.extend(NEXTEST_COMMANDS);
+        commands.extend(str_constants::WORKSPACE_TEST_RUNNER_NEXTEST_COMMANDS);
     } else {
-        commands.extend(CARGO_TEST_COMMANDS);
+        commands.extend(str_constants::WORKSPACE_TEST_RUNNER_CARGO_TEST_COMMANDS);
     }
     [
         (
@@ -762,10 +729,14 @@ fn run_release() -> Result<(), ()> {
 fn run_workspace_tests() -> Result<(), ()> {
     if cargo_subcommand_available(ToolName::from(str_constants::NEXTEST)).get() {
         println!("test_executor=nextest");
-        execution::run_commands(execution::CommandsRef::from(&NEXTEST_COMMANDS))
+        execution::run_commands(execution::CommandsRef::from(
+            &str_constants::WORKSPACE_TEST_RUNNER_NEXTEST_COMMANDS,
+        ))
     } else {
         println!("test_executor=cargo fallback=true");
-        execution::run_commands(execution::CommandsRef::from(&CARGO_TEST_COMMANDS))
+        execution::run_commands(execution::CommandsRef::from(
+            &str_constants::WORKSPACE_TEST_RUNNER_CARGO_TEST_COMMANDS,
+        ))
     }
 }
 fn admin_fixture_string<Value>(value: impl TryInto<AdminFixtureString>) -> Result<Value, ()>
@@ -1069,9 +1040,9 @@ fn write_admin_contract_fixture() -> Result<(), ()> {
 fn main() {
     let mode = discovery::mode();
     let result = match mode.as_ref().map(RunnerMode::as_ref) {
-        None | Some(str_constants::STATIC) => {
-            execution::run_commands(execution::CommandsRef::from(&STATIC_COMMANDS))
-        }
+        None | Some(str_constants::STATIC) => execution::run_commands(
+            execution::CommandsRef::from(&str_constants::WORKSPACE_TEST_RUNNER_STATIC_COMMANDS),
+        ),
         Some(str_constants::DATABASE) => {
             match std::env::var(str_constants::ENV_NAMES_DATABASE_URL) {
                 Ok(database_url) => {
@@ -1597,18 +1568,17 @@ fn main() {
                 }
             }
         }
-        Some(str_constants::ALL_ALT) => {
-            execution::run_commands(execution::CommandsRef::from(&STATIC_COMMANDS))
-                .and_then(|()| run_workspace_tests())
-                .and_then(|()| {
-                    macro_generation_measurements().iter().try_fold(
-                        (),
-                        |(), (measurement_name, args)| {
-                            measure_cargo_command(*measurement_name, *args)
-                        },
-                    )
+        Some(str_constants::ALL_ALT) => execution::run_commands(execution::CommandsRef::from(
+            &str_constants::WORKSPACE_TEST_RUNNER_STATIC_COMMANDS,
+        ))
+        .and_then(|()| run_workspace_tests())
+        .and_then(|()| {
+            macro_generation_measurements()
+                .iter()
+                .try_fold((), |(), (measurement_name, args)| {
+                    measure_cargo_command(*measurement_name, *args)
                 })
-        }
+        }),
         Some(other) => {
             eprintln!(
                 "unknown mode `{other}`; expected `static`, `database`, `tests`, `heavy-load`, `release`, `macro-generation`, `measure`, `all`, or `alloc-workload-*`"
@@ -1638,12 +1608,12 @@ mod tests {
     #[test]
     fn tests_mode_leaves_ignored_suite_to_database_mode() {
         assert!(
-            super::CARGO_TEST_COMMANDS
+            str_constants::WORKSPACE_TEST_RUNNER_CARGO_TEST_COMMANDS
                 .iter()
                 .all(|(_program, args)| !args.contains(&"--ignored"))
         );
         assert!(
-            super::NEXTEST_COMMANDS
+            str_constants::WORKSPACE_TEST_RUNNER_NEXTEST_COMMANDS
                 .iter()
                 .all(|(_program, args)| !args.contains(&"--run-ignored"))
         );

@@ -785,7 +785,7 @@ str_constants_macros::define_str_constants! {
         pub(crate) SHARED_VALUES_DEBUG_ASSERT = ["debug_assert"];
         pub(crate) SHARED_VALUES_DEBUG_ASSERT_EQ = ["debug_assert_eq"];
         pub(crate) SHARED_VALUES_DEBUG_ASSERT_NE = ["debug_assert_ne"];
-        pub(crate) SHARED_VALUES_DEFINE_STR_CONSTANTS = ["define_str_constants"];
+        pub SHARED_VALUES_DEFINE_STR_CONSTANTS = ["define_str_constants"];
         pub(crate) SHARED_VALUES_ENV = [WORD_ENV];
         pub(crate) SHARED_VALUES_EPRINT = ["eprint"];
         pub(crate) SHARED_VALUES_EPRINTLN = ["eprintln"];
@@ -2038,6 +2038,10 @@ str_constants_macros::define_str_constants! {
         pub ADMIN_CSRF_TOKEN = [WORD_ADMIN_CSRF_TOKEN];
         pub ADMIN_CSRF_TOKEN_ALT = [WORD_ADMIN_CSRF_TOKEN, "="];
         pub ADMIN_MIGRATION_FRESH_TEST = [WORD_ADMIN_MIGRATION_FRESH_TEST];
+        pub ADMIN_OBSERVED_ERROR_DATABASE = ["admin_database"];
+        pub ADMIN_OBSERVED_ERROR_PASSWORD_HASH = ["admin_password_hash"];
+        pub ADMIN_OBSERVED_ERROR_RESPONSE_HEADER = ["admin_response_header"];
+        pub ADMIN_OBSERVED_ERROR_SESSION = ["admin_session"];
         pub ADMIN_REFRESH_TOKEN = [WORD_ADMIN_REFRESH_TOKEN];
         pub ADMIN_REFRESH_TOKEN_ALT = [WORD_ADMIN_REFRESH_TOKEN, "="];
         pub ADMINISTRATOR_PASSWORD_LENGTH_IS_INVALID = [WORD_ADMINISTRATOR, " ", WORD_PASSWORD, " ", WORD_LENGTH, " ", WORD_IS_2, " ", WORD_INVALID];
@@ -2641,6 +2645,9 @@ str_constants_macros::define_str_constants! {
         pub NOT_FOUND_404 = ["not_found_404"];
         pub NOT_IMPLEMENTED_501 = ["not_implemented_501"];
         pub NOT_MODIFIED_304 = ["not_modified_304"];
+        pub NOTIFICATION_OBSERVED_ERROR_METRICS_RENDER = ["notification_metrics_render"];
+        pub NOTIFICATION_OBSERVED_ERROR_PERSISTENCE = ["notification_persistence"];
+        pub NOTIFICATION_OBSERVED_ERROR_VALIDATION = ["notification_validation"];
         pub NUL_FREE = ["nul_free"];
         pub OK_ALT = [WORD_OK_2];
         pub OLD = [WORD_OLD];
@@ -3631,6 +3638,40 @@ pub const WORKSPACE_TEST_RUNNER_CARGO_UDEPS_ARGS: [&str; 6] = [
     SHARED_VALUES_ALL_TARGETS,
     SHARED_VALUES_ALL_FEATURES,
     SHARED_VALUES_LOCKED,
+];
+pub const WORKSPACE_TEST_RUNNER_STATIC_COMMANDS: [(&str, &[&str]); 3] = [
+    (
+        WORKSPACE_TEST_RUNNER_CARGO,
+        &WORKSPACE_TEST_RUNNER_CARGO_FMT_CHECK_ARGS,
+    ),
+    (
+        WORKSPACE_TEST_RUNNER_CARGO,
+        &WORKSPACE_TEST_RUNNER_CARGO_CLIPPY_ARGS,
+    ),
+    (
+        WORKSPACE_TEST_RUNNER_CARGO,
+        &WORKSPACE_TEST_RUNNER_CARGO_TEST_STYLE_ARGS,
+    ),
+];
+pub const WORKSPACE_TEST_RUNNER_CARGO_TEST_COMMANDS: [(&str, &[&str]); 2] = [
+    (
+        WORKSPACE_TEST_RUNNER_CARGO,
+        &WORKSPACE_TEST_RUNNER_CARGO_TEST_WORKSPACE_ARGS,
+    ),
+    (
+        WORKSPACE_TEST_RUNNER_CARGO,
+        &WORKSPACE_TEST_RUNNER_CARGO_TEST_DOC_ARGS,
+    ),
+];
+pub const WORKSPACE_TEST_RUNNER_NEXTEST_COMMANDS: [(&str, &[&str]); 2] = [
+    (
+        WORKSPACE_TEST_RUNNER_CARGO,
+        &WORKSPACE_TEST_RUNNER_NEXTEST_WORKSPACE_ARGS,
+    ),
+    (
+        WORKSPACE_TEST_RUNNER_CARGO,
+        &WORKSPACE_TEST_RUNNER_CARGO_TEST_DOC_ARGS,
+    ),
 ];
 pub const NOTIFICATION_API_TOKEN_REDACTED: &str = "NotificationApiToken([REDACTED])";
 pub const BLOCKING_STD_FS_CALLS: [&str; 13] = [

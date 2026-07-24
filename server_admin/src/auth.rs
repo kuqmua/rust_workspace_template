@@ -619,10 +619,10 @@ enum AdminObservedErrorCode {
 impl AdminObservedErrorCode {
     const fn get(self) -> &'static str {
         match self {
-            Self::Database => "admin_database",
-            Self::Header => "admin_response_header",
-            Self::PasswordHash => "admin_password_hash",
-            Self::Session => "admin_session",
+            Self::Database => str_constants::ADMIN_OBSERVED_ERROR_DATABASE,
+            Self::Header => str_constants::ADMIN_OBSERVED_ERROR_RESPONSE_HEADER,
+            Self::PasswordHash => str_constants::ADMIN_OBSERVED_ERROR_PASSWORD_HASH,
+            Self::Session => str_constants::ADMIN_OBSERVED_ERROR_SESSION,
         }
     }
 }

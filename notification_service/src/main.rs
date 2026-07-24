@@ -187,9 +187,9 @@ enum NotificationErrorCode {
 impl NotificationErrorCode {
     const fn get(self) -> &'static str {
         match self {
-            Self::MetricsRender => "notification_metrics_render",
-            Self::Persistence => "notification_persistence",
-            Self::Validation => "notification_validation",
+            Self::MetricsRender => str_constants::NOTIFICATION_OBSERVED_ERROR_METRICS_RENDER,
+            Self::Persistence => str_constants::NOTIFICATION_OBSERVED_ERROR_PERSISTENCE,
+            Self::Validation => str_constants::NOTIFICATION_OBSERVED_ERROR_VALIDATION,
         }
     }
 }

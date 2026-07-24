@@ -2322,6 +2322,7 @@ fn string_constant_visitor_allows_only_reviewed_syntax_boundaries() {
         super::types::SynFileRef::from(&ast),
         super::StringConstantVisitor {
             ers: super::types::DiagnosticMsgs::default(),
+            only_declarations: super::types::AnalyzerBool::default(),
         },
     );
     assert!(visitor.ers.is_empty());
@@ -2334,9 +2335,80 @@ fn string_constant_visitor_detects_expression_and_nested_macro_literals() {
         super::types::SynFileRef::from(&ast),
         super::StringConstantVisitor {
             ers: super::types::DiagnosticMsgs::default(),
+            only_declarations: super::types::AnalyzerBool::default(),
         },
     );
     assert_eq!(visitor.ers.len(), 2usize);
+}
+#[test]
+fn all_string_constants_are_declared_in_str_constants() {
+    super::assert_rs_ast_ers_empty_with_ctx(
+        super::types::StaticStr::from("34ef99a1"),
+        super::types::SourceTextRef::from(
+            str_constants::STRING_CONSTANTS_FOUND_OUTSIDE_STR_CONSTANTS,
+        ),
+        |path, ast, ers| {
+            if path.ends_with(str_constants::STR_CONSTANTS_SRC_LIB_RS) {
+                return;
+            }
+            let visitor = super::visit_syn_file(
+                super::types::SynFileRef::from(ast),
+                super::StringConstantVisitor {
+                    ers: super::types::DiagnosticMsgs::default(),
+                    only_declarations: super::types::AnalyzerBool::from(true),
+                },
+            );
+            ers.extend(
+                visitor
+                    .ers
+                    .into_iter()
+                    .map(|error| format!("{}: {error}", path.display())),
+            );
+        },
+    );
+}
+#[test]
+fn string_constant_declaration_policy_ignores_runtime_literals_and_rejects_all_const_forms() {
+    let ast = syn::parse_file(
+        r#"
+fn runtime_value() -> &'static str { "runtime-owned" }
+const ITEM: &str = "item";
+static STATIC_ITEM: &str = "static";
+struct Example;
+impl Example {
+    const ASSOCIATED: &str = concat!("associated");
+    const fn value() -> &'static str { concat!("const-function") }
+}
+trait Contract {
+    const DEFAULT: &'static str = "trait";
+}
+fn anonymous() {
+    let _value = const { "anonymous" };
+}
+#[cfg(test)]
+mod tests {
+    const TEST_VALUE: &str = "test-constant";
+    #[test]
+    fn local_constant() {
+        const LOCAL_VALUE: &str = "local-test-constant";
+        let _runtime_value = "runtime-test-literal";
+    }
+}
+define_str_constants! {
+    fragments { VALUE = "generated"; }
+    values {}
+}
+"#,
+    )
+    .expect("02ec1d16");
+    let visitor = super::visit_syn_file(
+        super::types::SynFileRef::from(&ast),
+        super::StringConstantVisitor {
+            ers: super::types::DiagnosticMsgs::default(),
+            only_declarations: super::types::AnalyzerBool::from(true),
+        },
+    );
+    assert_eq!(visitor.ers.len(), 8usize);
 }
 #[test]
 fn no_unwrap_in_source_code() {

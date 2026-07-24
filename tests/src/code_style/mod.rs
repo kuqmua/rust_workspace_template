@@ -1501,6 +1501,21 @@ impl<'ast> syn::visit::Visit<'ast> for TestStringLiteralVisitor {
         }
         syn::visit::visit_expr_lit(self, i);
     }
+    fn visit_macro(&mut self, i: &'ast syn::Macro) {
+        let mut streams = vec![i.tokens.clone()];
+        while let Some(stream) = streams.pop() {
+            stream.into_iter().for_each(|token| match token {
+                proc_macro2::TokenTree::Group(group) => streams.push(group.stream()),
+                proc_macro2::TokenTree::Literal(literal) => {
+                    if let Ok(value) = syn::parse_str::<syn::LitStr>(literal.to_string().as_str()) {
+                        self.values.push(value.value());
+                    }
+                }
+                proc_macro2::TokenTree::Ident(_) | proc_macro2::TokenTree::Punct(_) => {}
+            });
+        }
+        syn::visit::visit_macro(self, i);
+    }
 }
 struct ProductionStringLiteralVisitor {
     values: types::SourceTextList,
@@ -1544,10 +1559,15 @@ impl<'ast> syn::visit::Visit<'ast> for ProductionStringLiteralVisitor {
 }
 struct StringConstantVisitor {
     ers: types::DiagnosticMsgs,
+    only_declarations: types::AnalyzerBool,
 }
 impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
     fn visit_attribute(&mut self, _i: &'ast syn::Attribute) {}
     fn visit_expr_call(&mut self, i: &'ast syn::ExprCall) {
+        if self.only_declarations.get() {
+            syn::visit::visit_expr_call(self, i);
+            return;
+        }
         if matches!(
             i.func.as_ref(),
             syn::Expr::Path(path)
@@ -1571,7 +1591,9 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
         syn::visit::visit_expr_call(self, i);
     }
     fn visit_expr_lit(&mut self, i: &'ast syn::ExprLit) {
-        if let syn::Lit::Str(value) = &i.lit {
+        if !self.only_declarations.get()
+            && let syn::Lit::Str(value) = &i.lit
+        {
             let start = value.span().start();
             let end = value.span().end();
             self.ers.push(format!(
@@ -1586,6 +1608,10 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
         syn::visit::visit_expr_lit(self, i);
     }
     fn visit_expr_method_call(&mut self, i: &'ast syn::ExprMethodCall) {
+        if self.only_declarations.get() {
+            syn::visit::visit_expr_method_call(self, i);
+            return;
+        }
         if i.method == str_constants::CODE_STYLE_EXPECT_METHOD_NAME {
             syn::visit::Visit::visit_expr(self, i.receiver.as_ref());
             return;
@@ -1593,6 +1619,16 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
         syn::visit::visit_expr_method_call(self, i);
     }
     fn visit_impl_item_const(&mut self, i: &'ast syn::ImplItemConst) {
+        if self.only_declarations.get() {
+            if type_stores_string_text(types::SynTypeRef::from(&i.ty)).get() {
+                self.ers.push(format!(
+                    "associated string constant `{}` must be declared in str_constants",
+                    i.ident
+                ));
+            }
+            syn::visit::visit_impl_item_const(self, i);
+            return;
+        }
         let mut literal_visitor = TestStringLiteralVisitor {
             values: types::SourceTextList::default(),
         };
@@ -1606,6 +1642,22 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
         syn::visit::visit_impl_item_const(self, i);
     }
     fn visit_impl_item_fn(&mut self, i: &'ast syn::ImplItemFn) {
+        if self.only_declarations.get() {
+            if i.sig.constness.is_some() {
+                let mut literal_visitor = TestStringLiteralVisitor {
+                    values: types::SourceTextList::default(),
+                };
+                syn::visit::Visit::visit_block(&mut literal_visitor, &i.block);
+                if !literal_visitor.values.is_empty() {
+                    self.ers.push(format!(
+                        "const method `{}` contains string literals",
+                        i.sig.ident
+                    ));
+                }
+            }
+            syn::visit::visit_impl_item_fn(self, i);
+            return;
+        }
         if i.sig.constness.is_some() {
             let mut literal_visitor = TestStringLiteralVisitor {
                 values: types::SourceTextList::default(),
@@ -1621,7 +1673,19 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
         syn::visit::visit_impl_item_fn(self, i);
     }
     fn visit_item_const(&mut self, i: &'ast syn::ItemConst) {
-        if i.ident == str_constants::CODE_STYLE_REVIEWED_PUBLIC_FIELDS {
+        if !self.only_declarations.get()
+            && i.ident == str_constants::CODE_STYLE_REVIEWED_PUBLIC_FIELDS
+        {
+            return;
+        }
+        if self.only_declarations.get() {
+            if type_stores_string_text(types::SynTypeRef::from(i.ty.as_ref())).get() {
+                self.ers.push(format!(
+                    "string constant `{}` must be declared in str_constants",
+                    i.ident
+                ));
+            }
+            syn::visit::visit_item_const(self, i);
             return;
         }
         let mut literal_visitor = TestStringLiteralVisitor {
@@ -1635,13 +1699,31 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
         syn::visit::visit_item_const(self, i);
     }
     fn visit_item_fn(&mut self, i: &'ast syn::ItemFn) {
-        if i.attrs.iter().any(|attribute| {
-            attribute
-                .path()
-                .segments
-                .last()
-                .is_some_and(|segment| segment.ident == str_constants::TEST_ALT_3)
-        }) {
+        if !self.only_declarations.get()
+            && i.attrs.iter().any(|attribute| {
+                attribute
+                    .path()
+                    .segments
+                    .last()
+                    .is_some_and(|segment| segment.ident == str_constants::TEST_ALT_3)
+            })
+        {
+            return;
+        }
+        if self.only_declarations.get() {
+            if i.sig.constness.is_some() {
+                let mut literal_visitor = TestStringLiteralVisitor {
+                    values: types::SourceTextList::default(),
+                };
+                syn::visit::Visit::visit_block(&mut literal_visitor, &i.block);
+                if !literal_visitor.values.is_empty() {
+                    self.ers.push(format!(
+                        "const function `{}` contains string literals",
+                        i.sig.ident
+                    ));
+                }
+            }
+            syn::visit::visit_item_fn(self, i);
             return;
         }
         if i.sig.constness.is_some() {
@@ -1659,7 +1741,7 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
         syn::visit::visit_item_fn(self, i);
     }
     fn visit_item_mod(&mut self, i: &'ast syn::ItemMod) {
-        if i.attrs.iter().any(|attribute| {
+        if !self.only_declarations.get() && i.attrs.iter().any(|attribute| {
             matches!(
                 &attribute.meta,
                 syn::Meta::List(list)
@@ -1676,6 +1758,16 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
         syn::visit::visit_item_mod(self, i);
     }
     fn visit_item_static(&mut self, i: &'ast syn::ItemStatic) {
+        if self.only_declarations.get() {
+            if type_stores_string_text(types::SynTypeRef::from(i.ty.as_ref())).get() {
+                self.ers.push(format!(
+                    "string static `{}` must be declared in str_constants",
+                    i.ident
+                ));
+            }
+            syn::visit::visit_item_static(self, i);
+            return;
+        }
         let mut literal_visitor = TestStringLiteralVisitor {
             values: types::SourceTextList::default(),
         };
@@ -1687,6 +1779,18 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
         syn::visit::visit_item_static(self, i);
     }
     fn visit_macro(&mut self, i: &'ast syn::Macro) {
+        if self.only_declarations.get() {
+            if i.path.segments.last().is_some_and(|segment| {
+                segment.ident == str_constants::SHARED_VALUES_DEFINE_STR_CONSTANTS
+            }) {
+                self.ers.push(
+                    "define_str_constants! may only be invoked by the str_constants crate"
+                        .to_owned(),
+                );
+            }
+            syn::visit::visit_macro(self, i);
+            return;
+        }
         let is_syntax_boundary = i.path.segments.last().is_some_and(|segment| {
             str_constants::CODE_STYLE_STRING_LITERAL_MACRO_BOUNDARIES
                 .contains(&segment.ident.to_string().as_str())
@@ -1727,6 +1831,17 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
         syn::visit::visit_macro(self, i);
     }
     fn visit_trait_item_const(&mut self, i: &'ast syn::TraitItemConst) {
+        if self.only_declarations.get() {
+            if i.default.is_some() && type_stores_string_text(types::SynTypeRef::from(&i.ty)).get()
+            {
+                self.ers.push(format!(
+                    "trait string constant `{}` must be declared in str_constants",
+                    i.ident
+                ));
+            }
+            syn::visit::visit_trait_item_const(self, i);
+            return;
+        }
         if let Some((_equals, expr)) = &i.default {
             let mut literal_visitor = TestStringLiteralVisitor {
                 values: types::SourceTextList::default(),
@@ -1742,6 +1857,24 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
         syn::visit::visit_trait_item_const(self, i);
     }
     fn visit_trait_item_fn(&mut self, i: &'ast syn::TraitItemFn) {
+        if self.only_declarations.get() {
+            if i.sig.constness.is_some()
+                && let Some(block) = &i.default
+            {
+                let mut literal_visitor = TestStringLiteralVisitor {
+                    values: types::SourceTextList::default(),
+                };
+                syn::visit::Visit::visit_block(&mut literal_visitor, block);
+                if !literal_visitor.values.is_empty() {
+                    self.ers.push(format!(
+                        "const trait method `{}` contains string literals",
+                        i.sig.ident
+                    ));
+                }
+            }
+            syn::visit::visit_trait_item_fn(self, i);
+            return;
+        }
         if i.sig.constness.is_some()
             && let Some(block) = &i.default
         {
@@ -4512,6 +4645,55 @@ fn single_angle_type_arg(
         return None;
     }
     Some(first)
+}
+fn type_stores_string_text(ty: types::SynTypeRef<'_>) -> types::AnalyzerBool {
+    types::AnalyzerBool::from(match ty.as_ref() {
+        syn::Type::Array(array) => {
+            type_stores_string_text(types::SynTypeRef::from(array.elem.as_ref())).get()
+        }
+        syn::Type::Group(group) => {
+            type_stores_string_text(types::SynTypeRef::from(group.elem.as_ref())).get()
+        }
+        syn::Type::Paren(paren) => {
+            type_stores_string_text(types::SynTypeRef::from(paren.elem.as_ref())).get()
+        }
+        syn::Type::Path(path) => path.path.segments.iter().any(|segment| {
+            matches!(segment.ident.to_string().as_str(), "str" | "String")
+                || matches!(
+                    &segment.arguments,
+                    syn::PathArguments::AngleBracketed(arguments)
+                        if arguments.args.iter().any(|argument| {
+                            matches!(
+                                argument,
+                                syn::GenericArgument::Type(argument_type)
+                                    if type_stores_string_text(
+                                        types::SynTypeRef::from(argument_type)
+                                    )
+                                    .get()
+                            )
+                        })
+                )
+        }),
+        syn::Type::Reference(reference) => {
+            type_stores_string_text(types::SynTypeRef::from(reference.elem.as_ref())).get()
+        }
+        syn::Type::Slice(slice) => {
+            type_stores_string_text(types::SynTypeRef::from(slice.elem.as_ref())).get()
+        }
+        syn::Type::Tuple(tuple) => tuple
+            .elems
+            .iter()
+            .any(|element| type_stores_string_text(types::SynTypeRef::from(element)).get()),
+        syn::Type::BareFn(_)
+        | syn::Type::ImplTrait(_)
+        | syn::Type::Infer(_)
+        | syn::Type::Macro(_)
+        | syn::Type::Never(_)
+        | syn::Type::Ptr(_)
+        | syn::Type::TraitObject(_)
+        | syn::Type::Verbatim(_)
+        | _ => false,
+    })
 }
 fn type_is_string(ty: types::SynTypeRef<'_>) -> types::AnalyzerBool {
     types::AnalyzerBool::from(match ty.get() {
