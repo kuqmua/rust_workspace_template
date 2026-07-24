@@ -139,7 +139,7 @@ fn mount_service_routes(
 ) -> server_runtime::AxumRouter {
     server_runtime::AxumRouter::from(
         axum::Router::new()
-            .merge(axum::Router::from(operational_routes))
+            .merge(axum::Router::from(operational_routes).reset_fallback())
             .nest(
                 str_constants::API_V1,
                 api_routes
@@ -596,15 +596,20 @@ mod tests {
     async fn operational_routes_are_root_mounted_and_api_routes_are_versioned() {
         let operational_path = common_routes::CommonRoute::HealthLive.path();
         let router = axum::Router::from(super::mount_service_routes(
-            server_runtime::AxumRouter::from(axum::Router::new().route(
-                operational_path.as_ref(),
-                axum::routing::get(async || axum::http::StatusCode::NO_CONTENT),
-            )),
+            server_runtime::AxumRouter::from(
+                axum::Router::new()
+                    .route(
+                        operational_path.as_ref(),
+                        axum::routing::get(async || axum::http::StatusCode::NO_CONTENT),
+                    )
+                    .fallback(async || axum::http::StatusCode::IM_A_TEAPOT),
+            ),
             super::AxumApiRoutes::from(
                 axum::Router::new().route("/probe", axum::routing::get(async || "api")),
             ),
             super::HttpBodyMaximumBytes::from(1_024usize),
-        ));
+        ))
+        .merge(axum::Router::from(super::frontend_fallback_routes()));
         let status = |path: &str| {
             tower::ServiceExt::oneshot(
                 router.clone(),
@@ -630,7 +635,7 @@ mod tests {
                 .await
                 .expect("6e17db87")
                 .status(),
-            axum::http::StatusCode::NOT_FOUND
+            axum::http::StatusCode::SEE_OTHER
         );
     }
 
