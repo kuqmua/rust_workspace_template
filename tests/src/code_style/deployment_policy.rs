@@ -115,7 +115,8 @@ fn service_catalog_matches_build_and_deployment_representations() {
         if is_released {
             assert!(release.contains(format!("- name: {image}").as_str()));
             assert!(release.contains(format!("dockerfile: {dockerfile}").as_str()));
-            assert!(ci.contains(format!("--tag {image}:").as_str()));
+            assert!(ci.contains(format!("- name: {image}").as_str()));
+            assert!(ci.contains(format!("dockerfile: {dockerfile}").as_str()));
         }
     });
 }
@@ -270,11 +271,14 @@ fn service_catalog_covers_every_build_and_runtime_projection() {
 
     let ci = std::fs::read_to_string(repository_root.join(".github/workflows/ci.yml"))
         .expect("0d6f2c83");
-    let ci_images = ci
+    let ci_matrix = ci
+        .split_once("# BEGIN GENERATED SERVICE MATRIX\n")
+        .and_then(|(_prefix, matrix)| matrix.split_once("# END GENERATED SERVICE MATRIX\n"))
+        .map(|(matrix, _suffix)| matrix)
+        .expect("d5ef2be8");
+    let ci_images = ci_matrix
         .lines()
-        .filter_map(|line| line.split_once("--tag ").map(|(_prefix, image)| image))
-        .filter_map(|image| image.split(':').next())
-        .map(str::to_owned)
+        .filter_map(|line| line.trim().strip_prefix("- name: ").map(str::to_owned))
         .collect::<std::collections::BTreeSet<_>>();
     assert_eq!(ci_images, released_images);
 }

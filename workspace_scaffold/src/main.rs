@@ -9,34 +9,69 @@ struct RepositoryUrlRef<'value>(&'value str);
 struct ServicePort(u16);
 #[derive(Clone, Debug, newtype::AsRefStr, newtype::BoundedString)]
 #[bounded_string(max = SCAFFOLD_TEXT_MAX_BYTES)]
+struct ServiceCrate(String);
+#[derive(Clone, Debug, newtype::AsRefStr, newtype::BoundedString)]
+#[bounded_string(max = SCAFFOLD_TEXT_MAX_BYTES)]
+struct ServiceComposeName(String);
+#[derive(Clone, Debug, newtype::AsRefStr, newtype::BoundedString)]
+#[bounded_string(max = SCAFFOLD_TEXT_MAX_BYTES)]
+struct ServiceComposeFile(String);
+#[derive(Clone, Debug, newtype::AsRefStr, newtype::BoundedString)]
+#[bounded_string(max = SCAFFOLD_TEXT_MAX_BYTES)]
 struct ServiceDockerfile(String);
 #[derive(Clone, Debug, newtype::AsRefStr, newtype::BoundedString)]
 #[bounded_string(max = SCAFFOLD_TEXT_MAX_BYTES)]
 struct ServiceImage(String);
+#[derive(Clone, Debug, newtype::AsRefStr, newtype::BoundedString)]
+#[bounded_string(max = SCAFFOLD_TEXT_MAX_BYTES)]
+struct ServiceKubernetesManifest(String);
+#[derive(Clone, Debug, newtype::AsRefStr, newtype::BoundedString)]
+#[bounded_string(max = SCAFFOLD_TEXT_MAX_BYTES)]
+struct ServiceSocketEnv(String);
 #[derive(Debug, newtype::FromInner)]
 struct ServiceCatalogEntries(Vec<ServiceCatalogEntry>);
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
 struct ServiceCatalogEntriesRef<'entries_lt>(&'entries_lt [ServiceCatalogEntry]);
 #[derive(Debug)]
 struct ServiceCatalogEntry {
+    compose_file: ServiceComposeFile,
+    compose_name: ServiceComposeName,
+    crate_name: ServiceCrate,
     dockerfile: ServiceDockerfile,
     image: ServiceImage,
+    kubernetes_manifest: ServiceKubernetesManifest,
+    port: ServicePort,
     release: ShouldRelease,
+    socket_env: ServiceSocketEnv,
 }
 #[derive(Clone, Copy, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
 struct ShouldRelease(bool);
+#[derive(Clone, Copy, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
+struct IsCatalogPathSafe(bool);
 #[derive(Default)]
 struct ServiceCatalogDraft {
+    compose_file: Option<ServiceComposeFile>,
+    compose_name: Option<ServiceComposeName>,
+    crate_name: Option<ServiceCrate>,
     dockerfile: Option<ServiceDockerfile>,
     image: Option<ServiceImage>,
+    kubernetes_manifest: Option<ServiceKubernetesManifest>,
+    port: Option<ServicePort>,
     release: Option<ShouldRelease>,
+    socket_env: Option<ServiceSocketEnv>,
 }
 impl ServiceCatalogDraft {
     fn finish(self) -> Result<ServiceCatalogEntry, ScaffoldError> {
         Ok(ServiceCatalogEntry {
+            compose_file: self.compose_file.ok_or(ScaffoldError::Catalog)?,
+            compose_name: self.compose_name.ok_or(ScaffoldError::Catalog)?,
+            crate_name: self.crate_name.ok_or(ScaffoldError::Catalog)?,
             dockerfile: self.dockerfile.ok_or(ScaffoldError::Catalog)?,
             image: self.image.ok_or(ScaffoldError::Catalog)?,
+            kubernetes_manifest: self.kubernetes_manifest.ok_or(ScaffoldError::Catalog)?,
+            port: self.port.ok_or(ScaffoldError::Catalog)?,
             release: self.release.ok_or(ScaffoldError::Catalog)?,
+            socket_env: self.socket_env.ok_or(ScaffoldError::Catalog)?,
         })
     }
 }
@@ -51,6 +86,15 @@ struct ScaffoldTextRef<'text_lt>(&'text_lt str);
 struct StdScaffoldPathRef<'path_lt>(&'path_lt std::path::Path);
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
 struct ReplacementsRef<'replacements_lt>(&'replacements_lt [(&'replacements_lt str, String)]);
+#[derive(Clone, Copy, newtype::FromInner)]
+struct CargoArgsRef<'args_lt>(&'args_lt [&'args_lt str]);
+#[derive(Clone, Copy, newtype::FromInner)]
+struct UpdateEnvName(&'static str);
+#[derive(Clone, Copy)]
+enum GeneratedProjection {
+    CodeStyle,
+    Config,
+}
 #[derive(Clone, Copy, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
 struct ShouldSkip(bool);
 #[derive(Debug, thiserror::Error, newtype::FromInner)]
@@ -63,11 +107,15 @@ struct ServerRuntimeBoundedReadError(server_runtime::BoundedReadError);
 #[derive(Debug, thiserror::Error)]
 enum ScaffoldError {
     #[error(
-        "usage: workspace-scaffold project <snake_case_name> <repository_url> | service <snake_case_name> <port> | deployment <sync|check>"
+        "usage: workspace-scaffold project <snake_case_name> <repository_url> | service <snake_case_name> <port> | generate <sync|check> | deployment <sync|check>"
     )]
     Arguments,
     #[error("deployment service catalog is invalid")]
     Catalog,
+    #[error("generated code-style snapshots are not synchronized")]
+    GeneratedCodeStyle,
+    #[error("generated configuration projections are not synchronized")]
+    GeneratedConfig,
     #[error("generated deployment projections are not synchronized")]
     GeneratedDeployment,
     #[error("workspace operation failed: {0}")]
@@ -328,6 +376,36 @@ fn parse_service_catalog(
         };
         if let Some(value) = catalog_string_value(
             ScaffoldTextRef::from(trimmed_line),
+            ScaffoldTextRef::from("crate"),
+        )? {
+            draft.crate_name = Some(
+                ServiceCrate::try_from(value.as_ref().to_owned())
+                    .map_err(|_error| ScaffoldError::Catalog)?,
+            );
+            return Ok(());
+        }
+        if let Some(value) = catalog_string_value(
+            ScaffoldTextRef::from(trimmed_line),
+            ScaffoldTextRef::from("compose"),
+        )? {
+            draft.compose_name = Some(
+                ServiceComposeName::try_from(value.as_ref().to_owned())
+                    .map_err(|_error| ScaffoldError::Catalog)?,
+            );
+            return Ok(());
+        }
+        if let Some(value) = catalog_string_value(
+            ScaffoldTextRef::from(trimmed_line),
+            ScaffoldTextRef::from("compose_file"),
+        )? {
+            draft.compose_file = Some(
+                ServiceComposeFile::try_from(value.as_ref().to_owned())
+                    .map_err(|_error| ScaffoldError::Catalog)?,
+            );
+            return Ok(());
+        }
+        if let Some(value) = catalog_string_value(
+            ScaffoldTextRef::from(trimmed_line),
             ScaffoldTextRef::from("dockerfile"),
         )? {
             draft.dockerfile = Some(
@@ -342,6 +420,35 @@ fn parse_service_catalog(
         )? {
             draft.image = Some(
                 ServiceImage::try_from(value.as_ref().to_owned())
+                    .map_err(|_error| ScaffoldError::Catalog)?,
+            );
+            return Ok(());
+        }
+        if let Some(value) = catalog_string_value(
+            ScaffoldTextRef::from(trimmed_line),
+            ScaffoldTextRef::from("kubernetes"),
+        )? {
+            draft.kubernetes_manifest = Some(
+                ServiceKubernetesManifest::try_from(value.as_ref().to_owned())
+                    .map_err(|_error| ScaffoldError::Catalog)?,
+            );
+            return Ok(());
+        }
+        if let Some(port) = trimmed_line
+            .strip_prefix("port")
+            .and_then(|port_text| port_text.trim().strip_prefix('='))
+            .map(str::trim)
+            .and_then(|port_text| port_text.parse::<u16>().ok())
+        {
+            draft.port = Some(ServicePort::from(port));
+            return Ok(());
+        }
+        if let Some(value) = catalog_string_value(
+            ScaffoldTextRef::from(trimmed_line),
+            ScaffoldTextRef::from("socket_env"),
+        )? {
+            draft.socket_env = Some(
+                ServiceSocketEnv::try_from(value.as_ref().to_owned())
                     .map_err(|_error| ScaffoldError::Catalog)?,
             );
             return Ok(());
@@ -372,18 +479,18 @@ fn parse_service_catalog(
     clippy::single_call_fn,
     reason = "deployment synchronization owns the CI projection"
 )]
-fn render_ci_service_builds(entries: ServiceCatalogEntriesRef<'_>) -> ScaffoldText {
+fn render_ci_service_matrix(entries: ServiceCatalogEntriesRef<'_>) -> ScaffoldText {
     ScaffoldText::try_from(
         entries
             .0
             .iter()
             .filter(|entry| bool::from(entry.release))
             .fold(String::new(), |mut output, entry| {
-                output.push_str("      - run: docker build --file ");
-                output.push_str(entry.dockerfile.as_ref());
-                output.push_str(" --tag ");
+                output.push_str(str_constants::WORKSPACE_SCAFFOLD_MATRIX_NAME_INDENT);
                 output.push_str(entry.image.as_ref());
-                output.push_str(":${{ github.sha }} .\n");
+                output.push_str(str_constants::WORKSPACE_SCAFFOLD_MATRIX_DOCKERFILE_INDENT);
+                output.push_str(entry.dockerfile.as_ref());
+                output.push('\n');
                 output
             }),
     )
@@ -400,15 +507,301 @@ fn render_release_matrix(entries: ServiceCatalogEntriesRef<'_>) -> ScaffoldText 
             .iter()
             .filter(|entry| bool::from(entry.release))
             .fold(String::new(), |mut output, entry| {
-                output.push_str("          - name: ");
+                output.push_str(str_constants::WORKSPACE_SCAFFOLD_MATRIX_NAME_INDENT);
                 output.push_str(entry.image.as_ref());
-                output.push_str("\n            dockerfile: ");
+                output.push_str(str_constants::WORKSPACE_SCAFFOLD_MATRIX_DOCKERFILE_INDENT);
                 output.push_str(entry.dockerfile.as_ref());
                 output.push('\n');
                 output
             }),
     )
     .unwrap_or_else(ScaffoldText::from)
+}
+#[allow(
+    clippy::single_call_fn,
+    reason = "catalog validation keeps path traversal checks explicit and typed"
+)]
+fn catalog_path_is_safe(path: StdScaffoldPathRef<'_>) -> IsCatalogPathSafe {
+    IsCatalogPathSafe::from(
+        path.0.is_relative()
+            && path
+                .0
+                .components()
+                .all(|component| matches!(component, std::path::Component::Normal(_))),
+    )
+}
+#[allow(
+    clippy::single_call_fn,
+    reason = "deployment synchronization validates every non-generated catalog consumer"
+)]
+fn validate_deployment_representations(
+    root: StdScaffoldPathRef<'_>,
+    entries: ServiceCatalogEntriesRef<'_>,
+) -> Result<(), ScaffoldError> {
+    entries.0.iter().try_for_each(|entry| {
+        if ![
+            entry.crate_name.as_ref(),
+            entry.compose_file.as_ref(),
+            entry.dockerfile.as_ref(),
+            entry.kubernetes_manifest.as_ref(),
+        ]
+        .into_iter()
+        .all(|path| {
+            bool::from(catalog_path_is_safe(StdScaffoldPathRef::from(
+                std::path::Path::new(path),
+            )))
+        }) {
+            return Err(ScaffoldError::Catalog);
+        }
+        if !root
+            .0
+            .join(entry.crate_name.as_ref())
+            .join(str_constants::CARGO_TOML)
+            .is_file()
+            || !root.0.join(entry.dockerfile.as_ref()).is_file()
+        {
+            return Err(ScaffoldError::GeneratedDeployment);
+        }
+        let compose_path = root.0.join(entry.compose_file.as_ref());
+        let compose = read_bounded_text(StdScaffoldPathRef::from(compose_path.as_path()))?;
+        let port = entry.port.0;
+        if !compose
+            .as_ref()
+            .contains(format!("  {}:\n", entry.compose_name.as_ref()).as_str())
+            || !compose
+                .as_ref()
+                .contains(format!("dockerfile: {}", entry.dockerfile.as_ref()).as_str())
+            || !compose
+                .as_ref()
+                .contains(format!("127.0.0.1:{port}:{port}").as_str())
+        {
+            return Err(ScaffoldError::GeneratedDeployment);
+        }
+        let kubernetes_path = root.0.join(entry.kubernetes_manifest.as_ref());
+        let kubernetes = read_bounded_text(StdScaffoldPathRef::from(kubernetes_path.as_path()))?;
+        if !kubernetes
+            .as_ref()
+            .contains(format!("image: {}:", entry.image.as_ref()).as_str())
+            || !kubernetes
+                .as_ref()
+                .contains(format!("containerPort: {port}").as_str())
+            || !kubernetes
+                .as_ref()
+                .contains(format!("port: {port}").as_str())
+        {
+            return Err(ScaffoldError::GeneratedDeployment);
+        }
+        Ok(())
+    })
+}
+#[allow(
+    clippy::single_call_fn,
+    reason = "deployment synchronization owns all per-service generated sections"
+)]
+fn synchronize_service_deployment_sections(
+    root: StdScaffoldPathRef<'_>,
+    entry: &ServiceCatalogEntry,
+    write_changes: ShouldWrite,
+) -> Result<(), ScaffoldError> {
+    let compose_path = root.0.join(entry.compose_file.as_ref());
+    let compose_identity_begin = format!(
+        "  # BEGIN GENERATED COMPOSE IDENTITY {}\n",
+        entry.compose_name.as_ref()
+    );
+    let compose_identity_end = format!(
+        "  # END GENERATED COMPOSE IDENTITY {}\n",
+        entry.compose_name.as_ref()
+    );
+    let compose_identity = format!(
+        "  {}:\n    build:\n      context: .\n      dockerfile: {}\n",
+        entry.compose_name.as_ref(),
+        entry.dockerfile.as_ref()
+    );
+    synchronize_generated_file(
+        StdScaffoldPathRef::from(compose_path.as_path()),
+        ScaffoldTextRef::from(compose_identity_begin.as_str()),
+        ScaffoldTextRef::from(compose_identity_end.as_str()),
+        ScaffoldTextRef::from(compose_identity.as_str()),
+        write_changes,
+    )?;
+    let compose_socket_begin = format!(
+        "      # BEGIN GENERATED COMPOSE SOCKET {}\n",
+        entry.compose_name.as_ref()
+    );
+    let compose_socket_end = format!(
+        "      # END GENERATED COMPOSE SOCKET {}\n",
+        entry.compose_name.as_ref()
+    );
+    let compose_socket = format!(
+        "      {}: \"0.0.0.0:{}\"\n",
+        entry.socket_env.as_ref(),
+        entry.port.0
+    );
+    synchronize_generated_file(
+        StdScaffoldPathRef::from(compose_path.as_path()),
+        ScaffoldTextRef::from(compose_socket_begin.as_str()),
+        ScaffoldTextRef::from(compose_socket_end.as_str()),
+        ScaffoldTextRef::from(compose_socket.as_str()),
+        write_changes,
+    )?;
+    let ready_path =
+        <common_routes::HealthReadyRoute as frontend_contract::TypedRoute>::metadata().path();
+    let compose_health_begin = format!(
+        "      # BEGIN GENERATED COMPOSE HEALTH {}\n",
+        entry.compose_name.as_ref()
+    );
+    let compose_health_end = format!(
+        "      # END GENERATED COMPOSE HEALTH {}\n",
+        entry.compose_name.as_ref()
+    );
+    let compose_health = format!(
+        "      test: [\"CMD\", \"curl\", \"--fail\", \"--silent\", \"http://127.0.0.1:{}{}\"]\n",
+        entry.port.0,
+        ready_path.as_ref()
+    );
+    synchronize_generated_file(
+        StdScaffoldPathRef::from(compose_path.as_path()),
+        ScaffoldTextRef::from(compose_health_begin.as_str()),
+        ScaffoldTextRef::from(compose_health_end.as_str()),
+        ScaffoldTextRef::from(compose_health.as_str()),
+        write_changes,
+    )?;
+    let compose_port_begin = format!(
+        "    # BEGIN GENERATED COMPOSE PORT {}\n",
+        entry.compose_name.as_ref()
+    );
+    let compose_port_end = format!(
+        "    # END GENERATED COMPOSE PORT {}\n",
+        entry.compose_name.as_ref()
+    );
+    let compose_port = format!("    ports:\n      - \"127.0.0.1:{0}:{0}\"\n", entry.port.0);
+    synchronize_generated_file(
+        StdScaffoldPathRef::from(compose_path.as_path()),
+        ScaffoldTextRef::from(compose_port_begin.as_str()),
+        ScaffoldTextRef::from(compose_port_end.as_str()),
+        ScaffoldTextRef::from(compose_port.as_str()),
+        write_changes,
+    )?;
+
+    let kubernetes_path = root.0.join(entry.kubernetes_manifest.as_ref());
+    let kubernetes_metadata_begin = format!(
+        "# BEGIN GENERATED KUBERNETES METADATA {}\n",
+        entry.image.as_ref()
+    );
+    let kubernetes_metadata_end = format!(
+        "# END GENERATED KUBERNETES METADATA {}\n",
+        entry.image.as_ref()
+    );
+    let kubernetes_metadata = format!(
+        "metadata:\n  name: {0}\n  namespace: rust-workspace-template\n",
+        entry.image.as_ref()
+    );
+    synchronize_generated_file(
+        StdScaffoldPathRef::from(kubernetes_path.as_path()),
+        ScaffoldTextRef::from(kubernetes_metadata_begin.as_str()),
+        ScaffoldTextRef::from(kubernetes_metadata_end.as_str()),
+        ScaffoldTextRef::from(kubernetes_metadata.as_str()),
+        write_changes,
+    )?;
+    let kubernetes_workload_identity_begin = format!(
+        "  # BEGIN GENERATED KUBERNETES WORKLOAD IDENTITY {}\n",
+        entry.image.as_ref()
+    );
+    let kubernetes_workload_identity_end = format!(
+        "  # END GENERATED KUBERNETES WORKLOAD IDENTITY {}\n",
+        entry.image.as_ref()
+    );
+    let kubernetes_workload_identity = format!(
+        "  selector:\n    matchLabels:\n      app.kubernetes.io/name: {0}\n  template:\n    metadata:\n      labels:\n        app.kubernetes.io/name: {0}\n    spec:\n",
+        entry.image.as_ref()
+    );
+    synchronize_generated_file(
+        StdScaffoldPathRef::from(kubernetes_path.as_path()),
+        ScaffoldTextRef::from(kubernetes_workload_identity_begin.as_str()),
+        ScaffoldTextRef::from(kubernetes_workload_identity_end.as_str()),
+        ScaffoldTextRef::from(kubernetes_workload_identity.as_str()),
+        write_changes,
+    )?;
+    let kubernetes_container_begin = format!(
+        "      # BEGIN GENERATED KUBERNETES CONTAINER {}\n",
+        entry.image.as_ref()
+    );
+    let kubernetes_container_end = format!(
+        "      # END GENERATED KUBERNETES CONTAINER {}\n",
+        entry.image.as_ref()
+    );
+    let kubernetes_container = format!(
+        "      containers:\n        - name: {0}\n          image: {0}:replace-with-immutable-tag\n          envFrom:\n            - configMapRef:\n                name: {0}-config\n            - secretRef:\n                name: {0}-secrets\n          ports:\n            - containerPort: {1}\n              name: http\n",
+        entry.image.as_ref(),
+        entry.port.0
+    );
+    synchronize_generated_file(
+        StdScaffoldPathRef::from(kubernetes_path.as_path()),
+        ScaffoldTextRef::from(kubernetes_container_begin.as_str()),
+        ScaffoldTextRef::from(kubernetes_container_end.as_str()),
+        ScaffoldTextRef::from(kubernetes_container.as_str()),
+        write_changes,
+    )?;
+    let live_path =
+        <common_routes::HealthLiveRoute as frontend_contract::TypedRoute>::metadata().path();
+    let kubernetes_probe_begin = format!(
+        "          # BEGIN GENERATED KUBERNETES PROBES {}\n",
+        entry.image.as_ref()
+    );
+    let kubernetes_probe_end = format!(
+        "          # END GENERATED KUBERNETES PROBES {}\n",
+        entry.image.as_ref()
+    );
+    let kubernetes_probe = format!(
+        "          startupProbe:\n            httpGet:\n              path: {ready}\n              port: http\n            failureThreshold: 30\n            periodSeconds: 2\n          readinessProbe:\n            httpGet:\n              path: {ready}\n              port: http\n            periodSeconds: 5\n          livenessProbe:\n            httpGet:\n              path: {live}\n              port: http\n            periodSeconds: 10\n",
+        ready = ready_path.as_ref(),
+        live = live_path.as_ref()
+    );
+    synchronize_generated_file(
+        StdScaffoldPathRef::from(kubernetes_path.as_path()),
+        ScaffoldTextRef::from(kubernetes_probe_begin.as_str()),
+        ScaffoldTextRef::from(kubernetes_probe_end.as_str()),
+        ScaffoldTextRef::from(kubernetes_probe.as_str()),
+        write_changes,
+    )?;
+    let kubernetes_service_identity_begin = format!(
+        "# BEGIN GENERATED KUBERNETES SERVICE IDENTITY {}\n",
+        entry.image.as_ref()
+    );
+    let kubernetes_service_identity_end = format!(
+        "# END GENERATED KUBERNETES SERVICE IDENTITY {}\n",
+        entry.image.as_ref()
+    );
+    let kubernetes_service_identity = format!(
+        "metadata:\n  name: {0}\n  namespace: rust-workspace-template\nspec:\n  selector:\n    app.kubernetes.io/name: {0}\n",
+        entry.image.as_ref()
+    );
+    synchronize_generated_file(
+        StdScaffoldPathRef::from(kubernetes_path.as_path()),
+        ScaffoldTextRef::from(kubernetes_service_identity_begin.as_str()),
+        ScaffoldTextRef::from(kubernetes_service_identity_end.as_str()),
+        ScaffoldTextRef::from(kubernetes_service_identity.as_str()),
+        write_changes,
+    )?;
+    let kubernetes_service_port_begin = format!(
+        "  # BEGIN GENERATED KUBERNETES SERVICE PORT {}\n",
+        entry.image.as_ref()
+    );
+    let kubernetes_service_port_end = format!(
+        "  # END GENERATED KUBERNETES SERVICE PORT {}\n",
+        entry.image.as_ref()
+    );
+    let kubernetes_service_port = format!(
+        "  ports:\n    - name: http\n      port: {}\n      targetPort: http\n",
+        entry.port.0
+    );
+    synchronize_generated_file(
+        StdScaffoldPathRef::from(kubernetes_path.as_path()),
+        ScaffoldTextRef::from(kubernetes_service_port_begin.as_str()),
+        ScaffoldTextRef::from(kubernetes_service_port_end.as_str()),
+        ScaffoldTextRef::from(kubernetes_service_port.as_str()),
+        write_changes,
+    )
 }
 #[allow(
     clippy::single_call_fn,
@@ -466,13 +859,13 @@ fn synchronize_deployment_projections(
     let catalog = read_bounded_text(StdScaffoldPathRef::from(catalog_path.as_path()))?;
     let entries = parse_service_catalog(ScaffoldTextRef::from(catalog.as_ref()))?;
     let entries_ref = ServiceCatalogEntriesRef::from(entries.0.as_slice());
-    let ci = render_ci_service_builds(entries_ref);
+    let ci = render_ci_service_matrix(entries_ref);
     let release = render_release_matrix(entries_ref);
     let ci_path = root.0.join(".github/workflows/ci.yml");
     synchronize_generated_file(
         StdScaffoldPathRef::from(ci_path.as_path()),
-        ScaffoldTextRef::from("      # BEGIN GENERATED SERVICE BUILDS\n"),
-        ScaffoldTextRef::from("      # END GENERATED SERVICE BUILDS\n"),
+        ScaffoldTextRef::from("          # BEGIN GENERATED SERVICE MATRIX\n"),
+        ScaffoldTextRef::from("          # END GENERATED SERVICE MATRIX\n"),
         ScaffoldTextRef::from(ci.as_ref()),
         write_changes,
     )?;
@@ -483,7 +876,96 @@ fn synchronize_deployment_projections(
         ScaffoldTextRef::from("          # END GENERATED RELEASE MATRIX\n"),
         ScaffoldTextRef::from(release.as_ref()),
         write_changes,
+    )?;
+    entries_ref.0.iter().try_for_each(|entry| {
+        synchronize_service_deployment_sections(root, entry, write_changes)
+    })?;
+    validate_deployment_representations(root, entries_ref)
+}
+#[allow(
+    clippy::single_call_fn,
+    reason = "the aggregate generation command delegates snapshot ownership to code-style tests"
+)]
+fn synchronize_code_style_snapshots(
+    root: StdScaffoldPathRef<'_>,
+    write_changes: ShouldWrite,
+) -> Result<(), ScaffoldError> {
+    synchronize_cargo_owned_projection(
+        root,
+        CargoArgsRef::from(&["test", "-p", "tests", "code_style"][..]),
+        UpdateEnvName::from(str_constants::UPDATE_CODE_STYLE_SNAPSHOTS),
+        GeneratedProjection::CodeStyle,
+        write_changes,
     )
+}
+
+fn synchronize_cargo_owned_projection(
+    root: StdScaffoldPathRef<'_>,
+    arguments: CargoArgsRef<'_>,
+    update_environment: UpdateEnvName,
+    projection: GeneratedProjection,
+    write_changes: ShouldWrite,
+) -> Result<(), ScaffoldError> {
+    let mut command = macros_helpers::tool_command::ToolCommand::new(
+        macros_helpers::tool_command::ToolProgramRef::from("cargo"),
+    );
+    let _arguments = command
+        .current_dir(macros_helpers::tool_command::StdPathRef::from(root.0))
+        .args(macros_helpers::tool_command::ToolArgsRef::from(arguments.0));
+    if bool::from(write_changes) {
+        let _environment = command.env(
+            macros_helpers::tool_command::ToolEnvKeyRef::from(update_environment.0),
+            macros_helpers::tool_command::ToolEnvValueRef::from("1"),
+        );
+    }
+    let status = command.status()?;
+    if status.success() {
+        Ok(())
+    } else {
+        Err(match projection {
+            GeneratedProjection::CodeStyle => ScaffoldError::GeneratedCodeStyle,
+            GeneratedProjection::Config => ScaffoldError::GeneratedConfig,
+        })
+    }
+}
+
+#[allow(
+    clippy::single_call_fn,
+    reason = "the aggregate generation command delegates environment projection ownership to config crates"
+)]
+fn synchronize_config_projections(
+    root: StdScaffoldPathRef<'_>,
+    write_changes: ShouldWrite,
+) -> Result<(), ScaffoldError> {
+    synchronize_cargo_owned_projection(
+        root,
+        CargoArgsRef::from(
+            &[
+                "test",
+                "-p",
+                "server_config",
+                "-p",
+                "notification_service_config",
+                "--tests",
+            ][..],
+        ),
+        UpdateEnvName::from(str_constants::UPDATE_CONFIG_PROJECTIONS),
+        GeneratedProjection::Config,
+        write_changes,
+    )
+}
+
+#[allow(
+    clippy::single_call_fn,
+    reason = "the generate command exposes one aggregate synchronization boundary"
+)]
+fn synchronize_all_generated_artifacts(
+    root: StdScaffoldPathRef<'_>,
+    write_changes: ShouldWrite,
+) -> Result<(), ScaffoldError> {
+    synchronize_deployment_projections(root, write_changes)?;
+    synchronize_config_projections(root, write_changes)?;
+    synchronize_code_style_snapshots(root, write_changes)
 }
 
 #[allow(
@@ -641,13 +1123,22 @@ fn scaffold_service(
             } else {
                 example.to_owned()
             };
-            Ok(format!("      {key}: \"{value}\"\n"))
+            if key == socket_key {
+                Ok(format!(
+                    "      # BEGIN GENERATED COMPOSE SOCKET {service}\n      {key}: \"{value}\"\n      # END GENERATED COMPOSE SOCKET {service}\n"
+                ))
+            } else {
+                Ok(format!("      {key}: \"{value}\"\n"))
+            }
         })
         .collect::<Result<String, ScaffoldError>>()?;
+    let ready_path =
+        <common_routes::HealthReadyRoute as frontend_contract::TypedRoute>::metadata().path();
     let compose = format!(
-        "services:\n  {service}_database:\n    image: postgres:16-bookworm@sha256:92620daddcd947f8d5ab5ba66e848702fe443d87fed30c4cea8e389fd78dfc55\n    environment:\n      POSTGRES_DB: {service}\n      POSTGRES_USER: {service}\n      POSTGRES_PASSWORD: ${{{upper_snake}_POSTGRES_PASSWORD:?set {upper_snake}_POSTGRES_PASSWORD}}\n    healthcheck:\n      test: [\"CMD-SHELL\", \"pg_isready -U {service} -d {service}\"]\n      interval: 5s\n      timeout: 3s\n      retries: 20\n    networks: [application]\n    volumes: [{service}_database_data:/var/lib/postgresql/data]\n  {service}:\n    build:\n      context: .\n      dockerfile: {service}/Dockerfile\n    depends_on:\n      {service}_database:\n        condition: service_healthy\n    environment:\n{environment}    healthcheck:\n      test: [\"CMD\", \"curl\", \"--fail\", \"--silent\", \"http://127.0.0.1:{port}/health/ready\"]\n      interval: 10s\n      timeout: 5s\n      retries: 12\n      start_period: 20s\n    networks: [application]\n    ports: [\"127.0.0.1:{port}:{port}\"]\n    read_only: true\n    restart: unless-stopped\n    tmpfs: [/tmp:size=16m,mode=1777]\nvolumes:\n  {service}_database_data:\n",
+        "services:\n  {service}_database:\n    image: postgres:16-bookworm@sha256:92620daddcd947f8d5ab5ba66e848702fe443d87fed30c4cea8e389fd78dfc55\n    environment:\n      POSTGRES_DB: {service}\n      POSTGRES_USER: {service}\n      POSTGRES_PASSWORD: ${{{upper_snake}_POSTGRES_PASSWORD:?set {upper_snake}_POSTGRES_PASSWORD}}\n    healthcheck:\n      test: [\"CMD-SHELL\", \"pg_isready -U {service} -d {service}\"]\n      interval: 5s\n      timeout: 3s\n      retries: 20\n    networks: [application]\n    volumes: [{service}_database_data:/var/lib/postgresql/data]\n  # BEGIN GENERATED COMPOSE IDENTITY {service}\n  {service}:\n    build:\n      context: .\n      dockerfile: {service}/Dockerfile\n  # END GENERATED COMPOSE IDENTITY {service}\n    depends_on:\n      {service}_database:\n        condition: service_healthy\n    environment:\n{environment}    healthcheck:\n      # BEGIN GENERATED COMPOSE HEALTH {service}\n      test: [\"CMD\", \"curl\", \"--fail\", \"--silent\", \"http://127.0.0.1:{port}{ready_path}\"]\n      # END GENERATED COMPOSE HEALTH {service}\n      interval: 10s\n      timeout: 5s\n      retries: 12\n      start_period: 20s\n    networks: [application]\n    # BEGIN GENERATED COMPOSE PORT {service}\n    ports:\n      - \"127.0.0.1:{port}:{port}\"\n    # END GENERATED COMPOSE PORT {service}\n    read_only: true\n    restart: unless-stopped\n    tmpfs: [/tmp:size=16m,mode=1777]\nvolumes:\n  {service}_database_data:\n",
         port = port.0,
         environment = compose_environment,
+        ready_path = ready_path.as_ref(),
     );
     std::fs::write(
         root.0.join(format!("docker-compose.{service}.yml")),
@@ -663,7 +1154,7 @@ fn scaffold_service(
             .to_owned();
     service_catalog_contents.push_str(
         format!(
-            "\n[[service]]\ncrate = \"{service}\"\ncompose = \"{service}\"\ncompose_file = \"docker-compose.{service}.yml\"\ndockerfile = \"{service}/Dockerfile\"\nimage = \"{kebab}\"\nkubernetes = \"deploy/k8s/base/{k8s_file_name}\"\nport = {}\nrelease = false\n",
+            "\n[[service]]\ncrate = \"{service}\"\ncompose = \"{service}\"\ncompose_file = \"docker-compose.{service}.yml\"\ndockerfile = \"{service}/Dockerfile\"\nimage = \"{kebab}\"\nkubernetes = \"deploy/k8s/base/{k8s_file_name}\"\nport = {}\nrelease = false\nsocket_env = \"{upper_snake}_SERVICE_SOCKET_ADDRESS\"\n",
             port.0
         )
         .as_str(),
@@ -700,16 +1191,29 @@ fn run() -> Result<(), ScaffoldError> {
         }
         Some(str_constants::SERVICE) => {
             let name = arguments.next().ok_or(ScaffoldError::Arguments)?;
-            let port = arguments
+            let port = match arguments
                 .next()
                 .ok_or(ScaffoldError::Arguments)?
                 .parse::<u16>()
-                .map(ServicePort)
-                .map_err(|_error| ScaffoldError::ServicePort)?;
+            {
+                Ok(value) => ServicePort::from(value),
+                Err(_error) => return Err(ScaffoldError::ServicePort),
+            };
             if arguments.next().is_some() {
                 return Err(ScaffoldError::Arguments);
             }
             scaffold_service(workspace_root()?, ProjectNameRef::from(name.as_str()), port)
+        }
+        Some("generate") => {
+            let write_changes = match arguments.next().as_deref() {
+                Some("sync") => ShouldWrite::from(true),
+                Some("check") => ShouldWrite::from(false),
+                Some(_) | None => return Err(ScaffoldError::Arguments),
+            };
+            if arguments.next().is_some() {
+                return Err(ScaffoldError::Arguments);
+            }
+            synchronize_all_generated_artifacts(workspace_root()?, write_changes)
         }
         Some("deployment") => {
             let write_changes = match arguments.next().as_deref() {
@@ -816,13 +1320,13 @@ mod tests {
     #[test]
     fn service_catalog_owns_ci_and_release_projection_values() {
         let entries = super::parse_service_catalog(super::ScaffoldTextRef::from(
-            "[[service]]\ndockerfile = \"Dockerfile\"\nimage = \"application\"\nrelease = true\n\n[[service]]\ndockerfile = \"worker/Dockerfile\"\nimage = \"worker\"\nrelease = false\n",
+            "[[service]]\ncrate = \"server\"\ncompose = \"server\"\ncompose_file = \"docker-compose.yml\"\ndockerfile = \"Dockerfile\"\nimage = \"application\"\nkubernetes = \"deploy/k8s/base/application.yaml\"\nport = 8080\nrelease = true\nsocket_env = \"SERVICE_SOCKET_ADDRESS\"\n\n[[service]]\ncrate = \"worker\"\ncompose = \"worker\"\ncompose_file = \"docker-compose.worker.yml\"\ndockerfile = \"worker/Dockerfile\"\nimage = \"worker\"\nkubernetes = \"deploy/k8s/base/worker.yaml\"\nport = 8082\nrelease = false\nsocket_env = \"WORKER_SERVICE_SOCKET_ADDRESS\"\n",
         ))
         .expect("4e8b2d7a");
         let entries_ref = super::ServiceCatalogEntriesRef::from(entries.0.as_slice());
         assert_eq!(
-            super::render_ci_service_builds(entries_ref).as_ref(),
-            "      - run: docker build --file Dockerfile --tag application:${{ github.sha }} .\n"
+            super::render_ci_service_matrix(entries_ref).as_ref(),
+            "          - name: application\n            dockerfile: Dockerfile\n"
         );
         assert_eq!(
             super::render_release_matrix(entries_ref).as_ref(),
@@ -929,11 +1433,11 @@ mod tests {
         );
         assert_file_content(
             root.join("docker-compose.order_service.yml").as_path(),
-            "services:\n  order_service_database:\n    image: postgres:16-bookworm@sha256:92620daddcd947f8d5ab5ba66e848702fe443d87fed30c4cea8e389fd78dfc55\n    environment:\n      POSTGRES_DB: order_service\n      POSTGRES_USER: order_service\n      POSTGRES_PASSWORD: ${ORDER_SERVICE_POSTGRES_PASSWORD:?set ORDER_SERVICE_POSTGRES_PASSWORD}\n    healthcheck:\n      test: [\"CMD-SHELL\", \"pg_isready -U order_service -d order_service\"]\n      interval: 5s\n      timeout: 3s\n      retries: 20\n    networks: [application]\n    volumes: [order_service_database_data:/var/lib/postgresql/data]\n  order_service:\n    build:\n      context: .\n      dockerfile: order_service/Dockerfile\n    depends_on:\n      order_service_database:\n        condition: service_healthy\n    environment:\n      ORDER_SERVICE_DATABASE_URL: \"postgres://order_service:${ORDER_SERVICE_POSTGRES_PASSWORD:?set ORDER_SERVICE_POSTGRES_PASSWORD}@order_service_database:5432/order_service\"\n      ORDER_SERVICE_SERVICE_SOCKET_ADDRESS: \"0.0.0.0:8082\"\n      PG_POOL_MAX_CONNECTIONS: \"10\"\n      REQUEST_TIMEOUT_SECONDS: \"30\"\n      TRACING_FORMAT: \"text\"\n    healthcheck:\n      test: [\"CMD\", \"curl\", \"--fail\", \"--silent\", \"http://127.0.0.1:8082/health/ready\"]\n      interval: 10s\n      timeout: 5s\n      retries: 12\n      start_period: 20s\n    networks: [application]\n    ports: [\"127.0.0.1:8082:8082\"]\n    read_only: true\n    restart: unless-stopped\n    tmpfs: [/tmp:size=16m,mode=1777]\nvolumes:\n  order_service_database_data:\n",
+            "services:\n  order_service_database:\n    image: postgres:16-bookworm@sha256:92620daddcd947f8d5ab5ba66e848702fe443d87fed30c4cea8e389fd78dfc55\n    environment:\n      POSTGRES_DB: order_service\n      POSTGRES_USER: order_service\n      POSTGRES_PASSWORD: ${ORDER_SERVICE_POSTGRES_PASSWORD:?set ORDER_SERVICE_POSTGRES_PASSWORD}\n    healthcheck:\n      test: [\"CMD-SHELL\", \"pg_isready -U order_service -d order_service\"]\n      interval: 5s\n      timeout: 3s\n      retries: 20\n    networks: [application]\n    volumes: [order_service_database_data:/var/lib/postgresql/data]\n  # BEGIN GENERATED COMPOSE IDENTITY order_service\n  order_service:\n    build:\n      context: .\n      dockerfile: order_service/Dockerfile\n  # END GENERATED COMPOSE IDENTITY order_service\n    depends_on:\n      order_service_database:\n        condition: service_healthy\n    environment:\n      ORDER_SERVICE_DATABASE_URL: \"postgres://order_service:${ORDER_SERVICE_POSTGRES_PASSWORD:?set ORDER_SERVICE_POSTGRES_PASSWORD}@order_service_database:5432/order_service\"\n      # BEGIN GENERATED COMPOSE SOCKET order_service\n      ORDER_SERVICE_SERVICE_SOCKET_ADDRESS: \"0.0.0.0:8082\"\n      # END GENERATED COMPOSE SOCKET order_service\n      PG_POOL_MAX_CONNECTIONS: \"10\"\n      REQUEST_TIMEOUT_SECONDS: \"30\"\n      TRACING_FORMAT: \"text\"\n    healthcheck:\n      # BEGIN GENERATED COMPOSE HEALTH order_service\n      test: [\"CMD\", \"curl\", \"--fail\", \"--silent\", \"http://127.0.0.1:8082/health/ready\"]\n      # END GENERATED COMPOSE HEALTH order_service\n      interval: 10s\n      timeout: 5s\n      retries: 12\n      start_period: 20s\n    networks: [application]\n    # BEGIN GENERATED COMPOSE PORT order_service\n    ports:\n      - \"127.0.0.1:8082:8082\"\n    # END GENERATED COMPOSE PORT order_service\n    read_only: true\n    restart: unless-stopped\n    tmpfs: [/tmp:size=16m,mode=1777]\nvolumes:\n  order_service_database_data:\n",
         );
         assert_file_content(
             root.join("deploy/services.toml").as_path(),
-            "[[service]]\ncrate = \"notification_service\"\n\n[[service]]\ncrate = \"order_service\"\ncompose = \"order_service\"\ncompose_file = \"docker-compose.order_service.yml\"\ndockerfile = \"order_service/Dockerfile\"\nimage = \"order-service\"\nkubernetes = \"deploy/k8s/base/order-service.yaml\"\nport = 8082\nrelease = false\n",
+            "[[service]]\ncrate = \"notification_service\"\n\n[[service]]\ncrate = \"order_service\"\ncompose = \"order_service\"\ncompose_file = \"docker-compose.order_service.yml\"\ndockerfile = \"order_service/Dockerfile\"\nimage = \"order-service\"\nkubernetes = \"deploy/k8s/base/order-service.yaml\"\nport = 8082\nrelease = false\nsocket_env = \"ORDER_SERVICE_SERVICE_SOCKET_ADDRESS\"\n",
         );
         std::fs::remove_dir_all(root).expect("6f608418");
     }

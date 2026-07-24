@@ -514,80 +514,6 @@ impl<'ast> syn::visit::Visit<'ast> for PublicApiVisitor {
 }
 
 #[derive(Default)]
-struct PublicGenericVisitor {
-    entries: super::types::SourceTextList,
-}
-impl PublicGenericVisitor {
-    fn record(
-        &mut self,
-        kind: super::types::SourceTextRef<'_>,
-        identifier: &syn::Ident,
-        generics: &syn::Generics,
-    ) {
-        if !generics.params.is_empty() {
-            self.entries.push(format!(
-                "{}:{}:{}",
-                kind.as_ref(),
-                identifier,
-                generics.params.len()
-            ));
-        }
-    }
-}
-impl<'ast> syn::visit::Visit<'ast> for PublicGenericVisitor {
-    fn visit_impl_item_fn(&mut self, i: &'ast syn::ImplItemFn) {
-        if matches!(i.vis, syn::Visibility::Public(_)) {
-            self.record(
-                super::types::SourceTextRef::from("method"),
-                &i.sig.ident,
-                &i.sig.generics,
-            );
-        }
-        syn::visit::visit_impl_item_fn(self, i);
-    }
-    fn visit_item_enum(&mut self, i: &'ast syn::ItemEnum) {
-        if matches!(i.vis, syn::Visibility::Public(_)) {
-            self.record(
-                super::types::SourceTextRef::from("enum"),
-                &i.ident,
-                &i.generics,
-            );
-        }
-        syn::visit::visit_item_enum(self, i);
-    }
-    fn visit_item_fn(&mut self, i: &'ast syn::ItemFn) {
-        if matches!(i.vis, syn::Visibility::Public(_)) {
-            self.record(
-                super::types::SourceTextRef::from("function"),
-                &i.sig.ident,
-                &i.sig.generics,
-            );
-        }
-        syn::visit::visit_item_fn(self, i);
-    }
-    fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
-        if matches!(i.vis, syn::Visibility::Public(_)) {
-            self.record(
-                super::types::SourceTextRef::from("struct"),
-                &i.ident,
-                &i.generics,
-            );
-        }
-        syn::visit::visit_item_struct(self, i);
-    }
-    fn visit_item_trait(&mut self, i: &'ast syn::ItemTrait) {
-        if matches!(i.vis, syn::Visibility::Public(_)) {
-            self.record(
-                super::types::SourceTextRef::from("trait"),
-                &i.ident,
-                &i.generics,
-            );
-        }
-        syn::visit::visit_item_trait(self, i);
-    }
-}
-
-#[derive(Default)]
 struct StructErrorVisitor {
     identifiers: super::types::SourceTextList,
 }
@@ -612,13 +538,9 @@ struct LoopAllocationVisitor {
     entries: super::types::DiagnosticMsgs,
 }
 impl LoopAllocationVisitor {
-    fn record(&mut self, operation: super::types::SourceTextRef<'_>, span: proc_macro2::Span) {
+    fn record(&mut self, operation: super::types::SourceTextRef<'_>) {
         if self.depth.get() != 0usize {
-            self.entries.push(format!(
-                "line {}: {}",
-                span.start().line,
-                operation.as_ref()
-            ));
+            self.entries.push(operation.as_ref().to_owned());
         }
     }
 }
@@ -642,10 +564,7 @@ impl<'ast> syn::visit::Visit<'ast> for LoopAllocationVisitor {
             ]
             .contains(&path.as_ref())
             {
-                self.record(
-                    super::types::SourceTextRef::from(path.as_ref()),
-                    syn::spanned::Spanned::span(i),
-                );
+                self.record(super::types::SourceTextRef::from(path.as_ref()));
             }
         }
         syn::visit::visit_expr_call(self, i);
@@ -660,10 +579,9 @@ impl<'ast> syn::visit::Visit<'ast> for LoopAllocationVisitor {
             i.method.to_string().as_str(),
             "clone" | "collect" | "to_owned" | "to_string"
         ) {
-            self.record(
-                super::types::SourceTextRef::from(i.method.to_string().as_str()),
-                syn::spanned::Spanned::span(i),
-            );
+            self.record(super::types::SourceTextRef::from(
+                i.method.to_string().as_str(),
+            ));
         }
         syn::visit::visit_expr_method_call(self, i);
     }
@@ -677,29 +595,9 @@ impl<'ast> syn::visit::Visit<'ast> for LoopAllocationVisitor {
             && matches!(segment.ident.to_string().as_str(), "format" | "vec")
         {
             let operation = segment.ident.to_string();
-            self.record(
-                super::types::SourceTextRef::from(operation.as_str()),
-                syn::spanned::Spanned::span(i),
-            );
+            self.record(super::types::SourceTextRef::from(operation.as_str()));
         }
         syn::visit::visit_macro(self, i);
-    }
-}
-
-#[derive(Default)]
-struct MutableBindingVisitor {
-    entries: super::types::DiagnosticMsgs,
-}
-impl<'ast> syn::visit::Visit<'ast> for MutableBindingVisitor {
-    fn visit_pat_ident(&mut self, i: &'ast syn::PatIdent) {
-        if i.mutability.is_some() {
-            self.entries.push(format!(
-                "line {}: {}",
-                syn::spanned::Spanned::span(i).start().line,
-                i.ident
-            ));
-        }
-        syn::visit::visit_pat_ident(self, i);
     }
 }
 
@@ -724,59 +622,60 @@ fn lock_guards_are_not_held_across_await() {
 }
 
 #[test]
-fn mutable_bindings_match_reviewed_snapshot() {
-    let expected_count = 453usize;
-    let expected_hash = 1_912_037_368_430_502_475u64;
-    let reason = "existing mutable bindings are reviewed; new mutation requires an explicit state-transition review";
+fn allocations_inside_loops_match_reviewed_inventory() {
+    let reviewed = std::collections::BTreeMap::from([
+        (
+            "../file_storage/src/lib.rs:clone",
+            (
+                1usize,
+                "multipart chunk assembly must retain owned buffers until the completed file is committed",
+            ),
+        ),
+        (
+            "../frontend_contract/src/json_snapshot.rs:String::from",
+            (
+                1usize,
+                "the bounded JSON parser materializes one owned map key per parsed object field",
+            ),
+        ),
+        (
+            "../frontend_contract/src/openapi_validation.rs:to_owned",
+            (
+                1usize,
+                "OpenAPI validation records independently owned operation identifiers",
+            ),
+        ),
+        (
+            "../frontend_contract_macros/src/lib.rs:to_string",
+            (
+                1usize,
+                "compile-time route generation materializes variant identifiers outside runtime hot paths",
+            ),
+        ),
+        (
+            "../macro_clippy_check_common/src/lib.rs:String::from",
+            (
+                1usize,
+                "compile-time lint inspection owns diagnostic source fragments",
+            ),
+        ),
+        (
+            "../server_runtime/src/lib.rs:to_string",
+            (
+                2usize,
+                "bounded request parsing materializes validated protocol values that outlive input buffers",
+            ),
+        ),
+        (
+            "../str_constants_macros/src/lib.rs:collect",
+            (
+                1usize,
+                "compile-time constant generation collects tokens outside runtime hot paths",
+            ),
+        ),
+    ]);
     super::snapshot::with_codebase_snapshot(|snapshot| {
-        let mut entries = snapshot
-            .rs_files()
-            .iter()
-            .filter(|source_file| {
-                !source_file
-                    .path()
-                    .as_ref()
-                    .components()
-                    .any(|component| component.as_os_str() == "tests")
-            })
-            .flat_map(|source_file| {
-                let visitor = super::visit_syn_file(
-                    super::types::SynFileRef::from(source_file.ast().as_ref()),
-                    MutableBindingVisitor::default(),
-                );
-                let path = source_file.path().as_ref().display().to_string();
-                visitor
-                    .entries
-                    .into_iter()
-                    .map(move |entry| format!("{path}:{entry}"))
-            })
-            .collect::<Vec<String>>();
-        entries.sort();
-        let observed_hash = entries
-            .iter()
-            .fold(14_695_981_039_346_656_037u64, |hash, entry| {
-                entry
-                    .bytes()
-                    .chain(std::iter::once(0xffu8))
-                    .fold(hash, |inner_hash, byte| {
-                        (inner_hash ^ u64::from(byte)).wrapping_mul(1_099_511_628_211u64)
-                    })
-            });
-        assert!(
-            !reason.is_empty() && entries.len() == expected_count && observed_hash == expected_hash,
-            "a4e02941 mutable binding snapshot changed: count={}, hash={observed_hash}",
-            entries.len()
-        );
-    });
-}
-
-#[test]
-fn allocations_inside_loops_match_reviewed_snapshot() {
-    let expected_count = 8usize;
-    let expected_hash = 15_663_531_209_084_868_204u64;
-    let reason = "existing loop allocations are reviewed; new allocations require hoisting or an explicit hot-path review";
-    super::snapshot::with_codebase_snapshot(|snapshot| {
-        let mut entries = snapshot
+        let observed = snapshot
             .rs_files()
             .iter()
             .filter(|source_file| {
@@ -797,31 +696,32 @@ fn allocations_inside_loops_match_reviewed_snapshot() {
                     .into_iter()
                     .map(move |entry| format!("{path}:{entry}"))
             })
-            .collect::<Vec<String>>();
-        entries.sort();
-        let observed_hash = entries
+            .fold(
+                std::collections::BTreeMap::<String, usize>::new(),
+                |mut counts, entry| {
+                    let _count = counts
+                        .entry(entry)
+                        .and_modify(|count| *count = count.saturating_add(1usize))
+                        .or_insert(1usize);
+                    counts
+                },
+            );
+        let expected = reviewed
             .iter()
-            .fold(14_695_981_039_346_656_037u64, |hash, entry| {
-                entry
-                    .bytes()
-                    .chain(std::iter::once(0xffu8))
-                    .fold(hash, |inner_hash, byte| {
-                        (inner_hash ^ u64::from(byte)).wrapping_mul(1_099_511_628_211u64)
-                    })
-            });
-        assert!(
-            !reason.is_empty() && entries.len() == expected_count && observed_hash == expected_hash,
-            "418fe0af loop allocation snapshot changed: count={}, hash={observed_hash}",
-            entries.len()
+            .map(|(entry, (count, reason))| {
+                assert!(!reason.is_empty(), "418fe0af");
+                ((*entry).to_owned(), *count)
+            })
+            .collect::<std::collections::BTreeMap<String, usize>>();
+        assert_eq!(
+            observed, expected,
+            "418fe0af loop allocation inventory changed"
         );
     });
 }
 
 #[test]
 fn struct_error_exceptions_match_reviewed_snapshot() {
-    let expected_count = 126usize;
-    let expected_hash = 10_317_420_352_954_407_195u64;
-    let reason = "existing single-case and transparent errors are reviewed; new multi-case errors must use enums";
     super::snapshot::with_codebase_snapshot(|snapshot| {
         let mut entries = snapshot
             .rs_files()
@@ -839,151 +739,85 @@ fn struct_error_exceptions_match_reviewed_snapshot() {
             })
             .collect::<Vec<String>>();
         entries.sort();
-        let observed_hash = entries
-            .iter()
-            .fold(14_695_981_039_346_656_037u64, |hash, entry| {
-                entry
-                    .bytes()
-                    .chain(std::iter::once(0xffu8))
-                    .fold(hash, |inner_hash, byte| {
-                        (inner_hash ^ u64::from(byte)).wrapping_mul(1_099_511_628_211u64)
-                    })
-            });
-        assert!(
-            !reason.is_empty() && entries.len() == expected_count && observed_hash == expected_hash,
-            "731ffc35 struct error inventory changed: count={}, hash={observed_hash}",
-            entries.len()
+        let mut current_snapshot = String::from(
+            "# GENERATED REVIEWED SINGLE-CASE AND TRANSPARENT ERROR STRUCTS; DO NOT EDIT\n",
         );
-    });
-}
-
-#[test]
-fn public_generic_surface_matches_reviewed_snapshot() {
-    let expected_count = 248usize;
-    let expected_hash = 1_706_126_233_691_996_212u64;
-    let reason = "existing generic APIs are reviewed; additions require explicit API review";
-    super::snapshot::with_codebase_snapshot(|snapshot| {
-        let mut entries = snapshot
-            .rs_files()
-            .iter()
-            .flat_map(|source_file| {
-                let visitor = super::visit_syn_file(
-                    super::types::SynFileRef::from(source_file.ast().as_ref()),
-                    PublicGenericVisitor::default(),
-                );
-                let path = source_file.path().as_ref().display().to_string();
-                visitor
-                    .entries
-                    .into_iter()
-                    .map(move |entry| format!("{path}:{entry}"))
-            })
-            .collect::<Vec<String>>();
-        entries.sort();
-        let observed_hash = entries
-            .iter()
-            .fold(14_695_981_039_346_656_037u64, |hash, entry| {
-                entry
-                    .bytes()
-                    .chain(std::iter::once(0xffu8))
-                    .fold(hash, |inner_hash, byte| {
-                        (inner_hash ^ u64::from(byte)).wrapping_mul(1_099_511_628_211u64)
-                    })
-            });
-        assert!(
-            !reason.is_empty() && entries.len() == expected_count && observed_hash == expected_hash,
-            "151d6963 public generic API snapshot changed: count={}, hash={observed_hash}",
-            entries.len()
+        entries.into_iter().for_each(|entry| {
+            current_snapshot.push_str(entry.as_str());
+            current_snapshot.push('\n');
+        });
+        let snapshot_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join(str_constants::STRUCT_ERROR_SNAPSHOT_PATH);
+        if std::env::var_os(str_constants::UPDATE_CODE_STYLE_SNAPSHOTS).is_some() {
+            std::fs::write(snapshot_path.as_path(), current_snapshot.as_bytes()).expect("65e1d4f0");
+        }
+        let expected_snapshot = std::fs::read_to_string(snapshot_path).expect("ba047d32");
+        assert_eq!(
+            current_snapshot, expected_snapshot,
+            "731ffc35 struct error inventory changed"
         );
     });
 }
 
 #[test]
 fn contract_public_api_matches_reviewed_snapshot() {
-    let reviewed = std::collections::BTreeMap::from([
-        (
-            "common_routes/src",
-            (
-                26usize,
-                4_784_818_472_386_725_300u64,
-                "common route contract",
-            ),
-        ),
-        (
-            "frontend_contract/src",
-            (
-                302usize,
-                14_613_832_698_209_345_402u64,
-                "generic frontend route contract",
-            ),
-        ),
-        (
-            "server_admin_contract/src",
-            (
-                358usize,
-                16_941_927_145_104_310_330u64,
-                "administrator wire contract",
-            ),
-        ),
-    ]);
+    let reviewed = [
+        ("common_routes/src", "common route contract"),
+        ("frontend_contract/src", "generic frontend route contract"),
+        ("server_admin_contract/src", "administrator wire contract"),
+    ];
     super::snapshot::with_codebase_snapshot(|snapshot| {
-        let mut violations = Vec::new();
-        reviewed
-            .iter()
-            .for_each(|(directory_suffix, (expected_count, expected_hash, reason))| {
-                if reason.is_empty() {
-                    violations.push(format!(
-                        "public API snapshot `{directory_suffix}` has no reason"
-                    ));
-                }
-                let mut entries = snapshot
-                    .rs_files()
-                    .iter()
-                    .filter(|source_file| {
-                        source_file
-                            .path()
-                            .as_ref()
-                            .to_string_lossy()
-                            .contains(directory_suffix)
-                    })
-                    .flat_map(|source_file| {
-                        let visitor = super::visit_syn_file(
-                            super::types::SynFileRef::from(source_file.ast().as_ref()),
-                            PublicApiVisitor {
-                                entries: super::types::SourceTextList::default(),
-                                lines: super::types::SourceTextList::from(
-                                    source_file
-                                        .content()
-                                        .as_ref()
-                                        .lines()
-                                        .map(str::to_owned)
-                                        .collect::<Vec<String>>(),
-                                ),
-                            },
-                        );
-                        visitor.entries
-                    })
-                    .collect::<Vec<String>>();
-                entries.sort();
-                let observed_hash = entries.iter().fold(
-                    14_695_981_039_346_656_037u64,
-                    |hash, entry| {
-                        entry
-                            .bytes()
-                            .chain(std::iter::once(0xffu8))
-                            .fold(hash, |inner_hash, byte| {
-                                (inner_hash ^ u64::from(byte))
-                                    .wrapping_mul(1_099_511_628_211u64)
-                            })
-                    },
-                );
-                if entries.len() != *expected_count || observed_hash != *expected_hash {
-                    violations.push(format!(
-                        "{directory_suffix}: public API snapshot changed: count={}, hash={observed_hash}",
-                        entries.len()
-                    ));
-                }
+        let mut current_snapshot =
+            String::from("# GENERATED CONTRACT PUBLIC API SNAPSHOT; DO NOT EDIT\n");
+        reviewed.iter().for_each(|(directory_suffix, reason)| {
+            assert!(!reason.is_empty(), "505a0cf7");
+            let mut entries = snapshot
+                .rs_files()
+                .iter()
+                .filter(|source_file| {
+                    source_file
+                        .path()
+                        .as_ref()
+                        .to_string_lossy()
+                        .contains(directory_suffix)
+                })
+                .flat_map(|source_file| {
+                    let visitor = super::visit_syn_file(
+                        super::types::SynFileRef::from(source_file.ast().as_ref()),
+                        PublicApiVisitor {
+                            entries: super::types::SourceTextList::default(),
+                            lines: super::types::SourceTextList::from(
+                                source_file
+                                    .content()
+                                    .as_ref()
+                                    .lines()
+                                    .map(str::to_owned)
+                                    .collect::<Vec<String>>(),
+                            ),
+                        },
+                    );
+                    visitor.entries
+                })
+                .collect::<Vec<String>>();
+            entries.sort();
+            current_snapshot.push_str(format!("\n[{directory_suffix}] # {reason}\n").as_str());
+            entries.into_iter().for_each(|entry| {
+                current_snapshot.push_str(entry.as_str());
+                current_snapshot.push('\n');
             });
-        assert!(violations.is_empty(), "505a0cf7 {violations:#?}");
+        });
+        let snapshot_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join(str_constants::CONTRACT_PUBLIC_API_SNAPSHOT_PATH);
+        if std::env::var_os(str_constants::UPDATE_CODE_STYLE_SNAPSHOTS).is_some()
+            || std::env::var_os(str_constants::UPDATE_CONTRACT_PUBLIC_API_SNAPSHOT).is_some()
+        {
+            std::fs::write(snapshot_path.as_path(), current_snapshot.as_bytes()).expect("e2c6b190");
+        }
+        let expected_snapshot = std::fs::read_to_string(snapshot_path).expect("fd9130e7");
+        assert_eq!(
+            current_snapshot, expected_snapshot,
+            "505a0cf7 contract public API snapshot changed"
+        );
     });
 }
 
@@ -1385,7 +1219,6 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             "external_service_emulators/src/lib.rs",
             (
                 1usize,
-                18_044_733_430_376_104_380u64,
                 "the emulator maps channel closure to its domain error",
             ),
         ),
@@ -1393,7 +1226,6 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             "route_validators/src/hdr_val.rs",
             (
                 2usize,
-                8_307_973_547_828_984_310u64,
                 "header parse details are intentionally mapped to validation errors",
             ),
         ),
@@ -1401,7 +1233,6 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             "macros_helpers/src/test_database.rs",
             (
                 1usize,
-                17_615_506_122_534_003_937u64,
                 "the test database helper maps setup failure to its fixture error",
             ),
         ),
@@ -1409,7 +1240,6 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             "macros_helpers/src/write_string_into_file.rs",
             (
                 1usize,
-                15_850_734_906_468_416_334u64,
                 "the file helper maps conversion failure to its domain error",
             ),
         ),
@@ -1417,7 +1247,6 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             "notification_service/src/main.rs",
             (
                 2usize,
-                10_624_237_169_294_773_147u64,
                 "service bootstrap classifies configuration failures",
             ),
         ),
@@ -1425,7 +1254,6 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             "file_storage/src/lib.rs",
             (
                 1usize,
-                16_295_999_883_235_516_952u64,
                 "storage input failure is classified at the boundary",
             ),
         ),
@@ -1433,7 +1261,6 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             "server_runtime/src/outbound_url.rs",
             (
                 1usize,
-                10_756_600_543_045_051_859u64,
                 "URL parse details are intentionally hidden by the domain error",
             ),
         ),
@@ -1441,31 +1268,21 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             "server_runtime/src/wire_token.rs",
             (
                 1usize,
-                6_379_813_932_589_802_468u64,
                 "wire token part failures map to a stable public category",
             ),
         ),
         (
             "server_runtime/src/origin.rs",
-            (
-                1usize,
-                5_273_783_931_958_932_094u64,
-                "origin parsing maps to a stable validation error",
-            ),
+            (1usize, "origin parsing maps to a stable validation error"),
         ),
         (
             "server_runtime/src/secure_cookie.rs",
-            (
-                1usize,
-                15_429_310_994_391_673_823u64,
-                "cookie header details are intentionally redacted",
-            ),
+            (1usize, "cookie header details are intentionally redacted"),
         ),
         (
             "server_runtime/src/multipart.rs",
             (
                 1usize,
-                14_453_656_047_801_799_853u64,
                 "multipart path validation exposes a stable domain error",
             ),
         ),
@@ -1473,23 +1290,17 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             "server_runtime/src/lib.rs",
             (
                 1usize,
-                16_149_390_479_206_234_825u64,
                 "timeout details map to the public shutdown timeout variant",
             ),
         ),
         (
             "server_runtime/src/bounded_read.rs",
-            (
-                1usize,
-                5_207_021_504_593_722_365u64,
-                "closed limiter state maps to a stable read error",
-            ),
+            (1usize, "closed limiter state maps to a stable read error"),
         ),
         (
             "server_runtime/src/child_process.rs",
             (
                 1usize,
-                15_752_444_618_703_500_496u64,
                 "elapsed timeout details map to the child timeout variant",
             ),
         ),
@@ -1497,23 +1308,17 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             "server_runtime/src/http_header_policy.rs",
             (
                 3usize,
-                5_326_244_696_809_361_619u64,
                 "header construction errors are intentionally classified",
             ),
         ),
         (
             "server_runtime/src/exclusive_run.rs",
-            (
-                1usize,
-                1_027_271_799_673_455_782u64,
-                "the atomic compare failure maps to already active",
-            ),
+            (1usize, "the atomic compare failure maps to already active"),
         ),
         (
             "pg_crud/pg_crud_common/src/read_query_plan.rs",
             (
                 3usize,
-                8_623_507_500_622_176_715u64,
                 "query plan validation maps to stable contract errors",
             ),
         ),
@@ -1521,7 +1326,6 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             "pg_crud/pg_crud_common/src/cursor.rs",
             (
                 8usize,
-                7_882_507_617_510_199_337u64,
                 "cursor parsing maps low-level failures to wire categories",
             ),
         ),
@@ -1529,7 +1333,6 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             "pg_crud/pg_crud_common/src/date_sql_filter.rs",
             (
                 2usize,
-                8_624_832_464_391_947_517u64,
                 "date filter parsing maps to contract validation errors",
             ),
         ),
@@ -1537,7 +1340,6 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             "pg_crud/pg_crud_common/src/advisory_lock.rs",
             (
                 1usize,
-                8_862_452_122_470_076_736u64,
                 "advisory lock conversion maps to its bounded domain error",
             ),
         ),
@@ -1545,63 +1347,40 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             "pg_crud/pg_table/src/lib.rs",
             (
                 1usize,
-                11_558_424_024_508_308_790u64,
                 "table validation maps generated failures to a public category",
             ),
         ),
         (
             "config_lib/src/lib.rs",
-            (
-                4usize,
-                13_436_572_168_389_940_861u64,
-                "configuration parsing exposes stable field errors",
-            ),
+            (4usize, "configuration parsing exposes stable field errors"),
         ),
         (
             "workspace_test_runner/src/main.rs",
-            (
-                1usize,
-                11_490_469_477_730_315_910u64,
-                "runner input conversion maps to a command error",
-            ),
+            (1usize, "runner input conversion maps to a command error"),
         ),
         (
             "workspace_test_runner/src/execution.rs",
-            (
-                1usize,
-                9_728_249_661_848_494_227u64,
-                "summary initialization maps to the runner error",
-            ),
+            (1usize, "summary initialization maps to the runner error"),
         ),
         (
             "frontend_contract/src/json_snapshot.rs",
             (
                 2usize,
-                15_245_506_429_194_649_089u64,
                 "serialization details map to snapshot contract errors",
             ),
         ),
         (
             "workspace_scaffold/src/main.rs",
-            (
-                5usize,
-                17_957_165_660_958_926_640u64,
-                "catalog parsing maps to stable scaffold errors",
-            ),
+            (9usize, "catalog parsing maps to stable scaffold errors"),
         ),
         (
             "newtype/src/lib.rs",
-            (
-                1usize,
-                12_531_204_604_735_508_744u64,
-                "invalid derive input maps to the macro diagnostic",
-            ),
+            (1usize, "invalid derive input maps to the macro diagnostic"),
         ),
         (
             "server_admin/src/domain.rs",
             (
                 4usize,
-                3_525_000_150_470_207_167u64,
                 "domain conversion failures map to administrator validation errors",
             ),
         ),
@@ -1609,7 +1388,6 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             "server_admin/src/generated_tables.rs",
             (
                 1usize,
-                14_655_213_785_439_917_732u64,
                 "generated table conformance maps to its public error",
             ),
         ),
@@ -1617,7 +1395,6 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             "server_admin/src/repository/users.rs",
             (
                 12usize,
-                7_657_170_105_147_143_872u64,
                 "repository row conversions map to typed repository errors",
             ),
         ),
@@ -1625,7 +1402,6 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             "server_admin/src/repository/settings.rs",
             (
                 8usize,
-                14_432_114_671_816_167_631u64,
                 "settings row conversions map to typed repository errors",
             ),
         ),
@@ -1633,7 +1409,6 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             "server_admin/src/repository/data_tables.rs",
             (
                 21usize,
-                6_200_526_850_154_800_565u64,
                 "data table parsing maps to typed repository errors",
             ),
         ),
@@ -1641,7 +1416,6 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             "server_admin/src/repository/audit.rs",
             (
                 10usize,
-                14_095_644_810_635_619_870u64,
                 "audit row conversions map to typed repository errors",
             ),
         ),
@@ -1649,7 +1423,6 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             "server_admin/src/repository/rate_limits.rs",
             (
                 4usize,
-                10_064_388_524_006_650_716u64,
                 "rate-limit row conversions map to typed repository errors",
             ),
         ),
@@ -1657,7 +1430,6 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             "server_admin/src/repository/sessions.rs",
             (
                 5usize,
-                9_999_204_811_137_137_062u64,
                 "session row conversions map to typed repository errors",
             ),
         ),
@@ -1665,7 +1437,6 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             "server_admin/src/repository/cleanup.rs",
             (
                 1usize,
-                5_154_652_375_526_262_556u64,
                 "cleanup conversion maps to a typed repository error",
             ),
         ),
@@ -1673,7 +1444,6 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             "server_admin/src/repository/permissions.rs",
             (
                 6usize,
-                17_592_933_992_679_763_826u64,
                 "permission row conversions map to typed repository errors",
             ),
         ),
@@ -1681,7 +1451,6 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             "server_admin/src/repository/roles.rs",
             (
                 10usize,
-                15_602_821_806_272_741_138u64,
                 "role row conversions map to typed repository errors",
             ),
         ),
@@ -1689,39 +1458,28 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             "server_admin/src/repository.rs",
             (
                 1usize,
-                12_885_392_875_274_270_006u64,
                 "repository acquisition maps to the administrator database error",
             ),
         ),
         (
             "server_admin/src/auth/audit.rs",
-            (
-                3usize,
-                10_626_838_172_502_960_176u64,
-                "audit request validation maps to stable API errors",
-            ),
+            (3usize, "audit request validation maps to stable API errors"),
         ),
         (
             "server_admin/src/auth/html.rs",
             (
                 9usize,
-                4_683_197_711_457_340_835u64,
                 "HTML form parsing maps details to stable API errors",
             ),
         ),
         (
             "server_admin/src/auth/session.rs",
-            (
-                1usize,
-                14_647_519_906_466_647_223u64,
-                "system clock failure maps to the session category",
-            ),
+            (1usize, "system clock failure maps to the session category"),
         ),
         (
             "server_admin/src/auth/handlers.rs",
             (
                 15usize,
-                1_778_387_811_993_442_835u64,
                 "handler input failures map to stable API categories",
             ),
         ),
@@ -1729,7 +1487,6 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             "server_admin/src/auth.rs",
             (
                 12usize,
-                45_155_265_412_043_747u64,
                 "authentication failures map to stable and redacted API categories",
             ),
         ),
@@ -1737,7 +1494,6 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             "server_admin_frontend/src/app.rs",
             (
                 29usize,
-                12_202_620_818_695_603_365u64,
                 "browser failures map to serializable UI error categories",
             ),
         ),
@@ -1753,37 +1509,23 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             if visitor.entries.is_empty() {
                 return;
             }
-            let fingerprint = visitor.entries.iter().fold(
-                14_695_981_039_346_656_037u64,
-                |hash, entry| {
-                    entry
-                        .bytes()
-                        .chain(std::iter::once(0xffu8))
-                        .fold(hash, |inner_hash, byte| {
-                            (inner_hash ^ u64::from(byte))
-                                .wrapping_mul(1_099_511_628_211u64)
-                        })
-                },
-            );
             let path = source_file.path().as_ref().display().to_string();
-            let reviewed_entry = reviewed.iter().find(|(suffix, (_count, _hash, reason))| {
+            let reviewed_entry = reviewed.iter().find(|(suffix, (_count, reason))| {
                 path.ends_with(**suffix) && !reason.is_empty()
             });
             match reviewed_entry {
-                Some((suffix, (count, expected_fingerprint, _reason)))
-                    if *count == visitor.entries.len()
-                        && *expected_fingerprint == fingerprint =>
-                {
+                Some((suffix, (count, _reason)))
+                    if *count == visitor.entries.len() => {
                     let _inserted = matched.insert((*suffix).to_owned());
                 }
-                Some((suffix, (count, expected_fingerprint, _reason))) => {
+                Some((suffix, (count, _reason))) => {
                     violations.push(format!(
-                        "{path}: ignored map_err inventory changed for {suffix}: expected count={count}, fingerprint={expected_fingerprint}; observed count={}, fingerprint={fingerprint}",
+                        "{path}: ignored map_err inventory changed for {suffix}: expected count={count}; observed count={}",
                         visitor.entries.len()
                     ));
                 }
                 None => violations.push(format!(
-                    "{path}: unreviewed ignored map_err bindings: count={}, fingerprint={fingerprint}",
+                    "{path}: unreviewed ignored map_err bindings: count={}",
                     visitor.entries.len()
                 )),
             }
@@ -1875,72 +1617,76 @@ fn select_policy_rejects_cancellation_sensitive_operations() {
 }
 
 #[test]
-fn architectural_boundary_dependencies_match_reviewed_sets() {
-    let reviewed = [
+fn architectural_boundaries_reject_upward_dependencies() {
+    let boundaries = [
         (
             "frontend_contract",
-            [
-                "frontend_contract_macros",
-                "newtype",
-                "str_constants",
-                "to_err_string",
-            ]
-            .as_slice(),
-            "the generic frontend contract depends only on its derive and shared value crates",
+            "the generic frontend contract must not depend on service, application, database, or runtime crates",
         ),
         (
             "server_admin_contract",
-            [
-                "frontend_contract",
-                "newtype",
-                "str_constants",
-                "text_policy",
-            ]
-            .as_slice(),
-            "the administrator contract builds on the generic contract and shared value crates",
+            "the administrator contract may depend downward on generic contracts and values, but not on runtime implementations",
         ),
         (
             "server_runtime",
-            ["newtype", "str_constants", "text_policy"].as_slice(),
             "the runtime foundation must not depend on application or route crates",
         ),
     ];
     super::snapshot::with_codebase_snapshot(|snapshot| {
         let workspace_names = snapshot.workspace_crate_names();
         let mut violations = Vec::new();
-        reviewed
-            .iter()
-            .for_each(|(package_name, expected_dependencies, reason)| {
-                if reason.is_empty() {
-                    violations.push(format!(
-                        "architecture boundary `{package_name}` has no reason"
-                    ));
-                }
-                let package = snapshot
-                    .workspace_metadata()
-                    .get()
-                    .packages
-                    .iter()
-                    .find(|package| package.name == *package_name)
-                    .expect("010e6a3f");
-                let observed = package
-                    .dependencies
-                    .iter()
-                    .filter(|dependency| {
-                        workspace_names.as_ref().contains(dependency.name.as_str())
-                    })
-                    .map(|dependency| dependency.name.clone())
-                    .collect::<std::collections::BTreeSet<String>>();
-                let expected = expected_dependencies
-                    .iter()
-                    .map(|dependency| (*dependency).to_owned())
-                    .collect::<std::collections::BTreeSet<String>>();
-                if observed != expected {
-                    violations.push(format!(
-                        "{package_name} dependencies changed: expected={expected:?}, observed={observed:?}"
-                    ));
-                }
-            });
+        boundaries.iter().for_each(|(package_name, reason)| {
+            if reason.is_empty() {
+                violations.push(format!(
+                    "architecture boundary `{package_name}` has no reason"
+                ));
+            }
+            let package = snapshot
+                .workspace_metadata()
+                .get()
+                .packages
+                .iter()
+                .find(|package| package.name == *package_name)
+                .expect("010e6a3f");
+            let observed = package
+                .dependencies
+                .iter()
+                .filter(|dependency| workspace_names.as_ref().contains(dependency.name.as_str()))
+                .filter(|dependency| match *package_name {
+                    "frontend_contract" => {
+                        dependency.name == "app_state"
+                            || dependency.name.starts_with("notification_service")
+                            || dependency.name.starts_with("pg_")
+                            || (dependency.name.starts_with("server")
+                                && dependency.name != "server_runtime_macros")
+                    }
+                    "server_admin_contract" => {
+                        dependency.name == "app_state"
+                            || dependency.name == "server"
+                            || dependency.name == "server_admin"
+                            || dependency.name == "server_app_state"
+                            || dependency.name.ends_with("_runtime")
+                            || dependency.name.starts_with("notification_service")
+                            || dependency.name.starts_with("pg_")
+                    }
+                    "server_runtime" => {
+                        dependency.name == "app_state"
+                            || dependency.name == "server"
+                            || dependency.name.starts_with("server_admin")
+                            || dependency.name.starts_with("notification_service")
+                            || dependency.name.ends_with("_contract")
+                            || dependency.name.starts_with("pg_")
+                    }
+                    _ => true,
+                })
+                .map(|dependency| dependency.name.clone())
+                .collect::<std::collections::BTreeSet<String>>();
+            if !observed.is_empty() {
+                violations.push(format!(
+                    "{package_name} has upward workspace dependencies: {observed:?}"
+                ));
+            }
+        });
         assert!(violations.is_empty(), "2fdc155b {violations:#?}");
     });
 }

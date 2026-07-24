@@ -78,9 +78,15 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
         } else {
             quote::quote!(config_lib::ConfigFieldSensitivity::Public)
         };
+        let Some(example) = attributes.0.as_ref() else {
+            return quote::quote! {
+                compile_error!(str_constants::CONFIG_ENV_EXAMPLE_REQUIRES_FIELD_EXAMPLE);
+            };
+        };
         quote::quote! {
             config_lib::ConfigFieldDescriptor::new(
                 config_lib::EnvVarNameRef::from(#env_name),
+                config_lib::ConfigFieldExampleRef::from(#example),
                 |value| {
                     if <#field_type as config_lib::TryFromStdEnvVarOk>::try_from_std_env_var_ok(value).is_ok() {
                         config_lib::ConfigExampleValidity::Valid
@@ -88,6 +94,7 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
                         config_lib::ConfigExampleValidity::Invalid
                     }
                 },
+                config_lib::ConfigFieldRequirement::Required,
                 config_lib::ConfigRustTypeName::from(stringify!(#field_type)),
                 #sensitivity,
             )

@@ -7,6 +7,10 @@ mod tests {
     fn env_example_matches_generated_config_descriptor_and_parsers() {
         let example_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
             .join(str_constants::SERVER_DOT_ENV_EXAMPLE);
+        if std::env::var_os(str_constants::UPDATE_CONFIG_PROJECTIONS).is_some() {
+            std::fs::write(example_path.as_path(), server_config::Config::env_example())
+                .expect("c4a18f7d");
+        }
         let example_source = std::fs::read_to_string(example_path).expect("2a8737dd");
         assert_eq!(example_source, server_config::Config::env_example());
         let examples = example_source
@@ -21,6 +25,11 @@ mod tests {
                 .get(descriptor.env_name().as_ref())
                 .cloned()
                 .expect("c8517ab3");
+            assert_eq!(value, descriptor.example().as_ref());
+            assert_eq!(
+                descriptor.requirement(),
+                config_lib::ConfigFieldRequirement::Required
+            );
             if descriptor.sensitivity() == config_lib::ConfigFieldSensitivity::Public {
                 assert_eq!(
                     descriptor.validate_example(

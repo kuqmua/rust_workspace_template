@@ -32,6 +32,11 @@ mod tests {
         fn is_typed_getter<Value>(_getter: fn(&super::Config) -> &Value) -> bool {
             true
         }
+
+        assert!(
+            !str_constants::UPDATE_CONFIG_PROJECTIONS.is_empty(),
+            "4b913df2"
+        );
         assert!(is_typed_getter::<config_lib::DatabaseUrl>(
             super::Config::notification_database_url
         ));

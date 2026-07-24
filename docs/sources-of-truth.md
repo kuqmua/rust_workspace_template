@@ -13,27 +13,44 @@ authoritative.
 | Admin pages | `AdminPage` page catalog metadata | CSR navigation, SSR navigation and page routing |
 | Admin settings presentation | `AdminSetting` catalog | CSR and SSR form fields and clear semantics |
 | Service inventory | `deploy/services.toml` | CI image builds and release matrix |
-| Service configuration keys | Config derive field descriptors | `.env.example`, Compose and Kubernetes checks |
-| PostgreSQL physical schema | Ordered SQL migrations | Applied database and introspected conformance checks |
+| Service configuration schema | Config derive field descriptors | `.env.example`, Compose and Kubernetes checks |
+| PostgreSQL physical schema | Ordered SQL migrations | Applied database and generated current-schema snapshot |
 | Domain validation | Repository domain wrapper type | API validation and database policy tests |
 | Administrator permissions | `AdminPermission` wire enum | Seed reconciliation, authorization and OpenAPI |
 
-## Generated deployment projections
+## Generated projections
 
-After changing `deploy/services.toml`, update checked-in projections:
-
-```bash
-cargo run -p workspace_scaffold -- deployment sync
-```
-
-CI verifies that the projections are current:
+After changing a generated deployment or reviewed code contract, update all static
+checked-in projections:
 
 ```bash
-cargo run -p workspace_scaffold -- deployment check
+cargo run -p workspace_scaffold -- generate sync
 ```
 
-Content between `BEGIN GENERATED` and `END GENERATED` markers is owned by the
-service catalog and must not be edited manually.
+This updates service matrices, generated Compose/Kubernetes sections,
+configuration examples, and the readable contract/error inventory snapshots. CI
+verifies that all static projections are current:
+
+```bash
+cargo run -p workspace_scaffold -- generate check
+```
+
+Content between `BEGIN GENERATED` and `END GENERATED` markers and files carrying a
+`GENERATED ... DO NOT EDIT` header are owned by their source catalog and must not
+be edited manually. The narrower `deployment sync|check` command remains available
+for deployment-only tooling.
+
+The PostgreSQL snapshot additionally requires a migrated database. Refresh it only
+after adding an ordered migration:
+
+```bash
+UPDATE_ADMIN_CURRENT_SCHEMA_SNAPSHOT=1 \
+  cargo test -p server_admin --test admin_api \
+  postgresql_migration_creates_complete_schema -- --ignored --exact
+```
+
+The same test without `UPDATE_ADMIN_CURRENT_SCHEMA_SNAPSHOT` verifies the snapshot.
+It runs in the CI database suite after migrations are applied to an empty schema.
 
 ## Ownership rule
 
@@ -54,3 +71,5 @@ For every new field, route, service, table or permission:
 3. Regenerate projections, when applicable.
 4. Run the conformance checks.
 5. Reject a change that introduces another independently editable inventory.
+6. Keep generated files read-only in review; update them through `generate sync` or
+   the migration snapshot command.

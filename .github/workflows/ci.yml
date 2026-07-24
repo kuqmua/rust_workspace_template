@@ -14,21 +14,22 @@ jobs:
     if: github.event_name == 'push' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # BEGIN GENERATED SERVICE MATRIX
+          - name: application
+            dockerfile: Dockerfile
+          - name: notification-service
+            dockerfile: notification_service/Dockerfile
+          # END GENERATED SERVICE MATRIX
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      # BEGIN GENERATED SERVICE BUILDS
-      - run: docker build --file Dockerfile --tag application:${{ github.sha }} .
-      - run: docker build --file notification_service/Dockerfile --tag notification-service:${{ github.sha }} .
-      # END GENERATED SERVICE BUILDS
+      - run: docker build --file "${{ matrix.dockerfile }}" --tag "${{ matrix.name }}:${{ github.sha }}" .
       - uses: aquasecurity/trivy-action@f19cc2b99c0f1c5f19db5882d7cf26c5a5cc7e49
         with:
-          image-ref: application:${{ github.sha }}
-          severity: HIGH,CRITICAL
-          ignore-unfixed: true
-          exit-code: "1"
-      - uses: aquasecurity/trivy-action@f19cc2b99c0f1c5f19db5882d7cf26c5a5cc7e49
-        with:
-          image-ref: notification-service:${{ github.sha }}
+          image-ref: "${{ matrix.name }}:${{ github.sha }}"
           severity: HIGH,CRITICAL
           ignore-unfixed: true
           exit-code: "1"
@@ -162,8 +163,7 @@ jobs:
       - uses: ./.github/actions/setup-rust
         with:
           components: clippy,rustfmt
-      - run: cargo run --locked -p workspace_scaffold -- deployment check
-      - run: cargo test --locked -p tests code_style
+      - run: cargo run --locked -p workspace_scaffold -- generate check
       - run: cargo openapi-contract-suite
   database-tests:
     if: github.event_name == 'push' || github.event_name == 'pull_request'

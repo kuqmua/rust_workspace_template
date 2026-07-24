@@ -1,0 +1,693 @@
+# GENERATED CONTRACT PUBLIC API SNAPSHOT; DO NOT EDIT
+
+[common_routes/src] # common route contract
+#[derive( Debug, Clone, Copy, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema, )] #[serde(rename_all = "snake_case")] pub enum HealthComponentKind { DatabaseConnectivity, ServiceAvailability, }
+#[derive( Debug, Clone, Copy, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema, )] #[serde(rename_all = "snake_case")] pub enum HealthStatus { Degraded, Error, Ok, }
+#[derive( Debug, Clone, Copy, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema, )] pub struct HealthComponent { kind: HealthComponentKind, status: HealthStatus, }
+#[derive( Debug, Clone, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema, newtype::TryFrom, )] #[try_from(validator = HealthComponents::validate)] #[serde(try_from = "Vec<HealthComponent>")] pub struct HealthComponents(Vec<HealthComponent>);
+#[derive(Clone, Copy, Debug)] pub struct CommonRoutesOpenApi;
+#[derive(Clone, Copy, Debug, Eq, PartialEq, frontend_contract::RouteCatalog)] #[route_catalog(family = CommonRouteFamily, body_limit = 0usize)] pub enum CommonRoute { #[route_catalog_route(GitInfoRoute)] GitInfo, #[route_catalog_route(HealthRoute)] Health, #[route_catalog_route(HealthCheckRoute)] HealthCheck, #[route_catalog_route(HealthLiveRoute)] HealthLive, #[route_catalog_route(HealthReadyRoute)] HealthReady, }
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)] pub struct HealthDatabaseAvailable(bool);
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)] #[error("{}", str_constants::HEALTH_COMPONENTS_LENGTH_EXCEEDS_LIMIT)] pub struct HealthComponentsError;
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)] #[typed_route( authentication = frontend_contract::AuthenticationRequirement::Public, error_response = (), error_statuses = &[frontend_contract::RouteErrorStatus::ServiceUnavailable], method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::PUBLIC_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "health_check", path = "/health_check", request = CommonNoBody, response = CommonNoBody, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::PublicTransport )] pub struct HealthCheckRoute;
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)] #[typed_route( authentication = frontend_contract::AuthenticationRequirement::Public, error_response = HealthReport, error_statuses = &[frontend_contract::RouteErrorStatus::ServiceUnavailable], method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::PUBLIC_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "health", path = "/health", request = CommonNoBody, response = HealthReport, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::PublicTransport )] pub struct HealthRoute;
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)] #[typed_route( authentication = frontend_contract::AuthenticationRequirement::Public, error_response = HealthReport, error_statuses = &[frontend_contract::RouteErrorStatus::ServiceUnavailable], method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::PUBLIC_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "health_ready", path = "/health/ready", request = CommonNoBody, response = HealthReport, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::PublicTransport )] pub struct HealthReadyRoute;
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)] #[typed_route( authentication = frontend_contract::AuthenticationRequirement::Public, error_statuses = &[], method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::PUBLIC_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "git_info", path = "/git_info", request = CommonNoBody, response = GitInfo, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::PublicTransport )] pub struct GitInfoRoute;
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)] #[typed_route( authentication = frontend_contract::AuthenticationRequirement::Public, error_statuses = &[], method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::PUBLIC_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "health_live", path = "/health/live", request = CommonNoBody, response = HealthReport, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::PublicTransport )] pub struct HealthLiveRoute;
+#[derive(Clone, Copy, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema)] pub struct CommonNoBody;
+#[derive(Clone, optml::Optml, newtype::FromInner)] pub struct StdArcCommonRoutesAppState(std::sync::Arc<dyn CommonRoutesParameters>);
+#[derive(Debug, Clone, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema)] pub struct HealthReport { components: HealthComponents, status: HealthStatus, }
+#[derive(Debug, Clone, optml::Optml, newtype::IntoInnerFrom, newtype::FromInner)] pub struct AxumCommonRoutes(axum::Router);
+#[derive(Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema, optml::Optml)] pub struct GitInfo { #[schema(value_type = String)] commit: git_info::StdGitCommitLinkCow, }
+#[derive(serde::Serialize)] #[serde(transparent)] #[derive(newtype::FromInner, newtype::IntoInnerFrom)] pub struct UtoipaCommonRoutesOpenApiDocument(utoipa::openapi::OpenApi);
+#[must_use] pub const fn status(&self) -> HealthStatus
+#[must_use] pub fn common_routes(app_state_b9fc2d94: StdArcCommonRoutesAppState) -> AxumCommonRoutes
+#[must_use] pub fn liveness() -> Self
+#[must_use] pub fn open_api() -> UtoipaCommonRoutesOpenApiDocument
+#[must_use] pub fn path(self) -> frontend_contract::ContractStr
+#[must_use] pub fn readiness(database_available: HealthDatabaseAvailable) -> Self
+pub trait CommonRoutesParameters: git_info::GetGitCommitLink + app_state::GetSqlxPgPool + Send + Sync { }
+
+[frontend_contract/src] # generic frontend route contract
+#[allow(clippy::needless_for_each)] // iterator form follows the workspace no-for-loop policy pub fn register_openapi_schema<'schema_lt, Schema>( components: &mut UtoipaOpenApiComponentsRefMut<'_>, ) where Schema: utoipa::ToSchema<'schema_lt>,
+#[derive( Clone, Copy, Debug, PartialEq, Eq, newtype::AsRefStr, newtype::Display, newtype::FromInner, )] pub struct ContractStr(&'static str);
+#[derive( Clone, Copy, Debug, PartialEq, Eq, newtype::Display, newtype::IntoInnerFrom, newtype::TryFrom, )] #[try_from( error = HttpStatusTryFromU16Error, validator = TransportStatus::validate )] pub struct TransportStatus(u16);
+#[derive( Clone, Copy, Debug, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema, )] #[serde(rename_all = "snake_case")] pub enum ApiProblemKind { Authentication, Authorization, Conflict, InProgress, Internal, InvalidRequest, MethodNotAllowed, NotFound, PayloadTooLarge, Precondition, PreconditionRequired, RateLimited, RequestFailed, Validation, }
+#[derive( Clone, Copy, Debug, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema, )] #[serde(rename_all = "snake_case")] pub enum FilterOperation { AdjacentWithRange, Before, Between, CurrentDate, CurrentTime, CurrentTimestamp, Eq, EqToEncodedStringRepresentation, ExcludedUpperBound, FindRangesThatFullyContainTheGivenRange, FindRangesWithinGivenRange, GreaterThan, GreaterThanCurrentDate, GreaterThanCurrentTime, GreaterThanCurrentTimestamp, GreaterThanExcludedUpperBound, GreaterThanIncludedLowerBound, In, IncludedLowerBound, OverlapWithRange, RangeLen, Regex, StrictlyToLeftOfRange, StrictlyToRightOfRange, }
+#[derive( Clone, Copy, Debug, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema, )] #[serde(rename_all = "snake_case")] pub enum FilterValueShape { EncodedText, List, None, Range, Regex, Scalar, }
+#[derive( Clone, Copy, Debug, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema, newtype::IntoInnerFrom, newtype::TryFrom, )] #[serde(try_from = "u16")] #[try_from( error = crate::HttpStatusTryFromU16Error, validator = ApiProblemStatus::validate )] pub struct ApiProblemStatus(u16);
+#[derive( Clone, Debug, Default, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner, newtype::IntoInnerFrom, )] pub struct RouteCoverageDescriptors(Vec<crate::RouteCoverageDescriptor>);
+#[derive( Clone, Debug, Default, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner, newtype::IntoInnerFrom, )] pub struct RouteMetadataList(Vec<RouteMetadata>);
+#[derive( Clone, Debug, Default, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner, newtype::IntoInnerFrom, )] pub struct RouteTestCategories(Vec<RouteTestCategory>);
+#[derive( Clone, Debug, Default, PartialEq, Eq, newtype::AsRefStr, newtype::BoundedString, serde::Deserialize, serde::Serialize, utoipa::ToSchema, )] #[bounded_string(max = 1024usize)] #[serde(try_from = "String")] pub struct ApiProblemDetail(String);
+#[derive( Clone, Debug, Default, PartialEq, Eq, newtype::BoundedString, serde::Deserialize, serde::Serialize, utoipa::ToSchema, )] #[bounded_string(max = 128usize)] #[serde(try_from = "String")] pub struct ApiProblemField(String);
+#[derive( Clone, Debug, Default, PartialEq, Eq, newtype::BoundedString, serde::Deserialize, serde::Serialize, utoipa::ToSchema, )] #[bounded_string(max = 128usize)] #[serde(try_from = "String")] pub struct ApiProblemRequestId(String);
+#[derive( Clone, Debug, Default, newtype::AsRefTarget, newtype::FromInner, newtype::IntoInnerFrom, )] pub struct RouteSchemaContracts(Vec<RouteSchemaContract>);
+#[derive( Clone, Debug, Eq, Ord, PartialEq, PartialOrd, newtype::AsRefStr, newtype::BoundedString, )] #[bounded_string(max = OPENAPI_CONTRACT_TEXT_MAX_LEN)] pub struct OpenApiContractText(String);
+#[derive( Clone, Debug, Eq, PartialEq, newtype::AsRefStr, newtype::BoundedString, newtype::IntoInnerFrom, )] #[bounded_string(max = API_URL_MAX_LEN)] pub struct ApiUrl(String);
+#[derive(Clone, Copy, Debug, Eq, PartialEq)] pub enum AuthSessionKeepAliveDecision { RefreshNow, SkipAlreadyRunning, SkipMissing, SkipNotDue { next: StdAuthSessionInstant }, }
+#[derive(Clone, Copy, Debug, Eq, PartialEq)] pub enum AuthSessionPresence { Missing, Present, }
+#[derive(Clone, Copy, Debug, Eq, PartialEq)] pub enum AuthSessionRefreshOutcome { Failed, Refreshed, Rejected, }
+#[derive(Clone, Copy, Debug, Eq, PartialEq)] pub enum HttpContractBodyKind { Empty, Json, }
+#[derive(Clone, Copy, Debug, Eq, PartialEq)] pub enum KnownHttpStatus { Conflict, Created, Forbidden, InternalServerError, MethodNotAllowed, NoContent, Ok, PayloadTooLarge, ServiceUnavailable, TooManyRequests, Unauthorized, UnprocessableEntity, }
+#[derive(Clone, Copy, Debug, Eq, PartialEq)] pub enum OpenApiSchemaMismatch { AdditionalProperty, AnyOf, Const, Enum, MissingReference, OneOf, RequiredProperty, Type, }
+#[derive(Clone, Copy, Debug, Eq, PartialEq)] pub enum OpenApiSecurityExpectation { Public, Required(crate::ContractStr), }
+#[derive(Clone, Copy, Debug, Eq, PartialEq)] pub enum RouteAccess { Authenticated, Public, }
+#[derive(Clone, Copy, Debug, Eq, PartialEq)] pub enum RouteContractMismatch { Method { expected: crate::ContractStr, observed: crate::ContractStr, }, OpenApiOperationId { expected: crate::ContractStr, observed: crate::ContractStr, }, Path { expected: crate::ContractStr, observed: crate::ContractStr, }, }
+#[derive(Clone, Copy, Debug, Eq, PartialEq)] pub enum RouteCoverageError { DuplicateRoute { metadata: crate::RouteMetadata, }, Missing { metadata: crate::RouteMetadata, obligation: RouteCoverageObligation, }, }
+#[derive(Clone, Copy, Debug, Eq, PartialEq)] pub enum RouteCoverageObligation { IntegrationFixture, OpenApiOperation, PayloadValidation, ReplayValidation, SecurityValidation, }
+#[derive(Clone, Copy, Debug, Eq, PartialEq)] pub enum RouteDatabaseUsage { Database, None, }
+#[derive(Clone, Copy, Debug, Eq, PartialEq)] pub enum RouteErrorPolicy { Authentication, Default, Delete, ValidatedRead, }
+#[derive(Clone, Copy, Debug, Eq, PartialEq)] pub enum RouteJsonBodyUsage { JsonBody, None, }
+#[derive(Clone, Copy, Debug, Eq, PartialEq)] pub enum RouteMethod { Connect, Delete, Get, Head, Options, Patch, Post, Put, Trace, }
+#[derive(Clone, Copy, Debug, Eq, PartialEq)] pub enum RouteMutation { Mutating, ReadOnly, }
+#[derive(Clone, Copy, Debug, Eq, PartialEq)] pub enum RouteRequestBody { Absent, Json, }
+#[derive(Clone, Copy, Debug, Eq, PartialEq)] pub enum RouteResponseKind { Buffered, Streaming, }
+#[derive(Clone, Copy, Debug, Eq, PartialEq)] pub enum RouteTestCategory { DatabaseFixture, FixtureHook, JsonRoundTrip, Metadata, StreamingResponse, }
+#[derive(Clone, Copy, Debug, Eq, PartialEq)] pub struct ApiUrlPathSegmentRef<'value_lt>(&'value_lt str);
+#[derive(Clone, Copy, Debug, Eq, PartialEq)] pub struct AuthSessionKeepAlive { interval: StdAuthSessionRefreshInterval, next: Option<StdAuthSessionInstant>, state: AuthSessionRefreshState, }
+#[derive(Clone, Copy, Debug, Eq, PartialEq)] pub struct AuthenticatedTransport;
+#[derive(Clone, Copy, Debug, Eq, PartialEq)] pub struct HttpContractExpectation { body_kind: HttpContractBodyKind, metadata: crate::RouteMetadata, status: HttpContractStatus, }
+#[derive(Clone, Copy, Debug, Eq, PartialEq)] pub struct OpenApiOperationExpectation { content_type: crate::ContractStr, metadata: crate::RouteMetadata, security: OpenApiSecurityExpectation, status: OpenApiResponseStatus, }
+#[derive(Clone, Copy, Debug, Eq, PartialEq)] pub struct ParameterizedRoutePathTryFromStringError;
+#[derive(Clone, Copy, Debug, Eq, PartialEq)] pub struct PublicTransport;
+#[derive(Clone, Copy, Debug, Eq, PartialEq)] pub struct RouteCoverageDescriptor { access: RouteAccess, evidence: RouteCoverageEvidence, metadata: crate::RouteMetadata, mutation: RouteMutation, }
+#[derive(Clone, Copy, Debug, Eq, PartialEq)] pub struct RouteCoverageEvidence { obligations: &'static [RouteCoverageObligation], }
+#[derive(Clone, Copy, Debug, Eq, PartialEq)] pub struct RouteMetadata { authentication: crate::AuthenticationRequirement, error_statuses: &'static [crate::RouteErrorStatus], method: RouteMethod, mutation: crate::RouteMutation, openapi_operation_id: crate::ContractStr, path: crate::ContractStr, success_status: crate::SuccessStatus, }
+#[derive(Clone, Copy, Debug, Eq, PartialEq)] pub struct RouteTestCapabilities { database: RouteDatabaseUsage, json_body: RouteJsonBodyUsage, response: RouteResponseKind, }
+#[derive(Clone, Copy, Debug, Eq, PartialEq)] pub struct StdAuthSessionRefreshInterval(std::time::Duration);
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)] pub struct ApiUrlQueryComponentRef<'value_lt>(&'value_lt str);
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)] pub struct HandlerPath(&'static str);
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)] pub struct OpenApiSecuritySchemeRef<'value_lt>(&'value_lt str);
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)] pub struct RouteBodyLimit(usize);
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)] pub struct StdAuthSessionInstant(std::time::Instant);
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::TryFrom)] #[try_from( error = crate::HttpStatusTryFromU16Error, validator = HttpContractStatus::validate )] pub struct HttpContractStatus(u16);
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::TryFrom)] #[try_from( error = crate::HttpStatusTryFromU16Error, validator = OpenApiResponseStatus::validate )] pub struct OpenApiResponseStatus(u16);
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)] #[error("frontend contract body exceeds its maximum byte length")] pub struct FrontendContractBodyError;
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)] #[error("{self:?}")] pub struct HttpStatusTryFromU16Error;
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)] #[error("{}", str_constants::INVALID_API_URL_PATH_SEGMENT)] pub enum ApiUrlBuildError { InvalidPathSegment, }
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)] pub enum AuthSessionKeepAliveError { #[error("authentication session refresh interval must not be zero")] ZeroInterval, }
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)] pub enum JsonContractSnapshotError { #[error("{}", str_constants::JSON_SNAPSHOT_TOO_LONG_ERROR)] TooLong, #[error("{}", str_constants::JSON_SNAPSHOT_SERIALIZATION_ERROR)] Serialization, }
+#[derive(Clone, Copy, Debug, PartialEq, Eq)] pub enum AuthenticationRequirement { Authenticated, Permission(ContractStr), Public, }
+#[derive(Clone, Copy, Debug, PartialEq, Eq)] pub enum CapabilitySupport { Supported, Unsupported, }
+#[derive(Clone, Copy, Debug, PartialEq, Eq)] pub enum ConfirmationRequirement { NotRequired, Required, }
+#[derive(Clone, Copy, Debug, PartialEq, Eq)] pub enum FieldCapability { Disabled, Enabled, }
+#[derive(Clone, Copy, Debug, PartialEq, Eq)] pub enum FieldPlaceholder { None, Value(ContractStr), }
+#[derive(Clone, Copy, Debug, PartialEq, Eq)] pub enum FieldVisibility { Hidden, Visible, }
+#[derive(Clone, Copy, Debug, PartialEq, Eq)] pub enum HttpMethod { Connect, Delete, Get, Head, Options, Patch, Post, Put, Trace, }
+#[derive(Clone, Copy, Debug, PartialEq, Eq)] pub enum InputKind { Checkbox, Date, DateTime, Number, Text, Time, Uuid, }
+#[derive(Clone, Copy, Debug, PartialEq, Eq)] pub enum InputStep { Any, Decimal, Integer, }
+#[derive(Clone, Copy, Debug, PartialEq, Eq)] pub enum MutationKind { ReadOnly, Mutating, }
+#[derive(Clone, Copy, Debug, PartialEq, Eq)] pub enum Nullability { NonNullable, Nullable, }
+#[derive(Clone, Copy, Debug, PartialEq, Eq)] pub enum NumericBound { None, Inclusive(ContractI64), }
+#[derive(Clone, Copy, Debug, PartialEq, Eq)] pub enum OperationKind { CreateMany, CreateOne, DeleteMany, DeleteOne, ReadMany, ReadOne, UpdateMany, UpdateOne, }
+#[derive(Clone, Copy, Debug, PartialEq, Eq)] pub enum PrimaryKeyKind { NonPrimary, Primary, }
+#[derive(Clone, Copy, Debug, PartialEq, Eq)] pub enum RouteErrorStatus { Authentication, Authorization, Conflict, Internal, MethodNotAllowed, PayloadTooLarge, RateLimited, ServiceUnavailable, Validation, }
+#[derive(Clone, Copy, Debug, PartialEq, Eq)] pub enum SuccessStatus { Code200, Code201, Code204, }
+#[derive(Clone, Copy, Debug, PartialEq, Eq)] pub enum ValueExample { Boolean, Date, DateTime, Decimal, Integer, None, Text, Time, Uuid, }
+#[derive(Clone, Copy, Debug, PartialEq, Eq)] pub enum ValueFormat { Bool, Bytes, Date, DateTime, Float32, Float64, Inet, Int16, Int32, Int64, Interval, Mac, Range, Text, Time, Timestamp, TimestampTz, Uuid, }
+#[derive(Clone, Copy, Debug, PartialEq, Eq)] pub struct ActionContract { confirmation: ConfirmationRequirement, operation: OperationKind, route: RouteContract, }
+#[derive(Clone, Copy, Debug, PartialEq, Eq)] pub struct FieldContract { creatable: FieldCapability, filterable: FieldCapability, filters: FilterContracts, label: ContractStr, name: ContractStr, order: FieldOrder, placeholder: FieldPlaceholder, primary_key: PrimaryKeyKind, readable: FieldCapability, sortable: FieldCapability, type_contract: TypeContract, updatable: FieldCapability, visibility: FieldVisibility, }
+#[derive(Clone, Copy, Debug, PartialEq, Eq)] pub struct RouteContract { authentication: AuthenticationRequirement, method: HttpMethod, mutation: MutationKind, path: ContractStr, success_status: SuccessStatus, }
+#[derive(Clone, Copy, Debug, PartialEq, Eq)] pub struct TypeContract { example: ValueExample, format: ValueFormat, input_kind: InputKind, maximum: NumericBound, minimum: NumericBound, nullability: Nullability, step: InputStep, }
+#[derive(Clone, Copy, Debug, PartialEq, Eq, newtype::AsRefInner, newtype::FromInner)] pub struct FilterContracts(&'static [FilterOperation]);
+#[derive(Clone, Copy, Debug, PartialEq, Eq, newtype::AsRefInner, newtype::FromInner)] pub struct FormValueRef<'value_lt>(&'value_lt str);
+#[derive(Clone, Copy, Debug, PartialEq, Eq, newtype::AsRefStr, newtype::FromInner)] pub struct FormFieldNameRef<'field_lt>(&'field_lt str);
+#[derive(Clone, Copy, Debug, PartialEq, Eq, newtype::FromInner)] pub struct ContractI64(i64);
+#[derive(Clone, Copy, Debug, PartialEq, Eq, newtype::FromInner)] pub struct FieldOrder(usize);
+#[derive(Clone, Copy, Debug, newtype::Display, newtype::FromInner)] pub struct OpenApiContractTextError(OpenApiContractTextTryFromStringError);
+#[derive(Clone, Copy, Debug, newtype::FromInner)] pub struct JsonSnapshotDynamicFieldRef<'value_lt>(&'value_lt str);
+#[derive(Clone, Copy, Debug, newtype::FromInner)] pub struct RuntimeRoutesRef<'value_lt>(&'value_lt [crate::RouteMetadata]);
+#[derive(Clone, Copy, Debug, newtype::FromInner, newtype::IntoInnerFrom)] pub struct AxumMethodFilter(axum::routing::MethodFilter);
+#[derive(Clone, Debug)] pub struct RouteSchemaContract { metadata: RouteMetadata, request_schema: Option<UtoipaOpenApiRouteSchema>, response_schema: Option<UtoipaOpenApiRouteSchema>, }
+#[derive(Clone, Debug, Default, Eq, PartialEq, newtype::IntoInnerFrom)] pub struct ParameterizedRoutePath(String);
+#[derive(Clone, Debug, Default, PartialEq, Eq, newtype::AsRefStr, newtype::BoundedString)] #[bounded_string(max = 1_048_576usize)] pub struct FormValue(String);
+#[derive(Clone, Debug, Default, PartialEq, Eq, newtype::AsRefStr, newtype::BoundedString)] #[bounded_string(max = 8192usize)] pub struct TransportPath(String);
+#[derive(Clone, Debug, Default, PartialEq, Eq, newtype::Display, newtype::FromInner)] pub struct FormValueError(to_err_string::ErrorText);
+#[derive(Clone, Debug, Default, PartialEq, Eq, newtype::Display, newtype::FromInner)] pub struct TransportError(to_err_string::ErrorText);
+#[derive(Clone, Debug, Eq, PartialEq)] pub enum HttpContractMismatch { BodyExpectedEmpty, BodyExpectedJson, Metadata(RouteContractMismatches), Status { expected: HttpContractStatus, observed: HttpContractStatus, }, }
+#[derive(Clone, Debug, Eq, PartialEq)] pub struct HttpContractBody(Vec<u8>);
+#[derive(Clone, Debug, Eq, PartialEq)] pub struct HttpContractObservation { body: HttpContractBody, metadata: crate::RouteMetadata, status: HttpContractStatus, }
+#[derive(Clone, Debug, Eq, PartialEq)] pub struct RouteRequest<Route> where Route: TypedRoute, { body: Route::Request, }
+#[derive(Clone, Debug, Eq, PartialEq)] pub struct RouteResponse<Route> where Route: TypedRoute, { body: Route::Response, }
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr, newtype::TryFrom)] #[try_from(validator = JsonContractSnapshot::validate)] pub struct JsonContractSnapshot(String);
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)] pub struct RouteContractMismatches(Vec<RouteContractMismatch>);
+#[derive(Clone, Debug, PartialEq, Eq)] pub enum ClientError { Decode(FormValueError), Encode(FormValueError), Problem(ApiProblem), Status { actual: TransportStatus, expected: TransportStatus, }, Transport(TransportError), UnexpectedResponse, }
+#[derive(Clone, Debug, PartialEq, Eq)] pub struct FormFieldError { error: FormValueError, field: ContractStr, }
+#[derive(Clone, Debug, PartialEq, Eq)] pub struct PageContract { actions: ActionContracts, fields: FieldContracts, path: ContractStr, routes: RouteContracts, title: ContractStr, }
+#[derive(Clone, Debug, PartialEq, Eq)] pub struct TransportRequest { body: TransportBody, path: TransportPath, route: RouteContract, idempotency_key: Option<TransportIdempotencyKey>, if_match: Option<TransportIfMatch>, }
+#[derive(Clone, Debug, PartialEq, Eq)] pub struct TransportResponse { body: TransportBody, retry_after: Option<TransportRetryAfter>, status: TransportStatus, }
+#[derive(Clone, Debug, PartialEq, Eq, newtype::AsRefStr, newtype::BoundedString)] #[bounded_string(max = 128usize, min = 1usize)] pub struct TransportRetryAfter(String);
+#[derive(Clone, Debug, PartialEq, Eq, newtype::AsRefStr, newtype::BoundedString)] #[bounded_string(max = 1_048_576usize)] pub struct FilterWireJson(String);
+#[derive(Clone, Debug, PartialEq, Eq, newtype::AsRefStr, newtype::BoundedString)] #[bounded_string(max = 20usize, min = 1usize)] pub struct TransportIfMatch(String);
+#[derive(Clone, Debug, PartialEq, Eq, newtype::AsRefStr, newtype::BoundedString)] #[bounded_string(max = 255usize, min = 1usize)] pub struct TransportIdempotencyKey(String);
+#[derive(Clone, Debug, PartialEq, Eq, newtype::AsRefTarget)] pub struct TransportBody(Vec<u8>);
+#[derive(Clone, Debug, PartialEq, Eq, newtype::AsRefTarget, newtype::FromInner)] pub struct ActionContracts(Vec<ActionContract>);
+#[derive(Clone, Debug, PartialEq, Eq, newtype::AsRefTarget, newtype::FromInner)] pub struct FieldContracts(Vec<FieldContract>);
+#[derive(Clone, Debug, PartialEq, Eq, newtype::AsRefTarget, newtype::FromInner)] pub struct RouteContracts(Vec<RouteContract>);
+#[derive(Clone, Debug, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema)] pub struct ApiProblem { detail: ApiProblemDetail, kind: ApiProblemKind, request_id: Option<ApiProblemRequestId>, status: ApiProblemStatus, #[schema(inline)] violations: ApiProblemViolations, }
+#[derive(Clone, Debug, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema)] pub struct ApiProblemViolation { detail: ApiProblemDetail, field: ApiProblemField, }
+#[derive(Clone, newtype::FromInner, newtype::IntoInnerFrom)] pub struct UtoipaOpenApiPathParameter(utoipa::openapi::path::Parameter);
+#[derive(Clone, newtype::FromInner, newtype::IntoInnerFrom)] pub struct UtoipaOpenApiRouteSchema(utoipa::openapi::RefOr<utoipa::openapi::Schema>);
+#[derive(Debug, newtype::DebugDisplay, thiserror::Error)] pub enum OpenApiOperationValidationError { DocumentSerialization(SerdeJsonOpenApiSerializationError), MissingContentType, MissingOperation, MissingResponseSchema, MissingResponseStatus, SecurityMismatch, }
+#[derive(Debug, newtype::DebugDisplay, thiserror::Error)] pub enum OpenApiPayloadValidationError { DocumentSerialization(SerdeJsonOpenApiSerializationError), Mismatch(OpenApiSchemaMismatch), PayloadSerialization(SerdeJsonOpenApiSerializationError), SchemaSerialization(SerdeJsonOpenApiSerializationError), }
+#[derive(Debug, newtype::DebugDisplay, thiserror::Error)] pub enum OpenApiValidationError { DocumentSerialization(SerdeJsonOpenApiSerializationError), MissingOperationId(OpenApiContractText, OpenApiContractText), MissingPaths, MissingSchemaReference(OpenApiContractText), MissingSchemas, OpenApiRouteMissing(OpenApiContractText, OpenApiContractText), OperationIdMismatch( OpenApiContractText, OpenApiContractText, OpenApiContractText, OpenApiContractText, ), RuntimeRouteMissing(OpenApiContractText, OpenApiContractText), TextTooLong(OpenApiContractTextError), UnusedSchema(OpenApiContractText), }
+#[derive(Debug, newtype::FromInner, newtype::IntoInnerFrom)] pub struct AxumHandlerMethodRouter<State>(axum::routing::MethodRouter<State>);
+#[derive(Debug, thiserror::Error, newtype::FromInner)] #[error(transparent)] pub struct SerdeJsonOpenApiSerializationError(serde_json::Error);
+#[derive(newtype::FromInner)] pub struct UtoipaOpenApiComponentsRefMut<'value_lt>( &'value_lt mut utoipa::openapi::schema::Components, );
+#[derive(newtype::FromInner)] pub struct UtoipaOpenApiRefMut<'value_lt>(&'value_lt mut utoipa::openapi::OpenApi);
+#[must_use] pub const fn access(self) -> crate::RouteAccess
+#[must_use] pub const fn actions(&self) -> &ActionContracts
+#[must_use] pub const fn authentication(self) -> AuthenticationRequirement
+#[must_use] pub const fn authentication(self) -> crate::AuthenticationRequirement
+#[must_use] pub const fn body(&self) -> &Route::Request
+#[must_use] pub const fn body(&self) -> &Route::Response
+#[must_use] pub const fn body(&self) -> &TransportBody
+#[must_use] pub const fn body(&self) -> &TransportBody
+#[must_use] pub const fn client_request<Route>(body: Route::Request) -> RouteRequest<Route> where Route: TypedRoute,
+#[must_use] pub const fn confirmation(self) -> ConfirmationRequirement
+#[must_use] pub const fn contract(self) -> crate::RouteContract
+#[must_use] pub const fn creatable(self) -> FieldCapability
+#[must_use] pub const fn detail(&self) -> &ApiProblemDetail
+#[must_use] pub const fn error(&self) -> &FormValueError
+#[must_use] pub const fn error_statuses(self) -> &'static [crate::RouteErrorStatus]
+#[must_use] pub const fn example(self) -> ValueExample
+#[must_use] pub const fn field(&self) -> ContractStr
+#[must_use] pub const fn fields(&self) -> &FieldContracts
+#[must_use] pub const fn filterable(self) -> FieldCapability
+#[must_use] pub const fn format(self) -> ValueFormat
+#[must_use] pub const fn get(self) -> &'static str
+#[must_use] pub const fn get(self) -> u16
+#[must_use] pub const fn get(self) -> usize
+#[must_use] pub const fn idempotency_key(&self) -> Option<&TransportIdempotencyKey>
+#[must_use] pub const fn if_match(&self) -> Option<&TransportIfMatch>
+#[must_use] pub const fn input_kind(self) -> InputKind
+#[must_use] pub const fn kind(&self) -> ApiProblemKind
+#[must_use] pub const fn label(self) -> ContractStr
+#[must_use] pub const fn maximum(self) -> NumericBound
+#[must_use] pub const fn metadata(&self) -> RouteMetadata
+#[must_use] pub const fn metadata(self) -> crate::RouteMetadata
+#[must_use] pub const fn method(self) -> HttpMethod
+#[must_use] pub const fn minimum(self) -> NumericBound
+#[must_use] pub const fn mutation(self) -> MutationKind
+#[must_use] pub const fn mutation(self) -> crate::RouteMutation
+#[must_use] pub const fn name(self) -> ContractStr
+#[must_use] pub const fn new( actions: ActionContracts, fields: FieldContracts, path: ContractStr, routes: RouteContracts, title: ContractStr, ) -> Self
+#[must_use] pub const fn new( authentication: AuthenticationRequirement, method: HttpMethod, mutation: MutationKind, path: ContractStr, success_status: SuccessStatus, ) -> Self
+#[must_use] pub const fn new( database: RouteDatabaseUsage, json_body: RouteJsonBodyUsage, response: RouteResponseKind, ) -> Self
+#[must_use] pub const fn new( metadata: crate::RouteMetadata, access: RouteAccess, mutation: RouteMutation, evidence: RouteCoverageEvidence, ) -> Self
+#[must_use] pub const fn new( metadata: crate::RouteMetadata, status: HttpContractStatus, body: HttpContractBody, ) -> Self
+#[must_use] pub const fn new( metadata: crate::RouteMetadata, status: HttpContractStatus, body_kind: HttpContractBodyKind, ) -> Self
+#[must_use] pub const fn new( metadata: crate::RouteMetadata, status: OpenApiResponseStatus, content_type: crate::ContractStr, security: OpenApiSecurityExpectation, ) -> Self
+#[must_use] pub const fn new( method: RouteMethod, openapi_operation_id: crate::ContractStr, path: crate::ContractStr, ) -> Self
+#[must_use] pub const fn new(body: Route::Request) -> Self
+#[must_use] pub const fn new(body: TransportBody, path: TransportPath, route: RouteContract) -> Self
+#[must_use] pub const fn new(body: TransportBody, status: TransportStatus) -> Self
+#[must_use] pub const fn new(error: FormValueError, field: ContractStr) -> Self
+#[must_use] pub const fn new(input_kind: InputKind, format: ValueFormat, nullability: Nullability) -> Self
+#[must_use] pub const fn new(interval: StdAuthSessionRefreshInterval) -> Self
+#[must_use] pub const fn new(obligations: &'static [RouteCoverageObligation]) -> Self
+#[must_use] pub const fn new(operation: OperationKind, route: RouteContract) -> Self
+#[must_use] pub const fn new_with_policy( authentication: crate::AuthenticationRequirement, error_statuses: &'static [crate::RouteErrorStatus], method: RouteMethod, mutation: crate::RouteMutation, openapi_operation_id: crate::ContractStr, path: crate::ContractStr, success_status: crate::SuccessStatus, ) -> Self
+#[must_use] pub const fn nullability(self) -> Nullability
+#[must_use] pub const fn openapi_operation_id(self) -> crate::ContractStr
+#[must_use] pub const fn operation(self) -> OperationKind
+#[must_use] pub const fn order(self) -> FieldOrder
+#[must_use] pub const fn path(&self) -> &TransportPath
+#[must_use] pub const fn path(&self) -> ContractStr
+#[must_use] pub const fn path(self) -> ContractStr
+#[must_use] pub const fn path(self) -> crate::ContractStr
+#[must_use] pub const fn placeholder(self) -> FieldPlaceholder
+#[must_use] pub const fn primary_key(self) -> PrimaryKeyKind
+#[must_use] pub const fn readable(self) -> FieldCapability
+#[must_use] pub const fn request_schema(&self) -> Option<&UtoipaOpenApiRouteSchema>
+#[must_use] pub const fn response_schema(&self) -> Option<&UtoipaOpenApiRouteSchema>
+#[must_use] pub const fn retry_after(&self) -> Option<&TransportRetryAfter>
+#[must_use] pub const fn route(&self) -> RouteContract
+#[must_use] pub const fn route(self) -> RouteContract
+#[must_use] pub const fn route_method(self) -> RouteMethod
+#[must_use] pub const fn routes(&self) -> &RouteContracts
+#[must_use] pub const fn server_response<Route>(body: Route::Response) -> RouteResponse<Route> where Route: TypedRoute,
+#[must_use] pub const fn sortable(self) -> FieldCapability
+#[must_use] pub const fn status(&self) -> ApiProblemStatus
+#[must_use] pub const fn status(&self) -> TransportStatus
+#[must_use] pub const fn statuses( self, authentication: AuthenticationRequirement, mutation: RouteMutation, ) -> &'static [RouteErrorStatus]
+#[must_use] pub const fn step(self) -> InputStep
+#[must_use] pub const fn success_status(self) -> SuccessStatus
+#[must_use] pub const fn success_status(self) -> crate::SuccessStatus
+#[must_use] pub const fn supports_filtering(self) -> CapabilitySupport
+#[must_use] pub const fn supports_sorting(self) -> CapabilitySupport
+#[must_use] pub const fn title(&self) -> ContractStr
+#[must_use] pub const fn type_contract(self) -> TypeContract
+#[must_use] pub const fn updatable(self) -> FieldCapability
+#[must_use] pub const fn value_shape(self) -> FilterValueShape
+#[must_use] pub const fn visibility(self) -> FieldVisibility
+#[must_use] pub const fn with_confirmation(mut self, value: ConfirmationRequirement) -> Self
+#[must_use] pub const fn with_creatable(mut self, value: FieldCapability) -> Self
+#[must_use] pub const fn with_example(mut self, value: ValueExample) -> Self
+#[must_use] pub const fn with_filterable(mut self, value: FieldCapability) -> Self
+#[must_use] pub const fn with_filters(mut self, value: FilterContracts) -> Self
+#[must_use] pub const fn with_maximum(mut self, value: NumericBound) -> Self
+#[must_use] pub const fn with_minimum(mut self, value: NumericBound) -> Self
+#[must_use] pub const fn with_order(mut self, value: FieldOrder) -> Self
+#[must_use] pub const fn with_placeholder(mut self, value: FieldPlaceholder) -> Self
+#[must_use] pub const fn with_primary_key(mut self, value: PrimaryKeyKind) -> Self
+#[must_use] pub const fn with_readable(mut self, value: FieldCapability) -> Self
+#[must_use] pub const fn with_sortable(mut self, value: FieldCapability) -> Self
+#[must_use] pub const fn with_step(mut self, value: InputStep) -> Self
+#[must_use] pub const fn with_updatable(mut self, value: FieldCapability) -> Self
+#[must_use] pub const fn with_visibility(mut self, value: FieldVisibility) -> Self
+#[must_use] pub fn as_str(self) -> crate::ContractStr
+#[must_use] pub fn axum_method_filter(method: crate::HttpMethod) -> AxumMethodFilter
+#[must_use] pub fn client_route_metadata<Route>() -> RouteMetadata where Route: TypedRoute,
+#[must_use] pub fn decode_api_problem(body: &TransportBody) -> Option<ApiProblem>
+#[must_use] pub fn filters(&self) -> &[FilterOperation]
+#[must_use] pub fn from_status(status: ApiProblemStatus) -> Self
+#[must_use] pub fn from_typed_route<Route>() -> Self where Route: TypedRoute,
+#[must_use] pub fn i16_max() -> Self
+#[must_use] pub fn i16_min() -> Self
+#[must_use] pub fn i32_max() -> Self
+#[must_use] pub fn i32_min() -> Self
+#[must_use] pub fn max() -> Self
+#[must_use] pub fn method(self) -> crate::ContractStr
+#[must_use] pub fn min() -> Self
+#[must_use] pub fn missing_required_test_categories( capabilities: RouteTestCapabilities, available_categories: &[RouteTestCategory], ) -> RouteTestCategories
+#[must_use] pub fn new(name: ContractStr, label: ContractStr, type_contract: TypeContract) -> Self
+#[must_use] pub fn openapi_route_metadata<Route>() -> RouteMetadata where Route: TypedRoute,
+#[must_use] pub fn required_test_categories(capabilities: RouteTestCapabilities) -> RouteTestCategories
+#[must_use] pub fn server_route_metadata<Route>() -> RouteMetadata where Route: TypedRoute,
+#[must_use] pub fn transport_status(self) -> TransportStatus
+#[must_use] pub fn transport_status(self) -> TransportStatus
+#[must_use] pub fn typed_parameterized_route_path<Route>(parameter: &Route::Parameter) -> ParameterizedRoutePath where Route: ParameterizedRoute,
+#[must_use] pub fn typed_route_path<Route>() -> crate::ContractStr where Route: TypedRoute,
+#[must_use] pub fn with_idempotency_key(mut self, value: TransportIdempotencyKey) -> Self
+#[must_use] pub fn with_if_match(mut self, value: TransportIfMatch) -> Self
+#[must_use] pub fn with_retry_after(mut self, retry_after: Option<TransportRetryAfter>) -> Self
+pub async fn run_http_contract_fixture<Send, SendFuture>( expectation: HttpContractExpectation, send: Send, ) -> Result<(), HttpContractMismatch> where Send: FnOnce(crate::RouteMetadata) -> SendFuture, SendFuture: Future<Output = HttpContractObservation>,
+pub const AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS: &[RouteCoverageObligation] = &[ RouteCoverageObligation::IntegrationFixture, RouteCoverageObligation::OpenApiOperation, RouteCoverageObligation::PayloadValidation, RouteCoverageObligation::ReplayValidation, RouteCoverageObligation::SecurityValidation, ];
+pub const AUTHENTICATED_MUTATING_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] = &[ RouteErrorStatus::Authentication, RouteErrorStatus::Authorization, RouteErrorStatus::PayloadTooLarge, RouteErrorStatus::RateLimited, RouteErrorStatus::Internal, ];
+pub const AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS: &[RouteCoverageObligation] = &[ RouteCoverageObligation::IntegrationFixture, RouteCoverageObligation::OpenApiOperation, RouteCoverageObligation::PayloadValidation, RouteCoverageObligation::SecurityValidation, ];
+pub const AUTHENTICATED_READ_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] = &[ RouteErrorStatus::Authentication, RouteErrorStatus::PayloadTooLarge, RouteErrorStatus::RateLimited, RouteErrorStatus::Internal, ];
+pub const AUTHORIZED_DELETE_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] = &[ RouteErrorStatus::Authentication, RouteErrorStatus::Authorization, RouteErrorStatus::Conflict, RouteErrorStatus::PayloadTooLarge, RouteErrorStatus::RateLimited, RouteErrorStatus::Internal, ];
+pub const AUTHORIZED_MUTATING_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] = &[ RouteErrorStatus::Authentication, RouteErrorStatus::Authorization, RouteErrorStatus::Conflict, RouteErrorStatus::PayloadTooLarge, RouteErrorStatus::Validation, RouteErrorStatus::RateLimited, RouteErrorStatus::Internal, ];
+pub const AUTHORIZED_READ_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] = &[ RouteErrorStatus::Authentication, RouteErrorStatus::Authorization, RouteErrorStatus::PayloadTooLarge, RouteErrorStatus::RateLimited, RouteErrorStatus::Internal, ];
+pub const AUTHORIZED_VALIDATED_READ_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] = &[ RouteErrorStatus::Authentication, RouteErrorStatus::Authorization, RouteErrorStatus::PayloadTooLarge, RouteErrorStatus::Validation, RouteErrorStatus::RateLimited, RouteErrorStatus::Internal, ];
+pub const PUBLIC_AUTH_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] = &[ RouteErrorStatus::Authentication, RouteErrorStatus::PayloadTooLarge, RouteErrorStatus::RateLimited, RouteErrorStatus::Internal, ];
+pub const PUBLIC_MUTATING_ROUTE_COVERAGE_OBLIGATIONS: &[RouteCoverageObligation] = &[ RouteCoverageObligation::IntegrationFixture, RouteCoverageObligation::OpenApiOperation, RouteCoverageObligation::PayloadValidation, RouteCoverageObligation::ReplayValidation, ];
+pub const PUBLIC_MUTATING_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] = &[ RouteErrorStatus::PayloadTooLarge, RouteErrorStatus::Validation, RouteErrorStatus::RateLimited, RouteErrorStatus::Internal, ];
+pub const PUBLIC_READ_ROUTE_COVERAGE_OBLIGATIONS: &[RouteCoverageObligation] = &[ RouteCoverageObligation::IntegrationFixture, RouteCoverageObligation::OpenApiOperation, RouteCoverageObligation::PayloadValidation, ];
+pub const PUBLIC_READ_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] = &[ RouteErrorStatus::Internal, RouteErrorStatus::PayloadTooLarge, RouteErrorStatus::RateLimited, ];
+pub const PUBLIC_REFRESH_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] = &[ RouteErrorStatus::Authentication, RouteErrorStatus::PayloadTooLarge, RouteErrorStatus::RateLimited, RouteErrorStatus::Internal, ];
+pub const fn mark_missing(&mut self)
+pub fn apply_openapi_error_contract<Route>(operation: &mut utoipa::openapi::path::Operation) where Route: TypedRoute,
+pub fn apply_openapi_path_parameter_contract<Route>( operation: &mut utoipa::openapi::path::Operation, ) where Route: TypedRoute,
+pub fn apply_openapi_request_contract<Route>(operation: &mut utoipa::openapi::path::Operation) where Route: TypedRoute,
+pub fn apply_openapi_security_contract<Route>( operation: &mut utoipa::openapi::path::Operation, authenticated_scheme: OpenApiSecuritySchemeRef<'_>, csrf_scheme: OpenApiSecuritySchemeRef<'_>, ) where Route: TypedRoute,
+pub fn apply_openapi_success_contract<Route>(operation: &mut utoipa::openapi::path::Operation) where Route: TypedRoute,
+pub fn begin( &mut self, now: StdAuthSessionInstant, presence: AuthSessionPresence, ) -> AuthSessionKeepAliveDecision
+pub fn canonical_json_contract_snapshot<Payload>( value: &Payload, dynamic_fields: &[JsonSnapshotDynamicFieldRef<'_>], ) -> Result<JsonContractSnapshot, JsonContractSnapshotError> where Payload: serde::Serialize,
+pub fn finish( &mut self, now: StdAuthSessionInstant, outcome: AuthSessionRefreshOutcome, ) -> AuthSessionRefreshOutcome
+pub fn handler_method_router<State, Handler, Marker>( method: super::RouteMethod, handler: Handler, ) -> AxumHandlerMethodRouter<State> where State: Clone + Send + Sync + 'static, Handler: axum::handler::Handler<Marker, State> + Clone + Send + Sync + 'static, Marker: 'static,
+pub fn push_path_segment(&mut self, segment: ApiUrlPathSegmentRef<'_>)
+pub fn push_query_pair( &mut self, name: ApiUrlQueryComponentRef<'_>, value: ApiUrlQueryComponentRef<'_>, )
+pub fn register_openapi_route_schemas<Route>(document: &mut UtoipaOpenApiRefMut<'_>) where Route: TypedRoute,
+pub fn success_body(&self, expected: TransportStatus) -> Result<&TransportBody, ClientError>
+pub fn validate_openapi_contract<Document>( document: &Document, runtime_routes: RuntimeRoutesRef<'_>, ) -> Result<(), OpenApiValidationError> where Document: serde::Serialize,
+pub fn validate_openapi_json_payload<Payload, Schema, Document>( payload: &Payload, schema: &Schema, document: &Document, ) -> Result<(), OpenApiPayloadValidationError> where Payload: serde::Serialize, Schema: serde::Serialize, Document: serde::Serialize,
+pub fn validate_openapi_operations<Document>( document: &Document, expectations: &[OpenApiOperationExpectation], ) -> Result<(), OpenApiOperationValidationError> where Document: serde::Serialize,
+pub fn validate_openapi_schema_references<Document>( document: &Document, ) -> Result<(), OpenApiValidationError> where Document: serde::Serialize,
+pub fn validate_route_contract_metadata( expected: crate::RouteMetadata, observed: crate::RouteMetadata, ) -> Result<(), RouteContractMismatches>
+pub fn validate_route_coverage( descriptors: &[RouteCoverageDescriptor], ) -> Result<(), RouteCoverageError>
+pub fn validate_typed_route_contract<Route>( observed: crate::RouteMetadata, ) -> Result<(), RouteContractMismatches> where Route: crate::TypedRoute,
+pub trait CoveredRoute: TypedRoute { fn coverage_descriptor() -> crate::RouteCoverageDescriptor; }
+pub trait FilterFormValueContract { fn parse_filter_form_value(value: FormValueRef<'_>) -> Result<FilterWireJson, FormValueError>; }
+pub trait FormValueContract: Sized { fn format_form_value(&self) -> Result<FormValue, FormValueError>; fn parse_form_value(value: FormValueRef<'_>) -> Result<Self, FormValueError>; }
+pub trait HandlerContract: Copy { fn method(self) -> super::RouteMethod; fn path(self) -> HandlerPath; }
+pub trait HasFilterContracts { const FILTER_CONTRACTS: &'static [FilterOperation]; #[must_use] fn filter_contracts() -> FilterContracts { FilterContracts::from(Self::FILTER_CONTRACTS) } }
+pub trait HasTypeContract { fn type_contract() -> TypeContract; }
+pub trait ParameterizedRoute: TypedRoute { type Parameter; fn path(parameter: &Self::Parameter) -> ParameterizedRoutePath; }
+pub trait RouteFamily { const ROUTE_COUNT: usize = 0usize; #[must_use] fn body_limit() -> Option<RouteBodyLimit> { None } fn coverage_descriptors() -> RouteCoverageDescriptors; #[must_use] fn schema_contracts() -> RouteSchemaContracts { RouteSchemaContracts::default() } fn route_metadata() -> RouteMetadataList { Vec::from(Self::coverage_descriptors()) .into_iter() .map(crate::RouteCoverageDescriptor::metadata) .collect::<Vec<_>>() .into() } }
+pub trait RouteInFamily<Family> where Family: RouteFamily, { }
+pub trait RouteTransport {}
+pub trait Transport { fn send( &self, request: TransportRequest, ) -> impl Future<Output = Result<TransportResponse, TransportError>> + '_; }
+pub trait TypedRoute: Sized { type Request: serde::Serialize + serde::de::DeserializeOwned; type Response: serde::Serialize + serde::de::DeserializeOwned; type Transport: RouteTransport; fn metadata() -> RouteMetadata; #[must_use] fn openapi_request_schema() -> Option<UtoipaOpenApiRouteSchema> { None } #[must_use] fn openapi_request_body_schema() -> Option<UtoipaOpenApiRouteSchema> { None } #[must_use] fn openapi_response_schema() -> Option<UtoipaOpenApiRouteSchema> { None } #[must_use] fn openapi_error_response_schema( _status: crate::RouteErrorStatus, ) -> Option<UtoipaOpenApiRouteSchema> { Some(UtoipaOpenApiRouteSchema::from( <crate::ApiProblem as utoipa::ToSchema>::schema().1, )) } #[must_use] fn openapi_path_parameter() -> Option<UtoipaOpenApiPathParameter> { None } #[must_use] fn request_body() -> RouteRequestBody { RouteRequestBody::Absent } fn register_openapi_schemas(_components: &mut UtoipaOpenApiComponentsRefMut<'_>) {} }
+
+[server_admin_contract/src] # administrator wire contract
+#[derive( Clone, Copy, Debug, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize, utoipa::ToSchema, )] #[serde(rename_all = "snake_case")] pub enum AdminSortDirection { #[default] Asc, Desc, }
+#[derive( Clone, Copy, Debug, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize, utoipa::ToSchema, newtype::Display, newtype::FromInner, newtype::IntoInnerFrom, )] #[serde(from = "bool")] pub struct AdminBool(bool);
+#[derive( Clone, Copy, Debug, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize, utoipa::ToSchema, newtype::Display, newtype::FromInner, newtype::IntoInnerFrom, )] #[serde(from = "u64")] pub struct AdminPageTotal(u64);
+#[derive( Clone, Copy, Debug, Default, PartialEq, Eq, serde::Serialize, utoipa::ToSchema, newtype::Display, newtype::FromInner, newtype::IntoInnerFrom, )] pub struct AdminPageOffset(u32);
+#[derive( Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize, utoipa::ToSchema, )] #[serde(rename_all = "snake_case")] pub enum AdminDataInputKind { Checkbox, Date, DateTime, Number, Text, Time, Uuid, }
+#[derive( Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize, utoipa::ToSchema, )] pub struct AdminDataFilter { operation: frontend_contract::FilterOperation, value_shape: frontend_contract::FilterValueShape, }
+#[derive( Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord, serde::Serialize, newtype::Display, newtype::FromInner, )] pub struct StdAdminPositiveI64(std::num::NonZeroI64);
+#[derive( Clone, Copy, Debug, Hash, PartialEq, Eq, serde::Serialize, serde::Deserialize, utoipa::ToSchema, newtype::Display, newtype::FromInner, )] #[serde(try_from = "i64")] pub struct AdminPermissionId(#[schema(value_type = i64)] StdAdminPositiveI64);
+#[derive( Clone, Copy, Debug, Hash, PartialEq, Eq, serde::Serialize, serde::Deserialize, utoipa::ToSchema, newtype::Display, newtype::FromInner, )] #[serde(try_from = "i64")] pub struct AdminRoleId(#[schema(value_type = i64)] StdAdminPositiveI64);
+#[derive( Clone, Copy, Debug, Hash, PartialEq, Eq, serde::Serialize, serde::Deserialize, utoipa::ToSchema, newtype::Display, newtype::FromInner, )] #[serde(try_from = "i64")] pub struct AdminUserId(#[schema(value_type = i64)] StdAdminPositiveI64);
+#[derive( Clone, Copy, Debug, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize, utoipa::ToSchema, frontend_contract::UnitEnumCatalog, )] #[serde(rename_all = "snake_case")] pub enum AdminOptionalSetting { TabTitle, OrganizationName, OrganizationContacts, SupportUrl, PrimaryColor, MainLogo, }
+#[derive( Clone, Copy, Debug, PartialEq, Eq, newtype::IntoInnerFrom, serde::Serialize, utoipa::ToSchema, )] pub struct AdminPageLimit(u16);
+#[derive( Clone, Copy, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize, utoipa::ToSchema, newtype::Display, newtype::FromInner, )] #[serde(try_from = "i64")] pub struct AdminAuditLogId(#[schema(value_type = i64)] StdAdminPositiveI64);
+#[derive( Clone, Debug, Default, PartialEq, Eq, newtype::AsRefStr, newtype::BoundedString, newtype::Display, )] #[bounded_string( max = 4096usize, chars, serde, utoipa, description = "administrator filter value" )] pub struct AdminFilterValue(String);
+#[derive( Clone, Debug, Default, PartialEq, Eq, newtype::AsRefStr, newtype::BoundedString, newtype::Display, )] #[bounded_string( max = 63usize, chars, serde, utoipa, description = "administrator filter field" )] pub struct AdminFilterField(String);
+#[derive( Clone, Debug, Default, PartialEq, Eq, newtype::AsRefStr, newtype::BoundedString, newtype::Display, )] #[bounded_string(max = 63usize)] pub struct AdminFilterOperationKey(String);
+#[derive( Clone, Debug, Default, serde::Deserialize, serde::Serialize, utoipa::IntoParams, utoipa::ToSchema, )] #[into_params(parameter_in = Query)] pub struct AdminDataTableFilterQuery { #[serde(default)] #[param(value_type = Option<String>, max_length = 63)] filter_field: Option<AdminFilterField>, #[serde(default)] #[param(inline)] filter_operation: Option<frontend_contract::FilterOperation>, #[serde(default)] #[param(value_type = Option<String>, max_length = 4096)] filter_value: Option<AdminFilterValue>, #[serde(default)] #[param(value_type = Option<String>, max_length = 4096)] filter_end: Option<AdminFilterValue>, }
+#[derive( Clone, Debug, Default, serde::Deserialize, serde::Serialize, utoipa::IntoParams, utoipa::ToSchema, )] #[into_params(parameter_in = Query)] pub struct AdminTableQuery { #[serde(default)] #[param(value_type = u16, minimum = 1, maximum = 100)] limit: AdminPageLimit, #[serde(default)] #[param(value_type = u32)] offset: AdminPageOffset, #[serde(default)] #[param(value_type = String, max_length = 128)] search: AdminTableSearch, #[serde(default)] #[param(value_type = String, max_length = 32)] sort: AdminTableSortKey, #[serde(default)] #[param(inline)] direction: AdminSortDirection, }
+#[derive( Clone, Debug, PartialEq, Eq, newtype::BoundedString, newtype::AsRefOwned, newtype::Display, newtype::IntoInner, )] #[bounded_string( max = 128, chars, serde, utoipa, description = "administrator permission" )] pub struct AdminPermissionValue(String);
+#[derive( Clone, Debug, PartialEq, Eq, newtype::BoundedString, newtype::AsRefOwned, newtype::Display, newtype::IntoInner, )] #[bounded_string( max = 64, chars, serde, utoipa, description = "administrator audit timestamp" )] pub struct AdminAuditTimestamp(String);
+#[derive( Clone, Debug, PartialEq, Eq, newtype::BoundedString, newtype::AsRefOwned, newtype::Display, newtype::IntoInner, )] #[bounded_string( max = 8192, chars, serde, utoipa, description = "administrator API text" )] pub struct AdminText(String);
+#[derive( Clone, Debug, PartialEq, Eq, newtype::BoundedString, newtype::AsRefOwned, newtype::Display, newtype::IntoInner, )] #[bounded_string( max = ADMIN_DISPLAY_NAME_MAX_CHARS, min = ADMIN_DISPLAY_NAME_MIN_CHARS, chars, serde, utoipa, validator = ADMIN_DISPLAY_NAME_IS_VALID, description = "administrator display name" )] pub struct AdminDisplayName(String);
+#[derive( Clone, Debug, PartialEq, Eq, newtype::BoundedString, newtype::AsRefOwned, newtype::Display, newtype::IntoInner, )] #[bounded_string( max = ADMIN_LOGIN_MAX_CHARS, min = ADMIN_LOGIN_MIN_CHARS, chars, serde, utoipa, validator = ADMIN_LOGIN_IS_VALID, description = "administrator login" )] pub struct AdminLogin(String);
+#[derive( Clone, Debug, PartialEq, Eq, newtype::BoundedString, newtype::AsRefOwned, newtype::Display, newtype::IntoInner, )] #[bounded_string( max = ADMIN_ROLE_NAME_MAX_CHARS, min = ADMIN_ROLE_NAME_MIN_CHARS, chars, serde, utoipa, validator = ADMIN_LOGIN_IS_VALID, description = "administrator role name" )] pub struct AdminRoleName(String);
+#[derive( Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema, newtype::AsRefTarget, newtype::IntoInnerFrom, )] #[serde(from = "AdminBoundedVec<AdminAuditView>")] pub struct AdminAuditViews(#[schema(max_items = 10000)] Vec<AdminAuditView>);
+#[derive( Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema, newtype::AsRefTarget, newtype::IntoInnerFrom, )] #[serde(from = "AdminBoundedVec<AdminDataRow>")] pub struct AdminDataRows(#[schema(max_items = 10000)] Vec<AdminDataRow>);
+#[derive( Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema, newtype::AsRefTarget, newtype::IntoInnerFrom, )] #[serde(from = "AdminBoundedVec<AdminDataTable>")] pub struct AdminDataTables(#[schema(max_items = 10000)] Vec<AdminDataTable>);
+#[derive( Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema, newtype::AsRefTarget, newtype::IntoInnerFrom, )] #[serde(from = "AdminBoundedVec<AdminOptionalSetting>")] pub struct AdminOptionalSettings(#[schema(max_items = 10000)] Vec<AdminOptionalSetting>);
+#[derive( Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema, newtype::AsRefTarget, newtype::IntoInnerFrom, )] #[serde(from = "AdminBoundedVec<AdminPermissionId>")] pub struct AdminPermissionIds(#[schema(max_items = 10000)] Vec<AdminPermissionId>);
+#[derive( Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema, newtype::AsRefTarget, newtype::IntoInnerFrom, )] #[serde(from = "AdminBoundedVec<AdminPermissionSummary>")] pub struct AdminPermissionSummaries(#[schema(max_items = 10000)] Vec<AdminPermissionSummary>);
+#[derive( Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema, newtype::AsRefTarget, newtype::IntoInnerFrom, )] #[serde(from = "AdminBoundedVec<AdminPermissionValue>")] pub struct AdminPermissionValues(#[schema(max_items = 10000)] Vec<AdminPermissionValue>);
+#[derive( Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema, newtype::AsRefTarget, newtype::IntoInnerFrom, )] #[serde(from = "AdminBoundedVec<AdminRoleId>")] pub struct AdminRoleIds(#[schema(max_items = 10000)] Vec<AdminRoleId>);
+#[derive( Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema, newtype::AsRefTarget, newtype::IntoInnerFrom, )] #[serde(from = "AdminBoundedVec<AdminRoleName>")] pub struct AdminRoleNames(#[schema(max_items = 10000)] Vec<AdminRoleName>);
+#[derive( Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema, newtype::AsRefTarget, newtype::IntoInnerFrom, )] #[serde(from = "AdminBoundedVec<AdminRoleSummary>")] pub struct AdminRoleSummaries(#[schema(max_items = 10000)] Vec<AdminRoleSummary>);
+#[derive( Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema, newtype::AsRefTarget, newtype::IntoInnerFrom, )] #[serde(from = "AdminBoundedVec<AdminSessionView>")] pub struct AdminSessionViews(#[schema(max_items = 10000)] Vec<AdminSessionView>);
+#[derive( Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema, newtype::AsRefTarget, newtype::IntoInnerFrom, )] #[serde(from = "AdminBoundedVec<AdminText>")] pub struct AdminTexts(#[schema(max_items = 10000)] Vec<AdminText>);
+#[derive( Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema, newtype::AsRefTarget, newtype::IntoInnerFrom, )] #[serde(from = "AdminBoundedVec<AdminUserSummary>")] pub struct AdminUserSummaries(#[schema(max_items = 10000)] Vec<AdminUserSummary>);
+#[derive( Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema, newtype::AsRefOwned, newtype::Display, newtype::IntoInnerFrom, )] #[serde(try_from = "serde_json::Value", into = "serde_json::Value")] pub struct SerdeJsonAdminAuditDetails(serde_json::Value);
+#[derive( Clone, PartialEq, Eq, newtype::AsRefOwned, newtype::BoundedString, newtype::DebugRedacted, newtype::IntoInner, )] #[bounded_string( max = ADMIN_PASSWORD_MAX_CHARS, min = ADMIN_NEW_PASSWORD_MIN_CHARS, chars, serde, utoipa, validator = ADMIN_NEW_PASSWORD_IS_VALID, description = "new administrator password" )] pub struct AdminNewPassword(String);
+#[derive( Clone, PartialEq, Eq, newtype::AsRefOwned, newtype::BoundedString, newtype::DebugRedacted, newtype::IntoInner, )] #[bounded_string( max = ADMIN_PASSWORD_MAX_CHARS, min = ADMIN_PASSWORD_MIN_CHARS, chars, serde, utoipa, description = "administrator password" )] pub struct AdminPassword(String);
+#[derive( Debug, Clone, Copy, PartialEq, Eq, newtype::WireEnum, serde::Deserialize, utoipa::ToSchema, )] #[serde(try_from = "String")] #[wire_enum( ref_type = AdminDataTableStrRef, error_message = str_constants::UNKNOWN_ADMINISTRATOR_DATA_TABLE, )] pub enum AdminDataTable { #[wire("access_sessions")] AccessSessions, #[wire("audit_log")] AuditLog, #[wire("cleanup_status")] CleanupStatus, #[wire("login_attempts")] LoginAttempts, #[wire("permissions")] Permissions, #[wire("rate_limits")] RateLimits, #[wire("refresh_tokens")] RefreshTokens, #[wire("role_permissions")] RolePermissions, #[wire("roles")] Roles, #[wire("system_settings")] SystemSettings, #[wire("user_roles")] UserRoles, #[wire("users")] Users, }
+#[derive( Debug, Clone, Copy, PartialEq, Eq, strum_macros::IntoStaticStr, frontend_contract::UnitEnumCatalog, )] pub enum AdminHtmlAction { #[strum(serialize = "/admin/actions/profile/password")] ProfilePassword, #[strum(serialize = "/admin/actions/roles/create")] RoleCreate, #[strum(serialize = "/admin/actions/roles/delete")] RoleDelete, #[strum(serialize = "/admin/actions/roles/permissions")] RolePermissions, #[strum(serialize = "/admin/actions/roles/update")] RoleUpdate, #[strum(serialize = "/admin/actions/sessions/revoke")] SessionRevoke, #[strum(serialize = "/admin/actions/settings/update")] SettingsUpdate, #[strum(serialize = "/admin/actions/sign_in")] SignIn, #[strum(serialize = "/admin/actions/sign_out")] SignOut, #[strum(serialize = "/admin/actions/users/ban")] UserBan, #[strum(serialize = "/admin/actions/users/create")] UserCreate, #[strum(serialize = "/admin/actions/users/delete")] UserDelete, #[strum(serialize = "/admin/actions/users/password")] UserPassword, #[strum(serialize = "/admin/actions/users/roles")] UserRoles, #[strum(serialize = "/admin/actions/users/update")] UserUpdate, }
+#[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd, newtype::FromInner)] pub struct AdminAuditDetailsBytes(usize);
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)] pub struct AdminApiBodyMaxBytes(usize);
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)] #[error("{self:?}")] pub struct AdminIdTryFromI64Error;
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)] pub enum AdminCollectionError { #[error( "{}", str_constants::ADMINISTRATOR_COLLECTION_EXCEEDS_MAXIMUM_ITEM_COUNT )] TooLong, }
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error, newtype::FromInner)] #[error( "administrator audit details contain {} bytes, maximum is {} bytes", .0.0, ADMIN_AUDIT_DETAILS_MAX_BYTES )] pub struct AdminAuditDetailsTooLarge(AdminAuditDetailsBytes);
+#[derive(Clone, Copy, Debug, PartialEq, Eq)] pub enum AdminRoutePathError { TooLong, }
+#[derive(Clone, Copy, Debug, PartialEq, Eq)] pub enum AdminSettingInputKind { Text, TextArea, Url, }
+#[derive(Clone, Copy, Debug, PartialEq, Eq)] pub enum AdminSettingOptionality { Clearable(AdminOptionalSetting), Required, }
+#[derive(Clone, Copy, Debug, PartialEq, Eq)] pub enum AdminTableSortField { AuditAction, AuditCreatedAt, AuditResource, AuditSucceeded, AuditUserId, PermissionId, PermissionName, RoleId, RoleName, RoleSystem, UserDisplayName, UserId, UserLogin, UserStatus, }
+#[derive(Clone, Copy, Debug, PartialEq, Eq)] pub struct AdminSettingSpec { input_kind: AdminSettingInputKind, label: AdminSettingLabel, name: AdminSettingName, optionality: AdminSettingOptionality, }
+#[derive(Clone, Copy, Debug, PartialEq, Eq, frontend_contract::RouteCatalog)] #[route_catalog( family = AdminAuthenticationRouteFamily, body_limit = ADMIN_API_BODY_MAX_BYTES_VALUE, )] pub enum AdminRoute { #[route_catalog_route(AdminAuditLogRoute)] Audit, #[route_catalog_route(AdminAuditExportRoute)] AuditExport, #[route_catalog_route(AdminBrandingRoute)] Branding, #[route_catalog_route(AdminDataTableRoute)] DataTable(AdminDataTable), #[route_catalog_route(AdminDataTablesRoute)] DataTables, #[route_catalog_route(AdminChangeOwnPasswordRoute)] ChangeOwnPassword, #[route_catalog_route(AdminCreateRoleRoute)] CreateRole, #[route_catalog_route(AdminCreateUserRoute)] CreateUser, #[route_catalog_route(AdminDeleteRoleRoute)] DeleteRole(AdminRoleId), #[route_catalog_route(AdminDeleteUserRoute)] DeleteUser(AdminUserId), #[route_catalog_route(AdminMeRoute)] Me, #[route_catalog_route( contract = frontend_contract::RouteContract::new( admin_permission_requirement(AdminPermission::MetricsRead), frontend_contract::HttpMethod::Get, frontend_contract::MutationKind::ReadOnly, frontend_contract::ContractStr::from(str_constants::METRICS), frontend_contract::SuccessStatus::Code200, ), path = str_constants::METRICS, exclude_from_family, )] Metrics, #[route_catalog_route( contract = frontend_contract::RouteContract::new( admin_permission_requirement(AdminPermission::OpenApiRead), frontend_contract::HttpMethod::Get, frontend_contract::MutationKind::ReadOnly, frontend_contract::ContractStr::from(str_constants::OPENAPI_JSON), frontend_contract::SuccessStatus::Code200, ), path = str_constants::OPENAPI_JSON, exclude_from_family, )] OpenApi, #[route_catalog_route(AdminListPermissionsRoute)] Permissions, #[route_catalog_route(AdminRefreshRoute)] Refresh, #[route_catalog_route(AdminRevokeAllSessionsRoute)] RevokeAllSessions, #[route_catalog_route(AdminRevokeSessionRoute)] RevokeSession, #[route_catalog_route(AdminListRolesRoute)] Roles, #[route_catalog_route(AdminSetRolePermissionsRoute)] SetRolePermissions(AdminRoleId), #[route_catalog_route(AdminSetUserBanRoute)] SetUserBan(AdminUserId), #[route_catalog_route(AdminSetUserPasswordRoute)] SetUserPassword(AdminUserId), #[route_catalog_route(AdminSetUserRolesRoute)] SetUserRoles(AdminUserId), #[route_catalog_route(AdminSettingsRoute)] Settings, #[route_catalog_route(AdminSignInRoute)] SignIn, #[route_catalog_route(AdminSignOutRoute)] SignOut, #[route_catalog_route(AdminSessionsRoute)] Sessions, #[route_catalog_route(AdminUpdateRoleRoute)] UpdateRole(AdminRoleId), #[route_catalog_route(AdminUpdateSettingsRoute)] UpdateSettings, #[route_catalog_route(AdminUpdateUserRoute)] UpdateUser(AdminUserId), #[route_catalog_route(AdminListUsersRoute)] Users, #[route_catalog_route( contract = frontend_contract::RouteContract::new( frontend_contract::AuthenticationRequirement::Public, frontend_contract::HttpMethod::Get, frontend_contract::MutationKind::ReadOnly, frontend_contract::ContractStr::from(str_constants::COMMON_ROUTES_GIT_INFO), frontend_contract::SuccessStatus::Code200, ), path = str_constants::API_V1_GIT_INFO, exclude_from_family, )] Version, }
+#[derive(Clone, Copy, Debug, PartialEq, Eq, frontend_contract::UnitEnumCatalog)] pub enum AdminSetting { DefaultRoute, SiteName, TabTitle, OrganizationName, OrganizationContacts, SupportUrl, PrimaryColor, MainLogo, }
+#[derive(Clone, Copy, Debug, PartialEq, Eq, newtype::AsRefStr, newtype::FromInner)] pub struct AdminSettingLabel(&'static str);
+#[derive(Clone, Copy, Debug, PartialEq, Eq, newtype::AsRefStr, newtype::FromInner)] pub struct AdminSettingName(&'static str);
+#[derive(Clone, Copy, Debug, PartialEq, Eq, newtype::FromInner)] pub struct AdminPagePathRef<'path_lt>(&'path_lt str);
+#[derive(Clone, Copy, Debug, PartialEq, Eq, newtype::FromInner)] pub struct AdminTableSortKeyRef<'value_lt>(&'value_lt str);
+#[derive(Clone, Copy, Debug, PartialEq, Eq, thiserror::Error)] #[error( "administrator page limit must be between {min} and {max}", min = AdminPageLimit::MIN, max = AdminPageLimit::MAX )] pub struct AdminPageLimitError;
+#[derive(Clone, Copy, Debug, PartialEq, Eq, thiserror::Error)] #[error("{}", str_constants::UNKNOWN_ADMIN_TABLE_SORT_FIELD)] pub struct AdminTableSortFieldTryFromKeyError;
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)] #[typed_route( authentication = frontend_contract::AuthenticationRequirement::Authenticated, method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, error_policy = frontend_contract::RouteErrorPolicy::Default, openapi_operation_id = "me", path = "/auth/me", request = AdminNoBody, response = AuthenticatedAdmin, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport, )] pub struct AdminMeRoute;
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)] #[typed_route( authentication = frontend_contract::AuthenticationRequirement::Public, method = frontend_contract::RouteMethod::Post, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::PUBLIC_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, error_policy = frontend_contract::RouteErrorPolicy::Authentication, openapi_operation_id = "refresh", path = "/auth/refresh", request = AdminNoBody, response = AdminSignInRes, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::PublicTransport, )] pub struct AdminRefreshRoute;
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)] #[typed_route( authentication = frontend_contract::AuthenticationRequirement::Public, method = frontend_contract::RouteMethod::Post, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::PUBLIC_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, error_policy = frontend_contract::RouteErrorPolicy::Authentication, openapi_operation_id = "sign_in", path = "/auth/sign_in", request = AdminSignInReq, request_body = frontend_contract::RouteRequestBody::Json, response = AdminSignInRes, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::PublicTransport, )] pub struct AdminSignInRoute;
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)] #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::Default, authentication = admin_permission_requirement(AdminPermission::PermissionsRead), method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "list_permissions", path = "/permissions", request = AdminNoBody, response = AdminPermissionsPage, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)] pub struct AdminListPermissionsRoute;
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)] #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::Default, authentication = admin_permission_requirement(AdminPermission::RolePermissionsUpdate), method = frontend_contract::RouteMethod::Put, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "set_role_permissions", path = "/roles/{role_id}/permissions", path_parameter = AdminRoleId, request = AdminSetRolePermissionsReq, request_body = frontend_contract::RouteRequestBody::Json, response = AdminNoBody, success_status = frontend_contract::SuccessStatus::Code204, transport = frontend_contract::AuthenticatedTransport)] pub struct AdminSetRolePermissionsRoute;
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)] #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::Default, authentication = admin_permission_requirement(AdminPermission::RolesCreate), method = frontend_contract::RouteMethod::Post, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "create_role", path = "/roles", request = AdminCreateRoleReq, request_body = frontend_contract::RouteRequestBody::Json, response = AdminCreateRoleRes, success_status = frontend_contract::SuccessStatus::Code201, transport = frontend_contract::AuthenticatedTransport)] pub struct AdminCreateRoleRoute;
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)] #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::Default, authentication = admin_permission_requirement(AdminPermission::RolesRead), method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "list_roles", path = "/roles", request = AdminNoBody, response = AdminRolesPage, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)] pub struct AdminListRolesRoute;
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)] #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::Default, authentication = admin_permission_requirement(AdminPermission::RolesUpdate), method = frontend_contract::RouteMethod::Patch, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "update_role", path = "/roles/{role_id}", path_parameter = AdminRoleId, request = AdminUpdateRoleReq, request_body = frontend_contract::RouteRequestBody::Json, response = AdminNoBody, success_status = frontend_contract::SuccessStatus::Code204, transport = frontend_contract::AuthenticatedTransport)] pub struct AdminUpdateRoleRoute;
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)] #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::Default, authentication = admin_permission_requirement(AdminPermission::SystemSettingsRead), method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "settings", path = "/system_settings", request = AdminNoBody, response = AdminSettingsView, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)] pub struct AdminSettingsRoute;
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)] #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::Default, authentication = admin_permission_requirement(AdminPermission::SystemSettingsUpdate), method = frontend_contract::RouteMethod::Patch, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "update_settings", path = "/system_settings", request = AdminUpdateSettingsReq, request_body = frontend_contract::RouteRequestBody::Json, response = AdminNoBody, success_status = frontend_contract::SuccessStatus::Code204, transport = frontend_contract::AuthenticatedTransport)] pub struct AdminUpdateSettingsRoute;
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)] #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::Default, authentication = admin_permission_requirement(AdminPermission::TablesRead), method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "list_data_tables", path = "/tables", request = AdminNoBody, response = AdminDataTableCatalog, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)] pub struct AdminDataTablesRoute;
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)] #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::Default, authentication = admin_permission_requirement(AdminPermission::UserRolesUpdate), method = frontend_contract::RouteMethod::Put, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "set_user_roles", path = "/users/{user_id}/roles", path_parameter = AdminUserId, request = AdminSetUserRolesReq, request_body = frontend_contract::RouteRequestBody::Json, response = AdminNoBody, success_status = frontend_contract::SuccessStatus::Code204, transport = frontend_contract::AuthenticatedTransport)] pub struct AdminSetUserRolesRoute;
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)] #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::Default, authentication = admin_permission_requirement(AdminPermission::UsersCreate), method = frontend_contract::RouteMethod::Post, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "create_user", path = "/users", request = AdminCreateUserReq, request_body = frontend_contract::RouteRequestBody::Json, response = AdminCreateUserRes, success_status = frontend_contract::SuccessStatus::Code201, transport = frontend_contract::AuthenticatedTransport)] pub struct AdminCreateUserRoute;
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)] #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::Default, authentication = admin_permission_requirement(AdminPermission::UsersRead), method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "list_users", path = "/users", request = AdminNoBody, response = AdminUsersPage, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)] pub struct AdminListUsersRoute;
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)] #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::Default, authentication = admin_permission_requirement(AdminPermission::UsersUpdate), method = frontend_contract::RouteMethod::Patch, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "update_user", path = "/users/{user_id}", path_parameter = AdminUserId, request = AdminUpdateUserReq, request_body = frontend_contract::RouteRequestBody::Json, response = AdminNoBody, success_status = frontend_contract::SuccessStatus::Code204, transport = frontend_contract::AuthenticatedTransport)] pub struct AdminUpdateUserRoute;
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)] #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::Default, authentication = admin_permission_requirement(AdminPermission::UsersUpdate), method = frontend_contract::RouteMethod::Post, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "set_user_ban", path = "/users/{user_id}/ban", path_parameter = AdminUserId, request = AdminSetUserBanReq, request_body = frontend_contract::RouteRequestBody::Json, response = AdminNoBody, success_status = frontend_contract::SuccessStatus::Code204, transport = frontend_contract::AuthenticatedTransport)] pub struct AdminSetUserBanRoute;
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)] #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::Default, authentication = admin_permission_requirement(AdminPermission::UsersUpdate), method = frontend_contract::RouteMethod::Post, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "set_user_password", path = "/users/{user_id}/password", path_parameter = AdminUserId, request = AdminSetUserPasswordReq, request_body = frontend_contract::RouteRequestBody::Json, response = AdminNoBody, success_status = frontend_contract::SuccessStatus::Code204, transport = frontend_contract::AuthenticatedTransport)] pub struct AdminSetUserPasswordRoute;
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)] #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::Default, authentication = frontend_contract::AuthenticationRequirement::Authenticated, method = frontend_contract::RouteMethod::Delete, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "revoke_all_sessions", path = "/auth/sessions", request = AdminNoBody, response = AdminNoBody, success_status = frontend_contract::SuccessStatus::Code204, transport = frontend_contract::AuthenticatedTransport)] pub struct AdminRevokeAllSessionsRoute;
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)] #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::Default, authentication = frontend_contract::AuthenticationRequirement::Authenticated, method = frontend_contract::RouteMethod::Delete, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "revoke_session", path = "/auth/sessions/{session_id}", path_parameter = AdminSessionIdentifier, request = AdminNoBody, response = AdminNoBody, success_status = frontend_contract::SuccessStatus::Code204, transport = frontend_contract::AuthenticatedTransport)] pub struct AdminRevokeSessionRoute;
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)] #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::Default, authentication = frontend_contract::AuthenticationRequirement::Authenticated, method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "sessions", path = "/auth/sessions", request = AdminNoBody, response = AdminSessionsPage, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)] pub struct AdminSessionsRoute;
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)] #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::Default, authentication = frontend_contract::AuthenticationRequirement::Authenticated, method = frontend_contract::RouteMethod::Post, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "change_own_password", path = "/auth/password", request = AdminChangeOwnPasswordReq, request_body = frontend_contract::RouteRequestBody::Json, response = AdminNoBody, success_status = frontend_contract::SuccessStatus::Code204, transport = frontend_contract::AuthenticatedTransport)] pub struct AdminChangeOwnPasswordRoute;
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)] #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::Default, authentication = frontend_contract::AuthenticationRequirement::Authenticated, method = frontend_contract::RouteMethod::Post, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "sign_out", path = "/auth/sign_out", request = AdminNoBody, response = AdminNoBody, success_status = frontend_contract::SuccessStatus::Code204, transport = frontend_contract::AuthenticatedTransport)] pub struct AdminSignOutRoute;
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)] #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::Default, authentication = frontend_contract::AuthenticationRequirement::Public, method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::PUBLIC_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "branding", path = "/branding", request = AdminNoBody, response = AdminBrandingView, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::PublicTransport)] pub struct AdminBrandingRoute;
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)] #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::Delete, authentication = admin_permission_requirement(AdminPermission::RolesDelete), method = frontend_contract::RouteMethod::Delete, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "delete_role", path = "/roles/{role_id}", path_parameter = AdminRoleId, request = AdminNoBody, response = AdminNoBody, success_status = frontend_contract::SuccessStatus::Code204, transport = frontend_contract::AuthenticatedTransport)] pub struct AdminDeleteRoleRoute;
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)] #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::Delete, authentication = admin_permission_requirement(AdminPermission::UsersDelete), method = frontend_contract::RouteMethod::Delete, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "delete_user", path = "/users/{user_id}", path_parameter = AdminUserId, request = AdminNoBody, response = AdminNoBody, success_status = frontend_contract::SuccessStatus::Code204, transport = frontend_contract::AuthenticatedTransport)] pub struct AdminDeleteUserRoute;
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)] #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::ValidatedRead, authentication = admin_permission_requirement(AdminPermission::AuditLogExport), method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "export_audit_log", path = "/audit_log/export", request = AdminNoBody, response = AdminAuditExport, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)] pub struct AdminAuditExportRoute;
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)] #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::ValidatedRead, authentication = admin_permission_requirement(AdminPermission::AuditLogRead), method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "audit_log", path = "/audit_log", request = AdminNoBody, response = AdminAuditPage, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)] pub struct AdminAuditLogRoute;
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)] #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::ValidatedRead, authentication = frontend_contract::AuthenticationRequirement::Authenticated, method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "read_data_table", path = "/tables/{table}", path_parameter = AdminDataTable, request = AdminNoBody, response = AdminDataTableView, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)] pub struct AdminDataTableRoute;
+#[derive(Clone, Copy, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema)] pub struct AdminNoBody;
+#[derive(Clone, Copy, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)] #[serde(deny_unknown_fields)] pub struct AdminSetUserBanReq { is_banned: AdminBool, }
+#[derive(Clone, Copy, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)] pub struct AdminCreateRoleRes { id: AdminRoleId, }
+#[derive(Clone, Copy, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)] pub struct AdminCreateUserRes { id: AdminUserId, }
+#[derive(Clone, Debug, Default, PartialEq, Eq, newtype::AsRefStr, newtype::Display)] pub struct AdminRoutePath(Box<str>);
+#[derive(Clone, Debug, Default, newtype::BoundedString, newtype::AsRefStr)] #[bounded_string( max = 128usize, chars, serde, utoipa, description = "administrator table search" )] pub struct AdminTableSearch(String);
+#[derive(Clone, Debug, Default, newtype::BoundedString, newtype::AsRefStr)] #[bounded_string( max = 32usize, chars, serde, utoipa, description = "administrator table sort key" )] pub struct AdminTableSortKey(String);
+#[derive(Clone, Debug, Default, serde::Deserialize, serde::Serialize, utoipa::ToSchema)] pub struct AdminDataTableQuery { #[serde(flatten)] filter: AdminDataTableFilterQuery, #[serde(flatten)] page: AdminTableQuery, }
+#[derive(Clone, Debug, PartialEq, Eq, newtype::AsRefStr, newtype::Display)] pub struct AdminDataTableFrontendPath(Box<str>);
+#[derive(Clone, Debug, newtype::BoundedString, newtype::AsRefStr)] #[bounded_string( max = 8_192usize, chars, serde, utoipa, description = "administrator organization contacts" )] pub struct AdminOrganizationContacts(String);
+#[derive(Clone, Debug, newtype::BoundedString, newtype::AsRefStr)] #[bounded_string( max = 8_192usize, chars, serde, utoipa, description = "administrator organization name" )] pub struct AdminOrganizationName(String);
+#[derive(Clone, Debug, newtype::BoundedString, newtype::AsRefStr)] #[bounded_string( max = 8_192usize, min = 1usize, chars, serde, utoipa, validator = |value: &String| !value.trim().is_empty(), description = "administrator tab title" )] pub struct AdminTabTitle(String);
+#[derive(Clone, Debug, newtype::BoundedString, newtype::AsRefStr)] #[bounded_string( max = 8_192usize, min = 1usize, chars, serde, utoipa, validator = |value: &String| value.strip_prefix("https://").is_some_and(|remainder| { let authority = remainder.split(['/', '?', '#']).next().unwrap_or_default(); !authority.is_empty() && !authority.contains('@') && !authority.starts_with('.') && !authority.ends_with('.') && authority.contains('.') }), description = "administrator main logo" )] pub struct AdminMainLogo(String);
+#[derive(Clone, Debug, newtype::BoundedString, newtype::AsRefStr)] #[bounded_string( max = 8_192usize, min = 1usize, chars, serde, utoipa, validator = |value: &String| value.strip_prefix("https://").is_some_and(|remainder| { let authority = remainder.split(['/', '?', '#']).next().unwrap_or_default(); !authority.is_empty() && !authority.contains('@') && !authority.starts_with('.') && !authority.ends_with('.') && authority.contains('.') }), description = "administrator support URL" )] pub struct AdminSupportUrl(String);
+#[derive(Clone, Debug, newtype::BoundedString, newtype::AsRefStr)] #[bounded_string( max = 8_192usize, min = 7usize, chars, serde, utoipa, validator = |value: &String| value.len() == 7usize && value.bytes().next() == Some(b'#') && value.bytes().skip(1usize).all(|byte| byte.is_ascii_hexdigit()), description = "administrator primary color" )] pub struct AdminPrimaryColor(String);
+#[derive(Clone, Debug, newtype::BoundedString, newtype::AsRefStr)] #[bounded_string(max = 8192usize, min = 1usize, chars, serde, utoipa, validator = |value: &String| !value .trim() .is_empty(), description = "administrator site name")] pub struct AdminSiteName(String);
+#[derive(Clone, Debug, newtype::BoundedString, newtype::AsRefStr)] #[bounded_string(max = 8_192usize, chars, serde, utoipa, validator = |value: &String| { let path = AdminPagePathRef::from(value.as_str()); AdminPage::from_path(path).is_some() || AdminDataTable::from_frontend_path(path).is_some() }, description = "administrator default route")] pub struct AdminDefaultRoute(String);
+#[derive(Clone, Debug, newtype::BoundedString, newtype::AsRefStr, newtype::Display)] #[bounded_string( max = 262_144usize, chars, serde, utoipa, description = "bounded administrator audit CSV export" )] pub struct AdminAuditExportCsv(String);
+#[derive(Clone, Debug, newtype::BoundedString, newtype::Display)] #[bounded_string( max = 64, chars, serde, utoipa, description = "administrator session identifier" )] pub struct AdminSessionIdentifier(String);
+#[derive(Clone, Debug, newtype::BoundedString, newtype::Display)] #[bounded_string( max = 64, chars, serde, utoipa, description = "administrator session timestamp" )] pub struct AdminSessionTimestamp(String);
+#[derive(Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema)] #[serde(from = "AdminBoundedVec<AdminDataColumn>")] pub struct AdminDataColumns(#[schema(max_items = 10000)] Vec<AdminDataColumn>);
+#[derive(Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema)] #[serde(from = "AdminBoundedVec<AdminDataFilter>")] pub struct AdminDataFilters(#[schema(max_items = 100)] Vec<AdminDataFilter>);
+#[derive(Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema)] pub struct AdminSessionView { created_at: AdminSessionTimestamp, expires_at: AdminSessionTimestamp, id: AdminSessionIdentifier, #[serde(default)] is_current: AdminBool, }
+#[derive(Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema)] pub struct AdminSessionsPage { items: AdminSessionViews, #[schema(value_type = u64)] total: AdminPageTotal, }
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)] #[serde(deny_unknown_fields)] pub struct AdminChangeOwnPasswordReq { current_password: AdminPassword, new_password: AdminNewPassword, }
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)] #[serde(deny_unknown_fields)] pub struct AdminCreateRoleReq { name: AdminRoleName, }
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)] #[serde(deny_unknown_fields)] pub struct AdminCreateUserReq { display_name: AdminDisplayName, login: AdminLogin, password: AdminNewPassword, }
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)] #[serde(deny_unknown_fields)] pub struct AdminSetRolePermissionsReq { expected_permission_ids: AdminPermissionIds, permission_ids: AdminPermissionIds, }
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)] #[serde(deny_unknown_fields)] pub struct AdminSetUserPasswordReq { password: AdminNewPassword, }
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)] #[serde(deny_unknown_fields)] pub struct AdminSetUserRolesReq { expected_role_ids: AdminRoleIds, role_ids: AdminRoleIds, }
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)] #[serde(deny_unknown_fields)] pub struct AdminSignInReq { login: AdminLogin, password: AdminPassword, }
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)] #[serde(deny_unknown_fields)] pub struct AdminUpdateRoleReq { name: AdminRoleName, }
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)] #[serde(deny_unknown_fields)] pub struct AdminUpdateSettingsReq { #[schema(max_items = 6)] clear: AdminOptionalSettings, default_admin_route: Option<AdminDefaultRoute>, main_logo: Option<AdminMainLogo>, organization_contacts: Option<AdminOrganizationContacts>, organization_name: Option<AdminOrganizationName>, primary_color: Option<AdminPrimaryColor>, site_name: Option<AdminSiteName>, support_url: Option<AdminSupportUrl>, tab_title: Option<AdminTabTitle>, }
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)] #[serde(deny_unknown_fields)] pub struct AdminUpdateUserReq { display_name: Option<AdminDisplayName>, login: Option<AdminLogin>, }
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)] pub struct AdminAuditCursor { created_at: AdminAuditTimestamp, id: AdminAuditLogId, }
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)] pub struct AdminAuditExport { #[schema(value_type = String, max_length = 262144)] csv: AdminAuditExportCsv, }
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)] pub struct AdminAuditPage { items: AdminAuditViews, #[schema(inline)] next_cursor: Option<AdminAuditCursor>, #[schema(value_type = u64)] total: AdminPageTotal, }
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)] pub struct AdminAuditView { action: AdminText, created_at: AdminAuditTimestamp, details: Option<SerdeJsonAdminAuditDetails>, id: AdminAuditLogId, resource: AdminText, resource_id: Option<AdminText>, succeeded: AdminBool, user_id: Option<AdminUserId>, user_login: Option<AdminLogin>, }
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)] pub struct AdminBrandingView { default_admin_route: AdminDefaultRoute, main_logo: Option<AdminMainLogo>, primary_color: Option<AdminPrimaryColor>, site_name: AdminSiteName, support_url: Option<AdminSupportUrl>, tab_title: Option<AdminTabTitle>, }
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)] pub struct AdminDataColumn { filters: AdminDataFilters, input_kind: AdminDataInputKind, label: AdminText, name: AdminText, }
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)] pub struct AdminDataRow { values: AdminTexts, }
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)] pub struct AdminDataTableCatalog { items: AdminDataTables, }
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)] pub struct AdminDataTableView { columns: AdminDataColumns, items: AdminDataRows, table: AdminDataTable, #[schema(value_type = u64)] total: AdminPageTotal, }
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)] pub struct AdminPermissionSummary { id: AdminPermissionId, name: AdminPermissionValue, }
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)] pub struct AdminPermissionsPage { items: AdminPermissionSummaries, #[schema(value_type = u64)] total: AdminPageTotal, }
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)] pub struct AdminRoleSummary { id: AdminRoleId, is_system: AdminBool, name: AdminRoleName, #[serde(default)] permission_ids: AdminPermissionIds, }
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)] pub struct AdminRolesPage { items: AdminRoleSummaries, permissions: AdminPermissionSummaries, #[schema(value_type = u64)] total: AdminPageTotal, }
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)] pub struct AdminSettingsView { default_admin_route: AdminDefaultRoute, main_logo: Option<AdminMainLogo>, organization_contacts: Option<AdminOrganizationContacts>, organization_name: Option<AdminOrganizationName>, primary_color: Option<AdminPrimaryColor>, site_name: AdminSiteName, support_url: Option<AdminSupportUrl>, tab_title: Option<AdminTabTitle>, }
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)] pub struct AdminSignInRes { user: AuthenticatedAdmin, }
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)] pub struct AdminUserSummary { display_name: AdminDisplayName, id: AdminUserId, is_banned: AdminBool, login: AdminLogin, #[serde(default)] role_ids: AdminRoleIds, }
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)] pub struct AdminUsersPage { items: AdminUserSummaries, roles: AdminRoleSummaries, #[schema(value_type = u64)] total: AdminPageTotal, }
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)] pub struct AuthenticatedAdmin { display_name: AdminDisplayName, id: AdminUserId, login: AdminLogin, permissions: AdminPermissionValues, roles: AdminRoleNames, }
+#[derive(Debug, Clone, Copy, PartialEq, Eq)] pub enum AdminPageCapability { Always, Swagger, }
+#[derive(Debug, Clone, Copy, PartialEq, Eq)] pub enum AdminPageClientMode { Csr, CsrTableQuery, Ssr, }
+#[derive(Debug, Clone, Copy, PartialEq, Eq)] pub struct AdminDataTableSpec { columns: AdminDataColumnsCsvRef<'static>, order: AdminDataOrderRef<'static>, permission: AdminPermission, supports_filters: AdminBool, }
+#[derive(Debug, Clone, Copy, PartialEq, Eq)] pub struct AdminPageMetadata { client_mode: AdminPageClientMode, navigation: Option<AdminPageNavigation>, }
+#[derive(Debug, Clone, Copy, PartialEq, Eq)] pub struct AdminPageSpec { capability: AdminPageCapability, metadata: AdminPageMetadata, page: AdminPage, path: AdminFrontendPath, route: AdminRoute, title: AdminPageTitle, }
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)] pub enum AdminPageNavigation { OpenApi, Metrics, Profile, Sessions, Settings, Version, }
+#[derive(Debug, Clone, Copy, PartialEq, Eq, frontend_contract::PageCatalog)] #[page_catalog( spec = AdminPageSpec, path_ref = AdminPagePathRef, inventory = ADMIN_PAGE_SPECS, )] pub enum AdminPage { #[page_catalog_page( capability = AdminPageCapability::Always, metadata = AdminPageMetadata::new(AdminPageClientMode::CsrTableQuery, None), path = AdminFrontendPath::Users, route = AdminRoute::Users, title = AdminPageTitle::Users, )] Users, #[page_catalog_page( capability = AdminPageCapability::Always, metadata = AdminPageMetadata::new(AdminPageClientMode::CsrTableQuery, None), path = AdminFrontendPath::Roles, route = AdminRoute::Roles, title = AdminPageTitle::Roles, )] Roles, #[page_catalog_page( capability = AdminPageCapability::Always, metadata = AdminPageMetadata::new(AdminPageClientMode::CsrTableQuery, None), path = AdminFrontendPath::Permissions, route = AdminRoute::Permissions, title = AdminPageTitle::Permissions, )] Permissions, #[page_catalog_page( capability = AdminPageCapability::Always, metadata = AdminPageMetadata::new( AdminPageClientMode::Csr, Some(AdminPageNavigation::Settings), ), path = AdminFrontendPath::Settings, route = AdminRoute::Settings, title = AdminPageTitle::Settings, )] Settings, #[page_catalog_page( capability = AdminPageCapability::Always, metadata = AdminPageMetadata::new(AdminPageClientMode::Csr, None), path = AdminFrontendPath::Tables, route = AdminRoute::DataTables, title = AdminPageTitle::Tables, )] Tables, #[page_catalog_page( capability = AdminPageCapability::Always, metadata = AdminPageMetadata::new( AdminPageClientMode::Csr, Some(AdminPageNavigation::Sessions), ), path = AdminFrontendPath::Sessions, route = AdminRoute::Sessions, title = AdminPageTitle::Sessions, )] Sessions, #[page_catalog_page( capability = AdminPageCapability::Always, metadata = AdminPageMetadata::new( AdminPageClientMode::Ssr, Some(AdminPageNavigation::Metrics), ), path = AdminFrontendPath::Metrics, route = AdminRoute::Metrics, title = AdminPageTitle::Metrics, )] Metrics, #[page_catalog_page( capability = AdminPageCapability::Always, metadata = AdminPageMetadata::new( AdminPageClientMode::Ssr, Some(AdminPageNavigation::Version), ), path = AdminFrontendPath::Version, route = AdminRoute::Version, title = AdminPageTitle::Version, )] Version, #[page_catalog_page( capability = AdminPageCapability::Always, metadata = AdminPageMetadata::new( AdminPageClientMode::Csr, Some(AdminPageNavigation::Profile), ), path = AdminFrontendPath::Profile, route = AdminRoute::ChangeOwnPassword, title = AdminPageTitle::Profile, )] Profile, #[page_catalog_page( capability = AdminPageCapability::Swagger, metadata = AdminPageMetadata::new( AdminPageClientMode::Ssr, Some(AdminPageNavigation::OpenApi), ), path = AdminFrontendPath::OpenApi, route = AdminRoute::OpenApi, title = AdminPageTitle::Api, )] OpenApi, }
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::AsRefInner, newtype::FromInner)] pub struct AdminDataColumnsCsvRef<'value_lt>(&'value_lt str);
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::AsRefInner, newtype::FromInner)] pub struct AdminDataOrderRef<'value_lt>(&'value_lt str);
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::AsRefInner, newtype::FromInner)] pub struct AdminDataTableStrRef<'value_lt>(&'value_lt str);
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::AsRefInner, newtype::FromInner)] pub struct AdminPermissionStrRef<'value_lt>(&'value_lt str);
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::WireEnum, utoipa::ToSchema)] #[wire_enum( ref_type = AdminPermissionStrRef, error_message = str_constants::UNKNOWN_ADMINISTRATOR_PERMISSION, )] pub enum AdminPermission { #[wire("access_sessions:read")] AccessSessionsRead, #[wire("audit_log:export")] AuditLogExport, #[wire("audit_log:read")] AuditLogRead, #[wire("cleanup_status:read")] CleanupStatusRead, #[wire("login_attempts:read")] LoginAttemptsRead, #[wire("metrics:read")] MetricsRead, #[wire("openapi:read")] OpenApiRead, #[wire("permissions:read")] PermissionsRead, #[wire("rate_limits:read")] RateLimitsRead, #[wire("refresh_tokens:read")] RefreshTokensRead, #[wire("role_permissions:create")] RolePermissionsCreate, #[wire("role_permissions:delete")] RolePermissionsDelete, #[wire("role_permissions:read")] RolePermissionsRead, #[wire("role_permissions:update")] RolePermissionsUpdate, #[wire("roles:create")] RolesCreate, #[wire("roles:delete")] RolesDelete, #[wire("roles:read")] RolesRead, #[wire("roles:update")] RolesUpdate, #[wire("system_settings:read")] SystemSettingsRead, #[wire("system_settings:update")] SystemSettingsUpdate, #[wire("tables:read")] TablesRead, #[wire("user_roles:create")] UserRolesCreate, #[wire("user_roles:delete")] UserRolesDelete, #[wire("user_roles:read")] UserRolesRead, #[wire("user_roles:update")] UserRolesUpdate, #[wire("users:create")] UsersCreate, #[wire("users:delete")] UsersDelete, #[wire("users:read")] UsersRead, #[wire("users:update")] UsersUpdate, }
+#[derive(Debug, Clone, Copy, PartialEq, Eq, strum_macros::IntoStaticStr)] pub enum AdminFrontendPath { #[strum(serialize = "/admin/assets")] Assets, #[strum(serialize = "/admin/metrics")] Metrics, #[strum(serialize = "/admin/openapi.json")] OpenApiDocument, #[strum(serialize = "/admin/swagger_ui")] OpenApi, #[strum(serialize = "/admin/permissions")] Permissions, #[strum(serialize = "/admin/profile")] Profile, #[strum(serialize = "/admin/roles")] Roles, #[strum(serialize = "/admin/sessions")] Sessions, #[strum(serialize = "/admin")] Root, #[strum(serialize = "/admin/sign_in")] SignIn, #[strum(serialize = "/admin/settings")] Settings, #[strum(serialize = "/admin/{table}")] Tables, #[strum(serialize = "/admin/users")] Users, #[strum(serialize = "/admin/version")] Version, }
+#[must_use] pub const fn action(&self) -> &AdminText
+#[must_use] pub const fn actual_bytes(self) -> AdminAuditDetailsBytes
+#[must_use] pub const fn as_slice(&self) -> &[AdminDataColumn]
+#[must_use] pub const fn as_slice(&self) -> &[AdminDataFilter]
+#[must_use] pub const fn capability(self) -> AdminPageCapability
+#[must_use] pub const fn client_mode(self) -> AdminPageClientMode
+#[must_use] pub const fn columns(&self) -> &[AdminDataColumn]
+#[must_use] pub const fn columns(self) -> AdminDataColumnsCsvRef<'static>
+#[must_use] pub const fn created_at(&self) -> &AdminAuditTimestamp
+#[must_use] pub const fn created_at(&self) -> &AdminAuditTimestamp
+#[must_use] pub const fn created_at(&self) -> &AdminSessionTimestamp
+#[must_use] pub const fn csv(&self) -> &AdminAuditExportCsv
+#[must_use] pub const fn default_admin_route(&self) -> &AdminDefaultRoute
+#[must_use] pub const fn default_admin_route(&self) -> &AdminDefaultRoute
+#[must_use] pub const fn details(&self) -> Option<&SerdeJsonAdminAuditDetails>
+#[must_use] pub const fn direction(&self) -> AdminSortDirection
+#[must_use] pub const fn display_name(&self) -> &AdminDisplayName
+#[must_use] pub const fn display_name(&self) -> &AdminDisplayName
+#[must_use] pub const fn end(&self) -> Option<&AdminFilterValue>
+#[must_use] pub const fn expires_at(&self) -> &AdminSessionTimestamp
+#[must_use] pub const fn field(&self) -> Option<&AdminFilterField>
+#[must_use] pub const fn filter(&self) -> &AdminDataTableFilterQuery
+#[must_use] pub const fn filters(&self) -> &[AdminDataFilter]
+#[must_use] pub const fn frontend_path(self) -> AdminFrontendPath
+#[must_use] pub const fn get(self) -> &'value_lt str
+#[must_use] pub const fn get(self) -> &'value_lt str
+#[must_use] pub const fn get(self) -> &'value_lt str
+#[must_use] pub const fn get(self) -> &'value_lt str
+#[must_use] pub const fn get(self) -> i64
+#[must_use] pub const fn get(self) -> usize
+#[must_use] pub const fn id(&self) -> &AdminSessionIdentifier
+#[must_use] pub const fn id(&self) -> AdminAuditLogId
+#[must_use] pub const fn id(&self) -> AdminAuditLogId
+#[must_use] pub const fn id(&self) -> AdminPermissionId
+#[must_use] pub const fn id(&self) -> AdminRoleId
+#[must_use] pub const fn id(&self) -> AdminUserId
+#[must_use] pub const fn input_kind(&self) -> AdminDataInputKind
+#[must_use] pub const fn input_kind(self) -> AdminSettingInputKind
+#[must_use] pub const fn is_banned(&self) -> AdminBool
+#[must_use] pub const fn is_banned(self) -> AdminBool
+#[must_use] pub const fn is_current(&self) -> AdminBool
+#[must_use] pub const fn is_system(&self) -> AdminBool
+#[must_use] pub const fn items(&self) -> &[AdminAuditView]
+#[must_use] pub const fn items(&self) -> &[AdminDataRow]
+#[must_use] pub const fn items(&self) -> &[AdminDataTable]
+#[must_use] pub const fn items(&self) -> &[AdminPermissionSummary]
+#[must_use] pub const fn items(&self) -> &[AdminRoleSummary]
+#[must_use] pub const fn items(&self) -> &[AdminSessionView]
+#[must_use] pub const fn items(&self) -> &[AdminUserSummary]
+#[must_use] pub const fn label(&self) -> &AdminText
+#[must_use] pub const fn label(self) -> AdminSettingLabel
+#[must_use] pub const fn limit(&self) -> AdminPageLimit
+#[must_use] pub const fn login(&self) -> &AdminLogin
+#[must_use] pub const fn login(&self) -> &AdminLogin
+#[must_use] pub const fn login(&self) -> &AdminLogin
+#[must_use] pub const fn main_logo(&self) -> Option<&AdminMainLogo>
+#[must_use] pub const fn main_logo(&self) -> Option<&AdminMainLogo>
+#[must_use] pub const fn name(&self) -> &AdminPermissionValue
+#[must_use] pub const fn name(&self) -> &AdminRoleName
+#[must_use] pub const fn name(&self) -> &AdminText
+#[must_use] pub const fn name(self) -> AdminSettingName
+#[must_use] pub const fn navigation(self) -> Option<AdminPageNavigation>
+#[must_use] pub const fn new( action: AdminText, created_at: AdminAuditTimestamp, details: Option<SerdeJsonAdminAuditDetails>, id: AdminAuditLogId, resource: AdminText, resource_id: Option<AdminText>, succeeded: AdminBool, user_id: Option<AdminUserId>, user_login: Option<AdminLogin>, ) -> Self
+#[must_use] pub const fn new( columns: AdminDataColumns, items: AdminDataRows, table: AdminDataTable, total: AdminPageTotal, ) -> Self
+#[must_use] pub const fn new( created_at: AdminSessionTimestamp, expires_at: AdminSessionTimestamp, id: AdminSessionIdentifier, is_current: AdminBool, ) -> Self
+#[must_use] pub const fn new( default_admin_route: AdminDefaultRoute, main_logo: Option<AdminMainLogo>, organization_contacts: Option<AdminOrganizationContacts>, organization_name: Option<AdminOrganizationName>, primary_color: Option<AdminPrimaryColor>, site_name: AdminSiteName, support_url: Option<AdminSupportUrl>, tab_title: Option<AdminTabTitle>, ) -> Self
+#[must_use] pub const fn new( default_admin_route: Option<AdminDefaultRoute>, main_logo: Option<AdminMainLogo>, organization_contacts: Option<AdminOrganizationContacts>, organization_name: Option<AdminOrganizationName>, primary_color: Option<AdminPrimaryColor>, site_name: Option<AdminSiteName>, support_url: Option<AdminSupportUrl>, tab_title: Option<AdminTabTitle>, clear: AdminOptionalSettings, ) -> Self
+#[must_use] pub const fn new( display_name: AdminDisplayName, id: AdminUserId, is_banned: AdminBool, login: AdminLogin, role_ids: AdminRoleIds, ) -> Self
+#[must_use] pub const fn new( display_name: AdminDisplayName, id: AdminUserId, login: AdminLogin, permissions: AdminPermissionValues, roles: AdminRoleNames, ) -> Self
+#[must_use] pub const fn new( display_name: AdminDisplayName, login: AdminLogin, password: AdminNewPassword, ) -> Self
+#[must_use] pub const fn new( expected_permission_ids: AdminPermissionIds, permission_ids: AdminPermissionIds, ) -> Self
+#[must_use] pub const fn new( filter_field: Option<AdminFilterField>, filter_operation: Option<frontend_contract::FilterOperation>, filter_value: Option<AdminFilterValue>, filter_end: Option<AdminFilterValue>, ) -> Self
+#[must_use] pub const fn new( filters: AdminDataFilters, input_kind: AdminDataInputKind, label: AdminText, name: AdminText, ) -> Self
+#[must_use] pub const fn new( id: AdminRoleId, is_system: AdminBool, name: AdminRoleName, permission_ids: AdminPermissionIds, ) -> Self
+#[must_use] pub const fn new( items: AdminAuditViews, next_cursor: Option<AdminAuditCursor>, total: AdminPageTotal, ) -> Self
+#[must_use] pub const fn new( items: AdminRoleSummaries, permissions: AdminPermissionSummaries, total: AdminPageTotal, ) -> Self
+#[must_use] pub const fn new( items: AdminUserSummaries, roles: AdminRoleSummaries, total: AdminPageTotal, ) -> Self
+#[must_use] pub const fn new(created_at: AdminAuditTimestamp, id: AdminAuditLogId) -> Self
+#[must_use] pub const fn new(csv: AdminAuditExportCsv) -> Self
+#[must_use] pub const fn new(current_password: AdminPassword, new_password: AdminNewPassword) -> Self
+#[must_use] pub const fn new(display_name: Option<AdminDisplayName>, login: Option<AdminLogin>) -> Self
+#[must_use] pub const fn new(expected_role_ids: AdminRoleIds, role_ids: AdminRoleIds) -> Self
+#[must_use] pub const fn new(filter: AdminDataTableFilterQuery, page: AdminTableQuery) -> Self
+#[must_use] pub const fn new(id: AdminPermissionId, name: AdminPermissionValue) -> Self
+#[must_use] pub const fn new(id: AdminRoleId) -> Self
+#[must_use] pub const fn new(id: AdminUserId) -> Self
+#[must_use] pub const fn new(is_banned: AdminBool) -> Self
+#[must_use] pub const fn new(items: AdminDataTables) -> Self
+#[must_use] pub const fn new(items: AdminPermissionSummaries, total: AdminPageTotal) -> Self
+#[must_use] pub const fn new(items: AdminSessionViews, total: AdminPageTotal) -> Self
+#[must_use] pub const fn new(login: AdminLogin, password: AdminPassword) -> Self
+#[must_use] pub const fn new(name: AdminRoleName) -> Self
+#[must_use] pub const fn new(name: AdminRoleName) -> Self
+#[must_use] pub const fn new(password: AdminNewPassword) -> Self
+#[must_use] pub const fn new(user: AuthenticatedAdmin) -> Self
+#[must_use] pub const fn new(values: AdminTexts) -> Self
+#[must_use] pub const fn next_cursor(&self) -> Option<&AdminAuditCursor>
+#[must_use] pub const fn offset(&self) -> AdminPageOffset
+#[must_use] pub const fn operation(&self) -> Option<frontend_contract::FilterOperation>
+#[must_use] pub const fn operation(&self) -> frontend_contract::FilterOperation
+#[must_use] pub const fn optionality(self) -> AdminSettingOptionality
+#[must_use] pub const fn order(self) -> AdminDataOrderRef<'static>
+#[must_use] pub const fn organization_contacts(&self) -> Option<&AdminOrganizationContacts>
+#[must_use] pub const fn organization_name(&self) -> Option<&AdminOrganizationName>
+#[must_use] pub const fn page(&self) -> &AdminTableQuery
+#[must_use] pub const fn page(self) -> AdminPage
+#[must_use] pub const fn password(&self) -> &AdminPassword
+#[must_use] pub const fn permission(self) -> AdminPermission
+#[must_use] pub const fn permission_ids(&self) -> &[AdminPermissionId]
+#[must_use] pub const fn permissions(&self) -> &[AdminPermissionSummary]
+#[must_use] pub const fn primary_color(&self) -> Option<&AdminPrimaryColor>
+#[must_use] pub const fn primary_color(&self) -> Option<&AdminPrimaryColor>
+#[must_use] pub const fn resource(&self) -> &AdminText
+#[must_use] pub const fn resource_id(&self) -> Option<&AdminText>
+#[must_use] pub const fn role_ids(&self) -> &[AdminRoleId]
+#[must_use] pub const fn roles(&self) -> &[AdminRoleName]
+#[must_use] pub const fn roles(&self) -> &[AdminRoleSummary]
+#[must_use] pub const fn route(self) -> AdminRoute
+#[must_use] pub const fn route(self) -> Option<AdminRoute>
+#[must_use] pub const fn search(&self) -> &AdminTableSearch
+#[must_use] pub const fn site_name(&self) -> &AdminSiteName
+#[must_use] pub const fn site_name(&self) -> &AdminSiteName
+#[must_use] pub const fn sort(&self) -> &AdminTableSortKey
+#[must_use] pub const fn succeeded(&self) -> AdminBool
+#[must_use] pub const fn support_url(&self) -> Option<&AdminSupportUrl>
+#[must_use] pub const fn support_url(&self) -> Option<&AdminSupportUrl>
+#[must_use] pub const fn supports_filters(self) -> AdminBool
+#[must_use] pub const fn tab_title(&self) -> Option<&AdminTabTitle>
+#[must_use] pub const fn tab_title(&self) -> Option<&AdminTabTitle>
+#[must_use] pub const fn table(&self) -> AdminDataTable
+#[must_use] pub const fn total(&self) -> AdminPageTotal
+#[must_use] pub const fn total(&self) -> AdminPageTotal
+#[must_use] pub const fn total(&self) -> AdminPageTotal
+#[must_use] pub const fn total(&self) -> AdminPageTotal
+#[must_use] pub const fn total(&self) -> AdminPageTotal
+#[must_use] pub const fn total(&self) -> AdminPageTotal
+#[must_use] pub const fn user(&self) -> &AuthenticatedAdmin
+#[must_use] pub const fn user_id(&self) -> Option<AdminUserId>
+#[must_use] pub const fn user_login(&self) -> Option<&AdminLogin>
+#[must_use] pub const fn value(&self) -> Option<&AdminFilterValue>
+#[must_use] pub const fn value(self) -> StdAdminPositiveI64
+#[must_use] pub const fn value(self) -> StdAdminPositiveI64
+#[must_use] pub const fn value(self) -> StdAdminPositiveI64
+#[must_use] pub const fn value(self) -> StdAdminPositiveI64
+#[must_use] pub const fn value_shape(&self) -> frontend_contract::FilterValueShape
+#[must_use] pub const fn values(&self) -> &[AdminText]
+#[must_use] pub fn admin_api_body_max_bytes() -> AdminApiBodyMaxBytes
+#[must_use] pub fn admin_parameterized_route_path<Route>(parameter: &Route::Parameter) -> AdminRoutePath where Route: frontend_contract::ParameterizedRoute,
+#[must_use] pub fn authentication(self) -> frontend_contract::AuthenticationRequirement
+#[must_use] pub fn can_access(&self, page: AdminPage) -> AdminBool
+#[must_use] pub fn from_frontend_path(path: AdminPagePathRef<'_>) -> Option<Self>
+#[must_use] pub fn from_settings(value: &AdminSettingsView) -> Self
+#[must_use] pub fn frontend_path(self) -> AdminDataTableFrontendPath
+#[must_use] pub fn get(self) -> &'static str
+#[must_use] pub fn get(self) -> &'static str
+#[must_use] pub fn has_fields(&self) -> AdminBool
+#[must_use] pub fn has_permission(&self, permission: AdminPermission) -> AdminBool
+#[must_use] pub fn into_items(self) -> AdminPermissionSummaries
+#[must_use] pub fn into_items(self) -> AdminRoleSummaries
+#[must_use] pub fn into_items(self) -> AdminUserSummaries
+#[must_use] pub fn into_name(self) -> AdminRoleName
+#[must_use] pub fn into_name(self) -> AdminRoleName
+#[must_use] pub fn into_parts( self, ) -> ( Option<AdminDefaultRoute>, Option<AdminMainLogo>, Option<AdminOrganizationContacts>, Option<AdminOrganizationName>, Option<AdminPrimaryColor>, Option<AdminSiteName>, Option<AdminSupportUrl>, Option<AdminTabTitle>, AdminOptionalSettings, )
+#[must_use] pub fn into_parts(self) -> (AdminDisplayName, AdminLogin, AdminNewPassword)
+#[must_use] pub fn into_parts(self) -> (AdminLogin, AdminPassword)
+#[must_use] pub fn into_parts(self) -> (AdminPassword, AdminNewPassword)
+#[must_use] pub fn into_parts(self) -> (AdminPermissionIds, AdminPermissionIds)
+#[must_use] pub fn into_parts(self) -> (AdminRoleIds, AdminRoleIds)
+#[must_use] pub fn into_parts(self) -> (Option<AdminDisplayName>, Option<AdminLogin>)
+#[must_use] pub fn into_password(self) -> AdminNewPassword
+#[must_use] pub fn is_valid(&self) -> AdminBool
+#[must_use] pub fn key(self) -> frontend_contract::ContractStr
+#[must_use] pub fn label(self) -> frontend_contract::ContractStr
+#[must_use] pub fn maximum_bytes(self) -> AdminAuditDetailsBytes
+#[must_use] pub fn pagination(limit: AdminPageLimit, offset: AdminPageOffset) -> Self
+#[must_use] pub fn path(self) -> AdminRoutePath
+#[must_use] pub fn path(self) -> frontend_contract::ContractStr
+#[must_use] pub fn path(self) -> frontend_contract::ContractStr
+#[must_use] pub fn permission(self) -> AdminPermission
+#[must_use] pub fn permissions(&self) -> &[AdminPermissionValue]
+#[must_use] pub fn required(self) -> AdminBool
+#[must_use] pub fn requires_end(&self) -> AdminBool
+#[must_use] pub fn requires_value(&self) -> AdminBool
+#[must_use] pub fn route_name(self) -> frontend_contract::ContractStr
+#[must_use] pub fn route_name(self) -> frontend_contract::ContractStr
+#[must_use] pub fn spec(self) -> AdminDataTableSpec
+#[must_use] pub fn spec(self) -> AdminSettingSpec
+#[must_use] pub fn supports_csr(self) -> AdminBool
+#[must_use] pub fn supports_filters(self) -> AdminBool
+#[must_use] pub fn title(self) -> frontend_contract::ContractStr
+#[must_use] pub fn title(self) -> frontend_contract::ContractStr
+#[must_use] pub fn uses_table_query(self) -> AdminBool
+pub const ADMIN_AUDIT_DETAILS_MAX_BYTES: usize = 4096usize;
+pub const ADMIN_DISPLAY_NAME_MAX_CHARS: usize = 256usize;
+pub const ADMIN_DISPLAY_NAME_MIN_CHARS: usize = 1usize;
+pub const ADMIN_LOGIN_MAX_CHARS: usize = 128usize;
+pub const ADMIN_LOGIN_MIN_CHARS: usize = 3usize;
+pub const ADMIN_NEW_PASSWORD_MIN_CHARS: usize = 12usize;
+pub const ADMIN_PASSWORD_MAX_CHARS: usize = 1024usize;
+pub const ADMIN_PASSWORD_MIN_CHARS: usize = 1usize;
+pub const ADMIN_ROLE_NAME_MAX_CHARS: usize = 128usize;
+pub const ADMIN_ROLE_NAME_MIN_CHARS: usize = 1usize;
+pub fn all_pages() -> impl Iterator<Item = Self>
+pub fn navigation() -> impl Iterator<Item = Self>
+pub fn try_from_key( options: &[Self], key: AdminTableSortKeyRef<'_>, ) -> Result<Self, AdminTableSortFieldTryFromKeyError>

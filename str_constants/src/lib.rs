@@ -4096,6 +4096,15 @@ pub const PG_OPERATIONAL_LIMIT_BELOW_CURRENT_USAGE: &str =
     "PostgreSQL operational limit must not be below current usage";
 pub const PG_OPERATIONAL_LIMIT_MUST_BE_GREATER_THAN_ZERO: &str =
     "PostgreSQL operational limit must be greater than zero";
+pub const ADMIN_CURRENT_SCHEMA_SNAPSHOT_PATH: &str = "schema/current_schema.snapshot";
+pub const UPDATE_ADMIN_CURRENT_SCHEMA_SNAPSHOT: &str = "UPDATE_ADMIN_CURRENT_SCHEMA_SNAPSHOT";
+pub const CONTRACT_PUBLIC_API_SNAPSHOT_PATH: &str = "snapshots/contract_public_api.snapshot";
+pub const UPDATE_CONTRACT_PUBLIC_API_SNAPSHOT: &str = "UPDATE_CONTRACT_PUBLIC_API_SNAPSHOT";
+pub const STRUCT_ERROR_SNAPSHOT_PATH: &str = "snapshots/struct_errors.snapshot";
+pub const UPDATE_CODE_STYLE_SNAPSHOTS: &str = "UPDATE_CODE_STYLE_SNAPSHOTS";
+pub const UPDATE_CONFIG_PROJECTIONS: &str = "UPDATE_CONFIG_PROJECTIONS";
+pub const WORKSPACE_SCAFFOLD_MATRIX_NAME_INDENT: &str = "          - name: ";
+pub const WORKSPACE_SCAFFOLD_MATRIX_DOCKERFILE_INDENT: &str = "\n            dockerfile: ";
 pub const PG_SCOPED_FOREIGN_KEY_COLUMN_COUNT_MISMATCH: &str =
     "PostgreSQL scoped foreign-key column counts must match";
 pub const PG_SCOPED_FOREIGN_KEY_DUPLICATE_COLUMN: &str =

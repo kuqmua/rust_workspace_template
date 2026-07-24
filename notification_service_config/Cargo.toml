@@ -17,5 +17,8 @@ optml = { workspace = true }
 thiserror = { workspace = true }
 try_from_env = { workspace = true }
 
+[dev-dependencies]
+str_constants = { workspace = true }
+
 [lints]
 workspace = true

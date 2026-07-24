@@ -70,16 +70,24 @@ pub enum ConfigFieldSensitivity {
     Secret,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ConfigFieldRequirement {
+    Required,
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ConfigExampleValidity {
     Invalid,
     Valid,
 }
 #[derive(Clone, Copy, Debug, newtype::AsRefInner, newtype::FromInner)]
+pub struct ConfigFieldExampleRef<'example_lt>(&'example_lt str);
+#[derive(Clone, Copy, Debug, newtype::AsRefInner, newtype::FromInner)]
 pub struct ConfigRustTypeName(&'static str);
 #[derive(Clone, Copy)]
 pub struct ConfigFieldDescriptor {
     env_name: EnvVarNameRef<'static>,
+    example: ConfigFieldExampleRef<'static>,
     parser: fn(StdEnvVarOk) -> ConfigExampleValidity,
+    requirement: ConfigFieldRequirement,
     rust_type_name: ConfigRustTypeName,
     sensitivity: ConfigFieldSensitivity,
 }
@@ -87,6 +95,8 @@ impl std::fmt::Debug for ConfigFieldDescriptor {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct(str_constants::CONFIG_FIELD_DESCRIPTOR)
             .field(str_constants::ENV_NAME, &self.env_name)
+            .field(str_constants::EXAMPLE, &self.example)
+            .field(str_constants::REQUIRED, &self.requirement)
             .field(str_constants::RUST_TYPE_NAME, &self.rust_type_name)
             .field(str_constants::SENSITIVITY, &self.sensitivity)
             .finish_non_exhaustive()
@@ -96,13 +106,17 @@ impl ConfigFieldDescriptor {
     #[must_use]
     pub const fn new(
         env_name: EnvVarNameRef<'static>,
+        example: ConfigFieldExampleRef<'static>,
         parser: fn(StdEnvVarOk) -> ConfigExampleValidity,
+        requirement: ConfigFieldRequirement,
         rust_type_name: ConfigRustTypeName,
         sensitivity: ConfigFieldSensitivity,
     ) -> Self {
         Self {
             env_name,
+            example,
             parser,
+            requirement,
             rust_type_name,
             sensitivity,
         }
@@ -110,6 +124,14 @@ impl ConfigFieldDescriptor {
     #[must_use]
     pub const fn env_name(self) -> EnvVarNameRef<'static> {
         self.env_name
+    }
+    #[must_use]
+    pub const fn example(self) -> ConfigFieldExampleRef<'static> {
+        self.example
+    }
+    #[must_use]
+    pub const fn requirement(self) -> ConfigFieldRequirement {
+        self.requirement
     }
     #[must_use]
     pub const fn rust_type_name(self) -> ConfigRustTypeName {

@@ -49,6 +49,13 @@ mod tests {
     #[allow(clippy::needless_for_each)] // iterator form is required by the workspace no-for-loop policy
     fn env_example_matches_generated_descriptor() {
         let example_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(".env.example");
+        if std::env::var_os(str_constants::UPDATE_CONFIG_PROJECTIONS).is_some() {
+            std::fs::write(
+                example_path.as_path(),
+                notification_service_config::Config::env_example(),
+            )
+            .expect("49f0c61e");
+        }
         let example_source = std::fs::read_to_string(example_path).expect("8db042aa");
         assert_eq!(
             example_source,
@@ -62,6 +69,11 @@ mod tests {
                 .get(descriptor.env_name().as_ref())
                 .cloned()
                 .expect("00960401");
+            assert_eq!(value, descriptor.example().as_ref());
+            assert_eq!(
+                descriptor.requirement(),
+                config_lib::ConfigFieldRequirement::Required
+            );
             if descriptor.sensitivity() == config_lib::ConfigFieldSensitivity::Public {
                 assert_eq!(
                     descriptor.validate_example(
@@ -169,7 +181,7 @@ mod tests {
         );
         let ci_source = repository_file(std::path::Path::new(".github/workflows/ci.yml"));
         assert!(
-            ci_source.contains(format!("--file {dockerfile_text}").as_str()),
+            ci_source.contains(format!("dockerfile: {dockerfile_text}").as_str()),
             "22e74268"
         );
         let release_source = repository_file(std::path::Path::new(".github/workflows/release.yml"));

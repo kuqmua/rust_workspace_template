@@ -1,10 +1,13 @@
 apiVersion: apps/v1
 kind: Deployment
+# BEGIN GENERATED KUBERNETES METADATA application
 metadata:
   name: application
   namespace: rust-workspace-template
+# END GENERATED KUBERNETES METADATA application
 spec:
   replicas: 2
+  # BEGIN GENERATED KUBERNETES WORKLOAD IDENTITY application
   selector:
     matchLabels:
       app.kubernetes.io/name: application
@@ -13,7 +16,9 @@ spec:
       labels:
         app.kubernetes.io/name: application
     spec:
+  # END GENERATED KUBERNETES WORKLOAD IDENTITY application
       automountServiceAccountToken: false
+      # BEGIN GENERATED KUBERNETES CONTAINER application
       containers:
         - name: application
           image: application:replace-with-immutable-tag
@@ -25,6 +30,8 @@ spec:
           ports:
             - containerPort: 8080
               name: http
+      # END GENERATED KUBERNETES CONTAINER application
+          # BEGIN GENERATED KUBERNETES PROBES application
           startupProbe:
             httpGet:
               path: /health/ready
@@ -41,6 +48,7 @@ spec:
               path: /health/live
               port: http
             periodSeconds: 10
+          # END GENERATED KUBERNETES PROBES application
           resources:
             requests:
               cpu: 100m
@@ -62,13 +70,17 @@ spec:
 ---
 apiVersion: v1
 kind: Service
+# BEGIN GENERATED KUBERNETES SERVICE IDENTITY application
 metadata:
   name: application
   namespace: rust-workspace-template
 spec:
   selector:
     app.kubernetes.io/name: application
+# END GENERATED KUBERNETES SERVICE IDENTITY application
+  # BEGIN GENERATED KUBERNETES SERVICE PORT application
   ports:
     - name: http
       port: 8080
       targetPort: http
+  # END GENERATED KUBERNETES SERVICE PORT application

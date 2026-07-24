@@ -1,10 +1,13 @@
 apiVersion: apps/v1
 kind: Deployment
+# BEGIN GENERATED KUBERNETES METADATA notification-service
 metadata:
   name: notification-service
   namespace: rust-workspace-template
+# END GENERATED KUBERNETES METADATA notification-service
 spec:
   replicas: 2
+  # BEGIN GENERATED KUBERNETES WORKLOAD IDENTITY notification-service
   selector:
     matchLabels:
       app.kubernetes.io/name: notification-service
@@ -13,7 +16,9 @@ spec:
       labels:
         app.kubernetes.io/name: notification-service
     spec:
+  # END GENERATED KUBERNETES WORKLOAD IDENTITY notification-service
       automountServiceAccountToken: false
+      # BEGIN GENERATED KUBERNETES CONTAINER notification-service
       containers:
         - name: notification-service
           image: notification-service:replace-with-immutable-tag
@@ -25,6 +30,8 @@ spec:
           ports:
             - containerPort: 8081
               name: http
+      # END GENERATED KUBERNETES CONTAINER notification-service
+          # BEGIN GENERATED KUBERNETES PROBES notification-service
           startupProbe:
             httpGet:
               path: /health/ready
@@ -41,6 +48,7 @@ spec:
               path: /health/live
               port: http
             periodSeconds: 10
+          # END GENERATED KUBERNETES PROBES notification-service
           resources:
             requests:
               cpu: 50m
@@ -62,13 +70,17 @@ spec:
 ---
 apiVersion: v1
 kind: Service
+# BEGIN GENERATED KUBERNETES SERVICE IDENTITY notification-service
 metadata:
   name: notification-service
   namespace: rust-workspace-template
 spec:
   selector:
     app.kubernetes.io/name: notification-service
+# END GENERATED KUBERNETES SERVICE IDENTITY notification-service
+  # BEGIN GENERATED KUBERNETES SERVICE PORT notification-service
   ports:
     - name: http
       port: 8081
       targetPort: http
+  # END GENERATED KUBERNETES SERVICE PORT notification-service

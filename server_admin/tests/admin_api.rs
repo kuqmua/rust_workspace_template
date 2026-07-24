@@ -3427,6 +3427,54 @@ async fn postgresql_migration_creates_complete_schema() {
     )
     .await
     .expect("fac299aa");
+    let catalog_snapshot = pg_crud_common::inspect_postgres_catalog(
+        pg_crud_common::SqlxPgPoolRef::from(&fresh_pool),
+        pg_crud_common::DbSchemaNameRef::from(str_constants::ADMIN_MIGRATION_FRESH_TEST),
+    )
+    .await
+    .expect("518b93e4");
+    let fresh_pool_ref = &fresh_pool;
+    let table_snapshots = futures::future::try_join_all(
+        server_admin_contract::AdminDataTable::PG_ORDER
+            .into_iter()
+            .map(async |table| {
+                pg_crud_common::inspect_postgres_table(
+                    pg_crud_common::SqlxPgPoolRef::from(fresh_pool_ref),
+                    pg_crud_common::DbSchemaNameRef::from(
+                        str_constants::ADMIN_MIGRATION_FRESH_TEST,
+                    ),
+                    pg_crud_common::DbTableNameRef::from(table.as_str().get()),
+                )
+                .await
+                .map(|snapshot| (table, snapshot))
+            }),
+    )
+    .await
+    .expect("34d80f68");
+    let current_schema_snapshot = table_snapshots.into_iter().fold(
+        format!(
+            "# GENERATED FROM ORDERED SERVER ADMIN MIGRATIONS; DO NOT EDIT\n{catalog_snapshot:#?}\n"
+        ),
+        |mut output, (table, snapshot)| {
+            output.push_str(format!("\n{table}\n{snapshot:#?}\n").as_str());
+            output
+        },
+    );
+    let current_schema_snapshot_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join(str_constants::ADMIN_CURRENT_SCHEMA_SNAPSHOT_PATH);
+    if std::env::var_os(str_constants::UPDATE_ADMIN_CURRENT_SCHEMA_SNAPSHOT).is_some() {
+        std::fs::write(
+            current_schema_snapshot_path.as_path(),
+            current_schema_snapshot.as_bytes(),
+        )
+        .expect("abe4d63f");
+    }
+    let expected_current_schema_snapshot =
+        std::fs::read_to_string(current_schema_snapshot_path).expect("3af279e1");
+    assert_eq!(
+        current_schema_snapshot, expected_current_schema_snapshot,
+        "cb6ce4a9 migration-derived PostgreSQL schema snapshot changed"
+    );
     let version = sqlx::query_scalar::<_, i64>(
         str_constants::SELECT_MAX_VERSION_FROM_ADMIN_MIGRATION_FRESH_TEST_SQLX_MIGRATIONS_WHERE,
     )
@@ -3436,14 +3484,17 @@ async fn postgresql_migration_creates_complete_schema() {
     assert_eq!(version, 12i64);
     let expected_tables = server_admin_contract::AdminDataTable::PG_ORDER
         .map(|table| table.to_string())
-        .to_vec();
+        .into_iter()
+        .collect::<std::collections::BTreeSet<String>>();
     let fresh_tables = sqlx::query_scalar::<_, String>(
         str_constants::SELECT_TABLE_NAME_FROM_INFORMATION_SCHEMA_TABLES_WHERE_TABLE_SCHEMA,
     )
     .bind(str_constants::ADMIN_MIGRATION_FRESH_TEST)
     .fetch_all(&base_pool)
     .await
-    .expect("ab254ff4");
+    .expect("ab254ff4")
+    .into_iter()
+    .collect::<std::collections::BTreeSet<String>>();
     assert_eq!(fresh_tables, expected_tables);
     fresh_pool.close().await;
     let _drop_after = sqlx::raw_sql(str_constants::DROP_SCHEMA_ADMIN_MIGRATION_FRESH_TEST_CASCADE)

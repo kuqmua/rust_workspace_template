@@ -31,10 +31,12 @@ services:
       - application
     volumes:
       - notification_postgres_data:/var/lib/postgresql/data
+  # BEGIN GENERATED COMPOSE IDENTITY server
   server:
     build:
       context: .
       dockerfile: Dockerfile
+  # END GENERATED COMPOSE IDENTITY server
     depends_on:
       database:
         condition: service_healthy
@@ -42,44 +44,58 @@ services:
       - server/.env
     environment:
       DATABASE_URL: "postgres://postgres:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}@database:5432/rust_workspace_template"
+      # BEGIN GENERATED COMPOSE SOCKET server
       SERVICE_SOCKET_ADDRESS: "0.0.0.0:8080"
+      # END GENERATED COMPOSE SOCKET server
     healthcheck:
+      # BEGIN GENERATED COMPOSE HEALTH server
       test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:8080/health/ready"]
+      # END GENERATED COMPOSE HEALTH server
       interval: 10s
       timeout: 5s
       retries: 12
       start_period: 20s
     networks:
       - application
+    # BEGIN GENERATED COMPOSE PORT server
     ports:
       - "127.0.0.1:8080:8080"
+    # END GENERATED COMPOSE PORT server
     read_only: true
     restart: unless-stopped
     tmpfs:
       - /tmp:size=16m,mode=1777
+  # BEGIN GENERATED COMPOSE IDENTITY notification_service
   notification_service:
     build:
       context: .
       dockerfile: notification_service/Dockerfile
+  # END GENERATED COMPOSE IDENTITY notification_service
     depends_on:
       notification_database:
         condition: service_healthy
     environment:
       NOTIFICATION_DATABASE_URL: "postgres://notification_service:${NOTIFICATION_POSTGRES_PASSWORD:?set NOTIFICATION_POSTGRES_PASSWORD}@notification_database:5432/notification_service"
+      # BEGIN GENERATED COMPOSE SOCKET notification_service
       NOTIFICATION_SERVICE_SOCKET_ADDRESS: "0.0.0.0:8081"
+      # END GENERATED COMPOSE SOCKET notification_service
       PG_POOL_MAX_CONNECTIONS: "10"
       REQUEST_TIMEOUT_SECONDS: "30"
       TRACING_FORMAT: text
     healthcheck:
+      # BEGIN GENERATED COMPOSE HEALTH notification_service
       test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:8081/health/ready"]
+      # END GENERATED COMPOSE HEALTH notification_service
       interval: 10s
       timeout: 5s
       retries: 12
       start_period: 20s
     networks:
       - application
+    # BEGIN GENERATED COMPOSE PORT notification_service
     ports:
       - "127.0.0.1:8081:8081"
+    # END GENERATED COMPOSE PORT notification_service
     read_only: true
     restart: unless-stopped
     tmpfs:

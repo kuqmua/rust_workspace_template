@@ -1,0 +1,1851 @@
+# GENERATED FROM ORDERED SERVER ADMIN MIGRATIONS; DO NOT EDIT
+DbCatalogSnapshot {
+    objects: DbObjectSnapshots(
+        [
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CREATE OR REPLACE FUNCTION admin_migration_fresh_test.audit_log_append_only()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    IF TG_OP = 'DELETE' AND current_setting('app.admin_audit_cleanup', TRUE) = 'on' THEN\n        RETURN OLD;\n    END IF;\n    RAISE EXCEPTION 'audit_log is append-only';\nEND;\n$function$\n",
+                ),
+                kind: Function,
+                name: DbSchemaText(
+                    "audit_log_append_only",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CREATE OR REPLACE FUNCTION admin_migration_fresh_test.set_updated_at()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    NEW.updated_at = NOW();\n    RETURN NEW;\nEND;\n$function$\n",
+                ),
+                kind: Function,
+                name: DbSchemaText(
+                    "set_updated_at",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "audit_log:BEFORE:DELETE:EXECUTE FUNCTION audit_log_append_only()",
+                ),
+                kind: Trigger,
+                name: DbSchemaText(
+                    "audit_log_append_only_guard",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "audit_log:BEFORE:UPDATE:EXECUTE FUNCTION audit_log_append_only()",
+                ),
+                kind: Trigger,
+                name: DbSchemaText(
+                    "audit_log_append_only_guard",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "roles:BEFORE:UPDATE:EXECUTE FUNCTION set_updated_at()",
+                ),
+                kind: Trigger,
+                name: DbSchemaText(
+                    "roles_set_updated_at",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "system_settings:BEFORE:UPDATE:EXECUTE FUNCTION set_updated_at()",
+                ),
+                kind: Trigger,
+                name: DbSchemaText(
+                    "system_settings_set_updated_at",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "users:BEFORE:UPDATE:EXECUTE FUNCTION set_updated_at()",
+                ),
+                kind: Trigger,
+                name: DbSchemaText(
+                    "users_set_updated_at",
+                ),
+            },
+        ],
+    ),
+}
+
+users
+DbTableSnapshot {
+    columns: DbColumnSnapshots(
+        [
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "bigint",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "id",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "boolean",
+                ),
+                default: Some(
+                    DbSchemaText(
+                        "false",
+                    ),
+                ),
+                name: DbSchemaText(
+                    "is_banned",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "text",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "display_name",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "text",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "login",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "text",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "password_hash",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "timestamp with time zone",
+                ),
+                default: Some(
+                    DbSchemaText(
+                        "now()",
+                    ),
+                ),
+                name: DbSchemaText(
+                    "created_at",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "timestamp with time zone",
+                ),
+                default: Some(
+                    DbSchemaText(
+                        "now()",
+                    ),
+                ),
+                name: DbSchemaText(
+                    "updated_at",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+        ],
+    ),
+    objects: DbObjectSnapshots(
+        [
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CHECK (((char_length(display_name) >= 1) AND (char_length(display_name) <= 256)))",
+                ),
+                kind: Check,
+                name: DbSchemaText(
+                    "users_display_name_length",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CHECK (((char_length(login) >= 3) AND (char_length(login) <= 128)))",
+                ),
+                kind: Check,
+                name: DbSchemaText(
+                    "users_login_length",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CHECK (((login = lower(login)) AND (login ~ '^[a-z0-9_.-]+$'::text)))",
+                ),
+                kind: Check,
+                name: DbSchemaText(
+                    "users_login_format",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CHECK ((char_length(password_hash) > 0))",
+                ),
+                kind: Check,
+                name: DbSchemaText(
+                    "users_password_hash_not_empty",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CHECK ((display_name = btrim(display_name)))",
+                ),
+                kind: Check,
+                name: DbSchemaText(
+                    "users_display_name_trimmed",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CREATE UNIQUE INDEX users_login_lower_unq ON admin_migration_fresh_test.users USING btree (lower(login))",
+                ),
+                kind: Index,
+                name: DbSchemaText(
+                    "users_login_lower_unq",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CREATE UNIQUE INDEX users_pkey ON admin_migration_fresh_test.users USING btree (id)",
+                ),
+                kind: Index,
+                name: DbSchemaText(
+                    "users_pkey",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "PRIMARY KEY (id)",
+                ),
+                kind: PrimaryKey,
+                name: DbSchemaText(
+                    "users_pkey",
+                ),
+            },
+        ],
+    ),
+}
+
+roles
+DbTableSnapshot {
+    columns: DbColumnSnapshots(
+        [
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "bigint",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "id",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "boolean",
+                ),
+                default: Some(
+                    DbSchemaText(
+                        "false",
+                    ),
+                ),
+                name: DbSchemaText(
+                    "is_system",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "text",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "name",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "timestamp with time zone",
+                ),
+                default: Some(
+                    DbSchemaText(
+                        "now()",
+                    ),
+                ),
+                name: DbSchemaText(
+                    "created_at",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "timestamp with time zone",
+                ),
+                default: Some(
+                    DbSchemaText(
+                        "now()",
+                    ),
+                ),
+                name: DbSchemaText(
+                    "updated_at",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+        ],
+    ),
+    objects: DbObjectSnapshots(
+        [
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CHECK (((char_length(name) >= 1) AND (char_length(name) <= 128)))",
+                ),
+                kind: Check,
+                name: DbSchemaText(
+                    "roles_name_length",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CHECK (((name = lower(name)) AND (name ~ '^[a-z0-9_.-]+$'::text)))",
+                ),
+                kind: Check,
+                name: DbSchemaText(
+                    "roles_name_format",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CREATE UNIQUE INDEX roles_name_key ON admin_migration_fresh_test.roles USING btree (name)",
+                ),
+                kind: Index,
+                name: DbSchemaText(
+                    "roles_name_key",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CREATE UNIQUE INDEX roles_pkey ON admin_migration_fresh_test.roles USING btree (id)",
+                ),
+                kind: Index,
+                name: DbSchemaText(
+                    "roles_pkey",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "PRIMARY KEY (id)",
+                ),
+                kind: PrimaryKey,
+                name: DbSchemaText(
+                    "roles_pkey",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "UNIQUE (name)",
+                ),
+                kind: Unique,
+                name: DbSchemaText(
+                    "roles_name_key",
+                ),
+            },
+        ],
+    ),
+}
+
+permissions
+DbTableSnapshot {
+    columns: DbColumnSnapshots(
+        [
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "bigint",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "id",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "text",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "name",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "timestamp with time zone",
+                ),
+                default: Some(
+                    DbSchemaText(
+                        "now()",
+                    ),
+                ),
+                name: DbSchemaText(
+                    "created_at",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+        ],
+    ),
+    objects: DbObjectSnapshots(
+        [
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CHECK (((char_length(name) >= 3) AND (char_length(name) <= 128)))",
+                ),
+                kind: Check,
+                name: DbSchemaText(
+                    "permissions_name_length",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CHECK (((name = lower(name)) AND (name ~ '^[a-z0-9_]+:[a-z0-9_]+$'::text)))",
+                ),
+                kind: Check,
+                name: DbSchemaText(
+                    "permissions_name_format",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CREATE UNIQUE INDEX permissions_name_key ON admin_migration_fresh_test.permissions USING btree (name)",
+                ),
+                kind: Index,
+                name: DbSchemaText(
+                    "permissions_name_key",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CREATE UNIQUE INDEX permissions_pkey ON admin_migration_fresh_test.permissions USING btree (id)",
+                ),
+                kind: Index,
+                name: DbSchemaText(
+                    "permissions_pkey",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "PRIMARY KEY (id)",
+                ),
+                kind: PrimaryKey,
+                name: DbSchemaText(
+                    "permissions_pkey",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "UNIQUE (name)",
+                ),
+                kind: Unique,
+                name: DbSchemaText(
+                    "permissions_name_key",
+                ),
+            },
+        ],
+    ),
+}
+
+user_roles
+DbTableSnapshot {
+    columns: DbColumnSnapshots(
+        [
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "bigint",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "id",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "bigint",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "role_id",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "bigint",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "user_id",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "timestamp with time zone",
+                ),
+                default: Some(
+                    DbSchemaText(
+                        "now()",
+                    ),
+                ),
+                name: DbSchemaText(
+                    "created_at",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+        ],
+    ),
+    objects: DbObjectSnapshots(
+        [
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CREATE INDEX user_roles_role_id_idx ON admin_migration_fresh_test.user_roles USING btree (role_id)",
+                ),
+                kind: Index,
+                name: DbSchemaText(
+                    "user_roles_role_id_idx",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CREATE UNIQUE INDEX user_roles_pkey ON admin_migration_fresh_test.user_roles USING btree (id)",
+                ),
+                kind: Index,
+                name: DbSchemaText(
+                    "user_roles_pkey",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CREATE UNIQUE INDEX user_roles_user_id_role_id_key ON admin_migration_fresh_test.user_roles USING btree (user_id, role_id)",
+                ),
+                kind: Index,
+                name: DbSchemaText(
+                    "user_roles_user_id_role_id_key",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE",
+                ),
+                kind: ForeignKey,
+                name: DbSchemaText(
+                    "user_roles_role_id_fkey",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE",
+                ),
+                kind: ForeignKey,
+                name: DbSchemaText(
+                    "user_roles_user_id_fkey",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "PRIMARY KEY (id)",
+                ),
+                kind: PrimaryKey,
+                name: DbSchemaText(
+                    "user_roles_pkey",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "UNIQUE (user_id, role_id)",
+                ),
+                kind: Unique,
+                name: DbSchemaText(
+                    "user_roles_user_id_role_id_key",
+                ),
+            },
+        ],
+    ),
+}
+
+role_permissions
+DbTableSnapshot {
+    columns: DbColumnSnapshots(
+        [
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "bigint",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "id",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "bigint",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "permission_id",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "bigint",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "role_id",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "timestamp with time zone",
+                ),
+                default: Some(
+                    DbSchemaText(
+                        "now()",
+                    ),
+                ),
+                name: DbSchemaText(
+                    "created_at",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+        ],
+    ),
+    objects: DbObjectSnapshots(
+        [
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CREATE INDEX role_permissions_permission_id_idx ON admin_migration_fresh_test.role_permissions USING btree (permission_id)",
+                ),
+                kind: Index,
+                name: DbSchemaText(
+                    "role_permissions_permission_id_idx",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CREATE UNIQUE INDEX role_permissions_pkey ON admin_migration_fresh_test.role_permissions USING btree (id)",
+                ),
+                kind: Index,
+                name: DbSchemaText(
+                    "role_permissions_pkey",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CREATE UNIQUE INDEX role_permissions_role_id_permission_id_key ON admin_migration_fresh_test.role_permissions USING btree (role_id, permission_id)",
+                ),
+                kind: Index,
+                name: DbSchemaText(
+                    "role_permissions_role_id_permission_id_key",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "FOREIGN KEY (permission_id) REFERENCES permissions(id) ON DELETE CASCADE",
+                ),
+                kind: ForeignKey,
+                name: DbSchemaText(
+                    "role_permissions_permission_id_fkey",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE",
+                ),
+                kind: ForeignKey,
+                name: DbSchemaText(
+                    "role_permissions_role_id_fkey",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "PRIMARY KEY (id)",
+                ),
+                kind: PrimaryKey,
+                name: DbSchemaText(
+                    "role_permissions_pkey",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "UNIQUE (role_id, permission_id)",
+                ),
+                kind: Unique,
+                name: DbSchemaText(
+                    "role_permissions_role_id_permission_id_key",
+                ),
+            },
+        ],
+    ),
+}
+
+refresh_tokens
+DbTableSnapshot {
+    columns: DbColumnSnapshots(
+        [
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "bigint",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "user_id",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "text",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "token_hash",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "timestamp with time zone",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "expires_at",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "timestamp with time zone",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "revoked_at",
+                ),
+                nullable: DbColumnNullable(
+                    true,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "timestamp with time zone",
+                ),
+                default: Some(
+                    DbSchemaText(
+                        "now()",
+                    ),
+                ),
+                name: DbSchemaText(
+                    "created_at",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "uuid",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "id",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+        ],
+    ),
+    objects: DbObjectSnapshots(
+        [
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CHECK (((revoked_at IS NULL) OR (revoked_at >= created_at)))",
+                ),
+                kind: Check,
+                name: DbSchemaText(
+                    "refresh_tokens_revoked_after_created",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CHECK ((char_length(token_hash) > 0))",
+                ),
+                kind: Check,
+                name: DbSchemaText(
+                    "refresh_tokens_hash_not_empty",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CHECK ((expires_at > created_at))",
+                ),
+                kind: Check,
+                name: DbSchemaText(
+                    "refresh_tokens_expires_after_created",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CREATE INDEX refresh_tokens_user_expiry_idx ON admin_migration_fresh_test.refresh_tokens USING btree (user_id, expires_at)",
+                ),
+                kind: Index,
+                name: DbSchemaText(
+                    "refresh_tokens_user_expiry_idx",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CREATE UNIQUE INDEX refresh_tokens_pkey ON admin_migration_fresh_test.refresh_tokens USING btree (id)",
+                ),
+                kind: Index,
+                name: DbSchemaText(
+                    "refresh_tokens_pkey",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CREATE UNIQUE INDEX refresh_tokens_token_hash_key ON admin_migration_fresh_test.refresh_tokens USING btree (token_hash)",
+                ),
+                kind: Index,
+                name: DbSchemaText(
+                    "refresh_tokens_token_hash_key",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE",
+                ),
+                kind: ForeignKey,
+                name: DbSchemaText(
+                    "refresh_tokens_user_id_fkey",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "PRIMARY KEY (id)",
+                ),
+                kind: PrimaryKey,
+                name: DbSchemaText(
+                    "refresh_tokens_pkey",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "UNIQUE (token_hash)",
+                ),
+                kind: Unique,
+                name: DbSchemaText(
+                    "refresh_tokens_token_hash_key",
+                ),
+            },
+        ],
+    ),
+}
+
+access_sessions
+DbTableSnapshot {
+    columns: DbColumnSnapshots(
+        [
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "bigint",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "user_id",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "text",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "csrf_token_hash",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "text",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "token_context_hash",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "text",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "token_identifier_hash",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "timestamp with time zone",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "expires_at",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "timestamp with time zone",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "revoked_at",
+                ),
+                nullable: DbColumnNullable(
+                    true,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "timestamp with time zone",
+                ),
+                default: Some(
+                    DbSchemaText(
+                        "now()",
+                    ),
+                ),
+                name: DbSchemaText(
+                    "created_at",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "uuid",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "id",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+        ],
+    ),
+    objects: DbObjectSnapshots(
+        [
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CHECK (((revoked_at IS NULL) OR (revoked_at >= created_at)))",
+                ),
+                kind: Check,
+                name: DbSchemaText(
+                    "access_sessions_revoked_after_created",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CHECK ((char_length(csrf_token_hash) > 0))",
+                ),
+                kind: Check,
+                name: DbSchemaText(
+                    "access_sessions_csrf_hash_not_empty",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CHECK ((char_length(token_identifier_hash) > 0))",
+                ),
+                kind: Check,
+                name: DbSchemaText(
+                    "access_sessions_token_hash_not_empty",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CHECK ((expires_at > created_at))",
+                ),
+                kind: Check,
+                name: DbSchemaText(
+                    "access_sessions_expires_after_created",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CHECK ((token_context_hash ~ '^[0-9a-f]{64}$'::text))",
+                ),
+                kind: Check,
+                name: DbSchemaText(
+                    "access_sessions_context_hash_format",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CREATE INDEX access_sessions_context_active_idx ON admin_migration_fresh_test.access_sessions USING btree (user_id, token_context_hash, expires_at) WHERE (revoked_at IS NULL)",
+                ),
+                kind: Index,
+                name: DbSchemaText(
+                    "access_sessions_context_active_idx",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CREATE INDEX access_sessions_user_expiry_idx ON admin_migration_fresh_test.access_sessions USING btree (user_id, expires_at)",
+                ),
+                kind: Index,
+                name: DbSchemaText(
+                    "access_sessions_user_expiry_idx",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CREATE UNIQUE INDEX access_sessions_pkey ON admin_migration_fresh_test.access_sessions USING btree (id)",
+                ),
+                kind: Index,
+                name: DbSchemaText(
+                    "access_sessions_pkey",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CREATE UNIQUE INDEX access_sessions_token_identifier_hash_key ON admin_migration_fresh_test.access_sessions USING btree (token_identifier_hash)",
+                ),
+                kind: Index,
+                name: DbSchemaText(
+                    "access_sessions_token_identifier_hash_key",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE",
+                ),
+                kind: ForeignKey,
+                name: DbSchemaText(
+                    "access_sessions_user_id_fkey",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "PRIMARY KEY (id)",
+                ),
+                kind: PrimaryKey,
+                name: DbSchemaText(
+                    "access_sessions_pkey",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "UNIQUE (token_identifier_hash)",
+                ),
+                kind: Unique,
+                name: DbSchemaText(
+                    "access_sessions_token_identifier_hash_key",
+                ),
+            },
+        ],
+    ),
+}
+
+login_attempts
+DbTableSnapshot {
+    columns: DbColumnSnapshots(
+        [
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "bigint",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "id",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "boolean",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "succeeded",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "inet",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "ip_address",
+                ),
+                nullable: DbColumnNullable(
+                    true,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "text",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "login",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "timestamp with time zone",
+                ),
+                default: Some(
+                    DbSchemaText(
+                        "now()",
+                    ),
+                ),
+                name: DbSchemaText(
+                    "attempted_at",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+        ],
+    ),
+    objects: DbObjectSnapshots(
+        [
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CHECK ((char_length(login) > 0))",
+                ),
+                kind: Check,
+                name: DbSchemaText(
+                    "login_attempts_login_not_empty",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CREATE INDEX login_attempts_login_ip_time_idx ON admin_migration_fresh_test.login_attempts USING btree (login, ip_address, attempted_at DESC)",
+                ),
+                kind: Index,
+                name: DbSchemaText(
+                    "login_attempts_login_ip_time_idx",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CREATE UNIQUE INDEX login_attempts_pkey ON admin_migration_fresh_test.login_attempts USING btree (id)",
+                ),
+                kind: Index,
+                name: DbSchemaText(
+                    "login_attempts_pkey",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "PRIMARY KEY (id)",
+                ),
+                kind: PrimaryKey,
+                name: DbSchemaText(
+                    "login_attempts_pkey",
+                ),
+            },
+        ],
+    ),
+}
+
+audit_log
+DbTableSnapshot {
+    columns: DbColumnSnapshots(
+        [
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "bigint",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "id",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "bigint",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "user_id",
+                ),
+                nullable: DbColumnNullable(
+                    true,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "boolean",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "succeeded",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "jsonb",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "details",
+                ),
+                nullable: DbColumnNullable(
+                    true,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "text",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "action",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "text",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "resource",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "text",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "resource_id",
+                ),
+                nullable: DbColumnNullable(
+                    true,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "text",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "user_login",
+                ),
+                nullable: DbColumnNullable(
+                    true,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "timestamp with time zone",
+                ),
+                default: Some(
+                    DbSchemaText(
+                        "now()",
+                    ),
+                ),
+                name: DbSchemaText(
+                    "created_at",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "uuid",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "request_id",
+                ),
+                nullable: DbColumnNullable(
+                    true,
+                ),
+            },
+        ],
+    ),
+    objects: DbObjectSnapshots(
+        [
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CHECK (((action = lower(action)) AND (action ~ '^[a-z0-9_]+$'::text)))",
+                ),
+                kind: Check,
+                name: DbSchemaText(
+                    "audit_log_action_format",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CHECK (((resource = lower(resource)) AND (resource ~ '^[a-z0-9_]+$'::text)))",
+                ),
+                kind: Check,
+                name: DbSchemaText(
+                    "audit_log_resource_format",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CHECK (((user_login IS NULL) OR (char_length(user_login) > 0)))",
+                ),
+                kind: Check,
+                name: DbSchemaText(
+                    "audit_log_user_login_not_empty",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CREATE INDEX audit_log_resource_time_idx ON admin_migration_fresh_test.audit_log USING btree (resource, resource_id, created_at DESC)",
+                ),
+                kind: Index,
+                name: DbSchemaText(
+                    "audit_log_resource_time_idx",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CREATE INDEX audit_log_user_time_idx ON admin_migration_fresh_test.audit_log USING btree (user_id, created_at DESC)",
+                ),
+                kind: Index,
+                name: DbSchemaText(
+                    "audit_log_user_time_idx",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CREATE UNIQUE INDEX audit_log_pkey ON admin_migration_fresh_test.audit_log USING btree (id)",
+                ),
+                kind: Index,
+                name: DbSchemaText(
+                    "audit_log_pkey",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "PRIMARY KEY (id)",
+                ),
+                kind: PrimaryKey,
+                name: DbSchemaText(
+                    "audit_log_pkey",
+                ),
+            },
+        ],
+    ),
+}
+
+system_settings
+DbTableSnapshot {
+    columns: DbColumnSnapshots(
+        [
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "smallint",
+                ),
+                default: Some(
+                    DbSchemaText(
+                        "1",
+                    ),
+                ),
+                name: DbSchemaText(
+                    "id",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "text",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "main_logo",
+                ),
+                nullable: DbColumnNullable(
+                    true,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "text",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "organization_contacts",
+                ),
+                nullable: DbColumnNullable(
+                    true,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "text",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "organization_name",
+                ),
+                nullable: DbColumnNullable(
+                    true,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "text",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "primary_color",
+                ),
+                nullable: DbColumnNullable(
+                    true,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "text",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "support_url",
+                ),
+                nullable: DbColumnNullable(
+                    true,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "text",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "tab_title",
+                ),
+                nullable: DbColumnNullable(
+                    true,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "text",
+                ),
+                default: Some(
+                    DbSchemaText(
+                        "'/admin/users'::text",
+                    ),
+                ),
+                name: DbSchemaText(
+                    "default_admin_route",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "text",
+                ),
+                default: Some(
+                    DbSchemaText(
+                        "'Admin'::text",
+                    ),
+                ),
+                name: DbSchemaText(
+                    "site_name",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "timestamp with time zone",
+                ),
+                default: Some(
+                    DbSchemaText(
+                        "now()",
+                    ),
+                ),
+                name: DbSchemaText(
+                    "updated_at",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+        ],
+    ),
+    objects: DbObjectSnapshots(
+        [
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CHECK ((char_length(btrim(site_name)) > 0))",
+                ),
+                kind: Check,
+                name: DbSchemaText(
+                    "system_settings_site_name_not_empty",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CHECK ((default_admin_route ~~ '/admin%'::text))",
+                ),
+                kind: Check,
+                name: DbSchemaText(
+                    "system_settings_default_route_format",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CHECK ((id = 1))",
+                ),
+                kind: Check,
+                name: DbSchemaText(
+                    "system_settings_singleton",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CREATE UNIQUE INDEX system_settings_pkey ON admin_migration_fresh_test.system_settings USING btree (id)",
+                ),
+                kind: Index,
+                name: DbSchemaText(
+                    "system_settings_pkey",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "PRIMARY KEY (id)",
+                ),
+                kind: PrimaryKey,
+                name: DbSchemaText(
+                    "system_settings_pkey",
+                ),
+            },
+        ],
+    ),
+}
+
+rate_limits
+DbTableSnapshot {
+    columns: DbColumnSnapshots(
+        [
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "bigint",
+                ),
+                default: Some(
+                    DbSchemaText(
+                        "0",
+                    ),
+                ),
+                name: DbSchemaText(
+                    "request_count",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "text",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "scope",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "text",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "subject",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "timestamp with time zone",
+                ),
+                default: Some(
+                    DbSchemaText(
+                        "now()",
+                    ),
+                ),
+                name: DbSchemaText(
+                    "window_started_at",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+        ],
+    ),
+    objects: DbObjectSnapshots(
+        [
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CHECK ((char_length(scope) > 0))",
+                ),
+                kind: Check,
+                name: DbSchemaText(
+                    "rate_limits_scope_not_empty",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CHECK ((char_length(subject) > 0))",
+                ),
+                kind: Check,
+                name: DbSchemaText(
+                    "rate_limits_subject_not_empty",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CHECK ((request_count >= 0))",
+                ),
+                kind: Check,
+                name: DbSchemaText(
+                    "rate_limits_request_count_nonnegative",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CREATE INDEX rate_limits_window_idx ON admin_migration_fresh_test.rate_limits USING btree (window_started_at)",
+                ),
+                kind: Index,
+                name: DbSchemaText(
+                    "rate_limits_window_idx",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CREATE UNIQUE INDEX rate_limits_pkey ON admin_migration_fresh_test.rate_limits USING btree (scope, subject)",
+                ),
+                kind: Index,
+                name: DbSchemaText(
+                    "rate_limits_pkey",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "PRIMARY KEY (scope, subject)",
+                ),
+                kind: PrimaryKey,
+                name: DbSchemaText(
+                    "rate_limits_pkey",
+                ),
+            },
+        ],
+    ),
+}
+
+cleanup_status
+DbTableSnapshot {
+    columns: DbColumnSnapshots(
+        [
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "bigint",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "last_deleted_rows",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "boolean",
+                ),
+                default: Some(
+                    DbSchemaText(
+                        "true",
+                    ),
+                ),
+                name: DbSchemaText(
+                    "singleton",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "timestamp with time zone",
+                ),
+                default: None,
+                name: DbSchemaText(
+                    "last_success_at",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+        ],
+    ),
+    objects: DbObjectSnapshots(
+        [
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CHECK ((last_deleted_rows >= 0))",
+                ),
+                kind: Check,
+                name: DbSchemaText(
+                    "cleanup_status_last_deleted_rows_check",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CHECK (singleton)",
+                ),
+                kind: Check,
+                name: DbSchemaText(
+                    "cleanup_status_singleton_check",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "CREATE UNIQUE INDEX cleanup_status_pkey ON admin_migration_fresh_test.cleanup_status USING btree (singleton)",
+                ),
+                kind: Index,
+                name: DbSchemaText(
+                    "cleanup_status_pkey",
+                ),
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    "PRIMARY KEY (singleton)",
+                ),
+                kind: PrimaryKey,
+                name: DbSchemaText(
+                    "cleanup_status_pkey",
+                ),
+            },
+        ],
+    ),
+}
