@@ -1,12 +1,13 @@
 #![allow(
+    clippy::arbitrary_source_item_ordering,
     clippy::needless_for_each,
-    reason = "utoipa OpenApi derive expands to an internal for_each"
+    reason = "generated route registries stay adjacent to their handlers and utoipa expands to an internal for_each"
 )]
-//todo generate openapi spec
 const HEALTH_PROBE_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(2u64);
 const HEALTH_COMPONENTS_MAX_LEN: usize = 2usize;
-#[derive(Debug, serde::Serialize, utoipa::ToSchema, optml::Optml)]
+#[derive(Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema, optml::Optml)]
 pub struct GitInfo {
+    #[schema(value_type = String)]
     commit: git_info::StdGitCommitLinkCow,
 }
 #[derive(Debug, serde::Serialize, optml::Optml)]
@@ -27,27 +28,42 @@ struct NoRouteMessageCapacity(usize);
 struct HealthCheckSucceeded(bool);
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct HealthDatabaseAvailable(bool);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, utoipa::ToSchema)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema,
+)]
 #[serde(rename_all = "snake_case")]
 pub enum HealthStatus {
     Degraded,
     Error,
     Ok,
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, utoipa::ToSchema)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema,
+)]
 #[serde(rename_all = "snake_case")]
 pub enum HealthComponentKind {
     DatabaseConnectivity,
     ServiceAvailability,
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, utoipa::ToSchema)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema,
+)]
 pub struct HealthComponent {
     kind: HealthComponentKind,
     status: HealthStatus,
 }
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, utoipa::ToSchema, newtype::TryFrom)]
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    serde::Deserialize,
+    serde::Serialize,
+    utoipa::ToSchema,
+    newtype::TryFrom,
+)]
 #[try_from(validator = HealthComponents::validate)]
-#[serde(transparent)]
+#[serde(try_from = "Vec<HealthComponent>")]
 pub struct HealthComponents(Vec<HealthComponent>);
 impl From<[HealthComponent; 1]> for HealthComponents {
     fn from(value: [HealthComponent; 1]) -> Self {
@@ -72,7 +88,7 @@ impl HealthComponents {
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("{}", str_constants::HEALTH_COMPONENTS_LENGTH_EXCEEDS_LIMIT)]
 pub struct HealthComponentsError;
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, utoipa::ToSchema)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema)]
 pub struct HealthReport {
     components: HealthComponents,
     status: HealthStatus,
@@ -121,6 +137,11 @@ impl HealthReport {
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::FromInner)]
 struct AxumHealthCheckStatus(axum::http::StatusCode);
+impl axum::response::IntoResponse for AxumHealthCheckStatus {
+    fn into_response(self) -> axum::response::Response {
+        axum::response::IntoResponse::into_response(self.0)
+    }
+}
 #[derive(Debug, optml::Optml)]
 struct JsonRes<T> {
     payload: AxumJsonPayload<T>,
@@ -128,6 +149,117 @@ struct JsonRes<T> {
 }
 #[derive(Debug, optml::Optml, newtype::FromInner)]
 struct AxumJsonPayload<T>(axum::Json<T>);
+#[derive(Clone, Copy, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema)]
+pub struct CommonNoBody;
+
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[typed_route(
+    authentication = frontend_contract::AuthenticationRequirement::Public,
+    error_statuses = &[],
+    method = frontend_contract::RouteMethod::Get,
+    mutation = frontend_contract::RouteMutation::ReadOnly,
+    obligations = frontend_contract::PUBLIC_READ_ROUTE_COVERAGE_OBLIGATIONS,
+    openapi_operation_id = "health_live",
+    path = "/health/live",
+    request = CommonNoBody,
+    response = HealthReport,
+    success_status = frontend_contract::SuccessStatus::Code200,
+    transport = frontend_contract::PublicTransport
+)]
+pub struct HealthLiveRoute;
+
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[typed_route(
+    authentication = frontend_contract::AuthenticationRequirement::Public,
+    error_statuses = &[],
+    method = frontend_contract::RouteMethod::Get,
+    mutation = frontend_contract::RouteMutation::ReadOnly,
+    obligations = frontend_contract::PUBLIC_READ_ROUTE_COVERAGE_OBLIGATIONS,
+    openapi_operation_id = "health_ready",
+    path = "/health/ready",
+    request = CommonNoBody,
+    response = HealthReport,
+    success_status = frontend_contract::SuccessStatus::Code200,
+    transport = frontend_contract::PublicTransport
+)]
+pub struct HealthReadyRoute;
+
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[typed_route(
+    authentication = frontend_contract::AuthenticationRequirement::Public,
+    error_statuses = &[],
+    method = frontend_contract::RouteMethod::Get,
+    mutation = frontend_contract::RouteMutation::ReadOnly,
+    obligations = frontend_contract::PUBLIC_READ_ROUTE_COVERAGE_OBLIGATIONS,
+    openapi_operation_id = "health",
+    path = "/health",
+    request = CommonNoBody,
+    response = HealthReport,
+    success_status = frontend_contract::SuccessStatus::Code200,
+    transport = frontend_contract::PublicTransport
+)]
+pub struct HealthRoute;
+
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[typed_route(
+    authentication = frontend_contract::AuthenticationRequirement::Public,
+    error_statuses = &[],
+    method = frontend_contract::RouteMethod::Get,
+    mutation = frontend_contract::RouteMutation::ReadOnly,
+    obligations = frontend_contract::PUBLIC_READ_ROUTE_COVERAGE_OBLIGATIONS,
+    openapi_operation_id = "health_check",
+    path = "/health_check",
+    request = CommonNoBody,
+    response = CommonNoBody,
+    success_status = frontend_contract::SuccessStatus::Code200,
+    transport = frontend_contract::PublicTransport
+)]
+pub struct HealthCheckRoute;
+
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[typed_route(
+    authentication = frontend_contract::AuthenticationRequirement::Public,
+    error_statuses = &[],
+    method = frontend_contract::RouteMethod::Get,
+    mutation = frontend_contract::RouteMutation::ReadOnly,
+    obligations = frontend_contract::PUBLIC_READ_ROUTE_COVERAGE_OBLIGATIONS,
+    openapi_operation_id = "git_info",
+    path = "/git_info",
+    request = CommonNoBody,
+    response = GitInfo,
+    success_status = frontend_contract::SuccessStatus::Code200,
+    transport = frontend_contract::PublicTransport
+)]
+pub struct GitInfoRoute;
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, frontend_contract::RouteCatalog)]
+#[route_catalog(family = CommonRouteFamily, body_limit = 0usize)]
+pub enum CommonRoute {
+    #[route_catalog_route(GitInfoRoute)]
+    GitInfo,
+    #[route_catalog_route(HealthRoute)]
+    Health,
+    #[route_catalog_route(HealthCheckRoute)]
+    HealthCheck,
+    #[route_catalog_route(HealthLiveRoute)]
+    HealthLive,
+    #[route_catalog_route(HealthReadyRoute)]
+    HealthReady,
+}
+impl CommonRoute {
+    pub const ALL: [Self; 5] = [
+        Self::GitInfo,
+        Self::Health,
+        Self::HealthCheck,
+        Self::HealthLive,
+        Self::HealthReady,
+    ];
+
+    #[must_use]
+    pub fn path(self) -> frontend_contract::ContractStr {
+        self.contract().path()
+    }
+}
 impl<T> axum::response::IntoResponse for AxumJsonPayload<T>
 where
     axum::Json<T>: axum::response::IntoResponse,
@@ -148,17 +280,7 @@ where
 pub struct AxumCommonRoutes(axum::Router);
 #[derive(Clone, optml::Optml, newtype::FromInner)]
 pub struct StdArcCommonRoutesAppState(std::sync::Arc<dyn CommonRoutesParameters>);
-#[derive(Clone, Copy, Debug, utoipa::OpenApi)]
-#[openapi(
-    paths(health_live, git_info_open_api),
-    components(schemas(
-        HealthReport,
-        HealthComponent,
-        HealthComponentKind,
-        HealthStatus,
-        GitInfo
-    ))
-)]
+#[derive(Clone, Copy, Debug)]
 pub struct CommonRoutesOpenApi;
 #[derive(serde::Serialize)]
 #[serde(transparent)]
@@ -167,13 +289,60 @@ pub struct UtoipaCommonRoutesOpenApiDocument(utoipa::openapi::OpenApi);
 impl CommonRoutesOpenApi {
     #[must_use]
     pub fn open_api() -> UtoipaCommonRoutesOpenApiDocument {
-        UtoipaCommonRoutesOpenApiDocument::from(<Self as utoipa::OpenApi>::openapi())
+        fn insert_service_unavailable(
+            document: &mut utoipa::openapi::OpenApi,
+            route: CommonRoute,
+            body: Option<utoipa::openapi::RefOr<utoipa::openapi::Schema>>,
+        ) {
+            let status = axum::http::StatusCode::SERVICE_UNAVAILABLE
+                .as_u16()
+                .to_string();
+            let mut response = utoipa::openapi::response::Response::new(status.clone());
+            if let Some(schema) = body {
+                let _previous_content = response.content.insert(
+                    str_constants::APPLICATION_JSON.to_owned(),
+                    utoipa::openapi::Content::new(schema),
+                );
+            }
+            if let Some(operation) = document
+                .paths
+                .paths
+                .get_mut(route.path().as_ref())
+                .and_then(|path| {
+                    path.operations
+                        .get_mut(&utoipa::openapi::path::PathItemType::Get)
+                })
+            {
+                let _previous_response = operation
+                    .responses
+                    .responses
+                    .insert(status, utoipa::openapi::RefOr::T(response));
+            }
+        }
+        let mut document = CommonRouteRegistry::open_api();
+        let health_schema = <HealthReport as utoipa::ToSchema>::schema().1;
+        [CommonRoute::Health, CommonRoute::HealthReady]
+            .into_iter()
+            .for_each(|route| {
+                insert_service_unavailable(&mut document, route, Some(health_schema.clone()));
+            });
+        insert_service_unavailable(&mut document, CommonRoute::HealthCheck, None);
+        UtoipaCommonRoutesOpenApiDocument::from(document)
     }
 }
 impl std::fmt::Debug for StdArcCommonRoutesAppState {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_tuple(str_constants::STDARCCOMMONROUTESAPPSTATE)
             .finish()
+    }
+}
+impl axum::extract::FromRequestParts<Self> for StdArcCommonRoutesAppState {
+    type Rejection = std::convert::Infallible;
+    fn from_request_parts(
+        _parts: &mut axum::http::request::Parts,
+        state: &Self,
+    ) -> impl Future<Output = Result<Self, Self::Rejection>> {
+        std::future::ready(Ok(state.clone()))
     }
 }
 impl std::fmt::Debug for UtoipaCommonRoutesOpenApiDocument {
@@ -307,7 +476,26 @@ fn health_report_response(report: HealthReport) -> JsonRes<HealthReport> {
     };
     mk_json_res(status, report)
 }
-#[utoipa::path(get, path = "/health/live", responses((status = 200, body = HealthReport)), tag = "service")]
+#[frontend_contract::route_registry(
+    state = StdArcCommonRoutesAppState,
+    family = CommonRouteFamily;
+    ("", "");
+    schemas(
+        HealthComponent,
+        HealthComponentKind,
+        HealthComponents,
+        HealthStatus
+    );
+    (GitInfoRoute, git_info),
+    (HealthRoute, health),
+    (HealthCheckRoute, health_check),
+    (HealthLiveRoute, health_live),
+    (HealthReadyRoute, health_ready),
+)]
+#[openapi(tags((name = "service", description = "Service operational routes")))]
+struct CommonRouteRegistry;
+
+#[frontend_contract::route_openapi(tag = "service")]
 #[allow(
     clippy::single_call_fn,
     reason = "the concrete handler is intentionally shared by Axum and OpenAPI metadata"
@@ -315,69 +503,66 @@ fn health_report_response(report: HealthReport) -> JsonRes<HealthReport> {
 async fn health_live() -> JsonRes<HealthReport> {
     health_report_response(HealthReport::liveness())
 }
-#[utoipa::path(get, path = "/git_info", responses((status = 200, body = GitInfo)), tag = "service")]
-#[allow(
-    dead_code,
-    clippy::single_call_fn,
-    reason = "Utoipa consumes this metadata-only handler through its derive expansion"
+#[frontend_contract::route_openapi(
+    responses((status = 503, body = HealthReport)),
+    tag = "service"
 )]
-const fn git_info_open_api() {}
+#[allow(
+    clippy::single_call_fn,
+    reason = "the concrete handler is intentionally owned by the generated route registry"
+)]
+async fn health_ready(app_state: StdArcCommonRoutesAppState) -> JsonRes<HealthReport> {
+    health_report_response(HealthReport::readiness(HealthDatabaseAvailable::from(
+        database_is_ready(app_state.0.as_ref()).await.0,
+    )))
+}
+#[frontend_contract::route_openapi(
+    responses((status = 503, body = HealthReport)),
+    tag = "service"
+)]
+#[allow(
+    clippy::single_call_fn,
+    reason = "the concrete handler is intentionally owned by the generated route registry"
+)]
+async fn health(app_state: StdArcCommonRoutesAppState) -> JsonRes<HealthReport> {
+    health_report_response(HealthReport::readiness(HealthDatabaseAvailable::from(
+        database_is_ready(app_state.0.as_ref()).await.0,
+    )))
+}
+#[frontend_contract::route_openapi(responses((status = 503)), tag = "service")]
+#[allow(
+    clippy::single_call_fn,
+    reason = "the concrete handler is intentionally owned by the generated route registry"
+)]
+async fn health_check(app_state: StdArcCommonRoutesAppState) -> AxumHealthCheckStatus {
+    map_health_check_status(database_is_ready(app_state.0.as_ref()).await)
+}
+#[frontend_contract::route_openapi(tag = "service")]
+#[allow(
+    clippy::single_call_fn,
+    reason = "the concrete handler is intentionally owned by the generated route registry"
+)]
+async fn git_info(app_state: StdArcCommonRoutesAppState) -> JsonRes<GitInfo> {
+    mk_commit_json_res(
+        app_state.0.as_ref(),
+        AxumHealthCheckStatus::from(axum::http::StatusCode::OK),
+        mk_git_info_payload,
+    )
+}
+
 #[must_use]
 pub fn common_routes(app_state_b9fc2d94: StdArcCommonRoutesAppState) -> AxumCommonRoutes {
-    let app_state = app_state_b9fc2d94.0;
     AxumCommonRoutes::from(
-        axum::Router::new()
-            .route(
-                str_constants::COMMON_ROUTES_HEALTH_LIVE,
-                axum::routing::get(health_live),
-            )
-            .route(
-                str_constants::COMMON_ROUTES_HEALTH_READY,
-                axum::routing::get(async |axum::extract::State(app_state_raw)| {
-                    let ready_state: std::sync::Arc<dyn CommonRoutesParameters> = app_state_raw;
-                    health_report_response(HealthReport::readiness(HealthDatabaseAvailable::from(
-                        database_is_ready(ready_state.as_ref()).await.0,
-                    )))
-                }),
-            )
-            .route(
-                str_constants::COMMON_ROUTES_HEALTH,
-                axum::routing::get(async |axum::extract::State(app_state_raw)| {
-                    let aggregate_state: std::sync::Arc<dyn CommonRoutesParameters> = app_state_raw;
-                    health_report_response(HealthReport::readiness(HealthDatabaseAvailable::from(
-                        database_is_ready(aggregate_state.as_ref()).await.0,
-                    )))
-                }),
-            )
-            .route(
-                str_constants::COMMON_ROUTES_HEALTH_CHECK,
-                axum::routing::get(async |axum::extract::State(app_state_hc_raw)| {
-                    let app_state_hc: std::sync::Arc<dyn CommonRoutesParameters> = app_state_hc_raw;
-                    map_health_check_status(database_is_ready(app_state_hc.as_ref()).await).0
-                }),
-            )
-            .route(
-                str_constants::COMMON_ROUTES_GIT_INFO,
-                axum::routing::get(async |axum::extract::State(app_state_raw)| {
-                    let app_state_76fb2013: std::sync::Arc<dyn CommonRoutesParameters> =
-                        app_state_raw;
-                    mk_commit_json_res(
-                        app_state_76fb2013.as_ref(),
-                        AxumHealthCheckStatus::from(axum::http::StatusCode::OK),
-                        mk_git_info_payload,
-                    )
-                }),
-            )
+        CommonRouteRegistry::router()
             .fallback(async |uri, axum::extract::State(app_state_19103bd5_raw)| {
-                let app_state_19103bd5: std::sync::Arc<dyn CommonRoutesParameters> =
-                    app_state_19103bd5_raw;
+                let app_state_19103bd5: StdArcCommonRoutesAppState = app_state_19103bd5_raw;
                 mk_commit_json_res(
-                    app_state_19103bd5.as_ref(),
+                    app_state_19103bd5.0.as_ref(),
                     AxumHealthCheckStatus::from(axum::http::StatusCode::NOT_FOUND),
                     |commit| mk_not_found_payload(AxumHttpUriRef::from(&uri), commit),
                 )
             })
-            .with_state(app_state),
+            .with_state(app_state_b9fc2d94),
     )
 }
 #[cfg(test)]
@@ -386,7 +571,20 @@ mod tests {
     #[test]
     fn repository_owned_common_routes_use_snake_case_segments() {
         assert!(!str_constants::COMMON_ROUTES_SWAGGER_UI.contains('-'));
-        assert!(!str_constants::COMMON_ROUTES_GIT_INFO.contains('-'));
+        super::CommonRoute::ALL.into_iter().for_each(|route| {
+            assert!(!route.path().as_ref().contains('-'));
+        });
+    }
+
+    #[test]
+    fn common_route_family_coverage_is_complete() {
+        let descriptors =
+            <super::CommonRouteFamily as frontend_contract::RouteFamily>::coverage_descriptors();
+        assert_eq!(
+            frontend_contract::validate_route_coverage(descriptors.as_ref()),
+            Ok(())
+        );
+        assert_eq!(descriptors.as_ref().len(), super::CommonRoute::ALL.len());
     }
 
     #[test]
@@ -650,14 +848,14 @@ mod tests {
         ));
         let document =
             serde_json::to_value(super::CommonRoutesOpenApi::open_api()).expect("f96bcc6e");
-        let check = |path: &'static str| {
+        let check = |path: String| {
             let cloned_router = router.clone();
             let cloned_document = document.clone();
             async move {
                 let response = tower::ServiceExt::oneshot(
                     cloned_router,
                     axum::http::Request::builder()
-                        .uri(path)
+                        .uri(path.as_str())
                         .body(axum::body::Body::empty())
                         .expect("6e9abf44"),
                 )
@@ -686,8 +884,36 @@ mod tests {
                 );
             }
         };
-        check(str_constants::COMMON_ROUTES_HEALTH_LIVE).await;
-        check(str_constants::COMMON_ROUTES_GIT_INFO).await;
+        check(super::CommonRoute::HealthLive.path().as_ref().to_owned()).await;
+        check(super::CommonRoute::GitInfo.path().as_ref().to_owned()).await;
+        super::CommonRoute::ALL.into_iter().for_each(|route| {
+            let escaped_path = route
+                .path()
+                .as_ref()
+                .replace('/', str_constants::VALUE_1_ALT_3);
+            assert!(
+                document
+                    .pointer(format!("/paths/{escaped_path}/get/responses/200").as_str())
+                    .is_some()
+            );
+        });
+        [
+            super::CommonRoute::Health,
+            super::CommonRoute::HealthCheck,
+            super::CommonRoute::HealthReady,
+        ]
+        .into_iter()
+        .for_each(|route| {
+            let escaped_path = route
+                .path()
+                .as_ref()
+                .replace('/', str_constants::VALUE_1_ALT_3);
+            assert!(
+                document
+                    .pointer(format!("/paths/{escaped_path}/get/responses/503").as_str())
+                    .is_some()
+            );
+        });
         let not_found = tower::ServiceExt::oneshot(
             router,
             axum::http::Request::builder()

@@ -49,6 +49,8 @@ struct ServerRuntimeContentSecurityPolicyError(server_runtime::HttpContentSecuri
 struct ServerRuntimeTrustedProxyRangesParseError(server_runtime::TrustedProxyRangesParseError);
 #[derive(newtype::FromInner)]
 struct AxumApiRoutes(axum::Router);
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
+struct HttpBodyMaximumBytes(usize);
 #[derive(Clone, newtype::DerefTarget, newtype::FromInner)]
 struct StdSharedServerAppState(std::sync::Arc<server_app_state::ServerAppState<'static>>);
 impl StdSharedServerAppState {
@@ -128,6 +130,23 @@ fn frontend_fallback_routes() -> server_runtime::AxumRouter {
     server_runtime::AxumRouter::from(axum::Router::new().fallback(async || {
         axum::response::Redirect::to(server_admin_contract::AdminFrontendPath::SignIn.get())
     }))
+}
+#[allow(clippy::single_call_fn)] // startup and tests share the service route mounting invariant
+fn mount_service_routes(
+    operational_routes: server_runtime::AxumRouter,
+    api_routes: AxumApiRoutes,
+    body_maximum_bytes: HttpBodyMaximumBytes,
+) -> server_runtime::AxumRouter {
+    server_runtime::AxumRouter::from(
+        axum::Router::new()
+            .merge(axum::Router::from(operational_routes))
+            .nest(
+                str_constants::API_V1,
+                api_routes
+                    .0
+                    .layer(axum::extract::DefaultBodyLimit::max(body_maximum_bytes.0)),
+            ),
+    )
 }
 #[allow(clippy::single_call_fn)] // route wiring is reused by startup flow and isolated from layer setup
 fn mk_api_routes(
@@ -428,15 +447,13 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
             server_runtime::SecurityHeadersLayer::from(server_runtime::ForwardedProtoTrust::Ignore)
                 .with_content_security_policy(content_security_policy)
                 .apply(
-                    server_runtime::RequestTimeoutLayer::from(request_timeout)
-                        .apply(server_runtime::AxumRouter::from(
-                        axum::Router::new()
-                            .nest(
-                                str_constants::API_V1,
-                                operational_routes.merge(api_routes.0).layer(
-                                    axum::extract::DefaultBodyLimit::max(maximum_http_body_bytes),
-                                ),
-                            )
+                    server_runtime::RequestTimeoutLayer::from(request_timeout).apply(
+                        server_runtime::AxumRouter::from(
+                            axum::Router::from(mount_service_routes(
+                                server_runtime::AxumRouter::from(operational_routes),
+                                api_routes,
+                                HttpBodyMaximumBytes::from(maximum_http_body_bytes),
+                            ))
                             .merge(axum::Router::from(server_admin_frontend::routes()))
                             .merge(axum::Router::from(admin_html_routes))
                             .merge(admin_metrics_routes)
@@ -474,7 +491,8 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
                                         ]),
                                 ),
                             ),
-                    )),
+                        ),
+                    ),
                 ),
         ),
     );
@@ -574,6 +592,48 @@ fn main() -> StdServerExitCode {
 }
 #[cfg(test)]
 mod tests {
+    #[tokio::test]
+    async fn operational_routes_are_root_mounted_and_api_routes_are_versioned() {
+        let operational_path = common_routes::CommonRoute::HealthLive.path();
+        let router = axum::Router::from(super::mount_service_routes(
+            server_runtime::AxumRouter::from(axum::Router::new().route(
+                operational_path.as_ref(),
+                axum::routing::get(async || axum::http::StatusCode::NO_CONTENT),
+            )),
+            super::AxumApiRoutes::from(
+                axum::Router::new().route("/probe", axum::routing::get(async || "api")),
+            ),
+            super::HttpBodyMaximumBytes::from(1_024usize),
+        ));
+        let status = |path: &str| {
+            tower::ServiceExt::oneshot(
+                router.clone(),
+                axum::http::Request::builder()
+                    .uri(path)
+                    .body(axum::body::Body::empty())
+                    .expect("7496f84f"),
+            )
+        };
+        assert_eq!(
+            status(operational_path.as_ref())
+                .await
+                .expect("0a94fcc5")
+                .status(),
+            axum::http::StatusCode::NO_CONTENT
+        );
+        assert_eq!(
+            status("/api/v1/probe").await.expect("6bb8e3f5").status(),
+            axum::http::StatusCode::OK
+        );
+        assert_eq!(
+            status("/api/v1/health/live")
+                .await
+                .expect("6e17db87")
+                .status(),
+            axum::http::StatusCode::NOT_FOUND
+        );
+    }
+
     #[tokio::test]
     async fn missing_page_redirects_to_default_authentication_page() {
         let response = tower::ServiceExt::oneshot(

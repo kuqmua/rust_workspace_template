@@ -29,6 +29,34 @@ fn continuous_integration_contains_required_security_and_quality_commands() {
     .for_each(|required| assert!(workflow.as_ref().contains(required), "missing `{required}`"));
 }
 #[test]
+fn continuous_integration_uses_the_pinned_workspace_toolchain() {
+    let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .expect("01d2b547");
+    let toolchain_source =
+        std::fs::read_to_string(repository_root.join("rust-toolchain.toml")).expect("f6db9220");
+    let parsed_toolchain = toolchain_source.parse::<toml::Table>().expect("874dc8b2");
+    let toolchain = parsed_toolchain
+        .get("toolchain")
+        .and_then(toml::Value::as_table)
+        .and_then(|table| table.get("channel"))
+        .and_then(toml::Value::as_str)
+        .expect("a43da13b");
+    let workflow = workflow();
+    assert!(
+        workflow
+            .as_ref()
+            .contains(format!("RUST_TOOLCHAIN: {toolchain}").as_str())
+    );
+    assert_eq!(
+        workflow
+            .as_ref()
+            .matches("toolchain: ${{ env.RUST_TOOLCHAIN }}")
+            .count(),
+        workflow.as_ref().matches("toolchain:").count()
+    );
+}
+#[test]
 fn workflow_jobs_have_timeouts_and_marketplace_actions_use_commit_shas() {
     let workflow = workflow();
     let workflow_jobs = workflow

@@ -1,14 +1,14 @@
 [package]
 name = "frontend_contract"
-version = "0.1.0"
-publish = false
+version.workspace = true
+publish.workspace = true
 description = "Shared typed frontend metadata contracts"
-repository = "https://github.com/kuqmua/rust_workspace_template"
+repository.workspace = true
 
-license = "MIT"
+license.workspace = true
 keywords = ["frontend", "contract"]
 categories = ["web-programming"]
-edition = "2024"
+edition.workspace = true
 
 [dependencies]
 frontend_contract_macros = { workspace = true }

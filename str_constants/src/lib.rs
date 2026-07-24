@@ -1149,8 +1149,6 @@ str_constants_macros::define_str_constants! {
         pub USES = ["- uses: "];
         pub HYPHEN = ["-"];
         pub ADMIN_CONSOLE = [WORD_ADMIN, " Console"];
-        pub ADMIN_PAGE_LIMIT_ERROR = [WORD_ADMINISTRATOR, " page limit must be between 1 and 100"];
-        pub ADMIN_PAGE_LIMIT_EXPECTING = [WORD_AN, " ", WORD_ADMINISTRATOR, " ", WORD_PAGE, " ", WORD_LIMIT_2, " ", WORD_FROM_3, " 1 through 100"];
         pub ADMIN_PAGE_OFFSET_EXPECTING = [WORD_AN, " ", WORD_ADMINISTRATOR, " ", WORD_PAGE, " offset"];
         pub ADMIN_CLEANUP_ROWS_EXCEED_I64 = [WORD_ADMINISTRATOR, " cleanup row count exceeds i64"];
         pub ASC_ALT = ["asc"];
@@ -4041,6 +4039,23 @@ pub const HTML_DATE_INPUT_TYPE: &str = "date";
 pub const HTML_DATETIME_LOCAL_INPUT_TYPE: &str = "datetime-local";
 pub const HTML_NUMBER_INPUT_TYPE: &str = "number";
 pub const HTML_TEXT_INPUT_TYPE: &str = "text";
+pub const HTML_URL_INPUT_TYPE: &str = "url";
+pub const ADMIN_SETTING_DEFAULT_ROUTE_LABEL: &str = "Default route";
+pub const ADMIN_SETTING_DEFAULT_ROUTE_NAME: &str = "default_admin_route";
+pub const ADMIN_SETTING_MAIN_LOGO_LABEL: &str = "Main logo URL";
+pub const ADMIN_SETTING_MAIN_LOGO_NAME: &str = "main_logo";
+pub const ADMIN_SETTING_ORGANIZATION_CONTACTS_LABEL: &str = "Organization contacts";
+pub const ADMIN_SETTING_ORGANIZATION_CONTACTS_NAME: &str = "organization_contacts";
+pub const ADMIN_SETTING_ORGANIZATION_NAME_LABEL: &str = "Organization";
+pub const ADMIN_SETTING_ORGANIZATION_NAME_NAME: &str = "organization_name";
+pub const ADMIN_SETTING_PRIMARY_COLOR_LABEL: &str = "Primary color";
+pub const ADMIN_SETTING_PRIMARY_COLOR_NAME: &str = "primary_color";
+pub const ADMIN_SETTING_SITE_NAME_LABEL: &str = "Site name";
+pub const ADMIN_SETTING_SITE_NAME_NAME: &str = "site_name";
+pub const ADMIN_SETTING_SUPPORT_URL_LABEL: &str = "Support URL";
+pub const ADMIN_SETTING_SUPPORT_URL_NAME: &str = "support_url";
+pub const ADMIN_SETTING_TAB_TITLE_LABEL: &str = "Tab title";
+pub const ADMIN_SETTING_TAB_TITLE_NAME: &str = "tab_title";
 pub const HTML_TIME_INPUT_TYPE: &str = "time";
 pub const ADDITIONAL_PROPERTIES: &str = "additionalProperties";
 pub const ALL_OF: &str = "allOf";
@@ -4227,7 +4242,6 @@ pub const TRACEPARENT_ZERO_TRACE_ID_TEST_VALUE: &str =
     "00-00000000000000000000000000000000-00f067aa0ba902b7-01";
 pub const TRACESTATE_TEST_VALUE: &str = "vendor=value";
 pub const REQUEST_ID_TEST_VALUE: &str = "request-1";
-pub const OPENAPI_JSON_PATH: &str = "/openapi.json";
 pub const LOCALHOST_EPHEMERAL_SOCKET: &str = "127.0.0.1:0";
 pub const INTEGRATION_NOTIFICATION_MESSAGE: &str = "integration notification";
 pub const HTTP_APPLICATION_JSON: &str = "application/json";
@@ -4259,12 +4273,14 @@ pub const WORKSPACE_SCAFFOLD_NOTIFICATION_PORT: &str = "8081";
 pub const WORKSPACE_SCAFFOLD_NOTIFICATION_CONFIG: &str = "notification_service_config";
 pub const WORKSPACE_SCAFFOLD_NOTIFICATION_CONTRACT: &str = "notification_service_contract";
 pub const WORKSPACE_SCAFFOLD_MANIFEST_MEMBER_MARKER: &str = "  \"notification_service_contract\",";
-pub const WORKSPACE_SCAFFOLD_MANIFEST_DEPENDENCY_MARKER: &str = "notification_service_contract = { path = \"./notification_service_contract\", version = \"0.1.0\" }";
+pub const WORKSPACE_SCAFFOLD_MANIFEST_DEPENDENCY_MARKER: &str =
+    "notification_service_contract = { path = \"./notification_service_contract\" }";
 pub const WORKSPACE_SCAFFOLD_NOTIFICATION_K8S_PATH: &str =
     "deploy/k8s/base/notification-service.yaml";
 pub const WORKSPACE_SCAFFOLD_K8S_BASE_PATH: &str = "deploy/k8s/base";
 pub const WORKSPACE_SCAFFOLD_KUSTOMIZATION_PATH: &str = "deploy/k8s/base/kustomization.yaml";
 pub const WORKSPACE_SCAFFOLD_KUSTOMIZATION_MARKER: &str = "  - notification-service.yaml";
+pub const WORKSPACE_SCAFFOLD_SERVICE_CATALOG_PATH: &str = "deploy/services.toml";
 pub const WORKSPACE_SCAFFOLD_STR_CONSTANTS_PATH: &str = "str_constants/src/lib.rs";
 pub const WORKSPACE_SCAFFOLD_PROJECT_COMMAND: &str = "project";
 pub const ADMIN_HTML_FORM_TEXT_TOO_LONG: &str =

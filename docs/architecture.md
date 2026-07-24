@@ -4,6 +4,10 @@ The workspace contains independently deployable services and shared libraries. A
 not a microservice unless it has its own binary, configuration, persistence migrations, container
 image, health contract, and deployment manifest.
 
+[`deploy/services.toml`](../deploy/services.toml) is the canonical mapping between service crates,
+Compose names, images, Dockerfiles, ports, and Kubernetes manifests. Code-style tests reject drift
+in Compose, Kubernetes, CI, and release workflow representations.
+
 ## Service ownership
 
 - `server` owns the public application API and administrator API.

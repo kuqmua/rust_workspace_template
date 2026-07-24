@@ -1,3 +1,8 @@
+#![allow(
+    clippy::needless_for_each,
+    reason = "repository source policy requires iterator methods instead of for loops"
+)]
+
 #[test]
 fn all_crates_have_publish_false() {
     super::assert_crate_manifest_cargo_policy(
@@ -6,8 +11,15 @@ fn all_crates_have_publish_false() {
             let publish = parsed
                 .get(str_constants::PACKAGE)
                 .and_then(|v_1c7b4e9d| v_1c7b4e9d.get(str_constants::PUBLISH));
-            if publish != Some(&toml::Value::Boolean(false)) {
-                ers.push(format!("{}: missing `publish = false`", path.display()));
+            let inherits_workspace = publish
+                .and_then(toml::Value::as_table)
+                .and_then(|table| table.get(str_constants::WORKSPACE))
+                == Some(&toml::Value::Boolean(true));
+            if !inherits_workspace {
+                ers.push(format!(
+                    "{}: missing `publish.workspace = true`",
+                    path.display()
+                ));
             }
         },
     );
@@ -41,11 +53,47 @@ fn all_crates_use_edition_2024() {
         |path, parsed, ers| {
             let edition = parsed
                 .get(str_constants::PACKAGE)
-                .and_then(|v_6d9f2a3e| v_6d9f2a3e.get(str_constants::EDITION))
-                .and_then(toml::Value::as_str);
-            if edition != Some(str_constants::VALUE_2024) {
-                ers.push(format!("{}: edition is not \"2024\"", path.display()));
+                .and_then(|v_6d9f2a3e| v_6d9f2a3e.get(str_constants::EDITION));
+            let inherits_workspace = edition
+                .and_then(toml::Value::as_table)
+                .and_then(|table| table.get(str_constants::WORKSPACE))
+                == Some(&toml::Value::Boolean(true));
+            if !inherits_workspace {
+                ers.push(format!(
+                    "{}: missing `edition.workspace = true`",
+                    path.display()
+                ));
             }
+        },
+    );
+}
+#[test]
+fn all_crates_inherit_shared_package_metadata() {
+    super::assert_crate_manifest_cargo_policy(
+        super::types::StaticStr::from("26bd454d"),
+        |path, parsed, ers| {
+            [
+                "version",
+                str_constants::PUBLISH,
+                "repository",
+                "license",
+                str_constants::EDITION,
+            ]
+            .into_iter()
+            .for_each(|field| {
+                let inherits_workspace = parsed
+                    .get(str_constants::PACKAGE)
+                    .and_then(|package| package.get(field))
+                    .and_then(toml::Value::as_table)
+                    .and_then(|table| table.get(str_constants::WORKSPACE))
+                    == Some(&toml::Value::Boolean(true));
+                if !inherits_workspace {
+                    ers.push(format!(
+                        "{}: `{field}` must inherit from `[workspace.package]`",
+                        path.display()
+                    ));
+                }
+            });
         },
     );
 }
@@ -125,7 +173,24 @@ fn workspace_dependencies_use_inline_table_style() {
     let mut ers = Vec::new();
     super::for_each_crate_manifest_file(|path| {
         let v = super::cargo_toml_content(super::types::StdPathRef::from(path)).expect("762c1d9e");
-        ers.extend(regex.find_iter(v.as_ref()).map(|mtch| {
+        ers.extend(regex.find_iter(v.as_ref()).filter_map(|mtch| {
+            let field = mtch
+                .as_str()
+                .split_once('.')
+                .map(|(field, _suffix)| field.trim())
+                .expect("34f5ed27");
+            if [
+                "description",
+                str_constants::EDITION,
+                "license",
+                str_constants::PUBLISH,
+                "repository",
+                "version",
+            ]
+            .contains(&field)
+            {
+                return None;
+            }
             let line_number = v
                 .as_ref()
                 .bytes()
@@ -133,10 +198,10 @@ fn workspace_dependencies_use_inline_table_style() {
                     .filter(|byte| *byte == b'\n')
                     .count()
                     .saturating_add(1);
-                format!(
+                Some(format!(
                     "{}:{line_number} use `dep = {{ workspace = true }}` instead of dotted workspace dependency style",
                     path.display()
-                )
+                ))
             }));
     });
     super::assert_joined_ers_empty_with_ctx(

@@ -1,16 +1,130 @@
 #![allow(
+    clippy::arbitrary_source_item_ordering,
     clippy::shadow_reuse,
     clippy::single_call_fn,
     clippy::unused_trait_names,
-    reason = "Leptos view expansion requires attribute traits, consumes converted query values, and each target uses the shared renderer once"
+    reason = "shared Leptos renderers stay adjacent to their field metadata; view expansion requires attribute traits, consumes converted query values, and each target uses the shared renderer once"
 )]
 
 use leptos::prelude::{
-    AriaAttributes, ClassAttribute, CustomAttribute, ElementChild, GlobalAttributes,
+    AriaAttributes, ClassAttribute, CustomAttribute, ElementChild, GlobalAttributes, OnAttribute,
 };
 
 #[derive(Clone, Debug, newtype::AsRefStr, newtype::FromInner)]
 pub(crate) struct AdminSettingInputValue(Box<str>);
+
+#[derive(Clone, Copy, Debug, newtype::AsRefStr, newtype::FromInner)]
+pub(crate) struct AdminSettingAttribute(&'static str);
+#[derive(Clone, Copy, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
+pub(crate) struct AdminSettingDisabled(bool);
+#[derive(Clone, Copy, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
+struct AdminSettingRequired(bool);
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
+pub(crate) struct LeptosAdminSettingSignal(leptos::prelude::RwSignal<String>);
+
+#[derive(Clone, Copy, Debug)]
+pub(crate) enum AdminSettingField {
+    DefaultRoute,
+    MainLogo,
+    OrganizationContacts,
+    OrganizationName,
+    PrimaryColor,
+    SiteName,
+    SupportUrl,
+    TabTitle,
+}
+#[derive(Clone, Copy, Debug)]
+enum AdminSettingInputKind {
+    Text,
+    TextArea,
+    Url,
+}
+impl AdminSettingField {
+    const fn input_kind(self) -> AdminSettingInputKind {
+        match self {
+            Self::OrganizationContacts => AdminSettingInputKind::TextArea,
+            Self::MainLogo | Self::SupportUrl => AdminSettingInputKind::Url,
+            Self::DefaultRoute
+            | Self::OrganizationName
+            | Self::PrimaryColor
+            | Self::SiteName
+            | Self::TabTitle => AdminSettingInputKind::Text,
+        }
+    }
+    fn label(self) -> AdminSettingAttribute {
+        AdminSettingAttribute::from(match self {
+            Self::DefaultRoute => str_constants::ADMIN_SETTING_DEFAULT_ROUTE_LABEL,
+            Self::MainLogo => str_constants::ADMIN_SETTING_MAIN_LOGO_LABEL,
+            Self::OrganizationContacts => str_constants::ADMIN_SETTING_ORGANIZATION_CONTACTS_LABEL,
+            Self::OrganizationName => str_constants::ADMIN_SETTING_ORGANIZATION_NAME_LABEL,
+            Self::PrimaryColor => str_constants::ADMIN_SETTING_PRIMARY_COLOR_LABEL,
+            Self::SiteName => str_constants::ADMIN_SETTING_SITE_NAME_LABEL,
+            Self::SupportUrl => str_constants::ADMIN_SETTING_SUPPORT_URL_LABEL,
+            Self::TabTitle => str_constants::ADMIN_SETTING_TAB_TITLE_LABEL,
+        })
+    }
+    fn name(self) -> AdminSettingAttribute {
+        AdminSettingAttribute::from(match self {
+            Self::DefaultRoute => str_constants::ADMIN_SETTING_DEFAULT_ROUTE_NAME,
+            Self::MainLogo => str_constants::ADMIN_SETTING_MAIN_LOGO_NAME,
+            Self::OrganizationContacts => str_constants::ADMIN_SETTING_ORGANIZATION_CONTACTS_NAME,
+            Self::OrganizationName => str_constants::ADMIN_SETTING_ORGANIZATION_NAME_NAME,
+            Self::PrimaryColor => str_constants::ADMIN_SETTING_PRIMARY_COLOR_NAME,
+            Self::SiteName => str_constants::ADMIN_SETTING_SITE_NAME_NAME,
+            Self::SupportUrl => str_constants::ADMIN_SETTING_SUPPORT_URL_NAME,
+            Self::TabTitle => str_constants::ADMIN_SETTING_TAB_TITLE_NAME,
+        })
+    }
+    fn required(self) -> AdminSettingRequired {
+        AdminSettingRequired::from(matches!(self, Self::DefaultRoute | Self::SiteName))
+    }
+}
+
+pub(crate) fn admin_setting_input(
+    field: AdminSettingField,
+    value: LeptosAdminSettingSignal,
+    disabled: AdminSettingDisabled,
+) -> impl leptos::prelude::IntoView {
+    let label = field.label().as_ref().to_owned();
+    let name = field.name().as_ref().to_owned();
+    let required = bool::from(field.required());
+    let disabled = bool::from(disabled);
+    let value = value.0;
+    match field.input_kind() {
+        AdminSettingInputKind::Text | AdminSettingInputKind::Url => {
+            let input_type = match field.input_kind() {
+                AdminSettingInputKind::Url => str_constants::HTML_URL_INPUT_TYPE,
+                AdminSettingInputKind::Text | AdminSettingInputKind::TextArea => {
+                    str_constants::HTML_TEXT_INPUT_TYPE
+                }
+            };
+            leptos::prelude::IntoAny::into_any(leptos::view! {
+                <label><span>{label}</span><input
+                    name=name
+                    type=input_type
+                    required=required
+                    disabled=disabled
+                    value=leptos::prelude::Get::get(&value)
+                    on:input=move |event| leptos::prelude::Set::set(
+                        &value,
+                        leptos::prelude::event_target_value(&event),
+                    )
+                /></label>
+            })
+        }
+        AdminSettingInputKind::TextArea => leptos::prelude::IntoAny::into_any(leptos::view! {
+            <label><span>{label}</span><textarea
+                name=name
+                required=required
+                disabled=disabled
+                on:input=move |event| leptos::prelude::Set::set(
+                    &value,
+                    leptos::prelude::event_target_value(&event),
+                )
+            >{leptos::prelude::Get::get(&value)}</textarea></label>
+        }),
+    }
+}
 
 #[derive(Clone, Debug)]
 pub(crate) struct AdminSettingsFormValues {
@@ -183,7 +297,7 @@ pub(crate) fn admin_table_filters(
             </select></label>
             <label><span>"Direction"</span><select name="direction"><option value="asc" selected=ascending>"Ascending"</option><option value="desc" selected=descending>"Descending"</option></select></label>
             {editable_limit.then(|| leptos::view! {
-                <input name="limit" type="number" min="1" max="100" value=limit.clone() />
+                <input name="limit" type="number" min=server_admin_contract::AdminPageLimit::MIN max=server_admin_contract::AdminPageLimit::MAX value=limit.clone() />
             })}
             {(!editable_limit).then(|| leptos::view! {
                 <input name="limit" type="hidden" value=limit />

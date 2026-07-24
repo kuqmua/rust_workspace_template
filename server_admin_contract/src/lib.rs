@@ -939,7 +939,12 @@ struct AdminPageLimitVisitor;
 impl serde::de::Visitor<'_> for AdminPageLimitVisitor {
     type Value = AdminPageLimit;
     fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        formatter.write_str(str_constants::ADMIN_PAGE_LIMIT_EXPECTING)
+        write!(
+            formatter,
+            "an administrator page limit from {} through {}",
+            AdminPageLimit::MIN,
+            AdminPageLimit::MAX
+        )
     }
     fn visit_str<Error>(self, v: &str) -> Result<Self::Value, Error>
     where
@@ -968,7 +973,7 @@ impl<'de> serde::Deserialize<'de> for AdminPageLimit {
 struct AdminDefaultPageLimit;
 impl From<AdminDefaultPageLimit> for AdminPageLimit {
     fn from(_value: AdminDefaultPageLimit) -> Self {
-        Self(20u16)
+        Self(Self::DEFAULT)
     }
 }
 impl Default for AdminPageLimit {
@@ -979,15 +984,24 @@ impl Default for AdminPageLimit {
 impl TryFrom<u16> for AdminPageLimit {
     type Error = AdminPageLimitError;
     fn try_from(value: u16) -> Result<Self, Self::Error> {
-        if (1u16..=100u16).contains(&value) {
+        if (Self::MIN..=Self::MAX).contains(&value) {
             Ok(Self(value))
         } else {
             Err(AdminPageLimitError)
         }
     }
 }
+impl AdminPageLimit {
+    pub const DEFAULT: u16 = 20u16;
+    pub const MAX: u16 = 100u16;
+    pub const MIN: u16 = 1u16;
+}
 #[derive(Clone, Copy, Debug, PartialEq, Eq, thiserror::Error)]
-#[error("{}", str_constants::ADMIN_PAGE_LIMIT_ERROR)]
+#[error(
+    "administrator page limit must be between {min} and {max}",
+    min = AdminPageLimit::MIN,
+    max = AdminPageLimit::MAX
+)]
 pub struct AdminPageLimitError;
 
 #[derive(
@@ -2719,46 +2733,6 @@ impl AdminUpdateSettingsReq {
         )
     }
 }
-#[derive(
-    Clone, Copy, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize, utoipa::ToSchema,
-)]
-#[serde(rename_all = "snake_case")]
-pub enum AdminApiErrorCode {
-    AuthenticationFailed,
-    AuthorizationFailed,
-    Conflict,
-    CsrfFailed,
-    InternalError,
-    RateLimited,
-    ValidationFailed,
-}
-impl std::fmt::Display for AdminApiErrorCode {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(match self {
-            Self::AuthenticationFailed => str_constants::AUTHENTICATION_FAILED,
-            Self::AuthorizationFailed => str_constants::AUTHORIZATION_FAILED,
-            Self::Conflict => str_constants::CONFLICT,
-            Self::CsrfFailed => str_constants::CSRF_VALIDATION_FAILED,
-            Self::InternalError => str_constants::INTERNAL_ERROR,
-            Self::RateLimited => str_constants::RATE_LIMITED,
-            Self::ValidationFailed => str_constants::VALIDATION_FAILED,
-        })
-    }
-}
-#[derive(Clone, Copy, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
-pub struct AdminApiErrorBody {
-    code: AdminApiErrorCode,
-}
-impl AdminApiErrorBody {
-    #[must_use]
-    pub const fn new(code: AdminApiErrorCode) -> Self {
-        Self { code }
-    }
-    #[must_use]
-    pub const fn code(self) -> AdminApiErrorCode {
-        self.code
-    }
-}
 #[derive(Clone, Copy, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema)]
 pub struct AdminNoBody;
 
@@ -4064,7 +4038,7 @@ mod tests {
         };
         assert_eq!(
             u16::from(serde_json::from_str::<super::AdminPageLimit>("100").expect("d4d7c99a")),
-            100u16
+            super::AdminPageLimit::MAX
         );
     }
     #[test]
@@ -4077,7 +4051,7 @@ mod tests {
             serde::de::value::StrDeserializer::<serde::de::value::Error>::new("42"),
         )
         .expect("799e47b0");
-        assert_eq!(u16::from(limit), 100u16);
+        assert_eq!(u16::from(limit), super::AdminPageLimit::MAX);
         assert_eq!(u32::from(offset), 42u32);
     }
     #[test]

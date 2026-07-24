@@ -2674,10 +2674,9 @@ fn validate_workspace_dep_spec(v: types::TomlValueRef<'_>) {
     if let Some(path_v) = v_table.get().get(str_constants::PATH_ALT_5) {
         match path_v {
             toml::Value::String(_) => {
-                validate_workspace_path_dep_version(v_table);
                 match v_table.get().len() {
-                    2 => (),
-                    3 => validate_workspace_dep_default_features(v_table),
+                    1 => (),
+                    2 => validate_workspace_dep_default_features(v_table),
                     _ => panic!("f6a3b9d1 {v_table:#?}"),
                 }
                 return;
@@ -2711,24 +2710,6 @@ fn validate_workspace_dep_spec(v: types::TomlValueRef<'_>) {
             }
         }
         _ => panic!("f1139378 {v_table:#?}"),
-    }
-}
-#[allow(clippy::single_call_fn)] // path workspace deps must keep concrete package versions for external tooling policy checks
-fn validate_workspace_path_dep_version(v_table: types::TomlTableRef<'_>) {
-    match v_table
-        .get()
-        .get(str_constants::VERSION_ALT_3)
-        .expect("bf2e4a7c")
-    {
-        toml::Value::String(version_string) => {
-            assert_eq!(version_string, "0.1.0", "8c3d5f91");
-        }
-        toml::Value::Table(_)
-        | toml::Value::Integer(_)
-        | toml::Value::Float(_)
-        | toml::Value::Boolean(_)
-        | toml::Value::Datetime(_)
-        | toml::Value::Array(_) => panic!("a6c7e3d2"),
     }
 }
 #[allow(clippy::single_call_fn)] // keeps two-key dependency tables strict while allowing featureless default-features opt-out

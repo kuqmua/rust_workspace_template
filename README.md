@@ -10,6 +10,11 @@ deployable microservices.
 | `server` | 8080 | application PostgreSQL | public API, generated CRUD and administrator console |
 | `notification_service` | 8081 | notification PostgreSQL | reference independently deployable notification API |
 
+The canonical service identity, image, Dockerfile, port, and Kubernetes manifest mapping lives in
+[`deploy/services.toml`](deploy/services.toml). Repository policy tests verify its Compose,
+Kubernetes, CI, and release representations. Newly scaffolded services use their generated
+Compose file and remain excluded from release automation until `release = true` is set explicitly.
+
 The notification service deliberately owns a separate contract crate, configuration crate,
 migrations, database credentials, Dockerfile, health checks, and Kubernetes workload. It is the
 reference boundary to follow when adding another service.

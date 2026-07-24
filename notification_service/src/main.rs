@@ -273,7 +273,7 @@ struct NotificationApiRouteRegistry;
         metrics
     ),
     (
-        str_constants::OPENAPI_JSON_PATH,
+        str_constants::OPENAPI_JSON,
         axum::routing::get,
         open_api
     ),
@@ -460,7 +460,7 @@ mod tests {
         let open_api_response = tower::ServiceExt::oneshot(
             router,
             http::Request::builder()
-                .uri(str_constants::OPENAPI_JSON_PATH)
+                .uri(str_constants::OPENAPI_JSON)
                 .body(axum::body::Body::empty())
                 .expect("789db8f3"),
         )

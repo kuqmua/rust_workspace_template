@@ -1,0 +1,19 @@
+[[service]]
+crate = "server"
+compose = "server"
+compose_file = "docker-compose.yml"
+dockerfile = "Dockerfile"
+image = "application"
+kubernetes = "deploy/k8s/base/application.yaml"
+port = 8080
+release = true
+
+[[service]]
+crate = "notification_service"
+compose = "notification_service"
+compose_file = "docker-compose.yml"
+dockerfile = "notification_service/Dockerfile"
+image = "notification-service"
+kubernetes = "deploy/k8s/base/notification-service.yaml"
+port = 8081
+release = true

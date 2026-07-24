@@ -496,7 +496,7 @@ fn AdminDataGrid(
                 <form class="table-page-size" method="get" action=table_path.as_ref().to_owned()>
                     {crate::shared::admin_filter_hidden_inputs(filter_field, filter_operation, filter_value, filter_end)}
                     <input type="hidden" name="offset" value="0" />
-                    <label><span>"Rows"</span><input name="limit" type="number" min="1" max="100" value=limit_text.clone() /></label>
+                    <label><span>"Rows"</span><input name="limit" type="number" min=server_admin_contract::AdminPageLimit::MIN max=server_admin_contract::AdminPageLimit::MAX value=limit_text.clone() /></label>
                     <button type="submit">"Apply"</button>
                 </form>
                 <form method="get" action=table_path.as_ref().to_owned()>
@@ -891,14 +891,14 @@ fn AdminSettingsView(
                 reload_after(AdminMutationMethod::Patch, path, server_admin_contract::AdminUpdateSettingsReq::new(Some(request_default_route), request_main_logo, request_organization_contacts, request_organization_name, request_primary_color, Some(request_site_name), request_support_url, request_tab_title, request_clear));
             }
         }>
-            <label><span>"Default route"</span><input disabled=!can_update value=leptos::prelude::Get::get(&default_route) on:input=move |event| leptos::prelude::Set::set(&default_route, leptos::prelude::event_target_value(&event)) /></label>
-            <label><span>"Site name"</span><input disabled=!can_update value=leptos::prelude::Get::get(&site_name) on:input=move |event| leptos::prelude::Set::set(&site_name, leptos::prelude::event_target_value(&event)) /></label>
-            <label><span>"Tab title"</span><input disabled=!can_update value=leptos::prelude::Get::get(&tab_title) on:input=move |event| leptos::prelude::Set::set(&tab_title, leptos::prelude::event_target_value(&event)) /></label>
-            <label><span>"Organization"</span><input disabled=!can_update value=leptos::prelude::Get::get(&organization_name) on:input=move |event| leptos::prelude::Set::set(&organization_name, leptos::prelude::event_target_value(&event)) /></label>
-            <label><span>"Contacts"</span><input disabled=!can_update value=leptos::prelude::Get::get(&organization_contacts) on:input=move |event| leptos::prelude::Set::set(&organization_contacts, leptos::prelude::event_target_value(&event)) /></label>
-            <label><span>"Support URL"</span><input disabled=!can_update value=leptos::prelude::Get::get(&support_url) on:input=move |event| leptos::prelude::Set::set(&support_url, leptos::prelude::event_target_value(&event)) /></label>
-            <label><span>"Primary color"</span><input disabled=!can_update value=leptos::prelude::Get::get(&primary_color) on:input=move |event| leptos::prelude::Set::set(&primary_color, leptos::prelude::event_target_value(&event)) /></label>
-            <label><span>"Main logo"</span><input disabled=!can_update value=leptos::prelude::Get::get(&main_logo) on:input=move |event| leptos::prelude::Set::set(&main_logo, leptos::prelude::event_target_value(&event)) /></label>
+            {crate::shared::admin_setting_input(crate::shared::AdminSettingField::DefaultRoute, crate::shared::LeptosAdminSettingSignal::from(default_route), crate::shared::AdminSettingDisabled::from(!can_update))}
+            {crate::shared::admin_setting_input(crate::shared::AdminSettingField::SiteName, crate::shared::LeptosAdminSettingSignal::from(site_name), crate::shared::AdminSettingDisabled::from(!can_update))}
+            {crate::shared::admin_setting_input(crate::shared::AdminSettingField::TabTitle, crate::shared::LeptosAdminSettingSignal::from(tab_title), crate::shared::AdminSettingDisabled::from(!can_update))}
+            {crate::shared::admin_setting_input(crate::shared::AdminSettingField::OrganizationName, crate::shared::LeptosAdminSettingSignal::from(organization_name), crate::shared::AdminSettingDisabled::from(!can_update))}
+            {crate::shared::admin_setting_input(crate::shared::AdminSettingField::OrganizationContacts, crate::shared::LeptosAdminSettingSignal::from(organization_contacts), crate::shared::AdminSettingDisabled::from(!can_update))}
+            {crate::shared::admin_setting_input(crate::shared::AdminSettingField::SupportUrl, crate::shared::LeptosAdminSettingSignal::from(support_url), crate::shared::AdminSettingDisabled::from(!can_update))}
+            {crate::shared::admin_setting_input(crate::shared::AdminSettingField::PrimaryColor, crate::shared::LeptosAdminSettingSignal::from(primary_color), crate::shared::AdminSettingDisabled::from(!can_update))}
+            {crate::shared::admin_setting_input(crate::shared::AdminSettingField::MainLogo, crate::shared::LeptosAdminSettingSignal::from(main_logo), crate::shared::AdminSettingDisabled::from(!can_update))}
             <button type="submit" disabled=!can_update>"Save settings"</button>
         </form></article></section>
     }

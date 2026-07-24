@@ -135,12 +135,20 @@ impl PartialEq<ProjectGitCommitLinkRef> for GitCommitLink {
     Clone,
     PartialEq,
     Eq,
+    serde_derive::Deserialize,
     serde_derive::Serialize,
     optml::Optml,
     newtype::AsRefStr,
     newtype::Display,
 )]
+#[serde(try_from = "String")]
 pub struct StdGitCommitLinkCow(std::borrow::Cow<'static, str>);
+impl TryFrom<String> for StdGitCommitLinkCow {
+    type Error = GitInfoStringTryFromStringError;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        Self::try_from(std::borrow::Cow::Owned(value))
+    }
+}
 impl TryFrom<std::borrow::Cow<'static, str>> for StdGitCommitLinkCow {
     type Error = GitInfoStringTryFromStringError;
     fn try_from(value: std::borrow::Cow<'static, str>) -> Result<Self, Self::Error> {

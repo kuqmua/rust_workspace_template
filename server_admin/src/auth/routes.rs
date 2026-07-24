@@ -26,8 +26,6 @@
         server_admin_contract::AdminSessionView,
         server_admin_contract::AdminSessionTimestamp,
         server_admin_contract::AdminSessionIdentifier,
-        server_admin_contract::AdminApiErrorCode,
-        server_admin_contract::AdminApiErrorBody,
         server_admin_contract::AdminText,
         server_admin_contract::AdminBool,
         server_admin_contract::AdminPermissionValue,

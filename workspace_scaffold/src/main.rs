@@ -346,7 +346,7 @@ fn scaffold_service(
         ScaffoldTextRef::from(dependency_marker),
         ScaffoldTextRef::from(
             format!(
-                "{dependency_marker}\n{service} = {{ path = \"./{service}\", version = \"0.1.0\" }}\n{config} = {{ path = \"./{config}\", version = \"0.1.0\" }}\n{contract} = {{ path = \"./{contract}\", version = \"0.1.0\" }}"
+                "{dependency_marker}\n{service} = {{ path = \"./{service}\" }}\n{config} = {{ path = \"./{config}\" }}\n{contract} = {{ path = \"./{contract}\" }}"
             )
             .as_str(),
         ),
@@ -388,7 +388,7 @@ fn scaffold_service(
     )?;
 
     let compose = format!(
-        "services:\n  {service}_database:\n    image: postgres:16-bookworm@sha256:92620daddcd947f8d5ab5ba66e848702fe443d87fed30c4cea8e389fd78dfc55\n    environment:\n      POSTGRES_DB: {service}\n      POSTGRES_USER: {service}\n      POSTGRES_PASSWORD: ${{{upper_snake}_POSTGRES_PASSWORD:?set {upper_snake}_POSTGRES_PASSWORD}}\n    healthcheck:\n      test: [\"CMD-SHELL\", \"pg_isready -U {service} -d {service}\"]\n      interval: 5s\n      timeout: 3s\n      retries: 20\n    networks: [application]\n    volumes: [{service}_database_data:/var/lib/postgresql/data]\n  {service}:\n    build:\n      context: .\n      dockerfile: {service}/Dockerfile\n    depends_on:\n      {service}_database:\n        condition: service_healthy\n    environment:\n      {upper_snake}_DATABASE_URL: postgres://{service}:${{{upper_snake}_POSTGRES_PASSWORD:?set {upper_snake}_POSTGRES_PASSWORD}}@{service}_database:5432/{service}\n      {upper_snake}_SERVICE_SOCKET_ADDRESS: 0.0.0.0:{port}\n      MAXIMUM_SIZE_OF_HTTP_BODY_IN_BYTES: \"8192\"\n      PG_POOL_MAX_CONNECTIONS: \"10\"\n      REQUEST_TIMEOUT_SECONDS: \"30\"\n      TRACING_FORMAT: text\n    networks: [application]\n    ports: [\"127.0.0.1:{port}:{port}\"]\n    read_only: true\n    restart: unless-stopped\n    tmpfs: [/tmp:size=16m,mode=1777]\nvolumes:\n  {service}_database_data:\n",
+        "services:\n  {service}_database:\n    image: postgres:16-bookworm@sha256:92620daddcd947f8d5ab5ba66e848702fe443d87fed30c4cea8e389fd78dfc55\n    environment:\n      POSTGRES_DB: {service}\n      POSTGRES_USER: {service}\n      POSTGRES_PASSWORD: ${{{upper_snake}_POSTGRES_PASSWORD:?set {upper_snake}_POSTGRES_PASSWORD}}\n    healthcheck:\n      test: [\"CMD-SHELL\", \"pg_isready -U {service} -d {service}\"]\n      interval: 5s\n      timeout: 3s\n      retries: 20\n    networks: [application]\n    volumes: [{service}_database_data:/var/lib/postgresql/data]\n  {service}:\n    build:\n      context: .\n      dockerfile: {service}/Dockerfile\n    depends_on:\n      {service}_database:\n        condition: service_healthy\n    environment:\n      {upper_snake}_DATABASE_URL: postgres://{service}:${{{upper_snake}_POSTGRES_PASSWORD:?set {upper_snake}_POSTGRES_PASSWORD}}@{service}_database:5432/{service}\n      {upper_snake}_SERVICE_SOCKET_ADDRESS: 0.0.0.0:{port}\n      MAXIMUM_SIZE_OF_HTTP_BODY_IN_BYTES: \"8192\"\n      PG_POOL_MAX_CONNECTIONS: \"10\"\n      REQUEST_TIMEOUT_SECONDS: \"30\"\n      TRACING_FORMAT: text\n    healthcheck:\n      test: [\"CMD\", \"curl\", \"--fail\", \"--silent\", \"http://127.0.0.1:{port}/health/ready\"]\n      interval: 10s\n      timeout: 5s\n      retries: 12\n      start_period: 20s\n    networks: [application]\n    ports: [\"127.0.0.1:{port}:{port}\"]\n    read_only: true\n    restart: unless-stopped\n    tmpfs: [/tmp:size=16m,mode=1777]\nvolumes:\n  {service}_database_data:\n",
         port = port.0,
     );
     std::fs::write(
@@ -407,6 +407,21 @@ fn scaffold_service(
         .to_owned();
     constants_contents.push_str(sql_constant.as_str());
     std::fs::write(constants, constants_contents)?;
+    let service_catalog = root
+        .0
+        .join(str_constants::WORKSPACE_SCAFFOLD_SERVICE_CATALOG_PATH);
+    let mut service_catalog_contents =
+        read_bounded_text(StdScaffoldPathRef::from(service_catalog.as_path()))?
+            .as_ref()
+            .to_owned();
+    service_catalog_contents.push_str(
+        format!(
+            "\n[[service]]\ncrate = \"{service}\"\ncompose = \"{service}\"\ncompose_file = \"docker-compose.{service}.yml\"\ndockerfile = \"{service}/Dockerfile\"\nimage = \"{kebab}\"\nkubernetes = \"deploy/k8s/base/{k8s_file_name}\"\nport = {}\nrelease = false\n",
+            port.0
+        )
+        .as_str(),
+    );
+    std::fs::write(service_catalog, service_catalog_contents)?;
     Ok(())
 }
 
@@ -531,7 +546,7 @@ mod tests {
         }
         write(
             root.join("Cargo.toml").as_path(),
-            "[workspace]\nmembers = [\n  \"notification_service_contract\",\n]\n[workspace.dependencies]\nnotification_service_contract = { path = \"./notification_service_contract\", version = \"0.1.0\" }\n",
+            "[workspace]\nmembers = [\n  \"notification_service_contract\",\n]\n[workspace.dependencies]\nnotification_service_contract = { path = \"./notification_service_contract\" }\n",
         );
         write(
             root.join("notification_service/src/main.rs").as_path(),
@@ -556,6 +571,10 @@ mod tests {
             root.join("deploy/k8s/base/kustomization.yaml").as_path(),
             "resources:\n  - notification-service.yaml\n",
         );
+        write(
+            root.join("deploy/services.toml").as_path(),
+            "[[service]]\ncrate = \"notification_service\"\n",
+        );
         write(root.join("str_constants/src/lib.rs").as_path(), "");
         super::scaffold_service(
             super::StdScaffoldPathRef::from(root.as_path()),
@@ -565,7 +584,7 @@ mod tests {
         .expect("4bff1d79");
         assert_file_content(
             root.join("Cargo.toml").as_path(),
-            "[workspace]\nmembers = [\n  \"notification_service_contract\",\n  \"order_service\",\n  \"order_service_config\",\n  \"order_service_contract\",\n]\n[workspace.dependencies]\nnotification_service_contract = { path = \"./notification_service_contract\", version = \"0.1.0\" }\norder_service = { path = \"./order_service\", version = \"0.1.0\" }\norder_service_config = { path = \"./order_service_config\", version = \"0.1.0\" }\norder_service_contract = { path = \"./order_service_contract\", version = \"0.1.0\" }\n",
+            "[workspace]\nmembers = [\n  \"notification_service_contract\",\n  \"order_service\",\n  \"order_service_config\",\n  \"order_service_contract\",\n]\n[workspace.dependencies]\nnotification_service_contract = { path = \"./notification_service_contract\" }\norder_service = { path = \"./order_service\" }\norder_service_config = { path = \"./order_service_config\" }\norder_service_contract = { path = \"./order_service_contract\" }\n",
         );
         assert_file_content(
             root.join("order_service/src/main.rs").as_path(),
@@ -589,11 +608,15 @@ mod tests {
         );
         assert_file_content(
             root.join("docker-compose.order_service.yml").as_path(),
-            "services:\n  order_service_database:\n    image: postgres:16-bookworm@sha256:92620daddcd947f8d5ab5ba66e848702fe443d87fed30c4cea8e389fd78dfc55\n    environment:\n      POSTGRES_DB: order_service\n      POSTGRES_USER: order_service\n      POSTGRES_PASSWORD: ${ORDER_SERVICE_POSTGRES_PASSWORD:?set ORDER_SERVICE_POSTGRES_PASSWORD}\n    healthcheck:\n      test: [\"CMD-SHELL\", \"pg_isready -U order_service -d order_service\"]\n      interval: 5s\n      timeout: 3s\n      retries: 20\n    networks: [application]\n    volumes: [order_service_database_data:/var/lib/postgresql/data]\n  order_service:\n    build:\n      context: .\n      dockerfile: order_service/Dockerfile\n    depends_on:\n      order_service_database:\n        condition: service_healthy\n    environment:\n      ORDER_SERVICE_DATABASE_URL: postgres://order_service:${ORDER_SERVICE_POSTGRES_PASSWORD:?set ORDER_SERVICE_POSTGRES_PASSWORD}@order_service_database:5432/order_service\n      ORDER_SERVICE_SERVICE_SOCKET_ADDRESS: 0.0.0.0:8082\n      MAXIMUM_SIZE_OF_HTTP_BODY_IN_BYTES: \"8192\"\n      PG_POOL_MAX_CONNECTIONS: \"10\"\n      REQUEST_TIMEOUT_SECONDS: \"30\"\n      TRACING_FORMAT: text\n    networks: [application]\n    ports: [\"127.0.0.1:8082:8082\"]\n    read_only: true\n    restart: unless-stopped\n    tmpfs: [/tmp:size=16m,mode=1777]\nvolumes:\n  order_service_database_data:\n",
+            "services:\n  order_service_database:\n    image: postgres:16-bookworm@sha256:92620daddcd947f8d5ab5ba66e848702fe443d87fed30c4cea8e389fd78dfc55\n    environment:\n      POSTGRES_DB: order_service\n      POSTGRES_USER: order_service\n      POSTGRES_PASSWORD: ${ORDER_SERVICE_POSTGRES_PASSWORD:?set ORDER_SERVICE_POSTGRES_PASSWORD}\n    healthcheck:\n      test: [\"CMD-SHELL\", \"pg_isready -U order_service -d order_service\"]\n      interval: 5s\n      timeout: 3s\n      retries: 20\n    networks: [application]\n    volumes: [order_service_database_data:/var/lib/postgresql/data]\n  order_service:\n    build:\n      context: .\n      dockerfile: order_service/Dockerfile\n    depends_on:\n      order_service_database:\n        condition: service_healthy\n    environment:\n      ORDER_SERVICE_DATABASE_URL: postgres://order_service:${ORDER_SERVICE_POSTGRES_PASSWORD:?set ORDER_SERVICE_POSTGRES_PASSWORD}@order_service_database:5432/order_service\n      ORDER_SERVICE_SERVICE_SOCKET_ADDRESS: 0.0.0.0:8082\n      MAXIMUM_SIZE_OF_HTTP_BODY_IN_BYTES: \"8192\"\n      PG_POOL_MAX_CONNECTIONS: \"10\"\n      REQUEST_TIMEOUT_SECONDS: \"30\"\n      TRACING_FORMAT: text\n    healthcheck:\n      test: [\"CMD\", \"curl\", \"--fail\", \"--silent\", \"http://127.0.0.1:8082/health/ready\"]\n      interval: 10s\n      timeout: 5s\n      retries: 12\n      start_period: 20s\n    networks: [application]\n    ports: [\"127.0.0.1:8082:8082\"]\n    read_only: true\n    restart: unless-stopped\n    tmpfs: [/tmp:size=16m,mode=1777]\nvolumes:\n  order_service_database_data:\n",
         );
         assert_file_content(
             root.join("str_constants/src/lib.rs").as_path(),
             "\npub const ORDER_SERVICE_INSERT_SQL: &str = \"INSERT INTO order_services (id, message) VALUES ($1, $2)\";\n",
+        );
+        assert_file_content(
+            root.join("deploy/services.toml").as_path(),
+            "[[service]]\ncrate = \"notification_service\"\n\n[[service]]\ncrate = \"order_service\"\ncompose = \"order_service\"\ncompose_file = \"docker-compose.order_service.yml\"\ndockerfile = \"order_service/Dockerfile\"\nimage = \"order-service\"\nkubernetes = \"deploy/k8s/base/order-service.yaml\"\nport = 8082\nrelease = false\n",
         );
         std::fs::remove_dir_all(root).expect("6f608418");
     }

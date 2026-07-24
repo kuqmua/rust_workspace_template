@@ -1,13 +1,13 @@
 [package]
 authors = ["sergey shmakov <tyfaproject@gmail.com>"]
-edition = "2024"
+edition.workspace = true
 name = "server_admin"
-version = "0.1.0"
-publish = false
+version.workspace = true
+publish.workspace = true
 description = "Reusable administrative API and domain logic"
-repository = "https://github.com/kuqmua/rust_workspace_template"
+repository.workspace = true
 
-license = "MIT"
+license.workspace = true
 keywords = ["admin"]
 categories = ["web-programming"]
 

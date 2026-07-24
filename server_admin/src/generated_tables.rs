@@ -698,8 +698,14 @@ mod tests {
                             Some(&serde_json::json!(["asc", "desc"])),
                         ),
                         "limit" => {
-                            assert_eq!(schema.get("minimum").and_then(serde_json::Value::as_u64), Some(1));
-                            assert_eq!(schema.get("maximum").and_then(serde_json::Value::as_u64), Some(100));
+                            assert_eq!(
+                                schema.get("minimum").and_then(serde_json::Value::as_u64),
+                                Some(u64::from(server_admin_contract::AdminPageLimit::MIN))
+                            );
+                            assert_eq!(
+                                schema.get("maximum").and_then(serde_json::Value::as_u64),
+                                Some(u64::from(server_admin_contract::AdminPageLimit::MAX))
+                            );
                         }
                         "offset" => assert_eq!(schema.get("minimum").and_then(serde_json::Value::as_u64), Some(0)),
                         "search" => assert_eq!(schema.get("maxLength").and_then(serde_json::Value::as_u64), Some(128)),
