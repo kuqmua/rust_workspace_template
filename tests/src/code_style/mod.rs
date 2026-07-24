@@ -4358,41 +4358,75 @@ fn collect_non_workspace_dep_ers(
     parsed: types::TomlTableRef<'_>,
     mut ers: types::DiagnosticMsgsMutRef<'_>,
 ) {
-    ers.extend(
-        [
-            str_constants::DEPENDENCIES,
-            str_constants::DEV_DEPENDENCIES,
-            str_constants::BUILD_DEPENDENCIES,
-        ]
+    let root_dependency_tables = [
+        str_constants::DEPENDENCIES,
+        str_constants::DEV_DEPENDENCIES,
+        str_constants::BUILD_DEPENDENCIES,
+    ]
+    .into_iter()
+    .filter_map(|dep_section| {
+        parsed
+            .as_ref()
+            .get(dep_section)
+            .and_then(toml::Value::as_table)
+            .map(|deps| (dep_section.to_owned(), deps))
+    });
+    let target_dependency_tables = parsed
+        .as_ref()
+        .get(str_constants::TARGET)
+        .and_then(toml::Value::as_table)
         .into_iter()
-        .filter_map(|dep_section| {
-            parsed
-                .as_ref()
-                .get(dep_section)
-                .and_then(toml::Value::as_table)
-                .map(|deps| (dep_section, deps))
-        })
-        .flat_map(|(dep_section, deps)| {
-            deps.iter()
-                .filter(move |(_, dep_value)| {
-                    !workspace_dep_entry_is_valid(types::TomlValueRef::from(*dep_value)).get()
+        .flat_map(toml::Table::iter)
+        .flat_map(|(target_name, target_value)| {
+            target_value
+                .as_table()
+                .into_iter()
+                .flat_map(move |target_table| {
+                    [
+                        str_constants::DEPENDENCIES,
+                        str_constants::DEV_DEPENDENCIES,
+                        str_constants::BUILD_DEPENDENCIES,
+                    ]
+                    .into_iter()
+                    .filter_map(move |dep_section| {
+                        target_table
+                            .get(dep_section)
+                            .and_then(toml::Value::as_table)
+                            .map(|deps| {
+                                (
+                                    format!(
+                                        "{}.{target_name}.{dep_section}",
+                                        str_constants::TARGET
+                                    ),
+                                    deps,
+                                )
+                            })
+                    })
                 })
-                .map(move |(dep_name, _)| {
-                    String::from(workspace_dep_entry_error(
-                        path,
-                        types::SourceTextRef::from(dep_name.as_str()),
-                        types::SourceTextRef::from(dep_section),
-                    ))
-                })
-        }),
+        });
+    ers.extend(
+        root_dependency_tables
+            .chain(target_dependency_tables)
+            .flat_map(|(dep_section, deps)| {
+                deps.iter()
+                    .filter(move |(_, dep_value)| {
+                        !workspace_dep_entry_is_valid(types::TomlValueRef::from(*dep_value)).get()
+                    })
+                    .map(move |(dep_name, _)| {
+                        String::from(workspace_dep_entry_error(
+                            path,
+                            types::SourceTextRef::from(dep_name.as_str()),
+                            types::SourceTextRef::from(dep_section.as_str()),
+                        ))
+                    })
+            }),
     );
 }
 #[allow(clippy::single_call_fn)] // keeps dependency-policy validation centralized for dependencies/dev-dependencies/build-dependencies checks
 fn workspace_dep_entry_is_valid(dep_value: types::TomlValueRef<'_>) -> types::AnalyzerBool {
     types::AnalyzerBool::from(match dep_value.as_ref() {
         toml::Value::Table(dep_table) => {
-            dep_table.contains_key(str_constants::PATH_ALT_5)
-                || dep_table.get(str_constants::WORKSPACE) == Some(&toml::Value::Boolean(true))
+            dep_table.get(str_constants::WORKSPACE) == Some(&toml::Value::Boolean(true))
         }
         toml::Value::String(_)
         | toml::Value::Integer(_)
@@ -4409,7 +4443,7 @@ fn workspace_dep_entry_error(
     dep_section: types::SourceTextRef<'_>,
 ) -> types::SourceText {
     types::SourceText::try_from(format!(
-        "{}: dependency `{dep_name}` in [{dep_section}] must use `dep = {{ workspace = true }}` (only `path = ...` is allowed as exception)",
+        "{}: dependency `{dep_name}` in [{dep_section}] must use `dep = {{ workspace = true }}`",
         path.as_ref().display(),
         dep_name = dep_name.as_ref(),
         dep_section = dep_section.as_ref(),

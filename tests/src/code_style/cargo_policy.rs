@@ -166,6 +166,56 @@ fn workspace_crates_must_use_workspace_dependencies() {
     );
 }
 #[test]
+fn target_specific_dependencies_must_use_workspace_dependencies() {
+    let invalid_manifest = r#"
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+serde = "1"
+
+[target.'cfg(target_arch = "wasm32")'.dev-dependencies]
+serde_json = { path = "../serde_json" }
+
+[target.'cfg(target_arch = "wasm32")'.build-dependencies]
+toml = { version = "1" }
+"#
+    .parse::<toml::Table>()
+    .expect("b49e27c1");
+    let mut invalid_ers = Vec::new();
+    super::collect_non_workspace_dep_ers(
+        super::types::StdPathRef::from(std::path::Path::new("fixture/Cargo.toml")),
+        super::types::TomlTableRef::from(&invalid_manifest),
+        super::types::DiagnosticMsgsMutRef::from(&mut invalid_ers),
+    );
+    assert_eq!(invalid_ers.len(), 3usize);
+    [
+        "target.cfg(target_arch = \"wasm32\").dependencies",
+        "target.cfg(target_arch = \"wasm32\").dev-dependencies",
+        "target.cfg(target_arch = \"wasm32\").build-dependencies",
+    ]
+    .into_iter()
+    .for_each(|section| {
+        assert!(
+            invalid_ers
+                .iter()
+                .any(|error| error.contains(format!("[{section}]").as_str())),
+            "d2a74c90"
+        );
+    });
+
+    let valid_manifest = r#"
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+serde = { workspace = true }
+"#
+    .parse::<toml::Table>()
+    .expect("8f1c3a6d");
+    let mut valid_ers = Vec::new();
+    super::collect_non_workspace_dep_ers(
+        super::types::StdPathRef::from(std::path::Path::new("fixture/Cargo.toml")),
+        super::types::TomlTableRef::from(&valid_manifest),
+        super::types::DiagnosticMsgsMutRef::from(&mut valid_ers),
+    );
+    assert!(valid_ers.is_empty());
+}
+#[test]
 fn workspace_dependencies_use_inline_table_style() {
     let regex =
         regex::Regex::new(str_constants::QUESTION_M_S_ASTERISK_A_ZA_Z0_9_PLUS_WORKSPACE_S_ASTERISK)
