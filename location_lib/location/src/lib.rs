@@ -543,7 +543,6 @@ pub fn location(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
         }
     };
     let generated = quote::quote! {#tokens};
-    // println!("{generated} ");
     // if identifier == "" {
     //     macros_helpers::ts_writer::maybe_write_token_stream_into_file(
     //         macros_helpers::ts_writer::ShouldWriteTokenStreamIntoFile::True,

@@ -14,19 +14,6 @@ struct ExternalLeafWrapperNameException {
     reason: types::StaticStr,
 }
 #[derive(Debug, Clone, Copy, optml::Optml)]
-enum ExpectOrPanic {
-    Expect,
-    Panic,
-}
-impl ExpectOrPanic {
-    fn method_name(self) -> types::StaticStr {
-        match self {
-            Self::Expect => types::StaticStr::from(str_constants::CODE_STYLE_EXPECT_METHOD_NAME),
-            Self::Panic => types::StaticStr::from(str_constants::CODE_STYLE_PANIC_METHOD_NAME),
-        }
-    }
-}
-#[derive(Debug, Clone, Copy, optml::Optml)]
 enum RustOrClippy {
     Clippy,
     Rust,
@@ -462,17 +449,36 @@ struct LostSpawnVisitor {
 }
 impl<'ast> syn::visit::Visit<'ast> for LostSpawnVisitor {
     fn visit_stmt(&mut self, i: &'ast syn::Stmt) {
-        if let syn::Stmt::Expr(syn::Expr::Call(call), _) = i
-            && expr_call_path(types::SynExprCallRef::from(call)).is_some_and(|path| {
-                let text = path_to_string(path);
-                matches!(
-                    text.as_ref(),
-                    str_constants::TOKIO_PATH_SPAWN
-                        | str_constants::TOKIO_PATH_TASK_PATH_SPAWN_BLOCKING
-                        | str_constants::STD_PATH_THREAD_PATH_SPAWN
-                )
-            })
-        {
+        let discarded = match i {
+            syn::Stmt::Expr(expression, _) => unowned_spawn_expr(expression),
+            syn::Stmt::Local(local) => local.init.as_ref().is_some_and(|init| {
+                unowned_spawn_expr(init.expr.as_ref())
+                    && match &local.pat {
+                        syn::Pat::Wild(_) => true,
+                        syn::Pat::Ident(identifier) => {
+                            identifier.ident.to_string().starts_with('_')
+                        }
+                        syn::Pat::Const(_)
+                        | syn::Pat::Lit(_)
+                        | syn::Pat::Macro(_)
+                        | syn::Pat::Or(_)
+                        | syn::Pat::Paren(_)
+                        | syn::Pat::Path(_)
+                        | syn::Pat::Range(_)
+                        | syn::Pat::Reference(_)
+                        | syn::Pat::Rest(_)
+                        | syn::Pat::Slice(_)
+                        | syn::Pat::Struct(_)
+                        | syn::Pat::Tuple(_)
+                        | syn::Pat::TupleStruct(_)
+                        | syn::Pat::Type(_)
+                        | syn::Pat::Verbatim(_)
+                        | _ => false,
+                    }
+            }),
+            syn::Stmt::Item(_) | syn::Stmt::Macro(_) => false,
+        };
+        if discarded {
             self.ers.push(
                 str_constants::SPAWN_RESULT_IS_DISCARDED_RETAIN_AND_SUPERVISE_ITS_HANDLE.to_owned(),
             );
@@ -484,6 +490,109 @@ struct TestNondeterminismVisitor {
     calls: types::DiagnosticMsgs,
     test_depth: types::AnalyzerCount,
 }
+struct SensitiveTextDebugDeriveVisitor {
+    ers: types::DiagnosticMsgs,
+}
+struct DiagnosticIdVisitor {
+    ers: types::DiagnosticMsgs,
+    ids: types::SourceTextList,
+}
+impl DiagnosticIdVisitor {
+    fn record(&mut self, kind: types::SourceTextRef<'_>, value: types::SourceTextRef<'_>) {
+        if let Some(prefix) = diagnostic_id_prefix(value) {
+            self.ids.push(prefix.as_ref().to_owned());
+        } else {
+            self.ers.push(format!(
+                "{kind} message must start with a unique eight-character lowercase hexadecimal diagnostic ID: {value:?}",
+                kind = kind.as_ref(),
+                value = value.as_ref(),
+            ));
+        }
+    }
+}
+impl<'ast> syn::visit::Visit<'ast> for DiagnosticIdVisitor {
+    fn visit_expr_method_call(&mut self, i: &'ast syn::ExprMethodCall) {
+        if i.method == str_constants::CODE_STYLE_EXPECT_METHOD_NAME {
+            match i.args.first() {
+                Some(syn::Expr::Lit(syn::ExprLit {
+                    lit: syn::Lit::Str(lit_str),
+                    ..
+                })) if i.args.len() == 1usize => self.record(
+                    types::SourceTextRef::from(str_constants::CODE_STYLE_EXPECT_METHOD_NAME),
+                    types::SourceTextRef::from(lit_str.value().as_str()),
+                ),
+                Some(_) | None => self.ers.push(
+                    "expect message must be one string literal starting with a diagnostic ID"
+                        .to_owned(),
+                ),
+            }
+        }
+        syn::visit::visit_expr_method_call(self, i);
+    }
+    fn visit_macro(&mut self, i: &'ast syn::Macro) {
+        if i.path
+            .segments
+            .last()
+            .is_some_and(|segment| segment.ident == str_constants::CODE_STYLE_PANIC_METHOD_NAME)
+        {
+            match i.tokens.clone().into_iter().next() {
+                Some(proc_macro2::TokenTree::Literal(literal)) => {
+                    match syn::parse_str::<syn::LitStr>(literal.to_string().as_str()) {
+                        Ok(lit_str) => {
+                            let value = lit_str.value();
+                            if !panic_uses_dynamic_diagnostic_id(types::SourceTextRef::from(
+                                value.as_str(),
+                            ))
+                            .get()
+                            {
+                                self.record(
+                                    types::SourceTextRef::from(
+                                        str_constants::CODE_STYLE_PANIC_METHOD_NAME,
+                                    ),
+                                    types::SourceTextRef::from(value.as_str()),
+                                );
+                            }
+                        }
+                        Err(_error) => self
+                            .ers
+                            .push("panic message must begin with a string literal".to_owned()),
+                    }
+                }
+                Some(_) | None => self
+                    .ers
+                    .push("panic message must begin with a string literal".to_owned()),
+            }
+        }
+        syn::visit::visit_macro(self, i);
+    }
+}
+#[allow(clippy::needless_for_each)] // repository source policy requires iterator methods instead of for loops
+impl<'ast> syn::visit::Visit<'ast> for SensitiveTextDebugDeriveVisitor {
+    fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
+        if sensitive_text_wrapper_identifier(types::SourceTextRef::from(
+            i.ident.to_string().as_str(),
+        ))
+        .get()
+            && item_struct_wraps_text(types::SynItemStructRef::from(i)).get()
+        {
+            ["Debug", "Display"].into_iter().for_each(|derive_name| {
+                if i.attrs.iter().any(|attr| {
+                    derive_attr_has_terminal(
+                        types::SynAttributeRef::from(attr),
+                        types::SourceTextRef::from(derive_name),
+                    )
+                    .get()
+                }) {
+                    self.ers.push(format!(
+                        "sensitive text wrapper `{}` derives `{derive_name}` without redaction",
+                        i.ident
+                    ));
+                }
+            });
+        }
+        syn::visit::visit_item_struct(self, i);
+    }
+}
 impl<'ast> syn::visit::Visit<'ast> for TestNondeterminismVisitor {
     fn visit_expr_call(&mut self, i: &'ast syn::ExprCall) {
         if self.test_depth.get() != 0
@@ -492,12 +601,16 @@ impl<'ast> syn::visit::Visit<'ast> for TestNondeterminismVisitor {
             let text = path_to_string(path);
             if matches!(
                 text.as_ref(),
-                str_constants::RAND_PATH_THREAD_RANGE
+                str_constants::RAND_PATH_RNG
+                    | str_constants::RAND_PATH_RANDOM
+                    | str_constants::RAND_PATH_RANDOM_RANGE
+                    | str_constants::RAND_PATH_THREAD_RNG
                     | str_constants::STD_PATH_THREAD_PATH_SLEEP
                     | str_constants::STD_PATH_TIME_PATH_SYSTEMTIME_PATH_NOW
                     | str_constants::TOKIO_PATH_TIME_PATH_SLEEP
                     | str_constants::UUID_PATH_UUID_PATH_NEW_V4
             ) || text.as_ref().ends_with(str_constants::PATH_UTC_PATH_NOW)
+                || text.as_ref().ends_with(str_constants::PATH_LOCAL_PATH_NOW)
             {
                 self.calls.push(text.as_ref().to_owned());
             }
@@ -2541,51 +2654,62 @@ fn is_external_leaf_wrapper_name_exception(
             }),
     )
 }
-fn check_expect_or_panic_contains_only_unique_uuid_v4(expect_or_panic: ExpectOrPanic) {
-    struct ExpectVisitor {
-        ers: types::DiagnosticMsgs,
-        method_name: types::StaticStr,
-        uuids: types::SourceTextList,
-    }
-    impl<'ast> syn::visit::Visit<'ast> for ExpectVisitor {
-        fn visit_expr_method_call(&mut self, i: &'ast syn::ExprMethodCall) {
-            if i.method == self.method_name.get() {
-                if i.args.len() == 1 {
-                    if let Some(syn::Expr::Lit(syn::ExprLit {
-                        lit: syn::Lit::Str(lit_str),
-                        ..
-                    })) = i.args.first()
-                    {
-                        let v = lit_str.value();
-                        if v.len() == 8 {
-                            self.uuids.push(v);
-                        } else {
-                            self.ers.push(format!("arg len is not 8: {v}"));
-                        }
-                    } else {
-                        self.ers
-                            .push(str_constants::ARG_IS_NOT_STRING_LITERAL.to_owned());
-                    }
-                } else {
-                    self.ers
-                        .push(str_constants::WITH_NOT_EQUALS_1_ARG.to_owned());
-                }
-            }
-            syn::visit::visit_expr_method_call(self, i);
-        }
-    }
-    let mut all_uuids = Vec::new();
+#[allow(clippy::single_call_fn)] // isolates exact spawn ownership recognition from statement-pattern traversal
+fn unowned_spawn_expr(expression: &syn::Expr) -> bool {
+    let syn::Expr::Call(call) = expression else {
+        return false;
+    };
+    expr_call_path(types::SynExprCallRef::from(call)).is_some_and(|path| {
+        let text = path_to_string(path);
+        matches!(
+            text.as_ref(),
+            str_constants::TOKIO_PATH_SPAWN
+                | str_constants::TOKIO_PATH_TASK_PATH_SPAWN_BLOCKING
+                | str_constants::STD_PATH_THREAD_PATH_SPAWN
+        )
+    })
+}
+#[allow(clippy::single_call_fn)] // keeps diagnostic-ID syntax validation named and fixture-tested
+fn diagnostic_id_prefix(value: types::SourceTextRef<'_>) -> Option<types::SourceTextRef<'_>> {
+    value
+        .get()
+        .get(..8usize)
+        .filter(|prefix| {
+            prefix
+                .bytes()
+                .all(|byte| byte.is_ascii_digit() || matches!(byte, b'a'..=b'f'))
+        })
+        .filter(|_| {
+            value.get().len() == 8usize
+                || value
+                    .get()
+                    .get(8usize..)
+                    .is_some_and(|suffix| suffix.starts_with(": ") || suffix.starts_with(' '))
+        })
+        .map(types::SourceTextRef::from)
+}
+#[allow(clippy::single_call_fn)] // keeps dynamic diagnostic-ID format exceptions explicit and fixture-tested
+fn panic_uses_dynamic_diagnostic_id(value: types::SourceTextRef<'_>) -> types::AnalyzerBool {
+    types::AnalyzerBool::from(
+        value.as_ref().starts_with("{}")
+            || value.as_ref().starts_with("{error_id}")
+            || value.as_ref().starts_with("{exp_id}")
+            || value.as_ref().starts_with("{uuid}"),
+    )
+}
+#[allow(clippy::single_call_fn)] // centralizes cross-file uniqueness validation behind the public policy test
+fn check_expect_and_panic_contain_unique_diagnostic_ids() {
+    let mut all_ids = Vec::new();
     let mut all_ers = Vec::new();
     for_each_rs_syn_file(|path, ast| {
         let visitor = visit_syn_file(
             types::SynFileRef::from(ast),
-            ExpectVisitor {
-                method_name: expect_or_panic.method_name(),
-                uuids: types::SourceTextList::default(),
+            DiagnosticIdVisitor {
                 ers: types::DiagnosticMsgs::default(),
+                ids: types::SourceTextList::default(),
             },
         );
-        all_uuids.extend(visitor.uuids);
+        all_ids.extend(visitor.ids);
         all_ers.extend(
             visitor
                 .ers
@@ -2593,7 +2717,7 @@ fn check_expect_or_panic_contains_only_unique_uuid_v4(expect_or_panic: ExpectOrP
                 .map(|element_2b9891bd| format!("{path:?}: {element_2b9891bd}")),
         );
     });
-    let duplicates = find_duplicate_strings(types::SourceTextListRef::from(all_uuids.as_slice()));
+    let duplicates = find_duplicate_strings(types::SourceTextListRef::from(all_ids.as_slice()));
     if !duplicates.is_empty() {
         all_ers.push(format!("duplicate UUIDs found: {duplicates:?}"));
     }
@@ -2690,34 +2814,13 @@ fn validate_workspace_dep_spec(v: types::TomlValueRef<'_>) {
         }
     }
     validate_workspace_dep_version(v_table);
+    validate_workspace_dep_default_features(v_table);
     match v_table.get().len() {
-        1 => {}
-        2 => validate_workspace_dep_features_or_default_features(v_table),
+        2 => {}
         3 => {
             validate_workspace_dep_features(v_table);
-            match v_table
-                .get()
-                .get(str_constants::DEFAULT_FEATURES)
-                .expect("847a138f")
-            {
-                &toml::Value::Boolean(_) => (),
-                &toml::Value::String(_)
-                | &toml::Value::Table(_)
-                | &toml::Value::Integer(_)
-                | &toml::Value::Float(_)
-                | &toml::Value::Datetime(_)
-                | &toml::Value::Array(_) => panic!("b320164b"),
-            }
         }
         _ => panic!("f1139378 {v_table:#?}"),
-    }
-}
-#[allow(clippy::single_call_fn)] // keeps two-key dependency tables strict while allowing featureless default-features opt-out
-fn validate_workspace_dep_features_or_default_features(v_table: types::TomlTableRef<'_>) {
-    if v_table.get().contains_key(str_constants::FEATURES_ALT) {
-        validate_workspace_dep_features(v_table);
-    } else {
-        validate_workspace_dep_default_features(v_table);
     }
 }
 #[allow(clippy::single_call_fn)] // shared shape check for dependency tables that explicitly opt out of default features
@@ -2727,7 +2830,8 @@ fn validate_workspace_dep_default_features(v_table: types::TomlTableRef<'_>) {
         .get(str_constants::DEFAULT_FEATURES)
         .expect("d2a8c4e1")
     {
-        &toml::Value::Boolean(_) => (),
+        &toml::Value::Boolean(false) => (),
+        &toml::Value::Boolean(true) => panic!("847a138f"),
         &toml::Value::String(_)
         | &toml::Value::Table(_)
         | &toml::Value::Integer(_)
@@ -2735,6 +2839,100 @@ fn validate_workspace_dep_default_features(v_table: types::TomlTableRef<'_>) {
         | &toml::Value::Datetime(_)
         | &toml::Value::Array(_) => panic!("e5f7b1c3"),
     }
+}
+fn workspace_dep_disables_default_features(v: types::TomlValueRef<'_>) -> types::AnalyzerBool {
+    types::AnalyzerBool::from(
+        v.as_ref()
+            .as_table()
+            .and_then(|table| table.get(str_constants::DEFAULT_FEATURES))
+            == Some(&toml::Value::Boolean(false)),
+    )
+}
+fn unjustified_workspace_lint_allows(source: types::SourceTextRef<'_>) -> types::DiagnosticMsgs {
+    let mut in_workspace_lints = false;
+    types::DiagnosticMsgs::from(
+        source
+            .as_ref()
+            .lines()
+            .enumerate()
+            .filter_map(|(index, line)| {
+                let trimmed = line.trim();
+                if trimmed.starts_with('[') {
+                    in_workspace_lints = matches!(
+                        trimmed,
+                        "[workspace.lints.rust]" | "[workspace.lints.clippy]"
+                    );
+                    return None;
+                }
+                if !in_workspace_lints {
+                    return None;
+                }
+                let (setting, comment) = line
+                    .split_once('#')
+                    .map_or((line, None), |(setting, comment)| (setting, Some(comment)));
+                (setting.trim_end().ends_with("= \"allow\"")
+                    && comment.is_none_or(|reason| reason.trim().is_empty()))
+                .then(|| format!("line {}: {}", index.saturating_add(1usize), trimmed))
+            })
+            .collect::<Vec<String>>(),
+    )
+}
+fn commented_debug_statements(source: types::SourceTextRef<'_>) -> types::DiagnosticMsgs {
+    types::DiagnosticMsgs::from(
+        source
+            .as_ref()
+            .lines()
+            .enumerate()
+            .filter_map(|(index, line)| {
+                let comment = line.trim_start().strip_prefix("//")?.trim_start();
+                ["dbg!", "print!", "println!", "eprint!", "eprintln!"]
+                    .into_iter()
+                    .any(|macro_name| comment.starts_with(macro_name))
+                    .then(|| format!("line {}: {}", index.saturating_add(1usize), line.trim()))
+            })
+            .collect::<Vec<String>>(),
+    )
+}
+fn text_content_hygiene_ers(source: types::SourceTextRef<'_>) -> types::DiagnosticMsgs {
+    let mut ers = types::DiagnosticMsgs::default();
+    if !source.as_ref().is_empty() && !source.as_ref().ends_with('\n') {
+        ers.push("missing final newline".to_owned());
+    }
+    if source.as_ref().contains('\r') {
+        ers.push("contains carriage return".to_owned());
+    }
+    source
+        .as_ref()
+        .lines()
+        .enumerate()
+        .filter(|(_, line)| line.ends_with([' ', '\t']))
+        .for_each(|(index, _)| {
+            ers.push(format!(
+                "line {} contains trailing whitespace",
+                index.saturating_add(1usize)
+            ));
+        });
+    ers
+}
+#[allow(clippy::single_call_fn)] // isolates the reviewed project text-file inventory from traversal
+fn text_hygiene_path(path: types::StdPathRef<'_>) -> types::AnalyzerBool {
+    let extension_is_text = path
+        .as_ref()
+        .extension()
+        .and_then(std::ffi::OsStr::to_str)
+        .is_some_and(|extension| {
+            is_allowed_english_check_ext(Some(types::SourceTextRef::from(extension))).get()
+                || matches!(extension, str_constants::MD_EXT | str_constants::SQL_EXT)
+        });
+    let file_name_is_text = path
+        .as_ref()
+        .file_name()
+        .and_then(std::ffi::OsStr::to_str)
+        .is_some_and(|file_name| {
+            file_name.eq_ignore_ascii_case(str_constants::DOCKERFILE_NAME)
+                || file_name == str_constants::GITIGNORE_NAME
+        });
+    types::AnalyzerBool::from(extension_is_text || file_name_is_text)
 }
 #[allow(clippy::single_call_fn)] // separates version shape assertion from dependency-table flow and keeps IDs stable
 fn validate_workspace_dep_version(v_table: types::TomlTableRef<'_>) {
@@ -3569,6 +3767,7 @@ fn method_is_blocking_async_call(method: types::SourceTextRef<'_>) -> types::Ana
 }
 #[allow(clippy::single_call_fn)] // names the async-blocking function policy separately from traversal code
 fn path_is_blocking_async_call(path: types::SynPathRef<'_>) -> types::AnalyzerBool {
+    let path_text = path_to_string(path);
     types::AnalyzerBool::from(
         path_ends_with(
             path,
@@ -3605,7 +3804,9 @@ fn path_is_blocking_async_call(path: types::SynPathRef<'_>) -> types::AnalyzerBo
                     .as_slice(),
                 ),
             )
-            .get(),
+            .get()
+            || str_constants::BLOCKING_STD_FS_CALLS.contains(&path_text.as_ref())
+            || str_constants::BLOCKING_STD_NET_CALLS.contains(&path_text.as_ref()),
     )
 }
 #[allow(clippy::single_call_fn)] // names the external-service unit-test policy separately from traversal code
@@ -4078,8 +4279,83 @@ fn attrs_contain_test_only_cfg(attrs: types::SynAttributeListRef<'_>) -> types::
 #[allow(clippy::single_call_fn)] // keeps unit-test detection reusable inside nested test module traversal
 fn item_fn_is_unit_test(item: types::SynItemFnRef<'_>) -> types::AnalyzerBool {
     types::AnalyzerBool::from(item.as_ref().attrs.iter().any(|attr| {
-        attr.path().is_ident(str_constants::TEST_ALT_3)
+        attr.path()
+            .segments
+            .last()
+            .is_some_and(|segment| segment.ident == str_constants::TEST_ALT_3)
             || attr_is_test_only_cfg(types::SynAttributeRef::from(attr)).get()
+    }))
+}
+#[allow(clippy::single_call_fn)] // exact terminal parsing prevents redacted derive names from matching Debug
+fn derive_attr_has_terminal(
+    attr: types::SynAttributeRef<'_>,
+    terminal: types::SourceTextRef<'_>,
+) -> types::AnalyzerBool {
+    if !attr.as_ref().path().is_ident(str_constants::DERIVE) {
+        return types::AnalyzerBool::default();
+    }
+    types::AnalyzerBool::from(
+        attr.as_ref()
+            .parse_args_with(
+                syn::punctuated::Punctuated::<syn::Path, syn::Token![,]>::parse_terminated,
+            )
+            .is_ok_and(|paths| {
+                paths.iter().any(|path| {
+                    path.segments
+                        .last()
+                        .is_some_and(|segment| segment.ident == terminal.as_ref())
+                })
+            }),
+    )
+}
+#[allow(clippy::single_call_fn)] // keeps the reviewed sensitive-wrapper naming vocabulary in one policy helper
+fn sensitive_text_wrapper_identifier(identifier: types::SourceTextRef<'_>) -> types::AnalyzerBool {
+    let identifier_text = identifier.as_ref();
+    let non_secret_token_metadata = ["TokenAudience", "TokenIssuer", "TokenPart"]
+        .into_iter()
+        .any(|fragment| identifier_text.contains(fragment));
+    types::AnalyzerBool::from(
+        ["Password", "Secret", "Credential", "ApiKey", "CookieValue"]
+            .into_iter()
+            .any(|fragment| identifier_text.contains(fragment))
+            || identifier_text.contains("Token") && !non_secret_token_metadata,
+    )
+}
+#[allow(clippy::single_call_fn)] // limits the secret Debug policy to wrappers that directly contain text
+fn item_struct_wraps_text(item: types::SynItemStructRef<'_>) -> types::AnalyzerBool {
+    let syn::Fields::Unnamed(fields) = &item.as_ref().fields else {
+        return types::AnalyzerBool::default();
+    };
+    if fields.unnamed.len() != 1usize {
+        return types::AnalyzerBool::default();
+    }
+    types::AnalyzerBool::from(fields.unnamed.first().is_some_and(|field| {
+        match &field.ty {
+            syn::Type::Path(path) => path
+                .path
+                .segments
+                .last()
+                .is_some_and(|segment| segment.ident == "String" || segment.ident == "str"),
+            syn::Type::Reference(reference) => matches!(
+                reference.elem.as_ref(),
+                syn::Type::Path(path)
+                    if path.path.segments.last().is_some_and(|segment| segment.ident == "str")
+            ),
+            syn::Type::Array(_)
+            | syn::Type::BareFn(_)
+            | syn::Type::Group(_)
+            | syn::Type::ImplTrait(_)
+            | syn::Type::Infer(_)
+            | syn::Type::Macro(_)
+            | syn::Type::Never(_)
+            | syn::Type::Paren(_)
+            | syn::Type::Ptr(_)
+            | syn::Type::Slice(_)
+            | syn::Type::TraitObject(_)
+            | syn::Type::Tuple(_)
+            | syn::Type::Verbatim(_)
+            | _ => false,
+        }
     }))
 }
 #[allow(clippy::single_call_fn)] // keeps external-service error messages stable and readable

@@ -216,7 +216,13 @@ fn service_catalog_covers_every_build_and_runtime_projection() {
                 .any(|component| component.as_os_str() == "target")
         })
         .map(|entry| entry.expect("7a2d5c91"))
-        .filter(|entry| !entry.file_type().is_dir() && entry.file_name() == "Dockerfile")
+        .filter(|entry| {
+            !entry.file_type().is_dir()
+                && entry
+                    .file_name()
+                    .to_string_lossy()
+                    .eq_ignore_ascii_case("Dockerfile")
+        })
         .map(|entry| {
             entry
                 .path()
@@ -271,4 +277,83 @@ fn service_catalog_covers_every_build_and_runtime_projection() {
         .map(str::to_owned)
         .collect::<std::collections::BTreeSet<_>>();
     assert_eq!(ci_images, released_images);
+}
+
+fn unpinned_dockerfile_base_images(
+    source: super::types::SourceTextRef<'_>,
+) -> super::types::SourceTextList {
+    let stage_names = source
+        .as_ref()
+        .lines()
+        .filter_map(|line| {
+            let mut words = line.split_ascii_whitespace();
+            (words.next() == Some("FROM"))
+                .then(|| {
+                    let _image = words.next()?;
+                    (words.next() == Some("AS")).then(|| words.next().map(str::to_owned))?
+                })
+                .flatten()
+        })
+        .collect::<std::collections::BTreeSet<_>>();
+    source
+        .as_ref()
+        .lines()
+        .filter_map(|line| {
+            let mut words = line.split_ascii_whitespace();
+            (words.next() == Some("FROM"))
+                .then(|| words.next())
+                .flatten()
+        })
+        .filter(|image| {
+            !stage_names.contains(*image)
+                && (!image.contains("@sha256:") || image.ends_with(":latest"))
+        })
+        .map(str::to_owned)
+        .collect::<Vec<String>>()
+        .into()
+}
+
+#[test]
+fn catalog_dockerfiles_pin_every_external_base_image_by_digest() {
+    let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .expect("d31c857a");
+    let catalog = std::fs::read_to_string(repository_root.join("deploy/services.toml"))
+        .expect("a7641e3b")
+        .parse::<toml::Table>()
+        .expect("2b0c96d4");
+    let services = catalog
+        .get("service")
+        .and_then(toml::Value::as_array)
+        .expect("74f02a1c");
+    let mut ers = Vec::new();
+    services.iter().for_each(|service| {
+        let dockerfile = service
+            .as_table()
+            .and_then(|table| table.get("dockerfile"))
+            .and_then(toml::Value::as_str)
+            .expect("c1854d7f");
+        let source = std::fs::read_to_string(repository_root.join(dockerfile)).expect("3fa21b68");
+        unpinned_dockerfile_base_images(super::types::SourceTextRef::from(source.as_str()))
+            .into_iter()
+            .for_each(|image| ers.push(format!("{dockerfile}: unpinned base image `{image}`")));
+    });
+    assert!(ers.is_empty(), "e40a7c16 {ers:#?}");
+}
+
+#[test]
+fn dockerfile_base_image_policy_rejects_latest_and_allows_named_stages() {
+    let violations = unpinned_dockerfile_base_images(super::types::SourceTextRef::from(
+        "FROM rust:latest AS builder\nFROM builder AS packaged\nFROM alpine:3.22\n",
+    ));
+    assert_eq!(
+        violations.as_slice(),
+        [String::from("rust:latest"), String::from("alpine:3.22")]
+    );
+    assert!(
+        unpinned_dockerfile_base_images(super::types::SourceTextRef::from(
+            "FROM rust:1.90@sha256:0123456789abcdef AS builder\nFROM builder\n"
+        ))
+        .is_empty()
+    );
 }

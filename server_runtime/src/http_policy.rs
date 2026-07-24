@@ -5,8 +5,13 @@
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct HttpAuthorizationHeaderTextRef<'value_lt>(Option<&'value_lt str>);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::AsRefInner, newtype::FromInner)]
+#[derive(Clone, Copy, Eq, PartialEq, newtype::AsRefInner, newtype::FromInner)]
 pub struct HttpBearerTokenRef<'value_lt>(&'value_lt str);
+impl std::fmt::Debug for HttpBearerTokenRef<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(str_constants::REDACTED_ALT_3)
+    }
+}
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum BearerAuthorizationResolution<'value_lt> {
     Invalid,
@@ -43,16 +48,14 @@ pub struct HttpCookieHeadersRef<'value_lt>(&'value_lt http::HeaderMap);
 pub struct HttpCookieNameRef<'value_lt>(&'value_lt str);
 
 #[derive(
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::AsRefInner,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
+    Clone, Copy, Eq, PartialEq, newtype::AsRefInner, newtype::FromInner, newtype::IntoInnerFrom,
 )]
 pub struct HttpCookieValueRef<'value_lt>(&'value_lt str);
+impl std::fmt::Debug for HttpCookieValueRef<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(str_constants::REDACTED_ALT_3)
+    }
+}
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum CookieResolution<'value_lt> {
     Invalid,
@@ -166,6 +169,9 @@ mod tests {
             ))),
             super::BearerAuthorizationResolution::Resolved(_)
         ));
+        let secret = str_constants::NEVER_PRINT_THIS_VALUE;
+        assert!(!format!("{:?}", super::HttpBearerTokenRef::from(secret)).contains(secret));
+        assert!(!format!("{:?}", super::HttpCookieValueRef::from(secret)).contains(secret));
     }
     #[test]
     fn duplicate_cookie_is_invalid() {

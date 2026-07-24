@@ -3110,9 +3110,13 @@ str_constants_macros::define_str_constants! {
         pub TOKIO_PATH_SPAWN = [WORD_TOKIO, "::", WORD_SPAWN];
         pub TOKIO_PATH_TASK_PATH_SPAWN_BLOCKING = [WORD_TOKIO, "::", WORD_TASK, "::spawn_blocking"];
         pub STD_PATH_THREAD_PATH_SPAWN = [WORD_STD, "::", WORD_THREAD, "::", WORD_SPAWN];
-        pub RAND_PATH_THREAD_RANGE = ["rand::thread_range"];
+        pub RAND_PATH_RNG = ["rand::rng"];
+        pub RAND_PATH_RANDOM = ["rand::random"];
+        pub RAND_PATH_RANDOM_RANGE = ["rand::random_range"];
+        pub RAND_PATH_THREAD_RNG = ["rand::thread_rng"];
         pub STD_PATH_THREAD_PATH_SLEEP = [WORD_STD, "::", WORD_THREAD, "::", WORD_SLEEP];
         pub STD_PATH_TIME_PATH_SYSTEMTIME_PATH_NOW = [WORD_STD, "::", WORD_TIME, "::SystemTime::", WORD_NOW_2];
+        pub PATH_LOCAL_PATH_NOW = ["::Local::", WORD_NOW_2];
         pub COMPILE_ERROR_TOKEN_STREAM = [WORD_COMPILE_ERROR_TOKEN_STREAM];
         pub TOML = [WORD_TOML];
         pub YML = [WORD_YML];
@@ -3619,6 +3623,30 @@ pub const WORKSPACE_TEST_RUNNER_CARGO_UDEPS_ARGS: [&str; 6] = [
     SHARED_VALUES_LOCKED,
 ];
 pub const NOTIFICATION_API_TOKEN_REDACTED: &str = "NotificationApiToken([REDACTED])";
+pub const BLOCKING_STD_FS_CALLS: [&str; 13] = [
+    "std::fs::canonicalize",
+    "std::fs::copy",
+    "std::fs::create_dir",
+    "std::fs::create_dir_all",
+    "std::fs::metadata",
+    "std::fs::read",
+    "std::fs::read_to_string",
+    "std::fs::remove_dir",
+    "std::fs::remove_dir_all",
+    "std::fs::remove_file",
+    "std::fs::rename",
+    "std::fs::write",
+    "std::fs::File::open",
+];
+pub const BLOCKING_STD_NET_CALLS: [&str; 3] = [
+    "std::net::TcpListener::bind",
+    "std::net::TcpStream::connect",
+    "std::net::UdpSocket::bind",
+];
+pub const MD_EXT: &str = "md";
+pub const SQL_EXT: &str = "sql";
+pub const DOCKERFILE_NAME: &str = "dockerfile";
+pub const GITIGNORE_NAME: &str = ".gitignore";
 pub const FILE_DELETE_STAGING_DIRECTORY: &str = ".delete_staging";
 pub const FILE_UPLOAD_STAGING_DIRECTORY: &str = ".upload_staging";
 pub const TEST_PATH_TRAVERSAL: &str = "../secret";

@@ -106,7 +106,7 @@ Crate to validate string length and other values: [validator](https://crates.io/
 ```rust
 #![feature(inline_const)]
 
-struct S{ 
+struct S{
     one: String,
     two: i32
 }

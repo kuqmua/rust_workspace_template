@@ -6218,7 +6218,6 @@ pub fn emit_generate_pg_table(
                         #parameters_logic_token_stream
                         #idempotency_begin_token_stream
                         let #QueryStringSnakeCase = #query_string_token_stream;
-                        //println!("{}", #QueryStringSnakeCase);
                         let #BindedQuerySnakeCase = {
                             let mut #QuerySnakeCase = #sqlx_query_sqlx_pg_token_stream(&#QueryStringSnakeCase);
                             #binded_query_token_stream

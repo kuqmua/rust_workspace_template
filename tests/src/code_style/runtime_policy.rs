@@ -149,6 +149,30 @@ fn async_functions_do_not_make_blocking_executor_calls() {
     );
 }
 #[test]
+fn async_blocking_policy_rejects_sync_filesystem_network_and_executor_calls() {
+    let ast = syn::parse_file(
+        r#"
+async fn blocked() {
+    std::fs::read("input");
+    std::net::TcpStream::connect("127.0.0.1:1");
+    futures::executor::block_on(async {});
+}
+fn synchronous_is_allowed() {
+    std::fs::read("input");
+}
+"#,
+    )
+    .expect("57a4f701");
+    let visitor = super::visit_syn_file(
+        super::types::SynFileRef::from(&ast),
+        super::AsyncBlockingCallVisitor {
+            async_fn_depth: super::types::AnalyzerCount::default(),
+            ers: super::types::DiagnosticMsgs::default(),
+        },
+    );
+    assert_eq!(visitor.ers.len(), 3usize);
+}
+#[test]
 fn unit_tests_do_not_create_external_service_clients() {
     super::assert_rs_ast_ers_empty_with_ctx(
         super::types::StaticStr::from(str_constants::D1F5B9C7),

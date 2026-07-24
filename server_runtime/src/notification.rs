@@ -1,8 +1,13 @@
 #[derive(Clone, Eq, PartialEq)]
 pub struct NotificationApiToken(String);
 
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(Clone, Copy, newtype::FromInner)]
 pub struct NotificationApiTokenRef<'value_lt>(&'value_lt str);
+impl std::fmt::Debug for NotificationApiTokenRef<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(str_constants::NOTIFICATION_API_TOKEN_REDACTED)
+    }
+}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct NotificationApiTokenAuthorized(bool);
@@ -237,6 +242,13 @@ mod tests {
         ))
         .expect("9ac320d1");
         assert!(!format!("{token:?}").contains(str_constants::TEST_NOTIFICATION_API_TOKEN));
+        assert!(
+            !format!(
+                "{:?}",
+                super::NotificationApiTokenRef::from(str_constants::TEST_NOTIFICATION_API_TOKEN)
+            )
+            .contains(str_constants::TEST_NOTIFICATION_API_TOKEN)
+        );
         assert!(bool::from(token.authorizes(
             super::NotificationApiTokenRef::from(str_constants::TEST_NOTIFICATION_API_TOKEN,)
         )));

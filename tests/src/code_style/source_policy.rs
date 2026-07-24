@@ -435,12 +435,50 @@ fn all_files_are_english_only() {
     );
 }
 #[test]
-fn check_expect_contains_only_unique_uuid_v4() {
-    super::check_expect_or_panic_contains_only_unique_uuid_v4(super::ExpectOrPanic::Expect);
+fn expect_and_panic_messages_start_with_unique_diagnostic_ids() {
+    super::check_expect_and_panic_contain_unique_diagnostic_ids();
 }
 #[test]
-fn check_panic_contains_only_unique_uuid_v4() {
-    super::check_expect_or_panic_contains_only_unique_uuid_v4(super::ExpectOrPanic::Panic);
+fn diagnostic_id_visitor_checks_expect_methods_and_panic_macros() {
+    let ast = syn::parse_file(
+        r#"
+fn fixture(result: Result<(), ()>) {
+    result.expect("1a2b3c4d: expected fixture result");
+    panic!("5e6f7a8b fixture panic");
+}
+"#,
+    )
+    .expect("95d174ac");
+    let visitor = super::visit_syn_file(
+        super::types::SynFileRef::from(&ast),
+        super::DiagnosticIdVisitor {
+            ers: super::types::DiagnosticMsgs::default(),
+            ids: super::types::SourceTextList::default(),
+        },
+    );
+    assert!(visitor.ers.is_empty());
+    assert_eq!(
+        visitor.ids.as_slice(),
+        [String::from("1a2b3c4d"), String::from("5e6f7a8b")]
+    );
+
+    let invalid_ast = syn::parse_file(
+        r#"
+fn fixture(result: Result<(), ()>) {
+    result.expect("not-an-id");
+    panic!("also-not-an-id");
+}
+"#,
+    )
+    .expect("6c3a48f1");
+    let invalid_visitor = super::visit_syn_file(
+        super::types::SynFileRef::from(&invalid_ast),
+        super::DiagnosticIdVisitor {
+            ers: super::types::DiagnosticMsgs::default(),
+            ids: super::types::SourceTextList::default(),
+        },
+    );
+    assert_eq!(invalid_visitor.ers.len(), 2usize);
 }
 #[test]
 fn check_rs_files_contains_only_unique_uuid_v4() {
@@ -647,6 +685,28 @@ fn spawned_tasks_must_retain_an_owner() {
             );
         },
     );
+}
+#[test]
+fn spawned_task_policy_rejects_bare_wildcard_and_ignored_bindings() {
+    let ast = syn::parse_file(
+        "
+fn spawn_tasks() {
+    tokio::spawn(async {});
+    let _ = tokio::task::spawn_blocking(|| {});
+    let _handle = std::thread::spawn(|| {});
+    let handle = tokio::spawn(async {});
+    supervise(handle);
+}
+",
+    )
+    .expect("94b344d7");
+    let visitor = super::visit_syn_file(
+        super::types::SynFileRef::from(&ast),
+        super::LostSpawnVisitor {
+            ers: super::types::DiagnosticMsgs::default(),
+        },
+    );
+    assert_eq!(visitor.ers.len(), 3usize);
 }
 #[test]
 fn direct_environment_and_filesystem_access_stays_at_owned_boundaries() {
@@ -994,13 +1054,18 @@ fn unit_tests_use_deterministic_time_and_randomness_patterns() {
     );
 }
 #[test]
-fn unit_test_nondeterminism_visitor_rejects_sleep_and_random_uuid() {
+fn unit_test_nondeterminism_visitor_rejects_sync_async_time_and_randomness() {
     let ast = syn::parse_file(
         "
 #[test]
 fn nondeterministic_test() {
     tokio::time::sleep(std::time::Duration::from_secs(1));
     uuid::Uuid::new_v4();
+}
+#[tokio::test]
+async fn nondeterministic_async_test() {
+    std::time::SystemTime::now();
+    rand::rng();
 }
 ",
     )
@@ -1017,8 +1082,58 @@ fn nondeterministic_test() {
         [
             str_constants::TOKIO_PATH_TIME_PATH_SLEEP,
             str_constants::UUID_PATH_UUID_PATH_NEW_V4,
+            str_constants::STD_PATH_TIME_PATH_SYSTEMTIME_PATH_NOW,
+            str_constants::RAND_PATH_RNG,
         ],
         "fa8d2bb1"
+    );
+}
+#[test]
+fn sensitive_text_wrappers_do_not_derive_unredacted_debug_or_display() {
+    super::assert_rs_ast_ers_empty_with_ctx(
+        super::types::StaticStr::from("6f2c8a41"),
+        super::types::SourceTextRef::from(
+            "sensitive text wrappers must use redacted Debug and Display implementations",
+        ),
+        |path, ast, ers| {
+            let visitor = super::visit_syn_file(
+                super::types::SynFileRef::from(ast),
+                super::SensitiveTextDebugDeriveVisitor {
+                    ers: super::types::DiagnosticMsgs::default(),
+                },
+            );
+            ers.extend(
+                visitor
+                    .ers
+                    .into_iter()
+                    .map(|error| format!("{}: {error}", path.display())),
+            );
+        },
+    );
+}
+#[test]
+fn sensitive_text_debug_policy_distinguishes_redacted_derives() {
+    let ast = syn::parse_file(
+        "
+#[derive(Debug, Display)]
+struct ApiTokenRef<'value_lt>(&'value_lt str);
+#[derive(newtype::DebugRedacted)]
+struct ApiSecret(String);
+",
+    )
+    .expect("3d72b9e0");
+    let visitor = super::visit_syn_file(
+        super::types::SynFileRef::from(&ast),
+        super::SensitiveTextDebugDeriveVisitor {
+            ers: super::types::DiagnosticMsgs::default(),
+        },
+    );
+    assert_eq!(visitor.ers.len(), 2usize);
+    assert!(
+        visitor
+            .ers
+            .iter()
+            .all(|error| error.contains("ApiTokenRef"))
     );
 }
 #[test]
@@ -1048,6 +1163,70 @@ fn no_todo_or_unimplemented_macro_in_source_code() {
             );
         },
     );
+}
+#[test]
+fn source_does_not_retain_commented_debug_statements() {
+    super::assert_rs_ast_ers_empty_with_ctx(
+        super::types::StaticStr::from("a1a18a02"),
+        super::types::SourceTextRef::from("commented debug statements must be deleted"),
+        |path, _, ers| {
+            let source = std::fs::read_to_string(path).expect("2b06297b");
+            ers.extend(
+                super::commented_debug_statements(super::types::SourceTextRef::from(
+                    source.as_str(),
+                ))
+                .into_iter()
+                .map(|error| format!("{}: {error}", path.display())),
+            );
+        },
+    );
+}
+#[test]
+fn commented_debug_statement_policy_rejects_debug_macros_only() {
+    let source = [
+        concat!("/", "/", " println!(\"debug\");"),
+        concat!("/", "/", " dbg!(value);"),
+        concat!("/", "/", " explanation of println usage"),
+        "println!(\"active\");",
+    ]
+    .join("\n");
+    let violations =
+        super::commented_debug_statements(super::types::SourceTextRef::from(source.as_str()));
+    assert_eq!(violations.len(), 2usize);
+}
+#[test]
+fn project_text_files_have_stable_line_endings_and_no_trailing_whitespace() {
+    let mut violations = Vec::<String>::new();
+    walkdir::WalkDir::new(str_constants::TEXT_ALT_9)
+        .into_iter()
+        .filter_entry(|entry| {
+            entry.file_name() != str_constants::TARGET && entry.file_name() != str_constants::GIT
+        })
+        .map(|entry| entry.expect("d808e460"))
+        .filter(|entry| !entry.file_type().is_dir())
+        .filter(|entry| {
+            super::text_hygiene_path(super::types::StdPathRef::from(entry.path())).get()
+        })
+        .for_each(|entry| {
+            let source = std::fs::read_to_string(entry.path()).expect("fe3ed3d9");
+            violations.extend(
+                super::text_content_hygiene_ers(super::types::SourceTextRef::from(source.as_str()))
+                    .into_iter()
+                    .map(|error| format!("{}: {error}", entry.path().display())),
+            );
+        });
+    assert!(violations.is_empty(), "8c22bed1 {violations:#?}");
+}
+#[test]
+fn text_content_hygiene_policy_rejects_all_line_ending_violations() {
+    let mut source = String::from("first");
+    source.push(' ');
+    source.push('\r');
+    source.push('\n');
+    source.push_str("last");
+    let violations =
+        super::text_content_hygiene_ers(super::types::SourceTextRef::from(source.as_str()));
+    assert_eq!(violations.len(), 3usize);
 }
 #[test]
 fn no_macro_rules_in_source_code() {

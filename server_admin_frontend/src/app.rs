@@ -77,9 +77,14 @@ struct AdminHttpStatus(u16);
 #[bounded_string(max = 16_384usize, chars)]
 struct AdminCsrApiUrl(String);
 
-#[derive(Clone, Debug, newtype::AsRefStr, newtype::BoundedString)]
+#[derive(Clone, newtype::AsRefStr, newtype::BoundedString)]
 #[bounded_string(max = 8_192usize, chars)]
 struct AdminCsrfToken(String);
+impl std::fmt::Debug for AdminCsrfToken {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(str_constants::REDACTED_ALT_3)
+    }
+}
 
 #[derive(Clone, Copy, Debug)]
 enum AdminMutationMethod {

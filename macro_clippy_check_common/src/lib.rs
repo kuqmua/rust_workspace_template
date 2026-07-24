@@ -248,7 +248,7 @@ mod tests {
                 std::process::id(),
                 seq
             ));
-            std::fs::create_dir_all(&path).expect("2b24ef1a");
+            std::fs::create_dir_all(&path).expect("0c77b4c7");
             Self::from(path)
         }
         fn path(&self) -> &std::path::Path {

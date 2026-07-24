@@ -355,11 +355,14 @@ pub struct JsonwebtokenAdminError(jsonwebtoken::errors::Error);
 #[error("administrator access token operation failed: {0:?}")]
 #[derive(newtype::FromInner)]
 pub struct AdminAccessTokenError(JsonwebtokenAdminError);
-#[derive(
-    Debug, Clone, PartialEq, Eq, newtype::BoundedString, newtype::AsRefOwned, newtype::IntoInner,
-)]
+#[derive(Clone, PartialEq, Eq, newtype::BoundedString, newtype::AsRefOwned, newtype::IntoInner)]
 #[bounded_string(max = 8192, description = "administrator access token")]
 pub struct StdAdminAccessToken(String);
+impl std::fmt::Debug for StdAdminAccessToken {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(str_constants::REDACTED_ALT_3)
+    }
+}
 pub fn encode_access_token(
     claims: &AdminAccessClaims,
     secret: &AdminJwtSecret,
@@ -679,8 +682,11 @@ mod tests {
         let raw_secret = str_constants::NEVER_PRINT_THIS_VALUE;
         let password = password(raw_secret);
         let jwt_secret = super::AdminJwtSecret::new(secret(raw_secret));
+        let access_token =
+            super::StdAdminAccessToken::try_from(raw_secret.to_owned()).expect("e295277c");
         assert!(!format!("{password:?}").contains(raw_secret));
         assert!(!format!("{jwt_secret:?}").contains(raw_secret));
+        assert!(!format!("{access_token:?}").contains(raw_secret));
     }
     #[test]
     fn generated_token_hash_is_stable_and_does_not_expose_token() {

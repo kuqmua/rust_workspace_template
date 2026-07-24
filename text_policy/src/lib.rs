@@ -130,8 +130,13 @@ pub fn validate_url_safe_token_part(
     }
 }
 
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(Clone, Copy, newtype::FromInner)]
 pub struct PasswordTextRef<'value_lt>(&'value_lt str);
+impl std::fmt::Debug for PasswordTextRef<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("[REDACTED]")
+    }
+}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct PasswordLength(usize);
@@ -284,5 +289,7 @@ mod tests {
                 Err(super::PasswordPolicyViolation::ContainsWhitespace),
             ]
         );
+        let secret = str_constants::NEVER_PRINT_THIS_VALUE;
+        assert!(!format!("{:?}", super::PasswordTextRef::from(secret)).contains(secret));
     }
 }

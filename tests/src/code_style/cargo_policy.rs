@@ -114,6 +114,100 @@ fn check_workspace_dependencies_having_exact_version() {
     .for_each(|dep| super::validate_workspace_dep_spec(super::types::TomlValueRef::from(dep)));
 }
 #[test]
+fn external_workspace_dependencies_disable_default_features() {
+    let workspace = super::workspace_table_from_cargo_toml();
+    let dependencies = super::toml_val_as_table_ref(
+        super::types::TomlValueRef::from(
+            workspace
+                .as_ref()
+                .get(str_constants::DEPENDENCIES)
+                .expect("9ac9fb4c"),
+        ),
+        super::types::StaticStr::from("2db3165f"),
+    );
+    let violations = dependencies
+        .as_ref()
+        .iter()
+        .filter(|(_, dependency)| {
+            dependency
+                .as_table()
+                .is_some_and(|table| table.contains_key(str_constants::VERSION_ALT_3))
+                && !super::workspace_dep_disables_default_features(
+                    super::types::TomlValueRef::from(*dependency),
+                )
+                .get()
+        })
+        .map(|(name, _)| name.as_str())
+        .collect::<Vec<&str>>();
+    assert!(violations.is_empty(), "b85e8406 {violations:#?}");
+}
+#[test]
+fn workspace_dependency_default_feature_policy_rejects_missing_and_true_values() {
+    let valid = toml::from_str::<toml::Value>(
+        r#"[dependency]
+version = "=1.2.3"
+default-features = false
+"#,
+    )
+    .expect("227e7634");
+    let missing = toml::from_str::<toml::Value>(
+        r#"[dependency]
+version = "=1.2.3"
+"#,
+    )
+    .expect("0e82eab4");
+    let enabled = toml::from_str::<toml::Value>(
+        r#"[dependency]
+version = "=1.2.3"
+default-features = true
+"#,
+    )
+    .expect("e441c429");
+    assert!(
+        super::workspace_dep_disables_default_features(super::types::TomlValueRef::from(
+            valid.get("dependency").expect("34136b6c"),
+        ))
+        .get()
+    );
+    assert!(
+        !super::workspace_dep_disables_default_features(super::types::TomlValueRef::from(
+            missing.get("dependency").expect("e9b5ed95"),
+        ))
+        .get()
+    );
+    assert!(
+        !super::workspace_dep_disables_default_features(super::types::TomlValueRef::from(
+            enabled.get("dependency").expect("3e8046ef"),
+        ))
+        .get()
+    );
+}
+#[test]
+fn workspace_lint_allows_have_inline_reasons() {
+    let source = std::fs::read_to_string(str_constants::CODE_STYLE_WORKSPACE_MANIFEST_PATH)
+        .expect("68dcaf75");
+    let violations = super::unjustified_workspace_lint_allows(super::types::SourceTextRef::from(
+        source.as_str(),
+    ));
+    assert!(violations.is_empty(), "a94f0751 {violations:#?}");
+}
+#[test]
+fn workspace_lint_allow_reason_policy_rejects_missing_and_empty_comments() {
+    let violations = super::unjustified_workspace_lint_allows(super::types::SourceTextRef::from(
+        r#"
+[workspace.lints.rust]
+unsafe_code = "deny"
+dead_code = "allow"
+[workspace.lints.clippy]
+panic = "allow" #
+unwrap_used = "allow" # tests check unwrap failures separately
+[profile.dev]
+debug = true
+"#,
+    ));
+    assert_eq!(violations.len(), 2usize);
+}
+#[test]
 fn env_and_env_example_have_same_keys() {
     let env_keys =
         super::env_keys_from_file(super::types::StaticStr::from(str_constants::SERVER_ENV));

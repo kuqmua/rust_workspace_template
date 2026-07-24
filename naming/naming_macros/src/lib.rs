@@ -124,7 +124,6 @@ pub fn generate_upper_camel_case_and_snake_case_str_and_token_stream(
             }
         });
     let generated = quote::quote! {#(#ts)*};
-    // println!("{generated}");
     generated.into()
 }
 #[proc_macro]
@@ -265,7 +264,6 @@ pub fn generate_self_upper_camel_case_and_snake_case_str_and_token_stream(
         }
     });
     let generated = quote::quote! {#(#ts)*};
-    // println!("{generated}");
     generated.into()
 }
 fn generate_impl_trait_for_identifier_token_stream(
@@ -317,7 +315,6 @@ pub fn as_ref_str_enum_with_unit_fields_to_upper_camel_case_str(
                 .as_slice(),
         ),
     );
-    // println!("{generated}");
     generated.0.into()
 }
 #[proc_macro_derive(AsRefStrEnumWithUnitFieldsToSnakeCaseStr)]
@@ -353,7 +350,6 @@ pub fn as_ref_str_enum_with_unit_fields_to_snake_case_str(
                 .as_slice(),
         ),
     );
-    // println!("{generated}");
     generated.0.into()
 }
 #[proc_macro_derive(AsRefStrEnumWithUnitFieldsToUpperSnakeCaseStr)]
@@ -387,6 +383,5 @@ pub fn as_ref_str_enum_with_unit_fields_to_upper_snake_case_str(
                 .as_slice(),
         ),
     );
-    // println!("{generated}");
     generated.0.into()
 }

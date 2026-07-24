@@ -570,7 +570,7 @@ fn scaffold_service(
         ScaffoldTextRef::from(str_constants::WORKSPACE_SCAFFOLD_MANIFEST_MEMBER_MARKER),
         ScaffoldTextRef::from(
             format!(
-                "  \"notification_service_contract\",\n  \"{service}\",\n  \"{config}\",\n  \"{contract}\"," 
+                "  \"notification_service_contract\",\n  \"{service}\",\n  \"{config}\",\n  \"{contract}\","
             )
             .as_str(),
         ),
