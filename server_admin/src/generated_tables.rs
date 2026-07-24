@@ -167,7 +167,7 @@ pub struct AdminSystemSettings {
     pub updated_at:
         pg_types_chrono_net::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, frontend_contract::UnitEnumCatalog)]
 pub(crate) enum AdminGeneratedTable {
     Roles,
     RolePermissions,
@@ -177,15 +177,6 @@ pub(crate) enum AdminGeneratedTable {
     UserRoles,
 }
 impl AdminGeneratedTable {
-    pub(crate) const ALL: [Self; 6] = [
-        Self::Roles,
-        Self::RolePermissions,
-        Self::Users,
-        Self::Permissions,
-        Self::SystemSettings,
-        Self::UserRoles,
-    ];
-
     pub(crate) fn field_contracts(self) -> frontend_contract::FieldContracts {
         match self {
             Self::Roles => AdminRoles::frontend_fields(),

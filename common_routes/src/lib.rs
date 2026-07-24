@@ -171,7 +171,8 @@ pub struct HealthLiveRoute;
 #[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
 #[typed_route(
     authentication = frontend_contract::AuthenticationRequirement::Public,
-    error_statuses = &[],
+    error_response = HealthReport,
+    error_statuses = &[frontend_contract::RouteErrorStatus::ServiceUnavailable],
     method = frontend_contract::RouteMethod::Get,
     mutation = frontend_contract::RouteMutation::ReadOnly,
     obligations = frontend_contract::PUBLIC_READ_ROUTE_COVERAGE_OBLIGATIONS,
@@ -187,7 +188,8 @@ pub struct HealthReadyRoute;
 #[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
 #[typed_route(
     authentication = frontend_contract::AuthenticationRequirement::Public,
-    error_statuses = &[],
+    error_response = HealthReport,
+    error_statuses = &[frontend_contract::RouteErrorStatus::ServiceUnavailable],
     method = frontend_contract::RouteMethod::Get,
     mutation = frontend_contract::RouteMutation::ReadOnly,
     obligations = frontend_contract::PUBLIC_READ_ROUTE_COVERAGE_OBLIGATIONS,
@@ -203,7 +205,8 @@ pub struct HealthRoute;
 #[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
 #[typed_route(
     authentication = frontend_contract::AuthenticationRequirement::Public,
-    error_statuses = &[],
+    error_response = (),
+    error_statuses = &[frontend_contract::RouteErrorStatus::ServiceUnavailable],
     method = frontend_contract::RouteMethod::Get,
     mutation = frontend_contract::RouteMutation::ReadOnly,
     obligations = frontend_contract::PUBLIC_READ_ROUTE_COVERAGE_OBLIGATIONS,
@@ -247,14 +250,6 @@ pub enum CommonRoute {
     HealthReady,
 }
 impl CommonRoute {
-    pub const ALL: [Self; 5] = [
-        Self::GitInfo,
-        Self::Health,
-        Self::HealthCheck,
-        Self::HealthLive,
-        Self::HealthReady,
-    ];
-
     #[must_use]
     pub fn path(self) -> frontend_contract::ContractStr {
         self.contract().path()
@@ -284,50 +279,12 @@ pub struct StdArcCommonRoutesAppState(std::sync::Arc<dyn CommonRoutesParameters>
 pub struct CommonRoutesOpenApi;
 #[derive(serde::Serialize)]
 #[serde(transparent)]
-#[derive(newtype::FromInner)]
+#[derive(newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct UtoipaCommonRoutesOpenApiDocument(utoipa::openapi::OpenApi);
 impl CommonRoutesOpenApi {
     #[must_use]
     pub fn open_api() -> UtoipaCommonRoutesOpenApiDocument {
-        fn insert_service_unavailable(
-            document: &mut utoipa::openapi::OpenApi,
-            route: CommonRoute,
-            body: Option<utoipa::openapi::RefOr<utoipa::openapi::Schema>>,
-        ) {
-            let status = axum::http::StatusCode::SERVICE_UNAVAILABLE
-                .as_u16()
-                .to_string();
-            let mut response = utoipa::openapi::response::Response::new(status.clone());
-            if let Some(schema) = body {
-                let _previous_content = response.content.insert(
-                    str_constants::APPLICATION_JSON.to_owned(),
-                    utoipa::openapi::Content::new(schema),
-                );
-            }
-            if let Some(operation) = document
-                .paths
-                .paths
-                .get_mut(route.path().as_ref())
-                .and_then(|path| {
-                    path.operations
-                        .get_mut(&utoipa::openapi::path::PathItemType::Get)
-                })
-            {
-                let _previous_response = operation
-                    .responses
-                    .responses
-                    .insert(status, utoipa::openapi::RefOr::T(response));
-            }
-        }
-        let mut document = CommonRouteRegistry::open_api();
-        let health_schema = <HealthReport as utoipa::ToSchema>::schema().1;
-        [CommonRoute::Health, CommonRoute::HealthReady]
-            .into_iter()
-            .for_each(|route| {
-                insert_service_unavailable(&mut document, route, Some(health_schema.clone()));
-            });
-        insert_service_unavailable(&mut document, CommonRoute::HealthCheck, None);
-        UtoipaCommonRoutesOpenApiDocument::from(document)
+        UtoipaCommonRoutesOpenApiDocument::from(CommonRouteRegistry::open_api())
     }
 }
 impl std::fmt::Debug for StdArcCommonRoutesAppState {
@@ -503,10 +460,7 @@ struct CommonRouteRegistry;
 async fn health_live() -> JsonRes<HealthReport> {
     health_report_response(HealthReport::liveness())
 }
-#[frontend_contract::route_openapi(
-    responses((status = 503, body = HealthReport)),
-    tag = "service"
-)]
+#[frontend_contract::route_openapi(tag = "service")]
 #[allow(
     clippy::single_call_fn,
     reason = "the concrete handler is intentionally owned by the generated route registry"
@@ -516,10 +470,7 @@ async fn health_ready(app_state: StdArcCommonRoutesAppState) -> JsonRes<HealthRe
         database_is_ready(app_state.0.as_ref()).await.0,
     )))
 }
-#[frontend_contract::route_openapi(
-    responses((status = 503, body = HealthReport)),
-    tag = "service"
-)]
+#[frontend_contract::route_openapi(tag = "service")]
 #[allow(
     clippy::single_call_fn,
     reason = "the concrete handler is intentionally owned by the generated route registry"
@@ -529,7 +480,7 @@ async fn health(app_state: StdArcCommonRoutesAppState) -> JsonRes<HealthReport> 
         database_is_ready(app_state.0.as_ref()).await.0,
     )))
 }
-#[frontend_contract::route_openapi(responses((status = 503)), tag = "service")]
+#[frontend_contract::route_openapi(tag = "service")]
 #[allow(
     clippy::single_call_fn,
     reason = "the concrete handler is intentionally owned by the generated route registry"

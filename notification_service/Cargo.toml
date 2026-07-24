@@ -17,8 +17,10 @@ path = "src/main.rs"
 [dependencies]
 app_state = { workspace = true }
 axum = { workspace = true }
+common_routes = { workspace = true }
 config_lib = { workspace = true }
 frontend_contract = { workspace = true }
+git_info = { workspace = true }
 http = { workspace = true }
 metrics-exporter-prometheus = { workspace = true }
 newtype = { workspace = true }

@@ -33,6 +33,22 @@ impl RouteMethod {
         })
     }
 }
+#[derive(Clone, Copy, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
+pub struct AxumMethodFilter(axum::routing::MethodFilter);
+#[must_use]
+pub fn axum_method_filter(method: crate::HttpMethod) -> AxumMethodFilter {
+    AxumMethodFilter::from(match method {
+        crate::HttpMethod::Connect => axum::routing::MethodFilter::CONNECT,
+        crate::HttpMethod::Delete => axum::routing::MethodFilter::DELETE,
+        crate::HttpMethod::Get => axum::routing::MethodFilter::GET,
+        crate::HttpMethod::Head => axum::routing::MethodFilter::HEAD,
+        crate::HttpMethod::Options => axum::routing::MethodFilter::OPTIONS,
+        crate::HttpMethod::Patch => axum::routing::MethodFilter::PATCH,
+        crate::HttpMethod::Post => axum::routing::MethodFilter::POST,
+        crate::HttpMethod::Put => axum::routing::MethodFilter::PUT,
+        crate::HttpMethod::Trace => axum::routing::MethodFilter::TRACE,
+    })
+}
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct RouteMetadata {
     authentication: crate::AuthenticationRequirement,
@@ -178,6 +194,14 @@ pub trait TypedRoute: Sized {
     #[must_use]
     fn openapi_response_schema() -> Option<UtoipaOpenApiRouteSchema> {
         None
+    }
+    #[must_use]
+    fn openapi_error_response_schema(
+        _status: crate::RouteErrorStatus,
+    ) -> Option<UtoipaOpenApiRouteSchema> {
+        Some(UtoipaOpenApiRouteSchema::from(
+            <crate::ApiProblem as utoipa::ToSchema>::schema().1,
+        ))
     }
     #[must_use]
     fn openapi_path_parameter() -> Option<UtoipaOpenApiPathParameter> {
@@ -542,11 +566,15 @@ where
         .for_each(|error_status| {
             let status = error_status.transport_status().to_string();
             let mut response = utoipa::openapi::response::Response::new(status.clone());
-            let (_schema_name, schema) = <crate::ApiProblem as utoipa::ToSchema>::schema();
-            let _previous_content = response.content.insert(
-                str_constants::APPLICATION_JSON.to_owned(),
-                utoipa::openapi::Content::new(schema),
-            );
+            if let Some(schema) = Route::openapi_error_response_schema(error_status) {
+                let _previous_content =
+                    response.content.insert(
+                        str_constants::APPLICATION_JSON.to_owned(),
+                        utoipa::openapi::Content::new::<
+                            utoipa::openapi::RefOr<utoipa::openapi::Schema>,
+                        >(schema.into()),
+                    );
+            }
             if error_status == crate::RouteErrorStatus::RateLimited {
                 let _previous_header = response.headers.insert(
                     str_constants::RETRY_AFTER.to_owned(),

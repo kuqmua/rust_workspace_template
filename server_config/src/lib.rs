@@ -36,6 +36,8 @@ pub struct Config {
     pub pg_pool_idle_timeout_seconds: config_lib::PgPoolIdleTimeoutSeconds,
     #[config(example = "1800")]
     pub pg_pool_max_lifetime_seconds: config_lib::PgPoolMaxLifetimeSeconds,
+    #[config(example = "30")]
+    pub request_timeout_seconds: config_lib::RequestTimeoutSeconds,
     #[config(example = "1048576")]
     pub maximum_size_of_http_body_in_bytes: config_lib::MaximumSizeOfHttpBodyInBytes,
     #[config(example = "127.0.0.1:8080")]
@@ -185,6 +187,7 @@ mod tests {
                 pg_pool_acquire_timeout_seconds: env(str_constants::TEST_VALUE_30),
                 pg_pool_idle_timeout_seconds: env(str_constants::TEST_VALUE_30),
                 pg_pool_max_lifetime_seconds: env(str_constants::TEST_VALUE_30),
+                request_timeout_seconds: env(str_constants::TEST_VALUE_30),
                 timezone: config_lib::ChronoTimezone::try_from(
                     chrono::FixedOffset::east_opt(3i32 * 3_600i32).expect("93cbf4a2"),
                 )

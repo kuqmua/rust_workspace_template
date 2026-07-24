@@ -21,6 +21,12 @@ pub(crate) struct AdminSettingDisabled(bool);
 struct AdminSettingRequired(bool);
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub(crate) struct LeptosAdminSettingSignal(leptos::prelude::RwSignal<String>);
+impl LeptosAdminSettingSignal {
+    #[cfg(target_arch = "wasm32")]
+    pub(crate) fn value(self) -> AdminSettingInputValue {
+        AdminSettingInputValue::from(leptos::prelude::Get::get(&self.0).into_boxed_str())
+    }
+}
 
 #[derive(Clone, Copy, Debug)]
 pub(crate) enum AdminSettingField {
@@ -123,6 +129,88 @@ pub(crate) fn admin_setting_input(
                 )
             >{leptos::prelude::Get::get(&value)}</textarea></label>
         }),
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
+pub(crate) struct AdminSettingsFormSignals {
+    default_route: LeptosAdminSettingSignal,
+    main_logo: LeptosAdminSettingSignal,
+    organization_contacts: LeptosAdminSettingSignal,
+    organization_name: LeptosAdminSettingSignal,
+    primary_color: LeptosAdminSettingSignal,
+    site_name: LeptosAdminSettingSignal,
+    support_url: LeptosAdminSettingSignal,
+    tab_title: LeptosAdminSettingSignal,
+}
+impl AdminSettingsFormSignals {
+    pub(crate) fn new(values: &AdminSettingsFormValues) -> Self {
+        Self {
+            default_route: LeptosAdminSettingSignal::from(leptos::prelude::RwSignal::new(
+                values.default_route().as_ref().to_owned(),
+            )),
+            main_logo: LeptosAdminSettingSignal::from(leptos::prelude::RwSignal::new(
+                values.main_logo().as_ref().to_owned(),
+            )),
+            organization_contacts: LeptosAdminSettingSignal::from(leptos::prelude::RwSignal::new(
+                values.organization_contacts().as_ref().to_owned(),
+            )),
+            organization_name: LeptosAdminSettingSignal::from(leptos::prelude::RwSignal::new(
+                values.organization_name().as_ref().to_owned(),
+            )),
+            primary_color: LeptosAdminSettingSignal::from(leptos::prelude::RwSignal::new(
+                values.primary_color().as_ref().to_owned(),
+            )),
+            site_name: LeptosAdminSettingSignal::from(leptos::prelude::RwSignal::new(
+                values.site_name().as_ref().to_owned(),
+            )),
+            support_url: LeptosAdminSettingSignal::from(leptos::prelude::RwSignal::new(
+                values.support_url().as_ref().to_owned(),
+            )),
+            tab_title: LeptosAdminSettingSignal::from(leptos::prelude::RwSignal::new(
+                values.tab_title().as_ref().to_owned(),
+            )),
+        }
+    }
+    pub(crate) const fn default_route(self) -> LeptosAdminSettingSignal {
+        self.default_route
+    }
+    pub(crate) const fn main_logo(self) -> LeptosAdminSettingSignal {
+        self.main_logo
+    }
+    pub(crate) const fn organization_contacts(self) -> LeptosAdminSettingSignal {
+        self.organization_contacts
+    }
+    pub(crate) const fn organization_name(self) -> LeptosAdminSettingSignal {
+        self.organization_name
+    }
+    pub(crate) const fn primary_color(self) -> LeptosAdminSettingSignal {
+        self.primary_color
+    }
+    pub(crate) const fn site_name(self) -> LeptosAdminSettingSignal {
+        self.site_name
+    }
+    pub(crate) const fn support_url(self) -> LeptosAdminSettingSignal {
+        self.support_url
+    }
+    pub(crate) const fn tab_title(self) -> LeptosAdminSettingSignal {
+        self.tab_title
+    }
+}
+
+pub(crate) fn admin_setting_inputs(
+    signals: AdminSettingsFormSignals,
+    disabled: AdminSettingDisabled,
+) -> impl leptos::prelude::IntoView {
+    leptos::view! {
+        {admin_setting_input(AdminSettingField::DefaultRoute, signals.default_route(), disabled)}
+        {admin_setting_input(AdminSettingField::SiteName, signals.site_name(), disabled)}
+        {admin_setting_input(AdminSettingField::TabTitle, signals.tab_title(), disabled)}
+        {admin_setting_input(AdminSettingField::OrganizationName, signals.organization_name(), disabled)}
+        {admin_setting_input(AdminSettingField::OrganizationContacts, signals.organization_contacts(), disabled)}
+        {admin_setting_input(AdminSettingField::SupportUrl, signals.support_url(), disabled)}
+        {admin_setting_input(AdminSettingField::PrimaryColor, signals.primary_color(), disabled)}
+        {admin_setting_input(AdminSettingField::MainLogo, signals.main_logo(), disabled)}
     }
 }
 

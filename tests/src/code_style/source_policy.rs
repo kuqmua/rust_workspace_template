@@ -70,6 +70,7 @@ const REVIEWED_PUBLIC_FIELDS: &[ReviewedPublicFields] = &[
             "pg_pool_acquire_timeout_seconds",
             "pg_pool_idle_timeout_seconds",
             "pg_pool_max_lifetime_seconds",
+            "request_timeout_seconds",
             "maximum_size_of_http_body_in_bytes",
             "service_socket_address",
             "pg_pool_max_connections",

@@ -193,6 +193,7 @@ impl syn::parse::Parse for RouteCatalogRouteArgs {
 }
 struct TypedRouteArgs {
     authentication: SynExpr,
+    error_response: Option<SynType>,
     errors: SynTypedRouteErrors,
     method: SynExpr,
     mutation: Option<SynExpr>,
@@ -596,17 +597,13 @@ pub fn route_registry(
                     #(.route(
                         frontend_contract::typed_route_path::<#routes>().as_ref(),
                         axum::routing::on(
-                            match <#routes as frontend_contract::TypedRoute>::metadata().route_method() {
-                                frontend_contract::RouteMethod::Connect => axum::routing::MethodFilter::CONNECT,
-                                frontend_contract::RouteMethod::Delete => axum::routing::MethodFilter::DELETE,
-                                frontend_contract::RouteMethod::Get => axum::routing::MethodFilter::GET,
-                                frontend_contract::RouteMethod::Head => axum::routing::MethodFilter::HEAD,
-                                frontend_contract::RouteMethod::Options => axum::routing::MethodFilter::OPTIONS,
-                                frontend_contract::RouteMethod::Patch => axum::routing::MethodFilter::PATCH,
-                                frontend_contract::RouteMethod::Post => axum::routing::MethodFilter::POST,
-                                frontend_contract::RouteMethod::Put => axum::routing::MethodFilter::PUT,
-                                frontend_contract::RouteMethod::Trace => axum::routing::MethodFilter::TRACE,
-                            },
+                            axum::routing::MethodFilter::from(
+                                frontend_contract::axum_method_filter(
+                                    <#routes as frontend_contract::TypedRoute>::metadata()
+                                        .contract()
+                                        .method()
+                                )
+                            ),
                             #handlers,
                         ),
                     ))*
@@ -620,6 +617,7 @@ impl syn::parse::Parse for TypedRouteArgs {
     fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
         let mut method = None;
         let mut authentication = None;
+        let mut error_response = None;
         let mut error_policy = None;
         let mut error_statuses = None;
         let mut mutation = None;
@@ -641,6 +639,9 @@ impl syn::parse::Parse for TypedRouteArgs {
                 }
                 str_constants::TYPED_ROUTE_FIELD_ERROR_STATUSES => {
                     error_statuses = Some(SynExpr::from(input.parse::<syn::Expr>()?));
+                }
+                str_constants::TYPED_ROUTE_FIELD_ERROR_RESPONSE => {
+                    error_response = Some(SynType::from(input.parse::<syn::Type>()?));
                 }
                 str_constants::TYPED_ROUTE_FIELD_ERROR_POLICY => {
                     error_policy = Some(SynExpr::from(input.parse::<syn::Expr>()?));
@@ -701,6 +702,7 @@ impl syn::parse::Parse for TypedRouteArgs {
         Ok(Self {
             authentication: authentication
                 .ok_or_else(|| input.error(str_constants::TYPED_ROUTE_REQUIRES_AUTHENTICATION))?,
+            error_response,
             errors,
             method: method
                 .ok_or_else(|| input.error(str_constants::TYPED_ROUTE_REQUIRES_METHOD))?,
@@ -816,6 +818,37 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
         }
         SynTypedRouteErrors::Statuses(value) => quote::ToTokens::into_token_stream(&value.0),
     };
+    let (error_response_schema, error_response_schema_registration) =
+        match args.error_response.map(|value| value.0) {
+            Some(syn::Type::Tuple(tuple)) if tuple.elems.is_empty() => (
+                quote::quote! {
+                    fn openapi_error_response_schema(
+                        _status: frontend_contract::RouteErrorStatus,
+                    ) -> Option<frontend_contract::UtoipaOpenApiRouteSchema> {
+                        None
+                    }
+                },
+                proc_macro2::TokenStream::new(),
+            ),
+            Some(response_type) => (
+                quote::quote! {
+                    fn openapi_error_response_schema(
+                        _status: frontend_contract::RouteErrorStatus,
+                    ) -> Option<frontend_contract::UtoipaOpenApiRouteSchema> {
+                        Some(frontend_contract::UtoipaOpenApiRouteSchema::from(
+                            <#response_type as utoipa::ToSchema>::schema().1
+                        ))
+                    }
+                },
+                quote::quote! {
+                    frontend_contract::register_openapi_schema::<#response_type>(components);
+                },
+            ),
+            None => (
+                proc_macro2::TokenStream::new(),
+                proc_macro2::TokenStream::new(),
+            ),
+        };
     let obligations = args.obligations.map_or_else(
         || quote::quote!(&[]),
         |value| quote::ToTokens::into_token_stream(&value.0),
@@ -964,6 +997,7 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
             fn openapi_response_schema() -> Option<frontend_contract::UtoipaOpenApiRouteSchema> {
                 #response_schema
             }
+            #error_response_schema
             fn openapi_path_parameter() -> Option<frontend_contract::UtoipaOpenApiPathParameter> {
                 #openapi_path_parameter
             }
@@ -976,6 +1010,7 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
                     frontend_contract::register_openapi_schema::<#request>(components);
                 }
                 #response_schema_registration
+                #error_response_schema_registration
             }
         }
         impl frontend_contract::CoveredRoute for #identifier {
@@ -1027,6 +1062,13 @@ pub fn derive_route_catalog(input: proc_macro::TokenStream) -> proc_macro::Token
     let mut contract_arms = Vec::new();
     let mut family_routes = Vec::new();
     let mut path_arms = Vec::new();
+    let all_variant_identifiers = data_enum
+        .variants
+        .iter()
+        .filter(|variant| matches!(variant.fields, syn::Fields::Unit))
+        .map(|variant| variant.ident.clone())
+        .collect::<Vec<_>>();
+    let all_variants_are_unit = all_variant_identifiers.len() == data_enum.variants.len();
     let mut variants = data_enum.variants.into_iter();
     loop {
         let Some(variant) = variants.next() else {
@@ -1130,8 +1172,20 @@ pub fn derive_route_catalog(input: proc_macro::TokenStream) -> proc_macro::Token
     let family = args.family.0;
     let body_limit = args.body_limit.0;
     let route_count = family_routes.len();
+    let all = if all_variants_are_unit {
+        let variant_count = all_variant_identifiers.len();
+        quote::quote! {
+            pub const ALL: [Self; #variant_count] = [
+                #(Self::#all_variant_identifiers),*
+            ];
+        }
+    } else {
+        quote::quote! {}
+    };
     quote::quote! {
         impl #identifier {
+            #all
+
             #[must_use]
             pub fn contract(self) -> frontend_contract::RouteContract {
                 match self {
@@ -1167,6 +1221,47 @@ pub fn derive_route_catalog(input: proc_macro::TokenStream) -> proc_macro::Token
             }
         }
         #(impl frontend_contract::RouteInFamily<#family> for #family_routes {})*
+    }
+    .into()
+}
+
+#[proc_macro_derive(UnitEnumCatalog)]
+pub fn derive_unit_enum_catalog(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let derive_input = match syn::parse::<syn::DeriveInput>(input) {
+        Ok(value) => value,
+        Err(error) => return error.to_compile_error().into(),
+    };
+    let identifier = derive_input.ident.clone();
+    let syn::Data::Enum(data_enum) = derive_input.data else {
+        return syn::Error::new_spanned(identifier, str_constants::ENUMFROMSTR_SUPPORTS_ONLY_ENUMS)
+            .to_compile_error()
+            .into();
+    };
+    let identifiers_result = data_enum
+        .variants
+        .iter()
+        .map(|variant| {
+            if matches!(variant.fields, syn::Fields::Unit) {
+                Ok(&variant.ident)
+            } else {
+                Err(syn::Error::new_spanned(
+                    &variant.ident,
+                    str_constants::ENUMFROMSTR_SUPPORTS_ONLY_UNIT_VARIANTS,
+                ))
+            }
+        })
+        .collect::<Result<Vec<_>, _>>();
+    let identifiers = match identifiers_result {
+        Ok(value) => value,
+        Err(error) => return error.to_compile_error().into(),
+    };
+    let count = identifiers.len();
+    quote::quote! {
+        impl #identifier {
+            pub const ALL: [Self; #count] = [
+                #(Self::#identifiers),*
+            ];
+        }
     }
     .into()
 }

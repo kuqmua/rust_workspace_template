@@ -31,6 +31,7 @@ git_info = { workspace = true }
 app_state = { workspace = true }
 config_lib = { workspace = true }
 common_routes = { workspace = true }
+frontend_contract = { workspace = true }
 server_app_state = { workspace = true }
 server_admin = { workspace = true }
 server_admin_contract = { workspace = true }

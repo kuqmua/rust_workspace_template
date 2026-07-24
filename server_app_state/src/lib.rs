@@ -187,6 +187,10 @@ pub fn mk_test_server_app_state() -> ServerAppState<'static> {
                 config_lib::StdEnvVarOk::try_from(str_constants::TEST_VALUE_30.to_owned())
                     .expect("8b271546"),
             ),
+            request_timeout_seconds: test_env(
+                config_lib::StdEnvVarOk::try_from(str_constants::TEST_VALUE_30.to_owned())
+                    .expect("1e6a4c92"),
+            ),
             timezone: config_lib::ChronoTimezone::try_from(
                 chrono::FixedOffset::east_opt(10_800i32).expect("695a2c2a"),
             )
@@ -265,6 +269,7 @@ mod tests {
                 pg_pool_acquire_timeout_seconds: env(str_constants::TEST_VALUE_30),
                 pg_pool_idle_timeout_seconds: env(str_constants::TEST_VALUE_30),
                 pg_pool_max_lifetime_seconds: env(str_constants::TEST_VALUE_30),
+                request_timeout_seconds: env(str_constants::TEST_VALUE_30),
                 timezone: config_lib::ChronoTimezone::try_from(
                     chrono::FixedOffset::east_opt(3i32 * 3_600i32).expect("a95d3c17"),
                 )

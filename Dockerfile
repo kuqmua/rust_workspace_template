@@ -5,8 +5,10 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 COPY . .
 ENV ADMIN_FRONTEND_STATIC_DIR=/application/admin/static
-RUN rustup toolchain install nightly-2026-07-12 \
-    && rustup default nightly-2026-07-12 \
+RUN rust_toolchain="$(sed -n 's/^channel = \"\\([^\"]*\\)\"$/\\1/p' rust-toolchain.toml)" \
+    && test -n "${rust_toolchain}" \
+    && rustup toolchain install "${rust_toolchain}" \
+    && rustup default "${rust_toolchain}" \
     && rustup target add wasm32-unknown-unknown \
     && cargo install trunk --version 0.21.14 --locked \
     && cd server_admin_frontend \

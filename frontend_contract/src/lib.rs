@@ -16,6 +16,7 @@ pub enum KnownHttpStatus {
     NoContent,
     Ok,
     PayloadTooLarge,
+    ServiceUnavailable,
     TooManyRequests,
     Unauthorized,
     UnprocessableEntity,
@@ -32,6 +33,7 @@ impl KnownHttpStatus {
             Self::NoContent => 204u16,
             Self::Ok => 200u16,
             Self::PayloadTooLarge => 413u16,
+            Self::ServiceUnavailable => 503u16,
             Self::TooManyRequests => 429u16,
             Self::Unauthorized => 401u16,
             Self::UnprocessableEntity => 422u16,
@@ -52,8 +54,8 @@ pub use auth_session_keep_alive::{
     StdAuthSessionRefreshInterval,
 };
 pub use frontend_contract_macros::{
-    PageCatalog, RouteCatalog, RouteFamily, TypedRoute, handler_registry, route_openapi,
-    route_registry,
+    PageCatalog, RouteCatalog, RouteFamily, TypedRoute, UnitEnumCatalog, handler_registry,
+    route_openapi, route_registry,
 };
 pub use json_snapshot::{
     JsonContractSnapshot, JsonContractSnapshotError, JsonSnapshotDynamicFieldRef,
@@ -72,17 +74,17 @@ pub use problem::{
     ApiProblemStatus, ApiProblemViolation,
 };
 pub use route::{
-    AuthenticatedTransport, CoveredRoute, OpenApiSecuritySchemeRef, ParameterizedRoute,
-    ParameterizedRoutePath, ParameterizedRoutePathTryFromStringError, PublicTransport,
-    RouteBodyLimit, RouteCoverageDescriptors, RouteFamily, RouteInFamily, RouteMetadata,
-    RouteMetadataList, RouteMethod, RouteRequest, RouteRequestBody, RouteResponse,
+    AuthenticatedTransport, AxumMethodFilter, CoveredRoute, OpenApiSecuritySchemeRef,
+    ParameterizedRoute, ParameterizedRoutePath, ParameterizedRoutePathTryFromStringError,
+    PublicTransport, RouteBodyLimit, RouteCoverageDescriptors, RouteFamily, RouteInFamily,
+    RouteMetadata, RouteMetadataList, RouteMethod, RouteRequest, RouteRequestBody, RouteResponse,
     RouteSchemaContract, RouteSchemaContracts, RouteTransport, TypedRoute,
     UtoipaOpenApiComponentsRefMut, UtoipaOpenApiPathParameter, UtoipaOpenApiRefMut,
     UtoipaOpenApiRouteSchema, apply_openapi_error_contract, apply_openapi_path_parameter_contract,
     apply_openapi_request_contract, apply_openapi_security_contract,
-    apply_openapi_success_contract, client_request, client_route_metadata, openapi_route_metadata,
-    register_openapi_route_schemas, register_openapi_schema, server_response,
-    server_route_metadata, typed_parameterized_route_path, typed_route_path,
+    apply_openapi_success_contract, axum_method_filter, client_request, client_route_metadata,
+    openapi_route_metadata, register_openapi_route_schemas, register_openapi_schema,
+    server_response, server_route_metadata, typed_parameterized_route_path, typed_route_path,
 };
 pub use route_contract_validation::{
     HttpContractBody, HttpContractBodyKind, HttpContractExpectation, HttpContractMismatch,
@@ -610,6 +612,7 @@ pub enum RouteErrorStatus {
     MethodNotAllowed,
     PayloadTooLarge,
     RateLimited,
+    ServiceUnavailable,
     Validation,
 }
 impl RouteErrorStatus {
@@ -623,6 +626,7 @@ impl RouteErrorStatus {
             Self::MethodNotAllowed => TransportStatus::from(KnownHttpStatus::MethodNotAllowed),
             Self::PayloadTooLarge => TransportStatus::from(KnownHttpStatus::PayloadTooLarge),
             Self::RateLimited => TransportStatus::from(KnownHttpStatus::TooManyRequests),
+            Self::ServiceUnavailable => TransportStatus::from(KnownHttpStatus::ServiceUnavailable),
             Self::Validation => TransportStatus::from(KnownHttpStatus::UnprocessableEntity),
         }
     }

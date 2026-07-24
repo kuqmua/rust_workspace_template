@@ -3125,10 +3125,6 @@ str_constants_macros::define_str_constants! {
         pub TRACING_PATH_LOG_PATH_TRACING_PATH_LOG_PATH_SETLOGGERERROR = [WORD_TRACING, "::", WORD_LOG, "::", WORD_TRACING, "::", WORD_LOG, "::SetLoggerError"];
         pub VALUE_979FA4B2 = ["979fa4b2"];
         pub VALUE_589EA31D = ["589ea31d"];
-        pub COMMON_ROUTES_HEALTH = ["/", WORD_HEALTH];
-        pub COMMON_ROUTES_HEALTH_CHECK = ["/health_check"];
-        pub COMMON_ROUTES_HEALTH_LIVE = ["/", WORD_HEALTH, "/live"];
-        pub COMMON_ROUTES_HEALTH_READY = ["/", WORD_HEALTH, "/ready"];
         pub CREATE_SCHEMA_ADMIN_MIGRATION_FRESH_TEST = [WORD_CREATE, " ", WORD_SCHEMA, " ", WORD_ADMIN_MIGRATION_FRESH_TEST];
         pub TRUNCATE_ADMIN_ACCESS_SESSIONS_ADMIN_REFRESH_TOKENS_ADMIN_LOGIN_ATTEMPTS_ADMIN_RATE = [WORD_TRUNCATE, " ", WORD_ADMIN_ACCESS_SESSIONS, ", ", WORD_ADMIN_REFRESH_TOKENS, ", ", WORD_ADMIN_LOGIN_ATTEMPTS, ", ", WORD_ADMIN_RATE_LIMITS, ", ", WORD_ADMIN_AUDIT_LOG, ", ", WORD_PG_TABLE_IDEMPOTENCY];
         pub NEWLINE_STRUCT_HELPERSTATE_NEWLINE_NAMES_VEC_STRING_NEWLINE_SEEN_STD_PATH_COLLECTIONS = ["\n", WORD_STRUCT, " HelperState {\n    ", WORD_NAMES, ": ", WORD_VEC, "<", WORD_STRING, ">,\n    seen: ", WORD_STD, "::", WORD_COLLECTIONS, "::", WORD_BTREESET, "<", WORD_STRING, ">,\n    refs: ", WORD_OPTION, "<", WORD_STD, "::", WORD_COLLECTIONS, "::", WORD_HASHSET, "<&\'", WORD_STATIC, " ", WORD_STR, ">>,\n    wrapped: ", WORD_TYPES, "::", WORD_SOURCETEXTLIST, ",\n}\n", WORD_STRUCT, " ", WORD_SOURCETEXTLIST, "(", WORD_VEC, "<", WORD_STRING, ">);\n"];
@@ -3420,13 +3416,15 @@ pub const CODE_STYLE_RUNTIME_TEST_HELPER_REASONS: [&str; 2] = [
     "macro helper assertions intentionally panic on deterministic test-fixture failures",
     "route validator test fixtures intentionally panic on invalid local test setup",
 ];
-pub const CODE_STYLE_RUNTIME_ARC_OWNER_SUFFIXES: [&str; 4] = [
+pub const CODE_STYLE_RUNTIME_ARC_OWNER_SUFFIXES: [&str; 5] = [
+    "notification_service/src/main.rs",
     SERVER_SRC_MAIN_RS,
     SERVER_ADMIN_SRC_PASSWORD_RS,
     SERVER_RUNTIME_SRC_BOUNDED_READ_RS,
     SERVER_RUNTIME_SRC_LIMITS_RS,
 ];
-pub const CODE_STYLE_RUNTIME_ARC_OWNER_REASONS: [&str; 4] = [
+pub const CODE_STYLE_RUNTIME_ARC_OWNER_REASONS: [&str; 5] = [
+    "notification service composition shares immutable application state across request tasks",
     "server composition shares immutable application state across request tasks",
     "password hashing shares the cross-thread concurrency limit",
     "bounded reads share a Tokio semaphore across asynchronous readers",
@@ -3844,6 +3842,7 @@ pub const TRANSPORT: &str = "transport";
 pub const TYPED_ROUTE: &str = "typed_route";
 pub const TYPED_ROUTE_FIELD_PATH: &str = "path";
 pub const TYPED_ROUTE_FIELD_AUTHENTICATION: &str = "authentication";
+pub const TYPED_ROUTE_FIELD_ERROR_RESPONSE: &str = "error_response";
 pub const TYPED_ROUTE_FIELD_ERROR_STATUSES: &str = "error_statuses";
 pub const TYPED_ROUTE_FIELD_PATH_PARAMETER: &str = "path_parameter";
 pub const TYPED_ROUTE_FIELD_SUCCESS_STATUS: &str = "success_status";
@@ -4228,7 +4227,6 @@ pub const ADMIN_SESSION_ERROR_CODE: &str = "admin_session";
 pub const NOTIFICATION_API_ERROR_TYPE: &str = "notification_service::HttpNotificationApiProblem";
 pub const NOTIFICATION_METRICS_ERROR_CODE: &str = "notification_metrics_render";
 pub const NOTIFICATION_PERSISTENCE_ERROR_CODE: &str = "notification_persistence";
-pub const NOTIFICATION_READINESS_ERROR_CODE: &str = "notification_readiness";
 pub const NOTIFICATION_VALIDATION_ERROR_CODE: &str = "notification_validation";
 pub const X_REQUEST_ID: &str = "x-request-id";
 pub const TRACEPARENT_W3C_VERSION_00_FORMAT: &str =

@@ -6,6 +6,7 @@
 struct NotificationState {
     metrics: MetricsExporterPrometheusHandle,
     pool: app_state::SqlxPgPool,
+    project_git_info: git_info::ProjectGitInfo<'static>,
 }
 #[derive(Clone, Debug, newtype::FromInner)]
 struct AxumNotificationState(NotificationState);
@@ -28,8 +29,6 @@ enum HttpNotificationApiProblem {
     Metrics(#[source] server_runtime::ObservedError<server_runtime::MetricsResponseBodyError>),
     #[error("notification persistence failed: {0}")]
     Persistence(#[source] server_runtime::ObservedError<SqlxNotificationDatabaseError>),
-    #[error("notification readiness probe failed: {0}")]
-    Readiness(#[source] server_runtime::ObservedError<SqlxNotificationDatabaseError>),
     #[error("notification request validation failed")]
     Validation,
 }
@@ -57,7 +56,6 @@ impl axum::response::IntoResponse for HttpNotificationApiProblem {
     fn into_response(self) -> axum::response::Response {
         let status = match &self {
             Self::Metrics(_) | Self::Persistence(_) => http::StatusCode::INTERNAL_SERVER_ERROR,
-            Self::Readiness(_) => http::StatusCode::SERVICE_UNAVAILABLE,
             Self::Validation => http::StatusCode::UNPROCESSABLE_ENTITY,
         };
         let error_type =
@@ -66,9 +64,9 @@ impl axum::response::IntoResponse for HttpNotificationApiProblem {
             Self::Metrics(error) => Some(server_runtime::HttpErrorDiagnostic::from_observed(
                 error_type, error,
             )),
-            Self::Persistence(error) | Self::Readiness(error) => Some(
-                server_runtime::HttpErrorDiagnostic::from_observed(error_type, error),
-            ),
+            Self::Persistence(error) => Some(server_runtime::HttpErrorDiagnostic::from_observed(
+                error_type, error,
+            )),
             Self::Validation => None,
         };
         let telemetry = server_runtime::HttpErrorTelemetry::new(
@@ -109,6 +107,17 @@ impl axum::extract::FromRequestParts<NotificationState> for AxumNotificationStat
         std::future::ready(Ok(Self::from(state.clone())))
     }
 }
+impl app_state::GetSqlxPgPool for NotificationState {
+    fn get_sqlx_pg_pool(&self) -> app_state::SqlxPgPoolRef<'_> {
+        app_state::SqlxPgPoolRef::from(self.pool.as_ref())
+    }
+}
+impl AsRef<str> for NotificationState {
+    fn as_ref(&self) -> &str {
+        self.project_git_info.as_ref()
+    }
+}
+impl common_routes::CommonRoutesParameters for NotificationState {}
 impl axum::extract::FromRequest<NotificationState> for AxumNotificationJson {
     type Rejection = HttpNotificationApiProblem;
     async fn from_request(
@@ -210,32 +219,13 @@ async fn metrics(
     })
 }
 
-async fn readiness(
-    state: AxumNotificationState,
-) -> Result<HttpNotificationStatusCode, HttpNotificationApiProblem> {
-    match sqlx::query(str_constants::COMMON_ROUTES_HEALTH_CHECK_SQL)
-        .execute(state.0.pool.as_ref())
-        .await
-    {
-        Ok(_result) => Ok(HttpNotificationStatusCode::from(http::StatusCode::OK)),
-        Err(error) => Err(HttpNotificationApiProblem::Readiness(
-            server_runtime::ObservedError::capture(
-                SqlxNotificationDatabaseError::from(error),
-                server_runtime::ObservedErrorCode::from(
-                    str_constants::NOTIFICATION_READINESS_ERROR_CODE,
-                ),
-            ),
-        )),
-    }
-}
-
-async fn liveness() -> HttpNotificationStatusCode {
-    HttpNotificationStatusCode::from(http::StatusCode::OK)
-}
-
 async fn open_api() -> AxumNotificationResponse {
+    let mut document = NotificationApiRouteRegistry::open_api();
+    document.merge(utoipa::openapi::OpenApi::from(
+        common_routes::CommonRoutesOpenApi::open_api(),
+    ));
     AxumNotificationResponse::from(axum::response::IntoResponse::into_response(axum::Json(
-        NotificationApiRouteRegistry::open_api(),
+        document,
     )))
 }
 
@@ -258,16 +248,6 @@ struct NotificationApiRouteRegistry;
 #[frontend_contract::handler_registry(
     state = NotificationState;
     (
-        str_constants::COMMON_ROUTES_HEALTH_LIVE,
-        axum::routing::get,
-        liveness
-    ),
-    (
-        str_constants::COMMON_ROUTES_HEALTH_READY,
-        axum::routing::get,
-        readiness
-    ),
-    (
         str_constants::METRICS,
         axum::routing::get,
         metrics
@@ -284,11 +264,15 @@ fn router(
     state: NotificationState,
     body_maximum_bytes: NotificationBodyMaximumBytes,
 ) -> AxumNotificationRouter {
+    let common_routes = axum::Router::from(common_routes::common_routes(
+        common_routes::StdArcCommonRoutesAppState::from(std::sync::Arc::new(state.clone())),
+    ));
     AxumNotificationRouter::from(
         NotificationRouteRegistry::router()
             .merge(NotificationApiRouteRegistry::router())
             .layer(axum::extract::DefaultBodyLimit::max(body_maximum_bytes.0))
-            .with_state(state),
+            .with_state(state)
+            .merge(common_routes),
     )
 }
 
@@ -348,11 +332,10 @@ async fn run(config: notification_service_config::Config) -> Result<(), Notifica
                             NotificationState {
                                 metrics,
                                 pool: app_state::SqlxPgPool::from(pool),
+                                project_git_info: git_info::project_git_info(),
                             },
                             NotificationBodyMaximumBytes::from(
-                                (**config.maximum_size_of_http_body_in_bytes()).min(
-                                    notification_service_contract::NOTIFICATION_API_BODY_MAX_BYTES,
-                                ),
+                                notification_service_contract::NOTIFICATION_API_BODY_MAX_BYTES,
                             ),
                         )
                         .0,
@@ -430,6 +413,7 @@ mod tests {
                     .handle(),
             ),
             pool: app_state::SqlxPgPool::from(pool),
+            project_git_info: git_info::project_git_info(),
         }
     }
 
@@ -450,7 +434,7 @@ mod tests {
         let liveness_response = tower::ServiceExt::oneshot(
             router.clone(),
             http::Request::builder()
-                .uri(str_constants::COMMON_ROUTES_HEALTH_LIVE)
+                .uri(common_routes::CommonRoute::HealthLive.path().as_ref())
                 .body(axum::body::Body::empty())
                 .expect("ec467ec0"),
         )
@@ -471,9 +455,13 @@ mod tests {
 
     #[test]
     fn open_api_has_no_unresolved_schema_references() {
-        frontend_contract::validate_openapi_schema_references(
-            &super::NotificationApiRouteRegistry::open_api(),
-        )
+        frontend_contract::validate_openapi_schema_references(&{
+            let mut document = super::NotificationApiRouteRegistry::open_api();
+            document.merge(utoipa::openapi::OpenApi::from(
+                common_routes::CommonRoutesOpenApi::open_api(),
+            ));
+            document
+        })
         .expect("3e63ebd8");
     }
 

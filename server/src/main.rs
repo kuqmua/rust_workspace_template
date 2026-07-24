@@ -165,24 +165,36 @@ fn mk_api_routes(
     let generated_table_routes = axum::Router::from(
         server_admin::generated_tables::generated_routes(&generated_table_state),
     );
+    let open_api_contract = server_admin_contract::AdminRoute::OpenApi.contract();
     let documented_admin_routes = if *app_state.config.admin_swagger_enabled {
         generated_table_routes.route(
-            str_constants::OPENAPI_JSON,
-            axum::routing::get(async || {
-                axum::Json(utoipa::openapi::OpenApi::from(
-                    server_admin::generated_tables::generated_open_api(),
-                ))
-            }),
+            open_api_contract.path().as_ref(),
+            axum::routing::on(
+                axum::routing::MethodFilter::from(frontend_contract::axum_method_filter(
+                    open_api_contract.method(),
+                )),
+                async || {
+                    axum::Json(utoipa::openapi::OpenApi::from(
+                        server_admin::generated_tables::generated_open_api(),
+                    ))
+                },
+            ),
         )
     } else {
         generated_table_routes
     }
     .method_not_allowed_fallback(async || server_admin::auth::AdminApiError::MethodNotAllowed);
+    let metrics_contract = server_admin_contract::AdminRoute::Metrics.contract();
     let secured_admin_routes = documented_admin_routes
         .route(
-            str_constants::METRICS,
-            axum::routing::get(async move || {
-                match server_runtime::MetricsResponseBody::try_from(metrics_handle.0.render()) {
+            metrics_contract.path().as_ref(),
+            axum::routing::on(
+                axum::routing::MethodFilter::from(frontend_contract::axum_method_filter(
+                    metrics_contract.method(),
+                )),
+                async move || match server_runtime::MetricsResponseBody::try_from(
+                    metrics_handle.0.render(),
+                ) {
                     Ok(body) => axum::response::IntoResponse::into_response((
                         axum::http::StatusCode::OK,
                         body.into_inner(),
@@ -190,8 +202,8 @@ fn mk_api_routes(
                     Err(_error) => axum::response::IntoResponse::into_response(
                         axum::http::StatusCode::INTERNAL_SERVER_ERROR,
                     ),
-                }
-            }),
+                },
+            ),
         )
         .route_layer(server_admin::AdminGeneratedAuthLayer::from(
             generated_admin_auth_state,
@@ -369,6 +381,7 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
             &config,
         );
     let http_gzip_enabled = *config.http_gzip_enabled;
+    let request_timeout_seconds = config.request_timeout_seconds.get();
     let app_state = mk_app_state(config, pg_pool);
     let metrics_handle = metrics_exporter_prometheus::PrometheusBuilder::new()
         .install_recorder()
@@ -430,11 +443,12 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
             server_app_state::ServerAppState<'static>,
         >::clone(app_state.get())),
     ));
-    let request_timeout =
-        server_runtime::StdRequestTimeout::try_from(std::time::Duration::from_secs(30u64))
-            .map_err(|error| {
-                RunServerError::RuntimeTimeout(ServerRuntimeRequestTimeoutError::from(error))
-            })?;
+    let request_timeout = server_runtime::StdRequestTimeout::try_from(
+        std::time::Duration::from_secs(request_timeout_seconds),
+    )
+    .map_err(|error| {
+        RunServerError::RuntimeTimeout(ServerRuntimeRequestTimeoutError::from(error))
+    })?;
     let router = server_runtime::RequestIdLayer::with_span_config(
         server_runtime::HttpRequestSpanConfig::new(
             server_runtime::ServiceName::from(env!("CARGO_PKG_NAME")),

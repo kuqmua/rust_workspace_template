@@ -12,9 +12,6 @@ pub struct Config {
     )]
     notification_database_url: config_lib::DatabaseUrl,
     #[config(getter)]
-    #[config(example = "8192")]
-    maximum_size_of_http_body_in_bytes: config_lib::MaximumSizeOfHttpBodyInBytes,
-    #[config(getter)]
     #[config(example = "30")]
     request_timeout_seconds: config_lib::RequestTimeoutSeconds,
     #[config(getter)]
@@ -43,9 +40,6 @@ mod tests {
         ));
         assert!(is_typed_getter::<config_lib::types::TracingFormat>(
             super::Config::tracing_format
-        ));
-        assert!(is_typed_getter::<config_lib::MaximumSizeOfHttpBodyInBytes>(
-            super::Config::maximum_size_of_http_body_in_bytes
         ));
         assert!(is_typed_getter::<config_lib::PgPoolMaxConnections>(
             super::Config::pg_pool_max_connections

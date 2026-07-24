@@ -6,10 +6,13 @@ mod tests {
     struct TestRequest;
     #[derive(Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema)]
     struct TestResponse;
+    #[derive(Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema)]
+    struct TestErrorResponse;
 
     #[derive(frontend_contract::TypedRoute)]
     #[typed_route(
         authentication = frontend_contract::AuthenticationRequirement::Public,
+        error_response = TestErrorResponse,
         error_policy = frontend_contract::RouteErrorPolicy::Authentication,
         method = frontend_contract::RouteMethod::Get,
         mutation = frontend_contract::RouteMutation::ReadOnly,
@@ -32,7 +35,7 @@ mod tests {
     #[route_family(TestRoute)]
     struct TestRouteFamily;
 
-    #[derive(Clone, Copy, frontend_contract::RouteCatalog)]
+    #[derive(Clone, Copy, Debug, Eq, PartialEq, frontend_contract::RouteCatalog)]
     #[route_catalog(family = TestCatalogFamily, body_limit = 1024usize)]
     enum TestCatalog {
         #[route_catalog_route(
@@ -72,7 +75,22 @@ mod tests {
         let schemas = &document.components.expect("307e6e5f").schemas;
         assert!(schemas.contains_key("TestRequest"));
         assert!(schemas.contains_key("TestResponse"));
+        assert!(schemas.contains_key("TestErrorResponse"));
         assert!(schemas.contains_key("ApiProblem"));
+    }
+
+    #[test]
+    fn typed_route_applies_declared_error_response_schema() {
+        let mut operation = utoipa::openapi::path::Operation::default();
+        frontend_contract::apply_openapi_error_contract::<TestRoute>(&mut operation);
+        assert!(operation.responses.responses.values().all(|response_ref| {
+            match response_ref {
+                utoipa::openapi::RefOr::T(response_value) => response_value
+                    .content
+                    .contains_key(str_constants::APPLICATION_JSON),
+                utoipa::openapi::RefOr::Ref(_reference) => false,
+            }
+        }));
     }
 
     #[test]
@@ -115,6 +133,7 @@ mod tests {
     }
     #[test]
     fn route_catalog_generates_contract_paths_and_family() {
+        assert_eq!(TestCatalog::ALL, [TestCatalog::Custom, TestCatalog::Read]);
         assert_eq!(
             TestCatalog::Read.contract(),
             frontend_contract::client_route_metadata::<TestRoute>().contract()

@@ -55,6 +55,26 @@ fn continuous_integration_uses_the_pinned_workspace_toolchain() {
             .count(),
         workflow.as_ref().matches("toolchain:").count()
     );
+    let services = std::fs::read_to_string(repository_root.join("deploy/services.toml"))
+        .expect("6b2f8d41")
+        .parse::<toml::Table>()
+        .expect("1a7c5e93");
+    services
+        .get("service")
+        .and_then(toml::Value::as_array)
+        .expect("9d4e2b60")
+        .iter()
+        .for_each(|service| {
+            let dockerfile = service
+                .as_table()
+                .and_then(|table| table.get("dockerfile"))
+                .and_then(toml::Value::as_str)
+                .expect("3c8a1f72");
+            let source =
+                std::fs::read_to_string(repository_root.join(dockerfile)).expect("5e9b4d16");
+            assert!(source.contains("rust-toolchain.toml"));
+            assert!(!source.contains(toolchain));
+        });
 }
 #[test]
 fn workflow_jobs_have_timeouts_and_marketplace_actions_use_commit_shas() {

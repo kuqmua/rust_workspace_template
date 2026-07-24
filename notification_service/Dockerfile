@@ -4,8 +4,10 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends libssl-dev pkg-config \
     && rm -rf /var/lib/apt/lists/*
 COPY . .
-RUN rustup toolchain install nightly-2026-07-12 \
-    && rustup default nightly-2026-07-12 \
+RUN rust_toolchain="$(sed -n 's/^channel = \"\\([^\"]*\\)\"$/\\1/p' rust-toolchain.toml)" \
+    && test -n "${rust_toolchain}" \
+    && rustup toolchain install "${rust_toolchain}" \
+    && rustup default "${rust_toolchain}" \
     && cargo build --locked --release --package notification_service
 
 FROM debian:bookworm-slim@sha256:7b140f374b289a7c2befc338f42ebe6441b7ea838a042bbd5acbfca6ec875818
