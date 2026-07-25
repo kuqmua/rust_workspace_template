@@ -2163,7 +2163,12 @@ struct ManualDeserializeTupleWrapperVisitor<'names> {
 }
 struct TupleWrapperConversionCollector {
     converted_names: types::StdSourceTextSet,
+    from_inner_names: types::StdSourceTextSet,
+    from_names: types::StdSourceTextSet,
+    inner_types: std::collections::BTreeMap<String, syn::Type>,
     names: types::StdSourceTextSet,
+    try_from_inner_names: types::StdSourceTextSet,
+    try_from_names: types::StdSourceTextSet,
 }
 struct DirectTupleWrapperConstructorVisitor<'names> {
     current_wrapper_name: Option<String>,
@@ -2241,9 +2246,28 @@ impl<'ast> syn::visit::Visit<'ast> for ManualDeserializeTupleWrapperVisitor<'_> 
 }
 impl<'ast> syn::visit::Visit<'ast> for TupleWrapperConversionCollector {
     fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
-        if item_impl_is_from_or_try_from(types::SynItemImplRef::from(i)).get()
-            && let Some(name) = item_impl_self_ty_identifier(types::SynItemImplRef::from(i))
-        {
+        let item_ref = types::SynItemImplRef::from(i);
+        let Some(name) = item_impl_self_ty_identifier(item_ref) else {
+            syn::visit::visit_item_impl(self, i);
+            return;
+        };
+        if item_impl_is_from(item_ref).get() {
+            let _: bool = self.from_names.insert(name.as_ref().to_owned());
+            if let Some(inner_type) = self.inner_types.get(name.as_ref())
+                && item_impl_input_type_is(item_ref, inner_type).get()
+            {
+                let _: bool = self.from_inner_names.insert(name.as_ref().to_owned());
+            }
+        }
+        if item_impl_is_try_from(item_ref).get() {
+            let _: bool = self.try_from_names.insert(name.as_ref().to_owned());
+            if let Some(inner_type) = self.inner_types.get(name.as_ref())
+                && item_impl_input_type_is(item_ref, inner_type).get()
+            {
+                let _: bool = self.try_from_inner_names.insert(name.as_ref().to_owned());
+            }
+        }
+        if item_impl_is_from_or_try_from(item_ref).get() {
             let _: bool = self.converted_names.insert(name.as_ref().to_owned());
         }
         syn::visit::visit_item_impl(self, i);
@@ -2252,7 +2276,22 @@ impl<'ast> syn::visit::Visit<'ast> for TupleWrapperConversionCollector {
         if item_struct_is_single_field_tuple_wrapper(types::SynItemStructRef::from(i)).get() {
             let name = i.ident.to_string();
             let _: bool = self.names.insert(name.clone());
-            if item_struct_derives_conversion(types::SynItemStructRef::from(i)).get() {
+            if let syn::Fields::Unnamed(fields) = &i.fields
+                && fields.unnamed.len() == 1usize
+                && let Some(field) = fields.unnamed.first()
+            {
+                drop(self.inner_types.insert(name.clone(), field.ty.clone()));
+            }
+            let item_ref = types::SynItemStructRef::from(i);
+            if item_struct_derives_from_inner(item_ref).get() {
+                let _: bool = self.from_names.insert(name.clone());
+                let _: bool = self.from_inner_names.insert(name.clone());
+            }
+            if item_struct_derives_try_from(item_ref).get() {
+                let _: bool = self.try_from_names.insert(name.clone());
+                let _: bool = self.try_from_inner_names.insert(name.clone());
+            }
+            if item_struct_derives_conversion(item_ref).get() {
                 let _: bool = self.converted_names.insert(name);
             }
         }
@@ -3992,6 +4031,73 @@ fn item_struct_derives_conversion(item: types::SynItemStructRef<'_>) -> types::A
             syn::Meta::NameValue(_) | syn::Meta::Path(_) => false,
         }
     }))
+}
+#[allow(clippy::single_call_fn)] // keeps FromInner derive detection reusable inside wrapper conversion collection
+fn item_struct_derives_from_inner(item: types::SynItemStructRef<'_>) -> types::AnalyzerBool {
+    types::AnalyzerBool::from(item.as_ref().attrs.iter().any(|attr| {
+        if !attr.path().is_ident(str_constants::DERIVE) {
+            return false;
+        }
+        match &attr.meta {
+            syn::Meta::List(list) => list
+                .tokens
+                .to_string()
+                .contains(str_constants::NEWTYPE_FROM_INNER_DERIVE_NAME),
+            syn::Meta::NameValue(_) | syn::Meta::Path(_) => false,
+        }
+    }))
+}
+#[allow(clippy::single_call_fn)] // keeps TryFrom derive detection reusable inside wrapper conversion collection
+fn item_struct_derives_try_from(item: types::SynItemStructRef<'_>) -> types::AnalyzerBool {
+    types::AnalyzerBool::from(item.as_ref().attrs.iter().any(|attr| {
+        if !attr.path().is_ident(str_constants::DERIVE) {
+            return false;
+        }
+        match &attr.meta {
+            syn::Meta::List(list) => {
+                let tokens = list.tokens.to_string();
+                tokens.contains(str_constants::NEWTYPE_TRY_FROM_DERIVE_NAME)
+                    || tokens.contains(str_constants::BOUNDEDSTRING)
+                    || tokens.contains(str_constants::TRYFROM)
+            }
+            syn::Meta::NameValue(_) | syn::Meta::Path(_) => false,
+        }
+    }))
+}
+#[allow(clippy::single_call_fn)] // isolates `From<T>` impl detection for tuple-wrapper conversion analysis
+fn item_impl_is_from(item: types::SynItemImplRef<'_>) -> types::AnalyzerBool {
+    types::AnalyzerBool::from(item.as_ref().trait_.as_ref().is_some_and(|(_, path, _)| {
+        path.segments
+            .last()
+            .is_some_and(|segment| segment.ident == str_constants::FROM_ALT_3)
+    }))
+}
+#[allow(clippy::single_call_fn)] // isolates `TryFrom<T>` impl detection for tuple-wrapper conversion analysis
+fn item_impl_is_try_from(item: types::SynItemImplRef<'_>) -> types::AnalyzerBool {
+    types::AnalyzerBool::from(item.as_ref().trait_.as_ref().is_some_and(|(_, path, _)| {
+        path.segments
+            .last()
+            .is_some_and(|segment| segment.ident == str_constants::TRYFROM)
+    }))
+}
+fn item_impl_input_type_is(
+    item: types::SynItemImplRef<'_>,
+    expected_input_type: &syn::Type,
+) -> types::AnalyzerBool {
+    let source_type = item.as_ref().trait_.as_ref().and_then(|(_, path, _)| {
+        let segment = path.segments.last()?;
+        let syn::PathArguments::AngleBracketed(arguments) = &segment.arguments else {
+            return None;
+        };
+        let argument = arguments.args.first()?;
+        let syn::GenericArgument::Type(value) = argument else {
+            return None;
+        };
+        Some(value)
+    });
+    types::AnalyzerBool::from(
+        source_type.is_some_and(|input_type| input_type == expected_input_type),
+    )
 }
 fn item_impl_is_from_or_try_from(item: types::SynItemImplRef<'_>) -> types::AnalyzerBool {
     types::AnalyzerBool::from(item.as_ref().trait_.as_ref().is_some_and(|(_, path, _)| {

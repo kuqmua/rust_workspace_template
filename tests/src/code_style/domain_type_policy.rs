@@ -213,7 +213,12 @@ fn tuple_wrapper_deserialization_uses_from_or_try_from() {
                 super::types::SynFileRef::from(ast),
                 super::TupleWrapperConversionCollector {
                     converted_names: super::types::StdSourceTextSet::default(),
+                    inner_types: std::collections::BTreeMap::default(),
                     names: super::types::StdSourceTextSet::default(),
+                    from_names: super::types::StdSourceTextSet::default(),
+                    from_inner_names: super::types::StdSourceTextSet::default(),
+                    try_from_names: super::types::StdSourceTextSet::default(),
+                    try_from_inner_names: super::types::StdSourceTextSet::default(),
                 },
             );
             let derive_visitor = super::visit_syn_file(
@@ -281,7 +286,12 @@ fn tuple_wrapper_deserialization_policy_rejects_direct_derive() {
         super::types::SynFileRef::from(&ast),
         super::TupleWrapperConversionCollector {
             converted_names: super::types::StdSourceTextSet::default(),
+            inner_types: std::collections::BTreeMap::default(),
             names: super::types::StdSourceTextSet::default(),
+            from_names: super::types::StdSourceTextSet::default(),
+            from_inner_names: super::types::StdSourceTextSet::default(),
+            try_from_names: super::types::StdSourceTextSet::default(),
+            try_from_inner_names: super::types::StdSourceTextSet::default(),
         },
     );
     let derive_visitor = super::visit_syn_file(
@@ -326,7 +336,12 @@ fn tuple_wrappers_initialize_only_through_from_or_try_from() {
                 super::types::SynFileRef::from(ast),
                 super::TupleWrapperConversionCollector {
                     converted_names: super::types::StdSourceTextSet::default(),
+                    inner_types: std::collections::BTreeMap::default(),
                     names: super::types::StdSourceTextSet::default(),
+                    from_names: super::types::StdSourceTextSet::default(),
+                    from_inner_names: super::types::StdSourceTextSet::default(),
+                    try_from_names: super::types::StdSourceTextSet::default(),
+                    try_from_inner_names: super::types::StdSourceTextSet::default(),
                 },
             );
             ers.extend(
@@ -336,6 +351,17 @@ fn tuple_wrappers_initialize_only_through_from_or_try_from() {
                     .map(|name| {
                         format!(
                             "{}: tuple wrapper `{name}` has no From/TryFrom implementation",
+                            path.display()
+                        )
+                    }),
+            );
+            ers.extend(
+                collector
+                    .from_inner_names
+                    .intersection(&collector.try_from_inner_names)
+                    .map(|name| {
+                        format!(
+                            "{}: tuple wrapper `{name}` implements both From and TryFrom for its inner type",
                             path.display()
                         )
                     }),
@@ -358,6 +384,67 @@ fn tuple_wrappers_initialize_only_through_from_or_try_from() {
         },
     );
 }
+
+#[test]
+fn tuple_wrapper_rejects_from_and_try_from_for_same_inner_type() {
+    let ast: syn::File = syn::parse_quote! {
+        struct Conflict(u64);
+
+        impl From<u64> for Conflict {
+            fn from(value: u64) -> Self {
+                Self(value)
+            }
+        }
+
+        impl TryFrom<u64> for Conflict {
+            type Error = ();
+
+            fn try_from(value: u64) -> Result<Self, Self::Error> {
+                Ok(Self(value))
+            }
+        }
+
+        struct DifferentFrom(u64);
+
+        impl From<isize> for DifferentFrom {
+            fn from(value: isize) -> Self {
+                Self(value as u64)
+            }
+        }
+
+        impl TryFrom<u64> for DifferentFrom {
+            type Error = ();
+
+            fn try_from(value: u64) -> Result<Self, Self::Error> {
+                Ok(Self(value))
+            }
+        }
+    };
+
+    let collector = super::visit_syn_file(
+        super::types::SynFileRef::from(&ast),
+        super::TupleWrapperConversionCollector {
+            converted_names: super::types::StdSourceTextSet::default(),
+            inner_types: std::collections::BTreeMap::default(),
+            names: super::types::StdSourceTextSet::default(),
+            from_names: super::types::StdSourceTextSet::default(),
+            from_inner_names: super::types::StdSourceTextSet::default(),
+            try_from_names: super::types::StdSourceTextSet::default(),
+            try_from_inner_names: super::types::StdSourceTextSet::default(),
+        },
+    );
+    let conflicts: std::collections::BTreeSet<String> = collector
+        .from_inner_names
+        .intersection(&collector.try_from_inner_names)
+        .cloned()
+        .collect();
+    assert_eq!(
+        conflicts,
+        std::collections::BTreeSet::from([String::from("Conflict")]),
+        "4c8f5a3d {conflicts:#?}"
+    );
+}
+
 #[test]
 fn tuple_wrapper_initialization_policy_rejects_direct_constructors() {
     let ast: syn::File = syn::parse_quote! {
@@ -387,7 +474,12 @@ fn tuple_wrapper_initialization_policy_rejects_direct_constructors() {
         super::types::SynFileRef::from(&ast),
         super::TupleWrapperConversionCollector {
             converted_names: super::types::StdSourceTextSet::default(),
+            inner_types: std::collections::BTreeMap::default(),
             names: super::types::StdSourceTextSet::default(),
+            from_names: super::types::StdSourceTextSet::default(),
+            from_inner_names: super::types::StdSourceTextSet::default(),
+            try_from_names: super::types::StdSourceTextSet::default(),
+            try_from_inner_names: super::types::StdSourceTextSet::default(),
         },
     );
     assert_eq!(collector.names.len(), 2, "b058f76c");

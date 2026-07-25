@@ -442,15 +442,14 @@ pub fn emit_generate_pg_table(
         #[serde(default)]
         cm_max_items: Option<StdBulkItemsMax>,
         #[serde(default)]
-        create_exclude_fields: StdCreateExcludeFields,
+        create_exclude_fields: Option<UsizeCreateExcludeFields>,
         #[serde(default)]
         db_foreign_keys: Vec<GeneratePgTableDbForeignKey>,
         #[serde(default)]
         db_table_name: Option<String>,
         #[serde(default)]
         db_unique_keys: Vec<Vec<String>>,
-        #[serde(default)]
-        read_exclude_fields: StdReadExcludeFields,
+        read_exclude_fields: Option<UsizeReadExcludeFields>,
         #[serde(default)]
         permission_prefix: Option<String>,
         #[serde(default)]
@@ -467,14 +466,35 @@ pub fn emit_generate_pg_table(
     }
     #[derive(Debug, serde::Deserialize)]
     struct GeneratePgTableDbForeignKey {
-        columns: GeneratePgTableDbColumns,
-        referenced_columns: GeneratePgTableDbColumns,
+        columns: UsizeGeneratePgTableDbColumns,
+        referenced_columns: UsizeGeneratePgTableDbColumns,
         referenced_table: String,
     }
-    #[derive(Debug, serde::Deserialize)]
-    #[serde(from = "Vec<String>")]
-    #[derive(newtype::DerefInner, newtype::FromInner)]
-    struct GeneratePgTableDbColumns(Vec<String>);
+    const GENERATE_PG_TABLE_MAX_IDENTIFIER_LEN: usize = 63;
+    #[derive(Debug, Clone, newtype::AsRefStr, newtype::Display, newtype::BoundedString)]
+    #[bounded_string(max = GENERATE_PG_TABLE_MAX_IDENTIFIER_LEN, serde)]
+    struct GeneratePgTableDbColumn(String);
+    #[derive(Debug, Clone, newtype::AsRefStr, newtype::Display, newtype::BoundedString)]
+    #[bounded_string(max = GENERATE_PG_TABLE_MAX_IDENTIFIER_LEN, min = 1usize, serde)]
+    struct GeneratePgTableExcludeField(String);
+    impl std::ops::Deref for UsizeGeneratePgTableDbColumns {
+        type Target = [GeneratePgTableDbColumn];
+        fn deref(&self) -> &Self::Target {
+            self.0.as_slice()
+        }
+    }
+    impl std::ops::Deref for UsizeCreateExcludeFields {
+        type Target = [GeneratePgTableExcludeField];
+        fn deref(&self) -> &Self::Target {
+            self.0.as_slice()
+        }
+    }
+    impl std::ops::Deref for UsizeReadExcludeFields {
+        type Target = [GeneratePgTableExcludeField];
+        fn deref(&self) -> &Self::Target {
+            self.0.as_slice()
+        }
+    }
     #[derive(Clone, Copy, Debug, Default, serde::Deserialize)]
     enum GeneratePgTableApiMode {
         AppendOnly,
@@ -489,14 +509,53 @@ pub fn emit_generate_pg_table(
     #[derive(newtype::FromInner)]
     struct StdBulkItemsMax(usize);
 
-    #[derive(Debug, Default, serde::Deserialize)]
-    #[serde(from = "Vec<String>")]
-    #[derive(newtype::DerefInner, newtype::FromInner)]
-    struct StdCreateExcludeFields(Vec<String>);
-    #[derive(Debug, Default, serde::Deserialize)]
-    #[serde(from = "Vec<String>")]
-    #[derive(newtype::DerefInner, newtype::FromInner)]
-    struct StdReadExcludeFields(Vec<String>);
+    #[derive(Debug, serde::Deserialize)]
+    #[serde(try_from = "Vec<GeneratePgTableDbColumn>")]
+    struct UsizeGeneratePgTableDbColumns(
+        pg_crud_common::bounded_vec::BoundedVec<GeneratePgTableDbColumn, 0usize, { usize::MAX }>,
+    );
+    #[derive(Debug, serde::Deserialize)]
+    #[serde(try_from = "Vec<GeneratePgTableExcludeField>")]
+    struct UsizeCreateExcludeFields(
+        pg_crud_common::bounded_vec::BoundedVec<
+            GeneratePgTableExcludeField,
+            0usize,
+            { usize::MAX },
+        >,
+    );
+    #[derive(Debug, serde::Deserialize)]
+    #[serde(try_from = "Vec<GeneratePgTableExcludeField>")]
+    struct UsizeReadExcludeFields(
+        pg_crud_common::bounded_vec::BoundedVec<
+            GeneratePgTableExcludeField,
+            0usize,
+            { usize::MAX },
+        >,
+    );
+    impl TryFrom<Vec<GeneratePgTableDbColumn>> for UsizeGeneratePgTableDbColumns {
+        type Error = pg_crud_common::bounded_vec::BoundedVecError;
+        fn try_from(value: Vec<GeneratePgTableDbColumn>) -> Result<Self, Self::Error> {
+            Ok(Self(pg_crud_common::bounded_vec::BoundedVec::try_from(
+                value,
+            )?))
+        }
+    }
+    impl TryFrom<Vec<GeneratePgTableExcludeField>> for UsizeCreateExcludeFields {
+        type Error = pg_crud_common::bounded_vec::BoundedVecError;
+        fn try_from(value: Vec<GeneratePgTableExcludeField>) -> Result<Self, Self::Error> {
+            Ok(Self(pg_crud_common::bounded_vec::BoundedVec::try_from(
+                value,
+            )?))
+        }
+    }
+    impl TryFrom<Vec<GeneratePgTableExcludeField>> for UsizeReadExcludeFields {
+        type Error = pg_crud_common::bounded_vec::BoundedVecError;
+        fn try_from(value: Vec<GeneratePgTableExcludeField>) -> Result<Self, Self::Error> {
+            Ok(Self(pg_crud_common::bounded_vec::BoundedVec::try_from(
+                value,
+            )?))
+        }
+    }
     struct GeneratePgTableEmissionModel {
         config: GeneratePgTableConfig,
         error_variants_by_attr:
@@ -1466,59 +1525,52 @@ pub fn emit_generate_pg_table(
             .iter()
             .filter_map(|field_idx| fields.get(field_idx.get()))
     };
-    if generate_pg_table_input_model
+    let create_exclude_fields = generate_pg_table_input_model
         .config
         .create_exclude_fields
-        .iter()
-        .any(|excluded| {
-            excluded == &primary_key_field.identifier.to_string()
-                || !fields_without_primary_key_iter()
-                    .any(|field| field.identifier.to_string() == *excluded)
-        })
-    {
+        .as_deref()
+        .unwrap_or(&[]);
+    let read_exclude_fields = generate_pg_table_input_model
+        .config
+        .read_exclude_fields
+        .as_deref()
+        .unwrap_or(&[]);
+    if create_exclude_fields.iter().any(|excluded| {
+        excluded.as_ref() == primary_key_field.identifier.to_string()
+            || !fields_without_primary_key_iter()
+                .any(|field| field.identifier.to_string() == excluded.as_ref())
+    }) {
         return compile_error_token_stream(CompileErrorMessage::from(
             str_constants::COMPILE_ERROR_CE_017,
         ));
     }
     let create_field_is_excluded = |field: &macros_helpers::field_data::SynField| {
-        generate_pg_table_input_model
-            .config
-            .create_exclude_fields
+        create_exclude_fields
             .iter()
-            .any(|excluded| excluded == &field.identifier.to_string())
+            .any(|excluded| excluded.as_ref() == field.identifier.to_string())
     };
     let create_fields_without_primary_key_iter =
         || fields_without_primary_key_iter().filter(|field| !create_field_is_excluded(field));
-    let read_excluded_fields_are_unique = generate_pg_table_input_model
-        .config
-        .read_exclude_fields
+    let read_excluded_fields_are_unique = read_exclude_fields
         .iter()
+        .map(AsRef::as_ref)
         .collect::<std::collections::HashSet<_>>()
         .len()
-        == generate_pg_table_input_model
-            .config
-            .read_exclude_fields
-            .len();
-    let read_excluded_fields_are_valid = generate_pg_table_input_model
-        .config
-        .read_exclude_fields
-        .iter()
-        .all(|excluded| {
-            excluded != &primary_key_field.identifier.to_string()
-                && fields_without_primary_key_iter()
-                    .any(|field| field.identifier.to_string() == *excluded)
-        });
+        == read_exclude_fields.len();
+    let read_excluded_fields_are_valid = read_exclude_fields.iter().all(|excluded| {
+        excluded.as_ref() != primary_key_field.identifier.to_string()
+            && fields_without_primary_key_iter()
+                .any(|field| field.identifier.to_string() == excluded.as_ref())
+    });
     if !read_excluded_fields_are_unique || !read_excluded_fields_are_valid {
         return compile_error_token_stream(CompileErrorMessage::from(
             str_constants::COMPILE_ERROR_CE_027,
         ));
     }
     let read_field_is_excluded = |field: &macros_helpers::field_data::SynField| {
-        generate_pg_table_input_model
-            .config
-            .read_exclude_fields
+        read_exclude_fields
             .iter()
-            .any(|excluded| excluded == &field.identifier.to_string())
+            .any(|excluded| excluded.as_ref() == field.identifier.to_string())
     };
     let read_fields_iter = || fields.iter().filter(|field| !read_field_is_excluded(field));
     let read_fields_without_primary_key_iter =
@@ -7298,18 +7350,15 @@ pub fn emit_generate_pg_table(
                 }
             })
         });
-        let create_excluded_fields_test_token_stream = if generate_pg_table_input_model
-            .config
-            .create_exclude_fields
-            .is_empty()
-        {
+        let create_excluded_fields_test_token_stream = if create_exclude_fields.is_empty() {
             proc_macro2::TokenStream::new()
         } else {
             let test_identifier = quote::format_ident!(
                 "{}_create_excluded_fields_are_not_public",
                 identifier_snake_case_string
             );
-            let excluded_fields = &generate_pg_table_input_model.config.create_exclude_fields;
+            let excluded_fields: Vec<&str> =
+                create_exclude_fields.iter().map(AsRef::as_ref).collect();
             quote::quote! {
                 #[test]
                 fn #test_identifier() {
@@ -7326,18 +7375,15 @@ pub fn emit_generate_pg_table(
                 }
             }
         };
-        let read_excluded_fields_test_token_stream = if generate_pg_table_input_model
-            .config
-            .read_exclude_fields
-            .is_empty()
-        {
+        let read_excluded_fields_test_token_stream = if read_exclude_fields.is_empty() {
             proc_macro2::TokenStream::new()
         } else {
             let test_identifier = quote::format_ident!(
                 "{}_read_excluded_fields_are_not_public",
                 identifier_snake_case_string
             );
-            let excluded_fields = &generate_pg_table_input_model.config.read_exclude_fields;
+            let excluded_fields: Vec<&str> =
+                read_exclude_fields.iter().map(AsRef::as_ref).collect();
             quote::quote! {
                 #[test]
                 fn #test_identifier() {
@@ -9713,14 +9759,10 @@ pub fn emit_generate_pg_table(
         }
     });
     let primary_key_field_name = generate_quotes::dq_token_stream(&primary_key_field.identifier);
-    let create_excluded_column_token_stream = generate_pg_table_input_model
-        .config
-        .create_exclude_fields
+    let create_excluded_column_token_stream = create_exclude_fields
         .iter()
         .map(generate_quotes::dq_token_stream);
-    let read_excluded_column_token_stream = generate_pg_table_input_model
-        .config
-        .read_exclude_fields
+    let read_excluded_column_token_stream = read_exclude_fields
         .iter()
         .map(generate_quotes::dq_token_stream);
     let db_unique_key_token_stream = generate_pg_table_input_model

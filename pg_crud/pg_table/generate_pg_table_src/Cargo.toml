@@ -20,6 +20,7 @@ serde_json = { workspace = true }
 generate_quotes = { workspace = true }
 panic_location = { workspace = true }
 macros_helpers = { workspace = true }
+pg_crud_common = { workspace = true }
 naming = { workspace = true }
 naming_common = { workspace = true }
 naming_macros = { workspace = true }
