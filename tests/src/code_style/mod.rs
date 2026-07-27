@@ -1600,9 +1600,43 @@ impl<'ast> syn::visit::Visit<'ast> for ProductionStringLiteralVisitor {
 struct StringConstantDeclarationVisitor {
     ers: types::DiagnosticMsgs,
 }
+#[derive(Default)]
+struct ConstantInitializerStringLiteralVisitor {
+    found: types::AnalyzerBool,
+}
+impl ConstantInitializerStringLiteralVisitor {
+    fn contains(expr: &syn::Expr) -> types::AnalyzerBool {
+        let mut visitor = Self::default();
+        syn::visit::Visit::visit_expr(&mut visitor, expr);
+        visitor.found
+    }
+}
+impl<'ast> syn::visit::Visit<'ast> for ConstantInitializerStringLiteralVisitor {
+    fn visit_expr_closure(&mut self, _i: &'ast syn::ExprClosure) {}
+    fn visit_expr_lit(&mut self, i: &'ast syn::ExprLit) {
+        if matches!(i.lit, syn::Lit::Str(_)) {
+            self.found.set_true();
+        }
+    }
+    fn visit_item(&mut self, _i: &'ast syn::Item) {}
+    fn visit_macro(&mut self, _i: &'ast syn::Macro) {}
+}
 impl<'ast> syn::visit::Visit<'ast> for StringConstantDeclarationVisitor {
+    fn visit_expr_const(&mut self, i: &'ast syn::ExprConst) {
+        let mut literal_visitor = TestStringLiteralVisitor {
+            values: types::SourceTextList::default(),
+        };
+        syn::visit::Visit::visit_block(&mut literal_visitor, &i.block);
+        if !literal_visitor.values.is_empty() {
+            self.ers
+                .push("anonymous const expression contains string literals".to_owned());
+        }
+        syn::visit::visit_expr_const(self, i);
+    }
     fn visit_impl_item_const(&mut self, i: &'ast syn::ImplItemConst) {
-        if type_stores_string_text(types::SynTypeRef::from(&i.ty)).get() {
+        if type_stores_string_text(types::SynTypeRef::from(&i.ty)).get()
+            || ConstantInitializerStringLiteralVisitor::contains(&i.expr).get()
+        {
             self.ers.push(format!(
                 "associated string constant `{}` must be declared in str_constants",
                 i.ident
@@ -1626,7 +1660,9 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantDeclarationVisitor {
         syn::visit::visit_impl_item_fn(self, i);
     }
     fn visit_item_const(&mut self, i: &'ast syn::ItemConst) {
-        if type_stores_string_text(types::SynTypeRef::from(i.ty.as_ref())).get() {
+        if type_stores_string_text(types::SynTypeRef::from(i.ty.as_ref())).get()
+            || ConstantInitializerStringLiteralVisitor::contains(i.expr.as_ref()).get()
+        {
             self.ers.push(format!(
                 "string constant `{}` must be declared in str_constants",
                 i.ident
@@ -1650,7 +1686,9 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantDeclarationVisitor {
         syn::visit::visit_item_fn(self, i);
     }
     fn visit_item_static(&mut self, i: &'ast syn::ItemStatic) {
-        if type_stores_string_text(types::SynTypeRef::from(i.ty.as_ref())).get() {
+        if type_stores_string_text(types::SynTypeRef::from(i.ty.as_ref())).get()
+            || ConstantInitializerStringLiteralVisitor::contains(i.expr.as_ref()).get()
+        {
             self.ers.push(format!(
                 "string static `{}` must be declared in str_constants",
                 i.ident
@@ -1669,7 +1707,10 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantDeclarationVisitor {
         syn::visit::visit_macro(self, i);
     }
     fn visit_trait_item_const(&mut self, i: &'ast syn::TraitItemConst) {
-        if i.default.is_some() && type_stores_string_text(types::SynTypeRef::from(&i.ty)).get() {
+        if i.default.as_ref().is_some_and(|(_, expression)| {
+            type_stores_string_text(types::SynTypeRef::from(&i.ty)).get()
+                || ConstantInitializerStringLiteralVisitor::contains(expression).get()
+        }) {
             self.ers.push(format!(
                 "trait string constant `{}` must be declared in str_constants",
                 i.ident
@@ -1774,9 +1815,6 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
         syn::visit::visit_impl_item_fn(self, i);
     }
     fn visit_item_const(&mut self, i: &'ast syn::ItemConst) {
-        if i.ident == str_constants::CODE_STYLE_REVIEWED_PUBLIC_FIELDS {
-            return;
-        }
         let mut literal_visitor = TestStringLiteralVisitor {
             values: types::SourceTextList::default(),
         };

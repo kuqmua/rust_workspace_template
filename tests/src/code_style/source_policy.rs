@@ -1,135 +1,3 @@
-const REVIEWED_PUBLIC_FIELDS: &[ReviewedPublicFields] = &[
-    ReviewedPublicFields {
-        fields: &["file", "line", "column"],
-        path_suffix: "location_lib/src/location.rs",
-        reason: "location proc-macro output exposes occurrence coordinates as its public data contract",
-        struct_name: "Occr",
-    },
-    ReviewedPublicFields {
-        fields: &["secs", "nanos"],
-        path_suffix: "location_lib/src/location.rs",
-        reason: "serialized duration representation is a public wire-format helper",
-        struct_name: "StdTimeDuration",
-    },
-    ReviewedPublicFields {
-        fields: &["identifier", "type0", "vis"],
-        path_suffix: "macros_helpers/src/syn_field.rs",
-        reason: "macro generators consume the parsed field descriptor across crate boundaries",
-        struct_name: "SynField",
-    },
-    ReviewedPublicFields {
-        fields: &[
-            "bulk_item_budget",
-            "config",
-            "idempotency_response_budget",
-            "pg_pool",
-            "project_git_info",
-        ],
-        path_suffix: "server_app_state/src/lib.rs",
-        reason: "Axum state consumers in service crates require direct access to shared immutable state",
-        struct_name: "ServerAppState",
-    },
-    ReviewedPublicFields {
-        fields: &["greater_than", "create", "variant"],
-        path_suffix: "pg_crud/pg_crud_common/src/lib.rs",
-        reason: "public generator test descriptor is constructed by downstream generated test crates",
-        struct_name: "PgTypeGreaterThanTest",
-    },
-    ReviewedPublicFields {
-        fields: &["create", "variant", "len_greater_than"],
-        path_suffix: "pg_crud/pg_crud_common/src/lib.rs",
-        reason: "public generator test descriptor is constructed by downstream generated test crates",
-        struct_name: "PgTypeLenGreaterThanTest",
-    },
-    ReviewedPublicFields {
-        fields: &["column", "order"],
-        path_suffix: "pg_crud/pg_crud_common/src/lib.rs",
-        reason: "generated query code constructs this public typed ordering contract",
-        struct_name: "OrderBy",
-    },
-    ReviewedPublicFields {
-        fields: &["v"],
-        path_suffix: "pg_crud/pg_crud_common/src/lib.rs",
-        reason: "generated filter code constructs this public generic value contract",
-        struct_name: "V",
-    },
-    ReviewedPublicFields {
-        fields: &[
-            "cors_allow_origin",
-            "content_security_policy",
-            "database_url",
-            "admin_jwt_secret",
-            "admin_token_audience",
-            "admin_token_issuer",
-            "trusted_proxy_ranges_text",
-            "admin_access_token_ttl_seconds",
-            "admin_password_hash_concurrency",
-            "admin_refresh_token_ttl_seconds",
-            "admin_session_limit",
-            "admin_sign_in_rate_limit",
-            "pg_pool_acquire_timeout_seconds",
-            "pg_pool_idle_timeout_seconds",
-            "pg_pool_max_lifetime_seconds",
-            "request_timeout_seconds",
-            "maximum_size_of_http_body_in_bytes",
-            "service_socket_address",
-            "pg_pool_max_connections",
-            "pg_pool_min_connections",
-            "timezone",
-            "src_place_type",
-            "tracing_level",
-            "tracing_format",
-            "enable_api_git_commit_check",
-            "admin_cookie_secure",
-            "admin_swagger_enabled",
-            "http_gzip_enabled",
-        ],
-        path_suffix: "server_config/src/lib.rs",
-        reason: "service entry points consume the validated immutable workspace configuration contract",
-        struct_name: "Config",
-    },
-    ReviewedPublicFields {
-        fields: &["id", "user_id", "role_id", "created_at"],
-        path_suffix: "server_admin/src/generated_tables.rs",
-        reason: "generated database row model is a public serialization and query contract",
-        struct_name: "AdminUserRoles",
-    },
-    ReviewedPublicFields {
-        fields: &["id", "role_id", "permission_id", "created_at"],
-        path_suffix: "server_admin/src/generated_tables.rs",
-        reason: "generated database row model is a public serialization and query contract",
-        struct_name: "AdminRolePermissions",
-    },
-    ReviewedPublicFields {
-        fields: &["id", "name", "is_system", "created_at", "updated_at"],
-        path_suffix: "server_admin/src/generated_tables.rs",
-        reason: "generated database row model is a public serialization and query contract",
-        struct_name: "AdminRoles",
-    },
-    ReviewedPublicFields {
-        fields: &["id", "name", "created_at"],
-        path_suffix: "server_admin/src/generated_tables.rs",
-        reason: "generated database row model is a public serialization and query contract",
-        struct_name: "AdminPermissions",
-    },
-    ReviewedPublicFields {
-        fields: &[
-            "id",
-            "site_name",
-            "tab_title",
-            "main_logo",
-            "primary_color",
-            "default_admin_route",
-            "organization_name",
-            "organization_contacts",
-            "support_url",
-            "updated_at",
-        ],
-        path_suffix: "server_admin/src/generated_tables.rs",
-        reason: "generated database row model is a public serialization and query contract",
-        struct_name: "AdminSystemSettings",
-    },
-];
 struct ReviewedPublicFields {
     fields: &'static [&'static str],
     path_suffix: &'static str,
@@ -633,6 +501,32 @@ fn runtime_struct_fields_do_not_expose_untyped_json_values() {
 #[test]
 fn new_runtime_structs_keep_fields_private() {
     super::snapshot::with_codebase_snapshot(|snapshot| {
+        assert_eq!(
+            str_constants::CODE_STYLE_REVIEWED_PUBLIC_FIELD_SETS.len(),
+            str_constants::CODE_STYLE_REVIEWED_PUBLIC_FIELD_PATH_SUFFIXES.len()
+        );
+        assert_eq!(
+            str_constants::CODE_STYLE_REVIEWED_PUBLIC_FIELD_SETS.len(),
+            str_constants::CODE_STYLE_REVIEWED_PUBLIC_FIELD_REASONS.len()
+        );
+        assert_eq!(
+            str_constants::CODE_STYLE_REVIEWED_PUBLIC_FIELD_SETS.len(),
+            str_constants::CODE_STYLE_REVIEWED_PUBLIC_FIELD_STRUCT_NAMES.len()
+        );
+        let reviewed_public_fields = str_constants::CODE_STYLE_REVIEWED_PUBLIC_FIELD_SETS
+            .iter()
+            .zip(str_constants::CODE_STYLE_REVIEWED_PUBLIC_FIELD_PATH_SUFFIXES)
+            .zip(str_constants::CODE_STYLE_REVIEWED_PUBLIC_FIELD_REASONS)
+            .zip(str_constants::CODE_STYLE_REVIEWED_PUBLIC_FIELD_STRUCT_NAMES)
+            .map(
+                |(((fields, path_suffix), reason), struct_name)| ReviewedPublicFields {
+                    fields,
+                    path_suffix,
+                    reason,
+                    struct_name,
+                },
+            )
+            .collect::<Vec<ReviewedPublicFields>>();
         let mut matched = std::collections::BTreeSet::<(String, String)>::new();
         let mut violations = Vec::new();
         snapshot
@@ -649,7 +543,7 @@ fn new_runtime_structs_keep_fields_private() {
                 syn::visit::Visit::visit_file(&mut visitor, source_file.ast().as_ref());
                 visitor.violations.into_iter().for_each(|item| {
                     let path = source_file.path().as_ref();
-                    let reviewed_match = REVIEWED_PUBLIC_FIELDS.iter().find(|reviewed| {
+                    let reviewed_match = reviewed_public_fields.iter().find(|reviewed| {
                         path.ends_with(reviewed.path_suffix)
                             && reviewed
                                 .fields
@@ -667,7 +561,7 @@ fn new_runtime_structs_keep_fields_private() {
                     }
                 });
             });
-        let expected = REVIEWED_PUBLIC_FIELDS
+        let expected = reviewed_public_fields
             .iter()
             .flat_map(|reviewed| {
                 reviewed.fields.iter().map(|field| {
@@ -683,7 +577,7 @@ fn new_runtime_structs_keep_fields_private() {
                 "public field exception inventory is stale; expected={expected:#?}, matched={matched:#?}"
             ));
         }
-        REVIEWED_PUBLIC_FIELDS
+        reviewed_public_fields
             .iter()
             .filter(|reviewed| reviewed.reason.trim().is_empty())
             .for_each(|reviewed| {
@@ -2422,7 +2316,9 @@ fn string_constant_declaration_policy_ignores_runtime_literals_and_rejects_all_c
 fn runtime_value() -> &'static str { "runtime-owned" }
 const ITEM: &str = "item";
 static STATIC_ITEM: &str = "static";
-struct Example;
+struct Example(&'static str);
+const WRAPPED: Example = Example("wrapped");
+static WRAPPED_STATIC: Example = Example("wrapped-static");
 impl Example {
     const ASSOCIATED: &str = concat!("associated");
     const fn value() -> &'static str { concat!("const-function") }
@@ -2455,7 +2351,24 @@ define_str_constants! {
             ers: super::types::DiagnosticMsgs::default(),
         },
     );
-    assert_eq!(visitor.ers.len(), 8usize);
+    assert_eq!(visitor.ers.len(), 11usize);
+}
+#[test]
+fn string_constant_declaration_policy_rejects_aliases_to_exported_constants() {
+    let ast = syn::parse_file(
+        "
+const LOCAL_ALIAS: &str = str_constants::EXPORTED;
+fn runtime_value() -> &'static str { str_constants::EXPORTED }
+",
+    )
+    .expect("56f8e2c1");
+    let visitor = super::visit_syn_file(
+        super::types::SynFileRef::from(&ast),
+        super::StringConstantDeclarationVisitor {
+            ers: super::types::DiagnosticMsgs::default(),
+        },
+    );
+    assert_eq!(visitor.ers.len(), 1usize);
 }
 #[test]
 fn no_unwrap_in_source_code() {
