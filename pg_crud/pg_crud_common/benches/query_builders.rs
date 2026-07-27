@@ -13,17 +13,17 @@ fn bench_sql_select_builder(criterion: &mut criterion::Criterion) {
     let columns = (0usize..128usize)
         .map(|idx| identifier(format!("column_{idx}").as_str()))
         .collect::<Vec<_>>();
+    let builder = pg_crud_common::SqlSelectBuilder::new(
+        pg_crud_common::SqlQualifiedIdentifier::new(
+            identifier(str_constants::PUBLIC),
+            identifier(str_constants::BENCHMARK_TABLE),
+        ),
+        columns.into(),
+    );
     let _criterion =
         criterion.bench_function(str_constants::SQL_SELECT_BUILDER_128_COLUMNS, |bencher| {
             bencher.iter(|| {
-                let query = pg_crud_common::SqlSelectBuilder::new(
-                    pg_crud_common::SqlQualifiedIdentifier::new(
-                        identifier(str_constants::PUBLIC),
-                        identifier(str_constants::BENCHMARK_TABLE),
-                    ),
-                    columns.clone().into(),
-                )
-                .build();
+                let query = std::hint::black_box(&builder).build();
                 let _query = std::hint::black_box(query);
             });
         });

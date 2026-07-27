@@ -76,16 +76,25 @@ pub struct SqlSelectBuilder {
 }
 impl SqlSelectBuilder {
     #[must_use]
-    pub fn build(self) -> crate::QueryPartFragment {
-        let columns_len = self
+    pub fn build(&self) -> crate::QueryPartFragment {
+        let columns_len = self.columns.0.iter().fold(0usize, |len, column| {
+            len.saturating_add(column.as_ref().len())
+        });
+        let separators_len = self
             .columns
             .0
-            .iter()
-            .map(|column| column.as_ref().len())
-            .sum::<usize>();
-        let mut query =
-            SqlQueryText::try_from(String::with_capacity(columns_len.saturating_add(32usize)))
-                .unwrap_or_else(SqlQueryText::from);
+            .len()
+            .saturating_sub(1usize)
+            .saturating_mul(str_constants::TEXT_ALT_6.len());
+        let capacity = columns_len
+            .saturating_add(separators_len)
+            .saturating_add(str_constants::SELECT.len())
+            .saturating_add(str_constants::FROM.len())
+            .saturating_add(self.table.schema.as_ref().len())
+            .saturating_add(str_constants::DOT.len())
+            .saturating_add(self.table.table.as_ref().len());
+        let mut query = SqlQueryText::try_from(String::with_capacity(capacity))
+            .unwrap_or_else(SqlQueryText::from);
         query.0.push_str(str_constants::SELECT);
         self.columns.0.iter().enumerate().for_each(|(idx, column)| {
             if idx != 0usize {
@@ -137,7 +146,7 @@ mod tests {
     }
     #[test]
     fn query_builder_accepts_only_validated_identifiers() {
-        let query = super::SqlSelectBuilder::new(
+        let builder = super::SqlSelectBuilder::new(
             super::SqlQualifiedIdentifier::new(
                 identifier(str_constants::PUBLIC),
                 identifier(str_constants::USERS_ALT),
@@ -147,9 +156,11 @@ mod tests {
                 identifier(str_constants::LOGIN),
             ]
             .into(),
-        )
-        .build();
-        assert_eq!(query.into_inner(), "SELECT id, login FROM public.users");
+        );
+        let first = builder.build();
+        let second = builder.build();
+        assert_eq!(first.into_inner(), "SELECT id, login FROM public.users");
+        assert_eq!(second.into_inner(), "SELECT id, login FROM public.users");
     }
     #[test]
     fn benchmark_black_box_dependency_is_available() {
