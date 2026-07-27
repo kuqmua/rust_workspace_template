@@ -172,6 +172,26 @@ jobs:
           -p newtype
           -p pg_crud_common
           -p server_runtime
+  fuzz:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-fuzz-${{ hashFiles('rust-toolchain.toml', '**/Cargo.toml') }}
+      - uses: ./.github/actions/setup-rust
+      - uses: taiki-e/install-action@5292d65c95e72dc79f25946b7ce34e28deecf2f3
+        with:
+          tool: cargo-fuzz@0.13.2
+      - if: github.event_name == 'push' || github.event_name == 'pull_request'
+        run: ./fuzz/run_domain.sh -runs=10000 -max_len=4096 -timeout=10
+      - if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        run: ./fuzz/run_domain.sh -max_total_time=300 -max_len=4096 -timeout=10
   docs:
     if: github.event_name == 'push' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
