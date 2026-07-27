@@ -15,9 +15,9 @@ pub struct DbSchemaTextError(DbSchemaTextTryFromStringError);
 pub struct DbColumnNullable(bool);
 
 pub trait PgColumnSchema {
-    const DATA_TYPE: &'static str;
     const HAS_SERVER_DEFAULT: bool;
     const NULLABLE: bool;
+    fn data_type() -> DbStaticSchemaText;
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::AsRefInner, newtype::FromInner)]
@@ -112,12 +112,12 @@ impl DbColumnSpec {
 }
 
 pub trait DbTableSchema {
-    const TABLE_NAME: &'static str;
     fn columns() -> DbColumnSpecs;
     fn create_excluded_columns() -> DbStaticSchemaTexts;
     fn keys() -> DbKeySpecs;
     fn primary_key_column() -> DbStaticSchemaText;
     fn read_excluded_columns() -> DbStaticSchemaTexts;
+    fn schema_table_text() -> DbStaticSchemaText;
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct DbDefaultSpec {
@@ -431,7 +431,7 @@ where
         .collect::<Result<Vec<_>, DbSchemaConformanceError>>()?;
     let default_rows = sqlx::query(str_constants::DB_SCHEMA_EXACT_DEFAULT_QUERY)
         .bind(schema.0)
-        .bind(Table::TABLE_NAME)
+        .bind(Table::schema_table_text().0)
         .fetch_all(pool.0)
         .await
         .map_err(|error| {
@@ -484,7 +484,7 @@ where
         .collect::<Result<Vec<_>, DbSchemaConformanceError>>()?;
     let rows = sqlx::query(str_constants::DB_SCHEMA_CHECK_AND_NON_CONSTRAINT_INDEX_QUERY)
         .bind(schema.0)
-        .bind(Table::TABLE_NAME)
+        .bind(Table::schema_table_text().0)
         .fetch_all(pool.0)
         .await
         .map_err(|error| {
@@ -608,7 +608,7 @@ where
         })?;
     let rows = sqlx::query(str_constants::DB_SCHEMA_COLUMN_CONTRACT_QUERY)
         .bind(schema.0)
-        .bind(Table::TABLE_NAME)
+        .bind(Table::schema_table_text().0)
         .fetch_all(pool.0)
         .await
         .map_err(|error| {
@@ -688,7 +688,7 @@ where
         .collect::<Result<Vec<_>, DbSchemaConformanceError>>()?;
     let key_rows = sqlx::query(str_constants::DB_SCHEMA_KEY_CONTRACT_QUERY)
         .bind(schema.0)
-        .bind(Table::TABLE_NAME)
+        .bind(Table::schema_table_text().0)
         .fetch_all(pool.0)
         .await
         .map_err(|error| {

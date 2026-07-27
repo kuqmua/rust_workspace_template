@@ -1598,6 +1598,7 @@ impl<'ast> syn::visit::Visit<'ast> for ProductionStringLiteralVisitor {
     }
 }
 struct StringConstantDeclarationVisitor {
+    allow_generated_string_constants: types::AnalyzerBool,
     ers: types::DiagnosticMsgs,
 }
 #[derive(Default)]
@@ -1697,6 +1698,62 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantDeclarationVisitor {
         syn::visit::visit_item_static(self, i);
     }
     fn visit_macro(&mut self, i: &'ast syn::Macro) {
+        fn group_contains_str(group: &proc_macro2::Group) -> bool {
+            group.stream().into_iter().any(|token| match token {
+                proc_macro2::TokenTree::Group(nested) => group_contains_str(&nested),
+                proc_macro2::TokenTree::Ident(ident) => ident == "str",
+                proc_macro2::TokenTree::Literal(_) | proc_macro2::TokenTree::Punct(_) => false,
+            })
+        }
+        fn contains(tokens: proc_macro2::TokenStream) -> bool {
+            let token_trees = tokens.into_iter().collect::<Vec<_>>();
+            token_trees.iter().enumerate().any(|(index, token)| {
+                if let proc_macro2::TokenTree::Group(group) = token
+                    && contains(group.stream())
+                {
+                    return true;
+                }
+                if !matches!(
+                    token,
+                    proc_macro2::TokenTree::Ident(ident)
+                        if ident == "const" || ident == "static"
+                ) {
+                    return false;
+                }
+                if matches!(
+                    index.checked_sub(1usize).and_then(|previous| token_trees.get(previous)),
+                    Some(proc_macro2::TokenTree::Punct(punct)) if punct.as_char() == '\''
+                ) {
+                    return false;
+                }
+                if matches!(
+                    token_trees.iter().skip(index).nth(1usize),
+                    Some(proc_macro2::TokenTree::Ident(ident)) if ident == "fn"
+                ) {
+                    return false;
+                }
+                token_trees
+                    .iter()
+                    .skip(index)
+                    .skip(1usize)
+                    .try_fold(false, |stores_string, following| match following {
+                        proc_macro2::TokenTree::Group(group) => {
+                            Ok(stores_string || group_contains_str(group))
+                        }
+                        proc_macro2::TokenTree::Ident(ident) => Ok(stores_string || ident == "str"),
+                        proc_macro2::TokenTree::Punct(punct) if punct.as_char() == '=' => {
+                            Err(stores_string)
+                        }
+                        proc_macro2::TokenTree::Punct(punct) if punct.as_char() == ';' => {
+                            Err(false)
+                        }
+                        proc_macro2::TokenTree::Literal(_) | proc_macro2::TokenTree::Punct(_) => {
+                            Ok(stores_string)
+                        }
+                    })
+                    .unwrap_or_else(|found| found)
+            })
+        }
         if i.path.segments.last().is_some_and(|segment| {
             segment.ident == str_constants::SHARED_VALUES_DEFINE_STR_CONSTANTS
         }) {
@@ -1704,13 +1761,18 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantDeclarationVisitor {
                 "define_str_constants! may only be invoked by the str_constants crate".to_owned(),
             );
         }
+        if !self.allow_generated_string_constants.get() && contains(i.tokens.clone()) {
+            self.ers
+                .push("macro generates a string constant outside str_constants".to_owned());
+        }
         syn::visit::visit_macro(self, i);
     }
     fn visit_trait_item_const(&mut self, i: &'ast syn::TraitItemConst) {
-        if i.default.as_ref().is_some_and(|(_, expression)| {
-            type_stores_string_text(types::SynTypeRef::from(&i.ty)).get()
-                || ConstantInitializerStringLiteralVisitor::contains(expression).get()
-        }) {
+        if type_stores_string_text(types::SynTypeRef::from(&i.ty)).get()
+            || i.default.as_ref().is_some_and(|(_, expression)| {
+                ConstantInitializerStringLiteralVisitor::contains(expression).get()
+            })
+        {
             self.ers.push(format!(
                 "trait string constant `{}` must be declared in str_constants",
                 i.ident

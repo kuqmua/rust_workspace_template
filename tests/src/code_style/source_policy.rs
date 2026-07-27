@@ -2274,6 +2274,9 @@ fn all_string_constants_are_declared_in_str_constants() {
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
                 super::StringConstantDeclarationVisitor {
+                    allow_generated_string_constants: super::types::AnalyzerBool::from(
+                        path == std::path::Path::new("../str_constants_macros/src/lib.rs"),
+                    ),
                     ers: super::types::DiagnosticMsgs::default(),
                 },
             );
@@ -2325,6 +2328,10 @@ impl Example {
 }
 trait Contract {
     const DEFAULT: &'static str = "trait";
+    const REQUIRED: &'static str;
+}
+fn generated(value: &str) {
+    let _tokens = quote! { const GENERATED: &'static str = #value; };
 }
 fn anonymous() {
     let _value = const { "anonymous" };
@@ -2348,10 +2355,11 @@ define_str_constants! {
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::StringConstantDeclarationVisitor {
+            allow_generated_string_constants: super::types::AnalyzerBool::default(),
             ers: super::types::DiagnosticMsgs::default(),
         },
     );
-    assert_eq!(visitor.ers.len(), 11usize);
+    assert_eq!(visitor.ers.len(), 13usize);
 }
 #[test]
 fn string_constant_declaration_policy_rejects_aliases_to_exported_constants() {
@@ -2365,6 +2373,7 @@ fn runtime_value() -> &'static str { str_constants::EXPORTED }
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::StringConstantDeclarationVisitor {
+            allow_generated_string_constants: super::types::AnalyzerBool::default(),
             ers: super::types::DiagnosticMsgs::default(),
         },
     );

@@ -5395,9 +5395,11 @@ pub fn emit_generate_pg_types(
         };
         let impl_pg_column_schema_token_stream = quote::quote! {
             impl pg_crud_common::PgColumnSchema for #identifier {
-                const DATA_TYPE: &'static str = #db_data_type;
                 const HAS_SERVER_DEFAULT: bool = #db_has_server_default;
                 const NULLABLE: bool = #db_nullable;
+                fn data_type() -> pg_crud_common::DbStaticSchemaText {
+                    pg_crud_common::DbStaticSchemaText::from(#db_data_type)
+                }
             }
         };
         let frontend_time_json_token_stream = |time_value_token_stream: &dyn quote::ToTokens, minute_name, second_name, microsecond_name| {

@@ -9756,7 +9756,7 @@ pub fn emit_generate_pg_table(
         quote::quote! {
             pg_crud_common::DbColumnSpec::new(
                 pg_crud_common::DbStaticSchemaText::from(#field_name),
-                pg_crud_common::DbStaticSchemaText::from(<#field_type as pg_crud_common::PgColumnSchema>::DATA_TYPE),
+                <#field_type as pg_crud_common::PgColumnSchema>::data_type(),
                 pg_crud_common::DbColumnNullable::from(<#field_type as pg_crud_common::PgColumnSchema>::NULLABLE),
                 pg_crud_common::DbColumnHasServerDefault::from(<#field_type as pg_crud_common::PgColumnSchema>::HAS_SERVER_DEFAULT || #has_explicit_default),
             )
@@ -9810,7 +9810,6 @@ pub fn emit_generate_pg_table(
         });
     let db_table_schema_token_stream = quote::quote! {
         impl pg_crud_common::DbTableSchema for #identifier {
-            const TABLE_NAME: &'static str = #db_table_name_double_quoted_token_stream;
             fn columns() -> pg_crud_common::DbColumnSpecs {
                 vec![#(#db_column_specs_token_stream),*].into()
             }
@@ -9831,6 +9830,9 @@ pub fn emit_generate_pg_table(
             }
             fn read_excluded_columns() -> pg_crud_common::DbStaticSchemaTexts {
                 vec![#(pg_crud_common::DbStaticSchemaText::from(#read_excluded_column_token_stream)),*].into()
+            }
+            fn schema_table_text() -> pg_crud_common::DbStaticSchemaText {
+                pg_crud_common::DbStaticSchemaText::from(#db_table_name_double_quoted_token_stream)
             }
         }
     };
