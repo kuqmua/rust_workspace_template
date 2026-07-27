@@ -1943,6 +1943,51 @@ fn error_implementations_derive_thiserror_error() {
     );
 }
 #[test]
+fn json_api_error_responses_originate_from_thiserror_enums() {
+    super::assert_rs_ast_ers_empty_with_ctx(
+        super::types::StaticStr::from("7bda5c19"),
+        super::types::SourceTextRef::from(
+            "JSON API error responses must originate from enums deriving thiserror::Error",
+        ),
+        |path, ast, ers| {
+            let thiserror_enums = super::visit_syn_file(
+                super::types::SynFileRef::from(ast),
+                super::ThiserrorEnumVisitor::default(),
+            );
+            let visitor = super::visit_syn_file(
+                super::types::SynFileRef::from(ast),
+                super::JsonIntoResponseErrorVisitor {
+                    ers: super::types::DiagnosticMsgs::default(),
+                    thiserror_enum_names: &thiserror_enums.names,
+                },
+            );
+            ers.extend(
+                visitor
+                    .ers
+                    .into_iter()
+                    .map(|error| format!("{}: {error}", path.display())),
+            );
+        },
+    );
+}
+#[test]
+fn json_api_error_response_policy_rejects_structs_and_accepts_thiserror_enums() {
+    let ast =
+        syn::parse_file(str_constants::CODE_STYLE_JSON_API_ERROR_ENUM_FIXTURE).expect("e45c8f09");
+    let thiserror_enums = super::visit_syn_file(
+        super::types::SynFileRef::from(&ast),
+        super::ThiserrorEnumVisitor::default(),
+    );
+    let visitor = super::visit_syn_file(
+        super::types::SynFileRef::from(&ast),
+        super::JsonIntoResponseErrorVisitor {
+            ers: super::types::DiagnosticMsgs::default(),
+            thiserror_enum_names: &thiserror_enums.names,
+        },
+    );
+    assert_eq!(visitor.ers.len(), 1usize);
+}
+#[test]
 fn error_implementation_source_uses_only_thiserror_derive() {
     let forbidden_newtype_derive = concat!("newtype::", "Error");
     let forbidden_manual_impl = concat!("impl std::error::", "Error for");

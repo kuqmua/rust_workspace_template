@@ -1062,10 +1062,31 @@ str_constants_macros::define_str_constants! {
         pub CODE_STYLE_GENERATE_DERIVE_TOKEN_STREAM_BUILDER_MACRO_NAME = ["generate_derive_token_stream_builder"];
         pub CODE_STYLE_GENERATE_PG_TYPES_MACRO_NAME = ["generate_pg_types"];
         pub CODE_STYLE_GENERATE_WHERE_FILTERS_MACRO_NAME = ["generate_where_filters"];
+        pub CODE_STYLE_AXUM_JSON_IDENTIFIER = ["Json"];
+        pub CODE_STYLE_INTO_RESPONSE_TRAIT_IDENTIFIER = ["IntoResponse"];
+        pub CODE_STYLE_THISERROR_CRATE_IDENTIFIER = [WORD_THISERROR];
         pub CODE_STYLE_STRING_GUARD_ALLOWED_SYNTAX_FIXTURE = ["#[", WORD_PATH, " = \"", WORD_FIXTURE, ".", WORD_RS, "\"] mod ", WORD_FIXTURE, "; ", WORD_FN, " ", WORD_F_2, "() { ", WORD_VALUE, ".", WORD_EXPECT, "(\"12345678\"); } #[test] fn test_f() { \"test literal\"; } #[cfg(test)] mod tests { const VALUE: &str = \"test literal\"; }"];
         pub CODE_STYLE_STRING_GUARD_DETECTION_FIXTURE = [WORD_FN, " ", WORD_F_2, "() { consume(\"ordinary\"); outer!(", WORD_INNER, "(\"", WORD_MACRO, "\")); }"];
         pub CODE_STYLE_STRING_CONSTANT_ALIAS_FIXTURE = [r#"const LOCAL_ALIAS: &str = str_constants::EXPORTED;
 fn runtime_value() -> &'static str { str_constants::EXPORTED }
+"#];
+        pub CODE_STYLE_JSON_API_ERROR_ENUM_FIXTURE = [r#"
+struct StructError;
+impl axum::response::IntoResponse for StructError {
+    fn into_response(self) -> axum::response::Response {
+        axum::response::IntoResponse::into_response(axum::Json(()))
+    }
+}
+#[derive(thiserror::Error)]
+enum EnumError {
+    #[error("failure")]
+    Failure,
+}
+impl axum::response::IntoResponse for EnumError {
+    fn into_response(self) -> axum::response::Response {
+        axum::response::IntoResponse::into_response(axum::Json(()))
+    }
+}
 "#];
         pub CODE_STYLE_STRING_CONSTANT_DECLARATION_FIXTURE = [r#"
 fn runtime_value() -> &'static str { "runtime-owned" }

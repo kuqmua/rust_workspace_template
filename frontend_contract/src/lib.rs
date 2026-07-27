@@ -8,15 +8,20 @@ pub struct FrontendContractBodyError;
 pub struct HttpStatusTryFromU16Error;
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum KnownHttpStatus {
+    BadRequest,
     Conflict,
     Created,
     Forbidden,
     InternalServerError,
     MethodNotAllowed,
     NoContent,
+    NotFound,
     Ok,
     PayloadTooLarge,
+    PreconditionFailed,
+    PreconditionRequired,
     ServiceUnavailable,
+    TooEarly,
     TooManyRequests,
     Unauthorized,
     UnprocessableEntity,
@@ -25,15 +30,20 @@ impl KnownHttpStatus {
     #[must_use]
     pub const fn get(self) -> u16 {
         match self {
+            Self::BadRequest => 400u16,
             Self::Conflict => 409u16,
             Self::Created => 201u16,
             Self::Forbidden => 403u16,
             Self::InternalServerError => 500u16,
             Self::MethodNotAllowed => 405u16,
             Self::NoContent => 204u16,
+            Self::NotFound => 404u16,
             Self::Ok => 200u16,
             Self::PayloadTooLarge => 413u16,
+            Self::PreconditionFailed => 412u16,
+            Self::PreconditionRequired => 428u16,
             Self::ServiceUnavailable => 503u16,
+            Self::TooEarly => 425u16,
             Self::TooManyRequests => 429u16,
             Self::Unauthorized => 401u16,
             Self::UnprocessableEntity => 422u16,
@@ -74,8 +84,8 @@ pub use openapi_validation::{
     validate_openapi_schema_references,
 };
 pub use problem::{
-    ApiProblem, ApiProblemDetail, ApiProblemField, ApiProblemKind, ApiProblemRequestId,
-    ApiProblemStatus, ApiProblemViolation,
+    ApiProblem, ApiProblemDetail, ApiProblemError, ApiProblemField, ApiProblemKind,
+    ApiProblemRequestId, ApiProblemStatus, ApiProblemViolation,
 };
 pub use route::{
     AuthenticatedTransport, AxumMethodFilter, CoveredRoute, OpenApiSecuritySchemeRef,
@@ -1117,21 +1127,26 @@ mod tests {
     #[test]
     fn api_problem_status_mapping_is_stable_and_redacted() {
         let cases = [
+            (400u16, super::ApiProblemKind::InvalidRequest),
             (401u16, super::ApiProblemKind::Authentication),
             (403u16, super::ApiProblemKind::Authorization),
             (404u16, super::ApiProblemKind::NotFound),
             (405u16, super::ApiProblemKind::MethodNotAllowed),
             (409u16, super::ApiProblemKind::Conflict),
             (412u16, super::ApiProblemKind::Precondition),
+            (413u16, super::ApiProblemKind::PayloadTooLarge),
+            (418u16, super::ApiProblemKind::RequestFailed),
+            (422u16, super::ApiProblemKind::Validation),
             (425u16, super::ApiProblemKind::InProgress),
             (428u16, super::ApiProblemKind::PreconditionRequired),
             (429u16, super::ApiProblemKind::RateLimited),
             (500u16, super::ApiProblemKind::Internal),
+            (503u16, super::ApiProblemKind::Internal),
         ];
         cases.into_iter().for_each(|(status, expected_kind)| {
-            let problem = super::ApiProblem::from_status(
+            let problem = super::ApiProblem::from_error(super::ApiProblemError::from_status(
                 super::ApiProblemStatus::try_from(status).expect("ff774b42"),
-            );
+            ));
             assert_eq!(problem.kind(), expected_kind);
             assert_eq!(u16::from(problem.status()), status);
             let serialized = serde_json::to_string(&problem).expect("f459312e");
@@ -1215,9 +1230,9 @@ mod tests {
     }
     #[test]
     fn response_interpretation_uses_shared_success_and_problem_contract() {
-        let problem = super::ApiProblem::from_status(
+        let problem = super::ApiProblem::from_error(super::ApiProblemError::from_status(
             super::ApiProblemStatus::try_from(401u16).expect("b8fc4707"),
-        );
+        ));
         let body = super::TransportBody::try_from(serde_json::to_vec(&problem).expect("f542a3cb"))
             .expect("864276f2");
         let response = super::TransportResponse::new(

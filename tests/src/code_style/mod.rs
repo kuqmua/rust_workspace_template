@@ -1269,6 +1269,81 @@ impl<'ast> syn::visit::Visit<'ast> for ManualErrorImplVisitor {
         syn::visit::visit_item_impl(self, i);
     }
 }
+#[derive(Default)]
+struct JsonCallVisitor {
+    found: types::AnalyzerBool,
+}
+impl<'ast> syn::visit::Visit<'ast> for JsonCallVisitor {
+    fn visit_expr_call(&mut self, i: &'ast syn::ExprCall) {
+        if matches!(
+            i.func.as_ref(),
+            syn::Expr::Path(path)
+                if path.path.segments.last().is_some_and(|segment| {
+                    segment.ident == str_constants::CODE_STYLE_AXUM_JSON_IDENTIFIER
+                })
+        ) {
+            self.found.set_true();
+        }
+        syn::visit::visit_expr_call(self, i);
+    }
+}
+struct JsonIntoResponseErrorVisitor<'names_lt> {
+    ers: types::DiagnosticMsgs,
+    thiserror_enum_names: &'names_lt types::StdSourceTextSet,
+}
+impl<'ast> syn::visit::Visit<'ast> for JsonIntoResponseErrorVisitor<'_> {
+    fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
+        let is_into_response = i.trait_.as_ref().is_some_and(|(_, path, _)| {
+            path.segments.last().is_some_and(|segment| {
+                segment.ident == str_constants::CODE_STYLE_INTO_RESPONSE_TRAIT_IDENTIFIER
+            })
+        });
+        if is_into_response {
+            let mut json_visitor = JsonCallVisitor::default();
+            syn::visit::Visit::visit_item_impl(&mut json_visitor, i);
+            if json_visitor.found.get() {
+                let name = item_impl_self_ty_identifier(types::SynItemImplRef::from(i))
+                    .map_or_else(
+                        || String::from(str_constants::NON_PATH_TARGET),
+                        String::from,
+                    );
+                if !self.thiserror_enum_names.contains(name.as_str()) {
+                    self.ers.push(format!(
+                        "JSON API error response type `{name}` must be an enum deriving thiserror::Error"
+                    ));
+                }
+            }
+        }
+        syn::visit::visit_item_impl(self, i);
+    }
+}
+#[derive(Default)]
+struct ThiserrorEnumVisitor {
+    names: types::StdSourceTextSet,
+}
+impl<'ast> syn::visit::Visit<'ast> for ThiserrorEnumVisitor {
+    fn visit_item_enum(&mut self, i: &'ast syn::ItemEnum) {
+        let derives_thiserror = i.attrs.iter().any(|attr| {
+            if !attr.path().is_ident(str_constants::DERIVE) {
+                return false;
+            }
+            let mut found = false;
+            drop(attr.parse_nested_meta(|meta| {
+                found |= meta.path.segments.first().is_some_and(|segment| {
+                    segment.ident == str_constants::CODE_STYLE_THISERROR_CRATE_IDENTIFIER
+                }) && meta.path.segments.last().is_some_and(|segment| {
+                    segment.ident == str_constants::CODE_STYLE_ERROR_TRAIT_IDENTIFIER
+                });
+                Ok(())
+            }));
+            found
+        });
+        if derives_thiserror {
+            let _: bool = self.names.insert(i.ident.to_string());
+        }
+        syn::visit::visit_item_enum(self, i);
+    }
+}
 impl ForwardingDisplayVisitor {
     #[allow(
         clippy::single_call_fn,

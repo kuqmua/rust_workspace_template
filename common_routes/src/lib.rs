@@ -145,7 +145,13 @@ impl axum::response::IntoResponse for AxumHealthCheckStatus {
 #[derive(Debug, optml::Optml)]
 struct JsonRes<T> {
     payload: AxumJsonPayload<T>,
-    status: AxumHealthCheckStatus,
+}
+#[derive(Debug, thiserror::Error)]
+enum CommonJsonApiError {
+    #[error("common route was not found")]
+    NotFound(NotFoundHandle),
+    #[error("service is unavailable")]
+    Unavailable(HealthReport),
 }
 #[derive(Debug, optml::Optml, newtype::FromInner)]
 struct AxumJsonPayload<T>(axum::Json<T>);
@@ -268,7 +274,21 @@ where
     AxumJsonPayload<T>: axum::response::IntoResponse,
 {
     fn into_response(self) -> axum::response::Response {
-        (self.status.0, self.payload).into_response()
+        self.payload.into_response()
+    }
+}
+impl axum::response::IntoResponse for CommonJsonApiError {
+    fn into_response(self) -> axum::response::Response {
+        match self {
+            Self::NotFound(payload) => axum::response::IntoResponse::into_response((
+                axum::http::StatusCode::NOT_FOUND,
+                axum::Json(payload),
+            )),
+            Self::Unavailable(payload) => axum::response::IntoResponse::into_response((
+                axum::http::StatusCode::SERVICE_UNAVAILABLE,
+                axum::Json(payload),
+            )),
+        }
     }
 }
 #[derive(Debug, Clone, optml::Optml, newtype::IntoInnerFrom, newtype::FromInner)]
@@ -320,12 +340,6 @@ where
 pub trait CommonRoutesParameters:
     git_info::GetGitCommitLink + app_state::GetSqlxPgPool + Send + Sync
 {
-}
-fn health_check_ok_status() -> AxumHealthCheckStatus {
-    AxumHealthCheckStatus::from(axum::http::StatusCode::OK)
-}
-fn health_check_er_status() -> AxumHealthCheckStatus {
-    AxumHealthCheckStatus::from(axum::http::StatusCode::SERVICE_UNAVAILABLE)
 }
 #[allow(clippy::single_call_fn)] // keeps commit-link extraction shape shared between handlers and tests
 const fn mk_git_info_payload(commit: git_info::StdGitCommitLinkCow) -> GitInfo {
@@ -382,32 +396,27 @@ fn mk_not_found_payload_with_message(
 #[allow(clippy::single_call_fn)] // shared helper keeps commit-based status+json responses consistent across handlers
 fn mk_commit_json_res<S, T>(
     commit_src: &S,
-    status: AxumHealthCheckStatus,
     map: impl FnOnce(git_info::StdGitCommitLinkCow) -> T,
 ) -> JsonRes<T>
 where
     S: ?Sized + git_info::GetGitCommitLink,
 {
-    mk_json_res(
-        status,
-        map(git_info::GetGitCommitLink::get_git_commit_link_cow(
-            commit_src,
-        )),
-    )
+    mk_json_res(map(git_info::GetGitCommitLink::get_git_commit_link_cow(
+        commit_src,
+    )))
 }
 #[allow(clippy::single_call_fn)] // keeps status+json tuple construction consistent across handlers
-fn mk_json_res<T>(status: AxumHealthCheckStatus, payload: T) -> JsonRes<T> {
+fn mk_json_res<T>(payload: T) -> JsonRes<T> {
     JsonRes {
-        status,
         payload: AxumJsonPayload::from(axum::Json(payload)),
     }
 }
 #[allow(clippy::single_call_fn)] // shared mapping keeps health-check status behavior centralized
 fn map_health_check_status(is_ok: HealthCheckSucceeded) -> AxumHealthCheckStatus {
     if is_ok.0 {
-        health_check_ok_status()
+        AxumHealthCheckStatus::from(axum::http::StatusCode::OK)
     } else {
-        health_check_er_status()
+        AxumHealthCheckStatus::from(axum::http::StatusCode::SERVICE_UNAVAILABLE)
     }
 }
 async fn database_is_ready(app_state: &dyn CommonRoutesParameters) -> HealthCheckSucceeded {
@@ -426,12 +435,15 @@ async fn database_is_ready(app_state: &dyn CommonRoutesParameters) -> HealthChec
         .await,
     ))
 }
-fn health_report_response(report: HealthReport) -> JsonRes<HealthReport> {
-    let status = match report.status() {
-        HealthStatus::Ok => health_check_ok_status(),
-        HealthStatus::Degraded | HealthStatus::Error => health_check_er_status(),
-    };
-    mk_json_res(status, report)
+fn health_report_response(
+    report: HealthReport,
+) -> Result<JsonRes<HealthReport>, CommonJsonApiError> {
+    match report.status() {
+        HealthStatus::Ok => Ok(mk_json_res(report)),
+        HealthStatus::Degraded | HealthStatus::Error => {
+            Err(CommonJsonApiError::Unavailable(report))
+        }
+    }
 }
 #[frontend_contract::route_registry(
     state = StdArcCommonRoutesAppState,
@@ -457,7 +469,7 @@ struct CommonRouteRegistry;
     clippy::single_call_fn,
     reason = "the concrete handler is intentionally shared by Axum and OpenAPI metadata"
 )]
-async fn health_live() -> JsonRes<HealthReport> {
+async fn health_live() -> Result<JsonRes<HealthReport>, CommonJsonApiError> {
     health_report_response(HealthReport::liveness())
 }
 #[frontend_contract::route_openapi(tag = "service")]
@@ -465,7 +477,9 @@ async fn health_live() -> JsonRes<HealthReport> {
     clippy::single_call_fn,
     reason = "the concrete handler is intentionally owned by the generated route registry"
 )]
-async fn health_ready(app_state: StdArcCommonRoutesAppState) -> JsonRes<HealthReport> {
+async fn health_ready(
+    app_state: StdArcCommonRoutesAppState,
+) -> Result<JsonRes<HealthReport>, CommonJsonApiError> {
     health_report_response(HealthReport::readiness(HealthDatabaseAvailable::from(
         database_is_ready(app_state.0.as_ref()).await.0,
     )))
@@ -475,7 +489,9 @@ async fn health_ready(app_state: StdArcCommonRoutesAppState) -> JsonRes<HealthRe
     clippy::single_call_fn,
     reason = "the concrete handler is intentionally owned by the generated route registry"
 )]
-async fn health(app_state: StdArcCommonRoutesAppState) -> JsonRes<HealthReport> {
+async fn health(
+    app_state: StdArcCommonRoutesAppState,
+) -> Result<JsonRes<HealthReport>, CommonJsonApiError> {
     health_report_response(HealthReport::readiness(HealthDatabaseAvailable::from(
         database_is_ready(app_state.0.as_ref()).await.0,
     )))
@@ -494,11 +510,7 @@ async fn health_check(app_state: StdArcCommonRoutesAppState) -> AxumHealthCheckS
     reason = "the concrete handler is intentionally owned by the generated route registry"
 )]
 async fn git_info(app_state: StdArcCommonRoutesAppState) -> JsonRes<GitInfo> {
-    mk_commit_json_res(
-        app_state.0.as_ref(),
-        AxumHealthCheckStatus::from(axum::http::StatusCode::OK),
-        mk_git_info_payload,
-    )
+    mk_commit_json_res(app_state.0.as_ref(), mk_git_info_payload)
 }
 
 #[must_use]
@@ -507,11 +519,12 @@ pub fn common_routes(app_state_b9fc2d94: StdArcCommonRoutesAppState) -> AxumComm
         CommonRouteRegistry::router()
             .fallback(async |uri, axum::extract::State(app_state_19103bd5_raw)| {
                 let app_state_19103bd5: StdArcCommonRoutesAppState = app_state_19103bd5_raw;
-                mk_commit_json_res(
-                    app_state_19103bd5.0.as_ref(),
-                    AxumHealthCheckStatus::from(axum::http::StatusCode::NOT_FOUND),
-                    |commit| mk_not_found_payload(AxumHttpUriRef::from(&uri), commit),
-                )
+                CommonJsonApiError::NotFound(mk_not_found_payload(
+                    AxumHttpUriRef::from(&uri),
+                    git_info::GetGitCommitLink::get_git_commit_link_cow(
+                        app_state_19103bd5.0.as_ref(),
+                    ),
+                ))
             })
             .with_state(app_state_b9fc2d94),
     )
@@ -746,14 +759,14 @@ mod tests {
     fn map_health_check_status_returns_ok_for_success() {
         assert_eq!(
             super::map_health_check_status(super::HealthCheckSucceeded(true)),
-            super::health_check_ok_status()
+            super::AxumHealthCheckStatus::from(axum::http::StatusCode::OK)
         );
     }
     #[test]
     fn map_health_check_status_returns_unavailable_for_error() {
         assert_eq!(
             super::map_health_check_status(super::HealthCheckSucceeded(false)),
-            super::health_check_er_status()
+            super::AxumHealthCheckStatus::from(axum::http::StatusCode::SERVICE_UNAVAILABLE)
         );
     }
     #[test]
@@ -765,12 +778,10 @@ mod tests {
         );
     }
     #[test]
-    fn mk_json_res_wraps_payload_with_status() {
-        let response = super::mk_json_res(
-            super::AxumHealthCheckStatus::from(axum::http::StatusCode::CREATED),
-            super::mk_git_info_payload(b_cow(str_constants::TEST_VALUES_COMMIT)),
-        );
-        assert_eq!(response.status.0, axum::http::StatusCode::CREATED);
+    fn mk_json_res_wraps_success_payload() {
+        let response = super::mk_json_res(super::mk_git_info_payload(b_cow(
+            str_constants::TEST_VALUES_COMMIT,
+        )));
         assert_git_info_commit(&response.payload.0, str_constants::TEST_VALUES_COMMIT);
     }
     #[test]
@@ -784,12 +795,7 @@ mod tests {
     }
     #[test]
     fn mk_commit_json_res_combines_status_and_commit_payload() {
-        let response = super::mk_commit_json_res(
-            test_state().as_ref(),
-            super::AxumHealthCheckStatus::from(axum::http::StatusCode::OK),
-            super::mk_git_info_payload,
-        );
-        assert_eq!(response.status.0, axum::http::StatusCode::OK);
+        let response = super::mk_commit_json_res(test_state().as_ref(), super::mk_git_info_payload);
         assert_git_info_commit(&response.payload.0, test_commit_link().as_str());
     }
     #[tokio::test]

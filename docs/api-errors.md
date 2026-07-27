@@ -4,13 +4,15 @@ Application API failures return a JSON problem document. Clients should use the 
 the `kind` field for control flow; `detail` is stable human-readable text and is not intended for
 parsing.
 
-Administrator and generated CRUD responses use:
+Every JSON error response originates from a Rust enum deriving `thiserror::Error`. The shared
+`ApiProblemError` enum owns the standard transport status and public problem category;
+service-specific enums retain their typed sources and delegate standard problem rendering to it.
+
+Administrator, generated CRUD, and notification responses use:
 
 ```http
 Content-Type: application/problem+json
 ```
-
-The notification API currently serializes the same document as `application/json`.
 
 ## Response body
 

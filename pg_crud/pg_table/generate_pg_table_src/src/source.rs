@@ -5055,18 +5055,11 @@ pub fn emit_generate_pg_table(
                             response_2b9f176e
                         } else {
                             let status_59091f23 = response_2b9f176e.status();
-                            let problem_0ae0baf4 = frontend_contract::ApiProblem::from_status(
+                            let problem_error_0ae0baf4 = frontend_contract::ApiProblemError::from_status(
                                 frontend_contract::ApiProblemStatus::try_from(status_59091f23.as_u16())
                                     .unwrap_or_else(|_error| frontend_contract::ApiProblemStatus::from(frontend_contract::KnownHttpStatus::InternalServerError)),
                             );
-                            let body_94b3d116 = serde_json::to_vec(&problem_0ae0baf4).unwrap_or_default();
-                            let mut normalized_8af76410 = axum::response::Response::new(axum::body::Body::from(body_94b3d116));
-                            *normalized_8af76410.status_mut() = status_59091f23;
-                            let _previous_content_type = normalized_8af76410.headers_mut().insert(
-                                http::header::CONTENT_TYPE,
-                                http::HeaderValue::from_static("application/problem+json"),
-                            );
-                            normalized_8af76410
+                            axum::response::IntoResponse::into_response(problem_error_0ae0baf4)
                         };
                         duration_metric.record(started_at.elapsed().as_secs_f64());
                         match response.status().as_u16() {
@@ -9865,24 +9858,10 @@ pub fn emit_generate_pg_table(
                             axum::Router::new()
                             #(#operation_routes_token_stream)*
                             .method_not_allowed_fallback(|| async {
-                                (
-                                    http::StatusCode::METHOD_NOT_ALLOWED,
-                                    [(http::header::CONTENT_TYPE, http::HeaderValue::from_static("application/problem+json"))],
-                                    axum::Json(frontend_contract::ApiProblem::from_status(
-                                        frontend_contract::ApiProblemStatus::try_from(http::StatusCode::METHOD_NOT_ALLOWED.as_u16())
-                                            .unwrap_or_else(|_error| frontend_contract::ApiProblemStatus::from(frontend_contract::KnownHttpStatus::InternalServerError)),
-                                    )),
-                                )
+                                frontend_contract::ApiProblemError::MethodNotAllowed
                             })
                             .fallback(|| async {
-                                (
-                                    http::StatusCode::NOT_FOUND,
-                                    [(http::header::CONTENT_TYPE, http::HeaderValue::from_static("application/problem+json"))],
-                                    axum::Json(frontend_contract::ApiProblem::from_status(
-                                        frontend_contract::ApiProblemStatus::try_from(http::StatusCode::NOT_FOUND.as_u16())
-                                            .unwrap_or_else(|_error| frontend_contract::ApiProblemStatus::from(frontend_contract::KnownHttpStatus::InternalServerError)),
-                                    )),
-                                )
+                                frontend_contract::ApiProblemError::NotFound
                             })
                             .with_state(#AppStateSnakeCase)
                         )

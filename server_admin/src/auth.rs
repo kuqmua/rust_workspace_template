@@ -716,9 +716,6 @@ pub struct AxumAdminResponse(axum::response::Response);
 impl axum::response::IntoResponse for AdminApiError {
     fn into_response(self) -> axum::response::Response {
         let route_error_status = self.route_error_status();
-        let rate_limited = route_error_status == frontend_contract::RouteErrorStatus::RateLimited;
-        let status = http::StatusCode::from_u16(u16::from(route_error_status.transport_status()))
-            .unwrap_or(http::StatusCode::INTERNAL_SERVER_ERROR);
         let error_type = server_runtime::HttpErrorType::from(str_constants::ADMIN_API_ERROR_TYPE);
         let optional_diagnostic = match &self {
             Self::Pg(error) => Some(server_runtime::HttpErrorDiagnostic::from_observed(
@@ -742,26 +739,17 @@ impl axum::response::IntoResponse for AdminApiError {
             | Self::RateLimited
             | Self::Validation => None,
         };
-        let problem_status = frontend_contract::ApiProblemStatus::try_from(status.as_u16())
-            .unwrap_or_else(|_error| {
-                frontend_contract::ApiProblemStatus::from(
-                    frontend_contract::KnownHttpStatus::InternalServerError,
-                )
-            });
-        let mut response = axum::response::IntoResponse::into_response((
-            status,
-            axum::Json(frontend_contract::ApiProblem::from_status(problem_status)),
-        ));
-        let _previous_content_type = response.headers_mut().insert(
-            http::header::CONTENT_TYPE,
-            http::HeaderValue::from_static(str_constants::APPLICATION_PROBLEM_PLUS_JSON),
+        let problem_status = frontend_contract::ApiProblemStatus::try_from(u16::from(
+            route_error_status.transport_status(),
+        ))
+        .unwrap_or_else(|_error| {
+            frontend_contract::ApiProblemStatus::from(
+                frontend_contract::KnownHttpStatus::InternalServerError,
+            )
+        });
+        let mut response = axum::response::IntoResponse::into_response(
+            frontend_contract::ApiProblemError::from_status(problem_status),
         );
-        if rate_limited {
-            let _previous_retry_after = response.headers_mut().insert(
-                http::header::RETRY_AFTER,
-                http::HeaderValue::from_static(str_constants::VALUE_60),
-            );
-        }
         if let Some(diagnostic) = optional_diagnostic {
             let _previous_diagnostic = response.extensions_mut().insert(diagnostic);
         }

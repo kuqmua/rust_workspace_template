@@ -73,18 +73,15 @@ impl axum::response::IntoResponse for HttpNotificationApiProblem {
             error_type,
             server_runtime::HttpErrorCode::from(NotificationErrorCode::Validation.get()),
         );
-        let mut response = axum::response::IntoResponse::into_response((
-            status,
-            axum::Json(frontend_contract::ApiProblem::from_status(
-                frontend_contract::ApiProblemStatus::try_from(status.as_u16()).unwrap_or_else(
-                    |_error| {
-                        frontend_contract::ApiProblemStatus::from(
-                            frontend_contract::KnownHttpStatus::InternalServerError,
-                        )
-                    },
-                ),
-            )),
-        ));
+        let problem_status = frontend_contract::ApiProblemStatus::try_from(status.as_u16())
+            .unwrap_or_else(|_error| {
+                frontend_contract::ApiProblemStatus::from(
+                    frontend_contract::KnownHttpStatus::InternalServerError,
+                )
+            });
+        let mut response = axum::response::IntoResponse::into_response(
+            frontend_contract::ApiProblemError::from_status(problem_status),
+        );
         if let Some(diagnostic) = optional_diagnostic {
             let _previous = response.extensions_mut().insert(diagnostic);
         } else {

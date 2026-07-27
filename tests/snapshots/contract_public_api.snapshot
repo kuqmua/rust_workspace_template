@@ -49,7 +49,7 @@ pub trait CommonRoutesParameters: git_info::GetGitCommitLink + app_state::GetSql
 #[derive(Clone, Copy, Debug, Eq, PartialEq)] pub enum AuthSessionPresence { Missing, Present, }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)] pub enum AuthSessionRefreshOutcome { Failed, Refreshed, Rejected, }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)] pub enum HttpContractBodyKind { Empty, Json, }
-#[derive(Clone, Copy, Debug, Eq, PartialEq)] pub enum KnownHttpStatus { Conflict, Created, Forbidden, InternalServerError, MethodNotAllowed, NoContent, Ok, PayloadTooLarge, ServiceUnavailable, TooManyRequests, Unauthorized, UnprocessableEntity, }
+#[derive(Clone, Copy, Debug, Eq, PartialEq)] pub enum KnownHttpStatus { BadRequest, Conflict, Created, Forbidden, InternalServerError, MethodNotAllowed, NoContent, NotFound, Ok, PayloadTooLarge, PreconditionFailed, PreconditionRequired, ServiceUnavailable, TooEarly, TooManyRequests, Unauthorized, UnprocessableEntity, }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)] pub enum OpenApiSchemaMismatch { AdditionalProperty, AnyOf, Const, Enum, MissingReference, OneOf, RequiredProperty, Type, }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)] pub enum OpenApiSecurityExpectation { Public, Required(crate::ContractStr), }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)] pub enum RouteAccess { Authenticated, Public, }
@@ -86,6 +86,7 @@ pub trait CommonRoutesParameters: git_info::GetGitCommitLink + app_state::GetSql
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)] #[error("frontend contract body exceeds its maximum byte length")] pub struct FrontendContractBodyError;
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)] #[error("{self:?}")] pub struct HttpStatusTryFromU16Error;
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)] #[error("{}", str_constants::INVALID_API_URL_PATH_SEGMENT)] pub enum ApiUrlBuildError { InvalidPathSegment, }
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)] pub enum ApiProblemError { #[error("API authentication failed")] Authentication, #[error("API authorization failed")] Authorization, #[error("API operation conflicts with current state")] Conflict, #[error("API request is still in progress")] InProgress, #[error("internal API operation failed")] Internal(ApiProblemStatus), #[error("API request is invalid")] InvalidRequest, #[error("API route does not support this HTTP method")] MethodNotAllowed, #[error("API resource was not found")] NotFound, #[error("API request body is too large")] PayloadTooLarge, #[error("API resource precondition failed")] Precondition, #[error("API request precondition is required")] PreconditionRequired, #[error("API request rate limit was exceeded")] RateLimited, #[error("API request failed")] RequestFailed(ApiProblemStatus), #[error("API service is unavailable")] ServiceUnavailable, #[error("API request validation failed")] Validation, }
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)] pub enum AuthSessionKeepAliveError { #[error("authentication session refresh interval must not be zero")] ZeroInterval, }
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)] pub enum JsonContractSnapshotError { #[error("{}", str_constants::JSON_SNAPSHOT_TOO_LONG_ERROR)] TooLong, #[error("{}", str_constants::JSON_SNAPSHOT_SERIALIZATION_ERROR)] Serialization, }
 #[derive(Clone, Copy, Debug, PartialEq, Eq)] pub enum AuthenticationRequirement { Authenticated, Permission(ContractStr), Public, }
@@ -262,6 +263,7 @@ pub trait CommonRoutesParameters: git_info::GetGitCommitLink + app_state::GetSql
 #[must_use] pub fn client_route_metadata<Route>() -> RouteMetadata where Route: TypedRoute,
 #[must_use] pub fn decode_api_problem(body: &TransportBody) -> Option<ApiProblem>
 #[must_use] pub fn filters(&self) -> &[FilterOperation]
+#[must_use] pub fn from_error(error: ApiProblemError) -> Self
 #[must_use] pub fn from_status(status: ApiProblemStatus) -> Self
 #[must_use] pub fn from_typed_route<Route>() -> Self where Route: TypedRoute,
 #[must_use] pub fn i16_max() -> Self
@@ -276,6 +278,7 @@ pub trait CommonRoutesParameters: git_info::GetGitCommitLink + app_state::GetSql
 #[must_use] pub fn openapi_route_metadata<Route>() -> RouteMetadata where Route: TypedRoute,
 #[must_use] pub fn required_test_categories(capabilities: RouteTestCapabilities) -> RouteTestCategories
 #[must_use] pub fn server_route_metadata<Route>() -> RouteMetadata where Route: TypedRoute,
+#[must_use] pub fn status(self) -> ApiProblemStatus
 #[must_use] pub fn transport_status(self) -> TransportStatus
 #[must_use] pub fn transport_status(self) -> TransportStatus
 #[must_use] pub fn typed_parameterized_route_path<Route>(parameter: &Route::Parameter) -> ParameterizedRoutePath where Route: ParameterizedRoute,

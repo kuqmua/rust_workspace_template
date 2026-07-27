@@ -736,15 +736,30 @@ where
 }
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct RequestTimeoutLayer(StdRequestTimeout);
-
+#[derive(Debug, thiserror::Error)]
+enum RequestTimeoutError {
+    #[error("request timeout")]
+    TimedOut,
+}
 #[derive(Clone, Copy, Debug, serde::Serialize)]
 #[serde(transparent)]
 #[derive(newtype::FromInner)]
 struct StdRequestTimeoutMessage(&'static str);
-
 #[derive(Debug, serde::Serialize)]
 struct RequestTimeoutBody {
     error: StdRequestTimeoutMessage,
+}
+impl axum::response::IntoResponse for RequestTimeoutError {
+    fn into_response(self) -> axum::response::Response {
+        match self {
+            Self::TimedOut => axum::response::IntoResponse::into_response((
+                http::StatusCode::SERVICE_UNAVAILABLE,
+                axum::Json(RequestTimeoutBody {
+                    error: StdRequestTimeoutMessage::from(str_constants::REQUEST_TIMEOUT),
+                }),
+            )),
+        }
+    }
 }
 impl RequestTimeoutLayer {
     #[must_use]
@@ -789,12 +804,8 @@ where
                 Ok(response) => response,
                 Err(_elapsed) => {
                     let retry_after = timeout.get().as_secs().max(1u64).to_string();
-                    let mut response = axum::response::IntoResponse::into_response((
-                        http::StatusCode::SERVICE_UNAVAILABLE,
-                        axum::Json(RequestTimeoutBody {
-                            error: StdRequestTimeoutMessage::from(str_constants::REQUEST_TIMEOUT),
-                        }),
-                    ));
+                    let mut response =
+                        axum::response::IntoResponse::into_response(RequestTimeoutError::TimedOut);
                     if let Ok(value) = http::HeaderValue::from_str(retry_after.as_str()) {
                         let _previous = response
                             .headers_mut()

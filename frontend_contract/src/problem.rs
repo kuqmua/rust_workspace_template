@@ -18,6 +18,39 @@ pub enum ApiProblemKind {
     RequestFailed,
     Validation,
 }
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+pub enum ApiProblemError {
+    #[error("API authentication failed")]
+    Authentication,
+    #[error("API authorization failed")]
+    Authorization,
+    #[error("API operation conflicts with current state")]
+    Conflict,
+    #[error("API request is still in progress")]
+    InProgress,
+    #[error("internal API operation failed")]
+    Internal(ApiProblemStatus),
+    #[error("API request is invalid")]
+    InvalidRequest,
+    #[error("API route does not support this HTTP method")]
+    MethodNotAllowed,
+    #[error("API resource was not found")]
+    NotFound,
+    #[error("API request body is too large")]
+    PayloadTooLarge,
+    #[error("API resource precondition failed")]
+    Precondition,
+    #[error("API request precondition is required")]
+    PreconditionRequired,
+    #[error("API request rate limit was exceeded")]
+    RateLimited,
+    #[error("API request failed")]
+    RequestFailed(ApiProblemStatus),
+    #[error("API service is unavailable")]
+    ServiceUnavailable,
+    #[error("API request validation failed")]
+    Validation,
+}
 #[derive(
     Clone,
     Copy,
@@ -48,6 +81,57 @@ impl ApiProblemStatus {
             Ok(())
         } else {
             Err(crate::HttpStatusTryFromU16Error)
+        }
+    }
+}
+impl ApiProblemError {
+    #[must_use]
+    pub fn from_status(status: ApiProblemStatus) -> Self {
+        match u16::from(status) {
+            400u16 => Self::InvalidRequest,
+            401u16 => Self::Authentication,
+            403u16 => Self::Authorization,
+            404u16 => Self::NotFound,
+            405u16 => Self::MethodNotAllowed,
+            409u16 => Self::Conflict,
+            412u16 => Self::Precondition,
+            413u16 => Self::PayloadTooLarge,
+            422u16 => Self::Validation,
+            425u16 => Self::InProgress,
+            428u16 => Self::PreconditionRequired,
+            429u16 => Self::RateLimited,
+            503u16 => Self::ServiceUnavailable,
+            500u16..=599u16 => Self::Internal(status),
+            _ => Self::RequestFailed(status),
+        }
+    }
+    #[must_use]
+    pub fn status(self) -> ApiProblemStatus {
+        match self {
+            Self::Authentication => ApiProblemStatus::from(crate::KnownHttpStatus::Unauthorized),
+            Self::Authorization => ApiProblemStatus::from(crate::KnownHttpStatus::Forbidden),
+            Self::Conflict => ApiProblemStatus::from(crate::KnownHttpStatus::Conflict),
+            Self::InProgress => ApiProblemStatus::from(crate::KnownHttpStatus::TooEarly),
+            Self::Internal(status) | Self::RequestFailed(status) => status,
+            Self::InvalidRequest => ApiProblemStatus::from(crate::KnownHttpStatus::BadRequest),
+            Self::MethodNotAllowed => {
+                ApiProblemStatus::from(crate::KnownHttpStatus::MethodNotAllowed)
+            }
+            Self::NotFound => ApiProblemStatus::from(crate::KnownHttpStatus::NotFound),
+            Self::PayloadTooLarge => {
+                ApiProblemStatus::from(crate::KnownHttpStatus::PayloadTooLarge)
+            }
+            Self::Precondition => {
+                ApiProblemStatus::from(crate::KnownHttpStatus::PreconditionFailed)
+            }
+            Self::PreconditionRequired => {
+                ApiProblemStatus::from(crate::KnownHttpStatus::PreconditionRequired)
+            }
+            Self::RateLimited => ApiProblemStatus::from(crate::KnownHttpStatus::TooManyRequests),
+            Self::ServiceUnavailable => {
+                ApiProblemStatus::from(crate::KnownHttpStatus::ServiceUnavailable)
+            }
+            Self::Validation => ApiProblemStatus::from(crate::KnownHttpStatus::UnprocessableEntity),
         }
     }
 }
@@ -137,58 +221,63 @@ pub struct ApiProblem {
 }
 impl ApiProblem {
     #[must_use]
-    pub fn from_status(status: ApiProblemStatus) -> Self {
-        let (kind, detail) = match u16::from(status) {
-            400u16 => (
-                ApiProblemKind::InvalidRequest,
-                str_constants::INVALID_REQUEST,
-            ),
-            401u16 => (
+    pub fn from_error(error: ApiProblemError) -> Self {
+        let status = error.status();
+        let (kind, detail) = match error {
+            ApiProblemError::Authentication => (
                 ApiProblemKind::Authentication,
                 str_constants::AUTHENTICATION_REQUIRED,
             ),
-            403u16 => (
+            ApiProblemError::Authorization => (
                 ApiProblemKind::Authorization,
                 str_constants::AUTHORIZATION_FAILED,
             ),
-            404u16 => (ApiProblemKind::NotFound, str_constants::RESOURCE_NOT_FOUND),
-            405u16 => (
-                ApiProblemKind::MethodNotAllowed,
-                str_constants::METHOD_NOT_ALLOWED,
-            ),
-            409u16 => (
+            ApiProblemError::Conflict => (
                 ApiProblemKind::Conflict,
                 str_constants::RESOURCE_STATE_CONFLICT,
             ),
-            412u16 => (
-                ApiProblemKind::Precondition,
-                str_constants::RESOURCE_PRECONDITION_FAILED,
-            ),
-            413u16 => (
-                ApiProblemKind::PayloadTooLarge,
-                str_constants::REQUEST_BODY_IS_TOO_LARGE,
-            ),
-            422u16 => (
-                ApiProblemKind::Validation,
-                str_constants::REQUEST_VALIDATION_FAILED,
-            ),
-            425u16 => (
+            ApiProblemError::InProgress => (
                 ApiProblemKind::InProgress,
                 str_constants::MATCHING_REQUEST_IS_STILL_IN_PROGRESS,
             ),
-            428u16 => (
-                ApiProblemKind::PreconditionRequired,
-                str_constants::REQUEST_PRECONDITION_IS_REQUIRED,
-            ),
-            429u16 => (
-                ApiProblemKind::RateLimited,
-                str_constants::REQUEST_RATE_LIMIT_EXCEEDED_ALT,
-            ),
-            500u16..=599u16 => (
+            ApiProblemError::Internal(_) | ApiProblemError::ServiceUnavailable => (
                 ApiProblemKind::Internal,
                 str_constants::INTERNAL_SERVER_ERROR,
             ),
-            _ => (ApiProblemKind::RequestFailed, str_constants::REQUEST_FAILED),
+            ApiProblemError::InvalidRequest => (
+                ApiProblemKind::InvalidRequest,
+                str_constants::INVALID_REQUEST,
+            ),
+            ApiProblemError::MethodNotAllowed => (
+                ApiProblemKind::MethodNotAllowed,
+                str_constants::METHOD_NOT_ALLOWED,
+            ),
+            ApiProblemError::NotFound => {
+                (ApiProblemKind::NotFound, str_constants::RESOURCE_NOT_FOUND)
+            }
+            ApiProblemError::PayloadTooLarge => (
+                ApiProblemKind::PayloadTooLarge,
+                str_constants::REQUEST_BODY_IS_TOO_LARGE,
+            ),
+            ApiProblemError::Precondition => (
+                ApiProblemKind::Precondition,
+                str_constants::RESOURCE_PRECONDITION_FAILED,
+            ),
+            ApiProblemError::PreconditionRequired => (
+                ApiProblemKind::PreconditionRequired,
+                str_constants::REQUEST_PRECONDITION_IS_REQUIRED,
+            ),
+            ApiProblemError::RateLimited => (
+                ApiProblemKind::RateLimited,
+                str_constants::REQUEST_RATE_LIMIT_EXCEEDED_ALT,
+            ),
+            ApiProblemError::RequestFailed(_) => {
+                (ApiProblemKind::RequestFailed, str_constants::REQUEST_FAILED)
+            }
+            ApiProblemError::Validation => (
+                ApiProblemKind::Validation,
+                str_constants::REQUEST_VALIDATION_FAILED,
+            ),
         };
         Self {
             detail: ApiProblemDetail::try_from(detail.to_owned()).unwrap_or_default(),
@@ -209,6 +298,27 @@ impl ApiProblem {
     #[must_use]
     pub const fn status(&self) -> ApiProblemStatus {
         self.status
+    }
+}
+impl axum::response::IntoResponse for ApiProblemError {
+    fn into_response(self) -> axum::response::Response {
+        let status = self.status();
+        let mut response = axum::response::IntoResponse::into_response((
+            axum::http::StatusCode::from_u16(u16::from(status))
+                .unwrap_or(axum::http::StatusCode::INTERNAL_SERVER_ERROR),
+            axum::Json(ApiProblem::from_error(self)),
+        ));
+        let _previous_content_type = response.headers_mut().insert(
+            axum::http::header::CONTENT_TYPE,
+            axum::http::HeaderValue::from_static(str_constants::APPLICATION_PROBLEM_PLUS_JSON),
+        );
+        if self == Self::RateLimited {
+            let _previous_retry_after = response.headers_mut().insert(
+                axum::http::header::RETRY_AFTER,
+                axum::http::HeaderValue::from_static(str_constants::VALUE_60),
+            );
+        }
+        response
     }
 }
 
