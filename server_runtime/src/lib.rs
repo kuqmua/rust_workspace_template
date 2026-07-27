@@ -397,10 +397,12 @@ struct TracingHttpSpanTrace(Box<str>);
 pub struct HttpErrorDiagnostic {
     backtrace: StdHttpErrorBacktrace,
     error_chain: StdHttpErrorChain,
+    location: StdPanicLocation,
     span_trace: TracingHttpSpanTrace,
     telemetry: HttpErrorTelemetry,
 }
 impl HttpErrorDiagnostic {
+    #[track_caller]
     #[must_use]
     pub fn capture(
         telemetry: HttpErrorTelemetry,
@@ -418,6 +420,7 @@ impl HttpErrorDiagnostic {
                     .into_boxed_str(),
             ),
             error_chain: Self::error_chain(error),
+            location: StdPanicLocation::from(std::panic::Location::caller()),
             span_trace: TracingHttpSpanTrace::from(span_trace.into_boxed_str()),
             telemetry,
         }
@@ -442,6 +445,7 @@ impl HttpErrorDiagnostic {
         Self {
             backtrace: StdHttpErrorBacktrace::from(error.backtrace().to_string().into_boxed_str()),
             error_chain: Self::error_chain(error),
+            location: error.location(),
             span_trace: TracingHttpSpanTrace::from(error.span_trace().to_string().into_boxed_str()),
             telemetry: HttpErrorTelemetry::new(
                 error_type,
@@ -697,6 +701,7 @@ where
                             error_code = %error_telemetry.error_code,
                             error_type = %error_telemetry.error_type,
                             error_chain = %diagnostic.error_chain,
+                            error_location = %diagnostic.location,
                             backtrace = %diagnostic.backtrace,
                             span_trace = %diagnostic.span_trace,
                             duration_ms = started_at.elapsed().as_millis(),
@@ -1029,7 +1034,7 @@ where
 }
 #[cfg(test)]
 mod tests {
-    const HTTP_ERROR_EVENT_REQUIRED_FIELD_MASK: u16 = (1u16 << 11u16) - 1u16;
+    const HTTP_ERROR_EVENT_REQUIRED_FIELD_MASK: u16 = (1u16 << 12u16) - 1u16;
     #[derive(Clone, Debug)]
     struct HttpErrorEventCapture {
         error_count: std::sync::Arc<std::sync::atomic::AtomicUsize>,
@@ -1075,6 +1080,7 @@ mod tests {
                 "error_chain" => 1u16 << 8u16,
                 "backtrace" => 1u16 << 9u16,
                 "span_trace" => 1u16 << 10u16,
+                "error_location" => 1u16 << 11u16,
                 _other => 0u16,
             };
             self.mask |= bit;
@@ -1594,6 +1600,7 @@ mod tests {
         );
         let dispatch = tracing::Dispatch::new(subscriber);
         let _dispatch_guard = tracing::dispatcher::set_default(&dispatch);
+        let expected_diagnostic_line = line!() + 1u32;
         let diagnostic = super::HttpErrorDiagnostic::capture(
             super::HttpErrorTelemetry::new(
                 super::HttpErrorType::from("boundary.test"),
@@ -1611,6 +1618,12 @@ mod tests {
         );
         assert!(!diagnostic.backtrace.0.to_string().is_empty());
         assert!(!diagnostic.span_trace.0.is_empty());
+        assert!(
+            diagnostic
+                .location
+                .to_string()
+                .contains(expected_diagnostic_line.to_string().as_str())
+        );
         let server_error_diagnostic = diagnostic.clone();
         let router = axum::Router::from(
             super::RequestIdLayer::with_span_config(super::HttpRequestSpanConfig::new(

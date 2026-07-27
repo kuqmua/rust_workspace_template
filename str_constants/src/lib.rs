@@ -586,6 +586,7 @@ str_constants_macros::define_str_constants! {
         WORD_STATE = "state";
         WORD_STATIC = "static";
         WORD_STATUS = "status";
+        WORD_SOURCE = "source";
         WORD_SOURCES = "sources";
         WORD_STD = "std";
         WORD_STORE = "store";
@@ -1065,6 +1066,8 @@ str_constants_macros::define_str_constants! {
         pub CODE_STYLE_AXUM_JSON_IDENTIFIER = ["Json"];
         pub CODE_STYLE_INTO_RESPONSE_TRAIT_IDENTIFIER = ["IntoResponse"];
         pub CODE_STYLE_INTO_RESPONSE_METHOD_IDENTIFIER = ["into_response"];
+        pub CODE_STYLE_OBSERVED_ERROR_IDENTIFIER = ["ObservedError"];
+        pub CODE_STYLE_SOURCE_ATTRIBUTE_IDENTIFIER = [WORD_SOURCE];
         pub CODE_STYLE_THISERROR_CRATE_IDENTIFIER = [WORD_THISERROR];
         pub CODE_STYLE_STRING_GUARD_ALLOWED_SYNTAX_FIXTURE = ["#[", WORD_PATH, " = \"", WORD_FIXTURE, ".", WORD_RS, "\"] mod ", WORD_FIXTURE, "; ", WORD_FN, " ", WORD_F_2, "() { ", WORD_VALUE, ".", WORD_EXPECT, "(\"12345678\"); } #[test] fn test_f() { \"test literal\"; } #[cfg(test)] mod tests { const VALUE: &str = \"test literal\"; }"];
         pub CODE_STYLE_STRING_GUARD_DETECTION_FIXTURE = [WORD_FN, " ", WORD_F_2, "() { consume(\"ordinary\"); outer!(", WORD_INNER, "(\"", WORD_MACRO, "\")); }"];
@@ -1093,6 +1096,43 @@ enum EnumError {
     Failure,
 }
 impl axum::response::IntoResponse for EnumError {
+    fn into_response(self) -> axum::response::Response {
+        axum::response::IntoResponse::into_response(axum::Json(()))
+    }
+}
+#[derive(thiserror::Error)]
+enum LocatedEnumError {
+    #[error("located failure")]
+    Failure {
+        location: location_lib::location::Location,
+    },
+}
+impl axum::response::IntoResponse for LocatedEnumError {
+    fn into_response(self) -> axum::response::Response {
+        axum::response::IntoResponse::into_response(axum::Json(()))
+    }
+}
+#[derive(thiserror::Error, location::Location)]
+enum DerivedLocationError {
+    #[error("derived location failure")]
+    Failure {
+        value: String,
+    },
+}
+impl axum::response::IntoResponse for DerivedLocationError {
+    fn into_response(self) -> axum::response::Response {
+        axum::response::IntoResponse::into_response(axum::Json(()))
+    }
+}
+#[derive(thiserror::Error)]
+enum RawSourceError {
+    #[error("raw source failure")]
+    Failure {
+        #[source]
+        source: std::io::Error,
+    },
+}
+impl axum::response::IntoResponse for RawSourceError {
     fn into_response(self) -> axum::response::Response {
         axum::response::IntoResponse::into_response(axum::Json(()))
     }

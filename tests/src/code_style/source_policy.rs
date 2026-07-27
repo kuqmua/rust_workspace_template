@@ -1988,6 +1988,96 @@ fn json_api_error_response_policy_rejects_structs_and_accepts_thiserror_enums() 
     assert_eq!(visitor.ers.len(), 2usize);
 }
 #[test]
+fn api_response_errors_keep_source_locations_out_of_public_error_enums() {
+    super::assert_rs_ast_ers_empty_with_ctx(
+        super::types::StaticStr::from("f6c0a742"),
+        super::types::SourceTextRef::from(
+            "API response errors must keep source locations in private diagnostics",
+        ),
+        |path, ast, ers| {
+            let thiserror_enums = super::visit_syn_file(
+                super::types::SynFileRef::from(ast),
+                super::ThiserrorEnumVisitor::default(),
+            );
+            let visitor = super::visit_syn_file(
+                super::types::SynFileRef::from(ast),
+                super::ApiErrorLocationVisitor {
+                    ers: super::types::DiagnosticMsgs::default(),
+                    thiserror_location_enum_names: &thiserror_enums.location_names,
+                },
+            );
+            ers.extend(
+                visitor
+                    .ers
+                    .into_iter()
+                    .map(|error| format!("{}: {error}", path.display())),
+            );
+        },
+    );
+}
+#[test]
+fn api_response_location_policy_rejects_location_fields() {
+    let ast =
+        syn::parse_file(str_constants::CODE_STYLE_JSON_API_ERROR_ENUM_FIXTURE).expect("6d8c50f1");
+    let thiserror_enums = super::visit_syn_file(
+        super::types::SynFileRef::from(&ast),
+        super::ThiserrorEnumVisitor::default(),
+    );
+    let visitor = super::visit_syn_file(
+        super::types::SynFileRef::from(&ast),
+        super::ApiErrorLocationVisitor {
+            ers: super::types::DiagnosticMsgs::default(),
+            thiserror_location_enum_names: &thiserror_enums.location_names,
+        },
+    );
+    assert_eq!(visitor.ers.len(), 2usize);
+}
+#[test]
+fn api_response_error_sources_use_observed_error() {
+    super::assert_rs_ast_ers_empty_with_ctx(
+        super::types::StaticStr::from("1da82d94"),
+        super::types::SourceTextRef::from(
+            "API response error sources must capture diagnostics through ObservedError",
+        ),
+        |path, ast, ers| {
+            let response_types = super::visit_syn_file(
+                super::types::SynFileRef::from(ast),
+                super::IntoResponseTypeVisitor::default(),
+            );
+            let visitor = super::visit_syn_file(
+                super::types::SynFileRef::from(ast),
+                super::ApiErrorSourceVisitor {
+                    api_error_names: &response_types.names,
+                    ers: super::types::DiagnosticMsgs::default(),
+                },
+            );
+            ers.extend(
+                visitor
+                    .ers
+                    .into_iter()
+                    .map(|error| format!("{}: {error}", path.display())),
+            );
+        },
+    );
+}
+#[test]
+fn api_response_error_source_policy_rejects_raw_sources() {
+    let ast =
+        syn::parse_file(str_constants::CODE_STYLE_JSON_API_ERROR_ENUM_FIXTURE).expect("b26f4527");
+    let response_types = super::visit_syn_file(
+        super::types::SynFileRef::from(&ast),
+        super::IntoResponseTypeVisitor::default(),
+    );
+    let visitor = super::visit_syn_file(
+        super::types::SynFileRef::from(&ast),
+        super::ApiErrorSourceVisitor {
+            api_error_names: &response_types.names,
+            ers: super::types::DiagnosticMsgs::default(),
+        },
+    );
+    assert_eq!(visitor.ers.len(), 1usize);
+}
+#[test]
 fn error_implementation_source_uses_only_thiserror_derive() {
     let forbidden_newtype_derive = concat!("newtype::", "Error");
     let forbidden_manual_impl = concat!("impl std::error::", "Error for");

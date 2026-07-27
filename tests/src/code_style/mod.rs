@@ -1352,6 +1352,7 @@ impl<'ast> syn::visit::Visit<'ast> for JsonIntoResponseErrorVisitor<'_> {
 }
 #[derive(Default)]
 struct ThiserrorEnumVisitor {
+    location_names: types::StdSourceTextSet,
     names: types::StdSourceTextSet,
 }
 impl<'ast> syn::visit::Visit<'ast> for ThiserrorEnumVisitor {
@@ -1373,8 +1374,124 @@ impl<'ast> syn::visit::Visit<'ast> for ThiserrorEnumVisitor {
         });
         if derives_thiserror {
             let _: bool = self.names.insert(i.ident.to_string());
+            let derives_location =
+                i.attrs.iter().any(|attr| {
+                    if !attr.path().is_ident(str_constants::DERIVE) {
+                        return false;
+                    }
+                    let mut found = false;
+                    drop(attr.parse_nested_meta(|meta| {
+                        found |=
+                            meta.path.segments.first().is_some_and(|segment| {
+                                segment.ident == str_constants::LOCATION_ALT
+                            }) && meta
+                                .path
+                                .segments
+                                .last()
+                                .is_some_and(|segment| segment.ident == str_constants::LOCATION);
+                        Ok(())
+                    }));
+                    found
+                });
+            let has_location = derives_location
+                || i.variants.iter().any(|variant| {
+                    variant.fields.iter().any(|field| {
+                        let syn::Type::Path(path) = &field.ty else {
+                            return false;
+                        };
+                        path.path
+                            .segments
+                            .first()
+                            .is_some_and(|segment| segment.ident == str_constants::LOCATION_LIB)
+                            && path
+                                .path
+                                .segments
+                                .last()
+                                .is_some_and(|segment| segment.ident == str_constants::LOCATION)
+                    })
+                });
+            if has_location {
+                let _: bool = self.location_names.insert(i.ident.to_string());
+            }
         }
         syn::visit::visit_item_enum(self, i);
+    }
+}
+struct ApiErrorLocationVisitor<'names_lt> {
+    ers: types::DiagnosticMsgs,
+    thiserror_location_enum_names: &'names_lt types::StdSourceTextSet,
+}
+#[derive(Default)]
+struct IntoResponseTypeVisitor {
+    names: types::StdSourceTextSet,
+}
+impl<'ast> syn::visit::Visit<'ast> for IntoResponseTypeVisitor {
+    fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
+        let is_into_response = i.trait_.as_ref().is_some_and(|(_, path, _)| {
+            path.segments.last().is_some_and(|segment| {
+                segment.ident == str_constants::CODE_STYLE_INTO_RESPONSE_TRAIT_IDENTIFIER
+            })
+        });
+        if is_into_response
+            && let Some(name) = item_impl_self_ty_identifier(types::SynItemImplRef::from(i))
+        {
+            let _: bool = self.names.insert(String::from(name));
+        }
+        syn::visit::visit_item_impl(self, i);
+    }
+}
+struct ApiErrorSourceVisitor<'names_lt> {
+    api_error_names: &'names_lt types::StdSourceTextSet,
+    ers: types::DiagnosticMsgs,
+}
+impl<'ast> syn::visit::Visit<'ast> for ApiErrorSourceVisitor<'_> {
+    fn visit_item_enum(&mut self, i: &'ast syn::ItemEnum) {
+        if self.api_error_names.contains(i.ident.to_string().as_str()) {
+            i.variants.iter().for_each(|variant| {
+                variant.fields.iter().for_each(|field| {
+                    let is_source = field.attrs.iter().any(|attr| {
+                        attr.path()
+                            .is_ident(str_constants::CODE_STYLE_SOURCE_ATTRIBUTE_IDENTIFIER)
+                    });
+                    let is_observed = matches!(
+                        &field.ty,
+                        syn::Type::Path(path)
+                            if path.path.segments.last().is_some_and(|segment| {
+                                segment.ident
+                                    == str_constants::CODE_STYLE_OBSERVED_ERROR_IDENTIFIER
+                            })
+                    );
+                    if is_source && !is_observed {
+                        self.ers.push(format!(
+                            "API response error `{}::{}` source must be wrapped in ObservedError",
+                            i.ident, variant.ident
+                        ));
+                    }
+                });
+            });
+        }
+        syn::visit::visit_item_enum(self, i);
+    }
+}
+impl<'ast> syn::visit::Visit<'ast> for ApiErrorLocationVisitor<'_> {
+    fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
+        let is_into_response = i.trait_.as_ref().is_some_and(|(_, path, _)| {
+            path.segments.last().is_some_and(|segment| {
+                segment.ident == str_constants::CODE_STYLE_INTO_RESPONSE_TRAIT_IDENTIFIER
+            })
+        });
+        if is_into_response {
+            let name = item_impl_self_ty_identifier(types::SynItemImplRef::from(i)).map_or_else(
+                || String::from(str_constants::NON_PATH_TARGET),
+                String::from,
+            );
+            if self.thiserror_location_enum_names.contains(name.as_str()) {
+                self.ers.push(format!(
+                    "API response error enum `{name}` must keep source location in HttpErrorDiagnostic"
+                ));
+            }
+        }
+        syn::visit::visit_item_impl(self, i);
     }
 }
 impl ForwardingDisplayVisitor {

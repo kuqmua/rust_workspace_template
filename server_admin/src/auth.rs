@@ -1370,6 +1370,33 @@ mod tests {
                 .get::<server_runtime::HttpErrorDiagnostic>()
                 .is_some()
         );
+        assert_eq!(
+            response.headers().get(http::header::CONTENT_TYPE),
+            Some(&http::HeaderValue::from_static(
+                str_constants::APPLICATION_PROBLEM_PLUS_JSON
+            ))
+        );
+        let body =
+            futures::executor::block_on(axum::body::to_bytes(response.into_body(), 16_384usize))
+                .expect("8770f4d3");
+        let contract_problem =
+            serde_json::from_slice::<frontend_contract::ApiProblem>(&body).expect("4f705ab8");
+        assert_eq!(
+            contract_problem.kind(),
+            frontend_contract::ApiProblemKind::Internal
+        );
+        let problem = serde_json::from_slice::<serde_json::Value>(&body).expect("1e7ec09d");
+        [
+            "location",
+            "error_location",
+            "backtrace",
+            "error_chain",
+            "span_trace",
+        ]
+        .into_iter()
+        .for_each(|private_field| {
+            assert!(problem.get(private_field).is_none());
+        });
     }
     #[test]
     fn session_context_hash_is_bound_to_peer_and_user_agent() {
