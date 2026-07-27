@@ -1533,6 +1533,57 @@ fn handler_route_operation_error_policy_rejects_shared_types() {
     assert_eq!(visitor.ers.len(), 2usize);
 }
 #[test]
+#[allow(clippy::needless_for_each)] // iterator form is required by the workspace no-for-loop policy
+fn admin_route_errors_do_not_wrap_a_shared_operation_error() {
+    super::snapshot::with_codebase_snapshot(|snapshot| {
+        let auth = snapshot
+            .rs_files()
+            .iter()
+            .find(|file| file.path().as_ref().ends_with("server_admin/src/auth.rs"))
+            .expect("9585d60c")
+            .content()
+            .as_ref();
+        let macros = snapshot
+            .rs_files()
+            .iter()
+            .find(|file| {
+                file.path()
+                    .as_ref()
+                    .ends_with("frontend_contract_macros/src/lib.rs")
+            })
+            .expect("890b3180")
+            .content()
+            .as_ref();
+        assert!(!auth.contains("Operation(AdminError)"), "7c9f1bb0");
+        assert!(
+            auth.contains("frontend_contract::api_operation_error!"),
+            "166dc25a"
+        );
+        assert!(macros.contains("pub fn api_operation_error"), "259e7ebd");
+        [
+            "Authentication,",
+            "Authorization,",
+            "Conflict,",
+            "Csrf,",
+            "RateLimited,",
+            "Validation,",
+            "Pg(",
+            "PasswordHash(",
+            "PayloadTooLarge,",
+            "MethodNotAllowed,",
+            "Session(",
+            "Header(",
+        ]
+        .iter()
+        .for_each(|variant| {
+            assert!(
+                macros.contains(variant),
+                "927e5901: admin route error macro is missing `{variant}`"
+            );
+        });
+    });
+}
+#[test]
 fn source_does_not_retain_commented_debug_statements() {
     super::assert_rs_ast_ers_empty_with_ctx(
         super::types::StaticStr::from("a1a18a02"),

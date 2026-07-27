@@ -1020,15 +1020,15 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
 
 #[proc_macro]
 pub fn api_operation_error(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let paths = match syn::parse::Parser::parse(
-        syn::punctuated::Punctuated::<syn::Path, syn::Token![,]>::parse_terminated,
+    let parsed_ers = match syn::parse::Parser::parse(
+        syn::punctuated::Punctuated::<syn::Ident, syn::Token![,]>::parse_terminated,
         input,
     ) {
         Ok(value) => value,
-        Err(error) => return error.to_compile_error().into(),
+        Err(parse_error) => return parse_error.to_compile_error().into(),
     };
-    let mut path_iter = paths.into_iter();
-    let Some(error_path) = path_iter.next() else {
+    let mut ers = parsed_ers.into_iter();
+    let Some(error) = ers.next() else {
         return syn::Error::new(
             proc_macro2::Span::call_site(),
             str_constants::API_OPERATION_ERROR_REQUIRES_ERROR_TYPE,
@@ -1036,46 +1036,108 @@ pub fn api_operation_error(input: proc_macro::TokenStream) -> proc_macro::TokenS
         .to_compile_error()
         .into();
     };
-    let Some(source_path) = path_iter.next() else {
+    if ers.next().is_some() {
         return syn::Error::new(
             proc_macro2::Span::call_site(),
-            str_constants::API_OPERATION_ERROR_REQUIRES_SOURCE_TYPE,
-        )
-        .to_compile_error()
-        .into();
-    };
-    let Some(render_path) = path_iter.next() else {
-        return syn::Error::new(
-            proc_macro2::Span::call_site(),
-            str_constants::API_OPERATION_ERROR_REQUIRES_RENDER_FUNCTION,
-        )
-        .to_compile_error()
-        .into();
-    };
-    if path_iter.next().is_some() {
-        return syn::Error::new(
-            proc_macro2::Span::call_site(),
-            str_constants::API_OPERATION_ERROR_ACCEPTS_EXACTLY_THREE_PATHS,
+            str_constants::API_OPERATION_ERROR_ACCEPTS_ONE_ERROR_TYPE,
         )
         .to_compile_error()
         .into();
     }
     quote::quote! {
         #[derive(Debug, thiserror::Error)]
-        enum #error_path {
-            #[error(transparent)]
-            Operation(#source_path),
+        enum #error {
+            #[error("administrator authentication failed")]
+            Authentication,
+            #[error("administrator authorization failed")]
+            Authorization,
+            #[error("administrator operation conflicts with current state")]
+            Conflict,
+            #[error("administrator request failed CSRF validation")]
+            Csrf,
+            #[error("administrator authentication is temporarily rate limited")]
+            RateLimited,
+            #[error("administrator request validation failed")]
+            Validation,
+            #[error("administrator API database operation failed: {0:?}")]
+            Pg(#[source] server_runtime::ObservedError<super::SqlxAdminError>),
+            #[error("administrator password hashing failed: {0}")]
+            PasswordHash(
+                #[source] server_runtime::ObservedError<super::AdminPasswordHashError>,
+            ),
+            #[error("administrator request body is too large")]
+            PayloadTooLarge,
+            #[error("administrator route does not support this HTTP method")]
+            MethodNotAllowed,
+            #[error("administrator session operation failed: {0}")]
+            Session(#[source] server_runtime::ObservedError<AdminSessionError>),
+            #[error("administrator response header is invalid: {0:?}")]
+            Header(#[source] server_runtime::ObservedError<HttpAdminHeaderValueError>),
         }
-        impl From<#source_path> for #error_path {
-            fn from(value: #source_path) -> Self {
-                Self::Operation(value)
+        impl From<AdminError> for #error {
+            fn from(value: AdminError) -> Self {
+                match value {
+                    AdminError::Authentication => Self::Authentication,
+                    AdminError::Authorization => Self::Authorization,
+                    AdminError::Conflict => Self::Conflict,
+                    AdminError::Csrf => Self::Csrf,
+                    AdminError::RateLimited => Self::RateLimited,
+                    AdminError::Validation => Self::Validation,
+                    AdminError::Pg(source) => Self::Pg(source),
+                    AdminError::PasswordHash(source) => Self::PasswordHash(source),
+                    AdminError::PayloadTooLarge => Self::PayloadTooLarge,
+                    AdminError::MethodNotAllowed => Self::MethodNotAllowed,
+                    AdminError::Session(source) => Self::Session(source),
+                    AdminError::Header(source) => Self::Header(source),
+                }
             }
         }
-        impl axum::response::IntoResponse for #error_path {
+        impl axum::response::IntoResponse for #error {
             fn into_response(self) -> axum::response::Response {
-                match self {
-                    Self::Operation(error) => #render_path(&error),
-                }
+                let route_error_status = match &self {
+                    Self::Authentication => frontend_contract::RouteErrorStatus::Authentication,
+                    Self::Authorization | Self::Csrf => {
+                        frontend_contract::RouteErrorStatus::Authorization
+                    }
+                    Self::Conflict => frontend_contract::RouteErrorStatus::Conflict,
+                    Self::MethodNotAllowed => {
+                        frontend_contract::RouteErrorStatus::MethodNotAllowed
+                    }
+                    Self::PayloadTooLarge => {
+                        frontend_contract::RouteErrorStatus::PayloadTooLarge
+                    }
+                    Self::RateLimited => frontend_contract::RouteErrorStatus::RateLimited,
+                    Self::Validation => frontend_contract::RouteErrorStatus::Validation,
+                    Self::Pg(_)
+                    | Self::PasswordHash(_)
+                    | Self::Session(_)
+                    | Self::Header(_) => frontend_contract::RouteErrorStatus::Internal,
+                };
+                let error_type =
+                    server_runtime::HttpErrorType::from(str_constants::ADMIN_API_ERROR_TYPE);
+                let optional_diagnostic = match &self {
+                    Self::Pg(source) => Some(
+                        server_runtime::HttpErrorDiagnostic::from_observed(error_type, source),
+                    ),
+                    Self::PasswordHash(source) => Some(
+                        server_runtime::HttpErrorDiagnostic::from_observed(error_type, source),
+                    ),
+                    Self::Session(source) => Some(
+                        server_runtime::HttpErrorDiagnostic::from_observed(error_type, source),
+                    ),
+                    Self::Header(source) => Some(
+                        server_runtime::HttpErrorDiagnostic::from_observed(error_type, source),
+                    ),
+                    Self::Authentication
+                    | Self::Authorization
+                    | Self::Conflict
+                    | Self::Csrf
+                    | Self::MethodNotAllowed
+                    | Self::PayloadTooLarge
+                    | Self::RateLimited
+                    | Self::Validation => None,
+                };
+                admin_error_response_parts(route_error_status, optional_diagnostic)
             }
         }
     }

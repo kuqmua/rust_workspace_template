@@ -1063,11 +1063,6 @@ str_constants_macros::define_str_constants! {
         pub CODE_STYLE_GENERATE_DERIVE_TOKEN_STREAM_BUILDER_MACRO_NAME = ["generate_derive_token_stream_builder"];
         pub CODE_STYLE_GENERATE_PG_TYPES_MACRO_NAME = ["generate_pg_types"];
         pub CODE_STYLE_GENERATE_WHERE_FILTERS_MACRO_NAME = ["generate_where_filters"];
-        pub API_OPERATION_ERROR_ACCEPTS_EXACTLY_THREE_PATHS = ["api_operation_error accepts exactly three paths"];
-        pub API_OPERATION_ERROR_MACRO_IDENTIFIER = ["api_operation_error"];
-        pub API_OPERATION_ERROR_REQUIRES_ERROR_TYPE = ["api_operation_error requires an error type"];
-        pub API_OPERATION_ERROR_REQUIRES_RENDER_FUNCTION = ["api_operation_error requires a render function"];
-        pub API_OPERATION_ERROR_REQUIRES_SOURCE_TYPE = ["api_operation_error requires a source type"];
         pub ROUTE_ERROR_REQUIRES_ASYNC_FUNCTION = ["route_error requires an async function"];
         pub ROUTE_ERROR_REQUIRES_ERROR_TYPE = ["route_error requires an error type"];
         pub ROUTE_ERROR_REQUIRES_EXPLICIT_RETURN_TYPE = ["route_error requires an explicit return type"];
@@ -2196,6 +2191,9 @@ define_str_constants! {
         pub ADMIN_OBSERVED_ERROR_PASSWORD_HASH = ["admin_password_hash"];
         pub ADMIN_OBSERVED_ERROR_RESPONSE_HEADER = ["admin_response_header"];
         pub ADMIN_OBSERVED_ERROR_SESSION = ["admin_session"];
+        pub API_OPERATION_ERROR_MACRO_IDENTIFIER = ["api_operation_error"];
+        pub API_OPERATION_ERROR_ACCEPTS_ONE_ERROR_TYPE = ["api_operation_error accepts one error type"];
+        pub API_OPERATION_ERROR_REQUIRES_ERROR_TYPE = ["api_operation_error requires an error type"];
         pub ADMIN_REFRESH_TOKEN = [WORD_ADMIN_REFRESH_TOKEN];
         pub ADMIN_REFRESH_TOKEN_ALT = [WORD_ADMIN_REFRESH_TOKEN, "="];
         pub ADMINISTRATOR_PASSWORD_LENGTH_IS_INVALID = [WORD_ADMINISTRATOR, " ", WORD_PASSWORD, " ", WORD_LENGTH, " ", WORD_IS_2, " ", WORD_INVALID];

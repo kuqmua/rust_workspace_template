@@ -715,34 +715,37 @@ impl From<super::SqlxAdminError> for AdminError {
 pub struct AxumAdminResponse(axum::response::Response);
 impl axum::response::IntoResponse for AdminError {
     fn into_response(self) -> axum::response::Response {
-        admin_error_response(&self)
+        let route_error_status = self.route_error_status();
+        let error_type = server_runtime::HttpErrorType::from(str_constants::ADMIN_API_ERROR_TYPE);
+        let optional_diagnostic = match &self {
+            Self::Pg(source) => Some(server_runtime::HttpErrorDiagnostic::from_observed(
+                error_type, source,
+            )),
+            Self::PasswordHash(source) => Some(server_runtime::HttpErrorDiagnostic::from_observed(
+                error_type, source,
+            )),
+            Self::Session(source) => Some(server_runtime::HttpErrorDiagnostic::from_observed(
+                error_type, source,
+            )),
+            Self::Header(source) => Some(server_runtime::HttpErrorDiagnostic::from_observed(
+                error_type, source,
+            )),
+            Self::Authentication
+            | Self::Authorization
+            | Self::Conflict
+            | Self::Csrf
+            | Self::MethodNotAllowed
+            | Self::PayloadTooLarge
+            | Self::RateLimited
+            | Self::Validation => None,
+        };
+        admin_error_response_parts(route_error_status, optional_diagnostic)
     }
 }
-fn admin_error_response(error: &AdminError) -> axum::response::Response {
-    let route_error_status = error.route_error_status();
-    let error_type = server_runtime::HttpErrorType::from(str_constants::ADMIN_API_ERROR_TYPE);
-    let optional_diagnostic = match &error {
-        AdminError::Pg(source) => Some(server_runtime::HttpErrorDiagnostic::from_observed(
-            error_type, source,
-        )),
-        AdminError::PasswordHash(source) => Some(
-            server_runtime::HttpErrorDiagnostic::from_observed(error_type, source),
-        ),
-        AdminError::Session(source) => Some(server_runtime::HttpErrorDiagnostic::from_observed(
-            error_type, source,
-        )),
-        AdminError::Header(source) => Some(server_runtime::HttpErrorDiagnostic::from_observed(
-            error_type, source,
-        )),
-        AdminError::Authentication
-        | AdminError::Authorization
-        | AdminError::Conflict
-        | AdminError::Csrf
-        | AdminError::MethodNotAllowed
-        | AdminError::PayloadTooLarge
-        | AdminError::RateLimited
-        | AdminError::Validation => None,
-    };
+fn admin_error_response_parts(
+    route_error_status: frontend_contract::RouteErrorStatus,
+    optional_diagnostic: Option<server_runtime::HttpErrorDiagnostic>,
+) -> axum::response::Response {
     let problem_status = frontend_contract::ApiProblemStatus::try_from(u16::from(
         route_error_status.transport_status(),
     ))
@@ -759,54 +762,34 @@ fn admin_error_response(error: &AdminError) -> axum::response::Response {
     }
     response
 }
-frontend_contract::api_operation_error!(AdminAuditLogError, AdminError, admin_error_response);
-frontend_contract::api_operation_error!(AdminAuditExportError, AdminError, admin_error_response);
-frontend_contract::api_operation_error!(AdminBrandingError, AdminError, admin_error_response);
-frontend_contract::api_operation_error!(
-    AdminChangeOwnPasswordError,
-    AdminError,
-    admin_error_response
-);
-frontend_contract::api_operation_error!(AdminCreateRoleError, AdminError, admin_error_response);
-frontend_contract::api_operation_error!(AdminCreateUserError, AdminError, admin_error_response);
-frontend_contract::api_operation_error!(AdminDataTableError, AdminError, admin_error_response);
-frontend_contract::api_operation_error!(AdminDataTablesError, AdminError, admin_error_response);
-frontend_contract::api_operation_error!(AdminDeleteRoleError, AdminError, admin_error_response);
-frontend_contract::api_operation_error!(AdminDeleteUserError, AdminError, admin_error_response);
-frontend_contract::api_operation_error!(
-    AdminListPermissionsError,
-    AdminError,
-    admin_error_response
-);
-frontend_contract::api_operation_error!(AdminListRolesError, AdminError, admin_error_response);
-frontend_contract::api_operation_error!(AdminListUsersError, AdminError, admin_error_response);
-frontend_contract::api_operation_error!(AdminMeError, AdminError, admin_error_response);
-frontend_contract::api_operation_error!(AdminRefreshError, AdminError, admin_error_response);
-frontend_contract::api_operation_error!(
-    AdminRevokeAllSessionsError,
-    AdminError,
-    admin_error_response
-);
-frontend_contract::api_operation_error!(AdminRevokeSessionError, AdminError, admin_error_response);
-frontend_contract::api_operation_error!(AdminSessionsError, AdminError, admin_error_response);
-frontend_contract::api_operation_error!(
-    AdminSetRolePermissionsError,
-    AdminError,
-    admin_error_response
-);
-frontend_contract::api_operation_error!(AdminSetUserBanError, AdminError, admin_error_response);
-frontend_contract::api_operation_error!(
-    AdminSetUserPasswordError,
-    AdminError,
-    admin_error_response
-);
-frontend_contract::api_operation_error!(AdminSetUserRolesError, AdminError, admin_error_response);
-frontend_contract::api_operation_error!(AdminSettingsError, AdminError, admin_error_response);
-frontend_contract::api_operation_error!(AdminSignInError, AdminError, admin_error_response);
-frontend_contract::api_operation_error!(AdminSignOutError, AdminError, admin_error_response);
-frontend_contract::api_operation_error!(AdminUpdateRoleError, AdminError, admin_error_response);
-frontend_contract::api_operation_error!(AdminUpdateSettingsError, AdminError, admin_error_response);
-frontend_contract::api_operation_error!(AdminUpdateUserError, AdminError, admin_error_response);
+frontend_contract::api_operation_error!(AdminAuditLogError,);
+frontend_contract::api_operation_error!(AdminAuditExportError,);
+frontend_contract::api_operation_error!(AdminBrandingError,);
+frontend_contract::api_operation_error!(AdminChangeOwnPasswordError,);
+frontend_contract::api_operation_error!(AdminCreateRoleError,);
+frontend_contract::api_operation_error!(AdminCreateUserError,);
+frontend_contract::api_operation_error!(AdminDataTableError,);
+frontend_contract::api_operation_error!(AdminDataTablesError,);
+frontend_contract::api_operation_error!(AdminDeleteRoleError,);
+frontend_contract::api_operation_error!(AdminDeleteUserError,);
+frontend_contract::api_operation_error!(AdminListPermissionsError,);
+frontend_contract::api_operation_error!(AdminListRolesError,);
+frontend_contract::api_operation_error!(AdminListUsersError,);
+frontend_contract::api_operation_error!(AdminMeError,);
+frontend_contract::api_operation_error!(AdminRefreshError,);
+frontend_contract::api_operation_error!(AdminRevokeAllSessionsError,);
+frontend_contract::api_operation_error!(AdminRevokeSessionError,);
+frontend_contract::api_operation_error!(AdminSessionsError,);
+frontend_contract::api_operation_error!(AdminSetRolePermissionsError,);
+frontend_contract::api_operation_error!(AdminSetUserBanError,);
+frontend_contract::api_operation_error!(AdminSetUserPasswordError,);
+frontend_contract::api_operation_error!(AdminSetUserRolesError,);
+frontend_contract::api_operation_error!(AdminSettingsError,);
+frontend_contract::api_operation_error!(AdminSignInError,);
+frontend_contract::api_operation_error!(AdminSignOutError,);
+frontend_contract::api_operation_error!(AdminUpdateRoleError,);
+frontend_contract::api_operation_error!(AdminUpdateSettingsError,);
+frontend_contract::api_operation_error!(AdminUpdateUserError,);
 impl axum::response::IntoResponse for AxumAdminResponse {
     fn into_response(self) -> axum::response::Response {
         self.0
