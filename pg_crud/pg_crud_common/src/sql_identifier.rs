@@ -29,8 +29,50 @@ pub struct SqlQualifiedIdentifier {
     schema: SqlIdentifier,
     table: SqlIdentifier,
 }
-#[derive(Clone, Debug, Eq, PartialEq, newtype::FromInner)]
-pub struct SqlIdentifiers(Vec<SqlIdentifier>);
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct SqlIdentifierListText(String);
+impl TryFrom<String> for SqlIdentifierListText {
+    type Error = crate::PgCrudStringWrapperTryFromStringError;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.len() > crate::PG_CRUD_STRING_WRAPPER_MAX_LEN {
+            Err(crate::PgCrudStringWrapperTryFromStringError::TooLong {
+                len: value.len(),
+                max: crate::PG_CRUD_STRING_WRAPPER_MAX_LEN,
+            })
+        } else {
+            Ok(Self(value))
+        }
+    }
+}
+#[derive(Clone, Debug, Eq, PartialEq)]
+enum SqlIdentifierListTextState {
+    Text(SqlIdentifierListText),
+    TooLong(crate::PgCrudStringWrapperTryFromStringError),
+}
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SqlIdentifiers(SqlIdentifierListTextState);
+impl From<Vec<SqlIdentifier>> for SqlIdentifiers {
+    fn from(value: Vec<SqlIdentifier>) -> Self {
+        let identifiers_len = value.iter().fold(0usize, |len, identifier| {
+            len.saturating_add(identifier.as_ref().len())
+        });
+        let separators_len = value
+            .len()
+            .saturating_sub(1usize)
+            .saturating_mul(str_constants::TEXT_ALT_6.len());
+        let mut text = String::with_capacity(identifiers_len.saturating_add(separators_len));
+        value.iter().enumerate().for_each(|(idx, identifier)| {
+            if idx != 0usize {
+                text.push_str(str_constants::TEXT_ALT_6);
+            }
+            text.push_str(identifier.as_ref());
+        });
+        Self(match SqlIdentifierListText::try_from(text) {
+            Ok(list_text) => SqlIdentifierListTextState::Text(list_text),
+            Err(error) => SqlIdentifierListTextState::TooLong(error),
+        })
+    }
+}
 #[derive(Debug)]
 struct SqlQueryText(String);
 impl From<crate::PgCrudStringWrapperTryFromStringError> for SqlQueryText {
@@ -77,31 +119,30 @@ pub struct SqlSelectBuilder {
 impl SqlSelectBuilder {
     #[must_use]
     pub fn build(&self) -> crate::QueryPartFragment {
-        let columns_len = self.columns.0.iter().fold(0usize, |len, column| {
-            len.saturating_add(column.as_ref().len())
-        });
-        let separators_len = self
-            .columns
-            .0
+        let fixed_len = str_constants::SELECT
             .len()
-            .saturating_sub(1usize)
-            .saturating_mul(str_constants::TEXT_ALT_6.len());
-        let capacity = columns_len
-            .saturating_add(separators_len)
-            .saturating_add(str_constants::SELECT.len())
             .saturating_add(str_constants::FROM.len())
             .saturating_add(self.table.schema.as_ref().len())
             .saturating_add(str_constants::DOT.len())
             .saturating_add(self.table.table.as_ref().len());
+        let columns = match &self.columns.0 {
+            SqlIdentifierListTextState::Text(text) => text.0.as_str(),
+            SqlIdentifierListTextState::TooLong(
+                crate::PgCrudStringWrapperTryFromStringError::TooLong { len, max },
+            ) => {
+                return crate::QueryPartFragment::from(
+                    crate::PgCrudStringWrapperTryFromStringError::TooLong {
+                        len: fixed_len.saturating_add(*len),
+                        max: *max,
+                    },
+                );
+            }
+        };
+        let capacity = fixed_len.saturating_add(columns.len());
         let mut query = SqlQueryText::try_from(String::with_capacity(capacity))
             .unwrap_or_else(SqlQueryText::from);
         query.0.push_str(str_constants::SELECT);
-        self.columns.0.iter().enumerate().for_each(|(idx, column)| {
-            if idx != 0usize {
-                query.0.push_str(str_constants::TEXT_ALT_6);
-            }
-            query.0.push_str(column.as_ref());
-        });
+        query.0.push_str(columns);
         query.0.push_str(str_constants::FROM);
         self.table.push_to(&mut query);
         crate::QueryPartFragment::try_from(query.0).unwrap_or_else(crate::QueryPartFragment::from)
