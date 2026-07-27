@@ -892,7 +892,14 @@ fn synchronize_code_style_snapshots(
 ) -> Result<(), ScaffoldError> {
     synchronize_cargo_owned_projection(
         root,
-        CargoArgsRef::from(&["test", "-p", "tests", "code_style"][..]),
+        CargoArgsRef::from(
+            &[
+                str_constants::TEST_ALT_3,
+                str_constants::P,
+                "tests",
+                "code_style",
+            ][..],
+        ),
         UpdateEnvName::from(str_constants::UPDATE_CODE_STYLE_SNAPSHOTS),
         GeneratedProjection::CodeStyle,
         write_changes,
@@ -941,10 +948,10 @@ fn synchronize_config_projections(
         root,
         CargoArgsRef::from(
             &[
-                "test",
-                "-p",
+                str_constants::TEST_ALT_3,
+                str_constants::P,
                 "server_config",
-                "-p",
+                str_constants::P,
                 "notification_service_config",
                 "--tests",
             ][..],
@@ -1206,8 +1213,8 @@ fn run() -> Result<(), ScaffoldError> {
         }
         Some("generate") => {
             let write_changes = match arguments.next().as_deref() {
-                Some("sync") => ShouldWrite::from(true),
-                Some("check") => ShouldWrite::from(false),
+                Some(str_constants::SYNC) => ShouldWrite::from(true),
+                Some(str_constants::CHECK) => ShouldWrite::from(false),
                 Some(_) | None => return Err(ScaffoldError::Arguments),
             };
             if arguments.next().is_some() {
@@ -1217,8 +1224,8 @@ fn run() -> Result<(), ScaffoldError> {
         }
         Some("deployment") => {
             let write_changes = match arguments.next().as_deref() {
-                Some("sync") => ShouldWrite::from(true),
-                Some("check") => ShouldWrite::from(false),
+                Some(str_constants::SYNC) => ShouldWrite::from(true),
+                Some(str_constants::CHECK) => ShouldWrite::from(false),
                 Some(_) | None => return Err(ScaffoldError::Arguments),
             };
             if arguments.next().is_some() {

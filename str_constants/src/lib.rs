@@ -603,6 +603,7 @@ str_constants_macros::define_str_constants! {
         WORD_SUPPORTS = "supports";
         WORD_SUPPORT_URL = "support_url";
         WORD_SWAGGER = "swagger";
+        WORD_SYNC = "sync";
         WORD_SYSTEM = "system";
         WORD_SYSTEM_SETTINGS = "system_settings";
         WORD_T = "T";
@@ -2550,7 +2551,7 @@ str_constants_macros::define_str_constants! {
         pub LOCATION_TO_SCHEMA = ["location_to_schema"];
         pub LOCKED_423 = ["locked_423"];
         pub LOGIN = [WORD_LOGIN];
-        pub LONG_PRODUCTION_STRING_LITERALS_MUST_BE_DEFINED_ONCE_AND_REUSED = [WORD_LONG, " ", WORD_PRODUCTION, " ", WORD_STRING_2, " ", WORD_LITERALS, " ", WORD_MUST, " ", WORD_BE, " defined once ", WORD_AND_2, " reused:"];
+        pub PRODUCTION_STRING_LITERALS_MUST_BE_DEFINED_ONCE_AND_REUSED = [WORD_PRODUCTION, " ", WORD_STRING_2, " ", WORD_LITERALS, " ", WORD_MUST, " ", WORD_BE, " defined once ", WORD_AND_2, " reused:"];
         pub LOOP_DETECTED_508 = ["loop_detected_508"];
         pub LOSSY_PROVENANCE_CASTS = ["lossy_provenance_casts"];
         pub LOWER = [WORD_LOWER];
@@ -2912,6 +2913,7 @@ str_constants_macros::define_str_constants! {
         pub SUPERTRAIT_ITEM_SHADOWING_USAGE = ["supertrait_item_shadowing_usage"];
         pub SWITCHING_PROTOCOLS_101 = ["switching_protocols_101"];
         pub SYN_FIELD_RS = ["syn_field.", WORD_RS];
+        pub SYNC = [WORD_SYNC];
         pub SYSTEM = [WORD_SYSTEM];
         pub SYSTEM_SETTINGS = [WORD_SYSTEM_SETTINGS];
         pub TABLE_ALT = [WORD_TABLE_2];
