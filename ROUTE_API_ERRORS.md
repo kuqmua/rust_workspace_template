@@ -447,64 +447,377 @@ pub enum AdminSystemSettingsRoError {
 ### Admin HTML pages and form actions
 
 `route_error` emits each route error below as a separate concrete uninhabited
-enum:
+enum. An empty error enum is correct only for a genuinely infallible handler.
+For example, the admin root route constructs a redirect from a static,
+repository-owned path and performs no parsing, I/O, authentication, database
+access, or other fallible operation:
 
 ```rust
 #[derive(Debug, thiserror::Error)]
 enum AdminRootPageError {}
+
+async fn root() -> Result<axum::response::Response, AdminRootPageError> {
+    Ok(axum::response::IntoResponse::into_response(
+        axum::response::Redirect::to(
+            server_admin_contract::AdminFrontendPath::Users.get(),
+        ),
+    ))
+}
+```
+
+The empty enum proves that `Err(AdminRootPageError)` cannot be constructed. It
+must not be used when a handler catches another error and converts it into a
+`Response`; such a handler is operationally fallible and needs its own concrete
+variants.
+
+For example, `AdminUsersPageError` must be derived from its actual call graph:
+`users` calls `csr_page`, which calls `page_context`, `me_view`,
+`branding_view`, authentication, and repository reads. It also performs an
+explicit page and table authorization check. Its route-specific declaration
+should therefore be:
+
+```rust
 #[derive(Debug, thiserror::Error)]
-enum AdminSignInPageError {}
+enum AdminUsersPageError {
+    #[error("administrator authentication failed")]
+    Authentication,
+    #[error("administrator authorization failed")]
+    Authorization,
+    #[error("administrator users page data is invalid")]
+    Validation,
+    #[error("administrator users page database operation failed: {0:?}")]
+    Pg(
+        #[source]
+        server_runtime::ObservedError<super::super::SqlxAdminError>,
+    ),
+}
+```
+
+These variants come directly from the code:
+
+- `Authentication` comes from `authenticate` and
+  `load_authenticated_admin_from_db`.
+- `Authorization` comes from the failed `AdminPage::Tables` or
+  `AdminDataTable::Users` access check in `csr_page`.
+- `Validation` comes from `authenticated_admin_contract` and invalid stored
+  branding values.
+- `Pg` comes from session, user, and branding repository reads.
+
+The current `route_error` implementation still needs to be changed to emit and
+propagate the fallible declarations below.
+
+The common field-bearing variants use these concrete types:
+
+```rust
+Pg(
+    #[source]
+    server_runtime::ObservedError<super::super::SqlxAdminError>,
+)
+PasswordHash(
+    #[source]
+    server_runtime::ObservedError<super::super::AdminPasswordHashError>,
+)
+Session(
+    #[source]
+    server_runtime::ObservedError<super::AdminSessionError>,
+)
+Header(
+    #[source]
+    server_runtime::ObservedError<super::HttpAdminHeaderValueError>,
+)
+SsrText(
+    #[source]
+    server_admin_frontend::ssr::AdminSsrTextTryFromStringError,
+)
+SsrMessage(
+    #[source]
+    to_err_string::ErrorTextTryFromStringError,
+)
+Serialization(#[source] serde_json::Error)
+```
+
+The page-route declarations derived from their current code paths are:
+
+```rust
 #[derive(Debug, thiserror::Error)]
-enum AdminUsersPageError {}
+enum AdminSignInPageError {
+    Authentication,
+    Validation,
+    Pg(/* concrete type above */),
+}
+
 #[derive(Debug, thiserror::Error)]
-enum AdminRolesPageError {}
+enum AdminRolesPageError {
+    Authentication,
+    Authorization,
+    Validation,
+    Pg(/* concrete type above */),
+}
+
 #[derive(Debug, thiserror::Error)]
-enum AdminPermissionsPageError {}
+enum AdminPermissionsPageError {
+    Authentication,
+    Authorization,
+    Validation,
+    Pg(/* concrete type above */),
+}
+
 #[derive(Debug, thiserror::Error)]
-enum AdminDataTablesPageError {}
+enum AdminDataTablesPageError {
+    Authentication,
+    Authorization,
+    Validation,
+    Pg(/* concrete type above */),
+}
+
 #[derive(Debug, thiserror::Error)]
-enum AdminSessionsPageError {}
+enum AdminSessionsPageError {
+    Authentication,
+    Authorization,
+    Validation,
+    Pg(/* concrete type above */),
+}
+
 #[derive(Debug, thiserror::Error)]
-enum AdminProfilePageError {}
+enum AdminProfilePageError {
+    Authentication,
+    Authorization,
+    Validation,
+    Pg(/* concrete type above */),
+}
+
 #[derive(Debug, thiserror::Error)]
-enum AdminSettingsPageError {}
+enum AdminSettingsPageError {
+    Authentication,
+    Authorization,
+    Validation,
+    Pg(/* concrete type above */),
+}
+
 #[derive(Debug, thiserror::Error)]
-enum AdminVersionPageError {}
+enum AdminVersionPageError {
+    Authentication,
+    Validation,
+    Pg(/* concrete type above */),
+    SsrText(/* concrete type above */),
+}
+
 #[derive(Debug, thiserror::Error)]
-enum AdminOpenApiPageError {}
+enum AdminOpenApiPageError {
+    Authentication,
+    Authorization,
+    Validation,
+    Pg(/* concrete type above */),
+    Serialization(/* concrete type above */),
+    SsrText(/* concrete type above */),
+}
+```
+
+`AdminUsersPageError` has the equivalent data-backed page variants shown in
+full above. The authorization variants for these pages come from `csr_page`;
+the authentication, validation, and database variants come from
+`page_context`, `me_view`, `branding_view`, and their repository calls.
+
+The form-action declarations derived from the current handler and extractor
+paths are:
+
+```rust
 #[derive(Debug, thiserror::Error)]
-enum AdminHtmlSignInError {}
+enum AdminHtmlSignInError {
+    Authentication,
+    RateLimited,
+    Validation,
+    Pg(/* concrete type above */),
+    PasswordHash(/* concrete type above */),
+    PayloadTooLarge,
+    Session(/* concrete type above */),
+    Header(/* concrete type above */),
+    SsrMessage(/* concrete type above */),
+}
+
 #[derive(Debug, thiserror::Error)]
-enum AdminHtmlSignOutError {}
+enum AdminHtmlSignOutError {
+    Authentication,
+    Csrf,
+    Pg(/* concrete type above */),
+    Header(/* concrete type above */),
+}
+
 #[derive(Debug, thiserror::Error)]
-enum AdminHtmlChangePasswordError {}
+enum AdminHtmlChangePasswordError {
+    Authentication,
+    Conflict,
+    Csrf,
+    RateLimited,
+    Validation,
+    Pg(/* concrete type above */),
+    PasswordHash(/* concrete type above */),
+    PayloadTooLarge,
+    Header(/* concrete type above */),
+}
+
 #[derive(Debug, thiserror::Error)]
-enum AdminHtmlRevokeSessionError {}
+enum AdminHtmlRevokeSessionError {
+    Authentication,
+    Csrf,
+    Validation,
+    Pg(/* concrete type above */),
+    PayloadTooLarge,
+    Header(/* concrete type above */),
+}
+
 #[derive(Debug, thiserror::Error)]
-enum AdminHtmlCreateUserError {}
+enum AdminHtmlCreateUserError {
+    Authentication,
+    Authorization,
+    Csrf,
+    RateLimited,
+    Validation,
+    Pg(/* concrete type above */),
+    PasswordHash(/* concrete type above */),
+    PayloadTooLarge,
+    Header(/* concrete type above */),
+}
+
 #[derive(Debug, thiserror::Error)]
-enum AdminHtmlUpdateUserError {}
+enum AdminHtmlUpdateUserError {
+    Authentication,
+    Authorization,
+    Conflict,
+    Csrf,
+    RateLimited,
+    Validation,
+    Pg(/* concrete type above */),
+    PayloadTooLarge,
+    Header(/* concrete type above */),
+}
+
 #[derive(Debug, thiserror::Error)]
-enum AdminHtmlUserPasswordError {}
+enum AdminHtmlUserPasswordError {
+    Authentication,
+    Authorization,
+    Conflict,
+    Csrf,
+    RateLimited,
+    Validation,
+    Pg(/* concrete type above */),
+    PasswordHash(/* concrete type above */),
+    PayloadTooLarge,
+    Header(/* concrete type above */),
+}
+
 #[derive(Debug, thiserror::Error)]
-enum AdminHtmlUserBanError {}
+enum AdminHtmlUserBanError {
+    Authentication,
+    Authorization,
+    Conflict,
+    Csrf,
+    RateLimited,
+    Validation,
+    Pg(/* concrete type above */),
+    PayloadTooLarge,
+    Header(/* concrete type above */),
+}
+
 #[derive(Debug, thiserror::Error)]
-enum AdminHtmlDeleteUserError {}
+enum AdminHtmlDeleteUserError {
+    Authentication,
+    Authorization,
+    Conflict,
+    Csrf,
+    RateLimited,
+    Validation,
+    Pg(/* concrete type above */),
+    PayloadTooLarge,
+    Header(/* concrete type above */),
+}
+
 #[derive(Debug, thiserror::Error)]
-enum AdminHtmlUserRolesError {}
+enum AdminHtmlUserRolesError {
+    Authentication,
+    Authorization,
+    Conflict,
+    Csrf,
+    RateLimited,
+    Validation,
+    Pg(/* concrete type above */),
+    PayloadTooLarge,
+    Header(/* concrete type above */),
+}
+
 #[derive(Debug, thiserror::Error)]
-enum AdminHtmlCreateRoleError {}
+enum AdminHtmlCreateRoleError {
+    Authentication,
+    Authorization,
+    Csrf,
+    RateLimited,
+    Validation,
+    Pg(/* concrete type above */),
+    PayloadTooLarge,
+    Header(/* concrete type above */),
+}
+
 #[derive(Debug, thiserror::Error)]
-enum AdminHtmlUpdateRoleError {}
+enum AdminHtmlUpdateRoleError {
+    Authentication,
+    Authorization,
+    Conflict,
+    Csrf,
+    RateLimited,
+    Validation,
+    Pg(/* concrete type above */),
+    PayloadTooLarge,
+    Header(/* concrete type above */),
+}
+
 #[derive(Debug, thiserror::Error)]
-enum AdminHtmlDeleteRoleError {}
+enum AdminHtmlDeleteRoleError {
+    Authentication,
+    Authorization,
+    Conflict,
+    Csrf,
+    RateLimited,
+    Validation,
+    Pg(/* concrete type above */),
+    PayloadTooLarge,
+    Header(/* concrete type above */),
+}
+
 #[derive(Debug, thiserror::Error)]
-enum AdminHtmlRolePermissionsError {}
+enum AdminHtmlRolePermissionsError {
+    Authentication,
+    Authorization,
+    Conflict,
+    Csrf,
+    RateLimited,
+    Validation,
+    Pg(/* concrete type above */),
+    PayloadTooLarge,
+    Header(/* concrete type above */),
+}
+
 #[derive(Debug, thiserror::Error)]
-enum AdminHtmlUpdateSettingsError {}
+enum AdminHtmlUpdateSettingsError {
+    Authentication,
+    Authorization,
+    Conflict,
+    Csrf,
+    RateLimited,
+    Validation,
+    Pg(/* concrete type above */),
+    PayloadTooLarge,
+    Header(/* concrete type above */),
+}
+
+#[derive(Debug, thiserror::Error)]
+enum AdminRootPageError {}
 
 #[derive(Debug, thiserror::Error)]
 enum AdminHtmlMetricsError {}
+```
+
+Only `AdminRootPageError` and `AdminHtmlMetricsError` remain uninhabited:
+their handlers construct responses without a fallible operation.
 
 #[derive(Debug, thiserror::Error)]
 enum AdminAssetsError {
