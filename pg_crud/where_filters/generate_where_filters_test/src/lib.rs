@@ -79,6 +79,10 @@ mod tests {
         assert_eq!(parameter_index, 5u64);
     }
     #[test]
+    #[cfg_attr(
+        miri,
+        ignore = "compiler subprocess validation is covered by the native Clippy gate"
+    )]
     fn clippy() {
         macro_clippy_check_common::clippy_check(
             str_constants::GENERATE_WHERE_FLTS_TEST_CNT,

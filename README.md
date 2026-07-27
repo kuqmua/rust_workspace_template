@@ -122,6 +122,23 @@ cargo test --workspace
 CI additionally checks dependency policy, unused dependencies, coverage, documentation, secrets,
 container vulnerabilities, feature combinations and semantic-version compatibility.
 
+Run the core runtime and shared-library tests under Miri with a repository-local sysroot cache.
+Filesystem-backed tests require disabled isolation; the test suite remains deterministic and does
+not contact external services:
+
+```bash
+XDG_CACHE_HOME="$PWD/target/miri-cache" \
+MIRIFLAGS="-Zmiri-disable-isolation" \
+cargo miri test --all-features \
+  -p config_lib \
+  -p file_storage \
+  -p frontend_contract \
+  -p macros_helpers \
+  -p newtype \
+  -p pg_crud_common \
+  -p server_runtime
+```
+
 ## Deployment
 
 - Dockerfiles build non-root, read-only compatible runtime images.

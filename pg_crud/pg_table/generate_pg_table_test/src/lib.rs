@@ -69,6 +69,10 @@ mod tests {
         assert!(generated.to_string().contains("bc1d3b08"));
     }
     #[test]
+    #[cfg_attr(
+        miri,
+        ignore = "full table source generation is covered by native generator tests and is prohibitively slow under interpretation"
+    )]
     fn generated_metrics_use_bounded_labels() {
         let input = table_input(&quote::quote! {
             pub column_0: pg_types_numeric::I16AsNonNullInt2,
@@ -84,6 +88,10 @@ mod tests {
         assert!(!generated.contains("\"table\" => table_owned"));
     }
     #[test]
+    #[cfg_attr(
+        miri,
+        ignore = "compiler subprocess validation is covered by the native Clippy gate"
+    )]
     fn clippy() {
         macro_clippy_check_common::clippy_check(
             str_constants::GENERATE_PG_TABLE_TEST_CNT,

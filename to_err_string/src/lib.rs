@@ -143,6 +143,10 @@ mod tests {
         );
     }
     #[test]
+    #[cfg_attr(
+        miri,
+        ignore = "oversized JSON serialization is covered natively and is prohibitively slow under interpretation"
+    )]
     fn error_text_owns_the_shared_length_invariant() {
         let valid =
             super::ErrorText::try_from(String::from(str_constants::ERROR)).expect("11a745a8");

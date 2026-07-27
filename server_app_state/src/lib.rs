@@ -294,6 +294,10 @@ mod tests {
         }
     }
     #[tokio::test]
+    #[cfg_attr(
+        miri,
+        ignore = "SQLx account discovery calls getpwuid_r, which Miri does not support"
+    )]
     async fn cfg_getters_forward_to_inner_config() {
         let git_info = mk_git_info();
         let structure = mk_structure(git_info);
@@ -316,6 +320,10 @@ mod tests {
         );
     }
     #[tokio::test]
+    #[cfg_attr(
+        miri,
+        ignore = "SQLx account discovery calls getpwuid_r, which Miri does not support"
+    )]
     async fn get_pg_pool_returns_same_pool_ref() {
         let git_info = mk_git_info();
         let structure = mk_structure(git_info);
@@ -325,6 +333,10 @@ mod tests {
         assert_eq!(lhs, rhs);
     }
     #[tokio::test]
+    #[cfg_attr(
+        miri,
+        ignore = "SQLx account discovery calls getpwuid_r, which Miri does not support"
+    )]
     async fn as_ref_and_git_commit_link_are_consistent() {
         let git_info = mk_git_info();
         let structure = mk_structure(git_info);

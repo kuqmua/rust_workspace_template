@@ -33,6 +33,10 @@ mod tests {
         .expect("13df9134");
     }
     #[test]
+    #[cfg_attr(
+        miri,
+        ignore = "full type source generation is covered by native determinism tests and is prohibitively slow under interpretation"
+    )]
     fn generated_output_is_deterministic() {
         let config = quote::quote! {{
             "pg_table_cols_write_into_file": "False",
@@ -49,6 +53,10 @@ mod tests {
         assert_eq!(first.to_string(), second.to_string());
     }
     #[test]
+    #[cfg_attr(
+        miri,
+        ignore = "compiler subprocess validation is covered by the native Clippy gate"
+    )]
     fn clippy() {
         macro_clippy_check_common::clippy_check(
             str_constants::GENERATE_PG_TYPES_TEST_CNT,

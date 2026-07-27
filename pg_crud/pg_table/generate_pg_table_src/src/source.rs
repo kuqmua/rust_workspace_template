@@ -7404,6 +7404,10 @@ pub fn emit_generate_pg_table(
             mod #contract_tests_mod_identifier {
                 use super::*;
                 #[test]
+                #[cfg_attr(
+                    miri,
+                    ignore = "native TLS initialization calls OpenSSL functions that Miri does not support"
+                )]
                 fn #api_client_owns_reusable_client_test_identifier() {
                     let url = reqwest::Url::parse("http://127.0.0.1:3000/").expect("ca76d3e6");
                     let endpoint = #identifier_api_endpoint_upper_camel_case::from(url.clone());

@@ -181,6 +181,7 @@ mod tests {
         crate::test_hlp::cleanup_test_file(path);
     }
     #[test]
+    #[cfg_attr(miri, ignore = "Miri does not support spawning the rustfmt subprocess")]
     fn try_maybe_write_token_stream_into_file_formats_when_rustfmt_enabled() {
         let base = crate::test_hlp::test_path(crate::test_hlp::TestPathStem::new(
             str_constants::MACROS_HELPERS_TRY_RUN_RUSTFMT,

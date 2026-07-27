@@ -241,6 +241,10 @@ impl TryFromStdEnvVarOk for AdminJwtSecret {
 #[cfg(test)]
 mod admin_jwt_secret_tests {
     #[test]
+    #[cfg_attr(
+        miri,
+        ignore = "Miri interpretation is prohibitively slow when zeroizing the intentional oversized allocation"
+    )]
     fn secret_box_string_rejects_values_above_shared_limit() {
         let value = str_constants::TEST_JWT_SECRET_CHARACTER_A
             .repeat(super::CONFIG_LIB_STRING_WRAPPER_MAX_LEN.saturating_add(1usize));

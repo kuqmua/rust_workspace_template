@@ -207,6 +207,10 @@ pub fn inject_trace_context(
 #[cfg(test)]
 mod tests {
     #[test]
+    #[cfg_attr(
+        miri,
+        ignore = "native TLS initialization calls OpenSSL functions that Miri does not support"
+    )]
     fn validates_and_applies_w3c_trace_context() {
         let trace_parent =
             super::HttpTraceParent::try_from(str_constants::TRACEPARENT_TEST_VALUE.to_owned())

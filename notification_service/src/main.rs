@@ -446,6 +446,10 @@ mod tests {
     }
 
     #[tokio::test]
+    #[cfg_attr(
+        miri,
+        ignore = "SQLx account discovery calls getpwuid_r, which Miri does not support"
+    )]
     async fn router_contains_service_owned_routes() {
         let pool = sqlx::postgres::PgPoolOptions::new()
             .connect_lazy(
