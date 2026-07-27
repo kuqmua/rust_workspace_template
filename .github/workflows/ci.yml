@@ -144,6 +144,34 @@ jobs:
         with:
           components: clippy
       - run: cargo clippy --locked --all-targets --all-features -- -D warnings
+  miri:
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      XDG_CACHE_HOME: ${{ github.workspace }}/target/miri-cache
+      MIRIFLAGS: -Zmiri-disable-isolation
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-miri-${{ hashFiles('rust-toolchain.toml', '**/Cargo.lock') }}
+      - uses: ./.github/actions/setup-rust
+        with:
+          components: miri
+      - run: >-
+          cargo miri test --locked --all-features
+          -p config_lib
+          -p file_storage
+          -p frontend_contract
+          -p macros_helpers
+          -p newtype
+          -p pg_crud_common
+          -p server_runtime
   docs:
     if: github.event_name == 'push' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
