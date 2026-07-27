@@ -1403,5 +1403,9 @@ codegen-units = 1
 panic = "abort"
 strip = "symbols"
 
+[profile.bench]
+debug = 1
+strip = "none"
+
 [profile.test]
 incremental = false

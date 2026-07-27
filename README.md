@@ -148,6 +148,19 @@ Run the domain-boundary fuzz target with a bounded smoke campaign:
 The runner disables the workspace release profile's fat LTO and symbol stripping for the fuzz
 build, because those release settings are incompatible with sanitizer coverage instrumentation.
 
+Profile the query-builder benchmark with debug symbols and a bounded sampling frequency:
+
+```bash
+cargo flamegraph \
+  --package pg_crud_common \
+  --bench query_builders \
+  --freq 199 \
+  --deterministic \
+  --output target/query_builders_flamegraph.svg \
+  -- \
+  --bench
+```
+
 ## Deployment
 
 - Dockerfiles build non-root, read-only compatible runtime images.
