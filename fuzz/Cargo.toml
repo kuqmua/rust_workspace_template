@@ -1,0 +1,28 @@
+[package]
+name = "workspace_fuzz"
+version.workspace = true
+publish.workspace = true
+description = "Fuzz targets for workspace domain boundaries"
+repository.workspace = true
+
+license.workspace = true
+edition.workspace = true
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+file_storage = { workspace = true }
+libfuzzer-sys = { workspace = true }
+pg_crud_common = { workspace = true }
+server_runtime = { workspace = true }
+
+[[bin]]
+name = "domain_boundaries"
+path = "fuzz_targets/domain_boundaries.rs"
+test = false
+doc = false
+bench = false
+
+[lints]
+workspace = true

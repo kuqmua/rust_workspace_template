@@ -139,6 +139,15 @@ cargo miri test --all-features \
   -p server_runtime
 ```
 
+Run the domain-boundary fuzz target with a bounded smoke campaign:
+
+```bash
+./fuzz/run_domain.sh -runs=10000 -max_len=4096 -timeout=10
+```
+
+The runner disables the workspace release profile's fat LTO and symbol stripping for the fuzz
+build, because those release settings are incompatible with sanitizer coverage instrumentation.
+
 ## Deployment
 
 - Dockerfiles build non-root, read-only compatible runtime images.

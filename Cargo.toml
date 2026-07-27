@@ -12,6 +12,7 @@ members = [
   "file_storage",
   "frontend_contract",
   "frontend_contract_macros",
+  "fuzz",
   "generate_quotes",
   "git_info",
   "initialize_environment_files",
@@ -127,6 +128,9 @@ reqwest = { version = "=0.13.4", default-features = false, features = [
   "http2",
 ] }
 leptos = { version = "=0.8.20", default-features = false }
+libfuzzer-sys = { version = "=0.4.13", default-features = false, features = [
+  "link_libfuzzer",
+] }
 wasm-bindgen = { version = "=0.2.114", default-features = false }
 wasm-bindgen-futures = { version = "=0.4.64", default-features = false }
 web-sys = { version = "=0.3.91", default-features = false }
