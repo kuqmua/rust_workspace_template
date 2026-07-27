@@ -161,6 +161,9 @@ cargo flamegraph \
   --bench
 ```
 
+CI also generates this flamegraph during scheduled and manually dispatched runs and publishes the
+SVG as the `query-builders-flamegraph` workflow artifact.
+
 ## Deployment
 
 - Dockerfiles build non-root, read-only compatible runtime images.

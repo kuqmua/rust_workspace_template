@@ -51,7 +51,7 @@ fn function_body_hash(
     block: &syn::Block,
     identifier_pattern: super::types::RegexRegexRef<'_>,
 ) -> super::types::FunctionBodyHash {
-    let body = format!("{block:#?}");
+    let body = format!("{block:?}");
     let normalized_body =
         identifier_pattern.replace_all(&body, str_constants::NORMALIZED_IDENTIFIER);
     let mut hasher = std::hash::DefaultHasher::new();
@@ -63,7 +63,7 @@ fn function_body_hash(
 fn substantial_function_bodies_have_one_source_of_truth() {
     let mut bodies = super::types::StdFunctionBodyLocationsMap::default();
     let identifier_pattern =
-        regex::Regex::new(r"Ident \{\s*sym: [^,]+,\s*span: [^,]+,\s*\}").expect("d4a8c2f1");
+        regex::Regex::new(r"Ident \{ sym: [^,]+, span: [^}]+ \}").expect("d4a8c2f1");
     super::snapshot::with_codebase_snapshot(|snapshot| {
         snapshot.rs_files().iter().for_each(|file| {
             let mut visitor = FunctionBodyVisitor {
@@ -97,7 +97,7 @@ fn function_body_similarity_ignores_identifier_names() {
         syn::parse_str::<syn::ItemFn>("fn second(source: u32) { let result = source + 1; }")
             .expect("b608f7e1");
     let identifier_pattern =
-        regex::Regex::new(r"Ident \{\s*sym: [^,]+,\s*span: [^,]+,\s*\}").expect("9658f225");
+        regex::Regex::new(r"Ident \{ sym: [^,]+, span: [^}]+ \}").expect("9658f225");
     let identifier_pattern_ref = super::types::RegexRegexRef::from(&identifier_pattern);
     assert_eq!(
         function_body_hash(&first.block, identifier_pattern_ref),
@@ -113,7 +113,7 @@ fn function_body_similarity_preserves_behavioral_structure() {
         syn::parse_str::<syn::ItemFn>("fn value(input: u32) { let value = input - 1; }")
             .expect("ae9313cb");
     let identifier_pattern =
-        regex::Regex::new(r"Ident \{\s*sym: [^,]+,\s*span: [^,]+,\s*\}").expect("fdf7075b");
+        regex::Regex::new(r"Ident \{ sym: [^,]+, span: [^}]+ \}").expect("fdf7075b");
     let identifier_pattern_ref = super::types::RegexRegexRef::from(&identifier_pattern);
     assert_ne!(
         function_body_hash(&addition.block, identifier_pattern_ref),

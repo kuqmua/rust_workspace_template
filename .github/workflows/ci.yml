@@ -318,3 +318,28 @@ jobs:
       - uses: ./.github/actions/setup-rust
       - run: cargo bench --locked -p pg_crud_common --bench query_builders -- --save-baseline ci
       - run: cargo bench --locked -p pg_crud_common --bench query_builders -- --baseline ci
+  flamegraph:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: ./.github/actions/setup-rust
+      - uses: taiki-e/install-action@5292d65c95e72dc79f25946b7ce34e28deecf2f3
+        with:
+          tool: cargo-flamegraph@0.6.13
+      - run: sudo sysctl --write kernel.perf_event_paranoid=-1
+      - run: >-
+          cargo flamegraph
+          --package pg_crud_common
+          --bench query_builders
+          --freq 199
+          --deterministic
+          --output target/query_builders_flamegraph.svg
+          --
+          --bench
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: query-builders-flamegraph
+          path: target/query_builders_flamegraph.svg
+          if-no-files-found: error

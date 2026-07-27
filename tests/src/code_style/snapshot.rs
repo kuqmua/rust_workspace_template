@@ -13,11 +13,14 @@ struct CargoTomlSourceFile {
     path: super::types::StdPathBuf,
 }
 pub(super) struct CodebaseSnapshot {
+    rs_files: Vec<RsSourceFile>,
+    source: std::sync::Arc<CodebaseSourceSnapshot>,
+}
+struct CodebaseSourceSnapshot {
     cargo_toml_by_path:
         std::collections::BTreeMap<super::types::StdPathBuf, super::types::CargoTomlFileIdx>,
     cargo_toml_files: Vec<CargoTomlSourceFile>,
     project_source_files: Vec<ProjectSourceFile>,
-    rs_files: Vec<RsSourceFile>,
     workspace_crate_names: super::types::StdSourceTextSet,
     workspace_metadata: super::types::CargoMetadata,
 }
@@ -42,6 +45,90 @@ impl RsSourceFile {
 }
 impl CodebaseSnapshot {
     #[allow(clippy::single_call_fn)] // named constructor keeps snapshot initialization readable at the thread-local OnceCell call site
+    fn build() -> Self {
+        let source_snapshot = codebase_source_snapshot();
+        let rs_files = source_snapshot
+            .project_source_files
+            .iter()
+            .filter(|source_file| {
+                source_file
+                    .path
+                    .as_ref()
+                    .extension()
+                    .and_then(std::ffi::OsStr::to_str)
+                    == Some(str_constants::RS)
+            })
+            .map(|source_file| {
+                let ast = syn::parse_file(source_file.content.as_ref()).expect("5e7a83eb");
+                RsSourceFile {
+                    ast: super::types::SynFile::from(ast),
+                    content: source_file.content.clone(),
+                    path: source_file.path.clone(),
+                }
+            })
+            .collect();
+        Self {
+            rs_files,
+            source: source_snapshot,
+        }
+    }
+    pub(super) fn cargo_toml_content(
+        &self,
+        path: super::types::StdPathRef<'_>,
+    ) -> Option<super::types::SourceText> {
+        self.source
+            .cargo_toml_file(path)
+            .map(|cargo_toml| cargo_toml.content.clone())
+    }
+    pub(super) fn crate_manifest_paths(&self) -> impl Iterator<Item = &std::path::Path> {
+        self.source
+            .cargo_toml_files
+            .iter()
+            .map(|cargo_toml| cargo_toml.path.as_ref())
+    }
+    pub(super) fn project_source_files(&self) -> &[ProjectSourceFile] {
+        self.source.project_source_files.as_slice()
+    }
+    pub(super) fn read_toml_table(
+        &self,
+        path: super::types::StdPathRef<'_>,
+    ) -> Option<super::types::TomlTable> {
+        self.source
+            .cargo_toml_file(path)
+            .map(|cargo_toml| cargo_toml.parsed.clone())
+            .or_else(|| {
+                path.as_ref().exists().then(|| {
+                    let value = std::fs::read_to_string(path.as_ref()).unwrap_or_else(|error| {
+                        panic!(
+                            "e12179c5 failed to read {}: {error}",
+                            path.as_ref().display()
+                        )
+                    });
+                    value.parse::<toml::Table>().map_or_else(
+                        |error| {
+                            panic!(
+                                "77b2d82b failed to parse {}: {error}",
+                                path.as_ref().display()
+                            )
+                        },
+                        super::types::TomlTable::from,
+                    )
+                })
+            })
+    }
+    pub(super) fn rs_files(&self) -> &[RsSourceFile] {
+        &self.rs_files
+    }
+    #[allow(clippy::single_call_fn)]
+    pub(super) fn workspace_crate_names(&self) -> super::types::StdSourceTextSet {
+        self.source.workspace_crate_names.clone()
+    }
+    pub(super) fn workspace_metadata(&self) -> super::types::CargoMetadataRef<'_> {
+        super::types::CargoMetadataRef::from(self.source.workspace_metadata.as_ref())
+    }
+}
+impl CodebaseSourceSnapshot {
+    #[allow(clippy::single_call_fn)] // named constructor keeps process-wide immutable source initialization readable
     fn build() -> Self {
         let metadata = workspace_metadata_uncached();
         let workspace_members =
@@ -88,90 +175,27 @@ impl CodebaseSnapshot {
                     super::types::CargoTomlFileIdx,
                 >>();
         let project_source_files = project_source_files_uncached().collect::<Vec<_>>();
-        let rs_files = project_source_files
-            .iter()
-            .filter(|source_file| {
-                source_file
-                    .path
-                    .as_ref()
-                    .extension()
-                    .and_then(std::ffi::OsStr::to_str)
-                    == Some(str_constants::RS)
-            })
-            .map(|source_file| {
-                let ast = syn::parse_file(source_file.content.as_ref()).expect("5e7a83eb");
-                RsSourceFile {
-                    ast: super::types::SynFile::from(ast),
-                    content: source_file.content.clone(),
-                    path: source_file.path.clone(),
-                }
-            })
-            .collect();
         Self {
             cargo_toml_by_path,
             cargo_toml_files,
             project_source_files,
-            rs_files,
             workspace_metadata: metadata,
             workspace_crate_names: super::types::StdSourceTextSet::from(workspace_crate_names),
         }
-    }
-    pub(super) fn cargo_toml_content(
-        &self,
-        path: super::types::StdPathRef<'_>,
-    ) -> Option<super::types::SourceText> {
-        self.cargo_toml_file(path)
-            .map(|cargo_toml| cargo_toml.content.clone())
     }
     fn cargo_toml_file(&self, path: super::types::StdPathRef<'_>) -> Option<&CargoTomlSourceFile> {
         self.cargo_toml_by_path
             .get(path.as_ref())
             .and_then(|idx| self.cargo_toml_files.get(idx.get()))
     }
-    pub(super) fn crate_manifest_paths(&self) -> impl Iterator<Item = &std::path::Path> {
-        self.cargo_toml_files
-            .iter()
-            .map(|cargo_toml| cargo_toml.path.as_ref())
-    }
-    pub(super) fn project_source_files(&self) -> &[ProjectSourceFile] {
-        &self.project_source_files
-    }
-    pub(super) fn read_toml_table(
-        &self,
-        path: super::types::StdPathRef<'_>,
-    ) -> Option<super::types::TomlTable> {
-        self.cargo_toml_file(path)
-            .map(|cargo_toml| cargo_toml.parsed.clone())
-            .or_else(|| {
-                path.as_ref().exists().then(|| {
-                    let value = std::fs::read_to_string(path.as_ref()).unwrap_or_else(|error| {
-                        panic!(
-                            "e12179c5 failed to read {}: {error}",
-                            path.as_ref().display()
-                        )
-                    });
-                    value.parse::<toml::Table>().map_or_else(
-                        |error| {
-                            panic!(
-                                "77b2d82b failed to parse {}: {error}",
-                                path.as_ref().display()
-                            )
-                        },
-                        super::types::TomlTable::from,
-                    )
-                })
-            })
-    }
-    pub(super) fn rs_files(&self) -> &[RsSourceFile] {
-        &self.rs_files
-    }
-    #[allow(clippy::single_call_fn)]
-    pub(super) fn workspace_crate_names(&self) -> super::types::StdSourceTextSet {
-        self.workspace_crate_names.clone()
-    }
-    pub(super) fn workspace_metadata(&self) -> super::types::CargoMetadataRef<'_> {
-        super::types::CargoMetadataRef::from(self.workspace_metadata.as_ref())
-    }
+}
+#[allow(clippy::single_call_fn)] // isolates the process-wide source cache from thread-local parsed snapshot construction
+fn codebase_source_snapshot() -> std::sync::Arc<CodebaseSourceSnapshot> {
+    static SOURCE_SNAPSHOT: std::sync::OnceLock<std::sync::Arc<CodebaseSourceSnapshot>> =
+        std::sync::OnceLock::new();
+    std::sync::Arc::clone(
+        SOURCE_SNAPSHOT.get_or_init(|| std::sync::Arc::new(CodebaseSourceSnapshot::build())),
+    )
 }
 pub(super) fn with_codebase_snapshot<R>(f: impl FnOnce(&CodebaseSnapshot) -> R) -> R {
     std::thread_local! {

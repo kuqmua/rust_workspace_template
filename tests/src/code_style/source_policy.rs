@@ -1222,6 +1222,11 @@ fn process_static_state_matches_reviewed_inventory() {
             reason: "the test-only thread-local cache avoids repeated workspace scans",
         },
         StaticStateException {
+            identifier: "SOURCE_SNAPSHOT",
+            path_suffix: "tests/src/code_style/snapshot.rs",
+            reason: "the immutable test-only cache shares workspace metadata and source text across test threads",
+        },
+        StaticStateException {
             identifier: "ADMIN_MIGRATOR",
             path_suffix: "server_admin/src/migrations.rs",
             reason: "sqlx embeds an immutable migration catalog at compile time",
