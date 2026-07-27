@@ -14,9 +14,11 @@ FROM debian:bookworm-slim@sha256:7b140f374b289a7c2befc338f42ebe6441b7ea838a042bb
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ca-certificates curl libssl3 \
     && rm -rf /var/lib/apt/lists/* \
-    && groupadd --system application \
-    && useradd --system --gid application --home-dir /nonexistent application
+    && groupadd --gid 10001 application \
+    && useradd --uid 10001 --gid 10001 --no-create-home --home-dir /nonexistent application
 COPY --from=builder /workspace/target/release/notification_service /application/notification_service
-USER application
+USER 10001:10001
 EXPOSE 8081
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+    CMD curl --fail --silent http://127.0.0.1:8081/health/ready || exit 1
 ENTRYPOINT ["/application/notification_service"]
