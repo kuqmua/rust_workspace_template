@@ -31,6 +31,8 @@ reference boundary to follow when adding another service.
 - `external_service_emulators`: deterministic integration-test doubles.
 
 See [microservice architecture](docs/architecture.md) for ownership and communication rules.
+The exact status, headers, and JSON body returned for application failures are documented in
+[API error responses](docs/api-errors.md).
 
 ## Prerequisites
 

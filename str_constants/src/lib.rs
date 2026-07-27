@@ -1064,6 +1064,44 @@ str_constants_macros::define_str_constants! {
         pub CODE_STYLE_GENERATE_WHERE_FILTERS_MACRO_NAME = ["generate_where_filters"];
         pub CODE_STYLE_STRING_GUARD_ALLOWED_SYNTAX_FIXTURE = ["#[", WORD_PATH, " = \"", WORD_FIXTURE, ".", WORD_RS, "\"] mod ", WORD_FIXTURE, "; ", WORD_FN, " ", WORD_F_2, "() { ", WORD_VALUE, ".", WORD_EXPECT, "(\"12345678\"); } #[test] fn test_f() { \"test literal\"; } #[cfg(test)] mod tests { const VALUE: &str = \"test literal\"; }"];
         pub CODE_STYLE_STRING_GUARD_DETECTION_FIXTURE = [WORD_FN, " ", WORD_F_2, "() { consume(\"ordinary\"); outer!(", WORD_INNER, "(\"", WORD_MACRO, "\")); }"];
+        pub CODE_STYLE_STRING_CONSTANT_ALIAS_FIXTURE = [r#"const LOCAL_ALIAS: &str = str_constants::EXPORTED;
+fn runtime_value() -> &'static str { str_constants::EXPORTED }
+"#];
+        pub CODE_STYLE_STRING_CONSTANT_DECLARATION_FIXTURE = [r#"
+fn runtime_value() -> &'static str { "runtime-owned" }
+const ITEM: &str = "item";
+static STATIC_ITEM: &str = "static";
+struct Example(&'static str);
+const WRAPPED: Example = Example("wrapped");
+static WRAPPED_STATIC: Example = Example("wrapped-static");
+impl Example {
+    const ASSOCIATED: &str = concat!("associated");
+    const fn value() -> &'static str { concat!("const-function") }
+}
+trait Contract {
+    const DEFAULT: &'static str = "trait";
+    const REQUIRED: &'static str;
+}
+fn generated(value: &str) {
+    let _tokens = quote! { const GENERATED: &'static str = #value; };
+}
+fn anonymous() {
+    let _value = const { "anonymous" };
+}
+#[cfg(test)]
+mod tests {
+    const TEST_VALUE: &str = "test-constant";
+    #[test]
+    fn local_constant() {
+        const LOCAL_VALUE: &str = "local-test-constant";
+        let _runtime_value = "runtime-test-literal";
+    }
+}
+define_str_constants! {
+    fragments { VALUE = "generated"; }
+    values {}
+}
+"#];
         pub CODE_STYLE_CI_WORKFLOW_PATH = [".", WORD_GITHUB, "/workflows/ci.", WORD_YML];
         pub CODE_STYLE_WORKSPACE_MANIFEST_PATH = ["../", WORD_CARGO, ".", WORD_TOML];
         pub CODE_STYLE_GENERATED_RUST_TOKEN_STREAM_IDENTIFIER = ["ProcMacro2GeneratedRustTokenStream"];
