@@ -1064,6 +1064,7 @@ str_constants_macros::define_str_constants! {
         pub CODE_STYLE_GENERATE_WHERE_FILTERS_MACRO_NAME = ["generate_where_filters"];
         pub CODE_STYLE_AXUM_JSON_IDENTIFIER = ["Json"];
         pub CODE_STYLE_INTO_RESPONSE_TRAIT_IDENTIFIER = ["IntoResponse"];
+        pub CODE_STYLE_INTO_RESPONSE_METHOD_IDENTIFIER = ["into_response"];
         pub CODE_STYLE_THISERROR_CRATE_IDENTIFIER = [WORD_THISERROR];
         pub CODE_STYLE_STRING_GUARD_ALLOWED_SYNTAX_FIXTURE = ["#[", WORD_PATH, " = \"", WORD_FIXTURE, ".", WORD_RS, "\"] mod ", WORD_FIXTURE, "; ", WORD_FN, " ", WORD_F_2, "() { ", WORD_VALUE, ".", WORD_EXPECT, "(\"12345678\"); } #[test] fn test_f() { \"test literal\"; } #[cfg(test)] mod tests { const VALUE: &str = \"test literal\"; }"];
         pub CODE_STYLE_STRING_GUARD_DETECTION_FIXTURE = [WORD_FN, " ", WORD_F_2, "() { consume(\"ordinary\"); outer!(", WORD_INNER, "(\"", WORD_MACRO, "\")); }"];
@@ -1075,6 +1076,15 @@ struct StructError;
 impl axum::response::IntoResponse for StructError {
     fn into_response(self) -> axum::response::Response {
         axum::response::IntoResponse::into_response(axum::Json(()))
+    }
+}
+struct WrappedError {
+    status: axum::http::StatusCode,
+    payload: axum::Json<()>,
+}
+impl axum::response::IntoResponse for WrappedError {
+    fn into_response(self) -> axum::response::Response {
+        (self.status, self.payload).into_response()
     }
 }
 #[derive(thiserror::Error)]

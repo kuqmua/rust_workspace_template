@@ -325,6 +325,122 @@ impl axum::response::IntoResponse for ApiProblemError {
 #[cfg(test)]
 mod tests {
     #[test]
+    #[allow(clippy::needless_for_each)] // workspace source policy requires iterator methods
+    fn every_api_problem_error_is_an_error_enum_with_a_json_response() {
+        fn assert_error<Error>()
+        where
+            Error: std::error::Error,
+        {
+        }
+
+        assert_error::<super::ApiProblemError>();
+        let internal_status = super::ApiProblemStatus::try_from(500u16).expect("d2372bb7");
+        let request_failed_status = super::ApiProblemStatus::try_from(418u16).expect("805da7f4");
+        [
+            (
+                super::ApiProblemError::InvalidRequest,
+                400u16,
+                super::ApiProblemKind::InvalidRequest,
+            ),
+            (
+                super::ApiProblemError::Authentication,
+                401u16,
+                super::ApiProblemKind::Authentication,
+            ),
+            (
+                super::ApiProblemError::Authorization,
+                403u16,
+                super::ApiProblemKind::Authorization,
+            ),
+            (
+                super::ApiProblemError::NotFound,
+                404u16,
+                super::ApiProblemKind::NotFound,
+            ),
+            (
+                super::ApiProblemError::MethodNotAllowed,
+                405u16,
+                super::ApiProblemKind::MethodNotAllowed,
+            ),
+            (
+                super::ApiProblemError::Conflict,
+                409u16,
+                super::ApiProblemKind::Conflict,
+            ),
+            (
+                super::ApiProblemError::Precondition,
+                412u16,
+                super::ApiProblemKind::Precondition,
+            ),
+            (
+                super::ApiProblemError::PayloadTooLarge,
+                413u16,
+                super::ApiProblemKind::PayloadTooLarge,
+            ),
+            (
+                super::ApiProblemError::Validation,
+                422u16,
+                super::ApiProblemKind::Validation,
+            ),
+            (
+                super::ApiProblemError::InProgress,
+                425u16,
+                super::ApiProblemKind::InProgress,
+            ),
+            (
+                super::ApiProblemError::PreconditionRequired,
+                428u16,
+                super::ApiProblemKind::PreconditionRequired,
+            ),
+            (
+                super::ApiProblemError::RateLimited,
+                429u16,
+                super::ApiProblemKind::RateLimited,
+            ),
+            (
+                super::ApiProblemError::Internal(internal_status),
+                500u16,
+                super::ApiProblemKind::Internal,
+            ),
+            (
+                super::ApiProblemError::ServiceUnavailable,
+                503u16,
+                super::ApiProblemKind::Internal,
+            ),
+            (
+                super::ApiProblemError::RequestFailed(request_failed_status),
+                418u16,
+                super::ApiProblemKind::RequestFailed,
+            ),
+        ]
+        .into_iter()
+        .for_each(|(error, status, kind)| {
+            let response = axum::response::IntoResponse::into_response(error);
+            assert_eq!(response.status().as_u16(), status);
+            assert_eq!(
+                response.headers().get(axum::http::header::CONTENT_TYPE),
+                Some(&axum::http::HeaderValue::from_static(
+                    str_constants::APPLICATION_PROBLEM_PLUS_JSON
+                ))
+            );
+            assert_eq!(
+                response
+                    .headers()
+                    .contains_key(axum::http::header::RETRY_AFTER),
+                status == 429u16
+            );
+            let body = futures::executor::block_on(axum::body::to_bytes(
+                response.into_body(),
+                16_384usize,
+            ))
+            .expect("3e43e7bc");
+            let problem = serde_json::from_slice::<super::ApiProblem>(&body).expect("116dc695");
+            assert_eq!(u16::from(problem.status()), status);
+            assert_eq!(problem.kind(), kind);
+        });
+    }
+
+    #[test]
     fn problem_text_deserialization_uses_bounded_try_from() {
         let detail = serde_json::to_string(&"x".repeat(1_025usize)).expect("6e2db8a1");
         let request_id = serde_json::to_string(&"x".repeat(129usize)).expect("f289a40c");

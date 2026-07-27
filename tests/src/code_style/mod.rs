@@ -1291,6 +1291,37 @@ struct JsonIntoResponseErrorVisitor<'names_lt> {
     ers: types::DiagnosticMsgs,
     thiserror_enum_names: &'names_lt types::StdSourceTextSet,
 }
+#[derive(Default)]
+struct TupleResponseVisitor {
+    found: types::AnalyzerBool,
+}
+impl<'ast> syn::visit::Visit<'ast> for TupleResponseVisitor {
+    fn visit_expr_call(&mut self, i: &'ast syn::ExprCall) {
+        if i.args
+            .iter()
+            .any(|argument| matches!(argument, syn::Expr::Tuple(_)))
+            && matches!(
+                i.func.as_ref(),
+                syn::Expr::Path(path)
+                    if path.path.segments.last().is_some_and(|segment| {
+                        segment.ident == str_constants::CODE_STYLE_INTO_RESPONSE_METHOD_IDENTIFIER
+                    })
+            )
+        {
+            self.found.set_true();
+        }
+        syn::visit::visit_expr_call(self, i);
+    }
+
+    fn visit_expr_method_call(&mut self, i: &'ast syn::ExprMethodCall) {
+        if i.method == str_constants::CODE_STYLE_INTO_RESPONSE_METHOD_IDENTIFIER
+            && matches!(i.receiver.as_ref(), syn::Expr::Tuple(_))
+        {
+            self.found.set_true();
+        }
+        syn::visit::visit_expr_method_call(self, i);
+    }
+}
 impl<'ast> syn::visit::Visit<'ast> for JsonIntoResponseErrorVisitor<'_> {
     fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
         let is_into_response = i.trait_.as_ref().is_some_and(|(_, path, _)| {
@@ -1301,7 +1332,9 @@ impl<'ast> syn::visit::Visit<'ast> for JsonIntoResponseErrorVisitor<'_> {
         if is_into_response {
             let mut json_visitor = JsonCallVisitor::default();
             syn::visit::Visit::visit_item_impl(&mut json_visitor, i);
-            if json_visitor.found.get() {
+            let mut tuple_visitor = TupleResponseVisitor::default();
+            syn::visit::Visit::visit_item_impl(&mut tuple_visitor, i);
+            if json_visitor.found.get() || tuple_visitor.found.get() {
                 let name = item_impl_self_ty_identifier(types::SynItemImplRef::from(i))
                     .map_or_else(
                         || String::from(str_constants::NON_PATH_TARGET),

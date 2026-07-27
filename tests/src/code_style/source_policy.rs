@@ -1985,7 +1985,7 @@ fn json_api_error_response_policy_rejects_structs_and_accepts_thiserror_enums() 
             thiserror_enum_names: &thiserror_enums.names,
         },
     );
-    assert_eq!(visitor.ers.len(), 1usize);
+    assert_eq!(visitor.ers.len(), 2usize);
 }
 #[test]
 fn error_implementation_source_uses_only_thiserror_derive() {
