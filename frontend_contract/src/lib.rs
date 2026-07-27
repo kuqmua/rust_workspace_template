@@ -66,7 +66,7 @@ pub use auth_session_keep_alive::{
 };
 pub use frontend_contract_macros::{
     PageCatalog, RouteCatalog, RouteFamily, TypedRoute, UnitEnumCatalog, api_operation_error,
-    handler_registry, route_openapi, route_registry,
+    handler_registry, route_error, route_openapi, route_operation, route_registry,
 };
 pub use handler_contract::{
     AxumHandlerMethodRouter, HandlerContract, HandlerPath, handler_method_router,

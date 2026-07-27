@@ -1082,6 +1082,181 @@ pub fn api_operation_error(input: proc_macro::TokenStream) -> proc_macro::TokenS
     .into()
 }
 
+#[proc_macro_attribute]
+pub fn route_error(
+    attribute_args: proc_macro::TokenStream,
+    input: proc_macro::TokenStream,
+) -> proc_macro::TokenStream {
+    let error = match syn::parse::<syn::Path>(attribute_args) {
+        Ok(value) => value,
+        Err(parse_error) => return parse_error.to_compile_error().into(),
+    };
+    if error.segments.is_empty() {
+        return syn::Error::new(
+            proc_macro2::Span::call_site(),
+            str_constants::ROUTE_ERROR_REQUIRES_ERROR_TYPE,
+        )
+        .to_compile_error()
+        .into();
+    }
+    let mut function = match syn::parse::<syn::ItemFn>(input) {
+        Ok(value) => value,
+        Err(parse_error) => return parse_error.to_compile_error().into(),
+    };
+    if function.sig.asyncness.is_none() {
+        return syn::Error::new_spanned(
+            &function.sig,
+            str_constants::ROUTE_ERROR_REQUIRES_ASYNC_FUNCTION,
+        )
+        .to_compile_error()
+        .into();
+    }
+    let return_type = match &function.sig.output {
+        syn::ReturnType::Default => {
+            return syn::Error::new_spanned(
+                &function.sig,
+                str_constants::ROUTE_ERROR_REQUIRES_EXPLICIT_RETURN_TYPE,
+            )
+            .to_compile_error()
+            .into();
+        }
+        syn::ReturnType::Type(_arrow, value) => value.clone(),
+    };
+    let arguments = match function
+        .sig
+        .inputs
+        .iter()
+        .map(|argument| match argument {
+            syn::FnArg::Typed(value) => match value.pat.as_ref() {
+                syn::Pat::Ident(pattern)
+                    if pattern.attrs.is_empty()
+                        && pattern.by_ref.is_none()
+                        && pattern.mutability.is_none()
+                        && pattern.subpat.is_none() =>
+                {
+                    let identifier = &pattern.ident;
+                    Ok(quote::quote! { #identifier })
+                }
+                syn::Pat::TupleStruct(pattern) if pattern.attrs.is_empty() => {
+                    let path = &pattern.path;
+                    let elements = pattern
+                        .elems
+                        .iter()
+                        .map(|element| match element {
+                            syn::Pat::Ident(inner_pattern)
+                                if inner_pattern.attrs.is_empty()
+                                    && inner_pattern.by_ref.is_none()
+                                    && inner_pattern.mutability.is_none()
+                                    && inner_pattern.subpat.is_none() =>
+                            {
+                                let identifier = &inner_pattern.ident;
+                                Ok(quote::quote! { #identifier })
+                            }
+                            syn::Pat::Const(_)
+                            | syn::Pat::Ident(_)
+                            | syn::Pat::Lit(_)
+                            | syn::Pat::Macro(_)
+                            | syn::Pat::Or(_)
+                            | syn::Pat::Paren(_)
+                            | syn::Pat::Path(_)
+                            | syn::Pat::Range(_)
+                            | syn::Pat::Reference(_)
+                            | syn::Pat::Rest(_)
+                            | syn::Pat::Slice(_)
+                            | syn::Pat::Struct(_)
+                            | syn::Pat::Tuple(_)
+                            | syn::Pat::TupleStruct(_)
+                            | syn::Pat::Type(_)
+                            | syn::Pat::Verbatim(_)
+                            | syn::Pat::Wild(_)
+                            | _ => Err(syn::Error::new_spanned(
+                                element,
+                                str_constants::ROUTE_ERROR_UNSUPPORTED_PARAMETER_PATTERN,
+                            )),
+                        })
+                        .collect::<syn::Result<Vec<_>>>()?;
+                    Ok(quote::quote! { #path(#(#elements),*) })
+                }
+                pattern @ (syn::Pat::Const(_)
+                | syn::Pat::Ident(_)
+                | syn::Pat::Lit(_)
+                | syn::Pat::Macro(_)
+                | syn::Pat::Or(_)
+                | syn::Pat::Paren(_)
+                | syn::Pat::Path(_)
+                | syn::Pat::Range(_)
+                | syn::Pat::Reference(_)
+                | syn::Pat::Rest(_)
+                | syn::Pat::Slice(_)
+                | syn::Pat::Struct(_)
+                | syn::Pat::Tuple(_)
+                | syn::Pat::TupleStruct(_)
+                | syn::Pat::Type(_)
+                | syn::Pat::Verbatim(_)
+                | syn::Pat::Wild(_)
+                | _) => Err(syn::Error::new_spanned(
+                    pattern,
+                    str_constants::ROUTE_ERROR_UNSUPPORTED_PARAMETER_PATTERN,
+                )),
+            },
+            syn::FnArg::Receiver(value) => Err(syn::Error::new_spanned(
+                value,
+                str_constants::ROUTE_ERROR_REQUIRES_TYPED_PARAMETERS,
+            )),
+        })
+        .collect::<syn::Result<Vec<_>>>()
+    {
+        Ok(value) => value,
+        Err(parse_error) => return parse_error.to_compile_error().into(),
+    };
+    let mut inner_signature = function.sig.clone();
+    inner_signature.ident = quote::format_ident!("{}_route_impl", function.sig.ident);
+    let inner_identifier = &inner_signature.ident;
+    let original_block = function.block;
+    let unused_async_reason = syn::LitStr::new(
+        str_constants::ROUTE_ERROR_UNUSED_ASYNC_REASON,
+        proc_macro2::Span::call_site(),
+    );
+    function.sig.output = syn::parse_quote! {
+        -> Result<#return_type, #error>
+    };
+    function.block = syn::parse_quote! {{
+        #[allow(clippy::unused_async, reason = #unused_async_reason)]
+        #inner_signature #original_block
+        Ok(#inner_identifier(#(#arguments),*).await)
+    }};
+    quote::quote! {
+        #[derive(Debug, thiserror::Error)]
+        enum #error {}
+        impl axum::response::IntoResponse for #error {
+            fn into_response(self) -> axum::response::Response {
+                match self {}
+            }
+        }
+        #function
+    }
+    .into()
+}
+
+#[proc_macro_attribute]
+pub fn route_operation(
+    attribute_args: proc_macro::TokenStream,
+    input: proc_macro::TokenStream,
+) -> proc_macro::TokenStream {
+    if !attribute_args.is_empty() {
+        return syn::Error::new(
+            proc_macro2::Span::call_site(),
+            str_constants::ROUTE_OPERATION_ACCEPTS_NO_ARGUMENTS,
+        )
+        .to_compile_error()
+        .into();
+    }
+    match syn::parse::<syn::ItemFn>(input.clone()) {
+        Ok(_function) => input,
+        Err(error) => error.to_compile_error().into(),
+    }
+}
+
 #[proc_macro_derive(RouteCatalog, attributes(route_catalog, route_catalog_route))]
 pub fn derive_route_catalog(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let derive_input = match syn::parse::<syn::DeriveInput>(input) {

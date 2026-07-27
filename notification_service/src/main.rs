@@ -247,6 +247,7 @@ async fn create_notification(
     ))
 }
 
+#[frontend_contract::route_operation]
 async fn metrics(
     state: AxumNotificationState,
 ) -> Result<server_runtime::MetricsResponseBody, MetricsError> {
@@ -258,6 +259,7 @@ async fn metrics(
     })
 }
 
+#[frontend_contract::route_operation]
 async fn open_api() -> Result<AxumNotificationResponse, OpenApiError> {
     let mut document = NotificationApiRouteRegistry::open_api();
     document.merge(utoipa::openapi::OpenApi::from(

@@ -1448,16 +1448,29 @@ struct ApiErrorSourceVisitor<'names_lt> {
 struct RouteOperationErrorVisitor {
     ers: types::DiagnosticMsgs,
     names: types::StdSourceTextSet,
+    operations: types::StdSourceTextSet,
+    registered: types::StdSourceTextSet,
 }
 impl<'ast> syn::visit::Visit<'ast> for RouteOperationErrorVisitor {
     fn visit_item_fn(&mut self, i: &'ast syn::ItemFn) {
-        let is_route_operation = i.attrs.iter().any(|attr| {
-            attr.path().segments.last().is_some_and(|segment| {
-                segment.ident == str_constants::CODE_STYLE_ROUTE_OPENAPI_IDENTIFIER
+        let route_error_name = i.attrs.iter().find_map(|attr| {
+            attr.path().segments.last().and_then(|segment| {
+                let path = (segment.ident == str_constants::CODE_STYLE_ROUTE_ERROR_IDENTIFIER)
+                    .then(|| attr.parse_args::<syn::Path>().ok())
+                    .flatten()?;
+                path.segments.last().map(|value| value.ident.to_string())
             })
         });
+        let is_route_operation = route_error_name.is_some()
+            || i.attrs.iter().any(|attr| {
+                attr.path().segments.last().is_some_and(|segment| {
+                    segment.ident == str_constants::CODE_STYLE_ROUTE_OPENAPI_IDENTIFIER
+                        || segment.ident == str_constants::CODE_STYLE_ROUTE_OPERATION_IDENTIFIER
+                })
+            });
         if is_route_operation {
-            let error_name = match &i.sig.output {
+            let _: bool = self.operations.insert(i.sig.ident.to_string());
+            let error_name = route_error_name.or_else(|| match &i.sig.output {
                 syn::ReturnType::Type(_, output) => match output.as_ref() {
                     syn::Type::Path(result) => result
                         .path
@@ -1499,7 +1512,7 @@ impl<'ast> syn::visit::Visit<'ast> for RouteOperationErrorVisitor {
                     | _ => None,
                 },
                 syn::ReturnType::Default => None,
-            };
+            });
             match error_name {
                 Some(name) if self.names.insert(name.clone()) => {}
                 Some(name) => self.ers.push(format!(
@@ -1513,6 +1526,46 @@ impl<'ast> syn::visit::Visit<'ast> for RouteOperationErrorVisitor {
             }
         }
         syn::visit::visit_item_fn(self, i);
+    }
+    fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
+        i.attrs
+            .iter()
+            .filter(|attr| {
+                attr.path().segments.last().is_some_and(|segment| {
+                    segment.ident == str_constants::CODE_STYLE_HANDLER_REGISTRY_IDENTIFIER
+                })
+            })
+            .filter_map(|attr| match &attr.meta {
+                syn::Meta::List(value) => Some(value.tokens.clone()),
+                syn::Meta::NameValue(_) | syn::Meta::Path(_) => None,
+            })
+            .flat_map(proc_macro2::TokenStream::into_iter)
+            .filter_map(|token| match token {
+                proc_macro2::TokenTree::Group(group)
+                    if group.delimiter() == proc_macro2::Delimiter::Parenthesis =>
+                {
+                    group
+                        .stream()
+                        .into_iter()
+                        .filter_map(|child| match child {
+                            proc_macro2::TokenTree::Ident(identifier) => {
+                                Some(identifier.to_string())
+                            }
+                            proc_macro2::TokenTree::Group(_)
+                            | proc_macro2::TokenTree::Literal(_)
+                            | proc_macro2::TokenTree::Punct(_) => None,
+                        })
+                        .last()
+                }
+                proc_macro2::TokenTree::Group(_)
+                | proc_macro2::TokenTree::Ident(_)
+                | proc_macro2::TokenTree::Literal(_)
+                | proc_macro2::TokenTree::Punct(_) => None,
+            })
+            .for_each(|handler| {
+                let _: bool = self.registered.insert(handler);
+            });
+        syn::visit::visit_item_struct(self, i);
     }
 }
 impl<'ast> syn::visit::Visit<'ast> for ApiErrorSourceVisitor<'_> {

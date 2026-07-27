@@ -29,6 +29,35 @@ struct ServerObservabilityShutdownError(server_runtime::OpentelemetrySdkObservab
 #[error("{0}")]
 struct ServerAdminCleanupCfgError(server_admin::AdminCleanupCfgError);
 
+#[derive(Debug, thiserror::Error)]
+enum AdminGeneratedOpenApiError {}
+impl axum::response::IntoResponse for AdminGeneratedOpenApiError {
+    fn into_response(self) -> axum::response::Response {
+        match self {}
+    }
+}
+#[derive(Debug, thiserror::Error)]
+enum AdminHtmlMetricsError {}
+impl axum::response::IntoResponse for AdminHtmlMetricsError {
+    fn into_response(self) -> axum::response::Response {
+        match self {}
+    }
+}
+#[derive(Debug, thiserror::Error)]
+enum AdminMetricsError {
+    #[error(transparent)]
+    Render(server_runtime::MetricsResponseBodyError),
+}
+impl axum::response::IntoResponse for AdminMetricsError {
+    fn into_response(self) -> axum::response::Response {
+        match self {
+            Self::Render(_error) => axum::response::IntoResponse::into_response(
+                axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+            ),
+        }
+    }
+}
+
 #[derive(Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 struct ServerConfigError(server_config::ConfigTryFromEnvError);
@@ -174,8 +203,10 @@ fn mk_api_routes(
                     open_api_contract.method(),
                 )),
                 async || {
-                    axum::Json(utoipa::openapi::OpenApi::from(
-                        server_admin::generated_tables::generated_open_api(),
+                    Result::<_, AdminGeneratedOpenApiError>::Ok(axum::Json(
+                        utoipa::openapi::OpenApi::from(
+                            server_admin::generated_tables::generated_open_api(),
+                        ),
                     ))
                 },
             ),
@@ -192,16 +223,15 @@ fn mk_api_routes(
                 axum::routing::MethodFilter::from(frontend_contract::axum_method_filter(
                     metrics_contract.method(),
                 )),
-                async move || match server_runtime::MetricsResponseBody::try_from(
-                    metrics_handle.0.render(),
-                ) {
-                    Ok(body) => axum::response::IntoResponse::into_response((
-                        axum::http::StatusCode::OK,
-                        body.into_inner(),
-                    )),
-                    Err(_error) => axum::response::IntoResponse::into_response(
-                        axum::http::StatusCode::INTERNAL_SERVER_ERROR,
-                    ),
+                async move || {
+                    server_runtime::MetricsResponseBody::try_from(metrics_handle.0.render())
+                        .map(|body| {
+                            axum::response::IntoResponse::into_response((
+                                axum::http::StatusCode::OK,
+                                body.into_inner(),
+                            ))
+                        })
+                        .map_err(AdminMetricsError::Render)
                 },
             ),
         )
@@ -398,40 +428,44 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
         .route(
             server_admin_contract::AdminFrontendPath::Metrics.get(),
             axum::routing::get(async move || {
-                server_runtime::MetricsResponseBody::try_from(html_metrics_handle.0.render())
-                    .map_or_else(
-                        |_error| {
-                            axum::response::IntoResponse::into_response(
-                                axum::http::StatusCode::INTERNAL_SERVER_ERROR,
-                            )
-                        },
-                        |body| {
-                            let title_result = server_admin_frontend::ssr::AdminSsrText::try_from(
-                                str_constants::METRICS_ALT.to_owned(),
-                            );
-                            let text_result = server_admin_frontend::ssr::AdminSsrText::try_from(
-                                body.into_inner(),
-                            );
-                            match (title_result, text_result) {
-                                (Ok(title), Ok(text)) => {
-                                    axum::response::IntoResponse::into_response(
-                                        axum::response::Html(String::from(
-                                            server_admin_frontend::ssr::render_text_page(
-                                                server_admin_contract::AdminPage::Metrics,
-                                                title,
-                                                text,
-                                            ),
-                                        )),
-                                    )
+                Result::<_, AdminHtmlMetricsError>::Ok(
+                    server_runtime::MetricsResponseBody::try_from(html_metrics_handle.0.render())
+                        .map_or_else(
+                            |_error| {
+                                axum::response::IntoResponse::into_response(
+                                    axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+                                )
+                            },
+                            |body| {
+                                let title_result =
+                                    server_admin_frontend::ssr::AdminSsrText::try_from(
+                                        str_constants::METRICS_ALT.to_owned(),
+                                    );
+                                let text_result =
+                                    server_admin_frontend::ssr::AdminSsrText::try_from(
+                                        body.into_inner(),
+                                    );
+                                match (title_result, text_result) {
+                                    (Ok(title), Ok(text)) => {
+                                        axum::response::IntoResponse::into_response(
+                                            axum::response::Html(String::from(
+                                                server_admin_frontend::ssr::render_text_page(
+                                                    server_admin_contract::AdminPage::Metrics,
+                                                    title,
+                                                    text,
+                                                ),
+                                            )),
+                                        )
+                                    }
+                                    (Err(_error), _) | (_, Err(_error)) => {
+                                        axum::response::IntoResponse::into_response(
+                                            axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+                                        )
+                                    }
                                 }
-                                (Err(_error), _) | (_, Err(_error)) => {
-                                    axum::response::IntoResponse::into_response(
-                                        axum::http::StatusCode::INTERNAL_SERVER_ERROR,
-                                    )
-                                }
-                            }
-                        },
-                    )
+                            },
+                        ),
+                )
             }),
         )
         .route_layer(server_admin::AdminGeneratedAuthLayer::from(
@@ -606,6 +640,19 @@ fn main() -> StdServerExitCode {
 }
 #[cfg(test)]
 mod tests {
+    #[tokio::test]
+    async fn administrator_asset_route_preserves_static_file_serving() {
+        let response = tower::ServiceExt::oneshot(
+            axum::Router::from(server_admin_frontend::routes()),
+            axum::http::Request::get("/admin/assets/style.css")
+                .body(axum::body::Body::empty())
+                .expect("d694b6f6"),
+        )
+        .await
+        .expect("499f35e2");
+        assert_eq!(response.status(), axum::http::StatusCode::OK);
+    }
+
     #[tokio::test]
     async fn operational_routes_are_root_mounted_and_api_routes_are_versioned() {
         let operational_path = common_routes::CommonRoute::HealthLive.path();

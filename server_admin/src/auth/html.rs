@@ -292,6 +292,7 @@ fn permission_ids(
         .map_err(|_error| super::AdminError::Validation)
 }
 
+#[frontend_contract::route_error(AdminSignInPageError)]
 async fn sign_in_page(auth: super::AdminAuthReq) -> axum::response::Response {
     match super::handlers::branding_view(auth).await {
         Ok(branding) => html_response(server_admin_frontend::ssr::render_sign_in(
@@ -325,6 +326,7 @@ async fn csr_page(
     }
 }
 
+#[frontend_contract::route_error(AdminDataTablesPageError)]
 async fn data_tables(
     auth: super::AdminAuthReq,
     super::AxumAdminPath(table): super::AxumAdminPath<server_admin_contract::AdminDataTable>,
@@ -332,18 +334,52 @@ async fn data_tables(
     csr_page(auth, server_admin_contract::AdminPage::Tables, Some(table)).await
 }
 
+#[frontend_contract::route_error(AdminUsersPageError)]
+async fn users(auth: super::AdminAuthReq) -> axum::response::Response {
+    csr_page(
+        auth,
+        server_admin_contract::AdminPage::Tables,
+        Some(server_admin_contract::AdminDataTable::Users),
+    )
+    .await
+}
+
+#[frontend_contract::route_error(AdminRolesPageError)]
+async fn roles(auth: super::AdminAuthReq) -> axum::response::Response {
+    csr_page(
+        auth,
+        server_admin_contract::AdminPage::Tables,
+        Some(server_admin_contract::AdminDataTable::Roles),
+    )
+    .await
+}
+
+#[frontend_contract::route_error(AdminPermissionsPageError)]
+async fn permissions(auth: super::AdminAuthReq) -> axum::response::Response {
+    csr_page(
+        auth,
+        server_admin_contract::AdminPage::Tables,
+        Some(server_admin_contract::AdminDataTable::Permissions),
+    )
+    .await
+}
+
+#[frontend_contract::route_error(AdminSessionsPageError)]
 async fn sessions(auth: super::AdminAuthReq) -> axum::response::Response {
     csr_page(auth, server_admin_contract::AdminPage::Sessions, None).await
 }
 
+#[frontend_contract::route_error(AdminProfilePageError)]
 async fn profile(auth: super::AdminAuthReq) -> axum::response::Response {
     csr_page(auth, server_admin_contract::AdminPage::Profile, None).await
 }
 
+#[frontend_contract::route_error(AdminSettingsPageError)]
 async fn settings(auth: super::AdminAuthReq) -> axum::response::Response {
     csr_page(auth, server_admin_contract::AdminPage::Settings, None).await
 }
 
+#[frontend_contract::route_error(AdminVersionPageError)]
 async fn version(auth: super::AdminAuthReq) -> axum::response::Response {
     match page_context(&auth).await {
         Ok((admin, branding)) => match (
@@ -371,6 +407,7 @@ async fn version(auth: super::AdminAuthReq) -> axum::response::Response {
     }
 }
 
+#[frontend_contract::route_error(AdminOpenApiPageError)]
 async fn open_api(auth: super::AdminAuthReq) -> axum::response::Response {
     let branding_result = super::handlers::branding_view(auth.clone()).await;
     let authorized = super::authorize_generated_request(
@@ -421,12 +458,14 @@ async fn open_api(auth: super::AdminAuthReq) -> axum::response::Response {
     }
 }
 
+#[frontend_contract::route_error(AdminRootPageError)]
 async fn root() -> axum::response::Response {
     axum::response::IntoResponse::into_response(axum::response::Redirect::to(
         server_admin_contract::AdminFrontendPath::Users.get(),
     ))
 }
 
+#[frontend_contract::route_error(AdminHtmlSignOutError)]
 async fn sign_out(auth: super::AdminAuthReq) -> axum::response::Response {
     match form_auth(auth) {
         Ok(auth) => match super::handlers::sign_out(auth).await {
@@ -439,6 +478,7 @@ async fn sign_out(auth: super::AdminAuthReq) -> axum::response::Response {
     }
 }
 
+#[frontend_contract::route_error(AdminHtmlChangePasswordError)]
 async fn change_password(
     auth: super::AdminAuthReq,
     super::AxumAdminForm(form): super::AxumAdminForm<ChangePasswordForm>,
@@ -460,6 +500,7 @@ async fn change_password(
     }
 }
 
+#[frontend_contract::route_error(AdminHtmlRevokeSessionError)]
 async fn revoke_session(
     auth: super::AdminAuthReq,
     super::AxumAdminForm(form): super::AxumAdminForm<RevokeSessionForm>,
@@ -489,6 +530,7 @@ async fn revoke_session(
     }
 }
 
+#[frontend_contract::route_error(AdminHtmlCreateUserError)]
 async fn create_user(
     auth: super::AdminAuthReq,
     super::AxumAdminForm(form): super::AxumAdminForm<CreateUserForm>,
@@ -507,6 +549,7 @@ async fn create_user(
     )
 }
 
+#[frontend_contract::route_error(AdminHtmlUpdateUserError)]
 async fn update_user(
     auth: super::AdminAuthReq,
     super::AxumAdminForm(form): super::AxumAdminForm<UpdateUserForm>,
@@ -527,6 +570,7 @@ async fn update_user(
     )
 }
 
+#[frontend_contract::route_error(AdminHtmlUserPasswordError)]
 async fn user_password(
     auth: super::AdminAuthReq,
     super::AxumAdminForm(form): super::AxumAdminForm<UserPasswordForm>,
@@ -547,6 +591,7 @@ async fn user_password(
     )
 }
 
+#[frontend_contract::route_error(AdminHtmlUserBanError)]
 async fn user_ban(
     auth: super::AdminAuthReq,
     super::AxumAdminForm(form): super::AxumAdminForm<UserBanForm>,
@@ -567,6 +612,7 @@ async fn user_ban(
     )
 }
 
+#[frontend_contract::route_error(AdminHtmlDeleteUserError)]
 async fn delete_user(
     auth: super::AdminAuthReq,
     super::AxumAdminForm(form): super::AxumAdminForm<UserIdForm>,
@@ -583,6 +629,7 @@ async fn delete_user(
     )
 }
 
+#[frontend_contract::route_error(AdminHtmlUserRolesError)]
 async fn user_roles(
     auth: super::AdminAuthReq,
     super::AxumAdminForm(form): super::AxumAdminForm<UserRolesForm>,
@@ -617,6 +664,7 @@ async fn user_roles(
     )
 }
 
+#[frontend_contract::route_error(AdminHtmlCreateRoleError)]
 async fn create_role(
     auth: super::AdminAuthReq,
     super::AxumAdminForm(form): super::AxumAdminForm<CreateRoleForm>,
@@ -634,6 +682,7 @@ async fn create_role(
     )
 }
 
+#[frontend_contract::route_error(AdminHtmlUpdateRoleError)]
 async fn update_role(
     auth: super::AdminAuthReq,
     super::AxumAdminForm(form): super::AxumAdminForm<UpdateRoleForm>,
@@ -652,6 +701,7 @@ async fn update_role(
     )
 }
 
+#[frontend_contract::route_error(AdminHtmlDeleteRoleError)]
 async fn delete_role(
     auth: super::AdminAuthReq,
     super::AxumAdminForm(form): super::AxumAdminForm<RoleIdForm>,
@@ -668,6 +718,7 @@ async fn delete_role(
     )
 }
 
+#[frontend_contract::route_error(AdminHtmlRolePermissionsError)]
 async fn role_permissions(
     auth: super::AdminAuthReq,
     super::AxumAdminForm(form): super::AxumAdminForm<RolePermissionsForm>,
@@ -702,6 +753,7 @@ async fn role_permissions(
     )
 }
 
+#[frontend_contract::route_error(AdminHtmlUpdateSettingsError)]
 async fn update_settings(
     auth: super::AdminAuthReq,
     super::AxumAdminForm(form): super::AxumAdminForm<SettingsForm>,
@@ -822,6 +874,7 @@ async fn finish_sign_in(
     }
 }
 
+#[frontend_contract::route_error(AdminHtmlSignInError)]
 async fn sign_in(
     auth: super::AdminAuthReq,
     peer: super::AdminPeerAddr,
@@ -848,6 +901,18 @@ async fn sign_in(
     (
         server_admin_contract::AdminFrontendPath::Tables,
         data_tables
+    ),
+    (
+        server_admin_contract::AdminFrontendPath::Users,
+        users
+    ),
+    (
+        server_admin_contract::AdminFrontendPath::Roles,
+        roles
+    ),
+    (
+        server_admin_contract::AdminFrontendPath::Permissions,
+        permissions
     ),
     (
         server_admin_contract::AdminFrontendPath::Sessions,
@@ -954,7 +1019,7 @@ pub(super) fn routes(
 mod tests {
     #[tokio::test]
     async fn admin_root_redirects_to_users() {
-        let response = super::root().await;
+        let response = super::root().await.expect("54443181");
         assert_eq!(response.status(), http::StatusCode::SEE_OTHER);
         assert_eq!(
             response.headers().get(http::header::LOCATION),

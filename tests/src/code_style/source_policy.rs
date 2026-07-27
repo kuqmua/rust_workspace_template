@@ -1523,6 +1523,16 @@ fn argument_reason() {}
     assert_eq!(visitor.ers.len(), 1usize);
 }
 #[test]
+fn handler_route_operation_error_policy_rejects_shared_types() {
+    let ast = syn::parse_file(str_constants::CODE_STYLE_HANDLER_ROUTE_OPERATION_ERROR_FIXTURE)
+        .expect("752fbb70");
+    let visitor = super::visit_syn_file(
+        super::types::SynFileRef::from(&ast),
+        super::RouteOperationErrorVisitor::default(),
+    );
+    assert_eq!(visitor.ers.len(), 2usize);
+}
+#[test]
 fn source_does_not_retain_commented_debug_statements() {
     super::assert_rs_ast_ers_empty_with_ctx(
         super::types::StaticStr::from("a1a18a02"),
@@ -2092,9 +2102,18 @@ fn every_typed_route_operation_has_its_own_error_type() {
             ers.extend(
                 visitor
                     .ers
-                    .into_iter()
+                    .iter()
                     .map(|error| format!("{}: {error}", path.display())),
             );
+            visitor
+                .registered
+                .difference(&visitor.operations)
+                .for_each(|handler| {
+                    ers.push(format!(
+                        "{}: registered handler `{handler}` must declare its own route error",
+                        path.display()
+                    ));
+                });
         },
     );
 }

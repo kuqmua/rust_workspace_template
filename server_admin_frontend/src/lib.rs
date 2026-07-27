@@ -9,13 +9,38 @@ pub mod ssr;
 pub struct AxumAdminFrontendRouter(axum::Router);
 
 #[cfg(not(target_arch = "wasm32"))]
+#[derive(Debug, thiserror::Error)]
+enum AdminAssetsError {
+    #[error("administrator asset read failed: {0}")]
+    Read(to_err_string::ErrorText),
+}
+#[cfg(not(target_arch = "wasm32"))]
+impl axum::response::IntoResponse for AdminAssetsError {
+    fn into_response(self) -> axum::response::Response {
+        match self {
+            Self::Read(_error) => axum::response::IntoResponse::into_response(
+                axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+            ),
+        }
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
 #[must_use]
 pub fn routes() -> AxumAdminFrontendRouter {
     let static_dir = option_env!("ADMIN_FRONTEND_STATIC_DIR")
         .unwrap_or(concat!(env!("CARGO_MANIFEST_DIR"), "/static"));
-    AxumAdminFrontendRouter::from(axum::Router::new().nest_service(
+    AxumAdminFrontendRouter::from(axum::Router::new().nest(
         server_admin_contract::AdminFrontendPath::Assets.get(),
-        tower_http::services::ServeDir::new(static_dir),
+        axum::Router::new().fallback(async move |request| {
+            tower_http::services::ServeDir::new(static_dir)
+                .try_call(request)
+                .await
+                .map(|response| response.map(axum::body::Body::new))
+                .map_err(|error| {
+                    AdminAssetsError::Read(to_err_string::ToErrString::to_err_string(&error))
+                })
+        }),
     ))
 }
 

@@ -1068,11 +1068,21 @@ str_constants_macros::define_str_constants! {
         pub API_OPERATION_ERROR_REQUIRES_ERROR_TYPE = ["api_operation_error requires an error type"];
         pub API_OPERATION_ERROR_REQUIRES_RENDER_FUNCTION = ["api_operation_error requires a render function"];
         pub API_OPERATION_ERROR_REQUIRES_SOURCE_TYPE = ["api_operation_error requires a source type"];
+        pub ROUTE_ERROR_REQUIRES_ASYNC_FUNCTION = ["route_error requires an async function"];
+        pub ROUTE_ERROR_REQUIRES_ERROR_TYPE = ["route_error requires an error type"];
+        pub ROUTE_ERROR_REQUIRES_EXPLICIT_RETURN_TYPE = ["route_error requires an explicit return type"];
+        pub ROUTE_ERROR_REQUIRES_TYPED_PARAMETERS = ["route_error requires typed parameters"];
+        pub ROUTE_ERROR_UNUSED_ASYNC_REASON = ["route handler signatures remain uniformly asynchronous"];
+        pub ROUTE_ERROR_UNSUPPORTED_PARAMETER_PATTERN = ["route_error encountered an unsupported parameter pattern"];
+        pub ROUTE_OPERATION_ACCEPTS_NO_ARGUMENTS = ["route_operation accepts no arguments"];
         pub CODE_STYLE_AXUM_JSON_IDENTIFIER = ["Json"];
+        pub CODE_STYLE_HANDLER_REGISTRY_IDENTIFIER = ["handler_registry"];
         pub CODE_STYLE_INTO_RESPONSE_TRAIT_IDENTIFIER = ["IntoResponse"];
         pub CODE_STYLE_INTO_RESPONSE_METHOD_IDENTIFIER = ["into_response"];
         pub CODE_STYLE_OBSERVED_ERROR_IDENTIFIER = ["ObservedError"];
+        pub CODE_STYLE_ROUTE_ERROR_IDENTIFIER = ["route_error"];
         pub CODE_STYLE_ROUTE_OPENAPI_IDENTIFIER = ["route_openapi"];
+        pub CODE_STYLE_ROUTE_OPERATION_IDENTIFIER = ["route_operation"];
         pub CODE_STYLE_SOURCE_ATTRIBUTE_IDENTIFIER = [WORD_SOURCE];
         pub CODE_STYLE_THISERROR_CRATE_IDENTIFIER = [WORD_THISERROR];
         pub CODE_STYLE_STRING_GUARD_ALLOWED_SYNTAX_FIXTURE = ["#[", WORD_PATH, " = \"", WORD_FIXTURE, ".", WORD_RS, "\"] mod ", WORD_FIXTURE, "; ", WORD_FN, " ", WORD_F_2, "() { ", WORD_VALUE, ".", WORD_EXPECT, "(\"12345678\"); } #[test] fn test_f() { \"test literal\"; } #[cfg(test)] mod tests { const VALUE: &str = \"test literal\"; }"];
@@ -1151,6 +1161,24 @@ async fn first() -> Result<(), SharedError> {
 }
 #[frontend_contract::route_openapi()]
 async fn second() -> Result<(), SharedError> {
+    Ok(())
+}
+"#];
+        pub CODE_STYLE_HANDLER_ROUTE_OPERATION_ERROR_FIXTURE = [r#"
+#[frontend_contract::route_error(HtmlSharedError)]
+async fn first_html() -> Response {
+    response()
+}
+#[frontend_contract::route_error(HtmlSharedError)]
+async fn second_html() -> Response {
+    response()
+}
+#[frontend_contract::route_operation]
+async fn first_operational() -> Result<(), OperationalSharedError> {
+    Ok(())
+}
+#[frontend_contract::route_operation]
+async fn second_operational() -> Result<(), OperationalSharedError> {
     Ok(())
 }
 "#];
