@@ -147,11 +147,31 @@ struct JsonRes<T> {
     payload: AxumJsonPayload<T>,
 }
 #[derive(Debug, thiserror::Error)]
-enum CommonJsonApiError {
+enum CommonNotFoundError {
     #[error("common route was not found")]
     NotFound(NotFoundHandle),
+}
+#[derive(Debug, thiserror::Error)]
+enum GitInfoError {}
+#[derive(Debug, thiserror::Error)]
+enum HealthCheckError {
     #[error("service is unavailable")]
-    Unavailable(HealthReport),
+    Unavailable,
+}
+#[derive(Debug, thiserror::Error)]
+enum HealthError {
+    #[error("service is unavailable")]
+    Unavailable,
+}
+#[derive(Debug, thiserror::Error)]
+enum HealthLiveError {
+    #[error("service is unavailable")]
+    Unavailable,
+}
+#[derive(Debug, thiserror::Error)]
+enum HealthReadyError {
+    #[error("service is unavailable")]
+    Unavailable,
 }
 #[derive(Debug, optml::Optml, newtype::FromInner)]
 struct AxumJsonPayload<T>(axum::Json<T>);
@@ -277,19 +297,55 @@ where
         self.payload.into_response()
     }
 }
-impl axum::response::IntoResponse for CommonJsonApiError {
+impl axum::response::IntoResponse for CommonNotFoundError {
     fn into_response(self) -> axum::response::Response {
         match self {
             Self::NotFound(payload) => axum::response::IntoResponse::into_response((
                 axum::http::StatusCode::NOT_FOUND,
                 axum::Json(payload),
             )),
-            Self::Unavailable(payload) => axum::response::IntoResponse::into_response((
-                axum::http::StatusCode::SERVICE_UNAVAILABLE,
-                axum::Json(payload),
-            )),
         }
     }
+}
+impl axum::response::IntoResponse for GitInfoError {
+    fn into_response(self) -> axum::response::Response {
+        match self {}
+    }
+}
+impl axum::response::IntoResponse for HealthCheckError {
+    fn into_response(self) -> axum::response::Response {
+        match self {
+            Self::Unavailable => axum::response::IntoResponse::into_response(
+                frontend_contract::ApiProblemError::ServiceUnavailable,
+            ),
+        }
+    }
+}
+impl axum::response::IntoResponse for HealthError {
+    fn into_response(self) -> axum::response::Response {
+        match self {
+            Self::Unavailable => health_unavailable_response(),
+        }
+    }
+}
+impl axum::response::IntoResponse for HealthLiveError {
+    fn into_response(self) -> axum::response::Response {
+        match self {
+            Self::Unavailable => health_unavailable_response(),
+        }
+    }
+}
+impl axum::response::IntoResponse for HealthReadyError {
+    fn into_response(self) -> axum::response::Response {
+        match self {
+            Self::Unavailable => health_unavailable_response(),
+        }
+    }
+}
+fn health_unavailable_response() -> axum::response::Response {
+    axum::response::IntoResponse::into_response(
+        frontend_contract::ApiProblemError::ServiceUnavailable,
+    )
 }
 #[derive(Debug, Clone, optml::Optml, newtype::IntoInnerFrom, newtype::FromInner)]
 pub struct AxumCommonRoutes(axum::Router);
@@ -435,14 +491,10 @@ async fn database_is_ready(app_state: &dyn CommonRoutesParameters) -> HealthChec
         .await,
     ))
 }
-fn health_report_response(
-    report: HealthReport,
-) -> Result<JsonRes<HealthReport>, CommonJsonApiError> {
+fn health_report_response(report: HealthReport) -> Option<JsonRes<HealthReport>> {
     match report.status() {
-        HealthStatus::Ok => Ok(mk_json_res(report)),
-        HealthStatus::Degraded | HealthStatus::Error => {
-            Err(CommonJsonApiError::Unavailable(report))
-        }
+        HealthStatus::Ok => Some(mk_json_res(report)),
+        HealthStatus::Degraded | HealthStatus::Error => None,
     }
 }
 #[frontend_contract::route_registry(
@@ -469,8 +521,8 @@ struct CommonRouteRegistry;
     clippy::single_call_fn,
     reason = "the concrete handler is intentionally shared by Axum and OpenAPI metadata"
 )]
-async fn health_live() -> Result<JsonRes<HealthReport>, CommonJsonApiError> {
-    health_report_response(HealthReport::liveness())
+async fn health_live() -> Result<JsonRes<HealthReport>, HealthLiveError> {
+    health_report_response(HealthReport::liveness()).ok_or(HealthLiveError::Unavailable)
 }
 #[frontend_contract::route_openapi(tag = "service")]
 #[allow(
@@ -479,10 +531,11 @@ async fn health_live() -> Result<JsonRes<HealthReport>, CommonJsonApiError> {
 )]
 async fn health_ready(
     app_state: StdArcCommonRoutesAppState,
-) -> Result<JsonRes<HealthReport>, CommonJsonApiError> {
+) -> Result<JsonRes<HealthReport>, HealthReadyError> {
     health_report_response(HealthReport::readiness(HealthDatabaseAvailable::from(
         database_is_ready(app_state.0.as_ref()).await.0,
     )))
+    .ok_or(HealthReadyError::Unavailable)
 }
 #[frontend_contract::route_openapi(tag = "service")]
 #[allow(
@@ -491,26 +544,37 @@ async fn health_ready(
 )]
 async fn health(
     app_state: StdArcCommonRoutesAppState,
-) -> Result<JsonRes<HealthReport>, CommonJsonApiError> {
+) -> Result<JsonRes<HealthReport>, HealthError> {
     health_report_response(HealthReport::readiness(HealthDatabaseAvailable::from(
         database_is_ready(app_state.0.as_ref()).await.0,
     )))
+    .ok_or(HealthError::Unavailable)
 }
 #[frontend_contract::route_openapi(tag = "service")]
 #[allow(
     clippy::single_call_fn,
     reason = "the concrete handler is intentionally owned by the generated route registry"
 )]
-async fn health_check(app_state: StdArcCommonRoutesAppState) -> AxumHealthCheckStatus {
-    map_health_check_status(database_is_ready(app_state.0.as_ref()).await)
+async fn health_check(
+    app_state: StdArcCommonRoutesAppState,
+) -> Result<AxumHealthCheckStatus, HealthCheckError> {
+    let status = map_health_check_status(database_is_ready(app_state.0.as_ref()).await);
+    if status.0 == axum::http::StatusCode::OK {
+        Ok(status)
+    } else {
+        Err(HealthCheckError::Unavailable)
+    }
 }
 #[frontend_contract::route_openapi(tag = "service")]
 #[allow(
     clippy::single_call_fn,
     reason = "the concrete handler is intentionally owned by the generated route registry"
 )]
-async fn git_info(app_state: StdArcCommonRoutesAppState) -> JsonRes<GitInfo> {
-    mk_commit_json_res(app_state.0.as_ref(), mk_git_info_payload)
+async fn git_info(app_state: StdArcCommonRoutesAppState) -> Result<JsonRes<GitInfo>, GitInfoError> {
+    Ok(mk_commit_json_res(
+        app_state.0.as_ref(),
+        mk_git_info_payload,
+    ))
 }
 
 #[must_use]
@@ -519,7 +583,7 @@ pub fn common_routes(app_state_b9fc2d94: StdArcCommonRoutesAppState) -> AxumComm
         CommonRouteRegistry::router()
             .fallback(async |uri, axum::extract::State(app_state_19103bd5_raw)| {
                 let app_state_19103bd5: StdArcCommonRoutesAppState = app_state_19103bd5_raw;
-                CommonJsonApiError::NotFound(mk_not_found_payload(
+                CommonNotFoundError::NotFound(mk_not_found_payload(
                     AxumHttpUriRef::from(&uri),
                     git_info::GetGitCommitLink::get_git_commit_link_cow(
                         app_state_19103bd5.0.as_ref(),

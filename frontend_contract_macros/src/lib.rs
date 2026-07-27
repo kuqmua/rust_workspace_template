@@ -1018,6 +1018,70 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
     .into()
 }
 
+#[proc_macro]
+pub fn api_operation_error(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let paths = match syn::parse::Parser::parse(
+        syn::punctuated::Punctuated::<syn::Path, syn::Token![,]>::parse_terminated,
+        input,
+    ) {
+        Ok(value) => value,
+        Err(error) => return error.to_compile_error().into(),
+    };
+    let mut path_iter = paths.into_iter();
+    let Some(error_path) = path_iter.next() else {
+        return syn::Error::new(
+            proc_macro2::Span::call_site(),
+            str_constants::API_OPERATION_ERROR_REQUIRES_ERROR_TYPE,
+        )
+        .to_compile_error()
+        .into();
+    };
+    let Some(source_path) = path_iter.next() else {
+        return syn::Error::new(
+            proc_macro2::Span::call_site(),
+            str_constants::API_OPERATION_ERROR_REQUIRES_SOURCE_TYPE,
+        )
+        .to_compile_error()
+        .into();
+    };
+    let Some(render_path) = path_iter.next() else {
+        return syn::Error::new(
+            proc_macro2::Span::call_site(),
+            str_constants::API_OPERATION_ERROR_REQUIRES_RENDER_FUNCTION,
+        )
+        .to_compile_error()
+        .into();
+    };
+    if path_iter.next().is_some() {
+        return syn::Error::new(
+            proc_macro2::Span::call_site(),
+            str_constants::API_OPERATION_ERROR_ACCEPTS_EXACTLY_THREE_PATHS,
+        )
+        .to_compile_error()
+        .into();
+    }
+    quote::quote! {
+        #[derive(Debug, thiserror::Error)]
+        enum #error_path {
+            #[error(transparent)]
+            Operation(#source_path),
+        }
+        impl From<#source_path> for #error_path {
+            fn from(value: #source_path) -> Self {
+                Self::Operation(value)
+            }
+        }
+        impl axum::response::IntoResponse for #error_path {
+            fn into_response(self) -> axum::response::Response {
+                match self {
+                    Self::Operation(error) => #render_path(&error),
+                }
+            }
+        }
+    }
+    .into()
+}
+
 #[proc_macro_derive(RouteCatalog, attributes(route_catalog, route_catalog_route))]
 pub fn derive_route_catalog(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let derive_input = match syn::parse::<syn::DeriveInput>(input) {

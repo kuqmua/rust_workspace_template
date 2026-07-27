@@ -72,7 +72,7 @@ where
                 });
             let Some((Some(permission), mutates, method)) = contract else {
                 return Ok(axum::response::IntoResponse::into_response(
-                    crate::auth::AdminApiError::Authorization,
+                    crate::auth::AdminError::Authorization,
                 ));
             };
             if !matches!(
@@ -84,7 +84,7 @@ where
                     | (&http::Method::PUT, frontend_contract::HttpMethod::Put)
             ) {
                 return Ok(axum::response::IntoResponse::into_response(
-                    crate::auth::AdminApiError::MethodNotAllowed,
+                    crate::auth::AdminError::MethodNotAllowed,
                 ));
             }
             let Some(peer) = req
@@ -95,7 +95,7 @@ where
                 })
             else {
                 return Ok(axum::response::IntoResponse::into_response(
-                    crate::auth::AdminApiError::Authentication,
+                    crate::auth::AdminError::Authentication,
                 ));
             };
             let authenticated = match crate::auth::authorize_generated_request(

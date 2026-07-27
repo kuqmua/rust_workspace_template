@@ -65,8 +65,8 @@ pub use auth_session_keep_alive::{
     StdAuthSessionRefreshInterval,
 };
 pub use frontend_contract_macros::{
-    PageCatalog, RouteCatalog, RouteFamily, TypedRoute, UnitEnumCatalog, handler_registry,
-    route_openapi, route_registry,
+    PageCatalog, RouteCatalog, RouteFamily, TypedRoute, UnitEnumCatalog, api_operation_error,
+    handler_registry, route_openapi, route_registry,
 };
 pub use handler_contract::{
     AxumHandlerMethodRouter, HandlerContract, HandlerPath, handler_method_router,

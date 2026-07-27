@@ -35,7 +35,7 @@ pub(super) async fn enforce_rate_limit(
     subject: &super::super::StdAdminString,
     limit: super::StdAdminRateLimitCount,
     window_seconds: super::StdAdminRateLimitWindowSeconds,
-) -> Result<(), super::AdminApiError> {
+) -> Result<(), super::AdminError> {
     let scope_text = scope.as_str();
     let decision = super::super::repository::rate_limits::enforce_rate_limit(
         super::super::repository::SqlxAdminRepositoryPoolRef::from(state.pool.as_ref()),
@@ -47,16 +47,16 @@ pub(super) async fn enforce_rate_limit(
     .await
     .map_err(|repository_error| match repository_error {
         super::super::repository::AdminRateLimitRepositoryError::InvalidPolicy => {
-            super::AdminApiError::Validation
+            super::AdminError::Validation
         }
         super::super::repository::AdminRateLimitRepositoryError::Sqlx(sqlx_error) => {
-            super::AdminApiError::pg(sqlx_error)
+            super::AdminError::pg(sqlx_error)
         }
     })?;
     match decision {
         super::super::repository::AdminRateLimitOutcome::Allowed => Ok(()),
         super::super::repository::AdminRateLimitOutcome::Limited => {
-            Err(super::AdminApiError::RateLimited)
+            Err(super::AdminError::RateLimited)
         }
     }
 }

@@ -157,8 +157,8 @@ fn html_response(html: server_admin_frontend::ssr::AdminSsrHtml) -> axum::respon
     axum::response::IntoResponse::into_response(axum::response::Html(String::from(html)))
 }
 
-fn html_page_error(error: super::AdminApiError) -> axum::response::Response {
-    if matches!(error, super::AdminApiError::Authentication) {
+fn html_page_error(error: super::AdminError) -> axum::response::Response {
+    if matches!(error, super::AdminError::Authentication) {
         axum::response::IntoResponse::into_response(axum::response::Redirect::to(
             server_admin_contract::AdminFrontendPath::SignIn.get(),
         ))
@@ -174,21 +174,21 @@ async fn page_context(
         server_admin_contract::AuthenticatedAdmin,
         server_admin_contract::AdminBrandingView,
     ),
-    super::AdminApiError,
+    super::AdminError,
 > {
     let admin = super::handlers::me_view(auth.clone()).await?;
     let branding = super::handlers::branding_view(auth.clone()).await?;
     Ok((admin, branding))
 }
 
-fn form_auth(mut auth: super::AdminAuthReq) -> Result<super::AdminAuthReq, super::AdminApiError> {
+fn form_auth(mut auth: super::AdminAuthReq) -> Result<super::AdminAuthReq, super::AdminError> {
     let token = super::super::find_admin_cookie(
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
         super::super::AdminCookieKind::Csrf,
     )
-    .ok_or(super::AdminApiError::Csrf)?;
+    .ok_or(super::AdminError::Csrf)?;
     let value = http::HeaderValue::from_str(token.as_ref()).map_err(|error| {
-        super::AdminApiError::header(super::HttpAdminHeaderValueError::from(error))
+        super::AdminError::header(super::HttpAdminHeaderValueError::from(error))
     })?;
     let _previous = auth.headers.0.insert(
         http::HeaderName::from_static(str_constants::X_CSRF_TOKEN_ALT),
@@ -230,7 +230,7 @@ fn role_path(value: server_admin_contract::AdminRoleId) -> super::super::AdminRo
 }
 
 fn action_result(
-    result: Result<super::AxumAdminResponse, super::AdminApiError>,
+    result: Result<super::AxumAdminResponse, super::AdminError>,
     path: server_admin_contract::AdminFrontendPath,
 ) -> axum::response::Response {
     match result {
@@ -241,7 +241,7 @@ fn action_result(
 
 fn optional_setting<Value, Error>(
     value: AdminHtmlFormText,
-) -> Result<Option<Value>, super::AdminApiError>
+) -> Result<Option<Value>, super::AdminError>
 where
     Value: TryFrom<String, Error = Error>,
 {
@@ -250,13 +250,13 @@ where
     } else {
         Value::try_from(value.0)
             .map(Some)
-            .map_err(|_error| super::AdminApiError::Validation)
+            .map_err(|_error| super::AdminError::Validation)
     }
 }
 
 fn role_ids(
     value: &AdminHtmlFormText,
-) -> Result<server_admin_contract::AdminRoleIds, super::AdminApiError> {
+) -> Result<server_admin_contract::AdminRoleIds, super::AdminError> {
     let values = value
         .0
         .split(',')
@@ -264,18 +264,18 @@ fn role_ids(
         .map(|item| {
             let parsed = item
                 .parse::<i64>()
-                .map_err(|_error| super::AdminApiError::Validation)?;
+                .map_err(|_error| super::AdminError::Validation)?;
             server_admin_contract::AdminRoleId::try_from(parsed)
-                .map_err(|_error| super::AdminApiError::Validation)
+                .map_err(|_error| super::AdminError::Validation)
         })
         .collect::<Result<Vec<_>, _>>()?;
     server_admin_contract::AdminRoleIds::try_from(values)
-        .map_err(|_error| super::AdminApiError::Validation)
+        .map_err(|_error| super::AdminError::Validation)
 }
 
 fn permission_ids(
     value: &AdminHtmlFormText,
-) -> Result<server_admin_contract::AdminPermissionIds, super::AdminApiError> {
+) -> Result<server_admin_contract::AdminPermissionIds, super::AdminError> {
     let values = value
         .0
         .split(',')
@@ -283,13 +283,13 @@ fn permission_ids(
         .map(|item| {
             let parsed = item
                 .parse::<i64>()
-                .map_err(|_error| super::AdminApiError::Validation)?;
+                .map_err(|_error| super::AdminError::Validation)?;
             server_admin_contract::AdminPermissionId::try_from(parsed)
-                .map_err(|_error| super::AdminApiError::Validation)
+                .map_err(|_error| super::AdminError::Validation)
         })
         .collect::<Result<Vec<_>, _>>()?;
     server_admin_contract::AdminPermissionIds::try_from(values)
-        .map_err(|_error| super::AdminApiError::Validation)
+        .map_err(|_error| super::AdminError::Validation)
 }
 
 async fn sign_in_page(auth: super::AdminAuthReq) -> axum::response::Response {
@@ -320,7 +320,7 @@ async fn csr_page(
                 &branding,
             ))
         }
-        Ok(_context) => html_page_error(super::AdminApiError::Authorization),
+        Ok(_context) => html_page_error(super::AdminError::Authorization),
         Err(error) => html_page_error(error),
     }
 }
@@ -465,7 +465,7 @@ async fn revoke_session(
     super::AxumAdminForm(form): super::AxumAdminForm<RevokeSessionForm>,
 ) -> axum::response::Response {
     if !bool::from(form.confirmation) {
-        return axum::response::IntoResponse::into_response(super::AdminApiError::Validation);
+        return axum::response::IntoResponse::into_response(super::AdminError::Validation);
     }
     let session_id = form
         .session_id
@@ -474,7 +474,7 @@ async fn revoke_session(
         .map(super::super::UuidAdminValue::from)
         .map(super::super::AdminSessionId::from);
     let Ok(session_id) = session_id else {
-        return axum::response::IntoResponse::into_response(super::AdminApiError::Validation);
+        return axum::response::IntoResponse::into_response(super::AdminError::Validation);
     };
     match form_auth(auth) {
         Ok(auth) => {
@@ -494,7 +494,7 @@ async fn create_user(
     super::AxumAdminForm(form): super::AxumAdminForm<CreateUserForm>,
 ) -> axum::response::Response {
     let Ok(auth) = form_auth(auth) else {
-        return axum::response::IntoResponse::into_response(super::AdminApiError::Csrf);
+        return axum::response::IntoResponse::into_response(super::AdminError::Csrf);
     };
     let request = server_admin_contract::AdminCreateUserReq::new(
         form.display_name,
@@ -512,7 +512,7 @@ async fn update_user(
     super::AxumAdminForm(form): super::AxumAdminForm<UpdateUserForm>,
 ) -> axum::response::Response {
     let Ok(auth) = form_auth(auth) else {
-        return axum::response::IntoResponse::into_response(super::AdminApiError::Csrf);
+        return axum::response::IntoResponse::into_response(super::AdminError::Csrf);
     };
     let request =
         server_admin_contract::AdminUpdateUserReq::new(Some(form.display_name), Some(form.login));
@@ -532,7 +532,7 @@ async fn user_password(
     super::AxumAdminForm(form): super::AxumAdminForm<UserPasswordForm>,
 ) -> axum::response::Response {
     let Ok(auth) = form_auth(auth) else {
-        return axum::response::IntoResponse::into_response(super::AdminApiError::Csrf);
+        return axum::response::IntoResponse::into_response(super::AdminError::Csrf);
     };
     action_result(
         super::handlers::set_user_password(
@@ -552,7 +552,7 @@ async fn user_ban(
     super::AxumAdminForm(form): super::AxumAdminForm<UserBanForm>,
 ) -> axum::response::Response {
     let Ok(auth) = form_auth(auth) else {
-        return axum::response::IntoResponse::into_response(super::AdminApiError::Csrf);
+        return axum::response::IntoResponse::into_response(super::AdminError::Csrf);
     };
     action_result(
         super::handlers::set_user_ban(
@@ -572,10 +572,10 @@ async fn delete_user(
     super::AxumAdminForm(form): super::AxumAdminForm<UserIdForm>,
 ) -> axum::response::Response {
     if !bool::from(form.confirmation) {
-        return axum::response::IntoResponse::into_response(super::AdminApiError::Validation);
+        return axum::response::IntoResponse::into_response(super::AdminError::Validation);
     }
     let Ok(auth) = form_auth(auth) else {
-        return axum::response::IntoResponse::into_response(super::AdminApiError::Csrf);
+        return axum::response::IntoResponse::into_response(super::AdminError::Csrf);
     };
     action_result(
         super::handlers::delete_user(auth, super::AxumAdminPath(user_path(form.user_id))).await,
@@ -588,7 +588,7 @@ async fn user_roles(
     super::AxumAdminForm(form): super::AxumAdminForm<UserRolesForm>,
 ) -> axum::response::Response {
     let Ok(auth) = form_auth(auth) else {
-        return axum::response::IntoResponse::into_response(super::AdminApiError::Csrf);
+        return axum::response::IntoResponse::into_response(super::AdminError::Csrf);
     };
     let expected = role_ids(&form.expected_role_ids);
     let selected_text = AdminHtmlFormText::try_from(
@@ -600,10 +600,10 @@ async fn user_roles(
             .join(str_constants::COMMA_SPACE.trim()),
     );
     let selected = selected_text
-        .map_err(|_error| super::AdminApiError::Validation)
+        .map_err(|_error| super::AdminError::Validation)
         .and_then(|value| role_ids(&value));
     let (Ok(expected), Ok(selected)) = (expected, selected) else {
-        return axum::response::IntoResponse::into_response(super::AdminApiError::Validation);
+        return axum::response::IntoResponse::into_response(super::AdminError::Validation);
     };
     let request = server_admin_contract::AdminSetUserRolesReq::new(expected, selected);
     action_result(
@@ -622,7 +622,7 @@ async fn create_role(
     super::AxumAdminForm(form): super::AxumAdminForm<CreateRoleForm>,
 ) -> axum::response::Response {
     let Ok(auth) = form_auth(auth) else {
-        return axum::response::IntoResponse::into_response(super::AdminApiError::Csrf);
+        return axum::response::IntoResponse::into_response(super::AdminError::Csrf);
     };
     action_result(
         super::handlers::create_role(
@@ -639,7 +639,7 @@ async fn update_role(
     super::AxumAdminForm(form): super::AxumAdminForm<UpdateRoleForm>,
 ) -> axum::response::Response {
     let Ok(auth) = form_auth(auth) else {
-        return axum::response::IntoResponse::into_response(super::AdminApiError::Csrf);
+        return axum::response::IntoResponse::into_response(super::AdminError::Csrf);
     };
     action_result(
         super::handlers::update_role(
@@ -657,10 +657,10 @@ async fn delete_role(
     super::AxumAdminForm(form): super::AxumAdminForm<RoleIdForm>,
 ) -> axum::response::Response {
     if !bool::from(form.confirmation) {
-        return axum::response::IntoResponse::into_response(super::AdminApiError::Validation);
+        return axum::response::IntoResponse::into_response(super::AdminError::Validation);
     }
     let Ok(auth) = form_auth(auth) else {
-        return axum::response::IntoResponse::into_response(super::AdminApiError::Csrf);
+        return axum::response::IntoResponse::into_response(super::AdminError::Csrf);
     };
     action_result(
         super::handlers::delete_role(auth, super::AxumAdminPath(role_path(form.role_id))).await,
@@ -673,7 +673,7 @@ async fn role_permissions(
     super::AxumAdminForm(form): super::AxumAdminForm<RolePermissionsForm>,
 ) -> axum::response::Response {
     let Ok(auth) = form_auth(auth) else {
-        return axum::response::IntoResponse::into_response(super::AdminApiError::Csrf);
+        return axum::response::IntoResponse::into_response(super::AdminError::Csrf);
     };
     let expected = permission_ids(&form.expected_permission_ids);
     let selected_text = AdminHtmlFormText::try_from(
@@ -685,10 +685,10 @@ async fn role_permissions(
             .join(str_constants::COMMA_SPACE.trim()),
     );
     let selected = selected_text
-        .map_err(|_error| super::AdminApiError::Validation)
+        .map_err(|_error| super::AdminError::Validation)
         .and_then(|value| permission_ids(&value));
     let (Ok(expected), Ok(selected)) = (expected, selected) else {
-        return axum::response::IntoResponse::into_response(super::AdminApiError::Validation);
+        return axum::response::IntoResponse::into_response(super::AdminError::Validation);
     };
     let request = server_admin_contract::AdminSetRolePermissionsReq::new(expected, selected);
     action_result(
@@ -707,7 +707,7 @@ async fn update_settings(
     super::AxumAdminForm(form): super::AxumAdminForm<SettingsForm>,
 ) -> axum::response::Response {
     let Ok(auth) = form_auth(auth) else {
-        return axum::response::IntoResponse::into_response(super::AdminApiError::Csrf);
+        return axum::response::IntoResponse::into_response(super::AdminError::Csrf);
     };
     let parsed = (
         optional_setting::<server_admin_contract::AdminMainLogo, _>(form.main_logo),
@@ -728,7 +728,7 @@ async fn update_settings(
         Ok(tab_title),
     ) = parsed
     else {
-        return axum::response::IntoResponse::into_response(super::AdminApiError::Validation);
+        return axum::response::IntoResponse::into_response(super::AdminError::Validation);
     };
     let mut clear = Vec::new();
     [
@@ -761,7 +761,7 @@ async fn update_settings(
     .filter_map(|(is_empty, setting)| is_empty.then_some(setting))
     .for_each(|setting| clear.push(setting));
     let Ok(clear) = server_admin_contract::AdminOptionalSettings::try_from(clear) else {
-        return axum::response::IntoResponse::into_response(super::AdminApiError::Validation);
+        return axum::response::IntoResponse::into_response(super::AdminError::Validation);
     };
     let request = server_admin_contract::AdminUpdateSettingsReq::new(
         Some(form.default_admin_route),

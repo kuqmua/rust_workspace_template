@@ -2,11 +2,11 @@
 pub(super) async fn record_success_in_connection(
     mut connection: super::SqlxAdminPgConnectionRef<'_>,
     event: super::AdminAuditSuccessRef<'_>,
-) -> Result<(), super::AdminApiError> {
+) -> Result<(), super::AdminError> {
     let details = server_admin_contract::SerdeJsonAdminAuditDetails::try_from(
         serde_json::json!({ "operation": event.action.as_str().as_ref(), "target_id": event.resource_id.value().as_ref() }),
     )
-    .map_err(|_error| super::AdminApiError::Validation)?;
+    .map_err(|_error| super::AdminError::Validation)?;
     let resource_id = event.resource_id.value();
     super::super::repository::audit::insert_audit_success(
         super::super::repository::SqlxAdminRepositoryConnectionMutRef::from(connection.as_mut()),
@@ -19,14 +19,14 @@ pub(super) async fn record_success_in_connection(
         &details,
     )
     .await
-    .map_err(super::AdminApiError::pg)
+    .map_err(super::AdminError::pg)
 }
 pub(super) async fn query_page(
     auth: super::AdminAuthReq,
     query: super::AxumAdminQuery<super::AdminAuditQuery>,
-) -> Result<server_admin_contract::AdminAuditPage, super::AdminApiError> {
+) -> Result<server_admin_contract::AdminAuditPage, super::AdminError> {
     if !query.0.cursor_is_complete().get() {
-        return Err(super::AdminApiError::Validation);
+        return Err(super::AdminError::Validation);
     }
     let _actor = super::authorize_generated_request(
         auth.state.as_ref(),
@@ -45,10 +45,10 @@ pub(super) async fn query_page(
     .await
     .map_err(|repository_error| match repository_error {
         super::super::repository::AdminRepositoryError::InvalidStoredValue => {
-            super::AdminApiError::Validation
+            super::AdminError::Validation
         }
         super::super::repository::AdminRepositoryError::Sqlx(sqlx_error) => {
-            super::AdminApiError::pg(sqlx_error)
+            super::AdminError::pg(sqlx_error)
         }
     })?;
     Ok(page)
@@ -56,7 +56,7 @@ pub(super) async fn query_page(
 pub(super) async fn query_log(
     auth: super::AdminAuthReq,
     query: super::AxumAdminQuery<super::AdminAuditQuery>,
-) -> Result<super::AxumAdminResponse, super::AdminApiError> {
+) -> Result<super::AxumAdminResponse, super::AdminError> {
     query_page(auth, query).await.map(|page| {
         super::AxumAdminResponse(axum::response::IntoResponse::into_response(axum::Json(
             page,
@@ -66,9 +66,9 @@ pub(super) async fn query_log(
 pub(super) async fn export_log(
     auth: super::AdminAuthReq,
     query: super::AxumAdminQuery<super::AdminAuditQuery>,
-) -> Result<super::AxumAdminResponse, super::AdminApiError> {
+) -> Result<super::AxumAdminResponse, super::AdminError> {
     if !query.0.cursor_is_complete().get() {
-        return Err(super::AdminApiError::Validation);
+        return Err(super::AdminError::Validation);
     }
     let actor = super::authorize_generated_request(
         auth.state.as_ref(),
@@ -79,7 +79,7 @@ pub(super) async fn export_log(
     )
     .await?;
     let rate_subject = super::super::StdAdminString::try_from(actor.id.get().to_string())
-        .map_err(|_error| super::AdminApiError::Validation)?;
+        .map_err(|_error| super::AdminError::Validation)?;
     super::rate_limit::enforce_rate_limit(
         auth.state.as_ref(),
         super::rate_limit::AdminRateLimitScope::AuditExport,
@@ -97,10 +97,10 @@ pub(super) async fn export_log(
     .await
     .map_err(|error| match error {
         super::super::repository::AdminRepositoryError::InvalidStoredValue => {
-            super::AdminApiError::Validation
+            super::AdminError::Validation
         }
         super::super::repository::AdminRepositoryError::Sqlx(sqlx_error) => {
-            super::AdminApiError::pg(sqlx_error)
+            super::AdminError::pg(sqlx_error)
         }
     })?;
     let mut csv = String::from(str_constants::AUDIT_CSV_HEADER);
@@ -132,7 +132,7 @@ pub(super) async fn export_log(
     });
     let export = server_admin_contract::AdminAuditExport::new(
         server_admin_contract::AdminAuditExportCsv::try_from(csv)
-            .map_err(|_error| super::AdminApiError::Validation)?,
+            .map_err(|_error| super::AdminError::Validation)?,
     );
     Ok(super::AxumAdminResponse(
         axum::response::IntoResponse::into_response(axum::Json(export)),

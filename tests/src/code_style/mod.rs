@@ -1444,6 +1444,77 @@ struct ApiErrorSourceVisitor<'names_lt> {
     api_error_names: &'names_lt types::StdSourceTextSet,
     ers: types::DiagnosticMsgs,
 }
+#[derive(Default)]
+struct RouteOperationErrorVisitor {
+    ers: types::DiagnosticMsgs,
+    names: types::StdSourceTextSet,
+}
+impl<'ast> syn::visit::Visit<'ast> for RouteOperationErrorVisitor {
+    fn visit_item_fn(&mut self, i: &'ast syn::ItemFn) {
+        let is_route_operation = i.attrs.iter().any(|attr| {
+            attr.path().segments.last().is_some_and(|segment| {
+                segment.ident == str_constants::CODE_STYLE_ROUTE_OPENAPI_IDENTIFIER
+            })
+        });
+        if is_route_operation {
+            let error_name = match &i.sig.output {
+                syn::ReturnType::Type(_, output) => match output.as_ref() {
+                    syn::Type::Path(result) => result
+                        .path
+                        .segments
+                        .last()
+                        .and_then(|segment| match &segment.arguments {
+                            syn::PathArguments::AngleBracketed(arguments) => {
+                                arguments.args.iter().nth(1usize)
+                            }
+                            syn::PathArguments::None | syn::PathArguments::Parenthesized(_) => None,
+                        })
+                        .and_then(|argument| match argument {
+                            syn::GenericArgument::Type(syn::Type::Path(error)) => {
+                                error.path.segments.last()
+                            }
+                            syn::GenericArgument::AssocConst(_)
+                            | syn::GenericArgument::AssocType(_)
+                            | syn::GenericArgument::Const(_)
+                            | syn::GenericArgument::Constraint(_)
+                            | syn::GenericArgument::Lifetime(_)
+                            | syn::GenericArgument::Type(_)
+                            | _ => None,
+                        })
+                        .map(|segment| segment.ident.to_string()),
+                    syn::Type::Array(_)
+                    | syn::Type::BareFn(_)
+                    | syn::Type::Group(_)
+                    | syn::Type::ImplTrait(_)
+                    | syn::Type::Infer(_)
+                    | syn::Type::Macro(_)
+                    | syn::Type::Never(_)
+                    | syn::Type::Paren(_)
+                    | syn::Type::Ptr(_)
+                    | syn::Type::Reference(_)
+                    | syn::Type::Slice(_)
+                    | syn::Type::TraitObject(_)
+                    | syn::Type::Tuple(_)
+                    | syn::Type::Verbatim(_)
+                    | _ => None,
+                },
+                syn::ReturnType::Default => None,
+            };
+            match error_name {
+                Some(name) if self.names.insert(name.clone()) => {}
+                Some(name) => self.ers.push(format!(
+                    "route operation `{}` reuses error type `{name}`",
+                    i.sig.ident
+                )),
+                None => self.ers.push(format!(
+                    "route operation `{}` must return Result with its own concrete error type",
+                    i.sig.ident
+                )),
+            }
+        }
+        syn::visit::visit_item_fn(self, i);
+    }
+}
 impl<'ast> syn::visit::Visit<'ast> for ApiErrorSourceVisitor<'_> {
     fn visit_item_enum(&mut self, i: &'ast syn::ItemEnum) {
         if self.api_error_names.contains(i.ident.to_string().as_str()) {
@@ -2703,6 +2774,19 @@ impl<'ast> syn::visit::Visit<'ast> for DeclaredDomainTypeVisitor {
             );
         }
         if config_lib_domain_type_macro_path(types::SynPathRef::from(&i.path)).get() {
+            collect_first_macro_identifier_domain_name(
+                types::SourceTextRef::from(i.tokens.to_string().as_str()),
+                &mut self.names,
+            );
+        }
+        if path_ends_with(
+            types::SynPathRef::from(&i.path),
+            types::StaticStrSliceRef::from(
+                [str_constants::API_OPERATION_ERROR_MACRO_IDENTIFIER].as_slice(),
+            ),
+        )
+        .get()
+        {
             collect_first_macro_identifier_domain_name(
                 types::SourceTextRef::from(i.tokens.to_string().as_str()),
                 &mut self.names,

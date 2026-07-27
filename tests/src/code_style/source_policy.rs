@@ -2078,6 +2078,37 @@ fn api_response_error_source_policy_rejects_raw_sources() {
     assert_eq!(visitor.ers.len(), 1usize);
 }
 #[test]
+fn every_typed_route_operation_has_its_own_error_type() {
+    super::assert_rs_ast_ers_empty_with_ctx(
+        super::types::StaticStr::from("12db697c"),
+        super::types::SourceTextRef::from(
+            "every typed API route operation must use a distinct concrete error type",
+        ),
+        |path, ast, ers| {
+            let visitor = super::visit_syn_file(
+                super::types::SynFileRef::from(ast),
+                super::RouteOperationErrorVisitor::default(),
+            );
+            ers.extend(
+                visitor
+                    .ers
+                    .into_iter()
+                    .map(|error| format!("{}: {error}", path.display())),
+            );
+        },
+    );
+}
+#[test]
+fn typed_route_operation_error_policy_rejects_shared_types() {
+    let ast =
+        syn::parse_file(str_constants::CODE_STYLE_ROUTE_OPERATION_ERROR_FIXTURE).expect("60ff98c7");
+    let visitor = super::visit_syn_file(
+        super::types::SynFileRef::from(&ast),
+        super::RouteOperationErrorVisitor::default(),
+    );
+    assert_eq!(visitor.ers.len(), 1usize);
+}
+#[test]
 fn error_implementation_source_uses_only_thiserror_derive() {
     let forbidden_newtype_derive = concat!("newtype::", "Error");
     let forbidden_manual_impl = concat!("impl std::error::", "Error for");

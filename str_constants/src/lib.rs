@@ -1063,10 +1063,16 @@ str_constants_macros::define_str_constants! {
         pub CODE_STYLE_GENERATE_DERIVE_TOKEN_STREAM_BUILDER_MACRO_NAME = ["generate_derive_token_stream_builder"];
         pub CODE_STYLE_GENERATE_PG_TYPES_MACRO_NAME = ["generate_pg_types"];
         pub CODE_STYLE_GENERATE_WHERE_FILTERS_MACRO_NAME = ["generate_where_filters"];
+        pub API_OPERATION_ERROR_ACCEPTS_EXACTLY_THREE_PATHS = ["api_operation_error accepts exactly three paths"];
+        pub API_OPERATION_ERROR_MACRO_IDENTIFIER = ["api_operation_error"];
+        pub API_OPERATION_ERROR_REQUIRES_ERROR_TYPE = ["api_operation_error requires an error type"];
+        pub API_OPERATION_ERROR_REQUIRES_RENDER_FUNCTION = ["api_operation_error requires a render function"];
+        pub API_OPERATION_ERROR_REQUIRES_SOURCE_TYPE = ["api_operation_error requires a source type"];
         pub CODE_STYLE_AXUM_JSON_IDENTIFIER = ["Json"];
         pub CODE_STYLE_INTO_RESPONSE_TRAIT_IDENTIFIER = ["IntoResponse"];
         pub CODE_STYLE_INTO_RESPONSE_METHOD_IDENTIFIER = ["into_response"];
         pub CODE_STYLE_OBSERVED_ERROR_IDENTIFIER = ["ObservedError"];
+        pub CODE_STYLE_ROUTE_OPENAPI_IDENTIFIER = ["route_openapi"];
         pub CODE_STYLE_SOURCE_ATTRIBUTE_IDENTIFIER = [WORD_SOURCE];
         pub CODE_STYLE_THISERROR_CRATE_IDENTIFIER = [WORD_THISERROR];
         pub CODE_STYLE_STRING_GUARD_ALLOWED_SYNTAX_FIXTURE = ["#[", WORD_PATH, " = \"", WORD_FIXTURE, ".", WORD_RS, "\"] mod ", WORD_FIXTURE, "; ", WORD_FN, " ", WORD_F_2, "() { ", WORD_VALUE, ".", WORD_EXPECT, "(\"12345678\"); } #[test] fn test_f() { \"test literal\"; } #[cfg(test)] mod tests { const VALUE: &str = \"test literal\"; }"];
@@ -1136,6 +1142,16 @@ impl axum::response::IntoResponse for RawSourceError {
     fn into_response(self) -> axum::response::Response {
         axum::response::IntoResponse::into_response(axum::Json(()))
     }
+}
+"#];
+        pub CODE_STYLE_ROUTE_OPERATION_ERROR_FIXTURE = [r#"
+#[frontend_contract::route_openapi()]
+async fn first() -> Result<(), SharedError> {
+    Ok(())
+}
+#[frontend_contract::route_openapi()]
+async fn second() -> Result<(), SharedError> {
+    Ok(())
 }
 "#];
         pub CODE_STYLE_STRING_CONSTANT_DECLARATION_FIXTURE = [r#"
@@ -4460,8 +4476,8 @@ pub const HTTP_ERROR_WITHOUT_DIAGNOSTIC_CONTEXT: &str =
 pub const HTTP_ERROR_CHAIN_SEPARATOR: &str = ": ";
 pub const HTTP_REQUEST_FAILED: &str = "http request failed";
 pub const HTTP_SPAN_UNAVAILABLE: &str = "current tracing span is unavailable";
-pub const ADMIN_API_ERROR_TYPE: &str = "server_admin::auth::AdminApiError";
-pub const NOTIFICATION_API_ERROR_TYPE: &str = "notification_service::HttpNotificationApiProblem";
+pub const ADMIN_API_ERROR_TYPE: &str = "server_admin::operation_error";
+pub const NOTIFICATION_API_ERROR_TYPE: &str = "notification_service::operation_error";
 pub const X_REQUEST_ID: &str = "x-request-id";
 pub const TRACEPARENT_W3C_VERSION_00_FORMAT: &str =
     "traceparent must use the W3C version 00 format";

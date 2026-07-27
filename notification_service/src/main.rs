@@ -24,14 +24,19 @@ struct AxumNotificationRouter(axum::Router);
 struct HttpNotificationStatusCode(http::StatusCode);
 
 #[derive(Debug, thiserror::Error)]
-enum HttpNotificationApiProblem {
-    #[error("notification metrics response rendering failed: {0}")]
-    Metrics(#[source] server_runtime::ObservedError<server_runtime::MetricsResponseBodyError>),
+enum CreateNotificationError {
     #[error("notification persistence failed: {0}")]
     Persistence(#[source] server_runtime::ObservedError<SqlxNotificationDatabaseError>),
     #[error("notification request validation failed")]
     Validation,
 }
+#[derive(Debug, thiserror::Error)]
+enum MetricsError {
+    #[error("notification metrics response rendering failed: {0}")]
+    Render(#[source] server_runtime::ObservedError<server_runtime::MetricsResponseBodyError>),
+}
+#[derive(Debug, thiserror::Error)]
+enum OpenApiError {}
 
 #[derive(Clone, Debug, newtype::FromInner)]
 struct MetricsExporterPrometheusHandle(metrics_exporter_prometheus::PrometheusHandle);
@@ -52,18 +57,15 @@ impl axum::response::IntoResponse for HttpNotificationStatusCode {
         axum::response::IntoResponse::into_response(self.0)
     }
 }
-impl axum::response::IntoResponse for HttpNotificationApiProblem {
+impl axum::response::IntoResponse for CreateNotificationError {
     fn into_response(self) -> axum::response::Response {
         let status = match &self {
-            Self::Metrics(_) | Self::Persistence(_) => http::StatusCode::INTERNAL_SERVER_ERROR,
+            Self::Persistence(_) => http::StatusCode::INTERNAL_SERVER_ERROR,
             Self::Validation => http::StatusCode::UNPROCESSABLE_ENTITY,
         };
         let error_type =
             server_runtime::HttpErrorType::from(str_constants::NOTIFICATION_API_ERROR_TYPE);
         let optional_diagnostic = match &self {
-            Self::Metrics(error) => Some(server_runtime::HttpErrorDiagnostic::from_observed(
-                error_type, error,
-            )),
             Self::Persistence(error) => Some(server_runtime::HttpErrorDiagnostic::from_observed(
                 error_type, error,
             )),
@@ -88,6 +90,32 @@ impl axum::response::IntoResponse for HttpNotificationApiProblem {
             let _previous = response.extensions_mut().insert(telemetry);
         }
         response
+    }
+}
+impl axum::response::IntoResponse for MetricsError {
+    fn into_response(self) -> axum::response::Response {
+        match self {
+            Self::Render(error) => {
+                let error_type =
+                    server_runtime::HttpErrorType::from(str_constants::NOTIFICATION_API_ERROR_TYPE);
+                let mut response = axum::response::IntoResponse::into_response(
+                    frontend_contract::ApiProblemError::Internal(
+                        frontend_contract::ApiProblemStatus::from(
+                            frontend_contract::KnownHttpStatus::InternalServerError,
+                        ),
+                    ),
+                );
+                let _previous = response.extensions_mut().insert(
+                    server_runtime::HttpErrorDiagnostic::from_observed(error_type, &error),
+                );
+                response
+            }
+        }
+    }
+}
+impl axum::response::IntoResponse for OpenApiError {
+    fn into_response(self) -> axum::response::Response {
+        match self {}
     }
 }
 impl std::process::Termination for StdNotificationExitCode {
@@ -116,7 +144,7 @@ impl AsRef<str> for NotificationState {
 }
 impl common_routes::CommonRoutesParameters for NotificationState {}
 impl axum::extract::FromRequest<NotificationState> for AxumNotificationJson {
-    type Rejection = HttpNotificationApiProblem;
+    type Rejection = CreateNotificationError;
     async fn from_request(
         req: axum::extract::Request,
         state: &NotificationState,
@@ -124,7 +152,7 @@ impl axum::extract::FromRequest<NotificationState> for AxumNotificationJson {
         <axum::Json<notification_service_contract::CreateNotificationReq> as axum::extract::FromRequest<NotificationState>>::from_request(req, state)
             .await
             .map(|axum::Json(value)| Self::from(value))
-            .map_err(|_error| HttpNotificationApiProblem::Validation)
+            .map_err(|_error| CreateNotificationError::Validation)
     }
 }
 
@@ -194,7 +222,7 @@ impl NotificationErrorCode {
 async fn create_notification(
     state: AxumNotificationState,
     request: AxumNotificationJson,
-) -> Result<AxumNotificationResponse, HttpNotificationApiProblem> {
+) -> Result<AxumNotificationResponse, CreateNotificationError> {
     let id = uuid::Uuid::new_v4();
     let message = request.0.into_message();
     let insert_sql = "INSERT INTO notifications (id, message) VALUES ($1, $2)";
@@ -204,7 +232,7 @@ async fn create_notification(
         .execute(state.0.pool.as_ref())
         .await
         .map_err(|error| {
-            HttpNotificationApiProblem::Persistence(server_runtime::ObservedError::capture(
+            CreateNotificationError::Persistence(server_runtime::ObservedError::capture(
                 SqlxNotificationDatabaseError::from(error),
                 server_runtime::ObservedErrorCode::from(NotificationErrorCode::Persistence.get()),
             ))
@@ -221,23 +249,23 @@ async fn create_notification(
 
 async fn metrics(
     state: AxumNotificationState,
-) -> Result<server_runtime::MetricsResponseBody, HttpNotificationApiProblem> {
+) -> Result<server_runtime::MetricsResponseBody, MetricsError> {
     server_runtime::MetricsResponseBody::try_from(state.0.metrics.0.render()).map_err(|error| {
-        HttpNotificationApiProblem::Metrics(server_runtime::ObservedError::capture(
+        MetricsError::Render(server_runtime::ObservedError::capture(
             error,
             server_runtime::ObservedErrorCode::from(NotificationErrorCode::MetricsRender.get()),
         ))
     })
 }
 
-async fn open_api() -> AxumNotificationResponse {
+async fn open_api() -> Result<AxumNotificationResponse, OpenApiError> {
     let mut document = NotificationApiRouteRegistry::open_api();
     document.merge(utoipa::openapi::OpenApi::from(
         common_routes::CommonRoutesOpenApi::open_api(),
     ));
-    AxumNotificationResponse::from(axum::response::IntoResponse::into_response(axum::Json(
-        document,
-    )))
+    Ok(AxumNotificationResponse::from(
+        axum::response::IntoResponse::into_response(axum::Json(document)),
+    ))
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum NotificationOperationalRoute {
@@ -532,7 +560,7 @@ mod tests {
     #[test]
     fn api_problem_preserves_server_diagnostic_but_keeps_validation_expected() {
         let server_response = axum::response::IntoResponse::into_response(
-            super::HttpNotificationApiProblem::Persistence(server_runtime::ObservedError::capture(
+            super::CreateNotificationError::Persistence(server_runtime::ObservedError::capture(
                 super::SqlxNotificationDatabaseError::from(sqlx::Error::RowNotFound),
                 server_runtime::ObservedErrorCode::from(
                     super::NotificationErrorCode::Persistence.get(),
@@ -549,9 +577,8 @@ mod tests {
                 .get::<server_runtime::HttpErrorDiagnostic>()
                 .is_some()
         );
-        let validation_response = axum::response::IntoResponse::into_response(
-            super::HttpNotificationApiProblem::Validation,
-        );
+        let validation_response =
+            axum::response::IntoResponse::into_response(super::CreateNotificationError::Validation);
         assert_eq!(
             validation_response.status(),
             http::StatusCode::UNPROCESSABLE_ENTITY

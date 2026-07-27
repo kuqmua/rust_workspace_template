@@ -183,7 +183,7 @@ fn mk_api_routes(
     } else {
         generated_table_routes
     }
-    .method_not_allowed_fallback(async || server_admin::auth::AdminApiError::MethodNotAllowed);
+    .method_not_allowed_fallback(async || frontend_contract::ApiProblemError::MethodNotAllowed);
     let metrics_contract = server_admin_contract::AdminRoute::Metrics.contract();
     let secured_admin_routes = documented_admin_routes
         .route(

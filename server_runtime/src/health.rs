@@ -17,10 +17,12 @@ pub struct HealthSnapshot {
     service: HealthComponentStatus,
 }
 #[derive(Debug, thiserror::Error)]
-enum HealthJsonApiError {
+enum HealthReadyError {
     #[error("service is unavailable")]
     Unavailable(HealthSnapshot),
 }
+#[derive(Debug, thiserror::Error)]
+enum HealthLiveError {}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize)]
 pub struct ServiceLivenessSnapshot {
@@ -36,7 +38,7 @@ impl HealthSnapshot {
         self.service
     }
 }
-impl axum::response::IntoResponse for HealthJsonApiError {
+impl axum::response::IntoResponse for HealthReadyError {
     fn into_response(self) -> axum::response::Response {
         match self {
             Self::Unavailable(snapshot) => axum::response::IntoResponse::into_response((
@@ -44,6 +46,11 @@ impl axum::response::IntoResponse for HealthJsonApiError {
                 axum::Json(snapshot),
             )),
         }
+    }
+}
+impl axum::response::IntoResponse for HealthLiveError {
+    fn into_response(self) -> axum::response::Response {
+        match self {}
     }
 }
 
@@ -95,9 +102,9 @@ pub fn add_health_routes(
             .route(
                 str_constants::LIVE_PATH,
                 axum::routing::get(async || {
-                    axum::Json(ServiceLivenessSnapshot {
+                    Result::<_, HealthLiveError>::Ok(axum::Json(ServiceLivenessSnapshot {
                         service: HealthComponentStatus::Ok,
-                    })
+                    }))
                 }),
             )
             .route(
@@ -109,7 +116,7 @@ pub fn add_health_routes(
                         if snapshot.database == HealthComponentStatus::Ok {
                             Ok(axum::Json(snapshot))
                         } else {
-                            Err(HealthJsonApiError::Unavailable(snapshot))
+                            Err(HealthReadyError::Unavailable(snapshot))
                         }
                     }
                 }),

@@ -147,7 +147,7 @@ pub(super) fn open_api() -> super::UtoipaAdminAuthOpenApi {
 }
 pub(super) fn routes(state: super::StdSharedAdminAuthSvcState) -> super::AxumAdminAuthRouter {
     let base_router = AdminAuthRouteRegistry::router()
-        .method_not_allowed_fallback(async || super::AdminApiError::MethodNotAllowed);
+        .method_not_allowed_fallback(async || super::AdminError::MethodNotAllowed);
     let router = match <server_admin_contract::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::body_limit() {
         Some(limit) => base_router.layer(axum::extract::DefaultBodyLimit::max(limit.get())),
         None => base_router,
