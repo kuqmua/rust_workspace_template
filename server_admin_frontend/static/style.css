@@ -627,8 +627,16 @@ th:has(> .table-column-heading > .table-column-filter[open]) {
 }
 
 .table-filter-clear {
-  justify-self: end;
-  font-size: 12px;
+  display: grid;
+  width: 100%;
+  min-height: 42px;
+  place-items: center;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface-muted);
+  color: var(--text);
+  font-size: var(--header-font-size);
+  font-weight: 700;
 }
 
 .table-scroll table {

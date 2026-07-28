@@ -1,5 +1,5 @@
-import init from "./csr/server_admin_frontend.js?v=20260728-31";
+import init from "./csr/server_admin_frontend.js?v=20260728-33";
 
 await init({
-  module_or_path: "/admin/assets/csr/server_admin_frontend_bg.wasm?v=20260728-31",
+  module_or_path: "/admin/assets/csr/server_admin_frontend_bg.wasm?v=20260728-33",
 });
