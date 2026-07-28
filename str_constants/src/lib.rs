@@ -3032,7 +3032,11 @@ define_str_constants! {
         pub SORTABLE = [WORD_SORTABLE];
         pub SPAWN_RESULT_IS_DISCARDED_RETAIN_AND_SUPERVISE_ITS_HANDLE = [WORD_SPAWN, " result ", WORD_IS_2, " ", WORD_DISCARDED, "; retain ", WORD_AND_2, " supervise its handle"];
         pub SPAWNED_TASK_HANDLES_ARE_DISCARDED = ["spawned ", WORD_TASK, " handles are ", WORD_DISCARDED, ":"];
+        pub SQL_LIKE_PATTERN_RESERVED_256_BYTES = ["sql_like_pattern_reserved_256_bytes"];
+        pub SQL_SELECT_BUILDER_1_COLUMN = ["sql_select_builder_1_column"];
+        pub SQL_SELECT_BUILDER_16_COLUMNS = ["sql_select_builder_16_columns"];
         pub SQL_SELECT_BUILDER_128_COLUMNS = ["sql_select_builder_128_columns"];
+        pub STABLE_READ_QUERY_PLAN = ["stable_read_query_plan"];
         pub SQLX_PATH_TYPE_NAME = [WORD_SQLX, " :: ", WORD_TYPE_NAME];
         pub SQLX = [WORD_SQLX];
         pub SQLX_QUERY_CALL = [WORD_SQLX, "::query"];

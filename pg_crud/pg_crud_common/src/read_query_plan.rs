@@ -34,6 +34,27 @@ pub fn build_stable_read_query_plan(
     offset_bind: StdReadQueryBindIndex,
 ) -> Result<ReadQueryPlan, ReadQueryPlanError> {
     let mut query = base.into_inner();
+    let tie_break_len = if sort_column == tie_break_column {
+        0usize
+    } else {
+        str_constants::TEXT_ALT_6
+            .len()
+            .saturating_add(tie_break_column.as_ref().len())
+            .saturating_add(1usize)
+            .saturating_add(order.sql().as_ref().len())
+    };
+    query.reserve(
+        str_constants::READ_ORDER_BY
+            .len()
+            .saturating_add(sort_column.as_ref().len())
+            .saturating_add(1usize)
+            .saturating_add(order.sql().as_ref().len())
+            .saturating_add(tie_break_len)
+            .saturating_add(str_constants::LIMIT_DOLLAR.len())
+            .saturating_add(10usize)
+            .saturating_add(str_constants::OFFSET_DOLLAR.len())
+            .saturating_add(10usize),
+    );
     query.push_str(str_constants::READ_ORDER_BY);
     query.push_str(sort_column.as_ref());
     query.push(' ');
