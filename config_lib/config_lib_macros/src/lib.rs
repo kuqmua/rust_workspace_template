@@ -82,20 +82,25 @@ pub fn impl_try_from_secret_url(input: proc_macro::TokenStream) -> proc_macro::T
     let error_name = quote::format_ident!("{error_name_text}");
     quote::quote! {
         #[derive(Debug, generate_getter_traits_for_struct_fields::GenerateGetterTrait, optml::Optml)]
-        pub struct #name(pub secrecy::SecretBox<String>);
+        pub struct #name(pub secrecy::SecretBox<StdConfigSecretString>);
         #[derive(Debug, Clone, Copy, thiserror::Error, optml::Optml)]
         pub enum #error_name {
             #[error("{is_empty:?}")]
             IsEmpty { is_empty: &'static str },
+            #[error("secret configuration value is too long")]
+            TooLong,
         }
         impl TryFromStdEnvVarOk for #name {
             type Error = #error_name;
             fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
-                try_map_non_empty_env_value(
-                    v,
-                    |is_empty| Self::Error::IsEmpty { is_empty },
-                    |v| Self(secrecy::SecretBox::new(Box::new(v))),
-                )
+                if v.0.is_empty() {
+                    return Err(Self::Error::IsEmpty {
+                        is_empty: str_constants::CONFIG_ENV_VALUE_IS_EMPTY_MSG,
+                    });
+                }
+                StdConfigSecretString::try_from(v.0)
+                    .map(|bounded| Self(secrecy::SecretBox::new(Box::new(bounded))))
+                    .map_err(|_error| Self::Error::TooLong)
             }
         }
     }

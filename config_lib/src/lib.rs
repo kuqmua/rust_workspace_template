@@ -148,20 +148,29 @@ impl ConfigFieldDescriptor {
 }
 const ADMIN_JWT_SECRET_MIN_LEN: usize = 32;
 const ADMIN_JWT_SECRET_MAX_COUNT: usize = 8;
-#[derive(newtype::AsRefOwned)]
-pub struct SecrecySecretBoxString(secrecy::SecretBox<String>);
-impl TryFrom<secrecy::SecretBox<String>> for SecrecySecretBoxString {
-    type Error = ConfigLibStringWrapperTryFromStringError;
-    fn try_from(value: secrecy::SecretBox<String>) -> Result<Self, Self::Error> {
-        let len = secrecy::ExposeSecret::expose_secret(&value).len();
-        if len > CONFIG_LIB_STRING_WRAPPER_MAX_LEN {
-            Err(Self::Error::TooLong {
-                len,
-                max: CONFIG_LIB_STRING_WRAPPER_MAX_LEN,
-            })
-        } else {
-            Ok(Self(value))
-        }
+#[derive(
+    Clone,
+    PartialEq,
+    Eq,
+    newtype::AsRefOwned,
+    newtype::BoundedString,
+    newtype::DebugRedacted,
+    newtype::DerefInner,
+)]
+#[bounded_string(max = 1_048_576, description = "configuration secret text")]
+pub struct StdConfigSecretString(String);
+impl secrecy::zeroize::Zeroize for StdConfigSecretString {
+    fn zeroize(&mut self) {
+        secrecy::zeroize::Zeroize::zeroize(&mut self.0);
+    }
+}
+#[derive(newtype::AsRefOwned, newtype::FromInner)]
+pub struct SecrecySecretBoxString(secrecy::SecretBox<StdConfigSecretString>);
+impl TryFrom<String> for SecrecySecretBoxString {
+    type Error = StdConfigSecretStringTryFromStringError;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        StdConfigSecretString::try_from(value)
+            .map(|bounded| Self::from(secrecy::SecretBox::new(Box::new(bounded))))
     }
 }
 impl std::fmt::Debug for SecrecySecretBoxString {
@@ -228,10 +237,8 @@ impl TryFromStdEnvVarOk for AdminJwtSecret {
                 if value.len() < ADMIN_JWT_SECRET_MIN_LEN {
                     Err(Self::Error::TooShort)
                 } else {
-                    SecrecySecretBoxString::try_from(secrecy::SecretBox::new(Box::new(
-                        value.to_owned(),
-                    )))
-                    .map_err(|_error| Self::Error::TooLong)
+                    SecrecySecretBoxString::try_from(value.to_owned())
+                        .map_err(|_error| Self::Error::TooLong)
                 }
             })
             .collect::<Result<Vec<_>, _>>()
@@ -248,9 +255,7 @@ mod admin_jwt_secret_tests {
     fn secret_box_string_rejects_values_above_shared_limit() {
         let value = str_constants::TEST_JWT_SECRET_CHARACTER_A
             .repeat(super::CONFIG_LIB_STRING_WRAPPER_MAX_LEN.saturating_add(1usize));
-        let Err(_error) =
-            super::SecrecySecretBoxString::try_from(secrecy::SecretBox::new(Box::new(value)))
-        else {
+        let Err(_error) = super::SecrecySecretBoxString::try_from(value) else {
             panic!("41c03fcc");
         };
     }
@@ -268,7 +273,7 @@ mod admin_jwt_secret_tests {
         assert_eq!(
             parsed
                 .primary()
-                .map(|secret| secrecy::ExposeSecret::expose_secret(secret.as_ref())),
+                .map(|secret| { secrecy::ExposeSecret::expose_secret(secret.as_ref()).as_ref() }),
             Some(&first)
         );
     }

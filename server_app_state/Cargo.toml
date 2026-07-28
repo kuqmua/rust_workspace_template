@@ -22,7 +22,6 @@ pg_table = { workspace = true, features = ["test-utils"] }
 optml = { workspace = true }
 server_app_state_macros = { workspace = true }
 [dev-dependencies]
-secrecy = { workspace = true }
 sqlx = { workspace = true }
 str_constants = { workspace = true }
 tokio = { workspace = true }

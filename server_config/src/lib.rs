@@ -69,7 +69,7 @@ impl config_lib::GetCorsAllowOrigin for Config {
     }
 }
 impl config_lib::GetDatabaseUrl for Config {
-    fn get_database_url(&self) -> &secrecy::SecretBox<String> {
+    fn get_database_url(&self) -> &secrecy::SecretBox<config_lib::StdConfigSecretString> {
         &self.database_url.0
     }
 }
@@ -161,9 +161,7 @@ mod tests {
             super::Config {
                 cors_allow_origin: config_lib::CorsAllowOrigin(str_constants::ASTERISK.to_owned()),
                 content_security_policy: env(str_constants::TEST_CONTENT_SECURITY_POLICY),
-                database_url: config_lib::DatabaseUrl(secrecy::SecretBox::new(Box::new(
-                    str_constants::POSTGRES_DB.to_owned(),
-                ))),
+                database_url: env(str_constants::POSTGRES_DB),
                 admin_jwt_secret: env(str_constants::TEST_ONLY_ADMIN_JWT_SECRET_WITH_32_BYTES),
                 admin_token_audience: env(str_constants::TEST_AUDIENCE),
                 admin_token_issuer: env(str_constants::TEST_ISSUER),
@@ -208,7 +206,8 @@ mod tests {
         assert_eq!(
             secrecy::ExposeSecret::expose_secret(config_lib::GetDatabaseUrl::get_database_url(
                 &cfg
-            )),
+            ))
+            .as_ref(),
             "postgres://db"
         );
         assert_eq!(

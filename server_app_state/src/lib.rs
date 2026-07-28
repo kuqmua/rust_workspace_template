@@ -243,9 +243,7 @@ mod tests {
             config: server_config::Config {
                 cors_allow_origin: config_lib::CorsAllowOrigin(str_constants::ASTERISK.to_owned()),
                 content_security_policy: env(str_constants::TEST_CONTENT_SECURITY_POLICY),
-                database_url: config_lib::DatabaseUrl(secrecy::SecretBox::new(Box::new(
-                    str_constants::POSTGRES_DB.to_owned(),
-                ))),
+                database_url: env(str_constants::POSTGRES_DB),
                 admin_jwt_secret: env(str_constants::TEST_ONLY_ADMIN_JWT_SECRET_WITH_32_BYTES),
                 admin_token_audience: env(str_constants::TEST_AUDIENCE),
                 admin_token_issuer: env(str_constants::TEST_ISSUER),
