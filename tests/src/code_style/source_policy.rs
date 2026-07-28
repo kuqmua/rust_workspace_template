@@ -2139,11 +2139,11 @@ fn api_response_error_source_policy_rejects_raw_sources() {
     assert_eq!(visitor.ers.len(), 1usize);
 }
 #[test]
-fn every_typed_route_operation_has_its_own_error_type() {
+fn every_fallible_typed_route_operation_has_its_own_error_type() {
     super::assert_rs_ast_ers_empty_with_ctx(
         super::types::StaticStr::from("12db697c"),
         super::types::SourceTextRef::from(
-            "every typed API route operation must use a distinct concrete error type",
+            "every fallible typed API route operation must use a distinct concrete error type",
         ),
         |path, ast, ers| {
             let visitor = super::visit_syn_file(
@@ -2161,7 +2161,7 @@ fn every_typed_route_operation_has_its_own_error_type() {
                 .difference(&visitor.operations)
                 .for_each(|handler| {
                     ers.push(format!(
-                        "{}: registered handler `{handler}` must declare its own route error",
+                        "{}: registered handler `{handler}` must declare its route operation",
                         path.display()
                     ));
                 });

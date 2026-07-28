@@ -1,8 +1,8 @@
 # Route API Error Types
 
-Every route operation has its own concrete `thiserror::Error` boundary type.
-Infallible operations use distinct uninhabited error enums rather than sharing
-`std::convert::Infallible` or a service-wide error.
+Every fallible route operation has its own concrete `thiserror::Error` boundary
+type. Infallible operations return their response directly and do not declare a
+fake error type.
 
 ## Common operational routes
 
@@ -15,7 +15,7 @@ multiple executable services.
 | `GET` | `/health/ready` | `HealthReadyError` |
 | `GET` | `/health` | `HealthError` |
 | `GET` | `/health_check` | `HealthCheckError` |
-| `GET` | `/git_info` | `GitInfoError` |
+| `GET` | `/git_info` | Infallible; no error type |
 
 The common-router fallback uses `CommonNotFoundError`.
 
@@ -114,7 +114,7 @@ reads many records, while `ro` reads one record.
 
 | Method | Path | Error type |
 | --- | --- | --- |
-| `GET` | `/admin` | `AdminRootPageError` |
+| `GET` | `/admin` | Infallible; no error type |
 | `GET` | `/admin/sign_in` | `AdminSignInPageError` |
 | `GET` | `/admin/users` | `AdminUsersPageError` |
 | `GET` | `/admin/roles` | `AdminRolesPageError` |
@@ -157,15 +157,17 @@ mounted by the two current executable services.
 
 | Method | Path | Error type |
 | --- | --- | --- |
-| `GET` | `/live` | `server_runtime::health::HealthLiveError` |
+| `GET` | `/live` | Infallible; no error type |
 | `GET` | `/ready` | `server_runtime::health::HealthReadyError` |
 
 ## Enforcement
 
-The workspace code-style policy requires every typed or handler-registry route
-to declare a concrete error type and rejects reuse of an error type by another
-operation. Generated PostgreSQL routes create their error enums from the table
-and operation identifiers, keeping every generated combination distinct.
+The workspace code-style policy requires every fallible typed or
+handler-registry route to declare a concrete error type and rejects reuse of an
+error type by another operation. Infallible handlers declare the route
+operation but return their response directly. Generated PostgreSQL routes
+create their error enums from the table and operation identifiers, keeping
+every generated combination distinct.
 
 ## Concrete declarations
 
@@ -177,9 +179,6 @@ type's fields or variants.
 ### Common and notification routes
 
 ```rust
-#[derive(Debug, thiserror::Error)]
-enum GitInfoError {}
-
 #[derive(Debug, thiserror::Error)]
 enum HealthCheckError {
     #[error("service is unavailable")]
@@ -231,8 +230,25 @@ enum MetricsError {
 }
 
 #[derive(Debug, thiserror::Error)]
-enum OpenApiError {}
+enum OpenApiError {
+    #[error("notification OpenAPI serialization failed: {0}")]
+    Serialization(#[source] serde_json::Error),
+}
 ```
+
+The infallible Git information handler has no error declaration:
+
+```rust
+async fn git_info(app_state: StdArcCommonRoutesAppState) -> JsonRes<GitInfo> {
+    mk_commit_json_res(app_state.0.as_ref(), mk_git_info_payload)
+}
+```
+
+`OpenApiError` is not genuinely infallible. The current handler passes the
+document directly to `axum::Json`, whose `IntoResponse` implementation performs
+serialization and converts a serialization failure into a response internally.
+To preserve the route error boundary, the handler must serialize explicitly
+and map `serde_json::Error` to `OpenApiError::Serialization`.
 
 ### Admin JSON API
 
@@ -313,8 +329,16 @@ enum AdminMetricsError {
 }
 
 #[derive(Debug, thiserror::Error)]
-enum AdminGeneratedOpenApiError {}
+enum AdminGeneratedOpenApiError {
+    #[error("administrator OpenAPI serialization failed: {0}")]
+    Serialization(#[source] serde_json::Error),
+}
 ```
+
+Like the notification OpenAPI route, the current generated admin OpenAPI
+handler delegates serialization to `axum::Json`. Its documented
+`Serialization` variant is the failure that must be surfaced when that
+serialization is moved before response construction.
 
 ### Generated read-only admin API
 
@@ -446,29 +470,23 @@ pub enum AdminSystemSettingsRoError {
 
 ### Admin HTML pages and form actions
 
-`route_error` emits each route error below as a separate concrete uninhabited
-enum. An empty error enum is correct only for a genuinely infallible handler.
-For example, the admin root route constructs a redirect from a static,
-repository-owned path and performs no parsing, I/O, authentication, database
-access, or other fallible operation:
+Fallible HTML handlers need route-specific errors. The admin root route is
+genuinely infallible: it constructs a redirect from a static, repository-owned
+path and performs no parsing, I/O, authentication, database access, or other
+fallible operation. It therefore returns a response directly:
 
 ```rust
-#[derive(Debug, thiserror::Error)]
-enum AdminRootPageError {}
-
-async fn root() -> Result<axum::response::Response, AdminRootPageError> {
-    Ok(axum::response::IntoResponse::into_response(
-        axum::response::Redirect::to(
-            server_admin_contract::AdminFrontendPath::Users.get(),
-        ),
+#[frontend_contract::route_operation]
+async fn root() -> axum::response::Response {
+    axum::response::IntoResponse::into_response(axum::response::Redirect::to(
+        server_admin_contract::AdminFrontendPath::Users.get(),
     ))
 }
 ```
 
-The empty enum proves that `Err(AdminRootPageError)` cannot be constructed. It
-must not be used when a handler catches another error and converts it into a
-`Response`; such a handler is operationally fallible and needs its own concrete
-variants.
+No `AdminRootPageError` exists. A handler that catches another error and
+converts it into a `Response` is operationally fallible and needs its own
+concrete variants.
 
 For example, `AdminUsersPageError` must be derived from its actual call graph:
 `users` calls `csr_page`, which calls `page_context`, `me_view`,
@@ -810,15 +828,23 @@ enum AdminHtmlUpdateSettingsError {
 }
 
 #[derive(Debug, thiserror::Error)]
-enum AdminRootPageError {}
-
-#[derive(Debug, thiserror::Error)]
-enum AdminHtmlMetricsError {}
+enum AdminHtmlMetricsError {
+    #[error("administrator HTML metrics rendering failed: {0}")]
+    Render(#[source] server_runtime::MetricsResponseBodyError),
+    #[error("administrator HTML metrics text is invalid: {0}")]
+    SsrText(
+        #[source]
+        server_admin_frontend::ssr::AdminSsrTextTryFromStringError,
+    ),
+}
 ```
 
-Only `AdminRootPageError` and `AdminHtmlMetricsError` remain uninhabited:
-their handlers construct responses without a fallible operation.
+`AdminHtmlMetricsError` is fallible because the current handler calls both
+`MetricsResponseBody::try_from` and `AdminSsrText::try_from`; it currently
+catches both failures and erases them into `500 Internal Server Error`
+responses. No infallible admin HTML route declares an error type.
 
+```rust
 #[derive(Debug, thiserror::Error)]
 enum AdminAssetsError {
     #[error("administrator asset read failed: {0}")]
@@ -828,8 +854,7 @@ enum AdminAssetsError {
 
 ### Reusable runtime routes
 
-These declarations belong to `server_runtime::health` and are distinct from
-the similarly named `common_routes` errors:
+The readiness route is fallible:
 
 ```rust
 #[derive(Debug, thiserror::Error)]
@@ -837,7 +862,18 @@ enum HealthReadyError {
     #[error("service is unavailable")]
     Unavailable(HealthSnapshot),
 }
-
-#[derive(Debug, thiserror::Error)]
-enum HealthLiveError {}
 ```
+
+The liveness route is infallible and returns its response directly:
+
+```rust
+async || {
+    axum::Json(ServiceLivenessSnapshot {
+        service: HealthComponentStatus::Ok,
+    })
+}
+```
+
+No `server_runtime::health::HealthLiveError` exists. This is separate from
+`common_routes::HealthLiveError`, which remains fallible and has an
+`Unavailable` variant.

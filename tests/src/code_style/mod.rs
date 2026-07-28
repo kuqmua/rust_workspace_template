@@ -1519,10 +1519,7 @@ impl<'ast> syn::visit::Visit<'ast> for RouteOperationErrorVisitor {
                     "route operation `{}` reuses error type `{name}`",
                     i.sig.ident
                 )),
-                None => self.ers.push(format!(
-                    "route operation `{}` must return Result with its own concrete error type",
-                    i.sig.ident
-                )),
+                None => {}
             }
         }
         syn::visit::visit_item_fn(self, i);

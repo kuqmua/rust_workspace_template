@@ -458,7 +458,7 @@ async fn open_api(auth: super::AdminAuthReq) -> axum::response::Response {
     }
 }
 
-#[frontend_contract::route_error(AdminRootPageError)]
+#[frontend_contract::route_operation]
 async fn root() -> axum::response::Response {
     axum::response::IntoResponse::into_response(axum::response::Redirect::to(
         server_admin_contract::AdminFrontendPath::Users.get(),
@@ -1019,7 +1019,7 @@ pub(super) fn routes(
 mod tests {
     #[tokio::test]
     async fn admin_root_redirects_to_users() {
-        let response = super::root().await.expect("54443181");
+        let response = super::root().await;
         assert_eq!(response.status(), http::StatusCode::SEE_OTHER);
         assert_eq!(
             response.headers().get(http::header::LOCATION),

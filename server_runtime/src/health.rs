@@ -21,9 +21,6 @@ enum HealthReadyError {
     #[error("service is unavailable")]
     Unavailable(HealthSnapshot),
 }
-#[derive(Debug, thiserror::Error)]
-enum HealthLiveError {}
-
 #[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize)]
 pub struct ServiceLivenessSnapshot {
     service: HealthComponentStatus,
@@ -48,12 +45,6 @@ impl axum::response::IntoResponse for HealthReadyError {
         }
     }
 }
-impl axum::response::IntoResponse for HealthLiveError {
-    fn into_response(self) -> axum::response::Response {
-        match self {}
-    }
-}
-
 #[derive(Clone, Debug, newtype::FromInner)]
 struct StdSharedHealthReadiness(std::sync::Arc<std::sync::atomic::AtomicBool>);
 
@@ -102,9 +93,9 @@ pub fn add_health_routes(
             .route(
                 str_constants::LIVE_PATH,
                 axum::routing::get(async || {
-                    Result::<_, HealthLiveError>::Ok(axum::Json(ServiceLivenessSnapshot {
+                    axum::Json(ServiceLivenessSnapshot {
                         service: HealthComponentStatus::Ok,
-                    }))
+                    })
                 }),
             )
             .route(

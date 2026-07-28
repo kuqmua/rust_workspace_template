@@ -152,8 +152,6 @@ enum CommonNotFoundError {
     NotFound(NotFoundHandle),
 }
 #[derive(Debug, thiserror::Error)]
-enum GitInfoError {}
-#[derive(Debug, thiserror::Error)]
 enum HealthCheckError {
     #[error("service is unavailable")]
     Unavailable,
@@ -305,11 +303,6 @@ impl axum::response::IntoResponse for CommonNotFoundError {
                 axum::Json(payload),
             )),
         }
-    }
-}
-impl axum::response::IntoResponse for GitInfoError {
-    fn into_response(self) -> axum::response::Response {
-        match self {}
     }
 }
 impl axum::response::IntoResponse for HealthCheckError {
@@ -570,11 +563,8 @@ async fn health_check(
     clippy::single_call_fn,
     reason = "the concrete handler is intentionally owned by the generated route registry"
 )]
-async fn git_info(app_state: StdArcCommonRoutesAppState) -> Result<JsonRes<GitInfo>, GitInfoError> {
-    Ok(mk_commit_json_res(
-        app_state.0.as_ref(),
-        mk_git_info_payload,
-    ))
+async fn git_info(app_state: StdArcCommonRoutesAppState) -> JsonRes<GitInfo> {
+    mk_commit_json_res(app_state.0.as_ref(), mk_git_info_payload)
 }
 
 #[must_use]
