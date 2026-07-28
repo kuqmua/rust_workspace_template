@@ -273,8 +273,11 @@ impl AdminGeneratedTable {
         })
     }
 
-    fn routes(self, app_state: &StdSharedAdminGeneratedTableState) -> server_runtime::AxumRouter {
-        server_runtime::AxumRouter::from(match self {
+    fn routes(
+        self,
+        app_state: &StdSharedAdminGeneratedTableState,
+    ) -> server_runtime_http::AxumRouter {
+        server_runtime_http::AxumRouter::from(match self {
             Self::Roles => AdminRoles::routes(std::sync::Arc::clone(&app_state.0)),
             Self::RolePermissions => {
                 AdminRolePermissions::routes(std::sync::Arc::clone(&app_state.0))
@@ -418,8 +421,8 @@ impl std::fmt::Debug for UtoipaAdminOpenApi {
 #[must_use]
 pub fn generated_routes(
     app_state: &StdSharedAdminGeneratedTableState,
-) -> server_runtime::AxumRouter {
-    server_runtime::AxumRouter::from(
+) -> server_runtime_http::AxumRouter {
+    server_runtime_http::AxumRouter::from(
         AdminGeneratedTable::ALL
             .into_iter()
             .fold(axum::Router::new(), |routes, table| {

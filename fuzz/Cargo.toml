@@ -15,7 +15,7 @@ cargo-fuzz = true
 file_storage = { workspace = true }
 libfuzzer-sys = { workspace = true }
 pg_crud_common = { workspace = true }
-server_runtime = { workspace = true }
+server_runtime_http = { workspace = true }
 
 [[bin]]
 name = "domain_boundaries"

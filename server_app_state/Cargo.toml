@@ -16,7 +16,7 @@ common_routes = { workspace = true }
 git_info = { workspace = true }
 app_state = { workspace = true }
 server_config = { workspace = true }
-server_runtime = { workspace = true }
+server_runtime_core = { workspace = true }
 sqlx = { workspace = true, optional = true }
 pg_table = { workspace = true, features = ["test-utils"] }
 optml = { workspace = true }

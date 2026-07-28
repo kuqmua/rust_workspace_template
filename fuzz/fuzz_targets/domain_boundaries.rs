@@ -37,8 +37,8 @@ libfuzzer_sys::fuzz_target!(|data: &[u8]| {
         2u8 => drop(pg_crud_common::CursorPayload::try_from(value)),
         3u8 => drop(pg_crud_common::SignedCursor::try_from(value)),
         4u8 => drop(pg_crud_common::SqlIdentifier::try_from(value)),
-        5u8 => drop(server_runtime::HttpTraceParent::try_from(value)),
-        6u8 => drop(server_runtime::HttpTraceState::try_from(value)),
+        5u8 => drop(server_runtime_http::HttpTraceParent::try_from(value)),
+        6u8 => drop(server_runtime_http::HttpTraceState::try_from(value)),
         _ => {}
     }
 });

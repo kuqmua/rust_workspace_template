@@ -62,11 +62,11 @@ pub(crate) fn cleanup_test_file(path: impl AsRef<std::path::Path>) {
     }
 }
 pub(crate) fn assert_file_content(path: StdAssertFilePath<'_>, exp: ExpectedFileContent<'_>) {
-    let cnt = server_runtime::read_bounded_file(
-        server_runtime::StdPathRef::from(path.0),
-        server_runtime::BoundedReadMaximumBytes::from(exp.0.len()),
+    let cnt = server_runtime_http::read_bounded_file(
+        server_runtime_http::StdPathRef::from(path.0),
+        server_runtime_http::BoundedReadMaximumBytes::from(exp.0.len()),
     )
-    .and_then(server_runtime::BoundedText::try_from)
+    .and_then(server_runtime_http::BoundedText::try_from)
     .expect("d5ec6712");
     assert_eq!(cnt.as_ref(), exp.0);
 }

@@ -1305,13 +1305,13 @@ fn main() {
             }
             let generate_pg_table_tests_stage_output_path =
                 generate_pg_table_with_tests_dir.join(str_constants::GENERATE_PG_TABLE_TESTS_RS);
-            let generate_pg_table_tests_stage_output = match server_runtime::read_bounded_file(
-                server_runtime::StdPathRef::from(
+            let generate_pg_table_tests_stage_output = match server_runtime_http::read_bounded_file(
+                server_runtime_http::StdPathRef::from(
                     generate_pg_table_tests_stage_output_path.as_path(),
                 ),
-                server_runtime::BoundedReadMaximumBytes::from(16_777_216usize),
+                server_runtime_http::BoundedReadMaximumBytes::from(16_777_216usize),
             )
-            .and_then(server_runtime::BoundedText::try_from)
+            .and_then(server_runtime_http::BoundedText::try_from)
             {
                 Ok(content) => (content.as_ref().len(), content.as_ref().lines().count()),
                 Err(error) => {

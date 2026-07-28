@@ -126,7 +126,7 @@ impl AdminAuthPolicy {
 #[derive(Debug)]
 pub struct AdminAuthSvcState {
     access_ttl: StdAdminAccessTtlSeconds,
-    allowed_origins: server_runtime::AllowedOrigins,
+    allowed_origins: server_runtime_http::AllowedOrigins,
     audience: config_lib::AdminTokenAudience,
     cookie_secure: super::AdminCookieSecure,
     decoding_keys: JsonwebtokenAdminDecodingKeys,
@@ -499,8 +499,8 @@ fn origin_is_present_and_allowed(
     state: &AdminAuthSvcState,
     headers: super::HttpAdminHeaderMapRef<'_>,
 ) -> super::StdAdminBool {
-    super::StdAdminBool::from(bool::from(server_runtime::request_origin_allowed(
-        server_runtime::HttpOriginHeadersRef::from(headers.0),
+    super::StdAdminBool::from(bool::from(server_runtime_http::request_origin_allowed(
+        server_runtime_http::HttpOriginHeadersRef::from(headers.0),
         &state.allowed_origins,
     )))
 }
@@ -641,17 +641,17 @@ pub(crate) enum AdminError {
     #[error("administrator request validation failed")]
     Validation,
     #[error("administrator API database operation failed: {0:?}")]
-    Pg(#[source] server_runtime::ObservedError<super::SqlxAdminError>),
+    Pg(#[source] server_runtime_http::ObservedError<super::SqlxAdminError>),
     #[error("administrator password hashing failed: {0}")]
-    PasswordHash(#[source] server_runtime::ObservedError<super::AdminPasswordHashError>),
+    PasswordHash(#[source] server_runtime_http::ObservedError<super::AdminPasswordHashError>),
     #[error("administrator request body is too large")]
     PayloadTooLarge,
     #[error("administrator route does not support this HTTP method")]
     MethodNotAllowed,
     #[error("administrator session operation failed: {0}")]
-    Session(#[source] server_runtime::ObservedError<AdminSessionError>),
+    Session(#[source] server_runtime_http::ObservedError<AdminSessionError>),
     #[error("administrator response header is invalid: {0:?}")]
-    Header(#[source] server_runtime::ObservedError<HttpAdminHeaderValueError>),
+    Header(#[source] server_runtime_http::ObservedError<HttpAdminHeaderValueError>),
 }
 impl AdminError {
     const fn route_error_status(&self) -> frontend_contract::RouteErrorStatus {
@@ -671,33 +671,35 @@ impl AdminError {
 
     #[track_caller]
     fn header(source: HttpAdminHeaderValueError) -> Self {
-        Self::Header(server_runtime::ObservedError::capture(
+        Self::Header(server_runtime_http::ObservedError::capture(
             source,
-            server_runtime::ObservedErrorCode::from(AdminObservedErrorCode::Header.get()),
+            server_runtime_http::ObservedErrorCode::from(AdminObservedErrorCode::Header.get()),
         ))
     }
 
     #[track_caller]
     fn password_hash(source: super::AdminPasswordHashError) -> Self {
-        Self::PasswordHash(server_runtime::ObservedError::capture(
+        Self::PasswordHash(server_runtime_http::ObservedError::capture(
             source,
-            server_runtime::ObservedErrorCode::from(AdminObservedErrorCode::PasswordHash.get()),
+            server_runtime_http::ObservedErrorCode::from(
+                AdminObservedErrorCode::PasswordHash.get(),
+            ),
         ))
     }
 
     #[track_caller]
     fn pg(source: super::SqlxAdminError) -> Self {
-        Self::Pg(server_runtime::ObservedError::capture(
+        Self::Pg(server_runtime_http::ObservedError::capture(
             source,
-            server_runtime::ObservedErrorCode::from(AdminObservedErrorCode::Database.get()),
+            server_runtime_http::ObservedErrorCode::from(AdminObservedErrorCode::Database.get()),
         ))
     }
 
     #[track_caller]
     fn session(source: AdminSessionError) -> Self {
-        Self::Session(server_runtime::ObservedError::capture(
+        Self::Session(server_runtime_http::ObservedError::capture(
             source,
-            server_runtime::ObservedErrorCode::from(AdminObservedErrorCode::Session.get()),
+            server_runtime_http::ObservedErrorCode::from(AdminObservedErrorCode::Session.get()),
         ))
     }
 }
@@ -716,18 +718,19 @@ pub struct AxumAdminResponse(axum::response::Response);
 impl axum::response::IntoResponse for AdminError {
     fn into_response(self) -> axum::response::Response {
         let route_error_status = self.route_error_status();
-        let error_type = server_runtime::HttpErrorType::from(str_constants::ADMIN_API_ERROR_TYPE);
+        let error_type =
+            server_runtime_http::HttpErrorType::from(str_constants::ADMIN_API_ERROR_TYPE);
         let optional_diagnostic = match &self {
-            Self::Pg(source) => Some(server_runtime::HttpErrorDiagnostic::from_observed(
+            Self::Pg(source) => Some(server_runtime_http::HttpErrorDiagnostic::from_observed(
                 error_type, source,
             )),
-            Self::PasswordHash(source) => Some(server_runtime::HttpErrorDiagnostic::from_observed(
+            Self::PasswordHash(source) => Some(
+                server_runtime_http::HttpErrorDiagnostic::from_observed(error_type, source),
+            ),
+            Self::Session(source) => Some(server_runtime_http::HttpErrorDiagnostic::from_observed(
                 error_type, source,
             )),
-            Self::Session(source) => Some(server_runtime::HttpErrorDiagnostic::from_observed(
-                error_type, source,
-            )),
-            Self::Header(source) => Some(server_runtime::HttpErrorDiagnostic::from_observed(
+            Self::Header(source) => Some(server_runtime_http::HttpErrorDiagnostic::from_observed(
                 error_type, source,
             )),
             Self::Authentication
@@ -744,7 +747,7 @@ impl axum::response::IntoResponse for AdminError {
 }
 fn admin_error_response_parts(
     route_error_status: frontend_contract::RouteErrorStatus,
-    optional_diagnostic: Option<server_runtime::HttpErrorDiagnostic>,
+    optional_diagnostic: Option<server_runtime_http::HttpErrorDiagnostic>,
 ) -> axum::response::Response {
     let problem_status = frontend_contract::ApiProblemStatus::try_from(u16::from(
         route_error_status.transport_status(),
@@ -828,12 +831,12 @@ enum AdminAuditResourceId {
 }
 impl AdminAuditResourceId {
     fn value(self) -> super::StdAdminString {
-        super::StdAdminString::from(match self {
-            Self::User(value) => super::domain::AdminAuditResourceValue::User(value),
-            Self::Role(value) => super::domain::AdminAuditResourceValue::Role(value),
-            Self::Session(value) => super::domain::AdminAuditResourceValue::Session(value),
-            Self::SystemSettings => super::domain::AdminAuditResourceValue::SystemSettings,
-        })
+        match self {
+            Self::User(value) => super::StdAdminString::from_positive_i64(value.value()),
+            Self::Role(value) => super::StdAdminString::from_positive_i64(value.value()),
+            Self::Session(value) => super::StdAdminString::from_uuid(value.0),
+            Self::SystemSettings => super::StdAdminString::system_settings_resource(),
+        }
     }
 }
 async fn record_audit_success_in_connection(
@@ -1315,7 +1318,7 @@ impl AdminAuthSvcState {
         Ok(Self {
             access_ttl: StdAdminAccessTtlSeconds::try_from(access_ttl.get())
                 .map_err(AdminAuthSvcStateBuildError::PositiveValue)?,
-            allowed_origins: server_runtime::AllowedOrigins::try_from(parsed_origins)
+            allowed_origins: server_runtime_http::AllowedOrigins::try_from(parsed_origins)
                 .map_err(|_error| AdminAuthSvcStateBuildError::AllowedOrigin)?,
             audience: audience.clone(),
             cookie_secure: super::AdminCookieSecure::from(**cookie_secure),
@@ -1441,7 +1444,7 @@ mod tests {
         assert!(
             response
                 .extensions()
-                .get::<server_runtime::HttpErrorDiagnostic>()
+                .get::<server_runtime_http::HttpErrorDiagnostic>()
                 .is_none()
         );
     }
@@ -1454,7 +1457,7 @@ mod tests {
         assert!(
             response
                 .extensions()
-                .get::<server_runtime::HttpErrorDiagnostic>()
+                .get::<server_runtime_http::HttpErrorDiagnostic>()
                 .is_some()
         );
         assert_eq!(
@@ -1561,9 +1564,9 @@ mod tests {
     }
     #[test]
     fn open_api_contains_auth_and_user_security_contracts() {
-        frontend_contract::validate_openapi_schema_references(&utoipa::openapi::OpenApi::from(
-            super::open_api(),
-        ))
+        frontend_contract_validation::validate_openapi_schema_references(
+            &utoipa::openapi::OpenApi::from(super::open_api()),
+        )
         .expect("2151641d");
         let document = serde_json::to_value(utoipa::openapi::OpenApi::from(super::open_api()))
             .expect("869d28d7");

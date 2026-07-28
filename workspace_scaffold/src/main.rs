@@ -102,7 +102,7 @@ struct ShouldSkip(bool);
 struct StdScaffoldIoError(std::io::Error);
 #[derive(Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
-struct ServerRuntimeBoundedReadError(server_runtime::BoundedReadError);
+struct ServerRuntimeBoundedReadError(server_runtime_http::BoundedReadError);
 
 #[derive(Debug, thiserror::Error)]
 enum ScaffoldError {
@@ -219,12 +219,12 @@ fn should_skip(path: StdScaffoldPathRef<'_>) -> ShouldSkip {
 fn read_bounded_text(
     path: StdScaffoldPathRef<'_>,
 ) -> Result<ScaffoldText, ServerRuntimeBoundedReadError> {
-    let bytes = server_runtime::read_bounded_file(
-        server_runtime::StdPathRef::from(path.0),
-        server_runtime::BoundedReadMaximumBytes::from(SCAFFOLD_TEXT_MAX_BYTES),
+    let bytes = server_runtime_http::read_bounded_file(
+        server_runtime_http::StdPathRef::from(path.0),
+        server_runtime_http::BoundedReadMaximumBytes::from(SCAFFOLD_TEXT_MAX_BYTES),
     )
     .map_err(ServerRuntimeBoundedReadError::from)?;
-    let text = server_runtime::BoundedText::try_from(bytes)
+    let text = server_runtime_http::BoundedText::try_from(bytes)
         .map_err(ServerRuntimeBoundedReadError::from)?
         .into_inner();
     Ok(ScaffoldText::try_from(text).unwrap_or_else(ScaffoldText::from))
@@ -1357,7 +1357,7 @@ mod tests {
             matches!(
                 result,
                 Err(super::ServerRuntimeBoundedReadError(
-                    server_runtime::BoundedReadError::ExceedsMaximum { .. }
+                    server_runtime_http::BoundedReadError::ExceedsMaximum { .. }
                 ))
             ),
             "8f32bc16"

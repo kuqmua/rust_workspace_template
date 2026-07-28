@@ -10,12 +10,12 @@ pub struct MockNotificationInbox {
 
 #[derive(Clone, Debug, newtype::FromInner)]
 struct TokioMockNotificationSender(
-    tokio::sync::mpsc::UnboundedSender<server_runtime::NotificationMessage>,
+    tokio::sync::mpsc::UnboundedSender<server_runtime_http::NotificationMessage>,
 );
 
 #[derive(Debug, newtype::FromInner)]
 struct TokioMockNotificationReceiver(
-    tokio::sync::mpsc::UnboundedReceiver<server_runtime::NotificationMessage>,
+    tokio::sync::mpsc::UnboundedReceiver<server_runtime_http::NotificationMessage>,
 );
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
@@ -23,17 +23,17 @@ struct TokioMockNotificationReceiver(
 pub struct MockNotificationProviderClosed;
 
 impl MockNotificationInbox {
-    pub async fn receive(&mut self) -> Option<server_runtime::NotificationMessage> {
+    pub async fn receive(&mut self) -> Option<server_runtime_http::NotificationMessage> {
         self.receiver.0.recv().await
     }
 }
 
-impl server_runtime::NotificationSender for MockNotificationProvider {
+impl server_runtime_http::NotificationSender for MockNotificationProvider {
     type Error = MockNotificationProviderClosed;
 
     fn send(
         &self,
-        message: server_runtime::NotificationMessage,
+        message: server_runtime_http::NotificationMessage,
     ) -> impl Future<Output = Result<(), Self::Error>> + Send {
         std::future::ready(
             self.sender
@@ -112,11 +112,11 @@ mod tests {
     #[tokio::test]
     async fn notification_provider_records_messages_through_runtime_contract() {
         let (provider, mut inbox) = super::mock_notification_provider();
-        let message = server_runtime::NotificationMessage::try_from(
+        let message = server_runtime_http::NotificationMessage::try_from(
             str_constants::TEST_NOTIFICATION_MESSAGE.to_owned(),
         )
         .expect("6ef25d4a");
-        let result = server_runtime::NotificationSender::send(&provider, message).await;
+        let result = server_runtime_http::NotificationSender::send(&provider, message).await;
         assert_eq!(result, Ok(()));
         assert!(inbox.receive().await.is_some());
     }

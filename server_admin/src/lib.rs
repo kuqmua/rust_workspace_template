@@ -2,7 +2,6 @@
 #![cfg_attr(test, allow(unused_crate_dependencies))] // tower is used by the separate admin_api integration test target
 pub mod auth;
 mod cleanup;
-mod domain;
 mod generated_auth;
 pub mod generated_tables;
 mod migrations;
@@ -10,15 +9,15 @@ mod password;
 mod rbac;
 mod repository;
 mod token;
-pub use domain::{
-    AdminAuditLogId, AdminIdTryFromI64Error, AdminPermissionId, AdminPermissionName, AdminRoleId,
-    AdminUserId, SecrecyAdminString, StdAdminBool, StdAdminNonZeroUsize, StdAdminSocketAddr,
-    StdAdminStrRef, StdAdminString, UuidAdminValue,
-};
 pub use generated_auth::{AdminGeneratedAuthLayer, AdminGeneratedAuthService};
 pub use pg_table::CombinationOfAppStateLogicTraits;
 pub use server_admin_contract::{
     AdminDisplayName, AdminLogin, AdminPermission, AdminPermissionTryFromStrError, AdminRoleName,
+};
+pub use server_admin_core::{
+    AdminAuditLogId, AdminIdTryFromI64Error, AdminPermissionId, AdminPermissionName, AdminRoleId,
+    AdminUserId, SecrecyAdminString, StdAdminBool, StdAdminNonZeroUsize, StdAdminSocketAddr,
+    StdAdminStrRef, StdAdminString, UuidAdminValue,
 };
 const ADMIN_AUTH_COLLECTION_MAX_LEN: usize = 10_000usize;
 #[derive(
@@ -267,16 +266,15 @@ pub fn find_admin_cookie(
     headers: HttpAdminHeaderMapRef<'_>,
     kind: AdminCookieKind,
 ) -> Option<StdAdminStrRef<'_>> {
-    match server_runtime::resolve_unique_cookie(
-        server_runtime::HttpCookieHeadersRef::from(headers.0),
-        server_runtime::HttpCookieNameRef::from(kind.name().as_ref()),
+    match server_runtime_http::resolve_unique_cookie(
+        server_runtime_http::HttpCookieHeadersRef::from(headers.0),
+        server_runtime_http::HttpCookieNameRef::from(kind.name().as_ref()),
     ) {
-        server_runtime::CookieResolution::Resolved(value) => {
+        server_runtime_http::CookieResolution::Resolved(value) => {
             Some(StdAdminStrRef::from(<&str>::from(value)))
         }
-        server_runtime::CookieResolution::Invalid | server_runtime::CookieResolution::Missing => {
-            None
-        }
+        server_runtime_http::CookieResolution::Invalid
+        | server_runtime_http::CookieResolution::Missing => None,
     }
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]

@@ -1,16 +1,16 @@
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RouteContractMismatch {
     Method {
-        expected: crate::ContractStr,
-        observed: crate::ContractStr,
+        expected: frontend_contract::ContractStr,
+        observed: frontend_contract::ContractStr,
     },
     OpenApiOperationId {
-        expected: crate::ContractStr,
-        observed: crate::ContractStr,
+        expected: frontend_contract::ContractStr,
+        observed: frontend_contract::ContractStr,
     },
     Path {
-        expected: crate::ContractStr,
-        observed: crate::ContractStr,
+        expected: frontend_contract::ContractStr,
+        observed: frontend_contract::ContractStr,
     },
 }
 
@@ -19,17 +19,17 @@ pub struct RouteContractMismatches(Vec<RouteContractMismatch>);
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::TryFrom)]
 #[try_from(
-    error = crate::HttpStatusTryFromU16Error,
+    error = frontend_contract::HttpStatusTryFromU16Error,
     validator = HttpContractStatus::validate
 )]
 pub struct HttpContractStatus(u16);
 impl HttpContractStatus {
     #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
-    fn validate(value: &u16) -> Result<(), crate::HttpStatusTryFromU16Error> {
+    fn validate(value: &u16) -> Result<(), frontend_contract::HttpStatusTryFromU16Error> {
         if (100u16..1_000u16).contains(value) {
             Ok(())
         } else {
-            Err(crate::HttpStatusTryFromU16Error)
+            Err(frontend_contract::HttpStatusTryFromU16Error)
         }
     }
 }
@@ -37,10 +37,10 @@ impl HttpContractStatus {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct HttpContractBody(Vec<u8>);
 impl TryFrom<Vec<u8>> for HttpContractBody {
-    type Error = crate::FrontendContractBodyError;
+    type Error = frontend_contract::FrontendContractBodyError;
     fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
-        if value.len() > crate::FRONTEND_CONTRACT_BODY_MAX_BYTES {
-            Err(crate::FrontendContractBodyError)
+        if value.len() > frontend_contract::FRONTEND_CONTRACT_BODY_MAX_BYTES {
+            Err(frontend_contract::FrontendContractBodyError)
         } else {
             Ok(Self(value))
         }
@@ -56,13 +56,13 @@ pub enum HttpContractBodyKind {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct HttpContractObservation {
     body: HttpContractBody,
-    metadata: crate::RouteMetadata,
+    metadata: frontend_contract::RouteMetadata,
     status: HttpContractStatus,
 }
 impl HttpContractObservation {
     #[must_use]
     pub const fn new(
-        metadata: crate::RouteMetadata,
+        metadata: frontend_contract::RouteMetadata,
         status: HttpContractStatus,
         body: HttpContractBody,
     ) -> Self {
@@ -77,13 +77,13 @@ impl HttpContractObservation {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct HttpContractExpectation {
     body_kind: HttpContractBodyKind,
-    metadata: crate::RouteMetadata,
+    metadata: frontend_contract::RouteMetadata,
     status: HttpContractStatus,
 }
 impl HttpContractExpectation {
     #[must_use]
     pub const fn new(
-        metadata: crate::RouteMetadata,
+        metadata: frontend_contract::RouteMetadata,
         status: HttpContractStatus,
         body_kind: HttpContractBodyKind,
     ) -> Self {
@@ -111,7 +111,7 @@ pub async fn run_http_contract_fixture<Send, SendFuture>(
     send: Send,
 ) -> Result<(), HttpContractMismatch>
 where
-    Send: FnOnce(crate::RouteMetadata) -> SendFuture,
+    Send: FnOnce(frontend_contract::RouteMetadata) -> SendFuture,
     SendFuture: Future<Output = HttpContractObservation>,
 {
     let observation = send(expectation.metadata).await;
@@ -137,8 +137,8 @@ where
 }
 
 pub fn validate_route_contract_metadata(
-    expected: crate::RouteMetadata,
-    observed: crate::RouteMetadata,
+    expected: frontend_contract::RouteMetadata,
+    observed: frontend_contract::RouteMetadata,
 ) -> Result<(), RouteContractMismatches> {
     let mut mismatches = Vec::with_capacity(3usize);
     if expected.method() != observed.method() {
@@ -167,10 +167,10 @@ pub fn validate_route_contract_metadata(
 }
 
 pub fn validate_typed_route_contract<Route>(
-    observed: crate::RouteMetadata,
+    observed: frontend_contract::RouteMetadata,
 ) -> Result<(), RouteContractMismatches>
 where
-    Route: crate::TypedRoute,
+    Route: frontend_contract::TypedRoute,
 {
     validate_route_contract_metadata(Route::metadata(), observed)
 }
@@ -178,14 +178,14 @@ where
 #[cfg(test)]
 mod tests {
     struct ReadRoute;
-    impl crate::TypedRoute for ReadRoute {
+    impl frontend_contract::TypedRoute for ReadRoute {
         type Request = ();
         type Response = ();
-        type Transport = crate::PublicTransport;
+        type Transport = frontend_contract::PublicTransport;
 
-        fn metadata() -> crate::RouteMetadata {
+        fn metadata() -> frontend_contract::RouteMetadata {
             metadata(
-                crate::RouteMethod::Get,
+                frontend_contract::RouteMethod::Get,
                 str_constants::ROUTE_READ,
                 str_constants::ROUTE,
             )
@@ -193,17 +193,17 @@ mod tests {
     }
 
     fn metadata(
-        method: crate::RouteMethod,
+        method: frontend_contract::RouteMethod,
         operation_id: &'static str,
         path: &'static str,
-    ) -> crate::RouteMetadata {
-        crate::RouteMetadata::new(method, operation_id.into(), path.into())
+    ) -> frontend_contract::RouteMetadata {
+        frontend_contract::RouteMetadata::new(method, operation_id.into(), path.into())
     }
 
     #[test]
     fn equal_metadata_satisfies_contract() {
         let metadata = metadata(
-            crate::RouteMethod::Get,
+            frontend_contract::RouteMethod::Get,
             str_constants::ROUTE_READ,
             str_constants::ROUTE,
         );
@@ -217,7 +217,7 @@ mod tests {
     fn typed_route_is_the_contract_source_of_truth() {
         assert_eq!(
             super::validate_typed_route_contract::<ReadRoute>(metadata(
-                crate::RouteMethod::Get,
+                frontend_contract::RouteMethod::Get,
                 str_constants::ROUTE_READ,
                 str_constants::ROUTE,
             )),
@@ -228,7 +228,7 @@ mod tests {
     #[test]
     fn http_fixture_checks_status_and_json_body() {
         let metadata = metadata(
-            crate::RouteMethod::Get,
+            frontend_contract::RouteMethod::Get,
             str_constants::ROUTE_READ,
             str_constants::ROUTE,
         );
@@ -253,12 +253,12 @@ mod tests {
     #[test]
     fn every_metadata_difference_is_reported() {
         let expected = metadata(
-            crate::RouteMethod::Get,
+            frontend_contract::RouteMethod::Get,
             str_constants::ROUTE_READ,
             str_constants::ROUTE,
         );
         let observed = metadata(
-            crate::RouteMethod::Post,
+            frontend_contract::RouteMethod::Post,
             str_constants::ADMIN_ALT,
             str_constants::NOT_AN_API_ROUTE,
         );

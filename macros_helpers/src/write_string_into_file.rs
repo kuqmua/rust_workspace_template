@@ -40,11 +40,11 @@ fn validate_existing_file_text(
     path: StdWrittenFilePathRef<'_>,
     maximum_bytes: GeneratedFileMaximumBytes,
 ) -> std::io::Result<()> {
-    server_runtime::read_bounded_file(
-        server_runtime::StdPathRef::from(path.as_ref()),
-        server_runtime::BoundedReadMaximumBytes::from(maximum_bytes.0),
+    server_runtime_http::read_bounded_file(
+        server_runtime_http::StdPathRef::from(path.as_ref()),
+        server_runtime_http::BoundedReadMaximumBytes::from(maximum_bytes.0),
     )
-    .and_then(server_runtime::BoundedText::try_from)
+    .and_then(server_runtime_http::BoundedText::try_from)
     .map(|_text| ())
     .map_err(std::io::Error::other)
 }

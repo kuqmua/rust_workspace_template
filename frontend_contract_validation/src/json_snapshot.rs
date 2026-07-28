@@ -19,10 +19,10 @@ pub struct JsonSnapshotDynamicFieldRef<'value_lt>(&'value_lt str);
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum JsonContractSnapshotError {
-    #[error("{}", str_constants::JSON_SNAPSHOT_TOO_LONG_ERROR)]
-    TooLong,
     #[error("{}", str_constants::JSON_SNAPSHOT_SERIALIZATION_ERROR)]
     Serialization,
+    #[error("{}", str_constants::JSON_SNAPSHOT_TOO_LONG_ERROR)]
+    TooLong,
 }
 
 pub fn canonical_json_contract_snapshot<Payload>(

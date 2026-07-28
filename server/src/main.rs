@@ -4,7 +4,7 @@ const ADMIN_CLEANUP_INTERVAL_SECONDS: u64 = 300u64;
 struct StdServerIoError(std::io::Error);
 #[derive(Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
-struct ServerRuntimeServeError(server_runtime::ServeWithGracefulShutdownError);
+struct ServerRuntimeServeError(server_runtime_http::ServeWithGracefulShutdownError);
 #[derive(Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 struct MetricsExporterPrometheusBuildError(metrics_exporter_prometheus::BuildError);
@@ -12,19 +12,21 @@ struct MetricsExporterPrometheusBuildError(metrics_exporter_prometheus::BuildErr
 struct MetricsExporterPrometheusHandle(metrics_exporter_prometheus::PrometheusHandle);
 #[derive(Debug, thiserror::Error, newtype::FromInner)]
 #[error("{0}")]
-struct ServerRuntimeRequestTimeoutError(server_runtime::StdRequestTimeoutTryFromDurationError);
+struct ServerRuntimeRequestTimeoutError(server_runtime_http::StdRequestTimeoutTryFromDurationError);
 #[derive(Debug, thiserror::Error, newtype::FromInner)]
 #[error("{0}")]
-struct ServerRuntimeRunIntervalError(server_runtime::StdRunIntervalTryFromDurationError);
+struct ServerRuntimeRunIntervalError(server_runtime_http::StdRunIntervalTryFromDurationError);
 #[derive(Debug, thiserror::Error, newtype::FromInner)]
 #[error("{0}")]
-struct ServerRuntimeBackgroundTaskShutdownError(server_runtime::BackgroundTaskShutdownError);
+struct ServerRuntimeBackgroundTaskShutdownError(server_runtime_http::BackgroundTaskShutdownError);
 #[derive(Debug, thiserror::Error, newtype::FromInner)]
 #[error("{0}")]
-struct ServerObservabilityInitError(server_runtime::ObservabilityInitError);
+struct ServerObservabilityInitError(server_runtime_http::ObservabilityInitError);
 #[derive(Debug, thiserror::Error, newtype::FromInner)]
 #[error("{0}")]
-struct ServerObservabilityShutdownError(server_runtime::OpentelemetrySdkObservabilityShutdownError);
+struct ServerObservabilityShutdownError(
+    server_runtime_http::OpentelemetrySdkObservabilityShutdownError,
+);
 #[derive(Debug, thiserror::Error, newtype::FromInner)]
 #[error("{0}")]
 struct ServerAdminCleanupCfgError(server_admin::AdminCleanupCfgError);
@@ -46,7 +48,7 @@ impl axum::response::IntoResponse for AdminHtmlMetricsError {
 #[derive(Debug, thiserror::Error)]
 enum AdminMetricsError {
     #[error(transparent)]
-    Render(server_runtime::MetricsResponseBodyError),
+    Render(server_runtime_http::MetricsResponseBodyError),
 }
 impl axum::response::IntoResponse for AdminMetricsError {
     fn into_response(self) -> axum::response::Response {
@@ -72,10 +74,10 @@ struct ServerAdminMigrateError(server_admin::AdminMigrateError);
 struct ServerAdminAuthSvcStateBuildError(server_admin::auth::AdminAuthSvcStateBuildError);
 #[derive(Debug, thiserror::Error, newtype::FromInner)]
 #[error("{0}")]
-struct ServerRuntimeContentSecurityPolicyError(server_runtime::HttpContentSecurityPolicyError);
+struct ServerRuntimeContentSecurityPolicyError(server_runtime_http::HttpContentSecurityPolicyError);
 #[derive(Debug, thiserror::Error, newtype::FromInner)]
 #[error("{0}")]
-struct ServerRuntimeTrustedProxyRangesParseError(server_runtime::TrustedProxyRangesParseError);
+struct ServerRuntimeTrustedProxyRangesParseError(server_runtime_http::TrustedProxyRangesParseError);
 #[derive(newtype::FromInner)]
 struct AxumApiRoutes(axum::Router);
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
@@ -113,7 +115,7 @@ enum RunServerError {
     #[error("invalid content security policy: {0}")]
     ContentSecurityPolicy(ServerRuntimeContentSecurityPolicyError),
     #[error("invalid CORS allow-origin configuration: {0}")]
-    CorsAllowOrigin(server_runtime::HttpCorsAllowOriginHeaderValuesError),
+    CorsAllowOrigin(server_runtime_http::HttpCorsAllowOriginHeaderValuesError),
     #[error("failed to install metrics recorder: {0}")]
     MetricsRecorder(MetricsExporterPrometheusBuildError),
     #[error("failed to initialize observability: {0}")]
@@ -155,18 +157,18 @@ fn mk_admin_cleanup_cfg() -> Result<server_admin::AdminCleanupCfg, RunServerErro
     ))
 }
 #[allow(clippy::single_call_fn)] // isolates the fallback router for an end-to-end routing test
-fn frontend_fallback_routes() -> server_runtime::AxumRouter {
-    server_runtime::AxumRouter::from(axum::Router::new().fallback(async || {
+fn frontend_fallback_routes() -> server_runtime_http::AxumRouter {
+    server_runtime_http::AxumRouter::from(axum::Router::new().fallback(async || {
         axum::response::Redirect::to(server_admin_contract::AdminFrontendPath::SignIn.get())
     }))
 }
 #[allow(clippy::single_call_fn)] // startup and tests share the service route mounting invariant
 fn mount_service_routes(
-    operational_routes: server_runtime::AxumRouter,
+    operational_routes: server_runtime_http::AxumRouter,
     api_routes: AxumApiRoutes,
     body_maximum_bytes: HttpBodyMaximumBytes,
-) -> server_runtime::AxumRouter {
-    server_runtime::AxumRouter::from(
+) -> server_runtime_http::AxumRouter {
+    server_runtime_http::AxumRouter::from(
         axum::Router::new()
             .merge(axum::Router::from(operational_routes).reset_fallback())
             .nest(
@@ -224,7 +226,7 @@ fn mk_api_routes(
                     metrics_contract.method(),
                 )),
                 async move || {
-                    server_runtime::MetricsResponseBody::try_from(metrics_handle.0.render())
+                    server_runtime_http::MetricsResponseBody::try_from(metrics_handle.0.render())
                         .map(|body| {
                             axum::response::IntoResponse::into_response((
                                 axum::http::StatusCode::OK,
@@ -256,14 +258,14 @@ fn mk_app_state(
     pg_pool: app_state::SqlxPgPool,
 ) -> StdSharedServerAppState {
     StdSharedServerAppState::from(std::sync::Arc::new(server_app_state::ServerAppState {
-        bulk_item_budget: server_runtime::ResourceBudget::new(
-            server_runtime::ResourceBudgetMaximum::from(
+        bulk_item_budget: server_runtime_http::ResourceBudget::new(
+            server_runtime_http::ResourceBudgetMaximum::from(
                 std::num::NonZeroUsize::new(4_096usize).unwrap_or(std::num::NonZeroUsize::MIN),
             ),
         ),
         config,
-        idempotency_response_budget: server_runtime::ResourceBudget::new(
-            server_runtime::ResourceBudgetMaximum::from(
+        idempotency_response_budget: server_runtime_http::ResourceBudget::new(
+            server_runtime_http::ResourceBudgetMaximum::from(
                 std::num::NonZeroUsize::new(64usize.saturating_mul(1_048_576usize))
                     .unwrap_or(std::num::NonZeroUsize::MIN),
             ),
@@ -326,12 +328,12 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
         .await
         .map_err(|error| RunServerError::PrepAdminPg(ServerAdminMigrateError::from(error)))?;
     let cleanup_cfg = mk_admin_cleanup_cfg()?;
-    let cleanup_interval = server_runtime::StdRunInterval::try_from(
+    let cleanup_interval = server_runtime_http::StdRunInterval::try_from(
         std::time::Duration::from_secs(ADMIN_CLEANUP_INTERVAL_SECONDS),
     )
     .map_err(|error| RunServerError::RuntimeInterval(ServerRuntimeRunIntervalError::from(error)))?;
     let cleanup_pool = pg_pool.clone();
-    let Some(cleanup_task) = server_runtime::spawn_interval_task(
+    let Some(cleanup_task) = server_runtime_http::spawn_interval_task(
         Some(cleanup_interval),
         move || {
             let run_pool = cleanup_pool.clone();
@@ -354,7 +356,9 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
         },
     ) else {
         return Err(RunServerError::RuntimeInterval(
-            ServerRuntimeRunIntervalError::from(server_runtime::StdRunIntervalTryFromDurationError),
+            ServerRuntimeRunIntervalError::from(
+                server_runtime_http::StdRunIntervalTryFromDurationError,
+            ),
         ));
     };
     let service_socket_address =
@@ -366,8 +370,8 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
         .local_addr()
         .map_err(|error| RunServerError::BindServiceSocket(StdServerIoError::from(error)))?;
     tracing::info!(frontend = %actual_service_socket_address);
-    let trusted_proxy_ranges = server_runtime::parse_trusted_proxy_ranges(
-        server_runtime::TrustedProxyRangesTextRef::from(
+    let trusted_proxy_ranges = server_runtime_http::parse_trusted_proxy_ranges(
+        server_runtime_http::TrustedProxyRangesTextRef::from(
             config.trusted_proxy_ranges_text.0.as_str(),
         ),
     )
@@ -375,9 +379,11 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
         RunServerError::TrustedProxyRanges(ServerRuntimeTrustedProxyRangesParseError::from(error))
     })?;
     let cors_origins = Vec::<axum::http::HeaderValue>::from(
-        server_runtime::parse_cors_allow_origin(server_runtime::HttpCorsAllowOriginTextRef::from(
-            config_lib::GetCorsAllowOrigin::get_cors_allow_origin(&config).as_str(),
-        ))
+        server_runtime_http::parse_cors_allow_origin(
+            server_runtime_http::HttpCorsAllowOriginTextRef::from(
+                config_lib::GetCorsAllowOrigin::get_cors_allow_origin(&config).as_str(),
+            ),
+        )
         .map_err(RunServerError::CorsAllowOrigin)?,
     );
     let admin_auth_state =
@@ -400,7 +406,7 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
             })?,
         ));
     let swagger_enabled = *config.admin_swagger_enabled;
-    let content_security_policy = server_runtime::HttpContentSecurityPolicy::try_from(
+    let content_security_policy = server_runtime_http::HttpContentSecurityPolicy::try_from(
         config.content_security_policy.as_ref().to_owned(),
     )
     .map_err(|error| {
@@ -429,42 +435,42 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
             server_admin_contract::AdminFrontendPath::Metrics.get(),
             axum::routing::get(async move || {
                 Result::<_, AdminHtmlMetricsError>::Ok(
-                    server_runtime::MetricsResponseBody::try_from(html_metrics_handle.0.render())
-                        .map_or_else(
-                            |_error| {
-                                axum::response::IntoResponse::into_response(
-                                    axum::http::StatusCode::INTERNAL_SERVER_ERROR,
-                                )
-                            },
-                            |body| {
-                                let title_result =
-                                    server_admin_frontend::ssr::AdminSsrText::try_from(
-                                        str_constants::METRICS_ALT.to_owned(),
-                                    );
-                                let text_result =
-                                    server_admin_frontend::ssr::AdminSsrText::try_from(
-                                        body.into_inner(),
-                                    );
-                                match (title_result, text_result) {
-                                    (Ok(title), Ok(text)) => {
-                                        axum::response::IntoResponse::into_response(
-                                            axum::response::Html(String::from(
-                                                server_admin_frontend::ssr::render_text_page(
-                                                    server_admin_contract::AdminPage::Metrics,
-                                                    title,
-                                                    text,
-                                                ),
-                                            )),
-                                        )
-                                    }
-                                    (Err(_error), _) | (_, Err(_error)) => {
-                                        axum::response::IntoResponse::into_response(
-                                            axum::http::StatusCode::INTERNAL_SERVER_ERROR,
-                                        )
-                                    }
+                    server_runtime_http::MetricsResponseBody::try_from(
+                        html_metrics_handle.0.render(),
+                    )
+                    .map_or_else(
+                        |_error| {
+                            axum::response::IntoResponse::into_response(
+                                axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+                            )
+                        },
+                        |body| {
+                            let title_result = server_admin_frontend::ssr::AdminSsrText::try_from(
+                                str_constants::METRICS_ALT.to_owned(),
+                            );
+                            let text_result = server_admin_frontend::ssr::AdminSsrText::try_from(
+                                body.into_inner(),
+                            );
+                            match (title_result, text_result) {
+                                (Ok(title), Ok(text)) => {
+                                    axum::response::IntoResponse::into_response(
+                                        axum::response::Html(String::from(
+                                            server_admin_frontend::ssr::render_text_page(
+                                                server_admin_contract::AdminPage::Metrics,
+                                                title,
+                                                text,
+                                            ),
+                                        )),
+                                    )
                                 }
-                            },
-                        ),
+                                (Err(_error), _) | (_, Err(_error)) => {
+                                    axum::response::IntoResponse::into_response(
+                                        axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+                                    )
+                                }
+                            }
+                        },
+                    ),
                 )
             }),
         )
@@ -477,75 +483,77 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
             server_app_state::ServerAppState<'static>,
         >::clone(app_state.get())),
     ));
-    let request_timeout = server_runtime::StdRequestTimeout::try_from(
+    let request_timeout = server_runtime_http::StdRequestTimeout::try_from(
         std::time::Duration::from_secs(request_timeout_seconds),
     )
     .map_err(|error| {
         RunServerError::RuntimeTimeout(ServerRuntimeRequestTimeoutError::from(error))
     })?;
-    let router = server_runtime::RequestIdLayer::with_span_config(
-        server_runtime::HttpRequestSpanConfig::new(
-            server_runtime::ServiceName::from(env!("CARGO_PKG_NAME")),
-            server_runtime::StdSocketAddr::from(actual_service_socket_address),
+    let router = server_runtime_http::RequestIdLayer::with_span_config(
+        server_runtime_http::HttpRequestSpanConfig::new(
+            server_runtime_http::ServiceName::from(env!("CARGO_PKG_NAME")),
+            server_runtime_http::StdSocketAddr::from(actual_service_socket_address),
             trusted_proxy_ranges,
         ),
     )
     .apply(
-        server_runtime::HttpMetricsLayer::default().apply(
-            server_runtime::SecurityHeadersLayer::from(server_runtime::ForwardedProtoTrust::Ignore)
-                .with_content_security_policy(content_security_policy)
-                .apply(
-                    server_runtime::RequestTimeoutLayer::from(request_timeout).apply(
-                        server_runtime::AxumRouter::from(
-                            axum::Router::from(mount_service_routes(
-                                server_runtime::AxumRouter::from(operational_routes),
-                                api_routes,
-                                HttpBodyMaximumBytes::from(maximum_http_body_bytes),
-                            ))
-                            .merge(axum::Router::from(server_admin_frontend::routes()))
-                            .merge(axum::Router::from(admin_html_routes))
-                            .merge(admin_metrics_routes)
-                            .merge(axum::Router::from(frontend_fallback_routes()))
-                            .layer(
-                                tower_http::compression::CompressionLayer::new()
-                                    .gzip(http_gzip_enabled),
-                            )
-                            .layer(
-                                tower::ServiceBuilder::new().layer(
-                                    tower_http::cors::CorsLayer::new()
-                                        .allow_origin(cors_origins)
-                                        .allow_credentials(true)
-                                        .allow_headers([
-                                            axum::http::header::CONTENT_TYPE,
-                                            axum::http::HeaderName::from_static(
-                                                str_constants::ROUTE_VALIDATORS_COMMIT_HEADER_NAME,
-                                            ),
-                                            axum::http::HeaderName::from_static(
-                                                str_constants::IDEMPOTENCY_KEY_ALT,
-                                            ),
-                                            axum::http::HeaderName::from_static(
-                                                str_constants::IF_MATCH_ALT,
-                                            ),
-                                            axum::http::HeaderName::from_static(
-                                                str_constants::X_CSRF_TOKEN_ALT,
-                                            ),
-                                        ])
-                                        .allow_methods([
-                                            axum::http::Method::GET,
-                                            axum::http::Method::POST,
-                                            axum::http::Method::PUT,
-                                            axum::http::Method::PATCH,
-                                            axum::http::Method::DELETE,
-                                        ]),
-                                ),
+        server_runtime_http::HttpMetricsLayer::default().apply(
+            server_runtime_http::SecurityHeadersLayer::from(
+                server_runtime_http::ForwardedProtoTrust::Ignore,
+            )
+            .with_content_security_policy(content_security_policy)
+            .apply(
+                server_runtime_http::RequestTimeoutLayer::from(request_timeout).apply(
+                    server_runtime_http::AxumRouter::from(
+                        axum::Router::from(mount_service_routes(
+                            server_runtime_http::AxumRouter::from(operational_routes),
+                            api_routes,
+                            HttpBodyMaximumBytes::from(maximum_http_body_bytes),
+                        ))
+                        .merge(axum::Router::from(server_admin_frontend::routes()))
+                        .merge(axum::Router::from(admin_html_routes))
+                        .merge(admin_metrics_routes)
+                        .merge(axum::Router::from(frontend_fallback_routes()))
+                        .layer(
+                            tower_http::compression::CompressionLayer::new()
+                                .gzip(http_gzip_enabled),
+                        )
+                        .layer(
+                            tower::ServiceBuilder::new().layer(
+                                tower_http::cors::CorsLayer::new()
+                                    .allow_origin(cors_origins)
+                                    .allow_credentials(true)
+                                    .allow_headers([
+                                        axum::http::header::CONTENT_TYPE,
+                                        axum::http::HeaderName::from_static(
+                                            str_constants::ROUTE_VALIDATORS_COMMIT_HEADER_NAME,
+                                        ),
+                                        axum::http::HeaderName::from_static(
+                                            str_constants::IDEMPOTENCY_KEY_ALT,
+                                        ),
+                                        axum::http::HeaderName::from_static(
+                                            str_constants::IF_MATCH_ALT,
+                                        ),
+                                        axum::http::HeaderName::from_static(
+                                            str_constants::X_CSRF_TOKEN_ALT,
+                                        ),
+                                    ])
+                                    .allow_methods([
+                                        axum::http::Method::GET,
+                                        axum::http::Method::POST,
+                                        axum::http::Method::PUT,
+                                        axum::http::Method::PATCH,
+                                        axum::http::Method::DELETE,
+                                    ]),
                             ),
                         ),
                     ),
                 ),
+            ),
         ),
     );
-    let serve_result = server_runtime::serve_with_graceful_shutdown(
-        server_runtime::TokioTcpListener::from(tcp_listener),
+    let serve_result = server_runtime_http::serve_with_graceful_shutdown(
+        server_runtime_http::TokioTcpListener::from(tcp_listener),
         router,
         shutdown_signal(),
         request_timeout,
@@ -606,13 +614,13 @@ fn main() -> StdServerExitCode {
         }
     };
     let tracing_format = if config.tracing_format == config_lib::types::TracingFormat::Json {
-        server_runtime::ServiceTracingFormat::Json
+        server_runtime_http::ServiceTracingFormat::Json
     } else {
-        server_runtime::ServiceTracingFormat::Text
+        server_runtime_http::ServiceTracingFormat::Text
     };
-    let observability = match server_runtime::initialize_service_observability(
+    let observability = match server_runtime_http::initialize_service_observability(
         tracing_format,
-        server_runtime::ServiceName::from(env!("CARGO_PKG_NAME")),
+        server_runtime_http::ServiceName::from(env!("CARGO_PKG_NAME")),
     ) {
         Ok(value) => value,
         Err(error) => {
@@ -657,7 +665,7 @@ mod tests {
     async fn operational_routes_are_root_mounted_and_api_routes_are_versioned() {
         let operational_path = common_routes::CommonRoute::HealthLive.path();
         let router = axum::Router::from(super::mount_service_routes(
-            server_runtime::AxumRouter::from(
+            server_runtime_http::AxumRouter::from(
                 axum::Router::new()
                     .route(
                         operational_path.as_ref(),

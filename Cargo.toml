@@ -12,6 +12,7 @@ members = [
   "file_storage",
   "frontend_contract",
   "frontend_contract_macros",
+  "frontend_contract_validation",
   "fuzz",
   "generate_quotes",
   "git_info",
@@ -33,6 +34,7 @@ members = [
   "optml",
   "panic_location",
   "pg_crud",
+  "pg_crud/pg_crud_codegen",
   "pg_crud/pg_crud_common",
   "pg_crud/pg_crud_common_macros",
   "pg_crud/pg_crud_macros_common",
@@ -58,11 +60,14 @@ members = [
   "server",
   "server_admin",
   "server_admin_contract",
+  "server_admin_core",
   "server_admin_frontend",
   "server_app_state",
   "server_app_state/server_app_state_macros",
   "server_config",
-  "server_runtime",
+  "server_observability",
+  "server_runtime_core",
+  "server_runtime_http",
   "str_constants",
   "str_constants_macros",
   "synchronization_service_runtime",
@@ -272,6 +277,7 @@ config_lib = { path = "./config_lib" }
 config_lib_macros = { path = "./config_lib/config_lib_macros" }
 file_storage = { path = "./file_storage" }
 frontend_contract = { path = "./frontend_contract" }
+frontend_contract_validation = { path = "./frontend_contract_validation" }
 frontend_contract_macros = { path = "./frontend_contract_macros" }
 generate_derive_token_stream_builder = { path = "./macros_helpers/generate_derive_token_stream_builder" }
 generate_getter_traits_for_struct_fields = { path = "./config_lib/generate_getter_traits_for_struct_fields" }
@@ -301,6 +307,7 @@ optml = { path = "./optml" }
 panic_location = { path = "./panic_location" }
 pg_crud = { path = "./pg_crud" }
 pg_crud_common = { path = "./pg_crud/pg_crud_common" }
+pg_crud_codegen = { path = "./pg_crud/pg_crud_codegen" }
 pg_crud_common_macros = { path = "./pg_crud/pg_crud_common_macros" }
 pg_crud_macros_common = { path = "./pg_crud/pg_crud_macros_common" }
 pg_crud_macros_common_macros = { path = "./pg_crud/pg_crud_macros_common_macros" }
@@ -312,12 +319,15 @@ pg_types_numeric = { path = "./pg_crud/pg_types/pg_types_numeric" }
 pg_types_text_misc = { path = "./pg_crud/pg_types/pg_types_text_misc" }
 route_validators = { path = "./route_validators" }
 server_admin = { path = "./server_admin" }
+server_admin_core = { path = "./server_admin_core" }
 server_admin_contract = { path = "./server_admin_contract" }
 server_admin_frontend = { path = "./server_admin_frontend" }
 server_app_state = { path = "./server_app_state" }
 server_app_state_macros = { path = "./server_app_state/server_app_state_macros" }
 server_config = { path = "./server_config" }
-server_runtime = { path = "./server_runtime" }
+server_observability = { path = "./server_observability" }
+server_runtime_core = { path = "./server_runtime_core" }
+server_runtime_http = { path = "./server_runtime_http" }
 synchronization_service_runtime = { path = "./synchronization_service_runtime" }
 text_policy = { path = "./text_policy" }
 development_data_bootstrap = { path = "./development_data_bootstrap" }

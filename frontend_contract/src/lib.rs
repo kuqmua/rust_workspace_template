@@ -1,5 +1,5 @@
 #![allow(clippy::arbitrary_source_item_ordering)] // contract implementations keep constructors before accessors and fluent modifiers
-const FRONTEND_CONTRACT_BODY_MAX_BYTES: usize = 16_777_216usize;
+pub const FRONTEND_CONTRACT_BODY_MAX_BYTES: usize = 16_777_216usize;
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("frontend contract body exceeds its maximum byte length")]
 pub struct FrontendContractBodyError;
@@ -52,11 +52,8 @@ impl KnownHttpStatus {
 }
 mod auth_session_keep_alive;
 mod handler_contract;
-mod json_snapshot;
-mod openapi_validation;
 mod problem;
 mod route;
-mod route_contract_validation;
 mod route_coverage;
 mod url_builder;
 pub use auth_session_keep_alive::{
@@ -70,18 +67,6 @@ pub use frontend_contract_macros::{
 };
 pub use handler_contract::{
     AxumHandlerMethodRouter, HandlerContract, HandlerPath, handler_method_router,
-};
-pub use json_snapshot::{
-    JsonContractSnapshot, JsonContractSnapshotError, JsonSnapshotDynamicFieldRef,
-    canonical_json_contract_snapshot,
-};
-pub use openapi_validation::{
-    OpenApiContractText, OpenApiContractTextError, OpenApiContractTextTryFromStringError,
-    OpenApiOperationExpectation, OpenApiOperationValidationError, OpenApiPayloadValidationError,
-    OpenApiResponseStatus, OpenApiSchemaMismatch, OpenApiSecurityExpectation,
-    OpenApiValidationError, RuntimeRoutesRef, SerdeJsonOpenApiSerializationError,
-    validate_openapi_contract, validate_openapi_json_payload, validate_openapi_operations,
-    validate_openapi_schema_references,
 };
 pub use problem::{
     ApiProblem, ApiProblemDetail, ApiProblemError, ApiProblemField, ApiProblemKind,
@@ -99,11 +84,6 @@ pub use route::{
     apply_openapi_success_contract, axum_method_filter, client_request, client_route_metadata,
     openapi_route_metadata, register_openapi_route_schemas, register_openapi_schema,
     server_response, server_route_metadata, typed_parameterized_route_path, typed_route_path,
-};
-pub use route_contract_validation::{
-    HttpContractBody, HttpContractBodyKind, HttpContractExpectation, HttpContractMismatch,
-    HttpContractObservation, HttpContractStatus, RouteContractMismatch, RouteContractMismatches,
-    run_http_contract_fixture, validate_route_contract_metadata, validate_typed_route_contract,
 };
 pub use route_coverage::{
     AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS,
@@ -1115,11 +1095,7 @@ mod tests {
     fn contract_bodies_reject_values_above_shared_limit() {
         let oversized = vec![0u8; super::FRONTEND_CONTRACT_BODY_MAX_BYTES + 1usize];
         assert_eq!(
-            super::TransportBody::try_from(oversized.clone()),
-            Err(super::FrontendContractBodyError)
-        );
-        assert_eq!(
-            super::HttpContractBody::try_from(oversized),
+            super::TransportBody::try_from(oversized),
             Err(super::FrontendContractBodyError)
         );
     }

@@ -236,17 +236,6 @@ mod tests_operator_to_query_part {
         );
     }
 }
-impl quote::ToTokens for Operator {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        match *self {
-            Self::And => quote::quote! {And},
-            Self::Or => quote::quote! {Or},
-            Self::AndNot => quote::quote! {AndNot},
-            Self::OrNot => quote::quote! {OrNot},
-        }
-        .to_tokens(tokens);
-    }
-}
 #[derive(Debug, Clone, Copy, PartialEq, optml::Optml)]
 pub enum PgTypeGreaterThanVariant {
     EqNotGreaterThan,
@@ -260,16 +249,6 @@ impl PgTypeGreaterThanVariant {
             Self::GreaterThan => Operator::Or,
             Self::NotGreaterThan | Self::EqNotGreaterThan => Operator::OrNot,
         }
-    }
-}
-impl quote::ToTokens for PgTypeGreaterThanVariant {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        match *self {
-            Self::EqNotGreaterThan => quote::quote! {EqNotGreaterThan},
-            Self::GreaterThan => quote::quote! {GreaterThan},
-            Self::NotGreaterThan => quote::quote! {NotGreaterThan},
-        }
-        .to_tokens(tokens);
     }
 }
 pg_crud_common_macros::trait_alias!(DebugClonePartialEqAlias = std::fmt::Debug + Clone + PartialEq);

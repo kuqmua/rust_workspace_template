@@ -1,9 +1,3 @@
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum ServiceTracingFormat {
-    Json,
-    Text,
-}
-
 #[derive(Debug, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct TokioServiceRuntime(tokio::runtime::Runtime);
 

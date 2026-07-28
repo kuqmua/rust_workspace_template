@@ -3010,7 +3010,7 @@ define_str_constants! {
         pub SERVER_ADMIN_FRONTEND_SRC_APP_PAGES_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_APP, "/pages.", WORD_RS];
         pub SERVER_ADMIN_FRONTEND_SRC_APP_TABLES_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_APP, "/tables.", WORD_RS];
         pub SERVER_ADMIN_FRONTEND_SRC_LIB_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_LIB, ".", WORD_RS];
-        pub SERVER_RUNTIME_SRC_BOUNDED_READ_RS = [WORD_SERVER_RUNTIME, "/", WORD_SRC, "/bounded_read.", WORD_RS];
+        pub SERVER_RUNTIME_SRC_BOUNDED_READ_RS = ["server_runtime_http", "/", WORD_SRC, "/bounded_read.", WORD_RS];
         pub SERVER_RUNTIME_SRC_HEALTH_RS = [WORD_SERVER_RUNTIME, "/", WORD_SRC, "/", WORD_HEALTH, ".", WORD_RS];
         pub SERVER_RUNTIME_SRC_LIB_RS = [WORD_SERVER_RUNTIME, "/", WORD_SRC, "/", WORD_LIB, ".", WORD_RS];
         pub SERVICE = [WORD_SERVICE];
@@ -3664,23 +3664,29 @@ pub const CODE_STYLE_RUNTIME_ARC_OWNER_REASONS: [&str; 5] = [
     "bounded reads share a Tokio semaphore across asynchronous readers",
     "runtime limits share immutable concurrency budgets across tasks",
 ];
-pub const CODE_STYLE_FACADE_REEXPORT_SUFFIXES: [&str; 7] = [
+pub const CODE_STYLE_FACADE_REEXPORT_SUFFIXES: [&str; 10] = [
     FRONTEND_CONTRACT_SRC_LIB_RS,
+    "frontend_contract_validation/src/lib.rs",
     PG_CRUD_PG_CRUD_COMMON_SRC_LIB_RS,
     PG_CRUD_PG_TABLE_GENERATE_PG_TABLE_SRC_SRC_LIB_RS,
     PG_CRUD_PG_TYPES_GENERATE_PG_TYPES_SRC_SRC_LIB_RS,
     PG_CRUD_WHERE_FILTERS_GENERATE_WHERE_FILTERS_SRC_SRC_LIB_RS,
     SERVER_ADMIN_SRC_LIB_RS,
-    SERVER_RUNTIME_SRC_LIB_RS,
+    "server_observability/src/lib.rs",
+    "server_runtime_core/src/lib.rs",
+    "server_runtime_http/src/lib.rs",
 ];
-pub const CODE_STYLE_FACADE_REEXPORT_REASONS: [&str; 7] = [
+pub const CODE_STYLE_FACADE_REEXPORT_REASONS: [&str; 10] = [
     "frontend contract facade exports its public transport API",
+    "frontend contract validation facade exports validation entrypoints",
     "PG CRUD common facade exports shared domain primitives",
     "PG table generator facade exports source pipeline entrypoints",
     "PG types generator facade exports source pipeline entrypoints",
     "where-filter generator facade exports source pipeline entrypoints",
     "server administrator facade exports its public service API",
-    "server runtime facade exports shared runtime boundaries",
+    "server observability facade exports tracing and diagnostic primitives",
+    "server runtime core facade exports dependency-light runtime primitives",
+    "server HTTP runtime facade exports HTTP and integration primitives",
 ];
 pub const CODE_STYLE_LEPTOS_PRELUDE_SUFFIXES: [&str; 3] = [
     SERVER_ADMIN_FRONTEND_SRC_APP_RS,
@@ -4095,7 +4101,7 @@ pub const VALUE_D1169A2F: &str = "d1169a2f";
 pub const VALUE_5DC81FA2: &str = "5dc81fa2";
 pub const VALUE_4792B3E0: &str = "4792b3e0";
 pub const TEST_BOUNDED_UNIQUE_VEC_DUPLICATE_THEN_INVALID: &str = "[1,1,999]";
-pub const SERVER_RUNTIME_SRC_LIMITS_RS: &str = "server_runtime/src/limits.rs";
+pub const SERVER_RUNTIME_SRC_LIMITS_RS: &str = "server_runtime_http/src/limits.rs";
 pub const TEST_SQL_LIKE_INPUT: &str = "alpha";
 pub const TEST_SQL_LIKE_CONTAINS_PATTERN: &str = "%alpha%";
 pub const TEST_SQL_LIKE_STARTS_WITH_PATTERN: &str = "alpha%";

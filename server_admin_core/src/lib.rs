@@ -20,20 +20,34 @@ impl std::fmt::Debug for SecrecyAdminString {
 )]
 #[bounded_string(max = 8192, description = "administrator internal text")]
 pub struct StdAdminString(String);
-pub(super) enum AdminAuditResourceValue {
-    Role(AdminRoleId),
-    Session(crate::AdminSessionId),
+enum AdminResourceText {
+    PositiveI64(server_admin_contract::StdAdminPositiveI64),
     SystemSettings,
-    User(AdminUserId),
+    Uuid(UuidAdminValue),
 }
-impl From<AdminAuditResourceValue> for StdAdminString {
-    fn from(value: AdminAuditResourceValue) -> Self {
-        Self(match value {
-            AdminAuditResourceValue::Role(role) => role.get().to_string(),
-            AdminAuditResourceValue::Session(session) => session.0.get().to_string(),
-            AdminAuditResourceValue::SystemSettings => str_constants::VALUE_1.to_owned(),
-            AdminAuditResourceValue::User(user) => user.get().to_string(),
+impl From<AdminResourceText> for StdAdminString {
+    fn from(resource: AdminResourceText) -> Self {
+        Self(match resource {
+            AdminResourceText::PositiveI64(value) => value.get().to_string(),
+            AdminResourceText::SystemSettings => str_constants::VALUE_1.to_owned(),
+            AdminResourceText::Uuid(value) => value.get().to_string(),
         })
+    }
+}
+impl StdAdminString {
+    #[must_use]
+    pub fn from_positive_i64(value: server_admin_contract::StdAdminPositiveI64) -> Self {
+        Self::from(AdminResourceText::PositiveI64(value))
+    }
+
+    #[must_use]
+    pub fn from_uuid(value: UuidAdminValue) -> Self {
+        Self::from(AdminResourceText::Uuid(value))
+    }
+
+    #[must_use]
+    pub fn system_settings_resource() -> Self {
+        Self::from(AdminResourceText::SystemSettings)
     }
 }
 #[derive(
@@ -228,4 +242,28 @@ impl AdminAuditLogId {
 #[error("{self:?}")]
 pub struct AdminIdTryFromI64Error;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
-pub struct AdminPermissionName(super::AdminPermission);
+pub struct AdminPermissionName(server_admin_contract::AdminPermission);
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn administrator_resource_values_are_stable() {
+        let positive =
+            server_admin_contract::StdAdminPositiveI64::try_from(42i64).expect("2570af3b");
+        assert_eq!(
+            super::StdAdminString::from_positive_i64(positive).as_ref(),
+            "42"
+        );
+        assert_eq!(
+            super::StdAdminString::system_settings_resource().as_ref(),
+            "1"
+        );
+        let uuid_value = uuid::Uuid::from_u128(0x0000_0000_0000_4000_8000_0000_0000_0001u128);
+        let expected = uuid_value.to_string();
+        let uuid = super::UuidAdminValue::from(uuid_value);
+        assert_eq!(
+            super::StdAdminString::from_uuid(uuid).as_ref().as_str(),
+            expected.as_str()
+        );
+    }
+}

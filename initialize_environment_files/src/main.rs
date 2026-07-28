@@ -32,8 +32,8 @@ impl EnvContent {
         }
     }
 }
-impl From<server_runtime::BoundedText> for EnvContent {
-    fn from(value: server_runtime::BoundedText) -> Self {
+impl From<server_runtime_http::BoundedText> for EnvContent {
+    fn from(value: server_runtime_http::BoundedText) -> Self {
         Self(value.into_inner())
     }
 }
@@ -90,7 +90,7 @@ struct InitEntries(Vec<InitializationEntry>);
 struct StdInitIoError(std::io::Error);
 #[derive(Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
-struct ServerRuntimeBoundedReadError(server_runtime::BoundedReadError);
+struct ServerRuntimeBoundedReadError(server_runtime_http::BoundedReadError);
 #[derive(Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 struct TomlInitError(toml::de::Error);
@@ -130,12 +130,12 @@ fn read_bounded_content(
     path: StdInitPathRef<'_>,
     maximum_bytes: InitMaxBytes,
 ) -> Result<EnvContent, ServerRuntimeBoundedReadError> {
-    let bytes = server_runtime::read_bounded_file(
-        server_runtime::StdPathRef::from(path.0),
-        server_runtime::BoundedReadMaximumBytes::from(maximum_bytes.0),
+    let bytes = server_runtime_http::read_bounded_file(
+        server_runtime_http::StdPathRef::from(path.0),
+        server_runtime_http::BoundedReadMaximumBytes::from(maximum_bytes.0),
     )
     .map_err(ServerRuntimeBoundedReadError::from)?;
-    server_runtime::BoundedText::try_from(bytes)
+    server_runtime_http::BoundedText::try_from(bytes)
         .map(EnvContent::from)
         .map_err(ServerRuntimeBoundedReadError::from)
 }
@@ -434,7 +434,7 @@ mod tests {
             ),
             Err(super::InitializeError::ReadExample {
                 source: super::ServerRuntimeBoundedReadError(
-                    server_runtime::BoundedReadError::ExceedsMaximum { .. }
+                    server_runtime_http::BoundedReadError::ExceedsMaximum { .. }
                 )
             })
         ));

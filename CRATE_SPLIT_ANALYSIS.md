@@ -34,6 +34,82 @@ The first split should be `server_runtime`. It combines unrelated functionality,
 has many downstream consumers, and forces narrow consumers through a broad
 dependency boundary.
 
+## Implementation Result
+
+The plan was implemented where the repository contains a proven dependency
+boundary:
+
+| Original responsibility | Implemented crate | Result |
+| --- | --- | --- |
+| dependency-light runtime primitives | `server_runtime_core` | extracted |
+| tracing and OpenTelemetry | `server_observability` | extracted |
+| HTTP and service integrations | `server_runtime_http` | extracted |
+| OpenAPI and HTTP contract validation | `frontend_contract_validation` | extracted |
+| administrator domain wrappers | `server_admin_core` | extracted |
+| CRUD token rendering | `pg_crud_codegen` | extracted |
+
+All workspace consumers were migrated away from the original `server_runtime`
+crate. The temporary facade was then removed. In particular,
+`synchronization_service_runtime` now depends only on `server_runtime_core`.
+
+OpenAPI, JSON snapshot, and HTTP contract fixture logic was removed from
+`frontend_contract`. Its service-side validation uses are now development
+dependencies through `frontend_contract_validation`, so they are absent from
+normal service builds.
+
+`proc-macro2` and `quote` were removed from `pg_crud_common`. The only token
+rendering implementations formerly in that crate now live in
+`pg_crud_codegen`, which is consumed by the source generator rather than by
+runtime service code.
+
+The first inward administrator boundary was also implemented:
+`server_admin_core` owns reusable administrator identifiers and domain wrapper
+types. The repository, HTTP, and generated-table modules remain together
+because their current interfaces refer to one another in both directions.
+Splitting those modules immediately would either create crate cycles or require
+a broader public API redesign unrelated to compilation. Future separation
+should first move the remaining authentication-owned repository parameter types
+into `server_admin_core`.
+
+`server_admin_frontend` was intentionally left as one crate. Its manifest
+already keeps native SSR dependencies and WASM CSR dependencies in mutually
+exclusive target sections. A physical three-crate split would not remove those
+dependencies from either target and would add crate scheduling overhead.
+
+`server_admin_contract` was also left as one crate. Source-module
+modularization would improve navigation but would not change its compilation
+unit or service binary. No independent consumer boundary was found that
+justifies a second contract crate.
+
+An isolated clean baseline build was attempted from the pre-change `HEAD`, but
+the environment exhausted its disk quota before linking. Therefore no
+clean-build timing or binary-size comparison is claimed. Workspace compilation,
+the repository quality gates, and dependency graph inspection are the
+authoritative verification for this implementation.
+
+The verified post-change development artifacts and dependency graph are:
+
+| Measurement | Result |
+| --- | ---: |
+| `server` development executable | 355,640,936 bytes |
+| `notification_service` development executable | 114,116,096 bytes |
+| `server` normal dependency-tree lines | 428 |
+| `notification_service` normal dependency-tree lines | 263 |
+| `synchronization_service_runtime` normal dependency-tree lines | 22 |
+
+These executable sizes include development debug information and are recorded
+only as a post-change reference, not as release-size measurements.
+
+The reverse dependency graph proves the intended isolation:
+
+- the removed `server_runtime` package has no remaining package entry;
+- `synchronization_service_runtime` depends directly on
+  `server_runtime_core`;
+- `frontend_contract_validation` is used only as a development dependency by
+  `notification_service` and `server_admin`;
+- `pg_crud_codegen` is consumed by `generate_pg_types_src`, not by a service
+  runtime crate.
+
 ## Evidence
 
 The largest relevant crates by source size are approximately:

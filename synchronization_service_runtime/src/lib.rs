@@ -2,8 +2,8 @@ const SYNCHRONIZATION_PAYLOAD_MAX_BYTES: usize = 16 * 1024 * 1024;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct SynchronizationRuntimeConfiguration {
-    execution_mode: server_runtime::ExecutionMode,
-    retry_policy: server_runtime::RetryPolicy,
+    execution_mode: server_runtime_core::ExecutionMode,
+    retry_policy: server_runtime_core::RetryPolicy,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
@@ -33,14 +33,14 @@ pub trait SynchronizationSource {
 
 impl SynchronizationRuntimeConfiguration {
     #[must_use]
-    pub const fn execution_mode(&self) -> server_runtime::ExecutionMode {
+    pub const fn execution_mode(&self) -> server_runtime_core::ExecutionMode {
         self.execution_mode
     }
 
     #[must_use]
     pub const fn new(
-        retry_policy: server_runtime::RetryPolicy,
-        execution_mode: server_runtime::ExecutionMode,
+        retry_policy: server_runtime_core::RetryPolicy,
+        execution_mode: server_runtime_core::ExecutionMode,
     ) -> Self {
         Self {
             execution_mode,
@@ -49,7 +49,7 @@ impl SynchronizationRuntimeConfiguration {
     }
 
     #[must_use]
-    pub const fn retry_policy(&self) -> server_runtime::RetryPolicy {
+    pub const fn retry_policy(&self) -> server_runtime_core::RetryPolicy {
         self.retry_policy
     }
 }
@@ -58,18 +58,18 @@ impl SynchronizationRuntimeConfiguration {
 mod tests {
     #[test]
     fn configuration_keeps_retry_and_execution_policies_together() {
-        let attempts = server_runtime::StdRetryAttempts::try_from(2usize);
-        let delay = server_runtime::StdRetryDelay::from(std::time::Duration::ZERO);
+        let attempts = server_runtime_core::StdRetryAttempts::try_from(2usize);
+        let delay = server_runtime_core::StdRetryDelay::from(std::time::Duration::ZERO);
         let valid_attempts = attempts.expect("36b4ca8f");
-        let retry_policy = server_runtime::RetryPolicy::new(valid_attempts, Some(delay));
+        let retry_policy = server_runtime_core::RetryPolicy::new(valid_attempts, Some(delay));
         let configuration = super::SynchronizationRuntimeConfiguration::new(
             retry_policy,
-            server_runtime::ExecutionMode::DryRun,
+            server_runtime_core::ExecutionMode::DryRun,
         );
         assert_eq!(configuration.retry_policy(), retry_policy);
         assert_eq!(
             configuration.execution_mode(),
-            server_runtime::ExecutionMode::DryRun
+            server_runtime_core::ExecutionMode::DryRun
         );
     }
 

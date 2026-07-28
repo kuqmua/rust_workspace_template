@@ -1,25 +1,22 @@
 [package]
-name = "workspace_scaffold"
+name = "frontend_contract_validation"
 version.workspace = true
 publish.workspace = true
-description = "Scaffold and project identity migration utility"
+description = "Frontend OpenAPI, snapshot, and HTTP contract validation"
 repository.workspace = true
-
 license.workspace = true
 edition.workspace = true
 
-[[bin]]
-name = "workspace-scaffold"
-path = "src/main.rs"
-
 [dependencies]
-common_routes = { workspace = true }
 frontend_contract = { workspace = true }
-macros_helpers = { workspace = true }
 newtype = { workspace = true }
-server_runtime_http = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
 str_constants = { workspace = true }
 thiserror = { workspace = true }
+
+[dev-dependencies]
+futures = { workspace = true }
 
 [lints]
 workspace = true

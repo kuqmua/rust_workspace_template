@@ -26,14 +26,16 @@ struct HttpNotificationStatusCode(http::StatusCode);
 #[derive(Debug, thiserror::Error)]
 enum CreateNotificationError {
     #[error("notification persistence failed: {0}")]
-    Persistence(#[source] server_runtime::ObservedError<SqlxNotificationDatabaseError>),
+    Persistence(#[source] server_runtime_http::ObservedError<SqlxNotificationDatabaseError>),
     #[error("notification request validation failed")]
     Validation,
 }
 #[derive(Debug, thiserror::Error)]
 enum MetricsError {
     #[error("notification metrics response rendering failed: {0}")]
-    Render(#[source] server_runtime::ObservedError<server_runtime::MetricsResponseBodyError>),
+    Render(
+        #[source] server_runtime_http::ObservedError<server_runtime_http::MetricsResponseBodyError>,
+    ),
 }
 #[derive(Debug, thiserror::Error)]
 enum OpenApiError {}
@@ -64,16 +66,16 @@ impl axum::response::IntoResponse for CreateNotificationError {
             Self::Validation => http::StatusCode::UNPROCESSABLE_ENTITY,
         };
         let error_type =
-            server_runtime::HttpErrorType::from(str_constants::NOTIFICATION_API_ERROR_TYPE);
+            server_runtime_http::HttpErrorType::from(str_constants::NOTIFICATION_API_ERROR_TYPE);
         let optional_diagnostic = match &self {
-            Self::Persistence(error) => Some(server_runtime::HttpErrorDiagnostic::from_observed(
-                error_type, error,
-            )),
+            Self::Persistence(error) => Some(
+                server_runtime_http::HttpErrorDiagnostic::from_observed(error_type, error),
+            ),
             Self::Validation => None,
         };
-        let telemetry = server_runtime::HttpErrorTelemetry::new(
+        let telemetry = server_runtime_http::HttpErrorTelemetry::new(
             error_type,
-            server_runtime::HttpErrorCode::from(NotificationErrorCode::Validation.get()),
+            server_runtime_http::HttpErrorCode::from(NotificationErrorCode::Validation.get()),
         );
         let problem_status = frontend_contract::ApiProblemStatus::try_from(status.as_u16())
             .unwrap_or_else(|_error| {
@@ -96,8 +98,9 @@ impl axum::response::IntoResponse for MetricsError {
     fn into_response(self) -> axum::response::Response {
         match self {
             Self::Render(error) => {
-                let error_type =
-                    server_runtime::HttpErrorType::from(str_constants::NOTIFICATION_API_ERROR_TYPE);
+                let error_type = server_runtime_http::HttpErrorType::from(
+                    str_constants::NOTIFICATION_API_ERROR_TYPE,
+                );
                 let mut response = axum::response::IntoResponse::into_response(
                     frontend_contract::ApiProblemError::Internal(
                         frontend_contract::ApiProblemStatus::from(
@@ -106,7 +109,7 @@ impl axum::response::IntoResponse for MetricsError {
                     ),
                 );
                 let _previous = response.extensions_mut().insert(
-                    server_runtime::HttpErrorDiagnostic::from_observed(error_type, &error),
+                    server_runtime_http::HttpErrorDiagnostic::from_observed(error_type, &error),
                 );
                 response
             }
@@ -191,17 +194,17 @@ struct SqlxNotificationMigrationError(sqlx::migrate::MigrateError);
 struct StdNotificationIoError(std::io::Error);
 
 #[derive(Debug, newtype::FromInner, newtype::Display)]
-struct NotificationServeError(server_runtime::ServeWithGracefulShutdownError);
+struct NotificationServeError(server_runtime_http::ServeWithGracefulShutdownError);
 
 #[derive(Debug, newtype::FromInner, newtype::Display)]
 struct MetricsExporterPrometheusNotificationBuildError(metrics_exporter_prometheus::BuildError);
 
 #[derive(Debug, newtype::FromInner, newtype::Display)]
-struct NotificationObservabilityInitError(server_runtime::ObservabilityInitError);
+struct NotificationObservabilityInitError(server_runtime_http::ObservabilityInitError);
 
 #[derive(Debug, newtype::FromInner, newtype::Display)]
 struct NotificationObservabilityShutdownError(
-    server_runtime::OpentelemetrySdkObservabilityShutdownError,
+    server_runtime_http::OpentelemetrySdkObservabilityShutdownError,
 );
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum NotificationErrorCode {
@@ -232,9 +235,11 @@ async fn create_notification(
         .execute(state.0.pool.as_ref())
         .await
         .map_err(|error| {
-            CreateNotificationError::Persistence(server_runtime::ObservedError::capture(
+            CreateNotificationError::Persistence(server_runtime_http::ObservedError::capture(
                 SqlxNotificationDatabaseError::from(error),
-                server_runtime::ObservedErrorCode::from(NotificationErrorCode::Persistence.get()),
+                server_runtime_http::ObservedErrorCode::from(
+                    NotificationErrorCode::Persistence.get(),
+                ),
             ))
         })?;
     Ok(AxumNotificationResponse::from(
@@ -250,13 +255,17 @@ async fn create_notification(
 #[frontend_contract::route_operation]
 async fn metrics(
     state: AxumNotificationState,
-) -> Result<server_runtime::MetricsResponseBody, MetricsError> {
-    server_runtime::MetricsResponseBody::try_from(state.0.metrics.0.render()).map_err(|error| {
-        MetricsError::Render(server_runtime::ObservedError::capture(
-            error,
-            server_runtime::ObservedErrorCode::from(NotificationErrorCode::MetricsRender.get()),
-        ))
-    })
+) -> Result<server_runtime_http::MetricsResponseBody, MetricsError> {
+    server_runtime_http::MetricsResponseBody::try_from(state.0.metrics.0.render()).map_err(
+        |error| {
+            MetricsError::Render(server_runtime_http::ObservedError::capture(
+                error,
+                server_runtime_http::ObservedErrorCode::from(
+                    NotificationErrorCode::MetricsRender.get(),
+                ),
+            ))
+        },
+    )
 }
 
 #[frontend_contract::route_operation]
@@ -367,39 +376,41 @@ async fn run(config: notification_service_config::Config) -> Result<(), Notifica
     let actual_service_socket_address = listener
         .local_addr()
         .map_err(|error| NotificationServiceError::Socket(StdNotificationIoError::from(error)))?;
-    let timeout = server_runtime::StdRequestTimeout::try_from(std::time::Duration::from_secs(
+    let timeout = server_runtime_http::StdRequestTimeout::try_from(std::time::Duration::from_secs(
         config.request_timeout_seconds().get(),
     ))
     .map_err(|_error| NotificationServiceError::Timeout)?;
-    let service_router = server_runtime::RequestIdLayer::with_span_config(
-        server_runtime::HttpRequestSpanConfig::new(
-            server_runtime::ServiceName::from(env!("CARGO_PKG_NAME")),
-            server_runtime::StdSocketAddr::from(actual_service_socket_address),
-            server_runtime::TrustedProxyRanges::default(),
+    let service_router = server_runtime_http::RequestIdLayer::with_span_config(
+        server_runtime_http::HttpRequestSpanConfig::new(
+            server_runtime_http::ServiceName::from(env!("CARGO_PKG_NAME")),
+            server_runtime_http::StdSocketAddr::from(actual_service_socket_address),
+            server_runtime_http::TrustedProxyRanges::default(),
         ),
     )
     .apply(
-        server_runtime::SecurityHeadersLayer::from(server_runtime::ForwardedProtoTrust::Ignore)
-            .apply(
-                server_runtime::RequestTimeoutLayer::from(timeout).apply(
-                    server_runtime::AxumRouter::from(
-                        router(
-                            NotificationState {
-                                metrics,
-                                pool: app_state::SqlxPgPool::from(pool),
-                                project_git_info: git_info::project_git_info(),
-                            },
-                            NotificationBodyMaximumBytes::from(
-                                notification_service_contract::NOTIFICATION_API_BODY_MAX_BYTES,
-                            ),
-                        )
-                        .0,
-                    ),
+        server_runtime_http::SecurityHeadersLayer::from(
+            server_runtime_http::ForwardedProtoTrust::Ignore,
+        )
+        .apply(
+            server_runtime_http::RequestTimeoutLayer::from(timeout).apply(
+                server_runtime_http::AxumRouter::from(
+                    router(
+                        NotificationState {
+                            metrics,
+                            pool: app_state::SqlxPgPool::from(pool),
+                            project_git_info: git_info::project_git_info(),
+                        },
+                        NotificationBodyMaximumBytes::from(
+                            notification_service_contract::NOTIFICATION_API_BODY_MAX_BYTES,
+                        ),
+                    )
+                    .0,
                 ),
             ),
+        ),
     );
-    server_runtime::serve_with_graceful_shutdown(
-        server_runtime::TokioTcpListener::from(listener),
+    server_runtime_http::serve_with_graceful_shutdown(
+        server_runtime_http::TokioTcpListener::from(listener),
         service_router,
         shutdown_signal(),
         timeout,
@@ -421,13 +432,13 @@ async fn main() -> StdNotificationExitCode {
         }
     };
     let tracing_format = if *config.tracing_format() == config_lib::types::TracingFormat::Json {
-        server_runtime::ServiceTracingFormat::Json
+        server_runtime_http::ServiceTracingFormat::Json
     } else {
-        server_runtime::ServiceTracingFormat::Text
+        server_runtime_http::ServiceTracingFormat::Text
     };
-    let observability = match server_runtime::initialize_service_observability(
+    let observability = match server_runtime_http::initialize_service_observability(
         tracing_format,
-        server_runtime::ServiceName::from(env!("CARGO_PKG_NAME")),
+        server_runtime_http::ServiceName::from(env!("CARGO_PKG_NAME")),
     ) {
         Ok(value) => value,
         Err(error) => {
@@ -514,7 +525,7 @@ mod tests {
 
     #[test]
     fn open_api_has_no_unresolved_schema_references() {
-        frontend_contract::validate_openapi_schema_references(&{
+        frontend_contract_validation::validate_openapi_schema_references(&{
             let mut document = super::NotificationApiRouteRegistry::open_api();
             document.merge(utoipa::openapi::OpenApi::from(
                 common_routes::CommonRoutesOpenApi::open_api(),
@@ -562,12 +573,14 @@ mod tests {
     #[test]
     fn api_problem_preserves_server_diagnostic_but_keeps_validation_expected() {
         let server_response = axum::response::IntoResponse::into_response(
-            super::CreateNotificationError::Persistence(server_runtime::ObservedError::capture(
-                super::SqlxNotificationDatabaseError::from(sqlx::Error::RowNotFound),
-                server_runtime::ObservedErrorCode::from(
-                    super::NotificationErrorCode::Persistence.get(),
+            super::CreateNotificationError::Persistence(
+                server_runtime_http::ObservedError::capture(
+                    super::SqlxNotificationDatabaseError::from(sqlx::Error::RowNotFound),
+                    server_runtime_http::ObservedErrorCode::from(
+                        super::NotificationErrorCode::Persistence.get(),
+                    ),
                 ),
-            )),
+            ),
         );
         assert_eq!(
             server_response.status(),
@@ -576,7 +589,7 @@ mod tests {
         assert!(
             server_response
                 .extensions()
-                .get::<server_runtime::HttpErrorDiagnostic>()
+                .get::<server_runtime_http::HttpErrorDiagnostic>()
                 .is_some()
         );
         let validation_response =
@@ -588,13 +601,13 @@ mod tests {
         assert!(
             validation_response
                 .extensions()
-                .get::<server_runtime::HttpErrorDiagnostic>()
+                .get::<server_runtime_http::HttpErrorDiagnostic>()
                 .is_none()
         );
         assert!(
             validation_response
                 .extensions()
-                .get::<server_runtime::HttpErrorTelemetry>()
+                .get::<server_runtime_http::HttpErrorTelemetry>()
                 .is_some()
         );
     }

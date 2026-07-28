@@ -97,11 +97,11 @@ categories = ["category"]
     let path_lib_rs = crate_path.join(str_constants::SRC_LIB_RS);
     let path_cargo_toml = crate_path.join(str_constants::CARGO_TOML);
     let workspace_manifest_path = root.join(str_constants::CARGO_TOML);
-    let workspace_cargo_toml = server_runtime::read_bounded_file(
-        server_runtime::StdPathRef::from(workspace_manifest_path.as_path()),
-        server_runtime::BoundedReadMaximumBytes::from(1_048_576usize),
+    let workspace_cargo_toml = server_runtime_http::read_bounded_file(
+        server_runtime_http::StdPathRef::from(workspace_manifest_path.as_path()),
+        server_runtime_http::BoundedReadMaximumBytes::from(1_048_576usize),
     )
-    .and_then(server_runtime::BoundedText::try_from)
+    .and_then(server_runtime_http::BoundedText::try_from)
     .unwrap_or_else(|error| panic!("bf40d675: {error}"));
     let root_path = root.display().to_string();
     let cargo_toml_extra = extra_cnt.lines().fold(

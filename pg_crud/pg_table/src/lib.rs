@@ -6,8 +6,8 @@ pub trait CombinationOfAppStateLogicTraits:
     + config_lib::GetSrcPlaceType
     + config_lib::GetChronoTimezone
     + app_state::GetSqlxPgPool
-    + server_runtime::GetBulkItemResourceBudget
-    + server_runtime::GetIdempotencyResponseResourceBudget
+    + server_runtime_http::GetBulkItemResourceBudget
+    + server_runtime_http::GetIdempotencyResponseResourceBudget
     + Send
     + Sync
 {

@@ -477,8 +477,8 @@ async fn database_is_ready(app_state: &dyn CommonRoutesParameters) -> HealthChec
             .is_ok()
     };
     HealthCheckSucceeded::from(bool::from(
-        server_runtime::run_health_probe(
-            server_runtime::StdHealthProbeTimeout::from(HEALTH_PROBE_TIMEOUT),
+        server_runtime_http::run_health_probe(
+            server_runtime_http::StdHealthProbeTimeout::from(HEALTH_PROBE_TIMEOUT),
             probe,
         )
         .await,

@@ -1455,7 +1455,7 @@ fn source_lint_suppressions_have_explicit_reasons() {
         },
         LegacySuppression {
             limit: 1,
-            path_suffix: "server_runtime/src/lifecycle.rs",
+            path_suffix: "server_runtime_http/src/lifecycle.rs",
             reason: "lifecycle select branches predate per-attribute reasons",
         },
         LegacySuppression {
@@ -1636,7 +1636,11 @@ fn project_text_files_have_stable_line_endings_and_no_trailing_whitespace() {
         .split_terminator('\0')
         .for_each(|relative_path| {
             let path = repository_root.join(relative_path);
-            let bytes = std::fs::read(path.as_path()).expect("d808e460");
+            let bytes = match std::fs::read(path.as_path()) {
+                Ok(bytes) => bytes,
+                Err(error) if error.kind() == std::io::ErrorKind::NotFound => return,
+                Err(error) => panic!("d808e460: {error}"),
+            };
             let Ok(source) = std::str::from_utf8(bytes.as_slice()) else {
                 return;
             };

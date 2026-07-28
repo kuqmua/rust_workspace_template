@@ -16,7 +16,7 @@ syn = { workspace = true }
 strum_macros = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true, optional = true }
-server_runtime = { workspace = true }
+server_runtime_http = { workspace = true }
 thiserror = { workspace = true }
 token_patterns = { workspace = true }
 generate_quotes = { workspace = true }

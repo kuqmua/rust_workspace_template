@@ -1060,19 +1060,19 @@ pub fn api_operation_error(input: proc_macro::TokenStream) -> proc_macro::TokenS
             #[error("administrator request validation failed")]
             Validation,
             #[error("administrator API database operation failed: {0:?}")]
-            Pg(#[source] server_runtime::ObservedError<super::SqlxAdminError>),
+            Pg(#[source] server_runtime_http::ObservedError<super::SqlxAdminError>),
             #[error("administrator password hashing failed: {0}")]
             PasswordHash(
-                #[source] server_runtime::ObservedError<super::AdminPasswordHashError>,
+                #[source] server_runtime_http::ObservedError<super::AdminPasswordHashError>,
             ),
             #[error("administrator request body is too large")]
             PayloadTooLarge,
             #[error("administrator route does not support this HTTP method")]
             MethodNotAllowed,
             #[error("administrator session operation failed: {0}")]
-            Session(#[source] server_runtime::ObservedError<AdminSessionError>),
+            Session(#[source] server_runtime_http::ObservedError<AdminSessionError>),
             #[error("administrator response header is invalid: {0:?}")]
-            Header(#[source] server_runtime::ObservedError<HttpAdminHeaderValueError>),
+            Header(#[source] server_runtime_http::ObservedError<HttpAdminHeaderValueError>),
         }
         impl From<AdminError> for #error {
             fn from(value: AdminError) -> Self {
@@ -1114,19 +1114,19 @@ pub fn api_operation_error(input: proc_macro::TokenStream) -> proc_macro::TokenS
                     | Self::Header(_) => frontend_contract::RouteErrorStatus::Internal,
                 };
                 let error_type =
-                    server_runtime::HttpErrorType::from(str_constants::ADMIN_API_ERROR_TYPE);
+                    server_runtime_http::HttpErrorType::from(str_constants::ADMIN_API_ERROR_TYPE);
                 let optional_diagnostic = match &self {
                     Self::Pg(source) => Some(
-                        server_runtime::HttpErrorDiagnostic::from_observed(error_type, source),
+                        server_runtime_http::HttpErrorDiagnostic::from_observed(error_type, source),
                     ),
                     Self::PasswordHash(source) => Some(
-                        server_runtime::HttpErrorDiagnostic::from_observed(error_type, source),
+                        server_runtime_http::HttpErrorDiagnostic::from_observed(error_type, source),
                     ),
                     Self::Session(source) => Some(
-                        server_runtime::HttpErrorDiagnostic::from_observed(error_type, source),
+                        server_runtime_http::HttpErrorDiagnostic::from_observed(error_type, source),
                     ),
                     Self::Header(source) => Some(
-                        server_runtime::HttpErrorDiagnostic::from_observed(error_type, source),
+                        server_runtime_http::HttpErrorDiagnostic::from_observed(error_type, source),
                     ),
                     Self::Authentication
                     | Self::Authorization

@@ -632,14 +632,14 @@ fn allocations_inside_loops_match_reviewed_inventory() {
             ),
         ),
         (
-            "../frontend_contract/src/json_snapshot.rs:String::from",
+            "../frontend_contract_validation/src/json_snapshot.rs:String::from",
             (
                 1usize,
                 "the bounded JSON parser materializes one owned map key per parsed object field",
             ),
         ),
         (
-            "../frontend_contract/src/openapi_validation.rs:to_owned",
+            "../frontend_contract_validation/src/openapi_validation.rs:to_owned",
             (
                 1usize,
                 "OpenAPI validation records independently owned operation identifiers",
@@ -660,7 +660,7 @@ fn allocations_inside_loops_match_reviewed_inventory() {
             ),
         ),
         (
-            "../server_runtime/src/lib.rs:to_string",
+            "../server_runtime_http/src/lib.rs:to_string",
             (
                 2usize,
                 "bounded request parsing materializes validated protocol values that outlive input buffers",
@@ -960,15 +960,15 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "server_runtime/src/health.rs",
+            "server_runtime_http/src/health.rs",
             (1, 0, 0, "health state is shared across request tasks"),
         ),
         (
-            "server_runtime/src/limits.rs",
+            "server_runtime_http/src/limits.rs",
             (1, 0, 0, "the semaphore is shared across request tasks"),
         ),
         (
-            "server_runtime/src/lib.rs",
+            "server_runtime_http/src/lib.rs",
             (
                 2,
                 0,
@@ -977,7 +977,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "server_runtime/src/resource_budget.rs",
+            "server_runtime_core/src/resource_budget.rs",
             (
                 1,
                 0,
@@ -986,7 +986,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "server_runtime/src/single_flight.rs",
+            "server_runtime_core/src/single_flight.rs",
             (
                 1,
                 1,
@@ -995,11 +995,11 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "server_runtime/src/bounded_read.rs",
+            "server_runtime_http/src/bounded_read.rs",
             (1, 0, 0, "the read limiter is shared across request tasks"),
         ),
         (
-            "server_runtime/src/history.rs",
+            "server_runtime_core/src/history.rs",
             (
                 1,
                 1,
@@ -1008,7 +1008,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "server_runtime/src/lease_registry.rs",
+            "server_runtime_core/src/lease_registry.rs",
             (
                 1,
                 1,
@@ -1017,7 +1017,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "server_runtime/src/metrics_layer.rs",
+            "server_runtime_http/src/metrics_layer.rs",
             (
                 1,
                 1,
@@ -1258,61 +1258,61 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             ),
         ),
         (
-            "server_runtime/src/outbound_url.rs",
+            "server_runtime_http/src/outbound_url.rs",
             (
                 1usize,
                 "URL parse details are intentionally hidden by the domain error",
             ),
         ),
         (
-            "server_runtime/src/wire_token.rs",
+            "server_runtime_http/src/wire_token.rs",
             (
                 1usize,
                 "wire token part failures map to a stable public category",
             ),
         ),
         (
-            "server_runtime/src/origin.rs",
+            "server_runtime_http/src/origin.rs",
             (1usize, "origin parsing maps to a stable validation error"),
         ),
         (
-            "server_runtime/src/secure_cookie.rs",
+            "server_runtime_http/src/secure_cookie.rs",
             (1usize, "cookie header details are intentionally redacted"),
         ),
         (
-            "server_runtime/src/multipart.rs",
+            "server_runtime_http/src/multipart.rs",
             (
                 1usize,
                 "multipart path validation exposes a stable domain error",
             ),
         ),
         (
-            "server_runtime/src/lib.rs",
+            "server_runtime_http/src/lib.rs",
             (
                 1usize,
                 "timeout details map to the public shutdown timeout variant",
             ),
         ),
         (
-            "server_runtime/src/bounded_read.rs",
+            "server_runtime_http/src/bounded_read.rs",
             (1usize, "closed limiter state maps to a stable read error"),
         ),
         (
-            "server_runtime/src/child_process.rs",
+            "server_runtime_http/src/child_process.rs",
             (
                 1usize,
                 "elapsed timeout details map to the child timeout variant",
             ),
         ),
         (
-            "server_runtime/src/http_header_policy.rs",
+            "server_runtime_http/src/http_header_policy.rs",
             (
                 3usize,
                 "header construction errors are intentionally classified",
             ),
         ),
         (
-            "server_runtime/src/exclusive_run.rs",
+            "server_runtime_core/src/exclusive_run.rs",
             (1usize, "the atomic compare failure maps to already active"),
         ),
         (
@@ -1363,7 +1363,7 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             (1usize, "summary initialization maps to the runner error"),
         ),
         (
-            "frontend_contract/src/json_snapshot.rs",
+            "frontend_contract_validation/src/json_snapshot.rs",
             (
                 2usize,
                 "serialization details map to snapshot contract errors",
@@ -1378,7 +1378,7 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             (1usize, "invalid derive input maps to the macro diagnostic"),
         ),
         (
-            "server_admin/src/domain.rs",
+            "server_admin_core/src/lib.rs",
             (
                 4usize,
                 "domain conversion failures map to administrator validation errors",
@@ -1548,12 +1548,12 @@ fn select_sites_match_reviewed_cancellation_inventory() {
             "the shutdown signal races two cancellation-safe signal receivers",
         ),
         (
-            "server_runtime/src/lib.rs",
+            "server_runtime_http/src/lib.rs",
             1usize,
             "the pinned server future is resumed after the shutdown notification branch",
         ),
         (
-            "server_runtime/src/lifecycle.rs",
+            "server_runtime_http/src/lifecycle.rs",
             1usize,
             "the interval tick and oneshot shutdown receiver are cancellation-safe",
         ),
@@ -1628,8 +1628,16 @@ fn architectural_boundaries_reject_upward_dependencies() {
             "the administrator contract may depend downward on generic contracts and values, but not on runtime implementations",
         ),
         (
-            "server_runtime",
-            "the runtime foundation must not depend on application or route crates",
+            "server_observability",
+            "observability must not depend on HTTP, application, or route crates",
+        ),
+        (
+            "server_runtime_core",
+            "the runtime core must not depend on HTTP, application, or route crates",
+        ),
+        (
+            "server_runtime_http",
+            "the HTTP runtime must not depend on application or route crates",
         ),
     ];
     super::snapshot::with_codebase_snapshot(|snapshot| {
@@ -1669,7 +1677,7 @@ fn architectural_boundaries_reject_upward_dependencies() {
                             || dependency.name.starts_with("notification_service")
                             || dependency.name.starts_with("pg_")
                     }
-                    "server_runtime" => {
+                    "server_observability" | "server_runtime_core" | "server_runtime_http" => {
                         dependency.name == "app_state"
                             || dependency.name == "server"
                             || dependency.name.starts_with("server_admin")

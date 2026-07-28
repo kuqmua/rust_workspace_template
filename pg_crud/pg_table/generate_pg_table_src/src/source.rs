@@ -4295,8 +4295,8 @@ pub fn emit_generate_pg_table(
                             return axum::response::IntoResponse::into_response(http::StatusCode::INTERNAL_SERVER_ERROR);
                         }
                     };
-                    let _idempotency_response_reservation_f07d6371 = match server_runtime::GetIdempotencyResponseResourceBudget::get_idempotency_response_resource_budget(#AppStateSnakeCase.as_ref()).reserve(
-                        server_runtime::ResourceBudgetAmount::from(response_body_649297c9.len()),
+                    let _idempotency_response_reservation_f07d6371 = match server_runtime_http::GetIdempotencyResponseResourceBudget::get_idempotency_response_resource_budget(#AppStateSnakeCase.as_ref()).reserve(
+                        server_runtime_http::ResourceBudgetAmount::from(response_body_649297c9.len()),
                     ) {
                         Ok(value) => value,
                         Err(_error) => {
@@ -5431,8 +5431,8 @@ pub fn emit_generate_pg_table(
                         }
                     };
                     let bulk_reservation_token_stream = quote::quote! {
-                        let _bulk_resource_reservation_6416eead = match server_runtime::GetBulkItemResourceBudget::get_bulk_item_resource_budget(#AppStateSnakeCase.as_ref()).reserve(
-                            server_runtime::ResourceBudgetAmount::from(#ParametersSnakeCase.#PayloadSnakeCase.as_slice().len()),
+                        let _bulk_resource_reservation_6416eead = match server_runtime_http::GetBulkItemResourceBudget::get_bulk_item_resource_budget(#AppStateSnakeCase.as_ref()).reserve(
+                            server_runtime_http::ResourceBudgetAmount::from(#ParametersSnakeCase.#PayloadSnakeCase.as_slice().len()),
                         ) {
                             Ok(value) => value,
                             Err(_error) => return axum::response::IntoResponse::into_response(http::StatusCode::TOO_MANY_REQUESTS),
@@ -9573,13 +9573,13 @@ pub fn emit_generate_pg_table(
                         let (started_tx, started_rx) = tokio::sync::oneshot::channel();
                         let #undrscr_unused_token_stream = tokio::spawn(async move {
                             let #AppStateSnakeCase = std::sync::Arc::new(server_app_state::ServerAppState {
-                                bulk_item_budget: server_runtime::ResourceBudget::new(
-                                    server_runtime::ResourceBudgetMaximum::try_from(4_096usize).expect("f9304636"),
+                                bulk_item_budget: server_runtime_http::ResourceBudget::new(
+                                    server_runtime_http::ResourceBudgetMaximum::try_from(4_096usize).expect("f9304636"),
                                 ),
                                 #PgPoolSnakeCase: app_state::SqlxPgPool::from(#PgPoolForTokioSpawnSyncMoveSnakeCase.clone()),
                                 #ConfigSnakeCase,
-                                idempotency_response_budget: server_runtime::ResourceBudget::new(
-                                    server_runtime::ResourceBudgetMaximum::try_from(67_108_864usize).expect("c75e4935"),
+                                idempotency_response_budget: server_runtime_http::ResourceBudget::new(
+                                    server_runtime_http::ResourceBudgetMaximum::try_from(67_108_864usize).expect("c75e4935"),
                                 ),
                                 project_git_info: git_info::project_git_info(),
                             });

@@ -1,8 +1,8 @@
 #[derive(Debug, optml::Optml)]
 pub struct ServerAppState<'lt> {
-    pub bulk_item_budget: server_runtime::ResourceBudget,
+    pub bulk_item_budget: server_runtime_core::ResourceBudget,
     pub config: server_config::Config,
-    pub idempotency_response_budget: server_runtime::ResourceBudget,
+    pub idempotency_response_budget: server_runtime_core::ResourceBudget,
     pub pg_pool: app_state::SqlxPgPool,
     pub project_git_info: git_info::ProjectGitInfo<'lt>,
 }
@@ -14,13 +14,13 @@ impl ServerAppState<'_> {
 }
 impl common_routes::CommonRoutesParameters for ServerAppState<'_> {}
 impl pg_table::CombinationOfAppStateLogicTraits for ServerAppState<'_> {}
-impl server_runtime::GetBulkItemResourceBudget for ServerAppState<'_> {
-    fn get_bulk_item_resource_budget(&self) -> &server_runtime::ResourceBudget {
+impl server_runtime_core::GetBulkItemResourceBudget for ServerAppState<'_> {
+    fn get_bulk_item_resource_budget(&self) -> &server_runtime_core::ResourceBudget {
         &self.bulk_item_budget
     }
 }
-impl server_runtime::GetIdempotencyResponseResourceBudget for ServerAppState<'_> {
-    fn get_idempotency_response_resource_budget(&self) -> &server_runtime::ResourceBudget {
+impl server_runtime_core::GetIdempotencyResponseResourceBudget for ServerAppState<'_> {
+    fn get_idempotency_response_resource_budget(&self) -> &server_runtime_core::ResourceBudget {
         &self.idempotency_response_budget
     }
 }
@@ -101,8 +101,8 @@ where
 #[must_use]
 pub fn mk_test_server_app_state() -> ServerAppState<'static> {
     ServerAppState {
-        bulk_item_budget: server_runtime::ResourceBudget::new(
-            server_runtime::ResourceBudgetMaximum::try_from(8usize).expect("86d3d452"),
+        bulk_item_budget: server_runtime_core::ResourceBudget::new(
+            server_runtime_core::ResourceBudgetMaximum::try_from(8usize).expect("86d3d452"),
         ),
         config: server_config::Config {
             cors_allow_origin: config_lib::CorsAllowOrigin(str_constants::ASTERISK.to_owned()),
@@ -207,8 +207,8 @@ pub fn mk_test_server_app_state() -> ServerAppState<'static> {
                     .expect("dbe97ef3"),
             ),
         },
-        idempotency_response_budget: server_runtime::ResourceBudget::new(
-            server_runtime::ResourceBudgetMaximum::try_from(4_096usize).expect("799dc227"),
+        idempotency_response_budget: server_runtime_core::ResourceBudget::new(
+            server_runtime_core::ResourceBudgetMaximum::try_from(4_096usize).expect("799dc227"),
         ),
         pg_pool: app_state::SqlxPgPool::from(
             sqlx::PgPool::connect_lazy(str_constants::TEST_VALUES_UNREACHABLE_DATABASE_URL)
@@ -237,8 +237,8 @@ mod tests {
     }
     fn mk_structure(project_git_info: git_info::ProjectGitInfo<'_>) -> super::ServerAppState<'_> {
         super::ServerAppState {
-            bulk_item_budget: server_runtime::ResourceBudget::new(
-                server_runtime::ResourceBudgetMaximum::try_from(128usize).expect("837f89a0"),
+            bulk_item_budget: server_runtime_core::ResourceBudget::new(
+                server_runtime_core::ResourceBudgetMaximum::try_from(128usize).expect("837f89a0"),
             ),
             config: server_config::Config {
                 cors_allow_origin: config_lib::CorsAllowOrigin(str_constants::ASTERISK.to_owned()),
@@ -287,8 +287,9 @@ mod tests {
                 sqlx::PgPool::connect_lazy(str_constants::POSTGRES_USR_PWD_LOCALHOST_5432_DB)
                     .expect("4bd3f0a1"),
             ),
-            idempotency_response_budget: server_runtime::ResourceBudget::new(
-                server_runtime::ResourceBudgetMaximum::try_from(1_048_576usize).expect("926ce310"),
+            idempotency_response_budget: server_runtime_core::ResourceBudget::new(
+                server_runtime_core::ResourceBudgetMaximum::try_from(1_048_576usize)
+                    .expect("926ce310"),
             ),
             project_git_info,
         }

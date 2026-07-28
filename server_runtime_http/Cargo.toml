@@ -1,0 +1,39 @@
+[package]
+name = "server_runtime_http"
+version.workspace = true
+publish.workspace = true
+description = "Shared HTTP server runtime and integration primitives"
+repository.workspace = true
+
+license.workspace = true
+keywords = ["server"]
+categories = ["web-programming"]
+edition.workspace = true
+
+[dependencies]
+newtype = { workspace = true }
+server_observability = { workspace = true }
+server_runtime_core = { workspace = true }
+str_constants = { workspace = true }
+text_policy = { workspace = true }
+axum = { workspace = true }
+http = { workspace = true }
+metrics = { workspace = true }
+opentelemetry = { workspace = true }
+reqwest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+sqlx = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+tower = { workspace = true }
+tracing = { workspace = true }
+tracing-opentelemetry = { workspace = true }
+uuid = { workspace = true }
+[dev-dependencies]
+opentelemetry_sdk = { workspace = true, features = ["testing"] }
+tokio = { workspace = true, features = ["test-util"] }
+tracing-subscriber = { workspace = true }
+
+[lints]
+workspace = true

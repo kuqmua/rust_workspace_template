@@ -14,7 +14,7 @@ app_state = { workspace = true }
 config_lib = { workspace = true }
 newtype = { workspace = true }
 sha2 = { workspace = true }
-server_runtime = { workspace = true }
+server_runtime_http = { workspace = true }
 sqlx = { workspace = true }
 to_err_string = { workspace = true }
 thiserror = { workspace = true }

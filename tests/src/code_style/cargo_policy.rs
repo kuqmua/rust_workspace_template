@@ -565,11 +565,11 @@ fn source_modules_with_public_logic_own_unit_tests() {
             "the proc-macro is covered by token_patterns tests",
         ),
         (
-            "server_runtime/src/limits.rs",
+            "server_runtime_http/src/limits.rs",
             "the limit wrappers are exercised by server_runtime boundary tests",
         ),
         (
-            "server_runtime/src/resource_budget.rs",
+            "server_runtime_core/src/resource_budget.rs",
             "the resource budget is exercised by server runtime integration paths",
         ),
         (
@@ -639,10 +639,6 @@ fn source_modules_with_public_logic_own_unit_tests() {
         (
             "to_err_string/to_err_string_macros/src/lib.rs",
             "the proc-macro is covered by to_err_string tests",
-        ),
-        (
-            "server_admin/src/domain.rs",
-            "administrator domain wrappers are covered by administrator API tests",
         ),
         (
             "server_admin/src/rbac.rs",

@@ -98,13 +98,5 @@ mod tests {
         assert_eq!(observed.location().0.line(), expected_line);
         assert!(!observed.backtrace().to_string().is_empty());
         assert!(!observed.span_trace().to_string().is_empty());
-        let diagnostic = crate::HttpErrorDiagnostic::from_observed(
-            crate::HttpErrorType::from(str_constants::OTEL_HTTP_SERVER_ERROR_TYPE),
-            &observed,
-        );
-        assert_eq!(
-            diagnostic.location.to_string(),
-            observed.location().to_string()
-        );
     }
 }

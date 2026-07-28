@@ -14,7 +14,7 @@ pub struct OpenApiContractTextError(OpenApiContractTextTryFromStringError);
 pub struct SerdeJsonOpenApiSerializationError(serde_json::Error);
 
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
-pub struct RuntimeRoutesRef<'value_lt>(&'value_lt [crate::RouteMetadata]);
+pub struct RuntimeRoutesRef<'value_lt>(&'value_lt [frontend_contract::RouteMetadata]);
 
 #[derive(newtype::FromInner)]
 struct StdOpenApiSchemaReferences(std::collections::BTreeSet<OpenApiContractText>);
@@ -65,17 +65,17 @@ pub enum OpenApiValidationError {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::TryFrom)]
 #[try_from(
-    error = crate::HttpStatusTryFromU16Error,
+    error = frontend_contract::HttpStatusTryFromU16Error,
     validator = OpenApiResponseStatus::validate
 )]
 pub struct OpenApiResponseStatus(u16);
 impl OpenApiResponseStatus {
     #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
-    fn validate(value: &u16) -> Result<(), crate::HttpStatusTryFromU16Error> {
+    fn validate(value: &u16) -> Result<(), frontend_contract::HttpStatusTryFromU16Error> {
         if (100u16..1_000u16).contains(value) {
             Ok(())
         } else {
-            Err(crate::HttpStatusTryFromU16Error)
+            Err(frontend_contract::HttpStatusTryFromU16Error)
         }
     }
 }
@@ -83,22 +83,22 @@ impl OpenApiResponseStatus {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum OpenApiSecurityExpectation {
     Public,
-    Required(crate::ContractStr),
+    Required(frontend_contract::ContractStr),
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct OpenApiOperationExpectation {
-    content_type: crate::ContractStr,
-    metadata: crate::RouteMetadata,
+    content_type: frontend_contract::ContractStr,
+    metadata: frontend_contract::RouteMetadata,
     security: OpenApiSecurityExpectation,
     status: OpenApiResponseStatus,
 }
 impl OpenApiOperationExpectation {
     #[must_use]
     pub const fn new(
-        metadata: crate::RouteMetadata,
+        metadata: frontend_contract::RouteMetadata,
         status: OpenApiResponseStatus,
-        content_type: crate::ContractStr,
+        content_type: frontend_contract::ContractStr,
         security: OpenApiSecurityExpectation,
     ) -> Self {
         Self {
@@ -582,8 +582,8 @@ mod tests {
             }}},
             str_constants::COMPONENTS: { str_constants::SCHEMAS: { str_constants::TEST_OPENAPI_SCHEMA: { str_constants::JSON_TYPE: str_constants::OBJECT }}}
         });
-        let routes = [crate::RouteMetadata::new(
-            crate::RouteMethod::Get,
+        let routes = [frontend_contract::RouteMetadata::new(
+            frontend_contract::RouteMethod::Get,
             str_constants::TEST_OPENAPI_OPERATION_ID.into(),
             str_constants::TEST_OPENAPI_PATH.into(),
         )];
@@ -622,8 +622,8 @@ mod tests {
             }}}
         });
         let expectation = super::OpenApiOperationExpectation::new(
-            crate::RouteMetadata::new(
-                crate::RouteMethod::Get,
+            frontend_contract::RouteMetadata::new(
+                frontend_contract::RouteMethod::Get,
                 str_constants::TEST_OPENAPI_OPERATION_ID.into(),
                 str_constants::TEST_OPENAPI_PATH.into(),
             ),

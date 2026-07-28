@@ -12,7 +12,7 @@ edition.workspace = true
 
 [dependencies]
 newtype = { workspace = true }
-server_runtime = { workspace = true }
+server_runtime_http = { workspace = true }
 thiserror = { workspace = true }
 
 [lints]

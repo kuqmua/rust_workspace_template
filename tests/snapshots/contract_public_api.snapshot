@@ -43,17 +43,12 @@ pub trait CommonRoutesParameters: git_info::GetGitCommitLink + app_state::GetSql
 #[derive( Clone, Debug, Default, PartialEq, Eq, newtype::BoundedString, serde::Deserialize, serde::Serialize, utoipa::ToSchema, )] #[bounded_string(max = 128usize)] #[serde(try_from = "String")] pub struct ApiProblemField(String);
 #[derive( Clone, Debug, Default, PartialEq, Eq, newtype::BoundedString, serde::Deserialize, serde::Serialize, utoipa::ToSchema, )] #[bounded_string(max = 128usize)] #[serde(try_from = "String")] pub struct ApiProblemRequestId(String);
 #[derive( Clone, Debug, Default, newtype::AsRefTarget, newtype::FromInner, newtype::IntoInnerFrom, )] pub struct RouteSchemaContracts(Vec<RouteSchemaContract>);
-#[derive( Clone, Debug, Eq, Ord, PartialEq, PartialOrd, newtype::AsRefStr, newtype::BoundedString, )] #[bounded_string(max = OPENAPI_CONTRACT_TEXT_MAX_LEN)] pub struct OpenApiContractText(String);
 #[derive( Clone, Debug, Eq, PartialEq, newtype::AsRefStr, newtype::BoundedString, newtype::IntoInnerFrom, )] #[bounded_string(max = API_URL_MAX_LEN)] pub struct ApiUrl(String);
 #[derive(Clone, Copy, Debug, Eq, PartialEq)] pub enum AuthSessionKeepAliveDecision { RefreshNow, SkipAlreadyRunning, SkipMissing, SkipNotDue { next: StdAuthSessionInstant }, }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)] pub enum AuthSessionPresence { Missing, Present, }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)] pub enum AuthSessionRefreshOutcome { Failed, Refreshed, Rejected, }
-#[derive(Clone, Copy, Debug, Eq, PartialEq)] pub enum HttpContractBodyKind { Empty, Json, }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)] pub enum KnownHttpStatus { BadRequest, Conflict, Created, Forbidden, InternalServerError, MethodNotAllowed, NoContent, NotFound, Ok, PayloadTooLarge, PreconditionFailed, PreconditionRequired, ServiceUnavailable, TooEarly, TooManyRequests, Unauthorized, UnprocessableEntity, }
-#[derive(Clone, Copy, Debug, Eq, PartialEq)] pub enum OpenApiSchemaMismatch { AdditionalProperty, AnyOf, Const, Enum, MissingReference, OneOf, RequiredProperty, Type, }
-#[derive(Clone, Copy, Debug, Eq, PartialEq)] pub enum OpenApiSecurityExpectation { Public, Required(crate::ContractStr), }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)] pub enum RouteAccess { Authenticated, Public, }
-#[derive(Clone, Copy, Debug, Eq, PartialEq)] pub enum RouteContractMismatch { Method { expected: crate::ContractStr, observed: crate::ContractStr, }, OpenApiOperationId { expected: crate::ContractStr, observed: crate::ContractStr, }, Path { expected: crate::ContractStr, observed: crate::ContractStr, }, }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)] pub enum RouteCoverageError { DuplicateRoute { metadata: crate::RouteMetadata, }, Missing { metadata: crate::RouteMetadata, obligation: RouteCoverageObligation, }, }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)] pub enum RouteCoverageObligation { IntegrationFixture, OpenApiOperation, PayloadValidation, ReplayValidation, SecurityValidation, }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)] pub enum RouteDatabaseUsage { Database, None, }
@@ -67,8 +62,6 @@ pub trait CommonRoutesParameters: git_info::GetGitCommitLink + app_state::GetSql
 #[derive(Clone, Copy, Debug, Eq, PartialEq)] pub struct ApiUrlPathSegmentRef<'value_lt>(&'value_lt str);
 #[derive(Clone, Copy, Debug, Eq, PartialEq)] pub struct AuthSessionKeepAlive { interval: StdAuthSessionRefreshInterval, next: Option<StdAuthSessionInstant>, state: AuthSessionRefreshState, }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)] pub struct AuthenticatedTransport;
-#[derive(Clone, Copy, Debug, Eq, PartialEq)] pub struct HttpContractExpectation { body_kind: HttpContractBodyKind, metadata: crate::RouteMetadata, status: HttpContractStatus, }
-#[derive(Clone, Copy, Debug, Eq, PartialEq)] pub struct OpenApiOperationExpectation { content_type: crate::ContractStr, metadata: crate::RouteMetadata, security: OpenApiSecurityExpectation, status: OpenApiResponseStatus, }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)] pub struct ParameterizedRoutePathTryFromStringError;
 #[derive(Clone, Copy, Debug, Eq, PartialEq)] pub struct PublicTransport;
 #[derive(Clone, Copy, Debug, Eq, PartialEq)] pub struct RouteCoverageDescriptor { access: RouteAccess, evidence: RouteCoverageEvidence, metadata: crate::RouteMetadata, mutation: RouteMutation, }
@@ -81,14 +74,11 @@ pub trait CommonRoutesParameters: git_info::GetGitCommitLink + app_state::GetSql
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)] pub struct OpenApiSecuritySchemeRef<'value_lt>(&'value_lt str);
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)] pub struct RouteBodyLimit(usize);
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)] pub struct StdAuthSessionInstant(std::time::Instant);
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::TryFrom)] #[try_from( error = crate::HttpStatusTryFromU16Error, validator = HttpContractStatus::validate )] pub struct HttpContractStatus(u16);
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::TryFrom)] #[try_from( error = crate::HttpStatusTryFromU16Error, validator = OpenApiResponseStatus::validate )] pub struct OpenApiResponseStatus(u16);
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)] #[error("frontend contract body exceeds its maximum byte length")] pub struct FrontendContractBodyError;
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)] #[error("{self:?}")] pub struct HttpStatusTryFromU16Error;
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)] #[error("{}", str_constants::INVALID_API_URL_PATH_SEGMENT)] pub enum ApiUrlBuildError { InvalidPathSegment, }
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)] pub enum ApiProblemError { #[error("API authentication failed")] Authentication, #[error("API authorization failed")] Authorization, #[error("API operation conflicts with current state")] Conflict, #[error("API request is still in progress")] InProgress, #[error("internal API operation failed")] Internal(ApiProblemStatus), #[error("API request is invalid")] InvalidRequest, #[error("API route does not support this HTTP method")] MethodNotAllowed, #[error("API resource was not found")] NotFound, #[error("API request body is too large")] PayloadTooLarge, #[error("API resource precondition failed")] Precondition, #[error("API request precondition is required")] PreconditionRequired, #[error("API request rate limit was exceeded")] RateLimited, #[error("API request failed")] RequestFailed(ApiProblemStatus), #[error("API service is unavailable")] ServiceUnavailable, #[error("API request validation failed")] Validation, }
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)] pub enum AuthSessionKeepAliveError { #[error("authentication session refresh interval must not be zero")] ZeroInterval, }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)] pub enum JsonContractSnapshotError { #[error("{}", str_constants::JSON_SNAPSHOT_TOO_LONG_ERROR)] TooLong, #[error("{}", str_constants::JSON_SNAPSHOT_SERIALIZATION_ERROR)] Serialization, }
 #[derive(Clone, Copy, Debug, PartialEq, Eq)] pub enum AuthenticationRequirement { Authenticated, Permission(ContractStr), Public, }
 #[derive(Clone, Copy, Debug, PartialEq, Eq)] pub enum CapabilitySupport { Supported, Unsupported, }
 #[derive(Clone, Copy, Debug, PartialEq, Eq)] pub enum ConfirmationRequirement { NotRequired, Required, }
@@ -116,9 +106,6 @@ pub trait CommonRoutesParameters: git_info::GetGitCommitLink + app_state::GetSql
 #[derive(Clone, Copy, Debug, PartialEq, Eq, newtype::AsRefStr, newtype::FromInner)] pub struct FormFieldNameRef<'field_lt>(&'field_lt str);
 #[derive(Clone, Copy, Debug, PartialEq, Eq, newtype::FromInner)] pub struct ContractI64(i64);
 #[derive(Clone, Copy, Debug, PartialEq, Eq, newtype::FromInner)] pub struct FieldOrder(usize);
-#[derive(Clone, Copy, Debug, newtype::Display, newtype::FromInner)] pub struct OpenApiContractTextError(OpenApiContractTextTryFromStringError);
-#[derive(Clone, Copy, Debug, newtype::FromInner)] pub struct JsonSnapshotDynamicFieldRef<'value_lt>(&'value_lt str);
-#[derive(Clone, Copy, Debug, newtype::FromInner)] pub struct RuntimeRoutesRef<'value_lt>(&'value_lt [crate::RouteMetadata]);
 #[derive(Clone, Copy, Debug, newtype::FromInner, newtype::IntoInnerFrom)] pub struct AxumMethodFilter(axum::routing::MethodFilter);
 #[derive(Clone, Debug)] pub struct RouteSchemaContract { metadata: RouteMetadata, request_schema: Option<UtoipaOpenApiRouteSchema>, response_schema: Option<UtoipaOpenApiRouteSchema>, }
 #[derive(Clone, Debug, Default, Eq, PartialEq, newtype::IntoInnerFrom)] pub struct ParameterizedRoutePath(String);
@@ -126,13 +113,8 @@ pub trait CommonRoutesParameters: git_info::GetGitCommitLink + app_state::GetSql
 #[derive(Clone, Debug, Default, PartialEq, Eq, newtype::AsRefStr, newtype::BoundedString)] #[bounded_string(max = 8192usize)] pub struct TransportPath(String);
 #[derive(Clone, Debug, Default, PartialEq, Eq, newtype::Display, newtype::FromInner)] pub struct FormValueError(to_err_string::ErrorText);
 #[derive(Clone, Debug, Default, PartialEq, Eq, newtype::Display, newtype::FromInner)] pub struct TransportError(to_err_string::ErrorText);
-#[derive(Clone, Debug, Eq, PartialEq)] pub enum HttpContractMismatch { BodyExpectedEmpty, BodyExpectedJson, Metadata(RouteContractMismatches), Status { expected: HttpContractStatus, observed: HttpContractStatus, }, }
-#[derive(Clone, Debug, Eq, PartialEq)] pub struct HttpContractBody(Vec<u8>);
-#[derive(Clone, Debug, Eq, PartialEq)] pub struct HttpContractObservation { body: HttpContractBody, metadata: crate::RouteMetadata, status: HttpContractStatus, }
 #[derive(Clone, Debug, Eq, PartialEq)] pub struct RouteRequest<Route> where Route: TypedRoute, { body: Route::Request, }
 #[derive(Clone, Debug, Eq, PartialEq)] pub struct RouteResponse<Route> where Route: TypedRoute, { body: Route::Response, }
-#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr, newtype::TryFrom)] #[try_from(validator = JsonContractSnapshot::validate)] pub struct JsonContractSnapshot(String);
-#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)] pub struct RouteContractMismatches(Vec<RouteContractMismatch>);
 #[derive(Clone, Debug, PartialEq, Eq)] pub enum ClientError { Decode(FormValueError), Encode(FormValueError), Problem(ApiProblem), Status { actual: TransportStatus, expected: TransportStatus, }, Transport(TransportError), UnexpectedResponse, }
 #[derive(Clone, Debug, PartialEq, Eq)] pub struct FormFieldError { error: FormValueError, field: ContractStr, }
 #[derive(Clone, Debug, PartialEq, Eq)] pub struct PageContract { actions: ActionContracts, fields: FieldContracts, path: ContractStr, routes: RouteContracts, title: ContractStr, }
@@ -150,11 +132,7 @@ pub trait CommonRoutesParameters: git_info::GetGitCommitLink + app_state::GetSql
 #[derive(Clone, Debug, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema)] pub struct ApiProblemViolation { detail: ApiProblemDetail, field: ApiProblemField, }
 #[derive(Clone, newtype::FromInner, newtype::IntoInnerFrom)] pub struct UtoipaOpenApiPathParameter(utoipa::openapi::path::Parameter);
 #[derive(Clone, newtype::FromInner, newtype::IntoInnerFrom)] pub struct UtoipaOpenApiRouteSchema(utoipa::openapi::RefOr<utoipa::openapi::Schema>);
-#[derive(Debug, newtype::DebugDisplay, thiserror::Error)] pub enum OpenApiOperationValidationError { DocumentSerialization(SerdeJsonOpenApiSerializationError), MissingContentType, MissingOperation, MissingResponseSchema, MissingResponseStatus, SecurityMismatch, }
-#[derive(Debug, newtype::DebugDisplay, thiserror::Error)] pub enum OpenApiPayloadValidationError { DocumentSerialization(SerdeJsonOpenApiSerializationError), Mismatch(OpenApiSchemaMismatch), PayloadSerialization(SerdeJsonOpenApiSerializationError), SchemaSerialization(SerdeJsonOpenApiSerializationError), }
-#[derive(Debug, newtype::DebugDisplay, thiserror::Error)] pub enum OpenApiValidationError { DocumentSerialization(SerdeJsonOpenApiSerializationError), MissingOperationId(OpenApiContractText, OpenApiContractText), MissingPaths, MissingSchemaReference(OpenApiContractText), MissingSchemas, OpenApiRouteMissing(OpenApiContractText, OpenApiContractText), OperationIdMismatch( OpenApiContractText, OpenApiContractText, OpenApiContractText, OpenApiContractText, ), RuntimeRouteMissing(OpenApiContractText, OpenApiContractText), TextTooLong(OpenApiContractTextError), UnusedSchema(OpenApiContractText), }
 #[derive(Debug, newtype::FromInner, newtype::IntoInnerFrom)] pub struct AxumHandlerMethodRouter<State>(axum::routing::MethodRouter<State>);
-#[derive(Debug, thiserror::Error, newtype::FromInner)] #[error(transparent)] pub struct SerdeJsonOpenApiSerializationError(serde_json::Error);
 #[derive(newtype::FromInner)] pub struct UtoipaOpenApiComponentsRefMut<'value_lt>( &'value_lt mut utoipa::openapi::schema::Components, );
 #[derive(newtype::FromInner)] pub struct UtoipaOpenApiRefMut<'value_lt>(&'value_lt mut utoipa::openapi::OpenApi);
 #[must_use] pub const fn access(self) -> crate::RouteAccess
@@ -197,9 +175,6 @@ pub trait CommonRoutesParameters: git_info::GetGitCommitLink + app_state::GetSql
 #[must_use] pub const fn new( authentication: AuthenticationRequirement, method: HttpMethod, mutation: MutationKind, path: ContractStr, success_status: SuccessStatus, ) -> Self
 #[must_use] pub const fn new( database: RouteDatabaseUsage, json_body: RouteJsonBodyUsage, response: RouteResponseKind, ) -> Self
 #[must_use] pub const fn new( metadata: crate::RouteMetadata, access: RouteAccess, mutation: RouteMutation, evidence: RouteCoverageEvidence, ) -> Self
-#[must_use] pub const fn new( metadata: crate::RouteMetadata, status: HttpContractStatus, body: HttpContractBody, ) -> Self
-#[must_use] pub const fn new( metadata: crate::RouteMetadata, status: HttpContractStatus, body_kind: HttpContractBodyKind, ) -> Self
-#[must_use] pub const fn new( metadata: crate::RouteMetadata, status: OpenApiResponseStatus, content_type: crate::ContractStr, security: OpenApiSecurityExpectation, ) -> Self
 #[must_use] pub const fn new( method: RouteMethod, openapi_operation_id: crate::ContractStr, path: crate::ContractStr, ) -> Self
 #[must_use] pub const fn new(body: Route::Request) -> Self
 #[must_use] pub const fn new(body: TransportBody, path: TransportPath, route: RouteContract) -> Self
@@ -286,7 +261,6 @@ pub trait CommonRoutesParameters: git_info::GetGitCommitLink + app_state::GetSql
 #[must_use] pub fn with_idempotency_key(mut self, value: TransportIdempotencyKey) -> Self
 #[must_use] pub fn with_if_match(mut self, value: TransportIfMatch) -> Self
 #[must_use] pub fn with_retry_after(mut self, retry_after: Option<TransportRetryAfter>) -> Self
-pub async fn run_http_contract_fixture<Send, SendFuture>( expectation: HttpContractExpectation, send: Send, ) -> Result<(), HttpContractMismatch> where Send: FnOnce(crate::RouteMetadata) -> SendFuture, SendFuture: Future<Output = HttpContractObservation>,
 pub const AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS: &[RouteCoverageObligation] = &[ RouteCoverageObligation::IntegrationFixture, RouteCoverageObligation::OpenApiOperation, RouteCoverageObligation::PayloadValidation, RouteCoverageObligation::ReplayValidation, RouteCoverageObligation::SecurityValidation, ];
 pub const AUTHENTICATED_MUTATING_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] = &[ RouteErrorStatus::Authentication, RouteErrorStatus::Authorization, RouteErrorStatus::PayloadTooLarge, RouteErrorStatus::RateLimited, RouteErrorStatus::Internal, ];
 pub const AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS: &[RouteCoverageObligation] = &[ RouteCoverageObligation::IntegrationFixture, RouteCoverageObligation::OpenApiOperation, RouteCoverageObligation::PayloadValidation, RouteCoverageObligation::SecurityValidation, ];
@@ -295,6 +269,7 @@ pub const AUTHORIZED_DELETE_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] = &[ Route
 pub const AUTHORIZED_MUTATING_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] = &[ RouteErrorStatus::Authentication, RouteErrorStatus::Authorization, RouteErrorStatus::Conflict, RouteErrorStatus::PayloadTooLarge, RouteErrorStatus::Validation, RouteErrorStatus::RateLimited, RouteErrorStatus::Internal, ];
 pub const AUTHORIZED_READ_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] = &[ RouteErrorStatus::Authentication, RouteErrorStatus::Authorization, RouteErrorStatus::PayloadTooLarge, RouteErrorStatus::RateLimited, RouteErrorStatus::Internal, ];
 pub const AUTHORIZED_VALIDATED_READ_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] = &[ RouteErrorStatus::Authentication, RouteErrorStatus::Authorization, RouteErrorStatus::PayloadTooLarge, RouteErrorStatus::Validation, RouteErrorStatus::RateLimited, RouteErrorStatus::Internal, ];
+pub const FRONTEND_CONTRACT_BODY_MAX_BYTES: usize = 16_777_216usize;
 pub const PUBLIC_AUTH_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] = &[ RouteErrorStatus::Authentication, RouteErrorStatus::PayloadTooLarge, RouteErrorStatus::RateLimited, RouteErrorStatus::Internal, ];
 pub const PUBLIC_MUTATING_ROUTE_COVERAGE_OBLIGATIONS: &[RouteCoverageObligation] = &[ RouteCoverageObligation::IntegrationFixture, RouteCoverageObligation::OpenApiOperation, RouteCoverageObligation::PayloadValidation, RouteCoverageObligation::ReplayValidation, ];
 pub const PUBLIC_MUTATING_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] = &[ RouteErrorStatus::PayloadTooLarge, RouteErrorStatus::Validation, RouteErrorStatus::RateLimited, RouteErrorStatus::Internal, ];
@@ -308,20 +283,13 @@ pub fn apply_openapi_request_contract<Route>(operation: &mut utoipa::openapi::pa
 pub fn apply_openapi_security_contract<Route>( operation: &mut utoipa::openapi::path::Operation, authenticated_scheme: OpenApiSecuritySchemeRef<'_>, csrf_scheme: OpenApiSecuritySchemeRef<'_>, ) where Route: TypedRoute,
 pub fn apply_openapi_success_contract<Route>(operation: &mut utoipa::openapi::path::Operation) where Route: TypedRoute,
 pub fn begin( &mut self, now: StdAuthSessionInstant, presence: AuthSessionPresence, ) -> AuthSessionKeepAliveDecision
-pub fn canonical_json_contract_snapshot<Payload>( value: &Payload, dynamic_fields: &[JsonSnapshotDynamicFieldRef<'_>], ) -> Result<JsonContractSnapshot, JsonContractSnapshotError> where Payload: serde::Serialize,
 pub fn finish( &mut self, now: StdAuthSessionInstant, outcome: AuthSessionRefreshOutcome, ) -> AuthSessionRefreshOutcome
 pub fn handler_method_router<State, Handler, Marker>( method: super::RouteMethod, handler: Handler, ) -> AxumHandlerMethodRouter<State> where State: Clone + Send + Sync + 'static, Handler: axum::handler::Handler<Marker, State> + Clone + Send + Sync + 'static, Marker: 'static,
 pub fn push_path_segment(&mut self, segment: ApiUrlPathSegmentRef<'_>)
 pub fn push_query_pair( &mut self, name: ApiUrlQueryComponentRef<'_>, value: ApiUrlQueryComponentRef<'_>, )
 pub fn register_openapi_route_schemas<Route>(document: &mut UtoipaOpenApiRefMut<'_>) where Route: TypedRoute,
 pub fn success_body(&self, expected: TransportStatus) -> Result<&TransportBody, ClientError>
-pub fn validate_openapi_contract<Document>( document: &Document, runtime_routes: RuntimeRoutesRef<'_>, ) -> Result<(), OpenApiValidationError> where Document: serde::Serialize,
-pub fn validate_openapi_json_payload<Payload, Schema, Document>( payload: &Payload, schema: &Schema, document: &Document, ) -> Result<(), OpenApiPayloadValidationError> where Payload: serde::Serialize, Schema: serde::Serialize, Document: serde::Serialize,
-pub fn validate_openapi_operations<Document>( document: &Document, expectations: &[OpenApiOperationExpectation], ) -> Result<(), OpenApiOperationValidationError> where Document: serde::Serialize,
-pub fn validate_openapi_schema_references<Document>( document: &Document, ) -> Result<(), OpenApiValidationError> where Document: serde::Serialize,
-pub fn validate_route_contract_metadata( expected: crate::RouteMetadata, observed: crate::RouteMetadata, ) -> Result<(), RouteContractMismatches>
 pub fn validate_route_coverage( descriptors: &[RouteCoverageDescriptor], ) -> Result<(), RouteCoverageError>
-pub fn validate_typed_route_contract<Route>( observed: crate::RouteMetadata, ) -> Result<(), RouteContractMismatches> where Route: crate::TypedRoute,
 pub trait CoveredRoute: TypedRoute { fn coverage_descriptor() -> crate::RouteCoverageDescriptor; }
 pub trait FilterFormValueContract { fn parse_filter_form_value(value: FormValueRef<'_>) -> Result<FilterWireJson, FormValueError>; }
 pub trait FormValueContract: Sized { fn format_form_value(&self) -> Result<FormValue, FormValueError>; fn parse_form_value(value: FormValueRef<'_>) -> Result<Self, FormValueError>; }
