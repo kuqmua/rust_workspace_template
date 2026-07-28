@@ -415,7 +415,7 @@ pub fn render_admin_csr(
         &AdminSsrText::try_from(title).unwrap_or_else(AdminSsrText::from),
         leptos::view! {
             <div id=str_constants::ADMIN_CSR_ROOT_ID style=primary_color><p class="loading-state" role="status">"Loading\u{2026}"</p></div>
-            <script type="module" src="/admin/assets/csr_bootstrap.js?v=20260728-33"></script>
+            <script type="module" src="/admin/assets/csr_bootstrap.js?v=20260728-34"></script>
         },
     )
 }
@@ -628,6 +628,7 @@ mod tests {
             .expect("45b73477");
         let (login_header, _after_login) = login_tail.split_once("</th>").expect("e8120a92");
         assert!(login_header.contains("class=\"table-column-filter\""));
+        assert!(!login_header.contains("<details class=\"table-column-filter\" open"));
         let (_before_id, id_tail) = filters_html
             .as_ref()
             .split_once("<th data-field=\"id\"")
@@ -870,7 +871,7 @@ mod tests {
         assert!(html.as_ref().contains("id=\"admin-csr-root\""));
         assert!(
             html.as_ref()
-                .contains("src=\"/admin/assets/csr_bootstrap.js?v=20260728-33\"")
+                .contains("src=\"/admin/assets/csr_bootstrap.js?v=20260728-34\"")
         );
         assert!(!html.as_ref().contains("<nav"));
         assert!(!html.as_ref().contains("<table"));
