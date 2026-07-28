@@ -262,7 +262,7 @@ pg_crud_common_macros::trait_alias!(
 );
 pg_crud_common_macros::trait_alias!(SqlxEncodePgSqlxTypePgAlias = for<'__> sqlx::Encode<'__, sqlx::Postgres> + sqlx::Type<sqlx::Postgres>);
 pg_crud_common_macros::trait_alias!(
-    UtoipaToSchemaAndSchemarsJsonSchemaAlias = for<'__> utoipa::ToSchema<'__> + schemars::JsonSchema
+    UtoipaToSchemaAndSchemarsJsonSchemaAlias = utoipa::ToSchema + schemars::JsonSchema
 );
 pg_crud_common_macros::trait_alias!(TableTypeAlias = DebugClonePartialEqSerdeDefaultSomeOneAlias);
 pg_crud_common_macros::trait_alias!(CreateAlias = DebugClonePartialEqSerdeDefaultSomeOneAlias);
@@ -597,27 +597,28 @@ pub struct PgTypeWhere<T> {
     v: NotEmptyUniqueVec<T>,
     operator: Operator,
 }
-impl<'schema_lt, T: utoipa::ToSchema<'schema_lt>> utoipa::ToSchema<'schema_lt> for PgTypeWhere<T> {
-    fn schema() -> (
-        &'schema_lt str,
-        utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
-    ) {
-        (
-            str_constants::PG_CRUD_PG_TYPE_WHERE_SCHEMA_NAME,
-            utoipa::openapi::ObjectBuilder::new()
-                .property(
-                    str_constants::PG_CRUD_V_FIELD,
-                    <NotEmptyUniqueVec<T> as utoipa::ToSchema>::schema().1,
-                )
-                .property(
-                    str_constants::PG_CRUD_OPERATOR_FIELD,
-                    <Operator as utoipa::ToSchema>::schema().1,
-                )
-                .required(str_constants::PG_CRUD_V_FIELD)
-                .required(str_constants::PG_CRUD_OPERATOR_FIELD)
-                .build()
-                .into(),
-        )
+impl<T: utoipa::PartialSchema> utoipa::__dev::ComposeSchema for PgTypeWhere<T> {
+    fn compose(
+        _new_generics: Vec<utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>>,
+    ) -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
+        utoipa::openapi::ObjectBuilder::new()
+            .property(
+                str_constants::PG_CRUD_V_FIELD,
+                <NotEmptyUniqueVec<T> as utoipa::PartialSchema>::schema(),
+            )
+            .property(
+                str_constants::PG_CRUD_OPERATOR_FIELD,
+                <Operator as utoipa::PartialSchema>::schema(),
+            )
+            .required(str_constants::PG_CRUD_V_FIELD)
+            .required(str_constants::PG_CRUD_OPERATOR_FIELD)
+            .build()
+            .into()
+    }
+}
+impl<T: utoipa::ToSchema> utoipa::ToSchema for PgTypeWhere<T> {
+    fn name() -> std::borrow::Cow<'static, str> {
+        std::borrow::Cow::Borrowed(str_constants::PG_CRUD_PG_TYPE_WHERE_SCHEMA_NAME)
     }
 }
 impl<T: PartialEq + Clone> PgTypeWhere<T> {
@@ -973,28 +974,27 @@ pub struct OrderBy<ColumnGeneric> {
     pub column: ColumnGeneric,
     pub order: Option<Order>,
 }
-impl<'schema_lt, ColumnGeneric: utoipa::ToSchema<'schema_lt>> utoipa::ToSchema<'schema_lt>
-    for OrderBy<ColumnGeneric>
-{
-    fn schema() -> (
-        &'schema_lt str,
-        utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
-    ) {
-        (
-            str_constants::ORDERBY,
-            utoipa::openapi::ObjectBuilder::new()
-                .property(
-                    str_constants::COLUMN,
-                    <ColumnGeneric as utoipa::ToSchema>::schema().1,
-                )
-                .property(
-                    str_constants::ORDER,
-                    <Order as utoipa::ToSchema>::schema().1,
-                )
-                .required(str_constants::COLUMN)
-                .build()
-                .into(),
-        )
+impl<ColumnGeneric: utoipa::PartialSchema> utoipa::__dev::ComposeSchema for OrderBy<ColumnGeneric> {
+    fn compose(
+        _new_generics: Vec<utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>>,
+    ) -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
+        utoipa::openapi::ObjectBuilder::new()
+            .property(
+                str_constants::COLUMN,
+                <ColumnGeneric as utoipa::PartialSchema>::schema(),
+            )
+            .property(
+                str_constants::ORDER,
+                <Order as utoipa::PartialSchema>::schema(),
+            )
+            .required(str_constants::COLUMN)
+            .build()
+            .into()
+    }
+}
+impl<ColumnGeneric: utoipa::ToSchema> utoipa::ToSchema for OrderBy<ColumnGeneric> {
+    fn name() -> std::borrow::Cow<'static, str> {
+        std::borrow::Cow::Borrowed(str_constants::ORDERBY)
     }
 }
 #[derive(
@@ -1226,22 +1226,23 @@ impl DefaultSomeOneElementMaxPageSize for PaginationStartsWithZero {
 pub struct V<T> {
     pub v: T,
 }
-impl<'schema_lt, T: utoipa::ToSchema<'schema_lt>> utoipa::ToSchema<'schema_lt> for V<T> {
-    fn schema() -> (
-        &'schema_lt str,
-        utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
-    ) {
-        (
-            str_constants::V,
-            utoipa::openapi::ObjectBuilder::new()
-                .property(
-                    str_constants::PG_CRUD_V_FIELD,
-                    <T as utoipa::ToSchema>::schema().1,
-                )
-                .required(str_constants::PG_CRUD_V_FIELD)
-                .build()
-                .into(),
-        )
+impl<T: utoipa::PartialSchema> utoipa::__dev::ComposeSchema for V<T> {
+    fn compose(
+        _new_generics: Vec<utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>>,
+    ) -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
+        utoipa::openapi::ObjectBuilder::new()
+            .property(
+                str_constants::PG_CRUD_V_FIELD,
+                <T as utoipa::PartialSchema>::schema(),
+            )
+            .required(str_constants::PG_CRUD_V_FIELD)
+            .build()
+            .into()
+    }
+}
+impl<T: utoipa::ToSchema> utoipa::ToSchema for V<T> {
+    fn name() -> std::borrow::Cow<'static, str> {
+        std::borrow::Cow::Borrowed(str_constants::V)
     }
 }
 //todo ExactSizeIterator now is not a solution. error[E0658]: use of unstable library feature `exact_size_is_empty`. maybe rewrite it later
@@ -1278,22 +1279,21 @@ pub enum NotEmptyUniqueVecTryNewError<T> {
     newtype::IntoInnerFrom,
 )]
 pub struct NotEmptyUniqueVec<T>(Vec<T>);
-impl<'schema_lt, T: utoipa::ToSchema<'schema_lt>> utoipa::ToSchema<'schema_lt>
-    for NotEmptyUniqueVec<T>
-{
-    fn schema() -> (
-        &'schema_lt str,
-        utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
-    ) {
-        (
-            str_constants::PG_CRUD_NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME,
-            utoipa::openapi::ArrayBuilder::new()
-                .items(<T as utoipa::ToSchema>::schema().1)
-                .min_items(Some(1))
-                .max_items(Some(NOT_EMPTY_UNIQUE_VEC_MAX_LEN))
-                .build()
-                .into(),
-        )
+impl<T: utoipa::PartialSchema> utoipa::__dev::ComposeSchema for NotEmptyUniqueVec<T> {
+    fn compose(
+        _new_generics: Vec<utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>>,
+    ) -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
+        utoipa::openapi::ArrayBuilder::new()
+            .items(<T as utoipa::PartialSchema>::schema())
+            .min_items(Some(1))
+            .max_items(Some(NOT_EMPTY_UNIQUE_VEC_MAX_LEN))
+            .build()
+            .into()
+    }
+}
+impl<T: utoipa::ToSchema> utoipa::ToSchema for NotEmptyUniqueVec<T> {
+    fn name() -> std::borrow::Cow<'static, str> {
+        std::borrow::Cow::Borrowed(str_constants::PG_CRUD_NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME)
     }
 }
 impl<T> NotEmptyUniqueVec<T> {
@@ -1606,22 +1606,26 @@ where
 #[serde(from = "V<Option<()>>")]
 #[derive(newtype::FromInner)]
 pub struct NonPrimaryKeyPgTypeReadIds(V<Option<()>>);
-impl<'schema_lt> utoipa::ToSchema<'schema_lt> for NonPrimaryKeyPgTypeReadIds {
-    fn schema() -> (
-        &'schema_lt str,
-        utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
-    ) {
-        (
-            str_constants::NONPRIMARYKEYPGTYPEREADIDS,
-            utoipa::openapi::ObjectBuilder::new()
-                .property(
-                    str_constants::PG_CRUD_V_FIELD,
-                    utoipa::openapi::ObjectBuilder::new().nullable(true),
-                )
-                .required(str_constants::PG_CRUD_V_FIELD)
-                .build()
-                .into(),
-        )
+impl utoipa::PartialSchema for NonPrimaryKeyPgTypeReadIds {
+    fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
+        utoipa::openapi::ObjectBuilder::new()
+            .property(
+                str_constants::PG_CRUD_V_FIELD,
+                utoipa::openapi::schema::OneOfBuilder::new()
+                    .item(
+                        utoipa::openapi::ObjectBuilder::new()
+                            .schema_type(utoipa::openapi::schema::Type::Null),
+                    )
+                    .item(utoipa::openapi::schema::empty()),
+            )
+            .required(str_constants::PG_CRUD_V_FIELD)
+            .build()
+            .into()
+    }
+}
+impl utoipa::ToSchema for NonPrimaryKeyPgTypeReadIds {
+    fn name() -> std::borrow::Cow<'static, str> {
+        std::borrow::Cow::Borrowed(str_constants::NONPRIMARYKEYPGTYPEREADIDS)
     }
 }
 
@@ -1805,21 +1809,16 @@ impl From<std::num::NonZeroU16> for NotZeroUnsignedPartOfI32 {
         Self(UnsignedPartOfI32::from(value.get()))
     }
 }
-impl<'schema_lt> utoipa::ToSchema<'schema_lt> for NotZeroUnsignedPartOfI32 {
-    fn schema() -> (
-        &'schema_lt str,
-        utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
-    ) {
-        (
-            stringify!(NotZeroUnsignedPartOfI32),
-            utoipa::openapi::ObjectBuilder::new()
-                .schema_type(utoipa::openapi::SchemaType::Integer)
-                .minimum(Some(1.0f64))
-                .maximum(Some(f64::from(i32::MAX)))
-                .into(),
-        )
+impl utoipa::PartialSchema for NotZeroUnsignedPartOfI32 {
+    fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
+        utoipa::openapi::ObjectBuilder::new()
+            .schema_type(utoipa::openapi::schema::Type::Integer)
+            .minimum(Some(1.0f64))
+            .maximum(Some(f64::from(i32::MAX)))
+            .into()
     }
 }
+impl utoipa::ToSchema for NotZeroUnsignedPartOfI32 {}
 #[derive(
     Debug,
     Clone,
@@ -1899,13 +1898,53 @@ impl DefaultSomeOneElement for NotZeroUnsignedPartOfI32 {
     Eq,
     serde::Serialize,
     serde::Deserialize,
-    utoipa::ToSchema,
     schemars::JsonSchema,
     optml::Optml,
 )]
 pub enum SingleOrMultiple<T: std::fmt::Debug + PartialEq + Clone> {
     Multiple(NotEmptyUniqueVec<T>),
     Single(T),
+}
+impl<T> utoipa::PartialSchema for SingleOrMultiple<T>
+where
+    T: std::fmt::Debug + PartialEq + Clone + utoipa::PartialSchema,
+{
+    fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
+        utoipa::openapi::schema::Schema::from(
+            utoipa::openapi::OneOfBuilder::new()
+                .item(
+                    utoipa::openapi::ObjectBuilder::new()
+                        .property(
+                            stringify!(Multiple),
+                            <NotEmptyUniqueVec<T> as utoipa::PartialSchema>::schema(),
+                        )
+                        .required(stringify!(Multiple)),
+                )
+                .item(
+                    utoipa::openapi::ObjectBuilder::new()
+                        .property(stringify!(Single), <T as utoipa::PartialSchema>::schema())
+                        .required(stringify!(Single)),
+                )
+                .build(),
+        )
+        .into()
+    }
+}
+impl<T> utoipa::ToSchema for SingleOrMultiple<T>
+where
+    T: std::fmt::Debug + PartialEq + Clone + utoipa::ToSchema,
+{
+    fn name() -> std::borrow::Cow<'static, str> {
+        std::borrow::Cow::Borrowed(stringify!(SingleOrMultiple))
+    }
+    fn schemas(
+        schemas: &mut Vec<(
+            String,
+            utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
+        )>,
+    ) {
+        T::schemas(schemas);
+    }
 }
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::FromInner, newtype::IntoIterator,

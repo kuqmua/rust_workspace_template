@@ -51,23 +51,18 @@ const ADMIN_NEW_PASSWORD_IS_VALID: fn(&str) -> bool = |value| {
     newtype::FromInner,
 )]
 pub struct StdAdminPositiveI64(std::num::NonZeroI64);
-impl<'schema_lt> utoipa::ToSchema<'schema_lt> for StdAdminPositiveI64 {
-    fn schema() -> (
-        &'schema_lt str,
-        utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
-    ) {
-        (
-            stringify!(StdAdminPositiveI64),
-            utoipa::openapi::ObjectBuilder::new()
-                .schema_type(utoipa::openapi::SchemaType::Integer)
-                .format(Some(utoipa::openapi::SchemaFormat::KnownFormat(
-                    utoipa::openapi::KnownFormat::Int64,
-                )))
-                .minimum(Some(1.0))
-                .into(),
-        )
+impl utoipa::PartialSchema for StdAdminPositiveI64 {
+    fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
+        utoipa::openapi::ObjectBuilder::new()
+            .schema_type(utoipa::openapi::schema::Type::Integer)
+            .format(Some(utoipa::openapi::SchemaFormat::KnownFormat(
+                utoipa::openapi::KnownFormat::Int64,
+            )))
+            .minimum(Some(1.0))
+            .into()
     }
 }
+impl utoipa::ToSchema for StdAdminPositiveI64 {}
 impl TryFrom<i64> for StdAdminPositiveI64 {
     type Error = AdminIdTryFromI64Error;
     fn try_from(value: i64) -> Result<Self, Self::Error> {
@@ -176,6 +171,7 @@ pub struct AdminRoleName(String);
     chars,
     serde,
     utoipa,
+    write_only,
     description = "administrator password"
 )]
 pub struct AdminPassword(String);
@@ -194,6 +190,7 @@ pub struct AdminPassword(String);
     chars,
     serde,
     utoipa,
+    write_only,
     validator = ADMIN_NEW_PASSWORD_IS_VALID,
     description = "new administrator password"
 )]
@@ -751,7 +748,8 @@ impl AdminTableSortField {
     newtype::FromInner,
 )]
 #[serde(try_from = "i64")]
-pub struct AdminUserId(#[schema(value_type = i64)] StdAdminPositiveI64);
+#[schema(value_type = i64)]
+pub struct AdminUserId(StdAdminPositiveI64);
 impl TryFrom<i64> for AdminUserId {
     type Error = AdminIdTryFromI64Error;
     fn try_from(value: i64) -> Result<Self, Self::Error> {
@@ -783,7 +781,8 @@ impl AdminUserId {
     newtype::FromInner,
 )]
 #[serde(try_from = "i64")]
-pub struct AdminRoleId(#[schema(value_type = i64)] StdAdminPositiveI64);
+#[schema(value_type = i64)]
+pub struct AdminRoleId(StdAdminPositiveI64);
 impl TryFrom<i64> for AdminRoleId {
     type Error = AdminIdTryFromI64Error;
     fn try_from(value: i64) -> Result<Self, Self::Error> {
@@ -815,7 +814,8 @@ impl AdminRoleId {
     newtype::FromInner,
 )]
 #[serde(try_from = "i64")]
-pub struct AdminPermissionId(#[schema(value_type = i64)] StdAdminPositiveI64);
+#[schema(value_type = i64)]
+pub struct AdminPermissionId(StdAdminPositiveI64);
 impl TryFrom<i64> for AdminPermissionId {
     type Error = AdminIdTryFromI64Error;
     fn try_from(value: i64) -> Result<Self, Self::Error> {
@@ -846,7 +846,8 @@ impl AdminPermissionId {
     newtype::FromInner,
 )]
 #[serde(try_from = "i64")]
-pub struct AdminAuditLogId(#[schema(value_type = i64)] StdAdminPositiveI64);
+#[schema(value_type = i64)]
+pub struct AdminAuditLogId(StdAdminPositiveI64);
 impl TryFrom<i64> for AdminAuditLogId {
     type Error = AdminIdTryFromI64Error;
     fn try_from(value: i64) -> Result<Self, Self::Error> {
@@ -1361,6 +1362,37 @@ impl<'de, T: serde::Deserialize<'de>> serde::Deserialize<'de> for AdminBoundedVe
         ))
     }
 }
+#[allow(dead_code)] // schema-only generic carries its item type without runtime construction
+struct AdminOpenApiVec<T, const MAX: usize> {
+    marker: StdPhantomDataAdminBoundedVecVisitor<T>,
+}
+impl<T: utoipa::PartialSchema, const MAX: usize> utoipa::__dev::ComposeSchema
+    for AdminOpenApiVec<T, MAX>
+{
+    fn compose(
+        _new_generics: Vec<utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>>,
+    ) -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
+        utoipa::openapi::ArrayBuilder::new()
+            .items(<T as utoipa::PartialSchema>::schema())
+            .max_items(Some(MAX))
+            .build()
+            .into()
+    }
+}
+impl<T: utoipa::ToSchema, const MAX: usize> utoipa::ToSchema for AdminOpenApiVec<T, MAX> {
+    fn schemas(
+        schemas: &mut Vec<(
+            String,
+            utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
+        )>,
+    ) {
+        schemas.push((
+            T::name().into_owned(),
+            <T as utoipa::PartialSchema>::schema(),
+        ));
+        T::schemas(schemas);
+    }
+}
 #[derive(
     Clone,
     Debug,
@@ -1371,7 +1403,8 @@ impl<'de, T: serde::Deserialize<'de>> serde::Deserialize<'de> for AdminBoundedVe
     newtype::IntoInnerFrom,
 )]
 #[serde(from = "AdminBoundedVec<AdminPermissionValue>")]
-pub struct AdminPermissionValues(#[schema(max_items = 10000)] Vec<AdminPermissionValue>);
+#[schema(value_type = AdminOpenApiVec<AdminPermissionValue, 10_000>)]
+pub struct AdminPermissionValues(Vec<AdminPermissionValue>);
 impl From<AdminBoundedVec<AdminPermissionValue>> for AdminPermissionValues {
     fn from(value: AdminBoundedVec<AdminPermissionValue>) -> Self {
         Self(value.0)
@@ -1393,7 +1426,8 @@ impl TryFrom<Vec<AdminPermissionValue>> for AdminPermissionValues {
     newtype::IntoInnerFrom,
 )]
 #[serde(from = "AdminBoundedVec<AdminRoleName>")]
-pub struct AdminRoleNames(#[schema(max_items = 10000)] Vec<AdminRoleName>);
+#[schema(value_type = AdminOpenApiVec<AdminRoleName, 10_000>)]
+pub struct AdminRoleNames(Vec<AdminRoleName>);
 impl From<AdminBoundedVec<AdminRoleName>> for AdminRoleNames {
     fn from(value: AdminBoundedVec<AdminRoleName>) -> Self {
         Self(value.0)
@@ -1415,7 +1449,8 @@ impl TryFrom<Vec<AdminRoleName>> for AdminRoleNames {
     newtype::IntoInnerFrom,
 )]
 #[serde(from = "AdminBoundedVec<AdminRoleId>")]
-pub struct AdminRoleIds(#[schema(max_items = 10000)] Vec<AdminRoleId>);
+#[schema(value_type = AdminOpenApiVec<AdminRoleId, 10_000>)]
+pub struct AdminRoleIds(Vec<AdminRoleId>);
 impl From<AdminBoundedVec<AdminRoleId>> for AdminRoleIds {
     fn from(value: AdminBoundedVec<AdminRoleId>) -> Self {
         Self(value.0)
@@ -1437,7 +1472,8 @@ impl TryFrom<Vec<AdminRoleId>> for AdminRoleIds {
     newtype::IntoInnerFrom,
 )]
 #[serde(from = "AdminBoundedVec<AdminPermissionId>")]
-pub struct AdminPermissionIds(#[schema(max_items = 10000)] Vec<AdminPermissionId>);
+#[schema(value_type = AdminOpenApiVec<AdminPermissionId, 10_000>)]
+pub struct AdminPermissionIds(Vec<AdminPermissionId>);
 impl From<AdminBoundedVec<AdminPermissionId>> for AdminPermissionIds {
     fn from(value: AdminBoundedVec<AdminPermissionId>) -> Self {
         Self(value.0)
@@ -1459,7 +1495,8 @@ impl TryFrom<Vec<AdminPermissionId>> for AdminPermissionIds {
     newtype::IntoInnerFrom,
 )]
 #[serde(from = "AdminBoundedVec<AdminUserSummary>")]
-pub struct AdminUserSummaries(#[schema(max_items = 10000)] Vec<AdminUserSummary>);
+#[schema(value_type = AdminOpenApiVec<AdminUserSummary, 10_000>)]
+pub struct AdminUserSummaries(Vec<AdminUserSummary>);
 impl From<AdminBoundedVec<AdminUserSummary>> for AdminUserSummaries {
     fn from(value: AdminBoundedVec<AdminUserSummary>) -> Self {
         Self(value.0)
@@ -1481,7 +1518,8 @@ impl TryFrom<Vec<AdminUserSummary>> for AdminUserSummaries {
     newtype::IntoInnerFrom,
 )]
 #[serde(from = "AdminBoundedVec<AdminRoleSummary>")]
-pub struct AdminRoleSummaries(#[schema(max_items = 10000)] Vec<AdminRoleSummary>);
+#[schema(value_type = AdminOpenApiVec<AdminRoleSummary, 10_000>)]
+pub struct AdminRoleSummaries(Vec<AdminRoleSummary>);
 impl From<AdminBoundedVec<AdminRoleSummary>> for AdminRoleSummaries {
     fn from(value: AdminBoundedVec<AdminRoleSummary>) -> Self {
         Self(value.0)
@@ -1503,7 +1541,8 @@ impl TryFrom<Vec<AdminRoleSummary>> for AdminRoleSummaries {
     newtype::IntoInnerFrom,
 )]
 #[serde(from = "AdminBoundedVec<AdminPermissionSummary>")]
-pub struct AdminPermissionSummaries(#[schema(max_items = 10000)] Vec<AdminPermissionSummary>);
+#[schema(value_type = AdminOpenApiVec<AdminPermissionSummary, 10_000>)]
+pub struct AdminPermissionSummaries(Vec<AdminPermissionSummary>);
 impl From<AdminBoundedVec<AdminPermissionSummary>> for AdminPermissionSummaries {
     fn from(value: AdminBoundedVec<AdminPermissionSummary>) -> Self {
         Self(value.0)
@@ -1525,7 +1564,8 @@ impl TryFrom<Vec<AdminPermissionSummary>> for AdminPermissionSummaries {
     newtype::IntoInnerFrom,
 )]
 #[serde(from = "AdminBoundedVec<AdminAuditView>")]
-pub struct AdminAuditViews(#[schema(max_items = 10000)] Vec<AdminAuditView>);
+#[schema(value_type = AdminOpenApiVec<AdminAuditView, 10_000>)]
+pub struct AdminAuditViews(Vec<AdminAuditView>);
 impl From<AdminBoundedVec<AdminAuditView>> for AdminAuditViews {
     fn from(value: AdminBoundedVec<AdminAuditView>) -> Self {
         Self(value.0)
@@ -1547,7 +1587,8 @@ impl TryFrom<Vec<AdminAuditView>> for AdminAuditViews {
     newtype::IntoInnerFrom,
 )]
 #[serde(from = "AdminBoundedVec<AdminText>")]
-pub struct AdminTexts(#[schema(max_items = 10000)] Vec<AdminText>);
+#[schema(value_type = AdminOpenApiVec<AdminText, 10_000>)]
+pub struct AdminTexts(Vec<AdminText>);
 impl From<AdminBoundedVec<AdminText>> for AdminTexts {
     fn from(value: AdminBoundedVec<AdminText>) -> Self {
         Self(value.0)
@@ -1569,7 +1610,8 @@ impl TryFrom<Vec<AdminText>> for AdminTexts {
     newtype::IntoInnerFrom,
 )]
 #[serde(from = "AdminBoundedVec<AdminDataRow>")]
-pub struct AdminDataRows(#[schema(max_items = 10000)] Vec<AdminDataRow>);
+#[schema(value_type = AdminOpenApiVec<AdminDataRow, 10_000>)]
+pub struct AdminDataRows(Vec<AdminDataRow>);
 impl From<AdminBoundedVec<AdminDataRow>> for AdminDataRows {
     fn from(value: AdminBoundedVec<AdminDataRow>) -> Self {
         Self(value.0)
@@ -1591,7 +1633,8 @@ impl TryFrom<Vec<AdminDataRow>> for AdminDataRows {
     newtype::IntoInnerFrom,
 )]
 #[serde(from = "AdminBoundedVec<AdminDataTable>")]
-pub struct AdminDataTables(#[schema(max_items = 10000)] Vec<AdminDataTable>);
+#[schema(value_type = AdminOpenApiVec<AdminDataTable, 10_000>)]
+pub struct AdminDataTables(Vec<AdminDataTable>);
 impl From<AdminBoundedVec<AdminDataTable>> for AdminDataTables {
     fn from(value: AdminBoundedVec<AdminDataTable>) -> Self {
         Self(value.0)
@@ -1613,7 +1656,8 @@ impl TryFrom<Vec<AdminDataTable>> for AdminDataTables {
     newtype::IntoInnerFrom,
 )]
 #[serde(from = "AdminBoundedVec<AdminOptionalSetting>")]
-pub struct AdminOptionalSettings(#[schema(max_items = 10000)] Vec<AdminOptionalSetting>);
+#[schema(value_type = AdminOpenApiVec<AdminOptionalSetting, 10_000>)]
+pub struct AdminOptionalSettings(Vec<AdminOptionalSetting>);
 impl From<AdminBoundedVec<AdminOptionalSetting>> for AdminOptionalSettings {
     fn from(value: AdminBoundedVec<AdminOptionalSetting>) -> Self {
         Self(value.0)
@@ -1635,7 +1679,8 @@ impl TryFrom<Vec<AdminOptionalSetting>> for AdminOptionalSettings {
     newtype::IntoInnerFrom,
 )]
 #[serde(from = "AdminBoundedVec<AdminSessionView>")]
-pub struct AdminSessionViews(#[schema(max_items = 10000)] Vec<AdminSessionView>);
+#[schema(value_type = AdminOpenApiVec<AdminSessionView, 10_000>)]
+pub struct AdminSessionViews(Vec<AdminSessionView>);
 impl From<AdminBoundedVec<AdminSessionView>> for AdminSessionViews {
     fn from(value: AdminBoundedVec<AdminSessionView>) -> Self {
         Self(value.0)
@@ -2017,6 +2062,7 @@ impl AdminRoleSummary {
         self.is_system
     }
     #[must_use]
+    #[allow(clippy::same_name_method)] // Utoipa 5's static schema name intentionally coexists with this domain accessor
     pub const fn name(&self) -> &AdminRoleName {
         &self.name
     }
@@ -2040,6 +2086,7 @@ impl AdminPermissionSummary {
         self.id
     }
     #[must_use]
+    #[allow(clippy::same_name_method)] // Utoipa 5's static schema name intentionally coexists with this domain accessor
     pub const fn name(&self) -> &AdminPermissionValue {
         &self.name
     }
@@ -2278,6 +2325,7 @@ impl AdminDataColumn {
         &self.label
     }
     #[must_use]
+    #[allow(clippy::same_name_method)] // Utoipa 5's static schema name intentionally coexists with this domain accessor
     pub const fn name(&self) -> &AdminText {
         &self.name
     }
@@ -2323,7 +2371,8 @@ impl AdminDataFilter {
 }
 #[derive(Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema)]
 #[serde(from = "AdminBoundedVec<AdminDataFilter>")]
-pub struct AdminDataFilters(#[schema(max_items = 100)] Vec<AdminDataFilter>);
+#[schema(value_type = AdminOpenApiVec<AdminDataFilter, 100>)]
+pub struct AdminDataFilters(Vec<AdminDataFilter>);
 impl From<AdminBoundedVec<AdminDataFilter>> for AdminDataFilters {
     fn from(value: AdminBoundedVec<AdminDataFilter>) -> Self {
         Self(value.0)
@@ -2369,7 +2418,8 @@ impl From<frontend_contract::InputKind> for AdminDataInputKind {
 }
 #[derive(Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema)]
 #[serde(from = "AdminBoundedVec<AdminDataColumn>")]
-pub struct AdminDataColumns(#[schema(max_items = 10000)] Vec<AdminDataColumn>);
+#[schema(value_type = AdminOpenApiVec<AdminDataColumn, 10_000>)]
+pub struct AdminDataColumns(Vec<AdminDataColumn>);
 impl From<AdminBoundedVec<AdminDataColumn>> for AdminDataColumns {
     fn from(value: AdminBoundedVec<AdminDataColumn>) -> Self {
         Self(value.0)
@@ -2466,7 +2516,7 @@ impl AdminDataTableCatalog {
 pub struct AdminAuditExportCsv(String);
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
 pub struct AdminAuditExport {
-    #[schema(value_type = String, max_length = 262144)]
+    #[schema(value_type = String, max_length = 262_144)]
     csv: AdminAuditExportCsv,
 }
 impl AdminAuditExport {

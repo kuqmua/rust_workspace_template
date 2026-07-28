@@ -147,22 +147,23 @@ impl<T: schemars::JsonSchema, const MIN: usize, const MAX: usize> schemars::Json
         std::borrow::Cow::Owned(format!("BoundedVec_{MIN}_{MAX}_{}", T::schema_name()))
     }
 }
-impl<'schema_lt, T: utoipa::PartialSchema, const MIN: usize, const MAX: usize>
-    utoipa::ToSchema<'schema_lt> for BoundedVec<T, MIN, MAX>
+impl<T: utoipa::PartialSchema, const MIN: usize, const MAX: usize> utoipa::PartialSchema
+    for BoundedVec<T, MIN, MAX>
 {
-    fn schema() -> (
-        &'schema_lt str,
-        utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
-    ) {
-        (
-            str_constants::BOUNDEDVEC,
-            utoipa::openapi::ArrayBuilder::new()
-                .items(<T as utoipa::PartialSchema>::schema())
-                .min_items(Some(MIN))
-                .max_items(Some(MAX))
-                .build()
-                .into(),
-        )
+    fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
+        utoipa::openapi::ArrayBuilder::new()
+            .items(<T as utoipa::PartialSchema>::schema())
+            .min_items(Some(MIN))
+            .max_items(Some(MAX))
+            .build()
+            .into()
+    }
+}
+impl<T: utoipa::ToSchema, const MIN: usize, const MAX: usize> utoipa::ToSchema
+    for BoundedVec<T, MIN, MAX>
+{
+    fn name() -> std::borrow::Cow<'static, str> {
+        std::borrow::Cow::Borrowed(str_constants::BOUNDEDVEC)
     }
 }
 #[cfg(test)]
@@ -235,7 +236,7 @@ mod tests {
                 .and_then(sqlx::types::JsonValue::as_u64),
             Some(2u64)
         );
-        let open_api_schema = <super::BoundedVec<u8, 1, 2> as utoipa::ToSchema>::schema().1;
+        let open_api_schema = <super::BoundedVec<u8, 1, 2> as utoipa::PartialSchema>::schema();
         let utoipa::openapi::RefOr::T(utoipa::openapi::schema::Schema::Array(array)) =
             open_api_schema
         else {

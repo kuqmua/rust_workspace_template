@@ -109,22 +109,17 @@ impl UuidAdminValue {
         self.0
     }
 }
-impl<'schema_lt> utoipa::ToSchema<'schema_lt> for UuidAdminValue {
-    fn schema() -> (
-        &'schema_lt str,
-        utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
-    ) {
-        (
-            stringify!(UuidAdminValue),
-            utoipa::openapi::ObjectBuilder::new()
-                .schema_type(utoipa::openapi::SchemaType::String)
-                .format(Some(utoipa::openapi::SchemaFormat::Custom(
-                    str_constants::PG_CRUD_PG_UUID.to_owned(),
-                )))
-                .into(),
-        )
+impl utoipa::PartialSchema for UuidAdminValue {
+    fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
+        utoipa::openapi::ObjectBuilder::new()
+            .schema_type(utoipa::openapi::schema::Type::String)
+            .format(Some(utoipa::openapi::SchemaFormat::Custom(
+                str_constants::PG_CRUD_PG_UUID.to_owned(),
+            )))
+            .into()
     }
 }
+impl utoipa::ToSchema for UuidAdminValue {}
 #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::AsRefOwned, newtype::FromInner)]
 pub struct StdAdminSocketAddr(std::net::SocketAddr);
 impl StdAdminSocketAddr {

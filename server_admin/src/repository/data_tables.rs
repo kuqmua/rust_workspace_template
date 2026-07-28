@@ -436,14 +436,14 @@ pub(crate) async fn read(
             )
         },
     )?;
-    let unbound_count_query = sqlx::query(count_sql.as_ref());
+    let unbound_count_query = sqlx::query(sqlx::AssertSqlSafe(count_sql.as_ref().as_str()));
     let bound_count_query = filter
         .clone()
         .map(|value| value.query_bind(pg_crud_common::SqlxPostgresQuery::from(unbound_count_query)))
         .transpose()
         .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?
         .map_or_else(
-            || sqlx::query(count_sql.as_ref()),
+            || sqlx::query(sqlx::AssertSqlSafe(count_sql.as_ref().as_str())),
             pg_crud_common::SqlxPostgresQuery::into_inner,
         );
     let count_row = bound_count_query
@@ -452,13 +452,13 @@ pub(crate) async fn read(
         .map_err(crate::SqlxAdminError::from)?;
     let total =
         sqlx::Row::try_get::<i64, _>(&count_row, 0usize).map_err(crate::SqlxAdminError::from)?;
-    let unbound_data_query = sqlx::query(sql.as_ref());
+    let unbound_data_query = sqlx::query(sqlx::AssertSqlSafe(sql.as_ref().as_str()));
     let bound_data_query = filter
         .map(|value| value.query_bind(pg_crud_common::SqlxPostgresQuery::from(unbound_data_query)))
         .transpose()
         .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?
         .map_or_else(
-            || sqlx::query(sql.as_ref()),
+            || sqlx::query(sqlx::AssertSqlSafe(sql.as_ref().as_str())),
             pg_crud_common::SqlxPostgresQuery::into_inner,
         )
         .bind(i64::from(u16::from(query.page().limit())))

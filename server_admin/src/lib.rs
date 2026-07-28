@@ -108,21 +108,20 @@ pub enum AdminPasswordTryFromStringError {
     #[error("{}", str_constants::ADMINISTRATOR_PASSWORD_LENGTH_IS_INVALID)]
     InvalidLength,
 }
-impl<'schema_lt> utoipa::ToSchema<'schema_lt> for AdminPassword {
-    fn schema() -> (
-        &'schema_lt str,
-        utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
-    ) {
-        (
-            str_constants::ADMINPASSWORD,
-            utoipa::openapi::ObjectBuilder::new()
-                .schema_type(utoipa::openapi::schema::SchemaType::String)
-                .min_length(Some(server_admin_contract::ADMIN_PASSWORD_MIN_CHARS))
-                .max_length(Some(server_admin_contract::ADMIN_PASSWORD_MAX_CHARS))
-                .write_only(Some(true))
-                .build()
-                .into(),
-        )
+impl utoipa::PartialSchema for AdminPassword {
+    fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
+        utoipa::openapi::ObjectBuilder::new()
+            .schema_type(utoipa::openapi::schema::Type::String)
+            .min_length(Some(server_admin_contract::ADMIN_PASSWORD_MIN_CHARS))
+            .max_length(Some(server_admin_contract::ADMIN_PASSWORD_MAX_CHARS))
+            .write_only(Some(true))
+            .build()
+            .into()
+    }
+}
+impl utoipa::ToSchema for AdminPassword {
+    fn name() -> std::borrow::Cow<'static, str> {
+        std::borrow::Cow::Borrowed(str_constants::ADMINPASSWORD)
     }
 }
 impl TryFrom<String> for AdminPassword {
@@ -676,9 +675,12 @@ mod tests {
     #[test]
     fn permission_seed_contains_the_complete_typed_catalog() {
         assert!(super::AdminPermission::ALL.into_iter().all(|permission| {
-            super::migrations::migrator()
-                .iter()
-                .any(|migration| migration.sql.contains(permission.as_str().as_ref()))
+            super::migrations::migrator().iter().any(|migration| {
+                migration
+                    .sql
+                    .as_str()
+                    .contains(permission.as_str().as_ref())
+            })
         }));
     }
     #[tokio::test]

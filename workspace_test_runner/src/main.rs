@@ -759,9 +759,10 @@ where
     reason = "the command-mode facade keeps fixture generation out of main dispatch"
 )]
 fn write_admin_contract_fixture() -> Result<(), ()> {
-    let no_body_schema =
-        serde_json::to_value(<server_admin_contract::AdminNoBody as utoipa::ToSchema>::schema().1)
-            .map_err(|error| eprintln!("{error}"))?;
+    let no_body_schema = serde_json::to_value(
+        <server_admin_contract::AdminNoBody as utoipa::PartialSchema>::schema(),
+    )
+    .map_err(|error| eprintln!("{error}"))?;
     let routes = <server_admin_contract::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::schema_contracts()
         .as_ref()
         .iter()

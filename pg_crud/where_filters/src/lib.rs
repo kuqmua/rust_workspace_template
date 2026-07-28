@@ -67,17 +67,16 @@ pub enum RegexRegexTryFromStringError {
     #[error("regular expression pattern exceeds the size limit")]
     TooLong,
 }
-impl<'schema_lt> utoipa::ToSchema<'schema_lt> for RegexRegex {
-    fn schema() -> (
-        &'schema_lt str,
-        utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
-    ) {
-        (
-            str_constants::PG_CRUD_REGEX_REGEX_SCHEMA_NAME,
-            utoipa::openapi::ObjectBuilder::new()
-                .schema_type(utoipa::openapi::SchemaType::String)
-                .into(),
-        )
+impl utoipa::PartialSchema for RegexRegex {
+    fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
+        utoipa::openapi::ObjectBuilder::new()
+            .schema_type(utoipa::openapi::schema::Type::String)
+            .into()
+    }
+}
+impl utoipa::ToSchema for RegexRegex {
+    fn name() -> std::borrow::Cow<'static, str> {
+        std::borrow::Cow::Borrowed(str_constants::PG_CRUD_REGEX_REGEX_SCHEMA_NAME)
     }
 }
 impl TryFrom<String> for RegexRegex {
@@ -171,32 +170,38 @@ where
     start: T,
     end: T,
 }
-impl<'schema_lt, T> utoipa::ToSchema<'schema_lt> for Between<T>
+impl<T> utoipa::__dev::ComposeSchema for Between<T>
 where
     T: sqlx::Type<sqlx::Postgres>
         + for<'encode_lt> sqlx::Encode<'encode_lt, sqlx::Postgres>
-        + utoipa::ToSchema<'schema_lt>,
+        + utoipa::ToSchema,
 {
-    fn schema() -> (
-        &'schema_lt str,
-        utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
-    ) {
-        (
-            str_constants::PG_CRUD_BETWEEN_SCHEMA_NAME,
-            utoipa::openapi::ObjectBuilder::new()
-                .property(
-                    str_constants::PG_CRUD_START_FIELD,
-                    <T as utoipa::ToSchema>::schema().1,
-                )
-                .property(
-                    str_constants::PG_CRUD_END_FIELD,
-                    <T as utoipa::ToSchema>::schema().1,
-                )
-                .required(str_constants::PG_CRUD_START_FIELD)
-                .required(str_constants::PG_CRUD_END_FIELD)
-                .build()
-                .into(),
-        )
+    fn compose(
+        _new_generics: Vec<utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>>,
+    ) -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
+        utoipa::openapi::ObjectBuilder::new()
+            .property(
+                str_constants::PG_CRUD_START_FIELD,
+                <T as utoipa::PartialSchema>::schema(),
+            )
+            .property(
+                str_constants::PG_CRUD_END_FIELD,
+                <T as utoipa::PartialSchema>::schema(),
+            )
+            .required(str_constants::PG_CRUD_START_FIELD)
+            .required(str_constants::PG_CRUD_END_FIELD)
+            .build()
+            .into()
+    }
+}
+impl<T> utoipa::ToSchema for Between<T>
+where
+    T: sqlx::Type<sqlx::Postgres>
+        + for<'encode_lt> sqlx::Encode<'encode_lt, sqlx::Postgres>
+        + utoipa::ToSchema,
+{
+    fn name() -> std::borrow::Cow<'static, str> {
+        std::borrow::Cow::Borrowed(str_constants::PG_CRUD_BETWEEN_SCHEMA_NAME)
     }
 }
 #[location::errors_with_location]
@@ -508,21 +513,20 @@ impl<T> From<[T; 1]> for PgTypeNotEmptyUniqueVec<T> {
         Self(Vec::from(value))
     }
 }
-impl<'schema_lt, T: utoipa::ToSchema<'schema_lt>> utoipa::ToSchema<'schema_lt>
-    for PgTypeNotEmptyUniqueVec<T>
-{
-    fn schema() -> (
-        &'schema_lt str,
-        utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
-    ) {
-        (
-            str_constants::PG_CRUD_PG_TYPE_NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME,
-            utoipa::openapi::ArrayBuilder::new()
-                .items(<T as utoipa::ToSchema>::schema().1)
-                .min_items(Some(1))
-                .build()
-                .into(),
-        )
+impl<T: utoipa::PartialSchema> utoipa::__dev::ComposeSchema for PgTypeNotEmptyUniqueVec<T> {
+    fn compose(
+        _new_generics: Vec<utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>>,
+    ) -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
+        utoipa::openapi::ArrayBuilder::new()
+            .items(<T as utoipa::PartialSchema>::schema())
+            .min_items(Some(1))
+            .build()
+            .into()
+    }
+}
+impl<T: utoipa::ToSchema> utoipa::ToSchema for PgTypeNotEmptyUniqueVec<T> {
+    fn name() -> std::borrow::Cow<'static, str> {
+        std::borrow::Cow::Borrowed(str_constants::PG_CRUD_PG_TYPE_NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME)
     }
 }
 impl<T: PartialEq> TryFrom<Vec<T>> for PgTypeNotEmptyUniqueVec<T> {

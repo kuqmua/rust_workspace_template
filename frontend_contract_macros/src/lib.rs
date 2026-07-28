@@ -543,10 +543,7 @@ pub fn route_registry(
                         &mut open_api
                     );
                     let metadata = <#routes as frontend_contract::TypedRoute>::metadata();
-                    let mut source_path_item = <#openapi_paths as utoipa::Path>::path_item(None);
-                    if let Some(mut operation) = source_path_item
-                        .operations
-                        .remove(&utoipa::openapi::path::PathItemType::Get)
+                    let mut operation = <#openapi_paths as utoipa::Path>::operation();
                     {
                         operation.operation_id = Some(metadata.openapi_operation_id().as_ref().to_owned());
                         frontend_contract::apply_openapi_request_contract::<#routes>(&mut operation);
@@ -559,23 +556,25 @@ pub fn route_registry(
                             frontend_contract::OpenApiSecuritySchemeRef::from(#csrf_security),
                         );
                         let path_item_type = match metadata.route_method() {
-                            frontend_contract::RouteMethod::Connect => utoipa::openapi::path::PathItemType::Connect,
-                            frontend_contract::RouteMethod::Delete => utoipa::openapi::path::PathItemType::Delete,
-                            frontend_contract::RouteMethod::Get => utoipa::openapi::path::PathItemType::Get,
-                            frontend_contract::RouteMethod::Head => utoipa::openapi::path::PathItemType::Head,
-                            frontend_contract::RouteMethod::Options => utoipa::openapi::path::PathItemType::Options,
-                            frontend_contract::RouteMethod::Patch => utoipa::openapi::path::PathItemType::Patch,
-                            frontend_contract::RouteMethod::Post => utoipa::openapi::path::PathItemType::Post,
-                            frontend_contract::RouteMethod::Put => utoipa::openapi::path::PathItemType::Put,
-                            frontend_contract::RouteMethod::Trace => utoipa::openapi::path::PathItemType::Trace,
+                            frontend_contract::RouteMethod::Connect => None,
+                            frontend_contract::RouteMethod::Delete => Some(utoipa::openapi::path::HttpMethod::Delete),
+                            frontend_contract::RouteMethod::Get => Some(utoipa::openapi::path::HttpMethod::Get),
+                            frontend_contract::RouteMethod::Head => Some(utoipa::openapi::path::HttpMethod::Head),
+                            frontend_contract::RouteMethod::Options => Some(utoipa::openapi::path::HttpMethod::Options),
+                            frontend_contract::RouteMethod::Patch => Some(utoipa::openapi::path::HttpMethod::Patch),
+                            frontend_contract::RouteMethod::Post => Some(utoipa::openapi::path::HttpMethod::Post),
+                            frontend_contract::RouteMethod::Put => Some(utoipa::openapi::path::HttpMethod::Put),
+                            frontend_contract::RouteMethod::Trace => Some(utoipa::openapi::path::HttpMethod::Trace),
                         };
-                        let mut path_item = utoipa::openapi::path::PathItem::new(path_item_type, operation);
-                        document
-                            .paths
-                            .paths
-                            .entry(metadata.path().as_ref().to_owned())
-                            .and_modify(|existing| existing.operations.extend(path_item.operations.clone()))
-                            .or_insert(path_item);
+                        if let Some(path_item_type) = path_item_type {
+                            let path_item = utoipa::openapi::path::PathItem::new(path_item_type, operation);
+                            document
+                                .paths
+                                .paths
+                                .entry(metadata.path().as_ref().to_owned())
+                                .and_modify(|existing| existing.merge_operations(path_item.clone()))
+                                .or_insert(path_item);
+                        }
                     }
                 })*
                 document
@@ -825,7 +824,7 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
                         _status: frontend_contract::RouteErrorStatus,
                     ) -> Option<frontend_contract::UtoipaOpenApiRouteSchema> {
                         Some(frontend_contract::UtoipaOpenApiRouteSchema::from(
-                            <#response_type as utoipa::ToSchema>::schema().1
+                            <#response_type as utoipa::PartialSchema>::schema()
                         ))
                     }
                 },
@@ -901,7 +900,7 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
                         .name(#parameter_name)
                         .parameter_in(utoipa::openapi::path::ParameterIn::Path)
                         .required(utoipa::openapi::Required::True)
-                        .schema(Some(<#parameter_path as utoipa::ToSchema>::schema().1))
+                        .schema(Some(<#parameter_path as utoipa::PartialSchema>::schema()))
                         .build()
                 ))
             };
@@ -936,7 +935,7 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
             }
         }
         _ => quote::quote! {
-            Some(frontend_contract::UtoipaOpenApiRouteSchema::from(<#response as utoipa::ToSchema>::schema().1))
+            Some(frontend_contract::UtoipaOpenApiRouteSchema::from(<#response as utoipa::PartialSchema>::schema()))
         },
     };
     let response_schema_registration = match &response {
@@ -972,12 +971,12 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
                 )
             }
             fn openapi_request_schema() -> Option<frontend_contract::UtoipaOpenApiRouteSchema> {
-                Some(frontend_contract::UtoipaOpenApiRouteSchema::from(<#request as utoipa::ToSchema>::schema().1))
+                Some(frontend_contract::UtoipaOpenApiRouteSchema::from(<#request as utoipa::PartialSchema>::schema()))
             }
             fn openapi_request_body_schema() -> Option<frontend_contract::UtoipaOpenApiRouteSchema> {
-                let (name, _schema) = <#request as utoipa::ToSchema>::schema();
+                let name = <#request as utoipa::ToSchema>::name();
                 Some(frontend_contract::UtoipaOpenApiRouteSchema::from(
-                    utoipa::openapi::RefOr::Ref(utoipa::openapi::Ref::from_schema_name(name))
+                    utoipa::openapi::RefOr::Ref(utoipa::openapi::Ref::from_schema_name(name.as_ref()))
                 ))
             }
             fn request_body() -> frontend_contract::RouteRequestBody {

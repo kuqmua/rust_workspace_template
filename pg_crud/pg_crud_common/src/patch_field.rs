@@ -35,17 +35,15 @@ where
             .map(|value| value.map_or(Self::Null, Self::Value))
     }
 }
-impl<'schema_lt, Value> utoipa::ToSchema<'schema_lt> for PatchField<Value>
+impl<Value> utoipa::PartialSchema for PatchField<Value>
 where
-    Value: utoipa::ToSchema<'schema_lt>,
+    Value: utoipa::ToSchema,
 {
-    fn schema() -> (
-        &'schema_lt str,
-        utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
-    ) {
-        Value::schema()
+    fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
+        <Value as utoipa::PartialSchema>::schema()
     }
 }
+impl<Value: utoipa::ToSchema> utoipa::ToSchema for PatchField<Value> {}
 
 #[cfg(test)]
 mod tests {

@@ -2089,6 +2089,7 @@ pub fn emit_generate_pg_table(
     let mut frontend_api_client_methods_token_stream = Vec::with_capacity(operation_count);
     let client_snake_case = quote::format_ident!("client");
     let mut open_api_path_fn_identifiers = Vec::with_capacity(operation_count);
+    let mut open_api_path_token_stream = Vec::with_capacity(operation_count);
     let mut open_api_schema_types_token_stream =
         Vec::with_capacity(operation_count.saturating_mul(2));
     let error_enum_d_token_stream_builder =
@@ -2240,10 +2241,10 @@ pub fn emit_generate_pg_table(
             }));
             quote::quote! {
                 pub async fn #PrepPgTableSnakeCase(#PoolSnakeCase: &sqlx::Pool<sqlx::Postgres>, table: &str) -> Result<(), #identifier_prep_pg_error_upper_camel_case> {
-                    if let Err(error) = sqlx::query(&format!(
+                    if let Err(error) = sqlx::query(sqlx::AssertSqlSafe(format!(
                         #prep_pg_double_quoted_token_stream,
                         #(#serde_json_to_string_schemars_schema_for_generic_unwrap_token_stream),*
-                    )).execute(#PoolSnakeCase).await {
+                    ))).execute(#PoolSnakeCase).await {
                         return Err(#identifier_prep_pg_error_upper_camel_case::#PrepPgUpperCamelCase {
                             error,
                             location: location_macros::location!()
@@ -3185,7 +3186,8 @@ pub fn emit_generate_pg_table(
                         let concrete_select_token_stream = generate_concrete_pg_type_role_token_stream(&element.type0, &SelectUpperCamelCase);
                         quote::quote! {
                             #[serde(rename(serialize = #serde_identifier_token_stream, deserialize = #serde_identifier_token_stream))]
-                            #field_upper_camel_case_token_stream(#[schema(value_type = #concrete_select_token_stream)] #element_syn_field_ty_as_pg_type_select_token_stream)
+                            #[schema(value_type = #concrete_select_token_stream)]
+                            #field_upper_camel_case_token_stream(#element_syn_field_ty_as_pg_type_select_token_stream)
                         }
                     });
                     quote::quote! {{#variants}}
@@ -4681,8 +4683,6 @@ pub fn emit_generate_pg_table(
             str_constants::COMPILE_ERROR_CE_009,
         ));
     };
-    let primary_key_field_type_update_for_query_open_api_token_stream =
-        generate_as_pg_type_update_for_query_token_stream(&primary_key_field_type);
     fields.iter().fold((), |(), field| {
         let roles: [&dyn quote::ToTokens; 6] = [
             &CreateUpperCamelCase,
@@ -4717,10 +4717,8 @@ pub fn emit_generate_pg_table(
         quote::quote! {#identifier_read_ids_upper_camel_case},
         quote::quote! {#identifier_update_upper_camel_case},
         quote::quote! {#identifier_update_for_query_upper_camel_case},
-        quote::quote! {#primary_key_field_type_as_pg_type_read_upper_camel_case},
         quote::quote! {#primary_key_field_type_update_token_stream},
         quote::quote! {#primary_key_field_type_origin_token_stream},
-        quote::quote! {#primary_key_field_type_update_for_query_open_api_token_stream},
         quote::quote! {location_lib::location::Location},
         quote::quote! {location_lib::location::LocationColumn},
         quote::quote! {location_lib::location::LocationCommit},
@@ -4728,10 +4726,8 @@ pub fn emit_generate_pg_table(
         quote::quote! {location_lib::location::LocationLine},
         quote::quote! {location_lib::location::Occr},
         quote::quote! {location_lib::location::StdLocationDuration},
-        quote::quote! {pg_crud_common::NotEmptyUniqueVec<#identifier_select_upper_camel_case>},
         quote::quote! {pg_crud_common::Order},
         quote::quote! {pg_crud_common::Operator},
-        quote::quote! {pg_crud_common::OrderBy<#identifier_select_upper_camel_case>},
         quote::quote! {pg_crud_common::PgCrudStringWrapperTryFromStringError},
         quote::quote! {pg_crud_common::PaginationBase},
         quote::quote! {pg_crud_common::PaginationLimit},
@@ -4747,6 +4743,10 @@ pub fn emit_generate_pg_table(
         quote::quote! {frontend_contract::ApiProblemRequestId},
         quote::quote! {frontend_contract::ApiProblemStatus},
         quote::quote! {frontend_contract::ApiProblemViolation},
+        quote::quote! {where_filters::EncodeFormat},
+        quote::quote! {where_filters::RegexCase},
+        quote::quote! {where_filters::RegexRegex},
+        quote::quote! {pg_crud_common::NotZeroUnsignedPartOfI32},
     ]);
     crate::model::OperationDsc::ALL
     .iter()
@@ -4764,52 +4764,93 @@ pub fn emit_generate_pg_table(
             identifier_snake_case_string,
             operation_snake_case_string
         );
+        let open_api_path_type_identifier =
+            quote::format_ident!("__generated_path_{open_api_path_fn_identifier}");
         let open_api_path = format!("/{identifier_snake_case_string}/{operation_snake_case_string}");
         let open_api_operation_id =
             format!("{identifier_snake_case_string}_{operation_snake_case_string}");
         let open_api_path_double_quoted_token_stream = generate_quotes::dq_token_stream(&open_api_path);
         let open_api_tag_double_quoted_token_stream = generate_quotes::dq_token_stream(&identifier_snake_case_string);
-        let open_api_method_token_stream = match crate::openapi::http_method(operation_dsc) {
-            OperationHttpMethod::Post => quote::quote! {post},
-            OperationHttpMethod::Patch => quote::quote! {patch},
-            OperationHttpMethod::Delete => quote::quote! {delete},
+        let open_api_http_method_token_stream = match crate::openapi::http_method(operation_dsc) {
+            OperationHttpMethod::Post => quote::quote! {utoipa::openapi::path::HttpMethod::Post},
+            OperationHttpMethod::Patch => {
+                quote::quote! {utoipa::openapi::path::HttpMethod::Patch}
+            }
+            OperationHttpMethod::Delete => {
+                quote::quote! {utoipa::openapi::path::HttpMethod::Delete}
+            }
         };
-        let open_api_status_token_stream = if crate::openapi::success_status(operation_dsc)
+        let open_api_status = if crate::openapi::success_status(operation_dsc)
             == macros_helpers::status_code::StatusCode::Created201
         {
-            quote::quote! {201}
+            "201"
         } else {
-            quote::quote! {200}
+            "200"
         };
+        let open_api_status_literal = proc_macro2::Literal::string(open_api_status);
         let open_api_payload_type_token_stream = generate_identifier_operation_payload_upper_camel_case(operation);
         let open_api_response_type_token_stream = generate_identifier_operation_res_variants_upper_camel_case(operation);
+        let open_api_payload_schema_ref = proc_macro2::Literal::string(&format!(
+            "#/components/schemas/{open_api_payload_type_token_stream}"
+        ));
+        let open_api_response_schema_ref = proc_macro2::Literal::string(&format!(
+            "#/components/schemas/{open_api_response_type_token_stream}"
+        ));
         let open_api_extra_params_token_stream = match (idempotency_enabled, optimistic_concurrency_enabled) {
             (true, true) => quote::quote! {
-                params(
-                    ("Idempotency-Key" = String, Header, description = "Required key for safely retrying this mutation"),
-                    ("If-Match" = i64, Header, description = "Required current non-negative row revision"),
-                ),
+                operation.parameters = Some(vec![
+                    utoipa::openapi::path::ParameterBuilder::new()
+                        .name("Idempotency-Key")
+                        .parameter_in(utoipa::openapi::path::ParameterIn::Header)
+                        .required(utoipa::openapi::Required::True)
+                        .description(Some("Required key for safely retrying this mutation"))
+                        .schema(Some(<String as utoipa::PartialSchema>::schema()))
+                        .build(),
+                    utoipa::openapi::path::ParameterBuilder::new()
+                        .name("If-Match")
+                        .parameter_in(utoipa::openapi::path::ParameterIn::Header)
+                        .required(utoipa::openapi::Required::True)
+                        .description(Some("Required current non-negative row revision"))
+                        .schema(Some(<i64 as utoipa::PartialSchema>::schema()))
+                        .build(),
+                ]);
             },
             (true, false) => quote::quote! {
-                params(("Idempotency-Key" = String, Header, description = "Required key for safely retrying this mutation")),
+                operation.parameters = Some(vec![
+                    utoipa::openapi::path::ParameterBuilder::new()
+                        .name("Idempotency-Key")
+                        .parameter_in(utoipa::openapi::path::ParameterIn::Header)
+                        .required(utoipa::openapi::Required::True)
+                        .description(Some("Required key for safely retrying this mutation"))
+                        .schema(Some(<String as utoipa::PartialSchema>::schema()))
+                        .build(),
+                ]);
             },
             (false, true) => quote::quote! {
-                params(("If-Match" = i64, Header, description = "Required current non-negative row revision")),
+                operation.parameters = Some(vec![
+                    utoipa::openapi::path::ParameterBuilder::new()
+                        .name("If-Match")
+                        .parameter_in(utoipa::openapi::path::ParameterIn::Header)
+                        .required(utoipa::openapi::Required::True)
+                        .description(Some("Required current non-negative row revision"))
+                        .schema(Some(<i64 as utoipa::PartialSchema>::schema()))
+                        .build(),
+                ]);
             },
             (false, false) => proc_macro2::TokenStream::new(),
         };
         let open_api_idempotency_responses_token_stream = if idempotency_enabled {
             quote::quote! {
-                (status = 409, description = "Idempotency key conflicts with another request", body = frontend_contract::ApiProblem),
-                (status = 425, description = "An identical request with this key is still running", body = frontend_contract::ApiProblem),
+                add_problem_response("409", "Idempotency key conflicts with another request");
+                add_problem_response("425", "An identical request with this key is still running");
             }
         } else {
             proc_macro2::TokenStream::new()
         };
         let open_api_optimistic_responses_token_stream = if optimistic_concurrency_enabled {
             quote::quote! {
-                (status = 412, description = "The supplied row revision is stale", body = frontend_contract::ApiProblem),
-                (status = 428, description = "A valid If-Match row revision is required", body = frontend_contract::ApiProblem),
+                add_problem_response("412", "The supplied row revision is stale");
+                add_problem_response("428", "A valid If-Match row revision is required");
             }
         } else {
             proc_macro2::TokenStream::new()
@@ -4822,13 +4863,20 @@ pub fn emit_generate_pg_table(
                 || (proc_macro2::TokenStream::new(), proc_macro2::TokenStream::new()),
                 |_| {
                     (
-                        quote::quote! {security(("admin_cookie" = []), ("admin_csrf" = [])),},
                         quote::quote! {
-                            (status = 401, description = "Authentication is required", body = frontend_contract::ApiProblem),
-                            (status = 403, description = "Required permission is missing", body = frontend_contract::ApiProblem),
-                            (status = 409, description = "Resource state conflict", body = frontend_contract::ApiProblem),
-                            (status = 422, description = "Request validation failed", body = frontend_contract::ApiProblem),
-                            (status = 429, description = "Request rate limit exceeded", body = frontend_contract::ApiProblem),
+                            operation.security = Some(vec![
+                                utoipa::openapi::security::SecurityRequirement::default()
+                                    .add::<&str, [&str; 0usize], &str>("admin_cookie", []),
+                                utoipa::openapi::security::SecurityRequirement::default()
+                                    .add::<&str, [&str; 0usize], &str>("admin_csrf", []),
+                            ]);
+                        },
+                        quote::quote! {
+                            add_problem_response("401", "Authentication is required");
+                            add_problem_response("403", "Required permission is missing");
+                            add_problem_response("409", "Resource state conflict");
+                            add_problem_response("422", "Request validation failed");
+                            add_problem_response("429", "Request rate limit exceeded");
                         },
                     )
                 },
@@ -4923,32 +4971,82 @@ pub fn emit_generate_pg_table(
                     }
                 }
             });
-            open_api_path_fn_identifiers.push(open_api_path_fn_identifier.clone());
-            open_api_schema_types_token_stream.push(open_api_payload_type_token_stream.clone());
-            open_api_schema_types_token_stream.push(open_api_response_type_token_stream.clone());
+            open_api_path_fn_identifiers.push(open_api_path_fn_identifier);
+            open_api_schema_types_token_stream.push(open_api_payload_type_token_stream);
+            open_api_schema_types_token_stream.push(open_api_response_type_token_stream);
         }
+        let application_json_double_quoted_token_stream =
+            generate_quotes::dq_token_stream(&str_constants::APPLICATION_JSON);
         let open_api_path_fn_token_stream = quote::quote! {
-            #[allow(dead_code)]
-            #[utoipa::path(
-                #open_api_method_token_stream,
-                path = #open_api_path_double_quoted_token_stream,
-                operation_id = #open_api_operation_id,
-                tag = #open_api_tag_double_quoted_token_stream,
-                #open_api_security_token_stream
-                #open_api_extra_params_token_stream
-                request_body = #open_api_payload_type_token_stream,
-                responses(
-                    (status = #open_api_status_token_stream, description = "Successful response", body = #open_api_response_type_token_stream),
-                    (status = 400, description = "Invalid request", body = frontend_contract::ApiProblem),
-                    (status = 413, description = "Request body is too large", body = frontend_contract::ApiProblem),
-                    #open_api_idempotency_responses_token_stream
-                    #open_api_optimistic_responses_token_stream
-                    #open_api_auth_responses_token_stream
-                    (status = 500, description = "Internal server error", body = frontend_contract::ApiProblem)
-                )
-            )]
-            fn #open_api_path_fn_identifier() {}
+            #[allow(non_camel_case_types)]
+            pub struct #open_api_path_type_identifier;
+            impl utoipa::__dev::PathConfig for #open_api_path_type_identifier {
+                fn methods() -> Vec<utoipa::openapi::path::HttpMethod> {
+                    vec![#open_api_http_method_token_stream]
+                }
+                fn path() -> String {
+                    #open_api_path_double_quoted_token_stream.to_owned()
+                }
+                fn tags_and_operation() -> (
+                    Vec<&'static str>,
+                    utoipa::openapi::path::Operation,
+                ) {
+                    let mut operation = utoipa::openapi::path::Operation::new();
+                    operation.operation_id = Some(#open_api_operation_id.to_owned());
+                    operation.request_body = Some(
+                        utoipa::openapi::request_body::RequestBodyBuilder::new()
+                            .content(
+                                #application_json_double_quoted_token_stream,
+                                utoipa::openapi::Content::new(Some(
+                                    utoipa::openapi::Ref::new(#open_api_payload_schema_ref),
+                                )),
+                            )
+                            .build(),
+                    )
+                    ;
+                    operation.responses.responses.insert(
+                        #open_api_status_literal.to_owned(),
+                        utoipa::openapi::ResponseBuilder::new()
+                            .description("Successful response")
+                            .content(
+                                #application_json_double_quoted_token_stream,
+                                utoipa::openapi::Content::new(Some(
+                                    utoipa::openapi::Ref::new(#open_api_response_schema_ref),
+                                )),
+                            )
+                            .build()
+                            .into(),
+                    );
+                    {
+                        let mut add_problem_response = |status: &str, description: &str| {
+                            operation.responses.responses.insert(
+                                status.to_owned(),
+                                utoipa::openapi::ResponseBuilder::new()
+                                    .description(description)
+                                    .content(
+                                        #application_json_double_quoted_token_stream,
+                                        utoipa::openapi::Content::new(Some(
+                                            <frontend_contract::ApiProblem as utoipa::PartialSchema>::schema(),
+                                        )),
+                                    )
+                                    .build()
+                                    .into(),
+                            );
+                        };
+                        add_problem_response("400", "Invalid request");
+                        add_problem_response("413", "Request body is too large");
+                        #open_api_idempotency_responses_token_stream
+                        #open_api_optimistic_responses_token_stream
+                        #open_api_auth_responses_token_stream
+                        add_problem_response("500", "Internal server error");
+                    }
+                    #open_api_security_token_stream
+                    #open_api_extra_params_token_stream
+                    (vec![#open_api_tag_double_quoted_token_stream], operation)
+                }
+            }
         };
+        open_api_path_token_stream.push(open_api_path_fn_token_stream);
         let generate_for_element_in_update_for_query_vec_token_stream = |ts: &dyn quote::ToTokens| {
             quote::quote! {
                 for element_a72f3eac in &#UpdateForQueryVecSnakeCase {
@@ -6266,7 +6364,9 @@ pub fn emit_generate_pg_table(
                         #idempotency_begin_token_stream
                         let #QueryStringSnakeCase = #query_string_token_stream;
                         let #BindedQuerySnakeCase = {
-                            let mut #QuerySnakeCase = #sqlx_query_sqlx_pg_token_stream(&#QueryStringSnakeCase);
+                            let mut #QuerySnakeCase = #sqlx_query_sqlx_pg_token_stream(
+                                sqlx::AssertSqlSafe(#QueryStringSnakeCase.to_string())
+                            );
                             #binded_query_token_stream
                             #QuerySnakeCase
                         };
@@ -6402,7 +6502,9 @@ pub fn emit_generate_pg_table(
                     Operation::Rm => generate_parameters_payload_and_default_token_stream(
                         &quote::quote! {{
                             #pub_where_optional_identifier_where_token_stream,
+                            #[schema(inline)]
                             #pub_select_pg_crud_not_empty_unique_vec_identifier_select_token_stream,
+                            #[schema(inline)]
                             pub #OrderBySnakeCase: #pg_crud_order_by_token_stream<#identifier_select_upper_camel_case>,
                             pub #PaginationSnakeCase: #import_token_stream PaginationStartsWithZero,
                         }},
@@ -6431,6 +6533,7 @@ pub fn emit_generate_pg_table(
                                 );
                             quote::quote! {{
                                 #pub_handle_primary_key_field_primary_key_inner_type_handle_token_stream,
+                                #[schema(no_recursion)]
                                 #pub_select_pg_crud_not_empty_unique_vec_identifier_select_token_stream,
                             }}
                         },
@@ -6589,7 +6692,6 @@ pub fn emit_generate_pg_table(
                         .d_debug()
                         .d_serde_serialize()
                         .d_serde_deserialize()
-                        .d_utoipa_to_schema()
                         .build_enum(&proc_macro2::TokenStream::new(), &identifier_operation_res_variants_upper_camel_case, &proc_macro2::TokenStream::new(), &{
                             let vrts_token_stream = type_variants_from_req_res_syn_variants
                                 .iter()
@@ -6601,9 +6703,82 @@ pub fn emit_generate_pg_table(
                                 #(#vrts_token_stream),*
                             }}
                         });
+                    let desirable_type_token_stream =
+                        generate_operation_result_type_token_stream(operation);
+                    let error_variant_schema_items_token_stream =
+                        type_variants_from_req_res_syn_variants.iter().map(|variant| {
+                            let variant_name = variant.identifier().to_string();
+                            let field_names = match variant {
+                                GeneratePgTableVariantEmissionRef::Model(model_variant) => {
+                                    model_variant
+                                        .fields
+                                        .iter()
+                                        .map(|field| field.identifier.to_string())
+                                        .collect::<Vec<_>>()
+                                }
+                                GeneratePgTableVariantEmissionRef::Syn(syn_variant) => {
+                                    let syn::Fields::Named(variant_fields) = &syn_variant.fields else {
+                                        return compile_error_token_stream(
+                                            CompileErrorMessage::from(
+                                                str_constants::MACRO_DIAGNOSTICS_EXPECTED_NAMED_VARIANT_FIELDS_ERROR,
+                                            ),
+                                        )
+                                        .into();
+                                    };
+                                    variant_fields
+                                        .named
+                                        .iter()
+                                        .filter_map(|field| field.ident.as_ref())
+                                        .map(ToString::to_string)
+                                        .collect::<Vec<_>>()
+                                }
+                            };
+                            quote::quote! {
+                                .item(
+                                    utoipa::openapi::ObjectBuilder::new()
+                                        .property(
+                                            #variant_name,
+                                            utoipa::openapi::ObjectBuilder::new()
+                                                #(
+                                                    .property(
+                                                        #field_names,
+                                                        utoipa::openapi::ObjectBuilder::new(),
+                                                    )
+                                                    .required(#field_names)
+                                                )*
+                                        )
+                                        .required(#variant_name),
+                                )
+                            }
+                        });
+                    let response_schema_name =
+                        identifier_operation_res_variants_upper_camel_case.to_string();
                     quote::quote! {
                         #AllowClippyArbitrarySrcItemOrdering
                         #identifier_operation_res_variants_enum_token_stream
+                        impl utoipa::PartialSchema for #identifier_operation_res_variants_upper_camel_case {
+                            fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
+                                utoipa::openapi::schema::Schema::from(
+                                    utoipa::openapi::OneOfBuilder::new()
+                                    .item(
+                                        utoipa::openapi::ObjectBuilder::new()
+                                            .property(
+                                                stringify!(#DesirableUpperCamelCase),
+                                                <#desirable_type_token_stream as utoipa::PartialSchema>::schema(),
+                                            )
+                                            .required(stringify!(#DesirableUpperCamelCase)),
+                                    )
+                                    #(#error_variant_schema_items_token_stream)*
+                                    .build()
+                                )
+                                    .into()
+                            }
+                        }
+                        impl utoipa::ToSchema for #identifier_operation_res_variants_upper_camel_case {
+                            fn name() -> std::borrow::Cow<'static, str> {
+                                std::borrow::Cow::Borrowed(#response_schema_name)
+                            }
+                        }
                     }
                 };
                 let identifier_operation_error_upper_camel_case = generate_identifier_operation_error_upper_camel_case(operation);
@@ -6707,7 +6882,6 @@ pub fn emit_generate_pg_table(
                 #parameters_token_stream
                 #operation_token_stream
                 #try_operation_token_stream
-                #open_api_path_fn_token_stream
             }
         });
     });
@@ -6973,8 +7147,8 @@ pub fn emit_generate_pg_table(
             .iter()
             .map(|field| {
                 let role_type_token_stream =
-                    generate_as_pg_type_tokens_token_stream(&field.type0, role);
-                quote::quote! {<#role_type_token_stream as utoipa::ToSchema>::schema().1}
+                    generate_concrete_pg_type_role_token_stream(&field.type0, role);
+                quote::quote! {<#role_type_token_stream as utoipa::PartialSchema>::schema()}
             })
             .collect::<Vec<_>>()
     };
@@ -6988,7 +7162,7 @@ pub fn emit_generate_pg_table(
             .iter()
             .map(|field| {
                 let table_type_type_token_stream = generate_as_pg_type_tokens_token_stream(&field.type0, &naming::TableTypeUpperCamelCase);
-                quote::quote! {<where_filters::#filter_upper_camel_case<#table_type_type_token_stream> as utoipa::ToSchema>::schema().1}
+                quote::quote! {<where_filters::#filter_upper_camel_case<#table_type_type_token_stream> as utoipa::PartialSchema>::schema()}
             })
             .collect::<Vec<_>>()
         };
@@ -6999,7 +7173,7 @@ pub fn emit_generate_pg_table(
             .map(|field| {
                 let table_type_type_token_stream =
                     generate_concrete_standard_non_null_pg_type_role_token_stream(&field.type0, &naming::TableTypeUpperCamelCase);
-                quote::quote! {<where_filters::#filter_upper_camel_case<#table_type_type_token_stream> as utoipa::ToSchema>::schema().1}
+                quote::quote! {<where_filters::#filter_upper_camel_case<#table_type_type_token_stream> as utoipa::PartialSchema>::schema()}
             })
             .collect::<Vec<_>>()
         };
@@ -7059,7 +7233,7 @@ pub fn emit_generate_pg_table(
     .map(|name| {
         let schema_name = format!("where_filters.PgTypeWhere{name}");
         let type_name = quote::format_ident!("PgTypeWhere{name}");
-        let schema = quote::quote! {<where_filters::#type_name as utoipa::ToSchema>::schema().1};
+        let schema = quote::quote! {<where_filters::#type_name as utoipa::PartialSchema>::schema()};
         (schema_name, schema)
     })
     .collect::<Vec<_>>();
@@ -7067,8 +7241,24 @@ pub fn emit_generate_pg_table(
     let static_filter_schema_values = static_filter_schemas.iter().map(|(_name, schema)| schema);
     let in_value_schema_items_token_stream = fields.iter().map(|field| {
         let table_type_type_token_stream = generate_as_pg_type_tokens_token_stream(&field.type0, &naming::TableTypeUpperCamelCase);
-        quote::quote! {<where_filters::PgTypeNotEmptyUniqueVec<#table_type_type_token_stream> as utoipa::ToSchema>::schema().1}
+        quote::quote! {<where_filters::PgTypeNotEmptyUniqueVec<#table_type_type_token_stream> as utoipa::PartialSchema>::schema()}
     }).collect::<Vec<_>>();
+    let in_value_schema_names_token_stream = fields
+        .iter()
+        .map(|field| {
+            let table_type_type_token_stream = generate_as_pg_type_tokens_token_stream(
+                &field.type0,
+                &naming::TableTypeUpperCamelCase,
+            );
+            quote::quote! {
+                format!(
+                    "{}_{}",
+                    <where_filters::PgTypeNotEmptyUniqueVec<#table_type_type_token_stream> as utoipa::ToSchema>::name(),
+                    <#table_type_type_token_stream as utoipa::ToSchema>::name(),
+                )
+            }
+        })
+        .collect::<Vec<_>>();
     let open_api_security_schemes_token_stream = generate_pg_table_input_model
         .config
         .permission_prefix
@@ -7101,15 +7291,38 @@ pub fn emit_generate_pg_table(
         });
     let path_separator_literal = proc_macro2::Literal::string(str_constants::PATH_SEPARATOR);
     let dot_literal = proc_macro2::Literal::string(str_constants::DOT);
+    let open_api_path_type_identifiers = open_api_path_fn_identifiers
+        .iter()
+        .map(|path_identifier| quote::format_ident!("__generated_path_{path_identifier}"))
+        .collect::<Vec<_>>();
     let identifier_open_api_token_stream = quote::quote! {
-        #[allow(clippy::needless_for_each)] // generated utoipa 4 registration uses iterator callbacks internally
-        #[derive(utoipa::OpenApi)]
-        #[openapi(
-            paths(#(#open_api_path_fn_identifiers),*),
-            components(schemas(#(#open_api_schema_types_token_stream),*)),
-            tags((name = #identifier_snake_case_string, description = "Generated CRUD API"))
-        )]
+        #[allow(clippy::needless_for_each)] // generated schema registration uses iterator callbacks internally
         pub struct #identifier_open_api_upper_camel_case;
+        impl utoipa::OpenApi for #identifier_open_api_upper_camel_case {
+            fn openapi() -> utoipa::openapi::OpenApi {
+                utoipa::openapi::OpenApiBuilder::new()
+                    .info(
+                        utoipa::openapi::InfoBuilder::new()
+                            .title(env!("CARGO_PKG_NAME"))
+                            .version(env!("CARGO_PKG_VERSION"))
+                            .description(Some(env!("CARGO_PKG_DESCRIPTION")))
+                            .license(Some(
+                                utoipa::openapi::info::LicenseBuilder::new()
+                                    .name(env!("CARGO_PKG_LICENSE"))
+                                    .identifier(Some(env!("CARGO_PKG_LICENSE")))
+                                    .build(),
+                            )),
+                    )
+                    .paths(utoipa::openapi::path::PathsBuilder::new())
+                    .tags(Some([
+                        utoipa::openapi::tag::TagBuilder::new()
+                            .name(#identifier_snake_case_string)
+                            .description(Some("Generated CRUD API"))
+                            .build(),
+                    ]))
+                    .build()
+            }
+        }
         #[allow(clippy::needless_for_each)] // recursive schema-reference normalization is clearer as iterator traversal
         impl #identifier_open_api_upper_camel_case {
             #[must_use]
@@ -7129,16 +7342,33 @@ pub fn emit_generate_pg_table(
                     }
                 }
                 let mut open_api = <Self as utoipa::OpenApi>::openapi();
-                if let Some(components) = open_api.components.as_mut() {
+                #({
+                    let path = <#open_api_path_type_identifiers as utoipa::Path>::path();
+                    let path_item = utoipa::openapi::path::PathItem::from_http_methods(
+                        <#open_api_path_type_identifiers as utoipa::Path>::methods(),
+                        <#open_api_path_type_identifiers as utoipa::Path>::operation(),
+                    );
+                    open_api
+                        .paths
+                        .paths
+                        .entry(path)
+                        .and_modify(|existing| existing.merge_operations(path_item.clone()))
+                        .or_insert(path_item);
+                })*
+                let components = open_api
+                    .components
+                    .get_or_insert_with(utoipa::openapi::Components::new);
+                {
+                    let mut schema_components =
+                        frontend_contract::UtoipaOpenApiComponentsRefMut::from(&mut *components);
+                    #(
+                        frontend_contract::register_openapi_schema::<#open_api_schema_types_token_stream>(
+                            &mut schema_components,
+                        );
+                    )*
+                }
+                {
                     #open_api_security_schemes_token_stream
-                    for (name, schema) in [
-                        <where_filters::EncodeFormat as utoipa::ToSchema>::schema(),
-                        <where_filters::RegexCase as utoipa::ToSchema>::schema(),
-                        <where_filters::RegexRegex as utoipa::ToSchema>::schema(),
-                        <pg_crud_common::NotZeroUnsignedPartOfI32 as utoipa::ToSchema>::schema(),
-                    ] {
-                        components.schemas.insert(name.to_owned(), schema);
-                    }
                     components.schemas.insert("pg_crud_common.PgType.Read".to_owned(), utoipa::openapi::schema::Schema::from(utoipa::openapi::OneOfBuilder::new()#(.item(#read_schema_items_token_stream))*.build()).into());
                     components.schemas.insert("pg_crud_common.PgType.Select".to_owned(), utoipa::openapi::schema::Schema::from(utoipa::openapi::OneOfBuilder::new()#(.item(#select_schema_items_token_stream))*.build()).into());
                     components.schemas.insert("where_filters.PgTypeWhereEq".to_owned(), utoipa::openapi::schema::Schema::from(utoipa::openapi::OneOfBuilder::new()#(.item(#eq_filter_schema_items_token_stream))*.build()).into());
@@ -7148,7 +7378,24 @@ pub fn emit_generate_pg_table(
                     components.schemas.insert("where_filters.PgTypeWhereBefore".to_owned(), utoipa::openapi::schema::Schema::from(utoipa::openapi::OneOfBuilder::new()#(.item(#before_filter_schema_items_token_stream))*.build()).into());
                     #(components.schemas.insert(#range_filter_schema_names.to_owned(), #range_filter_schema_values);)*
                     #(components.schemas.insert(#static_filter_schema_names.to_owned(), #static_filter_schema_values);)*
+                    components.schemas.insert(
+                        format!(
+                            "{}_{}",
+                            <pg_crud_common::NotEmptyUniqueVec<#identifier_select_upper_camel_case> as utoipa::ToSchema>::name(),
+                            <#identifier_select_upper_camel_case as utoipa::ToSchema>::name(),
+                        ),
+                        <pg_crud_common::NotEmptyUniqueVec<#identifier_select_upper_camel_case> as utoipa::PartialSchema>::schema(),
+                    );
+                    components.schemas.insert(
+                        format!(
+                            "{}_{}",
+                            <pg_crud_common::OrderBy<#identifier_select_upper_camel_case> as utoipa::ToSchema>::name(),
+                            <#identifier_select_upper_camel_case as utoipa::ToSchema>::name(),
+                        ),
+                        <pg_crud_common::OrderBy<#identifier_select_upper_camel_case> as utoipa::PartialSchema>::schema(),
+                    );
                     components.schemas.insert("PgTypeNotEmptyUniqueVec".to_owned(), utoipa::openapi::schema::Schema::from(utoipa::openapi::OneOfBuilder::new()#(.item(#in_value_schema_items_token_stream))*.build()).into());
+                    #(components.schemas.insert(#in_value_schema_names_token_stream, #in_value_schema_items_token_stream);)*
                 }
                 let mut refs = std::collections::BTreeSet::new();
                 if let Ok(value) = serde_json::to_value(&open_api) {
@@ -9554,7 +9801,7 @@ pub fn emit_generate_pg_table(
                                 .map(|table_name|{
                                     let pg_pool_3b948340 = &pg_pool;
                                     async move {
-                                        sqlx::query(&format!("drop table if exists {table_name}")).execute(pg_pool_3b948340).await
+                                        sqlx::query(sqlx::AssertSqlSafe(format!("drop table if exists {table_name}"))).execute(pg_pool_3b948340).await
                                     }
                                 })
                             )
@@ -9841,6 +10088,8 @@ pub fn emit_generate_pg_table(
         #identifier_read_ids_token_stream
         #identifier_update_token_stream
         #identifier_update_for_query_token_stream
+        #(#open_api_path_token_stream)*
+        #identifier_open_api_token_stream
     };
     let gend = {
         let identifier_generate_pg_table_mod_snake_case =
@@ -9875,7 +10124,6 @@ pub fn emit_generate_pg_table(
                 #db_table_schema_token_stream
                 #frontend_form_token_stream
                 #(#frontend_capability_assertions_token_stream)*
-                #identifier_open_api_token_stream
                 #common_token_stream
                 #generated_contract_tests_token_stream
                 #identifier_tests_token_stream

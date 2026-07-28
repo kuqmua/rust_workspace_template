@@ -7,17 +7,39 @@ mod tests {
     }
     fn assert_schema_example_deserializes<T>()
     where
-        T: for<'schema_lt> utoipa::ToSchema<'schema_lt>
-            + serde::Serialize
-            + serde::de::DeserializeOwned,
+        T: utoipa::ToSchema + serde::Serialize + serde::de::DeserializeOwned,
     {
-        let (_, schema) = <T as utoipa::ToSchema>::schema();
+        fn first_example(schema: &serde_json::Value) -> Option<serde_json::Value> {
+            if let Some(example) = schema
+                .get("examples")
+                .and_then(serde_json::Value::as_array)
+                .and_then(|examples| examples.first())
+            {
+                return Some(example.clone());
+            }
+            match schema {
+                serde_json::Value::Array(values) => values.iter().find_map(first_example),
+                serde_json::Value::Object(values) => values.values().find_map(first_example),
+                serde_json::Value::Bool(_)
+                | serde_json::Value::Null
+                | serde_json::Value::Number(_)
+                | serde_json::Value::String(_) => None,
+            }
+        }
+        let schema = <T as utoipa::PartialSchema>::schema();
         let schema_json = serde_json::to_value(schema).expect("489f8964");
-        let example = schema_json
-            .get(str_constants::EXAMPLE)
-            .cloned()
-            .expect("dff79e9d");
-        let value = serde_json::from_value::<T>(example.clone()).expect("1e9e38ef");
+        let example = first_example(&schema_json).unwrap_or_else(|| {
+            panic!(
+                "dff79e9d schema for {} has no examples array: {schema_json}",
+                std::any::type_name::<T>(),
+            )
+        });
+        let value = serde_json::from_value::<T>(example.clone()).unwrap_or_else(|error| {
+            panic!(
+                "1e9e38ef schema example for {} failed to deserialize: {error}; example: {example}",
+                std::any::type_name::<T>(),
+            )
+        });
         assert_eq!(serde_json::to_value(value).expect("f126efbe"), example);
     }
     fn assert_wrapper_traits<T, Inner>()
@@ -77,13 +99,13 @@ mod tests {
     }
     #[test]
     fn generated_integer_open_api_schema_has_format_bounds_and_example() {
-        let (_, schema) = <pg_types_numeric::I16AsNonNullInt2Origin as utoipa::ToSchema>::schema();
+        let schema = <pg_types_numeric::I16AsNonNullInt2Origin as utoipa::PartialSchema>::schema();
         let schema_json = serde_json::to_value(schema).expect("8af67e13");
         assert_eq!(schema_json["type"], "integer");
         assert_eq!(schema_json["format"], "int32");
         assert_eq!(schema_json["minimum"], -32768);
         assert_eq!(schema_json["maximum"], 32767);
-        assert_eq!(schema_json["example"], 42);
+        assert_eq!(schema_json["examples"], serde_json::json!([42]));
     }
     #[test]
     fn generated_frontend_type_contract_matches_integer_wire_contract() {
@@ -160,15 +182,18 @@ mod tests {
     }
     #[test]
     fn generated_nullable_open_api_schema_is_nullable() {
-        let (_, schema) =
-            <pg_types_numeric::OptionalI16AsNullableInt2Origin as utoipa::ToSchema>::schema();
+        let schema =
+            <pg_types_numeric::OptionalI16AsNullableInt2Origin as utoipa::PartialSchema>::schema();
         let schema_json = serde_json::to_value(schema).expect("f3b5a711");
-        assert_eq!(schema_json["type"], "integer");
-        assert_eq!(schema_json["nullable"], true);
+        assert!(schema_json["oneOf"].as_array().is_some_and(|schemas| {
+            schemas
+                .iter()
+                .any(|nullable_schema| nullable_schema["type"] == "null")
+        }));
     }
     #[test]
     fn generated_uuid_open_api_schema_matches_wire_string() {
-        let (_, schema) = <pg_types_text_misc::SqlxTypesUuidUuidAsNonNullUuidInitializationByClientOrigin as utoipa::ToSchema>::schema();
+        let schema = <pg_types_text_misc::SqlxTypesUuidUuidAsNonNullUuidInitializationByClientOrigin as utoipa::PartialSchema>::schema();
         let schema_json = serde_json::to_value(schema).expect("80cb3ea4");
         assert_eq!(schema_json["type"], "string");
         assert_eq!(schema_json["format"], "uuid");
@@ -191,9 +216,8 @@ mod tests {
         )
         .expect("68c0e12b");
         let wire = serde_json::to_value(time).expect("de790942");
-        let (_, schema) =
-            <pg_types_chrono_net::SqlxTypesChronoNaiveTimeAsNonNullTimeOrigin as utoipa::ToSchema>::schema(
-            );
+        let schema =
+            <pg_types_chrono_net::SqlxTypesChronoNaiveTimeAsNonNullTimeOrigin as utoipa::PartialSchema>::schema();
         let schema_json = serde_json::to_value(schema).expect("dc191318");
         let wire_obj = wire.as_object().expect("e7150f4c");
         let schema_props = schema_json[str_constants::PROPERTIES]
@@ -212,9 +236,8 @@ mod tests {
         )
         .expect("760545b6");
         let wire = serde_json::to_value(range).expect("290b56bb");
-        let (_, schema) =
-            <pg_types_numeric::SqlxPgTypesPgRangeI32AsNonNullInt4RangeOrigin as utoipa::ToSchema>::schema(
-            );
+        let schema =
+            <pg_types_numeric::SqlxPgTypesPgRangeI32AsNonNullInt4RangeOrigin as utoipa::PartialSchema>::schema();
         let schema_json = serde_json::to_value(schema).expect("72860bf4");
         let wire_obj = wire.as_object().expect("06a340b9");
         let schema_props = schema_json[str_constants::PROPERTIES]
@@ -230,7 +253,7 @@ mod tests {
     }
     #[test]
     fn generated_filter_has_open_api_one_of_schema() {
-        let (_, schema) = <pg_types_numeric::I16AsNonNullInt2Where as utoipa::ToSchema>::schema();
+        let schema = <pg_types_numeric::I16AsNonNullInt2Where as utoipa::PartialSchema>::schema();
         let schema_json = serde_json::to_value(schema).expect("4bbd5367");
         assert!(
             schema_json["oneOf"]
@@ -240,20 +263,20 @@ mod tests {
     }
     #[test]
     fn generated_filters_follow_descriptor_capabilities() {
-        let (_, uuid_schema) =
-            <pg_types_text_misc::SqlxTypesUuidUuidAsNonNullUuidInitializationByClientWhere as utoipa::ToSchema>::schema();
+        let uuid_schema =
+            <pg_types_text_misc::SqlxTypesUuidUuidAsNonNullUuidInitializationByClientWhere as utoipa::PartialSchema>::schema();
         let uuid_schema_json = serde_json::to_string(&uuid_schema).expect("c3af72f5");
         assert!(uuid_schema_json.contains("In"));
         assert!(!uuid_schema_json.contains("Regex"));
-        let (_, string_schema) =
-            <pg_types_text_misc::StringAsNonNullTextWhere as utoipa::ToSchema>::schema();
+        let string_schema =
+            <pg_types_text_misc::StringAsNonNullTextWhere as utoipa::PartialSchema>::schema();
         assert!(
             serde_json::to_string(&string_schema)
                 .expect("2672b8c6")
                 .contains("Regex")
         );
-        let (_, range_schema) =
-            <pg_types_numeric::SqlxPgTypesPgRangeI32AsNonNullInt4RangeWhere as utoipa::ToSchema>::schema();
+        let range_schema =
+            <pg_types_numeric::SqlxPgTypesPgRangeI32AsNonNullInt4RangeWhere as utoipa::PartialSchema>::schema();
         assert!(
             serde_json::to_string(&range_schema)
                 .expect("c7954e5c")

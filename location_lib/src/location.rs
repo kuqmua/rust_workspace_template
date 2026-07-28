@@ -130,37 +130,36 @@ pub struct LocationCommit(String);
 )]
 #[serde(from = "std::time::Duration")]
 pub struct StdLocationDuration(std::time::Duration);
-impl<'schema_lt> utoipa::ToSchema<'schema_lt> for StdLocationDuration {
-    fn schema() -> (
-        &'schema_lt str,
-        utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
-    ) {
-        (
-            str_constants::STDLOCATIONDURATION,
-            utoipa::openapi::ObjectBuilder::new()
-                .property(
-                    str_constants::SECS,
-                    utoipa::openapi::ObjectBuilder::new()
-                        .schema_type(utoipa::openapi::SchemaType::Integer)
-                        .format(Some(utoipa::openapi::SchemaFormat::KnownFormat(
-                            utoipa::openapi::KnownFormat::Int64,
-                        ))),
-                )
-                .property(
-                    str_constants::NANOS,
-                    utoipa::openapi::ObjectBuilder::new()
-                        .schema_type(utoipa::openapi::SchemaType::Integer)
-                        .format(Some(utoipa::openapi::SchemaFormat::KnownFormat(
-                            utoipa::openapi::KnownFormat::Int32,
-                        )))
-                        .minimum(Some(0.0))
-                        .maximum(Some(999_999_999.0)),
-                )
-                .required(str_constants::SECS)
-                .required(str_constants::NANOS)
-                .build()
-                .into(),
-        )
+impl utoipa::PartialSchema for StdLocationDuration {
+    fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
+        utoipa::openapi::ObjectBuilder::new()
+            .property(
+                str_constants::SECS,
+                utoipa::openapi::ObjectBuilder::new()
+                    .schema_type(utoipa::openapi::schema::Type::Integer)
+                    .format(Some(utoipa::openapi::SchemaFormat::KnownFormat(
+                        utoipa::openapi::KnownFormat::Int64,
+                    ))),
+            )
+            .property(
+                str_constants::NANOS,
+                utoipa::openapi::ObjectBuilder::new()
+                    .schema_type(utoipa::openapi::schema::Type::Integer)
+                    .format(Some(utoipa::openapi::SchemaFormat::KnownFormat(
+                        utoipa::openapi::KnownFormat::Int32,
+                    )))
+                    .minimum(Some(0.0))
+                    .maximum(Some(999_999_999.0)),
+            )
+            .required(str_constants::SECS)
+            .required(str_constants::NANOS)
+            .build()
+            .into()
+    }
+}
+impl utoipa::ToSchema for StdLocationDuration {
+    fn name() -> std::borrow::Cow<'static, str> {
+        std::borrow::Cow::Borrowed(str_constants::STDLOCATIONDURATION)
     }
 }
 #[derive(Debug, Clone, Copy, newtype::FromInner)]

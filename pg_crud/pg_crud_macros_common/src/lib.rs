@@ -525,14 +525,58 @@ where
                 element.maybe_generic();
             let type_token_stream =
                 optional_type_token_stream.map_or_else(proc_macro2::TokenStream::new, |v| quote::quote! {<#v>});
-            quote::quote! {#element_upper_camel_case(#[schema(inline)] where_filters::#prefix_where_self_upper_camel_case #type_token_stream)}
+            quote::quote! {#element_upper_camel_case(where_filters::#prefix_where_self_upper_camel_case #type_token_stream)}
         });
+        let utoipa_schema_token_stream = match should_derive_utoipa_to_schema {
+            ShouldDeriveUtoipaToSchema::False => proc_macro2::TokenStream::new(),
+            ShouldDeriveUtoipaToSchema::True => {
+                let schema_items_token_stream = variants.iter().map(|element| {
+                    let element_upper_camel_case = element.ucc();
+                    let prefix_where_self_upper_camel_case =
+                        element.prefix_where_self_upper_camel_case();
+                    let optional_type_token_stream = element.maybe_generic();
+                    let type_token_stream = optional_type_token_stream.map_or_else(
+                        proc_macro2::TokenStream::new,
+                        |value| quote::quote! {<#value>},
+                    );
+                    quote::quote! {
+                        .item(
+                            utoipa::openapi::ObjectBuilder::new()
+                                .property(
+                                    stringify!(#element_upper_camel_case),
+                                    <where_filters::#prefix_where_self_upper_camel_case #type_token_stream as utoipa::PartialSchema>::schema(),
+                                )
+                                .required(stringify!(#element_upper_camel_case)),
+                        )
+                    }
+                });
+                let schema_name = identifier.to_string();
+                quote::quote! {
+                    impl utoipa::PartialSchema for #identifier {
+                        fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
+                            utoipa::openapi::schema::Schema::from(
+                                utoipa::openapi::OneOfBuilder::new()
+                                    #(#schema_items_token_stream)*
+                                    .build(),
+                            )
+                            .into()
+                        }
+                    }
+                    impl utoipa::ToSchema for #identifier {
+                        fn name() -> std::borrow::Cow<'static, str> {
+                            std::borrow::Cow::Borrowed(#schema_name)
+                        }
+                    }
+                }
+            }
+        };
         quote::quote! {
             #attrs_token_stream
-            #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize #should_derive_utoipa_to_schema #should_derive_schemars_json_schema, optml::Optml)]
+            #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize #should_derive_schemars_json_schema, optml::Optml)]
             pub enum #identifier {
                 #(#vrts_token_stream),*
             }
+            #utoipa_schema_token_stream
         }
     };
     let impl_pg_type_pg_type_where_filter_for_pg_type_tokens_where_token_stream =

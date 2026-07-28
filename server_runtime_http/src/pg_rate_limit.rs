@@ -1,7 +1,7 @@
 const PG_RATE_LIMIT_KEY_PART_MAX_LEN: usize = 4096usize;
 
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
-pub struct PgRateLimitQueryRef<'value_lt>(&'value_lt str);
+pub struct PgRateLimitQueryRef(&'static str);
 
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct SqlxPgRateLimitPoolRef<'value_lt>(&'value_lt sqlx::PgPool);
@@ -94,7 +94,7 @@ pub enum PgRateLimitError {
 
 pub async fn enforce_pg_rate_limit(
     pool: SqlxPgRateLimitPoolRef<'_>,
-    query: PgRateLimitQueryRef<'_>,
+    query: PgRateLimitQueryRef,
     scope: PgRateLimitScopeRef<'_>,
     subject: PgRateLimitSubjectRef<'_>,
     maximum: PgRateLimitMaximum,

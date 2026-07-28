@@ -110,7 +110,20 @@ pub(super) fn open_api() -> super::UtoipaAdminAuthOpenApi {
         .paths
         .paths
         .values_mut()
-        .flat_map(|path| path.operations.values_mut())
+        .flat_map(|path| {
+            [
+                path.get.as_mut(),
+                path.put.as_mut(),
+                path.post.as_mut(),
+                path.delete.as_mut(),
+                path.options.as_mut(),
+                path.head.as_mut(),
+                path.patch.as_mut(),
+                path.trace.as_mut(),
+            ]
+            .into_iter()
+            .flatten()
+        })
         .for_each(|operation| {
             if let (Some(request_body), Some(description)) = (
                 operation.request_body.as_mut(),

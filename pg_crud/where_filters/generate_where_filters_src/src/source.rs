@@ -314,7 +314,7 @@ pub fn emit_generate_where_filters(
             + Clone
             + sqlx::Type<sqlx::Postgres>
             + for<'__> sqlx::Encode<'__, sqlx::Postgres>
-            + for<'schema_lt> utoipa::ToSchema<'schema_lt>
+            + utoipa::ToSchema
         }),
     };
     let pub_v_between_t_token_stream =
@@ -428,7 +428,7 @@ pub fn emit_generate_where_filters(
                     is_query_bind_mut,
                     query_bind_token_stream,
                 ) = {
-                    let generate_sqlx_type_pg_encode_token_stream = || quote::quote! {sqlx::Type<sqlx::Postgres> + for<'__> sqlx::Encode<'__, sqlx::Postgres> + for<'schema_lt> utoipa::ToSchema<'schema_lt>};
+                    let generate_sqlx_type_pg_encode_token_stream = || quote::quote! {sqlx::Type<sqlx::Postgres> + for<'__> sqlx::Encode<'__, sqlx::Postgres> + utoipa::ToSchema};
                     let generate_generic_true_type_encode = || Generic::True {
                         maybe_extra_traits_token_stream: Some(
                             generate_sqlx_type_pg_encode_token_stream(),

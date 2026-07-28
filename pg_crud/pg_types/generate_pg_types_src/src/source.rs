@@ -1158,31 +1158,26 @@ pub fn emit_generate_pg_types(
             PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => quote::quote! {sqlx::postgres::types::PgRange<sqlx::types::chrono::NaiveDateTime>},
             PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => quote::quote! {sqlx::postgres::types::PgRange<sqlx::types::chrono::DateTime::<sqlx::types::chrono::Utc>>},
         };
-        let open_api_nullable_token_stream = match &is_nullable {
-            pg_crud_macros_common::IsNullable::False => quote::quote! {false},
-            pg_crud_macros_common::IsNullable::True => quote::quote! {true},
-        };
         let pg_type_dsc = pg_type.spec();
         let pg_name = crate::catalog::pg_name(pg_type_dsc);
         let open_api_object_builder_token_stream = |schema_type: &dyn quote::ToTokens,
                                           extra: &dyn quote::ToTokens| {
             quote::quote! {
                 utoipa::openapi::ObjectBuilder::new()
-                    .schema_type(utoipa::openapi::SchemaType::#schema_type)
+                    .schema_type(utoipa::openapi::schema::Type::#schema_type)
                     .description(Some(concat!("PostgreSQL ", #pg_name)))
-                    .nullable(#open_api_nullable_token_stream)
                     #extra
                     .build()
             }
         };
-        let open_api_schema_token_stream = match crate::schema::wire_kind(pg_type_dsc) {
+        let non_null_open_api_schema_token_stream = match crate::schema::wire_kind(pg_type_dsc) {
             WireKind::Int16 => open_api_object_builder_token_stream(
                 &quote::quote! {Integer},
                 &quote::quote! {
                     .format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Int32)))
                     .minimum(Some(-32768.0))
                     .maximum(Some(32767.0))
-                    .example(Some(serde_json::json!(42)))
+                    .examples([serde_json::json!(42)])
                 },
             ),
             WireKind::Int32 => open_api_object_builder_token_stream(
@@ -1191,57 +1186,57 @@ pub fn emit_generate_pg_types(
                     .format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Int32)))
                     .minimum(Some(-2147483648.0))
                     .maximum(Some(2147483647.0))
-                    .example(Some(serde_json::json!(42)))
+                    .examples([serde_json::json!(42)])
                 },
             ),
             WireKind::Int64 => open_api_object_builder_token_stream(
                 &quote::quote! {Integer},
                 &quote::quote! {
                     .format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Int64)))
-                    .example(Some(serde_json::json!(42)))
+                    .examples([serde_json::json!(42)])
                 },
             ),
             WireKind::Float32 => open_api_object_builder_token_stream(
                 &quote::quote! {Number},
                 &quote::quote! {
                     .format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Float)))
-                    .example(Some(serde_json::json!(42.0)))
+                    .examples([serde_json::json!(42.0)])
                 },
             ),
             WireKind::Float64 => open_api_object_builder_token_stream(
                 &quote::quote! {Number},
                 &quote::quote! {
                     .format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Double)))
-                    .example(Some(serde_json::json!(42.0)))
+                    .examples([serde_json::json!(42.0)])
                 },
             ),
             WireKind::Bool => open_api_object_builder_token_stream(
                 &quote::quote! {Boolean},
-                &quote::quote! {.example(Some(serde_json::json!(true)))},
+                &quote::quote! {.examples([serde_json::json!(true)])},
             ),
             WireKind::String => open_api_object_builder_token_stream(
                 &quote::quote! {String},
-                &quote::quote! {.example(Some(serde_json::json!("example")))},
+                &quote::quote! {.examples([serde_json::json!("example")])},
             ),
             WireKind::Date => open_api_object_builder_token_stream(
                 &quote::quote! {String},
                 &quote::quote! {
                     .format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Date)))
-                    .example(Some(serde_json::json!("2024-01-01")))
+                    .examples([serde_json::json!("2024-01-01")])
                 },
             ),
             WireKind::Uuid => open_api_object_builder_token_stream(
                 &quote::quote! {String},
                 &quote::quote! {
                     .format(Some(utoipa::openapi::SchemaFormat::Custom("uuid".to_owned())))
-                    .example(Some(serde_json::json!("00000000-0000-4000-8000-000000000000")))
+                    .examples([serde_json::json!("00000000-0000-4000-8000-000000000000")])
                 },
             ),
             WireKind::Inet => open_api_object_builder_token_stream(
                 &quote::quote! {String},
                 &quote::quote! {
                     .format(Some(utoipa::openapi::SchemaFormat::Custom("ip-network".to_owned())))
-                    .example(Some(serde_json::json!("192.0.2.1/32")))
+                    .examples([serde_json::json!("192.0.2.1/32")])
                 },
             ),
             WireKind::Bytes | WireKind::Mac => {
@@ -1260,12 +1255,11 @@ pub fn emit_generate_pg_types(
                 quote::quote! {
                     utoipa::openapi::ArrayBuilder::new()
                         .items(utoipa::openapi::ObjectBuilder::new()
-                            .schema_type(utoipa::openapi::SchemaType::Integer)
+                            .schema_type(utoipa::openapi::schema::Type::Integer)
                             .minimum(Some(0.0))
                             .maximum(Some(255.0)))
-                        .nullable(#open_api_nullable_token_stream)
                         #limits_token_stream
-                        .example(Some(serde_json::json!(#example_token_stream)))
+                        .examples([serde_json::json!(#example_token_stream)])
                         .build()
                 }
             }
@@ -1277,36 +1271,34 @@ pub fn emit_generate_pg_types(
                 };
                 quote::quote! {
                     utoipa::openapi::ObjectBuilder::new()
-                        .schema_type(utoipa::openapi::SchemaType::Object)
-                        .property("hour", utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::Integer).minimum(Some(0.0)).maximum(Some(23.0)))
-                        .property(#minute_name, utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::Integer).minimum(Some(0.0)).maximum(Some(59.0)))
-                        .property(#second_name, utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::Integer).minimum(Some(0.0)).maximum(Some(59.0)))
-                        .property(#microsecond_name, utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::Integer).minimum(Some(0.0)).maximum(Some(999999.0)))
+                        .schema_type(utoipa::openapi::schema::Type::Object)
+                        .property("hour", utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::schema::Type::Integer).minimum(Some(0.0)).maximum(Some(23.0)))
+                        .property(#minute_name, utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::schema::Type::Integer).minimum(Some(0.0)).maximum(Some(59.0)))
+                        .property(#second_name, utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::schema::Type::Integer).minimum(Some(0.0)).maximum(Some(59.0)))
+                        .property(#microsecond_name, utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::schema::Type::Integer).minimum(Some(0.0)).maximum(Some(999999.0)))
                         .required("hour")
                         .required(#minute_name)
                         .required(#second_name)
                         .required(#microsecond_name)
-                        .nullable(#open_api_nullable_token_stream)
-                        .example(Some(serde_json::json!({
+                        .examples([serde_json::json!({
                             "hour": 12,
                             #minute_name: 34,
                             #second_name: 56,
                             #microsecond_name: 789000
-                        })))
+                        })])
                         .build()
                 }
             }
             WireKind::Interval => quote::quote! {
                 utoipa::openapi::ObjectBuilder::new()
-                    .schema_type(utoipa::openapi::SchemaType::Object)
-                    .property("months", utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::Integer).format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Int32))))
-                    .property("days", utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::Integer).format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Int32))))
-                    .property("microseconds", utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::Integer).format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Int64))))
+                    .schema_type(utoipa::openapi::schema::Type::Object)
+                    .property("months", utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::schema::Type::Integer).format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Int32))))
+                    .property("days", utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::schema::Type::Integer).format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Int32))))
+                    .property("microseconds", utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::schema::Type::Integer).format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Int64))))
                     .required("months")
                     .required("days")
                     .required("microseconds")
-                    .nullable(#open_api_nullable_token_stream)
-                    .example(Some(serde_json::json!({"months": 1, "days": 2, "microseconds": 3000000})))
+                    .examples([serde_json::json!({"months": 1, "days": 2, "microseconds": 3000000})])
                     .build()
             },
             WireKind::Timestamp | WireKind::TimestampTz => {
@@ -1317,30 +1309,29 @@ pub fn emit_generate_pg_types(
                 };
                 quote::quote! {
                     utoipa::openapi::ObjectBuilder::new()
-                        .schema_type(utoipa::openapi::SchemaType::Object)
-                        .property(#date_name, utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::String).format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Date))))
+                        .schema_type(utoipa::openapi::schema::Type::Object)
+                        .property(#date_name, utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::schema::Type::String).format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Date))))
                         .property("time", utoipa::openapi::ObjectBuilder::new()
-                            .schema_type(utoipa::openapi::SchemaType::Object)
-                            .property("hour", utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::Integer).minimum(Some(0.0)).maximum(Some(23.0)))
-                            .property("min", utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::Integer).minimum(Some(0.0)).maximum(Some(59.0)))
-                            .property("sec", utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::Integer).minimum(Some(0.0)).maximum(Some(59.0)))
-                            .property("micro", utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::Integer).minimum(Some(0.0)).maximum(Some(999999.0)))
+                            .schema_type(utoipa::openapi::schema::Type::Object)
+                            .property("hour", utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::schema::Type::Integer).minimum(Some(0.0)).maximum(Some(23.0)))
+                            .property("min", utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::schema::Type::Integer).minimum(Some(0.0)).maximum(Some(59.0)))
+                            .property("sec", utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::schema::Type::Integer).minimum(Some(0.0)).maximum(Some(59.0)))
+                            .property("micro", utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::schema::Type::Integer).minimum(Some(0.0)).maximum(Some(999999.0)))
                             .required("hour").required("min").required("sec").required("micro"))
                         .required(#date_name)
                         .required("time")
-                        .nullable(#open_api_nullable_token_stream)
-                        .example(Some(serde_json::json!({
+                        .examples([serde_json::json!({
                             #date_name: "2024-01-01",
                             "time": {"hour": 12, "min": 34, "sec": 56, "micro": 789000}
-                        })))
+                        })])
                         .build()
                 }
             }
             WireKind::RangeInt32 | WireKind::RangeInt64 | WireKind::RangeDate | WireKind::RangeTimestamp | WireKind::RangeTimestampTz => {
                 let range_value_schema_token_stream = match crate::schema::wire_kind(pg_type_dsc) {
-                    WireKind::RangeInt32 => quote::quote! {utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::Integer).format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Int32)))},
-                    WireKind::RangeInt64 => quote::quote! {utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::Integer).format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Int64)))},
-                    WireKind::RangeDate => quote::quote! {utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::String).format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Date)))},
+                    WireKind::RangeInt32 => quote::quote! {utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::schema::Type::Integer).format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Int32)))},
+                    WireKind::RangeInt64 => quote::quote! {utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::schema::Type::Integer).format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Int64)))},
+                    WireKind::RangeDate => quote::quote! {utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::schema::Type::String).format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Date)))},
                     WireKind::RangeTimestamp | WireKind::RangeTimestampTz => {
                         let date_name = match crate::schema::wire_kind(pg_type_dsc) {
                             WireKind::RangeTimestamp => str_constants::PG_CRUD_PG_DATE,
@@ -1349,14 +1340,14 @@ pub fn emit_generate_pg_types(
                         };
                         quote::quote! {
                             utoipa::openapi::ObjectBuilder::new()
-                                .schema_type(utoipa::openapi::SchemaType::Object)
-                                .property(#date_name, utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::String).format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Date))))
+                                .schema_type(utoipa::openapi::schema::Type::Object)
+                                .property(#date_name, utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::schema::Type::String).format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Date))))
                                 .property("time", utoipa::openapi::ObjectBuilder::new()
-                                    .schema_type(utoipa::openapi::SchemaType::Object)
-                                    .property("hour", utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::Integer).minimum(Some(0.0)).maximum(Some(23.0)))
-                                    .property("min", utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::Integer).minimum(Some(0.0)).maximum(Some(59.0)))
-                                    .property("sec", utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::Integer).minimum(Some(0.0)).maximum(Some(59.0)))
-                                    .property("micro", utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::Integer).minimum(Some(0.0)).maximum(Some(999999.0)))
+                                    .schema_type(utoipa::openapi::schema::Type::Object)
+                                    .property("hour", utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::schema::Type::Integer).minimum(Some(0.0)).maximum(Some(23.0)))
+                                    .property("min", utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::schema::Type::Integer).minimum(Some(0.0)).maximum(Some(59.0)))
+                                    .property("sec", utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::schema::Type::Integer).minimum(Some(0.0)).maximum(Some(59.0)))
+                                    .property("micro", utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::schema::Type::Integer).minimum(Some(0.0)).maximum(Some(999999.0)))
                                     .required("hour").required("min").required("sec").required("micro"))
                                 .required(#date_name)
                                 .required("time")
@@ -1367,24 +1358,37 @@ pub fn emit_generate_pg_types(
                 let range_bound_schema_token_stream = quote::quote! {
                     utoipa::openapi::schema::Schema::from(
                         utoipa::openapi::OneOfBuilder::new()
-                            .item(utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::Object).property("Included", #range_value_schema_token_stream).required("Included"))
-                            .item(utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::Object).property("Excluded", #range_value_schema_token_stream).required("Excluded"))
-                            .item(utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::String).enum_values(Some(["Unbounded"])))
+                            .item(utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::schema::Type::Object).property("Included", #range_value_schema_token_stream).required("Included"))
+                            .item(utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::schema::Type::Object).property("Excluded", #range_value_schema_token_stream).required("Excluded"))
+                            .item(utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::schema::Type::String).enum_values(Some(["Unbounded"])))
                             .build()
                     )
                 };
                 quote::quote! {
                     utoipa::openapi::ObjectBuilder::new()
-                        .schema_type(utoipa::openapi::SchemaType::Object)
+                        .schema_type(utoipa::openapi::schema::Type::Object)
                         .property("start", #range_bound_schema_token_stream)
                         .property("end", #range_bound_schema_token_stream)
                         .required("start")
                         .required("end")
-                        .nullable(#open_api_nullable_token_stream)
-                        .example(Some(serde_json::json!({"start": "Unbounded", "end": "Unbounded"})))
+                        .examples([serde_json::json!({"start": "Unbounded", "end": "Unbounded"})])
                         .build()
                 }
             }
+        };
+        let open_api_schema_token_stream = match &is_nullable {
+            pg_crud_macros_common::IsNullable::False => non_null_open_api_schema_token_stream,
+            pg_crud_macros_common::IsNullable::True => quote::quote! {
+                utoipa::openapi::Schema::OneOf(
+                    utoipa::openapi::OneOfBuilder::new()
+                        .item(
+                            utoipa::openapi::ObjectBuilder::new()
+                                .schema_type(utoipa::openapi::schema::Type::Null),
+                        )
+                        .item(#non_null_open_api_schema_token_stream)
+                        .build()
+                )
+            },
         };
         let field_type_handle_optional_token_stream = pg_crud_macros_common::generate_optional_type_declaration_token_stream(&identifier_standard_non_null_origin_upper_camel_case);
         let field_type_handle: &dyn quote::ToTokens = match &pg_type_pattern {
@@ -1597,8 +1601,18 @@ pub fn emit_generate_pg_types(
                         | PgType::BoolAsBool
                         | PgType::StringAsText
                         | PgType::StdVecVecU8AsBytea
-                        | PgType::SqlxTypesChronoNaiveDateAsDate
-                        | PgType::SqlxTypesIpnetworkIpNetworkAsInet => pg_crud_macros_common::DeriveOrImpl::Derive,
+                        | PgType::SqlxTypesChronoNaiveDateAsDate => pg_crud_macros_common::DeriveOrImpl::Derive,
+                        PgType::SqlxTypesIpnetworkIpNetworkAsInet => {
+                            pg_crud_macros_common::DeriveOrImpl::Impl(
+                                macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
+                                    generate_impl_ser_for_identifier_standard_non_null_origin_tokens(
+                                        &quote::quote! {
+                                            _serde::Serializer::collect_str(__serializer, &self.0)
+                                        },
+                                    ),
+                                ),
+                            )
+                        },
                         PgType::SqlxPgTypesPgMoneyAsMoney => generate_impl_ser_wrapping_self_zero_token_stream(&quote::quote! {.0}),
                         PgType::SqlxTypesMacAddressMacAddressAsMacAddr => generate_impl_ser_wrapping_self_zero_token_stream(&quote::quote! {.bytes()}),
                         PgType::SqlxTypesChronoNaiveTimeAsTime => pg_crud_macros_common::DeriveOrImpl::Impl(macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(generate_impl_ser_for_identifier_standard_non_null_origin_tokens(&{
@@ -1705,7 +1719,63 @@ pub fn emit_generate_pg_types(
                         PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => pg_crud_macros_common::DeriveOrImpl::Impl(macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(generate_impl_ser_for_identifier_standard_non_null_origin_start_end_range_tokens(&sqlx_types_chrono_date_time_sqlx_types_chrono_utc_as_non_null_timestamptz_origin_upper_camel_case))),
                     }
                 },
-                pg_crud_macros_common::DeriveOrImpl::Derive
+                match &pg_type {
+                    PgType::SqlxTypesIpnetworkIpNetworkAsInet => {
+                        pg_crud_macros_common::DeriveOrImpl::Impl(
+                            macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
+                                quote::quote! {
+                                    #[allow(unused_qualifications)]
+                                    #[allow(clippy::absolute_paths)]
+                                    #allow_clippy_arbitrary_src_item_ordering
+                                    const _: () = {
+                                        #[allow(unused_extern_crates, clippy::useless_attribute)]
+                                        extern crate serde as _serde;
+                                        #[automatically_derived]
+                                        impl<'de> _serde::Deserialize<'de> for #identifier_standard_non_null_origin_upper_camel_case {
+                                            fn deserialize<__D>(__deserializer: __D) -> Result<Self, __D::Error>
+                                            where
+                                                __D: _serde::Deserializer<'de>,
+                                            {
+                                                let value = <String as _serde::Deserialize>::deserialize(__deserializer)?;
+                                                <sqlx::types::ipnetwork::IpNetwork as std::str::FromStr>::from_str(&value)
+                                                    .map(Self)
+                                                    .map_err(_serde::de::Error::custom)
+                                            }
+                                        }
+                                    };
+                                },
+                            ),
+                        )
+                    },
+                    PgType::I16AsInt2
+                    | PgType::I32AsInt4
+                    | PgType::I64AsInt8
+                    | PgType::F32AsFloat4
+                    | PgType::F64AsFloat8
+                    | PgType::I16AsSmallSerialInitializationByPg
+                    | PgType::I32AsSerialInitializationByPg
+                    | PgType::I64AsBigSerialInitializationByPg
+                    | PgType::SqlxPgTypesPgMoneyAsMoney
+                    | PgType::BoolAsBool
+                    | PgType::StringAsText
+                    | PgType::StdVecVecU8AsBytea
+                    | PgType::SqlxTypesChronoNaiveTimeAsTime
+                    | PgType::SqlxTypesTimeTimeAsTime
+                    | PgType::SqlxPgTypesPgIntervalAsInterval
+                    | PgType::SqlxTypesChronoNaiveDateAsDate
+                    | PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp
+                    | PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz
+                    | PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg
+                    | PgType::SqlxTypesUuidUuidAsUuidInitializationByClient
+                    | PgType::SqlxTypesMacAddressMacAddressAsMacAddr
+                    | PgType::SqlxPgTypesPgRangeI32AsInt4Range
+                    | PgType::SqlxPgTypesPgRangeI64AsInt8Range
+                    | PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange
+                    | PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange
+                    | PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => {
+                        pg_crud_macros_common::DeriveOrImpl::Derive
+                    },
+                }
             )
         } else {
             (pg_crud_macros_common::DeriveOrImpl::Derive, pg_crud_macros_common::DeriveOrImpl::Derive)
@@ -3537,14 +3607,12 @@ pub fn emit_generate_pg_types(
             quote::quote! {
                 #identifier_origin_wire_token_stream
                 #identifier_origin_token_stream
-                impl<'schema_lt> utoipa::ToSchema<'schema_lt> for #identifier_origin_upper_camel_case {
-                    fn schema() -> (
-                        &'schema_lt str,
-                        utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
-                    ) {
-                        (stringify!(#identifier_origin_upper_camel_case), (#open_api_schema_token_stream).into())
+                impl utoipa::PartialSchema for #identifier_origin_upper_camel_case {
+                    fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
+                        (#open_api_schema_token_stream).into()
                     }
                 }
+                impl utoipa::ToSchema for #identifier_origin_upper_camel_case {}
                 #maybe_pub_enum_identifier_standard_non_null_origin_try_new_error_token_stream
                 #maybe_pub_enum_identifier_standard_non_null_origin_try_new_for_de_error_token_stream
                 #impl_identifier_origin_token_stream
@@ -5594,7 +5662,7 @@ pub fn emit_generate_pg_types(
                 }
             }
             impl<'query_lt> sqlx::Encode<'query_lt, sqlx::Postgres> for StringAsNonNullTextSecret {
-                fn encode_by_ref(&self, buffer: &mut <sqlx::Postgres as sqlx::Database>::ArgumentBuffer<'query_lt>) -> Result<sqlx::encode::IsNull, sqlx::error::BoxDynError> {
+                fn encode_by_ref(&self, buffer: &mut <sqlx::Postgres as sqlx::Database>::ArgumentBuffer) -> Result<sqlx::encode::IsNull, sqlx::error::BoxDynError> {
                     <String as sqlx::Encode<'query_lt, sqlx::Postgres>>::encode_by_ref(&self.0, buffer)
                 }
                 fn size_hint(&self) -> usize {

@@ -643,11 +643,9 @@ mod tests {
             .connect(exposed_database_url)
             .await
             .expect("ceff90ad");
-        let _schema_result = sqlx::query(
-            str_constants::NOTIFICATION_SERVICE_CREATE_TEST_SCHEMA_SQL
-                .concat()
-                .as_str(),
-        )
+        let _schema_result = sqlx::query(sqlx::AssertSqlSafe(
+            str_constants::NOTIFICATION_SERVICE_CREATE_TEST_SCHEMA_SQL.concat(),
+        ))
         .execute(&setup_pool)
         .await
         .expect("59114ac3");

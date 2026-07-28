@@ -713,7 +713,7 @@ mod tests {
             serde_json::to_value(utoipa::openapi::OpenApi::from(super::generated_open_api()))
                 .expect("40a639b7");
         let no_body_schema = serde_json::to_value(
-            <server_admin_contract::AdminNoBody as utoipa::ToSchema>::schema().1,
+            <server_admin_contract::AdminNoBody as utoipa::PartialSchema>::schema(),
         )
         .expect("e185e575");
         <server_admin_contract::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::schema_contracts()
@@ -914,8 +914,8 @@ mod tests {
                 frontend_contract::FilterOperation::Regex,
             ]
         );
-        let (_, schema) =
-            <pg_types_text_misc::StringAsNonNullTextWhere as utoipa::ToSchema>::schema();
+        let schema =
+            <pg_types_text_misc::StringAsNonNullTextWhere as utoipa::PartialSchema>::schema();
         let variants = serde_json::to_value(schema)
             .expect("84d658fc")
             .get("oneOf")

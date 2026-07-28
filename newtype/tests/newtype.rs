@@ -108,6 +108,9 @@ mod tests {
     #[bounded_string(max = 3usize, min = 1usize, chars, nul_free, serde, trim, utoipa)]
     struct RichValue(String);
     #[derive(Debug, Clone, PartialEq, Eq, newtype::BoundedString)]
+    #[bounded_string(max = 3usize, chars, utoipa, write_only)]
+    struct WriteOnlyValue(String);
+    #[derive(Debug, Clone, PartialEq, Eq, newtype::BoundedString)]
     #[bounded_string(max = 3usize, validator = VALIDATE_LOWERCASE_ASCII)]
     struct ValidatedValue(String);
     #[derive(
@@ -339,10 +342,16 @@ mod tests {
     }
     #[test]
     fn bounded_string_openapi_limits_match_runtime_limits() {
-        let schema = <RichValue as utoipa::ToSchema>::schema().1;
+        let schema = <RichValue as utoipa::PartialSchema>::schema();
         let json = serde_json::to_value(schema).expect("756f3fe9");
         assert_eq!(json.get("minLength"), Some(&serde_json::json!(1usize)));
         assert_eq!(json.get("maxLength"), Some(&serde_json::json!(3usize)));
+    }
+    #[test]
+    fn bounded_string_openapi_write_only_matches_secret_contract() {
+        let schema = <WriteOnlyValue as utoipa::PartialSchema>::schema();
+        let json = serde_json::to_value(schema).expect("ce9351d4");
+        assert_eq!(json.get("writeOnly"), Some(&serde_json::json!(true)));
     }
     #[test]
     fn bounded_string_small_input_space_matches_reference_model() {

@@ -67,6 +67,7 @@ enum BoundedStringOption {
     Serde,
     Trim,
     Utoipa,
+    WriteOnly,
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 enum NewtypeOption {
@@ -1397,6 +1398,10 @@ fn generate_bounded_string_token_stream(
     let serde = options.contains(BoundedStringOption::Serde).get();
     let trim = options.contains(BoundedStringOption::Trim).get();
     let utoipa = options.contains(BoundedStringOption::Utoipa).get();
+    let write_only = options
+        .contains(BoundedStringOption::WriteOnly)
+        .get()
+        .then(|| quote::quote! {.write_only(Some(true))});
     if utoipa && !chars {
         return Err(syn::Error::new_spanned(
             input_ref,
@@ -1449,22 +1454,18 @@ fn generate_bounded_string_token_stream(
     });
     let utoipa_token_stream = utoipa.then(|| {
         quote::quote! {
-            impl<'schema_lt> utoipa::ToSchema<'schema_lt> for #identifier {
-                fn schema() -> (
-                    &'schema_lt str,
-                    utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
-                ) {
-                    (
-                        stringify!(#identifier),
-                        utoipa::openapi::ObjectBuilder::new()
-                            .schema_type(utoipa::openapi::schema::SchemaType::String)
-                            .min_length(Some(#min_token_stream))
-                            .max_length(Some(#max))
-                            .build()
-                            .into(),
-                    )
+            impl utoipa::PartialSchema for #identifier {
+                fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
+                    utoipa::openapi::ObjectBuilder::new()
+                        .schema_type(utoipa::openapi::schema::Type::String)
+                        .min_length(Some(#min_token_stream))
+                        .max_length(Some(#max))
+                        #write_only
+                        .build()
+                        .into()
                 }
             }
+            impl utoipa::ToSchema for #identifier {}
         }
     });
     let description_token_stream = description.map_or_else(
@@ -1658,6 +1659,13 @@ fn parse_bounded_string_attrs(attrs: SynAttrsRef<'_>) -> syn::Result<BoundedStri
                         return parsed
                             .options
                             .try_insert_with(BoundedStringOption::Utoipa, || {
+                                meta.error(str_constants::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR)
+                            });
+                    }
+                    if meta.path.is_ident(str_constants::WRITE_ONLY) {
+                        return parsed
+                            .options
+                            .try_insert_with(BoundedStringOption::WriteOnly, || {
                                 meta.error(str_constants::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR)
                             });
                     }

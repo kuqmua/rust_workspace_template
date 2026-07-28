@@ -200,7 +200,7 @@ pub trait TypedRoute: Sized {
         _status: crate::RouteErrorStatus,
     ) -> Option<UtoipaOpenApiRouteSchema> {
         Some(UtoipaOpenApiRouteSchema::from(
-            <crate::ApiProblem as utoipa::ToSchema>::schema().1,
+            <crate::ApiProblem as utoipa::PartialSchema>::schema(),
         ))
     }
     #[must_use]
@@ -433,9 +433,9 @@ where
     {
         let _previous_content = response.content.insert(
             str_constants::APPLICATION_JSON.to_owned(),
-            utoipa::openapi::Content::new::<utoipa::openapi::RefOr<utoipa::openapi::Schema>>(
-                schema.into(),
-            ),
+            utoipa::openapi::Content::new(Some(
+                utoipa::openapi::RefOr::<utoipa::openapi::Schema>::from(schema),
+            )),
         );
     }
     let _previous_response = operation
@@ -454,45 +454,44 @@ where
                 .required(Some(utoipa::openapi::Required::True))
                 .content(
                     str_constants::APPLICATION_JSON,
-                    utoipa::openapi::Content::new::<
-                        utoipa::openapi::RefOr<utoipa::openapi::Schema>,
-                    >(schema.into()),
+                    utoipa::openapi::Content::new(Some(utoipa::openapi::RefOr::<
+                        utoipa::openapi::Schema,
+                    >::from(schema))),
                 )
                 .build()
         }),
     };
 }
 #[allow(clippy::needless_for_each)] // iterator form follows the workspace no-for-loop policy
-pub fn register_openapi_schema<'schema_lt, Schema>(
-    components: &mut UtoipaOpenApiComponentsRefMut<'_>,
-) where
-    Schema: utoipa::ToSchema<'schema_lt>,
+pub fn register_openapi_schema<Schema>(components: &mut UtoipaOpenApiComponentsRefMut<'_>)
+where
+    Schema: utoipa::ToSchema,
 {
-    let aliases = Schema::aliases();
-    if aliases.is_empty() {
-        let (name, schema) = Schema::schema();
-        let qualified_name = std::any::type_name::<Schema>()
-            .replace(str_constants::DOUBLE_COLON, str_constants::DOT);
-        let _previous_qualified_schema =
-            components.0.schemas.insert(qualified_name, schema.clone());
-        if let Some(crate_name) = std::any::type_name::<Schema>()
-            .split(str_constants::DOUBLE_COLON)
-            .next()
-        {
-            let _previous_crate_schema = components
-                .0
-                .schemas
-                .insert(format!("{crate_name}.{name}"), schema.clone());
-        }
-        let _previous_named_schema = components.0.schemas.insert(name.to_owned(), schema);
-    } else {
-        aliases.into_iter().for_each(|(name, schema)| {
+    let name = Schema::name();
+    let schema = <Schema as utoipa::PartialSchema>::schema();
+    let qualified_name =
+        std::any::type_name::<Schema>().replace(str_constants::DOUBLE_COLON, str_constants::DOT);
+    let _previous_qualified_schema = components.0.schemas.insert(qualified_name, schema.clone());
+    if let Some(crate_name) = std::any::type_name::<Schema>()
+        .split(str_constants::DOUBLE_COLON)
+        .next()
+    {
+        let _previous_crate_schema = components
+            .0
+            .schemas
+            .insert(format!("{crate_name}.{name}"), schema.clone());
+    }
+    let _previous_named_schema = components.0.schemas.insert(name.into_owned(), schema);
+    let mut referenced_schemas = Vec::new();
+    Schema::schemas(&mut referenced_schemas);
+    referenced_schemas
+        .into_iter()
+        .for_each(|(referenced_name, referenced_schema)| {
             let _previous_schema = components
                 .0
                 .schemas
-                .insert(name.to_owned(), utoipa::openapi::RefOr::T(schema));
+                .insert(referenced_name, referenced_schema);
         });
-    }
 }
 pub fn register_openapi_route_schemas<Route>(document: &mut UtoipaOpenApiRefMut<'_>)
 where
@@ -567,13 +566,12 @@ where
             let status = error_status.transport_status().to_string();
             let mut response = utoipa::openapi::response::Response::new(status.clone());
             if let Some(schema) = Route::openapi_error_response_schema(error_status) {
-                let _previous_content =
-                    response.content.insert(
-                        str_constants::APPLICATION_JSON.to_owned(),
-                        utoipa::openapi::Content::new::<
-                            utoipa::openapi::RefOr<utoipa::openapi::Schema>,
-                        >(schema.into()),
-                    );
+                let _previous_content = response.content.insert(
+                    str_constants::APPLICATION_JSON.to_owned(),
+                    utoipa::openapi::Content::new(Some(utoipa::openapi::RefOr::<
+                        utoipa::openapi::Schema,
+                    >::from(schema))),
+                );
             }
             if error_status == crate::RouteErrorStatus::RateLimited {
                 let _previous_header = response.headers.insert(
