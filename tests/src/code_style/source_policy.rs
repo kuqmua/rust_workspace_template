@@ -4,6 +4,87 @@ struct ReviewedPublicFields {
     reason: &'static str,
     struct_name: &'static str,
 }
+fn publicly_forwards_crate_root(item: &syn::Item) -> bool {
+    let syn::Item::Use(item_use) = item else {
+        return false;
+    };
+    matches!(item_use.vis, syn::Visibility::Public(_))
+        && matches!(
+            &item_use.tree,
+            syn::UseTree::Path(path) if path.ident == "crate"
+        )
+}
+#[test]
+fn private_shared_modules_do_not_forward_crate_root_exports() {
+    super::snapshot::with_codebase_snapshot(|snapshot| {
+        let errors = snapshot
+            .rs_files()
+            .iter()
+            .filter(|source_file| {
+                source_file.path().as_ref().file_name() == Some(std::ffi::OsStr::new("lib.rs"))
+            })
+            .flat_map(|crate_root| {
+                crate_root
+                    .ast()
+                    .as_ref()
+                    .items
+                    .iter()
+                    .filter_map(|item| {
+                        let syn::Item::Mod(module) = item else {
+                            return None;
+                        };
+                        matches!(module.vis, syn::Visibility::Inherited)
+                            .then_some(module)
+                            .filter(|module_ref| module_ref.content.is_none())
+                    })
+                    .filter_map(|module| {
+                        let source_directory = crate_root.path().as_ref().parent()?;
+                        [
+                            source_directory.join(format!("{}.rs", module.ident)),
+                            source_directory
+                                .join(module.ident.to_string())
+                                .join("mod.rs"),
+                        ]
+                        .into_iter()
+                        .find_map(|module_path| {
+                            snapshot
+                                .rs_files()
+                                .iter()
+                                .find(|source_file| source_file.path().as_ref() == module_path)
+                        })
+                    })
+                    .filter(|module_file| {
+                        module_file
+                            .ast()
+                            .as_ref()
+                            .items
+                            .iter()
+                            .any(publicly_forwards_crate_root)
+                    })
+                    .map(|module_file| module_file.path().as_ref().display().to_string())
+            })
+            .collect::<Vec<_>>();
+        assert!(
+            errors.is_empty(),
+            "c8f4a271 private crate-root modules publicly forward `crate::` exports:\n{}",
+            errors.join("\n")
+        );
+    });
+}
+#[test]
+fn private_shared_module_forwarding_policy_distinguishes_public_visibility_and_owner() {
+    let public_forward = syn::parse_file("pub use crate::owner::Item;").expect("b2d1e940");
+    let crate_forward = syn::parse_file("pub(crate) use crate::owner::Item;").expect("53f91ac7");
+    let local_public = syn::parse_file("pub use self::owner::Item;").expect("9a47e2c6");
+    assert!(
+        public_forward
+            .items
+            .iter()
+            .any(publicly_forwards_crate_root)
+    );
+    assert!(!crate_forward.items.iter().any(publicly_forwards_crate_root));
+    assert!(!local_public.items.iter().any(publicly_forwards_crate_root));
+}
 #[test]
 fn admin_frontend_api_urls_come_from_typed_routes() {
     super::snapshot::with_codebase_snapshot(|snapshot| {
