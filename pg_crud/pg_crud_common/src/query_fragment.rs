@@ -14,6 +14,8 @@
     reason = "the private parent module assembles query fragments without widening public API"
 )]
 pub struct QueryPartFragment(String);
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+pub struct StdReadQueryBindIndex(std::num::NonZeroU32);
 impl From<crate::PgCrudStringWrapperTryFromStringError> for QueryPartFragment {
     fn from(value: crate::PgCrudStringWrapperTryFromStringError) -> Self {
         Self(value.to_string())
@@ -42,6 +44,41 @@ impl std::fmt::Write for QueryPartFragment {
             return Err(std::fmt::Error);
         }
         self.0.push_str(s);
+        Ok(())
+    }
+}
+impl QueryPartFragment {
+    pub(super) fn append_read_bind_index(
+        &mut self,
+        bind_index: StdReadQueryBindIndex,
+    ) -> Result<(), crate::ReadQueryPlanError> {
+        let mut digits = [0u8; 10usize];
+        let mut value = bind_index.0.get();
+        let mut start = digits.len();
+        while value != 0u32 {
+            start = start.saturating_sub(1usize);
+            let quotient = value.checked_div(10u32).ok_or(crate::ReadQueryPlanError)?;
+            let digit = match value.saturating_sub(quotient.saturating_mul(10u32)) {
+                0u32 => b'0',
+                1u32 => b'1',
+                2u32 => b'2',
+                3u32 => b'3',
+                4u32 => b'4',
+                5u32 => b'5',
+                6u32 => b'6',
+                7u32 => b'7',
+                8u32 => b'8',
+                9u32 => b'9',
+                _ => return Err(crate::ReadQueryPlanError),
+            };
+            *digits.get_mut(start).ok_or(crate::ReadQueryPlanError)? = digit;
+            value = quotient;
+        }
+        digits
+            .get(start..)
+            .ok_or(crate::ReadQueryPlanError)?
+            .iter()
+            .for_each(|digit| self.0.push(char::from(*digit)));
         Ok(())
     }
 }

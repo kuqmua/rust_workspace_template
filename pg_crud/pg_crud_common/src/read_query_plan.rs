@@ -15,9 +15,6 @@ impl QuerySortOrder {
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::AsRefInner, newtype::FromInner)]
 struct SqlSortOrderText(&'static str);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
-pub struct StdReadQueryBindIndex(std::num::NonZeroU32);
-
 #[derive(Clone, Debug, Eq, PartialEq, newtype::IntoInnerFrom, newtype::FromInner)]
 pub struct ReadQueryPlan(crate::QueryPartFragment);
 
@@ -30,10 +27,11 @@ pub fn build_stable_read_query_plan(
     sort_column: &crate::SqlIdentifier,
     tie_break_column: &crate::SqlIdentifier,
     order: QuerySortOrder,
-    limit_bind: StdReadQueryBindIndex,
-    offset_bind: StdReadQueryBindIndex,
+    limit_bind: crate::StdReadQueryBindIndex,
+    offset_bind: crate::StdReadQueryBindIndex,
 ) -> Result<ReadQueryPlan, ReadQueryPlanError> {
     let mut query = base.into_inner();
+    let order_sql = order.sql();
     let tie_break_len = if sort_column == tie_break_column {
         0usize
     } else {
@@ -41,14 +39,14 @@ pub fn build_stable_read_query_plan(
             .len()
             .saturating_add(tie_break_column.as_ref().len())
             .saturating_add(1usize)
-            .saturating_add(order.sql().as_ref().len())
+            .saturating_add(order_sql.as_ref().len())
     };
     query.reserve(
         str_constants::READ_ORDER_BY
             .len()
             .saturating_add(sort_column.as_ref().len())
             .saturating_add(1usize)
-            .saturating_add(order.sql().as_ref().len())
+            .saturating_add(order_sql.as_ref().len())
             .saturating_add(tie_break_len)
             .saturating_add(str_constants::LIMIT_DOLLAR.len())
             .saturating_add(10usize)
@@ -58,22 +56,21 @@ pub fn build_stable_read_query_plan(
     query.push_str(str_constants::READ_ORDER_BY);
     query.push_str(sort_column.as_ref());
     query.push(' ');
-    query.push_str(order.sql().as_ref());
+    query.push_str(order_sql.as_ref());
     if sort_column != tie_break_column {
         query.push_str(str_constants::TEXT_ALT_6);
         query.push_str(tie_break_column.as_ref());
         query.push(' ');
-        query.push_str(order.sql().as_ref());
+        query.push_str(order_sql.as_ref());
     }
     query.push_str(str_constants::LIMIT_DOLLAR);
-    std::fmt::Write::write_fmt(&mut query, format_args!("{}", limit_bind.0))
+    let mut query_fragment =
+        crate::QueryPartFragment::try_from(query).map_err(|_error| ReadQueryPlanError)?;
+    query_fragment.append_read_bind_index(limit_bind)?;
+    std::fmt::Write::write_str(&mut query_fragment, str_constants::OFFSET_DOLLAR)
         .map_err(|_error| ReadQueryPlanError)?;
-    query.push_str(str_constants::OFFSET_DOLLAR);
-    std::fmt::Write::write_fmt(&mut query, format_args!("{}", offset_bind.0))
-        .map_err(|_error| ReadQueryPlanError)?;
-    crate::QueryPartFragment::try_from(query)
-        .map(ReadQueryPlan)
-        .map_err(|_error| ReadQueryPlanError)
+    query_fragment.append_read_bind_index(offset_bind)?;
+    Ok(ReadQueryPlan::from(query_fragment))
 }
 
 #[cfg(test)]

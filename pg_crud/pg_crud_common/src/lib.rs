@@ -100,10 +100,9 @@ pub use pagination::{
 };
 pub use patch_field::PatchField;
 pub use pg_error::{PgErrorKind, SqlxPgErrorRef, classify_pg_error};
-pub use query_fragment::{QueryPartFragment, SqlColumnRef};
+pub use query_fragment::{QueryPartFragment, SqlColumnRef, StdReadQueryBindIndex};
 pub use read_query_plan::{
-    QuerySortOrder, ReadQueryPlan, ReadQueryPlanError, StdReadQueryBindIndex,
-    build_stable_read_query_plan,
+    QuerySortOrder, ReadQueryPlan, ReadQueryPlanError, build_stable_read_query_plan,
 };
 pub use rollback::TransactionFailure;
 pub use sql_identifier::{

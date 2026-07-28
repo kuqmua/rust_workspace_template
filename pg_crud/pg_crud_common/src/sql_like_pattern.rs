@@ -44,8 +44,8 @@ pub fn build_sql_like_pattern(
     };
     let reserved_count = input
         .0
-        .chars()
-        .filter(|character| matches!(character, '\\' | '%' | '_'))
+        .bytes()
+        .filter(|byte| matches!(byte, b'\\' | b'%' | b'_'))
         .count();
     let mut output = String::with_capacity(
         input

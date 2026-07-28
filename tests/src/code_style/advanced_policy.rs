@@ -1318,7 +1318,7 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
         (
             "pg_crud/pg_crud_common/src/read_query_plan.rs",
             (
-                3usize,
+                2usize,
                 "query plan validation maps to stable contract errors",
             ),
         ),
