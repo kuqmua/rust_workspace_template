@@ -65,26 +65,28 @@ pub use frontend_contract_macros::{
     PageCatalog, RouteCatalog, RouteFamily, TypedRoute, UnitEnumCatalog, api_operation_error,
     handler_registry, route_error, route_openapi, route_operation, route_registry,
 };
-pub use handler_contract::{
-    AxumHandlerMethodRouter, HandlerContract, HandlerPath, handler_method_router,
-};
+#[cfg(not(target_arch = "wasm32"))]
+pub use handler_contract::{AxumHandlerMethodRouter, handler_method_router};
+pub use handler_contract::{HandlerContract, HandlerPath};
 pub use problem::{
     ApiProblem, ApiProblemDetail, ApiProblemError, ApiProblemField, ApiProblemKind,
     ApiProblemRequestId, ApiProblemStatus, ApiProblemViolation,
 };
 pub use route::{
-    AuthenticatedTransport, AxumMethodFilter, CoveredRoute, OpenApiSecuritySchemeRef,
-    ParameterizedRoute, ParameterizedRoutePath, ParameterizedRoutePathTryFromStringError,
-    PublicTransport, RouteBodyLimit, RouteCoverageDescriptors, RouteFamily, RouteInFamily,
-    RouteMetadata, RouteMetadataList, RouteMethod, RouteRequest, RouteRequestBody, RouteResponse,
+    AuthenticatedTransport, CoveredRoute, OpenApiSecuritySchemeRef, ParameterizedRoute,
+    ParameterizedRoutePath, ParameterizedRoutePathTryFromStringError, PublicTransport,
+    RouteBodyLimit, RouteCoverageDescriptors, RouteFamily, RouteInFamily, RouteMetadata,
+    RouteMetadataList, RouteMethod, RouteRequest, RouteRequestBody, RouteResponse,
     RouteSchemaContract, RouteSchemaContracts, RouteTransport, TypedRoute,
     UtoipaOpenApiComponentsRefMut, UtoipaOpenApiPathParameter, UtoipaOpenApiRefMut,
     UtoipaOpenApiRouteSchema, apply_openapi_error_contract, apply_openapi_path_parameter_contract,
     apply_openapi_request_contract, apply_openapi_security_contract,
-    apply_openapi_success_contract, axum_method_filter, client_request, client_route_metadata,
-    openapi_route_metadata, register_openapi_route_schemas, register_openapi_schema,
-    server_response, server_route_metadata, typed_parameterized_route_path, typed_route_path,
+    apply_openapi_success_contract, client_request, client_route_metadata, openapi_route_metadata,
+    register_openapi_route_schemas, register_openapi_schema, server_response,
+    server_route_metadata, typed_parameterized_route_path, typed_route_path,
 };
+#[cfg(not(target_arch = "wasm32"))]
+pub use route::{AxumMethodFilter, axum_method_filter};
 pub use route_coverage::{
     AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS,
     AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, PUBLIC_MUTATING_ROUTE_COVERAGE_OBLIGATIONS,

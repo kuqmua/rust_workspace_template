@@ -77,7 +77,7 @@ impl TryFrom<String> for AdminSsrHtml {
 fn render_document(title: &AdminSsrText, body: impl IntoAny) -> AdminSsrHtml {
     let rendered_body = body.render_admin_ssr();
     AdminSsrHtml::try_from(format!(
-        "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>{title}</title><link rel=\"stylesheet\" href=\"/admin/assets/style.css?v=20260723-23\"></head><body>{}</body></html>",
+        "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>{title}</title><link rel=\"stylesheet\" href=\"/admin/assets/style.css?v=20260728-30\"></head><body>{}</body></html>",
         rendered_body.0
     ))
     .unwrap_or_else(AdminSsrHtml::from)
@@ -415,7 +415,7 @@ pub fn render_admin_csr(
         &AdminSsrText::try_from(title).unwrap_or_else(AdminSsrText::from),
         leptos::view! {
             <div id=str_constants::ADMIN_CSR_ROOT_ID style=primary_color><p class="loading-state" role="status">"Loading\u{2026}"</p></div>
-            <script type="module" src="/admin/assets/csr_bootstrap.js?v=20260723-01"></script>
+            <script type="module" src="/admin/assets/csr_bootstrap.js?v=20260728-30"></script>
         },
     )
 }
@@ -549,6 +549,9 @@ mod tests {
                     server_admin_contract::AdminDataFilter::from(
                         frontend_contract::FilterOperation::Regex,
                     ),
+                    server_admin_contract::AdminDataFilter::from(
+                        frontend_contract::FilterOperation::Between,
+                    ),
                 ])
                 .expect("5ba25cf7"),
                 server_admin_contract::AdminDataInputKind::Text,
@@ -586,7 +589,7 @@ mod tests {
 
         assert!(html.as_ref().contains("data-field=\"id\""));
         assert!(html.as_ref().contains("data-filter-count=\"0\""));
-        assert!(html.as_ref().contains("data-filter-count=\"2\""));
+        assert!(html.as_ref().contains("data-filter-count=\"3\""));
         assert!(html.as_ref().contains(">User identifier</span>"));
         assert!(html.as_ref().contains("class=\"numeric-cell\""));
         assert!(html.as_ref().contains("data-label=\"Login name\""));
@@ -645,6 +648,11 @@ mod tests {
         assert!(
             filters_html
                 .as_ref()
+                .contains("class=\"table-filter-header\"><h2>Filter by Login name</h2></div>")
+        );
+        assert!(
+            filters_html
+                .as_ref()
                 .contains("class=\"table-filter-close-label\">Close</span>")
         );
         assert!(
@@ -667,13 +675,33 @@ mod tests {
                 .as_ref()
                 .contains("name=\"filter_value\" type=\"text\" value=\"alice\"")
         );
+        assert!(filters_html.as_ref().contains(
+            "class=\"table-filter-input-label\"><span>Value</span><input name=\"filter_value\""
+        ));
+        assert!(!filters_html.as_ref().contains("placeholder=\"Value\""));
+        assert!(filters_html.as_ref().contains(
+            "class=\"table-filter-input-label\"><span>Start</span><input name=\"filter_value\""
+        ));
+        assert!(filters_html.as_ref().contains(
+            "class=\"table-filter-input-label\"><span>End</span><input name=\"filter_end\""
+        ));
+        assert!(
+            filters_html
+                .as_ref()
+                .contains("name=\"filter_value\" type=\"text\" value=\"\" placeholder=\"Start\"")
+        );
+        assert!(
+            filters_html
+                .as_ref()
+                .contains("name=\"filter_end\" type=\"text\" value=\"\" placeholder=\"End\"")
+        );
         assert!(filters_html.as_ref().contains(">Clear</a>"));
         assert_eq!(
             filters_html
                 .as_ref()
                 .matches("action=\"/admin/role_permissions\"")
                 .count(),
-            2usize
+            3usize
         );
         assert!(
             filters_html
@@ -687,7 +715,7 @@ mod tests {
                 .as_ref()
                 .matches("class=\"table-filter-form\"")
                 .count(),
-            2usize
+            3usize
         );
     }
 
@@ -832,7 +860,7 @@ mod tests {
         assert!(html.as_ref().contains("id=\"admin-csr-root\""));
         assert!(
             html.as_ref()
-                .contains("src=\"/admin/assets/csr_bootstrap.js?v=20260723-01\"")
+                .contains("src=\"/admin/assets/csr_bootstrap.js?v=20260728-30\"")
         );
         assert!(!html.as_ref().contains("<nav"));
         assert!(!html.as_ref().contains("<table"));

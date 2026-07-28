@@ -149,7 +149,7 @@ impl AdminSettingsFormSignals {
                 {
                     Some(optional)
                 }
-                server_admin_contract::AdminSettingOptionality::Clearable(_optional)
+                server_admin_contract::AdminSettingOptionality::Clearable(_)
                 | server_admin_contract::AdminSettingOptionality::Required => None,
             })
             .collect::<Vec<_>>();
@@ -410,7 +410,7 @@ pub(crate) fn admin_data_table_grid(
                                 <details class="table-column-filter" open=is_active_field>
                                     <summary class=("active", is_active_field) aria-label=filter_label.clone()><span class="table-filter-open-label">"Filter"</span><span class="table-filter-close-label">"Close"</span></summary>
                                     <div class="table-filter-operations" role="dialog" aria-modal="true" aria-label=filter_label>
-                                        <h2>{filter_title}</h2>
+                                        <div class="table-filter-header"><h2>{filter_title}</h2></div>
                                         {is_active_field.then(|| leptos::view! { <a class="table-filter-clear" href=clear_href.clone()>"Clear"</a> })}
                                         {column.filters().iter().map(|filter| {
                                             let operation = filter.operation();
@@ -427,8 +427,22 @@ pub(crate) fn admin_data_table_grid(
                                                     <input type="hidden" name="limit" value=limit.clone() />
                                                     <input type="hidden" name="offset" value="0" />
                                                     <span>{format!("{operation:?}")}</span>
-                                                    {needs_value.then(|| leptos::view! { <input name="filter_value" type=input_type value=value required /> })}
-                                                    {needs_end.then(|| leptos::view! { <input name="filter_end" type=input_type value=end required /> })}
+                                                    {needs_value.then(|| {
+                                                        let value_label = if needs_end { "Start" } else { "Value" };
+                                                        let value_placeholder = needs_end.then_some(value_label);
+                                                        leptos::prelude::IntoAny::into_any(leptos::view! {
+                                                            <label class="table-filter-input-label">
+                                                                <span>{value_label}</span>
+                                                                <input name="filter_value" type=input_type value=value placeholder=value_placeholder required />
+                                                            </label>
+                                                        })
+                                                    })}
+                                                    {needs_end.then(|| leptos::prelude::IntoAny::into_any(leptos::view! {
+                                                        <label class="table-filter-input-label">
+                                                            <span>"End"</span>
+                                                            <input name="filter_end" type=input_type value=end placeholder="End" required />
+                                                        </label>
+                                                    }))}
                                                     <button type="submit">"Apply"</button>
                                                 </form>
                                             }

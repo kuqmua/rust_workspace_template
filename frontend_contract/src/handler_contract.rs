@@ -12,9 +12,11 @@ pub trait HandlerContract: Copy {
     fn path(self) -> HandlerPath;
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 #[derive(Debug, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct AxumHandlerMethodRouter<State>(axum::routing::MethodRouter<State>);
 
+#[cfg(not(target_arch = "wasm32"))]
 pub fn handler_method_router<State, Handler, Marker>(
     method: super::RouteMethod,
     handler: Handler,

@@ -300,6 +300,7 @@ impl ApiProblem {
         self.status
     }
 }
+#[cfg(not(target_arch = "wasm32"))]
 impl axum::response::IntoResponse for ApiProblemError {
     fn into_response(self) -> axum::response::Response {
         let status = self.status();

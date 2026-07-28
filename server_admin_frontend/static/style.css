@@ -481,13 +481,15 @@ td details form button:hover {
   position: relative;
 }
 
+th:has(> .table-column-heading > .table-column-filter[open]) {
+  z-index: 2;
+}
+
 .table-column-filter[open] {
   position: fixed;
   z-index: 100;
   inset: 0;
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  gap: clamp(16px, 3vw, 32px);
+  display: block;
   overflow-y: auto;
   background: var(--background);
   padding: clamp(16px, 4vw, 56px);
@@ -510,10 +512,14 @@ td details form button:hover {
 }
 
 .table-column-filter[open] > summary {
-  position: sticky;
+  position: absolute;
+  top: calc(clamp(16px, 4vw, 56px) + clamp(20px, 4vw, 48px));
+  right: calc(
+    max(clamp(16px, 4vw, 56px), (100vw - 960px) / 2) +
+      clamp(20px, 4vw, 48px)
+  );
+  margin: 0;
   z-index: 1;
-  top: 0;
-  justify-self: end;
   min-height: 42px;
   border-color: var(--border-strong);
   border-radius: var(--radius-sm);
@@ -550,6 +556,11 @@ td details form button:hover {
   white-space: normal;
 }
 
+.table-filter-header {
+  min-height: 42px;
+  padding-right: 88px;
+}
+
 .table-filter-operations h2 {
   margin: 0;
   color: var(--text);
@@ -558,8 +569,8 @@ td details form button:hover {
 
 .table-filter-form {
   display: grid;
-  grid-template-columns: minmax(140px, 1fr) minmax(220px, 2fr) auto;
-  align-items: center;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: stretch;
   gap: 12px;
   border-top: 1px solid var(--border);
   padding-top: 16px;
@@ -569,6 +580,23 @@ td details form button:hover {
   color: var(--text-secondary);
   font-size: 12px;
   font-weight: 650;
+}
+
+.table-filter-form .table-filter-input-label {
+  display: grid;
+  gap: 6px;
+}
+
+.table-filter-form button {
+  width: 100%;
+  min-height: 42px;
+  background: var(--accent);
+  color: #fff;
+  padding: 9px 12px;
+}
+
+.table-filter-form button:hover {
+  background: var(--accent-hover);
 }
 
 .table-filter-clear {
@@ -1055,6 +1083,11 @@ pre {
 
   .table-column-filter[open] {
     padding: 12px;
+  }
+
+  .table-column-filter[open] > summary {
+    top: 32px;
+    right: 28px;
   }
 
   .table-filter-operations {

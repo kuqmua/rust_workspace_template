@@ -33,8 +33,10 @@ impl RouteMethod {
         })
     }
 }
+#[cfg(not(target_arch = "wasm32"))]
 #[derive(Clone, Copy, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct AxumMethodFilter(axum::routing::MethodFilter);
+#[cfg(not(target_arch = "wasm32"))]
 #[must_use]
 pub fn axum_method_filter(method: crate::HttpMethod) -> AxumMethodFilter {
     AxumMethodFilter::from(match method {
