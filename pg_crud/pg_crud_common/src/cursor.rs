@@ -147,7 +147,7 @@ impl CursorCodec {
         );
         let signed_text = format!("{}.{encoded_payload}", str_constants::CURSOR_VERSION_V1);
         let mut mac =
-            <hmac::Hmac<sha2::Sha256> as hmac::Mac>::new_from_slice(self.key.0.as_slice())
+            <hmac::Hmac<sha2::Sha256> as hmac::KeyInit>::new_from_slice(self.key.0.as_slice())
                 .map_err(|_error| CursorEncodeError::InvalidSigningKey)?;
         hmac::Mac::update(&mut mac, signed_text.as_bytes());
         let encoded_signature = base64::Engine::encode(
@@ -179,7 +179,7 @@ impl CursorCodec {
         )
         .map_err(|_error| CursorDecodeError::InvalidSignature)?;
         let mut mac =
-            <hmac::Hmac<sha2::Sha256> as hmac::Mac>::new_from_slice(self.key.0.as_slice())
+            <hmac::Hmac<sha2::Sha256> as hmac::KeyInit>::new_from_slice(self.key.0.as_slice())
                 .map_err(|_error| CursorDecodeError::InvalidSigningKey)?;
         hmac::Mac::update(&mut mac, format!("{version}.{encoded_payload}").as_bytes());
         hmac::Mac::verify_slice(mac, signature.as_slice())

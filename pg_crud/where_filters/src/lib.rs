@@ -263,9 +263,9 @@ const _: () = {
                 type Value = __Field;
                 fn expecting(
                     &self,
-                    __f: &mut _serde::__private228::Formatter<'_>,
-                ) -> _serde::__private228::fmt::Result {
-                    _serde::__private228::Formatter::write_str(
+                    __f: &mut _serde::__private229::Formatter<'_>,
+                ) -> _serde::__private229::fmt::Result {
+                    _serde::__private229::Formatter::write_str(
                         __f,
                         str_constants::PG_CRUD_FIELD_IDENTIFIER,
                     )
@@ -317,8 +317,8 @@ const _: () = {
                     + sqlx::Type<sqlx::Postgres>
                     + for<'__> sqlx::Encode<'__, sqlx::Postgres>,
             {
-                marker: _serde::__private228::PhantomData<Between<T>>,
-                lt: _serde::__private228::PhantomData<&'de ()>,
+                marker: _serde::__private229::PhantomData<Between<T>>,
+                lt: _serde::__private229::PhantomData<&'de ()>,
             }
             impl<'de, T> _serde::de::Visitor<'de> for __Visitor<'de, T>
             where
@@ -331,9 +331,9 @@ const _: () = {
                 type Value = Between<T>;
                 fn expecting(
                     &self,
-                    __f: &mut _serde::__private228::Formatter<'_>,
-                ) -> _serde::__private228::fmt::Result {
-                    _serde::__private228::Formatter::write_str(
+                    __f: &mut _serde::__private229::Formatter<'_>,
+                ) -> _serde::__private229::fmt::Result {
+                    _serde::__private229::Formatter::write_str(
                         __f,
                         str_constants::PG_CRUD_BETWEEN_STRUCT_NAME,
                     )
@@ -399,13 +399,13 @@ const _: () = {
                     }
                     let f0_v = match f0 {
                         Some(v) => v,
-                        None => _serde::__private228::de::missing_field(
+                        None => _serde::__private229::de::missing_field(
                             str_constants::PG_CRUD_START_FIELD,
                         )?,
                     };
                     let f1_v = match f1 {
                         Some(v) => v,
-                        None => _serde::__private228::de::missing_field(
+                        None => _serde::__private229::de::missing_field(
                             str_constants::PG_CRUD_END_FIELD,
                         )?,
                     };
@@ -420,8 +420,8 @@ const _: () = {
                 str_constants::PG_CRUD_BETWEEN_SCHEMA_NAME,
                 str_constants::PG_CRUD_SERDE_BETWEEN_FIELDS,
                 __Visitor {
-                    marker: _serde::__private228::PhantomData::<Self>,
-                    lt: _serde::__private228::PhantomData,
+                    marker: _serde::__private229::PhantomData::<Self>,
+                    lt: _serde::__private229::PhantomData,
                 },
             )
         }
@@ -561,8 +561,8 @@ const _: () = {
             where
                 T: _serde::Deserialize<'de>,
             {
-                marker: _serde::__private228::PhantomData<PgTypeNotEmptyUniqueVec<T>>,
-                lt: _serde::__private228::PhantomData<&'de ()>,
+                marker: _serde::__private229::PhantomData<PgTypeNotEmptyUniqueVec<T>>,
+                lt: _serde::__private229::PhantomData<&'de ()>,
             }
             #[automatically_derived]
             impl<'de, T: std::fmt::Debug + PartialEq + _serde::Deserialize<'de>>
@@ -571,9 +571,9 @@ const _: () = {
                 type Value = PgTypeNotEmptyUniqueVec<T>;
                 fn expecting(
                     &self,
-                    __f: &mut _serde::__private228::Formatter<'_>,
-                ) -> _serde::__private228::fmt::Result {
-                    _serde::__private228::Formatter::write_str(
+                    __f: &mut _serde::__private229::Formatter<'_>,
+                ) -> _serde::__private229::fmt::Result {
+                    _serde::__private229::Formatter::write_str(
                         __f,
                         str_constants::PG_CRUD_PG_TYPE_NOT_EMPTY_UNIQUE_VEC_TUPLE_NAME,
                     )
@@ -611,8 +611,8 @@ const _: () = {
                 __deserializer,
                 str_constants::PG_CRUD_PG_TYPE_NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME,
                 __Visitor {
-                    marker: _serde::__private228::PhantomData::<Self>,
-                    lt: _serde::__private228::PhantomData,
+                    marker: _serde::__private229::PhantomData::<Self>,
+                    lt: _serde::__private229::PhantomData,
                 },
             )
         }

@@ -16,7 +16,7 @@ pub struct AxumBody(axum::body::Body);
 pub struct BodySizeLimitBytes(usize);
 #[derive(Debug, newtype::ToErrString, newtype::FromInner)]
 pub struct AxumBodySizeError(axum::Error);
-#[derive(Debug, newtype::FromInner)]
+#[derive(Debug, Clone, Copy, newtype::FromInner)]
 pub struct HttpBodySizeHint(http_body::SizeHint);
 impl to_err_string::ToErrString for HttpBodySizeHint {
     fn to_err_string(&self) -> to_err_string::ErrorText {

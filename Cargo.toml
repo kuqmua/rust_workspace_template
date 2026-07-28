@@ -99,29 +99,29 @@ argon2 = { version = "=0.5.3", default-features = false, features = [
   "rand",
   "zeroize",
 ] }
-base64 = { version = "=0.22.1", default-features = false, features = ["alloc"] }
-serde = { version = "=1.0.228", default-features = false, features = [
+base64 = { version = "=0.23.0", default-features = false, features = ["alloc"] }
+serde = { version = "=1.0.229", default-features = false, features = [
   "std",
   "derive",
 ] }
-serde_derive = { version = "=1.0.228", default-features = false }
-serde_json = { version = "=1.0.150", default-features = false, features = [
+serde_derive = { version = "=1.0.229", default-features = false }
+serde_json = { version = "=1.0.151", default-features = false, features = [
   "std",
 ] }
 proptest = { version = "=1.11.0", default-features = false, features = ["std"] }
-toml = { version = "=1.1.2", default-features = false, features = [
+toml = { version = "=1.1.3", default-features = false, features = [
   "std",
   "serde",
   "parse",
   "display",
 ] }
-regex = { version = "=1.12.4", default-features = false, features = [
+regex = { version = "=1.13.1", default-features = false, features = [
   "std",
   "perf",
   "unicode",
 ] }
 convert_case = { version = "=0.11.0", default-features = false }
-uuid = { version = "=1.23.4", default-features = false, features = [
+uuid = { version = "=1.24.0", default-features = false, features = [
   "std",
   "serde",
   "v4",
@@ -136,10 +136,10 @@ leptos = { version = "=0.8.20", default-features = false }
 libfuzzer-sys = { version = "=0.4.13", default-features = false, features = [
   "link_libfuzzer",
 ] }
-wasm-bindgen = { version = "=0.2.114", default-features = false }
-wasm-bindgen-futures = { version = "=0.4.64", default-features = false }
-web-sys = { version = "=0.3.91", default-features = false }
-tokio = { version = "=1.52.3", default-features = false, features = [
+wasm-bindgen = { version = "=0.2.126", default-features = false }
+wasm-bindgen-futures = { version = "=0.4.76", default-features = false }
+web-sys = { version = "=0.3.103", default-features = false }
+tokio = { version = "=1.53.1", default-features = false, features = [
   "fs",
   "io-util",
   "macros",
@@ -162,7 +162,7 @@ sqlx = { version = "=0.8.6", default-features = false, features = [
   "ipnetwork",
   "mac_address",
   "json",
-] }
+] } # v0.9.0 drops Serde support from its re-exported IpNetwork type
 axum = { version = "=0.8.9", default-features = false, features = [
   "form",
   "http1",
@@ -176,7 +176,7 @@ axum = { version = "=0.8.9", default-features = false, features = [
   "tracing",
 ] }
 tower = { version = "=0.5.3", default-features = false, features = ["util"] }
-tower-http = { version = "=0.6.11", default-features = false, features = [
+tower-http = { version = "=0.7.0", default-features = false, features = [
   "compression-gzip",
   "fs",
   "trace",
@@ -185,10 +185,10 @@ tower-http = { version = "=0.6.11", default-features = false, features = [
   "propagate-header",
   "set-header",
 ] }
-http-body = { version = "=1.0.1", default-features = false }
+http-body = { version = "=1.1.0", default-features = false }
 http = { version = "=1.4.2", default-features = false }
-hmac = { version = "=0.12.1", default-features = false }
-futures = { version = "=0.3.32", default-features = false, features = [
+hmac = { version = "=0.13.0", default-features = false }
+futures = { version = "=0.3.33", default-features = false, features = [
   "std",
   "async-await",
   "executor",
@@ -220,27 +220,27 @@ num_cpus = { version = "=1.17.0", default-features = false }
 secrecy = { version = "=0.10.3", default-features = false, features = [
   "serde",
 ] }
-sha2 = { version = "=0.10.9", default-features = false }
+sha2 = { version = "=0.11.0", default-features = false }
 chrono = { version = "=0.4.45", default-features = false, features = [
   "std",
   "clock",
   "serde",
 ] }
-thiserror = { version = "=2.0.18", default-features = false }
-jsonwebtoken = { version = "=10.4.0", default-features = false, features = [
+thiserror = { version = "=2.0.19", default-features = false }
+jsonwebtoken = { version = "=11.0.0", default-features = false, features = [
   "rust_crypto",
 ] }
 strum = { version = "=0.28.0", default-features = false }
 strum_macros = { version = "=0.28.0", default-features = false }
 dotenv = { version = "=0.15.0", default-features = false }
-time = { version = "=0.3.53", default-features = false, features = [
+time = { version = "=0.3.54", default-features = false, features = [
   "std",
   "serde",
 ] }
-quote = { version = "=1.0.46", default-features = false, features = [
+quote = { version = "=1.0.47", default-features = false, features = [
   "proc-macro",
 ] }
-syn = { version = "=2.0.118", default-features = false, features = [
+syn = { version = "=3.0.3", default-features = false, features = [
   "clone-impls",
   "derive",
   "parsing",
@@ -251,25 +251,25 @@ syn = { version = "=2.0.118", default-features = false, features = [
   "visit-mut",
   "extra-traits",
 ] }
-proc-macro2 = { version = "=1.0.106", default-features = false, features = [
+proc-macro2 = { version = "=1.0.107", default-features = false, features = [
   "proc-macro",
   "span-locations",
 ] }
 utoipa = { version = "=4.2.3", default-features = false, features = [
   "axum_extras",
-] } #=5.4.0 contains path bug, update later
-schemars = { version = "=1.2.1", default-features = false, features = [
+] } # v5.5.0 still contains the path operation and tuple-newtype schema regressions
+schemars = { version = "=1.2.2", default-features = false, features = [
   "derive",
   "std",
 ] }
 rayon = { version = "=1.12.0", default-features = false }
-bytes = { version = "=1.12.0", default-features = false, features = ["std"] }
+bytes = { version = "=1.12.1", default-features = false, features = ["std"] }
 cargo_metadata = { version = "=0.23.1", default-features = false }
 criterion = { version = "=0.8.2", default-features = false, features = [
   "cargo_bench_support",
 ] }
 walkdir = { version = "=2.5.0", default-features = false }
-trybuild = { version = "=1.0.116", default-features = false }
+trybuild = { version = "=1.0.118", default-features = false }
 git-version = { version = "=0.3.9", default-features = false }
 app_state = { path = "./app_state" }
 common_routes = { path = "./common_routes" }

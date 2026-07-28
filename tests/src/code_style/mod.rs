@@ -1085,7 +1085,7 @@ impl ForwardingBorrowVisitor {
 }
 impl<'ast> syn::visit::Visit<'ast> for ForwardingBorrowVisitor {
     fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
-        let is_borrow_impl = i.trait_.as_ref().is_some_and(|(_, path, _)| {
+        let is_borrow_impl = i.trait_.as_ref().is_some_and(|(path, _)| {
             path.segments.last().is_some_and(|segment| {
                 segment.ident == str_constants::CODE_STYLE_BORROW_TRAIT_IDENTIFIER
             })
@@ -1133,7 +1133,7 @@ impl ForwardingDerefVisitor {
 }
 impl<'ast> syn::visit::Visit<'ast> for ForwardingDerefVisitor {
     fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
-        let is_deref_impl = i.trait_.as_ref().is_some_and(|(_, path, _)| {
+        let is_deref_impl = i.trait_.as_ref().is_some_and(|(path, _)| {
             path.segments.last().is_some_and(|segment| {
                 segment.ident == str_constants::CODE_STYLE_DEREF_TRAIT_IDENTIFIER
             })
@@ -1203,7 +1203,7 @@ struct ConstDisplayImplVisitor {
 }
 impl<'ast> syn::visit::Visit<'ast> for ConstDisplayImplVisitor {
     fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
-        let is_display_impl = i.trait_.as_ref().is_some_and(|(_, path, _)| {
+        let is_display_impl = i.trait_.as_ref().is_some_and(|(path, _)| {
             path.segments.last().is_some_and(|segment| {
                 segment.ident == str_constants::CODE_STYLE_DISPLAY_TRAIT_IDENTIFIER
             })
@@ -1237,7 +1237,7 @@ impl<'ast> syn::visit::Visit<'ast> for ConstDisplayImplVisitor {
 }
 impl<'ast> syn::visit::Visit<'ast> for ManualNotImplVisitor {
     fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
-        let is_not_impl = i.trait_.as_ref().is_some_and(|(_, path, _)| {
+        let is_not_impl = i.trait_.as_ref().is_some_and(|(path, _)| {
             path.segments.last().is_some_and(|segment| {
                 segment.ident == str_constants::CODE_STYLE_NOT_TRAIT_IDENTIFIER
             })
@@ -1254,7 +1254,7 @@ impl<'ast> syn::visit::Visit<'ast> for ManualNotImplVisitor {
 }
 impl<'ast> syn::visit::Visit<'ast> for ManualErrorImplVisitor {
     fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
-        let is_error_impl = i.trait_.as_ref().is_some_and(|(_, path, _)| {
+        let is_error_impl = i.trait_.as_ref().is_some_and(|(path, _)| {
             path.segments.last().is_some_and(|segment| {
                 segment.ident == str_constants::CODE_STYLE_ERROR_TRAIT_IDENTIFIER
             })
@@ -1324,7 +1324,7 @@ impl<'ast> syn::visit::Visit<'ast> for TupleResponseVisitor {
 }
 impl<'ast> syn::visit::Visit<'ast> for JsonIntoResponseErrorVisitor<'_> {
     fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
-        let is_into_response = i.trait_.as_ref().is_some_and(|(_, path, _)| {
+        let is_into_response = i.trait_.as_ref().is_some_and(|(path, _)| {
             path.segments.last().is_some_and(|segment| {
                 segment.ident == str_constants::CODE_STYLE_INTO_RESPONSE_TRAIT_IDENTIFIER
             })
@@ -1427,7 +1427,7 @@ struct IntoResponseTypeVisitor {
 }
 impl<'ast> syn::visit::Visit<'ast> for IntoResponseTypeVisitor {
     fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
-        let is_into_response = i.trait_.as_ref().is_some_and(|(_, path, _)| {
+        let is_into_response = i.trait_.as_ref().is_some_and(|(path, _)| {
             path.segments.last().is_some_and(|segment| {
                 segment.ident == str_constants::CODE_STYLE_INTO_RESPONSE_TRAIT_IDENTIFIER
             })
@@ -1496,7 +1496,7 @@ impl<'ast> syn::visit::Visit<'ast> for RouteOperationErrorVisitor {
                         })
                         .map(|segment| segment.ident.to_string()),
                     syn::Type::Array(_)
-                    | syn::Type::BareFn(_)
+                    | syn::Type::FnPtr(_)
                     | syn::Type::Group(_)
                     | syn::Type::ImplTrait(_)
                     | syn::Type::Infer(_)
@@ -1596,7 +1596,7 @@ impl<'ast> syn::visit::Visit<'ast> for ApiErrorSourceVisitor<'_> {
 }
 impl<'ast> syn::visit::Visit<'ast> for ApiErrorLocationVisitor<'_> {
     fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
-        let is_into_response = i.trait_.as_ref().is_some_and(|(_, path, _)| {
+        let is_into_response = i.trait_.as_ref().is_some_and(|(path, _)| {
             path.segments.last().is_some_and(|segment| {
                 segment.ident == str_constants::CODE_STYLE_INTO_RESPONSE_TRAIT_IDENTIFIER
             })
@@ -1648,7 +1648,7 @@ impl ForwardingDisplayVisitor {
 }
 impl<'ast> syn::visit::Visit<'ast> for ForwardingDisplayVisitor {
     fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
-        let is_display_impl = i.trait_.as_ref().is_some_and(|(_, path, _)| {
+        let is_display_impl = i.trait_.as_ref().is_some_and(|(path, _)| {
             path.segments.last().is_some_and(|segment| {
                 segment.ident == str_constants::CODE_STYLE_DISPLAY_TRAIT_IDENTIFIER
             })
@@ -1679,7 +1679,7 @@ struct ForwardingIntoIteratorVisitor {
 }
 impl<'ast> syn::visit::Visit<'ast> for ForwardingIntoIteratorVisitor {
     fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
-        let is_into_iterator_impl = i.trait_.as_ref().is_some_and(|(_, path, _)| {
+        let is_into_iterator_impl = i.trait_.as_ref().is_some_and(|(path, _)| {
             path.segments.last().is_some_and(|segment| {
                 segment.ident == str_constants::CODE_STYLE_INTO_ITERATOR_TRAIT_IDENTIFIER
             })
@@ -1720,7 +1720,7 @@ struct PassthroughIntoInnerFromVisitor {
 }
 impl<'ast> syn::visit::Visit<'ast> for PassthroughIntoInnerFromVisitor {
     fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
-        let source_wrapper_name = i.trait_.as_ref().and_then(|(_, path, _)| {
+        let source_wrapper_name = i.trait_.as_ref().and_then(|(path, _)| {
             let segment = path.segments.last()?;
             if segment.ident != str_constants::CODE_STYLE_FROM_TRAIT_IDENTIFIER {
                 return None;
@@ -1818,7 +1818,7 @@ impl PassthroughFromVisitor {
 }
 impl<'ast> syn::visit::Visit<'ast> for PassthroughFromVisitor {
     fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
-        let from_type = i.trait_.as_ref().and_then(|(_, path, _)| {
+        let from_type = i.trait_.as_ref().and_then(|(path, _)| {
             let segment = path.segments.last()?;
             if segment.ident != str_constants::CODE_STYLE_FROM_TRAIT_IDENTIFIER {
                 return None;
@@ -2665,7 +2665,7 @@ impl<'ast> syn::visit::Visit<'ast> for DeserializeConversionCallVisitor {
 }
 impl<'ast> syn::visit::Visit<'ast> for ManualDeserializeTupleWrapperVisitor<'_> {
     fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
-        let is_deserialize_impl = i.trait_.as_ref().is_some_and(|(_, path, _)| {
+        let is_deserialize_impl = i.trait_.as_ref().is_some_and(|(path, _)| {
             path.segments.last().is_some_and(|segment| {
                 segment.ident == str_constants::CODE_STYLE_DESERIALIZE_DERIVE_NAME
             })
@@ -2929,7 +2929,7 @@ impl DomainTypePolicyVisitor<'_> {
             syn::PathArguments::Parenthesized(args) => {
                 args.inputs
                     .iter()
-                    .for_each(|ty| self.check_ty(types::SynTypeRef::from(ty), ctx));
+                    .for_each(|arg| self.check_ty(types::SynTypeRef::from(&arg.ty), ctx));
                 match &args.output {
                     syn::ReturnType::Default => {}
                     syn::ReturnType::Type(_, ty) => {
@@ -2993,7 +2993,7 @@ impl DomainTypePolicyVisitor<'_> {
                     .iter()
                     .for_each(|elem| self.check_ty(types::SynTypeRef::from(elem), ctx));
             }
-            syn::Type::BareFn(_)
+            syn::Type::FnPtr(_)
             | syn::Type::ImplTrait(_)
             | syn::Type::Infer(_)
             | syn::Type::Macro(_)
@@ -3476,7 +3476,7 @@ impl ExternalLeafWrapperNameVisitor<'_> {
                 .elems
                 .iter()
                 .find_map(|elem| self.external_root_segment(types::SynTypeRef::from(elem))),
-            syn::Type::BareFn(_)
+            syn::Type::FnPtr(_)
             | syn::Type::ImplTrait(_)
             | syn::Type::Infer(_)
             | syn::Type::Macro(_)
@@ -3508,7 +3508,7 @@ impl ExternalLeafWrapperNameVisitor<'_> {
             syn::PathArguments::Parenthesized(args) => args
                 .inputs
                 .iter()
-                .find_map(|ty| self.external_root_segment(types::SynTypeRef::from(ty)))
+                .find_map(|arg| self.external_root_segment(types::SynTypeRef::from(&arg.ty)))
                 .or_else(|| match &args.output {
                     syn::ReturnType::Default => None,
                     syn::ReturnType::Type(_, ty) => {
@@ -4345,7 +4345,7 @@ fn path_has_segment(
 }
 #[allow(clippy::single_call_fn)] // names the From<String> trait-shape check for the string-wrapper policy visitor
 fn item_impl_is_from_string(item: types::SynItemImplRef<'_>) -> types::AnalyzerBool {
-    types::AnalyzerBool::from(item.as_ref().trait_.as_ref().is_some_and(|(_, path, _)| {
+    types::AnalyzerBool::from(item.as_ref().trait_.as_ref().is_some_and(|(path, _)| {
         path_ends_with(
             types::SynPathRef::from(path),
             types::StaticStrSliceRef::from([str_constants::FROM_ALT_3].as_slice()),
@@ -4356,7 +4356,7 @@ fn item_impl_is_from_string(item: types::SynItemImplRef<'_>) -> types::AnalyzerB
 }
 #[allow(clippy::single_call_fn)] // names the TryFrom<String> trait-shape check for the string-wrapper policy visitor
 fn item_impl_is_try_from_string(item: types::SynItemImplRef<'_>) -> types::AnalyzerBool {
-    types::AnalyzerBool::from(item.as_ref().trait_.as_ref().is_some_and(|(_, path, _)| {
+    types::AnalyzerBool::from(item.as_ref().trait_.as_ref().is_some_and(|(path, _)| {
         path_ends_with(
             types::SynPathRef::from(path),
             types::StaticStrSliceRef::from([str_constants::TRYFROM].as_slice()),
@@ -4380,7 +4380,7 @@ fn item_impl_self_ty_identifier(item: types::SynItemImplRef<'_>) -> Option<types
             types::SourceText::try_from(segment.ident.to_string()).expect("6a9f03d2")
         }),
         syn::Type::Array(_)
-        | syn::Type::BareFn(_)
+        | syn::Type::FnPtr(_)
         | syn::Type::Group(_)
         | syn::Type::ImplTrait(_)
         | syn::Type::Infer(_)
@@ -4525,7 +4525,7 @@ fn item_struct_derives_try_from(item: types::SynItemStructRef<'_>) -> types::Ana
 }
 #[allow(clippy::single_call_fn)] // isolates `From<T>` impl detection for tuple-wrapper conversion analysis
 fn item_impl_is_from(item: types::SynItemImplRef<'_>) -> types::AnalyzerBool {
-    types::AnalyzerBool::from(item.as_ref().trait_.as_ref().is_some_and(|(_, path, _)| {
+    types::AnalyzerBool::from(item.as_ref().trait_.as_ref().is_some_and(|(path, _)| {
         path.segments
             .last()
             .is_some_and(|segment| segment.ident == str_constants::FROM_ALT_3)
@@ -4533,7 +4533,7 @@ fn item_impl_is_from(item: types::SynItemImplRef<'_>) -> types::AnalyzerBool {
 }
 #[allow(clippy::single_call_fn)] // isolates `TryFrom<T>` impl detection for tuple-wrapper conversion analysis
 fn item_impl_is_try_from(item: types::SynItemImplRef<'_>) -> types::AnalyzerBool {
-    types::AnalyzerBool::from(item.as_ref().trait_.as_ref().is_some_and(|(_, path, _)| {
+    types::AnalyzerBool::from(item.as_ref().trait_.as_ref().is_some_and(|(path, _)| {
         path.segments
             .last()
             .is_some_and(|segment| segment.ident == str_constants::TRYFROM)
@@ -4543,7 +4543,7 @@ fn item_impl_input_type_is(
     item: types::SynItemImplRef<'_>,
     expected_input_type: &syn::Type,
 ) -> types::AnalyzerBool {
-    let source_type = item.as_ref().trait_.as_ref().and_then(|(_, path, _)| {
+    let source_type = item.as_ref().trait_.as_ref().and_then(|(path, _)| {
         let segment = path.segments.last()?;
         let syn::PathArguments::AngleBracketed(arguments) = &segment.arguments else {
             return None;
@@ -4559,7 +4559,7 @@ fn item_impl_input_type_is(
     )
 }
 fn item_impl_is_from_or_try_from(item: types::SynItemImplRef<'_>) -> types::AnalyzerBool {
-    types::AnalyzerBool::from(item.as_ref().trait_.as_ref().is_some_and(|(_, path, _)| {
+    types::AnalyzerBool::from(item.as_ref().trait_.as_ref().is_some_and(|(path, _)| {
         path.segments.last().is_some_and(|segment| {
             segment.ident == str_constants::FROM_ALT_3 || segment.ident == str_constants::TRYFROM
         })
@@ -4603,7 +4603,7 @@ fn type_path_ends_with_identifier(
             .last()
             .is_some_and(|segment| segment.ident == identifier.as_ref()),
         syn::Type::Array(_)
-        | syn::Type::BareFn(_)
+        | syn::Type::FnPtr(_)
         | syn::Type::Group(_)
         | syn::Type::ImplTrait(_)
         | syn::Type::Infer(_)
@@ -4819,7 +4819,7 @@ fn type_contains_segment(
             path_has_segment(types::SynPathRef::from(&path.path), segment).get()
         }
         syn::Type::Array(_)
-        | syn::Type::BareFn(_)
+        | syn::Type::FnPtr(_)
         | syn::Type::Group(_)
         | syn::Type::ImplTrait(_)
         | syn::Type::Infer(_)
@@ -5070,7 +5070,7 @@ fn analyzer_state_raw_container_ty(
             analyzer_state_raw_container_ty(types::SynTypeRef::from(&*ty_reference.elem))
         }
         syn::Type::Array(_)
-        | syn::Type::BareFn(_)
+        | syn::Type::FnPtr(_)
         | syn::Type::ImplTrait(_)
         | syn::Type::Infer(_)
         | syn::Type::Macro(_)
@@ -5096,7 +5096,7 @@ fn raw_text_return_ty(ty: types::SynTypeRef<'_>) -> Option<(types::StaticStr, ty
             raw_text_return_ty(types::SynTypeRef::from(&*ty_reference.elem))
         }
         syn::Type::Array(_)
-        | syn::Type::BareFn(_)
+        | syn::Type::FnPtr(_)
         | syn::Type::ImplTrait(_)
         | syn::Type::Infer(_)
         | syn::Type::Macro(_)
@@ -5173,7 +5173,7 @@ fn raw_text_return_path_arguments(
         syn::PathArguments::Parenthesized(args) => args
             .inputs
             .iter()
-            .find_map(|ty| raw_text_return_ty(types::SynTypeRef::from(ty)))
+            .find_map(|arg| raw_text_return_ty(types::SynTypeRef::from(&arg.ty)))
             .or_else(|| match &args.output {
                 syn::ReturnType::Default => None,
                 syn::ReturnType::Type(_, ty) => raw_text_return_ty(types::SynTypeRef::from(&**ty)),
@@ -5250,7 +5250,7 @@ fn analyzer_state_raw_container_path_arguments(
         syn::PathArguments::Parenthesized(args) => args
             .inputs
             .iter()
-            .find_map(|ty| analyzer_state_raw_container_ty(types::SynTypeRef::from(ty)))
+            .find_map(|arg| analyzer_state_raw_container_ty(types::SynTypeRef::from(&arg.ty)))
             .or_else(|| match &args.output {
                 syn::ReturnType::Default => None,
                 syn::ReturnType::Type(_, ty) => {
@@ -5319,7 +5319,7 @@ fn type_stores_string_text(ty: types::SynTypeRef<'_>) -> types::AnalyzerBool {
             .elems
             .iter()
             .any(|element| type_stores_string_text(types::SynTypeRef::from(element)).get()),
-        syn::Type::BareFn(_)
+        syn::Type::FnPtr(_)
         | syn::Type::ImplTrait(_)
         | syn::Type::Infer(_)
         | syn::Type::Macro(_)
@@ -5338,7 +5338,7 @@ fn type_is_string(ty: types::SynTypeRef<'_>) -> types::AnalyzerBool {
             .last()
             .is_some_and(|segment| segment.ident == str_constants::STRING),
         syn::Type::Array(_)
-        | syn::Type::BareFn(_)
+        | syn::Type::FnPtr(_)
         | syn::Type::Group(_)
         | syn::Type::ImplTrait(_)
         | syn::Type::Infer(_)
@@ -5364,7 +5364,7 @@ fn type_is_str_ref(ty: types::SynTypeRef<'_>) -> types::AnalyzerBool {
                 .last()
                 .is_some_and(|segment| segment.ident == str_constants::STR_ALT),
             syn::Type::Array(_)
-            | syn::Type::BareFn(_)
+            | syn::Type::FnPtr(_)
             | syn::Type::Group(_)
             | syn::Type::ImplTrait(_)
             | syn::Type::Infer(_)
@@ -5380,7 +5380,7 @@ fn type_is_str_ref(ty: types::SynTypeRef<'_>) -> types::AnalyzerBool {
             | _ => false,
         },
         syn::Type::Array(_)
-        | syn::Type::BareFn(_)
+        | syn::Type::FnPtr(_)
         | syn::Type::Group(_)
         | syn::Type::ImplTrait(_)
         | syn::Type::Infer(_)
@@ -5494,7 +5494,7 @@ fn type_contains_sensitive_text_or_bytes(ty: &syn::Type) -> bool {
         syn::Type::Slice(slice) => type_is_u8(slice.elem.as_ref()),
         syn::Type::Group(group) => type_contains_sensitive_text_or_bytes(group.elem.as_ref()),
         syn::Type::Paren(paren) => type_contains_sensitive_text_or_bytes(paren.elem.as_ref()),
-        syn::Type::BareFn(_)
+        syn::Type::FnPtr(_)
         | syn::Type::ImplTrait(_)
         | syn::Type::Infer(_)
         | syn::Type::Macro(_)

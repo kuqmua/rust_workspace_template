@@ -2517,7 +2517,7 @@ pub fn emit_generate_pg_table(
                                         }),
                                     }],
                                     vis: syn::Visibility::Inherited,
-                                    mutability: syn::FieldMutability::None,
+                                    modifiers: syn::FieldModifiers::default(),
                                     ident: Some(syn::Ident::new(
                                         &element.1.to_string(),
                                         proc_macro2::Span::call_site(),
@@ -2525,7 +2525,9 @@ pub fn emit_generate_pg_table(
                                     colon_token: Some(syn::token::Colon {
                                         spans: [proc_macro2::Span::call_site()],
                                     }),
+                                    default: None,
                                     ty: syn::Type::Path(syn::TypePath {
+                                        attrs: Vec::new(),
                                         qself: None,
                                         path: syn::Path {
                                             leading_colon: None,

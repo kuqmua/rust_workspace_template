@@ -5,7 +5,7 @@ pub fn location_syn_field() -> SynLocationField {
     SynLocationField::from(syn::Field {
         attrs: Vec::new(),
         vis: syn::Visibility::Inherited,
-        mutability: syn::FieldMutability::None,
+        modifiers: syn::FieldModifiers::default(),
         ident: Some(syn::Ident::new(
             str_constants::LOCATION_ALT,
             proc_macro2::Span::call_site(),
@@ -13,7 +13,9 @@ pub fn location_syn_field() -> SynLocationField {
         colon_token: Some(syn::token::Colon {
             spans: [proc_macro2::Span::call_site()],
         }),
+        default: None,
         ty: syn::Type::Path(syn::TypePath {
+            attrs: Vec::new(),
             qself: None,
             path: syn::Path {
                 leading_colon: None,

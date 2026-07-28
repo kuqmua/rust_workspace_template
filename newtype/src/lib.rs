@@ -1230,6 +1230,7 @@ fn generate_newtype_token_stream_with_attrs(
     });
     let try_from_token_stream = attrs.try_from.as_ref().map(|try_from| {
         let inferred_error = syn::Type::Path(syn::TypePath {
+            attrs: Vec::new(),
             qself: None,
             path: syn::Path::from(quote::format_ident!("{identifier}Error")),
         });
