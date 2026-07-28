@@ -488,7 +488,7 @@ mod tests {
         miri,
         ignore = "SQLx account discovery calls getpwuid_r, which Miri does not support"
     )]
-    async fn router_contains_service_owned_routes() {
+    async fn default_service_routes_return_success_statuses() {
         let pool = sqlx::postgres::PgPoolOptions::new()
             .connect_lazy(
                 str_constants::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION,
@@ -512,7 +512,7 @@ mod tests {
         .expect("717fb1f4");
         assert_eq!(liveness_response.status(), http::StatusCode::OK);
         let open_api_response = tower::ServiceExt::oneshot(
-            router,
+            router.clone(),
             http::Request::builder()
                 .uri(str_constants::OPENAPI_JSON)
                 .body(axum::body::Body::empty())
@@ -521,6 +521,21 @@ mod tests {
         .await
         .expect("2d37fbd2");
         assert_eq!(open_api_response.status(), http::StatusCode::OK);
+        let metrics_response = tower::ServiceExt::oneshot(
+            router,
+            http::Request::builder()
+                .uri(
+                    frontend_contract::HandlerContract::path(
+                        super::NotificationOperationalRoute::Metrics,
+                    )
+                    .get(),
+                )
+                .body(axum::body::Body::empty())
+                .expect("f9a73c10"),
+        )
+        .await
+        .expect("81c4e6a2");
+        assert_eq!(metrics_response.status(), http::StatusCode::OK);
     }
 
     #[test]

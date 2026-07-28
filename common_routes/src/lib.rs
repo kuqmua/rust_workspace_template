@@ -853,7 +853,7 @@ mod tests {
         assert_git_info_commit(&response.payload.0, test_commit_link().as_str());
     }
     #[tokio::test]
-    async fn runtime_health_version_and_public_read_match_openapi() {
+    async fn default_service_routes_return_success_statuses_and_match_openapi() {
         let router = axum::Router::from(super::common_routes(
             super::StdArcCommonRoutesAppState::from(test_state()),
         ));
