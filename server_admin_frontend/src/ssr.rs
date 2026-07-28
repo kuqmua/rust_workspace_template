@@ -77,7 +77,7 @@ impl TryFrom<String> for AdminSsrHtml {
 fn render_document(title: &AdminSsrText, body: impl IntoAny) -> AdminSsrHtml {
     let rendered_body = body.render_admin_ssr();
     AdminSsrHtml::try_from(format!(
-        "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>{title}</title><link rel=\"stylesheet\" href=\"/admin/assets/style.css?v=20260728-30\"></head><body>{}</body></html>",
+        "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>{title}</title><link rel=\"stylesheet\" href=\"/admin/assets/style.css?v=20260728-32\"></head><body>{}</body></html>",
         rendered_body.0
     ))
     .unwrap_or_else(AdminSsrHtml::from)
@@ -415,7 +415,7 @@ pub fn render_admin_csr(
         &AdminSsrText::try_from(title).unwrap_or_else(AdminSsrText::from),
         leptos::view! {
             <div id=str_constants::ADMIN_CSR_ROOT_ID style=primary_color><p class="loading-state" role="status">"Loading\u{2026}"</p></div>
-            <script type="module" src="/admin/assets/csr_bootstrap.js?v=20260728-30"></script>
+            <script type="module" src="/admin/assets/csr_bootstrap.js?v=20260728-31"></script>
         },
     )
 }
@@ -701,7 +701,11 @@ mod tests {
                 .as_ref()
                 .matches("action=\"/admin/role_permissions\"")
                 .count(),
-            3usize
+            1usize
+        );
+        assert_eq!(
+            filters_html.as_ref().matches(">Apply</button>").count(),
+            1usize
         );
         assert!(
             filters_html
@@ -715,7 +719,7 @@ mod tests {
                 .as_ref()
                 .matches("class=\"table-filter-form\"")
                 .count(),
-            3usize
+            1usize
         );
     }
 
@@ -860,7 +864,7 @@ mod tests {
         assert!(html.as_ref().contains("id=\"admin-csr-root\""));
         assert!(
             html.as_ref()
-                .contains("src=\"/admin/assets/csr_bootstrap.js?v=20260728-30\"")
+                .contains("src=\"/admin/assets/csr_bootstrap.js?v=20260728-31\"")
         );
         assert!(!html.as_ref().contains("<nav"));
         assert!(!html.as_ref().contains("<table"));

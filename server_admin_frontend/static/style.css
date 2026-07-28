@@ -526,7 +526,7 @@ th:has(> .table-column-heading > .table-column-filter[open]) {
   background: var(--surface);
   color: var(--text);
   padding: 10px 16px;
-  font-size: 13px;
+  font-size: var(--header-font-size);
   font-weight: 700;
 }
 
@@ -553,6 +553,7 @@ th:has(> .table-column-heading > .table-column-filter[open]) {
   border-radius: var(--radius-lg);
   background: var(--surface);
   box-shadow: var(--shadow);
+  font-size: var(--header-font-size);
   white-space: normal;
 }
 
@@ -564,7 +565,7 @@ th:has(> .table-column-heading > .table-column-filter[open]) {
 .table-filter-operations h2 {
   margin: 0;
   color: var(--text);
-  font-size: clamp(22px, 3vw, 34px);
+  font-size: var(--header-font-size);
 }
 
 .table-filter-form {
@@ -587,12 +588,38 @@ th:has(> .table-column-heading > .table-column-filter[open]) {
   gap: 6px;
 }
 
+.table-filter-options {
+  display: grid;
+  gap: 12px;
+}
+
+.table-filter-option {
+  display: grid;
+  gap: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+}
+
+.table-filter-operation-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.table-filter-operation-label input {
+  width: auto;
+  min-height: 0;
+  margin: 0;
+}
+
 .table-filter-form button {
   width: 100%;
   min-height: 42px;
   background: var(--accent);
   color: #fff;
   padding: 9px 12px;
+  font-size: var(--header-font-size);
 }
 
 .table-filter-form button:hover {
