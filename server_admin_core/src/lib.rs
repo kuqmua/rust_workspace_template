@@ -1,10 +1,23 @@
 #![allow(clippy::field_scoped_visibility_modifiers)] // sibling domain modules require raw representations while facade reexports must keep fields externally private
 #[derive(newtype::AsRefOwned, newtype::FromInner)]
-pub struct SecrecyAdminString(secrecy::SecretBox<String>);
+pub struct SecrecyAdminString(secrecy::SecretBox<StdAdminString>);
 
 impl std::fmt::Debug for SecrecyAdminString {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(str_constants::REDACTED_ALT_3)
+    }
+}
+impl TryFrom<String> for SecrecyAdminString {
+    type Error = StdAdminStringTryFromStringError;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        StdAdminString::try_from(value)
+            .map(|bounded| Self::from(secrecy::SecretBox::new(Box::new(bounded))))
+    }
+}
+impl secrecy::ExposeSecret<StdAdminString> for SecrecyAdminString {
+    fn expose_secret(&self) -> &StdAdminString {
+        secrecy::ExposeSecret::expose_secret(&self.0)
     }
 }
 #[derive(
@@ -16,10 +29,16 @@ impl std::fmt::Debug for SecrecyAdminString {
     utoipa::ToSchema,
     newtype::BoundedString,
     newtype::AsRefOwned,
+    newtype::DerefInner,
     newtype::IntoInner,
 )]
 #[bounded_string(max = 8192, description = "administrator internal text")]
 pub struct StdAdminString(String);
+impl secrecy::zeroize::Zeroize for StdAdminString {
+    fn zeroize(&mut self) {
+        secrecy::zeroize::Zeroize::zeroize(&mut self.0);
+    }
+}
 enum AdminResourceText {
     PositiveI64(server_admin_contract::StdAdminPositiveI64),
     SystemSettings,
@@ -246,6 +265,33 @@ pub struct AdminPermissionName(server_admin_contract::AdminPermission);
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn administrator_secret_text_enforces_internal_bound() {
+        let at_limit = "a".repeat(8_192usize);
+        let secret = super::SecrecyAdminString::try_from(at_limit.clone()).expect("6673b876");
+        assert_eq!(
+            secrecy::ExposeSecret::expose_secret(&secret)
+                .as_ref()
+                .as_str(),
+            at_limit.as_str()
+        );
+        assert_eq!(
+            super::SecrecyAdminString::try_from("a".repeat(8_193usize)).err(),
+            Some(super::StdAdminStringTryFromStringError::TooLong {
+                len: 8_193usize,
+                max: 8_192usize,
+            })
+        );
+    }
+    #[test]
+    fn administrator_secret_text_is_redacted_and_zeroizable() {
+        let raw = str_constants::NEVER_PRINT_THIS_VALUE;
+        let secret = super::SecrecyAdminString::try_from(raw.to_owned()).expect("67b629e2");
+        assert!(!format!("{secret:?}").contains(raw));
+        let mut bounded = super::StdAdminString::try_from(raw.to_owned()).expect("201f3c4b");
+        secrecy::zeroize::Zeroize::zeroize(&mut bounded);
+        assert!(bounded.as_ref().is_empty());
+    }
     #[test]
     fn administrator_resource_values_are_stable() {
         let positive =

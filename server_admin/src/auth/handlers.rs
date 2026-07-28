@@ -91,7 +91,8 @@ pub(super) async fn sign_in(
     let (contract_login, contract_password) = request.into_parts();
     let login = super::super::AdminLogin::try_from(contract_login.into_inner())
         .map_err(|_error| super::AdminError::Validation)?;
-    let password = super::admin_password_from_contract(contract_password);
+    let password = super::admin_password_from_contract(contract_password)
+        .map_err(super::AdminError::password_text)?;
     let peer_subject = super::super::StdAdminString::try_from(peer.0.as_ref().ip().to_string())
         .map_err(|_error| super::AdminError::Validation)?;
     super::rate_limit::enforce_rate_limit(
@@ -186,7 +187,8 @@ pub(super) async fn sign_in(
     let context_hash = super::session_context_hash(
         super::super::HttpAdminHeaderMapRef::from(headers.as_ref()),
         peer,
-    );
+    )
+    .map_err(super::AdminError::secret_text)?;
     let session = super::create_session_in_connection(
         state.as_ref(),
         admin_user_id,
@@ -250,14 +252,17 @@ pub(super) async fn refresh(
         apply_refresh_failure_delay(state.as_ref().policy.failure_delay).await;
         return Err(super::AdminError::Authentication);
     };
-    let token = super::super::AdminOpaqueToken::new(super::super::SecrecyAdminString::from(
-        secrecy::SecretBox::new(Box::new(raw_token.as_ref().to_owned())),
-    ));
+    let token = super::super::SecrecyAdminString::try_from(raw_token.as_ref().to_owned())
+        .map(super::super::AdminOpaqueToken::new)
+        .map_err(super::super::AdminSecretTextError::from)
+        .map_err(super::AdminError::authentication_secret_text)?;
     let context_hash = super::session_context_hash(
         super::super::HttpAdminHeaderMapRef::from(headers.as_ref()),
         peer,
-    );
-    let token_hash = super::hash_refresh_token_with_context(&token, &context_hash);
+    )
+    .map_err(super::AdminError::authentication_secret_text)?;
+    let token_hash = super::hash_refresh_token_with_context(&token, &context_hash)
+        .map_err(super::AdminError::authentication_secret_text)?;
     let mut tx = state
         .as_ref()
         .pool
@@ -360,14 +365,17 @@ pub(super) async fn sign_out(
         super::super::HttpAdminHeaderMapRef::from(headers.as_ref()),
         super::super::AdminCookieKind::Refresh,
     ) {
-        let refresh = super::super::AdminOpaqueToken::new(super::super::SecrecyAdminString::from(
-            secrecy::SecretBox::new(Box::new(raw_refresh.as_ref().to_owned())),
-        ));
+        let refresh = super::super::SecrecyAdminString::try_from(raw_refresh.as_ref().to_owned())
+            .map(super::super::AdminOpaqueToken::new)
+            .map_err(super::super::AdminSecretTextError::from)
+            .map_err(super::AdminError::authentication_secret_text)?;
         let context_hash = super::session_context_hash(
             super::super::HttpAdminHeaderMapRef::from(headers.as_ref()),
             peer,
-        );
-        let refresh_hash = super::hash_refresh_token_with_context(&refresh, &context_hash);
+        )
+        .map_err(super::AdminError::authentication_secret_text)?;
+        let refresh_hash = super::hash_refresh_token_with_context(&refresh, &context_hash)
+            .map_err(super::AdminError::authentication_secret_text)?;
         super::super::repository::users::revoke_refresh_token(
             super::super::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
             &refresh_hash,
@@ -434,7 +442,8 @@ pub(super) async fn change_own_password(
         .as_ref()
         .password_hasher
         .verify(
-            super::admin_password_from_contract(current_password),
+            super::admin_password_from_contract(current_password)
+                .map_err(super::AdminError::password_text)?,
             expected_hash,
         )
         .await
@@ -447,7 +456,10 @@ pub(super) async fn change_own_password(
         .state
         .as_ref()
         .password_hasher
-        .hash(super::admin_new_password_from_contract(new_password))
+        .hash(
+            super::admin_new_password_from_contract(new_password)
+                .map_err(super::AdminError::password_text)?,
+        )
         .await
         .map_err(super::AdminError::password_hash)?;
     let mut tx = auth
@@ -674,7 +686,8 @@ pub(super) async fn create_user(
         .map_err(|_error| super::AdminError::Validation)?;
     let login = super::super::AdminLogin::try_from(contract_login.into_inner())
         .map_err(|_error| super::AdminError::Validation)?;
-    let password = super::admin_new_password_from_contract(contract_password);
+    let password = super::admin_new_password_from_contract(contract_password)
+        .map_err(super::AdminError::password_text)?;
     let password_hash = auth
         .state
         .as_ref()
@@ -780,7 +793,8 @@ pub(super) async fn set_user_password(
     request: super::AxumAdminJson<server_admin_contract::AdminSetUserPasswordReq>,
 ) -> Result<super::AxumAdminResponse, super::AdminError> {
     let actor = super::authorize_custom(&auth, super::super::AdminPermission::UsersUpdate).await?;
-    let password = super::admin_new_password_from_contract(request.0.into_password());
+    let password = super::admin_new_password_from_contract(request.0.into_password())
+        .map_err(super::AdminError::password_text)?;
     let password_hash = auth
         .state
         .as_ref()

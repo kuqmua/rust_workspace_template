@@ -154,17 +154,13 @@ pub enum AdminAuthSvcStateBuildError {
 #[allow(clippy::single_call_fn)] // sign-in accepts existing credentials without applying the policy for newly assigned passwords
 fn admin_password_from_contract(
     value: server_admin_contract::AdminPassword,
-) -> super::AdminPassword {
-    super::AdminPassword::new(super::SecrecyAdminString::from(secrecy::SecretBox::new(
-        Box::new(value.into_inner()),
-    )))
+) -> Result<super::AdminPassword, super::AdminPasswordTryFromStringError> {
+    super::AdminPassword::try_from(value.into_inner())
 }
 fn admin_new_password_from_contract(
     value: server_admin_contract::AdminNewPassword,
-) -> super::AdminPassword {
-    super::AdminPassword::new(super::SecrecyAdminString::from(secrecy::SecretBox::new(
-        Box::new(value.into_inner()),
-    )))
+) -> Result<super::AdminPassword, super::AdminPasswordTryFromStringError> {
+    super::AdminPassword::try_from(value.into_inner())
 }
 #[derive(Debug, serde::Serialize, utoipa::ToSchema)]
 pub struct AuthenticatedAdmin {
@@ -458,7 +454,7 @@ impl axum::extract::FromRequestParts<StdSharedAdminAuthSvcState> for AdminSessio
 fn session_context_hash(
     headers: super::HttpAdminHeaderMapRef<'_>,
     peer: AdminPeerAddr,
-) -> super::AdminTokenHash {
+) -> Result<super::AdminTokenHash, super::AdminSecretTextError> {
     let mut context = String::with_capacity(352usize);
     context.push_str(str_constants::CLIENT_ADDRESS);
     let client_address = peer.0.as_ref().ip().to_string();
@@ -476,23 +472,22 @@ fn session_context_hash(
         }
         None => context.push_str(str_constants::UNKNOWN_USER_AGENT),
     }
-    super::hash_opaque_token(&super::AdminOpaqueToken::new(
-        super::SecrecyAdminString::from(secrecy::SecretBox::new(Box::new(context))),
-    ))
+    let token = super::SecrecyAdminString::try_from(context).map(super::AdminOpaqueToken::new)?;
+    super::hash_opaque_token(&token)
 }
 fn hash_refresh_token_with_context(
     token: &super::AdminOpaqueToken,
     context_hash: &super::AdminTokenHash,
-) -> super::AdminTokenHash {
+) -> Result<super::AdminTokenHash, super::AdminSecretTextError> {
     let token_text = secrecy::ExposeSecret::expose_secret(token.0.as_ref());
     let context_hash_text = secrecy::ExposeSecret::expose_secret(context_hash.0.as_ref());
     let mut token_with_context =
         String::with_capacity(token_text.len().saturating_add(context_hash_text.len()));
     token_with_context.push_str(token_text);
     token_with_context.push_str(context_hash_text);
-    super::hash_opaque_token(&super::AdminOpaqueToken::new(
-        super::SecrecyAdminString::from(secrecy::SecretBox::new(Box::new(token_with_context))),
-    ))
+    let combined_token = super::SecrecyAdminString::try_from(token_with_context)
+        .map(super::AdminOpaqueToken::new)?;
+    super::hash_opaque_token(&combined_token)
 }
 #[allow(clippy::single_call_fn)] // CSRF origin validation stays isolated from token validation
 fn origin_is_present_and_allowed(
@@ -528,7 +523,7 @@ async fn authenticate(
             .map(|data| data.claims)
         })
         .ok_or(AdminError::Authentication)?;
-    let context_hash = session_context_hash(headers, peer);
+    let context_hash = session_context_hash(headers, peer).map_err(AdminError::secret_text)?;
     let active = super::repository::sessions::access_session_is_active(
         super::repository::SqlxAdminRepositoryPoolRef::from(state.pool.as_ref()),
         claims.session_id(),
@@ -557,10 +552,12 @@ async fn validate_csrf(
         ))
         .and_then(|value| value.to_str().ok())
         .ok_or(AdminError::Csrf)?;
-    let provided_token = super::AdminOpaqueToken::new(super::SecrecyAdminString::from(
-        secrecy::SecretBox::new(Box::new(provided.to_owned())),
-    ));
-    let provided_hash = super::hash_opaque_token(&provided_token);
+    let provided_token = super::SecrecyAdminString::try_from(provided.to_owned())
+        .map(super::AdminOpaqueToken::new)
+        .map_err(super::AdminSecretTextError::from)
+        .map_err(AdminError::csrf_secret_text)?;
+    let provided_hash =
+        super::hash_opaque_token(&provided_token).map_err(AdminError::csrf_secret_text)?;
     let expected = super::repository::sessions::read_csrf_hash(
         super::repository::SqlxAdminRepositoryPoolRef::from(state.pool.as_ref()),
         authenticated.session_id,
@@ -611,17 +608,25 @@ pub(crate) async fn authorize_generated_request(
 pub struct HttpAdminHeaderValueError(http::header::InvalidHeaderValue);
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum AdminObservedErrorCode {
+    AuthenticationSecretText,
+    CsrfSecretText,
     Database,
     Header,
     PasswordHash,
+    PasswordText,
+    SecretText,
     Session,
 }
 impl AdminObservedErrorCode {
     const fn get(self) -> &'static str {
         match self {
+            Self::AuthenticationSecretText => str_constants::ADMIN_OBSERVED_ERROR_AUTH_SECRET_TEXT,
+            Self::CsrfSecretText => str_constants::ADMIN_OBSERVED_ERROR_CSRF_SECRET_TEXT,
             Self::Database => str_constants::ADMIN_OBSERVED_ERROR_DATABASE,
             Self::Header => str_constants::ADMIN_OBSERVED_ERROR_RESPONSE_HEADER,
             Self::PasswordHash => str_constants::ADMIN_OBSERVED_ERROR_PASSWORD_HASH,
+            Self::PasswordText => str_constants::ADMIN_OBSERVED_ERROR_PASSWORD_TEXT,
+            Self::SecretText => str_constants::ADMIN_OBSERVED_ERROR_SECRET_TEXT,
             Self::Session => str_constants::ADMIN_OBSERVED_ERROR_SESSION,
         }
     }
@@ -630,12 +635,18 @@ impl AdminObservedErrorCode {
 pub(crate) enum AdminError {
     #[error("administrator authentication failed")]
     Authentication,
+    #[error("administrator authentication secret text is invalid")]
+    AuthenticationSecretText(
+        #[source] server_runtime_http::ObservedError<super::AdminSecretTextError>,
+    ),
     #[error("administrator authorization failed")]
     Authorization,
     #[error("administrator operation conflicts with current state")]
     Conflict,
     #[error("administrator request failed CSRF validation")]
     Csrf,
+    #[error("administrator CSRF secret text is invalid")]
+    CsrfSecretText(#[source] server_runtime_http::ObservedError<super::AdminSecretTextError>),
     #[error("administrator authentication is temporarily rate limited")]
     RateLimited,
     #[error("administrator request validation failed")]
@@ -644,8 +655,14 @@ pub(crate) enum AdminError {
     Pg(#[source] server_runtime_http::ObservedError<super::SqlxAdminError>),
     #[error("administrator password hashing failed: {0}")]
     PasswordHash(#[source] server_runtime_http::ObservedError<super::AdminPasswordHashError>),
+    #[error("administrator password text is invalid")]
+    PasswordText(
+        #[source] server_runtime_http::ObservedError<super::AdminPasswordTryFromStringError>,
+    ),
     #[error("administrator request body is too large")]
     PayloadTooLarge,
+    #[error("administrator secret text is invalid")]
+    SecretText(#[source] server_runtime_http::ObservedError<super::AdminSecretTextError>),
     #[error("administrator route does not support this HTTP method")]
     MethodNotAllowed,
     #[error("administrator session operation failed: {0}")]
@@ -656,17 +673,43 @@ pub(crate) enum AdminError {
 impl AdminError {
     const fn route_error_status(&self) -> frontend_contract::RouteErrorStatus {
         match self {
-            Self::Authentication => frontend_contract::RouteErrorStatus::Authentication,
-            Self::Authorization | Self::Csrf => frontend_contract::RouteErrorStatus::Authorization,
+            Self::Authentication | Self::AuthenticationSecretText(_) => {
+                frontend_contract::RouteErrorStatus::Authentication
+            }
+            Self::Authorization | Self::Csrf | Self::CsrfSecretText(_) => {
+                frontend_contract::RouteErrorStatus::Authorization
+            }
             Self::Conflict => frontend_contract::RouteErrorStatus::Conflict,
             Self::MethodNotAllowed => frontend_contract::RouteErrorStatus::MethodNotAllowed,
             Self::PayloadTooLarge => frontend_contract::RouteErrorStatus::PayloadTooLarge,
             Self::RateLimited => frontend_contract::RouteErrorStatus::RateLimited,
-            Self::Validation => frontend_contract::RouteErrorStatus::Validation,
+            Self::Validation | Self::PasswordText(_) | Self::SecretText(_) => {
+                frontend_contract::RouteErrorStatus::Validation
+            }
             Self::Pg(_) | Self::PasswordHash(_) | Self::Session(_) | Self::Header(_) => {
                 frontend_contract::RouteErrorStatus::Internal
             }
         }
+    }
+
+    #[track_caller]
+    fn authentication_secret_text(source: super::AdminSecretTextError) -> Self {
+        Self::AuthenticationSecretText(server_runtime_http::ObservedError::capture(
+            source,
+            server_runtime_http::ObservedErrorCode::from(
+                AdminObservedErrorCode::AuthenticationSecretText.get(),
+            ),
+        ))
+    }
+
+    #[track_caller]
+    fn csrf_secret_text(source: super::AdminSecretTextError) -> Self {
+        Self::CsrfSecretText(server_runtime_http::ObservedError::capture(
+            source,
+            server_runtime_http::ObservedErrorCode::from(
+                AdminObservedErrorCode::CsrfSecretText.get(),
+            ),
+        ))
     }
 
     #[track_caller]
@@ -688,6 +731,16 @@ impl AdminError {
     }
 
     #[track_caller]
+    fn password_text(source: super::AdminPasswordTryFromStringError) -> Self {
+        Self::PasswordText(server_runtime_http::ObservedError::capture(
+            source,
+            server_runtime_http::ObservedErrorCode::from(
+                AdminObservedErrorCode::PasswordText.get(),
+            ),
+        ))
+    }
+
+    #[track_caller]
     fn pg(source: super::SqlxAdminError) -> Self {
         Self::Pg(server_runtime_http::ObservedError::capture(
             source,
@@ -700,6 +753,14 @@ impl AdminError {
         Self::Session(server_runtime_http::ObservedError::capture(
             source,
             server_runtime_http::ObservedErrorCode::from(AdminObservedErrorCode::Session.get()),
+        ))
+    }
+
+    #[track_caller]
+    fn secret_text(source: super::AdminSecretTextError) -> Self {
+        Self::SecretText(server_runtime_http::ObservedError::capture(
+            source,
+            server_runtime_http::ObservedErrorCode::from(AdminObservedErrorCode::SecretText.get()),
         ))
     }
 }
@@ -733,6 +794,14 @@ impl axum::response::IntoResponse for AdminError {
             Self::Header(source) => Some(server_runtime_http::HttpErrorDiagnostic::from_observed(
                 error_type, source,
             )),
+            Self::AuthenticationSecretText(source)
+            | Self::CsrfSecretText(source)
+            | Self::SecretText(source) => Some(
+                server_runtime_http::HttpErrorDiagnostic::from_observed(error_type, source),
+            ),
+            Self::PasswordText(source) => Some(
+                server_runtime_http::HttpErrorDiagnostic::from_observed(error_type, source),
+            ),
             Self::Authentication
             | Self::Authorization
             | Self::Conflict
@@ -1385,6 +1454,8 @@ pub enum AdminSessionError {
     AccessToken(super::AdminAccessTokenError),
     #[error("administrator session database operation failed: {0:?}")]
     Pg(super::SqlxAdminError),
+    #[error("administrator session secret text is invalid: {0}")]
+    SecretText(super::AdminSecretTextError),
     #[error("system clock is before the Unix epoch")]
     SystemClock,
 }
@@ -1503,11 +1574,13 @@ mod tests {
         let same_context_hash = super::session_context_hash(
             super::super::HttpAdminHeaderMapRef::from(&first_headers),
             first_peer,
-        );
+        )
+        .expect("14f0aa2d");
         let repeated_context_hash = super::session_context_hash(
             super::super::HttpAdminHeaderMapRef::from(&first_headers),
             first_peer,
-        );
+        )
+        .expect("998805c8");
         assert_eq!(
             secrecy::ExposeSecret::expose_secret(same_context_hash.0.as_ref()),
             secrecy::ExposeSecret::expose_secret(repeated_context_hash.0.as_ref()),
@@ -1520,7 +1593,8 @@ mod tests {
         let other_peer_hash = super::session_context_hash(
             super::super::HttpAdminHeaderMapRef::from(&first_headers),
             other_peer,
-        );
+        )
+        .expect("0803469a");
         assert_ne!(
             secrecy::ExposeSecret::expose_secret(same_context_hash.0.as_ref()),
             secrecy::ExposeSecret::expose_secret(other_peer_hash.0.as_ref()),
@@ -1533,7 +1607,8 @@ mod tests {
         let other_user_agent_hash = super::session_context_hash(
             super::super::HttpAdminHeaderMapRef::from(&other_headers),
             first_peer,
-        );
+        )
+        .expect("90ce47ee");
         assert_ne!(
             secrecy::ExposeSecret::expose_secret(same_context_hash.0.as_ref()),
             secrecy::ExposeSecret::expose_secret(other_user_agent_hash.0.as_ref()),

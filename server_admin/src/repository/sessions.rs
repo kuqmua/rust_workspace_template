@@ -63,9 +63,11 @@ pub(crate) async fn access_session_is_active(
     sqlx::query_scalar::<_, bool>(str_constants::SERVER_ADMIN_ACTIVE_ACCESS_SESSION_SQL)
         .bind(session_id.0.get())
         .bind(user_id.get())
-        .bind(secrecy::ExposeSecret::expose_secret(
-            context_hash.0.as_ref(),
-        ))
+        .bind(
+            secrecy::ExposeSecret::expose_secret(context_hash.0.as_ref())
+                .as_ref()
+                .as_str(),
+        )
         .fetch_one(pool.0)
         .await
         .map_err(crate::SqlxAdminError::from)
@@ -83,12 +85,16 @@ pub(crate) async fn read_csrf_hash(
         .fetch_optional(pool.0)
         .await
         .map_err(crate::SqlxAdminError::from)
-        .map(|value| {
-            value.map(|hash| {
-                crate::AdminTokenHash::new(crate::SecrecyAdminString::from(
-                    secrecy::SecretBox::new(Box::new(hash)),
-                ))
-            })
+        .and_then(|value| {
+            value
+                .map(|hash| {
+                    crate::SecrecyAdminString::try_from(hash)
+                        .map(crate::AdminTokenHash::new)
+                        .map_err(|error| {
+                            crate::SqlxAdminError::from(sqlx::Error::Protocol(error.to_string()))
+                        })
+                })
+                .transpose()
         })
 }
 

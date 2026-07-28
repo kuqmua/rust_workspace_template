@@ -7,10 +7,13 @@ fn unix_now() -> Result<super::super::AdminUnixTokenStream, super::AdminSessionE
         .map_err(|_error| super::AdminSessionError::SystemClock)
 }
 #[allow(clippy::single_call_fn)] // token identifier conversion keeps secret construction explicit
-fn opaque_token_from_uuid(value: super::super::UuidAdminValue) -> super::super::AdminOpaqueToken {
-    super::super::AdminOpaqueToken::new(super::super::SecrecyAdminString::from(
-        secrecy::SecretBox::new(Box::new(value.get().to_string())),
-    ))
+fn opaque_token_from_uuid(
+    value: super::super::UuidAdminValue,
+) -> Result<super::super::AdminOpaqueToken, super::super::AdminSecretTextError> {
+    Ok(
+        super::super::SecrecyAdminString::try_from(value.get().to_string())
+            .map(super::super::AdminOpaqueToken::new)?,
+    )
 }
 pub(super) async fn create_session_in_connection(
     state: &super::AdminAuthSvcState,
@@ -61,14 +64,16 @@ async fn create_session_with_refresh_in_connection(
     let (refresh_token, refresh_record) = match refresh {
         SessionRefresh::Existing(refresh_token) => (refresh_token, None),
         SessionRefresh::New => {
-            let refresh_generated = super::super::AdminGeneratedToken::generate();
+            let refresh_generated = super::super::AdminGeneratedToken::generate()
+                .map_err(super::AdminSessionError::SecretText)?;
             let refresh_hash =
-                super::hash_refresh_token_with_context(refresh_generated.token(), context_hash);
+                super::hash_refresh_token_with_context(refresh_generated.token(), context_hash)
+                    .map_err(super::AdminSessionError::SecretText)?;
             let refresh_token =
                 super::super::AdminRefreshToken::new(super::super::AdminOpaqueToken::new(
                     super::super::SecrecyAdminString::from(secrecy::SecretBox::new(Box::new(
                         secrecy::ExposeSecret::expose_secret(refresh_generated.token().0.as_ref())
-                            .to_owned(),
+                            .clone(),
                     ))),
                 ));
             (
@@ -80,10 +85,12 @@ async fn create_session_with_refresh_in_connection(
             )
         }
     };
-    let csrf_generated = super::super::AdminGeneratedToken::generate();
-    let token_identifier_hash = super::super::hash_opaque_token(&opaque_token_from_uuid(
-        super::super::UuidAdminValue::from(session_uuid),
-    ));
+    let csrf_generated = super::super::AdminGeneratedToken::generate()
+        .map_err(super::AdminSessionError::SecretText)?;
+    let token_identifier = opaque_token_from_uuid(super::super::UuidAdminValue::from(session_uuid))
+        .map_err(super::AdminSessionError::SecretText)?;
+    let token_identifier_hash = super::super::hash_opaque_token(&token_identifier)
+        .map_err(super::AdminSessionError::SecretText)?;
     let expires_at =
         super::super::AdminUnixTokenStream::from(now.0.saturating_add(state.access_ttl.0));
     let claims = super::super::AdminAccessClaims::new(
@@ -141,7 +148,7 @@ async fn create_session_with_refresh_in_connection(
         access_token,
         csrf_token: super::super::AdminOpaqueToken::new(super::super::SecrecyAdminString::from(
             secrecy::SecretBox::new(Box::new(
-                secrecy::ExposeSecret::expose_secret(csrf_generated.token().0.as_ref()).to_owned(),
+                secrecy::ExposeSecret::expose_secret(csrf_generated.token().0.as_ref()).clone(),
             )),
         )),
         refresh_token,

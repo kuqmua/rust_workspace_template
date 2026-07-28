@@ -1049,12 +1049,20 @@ pub fn api_operation_error(input: proc_macro::TokenStream) -> proc_macro::TokenS
         enum #error {
             #[error("administrator authentication failed")]
             Authentication,
+            #[error("administrator authentication secret text is invalid")]
+            AuthenticationSecretText(
+                #[source] server_runtime_http::ObservedError<super::AdminSecretTextError>,
+            ),
             #[error("administrator authorization failed")]
             Authorization,
             #[error("administrator operation conflicts with current state")]
             Conflict,
             #[error("administrator request failed CSRF validation")]
             Csrf,
+            #[error("administrator CSRF secret text is invalid")]
+            CsrfSecretText(
+                #[source] server_runtime_http::ObservedError<super::AdminSecretTextError>,
+            ),
             #[error("administrator authentication is temporarily rate limited")]
             RateLimited,
             #[error("administrator request validation failed")]
@@ -1065,8 +1073,15 @@ pub fn api_operation_error(input: proc_macro::TokenStream) -> proc_macro::TokenS
             PasswordHash(
                 #[source] server_runtime_http::ObservedError<super::AdminPasswordHashError>,
             ),
+            #[error("administrator password text is invalid")]
+            PasswordText(
+                #[source]
+                server_runtime_http::ObservedError<super::AdminPasswordTryFromStringError>,
+            ),
             #[error("administrator request body is too large")]
             PayloadTooLarge,
+            #[error("administrator secret text is invalid")]
+            SecretText(#[source] server_runtime_http::ObservedError<super::AdminSecretTextError>),
             #[error("administrator route does not support this HTTP method")]
             MethodNotAllowed,
             #[error("administrator session operation failed: {0}")]
@@ -1078,14 +1093,20 @@ pub fn api_operation_error(input: proc_macro::TokenStream) -> proc_macro::TokenS
             fn from(value: AdminError) -> Self {
                 match value {
                     AdminError::Authentication => Self::Authentication,
+                    AdminError::AuthenticationSecretText(source) => {
+                        Self::AuthenticationSecretText(source)
+                    }
                     AdminError::Authorization => Self::Authorization,
                     AdminError::Conflict => Self::Conflict,
                     AdminError::Csrf => Self::Csrf,
+                    AdminError::CsrfSecretText(source) => Self::CsrfSecretText(source),
                     AdminError::RateLimited => Self::RateLimited,
                     AdminError::Validation => Self::Validation,
                     AdminError::Pg(source) => Self::Pg(source),
                     AdminError::PasswordHash(source) => Self::PasswordHash(source),
+                    AdminError::PasswordText(source) => Self::PasswordText(source),
                     AdminError::PayloadTooLarge => Self::PayloadTooLarge,
+                    AdminError::SecretText(source) => Self::SecretText(source),
                     AdminError::MethodNotAllowed => Self::MethodNotAllowed,
                     AdminError::Session(source) => Self::Session(source),
                     AdminError::Header(source) => Self::Header(source),
@@ -1095,8 +1116,10 @@ pub fn api_operation_error(input: proc_macro::TokenStream) -> proc_macro::TokenS
         impl axum::response::IntoResponse for #error {
             fn into_response(self) -> axum::response::Response {
                 let route_error_status = match &self {
-                    Self::Authentication => frontend_contract::RouteErrorStatus::Authentication,
-                    Self::Authorization | Self::Csrf => {
+                    Self::Authentication | Self::AuthenticationSecretText(_) => {
+                        frontend_contract::RouteErrorStatus::Authentication
+                    }
+                    Self::Authorization | Self::Csrf | Self::CsrfSecretText(_) => {
                         frontend_contract::RouteErrorStatus::Authorization
                     }
                     Self::Conflict => frontend_contract::RouteErrorStatus::Conflict,
@@ -1107,7 +1130,9 @@ pub fn api_operation_error(input: proc_macro::TokenStream) -> proc_macro::TokenS
                         frontend_contract::RouteErrorStatus::PayloadTooLarge
                     }
                     Self::RateLimited => frontend_contract::RouteErrorStatus::RateLimited,
-                    Self::Validation => frontend_contract::RouteErrorStatus::Validation,
+                    Self::Validation | Self::PasswordText(_) | Self::SecretText(_) => {
+                        frontend_contract::RouteErrorStatus::Validation
+                    }
                     Self::Pg(_)
                     | Self::PasswordHash(_)
                     | Self::Session(_)
@@ -1126,6 +1151,14 @@ pub fn api_operation_error(input: proc_macro::TokenStream) -> proc_macro::TokenS
                         server_runtime_http::HttpErrorDiagnostic::from_observed(error_type, source),
                     ),
                     Self::Header(source) => Some(
+                        server_runtime_http::HttpErrorDiagnostic::from_observed(error_type, source),
+                    ),
+                    Self::AuthenticationSecretText(source)
+                    | Self::CsrfSecretText(source)
+                    | Self::SecretText(source) => Some(
+                        server_runtime_http::HttpErrorDiagnostic::from_observed(error_type, source),
+                    ),
+                    Self::PasswordText(source) => Some(
                         server_runtime_http::HttpErrorDiagnostic::from_observed(error_type, source),
                     ),
                     Self::Authentication

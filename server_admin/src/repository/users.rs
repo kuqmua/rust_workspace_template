@@ -57,7 +57,11 @@ pub(crate) async fn lock_refresh_token_user(
     token_hash: &crate::AdminTokenHash,
 ) -> Result<Option<crate::AdminUserId>, crate::SqlxAdminError> {
     sqlx::query_scalar::<_, i64>(str_constants::SERVER_ADMIN_LOCK_REFRESH_TOKEN_USER_SQL)
-        .bind(secrecy::ExposeSecret::expose_secret(token_hash.0.as_ref()))
+        .bind(
+            secrecy::ExposeSecret::expose_secret(token_hash.0.as_ref())
+                .as_ref()
+                .as_str(),
+        )
         .fetch_optional(connection.0)
         .await
         .map_err(crate::SqlxAdminError::from)
@@ -75,7 +79,11 @@ pub(crate) async fn revoke_refresh_token(
     user_id: crate::AdminUserId,
 ) -> Result<(), crate::SqlxAdminError> {
     sqlx::query(str_constants::SERVER_ADMIN_REVOKE_REFRESH_TOKEN_SQL)
-        .bind(secrecy::ExposeSecret::expose_secret(token_hash.0.as_ref()))
+        .bind(
+            secrecy::ExposeSecret::expose_secret(token_hash.0.as_ref())
+                .as_ref()
+                .as_str(),
+        )
         .bind(user_id.get())
         .execute(connection.0)
         .await

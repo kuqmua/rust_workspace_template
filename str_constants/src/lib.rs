@@ -2188,8 +2188,12 @@ define_str_constants! {
         pub ADMIN_CSRF_TOKEN_ALT = [WORD_ADMIN_CSRF_TOKEN, "="];
         pub ADMIN_MIGRATION_FRESH_TEST = [WORD_ADMIN_MIGRATION_FRESH_TEST];
         pub ADMIN_OBSERVED_ERROR_DATABASE = ["admin_database"];
+        pub ADMIN_OBSERVED_ERROR_AUTH_SECRET_TEXT = ["admin_auth_secret_text"];
+        pub ADMIN_OBSERVED_ERROR_CSRF_SECRET_TEXT = ["admin_csrf_secret_text"];
         pub ADMIN_OBSERVED_ERROR_PASSWORD_HASH = ["admin_password_hash"];
+        pub ADMIN_OBSERVED_ERROR_PASSWORD_TEXT = ["admin_password_text"];
         pub ADMIN_OBSERVED_ERROR_RESPONSE_HEADER = ["admin_response_header"];
+        pub ADMIN_OBSERVED_ERROR_SECRET_TEXT = ["admin_secret_text"];
         pub ADMIN_OBSERVED_ERROR_SESSION = ["admin_session"];
         pub API_OPERATION_ERROR_MACRO_IDENTIFIER = ["api_operation_error"];
         pub API_OPERATION_ERROR_ACCEPTS_ONE_ERROR_TYPE = ["api_operation_error accepts one error type"];

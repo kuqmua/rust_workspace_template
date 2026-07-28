@@ -20,6 +20,32 @@ pub use server_admin_core::{
     StdAdminStrRef, StdAdminString, UuidAdminValue,
 };
 const ADMIN_AUTH_COLLECTION_MAX_LEN: usize = 10_000usize;
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+pub enum AdminSecretTextError {
+    #[error("administrator secret text has invalid bounds")]
+    InvalidBounds,
+    #[error("administrator secret text is too short")]
+    TooShort,
+    #[error("administrator secret text is too long")]
+    TooLong,
+    #[error("administrator secret text contains a NUL character")]
+    ContainsNul,
+    #[error("administrator secret text has an invalid value")]
+    InvalidValue,
+}
+impl From<server_admin_core::StdAdminStringTryFromStringError> for AdminSecretTextError {
+    fn from(value: server_admin_core::StdAdminStringTryFromStringError) -> Self {
+        match value {
+            server_admin_core::StdAdminStringTryFromStringError::InvalidBounds { .. } => {
+                Self::InvalidBounds
+            }
+            server_admin_core::StdAdminStringTryFromStringError::TooShort { .. } => Self::TooShort,
+            server_admin_core::StdAdminStringTryFromStringError::TooLong { .. } => Self::TooLong,
+            server_admin_core::StdAdminStringTryFromStringError::ContainsNul => Self::ContainsNul,
+            server_admin_core::StdAdminStringTryFromStringError::InvalidValue => Self::InvalidValue,
+        }
+    }
+}
 #[derive(
     Clone, Debug, serde::Serialize, utoipa::ToSchema, newtype::AsRefTarget, newtype::IntoInnerFrom,
 )]
@@ -109,9 +135,17 @@ impl TryFrom<String> for AdminPassword {
         {
             return Err(AdminPasswordTryFromStringError::InvalidLength);
         }
-        Ok(Self::from(SecrecyAdminString::from(
-            secrecy::SecretBox::new(Box::new(value)),
-        )))
+        SecrecyAdminString::try_from(value)
+            .map(Self::from)
+            .map_err(|error| match error {
+                server_admin_core::StdAdminStringTryFromStringError::InvalidBounds { .. }
+                | server_admin_core::StdAdminStringTryFromStringError::TooShort { .. }
+                | server_admin_core::StdAdminStringTryFromStringError::TooLong { .. }
+                | server_admin_core::StdAdminStringTryFromStringError::ContainsNul
+                | server_admin_core::StdAdminStringTryFromStringError::InvalidValue => {
+                    AdminPasswordTryFromStringError::InvalidLength
+                }
+            })
     }
 }
 impl AdminPassword {
@@ -181,8 +215,7 @@ pub struct AdminGeneratedToken {
     token: AdminOpaqueToken,
 }
 impl AdminGeneratedToken {
-    #[must_use]
-    pub fn generate() -> Self {
+    pub fn generate() -> Result<Self, AdminSecretTextError> {
         token::generate_token()
     }
     #[must_use]
@@ -194,8 +227,7 @@ impl AdminGeneratedToken {
         &self.token
     }
 }
-#[must_use]
-pub fn hash_opaque_token(token: &AdminOpaqueToken) -> AdminTokenHash {
+pub fn hash_opaque_token(token: &AdminOpaqueToken) -> Result<AdminTokenHash, AdminSecretTextError> {
     token::hash_opaque_token(token)
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
@@ -590,7 +622,7 @@ mod tests {
         );
     }
     fn secret(value: &str) -> super::SecrecyAdminString {
-        super::SecrecyAdminString::from(secrecy::SecretBox::new(Box::new(value.to_owned())))
+        super::SecrecyAdminString::try_from(value.to_owned()).expect("c2116874")
     }
     fn password_hasher() -> super::AdminPasswordHasher {
         super::AdminPasswordHasher::new(super::AdminPasswordHashConcurrency::from(
@@ -689,7 +721,7 @@ mod tests {
     #[test]
     fn generated_token_hash_is_stable_and_does_not_expose_token() {
         let token = super::AdminOpaqueToken::new(secret(str_constants::FIXED_TEST_TOKEN));
-        let hash = super::hash_opaque_token(&token);
+        let hash = super::hash_opaque_token(&token).expect("3af32394");
         assert_eq!(
             hash.expose().as_ref(),
             "abae2c734c2b0249ef1d413fdf30c332c6875fde570f9bbeef4295966f0b4943"

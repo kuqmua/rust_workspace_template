@@ -1,13 +1,16 @@
 #![allow(clippy::single_call_fn)] // stable root token API delegates to the private cryptographic responsibility module
-pub(super) fn generate_token() -> super::AdminGeneratedToken {
-    let token =
-        super::AdminOpaqueToken::new(super::SecrecyAdminString::from(secrecy::SecretBox::new(
-            Box::new(format!("{}.{}", uuid::Uuid::new_v4(), uuid::Uuid::new_v4())),
-        )));
-    let hash = hash_opaque_token(&token);
-    super::AdminGeneratedToken { hash, token }
+pub(super) fn generate_token() -> Result<super::AdminGeneratedToken, super::AdminSecretTextError> {
+    let token = super::SecrecyAdminString::try_from(format!(
+        "{}.{}",
+        uuid::Uuid::new_v4(),
+        uuid::Uuid::new_v4()
+    ))
+    .map(super::AdminOpaqueToken::new)?;
+    hash_opaque_token(&token).map(|hash| super::AdminGeneratedToken { hash, token })
 }
-pub(super) fn hash_opaque_token(token: &super::AdminOpaqueToken) -> super::AdminTokenHash {
+pub(super) fn hash_opaque_token(
+    token: &super::AdminOpaqueToken,
+) -> Result<super::AdminTokenHash, super::AdminSecretTextError> {
     let digest = <sha2::Sha256 as sha2::Digest>::digest(
         secrecy::ExposeSecret::expose_secret(token.0.as_ref()).as_bytes(),
     );
@@ -20,9 +23,7 @@ pub(super) fn hash_opaque_token(token: &super::AdminOpaqueToken) -> super::Admin
         hash.push(hex_digit(*byte >> 4u8));
         hash.push(hex_digit(*byte & 0x0fu8));
     });
-    super::AdminTokenHash::new(super::SecrecyAdminString::from(secrecy::SecretBox::new(
-        Box::new(hash),
-    )))
+    Ok(super::SecrecyAdminString::try_from(hash).map(super::AdminTokenHash::new)?)
 }
 pub(super) fn encode_access_token(
     claims: &super::AdminAccessClaims,
