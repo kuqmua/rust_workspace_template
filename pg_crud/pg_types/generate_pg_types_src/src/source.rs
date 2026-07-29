@@ -5016,8 +5016,18 @@ pub fn emit_generate_pg_types(
                 let eq_not_greater_than = pg_crud_common::PgTypeGreaterThanVariant::EqNotGreaterThan;
                 let generate_greater_than_test_token_stream = |greater_than_variant: &pg_crud_common::PgTypeGreaterThanVariant, create_token_stream: &dyn quote::ToTokens, table_type_token_stream: &dyn quote::ToTokens| {
                     let greater_than_variant_token_stream =
-                        pg_crud_codegen::greater_than_variant_tokens(
-                            *greater_than_variant,
+                        macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
+                            match greater_than_variant {
+                                pg_crud_common::PgTypeGreaterThanVariant::EqNotGreaterThan => {
+                                    quote::quote! { EqNotGreaterThan }
+                                }
+                                pg_crud_common::PgTypeGreaterThanVariant::GreaterThan => {
+                                    quote::quote! { GreaterThan }
+                                }
+                                pg_crud_common::PgTypeGreaterThanVariant::NotGreaterThan => {
+                                    quote::quote! { NotGreaterThan }
+                                }
+                            },
                         );
                     quote::quote! {
                         #import::PgTypeGreaterThanTest {

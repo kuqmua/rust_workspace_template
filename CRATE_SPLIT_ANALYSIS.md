@@ -46,7 +46,7 @@ boundary:
 | HTTP and service integrations | `server_runtime_http` | extracted |
 | OpenAPI and HTTP contract validation | `frontend_contract_validation` | extracted |
 | administrator domain wrappers | `server_admin_core` | extracted |
-| CRUD token rendering | `pg_crud_codegen` | extracted |
+| CRUD token rendering | `generate_pg_types_src` | consolidated into its only consumer |
 
 All workspace consumers were migrated away from the original `server_runtime`
 crate. The temporary facade was then removed. In particular,
@@ -57,10 +57,9 @@ OpenAPI, JSON snapshot, and HTTP contract fixture logic was removed from
 dependencies through `frontend_contract_validation`, so they are absent from
 normal service builds.
 
-`proc-macro2` and `quote` were removed from `pg_crud_common`. The only token
-rendering implementations formerly in that crate now live in
-`pg_crud_codegen`, which is consumed by the source generator rather than by
-runtime service code.
+`proc-macro2` and `quote` were removed from `pg_crud_common`. The remaining
+token rendering implementation now lives directly in its only consumer,
+`generate_pg_types_src`, rather than in runtime service code.
 
 The first inward administrator boundary was also implemented:
 `server_admin_core` owns reusable administrator identifiers and domain wrapper
@@ -107,7 +106,7 @@ The reverse dependency graph proves the intended isolation:
   `server_runtime_core`;
 - `frontend_contract_validation` is used only as a development dependency by
   `notification_service` and `server_admin`;
-- `pg_crud_codegen` is consumed by `generate_pg_types_src`, not by a service
+- CRUD token rendering is owned by `generate_pg_types_src`, not by a service
   runtime crate.
 
 ## Evidence
@@ -358,15 +357,15 @@ pg_crud_pg
 ├── schema conformance
 └── SQL identifiers
 
-pg_crud_codegen
+generate_pg_types_src
 ├── generated schema metadata
 ├── naming integration
 ├── proc-macro2 token generation
 └── quote-based helpers
 ```
 
-`pg_crud_codegen` may depend on `pg_crud_core`. Runtime crates must not depend
-on `pg_crud_codegen`.
+`generate_pg_types_src` may depend on `pg_crud_core`. Runtime crates must not
+depend on `generate_pg_types_src`.
 
 ### Expected result
 
@@ -473,7 +472,8 @@ dependencies.
 5. Split validation and server adapters from `frontend_contract`.
 6. Extract `server_admin_core`.
 7. Extract the administrator repository and HTTP layers.
-8. Separate `pg_crud_codegen` from runtime CRUD types.
+8. Keep CRUD token rendering in the source generator rather than runtime CRUD
+   types.
 9. Re-evaluate the frontend and administrator contract splits using build
    measurements.
 

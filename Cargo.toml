@@ -34,7 +34,6 @@ members = [
   "optml",
   "panic_location",
   "pg_crud",
-  "pg_crud/pg_crud_codegen",
   "pg_crud/pg_crud_common",
   "pg_crud/pg_crud_common_macros",
   "pg_crud/pg_crud_macros_common",
@@ -308,7 +307,6 @@ optml = { path = "./optml" }
 panic_location = { path = "./panic_location" }
 pg_crud = { path = "./pg_crud" }
 pg_crud_common = { path = "./pg_crud/pg_crud_common" }
-pg_crud_codegen = { path = "./pg_crud/pg_crud_codegen" }
 pg_crud_common_macros = { path = "./pg_crud/pg_crud_common_macros" }
 pg_crud_macros_common = { path = "./pg_crud/pg_crud_macros_common" }
 pg_crud_macros_common_macros = { path = "./pg_crud/pg_crud_macros_common_macros" }
