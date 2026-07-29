@@ -198,7 +198,6 @@ mod tests {
             panic!("3ee39bcb");
         };
     }
-    #[allow(clippy::single_call_fn)] // shared helper keeps variant parse/display assertions centralized across enum parser tests
     fn assert_parse_display_roundtrip_variants<T>()
     where
         T: Copy

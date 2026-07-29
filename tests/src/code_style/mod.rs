@@ -3566,7 +3566,6 @@ fn is_external_leaf_wrapper_name_exception(
             }),
     )
 }
-#[allow(clippy::single_call_fn)] // isolates exact spawn ownership recognition from statement-pattern traversal
 fn unowned_spawn_expr(expression: &syn::Expr) -> bool {
     let syn::Expr::Call(call) = expression else {
         return false;
@@ -3605,7 +3604,6 @@ fn diagnostic_id_prefix(value: types::SourceTextRef<'_>) -> Option<types::Source
         })
         .map(types::SourceTextRef::from)
 }
-#[allow(clippy::single_call_fn)] // keeps dynamic diagnostic-ID format exceptions explicit and fixture-tested
 fn panic_uses_dynamic_diagnostic_id(value: types::SourceTextRef<'_>) -> types::AnalyzerBool {
     types::AnalyzerBool::from(
         value.as_ref().starts_with("{}")
@@ -3856,7 +3854,6 @@ fn validate_workspace_dep_spec(v: types::TomlValueRef<'_>) {
         _ => panic!("f1139378 {v_table:#?}"),
     }
 }
-#[allow(clippy::single_call_fn)] // shared shape check for dependency tables that explicitly opt out of default features
 fn validate_workspace_dep_default_features(v_table: types::TomlTableRef<'_>) {
     match v_table
         .get()
@@ -4055,7 +4052,6 @@ fn env_keys_from_file(path: types::StaticStr) -> types::SourceTextList {
         .collect::<Vec<String>>()
         .into()
 }
-#[allow(clippy::single_call_fn)] // shared set-difference collector keeps missing-item checks reusable across lint and env-key tests
 fn collect_missing_items(
     items: types::SourceTextListRef<'_>,
     present_set: types::StdSourceTextRefSet<'_>,
@@ -4167,7 +4163,6 @@ fn assert_crate_manifest_cargo_policy(
         mk_ers(path, parsed, ers);
     });
 }
-#[allow(clippy::single_call_fn)] // shared joined-error assertion keeps multi-line diagnostics consistent across workspace policy tests
 fn assert_joined_ers_empty(ers: types::SourceTextListRef<'_>, exp_id: types::StaticStr) {
     assert_joined_ers_empty_with_ctx(
         ers,
@@ -4175,7 +4170,6 @@ fn assert_joined_ers_empty(ers: types::SourceTextListRef<'_>, exp_id: types::Sta
         types::SourceTextRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
     );
 }
-#[allow(clippy::single_call_fn)] // shared assertion with context keeps multiline diagnostics reusable without duplicating message-format glue
 fn assert_joined_ers_empty_with_ctx(
     ers: types::SourceTextListRef<'_>,
     exp_id: types::StaticStr,
@@ -4206,7 +4200,6 @@ fn assert_joined_ers_empty_sorted(
     ers.sort();
     assert_joined_ers_empty(types::SourceTextListRef::from(ers.as_slice()), exp_id);
 }
-#[allow(clippy::single_call_fn)] // shared helper avoids repeated conversion of vec<string> into set<&str>
 fn str_set(v: types::SourceTextListRef<'_>) -> types::StdSourceTextHashSet<'_> {
     types::StdSourceTextHashSet::from(
         v.get()
@@ -4236,7 +4229,6 @@ fn collect_rs_ast_ers(
     });
     types::SourceTextList::from(ers)
 }
-#[allow(clippy::single_call_fn)] // shared visitor runner keeps AST test callsites focused on assertion logic rather than visit boilerplate
 fn visit_syn_file<V>(ast: types::SynFileRef<'_>, mut visitor: V) -> V
 where
     V: for<'ast> syn::visit::Visit<'ast>,
@@ -4255,7 +4247,6 @@ fn assert_rs_ast_ers_empty_with_ctx(
     });
     assert_joined_ers_empty_with_ctx(types::SourceTextListRef::from(ers.as_slice()), exp_id, ctx);
 }
-#[allow(clippy::single_call_fn)] // shared parser keeps Cargo.toml read+parse behavior centralized for policy collectors
 fn read_toml_table(path: types::StdPathRef<'_>) -> Option<types::TomlTable> {
     snapshot::with_codebase_snapshot(|snapshot| snapshot.read_toml_table(path))
 }
@@ -4373,7 +4364,6 @@ fn item_impl_contains_len_call(item: types::SynItemImplRef<'_>) -> types::Analyz
     syn::visit::Visit::visit_item_impl(&mut visitor, item.as_ref());
     visitor.found
 }
-#[allow(clippy::single_call_fn)] // extracts impl target type name for string-wrapper diagnostics
 fn item_impl_self_ty_identifier(item: types::SynItemImplRef<'_>) -> Option<types::SourceText> {
     match item.as_ref().self_ty.as_ref() {
         syn::Type::Path(ty_path) => ty_path.path.segments.last().map(|segment| {
@@ -4396,7 +4386,6 @@ fn item_impl_self_ty_identifier(item: types::SynItemImplRef<'_>) -> Option<types
         | _ => None,
     }
 }
-#[allow(clippy::single_call_fn)] // isolates From<String> generic-argument parsing from impl visitor flow
 fn from_trait_arg_is_string(path: types::SynPathRef<'_>) -> types::AnalyzerBool {
     types::AnalyzerBool::from(path.as_ref().segments.last().is_some_and(|segment| {
                 match &segment.arguments {
@@ -4423,7 +4412,6 @@ fn item_struct_is_single_string_wrapper(item: types::SynItemStructRef<'_>) -> ty
         syn::Fields::Named(_) | syn::Fields::Unnamed(_) | syn::Fields::Unit => false,
     })
 }
-#[allow(clippy::single_call_fn)] // names the tuple-newtype shape used by the wrapper field visibility policy
 fn item_struct_is_single_field_tuple_wrapper(
     item: types::SynItemStructRef<'_>,
 ) -> types::AnalyzerBool {
@@ -4576,7 +4564,6 @@ fn identifier_is_diagnostic_try_from_string_error(
             .ends_with(str_constants::TRYFROMSTRINGERROR),
     )
 }
-#[allow(clippy::single_call_fn)] // explicit wrapper escape hatches are allowed to expose their inner representation
 fn method_is_explicit_wrapper_accessor(
     identifier: types::SynIdentifierRef<'_>,
 ) -> types::AnalyzerBool {
@@ -4794,7 +4781,6 @@ fn config_lib_domain_type_macro_path(path: types::SynPathRef<'_>) -> types::Anal
             .get(),
     )
 }
-#[allow(clippy::single_call_fn)] // macro-generated domain wrapper names are the first identifier in these macro inputs
 fn collect_first_macro_identifier_domain_name(
     tokens: types::SourceTextRef<'_>,
     names: &mut types::StdSourceTextSet,
@@ -5006,7 +4992,6 @@ fn declared_domain_type_names() -> types::StdSourceTextSet {
     });
     types::StdSourceTextSet::from(names)
 }
-#[allow(clippy::single_call_fn)] // collects tuple String wrapper names before checking From<String> impls
 fn len_checked_function_names(file: types::SynFileRef<'_>) -> types::StdSourceTextSet {
     let mut visitor = LenCheckedFunctionNameVisitor {
         names: types::StdSourceTextSet::default(),
@@ -5354,7 +5339,6 @@ fn type_is_string(ty: types::SynTypeRef<'_>) -> types::AnalyzerBool {
         | _ => false,
     })
 }
-#[allow(clippy::single_call_fn)] // names the HashSet<&str> state-field shape independently from container matching
 fn type_is_str_ref(ty: types::SynTypeRef<'_>) -> types::AnalyzerBool {
     types::AnalyzerBool::from(match ty.get() {
         syn::Type::Reference(ty_reference) => match &*ty_reference.elem {
@@ -5396,7 +5380,6 @@ fn type_is_str_ref(ty: types::SynTypeRef<'_>) -> types::AnalyzerBool {
         | _ => false,
     })
 }
-#[allow(clippy::single_call_fn)] // proc-macro entrypoints must keep the compiler-required TokenStream ABI
 fn item_fn_is_proc_macro(item: types::SynItemFnRef<'_>) -> types::AnalyzerBool {
     types::AnalyzerBool::from(item.as_ref().attrs.iter().any(|attr| {
         attr.path().is_ident(str_constants::PROC_MACRO_ALT)
@@ -5404,7 +5387,6 @@ fn item_fn_is_proc_macro(item: types::SynItemFnRef<'_>) -> types::AnalyzerBool {
             || attr.path().is_ident(str_constants::PROC_MACRO_ATTRIBUTE)
     }))
 }
-#[allow(clippy::single_call_fn)] // shared attr-list wrapper avoids exposing cfg-test matching at visitor callsites
 fn attrs_contain_test_only_cfg(attrs: types::SynAttributeListRef<'_>) -> types::AnalyzerBool {
     types::AnalyzerBool::from(
         attrs
@@ -5413,7 +5395,6 @@ fn attrs_contain_test_only_cfg(attrs: types::SynAttributeListRef<'_>) -> types::
             .any(|attr| attr_is_test_only_cfg(types::SynAttributeRef::from(attr)).get()),
     )
 }
-#[allow(clippy::single_call_fn)] // keeps unit-test detection reusable inside nested test module traversal
 fn item_fn_is_unit_test(item: types::SynItemFnRef<'_>) -> types::AnalyzerBool {
     types::AnalyzerBool::from(item.as_ref().attrs.iter().any(|attr| {
         attr.path()
@@ -5445,7 +5426,6 @@ fn derive_attr_has_terminal(
             }),
     )
 }
-#[allow(clippy::single_call_fn)] // keeps the reviewed sensitive-wrapper naming vocabulary in one policy helper
 fn sensitive_text_wrapper_identifier(identifier: types::SourceTextRef<'_>) -> types::AnalyzerBool {
     let identifier_text = identifier.as_ref();
     let lowercase = identifier_text.to_ascii_lowercase();
@@ -5513,7 +5493,6 @@ fn type_is_u8(ty: &syn::Type) -> bool {
             if path.path.segments.last().is_some_and(|segment| segment.ident == "u8")
     )
 }
-#[allow(clippy::single_call_fn)] // keeps external-service error messages stable and readable
 fn path_to_string(path: types::SynPathRef<'_>) -> types::SourceText {
     types::SourceText::try_from(
         path.as_ref()
@@ -5574,7 +5553,6 @@ fn is_runtime_policy_source_path(path: types::StdPathRef<'_>) -> types::Analyzer
             && !is_test_crate(types::TomlTableRef::from(parsed.as_ref())).get(),
     )
 }
-#[allow(clippy::single_call_fn)] // walks upward from a source file to the owning crate manifest
 fn nearest_cargo_toml_path(path: types::StdPathRef<'_>) -> Option<types::StdPathBuf> {
     path.as_ref()
         .ancestors()
@@ -5587,7 +5565,6 @@ fn is_str_constants_source_path(path: types::StdPathRef<'_>) -> types::AnalyzerB
         path.as_ref() == std::path::Path::new(str_constants::STR_CONSTANTS_SRC_LIB_RS),
     )
 }
-#[allow(clippy::single_call_fn)] // exact package inventory keeps generated/test-only crates outside runtime policy
 fn is_test_crate(parsed: types::TomlTableRef<'_>) -> types::AnalyzerBool {
     types::AnalyzerBool::from(
         parsed
@@ -5646,7 +5623,6 @@ fn is_proc_macro_crate(parsed: types::TomlTableRef<'_>) -> types::AnalyzerBool {
             == Some(&toml::Value::Boolean(true)),
     )
 }
-#[allow(clippy::single_call_fn)] // keeps cfg(test) handling local to runtime AST policy visitor
 fn has_test_only_cfg_attr(i: types::SynItemRef<'_>) -> types::AnalyzerBool {
     types::AnalyzerBool::from(match i.as_ref() {
         syn::Item::Const(item) => item
@@ -5712,7 +5688,6 @@ fn has_test_only_cfg_attr(i: types::SynItemRef<'_>) -> types::AnalyzerBool {
         syn::Item::Verbatim(_) | _ => false,
     })
 }
-#[allow(clippy::single_call_fn)] // accepts cfg(test) and cfg(feature = "test-utils") as non-production code
 fn attr_is_test_only_cfg(attr: types::SynAttributeRef<'_>) -> types::AnalyzerBool {
     let attr_ref = attr.as_ref();
     if !attr_ref.path().is_ident(str_constants::CFG_ALT) {
@@ -5743,7 +5718,6 @@ fn for_each_rs_file_content(mut on_file: impl FnMut(&std::path::Path, &str)) {
             .for_each(|file| on_file(file.path().as_ref(), file.content().as_ref()));
     });
 }
-#[allow(clippy::single_call_fn)] // shared rust-file parser keeps read+parse flow reusable for AST-based checks and visitors
 fn for_each_rs_syn_file(mut on_file: impl FnMut(&std::path::Path, &syn::File)) {
     snapshot::with_codebase_snapshot(|snapshot| {
         snapshot

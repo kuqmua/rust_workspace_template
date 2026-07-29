@@ -16,7 +16,6 @@ pub enum WritePathOutcome {
     Unchanged(StdWrittenFilePath),
 }
 impl WritePathOutcome {
-    #[allow(clippy::single_call_fn)] // named conversion keeps enum->path mapping centralized for callers and tests
     #[must_use]
     pub fn into_path(self) -> StdWrittenFilePath {
         match self {
@@ -171,7 +170,6 @@ pub(crate) fn try_write_string_into_path_with_outcome(
         WritePathOutcome::Unchanged(path_buf)
     })
 }
-#[allow(clippy::single_call_fn)] // shared write helper keeps change-outcome API reusable for extension-based write callers
 pub fn try_write_string_into_file_with_outcome<P>(
     file_name: P,
     string_cnt: StringFileContentRef<'_>,
@@ -184,7 +182,6 @@ where
         string_cnt,
     )
 }
-#[allow(clippy::single_call_fn)] // shared write helper retains simple path-returning API used by file-level wrappers and tests
 #[cfg(test)]
 pub(crate) fn try_write_string_into_path(
     path: impl AsRef<std::path::Path>,

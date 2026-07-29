@@ -149,7 +149,6 @@ mod tests {
             crate::AxumHttpStatusCode::bad_request(),
         );
     }
-    #[allow(clippy::single_call_fn)] // shared extractor keeps NoCommitHeader variant matching reusable across tests
     fn no_commit_header_message(v: &super::CommitError) -> Option<&'static str> {
         match v {
             super::CommitError::NoCommitHeader {
@@ -159,7 +158,6 @@ mod tests {
             | super::CommitError::CommitToStrConversion { .. } => None,
         }
     }
-    #[allow(clippy::single_call_fn)] // shared extractor keeps CommitToStrConversion checks concise across tests
     fn is_commit_to_str_conversion(v: &super::CommitError) -> Option<()> {
         match v {
             super::CommitError::CommitToStrConversion { .. } => Some(()),
@@ -168,7 +166,6 @@ mod tests {
             }
         }
     }
-    #[allow(clippy::single_call_fn)] // shared extractor centralizes CommitNotEq fields used by multiple assertions
     fn commit_not_eq_fields(v: &super::CommitError) -> Option<(&'static str, &'static str)> {
         match v {
             super::CommitError::CommitNotEq {
@@ -180,7 +177,6 @@ mod tests {
             | super::CommitError::NoCommitHeader { .. } => None,
         }
     }
-    #[allow(clippy::single_call_fn)] // shared assertion keeps NoCommitHeader message checks coupled with variant extraction across tests
     fn assert_no_commit_header_err(headers: &axum::http::HeaderMap, exp_id: &'static str) {
         let no_commit_header =
             expect_check_commit_err_variant(headers, exp_id, no_commit_header_message);
@@ -202,7 +198,6 @@ mod tests {
         assert_eq!(commit_not_eq, exp_commit_not_eq);
         assert_eq!(commit_to_use, exp_commit_to_use);
     }
-    #[allow(clippy::single_call_fn)] // shared wrapper keeps wrong-commit assertions concise and stable across tests
     fn assert_wrong_commit_fields(fields: (&'static str, &'static str)) {
         assert_commit_not_eq_fields(
             fields,
@@ -210,12 +205,10 @@ mod tests {
             <&'static str>::from(git_info::project_git_commit_link_ref()),
         );
     }
-    #[allow(clippy::single_call_fn)] // shared helper keeps wrong-commit check+assert flow reusable across mismatch tests
     fn assert_wrong_commit_err(headers: &axum::http::HeaderMap, exp_id: &'static str) {
         let fields = expect_check_commit_err_variant(headers, exp_id, commit_not_eq_fields);
         assert_wrong_commit_fields(fields);
     }
-    #[allow(clippy::single_call_fn)] // shared assertion wrapper keeps commit-enabled error mapping reusable across variant-specific helpers
     fn expect_check_commit_err_variant<R>(
         headers: &axum::http::HeaderMap,
         exp_id: &'static str,
@@ -228,7 +221,6 @@ mod tests {
             map,
         )
     }
-    #[allow(clippy::single_call_fn)] // shared wrapper keeps get_commit_header_str error-variant assertions concise and consistent
     fn expect_get_commit_header_str_err_variant<R>(
         headers: &axum::http::HeaderMap,
         exp_id: &'static str,

@@ -21,7 +21,6 @@ pub(crate) struct AxumTestHeaderValue(axum::http::HeaderValue);
 struct TestPollCount(usize);
 #[derive(newtype::FromInner, newtype::NotInner)]
 struct TestPollLimitReached(bool);
-#[allow(clippy::single_call_fn)] // shared insertion guard keeps header setup helpers consistent
 fn insert_header_no_prev<'headers_lt, ValueTy>(
     headers: impl Into<AxumTestHeadersMutRef<'headers_lt>>,
     name: impl axum::http::header::IntoHeaderName,
@@ -33,11 +32,9 @@ fn insert_header_no_prev<'headers_lt, ValueTy>(
     let prev = headers.0.insert(name, value.into().0);
     assert!(prev.is_none());
 }
-#[allow(clippy::single_call_fn)] // extracted to keep block_on loop hot path simple and reusable
 fn is_block_on_poll_limit_reached(poll_count: TestPollCount) -> TestPollLimitReached {
     TestPollLimitReached::from(poll_count.0 >= MAX_BLOCK_ON_POLLS)
 }
-#[allow(clippy::single_call_fn)] // keeps poll-count mutation centralized so block_on loop stays focused on state transitions
 fn increment_block_on_poll_count(poll_count: &mut TestPollCount) {
     poll_count.0 = poll_count.0.saturating_add(1);
 }
@@ -69,7 +66,6 @@ pub(crate) fn panic_unexpected_variant(exp_id: impl Into<TestExpId>) -> ! {
     panic!("4fe6f2e6 id={exp_id}");
 }
 #[track_caller]
-#[allow(clippy::single_call_fn)] // shared helper keeps variant-mapping panic behavior consistent for owned and borrowed paths
 fn map_or_panic_unexpected_variant<R>(map_res: Option<R>, exp_id: impl Into<TestExpId>) -> R {
     map_res.unwrap_or_else(|| panic_unexpected_variant(exp_id))
 }
@@ -82,7 +78,6 @@ pub(crate) fn expect_variant<T, R>(
     map_or_panic_unexpected_variant(map(v), exp_id)
 }
 #[track_caller]
-#[allow(clippy::single_call_fn)] // shared helper centralizes borrowed-variant extraction with consistent panic path across test assertions
 pub(crate) fn expect_variant_ref<T, R>(
     v: &T,
     map: impl FnOnce(&T) -> Option<R>,
@@ -91,7 +86,6 @@ pub(crate) fn expect_variant_ref<T, R>(
     map_or_panic_unexpected_variant(map(v), exp_id)
 }
 #[track_caller]
-#[allow(clippy::single_call_fn)] // shared panic formatting keeps expectation failures consistent across helpers
 fn panic_unexpected_result(
     error_id: impl Into<TestPanicText>,
     fn_name: impl Into<TestPanicText>,
@@ -125,7 +119,6 @@ pub(crate) fn expect_ok<T, E>(v: Result<T, E>, exp_id: impl Into<TestExpId>) -> 
     })
 }
 #[track_caller]
-#[allow(clippy::single_call_fn)] // shared helper keeps ok-result equality assertions concise and consistent across validator tests
 pub(crate) fn assert_ok_eq<T, E>(v: Result<T, E>, exp_id: impl Into<TestExpId>, expected: &T)
 where
     T: PartialEq + std::fmt::Debug,
@@ -144,7 +137,6 @@ pub(crate) fn expect_error<T, E>(v: Result<T, E>, exp_id: impl Into<TestExpId>) 
     })
 }
 #[track_caller]
-#[allow(clippy::single_call_fn)] // shared helper centralizes error extraction and post-check mapping so higher-level helpers avoid repeating expect_error plumbing
 fn map_err<T, E, R>(
     v: Result<T, E>,
     exp_id: impl Into<TestExpId>,
@@ -157,7 +149,6 @@ fn map_err<T, E, R>(
     map(error, exp_id.0)
 }
 #[track_caller]
-#[allow(clippy::single_call_fn)] // shared mapper avoids repeating expect_error + variant extraction boilerplate in tests
 pub(crate) fn expect_error_mapped<T, E, R>(
     v: Result<T, E>,
     exp_id: impl Into<TestExpId>,
@@ -177,7 +168,6 @@ pub(crate) fn expect_error_variant<T, E, R>(
     })
 }
 #[track_caller]
-#[allow(clippy::single_call_fn)] // shared helper supports variant extraction without moving the error value in tests
 pub(crate) fn expect_error_variant_ref<T, E, R>(
     v: Result<T, E>,
     exp_id: impl Into<TestExpId>,
@@ -188,7 +178,6 @@ pub(crate) fn expect_error_variant_ref<T, E, R>(
     })
 }
 #[track_caller]
-#[allow(clippy::single_call_fn)] // shared helper composes status-code assertion with custom mapping to reduce repetition in variant helpers
 fn map_err_after_status_check<T, E, R>(
     v: Result<T, E>,
     exp_id: impl Into<TestExpId>,
@@ -244,7 +233,6 @@ where
     })
 }
 #[track_caller]
-#[allow(clippy::single_call_fn)] // shared helper supports status+variant assertions while borrowing the error for field reads
 pub(crate) fn assert_err_status_code_variant_ref<T, E, R>(
     v: Result<T, E>,
     exp_id: impl Into<TestExpId>,
@@ -259,7 +247,6 @@ where
     })
 }
 #[track_caller]
-#[allow(clippy::single_call_fn)] // shared helper lets tests reuse err-variant extraction with optional status checks without duplicating branching
 pub(crate) fn expect_err_variant_ref_with_status<T, E, R>(
     v: Result<T, E>,
     exp_id: impl Into<TestExpId>,

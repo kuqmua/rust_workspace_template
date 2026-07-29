@@ -429,11 +429,9 @@ mod tests {
     fn mk_borrowed_test_git_commit(commit: &'static str) -> TestGitCommit {
         mk_test_git_commit(commit, true)
     }
-    #[allow(clippy::single_call_fn)] // shared assertion keeps fallback-call expectations consistent across owned/borrowed commit-id tests
     fn assert_fallback_calls(v: &TestGitCommit, exp: usize) {
         assert_eq!(v.fallback_calls.get(), exp);
     }
-    #[allow(clippy::single_call_fn)] // shared assertion keeps commit-link equality checks concise across tests
     fn assert_expected_git_commit_link(actual: impl AsRef<str>, exp_commit_id: &str) {
         assert_eq!(actual.as_ref(), expected_git_commit_link(exp_commit_id));
     }
@@ -447,7 +445,6 @@ mod tests {
         assert_eq!(commit_id, exp_commit_id);
         assert_eq!(is_borrowed, exp_is_borrowed);
     }
-    #[allow(clippy::single_call_fn)] // shared assertion keeps link-output and fallback-call expectations coupled for test clarity
     fn assert_commit_link_and_fallback_calls(
         v: &TestGitCommit,
         exp_commit_id: &str,
@@ -457,7 +454,6 @@ mod tests {
         assert_expected_git_commit_link(&link, exp_commit_id);
         assert_fallback_calls(v, exp_fallback_calls);
     }
-    #[allow(clippy::single_call_fn)] // shared assertion keeps borrowed/owned Cow expectations concise across commit-id tests
     fn assert_commit_id_cow_and_fallback_calls(
         v: &TestGitCommit,
         exp_commit_id: &str,
@@ -473,7 +469,6 @@ mod tests {
         );
         assert_fallback_calls(v, exp_fallback_calls);
     }
-    #[allow(clippy::single_call_fn)] // shared assertion keeps commit-length and fallback-call checks coupled across borrowed/owned cases
     fn assert_commit_len_and_fallback_calls(
         v: &TestGitCommit,
         exp_commit_len: usize,
@@ -484,7 +479,6 @@ mod tests {
         assert_eq!(commit_len, exp_commit_len);
         assert_fallback_calls(v, exp_fallback_calls);
     }
-    #[allow(clippy::single_call_fn)] // shared assertion keeps with_git_commit_id_ref_or branch behavior checks reusable across borrowed/owned test cases
     fn assert_with_git_commit_id_ref_or(
         v: &TestGitCommit,
         exp_commit_len: usize,

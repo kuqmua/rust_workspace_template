@@ -454,7 +454,6 @@ where
         commit_src,
     )))
 }
-#[allow(clippy::single_call_fn)] // keeps status+json tuple construction consistent across handlers
 fn mk_json_res<T>(payload: T) -> JsonRes<T> {
     JsonRes {
         payload: AxumJsonPayload::from(axum::Json(payload)),
@@ -648,7 +647,6 @@ mod tests {
             .as_ref()
             .to_owned()
     }
-    #[allow(clippy::single_call_fn)] // shared owned->Cow conversion keeps commit-link payload setup consistent across tests
     fn test_commit_link_cow() -> git_info::StdGitCommitLinkCow {
         git_info::StdGitCommitLinkCow::try_from(std::borrow::Cow::Owned(test_commit_link()))
             .expect("931b775c")
@@ -662,7 +660,6 @@ mod tests {
     fn suffix_ref(v: &str) -> super::UriSuffixRef<'_> {
         super::UriSuffixRef::from(v)
     }
-    #[allow(clippy::single_call_fn)] // shared assertion keeps git-info payload checks concise and consistent
     fn assert_git_info_commit(payload: &super::GitInfo, exp_commit: &str) {
         assert_eq!(payload.commit.as_ref(), exp_commit);
     }
@@ -674,7 +671,6 @@ mod tests {
             str_constants::COMMON_ROUTES_SWAGGER_UI
         );
     }
-    #[allow(clippy::single_call_fn)] // shared assertion keeps not-found commit and payload checks coupled across tests
     fn assert_not_found_payload_with_commit(
         payload: &super::NotFoundHandle,
         exp_commit: &str,
@@ -683,7 +679,6 @@ mod tests {
         assert_eq!(payload.commit.as_ref(), exp_commit);
         assert_not_found_payload(payload, exp_uri_suffix);
     }
-    #[allow(clippy::single_call_fn)] // shared assertion keeps no-route message checks consistent across uri and suffix-based tests
     fn assert_no_route_message(actual: &to_err_string::ErrorText, uri_suffix: &str) {
         assert_eq!(
             actual.as_ref(),
