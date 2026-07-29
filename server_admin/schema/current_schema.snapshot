@@ -1471,72 +1471,16 @@ DbTableSnapshot {
                 data_type: DbSchemaText(
                     "text",
                 ),
-                default: None,
-                name: DbSchemaText(
-                    "main_logo",
+                default: Some(
+                    DbSchemaText(
+                        "'#5b55e7'::text",
+                    ),
                 ),
-                nullable: DbColumnNullable(
-                    true,
-                ),
-            },
-            DbColumnSnapshot {
-                data_type: DbSchemaText(
-                    "text",
-                ),
-                default: None,
-                name: DbSchemaText(
-                    "organization_contacts",
-                ),
-                nullable: DbColumnNullable(
-                    true,
-                ),
-            },
-            DbColumnSnapshot {
-                data_type: DbSchemaText(
-                    "text",
-                ),
-                default: None,
-                name: DbSchemaText(
-                    "organization_name",
-                ),
-                nullable: DbColumnNullable(
-                    true,
-                ),
-            },
-            DbColumnSnapshot {
-                data_type: DbSchemaText(
-                    "text",
-                ),
-                default: None,
                 name: DbSchemaText(
                     "primary_color",
                 ),
                 nullable: DbColumnNullable(
-                    true,
-                ),
-            },
-            DbColumnSnapshot {
-                data_type: DbSchemaText(
-                    "text",
-                ),
-                default: None,
-                name: DbSchemaText(
-                    "support_url",
-                ),
-                nullable: DbColumnNullable(
-                    true,
-                ),
-            },
-            DbColumnSnapshot {
-                data_type: DbSchemaText(
-                    "text",
-                ),
-                default: None,
-                name: DbSchemaText(
-                    "tab_title",
-                ),
-                nullable: DbColumnNullable(
-                    true,
+                    false,
                 ),
             },
             DbColumnSnapshot {
@@ -1565,7 +1509,87 @@ DbTableSnapshot {
                     ),
                 ),
                 name: DbSchemaText(
+                    "organization_name",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "text",
+                ),
+                default: Some(
+                    DbSchemaText(
+                        "'Admin'::text",
+                    ),
+                ),
+                name: DbSchemaText(
                     "site_name",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "text",
+                ),
+                default: Some(
+                    DbSchemaText(
+                        "'Admin'::text",
+                    ),
+                ),
+                name: DbSchemaText(
+                    "tab_title",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "text",
+                ),
+                default: Some(
+                    DbSchemaText(
+                        "'https://example.com/admin-logo.svg'::text",
+                    ),
+                ),
+                name: DbSchemaText(
+                    "main_logo",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "text",
+                ),
+                default: Some(
+                    DbSchemaText(
+                        "'https://example.com/support'::text",
+                    ),
+                ),
+                name: DbSchemaText(
+                    "support_url",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    "text",
+                ),
+                default: Some(
+                    DbSchemaText(
+                        "'support@example.com'::text",
+                    ),
+                ),
+                name: DbSchemaText(
+                    "organization_contacts",
                 ),
                 nullable: DbColumnNullable(
                     false,

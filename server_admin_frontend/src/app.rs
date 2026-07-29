@@ -956,7 +956,12 @@ fn AdminApp() -> impl leptos::prelude::IntoView {
         <main class="main-content">{move || match leptos::prelude::Get::get(&state) {
             AdminLoadState::Empty(_admin) => leptos::prelude::IntoAny::into_any(leptos::view! { <p class="empty-state">"Choose a table."</p> }),
             AdminLoadState::Error(error) => leptos::prelude::IntoAny::into_any(leptos::view! { <p class="field-error" role="alert">{error.to_string()}</p> }),
-            AdminLoadState::Loading => leptos::prelude::IntoAny::into_any(leptos::view! { <p class="loading-state" role="status">"Loading\u{2026}"</p> }),
+            AdminLoadState::Loading => leptos::prelude::IntoAny::into_any(leptos::view! {
+                <div class="loading-state" role="status" aria-live="polite">
+                    <span class="loading-spinner" aria-hidden="true"></span>
+                    <span class="sr-only">"Loading\u{2026}"</span>
+                </div>
+            }),
             AdminLoadState::Permissions(_admin, page) => leptos::prelude::IntoAny::into_any(leptos::view! { <AdminPermissionsView page=page query=query_result.clone().unwrap_or_default() /> }),
             AdminLoadState::Profile(admin) => leptos::prelude::IntoAny::into_any(leptos::view! { <AdminProfileView admin=admin /> }),
             AdminLoadState::Roles(admin, page) => leptos::prelude::IntoAny::into_any(leptos::view! { <AdminRolesView admin=admin page=page query=query_result.clone().unwrap_or_default() /> }),

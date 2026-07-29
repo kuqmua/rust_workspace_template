@@ -143,6 +143,30 @@ p {
   min-width: 0;
 }
 
+.loading-state {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: var(--background);
+}
+
+.loading-spinner {
+  width: 34px;
+  height: 34px;
+  border: 3px solid var(--accent-soft);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: loading-spinner-rotation 700ms linear infinite;
+}
+
+@keyframes loading-spinner-rotation {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
 .topbar {
   position: sticky;
   inset: 0 0 auto;
@@ -1257,5 +1281,9 @@ pre {
   *::after {
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
+  }
+
+  .loading-spinner {
+    animation: none;
   }
 }

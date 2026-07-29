@@ -1225,12 +1225,12 @@ async fn postgresql_html_settings_updates_and_reads_every_field_separately() {
         (
             String,
             String,
-            Option<String>,
-            Option<String>,
-            Option<String>,
-            Option<String>,
-            Option<String>,
-            Option<String>,
+            String,
+            String,
+            String,
+            String,
+            String,
+            String,
         ),
     >(
         "SELECT site_name, default_admin_route, tab_title, main_logo, primary_color, organization_name, organization_contacts, support_url FROM system_settings WHERE id = 1",
@@ -1240,12 +1240,12 @@ async fn postgresql_html_settings_updates_and_reads_every_field_separately() {
     .expect("a8f201de");
     assert_eq!(stored.0, site_name_b.0);
     assert_eq!(stored.1, route_b.0);
-    assert_eq!(stored.2.as_deref(), Some(tab_title_b.0));
-    assert_eq!(stored.3.as_deref(), Some(main_logo_b.0));
-    assert_eq!(stored.4.as_deref(), Some(primary_color_b.0));
-    assert_eq!(stored.5.as_deref(), Some(organization_name_b.0));
-    assert_eq!(stored.6.as_deref(), Some(organization_contacts_b.0));
-    assert_eq!(stored.7.as_deref(), Some(support_url_b.0));
+    assert_eq!(stored.2, tab_title_b.0);
+    assert_eq!(stored.3, main_logo_b.0);
+    assert_eq!(stored.4, primary_color_b.0);
+    assert_eq!(stored.5, organization_name_b.0);
+    assert_eq!(stored.6, organization_contacts_b.0);
+    assert_eq!(stored.7, support_url_b.0);
     let empty = StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX);
     let clear_states = [
         (
@@ -1345,12 +1345,12 @@ async fn postgresql_html_settings_updates_and_reads_every_field_separately() {
             let optional_values = sqlx::query_as::<
                 _,
                 (
-                    Option<String>,
-                    Option<String>,
-                    Option<String>,
-                    Option<String>,
-                    Option<String>,
-                    Option<String>,
+                    String,
+                    String,
+                    String,
+                    String,
+                    String,
+                    String,
                 ),
             >(
                 "SELECT tab_title, main_logo, primary_color, organization_name, organization_contacts, support_url FROM system_settings WHERE id = 1",
@@ -1360,15 +1360,33 @@ async fn postgresql_html_settings_updates_and_reads_every_field_separately() {
             .expect("d418f9c0");
             assert_eq!(
                 [
-                    optional_values.0,
-                    optional_values.1,
-                    optional_values.2,
-                    optional_values.3,
-                    optional_values.4,
-                    optional_values.5,
+                    (
+                        optional_values.0.as_str(),
+                        str_constants::ADMIN,
+                    ),
+                    (
+                        optional_values.1.as_str(),
+                        str_constants::ADMIN_DEFAULT_MAIN_LOGO,
+                    ),
+                    (
+                        optional_values.2.as_str(),
+                        str_constants::PRIMARY_COLOR_DEFAULT,
+                    ),
+                    (
+                        optional_values.3.as_str(),
+                        str_constants::ADMIN,
+                    ),
+                    (
+                        optional_values.4.as_str(),
+                        str_constants::ADMIN_DEFAULT_ORGANIZATION_CONTACTS,
+                    ),
+                    (
+                        optional_values.5.as_str(),
+                        str_constants::ADMIN_DEFAULT_SUPPORT_URL,
+                    ),
                 ]
                 .iter()
-                .filter(|value| value.is_none())
+                .filter(|(value, default)| value == default)
                 .count(),
                 expected_cleared,
             );
@@ -3481,7 +3499,7 @@ async fn postgresql_migration_creates_complete_schema() {
     .fetch_one(&base_pool)
     .await
     .expect("5c10c931");
-    assert_eq!(version, 12i64);
+    assert_eq!(version, 13i64);
     let expected_tables = server_admin_contract::AdminDataTable::PG_ORDER
         .map(|table| table.to_string())
         .into_iter()

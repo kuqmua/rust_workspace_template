@@ -155,14 +155,20 @@ pub struct AdminSystemSettings {
     pub id: pg_types_numeric::I16AsNonNullSmallSerialInitializationByPg,
     #[generate_pg_table_db_default]
     pub site_name: pg_types_text_misc::StringAsNonNullText,
-    pub tab_title: pg_types_text_misc::OptionalStringAsNullableText,
-    pub main_logo: pg_types_text_misc::OptionalStringAsNullableText,
-    pub primary_color: pg_types_text_misc::OptionalStringAsNullableText,
+    #[generate_pg_table_db_default]
+    pub tab_title: pg_types_text_misc::StringAsNonNullText,
+    #[generate_pg_table_db_default]
+    pub main_logo: pg_types_text_misc::StringAsNonNullText,
+    #[generate_pg_table_db_default]
+    pub primary_color: pg_types_text_misc::StringAsNonNullText,
     #[generate_pg_table_db_default]
     pub default_admin_route: pg_types_text_misc::StringAsNonNullText,
-    pub organization_name: pg_types_text_misc::OptionalStringAsNullableText,
-    pub organization_contacts: pg_types_text_misc::OptionalStringAsNullableText,
-    pub support_url: pg_types_text_misc::OptionalStringAsNullableText,
+    #[generate_pg_table_db_default]
+    pub organization_name: pg_types_text_misc::StringAsNonNullText,
+    #[generate_pg_table_db_default]
+    pub organization_contacts: pg_types_text_misc::StringAsNonNullText,
+    #[generate_pg_table_db_default]
+    pub support_url: pg_types_text_misc::StringAsNonNullText,
     #[generate_pg_table_db_default]
     pub updated_at:
         pg_types_chrono_net::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,

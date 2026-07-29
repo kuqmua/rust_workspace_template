@@ -77,7 +77,7 @@ impl TryFrom<String> for AdminSsrHtml {
 fn render_document(title: &AdminSsrText, body: impl IntoAny) -> AdminSsrHtml {
     let rendered_body = body.render_admin_ssr();
     AdminSsrHtml::try_from(format!(
-        "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>{title}</title><link rel=\"stylesheet\" href=\"/admin/assets/style.css?v=20260728-33\"></head><body>{}</body></html>",
+        "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>{title}</title><link rel=\"stylesheet\" href=\"/admin/assets/style.css?v=20260729-35\"></head><body>{}</body></html>",
         rendered_body.0
     ))
     .unwrap_or_else(AdminSsrHtml::from)
@@ -414,7 +414,12 @@ pub fn render_admin_csr(
     render_document(
         &AdminSsrText::try_from(title).unwrap_or_else(AdminSsrText::from),
         leptos::view! {
-            <div id=str_constants::ADMIN_CSR_ROOT_ID style=primary_color><p class="loading-state" role="status">"Loading\u{2026}"</p></div>
+            <div id=str_constants::ADMIN_CSR_ROOT_ID style=primary_color>
+                <div class="loading-state" role="status" aria-live="polite">
+                    <span class="loading-spinner" aria-hidden="true"></span>
+                    <span class="sr-only">"Loading\u{2026}"</span>
+                </div>
+            </div>
             <script type="module" src="/admin/assets/csr_bootstrap.js?v=20260728-34"></script>
         },
     )
@@ -869,6 +874,8 @@ mod tests {
         );
 
         assert!(html.as_ref().contains("id=\"admin-csr-root\""));
+        assert!(html.as_ref().contains("class=\"loading-spinner\""));
+        assert!(html.as_ref().contains("aria-live=\"polite\""));
         assert!(
             html.as_ref()
                 .contains("src=\"/admin/assets/csr_bootstrap.js?v=20260728-34\"")

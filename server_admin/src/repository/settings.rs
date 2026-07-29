@@ -7,13 +7,13 @@ pub(crate) async fn read_settings(
         _,
         (
             String,
-            Option<String>,
-            Option<String>,
-            Option<String>,
             String,
-            Option<String>,
-            Option<String>,
-            Option<String>,
+            String,
+            String,
+            String,
+            String,
+            String,
+            String,
         ),
     >(str_constants::SERVER_ADMIN_READ_SETTINGS_SQL)
     .fetch_one(pool.0)
@@ -22,32 +22,32 @@ pub(crate) async fn read_settings(
     Ok(server_admin_contract::AdminSettingsView::new(
         server_admin_contract::AdminDefaultRoute::try_from(row.4)
             .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
-        row.2
-            .map(server_admin_contract::AdminMainLogo::try_from)
-            .transpose()
-            .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
-        row.6
-            .map(server_admin_contract::AdminOrganizationContacts::try_from)
-            .transpose()
-            .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
-        row.5
-            .map(server_admin_contract::AdminOrganizationName::try_from)
-            .transpose()
-            .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
-        row.3
-            .map(server_admin_contract::AdminPrimaryColor::try_from)
-            .transpose()
-            .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+        Some(
+            server_admin_contract::AdminMainLogo::try_from(row.2)
+                .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+        ),
+        Some(
+            server_admin_contract::AdminOrganizationContacts::try_from(row.6)
+                .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+        ),
+        Some(
+            server_admin_contract::AdminOrganizationName::try_from(row.5)
+                .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+        ),
+        Some(
+            server_admin_contract::AdminPrimaryColor::try_from(row.3)
+                .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+        ),
         server_admin_contract::AdminSiteName::try_from(row.0)
             .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
-        row.7
-            .map(server_admin_contract::AdminSupportUrl::try_from)
-            .transpose()
-            .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
-        row.1
-            .map(server_admin_contract::AdminTabTitle::try_from)
-            .transpose()
-            .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+        Some(
+            server_admin_contract::AdminSupportUrl::try_from(row.7)
+                .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+        ),
+        Some(
+            server_admin_contract::AdminTabTitle::try_from(row.1)
+                .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+        ),
     ))
 }
 
