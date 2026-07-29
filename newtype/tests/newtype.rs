@@ -171,7 +171,6 @@ mod tests {
         FirstValue,
         Second,
     }
-    #[allow(clippy::single_call_fn)] // validates named-function support in the Newtype derive
     fn validate_checked_text(value: &str) -> Result<(), CheckedTextError> {
         if value.len() > 2usize {
             Err(CheckedTextError::TooLong)

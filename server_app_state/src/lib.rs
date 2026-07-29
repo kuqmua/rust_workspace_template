@@ -7,7 +7,6 @@ pub struct ServerAppState<'lt> {
     pub project_git_info: git_info::ProjectGitInfo<'lt>,
 }
 impl ServerAppState<'_> {
-    #[allow(clippy::single_call_fn)] // keeps config forwarding in one place for all generated trait impls
     const fn cfg_ref(&self) -> &server_config::Config {
         &self.config
     }
@@ -219,7 +218,6 @@ pub fn mk_test_server_app_state() -> ServerAppState<'static> {
 }
 #[cfg(test)]
 mod tests {
-    #[allow(clippy::single_call_fn)] // shared fixture keeps commit test input consistent across ServerAppState tests
     fn mk_git_info() -> git_info::ProjectGitInfo<'static> {
         git_info::ProjectGitInfo::from(git_info::GitCommitIdRef::from(
             str_constants::TEST_VALUES_COMMIT,

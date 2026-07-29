@@ -238,7 +238,6 @@ impl Location {
     ) -> std::fmt::Result {
         write!(f.0, "{}:{line}:{column}", file.0)
     }
-    #[allow(clippy::single_call_fn)] // centralizes datetime + timezone composition so formatting can stay branch-light and tests can target conversion separately
     fn datetime_with_tz(&self) -> Option<ChronoLocationDateTime> {
         let epoch = std::time::UNIX_EPOCH.checked_add(self.duration.0)?;
         let offset = Self::location_display_timezone()?;

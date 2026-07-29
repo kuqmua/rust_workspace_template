@@ -571,7 +571,6 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
     Ok(())
 }
 #[cfg(not(unix))]
-#[allow(clippy::single_call_fn)] // shutdown signal ownership stays isolated from server assembly
 async fn shutdown_signal() {
     if let Err(error) = tokio::signal::ctrl_c().await {
         tracing::error!(error = %error, "failed to wait for shutdown signal");

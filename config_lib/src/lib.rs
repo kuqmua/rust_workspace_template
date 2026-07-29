@@ -871,7 +871,6 @@ where
 {
     v.0.parse::<T>().map_err(mk_error)
 }
-#[allow(clippy::single_call_fn)] // extracted timezone conversion keeps conversion + message mapping reusable and directly testable
 fn parse_east_fixed_offset(
     v: TimezoneSeconds,
 ) -> Result<ChronoEastFixedOffset, ChronoFixedOffsetError> {

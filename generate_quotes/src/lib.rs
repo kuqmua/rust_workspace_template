@@ -34,7 +34,6 @@ where
     out.push(quote_ch.0);
     QuotedLiteral::try_from(out).unwrap_or_else(QuotedLiteral::from)
 }
-#[allow(clippy::single_call_fn)] // shared with prefix-aware token quote wrapper to keep parse+panic-id flow in one place
 fn quote_literal_token_stream<Dsp>(
     prefix: QuotePrefix,
     quote_ch: QuoteChar,

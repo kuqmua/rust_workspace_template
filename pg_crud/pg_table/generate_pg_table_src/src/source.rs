@@ -3616,7 +3616,7 @@ pub fn emit_generate_pg_table(
             );
         let impl_pub_try_new_for_identifier_update_token_stream =
             macros_helpers::generate_new_or_try_new::generate_impl_pub_try_new_for_identifier_token_stream(
-                &quote::quote! {#[allow(clippy::redundant_pattern_matching)]}, //todo check if 1 then different logic
+                &proc_macro2::TokenStream::new(),
                 &identifier_update_upper_camel_case,
                 &fields_declaration_token_stream,
                 &identifier_update_try_new_error_upper_camel_case,
@@ -5346,7 +5346,6 @@ pub fn emit_generate_pg_table(
                     }
                 };
                 quote::quote! {
-                    #[allow(clippy::single_call_fn)]
                     async fn #try_operation_handle_snake_case_token_stream(
                         #client_snake_case: &reqwest::Client,
                         #EndpointLocationSnakeCase: #RefStr,
@@ -6352,7 +6351,6 @@ pub fn emit_generate_pg_table(
                     wraped_into_axum_res_token_stream
                 };
                 quote::quote! {
-                    #[allow(clippy::single_call_fn)]
                     async fn #operation_handle_snake_case_token_stream(
                         #AppStateSnakeCase: axum::extract::State<#std_sync_arc_combination_of_app_state_logic_traits_token_stream>,
                         #ReqSnakeCase: axum::extract::Request,
@@ -6617,7 +6615,6 @@ pub fn emit_generate_pg_table(
                             #[allow(clippy::absolute_paths)]
                             #AllowClippyArbitrarySrcItemOrdering
                             const _: () = {
-                                #[expect(unused_extern_crates)]
                                 extern crate serde as _serde;
                                 #[automatically_derived]
                                 impl<'de> _serde::Deserialize<'de> for #identifier_operation_payload_upper_camel_case {
@@ -10097,7 +10094,6 @@ pub fn emit_generate_pg_table(
                 #AllowClippyArbitrarySrcItemOrdering
                 impl #identifier {
                     #(#impl_identifier_vec_token_stream)*
-                    #[allow(clippy::single_call_fn)]
                     fn #RoutesHSnakeCase(
                         #AppStateSnakeCase: #std_sync_arc_combination_of_app_state_logic_traits_token_stream,
                         #TableSnakeCase: &str,

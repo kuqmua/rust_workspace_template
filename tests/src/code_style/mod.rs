@@ -3754,7 +3754,6 @@ fn check_expect_and_panic_contain_unique_diagnostic_ids() {
     }
     assert!(all_ers.is_empty(), "6062a9e9 {all_ers:#?}");
 }
-#[allow(clippy::single_call_fn)] // shared lint-compare wrapper keeps clippy/rust lint test flow aligned and reduces duplicate wiring
 fn assert_workspace_lints_match(
     rust_or_clippy: RustOrClippy,
     tool: types::StaticStr,
@@ -4066,7 +4065,6 @@ fn collect_missing_items(
             .collect::<Vec<String>>(),
     )
 }
-#[allow(clippy::single_call_fn)] // centralized formatter keeps env key mismatch diagnostics consistent
 fn collect_missing_key_ers(
     source_keys: types::SourceTextListRef<'_>,
     target_set: types::StdSourceTextRefSet<'_>,
@@ -4144,7 +4142,6 @@ fn collect_cargo_toml_ers(
     });
     types::SourceTextList::from(ers)
 }
-#[allow(clippy::single_call_fn)] // centralizes repeated cargo-toml assertion shape used by multiple tests
 fn assert_cargo_toml_ers_empty(
     exp_id: types::StaticStr,
     mut mk_ers: impl FnMut(&std::path::Path, &toml::Table, &mut Vec<String>),
@@ -4154,7 +4151,6 @@ fn assert_cargo_toml_ers_empty(
     });
     assert_joined_ers_empty(types::SourceTextListRef::from(ers.as_slice()), exp_id);
 }
-#[allow(clippy::single_call_fn)] // shared crate-manifest cargo policy assertion keeps joined-diagnostic behavior consistent across package-metadata checks
 fn assert_crate_manifest_cargo_policy(
     exp_id: types::StaticStr,
     mut mk_ers: impl FnMut(&std::path::Path, &toml::Table, &mut Vec<String>),
@@ -4192,7 +4188,6 @@ fn assert_joined_ers_empty_with_ctx(
         );
     }
 }
-#[allow(clippy::single_call_fn)] // shared sort+assert helper keeps joined diagnostics deterministic for tests that accumulate path-dependent errors
 fn assert_joined_ers_empty_sorted(
     mut ers: types::DiagnosticMsgsMutRef<'_>,
     exp_id: types::StaticStr,
@@ -4236,7 +4231,6 @@ where
     syn::visit::Visit::visit_file(&mut visitor, ast.as_ref());
     visitor
 }
-#[allow(clippy::single_call_fn)] // shared assertion wrapper keeps AST-policy tests focused on visitor logic while reusing collection and joined-report formatting
 fn assert_rs_ast_ers_empty_with_ctx(
     exp_id: types::StaticStr,
     ctx: types::SourceTextRef<'_>,
@@ -4287,7 +4281,6 @@ fn is_allowed_english_char(ch: types::AnalyzerChar) -> types::AnalyzerBool {
         matches!(ch_value, '\n' | '\r' | '\t' | '\u{2014}' | '\u{2194}') || ch_value.is_ascii(),
     )
 }
-#[allow(clippy::single_call_fn)] // shared repeated-file error helper keeps AST visitor diagnostics consistent
 fn push_repeated_file_error(
     mut ers: types::DiagnosticMsgsMutRef<'_>,
     path: types::StdPathRef<'_>,
@@ -4299,7 +4292,6 @@ fn push_repeated_file_error(
             .take(times.get()),
     );
 }
-#[allow(clippy::single_call_fn)] // package names are used to distinguish workspace paths from external crate paths
 fn workspace_crate_names() -> types::StdSourceTextSet {
     snapshot::with_codebase_snapshot(snapshot::CodebaseSnapshot::workspace_crate_names)
 }
@@ -5008,7 +5000,6 @@ fn string_wrapper_names(ast: types::SynFileRef<'_>) -> types::StdSourceTextSet {
     )
     .names
 }
-#[allow(clippy::single_call_fn)] // keeps domain policy exception handling centralized and documented
 fn domain_type_policy_should_check_path(path: types::StdPathRef<'_>) -> types::AnalyzerBool {
     if path
         .as_ref()
@@ -5024,7 +5015,6 @@ fn domain_type_policy_should_check_path(path: types::StdPathRef<'_>) -> types::A
     };
     types::AnalyzerBool::from(cargo_toml_path.as_ref().is_file())
 }
-#[allow(clippy::single_call_fn)] // helper-return text wrappers live in the code-style meta harness types module
 fn is_code_style_meta_harness_source_path(path: types::StdPathRef<'_>) -> types::AnalyzerBool {
     types::AnalyzerBool::from(
         path.as_ref()
@@ -5404,7 +5394,6 @@ fn item_fn_is_unit_test(item: types::SynItemFnRef<'_>) -> types::AnalyzerBool {
             || attr_is_test_only_cfg(types::SynAttributeRef::from(attr)).get()
     }))
 }
-#[allow(clippy::single_call_fn)] // exact terminal parsing prevents redacted derive names from matching Debug
 fn derive_attr_has_terminal(
     attr: types::SynAttributeRef<'_>,
     terminal: types::SourceTextRef<'_>,
@@ -5526,7 +5515,6 @@ fn identifier_to_upper_camel_fragment(
     );
     types::SourceText::try_from(out).expect("9ea072c4")
 }
-#[allow(clippy::single_call_fn)] // centralizes production-source filtering for panic/expect/unwrap policy
 fn is_runtime_policy_source_path(path: types::StdPathRef<'_>) -> types::AnalyzerBool {
     let path_text = path.as_ref().to_string_lossy();
     if str_constants::CODE_STYLE_RUNTIME_TEST_HELPER_SUFFIXES
@@ -5576,7 +5564,6 @@ fn is_test_crate(parsed: types::TomlTableRef<'_>) -> types::AnalyzerBool {
             .is_some_and(|name| str_constants::CODE_STYLE_TEST_CRATE_NAMES.contains(&name)),
     )
 }
-#[allow(clippy::single_call_fn)] // resolves exact Cargo package ownership for source-policy test exclusions
 fn is_test_crate_source_path(path: types::StdPathRef<'_>) -> types::AnalyzerBool {
     if path
         .as_ref()
@@ -5593,7 +5580,6 @@ fn is_test_crate_source_path(path: types::StdPathRef<'_>) -> types::AnalyzerBool
             is_test_crate(types::TomlTableRef::from(manifest.as_ref()))
         })
 }
-#[allow(clippy::single_call_fn)] // exact path helper is shared by the duplicate-string policy and its scope regression
 fn is_non_policy_test_source_path(path: types::StdPathRef<'_>) -> types::AnalyzerBool {
     types::AnalyzerBool::from(
         path.as_ref()
@@ -5603,7 +5589,6 @@ fn is_non_policy_test_source_path(path: types::StdPathRef<'_>) -> types::Analyze
                 .starts_with(str_constants::TESTS_SRC_CODE_STYLE),
     )
 }
-#[allow(clippy::single_call_fn)] // exact owner-path matching is shared by direct-filesystem policy and its scope regression
 fn is_direct_fs_owner_source_path(path: types::StdPathRef<'_>) -> types::AnalyzerBool {
     let path_text = path.as_ref().to_string_lossy();
     types::AnalyzerBool::from(
@@ -5709,7 +5694,6 @@ fn attr_is_test_only_cfg(attr: types::SynAttributeRef<'_>) -> types::AnalyzerBoo
     }));
     types::AnalyzerBool::from(is_test_only_cfg)
 }
-#[allow(clippy::single_call_fn)] // shared rust-file reader keeps skip-on-read-error behavior centralized across source policy checks
 fn for_each_rs_file_content(mut on_file: impl FnMut(&std::path::Path, &str)) {
     snapshot::with_codebase_snapshot(|snapshot| {
         snapshot
@@ -5762,7 +5746,6 @@ fn toml_val_as_table_ref(
         | toml::Value::Array(_) => panic!("{}", uuid.get()),
     }
 }
-#[allow(clippy::single_call_fn)] // shared collector keeps workspace-dependency policy checks reusable and centralized
 fn collect_non_workspace_dep_ers(
     path: types::StdPathRef<'_>,
     parsed: types::TomlTableRef<'_>,
@@ -5882,7 +5865,6 @@ fn collect_workspace_member_missing_cargo_toml_ers(
             .collect::<Vec<String>>(),
     )
 }
-#[allow(clippy::single_call_fn)] // central member extraction keeps workspace-members readers strict and reusable across membership checks
 fn workspace_members_as_strs(
     workspace: types::TomlTableRef<'_>,
     exp_id: types::StaticStr,

@@ -1268,7 +1268,6 @@ pub fn generate_impl_de_for_struct_token_stream(
         #[allow(clippy::absolute_paths)]
         #allow_clippy_arbitrary_src_item_ordering
         const _: () = {
-            #[expect(unused_extern_crates)]
             extern crate serde as _serde;
             #[automatically_derived]
             impl<'de> _serde::Deserialize<'de> for #identifier {
@@ -1317,7 +1316,6 @@ pub fn generate_impl_de_for_struct_by_fields_token_stream(
         #[allow(clippy::absolute_paths)]
         #allow_clippy_arbitrary_src_item_ordering
         const _: () = {
-            #[expect(unused_extern_crates)]
             extern crate serde as _serde;
             #[automatically_derived]
             impl<'de> _serde::Deserialize<'de> for #identifier {

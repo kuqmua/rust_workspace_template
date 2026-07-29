@@ -151,7 +151,6 @@ pub enum AdminAuthSvcStateBuildError {
     #[error("administrator authentication numeric value is not positive")]
     PositiveValue(#[source] AdminAuthPositiveValueError),
 }
-#[allow(clippy::single_call_fn)] // sign-in accepts existing credentials without applying the policy for newly assigned passwords
 fn admin_password_from_contract(
     value: server_admin_contract::AdminPassword,
 ) -> Result<super::AdminPassword, super::AdminPasswordTryFromStringError> {
@@ -489,7 +488,6 @@ fn hash_refresh_token_with_context(
         .map(super::AdminOpaqueToken::new)?;
     super::hash_opaque_token(&combined_token)
 }
-#[allow(clippy::single_call_fn)] // CSRF origin validation stays isolated from token validation
 fn origin_is_present_and_allowed(
     state: &AdminAuthSvcState,
     headers: super::HttpAdminHeaderMapRef<'_>,

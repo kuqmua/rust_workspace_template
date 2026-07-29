@@ -1719,7 +1719,6 @@ fn validate_newtype_inner_ty_attrs(
     }
     Ok(())
 }
-#[allow(clippy::single_call_fn)] // tuple field extraction is separate to keep derive input validation explicit
 fn tuple_struct_one_field_ty(input: SynDeriveInputRef<'_>) -> syn::Result<SynTypeRef<'_>> {
     let input_ref = input.0;
     let shape =
@@ -1750,7 +1749,6 @@ fn tuple_struct_one_field_ty(input: SynDeriveInputRef<'_>) -> syn::Result<SynTyp
         .map(|field| SynTypeRef::from(&field.ty))
         .ok_or_else(|| syn::Error::new_spanned(input_ref, str_constants::NEWTYPE_FIELD_NOT_FOUND))
 }
-#[allow(clippy::single_call_fn)] // newtype validation only needs terminal path identifier matching for concrete String wrappers
 fn type_path_ends_with_string_identifier(ty: SynTypeRef<'_>) -> NewtypeBool {
     NewtypeBool::from(match ty.as_ref() {
         syn::Type::Path(v) if v.qself.is_none() => v
@@ -1761,7 +1759,6 @@ fn type_path_ends_with_string_identifier(ty: SynTypeRef<'_>) -> NewtypeBool {
         syn::Type::Path(_) | _ => false,
     })
 }
-#[allow(clippy::single_call_fn)] // proc-macro generated getter names need local snake_case conversion without adding another dependency
 fn identifier_to_snake(identifier: SynIdentifierRef<'_>) -> SnakeIdentifier {
     let (out, _) = identifier.as_ref().to_string().chars().fold(
         (String::new(), false),
