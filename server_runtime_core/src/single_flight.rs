@@ -46,14 +46,17 @@ impl SingleFlight {
                 TokioSingleFlightReceiver::from(sender.0.subscribe()),
             ));
         }
-        if inner.flights.len() >= self.maximum.0.get() {
+        if inner.flights.len().get() >= self.maximum.0.get() {
             return SingleFlightAcquire::Full;
         }
         let (sender, receiver) = tokio::sync::watch::channel(SingleFlightSignal::Running);
         drop(receiver);
-        let _previous = inner
+        let insertion = inner
             .flights
-            .insert(key.clone(), TokioSingleFlightSender::from(sender));
+            .try_insert(key.clone(), TokioSingleFlightSender::from(sender));
+        if insertion.is_err() {
+            return SingleFlightAcquire::Full;
+        }
         drop(inner);
         SingleFlightAcquire::Owner(SingleFlightOwner {
             inner: self.inner.clone(),
@@ -113,7 +116,8 @@ pub enum SingleFlightWaitOutcome {
 
 #[derive(Debug, Default)]
 struct SingleFlightInner {
-    flights: std::collections::HashMap<SingleFlightKey, TokioSingleFlightSender>,
+    flights:
+        bounded_types::StdBoundedHashMap<SingleFlightKey, TokioSingleFlightSender, { usize::MAX }>,
 }
 
 #[derive(Clone, Debug, Default, newtype::FromInner)]

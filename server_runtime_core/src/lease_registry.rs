@@ -75,7 +75,7 @@ pub enum LeaseHeartbeat {
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)]
-pub struct LeaseIds(Vec<LeaseId>);
+pub struct LeaseIds(bounded_types::BoundedVec<LeaseId, 0, { usize::MAX }>);
 
 #[derive(Debug)]
 struct LeaseEntry {
@@ -86,8 +86,8 @@ struct LeaseEntry {
 
 #[derive(Debug, Default)]
 struct LeaseRegistryInner {
-    by_id: std::collections::HashMap<LeaseId, LeaseEntry>,
-    by_key: std::collections::HashMap<LeaseKey, LeaseId>,
+    by_id: bounded_types::StdBoundedHashMap<LeaseId, LeaseEntry, { usize::MAX }>,
+    by_key: bounded_types::StdBoundedHashMap<LeaseKey, LeaseId, { usize::MAX }>,
 }
 
 #[derive(Clone, Debug, Default)]
@@ -139,37 +139,47 @@ impl LeaseRegistry {
             return LeaseReservation::Existing(existing_id.clone());
         }
         remove_stale_entries(&mut inner);
-        if inner.by_id.len() >= maximum.0.get() {
+        if inner.by_id.len().get() >= maximum.0.get() {
             return LeaseReservation::LimitReached;
         }
         remove_conflicting_entries(&mut inner, &id, &key);
-        let _previous_id = inner.by_key.insert(key.clone(), id.clone());
-        let _previous_entry = inner.by_id.insert(
+        let id_insertion = inner.by_key.try_insert(key.clone(), id.clone());
+        if id_insertion.is_err() {
+            return LeaseReservation::LimitReached;
+        }
+        let entry_insertion = inner.by_id.try_insert(
             id,
             LeaseEntry {
                 heartbeat: TokioLeaseInstant::from(tokio::time::Instant::now()),
-                key,
+                key: key.clone(),
                 state: LeaseState::Reserved,
             },
         );
+        if entry_insertion.is_err() {
+            let _removed_id = inner.by_key.remove(&key);
+            drop(inner);
+            return LeaseReservation::LimitReached;
+        }
+        drop(inner);
         LeaseReservation::Reserved
     }
 
     pub async fn stale(&self, timeout: StdLeaseStaleTimeout) -> LeaseIds {
         let mut inner = self.inner.0.write().await;
         let now = tokio::time::Instant::now();
-        LeaseIds::from(
-            inner
-                .by_id
-                .iter_mut()
-                .filter_map(|(id, entry)| {
-                    (now.duration_since(entry.heartbeat.0) > timeout.0).then(|| {
-                        entry.state = LeaseState::Stale;
-                        id.clone()
-                    })
+        let mut stale_ids = bounded_types::BoundedVec::default();
+        inner
+            .by_id
+            .iter_mut()
+            .filter_map(|(id, entry)| {
+                (now.duration_since(entry.heartbeat.0) > timeout.0).then(|| {
+                    entry.state = LeaseState::Stale;
+                    id.clone()
                 })
-                .collect::<Vec<LeaseId>>(),
-        )
+            })
+            .for_each(|id| stale_ids.push_max_capacity(id));
+        drop(inner);
+        LeaseIds::from(stale_ids)
     }
 }
 

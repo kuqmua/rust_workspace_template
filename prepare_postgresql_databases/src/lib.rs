@@ -81,9 +81,9 @@ impl AsRef<str> for ProcessArgument {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)]
-pub struct ProcessArguments(Vec<ProcessArgument>);
+pub struct ProcessArguments(bounded_types::BoundedVec<ProcessArgument, 0, { usize::MAX }>);
 #[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)]
-pub struct ProcessCommands(Vec<ProcessCommand>);
+pub struct ProcessCommands(bounded_types::BoundedVec<ProcessCommand, 0, { usize::MAX }>);
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::AsRefInner, newtype::FromInner)]
 pub struct ProcessProgram(&'static str);
@@ -132,20 +132,18 @@ pub fn migration_commands<Specifications>(specs: Specifications) -> ProcessComma
 where
     Specifications: IntoIterator<Item = DatabasePreparationSpec>,
 {
-    specs
-        .into_iter()
-        .map(|spec| ProcessCommand {
-            arguments: ProcessArguments::from(vec![
+    ProcessCommands::from(bounded_types::BoundedVec::from_max_iter(
+        specs.into_iter().map(|spec| ProcessCommand {
+            arguments: ProcessArguments::from(bounded_types::BoundedVec::from_max_iter([
                 ProcessArgument::from(str_constants::DATABASE_URL_FLAG),
                 ProcessArgument::from(spec.url),
                 ProcessArgument::from(str_constants::SOURCE_FLAG),
                 ProcessArgument::from(spec.migrations_source),
                 ProcessArgument::from(str_constants::RUN),
-            ]),
+            ])),
             program: ProcessProgram::from(str_constants::SQLX),
-        })
-        .collect::<Vec<_>>()
-        .into()
+        }),
+    ))
 }
 
 #[cfg(test)]

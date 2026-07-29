@@ -15,7 +15,9 @@ pub enum RouteContractMismatch {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)]
-pub struct RouteContractMismatches(Vec<RouteContractMismatch>);
+pub struct RouteContractMismatches(
+    bounded_types::BoundedVec<RouteContractMismatch, 0, { usize::MAX }>,
+);
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::TryFrom)]
 #[try_from(
@@ -35,15 +37,15 @@ impl HttpContractStatus {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct HttpContractBody(Vec<u8>);
+pub struct HttpContractBody(
+    bounded_types::BoundedVec<u8, 0, { frontend_contract::FRONTEND_CONTRACT_BODY_MAX_BYTES }>,
+);
 impl TryFrom<Vec<u8>> for HttpContractBody {
     type Error = frontend_contract::FrontendContractBodyError;
     fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
-        if value.len() > frontend_contract::FRONTEND_CONTRACT_BODY_MAX_BYTES {
-            Err(frontend_contract::FrontendContractBodyError)
-        } else {
-            Ok(Self(value))
-        }
+        bounded_types::BoundedVec::try_from(value)
+            .map(Self)
+            .map_err(frontend_contract::FrontendContractBodyError::from)
     }
 }
 
@@ -162,7 +164,9 @@ pub fn validate_route_contract_metadata(
     if mismatches.is_empty() {
         Ok(())
     } else {
-        Err(RouteContractMismatches::from(mismatches))
+        Err(RouteContractMismatches::from(
+            bounded_types::BoundedVec::from_max_iter(mismatches),
+        ))
     }
 }
 

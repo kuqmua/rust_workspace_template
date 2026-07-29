@@ -192,7 +192,9 @@ pub struct StdParseBoolError(std::str::ParseBoolError);
     newtype::DebugRedacted,
     newtype::FromInner,
 )]
-pub struct AdminJwtSecret(Vec<SecrecySecretBoxString>);
+pub struct AdminJwtSecret(
+    bounded_types::BoundedVec<SecrecySecretBoxString, 1, ADMIN_JWT_SECRET_MAX_COUNT>,
+);
 impl AdminJwtSecret {
     #[must_use]
     pub fn primary(&self) -> Option<&SecrecySecretBoxString> {
@@ -231,7 +233,7 @@ impl TryFromStdEnvVarOk for AdminJwtSecret {
         if raw_secrets.len() > ADMIN_JWT_SECRET_MAX_COUNT {
             return Err(Self::Error::TooMany);
         }
-        raw_secrets
+        let secrets = raw_secrets
             .into_iter()
             .map(|value| {
                 if value.len() < ADMIN_JWT_SECRET_MIN_LEN {
@@ -241,8 +243,14 @@ impl TryFromStdEnvVarOk for AdminJwtSecret {
                         .map_err(|_error| Self::Error::TooLong)
                 }
             })
-            .collect::<Result<Vec<_>, _>>()
+            .collect::<Result<Vec<_>, _>>()?;
+        bounded_types::BoundedVec::try_from(secrets)
             .map(Self)
+            .map_err(|error| match error {
+                bounded_types::BoundedValueError::BelowMin { .. } => Self::Error::Empty,
+                bounded_types::BoundedValueError::AboveMax { .. }
+                | bounded_types::BoundedValueError::InvalidBounds { .. } => Self::Error::TooMany,
+            })
     }
 }
 #[cfg(test)]

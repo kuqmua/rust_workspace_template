@@ -2,6 +2,7 @@
 resolver = "2"
 members = [
   "app_state",
+  "bounded_types",
   "common_routes",
   "config_lib",
   "config_lib/config_lib_macros",
@@ -279,6 +280,7 @@ walkdir = { version = "=2.5.0", default-features = false }
 trybuild = { version = "=1.0.118", default-features = false }
 git-version = { version = "=0.3.9", default-features = false }
 app_state = { path = "./app_state" }
+bounded_types = { path = "./bounded_types" }
 common_routes = { path = "./common_routes" }
 config_lib = { path = "./config_lib" }
 config_lib_macros = { path = "./config_lib/config_lib_macros" }

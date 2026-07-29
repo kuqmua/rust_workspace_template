@@ -65,14 +65,13 @@ impl TryFrom<String> for StdStorageOperationId {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct StdFileBytes(Vec<u8>);
+pub struct StdFileBytes(bounded_types::BoundedVec<u8, 0, MAXIMUM_FILE_BYTES>);
 impl TryFrom<Vec<u8>> for StdFileBytes {
     type Error = FileStoragePathError;
     fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
-        if value.len() <= MAXIMUM_FILE_BYTES {
-            Ok(Self(value))
-        } else {
-            Err(FileStoragePathError::FileTooLarge)
+        match bounded_types::BoundedVec::try_from(value) {
+            Ok(bounded) => Ok(Self(bounded)),
+            Err(_error) => Err(FileStoragePathError::FileTooLarge),
         }
     }
 }
@@ -551,7 +550,9 @@ impl DiskCacheEntry {
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)]
-pub struct DiskCacheEvictionPlan(Vec<StdStorageRelativePath>);
+pub struct DiskCacheEvictionPlan(
+    bounded_types::BoundedVec<StdStorageRelativePath, 0, { usize::MAX }>,
+);
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum DiskCacheBudgetError {
@@ -589,7 +590,9 @@ pub fn plan_disk_cache_eviction(
         current = current.saturating_sub(entry.size.0);
         remove.push(entry.path.clone());
     }
-    Ok(DiskCacheEvictionPlan::from(remove))
+    Ok(DiskCacheEvictionPlan::from(
+        bounded_types::BoundedVec::from_max_iter(remove),
+    ))
 }
 
 #[cfg(test)]

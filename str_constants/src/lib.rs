@@ -3628,6 +3628,7 @@ pub const CODE_STYLE_DIRECT_FS_OWNER_REASONS: [&str; 9] = [
     "workspace scaffold owns template traversal and generated workspace writes",
 ];
 pub const CODE_STYLE_DOMAIN_FIXTURE_PATH: &str = "../tests/src/domain_type_policy_fixture.rs";
+pub const CODE_STYLE_BOUNDED_TYPES_SRC: &str = "../bounded_types/src";
 pub const CODE_STYLE_LOCATION_TEST_SRC: &str = "../location_lib/location_test/src";
 pub const CODE_STYLE_LOCATION_TEST_REASON: &str = "location macro fixture deliberately exposes raw Vec fields required by the macro input contract";
 pub const CODE_STYLE_PG_CRUD_COMMON_BENCHES: &str = "../pg_crud/pg_crud_common/benches";

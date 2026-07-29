@@ -55,7 +55,7 @@ impl EnvKey {
     }
 }
 #[derive(Debug, Eq, PartialEq, newtype::FromInner)]
-struct EnvKeys(Vec<EnvKey>);
+struct EnvKeys(bounded_types::BoundedVec<EnvKey, 0, { usize::MAX }>);
 #[derive(Clone, Copy, newtype::FromInner, newtype::IntoInnerFrom)]
 struct MemberSafe(bool);
 #[derive(
@@ -76,7 +76,7 @@ impl WorkspaceMember {
 #[derive(Clone, Copy, newtype::AsRefStr, newtype::FromInner)]
 struct WorkspaceMemberRef<'member_lt>(&'member_lt str);
 #[derive(newtype::FromInner)]
-struct WorkspaceMembers(Vec<WorkspaceMember>);
+struct WorkspaceMembers(bounded_types::BoundedVec<WorkspaceMember, 0, { usize::MAX }>);
 #[derive(Clone, Copy, newtype::AsRefTarget, newtype::FromInner)]
 struct StdWorkspaceRootRef<'root_lt>(&'root_lt std::path::Path);
 #[derive(Clone, Copy, newtype::FromInner)]
@@ -84,7 +84,7 @@ struct StdInitPathRef<'path_lt>(&'path_lt std::path::Path);
 #[derive(Clone, Copy, newtype::FromInner)]
 struct InitMaxBytes(usize);
 #[derive(newtype::FromInner)]
-struct InitEntries(Vec<InitializationEntry>);
+struct InitEntries(bounded_types::BoundedVec<InitializationEntry, 0, { usize::MAX }>);
 #[derive(Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 struct StdInitIoError(std::io::Error);
@@ -167,6 +167,7 @@ fn environment_keys(content: EnvContentRef<'_>) -> Result<EnvKeys, InitStringErr
                 .flatten()
         })
         .collect::<Result<Vec<EnvKey>, InitStringError>>()
+        .map(bounded_types::BoundedVec::from_max_iter)
         .map(EnvKeys::from)
 }
 #[allow(
@@ -236,6 +237,7 @@ fn workspace_members(root: StdWorkspaceRootRef<'_>) -> Result<WorkspaceMembers, 
             }
         })
         .collect::<Result<Vec<WorkspaceMember>, InitializeError>>()
+        .map(bounded_types::BoundedVec::from_max_iter)
         .map(WorkspaceMembers::from)
 }
 #[allow(
@@ -301,6 +303,7 @@ fn initialize(
             });
             Ok(entries)
         })
+        .map(bounded_types::BoundedVec::from_max_iter)
         .map(InitEntries::from)
 }
 fn main() -> Result<(), InitializeError> {

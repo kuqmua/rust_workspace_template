@@ -17,6 +17,7 @@ server_runtime_core = { workspace = true }
 str_constants = { workspace = true }
 text_policy = { workspace = true }
 axum = { workspace = true }
+bounded_types = { workspace = true }
 cookie = { workspace = true }
 geojson = { workspace = true }
 http = { workspace = true }

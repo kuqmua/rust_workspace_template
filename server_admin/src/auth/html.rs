@@ -95,38 +95,59 @@ const ADMIN_HTML_FORM_SELECTED_MAX_ITEMS: usize = 1_000usize;
 #[derive(Debug, thiserror::Error)]
 #[error("{message}", message = str_constants::ADMIN_HTML_FORM_TEXT_TOO_LONG)]
 struct AdminHtmlFormTextError;
+impl From<bounded_types::BoundedValueError> for AdminHtmlFormTextError {
+    fn from(_value: bounded_types::BoundedValueError) -> Self {
+        Self
+    }
+}
 #[derive(Debug, thiserror::Error)]
 #[error("{message}", message = str_constants::ADMIN_HTML_FORM_KEY_TOO_LONG)]
 struct AdminHtmlFormKeyError;
+impl From<bounded_types::BoundedValueError> for AdminHtmlFormKeyError {
+    fn from(_value: bounded_types::BoundedValueError) -> Self {
+        Self
+    }
+}
 #[derive(Debug, thiserror::Error)]
 #[error("administrator HTML form contains too many selected fields")]
 struct StdAdminHtmlSelectedError;
+impl From<bounded_types::BoundedValueError> for StdAdminHtmlSelectedError {
+    fn from(_value: bounded_types::BoundedValueError) -> Self {
+        Self
+    }
+}
 
 #[derive(Debug, serde::Deserialize)]
 #[serde(try_from = "String")]
-struct AdminHtmlFormText(String);
+struct AdminHtmlFormText(bounded_types::BoundedString<0, ADMIN_HTML_FORM_TEXT_MAX_BYTES>);
 impl TryFrom<String> for AdminHtmlFormText {
     type Error = AdminHtmlFormTextError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        (value.len() <= ADMIN_HTML_FORM_TEXT_MAX_BYTES)
-            .then_some(Self(value))
-            .ok_or(AdminHtmlFormTextError)
+        bounded_types::BoundedString::try_from(value)
+            .map(Self)
+            .map_err(AdminHtmlFormTextError::from)
     }
 }
 #[derive(Debug, Eq, Ord, PartialEq, PartialOrd, serde::Deserialize)]
 #[serde(try_from = "String")]
-struct AdminHtmlFormKey(String);
+struct AdminHtmlFormKey(bounded_types::BoundedString<0, ADMIN_HTML_FORM_TEXT_MAX_BYTES>);
 impl TryFrom<String> for AdminHtmlFormKey {
     type Error = AdminHtmlFormKeyError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        (value.len() <= ADMIN_HTML_FORM_TEXT_MAX_BYTES)
-            .then_some(Self(value))
-            .ok_or(AdminHtmlFormKeyError)
+        bounded_types::BoundedString::try_from(value)
+            .map(Self)
+            .map_err(AdminHtmlFormKeyError::from)
     }
 }
 #[derive(Debug, serde::Deserialize)]
 #[serde(try_from = "std::collections::BTreeMap<AdminHtmlFormKey, AdminHtmlFormText>")]
-struct StdAdminHtmlSelected(std::collections::BTreeMap<AdminHtmlFormKey, AdminHtmlFormText>);
+struct StdAdminHtmlSelected(
+    bounded_types::StdBoundedBTreeMap<
+        AdminHtmlFormKey,
+        AdminHtmlFormText,
+        ADMIN_HTML_FORM_SELECTED_MAX_ITEMS,
+    >,
+);
 impl TryFrom<std::collections::BTreeMap<AdminHtmlFormKey, AdminHtmlFormText>>
     for StdAdminHtmlSelected
 {
@@ -134,9 +155,9 @@ impl TryFrom<std::collections::BTreeMap<AdminHtmlFormKey, AdminHtmlFormText>>
     fn try_from(
         value: std::collections::BTreeMap<AdminHtmlFormKey, AdminHtmlFormText>,
     ) -> Result<Self, Self::Error> {
-        (value.len() <= ADMIN_HTML_FORM_SELECTED_MAX_ITEMS)
-            .then_some(Self(value))
-            .ok_or(StdAdminHtmlSelectedError)
+        bounded_types::StdBoundedBTreeMap::try_from(value)
+            .map(Self)
+            .map_err(StdAdminHtmlSelectedError::from)
     }
 }
 
@@ -248,7 +269,7 @@ where
     if value.0.trim().is_empty() {
         Ok(None)
     } else {
-        Value::try_from(value.0)
+        Value::try_from(value.0.into_inner())
             .map(Some)
             .map_err(|_error| super::AdminError::Validation)
     }
@@ -642,7 +663,7 @@ async fn user_roles(
         form.selected
             .0
             .into_values()
-            .map(|value| value.0)
+            .map(|value| value.0.into_inner())
             .collect::<Vec<_>>()
             .join(str_constants::COMMA_SPACE.trim()),
     );
@@ -731,7 +752,7 @@ async fn role_permissions(
         form.selected
             .0
             .into_values()
-            .map(|value| value.0)
+            .map(|value| value.0.into_inner())
             .collect::<Vec<_>>()
             .join(str_constants::COMMA_SPACE.trim()),
     );
@@ -1060,8 +1081,8 @@ mod tests {
         };
 
         assert_eq!(i64::from(form.user_id), 7i64);
-        assert_eq!(form.expected_role_ids.0, "1,2");
-        assert_eq!(form.selected.0.len(), 2usize);
+        assert_eq!(form.expected_role_ids.0.as_ref(), "1,2");
+        assert_eq!(form.selected.0.len().get(), 2usize);
     }
 
     #[test]

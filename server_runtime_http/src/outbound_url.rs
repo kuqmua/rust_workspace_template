@@ -47,19 +47,23 @@ impl TryFrom<String> for OutboundAllowedHost {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct OutboundHostAllowlist(Vec<OutboundAllowedHost>);
+pub struct OutboundHostAllowlist(bounded_types::BoundedVec<OutboundAllowedHost, 1, 64>);
 impl TryFrom<Vec<OutboundAllowedHost>> for OutboundHostAllowlist {
     type Error = OutboundHostAllowlistError;
     fn try_from(mut value: Vec<OutboundAllowedHost>) -> Result<Self, Self::Error> {
-        if value.is_empty() {
-            return Err(OutboundHostAllowlistError::Empty);
-        }
-        if value.len() > 64usize {
-            return Err(OutboundHostAllowlistError::TooManyHosts);
-        }
         value.sort_unstable();
         value.dedup();
-        Ok(Self(value))
+        bounded_types::BoundedVec::try_from(value)
+            .map(Self)
+            .map_err(|error| match error {
+                bounded_types::BoundedValueError::BelowMin { .. } => {
+                    OutboundHostAllowlistError::Empty
+                }
+                bounded_types::BoundedValueError::AboveMax { .. }
+                | bounded_types::BoundedValueError::InvalidBounds { .. } => {
+                    OutboundHostAllowlistError::TooManyHosts
+                }
+            })
     }
 }
 impl OutboundHostAllowlist {

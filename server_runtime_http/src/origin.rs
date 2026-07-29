@@ -60,27 +60,31 @@ impl TryFrom<String> for AllowedOrigin {
 pub struct AllowedOriginError;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct AllowedOrigins(Vec<AllowedOrigin>);
+pub struct AllowedOrigins(bounded_types::BoundedVec<AllowedOrigin, 0, 128>);
 
 impl TryFrom<Vec<String>> for AllowedOrigins {
     type Error = AllowedOriginsError;
 
     fn try_from(values: Vec<String>) -> Result<Self, Self::Error> {
-        if values.len() > 128usize {
-            return Err(AllowedOriginsError);
-        }
-        values
+        let parsed = values
             .into_iter()
             .map(AllowedOrigin::try_from)
             .collect::<Result<Vec<AllowedOrigin>, AllowedOriginError>>()
+            .map_err(|_error| AllowedOriginsError)?;
+        bounded_types::BoundedVec::try_from(parsed)
             .map(Self)
-            .map_err(|_error| AllowedOriginsError)
+            .map_err(AllowedOriginsError::from)
     }
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("{message}", message = str_constants::ALLOWED_HTTP_ORIGIN_LIST_IS_INVALID)]
 pub struct AllowedOriginsError;
+impl From<bounded_types::BoundedValueError> for AllowedOriginsError {
+    fn from(_value: bounded_types::BoundedValueError) -> Self {
+        Self
+    }
+}
 
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct HttpOriginHeadersRef<'header>(&'header http::HeaderMap);

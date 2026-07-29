@@ -88,18 +88,23 @@ impl TryFrom<String> for TrustedProxyRange {
     }
 }
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
-pub struct TrustedProxyRanges(Vec<TrustedProxyRange>);
+pub struct TrustedProxyRanges(
+    bounded_types::BoundedVec<TrustedProxyRange, 0, TRUSTED_PROXY_RANGES_MAX_ITEMS>,
+);
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("trusted proxy range list exceeds its maximum item count")]
 pub struct TrustedProxyRangesError;
+impl From<bounded_types::BoundedValueError> for TrustedProxyRangesError {
+    fn from(_value: bounded_types::BoundedValueError) -> Self {
+        Self
+    }
+}
 impl TryFrom<Vec<TrustedProxyRange>> for TrustedProxyRanges {
     type Error = TrustedProxyRangesError;
     fn try_from(value: Vec<TrustedProxyRange>) -> Result<Self, Self::Error> {
-        if value.len() > TRUSTED_PROXY_RANGES_MAX_ITEMS {
-            Err(TrustedProxyRangesError)
-        } else {
-            Ok(Self(value))
-        }
+        bounded_types::BoundedVec::try_from(value)
+            .map(Self)
+            .map_err(TrustedProxyRangesError::from)
     }
 }
 impl TrustedProxyRange {

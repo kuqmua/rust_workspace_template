@@ -50,33 +50,38 @@ impl From<server_admin_core::StdAdminStringTryFromStringError> for AdminSecretTe
     Clone, Debug, serde::Serialize, utoipa::ToSchema, newtype::AsRefTarget, newtype::IntoInnerFrom,
 )]
 #[serde(transparent)]
-pub(crate) struct AdminPermissions(Vec<AdminPermission>);
+pub(crate) struct AdminPermissions(
+    bounded_types::BoundedVec<AdminPermission, 0, { ADMIN_AUTH_COLLECTION_MAX_LEN }>,
+);
 #[derive(
     Clone, Debug, serde::Serialize, utoipa::ToSchema, newtype::AsRefTarget, newtype::IntoInnerFrom,
 )]
 #[serde(transparent)]
-pub(crate) struct AdminRoleNames(Vec<AdminRoleName>);
+pub(crate) struct AdminRoleNames(
+    bounded_types::BoundedVec<AdminRoleName, 0, { ADMIN_AUTH_COLLECTION_MAX_LEN }>,
+);
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("administrator authorization collection exceeds maximum length")]
 pub(crate) struct AdminAuthCollectionError;
 impl TryFrom<Vec<AdminPermission>> for AdminPermissions {
     type Error = AdminAuthCollectionError;
     fn try_from(value: Vec<AdminPermission>) -> Result<Self, Self::Error> {
-        if value.len() > ADMIN_AUTH_COLLECTION_MAX_LEN {
-            Err(AdminAuthCollectionError)
-        } else {
-            Ok(Self(value))
-        }
+        bounded_types::BoundedVec::try_from(value)
+            .map(Self)
+            .map_err(AdminAuthCollectionError::from)
     }
 }
 impl TryFrom<Vec<AdminRoleName>> for AdminRoleNames {
     type Error = AdminAuthCollectionError;
     fn try_from(value: Vec<AdminRoleName>) -> Result<Self, Self::Error> {
-        if value.len() > ADMIN_AUTH_COLLECTION_MAX_LEN {
-            Err(AdminAuthCollectionError)
-        } else {
-            Ok(Self(value))
-        }
+        bounded_types::BoundedVec::try_from(value)
+            .map(Self)
+            .map_err(AdminAuthCollectionError::from)
+    }
+}
+impl From<bounded_types::BoundedValueError> for AdminAuthCollectionError {
+    fn from(_value: bounded_types::BoundedValueError) -> Self {
+        Self
     }
 }
 #[derive(Clone, Debug, newtype::FromInner)]

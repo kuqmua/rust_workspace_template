@@ -9,7 +9,7 @@ pub struct StdChildProcessSetMaximum(std::num::NonZeroUsize);
 
 #[derive(Debug, Default, newtype::FromInner)]
 struct StdCollectionsChildProcessMap(
-    std::collections::BTreeMap<ChildProcessId, ChildProcessSupervisor>,
+    bounded_types::StdBoundedBTreeMap<ChildProcessId, ChildProcessSupervisor, { usize::MAX }>,
 );
 
 #[derive(Debug)]
@@ -23,7 +23,7 @@ impl ChildProcessSet {
         &mut self,
         process: ChildProcessSupervisor,
     ) -> Result<ChildProcessId, ChildProcessSetError> {
-        if self.processes.0.len() >= self.maximum.0.get() {
+        if self.processes.0.len().get() >= self.maximum.0.get() {
             return Err(ChildProcessSetError::Full);
         }
         let id = self.next_id;
@@ -33,8 +33,11 @@ impl ChildProcessSet {
                 .checked_add(1u64)
                 .ok_or(ChildProcessSetError::IdOverflow)?,
         );
-        let _previous = self.processes.0.insert(id, process);
-        Ok(id)
+        self.processes
+            .0
+            .try_insert(id, process)
+            .map(|_previous| id)
+            .map_err(ChildProcessSetError::from)
     }
 
     #[must_use]
@@ -42,7 +45,9 @@ impl ChildProcessSet {
         Self {
             maximum,
             next_id: ChildProcessId::from(0u64),
-            processes: StdCollectionsChildProcessMap::from(std::collections::BTreeMap::new()),
+            processes: StdCollectionsChildProcessMap::from(
+                bounded_types::StdBoundedBTreeMap::default(),
+            ),
         }
     }
 
@@ -50,7 +55,7 @@ impl ChildProcessSet {
         mut self,
         timeout: crate::StdRequestTimeout,
     ) -> Result<ChildProcessReports, ChildProcessSetError> {
-        let mut reports = Vec::with_capacity(self.processes.0.len());
+        let mut reports = Vec::with_capacity(self.processes.0.len().get());
         while let Some((_id, process)) = self.processes.0.pop_first() {
             reports.push(
                 process
@@ -59,12 +64,14 @@ impl ChildProcessSet {
                     .map_err(ChildProcessSetError::Process)?,
             );
         }
-        Ok(ChildProcessReports::from(reports))
+        Ok(ChildProcessReports::from(
+            bounded_types::BoundedVec::from_max_iter(reports),
+        ))
     }
 }
 
 #[derive(Clone, Debug, newtype::AsRefTarget, newtype::FromInner)]
-pub struct ChildProcessReports(Vec<ChildProcessReport>);
+pub struct ChildProcessReports(bounded_types::BoundedVec<ChildProcessReport, 0, { usize::MAX }>);
 
 #[derive(Debug, thiserror::Error)]
 pub enum ChildProcessSetError {
@@ -76,8 +83,14 @@ pub enum ChildProcessSetError {
     Process(#[source] ChildProcessError),
 }
 
+impl From<bounded_types::BoundedValueError> for ChildProcessSetError {
+    fn from(_value: bounded_types::BoundedValueError) -> Self {
+        Self::Full
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)]
-pub struct ChildDiagnostic(Vec<u8>);
+pub struct ChildDiagnostic(bounded_types::BoundedVec<u8, 0, { usize::MAX }>);
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ChildProcessCompletion {
@@ -239,7 +252,7 @@ async fn join_diagnostic(
             .await
             .map_err(TokioChildProcessJoinError::from)
             .map_err(ChildProcessError::Join)?,
-        None => Ok(ChildDiagnostic::from(Vec::new())),
+        None => Ok(ChildDiagnostic::from(bounded_types::BoundedVec::default())),
     }
 }
 
@@ -271,7 +284,9 @@ where
             .ok_or(ChildProcessError::DiagnosticRange)?;
         output.extend_from_slice(read_bytes);
     }
-    Ok(ChildDiagnostic::from(output))
+    Ok(ChildDiagnostic::from(
+        bounded_types::BoundedVec::from_max_iter(output),
+    ))
 }
 
 #[cfg(test)]

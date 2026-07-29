@@ -5007,6 +5007,9 @@ fn domain_type_policy_should_check_path(path: types::StdPathRef<'_>) -> types::A
         || path
             .as_ref()
             .starts_with(str_constants::CODE_STYLE_LOCATION_TEST_SRC)
+        || path
+            .as_ref()
+            .starts_with(str_constants::CODE_STYLE_BOUNDED_TYPES_SRC)
     {
         return types::AnalyzerBool::default();
     }

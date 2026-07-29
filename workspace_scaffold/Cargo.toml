@@ -13,6 +13,7 @@ name = "workspace-scaffold"
 path = "src/main.rs"
 
 [dependencies]
+bounded_types = { workspace = true }
 common_routes = { workspace = true }
 frontend_contract = { workspace = true }
 macros_helpers = { workspace = true }

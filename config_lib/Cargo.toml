@@ -10,6 +10,7 @@ edition.workspace = true
 
 
 [dependencies]
+bounded_types = { workspace = true }
 secrecy = { workspace = true }
 chrono = { workspace = true }
 serde = { workspace = true }

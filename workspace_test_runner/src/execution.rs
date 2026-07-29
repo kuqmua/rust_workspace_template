@@ -54,7 +54,7 @@ struct CommandArgsRef<'args_lt>(&'args_lt [&'args_lt str]);
 #[bounded_string(max = COMMAND_TEXT_MAX_BYTES)]
 struct CommandText(String);
 #[derive(Debug, newtype::FromInner)]
-struct CommandTexts(Vec<CommandText>);
+struct CommandTexts(bounded_types::BoundedVec<CommandText, 0, { usize::MAX }>);
 #[derive(Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 struct StdExecutionIoError(std::io::Error);
@@ -169,7 +169,7 @@ fn failed_test_names(log_text: TextRef<'_>) -> CommandTexts {
         .collect::<Vec<CommandText>>();
     names.sort_by(|left, right| left.as_ref().cmp(right.as_ref()));
     names.dedup_by(|left, right| left.as_ref() == right.as_ref());
-    CommandTexts::from(names)
+    CommandTexts::from(bounded_types::BoundedVec::from_max_iter(names))
 }
 #[allow(clippy::single_call_fn)] // summary persistence remains separate from command orchestration
 fn write_summary(run_dir: &StdRunDir, summary: &SummaryText) -> Result<(), StdExecutionIoError> {

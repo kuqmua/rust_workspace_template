@@ -84,16 +84,14 @@ impl TryFrom<String> for MultipartTextValue {
     }
 }
 #[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget)]
-pub struct MultipartBytes(Vec<u8>);
+pub struct MultipartBytes(bounded_types::BoundedVec<u8, 0, 16_777_216>);
 impl TryFrom<Vec<u8>> for MultipartBytes {
     type Error = MultipartValueError;
     fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
-        if value.len() > 16_777_216usize {
-            Err(Self::Error::TooLong {
-                actual: MultipartValueLength(value.len()),
-            })
-        } else {
-            Ok(Self(value))
+        let actual = MultipartValueLength(value.len());
+        match bounded_types::BoundedVec::try_from(value) {
+            Ok(bounded) => Ok(Self(bounded)),
+            Err(_error) => Err(Self::Error::TooLong { actual }),
         }
     }
 }

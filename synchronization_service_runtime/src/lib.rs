@@ -9,19 +9,24 @@ pub struct SynchronizationRuntimeConfiguration {
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("{}", std::any::type_name::<Self>())]
 pub struct SynchronizationPayloadTooLarge;
+impl From<bounded_types::BoundedValueError> for SynchronizationPayloadTooLarge {
+    fn from(_value: bounded_types::BoundedValueError) -> Self {
+        Self
+    }
+}
 
 #[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget)]
-pub struct SynchronizationPayload(Vec<u8>);
+pub struct SynchronizationPayload(
+    bounded_types::BoundedVec<u8, 0, SYNCHRONIZATION_PAYLOAD_MAX_BYTES>,
+);
 
 impl TryFrom<Vec<u8>> for SynchronizationPayload {
     type Error = SynchronizationPayloadTooLarge;
 
     fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
-        if value.len() > SYNCHRONIZATION_PAYLOAD_MAX_BYTES {
-            Err(SynchronizationPayloadTooLarge)
-        } else {
-            Ok(Self(value))
-        }
+        bounded_types::BoundedVec::try_from(value)
+            .map(Self)
+            .map_err(SynchronizationPayloadTooLarge::from)
     }
 }
 

@@ -3,6 +3,11 @@ pub const FRONTEND_CONTRACT_BODY_MAX_BYTES: usize = 16_777_216usize;
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("frontend contract body exceeds its maximum byte length")]
 pub struct FrontendContractBodyError;
+impl From<bounded_types::BoundedValueError> for FrontendContractBodyError {
+    fn from(_value: bounded_types::BoundedValueError) -> Self {
+        Self
+    }
+}
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("{self:?}")]
 pub struct HttpStatusTryFromU16Error;
@@ -866,15 +871,13 @@ pub struct PageContract {
     title: ContractStr,
 }
 #[derive(Clone, Debug, PartialEq, Eq, newtype::AsRefTarget)]
-pub struct TransportBody(Vec<u8>);
+pub struct TransportBody(bounded_types::BoundedVec<u8, 0, FRONTEND_CONTRACT_BODY_MAX_BYTES>);
 impl TryFrom<Vec<u8>> for TransportBody {
     type Error = FrontendContractBodyError;
     fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
-        if value.len() > FRONTEND_CONTRACT_BODY_MAX_BYTES {
-            Err(FrontendContractBodyError)
-        } else {
-            Ok(Self(value))
-        }
+        bounded_types::BoundedVec::try_from(value)
+            .map(Self)
+            .map_err(FrontendContractBodyError::from)
     }
 }
 #[derive(Clone, Debug, PartialEq, Eq)]

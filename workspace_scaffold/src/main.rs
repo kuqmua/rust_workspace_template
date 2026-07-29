@@ -29,7 +29,7 @@ struct ServiceKubernetesManifest(String);
 #[bounded_string(max = SCAFFOLD_TEXT_MAX_BYTES)]
 struct ServiceSocketEnv(String);
 #[derive(Debug, newtype::FromInner)]
-struct ServiceCatalogEntries(Vec<ServiceCatalogEntry>);
+struct ServiceCatalogEntries(bounded_types::BoundedVec<ServiceCatalogEntry, 0, { usize::MAX }>);
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
 struct ServiceCatalogEntriesRef<'entries_lt>(&'entries_lt [ServiceCatalogEntry]);
 #[derive(Debug)]
@@ -473,7 +473,9 @@ fn parse_service_catalog(
     if entries.is_empty() {
         return Err(ScaffoldError::Catalog);
     }
-    Ok(ServiceCatalogEntries::from(entries))
+    Ok(ServiceCatalogEntries::from(
+        bounded_types::BoundedVec::from_max_iter(entries),
+    ))
 }
 #[allow(
     clippy::single_call_fn,

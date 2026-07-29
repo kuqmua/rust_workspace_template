@@ -9,6 +9,7 @@ license.workspace = true
 edition.workspace = true
 
 [dependencies]
+bounded_types = { workspace = true }
 chrono = { workspace = true }
 thiserror = { workspace = true }
 dotenv = { workspace = true }

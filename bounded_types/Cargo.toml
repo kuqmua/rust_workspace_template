@@ -1,23 +1,20 @@
 [package]
-name = "frontend_contract_validation"
+name = "bounded_types"
 version.workspace = true
 publish.workspace = true
-description = "Frontend OpenAPI, snapshot, and HTTP contract validation"
+description = "Dependency-light bounded owned text and collection types"
 repository.workspace = true
 license.workspace = true
 edition.workspace = true
 
 [dependencies]
-bounded_types = { workspace = true }
-frontend_contract = { workspace = true }
 newtype = { workspace = true }
 serde = { workspace = true }
-serde_json = { workspace = true }
 str_constants = { workspace = true }
 thiserror = { workspace = true }
+utoipa = { workspace = true }
 
 [dev-dependencies]
-futures = { workspace = true }
 
 [lints]
 workspace = true
