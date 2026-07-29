@@ -4458,6 +4458,31 @@ pub const ROUTE_CATALOG_ROUTE_SUPPORTS_UNIT_OR_SINGLE_FIELD_VARIANTS: &str =
     "RouteCatalog supports only unit variants and single-field tuple variants";
 pub const ROUTE_CATALOG_CUSTOM_ROUTE_MUST_BE_UNIT: &str =
     "custom RouteCatalog routes must be unit variants";
+pub const CONTRACT_STRUCT_API: &str = "contract_struct_api";
+pub const CONTRACT_STRUCT_API_NEW: &str = "new";
+pub const CONTRACT_STRUCT_API_INTO_PARTS: &str = "into_parts";
+pub const CONTRACT_STRUCT_API_BORROW: &str = "borrow";
+pub const CONTRACT_STRUCT_API_COPY: &str = "copy";
+pub const CONTRACT_STRUCT_API_COPY_REF: &str = "copy_ref";
+pub const CONTRACT_STRUCT_API_INTO: &str = "into";
+pub const CONTRACT_STRUCT_API_OPTION_BORROW: &str = "option_borrow";
+pub const CONTRACT_STRUCT_API_SLICE: &str = "slice";
+pub const CONTRACT_STRUCT_API_REQUIRES_NAMED_STRUCT: &str =
+    "ContractStructApi supports only structs with named fields";
+pub const CONTRACT_STRUCT_API_UNSUPPORTED_ATTRIBUTE: &str =
+    "unsupported contract_struct_api attribute";
+pub const ROUTE_OPENAPI_DELEGATE: &str = "delegate";
+pub const ROUTE_OPENAPI_DELEGATE_REQUIRES_EMPTY_BODY: &str =
+    "route_openapi delegate requires an empty function body";
+pub const ROUTE_OPENAPI_DELEGATE_REQUIRES_IDENT_PARAMETERS: &str =
+    "route_openapi delegate requires identifier parameters";
+pub const ROUTE_OPENAPI_DELEGATE_REQUIRES_RESULT: &str =
+    "route_openapi delegate requires a Result return type";
+pub const ROUTE_OPENAPI_DELEGATE_REQUIRES_PATH: &str =
+    "route_openapi delegate requires a handler path";
+pub const ROUTE_OPENAPI_SINGLE_CALL_REASON: &str =
+    "Axum route handler is registered once by the route inventory";
+pub const RESULT_UPPER_CAMEL_CASE: &str = "Result";
 pub const WIRE_ENUM: &str = "wire_enum";
 pub const WIRE_ENUM_WIRE: &str = "wire";
 pub const WIRE_ENUM_REF_TYPE: &str = "ref_type";

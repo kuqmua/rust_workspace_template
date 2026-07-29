@@ -62,8 +62,9 @@ pub use auth_session_keep_alive::{
     StdAuthSessionRefreshInterval,
 };
 pub use frontend_contract_macros::{
-    PageCatalog, RouteCatalog, RouteFamily, TypedRoute, UnitEnumCatalog, api_operation_error,
-    handler_registry, route_error, route_openapi, route_operation, route_registry,
+    ContractStructApi, PageCatalog, RouteCatalog, RouteFamily, TypedRoute, UnitEnumCatalog,
+    UnitEnumIndex, api_operation_error, handler_registry, route_error, route_openapi,
+    route_operation, route_registry,
 };
 #[cfg(not(target_arch = "wasm32"))]
 pub use handler_contract::{AxumHandlerMethodRouter, handler_method_router};

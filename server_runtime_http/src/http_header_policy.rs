@@ -3,6 +3,12 @@
     reason = "HTTP header policy types stay grouped with their builders"
 )]
 const CONTENT_DISPOSITION_FILE_NAME_MAXIMUM_BYTES: usize = 4096usize;
+const CONTENT_DISPOSITION_PERCENT_ENCODE_SET: &percent_encoding::AsciiSet =
+    &percent_encoding::NON_ALPHANUMERIC
+        .remove(b'-')
+        .remove(b'.')
+        .remove(b'_')
+        .remove(b'~');
 
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct HttpAttachmentFileNameRef<'value_lt>(&'value_lt str);
@@ -47,29 +53,11 @@ pub fn build_attachment_content_disposition(
             output
         },
     );
-    let encoded = escaped.as_bytes().iter().fold(
-        String::with_capacity(escaped.len().saturating_mul(3usize)),
-        |mut output, byte| {
-            if byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'.' | b'_' | b'~') {
-                output.push(char::from(*byte));
-            } else {
-                output.push('%');
-                output.push(char::from(
-                    str_constants::ASCII_UPPER_HEX_DIGITS
-                        .get(usize::from(byte >> 4u8))
-                        .copied()
-                        .unwrap_or(b'0'),
-                ));
-                output.push(char::from(
-                    str_constants::ASCII_UPPER_HEX_DIGITS
-                        .get(usize::from(byte & 0x0fu8))
-                        .copied()
-                        .unwrap_or(b'0'),
-                ));
-            }
-            output
-        },
-    );
+    let encoded = percent_encoding::utf8_percent_encode(
+        escaped.as_str(),
+        CONTENT_DISPOSITION_PERCENT_ENCODE_SET,
+    )
+    .to_string();
     let mut header = String::with_capacity(
         str_constants::CONTENT_DISPOSITION_ATTACHMENT_PREFIX
             .len()

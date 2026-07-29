@@ -98,6 +98,9 @@ impl From<super::SqlxAdminError> for AdminRepositoryError {
         Self::Sqlx(error)
     }
 }
+pub(super) fn invalid_stored_value<Error>(_error: Error) -> AdminRepositoryError {
+    AdminRepositoryError::InvalidStoredValue
+}
 
 #[derive(Debug, newtype::FromInner)]
 pub(crate) struct SqlxAdminRepositoryConnectionMutRef<'connection_lt>(
@@ -120,7 +123,7 @@ pub(crate) fn page_total(
 ) -> Result<server_admin_contract::AdminPageTotal, AdminRepositoryError> {
     u64::try_from(value.get())
         .map(server_admin_contract::AdminPageTotal::from)
-        .map_err(|_error| AdminRepositoryError::InvalidStoredValue)
+        .map_err(invalid_stored_value)
 }
 impl AdminRecentLoginFailureCount {
     pub(crate) fn reached(

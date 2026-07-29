@@ -71,7 +71,7 @@ pub(crate) async fn list_role_catalog(
         |mut values, (role_id, permission_id)| {
             values.entry(role_id).or_default().push(
                 server_admin_contract::AdminPermissionId::try_from(permission_id)
-                    .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+                    .map_err(super::invalid_stored_value)?,
             );
             Ok::<_, super::AdminRepositoryError>(values)
         },
@@ -80,20 +80,20 @@ pub(crate) async fn list_role_catalog(
         .map(|(id, name, is_system)| {
             Ok(server_admin_contract::AdminRoleSummary::new(
                 server_admin_contract::AdminRoleId::try_from(id)
-                    .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+                    .map_err(super::invalid_stored_value)?,
                 server_admin_contract::AdminBool::from(is_system),
                 server_admin_contract::AdminRoleName::try_from(name)
-                    .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+                    .map_err(super::invalid_stored_value)?,
                 server_admin_contract::AdminPermissionIds::try_from(
                     permission_ids_by_role.remove(&id).unwrap_or_default(),
                 )
-                .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+                .map_err(super::invalid_stored_value)?,
             ))
         })
         .collect::<Result<Vec<_>, _>>()
         .and_then(|values| {
             server_admin_contract::AdminRoleSummaries::try_from(values)
-                .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)
+                .map_err(super::invalid_stored_value)
         })
 }
 
@@ -134,7 +134,7 @@ pub(crate) async fn list_roles(
         |mut values, (role_id, permission_id)| {
             values.entry(role_id).or_default().push(
                 server_admin_contract::AdminPermissionId::try_from(permission_id)
-                    .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+                    .map_err(super::invalid_stored_value)?,
             );
             Ok::<_, super::AdminRepositoryError>(values)
         },
@@ -144,20 +144,20 @@ pub(crate) async fn list_roles(
         .map(|(id, name, is_system)| {
             Ok(server_admin_contract::AdminRoleSummary::new(
                 server_admin_contract::AdminRoleId::try_from(id)
-                    .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+                    .map_err(super::invalid_stored_value)?,
                 server_admin_contract::AdminBool::from(is_system),
                 server_admin_contract::AdminRoleName::try_from(name)
-                    .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+                    .map_err(super::invalid_stored_value)?,
                 server_admin_contract::AdminPermissionIds::try_from(
                     permission_ids_by_role.remove(&id).unwrap_or_default(),
                 )
-                .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+                .map_err(super::invalid_stored_value)?,
             ))
         })
         .collect::<Result<Vec<_>, super::AdminRepositoryError>>()?;
     Ok((
         server_admin_contract::AdminRoleSummaries::try_from(items)
-            .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+            .map_err(super::invalid_stored_value)?,
         super::AdminPageTotalCount::from(total),
     ))
 }

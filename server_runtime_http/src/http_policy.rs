@@ -125,11 +125,10 @@ pub fn classify_optional_json_content_type(
     if text.len() > 4096usize {
         return OptionalJsonContentType::NonJson;
     }
-    if text.split(';').next().is_some_and(|media_type| {
-        media_type
-            .trim()
-            .eq_ignore_ascii_case(str_constants::APPLICATION_JSON)
-    }) {
+    if text
+        .parse::<mime::Mime>()
+        .is_ok_and(|media_type| media_type.essence_str() == str_constants::APPLICATION_JSON)
+    {
         OptionalJsonContentType::ApplicationJson
     } else {
         OptionalJsonContentType::NonJson

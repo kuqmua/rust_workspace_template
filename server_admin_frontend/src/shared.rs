@@ -79,60 +79,27 @@ pub(crate) fn admin_setting_input(
     }
 }
 
-#[derive(Clone, Copy, Debug)]
-pub(crate) struct AdminSettingsFormSignals {
-    default_route: LeptosAdminSettingSignal,
-    main_logo: LeptosAdminSettingSignal,
-    organization_contacts: LeptosAdminSettingSignal,
-    organization_name: LeptosAdminSettingSignal,
-    primary_color: LeptosAdminSettingSignal,
-    site_name: LeptosAdminSettingSignal,
-    support_url: LeptosAdminSettingSignal,
-    tab_title: LeptosAdminSettingSignal,
-}
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
+pub(crate) struct AdminSettingsFormSignals(
+    [LeptosAdminSettingSignal; server_admin_contract::AdminSetting::COUNT],
+);
 impl AdminSettingsFormSignals {
     pub(crate) fn new(values: &AdminSettingsFormValues) -> Self {
-        Self {
-            default_route: LeptosAdminSettingSignal::from(leptos::prelude::RwSignal::new(
-                values.default_route().as_ref().to_owned(),
-            )),
-            main_logo: LeptosAdminSettingSignal::from(leptos::prelude::RwSignal::new(
-                values.main_logo().as_ref().to_owned(),
-            )),
-            organization_contacts: LeptosAdminSettingSignal::from(leptos::prelude::RwSignal::new(
-                values.organization_contacts().as_ref().to_owned(),
-            )),
-            organization_name: LeptosAdminSettingSignal::from(leptos::prelude::RwSignal::new(
-                values.organization_name().as_ref().to_owned(),
-            )),
-            primary_color: LeptosAdminSettingSignal::from(leptos::prelude::RwSignal::new(
-                values.primary_color().as_ref().to_owned(),
-            )),
-            site_name: LeptosAdminSettingSignal::from(leptos::prelude::RwSignal::new(
-                values.site_name().as_ref().to_owned(),
-            )),
-            support_url: LeptosAdminSettingSignal::from(leptos::prelude::RwSignal::new(
-                values.support_url().as_ref().to_owned(),
-            )),
-            tab_title: LeptosAdminSettingSignal::from(leptos::prelude::RwSignal::new(
-                values.tab_title().as_ref().to_owned(),
-            )),
-        }
+        Self::from(server_admin_contract::AdminSetting::ALL.map(|setting| {
+            LeptosAdminSettingSignal::from(leptos::prelude::RwSignal::new(
+                values.get(setting).as_ref().to_owned(),
+            ))
+        }))
     }
     pub(crate) const fn get(
         self,
         setting: server_admin_contract::AdminSetting,
     ) -> LeptosAdminSettingSignal {
-        match setting {
-            server_admin_contract::AdminSetting::DefaultRoute => self.default_route,
-            server_admin_contract::AdminSetting::MainLogo => self.main_logo,
-            server_admin_contract::AdminSetting::OrganizationContacts => self.organization_contacts,
-            server_admin_contract::AdminSetting::OrganizationName => self.organization_name,
-            server_admin_contract::AdminSetting::PrimaryColor => self.primary_color,
-            server_admin_contract::AdminSetting::SiteName => self.site_name,
-            server_admin_contract::AdminSetting::SupportUrl => self.support_url,
-            server_admin_contract::AdminSetting::TabTitle => self.tab_title,
-        }
+        #[allow(
+            clippy::indexing_slicing,
+            reason = "UnitEnumIndex generates a total index below AdminSetting::COUNT"
+        )]
+        self.0[setting.index()]
     }
     #[cfg(target_arch = "wasm32")]
     pub(crate) fn optional_settings_to_clear(
@@ -169,16 +136,9 @@ pub(crate) fn admin_setting_inputs(
 }
 
 #[derive(Clone, Debug)]
-pub(crate) struct AdminSettingsFormValues {
-    default_route: AdminSettingInputValue,
-    main_logo: AdminSettingInputValue,
-    organization_contacts: AdminSettingInputValue,
-    organization_name: AdminSettingInputValue,
-    primary_color: AdminSettingInputValue,
-    site_name: AdminSettingInputValue,
-    support_url: AdminSettingInputValue,
-    tab_title: AdminSettingInputValue,
-}
+pub(crate) struct AdminSettingsFormValues(
+    [AdminSettingInputValue; server_admin_contract::AdminSetting::COUNT],
+);
 impl From<&server_admin_contract::AdminSettingsView> for AdminSettingsFormValues {
     fn from(value: &server_admin_contract::AdminSettingsView) -> Self {
         fn optional<Value>(value: Option<&Value>) -> AdminSettingInputValue
@@ -192,50 +152,103 @@ impl From<&server_admin_contract::AdminSettingsView> for AdminSettingsFormValues
                     .into_boxed_str(),
             )
         }
-        Self {
-            default_route: AdminSettingInputValue::from(
-                value
-                    .default_admin_route()
-                    .as_ref()
-                    .to_owned()
-                    .into_boxed_str(),
-            ),
-            main_logo: optional(value.main_logo()),
-            organization_contacts: optional(value.organization_contacts()),
-            organization_name: optional(value.organization_name()),
-            primary_color: optional(value.primary_color()),
-            site_name: AdminSettingInputValue::from(
-                value.site_name().as_ref().to_owned().into_boxed_str(),
-            ),
-            support_url: optional(value.support_url()),
-            tab_title: optional(value.tab_title()),
-        }
+        Self(server_admin_contract::AdminSetting::ALL.map(|setting| {
+            match setting {
+                server_admin_contract::AdminSetting::DefaultRoute => AdminSettingInputValue::from(
+                    value
+                        .default_admin_route()
+                        .as_ref()
+                        .to_owned()
+                        .into_boxed_str(),
+                ),
+                server_admin_contract::AdminSetting::MainLogo => optional(value.main_logo()),
+                server_admin_contract::AdminSetting::OrganizationContacts => {
+                    optional(value.organization_contacts())
+                }
+                server_admin_contract::AdminSetting::OrganizationName => {
+                    optional(value.organization_name())
+                }
+                server_admin_contract::AdminSetting::PrimaryColor => {
+                    optional(value.primary_color())
+                }
+                server_admin_contract::AdminSetting::SiteName => AdminSettingInputValue::from(
+                    value.site_name().as_ref().to_owned().into_boxed_str(),
+                ),
+                server_admin_contract::AdminSetting::SupportUrl => optional(value.support_url()),
+                server_admin_contract::AdminSetting::TabTitle => optional(value.tab_title()),
+            }
+        }))
     }
 }
 impl AdminSettingsFormValues {
-    pub(crate) const fn default_route(&self) -> &AdminSettingInputValue {
-        &self.default_route
+    pub(crate) const fn get(
+        &self,
+        setting: server_admin_contract::AdminSetting,
+    ) -> &AdminSettingInputValue {
+        #[allow(
+            clippy::indexing_slicing,
+            reason = "UnitEnumIndex generates a total index below AdminSetting::COUNT"
+        )]
+        &self.0[setting.index()]
     }
-    pub(crate) const fn main_logo(&self) -> &AdminSettingInputValue {
-        &self.main_logo
+}
+
+#[derive(Clone, Copy, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
+pub(crate) struct AdminPageNavDisabled(bool);
+#[derive(Clone, Copy, Debug)]
+pub(crate) struct AdminPageRange {
+    end: server_admin_contract::AdminPageTotal,
+    next_disabled: AdminPageNavDisabled,
+    next_offset: server_admin_contract::AdminPageOffset,
+    previous_disabled: AdminPageNavDisabled,
+    previous_offset: server_admin_contract::AdminPageOffset,
+    start: server_admin_contract::AdminPageTotal,
+}
+impl AdminPageRange {
+    pub(crate) fn new(
+        offset: server_admin_contract::AdminPageOffset,
+        limit: server_admin_contract::AdminPageLimit,
+        total: server_admin_contract::AdminPageTotal,
+    ) -> Self {
+        let offset_value = u32::from(offset);
+        let limit_value = u16::from(limit);
+        let total_value = u64::from(total);
+        let previous_offset = offset_value.saturating_sub(u32::from(limit_value));
+        let next_offset = offset_value.saturating_add(u32::from(limit_value));
+        Self {
+            end: server_admin_contract::AdminPageTotal::from(
+                u64::from(offset_value)
+                    .saturating_add(u64::from(limit_value))
+                    .min(total_value),
+            ),
+            next_disabled: AdminPageNavDisabled::from(u64::from(next_offset) >= total_value),
+            next_offset: server_admin_contract::AdminPageOffset::from(next_offset),
+            previous_disabled: AdminPageNavDisabled::from(offset_value == 0u32),
+            previous_offset: server_admin_contract::AdminPageOffset::from(previous_offset),
+            start: server_admin_contract::AdminPageTotal::from(
+                u64::from(offset_value)
+                    .saturating_add(1u64)
+                    .min(total_value),
+            ),
+        }
     }
-    pub(crate) const fn organization_contacts(&self) -> &AdminSettingInputValue {
-        &self.organization_contacts
+    pub(crate) const fn end(self) -> server_admin_contract::AdminPageTotal {
+        self.end
     }
-    pub(crate) const fn organization_name(&self) -> &AdminSettingInputValue {
-        &self.organization_name
+    pub(crate) const fn next_disabled(self) -> AdminPageNavDisabled {
+        self.next_disabled
     }
-    pub(crate) const fn primary_color(&self) -> &AdminSettingInputValue {
-        &self.primary_color
+    pub(crate) const fn next_offset(self) -> server_admin_contract::AdminPageOffset {
+        self.next_offset
     }
-    pub(crate) const fn site_name(&self) -> &AdminSettingInputValue {
-        &self.site_name
+    pub(crate) const fn previous_disabled(self) -> AdminPageNavDisabled {
+        self.previous_disabled
     }
-    pub(crate) const fn support_url(&self) -> &AdminSettingInputValue {
-        &self.support_url
+    pub(crate) const fn previous_offset(self) -> server_admin_contract::AdminPageOffset {
+        self.previous_offset
     }
-    pub(crate) const fn tab_title(&self) -> &AdminSettingInputValue {
-        &self.tab_title
+    pub(crate) const fn start(self) -> server_admin_contract::AdminPageTotal {
+        self.start
     }
 }
 
@@ -511,5 +524,52 @@ pub(crate) fn admin_data_table_grid(
                 }).collect::<Vec<_>>()}</tr>
             }).collect::<Vec<_>>()}</tbody>
         </table></div>
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    fn page_range(offset: u32, limit: u16, total: u64) -> super::AdminPageRange {
+        let Ok(limit) = server_admin_contract::AdminPageLimit::try_from(limit) else {
+            panic!("1543efb0");
+        };
+        super::AdminPageRange::new(
+            server_admin_contract::AdminPageOffset::from(offset),
+            limit,
+            server_admin_contract::AdminPageTotal::from(total),
+        )
+    }
+
+    #[test]
+    fn page_range_handles_empty_and_first_pages() {
+        let empty = page_range(0u32, 20u16, 0u64);
+        assert_eq!(u64::from(empty.start()), 0u64);
+        assert_eq!(u64::from(empty.end()), 0u64);
+        assert!(bool::from(empty.previous_disabled()));
+        assert!(bool::from(empty.next_disabled()));
+
+        let first = page_range(0u32, 20u16, 41u64);
+        assert_eq!(u64::from(first.start()), 1u64);
+        assert_eq!(u64::from(first.end()), 20u64);
+        assert_eq!(u32::from(first.next_offset()), 20u32);
+        assert!(!bool::from(first.next_disabled()));
+    }
+
+    #[test]
+    fn page_range_handles_partial_out_of_range_and_overflow_pages() {
+        let partial = page_range(40u32, 20u16, 41u64);
+        assert_eq!(u64::from(partial.start()), 41u64);
+        assert_eq!(u64::from(partial.end()), 41u64);
+        assert_eq!(u32::from(partial.previous_offset()), 20u32);
+        assert!(bool::from(partial.next_disabled()));
+
+        let out_of_range = page_range(80u32, 20u16, 41u64);
+        assert_eq!(u64::from(out_of_range.start()), 41u64);
+        assert_eq!(u64::from(out_of_range.end()), 41u64);
+
+        let overflow = page_range(u32::MAX, 100u16, u64::MAX);
+        assert_eq!(u32::from(overflow.next_offset()), u32::MAX);
+        assert_eq!(u64::from(overflow.start()), u64::from(u32::MAX) + 1u64);
+        assert_eq!(u64::from(overflow.end()), u64::from(u32::MAX) + 100u64);
     }
 }

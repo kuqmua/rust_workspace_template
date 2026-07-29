@@ -115,7 +115,9 @@ fn write_string_if_needed(
 ) -> std::io::Result<ShouldWriteString> {
     let should_write = should_write_string_into_file(path, string_cnt)?;
     if bool::from(should_write) {
-        std::fs::write(path.as_ref(), string_cnt.as_ref())?;
+        let mut file = atomic_write_file::AtomicWriteFile::open(path.as_ref())?;
+        std::io::Write::write_all(&mut file, string_cnt.as_ref().as_bytes())?;
+        file.commit()?;
     }
     Ok(should_write)
 }

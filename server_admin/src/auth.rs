@@ -1027,50 +1027,39 @@ fn append_cleared_session_cookies(
     })
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[frontend_contract::route_openapi(tag = "admin_auth")]
+#[frontend_contract::route_openapi(delegate = handlers::sign_in, tag = "admin_auth")]
 async fn sign_in(
     auth: AdminAuthReq,
     peer: AdminPeerAddr,
     request_json: AdminSignInJson,
 ) -> Result<AxumAdminResponse, AdminSignInError> {
-    handlers::sign_in(auth, peer, request_json)
-        .await
-        .map_err(AdminSignInError::from)
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[frontend_contract::route_openapi(tag = "admin_auth")]
-async fn me(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminMeError> {
-    handlers::me(auth).await.map_err(AdminMeError::from)
-}
+#[frontend_contract::route_openapi(delegate = handlers::me, tag = "admin_auth")]
+async fn me(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminMeError> {}
 #[allow(clippy::single_call_fn)]
-#[frontend_contract::route_openapi(tag = "admin_auth")]
+#[frontend_contract::route_openapi(
+    delegate = handlers::change_own_password,
+    tag = "admin_auth"
+)]
 async fn change_own_password(
     auth: AdminAuthReq,
     request: AxumAdminJson<server_admin_contract::AdminChangeOwnPasswordReq>,
 ) -> Result<AxumAdminResponse, AdminChangeOwnPasswordError> {
-    handlers::change_own_password(auth, request)
-        .await
-        .map_err(AdminChangeOwnPasswordError::from)
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[frontend_contract::route_openapi(tag = "admin_auth")]
+#[frontend_contract::route_openapi(delegate = handlers::refresh, tag = "admin_auth")]
 async fn refresh(
     auth: AdminAuthReq,
     peer: AdminPeerAddr,
 ) -> Result<AxumAdminResponse, AdminRefreshError> {
-    handlers::refresh(auth, peer)
-        .await
-        .map_err(AdminRefreshError::from)
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[frontend_contract::route_openapi(tag = "admin_auth")]
-async fn sign_out(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminSignOutError> {
-    handlers::sign_out(auth)
-        .await
-        .map_err(AdminSignOutError::from)
-}
+#[frontend_contract::route_openapi(delegate = handlers::sign_out, tag = "admin_auth")]
+async fn sign_out(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminSignOutError> {}
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
 #[frontend_contract::route_openapi(
+    delegate = handlers::sessions,
     params(server_admin_contract::AdminTableQuery),
     tag = "admin_auth"
 )]
@@ -1078,28 +1067,22 @@ async fn sessions(
     auth: AdminAuthReq,
     query: AxumAdminQuery<server_admin_contract::AdminTableQuery>,
 ) -> Result<AxumAdminResponse, AdminSessionsError> {
-    handlers::sessions(auth, query)
-        .await
-        .map_err(AdminSessionsError::from)
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[frontend_contract::route_openapi(tag = "admin_auth")]
+#[frontend_contract::route_openapi(delegate = handlers::revoke_session, tag = "admin_auth")]
 async fn revoke_session(
     auth: AdminAuthReq,
     session: AdminSessionPath,
 ) -> Result<AxumAdminResponse, AdminRevokeSessionError> {
-    handlers::revoke_session(auth, session)
-        .await
-        .map_err(AdminRevokeSessionError::from)
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[frontend_contract::route_openapi(tag = "admin_auth")]
+#[frontend_contract::route_openapi(
+    delegate = handlers::revoke_all_sessions,
+    tag = "admin_auth"
+)]
 async fn revoke_all_sessions(
     auth: AdminAuthReq,
 ) -> Result<AxumAdminResponse, AdminRevokeAllSessionsError> {
-    handlers::revoke_all_sessions(auth)
-        .await
-        .map_err(AdminRevokeAllSessionsError::from)
 }
 async fn authorize_custom(
     auth: &AdminAuthReq,
@@ -1116,147 +1099,118 @@ async fn authorize_custom(
     Ok(authenticated)
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[frontend_contract::route_openapi(tag = "admin_users")]
+#[frontend_contract::route_openapi(delegate = handlers::create_user, tag = "admin_users")]
 async fn create_user(
     auth: AdminAuthReq,
     request: AxumAdminJson<server_admin_contract::AdminCreateUserReq>,
 ) -> Result<AxumAdminResponse, AdminCreateUserError> {
-    handlers::create_user(auth, request)
-        .await
-        .map_err(AdminCreateUserError::from)
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[frontend_contract::route_openapi(tag = "admin_users")]
+#[frontend_contract::route_openapi(delegate = handlers::update_user, tag = "admin_users")]
 async fn update_user(
     auth: AdminAuthReq,
     path: AxumAdminPath<super::AdminUserId>,
     request: AxumAdminJson<server_admin_contract::AdminUpdateUserReq>,
 ) -> Result<AxumAdminResponse, AdminUpdateUserError> {
-    handlers::update_user(auth, path, request)
-        .await
-        .map_err(AdminUpdateUserError::from)
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[frontend_contract::route_openapi(tag = "admin_users")]
+#[frontend_contract::route_openapi(
+    delegate = handlers::set_user_password,
+    tag = "admin_users"
+)]
 async fn set_user_password(
     auth: AdminAuthReq,
     path: AxumAdminPath<super::AdminUserId>,
     request: AxumAdminJson<server_admin_contract::AdminSetUserPasswordReq>,
 ) -> Result<AxumAdminResponse, AdminSetUserPasswordError> {
-    handlers::set_user_password(auth, path, request)
-        .await
-        .map_err(AdminSetUserPasswordError::from)
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[frontend_contract::route_openapi(tag = "admin_users")]
+#[frontend_contract::route_openapi(delegate = handlers::set_user_ban, tag = "admin_users")]
 async fn set_user_ban(
     auth: AdminAuthReq,
     path: AxumAdminPath<super::AdminUserId>,
     request: AxumAdminJson<server_admin_contract::AdminSetUserBanReq>,
 ) -> Result<AxumAdminResponse, AdminSetUserBanError> {
-    handlers::set_user_ban(auth, path, request)
-        .await
-        .map_err(AdminSetUserBanError::from)
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[frontend_contract::route_openapi(tag = "admin_users")]
+#[frontend_contract::route_openapi(delegate = handlers::delete_user, tag = "admin_users")]
 async fn delete_user(
     auth: AdminAuthReq,
     path: AxumAdminPath<super::AdminUserId>,
 ) -> Result<AxumAdminResponse, AdminDeleteUserError> {
-    handlers::delete_user(auth, path)
-        .await
-        .map_err(AdminDeleteUserError::from)
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[frontend_contract::route_openapi(tag = "admin_roles")]
+#[frontend_contract::route_openapi(delegate = handlers::create_role, tag = "admin_roles")]
 async fn create_role(
     auth: AdminAuthReq,
     request: AxumAdminJson<server_admin_contract::AdminCreateRoleReq>,
 ) -> Result<AxumAdminResponse, AdminCreateRoleError> {
-    handlers::create_role(auth, request)
-        .await
-        .map_err(AdminCreateRoleError::from)
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[frontend_contract::route_openapi(tag = "admin_roles")]
+#[frontend_contract::route_openapi(delegate = handlers::update_role, tag = "admin_roles")]
 async fn update_role(
     auth: AdminAuthReq,
     path: AxumAdminPath<super::AdminRoleId>,
     request: AxumAdminJson<server_admin_contract::AdminUpdateRoleReq>,
 ) -> Result<AxumAdminResponse, AdminUpdateRoleError> {
-    handlers::update_role(auth, path, request)
-        .await
-        .map_err(AdminUpdateRoleError::from)
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[frontend_contract::route_openapi(tag = "admin_roles")]
+#[frontend_contract::route_openapi(delegate = handlers::delete_role, tag = "admin_roles")]
 async fn delete_role(
     auth: AdminAuthReq,
     path: AxumAdminPath<super::AdminRoleId>,
 ) -> Result<AxumAdminResponse, AdminDeleteRoleError> {
-    handlers::delete_role(auth, path)
-        .await
-        .map_err(AdminDeleteRoleError::from)
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[frontend_contract::route_openapi(tag = "admin_roles")]
+#[frontend_contract::route_openapi(
+    delegate = handlers::set_role_permissions,
+    tag = "admin_roles"
+)]
 async fn set_role_permissions(
     auth: AdminAuthReq,
     path: AxumAdminPath<super::AdminRoleId>,
     request: AxumAdminJson<server_admin_contract::AdminSetRolePermissionsReq>,
 ) -> Result<AxumAdminResponse, AdminSetRolePermissionsError> {
-    handlers::set_role_permissions(auth, path, request)
-        .await
-        .map_err(AdminSetRolePermissionsError::from)
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[frontend_contract::route_openapi(tag = "admin_users")]
+#[frontend_contract::route_openapi(delegate = handlers::set_user_roles, tag = "admin_users")]
 async fn set_user_roles(
     auth: AdminAuthReq,
     path: AxumAdminPath<super::AdminUserId>,
     request: AxumAdminJson<server_admin_contract::AdminSetUserRolesReq>,
 ) -> Result<AxumAdminResponse, AdminSetUserRolesError> {
-    handlers::set_user_roles(auth, path, request)
-        .await
-        .map_err(AdminSetUserRolesError::from)
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[frontend_contract::route_openapi(params(AdminAuditQuery), tag = "admin_audit")]
+#[frontend_contract::route_openapi(
+    delegate = audit::query_log,
+    params(AdminAuditQuery),
+    tag = "admin_audit"
+)]
 async fn audit_log(
     auth: AdminAuthReq,
     query: AxumAdminQuery<AdminAuditQuery>,
 ) -> Result<AxumAdminResponse, AdminAuditLogError> {
-    audit::query_log(auth, query)
-        .await
-        .map_err(AdminAuditLogError::from)
 }
 #[allow(clippy::single_call_fn)]
-#[frontend_contract::route_openapi(params(AdminAuditQuery), tag = "admin_audit")]
+#[frontend_contract::route_openapi(
+    delegate = audit::export_log,
+    params(AdminAuditQuery),
+    tag = "admin_audit"
+)]
 async fn export_audit_log(
     auth: AdminAuthReq,
     query: AxumAdminQuery<AdminAuditQuery>,
 ) -> Result<AxumAdminResponse, AdminAuditExportError> {
-    audit::export_log(auth, query)
-        .await
-        .map_err(AdminAuditExportError::from)
 }
 #[allow(clippy::single_call_fn)]
-#[frontend_contract::route_openapi(tag = "admin_settings")]
-async fn branding(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminBrandingError> {
-    handlers::branding(auth)
-        .await
-        .map_err(AdminBrandingError::from)
-}
+#[frontend_contract::route_openapi(delegate = handlers::branding, tag = "admin_settings")]
+async fn branding(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminBrandingError> {}
 #[allow(clippy::single_call_fn)]
-#[frontend_contract::route_openapi(tag = "admin_tables")]
-async fn data_tables(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminDataTablesError> {
-    handlers::data_tables(auth)
-        .await
-        .map_err(AdminDataTablesError::from)
-}
+#[frontend_contract::route_openapi(delegate = handlers::data_tables, tag = "admin_tables")]
+async fn data_tables(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminDataTablesError> {}
 #[allow(clippy::single_call_fn)]
 #[frontend_contract::route_openapi(
+    delegate = handlers::data_table,
     params(server_admin_contract::AdminDataTableQuery),
     tag = "admin_tables"
 )]
@@ -1265,22 +1219,20 @@ async fn data_table(
     path: AxumAdminPath<server_admin_contract::AdminDataTable>,
     query: AxumAdminQuery<server_admin_contract::AdminDataTableQuery>,
 ) -> Result<AxumAdminResponse, AdminDataTableError> {
-    handlers::data_table(auth, path, query)
-        .await
-        .map_err(AdminDataTableError::from)
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[frontend_contract::route_openapi(tag = "admin_settings")]
+#[frontend_contract::route_openapi(
+    delegate = handlers::update_settings,
+    tag = "admin_settings"
+)]
 async fn update_settings(
     auth: AdminAuthReq,
     request: AxumAdminJson<server_admin_contract::AdminUpdateSettingsReq>,
 ) -> Result<AxumAdminResponse, AdminUpdateSettingsError> {
-    handlers::update_settings(auth, request)
-        .await
-        .map_err(AdminUpdateSettingsError::from)
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
 #[frontend_contract::route_openapi(
+    delegate = handlers::list_users,
     params(server_admin_contract::AdminTableQuery),
     tag = "admin_users"
 )]
@@ -1288,12 +1240,10 @@ async fn list_users(
     auth: AdminAuthReq,
     query: AxumAdminQuery<server_admin_contract::AdminTableQuery>,
 ) -> Result<AxumAdminResponse, AdminListUsersError> {
-    handlers::list_users(auth, query)
-        .await
-        .map_err(AdminListUsersError::from)
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
 #[frontend_contract::route_openapi(
+    delegate = handlers::list_roles,
     params(server_admin_contract::AdminTableQuery),
     tag = "admin_roles"
 )]
@@ -1301,12 +1251,10 @@ async fn list_roles(
     auth: AdminAuthReq,
     query: AxumAdminQuery<server_admin_contract::AdminTableQuery>,
 ) -> Result<AxumAdminResponse, AdminListRolesError> {
-    handlers::list_roles(auth, query)
-        .await
-        .map_err(AdminListRolesError::from)
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
 #[frontend_contract::route_openapi(
+    delegate = handlers::list_permissions,
     params(server_admin_contract::AdminTableQuery),
     tag = "admin_roles"
 )]
@@ -1314,17 +1262,10 @@ async fn list_permissions(
     auth: AdminAuthReq,
     query: AxumAdminQuery<server_admin_contract::AdminTableQuery>,
 ) -> Result<AxumAdminResponse, AdminListPermissionsError> {
-    handlers::list_permissions(auth, query)
-        .await
-        .map_err(AdminListPermissionsError::from)
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[frontend_contract::route_openapi(tag = "admin_settings")]
-async fn settings(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminSettingsError> {
-    handlers::settings(auth)
-        .await
-        .map_err(AdminSettingsError::from)
-}
+#[frontend_contract::route_openapi(delegate = handlers::settings, tag = "admin_settings")]
+async fn settings(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminSettingsError> {}
 #[derive(Debug, Clone, newtype::IntoInnerFrom, newtype::FromInner)]
 pub struct AxumAdminAuthRouter(axum::Router);
 #[derive(Clone, newtype::IntoInnerFrom, newtype::FromInner)]

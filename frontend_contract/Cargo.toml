@@ -14,6 +14,7 @@ edition.workspace = true
 frontend_contract_macros = { workspace = true }
 str_constants = { workspace = true }
 newtype = { workspace = true }
+percent-encoding = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }

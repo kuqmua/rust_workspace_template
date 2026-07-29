@@ -463,18 +463,10 @@ fn AdminDataGrid(
 ) -> impl leptos::prelude::IntoView {
     let supports_filters = bool::from(view.table().supports_filters());
     let table_path = view.table().frontend_path();
-    let total = u64::from(view.total());
+    let total = view.total();
     let limit = u16::from(query.limit);
     let limit_text = limit.to_string();
-    let offset = u32::from(query.offset);
-    let previous_offset = offset.saturating_sub(u32::from(limit));
-    let next_offset = offset.saturating_add(u32::from(limit));
-    let previous_disabled = offset == 0u32;
-    let next_disabled = u64::from(next_offset) >= total;
-    let range_start = u64::from(offset).saturating_add(1u64).min(total);
-    let range_end = u64::from(offset)
-        .saturating_add(u64::from(limit))
-        .min(total);
+    let range = crate::shared::AdminPageRange::new(query.offset, query.limit, total);
     let filter_field = supports_filters
         .then_some(query.filter_field.as_ref())
         .flatten();
@@ -507,13 +499,13 @@ fn AdminDataGrid(
                 <form method="get" action=table_path.as_ref().to_owned()>
                     <input type="hidden" name="limit" value=limit_text.clone() />
                     {crate::shared::admin_filter_hidden_inputs(filter_field, filter_operation, filter_value, filter_end)}
-                    <input type="hidden" name="offset" value=previous_offset.to_string() /><button type="submit" disabled=previous_disabled>"Previous"</button>
+                    <input type="hidden" name="offset" value=u32::from(range.previous_offset()).to_string() /><button type="submit" disabled=bool::from(range.previous_disabled())>"Previous"</button>
                 </form>
-                <span>{format!("{range_start}-{range_end} of {total}")}</span>
+                <span>{format!("{}-{} of {}", u64::from(range.start()), u64::from(range.end()), u64::from(total))}</span>
                 <form method="get" action=table_path.as_ref().to_owned()>
                     <input type="hidden" name="limit" value=limit_text />
                     {crate::shared::admin_filter_hidden_inputs(filter_field, filter_operation, filter_value, filter_end)}
-                    <input type="hidden" name="offset" value=next_offset.to_string() /><button type="submit" disabled=next_disabled>"Next"</button>
+                    <input type="hidden" name="offset" value=u32::from(range.next_offset()).to_string() /><button type="submit" disabled=bool::from(range.next_disabled())>"Next"</button>
                 </form>
             </nav>
         </section>
@@ -526,22 +518,18 @@ fn AdminPagination(
     query: AdminCsrQuery,
     total: server_admin_contract::AdminPageTotal,
 ) -> impl leptos::prelude::IntoView {
-    let limit = u16::from(query.limit);
-    let offset = u32::from(query.offset);
-    let previous_offset = offset.saturating_sub(u32::from(limit));
-    let next_offset = offset.saturating_add(u32::from(limit));
+    let range = crate::shared::AdminPageRange::new(query.offset, query.limit, total);
     let total_value = u64::from(total);
-    let next_disabled = u64::from(next_offset) >= total_value;
     leptos::view! {
         <nav class="table-pagination" aria-label="Table pages">
             <form method="get" action=action.get()>
                 {crate::shared::admin_table_query_hidden_inputs(&query.search, &query.sort, &crate::shared::AdminTableQueryDirection::Csr(query.direction.clone()), query.limit)}
-                <input type="hidden" name="offset" value=previous_offset.to_string() /><button type="submit" disabled=offset == 0u32>"Previous"</button>
+                <input type="hidden" name="offset" value=u32::from(range.previous_offset()).to_string() /><button type="submit" disabled=bool::from(range.previous_disabled())>"Previous"</button>
             </form>
-            <span>{format!("{}-{} of {}", u64::from(offset).saturating_add(1u64).min(total_value), u64::from(offset).saturating_add(u64::from(limit)).min(total_value), total_value)}</span>
+            <span>{format!("{}-{} of {}", u64::from(range.start()), u64::from(range.end()), total_value)}</span>
             <form method="get" action=action.get()>
                 {crate::shared::admin_table_query_hidden_inputs(&query.search, &query.sort, &crate::shared::AdminTableQueryDirection::Csr(query.direction), query.limit)}
-                <input type="hidden" name="offset" value=next_offset.to_string() /><button type="submit" disabled=next_disabled>"Next"</button>
+                <input type="hidden" name="offset" value=u32::from(range.next_offset()).to_string() /><button type="submit" disabled=bool::from(range.next_disabled())>"Next"</button>
             </form>
         </nav>
     }

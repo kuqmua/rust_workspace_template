@@ -14,15 +14,7 @@ pub(super) fn hash_opaque_token(
     let digest = <sha2::Sha256 as sha2::Digest>::digest(
         secrecy::ExposeSecret::expose_secret(token.0.as_ref()).as_bytes(),
     );
-    let hex_digit = |nibble| match nibble {
-        0u8..=9u8 => char::from(b'0'.saturating_add(nibble)),
-        _ => char::from(b'a'.saturating_add(nibble.saturating_sub(10u8))),
-    };
-    let mut hash = String::with_capacity(digest.len().saturating_mul(2usize));
-    digest.iter().for_each(|byte| {
-        hash.push(hex_digit(*byte >> 4u8));
-        hash.push(hex_digit(*byte & 0x0fu8));
-    });
+    let hash = base16ct::lower::encode_string(&digest);
     Ok(super::SecrecyAdminString::try_from(hash).map(super::AdminTokenHash::new)?)
 }
 pub(super) fn encode_access_token(

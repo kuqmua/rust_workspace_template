@@ -1,4 +1,33 @@
 const API_URL_MAX_LEN: usize = 1_048_576usize;
+const API_URL_COMPONENT_ENCODE_SET: &percent_encoding::AsciiSet = &percent_encoding::CONTROLS
+    .add(b' ')
+    .add(b'!')
+    .add(b'"')
+    .add(b'#')
+    .add(b'$')
+    .add(b'%')
+    .add(b'&')
+    .add(b'\'')
+    .add(b'(')
+    .add(b')')
+    .add(b'*')
+    .add(b'+')
+    .add(b'/')
+    .add(b':')
+    .add(b';')
+    .add(b'<')
+    .add(b'=')
+    .add(b'>')
+    .add(b'?')
+    .add(b'@')
+    .add(b'[')
+    .add(b'\\')
+    .add(b']')
+    .add(b'^')
+    .add(b'`')
+    .add(b'{')
+    .add(b'|')
+    .add(b'}');
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct ApiUrlPathSegmentRef<'value_lt>(&'value_lt str);
@@ -36,33 +65,10 @@ impl ApiUrl {
         if !self.0.ends_with('/') {
             self.0.push('/');
         }
-        let hex_digit = |nibble| match nibble {
-            0u8 => '0',
-            1u8 => '1',
-            2u8 => '2',
-            3u8 => '3',
-            4u8 => '4',
-            5u8 => '5',
-            6u8 => '6',
-            7u8 => '7',
-            8u8 => '8',
-            9u8 => '9',
-            10u8 => 'A',
-            11u8 => 'B',
-            12u8 => 'C',
-            13u8 => 'D',
-            14u8 => 'E',
-            _ => 'F',
-        };
-        segment.0.bytes().for_each(|byte| {
-            if byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'.' | b'_' | b'~' | b',') {
-                self.0.push(char::from(byte));
-            } else {
-                self.0.push('%');
-                self.0.push(hex_digit(byte >> 4u8));
-                self.0.push(hex_digit(byte & 0x0fu8));
-            }
-        });
+        self.0.extend(percent_encoding::utf8_percent_encode(
+            segment.0,
+            API_URL_COMPONENT_ENCODE_SET,
+        ));
     }
 
     pub fn push_query_pair(
@@ -71,24 +77,6 @@ impl ApiUrl {
         value: ApiUrlQueryComponentRef<'_>,
     ) {
         self.0.push(if self.0.contains('?') { '&' } else { '?' });
-        let hex_digit = |nibble| match nibble {
-            0u8 => '0',
-            1u8 => '1',
-            2u8 => '2',
-            3u8 => '3',
-            4u8 => '4',
-            5u8 => '5',
-            6u8 => '6',
-            7u8 => '7',
-            8u8 => '8',
-            9u8 => '9',
-            10u8 => 'A',
-            11u8 => 'B',
-            12u8 => 'C',
-            13u8 => 'D',
-            14u8 => 'E',
-            _ => 'F',
-        };
         [&name.0, &value.0]
             .into_iter()
             .enumerate()
@@ -96,17 +84,10 @@ impl ApiUrl {
                 if idx == 1usize {
                     self.0.push('=');
                 }
-                component.bytes().for_each(|byte| {
-                    if byte.is_ascii_alphanumeric()
-                        || matches!(byte, b'-' | b'.' | b'_' | b'~' | b',')
-                    {
-                        self.0.push(char::from(byte));
-                    } else {
-                        self.0.push('%');
-                        self.0.push(hex_digit(byte >> 4u8));
-                        self.0.push(hex_digit(byte & 0x0fu8));
-                    }
-                });
+                self.0.extend(percent_encoding::utf8_percent_encode(
+                    component,
+                    API_URL_COMPONENT_ENCODE_SET,
+                ));
             });
     }
 }

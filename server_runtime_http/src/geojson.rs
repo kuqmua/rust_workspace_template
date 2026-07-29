@@ -8,9 +8,14 @@ impl TryFrom<String> for GeoJsonDocumentText {
         if value.len() > GEO_JSON_MAXIMUM_BYTES {
             return Err(GeoJsonValidationError::TooLarge);
         }
-        let document = serde_json::from_str::<serde_json::Value>(value.as_str())
+        let json_document = serde_json::from_str::<serde_json::Value>(value.as_str())
             .map_err(|error| GeoJsonValidationError::SerdeJson(SerdeJsonGeoJsonError(error)))?;
-        GeoJsonValueValidation::validate_geo_json(&document)?;
+        SupportedGeoJsonTypeValidation::validate_supported_geo_json_types(&json_document)?;
+        let Ok(geo_json_document) = serde_json::from_value::<geojson::GeoJson>(json_document)
+        else {
+            return Err(GeoJsonValidationError::Document);
+        };
+        GeoJsonValidation::validate_geo_json(&geo_json_document)?;
         Ok(Self(value))
     }
 }
@@ -33,107 +38,133 @@ pub enum GeoJsonValidationError {
     UnsupportedGeometry,
 }
 
-trait GeoJsonValueValidation {
-    fn validate_coordinate_level_one(&self) -> Result<(), GeoJsonValidationError>;
-    fn validate_coordinate_level_three(&self) -> Result<(), GeoJsonValidationError>;
-    fn validate_coordinate_level_two(&self) -> Result<(), GeoJsonValidationError>;
+trait GeoJsonValidation {
     fn validate_geo_json(&self) -> Result<(), GeoJsonValidationError>;
-    fn validate_position(&self) -> Result<(), GeoJsonValidationError>;
 }
-impl GeoJsonValueValidation for serde_json::Value {
-    fn validate_coordinate_level_one(&self) -> Result<(), GeoJsonValidationError> {
-        let values = self
-            .as_array()
-            .filter(|values| !values.is_empty())
-            .ok_or(GeoJsonValidationError::Coordinates)?;
-        values.iter().try_for_each(Self::validate_position)
-    }
 
-    fn validate_coordinate_level_three(&self) -> Result<(), GeoJsonValidationError> {
-        let values = self
-            .as_array()
-            .filter(|values| !values.is_empty())
-            .ok_or(GeoJsonValidationError::Coordinates)?;
-        values
-            .iter()
-            .try_for_each(Self::validate_coordinate_level_two)
-    }
+trait SupportedGeoJsonTypeValidation {
+    fn validate_supported_geo_json_types(&self) -> Result<(), GeoJsonValidationError>;
+}
 
-    fn validate_coordinate_level_two(&self) -> Result<(), GeoJsonValidationError> {
-        let values = self
-            .as_array()
-            .filter(|values| !values.is_empty())
-            .ok_or(GeoJsonValidationError::Coordinates)?;
-        values
-            .iter()
-            .try_for_each(Self::validate_coordinate_level_one)
-    }
-
+impl GeoJsonValidation for geojson::GeoJson {
     fn validate_geo_json(&self) -> Result<(), GeoJsonValidationError> {
-        let object = self.as_object().ok_or(GeoJsonValidationError::Document)?;
-        let value_type = object
-            .get(str_constants::GEO_JSON_TYPE)
-            .and_then(Self::as_str)
-            .ok_or(GeoJsonValidationError::Document)?;
-        match value_type {
-            str_constants::GEO_JSON_FEATURE => object
-                .get(str_constants::GEO_JSON_GEOMETRY)
-                .filter(|geometry| !geometry.is_null())
-                .map_or(Ok(()), Self::validate_geo_json),
-            str_constants::GEO_JSON_FEATURE_COLLECTION => object
-                .get(str_constants::GEO_JSON_FEATURES)
-                .and_then(Self::as_array)
-                .ok_or(GeoJsonValidationError::Document)?
+        match self {
+            Self::Feature(feature) => feature.validate_geo_json(),
+            Self::FeatureCollection(collection) => collection
+                .features
                 .iter()
-                .try_for_each(Self::validate_geo_json),
-            str_constants::GEO_JSON_GEOMETRY_COLLECTION => object
-                .get(str_constants::GEO_JSON_GEOMETRIES)
-                .and_then(Self::as_array)
-                .ok_or(GeoJsonValidationError::Document)?
-                .iter()
-                .try_for_each(Self::validate_geo_json),
-            str_constants::GEO_JSON_POINT => object
-                .get(str_constants::GEO_JSON_COORDINATES)
-                .ok_or(GeoJsonValidationError::Coordinates)?
-                .validate_position(),
-            str_constants::GEO_JSON_LINE_STRING | str_constants::GEO_JSON_MULTI_POINT => object
-                .get(str_constants::GEO_JSON_COORDINATES)
-                .ok_or(GeoJsonValidationError::Coordinates)?
-                .validate_coordinate_level_one(),
-            str_constants::GEO_JSON_MULTI_LINE_STRING | str_constants::GEO_JSON_POLYGON => object
-                .get(str_constants::GEO_JSON_COORDINATES)
-                .ok_or(GeoJsonValidationError::Coordinates)?
-                .validate_coordinate_level_two(),
-            str_constants::GEO_JSON_MULTI_POLYGON => object
-                .get(str_constants::GEO_JSON_COORDINATES)
-                .ok_or(GeoJsonValidationError::Coordinates)?
-                .validate_coordinate_level_three(),
-            _ => Err(GeoJsonValidationError::UnsupportedGeometry),
+                .try_for_each(GeoJsonValidation::validate_geo_json),
+            Self::Geometry(geometry) => geometry.validate_geo_json(),
         }
     }
+}
 
-    fn validate_position(&self) -> Result<(), GeoJsonValidationError> {
-        let values = self
-            .as_array()
-            .filter(|values| values.len() >= 2usize)
-            .ok_or(GeoJsonValidationError::Coordinates)?;
-        let longitude_valid = values
-            .first()
-            .and_then(Self::as_f64)
-            .is_some_and(|coordinate| {
-                coordinate.is_finite() && (-180.0f64..=180.0f64).contains(&coordinate)
-            });
-        let latitude_valid = values
-            .get(1usize)
-            .and_then(Self::as_f64)
-            .is_some_and(|coordinate| {
-                coordinate.is_finite() && (-90.0f64..=90.0f64).contains(&coordinate)
-            });
+impl GeoJsonValidation for geojson::Feature {
+    fn validate_geo_json(&self) -> Result<(), GeoJsonValidationError> {
+        self.geometry
+            .as_ref()
+            .map_or(Ok(()), GeoJsonValidation::validate_geo_json)
+    }
+}
+
+impl GeoJsonValidation for geojson::Geometry {
+    fn validate_geo_json(&self) -> Result<(), GeoJsonValidationError> {
+        match &self.value {
+            geojson::GeometryValue::Point { coordinates } => coordinates.validate_geo_json(),
+            geojson::GeometryValue::LineString { coordinates }
+            | geojson::GeometryValue::MultiPoint { coordinates } => coordinates.validate_geo_json(),
+            geojson::GeometryValue::MultiLineString { coordinates }
+            | geojson::GeometryValue::Polygon { coordinates } => coordinates.validate_geo_json(),
+            geojson::GeometryValue::MultiPolygon { coordinates } => coordinates.validate_geo_json(),
+            geojson::GeometryValue::GeometryCollection { geometries } => geometries
+                .iter()
+                .try_for_each(GeoJsonValidation::validate_geo_json),
+        }
+    }
+}
+
+impl GeoJsonValidation for geojson::Position {
+    fn validate_geo_json(&self) -> Result<(), GeoJsonValidationError> {
+        let longitude_valid = self.as_slice().first().is_some_and(|coordinate| {
+            coordinate.is_finite() && (-180.0f64..=180.0f64).contains(coordinate)
+        });
+        let latitude_valid = self.as_slice().get(1usize).is_some_and(|coordinate| {
+            coordinate.is_finite() && (-90.0f64..=90.0f64).contains(coordinate)
+        });
         if longitude_valid && latitude_valid {
             Ok(())
         } else {
             Err(GeoJsonValidationError::Coordinates)
         }
+    }
+}
+
+impl GeoJsonValidation for Vec<geojson::Position> {
+    fn validate_geo_json(&self) -> Result<(), GeoJsonValidationError> {
+        if self.is_empty() {
+            return Err(GeoJsonValidationError::Coordinates);
+        }
+        self.iter()
+            .try_for_each(GeoJsonValidation::validate_geo_json)
+    }
+}
+
+impl GeoJsonValidation for Vec<Vec<geojson::Position>> {
+    fn validate_geo_json(&self) -> Result<(), GeoJsonValidationError> {
+        if self.is_empty() {
+            return Err(GeoJsonValidationError::Coordinates);
+        }
+        self.iter()
+            .try_for_each(GeoJsonValidation::validate_geo_json)
+    }
+}
+
+impl GeoJsonValidation for Vec<Vec<Vec<geojson::Position>>> {
+    fn validate_geo_json(&self) -> Result<(), GeoJsonValidationError> {
+        if self.is_empty() {
+            return Err(GeoJsonValidationError::Coordinates);
+        }
+        self.iter()
+            .try_for_each(GeoJsonValidation::validate_geo_json)
+    }
+}
+
+impl SupportedGeoJsonTypeValidation for serde_json::Value {
+    fn validate_supported_geo_json_types(&self) -> Result<(), GeoJsonValidationError> {
+        let object = self.as_object().ok_or(GeoJsonValidationError::Document)?;
+        let value_type = object
+            .get(str_constants::GEO_JSON_TYPE)
+            .and_then(Self::as_str)
+            .ok_or(GeoJsonValidationError::Document)?;
+        let children = match value_type {
+            str_constants::GEO_JSON_FEATURE => object
+                .get(str_constants::GEO_JSON_GEOMETRY)
+                .filter(|geometry| !geometry.is_null())
+                .into_iter()
+                .collect::<Vec<_>>(),
+            str_constants::GEO_JSON_FEATURE_COLLECTION => object
+                .get(str_constants::GEO_JSON_FEATURES)
+                .and_then(Self::as_array)
+                .ok_or(GeoJsonValidationError::Document)?
+                .iter()
+                .collect::<Vec<_>>(),
+            str_constants::GEO_JSON_GEOMETRY_COLLECTION => object
+                .get(str_constants::GEO_JSON_GEOMETRIES)
+                .and_then(Self::as_array)
+                .ok_or(GeoJsonValidationError::Document)?
+                .iter()
+                .collect::<Vec<_>>(),
+            str_constants::GEO_JSON_POINT
+            | str_constants::GEO_JSON_LINE_STRING
+            | str_constants::GEO_JSON_MULTI_POINT
+            | str_constants::GEO_JSON_MULTI_LINE_STRING
+            | str_constants::GEO_JSON_POLYGON
+            | str_constants::GEO_JSON_MULTI_POLYGON => Vec::new(),
+            _ => return Err(GeoJsonValidationError::UnsupportedGeometry),
+        };
+        children
+            .into_iter()
+            .try_for_each(Self::validate_supported_geo_json_types)
     }
 }
 

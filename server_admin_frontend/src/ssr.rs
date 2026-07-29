@@ -191,11 +191,7 @@ fn table_pagination(
         |value| value.frontend_path().to_string(),
     );
     let limit = u16::from(query.limit());
-    let offset = u32::from(query.offset());
-    let previous_offset = offset.saturating_sub(u32::from(limit));
-    let next_offset = offset.saturating_add(u32::from(limit));
-    let previous_disabled = offset == 0u32;
-    let next_disabled = u64::from(next_offset) >= u64::from(total);
+    let range = crate::shared::AdminPageRange::new(query.offset(), query.limit(), total);
     let filter_operation = table_filter
         .and_then(server_admin_contract::AdminDataTableFilterQuery::operation)
         .map(server_admin_contract::AdminFilterOperationKey::from);
@@ -216,13 +212,13 @@ fn table_pagination(
             <form method="get" action=action.clone()>
                 {crate::shared::admin_table_query_hidden_inputs(query.search(), query.sort(), &crate::shared::AdminTableQueryDirection::Ssr(query.direction()), query.limit())}
                 {crate::shared::admin_filter_hidden_inputs(filter_field, filter_operation.as_ref(), filter_value, filter_end)}
-                <input type="hidden" name="offset" value=previous_offset.to_string() /><button type="submit" disabled=previous_disabled>"Previous"</button>
+                <input type="hidden" name="offset" value=u32::from(range.previous_offset()).to_string() /><button type="submit" disabled=bool::from(range.previous_disabled())>"Previous"</button>
             </form>
-            <span>{format!("{}-{} of {}", u64::from(offset).saturating_add(1u64).min(u64::from(total)), u64::from(offset).saturating_add(u64::from(limit)).min(u64::from(total)), total)}</span>
+            <span>{format!("{}-{} of {}", u64::from(range.start()), u64::from(range.end()), total)}</span>
             <form method="get" action=action>
                 {crate::shared::admin_table_query_hidden_inputs(query.search(), query.sort(), &crate::shared::AdminTableQueryDirection::Ssr(query.direction()), query.limit())}
                 {crate::shared::admin_filter_hidden_inputs(filter_field, filter_operation.as_ref(), filter_value, filter_end)}
-                <input type="hidden" name="offset" value=next_offset.to_string() /><button type="submit" disabled=next_disabled>"Next"</button>
+                <input type="hidden" name="offset" value=u32::from(range.next_offset()).to_string() /><button type="submit" disabled=bool::from(range.next_disabled())>"Next"</button>
             </form>
         </nav>
     }

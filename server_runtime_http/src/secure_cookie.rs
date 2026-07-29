@@ -76,17 +76,31 @@ pub fn build_secure_strict_cookie(
     access: HttpCookieAccess,
     secure: HttpCookieSecure,
 ) -> Result<HttpSetCookieHeaderValue, HttpSecureCookieError> {
-    let http_only = match access {
-        HttpCookieAccess::HttpOnly => str_constants::HTTPONLY,
-        HttpCookieAccess::ScriptReadable => str_constants::EMPTY,
-    };
-    let secure_attribute = match secure {
-        HttpCookieSecure::Disabled => str_constants::EMPTY,
-        HttpCookieSecure::Enabled => str_constants::SECURE,
-    };
-    let text = format!(
-        "{}={}; Path=/; Max-Age={}; SameSite=Strict{http_only}{secure_attribute}",
-        name.0, value.0, maximum_age.0
+    let text = i64::try_from(maximum_age.0).map_or_else(
+        |_conversion_error| {
+            let http_only = match access {
+                HttpCookieAccess::HttpOnly => str_constants::HTTPONLY,
+                HttpCookieAccess::ScriptReadable => str_constants::EMPTY,
+            };
+            let secure_attribute = match secure {
+                HttpCookieSecure::Disabled => str_constants::EMPTY,
+                HttpCookieSecure::Enabled => str_constants::SECURE,
+            };
+            format!(
+                "{}={}; Path=/; Max-Age={}; SameSite=Strict{http_only}{secure_attribute}",
+                name.0, value.0, maximum_age.0
+            )
+        },
+        |maximum_age_seconds| {
+            cookie::Cookie::build((name.0.as_str(), value.0.as_str()))
+                .path("/")
+                .max_age(cookie::time::Duration::seconds(maximum_age_seconds))
+                .same_site(cookie::SameSite::Strict)
+                .http_only(matches!(access, HttpCookieAccess::HttpOnly))
+                .secure(matches!(secure, HttpCookieSecure::Enabled))
+                .build()
+                .to_string()
+        },
     );
     http::HeaderValue::try_from(text)
         .map(HttpSetCookieHeaderValue)
@@ -117,6 +131,29 @@ mod tests {
         assert_eq!(
             super::HttpCookieValue::try_from(String::from(str_constants::TEST_COOKIE_INJECTION)),
             Err(super::HttpSecureCookieError::InvalidValue),
+        );
+    }
+
+    #[test]
+    fn builder_preserves_unsigned_maximum_age_range() {
+        let name = super::HttpCookieName::try_from(String::from(str_constants::TEST_COOKIE_NAME))
+            .expect("3dde3ff2");
+        let value =
+            super::HttpCookieValue::try_from(String::from(str_constants::TEST_COOKIE_VALUE))
+                .expect("7b47e5b5");
+        let header = super::build_secure_strict_cookie(
+            &name,
+            &value,
+            u64::MAX.into(),
+            super::HttpCookieAccess::ScriptReadable,
+            super::HttpCookieSecure::Disabled,
+        )
+        .expect("0a722d46");
+        assert!(
+            http::HeaderValue::from(header)
+                .to_str()
+                .expect("b1dde58f")
+                .contains(u64::MAX.to_string().as_str())
         );
     }
 }

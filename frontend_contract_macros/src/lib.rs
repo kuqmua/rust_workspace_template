@@ -11,8 +11,127 @@ struct SynType(syn::Type);
 #[derive(newtype::FromInner)]
 struct SynIdent(syn::Ident);
 
-#[derive(newtype::FromInner)]
+#[derive(Clone, Copy, Default, newtype::FromInner, newtype::IntoInnerFrom)]
 struct StdBool(bool);
+#[derive(Clone, Copy, newtype::FromInner)]
+struct SynAttributesRef<'attributes_lt>(&'attributes_lt [syn::Attribute]);
+
+#[derive(Default)]
+struct ContractStructApiArgs {
+    into_parts: StdBool,
+    new: StdBool,
+}
+#[derive(Default)]
+#[allow(
+    clippy::struct_excessive_bools,
+    reason = "each flag independently opts one field into a distinct generated method"
+)]
+struct ContractStructApiFieldArgs {
+    borrow: StdBool,
+    copy: StdBool,
+    copy_ref: StdBool,
+    into: StdBool,
+    option_borrow: StdBool,
+    slice: Option<SynType>,
+}
+#[allow(
+    clippy::single_call_fn,
+    reason = "a named parser keeps derive expansion focused and is exercised directly by parser tests"
+)]
+fn parse_contract_struct_api_args(
+    attributes: SynAttributesRef<'_>,
+) -> syn::Result<ContractStructApiArgs> {
+    let mut args = ContractStructApiArgs::default();
+    attributes
+        .0
+        .iter()
+        .filter(|attribute| {
+            attribute
+                .path()
+                .is_ident(str_constants::CONTRACT_STRUCT_API)
+        })
+        .try_for_each(|attribute| {
+            attribute.parse_nested_meta(|metadata| {
+                if metadata
+                    .path
+                    .is_ident(str_constants::CONTRACT_STRUCT_API_NEW)
+                {
+                    args.new = StdBool::from(true);
+                    Ok(())
+                } else if metadata
+                    .path
+                    .is_ident(str_constants::CONTRACT_STRUCT_API_INTO_PARTS)
+                {
+                    args.into_parts = StdBool::from(true);
+                    Ok(())
+                } else {
+                    Err(metadata.error(str_constants::CONTRACT_STRUCT_API_UNSUPPORTED_ATTRIBUTE))
+                }
+            })
+        })?;
+    Ok(args)
+}
+#[allow(
+    clippy::single_call_fn,
+    reason = "a named parser keeps derive expansion focused and is exercised directly by parser tests"
+)]
+fn parse_contract_struct_api_field_args(
+    attributes: SynAttributesRef<'_>,
+) -> syn::Result<ContractStructApiFieldArgs> {
+    let mut args = ContractStructApiFieldArgs::default();
+    attributes
+        .0
+        .iter()
+        .filter(|attribute| {
+            attribute
+                .path()
+                .is_ident(str_constants::CONTRACT_STRUCT_API)
+        })
+        .try_for_each(|attribute| {
+            attribute.parse_nested_meta(|metadata| {
+                if metadata
+                    .path
+                    .is_ident(str_constants::CONTRACT_STRUCT_API_BORROW)
+                {
+                    args.borrow = StdBool::from(true);
+                    Ok(())
+                } else if metadata
+                    .path
+                    .is_ident(str_constants::CONTRACT_STRUCT_API_COPY)
+                {
+                    args.copy = StdBool::from(true);
+                    Ok(())
+                } else if metadata
+                    .path
+                    .is_ident(str_constants::CONTRACT_STRUCT_API_COPY_REF)
+                {
+                    args.copy_ref = StdBool::from(true);
+                    Ok(())
+                } else if metadata
+                    .path
+                    .is_ident(str_constants::CONTRACT_STRUCT_API_INTO)
+                {
+                    args.into = StdBool::from(true);
+                    Ok(())
+                } else if metadata
+                    .path
+                    .is_ident(str_constants::CONTRACT_STRUCT_API_OPTION_BORROW)
+                {
+                    args.option_borrow = StdBool::from(true);
+                    Ok(())
+                } else if metadata
+                    .path
+                    .is_ident(str_constants::CONTRACT_STRUCT_API_SLICE)
+                {
+                    args.slice = Some(SynType::from(metadata.value()?.parse::<syn::Type>()?));
+                    Ok(())
+                } else {
+                    Err(metadata.error(str_constants::CONTRACT_STRUCT_API_UNSUPPORTED_ATTRIBUTE))
+                }
+            })
+        })?;
+    Ok(args)
+}
 
 struct RouteCatalogArgs {
     body_limit: SynExpr,
@@ -362,11 +481,158 @@ pub fn route_openapi(
     attribute_args: proc_macro::TokenStream,
     input: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
-    let function = match syn::parse::<syn::ItemFn>(input) {
+    let mut function = match syn::parse::<syn::ItemFn>(input) {
         Ok(value) => value,
         Err(error) => return error.to_compile_error().into(),
     };
-    let metadata = proc_macro2::TokenStream::from(attribute_args);
+    let parsed_metadata_items = match syn::parse::Parser::parse(
+        syn::punctuated::Punctuated::<syn::Meta, syn::Token![,]>::parse_terminated,
+        attribute_args,
+    ) {
+        Ok(value) => value,
+        Err(error) => return error.to_compile_error().into(),
+    };
+    let mut delegate = None;
+    let metadata_items = parsed_metadata_items
+        .into_iter()
+        .filter_map(|metadata| {
+            if metadata
+                .path()
+                .is_ident(str_constants::ROUTE_OPENAPI_DELEGATE)
+            {
+                let syn::Meta::NameValue(name_value) = metadata else {
+                    delegate = Some(Err(syn::Error::new_spanned(
+                        metadata,
+                        str_constants::ROUTE_OPENAPI_DELEGATE_REQUIRES_PATH,
+                    )));
+                    return None;
+                };
+                let syn::Expr::Path(path) = name_value.value else {
+                    delegate = Some(Err(syn::Error::new_spanned(
+                        name_value.value,
+                        str_constants::ROUTE_OPENAPI_DELEGATE_REQUIRES_PATH,
+                    )));
+                    return None;
+                };
+                delegate = Some(Ok(path.path));
+                None
+            } else {
+                Some(metadata)
+            }
+        })
+        .collect::<Vec<_>>();
+    let metadata = quote::quote! { #(#metadata_items),* };
+    if let Some(delegate_result) = delegate {
+        let delegate_path = match delegate_result {
+            Ok(value) => value,
+            Err(error) => return error.to_compile_error().into(),
+        };
+        if !function.block.stmts.is_empty() {
+            return syn::Error::new_spanned(
+                function.block,
+                str_constants::ROUTE_OPENAPI_DELEGATE_REQUIRES_EMPTY_BODY,
+            )
+            .to_compile_error()
+            .into();
+        }
+        let parameters = match function
+            .sig
+            .inputs
+            .iter()
+            .map(|argument| {
+                let syn::FnArg::Typed(typed_argument) = argument else {
+                    return Err(syn::Error::new_spanned(
+                        argument,
+                        str_constants::ROUTE_OPENAPI_DELEGATE_REQUIRES_IDENT_PARAMETERS,
+                    ));
+                };
+                let syn::Pat::Ident(identifier) = typed_argument.pat.as_ref() else {
+                    return Err(syn::Error::new_spanned(
+                        typed_argument,
+                        str_constants::ROUTE_OPENAPI_DELEGATE_REQUIRES_IDENT_PARAMETERS,
+                    ));
+                };
+                if identifier.subpat.is_some() {
+                    return Err(syn::Error::new_spanned(
+                        identifier,
+                        str_constants::ROUTE_OPENAPI_DELEGATE_REQUIRES_IDENT_PARAMETERS,
+                    ));
+                }
+                Ok(&identifier.ident)
+            })
+            .collect::<syn::Result<Vec<_>>>()
+        {
+            Ok(value) => value,
+            Err(error) => return error.to_compile_error().into(),
+        };
+        let error_type = match &function.sig.output {
+            syn::ReturnType::Type(_arrow, return_type) => {
+                let syn::Type::Path(return_path) = return_type.as_ref() else {
+                    return syn::Error::new_spanned(
+                        return_type,
+                        str_constants::ROUTE_OPENAPI_DELEGATE_REQUIRES_RESULT,
+                    )
+                    .to_compile_error()
+                    .into();
+                };
+                let Some(result_segment) = return_path.path.segments.last() else {
+                    return syn::Error::new_spanned(
+                        return_type,
+                        str_constants::ROUTE_OPENAPI_DELEGATE_REQUIRES_RESULT,
+                    )
+                    .to_compile_error()
+                    .into();
+                };
+                if result_segment.ident != str_constants::RESULT_UPPER_CAMEL_CASE {
+                    return syn::Error::new_spanned(
+                        return_type,
+                        str_constants::ROUTE_OPENAPI_DELEGATE_REQUIRES_RESULT,
+                    )
+                    .to_compile_error()
+                    .into();
+                }
+                let syn::PathArguments::AngleBracketed(arguments) = &result_segment.arguments
+                else {
+                    return syn::Error::new_spanned(
+                        return_type,
+                        str_constants::ROUTE_OPENAPI_DELEGATE_REQUIRES_RESULT,
+                    )
+                    .to_compile_error()
+                    .into();
+                };
+                let Some(syn::GenericArgument::Type(error_type)) = arguments.args.iter().nth(1)
+                else {
+                    return syn::Error::new_spanned(
+                        return_type,
+                        str_constants::ROUTE_OPENAPI_DELEGATE_REQUIRES_RESULT,
+                    )
+                    .to_compile_error()
+                    .into();
+                };
+                error_type
+            }
+            syn::ReturnType::Default => {
+                return syn::Error::new_spanned(
+                    &function.sig,
+                    str_constants::ROUTE_OPENAPI_DELEGATE_REQUIRES_RESULT,
+                )
+                .to_compile_error()
+                .into();
+            }
+        };
+        function.block = Box::new(syn::parse_quote!({
+            #delegate_path(#(#parameters),*)
+                .await
+                .map_err(#error_type::from)
+        }));
+        let reason = syn::LitStr::new(
+            str_constants::ROUTE_OPENAPI_SINGLE_CALL_REASON,
+            proc_macro2::Span::call_site(),
+        );
+        function.attrs.push(syn::parse_quote!(
+            #[allow(clippy::single_call_fn, reason = #reason)]
+        ));
+    }
     let dummy_path = syn::LitStr::new(
         format!("/__typed_route_{}", function.sig.ident).as_str(),
         proc_macro2::Span::call_site(),
@@ -377,6 +643,188 @@ pub fn route_openapi(
     }
     .into()
 }
+
+#[proc_macro_derive(ContractStructApi, attributes(contract_struct_api))]
+pub fn derive_contract_struct_api(
+    input_token_stream: proc_macro::TokenStream,
+) -> proc_macro::TokenStream {
+    let derive_input = match syn::parse::<syn::DeriveInput>(input_token_stream) {
+        Ok(value) => value,
+        Err(error) => return error.to_compile_error().into(),
+    };
+    let args =
+        match parse_contract_struct_api_args(SynAttributesRef::from(derive_input.attrs.as_slice()))
+        {
+            Ok(value) => value,
+            Err(error) => return error.to_compile_error().into(),
+        };
+    let syn::Data::Struct(data) = &derive_input.data else {
+        return syn::Error::new_spanned(
+            derive_input.ident,
+            str_constants::CONTRACT_STRUCT_API_REQUIRES_NAMED_STRUCT,
+        )
+        .to_compile_error()
+        .into();
+    };
+    let syn::Fields::Named(fields) = &data.fields else {
+        return syn::Error::new_spanned(
+            derive_input.ident,
+            str_constants::CONTRACT_STRUCT_API_REQUIRES_NAMED_STRUCT,
+        )
+        .to_compile_error()
+        .into();
+    };
+    let parsed_fields = match fields
+        .named
+        .iter()
+        .map(|field| {
+            let Some(identifier) = field.ident.as_ref() else {
+                return Err(syn::Error::new_spanned(
+                    field,
+                    str_constants::CONTRACT_STRUCT_API_REQUIRES_NAMED_STRUCT,
+                ));
+            };
+            parse_contract_struct_api_field_args(SynAttributesRef::from(field.attrs.as_slice()))
+                .map(|field_args| (identifier, &field.ty, field_args))
+        })
+        .collect::<syn::Result<Vec<_>>>()
+    {
+        Ok(value) => value,
+        Err(error) => return error.to_compile_error().into(),
+    };
+    let identifiers = parsed_fields
+        .iter()
+        .map(|(identifier, _field_type, _args)| *identifier)
+        .collect::<Vec<_>>();
+    let types = parsed_fields
+        .iter()
+        .map(|(_identifier, field_type, _args)| *field_type)
+        .collect::<Vec<_>>();
+    let constructor = bool::from(args.new).then(|| {
+        quote::quote! {
+            #[must_use]
+            pub const fn new(#(#identifiers: #types),*) -> Self {
+                Self { #(#identifiers),* }
+            }
+        }
+    });
+    let into_parts = bool::from(args.into_parts).then(|| {
+        quote::quote! {
+            #[must_use]
+            pub fn into_parts(self) -> (#(#types,)*) {
+                (#(self.#identifiers,)*)
+            }
+        }
+    });
+    let accessors = parsed_fields
+        .iter()
+        .flat_map(|(identifier, field_type, field_args)| {
+            let borrowed = bool::from(field_args.borrow).then(|| {
+                quote::quote! {
+                    #[must_use]
+                    pub const fn #identifier(&self) -> &#field_type {
+                        &self.#identifier
+                    }
+                }
+            });
+            let copied = bool::from(field_args.copy).then(|| {
+                quote::quote! {
+                    #[must_use]
+                    pub const fn #identifier(self) -> #field_type {
+                        self.#identifier
+                    }
+                }
+            });
+            let consumed = bool::from(field_args.into).then(|| {
+                let method = quote::format_ident!(
+                    "{}_{}",
+                    str_constants::CONTRACT_STRUCT_API_INTO,
+                    identifier
+                );
+                quote::quote! {
+                    #[must_use]
+                    pub fn #method(self) -> #field_type {
+                        self.#identifier
+                    }
+                }
+            });
+            let copied_ref = bool::from(field_args.copy_ref).then(|| {
+                quote::quote! {
+                    #[must_use]
+                    pub const fn #identifier(&self) -> #field_type {
+                        self.#identifier
+                    }
+                }
+            });
+            let option_borrowed = bool::from(field_args.option_borrow).then(|| {
+                let syn::Type::Path(option_path) = field_type else {
+                    return syn::Error::new_spanned(
+                        field_type,
+                        str_constants::CONTRACT_STRUCT_API_UNSUPPORTED_ATTRIBUTE,
+                    )
+                    .to_compile_error();
+                };
+                let Some(option_segment) = option_path.path.segments.last() else {
+                    return syn::Error::new_spanned(
+                        field_type,
+                        str_constants::CONTRACT_STRUCT_API_UNSUPPORTED_ATTRIBUTE,
+                    )
+                    .to_compile_error();
+                };
+                let syn::PathArguments::AngleBracketed(arguments) = &option_segment.arguments
+                else {
+                    return syn::Error::new_spanned(
+                        field_type,
+                        str_constants::CONTRACT_STRUCT_API_UNSUPPORTED_ATTRIBUTE,
+                    )
+                    .to_compile_error();
+                };
+                let Some(syn::GenericArgument::Type(inner_type)) = arguments.args.first() else {
+                    return syn::Error::new_spanned(
+                        field_type,
+                        str_constants::CONTRACT_STRUCT_API_UNSUPPORTED_ATTRIBUTE,
+                    )
+                    .to_compile_error();
+                };
+                quote::quote! {
+                    #[must_use]
+                    pub const fn #identifier(&self) -> Option<&#inner_type> {
+                        self.#identifier.as_ref()
+                    }
+                }
+            });
+            let slice = field_args.slice.as_ref().map(|wrapped_element_type| {
+                let element_type = &wrapped_element_type.0;
+                quote::quote! {
+                    #[must_use]
+                    pub const fn #identifier(&self) -> &[#element_type] {
+                        self.#identifier.0.as_slice()
+                    }
+                }
+            });
+            [
+                borrowed,
+                copied,
+                copied_ref,
+                consumed,
+                option_borrowed,
+                slice,
+            ]
+            .into_iter()
+            .flatten()
+        });
+    let identifier = &derive_input.ident;
+    let (impl_generics, type_generics, where_clause) = derive_input.generics.split_for_impl();
+    quote::quote! {
+        impl #impl_generics #identifier #type_generics #where_clause {
+            #constructor
+            #into_parts
+            #(#accessors)*
+        }
+    }
+    .into()
+}
+
 impl syn::parse::Parse for RouteRegistryArgs {
     fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
         let state_name = input.parse::<syn::Ident>()?;
@@ -1588,6 +2036,52 @@ pub fn derive_unit_enum_catalog(input: proc_macro::TokenStream) -> proc_macro::T
     .into()
 }
 
+#[proc_macro_derive(UnitEnumIndex)]
+pub fn derive_unit_enum_index(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let derive_input = match syn::parse::<syn::DeriveInput>(input) {
+        Ok(value) => value,
+        Err(error) => return error.to_compile_error().into(),
+    };
+    let identifier = derive_input.ident.clone();
+    let syn::Data::Enum(data_enum) = derive_input.data else {
+        return syn::Error::new_spanned(identifier, str_constants::ENUMFROMSTR_SUPPORTS_ONLY_ENUMS)
+            .to_compile_error()
+            .into();
+    };
+    let identifiers = match data_enum
+        .variants
+        .iter()
+        .map(|variant| {
+            if matches!(variant.fields, syn::Fields::Unit) {
+                Ok(&variant.ident)
+            } else {
+                Err(syn::Error::new_spanned(
+                    &variant.ident,
+                    str_constants::ENUMFROMSTR_SUPPORTS_ONLY_UNIT_VARIANTS,
+                ))
+            }
+        })
+        .collect::<syn::Result<Vec<_>>>()
+    {
+        Ok(value) => value,
+        Err(error) => return error.to_compile_error().into(),
+    };
+    let indices = 0usize..identifiers.len();
+    let count = identifiers.len();
+    quote::quote! {
+        impl #identifier {
+            pub const COUNT: usize = #count;
+            #[must_use]
+            pub const fn index(self) -> usize {
+                match self {
+                    #(Self::#identifiers => #indices),*
+                }
+            }
+        }
+    }
+    .into()
+}
+
 #[proc_macro_derive(PageCatalog, attributes(page_catalog, page_catalog_page))]
 pub fn derive_page_catalog(input_token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = match syn::parse::<syn::DeriveInput>(input_token_stream) {
@@ -1796,6 +2290,81 @@ pub fn derive_route_family(input: proc_macro::TokenStream) -> proc_macro::TokenS
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn contract_struct_api_attributes_are_explicit() {
+        let input: syn::DeriveInput = syn::parse_quote! {
+            #[contract_struct_api(new, into_parts)]
+            struct Request {
+                #[contract_struct_api(borrow)]
+                name: String,
+                #[contract_struct_api(copy)]
+                enabled: bool,
+                #[contract_struct_api(into)]
+                value: String,
+            }
+        };
+        let Ok(args) = super::parse_contract_struct_api_args(super::SynAttributesRef::from(
+            input.attrs.as_slice(),
+        )) else {
+            panic!("edc94d17");
+        };
+        assert!(bool::from(args.new));
+        assert!(bool::from(args.into_parts));
+        let syn::Data::Struct(data) = input.data else {
+            panic!("eb3fcd83");
+        };
+        let syn::Fields::Named(fields) = data.fields else {
+            panic!("55c90f04");
+        };
+        let parsed_result = fields
+            .named
+            .iter()
+            .map(|field| {
+                super::parse_contract_struct_api_field_args(super::SynAttributesRef::from(
+                    field.attrs.as_slice(),
+                ))
+                .map(|field_args| {
+                    (
+                        bool::from(field_args.borrow),
+                        bool::from(field_args.copy),
+                        bool::from(field_args.into),
+                    )
+                })
+            })
+            .collect::<syn::Result<Vec<_>>>();
+        let Ok(parsed_fields) = parsed_result else {
+            panic!("ceffbe6d");
+        };
+        assert_eq!(
+            parsed_fields,
+            vec![
+                (true, false, false),
+                (false, true, false),
+                (false, false, true)
+            ]
+        );
+    }
+
+    #[test]
+    fn contract_struct_api_rejects_unknown_attributes() {
+        let input: syn::DeriveInput = syn::parse_quote! {
+            #[contract_struct_api(unknown)]
+            struct Request {
+                value: String,
+            }
+        };
+        let Err(error) = super::parse_contract_struct_api_args(super::SynAttributesRef::from(
+            input.attrs.as_slice(),
+        )) else {
+            panic!("86b738e6");
+        };
+        assert!(
+            error
+                .to_string()
+                .contains(str_constants::CONTRACT_STRUCT_API_UNSUPPORTED_ATTRIBUTE)
+        );
+    }
+
     fn typed_route_args(errors: &str) -> String {
         format!(
             "authentication = Authentication, {errors} method = Method, openapi_operation_id = \"operation\", path = \"/path\", request = Request, response = Response, success_status = Status, transport = Transport"

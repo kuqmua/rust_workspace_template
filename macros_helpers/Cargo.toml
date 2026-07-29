@@ -9,6 +9,7 @@ repository.workspace = true
 license.workspace = true
 
 [dependencies]
+atomic-write-file = { workspace = true }
 str_constants = { workspace = true }
 proc-macro2 = { workspace = true }
 quote = { workspace = true }

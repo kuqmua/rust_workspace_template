@@ -11,15 +11,15 @@ pub(crate) async fn list_permission_catalog(
         .map(|(id, name)| {
             Ok(server_admin_contract::AdminPermissionSummary::new(
                 server_admin_contract::AdminPermissionId::try_from(id)
-                    .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+                    .map_err(super::invalid_stored_value)?,
                 server_admin_contract::AdminPermissionValue::try_from(name)
-                    .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+                    .map_err(super::invalid_stored_value)?,
             ))
         })
         .collect::<Result<Vec<_>, _>>()
         .and_then(|values| {
             server_admin_contract::AdminPermissionSummaries::try_from(values)
-                .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)
+                .map_err(super::invalid_stored_value)
         })
 }
 
@@ -54,15 +54,15 @@ pub(crate) async fn list_permissions(
             .map(|(id, name)| {
                 Ok(server_admin_contract::AdminPermissionSummary::new(
                     server_admin_contract::AdminPermissionId::try_from(id)
-                        .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+                        .map_err(super::invalid_stored_value)?,
                     server_admin_contract::AdminPermissionValue::try_from(name)
-                        .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+                        .map_err(super::invalid_stored_value)?,
                 ))
             })
             .collect::<Result<Vec<_>, super::AdminRepositoryError>>()?;
     Ok((
         server_admin_contract::AdminPermissionSummaries::try_from(items)
-            .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+            .map_err(super::invalid_stored_value)?,
         super::AdminPageTotalCount::from(total),
     ))
 }

@@ -17,9 +17,14 @@ server_runtime_core = { workspace = true }
 str_constants = { workspace = true }
 text_policy = { workspace = true }
 axum = { workspace = true }
+cookie = { workspace = true }
+geojson = { workspace = true }
 http = { workspace = true }
+ipnet = { workspace = true }
 metrics = { workspace = true }
+mime = { workspace = true }
 opentelemetry = { workspace = true }
+percent-encoding = { workspace = true }
 reqwest = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }

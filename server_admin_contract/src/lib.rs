@@ -1785,290 +1785,219 @@ impl AuthenticatedAdmin {
         })
     }
 }
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[derive(
+    Clone,
+    Debug,
+    frontend_contract::ContractStructApi,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+)]
+#[contract_struct_api(new)]
 pub struct AdminSignInRes {
+    #[contract_struct_api(borrow)]
     user: AuthenticatedAdmin,
 }
-impl AdminSignInRes {
-    #[must_use]
-    pub const fn new(user: AuthenticatedAdmin) -> Self {
-        Self { user }
-    }
-    #[must_use]
-    pub const fn user(&self) -> &AuthenticatedAdmin {
-        &self.user
-    }
-}
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[derive(
+    Clone,
+    Debug,
+    frontend_contract::ContractStructApi,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+)]
+#[contract_struct_api(new, into_parts)]
 #[serde(deny_unknown_fields)]
 pub struct AdminCreateUserReq {
     display_name: AdminDisplayName,
     login: AdminLogin,
     password: AdminNewPassword,
 }
-impl AdminCreateUserReq {
-    #[must_use]
-    pub const fn new(
-        display_name: AdminDisplayName,
-        login: AdminLogin,
-        password: AdminNewPassword,
-    ) -> Self {
-        Self {
-            display_name,
-            login,
-            password,
-        }
-    }
-    #[must_use]
-    pub fn into_parts(self) -> (AdminDisplayName, AdminLogin, AdminNewPassword) {
-        (self.display_name, self.login, self.password)
-    }
-}
-#[derive(Clone, Copy, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    frontend_contract::ContractStructApi,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+)]
+#[contract_struct_api(new)]
 pub struct AdminCreateUserRes {
     id: AdminUserId,
 }
-impl AdminCreateUserRes {
-    #[must_use]
-    pub const fn new(id: AdminUserId) -> Self {
-        Self { id }
-    }
-}
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[derive(
+    Clone,
+    Debug,
+    frontend_contract::ContractStructApi,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+)]
+#[contract_struct_api(new, into_parts)]
 #[serde(deny_unknown_fields)]
 pub struct AdminUpdateUserReq {
     display_name: Option<AdminDisplayName>,
     login: Option<AdminLogin>,
 }
-impl AdminUpdateUserReq {
-    #[must_use]
-    pub const fn new(display_name: Option<AdminDisplayName>, login: Option<AdminLogin>) -> Self {
-        Self {
-            display_name,
-            login,
-        }
-    }
-    #[must_use]
-    pub fn into_parts(self) -> (Option<AdminDisplayName>, Option<AdminLogin>) {
-        (self.display_name, self.login)
-    }
-}
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[derive(
+    Clone,
+    Debug,
+    frontend_contract::ContractStructApi,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+)]
+#[contract_struct_api(new)]
 #[serde(deny_unknown_fields)]
 pub struct AdminSetUserPasswordReq {
+    #[contract_struct_api(into)]
     password: AdminNewPassword,
 }
-impl AdminSetUserPasswordReq {
-    #[must_use]
-    pub const fn new(password: AdminNewPassword) -> Self {
-        Self { password }
-    }
-    #[must_use]
-    pub fn into_password(self) -> AdminNewPassword {
-        self.password
-    }
-}
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[derive(
+    Clone,
+    Debug,
+    frontend_contract::ContractStructApi,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+)]
+#[contract_struct_api(new, into_parts)]
 #[serde(deny_unknown_fields)]
 pub struct AdminChangeOwnPasswordReq {
     current_password: AdminPassword,
     new_password: AdminNewPassword,
 }
-impl AdminChangeOwnPasswordReq {
-    #[must_use]
-    pub const fn new(current_password: AdminPassword, new_password: AdminNewPassword) -> Self {
-        Self {
-            current_password,
-            new_password,
-        }
-    }
-    #[must_use]
-    pub fn into_parts(self) -> (AdminPassword, AdminNewPassword) {
-        (self.current_password, self.new_password)
-    }
-}
-#[derive(Clone, Copy, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    frontend_contract::ContractStructApi,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+)]
+#[contract_struct_api(new)]
 #[serde(deny_unknown_fields)]
 pub struct AdminSetUserBanReq {
+    #[contract_struct_api(copy)]
     is_banned: AdminBool,
 }
-impl AdminSetUserBanReq {
-    #[must_use]
-    pub const fn new(is_banned: AdminBool) -> Self {
-        Self { is_banned }
-    }
-    #[must_use]
-    pub const fn is_banned(self) -> AdminBool {
-        self.is_banned
-    }
-}
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[derive(
+    Clone,
+    Debug,
+    frontend_contract::ContractStructApi,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+)]
+#[contract_struct_api(new)]
 #[serde(deny_unknown_fields)]
 pub struct AdminCreateRoleReq {
+    #[contract_struct_api(into)]
     name: AdminRoleName,
 }
-impl AdminCreateRoleReq {
-    #[must_use]
-    pub const fn new(name: AdminRoleName) -> Self {
-        Self { name }
-    }
-    #[must_use]
-    pub fn into_name(self) -> AdminRoleName {
-        self.name
-    }
-}
-#[derive(Clone, Copy, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    frontend_contract::ContractStructApi,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+)]
+#[contract_struct_api(new)]
 pub struct AdminCreateRoleRes {
     id: AdminRoleId,
 }
-impl AdminCreateRoleRes {
-    #[must_use]
-    pub const fn new(id: AdminRoleId) -> Self {
-        Self { id }
-    }
-}
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[derive(
+    Clone,
+    Debug,
+    frontend_contract::ContractStructApi,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+)]
+#[contract_struct_api(new)]
 #[serde(deny_unknown_fields)]
 pub struct AdminUpdateRoleReq {
+    #[contract_struct_api(into)]
     name: AdminRoleName,
 }
-impl AdminUpdateRoleReq {
-    #[must_use]
-    pub const fn new(name: AdminRoleName) -> Self {
-        Self { name }
-    }
-    #[must_use]
-    pub fn into_name(self) -> AdminRoleName {
-        self.name
-    }
-}
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[derive(
+    Clone,
+    Debug,
+    frontend_contract::ContractStructApi,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+)]
+#[contract_struct_api(new, into_parts)]
 #[serde(deny_unknown_fields)]
 pub struct AdminSetUserRolesReq {
     expected_role_ids: AdminRoleIds,
     role_ids: AdminRoleIds,
 }
-impl AdminSetUserRolesReq {
-    #[must_use]
-    pub const fn new(expected_role_ids: AdminRoleIds, role_ids: AdminRoleIds) -> Self {
-        Self {
-            expected_role_ids,
-            role_ids,
-        }
-    }
-    #[must_use]
-    pub fn into_parts(self) -> (AdminRoleIds, AdminRoleIds) {
-        (self.expected_role_ids, self.role_ids)
-    }
-}
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[derive(
+    Clone,
+    Debug,
+    frontend_contract::ContractStructApi,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+)]
+#[contract_struct_api(new, into_parts)]
 #[serde(deny_unknown_fields)]
 pub struct AdminSetRolePermissionsReq {
     expected_permission_ids: AdminPermissionIds,
     permission_ids: AdminPermissionIds,
 }
-impl AdminSetRolePermissionsReq {
-    #[must_use]
-    pub const fn new(
-        expected_permission_ids: AdminPermissionIds,
-        permission_ids: AdminPermissionIds,
-    ) -> Self {
-        Self {
-            expected_permission_ids,
-            permission_ids,
-        }
-    }
-    #[must_use]
-    pub fn into_parts(self) -> (AdminPermissionIds, AdminPermissionIds) {
-        (self.expected_permission_ids, self.permission_ids)
-    }
-}
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[derive(
+    Clone,
+    Debug,
+    frontend_contract::ContractStructApi,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+)]
+#[contract_struct_api(new)]
 pub struct AdminUserSummary {
+    #[contract_struct_api(borrow)]
     display_name: AdminDisplayName,
+    #[contract_struct_api(copy_ref)]
     id: AdminUserId,
+    #[contract_struct_api(copy_ref)]
     is_banned: AdminBool,
+    #[contract_struct_api(borrow)]
     login: AdminLogin,
     #[serde(default)]
+    #[contract_struct_api(slice = AdminRoleId)]
     role_ids: AdminRoleIds,
 }
-impl AdminUserSummary {
-    #[must_use]
-    pub const fn new(
-        display_name: AdminDisplayName,
-        id: AdminUserId,
-        is_banned: AdminBool,
-        login: AdminLogin,
-        role_ids: AdminRoleIds,
-    ) -> Self {
-        Self {
-            display_name,
-            id,
-            is_banned,
-            login,
-            role_ids,
-        }
-    }
-    #[must_use]
-    pub const fn display_name(&self) -> &AdminDisplayName {
-        &self.display_name
-    }
-    #[must_use]
-    pub const fn id(&self) -> AdminUserId {
-        self.id
-    }
-    #[must_use]
-    pub const fn is_banned(&self) -> AdminBool {
-        self.is_banned
-    }
-    #[must_use]
-    pub const fn login(&self) -> &AdminLogin {
-        &self.login
-    }
-    #[must_use]
-    pub const fn role_ids(&self) -> &[AdminRoleId] {
-        self.role_ids.0.as_slice()
-    }
-}
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[derive(
+    Clone,
+    Debug,
+    frontend_contract::ContractStructApi,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+)]
+#[contract_struct_api(new)]
 pub struct AdminRoleSummary {
+    #[contract_struct_api(copy_ref)]
     id: AdminRoleId,
+    #[contract_struct_api(copy_ref)]
     is_system: AdminBool,
     name: AdminRoleName,
     #[serde(default)]
+    #[contract_struct_api(slice = AdminPermissionId)]
     permission_ids: AdminPermissionIds,
 }
 impl AdminRoleSummary {
     #[must_use]
-    pub const fn new(
-        id: AdminRoleId,
-        is_system: AdminBool,
-        name: AdminRoleName,
-        permission_ids: AdminPermissionIds,
-    ) -> Self {
-        Self {
-            id,
-            is_system,
-            name,
-            permission_ids,
-        }
-    }
-    #[must_use]
-    pub const fn id(&self) -> AdminRoleId {
-        self.id
-    }
-    #[must_use]
-    pub const fn is_system(&self) -> AdminBool {
-        self.is_system
-    }
-    #[must_use]
     #[allow(clippy::same_name_method)] // Utoipa 5's static schema name intentionally coexists with this domain accessor
     pub const fn name(&self) -> &AdminRoleName {
         &self.name
-    }
-    #[must_use]
-    pub const fn permission_ids(&self) -> &[AdminPermissionId] {
-        self.permission_ids.0.as_slice()
     }
 }
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
@@ -2091,203 +2020,119 @@ impl AdminPermissionSummary {
         &self.name
     }
 }
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[derive(
+    Clone,
+    Debug,
+    frontend_contract::ContractStructApi,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+)]
+#[contract_struct_api(new)]
 pub struct AdminUsersPage {
+    #[contract_struct_api(into, slice = AdminUserSummary)]
     items: AdminUserSummaries,
+    #[contract_struct_api(slice = AdminRoleSummary)]
     roles: AdminRoleSummaries,
     #[schema(value_type = u64)]
+    #[contract_struct_api(copy_ref)]
     total: AdminPageTotal,
 }
-impl AdminUsersPage {
-    #[must_use]
-    pub const fn new(
-        items: AdminUserSummaries,
-        roles: AdminRoleSummaries,
-        total: AdminPageTotal,
-    ) -> Self {
-        Self {
-            items,
-            roles,
-            total,
-        }
-    }
-    #[must_use]
-    pub const fn items(&self) -> &[AdminUserSummary] {
-        self.items.0.as_slice()
-    }
-    #[must_use]
-    pub const fn total(&self) -> AdminPageTotal {
-        self.total
-    }
-    #[must_use]
-    pub const fn roles(&self) -> &[AdminRoleSummary] {
-        self.roles.0.as_slice()
-    }
-    #[must_use]
-    pub fn into_items(self) -> AdminUserSummaries {
-        self.items
-    }
-}
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[derive(
+    Clone,
+    Debug,
+    frontend_contract::ContractStructApi,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+)]
+#[contract_struct_api(new)]
 pub struct AdminRolesPage {
+    #[contract_struct_api(into, slice = AdminRoleSummary)]
     items: AdminRoleSummaries,
+    #[contract_struct_api(slice = AdminPermissionSummary)]
     permissions: AdminPermissionSummaries,
     #[schema(value_type = u64)]
+    #[contract_struct_api(copy_ref)]
     total: AdminPageTotal,
 }
-impl AdminRolesPage {
-    #[must_use]
-    pub const fn new(
-        items: AdminRoleSummaries,
-        permissions: AdminPermissionSummaries,
-        total: AdminPageTotal,
-    ) -> Self {
-        Self {
-            items,
-            permissions,
-            total,
-        }
-    }
-    #[must_use]
-    pub const fn items(&self) -> &[AdminRoleSummary] {
-        self.items.0.as_slice()
-    }
-    #[must_use]
-    pub const fn total(&self) -> AdminPageTotal {
-        self.total
-    }
-    #[must_use]
-    pub const fn permissions(&self) -> &[AdminPermissionSummary] {
-        self.permissions.0.as_slice()
-    }
-    #[must_use]
-    pub fn into_items(self) -> AdminRoleSummaries {
-        self.items
-    }
-}
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[derive(
+    Clone,
+    Debug,
+    frontend_contract::ContractStructApi,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+)]
+#[contract_struct_api(new)]
 pub struct AdminPermissionsPage {
+    #[contract_struct_api(into, slice = AdminPermissionSummary)]
     items: AdminPermissionSummaries,
     #[schema(value_type = u64)]
+    #[contract_struct_api(copy_ref)]
     total: AdminPageTotal,
 }
-impl AdminPermissionsPage {
-    #[must_use]
-    pub const fn new(items: AdminPermissionSummaries, total: AdminPageTotal) -> Self {
-        Self { items, total }
-    }
-    #[must_use]
-    pub const fn items(&self) -> &[AdminPermissionSummary] {
-        self.items.0.as_slice()
-    }
-    #[must_use]
-    pub const fn total(&self) -> AdminPageTotal {
-        self.total
-    }
-    #[must_use]
-    pub fn into_items(self) -> AdminPermissionSummaries {
-        self.items
-    }
-}
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[derive(
+    Clone,
+    Debug,
+    frontend_contract::ContractStructApi,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+)]
+#[contract_struct_api(new)]
 pub struct AdminAuditView {
+    #[contract_struct_api(borrow)]
     action: AdminText,
+    #[contract_struct_api(borrow)]
     created_at: AdminAuditTimestamp,
+    #[contract_struct_api(option_borrow)]
     details: Option<SerdeJsonAdminAuditDetails>,
+    #[contract_struct_api(copy_ref)]
     id: AdminAuditLogId,
+    #[contract_struct_api(borrow)]
     resource: AdminText,
+    #[contract_struct_api(option_borrow)]
     resource_id: Option<AdminText>,
+    #[contract_struct_api(copy_ref)]
     succeeded: AdminBool,
+    #[contract_struct_api(copy_ref)]
     user_id: Option<AdminUserId>,
+    #[contract_struct_api(option_borrow)]
     user_login: Option<AdminLogin>,
 }
-impl AdminAuditView {
-    #[must_use]
-    pub const fn new(
-        action: AdminText,
-        created_at: AdminAuditTimestamp,
-        details: Option<SerdeJsonAdminAuditDetails>,
-        id: AdminAuditLogId,
-        resource: AdminText,
-        resource_id: Option<AdminText>,
-        succeeded: AdminBool,
-        user_id: Option<AdminUserId>,
-        user_login: Option<AdminLogin>,
-    ) -> Self {
-        Self {
-            action,
-            created_at,
-            details,
-            id,
-            resource,
-            resource_id,
-            succeeded,
-            user_id,
-            user_login,
-        }
-    }
-    #[must_use]
-    pub const fn action(&self) -> &AdminText {
-        &self.action
-    }
-    #[must_use]
-    pub const fn created_at(&self) -> &AdminAuditTimestamp {
-        &self.created_at
-    }
-    #[must_use]
-    pub const fn details(&self) -> Option<&SerdeJsonAdminAuditDetails> {
-        self.details.as_ref()
-    }
-    #[must_use]
-    pub const fn id(&self) -> AdminAuditLogId {
-        self.id
-    }
-    #[must_use]
-    pub const fn resource(&self) -> &AdminText {
-        &self.resource
-    }
-    #[must_use]
-    pub const fn resource_id(&self) -> Option<&AdminText> {
-        self.resource_id.as_ref()
-    }
-    #[must_use]
-    pub const fn succeeded(&self) -> AdminBool {
-        self.succeeded
-    }
-    #[must_use]
-    pub const fn user_id(&self) -> Option<AdminUserId> {
-        self.user_id
-    }
-    #[must_use]
-    pub const fn user_login(&self) -> Option<&AdminLogin> {
-        self.user_login.as_ref()
-    }
-}
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[derive(
+    Clone,
+    Debug,
+    frontend_contract::ContractStructApi,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+)]
+#[contract_struct_api(new)]
 pub struct AdminAuditCursor {
+    #[contract_struct_api(borrow)]
     created_at: AdminAuditTimestamp,
+    #[contract_struct_api(copy_ref)]
     id: AdminAuditLogId,
 }
-impl AdminAuditCursor {
-    #[must_use]
-    pub const fn new(created_at: AdminAuditTimestamp, id: AdminAuditLogId) -> Self {
-        Self { created_at, id }
-    }
-    #[must_use]
-    pub const fn created_at(&self) -> &AdminAuditTimestamp {
-        &self.created_at
-    }
-    #[must_use]
-    pub const fn id(&self) -> AdminAuditLogId {
-        self.id
-    }
-}
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[derive(
+    Clone,
+    Debug,
+    frontend_contract::ContractStructApi,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+)]
+#[contract_struct_api(new)]
 pub struct AdminAuditPage {
+    #[contract_struct_api(slice = AdminAuditView)]
     items: AdminAuditViews,
     #[schema(inline)]
+    #[contract_struct_api(option_borrow)]
     next_cursor: Option<AdminAuditCursor>,
     #[schema(value_type = u64)]
+    #[contract_struct_api(copy_ref)]
     total: AdminPageTotal,
 }
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
@@ -2437,73 +2282,51 @@ impl AdminDataColumns {
         self.0.as_slice()
     }
 }
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[derive(
+    Clone,
+    Debug,
+    frontend_contract::ContractStructApi,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+)]
+#[contract_struct_api(new)]
 pub struct AdminDataRow {
+    #[contract_struct_api(slice = AdminText)]
     values: AdminTexts,
 }
-impl AdminDataRow {
-    #[must_use]
-    pub const fn new(values: AdminTexts) -> Self {
-        Self { values }
-    }
-    #[must_use]
-    pub const fn values(&self) -> &[AdminText] {
-        self.values.0.as_slice()
-    }
-}
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[derive(
+    Clone,
+    Debug,
+    frontend_contract::ContractStructApi,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+)]
+#[contract_struct_api(new)]
 pub struct AdminDataTableView {
+    #[contract_struct_api(slice = AdminDataColumn)]
     columns: AdminDataColumns,
+    #[contract_struct_api(slice = AdminDataRow)]
     items: AdminDataRows,
+    #[contract_struct_api(copy_ref)]
     table: AdminDataTable,
     #[schema(value_type = u64)]
+    #[contract_struct_api(copy_ref)]
     total: AdminPageTotal,
 }
-impl AdminDataTableView {
-    #[must_use]
-    pub const fn new(
-        columns: AdminDataColumns,
-        items: AdminDataRows,
-        table: AdminDataTable,
-        total: AdminPageTotal,
-    ) -> Self {
-        Self {
-            columns,
-            items,
-            table,
-            total,
-        }
-    }
-    #[must_use]
-    pub const fn columns(&self) -> &[AdminDataColumn] {
-        self.columns.0.as_slice()
-    }
-    #[must_use]
-    pub const fn items(&self) -> &[AdminDataRow] {
-        self.items.0.as_slice()
-    }
-    #[must_use]
-    pub const fn table(&self) -> AdminDataTable {
-        self.table
-    }
-    #[must_use]
-    pub const fn total(&self) -> AdminPageTotal {
-        self.total
-    }
-}
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[derive(
+    Clone,
+    Debug,
+    frontend_contract::ContractStructApi,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+)]
+#[contract_struct_api(new)]
 pub struct AdminDataTableCatalog {
+    #[contract_struct_api(slice = AdminDataTable)]
     items: AdminDataTables,
-}
-impl AdminDataTableCatalog {
-    #[must_use]
-    pub const fn new(items: AdminDataTables) -> Self {
-        Self { items }
-    }
-    #[must_use]
-    pub const fn items(&self) -> &[AdminDataTable] {
-        self.items.0.as_slice()
-    }
 }
 #[derive(Clone, Debug, newtype::BoundedString, newtype::AsRefStr, newtype::Display)]
 #[bounded_string(
@@ -2514,113 +2337,46 @@ impl AdminDataTableCatalog {
     description = "bounded administrator audit CSV export"
 )]
 pub struct AdminAuditExportCsv(String);
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[derive(
+    Clone,
+    Debug,
+    frontend_contract::ContractStructApi,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+)]
+#[contract_struct_api(new)]
 pub struct AdminAuditExport {
     #[schema(value_type = String, max_length = 262_144)]
+    #[contract_struct_api(borrow)]
     csv: AdminAuditExportCsv,
 }
-impl AdminAuditExport {
-    #[must_use]
-    pub const fn new(csv: AdminAuditExportCsv) -> Self {
-        Self { csv }
-    }
-    #[must_use]
-    pub const fn csv(&self) -> &AdminAuditExportCsv {
-        &self.csv
-    }
-}
-impl AdminAuditPage {
-    #[must_use]
-    pub const fn new(
-        items: AdminAuditViews,
-        next_cursor: Option<AdminAuditCursor>,
-        total: AdminPageTotal,
-    ) -> Self {
-        Self {
-            items,
-            next_cursor,
-            total,
-        }
-    }
-    #[must_use]
-    pub const fn items(&self) -> &[AdminAuditView] {
-        self.items.0.as_slice()
-    }
-    #[must_use]
-    pub const fn next_cursor(&self) -> Option<&AdminAuditCursor> {
-        self.next_cursor.as_ref()
-    }
-    #[must_use]
-    pub const fn total(&self) -> AdminPageTotal {
-        self.total
-    }
-}
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[derive(
+    Clone,
+    Debug,
+    frontend_contract::ContractStructApi,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+)]
+#[contract_struct_api(new)]
 pub struct AdminSettingsView {
+    #[contract_struct_api(borrow)]
     default_admin_route: AdminDefaultRoute,
+    #[contract_struct_api(option_borrow)]
     main_logo: Option<AdminMainLogo>,
+    #[contract_struct_api(option_borrow)]
     organization_contacts: Option<AdminOrganizationContacts>,
+    #[contract_struct_api(option_borrow)]
     organization_name: Option<AdminOrganizationName>,
+    #[contract_struct_api(option_borrow)]
     primary_color: Option<AdminPrimaryColor>,
+    #[contract_struct_api(borrow)]
     site_name: AdminSiteName,
+    #[contract_struct_api(option_borrow)]
     support_url: Option<AdminSupportUrl>,
+    #[contract_struct_api(option_borrow)]
     tab_title: Option<AdminTabTitle>,
-}
-impl AdminSettingsView {
-    #[must_use]
-    pub const fn new(
-        default_admin_route: AdminDefaultRoute,
-        main_logo: Option<AdminMainLogo>,
-        organization_contacts: Option<AdminOrganizationContacts>,
-        organization_name: Option<AdminOrganizationName>,
-        primary_color: Option<AdminPrimaryColor>,
-        site_name: AdminSiteName,
-        support_url: Option<AdminSupportUrl>,
-        tab_title: Option<AdminTabTitle>,
-    ) -> Self {
-        Self {
-            default_admin_route,
-            main_logo,
-            organization_contacts,
-            organization_name,
-            primary_color,
-            site_name,
-            support_url,
-            tab_title,
-        }
-    }
-    #[must_use]
-    pub const fn default_admin_route(&self) -> &AdminDefaultRoute {
-        &self.default_admin_route
-    }
-    #[must_use]
-    pub const fn main_logo(&self) -> Option<&AdminMainLogo> {
-        self.main_logo.as_ref()
-    }
-    #[must_use]
-    pub const fn organization_contacts(&self) -> Option<&AdminOrganizationContacts> {
-        self.organization_contacts.as_ref()
-    }
-    #[must_use]
-    pub const fn organization_name(&self) -> Option<&AdminOrganizationName> {
-        self.organization_name.as_ref()
-    }
-    #[must_use]
-    pub const fn primary_color(&self) -> Option<&AdminPrimaryColor> {
-        self.primary_color.as_ref()
-    }
-    #[must_use]
-    pub const fn site_name(&self) -> &AdminSiteName {
-        &self.site_name
-    }
-    #[must_use]
-    pub const fn support_url(&self) -> Option<&AdminSupportUrl> {
-        self.support_url.as_ref()
-    }
-    #[must_use]
-    pub const fn tab_title(&self) -> Option<&AdminTabTitle> {
-        self.tab_title.as_ref()
-    }
 }
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
 pub struct AdminBrandingView {
@@ -2729,7 +2485,15 @@ pub enum AdminSettingOptionality {
     Clearable(AdminOptionalSetting),
     Required,
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq, frontend_contract::UnitEnumCatalog)]
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    frontend_contract::UnitEnumCatalog,
+    frontend_contract::UnitEnumIndex,
+)]
 pub enum AdminSetting {
     DefaultRoute,
     SiteName,

@@ -16,9 +16,10 @@ pub struct StdSocketAddr(std::net::SocketAddr);
 pub struct StdResolvedClientIp(std::net::IpAddr);
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct TrustedProxyRange {
-    network: StdIpAddr,
-    prefix_bits: StdTrustedProxyPrefixBits,
+    network: IpnetNetwork,
 }
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+struct IpnetNetwork(ipnet::IpNet);
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 struct StdIpAddr(std::net::IpAddr);
 
@@ -30,9 +31,6 @@ impl StdRangeContains {
         self.0
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
-struct StdTrustedProxyPrefixBits(u8);
-
 #[derive(Debug, thiserror::Error, newtype::FromInner)]
 #[error("{0}")]
 pub struct StdAddrParseError(std::net::AddrParseError);
@@ -71,7 +69,7 @@ impl TryFrom<String> for TrustedProxyRange {
         let Some((address_text, prefix_text)) = value.split_once('/') else {
             return Err(TrustedProxyRangeParseError::MissingPrefix);
         };
-        let network = address_text.parse::<std::net::IpAddr>().map_err(|source| {
+        let network_address = address_text.parse::<std::net::IpAddr>().map_err(|source| {
             TrustedProxyRangeParseError::InvalidAddress {
                 source: StdAddrParseError::from(source),
             }
@@ -81,16 +79,11 @@ impl TryFrom<String> for TrustedProxyRange {
                 source: StdParseIntError::from(source),
             }
         })?;
-        let address_width = match network {
-            std::net::IpAddr::V4(_) => 32u8,
-            std::net::IpAddr::V6(_) => 128u8,
-        };
-        if prefix_bits > address_width {
+        let Ok(network) = ipnet::IpNet::new(network_address, prefix_bits) else {
             return Err(TrustedProxyRangeParseError::PrefixExceedsAddressWidth);
-        }
+        };
         Ok(Self {
-            network: StdIpAddr::from(network),
-            prefix_bits: StdTrustedProxyPrefixBits::from(prefix_bits),
+            network: IpnetNetwork::from(network),
         })
     }
 }
@@ -111,19 +104,7 @@ impl TryFrom<Vec<TrustedProxyRange>> for TrustedProxyRanges {
 }
 impl TrustedProxyRange {
     fn contains(self, candidate_ip: StdIpAddr) -> StdRangeContains {
-        StdRangeContains::from(match (self.network.0, candidate_ip.0) {
-            (std::net::IpAddr::V4(network), std::net::IpAddr::V4(candidate_v4)) => {
-                let shift = 32u32.saturating_sub(u32::from(self.prefix_bits.0));
-                let mask = u32::MAX.checked_shl(shift).unwrap_or(0u32);
-                u32::from(network) & mask == u32::from(candidate_v4) & mask
-            }
-            (std::net::IpAddr::V6(network), std::net::IpAddr::V6(candidate_v6)) => {
-                let shift = 128u32.saturating_sub(u32::from(self.prefix_bits.0));
-                let mask = u128::MAX.checked_shl(shift).unwrap_or(0u128);
-                u128::from(network) & mask == u128::from(candidate_v6) & mask
-            }
-            _ => false,
-        })
+        StdRangeContains::from(self.network.0.contains(&candidate_ip.0))
     }
 }
 impl TrustedProxyRanges {

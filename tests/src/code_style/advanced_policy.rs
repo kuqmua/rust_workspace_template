@@ -449,6 +449,28 @@ struct PublicApiVisitor {
     lines: super::types::SourceTextList,
 }
 impl PublicApiVisitor {
+    fn source(&self, span: proc_macro2::Span) -> super::types::SourceText {
+        let start = span.start().line.saturating_sub(1usize);
+        let end = span.end().line;
+        let normalized = self
+            .lines
+            .get(start..end)
+            .map(|lines| lines.join("\n"))
+            .expect("c9d73e55")
+            .split_whitespace()
+            .collect::<Vec<_>>()
+            .join(" ");
+        super::types::SourceText::try_from(normalized).expect("31f04bb7")
+    }
+    fn field_type(&self, field: &syn::Field) -> super::types::SourceText {
+        let source = self.source(syn::spanned::Spanned::span(field));
+        let field_type = source
+            .as_ref()
+            .split_once(':')
+            .map(|(_field, field_type)| field_type.trim().trim_end_matches(',').to_owned())
+            .expect("5af91e82");
+        super::types::SourceText::try_from(field_type).expect("3e2d89ef")
+    }
     fn record(&mut self, span: proc_macro2::Span, signature_only: bool) {
         let start = span.start().line.saturating_sub(1usize);
         let end = span.end().line;
@@ -467,6 +489,121 @@ impl PublicApiVisitor {
         self.entries
             .push(relevant.split_whitespace().collect::<Vec<&str>>().join(" "));
     }
+    fn record_contract_struct_api(&mut self, item: &syn::ItemStruct) {
+        let Some(attribute) = item
+            .attrs
+            .iter()
+            .find(|attribute| attribute.path().is_ident("contract_struct_api"))
+        else {
+            return;
+        };
+        let mut constructor = false;
+        let mut into_parts = false;
+        attribute
+            .parse_nested_meta(|metadata| {
+                if metadata.path.is_ident("new") {
+                    constructor = true;
+                }
+                if metadata.path.is_ident("into_parts") {
+                    into_parts = true;
+                }
+                Ok(())
+            })
+            .expect("d932a5f1");
+        let syn::Fields::Named(fields) = &item.fields else {
+            return;
+        };
+        let identifiers = fields
+            .named
+            .iter()
+            .filter_map(|field| field.ident.as_ref())
+            .collect::<Vec<_>>();
+        let types = fields
+            .named
+            .iter()
+            .map(|field| self.field_type(field))
+            .collect::<Vec<_>>();
+        if constructor {
+            let parameters = identifiers
+                .iter()
+                .zip(types.iter())
+                .map(|(identifier, field_type)| format!("{identifier}: {}", field_type.as_ref()))
+                .collect::<Vec<_>>()
+                .join(", ");
+            self.entries.push(format!(
+                "#[must_use] pub const fn new({parameters}) -> Self"
+            ));
+        }
+        if into_parts {
+            self.entries.push(format!(
+                "#[must_use] pub fn into_parts(self) -> ({})",
+                types
+                    .iter()
+                    .map(AsRef::as_ref)
+                    .collect::<Vec<&str>>()
+                    .join(", ")
+            ));
+        }
+        fields.named.iter().for_each(|field| {
+            let Some(identifier) = field.ident.as_ref() else {
+                return;
+            };
+            let wrapped_field_type = self.field_type(field);
+            let field_type = wrapped_field_type.as_ref();
+            field
+                .attrs
+                .iter()
+                .filter(|field_attribute| {
+                    field_attribute.path().is_ident("contract_struct_api")
+                })
+                .for_each(|field_attribute| {
+                    field_attribute
+                        .parse_nested_meta(|metadata| {
+                            let signature = if metadata.path.is_ident("borrow") {
+                                format!(
+                                    "#[must_use] pub const fn {identifier}(&self) -> &{field_type}"
+                                )
+                            } else if metadata.path.is_ident("copy") {
+                                format!(
+                                    "#[must_use] pub const fn {identifier}(self) -> {field_type}"
+                                )
+                            } else if metadata.path.is_ident("copy_ref") {
+                                format!(
+                                    "#[must_use] pub const fn {identifier}(&self) -> {field_type}"
+                                )
+                            } else if metadata.path.is_ident("into") {
+                                format!(
+                                    "#[must_use] pub fn into_{identifier}(self) -> {field_type}"
+                                )
+                            } else if metadata.path.is_ident("option_borrow") {
+                                let inner_type = field_type
+                                    .strip_prefix("Option<")
+                                    .and_then(|value| value.strip_suffix('>'))
+                                    .expect("9ba9415c");
+                                format!(
+                                    "#[must_use] pub const fn {identifier}(&self) -> Option<&{inner_type}>"
+                                )
+                            } else if metadata.path.is_ident("slice") {
+                                let parsed_element_type =
+                                    metadata.value()?.parse::<syn::Type>()?;
+                                let wrapped_element_type = self
+                                    .source(syn::spanned::Spanned::span(&parsed_element_type));
+                                let element_type = wrapped_element_type.as_ref();
+                                format!(
+                                    "#[must_use] pub const fn {identifier}(&self) -> &[{element_type}]"
+                                )
+                            } else {
+                                String::new()
+                            };
+                            if !signature.is_empty() {
+                                self.entries.push(signature);
+                            }
+                            Ok(())
+                        })
+                        .expect("206adbf7");
+                });
+        });
+    }
 }
 impl<'ast> syn::visit::Visit<'ast> for PublicApiVisitor {
     fn visit_impl_item_fn(&mut self, i: &'ast syn::ImplItemFn) {
@@ -484,6 +621,21 @@ impl<'ast> syn::visit::Visit<'ast> for PublicApiVisitor {
     fn visit_item_enum(&mut self, i: &'ast syn::ItemEnum) {
         if matches!(i.vis, syn::Visibility::Public(_)) {
             self.record(syn::spanned::Spanned::span(i), false);
+            if i.attrs.iter().any(|attribute| {
+                super::derive_attr_has_terminal(
+                    super::types::SynAttributeRef::from(attribute),
+                    super::types::SourceTextRef::from("UnitEnumIndex"),
+                )
+                .get()
+            }) {
+                self.entries.push(format!(
+                    "pub const COUNT: usize = {}usize;",
+                    i.variants.len()
+                ));
+                self.entries.push(String::from(
+                    "#[must_use] pub const fn index(self) -> usize",
+                ));
+            }
         }
         syn::visit::visit_item_enum(self, i);
     }
@@ -502,6 +654,7 @@ impl<'ast> syn::visit::Visit<'ast> for PublicApiVisitor {
     fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
         if matches!(i.vis, syn::Visibility::Public(_)) {
             self.record(syn::spanned::Spanned::span(i), false);
+            self.record_contract_struct_api(i);
         }
         syn::visit::visit_item_struct(self, i);
     }
@@ -1438,27 +1591,6 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             (
                 1usize,
                 "cleanup conversion maps to a typed repository error",
-            ),
-        ),
-        (
-            "server_admin/src/repository/permissions.rs",
-            (
-                6usize,
-                "permission row conversions map to typed repository errors",
-            ),
-        ),
-        (
-            "server_admin/src/repository/roles.rs",
-            (
-                10usize,
-                "role row conversions map to typed repository errors",
-            ),
-        ),
-        (
-            "server_admin/src/repository.rs",
-            (
-                1usize,
-                "repository acquisition maps to the administrator database error",
             ),
         ),
         (
