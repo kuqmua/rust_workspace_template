@@ -833,7 +833,6 @@ config_lib_macros::impl_try_from_parse_string_error!(
     AppStateTracingLevelParsing,
     app_state_tracing_type_parsing
 );
-#[allow(clippy::single_call_fn)] // shared helper centralizes env var read + parse + error mapping for TryFromEnv derive output
 pub fn parse_required_env_var<T, ParseError, Error, MapEnvVarError, Parse, MapParseError>(
     env_var_name: EnvVarNameRef<'_>,
     map_env_var_error: MapEnvVarError,

@@ -1870,7 +1870,6 @@ define_str_constants! {
         pub VALUE_98C9CD5E = ["98c9cd5e"];
         pub DUPLICATE_FILTERABLE_OPTION = ["99307572: ", WORD_DUPLICATE, " ", WORD_FILTERABLE, " ", WORD_OPTION_2];
         pub VALUE_9A672AC2 = ["9a672ac2"];
-        pub VALUE_9A6D2C1B_DIFF_LEN_HELPER_REQUIRES_DIFFERENT_LENGTHS = ["9a6d2c1b diff-", WORD_LEN, " ", WORD_HELPER_2, " ", WORD_REQUIRES, " ", WORD_DIFFERENT, " ", WORD_LENGTHS];
         pub VALUE_9AC6D79A = ["9ac6d79a"];
         pub VALUE_9B0E24F1 = ["9b0e24f1"];
         pub VALUE_9B4AB8AD = ["9b4ab8ad"];
@@ -2544,7 +2543,6 @@ define_str_constants! {
         pub F3B5A711 = ["f3b5a711"];
         pub F3D821A6 = ["f3d821a6"];
         pub F459312E = ["f459312e"];
-        pub F4C1D7A9_SAME_LEN_HELPER_REQUIRES_EQUAL_LENGTHS = ["f4c1d7a9 ", WORD_SAME, "-", WORD_LEN, " ", WORD_HELPER_2, " ", WORD_REQUIRES, " equal ", WORD_LENGTHS];
         pub F4C2A9E1 = ["f4c2a9e1"];
         pub F4CAB210 = ["f4cab210"];
         pub F4E61B29 = ["f4e61b29"];

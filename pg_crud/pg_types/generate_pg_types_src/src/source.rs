@@ -1503,7 +1503,7 @@ pub fn emit_generate_pg_types(
                             #[allow(clippy::absolute_paths)]
                             #allow_clippy_arbitrary_src_item_ordering
                             const _: () = {
-                                #[allow(unused_extern_crates, clippy::useless_attribute)]
+                                #[expect(unused_extern_crates)]
                                 extern crate serde as _serde;
                                 #[automatically_derived]
                                 impl _serde::Serialize for #identifier_standard_non_null_origin_upper_camel_case {
@@ -1728,7 +1728,7 @@ pub fn emit_generate_pg_types(
                                     #[allow(clippy::absolute_paths)]
                                     #allow_clippy_arbitrary_src_item_ordering
                                     const _: () = {
-                                        #[allow(unused_extern_crates, clippy::useless_attribute)]
+                                        #[expect(unused_extern_crates)]
                                         extern crate serde as _serde;
                                         #[automatically_derived]
                                         impl<'de> _serde::Deserialize<'de> for #identifier_standard_non_null_origin_upper_camel_case {

@@ -99,15 +99,6 @@ fn panic_unexpected_result(
     panic!("{error_id} unexpected {expected} for {fn_name}, id={exp_id}");
 }
 #[track_caller]
-#[allow(clippy::single_call_fn)] // shared panic builder keeps explicit UUID-tagged panic path reusable for header-replace preconditions
-fn panic_replace_header_missing_src(exp_id: impl Into<TestExpId>) -> ! {
-    let exp_id = exp_id.into();
-    panic!(
-        "{} missing source header while replacing, id={exp_id}",
-        str_constants::ROUTE_VALIDATORS_REPLACE_HEADER_MISSING_SRC_ER_ID
-    );
-}
-#[track_caller]
 pub(crate) fn expect_ok<T, E>(v: Result<T, E>, exp_id: impl Into<TestExpId>) -> T {
     v.unwrap_or_else(|_| {
         panic_unexpected_result(
@@ -281,10 +272,13 @@ pub(crate) fn replace_header_name<'headers_lt>(
     exp_id: impl Into<TestExpId>,
 ) {
     let headers = headers.into();
-    let value = headers
-        .0
-        .remove(from_name)
-        .unwrap_or_else(|| panic_replace_header_missing_src(exp_id));
+    let value = headers.0.remove(from_name).unwrap_or_else(|| {
+        let exp_id = exp_id.into();
+        panic!(
+            "{} missing source header while replacing, id={exp_id}",
+            str_constants::ROUTE_VALIDATORS_REPLACE_HEADER_MISSING_SRC_ER_ID
+        );
+    });
     insert_header_no_prev(headers.0, to_name, value);
 }
 pub(crate) fn non_utf8_header_value() -> AxumTestHeaderValue {

@@ -1587,11 +1587,6 @@ fn source_lint_suppressions_have_explicit_reasons() {
         },
         LegacySuppression {
             limit: 1,
-            path_suffix: "macros_helpers/src/write_string_into_file.rs",
-            reason: "filesystem helper control flow predates per-attribute reasons",
-        },
-        LegacySuppression {
-            limit: 1,
             path_suffix: "newtype/tests/newtype.rs",
             reason: "derive fixture intentionally retains an otherwise unused item",
         },

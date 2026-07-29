@@ -108,43 +108,6 @@ fn should_write_string_into_file(
         Err(error) => Err(error),
     }
 }
-#[allow(clippy::single_call_fn)]
-// shared test helper checks unchanged-length diff content path to ensure content comparison still runs
-#[cfg(test)]
-fn should_write_with_same_len_diff(
-    path: &std::path::Path,
-    old: &str,
-    new: &str,
-) -> std::io::Result<ShouldWriteString> {
-    if old.len() != new.len() {
-        return Err(std::io::Error::other(
-            str_constants::F4C1D7A9_SAME_LEN_HELPER_REQUIRES_EQUAL_LENGTHS,
-        ));
-    }
-    std::fs::write(path, old)?;
-    should_write_string_into_file(
-        StdWrittenFilePathRef::from(path),
-        StringFileContentRef::from(new),
-    )
-}
-#[allow(clippy::single_call_fn)] // shared test helper checks changed-length short-circuit path via metadata length comparison
-#[cfg(test)]
-fn should_write_with_diff_len(
-    path: &std::path::Path,
-    old: &str,
-    new: &str,
-) -> std::io::Result<ShouldWriteString> {
-    if old.len() == new.len() {
-        return Err(std::io::Error::other(
-            str_constants::VALUE_9A6D2C1B_DIFF_LEN_HELPER_REQUIRES_DIFFERENT_LENGTHS,
-        ));
-    }
-    std::fs::write(path, old)?;
-    should_write_string_into_file(
-        StdWrittenFilePathRef::from(path),
-        StringFileContentRef::from(new),
-    )
-}
 #[allow(clippy::single_call_fn)] // extracted side-effect helper keeps write/no-write branching reusable and test-focused
 fn write_string_if_needed(
     path: StdWrittenFilePathRef<'_>,
@@ -321,21 +284,20 @@ mod tests {
     #[test]
     fn should_write_string_into_file_returns_true_for_same_len_diff_content() {
         let path = txt_path(str_constants::MACROS_HELPERS_SHOULD_WRITE_SAME_LEN_DIFF);
-        let should_write = super::should_write_with_same_len_diff(
-            &path,
-            str_constants::ABC_ALT_3,
-            str_constants::XYZ,
-        )
-        .expect("517fd0c9");
+        std::fs::write(&path, str_constants::ABC_ALT_3).expect("517fd0c9");
+        let should_write =
+            super::should_write_string_into_file(path_ref(&path), cnt(str_constants::XYZ))
+                .expect("a82c48b8");
         assert!(bool::from(should_write));
         cleanup(path.as_path());
     }
     #[test]
     fn should_write_string_into_file_returns_true_for_diff_len_content() {
         let path = txt_path(str_constants::MACROS_HELPERS_SHOULD_WRITE_DIFF_LEN);
+        std::fs::write(&path, str_constants::ABCD_ALT).expect("e2d99b73");
         let should_write =
-            super::should_write_with_diff_len(&path, str_constants::ABCD_ALT, str_constants::A_ALT)
-                .expect("e2d99b73");
+            super::should_write_string_into_file(path_ref(&path), cnt(str_constants::A_ALT))
+                .expect("157e8cad");
         assert!(bool::from(should_write));
         cleanup(path.as_path());
     }

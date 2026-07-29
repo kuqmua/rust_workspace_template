@@ -137,11 +137,9 @@ mod tests {
     {
         crate::test_hlp::mk_headers_with_entry(TEST_HEADER_NAME, value)
     }
-    #[allow(clippy::single_call_fn)] // shared literal-header fixture keeps repetitive test setup concise
     fn mk_test_headers_static(value: &'static str) -> crate::test_hlp::AxumTestHeaders {
         mk_test_headers(axum::http::HeaderValue::from_static(value))
     }
-    #[allow(clippy::single_call_fn)] // shared assertion keeps expected TestError error checks concise across header helpers
     fn assert_header_err<T>(actual: Result<T, TestError>, exp: &TestError) {
         assert!(matches!(actual, Err(v) if &v == exp));
     }

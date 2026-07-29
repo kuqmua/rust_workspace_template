@@ -6380,7 +6380,6 @@ pub fn emit_generate_pg_table(
             };
             let operation_token_stream = {
                 quote::quote! {
-                    #[allow(clippy::single_call_fn)]
                     pub async fn #operation_snake_case_token_stream(
                         #AppStateSnakeCase: axum::extract::State<#std_sync_arc_combination_of_app_state_logic_traits_token_stream>,
                         #ReqSnakeCase: axum::extract::Request,
@@ -6618,7 +6617,7 @@ pub fn emit_generate_pg_table(
                             #[allow(clippy::absolute_paths)]
                             #AllowClippyArbitrarySrcItemOrdering
                             const _: () = {
-                                #[allow(unused_extern_crates, clippy::useless_attribute)]
+                                #[expect(unused_extern_crates)]
                                 extern crate serde as _serde;
                                 #[automatically_derived]
                                 impl<'de> _serde::Deserialize<'de> for #identifier_operation_payload_upper_camel_case {

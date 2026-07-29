@@ -143,7 +143,6 @@ fn request_origin_value_is_allowed(
     }))
 }
 
-#[allow(clippy::single_call_fn)] // parsing remains isolated from allow-list comparison
 #[must_use]
 pub fn request_origin_allowed(
     headers: HttpOriginHeadersRef<'_>,

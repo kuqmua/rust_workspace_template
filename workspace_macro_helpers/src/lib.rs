@@ -438,7 +438,6 @@ where
     }
     None
 }
-#[allow(clippy::single_call_fn)] // this keeps the closure parser isolated from proc-macro expansion bodies
 #[must_use]
 pub fn closure_identifier_and_body<T>(input: T) -> Option<(FirstIdentifier, ProcMacro2MacroTokens)>
 where

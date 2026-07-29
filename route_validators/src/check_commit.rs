@@ -188,20 +188,14 @@ mod tests {
     fn expect_commit_to_str_conversion_err(headers: &axum::http::HeaderMap, exp_id: &'static str) {
         expect_check_commit_err_variant(headers, exp_id, is_commit_to_str_conversion);
     }
-    #[allow(clippy::single_call_fn)] // shared assertion keeps CommitNotEq expectation consistent across mismatch tests
-    fn assert_commit_not_eq_fields(
-        fields: (&'static str, &'static str),
-        exp_commit_not_eq: &'static str,
-        exp_commit_to_use: &'static str,
-    ) {
-        let (commit_not_eq, commit_to_use) = fields;
-        assert_eq!(commit_not_eq, exp_commit_not_eq);
-        assert_eq!(commit_to_use, exp_commit_to_use);
-    }
     fn assert_wrong_commit_fields(fields: (&'static str, &'static str)) {
-        assert_commit_not_eq_fields(
-            fields,
+        let (commit_not_eq, commit_to_use) = fields;
+        assert_eq!(
+            commit_not_eq,
             str_constants::ROUTE_VALIDATORS_COMMIT_NOT_EQ_MSG,
+        );
+        assert_eq!(
+            commit_to_use,
             <&'static str>::from(git_info::project_git_commit_link_ref()),
         );
     }

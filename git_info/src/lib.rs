@@ -435,16 +435,6 @@ mod tests {
     fn assert_expected_git_commit_link(actual: impl AsRef<str>, exp_commit_id: &str) {
         assert_eq!(actual.as_ref(), expected_git_commit_link(exp_commit_id));
     }
-    #[allow(clippy::single_call_fn)] // shared helper keeps borrowed/owned Cow-kind assertions consistent across commit-id tests
-    fn assert_commit_id_cow_kind(
-        commit_id: &str,
-        is_borrowed: bool,
-        exp_commit_id: &str,
-        exp_is_borrowed: bool,
-    ) {
-        assert_eq!(commit_id, exp_commit_id);
-        assert_eq!(is_borrowed, exp_is_borrowed);
-    }
     fn assert_commit_link_and_fallback_calls(
         v: &TestGitCommit,
         exp_commit_id: &str,
@@ -461,10 +451,9 @@ mod tests {
         exp_fallback_calls: usize,
     ) {
         let commit_id = super::GetGitCommitId::get_git_commit_id_cow(v);
-        assert_commit_id_cow_kind(
-            commit_id.as_ref(),
+        assert_eq!(commit_id.as_ref(), exp_commit_id);
+        assert_eq!(
             matches!(&commit_id.0, std::borrow::Cow::Borrowed(_)),
-            exp_commit_id,
             exp_is_borrowed,
         );
         assert_fallback_calls(v, exp_fallback_calls);

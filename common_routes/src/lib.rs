@@ -663,21 +663,17 @@ mod tests {
     fn assert_git_info_commit(payload: &super::GitInfo, exp_commit: &str) {
         assert_eq!(payload.commit.as_ref(), exp_commit);
     }
-    #[allow(clippy::single_call_fn)] // shared assertion centralizes not-found payload checks used across direct and state-based tests
-    fn assert_not_found_payload(payload: &super::NotFoundHandle, exp_uri_suffix: &str) {
-        assert_no_route_message(&payload.message, exp_uri_suffix);
-        assert_eq!(
-            payload.open_api_specification.0,
-            str_constants::COMMON_ROUTES_SWAGGER_UI
-        );
-    }
     fn assert_not_found_payload_with_commit(
         payload: &super::NotFoundHandle,
         exp_commit: &str,
         exp_uri_suffix: &str,
     ) {
         assert_eq!(payload.commit.as_ref(), exp_commit);
-        assert_not_found_payload(payload, exp_uri_suffix);
+        assert_no_route_message(&payload.message, exp_uri_suffix);
+        assert_eq!(
+            payload.open_api_specification.0,
+            str_constants::COMMON_ROUTES_SWAGGER_UI
+        );
     }
     fn assert_no_route_message(actual: &to_err_string::ErrorText, uri_suffix: &str) {
         assert_eq!(

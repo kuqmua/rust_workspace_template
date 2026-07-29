@@ -100,7 +100,6 @@ fn static_str_to_owned(v: StaticStrToOwnedInput) -> ErrorText {
 }
 #[cfg(test)]
 mod tests {
-    #[allow(clippy::single_call_fn)] // shared assertion keeps ToErrString behavior checks concise and consistent
     fn assert_to_err_string(v: impl super::ToErrString, exp: &str) {
         assert_eq!(v.to_err_string().as_ref(), exp);
     }
