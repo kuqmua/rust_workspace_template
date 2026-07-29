@@ -3499,7 +3499,7 @@ async fn postgresql_migration_creates_complete_schema() {
     .fetch_one(&base_pool)
     .await
     .expect("5c10c931");
-    assert_eq!(version, 13i64);
+    assert_eq!(version, 12i64);
     let expected_tables = server_admin_contract::AdminDataTable::PG_ORDER
         .map(|table| table.to_string())
         .into_iter()
