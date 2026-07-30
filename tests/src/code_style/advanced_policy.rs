@@ -1705,10 +1705,24 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             ),
         ),
         (
-            "server_admin_frontend/src/app.rs",
+            "server_admin_frontend/src/app/http.rs",
             (
-                29usize,
-                "browser failures map to serializable UI error categories",
+                16usize,
+                "browser HTTP failures map to serializable UI error categories",
+            ),
+        ),
+        (
+            "server_admin_frontend/src/app/loader.rs",
+            (
+                1usize,
+                "browser page loading failures map to a stable query error",
+            ),
+        ),
+        (
+            "server_admin_frontend/src/app/query.rs",
+            (
+                12usize,
+                "browser query parsing failures map to stable UI error categories",
             ),
         ),
     ]);

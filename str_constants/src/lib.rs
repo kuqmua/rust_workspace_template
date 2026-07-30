@@ -3022,6 +3022,31 @@ define_str_constants! {
         pub SERVER_ADMIN_FRONTEND_SRC_APP_FORMS_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_APP, "/forms.", WORD_RS];
         pub SERVER_ADMIN_FRONTEND_SRC_APP_PAGES_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_APP, "/pages.", WORD_RS];
         pub SERVER_ADMIN_FRONTEND_SRC_APP_TABLES_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_APP, "/tables.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_APP_DATA_GRID_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_APP, "/data_grid.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_APP_NAVIGATION_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_APP, "/navigation.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_APP_PAGINATION_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_APP, "/pagination.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_APP_PERMISSIONS_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_APP, "/", WORD_PERMISSIONS_2, ".", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_APP_PROFILE_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_APP, "/profile.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_APP_ROLES_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_APP, "/roles.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_APP_ROLES_CREATE_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_APP, "/roles/create.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_APP_SESSIONS_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_APP, "/", WORD_SESSIONS, ".", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_APP_SETTINGS_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_APP, "/", WORD_SETTINGS_2, ".", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_APP_SHELL_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_APP, "/shell.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_APP_USERS_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_APP, "/users.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_APP_USERS_CREATE_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_APP, "/users/create.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SHARED_DATA_GRID_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_SHARED, "/data_grid.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SHARED_SETTINGS_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_SHARED, "/", WORD_SETTINGS_2, ".", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SHARED_TABLE_FILTERS_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_SHARED, "/table_filters.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SSR_ROLES_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/ssr/roles.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SSR_DATA_TABLES_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/ssr/data_tables.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SSR_DOCUMENT_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/ssr/document.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SSR_PERMISSIONS_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/ssr/", WORD_PERMISSIONS_2, ".", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SSR_PROFILE_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/ssr/profile.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SSR_SESSIONS_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/ssr/", WORD_SESSIONS, ".", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SSR_SETTINGS_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/ssr/", WORD_SETTINGS_2, ".", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SSR_TABLE_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/ssr/table.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SSR_TEXT_PAGE_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/ssr/text_page.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SSR_USERS_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/ssr/users.", WORD_RS];
         pub SERVER_ADMIN_FRONTEND_SRC_LIB_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_LIB, ".", WORD_RS];
         pub SERVER_RUNTIME_SRC_BOUNDED_READ_RS = ["server_runtime_http", "/", WORD_SRC, "/bounded_read.", WORD_RS];
         pub SERVER_RUNTIME_SRC_HEALTH_RS = [WORD_SERVER_RUNTIME, "/", WORD_SRC, "/", WORD_HEALTH, ".", WORD_RS];
@@ -3715,14 +3740,62 @@ pub const CODE_STYLE_FACADE_REEXPORT_REASONS: [&str; 10] = [
     "server runtime core facade exports dependency-light runtime primitives",
     "server HTTP runtime facade exports HTTP and integration primitives",
 ];
-pub const CODE_STYLE_LEPTOS_PRELUDE_SUFFIXES: [&str; 3] = [
+pub const CODE_STYLE_LEPTOS_PRELUDE_SUFFIXES: [&str; 27] = [
     SERVER_ADMIN_FRONTEND_SRC_APP_RS,
-    SERVER_ADMIN_FRONTEND_SRC_SHARED_RS,
+    SERVER_ADMIN_FRONTEND_SRC_APP_DATA_GRID_RS,
+    SERVER_ADMIN_FRONTEND_SRC_APP_NAVIGATION_RS,
+    SERVER_ADMIN_FRONTEND_SRC_APP_PAGINATION_RS,
+    SERVER_ADMIN_FRONTEND_SRC_APP_PERMISSIONS_RS,
+    SERVER_ADMIN_FRONTEND_SRC_APP_PROFILE_RS,
+    SERVER_ADMIN_FRONTEND_SRC_APP_ROLES_RS,
+    SERVER_ADMIN_FRONTEND_SRC_APP_ROLES_CREATE_RS,
+    SERVER_ADMIN_FRONTEND_SRC_APP_SESSIONS_RS,
+    SERVER_ADMIN_FRONTEND_SRC_APP_SETTINGS_RS,
+    SERVER_ADMIN_FRONTEND_SRC_APP_SHELL_RS,
+    SERVER_ADMIN_FRONTEND_SRC_APP_USERS_RS,
+    SERVER_ADMIN_FRONTEND_SRC_APP_USERS_CREATE_RS,
+    SERVER_ADMIN_FRONTEND_SRC_SHARED_DATA_GRID_RS,
+    SERVER_ADMIN_FRONTEND_SRC_SHARED_SETTINGS_RS,
+    SERVER_ADMIN_FRONTEND_SRC_SHARED_TABLE_FILTERS_RS,
+    SERVER_ADMIN_FRONTEND_SRC_SSR_DATA_TABLES_RS,
+    SERVER_ADMIN_FRONTEND_SRC_SSR_DOCUMENT_RS,
+    SERVER_ADMIN_FRONTEND_SRC_SSR_PERMISSIONS_RS,
+    SERVER_ADMIN_FRONTEND_SRC_SSR_PROFILE_RS,
+    SERVER_ADMIN_FRONTEND_SRC_SSR_ROLES_RS,
+    SERVER_ADMIN_FRONTEND_SRC_SSR_SESSIONS_RS,
+    SERVER_ADMIN_FRONTEND_SRC_SSR_SETTINGS_RS,
+    SERVER_ADMIN_FRONTEND_SRC_SSR_TABLE_RS,
+    SERVER_ADMIN_FRONTEND_SRC_SSR_TEXT_PAGE_RS,
+    SERVER_ADMIN_FRONTEND_SRC_SSR_USERS_RS,
     SSR_SOURCE_PATH,
 ];
-pub const CODE_STYLE_LEPTOS_PRELUDE_REASONS: [&str; 3] = [
+pub const CODE_STYLE_LEPTOS_PRELUDE_REASONS: [&str; 27] = [
     "Leptos CSR view macro expansion requires attribute traits in lexical scope",
-    "shared Leptos view macro expansion requires attribute traits in lexical scope",
+    "Leptos CSR data-grid component requires attribute traits in lexical scope",
+    "Leptos CSR navigation component requires attribute traits in lexical scope",
+    "Leptos CSR pagination component requires attribute traits in lexical scope",
+    "Leptos CSR permissions component requires attribute traits in lexical scope",
+    "Leptos CSR profile component requires attribute traits in lexical scope",
+    "Leptos CSR roles component requires attribute traits in lexical scope",
+    "Leptos CSR role-creation component requires attribute traits in lexical scope",
+    "Leptos CSR sessions component requires attribute traits in lexical scope",
+    "Leptos CSR settings component requires attribute traits in lexical scope",
+    "Leptos CSR shell component requires attribute traits in lexical scope",
+    "Leptos CSR users component requires attribute traits in lexical scope",
+    "Leptos CSR user-creation component requires attribute traits in lexical scope",
+    "shared Leptos data-grid rendering requires attribute traits in lexical scope",
+    "shared Leptos settings rendering requires attribute traits in lexical scope",
+    "shared Leptos table-filter rendering requires attribute traits in lexical scope",
+    "Leptos SSR data-table rendering requires attribute traits in lexical scope",
+    "Leptos SSR document rendering requires attribute traits in lexical scope",
+    "Leptos SSR permissions rendering requires attribute traits in lexical scope",
+    "Leptos SSR profile rendering requires attribute traits in lexical scope",
+    "Leptos SSR roles rendering requires attribute traits in lexical scope",
+    "Leptos SSR sessions rendering requires attribute traits in lexical scope",
+    "Leptos SSR settings rendering requires attribute traits in lexical scope",
+    "Leptos SSR table rendering requires attribute traits in lexical scope",
+    "Leptos SSR text-page rendering requires attribute traits in lexical scope",
+    "Leptos SSR users rendering requires attribute traits in lexical scope",
     "Leptos SSR view macro expansion requires attribute traits in lexical scope",
 ];
 pub const CODE_STYLE_SINGLE_SOURCE_OWNER_SUFFIXES: [&str; 6] = [

@@ -227,14 +227,14 @@ fn admin_frontend_api_urls_come_from_typed_routes() {
         let source = snapshot
             .rs_files()
             .iter()
-            .find(|file| {
+            .filter(|file| {
                 file.path()
                     .as_ref()
-                    .ends_with("server_admin_frontend/src/app.rs")
+                    .to_string_lossy()
+                    .contains("server_admin_frontend/src/app/")
             })
-            .expect("9d160586")
-            .content()
-            .as_ref();
+            .map(|file| file.content().as_ref())
+            .collect::<String>();
         assert!(!source.contains("str_constants::API_V1"), "24e5ceeb");
         assert!(!source.contains("ADMIN_API_"), "72b66898");
     });
@@ -439,41 +439,63 @@ fn administrator_data_table_queries_come_from_the_typed_spec() {
 #[test]
 fn administrator_csr_page_behavior_comes_from_the_page_catalog() {
     super::snapshot::with_codebase_snapshot(|snapshot| {
-        let app = snapshot
+        let query = snapshot
             .rs_files()
             .iter()
             .find(|file| {
                 file.path()
                     .as_ref()
-                    .ends_with("server_admin_frontend/src/app.rs")
+                    .ends_with("server_admin_frontend/src/app/query.rs")
             })
             .expect("58e2110e")
             .content()
             .as_ref();
-        assert!(!app.contains("AdminCsrPage"), "438888fd");
-        assert!(app.contains("page.supports_csr()"), "d3ec99c6");
-        assert!(app.contains("page.uses_table_query()"), "256ac244");
-        assert!(app.contains("page.spec().route()"), "fe0906a9");
+        let loader = snapshot
+            .rs_files()
+            .iter()
+            .find(|file| {
+                file.path()
+                    .as_ref()
+                    .ends_with("server_admin_frontend/src/app/loader.rs")
+            })
+            .expect("04bb78af")
+            .content()
+            .as_ref();
+        assert!(!query.contains("AdminCsrPage"), "438888fd");
+        assert!(query.contains("page.supports_csr()"), "d3ec99c6");
+        assert!(loader.contains("page.uses_table_query()"), "256ac244");
+        assert!(loader.contains("page.spec().route()"), "fe0906a9");
+        let pages = snapshot
+            .rs_files()
+            .iter()
+            .find(|file| {
+                file.path()
+                    .as_ref()
+                    .ends_with(str_constants::SERVER_ADMIN_FRONTEND_SRC_APP_SETTINGS_RS)
+            })
+            .expect("2f3afe52")
+            .content()
+            .as_ref();
         let ssr = snapshot
             .rs_files()
             .iter()
             .find(|file| {
                 file.path()
                     .as_ref()
-                    .ends_with("server_admin_frontend/src/ssr.rs")
+                    .ends_with(str_constants::SERVER_ADMIN_FRONTEND_SRC_SSR_SETTINGS_RS)
             })
             .expect("2c589b2b")
             .content()
             .as_ref();
         assert!(
-            app.contains("shared::AdminSettingsFormValues::from"),
+            pages.contains("shared::settings::AdminSettingsFormValues::from"),
             "3ca65c5b"
         );
         assert!(
-            ssr.contains("shared::AdminSettingsFormValues::from"),
+            ssr.contains("shared::settings::AdminSettingsFormValues::from"),
             "9f904035"
         );
-        assert!(!app.contains("page.main_logo()"), "67c3d270");
+        assert!(!pages.contains("page.main_logo()"), "67c3d270");
         assert!(!ssr.contains("view.main_logo()"), "6201410d");
     });
 }

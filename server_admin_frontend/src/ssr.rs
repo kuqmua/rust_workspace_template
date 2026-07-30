@@ -1,25 +1,35 @@
 #![allow(
+    clippy::single_call_fn,
     clippy::unused_trait_names,
-    reason = "Leptos view macro expansion requires these attribute traits in lexical scope and repository policy forbids underscore import aliases"
+    reason = "the stable SSR facade delegates to screen, document, and table modules; test view rendering requires the named extension trait"
 )]
-use leptos::prelude::{
-    AriaAttributes, ClassAttribute, CustomAttribute, ElementChild, GlobalAttributes,
-    InnerHtmlAttribute, IntoAny, StyleAttribute,
-};
+
+mod data_tables;
+mod document;
+mod permissions;
+mod profile;
+mod roles;
+mod sessions;
+mod settings;
+mod table;
+mod text_page;
+mod users;
 
 const SSR_TEXT_MAX_BYTES: usize = 16_777_216usize;
 
+#[cfg(test)]
 trait AdminSsrViewExt {
     fn render_admin_ssr(self) -> AdminSsrHtml;
 }
+#[cfg(test)]
 impl<View> AdminSsrViewExt for View
 where
-    View: IntoAny,
+    View: leptos::prelude::IntoAny,
 {
     fn render_admin_ssr(self) -> AdminSsrHtml {
-        AdminSsrHtml::try_from(leptos::prelude::RenderHtml::to_html(IntoAny::into_any(
-            self,
-        )))
+        AdminSsrHtml::try_from(leptos::prelude::RenderHtml::to_html(
+            leptos::prelude::IntoAny::into_any(self),
+        ))
         .unwrap_or_else(AdminSsrHtml::from)
     }
 }
@@ -41,7 +51,7 @@ impl From<AdminSsrTextTryFromStringError> for AdminSsrText {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::Display)]
 pub struct AdminSsrErrorMessage(to_err_string::ErrorText);
 impl TryFrom<String> for AdminSsrErrorMessage {
     type Error = to_err_string::ErrorTextTryFromStringError;
@@ -74,13 +84,8 @@ impl TryFrom<String> for AdminSsrHtml {
     }
 }
 
-fn render_document(title: &AdminSsrText, body: impl IntoAny) -> AdminSsrHtml {
-    let rendered_body = body.render_admin_ssr();
-    AdminSsrHtml::try_from(format!(
-        "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>{title}</title><link rel=\"stylesheet\" href=\"/admin/assets/style.css?v=20260729-35\"></head><body>{}</body></html>",
-        rendered_body.0
-    ))
-    .unwrap_or_else(AdminSsrHtml::from)
+fn render_document(title: &AdminSsrText, body: impl leptos::prelude::IntoAny) -> AdminSsrHtml {
+    document::render_document(title, body)
 }
 
 #[must_use]
@@ -88,31 +93,7 @@ pub fn render_sign_in(
     error: Option<AdminSsrErrorMessage>,
     branding: Option<&server_admin_contract::AdminBrandingView>,
 ) -> AdminSsrHtml {
-    let tab_title = branding
-        .and_then(server_admin_contract::AdminBrandingView::tab_title)
-        .map_or_else(
-            || String::from(str_constants::ADMINISTRATOR_SIGN_IN),
-            |value| AsRef::<str>::as_ref(value).to_owned(),
-        );
-    let primary_color = branding
-        .and_then(server_admin_contract::AdminBrandingView::primary_color)
-        .map(|value| format!("--accent:{}", AsRef::<str>::as_ref(value)));
-    render_document(
-        &AdminSsrText::try_from(tab_title).unwrap_or_else(AdminSsrText::from),
-        leptos::view! {
-            <main class="auth-layout" style=primary_color>
-                <section class="auth-card">
-                    {error.map(|message| leptos::view! { <p class="field-error" role="alert">{message.0.to_string()}</p> })}
-                    <p class="password-policy">{str_constants::ADMIN_PASSWORD_POLICY_DESCRIPTION}</p>
-                    <form method="post" action=server_admin_contract::AdminHtmlAction::SignIn.get()>
-                        <label><span>"Login"</span><input name="login" autocomplete="username" required /></label>
-                        <label><span>"Password"</span><input name="password" type="password" autocomplete="current-password" required /></label>
-                        <button type="submit">"Sign in"</button>
-                    </form>
-                </section>
-            </main>
-        },
-    )
+    document::render_sign_in(error, branding)
 }
 
 #[must_use]
@@ -120,7 +101,7 @@ pub fn render_admin_page(
     page: server_admin_contract::AdminPage,
     content: AdminSsrHtml,
 ) -> AdminSsrHtml {
-    render_admin_page_with_access(page, content, None, None)
+    document::render_admin_page(page, content)
 }
 
 fn render_admin_page_with_access(
@@ -129,7 +110,7 @@ fn render_admin_page_with_access(
     admin: Option<&server_admin_contract::AuthenticatedAdmin>,
     branding: Option<&server_admin_contract::AdminBrandingView>,
 ) -> AdminSsrHtml {
-    render_admin_page_with_table_access(page, content, admin, branding, None)
+    document::render_admin_page_with_access(page, content, admin, branding)
 }
 
 fn render_admin_page_with_table_access(
@@ -139,45 +120,7 @@ fn render_admin_page_with_table_access(
     branding: Option<&server_admin_contract::AdminBrandingView>,
     active_table: Option<server_admin_contract::AdminDataTable>,
 ) -> AdminSsrHtml {
-    let spec = page.spec();
-    let title = spec.title();
-    let document_title = branding
-        .and_then(server_admin_contract::AdminBrandingView::tab_title)
-        .map_or_else(
-            || title.as_ref().to_owned(),
-            |value| AsRef::<str>::as_ref(value).to_owned(),
-        );
-    let primary_color = branding
-        .and_then(server_admin_contract::AdminBrandingView::primary_color)
-        .map(|value| format!("--accent:{}", AsRef::<str>::as_ref(value)));
-    render_document(
-        &AdminSsrText::try_from(document_title).unwrap_or_else(AdminSsrText::from),
-        leptos::view! {
-            <div class="app-shell" style=primary_color>
-                <header class="topbar">
-                    <nav aria-label="Admin sections">
-                        {server_admin_contract::AdminDataTable::PG_ORDER.into_iter().filter(|table| admin.is_none_or(|value| bool::from(value.has_permission(server_admin_contract::AdminPermission::TablesRead)) && bool::from(value.has_permission(table.permission())))).map(|table| {
-                            let name = table.to_string();
-                            let href = table.frontend_path().to_string();
-                            leptos::view! {
-                                <a class=(active_table == Some(table)).then_some("active") href=href>{name}</a>
-                            }
-                        }).collect::<Vec<_>>()}
-                        {server_admin_contract::AdminPage::navigation().filter(|item_page| admin.is_none_or(|value| bool::from(value.can_access(*item_page)))).map(|item_page| {
-                            let item = item_page.spec();
-                            let href = String::from(item.path());
-                            let label = item.route_name().as_ref().to_owned();
-                            leptos::view! {
-                                <a class=(item_page == page).then_some("active") href=href>{label}</a>
-                            }
-                        }).collect::<Vec<_>>()}
-                        <form method="post" action=server_admin_contract::AdminHtmlAction::SignOut.get()><button type="submit">{server_admin_contract::AdminHtmlAction::SignOut.route_name().as_ref().to_owned()}</button></form>
-                    </nav>
-                </header>
-                <main class="main-content"><p id="saved" class="flash-success" role="status">"Changes saved."</p><div inner_html=content.0></div></main>
-            </div>
-        },
-    )
+    document::render_admin_page_with_table_access(page, content, admin, branding, active_table)
 }
 
 fn table_pagination(
@@ -187,63 +130,17 @@ fn table_pagination(
     table: Option<server_admin_contract::AdminDataTable>,
     table_filter: Option<&server_admin_contract::AdminDataTableFilterQuery>,
 ) -> impl leptos::prelude::IntoView {
-    let action = table.map_or_else(
-        || String::from(page.path()),
-        |value| value.frontend_path().to_string(),
-    );
-    let limit = u16::from(query.limit());
-    let range = crate::shared::AdminPageRange::new(query.offset(), query.limit(), total);
-    let filter_operation = table_filter
-        .and_then(server_admin_contract::AdminDataTableFilterQuery::operation)
-        .map(server_admin_contract::AdminFilterOperationKey::from);
-    let filter_field =
-        table_filter.and_then(server_admin_contract::AdminDataTableFilterQuery::field);
-    let filter_value =
-        table_filter.and_then(server_admin_contract::AdminDataTableFilterQuery::value);
-    let filter_end = table_filter.and_then(server_admin_contract::AdminDataTableFilterQuery::end);
-    leptos::view! {
-        <nav class="table-pagination" aria-label="Table pages">
-            <form class="table-page-size" method="get" action=action.clone()>
-                {crate::shared::admin_table_query_hidden_inputs(query.search(), query.sort(), &crate::shared::AdminTableQueryDirection::Ssr(query.direction()), query.limit())}
-                {crate::shared::admin_filter_hidden_inputs(filter_field, filter_operation.as_ref(), filter_value, filter_end)}
-                <input type="hidden" name="offset" value="0" />
-                <label><span>"Rows"</span><input name="limit" type="number" min=server_admin_contract::AdminPageLimit::MIN max=server_admin_contract::AdminPageLimit::MAX value=limit.to_string() /></label>
-                <button type="submit">"Apply"</button>
-            </form>
-            <form method="get" action=action.clone()>
-                {crate::shared::admin_table_query_hidden_inputs(query.search(), query.sort(), &crate::shared::AdminTableQueryDirection::Ssr(query.direction()), query.limit())}
-                {crate::shared::admin_filter_hidden_inputs(filter_field, filter_operation.as_ref(), filter_value, filter_end)}
-                <input type="hidden" name="offset" value=u32::from(range.previous_offset()).to_string() /><button type="submit" disabled=bool::from(range.previous_disabled())>"Previous"</button>
-            </form>
-            <span>{format!("{}-{} of {}", u64::from(range.start()), u64::from(range.end()), total)}</span>
-            <form method="get" action=action>
-                {crate::shared::admin_table_query_hidden_inputs(query.search(), query.sort(), &crate::shared::AdminTableQueryDirection::Ssr(query.direction()), query.limit())}
-                {crate::shared::admin_filter_hidden_inputs(filter_field, filter_operation.as_ref(), filter_value, filter_end)}
-                <input type="hidden" name="offset" value=u32::from(range.next_offset()).to_string() /><button type="submit" disabled=bool::from(range.next_disabled())>"Next"</button>
-            </form>
-        </nav>
-    }
+    table::table_pagination(page, query, total, table, table_filter)
 }
 
-#[allow(clippy::single_call_fn)] // isolates the metadata-driven grid for focused SSR contract testing
 fn data_table_grid(
     view: &server_admin_contract::AdminDataTableView,
     query: &server_admin_contract::AdminDataTableQuery,
 ) -> impl leptos::prelude::IntoView {
-    let operation = query
-        .filter()
-        .operation()
-        .map(server_admin_contract::AdminFilterOperationKey::from);
-    crate::shared::admin_data_table_grid(
-        view,
-        query.filter().field(),
-        operation.as_ref(),
-        query.filter().value(),
-        query.filter().end(),
-        query.page().limit(),
-    )
+    table::data_table_grid(view, query)
 }
 
+#[allow(clippy::single_call_fn)] // isolates the metadata-driven grid for focused SSR contract testing
 #[must_use]
 pub fn render_users(
     page: &server_admin_contract::AdminUsersPage,
@@ -251,42 +148,7 @@ pub fn render_users(
     admin: &server_admin_contract::AuthenticatedAdmin,
     branding: &server_admin_contract::AdminBrandingView,
 ) -> AdminSsrHtml {
-    let can_create =
-        bool::from(admin.has_permission(server_admin_contract::AdminPermission::UsersCreate));
-    let can_delete =
-        bool::from(admin.has_permission(server_admin_contract::AdminPermission::UsersDelete));
-    let can_update =
-        bool::from(admin.has_permission(server_admin_contract::AdminPermission::UsersUpdate));
-    let can_update_roles =
-        bool::from(admin.has_permission(server_admin_contract::AdminPermission::UserRolesUpdate));
-    let content = leptos::view! {
-        <section class="table-page">
-        {crate::shared::admin_table_filters(server_admin_contract::AdminFrontendPath::Users, query.search(), query.sort(), crate::shared::AdminTableFilterDirection::from(query.direction()), query.limit(), &server_admin_contract::AdminTableSortField::USER, crate::shared::AdminTableFilterPresentation::Ssr)}
-        {can_create.then(|| leptos::view! { <details class="mutation-form"><summary>"Create user"</summary><form method="post" action=server_admin_contract::AdminHtmlAction::UserCreate.get()>
-            <label><span>"Login"</span><input name="login" required /></label><label><span>"Display name"</span><input name="display_name" required /></label>
-            <label><span>"Password"</span><input name="password" type="password" required /></label><button type="submit">"Create user"</button>
-        </form></details> })}
-        <div class="table-scroll"><table><thead><tr><th>"id"</th><th>"login"</th><th>"display_name"</th><th>"banned"</th><th>"roles"</th><th>"actions"</th></tr></thead>
-        <tbody>{page.items().iter().map(|item| { let expected_role_ids = item.role_ids().iter().map(ToString::to_string).collect::<Vec<_>>().join(","); leptos::view! {
-            <tr><td data-label="id">{item.id().to_string()}</td><td data-label="login">{item.login().to_string()}</td><td data-label="display_name">{item.display_name().to_string()}</td><td data-label="banned">{item.is_banned().to_string()}</td>
-            <td data-label="roles">{can_update_roles.then(|| leptos::view! { <form method="post" action=server_admin_contract::AdminHtmlAction::UserRoles.get()><input type="hidden" name="user_id" value=item.id().to_string() />
-                <input type="hidden" name="expected_role_ids" value=expected_role_ids />
-                {page.roles().iter().map(|role| { let checked = item.role_ids().contains(&role.id()); let name = format!("role_{}", role.id()); leptos::view! { <label><input type="checkbox" name=name value=role.id().to_string() checked=checked />{role.name().to_string()}</label> } }).collect::<Vec<_>>()}
-                <button type="submit">"Save roles"</button></form> })}</td>
-            <td data-label="actions">{can_update.then(|| leptos::view! { <details><summary>"Edit"</summary><form method="post" action=server_admin_contract::AdminHtmlAction::UserUpdate.get()><input type="hidden" name="user_id" value=item.id().to_string() /><input name="login" value=item.login().to_string() required /><input name="display_name" value=item.display_name().to_string() required /><button type="submit">"Save"</button></form></details>
-                <details><summary>"Password"</summary><form method="post" action=server_admin_contract::AdminHtmlAction::UserPassword.get()><input type="hidden" name="user_id" value=item.id().to_string() /><input name="password" type="password" required /><button type="submit">"Change password"</button></form></details>
-                <form method="post" action=server_admin_contract::AdminHtmlAction::UserBan.get()><input type="hidden" name="user_id" value=item.id().to_string() /><input type="hidden" name="is_banned" value=(!bool::from(item.is_banned())).to_string() /><button type="submit">{if bool::from(item.is_banned()) { "Unban" } else { "Ban" }}</button></form> })}
-                {can_delete.then(|| leptos::view! { <details><summary>"Delete"</summary><form method="post" action=server_admin_contract::AdminHtmlAction::UserDelete.get()><input type="hidden" name="user_id" value=item.id().to_string() /><label><input type="checkbox" name="confirmation" value="true" required />"Confirm permanent deletion"</label><button class="danger-button" type="submit">"Delete user"</button></form></details> })}</td></tr>
-        }}).collect::<Vec<_>>()}</tbody></table></div>
-        {table_pagination(server_admin_contract::AdminPage::Users, query, page.total(), None, None)}
-        </section>
-    }.render_admin_ssr();
-    render_admin_page_with_access(
-        server_admin_contract::AdminPage::Users,
-        content,
-        Some(admin),
-        Some(branding),
-    )
+    users::render(page, query, admin, branding)
 }
 
 #[must_use]
@@ -296,37 +158,7 @@ pub fn render_roles(
     admin: &server_admin_contract::AuthenticatedAdmin,
     branding: &server_admin_contract::AdminBrandingView,
 ) -> AdminSsrHtml {
-    let can_create =
-        bool::from(admin.has_permission(server_admin_contract::AdminPermission::RolesCreate));
-    let can_delete =
-        bool::from(admin.has_permission(server_admin_contract::AdminPermission::RolesDelete));
-    let can_update =
-        bool::from(admin.has_permission(server_admin_contract::AdminPermission::RolesUpdate));
-    let can_update_permissions = bool::from(
-        admin.has_permission(server_admin_contract::AdminPermission::RolePermissionsUpdate),
-    );
-    let content = leptos::view! {
-        <section class="table-page">
-        {crate::shared::admin_table_filters(server_admin_contract::AdminFrontendPath::Roles, query.search(), query.sort(), crate::shared::AdminTableFilterDirection::from(query.direction()), query.limit(), &server_admin_contract::AdminTableSortField::ROLE, crate::shared::AdminTableFilterPresentation::Ssr)}
-        {can_create.then(|| leptos::view! { <details class="mutation-form"><summary>"Create role"</summary><form method="post" action=server_admin_contract::AdminHtmlAction::RoleCreate.get()><label><span>"Name"</span><input name="name" required /></label><button type="submit">"Create role"</button></form></details> })}
-        <div class="table-scroll"><table><thead><tr><th>"id"</th><th>"name"</th><th>"system"</th><th>"permissions"</th><th>"actions"</th></tr></thead>
-        <tbody>{page.items().iter().map(|item| { let expected_permission_ids = item.permission_ids().iter().map(ToString::to_string).collect::<Vec<_>>().join(","); leptos::view! {
-            <tr><td data-label="id">{item.id().to_string()}</td><td data-label="name">{item.name().to_string()}</td><td data-label="system">{item.is_system().to_string()}</td><td data-label="permissions">{can_update_permissions.then(|| leptos::view! { <form method="post" action=server_admin_contract::AdminHtmlAction::RolePermissions.get()><input type="hidden" name="role_id" value=item.id().to_string() />
-                <input type="hidden" name="expected_permission_ids" value=expected_permission_ids />
-                {page.permissions().iter().map(|permission| { let checked = item.permission_ids().contains(&permission.id()); let name = format!("permission_{}", permission.id()); leptos::view! { <label><input type="checkbox" name=name value=permission.id().to_string() checked=checked />{permission.name().to_string()}</label> } }).collect::<Vec<_>>()}
-                <button type="submit">"Save permissions"</button></form> })}</td><td data-label="actions">
-                {can_update.then(|| leptos::view! { <form method="post" action=server_admin_contract::AdminHtmlAction::RoleUpdate.get()><input type="hidden" name="role_id" value=item.id().to_string() /><input name="name" value=item.name().to_string() required /><button type="submit">"Save"</button></form> })}
-                {can_delete.then(|| leptos::view! { <details><summary>"Delete"</summary><form method="post" action=server_admin_contract::AdminHtmlAction::RoleDelete.get()><input type="hidden" name="role_id" value=item.id().to_string() /><label><input type="checkbox" name="confirmation" value="true" required />"Confirm permanent deletion"</label><button class="danger-button" type="submit" disabled=bool::from(item.is_system())>"Delete role"</button></form></details> })}</td></tr>
-        }}).collect::<Vec<_>>()}</tbody></table></div>
-        {table_pagination(server_admin_contract::AdminPage::Roles, query, page.total(), None, None)}
-        </section>
-    }.render_admin_ssr();
-    render_admin_page_with_access(
-        server_admin_contract::AdminPage::Roles,
-        content,
-        Some(admin),
-        Some(branding),
-    )
+    roles::render(page, query, admin, branding)
 }
 
 #[must_use]
@@ -336,23 +168,7 @@ pub fn render_permissions(
     admin: &server_admin_contract::AuthenticatedAdmin,
     branding: &server_admin_contract::AdminBrandingView,
 ) -> AdminSsrHtml {
-    let content = leptos::view! {
-        <section class="table-page">
-        {crate::shared::admin_table_filters(server_admin_contract::AdminFrontendPath::Permissions, query.search(), query.sort(), crate::shared::AdminTableFilterDirection::from(query.direction()), query.limit(), &server_admin_contract::AdminTableSortField::PERMISSION, crate::shared::AdminTableFilterPresentation::Ssr)}
-        <div class="table-scroll"><table><thead><tr><th>"id"</th><th>"permission"</th></tr></thead>
-        <tbody>{page.items().iter().map(|item| leptos::view! {
-            <tr><td data-label="id">{item.id().to_string()}</td><td data-label="permission">{item.name().to_string()}</td></tr>
-        }).collect::<Vec<_>>()}</tbody></table></div>
-        {table_pagination(server_admin_contract::AdminPage::Permissions, query, page.total(), None, None)}
-        </section>
-    }
-    .render_admin_ssr();
-    render_admin_page_with_access(
-        server_admin_contract::AdminPage::Permissions,
-        content,
-        Some(admin),
-        Some(branding),
-    )
+    permissions::render_permissions(page, query, admin, branding)
 }
 
 #[must_use]
@@ -362,22 +178,7 @@ pub fn render_data_tables(
     admin: &server_admin_contract::AuthenticatedAdmin,
     branding: &server_admin_contract::AdminBrandingView,
 ) -> AdminSsrHtml {
-    let content = leptos::view! {
-        {table.map(|view| leptos::view! {
-            <section class="table-page">
-                {data_table_grid(view, query)}
-                {table_pagination(server_admin_contract::AdminPage::Tables, query.page(), view.total(), Some(view.table()), bool::from(view.table().supports_filters()).then_some(query.filter()))}
-            </section>
-        })}
-    }
-    .render_admin_ssr();
-    render_admin_page_with_table_access(
-        server_admin_contract::AdminPage::Tables,
-        content,
-        Some(admin),
-        Some(branding),
-        table.map(server_admin_contract::AdminDataTableView::table),
-    )
+    data_tables::render_data_tables(table, query, admin, branding)
 }
 
 #[must_use]
@@ -386,40 +187,17 @@ pub fn render_data_tables_csr(
     admin: &server_admin_contract::AuthenticatedAdmin,
     branding: &server_admin_contract::AdminBrandingView,
 ) -> AdminSsrHtml {
-    render_admin_csr(
-        server_admin_contract::AdminPage::Tables,
-        active_table,
-        admin,
-        branding,
-    )
+    data_tables::render_data_tables_csr(active_table, admin, branding)
 }
 
 #[must_use]
 pub fn render_admin_csr(
     page: server_admin_contract::AdminPage,
-    _active_table: Option<server_admin_contract::AdminDataTable>,
-    _admin: &server_admin_contract::AuthenticatedAdmin,
+    active_table: Option<server_admin_contract::AdminDataTable>,
+    admin: &server_admin_contract::AuthenticatedAdmin,
     branding: &server_admin_contract::AdminBrandingView,
 ) -> AdminSsrHtml {
-    let title = branding.tab_title().map_or_else(
-        || page.spec().title().as_ref().to_owned(),
-        |value| value.as_ref().to_owned(),
-    );
-    let primary_color = branding
-        .primary_color()
-        .map(|value| format!("--accent:{}", value.as_ref()));
-    render_document(
-        &AdminSsrText::try_from(title).unwrap_or_else(AdminSsrText::from),
-        leptos::view! {
-            <div id=str_constants::ADMIN_CSR_ROOT_ID style=primary_color>
-                <div class="loading-state" role="status" aria-live="polite">
-                    <span class="loading-spinner" aria-hidden="true"></span>
-                    <span class="sr-only">"Loading\u{2026}"</span>
-                </div>
-            </div>
-            <script type="module" src="/admin/assets/csr_bootstrap.js?v=20260730-36"></script>
-        },
-    )
+    data_tables::render_admin_csr(page, active_table, admin, branding)
 }
 
 #[must_use]
@@ -429,21 +207,7 @@ pub fn render_sessions(
     admin: &server_admin_contract::AuthenticatedAdmin,
     branding: &server_admin_contract::AdminBrandingView,
 ) -> AdminSsrHtml {
-    let content = leptos::view! {
-        <section class="table-page">
-        <div class="table-scroll"><table><thead><tr><th>"session"</th><th>"created"</th><th>"expires"</th><th>"current"</th><th>"actions"</th></tr></thead>
-        <tbody>{page.items().iter().map(|item| leptos::view! {
-            <tr><td data-label="session">{item.id().to_string()}</td><td data-label="created">{item.created_at().to_string()}</td><td data-label="expires">{item.expires_at().to_string()}</td><td data-label="current">{item.is_current().to_string()}</td><td data-label="actions"><details><summary>"Revoke"</summary><form method="post" action=server_admin_contract::AdminHtmlAction::SessionRevoke.get()><input type="hidden" name="session_id" value=item.id().to_string() /><label><input type="checkbox" name="confirmation" value="true" required />"Confirm session revocation"</label><button class="danger-button" type="submit">"Revoke session"</button></form></details></td></tr>
-        }).collect::<Vec<_>>()}</tbody></table></div>
-        {table_pagination(server_admin_contract::AdminPage::Sessions, query, page.total(), None, None)}
-        </section>
-    }.render_admin_ssr();
-    render_admin_page_with_access(
-        server_admin_contract::AdminPage::Sessions,
-        content,
-        Some(admin),
-        Some(branding),
-    )
+    sessions::render_sessions(page, query, admin, branding)
 }
 
 #[must_use]
@@ -451,27 +215,7 @@ pub fn render_profile(
     admin: &server_admin_contract::AuthenticatedAdmin,
     branding: &server_admin_contract::AdminBrandingView,
 ) -> AdminSsrHtml {
-    let roles = admin
-        .roles()
-        .iter()
-        .map(ToString::to_string)
-        .collect::<Vec<_>>()
-        .join(str_constants::COMMA_SPACE);
-    let content = leptos::view! {
-        <section class="security-card"><p><strong>{admin.display_name().to_string()}</strong></p><p>{admin.login().to_string()}</p><p>{roles}</p></section>
-        <section class="security-card"><form method="post" action=server_admin_contract::AdminHtmlAction::ProfilePassword.get()>
-            <p class="password-policy">{str_constants::ADMIN_PASSWORD_POLICY_DESCRIPTION}</p>
-            <label><span>"Current password"</span><input name="current_password" type="password" required /></label>
-            <label><span>"New password"</span><input name="new_password" type="password" minlength=server_admin_contract::ADMIN_NEW_PASSWORD_MIN_CHARS maxlength=server_admin_contract::ADMIN_PASSWORD_MAX_CHARS required /></label>
-            <button type="submit">"Change password"</button>
-        </form></section>
-    }.render_admin_ssr();
-    render_admin_page_with_access(
-        server_admin_contract::AdminPage::Profile,
-        content,
-        Some(admin),
-        Some(branding),
-    )
+    profile::render_profile(admin, branding)
 }
 
 #[must_use]
@@ -480,54 +224,27 @@ pub fn render_settings(
     admin: &server_admin_contract::AuthenticatedAdmin,
     branding: &server_admin_contract::AdminBrandingView,
 ) -> AdminSsrHtml {
-    let values = crate::shared::AdminSettingsFormValues::from(view);
-    let signals = crate::shared::AdminSettingsFormSignals::new(&values);
-    let can_update = bool::from(
-        admin.has_permission(server_admin_contract::AdminPermission::SystemSettingsUpdate),
-    );
-    let content = leptos::view! {
-        <section class="settings-grid"><article class="settings-card">
-        {can_update.then(|| leptos::view! { <form class="settings-form" method="post" action=server_admin_contract::AdminHtmlAction::SettingsUpdate.get()>
-            {crate::shared::admin_setting_inputs(signals, crate::shared::AdminSettingDisabled::from(false))}
-            <button type="submit">"Save settings"</button>
-        </form> })}
-        {(!can_update).then(|| leptos::view! { <p>"Settings are read-only for this account."</p> })}
-        </article></section>
-    }.render_admin_ssr();
-    render_admin_page_with_access(
-        server_admin_contract::AdminPage::Settings,
-        content,
-        Some(admin),
-        Some(branding),
-    )
+    settings::render_settings(view, admin, branding)
 }
 
 #[must_use]
 pub fn render_text_page(
     page: server_admin_contract::AdminPage,
-    _title: AdminSsrText,
+    title: AdminSsrText,
     text: AdminSsrText,
 ) -> AdminSsrHtml {
-    let content = leptos::view! {
-        <section><div class="code-card"><pre>{text.0}</pre></div></section>
-    }
-    .render_admin_ssr();
-    render_admin_page(page, content)
+    text_page::render_text_page(page, title, text)
 }
 
 #[must_use]
 pub fn render_text_page_with_access(
     page: server_admin_contract::AdminPage,
-    _title: AdminSsrText,
+    title: AdminSsrText,
     text: AdminSsrText,
     admin: &server_admin_contract::AuthenticatedAdmin,
     branding: &server_admin_contract::AdminBrandingView,
 ) -> AdminSsrHtml {
-    let content = leptos::view! {
-        <section><div class="code-card"><pre>{text.0}</pre></div></section>
-    }
-    .render_admin_ssr();
-    render_admin_page_with_access(page, content, Some(admin), Some(branding))
+    text_page::render_text_page_with_access(page, title, text, admin, branding)
 }
 
 #[cfg(test)]
@@ -991,16 +708,16 @@ mod tests {
 
     #[test]
     fn shared_table_filters_preserve_ssr_limit_submission() {
-        let html = crate::shared::admin_table_filters(
+        let html = crate::shared::table_filters::admin_table_filters(
             server_admin_contract::AdminFrontendPath::Users,
             server_admin_contract::AdminTableQuery::default().search(),
             server_admin_contract::AdminTableQuery::default().sort(),
-            crate::shared::AdminTableFilterDirection::from(
+            crate::shared::table_filters::AdminTableFilterDirection::from(
                 server_admin_contract::AdminSortDirection::Asc,
             ),
             server_admin_contract::AdminPageLimit::default(),
             &server_admin_contract::AdminTableSortField::USER,
-            crate::shared::AdminTableFilterPresentation::Ssr,
+            crate::shared::table_filters::AdminTableFilterPresentation::Ssr,
         )
         .render_admin_ssr();
         assert!(
