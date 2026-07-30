@@ -34,7 +34,7 @@ pub(super) fn render_permissions(
 ) -> super::AdminSsrHtml {
     let content = leptos::view! {
         <section class="table-page">
-        {crate::shared::table_filters::admin_table_filters(server_admin_contract::AdminFrontendPath::Permissions, query.search(), query.sort(), crate::shared::table_filters::AdminTableFilterDirection::from(query.direction()), query.limit(), &server_admin_contract::AdminTableSortField::PERMISSION, crate::shared::table_filters::AdminTableFilterPresentation::Ssr)}
+        {crate::shared::table_filters::form::admin_table_filters(server_admin_contract::AdminFrontendPath::Permissions, query.search(), query.sort(), crate::shared::table_filters::form::AdminTableFilterDirection::from(query.direction()), query.limit(), &server_admin_contract::AdminTableSortField::PERMISSION, crate::shared::table_filters::form::AdminTableFilterPresentation::Ssr)}
         <div class="table-scroll"><table><thead><tr><th>"id"</th><th>"permission"</th></tr></thead>
         <tbody>{page.items().iter().map(|item| leptos::view! {
             <tr><td data-label="id">{item.id().to_string()}</td><td data-label="permission">{item.name().to_string()}</td></tr>

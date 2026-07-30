@@ -35,7 +35,7 @@ pub(super) fn render(
         bool::from(admin.has_permission(server_admin_contract::AdminPermission::UserRolesUpdate));
     let content = leptos::view! {
         <section class="table-page">
-        {crate::shared::table_filters::admin_table_filters(server_admin_contract::AdminFrontendPath::Users, query.search(), query.sort(), crate::shared::table_filters::AdminTableFilterDirection::from(query.direction()), query.limit(), &server_admin_contract::AdminTableSortField::USER, crate::shared::table_filters::AdminTableFilterPresentation::Ssr)}
+        {crate::shared::table_filters::form::admin_table_filters(server_admin_contract::AdminFrontendPath::Users, query.search(), query.sort(), crate::shared::table_filters::form::AdminTableFilterDirection::from(query.direction()), query.limit(), &server_admin_contract::AdminTableSortField::USER, crate::shared::table_filters::form::AdminTableFilterPresentation::Ssr)}
         {can_create.then(|| leptos::view! { <details class="mutation-form"><summary>"Create user"</summary><form method="post" action=server_admin_contract::AdminHtmlAction::UserCreate.get()>
             <label><span>"Login"</span><input name="login" required /></label><label><span>"Display name"</span><input name="display_name" required /></label>
             <label><span>"Password"</span><input name="password" type="password" required /></label><button type="submit">"Create user"</button>

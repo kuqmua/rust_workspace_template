@@ -488,11 +488,11 @@ fn administrator_csr_page_behavior_comes_from_the_page_catalog() {
             .content()
             .as_ref();
         assert!(
-            pages.contains("shared::settings::AdminSettingsFormValues::from"),
+            pages.contains("shared::settings::values::AdminSettingsFormValues::from"),
             "3ca65c5b"
         );
         assert!(
-            ssr.contains("shared::settings::AdminSettingsFormValues::from"),
+            ssr.contains("shared::settings::values::AdminSettingsFormValues::from"),
             "9f904035"
         );
         assert!(!pages.contains("page.main_logo()"), "67c3d270");

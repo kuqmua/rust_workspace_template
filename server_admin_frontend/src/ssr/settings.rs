@@ -31,15 +31,15 @@ pub(super) fn render_settings(
     admin: &server_admin_contract::AuthenticatedAdmin,
     branding: &server_admin_contract::AdminBrandingView,
 ) -> super::AdminSsrHtml {
-    let values = crate::shared::settings::AdminSettingsFormValues::from(view);
-    let signals = crate::shared::settings::AdminSettingsFormSignals::new(&values);
+    let values = crate::shared::settings::values::AdminSettingsFormValues::from(view);
+    let signals = crate::shared::settings::signals::AdminSettingsFormSignals::new(&values);
     let can_update = bool::from(
         admin.has_permission(server_admin_contract::AdminPermission::SystemSettingsUpdate),
     );
     let content = leptos::view! {
         <section class="settings-grid"><article class="settings-card">
         {can_update.then(|| leptos::view! { <form class="settings-form" method="post" action=server_admin_contract::AdminHtmlAction::SettingsUpdate.get()>
-            {crate::shared::settings::admin_setting_inputs(signals, crate::shared::settings::AdminSettingDisabled::from(false))}
+            {crate::shared::settings::input::admin_setting_inputs(signals, crate::shared::settings::input::AdminSettingDisabled::from(false))}
             <button type="submit">"Save settings"</button>
         </form> })}
         {(!can_update).then(|| leptos::view! { <p>"Settings are read-only for this account."</p> })}

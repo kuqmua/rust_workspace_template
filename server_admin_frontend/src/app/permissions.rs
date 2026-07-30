@@ -11,7 +11,7 @@ pub(in crate::app) fn AdminPermissionsView(
 ) -> impl leptos::prelude::IntoView {
     leptos::view! {
         <section class="table-page" data-renderer="csr">
-            {crate::shared::table_filters::admin_table_filters(server_admin_contract::AdminFrontendPath::Permissions, &query.search, &query.sort, crate::shared::table_filters::AdminTableFilterDirection::from_csr(query.direction.as_ref()), query.limit, &server_admin_contract::AdminTableSortField::PERMISSION, crate::shared::table_filters::AdminTableFilterPresentation::Csr)}
+            {crate::shared::table_filters::form::admin_table_filters(server_admin_contract::AdminFrontendPath::Permissions, &query.search, &query.sort, crate::shared::table_filters::form::AdminTableFilterDirection::from_csr(query.direction.as_ref()), query.limit, &server_admin_contract::AdminTableSortField::PERMISSION, crate::shared::table_filters::form::AdminTableFilterPresentation::Csr)}
             <div class="table-scroll"><table><thead><tr><th>"id"</th><th>"permission"</th></tr></thead>
             <tbody>{page.items().iter().map(|item| leptos::view! {
                 <tr><td data-label="id">{item.id().to_string()}</td><td data-label="permission">{item.name().to_string()}</td></tr>

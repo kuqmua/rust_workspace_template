@@ -39,20 +39,20 @@ pub(in crate::app) fn AdminDataGrid(
             )}
             <nav class="table-pagination" aria-label="Table pages">
                 <form class="table-page-size" method="get" action=table_path.as_ref().to_owned()>
-                    {crate::shared::table_filters::admin_filter_hidden_inputs(filter_field, filter_operation, filter_value, filter_end)}
+                    {crate::shared::table_filters::filter::admin_filter_hidden_inputs(filter_field, filter_operation, filter_value, filter_end)}
                     <input type="hidden" name="offset" value="0" />
                     <label><span>"Rows"</span><input name="limit" type="number" min=server_admin_contract::AdminPageLimit::MIN max=server_admin_contract::AdminPageLimit::MAX value=limit_text.clone() /></label>
                     <button type="submit">"Apply"</button>
                 </form>
                 <form method="get" action=table_path.as_ref().to_owned()>
                     <input type="hidden" name="limit" value=limit_text.clone() />
-                    {crate::shared::table_filters::admin_filter_hidden_inputs(filter_field, filter_operation, filter_value, filter_end)}
+                    {crate::shared::table_filters::filter::admin_filter_hidden_inputs(filter_field, filter_operation, filter_value, filter_end)}
                     <input type="hidden" name="offset" value=u32::from(range.previous_offset()).to_string() /><button type="submit" disabled=bool::from(range.previous_disabled())>"Previous"</button>
                 </form>
                 <span>{format!("{}-{} of {}", u64::from(range.start()), u64::from(range.end()), u64::from(total))}</span>
                 <form method="get" action=table_path.as_ref().to_owned()>
                     <input type="hidden" name="limit" value=limit_text />
-                    {crate::shared::table_filters::admin_filter_hidden_inputs(filter_field, filter_operation, filter_value, filter_end)}
+                    {crate::shared::table_filters::filter::admin_filter_hidden_inputs(filter_field, filter_operation, filter_value, filter_end)}
                     <input type="hidden" name="offset" value=u32::from(range.next_offset()).to_string() /><button type="submit" disabled=bool::from(range.next_disabled())>"Next"</button>
                 </form>
             </nav>

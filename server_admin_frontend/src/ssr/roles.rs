@@ -36,7 +36,7 @@ pub(super) fn render(
     );
     let content = leptos::view! {
         <section class="table-page">
-        {crate::shared::table_filters::admin_table_filters(server_admin_contract::AdminFrontendPath::Roles, query.search(), query.sort(), crate::shared::table_filters::AdminTableFilterDirection::from(query.direction()), query.limit(), &server_admin_contract::AdminTableSortField::ROLE, crate::shared::table_filters::AdminTableFilterPresentation::Ssr)}
+        {crate::shared::table_filters::form::admin_table_filters(server_admin_contract::AdminFrontendPath::Roles, query.search(), query.sort(), crate::shared::table_filters::form::AdminTableFilterDirection::from(query.direction()), query.limit(), &server_admin_contract::AdminTableSortField::ROLE, crate::shared::table_filters::form::AdminTableFilterPresentation::Ssr)}
         {can_create.then(|| leptos::view! { <details class="mutation-form"><summary>"Create role"</summary><form method="post" action=server_admin_contract::AdminHtmlAction::RoleCreate.get()><label><span>"Name"</span><input name="name" required /></label><button type="submit">"Create role"</button></form></details> })}
         <div class="table-scroll"><table><thead><tr><th>"id"</th><th>"name"</th><th>"system"</th><th>"permissions"</th><th>"actions"</th></tr></thead>
         <tbody>{page.items().iter().map(|item| { let expected_permission_ids = item.permission_ids().iter().map(ToString::to_string).collect::<Vec<_>>().join(","); leptos::view! {
