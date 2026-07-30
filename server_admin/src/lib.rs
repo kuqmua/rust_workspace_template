@@ -599,6 +599,21 @@ pub enum AdminBootstrapError {
     #[error("administrator bootstrap database operation failed: {0:?}")]
     Pg(SqlxAdminError),
 }
+#[derive(Debug, thiserror::Error)]
+pub enum AdminPasswordResetError {
+    #[error("administrator password reset audit details are invalid")]
+    AuditDetails,
+    #[error("administrator password reset login has an invalid format")]
+    InvalidLogin,
+    #[error("administrator password reset password does not satisfy policy")]
+    InvalidPassword,
+    #[error("administrator password reset password hashing failed: {0}")]
+    PasswordHash(AdminPasswordHashError),
+    #[error("administrator password reset database operation failed: {0:?}")]
+    Pg(SqlxAdminError),
+    #[error("administrator password reset target does not exist")]
+    UnknownLogin,
+}
 pub async fn bootstrap_admin(
     pool: app_state::SqlxPgPoolRef<'_>,
     login: AdminLogin,
@@ -607,6 +622,14 @@ pub async fn bootstrap_admin(
     password_hasher: &AdminPasswordHasher,
 ) -> Result<AdminUserId, AdminBootstrapError> {
     migrations::bootstrap_admin(pool, login, display_name, password, password_hasher).await
+}
+pub async fn reset_admin_password(
+    pool: app_state::SqlxPgPoolRef<'_>,
+    login: AdminLogin,
+    password: server_admin_contract::AdminNewPassword,
+    password_hasher: &AdminPasswordHasher,
+) -> Result<AdminUserId, AdminPasswordResetError> {
+    migrations::reset_admin_password(pool, login, password, password_hasher).await
 }
 #[cfg(test)]
 #[allow(clippy::needless_for_each, clippy::single_call_fn)] // repository policy forbids for loops and compact fixtures keep secret setup deterministic

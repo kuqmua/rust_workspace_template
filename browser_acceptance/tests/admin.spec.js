@@ -61,6 +61,12 @@ test("bootstrap sign-in forces a password change before administrator access", a
   await expect(page).toHaveURL(/\/admin\/profile$/);
 
   await page.getByLabel("Current password").fill("Initial-password1!");
+  await page.getByLabel("New password").fill("admin");
+  await page.getByRole("button", { name: "Change password" }).click();
+  await expect(page.getByRole("alert")).toHaveText(
+    "Check both passwords and ensure the new password satisfies the policy."
+  );
+
   await page.getByLabel("New password").fill("Changed-password2!");
   const passwordChanged = page.waitForResponse(
     response =>

@@ -22,6 +22,16 @@ struct BootstrapArgs {
     login: server_admin::AdminLogin,
     password_file: StdBootstrapPath,
 }
+#[derive(Debug)]
+struct PasswordResetArgs {
+    login: server_admin::AdminLogin,
+    password_file: StdBootstrapPath,
+}
+#[derive(Debug)]
+enum AdminCommand {
+    Bootstrap(BootstrapArgs),
+    PasswordReset(PasswordResetArgs),
+}
 #[derive(Debug, thiserror::Error)]
 enum BootstrapArgsError {
     #[error("administrator bootstrap display name is invalid")]
@@ -29,7 +39,7 @@ enum BootstrapArgsError {
     #[error("administrator bootstrap login is invalid")]
     Login,
     #[error(
-        "usage: admin_bootstrap <login> <display_name> <password_file>; password_file must contain only the initial password"
+        "usage: admin_bootstrap <login> <display_name> <password_file> | admin_bootstrap reset <login> <password_file>; password_file must contain only the new password"
     )]
     Usage,
 }
@@ -51,6 +61,8 @@ enum BootstrapCommandError {
     PasswordFile(server_runtime_http::BoundedReadError),
     #[error("administrator bootstrap password file is invalid")]
     PasswordFileValue,
+    #[error("failed to reset the administrator password: {0}")]
+    PasswordReset(server_admin::AdminPasswordResetError),
 }
 #[derive(newtype::FromInner)]
 struct StdBootstrapExitCode(std::process::ExitCode);
@@ -60,9 +72,27 @@ impl std::process::Termination for StdBootstrapExitCode {
     }
 }
 
-fn parse_args() -> Result<BootstrapArgs, BootstrapArgsError> {
+fn parse_args() -> Result<AdminCommand, BootstrapArgsError> {
     let mut args = std::env::args_os().skip(1usize);
     let login_arg = args.next().ok_or(BootstrapArgsError::Usage)?;
+    if login_arg == std::ffi::OsStr::new("reset") {
+        let reset_login_arg = args.next().ok_or(BootstrapArgsError::Usage)?;
+        let password_file = args.next().ok_or(BootstrapArgsError::Usage)?;
+        if args.next().is_some() {
+            return Err(BootstrapArgsError::Usage);
+        }
+        let login = reset_login_arg.into_string().map_err(|value| {
+            drop(value);
+            BootstrapArgsError::Login
+        })?;
+        return Ok(AdminCommand::PasswordReset(PasswordResetArgs {
+            login: server_admin::AdminLogin::try_from(login).map_err(|error| {
+                let _error_text = format!("{error:?}");
+                BootstrapArgsError::Login
+            })?,
+            password_file: StdBootstrapPath::from(std::path::PathBuf::from(password_file)),
+        }));
+    }
     let display_name_arg = args.next().ok_or(BootstrapArgsError::Usage)?;
     let password_file = args.next().ok_or(BootstrapArgsError::Usage)?;
     if args.next().is_some() {
@@ -76,7 +106,7 @@ fn parse_args() -> Result<BootstrapArgs, BootstrapArgsError> {
         drop(value);
         BootstrapArgsError::DisplayName
     })?;
-    Ok(BootstrapArgs {
+    Ok(AdminCommand::Bootstrap(BootstrapArgs {
         display_name: server_admin::AdminDisplayName::try_from(display_name).map_err(|error| {
             let _error_text = format!("{error:?}");
             BootstrapArgsError::DisplayName
@@ -86,7 +116,7 @@ fn parse_args() -> Result<BootstrapArgs, BootstrapArgsError> {
             BootstrapArgsError::Login
         })?,
         password_file: StdBootstrapPath::from(std::path::PathBuf::from(password_file)),
-    })
+    }))
 }
 
 fn password_from_file(
@@ -119,7 +149,7 @@ fn password_from_bytes(
 }
 
 async fn run() -> Result<server_admin::AdminUserId, BootstrapCommandError> {
-    let args = parse_args().map_err(BootstrapCommandError::Args)?;
+    let command = parse_args().map_err(BootstrapCommandError::Args)?;
     let config = server_config::Config::try_from_env().map_err(BootstrapCommandError::Config)?;
     config
         .validate_for_startup()
@@ -134,22 +164,37 @@ async fn run() -> Result<server_admin::AdminUserId, BootstrapCommandError> {
     server_admin::prep_pg(app_state::SqlxPgPoolRef::from(&pool))
         .await
         .map_err(BootstrapCommandError::Migrate)?;
-    let password = password_from_file(&args.password_file)?;
     let concurrency = std::num::NonZeroUsize::new(config.admin_password_hash_concurrency.get())
         .ok_or(BootstrapCommandError::PasswordFileValue)?;
     let password_hasher =
         server_admin::AdminPasswordHasher::new(server_admin::AdminPasswordHashConcurrency::from(
             server_admin::StdAdminNonZeroUsize::from(concurrency),
         ));
-    server_admin::bootstrap_admin(
-        app_state::SqlxPgPoolRef::from(&pool),
-        args.login,
-        args.display_name,
-        password,
-        &password_hasher,
-    )
-    .await
-    .map_err(BootstrapCommandError::Bootstrap)
+    match command {
+        AdminCommand::Bootstrap(args) => {
+            let password = password_from_file(&args.password_file)?;
+            server_admin::bootstrap_admin(
+                app_state::SqlxPgPoolRef::from(&pool),
+                args.login,
+                args.display_name,
+                password,
+                &password_hasher,
+            )
+            .await
+            .map_err(BootstrapCommandError::Bootstrap)
+        }
+        AdminCommand::PasswordReset(args) => {
+            let password = password_from_file(&args.password_file)?;
+            server_admin::reset_admin_password(
+                app_state::SqlxPgPoolRef::from(&pool),
+                args.login,
+                password,
+                &password_hasher,
+            )
+            .await
+            .map_err(BootstrapCommandError::PasswordReset)
+        }
+    }
 }
 
 #[allow(
@@ -167,6 +212,7 @@ fn error_status(error: &BootstrapCommandError) -> BootstrapStatus {
         | BootstrapCommandError::Connect(_)
         | BootstrapCommandError::Migrate(_)
         | BootstrapCommandError::PasswordFile(_)
+        | BootstrapCommandError::PasswordReset(_)
         | BootstrapCommandError::Bootstrap(_) => 1u8,
     })
 }
@@ -184,7 +230,7 @@ fn main() -> StdBootstrapExitCode {
     };
     match runtime.block_on(run()) {
         Ok(user_id) => {
-            println!("created first administrator with identifier {user_id}");
+            println!("administrator operation completed for identifier {user_id}");
             StdBootstrapExitCode::from(std::process::ExitCode::SUCCESS)
         }
         Err(error) => {

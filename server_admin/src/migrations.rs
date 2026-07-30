@@ -114,3 +114,89 @@ pub(super) async fn bootstrap_admin(
         .map_err(|error| super::AdminBootstrapError::Pg(super::SqlxAdminError::from(error)))?;
     Ok(user_id)
 }
+
+pub(super) async fn reset_admin_password(
+    pool: app_state::SqlxPgPoolRef<'_>,
+    login: super::AdminLogin,
+    password: server_admin_contract::AdminNewPassword,
+    password_hasher: &super::AdminPasswordHasher,
+) -> Result<super::AdminUserId, super::AdminPasswordResetError> {
+    let password_hash = password_hasher
+        .hash(
+            super::AdminPassword::try_from(password.into_inner()).map_err(|password_error| {
+                let _error_text = format!("{password_error:?}");
+                super::AdminPasswordResetError::InvalidPassword
+            })?,
+        )
+        .await
+        .map_err(super::AdminPasswordResetError::PasswordHash)?;
+    let contract_login = server_admin_contract::AdminLogin::try_from(login.as_ref().to_owned())
+        .map_err(|error| {
+            let _error_text = format!("{error:?}");
+            super::AdminPasswordResetError::InvalidLogin
+        })?;
+    let mut tx =
+        pool.as_ref().begin().await.map_err(|error| {
+            super::AdminPasswordResetError::Pg(super::SqlxAdminError::from(error))
+        })?;
+    let _lock_result = sqlx::query(str_constants::SERVER_ADMIN_LOCK_USERS_SQL)
+        .execute(&mut *tx)
+        .await
+        .map_err(|error| super::AdminPasswordResetError::Pg(super::SqlxAdminError::from(error)))?;
+    let optional_user_id =
+        sqlx::query_scalar::<_, i64>(str_constants::SERVER_ADMIN_USER_ID_BY_LOGIN_SQL)
+            .bind(login.as_ref())
+            .fetch_optional(&mut *tx)
+            .await
+            .map_err(|error| {
+                super::AdminPasswordResetError::Pg(super::SqlxAdminError::from(error))
+            })?;
+    let user_id = super::AdminUserId::try_from(
+        optional_user_id.ok_or(super::AdminPasswordResetError::UnknownLogin)?,
+    )
+    .map_err(|error| super::AdminPasswordResetError::Pg(super::SqlxAdminError::from(error)))?;
+    super::repository::users::update_user_password(
+        super::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
+        user_id,
+        &password_hash,
+        super::AdminPasswordChangeRequired::from(true),
+    )
+    .await
+    .map_err(super::AdminPasswordResetError::Pg)?
+    .get()
+    .then_some(())
+    .ok_or(super::AdminPasswordResetError::UnknownLogin)?;
+    super::repository::sessions::revoke_user_sessions(
+        super::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
+        user_id,
+    )
+    .await
+    .map_err(super::AdminPasswordResetError::Pg)?;
+    let resource_id = super::StdAdminString::try_from(user_id.to_string()).map_err(|error| {
+        let _error_text = format!("{error:?}");
+        super::AdminPasswordResetError::AuditDetails
+    })?;
+    let details = server_admin_contract::SerdeJsonAdminAuditDetails::try_from(
+        serde_json::json!({ "operation": "password_reset", "target_id": resource_id.as_ref() }),
+    )
+    .map_err(|error| {
+        let _error_text = format!("{error:?}");
+        super::AdminPasswordResetError::AuditDetails
+    })?;
+    super::repository::audit::insert_audit_success(
+        super::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
+        user_id,
+        &contract_login,
+        super::AdminAuditAction::Update,
+        super::AdminAuditResource::User,
+        &resource_id,
+        super::UuidAdminValue::from(uuid::Uuid::new_v4()),
+        &details,
+    )
+    .await
+    .map_err(super::AdminPasswordResetError::Pg)?;
+    tx.commit()
+        .await
+        .map_err(|error| super::AdminPasswordResetError::Pg(super::SqlxAdminError::from(error)))?;
+    Ok(user_id)
+}

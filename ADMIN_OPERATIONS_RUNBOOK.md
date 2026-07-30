@@ -33,8 +33,14 @@ For a local walkthrough, follow
 
 1. Confirm the incident and the target administrator through the organization’s normal identity
    verification process.
-2. Revoke the administrator’s active sessions.
-3. Set a temporary high-entropy password through the approved operational path.
+2. Write a temporary high-entropy password to a protected secret file.
+3. From the `server` directory, reset the password and revoke the administrator’s active sessions:
+
+   ```bash
+   cargo run --release -p admin_bootstrap -- \
+     reset administrator /run/secrets/admin_reset_password
+   ```
+
 4. Require immediate password rotation and verify that audit records were created.
 
 Never edit session, role, or password-hash tables manually.

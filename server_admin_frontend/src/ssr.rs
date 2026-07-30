@@ -417,7 +417,7 @@ pub fn render_admin_csr(
                     <span class="sr-only">"Loading\u{2026}"</span>
                 </div>
             </div>
-            <script type="module" src="/admin/assets/csr_bootstrap.js?v=20260728-34"></script>
+            <script type="module" src="/admin/assets/csr_bootstrap.js?v=20260730-36"></script>
         },
     )
 }
@@ -876,7 +876,7 @@ mod tests {
         assert!(html.as_ref().contains("aria-live=\"polite\""));
         assert!(
             html.as_ref()
-                .contains("src=\"/admin/assets/csr_bootstrap.js?v=20260728-34\"")
+                .contains("src=\"/admin/assets/csr_bootstrap.js?v=20260730-36\"")
         );
         assert!(!html.as_ref().contains("<nav"));
         assert!(!html.as_ref().contains("<table"));

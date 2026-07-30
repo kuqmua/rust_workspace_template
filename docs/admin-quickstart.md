@@ -84,6 +84,18 @@ The command applies pending administrator migrations, creates the first administ
 system role, and then refuses every later bootstrap attempt. It returns exit code `2` for invalid
 input, `3` when bootstrap was already completed, and `1` for operational failures.
 
+For local password recovery without deleting the database, place a new temporary password in the
+protected file and run:
+
+```bash
+cd server
+cargo run -p admin_bootstrap -- reset admin /tmp/admin-bootstrap-password
+cd ..
+```
+
+The reset forces a password change at the next sign-in, revokes existing sessions, and records an
+administrator audit entry.
+
 Remove the temporary secret immediately:
 
 ```bash
