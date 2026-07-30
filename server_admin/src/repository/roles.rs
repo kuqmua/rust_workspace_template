@@ -285,3 +285,22 @@ pub(crate) async fn read_last_admin_state(
         target_is_admin: crate::StdAdminBool::from(target_is_admin),
     })
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn last_administrator_state_requires_admin_target_and_at_most_one_active_admin() {
+        let would_remove = |active_count, target_is_admin| {
+            super::LastAdminState {
+                active_count: super::AdminActiveAdministratorCount::from(active_count),
+                target_is_admin: crate::StdAdminBool::from(target_is_admin),
+            }
+            .would_remove_last()
+            .get()
+        };
+        assert!(would_remove(1i64, true));
+        assert!(would_remove(0i64, true));
+        assert!(!would_remove(2i64, true));
+        assert!(!would_remove(1i64, false));
+    }
+}

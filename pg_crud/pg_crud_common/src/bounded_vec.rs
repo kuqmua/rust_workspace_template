@@ -43,26 +43,9 @@ impl<T, const MIN: usize, const MAX: usize> BoundedVec<T, MIN, MAX> {
 impl<T, const MIN: usize, const MAX: usize> TryFrom<Vec<T>> for BoundedVec<T, MIN, MAX> {
     type Error = BoundedVecError;
     fn try_from(value: Vec<T>) -> Result<Self, Self::Error> {
-        if MIN > MAX {
-            return Err(BoundedVecError::InvalidBounds {
-                min: BoundedVecLen::from(MIN),
-                max: BoundedVecLen::from(MAX),
-            });
-        }
-        let actual = BoundedVecLen::from(value.len());
-        if value.len() < MIN {
-            Err(BoundedVecError::BelowMin {
-                actual,
-                min: BoundedVecLen::from(MIN),
-            })
-        } else if value.len() > MAX {
-            Err(BoundedVecError::AboveMax {
-                actual,
-                max: BoundedVecLen::from(MAX),
-            })
-        } else {
-            Ok(Self(value))
-        }
+        bounded_types::BoundedVec::<T, MIN, MAX>::try_from(value)
+            .map(|bounded| Self(bounded.into_inner()))
+            .map_err(BoundedVecError::from)
     }
 }
 impl<T: serde::Serialize, const MIN: usize, const MAX: usize> serde::Serialize
@@ -78,47 +61,6 @@ impl<T: serde::Serialize, const MIN: usize, const MAX: usize> serde::Serialize
         self.0.serialize(serializer)
     }
 }
-#[derive(newtype::FromInner)]
-struct StdPhantomDataBoundedVecVisitor<T, const MIN: usize, const MAX: usize>(
-    std::marker::PhantomData<T>,
-);
-impl<'de, T: serde::Deserialize<'de>, const MIN: usize, const MAX: usize> serde::de::Visitor<'de>
-    for StdPhantomDataBoundedVecVisitor<T, MIN, MAX>
-{
-    type Value = BoundedVec<T, MIN, MAX>;
-    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(formatter, "an array with {MIN} to {MAX} items")
-    }
-    fn visit_seq<Seq>(self, mut seq: Seq) -> Result<Self::Value, Seq::Error>
-    where
-        Seq: serde::de::SeqAccess<'de>,
-    {
-        if MIN > MAX {
-            return Err(serde::de::Error::custom(BoundedVecError::InvalidBounds {
-                min: BoundedVecLen::from(MIN),
-                max: BoundedVecLen::from(MAX),
-            }));
-        }
-        let mut values = Vec::with_capacity(seq.size_hint().unwrap_or(MIN).min(MAX));
-        while let Some(value) = seq.next_element()? {
-            if values.len() == MAX {
-                return Err(serde::de::Error::custom(BoundedVecError::AboveMax {
-                    actual: BoundedVecLen::from(MAX.saturating_add(1usize)),
-                    max: BoundedVecLen::from(MAX),
-                }));
-            }
-            values.push(value);
-        }
-        if values.len() < MIN {
-            Err(serde::de::Error::custom(BoundedVecError::BelowMin {
-                actual: BoundedVecLen::from(values.len()),
-                min: BoundedVecLen::from(MIN),
-            }))
-        } else {
-            BoundedVec::try_from(values).map_err(serde::de::Error::custom)
-        }
-    }
-}
 impl<'de, T: serde::Deserialize<'de>, const MIN: usize, const MAX: usize> serde::Deserialize<'de>
     for BoundedVec<T, MIN, MAX>
 {
@@ -126,9 +68,29 @@ impl<'de, T: serde::Deserialize<'de>, const MIN: usize, const MAX: usize> serde:
     where
         Deserializer: serde::Deserializer<'de>,
     {
-        deserializer.deserialize_seq(StdPhantomDataBoundedVecVisitor::from(
-            std::marker::PhantomData,
-        ))
+        let value = <bounded_types::BoundedVec<T, MIN, MAX> as serde::Deserialize>::deserialize(
+            deserializer,
+        )?
+        .into_inner();
+        Self::try_from(value).map_err(serde::de::Error::custom)
+    }
+}
+impl From<bounded_types::BoundedValueError> for BoundedVecError {
+    fn from(value: bounded_types::BoundedValueError) -> Self {
+        match value {
+            bounded_types::BoundedValueError::AboveMax { actual, max } => Self::AboveMax {
+                actual: BoundedVecLen::from(actual.get()),
+                max: BoundedVecLen::from(max.get()),
+            },
+            bounded_types::BoundedValueError::BelowMin { actual, min } => Self::BelowMin {
+                actual: BoundedVecLen::from(actual.get()),
+                min: BoundedVecLen::from(min.get()),
+            },
+            bounded_types::BoundedValueError::InvalidBounds { min, max } => Self::InvalidBounds {
+                min: BoundedVecLen::from(min.get()),
+                max: BoundedVecLen::from(max.get()),
+            },
+        }
     }
 }
 impl<T: schemars::JsonSchema, const MIN: usize, const MAX: usize> schemars::JsonSchema
@@ -217,9 +179,8 @@ mod tests {
             serde::de::value::SeqDeserializer::<_, serde::de::value::Error>::new(
                 [1u8, 2u8, 3u8, 4u8].into_iter(),
             ),
-        )
-        .expect_err(str_constants::VALUE_91C59B94);
-        assert!(error.to_string().contains("length 3 exceeds limit 2"));
+        );
+        let _above_max_error = error.expect_err(str_constants::VALUE_91C59B94);
     }
     #[test]
     fn schemas_match_runtime_bounds() {

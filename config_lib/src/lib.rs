@@ -330,6 +330,17 @@ pub struct AdminRefreshTokenTtlSeconds(StdNonZeroU64);
     newtype::DerefInner,
     newtype::FromInner,
 )]
+pub struct AdminLoginFailureLimit(StdNonZeroU64);
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    generate_getter_traits_for_struct_fields::GenerateGetterTrait,
+    newtype::DerefInner,
+    newtype::FromInner,
+)]
 pub struct AdminSignInRateLimit(StdNonZeroU64);
 #[derive(
     Debug,
@@ -374,6 +385,12 @@ impl TryFromStdEnvVarOk for AdminAccessTokenTtlSeconds {
     }
 }
 impl TryFromStdEnvVarOk for AdminRefreshTokenTtlSeconds {
+    type Error = TryFromStdEnvVarOkAdminPositiveU64Error;
+    fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
+        parse_admin_positive_u64(&v).map(Self)
+    }
+}
+impl TryFromStdEnvVarOk for AdminLoginFailureLimit {
     type Error = TryFromStdEnvVarOkAdminPositiveU64Error;
     fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
         parse_admin_positive_u64(&v).map(Self)
@@ -459,6 +476,8 @@ pub struct AdminCookieSecure(bool);
 pub struct AdminSwaggerEnabled(bool);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::DerefInner, newtype::FromInner)]
 pub struct HttpGzipEnabled(bool);
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::DerefInner, newtype::FromInner)]
+pub struct ProductionMode(bool);
 #[derive(newtype::DebugTransparent, newtype::FromInner)]
 pub struct AdminBoolParsingError(StdParseBoolError);
 #[derive(Debug, thiserror::Error)]
@@ -486,6 +505,16 @@ impl TryFromStdEnvVarOk for AdminSwaggerEnabled {
     }
 }
 impl TryFromStdEnvVarOk for HttpGzipEnabled {
+    type Error = TryFromStdEnvVarOkAdminCookieSecureError;
+    fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
+        v.0.parse::<bool>().map(Self).map_err(|admin_bool_parsing| {
+            TryFromStdEnvVarOkAdminCookieSecureError::from(AdminBoolParsingError::from(
+                StdParseBoolError::from(admin_bool_parsing),
+            ))
+        })
+    }
+}
+impl TryFromStdEnvVarOk for ProductionMode {
     type Error = TryFromStdEnvVarOkAdminCookieSecureError;
     fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
         v.0.parse::<bool>().map(Self).map_err(|admin_bool_parsing| {

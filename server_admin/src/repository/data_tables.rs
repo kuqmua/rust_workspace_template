@@ -598,6 +598,94 @@ mod tests {
     }
 
     #[test]
+    fn empty_filter_query_omits_the_predicate() {
+        let query = server_admin_contract::AdminDataTableFilterQuery::default();
+
+        assert!(
+            super::data_filter(server_admin_contract::AdminDataTable::Users, &query)
+                .expect("fd36a6f5")
+                .is_none()
+        );
+    }
+
+    #[test]
+    fn incomplete_filter_queries_are_rejected() {
+        let field =
+            server_admin_contract::AdminFilterField::try_from(str_constants::LOGIN.to_owned())
+                .expect("f1832a34");
+        let value = server_admin_contract::AdminFilterValue::try_from(String::from("alice"))
+            .expect("16849a06");
+        let queries = [
+            server_admin_contract::AdminDataTableFilterQuery::new(Some(field), None, None, None),
+            server_admin_contract::AdminDataTableFilterQuery::new(
+                None,
+                Some(frontend_contract::FilterOperation::Eq),
+                None,
+                None,
+            ),
+            server_admin_contract::AdminDataTableFilterQuery::new(
+                None,
+                None,
+                Some(value.clone()),
+                None,
+            ),
+            server_admin_contract::AdminDataTableFilterQuery::new(None, None, None, Some(value)),
+        ];
+
+        assert!(queries.iter().all(|query| {
+            super::data_filter(server_admin_contract::AdminDataTable::Users, query).is_err()
+        }));
+    }
+
+    #[test]
+    fn unknown_filter_field_is_rejected() {
+        let query = filter_query(
+            "unknown",
+            frontend_contract::FilterOperation::Eq,
+            Some("alice"),
+            None,
+        );
+
+        assert!(
+            super::data_filter(server_admin_contract::AdminDataTable::Users, query.filter())
+                .is_err()
+        );
+    }
+
+    #[test]
+    fn scalar_and_regex_filters_reject_range_end_values() {
+        let operations = [
+            frontend_contract::FilterOperation::Eq,
+            frontend_contract::FilterOperation::Regex,
+        ];
+        assert!(operations.into_iter().all(|operation| {
+            let query = filter_query(str_constants::LOGIN, operation, Some("alice"), Some("bob"));
+            super::data_filter(server_admin_contract::AdminDataTable::Users, query.filter())
+                .is_err()
+        }));
+    }
+
+    #[test]
+    fn regex_filter_builds_a_typed_predicate() {
+        let query = filter_query(
+            str_constants::LOGIN,
+            frontend_contract::FilterOperation::Regex,
+            Some("^alice"),
+            None,
+        );
+        let filter =
+            super::data_filter(server_admin_contract::AdminDataTable::Users, query.filter())
+                .expect("e0b1326d")
+                .expect("8a4e68fb");
+        let mut increment = pg_crud_common::QueryPartIncrement::from(0u64);
+
+        let fragment = filter.query_part(&mut increment).expect("9f5e101d");
+
+        assert!(fragment.as_ref().contains(str_constants::LOGIN));
+        assert_eq!(increment.get(), 1u64);
+    }
+
+    #[test]
     fn filtered_sql_places_pagination_after_filter_binds() {
         let fragment =
             pg_crud_common::QueryPartFragment::try_from(String::from("where login = $1"))

@@ -111,10 +111,12 @@ pub(crate) async fn update_user_password(
     connection: super::SqlxAdminRepositoryConnectionMutRef<'_>,
     user_id: crate::AdminUserId,
     password_hash: &crate::AdminPasswordHash,
+    password_change_required: crate::AdminPasswordChangeRequired,
 ) -> Result<crate::StdAdminBool, crate::SqlxAdminError> {
     sqlx::query_scalar::<_, bool>(str_constants::SERVER_ADMIN_UPDATE_USER_PASSWORD_SQL)
         .bind(user_id.get())
         .bind(password_hash.0.as_ref())
+        .bind(*password_change_required)
         .fetch_optional(connection.0)
         .await
         .map_err(crate::SqlxAdminError::from)
@@ -237,7 +239,7 @@ pub(crate) async fn read_authenticated_record(
     user_id: crate::AdminUserId,
 ) -> Result<Option<super::AdminAuthenticatedRecord>, super::AdminRepositoryError> {
     let user_query =
-        sqlx::query_as::<_, (String, String)>(str_constants::SERVER_ADMIN_READ_AUTH_USER_SQL)
+        sqlx::query_as::<_, (String, String, bool)>(str_constants::SERVER_ADMIN_READ_AUTH_USER_SQL)
             .bind(user_id.get());
     let optional_user = match db {
         super::AdminRepositoryDbRef::Connection(connection) => {
@@ -246,7 +248,7 @@ pub(crate) async fn read_authenticated_record(
         super::AdminRepositoryDbRef::Pool(pool) => user_query.fetch_optional(pool.0).await,
     }
     .map_err(crate::SqlxAdminError::from)?;
-    let Some((login, display_name)) = optional_user else {
+    let Some((login, display_name, must_change_password)) = optional_user else {
         return Ok(None);
     };
     let roles_query =
@@ -274,6 +276,7 @@ pub(crate) async fn read_authenticated_record(
             .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
         login: server_admin_contract::AdminLogin::try_from(login)
             .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+        password_change_required: crate::AdminPasswordChangeRequired::from(must_change_password),
         permissions: raw_permissions
             .into_iter()
             .map(|permission| server_admin_contract::AdminPermission::try_from(permission.as_str()))

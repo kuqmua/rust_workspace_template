@@ -52,19 +52,18 @@ pub struct HealthComponent {
     kind: HealthComponentKind,
     status: HealthStatus,
 }
-#[derive(
-    Debug,
-    Clone,
-    PartialEq,
-    Eq,
-    serde::Deserialize,
-    serde::Serialize,
-    utoipa::ToSchema,
-    newtype::TryFrom,
-)]
-#[try_from(validator = HealthComponents::validate)]
-#[serde(try_from = "Vec<HealthComponent>")]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
 pub struct HealthComponents(Vec<HealthComponent>);
+impl utoipa::PartialSchema for HealthComponents {
+    fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
+        <bounded_types::BoundedVec<
+            HealthComponent,
+            0usize,
+            HEALTH_COMPONENTS_MAX_LEN,
+        > as utoipa::PartialSchema>::schema()
+    }
+}
+impl utoipa::ToSchema for HealthComponents {}
 impl From<[HealthComponent; 1]> for HealthComponents {
     fn from(value: [HealthComponent; 1]) -> Self {
         Self(Vec::from(value))
@@ -75,14 +74,30 @@ impl From<[HealthComponent; 2]> for HealthComponents {
         Self(Vec::from(value))
     }
 }
-impl HealthComponents {
-    #[allow(clippy::single_call_fn)] // derive-generated TryFrom owns the single validator call
-    const fn validate(value: &[HealthComponent]) -> Result<(), HealthComponentsError> {
-        if value.len() > HEALTH_COMPONENTS_MAX_LEN {
-            Err(HealthComponentsError)
-        } else {
-            Ok(())
-        }
+impl TryFrom<Vec<HealthComponent>> for HealthComponents {
+    type Error = HealthComponentsError;
+
+    fn try_from(value: Vec<HealthComponent>) -> Result<Self, Self::Error> {
+        bounded_types::BoundedVec::<HealthComponent, 0usize, HEALTH_COMPONENTS_MAX_LEN>::try_from(
+            value,
+        )
+        .map(bounded_types::BoundedVec::into_inner)
+        .map(Self)
+        .map_err(|_error| HealthComponentsError)
+    }
+}
+impl<'de> serde::Deserialize<'de> for HealthComponents {
+    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
+    where
+        Deserializer: serde::Deserializer<'de>,
+    {
+        let value = <bounded_types::BoundedVec<
+            HealthComponent,
+            0usize,
+            HEALTH_COMPONENTS_MAX_LEN,
+        > as serde::Deserialize>::deserialize(deserializer)?
+        .into_inner();
+        Self::try_from(value).map_err(serde::de::Error::custom)
     }
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
@@ -696,6 +711,31 @@ mod tests {
             super::HealthComponents::try_from(vec![component, component, component]),
             Err(super::HealthComponentsError)
         );
+    }
+    #[test]
+    fn health_components_schema_matches_runtime_limit() {
+        let schema = <super::HealthComponents as utoipa::PartialSchema>::schema();
+        let utoipa::openapi::RefOr::T(utoipa::openapi::schema::Schema::Array(array)) = schema
+        else {
+            panic!("d0d44742");
+        };
+        assert_eq!(array.min_items, Some(0usize));
+        assert_eq!(array.max_items, Some(super::HEALTH_COMPONENTS_MAX_LEN));
+    }
+    #[test]
+    fn health_components_serde_accepts_exact_runtime_limit() {
+        let first = super::HealthComponent {
+            kind: super::HealthComponentKind::ServiceAvailability,
+            status: super::HealthStatus::Ok,
+        };
+        let second = super::HealthComponent {
+            kind: super::HealthComponentKind::DatabaseConnectivity,
+            status: super::HealthStatus::Degraded,
+        };
+        let expected = super::HealthComponents::from([first, second]);
+        let encoded = serde_json::to_value(&expected).expect("60490918");
+        let decoded = serde_json::from_value::<super::HealthComponents>(encoded).expect("4363452f");
+        assert_eq!(decoded, expected);
     }
     #[test]
     fn not_found_response_shape_stays_stable() {

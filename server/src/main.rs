@@ -65,6 +65,9 @@ impl axum::response::IntoResponse for AdminMetricsError {
 struct ServerConfigError(server_config::ConfigTryFromEnvError);
 #[derive(Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
+struct ServerConfigProductionError(server_config::ProductionConfigError);
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[error(transparent)]
 struct SqlxServerPgConnectError(sqlx::Error);
 #[derive(Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
@@ -112,6 +115,8 @@ enum RunServerError {
     BuildRuntime(StdServerIoError),
     #[error("failed to read configuration from environment: {0}")]
     Config(ServerConfigError),
+    #[error("unsafe production configuration: {0}")]
+    ConfigProduction(ServerConfigProductionError),
     #[error("invalid content security policy: {0}")]
     ContentSecurityPolicy(ServerRuntimeContentSecurityPolicyError),
     #[error("invalid CORS allow-origin configuration: {0}")]
@@ -395,6 +400,7 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
                 &config.admin_refresh_token_ttl_seconds,
                 &config.admin_session_limit,
                 &config.admin_sign_in_rate_limit,
+                &config.admin_login_failure_limit,
                 &config.admin_password_hash_concurrency,
                 &config.admin_cookie_secure,
                 &config.admin_token_issuer,
@@ -612,6 +618,13 @@ fn main() -> StdServerExitCode {
             return StdServerExitCode::from(std::process::ExitCode::FAILURE);
         }
     };
+    if let Err(error) = config.validate_for_startup() {
+        eprintln!(
+            "{}",
+            RunServerError::ConfigProduction(ServerConfigProductionError::from(error))
+        );
+        return StdServerExitCode::from(std::process::ExitCode::FAILURE);
+    }
     let tracing_format = if config.tracing_format == config_lib::types::TracingFormat::Json {
         server_runtime_http::ServiceTracingFormat::Json
     } else {

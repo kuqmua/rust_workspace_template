@@ -159,6 +159,18 @@ mod tests {
             utilization.status(),
             super::ResourceUtilizationStatus::RejectNonEssentialWrites
         );
+        assert_eq!(utilization.used(), super::ResourceAmount::from(u64::MAX));
+        assert_eq!(utilization.maximum(), super::ResourceAmount::from(1u64));
+    }
+
+    #[test]
+    fn percentage_uses_integer_floor_and_zero_usage_is_ok() {
+        let zero = calculate(0u64, u64::MAX);
+        assert_eq!(zero.percent().get(), 0u8);
+        assert_eq!(zero.status(), super::ResourceUtilizationStatus::Ok);
+        let rounded_down = calculate(699u64, 1000u64);
+        assert_eq!(rounded_down.percent().get(), 69u8);
+        assert_eq!(rounded_down.status(), super::ResourceUtilizationStatus::Ok);
     }
 
     #[test]
@@ -174,5 +186,11 @@ mod tests {
     #[test]
     fn percentage_rejects_values_above_one_hundred() {
         let _error = super::ResourceUtilizationPercent::try_from(101u8).expect_err("7ba1d197");
+        assert_eq!(
+            super::ResourceUtilizationPercent::try_from(100u8)
+                .expect("f17abeab")
+                .get(),
+            100u8
+        );
     }
 }

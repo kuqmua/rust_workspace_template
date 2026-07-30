@@ -1,4 +1,9 @@
-# Rust Web App Development
+# Archived legacy development notes
+
+These unmaintained exploratory notes predate the administrator template roadmap. They are retained
+for historical reference only and do not describe supported behavior or planned release work.
+
+## Rust Web App Development
 
 ## Resrcs
 * [rust web app example](https://github.com/saschagrunert/webapp.rs)

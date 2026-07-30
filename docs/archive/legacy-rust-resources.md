@@ -1,4 +1,9 @@
-# Useful Rust Resrcs and Code Snippets
+# Archived Rust resources and code snippets
+
+These unmaintained personal references are retained for historical context only. They are not
+template documentation, dependency recommendations, or roadmap commitments.
+
+## Useful Rust resources and code snippets
 
 A collection of useful Rust resrcs, libraries, patterns, and code examples.
 

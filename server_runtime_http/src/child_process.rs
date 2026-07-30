@@ -291,6 +291,72 @@ where
 
 #[cfg(test)]
 mod tests {
+    struct ErrorReader;
+    impl tokio::io::AsyncRead for ErrorReader {
+        fn poll_read(
+            self: std::pin::Pin<&mut Self>,
+            _context: &mut std::task::Context<'_>,
+            _buffer: &mut tokio::io::ReadBuf<'_>,
+        ) -> std::task::Poll<std::io::Result<()>> {
+            std::task::Poll::Ready(Err(std::io::Error::other("diagnostic failure")))
+        }
+    }
+    fn empty_supervisor() -> super::ChildProcessSupervisor {
+        super::ChildProcessSupervisor {
+            child: None,
+            diagnostic: None,
+        }
+    }
+
+    #[tokio::test]
+    async fn process_set_enforces_capacity_and_identifier_overflow() {
+        let mut full = super::ChildProcessSet::new(super::StdChildProcessSetMaximum::from(
+            std::num::NonZeroUsize::MIN,
+        ));
+        assert_eq!(
+            full.insert(empty_supervisor()).expect("806f6943"),
+            super::ChildProcessId::from(0u64)
+        );
+        assert!(matches!(
+            full.insert(empty_supervisor()),
+            Err(super::ChildProcessSetError::Full)
+        ));
+
+        let mut overflowing = super::ChildProcessSet::new(super::StdChildProcessSetMaximum::from(
+            std::num::NonZeroUsize::new(2usize).expect("d96a312b"),
+        ));
+        overflowing.next_id = super::ChildProcessId::from(u64::MAX);
+        assert!(matches!(
+            overflowing.insert(empty_supervisor()),
+            Err(super::ChildProcessSetError::IdOverflow)
+        ));
+    }
+
+    #[tokio::test]
+    async fn missing_child_and_absent_diagnostic_are_explicit() {
+        let timeout = crate::StdRequestTimeout::try_from(std::time::Duration::from_secs(1u64))
+            .expect("02c5c4e9");
+        assert!(matches!(
+            empty_supervisor().shutdown(timeout).await,
+            Err(super::ChildProcessError::MissingChild)
+        ));
+        let diagnostic = super::join_diagnostic(None).await.expect("bfc19618");
+        assert!(diagnostic.as_ref().is_empty());
+    }
+
+    #[tokio::test]
+    async fn diagnostic_read_propagates_reader_errors() {
+        let result = super::read_child_diagnostic(
+            ErrorReader,
+            super::StdChildDiagnosticMaximum::from(std::num::NonZeroUsize::MIN),
+        )
+        .await;
+        assert!(matches!(
+            result,
+            Err(super::ChildProcessError::DiagnosticIo(_))
+        ));
+    }
+
     #[tokio::test]
     async fn empty_process_set_shuts_down_without_reports() {
         let processes = super::ChildProcessSet::new(super::StdChildProcessSetMaximum::from(

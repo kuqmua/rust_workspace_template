@@ -139,6 +139,10 @@ pub fn mk_test_server_app_state() -> ServerAppState<'static> {
                 config_lib::StdEnvVarOk::try_from(str_constants::VALUE_1.to_owned())
                     .expect("763e1bd9"),
             ),
+            admin_login_failure_limit: test_env(
+                config_lib::StdEnvVarOk::try_from(str_constants::VALUE_10.to_owned())
+                    .expect("fb8d620e"),
+            ),
             admin_refresh_token_ttl_seconds: test_env(
                 config_lib::StdEnvVarOk::try_from(str_constants::VALUE_3600.to_owned())
                     .expect("467a6513"),
@@ -159,6 +163,7 @@ pub fn mk_test_server_app_state() -> ServerAppState<'static> {
                 config_lib::StdEnvVarOk::try_from(str_constants::TRUE.to_owned())
                     .expect("7c36108e"),
             ),
+            production_mode: config_lib::ProductionMode::from(false),
             maximum_size_of_http_body_in_bytes: config_lib::MaximumSizeOfHttpBodyInBytes::try_from(
                 1_024usize,
             )
@@ -246,12 +251,14 @@ mod tests {
                 admin_token_audience: env(str_constants::TEST_AUDIENCE),
                 admin_token_issuer: env(str_constants::TEST_ISSUER),
                 admin_access_token_ttl_seconds: env(str_constants::VALUE_900),
+                admin_login_failure_limit: env(str_constants::VALUE_10),
                 admin_password_hash_concurrency: env(str_constants::VALUE_4),
                 admin_refresh_token_ttl_seconds: env(str_constants::VALUE_2592000),
                 admin_session_limit: env(str_constants::VALUE_20),
                 admin_sign_in_rate_limit: env(str_constants::VALUE_10),
                 admin_swagger_enabled: env(str_constants::TRUE),
                 http_gzip_enabled: env(str_constants::TRUE),
+                production_mode: config_lib::ProductionMode::from(false),
                 maximum_size_of_http_body_in_bytes:
                     config_lib::MaximumSizeOfHttpBodyInBytes::try_from(16_384).expect("d81f6a42"),
                 service_socket_address: config_lib::ServiceSocketAddress(

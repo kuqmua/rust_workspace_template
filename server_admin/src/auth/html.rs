@@ -139,8 +139,10 @@ impl TryFrom<String> for AdminHtmlFormKey {
             .map_err(AdminHtmlFormKeyError::from)
     }
 }
-#[derive(Debug, serde::Deserialize)]
-#[serde(try_from = "std::collections::BTreeMap<AdminHtmlFormKey, AdminHtmlFormText>")]
+#[derive(Debug, newtype::FromInner, serde::Deserialize)]
+#[serde(
+    from = "bounded_types::StdBoundedBTreeMap<AdminHtmlFormKey, AdminHtmlFormText, ADMIN_HTML_FORM_SELECTED_MAX_ITEMS>"
+)]
 struct StdAdminHtmlSelected(
     bounded_types::StdBoundedBTreeMap<
         AdminHtmlFormKey,
@@ -194,12 +196,13 @@ async fn page_context(
     (
         server_admin_contract::AuthenticatedAdmin,
         server_admin_contract::AdminBrandingView,
+        super::super::AdminPasswordChangeRequired,
     ),
     super::AdminError,
 > {
-    let admin = super::handlers::me_view(auth.clone()).await?;
+    let (admin, password_change_required) = super::handlers::me_context_view(auth.clone()).await?;
     let branding = super::handlers::branding_view(auth.clone()).await?;
-    Ok((admin, branding))
+    Ok((admin, branding, password_change_required))
 }
 
 fn form_auth(mut auth: super::AdminAuthReq) -> Result<super::AdminAuthReq, super::AdminError> {
@@ -330,7 +333,14 @@ async fn csr_page(
     active_table: Option<server_admin_contract::AdminDataTable>,
 ) -> axum::response::Response {
     match page_context(&auth).await {
-        Ok((admin, branding))
+        Ok((_admin, _branding, password_change_required))
+            if *password_change_required && page != server_admin_contract::AdminPage::Profile =>
+        {
+            axum::response::IntoResponse::into_response(axum::response::Redirect::to(
+                server_admin_contract::AdminFrontendPath::Profile.get(),
+            ))
+        }
+        Ok((admin, branding, _password_change_required))
             if bool::from(admin.can_access(page))
                 && active_table
                     .is_none_or(|table| bool::from(admin.has_permission(table.permission()))) =>
@@ -403,7 +413,12 @@ async fn settings(auth: super::AdminAuthReq) -> axum::response::Response {
 #[frontend_contract::route_error(AdminVersionPageError)]
 async fn version(auth: super::AdminAuthReq) -> axum::response::Response {
     match page_context(&auth).await {
-        Ok((admin, branding)) => match (
+        Ok((_admin, _branding, password_change_required)) if *password_change_required => {
+            axum::response::IntoResponse::into_response(axum::response::Redirect::to(
+                server_admin_contract::AdminFrontendPath::Profile.get(),
+            ))
+        }
+        Ok((admin, branding, _password_change_required)) => match (
             server_admin_frontend::ssr::AdminSsrText::try_from(
                 str_constants::VERSION_ALT.to_owned(),
             ),

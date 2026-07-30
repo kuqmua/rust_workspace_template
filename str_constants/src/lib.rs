@@ -399,6 +399,7 @@ str_constants_macros::define_str_constants! {
         WORD_MINUTES = "minutes";
         WORD_MISSING = "missing";
         WORD_MUST = "must";
+        WORD_MUST_CHANGE_PASSWORD = "must_change_password";
         WORD_MUTEX = "Mutex";
         WORD_NAME = "Name";
         WORD_NAMED = "named";
@@ -2117,8 +2118,8 @@ define_str_constants! {
         pub TEXT_ALT_12 = ["\"\""];
         pub ABC_ALT = ["\"", WORD_ABC, "\""];
         pub ABCD = ["\"", WORD_ABCD, "\""];
-        pub CORRECT_PASSWORD = ["\"", WORD_CORRECT, "-", WORD_PASSWORD, "\""];
-        pub DIFFERENT_PASSWORD = ["\"", WORD_DIFFERENT, "-", WORD_PASSWORD, "\""];
+        pub CORRECT_PASSWORD = ["\"Correct-password1!\""];
+        pub DIFFERENT_PASSWORD = ["\"Different-password2!\""];
         pub B_0_9A_FA_F_8_0_9A_FA_F_4_4 = ["\\", WORD_B, "[0-9", WORD_A_2, "-", WORD_FA, "-", WORD_F, "]{8}-[0-9", WORD_A_2, "-", WORD_FA, "-", WORD_F, "]{4}-4[0-9", WORD_A_2, "-", WORD_FA, "-", WORD_F, "]{3}-[89abAB][0-9", WORD_A_2, "-", WORD_FA, "-", WORD_F, "]{3}-[0-9", WORD_A_2, "-", WORD_FA, "-", WORD_F, "]{12}\\", WORD_B];
         pub D_PLUS = ["\\", WORD_D, "+"];
         pub NEWLINE = ["\n"];
@@ -3229,7 +3230,8 @@ define_str_constants! {
         pub LOGIN_LIMITED_USER_DISPLAY_NAME_LIMITED_USER_PASSWORD_LIMITED_PASSWORD = ["{\"", WORD_LOGIN, "\":\"", WORD_LIMITED_USER, "\",\"", WORD_DISPLAY_NAME, "\":\"Limited ", WORD_USER, "\",\"", WORD_PASSWORD, "\":\"", WORD_LIMITED_PASSWORD, "\"}"];
         pub LOGIN_LIMITED_USER_PASSWORD_LIMITED_PASSWORD = ["{\"", WORD_LOGIN, "\":\"", WORD_LIMITED_USER, "\",\"", WORD_PASSWORD, "\":\"", WORD_LIMITED_PASSWORD, "\"}"];
         pub LOGIN_LOCKED_USER_PASSWORD_WRONG_PASSWORD = ["{\"", WORD_LOGIN, "\":\"locked_user\",\"", WORD_PASSWORD, "\":\"", WORD_WRONG, "-", WORD_PASSWORD, "\"}"];
-        pub LOGIN_ADMIN_PASSWORD_CORRECT_PASSWORD = ["{\"", WORD_LOGIN, "\":\"", WORD_ADMIN_2, "\",\"", WORD_PASSWORD, "\":\"", WORD_CORRECT, "-", WORD_PASSWORD, "\"}"];
+        pub LOGIN_ADMIN_PASSWORD_CORRECT_PASSWORD = ["{\"", WORD_LOGIN, "\":\"", WORD_ADMIN_2, "\",\"", WORD_PASSWORD, "\":\"Correct-password1!\"}"];
+        pub CURRENT_PASSWORD_CORRECT_NEW_PASSWORD_CHANGED = ["{\"current_password\":\"Correct-password1!\",\"new_password\":\"Changed-password3!\"}"];
         pub LOGIN_ADMIN_PASSWORD_WRONG_PASSWORD = ["{\"", WORD_LOGIN, "\":\"", WORD_ADMIN_2, "\",\"", WORD_PASSWORD, "\":\"", WORD_WRONG, "-", WORD_PASSWORD, "\"}"];
         pub NAME_ADMINISTRATOR_UNKNOWN_TRUE = ["{\"", WORD_NAME_2, "\":\"", WORD_ADMINISTRATOR, "\",\"", WORD_UNKNOWN, "\":", WORD_TRUE_2, "}"];
         pub NAME_RENAMED_ROLE = ["{\"", WORD_NAME_2, "\":\"renamed_role\"}"];
@@ -3421,6 +3423,8 @@ define_str_constants! {
         pub SERVER_ADMIN_DATA_SYSTEM_SETTINGS_COLUMNS = ["id,site_name,tab_title,main_logo,primary_color,default_admin_route,organization_name,organization_contacts,support_url,updated_at"];
         pub SERVER_ADMIN_DATA_USER_ROLES_COLUMNS = ["id,user_id,role_id,created_at"];
         pub SERVER_ADMIN_DATA_USERS_COLUMNS = ["id,login,display_name,is_banned,created_at,updated_at"];
+        pub SELECT_MUST_CHANGE_PASSWORD_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN = [WORD_SELECT, " ", WORD_MUST_CHANGE_PASSWORD, " ", WORD_FROM, " ", WORD_ADMIN_USERS, " ", WORD_WHERE, " ", WORD_LOGIN, " = '", WORD_ADMIN_2, "'"];
+        pub UPDATE_ADMIN_USERS_SET_MUST_CHANGE_PASSWORD_FALSE = [WORD_UPDATE, " ", WORD_ADMIN_USERS, " ", WORD_SET, " ", WORD_MUST_CHANGE_PASSWORD, " = ", WORD_FALSE_2];
         pub SERVER_ADMIN_DATA_NULL = [WORD_NULL];
         pub USER_BANNED_NOTICE = ["User banned"];
         pub USER_UNBANNED_NOTICE = ["User unbanned"];
@@ -3434,11 +3438,11 @@ define_str_constants! {
         pub SERVER_ADMIN_LOCK_REFRESH_TOKEN_USER_SQL = [WORD_SELECT, " ", WORD_USER_ID, " ", WORD_FROM, " ", WORD_ADMIN_REFRESH_TOKENS, " ", WORD_WHERE, " ", WORD_TOKEN_HASH, " = $1 ", WORD_AND, " ", WORD_REVOKED_AT, " ", WORD_IS, " ", WORD_NULL, " ", WORD_AND, " ", WORD_EXPIRES_AT, " > ", WORD_NOW_2, "() ", WORD_FOR, " ", WORD_UPDATE];
         pub SERVER_ADMIN_REVOKE_REFRESH_TOKEN_SQL = [WORD_UPDATE, " ", WORD_ADMIN_REFRESH_TOKENS, " ", WORD_SET, " ", WORD_REVOKED_AT, " = ", WORD_NOW_2, "() ", WORD_WHERE, " ", WORD_TOKEN_HASH, " = $1 ", WORD_AND, " ", WORD_USER_ID, " = $2 ", WORD_AND, " ", WORD_REVOKED_AT, " ", WORD_IS, " ", WORD_NULL];
         pub SERVER_ADMIN_UPDATE_USER_SQL = [WORD_UPDATE, " ", WORD_ADMIN_USERS, " ", WORD_SET, " ", WORD_LOGIN, " = ", WORD_COALESCE, "($2, ", WORD_LOGIN, "), ", WORD_DISPLAY_NAME, " = ", WORD_COALESCE, "($3, ", WORD_DISPLAY_NAME, ") ", WORD_WHERE, " ", WORD_ID, " = $1 ", WORD_RETURNING, " ", WORD_TRUE_2];
-        pub SERVER_ADMIN_UPDATE_USER_PASSWORD_SQL = [WORD_UPDATE, " ", WORD_ADMIN_USERS, " ", WORD_SET, " ", WORD_PASSWORD_HASH, " = $2 ", WORD_WHERE, " ", WORD_ID, " = $1 ", WORD_RETURNING, " ", WORD_TRUE_2];
+        pub SERVER_ADMIN_UPDATE_USER_PASSWORD_SQL = [WORD_UPDATE, " ", WORD_ADMIN_USERS, " ", WORD_SET, " ", WORD_PASSWORD_HASH, " = $2, ", WORD_MUST_CHANGE_PASSWORD, " = $3 ", WORD_WHERE, " ", WORD_ID, " = $1 ", WORD_RETURNING, " ", WORD_TRUE_2];
         pub SERVER_ADMIN_UPDATE_USER_BAN_SQL = [WORD_UPDATE, " ", WORD_ADMIN_USERS, " ", WORD_SET, " ", WORD_IS_BANNED, " = $2 ", WORD_WHERE, " ", WORD_ID, " = $1 ", WORD_RETURNING, " ", WORD_TRUE_2];
         pub SERVER_ADMIN_DELETE_USER_SQL = [WORD_DELETE, " ", WORD_FROM, " ", WORD_ADMIN_USERS, " ", WORD_WHERE, " ", WORD_ID, " = $1 ", WORD_RETURNING, " ", WORD_TRUE_2];
         pub SERVER_ADMIN_LIST_USER_ROLE_IDS_SQL = [WORD_SELECT, " ", WORD_USER_ID, ", ", WORD_ROLE_ID, " ", WORD_FROM, " ", WORD_ADMIN_USER_ROLES, " ", WORD_WHERE, " ", WORD_USER_ID, " = ", WORD_ANY, "($1) ", WORD_ORDER, " ", WORD_BY, " ", WORD_USER_ID, ", ", WORD_ROLE_ID];
-        pub SERVER_ADMIN_READ_AUTH_USER_SQL = [WORD_SELECT, " ", WORD_LOGIN, ", ", WORD_DISPLAY_NAME, " ", WORD_FROM, " ", WORD_ADMIN_USERS, " ", WORD_WHERE, " ", WORD_ID, " = $1 ", WORD_AND, " ", WORD_IS_BANNED, " = ", WORD_FALSE_2];
+        pub SERVER_ADMIN_READ_AUTH_USER_SQL = [WORD_SELECT, " ", WORD_LOGIN, ", ", WORD_DISPLAY_NAME, ", ", WORD_MUST_CHANGE_PASSWORD, " ", WORD_FROM, " ", WORD_ADMIN_USERS, " ", WORD_WHERE, " ", WORD_ID, " = $1 ", WORD_AND, " ", WORD_IS_BANNED, " = ", WORD_FALSE_2];
         pub SERVER_ADMIN_READ_AUTH_ROLES_SQL = [WORD_SELECT, " ", WORD_ROLE, ".", WORD_NAME_2, " ", WORD_FROM, " ", WORD_ADMIN_ROLES, " ", WORD_ROLE, " ", WORD_JOIN, " ", WORD_ADMIN_USER_ROLES, " ", WORD_LINK, " ", WORD_ON, " ", WORD_LINK, ".", WORD_ROLE_ID, " = ", WORD_ROLE, ".", WORD_ID, " ", WORD_WHERE, " ", WORD_LINK, ".", WORD_USER_ID, " = $1 ", WORD_ORDER, " ", WORD_BY, " ", WORD_ROLE, ".", WORD_NAME_2, " ", WORD_LIMIT, " 10001"];
         pub SERVER_ADMIN_READ_AUTH_PERMISSIONS_SQL = [WORD_SELECT, " ", WORD_DISTINCT, " ", WORD_PERMISSION, ".", WORD_NAME_2, " ", WORD_FROM, " ", WORD_ADMIN_PERMISSIONS, " ", WORD_PERMISSION, " ", WORD_JOIN, " ", WORD_ADMIN_ROLE_PERMISSIONS, " ", WORD_ROLE_PERMISSION, " ", WORD_ON, " ", WORD_ROLE_PERMISSION, ".", WORD_PERMISSION_ID, " = ", WORD_PERMISSION, ".", WORD_ID, " ", WORD_JOIN, " ", WORD_ADMIN_USER_ROLES, " ", WORD_USER_ROLE, " ", WORD_ON, " ", WORD_USER_ROLE, ".", WORD_ROLE_ID, " = ", WORD_ROLE_PERMISSION, ".", WORD_ROLE_ID, " ", WORD_WHERE, " ", WORD_USER_ROLE, ".", WORD_USER_ID, " = $1 ", WORD_ORDER, " ", WORD_BY, " ", WORD_PERMISSION, ".", WORD_NAME_2, " ", WORD_LIMIT, " 10001"];
     }
@@ -3519,6 +3523,7 @@ pub const CODE_STYLE_REVIEWED_PUBLIC_FIELD_SETS: &[&[&str]] = &[
         "admin_token_issuer",
         "trusted_proxy_ranges_text",
         "admin_access_token_ttl_seconds",
+        "admin_login_failure_limit",
         "admin_password_hash_concurrency",
         "admin_refresh_token_ttl_seconds",
         "admin_session_limit",
@@ -3539,6 +3544,7 @@ pub const CODE_STYLE_REVIEWED_PUBLIC_FIELD_SETS: &[&[&str]] = &[
         "admin_cookie_secure",
         "admin_swagger_enabled",
         "http_gzip_enabled",
+        "production_mode",
     ],
     &["id", "user_id", "role_id", "created_at"],
     &["id", "role_id", "permission_id", "created_at"],
@@ -3605,7 +3611,7 @@ pub const CODE_STYLE_REVIEWED_PUBLIC_FIELD_STRUCT_NAMES: [&str; 14] = [
     "AdminPermissions",
     "AdminSystemSettings",
 ];
-pub const CODE_STYLE_DIRECT_FS_OWNER_SUFFIXES: [&str; 9] = [
+pub const CODE_STYLE_DIRECT_FS_OWNER_SUFFIXES: [&str; 10] = [
     "/config_lib/src/lib.rs",
     "/config_lib/src/types.rs",
     "/file_storage/src/lib.rs",
@@ -3614,9 +3620,10 @@ pub const CODE_STYLE_DIRECT_FS_OWNER_SUFFIXES: [&str; 9] = [
     CODE_STYLE_MACROS_HLP_TEST_FS_OWNER_SUFFIX,
     CODE_STYLE_MACROS_HLP_WRITE_STRING_FS_OWNER_SUFFIX,
     "/macros_helpers/src/write_token_stream_into_file.rs",
+    "/server/src/admin_bootstrap.rs",
     CODE_STYLE_WORKSPACE_SCAFFOLD_FS_OWNER_SUFFIX,
 ];
-pub const CODE_STYLE_DIRECT_FS_OWNER_REASONS: [&str; 9] = [
+pub const CODE_STYLE_DIRECT_FS_OWNER_REASONS: [&str; 10] = [
     "configuration loader owns process environment and configuration file access",
     "configuration domain types own environment-backed initialization",
     "file storage owns persisted file lifecycle operations",
@@ -3625,6 +3632,7 @@ pub const CODE_STYLE_DIRECT_FS_OWNER_REASONS: [&str; 9] = [
     "macro helper test fixture owns deterministic temporary file assertions",
     "generated string writer owns generated source file comparison and updates",
     "token stream writer owns rustfmt execution for generated source files",
+    "administrator bootstrap command owns its bounded command-line input",
     "workspace scaffold owns template traversal and generated workspace writes",
 ];
 pub const CODE_STYLE_DOMAIN_FIXTURE_PATH: &str = "../tests/src/domain_type_policy_fixture.rs";
@@ -4101,6 +4109,8 @@ pub const TEST_SESSION_COOKIE_HEADER_VALUE: &str = "session=secret";
 pub const TEST_CURSOR_PAYLOAD_PATTERN: &str = "[A-Za-z0-9]{1,128}";
 pub const TEST_JSON_MAP_WITH_TWO_ENTRIES: &str = r#"{"one":1,"two":2}"#;
 pub const TEST_JSON_MAP_WITH_ONE_ENTRY: &str = r#"{"one":1}"#;
+pub const OPENAPI_MAX_BYTES_EXTENSION: &str = "x-max-bytes";
+pub const OPENAPI_MIN_BYTES_EXTENSION: &str = "x-min-bytes";
 pub const ADMIN_SESSION_ID_PLACEHOLDER: &str = "{session_id}";
 pub const ADMIN_USER_ID_PLACEHOLDER: &str = "{user_id}";
 pub const ADMIN_ROLE_ID_PLACEHOLDER: &str = "{role_id}";
@@ -4119,6 +4129,7 @@ pub const VALUE_D1169A2F: &str = "d1169a2f";
 pub const VALUE_5DC81FA2: &str = "5dc81fa2";
 pub const VALUE_4792B3E0: &str = "4792b3e0";
 pub const TEST_BOUNDED_UNIQUE_VEC_DUPLICATE_THEN_INVALID: &str = "[1,1,999]";
+pub const TEST_BOUNDED_UNIQUE_VEC_EXCESS_INVALID: &str = "[1,999]";
 pub const SERVER_RUNTIME_SRC_LIMITS_RS: &str = "server_runtime_http/src/limits.rs";
 pub const TEST_SQL_LIKE_INPUT: &str = "alpha";
 pub const TEST_SQL_LIKE_CONTAINS_PATTERN: &str = "%alpha%";
@@ -4188,6 +4199,8 @@ pub const RUST_TYPE_NAME: &str = "rust_type_name";
 pub const SENSITIVITY: &str = "sensitivity";
 pub const CONFIG: &str = "config";
 pub const ADMIN_ACCESS_TOKEN_TTL_SECONDS_ENV: &str = "ADMIN_ACCESS_TOKEN_TTL_SECONDS";
+pub const ADMIN_DEVELOPMENT_JWT_SECRET: &str = "change-me-development-secret-000";
+pub const ADMIN_PASSWORD_POLICY_DESCRIPTION: &str = "New passwords must contain 12 to 1024 characters, including uppercase, lowercase, digit, and special characters, with no whitespace.";
 pub const INVALID_FILTER_SPECIFICATION: &str = "invalid filter specification";
 pub const GENERATE_PG_TABLE_REQUIRES_FIELD: &str = "generate_pg_table requires at least one field";
 pub const SERVER_DOT_ENV_EXAMPLE: &str = "../server/.env.example";

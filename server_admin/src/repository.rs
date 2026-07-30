@@ -51,6 +51,7 @@ pub(crate) enum AdminRepositoryDbRef<'connection_lt, 'pool_lt> {
 pub(crate) struct AdminAuthenticatedRecord {
     display_name: server_admin_contract::AdminDisplayName,
     login: server_admin_contract::AdminLogin,
+    password_change_required: super::AdminPasswordChangeRequired,
     permissions: super::AdminPermissions,
     roles: super::AdminRoleNames,
 }
@@ -87,10 +88,17 @@ impl AdminAuthenticatedRecord {
     ) -> (
         server_admin_contract::AdminDisplayName,
         server_admin_contract::AdminLogin,
+        super::AdminPasswordChangeRequired,
         super::AdminPermissions,
         super::AdminRoleNames,
     ) {
-        (self.display_name, self.login, self.permissions, self.roles)
+        (
+            self.display_name,
+            self.login,
+            self.password_change_required,
+            self.permissions,
+            self.roles,
+        )
     }
 }
 impl From<super::SqlxAdminError> for AdminRepositoryError {

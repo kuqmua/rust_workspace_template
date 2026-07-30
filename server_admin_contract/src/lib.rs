@@ -1311,8 +1311,17 @@ pub enum AdminCollectionError {
     )]
     TooLong,
 }
-#[derive(Clone, Debug, newtype::DerefTarget, newtype::IntoInnerFrom)]
-struct AdminBoundedVec<T>(Vec<T>);
+#[derive(
+    Clone,
+    Debug,
+    newtype::DerefTarget,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+    serde::Deserialize,
+    serde::Serialize,
+)]
+#[serde(from = "bounded_types::BoundedVec<T, 0, { ADMIN_COLLECTION_MAX_ITEMS }>")]
+struct AdminBoundedVec<T>(bounded_types::BoundedVec<T, 0, { ADMIN_COLLECTION_MAX_ITEMS }>);
 impl<T> AdminBoundedVec<T> {
     const fn as_slice(&self) -> &[T] {
         self.0.as_slice()
@@ -1320,73 +1329,22 @@ impl<T> AdminBoundedVec<T> {
 }
 impl<T> From<[T; 0]> for AdminBoundedVec<T> {
     fn from(_value: [T; 0]) -> Self {
-        Self(Vec::new())
+        Self(bounded_types::BoundedVec::from([]))
     }
 }
 impl<T> TryFrom<Vec<T>> for AdminBoundedVec<T> {
     type Error = AdminCollectionError;
     fn try_from(value: Vec<T>) -> Result<Self, Self::Error> {
-        if value.len() > ADMIN_COLLECTION_MAX_ITEMS {
-            Err(AdminCollectionError::TooLong)
-        } else {
-            Ok(Self(value))
-        }
+        bounded_types::BoundedVec::try_from(value)
+            .map(Self)
+            .map_err(|_error| AdminCollectionError::TooLong)
     }
 }
 #[derive(newtype::FromInner)]
-struct StdPhantomDataAdminBoundedVecVisitor<T>(std::marker::PhantomData<T>);
-impl<'de, T: serde::Deserialize<'de>> serde::de::Visitor<'de>
-    for StdPhantomDataAdminBoundedVecVisitor<T>
-{
-    type Value = AdminBoundedVec<T>;
-    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            formatter,
-            "an administrator array with at most {ADMIN_COLLECTION_MAX_ITEMS} items"
-        )
-    }
-    fn visit_seq<Seq>(self, mut seq: Seq) -> Result<Self::Value, Seq::Error>
-    where
-        Seq: serde::de::SeqAccess<'de>,
-    {
-        let mut values = Vec::with_capacity(
-            seq.size_hint()
-                .unwrap_or_default()
-                .min(ADMIN_COLLECTION_MAX_ITEMS),
-        );
-        while let Some(value) = seq.next_element()? {
-            if values.len() == ADMIN_COLLECTION_MAX_ITEMS {
-                return Err(serde::de::Error::custom(AdminCollectionError::TooLong));
-            }
-            values.push(value);
-        }
-        AdminBoundedVec::try_from(values).map_err(serde::de::Error::custom)
-    }
-}
-impl<'de, T: serde::Deserialize<'de>> serde::Deserialize<'de> for AdminBoundedVec<T> {
-    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
-    where
-        Deserializer: serde::Deserializer<'de>,
-    {
-        deserializer.deserialize_seq(StdPhantomDataAdminBoundedVecVisitor::from(
-            std::marker::PhantomData,
-        ))
-    }
-}
-impl<T: serde::Serialize> serde::Serialize for AdminBoundedVec<T> {
-    fn serialize<Serializer>(
-        &self,
-        serializer: Serializer,
-    ) -> Result<Serializer::Ok, Serializer::Error>
-    where
-        Serializer: serde::Serializer,
-    {
-        serde::Serialize::serialize(&self.0, serializer)
-    }
-}
+struct StdPhantomDataAdminOpenApiVec<T>(std::marker::PhantomData<T>);
 #[allow(dead_code)] // schema-only generic carries its item type without runtime construction
 struct AdminOpenApiVec<T, const MAX: usize> {
-    marker: StdPhantomDataAdminBoundedVecVisitor<T>,
+    marker: StdPhantomDataAdminOpenApiVec<T>,
 }
 impl<T: utoipa::PartialSchema, const MAX: usize> utoipa::__dev::ComposeSchema
     for AdminOpenApiVec<T, MAX>

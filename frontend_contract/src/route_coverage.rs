@@ -68,23 +68,28 @@ pub enum RouteTestCategory {
     newtype::FromInner,
     newtype::IntoInnerFrom,
 )]
-pub struct RouteTestCategories(Vec<RouteTestCategory>);
+pub struct RouteTestCategories(bounded_types::BoundedVec<RouteTestCategory, 0, { usize::MAX }>);
+impl From<Vec<RouteTestCategory>> for RouteTestCategories {
+    fn from(value: Vec<RouteTestCategory>) -> Self {
+        Self::from(bounded_types::BoundedVec::from_max_iter(value))
+    }
+}
 
 #[must_use]
 pub fn missing_required_test_categories(
     capabilities: RouteTestCapabilities,
     available_categories: &[RouteTestCategory],
 ) -> RouteTestCategories {
-    Vec::from(required_test_categories(capabilities))
-        .into_iter()
-        .filter(|category| !available_categories.contains(category))
-        .collect::<Vec<_>>()
-        .into()
+    RouteTestCategories::from(bounded_types::BoundedVec::from_max_iter(
+        bounded_types::BoundedVec::from(required_test_categories(capabilities))
+            .into_iter()
+            .filter(|category| !available_categories.contains(category)),
+    ))
 }
 
 #[must_use]
 pub fn required_test_categories(capabilities: RouteTestCapabilities) -> RouteTestCategories {
-    [
+    let categories = [
         Some(RouteTestCategory::FixtureHook),
         Some(RouteTestCategory::Metadata),
         (capabilities.database == RouteDatabaseUsage::Database)
@@ -96,8 +101,8 @@ pub fn required_test_categories(capabilities: RouteTestCapabilities) -> RouteTes
     ]
     .into_iter()
     .flatten()
-    .collect::<Vec<_>>()
-    .into()
+    .collect::<Vec<_>>();
+    RouteTestCategories::from(bounded_types::BoundedVec::from_max_iter(categories))
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -332,13 +337,14 @@ mod tests {
             super::RouteResponseKind::Streaming,
         );
         assert_eq!(
-            Vec::from(super::missing_required_test_categories(
+            bounded_types::BoundedVec::from(super::missing_required_test_categories(
                 capabilities,
                 &[
                     super::RouteTestCategory::FixtureHook,
                     super::RouteTestCategory::Metadata,
                 ],
-            )),
+            ))
+            .into_inner(),
             vec![
                 super::RouteTestCategory::DatabaseFixture,
                 super::RouteTestCategory::JsonRoundTrip,
@@ -355,7 +361,8 @@ mod tests {
             super::RouteResponseKind::Buffered,
         );
         assert_eq!(
-            Vec::from(super::required_test_categories(capabilities)),
+            bounded_types::BoundedVec::from(super::required_test_categories(capabilities))
+                .into_inner(),
             vec![
                 super::RouteTestCategory::FixtureHook,
                 super::RouteTestCategory::Metadata,

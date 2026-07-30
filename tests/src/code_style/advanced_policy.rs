@@ -422,6 +422,60 @@ impl<'ast> syn::visit::Visit<'ast> for IgnoredMapErrBindingVisitor {
 }
 
 #[derive(Default)]
+struct RawVecTupleWrapperVisitor {
+    identifiers: super::types::SourceTextList,
+}
+impl<'ast> syn::visit::Visit<'ast> for RawVecTupleWrapperVisitor {
+    fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
+        if let syn::Fields::Unnamed(fields) = &i.fields
+            && fields.unnamed.len() == 1usize
+            && let Some(field) = fields.unnamed.first()
+            && let syn::Type::Path(path) = &field.ty
+            && path
+                .path
+                .segments
+                .last()
+                .is_some_and(|segment| segment.ident == "Vec")
+        {
+            self.identifiers.push(i.ident.to_string());
+        }
+        syn::visit::visit_item_struct(self, i);
+    }
+}
+
+#[derive(Default)]
+struct UsizeMaxExprVisitor {
+    count: super::types::AnalyzerCount,
+}
+impl<'ast> syn::visit::Visit<'ast> for UsizeMaxExprVisitor {
+    fn visit_expr_path(&mut self, i: &'ast syn::ExprPath) {
+        let mut segments = i.path.segments.iter();
+        if segments
+            .next()
+            .is_some_and(|segment| segment.ident == "usize")
+            && segments
+                .next()
+                .is_some_and(|segment| segment.ident == "MAX")
+            && segments.next().is_none()
+        {
+            self.count.saturating_inc();
+        }
+        syn::visit::visit_expr_path(self, i);
+    }
+
+    fn visit_item_mod(&mut self, i: &'ast syn::ItemMod) {
+        if super::attrs_contain_test_only_cfg(super::types::SynAttributeListRef::from(
+            i.attrs.as_slice(),
+        ))
+        .get()
+        {
+            return;
+        }
+        syn::visit::visit_item_mod(self, i);
+    }
+}
+
+#[derive(Default)]
 struct SharedDispatchVisitor {
     arc_types: super::types::AnalyzerCount,
     lock_types: super::types::AnalyzerCount,
@@ -1411,6 +1465,13 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             ),
         ),
         (
+            "common_routes/src/lib.rs",
+            (
+                1usize,
+                "health component capacity maps to the established public contract error",
+            ),
+        ),
+        (
             "server_runtime_http/src/outbound_url.rs",
             (
                 1usize,
@@ -1478,8 +1539,22 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
         (
             "pg_crud/pg_crud_common/src/cursor.rs",
             (
-                8usize,
+                9usize,
                 "cursor parsing maps low-level failures to wire categories",
+            ),
+        ),
+        (
+            "pg_crud/pg_crud_common/src/bounded_btree_map.rs",
+            (
+                1usize,
+                "the compatibility wrapper maps the shared capacity error to its existing public error",
+            ),
+        ),
+        (
+            "pg_crud/where_filters/src/lib.rs",
+            (
+                1usize,
+                "the exact-length compatibility wrapper preserves its location-aware public error",
             ),
         ),
         (
@@ -1492,14 +1567,21 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
         (
             "pg_crud/pg_crud_common/src/advisory_lock.rs",
             (
-                1usize,
+                3usize,
                 "advisory lock conversion maps to its bounded domain error",
+            ),
+        ),
+        (
+            "server_admin_contract/src/lib.rs",
+            (
+                1usize,
+                "administrator collections preserve their stable public capacity error",
             ),
         ),
         (
             "pg_crud/pg_table/src/lib.rs",
             (
-                1usize,
+                2usize,
                 "table validation maps generated failures to a public category",
             ),
         ),
@@ -1669,6 +1751,383 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
         }
         assert!(violations.is_empty(), "bb0dbc1f {violations:#?}");
     });
+}
+
+#[test]
+fn raw_vec_tuple_wrappers_match_reviewed_inventory() {
+    let reviewed = std::collections::BTreeMap::from([
+        (
+            "../bounded_types/src/lib.rs:BoundedVec",
+            "the shared bounded vector is the reviewed owner of raw Vec storage",
+        ),
+        (
+            "../common_routes/src/lib.rs:HealthComponents",
+            "infallible fixed-size array conversions require raw storage; Vec conversion and serde delegate to bounded_types",
+        ),
+        (
+            "../development_data_bootstrap/src/lib.rs:DevelopmentIdentitySpecs",
+            "the bootstrap catalog owns validated development identities assembled in process",
+        ),
+        (
+            "../frontend_contract_macros/src/lib.rs:SynRouteRegistrySchemas",
+            "the proc-macro compiler owns a compile-time syntax collection",
+        ),
+        (
+            "../pg_crud/pg_crud_common/src/batch_validation.rs:BatchInvalidItems",
+            "batch validation owns its bounded invalid-item accumulator",
+        ),
+        (
+            "../pg_crud/pg_crud_common/src/bounded_unique_vec.rs:BoundedUniqueVec",
+            "the compatibility collection enforces both length and uniqueness invariants",
+        ),
+        (
+            "../pg_crud/pg_crud_common/src/bounded_vec.rs:BoundedVec",
+            "the compatibility wrapper delegates validation and serde to bounded_types",
+        ),
+        (
+            "../pg_crud/pg_crud_common/src/cardinality.rs:DuplicateCandidates",
+            "cardinality analysis owns an internal duplicate candidate collection",
+        ),
+        (
+            "../pg_crud/pg_crud_common/src/date_sql_filter.rs:ChronoUtcDateTimes",
+            "the SQL bind plan owns an operational collection assembled from validated filters",
+        ),
+        (
+            "../pg_crud/pg_crud_common/src/db_schema_conformance.rs:DbColumnContractSnapshots",
+            "schema conformance owns an internal deterministic snapshot collection",
+        ),
+        (
+            "../pg_crud/pg_crud_common/src/db_schema_conformance.rs:DbColumnSnapshots",
+            "schema conformance owns an internal deterministic snapshot collection",
+        ),
+        (
+            "../pg_crud/pg_crud_common/src/db_schema_conformance.rs:DbColumnSpecs",
+            "schema conformance owns an internal static specification collection",
+        ),
+        (
+            "../pg_crud/pg_crud_common/src/db_schema_conformance.rs:DbKeyContractSnapshots",
+            "schema conformance owns an internal deterministic snapshot collection",
+        ),
+        (
+            "../pg_crud/pg_crud_common/src/db_schema_conformance.rs:DbKeySpecs",
+            "schema conformance owns an internal static specification collection",
+        ),
+        (
+            "../pg_crud/pg_crud_common/src/db_schema_conformance.rs:DbObjectSnapshots",
+            "schema conformance owns an internal deterministic snapshot collection",
+        ),
+        (
+            "../pg_crud/pg_crud_common/src/db_schema_conformance.rs:DbObjectSpecs",
+            "schema conformance owns an internal static specification collection",
+        ),
+        (
+            "../pg_crud/pg_crud_common/src/db_schema_conformance.rs:DbDefaultSpecs",
+            "schema conformance owns an internal static specification collection",
+        ),
+        (
+            "../pg_crud/pg_crud_common/src/db_schema_conformance.rs:DbSchemaTexts",
+            "schema conformance owns an internal deterministic text collection",
+        ),
+        (
+            "../pg_crud/pg_crud_common/src/db_schema_conformance.rs:DbStaticSchemaTexts",
+            "schema conformance owns an internal static text collection",
+        ),
+        (
+            "../pg_crud/pg_crud_common/src/filter_bind_plan.rs:FilterBindPlan",
+            "the query planner owns an internal ordered bind collection",
+        ),
+        (
+            "../pg_crud/pg_crud_common/src/lib.rs:AllEnumVariants",
+            "the enum helper owns a compile-time-complete variant collection",
+        ),
+        (
+            "../pg_crud/pg_crud_common/src/lib.rs:NotEmptyUniqueVec",
+            "the collection enforces non-empty and uniqueness invariants together",
+        ),
+        (
+            "../pg_crud/pg_crud_common/src/list_total.rs:ListItems",
+            "list-total planning owns an operational result collection",
+        ),
+        (
+            "../pg_crud/pg_crud_common/src/operational_invariants.rs:PgSqlIdentifiers",
+            "the invariant checker owns validated SQL identifier wrappers",
+        ),
+        (
+            "../pg_crud/pg_crud_common/src/order_preserving_deduplication.rs:OrderPreservingValues",
+            "the deduplication helper owns its ordered working collection",
+        ),
+        (
+            "../pg_crud/pg_crud_macros_common/src/lib.rs:ParseTokenStreamStrings",
+            "the proc-macro compiler owns a compile-time token rendering collection",
+        ),
+        (
+            "../pg_crud/pg_crud_macros_common/src/lib.rs:ProcMacro2GeneratedRustTokenStreamVec",
+            "the proc-macro compiler owns generated token streams",
+        ),
+        (
+            "../pg_crud/pg_table/generate_pg_table_src/src/source.rs:TableTestNames",
+            "the source generator owns compile-time generated test names",
+        ),
+        (
+            "../pg_crud/pg_types/generate_pg_types_src/src/source.rs:GeneratePgTypeRecords",
+            "the source generator owns compile-time catalog records",
+        ),
+        (
+            "../pg_crud/pg_types/generate_pg_types_src/src/source.rs:GeneratePgTypes",
+            "the source generator owns compile-time generated types",
+        ),
+        (
+            "../pg_crud/where_filters/src/lib.rs:BoundedVec",
+            "the exact-length compatibility wrapper delegates validation and serde to bounded_types",
+        ),
+        (
+            "../pg_crud/where_filters/src/lib.rs:PgTypeNotEmptyUniqueVec",
+            "the generated filter collection enforces non-empty and uniqueness invariants",
+        ),
+        (
+            "../server_admin/src/auth.rs:JsonwebtokenAdminDecodingKeys",
+            "validated configuration determines the runtime key collection",
+        ),
+        (
+            "../server_runtime_http/src/bounded_read.rs:BoundedBytes",
+            "the byte limit is supplied dynamically and enforced by the bounded reader",
+        ),
+        (
+            "../server_runtime_http/src/cors.rs:HttpCorsAllowOriginHeaderValues",
+            "the parser enforces its byte and item limits before construction",
+        ),
+        (
+            "../server_runtime_http/src/multipart.rs:MultipartBytesParts",
+            "the multipart budget is supplied dynamically and enforced while parsing",
+        ),
+        (
+            "../server_runtime_http/src/multipart.rs:MultipartTextParts",
+            "the multipart budget is supplied dynamically and enforced while parsing",
+        ),
+        (
+            "../str_constants_macros/src/lib.rs:ConstantParts",
+            "the proc-macro compiler owns compile-time constant fragments",
+        ),
+        (
+            "../str_constants_macros/src/lib.rs:Constants",
+            "the proc-macro compiler owns compile-time constant declarations",
+        ),
+        (
+            "../str_constants_macros/src/lib.rs:Fragments",
+            "the proc-macro compiler owns compile-time string fragments",
+        ),
+        (
+            "../workspace_macro_helpers/src/lib.rs:ProcMacro2MacroTokens",
+            "the shared proc-macro helper owns compile-time tokens",
+        ),
+        (
+            "../workspace_macro_helpers/src/lib.rs:ProcMacro2TopLevelCommaParts",
+            "the shared proc-macro helper owns compile-time token parts",
+        ),
+    ]);
+    reviewed
+        .values()
+        .for_each(|reason| assert!(!reason.is_empty(), "f8c9471a"));
+    super::snapshot::with_codebase_snapshot(|snapshot| {
+        let observed = snapshot
+            .rs_files()
+            .iter()
+            .filter(|source_file| {
+                !source_file
+                    .path()
+                    .as_ref()
+                    .components()
+                    .any(|component| component.as_os_str() == "tests")
+            })
+            .flat_map(|source_file| {
+                let visitor = super::visit_syn_file(
+                    super::types::SynFileRef::from(source_file.ast().as_ref()),
+                    RawVecTupleWrapperVisitor::default(),
+                );
+                let path = source_file.path().as_ref().display().to_string();
+                visitor
+                    .identifiers
+                    .into_iter()
+                    .map(move |identifier| format!("{path}:{identifier}"))
+            })
+            .collect::<std::collections::BTreeSet<String>>();
+        let expected = reviewed
+            .keys()
+            .map(|entry| (*entry).to_owned())
+            .collect::<std::collections::BTreeSet<String>>();
+        assert_eq!(
+            observed, expected,
+            "f8c9471a raw Vec tuple wrapper inventory changed"
+        );
+    });
+}
+
+#[test]
+fn raw_vec_tuple_wrapper_visitor_detects_qualified_and_nested_types() {
+    let file: syn::File = syn::parse_quote! {
+        struct Qualified(std::vec::Vec<u8>);
+        struct Named {
+            values: Vec<u8>,
+        }
+        mod nested {
+            struct Nested(Vec<u8>);
+        }
+    };
+    let visitor = super::visit_syn_file(
+        super::types::SynFileRef::from(&file),
+        RawVecTupleWrapperVisitor::default(),
+    );
+    assert_eq!(visitor.identifiers.len(), 2usize);
+}
+
+#[test]
+fn usize_max_usage_matches_reviewed_inventory() {
+    let reviewed = std::collections::BTreeMap::from([
+        (
+            "../bounded_types/src/lib.rs",
+            (
+                4usize,
+                "the shared type provides its explicitly unbounded specialization, overflow boundary, and schema handling",
+            ),
+        ),
+        (
+            "../file_storage/src/lib.rs",
+            (
+                1usize,
+                "the process-owned path catalog is assembled from already bounded storage paths",
+            ),
+        ),
+        (
+            "../frontend_contract/src/lib.rs",
+            (
+                3usize,
+                "compile-time generated frontend catalogs have no wire-controlled cardinality",
+            ),
+        ),
+        (
+            "../frontend_contract/src/route.rs",
+            (
+                3usize,
+                "compile-time generated route catalogs have no wire-controlled cardinality",
+            ),
+        ),
+        (
+            "../frontend_contract/src/route_coverage.rs",
+            (
+                1usize,
+                "the compile-time route test category catalog has no wire-controlled cardinality",
+            ),
+        ),
+        (
+            "../frontend_contract_validation/src/route_contract_validation.rs",
+            (
+                1usize,
+                "validation mismatches are bounded by the already finite route catalog",
+            ),
+        ),
+        (
+            "../initialize_environment_files/src/main.rs",
+            (
+                4usize,
+                "the local workspace initializer catalogs are bounded by files in the checked-out workspace",
+            ),
+        ),
+        (
+            "../pg_crud/pg_table/generate_pg_table_src/src/source.rs",
+            (
+                3usize,
+                "the proc-macro source generator operates on finite compile-time schema declarations",
+            ),
+        ),
+        (
+            "../prepare_postgresql_databases/src/lib.rs",
+            (
+                2usize,
+                "the local process command catalog is derived from finite workspace configuration",
+            ),
+        ),
+        (
+            "../server_runtime_core/src/lease_registry.rs",
+            (
+                3usize,
+                "the runtime-configured lease maximum is enforced at mutation sites",
+            ),
+        ),
+        (
+            "../server_runtime_core/src/single_flight.rs",
+            (
+                1usize,
+                "the runtime-configured single-flight maximum is enforced before insertion",
+            ),
+        ),
+        (
+            "../server_runtime_http/src/child_process.rs",
+            (
+                3usize,
+                "runtime-configured process and diagnostic limits are enforced while collecting",
+            ),
+        ),
+        (
+            "../workspace_scaffold/src/main.rs",
+            (
+                1usize,
+                "the local service catalog is bounded by the checked-out workspace",
+            ),
+        ),
+        (
+            "../workspace_test_runner/src/execution.rs",
+            (
+                2usize,
+                "runner command text is derived from the finite workspace test plan",
+            ),
+        ),
+    ]);
+    reviewed
+        .values()
+        .for_each(|(_count, reason)| assert!(!reason.is_empty(), "cfc5175f"));
+    super::snapshot::with_codebase_snapshot(|snapshot| {
+        let observed = snapshot
+            .rs_files()
+            .iter()
+            .filter(|source_file| {
+                !source_file
+                    .path()
+                    .as_ref()
+                    .components()
+                    .any(|component| component.as_os_str() == "tests")
+            })
+            .filter_map(|source_file| {
+                let visitor = super::visit_syn_file(
+                    super::types::SynFileRef::from(source_file.ast().as_ref()),
+                    UsizeMaxExprVisitor::default(),
+                );
+                let count = visitor.count.get();
+                (count != 0usize)
+                    .then(|| (source_file.path().as_ref().display().to_string(), count))
+            })
+            .collect::<std::collections::BTreeMap<String, usize>>();
+        let expected = reviewed
+            .iter()
+            .map(|(path, (count, _reason))| ((*path).to_owned(), *count))
+            .collect::<std::collections::BTreeMap<String, usize>>();
+        assert_eq!(observed, expected, "cfc5175f usize::MAX inventory changed");
+    });
+}
+
+#[test]
+fn usize_max_expression_visitor_skips_test_modules() {
+    let file: syn::File = syn::parse_quote! {
+        const PRODUCTION_MAXIMUM: usize = usize::MAX;
+        #[cfg(test)]
+        mod tests {
+            const TEST_MAXIMUM: usize = usize::MAX;
+        }
+    };
+    let visitor = super::visit_syn_file(
+        super::types::SynFileRef::from(&file),
+        UsizeMaxExprVisitor::default(),
+    );
+    assert_eq!(visitor.count.get(), 1usize);
 }
 
 #[test]

@@ -271,9 +271,26 @@ where
 
 #[cfg(test)]
 mod tests {
+    async fn call_method(router: axum::Router, method: http::Method) -> http::StatusCode {
+        tower::ServiceExt::oneshot(
+            router,
+            axum::extract::Request::builder()
+                .method(method)
+                .uri("/items/123")
+                .body(axum::body::Body::empty())
+                .expect("49ef0e86"),
+        )
+        .await
+        .expect("12a54113")
+        .status()
+    }
+
     #[test]
     fn metrics_response_body_is_bounded() {
-        let _body = super::MetricsResponseBody::try_from(String::new()).expect("52410ad9");
+        let _empty_body = super::MetricsResponseBody::try_from(String::new()).expect("52410ad9");
+        let exact = String::from_utf8(vec![b'x'; super::METRICS_RESPONSE_BODY_MAXIMUM_BYTES])
+            .expect("560d1f1e");
+        let _exact_body = super::MetricsResponseBody::try_from(exact).expect("2701b706");
         let _error = super::MetricsResponseBody::try_from(
             String::from_utf8(vec![
                 b'x';
@@ -283,6 +300,23 @@ mod tests {
             .expect("329fb604"),
         )
         .expect_err(str_constants::F0FC293DD);
+    }
+
+    #[test]
+    fn cache_configuration_and_path_text_validate_boundaries() {
+        assert_eq!(
+            super::HttpMetricsPathCacheMaximum::try_from(0usize),
+            Err(super::HttpMetricsPathCacheMaximumTryFromUsizeError)
+        );
+        assert_eq!(
+            super::HttpMetricsPathText::try_from(String::new()),
+            Err(super::HttpMetricsPathTextError)
+        );
+        let _path = super::HttpMetricsPathText::try_from("a".repeat(8_192usize)).expect("c1b07056");
+        assert_eq!(
+            super::HttpMetricsPathText::try_from("a".repeat(8_193usize)),
+            Err(super::HttpMetricsPathTextError)
+        );
     }
 
     #[test]
@@ -310,6 +344,65 @@ mod tests {
                 .0
                 .as_ref(),
             str_constants::HTTP_METRICS_UNMATCHED_PATH
+        );
+    }
+
+    #[test]
+    fn invalid_path_does_not_consume_cache_capacity() {
+        let cache = super::HttpMetricsPathCache::new(super::HttpMetricsPathCacheMaximum::from(
+            std::num::NonZeroUsize::MIN,
+        ));
+        assert_eq!(
+            cache
+                .label(super::HttpMetricsPathTextRef::from(str_constants::EMPTY))
+                .0
+                .as_ref(),
+            str_constants::HTTP_METRICS_UNMATCHED_PATH
+        );
+        assert_eq!(
+            cache
+                .label(super::HttpMetricsPathTextRef::from(str_constants::ROOT))
+                .0
+                .as_ref(),
+            str_constants::ROOT
+        );
+    }
+
+    #[tokio::test]
+    async fn layer_handles_every_standard_and_custom_http_method() {
+        let router = axum::Router::from(super::HttpMetricsLayer::default().apply(
+            crate::AxumRouter::from(axum::Router::new().route(
+                "/items/{id}",
+                axum::routing::any(async || http::StatusCode::INTERNAL_SERVER_ERROR),
+            )),
+        ));
+        let custom = http::Method::from_bytes(b"CUSTOM").expect("6e90dca2");
+        let statuses = tokio::join!(
+            call_method(router.clone(), http::Method::CONNECT),
+            call_method(router.clone(), http::Method::DELETE),
+            call_method(router.clone(), http::Method::GET),
+            call_method(router.clone(), http::Method::HEAD),
+            call_method(router.clone(), http::Method::OPTIONS),
+            call_method(router.clone(), http::Method::PATCH),
+            call_method(router.clone(), http::Method::POST),
+            call_method(router.clone(), http::Method::PUT),
+            call_method(router.clone(), http::Method::TRACE),
+            call_method(router, custom),
+        );
+        assert_eq!(
+            statuses,
+            (
+                http::StatusCode::INTERNAL_SERVER_ERROR,
+                http::StatusCode::INTERNAL_SERVER_ERROR,
+                http::StatusCode::INTERNAL_SERVER_ERROR,
+                http::StatusCode::INTERNAL_SERVER_ERROR,
+                http::StatusCode::INTERNAL_SERVER_ERROR,
+                http::StatusCode::INTERNAL_SERVER_ERROR,
+                http::StatusCode::INTERNAL_SERVER_ERROR,
+                http::StatusCode::INTERNAL_SERVER_ERROR,
+                http::StatusCode::INTERNAL_SERVER_ERROR,
+                http::StatusCode::INTERNAL_SERVER_ERROR,
+            )
         );
     }
 }

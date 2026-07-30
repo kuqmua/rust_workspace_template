@@ -2155,7 +2155,7 @@ pub fn emit_generate_pg_table(
         let pub_fn_frontend_fields_token_stream = quote::quote! {
             #[must_use]
             pub fn frontend_fields() -> frontend_contract::FieldContracts {
-                frontend_contract::FieldContracts::from(vec![#(#frontend_field_contracts_token_stream),*])
+                frontend_contract::FieldContracts::from_max_iter(vec![#(#frontend_field_contracts_token_stream),*])
             }
         };
         let frontend_filter_value_arms_token_stream = read_fields_iter().map(|field| {
@@ -7096,7 +7096,7 @@ pub fn emit_generate_pg_table(
             }
             #[must_use]
             pub fn frontend_contracts() -> frontend_contract::RouteContracts {
-                frontend_contract::RouteContracts::from(Self::ALL.into_iter().map(Self::frontend_contract).collect::<Vec<frontend_contract::RouteContract>>())
+                frontend_contract::RouteContracts::from_max_iter(Self::ALL.into_iter().map(Self::frontend_contract))
             }
             #[must_use]
             pub fn frontend_action(self) -> frontend_contract::ActionContract {
@@ -7112,7 +7112,7 @@ pub fn emit_generate_pg_table(
             }
             #[must_use]
             pub fn frontend_actions() -> frontend_contract::ActionContracts {
-                frontend_contract::ActionContracts::from(Self::ALL.into_iter().map(Self::frontend_action).collect::<Vec<frontend_contract::ActionContract>>())
+                frontend_contract::ActionContracts::from_max_iter(Self::ALL.into_iter().map(Self::frontend_action))
             }
             #[must_use]
             pub const fn mutates(self) -> bool {

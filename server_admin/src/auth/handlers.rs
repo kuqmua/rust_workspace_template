@@ -405,13 +405,28 @@ pub(super) async fn sign_out(
 pub(super) async fn me_view(
     auth: super::AdminAuthReq,
 ) -> Result<server_admin_contract::AuthenticatedAdmin, super::AdminError> {
+    me_context_view(auth).await.map(|context| context.0)
+}
+pub(super) async fn me_context_view(
+    auth: super::AdminAuthReq,
+) -> Result<
+    (
+        server_admin_contract::AuthenticatedAdmin,
+        super::super::AdminPasswordChangeRequired,
+    ),
+    super::AdminError,
+> {
     super::authenticate(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
         auth.peer,
     )
     .await
-    .and_then(|authenticated| super::authenticated_admin_contract(&authenticated))
+    .and_then(|authenticated| {
+        let password_change_required = authenticated.password_change_required();
+        super::authenticated_admin_contract(&authenticated)
+            .map(|contract| (contract, password_change_required))
+    })
 }
 pub(super) async fn me(
     auth: super::AdminAuthReq,
@@ -474,6 +489,7 @@ pub(super) async fn change_own_password(
         super::super::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
         actor.id,
         &password_hash,
+        super::super::AdminPasswordChangeRequired::from(false),
     )
     .await
     .map_err(super::AdminError::from)?
@@ -814,6 +830,7 @@ pub(super) async fn set_user_password(
         super::super::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
         path.0,
         &password_hash,
+        super::super::AdminPasswordChangeRequired::from(true),
     )
     .await
     .map_err(super::AdminError::from)?

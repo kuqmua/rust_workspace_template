@@ -40,11 +40,16 @@ pub(super) async fn bootstrap_admin(
     pool: app_state::SqlxPgPoolRef<'_>,
     login: super::AdminLogin,
     display_name: super::AdminDisplayName,
-    password: super::AdminPassword,
+    password: server_admin_contract::AdminNewPassword,
     password_hasher: &super::AdminPasswordHasher,
 ) -> Result<super::AdminUserId, super::AdminBootstrapError> {
     let password_hash = password_hasher
-        .hash(password)
+        .hash(
+            super::AdminPassword::try_from(password.into_inner()).map_err(|password_error| {
+                let _error_text = format!("{password_error:?}");
+                super::AdminBootstrapError::InvalidPassword
+            })?,
+        )
         .await
         .map_err(super::AdminBootstrapError::PasswordHash)?;
     let mut tx = pool
@@ -76,6 +81,34 @@ pub(super) async fn bootstrap_admin(
         .execute(&mut *tx)
         .await
         .map_err(|error| super::AdminBootstrapError::Pg(super::SqlxAdminError::from(error)))?;
+    let contract_login = server_admin_contract::AdminLogin::try_from(login.as_ref().to_owned())
+        .map_err(|error| {
+            let _error_text = format!("{error:?}");
+            super::AdminBootstrapError::InvalidLogin
+        })?;
+    let resource_id = super::StdAdminString::try_from(user_id.to_string()).map_err(|error| {
+        let _error_text = format!("{error:?}");
+        super::AdminBootstrapError::AuditDetails
+    })?;
+    let details = server_admin_contract::SerdeJsonAdminAuditDetails::try_from(
+        serde_json::json!({ "operation": "bootstrap", "target_id": resource_id.as_ref() }),
+    )
+    .map_err(|error| {
+        let _error_text = format!("{error:?}");
+        super::AdminBootstrapError::AuditDetails
+    })?;
+    super::repository::audit::insert_audit_success(
+        super::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
+        user_id,
+        &contract_login,
+        super::AdminAuditAction::Create,
+        super::AdminAuditResource::User,
+        &resource_id,
+        super::UuidAdminValue::from(uuid::Uuid::new_v4()),
+        &details,
+    )
+    .await
+    .map_err(super::AdminBootstrapError::Pg)?;
     tx.commit()
         .await
         .map_err(|error| super::AdminBootstrapError::Pg(super::SqlxAdminError::from(error)))?;

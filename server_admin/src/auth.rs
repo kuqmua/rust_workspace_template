@@ -58,17 +58,6 @@ impl StdAdminSessionLimit {
     validator = StdAdminFailureThreshold::validate
 )]
 pub struct StdAdminFailureThreshold(i64);
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-enum AdminKnownFailureThreshold {
-    Default,
-}
-impl From<AdminKnownFailureThreshold> for StdAdminFailureThreshold {
-    fn from(value: AdminKnownFailureThreshold) -> Self {
-        match value {
-            AdminKnownFailureThreshold::Default => Self(10i64),
-        }
-    }
-}
 impl StdAdminFailureThreshold {
     #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
     const fn validate(value: &i64) -> Result<(), AdminAuthPositiveValueError> {
@@ -107,12 +96,15 @@ impl AdminAuthPolicy {
         clippy::single_call_fn,
         reason = "keeps every administrator authentication threshold in one immutable policy constructor"
     )]
-    fn from_sign_in_limit(sign_in_limit: StdAdminRateLimitCount) -> Self {
+    fn from_limits(
+        failure_threshold: StdAdminFailureThreshold,
+        sign_in_limit: StdAdminRateLimitCount,
+    ) -> Self {
         Self {
             audit_export_limit: StdAdminRateLimitCount::from(60i64),
             audit_export_window: StdAdminRateLimitWindowSeconds::from(60i32),
             failure_delay: StdAdminFailureDelayMillis::from(200u64),
-            failure_threshold: StdAdminFailureThreshold::from(AdminKnownFailureThreshold::Default),
+            failure_threshold,
             mutation_limit: StdAdminRateLimitCount::from(300i64),
             mutation_window: StdAdminRateLimitWindowSeconds::from(60i32),
             refresh_limit: StdAdminRateLimitCount::from(60i64),
@@ -166,6 +158,8 @@ pub struct AuthenticatedAdmin {
     display_name: super::AdminDisplayName,
     id: super::AdminUserId,
     login: super::AdminLogin,
+    #[schema(value_type = bool)]
+    password_change_required: super::AdminPasswordChangeRequired,
     permissions: super::AdminPermissions,
     roles: super::AdminRoleNames,
     session_id: super::AdminSessionId,
@@ -174,6 +168,10 @@ impl AuthenticatedAdmin {
     #[must_use]
     pub const fn id(&self) -> super::AdminUserId {
         self.id
+    }
+    #[must_use]
+    pub(crate) const fn password_change_required(&self) -> super::AdminPasswordChangeRequired {
+        self.password_change_required
     }
 }
 fn authenticated_admin_contract(
@@ -577,6 +575,9 @@ pub(crate) async fn authorize_generated_request(
     mutates: super::StdAdminBool,
 ) -> Result<AuthenticatedAdmin, AdminError> {
     let authenticated = authenticate(state, headers, peer).await?;
+    if *authenticated.password_change_required {
+        return Err(AdminError::Authorization);
+    }
     let required_permission = super::AdminPermission::try_from(permission.as_ref())
         .map_err(|_error| AdminError::Authorization)?;
     if !authenticated
@@ -939,11 +940,12 @@ async fn load_authenticated_admin_from_db(
             super::repository::AdminRepositoryError::Sqlx(sqlx_error) => AdminError::pg(sqlx_error),
         })?
         .ok_or(AdminError::Authentication)?;
-    let (display_name, login, permissions, roles) = record.into_parts();
+    let (display_name, login, password_change_required, permissions, roles) = record.into_parts();
     Ok(AuthenticatedAdmin {
         display_name,
         id: user_id,
         login,
+        password_change_required,
         permissions,
         roles,
         session_id,
@@ -1304,6 +1306,7 @@ impl AdminAuthSvcState {
         refresh_ttl: &config_lib::AdminRefreshTokenTtlSeconds,
         session_limit: &config_lib::AdminSessionLimit,
         sign_in_rate_limit: &config_lib::AdminSignInRateLimit,
+        login_failure_limit: &config_lib::AdminLoginFailureLimit,
         password_hash_concurrency: &config_lib::AdminPasswordHashConcurrency,
         cookie_secure: &config_lib::AdminCookieSecure,
         issuer: &config_lib::AdminTokenIssuer,
@@ -1356,9 +1359,15 @@ impl AdminAuthSvcState {
                 .map_err(AdminAuthSvcStateBuildError::PositiveValue)?,
             session_limit: StdAdminSessionLimit::try_from(session_limit.get())
                 .map_err(AdminAuthSvcStateBuildError::PositiveValue)?,
-            policy: AdminAuthPolicy::from_sign_in_limit(StdAdminRateLimitCount::from(
-                i64::try_from(sign_in_rate_limit.get()).unwrap_or(i64::MAX),
-            )),
+            policy: AdminAuthPolicy::from_limits(
+                StdAdminFailureThreshold::try_from(
+                    i64::try_from(login_failure_limit.get()).unwrap_or(i64::MAX),
+                )
+                .map_err(AdminAuthSvcStateBuildError::PositiveValue)?,
+                StdAdminRateLimitCount::from(
+                    i64::try_from(sign_in_rate_limit.get()).unwrap_or(i64::MAX),
+                ),
+            ),
         })
     }
 }

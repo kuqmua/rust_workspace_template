@@ -57,6 +57,7 @@ members = [
   "pg_crud/where_filters/generate_where_filters_test",
   "prepare_postgresql_databases",
   "route_validators",
+  "runtime_tests",
   "server",
   "server_admin",
   "server_admin_contract",
@@ -326,6 +327,7 @@ pg_types_common = { path = "./pg_crud/pg_types/pg_types_common" }
 pg_types_numeric = { path = "./pg_crud/pg_types/pg_types_numeric" }
 pg_types_text_misc = { path = "./pg_crud/pg_types/pg_types_text_misc" }
 route_validators = { path = "./route_validators" }
+runtime_tests = { path = "./runtime_tests" }
 server_admin = { path = "./server_admin" }
 server_admin_core = { path = "./server_admin_core" }
 server_admin_contract = { path = "./server_admin_contract" }

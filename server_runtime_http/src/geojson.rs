@@ -170,6 +170,91 @@ impl SupportedGeoJsonTypeValidation for serde_json::Value {
 
 #[cfg(test)]
 mod tests {
+    fn document(
+        value: &serde_json::Value,
+    ) -> Result<super::GeoJsonDocumentText, super::GeoJsonValidationError> {
+        super::GeoJsonDocumentText::try_from(value.to_string())
+    }
+    #[test]
+    fn document_validation_distinguishes_text_shape_type_and_size_errors() {
+        assert!(matches!(
+            super::GeoJsonDocumentText::try_from(String::from(str_constants::TEST_INVALID_JSON)),
+            Err(super::GeoJsonValidationError::SerdeJson(_))
+        ));
+        assert!(matches!(
+            document(&serde_json::json!([])),
+            Err(super::GeoJsonValidationError::Document)
+        ));
+        assert!(matches!(
+            document(&serde_json::json!({
+                str_constants::GEO_JSON_TYPE: "Unsupported"
+            })),
+            Err(super::GeoJsonValidationError::UnsupportedGeometry)
+        ));
+        assert!(matches!(
+            super::GeoJsonDocumentText::try_from(
+                " ".repeat(super::GEO_JSON_MAXIMUM_BYTES + 1usize)
+            ),
+            Err(super::GeoJsonValidationError::TooLarge)
+        ));
+    }
+    #[test]
+    fn feature_and_geometry_collections_validate_children_recursively() {
+        let properties = "properties";
+        let feature = serde_json::json!({
+            str_constants::GEO_JSON_TYPE: str_constants::GEO_JSON_FEATURE,
+            str_constants::GEO_JSON_GEOMETRY: null,
+            (properties): {}
+        });
+        let _feature = document(&feature).expect("c0bd64d6");
+        let collection = serde_json::json!({
+            str_constants::GEO_JSON_TYPE: str_constants::GEO_JSON_FEATURE_COLLECTION,
+            str_constants::GEO_JSON_FEATURES: [{
+                str_constants::GEO_JSON_TYPE: str_constants::GEO_JSON_FEATURE,
+                str_constants::GEO_JSON_GEOMETRY: {
+                    str_constants::GEO_JSON_TYPE: str_constants::GEO_JSON_POINT,
+                    str_constants::GEO_JSON_COORDINATES: [-180.0f64, 90.0f64]
+                },
+                (properties): {}
+            }]
+        });
+        let _collection = document(&collection).expect("bc4861b1");
+        let geometry_collection = serde_json::json!({
+            str_constants::GEO_JSON_TYPE: str_constants::GEO_JSON_GEOMETRY_COLLECTION,
+            str_constants::GEO_JSON_GEOMETRIES: [{
+                str_constants::GEO_JSON_TYPE: str_constants::GEO_JSON_POINT,
+                str_constants::GEO_JSON_COORDINATES: [180.0f64, -90.0f64]
+            }]
+        });
+        let _geometry_collection = document(&geometry_collection).expect("ba7f5e93");
+    }
+    #[test]
+    fn coordinate_collections_reject_empty_levels() {
+        let line = serde_json::json!({
+            str_constants::GEO_JSON_TYPE: str_constants::GEO_JSON_LINE_STRING,
+            str_constants::GEO_JSON_COORDINATES: []
+        });
+        assert!(matches!(
+            document(&line),
+            Err(super::GeoJsonValidationError::Coordinates)
+        ));
+        let polygon = serde_json::json!({
+            str_constants::GEO_JSON_TYPE: str_constants::GEO_JSON_POLYGON,
+            str_constants::GEO_JSON_COORDINATES: []
+        });
+        assert!(matches!(
+            document(&polygon),
+            Err(super::GeoJsonValidationError::Coordinates)
+        ));
+        let multi_polygon = serde_json::json!({
+            str_constants::GEO_JSON_TYPE: str_constants::GEO_JSON_MULTI_POLYGON,
+            str_constants::GEO_JSON_COORDINATES: []
+        });
+        assert!(matches!(
+            document(&multi_polygon),
+            Err(super::GeoJsonValidationError::Coordinates)
+        ));
+    }
     #[test]
     fn point_coordinates_are_range_checked() {
         let _document =

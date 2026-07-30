@@ -18,7 +18,9 @@ in Compose, Kubernetes, CI, and release workflow representations.
 - `notification_service_contract` is the only crate consumers may use to exchange notification
   request and response values.
 - `notification_service_config` owns the notification process environment contract.
-- `server_runtime` owns reusable runtime mechanics without importing service domain crates.
+- `server_runtime_core` owns runtime-agnostic coordination mechanics.
+- `server_runtime_http` owns reusable HTTP and asynchronous runtime mechanics without importing
+  service domain crates.
 
 Each service owns its database credentials and migrations. Cross-service SQL, shared mutable tables,
 and importing another service's repository modules are prohibited. Local Compose may place services

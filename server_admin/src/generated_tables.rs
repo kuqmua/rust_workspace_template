@@ -9,8 +9,8 @@
 #[generate_pg_table::generate_pg_table_config{{
     "api_mode": "ReadOnly",
     "db_table_name": "users",
-    "create_exclude_fields": ["password_hash", "created_at", "updated_at"],
-    "read_exclude_fields": ["password_hash"],
+    "create_exclude_fields": ["password_hash", "must_change_password", "created_at", "updated_at"],
+    "read_exclude_fields": ["password_hash", "must_change_password"],
     "permission_prefix": "users",
     "tests_write_into_file": "False",
     "common_write_into_file": "False",
@@ -25,6 +25,8 @@ pub struct AdminUsers {
     password_hash: pg_types_text_misc::StringAsNonNullText,
     #[generate_pg_table_db_default]
     is_banned: pg_types_numeric::BoolAsNonNullBool,
+    #[generate_pg_table_db_default]
+    must_change_password: pg_types_numeric::BoolAsNonNullBool,
     #[generate_pg_table_db_default]
     created_at: pg_types_chrono_net::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,
     #[generate_pg_table_db_default]

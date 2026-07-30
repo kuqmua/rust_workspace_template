@@ -8,7 +8,6 @@
 ../file_storage/src/lib.rs:StdFileStorageIoError
 ../frontend_contract/src/lib.rs:FrontendContractBodyError
 ../frontend_contract/src/lib.rs:HttpStatusTryFromU16Error
-../frontend_contract/src/problem.rs:ApiProblemViolationsError
 ../frontend_contract_validation/src/openapi_validation.rs:SerdeJsonOpenApiSerializationError
 ../initialize_environment_files/src/main.rs:InitStringError
 ../initialize_environment_files/src/main.rs:ServerRuntimeBoundedReadError
@@ -40,11 +39,13 @@
 ../pg_crud/pg_types/generate_pg_types_src/src/source.rs:SerdeJsonGeneratePgTypesError
 ../pg_crud/where_filters/generate_where_filters_src/src/source.rs:SerdeJsonGenerateWhereFiltersError
 ../pg_crud/where_filters/src/lib.rs:RegexError
+../server/src/admin_bootstrap.rs:SqlxBootstrapError
 ../server/src/main.rs:MetricsExporterPrometheusBuildError
 ../server/src/main.rs:ServerAdminAuthSvcStateBuildError
 ../server/src/main.rs:ServerAdminCleanupCfgError
 ../server/src/main.rs:ServerAdminMigrateError
 ../server/src/main.rs:ServerConfigError
+../server/src/main.rs:ServerConfigProductionError
 ../server/src/main.rs:ServerObservabilityInitError
 ../server/src/main.rs:ServerObservabilityShutdownError
 ../server/src/main.rs:ServerRuntimeBackgroundTaskShutdownError

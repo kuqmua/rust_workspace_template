@@ -123,6 +123,17 @@ pub fn initialize_service_observability(
 #[cfg(test)]
 mod tests {
     #[test]
+    fn empty_guard_shutdown_is_idempotent_and_service_name_displays() {
+        let guard = super::ObservabilityGuard {
+            tracer_provider: None,
+        };
+        guard.shutdown().expect("599ca192");
+        assert_eq!(
+            super::ServiceName::from("notification_service").to_string(),
+            "notification_service"
+        );
+    }
+    #[test]
     fn guard_shuts_down_owned_tracer_provider() {
         let exporter = opentelemetry_sdk::trace::InMemorySpanExporterBuilder::new().build();
         let tracer_provider = opentelemetry_sdk::trace::SdkTracerProvider::builder()
@@ -132,6 +143,18 @@ mod tests {
             tracer_provider: Some(super::OpentelemetrySdkTracerProvider::from(tracer_provider)),
         };
         guard.shutdown().expect("8d66ae8c");
+        assert!(exporter.is_shutdown_called());
+    }
+    #[test]
+    fn dropping_guard_shuts_down_owned_tracer_provider() {
+        let exporter = opentelemetry_sdk::trace::InMemorySpanExporterBuilder::new().build();
+        let tracer_provider = opentelemetry_sdk::trace::SdkTracerProvider::builder()
+            .with_simple_exporter(exporter.clone())
+            .build();
+        let guard = super::ObservabilityGuard {
+            tracer_provider: Some(super::OpentelemetrySdkTracerProvider::from(tracer_provider)),
+        };
+        drop(guard);
         assert!(exporter.is_shutdown_called());
     }
 }

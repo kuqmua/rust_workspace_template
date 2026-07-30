@@ -79,6 +79,38 @@ pub fn redact_rtsp_url_userinfo(value: RedactedUrlTextRef<'_>) -> RedactedUrl {
 #[cfg(test)]
 mod tests {
     #[test]
+    fn urls_without_credentials_are_preserved() {
+        let input = "https://example.com/path?query=value#fragment";
+        let redacted = super::redact_url_userinfo(input.into());
+        assert_eq!(redacted.as_ref(), input);
+        assert_eq!(redacted.to_string(), input);
+        assert!(format!("{redacted:?}").contains(input));
+    }
+
+    #[test]
+    fn malformed_urls_do_not_reflect_unstructured_input() {
+        let malformed = super::redact_url_userinfo("not a url".into());
+        assert_eq!(malformed.as_ref(), str_constants::REDACTED_ALT_3);
+        let nul = super::redact_url_userinfo("\0secret".into());
+        assert_eq!(nul.as_ref(), str_constants::REDACTED_ALT_3);
+    }
+
+    #[test]
+    fn fallback_parser_redacts_userinfo_for_unknown_schemes() {
+        let secret = "secret";
+        let input = format!("1invalid://user:{secret}@example.com/path?query=value");
+        let redacted = super::redact_url_userinfo(input.as_str().into());
+        assert_eq!(
+            redacted.as_ref(),
+            format!(
+                "1invalid://{}@example.com/path?query=value",
+                str_constants::REDACTED_ALT
+            )
+        );
+        assert!(!redacted.as_ref().contains(secret));
+    }
+
+    #[test]
     fn credentials_are_removed_while_non_secret_parts_remain() {
         let redacted = super::redact_url_userinfo(str_constants::TEST_URL_WITH_CREDENTIALS.into());
         assert!(!redacted.as_ref().contains(str_constants::TEST_URL_PASSWORD));

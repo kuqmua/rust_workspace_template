@@ -637,13 +637,11 @@ impl<T: pg_crud_common::DefaultSomeOneElement> pg_crud_common::DefaultSomeOneEle
     Eq,
     PartialOrd,
     serde::Serialize,
-    serde::Deserialize,
     schemars::JsonSchema,
     optml::Optml,
     newtype::AsSlice,
     newtype::IntoInner,
 )]
-#[serde(try_from = "Vec<T>")]
 pub struct BoundedVec<T, const LENGTH: usize>(Vec<T>);
 impl<T, const LENGTH: usize> From<[T; LENGTH]> for BoundedVec<T, LENGTH> {
     fn from(value: [T; LENGTH]) -> Self {
@@ -773,15 +771,29 @@ impl<T, const LENGTH: usize> TryFrom<Vec<T>> for BoundedVec<T, LENGTH> {
     type Error = BoundedVecTryNewError;
     fn try_from(v: Vec<T>) -> Result<Self, Self::Error> {
         let len = v.len();
-        if len == LENGTH {
-            Ok(Self(v))
-        } else {
-            Err(BoundedVecTryNewError::LenIsNotCorrect {
+        bounded_types::BoundedVec::<T, LENGTH, LENGTH>::try_from(v)
+            .map(bounded_types::BoundedVec::into_inner)
+            .map(Self)
+            .map_err(|_error| BoundedVecTryNewError::LenIsNotCorrect {
                 wrong_len: BoundedVecLen::from(len),
                 expected: BoundedVecLen::from(LENGTH),
                 location: location_macros::location!(),
             })
-        }
+    }
+}
+impl<'de, T: serde::Deserialize<'de>, const LENGTH: usize> serde::Deserialize<'de>
+    for BoundedVec<T, LENGTH>
+{
+    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
+    where
+        Deserializer: serde::Deserializer<'de>,
+    {
+        let value =
+            <bounded_types::BoundedVec<T, LENGTH, LENGTH> as serde::Deserialize>::deserialize(
+                deserializer,
+            )?
+            .into_inner();
+        Self::try_from(value).map_err(serde::de::Error::custom)
     }
 }
 impl<T: Clone + pg_crud_common::DefaultSomeOneElement, const LENGTH: usize>

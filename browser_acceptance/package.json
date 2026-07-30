@@ -1,0 +1,14 @@
+{
+  "name": "rust-workspace-template-browser-acceptance",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "scripts": {
+    "screenshots": "BROWSER_ACCEPTANCE_SCREENSHOTS=1 playwright test tests/screenshots.spec.js",
+    "test": "playwright test",
+    "test:full": "BROWSER_ACCEPTANCE_FULL=1 playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.62.0"
+  }
+}

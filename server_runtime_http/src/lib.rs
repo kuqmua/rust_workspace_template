@@ -1033,6 +1033,18 @@ mod tests {
         }
     }
     #[test]
+    fn resource_budget_maximum_rejects_zero_and_accepts_positive_values() {
+        assert_eq!(
+            super::ResourceBudgetMaximum::try_from(0usize),
+            Err(super::ResourceBudgetConfigError)
+        );
+        let maximum = std::num::NonZeroUsize::new(1usize).expect("9e83081e");
+        assert_eq!(
+            super::ResourceBudgetMaximum::try_from(1usize).expect("19c82820"),
+            super::ResourceBudgetMaximum::from(maximum)
+        );
+    }
+    #[test]
     fn resource_budget_reservations_are_bounded_and_released() {
         let budget = super::ResourceBudget::new(
             super::ResourceBudgetMaximum::try_from(5usize).expect("0c6362a4"),
@@ -1223,6 +1235,48 @@ mod tests {
         assert_eq!(
             http::HeaderValue::try_from(retry_after).expect("cb2a239c"),
             http::HeaderValue::from_static("3")
+        );
+    }
+    #[test]
+    fn concurrency_limit_wrappers_validate_boundaries_and_try_acquire() {
+        assert_eq!(
+            super::RetryAfterSecs::try_from(0u64),
+            Err(super::RetryAfterSecsTryFromU64Error)
+        );
+        let permit_count = std::num::NonZeroUsize::new(1usize).expect("50a95013");
+        let semaphore =
+            super::StdArcTokioSemaphore::new(super::StdSemaphorePermitCount::from(permit_count));
+        let permit = semaphore.try_acquire().expect("626040d0");
+        assert!(semaphore.try_acquire().is_none());
+        drop(permit);
+        assert!(semaphore.try_acquire().is_some());
+    }
+    #[test]
+    fn request_id_validates_string_and_header_boundaries() {
+        assert_eq!(
+            super::RequestId::try_from(String::new()),
+            Err(super::RequestIdTryFromStringError)
+        );
+        let maximum = "a".repeat(128usize);
+        let request_id = super::RequestId::try_from(maximum.clone()).expect("3ff39236");
+        assert_eq!(request_id.to_string(), maximum);
+        assert_eq!(
+            super::RequestId::try_from("a".repeat(129usize)),
+            Err(super::RequestIdTryFromStringError)
+        );
+        assert_eq!(
+            super::RequestId::try_from(String::from_utf8(vec![0xc3u8, 0xa9u8]).expect("f246e4f8")),
+            Err(super::RequestIdTryFromStringError)
+        );
+        assert!(matches!(
+            super::RequestId::try_from(
+                &http::HeaderValue::from_bytes(&[0xffu8]).expect("dcb3f9a8")
+            ),
+            Err(super::RequestIdTryFromHttpHeaderValueError::ToStr(_))
+        ));
+        assert_eq!(
+            http::HeaderValue::try_from(&request_id).expect("b0a0854a"),
+            http::HeaderValue::from_str(maximum.as_str()).expect("07132954")
         );
     }
     #[tokio::test]

@@ -47,16 +47,24 @@ impl TryFrom<String> for PgRelationLockNamespace {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct PgRelationResourceIds(Vec<PgRelationResourceId>);
+pub struct PgRelationResourceIds(
+    bounded_types::BoundedVec<PgRelationResourceId, 0usize, MAXIMUM_RESOURCE_COUNT>,
+);
 impl TryFrom<Vec<PgRelationResourceId>> for PgRelationResourceIds {
     type Error = PgRelationLockError;
-    fn try_from(mut value: Vec<PgRelationResourceId>) -> Result<Self, Self::Error> {
-        if value.len() > MAXIMUM_RESOURCE_COUNT {
-            return Err(PgRelationLockError::TooManyResources);
-        }
-        value.sort_unstable();
-        value.dedup();
-        Ok(Self(value))
+    fn try_from(value: Vec<PgRelationResourceId>) -> Result<Self, Self::Error> {
+        let mut resources = bounded_types::BoundedVec::<
+            PgRelationResourceId,
+            0usize,
+            MAXIMUM_RESOURCE_COUNT,
+        >::try_from(value)
+        .map_err(|_error| PgRelationLockError::TooManyResources)?
+        .into_inner();
+        resources.sort_unstable();
+        resources.dedup();
+        bounded_types::BoundedVec::try_from(resources)
+            .map(Self)
+            .map_err(|_error| PgRelationLockError::TooManyResources)
     }
 }
 
@@ -141,8 +149,8 @@ mod tests {
         ])
         .expect("a9cf9ea3");
         assert_eq!(
-            resources.0,
-            vec![
+            resources.0.as_slice(),
+            [
                 super::PgRelationResourceId::from(1i64),
                 super::PgRelationResourceId::from(2i64),
             ]

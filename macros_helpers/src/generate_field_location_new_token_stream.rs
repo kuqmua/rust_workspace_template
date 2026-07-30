@@ -94,3 +94,30 @@ pub fn generate_field_location_new_token_stream(
         quote::quote! {#location_snake_case: #location_new_token_stream},
     )
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn coordinates_reject_zero_and_accept_positive_values() {
+        let _line_error = super::FieldLocationLine::try_from(0u32).expect_err("c2f0b6ca");
+        let _column_error = super::FieldLocationColumn::try_from(0u32).expect_err("9cf06f3e");
+        let _line = super::FieldLocationLine::try_from(7u32).expect("070dbee8");
+        let _column = super::FieldLocationColumn::try_from(11u32).expect("e067c790");
+    }
+    #[test]
+    fn first_coordinates_generate_complete_location_field() {
+        let generated = super::generate_field_location_new_token_stream(
+            super::FieldLocationFile::from("src/example.rs"),
+            super::FieldLocationLine::first(),
+            super::FieldLocationColumn::first(),
+        )
+        .as_ref()
+        .to_string();
+        assert!(generated.starts_with("location : location_lib :: location :: Location :: new"));
+        assert!(generated.contains("\"src/example.rs\""));
+        assert!(generated.contains("try_from (1)"));
+        assert!(generated.contains("file ! ()"));
+        assert!(generated.contains("line ! ()"));
+        assert!(generated.contains("column ! ()"));
+    }
+}

@@ -461,3 +461,121 @@ pub fn get_only_one(
     }
     optional_self.ok_or(GetOnlyOneStatusCodeError::NotFound)
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn status_code_token_views_are_consistent() {
+        let cases = [
+            (
+                super::StatusCode::Continue100,
+                "100",
+                "http :: StatusCode :: CONTINUE",
+                "\"continue\"",
+            ),
+            (
+                super::StatusCode::Ok200,
+                "200",
+                "http :: StatusCode :: OK",
+                "\"ok\"",
+            ),
+            (
+                super::StatusCode::PermanentRedirect308,
+                "308",
+                "http :: StatusCode :: PERMANENT_REDIRECT",
+                "\"permanent redirect\"",
+            ),
+            (
+                super::StatusCode::ImATeapot418,
+                "418",
+                "http :: StatusCode :: IM_A_TEAPOT",
+                "\"im a teapot\"",
+            ),
+            (
+                super::StatusCode::NetworkAuthenticationRequired511,
+                "511",
+                "http :: StatusCode :: NETWORK_AUTHENTICATION_REQUIRED",
+                "\"network authentication required\"",
+            ),
+        ];
+        cases
+            .into_iter()
+            .try_for_each(|(status, code, http, description)| {
+                assert_eq!(
+                    status.to_status_code_token_stream().as_ref().to_string(),
+                    code
+                );
+                assert_eq!(
+                    status
+                        .to_http_status_code_token_stream()
+                        .as_ref()
+                        .to_string(),
+                    http
+                );
+                assert_eq!(
+                    status
+                        .to_status_code_description_token_stream()
+                        .as_ref()
+                        .to_string(),
+                    description
+                );
+                assert_eq!(
+                    status
+                        .to_proc_macro_attr_view_token_stream()
+                        .as_ref()
+                        .to_string(),
+                    format!("# [{status}]")
+                );
+                Ok::<(), ()>(())
+            })
+            .expect("1f309f5c");
+    }
+
+    #[test]
+    fn status_code_parsing_accepts_known_values_and_rejects_unknown() {
+        assert_eq!(
+            super::StatusCode::try_from(&String::from(str_constants::VALUE_200_OK)),
+            Ok(super::StatusCode::Ok200)
+        );
+        assert_eq!(
+            super::StatusCode::try_from(&String::from(
+                str_constants::NETWORK_AUTHENTICATION_REQUIRED_511
+            )),
+            Ok(super::StatusCode::NetworkAuthenticationRequired511)
+        );
+        assert_eq!(
+            super::StatusCode::try_from(&String::from("unknown_status")),
+            Err(())
+        );
+    }
+
+    #[test]
+    fn attribute_selection_requires_exactly_one_supported_status() {
+        let one: syn::Variant = syn::parse_quote! {
+            #[serde(rename = "ignored")]
+            #[not_found_404]
+            Variant
+        };
+        assert_eq!(
+            super::get_only_one(super::SynStatusCodeVariantRef::from(&one)),
+            Ok(super::StatusCode::NotFound404)
+        );
+        let missing: syn::Variant = syn::parse_quote! {
+            #[unknown]
+            Variant
+        };
+        assert_eq!(
+            super::get_only_one(super::SynStatusCodeVariantRef::from(&missing)),
+            Err(super::GetOnlyOneStatusCodeError::NotFound)
+        );
+        let multiple: syn::Variant = syn::parse_quote! {
+            #[not_found_404]
+            #[internal_server_error_500]
+            Variant
+        };
+        assert_eq!(
+            super::get_only_one(super::SynStatusCodeVariantRef::from(&multiple)),
+            Err(super::GetOnlyOneStatusCodeError::MoreThanOne)
+        );
+    }
+}

@@ -103,6 +103,22 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
+                    "boolean",
+                ),
+                default: Some(
+                    DbSchemaText(
+                        "true",
+                    ),
+                ),
+                name: DbSchemaText(
+                    "must_change_password",
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
                     "text",
                 ),
                 default: None,

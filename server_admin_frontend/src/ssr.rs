@@ -103,6 +103,7 @@ pub fn render_sign_in(
             <main class="auth-layout" style=primary_color>
                 <section class="auth-card">
                     {error.map(|message| leptos::view! { <p class="field-error" role="alert">{message.0.to_string()}</p> })}
+                    <p class="password-policy">{str_constants::ADMIN_PASSWORD_POLICY_DESCRIPTION}</p>
                     <form method="post" action=server_admin_contract::AdminHtmlAction::SignIn.get()>
                         <label><span>"Login"</span><input name="login" autocomplete="username" required /></label>
                         <label><span>"Password"</span><input name="password" type="password" autocomplete="current-password" required /></label>
@@ -459,8 +460,9 @@ pub fn render_profile(
     let content = leptos::view! {
         <section class="security-card"><p><strong>{admin.display_name().to_string()}</strong></p><p>{admin.login().to_string()}</p><p>{roles}</p></section>
         <section class="security-card"><form method="post" action=server_admin_contract::AdminHtmlAction::ProfilePassword.get()>
+            <p class="password-policy">{str_constants::ADMIN_PASSWORD_POLICY_DESCRIPTION}</p>
             <label><span>"Current password"</span><input name="current_password" type="password" required /></label>
-            <label><span>"New password"</span><input name="new_password" type="password" required /></label>
+            <label><span>"New password"</span><input name="new_password" type="password" minlength=server_admin_contract::ADMIN_NEW_PASSWORD_MIN_CHARS maxlength=server_admin_contract::ADMIN_PASSWORD_MAX_CHARS required /></label>
             <button type="submit">"Change password"</button>
         </form></section>
     }.render_admin_ssr();

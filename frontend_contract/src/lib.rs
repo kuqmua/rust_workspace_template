@@ -463,7 +463,21 @@ pub struct FieldContract {
     visibility: FieldVisibility,
 }
 #[derive(Clone, Debug, PartialEq, Eq, newtype::AsRefTarget, newtype::FromInner)]
-pub struct FieldContracts(Vec<FieldContract>);
+pub struct FieldContracts(bounded_types::BoundedVec<FieldContract, 0, { usize::MAX }>);
+impl From<Vec<FieldContract>> for FieldContracts {
+    fn from(value: Vec<FieldContract>) -> Self {
+        Self::from(bounded_types::BoundedVec::from_max_iter(value))
+    }
+}
+impl FieldContracts {
+    #[must_use]
+    pub fn from_max_iter<Values>(values: Values) -> Self
+    where
+        Values: IntoIterator<Item = FieldContract>,
+    {
+        Self::from(bounded_types::BoundedVec::from_max_iter(values))
+    }
+}
 const EMPTY_FILTER_CONTRACTS: &[FilterOperation] = &[];
 impl FieldContract {
     #[must_use]
@@ -786,7 +800,21 @@ pub struct ActionContract {
     route: RouteContract,
 }
 #[derive(Clone, Debug, PartialEq, Eq, newtype::AsRefTarget, newtype::FromInner)]
-pub struct ActionContracts(Vec<ActionContract>);
+pub struct ActionContracts(bounded_types::BoundedVec<ActionContract, 0, { usize::MAX }>);
+impl From<Vec<ActionContract>> for ActionContracts {
+    fn from(value: Vec<ActionContract>) -> Self {
+        Self::from(bounded_types::BoundedVec::from_max_iter(value))
+    }
+}
+impl ActionContracts {
+    #[must_use]
+    pub fn from_max_iter<Values>(values: Values) -> Self
+    where
+        Values: IntoIterator<Item = ActionContract>,
+    {
+        Self::from(bounded_types::BoundedVec::from_max_iter(values))
+    }
+}
 impl ActionContract {
     #[must_use]
     pub const fn new(operation: OperationKind, route: RouteContract) -> Self {
@@ -823,7 +851,21 @@ pub struct RouteContract {
     success_status: SuccessStatus,
 }
 #[derive(Clone, Debug, PartialEq, Eq, newtype::AsRefTarget, newtype::FromInner)]
-pub struct RouteContracts(Vec<RouteContract>);
+pub struct RouteContracts(bounded_types::BoundedVec<RouteContract, 0, { usize::MAX }>);
+impl From<Vec<RouteContract>> for RouteContracts {
+    fn from(value: Vec<RouteContract>) -> Self {
+        Self::from(bounded_types::BoundedVec::from_max_iter(value))
+    }
+}
+impl RouteContracts {
+    #[must_use]
+    pub fn from_max_iter<Values>(values: Values) -> Self
+    where
+        Values: IntoIterator<Item = RouteContract>,
+    {
+        Self::from(bounded_types::BoundedVec::from_max_iter(values))
+    }
+}
 impl RouteContract {
     #[must_use]
     pub const fn new(
@@ -1156,6 +1198,33 @@ mod tests {
         assert_eq!(field.type_contract().input_kind(), super::InputKind::Number);
         assert_eq!(field.primary_key(), super::PrimaryKeyKind::Primary);
         assert_eq!(field.readable(), super::FieldCapability::Enabled);
+    }
+    #[test]
+    fn public_catalog_wrappers_preserve_vec_conversions() {
+        let fields = super::FieldContracts::from(Vec::<super::FieldContract>::new());
+        let actions = super::ActionContracts::from(Vec::<super::ActionContract>::new());
+        let routes = super::RouteContracts::from(Vec::<super::RouteContract>::new());
+        let coverage =
+            super::RouteCoverageDescriptors::from(Vec::<super::RouteCoverageDescriptor>::new());
+        let schemas = super::RouteSchemaContracts::from(Vec::<super::RouteSchemaContract>::new());
+        let metadata = super::RouteMetadataList::from(Vec::<super::RouteMetadata>::new());
+        let categories = super::RouteTestCategories::from(vec![
+            super::RouteTestCategory::FixtureHook,
+            super::RouteTestCategory::Metadata,
+        ]);
+        assert!(fields.as_ref().is_empty());
+        assert!(actions.as_ref().is_empty());
+        assert!(routes.as_ref().is_empty());
+        assert!(coverage.as_ref().is_empty());
+        assert!(schemas.as_ref().is_empty());
+        assert!(metadata.as_ref().is_empty());
+        assert_eq!(
+            categories.as_ref(),
+            [
+                super::RouteTestCategory::FixtureHook,
+                super::RouteTestCategory::Metadata,
+            ]
+        );
     }
     #[test]
     fn route_contract_keeps_transport_policy_together() {

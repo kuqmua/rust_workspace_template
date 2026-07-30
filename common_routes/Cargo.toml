@@ -9,6 +9,7 @@ license.workspace = true
 edition.workspace = true
 
 [dependencies]
+bounded_types = { workspace = true }
 str_constants = { workspace = true }
 axum = { workspace = true }
 serde = { workspace = true }

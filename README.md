@@ -1,7 +1,19 @@
-# Rust microservice workspace template
+# Rust administrator application workspace template
 
-Production-oriented Rust workspace for starting a typed HTTP system composed of independently
-deployable microservices.
+Production-oriented Rust workspace with an embedded administrator console, typed HTTP contracts,
+PostgreSQL migrations, RBAC, sessions, audit, browser WebAssembly assets, containers, and
+Kubernetes foundations.
+
+Start with the [ten-minute administrator quickstart](docs/admin-quickstart.md), confirm the
+[supported feature matrix](docs/admin-feature-matrix.md), then follow the
+[resource extension contract](docs/admin-resource-extension.md). The first stable scope is a
+single-organization, local-credential administrator application backed by PostgreSQL; MFA, SSO,
+multi-tenancy, and arbitrary generated CRUD are explicitly unsupported.
+
+![Administrator user management](docs/images/admin/users.png)
+
+See the [console screenshot gallery](docs/admin-screenshots.md) for sign-in, roles, settings,
+sessions, and generic data-table views.
 
 ## Included services
 
@@ -21,8 +33,8 @@ reference boundary to follow when adding another service.
 
 ## Shared foundations
 
-- `server_runtime`: lifecycle, graceful shutdown, health, limits, request metadata, retries,
-  outbound URL policy and metrics;
+- `server_runtime_core` and `server_runtime_http`: lifecycle, graceful shutdown, health, limits,
+  request metadata, retries, outbound URL policy and metrics;
 - `frontend_contract` and service-owned contract crates: typed transport values;
 - `config_lib`: validated environment configuration with secret redaction;
 - `pg_crud`: generated PostgreSQL CRUD contracts, handlers, clients and OpenAPI metadata;
@@ -31,8 +43,20 @@ reference boundary to follow when adding another service.
 - `external_service_emulators`: deterministic integration-test doubles.
 
 See [microservice architecture](docs/architecture.md) for ownership and communication rules.
+See [administrator architecture](docs/admin-architecture.md) for the browser, API, RBAC, and
+database trust boundaries.
 The exact status, headers, and JSON body returned for application failures are documented in
 [API error responses](docs/api-errors.md).
+The evidence-based work required to present the administrator console as a reusable product is
+tracked in [administrator template readiness](ADMIN_TEMPLATE_READINESS.md).
+The supported product boundary is in the
+[administrator feature matrix](docs/admin-feature-matrix.md), and a clean-clone setup is in the
+[administrator quickstart](docs/admin-quickstart.md).
+Branding and deployment precedence are documented in
+[administrator customization](docs/admin-customization.md). Release compatibility and operations
+are covered by the [versioning policy](docs/release-versioning.md),
+[upgrade guide](docs/admin-upgrade-guide.md), and
+[production operations guide](docs/admin-production-operations.md).
 
 ## Prerequisites
 
@@ -63,7 +87,7 @@ http://127.0.0.1:8081/health/ready
 
 Both backend services create OpenTelemetry server spans for incoming requests, preserve an
 incoming W3C `traceparent`/`tracestate` context, and export spans to an OTLP/HTTP collector. HTTP
-requests executed through `server_runtime::ReqwestClient::execute` create client spans and inject
+requests executed through `server_runtime_http::ReqwestClient::execute` create client spans and inject
 the current W3C trace context automatically.
 
 Incoming HTTP spans use Axum's matched route template as `http.route`; unmatched requests receive
@@ -138,7 +162,8 @@ cargo miri test --all-features \
   -p macros_helpers \
   -p newtype \
   -p pg_crud_common \
-  -p server_runtime
+  -p server_runtime_core \
+  -p server_runtime_http
 ```
 
 Run the domain-boundary fuzz target with a bounded smoke campaign:

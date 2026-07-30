@@ -300,6 +300,156 @@ pub fn identifier_file_storage_relative_path(
 
 #[cfg(test)]
 mod tests {
+    fn field_name() -> super::MultipartFieldName {
+        super::MultipartFieldName::try_from(String::from("field")).expect("0f4b54a3")
+    }
+    fn text_part(value: &str) -> super::MultipartTextPart {
+        super::MultipartTextPart::new(
+            field_name(),
+            super::MultipartTextValue::try_from(value.to_owned()).expect("93b34391"),
+        )
+    }
+    #[test]
+    fn multipart_value_wrappers_enforce_each_boundary() {
+        assert_eq!(
+            super::MultipartFieldName::try_from(String::new()),
+            Err(super::MultipartValueError::EmptyFieldName)
+        );
+        let _field_name =
+            super::MultipartFieldName::try_from("a".repeat(256usize)).expect("1d3de882");
+        assert_eq!(
+            super::MultipartFieldName::try_from("a".repeat(257usize)),
+            Err(super::MultipartValueError::TooLong {
+                actual: super::MultipartValueLength::from(257usize)
+            })
+        );
+        assert_eq!(
+            super::MultipartFieldName::try_from(String::from("a\0b")),
+            Err(super::MultipartValueError::Nul)
+        );
+
+        assert_eq!(
+            super::MultipartFileName::try_from(String::new()),
+            Err(super::MultipartValueError::EmptyFileName)
+        );
+        let _file_name =
+            super::MultipartFileName::try_from("a".repeat(1024usize)).expect("7b3ca38e");
+        assert_eq!(
+            super::MultipartFileName::try_from("a".repeat(1025usize)),
+            Err(super::MultipartValueError::TooLong {
+                actual: super::MultipartValueLength::from(1025usize)
+            })
+        );
+        assert_eq!(
+            super::MultipartFileName::try_from(String::from("a\0b")),
+            Err(super::MultipartValueError::Nul)
+        );
+
+        let _text = super::MultipartTextValue::try_from("a".repeat(65_536usize)).expect("c2dd1657");
+        assert_eq!(
+            super::MultipartTextValue::try_from("a".repeat(65_537usize)),
+            Err(super::MultipartValueError::TooLong {
+                actual: super::MultipartValueLength::from(65_537usize)
+            })
+        );
+        assert_eq!(
+            super::MultipartTextValue::try_from(String::from("\0")),
+            Err(super::MultipartValueError::Nul)
+        );
+    }
+    #[test]
+    fn multipart_parts_preserve_names_values_and_file_names() {
+        let text = text_part("value");
+        assert_eq!(text.name().as_ref(), "field");
+        assert_eq!(text.value().as_ref(), "value");
+
+        let file_name =
+            super::MultipartFileName::try_from(String::from("report.txt")).expect("b76ab3ce");
+        let bytes = super::MultipartBytes::try_from(vec![1u8, 2u8, 3u8]).expect("e9e23985");
+        let bytes_part =
+            super::MultipartBytesPart::new(field_name(), bytes).with_file_name(file_name);
+        assert_eq!(bytes_part.name().as_ref(), "field");
+        assert_eq!(bytes_part.bytes().as_ref(), &[1u8, 2u8, 3u8]);
+        assert_eq!(
+            bytes_part.file_name().map(AsRef::as_ref),
+            Some("report.txt")
+        );
+    }
+    #[test]
+    fn request_enforces_combined_payload_and_part_count() {
+        let limited_request = super::MultipartUploadRequest::new()
+            .with_text_part(
+                text_part("ab"),
+                super::MultipartPayloadMaximum::from(3usize),
+            )
+            .expect("7797e0f1");
+        assert_eq!(
+            limited_request.with_text_part(
+                text_part("cd"),
+                super::MultipartPayloadMaximum::from(3usize)
+            ),
+            Err(super::MultipartRequestError::PayloadTooLarge)
+        );
+
+        let full_request = (0usize..32usize)
+            .try_fold(super::MultipartUploadRequest::new(), |accumulator, _idx| {
+                accumulator
+                    .with_text_part(text_part(""), super::MultipartPayloadMaximum::from(0usize))
+            })
+            .expect("9cbea721");
+        assert_eq!(full_request.text_parts().len(), 32usize);
+        assert_eq!(
+            full_request
+                .with_text_part(text_part(""), super::MultipartPayloadMaximum::from(0usize)),
+            Err(super::MultipartRequestError::TooManyParts)
+        );
+    }
+    #[test]
+    fn storage_paths_validate_segments_and_preserve_file_extensions() {
+        let _valid =
+            super::StoragePathSegment::try_from(String::from("abc-_123")).expect("20b6c6b2");
+        assert_eq!(
+            super::StoragePathSegment::try_from(String::new()),
+            Err(super::StoragePathSegmentError)
+        );
+        assert_eq!(
+            super::StoragePathSegment::try_from(String::from("../escape")),
+            Err(super::StoragePathSegmentError)
+        );
+        assert_eq!(
+            super::StoragePathSegment::try_from("a".repeat(1025usize)),
+            Err(super::StoragePathSegmentError)
+        );
+
+        let identifier =
+            super::StoragePathSegment::try_from(String::from("entity")).expect("ec2aa921");
+        let unique = super::StoragePathSegment::try_from(String::from("unique")).expect("51bb3e40");
+        let file_name =
+            super::MultipartFileName::try_from(String::from("report.tar.gz")).expect("3ea5274e");
+        assert_eq!(
+            super::identifier_file_storage_relative_path(&identifier, &unique, &file_name).as_ref(),
+            std::path::Path::new("entity/unique.gz")
+        );
+        let no_extension =
+            super::MultipartFileName::try_from(String::from("README")).expect("b7a900a5");
+        assert_eq!(
+            super::identifier_file_storage_relative_path(&identifier, &unique, &no_extension)
+                .as_ref(),
+            std::path::Path::new("entity/unique")
+        );
+        assert_eq!(
+            super::staging_directory_name(super::FileStagingAction::Delete)
+                .expect("c5076b2f")
+                .as_ref(),
+            str_constants::FILE_DELETE_STAGING_DIRECTORY
+        );
+        assert_eq!(
+            super::staging_directory_name(super::FileStagingAction::Upload)
+                .expect("725e03de")
+                .as_ref(),
+            str_constants::FILE_UPLOAD_STAGING_DIRECTORY
+        );
+    }
     #[test]
     fn request_rejects_payload_above_limit() {
         let name = super::MultipartFieldName::try_from(String::from(

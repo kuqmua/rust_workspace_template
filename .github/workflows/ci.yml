@@ -127,6 +127,53 @@ jobs:
           targets: wasm32-unknown-unknown
       - run: cargo test -p server_admin_frontend
       - run: cargo check -p server_admin_frontend --target wasm32-unknown-unknown
+  browser-acceptance:
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: ghcr.io/kuqmua/postgresql_16_with_pg_jsonschema@sha256:e95f0b8fce882a4cadbd7a1e01451a1440b356299af7a2a17859018914d0c178
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: rust_workspace_template_browser_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d rust_workspace_template_browser_test"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: ./.github/actions/setup-rust
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: browser_acceptance/package-lock.json
+      - uses: taiki-e/install-action@5292d65c95e72dc79f25946b7ce34e28deecf2f3
+        with:
+          tool: trunk
+      - run: npm ci
+        working-directory: browser_acceptance
+      - run: npx playwright install --with-deps chromium
+        working-directory: browser_acceptance
+      - run: npm test
+        working-directory: browser_acceptance
+        env:
+          BROWSER_ACCEPTANCE_DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/rust_workspace_template_browser_test
+      - if: failure()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: browser-acceptance-failure
+          path: |
+            browser_acceptance/playwright-report/
+            browser_acceptance/test-results/
+          if-no-files-found: ignore
   clippy:
     if: github.event_name == 'push' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
@@ -171,7 +218,8 @@ jobs:
           -p macros_helpers
           -p newtype
           -p pg_crud_common
-          -p server_runtime
+          -p server_runtime_core
+          -p server_runtime_http
   fuzz:
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -275,7 +323,8 @@ jobs:
       - run: |
           cargo semver-checks --package newtype --baseline-rev "origin/${{ github.base_ref }}"
           cargo semver-checks --package generate_pg_table_src --baseline-rev "origin/${{ github.base_ref }}"
-          cargo semver-checks --package server_runtime --baseline-rev "origin/${{ github.base_ref }}"
+          cargo semver-checks --package server_runtime_core --baseline-rev "origin/${{ github.base_ref }}"
+          cargo semver-checks --package server_runtime_http --baseline-rev "origin/${{ github.base_ref }}"
   secret-scan:
     if: github.event_name == 'push' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
@@ -298,6 +347,53 @@ jobs:
       - uses: ./.github/actions/setup-rust
       - run: cargo install --locked cargo-udeps
       - run: cargo udeps --workspace --all-targets --all-features --locked
+  browser-acceptance-full:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    services:
+      postgres:
+        image: ghcr.io/kuqmua/postgresql_16_with_pg_jsonschema@sha256:e95f0b8fce882a4cadbd7a1e01451a1440b356299af7a2a17859018914d0c178
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: rust_workspace_template_browser_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d rust_workspace_template_browser_test"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: ./.github/actions/setup-rust
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: browser_acceptance/package-lock.json
+      - uses: taiki-e/install-action@5292d65c95e72dc79f25946b7ce34e28deecf2f3
+        with:
+          tool: trunk
+      - run: npm ci
+        working-directory: browser_acceptance
+      - run: npx playwright install --with-deps chromium
+        working-directory: browser_acceptance
+      - run: npm run test:full
+        working-directory: browser_acceptance
+        env:
+          BROWSER_ACCEPTANCE_DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/rust_workspace_template_browser_test
+      - if: failure()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: browser-acceptance-full-failure
+          path: |
+            browser_acceptance/playwright-report/
+            browser_acceptance/test-results/
+          if-no-files-found: ignore
   unused-dependencies:
     if: github.event_name == 'push' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest

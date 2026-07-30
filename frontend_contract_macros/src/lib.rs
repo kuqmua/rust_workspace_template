@@ -1976,18 +1976,18 @@ pub fn derive_route_catalog(input: proc_macro::TokenStream) -> proc_macro::Token
                 Some(frontend_contract::RouteBodyLimit::from(#body_limit))
             }
             fn coverage_descriptors() -> frontend_contract::RouteCoverageDescriptors {
-                vec![
+                frontend_contract::RouteCoverageDescriptors::from_max_iter(vec![
                     #(
                         <#family_routes as frontend_contract::CoveredRoute>::coverage_descriptor()
                     ),*
-                ].into()
+                ])
             }
             fn schema_contracts() -> frontend_contract::RouteSchemaContracts {
-                vec![
+                frontend_contract::RouteSchemaContracts::from_max_iter(vec![
                     #(
                         frontend_contract::RouteSchemaContract::from_typed_route::<#family_routes>()
                     ),*
-                ].into()
+                ])
             }
         }
         #(impl frontend_contract::RouteInFamily<#family> for #family_routes {})*
@@ -2269,18 +2269,18 @@ pub fn derive_route_family(input: proc_macro::TokenStream) -> proc_macro::TokenS
             const ROUTE_COUNT: usize = #route_count;
             #body_limit
             fn coverage_descriptors() -> frontend_contract::RouteCoverageDescriptors {
-                vec![
+                frontend_contract::RouteCoverageDescriptors::from_max_iter(vec![
                     #(
                         <#route_types as frontend_contract::CoveredRoute>::coverage_descriptor()
                     ),*
-                ].into()
+                ])
             }
             fn schema_contracts() -> frontend_contract::RouteSchemaContracts {
-                vec![
+                frontend_contract::RouteSchemaContracts::from_max_iter(vec![
                     #(
                         frontend_contract::RouteSchemaContract::from_typed_route::<#route_types>()
                     ),*
-                ].into()
+                ])
             }
         }
         #(impl frontend_contract::RouteInFamily<#identifier> for #route_types {})*

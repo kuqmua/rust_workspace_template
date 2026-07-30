@@ -240,17 +240,13 @@ fn csr_page_from_location() -> Result<server_admin_contract::AdminPage, AdminTab
         .location()
         .pathname()
         .map_err(|_error| AdminTableLoadError::Fetch)?;
-    let page = if server_admin_contract::AdminDataTable::from_frontend_path(
-        server_admin_contract::AdminPagePathRef::from(pathname.as_str()),
-    )
-    .is_some()
-    {
-        server_admin_contract::AdminPage::Tables
-    } else {
-        server_admin_contract::AdminPage::from_path(server_admin_contract::AdminPagePathRef::from(
-            pathname.as_str(),
-        ))
-        .ok_or(AdminTableLoadError::Query)?
+    let path = server_admin_contract::AdminPagePathRef::from(pathname.as_str());
+    let page = match server_admin_contract::AdminPage::from_path(path) {
+        Some(page) => page,
+        None if server_admin_contract::AdminDataTable::from_frontend_path(path).is_some() => {
+            server_admin_contract::AdminPage::Tables
+        }
+        None => return Err(AdminTableLoadError::Query),
     };
     if bool::from(page.supports_csr()) {
         Ok(page)
@@ -822,8 +818,9 @@ fn AdminProfileView(
                     );
                 }
             }>
+                <p class="password-policy">{str_constants::ADMIN_PASSWORD_POLICY_DESCRIPTION}</p>
                 <label><span>"Current password"</span><input type="password" required on:input=move |event| leptos::prelude::Set::set(&current_password, leptos::prelude::event_target_value(&event)) /></label>
-                <label><span>"New password"</span><input type="password" required on:input=move |event| leptos::prelude::Set::set(&new_password, leptos::prelude::event_target_value(&event)) /></label>
+                <label><span>"New password"</span><input type="password" minlength=server_admin_contract::ADMIN_NEW_PASSWORD_MIN_CHARS maxlength=server_admin_contract::ADMIN_PASSWORD_MAX_CHARS required on:input=move |event| leptos::prelude::Set::set(&new_password, leptos::prelude::event_target_value(&event)) /></label>
                 <button type="submit">"Change password"</button>
             </form></article>
         </section>
@@ -879,6 +876,40 @@ fn AdminSettingsView(
         }>
             {crate::shared::admin_setting_inputs(signals, crate::shared::AdminSettingDisabled::from(!can_update))}
             <button type="submit" disabled=!can_update>"Save settings"</button>
+            <button type="button" disabled=!can_update on:click=move |_event| {
+                if bool::from(mutation_confirmed(MutationConfirmationMessageRef::from("Reset administrator settings to template defaults?"))) {
+                    let clear = server_admin_contract::AdminOptionalSettings::try_from(
+                        server_admin_contract::AdminOptionalSetting::ALL.to_vec(),
+                    );
+                    let values = (
+                        server_admin_contract::AdminDefaultRoute::try_from(
+                            server_admin_contract::AdminFrontendPath::Users.get().to_owned(),
+                        ),
+                        server_admin_contract::AdminSiteName::try_from(
+                            str_constants::ADMIN.to_owned(),
+                        ),
+                        clear,
+                        admin_api_url(server_admin_contract::AdminRoute::UpdateSettings),
+                    );
+                    if let (Ok(request_default_route), Ok(request_site_name), Ok(request_clear), Ok(path)) = values {
+                        reload_after(
+                            AdminMutationMethod::Patch,
+                            path,
+                            server_admin_contract::AdminUpdateSettingsReq::new(
+                                Some(request_default_route),
+                                None,
+                                None,
+                                None,
+                                None,
+                                Some(request_site_name),
+                                None,
+                                None,
+                                request_clear,
+                            ),
+                        );
+                    }
+                }
+            }>"Reset to template defaults"</button>
         </form></article></section>
     }
 }

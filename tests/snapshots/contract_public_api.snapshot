@@ -4,7 +4,6 @@
 #[derive( Debug, Clone, Copy, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema, )] #[serde(rename_all = "snake_case")] pub enum HealthComponentKind { DatabaseConnectivity, ServiceAvailability, }
 #[derive( Debug, Clone, Copy, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema, )] #[serde(rename_all = "snake_case")] pub enum HealthStatus { Degraded, Error, Ok, }
 #[derive( Debug, Clone, Copy, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema, )] pub struct HealthComponent { kind: HealthComponentKind, status: HealthStatus, }
-#[derive( Debug, Clone, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema, newtype::TryFrom, )] #[try_from(validator = HealthComponents::validate)] #[serde(try_from = "Vec<HealthComponent>")] pub struct HealthComponents(Vec<HealthComponent>);
 #[derive(Clone, Copy, Debug)] pub struct CommonRoutesOpenApi;
 #[derive(Clone, Copy, Debug, Eq, PartialEq, frontend_contract::RouteCatalog)] #[route_catalog(family = CommonRouteFamily, body_limit = 0usize)] pub enum CommonRoute { #[route_catalog_route(GitInfoRoute)] GitInfo, #[route_catalog_route(HealthRoute)] Health, #[route_catalog_route(HealthCheckRoute)] HealthCheck, #[route_catalog_route(HealthLiveRoute)] HealthLive, #[route_catalog_route(HealthReadyRoute)] HealthReady, }
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)] pub struct HealthDatabaseAvailable(bool);
@@ -17,6 +16,7 @@
 #[derive(Clone, Copy, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema)] pub struct CommonNoBody;
 #[derive(Clone, optml::Optml, newtype::FromInner)] pub struct StdArcCommonRoutesAppState(std::sync::Arc<dyn CommonRoutesParameters>);
 #[derive(Debug, Clone, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema)] pub struct HealthReport { components: HealthComponents, status: HealthStatus, }
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)] pub struct HealthComponents(Vec<HealthComponent>);
 #[derive(Debug, Clone, optml::Optml, newtype::IntoInnerFrom, newtype::FromInner)] pub struct AxumCommonRoutes(axum::Router);
 #[derive(Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema, optml::Optml)] pub struct GitInfo { #[schema(value_type = String)] commit: git_info::StdGitCommitLinkCow, }
 #[derive(serde::Serialize)] #[serde(transparent)] #[derive(newtype::FromInner, newtype::IntoInnerFrom)] pub struct UtoipaCommonRoutesOpenApiDocument(utoipa::openapi::OpenApi);
@@ -40,13 +40,13 @@ pub trait CommonRoutesParameters: git_info::GetGitCommitLink + app_state::GetSql
 #[derive( Clone, Copy, Debug, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema, )] #[serde(rename_all = "snake_case")] pub enum FilterOperation { AdjacentWithRange, Before, Between, CurrentDate, CurrentTime, CurrentTimestamp, Eq, EqToEncodedStringRepresentation, ExcludedUpperBound, FindRangesThatFullyContainTheGivenRange, FindRangesWithinGivenRange, GreaterThan, GreaterThanCurrentDate, GreaterThanCurrentTime, GreaterThanCurrentTimestamp, GreaterThanExcludedUpperBound, GreaterThanIncludedLowerBound, In, IncludedLowerBound, OverlapWithRange, RangeLen, Regex, StrictlyToLeftOfRange, StrictlyToRightOfRange, }
 #[derive( Clone, Copy, Debug, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema, )] #[serde(rename_all = "snake_case")] pub enum FilterValueShape { EncodedText, List, None, Range, Regex, Scalar, }
 #[derive( Clone, Copy, Debug, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema, newtype::IntoInnerFrom, newtype::TryFrom, )] #[serde(try_from = "u16")] #[try_from( error = crate::HttpStatusTryFromU16Error, validator = ApiProblemStatus::validate )] pub struct ApiProblemStatus(u16);
-#[derive( Clone, Debug, Default, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner, newtype::IntoInnerFrom, )] pub struct RouteCoverageDescriptors(Vec<crate::RouteCoverageDescriptor>);
-#[derive( Clone, Debug, Default, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner, newtype::IntoInnerFrom, )] pub struct RouteMetadataList(Vec<RouteMetadata>);
-#[derive( Clone, Debug, Default, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner, newtype::IntoInnerFrom, )] pub struct RouteTestCategories(Vec<RouteTestCategory>);
+#[derive( Clone, Debug, Default, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner, newtype::IntoInnerFrom, )] pub struct RouteCoverageDescriptors( bounded_types::BoundedVec<crate::RouteCoverageDescriptor, 0, { usize::MAX }>, );
+#[derive( Clone, Debug, Default, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner, newtype::IntoInnerFrom, )] pub struct RouteMetadataList(bounded_types::BoundedVec<RouteMetadata, 0, { usize::MAX }>);
+#[derive( Clone, Debug, Default, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner, newtype::IntoInnerFrom, )] pub struct RouteTestCategories(bounded_types::BoundedVec<RouteTestCategory, 0, { usize::MAX }>);
 #[derive( Clone, Debug, Default, PartialEq, Eq, newtype::AsRefStr, newtype::BoundedString, serde::Deserialize, serde::Serialize, utoipa::ToSchema, )] #[bounded_string(max = 1024usize)] #[serde(try_from = "String")] pub struct ApiProblemDetail(String);
 #[derive( Clone, Debug, Default, PartialEq, Eq, newtype::BoundedString, serde::Deserialize, serde::Serialize, utoipa::ToSchema, )] #[bounded_string(max = 128usize)] #[serde(try_from = "String")] pub struct ApiProblemField(String);
 #[derive( Clone, Debug, Default, PartialEq, Eq, newtype::BoundedString, serde::Deserialize, serde::Serialize, utoipa::ToSchema, )] #[bounded_string(max = 128usize)] #[serde(try_from = "String")] pub struct ApiProblemRequestId(String);
-#[derive( Clone, Debug, Default, newtype::AsRefTarget, newtype::FromInner, newtype::IntoInnerFrom, )] pub struct RouteSchemaContracts(Vec<RouteSchemaContract>);
+#[derive( Clone, Debug, Default, newtype::AsRefTarget, newtype::FromInner, newtype::IntoInnerFrom, )] pub struct RouteSchemaContracts(bounded_types::BoundedVec<RouteSchemaContract, 0, { usize::MAX }>);
 #[derive( Clone, Debug, Eq, PartialEq, newtype::AsRefStr, newtype::BoundedString, newtype::IntoInnerFrom, )] #[bounded_string(max = API_URL_MAX_LEN)] pub struct ApiUrl(String);
 #[derive(Clone, Copy, Debug, Eq, PartialEq)] pub enum AuthSessionKeepAliveDecision { RefreshNow, SkipAlreadyRunning, SkipMissing, SkipNotDue { next: StdAuthSessionInstant }, }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)] pub enum AuthSessionPresence { Missing, Present, }
@@ -128,9 +128,9 @@ pub trait CommonRoutesParameters: git_info::GetGitCommitLink + app_state::GetSql
 #[derive(Clone, Debug, PartialEq, Eq, newtype::AsRefStr, newtype::BoundedString)] #[bounded_string(max = 20usize, min = 1usize)] pub struct TransportIfMatch(String);
 #[derive(Clone, Debug, PartialEq, Eq, newtype::AsRefStr, newtype::BoundedString)] #[bounded_string(max = 255usize, min = 1usize)] pub struct TransportIdempotencyKey(String);
 #[derive(Clone, Debug, PartialEq, Eq, newtype::AsRefTarget)] pub struct TransportBody(bounded_types::BoundedVec<u8, 0, FRONTEND_CONTRACT_BODY_MAX_BYTES>);
-#[derive(Clone, Debug, PartialEq, Eq, newtype::AsRefTarget, newtype::FromInner)] pub struct ActionContracts(Vec<ActionContract>);
-#[derive(Clone, Debug, PartialEq, Eq, newtype::AsRefTarget, newtype::FromInner)] pub struct FieldContracts(Vec<FieldContract>);
-#[derive(Clone, Debug, PartialEq, Eq, newtype::AsRefTarget, newtype::FromInner)] pub struct RouteContracts(Vec<RouteContract>);
+#[derive(Clone, Debug, PartialEq, Eq, newtype::AsRefTarget, newtype::FromInner)] pub struct ActionContracts(bounded_types::BoundedVec<ActionContract, 0, { usize::MAX }>);
+#[derive(Clone, Debug, PartialEq, Eq, newtype::AsRefTarget, newtype::FromInner)] pub struct FieldContracts(bounded_types::BoundedVec<FieldContract, 0, { usize::MAX }>);
+#[derive(Clone, Debug, PartialEq, Eq, newtype::AsRefTarget, newtype::FromInner)] pub struct RouteContracts(bounded_types::BoundedVec<RouteContract, 0, { usize::MAX }>);
 #[derive(Clone, Debug, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema)] pub struct ApiProblem { detail: ApiProblemDetail, kind: ApiProblemKind, request_id: Option<ApiProblemRequestId>, status: ApiProblemStatus, #[schema(inline)] violations: ApiProblemViolations, }
 #[derive(Clone, Debug, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema)] pub struct ApiProblemViolation { detail: ApiProblemDetail, field: ApiProblemField, }
 #[derive(Clone, newtype::FromInner, newtype::IntoInnerFrom)] pub struct UtoipaOpenApiPathParameter(utoipa::openapi::path::Parameter);
@@ -240,6 +240,11 @@ pub trait CommonRoutesParameters: git_info::GetGitCommitLink + app_state::GetSql
 #[must_use] pub fn decode_api_problem(body: &TransportBody) -> Option<ApiProblem>
 #[must_use] pub fn filters(&self) -> &[FilterOperation]
 #[must_use] pub fn from_error(error: ApiProblemError) -> Self
+#[must_use] pub fn from_max_iter<Values>(values: Values) -> Self where Values: IntoIterator<Item = ActionContract>,
+#[must_use] pub fn from_max_iter<Values>(values: Values) -> Self where Values: IntoIterator<Item = FieldContract>,
+#[must_use] pub fn from_max_iter<Values>(values: Values) -> Self where Values: IntoIterator<Item = RouteContract>,
+#[must_use] pub fn from_max_iter<Values>(values: Values) -> Self where Values: IntoIterator<Item = RouteSchemaContract>,
+#[must_use] pub fn from_max_iter<Values>(values: Values) -> Self where Values: IntoIterator<Item = crate::RouteCoverageDescriptor>,
 #[must_use] pub fn from_status(status: ApiProblemStatus) -> Self
 #[must_use] pub fn from_typed_route<Route>() -> Self where Route: TypedRoute,
 #[must_use] pub fn i16_max() -> Self
@@ -297,7 +302,7 @@ pub trait HandlerContract: Copy { fn method(self) -> super::RouteMethod; fn path
 pub trait HasFilterContracts { const FILTER_CONTRACTS: &'static [FilterOperation]; #[must_use] fn filter_contracts() -> FilterContracts { FilterContracts::from(Self::FILTER_CONTRACTS) } }
 pub trait HasTypeContract { fn type_contract() -> TypeContract; }
 pub trait ParameterizedRoute: TypedRoute { type Parameter; fn path(parameter: &Self::Parameter) -> ParameterizedRoutePath; }
-pub trait RouteFamily { const ROUTE_COUNT: usize = 0usize; #[must_use] fn body_limit() -> Option<RouteBodyLimit> { None } fn coverage_descriptors() -> RouteCoverageDescriptors; #[must_use] fn schema_contracts() -> RouteSchemaContracts { RouteSchemaContracts::default() } fn route_metadata() -> RouteMetadataList { Vec::from(Self::coverage_descriptors()) .into_iter() .map(crate::RouteCoverageDescriptor::metadata) .collect::<Vec<_>>() .into() } }
+pub trait RouteFamily { const ROUTE_COUNT: usize = 0usize; #[must_use] fn body_limit() -> Option<RouteBodyLimit> { None } fn coverage_descriptors() -> RouteCoverageDescriptors; #[must_use] fn schema_contracts() -> RouteSchemaContracts { RouteSchemaContracts::default() } fn route_metadata() -> RouteMetadataList { RouteMetadataList::from(bounded_types::BoundedVec::from_max_iter( bounded_types::BoundedVec::from(Self::coverage_descriptors()) .into_iter() .map(crate::RouteCoverageDescriptor::metadata), )) } }
 pub trait RouteInFamily<Family> where Family: RouteFamily, { }
 pub trait RouteTransport {}
 pub trait Transport { fn send( &self, request: TransportRequest, ) -> impl Future<Output = Result<TransportResponse, TransportError>> + '_; }

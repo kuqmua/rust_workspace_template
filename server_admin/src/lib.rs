@@ -20,6 +20,11 @@ pub use server_admin_core::{
     StdAdminStrRef, StdAdminString, UuidAdminValue,
 };
 const ADMIN_AUTH_COLLECTION_MAX_LEN: usize = 10_000usize;
+#[derive(
+    Clone, Copy, Debug, Eq, PartialEq, serde::Serialize, newtype::DerefInner, newtype::FromInner,
+)]
+#[serde(transparent)]
+pub(crate) struct AdminPasswordChangeRequired(bool);
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum AdminSecretTextError {
     #[error("administrator secret text has invalid bounds")]
@@ -579,10 +584,14 @@ pub async fn cleanup_admin_tables(
 }
 #[derive(Debug, thiserror::Error)]
 pub enum AdminBootstrapError {
+    #[error("administrator bootstrap audit details are invalid")]
+    AuditDetails,
     #[error("administrator bootstrap display name is empty")]
     EmptyDisplayName,
     #[error("administrator bootstrap login has an invalid format")]
     InvalidLogin,
+    #[error("administrator bootstrap password does not satisfy policy")]
+    InvalidPassword,
     #[error("administrator bootstrap has already been completed")]
     AlreadyInitialized,
     #[error("administrator bootstrap password hashing failed: {0}")]
@@ -594,7 +603,7 @@ pub async fn bootstrap_admin(
     pool: app_state::SqlxPgPoolRef<'_>,
     login: AdminLogin,
     display_name: AdminDisplayName,
-    password: AdminPassword,
+    password: server_admin_contract::AdminNewPassword,
     password_hasher: &AdminPasswordHasher,
 ) -> Result<AdminUserId, AdminBootstrapError> {
     migrations::bootstrap_admin(pool, login, display_name, password, password_hasher).await

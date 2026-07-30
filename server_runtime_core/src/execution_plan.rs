@@ -50,4 +50,14 @@ mod tests {
         assert_eq!(report, Ok(super::ExecutionReport::DryRun { plan: 4u8 }));
         assert!(!called.load(std::sync::atomic::Ordering::SeqCst));
     }
+
+    #[tokio::test]
+    async fn apply_propagates_mutation_error() {
+        let error = "apply failed";
+        let report = super::execute_plan(super::ExecutionMode::Apply, 4u8, async |_plan| {
+            Err::<u8, &str>(error)
+        })
+        .await;
+        assert_eq!(report, Err(error));
+    }
 }

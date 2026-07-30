@@ -189,27 +189,15 @@ pub struct ApiProblemViolation {
     Default,
     PartialEq,
     Eq,
+    newtype::FromInner,
     serde::Deserialize,
     serde::Serialize,
     utoipa::ToSchema,
-    newtype::TryFrom,
 )]
-#[try_from(validator = ApiProblemViolations::validate)]
-#[serde(try_from = "Vec<ApiProblemViolation>")]
-pub(crate) struct ApiProblemViolations(Vec<ApiProblemViolation>);
-impl ApiProblemViolations {
-    #[allow(clippy::single_call_fn)] // derive-generated TryFrom owns the single validator call
-    const fn validate(value: &[ApiProblemViolation]) -> Result<(), ApiProblemViolationsError> {
-        if value.len() > 128usize {
-            Err(ApiProblemViolationsError)
-        } else {
-            Ok(())
-        }
-    }
-}
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
-#[error("{self:?}")]
-pub(crate) struct ApiProblemViolationsError;
+#[serde(from = "bounded_types::BoundedVec<ApiProblemViolation, 0usize, 128usize>")]
+pub(crate) struct ApiProblemViolations(
+    bounded_types::BoundedVec<ApiProblemViolation, 0usize, 128usize>,
+);
 #[derive(Clone, Debug, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema)]
 pub struct ApiProblem {
     detail: ApiProblemDetail,

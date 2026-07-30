@@ -100,6 +100,9 @@ fn router() -> AxumAdminApiTestRouter {
         &env::<config_lib::AdminSignInRateLimit>(StdAdminApiTestStrRef::from(
             str_constants::VALUE_2,
         )),
+        &env::<config_lib::AdminLoginFailureLimit>(StdAdminApiTestStrRef::from(
+            str_constants::VALUE_10,
+        )),
         &env::<config_lib::AdminPasswordHashConcurrency>(StdAdminApiTestStrRef::from(
             str_constants::VALUE_1,
         )),
@@ -132,6 +135,9 @@ fn router_with_pool(pool: &SqlxAdminApiTestPool) -> AxumAdminApiTestRouter {
         &env::<config_lib::AdminSessionLimit>(StdAdminApiTestStrRef::from(str_constants::VALUE_20)),
         &env::<config_lib::AdminSignInRateLimit>(StdAdminApiTestStrRef::from(
             str_constants::VALUE_2,
+        )),
+        &env::<config_lib::AdminLoginFailureLimit>(StdAdminApiTestStrRef::from(
+            str_constants::VALUE_10,
         )),
         &env::<config_lib::AdminPasswordHashConcurrency>(StdAdminApiTestStrRef::from(
             str_constants::VALUE_1,
@@ -284,7 +290,9 @@ fn assert_admin_csr_shell(body: &AdminHtmlTestBody) {
     clippy::missing_assert_message,
     reason = "the asserted status identifies the failed fixture stage"
 )]
-async fn admin_html_test_fixture() -> AdminHtmlTestFixture {
+async fn admin_html_test_fixture_with_password_change(
+    password_change_required: server_admin_contract::AdminBool,
+) -> AdminHtmlTestFixture {
     let database_url = std::env::var(str_constants::ENV_NAMES_DATABASE_URL).expect("fbe54d19");
     let pool = SqlxAdminApiTestPool::from(
         sqlx::postgres::PgPoolOptions::new()
@@ -307,9 +315,10 @@ async fn admin_html_test_fixture() -> AdminHtmlTestFixture {
     .execute(&pool.0)
     .await
     .expect("cf37a9e2");
-    let password =
-        serde_json::from_str::<server_admin::AdminPassword>(str_constants::CORRECT_PASSWORD)
-            .expect("d20a35e4");
+    let password = serde_json::from_str::<server_admin_contract::AdminNewPassword>(
+        str_constants::CORRECT_PASSWORD,
+    )
+    .expect("d20a35e4");
     let hasher = server_admin::AdminPasswordHasher::new(
         server_admin::AdminPasswordHashConcurrency::from(server_admin::StdAdminNonZeroUsize::from(
             std::num::NonZeroUsize::new(1usize).expect("560498ab"),
@@ -325,6 +334,13 @@ async fn admin_html_test_fixture() -> AdminHtmlTestFixture {
     )
     .await
     .expect("1e29c87f");
+    if !bool::from(password_change_required) {
+        let _updated =
+            sqlx::query(str_constants::UPDATE_ADMIN_USERS_SET_MUST_CHANGE_PASSWORD_FALSE)
+                .execute(&pool.0)
+                .await
+                .expect("a37042f1");
+    }
     let state = server_admin::auth::AdminAuthSvcState::try_new(
         app_state::SqlxPgPool::from(pool.0.clone()),
         &env::<config_lib::AdminJwtSecret>(StdAdminApiTestStrRef::from(
@@ -339,6 +355,9 @@ async fn admin_html_test_fixture() -> AdminHtmlTestFixture {
         &env::<config_lib::AdminSessionLimit>(StdAdminApiTestStrRef::from(str_constants::VALUE_20)),
         &env::<config_lib::AdminSignInRateLimit>(StdAdminApiTestStrRef::from(
             str_constants::VALUE_20,
+        )),
+        &env::<config_lib::AdminLoginFailureLimit>(StdAdminApiTestStrRef::from(
+            str_constants::VALUE_10,
         )),
         &env::<config_lib::AdminPasswordHashConcurrency>(StdAdminApiTestStrRef::from(
             str_constants::VALUE_1,
@@ -404,6 +423,10 @@ async fn admin_html_test_fixture() -> AdminHtmlTestFixture {
         pool,
         router,
     }
+}
+async fn admin_html_test_fixture() -> AdminHtmlTestFixture {
+    admin_html_test_fixture_with_password_change(server_admin_contract::AdminBool::from(false))
+        .await
 }
 async fn postgres_accepts_admin_user_policy_values(
     pool: &SqlxAdminApiTestPool,
@@ -1397,6 +1420,69 @@ async fn postgresql_html_settings_updates_and_reads_every_field_separately() {
 }
 #[tokio::test]
 #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
+async fn postgresql_bootstrap_password_must_change_before_admin_access() {
+    let fixture =
+        admin_html_test_fixture_with_password_change(server_admin_contract::AdminBool::from(true))
+            .await;
+    let users_response = admin_html_response(
+        &fixture,
+        HttpAdminApiTestMethod::from(http::Method::GET),
+        StdAdminApiTestStrRef::from(server_admin_contract::AdminFrontendPath::Users.get()),
+        StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+    )
+    .await;
+    assert_eq!(users_response.status(), http::StatusCode::SEE_OTHER);
+    assert_eq!(
+        users_response.headers().get(http::header::LOCATION),
+        Some(&http::HeaderValue::from_static(
+            server_admin_contract::AdminFrontendPath::Profile.get(),
+        ))
+    );
+    let profile_response = admin_html_response(
+        &fixture,
+        HttpAdminApiTestMethod::from(http::Method::GET),
+        StdAdminApiTestStrRef::from(server_admin_contract::AdminFrontendPath::Profile.get()),
+        StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+    )
+    .await;
+    assert_eq!(profile_response.status(), http::StatusCode::OK);
+    let correct_password =
+        serde_json::from_str::<String>(str_constants::CORRECT_PASSWORD).expect("e20a72a8");
+    let change_password_body = AdminHtmlTestFormBody::try_from(format!(
+        "current_password={correct_password}&new_password=Bootstrap-changed-pass2",
+    ))
+    .expect("b42a390d");
+    let change_password_response = admin_html_response(
+        &fixture,
+        HttpAdminApiTestMethod::from(http::Method::POST),
+        StdAdminApiTestStrRef::from(server_admin_contract::AdminHtmlAction::ProfilePassword.get()),
+        StdAdminApiTestStrRef::from(change_password_body.0.as_str()),
+    )
+    .await;
+    assert_eq!(
+        change_password_response.status(),
+        http::StatusCode::SEE_OTHER
+    );
+    let password_change_required = sqlx::query_scalar::<_, bool>(
+        str_constants::SELECT_MUST_CHANGE_PASSWORD_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN,
+    )
+    .fetch_one(&fixture.pool.0)
+    .await
+    .expect("ea57fc2d");
+    assert!(!password_change_required);
+    let post_change_users_response = admin_html_response(
+        &fixture,
+        HttpAdminApiTestMethod::from(http::Method::GET),
+        StdAdminApiTestStrRef::from(server_admin_contract::AdminFrontendPath::Users.get()),
+        StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+    )
+    .await;
+    assert_eq!(post_change_users_response.status(), http::StatusCode::OK);
+    fixture.lock.0.rollback().await.expect("6a8ce0f3");
+}
+
+#[tokio::test]
+#[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
 async fn postgresql_html_profile_reads_every_field_and_changes_own_password() {
     let fixture = admin_html_test_fixture().await;
     let profile_response = admin_html_response(
@@ -2029,9 +2115,10 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     .execute(&pool.0)
     .await
     .expect("97b5ad2f");
-    let password =
-        serde_json::from_str::<server_admin::AdminPassword>(str_constants::CORRECT_PASSWORD)
-            .expect("703a8df2");
+    let password = serde_json::from_str::<server_admin_contract::AdminNewPassword>(
+        str_constants::CORRECT_PASSWORD,
+    )
+    .expect("703a8df2");
     let hasher = server_admin::AdminPasswordHasher::new(
         server_admin::AdminPasswordHashConcurrency::from(server_admin::StdAdminNonZeroUsize::from(
             std::num::NonZeroUsize::new(1).expect("271f96d4"),
@@ -2047,15 +2134,23 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     )
     .await
     .expect("e2c94d67");
+    let password_change_required = sqlx::query_scalar::<_, bool>(
+        str_constants::SELECT_MUST_CHANGE_PASSWORD_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN,
+    )
+    .fetch_one(&pool.0)
+    .await
+    .expect("81f3c9d2");
+    assert!(password_change_required);
     let original_password_hash = sqlx::query_scalar::<_, String>(
         str_constants::SELECT_PASSWORD_HASH_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN,
     )
     .fetch_one(&pool.0)
     .await
     .expect("1282b56e");
-    let repeated_password =
-        serde_json::from_str::<server_admin::AdminPassword>(str_constants::DIFFERENT_PASSWORD)
-            .expect("e411f376");
+    let repeated_password = serde_json::from_str::<server_admin_contract::AdminNewPassword>(
+        str_constants::DIFFERENT_PASSWORD,
+    )
+    .expect("e411f376");
     assert!(matches!(
         server_admin::bootstrap_admin(
             app_state::SqlxPgPoolRef::from(&pool.0),
@@ -2299,6 +2394,47 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     assert_eq!(
         limited_response.status(),
         http::StatusCode::TOO_MANY_REQUESTS
+    );
+    let password_change_gate_response = tower::ServiceExt::oneshot(
+        router_with_pool(&pool).0,
+        request_with_peer(
+            HttpAdminApiTestMethod::from(http::Method::POST),
+            StdAdminApiTestStrRef::from(frontend_contract::typed_route_path::<server_admin_contract::AdminListUsersRoute>().as_ref()),
+            StdAdminApiTestStrRef::from(str_constants::LOGIN_LIMITED_USER_DISPLAY_NAME_LIMITED_USER_PASSWORD_LIMITED_PASSWORD),
+            Some(StdAdminApiTestStrRef::from(active_cookie.as_str())),
+            Some(StdAdminApiTestStrRef::from(refreshed_csrf.0.as_str())),
+        )
+        .0,
+    )
+    .await
+    .expect("d78b315c");
+    assert_eq!(
+        password_change_gate_response.status(),
+        http::StatusCode::FORBIDDEN
+    );
+    let change_password_response = tower::ServiceExt::oneshot(
+        router_with_pool(&pool).0,
+        request_with_peer(
+            HttpAdminApiTestMethod::from(http::Method::POST),
+            StdAdminApiTestStrRef::from(
+                frontend_contract::typed_route_path::<
+                    server_admin_contract::AdminChangeOwnPasswordRoute,
+                >()
+                .as_ref(),
+            ),
+            StdAdminApiTestStrRef::from(
+                str_constants::CURRENT_PASSWORD_CORRECT_NEW_PASSWORD_CHANGED,
+            ),
+            Some(StdAdminApiTestStrRef::from(active_cookie.as_str())),
+            Some(StdAdminApiTestStrRef::from(refreshed_csrf.0.as_str())),
+        )
+        .0,
+    )
+    .await
+    .expect("820fbb75");
+    assert_eq!(
+        change_password_response.status(),
+        http::StatusCode::NO_CONTENT
     );
     let csrf_denied_response = tower::ServiceExt::oneshot(
         router_with_pool(&pool).0,
@@ -3499,7 +3635,7 @@ async fn postgresql_migration_creates_complete_schema() {
     .fetch_one(&base_pool)
     .await
     .expect("5c10c931");
-    assert_eq!(version, 12i64);
+    assert_eq!(version, 13i64);
     let expected_tables = server_admin_contract::AdminDataTable::PG_ORDER
         .map(|table| table.to_string())
         .into_iter()

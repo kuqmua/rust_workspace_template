@@ -12,7 +12,7 @@ pub struct Config {
     #[config(example = "postgres://postgres:change-me@127.0.0.1:5432/rust_workspace_template")]
     pub database_url: config_lib::DatabaseUrl,
     #[config(secret)]
-    #[config(example = "change-me-development-secret")]
+    #[config(example = "change-me-development-secret-000")]
     pub admin_jwt_secret: config_lib::AdminJwtSecret,
     #[config(example = "rust-workspace-template")]
     pub admin_token_audience: config_lib::AdminTokenAudience,
@@ -24,6 +24,8 @@ pub struct Config {
     pub admin_access_token_ttl_seconds: config_lib::AdminAccessTokenTtlSeconds,
     #[config(example = "2")]
     pub admin_password_hash_concurrency: config_lib::AdminPasswordHashConcurrency,
+    #[config(example = "10")]
+    pub admin_login_failure_limit: config_lib::AdminLoginFailureLimit,
     #[config(example = "604800")]
     pub admin_refresh_token_ttl_seconds: config_lib::AdminRefreshTokenTtlSeconds,
     #[config(example = "8")]
@@ -62,6 +64,56 @@ pub struct Config {
     pub admin_swagger_enabled: config_lib::AdminSwaggerEnabled,
     #[config(example = "true")]
     pub http_gzip_enabled: config_lib::HttpGzipEnabled,
+    #[config(example = "false")]
+    pub production_mode: config_lib::ProductionMode,
+}
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+pub enum ProductionConfigError {
+    #[error("production administrator cookies must be secure")]
+    AdminCookieInsecure,
+    #[error("production administrator Swagger must be disabled")]
+    AdminSwaggerEnabled,
+    #[error("production CORS origins must use explicit HTTPS URLs")]
+    CorsOriginInsecure,
+    #[error("production administrator JWT secret must not use the template development value")]
+    DevelopmentJwtSecret,
+}
+impl Config {
+    pub fn validate_for_startup(&self) -> Result<(), ProductionConfigError> {
+        if !*self.production_mode {
+            return Ok(());
+        }
+        if !*self.admin_cookie_secure {
+            return Err(ProductionConfigError::AdminCookieInsecure);
+        }
+        if *self.admin_swagger_enabled {
+            return Err(ProductionConfigError::AdminSwaggerEnabled);
+        }
+        if !self
+            .cors_allow_origin
+            .0
+            .as_str()
+            .split(',')
+            .map(str::trim)
+            .all(|origin| {
+                !origin.is_empty() && origin.starts_with(str_constants::HTTPS_SCHEME_PREFIX)
+            })
+        {
+            return Err(ProductionConfigError::CorsOriginInsecure);
+        }
+        if self
+            .admin_jwt_secret
+            .verification_secrets()
+            .iter()
+            .any(|secret| {
+                secrecy::ExposeSecret::expose_secret(secret.as_ref()).as_ref()
+                    == str_constants::ADMIN_DEVELOPMENT_JWT_SECRET
+            })
+        {
+            return Err(ProductionConfigError::DevelopmentJwtSecret);
+        }
+        Ok(())
+    }
 }
 impl config_lib::GetCorsAllowOrigin for Config {
     fn get_cors_allow_origin(&self) -> &String {
@@ -159,7 +211,7 @@ mod tests {
     }
     #[test]
     fn generated_getters_return_expected_refs_and_values() {
-        let cfg =
+        let mut cfg =
             super::Config {
                 cors_allow_origin: config_lib::CorsAllowOrigin(str_constants::ASTERISK.to_owned()),
                 content_security_policy: env(str_constants::TEST_CONTENT_SECURITY_POLICY),
@@ -168,6 +220,7 @@ mod tests {
                 admin_token_audience: env(str_constants::TEST_AUDIENCE),
                 admin_token_issuer: env(str_constants::TEST_ISSUER),
                 admin_access_token_ttl_seconds: env(str_constants::VALUE_900),
+                admin_login_failure_limit: env(str_constants::VALUE_10),
                 admin_password_hash_concurrency: env(str_constants::VALUE_4),
                 admin_refresh_token_ttl_seconds: env(str_constants::VALUE_2592000),
                 admin_session_limit: env(str_constants::VALUE_20),
@@ -200,6 +253,7 @@ mod tests {
                 ),
                 enable_api_git_commit_check: config_lib::EnableApiGitCommitCheck(true),
                 admin_cookie_secure: env(str_constants::FALSE),
+                production_mode: env(str_constants::FALSE),
             };
         assert_eq!(
             config_lib::GetCorsAllowOrigin::get_cors_allow_origin(&cfg),
@@ -239,5 +293,30 @@ mod tests {
             &config_lib::types::TracingLevel::Info
         );
         assert!(config_lib::GetEnableApiGitCommitCheck::get_enable_api_git_commit_check(&cfg));
+        assert_eq!(cfg.validate_for_startup(), Ok(()));
+        cfg.production_mode = config_lib::ProductionMode::from(true);
+        assert_eq!(
+            cfg.validate_for_startup(),
+            Err(super::ProductionConfigError::AdminCookieInsecure)
+        );
+        cfg.admin_cookie_secure = config_lib::AdminCookieSecure::from(true);
+        assert_eq!(
+            cfg.validate_for_startup(),
+            Err(super::ProductionConfigError::AdminSwaggerEnabled)
+        );
+        cfg.admin_swagger_enabled = config_lib::AdminSwaggerEnabled::from(false);
+        assert_eq!(
+            cfg.validate_for_startup(),
+            Err(super::ProductionConfigError::CorsOriginInsecure)
+        );
+        cfg.cors_allow_origin =
+            config_lib::CorsAllowOrigin(str_constants::HTTPS_EXAMPLE_COM.to_owned());
+        cfg.admin_jwt_secret = env(str_constants::ADMIN_DEVELOPMENT_JWT_SECRET);
+        assert_eq!(
+            cfg.validate_for_startup(),
+            Err(super::ProductionConfigError::DevelopmentJwtSecret)
+        );
+        cfg.admin_jwt_secret = env(str_constants::TEST_ONLY_ADMIN_JWT_SECRET_WITH_32_BYTES);
+        assert_eq!(cfg.validate_for_startup(), Ok(()));
     }
 }

@@ -1,0 +1,44 @@
+name: New administrator resource
+description: Propose an application resource that follows the extension contract.
+title: "[admin resource] "
+labels:
+  - enhancement
+body:
+  - type: input
+    id: resource
+    attributes:
+      label: Domain resource
+    validations:
+      required: true
+  - type: textarea
+    id: boundary
+    attributes:
+      label: Ownership and domain boundary
+      description: Identify wrappers, repository ownership, migrations, and data sensitivity.
+    validations:
+      required: true
+  - type: textarea
+    id: permissions
+    attributes:
+      label: Permissions and audit actions
+    validations:
+      required: true
+  - type: textarea
+    id: contract
+    attributes:
+      label: Routes, UI, filtering, sorting, and pagination
+    validations:
+      required: true
+  - type: checkboxes
+    id: evidence
+    attributes:
+      label: Required evidence
+      options:
+        - label: Unit and authorization tests
+          required: true
+        - label: Contract and OpenAPI tests
+          required: true
+        - label: Database and migration tests
+          required: true
+        - label: Browser acceptance coverage
+          required: true

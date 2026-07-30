@@ -26,7 +26,9 @@ pub struct PgTableIdempotencyRoute(String);
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct PgTableIdempotencyRequestHash([u8; 32usize]);
 #[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget)]
-pub struct PgTableIdempotencyBody(Vec<u8>);
+pub struct PgTableIdempotencyBody(
+    bounded_types::BoundedVec<u8, 0usize, PG_TBL_IDEMPOTENCY_RESPONSE_MAX_BYTES>,
+);
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("{}", str_constants::IDEMPOTENCY_RESPONSE_EXCEEDS_THE_STORAGE_LIMIT)]
 pub struct PgTableIdempotencyBodyError;
@@ -34,11 +36,9 @@ impl TryFrom<Vec<u8>> for PgTableIdempotencyBody {
     type Error = PgTableIdempotencyBodyError;
 
     fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
-        if value.len() > PG_TBL_IDEMPOTENCY_RESPONSE_MAX_BYTES {
-            Err(PgTableIdempotencyBodyError)
-        } else {
-            Ok(Self(value))
-        }
+        bounded_types::BoundedVec::try_from(value)
+            .map(Self)
+            .map_err(|_error| PgTableIdempotencyBodyError)
     }
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::AsRefInner, newtype::FromInner)]
@@ -539,7 +539,16 @@ mod idempotency_tests {
         assert!(first.as_ref().len() <= super::PG_TBL_IDEMPOTENCY_TEXT_MAX_BYTES);
     }
     #[test]
-    fn persisted_idempotency_body_rejects_values_above_storage_limit() {
+    fn persisted_idempotency_body_enforces_inclusive_storage_limit() {
+        let exact = super::PgTableIdempotencyBody::try_from(vec![
+            0u8;
+            super::PG_TBL_IDEMPOTENCY_RESPONSE_MAX_BYTES
+        ])
+        .expect("aa90ef11");
+        assert_eq!(
+            exact.as_ref().len(),
+            super::PG_TBL_IDEMPOTENCY_RESPONSE_MAX_BYTES
+        );
         assert_eq!(
             super::PgTableIdempotencyBody::try_from(vec![
                 0u8;

@@ -566,3 +566,50 @@ where
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn generated_static_names_preserve_both_cases_and_tokens() {
+        assert_eq!(super::PrimaryKeyUpperCamelCase.to_string(), "PrimaryKey");
+        assert_eq!(super::PrimaryKeySnakeCase.to_string(), "primary_key");
+        let upper_camel = super::PrimaryKeyUpperCamelCase;
+        let snake = super::PrimaryKeySnakeCase;
+        assert_eq!(quote::quote!(#upper_camel).to_string(), "PrimaryKey");
+        assert_eq!(quote::quote!(#snake).to_string(), "primary_key");
+        assert_eq!(super::HashMapUpperCamelCase.to_string(), "HashMap");
+        assert_eq!(super::HashMapSnakeCase.to_string(), "hashmap");
+    }
+
+    #[test]
+    fn parameterized_names_preserve_display_token_and_type_path_context() {
+        let display = super::parameter::SelfPayloadUpperCamelCase::from_display(&"table example");
+        assert_eq!(display.to_string(), "TableExamplePayload");
+        let tokens =
+            super::parameter::SelfPayloadSnakeCase::from_tokens(&quote::quote!(TableExample));
+        assert_eq!(tokens.to_string(), "table_example_payload");
+        let qualified_type: syn::Type = syn::parse_quote!(crate::model::TableExample);
+        let qualified_name =
+            super::parameter::SelfPayloadUpperCamelCase::from_type_last_segment(&qualified_type);
+        assert_eq!(
+            qualified_name.to_string(),
+            "crate::model::TableExamplePayload"
+        );
+    }
+
+    #[test]
+    fn swagger_path_helpers_quote_snake_case_paths() {
+        let name = String::from("TableExample");
+        let path = super::SwaggerUrlPathSelfQuotesStr::swagger_url_path_self_quotes_str(
+            &name,
+            super::SwaggerUrlPathPrefix::from("api"),
+        );
+        assert_eq!(path.as_ref(), "\"/api/table_example\"");
+        let tokens =
+            super::SwaggerUrlPathSelfQuotesTokenStream::swagger_url_path_self_quotes_token_stream(
+                &name,
+                super::SwaggerUrlPathPrefix::from("api"),
+            );
+        assert_eq!(quote::quote!(#tokens).to_string(), "\"/api/table_example\"");
+    }
+}
