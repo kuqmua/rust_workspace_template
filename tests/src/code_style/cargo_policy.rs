@@ -904,3 +904,33 @@ fn workspace_members_sorted_alphabetically() {
         super::types::SourceTextRef::from(str_constants::MEMBERS_NOT_SORTED),
     );
 }
+
+#[test]
+fn workspace_packages_have_at_most_one_binary_target() {
+    super::snapshot::with_codebase_snapshot(|snapshot| {
+        let workspace_names = snapshot.workspace_crate_names();
+        let violations = snapshot
+            .workspace_metadata()
+            .get()
+            .packages
+            .iter()
+            .filter(|package| workspace_names.as_ref().contains(package.name.as_str()))
+            .filter_map(|package| {
+                let binary_names = package
+                    .targets
+                    .iter()
+                    .filter(|target| target.kind.contains(&cargo_metadata::TargetKind::Bin))
+                    .map(|target| target.name.as_str())
+                    .collect::<Vec<&str>>();
+                (binary_names.len() > 1usize).then(|| {
+                    format!(
+                        "package `{}` owns multiple binaries: {}; move each additional binary into a dedicated workspace crate",
+                        package.name,
+                        binary_names.join(", ")
+                    )
+                })
+            })
+            .collect::<Vec<String>>();
+        assert!(violations.is_empty(), "c80384b0 {violations:#?}");
+    });
+}

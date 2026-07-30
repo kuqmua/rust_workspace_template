@@ -1,0 +1,26 @@
+[package]
+name = "admin_bootstrap"
+version.workspace = true
+publish.workspace = true
+description = "One-time administrator bootstrap command"
+repository.workspace = true
+
+license.workspace = true
+edition.workspace = true
+
+[dependencies]
+app_state = { workspace = true }
+config_lib = { workspace = true }
+newtype = { workspace = true }
+secrecy = { workspace = true }
+server_admin = { workspace = true }
+server_admin_contract = { workspace = true }
+server_config = { workspace = true }
+server_runtime_http = { workspace = true }
+sqlx = { workspace = true }
+str_constants = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+
+[lints]
+workspace = true

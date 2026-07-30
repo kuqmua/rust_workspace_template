@@ -7,7 +7,7 @@ after any administrator exists. Supply the password through a protected secret f
 
 ```bash
 cd server
-cargo run --release --bin admin_bootstrap -- \
+cargo run --release -p admin_bootstrap -- \
   administrator "Initial administrator" /run/secrets/admin_bootstrap_password
 ```
 

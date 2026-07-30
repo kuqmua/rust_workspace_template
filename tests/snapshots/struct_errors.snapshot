@@ -1,4 +1,5 @@
 # GENERATED REVIEWED SINGLE-CASE AND TRANSPARENT ERROR STRUCTS; DO NOT EDIT
+../admin_bootstrap/src/main.rs:SqlxBootstrapError
 ../common_routes/src/lib.rs:HealthComponentsError
 ../config_lib/src/lib.rs:TryFromStdEnvVarOkAdminCookieSecureError
 ../config_lib/src/types.rs:StdEnvVarError
@@ -39,7 +40,6 @@
 ../pg_crud/pg_types/generate_pg_types_src/src/source.rs:SerdeJsonGeneratePgTypesError
 ../pg_crud/where_filters/generate_where_filters_src/src/source.rs:SerdeJsonGenerateWhereFiltersError
 ../pg_crud/where_filters/src/lib.rs:RegexError
-../server/src/admin_bootstrap.rs:SqlxBootstrapError
 ../server/src/main.rs:MetricsExporterPrometheusBuildError
 ../server/src/main.rs:ServerAdminAuthSvcStateBuildError
 ../server/src/main.rs:ServerAdminCleanupCfgError

@@ -1,6 +1,6 @@
 #![allow(
     unused_crate_dependencies,
-    reason = "the server package owns dependencies shared with its primary service binary"
+    reason = "str_constants is used by binary unit tests"
 )]
 #![allow(
     clippy::single_call_fn,

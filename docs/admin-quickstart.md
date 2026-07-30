@@ -71,11 +71,11 @@ umask 077
 printf '%s\n' 'replace-with-a-long-local-password' > /tmp/admin-bootstrap-password
 ```
 
-Run the one-time bootstrap command from the server directory so it loads `server/.env`:
+Run the one-time bootstrap workspace command from the server directory so it loads `server/.env`:
 
 ```bash
 cd server
-cargo run --bin admin_bootstrap -- \
+cargo run -p admin_bootstrap -- \
   admin "Local administrator" /tmp/admin-bootstrap-password
 cd ..
 ```

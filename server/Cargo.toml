@@ -10,14 +10,6 @@ repository.workspace = true
 license.workspace = true
 
 
-[[bin]]
-name = "server"
-path = "src/main.rs"
-
-[[bin]]
-name = "admin_bootstrap"
-path = "src/admin_bootstrap.rs"
-
 [dependencies]
 str_constants = { workspace = true }
 axum = { workspace = true }

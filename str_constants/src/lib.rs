@@ -3620,7 +3620,7 @@ pub const CODE_STYLE_DIRECT_FS_OWNER_SUFFIXES: [&str; 10] = [
     CODE_STYLE_MACROS_HLP_TEST_FS_OWNER_SUFFIX,
     CODE_STYLE_MACROS_HLP_WRITE_STRING_FS_OWNER_SUFFIX,
     "/macros_helpers/src/write_token_stream_into_file.rs",
-    "/server/src/admin_bootstrap.rs",
+    "/admin_bootstrap/src/main.rs",
     CODE_STYLE_WORKSPACE_SCAFFOLD_FS_OWNER_SUFFIX,
 ];
 pub const CODE_STYLE_DIRECT_FS_OWNER_REASONS: [&str; 10] = [

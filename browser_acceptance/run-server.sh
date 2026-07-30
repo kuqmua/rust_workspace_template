@@ -62,10 +62,9 @@ printf '%s\n' "Initial-password1!" > "${password_file}"
 
 cd "server"
 
-cargo run --package server \
-  --bin admin_bootstrap -- \
+cargo run --package admin_bootstrap -- \
   administrator "Initial Administrator" "${password_file}"
 
 rm -f "${password_file}"
 
-exec cargo run --package server --bin server
+exec cargo run --package server

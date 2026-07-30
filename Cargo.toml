@@ -1,6 +1,7 @@
 [workspace]
 resolver = "2"
 members = [
+  "admin_bootstrap",
   "app_state",
   "bounded_types",
   "common_routes",

@@ -15,7 +15,7 @@ The target product is:
 
 The release-blocking template work in this assessment is implemented. The maintained evidence is:
 
-- `server/src/admin_bootstrap.rs` and database tests for one-time secret-safe bootstrap;
+- `admin_bootstrap/src/main.rs` and database tests for one-time secret-safe bootstrap;
 - `docs/admin-quickstart.md`, `docs/admin-feature-matrix.md`, and
   `docs/admin-resource-extension.md`;
 - `browser_acceptance` with pull-request smoke and scheduled expanded CI jobs;
