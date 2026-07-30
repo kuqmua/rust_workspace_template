@@ -431,7 +431,6 @@ p {
 
 .security-card label,
 .settings-form label,
-.table-tools label,
 .mutation-form form label,
 td details form label {
   color: var(--text-secondary);
@@ -441,7 +440,6 @@ td details form label {
 
 .security-card label > span,
 .settings-form label > span,
-.table-tools label > span,
 .mutation-form form label > span {
   display: block;
   margin-bottom: 6px;
@@ -458,7 +456,6 @@ td details label:has(input[type="checkbox"]) {
 
 .security-card button,
 .settings-form button,
-.table-tools button,
 .mutation-form form button,
 td form button,
 td details form button {
@@ -470,28 +467,17 @@ td details form button {
 
 .security-card button:hover,
 .settings-form button:hover,
-.table-tools button:hover,
 .mutation-form form button:hover,
 td form button:hover,
 td details form button:hover {
   background: var(--accent-hover);
 }
 
-.table-tools,
 .settings-form {
   border: 1px solid var(--border);
   border-radius: 0;
   background: var(--surface);
   box-shadow: var(--shadow-sm);
-}
-
-.table-tools {
-  display: grid;
-  grid-template-columns: minmax(220px, 2fr) minmax(140px, 1fr) minmax(140px, 1fr) 112px auto;
-  align-items: end;
-  gap: 12px;
-  margin-bottom: 16px;
-  padding: 16px;
 }
 
 .table-column-heading {
@@ -1070,7 +1056,6 @@ pre {
 }
 
 @media (max-width: 1080px) {
-  .table-tools,
   .mutation-form:is(form) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1132,7 +1117,6 @@ pre {
     padding: 16px;
   }
 
-  .table-tools,
   .settings-form,
   .mutation-form:is(form) {
     grid-template-columns: 1fr;

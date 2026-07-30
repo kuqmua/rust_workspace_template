@@ -1,4 +1,3 @@
-mod create;
 mod row;
 
 use leptos::prelude::{ClassAttribute, ElementChild};
@@ -28,15 +27,12 @@ pub(super) fn render(
     admin: &server_admin_contract::AuthenticatedAdmin,
     branding: &server_admin_contract::AdminBrandingView,
 ) -> super::AdminSsrHtml {
-    let can_create = admin.has_permission(server_admin_contract::AdminPermission::UsersCreate);
     let can_delete = admin.has_permission(server_admin_contract::AdminPermission::UsersDelete);
     let can_update = admin.has_permission(server_admin_contract::AdminPermission::UsersUpdate);
     let can_update_roles =
         admin.has_permission(server_admin_contract::AdminPermission::UserRolesUpdate);
     let content = leptos::view! {
         <section class="table-page">
-        {crate::shared::table_filters::form::admin_table_filters(server_admin_contract::AdminFrontendPath::Users, query.search(), query.sort(), crate::shared::table_filters::form::AdminTableFilterDirection::from(query.direction()), query.limit(), &server_admin_contract::AdminTableSortField::USER, crate::shared::table_filters::form::AdminTableFilterPresentation::Ssr)}
-        {create::admin_create_user(can_create)}
         <div class="table-scroll"><table><thead><tr><th>"id"</th><th>"login"</th><th>"display_name"</th><th>"banned"</th><th>"roles"</th><th>"actions"</th></tr></thead>
         <tbody>{page.items().iter().map(|item| row::admin_user_row(item, page, can_delete, can_update, can_update_roles)).collect::<Vec<_>>()}</tbody></table></div>
         {super::table_pagination(server_admin_contract::AdminPage::Users, query, page.total(), None, None)}

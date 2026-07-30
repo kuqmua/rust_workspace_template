@@ -47,21 +47,23 @@ test("direct API access is denied and refresh restores an access session", async
 test("role permissions and runtime branding persist", async ({ page }) => {
   await signIn(page);
   await page.goto("/admin/roles");
-  await page.getByPlaceholder("Role name").fill("browser_role");
-  let mutation = page.waitForResponse(
-    response =>
-      response.request().method() === "POST" &&
-      response.url().endsWith("/api/v1/admin/roles") &&
-      response.status() === 201
-  );
-  await page.getByRole("button", { name: "Create role" }).click();
-  await mutation;
+  const csrf = csrfCookie(await page.context().cookies());
+  expect(csrf).toBeTruthy();
+  const created = await page.request.post("/api/v1/admin/roles", {
+    data: { name: "browser_role" },
+    headers: {
+      Origin: "http://127.0.0.1:18080",
+      "X-CSRF-Token": csrf
+    }
+  });
+  expect(created.status()).toBe(201);
+  await page.reload();
   let roleRow = page.locator("tbody tr").filter({
     has: page.locator('input[value="browser_role"]')
   });
   await expect(roleRow).toBeVisible();
   await roleRow.getByLabel("users:read").check();
-  mutation = page.waitForResponse(
+  let mutation = page.waitForResponse(
     response =>
       response.request().method() === "PUT" &&
       response.url().endsWith("/permissions") &&

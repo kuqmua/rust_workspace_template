@@ -707,27 +707,6 @@ mod tests {
     }
 
     #[test]
-    fn shared_table_filters_preserve_ssr_limit_submission() {
-        let html = crate::shared::table_filters::form::admin_table_filters(
-            server_admin_contract::AdminFrontendPath::Users,
-            server_admin_contract::AdminTableQuery::default().search(),
-            server_admin_contract::AdminTableQuery::default().sort(),
-            crate::shared::table_filters::form::AdminTableFilterDirection::from(
-                server_admin_contract::AdminSortDirection::Asc,
-            ),
-            server_admin_contract::AdminPageLimit::default(),
-            &server_admin_contract::AdminTableSortField::USER,
-            crate::shared::table_filters::form::AdminTableFilterPresentation::Ssr,
-        )
-        .render_admin_ssr();
-        assert!(
-            html.as_ref()
-                .contains("<input name=\"limit\" type=\"hidden\"")
-        );
-        assert!(!html.as_ref().contains("name=\"limit\" type=\"number\""));
-    }
-
-    #[test]
     fn navigation_only_contains_accessible_pages() {
         let admin = server_admin_contract::AuthenticatedAdmin::new(
             server_admin_contract::AdminDisplayName::try_from(str_constants::ADMIN.to_owned())
