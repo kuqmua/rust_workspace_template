@@ -23,7 +23,9 @@ pub(super) fn AdminCreateUser(
                 request.0,
                 request.1,
                 request.2,
-                super::super::http::admin_api_url(server_admin_contract::AdminRoute::CreateUser),
+                super::super::http::url::admin_api_url(
+                    server_admin_contract::AdminRoute::CreateUser,
+                ),
             ) {
                 super::super::mutation::reload_after(
                     super::super::mutation::AdminMutationMethod::Post,

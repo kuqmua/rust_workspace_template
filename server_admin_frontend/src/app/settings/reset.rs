@@ -17,7 +17,7 @@ pub(super) fn reset() {
         ),
         server_admin_contract::AdminSiteName::try_from(str_constants::ADMIN.to_owned()),
         clear,
-        super::super::http::admin_api_url(server_admin_contract::AdminRoute::UpdateSettings),
+        super::super::http::url::admin_api_url(server_admin_contract::AdminRoute::UpdateSettings),
     );
     if let (Ok(request_default_route), Ok(request_site_name), Ok(request_clear), Ok(path)) = values
     {

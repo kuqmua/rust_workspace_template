@@ -178,7 +178,7 @@ pub fn render_data_tables(
     admin: &server_admin_contract::AuthenticatedAdmin,
     branding: &server_admin_contract::AdminBrandingView,
 ) -> AdminSsrHtml {
-    data_tables::render_data_tables(table, query, admin, branding)
+    data_tables::ssr::render_data_tables(table, query, admin, branding)
 }
 
 #[must_use]
@@ -187,7 +187,7 @@ pub fn render_data_tables_csr(
     admin: &server_admin_contract::AuthenticatedAdmin,
     branding: &server_admin_contract::AdminBrandingView,
 ) -> AdminSsrHtml {
-    data_tables::render_data_tables_csr(active_table, admin, branding)
+    data_tables::csr::render_data_tables_csr(active_table, admin, branding)
 }
 
 #[must_use]
@@ -197,7 +197,7 @@ pub fn render_admin_csr(
     admin: &server_admin_contract::AuthenticatedAdmin,
     branding: &server_admin_contract::AdminBrandingView,
 ) -> AdminSsrHtml {
-    data_tables::render_admin_csr(page, active_table, admin, branding)
+    data_tables::csr::render_admin_csr(page, active_table, admin, branding)
 }
 
 #[must_use]

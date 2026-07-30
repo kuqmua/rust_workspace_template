@@ -35,7 +35,7 @@ pub(in crate::app) fn AdminNav(
             }).collect::<Vec<_>>()}
             <form on:submit=move |event| {
                 event.prevent_default();
-                if let Ok(path) = super::http::admin_api_url(server_admin_contract::AdminRoute::SignOut) {
+                if let Ok(path) = super::http::url::admin_api_url(server_admin_contract::AdminRoute::SignOut) {
                     super::mutation::reload_after(
                         super::mutation::AdminMutationMethod::Post,
                         path,

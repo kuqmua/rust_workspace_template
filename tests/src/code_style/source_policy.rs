@@ -445,7 +445,7 @@ fn administrator_csr_page_behavior_comes_from_the_page_catalog() {
             .find(|file| {
                 file.path()
                     .as_ref()
-                    .ends_with("server_admin_frontend/src/app/query.rs")
+                    .ends_with("server_admin_frontend/src/app/query/page.rs")
             })
             .expect("58e2110e")
             .content()

@@ -21,7 +21,7 @@ pub(in crate::app) fn AdminSessionsView(
                     <td data-label="expires">{item.expires_at().to_string()}</td>
                     <td data-label="current">{item.is_current().to_string()}</td>
                     <td data-label="actions"><div class="table-actions"><button type="button" on:click=move |_event| {
-                        if bool::from(super::mutation::mutation_confirmed(super::mutation::MutationConfirmationMessageRef::from("Revoke this session?"))) && let Ok(path) = super::http::admin_route_path_url(server_admin_contract::admin_parameterized_route_path::<server_admin_contract::AdminRevokeSessionRoute>(&revoke_session_id)) {
+                        if bool::from(super::mutation::mutation_confirmed(super::mutation::MutationConfirmationMessageRef::from("Revoke this session?"))) && let Ok(path) = super::http::url::admin_route_path_url(server_admin_contract::admin_parameterized_route_path::<server_admin_contract::AdminRevokeSessionRoute>(&revoke_session_id)) {
                             super::mutation::reload_after(super::mutation::AdminMutationMethod::Delete, path, server_admin_contract::AdminNoBody);
                         }
                     }>"Revoke session"</button></div></td>

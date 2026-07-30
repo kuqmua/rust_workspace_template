@@ -25,13 +25,13 @@ pub(in crate::app) struct MutationConfirmed(bool);
 
 pub(in crate::app) fn reload_after<RequestBody>(
     method: AdminMutationMethod,
-    path: super::http::AdminCsrApiUrl,
+    path: super::http::url::AdminCsrApiUrl,
     request_body: RequestBody,
 ) where
     RequestBody: serde::Serialize + 'static,
 {
     wasm_bindgen_futures::spawn_local(async move {
-        match super::http::send_json(method, &path, &request_body).await {
+        match super::http::mutation::send_json(method, &path, &request_body).await {
             Ok(()) => match web_sys::window() {
                 Some(window) if window.location().reload().is_ok() => {}
                 Some(_) | None => {

@@ -45,7 +45,7 @@ pub(super) fn save(signals: crate::shared::settings::signals::AdminSettingsFormS
             .then(|| server_admin_contract::AdminTabTitle::try_from(tab_title_value))
             .transpose(),
         clear,
-        super::super::http::admin_api_url(server_admin_contract::AdminRoute::UpdateSettings),
+        super::super::http::url::admin_api_url(server_admin_contract::AdminRoute::UpdateSettings),
     );
     if let (
         Ok(request_default_route),

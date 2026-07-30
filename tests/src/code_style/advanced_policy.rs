@@ -1705,10 +1705,24 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             ),
         ),
         (
-            "server_admin_frontend/src/app/http.rs",
+            "server_admin_frontend/src/app/http/fetch.rs",
             (
-                16usize,
-                "browser HTTP failures map to serializable UI error categories",
+                5usize,
+                "browser fetch failures map to serializable UI error categories",
+            ),
+        ),
+        (
+            "server_admin_frontend/src/app/http/mutation.rs",
+            (
+                9usize,
+                "browser mutation failures map to serializable UI error categories",
+            ),
+        ),
+        (
+            "server_admin_frontend/src/app/http/url.rs",
+            (
+                2usize,
+                "browser URL failures map to a stable UI query error",
             ),
         ),
         (
@@ -1719,10 +1733,17 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             ),
         ),
         (
-            "server_admin_frontend/src/app/query.rs",
+            "server_admin_frontend/src/app/query/location.rs",
             (
-                12usize,
+                11usize,
                 "browser query parsing failures map to stable UI error categories",
+            ),
+        ),
+        (
+            "server_admin_frontend/src/app/query/page.rs",
+            (
+                1usize,
+                "browser page-location failures map to a stable UI fetch error",
             ),
         ),
     ]);

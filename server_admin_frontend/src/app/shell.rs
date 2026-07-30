@@ -7,7 +7,7 @@ use leptos::prelude::{AriaAttributes, ClassAttribute, ElementChild, GlobalAttrib
 )]
 pub(in crate::app) fn AdminApp() -> impl leptos::prelude::IntoView {
     let query_result = super::query::AdminCsrQuery::from_location();
-    let page_result = super::query::csr_page_from_location();
+    let page_result = super::query::page::csr_page_from_location();
     let initial_state = match (&page_result, &query_result) {
         (Ok(_page), Ok(_query)) => super::state::AdminLoadState::Loading,
         (Err(error), _) | (_, Err(error)) => super::state::AdminLoadState::Error(error.clone()),

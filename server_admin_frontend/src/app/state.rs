@@ -51,7 +51,10 @@ pub(in crate::app) enum AdminTableLoadError {
     #[error("The table request failed.")]
     Fetch,
     #[error("The server returned status {0} for {1}.")]
-    Http(super::http::AdminHttpStatus, super::http::AdminCsrApiUrl),
+    Http(
+        super::http::url::AdminHttpStatus,
+        super::http::url::AdminCsrApiUrl,
+    ),
     #[error("The table query is invalid.")]
     Query,
     #[error("The table response was invalid.")]

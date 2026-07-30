@@ -14,7 +14,9 @@ pub(super) fn AdminCreateRole(
             event.prevent_default();
             if let (Ok(name), Ok(path)) = (
                 server_admin_contract::AdminRoleName::try_from(leptos::prelude::Get::get(&create_name)),
-                super::super::http::admin_api_url(server_admin_contract::AdminRoute::CreateRole),
+                super::super::http::url::admin_api_url(
+                    server_admin_contract::AdminRoute::CreateRole,
+                ),
             ) {
                 super::super::mutation::reload_after(
                     super::super::mutation::AdminMutationMethod::Post,

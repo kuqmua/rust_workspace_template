@@ -4,6 +4,8 @@
     reason = "Leptos table-filter rendering requires named attribute traits and converted query values replace borrowed inputs"
 )]
 
+mod sort;
+
 use leptos::prelude::{ClassAttribute, ElementChild};
 
 #[derive(Clone, Copy, Debug)]
@@ -52,7 +54,6 @@ pub(crate) fn admin_table_filters(
     presentation: AdminTableFilterPresentation,
 ) -> impl leptos::prelude::IntoView + use<> {
     let search = search.as_ref().to_owned();
-    let sort = sort.as_ref().to_owned();
     let ascending = matches!(direction, AdminTableFilterDirection::Asc);
     let descending = matches!(direction, AdminTableFilterDirection::Desc);
     let editable_limit = match presentation {
@@ -65,14 +66,7 @@ pub(crate) fn admin_table_filters(
     leptos::view! {
         <form class="table-tools" method="get" action=action.get()>
             <label><span>"Search"</span><input name="search" value=search /></label>
-            <label><span>"Sort"</span><select name="sort">
-                <option value="" selected=sort.is_empty()>"Default"</option>
-                {sort_fields.iter().copied().map(|field| {
-                    let key = field.key().as_ref().to_owned();
-                    let selected = sort == key;
-                    leptos::view! { <option value=key selected=selected>{field.label().as_ref().to_owned()}</option> }
-                }).collect::<Vec<_>>()}
-            </select></label>
+            {sort::admin_table_sort(sort, sort_fields)}
             <label><span>"Direction"</span><select name="direction"><option value="asc" selected=ascending>"Ascending"</option><option value="desc" selected=descending>"Descending"</option></select></label>
             {editable_limit.then(|| leptos::view! {
                 <input name="limit" type="number" min=server_admin_contract::AdminPageLimit::MIN max=server_admin_contract::AdminPageLimit::MAX value=limit.clone() />
