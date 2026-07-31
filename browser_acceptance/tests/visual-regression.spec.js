@@ -31,7 +31,7 @@ const authenticatedPages = [
   { mask: [".profile-card dd"], ...adminPages.profile },
   { mask: [], ...adminPages.settings },
   { mask: ["main pre"], ...adminPages.metrics },
-  { mask: [], ...adminPages.version },
+  { mask: ["main pre"], ...adminPages.version },
   ...dataTablePages.map(({ path, snapshotName }) => ({
     mask: tableMask,
     name: snapshotName,

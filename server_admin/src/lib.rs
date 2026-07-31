@@ -702,7 +702,7 @@ mod tests {
     #[test]
     fn migration_inventory_is_not_empty() {
         let migrations = super::migrations::migrator().iter().collect::<Vec<_>>();
-        assert_eq!(migrations.len(), 12usize);
+        assert_eq!(migrations.len(), 13usize);
         assert!(
             migrations
                 .iter()
