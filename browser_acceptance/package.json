@@ -6,7 +6,8 @@
   "scripts": {
     "screenshots": "BROWSER_ACCEPTANCE_SCREENSHOTS=1 playwright test tests/screenshots.spec.js",
     "test": "playwright test",
-    "test:full": "BROWSER_ACCEPTANCE_FULL=1 playwright test"
+    "test:full": "BROWSER_ACCEPTANCE_FULL=1 playwright test",
+    "test:session-limit": "BROWSER_ACCEPTANCE_SESSION_LIMIT=2 playwright test tests/session-limit.spec.js"
   },
   "devDependencies": {
     "@playwright/test": "1.62.0"

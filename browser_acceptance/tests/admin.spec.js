@@ -1,14 +1,25 @@
 import { expect, test } from "@playwright/test";
+import {
+  changePassword,
+  changedAdminPassword,
+  initialAdminPassword,
+  signInAdministrator
+} from "./support/admin.js";
+import { primaryAdminPaths } from "./support/pages.js";
 
 test.describe.configure({ mode: "serial" });
 
-async function signIn(page) {
-  await page.goto("/admin/sign_in");
-  await page.getByLabel("Login").fill("administrator");
-  await page.getByLabel("Password").fill("Changed-password2!");
-  await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page).toHaveURL(/\/admin\/users$/);
-  await expect(page.locator('[data-renderer="csr"]')).toBeVisible();
+async function firstCellStyle(page) {
+  return page.locator("tbody td").first().evaluate(element => {
+    const style = getComputedStyle(element);
+    return {
+      backgroundColor: style.backgroundColor,
+      borderBottom: style.borderBottom,
+      color: style.color,
+      fontSize: style.fontSize,
+      padding: style.padding
+    };
+  });
 }
 
 test("bootstrap sign-in forces a password change before administrator access", async ({
@@ -24,11 +35,12 @@ test("bootstrap sign-in forces a password change before administrator access", a
   expect(signInResponse.headers()["x-frame-options"]).toBe("DENY");
   expect(signInResponse.headers()["referrer-policy"]).toBe("same-origin");
 
-  await expect(page.locator(".password-policy")).toContainText(
-    "uppercase, lowercase, digit, and special characters"
-  );
+  await expect(page.locator(".password-policy")).toHaveCount(0);
+  await expect(
+    page.getByText("New passwords must contain", { exact: false })
+  ).toHaveCount(0);
   await page.getByLabel("Login").fill("administrator");
-  await page.getByLabel("Password").fill("Initial-password1!");
+  await page.getByLabel("Password").fill(initialAdminPassword);
 
   const signInCompleted = page.waitForResponse(
     response =>
@@ -56,44 +68,43 @@ test("bootstrap sign-in forces a password change before administrator access", a
   );
 
   await expect(page).toHaveURL(/\/admin\/profile$/);
+  await expect(page.locator(".password-policy")).toContainText(
+    "uppercase, lowercase, digit, and special characters"
+  );
   await page.goto("/admin/users");
   await expect(page).toHaveURL(/\/admin\/profile$/);
 
-  await page.getByLabel("Current password").fill("Initial-password1!");
+  await page.getByLabel("Current password").fill(initialAdminPassword);
   await page.getByLabel("New password").fill("admin");
   await page.getByRole("button", { name: "Change password" }).click();
   await expect(page.getByRole("alert")).toHaveText(
     "Check both passwords and ensure the new password satisfies the policy."
   );
 
-  await page.getByLabel("New password").fill("Changed-password2!");
-  const passwordChanged = page.waitForResponse(
-    response =>
-      response.url().endsWith("/api/v1/admin/auth/password") &&
-      response.status() === 204
-  );
-  await page.getByRole("button", { name: "Change password" }).click();
-  await passwordChanged;
+  await changePassword(page, initialAdminPassword, changedAdminPassword);
   await expect(page).toHaveURL(/\/admin\/profile$/);
 
   await page.goto("/admin/users");
   await expect(page).toHaveURL(/\/admin\/users$/);
   await expect(page.locator('[data-renderer="csr"]')).toBeVisible();
-  await expect(
-    page.getByRole("table").locator('input[value="administrator"]')
-  ).toBeVisible();
+  await expect(page.locator("tbody tr").filter({ hasText: "administrator" })).toBeVisible();
 });
 
 test("administrator users page contains only its header, table, and pagination", async ({
   page
 }) => {
-  await signIn(page);
+  await signInAdministrator(page);
 
   await expect(page.locator("header.topbar")).toHaveCount(1);
   await expect(page.getByRole("table")).toHaveCount(1);
   await expect(page.locator("nav.table-pagination")).toHaveCount(1);
   await expect(page.locator("form.table-tools")).toHaveCount(0);
   await expect(page.locator("form.mutation-form")).toHaveCount(0);
+  await expect(page.locator("tbody button, tbody input, tbody select")).toHaveCount(0);
+  await expect(page.locator("thead th")).toHaveCount(5);
+  const usersCellStyle = await firstCellStyle(page);
+  await page.goto("/admin/permissions");
+  expect(usersCellStyle).toEqual(await firstCellStyle(page));
 
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.locator("nav[aria-label='Admin sections']")).toBeVisible();
@@ -105,7 +116,7 @@ test("administrator users page contains only its header, table, and pagination",
 test("administrator roles page contains only its header, table, and pagination", async ({
   page
 }) => {
-  await signIn(page);
+  await signInAdministrator(page);
   await page.goto("/admin/roles");
 
   await expect(page.locator("header.topbar")).toHaveCount(1);
@@ -113,12 +124,17 @@ test("administrator roles page contains only its header, table, and pagination",
   await expect(page.locator("nav.table-pagination")).toHaveCount(1);
   await expect(page.locator("form.table-tools")).toHaveCount(0);
   await expect(page.locator("form.mutation-form")).toHaveCount(0);
+  await expect(page.locator("tbody button, tbody input, tbody select")).toHaveCount(0);
+  await expect(page.locator("thead th")).toHaveCount(4);
+  const rolesCellStyle = await firstCellStyle(page);
+  await page.goto("/admin/permissions");
+  expect(rolesCellStyle).toEqual(await firstCellStyle(page));
 });
 
 test("administrator permissions page contains only its header, table, and pagination", async ({
   page
 }) => {
-  await signIn(page);
+  await signInAdministrator(page);
   await page.goto("/admin/permissions");
 
   await expect(page.locator("header.topbar")).toHaveCount(1);
@@ -127,18 +143,50 @@ test("administrator permissions page contains only its header, table, and pagina
   await expect(page.locator("form.table-tools")).toHaveCount(0);
 });
 
-test("keyboard navigation reaches every primary administrator route", async ({ page }) => {
-  await signIn(page);
+test("data-table filter places a full-width Close control below Apply", async ({
+  page
+}) => {
+  await signInAdministrator(page);
+  await page.goto("/admin/role_permissions");
 
-  for (const path of [
-    "/admin/users",
-    "/admin/roles",
-    "/admin/permissions",
-    "/admin/sessions",
-    "/admin/profile",
-    "/admin/settings",
-    "/admin/version"
-  ]) {
+  const filter = page.locator(
+    'th[data-field="role_id"] details.table-column-filter'
+  );
+  await filter.locator("summary").click();
+
+  const dialog = filter.getByRole("dialog");
+  const close = dialog.getByRole("button", { name: "Close" });
+  await expect(dialog).toBeVisible();
+  await expect(close).toContainText("Close");
+
+  const controls = await filter.evaluate(element => {
+    const applyRect = element
+      .querySelector("button[type='submit']")
+      .getBoundingClientRect();
+    const closeRect = element
+      .querySelector("button.table-filter-close")
+      .getBoundingClientRect();
+    return {
+      applyBottom: applyRect.bottom,
+      applyHeight: applyRect.height,
+      applyWidth: applyRect.width,
+      closeHeight: closeRect.height,
+      closeTop: closeRect.top,
+      closeWidth: closeRect.width
+    };
+  });
+  expect(controls.closeTop).toBeGreaterThan(controls.applyBottom);
+  expect(controls.closeWidth).toBe(controls.applyWidth);
+  expect(controls.closeHeight).toBe(controls.applyHeight);
+
+  await close.click();
+  await expect(dialog).not.toBeVisible();
+});
+
+test("keyboard navigation reaches every primary administrator route", async ({ page }) => {
+  await signInAdministrator(page);
+
+  for (const path of primaryAdminPaths) {
     await page.goto(path);
     await expect(page).toHaveURL(new RegExp(`${path.replaceAll("/", "\\/")}$`));
     await expect(page.locator("main")).toBeVisible();

@@ -3,7 +3,6 @@ pub(in crate::app) enum AdminMutationMethod {
     Delete,
     Patch,
     Post,
-    Put,
 }
 
 impl AdminMutationMethod {
@@ -12,7 +11,6 @@ impl AdminMutationMethod {
             Self::Delete => str_constants::DELETE,
             Self::Patch => str_constants::PATCH,
             Self::Post => str_constants::POST,
-            Self::Put => str_constants::HTTP_METHOD_PUT_LABEL,
         }
     }
 }
@@ -50,8 +48,18 @@ fn show_mutation_error(error: &super::state::AdminTableLoadError) {
     let Some(root) = document.get_element_by_id(str_constants::ADMIN_CSR_ROOT_ID) else {
         return;
     };
-    root.set_text_content(Some(&error.to_string()));
-    root.set_class_name(str_constants::ADMIN_FIELD_ERROR_CLASS);
+    let Ok(alert) = document.create_element("p") else {
+        return;
+    };
+    if alert.set_attribute("role", "alert").is_err() {
+        return;
+    }
+    alert.set_text_content(Some(&error.to_string()));
+    alert.set_class_name(str_constants::ADMIN_FIELD_ERROR_CLASS);
+    if root.append_child(&alert).is_err() {
+        root.set_text_content(Some(&error.to_string()));
+        root.set_class_name(str_constants::ADMIN_FIELD_ERROR_CLASS);
+    }
 }
 
 pub(in crate::app) fn mutation_confirmed(

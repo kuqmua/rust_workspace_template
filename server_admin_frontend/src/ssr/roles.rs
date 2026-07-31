@@ -27,14 +27,10 @@ pub(super) fn render(
     admin: &server_admin_contract::AuthenticatedAdmin,
     branding: &server_admin_contract::AdminBrandingView,
 ) -> super::AdminSsrHtml {
-    let can_delete = admin.has_permission(server_admin_contract::AdminPermission::RolesDelete);
-    let can_update = admin.has_permission(server_admin_contract::AdminPermission::RolesUpdate);
-    let can_update_permissions =
-        admin.has_permission(server_admin_contract::AdminPermission::RolePermissionsUpdate);
     let content = leptos::view! {
         <section class="table-page">
-        <div class="table-scroll"><table><thead><tr><th>"id"</th><th>"name"</th><th>"system"</th><th>"permissions"</th><th>"actions"</th></tr></thead>
-        <tbody>{page.items().iter().map(|item| row::admin_role_row(item, page, can_delete, can_update, can_update_permissions)).collect::<Vec<_>>()}</tbody></table></div>
+        <div class="table-scroll"><table><thead><tr><th>"id"</th><th>"name"</th><th>"system"</th><th>"permissions"</th></tr></thead>
+        <tbody>{page.items().iter().map(|item| row::admin_role_row(item, page)).collect::<Vec<_>>()}</tbody></table></div>
         {super::table_pagination(server_admin_contract::AdminPage::Roles, query, page.total(), None, None)}
         </section>
     }.render_admin_ssr();

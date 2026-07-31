@@ -29,7 +29,6 @@ pub(super) fn render(
             <main class="auth-layout" style=primary_color>
                 <section class="auth-card">
                     {error.map(|message| leptos::view! { <p class="field-error" role="alert">{message.to_string()}</p> })}
-                    <p class="password-policy">{str_constants::ADMIN_PASSWORD_POLICY_DESCRIPTION}</p>
                     <form method="post" action=server_admin_contract::AdminHtmlAction::SignIn.get()>
                         <label><span>"Login"</span><input name="login" autocomplete="username" required /></label>
                         <label><span>"Password"</span><input name="password" type="password" autocomplete="current-password" required /></label>

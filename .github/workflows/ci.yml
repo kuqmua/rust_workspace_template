@@ -128,7 +128,11 @@ jobs:
       - run: cargo test -p server_admin_frontend
       - run: cargo check -p server_admin_frontend --target wasm32-unknown-unknown
   browser-acceptance:
-    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    if: >-
+      github.event_name == 'push' ||
+      github.event_name == 'pull_request' ||
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     services:
@@ -160,9 +164,25 @@ jobs:
           tool: trunk
       - run: npm ci
         working-directory: browser_acceptance
-      - run: npx playwright install --with-deps chromium
+      - if: github.event_name == 'push' || github.event_name == 'pull_request'
+        run: npx playwright install --with-deps chromium
         working-directory: browser_acceptance
-      - run: npm test
+      - if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        run: npx playwright install --with-deps chromium firefox webkit
+        working-directory: browser_acceptance
+      - if: github.event_name == 'push' || github.event_name == 'pull_request'
+        run: npm test
+        working-directory: browser_acceptance
+        env:
+          BROWSER_ACCEPTANCE_DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/rust_workspace_template_browser_test
+      - if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        run: npm run test:full
+        working-directory: browser_acceptance
+        env:
+          BROWSER_ACCEPTANCE_CROSS_BROWSER: "1"
+          BROWSER_ACCEPTANCE_DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/rust_workspace_template_browser_test
+      - if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        run: npm run test:session-limit
         working-directory: browser_acceptance
         env:
           BROWSER_ACCEPTANCE_DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/rust_workspace_template_browser_test

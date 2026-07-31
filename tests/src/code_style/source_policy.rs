@@ -2045,6 +2045,103 @@ fn no_type_aliases_in_rust_sources() {
     );
 }
 #[test]
+fn no_empty_enums_in_rust_sources() {
+    super::assert_rs_ast_ers_empty_with_ctx(
+        super::types::StaticStr::from("b2b709a6"),
+        super::types::SourceTextRef::from(
+            "empty enums are forbidden; use an explicit inhabited type or an Infallible wrapper",
+        ),
+        |path, ast, ers| {
+            let visitor = super::visit_syn_file(
+                super::types::SynFileRef::from(ast),
+                super::EmptyEnumVisitor {
+                    ers: super::types::DiagnosticMsgs::default(),
+                },
+            );
+            ers.extend(
+                visitor
+                    .ers
+                    .into_iter()
+                    .map(|error| format!("{}: {error}", path.display())),
+            );
+        },
+    );
+}
+#[test]
+fn empty_enum_policy_checks_items_and_attribute_payloads() {
+    let source = [
+        "enum DirectlyEmpty {",
+        "}",
+        "#[marker{enum EmptyMarker {",
+        "}}]",
+        "struct GeneratedInput;",
+        "enum NonEmpty { Value }",
+    ]
+    .join("\n");
+    let ast = syn::parse_file(&source).expect("e52f247c");
+    let visitor = super::visit_syn_file(
+        super::types::SynFileRef::from(&ast),
+        super::EmptyEnumVisitor {
+            ers: super::types::DiagnosticMsgs::default(),
+        },
+    );
+    assert_eq!(visitor.ers.len(), 2usize);
+    assert!(
+        visitor
+            .ers
+            .iter()
+            .any(|error| error.contains("DirectlyEmpty"))
+    );
+    assert!(
+        visitor
+            .ers
+            .iter()
+            .any(|error| error.contains("EmptyMarker"))
+    );
+}
+#[test]
+fn infallible_functions_return_concrete_types() {
+    super::assert_rs_ast_ers_empty_with_ctx(
+        super::types::StaticStr::from("a9372905"),
+        super::types::SourceTextRef::from(
+            "functions that cannot fail must return their concrete success type",
+        ),
+        |path, ast, ers| {
+            let visitor = super::visit_syn_file(
+                super::types::SynFileRef::from(ast),
+                super::InfallibleResultVisitor {
+                    ers: super::types::DiagnosticMsgs::default(),
+                },
+            );
+            ers.extend(
+                visitor
+                    .ers
+                    .into_iter()
+                    .map(|error| format!("{}: {error}", path.display())),
+            );
+        },
+    );
+}
+#[test]
+fn infallible_result_policy_rejects_wrappers_and_free_function_results() {
+    let source = [
+        "struct StdNeverError(std::convert::",
+        "Infallible);",
+        "fn unnecessary() -> Result<u8, std::convert::",
+        "Infallible> { loop {} }",
+        "fn concrete() -> u8 { 1u8 }",
+    ]
+    .join("");
+    let ast = syn::parse_file(&source).expect("aa0bacf7");
+    let visitor = super::visit_syn_file(
+        super::types::SynFileRef::from(&ast),
+        super::InfallibleResultVisitor {
+            ers: super::types::DiagnosticMsgs::default(),
+        },
+    );
+    assert_eq!(visitor.ers.len(), 2usize);
+}
+#[test]
 fn no_simple_constant_aliases_in_rust_sources() {
     super::assert_rs_ast_ers_empty_with_ctx(
         super::types::StaticStr::from(str_constants::A51F0D3B),

@@ -37,9 +37,6 @@ enum MetricsError {
         #[source] server_runtime_http::ObservedError<server_runtime_http::MetricsResponseBodyError>,
     ),
 }
-#[derive(Debug, thiserror::Error)]
-enum OpenApiError {}
-
 #[derive(Clone, Debug, newtype::FromInner)]
 struct MetricsExporterPrometheusHandle(metrics_exporter_prometheus::PrometheusHandle);
 
@@ -114,11 +111,6 @@ impl axum::response::IntoResponse for MetricsError {
                 response
             }
         }
-    }
-}
-impl axum::response::IntoResponse for OpenApiError {
-    fn into_response(self) -> axum::response::Response {
-        match self {}
     }
 }
 impl std::process::Termination for StdNotificationExitCode {
@@ -269,14 +261,14 @@ async fn metrics(
 }
 
 #[frontend_contract::route_operation]
-async fn open_api() -> Result<AxumNotificationResponse, OpenApiError> {
+async fn open_api() -> AxumNotificationResponse {
     let mut document = NotificationApiRouteRegistry::open_api();
     document.merge(utoipa::openapi::OpenApi::from(
         common_routes::CommonRoutesOpenApi::open_api(),
     ));
-    Ok(AxumNotificationResponse::from(
-        axum::response::IntoResponse::into_response(axum::Json(document)),
-    ))
+    AxumNotificationResponse::from(axum::response::IntoResponse::into_response(axum::Json(
+        document,
+    )))
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum NotificationOperationalRoute {

@@ -421,8 +421,14 @@ mod tests {
             .as_ref()
             .find(">Apply</button>")
             .expect("10c26d45");
+        let close_position = filters_html
+            .as_ref()
+            .find("class=\"table-filter-close\"")
+            .expect("1542a5c3");
         let clear_position = filters_html.as_ref().find(">Clear</a>").expect("58f35e11");
+        assert!(close_position > apply_position);
         assert!(clear_position > apply_position);
+        assert!(clear_position > close_position);
         assert_eq!(
             filters_html
                 .as_ref()

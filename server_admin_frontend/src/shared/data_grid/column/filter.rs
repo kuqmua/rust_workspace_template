@@ -8,7 +8,9 @@
 mod input_kind;
 mod option;
 
-use leptos::prelude::{AriaAttributes, ClassAttribute, ElementChild, GlobalAttributes};
+use leptos::prelude::{
+    AriaAttributes, ClassAttribute, ElementChild, GlobalAttributes, OnAttribute,
+};
 
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub(super) struct LeptosAdminFilterOperationSignal(leptos::prelude::RwSignal<String>);
@@ -31,6 +33,8 @@ pub(super) fn admin_data_grid_filter(
     let active_operation = active_operation.map(ToString::to_string);
     let clear_href = table_path.to_string();
     let field = column.name().to_string();
+    let filter_id = format!("table-filter-{field}");
+    let close_filter_field = column.name().clone();
     let label = column.label().to_string();
     let input_type = input_kind::AdminDataGridInputType::from(column.input_kind());
     let is_active_field = active_field.as_deref() == Some(field.as_str());
@@ -54,7 +58,7 @@ pub(super) fn admin_data_grid_filter(
         ));
     {
         supports_filter.then(|| leptos::prelude::IntoAny::into_any(leptos::view! {
-                    <details class="table-column-filter">
+                    <details id=filter_id class="table-column-filter">
                         <summary class=("active", is_active_field) aria-label=filter_label.clone()><span class="table-filter-open-label">"Filter"</span><span class="table-filter-close-label">"Close"</span></summary>
                         <div class="table-filter-operations" role="dialog" aria-modal="true" aria-label=filter_label>
                             <div class="table-filter-header"><h2>{filter_title}</h2></div>
@@ -75,7 +79,10 @@ pub(super) fn admin_data_grid_filter(
                                         )
                                     }).collect::<Vec<_>>()}
                                 </div>
-                                <button type="submit">"Apply"</button>
+                                <div class="table-filter-actions">
+                                    <button type="submit">"Apply"</button>
+                                    <button class="table-filter-close" type="button" on:click=move |_event| close_filter(&close_filter_field)>"Close"</button>
+                                </div>
                             </form>
                             {is_active_field.then(|| leptos::view! { <a class="table-filter-clear" href=clear_href.clone()>"Clear"</a> })}
                         </div>
@@ -83,3 +90,17 @@ pub(super) fn admin_data_grid_filter(
                 }))
     }
 }
+
+#[cfg(target_arch = "wasm32")]
+fn close_filter(field: &server_admin_contract::AdminText) {
+    let filter_id = format!("table-filter-{field}");
+    if let Some(document) = web_sys::window().and_then(|window| window.document())
+        && let Some(filter) = document.get_element_by_id(&filter_id)
+        && filter.remove_attribute("open").is_err()
+    {
+        return;
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+const fn close_filter(_field: &server_admin_contract::AdminText) {}

@@ -12,15 +12,6 @@ mod tests {
                 "common_write_into_file": "False",
                 "whole_write_into_file": "False"
             }}]
-            #[generate_pg_table::cm_error_variants{enum CmErrorVariants{}}]
-            #[generate_pg_table::co_error_variants{enum CoErrorVariants{}}]
-            #[generate_pg_table::rm_error_variants{enum RmErrorVariants{}}]
-            #[generate_pg_table::ro_error_variants{enum RoErrorVariants{}}]
-            #[generate_pg_table::um_error_variants{enum UmErrorVariants{}}]
-            #[generate_pg_table::uo_error_variants{enum UoErrorVariants{}}]
-            #[generate_pg_table::dm_error_variants{enum DmErrorVariants{}}]
-            #[generate_pg_table::dlo_error_variants{enum DloErrorVariants{}}]
-            #[generate_pg_table::common_error_variants{enum CommonErrorVariants{}}]
             #[generate_pg_table::cm_logic{}]
             #[generate_pg_table::co_logic{}]
             #[generate_pg_table::rm_logic{}]
@@ -128,14 +119,6 @@ mod tests {
                             "common_write_into_file": "False",
                             "whole_write_into_file": "False"
                         }}]
-                        #[generate_pg_table::cm_error_variants{enum CmErrorVariants{}}]
-                        #[generate_pg_table::co_error_variants{enum CoErrorVariants{}}]
-                        #[generate_pg_table::rm_error_variants{enum RmErrorVariants{}}]
-                        #[generate_pg_table::ro_error_variants{enum RoErrorVariants{}}]
-                        #[generate_pg_table::um_error_variants{enum UmErrorVariants{}}]
-                        #[generate_pg_table::uo_error_variants{enum UoErrorVariants{}}]
-                        #[generate_pg_table::dm_error_variants{enum DmErrorVariants{}}]
-                        #[generate_pg_table::dlo_error_variants{enum DloErrorVariants{}}]
                         #[generate_pg_table::common_error_variants{
                             enum CommonErrorVariants {
                                 CheckCommit {

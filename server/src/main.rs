@@ -32,20 +32,6 @@ struct ServerObservabilityShutdownError(
 struct ServerAdminCleanupCfgError(server_admin::AdminCleanupCfgError);
 
 #[derive(Debug, thiserror::Error)]
-enum AdminGeneratedOpenApiError {}
-impl axum::response::IntoResponse for AdminGeneratedOpenApiError {
-    fn into_response(self) -> axum::response::Response {
-        match self {}
-    }
-}
-#[derive(Debug, thiserror::Error)]
-enum AdminHtmlMetricsError {}
-impl axum::response::IntoResponse for AdminHtmlMetricsError {
-    fn into_response(self) -> axum::response::Response {
-        match self {}
-    }
-}
-#[derive(Debug, thiserror::Error)]
 enum AdminMetricsError {
     #[error(transparent)]
     Render(server_runtime_http::MetricsResponseBodyError),
@@ -210,10 +196,8 @@ fn mk_api_routes(
                     open_api_contract.method(),
                 )),
                 async || {
-                    Result::<_, AdminGeneratedOpenApiError>::Ok(axum::Json(
-                        utoipa::openapi::OpenApi::from(
-                            server_admin::generated_tables::generated_open_api(),
-                        ),
+                    axum::Json(utoipa::openapi::OpenApi::from(
+                        server_admin::generated_tables::generated_open_api(),
                     ))
                 },
             ),
@@ -440,10 +424,7 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
         .route(
             server_admin_contract::AdminFrontendPath::Metrics.get(),
             axum::routing::get(async move || {
-                Result::<_, AdminHtmlMetricsError>::Ok(
-                    server_runtime_http::MetricsResponseBody::try_from(
-                        html_metrics_handle.0.render(),
-                    )
+                server_runtime_http::MetricsResponseBody::try_from(html_metrics_handle.0.render())
                     .map_or_else(
                         |_error| {
                             axum::response::IntoResponse::into_response(
@@ -476,8 +457,7 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
                                 }
                             }
                         },
-                    ),
-                )
+                    )
             }),
         )
         .route_layer(server_admin::AdminGeneratedAuthLayer::from(

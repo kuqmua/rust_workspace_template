@@ -1017,6 +1017,97 @@ impl<'ast> syn::visit::Visit<'ast> for TypeAliasVisitor {
         syn::visit::visit_item_type(self, i);
     }
 }
+struct EmptyEnumVisitor {
+    ers: types::DiagnosticMsgs,
+}
+impl EmptyEnumVisitor {
+    fn check(&mut self, item: &syn::ItemEnum) {
+        if item.variants.is_empty() {
+            self.ers.push(format!(
+                "enum `{}` has no variants; use an inhabited domain type or return the concrete type from infallible functions",
+                item.ident
+            ));
+        }
+    }
+}
+impl<'ast> syn::visit::Visit<'ast> for EmptyEnumVisitor {
+    fn visit_attribute(&mut self, i: &'ast syn::Attribute) {
+        if let syn::Meta::List(meta) = &i.meta
+            && let Ok(item) = syn::parse2::<syn::ItemEnum>(meta.tokens.clone())
+        {
+            self.check(&item);
+        }
+        syn::visit::visit_attribute(self, i);
+    }
+
+    fn visit_item_enum(&mut self, i: &'ast syn::ItemEnum) {
+        self.check(i);
+        syn::visit::visit_item_enum(self, i);
+    }
+}
+struct InfallibleResultVisitor {
+    ers: types::DiagnosticMsgs,
+}
+impl InfallibleResultVisitor {
+    fn type_is_infallible(ty: &syn::Type) -> bool {
+        let syn::Type::Path(path) = ty else {
+            return false;
+        };
+        path.path
+            .segments
+            .last()
+            .is_some_and(|segment| segment.ident == stringify!(Infallible))
+    }
+}
+impl<'ast> syn::visit::Visit<'ast> for InfallibleResultVisitor {
+    fn visit_item_fn(&mut self, i: &'ast syn::ItemFn) {
+        let result_error = |ty: &'ast syn::Type| -> Option<&'ast syn::Type> {
+            let syn::Type::Path(path) = ty else {
+                return None;
+            };
+            let segment = path.path.segments.last()?;
+            if segment.ident != stringify!(Result) {
+                return None;
+            }
+            let syn::PathArguments::AngleBracketed(arguments) = &segment.arguments else {
+                return None;
+            };
+            arguments
+                .args
+                .iter()
+                .filter_map(|argument| {
+                    let syn::GenericArgument::Type(argument_type) = argument else {
+                        return None;
+                    };
+                    Some(argument_type)
+                })
+                .nth(1usize)
+        };
+        if let syn::ReturnType::Type(_, ty) = &i.sig.output
+            && result_error(ty).is_some_and(Self::type_is_infallible)
+        {
+            self.ers.push(format!(
+                "function `{}` returns `Result` with `Infallible`; return the concrete success type",
+                i.sig.ident
+            ));
+        }
+        syn::visit::visit_item_fn(self, i);
+    }
+
+    fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
+        let mut fields = i.fields.iter();
+        if let Some(field) = fields.next()
+            && fields.next().is_none()
+            && Self::type_is_infallible(&field.ty)
+        {
+            self.ers.push(format!(
+                "struct `{}` wraps `Infallible`; remove the wrapper and return the concrete success type",
+                i.ident
+            ));
+        }
+        syn::visit::visit_item_struct(self, i);
+    }
+}
 struct ConstantAliasVisitor {
     ers: types::DiagnosticMsgs,
 }

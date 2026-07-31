@@ -1,23 +1,16 @@
 import { expect, test } from "@playwright/test";
+import {
+  adminHeaders,
+  adminOrigin,
+  cookieValue,
+  signInAdministrator
+} from "./support/admin.js";
 
 test.describe.configure({ mode: "serial" });
 test.skip(
   process.env.BROWSER_ACCEPTANCE_FULL !== "1",
   "expanded acceptance runs on the scheduled matrix"
 );
-
-async function signIn(page) {
-  await page.goto("/admin/sign_in");
-  await page.getByLabel("Login").fill("administrator");
-  await page.getByLabel("Password").fill("Changed-password2!");
-  await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page).toHaveURL(/\/admin\/users$/);
-  await expect(page.locator('[data-renderer="csr"]')).toBeVisible();
-}
-
-function csrfCookie(cookies) {
-  return cookies.find(cookie => cookie.name === "admin_csrf_token")?.value;
-}
 
 test("direct API access is denied and refresh restores an access session", async ({
   context,
@@ -27,15 +20,15 @@ test("direct API access is denied and refresh restores an access session", async
   const forbidden = await request.get("/api/v1/admin/users");
   expect(forbidden.status()).toBe(401);
 
-  await signIn(page);
+  await signInAdministrator(page);
   const cookies = await context.cookies();
-  const csrf = csrfCookie(cookies);
+  const csrf = cookieValue(cookies, "admin_csrf_token");
   expect(csrf).toBeTruthy();
   await context.clearCookies({ name: "admin_access_token" });
   const refreshed = await page.request.post("/api/v1/admin/auth/refresh", {
     data: {},
     headers: {
-      Origin: "http://127.0.0.1:18080",
+      Origin: adminOrigin,
       "X-CSRF-Token": csrf
     }
   });
@@ -44,53 +37,25 @@ test("direct API access is denied and refresh restores an access session", async
   await expect(page.locator('[data-renderer="csr"]')).toBeVisible();
 });
 
-test("role permissions and runtime branding persist", async ({ page }) => {
-  await signIn(page);
+test("read-only role rows and runtime branding persist", async ({ page }) => {
+  await signInAdministrator(page);
   await page.goto("/admin/roles");
-  const csrf = csrfCookie(await page.context().cookies());
-  expect(csrf).toBeTruthy();
   const created = await page.request.post("/api/v1/admin/roles", {
     data: { name: "browser_role" },
-    headers: {
-      Origin: "http://127.0.0.1:18080",
-      "X-CSRF-Token": csrf
-    }
+    headers: await adminHeaders(page.context())
   });
   expect(created.status()).toBe(201);
   await page.reload();
-  let roleRow = page.locator("tbody tr").filter({
-    has: page.locator('input[value="browser_role"]')
+  const roleRow = page.locator("tbody tr").filter({
+    hasText: "browser_role"
   });
   await expect(roleRow).toBeVisible();
-  await roleRow.getByLabel("users:read").check();
-  let mutation = page.waitForResponse(
-    response =>
-      response.request().method() === "PUT" &&
-      response.url().endsWith("/permissions") &&
-      response.status() === 204
-  );
-  await roleRow.getByRole("button", { name: "Save permissions" }).click();
-  await mutation;
-  roleRow = page.locator("tbody tr").filter({
-    has: page.locator('input[value="browser_role"]')
-  });
-  await expect(roleRow.getByLabel("users:read")).toBeChecked();
-
-  page.once("dialog", dialog => dialog.accept());
-  mutation = page.waitForResponse(
-    response =>
-      response.request().method() === "DELETE" &&
-      response.url().includes("/api/v1/admin/roles/") &&
-      response.status() === 204
-  );
-  await roleRow.getByRole("button", { name: "Delete" }).click();
-  await mutation;
-  await expect(page.locator('input[value="browser_role"]')).toHaveCount(0);
+  await expect(roleRow.locator("button, input, select")).toHaveCount(0);
 
   await page.goto("/admin/settings");
   await page.getByLabel("Site name").fill("Browser Acceptance Admin");
   await page.getByLabel("Tab title").fill("Acceptance Console");
-  mutation = page.waitForResponse(
+  let mutation = page.waitForResponse(
     response =>
       response.request().method() === "PATCH" &&
       response.url().endsWith("/api/v1/admin/system_settings") &&
@@ -122,12 +87,12 @@ test("one-session and all-session revocation are enforced", async ({
   context,
   page
 }) => {
-  await signIn(page);
+  await signInAdministrator(page);
   const otherContext = await browser.newContext({
-    baseURL: "http://127.0.0.1:18080"
+    baseURL: adminOrigin
   });
   const otherPage = await otherContext.newPage();
-  await signIn(otherPage);
+  await signInAdministrator(otherPage);
   await page.goto("/admin/sessions");
   await expect(page.locator('[data-renderer="csr"]')).toBeVisible();
   const sessionCount = await page.locator("tbody tr").count();
@@ -136,6 +101,7 @@ test("one-session and all-session revocation are enforced", async ({
     .locator("tbody tr")
     .filter({ hasText: "false" })
     .first();
+  const revokedSessionId = await otherSession.locator("td").first().innerText();
   page.once("dialog", dialog => dialog.accept());
   const oneRevoked = page.waitForResponse(
     response =>
@@ -145,17 +111,14 @@ test("one-session and all-session revocation are enforced", async ({
   );
   await otherSession.getByRole("button", { name: "Revoke session" }).click();
   await oneRevoked;
-  await expect(page.locator("tbody tr")).toHaveCount(sessionCount - 1);
+  await expect(
+    page.locator("tbody tr").filter({ hasText: revokedSessionId })
+  ).toHaveCount(0);
   await otherContext.close();
 
-  const csrf = csrfCookie(await context.cookies());
-  expect(csrf).toBeTruthy();
   const revoked = await page.request.delete("/api/v1/admin/auth/sessions", {
     data: {},
-    headers: {
-      Origin: "http://127.0.0.1:18080",
-      "X-CSRF-Token": csrf
-    }
+    headers: await adminHeaders(context)
   });
   expect(revoked.status()).toBe(204);
   await page.goto("/admin/users");
@@ -186,7 +149,7 @@ test("failed sign-in reaches the concealed account lockout", async ({ page }) =>
   await concealedLockout;
   await expect(page.getByRole("alert")).toBeVisible();
 
-  await signIn(page);
+  await signInAdministrator(page);
   await page.goto(
     "/admin/login_attempts?search=missing_browser_user&limit=20"
   );
