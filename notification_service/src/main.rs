@@ -270,23 +270,6 @@ async fn open_api() -> AxumNotificationResponse {
         document,
     )))
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-enum NotificationOperationalRoute {
-    Metrics,
-    OpenApi,
-}
-impl frontend_contract::HandlerContract for NotificationOperationalRoute {
-    fn method(self) -> frontend_contract::RouteMethod {
-        frontend_contract::RouteMethod::Get
-    }
-    fn path(self) -> frontend_contract::HandlerPath {
-        frontend_contract::HandlerPath::from(match self {
-            Self::Metrics => str_constants::METRICS,
-            Self::OpenApi => str_constants::OPENAPI_JSON,
-        })
-    }
-}
-
 #[frontend_contract::route_registry(
     state = NotificationState,
     family = notification_service_contract::NotificationRouteFamily;
@@ -306,11 +289,11 @@ struct NotificationApiRouteRegistry;
 #[frontend_contract::handler_registry(
     state = NotificationState;
     (
-        NotificationOperationalRoute::Metrics,
+        notification_service_contract::NotificationOperationalRoute::Metrics,
         metrics
     ),
     (
-        NotificationOperationalRoute::OpenApi,
+        notification_service_contract::NotificationOperationalRoute::OpenApi,
         open_api
     ),
 )]
@@ -518,7 +501,7 @@ mod tests {
             http::Request::builder()
                 .uri(
                     frontend_contract::HandlerContract::path(
-                        super::NotificationOperationalRoute::Metrics,
+                        notification_service_contract::NotificationOperationalRoute::Metrics,
                     )
                     .get(),
                 )

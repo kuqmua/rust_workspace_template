@@ -89,6 +89,49 @@ pub enum NotificationRoute {
     Create,
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq, frontend_contract::RouteCatalog)]
+#[route_catalog(
+    family = NotificationOperationalRouteFamily,
+    body_limit = NOTIFICATION_API_BODY_MAX_BYTES,
+)]
+pub enum NotificationOperationalRoute {
+    #[route_catalog_route(
+        contract = frontend_contract::RouteContract::new(
+            frontend_contract::AuthenticationRequirement::Public,
+            frontend_contract::HttpMethod::Get,
+            frontend_contract::MutationKind::ReadOnly,
+            frontend_contract::ContractStr::from("/metrics"),
+            frontend_contract::SuccessStatus::Code200,
+        ),
+        path = "/metrics",
+        exclude_from_family,
+    )]
+    Metrics,
+    #[route_catalog_route(
+        contract = frontend_contract::RouteContract::new(
+            frontend_contract::AuthenticationRequirement::Public,
+            frontend_contract::HttpMethod::Get,
+            frontend_contract::MutationKind::ReadOnly,
+            frontend_contract::ContractStr::from("/openapi.json"),
+            frontend_contract::SuccessStatus::Code200,
+        ),
+        path = "/openapi.json",
+        exclude_from_family,
+    )]
+    OpenApi,
+}
+impl frontend_contract::HandlerContract for NotificationOperationalRoute {
+    fn method(self) -> frontend_contract::RouteMethod {
+        frontend_contract::RouteMethod::Get
+    }
+    fn path(self) -> frontend_contract::HandlerPath {
+        frontend_contract::HandlerPath::from(match self {
+            Self::Metrics => "/metrics",
+            Self::OpenApi => "/openapi.json",
+        })
+    }
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum NotificationMessageTryFromStringError {
     #[error("notification message must not be empty")]
@@ -126,15 +169,43 @@ mod tests {
         }
     }
     #[test]
-    fn every_notification_route_is_typed_client_compatible() {
+    fn every_notification_route_has_named_route_and_client_functions() {
         assert_eq!(
             <super::NotificationRouteFamily as frontend_contract::RouteFamily>::ROUTE_COUNT,
             1usize
         );
-        let client_method = frontend_contract::TypedClient::<ClientTransport>::send::<
-            super::CreateNotificationRoute,
-        >;
-        assert_eq!(size_of_val(&client_method), 0usize);
+        assert_eq!(
+            super::create_notification_route(),
+            super::NotificationRoute::Create.contract().path()
+        );
+        assert_eq!(
+            size_of_val(&super::create_notification_client::<ClientTransport>),
+            0usize
+        );
+        assert_eq!(
+            <super::NotificationOperationalRouteFamily as frontend_contract::RouteFamily>::ROUTE_COUNT,
+            0usize
+        );
+        assert_eq!(
+            super::metrics_route(),
+            super::NotificationOperationalRoute::Metrics
+                .contract()
+                .path()
+        );
+        assert_eq!(
+            super::open_api_route(),
+            super::NotificationOperationalRoute::OpenApi
+                .contract()
+                .path()
+        );
+        assert_eq!(
+            size_of_val(&super::metrics_client::<ClientTransport>),
+            0usize
+        );
+        assert_eq!(
+            size_of_val(&super::open_api_client::<ClientTransport>),
+            0usize
+        );
     }
     #[test]
     fn notification_message_enforces_bounds() {

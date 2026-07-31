@@ -2917,7 +2917,7 @@ pub enum AdminRoute {
             frontend_contract::ContractStr::from(str_constants::COMMON_ROUTES_GIT_INFO),
             frontend_contract::SuccessStatus::Code200,
         ),
-        path = str_constants::API_V1_GIT_INFO,
+        path = str_constants::COMMON_ROUTES_GIT_INFO,
         exclude_from_family,
     )]
     Version,
@@ -3369,7 +3369,7 @@ where
 fn admin_api_route_path(suffix: frontend_contract::ParameterizedRoutePath) -> AdminRoutePath {
     AdminRoutePath::try_from(format!(
         "{}{}{suffix}",
-        str_constants::API_V1,
+        str_constants::V1,
         AdminFrontendPath::Root.get(),
         suffix = String::from(suffix),
     ))
@@ -3392,58 +3392,95 @@ mod tests {
             std::future::ready(Err(frontend_contract::TransportError::default()))
         }
     }
-    fn assert_client_route<Route>()
-    where
-        Route: frontend_contract::TypedRoute,
-    {
-        let client_method = frontend_contract::TypedClient::<ClientTransport>::send::<Route>;
-        assert_eq!(size_of_val(&client_method), 0usize);
-    }
-    fn assert_parameterized_client_route<Route>()
-    where
-        Route: frontend_contract::ParameterizedRoute,
-    {
-        let client_method =
-            frontend_contract::TypedClient::<ClientTransport>::send_parameterized::<Route>;
-        assert_eq!(size_of_val(&client_method), 0usize);
-    }
     #[test]
-    fn every_admin_api_route_is_typed_client_compatible() {
+    #[allow(clippy::needless_for_each)] // iterator assertions follow the workspace no-for-loop policy
+    fn every_admin_api_route_has_named_route_and_client_functions() {
         assert_eq!(
             <super::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::ROUTE_COUNT,
             28usize
         );
-        assert_client_route::<super::AdminAuditLogRoute>();
-        assert_client_route::<super::AdminAuditExportRoute>();
-        assert_client_route::<super::AdminBrandingRoute>();
-        assert_client_route::<super::AdminDataTablesRoute>();
-        assert_client_route::<super::AdminChangeOwnPasswordRoute>();
-        assert_client_route::<super::AdminCreateRoleRoute>();
-        assert_client_route::<super::AdminCreateUserRoute>();
-        assert_client_route::<super::AdminMeRoute>();
-        assert_client_route::<super::AdminListPermissionsRoute>();
-        assert_client_route::<super::AdminRefreshRoute>();
-        assert_client_route::<super::AdminRevokeAllSessionsRoute>();
-        assert_client_route::<super::AdminListRolesRoute>();
-        assert_client_route::<super::AdminSettingsRoute>();
-        assert_client_route::<super::AdminSignInRoute>();
-        assert_client_route::<super::AdminSignOutRoute>();
-        assert_client_route::<super::AdminSessionsRoute>();
-        assert_client_route::<super::AdminUpdateSettingsRoute>();
-        assert_client_route::<super::AdminListUsersRoute>();
-    }
-    #[test]
-    fn every_parameterized_admin_api_route_is_typed_client_compatible() {
-        assert_parameterized_client_route::<super::AdminDataTableRoute>();
-        assert_parameterized_client_route::<super::AdminDeleteRoleRoute>();
-        assert_parameterized_client_route::<super::AdminDeleteUserRoute>();
-        assert_parameterized_client_route::<super::AdminRevokeSessionRoute>();
-        assert_parameterized_client_route::<super::AdminSetRolePermissionsRoute>();
-        assert_parameterized_client_route::<super::AdminSetUserBanRoute>();
-        assert_parameterized_client_route::<super::AdminSetUserPasswordRoute>();
-        assert_parameterized_client_route::<super::AdminSetUserRolesRoute>();
-        assert_parameterized_client_route::<super::AdminUpdateRoleRoute>();
-        assert_parameterized_client_route::<super::AdminUpdateUserRoute>();
+        assert_eq!(
+            super::metrics_route(),
+            super::AdminRoute::Metrics.contract().path()
+        );
+        assert_eq!(
+            super::open_api_route(),
+            super::AdminRoute::OpenApi.contract().path()
+        );
+        assert_eq!(
+            super::version_route(),
+            super::AdminRoute::Version.contract().path()
+        );
+        [
+            size_of_val(&super::audit_log_route),
+            size_of_val(&super::export_audit_log_route),
+            size_of_val(&super::branding_route),
+            size_of_val(&super::read_data_table_route),
+            size_of_val(&super::list_data_tables_route),
+            size_of_val(&super::change_own_password_route),
+            size_of_val(&super::create_role_route),
+            size_of_val(&super::create_user_route),
+            size_of_val(&super::delete_role_route),
+            size_of_val(&super::delete_user_route),
+            size_of_val(&super::me_route),
+            size_of_val(&super::metrics_route),
+            size_of_val(&super::open_api_route),
+            size_of_val(&super::list_permissions_route),
+            size_of_val(&super::refresh_route),
+            size_of_val(&super::revoke_all_sessions_route),
+            size_of_val(&super::revoke_session_route),
+            size_of_val(&super::list_roles_route),
+            size_of_val(&super::set_role_permissions_route),
+            size_of_val(&super::set_user_ban_route),
+            size_of_val(&super::set_user_password_route),
+            size_of_val(&super::set_user_roles_route),
+            size_of_val(&super::settings_route),
+            size_of_val(&super::sign_in_route),
+            size_of_val(&super::sign_out_route),
+            size_of_val(&super::sessions_route),
+            size_of_val(&super::update_role_route),
+            size_of_val(&super::update_settings_route),
+            size_of_val(&super::update_user_route),
+            size_of_val(&super::list_users_route),
+            size_of_val(&super::version_route),
+        ]
+        .into_iter()
+        .for_each(|size| assert_eq!(size, 0usize));
+        [
+            size_of_val(&super::audit_log_client::<ClientTransport>),
+            size_of_val(&super::export_audit_log_client::<ClientTransport>),
+            size_of_val(&super::branding_client::<ClientTransport>),
+            size_of_val(&super::read_data_table_client::<ClientTransport>),
+            size_of_val(&super::list_data_tables_client::<ClientTransport>),
+            size_of_val(&super::change_own_password_client::<ClientTransport>),
+            size_of_val(&super::create_role_client::<ClientTransport>),
+            size_of_val(&super::create_user_client::<ClientTransport>),
+            size_of_val(&super::delete_role_client::<ClientTransport>),
+            size_of_val(&super::delete_user_client::<ClientTransport>),
+            size_of_val(&super::me_client::<ClientTransport>),
+            size_of_val(&super::metrics_client::<ClientTransport>),
+            size_of_val(&super::open_api_client::<ClientTransport>),
+            size_of_val(&super::list_permissions_client::<ClientTransport>),
+            size_of_val(&super::refresh_client::<ClientTransport>),
+            size_of_val(&super::revoke_all_sessions_client::<ClientTransport>),
+            size_of_val(&super::revoke_session_client::<ClientTransport>),
+            size_of_val(&super::list_roles_client::<ClientTransport>),
+            size_of_val(&super::set_role_permissions_client::<ClientTransport>),
+            size_of_val(&super::set_user_ban_client::<ClientTransport>),
+            size_of_val(&super::set_user_password_client::<ClientTransport>),
+            size_of_val(&super::set_user_roles_client::<ClientTransport>),
+            size_of_val(&super::settings_client::<ClientTransport>),
+            size_of_val(&super::sign_in_client::<ClientTransport>),
+            size_of_val(&super::sign_out_client::<ClientTransport>),
+            size_of_val(&super::sessions_client::<ClientTransport>),
+            size_of_val(&super::update_role_client::<ClientTransport>),
+            size_of_val(&super::update_settings_client::<ClientTransport>),
+            size_of_val(&super::update_user_client::<ClientTransport>),
+            size_of_val(&super::list_users_client::<ClientTransport>),
+            size_of_val(&super::version_client::<ClientTransport>),
+        ]
+        .into_iter()
+        .for_each(|size| assert_eq!(size, 0usize));
     }
     fn assert_rejects_unknown_field<Value>(json: &str)
     where
@@ -3697,7 +3734,7 @@ mod tests {
     fn route_contract_keeps_custom_action_policy_and_path_together() {
         let route =
             super::AdminRoute::SetUserBan(super::AdminUserId::try_from(7).expect("8bed843c"));
-        assert_eq!(route.path().as_ref(), "/api/v1/admin/users/7/ban");
+        assert_eq!(route.path().as_ref(), "/v1/admin/users/7/ban");
         assert_eq!(
             route.contract().method(),
             frontend_contract::HttpMethod::Post
@@ -3719,9 +3756,39 @@ mod tests {
     fn parameterized_admin_route_path_uses_typed_route_metadata() {
         let session_id = super::AdminSessionIdentifier::try_from(String::from("test-session"))
             .expect("84d51132");
+        let role_id = super::AdminRoleId::try_from(7i64).expect("1d69f24c");
+        let user_id = super::AdminUserId::try_from(8i64).expect("35959579");
         let path =
             super::admin_parameterized_route_path::<super::AdminRevokeSessionRoute>(&session_id);
-        assert_eq!(path.as_ref(), "/api/v1/admin/auth/sessions/test-session");
+        assert_eq!(path.as_ref(), "/v1/admin/auth/sessions/test-session");
+        assert_eq!(
+            String::from(super::read_data_table_route(&super::AdminDataTable::Roles)),
+            "/tables/roles"
+        );
+        assert_eq!(String::from(super::delete_role_route(&role_id)), "/roles/7");
+        assert_eq!(String::from(super::delete_user_route(&user_id)), "/users/8");
+        assert_eq!(
+            String::from(super::revoke_session_route(&session_id)),
+            "/auth/sessions/test-session"
+        );
+        assert_eq!(
+            String::from(super::set_role_permissions_route(&role_id)),
+            "/roles/7/permissions"
+        );
+        assert_eq!(
+            String::from(super::set_user_ban_route(&user_id)),
+            "/users/8/ban"
+        );
+        assert_eq!(
+            String::from(super::set_user_password_route(&user_id)),
+            "/users/8/password"
+        );
+        assert_eq!(
+            String::from(super::set_user_roles_route(&user_id)),
+            "/users/8/roles"
+        );
+        assert_eq!(String::from(super::update_role_route(&role_id)), "/roles/7");
+        assert_eq!(String::from(super::update_user_route(&user_id)), "/users/8");
     }
     #[test]
     fn html_action_inventory_has_unique_paths() {
@@ -3734,7 +3801,7 @@ mod tests {
     #[test]
     fn open_api_page_uses_the_typed_authenticated_api_route() {
         let route = super::AdminRoute::OpenApi;
-        assert_eq!(route.path().as_ref(), "/api/v1/admin/openapi.json");
+        assert_eq!(route.path().as_ref(), "/v1/admin/openapi.json");
         assert_eq!(
             route.contract().authentication(),
             frontend_contract::AuthenticationRequirement::Permission(

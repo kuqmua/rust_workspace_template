@@ -17,7 +17,7 @@ test("direct API access is denied and refresh restores an access session", async
   page,
   request
 }) => {
-  const forbidden = await request.get("/api/v1/admin/users");
+  const forbidden = await request.get("/v1/admin/users");
   expect(forbidden.status()).toBe(401);
 
   await signInAdministrator(page);
@@ -25,7 +25,7 @@ test("direct API access is denied and refresh restores an access session", async
   const csrf = cookieValue(cookies, "admin_csrf_token");
   expect(csrf).toBeTruthy();
   await context.clearCookies({ name: "admin_access_token" });
-  const refreshed = await page.request.post("/api/v1/admin/auth/refresh", {
+  const refreshed = await page.request.post("/v1/admin/auth/refresh", {
     data: {},
     headers: {
       Origin: adminOrigin,
@@ -40,7 +40,7 @@ test("direct API access is denied and refresh restores an access session", async
 test("read-only role rows and runtime branding persist", async ({ page }) => {
   await signInAdministrator(page);
   await page.goto("/admin/roles");
-  const created = await page.request.post("/api/v1/admin/roles", {
+  const created = await page.request.post("/v1/admin/roles", {
     data: { name: "browser_role" },
     headers: await adminHeaders(page.context())
   });
@@ -58,7 +58,7 @@ test("read-only role rows and runtime branding persist", async ({ page }) => {
   let mutation = page.waitForResponse(
     response =>
       response.request().method() === "PATCH" &&
-      response.url().endsWith("/api/v1/admin/system_settings") &&
+      response.url().endsWith("/v1/admin/system_settings") &&
       response.status() === 204
   );
   await page.getByRole("button", { name: "Save settings" }).click();
@@ -71,7 +71,7 @@ test("read-only role rows and runtime branding persist", async ({ page }) => {
   mutation = page.waitForResponse(
     response =>
       response.request().method() === "PATCH" &&
-      response.url().endsWith("/api/v1/admin/system_settings") &&
+      response.url().endsWith("/v1/admin/system_settings") &&
       response.status() === 204
   );
   await page
@@ -106,7 +106,7 @@ test("one-session and all-session revocation are enforced", async ({
   const oneRevoked = page.waitForResponse(
     response =>
       response.request().method() === "DELETE" &&
-      response.url().includes("/api/v1/admin/auth/sessions/") &&
+      response.url().includes("/v1/admin/auth/sessions/") &&
       response.status() === 204
   );
   await otherSession.getByRole("button", { name: "Revoke session" }).click();
@@ -116,7 +116,7 @@ test("one-session and all-session revocation are enforced", async ({
   ).toHaveCount(0);
   await otherContext.close();
 
-  const revoked = await page.request.delete("/api/v1/admin/auth/sessions", {
+  const revoked = await page.request.delete("/v1/admin/auth/sessions", {
     data: {},
     headers: await adminHeaders(context)
   });

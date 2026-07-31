@@ -615,24 +615,46 @@ mod tests {
             std::future::ready(Err(frontend_contract::TransportError::default()))
         }
     }
-    fn assert_client_route<Route>()
-    where
-        Route: frontend_contract::TypedRoute,
-    {
-        let client_method = frontend_contract::TypedClient::<ClientTransport>::send::<Route>;
-        assert_eq!(size_of_val(&client_method), 0usize);
-    }
     #[test]
-    fn every_common_route_is_typed_client_compatible() {
+    fn every_common_route_has_named_route_and_client_functions() {
         assert_eq!(
             <super::CommonRouteFamily as frontend_contract::RouteFamily>::ROUTE_COUNT,
             5usize
         );
-        assert_client_route::<super::GitInfoRoute>();
-        assert_client_route::<super::HealthRoute>();
-        assert_client_route::<super::HealthCheckRoute>();
-        assert_client_route::<super::HealthLiveRoute>();
-        assert_client_route::<super::HealthReadyRoute>();
+        assert_eq!(super::git_info_route(), super::CommonRoute::GitInfo.path());
+        assert_eq!(super::health_route(), super::CommonRoute::Health.path());
+        assert_eq!(
+            super::health_check_route(),
+            super::CommonRoute::HealthCheck.path()
+        );
+        assert_eq!(
+            super::health_live_route(),
+            super::CommonRoute::HealthLive.path()
+        );
+        assert_eq!(
+            super::health_ready_route(),
+            super::CommonRoute::HealthReady.path()
+        );
+        assert_eq!(
+            size_of_val(&super::git_info_client::<ClientTransport>),
+            0usize
+        );
+        assert_eq!(
+            size_of_val(&super::health_client::<ClientTransport>),
+            0usize
+        );
+        assert_eq!(
+            size_of_val(&super::health_check_client::<ClientTransport>),
+            0usize
+        );
+        assert_eq!(
+            size_of_val(&super::health_live_client::<ClientTransport>),
+            0usize
+        );
+        assert_eq!(
+            size_of_val(&super::health_ready_client::<ClientTransport>),
+            0usize
+        );
     }
     #[test]
     fn repository_owned_common_routes_use_snake_case_segments() {

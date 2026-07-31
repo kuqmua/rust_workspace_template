@@ -235,7 +235,7 @@ fn admin_frontend_api_urls_come_from_typed_routes() {
             })
             .map(|file| file.content().as_ref())
             .collect::<String>();
-        assert!(!source.contains("str_constants::API_V1"), "24e5ceeb");
+        assert!(!source.contains("str_constants::V1"), "24e5ceeb");
         assert!(!source.contains("ADMIN_API_"), "72b66898");
     });
 }

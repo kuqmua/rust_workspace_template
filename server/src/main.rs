@@ -163,7 +163,7 @@ fn mount_service_routes(
         axum::Router::new()
             .merge(axum::Router::from(operational_routes).reset_fallback())
             .nest(
-                str_constants::API_V1,
+                str_constants::V1,
                 api_routes
                     .0
                     .layer(axum::extract::DefaultBodyLimit::max(body_maximum_bytes.0)),
@@ -654,7 +654,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn operational_routes_are_root_mounted_and_api_routes_are_versioned() {
+    async fn operational_routes_are_root_mounted_and_api_routes_are_v1_mounted() {
         let operational_path = common_routes::CommonRoute::HealthLive.path();
         let router = axum::Router::from(super::mount_service_routes(
             server_runtime_http::AxumRouter::from(
@@ -688,14 +688,15 @@ mod tests {
             axum::http::StatusCode::NO_CONTENT
         );
         assert_eq!(
-            status("/api/v1/probe").await.expect("6bb8e3f5").status(),
+            status("/v1/probe").await.expect("6bb8e3f5").status(),
             axum::http::StatusCode::OK
         );
         assert_eq!(
-            status("/api/v1/health/live")
-                .await
-                .expect("6e17db87")
-                .status(),
+            status("/api/v1/probe").await.expect("11fd3e4a").status(),
+            axum::http::StatusCode::SEE_OTHER
+        );
+        assert_eq!(
+            status("/v1/health/live").await.expect("6e17db87").status(),
             axum::http::StatusCode::SEE_OTHER
         );
     }

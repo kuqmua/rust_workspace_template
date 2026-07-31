@@ -26,7 +26,7 @@ export async function changePassword(page, currentPassword, newPassword) {
   await page.getByLabel("New password").fill(newPassword);
   const passwordChanged = page.waitForResponse(
     response =>
-      response.url().endsWith("/api/v1/admin/auth/password") &&
+      response.url().endsWith("/v1/admin/auth/password") &&
       response.status() === 204
   );
   await page.getByRole("button", { name: "Change password" }).click();

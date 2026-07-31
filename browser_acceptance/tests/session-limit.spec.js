@@ -29,13 +29,13 @@ test("the third sign-in evicts only the oldest session when the limit is two", a
   await expect(thirdPage).toHaveURL(/\/admin\/users$/);
 
   expect(
-    (await firstPage.request.get("/api/v1/admin/auth/me")).status()
+    (await firstPage.request.get("/v1/admin/auth/me")).status()
   ).toBe(401);
   expect(
-    (await secondPage.request.get("/api/v1/admin/auth/me")).status()
+    (await secondPage.request.get("/v1/admin/auth/me")).status()
   ).toBe(200);
   expect(
-    (await thirdPage.request.get("/api/v1/admin/auth/me")).status()
+    (await thirdPage.request.get("/v1/admin/auth/me")).status()
   ).toBe(200);
 
   await firstContext.close();

@@ -340,7 +340,7 @@ mod tests {
         );
         assert_eq!(
             cache
-                .label(super::HttpMetricsPathTextRef::from(str_constants::API_V1))
+                .label(super::HttpMetricsPathTextRef::from(str_constants::V1))
                 .0
                 .as_ref(),
             str_constants::HTTP_METRICS_UNMATCHED_PATH

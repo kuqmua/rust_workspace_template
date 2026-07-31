@@ -95,8 +95,8 @@ mod tests {
     fn api_path_is_machine_readable_without_accept_header() {
         assert_eq!(
             super::fallback_response_mode(
-                super::HttpFallbackRequestPathRef::from(str_constants::TEST_API_USERS_PATH),
-                super::HttpFallbackApiPrefixRef::from(str_constants::TEST_API_PREFIX),
+                super::HttpFallbackRequestPathRef::from(str_constants::TEST_SERVICE_USERS_PATH),
+                super::HttpFallbackApiPrefixRef::from(str_constants::TEST_SERVICE_PREFIX),
                 super::HttpFallbackMetricsPathRef::from(str_constants::METRICS),
                 super::HttpOptionalAcceptHeaderRef::from(None),
                 super::HttpAcceptHeaderMaximumBytes::from(1024usize),
@@ -111,7 +111,7 @@ mod tests {
         assert_eq!(
             super::fallback_response_mode(
                 super::HttpFallbackRequestPathRef::from(str_constants::TEST_SIGNIN_PATH),
-                super::HttpFallbackApiPrefixRef::from(str_constants::TEST_API_PREFIX),
+                super::HttpFallbackApiPrefixRef::from(str_constants::TEST_SERVICE_PREFIX),
                 super::HttpFallbackMetricsPathRef::from(str_constants::METRICS),
                 super::HttpOptionalAcceptHeaderRef::from(Some(&accept)),
                 super::HttpAcceptHeaderMaximumBytes::from(1024usize),

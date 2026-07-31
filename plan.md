@@ -62,7 +62,7 @@
   "request_id": "019c89c2-4dd8-7dc1-9bb1-4381e67dd32e",
 
   "http_method": "POST",
-  "http_route": "/api/orders",
+  "http_route": "/orders",
   "http_status": 503,
 
   "customer_id": "81263",

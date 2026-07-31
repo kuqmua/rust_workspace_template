@@ -602,14 +602,17 @@ mod tests {
         let name = String::from("TableExample");
         let path = super::SwaggerUrlPathSelfQuotesStr::swagger_url_path_self_quotes_str(
             &name,
-            super::SwaggerUrlPathPrefix::from("api"),
+            super::SwaggerUrlPathPrefix::from("service"),
         );
-        assert_eq!(path.as_ref(), "\"/api/table_example\"");
+        assert_eq!(path.as_ref(), "\"/service/table_example\"");
         let tokens =
             super::SwaggerUrlPathSelfQuotesTokenStream::swagger_url_path_self_quotes_token_stream(
                 &name,
-                super::SwaggerUrlPathPrefix::from("api"),
+                super::SwaggerUrlPathPrefix::from("service"),
             );
-        assert_eq!(quote::quote!(#tokens).to_string(), "\"/api/table_example\"");
+        assert_eq!(
+            quote::quote!(#tokens).to_string(),
+            "\"/service/table_example\""
+        );
     }
 }

@@ -848,7 +848,7 @@ where
     >;
     type Response = axum::response::Response;
     fn call(&mut self, mut req: axum::extract::Request) -> Self::Future {
-        let is_api_path = req.uri().path().starts_with(str_constants::API);
+        let is_api_path = req.uri().path().starts_with(str_constants::V1_SLASH);
         let is_forwarded_https = matches!(self.forwarded_proto_trust, ForwardedProtoTrust::Trust)
             && req
                 .headers()
@@ -1751,7 +1751,7 @@ mod tests {
     async fn security_headers_only_trust_forwarded_proto_when_configured() {
         let make_request = || {
             axum::extract::Request::builder()
-                .uri(str_constants::API_V1_TEST)
+                .uri(str_constants::V1_TEST)
                 .header(str_constants::X_FORWARDED_PROTO, str_constants::HTTPS)
                 .body(axum::body::Body::empty())
                 .expect("94149bdd")
@@ -1765,7 +1765,7 @@ mod tests {
                 super::SecurityHeadersLayer::from(trust)
                     .with_content_security_policy(policy)
                     .apply(super::AxumRouter::from(axum::Router::new().route(
-                        str_constants::API_V1_TEST,
+                        str_constants::V1_TEST,
                         axum::routing::get(async || http::StatusCode::OK),
                     ))),
             )
@@ -1822,7 +1822,7 @@ mod tests {
         let router = axum::Router::from(
             super::SecurityHeadersLayer::from(super::ForwardedProtoTrust::Ignore).apply(
                 super::AxumRouter::from(axum::Router::new().route(
-                    str_constants::API_V1_TEST,
+                    str_constants::V1_TEST,
                     axum::routing::get(async |headers: http::HeaderMap| {
                         assert!(
                             headers
@@ -1843,7 +1843,7 @@ mod tests {
         let response = tower::ServiceExt::oneshot(
             router,
             axum::extract::Request::builder()
-                .uri(str_constants::API_V1_TEST)
+                .uri(str_constants::V1_TEST)
                 .header(
                     http::header::AUTHORIZATION,
                     str_constants::TEST_BEARER_AUTHORIZATION,

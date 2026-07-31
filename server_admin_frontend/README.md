@@ -2,7 +2,7 @@
 
 The native target renders the authenticated admin shell. The `wasm32` target renders the users,
 roles, permissions, sessions, profile, settings, and generated data-table pages in the browser.
-Those pages read and mutate data exclusively through the typed `/api/v1/admin` JSON API.
+Those pages read and mutate data exclusively through the typed `/v1/admin` JSON API.
 Sign-in and static operational pages remain server-rendered.
 
 Build browser assets before running the server locally:

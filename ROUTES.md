@@ -17,7 +17,7 @@ notification service.
 
 ### Admin authentication and session API
 
-All routes in this section use the `/api/v1/admin` prefix.
+All routes in this section use the `/v1/admin` prefix.
 
 | Method | Path |
 | --- | --- |
@@ -32,7 +32,7 @@ All routes in this section use the `/api/v1/admin` prefix.
 
 ### Admin user API
 
-All routes in this section use the `/api/v1/admin` prefix.
+All routes in this section use the `/v1/admin` prefix.
 
 | Method | Path |
 | --- | --- |
@@ -46,7 +46,7 @@ All routes in this section use the `/api/v1/admin` prefix.
 
 ### Admin role and permission API
 
-All routes in this section use the `/api/v1/admin` prefix.
+All routes in this section use the `/v1/admin` prefix.
 
 | Method | Path |
 | --- | --- |
@@ -59,7 +59,7 @@ All routes in this section use the `/api/v1/admin` prefix.
 
 ### Admin audit, settings, and table API
 
-All routes in this section use the `/api/v1/admin` prefix.
+All routes in this section use the `/v1/admin` prefix.
 
 | Method | Path | Condition |
 | --- | --- | --- |
@@ -82,18 +82,18 @@ The generated admin tables expose two operations:
 
 | Method | Path |
 | --- | --- |
-| `POST` | `/api/v1/admin/admin_users/rm` |
-| `POST` | `/api/v1/admin/admin_users/ro` |
-| `POST` | `/api/v1/admin/admin_user_roles/rm` |
-| `POST` | `/api/v1/admin/admin_user_roles/ro` |
-| `POST` | `/api/v1/admin/admin_role_permissions/rm` |
-| `POST` | `/api/v1/admin/admin_role_permissions/ro` |
-| `POST` | `/api/v1/admin/admin_roles/rm` |
-| `POST` | `/api/v1/admin/admin_roles/ro` |
-| `POST` | `/api/v1/admin/admin_permissions/rm` |
-| `POST` | `/api/v1/admin/admin_permissions/ro` |
-| `POST` | `/api/v1/admin/admin_system_settings/rm` |
-| `POST` | `/api/v1/admin/admin_system_settings/ro` |
+| `POST` | `/v1/admin/admin_users/rm` |
+| `POST` | `/v1/admin/admin_users/ro` |
+| `POST` | `/v1/admin/admin_user_roles/rm` |
+| `POST` | `/v1/admin/admin_user_roles/ro` |
+| `POST` | `/v1/admin/admin_role_permissions/rm` |
+| `POST` | `/v1/admin/admin_role_permissions/ro` |
+| `POST` | `/v1/admin/admin_roles/rm` |
+| `POST` | `/v1/admin/admin_roles/ro` |
+| `POST` | `/v1/admin/admin_permissions/rm` |
+| `POST` | `/v1/admin/admin_permissions/ro` |
+| `POST` | `/v1/admin/admin_system_settings/rm` |
+| `POST` | `/v1/admin/admin_system_settings/ro` |
 
 ## Admin HTML routes
 

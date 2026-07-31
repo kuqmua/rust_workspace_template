@@ -266,6 +266,11 @@ impl RouteLiteralVisitor {
         if !value.starts_with('/') || value.starts_with("//") {
             return;
         }
+        if value == "/api" || value.starts_with("/api/") {
+            self.violations.push(format!(
+                "route `{value}` must not use the removed `/api` prefix"
+            ));
+        }
         value
             .split('/')
             .filter(|segment| !segment.is_empty())
@@ -2455,4 +2460,20 @@ fn route_path_policy_rejects_kebab_case() {
         RouteLiteralVisitor::default(),
     );
     assert_eq!(visitor.violations.len(), 1usize, "d15287e9");
+}
+
+#[test]
+fn route_path_policy_rejects_api_prefix() {
+    let ast = syn::parse_file(
+        "#[typed_route(path = \"/projects\")]
+         struct Valid;
+         #[typed_route(path = \"/api/projects\")]
+         struct Invalid;",
+    )
+    .expect("3eaa623d");
+    let visitor = super::visit_syn_file(
+        super::types::SynFileRef::from(&ast),
+        RouteLiteralVisitor::default(),
+    );
+    assert_eq!(visitor.violations.len(), 1usize, "5caaea72");
 }

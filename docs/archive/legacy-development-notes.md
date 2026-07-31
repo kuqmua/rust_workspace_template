@@ -212,7 +212,7 @@ for historical reference only and do not describe supported behavior or planned 
 * Also there is a way to use html without html!{} Macro
 
 ## Frontend Integration
-* Use this inside /api/info
+* Use this inside /info
 * Maybe write proc macro?
 * OR MAYBE USE HTML FROM CARGO DOC?
 

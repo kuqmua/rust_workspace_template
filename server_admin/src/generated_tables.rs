@@ -502,6 +502,22 @@ pub fn generated_open_api() -> UtoipaAdminOpenApi {
 }
 #[cfg(test)]
 mod tests {
+    #[derive(Clone, Copy)]
+    struct ClientTransport;
+    impl frontend_contract::Transport for ClientTransport {
+        fn send(
+            &self,
+            _request: frontend_contract::TransportRequest,
+        ) -> impl Future<
+            Output = Result<
+                frontend_contract::TransportResponse,
+                frontend_contract::TransportError,
+            >,
+        > + '_ {
+            std::future::ready(Err(frontend_contract::TransportError::default()))
+        }
+    }
+
     fn typed_operation(
         document: &serde_json::Value,
         metadata: frontend_contract::RouteMetadata,
@@ -819,6 +835,108 @@ mod tests {
         assert!(paths.contains_key("/system_settings"));
         assert!(!paths.contains_key("/admin_system_settings/cm"));
         assert!(!paths.contains_key("/admin_system_settings/dm"));
+    }
+    #[test]
+    #[allow(clippy::needless_for_each)] // exhaustive generated-route assertions follow the workspace no-for-loop policy
+    fn generated_payload_example_routes_have_contracts_and_named_clients() {
+        [
+            (
+                super::AdminUsers::rm_route(),
+                super::AdminUsers::rm_payload_example_route(),
+            ),
+            (
+                super::AdminUsers::ro_route(),
+                super::AdminUsers::ro_payload_example_route(),
+            ),
+            (
+                super::AdminUserRoles::rm_route(),
+                super::AdminUserRoles::rm_payload_example_route(),
+            ),
+            (
+                super::AdminUserRoles::ro_route(),
+                super::AdminUserRoles::ro_payload_example_route(),
+            ),
+            (
+                super::AdminRolePermissions::rm_route(),
+                super::AdminRolePermissions::rm_payload_example_route(),
+            ),
+            (
+                super::AdminRolePermissions::ro_route(),
+                super::AdminRolePermissions::ro_payload_example_route(),
+            ),
+            (
+                super::AdminRoles::rm_route(),
+                super::AdminRoles::rm_payload_example_route(),
+            ),
+            (
+                super::AdminRoles::ro_route(),
+                super::AdminRoles::ro_payload_example_route(),
+            ),
+            (
+                super::AdminPermissions::rm_route(),
+                super::AdminPermissions::rm_payload_example_route(),
+            ),
+            (
+                super::AdminPermissions::ro_route(),
+                super::AdminPermissions::ro_payload_example_route(),
+            ),
+            (
+                super::AdminSystemSettings::rm_route(),
+                super::AdminSystemSettings::rm_payload_example_route(),
+            ),
+            (
+                super::AdminSystemSettings::ro_route(),
+                super::AdminSystemSettings::ro_payload_example_route(),
+            ),
+        ]
+        .into_iter()
+        .for_each(|(operation, example)| {
+            assert_eq!(
+                example.as_ref(),
+                format!("{}_payload_example", operation.as_ref())
+            );
+        });
+        let contract = super::AdminUsersRouteContract::for_path(
+            super::AdminUsers::rm_payload_example_route().as_ref(),
+        )
+        .expect("8fb87492");
+        assert_eq!(
+            contract.frontend_contract().method(),
+            frontend_contract::HttpMethod::Get
+        );
+        assert!(!contract.mutates());
+        [
+            size_of_val(&super::AdminUsersFrontendApiClient::<ClientTransport>::rm_payload_example),
+            size_of_val(&super::AdminUsersFrontendApiClient::<ClientTransport>::ro_payload_example),
+            size_of_val(
+                &super::AdminUserRolesFrontendApiClient::<ClientTransport>::rm_payload_example,
+            ),
+            size_of_val(
+                &super::AdminUserRolesFrontendApiClient::<ClientTransport>::ro_payload_example,
+            ),
+            size_of_val(
+                &super::AdminRolePermissionsFrontendApiClient::<ClientTransport>::rm_payload_example,
+            ),
+            size_of_val(
+                &super::AdminRolePermissionsFrontendApiClient::<ClientTransport>::ro_payload_example,
+            ),
+            size_of_val(&super::AdminRolesFrontendApiClient::<ClientTransport>::rm_payload_example),
+            size_of_val(&super::AdminRolesFrontendApiClient::<ClientTransport>::ro_payload_example),
+            size_of_val(
+                &super::AdminPermissionsFrontendApiClient::<ClientTransport>::rm_payload_example,
+            ),
+            size_of_val(
+                &super::AdminPermissionsFrontendApiClient::<ClientTransport>::ro_payload_example,
+            ),
+            size_of_val(
+                &super::AdminSystemSettingsFrontendApiClient::<ClientTransport>::rm_payload_example,
+            ),
+            size_of_val(
+                &super::AdminSystemSettingsFrontendApiClient::<ClientTransport>::ro_payload_example,
+            ),
+        ]
+        .into_iter()
+        .for_each(|size| assert_eq!(size, 0usize));
     }
     #[test]
     fn every_admin_open_api_operation_has_a_unique_identifier() {

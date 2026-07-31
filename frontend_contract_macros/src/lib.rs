@@ -1187,6 +1187,7 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
         Ok(value) => value,
         Err(error) => return error.to_compile_error().into(),
     };
+    let visibility = derive_input.vis;
     let identifier = derive_input.ident;
     let method = match args.method.0 {
         syn::Expr::Path(path_expression) => {
@@ -1289,9 +1290,58 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
         || quote::quote!(&[]),
         |value| quote::ToTokens::into_token_stream(&value.0),
     );
+    let literal_operation_name = match &args.openapi_operation_id.0 {
+        syn::Expr::Lit(expression) => match &expression.lit {
+            syn::Lit::Str(value) => Some(value.value()),
+            _ => None,
+        },
+        _ => None,
+    };
+    let operation_name = literal_operation_name.unwrap_or_else(|| {
+        let identifier_value = identifier.to_string();
+        identifier_value
+            .strip_suffix("Route")
+            .unwrap_or(identifier_value.as_str())
+            .chars()
+            .enumerate()
+            .fold(String::new(), |mut value, (index, character)| {
+                if character.is_ascii_uppercase() {
+                    if index != 0usize {
+                        value.push('_');
+                    }
+                    value.push(character.to_ascii_lowercase());
+                } else {
+                    value.push(character);
+                }
+                value
+            })
+    });
+    let route_function_identifier =
+        quote::format_ident!("{}_route", operation_name, span = identifier.span());
+    let client_function_identifier =
+        quote::format_ident!("{}_client", operation_name, span = identifier.span());
     let openapi_operation_id = args.openapi_operation_id.0;
     let mut openapi_path_parameter = quote::quote!(None);
-    let parameterized_route = match args.path_parameter {
+    let mut named_route_and_client = quote::quote! {
+        #[must_use]
+        #visibility fn #route_function_identifier() -> frontend_contract::ContractStr {
+            frontend_contract::typed_route_path::<#identifier>()
+        }
+        #[allow(clippy::future_not_send)] // Transport intentionally permits single-threaded WASM futures
+        #visibility async fn #client_function_identifier<Transport>(
+            client: &frontend_contract::TypedClient<Transport>,
+            request: <#identifier as frontend_contract::TypedRoute>::Request,
+        ) -> Result<
+            <#identifier as frontend_contract::TypedRoute>::Response,
+            frontend_contract::ClientError,
+        >
+        where
+            Transport: frontend_contract::Transport,
+        {
+            client.send::<#identifier>(request).await
+        }
+    };
+    let parameterized_route = match args.path_parameter.as_ref() {
         Some(parameter_type) => {
             let syn::Expr::Lit(path_expression) = &args.path.0 else {
                 return syn::Error::new_spanned(
@@ -1341,7 +1391,29 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
             let prefix = syn::LitStr::new(prefix_value, path_literal.span());
             let suffix = syn::LitStr::new(suffix_value, path_literal.span());
             let parameter_name = syn::LitStr::new(placeholder, path_literal.span());
-            let parameter_path = parameter_type.0;
+            let parameter_path = &parameter_type.0;
+            named_route_and_client = quote::quote! {
+                #[must_use]
+                #visibility fn #route_function_identifier(
+                    parameter: &#parameter_path,
+                ) -> frontend_contract::ParameterizedRoutePath {
+                    frontend_contract::typed_parameterized_route_path::<#identifier>(parameter)
+                }
+                #[allow(clippy::future_not_send)] // Transport intentionally permits single-threaded WASM futures
+                #visibility async fn #client_function_identifier<Transport>(
+                    client: &frontend_contract::TypedClient<Transport>,
+                    parameter: &#parameter_path,
+                    request: <#identifier as frontend_contract::TypedRoute>::Request,
+                ) -> Result<
+                    <#identifier as frontend_contract::TypedRoute>::Response,
+                    frontend_contract::ClientError,
+                >
+                where
+                    Transport: frontend_contract::Transport,
+                {
+                    client.send_parameterized::<#identifier>(parameter, request).await
+                }
+            };
             openapi_path_parameter = quote::quote! {
                 Some(frontend_contract::UtoipaOpenApiPathParameter::from(
                     utoipa::openapi::path::ParameterBuilder::new()
@@ -1461,6 +1533,7 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
             }
         }
         #parameterized_route
+        #named_route_and_client
     }
     .into()
 }
@@ -1821,6 +1894,7 @@ pub fn derive_route_catalog(input: proc_macro::TokenStream) -> proc_macro::Token
         Ok(value) => value,
         Err(error) => return error.to_compile_error().into(),
     };
+    let visibility = derive_input.vis.clone();
     let syn::Data::Enum(data_enum) = derive_input.data else {
         return syn::Error::new_spanned(
             derive_input.ident,
@@ -1832,6 +1906,24 @@ pub fn derive_route_catalog(input: proc_macro::TokenStream) -> proc_macro::Token
     let mut contract_arms = Vec::new();
     let mut family_routes = Vec::new();
     let mut path_arms = Vec::new();
+    let mut custom_route_functions = Vec::new();
+    let snake_case_identifier = |identifier: SynIdent| {
+        let value = identifier.0.to_string().chars().enumerate().fold(
+            String::new(),
+            |mut value, (index, character)| {
+                if character.is_ascii_uppercase() {
+                    if index != 0usize {
+                        value.push('_');
+                    }
+                    value.push(character.to_ascii_lowercase());
+                } else {
+                    value.push(character);
+                }
+                value
+            },
+        );
+        (identifier, value)
+    };
     let all_variant_identifiers = data_enum
         .variants
         .iter()
@@ -1911,17 +2003,42 @@ pub fn derive_route_catalog(input: proc_macro::TokenStream) -> proc_macro::Token
                 };
                 let contract_expression = contract.0;
                 let path_expression = path.0;
+                let (wrapped_identifier, variant_name) =
+                    snake_case_identifier(SynIdent::from(variant_identifier));
+                let custom_identifier = wrapped_identifier.0;
+                let route_function_identifier =
+                    quote::format_ident!("{}_route", variant_name, span = custom_identifier.span());
+                let client_function_identifier = quote::format_ident!(
+                    "{}_client",
+                    variant_name,
+                    span = custom_identifier.span()
+                );
+                custom_route_functions.push(quote::quote! {
+                    #[must_use]
+                    #visibility fn #route_function_identifier() -> frontend_contract::ContractStr {
+                        frontend_contract::ContractStr::from(#path_expression)
+                    }
+                    #[allow(clippy::future_not_send)] // Transport intentionally permits single-threaded WASM futures
+                    #visibility async fn #client_function_identifier<Transport>(
+                        client: &frontend_contract::TypedClient<Transport>,
+                    ) -> Result<frontend_contract::TransportBody, frontend_contract::ClientError>
+                    where
+                        Transport: frontend_contract::Transport,
+                    {
+                        client.send_contract(#contract_expression, #route_function_identifier()).await
+                    }
+                });
                 contract_arms.push(quote::quote! {
-                    Self::#variant_identifier => #contract_expression
+                    Self::#custom_identifier => #contract_expression
                 });
                 path_arms.push(quote::quote! {
-                    Self::#variant_identifier => frontend_contract::ParameterizedRoutePath::try_from(
+                    Self::#custom_identifier => frontend_contract::ParameterizedRoutePath::try_from(
                         String::from(#path_expression)
                     ).unwrap_or_default()
                 });
                 if !route_args.exclude_from_family.0 {
                     return syn::Error::new_spanned(
-                        variant_identifier,
+                        custom_identifier,
                         str_constants::ROUTE_CATALOG_ROUTE_REQUIRES_TYPE_OR_CUSTOM_VALUES,
                     )
                     .to_compile_error()
@@ -1953,6 +2070,7 @@ pub fn derive_route_catalog(input: proc_macro::TokenStream) -> proc_macro::Token
         quote::quote! {}
     };
     quote::quote! {
+        #(#custom_route_functions)*
         impl #identifier {
             #all
 

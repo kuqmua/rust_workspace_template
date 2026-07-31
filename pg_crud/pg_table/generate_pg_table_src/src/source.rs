@@ -4933,6 +4933,8 @@ pub fn emit_generate_pg_table(
                 }
             });
             let operation_identifier = quote::format_ident!("{}", operation.to_string());
+            let operation_payload_example_client_method =
+                operation.operation_payload_example_snake_case();
             frontend_api_client_methods_token_stream.push(quote::quote! {
                 pub async fn #operation_client_method_snake_case_token_stream(
                     &self,
@@ -4969,6 +4971,35 @@ pub fn emit_generate_pg_table(
                         #open_api_response_type_token_stream::#DesirableUpperCamelCase(value) => Ok(value),
                         _ => Err(frontend_contract::ClientError::UnexpectedResponse),
                     }
+                }
+                pub async fn #operation_payload_example_client_method(
+                    &self,
+                ) -> Result<#open_api_payload_type_token_stream, frontend_contract::ClientError> {
+                    let route = #identifier_route_contract_upper_camel_case::ALL
+                        .into_iter()
+                        .find(|route| route.operation() == #identifier_operation_upper_camel_case::#operation_identifier)
+                        .map(#identifier_route_contract_upper_camel_case::payload_example)
+                        .ok_or(frontend_contract::ClientError::UnexpectedResponse)?;
+                    let body = frontend_contract::TransportBody::try_from(Vec::new())
+                        .map_err(|error| frontend_contract::ClientError::Encode(frontend_contract::FormValueError::try_from(error.to_string()).unwrap_or_default()))?;
+                    let request = frontend_contract::TransportRequest::new(
+                        body,
+                        frontend_contract::TransportPath::try_from(route.path().to_owned())
+                            .map_err(|error| frontend_contract::ClientError::Encode(frontend_contract::FormValueError::try_from(error.to_string()).unwrap_or_default()))?,
+                        route.frontend_contract(),
+                    );
+                    let response = self
+                        .transport
+                        .send(request)
+                        .await
+                        .map_err(frontend_contract::ClientError::Transport)?;
+                    let response_body = response.success_body(
+                        route.frontend_contract().success_status().transport_status(),
+                    )?;
+                    serde_json::from_slice::<#open_api_payload_type_token_stream>(
+                        response_body.as_ref(),
+                    )
+                    .map_err(|error| frontend_contract::ClientError::Decode(frontend_contract::FormValueError::try_from(error.to_string()).unwrap_or_default()))
                 }
             });
             open_api_path_fn_identifiers.push(open_api_path_fn_identifier);
@@ -6377,7 +6408,18 @@ pub fn emit_generate_pg_table(
                 }
             };
             let operation_token_stream = {
+                let operation_route_snake_case_token_stream =
+                    quote::format_ident!("{}_route", operation.self_snake_case_str());
+                let operation_route_path = format!(
+                    "/{}/{}",
+                    identifier_snake_case_string,
+                    operation.self_snake_case_str()
+                );
                 quote::quote! {
+                    #MustUse
+                    pub fn #operation_route_snake_case_token_stream() -> frontend_contract::ContractStr {
+                        frontend_contract::ContractStr::from(#operation_route_path)
+                    }
                     pub async fn #operation_snake_case_token_stream(
                         #AppStateSnakeCase: axum::extract::State<#std_sync_arc_combination_of_app_state_logic_traits_token_stream>,
                         #ReqSnakeCase: axum::extract::Request,
@@ -6388,6 +6430,13 @@ pub fn emit_generate_pg_table(
             };
             let operation_payload_example_token_stream = {
                 let operation_payload_example_snake_case = operation.operation_payload_example_snake_case();
+                let operation_payload_example_route_snake_case = quote::format_ident!(
+                    "{}_payload_example_route",
+                    operation.self_snake_case_str()
+                );
+                let operation_payload_example_route_path = format!(
+                    "/{identifier_snake_case_string}/{operation_payload_example_snake_case}"
+                );
                 let ts = wrap_into_axum_res_token_stream(
                     &{
                         let identifier_operation_payload_upper_camel_case = generate_identifier_operation_payload_upper_camel_case(operation);
@@ -6397,6 +6446,10 @@ pub fn emit_generate_pg_table(
                     &AddReturn::False,
                 );
                 quote::quote! {
+                    #MustUse
+                    pub fn #operation_payload_example_route_snake_case() -> frontend_contract::ContractStr {
+                        frontend_contract::ContractStr::from(#operation_payload_example_route_path)
+                    }
                     #MustUse
                     pub fn #operation_payload_example_snake_case() -> axum::response::Response {
                         #ts
@@ -6988,6 +7041,18 @@ pub fn emit_generate_pg_table(
             );
             quote::quote! {#identifier_operation_upper_camel_case::#operation => #path}
         });
+    let route_contract_payload_example_path_arms_token_stream =
+        crate::model::OperationDsc::ALL.iter().map(|operation_dsc| {
+            let operation = quote::format_ident!("{}", operation_dsc.operation.to_string());
+            let path = format!(
+                "/{}/{}",
+                identifier_snake_case_string,
+                operation_dsc
+                    .operation
+                    .operation_payload_example_snake_case()
+            );
+            quote::quote! {#identifier_operation_upper_camel_case::#operation => #path}
+        });
     let route_contract_operation_kind_arms_token_stream = crate::model::OperationDsc::ALL.iter().map(|operation_dsc| {
         let operation = quote::format_ident!("{}", operation_dsc.operation.to_string());
         let operation_kind = match crate::frontend::operation_kind(operation_dsc) {
@@ -7011,6 +7076,7 @@ pub fn emit_generate_pg_table(
         #[derive(Clone, Copy, Debug, Eq, PartialEq)]
         pub enum #identifier_http_method_upper_camel_case {
             Delete,
+            Get,
             Patch,
             Post,
         }
@@ -7038,6 +7104,7 @@ pub fn emit_generate_pg_table(
             operation: #identifier_operation_upper_camel_case,
             optimistic_revision_required: bool,
             success_status: #identifier_success_status_upper_camel_case,
+            payload_example: bool,
         }
         impl #identifier_route_contract_upper_camel_case {
             pub const ALL: [Self; #enabled_operation_count] = [#(#route_contract_items_token_stream),*];
@@ -7051,10 +7118,22 @@ pub fn emit_generate_pg_table(
             }
             #[must_use]
             pub const fn new(authentication: #identifier_auth_requirement_upper_camel_case, http_method: #identifier_http_method_upper_camel_case, operation: #identifier_operation_upper_camel_case, success_status: #identifier_success_status_upper_camel_case) -> Self {
-                Self { authentication, http_method, idempotency_required: false, operation, optimistic_revision_required: false, success_status }
+                Self { authentication, http_method, idempotency_required: false, operation, optimistic_revision_required: false, success_status, payload_example: false }
             }
             const fn new_with_capabilities(authentication: #identifier_auth_requirement_upper_camel_case, http_method: #identifier_http_method_upper_camel_case, idempotency_required: bool, operation: #identifier_operation_upper_camel_case, optimistic_revision_required: bool, success_status: #identifier_success_status_upper_camel_case) -> Self {
-                Self { authentication, http_method, idempotency_required, operation, optimistic_revision_required, success_status }
+                Self { authentication, http_method, idempotency_required, operation, optimistic_revision_required, success_status, payload_example: false }
+            }
+            #[must_use]
+            pub const fn payload_example(self) -> Self {
+                Self {
+                    authentication: self.authentication,
+                    http_method: #identifier_http_method_upper_camel_case::Get,
+                    idempotency_required: false,
+                    operation: self.operation,
+                    optimistic_revision_required: false,
+                    success_status: #identifier_success_status_upper_camel_case::Code200,
+                    payload_example: true,
+                }
             }
             #[must_use]
             pub const fn idempotency_required(self) -> bool {
@@ -7070,7 +7149,15 @@ pub fn emit_generate_pg_table(
             }
             #[must_use]
             pub fn for_path(path: &str) -> Option<Self> {
-                Self::ALL.into_iter().find(|contract| path.ends_with(contract.path()))
+                Self::ALL
+                    .into_iter()
+                    .find(|contract| path.ends_with(contract.path()))
+                    .or_else(|| {
+                        Self::ALL
+                            .into_iter()
+                            .map(Self::payload_example)
+                            .find(|contract| path.ends_with(contract.path()))
+                    })
             }
             #[must_use]
             pub fn frontend_contract(self) -> frontend_contract::RouteContract {
@@ -7080,6 +7167,7 @@ pub fn emit_generate_pg_table(
                 };
                 let method = match self.http_method {
                     #identifier_http_method_upper_camel_case::Delete => frontend_contract::HttpMethod::Delete,
+                    #identifier_http_method_upper_camel_case::Get => frontend_contract::HttpMethod::Get,
                     #identifier_http_method_upper_camel_case::Patch => frontend_contract::HttpMethod::Patch,
                     #identifier_http_method_upper_camel_case::Post => frontend_contract::HttpMethod::Post,
                 };
@@ -7116,12 +7204,18 @@ pub fn emit_generate_pg_table(
             }
             #[must_use]
             pub const fn mutates(self) -> bool {
-                matches!(self.operation, #identifier_operation_upper_camel_case::Cm | #identifier_operation_upper_camel_case::Co | #identifier_operation_upper_camel_case::Um | #identifier_operation_upper_camel_case::Uo | #identifier_operation_upper_camel_case::Dm | #identifier_operation_upper_camel_case::Dlo)
+                !self.payload_example && matches!(self.operation, #identifier_operation_upper_camel_case::Cm | #identifier_operation_upper_camel_case::Co | #identifier_operation_upper_camel_case::Um | #identifier_operation_upper_camel_case::Uo | #identifier_operation_upper_camel_case::Dm | #identifier_operation_upper_camel_case::Dlo)
             }
             #[must_use]
             pub const fn path(self) -> &'static str {
-                match self.operation {
-                    #(#route_contract_path_arms_token_stream),*
+                if self.payload_example {
+                    match self.operation {
+                        #(#route_contract_payload_example_path_arms_token_stream),*
+                    }
+                } else {
+                    match self.operation {
+                        #(#route_contract_path_arms_token_stream),*
+                    }
                 }
             }
             #[must_use]

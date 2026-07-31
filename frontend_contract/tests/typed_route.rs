@@ -8,6 +8,21 @@ mod tests {
     struct TestResponse;
     #[derive(Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema)]
     struct TestErrorResponse;
+    #[derive(Clone, Copy)]
+    struct TestTransport;
+    impl frontend_contract::Transport for TestTransport {
+        fn send(
+            &self,
+            _request: frontend_contract::TransportRequest,
+        ) -> impl Future<
+            Output = Result<
+                frontend_contract::TransportResponse,
+                frontend_contract::TransportError,
+            >,
+        > + '_ {
+            std::future::ready(Err(frontend_contract::TransportError::default()))
+        }
+    }
 
     #[derive(frontend_contract::TypedRoute)]
     #[typed_route(
@@ -65,6 +80,11 @@ mod tests {
         );
         let _request = frontend_contract::client_request::<TestRoute>(TestRequest);
         let _response = frontend_contract::server_response::<TestRoute>(TestResponse);
+        assert_eq!(
+            test_route(),
+            frontend_contract::ContractStr::from(str_constants::ROUTE)
+        );
+        assert_eq!(size_of_val(&test_client::<TestTransport>), 0usize);
     }
 
     #[test]
@@ -136,6 +156,11 @@ mod tests {
     #[test]
     fn route_catalog_generates_contract_paths_and_family() {
         assert_eq!(TestCatalog::ALL, [TestCatalog::Custom, TestCatalog::Read]);
+        assert_eq!(
+            custom_route(),
+            frontend_contract::ContractStr::from(str_constants::ROUTE)
+        );
+        assert_eq!(size_of_val(&custom_client::<TestTransport>), 0usize);
         assert_eq!(
             TestCatalog::Read.contract(),
             frontend_contract::client_route_metadata::<TestRoute>().contract()

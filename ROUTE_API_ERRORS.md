@@ -32,7 +32,7 @@ above.
 
 ## Admin authentication and session API
 
-All paths in this section use the `/api/v1/admin` prefix.
+All paths in this section use the `/v1/admin` prefix.
 
 | Method | Path | Error type |
 | --- | --- | --- |
@@ -47,7 +47,7 @@ All paths in this section use the `/api/v1/admin` prefix.
 
 ## Admin user API
 
-All paths in this section use the `/api/v1/admin` prefix.
+All paths in this section use the `/v1/admin` prefix.
 
 | Method | Path | Error type |
 | --- | --- | --- |
@@ -61,7 +61,7 @@ All paths in this section use the `/api/v1/admin` prefix.
 
 ## Admin role and permission API
 
-All paths in this section use the `/api/v1/admin` prefix.
+All paths in this section use the `/v1/admin` prefix.
 
 | Method | Path | Error type |
 | --- | --- | --- |
@@ -74,7 +74,7 @@ All paths in this section use the `/api/v1/admin` prefix.
 
 ## Admin audit, settings, and table API
 
-All paths in this section use the `/api/v1/admin` prefix.
+All paths in this section use the `/v1/admin` prefix.
 
 | Method | Path | Error type |
 | --- | --- | --- |
@@ -92,7 +92,7 @@ The OpenAPI route is present only when admin Swagger is enabled.
 
 ## Generated read-only admin API
 
-Every generated path includes the `/api/v1/admin` prefix. The `rm` operation
+Every generated path includes the `/v1/admin` prefix. The `rm` operation
 reads many records, while `ro` reads one record.
 
 | Method | Path | Error type |
