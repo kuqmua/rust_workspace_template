@@ -200,8 +200,8 @@ async fn page_context(
     ),
     super::AdminError,
 > {
-    let (admin, password_change_required) = super::handlers::me_context_view(auth.clone()).await?;
-    let branding = super::handlers::branding_view(auth.clone()).await?;
+    let (admin, password_change_required) = super::account::me_context_view(auth.clone()).await?;
+    let branding = super::settings::branding_view(auth.clone()).await?;
     Ok((admin, branding, password_change_required))
 }
 
@@ -318,7 +318,7 @@ fn permission_ids(
 
 #[frontend_contract::route_error(AdminSignInPageError)]
 async fn sign_in_page(auth: super::AdminAuthReq) -> axum::response::Response {
-    match super::handlers::branding_view(auth).await {
+    match super::settings::branding_view(auth).await {
         Ok(branding) => html_response(server_admin_frontend::ssr::render_sign_in(
             None,
             Some(&branding),
@@ -445,7 +445,7 @@ async fn version(auth: super::AdminAuthReq) -> axum::response::Response {
 
 #[frontend_contract::route_error(AdminOpenApiPageError)]
 async fn open_api(auth: super::AdminAuthReq) -> axum::response::Response {
-    let branding_result = super::handlers::branding_view(auth.clone()).await;
+    let branding_result = super::settings::branding_view(auth.clone()).await;
     let authorized = super::authorize_generated_request(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
@@ -504,7 +504,7 @@ async fn root() -> axum::response::Response {
 #[frontend_contract::route_error(AdminHtmlSignOutError)]
 async fn sign_out(auth: super::AdminAuthReq) -> axum::response::Response {
     match form_auth(auth) {
-        Ok(auth) => match super::handlers::sign_out(auth).await {
+        Ok(auth) => match super::authn::sign_out(auth).await {
             Ok(response) => {
                 redirect_with_headers(server_admin_contract::AdminFrontendPath::SignIn, &response)
             }
@@ -525,7 +525,7 @@ async fn change_password(
                 form.current_password,
                 form.new_password,
             );
-            match super::handlers::change_own_password(auth, super::AxumAdminJson(request)).await {
+            match super::account::change_own_password(auth, super::AxumAdminJson(request)).await {
                 Ok(_response) => {
                     success_redirect(server_admin_contract::AdminFrontendPath::Profile)
                 }
@@ -555,7 +555,7 @@ async fn revoke_session(
     };
     match form_auth(auth) {
         Ok(auth) => {
-            match super::handlers::revoke_session(auth, super::AdminSessionPath(session_id)).await {
+            match super::sessions::revoke_session(auth, super::AdminSessionPath(session_id)).await {
                 Ok(_response) => {
                     success_redirect(server_admin_contract::AdminFrontendPath::Sessions)
                 }
@@ -580,7 +580,7 @@ async fn create_user(
         form.password,
     );
     action_result(
-        super::handlers::create_user(auth, super::AxumAdminJson(request)).await,
+        super::users::create(auth, super::AxumAdminJson(request)).await,
         server_admin_contract::AdminFrontendPath::Users,
     )
 }
@@ -596,7 +596,7 @@ async fn update_user(
     let request =
         server_admin_contract::AdminUpdateUserReq::new(Some(form.display_name), Some(form.login));
     action_result(
-        super::handlers::update_user(
+        super::users::update(
             auth,
             super::AxumAdminPath(user_path(form.user_id)),
             super::AxumAdminJson(request),
@@ -615,7 +615,7 @@ async fn user_password(
         return axum::response::IntoResponse::into_response(super::AdminError::Csrf);
     };
     action_result(
-        super::handlers::set_user_password(
+        super::users::set_password(
             auth,
             super::AxumAdminPath(user_path(form.user_id)),
             super::AxumAdminJson(server_admin_contract::AdminSetUserPasswordReq::new(
@@ -636,7 +636,7 @@ async fn user_ban(
         return axum::response::IntoResponse::into_response(super::AdminError::Csrf);
     };
     action_result(
-        super::handlers::set_user_ban(
+        super::users::set_ban(
             auth,
             super::AxumAdminPath(user_path(form.user_id)),
             super::AxumAdminJson(server_admin_contract::AdminSetUserBanReq::new(
@@ -660,7 +660,7 @@ async fn delete_user(
         return axum::response::IntoResponse::into_response(super::AdminError::Csrf);
     };
     action_result(
-        super::handlers::delete_user(auth, super::AxumAdminPath(user_path(form.user_id))).await,
+        super::users::delete(auth, super::AxumAdminPath(user_path(form.user_id))).await,
         server_admin_contract::AdminFrontendPath::Users,
     )
 }
@@ -690,7 +690,7 @@ async fn user_roles(
     };
     let request = server_admin_contract::AdminSetUserRolesReq::new(expected, selected);
     action_result(
-        super::handlers::set_user_roles(
+        super::users::set_roles(
             auth,
             super::AxumAdminPath(user_path(form.user_id)),
             super::AxumAdminJson(request),
@@ -709,7 +709,7 @@ async fn create_role(
         return axum::response::IntoResponse::into_response(super::AdminError::Csrf);
     };
     action_result(
-        super::handlers::create_role(
+        super::roles::create(
             auth,
             super::AxumAdminJson(server_admin_contract::AdminCreateRoleReq::new(form.name)),
         )
@@ -727,7 +727,7 @@ async fn update_role(
         return axum::response::IntoResponse::into_response(super::AdminError::Csrf);
     };
     action_result(
-        super::handlers::update_role(
+        super::roles::update(
             auth,
             super::AxumAdminPath(role_path(form.role_id)),
             super::AxumAdminJson(server_admin_contract::AdminUpdateRoleReq::new(form.name)),
@@ -749,7 +749,7 @@ async fn delete_role(
         return axum::response::IntoResponse::into_response(super::AdminError::Csrf);
     };
     action_result(
-        super::handlers::delete_role(auth, super::AxumAdminPath(role_path(form.role_id))).await,
+        super::roles::delete(auth, super::AxumAdminPath(role_path(form.role_id))).await,
         server_admin_contract::AdminFrontendPath::Roles,
     )
 }
@@ -779,7 +779,7 @@ async fn role_permissions(
     };
     let request = server_admin_contract::AdminSetRolePermissionsReq::new(expected, selected);
     action_result(
-        super::handlers::set_role_permissions(
+        super::roles::set_permissions(
             auth,
             super::AxumAdminPath(role_path(form.role_id)),
             super::AxumAdminJson(request),
@@ -863,7 +863,7 @@ async fn update_settings(
         clear,
     );
     action_result(
-        super::handlers::update_settings(auth, super::AxumAdminJson(request)).await,
+        super::settings::update(auth, super::AxumAdminJson(request)).await,
         server_admin_contract::AdminFrontendPath::Settings,
     )
 }
@@ -873,8 +873,8 @@ async fn finish_sign_in(
     peer: super::AdminPeerAddr,
     request: server_admin_contract::AdminSignInReq,
 ) -> axum::response::Response {
-    let branding = super::handlers::branding_view(auth.clone()).await.ok();
-    match super::handlers::sign_in(auth, peer, super::AdminSignInJson(request)).await {
+    let branding = super::settings::branding_view(auth.clone()).await.ok();
+    match super::authn::sign_in(auth, peer, super::AdminSignInJson(request)).await {
         Ok(response) => {
             let source = response.0;
             let mut target = axum::response::IntoResponse::into_response(

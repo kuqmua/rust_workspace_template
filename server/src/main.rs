@@ -1,3 +1,6 @@
+mod bootstrap;
+mod routing;
+
 const ADMIN_CLEANUP_INTERVAL_SECONDS: u64 = 300u64;
 #[derive(Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
@@ -147,172 +150,9 @@ fn mk_admin_cleanup_cfg() -> Result<server_admin::AdminCleanupCfg, RunServerErro
         retention(3_600i64)?,
     ))
 }
-#[allow(clippy::single_call_fn)] // isolates the fallback router for an end-to-end routing test
-fn frontend_fallback_routes() -> server_runtime_http::AxumRouter {
-    server_runtime_http::AxumRouter::from(axum::Router::new().fallback(async || {
-        axum::response::Redirect::to(server_admin_contract::AdminFrontendPath::SignIn.get())
-    }))
-}
-#[allow(clippy::single_call_fn)] // startup and tests share the service route mounting invariant
-fn mount_service_routes(
-    operational_routes: server_runtime_http::AxumRouter,
-    api_routes: AxumApiRoutes,
-    body_maximum_bytes: HttpBodyMaximumBytes,
-) -> server_runtime_http::AxumRouter {
-    server_runtime_http::AxumRouter::from(
-        axum::Router::new()
-            .merge(axum::Router::from(operational_routes).reset_fallback())
-            .nest(
-                str_constants::V1,
-                api_routes
-                    .0
-                    .layer(axum::extract::DefaultBodyLimit::max(body_maximum_bytes.0)),
-            ),
-    )
-}
-#[allow(clippy::single_call_fn)] // route wiring is reused by startup flow and isolated from layer setup
-fn mk_api_routes(
-    app_state: &StdSharedServerAppState,
-    admin_auth_state: server_admin::auth::StdSharedAdminAuthSvcState,
-    metrics_handle: MetricsExporterPrometheusHandle,
-) -> AxumApiRoutes {
-    let generated_admin_auth_state = admin_auth_state.clone();
-    let generated_table_logic_state: std::sync::Arc<
-        dyn server_admin::CombinationOfAppStateLogicTraits,
-    > = std::sync::Arc::<server_app_state::ServerAppState<'static>>::clone(app_state.get());
-    let generated_table_state =
-        server_admin::generated_tables::StdSharedAdminGeneratedTableState::from(
-            generated_table_logic_state,
-        );
-    let generated_table_routes = axum::Router::from(
-        server_admin::generated_tables::generated_routes(&generated_table_state),
-    );
-    let open_api_contract = server_admin_contract::AdminRoute::OpenApi.contract();
-    let documented_admin_routes = if *app_state.config.admin_swagger_enabled {
-        generated_table_routes.route(
-            open_api_contract.path().as_ref(),
-            axum::routing::on(
-                axum::routing::MethodFilter::from(frontend_contract::axum_method_filter(
-                    open_api_contract.method(),
-                )),
-                async || {
-                    axum::Json(utoipa::openapi::OpenApi::from(
-                        server_admin::generated_tables::generated_open_api(),
-                    ))
-                },
-            ),
-        )
-    } else {
-        generated_table_routes
-    }
-    .method_not_allowed_fallback(async || frontend_contract::ApiProblemError::MethodNotAllowed);
-    let metrics_contract = server_admin_contract::AdminRoute::Metrics.contract();
-    let secured_admin_routes = documented_admin_routes
-        .route(
-            metrics_contract.path().as_ref(),
-            axum::routing::on(
-                axum::routing::MethodFilter::from(frontend_contract::axum_method_filter(
-                    metrics_contract.method(),
-                )),
-                async move || {
-                    server_runtime_http::MetricsResponseBody::try_from(metrics_handle.0.render())
-                        .map(|body| {
-                            axum::response::IntoResponse::into_response((
-                                axum::http::StatusCode::OK,
-                                body.into_inner(),
-                            ))
-                        })
-                        .map_err(AdminMetricsError::Render)
-                },
-            ),
-        )
-        .route_layer(server_admin::AdminGeneratedAuthLayer::from(
-            generated_admin_auth_state,
-        ));
-    AxumApiRoutes::from(
-        axum::Router::new()
-            .nest(
-                server_admin_contract::AdminFrontendPath::Root.get(),
-                axum::Router::from(server_admin::auth::routes(admin_auth_state)),
-            )
-            .nest(
-                server_admin_contract::AdminFrontendPath::Root.get(),
-                secured_admin_routes,
-            ),
-    )
-}
-#[allow(clippy::single_call_fn)] // keeps state creation shape reusable and type-stable in one place
-fn mk_app_state(
-    config: server_config::Config,
-    pg_pool: app_state::SqlxPgPool,
-) -> StdSharedServerAppState {
-    StdSharedServerAppState::from(std::sync::Arc::new(server_app_state::ServerAppState {
-        bulk_item_budget: server_runtime_http::ResourceBudget::new(
-            server_runtime_http::ResourceBudgetMaximum::from(
-                std::num::NonZeroUsize::new(4_096usize).unwrap_or(std::num::NonZeroUsize::MIN),
-            ),
-        ),
-        config,
-        idempotency_response_budget: server_runtime_http::ResourceBudget::new(
-            server_runtime_http::ResourceBudgetMaximum::from(
-                std::num::NonZeroUsize::new(64usize.saturating_mul(1_048_576usize))
-                    .unwrap_or(std::num::NonZeroUsize::MIN),
-            ),
-        ),
-        pg_pool,
-        project_git_info: git_info::project_git_info(),
-    }))
-}
-#[allow(clippy::single_call_fn)] // runtime builder is shared by main and can be reused by startup tests
-fn mk_runtime() -> Result<TokioServerRuntime, RunServerError> {
-    tokio::runtime::Builder::new_multi_thread()
-        .worker_threads(num_cpus::get())
-        .enable_all()
-        .build()
-        .map(TokioServerRuntime)
-        .map_err(|error| RunServerError::BuildRuntime(StdServerIoError::from(error)))
-}
-#[allow(clippy::single_call_fn)] // isolated pool builder keeps startup flow linear and reuses config getters in one place
-async fn mk_pg_pool(
-    config: &server_config::Config,
-) -> Result<app_state::SqlxPgPool, RunServerError> {
-    if *config.pg_pool_min_connections
-        > *config_lib::GetPgPoolMaxConnections::get_pg_pool_max_connections(config)
-    {
-        return Err(RunServerError::PgPoolConfiguration);
-    }
-    sqlx::postgres::PgPoolOptions::new()
-        .max_connections(*config_lib::GetPgPoolMaxConnections::get_pg_pool_max_connections(config))
-        .min_connections(*config.pg_pool_min_connections)
-        .acquire_timeout(std::time::Duration::from_secs(
-            config.pg_pool_acquire_timeout_seconds.get(),
-        ))
-        .idle_timeout(std::time::Duration::from_secs(
-            config.pg_pool_idle_timeout_seconds.get(),
-        ))
-        .max_lifetime(std::time::Duration::from_secs(
-            config.pg_pool_max_lifetime_seconds.get(),
-        ))
-        .after_connect(|connection, _metadata| {
-            Box::pin(async move {
-                sqlx::Executor::execute(
-                    &mut *connection,
-                    str_constants::POSTGRES_STATEMENT_TIMEOUT_SQL,
-                )
-                .await
-                .map(drop)
-            })
-        })
-        .connect(secrecy::ExposeSecret::expose_secret(
-            config_lib::GetDatabaseUrl::get_database_url(config),
-        ))
-        .await
-        .map(app_state::SqlxPgPool::from)
-        .map_err(|error| RunServerError::PgConnect(SqlxServerPgConnectError::from(error)))
-}
 #[allow(clippy::single_call_fn)] // startup flow is grouped for separation from process/bootstrap concerns
 async fn run_server(config: server_config::Config) -> Result<(), RunServerError> {
-    let pg_pool = mk_pg_pool(&config).await?;
+    let pg_pool = bootstrap::mk_pg_pool(&config).await?;
     server_admin::prep_pg(app_state::SqlxPgPoolRef::from(pg_pool.as_ref()))
         .await
         .map_err(|error| RunServerError::PrepAdminPg(ServerAdminMigrateError::from(error)))?;
@@ -408,7 +248,7 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
         );
     let http_gzip_enabled = *config.http_gzip_enabled;
     let request_timeout_seconds = config.request_timeout_seconds.get();
-    let app_state = mk_app_state(config, pg_pool);
+    let app_state = bootstrap::mk_app_state(config, pg_pool);
     let metrics_handle = metrics_exporter_prometheus::PrometheusBuilder::new()
         .install_recorder()
         .map(MetricsExporterPrometheusHandle)
@@ -463,7 +303,7 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
         .route_layer(server_admin::AdminGeneratedAuthLayer::from(
             admin_auth_state.clone(),
         ));
-    let api_routes = mk_api_routes(&app_state, admin_auth_state, metrics_handle);
+    let api_routes = routing::mk_api_routes(&app_state, admin_auth_state, metrics_handle);
     let operational_routes = axum::Router::from(common_routes::common_routes(
         common_routes::StdArcCommonRoutesAppState::from(std::sync::Arc::<
             server_app_state::ServerAppState<'static>,
@@ -491,7 +331,7 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
             .apply(
                 server_runtime_http::RequestTimeoutLayer::from(request_timeout).apply(
                     server_runtime_http::AxumRouter::from(
-                        axum::Router::from(mount_service_routes(
+                        axum::Router::from(routing::mount_service_routes(
                             server_runtime_http::AxumRouter::from(operational_routes),
                             api_routes,
                             HttpBodyMaximumBytes::from(maximum_http_body_bytes),
@@ -499,7 +339,7 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
                         .merge(axum::Router::from(server_admin_frontend::routes()))
                         .merge(axum::Router::from(admin_html_routes))
                         .merge(admin_metrics_routes)
-                        .merge(axum::Router::from(frontend_fallback_routes()))
+                        .merge(axum::Router::from(routing::frontend_fallback_routes()))
                         .layer(
                             tower_http::compression::CompressionLayer::new()
                                 .gzip(http_gzip_enabled),
@@ -623,7 +463,8 @@ fn main() -> StdServerExitCode {
             return StdServerExitCode::from(std::process::ExitCode::FAILURE);
         }
     };
-    let run_result = mk_runtime().and_then(|runtime| runtime.0.block_on(run_server(config)));
+    let run_result =
+        bootstrap::mk_runtime().and_then(|runtime| runtime.0.block_on(run_server(config)));
     if let Err(error) = run_result.as_ref() {
         tracing::error!(error = %error, "server terminated with an error");
     }
@@ -656,7 +497,7 @@ mod tests {
     #[tokio::test]
     async fn operational_routes_are_root_mounted_and_api_routes_are_v1_mounted() {
         let operational_path = common_routes::CommonRoute::HealthLive.path();
-        let router = axum::Router::from(super::mount_service_routes(
+        let router = axum::Router::from(super::routing::mount_service_routes(
             server_runtime_http::AxumRouter::from(
                 axum::Router::new()
                     .route(
@@ -670,7 +511,9 @@ mod tests {
             ),
             super::HttpBodyMaximumBytes::from(1_024usize),
         ))
-        .merge(axum::Router::from(super::frontend_fallback_routes()));
+        .merge(axum::Router::from(
+            super::routing::frontend_fallback_routes(),
+        ));
         let status = |path: &str| {
             tower::ServiceExt::oneshot(
                 router.clone(),
@@ -704,7 +547,7 @@ mod tests {
     #[tokio::test]
     async fn missing_page_redirects_to_default_authentication_page() {
         let response = tower::ServiceExt::oneshot(
-            axum::Router::from(super::frontend_fallback_routes()),
+            axum::Router::from(super::routing::frontend_fallback_routes()),
             axum::http::Request::builder()
                 .uri("/missing-page")
                 .body(axum::body::Body::empty())

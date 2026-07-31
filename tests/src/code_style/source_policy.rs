@@ -348,10 +348,10 @@ fn generated_admin_table_consumers_use_the_shared_catalog() {
             assert!(!source.contains(forbidden), "8b137dd2");
             assert!(source.contains("AdminGeneratedTable"), "e1c82f79");
         });
-        let server_main = snapshot
+        let server_routing = snapshot
             .rs_files()
             .iter()
-            .find(|file| file.path().as_ref().ends_with("server/src/main.rs"))
+            .find(|file| file.path().as_ref().ends_with("server/src/routing.rs"))
             .expect("148223ec")
             .content()
             .as_ref();
@@ -365,10 +365,10 @@ fn generated_admin_table_consumers_use_the_shared_catalog() {
         ]
         .iter()
         .for_each(|forbidden| {
-            assert!(!server_main.contains(forbidden), "d01c1dd0");
+            assert!(!server_routing.contains(forbidden), "d01c1dd0");
         });
         assert!(
-            server_main.contains("generated_tables::generated_routes"),
+            server_routing.contains("generated_tables::generated_routes"),
             "af786d19"
         );
         let admin_api = snapshot
@@ -2776,13 +2776,39 @@ fn server_admin_string_constants_reuse_macro_fragments() {
 }
 
 #[test]
-fn admin_handlers_do_not_own_admin_sql() {
-    let handlers = std::fs::read_to_string(str_constants::SERVER_ADMIN_SRC_AUTH_HANDLERS_RS)
-        .expect("353df4df");
-    assert!(
-        !handlers.contains(str_constants::SERVER_ADMIN_CONSTANT_PREFIX)
-            && !handlers.contains(str_constants::SQLX_QUERY_CALL)
-    );
+fn admin_application_modules_do_not_own_admin_sql() {
+    super::snapshot::with_codebase_snapshot(|snapshot| {
+        let application_module_suffixes = [
+            "server_admin/src/auth/account.rs",
+            "server_admin/src/auth/authn.rs",
+            "server_admin/src/auth/data_tables.rs",
+            "server_admin/src/auth/roles.rs",
+            "server_admin/src/auth/sessions.rs",
+            "server_admin/src/auth/settings.rs",
+            "server_admin/src/auth/shared.rs",
+            "server_admin/src/auth/users.rs",
+        ];
+        let violations = snapshot
+            .rs_files()
+            .iter()
+            .filter(|file| {
+                application_module_suffixes
+                    .iter()
+                    .any(|suffix| file.path().as_ref().ends_with(suffix))
+            })
+            .filter(|file| {
+                file.content()
+                    .as_ref()
+                    .contains(str_constants::SERVER_ADMIN_CONSTANT_PREFIX)
+                    || file
+                        .content()
+                        .as_ref()
+                        .contains(str_constants::SQLX_QUERY_CALL)
+            })
+            .map(|file| file.path().as_ref().display().to_string())
+            .collect::<Vec<String>>();
+        assert!(violations.is_empty(), "353df4df {violations:#?}");
+    });
 }
 
 #[test]

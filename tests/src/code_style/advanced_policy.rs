@@ -1165,10 +1165,19 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
         (
             "server/src/main.rs",
             (
-                3,
+                2,
+                0,
+                0,
+                "the server lifecycle shares application state across worker threads",
+            ),
+        ),
+        (
+            "server/src/routing.rs",
+            (
+                1,
                 0,
                 1,
-                "the server shares application state across worker threads",
+                "route composition shares application state across worker threads",
             ),
         ),
         (
@@ -1696,11 +1705,33 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             (1usize, "system clock failure maps to the session category"),
         ),
         (
-            "server_admin/src/auth/handlers.rs",
+            "server_admin/src/auth/authn.rs",
             (
-                15usize,
-                "handler input failures map to stable API categories",
+                5usize,
+                "authentication input failures map to stable API categories",
             ),
+        ),
+        (
+            "server_admin/src/auth/data_tables.rs",
+            (
+                1usize,
+                "data-table input failures map to stable API categories",
+            ),
+        ),
+        (
+            "server_admin/src/auth/roles.rs",
+            (2usize, "role input failures map to stable API categories"),
+        ),
+        (
+            "server_admin/src/auth/shared.rs",
+            (
+                3usize,
+                "shared input validation maps to stable API categories",
+            ),
+        ),
+        (
+            "server_admin/src/auth/users.rs",
+            (4usize, "user input failures map to stable API categories"),
         ),
         (
             "server_admin/src/auth.rs",

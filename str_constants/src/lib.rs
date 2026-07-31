@@ -1353,7 +1353,6 @@ define_str_constants! {
         pub SERVER_ENV = ["../", WORD_SERVER, "/.", WORD_ENV];
         pub SERVER_ADMIN_SRC_AUTH_RS = ["../", WORD_SERVER_ADMIN, "/", WORD_SRC, "/", WORD_AUTH, ".", WORD_RS];
         pub SERVER_ADMIN_SRC_AUTH_AUDIT_RS = ["../", WORD_SERVER_ADMIN, "/", WORD_SRC, "/", WORD_AUTH, "/", WORD_AUDIT_2, ".", WORD_RS];
-        pub SERVER_ADMIN_SRC_AUTH_HANDLERS_RS = ["../", WORD_SERVER_ADMIN, "/", WORD_SRC, "/", WORD_AUTH, "/handlers.", WORD_RS];
         pub SERVER_ADMIN_SRC_AUTH_RATE_LIMIT_RS = ["../", WORD_SERVER_ADMIN, "/", WORD_SRC, "/", WORD_AUTH, "/rate_limit.", WORD_RS];
         pub SERVER_ADMIN_SRC_AUTH_SESSION_RS = ["../", WORD_SERVER_ADMIN, "/", WORD_SRC, "/", WORD_AUTH, "/", WORD_SESSION, ".", WORD_RS];
         pub SERVER_ADMIN_SRC_CLEANUP_RS = ["../", WORD_SERVER_ADMIN, "/", WORD_SRC, "/", WORD_CLEANUP, ".", WORD_RS];
@@ -3722,16 +3721,18 @@ pub const CODE_STYLE_RUNTIME_TEST_HELPER_REASONS: [&str; 2] = [
     "macro helper assertions intentionally panic on deterministic test-fixture failures",
     "route validator test fixtures intentionally panic on invalid local test setup",
 ];
-pub const CODE_STYLE_RUNTIME_ARC_OWNER_SUFFIXES: [&str; 5] = [
+pub const CODE_STYLE_RUNTIME_ARC_OWNER_SUFFIXES: [&str; 6] = [
     "notification_service/src/main.rs",
+    "server/src/bootstrap.rs",
     SERVER_SRC_MAIN_RS,
     SERVER_ADMIN_SRC_PASSWORD_RS,
     SERVER_RUNTIME_SRC_BOUNDED_READ_RS,
     SERVER_RUNTIME_SRC_LIMITS_RS,
 ];
-pub const CODE_STYLE_RUNTIME_ARC_OWNER_REASONS: [&str; 5] = [
+pub const CODE_STYLE_RUNTIME_ARC_OWNER_REASONS: [&str; 6] = [
     "notification service composition shares immutable application state across request tasks",
-    "server composition shares immutable application state across request tasks",
+    "server bootstrap shares immutable application state across request tasks",
+    "server lifecycle shares immutable shutdown state across tasks",
     "password hashing shares the cross-thread concurrency limit",
     "bounded reads share a Tokio semaphore across asynchronous readers",
     "runtime limits share immutable concurrency budgets across tasks",
