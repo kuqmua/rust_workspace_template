@@ -600,6 +600,40 @@ pub fn common_routes(app_state_b9fc2d94: StdArcCommonRoutesAppState) -> AxumComm
 #[cfg(test)]
 #[allow(clippy::arbitrary_source_item_ordering)] // fixtures remain adjacent to the tests that exercise their route state
 mod tests {
+    #[derive(Clone, Copy)]
+    struct ClientTransport;
+    impl frontend_contract::Transport for ClientTransport {
+        fn send(
+            &self,
+            _request: frontend_contract::TransportRequest,
+        ) -> impl Future<
+            Output = Result<
+                frontend_contract::TransportResponse,
+                frontend_contract::TransportError,
+            >,
+        > + '_ {
+            std::future::ready(Err(frontend_contract::TransportError::default()))
+        }
+    }
+    fn assert_client_route<Route>()
+    where
+        Route: frontend_contract::TypedRoute,
+    {
+        let client_method = frontend_contract::TypedClient::<ClientTransport>::send::<Route>;
+        assert_eq!(size_of_val(&client_method), 0usize);
+    }
+    #[test]
+    fn every_common_route_is_typed_client_compatible() {
+        assert_eq!(
+            <super::CommonRouteFamily as frontend_contract::RouteFamily>::ROUTE_COUNT,
+            5usize
+        );
+        assert_client_route::<super::GitInfoRoute>();
+        assert_client_route::<super::HealthRoute>();
+        assert_client_route::<super::HealthCheckRoute>();
+        assert_client_route::<super::HealthLiveRoute>();
+        assert_client_route::<super::HealthReadyRoute>();
+    }
     #[test]
     fn repository_owned_common_routes_use_snake_case_segments() {
         assert!(!str_constants::COMMON_ROUTES_SWAGGER_UI.contains('-'));

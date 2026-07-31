@@ -3377,6 +3377,74 @@ fn admin_api_route_path(suffix: frontend_contract::ParameterizedRoutePath) -> Ad
 }
 #[cfg(test)]
 mod tests {
+    #[derive(Clone, Copy)]
+    struct ClientTransport;
+    impl frontend_contract::Transport for ClientTransport {
+        fn send(
+            &self,
+            _request: frontend_contract::TransportRequest,
+        ) -> impl Future<
+            Output = Result<
+                frontend_contract::TransportResponse,
+                frontend_contract::TransportError,
+            >,
+        > + '_ {
+            std::future::ready(Err(frontend_contract::TransportError::default()))
+        }
+    }
+    fn assert_client_route<Route>()
+    where
+        Route: frontend_contract::TypedRoute,
+    {
+        let client_method = frontend_contract::TypedClient::<ClientTransport>::send::<Route>;
+        assert_eq!(size_of_val(&client_method), 0usize);
+    }
+    fn assert_parameterized_client_route<Route>()
+    where
+        Route: frontend_contract::ParameterizedRoute,
+    {
+        let client_method =
+            frontend_contract::TypedClient::<ClientTransport>::send_parameterized::<Route>;
+        assert_eq!(size_of_val(&client_method), 0usize);
+    }
+    #[test]
+    fn every_admin_api_route_is_typed_client_compatible() {
+        assert_eq!(
+            <super::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::ROUTE_COUNT,
+            28usize
+        );
+        assert_client_route::<super::AdminAuditLogRoute>();
+        assert_client_route::<super::AdminAuditExportRoute>();
+        assert_client_route::<super::AdminBrandingRoute>();
+        assert_client_route::<super::AdminDataTablesRoute>();
+        assert_client_route::<super::AdminChangeOwnPasswordRoute>();
+        assert_client_route::<super::AdminCreateRoleRoute>();
+        assert_client_route::<super::AdminCreateUserRoute>();
+        assert_client_route::<super::AdminMeRoute>();
+        assert_client_route::<super::AdminListPermissionsRoute>();
+        assert_client_route::<super::AdminRefreshRoute>();
+        assert_client_route::<super::AdminRevokeAllSessionsRoute>();
+        assert_client_route::<super::AdminListRolesRoute>();
+        assert_client_route::<super::AdminSettingsRoute>();
+        assert_client_route::<super::AdminSignInRoute>();
+        assert_client_route::<super::AdminSignOutRoute>();
+        assert_client_route::<super::AdminSessionsRoute>();
+        assert_client_route::<super::AdminUpdateSettingsRoute>();
+        assert_client_route::<super::AdminListUsersRoute>();
+    }
+    #[test]
+    fn every_parameterized_admin_api_route_is_typed_client_compatible() {
+        assert_parameterized_client_route::<super::AdminDataTableRoute>();
+        assert_parameterized_client_route::<super::AdminDeleteRoleRoute>();
+        assert_parameterized_client_route::<super::AdminDeleteUserRoute>();
+        assert_parameterized_client_route::<super::AdminRevokeSessionRoute>();
+        assert_parameterized_client_route::<super::AdminSetRolePermissionsRoute>();
+        assert_parameterized_client_route::<super::AdminSetUserBanRoute>();
+        assert_parameterized_client_route::<super::AdminSetUserPasswordRoute>();
+        assert_parameterized_client_route::<super::AdminSetUserRolesRoute>();
+        assert_parameterized_client_route::<super::AdminUpdateRoleRoute>();
+        assert_parameterized_client_route::<super::AdminUpdateUserRoute>();
+    }
     fn assert_rejects_unknown_field<Value>(json: &str)
     where
         Value: serde::de::DeserializeOwned,

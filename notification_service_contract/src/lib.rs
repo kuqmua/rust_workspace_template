@@ -110,6 +110,32 @@ impl TryFrom<String> for NotificationMessage {
 }
 #[cfg(test)]
 mod tests {
+    #[derive(Clone, Copy)]
+    struct ClientTransport;
+    impl frontend_contract::Transport for ClientTransport {
+        fn send(
+            &self,
+            _request: frontend_contract::TransportRequest,
+        ) -> impl Future<
+            Output = Result<
+                frontend_contract::TransportResponse,
+                frontend_contract::TransportError,
+            >,
+        > + '_ {
+            std::future::ready(Err(frontend_contract::TransportError::default()))
+        }
+    }
+    #[test]
+    fn every_notification_route_is_typed_client_compatible() {
+        assert_eq!(
+            <super::NotificationRouteFamily as frontend_contract::RouteFamily>::ROUTE_COUNT,
+            1usize
+        );
+        let client_method = frontend_contract::TypedClient::<ClientTransport>::send::<
+            super::CreateNotificationRoute,
+        >;
+        assert_eq!(size_of_val(&client_method), 0usize);
+    }
     #[test]
     fn notification_message_enforces_bounds() {
         assert!(matches!(
