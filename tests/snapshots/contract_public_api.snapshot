@@ -29,6 +29,8 @@
 pub trait CommonRoutesParameters: git_info::GetGitCommitLink + app_state::GetSqlxPgPool + Send + Sync { }
 
 [frontend_contract/src] # generic frontend route contract
+#[allow(clippy::future_not_send)] // Transport intentionally permits single-threaded WASM futures pub async fn send<Route>( &self, body: Route::Request, ) -> Result<Route::Response, crate::ClientError> where Route: crate::TypedRoute,
+#[allow(clippy::future_not_send)] // Transport intentionally permits single-threaded WASM futures pub async fn send_parameterized<Route>( &self, parameter: &Route::Parameter, body: Route::Request, ) -> Result<Route::Response, crate::ClientError> where Route: crate::ParameterizedRoute,
 #[allow(clippy::needless_for_each)] // iterator form follows the workspace no-for-loop policy pub fn register_openapi_schema<Schema>(components: &mut UtoipaOpenApiComponentsRefMut<'_>) where Schema: utoipa::ToSchema,
 #[cfg(not(target_arch = "wasm32"))] #[derive(Clone, Copy, Debug, newtype::FromInner, newtype::IntoInnerFrom)] pub struct AxumMethodFilter(axum::routing::MethodFilter);
 #[cfg(not(target_arch = "wasm32"))] #[derive(Debug, newtype::FromInner, newtype::IntoInnerFrom)] pub struct AxumHandlerMethodRouter<State>(axum::routing::MethodRouter<State>);
@@ -111,6 +113,7 @@ pub trait CommonRoutesParameters: git_info::GetGitCommitLink + app_state::GetSql
 #[derive(Clone, Copy, Debug, PartialEq, Eq, newtype::FromInner)] pub struct ContractI64(i64);
 #[derive(Clone, Copy, Debug, PartialEq, Eq, newtype::FromInner)] pub struct FieldOrder(usize);
 #[derive(Clone, Debug)] pub struct RouteSchemaContract { metadata: RouteMetadata, request_schema: Option<UtoipaOpenApiRouteSchema>, response_schema: Option<UtoipaOpenApiRouteSchema>, }
+#[derive(Clone, Debug)] pub struct TypedClient<Transport> { path_prefix: crate::TransportPath, transport: Transport, }
 #[derive(Clone, Debug, Default, Eq, PartialEq, newtype::IntoInnerFrom)] pub struct ParameterizedRoutePath(String);
 #[derive(Clone, Debug, Default, PartialEq, Eq, newtype::AsRefStr, newtype::BoundedString)] #[bounded_string(max = 1_048_576usize)] pub struct FormValue(String);
 #[derive(Clone, Debug, Default, PartialEq, Eq, newtype::AsRefStr, newtype::BoundedString)] #[bounded_string(max = 8192usize)] pub struct TransportPath(String);
@@ -186,6 +189,7 @@ pub trait CommonRoutesParameters: git_info::GetGitCommitLink + app_state::GetSql
 #[must_use] pub const fn new(interval: StdAuthSessionRefreshInterval) -> Self
 #[must_use] pub const fn new(obligations: &'static [RouteCoverageObligation]) -> Self
 #[must_use] pub const fn new(operation: OperationKind, route: RouteContract) -> Self
+#[must_use] pub const fn new(transport: Transport, path_prefix: crate::TransportPath) -> Self
 #[must_use] pub const fn new_with_policy( authentication: crate::AuthenticationRequirement, error_statuses: &'static [crate::RouteErrorStatus], method: RouteMethod, mutation: crate::RouteMutation, openapi_operation_id: crate::ContractStr, path: crate::ContractStr, success_status: crate::SuccessStatus, ) -> Self
 #[must_use] pub const fn nullability(self) -> Nullability
 #[must_use] pub const fn openapi_operation_id(self) -> crate::ContractStr

@@ -56,6 +56,7 @@ impl KnownHttpStatus {
     }
 }
 mod auth_session_keep_alive;
+mod client;
 mod handler_contract;
 mod problem;
 mod route;
@@ -66,6 +67,7 @@ pub use auth_session_keep_alive::{
     AuthSessionPresence, AuthSessionRefreshOutcome, StdAuthSessionInstant,
     StdAuthSessionRefreshInterval,
 };
+pub use client::TypedClient;
 pub use frontend_contract_macros::{
     ContractStructApi, PageCatalog, RouteCatalog, RouteFamily, TypedRoute, UnitEnumCatalog,
     UnitEnumIndex, api_operation_error, handler_registry, route_error, route_openapi,
