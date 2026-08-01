@@ -40,12 +40,27 @@ spec:
         - podSelector:
             matchLabels:
               app.kubernetes.io/name: application
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: ingress-nginx
       ports:
         - protocol: TCP
           port: 8081
+  policyTypes: ["Ingress"]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: monitoring-ingress
+  namespace: rust-workspace-template
+spec:
+  podSelector:
+    matchExpressions:
+      - key: app.kubernetes.io/name
+        operator: In
+        values: ["application", "notification-service"]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
   policyTypes: ["Ingress"]
 ---
 apiVersion: networking.k8s.io/v1

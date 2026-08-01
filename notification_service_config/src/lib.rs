@@ -23,6 +23,9 @@ pub struct Config {
     #[config(getter)]
     #[config(example = "text")]
     tracing_format: config_lib::types::TracingFormat,
+    #[config(getter)]
+    #[config(example = "serve")]
+    svc_mode: config_lib::types::SvcMode,
 }
 
 #[cfg(test)]

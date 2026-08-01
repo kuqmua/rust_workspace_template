@@ -66,6 +66,8 @@ pub struct Config {
     pub http_gzip_enabled: config_lib::HttpGzipEnabled,
     #[config(example = "false")]
     pub production_mode: config_lib::ProductionMode,
+    #[config(example = "serve")]
+    pub svc_mode: config_lib::types::SvcMode,
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum ProductionConfigError {
@@ -254,6 +256,7 @@ mod tests {
                 enable_api_git_commit_check: config_lib::EnableApiGitCommitCheck(true),
                 admin_cookie_secure: env(str_constants::FALSE),
                 production_mode: env(str_constants::FALSE),
+                svc_mode: config_lib::types::SvcMode::Serve,
             };
         assert_eq!(
             config_lib::GetCorsAllowOrigin::get_cors_allow_origin(&cfg),

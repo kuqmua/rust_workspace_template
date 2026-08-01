@@ -8,6 +8,8 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/environment: production
+      annotations:
+        rust-workspace-template/config-revision: replace-with-config-revision
     spec:
       containers:
         - name: application

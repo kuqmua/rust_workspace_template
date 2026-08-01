@@ -396,6 +396,7 @@ str_constants_macros::define_str_constants! {
         WORD_METRICS = "Metrics";
         WORD_METRICS_2 = "metrics";
         WORD_MESSAGE = "message";
+        WORD_MIGRATE = "migrate";
         WORD_MINUTES = "minutes";
         WORD_MISSING = "missing";
         WORD_MUST = "must";
@@ -560,6 +561,7 @@ str_constants_macros::define_str_constants! {
         WORD_SERVER_ADMIN_FRONTEND = "server_admin_frontend";
         WORD_SERVER_RUNTIME = "server_runtime";
         WORD_SERVER_RUNTIME_HTTP = "server_runtime_http";
+        WORD_SERVE = "serve";
         WORD_SERVICE = "service";
         WORD_SESSION = "session";
         WORD_SESSIONS = "sessions";
@@ -808,7 +810,7 @@ str_constants_macros::define_str_constants! {
         pub(crate) SHARED_VALUES_IMPL_TO_ERR_STRING_WITH = [WORD_IMPL_TO_ERR_STRING_WITH];
         pub(crate) SHARED_VALUES_INFO_SPAN = ["info_span"];
         pub(crate) SHARED_VALUES_JOIN = ["join"];
-        pub(crate) SHARED_VALUES_MIGRATE = ["migrate"];
+        pub SERVICE_MODE_MIGRATE = [WORD_MIGRATE];
         pub(crate) SHARED_VALUES_OPTION_ENV = ["option_env"];
         pub(crate) SHARED_VALUES_PARSE_QUOTE = ["parse_quote"];
         pub(crate) SHARED_VALUES_PRINT = [WORD_PRINT];
@@ -823,6 +825,7 @@ str_constants_macros::define_str_constants! {
         pub(crate) SHARED_VALUES_TRACE_SPAN = ["trace_span"];
         pub(crate) SHARED_VALUES_UNREACHABLE = [WORD_UNREACHABLE];
         pub(crate) SHARED_VALUES_VIEW = ["view"];
+        pub SERVICE_MODE_SERVE = [WORD_SERVE];
         pub(crate) SHARED_VALUES_WARN_SPAN = ["warn_span"];
         pub(crate) SHARED_VALUES_WRITELN = ["writeln"];
         pub SHARED_VALUES_LOGIN_2 = ["Login"];
@@ -3590,6 +3593,7 @@ pub const CODE_STYLE_REVIEWED_PUBLIC_FIELD_SETS: &[&[&str]] = &[
         "admin_swagger_enabled",
         "http_gzip_enabled",
         "production_mode",
+        "svc_mode",
     ],
     &["id", "user_id", "role_id", "created_at"],
     &["id", "role_id", "permission_id", "created_at"],
@@ -3656,7 +3660,7 @@ pub const CODE_STYLE_REVIEWED_PUBLIC_FIELD_STRUCT_NAMES: [&str; 14] = [
     "AdminPermissions",
     "AdminSystemSettings",
 ];
-pub const CODE_STYLE_DIRECT_FS_OWNER_SUFFIXES: [&str; 10] = [
+pub const CODE_STYLE_DIRECT_FS_OWNER_SUFFIXES: [&str; 11] = [
     "/config_lib/src/lib.rs",
     "/config_lib/src/types.rs",
     "/file_storage/src/lib.rs",
@@ -3667,8 +3671,9 @@ pub const CODE_STYLE_DIRECT_FS_OWNER_SUFFIXES: [&str; 10] = [
     "/macros_helpers/src/write_token_stream_into_file.rs",
     "/admin_bootstrap/src/main.rs",
     CODE_STYLE_WORKSPACE_SCAFFOLD_FS_OWNER_SUFFIX,
+    CODE_STYLE_WORKSPACE_SCAFFOLD_TEMPLATE_FS_OWNER_SUFFIX,
 ];
-pub const CODE_STYLE_DIRECT_FS_OWNER_REASONS: [&str; 10] = [
+pub const CODE_STYLE_DIRECT_FS_OWNER_REASONS: [&str; 11] = [
     "configuration loader owns process environment and configuration file access",
     "configuration domain types own environment-backed initialization",
     "file storage owns persisted file lifecycle operations",
@@ -3678,7 +3683,8 @@ pub const CODE_STYLE_DIRECT_FS_OWNER_REASONS: [&str; 10] = [
     "generated string writer owns generated source file comparison and updates",
     "token stream writer owns rustfmt execution for generated source files",
     "administrator bootstrap command owns its bounded command-line input",
-    "workspace scaffold owns template traversal and generated workspace writes",
+    "workspace scaffold command owns generated projection and catalog writes",
+    "workspace scaffold template filesystem module owns bounded template traversal and copying",
 ];
 pub const CODE_STYLE_DOMAIN_FIXTURE_PATH: &str = "../tests/src/domain_type_policy_fixture.rs";
 pub const CODE_STYLE_BOUNDED_TYPES_SRC: &str = "../bounded_types/src";
@@ -3712,6 +3718,8 @@ pub const CODE_STYLE_TEST_CRATE_REASONS: [&str; 6] = [
 pub const CODE_STYLE_TESTS_SRC_ROOT: &str = "../tests/src";
 pub const CODE_STYLE_UNBOUNDED_READ_OWNER_SUFFIXES: [&str; 0] = [];
 pub const CODE_STYLE_WORKSPACE_SCAFFOLD_FS_OWNER_SUFFIX: &str = "/workspace_scaffold/src/main.rs";
+pub const CODE_STYLE_WORKSPACE_SCAFFOLD_TEMPLATE_FS_OWNER_SUFFIX: &str =
+    "/workspace_scaffold/src/template_fs.rs";
 pub const CODE_STYLE_ROUTE_VALIDATORS_TEST_HLP_SUFFIX: &str = "/route_validators/src/test_hlp.rs";
 pub const CODE_STYLE_RUNTIME_TEST_HELPER_SUFFIXES: [&str; 2] = [
     CODE_STYLE_MACROS_HLP_TEST_FS_OWNER_SUFFIX,
@@ -3722,7 +3730,7 @@ pub const CODE_STYLE_RUNTIME_TEST_HELPER_REASONS: [&str; 2] = [
     "route validator test fixtures intentionally panic on invalid local test setup",
 ];
 pub const CODE_STYLE_RUNTIME_ARC_OWNER_SUFFIXES: [&str; 6] = [
-    "notification_service/src/main.rs",
+    "notification_service/src/routes.rs",
     "server/src/bootstrap.rs",
     SERVER_SRC_MAIN_RS,
     SERVER_ADMIN_SRC_PASSWORD_RS,
@@ -3737,7 +3745,9 @@ pub const CODE_STYLE_RUNTIME_ARC_OWNER_REASONS: [&str; 6] = [
     "bounded reads share a Tokio semaphore across asynchronous readers",
     "runtime limits share immutable concurrency budgets across tasks",
 ];
-pub const CODE_STYLE_FACADE_REEXPORT_SUFFIXES: [&str; 10] = [
+pub const CODE_STYLE_FACADE_REEXPORT_SUFFIXES: [&str; 12] = [
+    "bounded_types/src/lib.rs",
+    "config_lib/src/lib.rs",
     FRONTEND_CONTRACT_SRC_LIB_RS,
     "frontend_contract_validation/src/lib.rs",
     PG_CRUD_PG_CRUD_COMMON_SRC_LIB_RS,
@@ -3749,7 +3759,9 @@ pub const CODE_STYLE_FACADE_REEXPORT_SUFFIXES: [&str; 10] = [
     "server_runtime_core/src/lib.rs",
     "server_runtime_http/src/lib.rs",
 ];
-pub const CODE_STYLE_FACADE_REEXPORT_REASONS: [&str; 10] = [
+pub const CODE_STYLE_FACADE_REEXPORT_REASONS: [&str; 12] = [
+    "bounded types facade exports validated string and collection families",
+    "configuration facade preserves its public typed configuration API",
     "frontend contract facade exports its public transport API",
     "frontend contract validation facade exports validation entrypoints",
     "PG CRUD common facade exports shared domain primitives",
@@ -3899,7 +3911,7 @@ pub const CODE_STYLE_STRING_LITERAL_MACRO_BOUNDARIES: &[&str] = &[
     SHARED_VALUES_INFO_SPAN,
     JSON,
     SHARED_VALUES_JOIN,
-    SHARED_VALUES_MIGRATE,
+    SERVICE_MODE_MIGRATE,
     SHARED_VALUES_OPTION_ENV,
     CODE_STYLE_PANIC_METHOD_NAME,
     SHARED_VALUES_PARSE_QUOTE,

@@ -15,6 +15,14 @@ their documentation explicitly says otherwise. Every release records user-visibl
 [`CHANGELOG.md`](../CHANGELOG.md), publishes immutable container digests, and links to the relevant
 upgrade instructions.
 
+The tag workflow publishes `release-manifest.txt` as a release asset. Treat that file, rather than
+the mutable human-readable image tag, as the deployment input: it binds the tag and commit to both
+signed image digests. Release publication is gated by core, database and browser acceptance suites,
+and candidate images are promoted to version tags only after the configured vulnerability scan.
+The workflow serializes executions for a tag and refuses to overwrite an existing release or its
+manifest; recovery from a partially published release requires maintainer review rather than an
+automatic mutable retry.
+
 Only the latest patch of each release line listed in [`SECURITY.md`](../SECURITY.md) receives
 security fixes. Pre-release versions may change incompatibly and must not be treated as stable
 production interfaces.

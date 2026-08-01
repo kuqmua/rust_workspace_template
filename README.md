@@ -47,8 +47,8 @@ See [administrator architecture](docs/admin-architecture.md) for the browser, AP
 database trust boundaries.
 The exact status, headers, and JSON body returned for application failures are documented in
 [API error responses](docs/api-errors.md).
-The evidence-based work required to present the administrator console as a reusable product is
-tracked in [administrator template readiness](ADMIN_TEMPLATE_READINESS.md).
+The supported and unsupported administrator capabilities are tracked in the
+[administrator feature matrix](docs/admin-feature-matrix.md).
 The supported product boundary is in the
 [administrator feature matrix](docs/admin-feature-matrix.md), and a clean-clone setup is in the
 [administrator quickstart](docs/admin-quickstart.md).
@@ -199,7 +199,7 @@ SVG as the `query-builders-flamegraph` workflow artifact.
 - Environment-specific overlays must supply ConfigMaps, Secrets, ingress, immutable images and
   database endpoints.
 - Administrator bootstrap, recovery, rotation and retention procedures are documented in
-  [the operations runbook](ADMIN_OPERATIONS_RUNBOOK.md).
+[the operations runbook](docs/admin-production-operations.md).
 
 ## Adding a service
 

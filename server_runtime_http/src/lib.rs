@@ -8,6 +8,8 @@ mod fallback;
 mod geojson;
 mod header_text;
 mod health;
+mod http_client;
+mod http_error_diagnostic;
 mod http_header_policy;
 mod http_policy;
 mod http_status_error;
@@ -22,7 +24,10 @@ mod path_policy;
 mod pg_rate_limit;
 mod redacted_url;
 mod request_id;
+mod request_timeout;
 mod secure_cookie;
+mod security_headers;
+mod service;
 mod service_bootstrap;
 mod trace_context;
 mod wire_token;
@@ -71,6 +76,13 @@ pub use header_text::{
 pub use health::{
     HealthComponentStatus, HealthProbeSucceeded, HealthReadiness, HealthSnapshot,
     ServiceLivenessSnapshot, StdHealthProbeTimeout, add_health_routes, run_health_probe,
+};
+pub use http_client::{
+    ReqwestClient, ReqwestClientBuildError, ReqwestClientPolicy, StdReqwestConnectTimeout,
+    StdReqwestRequestTimeout, StdReqwestTimeoutError,
+};
+pub use http_error_diagnostic::{
+    HttpErrorCode, HttpErrorDiagnostic, HttpErrorTelemetry, HttpErrorType,
 };
 pub use http_header_policy::{
     HttpAttachmentFileNameRef, HttpContentDisposition, HttpContentDispositionError,
@@ -137,12 +149,21 @@ pub use request_id::{
     HttpHeaderToStrError, RequestId, RequestIdTryFromHttpHeaderValueError,
     RequestIdTryFromStringError,
 };
+pub use request_timeout::RequestTimeoutLayer;
 pub use secure_cookie::{
     HttpCookieAccess, HttpCookieName, HttpCookieSecure, HttpCookieValue, HttpSecureCookieError,
     HttpSetCookieHeaderValue, StdCookieMaxAgeSeconds, build_secure_strict_cookie,
 };
+pub use security_headers::{
+    ForwardedProtoTrust, HttpContentSecurityPolicy, HttpContentSecurityPolicyError,
+    SecurityHeadersLayer,
+};
 pub use server_observability::*;
 pub use server_runtime_core::*;
+pub use service::{
+    ServeWithGracefulShutdownError, ServiceRuntime, StdServeIoError, TokioTcpListener,
+    add_status_route, serve_with_graceful_shutdown,
+};
 pub use service_bootstrap::{
     StdServiceRuntimeIoError, TokioServiceRuntime, build_service_runtime,
     wait_for_service_shutdown_signal,
@@ -165,245 +186,7 @@ pub use trace_context::{
 pub use wire_token::{VersionedUrlSafeWireTokenText, VersionedUrlSafeWireTokenTextError};
 #[derive(Debug, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct AxumRouter(axum::Router);
-#[derive(Clone, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
-pub struct ReqwestClient(reqwest::Client);
 
-#[derive(Clone, Copy, Debug)]
-pub struct StdReqwestConnectTimeout(std::time::Duration);
-#[derive(Clone, Copy, Debug)]
-pub struct StdReqwestRequestTimeout(std::time::Duration);
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
-#[error("HTTP client timeout must be greater than zero")]
-pub struct StdReqwestTimeoutError;
-impl TryFrom<std::time::Duration> for StdReqwestConnectTimeout {
-    type Error = StdReqwestTimeoutError;
-    fn try_from(value: std::time::Duration) -> Result<Self, Self::Error> {
-        if value.is_zero() {
-            Err(StdReqwestTimeoutError)
-        } else {
-            Ok(Self(value))
-        }
-    }
-}
-impl TryFrom<std::time::Duration> for StdReqwestRequestTimeout {
-    type Error = StdReqwestTimeoutError;
-    fn try_from(value: std::time::Duration) -> Result<Self, Self::Error> {
-        if value.is_zero() {
-            Err(StdReqwestTimeoutError)
-        } else {
-            Ok(Self(value))
-        }
-    }
-}
-#[derive(Clone, Copy, Debug)]
-pub struct ReqwestClientPolicy {
-    connect_timeout: StdReqwestConnectTimeout,
-    request_timeout: StdReqwestRequestTimeout,
-}
-impl ReqwestClientPolicy {
-    #[must_use]
-    pub const fn new(
-        connect_timeout: StdReqwestConnectTimeout,
-        request_timeout: StdReqwestRequestTimeout,
-    ) -> Self {
-        Self {
-            connect_timeout,
-            request_timeout,
-        }
-    }
-}
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
-#[error(transparent)]
-pub struct ReqwestClientBuildError(reqwest::Error);
-#[derive(Debug, newtype::FromInner)]
-struct TracingHttpClientSpan(tracing::Span);
-
-impl ReqwestClient {
-    pub async fn execute(
-        &self,
-        mut request: ReqwestRequest,
-    ) -> Result<ReqwestResponse, ReqwestError> {
-        let span = Self::prepare_observed_http_request(&mut request);
-        tracing::Instrument::instrument(
-            async {
-                match self.0.execute(request.into_inner()).await {
-                    Ok(response) => {
-                        let _client_status_record = tracing::Span::current().record(
-                            str_constants::OTEL_HTTP_RESPONSE_STATUS_CODE,
-                            response.status().as_u16(),
-                        );
-                        if response.status().is_server_error() {
-                            let _client_error_record = tracing::Span::current().record(
-                                str_constants::OTEL_STATUS_CODE,
-                                str_constants::OTEL_ERROR_STATUS,
-                            );
-                        }
-                        Ok(ReqwestResponse::from(response))
-                    }
-                    Err(error) => {
-                        let _client_error_record = tracing::Span::current().record(
-                            str_constants::OTEL_STATUS_CODE,
-                            str_constants::OTEL_ERROR_STATUS,
-                        );
-                        Err(ReqwestError::from(error))
-                    }
-                }
-            },
-            span.0,
-        )
-        .await
-    }
-
-    #[allow(clippy::single_call_fn)] // shared preparation keeps production execution and deterministic propagation tests on the same implementation
-    fn prepare_observed_http_request(request: &mut ReqwestRequest) -> TracingHttpClientSpan {
-        let method = request.method().to_string();
-        let host = request
-            .host()
-            .map_or_else(String::new, |value| value.to_string());
-        let span = tracing::info_span!(
-            "http.client",
-            otel.kind = "client",
-            otel.name = tracing::field::Empty,
-            otel.status_code = tracing::field::Empty,
-            "http.request.method" = %method,
-            "server.address" = %host,
-            "http.response.status_code" = tracing::field::Empty,
-        );
-        let _client_name_record =
-            span.record(str_constants::OTEL_NAME, format_args!("{method} {host}"));
-        inject_trace_context(
-            &OpentelemetryContext::from(tracing_opentelemetry::OpenTelemetrySpanExt::context(
-                &span,
-            )),
-            request.headers_mut(),
-        );
-        TracingHttpClientSpan::from(span)
-    }
-
-    pub fn try_new(policy: ReqwestClientPolicy) -> Result<Self, ReqwestClientBuildError> {
-        reqwest::Client::builder()
-            .connect_timeout(policy.connect_timeout.0)
-            .timeout(policy.request_timeout.0)
-            .redirect(reqwest::redirect::Policy::none())
-            .user_agent(concat!(
-                env!("CARGO_PKG_NAME"),
-                "/",
-                env!("CARGO_PKG_VERSION")
-            ))
-            .build()
-            .map(Self)
-            .map_err(ReqwestClientBuildError)
-    }
-}
-#[derive(Debug)]
-pub struct ServiceRuntime {
-    optional_task: Option<BackgroundTask>,
-    router: AxumRouter,
-}
-impl ServiceRuntime {
-    #[must_use]
-    pub fn into_parts(self) -> (AxumRouter, Option<BackgroundTask>) {
-        (self.router, self.optional_task)
-    }
-    #[must_use]
-    pub const fn new(router: AxumRouter, optional_task: Option<BackgroundTask>) -> Self {
-        Self {
-            optional_task,
-            router,
-        }
-    }
-}
-#[derive(Debug, newtype::FromInner)]
-pub struct TokioTcpListener(tokio::net::TcpListener);
-
-#[derive(Clone, Copy, Debug, newtype::Display, newtype::FromInner)]
-pub struct HttpErrorCode(&'static str);
-#[derive(Clone, Copy, Debug, newtype::Display, newtype::FromInner)]
-pub struct HttpErrorType(&'static str);
-#[derive(Clone, Copy, Debug)]
-pub struct HttpErrorTelemetry {
-    error_code: HttpErrorCode,
-    error_type: HttpErrorType,
-}
-#[derive(Clone, Debug, newtype::Display, newtype::FromInner)]
-struct StdHttpErrorBacktrace(Box<str>);
-#[derive(Clone, Debug, newtype::Display, newtype::FromInner)]
-struct StdHttpErrorChain(Box<str>);
-#[derive(Clone, Debug, newtype::Display, newtype::FromInner)]
-struct TracingHttpSpanTrace(Box<str>);
-#[derive(Clone, Debug)]
-pub struct HttpErrorDiagnostic {
-    backtrace: StdHttpErrorBacktrace,
-    error_chain: StdHttpErrorChain,
-    location: StdPanicLocation,
-    span_trace: TracingHttpSpanTrace,
-    telemetry: HttpErrorTelemetry,
-}
-impl HttpErrorDiagnostic {
-    #[track_caller]
-    #[must_use]
-    pub fn capture(
-        telemetry: HttpErrorTelemetry,
-        error: &(dyn std::error::Error + 'static),
-    ) -> Self {
-        let current_span = tracing::Span::current();
-        let span_trace = current_span.metadata().map_or_else(
-            || str_constants::HTTP_SPAN_UNAVAILABLE.to_owned(),
-            |metadata| format!("{current_span:?} [{}]", metadata.name()),
-        );
-        Self {
-            backtrace: StdHttpErrorBacktrace::from(
-                std::backtrace::Backtrace::force_capture()
-                    .to_string()
-                    .into_boxed_str(),
-            ),
-            error_chain: Self::error_chain(error),
-            location: StdPanicLocation::from(std::panic::Location::caller()),
-            span_trace: TracingHttpSpanTrace::from(span_trace.into_boxed_str()),
-            telemetry,
-        }
-    }
-
-    fn error_chain(error: &(dyn std::error::Error + 'static)) -> StdHttpErrorChain {
-        let mut error_chain = error.to_string();
-        let mut optional_source = error.source();
-        while let Some(source) = optional_source {
-            error_chain.push_str(str_constants::HTTP_ERROR_CHAIN_SEPARATOR);
-            error_chain.push_str(source.to_string().as_str());
-            optional_source = source.source();
-        }
-        StdHttpErrorChain::from(error_chain.into_boxed_str())
-    }
-
-    #[must_use]
-    pub fn from_observed<Source>(error_type: HttpErrorType, error: &ObservedError<Source>) -> Self
-    where
-        Source: std::error::Error + 'static,
-    {
-        Self {
-            backtrace: StdHttpErrorBacktrace::from(error.backtrace().to_string().into_boxed_str()),
-            error_chain: Self::error_chain(error),
-            location: error.location(),
-            span_trace: TracingHttpSpanTrace::from(error.span_trace().to_string().into_boxed_str()),
-            telemetry: HttpErrorTelemetry::new(
-                error_type,
-                HttpErrorCode::from(error.error_code().get()),
-            ),
-        }
-    }
-}
-#[derive(Debug, thiserror::Error)]
-#[error("{}", str_constants::HTTP_ERROR_WITHOUT_DIAGNOSTIC_CONTEXT)]
-struct HttpErrorWithoutDiagnosticContext;
-impl HttpErrorTelemetry {
-    #[must_use]
-    pub const fn new(error_type: HttpErrorType, error_code: HttpErrorCode) -> Self {
-        Self {
-            error_code,
-            error_type,
-        }
-    }
-}
 #[derive(Clone, Debug)]
 pub struct HttpRequestSpanConfig {
     server_address: StdSocketAddr,
@@ -607,25 +390,24 @@ where
                     };
                     let optional_diagnostic = response.extensions().get::<HttpErrorDiagnostic>();
                     let error_telemetry = optional_diagnostic
-                        .map(|diagnostic| diagnostic.telemetry)
+                        .map(HttpErrorDiagnostic::telemetry)
                         .or_else(|| response.extensions().get::<HttpErrorTelemetry>().copied())
                         .unwrap_or(default_error_telemetry);
                     let _error_type_record = tracing::Span::current().record(
                         str_constants::OTEL_ERROR_TYPE,
-                        tracing::field::display(error_telemetry.error_type),
+                        tracing::field::display(error_telemetry.error_type()),
                     );
                     let _error_code_record = tracing::Span::current().record(
                         str_constants::OTEL_ERROR_CODE,
-                        tracing::field::display(error_telemetry.error_code),
+                        tracing::field::display(error_telemetry.error_code()),
                     );
                     if response.status().is_server_error() {
                         let mut fallback_diagnostic = None;
                         let diagnostic = optional_diagnostic.map_or_else(
                             || {
-                                &*fallback_diagnostic.insert(HttpErrorDiagnostic::capture(
-                                    error_telemetry,
-                                    &HttpErrorWithoutDiagnosticContext,
-                                ))
+                                &*fallback_diagnostic.insert(
+                                    http_error_diagnostic::capture_without_context(error_telemetry),
+                                )
                             },
                             |diagnostic| diagnostic,
                         );
@@ -636,12 +418,12 @@ where
                             http_route = %http_route,
                             http_method = %http_method,
                             http_status = response.status().as_u16(),
-                            error_code = %error_telemetry.error_code,
-                            error_type = %error_telemetry.error_type,
-                            error_chain = %diagnostic.error_chain,
-                            error_location = %diagnostic.location,
-                            backtrace = %diagnostic.backtrace,
-                            span_trace = %diagnostic.span_trace,
+                            error_code = %error_telemetry.error_code(),
+                            error_type = %error_telemetry.error_type(),
+                            error_chain = %diagnostic.error_chain_text(),
+                            error_location = %diagnostic.location(),
+                            backtrace = %diagnostic.backtrace(),
+                            span_trace = %diagnostic.span_trace(),
                             duration_ms = started_at.elapsed().as_millis(),
                             "{}",
                             str_constants::HTTP_REQUEST_FAILED
@@ -675,299 +457,6 @@ where
         cx: &mut std::task::Context<'_>,
     ) -> std::task::Poll<Result<(), Self::Error>> {
         self.inner.poll_ready(cx)
-    }
-}
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
-pub struct RequestTimeoutLayer(StdRequestTimeout);
-#[derive(Debug, thiserror::Error)]
-enum RequestTimeoutError {
-    #[error("request timeout")]
-    TimedOut,
-}
-#[derive(Clone, Copy, Debug, serde::Serialize)]
-#[serde(transparent)]
-#[derive(newtype::FromInner)]
-struct StdRequestTimeoutMessage(&'static str);
-#[derive(Debug, serde::Serialize)]
-struct RequestTimeoutBody {
-    error: StdRequestTimeoutMessage,
-}
-impl axum::response::IntoResponse for RequestTimeoutError {
-    fn into_response(self) -> axum::response::Response {
-        match self {
-            Self::TimedOut => axum::response::IntoResponse::into_response((
-                http::StatusCode::SERVICE_UNAVAILABLE,
-                axum::Json(RequestTimeoutBody {
-                    error: StdRequestTimeoutMessage::from(str_constants::REQUEST_TIMEOUT),
-                }),
-            )),
-        }
-    }
-}
-impl RequestTimeoutLayer {
-    #[must_use]
-    pub fn apply(self, router: AxumRouter) -> AxumRouter {
-        AxumRouter::from(router.0.layer(RequestTimeoutTowerLayer::from(self.0)))
-    }
-}
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
-struct RequestTimeoutTowerLayer(StdRequestTimeout);
-
-#[derive(Clone, Debug)]
-struct RequestTimeoutService<Service> {
-    inner: Service,
-    timeout: StdRequestTimeout,
-}
-impl<Service> tower::Layer<Service> for RequestTimeoutTowerLayer {
-    type Service = RequestTimeoutService<Service>;
-    fn layer(&self, inner: Service) -> Self::Service {
-        RequestTimeoutService {
-            inner,
-            timeout: self.0,
-        }
-    }
-}
-impl<Service> tower::Service<axum::extract::Request> for RequestTimeoutService<Service>
-where
-    Service: tower::Service<axum::extract::Request, Response = axum::response::Response>
-        + Send
-        + 'static,
-    Service::Future: Send + 'static,
-{
-    type Error = Service::Error;
-    type Future = std::pin::Pin<
-        Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send + 'static>,
-    >;
-    type Response = axum::response::Response;
-    fn call(&mut self, req: axum::extract::Request) -> Self::Future {
-        let response_future = tower::Service::call(&mut self.inner, req);
-        let timeout = self.timeout;
-        Box::pin(async move {
-            match tokio::time::timeout(timeout.get(), response_future).await {
-                Ok(response) => response,
-                Err(_elapsed) => {
-                    let retry_after = timeout.get().as_secs().max(1u64).to_string();
-                    let mut response =
-                        axum::response::IntoResponse::into_response(RequestTimeoutError::TimedOut);
-                    if let Ok(value) = http::HeaderValue::from_str(retry_after.as_str()) {
-                        let _previous = response
-                            .headers_mut()
-                            .insert(http::header::RETRY_AFTER, value);
-                    }
-                    Ok(response)
-                }
-            }
-        })
-    }
-    fn poll_ready(
-        &mut self,
-        cx: &mut std::task::Context<'_>,
-    ) -> std::task::Poll<Result<(), Self::Error>> {
-        self.inner.poll_ready(cx)
-    }
-}
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum ForwardedProtoTrust {
-    Ignore,
-    Trust,
-}
-#[derive(Clone, Debug)]
-pub struct HttpContentSecurityPolicy(http::HeaderValue);
-#[derive(Clone, Copy, Debug, thiserror::Error)]
-#[error("content security policy is not a valid HTTP header value")]
-pub struct HttpContentSecurityPolicyError;
-impl TryFrom<String> for HttpContentSecurityPolicy {
-    type Error = HttpContentSecurityPolicyError;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > 4096usize {
-            return Err(HttpContentSecurityPolicyError);
-        }
-        http::HeaderValue::try_from(value)
-            .map(Self)
-            .map_err(|_error| HttpContentSecurityPolicyError)
-    }
-}
-#[derive(Clone, Debug)]
-pub struct SecurityHeadersLayer {
-    content_security_policy: Option<HttpContentSecurityPolicy>,
-    forwarded_proto_trust: ForwardedProtoTrust,
-}
-impl From<ForwardedProtoTrust> for SecurityHeadersLayer {
-    fn from(value: ForwardedProtoTrust) -> Self {
-        Self {
-            content_security_policy: None,
-            forwarded_proto_trust: value,
-        }
-    }
-}
-impl SecurityHeadersLayer {
-    #[must_use]
-    pub fn apply(self, router: AxumRouter) -> AxumRouter {
-        AxumRouter::from(router.0.layer(SecurityHeadersTowerLayer {
-            content_security_policy: self.content_security_policy,
-            forwarded_proto_trust: self.forwarded_proto_trust,
-        }))
-    }
-    #[must_use]
-    pub fn with_content_security_policy(mut self, value: HttpContentSecurityPolicy) -> Self {
-        self.content_security_policy = Some(value);
-        self
-    }
-}
-#[derive(Clone, Debug)]
-struct SecurityHeadersTowerLayer {
-    content_security_policy: Option<HttpContentSecurityPolicy>,
-    forwarded_proto_trust: ForwardedProtoTrust,
-}
-#[derive(Clone, Debug)]
-struct SecurityHeadersService<Service> {
-    content_security_policy: Option<HttpContentSecurityPolicy>,
-    forwarded_proto_trust: ForwardedProtoTrust,
-    inner: Service,
-}
-impl<Service> tower::Layer<Service> for SecurityHeadersTowerLayer {
-    type Service = SecurityHeadersService<Service>;
-    fn layer(&self, inner: Service) -> Self::Service {
-        SecurityHeadersService {
-            content_security_policy: self.content_security_policy.clone(),
-            forwarded_proto_trust: self.forwarded_proto_trust,
-            inner,
-        }
-    }
-}
-impl<Service> tower::Service<axum::extract::Request> for SecurityHeadersService<Service>
-where
-    Service: tower::Service<axum::extract::Request, Response = axum::response::Response>
-        + Send
-        + 'static,
-    Service::Future: Send + 'static,
-{
-    type Error = Service::Error;
-    type Future = std::pin::Pin<
-        Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send + 'static>,
-    >;
-    type Response = axum::response::Response;
-    fn call(&mut self, mut req: axum::extract::Request) -> Self::Future {
-        let is_api_path = req.uri().path().starts_with(str_constants::V1_SLASH);
-        let is_forwarded_https = matches!(self.forwarded_proto_trust, ForwardedProtoTrust::Trust)
-            && req
-                .headers()
-                .get(str_constants::X_FORWARDED_PROTO)
-                .and_then(|value| value.to_str().ok())
-                .is_some_and(|value| {
-                    value.split(',').next().is_some_and(|first| {
-                        first.trim().eq_ignore_ascii_case(str_constants::HTTPS)
-                    })
-                });
-        req.headers_mut().iter_mut().for_each(|(name, value)| {
-            if name == http::header::AUTHORIZATION
-                || name == http::header::COOKIE
-                || name.as_str() == str_constants::X_CSRF_TOKEN_ALT
-            {
-                value.set_sensitive(true);
-            }
-        });
-        let content_security_policy = self.content_security_policy.clone();
-        let response_future = tower::Service::call(&mut self.inner, req);
-        Box::pin(async move {
-            let mut response = response_future.await?;
-            let _content_type_options = response.headers_mut().insert(
-                http::HeaderName::from_static(str_constants::X_CONTENT_TYPE_OPTIONS),
-                http::HeaderValue::from_static(str_constants::NOSNIFF),
-            );
-            let _frame_options = response.headers_mut().insert(
-                http::HeaderName::from_static(str_constants::X_FRAME_OPTIONS),
-                http::HeaderValue::from_static(str_constants::DENY),
-            );
-            let _referrer_policy = response.headers_mut().insert(
-                http::HeaderName::from_static(str_constants::REFERRER_POLICY),
-                http::HeaderValue::from_static(str_constants::SAME_ORIGIN),
-            );
-            if let Some(resolved_content_security_policy) = content_security_policy {
-                let _previous_content_security_policy = response.headers_mut().insert(
-                    http::HeaderName::from_static(str_constants::CONTENT_SECURITY_POLICY_HEADER),
-                    resolved_content_security_policy.0,
-                );
-            }
-            response.headers_mut().iter_mut().for_each(|(name, value)| {
-                if name == http::header::SET_COOKIE {
-                    value.set_sensitive(true);
-                }
-            });
-            if is_api_path {
-                let _cache_control = response.headers_mut().insert(
-                    http::header::CACHE_CONTROL,
-                    http::HeaderValue::from_static(str_constants::NO_STORE),
-                );
-            }
-            if is_forwarded_https {
-                let _strict_transport_security = response.headers_mut().insert(
-                    http::HeaderName::from_static(str_constants::STRICT_TRANSPORT_SECURITY),
-                    http::HeaderValue::from_static(
-                        str_constants::MAX_AGE_31536000_INCLUDESUBDOMAINS,
-                    ),
-                );
-            }
-            Ok(response)
-        })
-    }
-    fn poll_ready(
-        &mut self,
-        cx: &mut std::task::Context<'_>,
-    ) -> std::task::Poll<Result<(), Self::Error>> {
-        self.inner.poll_ready(cx)
-    }
-}
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
-#[error(transparent)]
-pub struct StdServeIoError(std::io::Error);
-#[derive(Debug, thiserror::Error)]
-pub enum ServeWithGracefulShutdownError {
-    #[error("server failed: {0}")]
-    Serve(#[source] StdServeIoError),
-    #[error("{}", str_constants::SERVER_GRACEFUL_SHUTDOWN_TIMED_OUT)]
-    ShutdownTimeout,
-}
-#[must_use]
-pub fn add_status_route(router: AxumRouter) -> AxumRouter {
-    AxumRouter::from(router.0.route(
-        str_constants::STATUS,
-        axum::routing::get(async || http::StatusCode::OK),
-    ))
-}
-#[allow(clippy::integer_division_remainder_used)] // tokio::select expansion uses internal randomized branch arithmetic
-pub async fn serve_with_graceful_shutdown<Shutdown>(
-    listener: TokioTcpListener,
-    router: AxumRouter,
-    shutdown: Shutdown,
-    shutdown_timeout: StdRequestTimeout,
-) -> Result<(), ServeWithGracefulShutdownError>
-where
-    Shutdown: Future<Output = ()> + Send + 'static,
-{
-    let (shutdown_started_tx, shutdown_started_rx) = tokio::sync::oneshot::channel();
-    let server = IntoFuture::into_future(
-        axum::serve(
-            listener.0,
-            router
-                .0
-                .into_make_service_with_connect_info::<std::net::SocketAddr>(),
-        )
-        .with_graceful_shutdown(async move {
-            shutdown.await;
-            let _send_result = shutdown_started_tx.send(());
-        }),
-    );
-    tokio::pin!(server);
-    tokio::select! {
-        result = &mut server => result.map_err(|error| ServeWithGracefulShutdownError::Serve(StdServeIoError(error))),
-        shutdown_result = shutdown_started_rx => {
-            drop(shutdown_result);
-            tokio::time::timeout(shutdown_timeout.get(), &mut server)
-                .await
-                .map_err(|_elapsed| ServeWithGracefulShutdownError::ShutdownTimeout)?
-                .map_err(|error| ServeWithGracefulShutdownError::Serve(StdServeIoError(error)))
-        }
     }
 }
 #[cfg(test)]
@@ -1604,15 +1093,15 @@ mod tests {
         );
         assert!(
             diagnostic
-                .error_chain
-                .0
+                .error_chain_text()
+                .to_string()
                 .contains("boundary test operation failed: nested source")
         );
-        assert!(!diagnostic.backtrace.0.to_string().is_empty());
-        assert!(!diagnostic.span_trace.0.is_empty());
+        assert!(!diagnostic.backtrace().to_string().is_empty());
+        assert!(!diagnostic.span_trace().to_string().is_empty());
         assert!(
             diagnostic
-                .location
+                .location()
                 .to_string()
                 .contains(expected_diagnostic_line.to_string().as_str())
         );

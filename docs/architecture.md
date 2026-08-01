@@ -6,6 +6,8 @@ image, health contract, and deployment manifest.
 
 Repository ownership and generation boundaries are documented in
 [`sources-of-truth.md`](sources-of-truth.md).
+The audited crate and internal-module responsibilities are documented in
+[`module-boundaries.md`](module-boundaries.md).
 
 [`deploy/services.toml`](../deploy/services.toml) is the canonical mapping between service crates,
 Compose names, images, Dockerfiles, ports, and Kubernetes manifests. Code-style tests reject drift

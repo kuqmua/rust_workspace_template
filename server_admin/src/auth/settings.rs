@@ -5,7 +5,8 @@ pub(super) async fn update(
     request: super::AxumAdminJson<server_admin_contract::AdminUpdateSettingsReq>,
 ) -> Result<super::AxumAdminResponse, super::AdminError> {
     let actor =
-        super::authorize_custom(&auth, super::super::AdminPermission::SystemSettingsUpdate).await?;
+        super::shared::authorize_custom(&auth, super::super::AdminPermission::SystemSettingsUpdate)
+            .await?;
     if !bool::from(request.0.has_fields()) || !bool::from(request.0.is_valid()) {
         return Err(super::AdminError::Validation);
     }

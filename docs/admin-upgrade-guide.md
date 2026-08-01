@@ -21,6 +21,10 @@ Run migrations once in a dedicated, serialized migration job before replacing ap
 instances. Do not let every replica race to own deployment orchestration. New migrations must be
 compatible with both old and new application instances for the duration of the rollout.
 
+Use the release image's `migrate` command through the manifests in `deploy/k8s/migrations`; do not
+start a Deployment replica to perform migration work. Wait for the migration Jobs to report
+`Complete` before beginning the rolling replacement.
+
 Replace instances gradually. Keep the old image available, check `/health/live` and
 `/health/ready`, then verify sign-in, session refresh, authorization, audit writes, and a
 representative administrator read. Readiness must fail while PostgreSQL is unavailable.

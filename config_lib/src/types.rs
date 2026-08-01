@@ -76,6 +76,12 @@ pub enum TracingFormat {
     #[default]
     Text,
 }
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+pub enum SvcMode {
+    Migrate,
+    #[default]
+    Serve,
+}
 impl TracingLevel {
     fn as_str(self) -> TracingLevelName {
         TracingLevelName::from(match self {

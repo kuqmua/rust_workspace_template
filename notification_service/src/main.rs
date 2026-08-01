@@ -2,6 +2,9 @@
 #![allow(clippy::arbitrary_source_item_ordering)] // OpenAPI document stays next to its generated schema and operation marker
 #![allow(clippy::needless_for_each)] // utoipa OpenApi derive expands to an internal for_each
 
+mod routes;
+mod runtime;
+
 #[derive(Clone, Debug)]
 struct NotificationState {
     metrics: MetricsExporterPrometheusHandle,
@@ -213,187 +216,6 @@ impl NotificationErrorCode {
         }
     }
 }
-#[frontend_contract::route_openapi()]
-async fn create_notification(
-    state: AxumNotificationState,
-    request: AxumNotificationJson,
-) -> Result<AxumNotificationResponse, CreateNotificationError> {
-    let id = uuid::Uuid::new_v4();
-    let message = request.0.into_message();
-    let insert_sql = "INSERT INTO notifications (id, message) VALUES ($1, $2)";
-    let _created = sqlx::query(insert_sql)
-        .bind(id)
-        .bind(message.as_ref())
-        .execute(state.0.pool.as_ref())
-        .await
-        .map_err(|error| {
-            CreateNotificationError::Persistence(server_runtime_http::ObservedError::capture(
-                SqlxNotificationDatabaseError::from(error),
-                server_runtime_http::ObservedErrorCode::from(
-                    NotificationErrorCode::Persistence.get(),
-                ),
-            ))
-        })?;
-    Ok(AxumNotificationResponse::from(
-        axum::response::IntoResponse::into_response((
-            http::StatusCode::CREATED,
-            axum::Json(notification_service_contract::CreateNotificationRes::new(
-                notification_service_contract::UuidNotificationId::from(id),
-            )),
-        )),
-    ))
-}
-
-#[frontend_contract::route_operation]
-async fn metrics(
-    state: AxumNotificationState,
-) -> Result<server_runtime_http::MetricsResponseBody, MetricsError> {
-    server_runtime_http::MetricsResponseBody::try_from(state.0.metrics.0.render()).map_err(
-        |error| {
-            MetricsError::Render(server_runtime_http::ObservedError::capture(
-                error,
-                server_runtime_http::ObservedErrorCode::from(
-                    NotificationErrorCode::MetricsRender.get(),
-                ),
-            ))
-        },
-    )
-}
-
-#[frontend_contract::route_operation]
-async fn open_api() -> AxumNotificationResponse {
-    let mut document = NotificationApiRouteRegistry::open_api();
-    document.merge(utoipa::openapi::OpenApi::from(
-        common_routes::CommonRoutesOpenApi::open_api(),
-    ));
-    AxumNotificationResponse::from(axum::response::IntoResponse::into_response(axum::Json(
-        document,
-    )))
-}
-#[frontend_contract::route_registry(
-    state = NotificationState,
-    family = notification_service_contract::NotificationRouteFamily;
-    ("", "");
-    schemas(
-        notification_service_contract::NotificationMessage,
-        notification_service_contract::UuidNotificationId
-    );
-    (
-        notification_service_contract::CreateNotificationRoute,
-        create_notification
-    ),
-)]
-#[openapi()]
-struct NotificationApiRouteRegistry;
-
-#[frontend_contract::handler_registry(
-    state = NotificationState;
-    (
-        notification_service_contract::NotificationOperationalRoute::Metrics,
-        metrics
-    ),
-    (
-        notification_service_contract::NotificationOperationalRoute::OpenApi,
-        open_api
-    ),
-)]
-struct NotificationRouteRegistry;
-
-fn router(
-    state: NotificationState,
-    body_maximum_bytes: NotificationBodyMaximumBytes,
-) -> AxumNotificationRouter {
-    let common_routes = axum::Router::from(common_routes::common_routes(
-        common_routes::StdArcCommonRoutesAppState::from(std::sync::Arc::new(state.clone())),
-    ));
-    AxumNotificationRouter::from(
-        NotificationRouteRegistry::router()
-            .merge(NotificationApiRouteRegistry::router())
-            .layer(axum::extract::DefaultBodyLimit::max(body_maximum_bytes.0))
-            .with_state(state)
-            .merge(common_routes),
-    )
-}
-
-async fn shutdown_signal() {
-    if let Err(error) = tokio::signal::ctrl_c().await {
-        tracing::error!(error = %error, "notification shutdown signal failed");
-    }
-}
-
-async fn run(config: notification_service_config::Config) -> Result<(), NotificationServiceError> {
-    let metrics = metrics_exporter_prometheus::PrometheusBuilder::new()
-        .install_recorder()
-        .map(MetricsExporterPrometheusHandle)
-        .map_err(|error| {
-            NotificationServiceError::Metrics(
-                MetricsExporterPrometheusNotificationBuildError::from(error),
-            )
-        })?;
-    let pool = sqlx::postgres::PgPoolOptions::new()
-        .max_connections(**config.pg_pool_max_connections())
-        .connect(secrecy::ExposeSecret::expose_secret(
-            &config.notification_database_url().0,
-        ))
-        .await
-        .map_err(|error| {
-            NotificationServiceError::Database(SqlxNotificationDatabaseError::from(error))
-        })?;
-    sqlx::migrate!("./migrations")
-        .run(&pool)
-        .await
-        .map_err(|error| {
-            NotificationServiceError::Migration(SqlxNotificationMigrationError::from(error))
-        })?;
-    let listener = tokio::net::TcpListener::bind(config.notification_service_socket_address().0)
-        .await
-        .map_err(|error| NotificationServiceError::Socket(StdNotificationIoError::from(error)))?;
-    let actual_service_socket_address = listener
-        .local_addr()
-        .map_err(|error| NotificationServiceError::Socket(StdNotificationIoError::from(error)))?;
-    let timeout = server_runtime_http::StdRequestTimeout::try_from(std::time::Duration::from_secs(
-        config.request_timeout_seconds().get(),
-    ))
-    .map_err(|_error| NotificationServiceError::Timeout)?;
-    let service_router = server_runtime_http::RequestIdLayer::with_span_config(
-        server_runtime_http::HttpRequestSpanConfig::new(
-            server_runtime_http::ServiceName::from(env!("CARGO_PKG_NAME")),
-            server_runtime_http::StdSocketAddr::from(actual_service_socket_address),
-            server_runtime_http::TrustedProxyRanges::default(),
-        ),
-    )
-    .apply(
-        server_runtime_http::SecurityHeadersLayer::from(
-            server_runtime_http::ForwardedProtoTrust::Ignore,
-        )
-        .apply(
-            server_runtime_http::RequestTimeoutLayer::from(timeout).apply(
-                server_runtime_http::AxumRouter::from(
-                    router(
-                        NotificationState {
-                            metrics,
-                            pool: app_state::SqlxPgPool::from(pool),
-                            project_git_info: git_info::project_git_info(),
-                        },
-                        NotificationBodyMaximumBytes::from(
-                            notification_service_contract::NOTIFICATION_API_BODY_MAX_BYTES,
-                        ),
-                    )
-                    .0,
-                ),
-            ),
-        ),
-    );
-    server_runtime_http::serve_with_graceful_shutdown(
-        server_runtime_http::TokioTcpListener::from(listener),
-        service_router,
-        shutdown_signal(),
-        timeout,
-    )
-    .await
-    .map_err(|error| NotificationServiceError::Serve(NotificationServeError::from(error)))
-}
-
 #[tokio::main]
 async fn main() -> StdNotificationExitCode {
     let config = match notification_service_config::Config::try_from_env() {
@@ -426,7 +248,10 @@ async fn main() -> StdNotificationExitCode {
             return StdNotificationExitCode::from(std::process::ExitCode::FAILURE);
         }
     };
-    let run_result = run(config).await;
+    let run_result = match config.svc_mode() {
+        config_lib::types::SvcMode::Migrate => runtime::migrate_notification(&config).await,
+        config_lib::types::SvcMode::Serve => runtime::run(config).await,
+    };
     if let Err(error) = run_result.as_ref() {
         tracing::error!(error = %error, "notification service terminated with an error");
     }
@@ -459,6 +284,40 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn boundary_adapters_preserve_status_state_and_exit_code() {
+        let status_response = axum::response::IntoResponse::into_response(
+            super::HttpNotificationStatusCode::from(http::StatusCode::IM_A_TEAPOT),
+        );
+        assert_eq!(status_response.status(), http::StatusCode::IM_A_TEAPOT);
+        assert_eq!(
+            std::process::Termination::report(super::StdNotificationExitCode::from(
+                std::process::ExitCode::SUCCESS,
+            )),
+            std::process::ExitCode::SUCCESS
+        );
+
+        let state = state(
+            sqlx::postgres::PgPoolOptions::new()
+                .connect_lazy(
+                    str_constants::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION,
+                )
+                .expect("75b0f8e4"),
+        );
+        let request = http::Request::new(());
+        let (mut parts, _body) = request.into_parts();
+        let extracted = <super::AxumNotificationState as axum::extract::FromRequestParts<
+            super::NotificationState,
+        >>::from_request_parts(&mut parts, &state)
+        .await
+        .expect("c12d49a7");
+        assert_eq!(
+            AsRef::<str>::as_ref(&extracted.0),
+            AsRef::<str>::as_ref(&state)
+        );
+        let _pool = app_state::GetSqlxPgPool::get_sqlx_pg_pool(&state);
+    }
+
+    #[tokio::test]
     #[cfg_attr(
         miri,
         ignore = "SQLx account discovery calls getpwuid_r, which Miri does not support"
@@ -469,7 +328,7 @@ mod tests {
                 str_constants::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION,
             )
             .expect("52a25be1");
-        let router = super::router(
+        let router = super::routes::router(
             state(pool),
             super::NotificationBodyMaximumBytes::from(
                 notification_service_contract::NOTIFICATION_API_BODY_MAX_BYTES,
@@ -497,7 +356,7 @@ mod tests {
         .expect("2d37fbd2");
         assert_eq!(open_api_response.status(), http::StatusCode::OK);
         let metrics_response = tower::ServiceExt::oneshot(
-            router,
+            router.clone(),
             http::Request::builder()
                 .uri(
                     frontend_contract::HandlerContract::path(
@@ -511,12 +370,35 @@ mod tests {
         .await
         .expect("81c4e6a2");
         assert_eq!(metrics_response.status(), http::StatusCode::OK);
+
+        let create_metadata = <notification_service_contract::CreateNotificationRoute as frontend_contract::TypedRoute>::metadata();
+        let invalid_request = tower::ServiceExt::oneshot(
+            router,
+            http::Request::builder()
+                .method(create_metadata.method().as_ref())
+                .uri(create_metadata.path().as_ref())
+                .header(http::header::CONTENT_TYPE, "application/json")
+                .body(axum::body::Body::from("{"))
+                .expect("4ac710e9"),
+        )
+        .await
+        .expect("d8326f1b");
+        assert_eq!(
+            invalid_request.status(),
+            http::StatusCode::UNPROCESSABLE_ENTITY
+        );
+        assert!(
+            invalid_request
+                .extensions()
+                .get::<server_runtime_http::HttpErrorTelemetry>()
+                .is_some()
+        );
     }
 
     #[test]
     fn open_api_has_no_unresolved_schema_references() {
         frontend_contract_validation::validate_openapi_schema_references(&{
-            let mut document = super::NotificationApiRouteRegistry::open_api();
+            let mut document = super::routes::open_api_document();
             document.merge(utoipa::openapi::OpenApi::from(
                 common_routes::CommonRoutesOpenApi::open_api(),
             ));
@@ -528,8 +410,7 @@ mod tests {
     #[test]
     fn open_api_operation_and_statuses_come_from_the_typed_route() {
         let metadata = <notification_service_contract::CreateNotificationRoute as frontend_contract::TypedRoute>::metadata();
-        let document = serde_json::to_value(super::NotificationApiRouteRegistry::open_api())
-            .expect("3d8a056d");
+        let document = serde_json::to_value(super::routes::open_api_document()).expect("3d8a056d");
         let operation = document
             .get(str_constants::PATHS)
             .and_then(|paths| paths.get(metadata.path().as_ref()))
@@ -600,6 +481,25 @@ mod tests {
                 .get::<server_runtime_http::HttpErrorTelemetry>()
                 .is_some()
         );
+
+        let metrics_response = axum::response::IntoResponse::into_response(
+            super::MetricsError::Render(server_runtime_http::ObservedError::capture(
+                server_runtime_http::MetricsResponseBodyError,
+                server_runtime_http::ObservedErrorCode::from(
+                    super::NotificationErrorCode::MetricsRender.get(),
+                ),
+            )),
+        );
+        assert_eq!(
+            metrics_response.status(),
+            http::StatusCode::INTERNAL_SERVER_ERROR
+        );
+        assert!(
+            metrics_response
+                .extensions()
+                .get::<server_runtime_http::HttpErrorDiagnostic>()
+                .is_some()
+        );
     }
 
     #[tokio::test]
@@ -664,7 +564,7 @@ mod tests {
             .body(axum::body::Body::from(body))
             .expect("f8d2ab0b");
         let response = tower::ServiceExt::oneshot(
-            super::router(
+            super::routes::router(
                 state(pool),
                 super::NotificationBodyMaximumBytes::from(
                     notification_service_contract::NOTIFICATION_API_BODY_MAX_BYTES,

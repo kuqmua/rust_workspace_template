@@ -1,0 +1,29 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: rust-workspace-template
+  namespace: monitoring
+spec:
+  groups:
+    - name: rust-workspace-template.availability
+      rules:
+        - alert: RustWorkspaceTemplateTargetMissing
+          expr: (up{namespace="rust-workspace-template"} == 0) or absent(up{namespace="rust-workspace-template"})
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: No healthy application metrics target is available
+            runbook_url: https://runbooks.example.invalid/rust-workspace-template/availability
+        - alert: RustWorkspaceTemplateElevatedHttpErrorRatio
+          expr: >-
+            sum(rate(http_errors_total{namespace="rust-workspace-template"}[5m]))
+            /
+            clamp_min(sum(rate(http_requests_total{namespace="rust-workspace-template"}[5m])), 1)
+            > 0.05
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: HTTP error ratio has exceeded five percent for ten minutes
+            runbook_url: https://runbooks.example.invalid/rust-workspace-template/http-errors

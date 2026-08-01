@@ -1,7 +1,7 @@
 mod bootstrap;
+mod maintenance;
 mod routing;
 
-const ADMIN_CLEANUP_INTERVAL_SECONDS: u64 = 300u64;
 #[derive(Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 struct StdServerIoError(std::io::Error);
@@ -131,36 +131,11 @@ enum RunServerError {
     #[error("invalid trusted proxy ranges: {0}")]
     TrustedProxyRanges(ServerRuntimeTrustedProxyRangesParseError),
 }
-#[allow(clippy::single_call_fn)] // keeps validated maintenance policy separate from startup orchestration
-fn mk_admin_cleanup_cfg() -> Result<server_admin::AdminCleanupCfg, RunServerError> {
-    let batch_size = server_admin::AdminCleanupBatchSize::try_from(1_000i64).map_err(|error| {
-        RunServerError::AdminCleanupConfig(ServerAdminCleanupCfgError::from(error))
-    })?;
-    let retention = |seconds| {
-        server_admin::AdminCleanupRetentionSeconds::try_from(seconds).map_err(|error| {
-            RunServerError::AdminCleanupConfig(ServerAdminCleanupCfgError::from(error))
-        })
-    };
-    Ok(server_admin::AdminCleanupCfg::new(
-        batch_size,
-        retention(604_800i64)?,
-        retention(7_776_000i64)?,
-        retention(86_400i64)?,
-        retention(86_400i64)?,
-        retention(3_600i64)?,
-    ))
-}
 #[allow(clippy::single_call_fn)] // startup flow is grouped for separation from process/bootstrap concerns
 async fn run_server(config: server_config::Config) -> Result<(), RunServerError> {
     let pg_pool = bootstrap::mk_pg_pool(&config).await?;
-    server_admin::prep_pg(app_state::SqlxPgPoolRef::from(pg_pool.as_ref()))
-        .await
-        .map_err(|error| RunServerError::PrepAdminPg(ServerAdminMigrateError::from(error)))?;
-    let cleanup_cfg = mk_admin_cleanup_cfg()?;
-    let cleanup_interval = server_runtime_http::StdRunInterval::try_from(
-        std::time::Duration::from_secs(ADMIN_CLEANUP_INTERVAL_SECONDS),
-    )
-    .map_err(|error| RunServerError::RuntimeInterval(ServerRuntimeRunIntervalError::from(error)))?;
+    let cleanup_cfg = maintenance::cfg()?;
+    let cleanup_interval = maintenance::interval()?;
     let cleanup_pool = pg_pool.clone();
     let Some(cleanup_task) = server_runtime_http::spawn_interval_task(
         Some(cleanup_interval),
@@ -396,37 +371,23 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
     serve_result.map_err(|error| RunServerError::Serve(ServerRuntimeServeError::from(error)))?;
     Ok(())
 }
-#[cfg(not(unix))]
-async fn shutdown_signal() {
-    if let Err(error) = tokio::signal::ctrl_c().await {
-        tracing::error!(error = %error, "failed to wait for shutdown signal");
-    }
-}
-#[cfg(unix)]
 #[allow(
-    clippy::integer_division_remainder_used,
     clippy::single_call_fn,
-    reason = "tokio::select macro internals trigger the remainder lint; shutdown signal ownership stays isolated"
+    reason = "migration mode remains isolated from the long-running service startup path"
+)]
+async fn migrate_server(config: &server_config::Config) -> Result<(), RunServerError> {
+    let pg_pool = bootstrap::mk_pg_pool(config).await?;
+    server_admin::prep_pg(app_state::SqlxPgPoolRef::from(pg_pool.as_ref()))
+        .await
+        .map_err(|error| RunServerError::PrepAdminPg(ServerAdminMigrateError::from(error)))
+}
+#[allow(
+    clippy::single_call_fn,
+    reason = "the service boundary owns logging for shared signal-installation failures"
 )]
 async fn shutdown_signal() {
-    let terminate = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate());
-    match terminate {
-        Ok(mut signal) => {
-            tokio::select! {
-                ctrl_c = tokio::signal::ctrl_c() => {
-                    if let Err(error) = ctrl_c {
-                        tracing::error!(error = %error, "failed to wait for ctrl-c signal");
-                    }
-                }
-                _signal = signal.recv() => {}
-            }
-        }
-        Err(error) => {
-            tracing::error!(error = %error, "failed to install SIGTERM handler");
-            if let Err(ctrl_c_error) = tokio::signal::ctrl_c().await {
-                tracing::error!(error = %ctrl_c_error, "failed to wait for ctrl-c signal");
-            }
-        }
+    if let Err(error) = server_runtime_http::wait_for_service_shutdown_signal().await {
+        tracing::error!(error = %error, "failed to wait for shutdown signal");
     }
 }
 fn main() -> StdServerExitCode {
@@ -463,8 +424,10 @@ fn main() -> StdServerExitCode {
             return StdServerExitCode::from(std::process::ExitCode::FAILURE);
         }
     };
-    let run_result =
-        bootstrap::mk_runtime().and_then(|runtime| runtime.0.block_on(run_server(config)));
+    let run_result = bootstrap::mk_runtime().and_then(|runtime| match config.svc_mode {
+        config_lib::types::SvcMode::Migrate => runtime.0.block_on(migrate_server(&config)),
+        config_lib::types::SvcMode::Serve => runtime.0.block_on(run_server(config)),
+    });
     if let Err(error) = run_result.as_ref() {
         tracing::error!(error = %error, "server terminated with an error");
     }

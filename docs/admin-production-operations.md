@@ -15,6 +15,30 @@ and new application during rolling replacement. The application readiness probe 
 unready during migration or database degradation; liveness should continue to report process
 health.
 
+The service images expose a migration-only command which exits after applying the embedded,
+immutable migration catalog:
+
+```bash
+SVC_MODE=migrate /application/server
+SVC_MODE=migrate /application/notification_service
+```
+
+For Compose, the `server_migrate` and `notification_service_migrate` one-shot services are required
+dependencies of their corresponding long-running services. For Kubernetes, render
+`deploy/k8s/migrations`, replace both image placeholders with the same immutable digests used by
+the Deployments, and replace `replace-with-release-id` in its `nameSuffix` with the immutable
+release identifier. Apply the NetworkPolicies, create the rendered Jobs, and wait for the exact
+names returned by `kubectl create` before applying or restarting the workloads. The manifests use
+release-specific names, a 15-minute execution deadline, and one-day automatic cleanup so a
+completed Job from an older release cannot satisfy a new deployment accidentally.
+
+```bash
+kubectl apply --filename deploy/k8s/migrations/network-policies.yaml
+kubectl kustomize deploy/k8s/migrations > migration-jobs.yaml
+migration_jobs=$(kubectl create --filename migration-jobs.yaml --output=name)
+kubectl wait --for=condition=complete --timeout=15m ${migration_jobs}
+```
+
 ## Backup and restore exercise
 
 At the deployment's recovery-point interval, create an encrypted PostgreSQL backup including
@@ -49,3 +73,14 @@ Forward structured application logs and administrator audit exports to a protect
 Document independent retention periods for operational logs and audit records, legal holds,
 access control, export verification, and deletion. Test that request and trace identifiers can
 correlate an audit action without exposing secrets.
+
+`deploy/k8s/observability` provides optional Prometheus Operator `ServiceMonitor` and
+`PrometheusRule` resources. Install them only in clusters with the monitoring CRDs, label the
+Prometheus namespace `kubernetes.io/metadata.name=monitoring`, and replace the example runbook URL
+with the deployment-owned URL. The base NetworkPolicy permits metrics traffic only from that
+namespace.
+
+Before go-live, record numeric RPO, RTO, availability and latency objectives, their measurement
+queries, alert owners and escalation paths in the deployment repository. Documentation without a
+successful restore rehearsal and alert delivery test is not evidence that those objectives are
+met.

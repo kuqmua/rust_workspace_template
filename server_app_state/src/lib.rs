@@ -104,6 +104,7 @@ pub fn mk_test_server_app_state() -> ServerAppState<'static> {
             server_runtime_core::ResourceBudgetMaximum::try_from(8usize).expect("86d3d452"),
         ),
         config: server_config::Config {
+            svc_mode: config_lib::types::SvcMode::Serve,
             cors_allow_origin: config_lib::CorsAllowOrigin(str_constants::ASTERISK.to_owned()),
             content_security_policy: test_env(
                 config_lib::StdEnvVarOk::try_from(
@@ -244,6 +245,7 @@ mod tests {
                 server_runtime_core::ResourceBudgetMaximum::try_from(128usize).expect("837f89a0"),
             ),
             config: server_config::Config {
+                svc_mode: config_lib::types::SvcMode::Serve,
                 cors_allow_origin: config_lib::CorsAllowOrigin(str_constants::ASTERISK.to_owned()),
                 content_security_policy: env(str_constants::TEST_CONTENT_SECURITY_POLICY),
                 database_url: env(str_constants::POSTGRES_DB),

@@ -18,6 +18,13 @@ spec:
     spec:
   # END GENERATED KUBERNETES WORKLOAD IDENTITY application
       automountServiceAccountToken: false
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: application
       # BEGIN GENERATED KUBERNETES CONTAINER application
       containers:
         - name: application
@@ -76,6 +83,8 @@ kind: Service
 metadata:
   name: application
   namespace: rust-workspace-template
+  labels:
+    app.kubernetes.io/name: application
 spec:
   selector:
     app.kubernetes.io/name: application

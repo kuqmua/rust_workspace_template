@@ -1,0 +1,6 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+nameSuffix: -replace-with-release-id
+resources:
+  - application.yaml
+  - notification-service.yaml

@@ -1,0 +1,47 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: application-migrate
+  namespace: rust-workspace-template
+spec:
+  activeDeadlineSeconds: 900
+  backoffLimit: 2
+  ttlSecondsAfterFinished: 86400
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: application-migrate
+    spec:
+      automountServiceAccountToken: false
+      restartPolicy: Never
+      containers:
+        - name: application-migrate
+          image: application:replace-with-immutable-tag
+          envFrom:
+            - configMapRef:
+                name: application-config
+            - secretRef:
+                name: application-secrets
+          env:
+            - name: SVC_MODE
+              value: migrate
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsGroup: 10001
+            runAsUser: 10001
+            seccompProfile:
+              type: RuntimeDefault
+      securityContext:
+        runAsNonRoot: true
+      terminationGracePeriodSeconds: 30

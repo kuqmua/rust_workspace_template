@@ -22,6 +22,9 @@ The project follows semantic versioning after its first stable release. Until th
   scaling, alerting, retention, and session-invalidation documentation.
 - Real administrator screenshots, issue forms, pull-request checklist, and production overlay
   example.
+- Release candidate vulnerability promotion gates and an immutable image digest manifest.
+- Release database and browser acceptance gates, topology-spread constraints, unique bounded
+  migration Jobs, Prometheus Operator monitors and alert rules, and explicit code ownership.
 
 ### Fixed
 

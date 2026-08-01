@@ -872,10 +872,17 @@ fn allocations_inside_loops_match_reviewed_inventory() {
             ),
         ),
         (
+            "../server_runtime_http/src/http_error_diagnostic.rs:to_string",
+            (
+                1usize,
+                "diagnostic capture materializes each owned source in the bounded error chain",
+            ),
+        ),
+        (
             "../server_runtime_http/src/lib.rs:to_string",
             (
-                2usize,
-                "bounded request parsing materializes validated protocol values that outlive input buffers",
+                1usize,
+                "request middleware materializes validated protocol values that outlive input buffers",
             ),
         ),
         (
@@ -1193,8 +1200,35 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             (
                 2,
                 0,
-                6,
+                2,
                 "runtime middleware shares state and erases heterogeneous service errors",
+            ),
+        ),
+        (
+            "server_runtime_http/src/security_headers.rs",
+            (
+                0,
+                0,
+                1,
+                "security middleware erases its service future behind the tower boundary",
+            ),
+        ),
+        (
+            "server_runtime_http/src/http_error_diagnostic.rs",
+            (
+                0,
+                0,
+                2,
+                "diagnostic capture accepts error sources through the standard error boundary",
+            ),
+        ),
+        (
+            "server_runtime_http/src/request_timeout.rs",
+            (
+                0,
+                0,
+                1,
+                "timeout middleware erases its service future behind the tower boundary",
             ),
         ),
         (
@@ -1467,8 +1501,15 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
         (
             "notification_service/src/main.rs",
             (
-                2usize,
+                1usize,
                 "service bootstrap classifies configuration failures",
+            ),
+        ),
+        (
+            "notification_service/src/runtime.rs",
+            (
+                1usize,
+                "service runtime classifies timeout configuration failures",
             ),
         ),
         (
@@ -1515,10 +1556,10 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             ),
         ),
         (
-            "server_runtime_http/src/lib.rs",
+            "server_runtime_http/src/security_headers.rs",
             (
                 1usize,
-                "timeout details map to the public shutdown timeout variant",
+                "content-security-policy parse details map to a stable configuration error",
             ),
         ),
         (
@@ -1600,12 +1641,32 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             ),
         ),
         (
-            "config_lib/src/lib.rs",
-            (4usize, "configuration parsing exposes stable field errors"),
+            "config_lib/src/pg_pool.rs",
+            (
+                2usize,
+                "pool configuration maps numeric parsing details to its stable public error",
+            ),
         ),
         (
-            "workspace_test_runner/src/main.rs",
-            (1usize, "runner input conversion maps to a command error"),
+            "config_lib/src/admin.rs",
+            (
+                1usize,
+                "administrator token parsing maps bounded text to its stable public error",
+            ),
+        ),
+        (
+            "config_lib/src/admin_jwt.rs",
+            (
+                1usize,
+                "administrator JWT parsing maps bounded secrets to its stable public error",
+            ),
+        ),
+        (
+            "workspace_test_runner/src/admin_fixture.rs",
+            (
+                1usize,
+                "fixture input conversion maps bounded text to command failure",
+            ),
         ),
         (
             "workspace_test_runner/src/execution.rs",
@@ -1620,7 +1681,11 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
         ),
         (
             "workspace_scaffold/src/main.rs",
-            (9usize, "catalog parsing maps to stable scaffold errors"),
+            (1usize, "projection parsing maps to a stable scaffold error"),
+        ),
+        (
+            "workspace_scaffold/src/service_catalog.rs",
+            (8usize, "catalog parsing maps to stable scaffold errors"),
         ),
         (
             "newtype/src/lib.rs",
@@ -1828,7 +1893,7 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
 fn raw_vec_tuple_wrappers_match_reviewed_inventory() {
     let reviewed = std::collections::BTreeMap::from([
         (
-            "../bounded_types/src/lib.rs:BoundedVec",
+            "../bounded_types/src/vector.rs:BoundedVec",
             "the shared bounded vector is the reviewed owner of raw Vec storage",
         ),
         (
@@ -2055,10 +2120,17 @@ fn raw_vec_tuple_wrapper_visitor_detects_qualified_and_nested_types() {
 fn usize_max_usage_matches_reviewed_inventory() {
     let reviewed = std::collections::BTreeMap::from([
         (
-            "../bounded_types/src/lib.rs",
+            "../bounded_types/src/string.rs",
             (
-                4usize,
-                "the shared type provides its explicitly unbounded specialization, overflow boundary, and schema handling",
+                1usize,
+                "the bounded string schema represents its explicitly unbounded maximum",
+            ),
+        ),
+        (
+            "../bounded_types/src/vector.rs",
+            (
+                3usize,
+                "the bounded vector provides its explicitly unbounded specialization, overflow boundary, and schema handling",
             ),
         ),
         (
@@ -2205,12 +2277,7 @@ fn usize_max_expression_visitor_skips_test_modules() {
 fn select_sites_match_reviewed_cancellation_inventory() {
     let reviewed = [
         (
-            "server/src/main.rs",
-            1usize,
-            "the shutdown signal races two cancellation-safe signal receivers",
-        ),
-        (
-            "server_runtime_http/src/lib.rs",
+            "server_runtime_http/src/service.rs",
             1usize,
             "the pinned server future is resumed after the shutdown notification branch",
         ),
@@ -2218,6 +2285,11 @@ fn select_sites_match_reviewed_cancellation_inventory() {
             "server_runtime_http/src/lifecycle.rs",
             1usize,
             "the interval tick and oneshot shutdown receiver are cancellation-safe",
+        ),
+        (
+            "server_runtime_http/src/service_bootstrap.rs",
+            1usize,
+            "the shutdown signal races two cancellation-safe signal receivers",
         ),
     ];
     super::snapshot::with_codebase_snapshot(|snapshot| {

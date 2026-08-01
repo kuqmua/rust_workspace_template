@@ -72,3 +72,68 @@ pub(super) async fn authenticate_mutation(
     .await?;
     Ok(actor)
 }
+pub(super) async fn authorize_custom(
+    auth: &super::AdminAuthReq,
+    permission: super::super::AdminPermission,
+) -> Result<super::AuthenticatedAdmin, super::AdminError> {
+    let authenticated = super::authorize_generated_request(
+        auth.state.as_ref(),
+        super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
+        auth.peer,
+        permission.as_str(),
+        super::super::StdAdminBool::from(true),
+    )
+    .await?;
+    Ok(authenticated)
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn page_total_accepts_non_negative_values_and_rejects_negative_values() {
+        let total = super::page_total(super::super::super::repository::AdminPageTotalCount::from(
+            17i64,
+        ))
+        .expect("8d31f2a7");
+        assert_eq!(u64::from(total), 17u64);
+        assert!(matches!(
+            super::page_total(super::super::super::repository::AdminPageTotalCount::from(
+                -1i64
+            )),
+            Err(super::super::AdminError::Validation)
+        ));
+    }
+
+    #[test]
+    fn table_sort_validation_accepts_empty_and_known_keys_only() {
+        super::validate_table_sort(
+            &server_admin_contract::AdminTableQuery::default(),
+            &server_admin_contract::AdminTableSortField::USER,
+        )
+        .expect("41d8a6c2");
+        let known = serde_json::from_value::<server_admin_contract::AdminTableQuery>(
+            serde_json::json!({ "sort": "login" }),
+        )
+        .expect("f20a91c6");
+        super::validate_table_sort(&known, &server_admin_contract::AdminTableSortField::USER)
+            .expect("b70c35e9");
+        let unknown = serde_json::from_value::<server_admin_contract::AdminTableQuery>(
+            serde_json::json!({ "sort": "created_at" }),
+        )
+        .expect("c731d84e");
+        assert!(matches!(
+            super::validate_table_sort(&unknown, &server_admin_contract::AdminTableSortField::USER,),
+            Err(super::super::AdminError::Validation)
+        ));
+    }
+
+    #[test]
+    fn invalid_repository_values_map_to_validation_errors() {
+        assert!(matches!(
+            super::map_repository_error(
+                super::super::super::repository::AdminRepositoryError::InvalidStoredValue,
+            ),
+            super::super::AdminError::Validation
+        ));
+    }
+}

@@ -251,6 +251,177 @@ pub fn render_text_page_with_access(
 mod tests {
     use super::AdminSsrViewExt;
 
+    fn test_admin() -> server_admin_contract::AuthenticatedAdmin {
+        server_admin_contract::AuthenticatedAdmin::new(
+            server_admin_contract::AdminDisplayName::try_from(String::from("Alice Admin"))
+                .expect("21d86f4c"),
+            server_admin_contract::AdminUserId::try_from(1i64).expect("3ac90e75"),
+            server_admin_contract::AdminLogin::try_from(String::from("alice")).expect("d5810a3f"),
+            server_admin_contract::AdminPermissionValues::try_from(Vec::new()).expect("8e2c74b1"),
+            server_admin_contract::AdminRoleNames::try_from(vec![
+                server_admin_contract::AdminRoleName::try_from(String::from("operator"))
+                    .expect("f0b31c86"),
+                server_admin_contract::AdminRoleName::try_from(String::from("auditor"))
+                    .expect("5d94ea20"),
+            ])
+            .expect("c72f0d39"),
+        )
+    }
+
+    fn test_branding() -> server_admin_contract::AdminBrandingView {
+        server_admin_contract::AdminBrandingView::from_settings(
+            &server_admin_contract::AdminSettingsView::new(
+                server_admin_contract::AdminDefaultRoute::try_from(String::from("/admin/users"))
+                    .expect("143ea69b"),
+                None,
+                None,
+                None,
+                None,
+                server_admin_contract::AdminSiteName::try_from(String::from("Test Admin"))
+                    .expect("a82f1d63"),
+                None,
+                None,
+            ),
+        )
+    }
+
+    #[test]
+    fn typed_static_pages_render_rows_actions_roles_and_escaped_text() {
+        let admin = test_admin();
+        let branding = test_branding();
+        let query = server_admin_contract::AdminTableQuery::default();
+        let permission_id =
+            server_admin_contract::AdminPermissionId::try_from(7i64).expect("6bc2a15e");
+        let permissions = server_admin_contract::AdminPermissionsPage::new(
+            server_admin_contract::AdminPermissionSummaries::try_from(vec![
+                server_admin_contract::AdminPermissionSummary::new(
+                    permission_id,
+                    server_admin_contract::AdminPermissionValue::try_from(String::from(
+                        "users.read",
+                    ))
+                    .expect("9d7f0c42"),
+                ),
+            ])
+            .expect("0ca582e4"),
+            server_admin_contract::AdminPageTotal::from(1u64),
+        );
+        let permissions_html = super::render_permissions(&permissions, &query, &admin, &branding);
+        assert!(
+            permissions_html
+                .as_ref()
+                .contains("data-label=\"id\">7</td>")
+        );
+        assert!(permissions_html.as_ref().contains(">users.read</td>"));
+
+        let role_id = server_admin_contract::AdminRoleId::try_from(3i64).expect("b751e0a4");
+        let users = server_admin_contract::AdminUsersPage::new(
+            server_admin_contract::AdminUserSummaries::try_from(vec![
+                server_admin_contract::AdminUserSummary::new(
+                    server_admin_contract::AdminDisplayName::try_from(String::from("Bob User"))
+                        .expect("4ef37b81"),
+                    server_admin_contract::AdminUserId::try_from(2i64).expect("ea691d50"),
+                    server_admin_contract::AdminBool::from(true),
+                    server_admin_contract::AdminLogin::try_from(String::from("bob"))
+                        .expect("72c54e9a"),
+                    server_admin_contract::AdminRoleIds::try_from(vec![role_id]).expect("1f84cb63"),
+                ),
+            ])
+            .expect("39ad70e2"),
+            server_admin_contract::AdminRoleSummaries::try_from(vec![
+                server_admin_contract::AdminRoleSummary::new(
+                    role_id,
+                    server_admin_contract::AdminBool::from(false),
+                    server_admin_contract::AdminRoleName::try_from(String::from("reviewer"))
+                        .expect("d02b63f8"),
+                    server_admin_contract::AdminPermissionIds::try_from(vec![permission_id])
+                        .expect("8561ce4d"),
+                ),
+            ])
+            .expect("2a9f75c1"),
+            server_admin_contract::AdminPageTotal::from(1u64),
+        );
+        let users_html = super::render_users(&users, &query, &admin, &branding);
+        assert!(
+            users_html
+                .as_ref()
+                .contains("data-label=\"login\">bob</td>")
+        );
+        assert!(
+            users_html
+                .as_ref()
+                .contains("data-label=\"banned\">true</td>")
+        );
+        assert!(users_html.as_ref().contains(">reviewer</td>"));
+
+        let roles = server_admin_contract::AdminRolesPage::new(
+            server_admin_contract::AdminRoleSummaries::try_from(users.roles().to_vec())
+                .expect("7ce41b06"),
+            server_admin_contract::AdminPermissionSummaries::try_from(permissions.items().to_vec())
+                .expect("c306d98a"),
+            server_admin_contract::AdminPageTotal::from(1u64),
+        );
+        let roles_html = super::render_roles(&roles, &query, &admin, &branding);
+        assert!(
+            roles_html
+                .as_ref()
+                .contains("data-label=\"name\">reviewer</td>")
+        );
+        assert!(roles_html.as_ref().contains(">users.read</td>"));
+
+        let sessions = server_admin_contract::AdminSessionsPage::new(
+            server_admin_contract::AdminSessionViews::try_from(vec![
+                server_admin_contract::AdminSessionView::new(
+                    server_admin_contract::AdminSessionTimestamp::try_from(String::from(
+                        "2026-08-01T10:00:00Z",
+                    ))
+                    .expect("6a4de195"),
+                    server_admin_contract::AdminSessionTimestamp::try_from(String::from(
+                        "2026-08-02T10:00:00Z",
+                    ))
+                    .expect("f81c2b47"),
+                    server_admin_contract::AdminSessionIdentifier::try_from(String::from(
+                        "session-1",
+                    ))
+                    .expect("04b9a7d2"),
+                    server_admin_contract::AdminBool::from(true),
+                ),
+            ])
+            .expect("bc30f861"),
+            server_admin_contract::AdminPageTotal::from(1u64),
+        );
+        let sessions_html = super::render_sessions(&sessions, &query, &admin, &branding);
+        assert!(sessions_html.as_ref().contains("value=\"session-1\""));
+        assert!(
+            sessions_html
+                .as_ref()
+                .contains(">Confirm session revocation</label>")
+        );
+
+        let profile_html = super::render_profile(&admin, &branding);
+        assert!(profile_html.as_ref().contains(">operator, auditor</p>"));
+        assert!(profile_html.as_ref().contains("name=\"current_password\""));
+
+        let public_text = super::render_text_page(
+            server_admin_contract::AdminPage::Metrics,
+            super::AdminSsrText::try_from(String::from("Metrics")).expect("e5a204bd"),
+            super::AdminSsrText::try_from(String::from("<ready>")).expect("107cde83"),
+        );
+        assert!(public_text.as_ref().contains("&lt;ready&gt;"));
+        let private_text = super::render_text_page_with_access(
+            server_admin_contract::AdminPage::OpenApi,
+            super::AdminSsrText::try_from(String::from("Specification")).expect("48a0fc36"),
+            super::AdminSsrText::try_from(String::from("contract text")).expect("b7d3640e"),
+            &admin,
+            &branding,
+        );
+        assert!(private_text.as_ref().contains(">contract text</pre>"));
+        assert!(
+            private_text
+                .as_ref()
+                .contains(server_admin_contract::AdminHtmlAction::SignOut.get())
+        );
+    }
+
     #[test]
     fn generated_column_metadata_drives_data_table_markup() {
         let columns = server_admin_contract::AdminDataColumns::try_from(vec![
@@ -454,6 +625,23 @@ mod tests {
                 .count(),
             1usize
         );
+
+        let admin = test_admin();
+        let branding = test_branding();
+        let page_html = super::render_data_tables(Some(&filter_view), &query, &admin, &branding);
+        assert!(page_html.as_ref().contains("data-field=\"login\""));
+        assert!(
+            page_html
+                .as_ref()
+                .contains("action=\"/admin/role_permissions\"")
+        );
+        let empty_html = super::render_data_tables(None, &query, &admin, &branding);
+        assert!(!empty_html.as_ref().contains("class=\"table-scroll\""));
+        assert!(
+            empty_html
+                .as_ref()
+                .contains(server_admin_contract::AdminHtmlAction::SignOut.get())
+        );
     }
 
     #[test]
@@ -470,6 +658,15 @@ mod tests {
         assert!(!sign_in.as_ref().contains("<h2"));
         assert!(!sign_in.as_ref().contains("<script"));
         assert!(!sign_in.as_ref().contains(".wasm"));
+        let failed_sign_in = super::render_sign_in(
+            Some(
+                super::AdminSsrErrorMessage::try_from(String::from("Invalid credentials"))
+                    .expect("31b0d69f"),
+            ),
+            None,
+        );
+        assert!(failed_sign_in.as_ref().contains("Invalid credentials</p>"));
+        assert!(failed_sign_in.as_ref().contains("role=\"alert\""));
 
         let page = super::render_admin_page(
             server_admin_contract::AdminPage::Users,
@@ -604,6 +801,18 @@ mod tests {
         assert!(!html.as_ref().contains("<nav"));
         assert!(!html.as_ref().contains("<table"));
         assert!(!html.as_ref().contains("<form"));
+
+        let table_html = super::render_data_tables_csr(
+            Some(server_admin_contract::AdminDataTable::Users),
+            &admin,
+            &branding,
+        );
+        assert!(table_html.as_ref().contains("id=\"admin-csr-root\""));
+        assert!(
+            table_html
+                .as_ref()
+                .contains("src=\"/admin/assets/csr_bootstrap.js?v=20260730-36\"")
+        );
     }
 
     #[test]
@@ -638,6 +847,78 @@ mod tests {
         assert!(
             html.as_ref()
                 .contains("<section class=\"settings-grid\"><article class=\"settings-card\">")
+        );
+    }
+
+    #[test]
+    fn editable_settings_render_every_input_kind_from_the_contract_catalog() {
+        let settings = server_admin_contract::AdminSettingsView::new(
+            server_admin_contract::AdminDefaultRoute::try_from(String::from("/admin/users"))
+                .expect("be6493d0"),
+            Some(
+                server_admin_contract::AdminMainLogo::try_from(String::from(
+                    "https://example.test/logo.svg",
+                ))
+                .expect("a5708cb4"),
+            ),
+            Some(
+                server_admin_contract::AdminOrganizationContacts::try_from(String::from(
+                    "Support desk",
+                ))
+                .expect("32da6e91"),
+            ),
+            Some(
+                server_admin_contract::AdminOrganizationName::try_from(String::from("Example"))
+                    .expect("f4c739a1"),
+            ),
+            Some(
+                server_admin_contract::AdminPrimaryColor::try_from(String::from("#123456"))
+                    .expect("c86b50d7"),
+            ),
+            server_admin_contract::AdminSiteName::try_from(String::from("Example Admin"))
+                .expect("70af15dc"),
+            Some(
+                server_admin_contract::AdminSupportUrl::try_from(String::from(
+                    "https://example.test/support",
+                ))
+                .expect("195d8eca"),
+            ),
+            Some(
+                server_admin_contract::AdminTabTitle::try_from(String::from("Control Panel"))
+                    .expect("e317c4b8"),
+            ),
+        );
+        let admin = server_admin_contract::AuthenticatedAdmin::new(
+            server_admin_contract::AdminDisplayName::try_from(String::from("Admin"))
+                .expect("6fa15bc0"),
+            server_admin_contract::AdminUserId::try_from(1i64).expect("9e80d2c4"),
+            server_admin_contract::AdminLogin::try_from(String::from("root")).expect("241b70ae"),
+            server_admin_contract::AdminPermissionValues::try_from(vec![
+                server_admin_contract::AdminPermissionValue::try_from(
+                    server_admin_contract::AdminPermission::SystemSettingsUpdate
+                        .as_str()
+                        .get()
+                        .to_owned(),
+                )
+                .expect("b73c60e9"),
+            ])
+            .expect("da8504f2"),
+            server_admin_contract::AdminRoleNames::try_from(Vec::new()).expect("480eb7c3"),
+        );
+        let branding = server_admin_contract::AdminBrandingView::from_settings(&settings);
+
+        let html = super::render_settings(&settings, &admin, &branding);
+
+        assert!(html.as_ref().contains("name=\"site_name\" type=\"text\""));
+        assert!(html.as_ref().contains("name=\"main_logo\" type=\"url\""));
+        assert!(
+            html.as_ref()
+                .contains("<textarea name=\"organization_contacts\"")
+        );
+        assert!(html.as_ref().contains(">Support desk</textarea>"));
+        assert!(
+            html.as_ref()
+                .contains("<button type=\"submit\">Save settings</button>")
         );
     }
 

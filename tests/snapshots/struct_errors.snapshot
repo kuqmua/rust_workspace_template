@@ -1,7 +1,7 @@
 # GENERATED REVIEWED SINGLE-CASE AND TRANSPARENT ERROR STRUCTS; DO NOT EDIT
 ../admin_bootstrap/src/main.rs:SqlxBootstrapError
 ../common_routes/src/lib.rs:HealthComponentsError
-../config_lib/src/lib.rs:TryFromStdEnvVarOkAdminCookieSecureError
+../config_lib/src/bool_flags.rs:TryFromStdEnvVarOkAdminCookieSecureError
 ../config_lib/src/types.rs:StdEnvVarError
 ../development_data_bootstrap/src/lib.rs:DevelopmentIdentitySpecsError
 ../external_service_emulators/src/lib.rs:MockNotificationProviderClosed
@@ -98,12 +98,10 @@
 ../server_runtime_http/src/csp.rs:HttpCspMaximumBytesError
 ../server_runtime_http/src/geojson.rs:SerdeJsonGeoJsonError
 ../server_runtime_http/src/header_text.rs:HttpHeaderTextMaximumBytesError
+../server_runtime_http/src/http_client.rs:ReqwestClientBuildError
+../server_runtime_http/src/http_client.rs:StdReqwestTimeoutError
+../server_runtime_http/src/http_error_diagnostic.rs:HttpErrorWithoutDiagnosticContext
 ../server_runtime_http/src/lib.rs:BoundaryTestError
-../server_runtime_http/src/lib.rs:HttpContentSecurityPolicyError
-../server_runtime_http/src/lib.rs:HttpErrorWithoutDiagnosticContext
-../server_runtime_http/src/lib.rs:ReqwestClientBuildError
-../server_runtime_http/src/lib.rs:StdReqwestTimeoutError
-../server_runtime_http/src/lib.rs:StdServeIoError
 ../server_runtime_http/src/lifecycle.rs:StdRequestTimeoutTryFromDurationError
 ../server_runtime_http/src/lifecycle.rs:StdRunIntervalTryFromDurationError
 ../server_runtime_http/src/lifecycle.rs:TokioTaskJoinError
@@ -118,6 +116,8 @@
 ../server_runtime_http/src/pg_rate_limit.rs:SqlxPgRateLimitError
 ../server_runtime_http/src/request_id.rs:HttpHeaderToStrError
 ../server_runtime_http/src/request_id.rs:RequestIdTryFromStringError
+../server_runtime_http/src/security_headers.rs:HttpContentSecurityPolicyError
+../server_runtime_http/src/service.rs:StdServeIoError
 ../server_runtime_http/src/service_bootstrap.rs:StdServiceRuntimeIoError
 ../server_runtime_http/src/trace_context.rs:HttpTraceStateError
 ../synchronization_service_runtime/src/lib.rs:SynchronizationPayloadTooLarge

@@ -4,15 +4,49 @@ resources:
   - ../../base
 patches:
   - path: application-patch.yaml
+  - path: notification-service-patch.yaml
 configMapGenerator:
   - name: application-config
     namespace: rust-workspace-template
     behavior: create
     literals:
+      - ADMIN_ACCESS_TOKEN_TTL_SECONDS=900
       - ADMIN_COOKIE_SECURE=true
       - ADMIN_LOGIN_FAILURE_LIMIT=10
+      - ADMIN_PASSWORD_HASH_CONCURRENCY=2
+      - ADMIN_REFRESH_TOKEN_TTL_SECONDS=604800
+      - ADMIN_SESSION_LIMIT=8
+      - ADMIN_SIGN_IN_RATE_LIMIT=10
       - ADMIN_SWAGGER_ENABLED=false
+      - ADMIN_TOKEN_AUDIENCE=rust-workspace-template
+      - ADMIN_TOKEN_ISSUER=rust-workspace-template
+      - CONTENT_SECURITY_POLICY=default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; object-src 'none'; frame-ancestors 'none'
       - CORS_ALLOW_ORIGIN=https://admin.example.invalid
+      - ENABLE_API_GIT_COMMIT_CHECK=true
+      - HTTP_GZIP_ENABLED=true
+      - MAXIMUM_SIZE_OF_HTTP_BODY_IN_BYTES=1048576
+      - PG_POOL_ACQUIRE_TIMEOUT_SECONDS=10
+      - PG_POOL_IDLE_TIMEOUT_SECONDS=600
+      - PG_POOL_MAX_CONNECTIONS=10
+      - PG_POOL_MAX_LIFETIME_SECONDS=1800
+      - PG_POOL_MIN_CONNECTIONS=1
       - PRODUCTION_MODE=true
+      - REQUEST_TIMEOUT_SECONDS=30
+      - SERVICE_SOCKET_ADDRESS=0.0.0.0:8080
+      - SRC_PLACE_TYPE=github
+      - SVC_MODE=serve
+      - TIMEZONE=0
+      - TRACING_FORMAT=json
+      - TRACING_LEVEL=info
+      - TRUSTED_PROXY_RANGES_TEXT=127.0.0.1/32
+  - name: notification-service-config
+    namespace: rust-workspace-template
+    behavior: create
+    literals:
+      - NOTIFICATION_SERVICE_SOCKET_ADDRESS=0.0.0.0:8081
+      - PG_POOL_MAX_CONNECTIONS=10
+      - REQUEST_TIMEOUT_SECONDS=30
+      - SVC_MODE=serve
+      - TRACING_FORMAT=json
 generatorOptions:
   disableNameSuffixHash: true

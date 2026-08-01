@@ -4,7 +4,8 @@ pub(super) async fn create(
     auth: super::AdminAuthReq,
     request: super::AxumAdminJson<server_admin_contract::AdminCreateUserReq>,
 ) -> Result<super::AxumAdminResponse, super::AdminError> {
-    let actor = super::authorize_custom(&auth, super::super::AdminPermission::UsersCreate).await?;
+    let actor =
+        super::shared::authorize_custom(&auth, super::super::AdminPermission::UsersCreate).await?;
     let (contract_display_name, contract_login, contract_password) = request.0.into_parts();
     let display_name = super::super::AdminDisplayName::try_from(contract_display_name.into_inner())
         .map_err(|_error| super::AdminError::Validation)?;
@@ -63,7 +64,8 @@ pub(super) async fn update(
     path: super::AxumAdminPath<super::super::AdminUserId>,
     request: super::AxumAdminJson<server_admin_contract::AdminUpdateUserReq>,
 ) -> Result<super::AxumAdminResponse, super::AdminError> {
-    let actor = super::authorize_custom(&auth, super::super::AdminPermission::UsersUpdate).await?;
+    let actor =
+        super::shared::authorize_custom(&auth, super::super::AdminPermission::UsersUpdate).await?;
     let (contract_display_name, contract_login) = request.0.into_parts();
     let display_name = contract_display_name
         .map(|value| super::super::AdminDisplayName::try_from(value.into_inner()))
@@ -116,7 +118,8 @@ pub(super) async fn set_password(
     path: super::AxumAdminPath<super::super::AdminUserId>,
     request: super::AxumAdminJson<server_admin_contract::AdminSetUserPasswordReq>,
 ) -> Result<super::AxumAdminResponse, super::AdminError> {
-    let actor = super::authorize_custom(&auth, super::super::AdminPermission::UsersUpdate).await?;
+    let actor =
+        super::shared::authorize_custom(&auth, super::super::AdminPermission::UsersUpdate).await?;
     let password = super::admin_new_password_from_contract(request.0.into_password())
         .map_err(super::AdminError::password_text)?;
     let password_hash = auth
@@ -172,7 +175,8 @@ pub(super) async fn set_ban(
     path: super::AxumAdminPath<super::super::AdminUserId>,
     request: super::AxumAdminJson<server_admin_contract::AdminSetUserBanReq>,
 ) -> Result<super::AxumAdminResponse, super::AdminError> {
-    let actor = super::authorize_custom(&auth, super::super::AdminPermission::UsersUpdate).await?;
+    let actor =
+        super::shared::authorize_custom(&auth, super::super::AdminPermission::UsersUpdate).await?;
     let is_banned = bool::from(request.0.is_banned());
     if is_banned && actor.id == path.0 {
         return Err(super::AdminError::Conflict);
@@ -239,7 +243,8 @@ pub(super) async fn delete(
     auth: super::AdminAuthReq,
     path: super::AxumAdminPath<super::super::AdminUserId>,
 ) -> Result<super::AxumAdminResponse, super::AdminError> {
-    let actor = super::authorize_custom(&auth, super::super::AdminPermission::UsersDelete).await?;
+    let actor =
+        super::shared::authorize_custom(&auth, super::super::AdminPermission::UsersDelete).await?;
     if actor.id == path.0 {
         return Err(super::AdminError::Conflict);
     }
@@ -291,7 +296,8 @@ pub(super) async fn set_roles(
     request: super::AxumAdminJson<server_admin_contract::AdminSetUserRolesReq>,
 ) -> Result<super::AxumAdminResponse, super::AdminError> {
     let actor =
-        super::authorize_custom(&auth, super::super::AdminPermission::UserRolesUpdate).await?;
+        super::shared::authorize_custom(&auth, super::super::AdminPermission::UserRolesUpdate)
+            .await?;
     let (expected_role_ids, contract_role_ids) = request.0.into_parts();
     if AsRef::<[server_admin_contract::AdminRoleId]>::as_ref(&expected_role_ids)
         .iter()

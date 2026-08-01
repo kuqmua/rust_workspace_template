@@ -1,5 +1,38 @@
 #![allow(clippy::arbitrary_source_item_ordering)] // configuration declarations stay grouped with their parse errors and TryFromStdEnvVarOk implementations
+mod admin;
+mod admin_jwt;
+mod bool_flags;
+mod http;
+mod pg_pool;
 pub mod types;
+pub use admin::{
+    AdminAccessTokenTtlSeconds, AdminLoginFailureLimit, AdminPasswordHashConcurrency,
+    AdminPositiveU64ParsingError, AdminPositiveUsizeParsingError, AdminRefreshTokenTtlSeconds,
+    AdminSessionLimit, AdminSignInRateLimit, AdminTokenAudience,
+    AdminTokenAudienceTryFromStringError, AdminTokenIssuer, AdminTokenIssuerTryFromStringError,
+    GetAdminAccessTokenTtlSeconds, GetAdminLoginFailureLimit, GetAdminPasswordHashConcurrency,
+    GetAdminRefreshTokenTtlSeconds, GetAdminSessionLimit, GetAdminSignInRateLimit,
+    GetAdminTokenAudience, GetAdminTokenIssuer,
+    TryFromStdEnvVarOkAdminPasswordHashConcurrencyError, TryFromStdEnvVarOkAdminPositiveU64Error,
+    TryFromStdEnvVarOkAdminTokenTextError,
+};
+pub use admin_jwt::{AdminJwtSecret, GetAdminJwtSecret, TryFromStdEnvVarOkAdminJwtSecretError};
+pub use bool_flags::{
+    AdminBoolParsingError, AdminCookieSecure, AdminSwaggerEnabled, GetAdminCookieSecure,
+    GetAdminSwaggerEnabled, HttpGzipEnabled, ProductionMode,
+    TryFromStdEnvVarOkAdminCookieSecureError,
+};
+pub use http::{
+    ContentSecurityPolicy, ContentSecurityPolicyError, GetMaximumSizeOfHttpBodyInBytes,
+    MaximumSizeOfHttpBodyInBytes, MaximumSizeOfHttpBodyInBytesTryFromUsizeError,
+    TryFromStdEnvVarOkMaximumSizeOfHttpBodyInBytesError,
+};
+pub use pg_pool::{
+    GetPgPoolMaxConnections, PgPoolAcquireTimeoutSeconds, PgPoolConfigParseError,
+    PgPoolIdleTimeoutSeconds, PgPoolMaxConnections, PgPoolMaxConnectionsTryFromU32Error,
+    PgPoolMaxLifetimeSeconds, PgPoolMinConnections, RequestTimeoutSeconds,
+    TryFromStdEnvVarOkPgPoolMaxConnectionsError,
+};
 const CONFIG_LIB_STRING_WRAPPER_MAX_LEN: usize = 1_048_576;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct StdEnvVarOk(String);
@@ -146,8 +179,6 @@ impl ConfigFieldDescriptor {
         (self.parser)(value)
     }
 }
-const ADMIN_JWT_SECRET_MIN_LEN: usize = 32;
-const ADMIN_JWT_SECRET_MAX_COUNT: usize = 8;
 #[derive(
     Clone,
     PartialEq,
@@ -186,400 +217,6 @@ pub struct StdNonZeroUsize(std::num::NonZeroUsize);
 pub struct StdParseIntError(std::num::ParseIntError);
 #[derive(newtype::DebugTransparent, newtype::FromInner)]
 pub struct StdParseBoolError(std::str::ParseBoolError);
-#[derive(
-    generate_getter_traits_for_struct_fields::GenerateGetterTrait,
-    newtype::AsRefOwned,
-    newtype::DebugRedacted,
-    newtype::FromInner,
-)]
-pub struct AdminJwtSecret(
-    bounded_types::BoundedVec<SecrecySecretBoxString, 1, ADMIN_JWT_SECRET_MAX_COUNT>,
-);
-impl AdminJwtSecret {
-    #[must_use]
-    pub fn primary(&self) -> Option<&SecrecySecretBoxString> {
-        self.0.first()
-    }
-
-    #[must_use]
-    pub const fn verification_secrets(&self) -> &[SecrecySecretBoxString] {
-        self.0.as_slice()
-    }
-}
-#[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
-pub enum TryFromStdEnvVarOkAdminJwtSecretError {
-    #[error("administrator JWT secret list must not be empty")]
-    Empty,
-    #[error(
-        "administrator JWT secret list must contain at most {ADMIN_JWT_SECRET_MAX_COUNT} entries"
-    )]
-    TooMany,
-    #[error("administrator JWT secret must contain at least {ADMIN_JWT_SECRET_MIN_LEN} bytes")]
-    TooShort,
-    #[error("administrator JWT secret is too long")]
-    TooLong,
-}
-impl TryFromStdEnvVarOk for AdminJwtSecret {
-    type Error = TryFromStdEnvVarOkAdminJwtSecretError;
-    fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
-        let raw_secrets =
-            v.0.split(',')
-                .map(str::trim)
-                .filter(|value| !value.is_empty())
-                .collect::<Vec<_>>();
-        if raw_secrets.is_empty() {
-            return Err(Self::Error::Empty);
-        }
-        if raw_secrets.len() > ADMIN_JWT_SECRET_MAX_COUNT {
-            return Err(Self::Error::TooMany);
-        }
-        let secrets = raw_secrets
-            .into_iter()
-            .map(|value| {
-                if value.len() < ADMIN_JWT_SECRET_MIN_LEN {
-                    Err(Self::Error::TooShort)
-                } else {
-                    SecrecySecretBoxString::try_from(value.to_owned())
-                        .map_err(|_error| Self::Error::TooLong)
-                }
-            })
-            .collect::<Result<Vec<_>, _>>()?;
-        bounded_types::BoundedVec::try_from(secrets)
-            .map(Self)
-            .map_err(|error| match error {
-                bounded_types::BoundedValueError::BelowMin { .. } => Self::Error::Empty,
-                bounded_types::BoundedValueError::AboveMax { .. }
-                | bounded_types::BoundedValueError::InvalidBounds { .. } => Self::Error::TooMany,
-            })
-    }
-}
-#[cfg(test)]
-mod admin_jwt_secret_tests {
-    #[test]
-    #[cfg_attr(
-        miri,
-        ignore = "Miri interpretation is prohibitively slow when zeroizing the intentional oversized allocation"
-    )]
-    fn secret_box_string_rejects_values_above_shared_limit() {
-        let value = str_constants::TEST_JWT_SECRET_CHARACTER_A
-            .repeat(super::CONFIG_LIB_STRING_WRAPPER_MAX_LEN.saturating_add(1usize));
-        let Err(_error) = super::SecrecySecretBoxString::try_from(value) else {
-            panic!("41c03fcc");
-        };
-    }
-    #[test]
-    fn parses_primary_and_verification_secrets() {
-        let first =
-            str_constants::TEST_JWT_SECRET_CHARACTER_A.repeat(super::ADMIN_JWT_SECRET_MIN_LEN);
-        let second =
-            str_constants::TEST_JWT_SECRET_CHARACTER_B.repeat(super::ADMIN_JWT_SECRET_MIN_LEN);
-        let parsed = <super::AdminJwtSecret as super::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
-            super::StdEnvVarOk::try_from(format!("{first}, {second}")).expect("12fd7c6a"),
-        )
-        .expect("2c18577d");
-        assert_eq!(parsed.verification_secrets().len(), 2usize);
-        assert_eq!(
-            parsed
-                .primary()
-                .map(|secret| { secrecy::ExposeSecret::expose_secret(secret.as_ref()).as_ref() }),
-            Some(&first)
-        );
-    }
-
-    #[test]
-    fn rejects_empty_effective_secret_list() {
-        let result = <super::AdminJwtSecret as super::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
-            super::StdEnvVarOk::try_from(String::from(str_constants::TEST_EMPTY_DELIMITED_LIST))
-                .expect("86c514b2"),
-        );
-        assert!(matches!(
-            result,
-            Err(super::TryFromStdEnvVarOkAdminJwtSecretError::Empty)
-        ));
-    }
-}
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    generate_getter_traits_for_struct_fields::GenerateGetterTrait,
-    newtype::DerefInner,
-    newtype::FromInner,
-)]
-pub struct AdminAccessTokenTtlSeconds(StdNonZeroU64);
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    generate_getter_traits_for_struct_fields::GenerateGetterTrait,
-    newtype::DerefInner,
-    newtype::FromInner,
-)]
-pub struct AdminRefreshTokenTtlSeconds(StdNonZeroU64);
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    generate_getter_traits_for_struct_fields::GenerateGetterTrait,
-    newtype::DerefInner,
-    newtype::FromInner,
-)]
-pub struct AdminLoginFailureLimit(StdNonZeroU64);
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    generate_getter_traits_for_struct_fields::GenerateGetterTrait,
-    newtype::DerefInner,
-    newtype::FromInner,
-)]
-pub struct AdminSignInRateLimit(StdNonZeroU64);
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    generate_getter_traits_for_struct_fields::GenerateGetterTrait,
-    newtype::DerefInner,
-    newtype::FromInner,
-)]
-pub struct AdminSessionLimit(StdNonZeroUsize);
-#[derive(newtype::DebugTransparent, newtype::FromInner)]
-pub struct AdminPositiveU64ParsingError(StdParseIntError);
-#[derive(Debug, thiserror::Error)]
-pub enum TryFromStdEnvVarOkAdminPositiveU64Error {
-    #[error("administrator duration must be greater than zero")]
-    IsZero,
-    #[error("{admin_positive_u64_parsing:?}")]
-    Parse {
-        admin_positive_u64_parsing: AdminPositiveU64ParsingError,
-    },
-}
-fn parse_admin_positive_u64(
-    v: &StdEnvVarOk,
-) -> Result<StdNonZeroU64, TryFromStdEnvVarOkAdminPositiveU64Error> {
-    let parsed = v.0.parse::<u64>().map_err(|admin_positive_u64_parsing| {
-        TryFromStdEnvVarOkAdminPositiveU64Error::Parse {
-            admin_positive_u64_parsing: AdminPositiveU64ParsingError::from(StdParseIntError::from(
-                admin_positive_u64_parsing,
-            )),
-        }
-    })?;
-    std::num::NonZeroU64::new(parsed)
-        .map(StdNonZeroU64::from)
-        .ok_or(TryFromStdEnvVarOkAdminPositiveU64Error::IsZero)
-}
-impl TryFromStdEnvVarOk for AdminAccessTokenTtlSeconds {
-    type Error = TryFromStdEnvVarOkAdminPositiveU64Error;
-    fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
-        parse_admin_positive_u64(&v).map(Self)
-    }
-}
-impl TryFromStdEnvVarOk for AdminRefreshTokenTtlSeconds {
-    type Error = TryFromStdEnvVarOkAdminPositiveU64Error;
-    fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
-        parse_admin_positive_u64(&v).map(Self)
-    }
-}
-impl TryFromStdEnvVarOk for AdminLoginFailureLimit {
-    type Error = TryFromStdEnvVarOkAdminPositiveU64Error;
-    fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
-        parse_admin_positive_u64(&v).map(Self)
-    }
-}
-impl TryFromStdEnvVarOk for AdminSignInRateLimit {
-    type Error = TryFromStdEnvVarOkAdminPositiveU64Error;
-    fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
-        parse_admin_positive_u64(&v).map(Self)
-    }
-}
-impl TryFromStdEnvVarOk for AdminSessionLimit {
-    type Error = TryFromStdEnvVarOkAdminPositiveU64Error;
-    fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
-        let value = parse_admin_positive_u64(&v)?;
-        usize::try_from(value.0.get())
-            .ok()
-            .and_then(std::num::NonZeroUsize::new)
-            .map(StdNonZeroUsize::from)
-            .map(Self)
-            .ok_or(TryFromStdEnvVarOkAdminPositiveU64Error::IsZero)
-    }
-}
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    generate_getter_traits_for_struct_fields::GenerateGetterTrait,
-    newtype::DerefInner,
-    newtype::FromInner,
-)]
-pub struct AdminPasswordHashConcurrency(StdNonZeroUsize);
-#[derive(newtype::DebugTransparent, newtype::FromInner)]
-pub struct AdminPositiveUsizeParsingError(StdParseIntError);
-#[derive(Debug, thiserror::Error)]
-pub enum TryFromStdEnvVarOkAdminPasswordHashConcurrencyError {
-    #[error("administrator password hash concurrency must be greater than zero")]
-    IsZero,
-    #[error("{admin_positive_usize_parsing:?}")]
-    Parse {
-        admin_positive_usize_parsing: AdminPositiveUsizeParsingError,
-    },
-}
-impl TryFromStdEnvVarOk for AdminPasswordHashConcurrency {
-    type Error = TryFromStdEnvVarOkAdminPasswordHashConcurrencyError;
-    fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
-        let parsed =
-            v.0.parse::<usize>()
-                .map_err(|admin_positive_usize_parsing| Self::Error::Parse {
-                    admin_positive_usize_parsing: AdminPositiveUsizeParsingError::from(
-                        StdParseIntError::from(admin_positive_usize_parsing),
-                    ),
-                })?;
-        std::num::NonZeroUsize::new(parsed)
-            .map(StdNonZeroUsize::from)
-            .map(Self)
-            .ok_or(Self::Error::IsZero)
-    }
-}
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    generate_getter_traits_for_struct_fields::GenerateGetterTrait,
-    newtype::DerefInner,
-    newtype::FromInner,
-)]
-pub struct AdminCookieSecure(bool);
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    generate_getter_traits_for_struct_fields::GenerateGetterTrait,
-    newtype::DerefInner,
-    newtype::FromInner,
-)]
-pub struct AdminSwaggerEnabled(bool);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::DerefInner, newtype::FromInner)]
-pub struct HttpGzipEnabled(bool);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::DerefInner, newtype::FromInner)]
-pub struct ProductionMode(bool);
-#[derive(newtype::DebugTransparent, newtype::FromInner)]
-pub struct AdminBoolParsingError(StdParseBoolError);
-#[derive(Debug, thiserror::Error)]
-#[error("{0:?}")]
-#[derive(newtype::FromInner)]
-pub struct TryFromStdEnvVarOkAdminCookieSecureError(AdminBoolParsingError);
-impl TryFromStdEnvVarOk for AdminCookieSecure {
-    type Error = TryFromStdEnvVarOkAdminCookieSecureError;
-    fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
-        v.0.parse::<bool>().map(Self).map_err(|admin_bool_parsing| {
-            TryFromStdEnvVarOkAdminCookieSecureError::from(AdminBoolParsingError::from(
-                StdParseBoolError::from(admin_bool_parsing),
-            ))
-        })
-    }
-}
-impl TryFromStdEnvVarOk for AdminSwaggerEnabled {
-    type Error = TryFromStdEnvVarOkAdminCookieSecureError;
-    fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
-        v.0.parse::<bool>().map(Self).map_err(|admin_bool_parsing| {
-            TryFromStdEnvVarOkAdminCookieSecureError::from(AdminBoolParsingError::from(
-                StdParseBoolError::from(admin_bool_parsing),
-            ))
-        })
-    }
-}
-impl TryFromStdEnvVarOk for HttpGzipEnabled {
-    type Error = TryFromStdEnvVarOkAdminCookieSecureError;
-    fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
-        v.0.parse::<bool>().map(Self).map_err(|admin_bool_parsing| {
-            TryFromStdEnvVarOkAdminCookieSecureError::from(AdminBoolParsingError::from(
-                StdParseBoolError::from(admin_bool_parsing),
-            ))
-        })
-    }
-}
-impl TryFromStdEnvVarOk for ProductionMode {
-    type Error = TryFromStdEnvVarOkAdminCookieSecureError;
-    fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
-        v.0.parse::<bool>().map(Self).map_err(|admin_bool_parsing| {
-            TryFromStdEnvVarOkAdminCookieSecureError::from(AdminBoolParsingError::from(
-                StdParseBoolError::from(admin_bool_parsing),
-            ))
-        })
-    }
-}
-#[derive(
-    Debug,
-    Clone,
-    PartialEq,
-    Eq,
-    generate_getter_traits_for_struct_fields::GenerateGetterTrait,
-    serde::Deserialize,
-    serde::Serialize,
-    newtype::BoundedString,
-    newtype::AsRefOwned,
-)]
-#[bounded_string(max = 256, description = "administrator token issuer")]
-#[serde(try_from = "String")]
-pub struct AdminTokenIssuer(String);
-#[derive(
-    Debug,
-    Clone,
-    PartialEq,
-    Eq,
-    generate_getter_traits_for_struct_fields::GenerateGetterTrait,
-    serde::Deserialize,
-    serde::Serialize,
-    newtype::BoundedString,
-    newtype::AsRefOwned,
-)]
-#[bounded_string(max = 256, description = "administrator token audience")]
-#[serde(try_from = "String")]
-pub struct AdminTokenAudience(String);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
-pub enum TryFromStdEnvVarOkAdminTokenTextError {
-    #[error("administrator token text is empty")]
-    Empty,
-    #[error("administrator token text is too long")]
-    TooLong,
-}
-fn parse_admin_token_text<T, Error>(
-    v: StdEnvVarOk,
-    map: impl FnOnce(String) -> Result<T, Error>,
-) -> Result<T, TryFromStdEnvVarOkAdminTokenTextError> {
-    if v.0.is_empty() {
-        return Err(TryFromStdEnvVarOkAdminTokenTextError::Empty);
-    }
-    map(v.0).map_err(|_bounded_string_error| TryFromStdEnvVarOkAdminTokenTextError::TooLong)
-}
-impl TryFromStdEnvVarOk for AdminTokenIssuer {
-    type Error = TryFromStdEnvVarOkAdminTokenTextError;
-    fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
-        parse_admin_token_text(v, Self::try_from)
-    }
-}
-impl TryFromStdEnvVarOk for AdminTokenAudience {
-    type Error = TryFromStdEnvVarOkAdminTokenTextError;
-    fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
-        parse_admin_token_text(v, Self::try_from)
-    }
-}
 config_lib_macros::impl_try_from_non_empty_string!(
     CorsAllowOrigin,
     TryFromStdEnvVarOkCorsAllowOriginError
@@ -599,193 +236,8 @@ config_lib_macros::impl_try_from_parse!(
     Clone,
     Copy
 );
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    generate_getter_traits_for_struct_fields::GenerateGetterTrait,
-    optml::Optml,
-    newtype::DerefInner,
-)]
-pub struct MaximumSizeOfHttpBodyInBytes(usize);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error, optml::Optml)]
-pub enum MaximumSizeOfHttpBodyInBytesTryFromUsizeError {
-    #[error("maximum size of http body in bytes must be greater than zero")]
-    IsZero,
-}
-impl TryFrom<usize> for MaximumSizeOfHttpBodyInBytes {
-    type Error = MaximumSizeOfHttpBodyInBytesTryFromUsizeError;
-    fn try_from(value: usize) -> Result<Self, Self::Error> {
-        if value == 0 {
-            Err(Self::Error::IsZero)
-        } else {
-            Ok(Self(value))
-        }
-    }
-}
-#[derive(Debug, thiserror::Error, optml::Optml)]
-pub enum TryFromStdEnvVarOkMaximumSizeOfHttpBodyInBytesError {
-    #[error("{maximum_size_of_http_body_in_bytes:?}")]
-    MaximumSizeOfHttpBodyInBytes {
-        maximum_size_of_http_body_in_bytes: MaximumSizeOfHttpBodyInBytesTryFromUsizeError,
-    },
-    #[error("{:?}", .usize_parsing)]
-    UsizeParsing { usize_parsing: StdUsizeParsingError },
-}
-impl TryFromStdEnvVarOk for MaximumSizeOfHttpBodyInBytes {
-    type Error = TryFromStdEnvVarOkMaximumSizeOfHttpBodyInBytesError;
-    fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
-        let parsed: usize =
-            parse_from_str_with_error(StdEnvVarOkRef::from(v.0.as_str()), |usize_parsing| {
-                Self::Error::UsizeParsing {
-                    usize_parsing: StdUsizeParsingError::from(usize_parsing),
-                }
-            })?;
-        Self::try_from(parsed).map_err(|maximum_size_of_http_body_in_bytes| {
-            Self::Error::MaximumSizeOfHttpBodyInBytes {
-                maximum_size_of_http_body_in_bytes,
-            }
-        })
-    }
-}
 config_lib_macros::impl_try_from_secret_url!(MongoUrl, TryFromStdEnvVarOkMongoUrlError);
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    generate_getter_traits_for_struct_fields::GenerateGetterTrait,
-    optml::Optml,
-    newtype::DerefInner,
-)]
-pub struct PgPoolMaxConnections(u32);
-#[derive(Debug, Clone, Copy, optml::Optml, newtype::DerefInner, newtype::FromInner)]
-pub struct PgPoolMinConnections(u32);
-#[derive(Debug, Clone, Copy, newtype::DerefInner, newtype::FromInner)]
-pub struct PgPoolAcquireTimeoutSeconds(StdNonZeroU64);
-#[derive(Debug, Clone, Copy, newtype::DerefInner, newtype::FromInner)]
-pub struct PgPoolIdleTimeoutSeconds(StdNonZeroU64);
-#[derive(Debug, Clone, Copy, newtype::DerefInner, newtype::FromInner)]
-pub struct PgPoolMaxLifetimeSeconds(StdNonZeroU64);
-#[derive(Debug, Clone, Copy, newtype::DerefInner, newtype::FromInner)]
-pub struct RequestTimeoutSeconds(StdNonZeroU64);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
-pub enum PgPoolConfigParseError {
-    #[error("pg pool numeric configuration is invalid")]
-    Parse,
-    #[error("pg pool duration must be greater than zero")]
-    Zero,
-}
-impl TryFromStdEnvVarOk for PgPoolMinConnections {
-    type Error = PgPoolConfigParseError;
-    fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
-        v.0.parse::<u32>()
-            .map(Self)
-            .map_err(|_error| Self::Error::Parse)
-    }
-}
-fn parse_pg_pool_non_zero_seconds(
-    v: &StdEnvVarOk,
-) -> Result<StdNonZeroU64, PgPoolConfigParseError> {
-    let value =
-        v.0.parse::<u64>()
-            .map_err(|_error| PgPoolConfigParseError::Parse)?;
-    std::num::NonZeroU64::new(value)
-        .map(StdNonZeroU64::from)
-        .ok_or(PgPoolConfigParseError::Zero)
-}
-impl TryFromStdEnvVarOk for PgPoolAcquireTimeoutSeconds {
-    type Error = PgPoolConfigParseError;
-    fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
-        parse_pg_pool_non_zero_seconds(&v).map(Self)
-    }
-}
-impl TryFromStdEnvVarOk for PgPoolIdleTimeoutSeconds {
-    type Error = PgPoolConfigParseError;
-    fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
-        parse_pg_pool_non_zero_seconds(&v).map(Self)
-    }
-}
-impl TryFromStdEnvVarOk for PgPoolMaxLifetimeSeconds {
-    type Error = PgPoolConfigParseError;
-    fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
-        parse_pg_pool_non_zero_seconds(&v).map(Self)
-    }
-}
-impl TryFromStdEnvVarOk for RequestTimeoutSeconds {
-    type Error = PgPoolConfigParseError;
-    fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
-        parse_pg_pool_non_zero_seconds(&v).map(Self)
-    }
-}
 
-#[derive(Debug, Clone, PartialEq, Eq, newtype::AsRefOwned)]
-pub struct ContentSecurityPolicy(String);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
-pub enum ContentSecurityPolicyError {
-    #[error("content security policy must not be empty")]
-    Empty,
-    #[error("content security policy is too long or contains forbidden line breaks")]
-    Invalid,
-}
-impl TryFrom<String> for ContentSecurityPolicy {
-    type Error = ContentSecurityPolicyError;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        let trimmed = value.trim();
-        if trimmed.is_empty() {
-            Err(Self::Error::Empty)
-        } else if trimmed.len() > 4096usize || trimmed.contains(['\r', '\n']) {
-            Err(Self::Error::Invalid)
-        } else {
-            Ok(Self(trimmed.to_owned()))
-        }
-    }
-}
-impl TryFromStdEnvVarOk for ContentSecurityPolicy {
-    type Error = ContentSecurityPolicyError;
-    fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
-        Self::try_from(v.0)
-    }
-}
-#[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error, optml::Optml)]
-pub enum PgPoolMaxConnectionsTryFromU32Error {
-    #[error("pg pool max connections must be greater than zero")]
-    IsZero,
-}
-impl TryFrom<u32> for PgPoolMaxConnections {
-    type Error = PgPoolMaxConnectionsTryFromU32Error;
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        if value == 0 {
-            Err(Self::Error::IsZero)
-        } else {
-            Ok(Self(value))
-        }
-    }
-}
-#[derive(Debug, thiserror::Error, optml::Optml)]
-pub enum TryFromStdEnvVarOkPgPoolMaxConnectionsError {
-    #[error("{pg_pool_max_connections:?}")]
-    PgPoolMaxConnections {
-        pg_pool_max_connections: PgPoolMaxConnectionsTryFromU32Error,
-    },
-    #[error("{:?}", .u32_parsing)]
-    U32Parsing { u32_parsing: StdU32ParsingError },
-}
-impl TryFromStdEnvVarOk for PgPoolMaxConnections {
-    type Error = TryFromStdEnvVarOkPgPoolMaxConnectionsError;
-    fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
-        let parsed: u32 =
-            parse_from_str_with_error(StdEnvVarOkRef::from(v.0.as_str()), |u32_parsing| {
-                Self::Error::U32Parsing {
-                    u32_parsing: StdU32ParsingError::from(u32_parsing),
-                }
-            })?;
-        Self::try_from(parsed).map_err(|pg_pool_max_connections| {
-            Self::Error::PgPoolMaxConnections {
-                pg_pool_max_connections,
-            }
-        })
-    }
-}
 config_lib_macros::impl_try_from_secret_url!(RedisUrl, TryFromStdEnvVarOkRedisUrlError);
 config_lib_macros::impl_try_from_parse!(
     ServiceSocketAddress,
@@ -863,6 +315,21 @@ impl TryFromStdEnvVarOk for types::TracingFormat {
         })
     }
 }
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+pub enum TryFromStdEnvVarOkSvcModeError {
+    #[error("service mode must be migrate or serve")]
+    Unknown,
+}
+impl TryFromStdEnvVarOk for types::SvcMode {
+    type Error = TryFromStdEnvVarOkSvcModeError;
+    fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
+        match v.0.as_str() {
+            str_constants::SERVICE_MODE_MIGRATE => Ok(Self::Migrate),
+            str_constants::SERVICE_MODE_SERVE => Ok(Self::Serve),
+            _unknown => Err(TryFromStdEnvVarOkSvcModeError::Unknown),
+        }
+    }
+}
 config_lib_macros::impl_try_from_parse_string_error!(
     TracingLevel,
     TryFromStdEnvVarOkTracingLevelError,
@@ -917,6 +384,30 @@ fn parse_east_fixed_offset(
 }
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn svc_mode_accepts_only_documented_values() {
+        assert_eq!(
+            <super::types::SvcMode as super::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
+                super::StdEnvVarOk::try_from(str_constants::SERVICE_MODE_MIGRATE.to_owned())
+                    .expect("39a8e94f"),
+            ),
+            Ok(super::types::SvcMode::Migrate)
+        );
+        assert_eq!(
+            <super::types::SvcMode as super::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
+                super::StdEnvVarOk::try_from(str_constants::SERVICE_MODE_SERVE.to_owned())
+                    .expect("045ca5a1"),
+            ),
+            Ok(super::types::SvcMode::Serve)
+        );
+        assert_eq!(
+            <super::types::SvcMode as super::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
+                super::StdEnvVarOk::try_from(str_constants::INVALID_REQUEST.to_owned())
+                    .expect("156cc47b"),
+            ),
+            Err(super::TryFromStdEnvVarOkSvcModeError::Unknown)
+        );
+    }
     #[derive(Debug, PartialEq, Eq)]
     enum ParseRequiredEnvVarTestError {
         EnvVar { env_var_name: super::EnvVarName },
@@ -1081,11 +572,9 @@ mod tests {
     }
     #[test]
     fn maximum_size_of_http_body_in_bytes_parsing_returns_usize() {
-        config_lib_macros::assert_parse_ok_matches!(
-            super::MaximumSizeOfHttpBodyInBytes,
-            str_constants::VALUE_128,
-            super::MaximumSizeOfHttpBodyInBytes(128)
-        );
+        let parsed = parse_env::<super::MaximumSizeOfHttpBodyInBytes>(str_constants::VALUE_128)
+            .expect("d5b7a09e");
+        assert_eq!(*parsed, 128usize);
     }
     #[test]
     fn maximum_size_of_http_body_in_bytes_parsing_returns_error_for_invalid_number() {
@@ -1105,11 +594,9 @@ mod tests {
     }
     #[test]
     fn pg_pool_max_connections_parsing_returns_u32() {
-        config_lib_macros::assert_parse_ok_matches!(
-            super::PgPoolMaxConnections,
-            str_constants::VALUE_10,
-            super::PgPoolMaxConnections(10)
-        );
+        let parsed =
+            parse_env::<super::PgPoolMaxConnections>(str_constants::VALUE_10).expect("5d9032ac");
+        assert_eq!(*parsed, 10u32);
     }
     #[test]
     fn pg_pool_max_connections_parsing_returns_error_for_invalid_number() {

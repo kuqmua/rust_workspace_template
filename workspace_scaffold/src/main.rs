@@ -1,3 +1,7 @@
+mod naming;
+mod service_catalog;
+mod template_fs;
+
 const SCAFFOLD_TEXT_MAX_BYTES: usize = 16_777_216usize;
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
 struct ProjectNameRef<'value>(&'value str);
@@ -139,386 +143,6 @@ impl From<std::io::Error> for ScaffoldError {
     }
 }
 
-fn validate_project_name(value: ProjectNameRef<'_>) -> Result<(), ScaffoldError> {
-    let text = value.0;
-    if text.is_empty()
-        || text.starts_with('_')
-        || text.ends_with('_')
-        || text.contains(str_constants::WORKSPACE_SCAFFOLD_DOUBLE_UNDERSCORE)
-        || !text
-            .bytes()
-            .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'_')
-    {
-        return Err(ScaffoldError::ProjectName);
-    }
-    Ok(())
-}
-
-#[allow(
-    clippy::single_call_fn,
-    reason = "project command owns repository URL validation"
-)]
-fn validate_repository_url(value: RepositoryUrlRef<'_>) -> Result<(), ScaffoldError> {
-    if !value.0.starts_with(str_constants::HTTPS_SCHEME_PREFIX) || value.0.ends_with('/') {
-        return Err(ScaffoldError::RepositoryUrl);
-    }
-    Ok(())
-}
-
-fn kebab_case(value: ProjectNameRef<'_>) -> ScaffoldText {
-    ScaffoldText::try_from(value.0.replace('_', str_constants::HYPHEN))
-        .unwrap_or_else(ScaffoldText::from)
-}
-
-fn title_case(value: ProjectNameRef<'_>) -> ScaffoldText {
-    let output = value
-        .0
-        .split('_')
-        .filter(|part| !part.is_empty())
-        .map(|part| {
-            let mut chars = part.chars();
-            chars.next().map_or_else(String::new, |first| {
-                first.to_uppercase().chain(chars).collect::<String>()
-            })
-        })
-        .collect::<Vec<String>>()
-        .join(str_constants::SPACE);
-    ScaffoldText::try_from(output).unwrap_or_else(ScaffoldText::from)
-}
-
-#[allow(
-    clippy::single_call_fn,
-    reason = "service scaffold owns identifier case conversion"
-)]
-fn upper_camel_case(value: ProjectNameRef<'_>) -> ScaffoldText {
-    ScaffoldText::try_from(
-        title_case(value)
-            .as_ref()
-            .replace(' ', str_constants::EMPTY),
-    )
-    .unwrap_or_else(ScaffoldText::from)
-}
-
-#[allow(
-    clippy::single_call_fn,
-    reason = "identity traversal owns ignored directory policy"
-)]
-fn should_skip(path: StdScaffoldPathRef<'_>) -> ShouldSkip {
-    ShouldSkip::from(path.0.components().any(|component| {
-        matches!(
-            component.as_os_str().to_str(),
-            Some(
-                str_constants::GIT
-                    | str_constants::TARGET
-                    | str_constants::WORKSPACE_SCAFFOLD_NODE_MODULES
-            )
-        )
-    }))
-}
-
-fn read_bounded_text(
-    path: StdScaffoldPathRef<'_>,
-) -> Result<ScaffoldText, ServerRuntimeBoundedReadError> {
-    let bytes = server_runtime_http::read_bounded_file(
-        server_runtime_http::StdPathRef::from(path.0),
-        server_runtime_http::BoundedReadMaximumBytes::from(SCAFFOLD_TEXT_MAX_BYTES),
-    )
-    .map_err(ServerRuntimeBoundedReadError::from)?;
-    let text = server_runtime_http::BoundedText::try_from(bytes)
-        .map_err(ServerRuntimeBoundedReadError::from)?
-        .into_inner();
-    Ok(ScaffoldText::try_from(text).unwrap_or_else(ScaffoldText::from))
-}
-
-fn replace_file(
-    path: StdScaffoldPathRef<'_>,
-    replacements: ReplacementsRef<'_>,
-) -> Result<(), ScaffoldError> {
-    let Ok(contents) = read_bounded_text(path) else {
-        return Ok(());
-    };
-    let updated_contents = replacements
-        .0
-        .iter()
-        .fold(contents.as_ref().to_owned(), |value, (from, to)| {
-            value.replace(from, to.as_str())
-        });
-    std::fs::write(path.0, updated_contents)?;
-    Ok(())
-}
-
-#[allow(
-    clippy::single_call_fn,
-    reason = "project command owns identity traversal"
-)]
-fn rename_identity(
-    root: StdScaffoldPathRef<'_>,
-    project_name: ProjectNameRef<'_>,
-    repository_url: RepositoryUrlRef<'_>,
-) -> Result<(), ScaffoldError> {
-    let replacements = [
-        (
-            str_constants::WORKSPACE_SCAFFOLD_TEMPLATE_REPOSITORY_URL,
-            repository_url.0.to_owned(),
-        ),
-        (
-            str_constants::WORKSPACE_SCAFFOLD_TEMPLATE_PROJECT_SNAKE,
-            project_name.0.to_owned(),
-        ),
-        (
-            str_constants::WORKSPACE_SCAFFOLD_TEMPLATE_PROJECT_KEBAB,
-            kebab_case(project_name).as_ref().to_owned(),
-        ),
-        (
-            str_constants::WORKSPACE_SCAFFOLD_TEMPLATE_PROJECT_TITLE,
-            title_case(project_name).as_ref().to_owned(),
-        ),
-    ];
-    let mut pending = vec![root.0.to_path_buf()];
-    while let Some(path) = pending.pop() {
-        if bool::from(should_skip(StdScaffoldPathRef::from(path.as_path()))) {
-            continue;
-        }
-        if path.is_dir() {
-            std::fs::read_dir(path)?.try_for_each(|entry| {
-                pending.push(entry?.path());
-                Ok::<(), std::io::Error>(())
-            })?;
-        } else {
-            replace_file(
-                StdScaffoldPathRef::from(path.as_path()),
-                ReplacementsRef::from(replacements.as_slice()),
-            )?;
-        }
-    }
-    Ok(())
-}
-
-fn copy_template_tree(
-    source: StdScaffoldPathRef<'_>,
-    destination: StdScaffoldPathRef<'_>,
-    replacements: ReplacementsRef<'_>,
-) -> Result<(), ScaffoldError> {
-    std::fs::create_dir_all(destination.0)?;
-    std::fs::read_dir(source.0)?.try_for_each(|entry_result| {
-        let entry = entry_result?;
-        let source_path = entry.path();
-        let destination_path = destination.0.join(entry.file_name());
-        if source_path.is_dir() {
-            copy_template_tree(
-                StdScaffoldPathRef::from(source_path.as_path()),
-                StdScaffoldPathRef::from(destination_path.as_path()),
-                replacements,
-            )
-        } else {
-            let _copied_bytes = std::fs::copy(source_path, destination_path.as_path())?;
-            replace_file(
-                StdScaffoldPathRef::from(destination_path.as_path()),
-                replacements,
-            )
-        }
-    })?;
-    Ok(())
-}
-
-fn insert_once(
-    path: StdScaffoldPathRef<'_>,
-    marker: ScaffoldTextRef<'_>,
-    replacement: ScaffoldTextRef<'_>,
-) -> Result<(), ScaffoldError> {
-    let contents = read_bounded_text(path)?;
-    if contents.as_ref().contains(replacement.0) {
-        return Ok(());
-    }
-    let updated = contents.as_ref().replacen(marker.0, replacement.0, 1usize);
-    if updated == contents.as_ref() {
-        return Err(ScaffoldError::Marker);
-    }
-    std::fs::write(path.0, updated)?;
-    Ok(())
-}
-
-fn catalog_string_value(
-    line: ScaffoldTextRef<'_>,
-    key: ScaffoldTextRef<'_>,
-) -> Result<Option<ScaffoldText>, ScaffoldError> {
-    line.0
-        .strip_prefix(key.0)
-        .and_then(|value| value.trim().strip_prefix('='))
-        .map(str::trim)
-        .and_then(|value| value.strip_prefix('"'))
-        .and_then(|value| value.strip_suffix('"'))
-        .map(str::to_owned)
-        .map(ScaffoldText::try_from)
-        .transpose()
-        .map_err(|_error| ScaffoldError::Catalog)
-}
-#[allow(
-    clippy::single_call_fn,
-    reason = "deployment synchronization owns catalog parsing"
-)]
-fn parse_service_catalog(
-    source: ScaffoldTextRef<'_>,
-) -> Result<ServiceCatalogEntries, ScaffoldError> {
-    let mut entries = Vec::new();
-    let mut current = None;
-    source.0.lines().try_for_each(|raw_line| {
-        let trimmed_line = raw_line.trim();
-        if trimmed_line == "[[service]]" {
-            if let Some(draft) = current.take() {
-                entries.push(ServiceCatalogDraft::finish(draft)?);
-            }
-            current = Some(ServiceCatalogDraft::default());
-            return Ok(());
-        }
-        let Some(draft) = current.as_mut() else {
-            return Ok(());
-        };
-        if let Some(value) = catalog_string_value(
-            ScaffoldTextRef::from(trimmed_line),
-            ScaffoldTextRef::from("crate"),
-        )? {
-            draft.crate_name = Some(
-                ServiceCrate::try_from(value.as_ref().to_owned())
-                    .map_err(|_error| ScaffoldError::Catalog)?,
-            );
-            return Ok(());
-        }
-        if let Some(value) = catalog_string_value(
-            ScaffoldTextRef::from(trimmed_line),
-            ScaffoldTextRef::from("compose"),
-        )? {
-            draft.compose_name = Some(
-                ServiceComposeName::try_from(value.as_ref().to_owned())
-                    .map_err(|_error| ScaffoldError::Catalog)?,
-            );
-            return Ok(());
-        }
-        if let Some(value) = catalog_string_value(
-            ScaffoldTextRef::from(trimmed_line),
-            ScaffoldTextRef::from("compose_file"),
-        )? {
-            draft.compose_file = Some(
-                ServiceComposeFile::try_from(value.as_ref().to_owned())
-                    .map_err(|_error| ScaffoldError::Catalog)?,
-            );
-            return Ok(());
-        }
-        if let Some(value) = catalog_string_value(
-            ScaffoldTextRef::from(trimmed_line),
-            ScaffoldTextRef::from("dockerfile"),
-        )? {
-            draft.dockerfile = Some(
-                ServiceDockerfile::try_from(value.as_ref().to_owned())
-                    .map_err(|_error| ScaffoldError::Catalog)?,
-            );
-            return Ok(());
-        }
-        if let Some(value) = catalog_string_value(
-            ScaffoldTextRef::from(trimmed_line),
-            ScaffoldTextRef::from("image"),
-        )? {
-            draft.image = Some(
-                ServiceImage::try_from(value.as_ref().to_owned())
-                    .map_err(|_error| ScaffoldError::Catalog)?,
-            );
-            return Ok(());
-        }
-        if let Some(value) = catalog_string_value(
-            ScaffoldTextRef::from(trimmed_line),
-            ScaffoldTextRef::from("kubernetes"),
-        )? {
-            draft.kubernetes_manifest = Some(
-                ServiceKubernetesManifest::try_from(value.as_ref().to_owned())
-                    .map_err(|_error| ScaffoldError::Catalog)?,
-            );
-            return Ok(());
-        }
-        if let Some(port) = trimmed_line
-            .strip_prefix("port")
-            .and_then(|port_text| port_text.trim().strip_prefix('='))
-            .map(str::trim)
-            .and_then(|port_text| port_text.parse::<u16>().ok())
-        {
-            draft.port = Some(ServicePort::from(port));
-            return Ok(());
-        }
-        if let Some(value) = catalog_string_value(
-            ScaffoldTextRef::from(trimmed_line),
-            ScaffoldTextRef::from("socket_env"),
-        )? {
-            draft.socket_env = Some(
-                ServiceSocketEnv::try_from(value.as_ref().to_owned())
-                    .map_err(|_error| ScaffoldError::Catalog)?,
-            );
-            return Ok(());
-        }
-        if let Some(release) = trimmed_line
-            .strip_prefix("release")
-            .and_then(|release_text| {
-                release_text
-                    .trim()
-                    .strip_prefix('=')
-                    .map(str::trim)
-                    .and_then(|parsed_text| parsed_text.parse::<bool>().ok())
-            })
-        {
-            draft.release = Some(ShouldRelease::from(release));
-        }
-        Ok::<(), ScaffoldError>(())
-    })?;
-    if let Some(draft) = current {
-        entries.push(ServiceCatalogDraft::finish(draft)?);
-    }
-    if entries.is_empty() {
-        return Err(ScaffoldError::Catalog);
-    }
-    Ok(ServiceCatalogEntries::from(
-        bounded_types::BoundedVec::from_max_iter(entries),
-    ))
-}
-#[allow(
-    clippy::single_call_fn,
-    reason = "deployment synchronization owns the CI projection"
-)]
-fn render_ci_service_matrix(entries: ServiceCatalogEntriesRef<'_>) -> ScaffoldText {
-    ScaffoldText::try_from(
-        entries
-            .0
-            .iter()
-            .filter(|entry| bool::from(entry.release))
-            .fold(String::new(), |mut output, entry| {
-                output.push_str(str_constants::WORKSPACE_SCAFFOLD_MATRIX_NAME_INDENT);
-                output.push_str(entry.image.as_ref());
-                output.push_str(str_constants::WORKSPACE_SCAFFOLD_MATRIX_DOCKERFILE_INDENT);
-                output.push_str(entry.dockerfile.as_ref());
-                output.push('\n');
-                output
-            }),
-    )
-    .unwrap_or_else(ScaffoldText::from)
-}
-#[allow(
-    clippy::single_call_fn,
-    reason = "deployment synchronization owns the release projection"
-)]
-fn render_release_matrix(entries: ServiceCatalogEntriesRef<'_>) -> ScaffoldText {
-    ScaffoldText::try_from(
-        entries
-            .0
-            .iter()
-            .filter(|entry| bool::from(entry.release))
-            .fold(String::new(), |mut output, entry| {
-                output.push_str(str_constants::WORKSPACE_SCAFFOLD_MATRIX_NAME_INDENT);
-                output.push_str(entry.image.as_ref());
-                output.push_str(str_constants::WORKSPACE_SCAFFOLD_MATRIX_DOCKERFILE_INDENT);
-                output.push_str(entry.dockerfile.as_ref());
-                output.push('\n');
-                output
-            }),
-    )
-    .unwrap_or_else(ScaffoldText::from)
-}
 #[allow(
     clippy::single_call_fn,
     reason = "catalog validation keeps path traversal checks explicit and typed"
@@ -565,7 +189,8 @@ fn validate_deployment_representations(
             return Err(ScaffoldError::GeneratedDeployment);
         }
         let compose_path = root.0.join(entry.compose_file.as_ref());
-        let compose = read_bounded_text(StdScaffoldPathRef::from(compose_path.as_path()))?;
+        let compose =
+            template_fs::read_bounded_text(StdScaffoldPathRef::from(compose_path.as_path()))?;
         let port = entry.port.0;
         if !compose
             .as_ref()
@@ -580,7 +205,8 @@ fn validate_deployment_representations(
             return Err(ScaffoldError::GeneratedDeployment);
         }
         let kubernetes_path = root.0.join(entry.kubernetes_manifest.as_ref());
-        let kubernetes = read_bounded_text(StdScaffoldPathRef::from(kubernetes_path.as_path()))?;
+        let kubernetes =
+            template_fs::read_bounded_text(StdScaffoldPathRef::from(kubernetes_path.as_path()))?;
         if !kubernetes
             .as_ref()
             .contains(format!("image: {}:", entry.image.as_ref()).as_str())
@@ -775,7 +401,7 @@ fn synchronize_service_deployment_sections(
         entry.image.as_ref()
     );
     let kubernetes_service_identity = format!(
-        "metadata:\n  name: {0}\n  namespace: rust-workspace-template\nspec:\n  selector:\n    app.kubernetes.io/name: {0}\n",
+        "metadata:\n  name: {0}\n  namespace: rust-workspace-template\n  labels:\n    app.kubernetes.io/name: {0}\nspec:\n  selector:\n    app.kubernetes.io/name: {0}\n",
         entry.image.as_ref()
     );
     synchronize_generated_file(
@@ -832,7 +458,7 @@ fn synchronize_generated_file(
     generated: ScaffoldTextRef<'_>,
     write_changes: ShouldWrite,
 ) -> Result<(), ScaffoldError> {
-    let source = read_bounded_text(path)?;
+    let source = template_fs::read_bounded_text(path)?;
     let expected = replace_generated_section(
         ScaffoldTextRef::from(source.as_ref()),
         begin,
@@ -858,11 +484,11 @@ fn synchronize_deployment_projections(
     write_changes: ShouldWrite,
 ) -> Result<(), ScaffoldError> {
     let catalog_path = root.0.join("deploy/services.toml");
-    let catalog = read_bounded_text(StdScaffoldPathRef::from(catalog_path.as_path()))?;
-    let entries = parse_service_catalog(ScaffoldTextRef::from(catalog.as_ref()))?;
+    let catalog = template_fs::read_bounded_text(StdScaffoldPathRef::from(catalog_path.as_path()))?;
+    let entries = service_catalog::parse(ScaffoldTextRef::from(catalog.as_ref()))?;
     let entries_ref = ServiceCatalogEntriesRef::from(entries.0.as_slice());
-    let ci = render_ci_service_matrix(entries_ref);
-    let release = render_release_matrix(entries_ref);
+    let ci = service_catalog::render_ci_matrix(entries_ref);
+    let release = service_catalog::render_release_matrix(entries_ref);
     let ci_path = root.0.join(".github/workflows/ci.yml");
     synchronize_generated_file(
         StdScaffoldPathRef::from(ci_path.as_path()),
@@ -986,7 +612,7 @@ fn scaffold_service(
     service_name: ProjectNameRef<'_>,
     port: ServicePort,
 ) -> Result<(), ScaffoldError> {
-    validate_project_name(service_name)?;
+    naming::validate_project_name(service_name)?;
     if port.0 == 0u16 {
         return Err(ScaffoldError::ServicePort);
     }
@@ -999,7 +625,7 @@ fn scaffold_service(
     {
         return Err(ScaffoldError::ServiceExists);
     }
-    let kebab = kebab_case(service_name);
+    let kebab = naming::kebab_case(service_name);
     let upper_snake = service.to_ascii_uppercase();
     let replacements = [
         (
@@ -1016,7 +642,7 @@ fn scaffold_service(
         ),
         (
             str_constants::WORKSPACE_SCAFFOLD_NOTIFICATION_TITLE,
-            upper_camel_case(service_name).as_ref().to_owned(),
+            naming::upper_camel_case(service_name).as_ref().to_owned(),
         ),
         (
             str_constants::WORKSPACE_SCAFFOLD_NOTIFICATION_LOWER,
@@ -1027,7 +653,7 @@ fn scaffold_service(
             port.0.to_string(),
         ),
     ];
-    copy_template_tree(
+    template_fs::copy_template_tree(
         StdScaffoldPathRef::from(
             root.0
                 .join(str_constants::WORKSPACE_SCAFFOLD_NOTIFICATION_SERVICE)
@@ -1036,7 +662,7 @@ fn scaffold_service(
         StdScaffoldPathRef::from(root.0.join(service).as_path()),
         ReplacementsRef::from(replacements.as_slice()),
     )?;
-    copy_template_tree(
+    template_fs::copy_template_tree(
         StdScaffoldPathRef::from(
             root.0
                 .join(str_constants::WORKSPACE_SCAFFOLD_NOTIFICATION_CONFIG)
@@ -1045,7 +671,7 @@ fn scaffold_service(
         StdScaffoldPathRef::from(root.0.join(config.as_str()).as_path()),
         ReplacementsRef::from(replacements.as_slice()),
     )?;
-    copy_template_tree(
+    template_fs::copy_template_tree(
         StdScaffoldPathRef::from(
             root.0
                 .join(str_constants::WORKSPACE_SCAFFOLD_NOTIFICATION_CONTRACT)
@@ -1056,7 +682,7 @@ fn scaffold_service(
     )?;
 
     let manifest = root.0.join(str_constants::CARGO_TOML);
-    insert_once(
+    template_fs::insert_once(
         StdScaffoldPathRef::from(manifest.as_path()),
         ScaffoldTextRef::from(str_constants::WORKSPACE_SCAFFOLD_MANIFEST_MEMBER_MARKER),
         ScaffoldTextRef::from(
@@ -1067,7 +693,7 @@ fn scaffold_service(
         ),
     )?;
     let dependency_marker = str_constants::WORKSPACE_SCAFFOLD_MANIFEST_DEPENDENCY_MARKER;
-    insert_once(
+    template_fs::insert_once(
         StdScaffoldPathRef::from(manifest.as_path()),
         ScaffoldTextRef::from(dependency_marker),
         ScaffoldTextRef::from(
@@ -1087,13 +713,14 @@ fn scaffold_service(
         .join(str_constants::WORKSPACE_SCAFFOLD_K8S_BASE_PATH)
         .join(k8s_file_name.as_str());
     let _copied_bytes = std::fs::copy(k8s_source, k8s_destination.as_path())?;
-    replace_file(
+    template_fs::replace_file(
         StdScaffoldPathRef::from(k8s_destination.as_path()),
         ReplacementsRef::from(replacements.as_slice()),
     )?;
-    let mut k8s_contents = read_bounded_text(StdScaffoldPathRef::from(k8s_destination.as_path()))?
-        .as_ref()
-        .to_owned();
+    let mut k8s_contents =
+        template_fs::read_bounded_text(StdScaffoldPathRef::from(k8s_destination.as_path()))?
+            .as_ref()
+            .to_owned();
     k8s_contents.push_str(
         format!(
             "\n---\napiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata:\n  name: {kebab}-access\n  namespace: rust-workspace-template\nspec:\n  podSelector:\n    matchLabels:\n      app.kubernetes.io/name: {kebab}\n  ingress:\n    - from:\n        - podSelector:\n            matchLabels:\n              app.kubernetes.io/name: application\n      ports:\n        - protocol: TCP\n          port: {port}\n  egress:\n    - to:\n        - namespaceSelector:\n            matchLabels:\n              kubernetes.io/metadata.name: database\n          podSelector:\n            matchLabels:\n              app.kubernetes.io/name: {kebab}-postgresql\n      ports:\n        - protocol: TCP\n          port: 5432\n    - to:\n        - namespaceSelector:\n            matchLabels:\n              kubernetes.io/metadata.name: kube-system\n          podSelector:\n            matchLabels:\n              k8s-app: kube-dns\n      ports:\n        - protocol: UDP\n          port: 53\n        - protocol: TCP\n          port: 53\n  policyTypes: [\"Ingress\", \"Egress\"]\n",
@@ -1105,7 +732,7 @@ fn scaffold_service(
     let kustomization = root
         .0
         .join(str_constants::WORKSPACE_SCAFFOLD_KUSTOMIZATION_PATH);
-    insert_once(
+    template_fs::insert_once(
         StdScaffoldPathRef::from(kustomization.as_path()),
         ScaffoldTextRef::from(str_constants::WORKSPACE_SCAFFOLD_KUSTOMIZATION_MARKER),
         ScaffoldTextRef::from(
@@ -1115,7 +742,7 @@ fn scaffold_service(
 
     let config_example_path = root.0.join(config.as_str()).join(".env.example");
     let config_example =
-        read_bounded_text(StdScaffoldPathRef::from(config_example_path.as_path()))?;
+        template_fs::read_bounded_text(StdScaffoldPathRef::from(config_example_path.as_path()))?;
     let database_key = format!("{upper_snake}_DATABASE_URL");
     let socket_key = format!("{upper_snake}_SERVICE_SOCKET_ADDRESS");
     let compose_environment = config_example
@@ -1158,7 +785,7 @@ fn scaffold_service(
         .0
         .join(str_constants::WORKSPACE_SCAFFOLD_SERVICE_CATALOG_PATH);
     let mut service_catalog_contents =
-        read_bounded_text(StdScaffoldPathRef::from(service_catalog.as_path()))?
+        template_fs::read_bounded_text(StdScaffoldPathRef::from(service_catalog.as_path()))?
             .as_ref()
             .to_owned();
     service_catalog_contents.push_str(
@@ -1194,9 +821,9 @@ fn run() -> Result<(), ScaffoldError> {
             }
             let name_ref = ProjectNameRef::from(name.as_str());
             let repository_url_ref = RepositoryUrlRef::from(repository_url.as_str());
-            validate_project_name(name_ref)?;
-            validate_repository_url(repository_url_ref)?;
-            rename_identity(workspace_root()?, name_ref, repository_url_ref)
+            naming::validate_project_name(name_ref)?;
+            naming::validate_repository_url(repository_url_ref)?;
+            template_fs::rename_identity(workspace_root()?, name_ref, repository_url_ref)
         }
         Some(str_constants::SERVICE) => {
             let name = arguments.next().ok_or(ScaffoldError::Arguments)?;
@@ -1263,21 +890,26 @@ mod tests {
     #[test]
     fn validates_and_converts_project_names() {
         let valid = super::ProjectNameRef::from("order_platform");
-        super::validate_project_name(valid).expect("96de3a80");
-        assert_eq!(super::kebab_case(valid).as_ref(), "order-platform");
-        assert_eq!(super::title_case(valid).as_ref(), "Order Platform");
-        assert_eq!(super::upper_camel_case(valid).as_ref(), "OrderPlatform");
-        assert!(super::validate_project_name(super::ProjectNameRef("Order-Platform")).is_err());
+        super::naming::validate_project_name(valid).expect("96de3a80");
+        assert_eq!(super::naming::kebab_case(valid).as_ref(), "order-platform");
+        assert_eq!(super::naming::title_case(valid).as_ref(), "Order Platform");
+        assert_eq!(
+            super::naming::upper_camel_case(valid).as_ref(),
+            "OrderPlatform"
+        );
+        assert!(
+            super::naming::validate_project_name(super::ProjectNameRef("Order-Platform")).is_err()
+        );
     }
 
     #[test]
     fn requires_https_repository_url() {
-        super::validate_repository_url(super::RepositoryUrlRef::from(
+        super::naming::validate_repository_url(super::RepositoryUrlRef::from(
             "https://example.com/team/order_platform",
         ))
         .expect("28c1e7a4");
         assert!(
-            super::validate_repository_url(super::RepositoryUrlRef(
+            super::naming::validate_repository_url(super::RepositoryUrlRef(
                 "http://example.com/team/order_platform"
             ))
             .is_err()
@@ -1328,17 +960,17 @@ mod tests {
 
     #[test]
     fn service_catalog_owns_ci_and_release_projection_values() {
-        let entries = super::parse_service_catalog(super::ScaffoldTextRef::from(
+        let entries = super::service_catalog::parse(super::ScaffoldTextRef::from(
             "[[service]]\ncrate = \"server\"\ncompose = \"server\"\ncompose_file = \"docker-compose.yml\"\ndockerfile = \"Dockerfile\"\nimage = \"application\"\nkubernetes = \"deploy/k8s/base/application.yaml\"\nport = 8080\nrelease = true\nsocket_env = \"SERVICE_SOCKET_ADDRESS\"\n\n[[service]]\ncrate = \"worker\"\ncompose = \"worker\"\ncompose_file = \"docker-compose.worker.yml\"\ndockerfile = \"worker/Dockerfile\"\nimage = \"worker\"\nkubernetes = \"deploy/k8s/base/worker.yaml\"\nport = 8082\nrelease = false\nsocket_env = \"WORKER_SERVICE_SOCKET_ADDRESS\"\n",
         ))
         .expect("4e8b2d7a");
         let entries_ref = super::ServiceCatalogEntriesRef::from(entries.0.as_slice());
         assert_eq!(
-            super::render_ci_service_matrix(entries_ref).as_ref(),
+            super::service_catalog::render_ci_matrix(entries_ref).as_ref(),
             "          - name: application\n            dockerfile: Dockerfile\n"
         );
         assert_eq!(
-            super::render_release_matrix(entries_ref).as_ref(),
+            super::service_catalog::render_release_matrix(entries_ref).as_ref(),
             "          - name: application\n            dockerfile: Dockerfile\n"
         );
     }
@@ -1354,7 +986,8 @@ mod tests {
             vec![b'x'; super::SCAFFOLD_TEXT_MAX_BYTES.saturating_add(1usize)],
         )
         .expect("d97e30ac");
-        let result = super::read_bounded_text(super::StdScaffoldPathRef::from(path.as_path()));
+        let result =
+            super::template_fs::read_bounded_text(super::StdScaffoldPathRef::from(path.as_path()));
         assert!(
             matches!(
                 result,

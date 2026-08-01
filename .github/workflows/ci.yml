@@ -281,6 +281,26 @@ jobs:
           components: clippy,rustfmt
       - run: cargo run --locked -p workspace_scaffold -- generate check
       - run: cargo openapi-contract-suite
+      - run: kubectl kustomize deploy/k8s/base > /dev/null
+      - run: kubectl kustomize deploy/k8s/migrations > /dev/null
+      - run: kubectl kustomize deploy/k8s/observability > /dev/null
+      - name: Validate production manifest guard
+        run: |
+          rendered="${RUNNER_TEMP}/production-example.yaml"
+          candidate="${RUNNER_TEMP}/production-candidate.yaml"
+          kubectl kustomize deploy/k8s/overlays/production-example > "${rendered}"
+          if deploy/validate-production-manifest.sh "${rendered}"; then
+            echo "example production values were accepted" >&2
+            exit 1
+          fi
+          sed \
+            -e 's/registry\.example\.invalid/ghcr.io\/deployment-owner/g' \
+            -e 's/admin\.example\.invalid/admin.example.com/g' \
+            -e 's/replace-with-release-digest/0000000000000000000000000000000000000000000000000000000000000000/g' \
+            -e 's/replace-with-config-revision/release-v1/g' \
+            -e 's#TRUSTED_PROXY_RANGES_TEXT: 127.0.0.1/32#TRUSTED_PROXY_RANGES_TEXT: 10.0.0.0/24#g' \
+            "${rendered}" > "${candidate}"
+          deploy/validate-production-manifest.sh "${candidate}"
   database-tests:
     if: github.event_name == 'push' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
@@ -309,6 +329,7 @@ jobs:
           TIMEZONE: "10800"
           TRACING_LEVEL: debug
           SRC_PLACE_TYPE: src
+          SVC_MODE: serve
           ENABLE_API_GIT_COMMIT_CHECK: "true"
           MAXIMUM_SIZE_OF_HTTP_BODY_IN_BYTES: "1048576000"
   dependency-policy:

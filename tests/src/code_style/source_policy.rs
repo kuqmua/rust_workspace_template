@@ -245,7 +245,7 @@ fn service_route_handler_composition_uses_shared_registries() {
     super::snapshot::with_codebase_snapshot(|snapshot| {
         [
             ("server_admin/src/auth/html.rs", 2usize),
-            ("notification_service/src/main.rs", 1usize),
+            ("notification_service/src/routes.rs", 1usize),
         ]
         .iter()
         .for_each(|(path_suffix, expected_registry_count)| {
@@ -273,7 +273,7 @@ fn typed_route_registries_own_request_bodies_and_schema_catalogs() {
     super::snapshot::with_codebase_snapshot(|snapshot| {
         [
             "server_admin/src/auth/routes.rs",
-            "notification_service/src/main.rs",
+            "notification_service/src/routes.rs",
         ]
         .iter()
         .for_each(|path_suffix| {
@@ -931,6 +931,13 @@ fn direct_filesystem_owner_inventory_is_exact_justified_and_current() {
         "b39e07d4"
     );
     assert!(
+        super::is_direct_fs_owner_source_path(super::types::StdPathRef::from(
+            std::path::Path::new("../workspace_scaffold/src/template_fs.rs")
+        ))
+        .get(),
+        "5b71e44a"
+    );
+    assert!(
         !super::is_direct_fs_owner_source_path(super::types::StdPathRef::from(
             std::path::Path::new("../workspace_scaffold/src/unrelated.rs")
         ))
@@ -1102,7 +1109,7 @@ fn raw_runtime_sql_identifier_inventory_matches_reviewed_baseline() {
         }
     });
     let expected = std::collections::BTreeMap::from([(
-        String::from("../notification_service/src/main.rs"),
+        String::from("../notification_service/src/routes.rs"),
         1usize,
     )]);
     assert_eq!(observed, expected, "raw SQL identifier baseline changed");
@@ -1666,11 +1673,6 @@ fn source_lint_suppressions_have_explicit_reasons() {
             limit: 1,
             path_suffix: "route_validators/src/test_hlp.rs",
             reason: "validator test helper shape predates per-attribute reasons",
-        },
-        LegacySuppression {
-            limit: 5,
-            path_suffix: "server_admin/src/auth.rs",
-            reason: "authentication compatibility paths predate per-attribute reasons",
         },
         LegacySuppression {
             limit: 1,
@@ -2780,6 +2782,7 @@ fn admin_application_modules_do_not_own_admin_sql() {
     super::snapshot::with_codebase_snapshot(|snapshot| {
         let application_module_suffixes = [
             "server_admin/src/auth/account.rs",
+            "server_admin/src/auth/api.rs",
             "server_admin/src/auth/authn.rs",
             "server_admin/src/auth/data_tables.rs",
             "server_admin/src/auth/roles.rs",

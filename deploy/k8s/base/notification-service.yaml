@@ -18,6 +18,13 @@ spec:
     spec:
   # END GENERATED KUBERNETES WORKLOAD IDENTITY notification-service
       automountServiceAccountToken: false
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: notification-service
       # BEGIN GENERATED KUBERNETES CONTAINER notification-service
       containers:
         - name: notification-service
@@ -76,6 +83,8 @@ kind: Service
 metadata:
   name: notification-service
   namespace: rust-workspace-template
+  labels:
+    app.kubernetes.io/name: notification-service
 spec:
   selector:
     app.kubernetes.io/name: notification-service

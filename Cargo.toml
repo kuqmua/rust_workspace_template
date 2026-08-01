@@ -237,7 +237,7 @@ chrono = { version = "=0.4.45", default-features = false, features = [
 ] }
 thiserror = { version = "=2.0.19", default-features = false }
 jsonwebtoken = { version = "=11.0.0", default-features = false, features = [
-  "rust_crypto",
+  "aws_lc_rs",
 ] }
 strum = { version = "=0.28.0", default-features = false }
 strum_macros = { version = "=0.28.0", default-features = false }

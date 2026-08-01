@@ -36,18 +36,59 @@ pub const fn classify_http_error_status(status: HttpErrorStatus) -> HttpErrorCla
 #[cfg(test)]
 mod tests {
     #[test]
-    fn known_statuses_have_stable_error_classes() {
-        assert_eq!(
-            super::classify_http_error_status(http::StatusCode::CONFLICT.into()),
-            super::HttpErrorClass::Conflict,
-        );
-        assert_eq!(
-            super::classify_http_error_status(http::StatusCode::PAYLOAD_TOO_LARGE.into()),
-            super::HttpErrorClass::PayloadTooLarge,
-        );
-        assert_eq!(
-            super::classify_http_error_status(http::StatusCode::SERVICE_UNAVAILABLE.into()),
-            super::HttpErrorClass::ServiceUnavailable,
-        );
+    #[allow(clippy::needless_for_each)] // iterator form is required by the workspace no-for-loop policy
+    fn representative_statuses_cover_every_error_class() {
+        [
+            (
+                http::StatusCode::OK,
+                super::HttpErrorClass::UnexpectedSuccess,
+            ),
+            (
+                http::StatusCode::UNAUTHORIZED,
+                super::HttpErrorClass::Authentication,
+            ),
+            (
+                http::StatusCode::FORBIDDEN,
+                super::HttpErrorClass::Forbidden,
+            ),
+            (http::StatusCode::NOT_FOUND, super::HttpErrorClass::NotFound),
+            (
+                http::StatusCode::REQUEST_TIMEOUT,
+                super::HttpErrorClass::Timeout,
+            ),
+            (
+                http::StatusCode::GATEWAY_TIMEOUT,
+                super::HttpErrorClass::Timeout,
+            ),
+            (http::StatusCode::CONFLICT, super::HttpErrorClass::Conflict),
+            (
+                http::StatusCode::PAYLOAD_TOO_LARGE,
+                super::HttpErrorClass::PayloadTooLarge,
+            ),
+            (
+                http::StatusCode::UNPROCESSABLE_ENTITY,
+                super::HttpErrorClass::Validation,
+            ),
+            (
+                http::StatusCode::TOO_MANY_REQUESTS,
+                super::HttpErrorClass::RateLimited,
+            ),
+            (
+                http::StatusCode::BAD_GATEWAY,
+                super::HttpErrorClass::ServiceUnavailable,
+            ),
+            (
+                http::StatusCode::SERVICE_UNAVAILABLE,
+                super::HttpErrorClass::ServiceUnavailable,
+            ),
+            (
+                http::StatusCode::BAD_REQUEST,
+                super::HttpErrorClass::Internal,
+            ),
+        ]
+        .into_iter()
+        .for_each(|(status, expected)| {
+            assert_eq!(super::classify_http_error_status(status.into()), expected);
+        });
     }
 }

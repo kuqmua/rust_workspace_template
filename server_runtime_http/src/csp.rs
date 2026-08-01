@@ -128,7 +128,7 @@ mod tests {
             .expect("6d089fc9");
         let policy = builder.try_build().expect("1a987236");
         assert_eq!(
-            policy.0.to_str().expect("ba8ae30f"),
+            policy.to_str().expect("ba8ae30f"),
             str_constants::TEST_DEFAULT_SRC_SELF
         );
     }

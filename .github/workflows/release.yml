@@ -3,14 +3,157 @@ on:
   push:
     tags:
       - "v*"
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 permissions:
   contents: read
-  id-token: write
-  packages: write
 env:
   CARGO_TERM_COLOR: always
 jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - name: Validate semantic release tag and changelog
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          [[ "${RELEASE_TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          grep --fixed-strings --quiet "${RELEASE_TAG#v}" CHANGELOG.md
+      - uses: ./.github/actions/setup-rust
+        with:
+          components: clippy,rustfmt
+      - run: cargo fmt --all -- --check
+      - run: cargo clippy --locked --workspace --all-targets --all-features -- -D warnings
+      - run: cargo test --locked --workspace --all-features
+      - run: cargo install --locked cargo-deny cargo-audit
+      - run: cargo deny check
+      - run: cargo audit
+      - run: cargo run --locked -p workspace_scaffold -- generate check
+      - run: cargo doc --locked --workspace --all-features --no-deps
+        env:
+          RUSTDOCFLAGS: -D warnings
+      - uses: aquasecurity/trivy-action@f19cc2b99c0f1c5f19db5882d7cf26c5a5cc7e49
+        with:
+          scan-type: fs
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+      - run: kubectl kustomize deploy/k8s/base > /dev/null
+      - run: kubectl kustomize deploy/k8s/migrations > /dev/null
+      - run: kubectl kustomize deploy/k8s/observability > /dev/null
+      - name: Verify production example remains fail-closed
+        run: |
+          rendered="${RUNNER_TEMP}/production-example.yaml"
+          kubectl kustomize deploy/k8s/overlays/production-example > "${rendered}"
+          if deploy/validate-production-manifest.sh "${rendered}"; then
+            echo "example production values were accepted" >&2
+            exit 1
+          fi
+  extended:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      XDG_CACHE_HOME: ${{ github.workspace }}/target/miri-cache
+      MIRIFLAGS: -Zmiri-disable-isolation
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: ./.github/actions/setup-rust
+        with:
+          components: miri
+      - run: >-
+          cargo miri test --locked --all-features
+          -p config_lib
+          -p file_storage
+          -p frontend_contract
+          -p macros_helpers
+          -p newtype
+          -p pg_crud_common
+          -p server_runtime_core
+          -p server_runtime_http
+      - run: cargo install --locked cargo-hack
+      - run: cargo hack check --workspace --feature-powerset --depth 1 --locked
+      - uses: taiki-e/install-action@5292d65c95e72dc79f25946b7ce34e28deecf2f3
+        with:
+          tool: cargo-fuzz@0.13.2
+      - run: ./fuzz/run_domain.sh -runs=10000 -max_len=4096 -timeout=10
+  database:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    services:
+      postgres:
+        image: ghcr.io/kuqmua/postgresql_16_with_pg_jsonschema@sha256:e95f0b8fce882a4cadbd7a1e01451a1440b356299af7a2a17859018914d0c178
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: rust_workspace_template_release_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d rust_workspace_template_release_test"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: ./.github/actions/setup-rust
+      - run: cargo run --locked -p workspace_test_runner -- database
+        env:
+          SERVICE_SOCKET_ADDRESS: 127.0.0.1:8080
+          DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/rust_workspace_template_release_test
+          TIMEZONE: "10800"
+          TRACING_LEVEL: debug
+          SRC_PLACE_TYPE: src
+          SVC_MODE: serve
+          ENABLE_API_GIT_COMMIT_CHECK: "true"
+          MAXIMUM_SIZE_OF_HTTP_BODY_IN_BYTES: "1048576000"
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: ghcr.io/kuqmua/postgresql_16_with_pg_jsonschema@sha256:e95f0b8fce882a4cadbd7a1e01451a1440b356299af7a2a17859018914d0c178
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: rust_workspace_template_release_browser_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d rust_workspace_template_release_browser_test"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: ./.github/actions/setup-rust
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: browser_acceptance/package-lock.json
+      - uses: taiki-e/install-action@5292d65c95e72dc79f25946b7ce34e28deecf2f3
+        with:
+          tool: trunk
+      - run: npm ci
+        working-directory: browser_acceptance
+      - run: npx playwright install --with-deps chromium
+        working-directory: browser_acceptance
+      - run: npm test
+        working-directory: browser_acceptance
+        env:
+          BROWSER_ACCEPTANCE_DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/rust_workspace_template_release_browser_test
   images:
+    needs: [verify, extended, database, browser]
+    permissions:
+      contents: read
+      id-token: write
+      packages: write
     runs-on: ubuntu-latest
     timeout-minutes: 90
     strategy:
@@ -27,9 +170,9 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - name: Authenticate to GHCR
         run: echo "${{ github.token }}" | docker login ghcr.io --username "${{ github.actor }}" --password-stdin
-      - name: Build and publish with SBOM and provenance
+      - name: Build candidate with SBOM and provenance
         env:
-          IMAGE: ghcr.io/${{ github.repository_owner }}/${{ matrix.name }}:${{ github.ref_name }}
+          IMAGE: ghcr.io/${{ github.repository_owner }}/${{ matrix.name }}:candidate-${{ github.sha }}
         run: |
           docker buildx build \
             --file "${{ matrix.dockerfile }}" \
@@ -38,11 +181,23 @@ jobs:
             --sbom=true \
             --push \
             .
-      - name: Resolve immutable image digest
+      - uses: aquasecurity/trivy-action@f19cc2b99c0f1c5f19db5882d7cf26c5a5cc7e49
+        with:
+          image-ref: "ghcr.io/${{ github.repository_owner }}/${{ matrix.name }}:candidate-${{ github.sha }}"
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+      - name: Promote verified candidate and resolve immutable digest
         id: digest
         env:
           IMAGE: ghcr.io/${{ github.repository_owner }}/${{ matrix.name }}:${{ github.ref_name }}
-        run: echo "value=$(docker buildx imagetools inspect "${IMAGE}" --format '{{.Manifest.Digest}}')" >> "${GITHUB_OUTPUT}"
+          CANDIDATE: ghcr.io/${{ github.repository_owner }}/${{ matrix.name }}:candidate-${{ github.sha }}
+        run: |
+          candidate_digest=$(docker buildx imagetools inspect "${CANDIDATE}" --format '{{.Manifest.Digest}}')
+          docker buildx imagetools create --tag "${IMAGE}" "${CANDIDATE}@${candidate_digest}"
+          release_digest=$(docker buildx imagetools inspect "${IMAGE}" --format '{{.Manifest.Digest}}')
+          test "${candidate_digest}" = "${release_digest}"
+          echo "value=${release_digest}" >> "${GITHUB_OUTPUT}"
       - name: Sign immutable image
         env:
           IMAGE: ghcr.io/${{ github.repository_owner }}/${{ matrix.name }}@${{ steps.digest.outputs.value }}
@@ -52,3 +207,40 @@ jobs:
             -e ACTIONS_ID_TOKEN_REQUEST_URL \
             ghcr.io/sigstore/cosign/cosign:v2.6.1@sha256:68839b7f13dac5a6744a5d8818e984dd39183374e37855c19e14d623d9bc9037 \
             sign --yes "${IMAGE}"
+  publish-release:
+    needs: images
+    permissions:
+      contents: write
+      packages: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - name: Authenticate to GHCR
+        run: echo "${{ github.token }}" | docker login ghcr.io --username "${{ github.actor }}" --password-stdin
+      - name: Publish immutable release manifest
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+          REPOSITORY_OWNER: ${{ github.repository_owner }}
+        run: |
+          application_repository="ghcr.io/${REPOSITORY_OWNER}/application"
+          notification_repository="ghcr.io/${REPOSITORY_OWNER}/notification-service"
+          application_image="${application_repository}:${RELEASE_TAG}"
+          notification_image="${notification_repository}:${RELEASE_TAG}"
+          application_digest=$(docker buildx imagetools inspect "${application_image}" --format '{{.Manifest.Digest}}')
+          notification_digest=$(docker buildx imagetools inspect "${notification_image}" --format '{{.Manifest.Digest}}')
+          {
+            echo "release=${RELEASE_TAG}"
+            echo "commit=${GITHUB_SHA}"
+            echo "application=${application_repository}@${application_digest}"
+            echo "notification-service=${notification_repository}@${notification_digest}"
+          } > release-manifest.txt
+          if gh release view "${RELEASE_TAG}" > /dev/null 2>&1; then
+            echo "release ${RELEASE_TAG} already exists and is immutable" >&2
+            exit 1
+          fi
+          gh release create "${RELEASE_TAG}" release-manifest.txt \
+            --verify-tag \
+            --title "${RELEASE_TAG}" \
+            --generate-notes

@@ -4,7 +4,8 @@ pub(super) async fn create(
     auth: super::AdminAuthReq,
     request: super::AxumAdminJson<server_admin_contract::AdminCreateRoleReq>,
 ) -> Result<super::AxumAdminResponse, super::AdminError> {
-    let actor = super::authorize_custom(&auth, super::super::AdminPermission::RolesCreate).await?;
+    let actor =
+        super::shared::authorize_custom(&auth, super::super::AdminPermission::RolesCreate).await?;
     let name = super::super::AdminRoleName::try_from(request.0.into_name().into_inner())
         .map_err(|_error| super::AdminError::Validation)?;
     let mut tx = auth
@@ -47,7 +48,8 @@ pub(super) async fn update(
     path: super::AxumAdminPath<super::super::AdminRoleId>,
     request: super::AxumAdminJson<server_admin_contract::AdminUpdateRoleReq>,
 ) -> Result<super::AxumAdminResponse, super::AdminError> {
-    let actor = super::authorize_custom(&auth, super::super::AdminPermission::RolesUpdate).await?;
+    let actor =
+        super::shared::authorize_custom(&auth, super::super::AdminPermission::RolesUpdate).await?;
     let name = super::super::AdminRoleName::try_from(request.0.into_name().into_inner())
         .map_err(|_error| super::AdminError::Validation)?;
     let mut tx = auth
@@ -88,7 +90,8 @@ pub(super) async fn delete(
     auth: super::AdminAuthReq,
     path: super::AxumAdminPath<super::super::AdminRoleId>,
 ) -> Result<super::AxumAdminResponse, super::AdminError> {
-    let actor = super::authorize_custom(&auth, super::super::AdminPermission::RolesDelete).await?;
+    let actor =
+        super::shared::authorize_custom(&auth, super::super::AdminPermission::RolesDelete).await?;
     let mut tx = auth
         .state
         .as_ref()
@@ -127,9 +130,11 @@ pub(super) async fn set_permissions(
     path: super::AxumAdminPath<super::super::AdminRoleId>,
     request: super::AxumAdminJson<server_admin_contract::AdminSetRolePermissionsReq>,
 ) -> Result<super::AxumAdminResponse, super::AdminError> {
-    let actor =
-        super::authorize_custom(&auth, super::super::AdminPermission::RolePermissionsUpdate)
-            .await?;
+    let actor = super::shared::authorize_custom(
+        &auth,
+        super::super::AdminPermission::RolePermissionsUpdate,
+    )
+    .await?;
     let (expected_permission_ids, contract_permission_ids) = request.0.into_parts();
     if AsRef::<[server_admin_contract::AdminPermissionId]>::as_ref(&expected_permission_ids)
         .iter()
