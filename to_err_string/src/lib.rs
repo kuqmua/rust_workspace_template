@@ -34,6 +34,7 @@ pub trait ToErrString {
     fn to_err_string(&self) -> ErrorText;
 }
 #[derive(
+    optml::Optml,
     Debug,
     Clone,
     Default,
@@ -81,7 +82,7 @@ to_err_string_macros::impl_to_err_string_const!(
     tracing::dispatcher::SetGlobalDefaultError => str_constants::TRACING_PATH_DISPATCHER_PATH_SETGLOBALDEFAULTERROR,
     tracing::log::SetLoggerError => str_constants::TRACING_PATH_LOG_PATH_TRACING_PATH_LOG_PATH_SETLOGGERERROR,
 );
-#[derive(Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
 struct StaticStrToOwnedInput(&'static str);
 fn debug_to_string<T>(v: &T) -> ErrorText
 where

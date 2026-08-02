@@ -1,7 +1,7 @@
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct StdPermitWaitTimeout(std::time::Duration);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct RetryAfterSecs(u64);
 impl TryFrom<u64> for RetryAfterSecs {
     type Error = RetryAfterSecsTryFromU64Error;
@@ -13,7 +13,7 @@ impl TryFrom<u64> for RetryAfterSecs {
         }
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("{}", str_constants::RETRY_AFTER_SECONDS_MUST_BE_GREATER_THAN_ZERO)]
 pub struct RetryAfterSecsTryFromU64Error;
 impl TryFrom<RetryAfterSecs> for http::HeaderValue {
@@ -22,9 +22,9 @@ impl TryFrom<RetryAfterSecs> for http::HeaderValue {
         Self::from_str(value.0.to_string().as_str())
     }
 }
-#[derive(Clone, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Debug, newtype::FromInner)]
 pub struct StdArcTokioSemaphore(std::sync::Arc<tokio::sync::Semaphore>);
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct StdSemaphorePermitCount(std::num::NonZeroUsize);
 
 impl StdArcTokioSemaphore {
@@ -43,17 +43,17 @@ impl StdArcTokioSemaphore {
     }
 }
 
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 pub struct TokioAcquireError(tokio::sync::AcquireError);
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 pub enum AcquirePermitError {
     #[error("concurrency limiter is closed: {0}")]
     Closed(#[source] TokioAcquireError),
     #[error("concurrency limit reached; retry after {} seconds", .0.0)]
     Timeout(RetryAfterSecs),
 }
-#[derive(Debug, newtype::FromInner)]
+#[derive(optml::Optml, Debug, newtype::FromInner)]
 pub struct TokioOwnedSemaphorePermit(tokio::sync::OwnedSemaphorePermit);
 
 impl TokioOwnedSemaphorePermit {

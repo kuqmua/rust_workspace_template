@@ -1,0 +1,88 @@
+#[test]
+fn validates_string_and_header_boundaries() {
+    assert_eq!(
+        super::super::RequestId::try_from(String::new()),
+        Err(super::super::RequestIdTryFromStringError)
+    );
+    let maximum = "a".repeat(128usize);
+    let request_id = super::super::RequestId::try_from(maximum.clone()).expect("3ff39236");
+    assert_eq!(request_id.to_string(), maximum);
+    assert_eq!(
+        super::super::RequestId::try_from("a".repeat(129usize)),
+        Err(super::super::RequestIdTryFromStringError)
+    );
+    assert_eq!(
+        super::super::RequestId::try_from(
+            String::from_utf8(vec![0xc3u8, 0xa9u8]).expect("f246e4f8")
+        ),
+        Err(super::super::RequestIdTryFromStringError)
+    );
+    assert!(matches!(
+        super::super::RequestId::try_from(
+            &http::HeaderValue::from_bytes(&[0xffu8]).expect("dcb3f9a8")
+        ),
+        Err(super::super::RequestIdTryFromHttpHeaderValueError::ToStr(_))
+    ));
+    assert_eq!(
+        http::HeaderValue::try_from(&request_id).expect("b0a0854a"),
+        http::HeaderValue::from_str(maximum.as_str()).expect("07132954")
+    );
+}
+
+#[tokio::test]
+async fn layer_propagates_existing_and_generated_values() {
+    let make_router = || {
+        axum::Router::from(super::super::RequestIdLayer::default().apply(
+            super::super::AxumRouter::from(axum::Router::new().route(
+                str_constants::SLASH,
+                axum::routing::get(async || http::StatusCode::OK),
+            )),
+        ))
+    };
+    let existing = http::HeaderValue::from_static(str_constants::EXISTING_REQUEST_ID);
+    let existing_response = tower::ServiceExt::oneshot(
+        make_router(),
+        axum::extract::Request::builder()
+            .uri(str_constants::SLASH)
+            .header(
+                str_constants::HTTP_HEADER_NAMES_X_REQUEST_ID,
+                existing.clone(),
+            )
+            .body(axum::body::Body::empty())
+            .expect("319b3cb4"),
+    )
+    .await
+    .expect("d5a0693b");
+    assert_eq!(
+        existing_response
+            .headers()
+            .get(str_constants::HTTP_HEADER_NAMES_X_REQUEST_ID),
+        Some(&existing)
+    );
+    assert_eq!(
+        existing_response
+            .headers()
+            .get(str_constants::RUNTIME_CORRELATION_ID_HEADER_NAME),
+        Some(&existing)
+    );
+    let generated_response = tower::ServiceExt::oneshot(
+        make_router(),
+        axum::extract::Request::builder()
+            .uri(str_constants::SLASH)
+            .body(axum::body::Body::empty())
+            .expect("27ce5fbd"),
+    )
+    .await
+    .expect("4cd32371");
+    let generated = generated_response
+        .headers()
+        .get(str_constants::HTTP_HEADER_NAMES_X_REQUEST_ID)
+        .expect("12ed6f85");
+    assert_eq!(generated.as_bytes().len(), 36usize);
+    assert_eq!(
+        generated_response
+            .headers()
+            .get(str_constants::RUNTIME_CORRELATION_ID_HEADER_NAME),
+        Some(generated)
+    );
+}

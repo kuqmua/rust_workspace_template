@@ -6,7 +6,7 @@
 const TEXT_POLICY_MAXIMUM_BYTES: usize = 1_048_576usize;
 const URL_SAFE_TOKEN_PART_MAXIMUM_BYTES: usize = 4096usize;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum BoundedTextPolicyError {
     #[error("text contains a NUL character")]
     ContainsNul,
@@ -16,7 +16,7 @@ pub enum BoundedTextPolicyError {
     TooLong,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
 pub struct RequiredNulFreeBoundedText(String);
 impl TryFrom<String> for RequiredNulFreeBoundedText {
     type Error = BoundedTextPolicyError;
@@ -34,7 +34,7 @@ impl TryFrom<String> for RequiredNulFreeBoundedText {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
 pub struct NonEmptyTrimmedText(String);
 impl TryFrom<String> for NonEmptyTrimmedText {
     type Error = BoundedTextPolicyError;
@@ -53,14 +53,14 @@ impl TryFrom<String> for NonEmptyTrimmedText {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum FixedLengthAsciiHexTextError {
     #[error("hexadecimal text has an unexpected length")]
     InvalidLength,
     #[error("hexadecimal text must contain only lowercase ASCII hexadecimal digits")]
     InvalidSymbol,
 }
-#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr, newtype::IntoInner)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefStr, newtype::IntoInner)]
 pub struct FixedLengthAsciiHexText(String);
 impl TryFrom<String> for FixedLengthAsciiHexText {
     type Error = FixedLengthAsciiHexTextError;
@@ -78,13 +78,13 @@ impl TryFrom<String> for FixedLengthAsciiHexText {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct UrlSafeTokenPartMaximumBytes(usize);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct UrlSafeTokenPartRef<'value_lt>(&'value_lt str);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum UrlSafeTokenPartTextError {
     #[error("URL-safe token part must not be empty")]
     Empty,
@@ -94,7 +94,7 @@ pub enum UrlSafeTokenPartTextError {
     TooLong,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
 pub struct UrlSafeTokenPartText(String);
 impl TryFrom<String> for UrlSafeTokenPartText {
     type Error = UrlSafeTokenPartTextError;
@@ -130,7 +130,7 @@ pub fn validate_url_safe_token_part(
     }
 }
 
-#[derive(Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
 pub struct PasswordTextRef<'value_lt>(&'value_lt str);
 impl std::fmt::Debug for PasswordTextRef<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -138,10 +138,10 @@ impl std::fmt::Debug for PasswordTextRef<'_> {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct PasswordLength(usize);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct PasswordLengthRange {
     minimum: PasswordLength,
     maximum: PasswordLength,
@@ -152,7 +152,7 @@ impl PasswordLengthRange {
         Self { minimum, maximum }
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("password maximum length must not be less than minimum length")]
 pub struct PasswordLengthRangeError;
 impl TryFrom<(PasswordLength, PasswordLength)> for PasswordLengthRange {
@@ -168,7 +168,7 @@ impl TryFrom<(PasswordLength, PasswordLength)> for PasswordLengthRange {
         }
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum PasswordPolicyViolation {
     #[error("password must not contain whitespace")]
     ContainsWhitespace,

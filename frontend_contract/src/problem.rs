@@ -1,5 +1,13 @@
 #[derive(
-    Clone, Copy, Debug, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema,
+    optml::Optml,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    serde::Deserialize,
+    serde::Serialize,
+    utoipa::ToSchema,
 )]
 #[serde(rename_all = "snake_case")]
 pub enum ApiProblemKind {
@@ -18,7 +26,7 @@ pub enum ApiProblemKind {
     RequestFailed,
     Validation,
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum ApiProblemError {
     #[error("API authentication failed")]
     Authentication,
@@ -52,6 +60,7 @@ pub enum ApiProblemError {
     Validation,
 }
 #[derive(
+    optml::Optml,
     Clone,
     Copy,
     Debug,
@@ -136,6 +145,7 @@ impl ApiProblemError {
     }
 }
 #[derive(
+    optml::Optml,
     Clone,
     Debug,
     Default,
@@ -151,6 +161,7 @@ impl ApiProblemError {
 #[serde(try_from = "String")]
 pub struct ApiProblemDetail(String);
 #[derive(
+    optml::Optml,
     Clone,
     Debug,
     Default,
@@ -165,6 +176,7 @@ pub struct ApiProblemDetail(String);
 #[serde(try_from = "String")]
 pub struct ApiProblemRequestId(String);
 #[derive(
+    optml::Optml,
     Clone,
     Debug,
     Default,
@@ -178,12 +190,22 @@ pub struct ApiProblemRequestId(String);
 #[bounded_string(max = 128usize)]
 #[serde(try_from = "String")]
 pub struct ApiProblemField(String);
-#[derive(Clone, Debug, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema)]
+#[derive(
+    optml::Optml,
+    Clone,
+    Debug,
+    PartialEq,
+    Eq,
+    serde::Deserialize,
+    serde::Serialize,
+    utoipa::ToSchema,
+)]
 pub struct ApiProblemViolation {
     detail: ApiProblemDetail,
     field: ApiProblemField,
 }
 #[derive(
+    optml::Optml,
     Clone,
     Debug,
     Default,
@@ -198,14 +220,23 @@ pub struct ApiProblemViolation {
 pub(crate) struct ApiProblemViolations(
     bounded_types::BoundedVec<ApiProblemViolation, 0usize, 128usize>,
 );
-#[derive(Clone, Debug, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema)]
+#[derive(
+    optml::Optml,
+    Clone,
+    Debug,
+    PartialEq,
+    Eq,
+    serde::Deserialize,
+    serde::Serialize,
+    utoipa::ToSchema,
+)]
 pub struct ApiProblem {
     detail: ApiProblemDetail,
-    kind: ApiProblemKind,
     request_id: Option<ApiProblemRequestId>,
-    status: ApiProblemStatus,
     #[schema(inline)]
     violations: ApiProblemViolations,
+    status: ApiProblemStatus,
+    kind: ApiProblemKind,
 }
 impl ApiProblem {
     #[must_use]

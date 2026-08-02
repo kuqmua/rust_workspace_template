@@ -1,16 +1,18 @@
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::IntoInnerFrom)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::IntoInnerFrom)]
 pub struct HttpHeaderTextMaximumBytes(usize);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct HttpHeaderTextBytes(usize);
 
-#[derive(Clone, Debug, newtype::AsRefOwned, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Debug, newtype::AsRefOwned, newtype::FromInner)]
 pub struct HttpHeaderName(http::HeaderName);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::AsRefInner, newtype::FromInner)]
+#[derive(
+    optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::AsRefInner, newtype::FromInner,
+)]
 pub struct HttpHeaderTextRef<'header>(&'header str);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("HTTP header text maximum must be greater than zero")]
 pub struct HttpHeaderTextMaximumBytesError;
 
@@ -25,7 +27,7 @@ impl TryFrom<usize> for HttpHeaderTextMaximumBytes {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum HttpHeaderTextResolution<'header> {
     ExceedsMaximumBytes { actual_bytes: HttpHeaderTextBytes },
     InvalidText,

@@ -67,7 +67,6 @@ test("read-only role rows and runtime branding persist", async ({ page }) => {
   await page.reload();
   await expect(page.getByLabel("Site name")).toHaveValue("Browser Acceptance Admin");
 
-  page.once("dialog", dialog => dialog.accept());
   mutation = page.waitForResponse(
     response =>
       response.request().method() === "PATCH" &&
@@ -76,6 +75,10 @@ test("read-only role rows and runtime branding persist", async ({ page }) => {
   );
   await page
     .getByRole("button", { name: "Reset to template defaults" })
+    .click();
+  await page
+    .getByRole("dialog", { name: "Reset settings?" })
+    .getByRole("button", { name: "Reset" })
     .click();
   await mutation;
   await expect(page.getByLabel("Site name")).toHaveValue("Admin");
@@ -102,7 +105,6 @@ test("one-session and all-session revocation are enforced", async ({
     .filter({ hasText: "false" })
     .first();
   const revokedSessionId = await otherSession.locator("td").first().innerText();
-  page.once("dialog", dialog => dialog.accept());
   const oneRevoked = page.waitForResponse(
     response =>
       response.request().method() === "DELETE" &&
@@ -110,6 +112,10 @@ test("one-session and all-session revocation are enforced", async ({
       response.status() === 204
   );
   await otherSession.getByRole("button", { name: "Revoke session" }).click();
+  await otherSession
+    .getByRole("dialog", { name: "Revoke session?" })
+    .getByRole("button", { name: "Revoke", exact: true })
+    .click();
   await oneRevoked;
   await expect(
     page.locator("tbody tr").filter({ hasText: revokedSessionId })

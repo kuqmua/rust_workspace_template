@@ -1,13 +1,14 @@
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
 #[error("{0}")]
 pub(crate) struct SqlxBoxDynError(#[source] sqlx::error::BoxDynError);
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 #[error("failed to bind PostgreSQL query parameter")]
 pub struct SqlxPostgresQueryBindError {
     #[source]
     source: SqlxBoxDynError,
 }
 #[derive(
+    optml::Optml,
     Debug,
     Clone,
     Copy,

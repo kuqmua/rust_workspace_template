@@ -24,14 +24,14 @@ pub(super) fn admin_profile_account(
         .collect::<Vec<_>>()
         .join(str_constants::COMMA_SPACE);
     leptos::view! {
-        <article class="profile-card">
-            <h2>"Account"</h2>
+        <crate::ui::card::AdminCard variant=crate::ui::card::AdminCardVariant::Profile>
+            <h2 class="profile-card-title">"Account"</h2>
             <dl>
                 <dt>"Login"</dt><dd>{login}</dd>
                 <dt>"Display name"</dt><dd>{display_name}</dd>
                 <dt>"Roles"</dt><dd>{roles}</dd>
                 <dt>"Permissions"</dt><dd>{permissions}</dd>
             </dl>
-        </article>
+        </crate::ui::card::AdminCard>
     }
 }

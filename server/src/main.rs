@@ -2,39 +2,39 @@ mod bootstrap;
 mod maintenance;
 mod routing;
 
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 struct StdServerIoError(std::io::Error);
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 struct ServerRuntimeServeError(server_runtime_http::ServeWithGracefulShutdownError);
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 struct MetricsExporterPrometheusBuildError(metrics_exporter_prometheus::BuildError);
-#[derive(Clone, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Debug, newtype::FromInner)]
 struct MetricsExporterPrometheusHandle(metrics_exporter_prometheus::PrometheusHandle);
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
 #[error("{0}")]
 struct ServerRuntimeRequestTimeoutError(server_runtime_http::StdRequestTimeoutTryFromDurationError);
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
 #[error("{0}")]
 struct ServerRuntimeRunIntervalError(server_runtime_http::StdRunIntervalTryFromDurationError);
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
 #[error("{0}")]
 struct ServerRuntimeBackgroundTaskShutdownError(server_runtime_http::BackgroundTaskShutdownError);
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
 #[error("{0}")]
 struct ServerObservabilityInitError(server_runtime_http::ObservabilityInitError);
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
 #[error("{0}")]
 struct ServerObservabilityShutdownError(
     server_runtime_http::OpentelemetrySdkObservabilityShutdownError,
 );
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
 #[error("{0}")]
 struct ServerAdminCleanupCfgError(server_admin::AdminCleanupCfgError);
 
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 enum AdminMetricsError {
     #[error(transparent)]
     Render(server_runtime_http::MetricsResponseBodyError),
@@ -49,48 +49,48 @@ impl axum::response::IntoResponse for AdminMetricsError {
     }
 }
 
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 struct ServerConfigError(server_config::ConfigTryFromEnvError);
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 struct ServerConfigProductionError(server_config::ProductionConfigError);
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 struct SqlxServerPgConnectError(sqlx::Error);
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 struct ServerAdminMigrateError(server_admin::AdminMigrateError);
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 struct ServerAdminAuthSvcStateBuildError(server_admin::auth::AdminAuthSvcStateBuildError);
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
 #[error("{0}")]
 struct ServerRuntimeContentSecurityPolicyError(server_runtime_http::HttpContentSecurityPolicyError);
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
 #[error("{0}")]
 struct ServerRuntimeTrustedProxyRangesParseError(server_runtime_http::TrustedProxyRangesParseError);
-#[derive(newtype::FromInner)]
+#[derive(optml::Optml, newtype::FromInner)]
 struct AxumApiRoutes(axum::Router);
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 struct HttpBodyMaximumBytes(usize);
-#[derive(Clone, newtype::DerefTarget, newtype::FromInner)]
+#[derive(optml::Optml, Clone, newtype::DerefTarget, newtype::FromInner)]
 struct StdSharedServerAppState(std::sync::Arc<server_app_state::ServerAppState<'static>>);
 impl StdSharedServerAppState {
     const fn get(&self) -> &std::sync::Arc<server_app_state::ServerAppState<'static>> {
         &self.0
     }
 }
-#[derive(newtype::FromInner)]
+#[derive(optml::Optml, newtype::FromInner)]
 struct TokioServerRuntime(tokio::runtime::Runtime);
-#[derive(newtype::FromInner)]
+#[derive(optml::Optml, newtype::FromInner)]
 struct StdServerExitCode(std::process::ExitCode);
 impl std::process::Termination for StdServerExitCode {
     fn report(self) -> std::process::ExitCode {
         self.0
     }
 }
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 enum RunServerError {
     #[error("failed to build administrator authentication state: {0}")]
     AdminAuthState(ServerAdminAuthSvcStateBuildError),
@@ -165,11 +165,11 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
             ),
         ));
     };
-    let service_socket_address =
-        config_lib::GetServiceSocketAddress::get_service_socket_address(&config);
-    let tcp_listener = tokio::net::TcpListener::bind(service_socket_address)
-        .await
-        .map_err(|error| RunServerError::BindServiceSocket(StdServerIoError::from(error)))?;
+    let tcp_listener = tokio::net::TcpListener::bind(
+        config_lib::GetServiceSocketAddress::get_service_socket_address(&config),
+    )
+    .await
+    .map_err(|error| RunServerError::BindServiceSocket(StdServerIoError::from(error)))?;
     let actual_service_socket_address = tcp_listener
         .local_addr()
         .map_err(|error| RunServerError::BindServiceSocket(StdServerIoError::from(error)))?;

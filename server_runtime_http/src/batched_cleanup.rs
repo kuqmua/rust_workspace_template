@@ -1,7 +1,7 @@
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct CleanupBatchSize(u64);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("cleanup batch size must be greater than zero")]
 pub struct CleanupBatchSizeError;
 
@@ -18,32 +18,49 @@ impl TryFrom<u64> for CleanupBatchSize {
 }
 
 #[derive(
-    Clone, Copy, Debug, Default, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom,
+    optml::Optml,
+    Clone,
+    Copy,
+    Debug,
+    Default,
+    Eq,
+    PartialEq,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
 )]
 pub struct CleanupRows(u64);
 
 #[derive(
-    Clone, Copy, Debug, Default, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom,
+    optml::Optml,
+    Clone,
+    Copy,
+    Debug,
+    Default,
+    Eq,
+    PartialEq,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
 )]
 pub struct CleanupBatchCount(u64);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum CleanupContinuation {
     Continue,
     Stop,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum CleanupCompletion {
     Drained,
     Stopped,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optml takes precedence over alphabetical field order
 pub struct CleanupReport {
     batches: CleanupBatchCount,
-    completion: CleanupCompletion,
     rows: CleanupRows,
+    completion: CleanupCompletion,
 }
 
 impl CleanupReport {

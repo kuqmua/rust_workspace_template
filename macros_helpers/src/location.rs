@@ -86,14 +86,14 @@ impl LocationFieldAttr {
         }
     }
 }
-#[derive(Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
 struct CompileErrorMessage<'message_lt>(&'message_lt str);
 impl<'message_lt> From<&'message_lt String> for CompileErrorMessage<'message_lt> {
     fn from(value: &'message_lt String) -> Self {
         Self(value.as_str())
     }
 }
-#[derive(Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
 pub struct SynVariantRef<'variant_lt>(&'variant_lt syn::Variant);
 fn compile_error_token_stream(
     message: CompileErrorMessage<'_>,

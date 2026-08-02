@@ -1,13 +1,13 @@
 const MAXIMUM_SCOPED_FOREIGN_KEY_COLUMNS: usize = 16usize;
 const MINIMUM_SCOPED_FOREIGN_KEY_COLUMNS: usize = 2usize;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum PgScopedForeignKeyOnDelete {
     Cascade,
     Restrict,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum PgScopedForeignKeyError {
     #[error("{}", str_constants::PG_SCOPED_FOREIGN_KEY_COLUMN_COUNT_MISMATCH)]
     ColumnCountMismatch,
@@ -16,24 +16,25 @@ pub enum PgScopedForeignKeyError {
     #[error("{}", str_constants::PG_SCOPED_FOREIGN_KEY_INVALID_COLUMN_COUNT)]
     InvalidColumnCount,
 }
-#[derive(Clone, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct PgSqlIdentifiers(Vec<crate::SqlIdentifier>);
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optml takes precedence over alphabetical field order
 pub struct PgScopedForeignKey {
     local_columns: PgSqlIdentifiers,
-    on_delete: PgScopedForeignKeyOnDelete,
     referenced_columns: PgSqlIdentifiers,
     referenced_table: crate::SqlQualifiedIdentifier,
+    on_delete: PgScopedForeignKeyOnDelete,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 enum PgDuplicateIdentifierPresence {
     Absent,
     Present,
 }
 
-#[derive(Debug)]
+#[derive(optml::Optml, Debug)]
 struct PgScopedForeignKeyClauseText(String);
 
 impl TryFrom<String> for PgScopedForeignKeyClauseText {
@@ -75,24 +76,24 @@ impl PgScopedForeignKey {
         }
         Ok(Self {
             local_columns,
-            on_delete,
             referenced_columns,
             referenced_table,
+            on_delete,
         })
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, newtype::FromInner)]
 pub struct PgCounterValue(u64);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum PgCounterReconciliation {
     ActualAhead(PgCounterValue),
     InSync,
     TrackedAhead(PgCounterValue),
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct PgOperationalLimit(u64);
 
 impl TryFrom<u64> for PgOperationalLimit {
@@ -107,13 +108,13 @@ impl TryFrom<u64> for PgOperationalLimit {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum PgOperationalLimitUpdateAuthority {
     MigrationDefault,
     Operator,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum PgOperationalLimitError {
     #[error("{}", str_constants::PG_OPERATIONAL_LIMIT_BELOW_CURRENT_USAGE)]
     BelowCurrentUsage,

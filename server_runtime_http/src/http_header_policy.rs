@@ -10,13 +10,13 @@ const CONTENT_DISPOSITION_PERCENT_ENCODE_SET: &percent_encoding::AsciiSet =
         .remove(b'_')
         .remove(b'~');
 
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 pub struct HttpAttachmentFileNameRef<'value_lt>(&'value_lt str);
 
-#[derive(Clone, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(optml::Optml, Clone, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct HttpContentDisposition(http::HeaderValue);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum HttpContentDispositionError {
     #[error("attachment file name must not be empty")]
     Empty,
@@ -74,7 +74,7 @@ pub fn build_attachment_content_disposition(
         .map_err(|_error| HttpContentDispositionError::InvalidHeaderValue)
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum HttpContentLengthError {
     #[error("Content-Length must not be empty")]
     Empty,
@@ -85,7 +85,7 @@ pub enum HttpContentLengthError {
     #[error("Content-Length contains too many digits")]
     TooLong,
 }
-#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
 pub struct HttpContentLength(String);
 impl TryFrom<String> for HttpContentLength {
     type Error = HttpContentLengthError;

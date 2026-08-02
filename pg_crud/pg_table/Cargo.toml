@@ -9,6 +9,7 @@ license.workspace = true
 edition.workspace = true
 
 [dependencies]
+optml = { workspace = true }
 bounded_types = { workspace = true }
 str_constants = { workspace = true }
 app_state = { workspace = true }

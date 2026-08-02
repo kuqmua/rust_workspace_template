@@ -1,10 +1,10 @@
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct OperationBudget(usize);
 
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Default, Eq, PartialEq, newtype::FromInner)]
 pub struct OperationCount(usize);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("operation count exceeds the deterministic budget")]
 pub struct OperationBudgetExceeded {
     actual: OperationCount,

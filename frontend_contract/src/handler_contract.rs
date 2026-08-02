@@ -1,4 +1,4 @@
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct HandlerPath(&'static str);
 impl HandlerPath {
     #[must_use]
@@ -12,6 +12,7 @@ pub trait HandlerContract: Copy {
     fn path(self) -> HandlerPath;
 }
 
+#[derive(optml::Optml)]
 #[cfg(not(target_arch = "wasm32"))]
 #[derive(Debug, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct AxumHandlerMethodRouter<State>(axum::routing::MethodRouter<State>);

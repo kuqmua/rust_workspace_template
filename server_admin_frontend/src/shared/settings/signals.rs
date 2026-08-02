@@ -4,14 +4,14 @@
     reason = "the settings signal collection keeps construction before indexed access and centralizes form state for CSR and SSR consumers"
 )]
 
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 pub(crate) struct AdminSettingsFormSignals(
-    [super::input::LeptosAdminSettingSignal; server_admin_contract::AdminSetting::COUNT],
+    [crate::ui::input::LeptosAdminInputSignal; server_admin_contract::AdminSetting::COUNT],
 );
 impl AdminSettingsFormSignals {
     pub(crate) fn new(values: &super::values::AdminSettingsFormValues) -> Self {
         Self::from(server_admin_contract::AdminSetting::ALL.map(|setting| {
-            super::input::LeptosAdminSettingSignal::from(leptos::prelude::RwSignal::new(
+            crate::ui::input::LeptosAdminInputSignal::from(leptos::prelude::RwSignal::new(
                 values.get(setting).as_ref().to_owned(),
             ))
         }))
@@ -19,7 +19,7 @@ impl AdminSettingsFormSignals {
     pub(crate) const fn get(
         self,
         setting: server_admin_contract::AdminSetting,
-    ) -> super::input::LeptosAdminSettingSignal {
+    ) -> crate::ui::input::LeptosAdminInputSignal {
         #[allow(
             clippy::indexing_slicing,
             reason = "UnitEnumIndex generates a total index below AdminSetting::COUNT"

@@ -1,4 +1,4 @@
-#[derive(Clone, Debug)]
+#[derive(optml::Optml, Clone, Debug)]
 pub struct BackgroundJob<Report> {
     history: crate::AsyncRunHistory<Report>,
     retry_policy: crate::RetryPolicy,

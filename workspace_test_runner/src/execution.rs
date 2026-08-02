@@ -1,37 +1,37 @@
 static RUN_COUNTER: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0u64);
 const COMMAND_TEXT_MAX_BYTES: usize = 16_777_216usize;
 const SUMMARY_MAX_BYTES: usize = 1_048_576usize;
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 struct CommandIdx(usize);
 impl CommandIdx {
     const fn get(self) -> usize {
         self.0
     }
 }
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 struct StdCommandStartedAt(std::time::Instant);
 impl StdCommandStartedAt {
     fn elapsed(self) -> StdCommandDuration {
         StdCommandDuration::from(self.0.elapsed())
     }
 }
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 struct StdCommandDuration(std::time::Duration);
 impl StdCommandDuration {
     fn as_millis(self) -> CommandDurationMillis {
         CommandDurationMillis::from(self.0.as_millis())
     }
 }
-#[derive(Clone, Copy, Debug, newtype::Display, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::Display, newtype::FromInner)]
 struct CommandDurationMillis(u128);
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 struct CommandSucceeded(bool);
 impl CommandSucceeded {
     const fn get(self) -> bool {
         self.0
     }
 }
-#[derive(Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
 pub(super) struct CommandsRef<'commands_lt>(
     &'commands_lt [(&'commands_lt str, &'commands_lt [&'commands_lt str])],
 );
@@ -46,28 +46,28 @@ impl<'commands_lt, const N: usize>
     }
 }
 
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 struct CommandProgramRef<'program_lt>(&'program_lt str);
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 struct CommandArgsRef<'args_lt>(&'args_lt [&'args_lt str]);
-#[derive(Debug, newtype::AsRefStr, newtype::BoundedString)]
+#[derive(optml::Optml, Debug, newtype::AsRefStr, newtype::BoundedString)]
 #[bounded_string(max = COMMAND_TEXT_MAX_BYTES)]
 struct CommandText(String);
-#[derive(Debug, newtype::FromInner)]
+#[derive(optml::Optml, Debug, newtype::FromInner)]
 struct CommandTexts(bounded_types::BoundedVec<CommandText, 0, { usize::MAX }>);
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 struct StdExecutionIoError(std::io::Error);
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 struct TextRef<'text_lt>(&'text_lt str);
 impl<'text_lt> TextRef<'text_lt> {
     const fn get(self) -> &'text_lt str {
         self.0
     }
 }
-#[derive(Debug, newtype::FromInner)]
+#[derive(optml::Optml, Debug, newtype::FromInner)]
 struct StdRunDir(std::path::PathBuf);
-#[derive(Debug, newtype::BoundedString, newtype::AsRefStr)]
+#[derive(optml::Optml, Debug, newtype::BoundedString, newtype::AsRefStr)]
 #[bounded_string(max = SUMMARY_MAX_BYTES)]
 struct SummaryText(String);
 impl SummaryText {
@@ -84,7 +84,7 @@ impl SummaryText {
         Ok(())
     }
 }
-#[derive(Debug)]
+#[derive(optml::Optml, Debug)]
 struct CommandRun {
     duration: StdCommandDuration,
     idx: CommandIdx,

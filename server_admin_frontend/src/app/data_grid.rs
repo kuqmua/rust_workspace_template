@@ -37,23 +37,23 @@ pub(in crate::app) fn AdminDataGrid(
                 query.filter_end.as_ref(),
                 query.limit,
             )}
-            <nav class="table-pagination" aria-label="Table pages">
+            <nav data-name="Pagination" class="table-pagination mx-auto flex w-full items-center justify-center gap-2" aria-label="Table pages">
                 <form class="table-page-size" method="get" action=table_path.as_ref().to_owned()>
                     {crate::shared::table_filters::filter::admin_filter_hidden_inputs(filter_field, filter_operation, filter_value, filter_end)}
                     <input type="hidden" name="offset" value="0" />
-                    <label><span>"Rows"</span><input name="limit" type="number" min=server_admin_contract::AdminPageLimit::MIN max=server_admin_contract::AdminPageLimit::MAX value=limit_text.clone() /></label>
-                    <button type="submit">"Apply"</button>
+                    <crate::ui::field::AdminField label="Rows"><crate::ui::input::AdminInput name="limit" kind=crate::ui::input::AdminInputKind::Number min=server_admin_contract::AdminPageLimit::MIN max=server_admin_contract::AdminPageLimit::MAX initial_value=limit.to_string() /></crate::ui::field::AdminField>
+                    <crate::ui::button::AdminButton>"Apply"</crate::ui::button::AdminButton>
                 </form>
                 <form method="get" action=table_path.as_ref().to_owned()>
                     <input type="hidden" name="limit" value=limit_text.clone() />
                     {crate::shared::table_filters::filter::admin_filter_hidden_inputs(filter_field, filter_operation, filter_value, filter_end)}
-                    <input type="hidden" name="offset" value=u32::from(range.previous_offset()).to_string() /><button type="submit" disabled=bool::from(range.previous_disabled())>"Previous"</button>
+                    <input type="hidden" name="offset" value=u32::from(range.previous_offset()).to_string() /><crate::ui::button::AdminButton variant=crate::ui::button::AdminButtonVariant::Secondary disabled=bool::from(range.previous_disabled())>"Previous"</crate::ui::button::AdminButton>
                 </form>
                 <span>{format!("{}-{} of {}", u64::from(range.start()), u64::from(range.end()), u64::from(total))}</span>
                 <form method="get" action=table_path.as_ref().to_owned()>
                     <input type="hidden" name="limit" value=limit_text />
                     {crate::shared::table_filters::filter::admin_filter_hidden_inputs(filter_field, filter_operation, filter_value, filter_end)}
-                    <input type="hidden" name="offset" value=u32::from(range.next_offset()).to_string() /><button type="submit" disabled=bool::from(range.next_disabled())>"Next"</button>
+                    <input type="hidden" name="offset" value=u32::from(range.next_offset()).to_string() /><crate::ui::button::AdminButton variant=crate::ui::button::AdminButtonVariant::Secondary disabled=bool::from(range.next_disabled())>"Next"</crate::ui::button::AdminButton>
                 </form>
             </nav>
         </section>

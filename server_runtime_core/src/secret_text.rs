@@ -1,7 +1,7 @@
 const SECRET_TEXT_MAXIMUM_BYTES: usize = 8192usize;
 const SECRET_TEXT_MINIMUM_BYTES: usize = 16usize;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum BoundedSecretTextError {
     #[error("secret text length is outside the allowed range")]
     InvalidLength,
@@ -11,7 +11,7 @@ pub enum BoundedSecretTextError {
     SurroundingWhitespace,
 }
 
-#[derive(Clone, Eq, PartialEq, newtype::DisplayConst)]
+#[derive(optml::Optml, Clone, Eq, PartialEq, newtype::DisplayConst)]
 #[display_const(str_constants::REDACTED_ALT_3)]
 pub struct BoundedSecretText(String);
 impl TryFrom<String> for BoundedSecretText {
@@ -39,15 +39,34 @@ impl std::fmt::Debug for BoundedSecretText {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(optml::Optml, Clone, Copy)]
 pub struct SecretTextRef<'value_lt>(&'value_lt str);
+impl<'value_lt> TryFrom<&'value_lt str> for SecretTextRef<'value_lt> {
+    type Error = BoundedSecretTextError;
+    fn try_from(value: &'value_lt str) -> Result<Self, Self::Error> {
+        if value.len() < SECRET_TEXT_MINIMUM_BYTES || value.len() > SECRET_TEXT_MAXIMUM_BYTES {
+            return Err(BoundedSecretTextError::InvalidLength);
+        }
+        if value.trim().len() != value.len() {
+            return Err(BoundedSecretTextError::SurroundingWhitespace);
+        }
+        if value
+            .as_bytes()
+            .first()
+            .is_some_and(|first| value.as_bytes().iter().all(|byte| byte == first))
+        {
+            return Err(BoundedSecretTextError::RepeatedByte);
+        }
+        Ok(Self(value))
+    }
+}
 impl<'value_lt> From<&'value_lt BoundedSecretText> for SecretTextRef<'value_lt> {
     fn from(value: &'value_lt BoundedSecretText) -> Self {
         Self(value.0.as_str())
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum SecretTextMatch {
     Different,
     Equal,
@@ -99,6 +118,10 @@ mod tests {
             super::SecretTextMatch::Different,
         );
         assert_eq!(format!("{expected:?}"), str_constants::REDACTED_ALT_3);
+        assert!(matches!(
+            super::SecretTextRef::try_from(str_constants::TEST_SECRET_TEXT),
+            Ok(_value)
+        ));
         assert_eq!(
             super::BoundedSecretText::try_from(String::from(str_constants::TEST_REPEATED_SECRET)),
             Err(super::BoundedSecretTextError::RepeatedByte),

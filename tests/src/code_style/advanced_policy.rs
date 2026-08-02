@@ -6,7 +6,7 @@
     reason = "policy visitors stay grouped with their invariant, repository policy requires iterator methods, and syn non-exhaustive enums require fallback handling"
 )]
 
-#[derive(Default)]
+#[derive(optml::Optml, Default)]
 struct AwaitVisitor {
     found: super::types::AnalyzerBool,
 }
@@ -17,7 +17,7 @@ impl<'ast> syn::visit::Visit<'ast> for AwaitVisitor {
     }
 }
 
-#[derive(Default)]
+#[derive(optml::Optml, Default)]
 struct LockAcrossAwaitVisitor {
     violations: super::types::DiagnosticMsgs,
 }
@@ -108,7 +108,7 @@ fn dropped_identifier(statement: &syn::Stmt) -> Option<super::types::SourceText>
         .flatten()
 }
 
-#[derive(Default)]
+#[derive(optml::Optml, Default)]
 struct LeakApiVisitor {
     violations: super::types::DiagnosticMsgs,
 }
@@ -155,7 +155,7 @@ impl<'ast> syn::visit::Visit<'ast> for LeakApiVisitor {
     }
 }
 
-#[derive(Default)]
+#[derive(optml::Optml, Default)]
 struct SpawnConsumptionVisitor {
     consumed: super::types::StdSourceTextSet,
 }
@@ -223,7 +223,7 @@ impl<'ast> syn::visit::Visit<'ast> for SpawnConsumptionVisitor {
     }
 }
 
-#[derive(Default)]
+#[derive(optml::Optml, Default)]
 struct SpawnLifecycleVisitor {
     violations: super::types::DiagnosticMsgs,
 }
@@ -256,7 +256,7 @@ impl<'ast> syn::visit::Visit<'ast> for SpawnLifecycleVisitor {
     }
 }
 
-#[derive(Default)]
+#[derive(optml::Optml, Default)]
 struct RouteLiteralVisitor {
     violations: super::types::DiagnosticMsgs,
 }
@@ -326,7 +326,7 @@ impl<'ast> syn::visit::Visit<'ast> for RouteLiteralVisitor {
     }
 }
 
-#[derive(Default)]
+#[derive(optml::Optml, Default)]
 struct SelectMacroVisitor {
     count: super::types::AnalyzerCount,
     unsafe_operations: super::types::DiagnosticMsgs,
@@ -373,7 +373,7 @@ impl<'ast> syn::visit::Visit<'ast> for SelectMacroVisitor {
     }
 }
 
-#[derive(Default)]
+#[derive(optml::Optml, Default)]
 struct ExpressionPathVisitor {
     paths: super::types::SourceTextList,
 }
@@ -388,7 +388,7 @@ impl<'ast> syn::visit::Visit<'ast> for ExpressionPathVisitor {
     }
 }
 
-#[derive(Default)]
+#[derive(optml::Optml, Default)]
 struct IgnoredMapErrBindingVisitor {
     entries: super::types::DiagnosticMsgs,
 }
@@ -426,7 +426,7 @@ impl<'ast> syn::visit::Visit<'ast> for IgnoredMapErrBindingVisitor {
     }
 }
 
-#[derive(Default)]
+#[derive(optml::Optml, Default)]
 struct RawVecTupleWrapperVisitor {
     identifiers: super::types::SourceTextList,
 }
@@ -448,7 +448,7 @@ impl<'ast> syn::visit::Visit<'ast> for RawVecTupleWrapperVisitor {
     }
 }
 
-#[derive(Default)]
+#[derive(optml::Optml, Default)]
 struct UsizeMaxExprVisitor {
     count: super::types::AnalyzerCount,
 }
@@ -480,7 +480,7 @@ impl<'ast> syn::visit::Visit<'ast> for UsizeMaxExprVisitor {
     }
 }
 
-#[derive(Default)]
+#[derive(optml::Optml, Default)]
 struct SharedDispatchVisitor {
     arc_types: super::types::AnalyzerCount,
     lock_types: super::types::AnalyzerCount,
@@ -503,6 +503,7 @@ impl<'ast> syn::visit::Visit<'ast> for SharedDispatchVisitor {
     }
 }
 
+#[derive(optml::Optml)]
 struct PublicApiVisitor {
     entries: super::types::SourceTextList,
     lines: super::types::SourceTextList,
@@ -725,7 +726,7 @@ impl<'ast> syn::visit::Visit<'ast> for PublicApiVisitor {
     }
 }
 
-#[derive(Default)]
+#[derive(optml::Optml, Default)]
 struct StructErrorVisitor {
     identifiers: super::types::SourceTextList,
 }
@@ -744,7 +745,7 @@ impl<'ast> syn::visit::Visit<'ast> for StructErrorVisitor {
     }
 }
 
-#[derive(Default)]
+#[derive(optml::Optml, Default)]
 struct LoopAllocationVisitor {
     depth: super::types::AnalyzerCount,
     entries: super::types::DiagnosticMsgs,
@@ -894,37 +895,37 @@ fn allocations_inside_loops_match_reviewed_inventory() {
         ),
     ]);
     super::snapshot::with_codebase_snapshot(|snapshot| {
-        let observed = snapshot
-            .rs_files()
-            .iter()
-            .filter(|source_file| {
-                !source_file
-                    .path()
-                    .as_ref()
-                    .components()
-                    .any(|component| component.as_os_str() == "tests")
-            })
-            .flat_map(|source_file| {
-                let visitor = super::visit_syn_file(
-                    super::types::SynFileRef::from(source_file.ast().as_ref()),
-                    LoopAllocationVisitor::default(),
+        let observed =
+            snapshot
+                .rs_files()
+                .iter()
+                .filter(|source_file| {
+                    !super::is_test_source_path(super::types::StdPathRef::from(
+                        std::borrow::Borrow::<std::path::Path>::borrow(source_file.path()),
+                    ))
+                    .get()
+                })
+                .flat_map(|source_file| {
+                    let visitor = super::visit_syn_file(
+                        super::types::SynFileRef::from(source_file.ast().as_ref()),
+                        LoopAllocationVisitor::default(),
+                    );
+                    let path = source_file.path().as_ref().display().to_string();
+                    visitor
+                        .entries
+                        .into_iter()
+                        .map(move |entry| format!("{path}:{entry}"))
+                })
+                .fold(
+                    std::collections::BTreeMap::<String, usize>::new(),
+                    |mut counts, entry| {
+                        let _count = counts
+                            .entry(entry)
+                            .and_modify(|count| *count = count.saturating_add(1usize))
+                            .or_insert(1usize);
+                        counts
+                    },
                 );
-                let path = source_file.path().as_ref().display().to_string();
-                visitor
-                    .entries
-                    .into_iter()
-                    .map(move |entry| format!("{path}:{entry}"))
-            })
-            .fold(
-                std::collections::BTreeMap::<String, usize>::new(),
-                |mut counts, entry| {
-                    let _count = counts
-                        .entry(entry)
-                        .and_modify(|count| *count = count.saturating_add(1usize))
-                        .or_insert(1usize);
-                    counts
-                },
-            );
         let expected = reviewed
             .iter()
             .map(|(entry, (count, reason))| {
@@ -1111,7 +1112,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             (
                 0,
                 0,
-                70,
+                77,
                 "the generator composes heterogeneous token fragments without exposing generics",
             ),
         ),
@@ -1163,9 +1164,9 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
         (
             "common_routes/src/lib.rs",
             (
-                4,
-                0,
                 3,
+                0,
+                2,
                 "route state is shared across threads behind its parameter trait",
             ),
         ),
@@ -1198,9 +1199,9 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
         (
             "server_runtime_http/src/lib.rs",
             (
-                2,
                 0,
-                2,
+                0,
+                1,
                 "runtime middleware shares state and erases heterogeneous service errors",
             ),
         ),
@@ -1348,9 +1349,31 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             (
                 0,
                 0,
-                11,
+                6,
                 "CRUD contracts operate on heterogeneous query parts",
             ),
+        ),
+        (
+            "pg_crud/pg_crud_common/src/pg_values.rs",
+            (
+                0,
+                0,
+                2,
+                "PostgreSQL value schemas compose heterogeneous values",
+            ),
+        ),
+        (
+            "pg_crud/pg_crud_common/src/query_collections.rs",
+            (
+                0,
+                0,
+                1,
+                "query collections bind heterogeneous filter values",
+            ),
+        ),
+        (
+            "pg_crud/pg_crud_common/src/query_pagination.rs",
+            (0, 0, 2, "pagination composes heterogeneous query bindings"),
         ),
         (
             "pg_crud/pg_table/generate_pg_table_src/src/source.rs",
@@ -1417,11 +1440,10 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             .rs_files()
             .iter()
             .filter(|source_file| {
-                !source_file
-                    .path()
-                    .as_ref()
-                    .components()
-                    .any(|component| component.as_os_str() == "tests")
+                !super::is_test_source_path(super::types::StdPathRef::from(
+                    std::borrow::Borrow::<std::path::Path>::borrow(source_file.path()),
+                ))
+                    .get()
             })
             .for_each(|source_file| {
                 let visitor = super::visit_syn_file(
@@ -1627,7 +1649,7 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             ),
         ),
         (
-            "server_admin_contract/src/lib.rs",
+            "server_admin_contract/src/collections.rs",
             (
                 1usize,
                 "administrator collections preserve their stable public capacity error",
@@ -1977,7 +1999,7 @@ fn raw_vec_tuple_wrappers_match_reviewed_inventory() {
             "the enum helper owns a compile-time-complete variant collection",
         ),
         (
-            "../pg_crud/pg_crud_common/src/lib.rs:NotEmptyUniqueVec",
+            "../pg_crud/pg_crud_common/src/query_collections.rs:NotEmptyUniqueVec",
             "the collection enforces non-empty and uniqueness invariants together",
         ),
         (
@@ -2065,28 +2087,28 @@ fn raw_vec_tuple_wrappers_match_reviewed_inventory() {
         .values()
         .for_each(|reason| assert!(!reason.is_empty(), "f8c9471a"));
     super::snapshot::with_codebase_snapshot(|snapshot| {
-        let observed = snapshot
-            .rs_files()
-            .iter()
-            .filter(|source_file| {
-                !source_file
-                    .path()
-                    .as_ref()
-                    .components()
-                    .any(|component| component.as_os_str() == "tests")
-            })
-            .flat_map(|source_file| {
-                let visitor = super::visit_syn_file(
-                    super::types::SynFileRef::from(source_file.ast().as_ref()),
-                    RawVecTupleWrapperVisitor::default(),
-                );
-                let path = source_file.path().as_ref().display().to_string();
-                visitor
-                    .identifiers
-                    .into_iter()
-                    .map(move |identifier| format!("{path}:{identifier}"))
-            })
-            .collect::<std::collections::BTreeSet<String>>();
+        let observed =
+            snapshot
+                .rs_files()
+                .iter()
+                .filter(|source_file| {
+                    !super::is_test_source_path(super::types::StdPathRef::from(
+                        std::borrow::Borrow::<std::path::Path>::borrow(source_file.path()),
+                    ))
+                    .get()
+                })
+                .flat_map(|source_file| {
+                    let visitor = super::visit_syn_file(
+                        super::types::SynFileRef::from(source_file.ast().as_ref()),
+                        RawVecTupleWrapperVisitor::default(),
+                    );
+                    let path = source_file.path().as_ref().display().to_string();
+                    visitor
+                        .identifiers
+                        .into_iter()
+                        .map(move |identifier| format!("{path}:{identifier}"))
+                })
+                .collect::<std::collections::BTreeSet<String>>();
         let expected = reviewed
             .keys()
             .map(|entry| (*entry).to_owned())
@@ -2229,26 +2251,26 @@ fn usize_max_usage_matches_reviewed_inventory() {
         .values()
         .for_each(|(_count, reason)| assert!(!reason.is_empty(), "cfc5175f"));
     super::snapshot::with_codebase_snapshot(|snapshot| {
-        let observed = snapshot
-            .rs_files()
-            .iter()
-            .filter(|source_file| {
-                !source_file
-                    .path()
-                    .as_ref()
-                    .components()
-                    .any(|component| component.as_os_str() == "tests")
-            })
-            .filter_map(|source_file| {
-                let visitor = super::visit_syn_file(
-                    super::types::SynFileRef::from(source_file.ast().as_ref()),
-                    UsizeMaxExprVisitor::default(),
-                );
-                let count = visitor.count.get();
-                (count != 0usize)
-                    .then(|| (source_file.path().as_ref().display().to_string(), count))
-            })
-            .collect::<std::collections::BTreeMap<String, usize>>();
+        let observed =
+            snapshot
+                .rs_files()
+                .iter()
+                .filter(|source_file| {
+                    !super::is_test_source_path(super::types::StdPathRef::from(
+                        std::borrow::Borrow::<std::path::Path>::borrow(source_file.path()),
+                    ))
+                    .get()
+                })
+                .filter_map(|source_file| {
+                    let visitor = super::visit_syn_file(
+                        super::types::SynFileRef::from(source_file.ast().as_ref()),
+                        UsizeMaxExprVisitor::default(),
+                    );
+                    let count = visitor.count.get();
+                    (count != 0usize)
+                        .then(|| (source_file.path().as_ref().display().to_string(), count))
+                })
+                .collect::<std::collections::BTreeMap<String, usize>>();
         let expected = reviewed
             .iter()
             .map(|(path, (count, _reason))| ((*path).to_owned(), *count))

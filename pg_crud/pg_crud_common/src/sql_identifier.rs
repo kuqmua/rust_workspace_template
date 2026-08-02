@@ -1,4 +1,6 @@
-#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd, newtype::AsRefStr, newtype::TryFrom)]
+#[derive(
+    optml::Optml, Clone, Debug, Eq, Ord, PartialEq, PartialOrd, newtype::AsRefStr, newtype::TryFrom,
+)]
 #[try_from(validator = SqlIdentifier::validate)]
 pub struct SqlIdentifier(String);
 impl SqlIdentifier {
@@ -17,19 +19,19 @@ impl SqlIdentifier {
         Ok(())
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum SqlIdentifierError {
     #[error("SQL identifier is empty")]
     Empty,
     #[error("SQL identifier contains unsupported characters")]
     Invalid,
 }
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
 pub struct SqlQualifiedIdentifier {
     schema: SqlIdentifier,
     table: SqlIdentifier,
 }
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
 struct SqlIdentifierListText(String);
 impl TryFrom<String> for SqlIdentifierListText {
     type Error = crate::PgCrudStringWrapperTryFromStringError;
@@ -44,12 +46,12 @@ impl TryFrom<String> for SqlIdentifierListText {
         }
     }
 }
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
 enum SqlIdentifierListTextState {
     Text(SqlIdentifierListText),
     TooLong(crate::PgCrudStringWrapperTryFromStringError),
 }
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
 pub struct SqlIdentifiers(SqlIdentifierListTextState);
 impl From<Vec<SqlIdentifier>> for SqlIdentifiers {
     fn from(value: Vec<SqlIdentifier>) -> Self {
@@ -73,7 +75,7 @@ impl From<Vec<SqlIdentifier>> for SqlIdentifiers {
         })
     }
 }
-#[derive(Debug)]
+#[derive(optml::Optml, Debug)]
 struct SqlQueryText(String);
 impl From<crate::PgCrudStringWrapperTryFromStringError> for SqlQueryText {
     fn from(value: crate::PgCrudStringWrapperTryFromStringError) -> Self {
@@ -111,7 +113,7 @@ impl std::fmt::Display for SqlQualifiedIdentifier {
         f.write_str(self.table.as_ref())
     }
 }
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
 pub struct SqlSelectBuilder {
     columns: SqlIdentifiers,
     table: SqlQualifiedIdentifier,

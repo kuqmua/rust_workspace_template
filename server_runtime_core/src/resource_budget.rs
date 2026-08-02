@@ -1,9 +1,9 @@
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct ResourceBudgetMaximum(usize);
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct ResourceBudgetAmount(usize);
 
-#[derive(Clone, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Debug, newtype::FromInner)]
 struct StdSharedAtomicUsize(std::sync::Arc<std::sync::atomic::AtomicUsize>);
 
 impl TryFrom<usize> for ResourceBudgetMaximum {
@@ -21,10 +21,10 @@ impl From<std::num::NonZeroUsize> for ResourceBudgetMaximum {
         Self(value.get())
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("{}", str_constants::RESOURCE_BUDGET_MAXIMUM_MUST_BE_GREATER_THAN_ZERO)]
 pub struct ResourceBudgetConfigError;
-#[derive(Clone, Debug)]
+#[derive(optml::Optml, Clone, Debug)]
 pub struct ResourceBudget {
     maximum: ResourceBudgetMaximum,
     reserved: StdSharedAtomicUsize,
@@ -35,14 +35,14 @@ pub trait GetBulkItemResourceBudget {
 pub trait GetIdempotencyResponseResourceBudget {
     fn get_idempotency_response_resource_budget(&self) -> &ResourceBudget;
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum ResourceBudgetReserveError {
     #[error("{}", str_constants::RESOURCE_BUDGET_EXHAUSTED)]
     Exhausted,
     #[error("{}", str_constants::RESOURCE_BUDGET_RESERVATION_OVERFLOW)]
     Overflow,
 }
-#[derive(Debug)]
+#[derive(optml::Optml, Debug)]
 #[must_use]
 pub struct ResourceBudgetReservation {
     amount: ResourceBudgetAmount,

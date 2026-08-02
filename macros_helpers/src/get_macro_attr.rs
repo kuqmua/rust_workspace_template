@@ -1,10 +1,14 @@
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner, newtype::ToTokens)]
+#[derive(
+    optml::Optml, Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner, newtype::ToTokens,
+)]
 pub struct SynMacroAttrRef<'lt>(&'lt syn::Attribute);
-#[derive(Debug, Clone, Copy, newtype::DerefTarget, newtype::FromInner, newtype::ToTokens)]
+#[derive(
+    optml::Optml, Debug, Clone, Copy, newtype::DerefTarget, newtype::FromInner, newtype::ToTokens,
+)]
 pub struct ProcMacro2MacroAttrMetaListTokenStreamRef<'lt>(&'lt proc_macro2::TokenStream);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
 struct AttrPathMatches(bool);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
+#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
 pub enum MacroAttrError {
     #[error("attr_not_list")]
     AttrNotList,

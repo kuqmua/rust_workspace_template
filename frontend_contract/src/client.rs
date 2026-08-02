@@ -1,4 +1,4 @@
-#[derive(Clone, Debug)]
+#[derive(optml::Optml, Clone, Debug)]
 pub struct TypedClient<Transport> {
     path_prefix: crate::TransportPath,
     transport: Transport,
@@ -118,15 +118,15 @@ fn form_value_error(error: impl std::fmt::Display) -> crate::FormValueError {
 
 #[cfg(test)]
 mod tests {
-    #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
+    #[derive(optml::Optml, Clone, Debug, serde::Deserialize, serde::Serialize)]
     struct Request {
         value: u64,
     }
-    #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+    #[derive(optml::Optml, Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
     struct Response {
         value: u64,
     }
-    #[derive(Clone, Debug, serde::Deserialize)]
+    #[derive(optml::Optml, Clone, Debug, serde::Deserialize)]
     struct FailingRequest;
     impl serde::Serialize for FailingRequest {
         fn serialize<Serializer>(
@@ -139,11 +139,11 @@ mod tests {
             Err(serde::ser::Error::custom("request serialization failed"))
         }
     }
-    #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
+    #[derive(optml::Optml, Clone, Debug, serde::Deserialize, serde::Serialize)]
     struct LargeRequest {
         value: String,
     }
-    #[derive(Clone, Copy, Debug)]
+    #[derive(optml::Optml, Clone, Copy, Debug)]
     struct Route;
     impl crate::TypedRoute for Route {
         type Request = Request;
@@ -164,7 +164,7 @@ mod tests {
             crate::RouteRequestBody::Json
         }
     }
-    #[derive(Clone, Copy, Debug)]
+    #[derive(optml::Optml, Clone, Copy, Debug)]
     struct CreatedRoute;
     impl crate::TypedRoute for CreatedRoute {
         type Request = Request;
@@ -185,7 +185,7 @@ mod tests {
             crate::RouteRequestBody::Json
         }
     }
-    #[derive(Clone, Copy, Debug)]
+    #[derive(optml::Optml, Clone, Copy, Debug)]
     struct FailingRequestRoute;
     impl crate::TypedRoute for FailingRequestRoute {
         type Request = FailingRequest;
@@ -202,7 +202,7 @@ mod tests {
             crate::RouteRequestBody::Json
         }
     }
-    #[derive(Clone, Copy, Debug)]
+    #[derive(optml::Optml, Clone, Copy, Debug)]
     struct LargeRequestRoute;
     impl crate::TypedRoute for LargeRequestRoute {
         type Request = LargeRequest;
@@ -219,9 +219,11 @@ mod tests {
             crate::RouteRequestBody::Json
         }
     }
-    #[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+    #[derive(
+        optml::Optml, Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize,
+    )]
     struct NoBody;
-    #[derive(Clone, Copy, Debug)]
+    #[derive(optml::Optml, Clone, Copy, Debug)]
     struct NoContentRoute;
     impl crate::TypedRoute for NoContentRoute {
         type Request = NoBody;
@@ -239,7 +241,7 @@ mod tests {
             )
         }
     }
-    #[derive(Clone, Copy, Debug)]
+    #[derive(optml::Optml, Clone, Copy, Debug)]
     struct EmptyOkRoute;
     impl crate::TypedRoute for EmptyOkRoute {
         type Request = NoBody;
@@ -262,12 +264,12 @@ mod tests {
             }
         }
     }
-    #[derive(Clone)]
+    #[derive(optml::Optml, Clone)]
     struct TestTransport {
         expected: ExpectedRequest,
         response: Result<crate::TransportResponse, crate::TransportError>,
     }
-    #[derive(Clone)]
+    #[derive(optml::Optml, Clone)]
     enum ExpectedRequest {
         BodyLen(crate::TransportPath, usize),
         Empty(crate::TransportPath),

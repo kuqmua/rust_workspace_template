@@ -8,16 +8,6 @@ fn with_attr_token_stream(
     }
     .into()
 }
-fn const_space_token_stream(
-    ts: &dyn quote::ToTokens,
-) -> crate::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
-    quote::quote! {const #ts}.into()
-}
-fn pub_space_token_stream(
-    ts: &dyn quote::ToTokens,
-) -> crate::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
-    quote::quote! {pub #ts}.into()
-}
 fn impl_identifier_token_stream(
     identifier_token_stream: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
@@ -28,6 +18,22 @@ fn impl_identifier_token_stream(
         }
     }
     .into()
+}
+fn generate_modified_new_token_stream(
+    attr_token_stream: &dyn quote::ToTokens,
+    modifier_token_stream: &dyn quote::ToTokens,
+    parameters_token_stream: &dyn quote::ToTokens,
+    ts: &dyn quote::ToTokens,
+) -> crate::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
+    let new_token_stream = generate_new_token_stream(
+        &proc_macro2::TokenStream::new(),
+        parameters_token_stream,
+        ts,
+    );
+    with_attr_token_stream(
+        attr_token_stream,
+        &quote::quote! {#modifier_token_stream #new_token_stream},
+    )
 }
 pub fn generate_new_token_stream(
     attr_token_stream: &dyn quote::ToTokens,
@@ -47,36 +53,36 @@ pub fn generate_const_new_token_stream(
     parameters_token_stream: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
 ) -> crate::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
-    let ts_5986cf7b = const_space_token_stream(&generate_new_token_stream(
-        &proc_macro2::TokenStream::new(),
+    generate_modified_new_token_stream(
+        attr_token_stream,
+        &quote::quote! {const},
         parameters_token_stream,
         ts,
-    ));
-    with_attr_token_stream(attr_token_stream, &ts_5986cf7b)
+    )
 }
 pub fn generate_pub_new_token_stream(
     attr_token_stream: &dyn quote::ToTokens,
     parameters_token_stream: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
 ) -> crate::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
-    let ts_73940779 = pub_space_token_stream(&generate_new_token_stream(
-        &proc_macro2::TokenStream::new(),
+    generate_modified_new_token_stream(
+        attr_token_stream,
+        &quote::quote! {pub},
         parameters_token_stream,
         ts,
-    ));
-    with_attr_token_stream(attr_token_stream, &ts_73940779)
+    )
 }
 pub fn generate_pub_const_new_token_stream(
     attr_token_stream: &dyn quote::ToTokens,
     parameters_token_stream: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
 ) -> crate::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
-    let ts_5dc3668f = pub_space_token_stream(&generate_const_new_token_stream(
-        &proc_macro2::TokenStream::new(),
+    generate_modified_new_token_stream(
+        attr_token_stream,
+        &quote::quote! {pub const},
         parameters_token_stream,
         ts,
-    ));
-    with_attr_token_stream(attr_token_stream, &ts_5dc3668f)
+    )
 }
 pub fn generate_impl_new_for_identifier_token_stream(
     identifier_token_stream: &dyn quote::ToTokens,
@@ -136,19 +142,37 @@ pub fn generate_try_new_token_stream(
     }
     .into()
 }
+fn generate_modified_try_new_token_stream(
+    attr_token_stream: &dyn quote::ToTokens,
+    modifier_token_stream: &dyn quote::ToTokens,
+    parameters_token_stream: &dyn quote::ToTokens,
+    err_type_token_stream: &dyn quote::ToTokens,
+    ts: &dyn quote::ToTokens,
+) -> crate::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
+    let try_new_token_stream = generate_try_new_token_stream(
+        &proc_macro2::TokenStream::new(),
+        parameters_token_stream,
+        err_type_token_stream,
+        ts,
+    );
+    with_attr_token_stream(
+        attr_token_stream,
+        &quote::quote! {#modifier_token_stream #try_new_token_stream},
+    )
+}
 pub fn generate_const_try_new_token_stream(
     attr_token_stream: &dyn quote::ToTokens,
     parameters_token_stream: &dyn quote::ToTokens,
     err_type_token_stream: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
 ) -> crate::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
-    let ts0 = const_space_token_stream(&generate_try_new_token_stream(
-        &proc_macro2::TokenStream::new(),
+    generate_modified_try_new_token_stream(
+        attr_token_stream,
+        &quote::quote! {const},
         parameters_token_stream,
         err_type_token_stream,
         ts,
-    ));
-    with_attr_token_stream(attr_token_stream, &ts0)
+    )
 }
 pub fn generate_pub_try_new_token_stream(
     attr_token_stream: &dyn quote::ToTokens,
@@ -156,13 +180,13 @@ pub fn generate_pub_try_new_token_stream(
     err_type_token_stream: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
 ) -> crate::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
-    let ts0 = pub_space_token_stream(&generate_try_new_token_stream(
-        &proc_macro2::TokenStream::new(),
+    generate_modified_try_new_token_stream(
+        attr_token_stream,
+        &quote::quote! {pub},
         parameters_token_stream,
         err_type_token_stream,
         ts,
-    ));
-    with_attr_token_stream(attr_token_stream, &ts0)
+    )
 }
 pub fn generate_pub_const_try_new_token_stream(
     attr_token_stream: &dyn quote::ToTokens,
@@ -170,13 +194,13 @@ pub fn generate_pub_const_try_new_token_stream(
     err_type_token_stream: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
 ) -> crate::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
-    let ts0 = pub_space_token_stream(&generate_const_try_new_token_stream(
-        &proc_macro2::TokenStream::new(),
+    generate_modified_try_new_token_stream(
+        attr_token_stream,
+        &quote::quote! {pub const},
         parameters_token_stream,
         err_type_token_stream,
         ts,
-    ));
-    with_attr_token_stream(attr_token_stream, &ts0)
+    )
 }
 pub fn generate_impl_try_new_for_identifier_token_stream(
     attr_token_stream: &dyn quote::ToTokens,

@@ -4,5 +4,10 @@ filehash = false
 public_url = "/admin/assets/csr/"
 target = "csr.html"
 
+[[hooks]]
+stage = "pre_build"
+command = "npm"
+command_arguments = ["run", "build:css"]
+
 [watch]
 ignore = ["static/csr"]

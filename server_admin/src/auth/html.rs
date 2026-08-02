@@ -4,84 +4,84 @@
     reason = "form adapters deliberately replace unvalidated extractor values with validated domain values"
 )]
 
-#[derive(Debug, serde::Deserialize)]
+#[derive(optml::Optml, Debug, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 struct SignInForm {
     login: server_admin_contract::AdminLogin,
     password: server_admin_contract::AdminPassword,
 }
 
-#[derive(Debug, serde::Deserialize)]
+#[derive(optml::Optml, Debug, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 struct ChangePasswordForm {
     current_password: server_admin_contract::AdminPassword,
     new_password: server_admin_contract::AdminNewPassword,
 }
 
-#[derive(Debug, serde::Deserialize)]
+#[derive(optml::Optml, Debug, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 struct RevokeSessionForm {
-    confirmation: server_admin_contract::AdminBool,
     session_id: server_admin_contract::AdminSessionIdentifier,
+    confirmation: server_admin_contract::AdminBool,
 }
 
-#[derive(Debug, serde::Deserialize)]
+#[derive(optml::Optml, Debug, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 struct CreateUserForm {
     display_name: server_admin_contract::AdminDisplayName,
     login: server_admin_contract::AdminLogin,
     password: server_admin_contract::AdminNewPassword,
 }
-#[derive(Debug, serde::Deserialize)]
+#[derive(optml::Optml, Debug, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 struct UpdateUserForm {
     display_name: server_admin_contract::AdminDisplayName,
     login: server_admin_contract::AdminLogin,
     user_id: server_admin_contract::AdminUserId,
 }
-#[derive(Debug, serde::Deserialize)]
+#[derive(optml::Optml, Debug, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 struct UserPasswordForm {
     password: server_admin_contract::AdminNewPassword,
     user_id: server_admin_contract::AdminUserId,
 }
-#[derive(Debug, serde::Deserialize)]
+#[derive(optml::Optml, Debug, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 struct UserBanForm {
-    is_banned: server_admin_contract::AdminBool,
     user_id: server_admin_contract::AdminUserId,
+    is_banned: server_admin_contract::AdminBool,
 }
-#[derive(Debug, serde::Deserialize)]
+#[derive(optml::Optml, Debug, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 struct UserIdForm {
-    confirmation: server_admin_contract::AdminBool,
     user_id: server_admin_contract::AdminUserId,
+    confirmation: server_admin_contract::AdminBool,
 }
-#[derive(Debug, serde::Deserialize)]
+#[derive(optml::Optml, Debug, serde::Deserialize)]
 struct UserRolesForm {
     expected_role_ids: AdminHtmlFormText,
     #[serde(flatten)]
     selected: StdAdminHtmlSelected,
     user_id: server_admin_contract::AdminUserId,
 }
-#[derive(Debug, serde::Deserialize)]
+#[derive(optml::Optml, Debug, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 struct CreateRoleForm {
     name: server_admin_contract::AdminRoleName,
 }
-#[derive(Debug, serde::Deserialize)]
+#[derive(optml::Optml, Debug, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 struct UpdateRoleForm {
     name: server_admin_contract::AdminRoleName,
     role_id: server_admin_contract::AdminRoleId,
 }
-#[derive(Debug, serde::Deserialize)]
+#[derive(optml::Optml, Debug, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 struct RoleIdForm {
-    confirmation: server_admin_contract::AdminBool,
     role_id: server_admin_contract::AdminRoleId,
+    confirmation: server_admin_contract::AdminBool,
 }
-#[derive(Debug, serde::Deserialize)]
+#[derive(optml::Optml, Debug, serde::Deserialize)]
 struct RolePermissionsForm {
     expected_permission_ids: AdminHtmlFormText,
     #[serde(flatten)]
@@ -92,7 +92,7 @@ struct RolePermissionsForm {
 const ADMIN_HTML_FORM_TEXT_MAX_BYTES: usize = 8_192usize;
 const ADMIN_HTML_FORM_SELECTED_MAX_ITEMS: usize = 1_000usize;
 
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 #[error("{message}", message = str_constants::ADMIN_HTML_FORM_TEXT_TOO_LONG)]
 struct AdminHtmlFormTextError;
 impl From<bounded_types::BoundedValueError> for AdminHtmlFormTextError {
@@ -100,7 +100,7 @@ impl From<bounded_types::BoundedValueError> for AdminHtmlFormTextError {
         Self
     }
 }
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 #[error("{message}", message = str_constants::ADMIN_HTML_FORM_KEY_TOO_LONG)]
 struct AdminHtmlFormKeyError;
 impl From<bounded_types::BoundedValueError> for AdminHtmlFormKeyError {
@@ -108,7 +108,7 @@ impl From<bounded_types::BoundedValueError> for AdminHtmlFormKeyError {
         Self
     }
 }
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 #[error("administrator HTML form contains too many selected fields")]
 struct StdAdminHtmlSelectedError;
 impl From<bounded_types::BoundedValueError> for StdAdminHtmlSelectedError {
@@ -117,7 +117,7 @@ impl From<bounded_types::BoundedValueError> for StdAdminHtmlSelectedError {
     }
 }
 
-#[derive(Debug, serde::Deserialize)]
+#[derive(optml::Optml, Debug, serde::Deserialize)]
 #[serde(try_from = "String")]
 struct AdminHtmlFormText(bounded_types::BoundedString<0, ADMIN_HTML_FORM_TEXT_MAX_BYTES>);
 impl TryFrom<String> for AdminHtmlFormText {
@@ -128,7 +128,7 @@ impl TryFrom<String> for AdminHtmlFormText {
             .map_err(AdminHtmlFormTextError::from)
     }
 }
-#[derive(Debug, Eq, Ord, PartialEq, PartialOrd, serde::Deserialize)]
+#[derive(optml::Optml, Debug, Eq, Ord, PartialEq, PartialOrd, serde::Deserialize)]
 #[serde(try_from = "String")]
 struct AdminHtmlFormKey(bounded_types::BoundedString<0, ADMIN_HTML_FORM_TEXT_MAX_BYTES>);
 impl TryFrom<String> for AdminHtmlFormKey {
@@ -139,7 +139,7 @@ impl TryFrom<String> for AdminHtmlFormKey {
             .map_err(AdminHtmlFormKeyError::from)
     }
 }
-#[derive(Debug, newtype::FromInner, serde::Deserialize)]
+#[derive(optml::Optml, Debug, newtype::FromInner, serde::Deserialize)]
 #[serde(
     from = "bounded_types::StdBoundedBTreeMap<AdminHtmlFormKey, AdminHtmlFormText, ADMIN_HTML_FORM_SELECTED_MAX_ITEMS>"
 )]
@@ -163,7 +163,7 @@ impl TryFrom<std::collections::BTreeMap<AdminHtmlFormKey, AdminHtmlFormText>>
     }
 }
 
-#[derive(Debug, serde::Deserialize)]
+#[derive(optml::Optml, Debug, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 struct SettingsForm {
     default_admin_route: server_admin_contract::AdminDefaultRoute,
@@ -206,6 +206,14 @@ async fn page_context(
 }
 
 fn form_auth(mut auth: super::AdminAuthReq) -> Result<super::AdminAuthReq, super::AdminError> {
+    if !super::origin_is_present_and_allowed(
+        auth.state.as_ref(),
+        super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
+    )
+    .get()
+    {
+        return Err(super::AdminError::Csrf);
+    }
     let token = super::super::find_admin_cookie(
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
         super::super::AdminCookieKind::Csrf,
@@ -261,6 +269,21 @@ fn action_result(
         Ok(_response) => success_redirect(path),
         Err(error) => axum::response::IntoResponse::into_response(error),
     }
+}
+
+async fn authenticated_action<Action, ActionFuture>(
+    auth: super::AdminAuthReq,
+    path: server_admin_contract::AdminFrontendPath,
+    action: Action,
+) -> axum::response::Response
+where
+    Action: FnOnce(super::AdminAuthReq) -> ActionFuture,
+    ActionFuture: Future<Output = Result<super::AxumAdminResponse, super::AdminError>>,
+{
+    let Ok(auth) = form_auth(auth) else {
+        return axum::response::IntoResponse::into_response(super::AdminError::Csrf);
+    };
+    action_result(action(auth).await, path)
 }
 
 fn optional_setting<Value, Error>(
@@ -611,20 +634,20 @@ async fn user_password(
     auth: super::AdminAuthReq,
     super::AxumAdminForm(form): super::AxumAdminForm<UserPasswordForm>,
 ) -> axum::response::Response {
-    let Ok(auth) = form_auth(auth) else {
-        return axum::response::IntoResponse::into_response(super::AdminError::Csrf);
-    };
-    action_result(
-        super::users::set_password(
-            auth,
-            super::AxumAdminPath(user_path(form.user_id)),
-            super::AxumAdminJson(server_admin_contract::AdminSetUserPasswordReq::new(
-                form.password,
-            )),
-        )
-        .await,
+    authenticated_action(
+        auth,
         server_admin_contract::AdminFrontendPath::Users,
+        |auth| {
+            super::users::set_password(
+                auth,
+                super::AxumAdminPath(user_path(form.user_id)),
+                super::AxumAdminJson(server_admin_contract::AdminSetUserPasswordReq::new(
+                    form.password,
+                )),
+            )
+        },
     )
+    .await
 }
 
 #[frontend_contract::route_error(AdminHtmlUserBanError)]
@@ -632,20 +655,20 @@ async fn user_ban(
     auth: super::AdminAuthReq,
     super::AxumAdminForm(form): super::AxumAdminForm<UserBanForm>,
 ) -> axum::response::Response {
-    let Ok(auth) = form_auth(auth) else {
-        return axum::response::IntoResponse::into_response(super::AdminError::Csrf);
-    };
-    action_result(
-        super::users::set_ban(
-            auth,
-            super::AxumAdminPath(user_path(form.user_id)),
-            super::AxumAdminJson(server_admin_contract::AdminSetUserBanReq::new(
-                form.is_banned,
-            )),
-        )
-        .await,
+    authenticated_action(
+        auth,
         server_admin_contract::AdminFrontendPath::Users,
+        |auth| {
+            super::users::set_ban(
+                auth,
+                super::AxumAdminPath(user_path(form.user_id)),
+                super::AxumAdminJson(server_admin_contract::AdminSetUserBanReq::new(
+                    form.is_banned,
+                )),
+            )
+        },
     )
+    .await
 }
 
 #[frontend_contract::route_error(AdminHtmlDeleteUserError)]
@@ -656,13 +679,12 @@ async fn delete_user(
     if !bool::from(form.confirmation) {
         return axum::response::IntoResponse::into_response(super::AdminError::Validation);
     }
-    let Ok(auth) = form_auth(auth) else {
-        return axum::response::IntoResponse::into_response(super::AdminError::Csrf);
-    };
-    action_result(
-        super::users::delete(auth, super::AxumAdminPath(user_path(form.user_id))).await,
+    authenticated_action(
+        auth,
         server_admin_contract::AdminFrontendPath::Users,
+        |auth| super::users::delete(auth, super::AxumAdminPath(user_path(form.user_id))),
     )
+    .await
 }
 
 #[frontend_contract::route_error(AdminHtmlUserRolesError)]
@@ -745,13 +767,12 @@ async fn delete_role(
     if !bool::from(form.confirmation) {
         return axum::response::IntoResponse::into_response(super::AdminError::Validation);
     }
-    let Ok(auth) = form_auth(auth) else {
-        return axum::response::IntoResponse::into_response(super::AdminError::Csrf);
-    };
-    action_result(
-        super::roles::delete(auth, super::AxumAdminPath(role_path(form.role_id))).await,
+    authenticated_action(
+        auth,
         server_admin_contract::AdminFrontendPath::Roles,
+        |auth| super::roles::delete(auth, super::AxumAdminPath(role_path(form.role_id))),
     )
+    .await
 }
 
 #[frontend_contract::route_error(AdminHtmlRolePermissionsError)]
@@ -924,6 +945,7 @@ async fn sign_in(
     .await
 }
 
+#[derive(optml::Optml)]
 #[frontend_contract::handler_registry(
     state = super::StdSharedAdminAuthSvcState;
     (
@@ -1029,6 +1051,7 @@ async fn sign_in(
 )]
 struct AdminHtmlRouteRegistry;
 
+#[derive(optml::Optml)]
 #[frontend_contract::handler_registry(
     state = super::StdSharedAdminAuthSvcState;
     (
@@ -1052,66 +1075,4 @@ pub(super) fn routes(
 }
 
 #[cfg(test)]
-mod tests {
-    #[tokio::test]
-    async fn admin_root_redirects_to_users() {
-        let response = super::root().await;
-        assert_eq!(response.status(), http::StatusCode::SEE_OTHER);
-        assert_eq!(
-            response.headers().get(http::header::LOCATION),
-            Some(&http::HeaderValue::from_static("/admin/users"))
-        );
-    }
-
-    #[test]
-    fn successful_mutation_redirects_to_visible_server_feedback() {
-        let response = super::success_redirect(server_admin_contract::AdminFrontendPath::Users);
-        assert_eq!(response.status(), http::StatusCode::SEE_OTHER);
-        assert_eq!(
-            response.headers().get(http::header::LOCATION),
-            Some(&http::HeaderValue::from_static("/admin/users#saved"))
-        );
-    }
-
-    #[tokio::test]
-    async fn role_assignment_form_accepts_dynamic_checkbox_fields() {
-        let request = http::Request::builder()
-            .method(http::Method::POST)
-            .header(
-                http::header::CONTENT_TYPE,
-                str_constants::APPLICATION_X_WWW_FORM_URLENCODED,
-            )
-            .body(axum::body::Body::from(
-                "expected_role_ids=1%2C2&user_id=7&role_1=1&role_2=2",
-            ));
-        let Ok(request) = request else {
-            panic!("6f44bd85");
-        };
-        let result = <super::super::AxumAdminForm<super::UserRolesForm> as axum::extract::FromRequest<
-            (),
-        >>::from_request(request, &())
-        .await;
-        let Ok(super::super::AxumAdminForm(form)) = result else {
-            panic!("f639d7d1");
-        };
-
-        assert_eq!(i64::from(form.user_id), 7i64);
-        assert_eq!(form.expected_role_ids.0.as_ref(), "1,2");
-        assert_eq!(form.selected.0.len().get(), 2usize);
-    }
-
-    #[test]
-    fn selected_form_fields_reject_oversized_maps() {
-        let values = (0usize..=super::ADMIN_HTML_FORM_SELECTED_MAX_ITEMS)
-            .map(|idx| {
-                (
-                    super::AdminHtmlFormKey::try_from(idx.to_string()).expect("763b9ec0"),
-                    super::AdminHtmlFormText::try_from(String::new()).expect("ef54739a"),
-                )
-            })
-            .collect::<std::collections::BTreeMap<_, _>>();
-        let Err(_error) = super::StdAdminHtmlSelected::try_from(values) else {
-            panic!("c86589e3");
-        };
-    }
-}
+mod tests;

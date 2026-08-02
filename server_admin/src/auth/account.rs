@@ -29,11 +29,7 @@ pub(super) async fn me_context_view(
 pub(super) async fn me(
     auth: super::AdminAuthReq,
 ) -> Result<super::AxumAdminResponse, super::AdminError> {
-    me_view(auth).await.map(|authenticated| {
-        super::AxumAdminResponse(axum::response::IntoResponse::into_response(axum::Json(
-            authenticated,
-        )))
-    })
+    me_view(auth).await.map(super::shared::json_response)
 }
 pub(super) async fn change_own_password(
     auth: super::AdminAuthReq,

@@ -7,7 +7,7 @@
 mod range_end;
 mod value;
 
-use leptos::prelude::{ClassAttribute, ElementChild, OnAttribute};
+use leptos::prelude::{ClassAttribute, CustomAttribute, ElementChild, OnAttribute};
 
 pub(super) fn admin_data_grid_filter_option(
     filter: server_admin_contract::AdminDataFilter,
@@ -22,8 +22,10 @@ pub(super) fn admin_data_grid_filter_option(
     let changed_operation = operation_key.clone();
     leptos::view! {
         <div class="table-filter-option">
-            <label class="table-filter-operation-label">
+            <label data-name="Label" class="table-filter-operation-label flex items-center gap-2 text-sm leading-none font-medium select-none">
                 <input
+                    data-name="RadioButton"
+                    class="radio__button peer size-4 shrink-0 rounded-full border border-input shadow-xs outline-none transition-shadow focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
                     type="radio"
                     name="filter_operation"
                     value=operation_key

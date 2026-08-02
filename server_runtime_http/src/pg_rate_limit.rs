@@ -1,12 +1,12 @@
 const PG_RATE_LIMIT_KEY_PART_MAX_LEN: usize = 4096usize;
 
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 pub struct PgRateLimitQueryRef(&'static str);
 
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 pub struct SqlxPgRateLimitPoolRef<'value_lt>(&'value_lt sqlx::PgPool);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct PgRateLimitScopeRef<'value_lt>(&'value_lt str);
 impl<'value_lt> TryFrom<&'value_lt str> for PgRateLimitScopeRef<'value_lt> {
     type Error = PgRateLimitValidationError;
@@ -22,7 +22,7 @@ impl<'value_lt> TryFrom<&'value_lt str> for PgRateLimitScopeRef<'value_lt> {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct PgRateLimitSubjectRef<'value_lt>(&'value_lt str);
 impl<'value_lt> TryFrom<&'value_lt str> for PgRateLimitSubjectRef<'value_lt> {
     type Error = PgRateLimitValidationError;
@@ -38,7 +38,7 @@ impl<'value_lt> TryFrom<&'value_lt str> for PgRateLimitSubjectRef<'value_lt> {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct PgRateLimitMaximum(i64);
 impl TryFrom<i64> for PgRateLimitMaximum {
     type Error = PgRateLimitValidationError;
@@ -52,7 +52,7 @@ impl TryFrom<i64> for PgRateLimitMaximum {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct PgRateLimitWindowSeconds(i32);
 impl TryFrom<i32> for PgRateLimitWindowSeconds {
     type Error = PgRateLimitValidationError;
@@ -66,13 +66,13 @@ impl TryFrom<i32> for PgRateLimitWindowSeconds {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum PgRateLimitDecision {
     Allowed,
     Limited(PgRateLimitWindowSeconds),
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum PgRateLimitValidationError {
     #[error("rate-limit key part must not be empty")]
     EmptyKeyPart,
@@ -82,11 +82,11 @@ pub enum PgRateLimitValidationError {
     MustBePositive,
 }
 
-#[derive(Debug, thiserror::Error, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner, newtype::IntoInnerFrom)]
 #[error(transparent)]
 pub struct SqlxPgRateLimitError(sqlx::Error);
 
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 pub enum PgRateLimitError {
     #[error("PostgreSQL rate-limit query failed: {0}")]
     Sqlx(SqlxPgRateLimitError),

@@ -313,6 +313,7 @@ fn workspace_normal_dependency_graph_is_acyclic() {
 }
 #[test]
 fn library_crates_with_public_logic_own_tests() {
+    #[derive(optml::Optml)]
     struct TestOwnershipException {
         crate_name: &'static str,
         reason: &'static str,
@@ -462,7 +463,7 @@ fn library_crates_with_public_logic_own_tests() {
                 let has_public_logic = source_files.iter().any(|source_file| {
                     super::visit_syn_file(
                         super::types::SynFileRef::from(source_file.ast().as_ref()),
-                        super::PublicLogicVisitor::default(),
+                        super::source_analysis::PublicLogicVisitor::default(),
                     )
                     .found
                     .get()
@@ -470,7 +471,7 @@ fn library_crates_with_public_logic_own_tests() {
                 let has_owned_test = source_files.iter().any(|source_file| {
                     super::visit_syn_file(
                         super::types::SynFileRef::from(source_file.ast().as_ref()),
-                        super::OwnedTestVisitor::default(),
+                        super::source_analysis::OwnedTestVisitor::default(),
                     )
                     .found
                     .get()
@@ -651,40 +652,40 @@ fn source_modules_with_public_logic_own_unit_tests() {
     ]);
     super::snapshot::with_codebase_snapshot(|snapshot| {
         let mut matched = std::collections::BTreeSet::new();
-        let mut violations = snapshot
-            .rs_files()
-            .iter()
-            .filter(|source_file| {
-                !source_file
-                    .path()
-                    .as_ref()
-                    .components()
-                    .any(|component| component.as_os_str() == "tests")
-            })
-            .filter_map(|source_file| {
-                let public_logic = super::visit_syn_file(
-                    super::types::SynFileRef::from(source_file.ast().as_ref()),
-                    super::PublicLogicVisitor::default(),
-                )
-                .found
-                .get();
-                let owns_test = super::visit_syn_file(
-                    super::types::SynFileRef::from(source_file.ast().as_ref()),
-                    super::OwnedTestVisitor::default(),
-                )
-                .found
-                .get();
-                let path = source_file.path().as_ref().display().to_string();
-                let reviewed = reviewed_without_local_tests.iter().any(|(suffix, reason)| {
-                    let matches = path.ends_with(*suffix) && !reason.is_empty();
-                    if matches {
-                        let _inserted = matched.insert((*suffix).to_owned());
-                    }
-                    matches
-                });
-                (public_logic && !owns_test && !reviewed).then_some(path)
-            })
-            .collect::<Vec<String>>();
+        let mut violations =
+            snapshot
+                .rs_files()
+                .iter()
+                .filter(|source_file| {
+                    !super::is_test_source_path(super::types::StdPathRef::from(
+                        std::borrow::Borrow::<std::path::Path>::borrow(source_file.path()),
+                    ))
+                    .get()
+                })
+                .filter_map(|source_file| {
+                    let public_logic = super::visit_syn_file(
+                        super::types::SynFileRef::from(source_file.ast().as_ref()),
+                        super::source_analysis::PublicLogicVisitor::default(),
+                    )
+                    .found
+                    .get();
+                    let owns_test = super::visit_syn_file(
+                        super::types::SynFileRef::from(source_file.ast().as_ref()),
+                        super::source_analysis::OwnedTestVisitor::default(),
+                    )
+                    .found
+                    .get();
+                    let path = source_file.path().as_ref().display().to_string();
+                    let reviewed = reviewed_without_local_tests.iter().any(|(suffix, reason)| {
+                        let matches = path.ends_with(*suffix) && !reason.is_empty();
+                        if matches {
+                            let _inserted = matched.insert((*suffix).to_owned());
+                        }
+                        matches
+                    });
+                    (public_logic && !owns_test && !reviewed).then_some(path)
+                })
+                .collect::<Vec<String>>();
         if matched.len() != reviewed_without_local_tests.len() {
             violations.push(format!(
                 "stale public-logic test exceptions: matched={matched:#?}"

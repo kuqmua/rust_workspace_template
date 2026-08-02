@@ -1,6 +1,6 @@
 const SINGLE_FLIGHT_KEY_MAXIMUM_BYTES: usize = 1024usize;
 
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Eq, Hash, PartialEq)]
 pub struct SingleFlightKey(String);
 impl TryFrom<String> for SingleFlightKey {
     type Error = SingleFlightKeyError;
@@ -18,7 +18,7 @@ impl TryFrom<String> for SingleFlightKey {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum SingleFlightKeyError {
     #[error("single-flight key contains a NUL character")]
     ContainsNul,
@@ -28,10 +28,10 @@ pub enum SingleFlightKeyError {
     TooLong,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct StdSingleFlightMaximum(std::num::NonZeroUsize);
 
-#[derive(Clone, Debug)]
+#[derive(optml::Optml, Clone, Debug)]
 pub struct SingleFlight {
     inner: StdArcStdSingleFlightRwLock,
     maximum: StdSingleFlightMaximum,
@@ -49,8 +49,7 @@ impl SingleFlight {
         if inner.flights.len().get() >= self.maximum.0.get() {
             return SingleFlightAcquire::Full;
         }
-        let (sender, receiver) = tokio::sync::watch::channel(SingleFlightSignal::Running);
-        drop(receiver);
+        let (sender, _) = tokio::sync::watch::channel(SingleFlightSignal::Running);
         let insertion = inner
             .flights
             .try_insert(key.clone(), TokioSingleFlightSender::from(sender));
@@ -73,14 +72,14 @@ impl SingleFlight {
     }
 }
 
-#[derive(Debug)]
+#[derive(optml::Optml, Debug)]
 pub enum SingleFlightAcquire {
     Full,
     Owner(SingleFlightOwner),
     Waiter(SingleFlightWaiter),
 }
 
-#[derive(Debug)]
+#[derive(optml::Optml, Debug)]
 #[must_use]
 pub struct SingleFlightOwner {
     inner: StdArcStdSingleFlightRwLock,
@@ -98,7 +97,7 @@ impl Drop for SingleFlightOwner {
     }
 }
 
-#[derive(Debug, newtype::FromInner)]
+#[derive(optml::Optml, Debug, newtype::FromInner)]
 pub struct SingleFlightWaiter(TokioSingleFlightReceiver);
 
 impl SingleFlightWaiter {
@@ -109,35 +108,37 @@ impl SingleFlightWaiter {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum SingleFlightWaitOutcome {
     Retry,
 }
 
-#[derive(Debug, Default)]
+#[derive(optml::Optml, Debug, Default)]
 struct SingleFlightInner {
     flights:
         bounded_types::StdBoundedHashMap<SingleFlightKey, TokioSingleFlightSender, { usize::MAX }>,
 }
 
-#[derive(Clone, Debug, Default, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Debug, Default, newtype::FromInner)]
 struct StdArcStdSingleFlightRwLock(std::sync::Arc<std::sync::RwLock<SingleFlightInner>>);
 
-#[derive(Debug, newtype::DerefMutTarget, newtype::DerefTarget, newtype::FromInner)]
+#[derive(
+    optml::Optml, Debug, newtype::DerefMutTarget, newtype::DerefTarget, newtype::FromInner,
+)]
 struct StdSingleFlightWriteGuard<'value_lt>(
     std::sync::RwLockWriteGuard<'value_lt, SingleFlightInner>,
 );
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 enum SingleFlightSignal {
     Retry,
     Running,
 }
 
-#[derive(Clone, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Debug, newtype::FromInner)]
 struct TokioSingleFlightReceiver(tokio::sync::watch::Receiver<SingleFlightSignal>);
 
-#[derive(Clone, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Debug, newtype::FromInner)]
 struct TokioSingleFlightSender(tokio::sync::watch::Sender<SingleFlightSignal>);
 
 fn write_inner(inner: &StdArcStdSingleFlightRwLock) -> StdSingleFlightWriteGuard<'_> {

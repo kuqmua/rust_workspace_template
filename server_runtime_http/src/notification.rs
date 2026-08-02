@@ -1,7 +1,7 @@
-#[derive(Clone, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Eq, PartialEq)]
 pub struct NotificationApiToken(String);
 
-#[derive(Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
 pub struct NotificationApiTokenRef<'value_lt>(&'value_lt str);
 impl std::fmt::Debug for NotificationApiTokenRef<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -9,7 +9,9 @@ impl std::fmt::Debug for NotificationApiTokenRef<'_> {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(
+    optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom,
+)]
 pub struct NotificationApiTokenAuthorized(bool);
 
 impl NotificationApiToken {
@@ -36,7 +38,7 @@ impl std::fmt::Debug for NotificationApiToken {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum NotificationApiTokenError {
     #[error("notification API token must not be empty")]
     Empty,
@@ -58,11 +60,20 @@ impl TryFrom<String> for NotificationApiToken {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr, serde::Deserialize, serde::Serialize)]
+#[derive(
+    optml::Optml,
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::AsRefStr,
+    serde::Deserialize,
+    serde::Serialize,
+)]
 #[serde(try_from = "String")]
 pub struct NotificationMessage(String);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum NotificationMessageError {
     #[error("notification message must not be empty")]
     Empty,
@@ -93,7 +104,7 @@ pub trait NotificationSender: Clone + Send + Sync + 'static {
     ) -> impl Future<Output = Result<(), Self::Error>> + Send;
 }
 
-#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
+#[derive(optml::Optml, Clone, Debug, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct NotificationRequest {
     message: NotificationMessage,
@@ -105,7 +116,7 @@ impl NotificationRequest {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(optml::Optml, Clone, Debug)]
 pub struct NotificationServiceState<Sender> {
     permits: crate::StdArcTokioSemaphore,
     sender: Sender,
@@ -126,11 +137,12 @@ impl<Sender> NotificationServiceState<Sender> {
     }
 }
 
-#[derive(Debug, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(optml::Optml, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct AxumNotificationRouter(axum::Router);
-#[derive(newtype::FromInner)]
+#[derive(optml::Optml, newtype::FromInner)]
 struct HttpNotificationHeaderMap(http::HeaderMap);
 
+#[derive(optml::Optml)]
 struct AxumNotificationState<Sender> {
     headers: HttpNotificationHeaderMap,
     state: NotificationServiceState<Sender>,
@@ -151,7 +163,7 @@ where
         }))
     }
 }
-#[derive(newtype::FromInner)]
+#[derive(optml::Optml, newtype::FromInner)]
 struct AxumNotificationJson(NotificationRequest);
 
 impl<State> axum::extract::FromRequest<State> for AxumNotificationJson
@@ -223,7 +235,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    #[derive(Clone, Debug)]
+    #[derive(optml::Optml, Clone, Debug)]
     struct TestSender;
     impl super::NotificationSender for TestSender {
         type Error = std::convert::Infallible;

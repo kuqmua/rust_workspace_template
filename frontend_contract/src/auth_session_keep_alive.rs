@@ -1,7 +1,7 @@
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct StdAuthSessionInstant(std::time::Instant);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct StdAuthSessionRefreshInterval(std::time::Duration);
 impl TryFrom<std::time::Duration> for StdAuthSessionRefreshInterval {
     type Error = AuthSessionKeepAliveError;
@@ -14,20 +14,20 @@ impl TryFrom<std::time::Duration> for StdAuthSessionRefreshInterval {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum AuthSessionPresence {
     Missing,
     Present,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum AuthSessionRefreshOutcome {
     Failed,
     Refreshed,
     Rejected,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum AuthSessionKeepAliveDecision {
     RefreshNow,
     SkipAlreadyRunning,
@@ -35,19 +35,19 @@ pub enum AuthSessionKeepAliveDecision {
     SkipNotDue { next: StdAuthSessionInstant },
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum AuthSessionKeepAliveError {
     #[error("authentication session refresh interval must not be zero")]
     ZeroInterval,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 enum AuthSessionRefreshState {
     Idle,
     Running,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct AuthSessionKeepAlive {
     interval: StdAuthSessionRefreshInterval,
     next: Option<StdAuthSessionInstant>,

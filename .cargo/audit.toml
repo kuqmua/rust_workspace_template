@@ -1,6 +1,4 @@
 [advisories]
 ignore = [
-  "RUSTSEC-2023-0071", # rsa: no upstream fix yet for transitive dependency
   "RUSTSEC-2021-0141", # dotenv is kept for existing configuration behavior
-  "RUSTSEC-2024-0370", # proc-macro-error is kept by current macro dependencies
 ]

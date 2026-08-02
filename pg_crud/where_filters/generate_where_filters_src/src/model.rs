@@ -1,24 +1,30 @@
-#[derive(Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
 struct BindCount(usize);
 #[derive(
-    Clone, Copy, newtype::AsRefInner, newtype::Display, newtype::ToTokens, newtype::FromInner,
+    optml::Optml,
+    Clone,
+    Copy,
+    newtype::AsRefInner,
+    newtype::Display,
+    newtype::ToTokens,
+    newtype::FromInner,
 )]
 pub(super) struct FilterSqlOperator(&'static str);
-#[derive(Clone, Copy, newtype::AsRefInner, newtype::ToTokens, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, newtype::AsRefInner, newtype::ToTokens, newtype::FromInner)]
 pub(super) struct FilterSqlSuffix(&'static str);
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 pub(super) struct FilterSpecValid(bool);
 impl FilterSpecValid {
     pub(super) const fn get(self) -> bool {
         self.0
     }
 }
-#[derive(Clone, Copy)]
+#[derive(optml::Optml, Clone, Copy)]
 enum FilterValueShape {
     Scalar,
     Text,
 }
-#[derive(Clone, Copy)]
+#[derive(optml::Optml, Clone, Copy)]
 pub(super) struct FilterSpec {
     bind_count: BindCount,
     sql_operator: FilterSqlOperator,

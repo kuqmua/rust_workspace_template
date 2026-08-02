@@ -1,3 +1,4 @@
+#[derive(optml::Optml)]
 #[derive(frontend_contract::RouteFamily)]
 #[route_family()]
 struct EmptyRouteFamily;

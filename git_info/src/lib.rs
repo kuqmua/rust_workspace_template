@@ -42,7 +42,7 @@ impl GitCommitId {
         }
     }
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum GitInfoStringTryFromStringError {
     TooLong { len: usize, max: usize },
 }
@@ -399,11 +399,12 @@ where
 }
 #[cfg(test)]
 mod tests {
-    #[derive(Debug)]
+    #[derive(optml::Optml, Debug)]
+    #[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optml takes precedence over alphabetical field order
     struct TestGitCommit {
-        borrow_commit_ref: bool,
         commit: &'static str,
         fallback_calls: std::cell::Cell<usize>,
+        borrow_commit_ref: bool,
     }
     impl super::GetGitCommitId for TestGitCommit {
         fn get_git_commit_id(&self) -> super::GitCommitId {

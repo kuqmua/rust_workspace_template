@@ -2,7 +2,7 @@
     clippy::single_call_fn,
     reason = "the bind emitter boundary is intentionally isolated from descriptor and contract emitters"
 )]
-#[derive(Clone, Copy)]
+#[derive(optml::Optml, Clone, Copy)]
 #[allow(
     clippy::field_scoped_visibility_modifiers,
     reason = "the sibling descriptor validates bind count without exposing a primitive boundary"

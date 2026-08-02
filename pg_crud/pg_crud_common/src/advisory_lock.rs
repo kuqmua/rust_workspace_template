@@ -1,9 +1,11 @@
 const MAXIMUM_RESOURCE_COUNT: usize = 10_000usize;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(
+    optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom,
+)]
 pub struct PgRelationRowCount(u64);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct PgRelationCapacityMaximum(u64);
 impl TryFrom<u64> for PgRelationCapacityMaximum {
     type Error = PgRelationCapacityError;
@@ -16,7 +18,7 @@ impl TryFrom<u64> for PgRelationCapacityMaximum {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum PgRelationCapacityError {
     #[error("PostgreSQL relation capacity would be exceeded")]
     Exceeded,
@@ -26,10 +28,10 @@ pub enum PgRelationCapacityError {
     ZeroMaximum,
 }
 
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, newtype::FromInner)]
 pub struct PgRelationResourceId(i64);
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
 pub struct PgRelationLockNamespace(String);
 impl TryFrom<String> for PgRelationLockNamespace {
     type Error = PgRelationLockError;
@@ -46,7 +48,7 @@ impl TryFrom<String> for PgRelationLockNamespace {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
 pub struct PgRelationResourceIds(
     bounded_types::BoundedVec<PgRelationResourceId, 0usize, MAXIMUM_RESOURCE_COUNT>,
 );
@@ -68,7 +70,7 @@ impl TryFrom<Vec<PgRelationResourceId>> for PgRelationResourceIds {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum PgRelationLockError {
     #[error("PostgreSQL relation lock namespace is invalid")]
     InvalidNamespace,
@@ -76,11 +78,11 @@ pub enum PgRelationLockError {
     TooManyResources,
 }
 
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 pub struct SqlxPgRelationLockError(sqlx::Error);
 
-#[derive(Debug, newtype::AsMut, newtype::FromInner)]
+#[derive(optml::Optml, Debug, newtype::AsMut, newtype::FromInner)]
 pub struct SqlxPgRelationLockConnectionRef<'connection>(&'connection mut sqlx::PgConnection);
 
 pub async fn lock_pg_relation_resources(

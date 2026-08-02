@@ -1,28 +1,31 @@
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 pub struct StdPathRef<'lt>(&'lt std::path::Path);
-#[derive(Debug, newtype::FromInner)]
+#[derive(optml::Optml, Debug, newtype::FromInner)]
 struct StdProcessCommand(std::process::Command);
-#[derive(Debug)]
+#[derive(optml::Optml, Debug)]
 struct StdOsString(std::ffi::OsString);
 impl From<&str> for StdOsString {
     fn from(value: &str) -> Self {
         Self(std::ffi::OsString::from(value))
     }
 }
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 pub struct ToolProgramRef<'lt>(&'lt str);
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 pub struct ToolArgRef<'lt>(&'lt str);
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 pub struct ToolArgsRef<'lt>(&'lt [&'lt str]);
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 pub struct ToolEnvKeyRef<'lt>(&'lt str);
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 pub struct ToolEnvValueRef<'lt>(&'lt str);
-#[derive(Clone, Copy, Debug, newtype::DerefInner, newtype::Display, newtype::FromInner)]
+#[derive(
+    optml::Optml, Clone, Copy, Debug, newtype::DerefInner, newtype::Display, newtype::FromInner,
+)]
 pub struct StdProcessExitStatus(std::process::ExitStatus);
-#[derive(Debug, newtype::AsRefOwned, newtype::DerefInner, newtype::FromInner)]
+#[derive(optml::Optml, Debug, newtype::AsRefOwned, newtype::DerefInner, newtype::FromInner)]
 pub struct StdProcessOutput(std::process::Output);
+#[derive(optml::Optml)]
 pub struct ToolCommand {
     inner: StdProcessCommand,
     program: StdOsString,

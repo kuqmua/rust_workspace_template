@@ -1,14 +1,15 @@
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum SqlLikeMatchMode {
     Contains,
     EndsWith,
     StartsWith,
 }
 
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 pub struct SqlLikeInputRef<'value_lt>(&'value_lt str);
 
 #[derive(
+    optml::Optml,
     Clone,
     Debug,
     Eq,
@@ -31,7 +32,7 @@ impl SqlLikePattern {
         }
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("{}", str_constants::SQL_LIKE_PATTERN_EXCEEDS_MAXIMUM_LENGTH)]
 pub struct SqlLikePatternError;
 pub fn build_sql_like_pattern(

@@ -1,7 +1,7 @@
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 pub struct ChronoUtcDateTimeRef<'value_lt>(&'value_lt chrono::DateTime<chrono::Utc>);
 
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(optml::Optml, Clone, Copy, Debug, Default)]
 pub struct DateFilterBounds<'value_lt> {
     created_at_from: Option<ChronoUtcDateTimeRef<'value_lt>>,
     created_at_to: Option<ChronoUtcDateTimeRef<'value_lt>>,
@@ -25,13 +25,13 @@ impl<'value_lt> DateFilterBounds<'value_lt> {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct StdDateSqlBindStart(std::num::NonZeroU32);
 
-#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)]
 pub struct ChronoUtcDateTimes(Vec<chrono::DateTime<chrono::Utc>>);
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
 pub struct DateSqlFilter {
     fragment: crate::QueryPartFragment,
     values: ChronoUtcDateTimes,
@@ -43,7 +43,7 @@ impl DateSqlFilter {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum DateSqlFilterError {
     #[error("date SQL filter bind index overflowed")]
     BindIndexOverflow,

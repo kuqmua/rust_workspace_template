@@ -1,6 +1,6 @@
 const VERSIONED_WIRE_TOKEN_MAXIMUM_BYTES: usize = 8192usize;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum VersionedUrlSafeWireTokenTextError {
     #[error("wire token contains an invalid URL-safe part")]
     InvalidPart,
@@ -10,7 +10,7 @@ pub enum VersionedUrlSafeWireTokenTextError {
     TooLong,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
 pub struct VersionedUrlSafeWireTokenText {
     encoded_payload: crate::UrlSafeTokenPartText,
     encoded_signature: crate::UrlSafeTokenPartText,

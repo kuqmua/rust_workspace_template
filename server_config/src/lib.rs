@@ -69,7 +69,7 @@ pub struct Config {
     #[config(example = "serve")]
     pub svc_mode: config_lib::types::SvcMode,
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum ProductionConfigError {
     #[error("production administrator cookies must be secure")]
     AdminCookieInsecure,

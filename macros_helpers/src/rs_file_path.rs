@@ -1,4 +1,4 @@
-#[derive(Debug, Clone, PartialEq, Eq, newtype::AsRefTarget, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, PartialEq, Eq, newtype::AsRefTarget, newtype::FromInner)]
 pub(crate) struct StdRsFilePath(std::path::PathBuf);
 #[allow(clippy::single_call_fn)] // centralized .rs extension mapping keeps path behavior consistent across file-write helpers
 pub(crate) fn rs_file_path<P>(file_name: P) -> StdRsFilePath

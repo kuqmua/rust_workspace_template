@@ -143,29 +143,75 @@ test("administrator permissions page contains only its header, table, and pagina
   await expect(page.locator("form.table-tools")).toHaveCount(0);
 });
 
+test("Rust UI primitives expose their semantic component contracts", async ({ page }) => {
+  await signInAdministrator(page);
+  await page.goto("/admin/users");
+
+  await expect(page.locator('[data-name="NavigationMenu"]')).toHaveCount(1);
+  await expect(page.locator('[data-name="NavigationMenuLink"]').first()).toBeVisible();
+  await expect(page.locator('[data-name="TableWrapper"]')).toHaveCount(1);
+  await expect(page.locator('table[data-name="Table"]')).toHaveCount(1);
+  await expect(page.locator('thead[data-name="TableHeader"]')).toHaveCount(1);
+  await expect(page.locator('tbody[data-name="TableBody"]')).toHaveCount(1);
+  await expect(page.locator('tr[data-name="TableRow"]').first()).toBeVisible();
+  await expect(page.locator('th[data-name="TableHead"]').first()).toBeVisible();
+  await expect(page.locator('td[data-name="TableCell"]').first()).toBeVisible();
+  await expect(page.locator('[data-name="Pagination"]')).toHaveCount(1);
+
+  await page.goto("/admin/profile");
+  await expect(page.locator('[data-name="Card"]')).toHaveCount(2);
+  await expect(page.locator('[data-name="CardContent"]')).toHaveCount(2);
+  await expect(page.locator('[data-name="Field"]').first()).toBeVisible();
+  await expect(page.locator('[data-name="Label"]').first()).toBeVisible();
+  await expect(page.locator('input[data-name="Input"]').first()).toBeVisible();
+  await expect(page.locator('button[data-name="Button"]').first()).toBeVisible();
+
+  await page.goto("/admin/settings");
+  const textarea = page.locator('textarea[data-name="Textarea"]').first();
+  await expect(textarea).toBeVisible();
+  const textareaValue = await textarea.inputValue();
+  await textarea.fill(`${textareaValue} UI test`);
+  await expect(textarea).toHaveValue(`${textareaValue} UI test`);
+  await page
+    .getByRole("button", { name: "Reset to template defaults" })
+    .click();
+  const dialog = page.getByRole("dialog", { name: "Reset settings?" });
+  await expect(dialog).toBeVisible();
+  await expect(dialog.locator('[data-name="AlertDialogBody"]')).toHaveCount(1);
+  await expect(dialog.locator('[data-name="AlertDialogHeader"]')).toHaveCount(1);
+  await expect(dialog.locator('[data-name="AlertDialogTitle"]')).toHaveText(
+    "Reset settings?"
+  );
+  await expect(
+    dialog.locator('[data-name="AlertDialogDescription"]')
+  ).toHaveCount(1);
+  await expect(dialog.locator('[data-name="AlertDialogFooter"]')).toHaveCount(1);
+  await dialog.getByRole("button", { name: "Cancel" }).click();
+  await expect(dialog).not.toBeVisible();
+});
+
 test("data-table filter places a full-width Close control below Apply", async ({
   page
 }) => {
   await signInAdministrator(page);
   await page.goto("/admin/role_permissions");
 
-  const filter = page.locator(
-    'th[data-field="role_id"] details.table-column-filter'
-  );
-  await filter.locator("summary").click();
+  const filter = page.locator('th[data-field="role_id"] .table-column-filter');
+  await filter.getByRole("button", { name: "Filter Role Id" }).click();
 
   const dialog = filter.getByRole("dialog");
   const close = dialog.getByRole("button", { name: "Close" });
   await expect(dialog).toBeVisible();
+  await expect(filter).toHaveAttribute("data-name", "Popover");
+  await expect(dialog).toHaveAttribute("data-name", "PopoverContent");
+  await expect(dialog.locator('[data-name="RadioButtonGroup"]')).toHaveCount(1);
+  await expect(dialog.locator('[data-name="RadioButton"]').first()).toBeChecked();
   await expect(close).toContainText("Close");
 
   const controls = await filter.evaluate(element => {
-    const applyRect = element
-      .querySelector("button[type='submit']")
-      .getBoundingClientRect();
-    const closeRect = element
-      .querySelector("button.table-filter-close")
-      .getBoundingClientRect();
+    const buttons = element.querySelectorAll("button");
+    const applyRect = buttons.item(1).getBoundingClientRect();
+    const closeRect = buttons.item(2).getBoundingClientRect();
     return {
       applyBottom: applyRect.bottom,
       applyHeight: applyRect.height,

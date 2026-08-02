@@ -1,14 +1,41 @@
 const COMMIT_HEADER_NAME: axum::http::HeaderName =
     axum::http::HeaderName::from_static(str_constants::ROUTE_VALIDATORS_COMMIT_HEADER_NAME);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::ToErrStringAsRefStr, newtype::FromInner)]
+#[derive(
+    optml::Optml,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    newtype::ToErrStringAsRefStr,
+    newtype::FromInner,
+)]
 pub struct CommitNotEqMessage(&'static str);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::ToErrStringAsRefStr, newtype::FromInner)]
+#[derive(
+    optml::Optml,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    newtype::ToErrStringAsRefStr,
+    newtype::FromInner,
+)]
 pub struct CommitToUse(&'static str);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::ToErrStringAsRefStr, newtype::FromInner)]
+#[derive(
+    optml::Optml,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    newtype::ToErrStringAsRefStr,
+    newtype::FromInner,
+)]
 pub struct NoCommitHeaderMessage(&'static str);
-#[derive(Debug, newtype::ToErrString, newtype::FromInner)]
+#[derive(optml::Optml, Debug, newtype::ToErrString, newtype::FromInner)]
 pub struct AxumCommitToStrConversionError(axum::http::header::ToStrError);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
 pub struct EnableApiGitCommitCheck(bool);
 #[derive(Debug, thiserror::Error, location::Location, optml::Optml)]
 pub enum CommitError {

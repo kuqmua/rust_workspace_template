@@ -58,8 +58,7 @@ textarea {
   font: inherit;
 }
 
-button,
-summary {
+button {
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -107,9 +106,7 @@ textarea:focus {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent);
 }
 
-button,
-.mutation-form > summary,
-td details > summary {
+button {
   border-radius: var(--radius-sm);
   font-size: 13px;
   font-weight: 700;
@@ -117,9 +114,7 @@ td details > summary {
   transition: background 140ms ease, border-color 140ms ease, color 140ms ease, transform 140ms ease;
 }
 
-button:active,
-.mutation-form > summary:active,
-td details > summary:active {
+button:active {
   transform: translateY(1px);
 }
 
@@ -307,6 +302,106 @@ p {
   place-items: center;
 }
 
+.ui-card {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.ui-button {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid transparent;
+  padding: 8px 12px;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.ui-button:focus-visible,
+.ui-input:focus-visible,
+.ui-textarea:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  outline-offset: 2px;
+}
+
+.ui-button-primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.ui-button-primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.ui-button-secondary {
+  border-color: var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+}
+
+.ui-button-secondary:hover:not(:disabled) {
+  border-color: var(--border-strong);
+  background: var(--surface-subtle);
+  color: var(--text);
+}
+
+.ui-button-danger {
+  background: var(--danger);
+  color: #fff;
+}
+
+.ui-field {
+  display: grid;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.ui-input,
+.ui-textarea {
+  border-color: var(--border-strong);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.ui-alert {
+  width: 100%;
+}
+
+.ui-badge {
+  display: inline-flex;
+  min-height: 22px;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.ui-badge-neutral {
+  background: var(--surface-subtle);
+  color: var(--text-secondary);
+}
+
+.ui-badge-success {
+  border-color: color-mix(in srgb, var(--success) 28%, var(--border));
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.ui-empty {
+  display: grid;
+  min-height: 160px;
+  place-items: center;
+}
+
 .settings-card {
   width: min(100%, 900px);
 }
@@ -431,8 +526,7 @@ p {
 
 .security-card label,
 .settings-form label,
-.mutation-form form label,
-td details form label {
+.mutation-form form label {
   color: var(--text-secondary);
   font-size: 12px;
   font-weight: 650;
@@ -447,8 +541,7 @@ td details form label {
 
 .security-card label:has(input[type="checkbox"]),
 td form label:has(input[type="checkbox"]),
-.mutation-form label:has(input[type="checkbox"]),
-td details label:has(input[type="checkbox"]) {
+.mutation-form label:has(input[type="checkbox"]) {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -457,8 +550,7 @@ td details label:has(input[type="checkbox"]) {
 .security-card button,
 .settings-form button,
 .mutation-form form button,
-td form button,
-td details form button {
+td form button {
   justify-self: start;
   background: var(--accent);
   color: #fff;
@@ -468,8 +560,7 @@ td details form button {
 .security-card button:hover,
 .settings-form button:hover,
 .mutation-form form button:hover,
-td form button:hover,
-td details form button:hover {
+td form button:hover {
   background: var(--accent-hover);
 }
 
@@ -491,52 +582,6 @@ td details form button:hover {
   position: relative;
 }
 
-th:has(> .table-column-heading > .table-column-filter[open]) {
-  z-index: 2;
-}
-
-.table-column-filter[open] {
-  position: fixed;
-  z-index: 100;
-  inset: 0;
-  display: block;
-  overflow-y: auto;
-  background: var(--background);
-  padding: clamp(16px, 4vw, 56px);
-}
-
-.table-column-filter > summary {
-  padding: 4px 7px;
-  border: 1px solid var(--border);
-  background: var(--surface-muted);
-  color: var(--text-secondary);
-  cursor: pointer;
-  font-size: 11px;
-  list-style: none;
-}
-
-.table-column-filter > summary.active {
-  border-color: var(--accent);
-  background: var(--accent);
-  color: #fff;
-}
-
-.table-column-filter[open] > summary {
-  display: none;
-}
-
-.table-filter-close-label {
-  display: none;
-}
-
-.table-column-filter[open] .table-filter-open-label {
-  display: none;
-}
-
-.table-column-filter[open] .table-filter-close-label {
-  display: inline;
-}
-
 .table-filter-operations {
   display: grid;
   align-content: start;
@@ -550,6 +595,10 @@ th:has(> .table-column-heading > .table-column-filter[open]) {
   box-shadow: var(--shadow);
   font-size: var(--header-font-size);
   white-space: normal;
+}
+
+.table-filter-operations:not(:popover-open) {
+  display: none;
 }
 
 .table-filter-header {
@@ -671,8 +720,7 @@ th:has(> .table-column-heading > .table-column-filter[open]) {
   justify-self: stretch;
 }
 
-.main-content > div > p:not(.flash-success),
-.main-content > div > details + p {
+.main-content > div > p:not(.flash-success) {
   color: var(--muted);
   font-size: 13px;
 }
@@ -738,43 +786,6 @@ th:has(> .table-column-heading > .table-column-filter[open]) {
 
 .table-actions button {
   font-size: 11px;
-}
-
-.mutation-form > summary,
-td details > summary {
-  cursor: pointer;
-  list-style: none;
-}
-
-.mutation-form > summary::-webkit-details-marker,
-td details > summary::-webkit-details-marker {
-  display: none;
-}
-
-.mutation-form > summary {
-  border: 1px solid var(--accent);
-  background: var(--surface);
-  color: var(--accent-hover);
-  padding: 9px 14px;
-}
-
-.mutation-form > summary:hover {
-  background: var(--accent-soft);
-}
-
-.mutation-form > form,
-td details > form {
-  position: absolute;
-  z-index: 12;
-  display: grid;
-  width: min(340px, calc(100vw - 32px));
-  gap: 12px;
-  margin-top: 8px;
-  border: 1px solid var(--border);
-  border-radius: 0;
-  background: var(--surface);
-  box-shadow: var(--shadow);
-  padding: 16px;
 }
 
 table {
@@ -847,31 +858,6 @@ td > form label {
 td > form button {
   padding: 8px 10px;
   font-size: 11px;
-}
-
-td details {
-  position: relative;
-  display: inline-block;
-  margin: 2px 4px 2px 0;
-}
-
-td details > summary {
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text-secondary);
-  padding: 7px 9px;
-  font-size: 11px;
-  white-space: nowrap;
-}
-
-td details > summary:hover {
-  border-color: var(--border-strong);
-  background: var(--surface-subtle);
-  color: var(--text);
-}
-
-td details > form {
-  right: 0;
 }
 
 .danger-button {
@@ -1127,10 +1113,6 @@ pre {
     padding: 16px;
   }
 
-  .table-column-filter[open] {
-    padding: 12px;
-  }
-
   .table-filter-operations {
     padding: 20px 16px;
   }
@@ -1220,15 +1202,6 @@ pre {
   .profile-card,
   .profile-grid > .security-card {
     padding: 18px;
-  }
-
-  .mutation-form > form,
-  td details > form {
-    position: fixed;
-    inset: auto 16px 16px;
-    width: auto;
-    max-height: calc(100vh - 32px);
-    overflow-y: auto;
   }
 
   .auth-layout {

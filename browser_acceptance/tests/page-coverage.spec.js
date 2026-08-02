@@ -122,7 +122,7 @@ for (const pageSpec of tablePages) {
     await openAdminPage(page, pageSpec.path);
     const destination = page.locator(`nav[aria-label="Admin sections"] a[href="${pageSpec.path}"]`);
     await expect(destination).toHaveCount(1);
-    await expect(destination).toHaveClass(/active/);
+    await expect(destination).toHaveAttribute("aria-current", "page");
     await expectUniqueIds(page);
   });
 
@@ -145,7 +145,10 @@ for (const pageSpec of tablePages) {
       await expect(
         page.locator("tbody button, tbody input, tbody select, tbody textarea")
       ).toHaveCount(0);
-      await expect(page.locator("tbody td").first()).not.toHaveAttribute("class");
+      await expect(page.locator("tbody td").first()).toHaveAttribute(
+        "data-name",
+        "TableCell"
+      );
     });
   }
 }
@@ -161,7 +164,7 @@ for (const pageSpec of dataTablePages) {
     await expect(page.locator("nav.table-pagination")).toHaveCount(1);
     await expect(
       page.locator(`nav[aria-label="Admin sections"] a[href="${pageSpec.path}"]`)
-    ).toHaveClass(/active/);
+    ).toHaveAttribute("aria-current", "page");
   });
 
   test(`${pageSpec.name} data table keeps its deep link after reload`, async ({ page }) => {
@@ -237,7 +240,7 @@ for (const pageSpec of serverRenderedPages) {
     await expect(page.locator("main")).not.toBeEmpty();
     await expect(
       page.locator(`nav[aria-label="Admin sections"] a[href="${pageSpec.path}"]`)
-    ).toHaveClass(/active/);
+    ).toHaveAttribute("aria-current", "page");
   });
 
   test(`${pageSpec.name} server-rendered page reloads without client errors`, async ({

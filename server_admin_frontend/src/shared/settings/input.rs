@@ -8,24 +8,22 @@
 mod text;
 mod textarea;
 
-#[derive(Clone, Copy, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
 pub(crate) struct AdminSettingDisabled(bool);
-#[derive(Clone, Copy, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
 struct AdminSettingRequired(bool);
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
-pub(crate) struct LeptosAdminSettingSignal(leptos::prelude::RwSignal<String>);
-impl LeptosAdminSettingSignal {
+impl crate::ui::input::LeptosAdminInputSignal {
     #[cfg(target_arch = "wasm32")]
     pub(crate) fn value(self) -> super::values::AdminSettingInputValue {
         super::values::AdminSettingInputValue::from(
-            leptos::prelude::Get::get(&self.0).into_boxed_str(),
+            leptos::prelude::Get::get(&self.signal()).into_boxed_str(),
         )
     }
 }
 
 pub(crate) fn admin_setting_input(
     field: server_admin_contract::AdminSetting,
-    value: LeptosAdminSettingSignal,
+    value: crate::ui::input::LeptosAdminInputSignal,
     disabled: AdminSettingDisabled,
 ) -> impl leptos::prelude::IntoView {
     let spec = field.spec();

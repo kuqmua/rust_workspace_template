@@ -1,11 +1,11 @@
 const ENV_FILE_MAX_BYTES: usize = 1_048_576usize;
 const WORKSPACE_MANIFEST_MAX_BYTES: usize = 1_048_576usize;
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 enum RunMode {
     Apply,
     DryRun,
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 enum InitializationStatus {
     Created,
     SkippedExisting,
@@ -13,13 +13,13 @@ enum InitializationStatus {
     WouldCreate,
     WouldUpdate,
 }
-#[derive(Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Debug, Eq, PartialEq)]
 struct InitializationEntry {
     keys: EnvKeys,
     member: WorkspaceMember,
     status: InitializationStatus,
 }
-#[derive(Debug, Eq, PartialEq, newtype::AsRefStr, newtype::TryFrom)]
+#[derive(optml::Optml, Debug, Eq, PartialEq, newtype::AsRefStr, newtype::TryFrom)]
 #[try_from(error = InitStringError, validator = EnvContent::validate)]
 struct EnvContent(String);
 impl EnvContent {
@@ -37,10 +37,18 @@ impl From<server_runtime_http::BoundedText> for EnvContent {
         Self(value.into_inner())
     }
 }
-#[derive(Clone, Copy, newtype::AsRefStr, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, newtype::AsRefStr, newtype::FromInner)]
 struct EnvContentRef<'content_lt>(&'content_lt str);
 #[derive(
-    Debug, Eq, Ord, PartialEq, PartialOrd, newtype::AsRefStr, newtype::BorrowStr, newtype::TryFrom,
+    optml::Optml,
+    Debug,
+    Eq,
+    Ord,
+    PartialEq,
+    PartialOrd,
+    newtype::AsRefStr,
+    newtype::BorrowStr,
+    newtype::TryFrom,
 )]
 #[try_from(error = InitStringError, validator = EnvKey::validate)]
 struct EnvKey(String);
@@ -54,12 +62,20 @@ impl EnvKey {
         }
     }
 }
-#[derive(Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Eq, PartialEq, newtype::FromInner)]
 struct EnvKeys(bounded_types::BoundedVec<EnvKey, 0, { usize::MAX }>);
-#[derive(Clone, Copy, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(optml::Optml, Clone, Copy, newtype::FromInner, newtype::IntoInnerFrom)]
 struct MemberSafe(bool);
 #[derive(
-    Debug, Eq, Ord, PartialEq, PartialOrd, newtype::AsRefStr, newtype::Display, newtype::TryFrom,
+    optml::Optml,
+    Debug,
+    Eq,
+    Ord,
+    PartialEq,
+    PartialOrd,
+    newtype::AsRefStr,
+    newtype::Display,
+    newtype::TryFrom,
 )]
 #[try_from(error = InitStringError, validator = WorkspaceMember::validate)]
 struct WorkspaceMember(String);
@@ -73,31 +89,31 @@ impl WorkspaceMember {
         }
     }
 }
-#[derive(Clone, Copy, newtype::AsRefStr, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, newtype::AsRefStr, newtype::FromInner)]
 struct WorkspaceMemberRef<'member_lt>(&'member_lt str);
-#[derive(newtype::FromInner)]
+#[derive(optml::Optml, newtype::FromInner)]
 struct WorkspaceMembers(bounded_types::BoundedVec<WorkspaceMember, 0, { usize::MAX }>);
-#[derive(Clone, Copy, newtype::AsRefTarget, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, newtype::AsRefTarget, newtype::FromInner)]
 struct StdWorkspaceRootRef<'root_lt>(&'root_lt std::path::Path);
-#[derive(Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
 struct StdInitPathRef<'path_lt>(&'path_lt std::path::Path);
-#[derive(Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
 struct InitMaxBytes(usize);
-#[derive(newtype::FromInner)]
+#[derive(optml::Optml, newtype::FromInner)]
 struct InitEntries(bounded_types::BoundedVec<InitializationEntry, 0, { usize::MAX }>);
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 struct StdInitIoError(std::io::Error);
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 struct ServerRuntimeBoundedReadError(server_runtime_http::BoundedReadError);
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 struct TomlInitError(toml::de::Error);
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 #[error("environment initializer string value is invalid")]
 struct InitStringError;
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 enum InitializeError {
     #[error("workspace member path is invalid: {member}")]
     InvalidMember { member: WorkspaceMember },

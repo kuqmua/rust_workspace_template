@@ -11,7 +11,7 @@ pub use observed_error::{
     TracingObservedErrorSpanTrace,
 };
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ServiceTracingFormat {
     Json,
     Text,

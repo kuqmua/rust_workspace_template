@@ -1,517 +1,11 @@
+#[derive(optml::Optml)]
 struct ReviewedPublicFields {
     fields: &'static [&'static str],
     path_suffix: &'static str,
     reason: &'static str,
     struct_name: &'static str,
 }
-#[derive(Default)]
-struct SecretBoxStringVisitor {
-    argument_identifiers: super::types::StdSourceTextSet,
-    found_count: super::types::AnalyzerCount,
-}
-impl<'ast> syn::visit::Visit<'ast> for SecretBoxStringVisitor {
-    fn visit_macro(&mut self, i: &'ast syn::Macro) {
-        let tokens = i.tokens.to_string();
-        if tokens.contains("SecretBox < String >")
-            || tokens.contains("SecretBox < std :: string :: String >")
-        {
-            self.found_count.saturating_inc();
-        }
-        syn::visit::visit_macro(self, i);
-    }
 
-    fn visit_type(&mut self, i: &'ast syn::Type) {
-        if let Some(identifier) = type_secret_box_argument_identifier(i) {
-            let _was_inserted = self.argument_identifiers.insert(identifier.to_string());
-        }
-        if type_is_secret_box_string(i) {
-            self.found_count.saturating_inc();
-        }
-        syn::visit::visit_type(self, i);
-    }
-}
-fn type_is_secret_box_string(ty: &syn::Type) -> bool {
-    type_secret_box_argument_identifier(ty)
-        .is_some_and(|identifier| identifier == stringify!(String))
-}
-fn type_secret_box_argument_identifier(ty: &syn::Type) -> Option<&syn::Ident> {
-    let syn::Type::Path(type_path) = ty else {
-        return None;
-    };
-    let segment = type_path.path.segments.last()?;
-    if segment.ident != stringify!(SecretBox) {
-        return None;
-    }
-    let syn::PathArguments::AngleBracketed(arguments) = &segment.arguments else {
-        return None;
-    };
-    arguments.args.iter().find_map(|argument| {
-        let syn::GenericArgument::Type(syn::Type::Path(argument_path)) = argument else {
-            return None;
-        };
-        argument_path.path.segments.last().map(|value| &value.ident)
-    })
-}
-#[test]
-fn secret_boxes_do_not_use_raw_string_anywhere_in_repository() {
-    super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr::from("6c5a524e"),
-        super::types::SourceTextRef::from(
-            "SecretBox generic parameters must use a bounded string wrapper",
-        ),
-        |path, ast, errors| {
-            let visitor = super::visit_syn_file(
-                super::types::SynFileRef::from(ast),
-                SecretBoxStringVisitor::default(),
-            );
-            super::push_repeated_file_error(
-                super::types::DiagnosticMsgsMutRef::from(errors),
-                super::types::StdPathRef::from(path),
-                super::types::SourceTextRef::from("SecretBox<String>"),
-                visitor.found_count,
-            );
-        },
-    );
-}
-#[test]
-fn repository_secret_box_policy_rejects_raw_string_generic_argument() {
-    let raw = syn::parse_str::<syn::Type>("secrecy::SecretBox<String>").expect("35a98aea");
-    let qualified =
-        syn::parse_str::<syn::Type>("secrecy::SecretBox<std::string::String>").expect("28cd22e6");
-    let bounded =
-        syn::parse_str::<syn::Type>("secrecy::SecretBox<StdAdminString>").expect("f7fc1398");
-    assert!(type_is_secret_box_string(&raw));
-    assert!(type_is_secret_box_string(&qualified));
-    assert!(!type_is_secret_box_string(&bounded));
-}
-#[test]
-fn repository_secret_box_policy_checks_generated_tokens() {
-    let ast = syn::parse_file(
-        "fn generated() { quote::quote! { struct Secret(secrecy::SecretBox<String>); }; }",
-    )
-    .expect("47bf1cf6");
-    let visitor = super::visit_syn_file(
-        super::types::SynFileRef::from(&ast),
-        SecretBoxStringVisitor::default(),
-    );
-    assert_eq!(visitor.found_count.get(), 1usize);
-}
-#[test]
-fn repository_secret_boxes_use_bounded_string_types() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
-        let bounded_identifiers = snapshot
-            .rs_files()
-            .iter()
-            .flat_map(|source_file| source_file.ast().as_ref().items.iter())
-            .filter_map(|item| {
-                let syn::Item::Struct(item_struct) = item else {
-                    return None;
-                };
-                item_struct
-                    .attrs
-                    .iter()
-                    .any(|attribute| {
-                        super::derive_attr_has_terminal(
-                            super::types::SynAttributeRef::from(attribute),
-                            super::types::SourceTextRef::from(stringify!(BoundedString)),
-                        )
-                        .get()
-                    })
-                    .then(|| item_struct.ident.to_string())
-            })
-            .collect::<std::collections::BTreeSet<_>>();
-        let unbounded_arguments = snapshot
-            .rs_files()
-            .iter()
-            .flat_map(|source_file| {
-                super::visit_syn_file(
-                    super::types::SynFileRef::from(source_file.ast().as_ref()),
-                    SecretBoxStringVisitor::default(),
-                )
-                .argument_identifiers
-                .into_iter()
-            })
-            .filter(|identifier| !bounded_identifiers.contains(identifier))
-            .collect::<Vec<_>>();
-        assert!(
-            unbounded_arguments.is_empty(),
-            "29510826 SecretBox generic parameters are not BoundedString types:\n{}",
-            unbounded_arguments.join("\n")
-        );
-    });
-}
-fn publicly_forwards_crate_root(item: &syn::Item) -> bool {
-    let syn::Item::Use(item_use) = item else {
-        return false;
-    };
-    matches!(item_use.vis, syn::Visibility::Public(_))
-        && matches!(
-            &item_use.tree,
-            syn::UseTree::Path(path) if path.ident == "crate"
-        )
-}
-#[test]
-fn private_shared_modules_do_not_forward_crate_root_exports() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
-        let errors = snapshot
-            .rs_files()
-            .iter()
-            .filter(|source_file| {
-                source_file.path().as_ref().file_name() == Some(std::ffi::OsStr::new("lib.rs"))
-            })
-            .flat_map(|crate_root| {
-                crate_root
-                    .ast()
-                    .as_ref()
-                    .items
-                    .iter()
-                    .filter_map(|item| {
-                        let syn::Item::Mod(module) = item else {
-                            return None;
-                        };
-                        matches!(module.vis, syn::Visibility::Inherited)
-                            .then_some(module)
-                            .filter(|module_ref| module_ref.content.is_none())
-                    })
-                    .filter_map(|module| {
-                        let source_directory = crate_root.path().as_ref().parent()?;
-                        [
-                            source_directory.join(format!("{}.rs", module.ident)),
-                            source_directory
-                                .join(module.ident.to_string())
-                                .join("mod.rs"),
-                        ]
-                        .into_iter()
-                        .find_map(|module_path| {
-                            snapshot
-                                .rs_files()
-                                .iter()
-                                .find(|source_file| source_file.path().as_ref() == module_path)
-                        })
-                    })
-                    .filter(|module_file| {
-                        module_file
-                            .ast()
-                            .as_ref()
-                            .items
-                            .iter()
-                            .any(publicly_forwards_crate_root)
-                    })
-                    .map(|module_file| module_file.path().as_ref().display().to_string())
-            })
-            .collect::<Vec<_>>();
-        assert!(
-            errors.is_empty(),
-            "c8f4a271 private crate-root modules publicly forward `crate::` exports:\n{}",
-            errors.join("\n")
-        );
-    });
-}
-#[test]
-fn private_shared_module_forwarding_policy_distinguishes_public_visibility_and_owner() {
-    let public_forward = syn::parse_file("pub use crate::owner::Item;").expect("b2d1e940");
-    let crate_forward = syn::parse_file("pub(crate) use crate::owner::Item;").expect("53f91ac7");
-    let local_public = syn::parse_file("pub use self::owner::Item;").expect("9a47e2c6");
-    assert!(
-        public_forward
-            .items
-            .iter()
-            .any(publicly_forwards_crate_root)
-    );
-    assert!(!crate_forward.items.iter().any(publicly_forwards_crate_root));
-    assert!(!local_public.items.iter().any(publicly_forwards_crate_root));
-}
-#[test]
-fn admin_frontend_api_urls_come_from_typed_routes() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
-        let source = snapshot
-            .rs_files()
-            .iter()
-            .filter(|file| {
-                file.path()
-                    .as_ref()
-                    .to_string_lossy()
-                    .contains("server_admin_frontend/src/app/")
-            })
-            .map(|file| file.content().as_ref())
-            .collect::<String>();
-        assert!(!source.contains("str_constants::V1"), "24e5ceeb");
-        assert!(!source.contains("ADMIN_API_"), "72b66898");
-    });
-}
-#[test]
-#[allow(clippy::needless_for_each)] // iterator form is required by the workspace no-for-loop policy
-fn service_route_handler_composition_uses_shared_registries() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
-        [
-            ("server_admin/src/auth/html.rs", 2usize),
-            ("notification_service/src/routes.rs", 1usize),
-        ]
-        .iter()
-        .for_each(|(path_suffix, expected_registry_count)| {
-            let source = snapshot
-                .rs_files()
-                .iter()
-                .find(|file| file.path().as_ref().ends_with(path_suffix))
-                .expect("249edc4a")
-                .content()
-                .as_ref();
-            assert_eq!(
-                source
-                    .matches("frontend_contract::handler_registry")
-                    .count(),
-                *expected_registry_count,
-                "26aa4162"
-            );
-            assert!(!source.contains(".route("), "71f23fd6");
-        });
-    });
-}
-#[test]
-#[allow(clippy::needless_for_each)] // iterator form is required by the workspace no-for-loop policy
-fn typed_route_registries_own_request_bodies_and_schema_catalogs() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
-        [
-            "server_admin/src/auth/routes.rs",
-            "notification_service/src/routes.rs",
-        ]
-        .iter()
-        .for_each(|path_suffix| {
-            let source = snapshot
-                .rs_files()
-                .iter()
-                .find(|file| file.path().as_ref().ends_with(path_suffix))
-                .expect("a63a8d31")
-                .content()
-                .as_ref();
-            assert!(!source.contains("components(schemas"), "94cc9de1");
-        });
-        [
-            "server_admin/src/auth.rs",
-            "notification_service/src/main.rs",
-        ]
-        .iter()
-        .for_each(|path_suffix| {
-            let source = snapshot
-                .rs_files()
-                .iter()
-                .find(|file| file.path().as_ref().ends_with(path_suffix))
-                .expect("5bde3d5c")
-                .content()
-                .as_ref();
-            assert!(!source.contains("request_body ="), "95cc867b");
-        });
-        [
-            "server_admin_contract/src/lib.rs",
-            "notification_service_contract/src/lib.rs",
-        ]
-        .iter()
-        .for_each(|path_suffix| {
-            let source = snapshot
-                .rs_files()
-                .iter()
-                .find(|file| file.path().as_ref().ends_with(path_suffix))
-                .expect("d07be29f")
-                .content()
-                .as_ref();
-            assert!(!source.contains("error_statuses ="), "5a8ed6cf");
-        });
-    });
-}
-#[test]
-#[allow(clippy::needless_for_each)] // iterator form is required by the workspace no-for-loop policy
-fn generated_admin_table_consumers_use_the_shared_catalog() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
-        [
-            (
-                "server_admin/src/generated_auth.rs",
-                "AdminRolesRouteContract",
-            ),
-            (
-                "server_admin/src/repository/data_tables.rs",
-                "AdminRoles::frontend_fields",
-            ),
-            (
-                "server_admin/src/repository/data_tables.rs",
-                "AdminRoles::frontend_filter_value",
-            ),
-        ]
-        .iter()
-        .for_each(|(path_suffix, forbidden)| {
-            let source = snapshot
-                .rs_files()
-                .iter()
-                .find(|file| file.path().as_ref().ends_with(path_suffix))
-                .expect("94a2f8c1")
-                .content()
-                .as_ref();
-            assert!(!source.contains(forbidden), "8b137dd2");
-            assert!(source.contains("AdminGeneratedTable"), "e1c82f79");
-        });
-        let server_routing = snapshot
-            .rs_files()
-            .iter()
-            .find(|file| file.path().as_ref().ends_with("server/src/routing.rs"))
-            .expect("148223ec")
-            .content()
-            .as_ref();
-        [
-            "AdminRoles::routes",
-            "AdminRolePermissions::routes",
-            "AdminUsers::routes",
-            "AdminPermissions::routes",
-            "AdminSystemSettings::routes",
-            "AdminUserRoles::routes",
-        ]
-        .iter()
-        .for_each(|forbidden| {
-            assert!(!server_routing.contains(forbidden), "d01c1dd0");
-        });
-        assert!(
-            server_routing.contains("generated_tables::generated_routes"),
-            "af786d19"
-        );
-        let admin_api = snapshot
-            .rs_files()
-            .iter()
-            .find(|file| {
-                file.path()
-                    .as_ref()
-                    .ends_with("server_admin/tests/admin_api.rs")
-            })
-            .expect("e26d929b")
-            .content()
-            .as_ref();
-        [
-            "validate_generated_admin_table::<",
-            "validate_generated_admin_table_in_schema::<",
-        ]
-        .iter()
-        .for_each(|forbidden| {
-            assert!(!admin_api.contains(forbidden), "535813a1");
-        });
-        assert!(
-            admin_api.contains("generated_tables::validate_catalog_schema"),
-            "de411cae"
-        );
-    });
-}
-#[test]
-#[allow(clippy::needless_for_each)] // iterator form is required by the workspace no-for-loop policy
-fn administrator_data_table_queries_come_from_the_typed_spec() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
-        let repository = snapshot
-            .rs_files()
-            .iter()
-            .find(|file| {
-                file.path()
-                    .as_ref()
-                    .ends_with("server_admin/src/repository/data_tables.rs")
-            })
-            .expect("3ac24886")
-            .content()
-            .as_ref();
-        let admin_api = snapshot
-            .rs_files()
-            .iter()
-            .find(|file| {
-                file.path()
-                    .as_ref()
-                    .ends_with("server_admin/tests/admin_api.rs")
-            })
-            .expect("1049d34b")
-            .content()
-            .as_ref();
-        [
-            "SERVER_ADMIN_DATA_USERS_SQL",
-            "SERVER_ADMIN_DATA_COUNT_ACCESS_SESSIONS_SQL",
-            "SERVER_ADMIN_DATA_USERS_COLUMNS",
-        ]
-        .iter()
-        .for_each(|legacy_source| {
-            assert!(!repository.contains(legacy_source), "7012056f");
-            assert!(!admin_api.contains(legacy_source), "36154b24");
-        });
-        assert!(repository.contains("let spec = table.spec()"), "67b8279d");
-        assert!(admin_api.contains("table.spec().columns()"), "92c41cb0");
-    });
-}
-#[test]
-fn administrator_csr_page_behavior_comes_from_the_page_catalog() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
-        let query = snapshot
-            .rs_files()
-            .iter()
-            .find(|file| {
-                file.path()
-                    .as_ref()
-                    .ends_with("server_admin_frontend/src/app/query/page.rs")
-            })
-            .expect("58e2110e")
-            .content()
-            .as_ref();
-        let loader = snapshot
-            .rs_files()
-            .iter()
-            .find(|file| {
-                file.path()
-                    .as_ref()
-                    .ends_with("server_admin_frontend/src/app/loader.rs")
-            })
-            .expect("04bb78af")
-            .content()
-            .as_ref();
-        assert!(!query.contains("AdminCsrPage"), "438888fd");
-        assert!(query.contains("page.supports_csr()"), "d3ec99c6");
-        assert!(loader.contains("page.uses_table_query()"), "256ac244");
-        assert!(loader.contains("page.spec().route()"), "fe0906a9");
-        let pages = snapshot
-            .rs_files()
-            .iter()
-            .find(|file| {
-                file.path()
-                    .as_ref()
-                    .ends_with(str_constants::SERVER_ADMIN_FRONTEND_SRC_APP_SETTINGS_RS)
-            })
-            .expect("2f3afe52")
-            .content()
-            .as_ref();
-        let ssr = snapshot
-            .rs_files()
-            .iter()
-            .find(|file| {
-                file.path()
-                    .as_ref()
-                    .ends_with(str_constants::SERVER_ADMIN_FRONTEND_SRC_SSR_SETTINGS_RS)
-            })
-            .expect("2c589b2b")
-            .content()
-            .as_ref();
-        assert!(
-            pages.contains("shared::settings::values::AdminSettingsFormValues::from"),
-            "3ca65c5b"
-        );
-        assert!(
-            ssr.contains("shared::settings::values::AdminSettingsFormValues::from"),
-            "9f904035"
-        );
-        assert!(!pages.contains("page.main_logo()"), "67c3d270");
-        assert!(!ssr.contains("view.main_logo()"), "6201410d");
-    });
-}
-#[test]
-fn config_reference_getters_use_generated_forwarding() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
-        let source = snapshot
-            .rs_files()
-            .iter()
-            .find(|file| file.path().as_ref().ends_with("server_config/src/lib.rs"))
-            .expect("e210ffd6")
-            .content()
-            .as_ref();
-        assert!(!source.contains(" for &Config"), "c0f0354a");
-    });
-}
 #[test]
 fn all_files_are_english_only() {
     let mut ers = super::snapshot::with_codebase_snapshot(|snapshot| {
@@ -558,7 +52,7 @@ fn fixture(result: Result<(), ()>) {
     .expect("95d174ac");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
-        super::DiagnosticIdVisitor {
+        super::source_analysis::DiagnosticIdVisitor {
             ers: super::types::DiagnosticMsgs::default(),
             ids: super::types::SourceTextList::default(),
         },
@@ -580,7 +74,7 @@ fn fixture(result: Result<(), ()>) {
     .expect("6c3a48f1");
     let invalid_visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&invalid_ast),
-        super::DiagnosticIdVisitor {
+        super::source_analysis::DiagnosticIdVisitor {
             ers: super::types::DiagnosticMsgs::default(),
             ids: super::types::SourceTextList::default(),
         },
@@ -609,7 +103,7 @@ fn generate() {
     .expect("227c291c");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
-        super::DiagnosticIdVisitor {
+        super::source_analysis::DiagnosticIdVisitor {
             ers: super::types::DiagnosticMsgs::default(),
             ids: super::types::SourceTextList::default(),
         },
@@ -621,7 +115,8 @@ fn generate() {
 fn check_rs_files_contains_only_unique_uuid_v4() {
     let regex = regex::Regex::new(str_constants::B_0_9A_FA_F_8_0_9A_FA_F_4_4).expect("e098a1ff");
     let mut seen = std::collections::HashSet::new();
-    super::for_each_rs_file_content(|_, v| {
+    super::for_each_rs_file(|file| {
+        let v = file.content().as_ref();
         regex.find_iter(v).for_each(|element_714b3d9c| {
             let uuid = uuid::Uuid::parse_str(element_714b3d9c.as_str()).expect("c9711efd");
             assert!(uuid.get_version_num() == 4, "49b49b21");
@@ -637,7 +132,7 @@ fn no_dbg_macro_in_source_code() {
         |path, ast, ers| {
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::DbgVisitor {
+                super::source_analysis::DbgVisitor {
                     found: super::types::AnalyzerBool::default(),
                 },
             );
@@ -657,7 +152,7 @@ fn no_for_loops_in_source_code() {
         |path, ast, ers| {
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::ForLoopVisitor {
+                super::source_analysis::ForLoopVisitor {
                     found_count: super::types::AnalyzerCount::default(),
                 },
             );
@@ -680,7 +175,7 @@ fn map_err_does_not_discard_source_with_wildcard() {
             .rs_files()
             .iter()
             .filter_map(|source_file| {
-                let mut visitor = super::SourceDroppingMapErrVisitor::default();
+                let mut visitor = super::source_analysis::SourceDroppingMapErrVisitor::default();
                 syn::visit::Visit::visit_file(&mut visitor, source_file.ast().as_ref());
                 (visitor.found_count.get() != 0usize).then(|| {
                     format!(
@@ -701,7 +196,7 @@ fn numeric_conversions_do_not_use_as_casts() {
             .rs_files()
             .iter()
             .filter_map(|source_file| {
-                let mut visitor = super::NumericAsCastVisitor::default();
+                let mut visitor = super::source_analysis::NumericAsCastVisitor::default();
                 syn::visit::Visit::visit_file(&mut visitor, source_file.ast().as_ref());
                 (visitor.found_count.get() != 0usize).then(|| {
                     format!(
@@ -723,7 +218,7 @@ fn runtime_struct_fields_do_not_expose_untyped_json_values() {
             .rs_files()
             .iter()
             .flat_map(|source_file| {
-                let mut visitor = super::SerdeJsonValueFieldVisitor::default();
+                let mut visitor = super::source_analysis::SerdeJsonValueFieldVisitor::default();
                 syn::visit::Visit::visit_file(&mut visitor, source_file.ast().as_ref());
                 visitor.violations.into_iter().map(|item| {
                     format!(
@@ -778,7 +273,7 @@ fn new_runtime_structs_keep_fields_private() {
                 .get()
             })
             .for_each(|source_file| {
-                let mut visitor = super::PublicStructFieldVisitor::default();
+                let mut visitor = super::source_analysis::PublicStructFieldVisitor::default();
                 syn::visit::Visit::visit_file(&mut visitor, source_file.ast().as_ref());
                 visitor.violations.into_iter().for_each(|item| {
                     let path = source_file.path().as_ref();
@@ -836,7 +331,7 @@ fn spawned_tasks_must_retain_an_owner() {
         |path, ast, ers| {
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::LostSpawnVisitor {
+                super::source_analysis::LostSpawnVisitor {
                     ers: super::types::DiagnosticMsgs::default(),
                 },
             );
@@ -866,7 +361,7 @@ fn spawn_tasks() {
     .expect("94b344d7");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
-        super::LostSpawnVisitor {
+        super::source_analysis::LostSpawnVisitor {
             ers: super::types::DiagnosticMsgs::default(),
         },
     );
@@ -886,7 +381,7 @@ fn direct_environment_and_filesystem_access_stays_at_owned_boundaries() {
             }
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::DirectPathCallVisitor {
+                super::source_analysis::DirectPathCallVisitor {
                     calls: super::types::DiagnosticMsgs::default(),
                 },
             );
@@ -1039,7 +534,7 @@ fn runtime_data_reads_are_bounded() {
             }
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::UnboundedReadVisitor {
+                super::source_analysis::UnboundedReadVisitor {
                     calls: super::types::DiagnosticMsgs::default(),
                 },
             );
@@ -1079,7 +574,8 @@ fn bounded_read_policy_has_no_whole_file_owner_exceptions() {
 #[test]
 fn raw_runtime_sql_identifier_inventory_matches_reviewed_baseline() {
     let mut observed = std::collections::BTreeMap::<String, usize>::new();
-    super::for_each_rs_file_content(|path, content| {
+    super::for_each_rs_file(|file| {
+        let (path, content) = (file.path().as_ref(), file.content().as_ref());
         let path_text = path.to_string_lossy();
         if super::is_test_crate_source_path(super::types::StdPathRef::from(path)).get()
             || path_text.ends_with(str_constants::CODE_STYLE_WORKSPACE_SCAFFOLD_FS_OWNER_SUFFIX)
@@ -1158,7 +654,7 @@ fn direct_process_command_creation_stays_in_shared_tooling() {
             }
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::DirectPathCallVisitor {
+                super::source_analysis::DirectPathCallVisitor {
                     calls: super::types::DiagnosticMsgs::default(),
                 },
             );
@@ -1176,10 +672,11 @@ fn direct_process_command_creation_stays_in_shared_tooling() {
 fn abort_and_transmute_calls_match_reviewed_baseline() {
     let mut observed_abort_paths = Vec::new();
     let mut ers = Vec::new();
-    super::for_each_rs_syn_file(|path, ast| {
+    super::for_each_rs_file(|file| {
+        let (path, ast) = (file.path().as_ref(), file.ast().as_ref());
         let visitor = super::visit_syn_file(
             super::types::SynFileRef::from(ast),
-            super::DirectPathCallVisitor {
+            super::source_analysis::DirectPathCallVisitor {
                 calls: super::types::DiagnosticMsgs::default(),
             },
         );
@@ -1205,6 +702,56 @@ fn abort_and_transmute_calls_match_reviewed_baseline() {
     );
 }
 #[test]
+fn every_workspace_struct_and_enum_derives_optml() {
+    super::assert_rs_ast_ers_empty_with_ctx(
+        super::types::StaticStr::from("4dc60c31"),
+        super::types::SourceTextRef::from(
+            "workspace structs and enums without optml::Optml derive",
+        ),
+        |path, ast, ers| {
+            if path.ends_with("optml/src/lib.rs") {
+                return;
+            }
+            let visitor = super::visit_syn_file(
+                super::types::SynFileRef::from(ast),
+                super::source_analysis::OptmlDeriveVisitor::default(),
+            );
+            ers.extend(
+                visitor
+                    .ers
+                    .into_iter()
+                    .map(|error| format!("{}: {error}", path.display())),
+            );
+        },
+    );
+}
+#[test]
+fn optml_derive_visitor_checks_structs_and_enums() {
+    let ast = syn::parse_file(
+        "
+#[derive(optml::Optml)]
+struct CheckedStruct;
+enum MissingEnum { Variant }
+struct MissingStruct;
+#[derive(Debug, optml::Optml)]
+enum CheckedEnum { Variant }
+",
+    )
+    .expect("34fb5a61");
+    let visitor = super::visit_syn_file(
+        super::types::SynFileRef::from(&ast),
+        super::source_analysis::OptmlDeriveVisitor::default(),
+    );
+    assert_eq!(
+        visitor.ers.as_slice(),
+        [
+            "enum `MissingEnum` must derive `optml::Optml`",
+            "struct `MissingStruct` must derive `optml::Optml`",
+        ],
+        "42dc6e3b"
+    );
+}
+#[test]
 fn unit_tests_use_deterministic_time_and_randomness_patterns() {
     let reviewed_calls = [(
         "frontend_contract/src/auth_session_keep_alive.rs",
@@ -1215,16 +762,15 @@ fn unit_tests_use_deterministic_time_and_randomness_patterns() {
         super::types::StaticStr::from(str_constants::VALUE_821D4A76),
         super::types::SourceTextRef::from(str_constants::UNIT_TESTS_USE_NONDETERMINISTIC_TIME_SLEEP_OR_RANDOMNESS_WITHOUT_A_REVIEWED_OWNER),
         |path, ast, ers| {
-            let scan_entire_file = path
-                .components()
-                .any(|component| component.as_os_str() == "tests")
+            let scan_entire_file = super::is_test_source_path(super::types::StdPathRef::from(path))
+                .get()
                 && !path.ends_with("tests/src/code_style/mod.rs")
                 && !path
                     .components()
                     .any(|component| component.as_os_str() == "code_style");
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::TestNondeterminismVisitor {
+                super::source_analysis::TestNondeterminismVisitor {
                     calls: super::types::DiagnosticMsgs::default(),
                     test_depth: super::types::AnalyzerCount::from(usize::from(scan_entire_file)),
                 },
@@ -1265,7 +811,7 @@ fn integration_test_helper() {
     .expect("9354f086");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
-        super::TestNondeterminismVisitor {
+        super::source_analysis::TestNondeterminismVisitor {
             calls: super::types::DiagnosticMsgs::default(),
             test_depth: super::types::AnalyzerCount::default(),
         },
@@ -1285,7 +831,7 @@ fn integration_test_helper() {
     );
     let integration_visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
-        super::TestNondeterminismVisitor {
+        super::source_analysis::TestNondeterminismVisitor {
             calls: super::types::DiagnosticMsgs::default(),
             test_depth: super::types::AnalyzerCount::from(1usize),
         },
@@ -1302,7 +848,7 @@ fn generated_source_templates_do_not_embed_random_test_values() {
         |path, ast, ers| {
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::GeneratedRandomnessVisitor {
+                super::source_analysis::GeneratedRandomnessVisitor {
                     calls: super::types::DiagnosticMsgs::default(),
                 },
             );
@@ -1327,7 +873,7 @@ fn generated_randomness_policy_inspects_quote_token_streams() {
     let ast = syn::parse_file(source.as_str()).expect("04e98f91");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
-        super::GeneratedRandomnessVisitor {
+        super::source_analysis::GeneratedRandomnessVisitor {
             calls: super::types::DiagnosticMsgs::default(),
         },
     );
@@ -1335,6 +881,7 @@ fn generated_randomness_policy_inspects_quote_token_streams() {
 }
 #[test]
 fn process_static_state_matches_reviewed_inventory() {
+    #[derive(optml::Optml)]
     struct StaticStateException {
         identifier: &'static str,
         path_suffix: &'static str,
@@ -1383,7 +930,7 @@ fn process_static_state_matches_reviewed_inventory() {
         |path, ast, ers| {
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::StaticStateVisitor {
+                super::source_analysis::StaticStateVisitor {
                     identifiers: super::types::SourceTextList::default(),
                 },
             );
@@ -1430,7 +977,7 @@ fn library_print_macros_have_reviewed_terminal_owners() {
             }
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::PrintMacroVisitor {
+                super::source_analysis::PrintMacroVisitor {
                     calls: super::types::DiagnosticMsgs::default(),
                 },
             );
@@ -1450,7 +997,7 @@ fn sensitive_text_wrappers_do_not_derive_unredacted_debug_or_display() {
         |path, ast, ers| {
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::SensitiveTextDebugDeriveVisitor {
+                super::source_analysis::SensitiveTextDebugDeriveVisitor {
                     ers: super::types::DiagnosticMsgs::default(),
                 },
             );
@@ -1482,7 +1029,7 @@ struct ApiSecret(String);
     .expect("3d72b9e0");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
-        super::SensitiveTextDebugDeriveVisitor {
+        super::source_analysis::SensitiveTextDebugDeriveVisitor {
             ers: super::types::DiagnosticMsgs::default(),
         },
     );
@@ -1516,7 +1063,7 @@ fn error_formatters_do_not_expose_sensitive_fields() {
         |path, ast, ers| {
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::SensitiveErrorFormatVisitor {
+                super::source_analysis::SensitiveErrorFormatVisitor {
                     ers: super::types::DiagnosticMsgs::default(),
                 },
             );
@@ -1547,7 +1094,7 @@ enum AuthenticationError {
     .expect("d8cc09ca");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
-        super::SensitiveErrorFormatVisitor {
+        super::source_analysis::SensitiveErrorFormatVisitor {
             ers: super::types::DiagnosticMsgs::default(),
         },
     );
@@ -1561,7 +1108,7 @@ fn no_todo_or_unimplemented_macro_in_source_code() {
         |path, ast, ers| {
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::TodoUnimplVisitor {
+                super::source_analysis::TodoUnimplVisitor {
                     todo_found: super::types::AnalyzerCount::default(),
                     unimplemented_found: super::types::AnalyzerCount::default(),
                 },
@@ -1583,6 +1130,7 @@ fn no_todo_or_unimplemented_macro_in_source_code() {
 }
 #[test]
 fn source_lint_suppressions_have_explicit_reasons() {
+    #[derive(optml::Optml)]
     struct LegacySuppression {
         limit: usize,
         path_suffix: &'static str,
@@ -1620,7 +1168,7 @@ fn source_lint_suppressions_have_explicit_reasons() {
             reason: "derive fixture intentionally retains an otherwise unused item",
         },
         LegacySuppression {
-            limit: 16,
+            limit: 12,
             path_suffix: "pg_crud/pg_crud_common/src/lib.rs",
             reason: "generated SQL token shapes predate per-attribute reasons",
         },
@@ -1707,7 +1255,7 @@ fn source_lint_suppressions_have_explicit_reasons() {
             let source = std::fs::read_to_string(path).expect("8d3bca08");
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::AllowReasonVisitor {
+                super::source_analysis::AllowReasonVisitor {
                     ers: super::types::DiagnosticMsgs::default(),
                     lines: super::types::SourceTextList::from(
                         source.lines().map(str::to_owned).collect::<Vec<String>>(),
@@ -1749,7 +1297,7 @@ fn argument_reason() {}
     let ast = syn::parse_file(source).expect("ec218827");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
-        super::AllowReasonVisitor {
+        super::source_analysis::AllowReasonVisitor {
             ers: super::types::DiagnosticMsgs::default(),
             lines: super::types::SourceTextList::from(
                 source.lines().map(str::to_owned).collect::<Vec<String>>(),
@@ -1764,7 +1312,7 @@ fn handler_route_operation_error_policy_rejects_shared_types() {
         .expect("752fbb70");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
-        super::RouteOperationErrorVisitor::default(),
+        super::source_analysis::RouteOperationErrorVisitor::default(),
     );
     assert_eq!(visitor.ers.len(), 2usize);
 }
@@ -1904,7 +1452,8 @@ fn no_macro_rules_in_source_code() {
     let macro_name = str_constants::MACRO_RULES;
     let forbidden = format!("{macro_name}!");
     let mut ers = Vec::new();
-    super::for_each_rs_file_content(|path, v| {
+    super::for_each_rs_file(|file| {
+        let (path, v) = (file.path().as_ref(), file.content().as_ref());
         if v.contains(&forbidden) {
             ers.push(format!(
                 "{}: contains {forbidden}; use a workspace proc-macro crate instead",
@@ -1928,7 +1477,7 @@ fn no_include_asset_macros_outside_allowlist() {
         |path, ast, ers| {
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::IncludeAssetMacroVisitor {
+                super::source_analysis::IncludeAssetMacroVisitor {
                     ers: super::types::DiagnosticMsgs::default(),
                 },
             );
@@ -1957,7 +1506,7 @@ fn no_non_public_use_imports_in_rust_sources() {
                 .any(|suffix| path_text.ends_with(suffix));
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::UseImportVisitor {
+                super::source_analysis::UseImportVisitor {
                     allow_leptos_prelude_import: super::types::AnalyzerBool::from(
                         allows_leptos_prelude_import,
                     ),
@@ -1997,7 +1546,7 @@ fn use_import_policy_narrows_facade_and_leptos_exceptions() {
     .expect("7b9e6f31");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
-        super::UseImportVisitor {
+        super::source_analysis::UseImportVisitor {
             allow_leptos_prelude_import: super::types::AnalyzerBool::from(true),
             found_non_public_use_import: super::types::AnalyzerBool::default(),
             found_use_rename: super::types::AnalyzerBool::default(),
@@ -2011,7 +1560,7 @@ fn use_import_policy_narrows_facade_and_leptos_exceptions() {
     let leptos_ast = syn::parse_file("use leptos::prelude::{ElementChild};").expect("56f86b52");
     let leptos_visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&leptos_ast),
-        super::UseImportVisitor {
+        super::source_analysis::UseImportVisitor {
             allow_leptos_prelude_import: super::types::AnalyzerBool::from(true),
             found_non_public_use_import: super::types::AnalyzerBool::default(),
             found_use_rename: super::types::AnalyzerBool::default(),
@@ -2033,7 +1582,7 @@ fn no_type_aliases_in_rust_sources() {
         |path, ast, ers| {
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::TypeAliasVisitor {
+                super::source_analysis::TypeAliasVisitor {
                     ers: super::types::DiagnosticMsgs::default(),
                 },
             );
@@ -2056,7 +1605,7 @@ fn no_empty_enums_in_rust_sources() {
         |path, ast, ers| {
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::EmptyEnumVisitor {
+                super::source_analysis::EmptyEnumVisitor {
                     ers: super::types::DiagnosticMsgs::default(),
                 },
             );
@@ -2083,7 +1632,7 @@ fn empty_enum_policy_checks_items_and_attribute_payloads() {
     let ast = syn::parse_file(&source).expect("e52f247c");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
-        super::EmptyEnumVisitor {
+        super::source_analysis::EmptyEnumVisitor {
             ers: super::types::DiagnosticMsgs::default(),
         },
     );
@@ -2111,7 +1660,7 @@ fn infallible_functions_return_concrete_types() {
         |path, ast, ers| {
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::InfallibleResultVisitor {
+                super::source_analysis::InfallibleResultVisitor {
                     ers: super::types::DiagnosticMsgs::default(),
                 },
             );
@@ -2137,7 +1686,7 @@ fn infallible_result_policy_rejects_wrappers_and_free_function_results() {
     let ast = syn::parse_file(&source).expect("aa0bacf7");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
-        super::InfallibleResultVisitor {
+        super::source_analysis::InfallibleResultVisitor {
             ers: super::types::DiagnosticMsgs::default(),
         },
     );
@@ -2153,7 +1702,7 @@ fn no_simple_constant_aliases_in_rust_sources() {
         |path, ast, ers| {
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::ConstantAliasVisitor {
+                super::source_analysis::ConstantAliasVisitor {
                     ers: super::types::DiagnosticMsgs::default(),
                 },
             );
@@ -2195,7 +1744,7 @@ fn tuple_newtypes_derive_from_inner_instead_of_implementing_passthrough_from() {
             }
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::PassthroughFromVisitor {
+                super::source_analysis::PassthroughFromVisitor {
                     ers: super::types::DiagnosticMsgs::default(),
                     inner_types: std::collections::BTreeMap::new(),
                 },
@@ -2234,7 +1783,7 @@ fn tuple_newtypes_derive_into_inner_from_instead_of_implementing_passthrough_fro
             }
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::PassthroughIntoInnerFromVisitor {
+                super::source_analysis::PassthroughIntoInnerFromVisitor {
                     ers: super::types::DiagnosticMsgs::default(),
                     inner_types: std::collections::BTreeMap::new(),
                 },
@@ -2266,7 +1815,7 @@ fn tuple_newtypes_derive_into_iterator_instead_of_forwarding_into_iter() {
             }
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::ForwardingIntoIteratorVisitor {
+                super::source_analysis::ForwardingIntoIteratorVisitor {
                     ers: super::types::DiagnosticMsgs::default(),
                 },
             );
@@ -2304,7 +1853,7 @@ fn tuple_newtypes_derive_display_instead_of_implementing_forwarding_display() {
             }
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::ForwardingDisplayVisitor {
+                super::source_analysis::ForwardingDisplayVisitor {
                     ers: super::types::DiagnosticMsgs::default(),
                 },
             );
@@ -2327,7 +1876,7 @@ fn error_implementations_derive_thiserror_error() {
         |path, ast, ers| {
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::ManualErrorImplVisitor {
+                super::source_analysis::ManualErrorImplVisitor {
                     ers: super::types::DiagnosticMsgs::default(),
                 },
             );
@@ -2350,11 +1899,11 @@ fn json_api_error_responses_originate_from_thiserror_enums() {
         |path, ast, ers| {
             let thiserror_enums = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::ThiserrorEnumVisitor::default(),
+                super::source_analysis::ThiserrorEnumVisitor::default(),
             );
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::JsonIntoResponseErrorVisitor {
+                super::source_analysis::JsonIntoResponseErrorVisitor {
                     ers: super::types::DiagnosticMsgs::default(),
                     thiserror_enum_names: &thiserror_enums.names,
                 },
@@ -2374,11 +1923,11 @@ fn json_api_error_response_policy_rejects_structs_and_accepts_thiserror_enums() 
         syn::parse_file(str_constants::CODE_STYLE_JSON_API_ERROR_ENUM_FIXTURE).expect("e45c8f09");
     let thiserror_enums = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
-        super::ThiserrorEnumVisitor::default(),
+        super::source_analysis::ThiserrorEnumVisitor::default(),
     );
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
-        super::JsonIntoResponseErrorVisitor {
+        super::source_analysis::JsonIntoResponseErrorVisitor {
             ers: super::types::DiagnosticMsgs::default(),
             thiserror_enum_names: &thiserror_enums.names,
         },
@@ -2395,11 +1944,11 @@ fn api_response_errors_keep_source_locations_out_of_public_error_enums() {
         |path, ast, ers| {
             let thiserror_enums = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::ThiserrorEnumVisitor::default(),
+                super::source_analysis::ThiserrorEnumVisitor::default(),
             );
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::ApiErrorLocationVisitor {
+                super::source_analysis::ApiErrorLocationVisitor {
                     ers: super::types::DiagnosticMsgs::default(),
                     thiserror_location_enum_names: &thiserror_enums.location_names,
                 },
@@ -2419,11 +1968,11 @@ fn api_response_location_policy_rejects_location_fields() {
         syn::parse_file(str_constants::CODE_STYLE_JSON_API_ERROR_ENUM_FIXTURE).expect("6d8c50f1");
     let thiserror_enums = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
-        super::ThiserrorEnumVisitor::default(),
+        super::source_analysis::ThiserrorEnumVisitor::default(),
     );
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
-        super::ApiErrorLocationVisitor {
+        super::source_analysis::ApiErrorLocationVisitor {
             ers: super::types::DiagnosticMsgs::default(),
             thiserror_location_enum_names: &thiserror_enums.location_names,
         },
@@ -2440,11 +1989,11 @@ fn api_response_error_sources_use_observed_error() {
         |path, ast, ers| {
             let response_types = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::IntoResponseTypeVisitor::default(),
+                super::source_analysis::IntoResponseTypeVisitor::default(),
             );
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::ApiErrorSourceVisitor {
+                super::source_analysis::ApiErrorSourceVisitor {
                     api_error_names: &response_types.names,
                     ers: super::types::DiagnosticMsgs::default(),
                 },
@@ -2464,11 +2013,11 @@ fn api_response_error_source_policy_rejects_raw_sources() {
         syn::parse_file(str_constants::CODE_STYLE_JSON_API_ERROR_ENUM_FIXTURE).expect("b26f4527");
     let response_types = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
-        super::IntoResponseTypeVisitor::default(),
+        super::source_analysis::IntoResponseTypeVisitor::default(),
     );
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
-        super::ApiErrorSourceVisitor {
+        super::source_analysis::ApiErrorSourceVisitor {
             api_error_names: &response_types.names,
             ers: super::types::DiagnosticMsgs::default(),
         },
@@ -2485,7 +2034,7 @@ fn every_fallible_typed_route_operation_has_its_own_error_type() {
         |path, ast, ers| {
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::RouteOperationErrorVisitor::default(),
+                super::source_analysis::RouteOperationErrorVisitor::default(),
             );
             ers.extend(
                 visitor
@@ -2511,7 +2060,7 @@ fn typed_route_operation_error_policy_rejects_shared_types() {
         syn::parse_file(str_constants::CODE_STYLE_ROUTE_OPERATION_ERROR_FIXTURE).expect("60ff98c7");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
-        super::RouteOperationErrorVisitor::default(),
+        super::source_analysis::RouteOperationErrorVisitor::default(),
     );
     assert_eq!(visitor.ers.len(), 1usize);
 }
@@ -2520,7 +2069,8 @@ fn error_implementation_source_uses_only_thiserror_derive() {
     let forbidden_newtype_derive = concat!("newtype::", "Error");
     let forbidden_manual_impl = concat!("impl std::error::", "Error for");
     let mut ers = Vec::new();
-    super::for_each_rs_file_content(|path, source| {
+    super::for_each_rs_file(|file| {
+        let (path, source) = (file.path().as_ref(), file.content().as_ref());
         [forbidden_newtype_derive, forbidden_manual_impl]
             .into_iter()
             .filter(|forbidden| source.contains(forbidden))
@@ -2552,7 +2102,7 @@ fn tuple_newtypes_derive_not_inner_instead_of_implementing_not() {
             }
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::ManualNotImplVisitor {
+                super::source_analysis::ManualNotImplVisitor {
                     ers: super::types::DiagnosticMsgs::default(),
                 },
             );
@@ -2575,7 +2125,7 @@ fn constant_display_implementations_derive_display_const() {
         |path, ast, ers| {
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::ConstDisplayImplVisitor {
+                super::source_analysis::ConstDisplayImplVisitor {
                     ers: super::types::DiagnosticMsgs::default(),
                 },
             );
@@ -2606,7 +2156,7 @@ fn tuple_newtypes_derive_deref_inner_instead_of_implementing_forwarding_deref() 
             }
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::ForwardingDerefVisitor {
+                super::source_analysis::ForwardingDerefVisitor {
                     ers: super::types::DiagnosticMsgs::default(),
                     inner_types: std::collections::BTreeMap::new(),
                 },
@@ -2638,7 +2188,7 @@ fn tuple_newtypes_derive_borrow_instead_of_implementing_forwarding_borrow() {
             }
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::ForwardingBorrowVisitor {
+                super::source_analysis::ForwardingBorrowVisitor {
                     ers: super::types::DiagnosticMsgs::default(),
                 },
             );
@@ -2654,14 +2204,15 @@ fn tuple_newtypes_derive_borrow_instead_of_implementing_forwarding_borrow() {
 #[test]
 fn no_duplicated_string_literals_in_non_policy_test_code() {
     let mut literal_locations_by_value = std::collections::BTreeMap::<String, Vec<String>>::new();
-    super::for_each_rs_syn_file(|path, ast| {
+    super::for_each_rs_file(|file| {
+        let (path, ast) = (file.path().as_ref(), file.ast().as_ref());
         let path_text = path.display().to_string();
         if !super::is_non_policy_test_source_path(super::types::StdPathRef::from(path)).get() {
             return;
         }
         let visitor = super::visit_syn_file(
             super::types::SynFileRef::from(ast),
-            super::TestStringLiteralVisitor {
+            super::source_analysis::TestStringLiteralVisitor {
                 values: super::types::SourceTextList::default(),
             },
         );
@@ -2711,7 +2262,8 @@ fn ordinary_test_fixture_is_in_duplicate_string_policy_scope() {
 #[test]
 fn production_string_literals_are_reused() {
     let mut literal_locations_by_value = std::collections::BTreeMap::<String, Vec<String>>::new();
-    super::for_each_rs_syn_file(|path, ast| {
+    super::for_each_rs_file(|file| {
+        let (path, ast) = (file.path().as_ref(), file.ast().as_ref());
         let path_text = path.display().to_string();
         if super::is_test_crate_source_path(super::types::StdPathRef::from(path)).get()
             || super::is_code_style_meta_harness_source_path(super::types::StdPathRef::from(path))
@@ -2722,7 +2274,7 @@ fn production_string_literals_are_reused() {
         }
         let visitor = super::visit_syn_file(
             super::types::SynFileRef::from(ast),
-            super::ProductionStringLiteralVisitor {
+            super::source_analysis::ProductionStringLiteralVisitor {
                 values: super::types::SourceTextList::default(),
             },
         );
@@ -2842,7 +2394,7 @@ fn string_constant_visitor_allows_only_reviewed_syntax_boundaries() {
         .expect("87c9a142");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
-        super::StringConstantVisitor {
+        super::source_analysis::StringConstantVisitor {
             ers: super::types::DiagnosticMsgs::default(),
         },
     );
@@ -2854,7 +2406,7 @@ fn string_constant_visitor_detects_expression_and_nested_macro_literals() {
         .expect("bc91574f");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
-        super::StringConstantVisitor {
+        super::source_analysis::StringConstantVisitor {
             ers: super::types::DiagnosticMsgs::default(),
         },
     );
@@ -2873,7 +2425,7 @@ fn all_string_constants_are_declared_in_str_constants() {
             }
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::StringConstantDeclarationVisitor {
+                super::source_analysis::StringConstantDeclarationVisitor {
                     allow_generated_string_constants: super::types::AnalyzerBool::from(
                         path == std::path::Path::new("../str_constants_macros/src/lib.rs"),
                     ),
@@ -2918,7 +2470,7 @@ fn string_constant_declaration_policy_ignores_runtime_literals_and_rejects_all_c
         .expect("02ec1d16");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
-        super::StringConstantDeclarationVisitor {
+        super::source_analysis::StringConstantDeclarationVisitor {
             allow_generated_string_constants: super::types::AnalyzerBool::default(),
             ers: super::types::DiagnosticMsgs::default(),
         },
@@ -2931,7 +2483,7 @@ fn string_constant_declaration_policy_rejects_aliases_to_exported_constants() {
         syn::parse_file(str_constants::CODE_STYLE_STRING_CONSTANT_ALIAS_FIXTURE).expect("56f8e2c1");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
-        super::StringConstantDeclarationVisitor {
+        super::source_analysis::StringConstantDeclarationVisitor {
             allow_generated_string_constants: super::types::AnalyzerBool::default(),
             ers: super::types::DiagnosticMsgs::default(),
         },
@@ -2946,7 +2498,7 @@ fn no_unwrap_in_source_code() {
         |path, ast, ers| {
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::UnwrapVisitor {
+                super::source_analysis::UnwrapVisitor {
                     found_count: super::types::AnalyzerCount::default(),
                 },
             );

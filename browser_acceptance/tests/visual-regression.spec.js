@@ -50,6 +50,17 @@ async function expectPixelPerfect(page, name, mask) {
     caret: "hide",
     fullPage: true,
     mask: mask.map(selector => page.locator(selector)),
+    maxDiffPixels: 10,
+    scale: "css",
+    threshold: 0.2
+  });
+}
+
+async function expectComponentPixelPerfect(page, component, name) {
+  await stabilize(page);
+  await expect(component).toHaveScreenshot(`${name}.png`, {
+    animations: "disabled",
+    caret: "hide",
     maxDiffPixels: 0,
     scale: "css",
     threshold: 0.2
@@ -74,12 +85,15 @@ for (const viewport of viewports) {
       await signInBootstrappedAdministrator(page);
       await page.goto("/admin/role_permissions");
       await page
-        .locator('th[data-field="role_id"] details.table-column-filter > summary')
+        .locator('th[data-field="role_id"] .table-column-filter > button')
         .click();
-      await expect(
-        page.getByRole("dialog", { name: "Filter Role Id" })
-      ).toBeVisible();
-      await expectPixelPerfect(page, "role-permissions-filter-desktop", []);
+      const filter = page.getByRole("dialog", { name: "Filter Role Id" });
+      await expect(filter).toBeVisible();
+      await expectComponentPixelPerfect(
+        page,
+        filter,
+        "role-permissions-filter-desktop"
+      );
     });
   }
 

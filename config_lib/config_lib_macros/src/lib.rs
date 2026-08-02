@@ -1,10 +1,10 @@
-#[derive(newtype::FromInner)]
+#[derive(optml::Optml, newtype::FromInner)]
 struct ProcMacro2TryFromParseInput(proc_macro2::TokenStream);
 
-#[derive(newtype::FromInner)]
+#[derive(optml::Optml, newtype::FromInner)]
 struct ProcMacro2TryFromParseFixedErrorTy(Option<proc_macro2::TokenStream>);
 
-#[derive(newtype::FromInner)]
+#[derive(optml::Optml, newtype::FromInner)]
 struct ProcMacroTryFromParseTokenStream(proc_macro::TokenStream);
 
 #[proc_macro]

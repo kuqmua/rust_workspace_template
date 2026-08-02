@@ -2,13 +2,19 @@
 
 #[cfg(test)]
 mod tests {
-    #[derive(Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema)]
+    #[derive(
+        optml::Optml, Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema,
+    )]
     struct TestRequest;
-    #[derive(Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema)]
+    #[derive(
+        optml::Optml, Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema,
+    )]
     struct TestResponse;
-    #[derive(Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema)]
+    #[derive(
+        optml::Optml, Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema,
+    )]
     struct TestErrorResponse;
-    #[derive(Clone, Copy)]
+    #[derive(optml::Optml, Clone, Copy)]
     struct TestTransport;
     impl frontend_contract::Transport for TestTransport {
         fn send(
@@ -24,7 +30,7 @@ mod tests {
         }
     }
 
-    #[derive(frontend_contract::TypedRoute)]
+    #[derive(optml::Optml, frontend_contract::TypedRoute)]
     #[typed_route(
         authentication = frontend_contract::AuthenticationRequirement::Public,
         error_response = TestErrorResponse,
@@ -46,11 +52,11 @@ mod tests {
     )]
     struct TestRoute;
 
-    #[derive(frontend_contract::RouteFamily)]
+    #[derive(optml::Optml, frontend_contract::RouteFamily)]
     #[route_family(TestRoute)]
     struct TestRouteFamily;
 
-    #[derive(Clone, Copy, Debug, Eq, PartialEq, frontend_contract::RouteCatalog)]
+    #[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, frontend_contract::RouteCatalog)]
     #[route_catalog(family = TestCatalogFamily, body_limit = 1024usize)]
     enum TestCatalog {
         #[route_catalog_route(

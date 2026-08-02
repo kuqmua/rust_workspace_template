@@ -1,4 +1,4 @@
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 pub enum TransactionFailure<OperationError, RollbackError>
 where
     OperationError: std::error::Error + 'static,

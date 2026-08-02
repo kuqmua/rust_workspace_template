@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(optml::Optml, Debug)]
 pub struct ExclusiveRun {
     active: StdExclusiveRunAtomicBool,
 }
@@ -31,11 +31,11 @@ impl Default for ExclusiveRun {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("operation is already running")]
 pub struct ExclusiveRunAlreadyActive;
 
-#[derive(Debug)]
+#[derive(optml::Optml, Debug)]
 #[must_use]
 pub struct ExclusiveRunGuard<'run_lt> {
     active: &'run_lt StdExclusiveRunAtomicBool,
@@ -48,7 +48,7 @@ impl Drop for ExclusiveRunGuard<'_> {
     }
 }
 
-#[derive(Debug, newtype::FromInner)]
+#[derive(optml::Optml, Debug, newtype::FromInner)]
 struct StdExclusiveRunAtomicBool(std::sync::atomic::AtomicBool);
 
 #[cfg(test)]

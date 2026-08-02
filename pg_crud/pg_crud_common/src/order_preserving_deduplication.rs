@@ -1,10 +1,10 @@
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum SliceOrdering {
     NonDecreasingWithDuplicates,
     StrictlyIncreasing,
     Unordered,
 }
-#[derive(Clone, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct OrderPreservingValues<Value>(Vec<Value>);
 
 #[must_use]

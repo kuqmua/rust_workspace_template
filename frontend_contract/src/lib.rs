@@ -1,6 +1,6 @@
 #![allow(clippy::arbitrary_source_item_ordering)] // contract implementations keep constructors before accessors and fluent modifiers
 pub const FRONTEND_CONTRACT_BODY_MAX_BYTES: usize = 16_777_216usize;
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("frontend contract body exceeds its maximum byte length")]
 pub struct FrontendContractBodyError;
 impl From<bounded_types::BoundedValueError> for FrontendContractBodyError {
@@ -8,10 +8,10 @@ impl From<bounded_types::BoundedValueError> for FrontendContractBodyError {
         Self
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("{self:?}")]
 pub struct HttpStatusTryFromU16Error;
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum KnownHttpStatus {
     BadRequest,
     Conflict,
@@ -106,7 +106,15 @@ pub use route_coverage::{
 };
 pub use url_builder::{ApiUrl, ApiUrlBuildError, ApiUrlPathSegmentRef, ApiUrlQueryComponentRef};
 #[derive(
-    Clone, Copy, Debug, PartialEq, Eq, newtype::AsRefStr, newtype::Display, newtype::FromInner,
+    optml::Optml,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    newtype::AsRefStr,
+    newtype::Display,
+    newtype::FromInner,
 )]
 pub struct ContractStr(&'static str);
 impl From<ContractStr> for String {
@@ -114,7 +122,7 @@ impl From<ContractStr> for String {
         Self::from(value.0)
     }
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum InputKind {
     Checkbox,
     Date,
@@ -124,7 +132,7 @@ pub enum InputKind {
     Time,
     Uuid,
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ValueFormat {
     Bool,
     Bytes,
@@ -145,18 +153,26 @@ pub enum ValueFormat {
     TimestampTz,
     Uuid,
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Nullability {
     NonNullable,
     Nullable,
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum CapabilitySupport {
     Supported,
     Unsupported,
 }
 #[derive(
-    Clone, Copy, Debug, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema,
+    optml::Optml,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    serde::Deserialize,
+    serde::Serialize,
+    utoipa::ToSchema,
 )]
 #[serde(rename_all = "snake_case")]
 pub enum FilterOperation {
@@ -186,7 +202,15 @@ pub enum FilterOperation {
     StrictlyToRightOfRange,
 }
 #[derive(
-    Clone, Copy, Debug, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema,
+    optml::Optml,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    serde::Deserialize,
+    serde::Serialize,
+    utoipa::ToSchema,
 )]
 #[serde(rename_all = "snake_case")]
 pub enum FilterValueShape {
@@ -228,7 +252,9 @@ impl FilterOperation {
         }
     }
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq, newtype::AsRefInner, newtype::FromInner)]
+#[derive(
+    optml::Optml, Clone, Copy, Debug, PartialEq, Eq, newtype::AsRefInner, newtype::FromInner,
+)]
 pub struct FilterContracts(&'static [FilterOperation]);
 pub trait HasFilterContracts {
     const FILTER_CONTRACTS: &'static [FilterOperation];
@@ -237,18 +263,18 @@ pub trait HasFilterContracts {
         FilterContracts::from(Self::FILTER_CONTRACTS)
     }
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum InputStep {
     Any,
     Decimal,
     Integer,
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum NumericBound {
     None,
     Inclusive(ContractI64),
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq, newtype::FromInner)]
 pub struct ContractI64(i64);
 impl ContractI64 {
     #[must_use]
@@ -276,7 +302,7 @@ impl ContractI64 {
         Self::from(i64::MIN)
     }
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ValueExample {
     Boolean,
     Date,
@@ -288,13 +314,13 @@ pub enum ValueExample {
     Time,
     Uuid,
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
 pub struct TypeContract {
+    maximum: NumericBound,
+    minimum: NumericBound,
     example: ValueExample,
     format: ValueFormat,
     input_kind: InputKind,
-    maximum: NumericBound,
-    minimum: NumericBound,
     nullability: Nullability,
     step: InputStep,
 }
@@ -382,14 +408,22 @@ impl TypeContract {
 pub trait HasTypeContract {
     fn type_contract() -> TypeContract;
 }
-#[derive(Clone, Debug, Default, PartialEq, Eq, newtype::AsRefStr, newtype::BoundedString)]
+#[derive(
+    optml::Optml, Clone, Debug, Default, PartialEq, Eq, newtype::AsRefStr, newtype::BoundedString,
+)]
 #[bounded_string(max = 1_048_576usize)]
 pub struct FormValue(String);
-#[derive(Clone, Copy, Debug, PartialEq, Eq, newtype::AsRefInner, newtype::FromInner)]
+#[derive(
+    optml::Optml, Clone, Copy, Debug, PartialEq, Eq, newtype::AsRefInner, newtype::FromInner,
+)]
 pub struct FormValueRef<'value_lt>(&'value_lt str);
-#[derive(Clone, Copy, Debug, PartialEq, Eq, newtype::AsRefStr, newtype::FromInner)]
+#[derive(
+    optml::Optml, Clone, Copy, Debug, PartialEq, Eq, newtype::AsRefStr, newtype::FromInner,
+)]
 pub struct FormFieldNameRef<'field_lt>(&'field_lt str);
-#[derive(Clone, Debug, Default, PartialEq, Eq, newtype::Display, newtype::FromInner)]
+#[derive(
+    optml::Optml, Clone, Debug, Default, PartialEq, Eq, newtype::Display, newtype::FromInner,
+)]
 pub struct FormValueError(to_err_string::ErrorText);
 impl TryFrom<String> for FormValueError {
     type Error = to_err_string::ErrorTextTryFromStringError;
@@ -397,7 +431,7 @@ impl TryFrom<String> for FormValueError {
         to_err_string::ErrorText::try_from(value).map(Self)
     }
 }
-#[derive(Clone, Debug, PartialEq, Eq, newtype::AsRefStr, newtype::BoundedString)]
+#[derive(optml::Optml, Clone, Debug, PartialEq, Eq, newtype::AsRefStr, newtype::BoundedString)]
 #[bounded_string(max = 1_048_576usize)]
 pub struct FilterWireJson(String);
 pub trait FormValueContract: Sized {
@@ -407,7 +441,7 @@ pub trait FormValueContract: Sized {
 pub trait FilterFormValueContract {
     fn parse_filter_form_value(value: FormValueRef<'_>) -> Result<FilterWireJson, FormValueError>;
 }
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(optml::Optml, Clone, Debug, PartialEq, Eq)]
 pub struct FormFieldError {
     error: FormValueError,
     field: ContractStr,
@@ -426,45 +460,45 @@ impl FormFieldError {
         self.field
     }
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum FieldCapability {
     Disabled,
     Enabled,
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum PrimaryKeyKind {
     NonPrimary,
     Primary,
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq, newtype::FromInner)]
 pub struct FieldOrder(usize);
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum FieldVisibility {
     Hidden,
     Visible,
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum FieldPlaceholder {
     None,
     Value(ContractStr),
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
 pub struct FieldContract {
-    creatable: FieldCapability,
-    filterable: FieldCapability,
     filters: FilterContracts,
     label: ContractStr,
     name: ContractStr,
-    order: FieldOrder,
     placeholder: FieldPlaceholder,
+    type_contract: TypeContract,
+    order: FieldOrder,
+    creatable: FieldCapability,
+    filterable: FieldCapability,
     primary_key: PrimaryKeyKind,
     readable: FieldCapability,
     sortable: FieldCapability,
-    type_contract: TypeContract,
     updatable: FieldCapability,
     visibility: FieldVisibility,
 }
-#[derive(Clone, Debug, PartialEq, Eq, newtype::AsRefTarget, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Debug, PartialEq, Eq, newtype::AsRefTarget, newtype::FromInner)]
 pub struct FieldContracts(bounded_types::BoundedVec<FieldContract, 0, { usize::MAX }>);
 impl From<Vec<FieldContract>> for FieldContracts {
     fn from(value: Vec<FieldContract>) -> Self {
@@ -603,7 +637,7 @@ impl FieldContract {
         self
     }
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum HttpMethod {
     Connect,
     Delete,
@@ -615,13 +649,13 @@ pub enum HttpMethod {
     Put,
     Trace,
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum SuccessStatus {
     Code200,
     Code201,
     Code204,
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum RouteErrorStatus {
     Authentication,
     Authorization,
@@ -717,7 +751,7 @@ pub const AUTHORIZED_DELETE_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] = &[
     RouteErrorStatus::RateLimited,
     RouteErrorStatus::Internal,
 ];
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RouteErrorPolicy {
     Authentication,
     Default,
@@ -768,18 +802,18 @@ impl SuccessStatus {
         }
     }
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum AuthenticationRequirement {
     Authenticated,
     Permission(ContractStr),
     Public,
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum MutationKind {
     ReadOnly,
     Mutating,
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum OperationKind {
     CreateMany,
     CreateOne,
@@ -790,18 +824,18 @@ pub enum OperationKind {
     UpdateMany,
     UpdateOne,
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ConfirmationRequirement {
     NotRequired,
     Required,
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ActionContract {
+    route: RouteContract,
     confirmation: ConfirmationRequirement,
     operation: OperationKind,
-    route: RouteContract,
 }
-#[derive(Clone, Debug, PartialEq, Eq, newtype::AsRefTarget, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Debug, PartialEq, Eq, newtype::AsRefTarget, newtype::FromInner)]
 pub struct ActionContracts(bounded_types::BoundedVec<ActionContract, 0, { usize::MAX }>);
 impl From<Vec<ActionContract>> for ActionContracts {
     fn from(value: Vec<ActionContract>) -> Self {
@@ -844,15 +878,15 @@ impl ActionContract {
         self
     }
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
 pub struct RouteContract {
+    path: ContractStr,
     authentication: AuthenticationRequirement,
     method: HttpMethod,
     mutation: MutationKind,
-    path: ContractStr,
     success_status: SuccessStatus,
 }
-#[derive(Clone, Debug, PartialEq, Eq, newtype::AsRefTarget, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Debug, PartialEq, Eq, newtype::AsRefTarget, newtype::FromInner)]
 pub struct RouteContracts(bounded_types::BoundedVec<RouteContract, 0, { usize::MAX }>);
 impl From<Vec<RouteContract>> for RouteContracts {
     fn from(value: Vec<RouteContract>) -> Self {
@@ -878,10 +912,10 @@ impl RouteContract {
         success_status: SuccessStatus,
     ) -> Self {
         Self {
+            path,
             authentication,
             method,
             mutation,
-            path,
             success_status,
         }
     }
@@ -906,7 +940,7 @@ impl RouteContract {
         self.success_status
     }
 }
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(optml::Optml, Clone, Debug, PartialEq, Eq)]
 pub struct PageContract {
     actions: ActionContracts,
     fields: FieldContracts,
@@ -914,7 +948,7 @@ pub struct PageContract {
     routes: RouteContracts,
     title: ContractStr,
 }
-#[derive(Clone, Debug, PartialEq, Eq, newtype::AsRefTarget)]
+#[derive(optml::Optml, Clone, Debug, PartialEq, Eq, newtype::AsRefTarget)]
 pub struct TransportBody(bounded_types::BoundedVec<u8, 0, FRONTEND_CONTRACT_BODY_MAX_BYTES>);
 impl TryFrom<Vec<u8>> for TransportBody {
     type Error = FrontendContractBodyError;
@@ -924,7 +958,7 @@ impl TryFrom<Vec<u8>> for TransportBody {
             .map_err(FrontendContractBodyError::from)
     }
 }
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(optml::Optml, Clone, Debug, PartialEq, Eq)]
 pub struct TransportRequest {
     body: TransportBody,
     path: TransportPath,
@@ -974,17 +1008,27 @@ impl TransportRequest {
         self
     }
 }
-#[derive(Clone, Debug, PartialEq, Eq, newtype::AsRefStr, newtype::BoundedString)]
+#[derive(optml::Optml, Clone, Debug, PartialEq, Eq, newtype::AsRefStr, newtype::BoundedString)]
 #[bounded_string(max = 255usize, min = 1usize)]
 pub struct TransportIdempotencyKey(String);
-#[derive(Clone, Debug, PartialEq, Eq, newtype::AsRefStr, newtype::BoundedString)]
+#[derive(optml::Optml, Clone, Debug, PartialEq, Eq, newtype::AsRefStr, newtype::BoundedString)]
 #[bounded_string(max = 20usize, min = 1usize)]
 pub struct TransportIfMatch(String);
-#[derive(Clone, Debug, Default, PartialEq, Eq, newtype::AsRefStr, newtype::BoundedString)]
+#[derive(
+    optml::Optml, Clone, Debug, Default, PartialEq, Eq, newtype::AsRefStr, newtype::BoundedString,
+)]
 #[bounded_string(max = 8192usize)]
 pub struct TransportPath(String);
 #[derive(
-    Clone, Copy, Debug, PartialEq, Eq, newtype::Display, newtype::IntoInnerFrom, newtype::TryFrom,
+    optml::Optml,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    newtype::Display,
+    newtype::IntoInnerFrom,
+    newtype::TryFrom,
 )]
 #[try_from(
     error = HttpStatusTryFromU16Error,
@@ -1006,10 +1050,10 @@ impl TransportStatus {
         }
     }
 }
-#[derive(Clone, Debug, PartialEq, Eq, newtype::AsRefStr, newtype::BoundedString)]
+#[derive(optml::Optml, Clone, Debug, PartialEq, Eq, newtype::AsRefStr, newtype::BoundedString)]
 #[bounded_string(max = 128usize, min = 1usize)]
 pub struct TransportRetryAfter(String);
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(optml::Optml, Clone, Debug, PartialEq, Eq)]
 pub struct TransportResponse {
     body: TransportBody,
     retry_after: Option<TransportRetryAfter>,
@@ -1059,7 +1103,9 @@ impl TransportResponse {
 pub fn decode_api_problem(body: &TransportBody) -> Option<ApiProblem> {
     serde_json::from_slice(body.as_ref()).ok()
 }
-#[derive(Clone, Debug, Default, PartialEq, Eq, newtype::Display, newtype::FromInner)]
+#[derive(
+    optml::Optml, Clone, Debug, Default, PartialEq, Eq, newtype::Display, newtype::FromInner,
+)]
 pub struct TransportError(to_err_string::ErrorText);
 impl TryFrom<String> for TransportError {
     type Error = to_err_string::ErrorTextTryFromStringError;
@@ -1073,7 +1119,7 @@ pub trait Transport {
         request: TransportRequest,
     ) -> impl Future<Output = Result<TransportResponse, TransportError>> + '_;
 }
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(optml::Optml, Clone, Debug, PartialEq, Eq)]
 pub enum ClientError {
     Decode(FormValueError),
     Encode(FormValueError),
@@ -1140,189 +1186,4 @@ impl PageContract {
     }
 }
 #[cfg(test)]
-mod tests {
-    #[test]
-    fn contract_bodies_reject_values_above_shared_limit() {
-        let oversized = vec![0u8; super::FRONTEND_CONTRACT_BODY_MAX_BYTES + 1usize];
-        assert_eq!(
-            super::TransportBody::try_from(oversized),
-            Err(super::FrontendContractBodyError)
-        );
-    }
-    #[allow(clippy::needless_for_each)] // iterator form follows the workspace ban on explicit for loops
-    #[test]
-    fn api_problem_status_mapping_is_stable_and_redacted() {
-        let cases = [
-            (400u16, super::ApiProblemKind::InvalidRequest),
-            (401u16, super::ApiProblemKind::Authentication),
-            (403u16, super::ApiProblemKind::Authorization),
-            (404u16, super::ApiProblemKind::NotFound),
-            (405u16, super::ApiProblemKind::MethodNotAllowed),
-            (409u16, super::ApiProblemKind::Conflict),
-            (412u16, super::ApiProblemKind::Precondition),
-            (413u16, super::ApiProblemKind::PayloadTooLarge),
-            (418u16, super::ApiProblemKind::RequestFailed),
-            (422u16, super::ApiProblemKind::Validation),
-            (425u16, super::ApiProblemKind::InProgress),
-            (428u16, super::ApiProblemKind::PreconditionRequired),
-            (429u16, super::ApiProblemKind::RateLimited),
-            (500u16, super::ApiProblemKind::Internal),
-            (503u16, super::ApiProblemKind::Internal),
-        ];
-        cases.into_iter().for_each(|(status, expected_kind)| {
-            let problem = super::ApiProblem::from_error(super::ApiProblemError::from_status(
-                super::ApiProblemStatus::try_from(status).expect("ff774b42"),
-            ));
-            assert_eq!(problem.kind(), expected_kind);
-            assert_eq!(u16::from(problem.status()), status);
-            let serialized = serde_json::to_string(&problem).expect("f459312e");
-            assert!(!serialized.contains("postgres://"));
-            assert!(!serialized.contains("sqlx"));
-            assert!(!serialized.contains("password"));
-        });
-    }
-    #[test]
-    fn contracts_preserve_typed_metadata() {
-        let type_contract = super::TypeContract::new(
-            super::InputKind::Number,
-            super::ValueFormat::Int64,
-            super::Nullability::NonNullable,
-        )
-        .with_minimum(super::NumericBound::Inclusive(super::ContractI64::from(1)))
-        .with_step(super::InputStep::Integer);
-        let field = super::FieldContract::new(
-            super::ContractStr::from(str_constants::SQL_NAMES_ID),
-            super::ContractStr::from(str_constants::ID),
-            type_contract,
-        )
-        .with_primary_key(super::PrimaryKeyKind::Primary)
-        .with_readable(super::FieldCapability::Enabled);
-        assert_eq!(field.type_contract().input_kind(), super::InputKind::Number);
-        assert_eq!(field.primary_key(), super::PrimaryKeyKind::Primary);
-        assert_eq!(field.readable(), super::FieldCapability::Enabled);
-    }
-    #[test]
-    fn public_catalog_wrappers_preserve_vec_conversions() {
-        let fields = super::FieldContracts::from(Vec::<super::FieldContract>::new());
-        let actions = super::ActionContracts::from(Vec::<super::ActionContract>::new());
-        let routes = super::RouteContracts::from(Vec::<super::RouteContract>::new());
-        let coverage =
-            super::RouteCoverageDescriptors::from(Vec::<super::RouteCoverageDescriptor>::new());
-        let schemas = super::RouteSchemaContracts::from(Vec::<super::RouteSchemaContract>::new());
-        let metadata = super::RouteMetadataList::from(Vec::<super::RouteMetadata>::new());
-        let categories = super::RouteTestCategories::from(vec![
-            super::RouteTestCategory::FixtureHook,
-            super::RouteTestCategory::Metadata,
-        ]);
-        assert!(fields.as_ref().is_empty());
-        assert!(actions.as_ref().is_empty());
-        assert!(routes.as_ref().is_empty());
-        assert!(coverage.as_ref().is_empty());
-        assert!(schemas.as_ref().is_empty());
-        assert!(metadata.as_ref().is_empty());
-        assert_eq!(
-            categories.as_ref(),
-            [
-                super::RouteTestCategory::FixtureHook,
-                super::RouteTestCategory::Metadata,
-            ]
-        );
-    }
-    #[test]
-    fn route_contract_keeps_transport_policy_together() {
-        let route = super::RouteContract::new(
-            super::AuthenticationRequirement::Permission(super::ContractStr::from(
-                str_constants::PERMISSION,
-            )),
-            super::HttpMethod::Patch,
-            super::MutationKind::Mutating,
-            super::ContractStr::from(str_constants::USERS_ID),
-            super::SuccessStatus::Code204,
-        );
-        assert_eq!(route.mutation(), super::MutationKind::Mutating);
-        assert_eq!(route.method(), super::HttpMethod::Patch);
-        assert_eq!(route.path().as_ref(), "/users/{id}");
-    }
-    #[test]
-    fn route_error_policy_derives_statuses_from_access_and_mutation() {
-        let permission = super::AuthenticationRequirement::Permission(super::ContractStr::from(
-            str_constants::PERMISSION,
-        ));
-        assert_eq!(
-            super::RouteErrorPolicy::Default.statuses(
-                super::AuthenticationRequirement::Public,
-                super::RouteMutation::ReadOnly,
-            ),
-            super::PUBLIC_READ_ROUTE_ERROR_STATUSES
-        );
-        assert_eq!(
-            super::RouteErrorPolicy::Default.statuses(
-                super::AuthenticationRequirement::Authenticated,
-                super::RouteMutation::Mutating,
-            ),
-            super::AUTHENTICATED_MUTATING_ROUTE_ERROR_STATUSES
-        );
-        assert_eq!(
-            super::RouteErrorPolicy::Default.statuses(permission, super::RouteMutation::Mutating,),
-            super::AUTHORIZED_MUTATING_ROUTE_ERROR_STATUSES
-        );
-        assert_eq!(
-            super::RouteErrorPolicy::Authentication
-                .statuses(permission, super::RouteMutation::ReadOnly),
-            super::PUBLIC_AUTH_ROUTE_ERROR_STATUSES
-        );
-        assert_eq!(
-            super::RouteErrorPolicy::Delete.statuses(permission, super::RouteMutation::Mutating),
-            super::AUTHORIZED_DELETE_ROUTE_ERROR_STATUSES
-        );
-        assert_eq!(
-            super::RouteErrorPolicy::ValidatedRead
-                .statuses(permission, super::RouteMutation::ReadOnly),
-            super::AUTHORIZED_VALIDATED_READ_ROUTE_ERROR_STATUSES
-        );
-    }
-    #[test]
-    fn response_interpretation_uses_shared_success_and_problem_contract() {
-        let problem = super::ApiProblem::from_error(super::ApiProblemError::from_status(
-            super::ApiProblemStatus::try_from(401u16).expect("b8fc4707"),
-        ));
-        let body = super::TransportBody::try_from(serde_json::to_vec(&problem).expect("f542a3cb"))
-            .expect("864276f2");
-        let response = super::TransportResponse::new(
-            body,
-            super::TransportStatus::try_from(401u16).expect("a05ea02c"),
-        );
-        let error = response
-            .success_body(super::SuccessStatus::Code200.transport_status())
-            .expect_err(str_constants::VALUE_5EEA7F90);
-        assert!(matches!(
-            error,
-            super::ClientError::Problem(value)
-                if value.kind() == super::ApiProblemKind::Authentication
-        ));
-        assert_eq!(
-            u16::from(super::SuccessStatus::Code201.transport_status()),
-            201u16
-        );
-    }
-    #[test]
-    fn transport_response_preserves_retry_after() {
-        let response = super::TransportResponse::new(
-            super::TransportBody::try_from(Vec::new()).expect("da32dc29"),
-            super::TransportStatus::try_from(429u16).expect("7a783a69"),
-        )
-        .with_retry_after(Some(
-            super::TransportRetryAfter::try_from(str_constants::TEST_VALUE_30.to_owned())
-                .expect("9b6750d4"),
-        ));
-        assert_eq!(
-            response.retry_after().map(AsRef::as_ref),
-            Some(str_constants::TEST_VALUE_30)
-        );
-    }
-    #[test]
-    fn http_status_wrappers_reject_values_below_protocol_range() {
-        let _transport_error = super::TransportStatus::try_from(99u16).expect_err("5d7c8801");
-        let _problem_error = super::ApiProblemStatus::try_from(99u16).expect_err("e65c913c");
-    }
-}
+mod tests;

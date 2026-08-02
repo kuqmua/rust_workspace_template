@@ -1,7 +1,8 @@
+#[derive(optml::Optml)]
 #[must_use]
 #[derive(Debug, Clone, Copy, newtype::FromInner)]
 pub struct FieldLocationFile(&'static str);
-#[derive(Debug, Clone, Copy, newtype::TryFrom)]
+#[derive(optml::Optml, Debug, Clone, Copy, newtype::TryFrom)]
 #[try_from(
     error = FieldLocationCoordinateTryFromU32Error,
     validator = FieldLocationLine::validate
@@ -26,7 +27,7 @@ impl FieldLocationLine {
         }
     }
 }
-#[derive(Debug, Clone, Copy, newtype::TryFrom)]
+#[derive(optml::Optml, Debug, Clone, Copy, newtype::TryFrom)]
 #[try_from(
     error = FieldLocationCoordinateTryFromU32Error,
     validator = FieldLocationColumn::validate
@@ -51,7 +52,7 @@ impl FieldLocationColumn {
         }
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("{self:?}")]
 pub struct FieldLocationCoordinateTryFromU32Error;
 #[must_use]

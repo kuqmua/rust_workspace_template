@@ -435,14 +435,14 @@ impl TryFrom<&String> for StatusCode {
         }
     }
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
+#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
 pub enum GetOnlyOneStatusCodeError {
     #[error("07286cf0: two or more supported status code attrs")]
     MoreThanOne,
     #[error("19fc6512: supported status code attr not found")]
     NotFound,
 }
-#[derive(Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
 pub struct SynStatusCodeVariantRef<'variant_lt>(&'variant_lt syn::Variant);
 pub fn get_only_one(
     variant_ref: SynStatusCodeVariantRef<'_>,

@@ -1,5 +1,5 @@
 error: ContractStructApi supports only structs with named fields
- --> trybuild/route_contract_struct_api_non_named.rs:3:8
+ --> trybuild/route_contract_struct_api_non_named.rs:4:8
   |
-3 | struct InvalidContract(u8);
+4 | struct InvalidContract(u8);
   |        ^^^^^^^^^^^^^^^

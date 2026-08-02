@@ -21,11 +21,19 @@ pub use server_admin_core::{
 };
 const ADMIN_AUTH_COLLECTION_MAX_LEN: usize = 10_000usize;
 #[derive(
-    Clone, Copy, Debug, Eq, PartialEq, serde::Serialize, newtype::DerefInner, newtype::FromInner,
+    optml::Optml,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    serde::Serialize,
+    newtype::DerefInner,
+    newtype::FromInner,
 )]
 #[serde(transparent)]
 pub(crate) struct AdminPasswordChangeRequired(bool);
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum AdminSecretTextError {
     #[error("administrator secret text has invalid bounds")]
     InvalidBounds,
@@ -52,20 +60,32 @@ impl From<server_admin_core::StdAdminStringTryFromStringError> for AdminSecretTe
     }
 }
 #[derive(
-    Clone, Debug, serde::Serialize, utoipa::ToSchema, newtype::AsRefTarget, newtype::IntoInnerFrom,
+    optml::Optml,
+    Clone,
+    Debug,
+    serde::Serialize,
+    utoipa::ToSchema,
+    newtype::AsRefTarget,
+    newtype::IntoInnerFrom,
 )]
 #[serde(transparent)]
 pub(crate) struct AdminPermissions(
     bounded_types::BoundedVec<AdminPermission, 0, { ADMIN_AUTH_COLLECTION_MAX_LEN }>,
 );
 #[derive(
-    Clone, Debug, serde::Serialize, utoipa::ToSchema, newtype::AsRefTarget, newtype::IntoInnerFrom,
+    optml::Optml,
+    Clone,
+    Debug,
+    serde::Serialize,
+    utoipa::ToSchema,
+    newtype::AsRefTarget,
+    newtype::IntoInnerFrom,
 )]
 #[serde(transparent)]
 pub(crate) struct AdminRoleNames(
     bounded_types::BoundedVec<AdminRoleName, 0, { ADMIN_AUTH_COLLECTION_MAX_LEN }>,
 );
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("administrator authorization collection exceeds maximum length")]
 pub(crate) struct AdminAuthCollectionError;
 impl TryFrom<Vec<AdminPermission>> for AdminPermissions {
@@ -89,15 +109,15 @@ impl From<bounded_types::BoundedValueError> for AdminAuthCollectionError {
         Self
     }
 }
-#[derive(Clone, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Debug, newtype::FromInner)]
 pub struct StdAdminSharedSemaphore(std::sync::Arc<tokio::sync::Semaphore>);
-#[derive(newtype::DebugTransparent, newtype::FromInner)]
+#[derive(optml::Optml, newtype::DebugTransparent, newtype::FromInner)]
 pub struct TokioAdminJoinError(tokio::task::JoinError);
-#[derive(newtype::DebugTransparent, newtype::FromInner)]
+#[derive(optml::Optml, newtype::DebugTransparent, newtype::FromInner)]
 pub struct TokioAdminAcquireError(tokio::sync::AcquireError);
-#[derive(Clone, Copy, newtype::DebugTransparent, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, newtype::DebugTransparent, newtype::FromInner)]
 pub struct Argon2AdminPasswordHashError(argon2::password_hash::Error);
-#[derive(newtype::DebugTransparent, thiserror::Error, newtype::FromInner)]
+#[derive(optml::Optml, newtype::DebugTransparent, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 pub struct SqlxAdminError(sqlx::Error);
 impl From<AdminIdTryFromI64Error> for SqlxAdminError {
@@ -110,10 +130,10 @@ impl From<server_admin_contract::AdminIdTryFromI64Error> for SqlxAdminError {
         Self::from(sqlx::Error::Decode(Box::new(value)))
     }
 }
-#[derive(newtype::DebugRedacted, newtype::FromInner, serde::Deserialize)]
+#[derive(optml::Optml, newtype::DebugRedacted, newtype::FromInner, serde::Deserialize)]
 #[serde(try_from = "String")]
 pub struct AdminPassword(SecrecyAdminString);
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum AdminPasswordTryFromStringError {
     #[error("{}", str_constants::ADMINISTRATOR_PASSWORD_LENGTH_IS_INVALID)]
     InvalidLength,
@@ -166,7 +186,7 @@ impl AdminPassword {
         self.0
     }
 }
-#[derive(newtype::DebugRedacted, newtype::FromInner)]
+#[derive(optml::Optml, newtype::DebugRedacted, newtype::FromInner)]
 pub struct AdminPasswordHash(pg_types_text_misc::StringAsNonNullTextSecret);
 impl AdminPasswordHash {
     #[must_use]
@@ -174,7 +194,7 @@ impl AdminPasswordHash {
         Self::from(value)
     }
 }
-#[derive(newtype::DebugRedacted, newtype::FromInner)]
+#[derive(optml::Optml, newtype::DebugRedacted, newtype::FromInner)]
 pub struct AdminJwtSecret(SecrecyAdminString);
 impl AdminJwtSecret {
     #[must_use]
@@ -182,7 +202,7 @@ impl AdminJwtSecret {
         Self::from(value)
     }
 }
-#[derive(newtype::DebugRedacted, newtype::FromInner)]
+#[derive(optml::Optml, newtype::DebugRedacted, newtype::FromInner)]
 pub struct AdminOpaqueToken(SecrecyAdminString);
 impl AdminOpaqueToken {
     #[must_use]
@@ -190,7 +210,7 @@ impl AdminOpaqueToken {
         Self::from(value)
     }
 }
-#[derive(newtype::DebugRedacted, newtype::FromInner)]
+#[derive(optml::Optml, newtype::DebugRedacted, newtype::FromInner)]
 pub struct AdminRefreshToken(AdminOpaqueToken);
 impl AdminRefreshToken {
     #[must_use]
@@ -202,7 +222,7 @@ impl AdminRefreshToken {
         StdAdminStrRef::from(secrecy::ExposeSecret::expose_secret(self.0.0.as_ref()).as_str())
     }
 }
-#[derive(newtype::DebugRedacted, newtype::FromInner)]
+#[derive(optml::Optml, newtype::DebugRedacted, newtype::FromInner)]
 pub struct AdminTokenHash(SecrecyAdminString);
 impl AdminTokenHash {
     #[must_use]
@@ -218,7 +238,7 @@ impl AdminTokenHash {
         StdAdminStrRef::from(secrecy::ExposeSecret::expose_secret(self.0.as_ref()).as_str())
     }
 }
-#[derive(Debug)]
+#[derive(optml::Optml, Debug)]
 pub struct AdminGeneratedToken {
     hash: AdminTokenHash,
     token: AdminOpaqueToken,
@@ -239,18 +259,25 @@ impl AdminGeneratedToken {
 pub fn hash_opaque_token(token: &AdminOpaqueToken) -> Result<AdminTokenHash, AdminSecretTextError> {
     token::hash_opaque_token(token)
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
 pub struct AdminCookieSecure(bool);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
 pub struct AdminCookieMaxAgeSeconds(u64);
 #[derive(
-    Debug, Clone, PartialEq, Eq, newtype::BoundedString, newtype::AsRefOwned, newtype::IntoInner,
+    optml::Optml,
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    newtype::BoundedString,
+    newtype::AsRefOwned,
+    newtype::IntoInner,
 )]
 #[bounded_string(max = 8192, description = "administrator cookie")]
 pub struct StdAdminCookie(String);
-#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub struct HttpAdminHeaderMapRef<'headers_lt>(&'headers_lt http::HeaderMap);
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AdminCookieKind {
     Access,
     Csrf,
@@ -318,14 +345,23 @@ pub fn find_admin_cookie(
         | server_runtime_http::CookieResolution::Missing => None,
     }
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
 pub struct AdminPasswordHashConcurrency(StdAdminNonZeroUsize);
 #[derive(
-    Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize, newtype::FromInner,
+    optml::Optml,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
+    newtype::FromInner,
 )]
 #[serde(from = "u64")]
 pub struct AdminUnixTokenStream(u64);
 #[derive(
+    optml::Optml,
     Debug,
     Clone,
     Copy,
@@ -338,14 +374,14 @@ pub struct AdminUnixTokenStream(u64);
 )]
 #[serde(from = "UuidAdminValue")]
 pub struct AdminSessionId(UuidAdminValue);
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(optml::Optml, Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct AdminAccessClaims {
     aud: config_lib::AdminTokenAudience,
     exp: AdminUnixTokenStream,
     iat: AdminUnixTokenStream,
     iss: config_lib::AdminTokenIssuer,
-    jti: AdminSessionId,
     sub: AdminUserId,
+    jti: AdminSessionId,
 }
 impl AdminAccessClaims {
     #[must_use]
@@ -375,7 +411,7 @@ impl AdminAccessClaims {
         self.jti
     }
 }
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 pub enum AdminPasswordHashError {
     #[error("administrator password hashing task failed: {0:?}")]
     Join(TokioAdminJoinError),
@@ -384,17 +420,25 @@ pub enum AdminPasswordHashError {
     #[error("administrator password hashing concurrency limiter was closed: {0:?}")]
     SemaphoreClosed(TokioAdminAcquireError),
 }
-#[derive(Clone, Debug)]
+#[derive(optml::Optml, Clone, Debug)]
 pub struct AdminPasswordHasher {
     semaphore: StdAdminSharedSemaphore,
 }
-#[derive(newtype::DebugTransparent, newtype::FromInner)]
+#[derive(optml::Optml, newtype::DebugTransparent, newtype::FromInner)]
 pub struct JsonwebtokenAdminError(jsonwebtoken::errors::Error);
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 #[error("administrator access token operation failed: {0:?}")]
 #[derive(newtype::FromInner)]
 pub struct AdminAccessTokenError(JsonwebtokenAdminError);
-#[derive(Clone, PartialEq, Eq, newtype::BoundedString, newtype::AsRefOwned, newtype::IntoInner)]
+#[derive(
+    optml::Optml,
+    Clone,
+    PartialEq,
+    Eq,
+    newtype::BoundedString,
+    newtype::AsRefOwned,
+    newtype::IntoInner,
+)]
 #[bounded_string(max = 8192, description = "administrator access token")]
 pub struct StdAdminAccessToken(String);
 impl std::fmt::Debug for StdAdminAccessToken {
@@ -417,6 +461,7 @@ pub fn decode_access_token(
     token::decode_access_token(token, secret, issuer, audience)
 }
 #[derive(
+    optml::Optml,
     Debug,
     Clone,
     Copy,
@@ -437,6 +482,7 @@ pub enum AdminAuditAction {
     Update,
 }
 #[derive(
+    optml::Optml,
     Debug,
     Clone,
     Copy,
@@ -456,27 +502,27 @@ pub enum AdminAuditResource {
     SystemSettings,
     User,
 }
-#[derive(newtype::DebugTransparent, newtype::FromInner)]
+#[derive(optml::Optml, newtype::DebugTransparent, newtype::FromInner)]
 pub struct SqlxAdminMigrateError(sqlx::migrate::MigrateError);
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 enum AdminMigrateErrorInner {
     #[error("migration failed: {0:?}")]
     Migration(SqlxAdminMigrateError),
     #[error("permission reconciliation failed: {0:?}")]
     Reconciliation(SqlxAdminError),
 }
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 #[error("failed to prepare administrator schema: {0}")]
 #[derive(newtype::FromInner)]
 pub struct AdminMigrateError(AdminMigrateErrorInner);
 pub async fn prep_pg(pool: app_state::SqlxPgPoolRef<'_>) -> Result<(), AdminMigrateError> {
     migrations::prep_pg(pool).await
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct AdminCleanupBatchSize(i64);
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct AdminCleanupRetentionSeconds(i64);
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct AdminCleanupCfg {
     audit_retention: AdminCleanupRetentionSeconds,
     auth_retention: AdminCleanupRetentionSeconds,
@@ -485,7 +531,7 @@ pub struct AdminCleanupCfg {
     idempotency_pending_retention: AdminCleanupRetentionSeconds,
     rate_limit_retention: AdminCleanupRetentionSeconds,
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct AdminCleanupReport {
     access_sessions: AdminCleanupRows,
     audit_log: AdminCleanupRows,
@@ -494,7 +540,7 @@ pub struct AdminCleanupReport {
     rate_limits: AdminCleanupRows,
     refresh_tokens: AdminCleanupRows,
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::Display, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::Display, newtype::FromInner)]
 pub struct AdminCleanupRows(u64);
 impl std::ops::Add for AdminCleanupRows {
     type Output = Self;
@@ -507,14 +553,14 @@ impl AdminCleanupRows {
         Self::from(self.0.saturating_add(rhs.0))
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum AdminCleanupCfgError {
     #[error("{}", str_constants::CLEANUP_BATCH_SIZE_MUST_BE_BETWEEN_1_AND_10000)]
     BatchSizeOutOfRange,
     #[error("{}", str_constants::CLEANUP_RETENTION_MUST_BE_GREATER_THAN_ZERO)]
     RetentionMustBePositive,
 }
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 pub enum AdminCleanupError {
     #[error("{}", str_constants::ADMIN_CLEANUP_ROWS_EXCEED_I64)]
     Count,
@@ -582,7 +628,7 @@ pub async fn cleanup_admin_tables(
 ) -> Result<AdminCleanupReport, AdminCleanupError> {
     cleanup::cleanup_admin_tables(pool, cfg).await
 }
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 pub enum AdminBootstrapError {
     #[error("administrator bootstrap audit details are invalid")]
     AuditDetails,
@@ -599,7 +645,7 @@ pub enum AdminBootstrapError {
     #[error("administrator bootstrap database operation failed: {0:?}")]
     Pg(SqlxAdminError),
 }
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 pub enum AdminPasswordResetError {
     #[error("administrator password reset audit details are invalid")]
     AuditDetails,

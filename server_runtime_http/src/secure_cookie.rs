@@ -1,6 +1,6 @@
 const COOKIE_TEXT_MAXIMUM_BYTES: usize = 8192usize;
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
 pub struct HttpCookieName(String);
 impl TryFrom<String> for HttpCookieName {
     type Error = HttpSecureCookieError;
@@ -9,7 +9,23 @@ impl TryFrom<String> for HttpCookieName {
             && value.len() <= COOKIE_TEXT_MAXIMUM_BYTES
             && value.bytes().all(|byte| {
                 byte.is_ascii_alphanumeric()
-                    || matches!(byte, b'!' | b'#'..=b'+' | b'-'..=b':' | b'<'..=b'[' | b']'..=b'~')
+                    || matches!(
+                        byte,
+                        b'!' | b'#'
+                            | b'$'
+                            | b'%'
+                            | b'&'
+                            | b'\''
+                            | b'*'
+                            | b'+'
+                            | b'-'
+                            | b'.'
+                            | b'^'
+                            | b'_'
+                            | b'`'
+                            | b'|'
+                            | b'~'
+                    )
             });
         if valid {
             Ok(Self(value))
@@ -19,7 +35,7 @@ impl TryFrom<String> for HttpCookieName {
     }
 }
 
-#[derive(Clone, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Eq, PartialEq)]
 pub struct HttpCookieValue(String);
 impl std::fmt::Debug for HttpCookieValue {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -41,25 +57,25 @@ impl TryFrom<String> for HttpCookieValue {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct StdCookieMaxAgeSeconds(u64);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum HttpCookieAccess {
     HttpOnly,
     ScriptReadable,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum HttpCookieSecure {
     Disabled,
     Enabled,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct HttpSetCookieHeaderValue(http::HeaderValue);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum HttpSecureCookieError {
     #[error("generated Set-Cookie header is invalid")]
     InvalidHeader,
@@ -131,6 +147,14 @@ mod tests {
         assert_eq!(
             super::HttpCookieValue::try_from(String::from(str_constants::TEST_COOKIE_INJECTION)),
             Err(super::HttpSecureCookieError::InvalidValue),
+        );
+        assert_eq!(
+            super::HttpCookieName::try_from(String::from("session/path")),
+            Err(super::HttpSecureCookieError::InvalidName),
+        );
+        assert_eq!(
+            super::HttpCookieName::try_from(String::from("session=shadow")),
+            Err(super::HttpSecureCookieError::InvalidName),
         );
     }
 

@@ -1,7 +1,7 @@
 error[E0308]: mismatched types
-  --> trybuild/route_contract_wrong_request.rs:13:63
+  --> trybuild/route_contract_wrong_request.rs:16:63
    |
-13 |     let _request = frontend_contract::client_request::<Route>(Response);
+16 |     let _request = frontend_contract::client_request::<Route>(Response);
    |                    ------------------------------------------ ^^^^^^^^ expected `Request`, found `Response`
    |                    |
    |                    arguments to this function are incorrect

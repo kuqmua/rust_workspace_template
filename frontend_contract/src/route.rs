@@ -1,11 +1,11 @@
 pub trait RouteTransport {}
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct PublicTransport;
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct AuthenticatedTransport;
 impl RouteTransport for PublicTransport {}
 impl RouteTransport for AuthenticatedTransport {}
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RouteMethod {
     Connect,
     Delete,
@@ -33,6 +33,7 @@ impl RouteMethod {
         })
     }
 }
+#[derive(optml::Optml)]
 #[cfg(not(target_arch = "wasm32"))]
 #[derive(Clone, Copy, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct AxumMethodFilter(axum::routing::MethodFilter);
@@ -51,14 +52,14 @@ pub fn axum_method_filter(method: crate::HttpMethod) -> AxumMethodFilter {
         crate::HttpMethod::Trace => axum::routing::MethodFilter::TRACE,
     })
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct RouteMetadata {
     authentication: crate::AuthenticationRequirement,
     error_statuses: &'static [crate::RouteErrorStatus],
-    method: RouteMethod,
-    mutation: crate::RouteMutation,
     openapi_operation_id: crate::ContractStr,
     path: crate::ContractStr,
+    method: RouteMethod,
+    mutation: crate::RouteMutation,
     success_status: crate::SuccessStatus,
 }
 impl RouteMetadata {
@@ -91,10 +92,10 @@ impl RouteMetadata {
         Self {
             authentication,
             error_statuses,
-            method,
-            mutation,
             openapi_operation_id,
             path,
+            method,
+            mutation,
             success_status,
         }
     }
@@ -162,7 +163,7 @@ impl RouteMetadata {
         )
     }
 }
-#[derive(newtype::FromInner)]
+#[derive(optml::Optml, newtype::FromInner)]
 pub struct UtoipaOpenApiComponentsRefMut<'value_lt>(
     &'value_lt mut utoipa::openapi::schema::Components,
 );
@@ -172,7 +173,7 @@ impl std::fmt::Debug for UtoipaOpenApiComponentsRefMut<'_> {
             .finish_non_exhaustive()
     }
 }
-#[derive(newtype::FromInner)]
+#[derive(optml::Optml, newtype::FromInner)]
 pub struct UtoipaOpenApiRefMut<'value_lt>(&'value_lt mut utoipa::openapi::OpenApi);
 impl std::fmt::Debug for UtoipaOpenApiRefMut<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -215,12 +216,12 @@ pub trait TypedRoute: Sized {
     }
     fn register_openapi_schemas(_components: &mut UtoipaOpenApiComponentsRefMut<'_>) {}
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RouteRequestBody {
     Absent,
     Json,
 }
-#[derive(Clone, Debug)]
+#[derive(optml::Optml, Clone, Debug)]
 pub struct RouteSchemaContract {
     metadata: RouteMetadata,
     request_schema: Option<UtoipaOpenApiRouteSchema>,
@@ -251,7 +252,7 @@ impl RouteSchemaContract {
         self.response_schema.as_ref()
     }
 }
-#[derive(Clone, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(optml::Optml, Clone, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct UtoipaOpenApiRouteSchema(utoipa::openapi::RefOr<utoipa::openapi::Schema>);
 impl std::fmt::Debug for UtoipaOpenApiRouteSchema {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -259,7 +260,7 @@ impl std::fmt::Debug for UtoipaOpenApiRouteSchema {
             .finish_non_exhaustive()
     }
 }
-#[derive(Clone, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(optml::Optml, Clone, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct UtoipaOpenApiPathParameter(utoipa::openapi::path::Parameter);
 impl std::fmt::Debug for UtoipaOpenApiPathParameter {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -267,9 +268,9 @@ impl std::fmt::Debug for UtoipaOpenApiPathParameter {
             .finish_non_exhaustive()
     }
 }
-#[derive(Clone, Debug, Default, Eq, PartialEq, newtype::IntoInnerFrom)]
+#[derive(optml::Optml, Clone, Debug, Default, Eq, PartialEq, newtype::IntoInnerFrom)]
 pub struct ParameterizedRoutePath(String);
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct ParameterizedRoutePathTryFromStringError;
 impl TryFrom<String> for ParameterizedRoutePath {
     type Error = ParameterizedRoutePathTryFromStringError;
@@ -281,7 +282,7 @@ impl TryFrom<String> for ParameterizedRoutePath {
         }
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct OpenApiSecuritySchemeRef<'value_lt>(&'value_lt str);
 pub trait CoveredRoute: TypedRoute {
     fn coverage_descriptor() -> crate::RouteCoverageDescriptor;
@@ -290,9 +291,10 @@ pub trait ParameterizedRoute: TypedRoute {
     type Parameter;
     fn path(parameter: &Self::Parameter) -> ParameterizedRoutePath;
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct RouteBodyLimit(usize);
 #[derive(
+    optml::Optml,
     Clone,
     Debug,
     Default,
@@ -306,10 +308,17 @@ pub struct RouteCoverageDescriptors(
     bounded_types::BoundedVec<crate::RouteCoverageDescriptor, 0, { usize::MAX }>,
 );
 #[derive(
-    Clone, Debug, Default, newtype::AsRefTarget, newtype::FromInner, newtype::IntoInnerFrom,
+    optml::Optml,
+    Clone,
+    Debug,
+    Default,
+    newtype::AsRefTarget,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
 )]
 pub struct RouteSchemaContracts(bounded_types::BoundedVec<RouteSchemaContract, 0, { usize::MAX }>);
 #[derive(
+    optml::Optml,
     Clone,
     Debug,
     Default,
@@ -383,7 +392,7 @@ where
     Family: RouteFamily,
 {
 }
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
 pub struct RouteRequest<Route>
 where
     Route: TypedRoute,
@@ -403,7 +412,7 @@ where
         &self.body
     }
 }
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
 pub struct RouteResponse<Route>
 where
     Route: TypedRoute,
@@ -638,16 +647,17 @@ where
 }
 #[cfg(test)]
 mod tests {
-    #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+    #[derive(optml::Optml, Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
     #[serde(from = "u64")]
     #[derive(newtype::FromInner)]
     struct Request(u64);
 
-    #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+    #[derive(optml::Optml, Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
     #[serde(from = "u64")]
     #[derive(newtype::FromInner)]
     struct Response(u64);
 
+    #[derive(optml::Optml)]
     struct Route;
     impl super::TypedRoute for Route {
         type Request = Request;

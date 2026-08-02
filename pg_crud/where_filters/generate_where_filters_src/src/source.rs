@@ -1,7 +1,12 @@
-#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub struct ProcMacro2GenerateWhereFiltersInput<'input_lt>(&'input_lt proc_macro2::TokenStream);
 #[derive(
-    Debug, newtype::AsRefOwned, newtype::Display, newtype::FromInner, newtype::IntoInnerFrom,
+    optml::Optml,
+    Debug,
+    newtype::AsRefOwned,
+    newtype::Display,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
 )]
 pub struct ProcMacro2GenerateWhereFiltersTokenStream(proc_macro2::TokenStream);
 #[derive(Clone, Copy, Debug, serde::Deserialize, optml::Optml)]
@@ -9,17 +14,17 @@ pub struct ParsedGenerateWhereFiltersConfig {
     pg_types_write_into_file: macros_helpers::ts_writer::ShouldWriteTokenStreamIntoFile,
     whole_write_into_file: macros_helpers::ts_writer::ShouldWriteTokenStreamIntoFile,
 }
-#[derive(Clone, Copy, Debug)]
+#[derive(optml::Optml, Clone, Copy, Debug)]
 pub struct BuiltGenerateWhereFiltersModel {
     config: ParsedGenerateWhereFiltersConfig,
     contract_valid: crate::model::FilterSpecValid,
 }
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 pub struct ValidatedGenerateWhereFiltersConfig(ParsedGenerateWhereFiltersConfig);
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 pub struct SerdeJsonGenerateWhereFiltersError(serde_json::Error);
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 pub enum GenerateWhereFiltersPipelineError {
     #[error("{}", str_constants::INVALID_FILTER_SPECIFICATION)]
     InvalidContract,
@@ -96,6 +101,7 @@ pub fn emit_generate_where_filters(
     enum PgTypePtrn {
         Standard,
     }
+    #[derive(optml::Optml)]
     #[allow(clippy::arbitrary_source_item_ordering)]
     enum PgTypeKind {
         Standard,

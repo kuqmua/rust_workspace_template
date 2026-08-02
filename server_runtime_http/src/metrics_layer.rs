@@ -1,7 +1,7 @@
 const DEFAULT_HTTP_METRICS_PATH_CACHE_MAXIMUM: usize = 4_096usize;
 const METRICS_RESPONSE_BODY_MAXIMUM_BYTES: usize = 8 * 1_024 * 1_024usize;
 
-#[derive(Clone, Debug, Eq, PartialEq, newtype::IntoInner)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::IntoInner)]
 pub struct MetricsResponseBody(String);
 impl axum::response::IntoResponse for MetricsResponseBody {
     fn into_response(self) -> axum::response::Response {
@@ -21,11 +21,11 @@ impl TryFrom<String> for MetricsResponseBody {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("{message}", message = str_constants::METRICS_RESPONSE_BODY_EXCEEDS_MAXIMUM_LENGTH)]
 pub struct MetricsResponseBodyError;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct HttpMetricsPathCacheMaximum(usize);
 
 impl TryFrom<usize> for HttpMetricsPathCacheMaximum {
@@ -44,26 +44,26 @@ impl From<std::num::NonZeroUsize> for HttpMetricsPathCacheMaximum {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("{message}", message = str_constants::HTTP_METRICS_PATH_CACHE_MAXIMUM_MUST_BE_GREATER_THAN_ZERO)]
 pub struct HttpMetricsPathCacheMaximumTryFromUsizeError;
 
-#[derive(Debug)]
+#[derive(optml::Optml, Debug)]
 struct HttpMetricsPathCache {
     entries: StdHttpMetricsPathEntries,
     maximum: HttpMetricsPathCacheMaximum,
     unmatched: MetricsSharedString,
 }
 
-#[derive(Debug, newtype::FromInner)]
+#[derive(optml::Optml, Debug, newtype::FromInner)]
 struct StdHttpMetricsPathEntries(
     std::sync::RwLock<std::collections::HashMap<HttpMetricsPathText, MetricsSharedString>>,
 );
 
-#[derive(Clone, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Debug, newtype::FromInner)]
 struct MetricsSharedString(metrics::SharedString);
 
-#[derive(Clone, Debug, Eq, Hash, PartialEq, newtype::BorrowStr)]
+#[derive(optml::Optml, Clone, Debug, Eq, Hash, PartialEq, newtype::BorrowStr)]
 struct HttpMetricsPathText(String);
 
 impl TryFrom<String> for HttpMetricsPathText {
@@ -78,13 +78,13 @@ impl TryFrom<String> for HttpMetricsPathText {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 struct HttpMetricsPathTextError;
 
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 struct HttpMetricsPathTextRef<'path>(&'path str);
 
-#[derive(Clone, Debug)]
+#[derive(optml::Optml, Clone, Debug)]
 struct StdSharedHttpMetricsPathCache(std::sync::Arc<HttpMetricsPathCache>);
 
 impl From<HttpMetricsPathCache> for StdSharedHttpMetricsPathCache {
@@ -111,18 +111,19 @@ impl HttpMetricsPathCache {
     }
 
     fn label(&self, path: HttpMetricsPathTextRef<'_>) -> MetricsSharedString {
-        let read_entries = self
-            .entries
-            .0
-            .read()
-            .unwrap_or_else(std::sync::PoisonError::into_inner);
-        if let Some(label) = read_entries.get(path.0) {
-            return label.clone();
+        {
+            let read_entries = self
+                .entries
+                .0
+                .read()
+                .unwrap_or_else(std::sync::PoisonError::into_inner);
+            if let Some(label) = read_entries.get(path.0) {
+                return label.clone();
+            }
+            if read_entries.len() >= self.maximum.0 {
+                return self.unmatched.clone();
+            }
         }
-        if read_entries.len() >= self.maximum.0 {
-            return self.unmatched.clone();
-        }
-        drop(read_entries);
         let mut write_entries = self
             .entries
             .0
@@ -143,7 +144,7 @@ impl HttpMetricsPathCache {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(optml::Optml, Clone, Debug)]
 pub struct HttpMetricsLayer {
     paths: StdSharedHttpMetricsPathCache,
 }
@@ -172,7 +173,7 @@ impl HttpMetricsLayer {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(optml::Optml, Clone, Debug)]
 struct HttpMetricsTowerLayer {
     paths: StdSharedHttpMetricsPathCache,
 }
@@ -188,7 +189,7 @@ impl<Service> tower::Layer<Service> for HttpMetricsTowerLayer {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(optml::Optml, Clone, Debug)]
 struct HttpMetricsService<Service> {
     inner: Service,
     paths: StdSharedHttpMetricsPathCache,

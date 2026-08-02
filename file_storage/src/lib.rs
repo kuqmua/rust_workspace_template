@@ -2,16 +2,16 @@ const MAXIMUM_FILE_BYTES: usize = 104_857_600usize;
 const MAXIMUM_OPERATION_ID_BYTES: usize = 128usize;
 const MAXIMUM_PATH_BYTES: usize = 4_096usize;
 
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 pub struct StdFileStorageIoError(std::io::Error);
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 struct StdStoragePathRef<'value_lt>(&'value_lt std::path::Path);
 
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 struct StorageDirectoryNameRef<'value_lt>(&'value_lt str);
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
 pub struct StdFileStorageRoot(std::path::PathBuf);
 impl TryFrom<std::path::PathBuf> for StdFileStorageRoot {
     type Error = FileStoragePathError;
@@ -27,7 +27,7 @@ impl TryFrom<std::path::PathBuf> for StdFileStorageRoot {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
 pub struct StdStorageRelativePath(std::path::PathBuf);
 impl TryFrom<std::path::PathBuf> for StdStorageRelativePath {
     type Error = FileStoragePathError;
@@ -47,7 +47,7 @@ impl TryFrom<std::path::PathBuf> for StdStorageRelativePath {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
 pub struct StdStorageOperationId(String);
 impl TryFrom<String> for StdStorageOperationId {
     type Error = FileStoragePathError;
@@ -64,7 +64,7 @@ impl TryFrom<String> for StdStorageOperationId {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
 pub struct StdFileBytes(bounded_types::BoundedVec<u8, 0, MAXIMUM_FILE_BYTES>);
 impl TryFrom<Vec<u8>> for StdFileBytes {
     type Error = FileStoragePathError;
@@ -76,7 +76,7 @@ impl TryFrom<Vec<u8>> for StdFileBytes {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum FileStoragePathError {
     #[error("{}", str_constants::FILE_STORAGE_FILE_TOO_LARGE)]
     FileTooLarge,
@@ -90,7 +90,7 @@ pub enum FileStoragePathError {
     RootMustBeAbsolute,
 }
 
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 pub enum FileStorageError {
     #[error("{}", str_constants::FILE_STORAGE_ATOMIC_REPLACE_AND_CLEANUP_ERROR)]
     AtomicReplaceAndCleanup {
@@ -109,12 +109,12 @@ pub enum FileStorageError {
     Symlink,
 }
 
-#[derive(Clone, Debug)]
+#[derive(optml::Optml, Clone, Debug)]
 pub struct SafeFileStorage {
     root: StdFileStorageRoot,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum FileStorageStagingArea {
     Delete,
     Upload,
@@ -132,7 +132,7 @@ impl FileStorageStagingArea {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct StdStaleStagingEntryLimit(usize);
 impl TryFrom<usize> for StdStaleStagingEntryLimit {
     type Error = StaleStagingCleanupCfgError;
@@ -145,10 +145,10 @@ impl TryFrom<usize> for StdStaleStagingEntryLimit {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct StdStaleBefore(std::time::SystemTime);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct StaleStagingCleanupCfg {
     maximum_removed: StdStaleStagingEntryLimit,
     maximum_scanned: StdStaleStagingEntryLimit,
@@ -169,11 +169,12 @@ impl StaleStagingCleanupCfg {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("stale staging cleanup limit must be between 1 and 10000")]
 pub struct StaleStagingCleanupCfgError;
 
 #[derive(
+    optml::Optml,
     Clone,
     Copy,
     Debug,
@@ -186,7 +187,7 @@ pub struct StaleStagingCleanupCfgError;
 )]
 pub struct StdStaleStagingEntryCount(usize);
 
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct StaleStagingCleanupReport {
     removed: StdStaleStagingEntryCount,
     scanned: StdStaleStagingEntryCount,
@@ -516,19 +517,19 @@ impl SafeFileStorage {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum AtomicReplaceDurability {
     Flush,
     SyncAll,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct StdDiskCacheSize(u64);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct StdDiskCacheModifiedAt(std::time::SystemTime);
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
 pub struct DiskCacheEntry {
     modified_at: StdDiskCacheModifiedAt,
     path: StdStorageRelativePath,
@@ -549,12 +550,14 @@ impl DiskCacheEntry {
     }
 }
 
-#[derive(Clone, Debug, Default, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)]
+#[derive(
+    optml::Optml, Clone, Debug, Default, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner,
+)]
 pub struct DiskCacheEvictionPlan(
     bounded_types::BoundedVec<StdStorageRelativePath, 0, { usize::MAX }>,
 );
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum DiskCacheBudgetError {
     #[error("incoming cache entry exceeds the cache budget")]
     IncomingTooLarge,

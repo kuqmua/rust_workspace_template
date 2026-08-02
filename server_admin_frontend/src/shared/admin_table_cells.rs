@@ -4,7 +4,7 @@
     reason = "CSR and SSR targets each compile one call site and Leptos cell rendering requires attribute traits in lexical scope"
 )]
 
-use leptos::prelude::{CustomAttribute, ElementChild};
+use leptos::prelude::{ClassAttribute, CustomAttribute, ElementChild};
 
 pub(crate) fn admin_user_roles(
     item: &server_admin_contract::AdminUserSummary,
@@ -17,7 +17,7 @@ pub(crate) fn admin_user_roles(
         .map(|role| role.name().to_string())
         .collect::<Vec<_>>()
         .join(str_constants::COMMA_SPACE);
-    leptos::view! { <td data-label="roles">{names}</td> }
+    leptos::view! { <td data-name="TableCell" class="p-4 align-middle [&:has([role=checkbox])]:pr-0 [&:has([role=checkbox])]:pl-3" data-label="roles">{names}</td> }
 }
 
 pub(crate) fn admin_role_permissions(
@@ -31,7 +31,7 @@ pub(crate) fn admin_role_permissions(
         .map(|permission| permission.name().to_string())
         .collect::<Vec<_>>()
         .join(str_constants::COMMA_SPACE);
-    leptos::view! { <td data-label="permissions">{names}</td> }
+    leptos::view! { <td data-name="TableCell" class="p-4 align-middle [&:has([role=checkbox])]:pr-0 [&:has([role=checkbox])]:pl-3" data-label="permissions">{names}</td> }
 }
 
 #[cfg(test)]

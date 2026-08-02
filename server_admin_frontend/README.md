@@ -9,11 +9,13 @@ Build browser assets before running the server locally:
 
 ```bash
 rustup target add wasm32-unknown-unknown
+npm ci
 trunk build --release
 ```
 
-Run these commands from this directory. Trunk writes generated JavaScript and WebAssembly into
-`static/csr`; the server exposes that directory below `/admin/assets`.
+Run these commands from this directory. The Trunk pre-build hook compiles the Rust/UI Tailwind
+stylesheet. Trunk writes generated JavaScript and WebAssembly into `static/csr`; the server exposes
+the generated assets below `/admin/assets`.
 
 The server CSP must allow WebAssembly compilation. Existing local `server/.env` files created
 before the CSR frontend need this directive:

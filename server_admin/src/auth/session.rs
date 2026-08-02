@@ -19,72 +19,22 @@ pub(super) async fn create_session_in_connection(
     state: &super::AdminAuthSvcState,
     user_id: super::super::AdminUserId,
     context_hash: &super::super::AdminTokenHash,
-    connection: super::SqlxAdminPgConnectionRef<'_>,
-) -> Result<super::AdminSessionBundle, super::AdminSessionError> {
-    create_session_with_refresh_in_connection(
-        state,
-        user_id,
-        context_hash,
-        SessionRefresh::New,
-        connection,
-    )
-    .await
-}
-pub(super) async fn create_refreshed_session_in_connection(
-    state: &super::AdminAuthSvcState,
-    user_id: super::super::AdminUserId,
-    context_hash: &super::super::AdminTokenHash,
-    refresh_token: super::super::AdminRefreshToken,
-    connection: super::SqlxAdminPgConnectionRef<'_>,
-) -> Result<super::AdminSessionBundle, super::AdminSessionError> {
-    create_session_with_refresh_in_connection(
-        state,
-        user_id,
-        context_hash,
-        SessionRefresh::Existing(refresh_token),
-        connection,
-    )
-    .await
-}
-enum SessionRefresh {
-    Existing(super::super::AdminRefreshToken),
-    New,
-}
-async fn create_session_with_refresh_in_connection(
-    state: &super::AdminAuthSvcState,
-    user_id: super::super::AdminUserId,
-    context_hash: &super::super::AdminTokenHash,
-    refresh: SessionRefresh,
     mut connection: super::SqlxAdminPgConnectionRef<'_>,
 ) -> Result<super::AdminSessionBundle, super::AdminSessionError> {
     let now = unix_now()?;
     let session_uuid = uuid::Uuid::new_v4();
     let session_id =
         super::super::AdminSessionId::from(super::super::UuidAdminValue::from(session_uuid));
-    let (refresh_token, refresh_record) = match refresh {
-        SessionRefresh::Existing(refresh_token) => (refresh_token, None),
-        SessionRefresh::New => {
-            let refresh_generated = super::super::AdminGeneratedToken::generate()
-                .map_err(super::AdminSessionError::SecretText)?;
-            let refresh_hash =
-                super::hash_refresh_token_with_context(refresh_generated.token(), context_hash)
-                    .map_err(super::AdminSessionError::SecretText)?;
-            let refresh_token =
-                super::super::AdminRefreshToken::new(super::super::AdminOpaqueToken::new(
-                    super::super::SecrecyAdminString::from(secrecy::SecretBox::new(Box::new(
-                        secrecy::ExposeSecret::expose_secret(refresh_generated.token().0.as_ref())
-                            .clone(),
-                    ))),
-                ));
-            (
-                refresh_token,
-                Some((
-                    super::super::UuidAdminValue::from(uuid::Uuid::new_v4()),
-                    refresh_hash,
-                )),
-            )
-        }
-    };
+    let refresh_generated = super::super::AdminGeneratedToken::generate()
+        .map_err(super::AdminSessionError::SecretText)?;
+    let refresh_hash =
+        super::hash_refresh_token_with_context(refresh_generated.token(), context_hash)
+            .map_err(super::AdminSessionError::SecretText)?;
+    let refresh_token = super::super::AdminRefreshToken::new(super::super::AdminOpaqueToken::new(
+        super::super::SecrecyAdminString::from(secrecy::SecretBox::new(Box::new(
+            secrecy::ExposeSecret::expose_secret(refresh_generated.token().0.as_ref()).clone(),
+        ))),
+    ));
     let csrf_generated = super::super::AdminGeneratedToken::generate()
         .map_err(super::AdminSessionError::SecretText)?;
     let token_identifier = opaque_token_from_uuid(super::super::UuidAdminValue::from(session_uuid))
@@ -116,7 +66,7 @@ async fn create_session_with_refresh_in_connection(
         super::super::repository::SqlxAdminRepositoryConnectionMutRef::from(connection.as_mut()),
         user_id,
         state.session_limit,
-        super::super::StdAdminBool::from(refresh_record.is_some()),
+        super::super::StdAdminBool::from(true),
     )
     .await
     .map_err(super::AdminSessionError::Pg)?;
@@ -131,19 +81,15 @@ async fn create_session_with_refresh_in_connection(
     )
     .await
     .map_err(super::AdminSessionError::Pg)?;
-    if let Some((refresh_id, refresh_hash)) = refresh_record {
-        super::super::repository::sessions::insert_refresh_token(
-            super::super::repository::SqlxAdminRepositoryConnectionMutRef::from(
-                connection.as_mut(),
-            ),
-            refresh_id,
-            user_id,
-            &refresh_hash,
-            state.refresh_ttl,
-        )
-        .await
-        .map_err(super::AdminSessionError::Pg)?;
-    }
+    super::super::repository::sessions::insert_refresh_token(
+        super::super::repository::SqlxAdminRepositoryConnectionMutRef::from(connection.as_mut()),
+        super::super::UuidAdminValue::from(uuid::Uuid::new_v4()),
+        user_id,
+        &refresh_hash,
+        state.refresh_ttl,
+    )
+    .await
+    .map_err(super::AdminSessionError::Pg)?;
     Ok(super::AdminSessionBundle {
         access_token,
         csrf_token: super::super::AdminOpaqueToken::new(super::super::SecrecyAdminString::from(

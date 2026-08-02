@@ -1,4 +1,4 @@
-use leptos::prelude::{AriaAttributes, ClassAttribute, ElementChild, GlobalAttributes};
+use leptos::prelude::{ClassAttribute, ElementChild};
 
 #[leptos::component]
 #[allow(
@@ -26,14 +26,9 @@ pub(in crate::app) fn AdminApp() -> impl leptos::prelude::IntoView {
         <div class="app-shell">
         {move || leptos::prelude::Get::get(&state).admin().cloned().map(|admin| leptos::view! { <super::navigation::AdminNav admin=admin /> })}
         <main class="main-content">{move || match leptos::prelude::Get::get(&state) {
-            super::state::AdminLoadState::Empty(_admin) => leptos::prelude::IntoAny::into_any(leptos::view! { <p class="empty-state">"Choose a table."</p> }),
-            super::state::AdminLoadState::Error(error) => leptos::prelude::IntoAny::into_any(leptos::view! { <p class="field-error" role="alert">{error.to_string()}</p> }),
-            super::state::AdminLoadState::Loading => leptos::prelude::IntoAny::into_any(leptos::view! {
-                <div class="loading-state" role="status" aria-live="polite">
-                    <span class="loading-spinner" aria-hidden="true"></span>
-                    <span class="sr-only">"Loading\u{2026}"</span>
-                </div>
-            }),
+            super::state::AdminLoadState::Empty(_admin) => leptos::prelude::IntoAny::into_any(leptos::view! { <crate::ui::empty::AdminEmpty>"Choose a table."</crate::ui::empty::AdminEmpty> }),
+            super::state::AdminLoadState::Error(error) => leptos::prelude::IntoAny::into_any(leptos::view! { <crate::ui::alert::AdminAlert>{error.to_string()}</crate::ui::alert::AdminAlert> }),
+            super::state::AdminLoadState::Loading => leptos::prelude::IntoAny::into_any(leptos::view! { <crate::ui::spinner::AdminSpinner /> }),
             super::state::AdminLoadState::Permissions(_admin, page) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::permissions::AdminPermissionsView page=page query=query_result.clone().unwrap_or_default() /> }),
             super::state::AdminLoadState::Profile(admin) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::profile::AdminProfileView admin=admin /> }),
             super::state::AdminLoadState::Roles(admin, page) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::roles::AdminRolesView admin=admin page=page query=query_result.clone().unwrap_or_default() /> }),

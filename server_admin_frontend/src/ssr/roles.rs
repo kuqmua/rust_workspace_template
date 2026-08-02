@@ -1,21 +1,6 @@
 mod row;
 
-use leptos::prelude::{ClassAttribute, ElementChild};
-
-trait AdminSsrViewExt {
-    fn render_admin_ssr(self) -> super::AdminSsrHtml;
-}
-impl<View> AdminSsrViewExt for View
-where
-    View: leptos::prelude::IntoAny,
-{
-    fn render_admin_ssr(self) -> super::AdminSsrHtml {
-        super::AdminSsrHtml::try_from(leptos::prelude::RenderHtml::to_html(
-            leptos::prelude::IntoAny::into_any(self),
-        ))
-        .unwrap_or_else(super::AdminSsrHtml::from)
-    }
-}
+use leptos::prelude::{ClassAttribute, CustomAttribute, ElementChild};
 
 #[allow(
     clippy::single_call_fn,
@@ -27,13 +12,14 @@ pub(super) fn render(
     admin: &server_admin_contract::AuthenticatedAdmin,
     branding: &server_admin_contract::AdminBrandingView,
 ) -> super::AdminSsrHtml {
-    let content = leptos::view! {
+    let content_view = leptos::view! {
         <section class="table-page">
-        <div class="table-scroll"><table><thead><tr><th>"id"</th><th>"name"</th><th>"system"</th><th>"permissions"</th></tr></thead>
-        <tbody>{page.items().iter().map(|item| row::admin_role_row(item, page)).collect::<Vec<_>>()}</tbody></table></div>
+        <div data-name="TableWrapper" class="table-scroll max-h-96 overflow-auto rounded-md border"><table data-name="Table" class="w-full max-w-7xl text-sm caption-bottom"><thead data-name="TableHeader" class="[&_tr]:border-b sticky top-0 z-10 bg-card"><tr data-name="TableRow" class="border-b transition-colors data-[state=selected]:bg-muted hover:bg-muted/50"><th data-name="TableHead" class="h-10 px-2 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]">"id"</th><th data-name="TableHead" class="h-10 px-2 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]">"name"</th><th data-name="TableHead" class="h-10 px-2 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]">"system"</th><th data-name="TableHead" class="h-10 px-2 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]">"permissions"</th></tr></thead>
+        <tbody data-name="TableBody" class="[&_tr:last-child]:border-0">{page.items().iter().map(|item| row::admin_role_row(item, page)).collect::<Vec<_>>()}</tbody></table></div>
         {super::table_pagination(server_admin_contract::AdminPage::Roles, query, page.total(), None, None)}
         </section>
-    }.render_admin_ssr();
+    };
+    let content = super::render_view(content_view);
     super::render_admin_page_with_access(
         server_admin_contract::AdminPage::Roles,
         content,

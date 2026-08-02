@@ -1,7 +1,7 @@
 error[E0308]: mismatched types
-  --> trybuild/route_contract_wrong_route.rs:23:59
+  --> trybuild/route_contract_wrong_route.rs:28:59
    |
-23 |     let _: frontend_contract::RouteRequest<SecondRoute> = request;
+28 |     let _: frontend_contract::RouteRequest<SecondRoute> = request;
    |            --------------------------------------------   ^^^^^^^ expected `RouteRequest<SecondRoute>`, found `RouteRequest<FirstRoute>`
    |            |
    |            expected due to this

@@ -9,6 +9,7 @@ license.workspace = true
 edition.workspace = true
 
 [dependencies]
+optml = { workspace = true }
 sqlx = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
@@ -21,7 +22,6 @@ location_lib = { workspace = true }
 location_macros = { workspace = true }
 location = { workspace = true }
 where_filters = { workspace = true }
-optml = { workspace = true }
 to_err_string = { workspace = true }
 utoipa = { workspace = true }
 [lints]

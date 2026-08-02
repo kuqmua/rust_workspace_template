@@ -24,6 +24,14 @@ pub(super) fn map_repository_error(
         }
     }
 }
+pub(super) fn json_response<Value>(value: Value) -> super::AxumAdminResponse
+where
+    Value: serde::Serialize,
+{
+    super::AxumAdminResponse(axum::response::IntoResponse::into_response(axum::Json(
+        value,
+    )))
+}
 pub(super) fn page_total(
     value: super::super::repository::AdminPageTotalCount,
 ) -> Result<server_admin_contract::AdminPageTotal, super::AdminError> {
@@ -89,6 +97,12 @@ pub(super) async fn authorize_custom(
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn json_response_wraps_serializable_values() {
+        let response = super::json_response(server_admin_contract::AdminNoBody);
+        assert_eq!(response.0.status(), http::StatusCode::OK);
+    }
+
     #[test]
     fn page_total_accepts_non_negative_values_and_rejects_negative_values() {
         let total = super::page_total(super::super::super::repository::AdminPageTotalCount::from(

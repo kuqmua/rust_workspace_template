@@ -12,6 +12,7 @@ keywords = ["admin", "contract"]
 categories = ["web-programming"]
 
 [dependencies]
+optml = { workspace = true }
 bounded_types = { workspace = true }
 str_constants = { workspace = true }
 frontend_contract = { workspace = true }

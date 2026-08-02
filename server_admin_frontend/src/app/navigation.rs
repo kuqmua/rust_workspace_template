@@ -1,4 +1,4 @@
-use leptos::prelude::{AriaAttributes, ClassAttribute, ElementChild, OnAttribute};
+use leptos::prelude::{AriaAttributes, ClassAttribute, CustomAttribute, ElementChild, OnAttribute};
 
 #[leptos::component]
 #[allow(
@@ -15,14 +15,14 @@ pub(in crate::app) fn AdminNav(
         .ok()
         .and_then(|query| query.table);
     leptos::view! {
-        <header class="topbar"><nav aria-label="Admin sections">
+        <header class="topbar"><nav data-name="NavigationMenu" class="relative z-10 flex max-w-max flex-1 items-center justify-center" aria-label="Admin sections">
             {server_admin_contract::AdminDataTable::PG_ORDER.into_iter().filter(|table| {
                 bool::from(admin.has_permission(server_admin_contract::AdminPermission::TablesRead))
                     && bool::from(admin.has_permission(table.permission()))
             }).map(|table| {
                 let name = table.to_string();
                 let href = table.frontend_path().to_string();
-                leptos::view! { <a class=("active", active_table == Some(table)) href=href>{name}</a> }
+                leptos::view! { <crate::ui::navigation::AdminNavigationLink active=active_table == Some(table) href=href>{name}</crate::ui::navigation::AdminNavigationLink> }
             }).collect::<Vec<_>>()}
             {server_admin_contract::AdminPage::navigation().filter(|page| {
                 bool::from(admin.can_access(*page))
@@ -31,7 +31,7 @@ pub(in crate::app) fn AdminNav(
                 let href = spec.path().as_ref().to_owned();
                 let active = pathname == href;
                 let label = spec.route_name().as_ref().to_owned();
-                leptos::view! { <a class=("active", active) href=href>{label}</a> }
+                leptos::view! { <crate::ui::navigation::AdminNavigationLink active=active href=href>{label}</crate::ui::navigation::AdminNavigationLink> }
             }).collect::<Vec<_>>()}
             <form on:submit=move |event| {
                 event.prevent_default();
@@ -42,7 +42,7 @@ pub(in crate::app) fn AdminNav(
                         server_admin_contract::AdminNoBody,
                     );
                 }
-            }><button type="submit">{server_admin_contract::AdminHtmlAction::SignOut.route_name().as_ref().to_owned()}</button></form>
+            }><crate::ui::button::AdminButton variant=crate::ui::button::AdminButtonVariant::Secondary>{server_admin_contract::AdminHtmlAction::SignOut.route_name().as_ref().to_owned()}</crate::ui::button::AdminButton></form>
         </nav></header>
     }
 }

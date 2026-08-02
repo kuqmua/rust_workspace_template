@@ -1,4 +1,4 @@
-#[derive(Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
 struct CompileErrorMessage<'message_lt>(&'message_lt str);
 
 impl<'message_lt> From<&'message_lt String> for CompileErrorMessage<'message_lt> {
@@ -6,7 +6,7 @@ impl<'message_lt> From<&'message_lt String> for CompileErrorMessage<'message_lt>
         Self(value.as_str())
     }
 }
-#[derive(newtype::FromInner)]
+#[derive(optml::Optml, newtype::FromInner)]
 struct TableTestNames<'value_lt>(Vec<&'value_lt str>);
 
 fn compile_error_token_stream(
@@ -86,6 +86,7 @@ pub fn emit_generate_pg_table(
             &self.variant
         }
     }
+    #[derive(optml::Optml)]
     enum AddBorrow {
         False,
         True,
@@ -98,6 +99,7 @@ pub fn emit_generate_pg_table(
             }
         }
     }
+    #[derive(optml::Optml)]
     enum AddReturn {
         False,
         True,
@@ -299,7 +301,7 @@ pub fn emit_generate_pg_table(
         Patch,
         Delete,
     }
-    #[derive(Clone, Copy)]
+    #[derive(optml::Optml, Clone, Copy)]
     enum OperationKind {
         CreateMany,
         CreateOne,
@@ -362,11 +364,13 @@ pub fn emit_generate_pg_table(
             }
         }
     }
+    #[derive(optml::Optml)]
     #[allow(clippy::arbitrary_source_item_ordering)]
     enum RmOrDm {
         Rm,
         Dm,
     }
+    #[derive(optml::Optml)]
     enum RmOrRo {
         Rm,
         Ro,
@@ -420,16 +424,19 @@ pub fn emit_generate_pg_table(
             format!("generate_pg_table::{attr_name}")
         }
     }
+    #[derive(optml::Optml)]
     enum ShouldWrapIntoV {
         False,
         True,
     }
+    #[derive(optml::Optml)]
     #[allow(clippy::arbitrary_source_item_ordering)]
     enum CreateOrUpdateOrDm {
         Create,
         Update,
         Delete,
     }
+    #[derive(optml::Optml)]
     #[allow(clippy::arbitrary_source_item_ordering)]
     enum CreateOrUpdateOrDlo {
         Create,
@@ -464,17 +471,21 @@ pub fn emit_generate_pg_table(
         #[serde(default)]
         api_mode: GeneratePgTableApiMode,
     }
-    #[derive(Debug, serde::Deserialize)]
+    #[derive(optml::Optml, Debug, serde::Deserialize)]
     struct GeneratePgTableDbForeignKey {
         columns: UsizeGeneratePgTableDbColumns,
         referenced_columns: UsizeGeneratePgTableDbColumns,
         referenced_table: String,
     }
     const GENERATE_PG_TABLE_MAX_IDENTIFIER_LEN: usize = 63;
-    #[derive(Debug, Clone, newtype::AsRefStr, newtype::Display, newtype::BoundedString)]
+    #[derive(
+        optml::Optml, Debug, Clone, newtype::AsRefStr, newtype::Display, newtype::BoundedString,
+    )]
     #[bounded_string(max = GENERATE_PG_TABLE_MAX_IDENTIFIER_LEN, serde)]
     struct GeneratePgTableDbColumn(String);
-    #[derive(Debug, Clone, newtype::AsRefStr, newtype::Display, newtype::BoundedString)]
+    #[derive(
+        optml::Optml, Debug, Clone, newtype::AsRefStr, newtype::Display, newtype::BoundedString,
+    )]
     #[bounded_string(max = GENERATE_PG_TABLE_MAX_IDENTIFIER_LEN, min = 1usize, serde)]
     struct GeneratePgTableExcludeField(String);
     impl std::ops::Deref for UsizeGeneratePgTableDbColumns {
@@ -495,7 +506,7 @@ pub fn emit_generate_pg_table(
             self.0.as_slice()
         }
     }
-    #[derive(Clone, Copy, Debug, Default, serde::Deserialize)]
+    #[derive(optml::Optml, Clone, Copy, Debug, Default, serde::Deserialize)]
     enum GeneratePgTableApiMode {
         AppendOnly,
         CreateReadDelete,
@@ -504,17 +515,17 @@ pub fn emit_generate_pg_table(
         ReadOnly,
         ReadUpdate,
     }
-    #[derive(Clone, Copy, Debug, serde::Deserialize)]
+    #[derive(optml::Optml, Clone, Copy, Debug, serde::Deserialize)]
     #[serde(from = "usize")]
     #[derive(newtype::FromInner)]
     struct StdBulkItemsMax(usize);
 
-    #[derive(Debug, serde::Deserialize)]
+    #[derive(optml::Optml, Debug, serde::Deserialize)]
     #[serde(try_from = "Vec<GeneratePgTableDbColumn>")]
     struct UsizeGeneratePgTableDbColumns(
         pg_crud_common::bounded_vec::BoundedVec<GeneratePgTableDbColumn, 0usize, { usize::MAX }>,
     );
-    #[derive(Debug, serde::Deserialize)]
+    #[derive(optml::Optml, Debug, serde::Deserialize)]
     #[serde(try_from = "Vec<GeneratePgTableExcludeField>")]
     struct UsizeCreateExcludeFields(
         pg_crud_common::bounded_vec::BoundedVec<
@@ -523,7 +534,7 @@ pub fn emit_generate_pg_table(
             { usize::MAX },
         >,
     );
-    #[derive(Debug, serde::Deserialize)]
+    #[derive(optml::Optml, Debug, serde::Deserialize)]
     #[serde(try_from = "Vec<GeneratePgTableExcludeField>")]
     struct UsizeReadExcludeFields(
         pg_crud_common::bounded_vec::BoundedVec<
@@ -556,6 +567,7 @@ pub fn emit_generate_pg_table(
             )?))
         }
     }
+    #[derive(optml::Optml)]
     struct GeneratePgTableEmissionModel {
         config: GeneratePgTableConfig,
         error_variants_by_attr:
@@ -563,7 +575,7 @@ pub fn emit_generate_pg_table(
         logic_token_stream_by_attr:
             std::collections::BTreeMap<GeneratePgTableAttr, proc_macro2::TokenStream>,
     }
-    #[derive(newtype::FromInner)]
+    #[derive(optml::Optml, newtype::FromInner)]
     struct ProcMacro2GeneratePgTableTestsTokenStream(proc_macro2::TokenStream);
 
     impl ProcMacro2GeneratePgTableTestsTokenStream {
@@ -574,7 +586,7 @@ pub fn emit_generate_pg_table(
             self.0
         }
     }
-    #[derive(newtype::FromInner)]
+    #[derive(optml::Optml, newtype::FromInner)]
     struct ProcMacro2GeneratePgTableCommonTokenStream(proc_macro2::TokenStream);
 
     impl ProcMacro2GeneratePgTableCommonTokenStream {
@@ -582,7 +594,7 @@ pub fn emit_generate_pg_table(
             &self.0
         }
     }
-    #[derive(newtype::FromInner)]
+    #[derive(optml::Optml, newtype::FromInner)]
     struct ProcMacro2GeneratePgTableWholeTokenStream(proc_macro2::TokenStream);
 
     impl ProcMacro2GeneratePgTableWholeTokenStream {
@@ -593,7 +605,7 @@ pub fn emit_generate_pg_table(
             self.0
         }
     }
-    #[derive(newtype::FromInner)]
+    #[derive(optml::Optml, newtype::FromInner)]
     struct SynGeneratePgTableDeriveInput(syn::DeriveInput);
 
     impl SynGeneratePgTableDeriveInput {
@@ -601,37 +613,42 @@ pub fn emit_generate_pg_table(
             &self.0
         }
     }
+    #[derive(optml::Optml)]
     struct GeneratePgTableFieldEmissionModel {
         field: macros_helpers::field_data::SynField,
         frontend: GeneratePgTableFrontendFieldEmission,
         has_db_default: bool,
         is_primary_key: bool,
     }
-    #[derive(Clone, Debug, Default)]
+    #[derive(optml::Optml, Clone, Debug, Default)]
+    #[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optml takes precedence over alphabetical field order
     struct GeneratePgTableFrontendFieldEmission {
-        filterable: bool,
-        hidden: bool,
         label: Option<String>,
         order: Option<usize>,
         placeholder: Option<String>,
+        filterable: bool,
+        hidden: bool,
         sortable: bool,
     }
-    #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+    #[derive(optml::Optml, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
     enum GeneratePgTableFrontendFlag {
         Filterable,
         Hidden,
         Sortable,
     }
+    #[derive(optml::Optml)]
+    #[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optml takes precedence over alphabetical field order
     struct GeneratePgTableVariantFieldEmission {
         identifier: syn::Ident,
-        location_attr: Option<macros_helpers::location_data::LocationFieldAttr>,
         type0: syn::Type,
+        location_attr: Option<macros_helpers::location_data::LocationFieldAttr>,
     }
+    #[derive(optml::Optml)]
     struct GeneratePgTableVariantEmission {
         fields: Vec<GeneratePgTableVariantFieldEmission>,
         identifier: syn::Ident,
     }
-    #[derive(Clone, Copy)]
+    #[derive(optml::Optml, Clone, Copy)]
     enum GeneratePgTableVariantEmissionRef<'variant_lt> {
         Model(&'variant_lt GeneratePgTableVariantEmission),
         Syn(&'variant_lt syn::Variant),
@@ -644,7 +661,7 @@ pub fn emit_generate_pg_table(
             }
         }
     }
-    #[derive(Clone, Copy, newtype::FromInner)]
+    #[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
     struct GeneratePgTableFieldIdx(usize);
 
     impl GeneratePgTableFieldIdx {
@@ -652,6 +669,7 @@ pub fn emit_generate_pg_table(
             self.0
         }
     }
+    #[derive(optml::Optml)]
     struct GeneratePgTableFieldsEmissionModel {
         db_default_field_idxs: Vec<GeneratePgTableFieldIdx>,
         fields: Vec<macros_helpers::field_data::SynField>,
@@ -659,7 +677,7 @@ pub fn emit_generate_pg_table(
         frontend_fields: Vec<GeneratePgTableFrontendFieldEmission>,
         primary_key_field_idx: GeneratePgTableFieldIdx,
     }
-    #[derive(Clone, Copy, newtype::FromInner)]
+    #[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
     struct SynGeneratePgTableFieldRef<'field_lt>(&'field_lt syn::Field);
 
     impl<'field_lt> SynGeneratePgTableFieldRef<'field_lt> {
@@ -667,7 +685,7 @@ pub fn emit_generate_pg_table(
             self.0
         }
     }
-    #[derive(Clone, Copy, newtype::FromInner)]
+    #[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
     struct SynGeneratePgTableIdentifierRef<'identifier_lt>(&'identifier_lt syn::Ident);
 
     impl<'identifier_lt> SynGeneratePgTableIdentifierRef<'identifier_lt> {
@@ -675,7 +693,7 @@ pub fn emit_generate_pg_table(
             self.0
         }
     }
-    #[derive(Clone, Copy, newtype::FromInner)]
+    #[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
     struct SynGeneratePgTableTypeRef<'type_lt>(&'type_lt syn::Type);
 
     impl<'type_lt> SynGeneratePgTableTypeRef<'type_lt> {
@@ -683,7 +701,7 @@ pub fn emit_generate_pg_table(
             self.0
         }
     }
-    #[derive(Clone, Copy, newtype::FromInner)]
+    #[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
     struct GeneratePgTableVariantLocationAttr(
         Option<macros_helpers::location_data::LocationFieldAttr>,
     );
@@ -693,7 +711,7 @@ pub fn emit_generate_pg_table(
             self.0
         }
     }
-    #[derive(Clone, Copy, newtype::FromInner)]
+    #[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
     struct GeneratePgTablePrimaryKeyAttrName<'name_lt>(&'name_lt str);
 
     impl<'name_lt> GeneratePgTablePrimaryKeyAttrName<'name_lt> {
@@ -3398,7 +3416,8 @@ pub fn emit_generate_pg_table(
                     &identifier_read_ids_upper_camel_case,
                     &proc_macro2::TokenStream::new(),
                     &{
-                        enum WrapIntoOptional {
+                        #[derive(optml::Optml)]
+enum WrapIntoOptional {
                             False,
                             True,
                         }
@@ -7987,6 +8006,7 @@ pub fn emit_generate_pg_table(
             field_read_ids_and_create_into_optional_v_read_read_ids_from_co_create_token_stream,
             field_read_ids_and_create_into_optional_v_read_read_ids_from_co_clone_identifier_create_clone_token_stream,
         ) = {
+            #[derive(optml::Optml)]
             enum AddDotClone {
                 False,
                 True,

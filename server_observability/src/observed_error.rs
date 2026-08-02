@@ -1,4 +1,4 @@
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::Display, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::Display, newtype::FromInner)]
 pub struct ObservedErrorCode(&'static str);
 
 impl ObservedErrorCode {
@@ -8,16 +8,16 @@ impl ObservedErrorCode {
     }
 }
 
-#[derive(Debug, newtype::Display, newtype::FromInner)]
+#[derive(optml::Optml, Debug, newtype::Display, newtype::FromInner)]
 pub struct StdObservedErrorBacktrace(std::backtrace::Backtrace);
 
-#[derive(Clone, Copy, Debug, newtype::Display, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::Display, newtype::FromInner)]
 pub struct StdPanicLocation(&'static std::panic::Location<'static>);
 
-#[derive(Debug, newtype::Display, newtype::FromInner)]
+#[derive(optml::Optml, Debug, newtype::Display, newtype::FromInner)]
 pub struct TracingObservedErrorSpanTrace(Box<str>);
 
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 #[error("{source}")]
 pub struct ObservedError<Source>
 where
@@ -79,7 +79,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    #[derive(Debug, thiserror::Error)]
+    #[derive(optml::Optml, Debug, thiserror::Error)]
     #[error("infrastructure failed")]
     struct InfrastructureTestError;
 

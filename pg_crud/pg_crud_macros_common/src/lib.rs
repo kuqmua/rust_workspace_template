@@ -2,6 +2,7 @@ pub mod filters;
 pub mod pg_type_test_cases;
 pub mod token_stream_helpers;
 const IS_NL_PREFIX_STR_MAX_LEN: usize = 1_048_576;
+#[derive(optml::Optml)]
 #[allow(dead_code, non_snake_case)]
 struct NamesCtx {
     AddOperatorSnakeCase: naming::AddOperatorSnakeCase,
@@ -166,7 +167,7 @@ pub enum DeriveOrImpl {
     Derive,
     Impl(macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream),
 }
-#[derive(Debug, Clone, Default, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Default, newtype::FromInner)]
 pub struct ProcMacro2GeneratedRustTokenStreamVec(
     Vec<macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream>,
 );
@@ -189,16 +190,18 @@ impl FromIterator<macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTok
         Self::from(iter.into_iter().collect::<Vec<_>>())
     }
 }
-#[derive(Debug, Clone, Copy, newtype::Display, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, newtype::Display, newtype::FromInner)]
 pub struct NonNullOrNullableStr(&'static str);
-#[derive(Debug, Clone, newtype::BoundedString, newtype::Display)]
+#[derive(optml::Optml, Debug, Clone, newtype::BoundedString, newtype::Display)]
 #[bounded_string(max = IS_NL_PREFIX_STR_MAX_LEN, description = "is nullable prefix string" )]
 pub struct IsNullablePrefixStr(String);
-#[derive(Debug, Clone, Copy, newtype::AsRefStr, newtype::Display, newtype::FromInner)]
+#[derive(
+    optml::Optml, Debug, Clone, Copy, newtype::AsRefStr, newtype::Display, newtype::FromInner,
+)]
 pub struct ImportSnakeCaseStr(&'static str);
-#[derive(Debug, Clone, Copy, newtype::Display, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, newtype::Display, newtype::FromInner)]
 pub struct ImportPathStr(&'static str);
-#[derive(Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
 pub struct DimensionNumber(usize);
 impl DimensionNumber {
     #[must_use]
@@ -206,7 +209,7 @@ impl DimensionNumber {
         self.0
     }
 }
-#[derive(Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
 pub struct StructElsLen(usize);
 impl StructElsLen {
     #[must_use]
@@ -214,7 +217,7 @@ impl StructElsLen {
         self.0
     }
 }
-#[derive(Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
 pub struct DeLen(usize);
 impl DeLen {
     #[must_use]
@@ -222,9 +225,9 @@ impl DeLen {
         self.0
     }
 }
-#[derive(Debug, Clone, Copy, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct WrapIntoBraces(bool);
-#[derive(Debug, Clone, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, newtype::FromInner)]
 pub struct ParseTokenStreamStrings(Vec<String>);
 impl ParseTokenStreamStrings {
     #[must_use]
@@ -246,13 +249,13 @@ impl ParseTokenStreamStrings {
             .collect::<ProcMacro2GeneratedRustTokenStreamVec>()
     }
 }
-#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub struct ParseErrorIdRef<'lt>(&'lt str);
-#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub struct PanicUuidRef<'lt>(&'lt str);
-#[derive(Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
 pub struct SynIdentifierTypeRefs<'lt>(&'lt [(&'lt syn::Ident, &'lt syn::Type)]);
-#[derive(Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
 pub struct SynFieldRefs<'lt>(&'lt [macros_helpers::field_data::SynField]);
 #[derive(Debug, Clone, Copy, optml::Optml)]
 pub enum IsStandardNonNull {

@@ -1,10 +1,15 @@
+#[derive(optml::Optml)]
 #[derive(serde::Serialize, serde::Deserialize)]
 struct FirstRequest;
+#[derive(optml::Optml)]
 #[derive(serde::Serialize, serde::Deserialize)]
 struct SecondRequest;
+#[derive(optml::Optml)]
 #[derive(serde::Serialize, serde::Deserialize)]
 struct Response;
+#[derive(optml::Optml)]
 struct FirstRoute;
+#[derive(optml::Optml)]
 struct SecondRoute;
 impl frontend_contract::TypedRoute for FirstRoute {
     type Request = FirstRequest;

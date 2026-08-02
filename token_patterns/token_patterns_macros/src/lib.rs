@@ -1,7 +1,7 @@
-#[derive(newtype::FromInner)]
+#[derive(optml::Optml, newtype::FromInner)]
 struct ProcMacro2GenerateTpInput(proc_macro2::TokenStream);
 
-#[derive(newtype::FromInner)]
+#[derive(optml::Optml, newtype::FromInner)]
 struct ProcMacro2GenerateTpOutput(proc_macro2::TokenStream);
 
 fn generate_tp(input: ProcMacro2GenerateTpInput) -> ProcMacro2GenerateTpOutput {

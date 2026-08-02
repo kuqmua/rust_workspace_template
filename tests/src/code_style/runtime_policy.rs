@@ -9,7 +9,7 @@ fn runtime_code_does_not_use_expect_unwrap_or_panic() {
             }
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::RuntimePanicExpectUnwrapVisitor {
+                super::runtime_analysis::RuntimePanicExpectUnwrapVisitor {
                     ers: super::types::DiagnosticMsgs::default(),
                 },
             );
@@ -33,7 +33,7 @@ fn runtime_code_does_not_use_mutex() {
             }
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::RuntimeMutexVisitor {
+                super::runtime_analysis::RuntimeMutexVisitor {
                     found_count: super::types::AnalyzerCount::default(),
                 },
             );
@@ -59,7 +59,7 @@ fn runtime_arc_usage_is_limited_to_cross_thread_state() {
             }
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::RuntimeArcVisitor {
+                super::runtime_analysis::RuntimeArcVisitor {
                     allow_arc_value_usage: super::types::AnalyzerBool::from(
                         str_constants::CODE_STYLE_RUNTIME_ARC_OWNER_SUFFIXES
                             .iter()
@@ -134,7 +134,7 @@ fn async_functions_do_not_make_blocking_executor_calls() {
             }
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::AsyncBlockingCallVisitor {
+                super::runtime_analysis::AsyncBlockingCallVisitor {
                     async_fn_depth: super::types::AnalyzerCount::default(),
                     ers: super::types::DiagnosticMsgs::default(),
                 },
@@ -182,7 +182,7 @@ fn synchronous_is_allowed() {
     .expect("57a4f701");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
-        super::AsyncBlockingCallVisitor {
+        super::runtime_analysis::AsyncBlockingCallVisitor {
             async_fn_depth: super::types::AnalyzerCount::default(),
             ers: super::types::DiagnosticMsgs::default(),
         },
@@ -195,15 +195,12 @@ fn unit_tests_do_not_create_external_service_clients() {
         super::types::StaticStr::from(str_constants::D1F5B9C7),
         super::types::SourceTextRef::from(str_constants::UNIT_TESTS_CONTAIN_EXTERNAL_SERVICE_CLIENTS_USE_DETERMINISTIC_LOCAL_FAKES_INSTEAD),
         |path, ast, ers| {
-            if path
-                .components()
-                .any(|component| component.as_os_str() == "tests")
-            {
+            if super::is_test_source_path(super::types::StdPathRef::from(path)).get() {
                 return;
             }
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::UnitTestExternalServiceVisitor {
+                super::runtime_analysis::UnitTestExternalServiceVisitor {
                     test_depth: super::types::AnalyzerCount::default(),
                     ers: super::types::DiagnosticMsgs::default(),
                 },
@@ -233,7 +230,7 @@ fn external_service_policy_rejects_http_database_and_socket_clients() {
     .expect("62a4c3a8");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
-        super::UnitTestExternalServiceVisitor {
+        super::runtime_analysis::UnitTestExternalServiceVisitor {
             test_depth: super::types::AnalyzerCount::default(),
             ers: super::types::DiagnosticMsgs::default(),
         },
@@ -258,7 +255,7 @@ fn external_service_policy_requires_a_reason_for_ignored_integration_tests() {
     .expect("fa48e32b");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
-        super::UnitTestExternalServiceVisitor {
+        super::runtime_analysis::UnitTestExternalServiceVisitor {
             test_depth: super::types::AnalyzerCount::default(),
             ers: super::types::DiagnosticMsgs::default(),
         },

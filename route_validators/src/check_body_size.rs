@@ -1,6 +1,7 @@
-#[derive(Debug, newtype::FromInner)]
+#[derive(optml::Optml, Debug, newtype::FromInner)]
 pub struct AxumBody(axum::body::Body);
 #[derive(
+    optml::Optml,
     Debug,
     Clone,
     Copy,
@@ -14,9 +15,9 @@ pub struct AxumBody(axum::body::Body);
 )]
 #[serde(from = "usize")]
 pub struct BodySizeLimitBytes(usize);
-#[derive(Debug, newtype::ToErrString, newtype::FromInner)]
+#[derive(optml::Optml, Debug, newtype::ToErrString, newtype::FromInner)]
 pub struct AxumBodySizeError(axum::Error);
-#[derive(Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
 pub struct HttpBodySizeHint(http_body::SizeHint);
 impl to_err_string::ToErrString for HttpBodySizeHint {
     fn to_err_string(&self) -> to_err_string::ErrorText {
@@ -25,7 +26,14 @@ impl to_err_string::ToErrString for HttpBodySizeHint {
     }
 }
 #[derive(
-    Debug, Clone, PartialEq, Eq, newtype::AsRefTarget, newtype::DerefTarget, newtype::FromInner,
+    optml::Optml,
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    newtype::AsRefTarget,
+    newtype::DerefTarget,
+    newtype::FromInner,
 )]
 pub struct BytesBodyBytes(bytes::Bytes);
 #[location::errors_with_location]

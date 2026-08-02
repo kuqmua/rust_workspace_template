@@ -1,7 +1,7 @@
-#[derive(Debug, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(optml::Optml, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct TokioServiceRuntime(tokio::runtime::Runtime);
 
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
 #[error("{0}")]
 pub struct StdServiceRuntimeIoError(std::io::Error);
 

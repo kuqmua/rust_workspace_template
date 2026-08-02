@@ -1,13 +1,13 @@
-#[derive(Clone, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(optml::Optml, Clone, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct ReqwestClient(reqwest::Client);
 
-#[derive(Clone, Copy, Debug)]
+#[derive(optml::Optml, Clone, Copy, Debug)]
 pub struct StdReqwestConnectTimeout(std::time::Duration);
 
-#[derive(Clone, Copy, Debug)]
+#[derive(optml::Optml, Clone, Copy, Debug)]
 pub struct StdReqwestRequestTimeout(std::time::Duration);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("HTTP client timeout must be greater than zero")]
 pub struct StdReqwestTimeoutError;
 
@@ -35,7 +35,7 @@ impl TryFrom<std::time::Duration> for StdReqwestRequestTimeout {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(optml::Optml, Clone, Copy, Debug)]
 pub struct ReqwestClientPolicy {
     connect_timeout: StdReqwestConnectTimeout,
     request_timeout: StdReqwestRequestTimeout,
@@ -54,11 +54,11 @@ impl ReqwestClientPolicy {
     }
 }
 
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 pub struct ReqwestClientBuildError(reqwest::Error);
 
-#[derive(Debug, newtype::FromInner)]
+#[derive(optml::Optml, Debug, newtype::FromInner)]
 pub(super) struct TracingHttpClientSpan(tracing::Span);
 
 impl TracingHttpClientSpan {

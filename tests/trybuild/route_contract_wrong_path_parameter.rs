@@ -1,3 +1,4 @@
+#[derive(optml::Optml)]
 struct ParameterizedTestRoute;
 
 impl frontend_contract::TypedRoute for ParameterizedTestRoute {

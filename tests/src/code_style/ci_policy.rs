@@ -72,6 +72,27 @@ fn continuous_integration_contains_required_security_and_quality_commands() {
     .for_each(|required| assert!(workflow.as_ref().contains(required), "missing `{required}`"));
 }
 #[test]
+#[allow(
+    clippy::needless_for_each,
+    reason = "repository source policy requires iterator methods instead of for loops"
+)]
+fn continuous_integration_runs_specialized_test_families() {
+    let workflow = workflow();
+    [
+        str_constants::CI_MIRI_COMPONENT,
+        str_constants::CI_MIRI_TEST_CMD,
+        str_constants::CI_DATABASE_TEST_CMD,
+        str_constants::CI_BROWSER_TEST_CMD,
+    ]
+    .into_iter()
+    .for_each(|required| {
+        assert!(
+            workflow.as_ref().contains(required),
+            "specialized test family command is missing: `{required}`"
+        );
+    });
+}
+#[test]
 fn continuous_integration_uses_the_pinned_workspace_toolchain() {
     let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()

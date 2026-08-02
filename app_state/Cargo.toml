@@ -10,6 +10,7 @@ edition.workspace = true
 
 
 [dependencies]
+optml = { workspace = true }
 newtype = { workspace = true }
 sqlx = { workspace = true }
 [lints]

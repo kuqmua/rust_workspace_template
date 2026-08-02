@@ -68,8 +68,8 @@
 ../server_admin/src/lib.rs:SqlxAdminError
 ../server_admin_contract/src/lib.rs:AdminAuditDetailsTooLarge
 ../server_admin_contract/src/lib.rs:AdminIdTryFromI64Error
-../server_admin_contract/src/lib.rs:AdminPageLimitError
 ../server_admin_contract/src/lib.rs:AdminTableSortFieldTryFromKeyError
+../server_admin_contract/src/query.rs:AdminPageLimitError
 ../server_admin_core/src/lib.rs:AdminIdTryFromI64Error
 ../server_admin_frontend/src/ssr.rs:AdminSsrHtmlTryFromStringError
 ../server_admin_frontend/src/ssr.rs:AdminSsrTextTryFromStringError
@@ -101,7 +101,6 @@
 ../server_runtime_http/src/http_client.rs:ReqwestClientBuildError
 ../server_runtime_http/src/http_client.rs:StdReqwestTimeoutError
 ../server_runtime_http/src/http_error_diagnostic.rs:HttpErrorWithoutDiagnosticContext
-../server_runtime_http/src/lib.rs:BoundaryTestError
 ../server_runtime_http/src/lifecycle.rs:StdRequestTimeoutTryFromDurationError
 ../server_runtime_http/src/lifecycle.rs:StdRunIntervalTryFromDurationError
 ../server_runtime_http/src/lifecycle.rs:TokioTaskJoinError
@@ -119,6 +118,7 @@
 ../server_runtime_http/src/security_headers.rs:HttpContentSecurityPolicyError
 ../server_runtime_http/src/service.rs:StdServeIoError
 ../server_runtime_http/src/service_bootstrap.rs:StdServiceRuntimeIoError
+../server_runtime_http/src/tests.rs:BoundaryTestError
 ../server_runtime_http/src/trace_context.rs:HttpTraceStateError
 ../synchronization_service_runtime/src/lib.rs:SynchronizationPayloadTooLarge
 ../tests/src/code_style/types.rs:SourceTextTryFromStringError

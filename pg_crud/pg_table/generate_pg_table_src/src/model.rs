@@ -1,15 +1,17 @@
 #![allow(clippy::field_scoped_visibility_modifiers)] // sibling emitters read the private descriptor directly while it remains hidden outside the generator
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(
+    optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom,
+)]
 pub struct GeneratePgTableFieldCount(usize);
 
-#[derive(Debug)]
+#[derive(optml::Optml, Debug)]
 pub struct GeneratePgTableModel {
     field_count: GeneratePgTableFieldCount,
     input: SynGeneratePgTableModelInput,
 }
-#[derive(Debug, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(optml::Optml, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
 pub(super) struct SynGeneratePgTableModelInput(syn::DeriveInput);
-#[derive(Debug, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(optml::Optml, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
 pub(super) struct SynGeneratePgTableModelError(syn::Error);
 impl GeneratePgTableModel {
     #[must_use]
@@ -43,7 +45,7 @@ impl GeneratePgTableModel {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(optml::Optml, Clone, Copy)]
 pub(super) struct OperationDsc<
     Capability,
     HttpMethod,

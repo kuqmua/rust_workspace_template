@@ -1,7 +1,7 @@
-#[derive(Debug, newtype::FromInner)]
+#[derive(optml::Optml, Debug, newtype::FromInner)]
 pub struct SynParsedGeneratePgTableInput(syn::DeriveInput);
 
-#[derive(Debug, newtype::FromInner)]
+#[derive(optml::Optml, Debug, newtype::FromInner)]
 pub struct SynBuiltGeneratePgTableInput(crate::model::GeneratePgTableModel);
 
 impl SynBuiltGeneratePgTableInput {
@@ -11,7 +11,7 @@ impl SynBuiltGeneratePgTableInput {
     }
 }
 
-#[derive(Debug, newtype::FromInner)]
+#[derive(optml::Optml, Debug, newtype::FromInner)]
 pub struct SynValidatedGeneratePgTableInput(crate::model::GeneratePgTableModel);
 
 impl SynValidatedGeneratePgTableInput {
@@ -20,11 +20,11 @@ impl SynValidatedGeneratePgTableInput {
     }
 }
 
-#[derive(Debug, thiserror::Error, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner, newtype::IntoInnerFrom)]
 #[error(transparent)]
 pub struct SynGeneratePgTablePipelineError(syn::Error);
 
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 pub enum GeneratePgTablePipelineError {
     #[error("{0}")]
     Build(SynGeneratePgTablePipelineError),

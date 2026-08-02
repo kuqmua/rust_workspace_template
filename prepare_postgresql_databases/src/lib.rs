@@ -1,8 +1,8 @@
-#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr, newtype::TryFrom)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefStr, newtype::TryFrom)]
 #[try_from(validator = validate_database_url)]
 pub struct DatabaseUrl(String);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum DatabaseUrlError {
     #[error("{0}", str_constants::DATABASE_URL_MUST_NOT_BE_EMPTY)]
     Empty,
@@ -10,17 +10,17 @@ pub enum DatabaseUrlError {
     TooLong,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr, newtype::TryFrom)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefStr, newtype::TryFrom)]
 #[try_from(validator = validate_migrations_source)]
 pub struct MigrationsSource(String);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum MigrationsSourceError {
     #[error("{0}", str_constants::MIGRATIONS_SOURCE_EXCEEDS_MAXIMUM_LENGTH)]
     TooLong,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
 pub struct DatabasePreparationSpec {
     migrations_source: MigrationsSource,
     url: DatabaseUrl,
@@ -36,20 +36,20 @@ impl DatabasePreparationSpec {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
 pub struct ProcessCommand {
     arguments: ProcessArguments,
     program: ProcessProgram,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
 pub enum ProcessArgument {
     DatabaseUrl(DatabaseUrl),
     MigrationsSource(MigrationsSource),
     Static(ProcessStaticArgument),
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct ProcessStaticArgument(&'static str);
 
 impl From<DatabaseUrl> for ProcessArgument {
@@ -80,12 +80,14 @@ impl AsRef<str> for ProcessArgument {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)]
 pub struct ProcessArguments(bounded_types::BoundedVec<ProcessArgument, 0, { usize::MAX }>);
-#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)]
 pub struct ProcessCommands(bounded_types::BoundedVec<ProcessCommand, 0, { usize::MAX }>);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::AsRefInner, newtype::FromInner)]
+#[derive(
+    optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::AsRefInner, newtype::FromInner,
+)]
 pub struct ProcessProgram(&'static str);
 
 impl ProcessCommand {

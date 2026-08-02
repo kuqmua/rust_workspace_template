@@ -9,11 +9,13 @@ mod sessions;
 mod settings;
 mod shared;
 mod users;
-#[derive(newtype::DebugTransparent, newtype::FromInner)]
+#[derive(optml::Optml, newtype::DebugTransparent, newtype::FromInner)]
 pub struct JsonwebtokenAdminEncodingKey(jsonwebtoken::EncodingKey);
-#[derive(Debug, newtype::AsRefTarget, newtype::FromInner)]
+#[derive(optml::Optml, Debug, newtype::AsRefTarget, newtype::FromInner)]
 struct JsonwebtokenAdminDecodingKeys(Vec<jsonwebtoken::DecodingKey>);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::IntoInnerFrom, newtype::TryFrom)]
+#[derive(
+    optml::Optml, Debug, Clone, Copy, PartialEq, Eq, newtype::IntoInnerFrom, newtype::TryFrom,
+)]
 #[try_from(
     error = AdminAuthPositiveValueError,
     validator = StdAdminAccessTtlSeconds::validate
@@ -29,7 +31,9 @@ impl StdAdminAccessTtlSeconds {
         }
     }
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::IntoInnerFrom, newtype::TryFrom)]
+#[derive(
+    optml::Optml, Debug, Clone, Copy, PartialEq, Eq, newtype::IntoInnerFrom, newtype::TryFrom,
+)]
 #[try_from(
     error = AdminAuthPositiveValueError,
     validator = StdAdminRefreshTtlSeconds::validate
@@ -45,7 +49,9 @@ impl StdAdminRefreshTtlSeconds {
         }
     }
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::IntoInnerFrom, newtype::TryFrom)]
+#[derive(
+    optml::Optml, Debug, Clone, Copy, PartialEq, Eq, newtype::IntoInnerFrom, newtype::TryFrom,
+)]
 #[try_from(
     error = AdminAuthPositiveValueError,
     validator = StdAdminSessionLimit::validate
@@ -61,7 +67,9 @@ impl StdAdminSessionLimit {
         }
     }
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::IntoInnerFrom, newtype::TryFrom)]
+#[derive(
+    optml::Optml, Debug, Clone, Copy, PartialEq, Eq, newtype::IntoInnerFrom, newtype::TryFrom,
+)]
 #[try_from(
     error = AdminAuthPositiveValueError,
     validator = StdAdminFailureThreshold::validate
@@ -77,27 +85,27 @@ impl StdAdminFailureThreshold {
         }
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("{self:?}")]
 pub struct AdminAuthPositiveValueError;
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
 pub struct StdAdminFailureDelayMillis(u64);
-#[derive(Debug, Clone, Copy, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner, newtype::IntoInnerFrom)]
 pub(crate) struct StdAdminRateLimitCount(i64);
-#[derive(Debug, Clone, Copy, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner, newtype::IntoInnerFrom)]
 pub(crate) struct StdAdminRateLimitWindowSeconds(i32);
-#[derive(Debug, Clone, Copy)]
+#[derive(optml::Optml, Debug, Clone, Copy)]
 pub struct AdminAuthPolicy {
     audit_export_limit: StdAdminRateLimitCount,
-    audit_export_window: StdAdminRateLimitWindowSeconds,
     failure_delay: StdAdminFailureDelayMillis,
     failure_threshold: StdAdminFailureThreshold,
     mutation_limit: StdAdminRateLimitCount,
-    mutation_window: StdAdminRateLimitWindowSeconds,
     refresh_limit: StdAdminRateLimitCount,
-    refresh_window: StdAdminRateLimitWindowSeconds,
     sign_in_ip_limit: StdAdminRateLimitCount,
     sign_in_limit: StdAdminRateLimitCount,
+    audit_export_window: StdAdminRateLimitWindowSeconds,
+    mutation_window: StdAdminRateLimitWindowSeconds,
+    refresh_window: StdAdminRateLimitWindowSeconds,
     sign_in_window: StdAdminRateLimitWindowSeconds,
 }
 impl AdminAuthPolicy {
@@ -124,12 +132,11 @@ impl AdminAuthPolicy {
         }
     }
 }
-#[derive(Debug)]
+#[derive(optml::Optml, Debug)]
 pub struct AdminAuthSvcState {
     access_ttl: StdAdminAccessTtlSeconds,
     allowed_origins: server_runtime_http::AllowedOrigins,
     audience: config_lib::AdminTokenAudience,
-    cookie_secure: super::AdminCookieSecure,
     decoding_keys: JsonwebtokenAdminDecodingKeys,
     encoding_key: JsonwebtokenAdminEncodingKey,
     issuer: config_lib::AdminTokenIssuer,
@@ -138,10 +145,11 @@ pub struct AdminAuthSvcState {
     pool: app_state::SqlxPgPool,
     refresh_ttl: StdAdminRefreshTtlSeconds,
     session_limit: StdAdminSessionLimit,
+    cookie_secure: super::AdminCookieSecure,
 }
-#[derive(Clone, Debug, newtype::AsRefOwned, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Debug, newtype::AsRefOwned, newtype::FromInner)]
 pub struct StdSharedAdminAuthSvcState(std::sync::Arc<AdminAuthSvcState>);
-#[derive(Clone, Copy, Debug, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, thiserror::Error)]
 pub enum AdminAuthSvcStateBuildError {
     #[error("administrator allowed origin is invalid")]
     AllowedOrigin,
@@ -162,16 +170,16 @@ fn admin_new_password_from_contract(
 ) -> Result<super::AdminPassword, super::AdminPasswordTryFromStringError> {
     super::AdminPassword::try_from(value.into_inner())
 }
-#[derive(Debug, serde::Serialize, utoipa::ToSchema)]
+#[derive(optml::Optml, Debug, serde::Serialize, utoipa::ToSchema)]
 pub struct AuthenticatedAdmin {
     display_name: super::AdminDisplayName,
     id: super::AdminUserId,
     login: super::AdminLogin,
-    #[schema(value_type = bool)]
-    password_change_required: super::AdminPasswordChangeRequired,
     permissions: super::AdminPermissions,
     roles: super::AdminRoleNames,
     session_id: super::AdminSessionId,
+    #[schema(value_type = bool)]
+    password_change_required: super::AdminPasswordChangeRequired,
 }
 impl AuthenticatedAdmin {
     #[must_use]
@@ -218,43 +226,44 @@ fn authenticated_admin_contract(
             .map_err(|_error| AdminError::Validation)?,
     ))
 }
-#[derive(Clone, Debug, serde::Deserialize, utoipa::IntoParams)]
+#[derive(optml::Optml, Clone, Debug, serde::Deserialize, utoipa::IntoParams)]
 #[into_params(parameter_in = Query)]
 pub struct AdminAuditQuery {
-    #[param(inline)]
-    action: Option<super::AdminAuditAction>,
     created_after: Option<server_admin_contract::AdminAuditTimestamp>,
     created_before: Option<server_admin_contract::AdminAuditTimestamp>,
     cursor_created_at: Option<server_admin_contract::AdminAuditTimestamp>,
     cursor_id: Option<server_admin_contract::AdminAuditLogId>,
-    #[serde(default)]
-    #[param(value_type = u16, minimum = 1, maximum = 100)]
-    limit: server_admin_contract::AdminPageLimit,
-    #[serde(default)]
-    #[param(value_type = u32)]
-    offset: server_admin_contract::AdminPageOffset,
-    #[param(inline)]
-    resource: Option<super::AdminAuditResource>,
     resource_id: Option<server_admin_contract::AdminText>,
-    succeeded: Option<server_admin_contract::AdminBool>,
     #[param(inline)]
     user_id: Option<super::AdminUserId>,
     user_login: Option<server_admin_contract::AdminLogin>,
+    #[serde(default)]
+    #[param(value_type = u32)]
+    offset: server_admin_contract::AdminPageOffset,
+    #[serde(default)]
+    #[param(value_type = u16, minimum = 1, maximum = 100)]
+    limit: server_admin_contract::AdminPageLimit,
+    #[param(inline)]
+    resource: Option<super::AdminAuditResource>,
+    succeeded: Option<server_admin_contract::AdminBool>,
+    #[param(inline)]
+    action: Option<super::AdminAuditAction>,
 }
+#[derive(optml::Optml)]
 #[allow(clippy::field_scoped_visibility_modifiers)] // repository query binding consumes this internal cross-module DTO field-by-field
 pub(crate) struct AdminAuditQueryParts {
-    pub(crate) action: Option<super::AdminAuditAction>,
     pub(crate) created_after: Option<server_admin_contract::AdminAuditTimestamp>,
     pub(crate) created_before: Option<server_admin_contract::AdminAuditTimestamp>,
     pub(crate) cursor_created_at: Option<server_admin_contract::AdminAuditTimestamp>,
     pub(crate) cursor_id: Option<server_admin_contract::AdminAuditLogId>,
-    pub(crate) limit: server_admin_contract::AdminPageLimit,
-    pub(crate) offset: server_admin_contract::AdminPageOffset,
-    pub(crate) resource: Option<super::AdminAuditResource>,
     pub(crate) resource_id: Option<server_admin_contract::AdminText>,
-    pub(crate) succeeded: Option<server_admin_contract::AdminBool>,
     pub(crate) user_id: Option<super::AdminUserId>,
     pub(crate) user_login: Option<server_admin_contract::AdminLogin>,
+    pub(crate) offset: server_admin_contract::AdminPageOffset,
+    pub(crate) limit: server_admin_contract::AdminPageLimit,
+    pub(crate) resource: Option<super::AdminAuditResource>,
+    pub(crate) succeeded: Option<server_admin_contract::AdminBool>,
+    pub(crate) action: Option<super::AdminAuditAction>,
 }
 impl AdminAuditQuery {
     pub(crate) fn cursor_is_complete(&self) -> super::StdAdminBool {
@@ -277,15 +286,15 @@ impl AdminAuditQuery {
         }
     }
 }
-#[derive(Clone, Debug, newtype::AsRefOwned, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Debug, newtype::AsRefOwned, newtype::FromInner)]
 pub struct HttpAdminHeaderMap(http::HeaderMap);
-#[derive(Debug, Clone)]
+#[derive(optml::Optml, Debug, Clone)]
 pub(crate) struct AdminAuthReq {
     headers: HttpAdminHeaderMap,
-    peer: AdminPeerAddr,
     state: StdSharedAdminAuthSvcState,
+    peer: AdminPeerAddr,
 }
-#[derive(Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
 pub(crate) struct AdminPeerAddr(super::StdAdminSocketAddr);
 impl AdminPeerAddr {
     pub(crate) const fn socket_addr(self) -> super::StdAdminSocketAddr {
@@ -310,17 +319,17 @@ where
         )
     }
 }
-#[derive(Debug, newtype::FromInner)]
+#[derive(optml::Optml, Debug, newtype::FromInner)]
 pub(crate) struct AdminSignInJson(server_admin_contract::AdminSignInReq);
-#[derive(Debug, newtype::FromInner)]
+#[derive(optml::Optml, Debug, newtype::FromInner)]
 pub(crate) struct AxumAdminJson<Value>(Value);
-#[derive(Debug, newtype::FromInner)]
+#[derive(optml::Optml, Debug, newtype::FromInner)]
 pub(crate) struct AxumAdminForm<Value>(Value);
-#[derive(Debug, newtype::FromInner)]
+#[derive(optml::Optml, Debug, newtype::FromInner)]
 pub(crate) struct AxumAdminPath<Value>(Value);
-#[derive(Debug, newtype::FromInner)]
+#[derive(optml::Optml, Debug, newtype::FromInner)]
 pub(crate) struct AxumAdminQuery<Value>(Value);
-#[derive(Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
 pub(crate) struct AdminSessionPath(super::AdminSessionId);
 impl<S> axum::extract::FromRequestParts<S> for HttpAdminHeaderMap
 where
@@ -571,7 +580,19 @@ async fn validate_csrf(
     .await
     .map_err(AdminError::pg)?
     .ok_or(AdminError::Csrf)?;
-    if provided_hash.expose().as_ref() != expected.expose().as_ref() {
+    let provided_text = provided_hash.expose();
+    let provided_secret = match server_runtime_http::SecretTextRef::try_from(provided_text.get()) {
+        Ok(secret) => secret,
+        Err(_error) => return Err(AdminError::Csrf),
+    };
+    let expected_text = expected.expose();
+    let expected_secret = match server_runtime_http::SecretTextRef::try_from(expected_text.get()) {
+        Ok(secret) => secret,
+        Err(_error) => return Err(AdminError::Csrf),
+    };
+    if server_runtime_http::secret_texts_match(expected_secret, provided_secret)
+        != server_runtime_http::SecretTextMatch::Equal
+    {
         return Err(AdminError::Csrf);
     }
     Ok(())
@@ -611,10 +632,10 @@ pub(crate) async fn authorize_generated_request(
     }
     Ok(authenticated)
 }
-#[derive(newtype::DebugTransparent, thiserror::Error, newtype::FromInner)]
+#[derive(optml::Optml, newtype::DebugTransparent, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 pub struct HttpAdminHeaderValueError(http::header::InvalidHeaderValue);
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
 enum AdminObservedErrorCode {
     AuthenticationSecretText,
     CsrfSecretText,
@@ -639,7 +660,7 @@ impl AdminObservedErrorCode {
         }
     }
 }
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 pub(crate) enum AdminError {
     #[error("administrator authentication failed")]
     Authentication,
@@ -679,6 +700,20 @@ pub(crate) enum AdminError {
     Header(#[source] server_runtime_http::ObservedError<HttpAdminHeaderValueError>),
 }
 impl AdminError {
+    #[track_caller]
+    fn observed<Source>(
+        source: Source,
+        code: AdminObservedErrorCode,
+    ) -> server_runtime_http::ObservedError<Source>
+    where
+        Source: std::error::Error + 'static,
+    {
+        server_runtime_http::ObservedError::capture(
+            source,
+            server_runtime_http::ObservedErrorCode::from(code.get()),
+        )
+    }
+
     const fn route_error_status(&self) -> frontend_contract::RouteErrorStatus {
         match self {
             Self::Authentication | Self::AuthenticationSecretText(_) => {
@@ -702,74 +737,48 @@ impl AdminError {
 
     #[track_caller]
     fn authentication_secret_text(source: super::AdminSecretTextError) -> Self {
-        Self::AuthenticationSecretText(server_runtime_http::ObservedError::capture(
+        Self::AuthenticationSecretText(Self::observed(
             source,
-            server_runtime_http::ObservedErrorCode::from(
-                AdminObservedErrorCode::AuthenticationSecretText.get(),
-            ),
+            AdminObservedErrorCode::AuthenticationSecretText,
         ))
     }
 
     #[track_caller]
     fn csrf_secret_text(source: super::AdminSecretTextError) -> Self {
-        Self::CsrfSecretText(server_runtime_http::ObservedError::capture(
+        Self::CsrfSecretText(Self::observed(
             source,
-            server_runtime_http::ObservedErrorCode::from(
-                AdminObservedErrorCode::CsrfSecretText.get(),
-            ),
+            AdminObservedErrorCode::CsrfSecretText,
         ))
     }
 
     #[track_caller]
     fn header(source: HttpAdminHeaderValueError) -> Self {
-        Self::Header(server_runtime_http::ObservedError::capture(
-            source,
-            server_runtime_http::ObservedErrorCode::from(AdminObservedErrorCode::Header.get()),
-        ))
+        Self::Header(Self::observed(source, AdminObservedErrorCode::Header))
     }
 
     #[track_caller]
     fn password_hash(source: super::AdminPasswordHashError) -> Self {
-        Self::PasswordHash(server_runtime_http::ObservedError::capture(
-            source,
-            server_runtime_http::ObservedErrorCode::from(
-                AdminObservedErrorCode::PasswordHash.get(),
-            ),
-        ))
+        Self::PasswordHash(Self::observed(source, AdminObservedErrorCode::PasswordHash))
     }
 
     #[track_caller]
     fn password_text(source: super::AdminPasswordTryFromStringError) -> Self {
-        Self::PasswordText(server_runtime_http::ObservedError::capture(
-            source,
-            server_runtime_http::ObservedErrorCode::from(
-                AdminObservedErrorCode::PasswordText.get(),
-            ),
-        ))
+        Self::PasswordText(Self::observed(source, AdminObservedErrorCode::PasswordText))
     }
 
     #[track_caller]
     fn pg(source: super::SqlxAdminError) -> Self {
-        Self::Pg(server_runtime_http::ObservedError::capture(
-            source,
-            server_runtime_http::ObservedErrorCode::from(AdminObservedErrorCode::Database.get()),
-        ))
+        Self::Pg(Self::observed(source, AdminObservedErrorCode::Database))
     }
 
     #[track_caller]
     fn session(source: AdminSessionError) -> Self {
-        Self::Session(server_runtime_http::ObservedError::capture(
-            source,
-            server_runtime_http::ObservedErrorCode::from(AdminObservedErrorCode::Session.get()),
-        ))
+        Self::Session(Self::observed(source, AdminObservedErrorCode::Session))
     }
 
     #[track_caller]
     fn secret_text(source: super::AdminSecretTextError) -> Self {
-        Self::SecretText(server_runtime_http::ObservedError::capture(
-            source,
-            server_runtime_http::ObservedErrorCode::from(AdminObservedErrorCode::SecretText.get()),
-        ))
+        Self::SecretText(Self::observed(source, AdminObservedErrorCode::SecretText))
     }
 }
 impl From<sqlx::Error> for AdminError {
@@ -782,7 +791,7 @@ impl From<super::SqlxAdminError> for AdminError {
         Self::pg(value)
     }
 }
-#[derive(Debug, newtype::IntoInnerFrom, newtype::FromInner)]
+#[derive(optml::Optml, Debug, newtype::IntoInnerFrom, newtype::FromInner)]
 pub struct AxumAdminResponse(axum::response::Response);
 impl axum::response::IntoResponse for AdminError {
     fn into_response(self) -> axum::response::Response {
@@ -891,7 +900,7 @@ async fn record_login_attempt(
     .await
     .map_err(AdminError::pg)
 }
-#[derive(Debug, Clone, Copy)]
+#[derive(optml::Optml, Debug, Clone, Copy)]
 struct AdminAuditSuccessRef<'value_lt> {
     action: super::AdminAuditAction,
     login: &'value_lt super::AdminLogin,
@@ -899,7 +908,7 @@ struct AdminAuditSuccessRef<'value_lt> {
     resource_id: AdminAuditResourceId,
     user_id: super::AdminUserId,
 }
-#[derive(Debug, Clone, Copy)]
+#[derive(optml::Optml, Debug, Clone, Copy)]
 enum AdminAuditResourceId {
     Role(super::AdminRoleId),
     Session(super::AdminSessionId),
@@ -922,7 +931,7 @@ async fn record_audit_success_in_connection(
 ) -> Result<(), AdminError> {
     audit::record_success_in_connection(connection, event).await
 }
-#[derive(newtype::AsMut, newtype::FromInner)]
+#[derive(optml::Optml, newtype::AsMut, newtype::FromInner)]
 struct SqlxAdminPgConnectionRef<'connection_lt>(&'connection_lt mut sqlx::PgConnection);
 
 async fn load_authenticated_admin(
@@ -960,30 +969,8 @@ async fn load_authenticated_admin_from_db(
         session_id,
     })
 }
-#[allow(clippy::single_call_fn)] // sign-in alone creates the long-lived refresh cookie
+#[allow(clippy::single_call_fn)] // authentication flows create and rotate the long-lived refresh cookie
 fn append_session_cookies(
-    response: &mut AxumAdminResponse,
-    state: &AdminAuthSvcState,
-    session: &AdminSessionBundle,
-) -> Result<(), AdminError> {
-    append_access_session_cookies(response, state, session)?;
-    let refresh = super::build_admin_cookie(
-        super::AdminCookieKind::Refresh,
-        session.refresh_token.expose(),
-        super::AdminCookieMaxAgeSeconds::from(state.refresh_ttl.0),
-        state.cookie_secure,
-    );
-    http::HeaderValue::from_str(refresh.as_ref())
-        .map(|header| {
-            response
-                .0
-                .headers_mut()
-                .append(http::header::SET_COOKIE, header)
-        })
-        .map(drop)
-        .map_err(|error| AdminError::header(HttpAdminHeaderValueError::from(error)))
-}
-fn append_access_session_cookies(
     response: &mut AxumAdminResponse,
     state: &AdminAuthSvcState,
     session: &AdminSessionBundle,
@@ -1012,7 +999,22 @@ fn append_access_session_cookies(
             })
             .map(drop)
             .map_err(|error| AdminError::header(HttpAdminHeaderValueError::from(error)))
-    })
+    })?;
+    let refresh = super::build_admin_cookie(
+        super::AdminCookieKind::Refresh,
+        session.refresh_token.expose(),
+        super::AdminCookieMaxAgeSeconds::from(state.refresh_ttl.0),
+        state.cookie_secure,
+    );
+    http::HeaderValue::from_str(refresh.as_ref())
+        .map(|header| {
+            response
+                .0
+                .headers_mut()
+                .append(http::header::SET_COOKIE, header)
+        })
+        .map(drop)
+        .map_err(|error| AdminError::header(HttpAdminHeaderValueError::from(error)))
 }
 fn append_cleared_session_cookies(
     response: &mut AxumAdminResponse,
@@ -1037,9 +1039,9 @@ fn append_cleared_session_cookies(
             .map_err(|error| AdminError::header(HttpAdminHeaderValueError::from(error)))
     })
 }
-#[derive(Debug, Clone, newtype::IntoInnerFrom, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, newtype::IntoInnerFrom, newtype::FromInner)]
 pub struct AxumAdminAuthRouter(axum::Router);
-#[derive(Clone, newtype::IntoInnerFrom, newtype::FromInner)]
+#[derive(optml::Optml, Clone, newtype::IntoInnerFrom, newtype::FromInner)]
 pub struct UtoipaAdminAuthOpenApi(utoipa::openapi::OpenApi);
 impl std::fmt::Debug for UtoipaAdminAuthOpenApi {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -1058,7 +1060,7 @@ pub fn routes(state: StdSharedAdminAuthSvcState) -> AxumAdminAuthRouter {
 pub fn html_routes(state: StdSharedAdminAuthSvcState) -> AxumAdminAuthRouter {
     html::routes(state, AdminHtmlSwaggerEnabled::from(true))
 }
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 pub struct AdminHtmlSwaggerEnabled(bool);
 #[must_use]
 pub fn html_routes_with_swagger(
@@ -1140,7 +1142,7 @@ impl AdminAuthSvcState {
         })
     }
 }
-#[derive(Debug)]
+#[derive(optml::Optml, Debug)]
 pub struct AdminSessionBundle {
     access_token: super::StdAdminAccessToken,
     csrf_token: super::AdminOpaqueToken,
@@ -1165,7 +1167,7 @@ impl AdminSessionBundle {
         self.session_id
     }
 }
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 pub enum AdminSessionError {
     #[error("administrator access token creation failed: {0:?}")]
     AccessToken(super::AdminAccessTokenError),
@@ -1185,305 +1187,9 @@ async fn create_session_in_connection(
 ) -> Result<AdminSessionBundle, AdminSessionError> {
     session::create_session_in_connection(state, user_id, context_hash, connection).await
 }
-#[allow(clippy::single_call_fn)] // facade keeps refreshed-session persistence private to the session module
-async fn create_refreshed_session_in_connection(
-    state: &AdminAuthSvcState,
-    user_id: super::AdminUserId,
-    context_hash: &super::AdminTokenHash,
-    refresh_token: super::AdminRefreshToken,
-    connection: SqlxAdminPgConnectionRef<'_>,
-) -> Result<AdminSessionBundle, AdminSessionError> {
-    session::create_refreshed_session_in_connection(
-        state,
-        user_id,
-        context_hash,
-        refresh_token,
-        connection,
-    )
-    .await
-}
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn rate_limit_scopes_are_distinct() {
-        let scopes = [
-            super::rate_limit::AdminRateLimitScope::AuditExport,
-            super::rate_limit::AdminRateLimitScope::Mutation,
-            super::rate_limit::AdminRateLimitScope::RefreshIp,
-            super::rate_limit::AdminRateLimitScope::SignInIp,
-            super::rate_limit::AdminRateLimitScope::SignInIpLogin,
-        ]
-        .map(super::rate_limit::AdminRateLimitScope::as_str);
-        assert_eq!(
-            scopes[0].as_ref(),
-            str_constants::SERVER_ADMIN_RATE_LIMIT_AUDIT_EXPORT
-        );
-        let unique = scopes.into_iter().collect::<std::collections::HashSet<_>>();
-        assert_eq!(unique.len(), 5usize);
-    }
-    #[test]
-    fn rate_limited_error_includes_retry_after_header() {
-        let response = axum::response::IntoResponse::into_response(super::AdminError::RateLimited);
-        assert_eq!(response.status(), http::StatusCode::TOO_MANY_REQUESTS);
-        assert_eq!(
-            response.headers().get(http::header::RETRY_AFTER),
-            Some(&http::HeaderValue::from_static("60")),
-        );
-        assert!(
-            response
-                .extensions()
-                .get::<server_runtime_http::HttpErrorDiagnostic>()
-                .is_none()
-        );
-    }
-    #[test]
-    fn server_error_response_preserves_http_diagnostic() {
-        let response = axum::response::IntoResponse::into_response(super::AdminError::pg(
-            super::super::SqlxAdminError::from(sqlx::Error::RowNotFound),
-        ));
-        assert_eq!(response.status(), http::StatusCode::INTERNAL_SERVER_ERROR);
-        assert!(
-            response
-                .extensions()
-                .get::<server_runtime_http::HttpErrorDiagnostic>()
-                .is_some()
-        );
-        assert_eq!(
-            response.headers().get(http::header::CONTENT_TYPE),
-            Some(&http::HeaderValue::from_static(
-                str_constants::APPLICATION_PROBLEM_PLUS_JSON
-            ))
-        );
-        let body =
-            futures::executor::block_on(axum::body::to_bytes(response.into_body(), 16_384usize))
-                .expect("8770f4d3");
-        let contract_problem =
-            serde_json::from_slice::<frontend_contract::ApiProblem>(&body).expect("4f705ab8");
-        assert_eq!(
-            contract_problem.kind(),
-            frontend_contract::ApiProblemKind::Internal
-        );
-        let problem = serde_json::from_slice::<serde_json::Value>(&body).expect("1e7ec09d");
-        [
-            "location",
-            "error_location",
-            "backtrace",
-            "error_chain",
-            "span_trace",
-        ]
-        .into_iter()
-        .for_each(|private_field| {
-            assert!(problem.get(private_field).is_none());
-        });
-    }
-    #[test]
-    fn session_context_hash_is_bound_to_peer_and_user_agent() {
-        let mut first_headers = http::HeaderMap::new();
-        let _previous_user_agent = first_headers.insert(
-            http::header::USER_AGENT,
-            http::HeaderValue::from_static(str_constants::ADMIN_CLIENT_1),
-        );
-        let first_peer = super::AdminPeerAddr::from(super::super::StdAdminSocketAddr::from(
-            str_constants::VALUE_192_0_2_10_443
-                .parse::<std::net::SocketAddr>()
-                .expect("f133a4ca"),
-        ));
-        let same_context_hash = super::session_context_hash(
-            super::super::HttpAdminHeaderMapRef::from(&first_headers),
-            first_peer,
-        )
-        .expect("14f0aa2d");
-        let repeated_context_hash = super::session_context_hash(
-            super::super::HttpAdminHeaderMapRef::from(&first_headers),
-            first_peer,
-        )
-        .expect("998805c8");
-        assert_eq!(
-            secrecy::ExposeSecret::expose_secret(same_context_hash.0.as_ref()),
-            secrecy::ExposeSecret::expose_secret(repeated_context_hash.0.as_ref()),
-        );
-        let other_peer = super::AdminPeerAddr::from(super::super::StdAdminSocketAddr::from(
-            str_constants::VALUE_192_0_2_11_443
-                .parse::<std::net::SocketAddr>()
-                .expect("5a831a2f"),
-        ));
-        let other_peer_hash = super::session_context_hash(
-            super::super::HttpAdminHeaderMapRef::from(&first_headers),
-            other_peer,
-        )
-        .expect("0803469a");
-        assert_ne!(
-            secrecy::ExposeSecret::expose_secret(same_context_hash.0.as_ref()),
-            secrecy::ExposeSecret::expose_secret(other_peer_hash.0.as_ref()),
-        );
-        let mut other_headers = http::HeaderMap::new();
-        let _previous_other_user_agent = other_headers.insert(
-            http::header::USER_AGENT,
-            http::HeaderValue::from_static(str_constants::ADMIN_CLIENT_2),
-        );
-        let other_user_agent_hash = super::session_context_hash(
-            super::super::HttpAdminHeaderMapRef::from(&other_headers),
-            first_peer,
-        )
-        .expect("90ce47ee");
-        assert_ne!(
-            secrecy::ExposeSecret::expose_secret(same_context_hash.0.as_ref()),
-            secrecy::ExposeSecret::expose_secret(other_user_agent_hash.0.as_ref()),
-        );
-    }
-    #[test]
-    fn audit_resource_identifier_uses_target_identifier() {
-        assert_eq!(
-            super::AdminAuditResourceId::User(
-                crate::AdminUserId::try_from(42i64).expect("423b91b9"),
-            )
-            .value()
-            .as_ref(),
-            "42"
-        );
-        assert_eq!(
-            super::AdminAuditResourceId::Role(
-                crate::AdminRoleId::try_from(7i64).expect("af8df9d2"),
-            )
-            .value()
-            .as_ref(),
-            "7"
-        );
-        assert_eq!(
-            super::AdminAuditResourceId::SystemSettings.value().as_ref(),
-            "1"
-        );
-    }
-    #[test]
-    fn open_api_contains_auth_and_user_security_contracts() {
-        frontend_contract_validation::validate_openapi_schema_references(
-            &utoipa::openapi::OpenApi::from(super::open_api()),
-        )
-        .expect("2151641d");
-        let document = serde_json::to_value(utoipa::openapi::OpenApi::from(super::open_api()))
-            .expect("869d28d7");
-        let paths = document
-            .get(str_constants::PATHS)
-            .and_then(serde_json::Value::as_object)
-            .expect("6e15edec");
-        assert_eq!(paths.len(), 22usize);
-        assert!(!paths.contains_key("/auth/mfa"));
-        assert!(!paths.contains_key("/auth/mfa/enroll"));
-        assert!(!paths.contains_key("/auth/mfa/confirm"));
-        assert!(!paths.contains_key("/auth/mfa/step-up"));
-        let documented_route_contracts = paths
-            .iter()
-            .flat_map(|(path, path_item)| {
-                path_item
-                    .as_object()
-                    .into_iter()
-                    .flat_map(|operation_map| operation_map.iter())
-                    .map(move |(method, operation)| {
-                        (
-                            method.to_owned(),
-                            operation
-                                .get(str_constants::OPERATION_ID_JSON)
-                                .and_then(serde_json::Value::as_str)
-                                .expect("4252acc8")
-                                .to_owned(),
-                            path.to_owned(),
-                        )
-                    })
-            })
-            .collect::<std::collections::BTreeSet<_>>();
-        let contracted_route_contracts = <server_admin_contract::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::coverage_descriptors()
-            .as_ref()
-            .iter()
-            .copied()
-            .map(|descriptor| {
-                let metadata = descriptor.metadata();
-                (
-                    metadata.method().as_ref().to_ascii_lowercase(),
-                    metadata.openapi_operation_id().as_ref().to_owned(),
-                    metadata.path().as_ref().to_owned(),
-                )
-            })
-            .collect::<std::collections::BTreeSet<_>>();
-        assert_eq!(documented_route_contracts, contracted_route_contracts);
-        assert!(paths.contains_key("/auth/sign_in"));
-        assert!(paths.contains_key("/auth/sessions/{session_id}"));
-        assert!(paths.contains_key("/users/{user_id}/password"));
-        assert!(paths.contains_key("/roles/{role_id}/permissions"));
-        assert!(paths.contains_key("/permissions"));
-        assert!(paths.contains_key("/audit_log"));
-        assert!(paths.contains_key("/system_settings"));
-        assert_eq!(
-            document
-                .pointer(str_constants::ADMIN_OPENAPI_SIGN_IN_OPERATION_ID_POINTER)
-                .and_then(serde_json::Value::as_str),
-            Some(<server_admin_contract::AdminSignInRoute as frontend_contract::TypedRoute>::metadata().openapi_operation_id().as_ref()),
-        );
-        assert_eq!(
-            document
-                .pointer(str_constants::ADMIN_OPENAPI_REFRESH_OPERATION_ID_POINTER)
-                .and_then(serde_json::Value::as_str),
-            Some(<server_admin_contract::AdminRefreshRoute as frontend_contract::TypedRoute>::metadata().openapi_operation_id().as_ref()),
-        );
-        assert_eq!(
-            document
-                .pointer(str_constants::ADMIN_OPENAPI_ME_OPERATION_ID_POINTER)
-                .and_then(serde_json::Value::as_str),
-            Some(
-                <server_admin_contract::AdminMeRoute as frontend_contract::TypedRoute>::metadata()
-                    .openapi_operation_id()
-                    .as_ref()
-            ),
-        );
-        assert!(
-            paths
-                .values()
-                .all(|path| path
-                    .as_object()
-                    .is_some_and(|operations| operations.values().all(|operation| operation
-                        .pointer("/responses/429/headers/Retry-After")
-                        .is_some())))
-        );
-        assert!(
-            document
-                .pointer("/components/securitySchemes/admin_cookie")
-                .is_some()
-        );
-        assert!(
-            document
-                .pointer("/components/securitySchemes/admin_csrf")
-                .is_some()
-        );
-        assert_eq!(
-            document
-                .pointer("/components/schemas/AdminPassword/writeOnly")
-                .and_then(serde_json::Value::as_bool),
-            Some(true),
-        );
-        let expected_body_limit_description = format!(
-            "{}{}",
-            str_constants::OPENAPI_REQUEST_BODY_MAXIMUM_BYTES_PREFIX,
-            <server_admin_contract::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::body_limit()
-                .expect("be105d90")
-                .get()
-        );
-        let request_body_descriptions = paths
-            .values()
-            .filter_map(|path| path.as_object())
-            .flat_map(|operations| operations.values())
-            .filter_map(|operation| {
-                operation.pointer(str_constants::OPENAPI_REQUEST_BODY_DESCRIPTION_POINTER)
-            })
-            .filter_map(serde_json::Value::as_str)
-            .collect::<Vec<_>>();
-        assert!(!request_body_descriptions.is_empty());
-        assert!(
-            request_body_descriptions
-                .into_iter()
-                .all(|description| description == expected_body_limit_description)
-        );
-    }
-}
 mod audit;
 mod rate_limit;
 mod routes;
 mod session;
+#[cfg(test)]
+mod tests;

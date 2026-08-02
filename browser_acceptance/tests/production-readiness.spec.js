@@ -633,15 +633,19 @@ test("a read-only administrator sees only authorized navigation and mutations fa
   const permissions = (await permissionsResponse.json()).items;
   const usersRead = permissions.find(permission => permission.name === "users:read");
   const tablesRead = permissions.find(permission => permission.name === "tables:read");
+  const settingsRead = permissions.find(
+    permission => permission.name === "system_settings:read"
+  );
   expect(usersRead).toBeTruthy();
   expect(tablesRead).toBeTruthy();
+  expect(settingsRead).toBeTruthy();
 
   const rolePermissions = await page.request.put(
     `/v1/admin/roles/${roleId}/permissions`,
     {
       data: {
         expected_permission_ids: [],
-        permission_ids: [tablesRead.id, usersRead.id]
+        permission_ids: [settingsRead.id, tablesRead.id, usersRead.id]
       },
       headers: await adminHeaders(page.context())
     }
@@ -688,7 +692,26 @@ test("a read-only administrator sees only authorized navigation and mutations fa
   ).toHaveCount(0);
   await expect(
     reader.locator('nav[aria-label="Admin sections"] a[href="/admin/settings"]')
-  ).toHaveCount(0);
+  ).toBeVisible();
+
+  await reader.goto("/admin/settings");
+  await expect(reader.locator('[data-renderer="csr"]')).toBeVisible();
+  const settingsControls = reader.locator(
+    '[data-name="Input"], [data-name="Textarea"]'
+  );
+  expect(await settingsControls.count()).toBeGreaterThan(0);
+  expect(
+    await settingsControls.evaluateAll(elements =>
+      elements.every(element => element.disabled)
+    )
+  ).toBe(true);
+  await expect(reader.getByRole("button", { name: "Save settings" })).toBeDisabled();
+  const reset = reader.getByRole("button", {
+    name: "Reset to template defaults"
+  });
+  await expect(reset).toBeDisabled();
+  await reset.click({ force: true });
+  await expect(reader.getByRole("dialog", { name: "Reset settings?" })).not.toBeVisible();
 
   const forbiddenPage = await reader.goto("/admin/roles");
   expect(forbiddenPage).not.toBeNull();

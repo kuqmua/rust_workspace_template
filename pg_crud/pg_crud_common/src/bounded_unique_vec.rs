@@ -1,7 +1,7 @@
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::Display, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::Display, newtype::FromInner)]
 pub struct UniqueVecLen(usize);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum UniqueVecError {
     #[error("{} {max}", str_constants::BOUNDED_UNIQUE_VEC_ABOVE_MAX)]
     AboveMax { max: UniqueVecLen },
@@ -19,7 +19,7 @@ pub enum UniqueVecError {
     },
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, serde::Serialize, newtype::AsRefTarget)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, serde::Serialize, newtype::AsRefTarget)]
 #[serde(transparent)]
 pub struct BoundedUniqueVec<T, const MIN: usize, const MAX: usize>(Vec<T>);
 impl<T: PartialEq, const MIN: usize, const MAX: usize> TryFrom<Vec<T>>
@@ -41,7 +41,7 @@ impl<T: PartialEq, const MIN: usize, const MAX: usize> TryFrom<Vec<T>>
     }
 }
 
-#[derive(newtype::FromInner)]
+#[derive(optml::Optml, newtype::FromInner)]
 struct StdBoundedUniqueVecVisitor<T, const MIN: usize, const MAX: usize>(
     std::marker::PhantomData<T>,
 );

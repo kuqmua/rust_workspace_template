@@ -1,25 +1,25 @@
-#[derive(Clone, Copy, Debug, newtype::Display, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::Display, newtype::FromInner)]
 pub struct HttpErrorCode(&'static str);
 
-#[derive(Clone, Copy, Debug, newtype::Display, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::Display, newtype::FromInner)]
 pub struct HttpErrorType(&'static str);
 
-#[derive(Clone, Copy, Debug)]
+#[derive(optml::Optml, Clone, Copy, Debug)]
 pub struct HttpErrorTelemetry {
     error_code: HttpErrorCode,
     error_type: HttpErrorType,
 }
 
-#[derive(Clone, Debug, newtype::Display, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Debug, newtype::Display, newtype::FromInner)]
 pub(super) struct StdHttpErrorBacktrace(Box<str>);
 
-#[derive(Clone, Debug, newtype::Display, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Debug, newtype::Display, newtype::FromInner)]
 pub(super) struct StdHttpErrorChain(Box<str>);
 
-#[derive(Clone, Debug, newtype::Display, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Debug, newtype::Display, newtype::FromInner)]
 pub(super) struct TracingHttpSpanTrace(Box<str>);
 
-#[derive(Clone, Debug)]
+#[derive(optml::Optml, Clone, Debug)]
 pub struct HttpErrorDiagnostic {
     backtrace: StdHttpErrorBacktrace,
     error_chain: StdHttpErrorChain,
@@ -109,7 +109,7 @@ impl HttpErrorDiagnostic {
     }
 }
 
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 #[error("{}", str_constants::HTTP_ERROR_WITHOUT_DIAGNOSTIC_CONTEXT)]
 struct HttpErrorWithoutDiagnosticContext;
 

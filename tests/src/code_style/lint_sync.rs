@@ -1,4 +1,4 @@
-#[derive(Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Debug, Eq, PartialEq)]
 enum LintProbeDisposition {
     Supported,
     Unknown,

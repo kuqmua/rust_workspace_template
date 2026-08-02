@@ -26,10 +26,18 @@ struct UriSuffixRef<'suffix_lt>(&'suffix_lt str);
 struct NoRouteMessageCapacity(usize);
 #[derive(Debug, Clone, Copy, optml::Optml, newtype::FromInner)]
 struct HealthCheckSucceeded(bool);
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct HealthDatabaseAvailable(bool);
 #[derive(
-    Debug, Clone, Copy, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema,
+    optml::Optml,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    serde::Deserialize,
+    serde::Serialize,
+    utoipa::ToSchema,
 )]
 #[serde(rename_all = "snake_case")]
 pub enum HealthStatus {
@@ -38,7 +46,15 @@ pub enum HealthStatus {
     Ok,
 }
 #[derive(
-    Debug, Clone, Copy, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema,
+    optml::Optml,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    serde::Deserialize,
+    serde::Serialize,
+    utoipa::ToSchema,
 )]
 #[serde(rename_all = "snake_case")]
 pub enum HealthComponentKind {
@@ -46,13 +62,21 @@ pub enum HealthComponentKind {
     ServiceAvailability,
 }
 #[derive(
-    Debug, Clone, Copy, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema,
+    optml::Optml,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    serde::Deserialize,
+    serde::Serialize,
+    utoipa::ToSchema,
 )]
 pub struct HealthComponent {
     kind: HealthComponentKind,
     status: HealthStatus,
 }
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[derive(optml::Optml, Debug, Clone, PartialEq, Eq, serde::Serialize)]
 pub struct HealthComponents(Vec<HealthComponent>);
 impl utoipa::PartialSchema for HealthComponents {
     fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
@@ -100,10 +124,19 @@ impl<'de> serde::Deserialize<'de> for HealthComponents {
         Self::try_from(value).map_err(serde::de::Error::custom)
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("{}", str_constants::HEALTH_COMPONENTS_LENGTH_EXCEEDS_LIMIT)]
 pub struct HealthComponentsError;
-#[derive(Debug, Clone, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema)]
+#[derive(
+    optml::Optml,
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    serde::Deserialize,
+    serde::Serialize,
+    utoipa::ToSchema,
+)]
 pub struct HealthReport {
     components: HealthComponents,
     status: HealthStatus,
@@ -161,37 +194,39 @@ impl axum::response::IntoResponse for AxumHealthCheckStatus {
 struct JsonRes<T> {
     payload: AxumJsonPayload<T>,
 }
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 enum CommonNotFoundError {
     #[error("common route was not found")]
     NotFound(NotFoundHandle),
 }
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 enum HealthCheckError {
     #[error("service is unavailable")]
     Unavailable,
 }
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 enum HealthError {
     #[error("service is unavailable")]
     Unavailable,
 }
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 enum HealthLiveError {
     #[error("service is unavailable")]
     Unavailable,
 }
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 enum HealthReadyError {
     #[error("service is unavailable")]
     Unavailable,
 }
 #[derive(Debug, optml::Optml, newtype::FromInner)]
 struct AxumJsonPayload<T>(axum::Json<T>);
-#[derive(Clone, Copy, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema)]
+#[derive(
+    optml::Optml, Clone, Copy, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema,
+)]
 pub struct CommonNoBody;
 
-#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[derive(optml::Optml, Clone, Copy, Debug, frontend_contract::TypedRoute)]
 #[typed_route(
     authentication = frontend_contract::AuthenticationRequirement::Public,
     error_statuses = &[],
@@ -207,7 +242,7 @@ pub struct CommonNoBody;
 )]
 pub struct HealthLiveRoute;
 
-#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[derive(optml::Optml, Clone, Copy, Debug, frontend_contract::TypedRoute)]
 #[typed_route(
     authentication = frontend_contract::AuthenticationRequirement::Public,
     error_response = HealthReport,
@@ -224,7 +259,7 @@ pub struct HealthLiveRoute;
 )]
 pub struct HealthReadyRoute;
 
-#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[derive(optml::Optml, Clone, Copy, Debug, frontend_contract::TypedRoute)]
 #[typed_route(
     authentication = frontend_contract::AuthenticationRequirement::Public,
     error_response = HealthReport,
@@ -241,7 +276,7 @@ pub struct HealthReadyRoute;
 )]
 pub struct HealthRoute;
 
-#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[derive(optml::Optml, Clone, Copy, Debug, frontend_contract::TypedRoute)]
 #[typed_route(
     authentication = frontend_contract::AuthenticationRequirement::Public,
     error_response = (),
@@ -258,7 +293,7 @@ pub struct HealthRoute;
 )]
 pub struct HealthCheckRoute;
 
-#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[derive(optml::Optml, Clone, Copy, Debug, frontend_contract::TypedRoute)]
 #[typed_route(
     authentication = frontend_contract::AuthenticationRequirement::Public,
     error_statuses = &[],
@@ -274,7 +309,7 @@ pub struct HealthCheckRoute;
 )]
 pub struct GitInfoRoute;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, frontend_contract::RouteCatalog)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, frontend_contract::RouteCatalog)]
 #[route_catalog(family = CommonRouteFamily, body_limit = 0usize)]
 pub enum CommonRoute {
     #[route_catalog_route(GitInfoRoute)]
@@ -359,9 +394,9 @@ fn health_unavailable_response() -> axum::response::Response {
 pub struct AxumCommonRoutes(axum::Router);
 #[derive(Clone, optml::Optml, newtype::FromInner)]
 pub struct StdArcCommonRoutesAppState(std::sync::Arc<dyn CommonRoutesParameters>);
-#[derive(Clone, Copy, Debug)]
+#[derive(optml::Optml, Clone, Copy, Debug)]
 pub struct CommonRoutesOpenApi;
-#[derive(serde::Serialize)]
+#[derive(optml::Optml, serde::Serialize)]
 #[serde(transparent)]
 #[derive(newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct UtoipaCommonRoutesOpenApiDocument(utoipa::openapi::OpenApi);
@@ -504,6 +539,7 @@ fn health_report_response(report: HealthReport) -> Option<JsonRes<HealthReport>>
         HealthStatus::Degraded | HealthStatus::Error => None,
     }
 }
+#[derive(optml::Optml)]
 #[frontend_contract::route_registry(
     state = StdArcCommonRoutesAppState,
     family = CommonRouteFamily;
@@ -598,429 +634,4 @@ pub fn common_routes(app_state_b9fc2d94: StdArcCommonRoutesAppState) -> AxumComm
     )
 }
 #[cfg(test)]
-#[allow(clippy::arbitrary_source_item_ordering)] // fixtures remain adjacent to the tests that exercise their route state
-mod tests {
-    #[derive(Clone, Copy)]
-    struct ClientTransport;
-    impl frontend_contract::Transport for ClientTransport {
-        fn send(
-            &self,
-            _request: frontend_contract::TransportRequest,
-        ) -> impl Future<
-            Output = Result<
-                frontend_contract::TransportResponse,
-                frontend_contract::TransportError,
-            >,
-        > + '_ {
-            std::future::ready(Err(frontend_contract::TransportError::default()))
-        }
-    }
-    #[test]
-    fn every_common_route_has_named_route_and_client_functions() {
-        assert_eq!(
-            <super::CommonRouteFamily as frontend_contract::RouteFamily>::ROUTE_COUNT,
-            5usize
-        );
-        assert_eq!(super::git_info_route(), super::CommonRoute::GitInfo.path());
-        assert_eq!(super::health_route(), super::CommonRoute::Health.path());
-        assert_eq!(
-            super::health_check_route(),
-            super::CommonRoute::HealthCheck.path()
-        );
-        assert_eq!(
-            super::health_live_route(),
-            super::CommonRoute::HealthLive.path()
-        );
-        assert_eq!(
-            super::health_ready_route(),
-            super::CommonRoute::HealthReady.path()
-        );
-        assert_eq!(
-            size_of_val(&super::git_info_client::<ClientTransport>),
-            0usize
-        );
-        assert_eq!(
-            size_of_val(&super::health_client::<ClientTransport>),
-            0usize
-        );
-        assert_eq!(
-            size_of_val(&super::health_check_client::<ClientTransport>),
-            0usize
-        );
-        assert_eq!(
-            size_of_val(&super::health_live_client::<ClientTransport>),
-            0usize
-        );
-        assert_eq!(
-            size_of_val(&super::health_ready_client::<ClientTransport>),
-            0usize
-        );
-    }
-    #[test]
-    fn repository_owned_common_routes_use_snake_case_segments() {
-        assert!(!str_constants::COMMON_ROUTES_SWAGGER_UI.contains('-'));
-        super::CommonRoute::ALL.into_iter().for_each(|route| {
-            assert!(!route.path().as_ref().contains('-'));
-        });
-    }
-
-    #[test]
-    fn common_route_family_coverage_is_complete() {
-        let descriptors =
-            <super::CommonRouteFamily as frontend_contract::RouteFamily>::coverage_descriptors();
-        assert_eq!(
-            frontend_contract::validate_route_coverage(descriptors.as_ref()),
-            Ok(())
-        );
-        assert_eq!(descriptors.as_ref().len(), super::CommonRoute::ALL.len());
-    }
-
-    #[test]
-    fn health_reports_distinguish_liveness_and_dependency_readiness() {
-        let live = super::HealthReport::liveness();
-        assert_eq!(live.status(), super::HealthStatus::Ok);
-        assert_eq!(live.components.0.len(), 1usize);
-        let ready = super::HealthReport::readiness(super::HealthDatabaseAvailable::from(true));
-        assert_eq!(ready.status(), super::HealthStatus::Ok);
-        assert_eq!(ready.components.0.len(), 2usize);
-        let degraded = super::HealthReport::readiness(super::HealthDatabaseAvailable::from(false));
-        assert_eq!(degraded.status(), super::HealthStatus::Degraded);
-        assert_eq!(
-            degraded.components.0.get(1usize).expect("16ca1c84").status,
-            super::HealthStatus::Error
-        );
-    }
-    #[derive(Debug)]
-    struct TestState {
-        commit: &'static str,
-    }
-    impl git_info::GetGitCommitId for TestState {
-        fn get_git_commit_id(&self) -> git_info::GitCommitId {
-            git_info::GitCommitId::from(git_info::GitCommitIdRef::from(self.commit))
-        }
-        fn get_git_commit_id_ref(&self) -> Option<git_info::GitCommitIdRef<'_>> {
-            Some(git_info::GitCommitIdRef::from(self.commit))
-        }
-    }
-    impl app_state::GetSqlxPgPool for TestState {
-        fn get_sqlx_pg_pool(&self) -> app_state::SqlxPgPoolRef<'_> {
-            panic!("38f80f5f")
-        }
-    }
-    impl super::CommonRoutesParameters for TestState {}
-    fn test_state() -> std::sync::Arc<dyn super::CommonRoutesParameters> {
-        std::sync::Arc::new(TestState {
-            commit: str_constants::TEST_VALUES_COMMIT,
-        })
-    }
-    fn test_commit_link() -> String {
-        git_info::git_commit_link(str_constants::TEST_VALUES_COMMIT)
-            .as_ref()
-            .to_owned()
-    }
-    fn test_commit_link_cow() -> git_info::StdGitCommitLinkCow {
-        git_info::StdGitCommitLinkCow::try_from(std::borrow::Cow::Owned(test_commit_link()))
-            .expect("931b775c")
-    }
-    fn b_cow(v: &'static str) -> git_info::StdGitCommitLinkCow {
-        git_info::StdGitCommitLinkCow::try_from(std::borrow::Cow::Borrowed(v)).expect("36301996")
-    }
-    fn uri_ref(uri: &axum::http::Uri) -> super::AxumHttpUriRef<'_> {
-        super::AxumHttpUriRef::from(uri)
-    }
-    fn suffix_ref(v: &str) -> super::UriSuffixRef<'_> {
-        super::UriSuffixRef::from(v)
-    }
-    fn assert_git_info_commit(payload: &super::GitInfo, exp_commit: &str) {
-        assert_eq!(payload.commit.as_ref(), exp_commit);
-    }
-    fn assert_not_found_payload_with_commit(
-        payload: &super::NotFoundHandle,
-        exp_commit: &str,
-        exp_uri_suffix: &str,
-    ) {
-        assert_eq!(payload.commit.as_ref(), exp_commit);
-        assert_no_route_message(&payload.message, exp_uri_suffix);
-        assert_eq!(
-            payload.open_api_specification.0,
-            str_constants::COMMON_ROUTES_SWAGGER_UI
-        );
-    }
-    fn assert_no_route_message(actual: &to_err_string::ErrorText, uri_suffix: &str) {
-        assert_eq!(
-            actual.as_ref(),
-            super::mk_no_route_message_for_suffix(suffix_ref(uri_suffix)).as_ref()
-        );
-    }
-    #[test]
-    fn git_info_response_shape_stays_stable() {
-        let git_info = super::mk_git_info_payload(b_cow(str_constants::TEST_VALUES_COMMIT));
-        assert_git_info_commit(&git_info, str_constants::TEST_VALUES_COMMIT);
-    }
-    #[test]
-    fn health_components_rejects_more_than_supported_components() {
-        let component = super::HealthComponent {
-            kind: super::HealthComponentKind::ServiceAvailability,
-            status: super::HealthStatus::Ok,
-        };
-        assert_eq!(
-            super::HealthComponents::try_from(vec![component, component, component]),
-            Err(super::HealthComponentsError)
-        );
-    }
-    #[test]
-    fn health_components_schema_matches_runtime_limit() {
-        let schema = <super::HealthComponents as utoipa::PartialSchema>::schema();
-        let utoipa::openapi::RefOr::T(utoipa::openapi::schema::Schema::Array(array)) = schema
-        else {
-            panic!("d0d44742");
-        };
-        assert_eq!(array.min_items, Some(0usize));
-        assert_eq!(array.max_items, Some(super::HEALTH_COMPONENTS_MAX_LEN));
-    }
-    #[test]
-    fn health_components_serde_accepts_exact_runtime_limit() {
-        let first = super::HealthComponent {
-            kind: super::HealthComponentKind::ServiceAvailability,
-            status: super::HealthStatus::Ok,
-        };
-        let second = super::HealthComponent {
-            kind: super::HealthComponentKind::DatabaseConnectivity,
-            status: super::HealthStatus::Degraded,
-        };
-        let expected = super::HealthComponents::from([first, second]);
-        let encoded = serde_json::to_value(&expected).expect("60490918");
-        let decoded = serde_json::from_value::<super::HealthComponents>(encoded).expect("4363452f");
-        assert_eq!(decoded, expected);
-    }
-    #[test]
-    fn not_found_response_shape_stays_stable() {
-        let uri = axum::http::Uri::from_static(str_constants::UNKNOWN);
-        let not_found = super::mk_not_found_payload(
-            uri_ref(&uri),
-            b_cow(str_constants::TEST_VALUES_WRONG_COMMIT),
-        );
-        assert_not_found_payload_with_commit(
-            &not_found,
-            str_constants::TEST_VALUES_WRONG_COMMIT,
-            str_constants::UNKNOWN,
-        );
-    }
-    #[test]
-    fn no_route_message_includes_uri() {
-        let uri = axum::http::Uri::from_static(str_constants::MISSING_PATH);
-        assert_no_route_message(
-            &super::mk_no_route_message(uri_ref(&uri)),
-            str_constants::MISSING_PATH,
-        );
-    }
-    #[test]
-    fn no_route_message_for_suffix_uses_prefix_once() {
-        assert_no_route_message(
-            &super::mk_no_route_message_for_suffix(suffix_ref(str_constants::MISSING_PATH)),
-            str_constants::MISSING_PATH,
-        );
-    }
-    #[test]
-    fn get_uri_suffix_prefers_path_and_query_when_query_exists() {
-        let uri = axum::http::Uri::from_static(str_constants::MISSING_PATH_QUESTION_LIMIT_10);
-        assert_eq!(
-            super::get_uri_suffix(uri_ref(&uri)).0,
-            "/missing/path?limit=10"
-        );
-    }
-    #[test]
-    fn no_route_message_keeps_query_parameters() {
-        let uri = axum::http::Uri::from_static(str_constants::MISSING_PATH_QUESTION_LIMIT_10);
-        assert_no_route_message(
-            &super::mk_no_route_message(uri_ref(&uri)),
-            str_constants::MISSING_PATH_QUESTION_LIMIT_10,
-        );
-    }
-    #[test]
-    fn status_code_constants_are_stable_for_common_routes() {
-        assert_eq!(axum::http::StatusCode::OK.as_u16(), 200);
-        assert_eq!(axum::http::StatusCode::NOT_FOUND.as_u16(), 404);
-    }
-    #[test]
-    fn git_info_response_contains_commit_link() {
-        let exp_commit = test_commit_link();
-        let payload = super::mk_git_info_payload(test_commit_link_cow());
-        assert_git_info_commit(&payload, &exp_commit);
-    }
-    #[test]
-    fn git_info_payload_from_state_contains_commit_link() {
-        let state = test_state();
-        let payload = super::mk_git_info_payload(
-            git_info::GetGitCommitLink::get_git_commit_link_cow(state.as_ref()),
-        );
-        assert_git_info_commit(&payload, test_commit_link().as_str());
-    }
-    #[test]
-    fn not_found_response_uses_uri_and_swagger_path() {
-        let uri = axum::http::Uri::from_static(str_constants::MISSING);
-        let commit_link = test_commit_link();
-        let payload = super::mk_not_found_payload(uri_ref(&uri), test_commit_link_cow());
-        assert_not_found_payload_with_commit(&payload, &commit_link, str_constants::MISSING);
-    }
-    #[test]
-    fn not_found_payload_from_state_uses_uri_and_swagger_path() {
-        let uri = axum::http::Uri::from_static(str_constants::MISSING);
-        let state = test_state();
-        let payload = super::mk_not_found_payload(
-            uri_ref(&uri),
-            git_info::GetGitCommitLink::get_git_commit_link_cow(state.as_ref()),
-        );
-        assert_not_found_payload_with_commit(&payload, &test_commit_link(), str_constants::MISSING);
-    }
-    #[test]
-    fn not_found_payload_for_suffix_uses_given_suffix_and_swagger_path() {
-        let commit_link = test_commit_link();
-        let payload = super::mk_not_found_payload_with_message(
-            super::mk_no_route_message_for_suffix(suffix_ref(str_constants::MISSING)),
-            test_commit_link_cow(),
-        );
-        assert_not_found_payload_with_commit(&payload, &commit_link, str_constants::MISSING);
-    }
-    #[test]
-    fn no_route_prefix_stays_stable() {
-        assert_eq!(
-            str_constants::COMMON_ROUTES_NO_ROUTE_MSG_PREFIX,
-            "No route for "
-        );
-    }
-    #[test]
-    fn no_route_message_capacity_is_exact_for_uri_suffix() {
-        assert_eq!(
-            super::no_route_message_capacity(suffix_ref("/abc?x=1")).0,
-            "No route for /abc?x=1".len()
-        );
-    }
-    #[test]
-    fn map_health_check_status_returns_ok_for_success() {
-        assert_eq!(
-            super::map_health_check_status(super::HealthCheckSucceeded(true)),
-            super::AxumHealthCheckStatus::from(axum::http::StatusCode::OK)
-        );
-    }
-    #[test]
-    fn map_health_check_status_returns_unavailable_for_error() {
-        assert_eq!(
-            super::map_health_check_status(super::HealthCheckSucceeded(false)),
-            super::AxumHealthCheckStatus::from(axum::http::StatusCode::SERVICE_UNAVAILABLE)
-        );
-    }
-    #[test]
-    fn mk_state_payload_uses_state_trait_object() {
-        let state = test_state();
-        assert_eq!(
-            git_info::GetGitCommitLink::get_git_commit_link_cow(state.as_ref()).as_ref(),
-            test_commit_link()
-        );
-    }
-    #[test]
-    fn mk_json_res_wraps_success_payload() {
-        let response = super::mk_json_res(super::mk_git_info_payload(b_cow(
-            str_constants::TEST_VALUES_COMMIT,
-        )));
-        assert_git_info_commit(&response.payload.0, str_constants::TEST_VALUES_COMMIT);
-    }
-    #[test]
-    fn mk_state_payload_passes_commit_link_to_mapper() {
-        let state = test_state();
-        let actual = format!(
-            "v={}",
-            git_info::GetGitCommitLink::get_git_commit_link_cow(state.as_ref())
-        );
-        assert_eq!(actual, format!("v={}", test_commit_link()));
-    }
-    #[test]
-    fn mk_commit_json_res_combines_status_and_commit_payload() {
-        let response = super::mk_commit_json_res(test_state().as_ref(), super::mk_git_info_payload);
-        assert_git_info_commit(&response.payload.0, test_commit_link().as_str());
-    }
-    #[tokio::test]
-    async fn default_service_routes_return_success_statuses_and_match_openapi() {
-        let router = axum::Router::from(super::common_routes(
-            super::StdArcCommonRoutesAppState::from(test_state()),
-        ));
-        let document =
-            serde_json::to_value(super::CommonRoutesOpenApi::open_api()).expect("f96bcc6e");
-        let check = |path: String| {
-            let cloned_router = router.clone();
-            let cloned_document = document.clone();
-            async move {
-                let response = tower::ServiceExt::oneshot(
-                    cloned_router,
-                    axum::http::Request::builder()
-                        .uri(path.as_str())
-                        .body(axum::body::Body::empty())
-                        .expect("6e9abf44"),
-                )
-                .await
-                .expect("634c635b");
-                assert_eq!(response.status(), axum::http::StatusCode::OK);
-                assert!(
-                    response
-                        .headers()
-                        .get(axum::http::header::CONTENT_TYPE)
-                        .is_some()
-                );
-                let escaped_path = path.replace('/', str_constants::VALUE_1_ALT_3);
-                assert!(
-                    cloned_document
-                        .pointer(format!("/paths/{escaped_path}/get/responses/200").as_str())
-                        .is_some()
-                );
-                let body = axum::body::to_bytes(response.into_body(), 16_384usize)
-                    .await
-                    .expect("e7d5f988");
-                assert!(
-                    serde_json::from_slice::<serde_json::Value>(&body)
-                        .expect("5013a777")
-                        .is_object()
-                );
-            }
-        };
-        check(super::CommonRoute::HealthLive.path().as_ref().to_owned()).await;
-        check(super::CommonRoute::GitInfo.path().as_ref().to_owned()).await;
-        super::CommonRoute::ALL.into_iter().for_each(|route| {
-            let escaped_path = route
-                .path()
-                .as_ref()
-                .replace('/', str_constants::VALUE_1_ALT_3);
-            assert!(
-                document
-                    .pointer(format!("/paths/{escaped_path}/get/responses/200").as_str())
-                    .is_some()
-            );
-        });
-        [
-            super::CommonRoute::Health,
-            super::CommonRoute::HealthCheck,
-            super::CommonRoute::HealthReady,
-        ]
-        .into_iter()
-        .for_each(|route| {
-            let escaped_path = route
-                .path()
-                .as_ref()
-                .replace('/', str_constants::VALUE_1_ALT_3);
-            assert!(
-                document
-                    .pointer(format!("/paths/{escaped_path}/get/responses/503").as_str())
-                    .is_some()
-            );
-        });
-        let not_found = tower::ServiceExt::oneshot(
-            router,
-            axum::http::Request::builder()
-                .uri(str_constants::MISSING)
-                .body(axum::body::Body::empty())
-                .expect("bb258755"),
-        )
-        .await
-        .expect("d2b9cc45");
-        assert_eq!(not_found.status(), axum::http::StatusCode::NOT_FOUND);
-    }
-}
+mod tests;

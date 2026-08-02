@@ -1,4 +1,5 @@
 #![allow(clippy::single_call_fn)] // public facade keeps stable auth module paths while this module owns router and OpenAPI composition
+#[derive(optml::Optml)]
 #[frontend_contract::route_registry(
     state = super::StdSharedAdminAuthSvcState,
     family = server_admin_contract::AdminAuthenticationRouteFamily;

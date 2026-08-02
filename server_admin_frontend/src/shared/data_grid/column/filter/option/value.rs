@@ -4,7 +4,7 @@
     reason = "the filter value control is composed once by its filter operation"
 )]
 
-use leptos::prelude::{ClassAttribute, ElementChild};
+use leptos::prelude::{ClassAttribute, CustomAttribute, ElementChild};
 
 pub(super) fn admin_filter_value(
     filter: server_admin_contract::AdminDataFilter,
@@ -20,9 +20,11 @@ pub(super) fn admin_filter_value(
         let value_label = if needs_end { "Start" } else { "Value" };
         let value_placeholder = needs_end.then_some(value_label);
         leptos::prelude::IntoAny::into_any(leptos::view! {
-            <label class="table-filter-input-label">
+            <label data-name="Label" class="table-filter-input-label flex items-center gap-2 text-sm leading-none font-medium select-none">
                 <span>{value_label}</span>
                 <input
+                    data-name="Input"
+                    class="flex h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
                     name="filter_value"
                     type=input_type.as_ref()
                     value=value

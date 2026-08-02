@@ -14,7 +14,7 @@
     reason = "the private parent module assembles query fragments without widening public API"
 )]
 pub struct QueryPartFragment(String);
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct StdReadQueryBindIndex(std::num::NonZeroU32);
 impl From<crate::PgCrudStringWrapperTryFromStringError> for QueryPartFragment {
     fn from(value: crate::PgCrudStringWrapperTryFromStringError) -> Self {
@@ -82,7 +82,7 @@ impl QueryPartFragment {
         Ok(())
     }
 }
-#[derive(Clone, Copy)]
+#[derive(optml::Optml, Clone, Copy)]
 pub struct SqlColumnRef<'column_lt>(&'column_lt dyn std::fmt::Display);
 impl<'column_lt, T> From<&'column_lt T> for SqlColumnRef<'column_lt>
 where

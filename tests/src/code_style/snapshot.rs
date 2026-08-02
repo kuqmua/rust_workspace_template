@@ -1,21 +1,26 @@
+#[derive(optml::Optml)]
 pub(super) struct RsSourceFile {
     ast: super::types::SynFile,
     content: super::types::SourceText,
     path: super::types::StdPathBuf,
 }
+#[derive(optml::Optml)]
 pub(super) struct ProjectSourceFile {
     content: super::types::SourceText,
     path: super::types::StdPathBuf,
 }
+#[derive(optml::Optml)]
 struct CargoTomlSourceFile {
     content: super::types::SourceText,
     parsed: super::types::TomlTable,
     path: super::types::StdPathBuf,
 }
+#[derive(optml::Optml)]
 pub(super) struct CodebaseSnapshot {
     rs_files: Vec<RsSourceFile>,
     source: std::sync::Arc<CodebaseSourceSnapshot>,
 }
+#[derive(optml::Optml)]
 struct CodebaseSourceSnapshot {
     cargo_toml_by_path:
         std::collections::BTreeMap<super::types::StdPathBuf, super::types::CargoTomlFileIdx>,
@@ -231,6 +236,7 @@ fn project_source_files_uncached() -> impl Iterator<Item = ProjectSourceFile> {
         .filter_entry(|element| {
             element.file_name() != str_constants::TARGET
                 && element.file_name() != str_constants::GIT
+                && element.file_name() != str_constants::WORKSPACE_SCAFFOLD_NODE_MODULES
                 && (element.file_type().is_dir()
                     || super::is_allowed_english_check_ext(
                         element

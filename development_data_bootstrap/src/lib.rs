@@ -1,6 +1,6 @@
 const DEVELOPMENT_IDENTITY_SPECS_MAX_LEN: usize = 1_024usize;
 
-#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget, newtype::TryFrom)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefTarget, newtype::TryFrom)]
 #[try_from(
     validator = DevelopmentIdentitySpecs::<Login, DisplayName, Role, SecretSource>::validate
 )]
@@ -21,11 +21,11 @@ impl<Login, DisplayName, Role, SecretSource>
         }
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("{self:?}")]
 pub struct DevelopmentIdentitySpecsError;
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
 pub struct DevelopmentBootstrapPlan<Login, DisplayName, Role, SecretSource> {
     identities: DevelopmentIdentitySpecs<Login, DisplayName, Role, SecretSource>,
 }
@@ -48,14 +48,16 @@ impl<Login, DisplayName, Role, SecretSource>
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct DevelopmentBootstrapSummary {
     already_exists: DevelopmentIdentityCount,
     create: DevelopmentIdentityCount,
     missing_role: DevelopmentIdentityCount,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::IntoInnerFrom, newtype::FromInner)]
+#[derive(
+    optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::IntoInnerFrom, newtype::FromInner,
+)]
 pub struct DevelopmentIdentityCount(usize);
 
 impl DevelopmentBootstrapSummary {

@@ -4,31 +4,31 @@
 )]
 const MAXIMUM_ACCEPT_MEDIA_RANGE_COUNT: usize = 128usize;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum FallbackResponseMode {
     HumanReadable,
     MachineReadable,
 }
 
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 pub struct HttpFallbackRequestPathRef<'value_lt>(&'value_lt str);
 
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 pub struct HttpFallbackApiPrefixRef<'value_lt>(&'value_lt str);
 
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 pub struct HttpFallbackMetricsPathRef<'value_lt>(&'value_lt str);
 
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 pub struct HttpOptionalAcceptHeaderRef<'value_lt>(Option<&'value_lt http::HeaderValue>);
 
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 pub struct HttpAcceptHeaderMaximumBytes(usize);
 
-#[derive(Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
 struct HttpMediaRangeRef<'value_lt>(&'value_lt str);
 
-#[derive(Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
 struct AcceptsApplicationJson(bool);
 
 #[must_use]

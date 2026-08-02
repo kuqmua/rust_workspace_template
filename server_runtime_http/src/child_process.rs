@@ -1,18 +1,18 @@
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct StdChildDiagnosticMaximum(std::num::NonZeroUsize);
 
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, newtype::FromInner)]
 pub struct ChildProcessId(u64);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct StdChildProcessSetMaximum(std::num::NonZeroUsize);
 
-#[derive(Debug, Default, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Default, newtype::FromInner)]
 struct StdCollectionsChildProcessMap(
     bounded_types::StdBoundedBTreeMap<ChildProcessId, ChildProcessSupervisor, { usize::MAX }>,
 );
 
-#[derive(Debug)]
+#[derive(optml::Optml, Debug)]
 pub struct ChildProcessSet {
     maximum: StdChildProcessSetMaximum,
     next_id: ChildProcessId,
@@ -70,10 +70,10 @@ impl ChildProcessSet {
     }
 }
 
-#[derive(Clone, Debug, newtype::AsRefTarget, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Debug, newtype::AsRefTarget, newtype::FromInner)]
 pub struct ChildProcessReports(bounded_types::BoundedVec<ChildProcessReport, 0, { usize::MAX }>);
 
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 pub enum ChildProcessSetError {
     #[error("child process set is full")]
     Full,
@@ -89,16 +89,16 @@ impl From<bounded_types::BoundedValueError> for ChildProcessSetError {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)]
 pub struct ChildDiagnostic(bounded_types::BoundedVec<u8, 0, { usize::MAX }>);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ChildProcessCompletion {
     Exited,
     KilledAfterTimeout,
 }
 
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 pub struct StdChildExitStatus(std::process::ExitStatus);
 
 impl StdChildExitStatus {
@@ -112,17 +112,18 @@ impl StdChildExitStatus {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ChildProcessSucceeded {
     No,
     Yes,
 }
 
-#[derive(Clone, Debug)]
+#[derive(optml::Optml, Clone, Debug)]
+#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optml takes precedence over alphabetical field order
 pub struct ChildProcessReport {
-    completion: ChildProcessCompletion,
     diagnostic: ChildDiagnostic,
     status: StdChildExitStatus,
+    completion: ChildProcessCompletion,
 }
 impl ChildProcessReport {
     #[must_use]
@@ -141,18 +142,18 @@ impl ChildProcessReport {
     }
 }
 
-#[derive(Debug, newtype::FromInner)]
+#[derive(optml::Optml, Debug, newtype::FromInner)]
 struct TokioManagedChild(tokio::process::Child);
 
-#[derive(Debug, newtype::FromInner)]
+#[derive(optml::Optml, Debug, newtype::FromInner)]
 pub struct TokioChildProcess(tokio::process::Child);
 
-#[derive(Debug, newtype::FromInner)]
+#[derive(optml::Optml, Debug, newtype::FromInner)]
 struct TokioChildDiagnosticTask(
     tokio::task::JoinHandle<Result<ChildDiagnostic, ChildProcessError>>,
 );
 
-#[derive(Debug)]
+#[derive(optml::Optml, Debug)]
 #[must_use]
 pub struct ChildProcessSupervisor {
     child: Option<TokioManagedChild>,
@@ -216,7 +217,7 @@ impl Drop for ChildProcessSupervisor {
     }
 }
 
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 pub enum ChildProcessError {
     #[error("child process diagnostic read failed")]
     DiagnosticIo(StdChildProcessIoError),
@@ -232,12 +233,12 @@ pub enum ChildProcessError {
     Timeout,
 }
 
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 #[error(transparent)]
 #[derive(newtype::FromInner)]
 pub struct StdChildProcessIoError(std::io::Error);
 
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 #[error(transparent)]
 #[derive(newtype::FromInner)]
 pub struct TokioChildProcessJoinError(tokio::task::JoinError);
@@ -291,6 +292,7 @@ where
 
 #[cfg(test)]
 mod tests {
+    #[derive(optml::Optml)]
     struct ErrorReader;
     impl tokio::io::AsyncRead for ErrorReader {
         fn poll_read(

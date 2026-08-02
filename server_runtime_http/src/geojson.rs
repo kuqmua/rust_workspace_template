@@ -1,6 +1,6 @@
 const GEO_JSON_MAXIMUM_BYTES: usize = 16_777_216usize;
 
-#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
 pub struct GeoJsonDocumentText(String);
 impl TryFrom<String> for GeoJsonDocumentText {
     type Error = GeoJsonValidationError;
@@ -20,11 +20,11 @@ impl TryFrom<String> for GeoJsonDocumentText {
     }
 }
 
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
 #[error("{0}")]
 pub struct SerdeJsonGeoJsonError(serde_json::Error);
 
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 pub enum GeoJsonValidationError {
     #[error("GeoJSON coordinates are invalid")]
     Coordinates,

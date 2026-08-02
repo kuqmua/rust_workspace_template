@@ -34,9 +34,9 @@ pub use pg_pool::{
     TryFromStdEnvVarOkPgPoolMaxConnectionsError,
 };
 const CONFIG_LIB_STRING_WRAPPER_MAX_LEN: usize = 1_048_576;
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(optml::Optml, Debug, Clone, PartialEq, Eq)]
 pub struct StdEnvVarOk(String);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
+#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
 pub enum ConfigLibStringWrapperTryFromStringError {
     #[error("config string wrapper length {len} exceeds maximum {max}")]
     TooLong { len: usize, max: usize },
@@ -58,11 +58,11 @@ impl TryFrom<String> for StdEnvVarOk {
         Ok(Self(value))
     }
 }
-#[derive(Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
 pub struct StdEnvVarOkRef<'value_lt>(&'value_lt str);
-#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub struct EnvVarNameRef<'name_lt>(&'name_lt str);
-#[derive(Debug, Clone, PartialEq, Eq, newtype::Display)]
+#[derive(optml::Optml, Debug, Clone, PartialEq, Eq, newtype::Display)]
 pub struct EnvVarName(String);
 impl From<ConfigLibStringWrapperTryFromStringError> for EnvVarName {
     fn from(value: ConfigLibStringWrapperTryFromStringError) -> Self {
@@ -81,47 +81,47 @@ impl TryFrom<String> for EnvVarName {
         Ok(Self(value))
     }
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
 pub struct ChronoFixedOffsetError(&'static str);
-#[derive(newtype::DebugTransparent, newtype::FromInner)]
+#[derive(optml::Optml, newtype::DebugTransparent, newtype::FromInner)]
 pub struct StdI32ParsingError(std::num::ParseIntError);
-#[derive(newtype::DebugTransparent, newtype::FromInner)]
+#[derive(optml::Optml, newtype::DebugTransparent, newtype::FromInner)]
 pub struct StdU32ParsingError(std::num::ParseIntError);
-#[derive(newtype::DebugTransparent, newtype::FromInner)]
+#[derive(optml::Optml, newtype::DebugTransparent, newtype::FromInner)]
 pub struct StdUsizeParsingError(std::num::ParseIntError);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
 struct TimezoneSeconds(i32);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
 struct ChronoEastFixedOffset(chrono::FixedOffset);
 pub trait TryFromStdEnvVarOk: Sized {
     type Error;
     fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error>;
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ConfigFieldSensitivity {
     Public,
     Secret,
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ConfigFieldRequirement {
     Required,
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ConfigExampleValidity {
     Invalid,
     Valid,
 }
-#[derive(Clone, Copy, Debug, newtype::AsRefInner, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::AsRefInner, newtype::FromInner)]
 pub struct ConfigFieldExampleRef<'example_lt>(&'example_lt str);
-#[derive(Clone, Copy, Debug, newtype::AsRefInner, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::AsRefInner, newtype::FromInner)]
 pub struct ConfigRustTypeName(&'static str);
-#[derive(Clone, Copy)]
+#[derive(optml::Optml, Clone, Copy)]
 pub struct ConfigFieldDescriptor {
     env_name: EnvVarNameRef<'static>,
     example: ConfigFieldExampleRef<'static>,
     parser: fn(StdEnvVarOk) -> ConfigExampleValidity,
-    requirement: ConfigFieldRequirement,
     rust_type_name: ConfigRustTypeName,
+    requirement: ConfigFieldRequirement,
     sensitivity: ConfigFieldSensitivity,
 }
 impl std::fmt::Debug for ConfigFieldDescriptor {
@@ -149,8 +149,8 @@ impl ConfigFieldDescriptor {
             env_name,
             example,
             parser,
-            requirement,
             rust_type_name,
+            requirement,
             sensitivity,
         }
     }
@@ -180,6 +180,7 @@ impl ConfigFieldDescriptor {
     }
 }
 #[derive(
+    optml::Optml,
     Clone,
     PartialEq,
     Eq,
@@ -195,7 +196,7 @@ impl secrecy::zeroize::Zeroize for StdConfigSecretString {
         secrecy::zeroize::Zeroize::zeroize(&mut self.0);
     }
 }
-#[derive(newtype::AsRefOwned, newtype::FromInner)]
+#[derive(optml::Optml, newtype::AsRefOwned, newtype::FromInner)]
 pub struct SecrecySecretBoxString(secrecy::SecretBox<StdConfigSecretString>);
 impl TryFrom<String> for SecrecySecretBoxString {
     type Error = StdConfigSecretStringTryFromStringError;
@@ -209,13 +210,17 @@ impl std::fmt::Debug for SecrecySecretBoxString {
         f.write_str(str_constants::REDACTED_ALT_3)
     }
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::DerefInner, newtype::FromInner)]
+#[derive(
+    optml::Optml, Debug, Clone, Copy, PartialEq, Eq, newtype::DerefInner, newtype::FromInner,
+)]
 pub struct StdNonZeroU64(std::num::NonZeroU64);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::DerefInner, newtype::FromInner)]
+#[derive(
+    optml::Optml, Debug, Clone, Copy, PartialEq, Eq, newtype::DerefInner, newtype::FromInner,
+)]
 pub struct StdNonZeroUsize(std::num::NonZeroUsize);
-#[derive(newtype::DebugTransparent, newtype::FromInner)]
+#[derive(optml::Optml, newtype::DebugTransparent, newtype::FromInner)]
 pub struct StdParseIntError(std::num::ParseIntError);
-#[derive(newtype::DebugTransparent, newtype::FromInner)]
+#[derive(optml::Optml, newtype::DebugTransparent, newtype::FromInner)]
 pub struct StdParseBoolError(std::str::ParseBoolError);
 config_lib_macros::impl_try_from_non_empty_string!(
     CorsAllowOrigin,
@@ -315,7 +320,7 @@ impl TryFromStdEnvVarOk for types::TracingFormat {
         })
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum TryFromStdEnvVarOkSvcModeError {
     #[error("service mode must be migrate or serve")]
     Unknown,
@@ -408,7 +413,7 @@ mod tests {
             Err(super::TryFromStdEnvVarOkSvcModeError::Unknown)
         );
     }
-    #[derive(Debug, PartialEq, Eq)]
+    #[derive(optml::Optml, Debug, PartialEq, Eq)]
     enum ParseRequiredEnvVarTestError {
         EnvVar { env_var_name: super::EnvVarName },
         Parse { parse: &'static str },

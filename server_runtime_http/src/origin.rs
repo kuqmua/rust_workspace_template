@@ -1,25 +1,44 @@
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
 pub struct AllowedOrigin {
     authority: HttpOriginAuthorityText,
     scheme: HttpOriginSchemeText,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
 struct HttpOriginAuthorityText(String);
 
 impl TryFrom<String> for HttpOriginAuthorityText {
     type Error = AllowedOriginError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.is_empty() || value.len() > 512usize {
-            Err(AllowedOriginError)
-        } else {
-            Ok(Self(value))
+        if value.is_empty() || value.len() > 512usize || value.contains('@') {
+            return Err(AllowedOriginError);
         }
+        let authority = match http::uri::Authority::try_from(value) {
+            Ok(authority) => authority,
+            Err(_error) => return Err(AllowedOriginError),
+        };
+        let port = if authority.as_str().starts_with('[') {
+            authority
+                .as_str()
+                .find(']')
+                .and_then(|end| authority.as_str().get(end.saturating_add(1usize)..))
+                .filter(|suffix| !suffix.is_empty())
+                .and_then(|suffix| suffix.strip_prefix(':'))
+        } else {
+            authority
+                .as_str()
+                .rsplit_once(':')
+                .map(|(_host, port)| port)
+        };
+        if port.is_some_and(|port_text| port_text.parse::<u16>().is_err()) {
+            return Err(AllowedOriginError);
+        }
+        Ok(Self(authority.as_str().to_owned()))
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
 struct HttpOriginSchemeText(String);
 
 impl TryFrom<String> for HttpOriginSchemeText {
@@ -55,11 +74,11 @@ impl TryFrom<String> for AllowedOrigin {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("{message}", message = str_constants::ALLOWED_HTTP_ORIGIN_IS_INVALID)]
 pub struct AllowedOriginError;
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
 pub struct AllowedOrigins(bounded_types::BoundedVec<AllowedOrigin, 0, 128>);
 
 impl TryFrom<Vec<String>> for AllowedOrigins {
@@ -77,7 +96,7 @@ impl TryFrom<Vec<String>> for AllowedOrigins {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("{message}", message = str_constants::ALLOWED_HTTP_ORIGIN_LIST_IS_INVALID)]
 pub struct AllowedOriginsError;
 impl From<bounded_types::BoundedValueError> for AllowedOriginsError {
@@ -86,22 +105,24 @@ impl From<bounded_types::BoundedValueError> for AllowedOriginsError {
     }
 }
 
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 pub struct HttpOriginHeadersRef<'header>(&'header http::HeaderMap);
 
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 struct HttpOriginTextRef<'text>(&'text str);
 
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 struct AllowOriginSuffix(bool);
 
-#[derive(Clone, Copy, Debug)]
+#[derive(optml::Optml, Clone, Copy, Debug)]
 struct ParsedHttpOriginRef<'text> {
     authority: HttpOriginTextRef<'text>,
     scheme: HttpOriginTextRef<'text>,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(
+    optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom,
+)]
 pub struct RequestOriginAllowed(bool);
 
 #[allow(clippy::single_call_fn)] // parsing is independently testable through origin resolution
@@ -192,6 +213,22 @@ mod tests {
         assert_eq!(
             super::AllowedOrigins::try_from(values),
             Err(super::AllowedOriginsError)
+        );
+    }
+
+    #[test]
+    fn allowed_origins_reject_userinfo_and_invalid_ports() {
+        assert_eq!(
+            super::AllowedOrigin::try_from(String::from(
+                str_constants::HTTPS_ADMIN_EXAMPLE_COM_WITH_USERINFO,
+            )),
+            Err(super::AllowedOriginError)
+        );
+        assert_eq!(
+            super::AllowedOrigin::try_from(String::from(
+                str_constants::HTTPS_ADMIN_EXAMPLE_COM_WITH_INVALID_PORT,
+            )),
+            Err(super::AllowedOriginError)
         );
     }
 

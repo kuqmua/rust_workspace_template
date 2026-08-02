@@ -1,11 +1,11 @@
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum BatchDuplicatePolicy {
     KeepFirst,
     KeepLast,
     Reject,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct BatchProcessedItemCount(usize);
 
 impl BatchProcessedItemCount {
@@ -15,7 +15,7 @@ impl BatchProcessedItemCount {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct BatchInvalidItemCount(usize);
 
 impl BatchInvalidItemCount {
@@ -25,7 +25,7 @@ impl BatchInvalidItemCount {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct BatchStoppedEarly(bool);
 
 impl BatchStoppedEarly {
@@ -35,12 +35,12 @@ impl BatchStoppedEarly {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct BatchInvalidItems<InvalidItem>(Vec<InvalidItem>);
-#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefOwned, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefOwned, newtype::FromInner)]
 pub struct StdBatchRecords<Key, Record>(std::collections::BTreeMap<Key, Record>);
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
 pub struct BatchValidationReport<Key, Record, InvalidItem> {
     invalid_items: BatchInvalidItems<InvalidItem>,
     processed_item_count: BatchProcessedItemCount,

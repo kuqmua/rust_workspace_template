@@ -1,8 +1,8 @@
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Display, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq, newtype::Display, newtype::FromInner)]
 struct TracingLevelName(&'static str);
-#[derive(Debug)]
+#[derive(optml::Optml, Debug)]
 struct StdEnvVarResult(Result<String, std::env::VarError>);
-#[derive(Debug, PartialEq, Eq, thiserror::Error, newtype::FromInner)]
+#[derive(optml::Optml, Debug, PartialEq, Eq, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 struct StdEnvVarError(std::env::VarError);
 impl TryFrom<Result<String, std::env::VarError>> for StdEnvVarResult {
@@ -17,13 +17,13 @@ impl TryFrom<Result<String, std::env::VarError>> for StdEnvVarResult {
         }
     }
 }
-#[derive(Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
 struct EnvVarNameRef<'name_lt>(&'name_lt str);
-#[derive(Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
 struct EnvVarValueRef<'value_lt>(&'value_lt str);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Display, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq, newtype::Display, newtype::FromInner)]
 struct ParseCtxRef(&'static str);
-#[derive(Debug, PartialEq, Eq, thiserror::Error)]
+#[derive(optml::Optml, Debug, PartialEq, Eq, thiserror::Error)]
 enum EnvParseError {
     #[error("environment variable value exceeds the size limit")]
     ValueTooLong {
@@ -70,13 +70,13 @@ pub enum TracingLevel {
     #[default]
     Error,
 }
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+#[derive(optml::Optml, Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub enum TracingFormat {
     Json,
     #[default]
     Text,
 }
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+#[derive(optml::Optml, Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub enum SvcMode {
     Migrate,
     #[default]

@@ -141,10 +141,9 @@ pub(super) async fn sign_in(
         super::load_authenticated_admin(state.as_ref(), admin_user_id, session.session_id())
             .await?;
     let authenticated_contract = super::authenticated_admin_contract(&authenticated)?;
-    let mut response =
-        super::AxumAdminResponse(axum::response::IntoResponse::into_response(axum::Json(
-            server_admin_contract::AdminSignInRes::new(authenticated_contract),
-        )));
+    let mut response = super::shared::json_response(server_admin_contract::AdminSignInRes::new(
+        authenticated_contract,
+    ));
     super::append_session_cookies(&mut response, state.as_ref(), &session)?;
     Ok(response)
 }
@@ -210,11 +209,17 @@ pub(super) async fn refresh(
         return Err(super::AdminError::Authentication);
     };
     let admin_user_id = user_id;
-    let session = super::create_refreshed_session_in_connection(
+    super::super::repository::users::revoke_refresh_token(
+        super::super::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
+        &token_hash,
+        admin_user_id,
+    )
+    .await
+    .map_err(super::AdminError::from)?;
+    let session = super::create_session_in_connection(
         state.as_ref(),
         admin_user_id,
         &context_hash,
-        super::super::AdminRefreshToken::new(token),
         super::SqlxAdminPgConnectionRef::from(&mut *tx),
     )
     .await
@@ -246,11 +251,10 @@ pub(super) async fn refresh(
     )
     .await?;
     let authenticated_contract = super::authenticated_admin_contract(&authenticated)?;
-    let mut response =
-        super::AxumAdminResponse(axum::response::IntoResponse::into_response(axum::Json(
-            server_admin_contract::AdminSignInRes::new(authenticated_contract),
-        )));
-    super::append_access_session_cookies(&mut response, state.as_ref(), &session)?;
+    let mut response = super::shared::json_response(server_admin_contract::AdminSignInRes::new(
+        authenticated_contract,
+    ));
+    super::append_session_cookies(&mut response, state.as_ref(), &session)?;
     tx.commit().await.map_err(super::AdminError::from)?;
     Ok(response)
 }

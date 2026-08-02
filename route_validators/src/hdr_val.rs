@@ -1,4 +1,4 @@
-#[derive(Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
 pub struct AxumHeadersRef<'headers_lt>(&'headers_lt axum::http::HeaderMap);
 #[cfg(test)]
 impl<'headers_lt> From<&'headers_lt crate::test_hlp::AxumTestHeaders>
@@ -8,10 +8,18 @@ impl<'headers_lt> From<&'headers_lt crate::test_hlp::AxumTestHeaders>
         Self(value.as_ref())
     }
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
 pub(crate) struct AxumHeaderValueRef<'header_value_lt>(&'header_value_lt axum::http::HeaderValue);
 #[derive(
-    Debug, Clone, Copy, PartialEq, Eq, newtype::AsRefInner, newtype::DerefTarget, newtype::FromInner,
+    optml::Optml,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    newtype::AsRefInner,
+    newtype::DerefTarget,
+    newtype::FromInner,
 )]
 pub(crate) struct HeaderStrRef<'header_str_lt>(&'header_str_lt str);
 #[cfg(test)]
@@ -89,7 +97,7 @@ pub(crate) fn get_required_header_str_parsed<'headers, E, T>(
 mod tests {
     const TEST_HEADER_NAME: axum::http::HeaderName =
         axum::http::HeaderName::from_static(str_constants::ROUTE_VALIDATORS_TEST_HEADER_NAME);
-    #[derive(Debug, PartialEq, Eq)]
+    #[derive(optml::Optml, Debug, PartialEq, Eq)]
     enum TestError {
         NoHeader,
         ParseBool,

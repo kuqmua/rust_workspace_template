@@ -1,3 +1,4 @@
+#[derive(optml::Optml)]
 struct DelegateInput;
 
 async fn delegate(value: DelegateInput) -> Result<(), DelegateError> {
@@ -5,6 +6,7 @@ async fn delegate(value: DelegateInput) -> Result<(), DelegateError> {
     Ok(())
 }
 
+#[derive(optml::Optml)]
 #[derive(Debug)]
 struct DelegateError;
 

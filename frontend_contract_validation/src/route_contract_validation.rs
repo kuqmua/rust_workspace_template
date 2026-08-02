@@ -1,4 +1,4 @@
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RouteContractMismatch {
     Method {
         expected: frontend_contract::ContractStr,
@@ -14,12 +14,12 @@ pub enum RouteContractMismatch {
     },
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)]
 pub struct RouteContractMismatches(
     bounded_types::BoundedVec<RouteContractMismatch, 0, { usize::MAX }>,
 );
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::TryFrom)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::TryFrom)]
 #[try_from(
     error = frontend_contract::HttpStatusTryFromU16Error,
     validator = HttpContractStatus::validate
@@ -36,7 +36,7 @@ impl HttpContractStatus {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
 pub struct HttpContractBody(
     bounded_types::BoundedVec<u8, 0, { frontend_contract::FRONTEND_CONTRACT_BODY_MAX_BYTES }>,
 );
@@ -49,13 +49,13 @@ impl TryFrom<Vec<u8>> for HttpContractBody {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum HttpContractBodyKind {
     Empty,
     Json,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
 pub struct HttpContractObservation {
     body: HttpContractBody,
     metadata: frontend_contract::RouteMetadata,
@@ -76,11 +76,12 @@ impl HttpContractObservation {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optml takes precedence over alphabetical field order
 pub struct HttpContractExpectation {
-    body_kind: HttpContractBodyKind,
     metadata: frontend_contract::RouteMetadata,
     status: HttpContractStatus,
+    body_kind: HttpContractBodyKind,
 }
 impl HttpContractExpectation {
     #[must_use]
@@ -90,14 +91,14 @@ impl HttpContractExpectation {
         body_kind: HttpContractBodyKind,
     ) -> Self {
         Self {
-            body_kind,
             metadata,
             status,
+            body_kind,
         }
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
 pub enum HttpContractMismatch {
     BodyExpectedEmpty,
     BodyExpectedJson,
@@ -181,6 +182,7 @@ where
 
 #[cfg(test)]
 mod tests {
+    #[derive(optml::Optml)]
     struct ReadRoute;
     impl frontend_contract::TypedRoute for ReadRoute {
         type Request = ();

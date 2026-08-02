@@ -1,16 +1,16 @@
-#[derive(Debug, newtype::FromInner)]
+#[derive(optml::Optml, Debug, newtype::FromInner)]
 struct StdVecDequeRunReports<RunReport>(std::collections::VecDeque<RunReport>);
 
-#[derive(Debug, newtype::CloneInner, newtype::FromInner)]
+#[derive(optml::Optml, Debug, newtype::CloneInner, newtype::FromInner)]
 struct StdArcSharedRunReports<RunReport>(
     std::sync::Arc<tokio::sync::RwLock<StdVecDequeRunReports<RunReport>>>,
 );
-#[derive(Debug, newtype::CloneFields)]
+#[derive(optml::Optml, Debug, newtype::CloneFields)]
 pub struct AsyncRunHistory<RunReport> {
     maximum_len: StdAsyncRunHistoryMaximumLen,
     reports: StdArcSharedRunReports<RunReport>,
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct StdAsyncRunHistoryMaximumLen(std::num::NonZeroUsize);
 impl TryFrom<usize> for StdAsyncRunHistoryMaximumLen {
     type Error = StdAsyncRunHistoryMaximumLenTryFromUsizeError;
@@ -20,16 +20,18 @@ impl TryFrom<usize> for StdAsyncRunHistoryMaximumLen {
             .ok_or(StdAsyncRunHistoryMaximumLenTryFromUsizeError)
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error(
     "{}",
     str_constants::RUN_HISTORY_MAXIMUM_LENGTH_MUST_BE_GREATER_THAN_ZERO
 )]
 pub struct StdAsyncRunHistoryMaximumLenTryFromUsizeError;
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(
+    optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom,
+)]
 pub struct StdAsyncRunHistoryReportCount(usize);
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
 pub struct AsyncRunHistorySnapshot<RunReport> {
     latest_report: Option<RunReport>,
     report_count: StdAsyncRunHistoryReportCount,
@@ -78,6 +80,7 @@ impl<RunReport: Clone + Send + Sync> AsyncRunHistory<RunReport> {
 mod tests {
     #[test]
     fn history_clone_does_not_require_report_clone() {
+        #[derive(optml::Optml)]
         struct NotClone;
         let maximum = super::StdAsyncRunHistoryMaximumLen::try_from(1usize).expect("91f5d3a8");
         let history = super::AsyncRunHistory::<NotClone>::new(maximum);

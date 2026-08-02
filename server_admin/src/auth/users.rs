@@ -390,9 +390,7 @@ pub(super) async fn list(
     auth: super::AdminAuthReq,
     query: super::AxumAdminQuery<server_admin_contract::AdminTableQuery>,
 ) -> Result<super::AxumAdminResponse, super::AdminError> {
-    users_page(auth, query).await.map(|page| {
-        super::AxumAdminResponse(axum::response::IntoResponse::into_response(axum::Json(
-            page,
-        )))
-    })
+    users_page(auth, query)
+        .await
+        .map(super::shared::json_response)
 }

@@ -1,3 +1,4 @@
+#[derive(optml::Optml)]
 #[derive(frontend_contract::PageCatalog)]
 #[page_catalog(
     spec = BrokenSpec,

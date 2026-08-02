@@ -1,24 +1,24 @@
-#[derive(Clone, Debug)]
+#[derive(optml::Optml, Clone, Debug)]
 pub struct MockNotificationProvider {
     sender: TokioMockNotificationSender,
 }
 
-#[derive(Debug)]
+#[derive(optml::Optml, Debug)]
 pub struct MockNotificationInbox {
     receiver: TokioMockNotificationReceiver,
 }
 
-#[derive(Clone, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Debug, newtype::FromInner)]
 struct TokioMockNotificationSender(
     tokio::sync::mpsc::UnboundedSender<server_runtime_http::NotificationMessage>,
 );
 
-#[derive(Debug, newtype::FromInner)]
+#[derive(optml::Optml, Debug, newtype::FromInner)]
 struct TokioMockNotificationReceiver(
     tokio::sync::mpsc::UnboundedReceiver<server_runtime_http::NotificationMessage>,
 );
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("{}", str_constants::MOCK_NOTIFICATION_PROVIDER_CLOSED)]
 pub struct MockNotificationProviderClosed;
 
@@ -44,10 +44,12 @@ impl server_runtime_http::NotificationSender for MockNotificationProvider {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::IntoInnerFrom, newtype::FromInner)]
+#[derive(
+    optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::IntoInnerFrom, newtype::FromInner,
+)]
 pub struct RemoteSyncRequestCount(usize);
 
-#[derive(Clone, Debug)]
+#[derive(optml::Optml, Clone, Debug)]
 pub struct RemoteSyncSource {
     payload: synchronization_service_runtime::SynchronizationPayload,
     request_count: RemoteSyncRequestCount,

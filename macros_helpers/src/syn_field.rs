@@ -5,6 +5,7 @@ pub struct SynField {
     pub vis: SynFieldVis,
 }
 #[derive(
+    optml::Optml,
     Debug,
     Clone,
     PartialEq,
@@ -16,10 +17,22 @@ pub struct SynField {
 )]
 pub struct SynFieldIdentifier(syn::Ident);
 #[derive(
-    Debug, Clone, newtype::AsRefOwned, newtype::DerefInner, newtype::FromInner, newtype::ToTokens,
+    optml::Optml,
+    Debug,
+    Clone,
+    newtype::AsRefOwned,
+    newtype::DerefInner,
+    newtype::FromInner,
+    newtype::ToTokens,
 )]
 pub struct SynFieldType(syn::Type);
 #[derive(
-    Debug, Clone, newtype::AsRefOwned, newtype::DerefInner, newtype::FromInner, newtype::ToTokens,
+    optml::Optml,
+    Debug,
+    Clone,
+    newtype::AsRefOwned,
+    newtype::DerefInner,
+    newtype::FromInner,
+    newtype::ToTokens,
 )]
 pub struct SynFieldVis(syn::Visibility);

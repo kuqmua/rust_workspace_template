@@ -163,7 +163,7 @@ enum PgType {
     SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange,
     SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange,
 }
-#[derive(Clone, Copy)]
+#[derive(optml::Optml, Clone, Copy)]
 enum WireKind {
     Bool,
     Bytes,
@@ -188,7 +188,7 @@ enum WireKind {
     TimestampTz,
     Uuid,
 }
-#[derive(Clone, Copy)]
+#[derive(optml::Optml, Clone, Copy)]
 enum FilterKind {
     Bool,
     Bytes,
@@ -204,12 +204,12 @@ enum FilterKind {
     TimestampTz,
     Uuid,
 }
-#[derive(Clone, Copy)]
+#[derive(optml::Optml, Clone, Copy)]
 enum CanBePrimaryKey {
     False,
     True,
 }
-#[derive(Clone, Copy, newtype::AsRefInner, newtype::FromInner, newtype::ToTokens)]
+#[derive(optml::Optml, Clone, Copy, newtype::AsRefInner, newtype::FromInner, newtype::ToTokens)]
 struct PgSqlName(&'static str);
 impl PgType {
     fn can_be_nullable(self) -> CanBeNullable {
@@ -420,7 +420,7 @@ impl PgType {
         }
     }
 }
-#[derive(Clone, Copy)]
+#[derive(optml::Optml, Clone, Copy)]
 enum CanBeNullable {
     False,
     True,
@@ -445,6 +445,7 @@ impl From<&Range> for PgType {
         }
     }
 }
+#[derive(optml::Optml)]
 #[allow(clippy::arbitrary_source_item_ordering)]
 enum Range {
     I32AsInt4,
@@ -566,13 +567,13 @@ impl TryFrom<PgTypeRecordRaw> for PgTypeRecord {
         }
     }
 }
-#[derive(Debug, newtype::DerefTarget, newtype::IntoInnerFrom, serde::Deserialize)]
+#[derive(optml::Optml, Debug, newtype::DerefTarget, newtype::IntoInnerFrom, serde::Deserialize)]
 #[serde(try_from = "Vec<PgTypeRecord>")]
 struct GeneratePgTypeRecords(Vec<PgTypeRecord>);
-#[derive(Debug, newtype::DerefTarget, serde::Deserialize)]
+#[derive(optml::Optml, Debug, newtype::DerefTarget, serde::Deserialize)]
 #[serde(try_from = "Vec<PgType>")]
 struct GeneratePgTypes(Vec<PgType>);
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("{self:?}")]
 struct GeneratePgTypesLengthError;
 impl TryFrom<Vec<PgTypeRecord>> for GeneratePgTypeRecords {
@@ -603,7 +604,7 @@ enum GeneratePgTypesConfigVariant {
     Concrete(GeneratePgTypeRecords),
     Subset(GeneratePgTypes),
 }
-#[derive(Clone, Copy, Debug, Default, serde::Deserialize)]
+#[derive(optml::Optml, Clone, Copy, Debug, Default, serde::Deserialize)]
 #[serde(from = "bool")]
 #[derive(newtype::FromInner)]
 struct GenerateSecretText(bool);
@@ -740,20 +741,22 @@ impl From<&PgType> for PgTypeDeserialize {
             }
     }
 }
-#[derive(Debug, newtype::FromInner)]
+#[derive(optml::Optml, Debug, newtype::FromInner)]
 pub struct ParsedGeneratePgTypesConfig(GeneratePgTypesConfig);
 
-#[derive(Debug)]
+#[derive(optml::Optml, Debug)]
 pub struct BuiltGeneratePgTypesModel {
     config: GeneratePgTypesConfig,
     entry_count: PgTypesModelEntryCount,
 }
-#[derive(Debug)]
+#[derive(optml::Optml, Debug)]
 pub struct ValidatedGeneratePgTypesConfig {
     config: GeneratePgTypesConfig,
     entry_count: PgTypesModelEntryCount,
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(
+    optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom,
+)]
 pub struct PgTypesModelEntryCount(usize);
 impl ValidatedGeneratePgTypesConfig {
     #[must_use]
@@ -761,11 +764,11 @@ impl ValidatedGeneratePgTypesConfig {
         self.entry_count
     }
 }
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 pub struct SerdeJsonGeneratePgTypesError(serde_json::Error);
 
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 pub enum GeneratePgTypesPipelineError {
     #[error("{0}")]
     Parse(SerdeJsonGeneratePgTypesError),
@@ -999,23 +1002,28 @@ pub fn emit_generate_pg_types(
     .into_iter()
     .enumerate()
     .map(|(i, element)| {
-        enum PgTypeOrPgTypeTestCases {
+        #[derive(optml::Optml)]
+enum PgTypeOrPgTypeTestCases {
             PgType,
             PgTypeTestCases,
         }
-        enum IsNonNullStandardCanBePrimaryKey {
+        #[derive(optml::Optml)]
+enum IsNonNullStandardCanBePrimaryKey {
             False,
             True,
         }
-        enum StartOrEnd {
+        #[derive(optml::Optml)]
+enum StartOrEnd {
             End,
             Start,
         }
-        enum ShouldImplFrom {
+        #[derive(optml::Optml)]
+enum ShouldImplFrom {
             False,
             True,
         }
-        enum IntRangeType {
+        #[derive(optml::Optml)]
+enum IntRangeType {
             SqlxPgTypesPgRangeI32AsInt4Range,
             SqlxPgTypesPgRangeI64AsInt8Range,
         }
@@ -1475,7 +1483,8 @@ pub fn emit_generate_pg_types(
             }
         };
         let (ser_derive_or_impl, de_derive_or_impl) = if matches!(&is_standard_non_null, pg_crud_macros_common::IsStandardNonNull::True) {
-            #[allow(clippy::arbitrary_source_item_ordering)]
+            #[derive(optml::Optml)]
+#[allow(clippy::arbitrary_source_item_ordering)]
             enum ParameterNumber {
                 Two,
                 Three,
@@ -1651,7 +1660,8 @@ pub fn emit_generate_pg_types(
                             }
                         }))),
                         PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp => pg_crud_macros_common::DeriveOrImpl::Impl(macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(generate_impl_ser_for_identifier_standard_non_null_origin_tokens(&{
-                            enum DateOrTime {
+                            #[derive(optml::Optml)]
+enum DateOrTime {
                                 Date,
                                 Time,
                             }
@@ -1685,7 +1695,8 @@ pub fn emit_generate_pg_types(
                             }
                         }))),
                         PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz => pg_crud_macros_common::DeriveOrImpl::Impl(macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(generate_impl_ser_for_identifier_standard_non_null_origin_tokens(&{
-                            enum DateNaiveOrTime {
+                            #[derive(optml::Optml)]
+enum DateNaiveOrTime {
                                 Date,
                                 Time,
                             }
@@ -1896,7 +1907,8 @@ pub fn emit_generate_pg_types(
             let maybe_impl_identifier_token_stream = if matches!(&pg_type_pattern, PgTypePattern::Standard) &&
                 matches!(&is_nullable, pg_crud_macros_common::IsNullable::False)
             {
-                enum IsConst {
+                #[derive(optml::Optml)]
+enum IsConst {
                     False,
                     True,
                 }
@@ -4470,7 +4482,8 @@ pub fn emit_generate_pg_types(
             )
         };
         let impl_pg_type_test_cases_for_identifier_token_stream = {
-            enum IsNeedToUseInto {
+            #[derive(optml::Optml)]
+enum IsNeedToUseInto {
                 False,
                 True,
             }
@@ -4488,7 +4501,8 @@ pub fn emit_generate_pg_types(
             let generate_standard_non_null_test_case_handle_token_stream = |is_need_to_use_into: &IsNeedToUseInto| {
                 let generate_range_read_ids_to_2_dimensions_vec_read_inner_token_stream =
                     |min_token_stream: &dyn quote::ToTokens, negative_less_typical_token_stream: &dyn quote::ToTokens, negative_more_typical_token_stream: &dyn quote::ToTokens, near_zero_token_stream: &dyn quote::ToTokens, positive_less_typical_token_stream: &dyn quote::ToTokens, positive_more_typical_token_stream: &dyn quote::ToTokens, max_token_stream: &dyn quote::ToTokens| {
-                        enum Bnd<'lt> {
+                        #[derive(optml::Optml)]
+enum Bnd<'lt> {
                             Excl(&'lt dyn quote::ToTokens),
                             Incl(&'lt dyn quote::ToTokens),
                             Unb,
@@ -5240,12 +5254,14 @@ pub fn emit_generate_pg_types(
             };
             let read_ids_and_table_type_into_pg_type_optional_where_greater_than_token_stream: Option<proc_macro2::TokenStream> = match &pg_type_pattern {
                 PgTypePattern::Standard => {
-                    enum IsNeedToImplPgTypeGreaterThanTest {
+                    #[derive(optml::Optml)]
+enum IsNeedToImplPgTypeGreaterThanTest {
                         False,
                         TrueFromCreate,
                         TrueFromReadIds,
                     }
-                    enum CreateReadIds {
+                    #[derive(optml::Optml)]
+enum CreateReadIds {
                         Create,
                         ReadIds,
                     }
@@ -5749,42 +5765,4 @@ pub fn emit_generate_pg_types(
 }
 
 #[cfg(test)]
-mod tests {
-    #[test]
-    fn model_can_be_parsed_and_validated_without_emitting_source() {
-        let input = quote::quote! {{
-            "pg_table_cols_write_into_file": "False",
-            "whole_write_into_file": "False",
-            "variant": {"Subset": ["I16AsInt2", "StringAsText"]}
-        }};
-        let parsed = super::parse_generate_pg_types(
-            macros_helpers::ts_writer::ProcMacro2TokenStreamRef::from(&input),
-        )
-        .expect("35a0f719");
-        let built = super::build_generate_pg_types(parsed).expect("3c8d514f");
-        let validated = super::validate_generate_pg_types(built).expect("b24816de");
-        assert_eq!(usize::from(validated.entry_count()), 2usize);
-    }
-
-    #[test]
-    fn malformed_config_is_a_typed_parse_error() {
-        let input = quote::quote! {{"variant": "MissingFields"}};
-        assert!(matches!(
-            super::parse_generate_pg_types(
-                macros_helpers::ts_writer::ProcMacro2TokenStreamRef::from(&input),
-            ),
-            Err(super::GeneratePgTypesPipelineError::Parse(_error))
-        ));
-    }
-
-    #[test]
-    fn generated_type_list_deserialization_rejects_too_many_entries() {
-        let serialized = serde_json::to_string(&vec![
-            super::PgType::I16AsInt2;
-            super::GENERATE_PG_TYPES_MAX_LEN + 1usize
-        ])
-        .expect("7cd2e0af");
-        let _error =
-            serde_json::from_str::<super::GeneratePgTypes>(&serialized).expect_err("40b96aa2");
-    }
-}
+mod tests;

@@ -2,14 +2,18 @@
     clippy::arbitrary_source_item_ordering,
     reason = "multipart domain declarations stay adjacent to their validation implementations"
 )]
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct MultipartPayloadMaximum(usize);
 
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, newtype::FromInner, newtype::Display)]
+#[derive(
+    optml::Optml, Clone, Copy, Debug, Default, Eq, PartialEq, newtype::FromInner, newtype::Display,
+)]
 pub struct MultipartValueLength(usize);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum MultipartValueError {
+    #[error("multipart name must not contain control characters")]
+    ControlCharacter,
     #[error("multipart field name must not be empty")]
     EmptyFieldName,
     #[error("multipart file name must not be empty")]
@@ -22,7 +26,7 @@ pub enum MultipartValueError {
     TooLong { actual: MultipartValueLength },
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
 pub struct MultipartFieldName(String);
 impl TryFrom<String> for MultipartFieldName {
     type Error = MultipartValueError;
@@ -35,13 +39,13 @@ impl TryFrom<String> for MultipartFieldName {
                 actual: MultipartValueLength(value.len()),
             });
         }
-        if value.contains('\0') {
-            return Err(Self::Error::Nul);
+        if value.chars().any(char::is_control) {
+            return Err(Self::Error::ControlCharacter);
         }
         Ok(Self(value))
     }
 }
-#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
 pub struct MultipartFileName(String);
 impl TryFrom<String> for MultipartFileName {
     type Error = MultipartValueError;
@@ -54,20 +58,21 @@ impl TryFrom<String> for MultipartFileName {
                 actual: MultipartValueLength(value.len()),
             });
         }
-        if value.contains('\0') {
-            return Err(Self::Error::Nul);
+        if value.chars().any(char::is_control) {
+            return Err(Self::Error::ControlCharacter);
         }
-        if std::path::Path::new(&value)
-            .file_name()
-            .and_then(|name| name.to_str())
-            != Some(&value)
+        if value.contains(['/', '\\'])
+            || std::path::Path::new(&value)
+                .file_name()
+                .and_then(|name| name.to_str())
+                != Some(&value)
         {
             return Err(Self::Error::PathComponent);
         }
         Ok(Self(value))
     }
 }
-#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
 pub struct MultipartTextValue(String);
 impl TryFrom<String> for MultipartTextValue {
     type Error = MultipartValueError;
@@ -83,7 +88,7 @@ impl TryFrom<String> for MultipartTextValue {
         Ok(Self(value))
     }
 }
-#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefTarget)]
 pub struct MultipartBytes(bounded_types::BoundedVec<u8, 0, 16_777_216>);
 impl TryFrom<Vec<u8>> for MultipartBytes {
     type Error = MultipartValueError;
@@ -95,7 +100,7 @@ impl TryFrom<Vec<u8>> for MultipartBytes {
         }
     }
 }
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
 pub struct MultipartTextPart {
     name: MultipartFieldName,
     value: MultipartTextValue,
@@ -115,16 +120,20 @@ impl MultipartTextPart {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
 pub struct MultipartBytesPart {
     bytes: MultipartBytes,
     file_name: Option<MultipartFileName>,
     name: MultipartFieldName,
 }
-#[derive(Clone, Debug, Default, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)]
+#[derive(
+    optml::Optml, Clone, Debug, Default, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner,
+)]
 struct MultipartBytesParts(Vec<MultipartBytesPart>);
 
-#[derive(Clone, Debug, Default, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)]
+#[derive(
+    optml::Optml, Clone, Debug, Default, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner,
+)]
 struct MultipartTextParts(Vec<MultipartTextPart>);
 impl MultipartBytesPart {
     #[must_use]
@@ -154,7 +163,7 @@ impl MultipartBytesPart {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum MultipartRequestError {
     #[error("multipart request payload exceeds its maximum")]
     PayloadTooLarge,
@@ -162,7 +171,7 @@ pub enum MultipartRequestError {
     TooManyParts,
 }
 
-#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Default, Eq, PartialEq)]
 pub struct MultipartUploadRequest {
     bytes_parts: MultipartBytesParts,
     payload_bytes: MultipartValueLength,
@@ -232,13 +241,13 @@ impl MultipartUploadRequest {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum FileStagingAction {
     Delete,
     Upload,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
 pub struct FileStagingDirectoryName(String);
 impl TryFrom<String> for FileStagingDirectoryName {
     type Error = MultipartValueError;
@@ -261,9 +270,9 @@ pub fn staging_directory_name(
     }))
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
 pub struct StoragePathSegment(String);
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("invalid storage path segment")]
 pub struct StoragePathSegmentError;
 impl TryFrom<String> for StoragePathSegment {
@@ -280,7 +289,7 @@ impl TryFrom<String> for StoragePathSegment {
         Ok(Self(value))
     }
 }
-#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)]
 pub struct StdStorageRelativePath(std::path::PathBuf);
 #[must_use]
 pub fn identifier_file_storage_relative_path(
@@ -325,7 +334,7 @@ mod tests {
         );
         assert_eq!(
             super::MultipartFieldName::try_from(String::from("a\0b")),
-            Err(super::MultipartValueError::Nul)
+            Err(super::MultipartValueError::ControlCharacter)
         );
 
         assert_eq!(
@@ -342,7 +351,15 @@ mod tests {
         );
         assert_eq!(
             super::MultipartFileName::try_from(String::from("a\0b")),
-            Err(super::MultipartValueError::Nul)
+            Err(super::MultipartValueError::ControlCharacter)
+        );
+        assert_eq!(
+            super::MultipartFieldName::try_from(String::from("field\r\ninjected")),
+            Err(super::MultipartValueError::ControlCharacter)
+        );
+        assert_eq!(
+            super::MultipartFileName::try_from(String::from("..\\secret.txt")),
+            Err(super::MultipartValueError::PathComponent)
         );
 
         let _text = super::MultipartTextValue::try_from("a".repeat(65_536usize)).expect("c2dd1657");

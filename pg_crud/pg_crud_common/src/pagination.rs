@@ -28,7 +28,7 @@ impl From<i32> for PaginationLimit {
         Self(value.into())
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct PaginationPolicy {
     default_limit: PaginationLimit,
 }

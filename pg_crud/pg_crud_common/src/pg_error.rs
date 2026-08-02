@@ -1,4 +1,4 @@
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum PgErrorKind {
     CheckViolation,
     Connection,
@@ -14,7 +14,7 @@ pub enum PgErrorKind {
     Unknown,
 }
 
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 pub struct SqlxPgErrorRef<'error_lt>(&'error_lt sqlx::Error);
 
 #[must_use]

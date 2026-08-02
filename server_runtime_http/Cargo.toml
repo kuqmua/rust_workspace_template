@@ -11,6 +11,7 @@ categories = ["web-programming"]
 edition.workspace = true
 
 [dependencies]
+optml = { workspace = true }
 newtype = { workspace = true }
 server_observability = { workspace = true }
 server_runtime_core = { workspace = true }

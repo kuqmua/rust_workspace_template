@@ -9,30 +9,30 @@
 
 const PASSWORD_FILE_MAX_BYTES: usize = 1_024usize;
 
-#[derive(Debug, newtype::FromInner)]
+#[derive(optml::Optml, Debug, newtype::FromInner)]
 struct StdBootstrapPath(std::path::PathBuf);
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 struct SqlxBootstrapError(sqlx::Error);
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 struct BootstrapStatus(u8);
-#[derive(Debug)]
+#[derive(optml::Optml, Debug)]
 struct BootstrapArgs {
     display_name: server_admin::AdminDisplayName,
     login: server_admin::AdminLogin,
     password_file: StdBootstrapPath,
 }
-#[derive(Debug)]
+#[derive(optml::Optml, Debug)]
 struct PasswordResetArgs {
     login: server_admin::AdminLogin,
     password_file: StdBootstrapPath,
 }
-#[derive(Debug)]
+#[derive(optml::Optml, Debug)]
 enum AdminCommand {
     Bootstrap(BootstrapArgs),
     PasswordReset(PasswordResetArgs),
 }
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 enum BootstrapArgsError {
     #[error("administrator bootstrap display name is invalid")]
     DisplayName,
@@ -43,7 +43,7 @@ enum BootstrapArgsError {
     )]
     Usage,
 }
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 enum BootstrapCommandError {
     #[error(transparent)]
     Args(BootstrapArgsError),
@@ -64,7 +64,7 @@ enum BootstrapCommandError {
     #[error("failed to reset the administrator password: {0}")]
     PasswordReset(server_admin::AdminPasswordResetError),
 }
-#[derive(newtype::FromInner)]
+#[derive(optml::Optml, newtype::FromInner)]
 struct StdBootstrapExitCode(std::process::ExitCode);
 impl std::process::Termination for StdBootstrapExitCode {
     fn report(self) -> std::process::ExitCode {

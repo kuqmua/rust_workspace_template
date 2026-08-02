@@ -1427,6 +1427,8 @@ define_str_constants! {
         pub METRICS_RESPONSE_BODY_EXCEEDS_MAXIMUM_LENGTH = ["metrics response body exceeds maximum length"];
         pub HTTPS_ADMIN_EXAMPLE_COM_PATH = [WORD_HTTPS, "://", WORD_ADMIN_2, ".", WORD_EXAMPLE, ".", WORD_COM, "/", WORD_PATH];
         pub HTTPS_ADMIN_EXAMPLE_COM_SETTINGS_UPPER = ["HTTPS://ADMIN.EXAMPLE.COM/settings"];
+        pub HTTPS_ADMIN_EXAMPLE_COM_WITH_INVALID_PORT = ["https://admin.example.com:invalid"];
+        pub HTTPS_ADMIN_EXAMPLE_COM_WITH_USERINFO = ["https://user@admin.example.com"];
         pub CURSOR_TEST_JSON_PAYLOAD = ["{\"id\":42}"];
         pub CURSOR_TEST_PAYLOAD = ["payload"];
         pub COMMAND_THREAD_PANICKED_SUMMARY = ["command_thread_panicked=true\n"];
@@ -2345,6 +2347,10 @@ define_str_constants! {
         pub CARGO_PLUS_NIGHTLY_UDEPS_WORKSPACE_ALL_TARGETS_ALL_FEATURES_LOCKED = [WORD_CARGO_2, " +nightly ", WORD_UDEPS, " --", WORD_WORKSPACE, " --", WORD_ALL, "-", WORD_TARGETS, " --", WORD_ALL, "-", WORD_FEATURES, " --", WORD_LOCKED];
         pub CARGO_LLVM_COV_WORKSPACE_ALL_FEATURES_SUMMARY_ONLY = [WORD_CARGO_2, " ", WORD_LLVM, "-", WORD_COV, " --", WORD_WORKSPACE, " --", WORD_ALL, "-", WORD_FEATURES, " --", WORD_SUMMARY, "-", WORD_ONLY];
         pub CARGO_MACHETE = [WORD_CARGO_2, " ", WORD_MACHETE];
+        pub CI_BROWSER_TEST_CMD = ["run: npm test"];
+        pub CI_DATABASE_TEST_CMD = ["cargo run --locked -p workspace_test_runner -- database"];
+        pub CI_MIRI_COMPONENT = ["components: miri"];
+        pub CI_MIRI_TEST_CMD = ["cargo miri test --locked --all-features"];
         pub CB6830BC = ["cb6830bc"];
         pub CB693A3F = ["cb693a3f"];
         pub CBA1B5FB = ["cba1b5fb"];
@@ -3020,6 +3026,7 @@ define_str_constants! {
         pub SERVER_ADMIN_SRC_PASSWORD_RS = [WORD_SERVER_ADMIN, "/", WORD_SRC, "/", WORD_PASSWORD, ".", WORD_RS];
         pub SERVER_ADMIN_FRONTEND_SRC_APP_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_APP, ".", WORD_RS];
         pub SERVER_ADMIN_FRONTEND_SRC_SHARED_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_SHARED, ".", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_UI = ["../", WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/ui"];
         pub SERVER_ADMIN_FRONTEND_SRC_APP_FORMS_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_APP, "/forms.", WORD_RS];
         pub SERVER_ADMIN_FRONTEND_SRC_APP_PAGES_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_APP, "/pages.", WORD_RS];
         pub SERVER_ADMIN_FRONTEND_SRC_APP_TABLES_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_APP, "/tables.", WORD_RS];
@@ -3619,8 +3626,8 @@ pub const CODE_STYLE_REVIEWED_PUBLIC_FIELD_PATH_SUFFIXES: [&str; 14] = [
     "server_app_state/src/lib.rs",
     "pg_crud/pg_crud_common/src/lib.rs",
     "pg_crud/pg_crud_common/src/lib.rs",
-    "pg_crud/pg_crud_common/src/lib.rs",
-    "pg_crud/pg_crud_common/src/lib.rs",
+    "pg_crud/pg_crud_common/src/query_pagination.rs",
+    "pg_crud/pg_crud_common/src/query_collections.rs",
     "server_config/src/lib.rs",
     "server_admin/src/generated_tables.rs",
     "server_admin/src/generated_tables.rs",
@@ -3745,7 +3752,7 @@ pub const CODE_STYLE_RUNTIME_ARC_OWNER_REASONS: [&str; 6] = [
     "bounded reads share a Tokio semaphore across asynchronous readers",
     "runtime limits share immutable concurrency budgets across tasks",
 ];
-pub const CODE_STYLE_FACADE_REEXPORT_SUFFIXES: [&str; 12] = [
+pub const CODE_STYLE_FACADE_REEXPORT_SUFFIXES: [&str; 13] = [
     "bounded_types/src/lib.rs",
     "config_lib/src/lib.rs",
     FRONTEND_CONTRACT_SRC_LIB_RS,
@@ -3754,12 +3761,13 @@ pub const CODE_STYLE_FACADE_REEXPORT_SUFFIXES: [&str; 12] = [
     PG_CRUD_PG_TABLE_GENERATE_PG_TABLE_SRC_SRC_LIB_RS,
     PG_CRUD_PG_TYPES_GENERATE_PG_TYPES_SRC_SRC_LIB_RS,
     PG_CRUD_WHERE_FILTERS_GENERATE_WHERE_FILTERS_SRC_SRC_LIB_RS,
+    "server_admin_contract/src/lib.rs",
     SERVER_ADMIN_SRC_LIB_RS,
     "server_observability/src/lib.rs",
     "server_runtime_core/src/lib.rs",
     "server_runtime_http/src/lib.rs",
 ];
-pub const CODE_STYLE_FACADE_REEXPORT_REASONS: [&str; 12] = [
+pub const CODE_STYLE_FACADE_REEXPORT_REASONS: [&str; 13] = [
     "bounded types facade exports validated string and collection families",
     "configuration facade preserves its public typed configuration API",
     "frontend contract facade exports its public transport API",
@@ -3768,12 +3776,13 @@ pub const CODE_STYLE_FACADE_REEXPORT_REASONS: [&str; 12] = [
     "PG table generator facade exports source pipeline entrypoints",
     "PG types generator facade exports source pipeline entrypoints",
     "where-filter generator facade exports source pipeline entrypoints",
+    "server administrator contract facade preserves its public typed API",
     "server administrator facade exports its public service API",
     "server observability facade exports tracing and diagnostic primitives",
     "server runtime core facade exports dependency-light runtime primitives",
     "server HTTP runtime facade exports HTTP and integration primitives",
 ];
-pub const CODE_STYLE_LEPTOS_PRELUDE_SUFFIXES: [&str; 44] = [
+pub const CODE_STYLE_LEPTOS_PRELUDE_SUFFIXES: [&str; 56] = [
     SERVER_ADMIN_FRONTEND_SRC_APP_RS,
     SERVER_ADMIN_FRONTEND_SRC_APP_DATA_GRID_RS,
     SERVER_ADMIN_FRONTEND_SRC_APP_NAVIGATION_RS,
@@ -3817,9 +3826,21 @@ pub const CODE_STYLE_LEPTOS_PRELUDE_SUFFIXES: [&str; 44] = [
     SERVER_ADMIN_FRONTEND_SRC_SSR_TEXT_PAGE_RS,
     SERVER_ADMIN_FRONTEND_SRC_SSR_USERS_RS,
     SERVER_ADMIN_FRONTEND_SRC_SSR_USERS_ROW_RS,
+    "server_admin_frontend/src/ui/alert.rs",
+    "server_admin_frontend/src/ui/alert_dialog.rs",
+    "server_admin_frontend/src/ui/badge.rs",
+    "server_admin_frontend/src/ui/button.rs",
+    "server_admin_frontend/src/ui/card.rs",
+    "server_admin_frontend/src/ui/checkbox.rs",
+    "server_admin_frontend/src/ui/empty.rs",
+    "server_admin_frontend/src/ui/field.rs",
+    "server_admin_frontend/src/ui/input.rs",
+    "server_admin_frontend/src/ui/navigation.rs",
+    "server_admin_frontend/src/ui/spinner.rs",
+    "server_admin_frontend/src/ui/textarea.rs",
     SSR_SOURCE_PATH,
 ];
-pub const CODE_STYLE_LEPTOS_PRELUDE_REASONS: [&str; 44] = [
+pub const CODE_STYLE_LEPTOS_PRELUDE_REASONS: [&str; 56] = [
     "Leptos CSR view macro expansion requires attribute traits in lexical scope",
     "Leptos CSR data-grid component requires attribute traits in lexical scope",
     "Leptos CSR navigation component requires attribute traits in lexical scope",
@@ -3863,6 +3884,18 @@ pub const CODE_STYLE_LEPTOS_PRELUDE_REASONS: [&str; 44] = [
     "Leptos SSR text-page rendering requires attribute traits in lexical scope",
     "Leptos SSR users rendering requires attribute traits in lexical scope",
     "Leptos SSR user-row rendering requires attribute traits in lexical scope",
+    "Leptos alert primitive requires attribute traits in lexical scope",
+    "Leptos alert-dialog primitive requires attribute traits in lexical scope",
+    "Leptos badge primitive requires attribute traits in lexical scope",
+    "Leptos button primitive requires attribute traits in lexical scope",
+    "Leptos card primitive requires attribute traits in lexical scope",
+    "Leptos checkbox primitive requires attribute traits in lexical scope",
+    "Leptos empty-state primitive requires attribute traits in lexical scope",
+    "Leptos field primitive requires attribute traits in lexical scope",
+    "Leptos input primitive requires attribute traits in lexical scope",
+    "Leptos navigation primitive requires attribute traits in lexical scope",
+    "Leptos spinner primitive requires attribute traits in lexical scope",
+    "Leptos textarea primitive requires attribute traits in lexical scope",
     "Leptos SSR view macro expansion requires attribute traits in lexical scope",
 ];
 pub const CODE_STYLE_SINGLE_SOURCE_OWNER_SUFFIXES: [&str; 6] = [
@@ -4491,6 +4524,10 @@ pub const ADMIN_CSR_ROOT_ID: &str = "admin-csr-root";
 pub const ADMIN_ACTION_QUERY_KEY: &str = "action";
 pub const ADMIN_FILTER_END_QUERY_KEY: &str = "filter_end";
 pub const ADMIN_FIELD_ERROR_CLASS: &str = "field-error";
+pub const ADMIN_ALERT_DATA_NAME: &str = "Alert";
+pub const HTML_ALERT_ROLE: &str = "alert";
+pub const HTML_STATUS_ROLE: &str = "status";
+pub const HTML_DATA_NAME: &str = "data-name";
 pub const ADMIN_FILTER_FIELD_QUERY_KEY: &str = "filter_field";
 pub const ADMIN_FILTER_OPERATION_QUERY_KEY: &str = "filter_operation";
 pub const ADMIN_FILTER_VALUE_QUERY_KEY: &str = "filter_value";

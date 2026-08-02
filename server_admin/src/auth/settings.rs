@@ -65,20 +65,12 @@ pub(super) async fn settings_view(
 pub(super) async fn get(
     auth: super::AdminAuthReq,
 ) -> Result<super::AxumAdminResponse, super::AdminError> {
-    settings_view(auth).await.map(|view| {
-        super::AxumAdminResponse(axum::response::IntoResponse::into_response(axum::Json(
-            view,
-        )))
-    })
+    settings_view(auth).await.map(super::shared::json_response)
 }
 pub(super) async fn branding(
     auth: super::AdminAuthReq,
 ) -> Result<super::AxumAdminResponse, super::AdminError> {
-    branding_view(auth).await.map(|view| {
-        super::AxumAdminResponse(axum::response::IntoResponse::into_response(axum::Json(
-            view,
-        )))
-    })
+    branding_view(auth).await.map(super::shared::json_response)
 }
 pub(super) async fn branding_view(
     auth: super::AdminAuthReq,

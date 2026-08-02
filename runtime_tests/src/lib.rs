@@ -1,9 +1,9 @@
 const SERVICE_BASE_URL_MAX_LEN: usize = 8_192usize;
 
-#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
 pub struct ServiceBaseUrl(String);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum ServiceBaseUrlError {
     #[error("service base URL must include a host")]
     Host,
@@ -45,7 +45,7 @@ impl TryFrom<String> for ServiceBaseUrl {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
 pub struct RuntimeTestConfig {
     application_base_url: ServiceBaseUrl,
     notification_service_base_url: ServiceBaseUrl,
@@ -74,7 +74,7 @@ impl RuntimeTestConfig {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RuntimeTestKind {
     ApplicationLiveness,
     ApplicationReadiness,
@@ -95,7 +95,7 @@ impl std::fmt::Display for RuntimeTestKind {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
 pub struct RuntimeTestReport {
     passed: bounded_types::BoundedVec<RuntimeTestKind, 0usize, 5usize>,
 }
@@ -107,16 +107,16 @@ impl RuntimeTestReport {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::Display, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::Display, newtype::FromInner)]
 pub struct HttpRuntimeTestStatus(u16);
 
-#[derive(Clone, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Debug, newtype::FromInner)]
 struct ReqwestRuntimeTestClient(reqwest::blocking::Client);
 
-#[derive(Debug, newtype::FromInner)]
+#[derive(optml::Optml, Debug, newtype::FromInner)]
 struct ReqwestRuntimeTestResponse(reqwest::blocking::Response);
 
-#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
 struct RuntimeTestUrl(String);
 
 impl TryFrom<String> for RuntimeTestUrl {
@@ -131,7 +131,7 @@ impl TryFrom<String> for RuntimeTestUrl {
     }
 }
 
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 pub enum RuntimeTestError {
     #[error("runtime service URL is invalid: {0}")]
     BaseUrl(#[from] ServiceBaseUrlError),
@@ -145,21 +145,21 @@ pub enum RuntimeTestError {
     Report(#[source] bounded_types::BoundedValueError),
     #[error("{test} request failed: {source}")]
     Request {
-        test: RuntimeTestKind,
         #[source]
         source: server_runtime_http::ReqwestError,
+        test: RuntimeTestKind,
     },
     #[error("{test} response could not be decoded: {source}")]
     Response {
-        test: RuntimeTestKind,
         #[source]
         source: server_runtime_http::ReqwestError,
+        test: RuntimeTestKind,
     },
     #[error("{test} returned HTTP {actual}; expected {expected}")]
     Status {
-        test: RuntimeTestKind,
         actual: HttpRuntimeTestStatus,
         expected: HttpRuntimeTestStatus,
+        test: RuntimeTestKind,
     },
     #[error("{test} reported an unhealthy service")]
     Unhealthy { test: RuntimeTestKind },

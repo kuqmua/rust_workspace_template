@@ -97,7 +97,7 @@ impl LocationColumn {
         }
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("{self:?}")]
 pub struct LocationCoordinateTryFromU32Error;
 #[derive(
@@ -162,13 +162,13 @@ impl utoipa::ToSchema for StdLocationDuration {
         std::borrow::Cow::Borrowed(str_constants::STDLOCATIONDURATION)
     }
 }
-#[derive(Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
 struct LocationFileRef<'file_lt>(&'file_lt str);
-#[derive(newtype::FromInner)]
+#[derive(optml::Optml, newtype::FromInner)]
 struct StdFmtRefMut<'fmt_ref_lt, 'fmt_lt>(&'fmt_ref_lt mut std::fmt::Formatter<'fmt_lt>);
-#[derive(Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
 struct ChronoLocationDisplayTimezone(chrono::FixedOffset);
-#[derive(Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
 struct ChronoLocationDateTime(chrono::DateTime<chrono::FixedOffset>);
 #[allow(clippy::arbitrary_source_item_ordering)]
 #[derive(
@@ -357,7 +357,7 @@ impl StdTimeDurationNanos {
         }
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("{self:?}")]
 pub struct StdTimeDurationNanosTryFromU32Error;
 impl std::fmt::Display for Location {
@@ -373,6 +373,7 @@ impl std::fmt::Display for Location {
 #[cfg(test)]
 #[allow(clippy::arbitrary_source_item_ordering)]
 mod tests {
+    #[derive(optml::Optml)]
     struct DatetimeFmt<'location_lt> {
         location: &'location_lt super::Location,
     }
@@ -381,6 +382,7 @@ mod tests {
             self.location.fmt_datetime(super::StdFmtRefMut::from(f))
         }
     }
+    #[derive(optml::Optml)]
     struct PlaceFmt<'location_lt> {
         location: &'location_lt super::Location,
         src_place_type: config_lib::types::SrcPlaceType,

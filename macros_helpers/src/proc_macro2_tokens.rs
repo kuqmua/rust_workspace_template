@@ -1,4 +1,5 @@
 #[derive(
+    optml::Optml,
     Debug,
     Clone,
     Default,

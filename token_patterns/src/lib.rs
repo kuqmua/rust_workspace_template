@@ -179,7 +179,7 @@ token_patterns_macros::ts_path_fn!(
     path_all_variants_default_some_one_element_call,
     ::all_variants_default_some_one_element()
 );
-#[derive(newtype::FromInner)]
+#[derive(optml::Optml, newtype::FromInner)]
 struct ProcMacro2TokensMut<'tokens_lt>(&'tokens_lt mut proc_macro2::TokenStream);
 
 fn append_tokens(tokens: &mut ProcMacro2TokensMut<'_>, part: impl quote::ToTokens) {

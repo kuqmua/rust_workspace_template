@@ -4,14 +4,14 @@
     reason = "the change-password card is composed once by the profile screen"
 )]
 
-use leptos::prelude::{ClassAttribute, ElementChild, GlobalAttributes, OnAttribute};
+use leptos::prelude::{ClassAttribute, ElementChild, OnAttribute};
 
 pub(super) fn admin_change_password() -> impl leptos::prelude::IntoView {
     let current_password = leptos::prelude::RwSignal::new(String::new());
     let new_password = leptos::prelude::RwSignal::new(String::new());
     let password_validation_failed = leptos::prelude::RwSignal::new(false);
     leptos::view! {
-        <article class="security-card">
+        <crate::ui::card::AdminCard variant=crate::ui::card::AdminCardVariant::Security>
             <h2>"Change password"</h2>
             <form novalidate on:submit=move |event| {
                 event.prevent_default();
@@ -38,12 +38,12 @@ pub(super) fn admin_change_password() -> impl leptos::prelude::IntoView {
             }>
                 <p class="password-policy">{str_constants::ADMIN_PASSWORD_POLICY_DESCRIPTION}</p>
                 {move || leptos::prelude::Get::get(&password_validation_failed).then(|| leptos::view! {
-                    <p class="field-error" role="alert">"Check both passwords and ensure the new password satisfies the policy."</p>
+                    <crate::ui::alert::AdminAlert>"Check both passwords and ensure the new password satisfies the policy."</crate::ui::alert::AdminAlert>
                 })}
-                <label><span>"Current password"</span><input type="password" required on:input=move |event| leptos::prelude::Set::set(&current_password, leptos::prelude::event_target_value(&event)) /></label>
-                <label><span>"New password"</span><input type="password" minlength=server_admin_contract::ADMIN_NEW_PASSWORD_MIN_CHARS maxlength=server_admin_contract::ADMIN_PASSWORD_MAX_CHARS required on:input=move |event| leptos::prelude::Set::set(&new_password, leptos::prelude::event_target_value(&event)) /></label>
-                <button type="submit">"Change password"</button>
+                <crate::ui::field::AdminField label="Current password"><crate::ui::input::AdminInput name="current_password" kind=crate::ui::input::AdminInputKind::Password required=true bind_value=current_password /></crate::ui::field::AdminField>
+                <crate::ui::field::AdminField label="New password"><crate::ui::input::AdminInput name="new_password" kind=crate::ui::input::AdminInputKind::Password minlength=server_admin_contract::ADMIN_NEW_PASSWORD_MIN_CHARS maxlength=server_admin_contract::ADMIN_PASSWORD_MAX_CHARS required=true bind_value=new_password /></crate::ui::field::AdminField>
+                <crate::ui::button::AdminButton>"Change password"</crate::ui::button::AdminButton>
             </form>
-        </article>
+        </crate::ui::card::AdminCard>
     }
 }

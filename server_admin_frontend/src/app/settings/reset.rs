@@ -1,11 +1,4 @@
 pub(super) fn reset() {
-    if !bool::from(super::super::mutation::mutation_confirmed(
-        super::super::mutation::MutationConfirmationMessageRef::from(
-            "Reset administrator settings to template defaults?",
-        ),
-    )) {
-        return;
-    }
     let clear = server_admin_contract::AdminOptionalSettings::try_from(
         server_admin_contract::AdminOptionalSetting::ALL.to_vec(),
     );

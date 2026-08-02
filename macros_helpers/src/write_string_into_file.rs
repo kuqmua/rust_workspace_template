@@ -1,16 +1,24 @@
-#[derive(Debug, Clone, PartialEq, Eq, newtype::AsRefTarget, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, PartialEq, Eq, newtype::AsRefTarget, newtype::FromInner)]
 pub struct StdWrittenFilePath(std::path::PathBuf);
-#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub struct StdWrittenFilePathRef<'path_lt>(&'path_lt std::path::Path);
-#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub struct StringFileContentRef<'cnt_lt>(&'cnt_lt str);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
 struct GeneratedFileMaximumBytes(usize);
 #[derive(
-    Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner, newtype::IntoInnerFrom, newtype::NotInner,
+    optml::Optml,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+    newtype::NotInner,
 )]
 pub struct ShouldWriteString(bool);
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(optml::Optml, Debug, Clone, PartialEq, Eq)]
 pub enum WritePathOutcome {
     Changed(StdWrittenFilePath),
     Unchanged(StdWrittenFilePath),

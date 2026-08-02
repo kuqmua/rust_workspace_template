@@ -9,17 +9,19 @@ fn dependency_markers<Value>(
     Value: serde::Serialize,
 {
 }
-#[derive(Debug, Default)]
+#[derive(optml::Optml, Debug, Default)]
+#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optml takes precedence over alphabetical field order
 struct NewtypeAttrs {
     options: workspace_macro_helpers::StdUniqueOptionSet<NewtypeOption>,
-    to_err_string_mode: Option<ToErrStringMode>,
     try_from: Option<NewtypeTryFromAttrs>,
+    to_err_string_mode: Option<ToErrStringMode>,
 }
-#[derive(Debug)]
+#[derive(optml::Optml, Debug)]
 struct NewtypeTryFromAttrs {
     error: Option<SynType>,
     validator: SynExpr,
 }
+#[derive(optml::Optml)]
 struct BoundedStringAttrs {
     description: Option<SynExpr>,
     max: Option<SynExpr>,
@@ -27,6 +29,7 @@ struct BoundedStringAttrs {
     options: workspace_macro_helpers::StdUniqueOptionSet<BoundedStringOption>,
     validator: Option<SynExpr>,
 }
+#[derive(optml::Optml)]
 struct WireEnumAttrs {
     error_message: SynExpr,
     ref_type: SynIdentifier,
@@ -60,7 +63,7 @@ impl syn::parse::Parse for WireEnumAttrs {
         })
     }
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 enum BoundedStringOption {
     Chars,
     NulFree,
@@ -69,7 +72,7 @@ enum BoundedStringOption {
     Utoipa,
     WriteOnly,
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 enum NewtypeOption {
     AsMut,
     AsRef,
@@ -102,18 +105,20 @@ enum NewtypeOption {
     Secret,
     ToTokens,
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq)]
 enum ToErrStringMode {
     AsRefStr,
     Debug,
     Display,
 }
+#[derive(optml::Optml)]
 struct ProcMacro2GeneratedTokenStream(proc_macro2::TokenStream);
 impl From<proc_macro2::TokenStream> for ProcMacro2GeneratedTokenStream {
     fn from(value: proc_macro2::TokenStream) -> Self {
         Self(value)
     }
 }
+#[derive(optml::Optml)]
 struct ProcMacroInputTokenStream(proc_macro::TokenStream);
 impl From<proc_macro::TokenStream> for ProcMacroInputTokenStream {
     fn from(value: proc_macro::TokenStream) -> Self {
@@ -135,6 +140,7 @@ impl quote::ToTokens for ProcMacro2GeneratedTokenStream {
         self.0.to_tokens(tokens);
     }
 }
+#[derive(optml::Optml)]
 struct NewtypeBool(bool);
 impl From<bool> for NewtypeBool {
     fn from(value: bool) -> Self {
@@ -146,15 +152,16 @@ impl NewtypeBool {
         self.0
     }
 }
+#[derive(optml::Optml)]
 struct SnakeIdentifier(String);
-#[derive(Debug)]
+#[derive(optml::Optml, Debug)]
 struct SnakeIdentifierifierLen(usize);
 impl From<usize> for SnakeIdentifierifierLen {
     fn from(value: usize) -> Self {
         Self(value)
     }
 }
-#[derive(Debug)]
+#[derive(optml::Optml, Debug)]
 struct SnakeIdentifierifierTryFromStringError(SnakeIdentifierifierLen);
 impl From<SnakeIdentifierifierLen> for SnakeIdentifierifierTryFromStringError {
     fn from(value: SnakeIdentifierifierLen) -> Self {
@@ -196,7 +203,7 @@ impl quote::ToTokens for SnakeIdentifier {
         self.0.to_tokens(tokens);
     }
 }
-#[derive(Clone, Copy)]
+#[derive(optml::Optml, Clone, Copy)]
 struct SynAttrsRef<'syn_lt>(&'syn_lt [syn::Attribute]);
 impl<'syn_lt> From<&'syn_lt [syn::Attribute]> for SynAttrsRef<'syn_lt> {
     fn from(value: &'syn_lt [syn::Attribute]) -> Self {
@@ -208,7 +215,7 @@ impl AsRef<[syn::Attribute]> for SynAttrsRef<'_> {
         self.0
     }
 }
-#[derive(Clone, Copy)]
+#[derive(optml::Optml, Clone, Copy)]
 struct SynDeriveInputRef<'syn_lt>(&'syn_lt syn::DeriveInput);
 impl<'syn_lt> From<&'syn_lt syn::DeriveInput> for SynDeriveInputRef<'syn_lt> {
     fn from(value: &'syn_lt syn::DeriveInput) -> Self {
@@ -220,8 +227,9 @@ impl AsRef<syn::DeriveInput> for SynDeriveInputRef<'_> {
         self.0
     }
 }
-#[derive(Clone, Copy)]
+#[derive(optml::Optml, Clone, Copy)]
 struct SynIdentifierRef<'syn_lt>(&'syn_lt syn::Ident);
+#[derive(optml::Optml)]
 struct SynIdentifier(syn::Ident);
 impl From<syn::Ident> for SynIdentifier {
     fn from(value: syn::Ident) -> Self {
@@ -238,7 +246,7 @@ impl AsRef<syn::Ident> for SynIdentifierRef<'_> {
         self.0
     }
 }
-#[derive(Clone, Copy)]
+#[derive(optml::Optml, Clone, Copy)]
 struct SynTypeRef<'syn_lt>(&'syn_lt syn::Type);
 impl<'syn_lt> From<&'syn_lt syn::Type> for SynTypeRef<'syn_lt> {
     fn from(value: &'syn_lt syn::Type) -> Self {
@@ -250,14 +258,14 @@ impl AsRef<syn::Type> for SynTypeRef<'_> {
         self.0
     }
 }
-#[derive(Debug)]
+#[derive(optml::Optml, Debug)]
 struct SynType(syn::Type);
 impl From<syn::Type> for SynType {
     fn from(value: syn::Type) -> Self {
         Self(value)
     }
 }
-#[derive(Debug)]
+#[derive(optml::Optml, Debug)]
 struct SynExpr(syn::Expr);
 impl From<syn::Expr> for SynExpr {
     fn from(value: syn::Expr) -> Self {
@@ -1815,55 +1823,4 @@ fn generate_to_err_string_token_stream(
     })
 }
 #[cfg(test)]
-mod tests {
-    #[test]
-    fn bounded_string_missing_max_returns_compile_error() {
-        let input = syn::parse_quote! {
-            #[derive(BoundedString)]
-            #[bounded_string(min = 1)]
-            struct Value(String);
-        };
-        let result =
-            super::generate_bounded_string_token_stream(super::SynDeriveInputRef::from(&input));
-        assert!(result.is_err(), "29f8ddc2");
-        if let Err(error) = result {
-            assert_eq!(
-                error.to_string(),
-                "BoundedString requires #[bounded_string(max = ...)]"
-            );
-        }
-    }
-    #[test]
-    fn bounded_string_utoipa_byte_length_returns_compile_error() {
-        let input = syn::parse_quote! {
-            #[derive(BoundedString)]
-            #[bounded_string(max = 4, utoipa)]
-            struct Value(String);
-        };
-        let result =
-            super::generate_bounded_string_token_stream(super::SynDeriveInputRef::from(&input));
-        assert!(result.is_err(), "da6f2151");
-        if let Err(error) = result {
-            assert_eq!(
-                error.to_string(),
-                "BoundedString utoipa requires chars so OpenAPI length semantics match runtime"
-            );
-        }
-    }
-    #[test]
-    fn duplicate_options_preserve_attribute_diagnostic() {
-        let bounded_input = syn::parse_quote! {
-            #[derive(BoundedString)]
-            #[bounded_string(max = 4, trim, trim)]
-            struct BoundedValue(String);
-        };
-        let bounded_result = super::generate_bounded_string_token_stream(
-            super::SynDeriveInputRef::from(&bounded_input),
-        );
-        if let Err(error) = bounded_result {
-            assert_eq!(error.to_string(), "duplicate bounded_string option");
-        } else {
-            panic!("d03ced5c");
-        }
-    }
-}
+mod tests;

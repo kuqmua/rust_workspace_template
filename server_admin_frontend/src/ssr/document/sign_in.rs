@@ -27,14 +27,14 @@ pub(super) fn render(
             .unwrap_or_else(super::super::AdminSsrText::from),
         leptos::view! {
             <main class="auth-layout" style=primary_color>
-                <section class="auth-card">
-                    {error.map(|message| leptos::view! { <p class="field-error" role="alert">{message.to_string()}</p> })}
+                <crate::ui::card::AdminCard variant=crate::ui::card::AdminCardVariant::Auth>
+                    {error.map(|message| leptos::view! { <crate::ui::alert::AdminAlert>{message.to_string()}</crate::ui::alert::AdminAlert> })}
                     <form method="post" action=server_admin_contract::AdminHtmlAction::SignIn.get()>
-                        <label><span>"Login"</span><input name="login" autocomplete="username" required /></label>
-                        <label><span>"Password"</span><input name="password" type="password" autocomplete="current-password" required /></label>
-                        <button type="submit">"Sign in"</button>
+                        <crate::ui::field::AdminField label="Login"><crate::ui::input::AdminInput name="login" autocomplete="username" required=true /></crate::ui::field::AdminField>
+                        <crate::ui::field::AdminField label="Password"><crate::ui::input::AdminInput name="password" kind=crate::ui::input::AdminInputKind::Password autocomplete="current-password" required=true /></crate::ui::field::AdminField>
+                        <crate::ui::button::AdminButton>"Sign in"</crate::ui::button::AdminButton>
                     </form>
-                </section>
+                </crate::ui::card::AdminCard>
             </main>
         },
     )

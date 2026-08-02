@@ -2,6 +2,7 @@ const ADMIN_JWT_SECRET_MIN_LEN: usize = 32;
 const ADMIN_JWT_SECRET_MAX_COUNT: usize = 8;
 
 #[derive(
+    optml::Optml,
     generate_getter_traits_for_struct_fields::GenerateGetterTrait,
     newtype::AsRefOwned,
     newtype::DebugRedacted,
@@ -23,7 +24,7 @@ impl AdminJwtSecret {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
+#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
 pub enum TryFromStdEnvVarOkAdminJwtSecretError {
     #[error("administrator JWT secret list must not be empty")]
     Empty,

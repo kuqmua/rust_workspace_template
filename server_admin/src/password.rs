@@ -21,25 +21,27 @@ impl super::AdminPasswordHasher {
                 ))
             })?;
         tokio::task::spawn_blocking(move || {
-            let password_secret = password.into_inner();
-            let salt = argon2::password_hash::SaltString::generate(
-                &mut argon2::password_hash::rand_core::OsRng,
-            );
-            let result = argon2::PasswordHasher::hash_password(
-                &argon2::Argon2::default(),
-                secrecy::ExposeSecret::expose_secret(password_secret.as_ref()).as_bytes(),
-                &salt,
-            )
-            .map(|hash| {
-                super::AdminPasswordHash::new(pg_types_text_misc::StringAsNonNullTextSecret::from(
-                    hash.to_string(),
-                ))
-            })
-            .map_err(|error| {
-                super::AdminPasswordHashError::PasswordHash(
-                    super::Argon2AdminPasswordHashError::from(error),
+            let result = {
+                let password_secret = password.into_inner();
+                let salt = argon2::password_hash::SaltString::generate(
+                    &mut argon2::password_hash::rand_core::OsRng,
+                );
+                argon2::PasswordHasher::hash_password(
+                    &argon2::Argon2::default(),
+                    secrecy::ExposeSecret::expose_secret(password_secret.as_ref()).as_bytes(),
+                    &salt,
                 )
-            });
+                .map(|hash| {
+                    super::AdminPasswordHash::new(
+                        pg_types_text_misc::StringAsNonNullTextSecret::from(hash.to_string()),
+                    )
+                })
+                .map_err(|error| {
+                    super::AdminPasswordHashError::PasswordHash(
+                        super::Argon2AdminPasswordHashError::from(error),
+                    )
+                })
+            };
             drop(permit);
             result
         })
@@ -62,18 +64,20 @@ impl super::AdminPasswordHasher {
                 ))
             })?;
         tokio::task::spawn_blocking(move || {
-            let password_secret = password.into_inner();
-            let parsed_hash =
-                argon2::PasswordHash::new(expected_hash.0.as_ref()).map_err(|error| {
-                    super::AdminPasswordHashError::PasswordHash(
-                        super::Argon2AdminPasswordHashError::from(error),
-                    )
-                })?;
-            let result = argon2::PasswordVerifier::verify_password(
-                &argon2::Argon2::default(),
-                secrecy::ExposeSecret::expose_secret(password_secret.as_ref()).as_bytes(),
-                &parsed_hash,
-            );
+            let result = {
+                let password_secret = password.into_inner();
+                let parsed_hash =
+                    argon2::PasswordHash::new(expected_hash.0.as_ref()).map_err(|error| {
+                        super::AdminPasswordHashError::PasswordHash(
+                            super::Argon2AdminPasswordHashError::from(error),
+                        )
+                    })?;
+                argon2::PasswordVerifier::verify_password(
+                    &argon2::Argon2::default(),
+                    secrecy::ExposeSecret::expose_secret(password_secret.as_ref()).as_bytes(),
+                    &parsed_hash,
+                )
+            };
             drop(permit);
             match result {
                 Ok(()) => Ok(super::StdAdminBool::from(true)),

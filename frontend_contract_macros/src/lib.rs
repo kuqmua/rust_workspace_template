@@ -2,37 +2,37 @@
     clippy::arbitrary_source_item_ordering,
     reason = "proc-macro parser models precede their entrypoints while related derive parsers remain adjacent"
 )]
-#[derive(newtype::FromInner)]
+#[derive(optml::Optml, newtype::FromInner)]
 struct SynExpr(syn::Expr);
 
-#[derive(newtype::FromInner)]
+#[derive(optml::Optml, newtype::FromInner)]
 struct SynType(syn::Type);
 
-#[derive(newtype::FromInner)]
+#[derive(optml::Optml, newtype::FromInner)]
 struct SynIdent(syn::Ident);
 
-#[derive(Clone, Copy, Default, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(optml::Optml, Clone, Copy, Default, newtype::FromInner, newtype::IntoInnerFrom)]
 struct StdBool(bool);
-#[derive(Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
 struct SynAttributesRef<'attributes_lt>(&'attributes_lt [syn::Attribute]);
 
-#[derive(Default)]
+#[derive(optml::Optml, Default)]
 struct ContractStructApiArgs {
     into_parts: StdBool,
     new: StdBool,
 }
-#[derive(Default)]
+#[derive(optml::Optml, Default)]
 #[allow(
     clippy::struct_excessive_bools,
     reason = "each flag independently opts one field into a distinct generated method"
 )]
 struct ContractStructApiFieldArgs {
+    slice: Option<SynType>,
     borrow: StdBool,
     copy: StdBool,
     copy_ref: StdBool,
     into: StdBool,
     option_borrow: StdBool,
-    slice: Option<SynType>,
 }
 #[allow(
     clippy::single_call_fn,
@@ -133,21 +133,25 @@ fn parse_contract_struct_api_field_args(
     Ok(args)
 }
 
+#[derive(optml::Optml)]
 struct RouteCatalogArgs {
     body_limit: SynExpr,
     family: SynIdent,
 }
+#[derive(optml::Optml)]
 struct RouteCatalogRouteArgs {
     contract: Option<SynExpr>,
-    exclude_from_family: StdBool,
     path: Option<SynExpr>,
     route: Option<SynType>,
+    exclude_from_family: StdBool,
 }
+#[derive(optml::Optml)]
 struct PageCatalogArgs {
     inventory: SynIdent,
     path_ref: SynIdent,
     spec: SynIdent,
 }
+#[derive(optml::Optml)]
 struct PageCatalogPageArgs {
     capability: SynExpr,
     metadata: SynExpr,
@@ -310,6 +314,7 @@ impl syn::parse::Parse for RouteCatalogRouteArgs {
         }
     }
 }
+#[derive(optml::Optml)]
 struct TypedRouteArgs {
     authentication: SynExpr,
     error_response: Option<SynType>,
@@ -326,48 +331,51 @@ struct TypedRouteArgs {
     success_status: SynExpr,
     transport: SynType,
 }
+#[derive(optml::Optml)]
 enum SynTypedRouteErrors {
     Policy(SynExpr),
     Statuses(SynExpr),
 }
 
+#[derive(optml::Optml)]
 struct RouteRegistryBinding {
     handler: SynRouteRegistryHandler,
     route: SynRouteRegistryRoute,
 }
-#[derive(newtype::FromInner)]
+#[derive(optml::Optml, newtype::FromInner)]
 struct SynRouteRegistryHandler(syn::Path);
 
-#[derive(newtype::FromInner)]
+#[derive(optml::Optml, newtype::FromInner)]
 struct SynRouteRegistryRoute(syn::Type);
 
-#[derive(newtype::FromInner)]
+#[derive(optml::Optml, newtype::FromInner)]
 struct SynRouteRegistryBindings(syn::punctuated::Punctuated<RouteRegistryBinding, syn::Token![,]>);
 
-#[derive(newtype::FromInner)]
+#[derive(optml::Optml, newtype::FromInner)]
 struct SynRouteRegistrySchemas(Vec<syn::Type>);
 
-#[derive(newtype::FromInner)]
+#[derive(optml::Optml, newtype::FromInner)]
 struct SynRouteRegistryState(syn::Type);
 
-#[derive(newtype::FromInner)]
+#[derive(optml::Optml, newtype::FromInner)]
 struct SynRouteRegistryFamily(syn::Type);
 
+#[derive(optml::Optml)]
 struct HandlerRegistryBinding {
     contract: SynHandlerRegistryContract,
     handler: SynHandlerRegistryHandler,
 }
-#[derive(newtype::FromInner)]
+#[derive(optml::Optml, newtype::FromInner)]
 struct SynHandlerRegistryContract(syn::Expr);
-#[derive(newtype::FromInner)]
+#[derive(optml::Optml, newtype::FromInner)]
 struct SynHandlerRegistryHandler(syn::Path);
 
-#[derive(newtype::FromInner)]
+#[derive(optml::Optml, newtype::FromInner)]
 struct SynHandlerRegistryBindings(
     syn::punctuated::Punctuated<HandlerRegistryBinding, syn::Token![,]>,
 );
 
-#[derive(newtype::FromInner)]
+#[derive(optml::Optml, newtype::FromInner)]
 struct SynHandlerRegistryState(syn::Type);
 
 impl syn::parse::Parse for HandlerRegistryBinding {
@@ -381,6 +389,7 @@ impl syn::parse::Parse for HandlerRegistryBinding {
     }
 }
 
+#[derive(optml::Optml)]
 struct HandlerRegistryArgs {
     bindings: SynHandlerRegistryBindings,
     state: SynHandlerRegistryState,
@@ -422,6 +431,7 @@ impl syn::parse::Parse for RouteRegistryBinding {
         Ok(Self { handler, route })
     }
 }
+#[derive(optml::Optml)]
 struct RouteRegistryArgs {
     authenticated_security: SynExpr,
     bindings: SynRouteRegistryBindings,
@@ -798,7 +808,7 @@ pub fn derive_contract_struct_api(
                 quote::quote! {
                     #[must_use]
                     pub const fn #identifier(&self) -> &[#element_type] {
-                        self.#identifier.0.as_slice()
+                        self.#identifier.as_slice()
                     }
                 }
             });
@@ -2407,144 +2417,4 @@ pub fn derive_route_family(input: proc_macro::TokenStream) -> proc_macro::TokenS
 }
 
 #[cfg(test)]
-mod tests {
-    #[test]
-    fn contract_struct_api_attributes_are_explicit() {
-        let input: syn::DeriveInput = syn::parse_quote! {
-            #[contract_struct_api(new, into_parts)]
-            struct Request {
-                #[contract_struct_api(borrow)]
-                name: String,
-                #[contract_struct_api(copy)]
-                enabled: bool,
-                #[contract_struct_api(into)]
-                value: String,
-            }
-        };
-        let Ok(args) = super::parse_contract_struct_api_args(super::SynAttributesRef::from(
-            input.attrs.as_slice(),
-        )) else {
-            panic!("edc94d17");
-        };
-        assert!(bool::from(args.new));
-        assert!(bool::from(args.into_parts));
-        let syn::Data::Struct(data) = input.data else {
-            panic!("eb3fcd83");
-        };
-        let syn::Fields::Named(fields) = data.fields else {
-            panic!("55c90f04");
-        };
-        let parsed_result = fields
-            .named
-            .iter()
-            .map(|field| {
-                super::parse_contract_struct_api_field_args(super::SynAttributesRef::from(
-                    field.attrs.as_slice(),
-                ))
-                .map(|field_args| {
-                    (
-                        bool::from(field_args.borrow),
-                        bool::from(field_args.copy),
-                        bool::from(field_args.into),
-                    )
-                })
-            })
-            .collect::<syn::Result<Vec<_>>>();
-        let Ok(parsed_fields) = parsed_result else {
-            panic!("ceffbe6d");
-        };
-        assert_eq!(
-            parsed_fields,
-            vec![
-                (true, false, false),
-                (false, true, false),
-                (false, false, true)
-            ]
-        );
-    }
-
-    #[test]
-    fn contract_struct_api_rejects_unknown_attributes() {
-        let input: syn::DeriveInput = syn::parse_quote! {
-            #[contract_struct_api(unknown)]
-            struct Request {
-                value: String,
-            }
-        };
-        let Err(error) = super::parse_contract_struct_api_args(super::SynAttributesRef::from(
-            input.attrs.as_slice(),
-        )) else {
-            panic!("86b738e6");
-        };
-        assert!(
-            error
-                .to_string()
-                .contains(str_constants::CONTRACT_STRUCT_API_UNSUPPORTED_ATTRIBUTE)
-        );
-    }
-
-    fn typed_route_args(errors: &str) -> String {
-        format!(
-            "authentication = Authentication, {errors} method = Method, openapi_operation_id = \"operation\", path = \"/path\", request = Request, response = Response, success_status = Status, transport = Transport"
-        )
-    }
-
-    #[test]
-    #[allow(clippy::needless_for_each)] // iterator form follows the workspace no-for-loop policy
-    fn typed_route_args_require_exactly_one_error_source() {
-        ["", "error_policy = Policy, error_statuses = Statuses,"]
-            .into_iter()
-            .for_each(|errors| {
-                let result =
-                    syn::parse_str::<super::TypedRouteArgs>(typed_route_args(errors).as_str());
-                let Err(error) = result else {
-                    panic!("f58d0a31");
-                };
-                assert!(
-                    error
-                        .to_string()
-                        .contains(str_constants::TYPED_ROUTE_REQUIRES_ERROR_POLICY_OR_STATUSES)
-                );
-            });
-        ["error_policy = Policy,", "error_statuses = Statuses,"]
-            .into_iter()
-            .for_each(|errors| {
-                let Ok(_args) =
-                    syn::parse_str::<super::TypedRouteArgs>(typed_route_args(errors).as_str())
-                else {
-                    panic!("470bf91c");
-                };
-            });
-    }
-
-    #[test]
-    fn route_registry_args_require_family_after_state() {
-        let result = syn::parse_str::<super::RouteRegistryArgs>(
-            "state = (), wrong = Family; (\"authenticated\", \"csrf\"); schemas(); (Route, handler),",
-        );
-        let Err(error) = result else {
-            panic!("da287c44");
-        };
-        assert!(
-            error
-                .to_string()
-                .contains(str_constants::ROUTE_REGISTRY_REQUIRES_FAMILY)
-        );
-    }
-
-    #[test]
-    fn route_registry_args_parse_family_and_bindings() {
-        let result = syn::parse_str::<super::RouteRegistryArgs>(
-            "state = (), family = Family; (\"authenticated\", \"csrf\"); schemas(Schema); (Route, handler),",
-        );
-        let Ok(args) = result else {
-            panic!("6282e207");
-        };
-        assert_eq!(args.bindings.0.len(), 1usize);
-        assert_eq!(args.schemas.0.len(), 1usize);
-        assert_eq!(
-            quote::ToTokens::to_token_stream(&args.family.0).to_string(),
-            str_constants::FAMILY_UPPER_CAMEL_CASE
-        );
-    }
-}
+mod tests;

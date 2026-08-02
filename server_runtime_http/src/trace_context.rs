@@ -1,7 +1,7 @@
 const TRACE_PARENT_LEN: usize = 55;
 const TRACE_STATE_MAX_LEN: usize = 512;
 
-#[derive(Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
 struct HttpHeaderExtractor<'headers_lt>(&'headers_lt http::HeaderMap);
 
 impl opentelemetry::propagation::Extractor for HttpHeaderExtractor<'_> {
@@ -15,7 +15,7 @@ impl opentelemetry::propagation::Extractor for HttpHeaderExtractor<'_> {
     }
 }
 
-#[derive(newtype::FromInner)]
+#[derive(optml::Optml, newtype::FromInner)]
 struct HttpHeaderInjector<'headers_lt>(&'headers_lt mut http::HeaderMap);
 
 impl opentelemetry::propagation::Injector for HttpHeaderInjector<'_> {
@@ -30,10 +30,10 @@ impl opentelemetry::propagation::Injector for HttpHeaderInjector<'_> {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
 pub struct HttpTraceParent(String);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum HttpTraceParentError {
     #[error("{}", str_constants::TRACEPARENT_W3C_VERSION_00_FORMAT)]
     Format,
@@ -76,10 +76,10 @@ impl TryFrom<String> for HttpTraceParent {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
 pub struct HttpTraceState(String);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("{}", str_constants::TRACESTATE_PRINTABLE_ASCII_MAX_512)]
 pub struct HttpTraceStateError;
 
@@ -97,32 +97,32 @@ impl TryFrom<String> for HttpTraceState {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
 pub struct OutboundTraceContext {
     request_id: Option<crate::RequestId>,
     trace_parent: HttpTraceParent,
     trace_state: Option<HttpTraceState>,
 }
 
-#[derive(Debug, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(optml::Optml, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct ReqwestRequestBuilder(reqwest::RequestBuilder);
 
-#[derive(Debug, newtype::FromInner)]
+#[derive(optml::Optml, Debug, newtype::FromInner)]
 pub struct ReqwestRequest(reqwest::Request);
 
-#[derive(Debug, newtype::DerefInner, newtype::DerefMutInner, newtype::FromInner)]
+#[derive(optml::Optml, Debug, newtype::DerefInner, newtype::DerefMutInner, newtype::FromInner)]
 pub struct HttpOpentelemetryHeaderMapMut<'headers_lt>(&'headers_lt mut http::HeaderMap);
 
-#[derive(Clone, Copy, Debug, newtype::DerefInner, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::DerefInner, newtype::FromInner)]
 pub struct HttpOpentelemetryHeaderMapRef<'headers_lt>(&'headers_lt http::HeaderMap);
 
-#[derive(Clone, Copy, Debug, newtype::DerefInner, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::DerefInner, newtype::FromInner)]
 pub struct HttpHostRef<'host_lt>(&'host_lt str);
 
-#[derive(Clone, Copy, Debug, newtype::DerefInner, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::DerefInner, newtype::FromInner)]
 pub struct HttpMethodRef<'method_lt>(&'method_lt http::Method);
 
-#[derive(Clone, Debug, newtype::DerefInner, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Debug, newtype::DerefInner, newtype::FromInner)]
 pub struct OpentelemetryContext(opentelemetry::Context);
 
 impl ReqwestRequest {

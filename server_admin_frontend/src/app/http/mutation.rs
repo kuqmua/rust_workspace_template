@@ -1,4 +1,4 @@
-#[derive(Clone, newtype::AsRefStr, newtype::BoundedString)]
+#[derive(optml::Optml, Clone, newtype::AsRefStr, newtype::BoundedString)]
 #[bounded_string(max = 8_192usize, chars)]
 struct AdminCsrfToken(String);
 

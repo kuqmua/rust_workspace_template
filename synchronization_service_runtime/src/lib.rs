@@ -1,12 +1,13 @@
 const SYNCHRONIZATION_PAYLOAD_MAX_BYTES: usize = 16 * 1024 * 1024;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optml takes precedence over alphabetical field order
 pub struct SynchronizationRuntimeConfiguration {
-    execution_mode: server_runtime_core::ExecutionMode,
     retry_policy: server_runtime_core::RetryPolicy,
+    execution_mode: server_runtime_core::ExecutionMode,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("{}", std::any::type_name::<Self>())]
 pub struct SynchronizationPayloadTooLarge;
 impl From<bounded_types::BoundedValueError> for SynchronizationPayloadTooLarge {
@@ -15,7 +16,7 @@ impl From<bounded_types::BoundedValueError> for SynchronizationPayloadTooLarge {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefTarget)]
 pub struct SynchronizationPayload(
     bounded_types::BoundedVec<u8, 0, SYNCHRONIZATION_PAYLOAD_MAX_BYTES>,
 );
@@ -48,8 +49,8 @@ impl SynchronizationRuntimeConfiguration {
         execution_mode: server_runtime_core::ExecutionMode,
     ) -> Self {
         Self {
-            execution_mode,
             retry_policy,
+            execution_mode,
         }
     }
 

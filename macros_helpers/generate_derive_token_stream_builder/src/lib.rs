@@ -1,7 +1,7 @@
 const SC_STRING_MAX_LEN: usize = 1_048_576;
-#[derive(Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
 struct ToSnakeCaseInput<'input_lt>(&'input_lt str);
-#[derive(newtype::BoundedString)]
+#[derive(optml::Optml, newtype::BoundedString)]
 #[bounded_string(max = SC_STRING_MAX_LEN, description = "snake case string")]
 struct SnakeCaseString(String);
 #[allow(clippy::single_call_fn)] // extracted to isolate case-normalization logic and keep macro expansion flow focused

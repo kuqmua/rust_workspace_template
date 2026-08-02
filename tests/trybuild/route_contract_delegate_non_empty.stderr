@@ -1,8 +1,8 @@
 error: route_openapi delegate requires an empty function body
-  --> trybuild/route_contract_delegate_non_empty.rs:12:78
+  --> trybuild/route_contract_delegate_non_empty.rs:14:78
    |
-12 |   async fn invalid_delegate(value: DelegateInput) -> Result<(), DelegateError> {
+14 |   async fn invalid_delegate(value: DelegateInput) -> Result<(), DelegateError> {
    |  ______________________________________________________________________________^
-13 | |     delegate(value).await
-14 | | }
+15 | |     delegate(value).await
+16 | | }
    | |_^

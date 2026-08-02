@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    #[derive(Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+    #[derive(optml::Optml, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
     struct JsonContractValue {
         operation: String,
     }

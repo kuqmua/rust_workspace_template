@@ -49,9 +49,9 @@ impl super::TryFromStdEnvVarOk for MaximumSizeOfHttpBodyInBytes {
         })
     }
 }
-#[derive(Debug, Clone, PartialEq, Eq, newtype::AsRefOwned)]
+#[derive(optml::Optml, Debug, Clone, PartialEq, Eq, newtype::AsRefOwned)]
 pub struct ContentSecurityPolicy(String);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
+#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
 pub enum ContentSecurityPolicyError {
     #[error("content security policy must not be empty")]
     Empty,

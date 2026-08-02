@@ -29,7 +29,7 @@ const API_URL_COMPONENT_ENCODE_SET: &percent_encoding::AsciiSet = &percent_encod
     .add(b'|')
     .add(b'}');
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct ApiUrlPathSegmentRef<'value_lt>(&'value_lt str);
 impl<'value_lt> TryFrom<&'value_lt str> for ApiUrlPathSegmentRef<'value_lt> {
     type Error = ApiUrlBuildError;
@@ -46,17 +46,24 @@ impl<'value_lt> TryFrom<&'value_lt str> for ApiUrlPathSegmentRef<'value_lt> {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct ApiUrlQueryComponentRef<'value_lt>(&'value_lt str);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("{}", str_constants::INVALID_API_URL_PATH_SEGMENT)]
 pub enum ApiUrlBuildError {
     InvalidPathSegment,
 }
 
 #[derive(
-    Clone, Debug, Eq, PartialEq, newtype::AsRefStr, newtype::BoundedString, newtype::IntoInnerFrom,
+    optml::Optml,
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::AsRefStr,
+    newtype::BoundedString,
+    newtype::IntoInnerFrom,
 )]
 #[bounded_string(max = API_URL_MAX_LEN)]
 pub struct ApiUrl(String);

@@ -1,4 +1,4 @@
-#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, newtype::DerefInner)]
+#[derive(optml::Optml, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, newtype::DerefInner)]
 pub struct BoundedString<const MIN: usize, const MAX: usize>(String);
 impl<const MIN: usize, const MAX: usize> BoundedString<MIN, MAX> {
     #[must_use]

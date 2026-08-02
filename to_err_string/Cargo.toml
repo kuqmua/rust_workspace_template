@@ -10,6 +10,7 @@ edition.workspace = true
 
 
 [dependencies]
+optml = { workspace = true }
 str_constants = { workspace = true }
 tracing = { workspace = true }
 serde = { workspace = true }

@@ -4,11 +4,13 @@
 /server_admin_frontend/dist/
 /server_admin_frontend/static/csr/
 /server_admin_frontend/test-results/
+/server_admin_frontend/node_modules/
 /browser_acceptance/node_modules/
 /browser_acceptance/playwright-report/
 /browser_acceptance/test-results/
 /target/
 /test_results/
+*.profraw
 
 /scripts/target/
 /scripts/Cargo.lock

@@ -125,6 +125,15 @@ jobs:
       - uses: ./.github/actions/setup-rust
         with:
           targets: wasm32-unknown-unknown
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: server_admin_frontend/package-lock.json
+      - run: npm ci
+        working-directory: server_admin_frontend
+      - run: npm run build:css
+        working-directory: server_admin_frontend
       - run: cargo test -p server_admin_frontend
       - run: cargo check -p server_admin_frontend --target wasm32-unknown-unknown
   browser-acceptance:
@@ -158,12 +167,16 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: browser_acceptance/package-lock.json
+          cache-dependency-path: |
+            browser_acceptance/package-lock.json
+            server_admin_frontend/package-lock.json
       - uses: taiki-e/install-action@5292d65c95e72dc79f25946b7ce34e28deecf2f3
         with:
           tool: trunk
       - run: npm ci
         working-directory: browser_acceptance
+      - run: npm ci
+        working-directory: server_admin_frontend
       - if: github.event_name == 'push' || github.event_name == 'pull_request'
         run: npx playwright install --with-deps chromium
         working-directory: browser_acceptance
@@ -415,12 +428,16 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: browser_acceptance/package-lock.json
+          cache-dependency-path: |
+            browser_acceptance/package-lock.json
+            server_admin_frontend/package-lock.json
       - uses: taiki-e/install-action@5292d65c95e72dc79f25946b7ce34e28deecf2f3
         with:
           tool: trunk
       - run: npm ci
         working-directory: browser_acceptance
+      - run: npm ci
+        working-directory: server_admin_frontend
       - run: npx playwright install --with-deps chromium
         working-directory: browser_acceptance
       - run: npm run test:full

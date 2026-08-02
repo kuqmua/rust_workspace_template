@@ -2,16 +2,16 @@ const CRITICAL_PERCENT: u8 = 85u8;
 const REJECT_NON_ESSENTIAL_WRITES_PERCENT: u8 = 95u8;
 const WARNING_PERCENT: u8 = 70u8;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, newtype::FromInner)]
 pub struct ResourceAmount(u64);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, newtype::TryFrom)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, newtype::TryFrom)]
 #[try_from(
     error = ResourceUtilizationPercentTryFromU8Error,
     validator = ResourceUtilizationPercent::validate
 )]
 pub struct ResourceUtilizationPercent(u8);
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 enum ResourceUtilizationKnownPercent {
     Max,
 }
@@ -22,7 +22,7 @@ impl From<ResourceUtilizationKnownPercent> for ResourceUtilizationPercent {
         }
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("{self:?}")]
 pub struct ResourceUtilizationPercentTryFromU8Error;
 
@@ -41,7 +41,7 @@ impl ResourceUtilizationPercent {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ResourceUtilizationStatus {
     Critical,
     Ok,
@@ -49,7 +49,7 @@ pub enum ResourceUtilizationStatus {
     Warning,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum ResourceUtilizationError {
     #[error(
         "{}",
@@ -58,12 +58,13 @@ pub enum ResourceUtilizationError {
     ZeroMaximum,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optml takes precedence over alphabetical field order
 pub struct ResourceUtilization {
     maximum: ResourceAmount,
+    used: ResourceAmount,
     percent: ResourceUtilizationPercent,
     status: ResourceUtilizationStatus,
-    used: ResourceAmount,
 }
 
 impl ResourceUtilization {
@@ -115,9 +116,9 @@ pub fn calculate_resource_utilization(
     };
     Ok(ResourceUtilization {
         maximum,
+        used,
         percent,
         status,
-        used,
     })
 }
 

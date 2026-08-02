@@ -50,17 +50,17 @@ impl pg_crud_common::DefaultSomeOneElement for EncodeFormat {
 )]
 #[serde(try_from = "String", into = "String")]
 pub struct RegexRegex(String);
-#[derive(Clone, Copy, Debug)]
+#[derive(optml::Optml, Clone, Copy, Debug)]
 struct DefaultRegexPattern;
 impl From<DefaultRegexPattern> for RegexRegex {
     fn from(_value: DefaultRegexPattern) -> Self {
         Self(String::from(str_constants::A_Z_PLUS))
     }
 }
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 pub struct RegexError(regex::Error);
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 pub enum RegexRegexTryFromStringError {
     #[error("regular expression pattern is invalid")]
     Regex(#[from] RegexError),
@@ -255,6 +255,7 @@ const _: () = {
         where
             __D: _serde::Deserializer<'de>,
         {
+            #[derive(optml::Optml)]
             #[expect(non_camel_case_types)]
             #[doc(hidden)]
             enum __Field {
@@ -262,6 +263,7 @@ const _: () = {
                 f1,
                 __ignore,
             }
+            #[derive(optml::Optml)]
             #[doc(hidden)]
             struct __FieldVisitor;
             impl _serde::de::Visitor<'_> for __FieldVisitor {
@@ -315,6 +317,7 @@ const _: () = {
                     _serde::Deserializer::deserialize_identifier(__deserializer, __FieldVisitor)
                 }
             }
+            #[derive(optml::Optml)]
             #[doc(hidden)]
             struct __Visitor<'de, T>
             where
@@ -560,6 +563,7 @@ const _: () = {
         where
             __D: _serde::Deserializer<'de>,
         {
+            #[derive(optml::Optml)]
             #[doc(hidden)]
             struct __Visitor<'de, T>
             where
@@ -696,6 +700,7 @@ impl to_err_string::ToErrString for BoundedVecLen {
             .unwrap_or_else(to_err_string::ErrorText::from)
     }
 }
+#[derive(optml::Optml)]
 enum Variant {
     MinusOne,
     Normal,
@@ -807,7 +812,7 @@ impl<T: Clone + pg_crud_common::DefaultSomeOneElement, const LENGTH: usize>
 }
 #[cfg(test)]
 mod tests {
-    #[derive(Debug, PartialEq, Eq, newtype::FromInner)]
+    #[derive(optml::Optml, Debug, PartialEq, Eq, newtype::FromInner)]
     struct NonClone(u8);
     #[test]
     fn pg_type_not_empty_unique_vec_try_from_ok() {

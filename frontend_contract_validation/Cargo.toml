@@ -8,6 +8,7 @@ license.workspace = true
 edition.workspace = true
 
 [dependencies]
+optml = { workspace = true }
 bounded_types = { workspace = true }
 frontend_contract = { workspace = true }
 newtype = { workspace = true }

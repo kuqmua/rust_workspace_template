@@ -4,14 +4,14 @@
 
 const DB_SCHEMA_TEXT_MAX_LEN: usize = 1_048_576usize;
 
-#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd, newtype::BoundedString)]
+#[derive(optml::Optml, Clone, Debug, Eq, Ord, PartialEq, PartialOrd, newtype::BoundedString)]
 #[bounded_string(max = DB_SCHEMA_TEXT_MAX_LEN)]
 pub struct DbSchemaText(String);
 
-#[derive(Clone, Copy, Debug, newtype::Display, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::Display, newtype::FromInner)]
 pub struct DbSchemaTextError(DbSchemaTextTryFromStringError);
 
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, newtype::FromInner)]
 pub struct DbColumnNullable(bool);
 
 pub trait PgColumnSchema {
@@ -20,20 +20,24 @@ pub trait PgColumnSchema {
     fn data_type() -> DbStaticSchemaText;
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::AsRefInner, newtype::FromInner)]
+#[derive(
+    optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::AsRefInner, newtype::FromInner,
+)]
 pub struct DbStaticSchemaText(&'static str);
 
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, newtype::FromInner)]
 pub struct DbColumnHasServerDefault(bool);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optml takes precedence over alphabetical field order
 pub struct DbColumnSpec {
     data_type: DbStaticSchemaText,
-    has_server_default: DbColumnHasServerDefault,
     name: DbStaticSchemaText,
+    has_server_default: DbColumnHasServerDefault,
     nullable: DbColumnNullable,
 }
 #[derive(
+    optml::Optml,
     Clone,
     Debug,
     Default,
@@ -46,6 +50,7 @@ pub struct DbColumnSpec {
 )]
 pub struct DbColumnSpecs(Vec<DbColumnSpec>);
 #[derive(
+    optml::Optml,
     Clone,
     Debug,
     Default,
@@ -58,6 +63,7 @@ pub struct DbColumnSpecs(Vec<DbColumnSpec>);
 )]
 pub struct DbStaticSchemaTexts(Vec<DbStaticSchemaText>);
 #[derive(
+    optml::Optml,
     Clone,
     Debug,
     Default,
@@ -70,6 +76,7 @@ pub struct DbStaticSchemaTexts(Vec<DbStaticSchemaText>);
 )]
 pub struct DbKeySpecs(Vec<DbKeySpec>);
 #[derive(
+    optml::Optml,
     Clone,
     Debug,
     Default,
@@ -82,6 +89,7 @@ pub struct DbKeySpecs(Vec<DbKeySpec>);
 )]
 pub struct DbObjectSpecs(Vec<DbObjectSpec>);
 #[derive(
+    optml::Optml,
     Clone,
     Debug,
     Default,
@@ -104,8 +112,8 @@ impl DbColumnSpec {
     ) -> Self {
         Self {
             data_type,
-            has_server_default,
             name,
+            has_server_default,
             nullable,
         }
     }
@@ -119,7 +127,7 @@ pub trait DbTableSchema {
     fn read_excluded_columns() -> DbStaticSchemaTexts;
     fn schema_table_text() -> DbStaticSchemaText;
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct DbDefaultSpec {
     column: DbStaticSchemaText,
     expression: DbStaticSchemaText,
@@ -130,11 +138,12 @@ impl DbDefaultSpec {
         Self { column, expression }
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optml takes precedence over alphabetical field order
 pub struct DbObjectSpec {
     definition: DbStaticSchemaText,
-    kind: DbObjectKind,
     name: DbStaticSchemaText,
+    kind: DbObjectKind,
 }
 impl DbObjectSpec {
     #[must_use]
@@ -145,8 +154,8 @@ impl DbObjectSpec {
     ) -> Self {
         Self {
             definition,
-            kind,
             name,
+            kind,
         }
     }
 }
@@ -155,7 +164,7 @@ pub trait DbExtendedTableSchema: DbTableSchema {
     fn exact_defaults() -> DbDefaultSpecs;
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
 pub enum DbKeySpec {
     ForeignKey {
         columns: DbStaticSchemaTexts,
@@ -166,7 +175,7 @@ pub enum DbKeySpec {
     Unique(DbStaticSchemaTexts),
 }
 
-#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(optml::Optml, Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub enum DbKeyContractSnapshot {
     ForeignKey {
         columns: DbSchemaTexts,
@@ -178,6 +187,7 @@ pub enum DbKeyContractSnapshot {
 }
 
 #[derive(
+    optml::Optml,
     Clone,
     Debug,
     Default,
@@ -192,6 +202,7 @@ pub enum DbKeyContractSnapshot {
 )]
 pub struct DbSchemaTexts(Vec<DbSchemaText>);
 #[derive(
+    optml::Optml,
     Clone,
     Debug,
     Default,
@@ -206,6 +217,7 @@ pub struct DbSchemaTexts(Vec<DbSchemaText>);
 )]
 pub struct DbColumnContractSnapshots(Vec<DbColumnContractSnapshot>);
 #[derive(
+    optml::Optml,
     Clone,
     Debug,
     Default,
@@ -220,6 +232,7 @@ pub struct DbColumnContractSnapshots(Vec<DbColumnContractSnapshot>);
 )]
 pub struct DbKeyContractSnapshots(Vec<DbKeyContractSnapshot>);
 #[derive(
+    optml::Optml,
     Clone,
     Debug,
     Default,
@@ -234,6 +247,7 @@ pub struct DbKeyContractSnapshots(Vec<DbKeyContractSnapshot>);
 )]
 pub struct DbColumnSnapshots(Vec<DbColumnSnapshot>);
 #[derive(
+    optml::Optml,
     Clone,
     Debug,
     Default,
@@ -248,11 +262,12 @@ pub struct DbColumnSnapshots(Vec<DbColumnSnapshot>);
 )]
 pub struct DbObjectSnapshots(Vec<DbObjectSnapshot>);
 
-#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(optml::Optml, Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optml takes precedence over alphabetical field order
 pub struct DbColumnContractSnapshot {
     data_type: DbSchemaText,
-    has_server_default: DbColumnHasServerDefault,
     name: DbSchemaText,
+    has_server_default: DbColumnHasServerDefault,
     nullable: DbColumnNullable,
 }
 impl DbColumnContractSnapshot {
@@ -265,23 +280,23 @@ impl DbColumnContractSnapshot {
     ) -> Self {
         Self {
             data_type,
-            has_server_default,
             name,
+            has_server_default,
             nullable,
         }
     }
 }
 
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 pub struct SqlxPgPoolRef<'value_lt>(&'value_lt sqlx::PgPool);
 
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 pub struct DbSchemaNameRef<'value_lt>(&'value_lt str);
 
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 pub struct DbTableNameRef<'value_lt>(&'value_lt str);
 
-#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(optml::Optml, Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct DbColumnSnapshot {
     data_type: DbSchemaText,
     default: Option<DbSchemaText>,
@@ -305,7 +320,7 @@ impl DbColumnSnapshot {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub enum DbObjectKind {
     Check,
     Default,
@@ -319,30 +334,31 @@ pub enum DbObjectKind {
     View,
 }
 
-#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(optml::Optml, Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optml takes precedence over alphabetical field order
 pub struct DbObjectSnapshot {
     definition: DbSchemaText,
-    kind: DbObjectKind,
     name: DbSchemaText,
+    kind: DbObjectKind,
 }
 impl DbObjectSnapshot {
     #[must_use]
     pub const fn new(name: DbSchemaText, kind: DbObjectKind, definition: DbSchemaText) -> Self {
         Self {
             definition,
-            kind,
             name,
+            kind,
         }
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
 pub struct DbTableSnapshot {
     columns: DbColumnSnapshots,
     objects: DbObjectSnapshots,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
 pub struct DbCatalogSnapshot {
     objects: DbObjectSnapshots,
 }
@@ -362,10 +378,10 @@ impl DbTableSnapshot {
     }
 }
 
-#[derive(Debug, newtype::FromInner, newtype::Display)]
+#[derive(optml::Optml, Debug, newtype::FromInner, newtype::Display)]
 pub struct SqlxDbSchemaInspectionError(sqlx::Error);
 
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 pub enum DbSchemaConformanceError {
     #[error("PostgreSQL catalog differs from the expected snapshot")]
     CatalogMismatch {
@@ -763,21 +779,43 @@ pub fn validate_postgres_table_schema(
     expected: DbTableSnapshot,
     observed: DbTableSnapshot,
 ) -> Result<(), DbSchemaConformanceError> {
-    if expected == observed {
-        Ok(())
-    } else {
-        Err(DbSchemaConformanceError::Mismatch { expected, observed })
-    }
+    validate_snapshot(
+        expected,
+        observed,
+        |expected_snapshot, observed_snapshot| DbSchemaConformanceError::Mismatch {
+            expected: expected_snapshot,
+            observed: observed_snapshot,
+        },
+    )
 }
 
 pub fn validate_postgres_catalog(
     expected: DbCatalogSnapshot,
     observed: DbCatalogSnapshot,
 ) -> Result<(), DbSchemaConformanceError> {
+    validate_snapshot(
+        expected,
+        observed,
+        |expected_snapshot, observed_snapshot| DbSchemaConformanceError::CatalogMismatch {
+            expected: expected_snapshot,
+            observed: observed_snapshot,
+        },
+    )
+}
+
+fn validate_snapshot<Snapshot, Error, Mismatch>(
+    expected: Snapshot,
+    observed: Snapshot,
+    mismatch: Mismatch,
+) -> Result<(), Error>
+where
+    Snapshot: PartialEq,
+    Mismatch: FnOnce(Snapshot, Snapshot) -> Error,
+{
     if expected == observed {
         Ok(())
     } else {
-        Err(DbSchemaConformanceError::CatalogMismatch { expected, observed })
+        Err(mismatch(expected, observed))
     }
 }
 
@@ -992,86 +1030,4 @@ pub async fn inspect_postgres_table(
 }
 
 #[cfg(test)]
-#[allow(clippy::needless_for_each)] // repository policy requires iterator traversal in source tests
-mod tests {
-    fn catalog_snapshot(kind: super::DbObjectKind) -> super::DbCatalogSnapshot {
-        super::DbCatalogSnapshot::new(
-            vec![super::DbObjectSnapshot::new(
-                super::DbSchemaText::try_from(String::from(str_constants::TEST_DB_OBJECT_NAME))
-                    .expect(str_constants::VALUE_E84FED1B),
-                kind,
-                super::DbSchemaText::try_from(String::from(
-                    str_constants::TEST_DB_OBJECT_DEFINITION,
-                ))
-                .expect(str_constants::VALUE_A7950FF0),
-            )]
-            .into(),
-        )
-    }
-
-    fn snapshot(nullable: bool) -> super::DbTableSnapshot {
-        super::DbTableSnapshot::new(
-            vec![super::DbColumnSnapshot::new(
-                super::DbSchemaText::try_from(String::from(str_constants::TEST_DB_COLUMN_ID))
-                    .expect(str_constants::VALUE_11F0D7F5),
-                super::DbSchemaText::try_from(String::from(str_constants::TEST_DB_DATA_TYPE_UUID))
-                    .expect(str_constants::VALUE_9CB64C93),
-                nullable.into(),
-                None,
-            )]
-            .into(),
-            vec![super::DbObjectSnapshot::new(
-                super::DbSchemaText::try_from(String::from(str_constants::TEST_DB_CONSTRAINT_NAME))
-                    .expect(str_constants::VALUE_61F95647),
-                super::DbObjectKind::PrimaryKey,
-                super::DbSchemaText::try_from(String::from(
-                    str_constants::TEST_DB_CONSTRAINT_DEFINITION,
-                ))
-                .expect(str_constants::VALUE_A4B28D38),
-            )]
-            .into(),
-        )
-    }
-
-    #[test]
-    fn ordering_does_not_affect_snapshot_and_differences_are_reported() {
-        assert!(matches!(
-            super::validate_postgres_table_schema(snapshot(false), snapshot(false)),
-            Ok(())
-        ));
-        assert!(matches!(
-            super::validate_postgres_table_schema(snapshot(false), snapshot(true)),
-            Err(super::DbSchemaConformanceError::Mismatch { .. })
-        ));
-    }
-
-    #[test]
-    fn every_catalog_object_kind_difference_is_reported() {
-        let kinds = [
-            super::DbObjectKind::Check,
-            super::DbObjectKind::Default,
-            super::DbObjectKind::Extension,
-            super::DbObjectKind::ForeignKey,
-            super::DbObjectKind::Function,
-            super::DbObjectKind::Index,
-            super::DbObjectKind::PrimaryKey,
-            super::DbObjectKind::Trigger,
-            super::DbObjectKind::Unique,
-            super::DbObjectKind::View,
-        ];
-        kinds.into_iter().for_each(|kind| {
-            let result = super::validate_postgres_catalog(
-                catalog_snapshot(super::DbObjectKind::Function),
-                catalog_snapshot(kind),
-            );
-            if kind == super::DbObjectKind::Function {
-                assert!(matches!(result, Ok(())));
-            } else {
-                assert!(matches!(
-                    result,
-                    Err(super::DbSchemaConformanceError::CatalogMismatch { .. })
-                ));
-            }
-        });
-    }
-}
+mod tests;

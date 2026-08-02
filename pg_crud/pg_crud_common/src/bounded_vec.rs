@@ -1,5 +1,14 @@
 #[derive(
-    Clone, Copy, Debug, Eq, PartialEq, PartialOrd, Ord, newtype::Display, newtype::FromInner,
+    optml::Optml,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    PartialOrd,
+    Ord,
+    newtype::Display,
+    newtype::FromInner,
 )]
 #[allow(clippy::module_name_repetitions)] // the public name remains explicit when imported outside this module
 pub struct BoundedVecLen(usize);
@@ -9,7 +18,7 @@ impl BoundedVecLen {
         self.0
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[allow(clippy::module_name_repetitions)] // callers need an unambiguous error name in public signatures
 pub enum BoundedVecError {
     #[error("bounded vector length {actual} exceeds limit {max}")]
@@ -28,7 +37,9 @@ pub enum BoundedVecError {
         max: BoundedVecLen,
     },
 }
-#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget, newtype::IntoInnerFrom)]
+#[derive(
+    optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefTarget, newtype::IntoInnerFrom,
+)]
 pub struct BoundedVec<T, const MIN: usize, const MAX: usize>(Vec<T>);
 impl<T, const MIN: usize, const MAX: usize> BoundedVec<T, MIN, MAX> {
     #[must_use]

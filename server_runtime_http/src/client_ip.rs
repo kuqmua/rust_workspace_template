@@ -1,29 +1,37 @@
 const MAX_FORWARDED_HEADER_BYTES: usize = 4096;
 const MAX_FORWARDED_ENTRIES: usize = 32;
 const TRUSTED_PROXY_RANGES_MAX_ITEMS: usize = 128usize;
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 pub struct HttpHeaderMapRef<'lt>(&'lt http::HeaderMap);
 
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 pub struct TrustedProxyRangesTextRef<'text_lt>(&'text_lt str);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::Display, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::Display, newtype::FromInner)]
 pub struct StdSocketAddr(std::net::SocketAddr);
 
 #[derive(
-    Clone, Copy, Debug, Eq, PartialEq, newtype::AsRefOwned, newtype::Display, newtype::FromInner,
+    optml::Optml,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::AsRefOwned,
+    newtype::Display,
+    newtype::FromInner,
 )]
 pub struct StdResolvedClientIp(std::net::IpAddr);
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct TrustedProxyRange {
     network: IpnetNetwork,
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 struct IpnetNetwork(ipnet::IpNet);
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 struct StdIpAddr(std::net::IpAddr);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 struct StdRangeContains(bool);
 
 impl StdRangeContains {
@@ -31,15 +39,15 @@ impl StdRangeContains {
         self.0
     }
 }
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
 #[error("{0}")]
 pub struct StdAddrParseError(std::net::AddrParseError);
 
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
 #[error("{0}")]
 pub struct StdParseIntError(std::num::ParseIntError);
 
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 pub enum TrustedProxyRangeParseError {
     #[error("trusted proxy address is invalid")]
     InvalidAddress {
@@ -56,7 +64,7 @@ pub enum TrustedProxyRangeParseError {
     #[error("trusted proxy prefix exceeds address width")]
     PrefixExceedsAddressWidth,
 }
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 pub enum TrustedProxyRangesParseError {
     #[error("trusted proxy range is invalid: {0}")]
     Range(TrustedProxyRangeParseError),
@@ -87,11 +95,11 @@ impl TryFrom<String> for TrustedProxyRange {
         })
     }
 }
-#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Default, Eq, PartialEq)]
 pub struct TrustedProxyRanges(
     bounded_types::BoundedVec<TrustedProxyRange, 0, TRUSTED_PROXY_RANGES_MAX_ITEMS>,
 );
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("trusted proxy range list exceeds its maximum item count")]
 pub struct TrustedProxyRangesError;
 impl From<bounded_types::BoundedValueError> for TrustedProxyRangesError {

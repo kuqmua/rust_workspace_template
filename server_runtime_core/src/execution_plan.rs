@@ -1,10 +1,10 @@
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ExecutionMode {
     Apply,
     DryRun,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
 pub enum ExecutionReport<Plan, Output> {
     Applied { output: Output },
     DryRun { plan: Plan },

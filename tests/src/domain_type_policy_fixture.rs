@@ -1,7 +1,10 @@
+#[derive(optml::Optml)]
 #[derive(newtype::FromInner)]
 struct DomainId(u32);
+#[derive(optml::Optml)]
 struct DomainName(String);
 const DOMAIN_NAME_MAX_LEN: usize = 1_048_576;
+#[derive(optml::Optml)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum DomainNameTryFromStringError {
     TooLong { len: usize, max: usize },
@@ -32,13 +35,16 @@ impl TryFrom<String> for DomainName {
         Ok(Self(value))
     }
 }
+#[derive(optml::Optml)]
 struct DomainEntity {
     id: DomainId,
     name: DomainName,
 }
+#[derive(optml::Optml)]
 enum DomainEvent {
     Created(DomainEntity),
 }
+#[derive(optml::Optml)]
 #[derive(newtype::FromInner)]
 struct DomainEvents(Vec<DomainEvent>);
 fn mk_domain_entity(id: DomainId, name: DomainName) -> DomainEntity {

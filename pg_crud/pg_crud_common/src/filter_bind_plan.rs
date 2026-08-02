@@ -1,12 +1,12 @@
 const FILTER_TEXT_MAXIMUM_BYTES: usize = 1_048_576usize;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct PgFilterBool(bool);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct PgFilterI64(i64);
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
 pub struct PgFilterText(String);
 impl TryFrom<String> for PgFilterText {
     type Error = PgFilterTextError;
@@ -19,18 +19,18 @@ impl TryFrom<String> for PgFilterText {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("PostgreSQL filter text exceeds its maximum size")]
 pub struct PgFilterTextError;
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
 pub enum PgFilterBindValue {
     Bool(PgFilterBool),
     I64(PgFilterI64),
     Text(PgFilterText),
 }
 
-#[derive(Clone, Debug, Default, Eq, PartialEq, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Debug, Default, Eq, PartialEq, newtype::FromInner)]
 pub struct FilterBindPlan(Vec<PgFilterBindValue>);
 impl FilterBindPlan {
     #[must_use]

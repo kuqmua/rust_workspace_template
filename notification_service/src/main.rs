@@ -5,48 +5,48 @@
 mod routes;
 mod runtime;
 
-#[derive(Clone, Debug)]
+#[derive(optml::Optml, Clone, Debug)]
 struct NotificationState {
     metrics: MetricsExporterPrometheusHandle,
     pool: app_state::SqlxPgPool,
     project_git_info: git_info::ProjectGitInfo<'static>,
 }
-#[derive(Clone, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Debug, newtype::FromInner)]
 struct AxumNotificationState(NotificationState);
 
-#[derive(Debug, newtype::FromInner)]
+#[derive(optml::Optml, Debug, newtype::FromInner)]
 struct AxumNotificationJson(notification_service_contract::CreateNotificationReq);
 
-#[derive(Debug, newtype::FromInner)]
+#[derive(optml::Optml, Debug, newtype::FromInner)]
 struct AxumNotificationResponse(axum::response::Response);
 
-#[derive(Debug, newtype::FromInner)]
+#[derive(optml::Optml, Debug, newtype::FromInner)]
 struct AxumNotificationRouter(axum::Router);
 
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 struct HttpNotificationStatusCode(http::StatusCode);
 
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 enum CreateNotificationError {
     #[error("notification persistence failed: {0}")]
     Persistence(#[source] server_runtime_http::ObservedError<SqlxNotificationDatabaseError>),
     #[error("notification request validation failed")]
     Validation,
 }
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 enum MetricsError {
     #[error("notification metrics response rendering failed: {0}")]
     Render(
         #[source] server_runtime_http::ObservedError<server_runtime_http::MetricsResponseBodyError>,
     ),
 }
-#[derive(Clone, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Debug, newtype::FromInner)]
 struct MetricsExporterPrometheusHandle(metrics_exporter_prometheus::PrometheusHandle);
 
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 struct NotificationBodyMaximumBytes(usize);
 
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 struct StdNotificationExitCode(std::process::ExitCode);
 
 impl axum::response::IntoResponse for AxumNotificationResponse {
@@ -154,7 +154,7 @@ impl axum::extract::FromRequest<NotificationState> for AxumNotificationJson {
     }
 }
 
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 enum NotificationServiceError {
     #[error("notification service configuration failed: {0}")]
     Config(NotificationConfigError),
@@ -175,33 +175,33 @@ enum NotificationServiceError {
     #[error("notification service timeout configuration is invalid")]
     Timeout,
 }
-#[derive(Debug, newtype::FromInner, newtype::Display)]
+#[derive(optml::Optml, Debug, newtype::FromInner, newtype::Display)]
 struct NotificationConfigError(notification_service_config::ConfigTryFromEnvError);
 
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 struct SqlxNotificationDatabaseError(sqlx::Error);
 
-#[derive(Debug, newtype::FromInner, newtype::Display)]
+#[derive(optml::Optml, Debug, newtype::FromInner, newtype::Display)]
 struct SqlxNotificationMigrationError(sqlx::migrate::MigrateError);
 
-#[derive(Debug, newtype::FromInner, newtype::Display)]
+#[derive(optml::Optml, Debug, newtype::FromInner, newtype::Display)]
 struct StdNotificationIoError(std::io::Error);
 
-#[derive(Debug, newtype::FromInner, newtype::Display)]
+#[derive(optml::Optml, Debug, newtype::FromInner, newtype::Display)]
 struct NotificationServeError(server_runtime_http::ServeWithGracefulShutdownError);
 
-#[derive(Debug, newtype::FromInner, newtype::Display)]
+#[derive(optml::Optml, Debug, newtype::FromInner, newtype::Display)]
 struct MetricsExporterPrometheusNotificationBuildError(metrics_exporter_prometheus::BuildError);
 
-#[derive(Debug, newtype::FromInner, newtype::Display)]
+#[derive(optml::Optml, Debug, newtype::FromInner, newtype::Display)]
 struct NotificationObservabilityInitError(server_runtime_http::ObservabilityInitError);
 
-#[derive(Debug, newtype::FromInner, newtype::Display)]
+#[derive(optml::Optml, Debug, newtype::FromInner, newtype::Display)]
 struct NotificationObservabilityShutdownError(
     server_runtime_http::OpentelemetrySdkObservabilityShutdownError,
 );
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
 enum NotificationErrorCode {
     MetricsRender,
     Persistence,

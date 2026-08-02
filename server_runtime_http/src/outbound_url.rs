@@ -1,20 +1,20 @@
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum OutboundHostPolicy {
     AllowPrivate,
     RejectPrivate,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum OutboundUrlScheme {
     Http,
     Https,
     Rtsp,
     Rtsps,
 }
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 pub struct OutboundUrlTextRef<'value_lt>(&'value_lt str);
 
-#[derive(Clone, newtype::FromInner)]
+#[derive(optml::Optml, Clone, newtype::FromInner)]
 pub struct ReqwestOutboundUrl(reqwest::Url);
 
 impl ReqwestOutboundUrl {
@@ -29,7 +29,7 @@ impl ReqwestOutboundUrl {
     }
 }
 
-#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(optml::Optml, Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct OutboundAllowedHost(String);
 impl TryFrom<String> for OutboundAllowedHost {
     type Error = OutboundHostAllowlistError;
@@ -46,7 +46,7 @@ impl TryFrom<String> for OutboundAllowedHost {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
 pub struct OutboundHostAllowlist(bounded_types::BoundedVec<OutboundAllowedHost, 1, 64>);
 impl TryFrom<Vec<OutboundAllowedHost>> for OutboundHostAllowlist {
     type Error = OutboundHostAllowlistError;
@@ -84,7 +84,7 @@ impl OutboundHostAllowlist {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum OutboundHostAllowlistError {
     #[error("outbound host allowlist must not be empty")]
     Empty,
@@ -103,13 +103,14 @@ impl std::fmt::Debug for ReqwestOutboundUrl {
     }
 }
 
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 pub struct StdOutboundIpAddr(std::net::IpAddr);
 
-#[derive(Clone, Copy, Debug)]
+#[derive(optml::Optml, Clone, Copy, Debug)]
+#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optml takes precedence over alphabetical field order
 pub struct OutboundUrlPolicy {
-    host_policy: OutboundHostPolicy,
     schemes: &'static [OutboundUrlScheme],
+    host_policy: OutboundHostPolicy,
 }
 impl OutboundUrlPolicy {
     #[must_use]
@@ -118,8 +119,8 @@ impl OutboundUrlPolicy {
         host_policy: OutboundHostPolicy,
     ) -> Self {
         Self {
-            host_policy,
             schemes,
+            host_policy,
         }
     }
 
@@ -183,7 +184,7 @@ impl OutboundUrlPolicy {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum OutboundUrlError {
     #[error("outbound URL contains a forbidden control character")]
     ControlCharacter,
@@ -201,7 +202,7 @@ pub enum OutboundUrlError {
     UserInfo,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 enum OutboundAddressDisposition {
     Allowed,
     Forbidden,
@@ -223,12 +224,21 @@ fn contains_encoded_control(value: OutboundUrlTextRef<'_>) -> OutboundAddressDis
 fn outbound_address_disposition(address: StdOutboundIpAddr) -> OutboundAddressDisposition {
     let forbidden = match address.0 {
         std::net::IpAddr::V4(ipv4_address) => {
+            let octets = ipv4_address.octets();
             ipv4_address.is_broadcast()
                 || ipv4_address.is_link_local()
                 || ipv4_address.is_loopback()
                 || ipv4_address.is_multicast()
                 || ipv4_address.is_private()
                 || ipv4_address.is_unspecified()
+                || octets[0] == 0u8
+                || (octets[0] == 100u8 && (64u8..=127u8).contains(&octets[1]))
+                || (octets[0] == 192u8 && octets[1] == 0u8 && octets[2] == 0u8)
+                || (octets[0] == 192u8 && octets[1] == 0u8 && octets[2] == 2u8)
+                || (octets[0] == 198u8 && (octets[1] == 18u8 || octets[1] == 19u8))
+                || (octets[0] == 198u8 && octets[1] == 51u8 && octets[2] == 100u8)
+                || (octets[0] == 203u8 && octets[1] == 0u8 && octets[2] == 113u8)
+                || octets[0] >= 240u8
         }
         std::net::IpAddr::V6(ipv6_address) => ipv6_address.to_ipv4_mapped().map_or_else(
             || {
@@ -237,6 +247,7 @@ fn outbound_address_disposition(address: StdOutboundIpAddr) -> OutboundAddressDi
                     || ipv6_address.is_unicast_link_local()
                     || ipv6_address.is_unique_local()
                     || ipv6_address.is_unspecified()
+                    || ipv6_address.segments()[..2usize] == [0x2001u16, 0x0db8u16]
             },
             |mapped| {
                 outbound_address_disposition(StdOutboundIpAddr::from(std::net::IpAddr::V4(mapped)))
@@ -290,6 +301,31 @@ mod tests {
             POLICY.validate(str_constants::TEST_URL_WITH_ENCODED_NEWLINE.into()),
             Err(super::OutboundUrlError::ControlCharacter)
         ));
+    }
+
+    #[test]
+    fn non_global_special_addresses_are_rejected() {
+        assert!(
+            [
+                std::net::IpAddr::V4(std::net::Ipv4Addr::new(0u8, 0u8, 0u8, 1u8)),
+                std::net::IpAddr::V4(std::net::Ipv4Addr::new(100u8, 64u8, 0u8, 1u8)),
+                std::net::IpAddr::V4(std::net::Ipv4Addr::new(192u8, 0u8, 2u8, 1u8)),
+                std::net::IpAddr::V4(std::net::Ipv4Addr::new(198u8, 18u8, 0u8, 1u8)),
+                std::net::IpAddr::V4(std::net::Ipv4Addr::new(198u8, 51u8, 100u8, 1u8)),
+                std::net::IpAddr::V4(std::net::Ipv4Addr::new(203u8, 0u8, 113u8, 1u8)),
+                std::net::IpAddr::V4(std::net::Ipv4Addr::new(240u8, 0u8, 0u8, 1u8)),
+                std::net::IpAddr::V6(std::net::Ipv6Addr::new(
+                    0x2001u16, 0x0db8u16, 0u16, 0u16, 0u16, 0u16, 0u16, 1u16,
+                )),
+            ]
+            .into_iter()
+            .all(|address| {
+                matches!(
+                    POLICY.validate_resolved_addresses(&[address.into()]),
+                    Err(super::OutboundUrlError::ForbiddenHost)
+                )
+            })
+        );
     }
 
     #[test]

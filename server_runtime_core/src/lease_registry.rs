@@ -1,6 +1,6 @@
 const LEASE_TEXT_MAXIMUM_BYTES: usize = 1024usize;
 
-#[derive(Clone, Debug, Eq, Hash, PartialEq, newtype::AsRefStr)]
+#[derive(optml::Optml, Clone, Debug, Eq, Hash, PartialEq, newtype::AsRefStr)]
 pub struct LeaseId(String);
 impl TryFrom<String> for LeaseId {
     type Error = LeaseTextError;
@@ -12,7 +12,7 @@ impl TryFrom<String> for LeaseId {
     }
 }
 
-#[derive(Clone, Debug, Eq, Hash, PartialEq, newtype::AsRefStr)]
+#[derive(optml::Optml, Clone, Debug, Eq, Hash, PartialEq, newtype::AsRefStr)]
 pub struct LeaseKey(String);
 impl TryFrom<String> for LeaseKey {
     type Error = LeaseTextError;
@@ -24,7 +24,7 @@ impl TryFrom<String> for LeaseKey {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum LeaseTextError {
     #[error("lease text contains a NUL character")]
     ContainsNul,
@@ -34,17 +34,17 @@ pub enum LeaseTextError {
     TooLong,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum LeaseState {
     Ready,
     Reserved,
     Stale,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct StdLeaseRegistryMaximum(std::num::NonZeroUsize);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct StdLeaseStaleTimeout(std::time::Duration);
 impl TryFrom<std::time::Duration> for StdLeaseStaleTimeout {
     type Error = StdLeaseStaleTimeoutError;
@@ -57,56 +57,58 @@ impl TryFrom<std::time::Duration> for StdLeaseStaleTimeout {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("lease stale timeout must be greater than zero")]
 pub struct StdLeaseStaleTimeoutError;
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
 pub enum LeaseReservation {
     Existing(LeaseId),
     LimitReached,
     Reserved,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum LeaseHeartbeat {
     Accepted,
     Missing,
 }
 
-#[derive(Clone, Debug, Default, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)]
+#[derive(
+    optml::Optml, Clone, Debug, Default, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner,
+)]
 pub struct LeaseIds(bounded_types::BoundedVec<LeaseId, 0, { usize::MAX }>);
 
-#[derive(Debug)]
+#[derive(optml::Optml, Debug)]
 struct LeaseEntry {
     heartbeat: TokioLeaseInstant,
     key: LeaseKey,
     state: LeaseState,
 }
 
-#[derive(Debug, Default)]
+#[derive(optml::Optml, Debug, Default)]
 struct LeaseRegistryInner {
     by_id: bounded_types::StdBoundedHashMap<LeaseId, LeaseEntry, { usize::MAX }>,
     by_key: bounded_types::StdBoundedHashMap<LeaseKey, LeaseId, { usize::MAX }>,
 }
 
-#[derive(Clone, Debug, Default)]
+#[derive(optml::Optml, Clone, Debug, Default)]
 pub struct LeaseRegistry {
     inner: StdArcTokioLeaseRegistryRwLock,
 }
 impl LeaseRegistry {
     pub async fn heartbeat(&self, id: &LeaseId) -> LeaseHeartbeat {
-        let mut inner = self.inner.0.write().await;
-        let outcome = match inner.by_id.get_mut(id) {
-            Some(entry) if entry.state != LeaseState::Stale => {
-                entry.heartbeat = TokioLeaseInstant::from(tokio::time::Instant::now());
-                entry.state = LeaseState::Ready;
-                LeaseHeartbeat::Accepted
+        {
+            let mut inner = self.inner.0.write().await;
+            match inner.by_id.get_mut(id) {
+                Some(entry) if entry.state != LeaseState::Stale => {
+                    entry.heartbeat = TokioLeaseInstant::from(tokio::time::Instant::now());
+                    entry.state = LeaseState::Ready;
+                    LeaseHeartbeat::Accepted
+                }
+                Some(_) | None => LeaseHeartbeat::Missing,
             }
-            Some(_) | None => LeaseHeartbeat::Missing,
-        };
-        drop(inner);
-        outcome
+        }
     }
 
     #[must_use]
@@ -129,67 +131,70 @@ impl LeaseRegistry {
         key: LeaseKey,
         maximum: StdLeaseRegistryMaximum,
     ) -> LeaseReservation {
-        let mut inner = self.inner.0.write().await;
-        if let Some(existing_id) = inner.by_key.get(&key)
-            && inner
-                .by_id
-                .get(existing_id)
-                .is_some_and(|entry| entry.state != LeaseState::Stale)
         {
-            return LeaseReservation::Existing(existing_id.clone());
-        }
-        remove_stale_entries(&mut inner);
-        if inner.by_id.len().get() >= maximum.0.get() {
-            return LeaseReservation::LimitReached;
-        }
-        remove_conflicting_entries(&mut inner, &id, &key);
-        let id_insertion = inner.by_key.try_insert(key.clone(), id.clone());
-        if id_insertion.is_err() {
-            return LeaseReservation::LimitReached;
-        }
-        let entry_insertion = inner.by_id.try_insert(
-            id,
-            LeaseEntry {
-                heartbeat: TokioLeaseInstant::from(tokio::time::Instant::now()),
-                key: key.clone(),
-                state: LeaseState::Reserved,
-            },
-        );
-        if entry_insertion.is_err() {
-            let _removed_id = inner.by_key.remove(&key);
+            let mut inner = self.inner.0.write().await;
+            if let Some(existing_id) = inner.by_key.get(&key)
+                && inner
+                    .by_id
+                    .get(existing_id)
+                    .is_some_and(|entry| entry.state != LeaseState::Stale)
+            {
+                return LeaseReservation::Existing(existing_id.clone());
+            }
+            remove_stale_entries(&mut inner);
+            if inner.by_id.len().get() >= maximum.0.get() {
+                return LeaseReservation::LimitReached;
+            }
+            remove_conflicting_entries(&mut inner, &id, &key);
+            let id_insertion = inner.by_key.try_insert(key.clone(), id.clone());
+            if id_insertion.is_err() {
+                return LeaseReservation::LimitReached;
+            }
+            let entry_insertion = inner.by_id.try_insert(
+                id,
+                LeaseEntry {
+                    heartbeat: TokioLeaseInstant::from(tokio::time::Instant::now()),
+                    key: key.clone(),
+                    state: LeaseState::Reserved,
+                },
+            );
+            if entry_insertion.is_err() {
+                let _removed_id = inner.by_key.remove(&key);
+                drop(inner);
+                return LeaseReservation::LimitReached;
+            }
             drop(inner);
-            return LeaseReservation::LimitReached;
+            LeaseReservation::Reserved
         }
-        drop(inner);
-        LeaseReservation::Reserved
     }
 
     pub async fn stale(&self, timeout: StdLeaseStaleTimeout) -> LeaseIds {
-        let mut inner = self.inner.0.write().await;
-        let now = tokio::time::Instant::now();
-        let mut stale_ids = bounded_types::BoundedVec::default();
-        inner
-            .by_id
-            .iter_mut()
-            .filter_map(|(id, entry)| {
-                (now.duration_since(entry.heartbeat.0) > timeout.0).then(|| {
-                    entry.state = LeaseState::Stale;
-                    id.clone()
+        LeaseIds::from({
+            let mut inner = self.inner.0.write().await;
+            let now = tokio::time::Instant::now();
+            let mut stale_ids = bounded_types::BoundedVec::default();
+            inner
+                .by_id
+                .iter_mut()
+                .filter_map(|(id, entry)| {
+                    (now.duration_since(entry.heartbeat.0) > timeout.0).then(|| {
+                        entry.state = LeaseState::Stale;
+                        id.clone()
+                    })
                 })
-            })
-            .for_each(|id| stale_ids.push_max_capacity(id));
-        drop(inner);
-        LeaseIds::from(stale_ids)
+                .for_each(|id| stale_ids.push_max_capacity(id));
+            stale_ids
+        })
     }
 }
 
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 struct LeaseTextRef<'value_lt>(&'value_lt str);
 
-#[derive(Clone, Debug, Default, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Debug, Default, newtype::FromInner)]
 struct StdArcTokioLeaseRegistryRwLock(std::sync::Arc<tokio::sync::RwLock<LeaseRegistryInner>>);
 
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 struct TokioLeaseInstant(tokio::time::Instant);
 
 #[allow(clippy::single_call_fn)] // keeps the two-index conflict update atomic and locally auditable

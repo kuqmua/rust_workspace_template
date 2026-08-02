@@ -1,34 +1,34 @@
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RouteAccess {
     Authenticated,
     Public,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RouteMutation {
     Mutating,
     ReadOnly,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RouteDatabaseUsage {
     Database,
     None,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RouteJsonBodyUsage {
     JsonBody,
     None,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RouteResponseKind {
     Buffered,
     Streaming,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct RouteTestCapabilities {
     database: RouteDatabaseUsage,
     json_body: RouteJsonBodyUsage,
@@ -50,7 +50,7 @@ impl RouteTestCapabilities {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RouteTestCategory {
     DatabaseFixture,
     FixtureHook,
@@ -59,6 +59,7 @@ pub enum RouteTestCategory {
     StreamingResponse,
 }
 #[derive(
+    optml::Optml,
     Clone,
     Debug,
     Default,
@@ -105,7 +106,7 @@ pub fn required_test_categories(capabilities: RouteTestCapabilities) -> RouteTes
     RouteTestCategories::from(bounded_types::BoundedVec::from_max_iter(categories))
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct RouteCoverageEvidence {
     obligations: &'static [RouteCoverageObligation],
 }
@@ -117,11 +118,11 @@ impl RouteCoverageEvidence {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct RouteCoverageDescriptor {
-    access: RouteAccess,
     evidence: RouteCoverageEvidence,
     metadata: crate::RouteMetadata,
+    access: RouteAccess,
     mutation: RouteMutation,
 }
 
@@ -134,9 +135,9 @@ impl RouteCoverageDescriptor {
         evidence: RouteCoverageEvidence,
     ) -> Self {
         Self {
-            access,
             evidence,
             metadata,
+            access,
             mutation,
         }
     }
@@ -146,7 +147,7 @@ impl RouteCoverageDescriptor {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RouteCoverageObligation {
     IntegrationFixture,
     OpenApiOperation,
@@ -179,7 +180,7 @@ pub const AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS: &[RouteCoverageObli
     RouteCoverageObligation::SecurityValidation,
 ];
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RouteCoverageError {
     DuplicateRoute {
         metadata: crate::RouteMetadata,

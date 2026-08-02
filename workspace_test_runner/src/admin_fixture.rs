@@ -1,5 +1,5 @@
 const ADMIN_FIXTURE_STRING_MAX_LEN: usize = 1_048_576usize;
-#[derive(Debug, newtype::BoundedString)]
+#[derive(optml::Optml, Debug, newtype::BoundedString)]
 #[bounded_string(max = ADMIN_FIXTURE_STRING_MAX_LEN)]
 struct AdminFixtureString(String);
 fn admin_fixture_string<Value>(value: impl TryInto<AdminFixtureString>) -> Result<Value, ()>

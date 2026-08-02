@@ -1,13 +1,19 @@
 #![allow(clippy::shadow_reuse)]
 const MAX_BLOCK_ON_POLLS: usize = 4096;
-#[derive(newtype::Display, newtype::FromInner)]
+#[derive(optml::Optml, newtype::Display, newtype::FromInner)]
 pub(crate) struct TestExpId(&'static str);
-#[derive(newtype::Display, newtype::FromInner)]
+#[derive(optml::Optml, newtype::Display, newtype::FromInner)]
 struct TestPanicText(&'static str);
-#[derive(newtype::AsRefOwned, newtype::DerefInner, newtype::DerefMutInner, newtype::FromInner)]
+#[derive(
+    optml::Optml,
+    newtype::AsRefOwned,
+    newtype::DerefInner,
+    newtype::DerefMutInner,
+    newtype::FromInner,
+)]
 pub(crate) struct AxumTestHeaders(axum::http::HeaderMap);
 
-#[derive(newtype::FromInner)]
+#[derive(optml::Optml, newtype::FromInner)]
 pub(crate) struct AxumTestHeadersMutRef<'headers_lt>(&'headers_lt mut axum::http::HeaderMap);
 impl<'headers_lt> From<&'headers_lt mut AxumTestHeaders> for AxumTestHeadersMutRef<'headers_lt> {
     fn from(value: &'headers_lt mut AxumTestHeaders) -> Self {
@@ -15,11 +21,11 @@ impl<'headers_lt> From<&'headers_lt mut AxumTestHeaders> for AxumTestHeadersMutR
     }
 }
 
-#[derive(newtype::DerefInner, newtype::FromInner)]
+#[derive(optml::Optml, newtype::DerefInner, newtype::FromInner)]
 pub(crate) struct AxumTestHeaderValue(axum::http::HeaderValue);
-#[derive(Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
 struct TestPollCount(usize);
-#[derive(newtype::FromInner, newtype::NotInner)]
+#[derive(optml::Optml, newtype::FromInner, newtype::NotInner)]
 struct TestPollLimitReached(bool);
 fn insert_header_no_prev<'headers_lt, ValueTy>(
     headers: impl Into<AxumTestHeadersMutRef<'headers_lt>>,
@@ -376,7 +382,7 @@ mod tests {
     }
     #[test]
     fn expect_error_variant_maps_matching_error_variant() {
-        #[derive(std::fmt::Debug)]
+        #[derive(optml::Optml, std::fmt::Debug)]
         enum TestError {
             A(u8),
         }
@@ -391,7 +397,7 @@ mod tests {
     }
     #[test]
     fn expect_error_variant_ref_maps_matching_error_variant_without_move() {
-        #[derive(std::fmt::Debug)]
+        #[derive(optml::Optml, std::fmt::Debug)]
         enum TestError {
             A(u8),
         }
@@ -406,7 +412,7 @@ mod tests {
     }
     #[test]
     fn assert_err_status_code_variant_checks_status_and_extracts_variant() {
-        #[derive(std::fmt::Debug)]
+        #[derive(optml::Optml, std::fmt::Debug)]
         enum TestError {
             A,
         }
@@ -426,7 +432,7 @@ mod tests {
     }
     #[test]
     fn assert_err_status_code_variant_ref_checks_status_and_extracts_variant_without_move() {
-        #[derive(std::fmt::Debug)]
+        #[derive(optml::Optml, std::fmt::Debug)]
         enum TestError {
             A(u8),
         }
@@ -484,7 +490,7 @@ mod tests {
     }
     #[test]
     fn assert_err_status_code_returns_error_after_status_check() {
-        #[derive(std::fmt::Debug)]
+        #[derive(optml::Optml, std::fmt::Debug)]
         struct TestErr;
         impl crate::GetAxumHttpStatusCode for TestErr {
             fn get_axum_http_status_code(&self) -> crate::AxumHttpStatusCode {

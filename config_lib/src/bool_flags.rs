@@ -1,4 +1,5 @@
 #[derive(
+    optml::Optml,
     Debug,
     Clone,
     Copy,
@@ -10,6 +11,7 @@
 )]
 pub struct AdminCookieSecure(bool);
 #[derive(
+    optml::Optml,
     Debug,
     Clone,
     Copy,
@@ -20,13 +22,17 @@ pub struct AdminCookieSecure(bool);
     newtype::FromInner,
 )]
 pub struct AdminSwaggerEnabled(bool);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::DerefInner, newtype::FromInner)]
+#[derive(
+    optml::Optml, Debug, Clone, Copy, PartialEq, Eq, newtype::DerefInner, newtype::FromInner,
+)]
 pub struct HttpGzipEnabled(bool);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::DerefInner, newtype::FromInner)]
+#[derive(
+    optml::Optml, Debug, Clone, Copy, PartialEq, Eq, newtype::DerefInner, newtype::FromInner,
+)]
 pub struct ProductionMode(bool);
-#[derive(newtype::DebugTransparent, newtype::FromInner)]
+#[derive(optml::Optml, newtype::DebugTransparent, newtype::FromInner)]
 pub struct AdminBoolParsingError(super::StdParseBoolError);
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 #[error("{0:?}")]
 #[derive(newtype::FromInner)]
 pub struct TryFromStdEnvVarOkAdminCookieSecureError(AdminBoolParsingError);

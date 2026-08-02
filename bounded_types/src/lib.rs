@@ -11,7 +11,7 @@ pub use hash_map::StdBoundedHashMap;
 pub use string::BoundedString;
 pub use vector::BoundedVec;
 
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, newtype::FromInner)]
 pub struct BoundedLen(usize);
 impl BoundedLen {
     #[must_use]
@@ -25,7 +25,7 @@ impl std::fmt::Display for BoundedLen {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum BoundedValueError {
     #[error("bounded value length {actual} exceeds maximum {max}")]
     AboveMax { actual: BoundedLen, max: BoundedLen },
@@ -58,10 +58,44 @@ fn validate_len<const MIN: usize, const MAX: usize>(
     }
 }
 
+fn deserialize_bounded_map<'de, Map, Key, Value, Values, Insert, const MAX: usize>(
+    mut map: Map,
+    mut values: Values,
+    mut insert: Insert,
+) -> Result<Values, Map::Error>
+where
+    Map: serde::de::MapAccess<'de>,
+    Key: serde::Deserialize<'de>,
+    Value: serde::Deserialize<'de>,
+    Insert: FnMut(&mut Values, Key, Value) -> Result<(), BoundedValueError>,
+{
+    let mut entry_count = 0usize;
+    loop {
+        if entry_count == MAX {
+            return map.next_key::<serde::de::IgnoredAny>()?.map_or_else(
+                || Ok(values),
+                |_ignored| {
+                    Err(serde::de::Error::custom(BoundedValueError::AboveMax {
+                        actual: BoundedLen::from(MAX.saturating_add(1usize)),
+                        max: BoundedLen::from(MAX),
+                    }))
+                },
+            );
+        }
+        let Some(key) = map.next_key()? else {
+            return Ok(values);
+        };
+        let value = map.next_value()?;
+        insert(&mut values, key, value).map_err(serde::de::Error::custom)?;
+        entry_count = entry_count.saturating_add(1usize);
+    }
+}
+
 const SERDE_PREALLOC_MAX_ITEMS: usize = 1024usize;
 
 #[cfg(test)]
 mod tests {
+    #[derive(optml::Optml)]
     enum TestDeserializerValue {
         Number(u8),
         Text(&'static str),
@@ -375,6 +409,7 @@ mod tests {
         assert!(error.to_string().contains("exceeds maximum 1"));
     }
 
+    #[derive(optml::Optml)]
     struct MisleadingSizeHintIter<Value> {
         values: std::vec::IntoIter<Value>,
     }

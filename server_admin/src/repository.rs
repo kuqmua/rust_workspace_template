@@ -10,14 +10,14 @@ pub(crate) mod sessions;
 pub(crate) mod settings;
 pub(crate) mod users;
 
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 pub(crate) enum AdminRepositoryError {
     #[error("stored admin value does not satisfy its contract")]
     InvalidStoredValue,
     #[error("admin repository query failed: {0:?}")]
     Sqlx(super::SqlxAdminError),
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) enum ReplaceRolePermissionsOutcome {
     MissingRole,
     SystemRole,
@@ -25,7 +25,7 @@ pub(crate) enum ReplaceRolePermissionsOutcome {
     UnknownPermission,
     Updated,
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) enum ReplaceUserRolesOutcome {
     LastActiveAdministrator,
     MissingUser,
@@ -33,29 +33,30 @@ pub(crate) enum ReplaceUserRolesOutcome {
     UnknownRole,
     Updated,
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) enum AdminRateLimitOutcome {
     Allowed,
     Limited,
 }
-#[derive(Debug)]
+#[derive(optml::Optml, Debug)]
 pub(crate) enum AdminRateLimitRepositoryError {
     InvalidPolicy,
     Sqlx(super::SqlxAdminError),
 }
+#[derive(optml::Optml)]
 pub(crate) enum AdminRepositoryDbRef<'connection_lt, 'pool_lt> {
     Connection(SqlxAdminRepositoryConnectionMutRef<'connection_lt>),
     Pool(SqlxAdminRepositoryPoolRef<'pool_lt>),
 }
-#[derive(Debug)]
+#[derive(optml::Optml, Debug)]
 pub(crate) struct AdminAuthenticatedRecord {
     display_name: server_admin_contract::AdminDisplayName,
     login: server_admin_contract::AdminLogin,
-    password_change_required: super::AdminPasswordChangeRequired,
     permissions: super::AdminPermissions,
     roles: super::AdminRoleNames,
+    password_change_required: super::AdminPasswordChangeRequired,
 }
-#[derive(Clone, Copy, Debug)]
+#[derive(optml::Optml, Clone, Copy, Debug)]
 pub(crate) struct AdminCleanupRepositoryReport {
     access_sessions: super::AdminCleanupRows,
     audit_log: super::AdminCleanupRows,
@@ -110,16 +111,16 @@ pub(super) fn invalid_stored_value<Error>(_error: Error) -> AdminRepositoryError
     AdminRepositoryError::InvalidStoredValue
 }
 
-#[derive(Debug, newtype::FromInner)]
+#[derive(optml::Optml, Debug, newtype::FromInner)]
 pub(crate) struct SqlxAdminRepositoryConnectionMutRef<'connection_lt>(
     &'connection_lt mut sqlx::PgConnection,
 );
 
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 pub(crate) struct SqlxAdminRepositoryPoolRef<'pool_lt>(&'pool_lt sqlx::PgPool);
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 pub(crate) struct AdminRecentLoginFailureCount(i64);
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 pub(crate) struct AdminPageTotalCount(i64);
 impl AdminPageTotalCount {
     pub(crate) const fn get(self) -> i64 {
@@ -141,7 +142,7 @@ impl AdminRecentLoginFailureCount {
         super::StdAdminBool::from(self.0 >= i64::from(threshold))
     }
 }
-#[derive(Debug)]
+#[derive(optml::Optml, Debug)]
 pub(crate) struct AdminSignInUser {
     id: super::AdminUserId,
     password_hash: super::AdminPasswordHash,

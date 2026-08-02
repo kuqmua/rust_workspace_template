@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(optml::Optml, Debug)]
 pub struct ServiceRuntime {
     optional_task: Option<super::BackgroundTask>,
     router: super::AxumRouter,
@@ -22,14 +22,14 @@ impl ServiceRuntime {
     }
 }
 
-#[derive(Debug, newtype::FromInner)]
+#[derive(optml::Optml, Debug, newtype::FromInner)]
 pub struct TokioTcpListener(tokio::net::TcpListener);
 
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 pub struct StdServeIoError(std::io::Error);
 
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 pub enum ServeWithGracefulShutdownError {
     #[error("server failed: {0}")]
     Serve(#[source] StdServeIoError),
@@ -71,8 +71,7 @@ where
     tokio::pin!(server);
     tokio::select! {
         result = &mut server => result.map_err(|error| ServeWithGracefulShutdownError::Serve(StdServeIoError(error))),
-        shutdown_result = shutdown_started_rx => {
-            drop(shutdown_result);
+        _shutdown_result = shutdown_started_rx => {
             tokio::time::timeout(shutdown_timeout.get(), &mut server)
                 .await
                 .map_err(|_elapsed| ServeWithGracefulShutdownError::ShutdownTimeout)?

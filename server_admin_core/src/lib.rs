@@ -1,5 +1,5 @@
 #![allow(clippy::field_scoped_visibility_modifiers)] // sibling domain modules require raw representations while facade reexports must keep fields externally private
-#[derive(newtype::AsRefOwned, newtype::FromInner)]
+#[derive(optml::Optml, newtype::AsRefOwned, newtype::FromInner)]
 pub struct SecrecyAdminString(secrecy::SecretBox<StdAdminString>);
 
 impl std::fmt::Debug for SecrecyAdminString {
@@ -21,6 +21,7 @@ impl secrecy::ExposeSecret<StdAdminString> for SecrecyAdminString {
     }
 }
 #[derive(
+    optml::Optml,
     Debug,
     Clone,
     PartialEq,
@@ -39,6 +40,7 @@ impl secrecy::zeroize::Zeroize for StdAdminString {
         secrecy::zeroize::Zeroize::zeroize(&mut self.0);
     }
 }
+#[derive(optml::Optml)]
 enum AdminResourceText {
     PositiveI64(server_admin_contract::StdAdminPositiveI64),
     SystemSettings,
@@ -70,7 +72,15 @@ impl StdAdminString {
     }
 }
 #[derive(
-    Debug, Clone, Copy, PartialEq, Eq, std::hash::Hash, newtype::AsRefInner, newtype::FromInner,
+    optml::Optml,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    std::hash::Hash,
+    newtype::AsRefInner,
+    newtype::FromInner,
 )]
 pub struct StdAdminStrRef<'value_lt>(&'value_lt str);
 impl<'value_lt> StdAdminStrRef<'value_lt> {
@@ -80,7 +90,15 @@ impl<'value_lt> StdAdminStrRef<'value_lt> {
     }
 }
 #[derive(
-    Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize, newtype::FromInner,
+    optml::Optml,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
+    newtype::FromInner,
 )]
 #[serde(from = "bool")]
 pub struct StdAdminBool(bool);
@@ -90,7 +108,9 @@ impl StdAdminBool {
         self.0
     }
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::DerefInner, newtype::FromInner)]
+#[derive(
+    optml::Optml, Debug, Clone, Copy, PartialEq, Eq, newtype::DerefInner, newtype::FromInner,
+)]
 pub struct StdAdminNonZeroUsize(std::num::NonZeroUsize);
 impl StdAdminNonZeroUsize {
     #[must_use]
@@ -99,7 +119,15 @@ impl StdAdminNonZeroUsize {
     }
 }
 #[derive(
-    Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize, newtype::FromInner,
+    optml::Optml,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
+    newtype::FromInner,
 )]
 #[serde(from = "uuid::Uuid")]
 pub struct UuidAdminValue(uuid::Uuid);
@@ -120,7 +148,9 @@ impl utoipa::PartialSchema for UuidAdminValue {
     }
 }
 impl utoipa::ToSchema for UuidAdminValue {}
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::AsRefOwned, newtype::FromInner)]
+#[derive(
+    optml::Optml, Debug, Clone, Copy, PartialEq, Eq, newtype::AsRefOwned, newtype::FromInner,
+)]
 pub struct StdAdminSocketAddr(std::net::SocketAddr);
 impl StdAdminSocketAddr {
     #[must_use]
@@ -129,6 +159,7 @@ impl StdAdminSocketAddr {
     }
 }
 #[derive(
+    optml::Optml,
     Debug,
     Clone,
     Copy,
@@ -163,6 +194,7 @@ impl AdminUserId {
     }
 }
 #[derive(
+    optml::Optml,
     Debug,
     Clone,
     Copy,
@@ -197,6 +229,7 @@ impl AdminRoleId {
     }
 }
 #[derive(
+    optml::Optml,
     Debug,
     Clone,
     Copy,
@@ -231,7 +264,15 @@ impl AdminPermissionId {
     }
 }
 #[derive(
-    Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, utoipa::ToSchema, newtype::FromInner,
+    optml::Optml,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    utoipa::ToSchema,
+    newtype::FromInner,
 )]
 pub struct AdminAuditLogId(server_admin_contract::StdAdminPositiveI64);
 impl TryFrom<i64> for AdminAuditLogId {
@@ -252,10 +293,10 @@ impl AdminAuditLogId {
         self.0
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("{self:?}")]
 pub struct AdminIdTryFromI64Error;
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
 pub struct AdminPermissionName(server_admin_contract::AdminPermission);
 
 #[cfg(test)]

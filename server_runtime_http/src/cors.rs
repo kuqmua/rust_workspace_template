@@ -1,13 +1,13 @@
 const CORS_ALLOW_ORIGIN_SPLIT_CH: char = ',';
 const CORS_ALLOW_ORIGIN_MAX_BYTES: usize = 65_536usize;
 const CORS_ALLOW_ORIGIN_MAX_ITEMS: usize = 128usize;
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 pub struct HttpCorsAllowOriginTextRef<'text_lt>(&'text_lt str);
 
-#[derive(Debug, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(optml::Optml, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct HttpCorsAllowOriginHeaderValues(Vec<http::HeaderValue>);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum HttpCorsAllowOriginHeaderValuesError {
     #[error("CORS allow-origin configuration exceeds its maximum byte length")]
     TooLong,

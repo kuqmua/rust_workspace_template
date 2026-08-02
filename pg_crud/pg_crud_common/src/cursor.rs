@@ -1,9 +1,9 @@
 const CURSOR_SIGNING_KEY_MAXIMUM_LENGTH: usize = 4_096usize;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct CursorMaximumLength(usize);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum CursorPaginationUsage {
     CursorOnly,
     NoOffsetNoCursor,
@@ -30,13 +30,13 @@ impl CursorPaginationUsage {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum OffsetPaginationPresence {
     Absent,
     Present,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum SignedCursorPresence {
     Absent,
     Present,
@@ -52,7 +52,7 @@ impl TryFrom<usize> for CursorMaximumLength {
     }
 }
 
-#[derive(Clone)]
+#[derive(optml::Optml, Clone)]
 pub struct CursorSigningKey(
     bounded_types::BoundedVec<u8, 1usize, CURSOR_SIGNING_KEY_MAXIMUM_LENGTH>,
 );
@@ -74,11 +74,11 @@ impl TryFrom<Vec<u8>> for CursorSigningKey {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("{message}", message = str_constants::CURSOR_SIGNING_KEY_LENGTH_INVALID)]
 pub struct CursorSigningKeyError;
 
-#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
 pub struct CursorPayload(String);
 
 impl CursorPayload {
@@ -97,11 +97,11 @@ impl TryFrom<String> for CursorPayload {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("{message}", message = str_constants::CURSOR_PAYLOAD_MUST_NOT_BE_EMPTY)]
 pub struct CursorPayloadError;
 
-#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
 pub struct SignedCursor(String);
 
 impl SignedCursor {
@@ -120,11 +120,11 @@ impl TryFrom<String> for SignedCursor {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("{message}", message = str_constants::SIGNED_CURSOR_MUST_NOT_BE_EMPTY)]
 pub struct SignedCursorError;
 
-#[derive(Clone, Debug)]
+#[derive(optml::Optml, Clone, Debug)]
 pub struct CursorCodec {
     key: CursorSigningKey,
     maximum_length: CursorMaximumLength,
@@ -195,13 +195,13 @@ impl CursorCodec {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum CursorCodecBuildError {
     #[error("{message}", message = str_constants::CURSOR_MAXIMUM_LENGTH_MUST_BE_GREATER_THAN_ZERO)]
     ZeroMaximumLength,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum CursorEncodeError {
     #[error("{message}", message = str_constants::CURSOR_SIGNING_KEY_IS_INVALID)]
     InvalidSigningKey,
@@ -209,7 +209,7 @@ pub enum CursorEncodeError {
     MaximumLengthExceeded,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum CursorDecodeError {
     #[error("{message}", message = str_constants::CURSOR_FORMAT_IS_INVALID)]
     InvalidFormat,

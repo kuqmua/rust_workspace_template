@@ -10,21 +10,6 @@ use leptos::prelude::{
     InnerHtmlAttribute, StyleAttribute,
 };
 
-trait AdminSsrViewExt {
-    fn render_admin_ssr(self) -> super::AdminSsrHtml;
-}
-impl<View> AdminSsrViewExt for View
-where
-    View: leptos::prelude::IntoAny,
-{
-    fn render_admin_ssr(self) -> super::AdminSsrHtml {
-        super::AdminSsrHtml::try_from(leptos::prelude::RenderHtml::to_html(
-            leptos::prelude::IntoAny::into_any(self),
-        ))
-        .unwrap_or_else(super::AdminSsrHtml::from)
-    }
-}
-
 #[must_use]
 pub(super) fn render_profile(
     admin: &server_admin_contract::AuthenticatedAdmin,
@@ -36,15 +21,18 @@ pub(super) fn render_profile(
         .map(ToString::to_string)
         .collect::<Vec<_>>()
         .join(str_constants::COMMA_SPACE);
-    let content = leptos::view! {
-        <section class="security-card"><p><strong>{admin.display_name().to_string()}</strong></p><p>{admin.login().to_string()}</p><p>{roles}</p></section>
-        <section class="security-card"><form method="post" action=server_admin_contract::AdminHtmlAction::ProfilePassword.get()>
+    let display_name = admin.display_name().to_string();
+    let login = admin.login().to_string();
+    let content_view = leptos::view! {
+        <crate::ui::card::AdminCard variant=crate::ui::card::AdminCardVariant::Profile><p><strong>{display_name}</strong></p><p>{login}</p><p>{roles}</p></crate::ui::card::AdminCard>
+        <crate::ui::card::AdminCard variant=crate::ui::card::AdminCardVariant::Security><form method="post" action=server_admin_contract::AdminHtmlAction::ProfilePassword.get()>
             <p class="password-policy">{str_constants::ADMIN_PASSWORD_POLICY_DESCRIPTION}</p>
-            <label><span>"Current password"</span><input name="current_password" type="password" required /></label>
-            <label><span>"New password"</span><input name="new_password" type="password" minlength=server_admin_contract::ADMIN_NEW_PASSWORD_MIN_CHARS maxlength=server_admin_contract::ADMIN_PASSWORD_MAX_CHARS required /></label>
-            <button type="submit">"Change password"</button>
-        </form></section>
-    }.render_admin_ssr();
+            <crate::ui::field::AdminField label="Current password"><crate::ui::input::AdminInput name="current_password" kind=crate::ui::input::AdminInputKind::Password required=true /></crate::ui::field::AdminField>
+            <crate::ui::field::AdminField label="New password"><crate::ui::input::AdminInput name="new_password" kind=crate::ui::input::AdminInputKind::Password minlength=server_admin_contract::ADMIN_NEW_PASSWORD_MIN_CHARS maxlength=server_admin_contract::ADMIN_PASSWORD_MAX_CHARS required=true /></crate::ui::field::AdminField>
+            <crate::ui::button::AdminButton>"Change password"</crate::ui::button::AdminButton>
+        </form></crate::ui::card::AdminCard>
+    };
+    let content = super::render_view(content_view);
     super::render_admin_page_with_access(
         server_admin_contract::AdminPage::Profile,
         content,

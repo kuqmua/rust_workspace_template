@@ -1,12 +1,12 @@
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 pub struct StdPathRef<'path_lt>(&'path_lt std::path::Path);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner, newtype::Display)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner, newtype::Display)]
 pub struct BoundedReadMaximumBytes(usize);
 
-#[derive(Clone, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInner)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInner)]
 pub struct BoundedBytes(Vec<u8>);
-#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr, newtype::IntoInner)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefStr, newtype::IntoInner)]
 pub struct BoundedText(String);
 impl TryFrom<String> for BoundedText {
     type Error = BoundedReadError;
@@ -28,10 +28,10 @@ impl TryFrom<BoundedBytes> for BoundedText {
         Self::try_from(text)
     }
 }
-#[derive(Clone, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Debug, newtype::FromInner)]
 pub struct StdBoundedReadConcurrency(std::sync::Arc<tokio::sync::Semaphore>);
 
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 pub struct StdBoundedReadConcurrencyMaximum(std::num::NonZeroUsize);
 
 impl StdBoundedReadConcurrency {
@@ -42,27 +42,27 @@ impl StdBoundedReadConcurrency {
         )))
     }
 }
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 pub struct StdIoError(std::io::Error);
-#[derive(Debug)]
+#[derive(optml::Optml, Debug)]
 pub enum IoErrorPresenceDisposition {
     Missing,
     Other(StdIoError),
 }
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 pub struct ReqwestError(reqwest::Error);
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 pub struct StdFromUtf8Error(std::string::FromUtf8Error);
-#[derive(Debug, newtype::FromInner)]
+#[derive(optml::Optml, Debug, newtype::FromInner)]
 pub struct ReqwestResponse(reqwest::Response);
 
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 pub struct SerdeJsonError(serde_json::Error);
-#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
 pub struct BoundedJsonText(String);
 impl BoundedJsonText {
     pub fn compact(&self) -> Result<Self, BoundedJsonReadError> {
@@ -96,14 +96,14 @@ impl TryFrom<String> for BoundedJsonText {
         Ok(Self(value))
     }
 }
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 pub enum BoundedJsonReadError {
     #[error("bounded content read failed")]
     Read(#[source] BoundedReadError),
     #[error("bounded content is not valid JSON")]
     SerdeJson(#[source] SerdeJsonError),
 }
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 pub enum BoundedReadError {
     #[error("content exceeds maximum size of {maximum_bytes} bytes")]
     ExceedsMaximum {
@@ -127,7 +127,7 @@ pub enum BoundedReadError {
         source: StdFromUtf8Error,
     },
 }
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
 struct BoundedReadObservedBytes(usize);
 
 #[must_use]

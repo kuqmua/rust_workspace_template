@@ -1,6 +1,6 @@
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, optml::Optml, newtype::FromInner)]
 pub struct DuplicateIdx(usize);
-#[derive(Debug, Clone, PartialEq, Eq, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(optml::Optml, Debug, Clone, PartialEq, Eq, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct DuplicateCandidates<T>(Vec<T>);
 impl DuplicateIdx {
     #[must_use]

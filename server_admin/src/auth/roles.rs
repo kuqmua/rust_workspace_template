@@ -229,11 +229,9 @@ pub(super) async fn list(
     auth: super::AdminAuthReq,
     query: super::AxumAdminQuery<server_admin_contract::AdminTableQuery>,
 ) -> Result<super::AxumAdminResponse, super::AdminError> {
-    roles_page(auth, query).await.map(|page| {
-        super::AxumAdminResponse(axum::response::IntoResponse::into_response(axum::Json(
-            page,
-        )))
-    })
+    roles_page(auth, query)
+        .await
+        .map(super::shared::json_response)
 }
 pub(super) async fn permissions_page(
     auth: super::AdminAuthReq,
@@ -268,9 +266,7 @@ pub(super) async fn list_permissions(
     auth: super::AdminAuthReq,
     query: super::AxumAdminQuery<server_admin_contract::AdminTableQuery>,
 ) -> Result<super::AxumAdminResponse, super::AdminError> {
-    permissions_page(auth, query).await.map(|page| {
-        super::AxumAdminResponse(axum::response::IntoResponse::into_response(axum::Json(
-            page,
-        )))
-    })
+    permissions_page(auth, query)
+        .await
+        .map(super::shared::json_response)
 }

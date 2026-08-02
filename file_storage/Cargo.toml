@@ -11,6 +11,7 @@ categories = ["filesystem"]
 edition.workspace = true
 
 [dependencies]
+optml = { workspace = true }
 bounded_types = { workspace = true }
 newtype = { workspace = true }
 str_constants = { workspace = true }

@@ -1,7 +1,7 @@
 FROM rust:1.90.0-slim-bookworm@sha256:64232e656c058f4468e8d024e990acff04f0fd5a5c0a88a574dc37773d7325c9 AS builder
 WORKDIR /workspace
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends libssl-dev pkg-config \
+    && apt-get install -y --no-install-recommends libssl-dev nodejs npm pkg-config \
     && rm -rf /var/lib/apt/lists/*
 COPY . .
 ENV ADMIN_FRONTEND_STATIC_DIR=/application/admin/static
@@ -12,6 +12,7 @@ RUN rust_toolchain="$(sed -n 's/^channel = \"\\([^\"]*\\)\"$/\\1/p' rust-toolcha
     && rustup target add wasm32-unknown-unknown \
     && cargo install trunk --version 0.21.14 --locked
 WORKDIR /workspace/server_admin_frontend
+RUN npm ci
 RUN NO_COLOR=true trunk build --release
 WORKDIR /workspace
 RUN cargo build --locked --release --package server

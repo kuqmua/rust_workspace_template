@@ -7,14 +7,14 @@ const MEASURE_REPEAT_COUNT: usize = 1000;
 const RUNNER_MODE_MAX_LEN: usize = 1_024usize;
 const SQL_BUILDER_MEASURE_SERIES_COUNT: usize = 5;
 const CLEAN_ANSI_TEXT_MAX_LEN: usize = 16_777_216;
-#[derive(Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
 struct MeasurementName(&'static str);
 impl MeasurementName {
     const fn get(self) -> &'static str {
         self.0
     }
 }
-#[derive(Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
 struct CargoArgs(&'static [&'static str]);
 impl<const N: usize> From<&'static [&'static str; N]> for CargoArgs {
     fn from(value: &'static [&'static str; N]) -> Self {
@@ -26,59 +26,59 @@ impl CargoArgs {
         self.0
     }
 }
-#[derive(Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
 struct StderrTextRef<'lt>(&'lt str);
 impl<'lt> StderrTextRef<'lt> {
     const fn get(self) -> &'lt str {
         self.0
     }
 }
-#[derive(Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
 struct AnsiTextRef<'lt>(&'lt str);
 impl<'lt> AnsiTextRef<'lt> {
     const fn get(self) -> &'lt str {
         self.0
     }
 }
-#[derive(newtype::BoundedString)]
+#[derive(optml::Optml, newtype::BoundedString)]
 #[bounded_string(max = CLEAN_ANSI_TEXT_MAX_LEN)]
 struct CleanAnsiText(String);
-#[derive(Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
 struct MemusageKey(&'static str);
 impl MemusageKey {
     const fn get(self) -> &'static str {
         self.0
     }
 }
-#[derive(Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
 struct MemusageRowName(&'static str);
 impl MemusageRowName {
     const fn get(self) -> &'static str {
         self.0
     }
 }
-#[derive(Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
 struct MemusageColumnIdx(usize);
 impl MemusageColumnIdx {
     const fn get(self) -> usize {
         self.0
     }
 }
-#[derive(Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
 struct MemusageValueRef<'lt>(&'lt str);
 impl<'lt> MemusageValueRef<'lt> {
     const fn get(self) -> &'lt str {
         self.0
     }
 }
-#[derive(Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
 struct ProgramPathRef<'lt>(&'lt str);
 impl<'lt> ProgramPathRef<'lt> {
     const fn get(self) -> &'lt str {
         self.0
     }
 }
-#[derive(Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
 struct ProgramArgsRef<'lt>(&'lt [&'lt str]);
 impl<'lt, const N: usize> From<&'lt [&'lt str; N]> for ProgramArgsRef<'lt> {
     fn from(value: &'lt [&'lt str; N]) -> Self {
@@ -90,54 +90,54 @@ impl<'lt> ProgramArgsRef<'lt> {
         self.0
     }
 }
-#[derive(Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
 struct MemusageProgNameRef<'lt>(&'lt str);
 impl<'lt> MemusageProgNameRef<'lt> {
     const fn get(self) -> &'lt str {
         self.0
     }
 }
-#[derive(Clone, newtype::AsRefOwned, newtype::FromInner)]
+#[derive(optml::Optml, Clone, newtype::AsRefOwned, newtype::FromInner)]
 struct QuoteTokenStreamGeneratePgTableMeasureInputTokenStream(quote::__private::TokenStream);
-#[derive(Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
 struct ToolName(&'static str);
 impl ToolName {
     const fn get(self) -> &'static str {
         self.0
     }
 }
-#[derive(Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
 struct ToolPath(&'static str);
 impl ToolPath {
     const fn get(self) -> &'static str {
         self.0
     }
 }
-#[derive(Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
 struct ToolAvailable(bool);
 impl ToolAvailable {
     const fn get(self) -> bool {
         self.0
     }
 }
-#[derive(Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
 struct StdRunnerIoErrorRef<'error_lt>(&'error_lt std::io::Error);
 impl<'error_lt> StdRunnerIoErrorRef<'error_lt> {
     const fn get(self) -> &'error_lt std::io::Error {
         self.0
     }
 }
-#[derive(Clone, Copy, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
 struct StdRunnerPathRef<'path_lt>(&'path_lt std::path::Path);
 impl<'path_lt> StdRunnerPathRef<'path_lt> {
     const fn get(self) -> &'path_lt std::path::Path {
         self.0
     }
 }
-#[derive(Debug, newtype::AsRefStr, newtype::BoundedString)]
+#[derive(optml::Optml, Debug, newtype::AsRefStr, newtype::BoundedString)]
 #[bounded_string(max = RUNNER_MODE_MAX_LEN)]
 struct RunnerMode(String);
-#[derive(Clone, Copy)]
+#[derive(optml::Optml, Clone, Copy)]
 struct AllocationTool {
     name: ToolName,
     path: ToolPath,
@@ -300,9 +300,11 @@ fn measure_memusage_command(
     .output();
     match command_output {
         Ok(output) if output.status.success() => {
-            let stdout = String::from_utf8_lossy(output.stdout.as_slice());
-            if !stdout.is_empty() {
-                print!("{stdout}");
+            {
+                let stdout = String::from_utf8_lossy(output.stdout.as_slice());
+                if !stdout.is_empty() {
+                    print!("{stdout}");
+                }
             }
             let stderr = String::from_utf8_lossy(output.stderr.as_slice());
             print_without_memusage_footer(StderrTextRef::from(stderr.as_ref()));
@@ -385,9 +387,11 @@ fn measure_memusage_command(
             Ok(())
         }
         Ok(output) => {
-            let stdout = String::from_utf8_lossy(output.stdout.as_slice());
-            if !stdout.is_empty() {
-                print!("{stdout}");
+            {
+                let stdout = String::from_utf8_lossy(output.stdout.as_slice());
+                if !stdout.is_empty() {
+                    print!("{stdout}");
+                }
             }
             let stderr = String::from_utf8_lossy(output.stderr.as_slice());
             print_without_memusage_footer(StderrTextRef::from(stderr.as_ref()));
@@ -408,28 +412,30 @@ fn measure_memusage_command(
 fn measure_cargo_command(measurement_name: MeasurementName, args: CargoArgs) -> Result<(), ()> {
     let measurement_name_value = measurement_name.get();
     let started = std::time::Instant::now();
-    let measurement_format = format!(
-        "{}%M\n{}%R\n{}%F",
-        str_constants::WORKSPACE_TEST_RUNNER_PEAK_RSS_PREFIX,
-        str_constants::WORKSPACE_TEST_RUNNER_MINOR_PAGE_FAULTS_PREFIX,
-        str_constants::WORKSPACE_TEST_RUNNER_MAJOR_PAGE_FAULTS_PREFIX,
-    );
-    let command_output = macros_helpers::tool_command::ToolCommand::new(
-        macros_helpers::tool_command::ToolProgramRef::from(
-            str_constants::WORKSPACE_TEST_RUNNER_TIME_PATH,
-        ),
-    )
-    .arg(macros_helpers::tool_command::ToolArgRef::from(
-        str_constants::F,
-    ))
-    .arg(macros_helpers::tool_command::ToolArgRef::from(
-        measurement_format.as_str(),
-    ))
-    .arg(macros_helpers::tool_command::ToolArgRef::from(
-        str_constants::WORKSPACE_TEST_RUNNER_CARGO,
-    ))
-    .args(macros_helpers::tool_command::ToolArgsRef::from(args.get()))
-    .output();
+    let command_output = {
+        let measurement_format = format!(
+            "{}%M\n{}%R\n{}%F",
+            str_constants::WORKSPACE_TEST_RUNNER_PEAK_RSS_PREFIX,
+            str_constants::WORKSPACE_TEST_RUNNER_MINOR_PAGE_FAULTS_PREFIX,
+            str_constants::WORKSPACE_TEST_RUNNER_MAJOR_PAGE_FAULTS_PREFIX,
+        );
+        macros_helpers::tool_command::ToolCommand::new(
+            macros_helpers::tool_command::ToolProgramRef::from(
+                str_constants::WORKSPACE_TEST_RUNNER_TIME_PATH,
+            ),
+        )
+        .arg(macros_helpers::tool_command::ToolArgRef::from(
+            str_constants::F,
+        ))
+        .arg(macros_helpers::tool_command::ToolArgRef::from(
+            measurement_format.as_str(),
+        ))
+        .arg(macros_helpers::tool_command::ToolArgRef::from(
+            str_constants::WORKSPACE_TEST_RUNNER_CARGO,
+        ))
+        .args(macros_helpers::tool_command::ToolArgsRef::from(args.get()))
+        .output()
+    };
     let duration = started.elapsed();
     match command_output {
         Ok(output) if output.status.success() => {
@@ -455,9 +461,11 @@ fn measure_cargo_command(measurement_name: MeasurementName, args: CargoArgs) -> 
                         .strip_prefix(str_constants::WORKSPACE_TEST_RUNNER_MAJOR_PAGE_FAULTS_PREFIX)
                 })
                 .unwrap_or(str_constants::UNAVAILABLE);
-            let stdout = String::from_utf8_lossy(output.stdout.as_slice());
-            if !stdout.is_empty() {
-                print!("{stdout}");
+            {
+                let stdout = String::from_utf8_lossy(output.stdout.as_slice());
+                if !stdout.is_empty() {
+                    print!("{stdout}");
+                }
             }
             print_without_measurement_footer(StderrTextRef::from(stderr.as_ref()));
             println!(
@@ -470,9 +478,11 @@ fn measure_cargo_command(measurement_name: MeasurementName, args: CargoArgs) -> 
             Ok(())
         }
         Ok(output) => {
-            let stdout = String::from_utf8_lossy(output.stdout.as_slice());
-            if !stdout.is_empty() {
-                print!("{stdout}");
+            {
+                let stdout = String::from_utf8_lossy(output.stdout.as_slice());
+                if !stdout.is_empty() {
+                    print!("{stdout}");
+                }
             }
             let stderr = String::from_utf8_lossy(output.stderr.as_slice());
             print_without_measurement_footer(StderrTextRef::from(stderr.as_ref()));
@@ -1282,117 +1292,4 @@ fn main() {
     }
 }
 #[cfg(test)]
-mod tests {
-    #[test]
-    fn ansi_cleanup_handles_multiple_and_unterminated_sequences() {
-        let clean = super::strip_ansi_codes(super::AnsiTextRef::from(
-            "plain \u{1b}[31mred\u{1b}[0m tail\u{1b}[",
-        ));
-        assert_eq!(clean.0, "plain red tail");
-        assert_eq!(
-            super::strip_ansi_codes(super::AnsiTextRef::from("plain")).0,
-            "plain"
-        );
-    }
-    #[test]
-    fn memusage_parsers_distinguish_values_and_missing_fields() {
-        let text = super::CleanAnsiText::try_from(String::from(
-            "Heap total: 1,234 bytes\nmalloc | 7 89 0\nfree | 6 78\n",
-        ))
-        .expect("afa44055");
-        assert_eq!(
-            super::memusage_heap_value(&text, super::MemusageKey::from("Heap total:")).get(),
-            "1"
-        );
-        assert_eq!(
-            super::memusage_heap_value(&text, super::MemusageKey::from("Stack peak:")).get(),
-            str_constants::UNAVAILABLE
-        );
-        assert_eq!(
-            super::memusage_table_value(
-                &text,
-                super::MemusageRowName::from("malloc"),
-                super::MemusageColumnIdx::from(1usize)
-            )
-            .get(),
-            "89"
-        );
-        assert_eq!(
-            super::memusage_table_value(
-                &text,
-                super::MemusageRowName::from("calloc"),
-                super::MemusageColumnIdx::from(0usize)
-            )
-            .get(),
-            str_constants::UNAVAILABLE
-        );
-        assert_eq!(
-            super::memusage_table_value(
-                &text,
-                super::MemusageRowName::from("free"),
-                super::MemusageColumnIdx::from(9usize)
-            )
-            .get(),
-            str_constants::UNAVAILABLE
-        );
-    }
-    #[test]
-    fn measurement_catalogs_are_complete_and_ordered() {
-        let measurements = super::macro_generation_measurements();
-        assert_eq!(measurements.len(), 3usize);
-        assert_eq!(
-            measurements[0].0.get(),
-            str_constants::WORKSPACE_TEST_RUNNER_GENERATE_PG_TABLE_MEASUREMENT
-        );
-        assert_eq!(
-            measurements[2].0.get(),
-            str_constants::WORKSPACE_TEST_RUNNER_GENERATE_WHERE_FILTERS_MEASUREMENT
-        );
-        let tools = super::allocation_tools();
-        assert_eq!(tools.len(), 6usize);
-        assert_eq!(
-            tools[0].name.get(),
-            str_constants::WORKSPACE_TEST_RUNNER_LIBMEMUSAGE_TOOL
-        );
-        assert_eq!(tools[5].name.get(), str_constants::PG_CRUD_PG_TIME);
-    }
-    #[test]
-    fn tool_discovery_checks_the_exact_path() {
-        assert!(
-            super::discovery::tool_available(super::ToolPath::from(env!("CARGO_MANIFEST_DIR")))
-                .get()
-        );
-        assert!(
-            !super::discovery::tool_available(super::ToolPath::from(
-                "/definitely/not/a/workspace/tool"
-            ))
-            .get()
-        );
-    }
-    #[test]
-    fn database_mode_runs_the_workspace_ignored_suite() {
-        assert!(
-            str_constants::WORKSPACE_TEST_RUNNER_CARGO_TEST_DATABASE_ARGS.contains(&"--workspace")
-        );
-        assert!(
-            str_constants::WORKSPACE_TEST_RUNNER_CARGO_TEST_DATABASE_ARGS
-                .contains(&"--all-features")
-        );
-        assert!(
-            str_constants::WORKSPACE_TEST_RUNNER_CARGO_TEST_DATABASE_ARGS.contains(&"--ignored")
-        );
-    }
-    #[test]
-    fn tests_mode_leaves_ignored_suite_to_database_mode() {
-        assert!(
-            str_constants::WORKSPACE_TEST_RUNNER_CARGO_TEST_COMMANDS
-                .iter()
-                .all(|(_program, args)| !args.contains(&"--ignored"))
-        );
-        assert!(
-            str_constants::WORKSPACE_TEST_RUNNER_NEXTEST_COMMANDS
-                .iter()
-                .all(|(_program, args)| !args.contains(&"--run-ignored"))
-        );
-    }
-}
+mod tests;

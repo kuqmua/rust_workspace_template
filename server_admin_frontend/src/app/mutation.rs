@@ -1,4 +1,4 @@
-#[derive(Clone, Copy, Debug)]
+#[derive(optml::Optml, Clone, Copy, Debug)]
 pub(in crate::app) enum AdminMutationMethod {
     Delete,
     Patch,
@@ -14,12 +14,6 @@ impl AdminMutationMethod {
         }
     }
 }
-
-#[derive(Clone, Copy, Debug, newtype::AsRefStr, newtype::FromInner)]
-pub(in crate::app) struct MutationConfirmationMessageRef<'message_lt>(&'message_lt str);
-
-#[derive(Clone, Copy, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
-pub(in crate::app) struct MutationConfirmed(bool);
 
 pub(in crate::app) fn reload_after<RequestBody>(
     method: AdminMutationMethod,
@@ -51,7 +45,19 @@ fn show_mutation_error(error: &super::state::AdminTableLoadError) {
     let Ok(alert) = document.create_element("p") else {
         return;
     };
-    if alert.set_attribute("role", "alert").is_err() {
+    if alert
+        .set_attribute("role", str_constants::HTML_ALERT_ROLE)
+        .is_err()
+    {
+        return;
+    }
+    if alert
+        .set_attribute(
+            str_constants::HTML_DATA_NAME,
+            str_constants::ADMIN_ALERT_DATA_NAME,
+        )
+        .is_err()
+    {
         return;
     }
     alert.set_text_content(Some(&error.to_string()));
@@ -59,18 +65,5 @@ fn show_mutation_error(error: &super::state::AdminTableLoadError) {
     if root.append_child(&alert).is_err() {
         root.set_text_content(Some(&error.to_string()));
         root.set_class_name(str_constants::ADMIN_FIELD_ERROR_CLASS);
-    }
-}
-
-pub(in crate::app) fn mutation_confirmed(
-    message: MutationConfirmationMessageRef<'_>,
-) -> MutationConfirmed {
-    if let Some(Ok(confirmed)) =
-        web_sys::window().map(|window| window.confirm_with_message(message.as_ref()))
-    {
-        MutationConfirmed::from(confirmed)
-    } else {
-        show_mutation_error(&super::state::AdminTableLoadError::Fetch);
-        MutationConfirmed::from(false)
     }
 }

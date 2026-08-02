@@ -1,13 +1,13 @@
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ForwardedProtoTrust {
     Ignore,
     Trust,
 }
 
-#[derive(Clone, Debug, newtype::DerefInner)]
+#[derive(optml::Optml, Clone, Debug, newtype::DerefInner)]
 pub struct HttpContentSecurityPolicy(http::HeaderValue);
 
-#[derive(Clone, Copy, Debug, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, thiserror::Error)]
 #[error("content security policy is not a valid HTTP header value")]
 pub struct HttpContentSecurityPolicyError;
 
@@ -24,7 +24,7 @@ impl TryFrom<String> for HttpContentSecurityPolicy {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(optml::Optml, Clone, Debug)]
 pub struct SecurityHeadersLayer {
     content_security_policy: Option<HttpContentSecurityPolicy>,
     forwarded_proto_trust: ForwardedProtoTrust,
@@ -55,13 +55,13 @@ impl SecurityHeadersLayer {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(optml::Optml, Clone, Debug)]
 struct SecurityHeadersTowerLayer {
     content_security_policy: Option<HttpContentSecurityPolicy>,
     forwarded_proto_trust: ForwardedProtoTrust,
 }
 
-#[derive(Clone, Debug)]
+#[derive(optml::Optml, Clone, Debug)]
 struct SecurityHeadersService<Service> {
     content_security_policy: Option<HttpContentSecurityPolicy>,
     forwarded_proto_trust: ForwardedProtoTrust,

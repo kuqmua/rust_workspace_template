@@ -13,28 +13,13 @@ use leptos::prelude::{
     InnerHtmlAttribute, StyleAttribute,
 };
 
-trait AdminSsrViewExt {
-    fn render_admin_ssr(self) -> super::AdminSsrHtml;
-}
-impl<View> AdminSsrViewExt for View
-where
-    View: leptos::prelude::IntoAny,
-{
-    fn render_admin_ssr(self) -> super::AdminSsrHtml {
-        super::AdminSsrHtml::try_from(leptos::prelude::RenderHtml::to_html(
-            leptos::prelude::IntoAny::into_any(self),
-        ))
-        .unwrap_or_else(super::AdminSsrHtml::from)
-    }
-}
-
 pub(super) fn render_document(
     title: &super::AdminSsrText,
     body: impl leptos::prelude::IntoAny,
 ) -> super::AdminSsrHtml {
-    let rendered_body = body.render_admin_ssr();
+    let rendered_body = super::render_view(body);
     super::AdminSsrHtml::try_from(format!(
-        "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>{title}</title><link rel=\"stylesheet\" href=\"/admin/assets/style.css?v=20260729-35\"></head><body>{}</body></html>",
+        "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>{title}</title><link rel=\"stylesheet\" href=\"/admin/assets/style.css?v=20260801-37\"><link rel=\"stylesheet\" href=\"/admin/assets/rust-ui.css?v=20260801-38\"></head><body>{}</body></html>",
         String::from(rendered_body)
     ))
     .unwrap_or_else(super::AdminSsrHtml::from)

@@ -8,6 +8,7 @@ repository.workspace = true
 license.workspace = true
 edition.workspace = true
 [dependencies]
+optml = { workspace = true }
 bounded_types = { workspace = true }
 str_constants = { workspace = true }
 generate_pg_table_src = { workspace = true }

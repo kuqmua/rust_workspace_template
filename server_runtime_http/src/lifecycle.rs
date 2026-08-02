@@ -1,44 +1,44 @@
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum BackgroundTaskOutcome {
     Completed,
     ShutdownRequested,
 }
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 pub struct TokioTaskJoinError(tokio::task::JoinError);
-#[derive(Debug, newtype::FromInner)]
+#[derive(optml::Optml, Debug, newtype::FromInner)]
 pub struct TokioAbortTask(tokio::task::JoinHandle<()>);
 
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 pub enum BackgroundTaskShutdownError {
     #[error("background task failed: {0}")]
     Join(#[source] TokioTaskJoinError),
     #[error("{}", str_constants::BACKGROUND_TASK_SHUTDOWN_TIMED_OUT)]
     Timeout,
 }
-#[derive(Debug)]
+#[derive(optml::Optml, Debug)]
 #[must_use]
 pub struct BackgroundTask {
     handle: Option<TokioBackgroundTaskJoinHandle>,
     shutdown_tx: Option<TokioBackgroundTaskShutdownSender>,
 }
-#[derive(Debug, newtype::FromInner)]
+#[derive(optml::Optml, Debug, newtype::FromInner)]
 struct TokioBackgroundTaskJoinHandle(tokio::task::JoinHandle<BackgroundTaskOutcome>);
 
-#[derive(Debug, newtype::FromInner)]
+#[derive(optml::Optml, Debug, newtype::FromInner)]
 struct TokioBackgroundTaskShutdownSender(tokio::sync::oneshot::Sender<()>);
 
 impl BackgroundTask {
     pub async fn join(mut self) -> Result<BackgroundTaskOutcome, BackgroundTaskShutdownError> {
-        let shutdown_tx = self.shutdown_tx.take();
-        let result = match self.handle.take() {
-            Some(handle) => handle.0.await.map_err(|error| {
-                BackgroundTaskShutdownError::Join(TokioTaskJoinError::from(error))
-            }),
-            None => Ok(BackgroundTaskOutcome::Completed),
-        };
-        drop(shutdown_tx);
-        result
+        {
+            let _shutdown_tx = self.shutdown_tx.take();
+            match self.handle.take() {
+                Some(handle) => handle.0.await.map_err(|error| {
+                    BackgroundTaskShutdownError::Join(TokioTaskJoinError::from(error))
+                }),
+                None => Ok(BackgroundTaskOutcome::Completed),
+            }
+        }
     }
     pub async fn shutdown(
         mut self,
@@ -73,7 +73,7 @@ impl Drop for BackgroundTask {
         }
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct StdRunInterval(std::time::Duration);
 impl TryFrom<std::time::Duration> for StdRunInterval {
     type Error = StdRunIntervalTryFromDurationError;
@@ -85,10 +85,10 @@ impl TryFrom<std::time::Duration> for StdRunInterval {
         }
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("{}", str_constants::RUN_INTERVAL_MUST_BE_GREATER_THAN_ZERO)]
 pub struct StdRunIntervalTryFromDurationError;
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct StdRequestTimeout(std::time::Duration);
 impl StdRequestTimeout {
     pub(crate) const fn get(self) -> std::time::Duration {
@@ -105,7 +105,7 @@ impl TryFrom<std::time::Duration> for StdRequestTimeout {
         }
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("{}", str_constants::REQUEST_TIMEOUT_MUST_BE_GREATER_THAN_ZERO)]
 pub struct StdRequestTimeoutTryFromDurationError;
 pub async fn abort_and_wait_task(task: TokioAbortTask) -> Result<(), TokioTaskJoinError> {
@@ -129,8 +129,7 @@ where
         timer.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
         loop {
             tokio::select! {
-                shutdown_result = &mut shutdown_rx => {
-                    drop(shutdown_result);
+                _shutdown_result = &mut shutdown_rx => {
                     return BackgroundTaskOutcome::ShutdownRequested;
                 }
                 _tick = timer.tick() => run().await,

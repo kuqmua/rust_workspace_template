@@ -1,4 +1,4 @@
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
 /// A hash map with at most `MAX` retained keys.
 ///
 /// Hash-map deserialization also accepts at most `MAX` wire entries, including repeated keys.
@@ -122,7 +122,7 @@ impl<K: Eq + std::hash::Hash + serde::Serialize, V: serde::Serialize, const MAX:
         serde::Serialize::serialize(&self.0, serializer)
     }
 }
-#[derive(newtype::FromInner)]
+#[derive(optml::Optml, newtype::FromInner)]
 struct StdPhantomDataBoundedHashMapVisitor<K, V, const MAX: usize>(
     std::marker::PhantomData<(K, V)>,
 );
@@ -139,7 +139,7 @@ impl<
         write!(formatter, "a map with at most {MAX} entries")
     }
 
-    fn visit_map<Map>(self, mut map: Map) -> Result<Self::Value, Map::Error>
+    fn visit_map<Map>(self, map: Map) -> Result<Self::Value, Map::Error>
     where
         Map: serde::de::MapAccess<'de>,
     {
@@ -150,30 +150,11 @@ impl<
             .min(super::SERDE_PREALLOC_MAX_ITEMS);
         let mut values = StdBoundedHashMap::default();
         values.0.reserve(capacity);
-        let mut entry_count = 0usize;
-        loop {
-            if entry_count == MAX {
-                return map.next_key::<serde::de::IgnoredAny>()?.map_or_else(
-                    || Ok(values),
-                    |_ignored| {
-                        Err(serde::de::Error::custom(
-                            super::BoundedValueError::AboveMax {
-                                actual: super::BoundedLen::from(MAX.saturating_add(1usize)),
-                                max: super::BoundedLen::from(MAX),
-                            },
-                        ))
-                    },
-                );
-            }
-            let Some(key) = map.next_key()? else {
-                return Ok(values);
-            };
-            let value = map.next_value()?;
-            let _previous = values
-                .try_insert(key, value)
-                .map_err(serde::de::Error::custom)?;
-            entry_count = entry_count.saturating_add(1usize);
-        }
+        super::deserialize_bounded_map::<_, K, V, _, _, MAX>(
+            map,
+            values,
+            |bounded_values, key, value| bounded_values.try_insert(key, value).map(|_previous| ()),
+        )
     }
 }
 impl<

@@ -1,27 +1,29 @@
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct StdHealthProbeTimeout(std::time::Duration);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(
+    optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom,
+)]
 pub struct HealthProbeSucceeded(bool);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, serde::Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum HealthComponentStatus {
     Error,
     Ok,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, serde::Serialize)]
 pub struct HealthSnapshot {
     database: HealthComponentStatus,
     service: HealthComponentStatus,
 }
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 enum HealthReadyError {
     #[error("service is unavailable")]
     Unavailable(HealthSnapshot),
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize)]
+#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, serde::Serialize)]
 pub struct ServiceLivenessSnapshot {
     service: HealthComponentStatus,
 }
@@ -45,10 +47,10 @@ impl axum::response::IntoResponse for HealthReadyError {
         }
     }
 }
-#[derive(Clone, Debug, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Debug, newtype::FromInner)]
 struct StdSharedHealthReadiness(std::sync::Arc<std::sync::atomic::AtomicBool>);
 
-#[derive(Clone, Debug)]
+#[derive(optml::Optml, Clone, Debug)]
 pub struct HealthReadiness {
     shared: StdSharedHealthReadiness,
 }

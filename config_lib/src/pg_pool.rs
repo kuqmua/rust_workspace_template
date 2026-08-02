@@ -9,15 +9,15 @@
 pub struct PgPoolMaxConnections(u32);
 #[derive(Debug, Clone, Copy, optml::Optml, newtype::DerefInner, newtype::FromInner)]
 pub struct PgPoolMinConnections(u32);
-#[derive(Debug, Clone, Copy, newtype::DerefInner, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, newtype::DerefInner, newtype::FromInner)]
 pub struct PgPoolAcquireTimeoutSeconds(super::StdNonZeroU64);
-#[derive(Debug, Clone, Copy, newtype::DerefInner, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, newtype::DerefInner, newtype::FromInner)]
 pub struct PgPoolIdleTimeoutSeconds(super::StdNonZeroU64);
-#[derive(Debug, Clone, Copy, newtype::DerefInner, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, newtype::DerefInner, newtype::FromInner)]
 pub struct PgPoolMaxLifetimeSeconds(super::StdNonZeroU64);
-#[derive(Debug, Clone, Copy, newtype::DerefInner, newtype::FromInner)]
+#[derive(optml::Optml, Debug, Clone, Copy, newtype::DerefInner, newtype::FromInner)]
 pub struct RequestTimeoutSeconds(super::StdNonZeroU64);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
+#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
 pub enum PgPoolConfigParseError {
     #[error("pg pool numeric configuration is invalid")]
     Parse,

@@ -3,11 +3,9 @@
 pub(super) async fn list(
     auth: super::AdminAuthReq,
 ) -> Result<super::AxumAdminResponse, super::AdminError> {
-    data_table_catalog(auth).await.map(|catalog| {
-        super::AxumAdminResponse(axum::response::IntoResponse::into_response(axum::Json(
-            catalog,
-        )))
-    })
+    data_table_catalog(auth)
+        .await
+        .map(super::shared::json_response)
 }
 pub(super) async fn data_table_catalog(
     auth: super::AdminAuthReq,
@@ -58,9 +56,7 @@ pub(super) async fn get(
     super::AxumAdminPath(table): super::AxumAdminPath<server_admin_contract::AdminDataTable>,
     super::AxumAdminQuery(query): super::AxumAdminQuery<server_admin_contract::AdminDataTableQuery>,
 ) -> Result<super::AxumAdminResponse, super::AdminError> {
-    data_table_view(auth, table, &query).await.map(|view| {
-        super::AxumAdminResponse(axum::response::IntoResponse::into_response(axum::Json(
-            view,
-        )))
-    })
+    data_table_view(auth, table, &query)
+        .await
+        .map(super::shared::json_response)
 }

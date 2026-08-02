@@ -1,5 +1,5 @@
 const FIRST_IDENT_MAX_LEN: usize = 1_048_576;
-#[derive(Debug, Clone, Copy)]
+#[derive(optml::Optml, Debug, Clone, Copy)]
 pub struct SynDeriveInputRef<'input_lt>(&'input_lt syn::DeriveInput);
 impl<'input_lt> From<&'input_lt syn::DeriveInput> for SynDeriveInputRef<'input_lt> {
     fn from(value: &'input_lt syn::DeriveInput) -> Self {
@@ -12,13 +12,13 @@ impl<'input_lt> SynDeriveInputRef<'input_lt> {
         self.0
     }
 }
-#[derive(Debug, Clone, Copy)]
+#[derive(optml::Optml, Debug, Clone, Copy)]
 pub enum SynStructShapeRef<'shape_lt> {
     Named(SynFieldsNamedRef<'shape_lt>),
     Tuple(SynFieldsUnnamedRef<'shape_lt>),
     Unit,
 }
-#[derive(Debug, Clone, Copy)]
+#[derive(optml::Optml, Debug, Clone, Copy)]
 pub struct SynFieldsNamedRef<'fields_lt>(&'fields_lt syn::FieldsNamed);
 impl<'fields_lt> From<&'fields_lt syn::FieldsNamed> for SynFieldsNamedRef<'fields_lt> {
     fn from(value: &'fields_lt syn::FieldsNamed) -> Self {
@@ -37,7 +37,7 @@ impl std::ops::Deref for SynFieldsNamedRef<'_> {
         self.0
     }
 }
-#[derive(Debug, Clone, Copy)]
+#[derive(optml::Optml, Debug, Clone, Copy)]
 pub struct SynFieldsUnnamedRef<'fields_lt>(&'fields_lt syn::FieldsUnnamed);
 impl<'fields_lt> From<&'fields_lt syn::FieldsUnnamed> for SynFieldsUnnamedRef<'fields_lt> {
     fn from(value: &'fields_lt syn::FieldsUnnamed) -> Self {
@@ -72,6 +72,7 @@ impl<'shape_lt> TryFrom<&'shape_lt syn::DeriveInput> for SynStructShapeRef<'shap
         })
     }
 }
+#[derive(optml::Optml)]
 #[must_use]
 #[derive(Debug, Clone)]
 pub struct ProcMacro2MacroTokens(Vec<proc_macro2::TokenTree>);
@@ -137,6 +138,7 @@ impl syn::parse::Parse for ProcMacro2MacroTokens {
         })
     }
 }
+#[derive(optml::Optml)]
 #[must_use]
 #[derive(Debug, Clone)]
 pub struct ProcMacro2TopLevelCommaParts(Vec<proc_macro2::TokenStream>);
@@ -175,6 +177,7 @@ impl syn::parse::Parse for ProcMacro2TopLevelCommaParts {
         Ok(Self::from(parts))
     }
 }
+#[derive(optml::Optml)]
 struct TopLevelCommaPart(ProcMacro2MacroTokens);
 impl From<ProcMacro2MacroTokens> for TopLevelCommaPart {
     fn from(value: ProcMacro2MacroTokens) -> Self {
@@ -221,10 +224,11 @@ impl syn::parse::Parse for TopLevelCommaPart {
         })
     }
 }
+#[derive(optml::Optml)]
 #[must_use]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FirstIdentifier(String);
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq)]
 pub struct FirstIdentifierifierTryFromStringError(usize);
 impl From<usize> for FirstIdentifierifierTryFromStringError {
     fn from(value: usize) -> Self {
@@ -259,7 +263,7 @@ impl std::fmt::Display for FirstIdentifierifierTryFromStringError {
         )
     }
 }
-#[derive(Debug, Clone)]
+#[derive(optml::Optml, Debug, Clone)]
 pub struct StdUniqueOptionSet<OptionValue>(std::collections::BTreeSet<OptionValue>);
 impl<OptionValue> From<std::collections::BTreeSet<OptionValue>>
     for StdUniqueOptionSet<OptionValue>
@@ -268,7 +272,7 @@ impl<OptionValue> From<std::collections::BTreeSet<OptionValue>>
         Self(value)
     }
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq)]
 pub struct StdUniqueOptionSetContains(bool);
 impl From<bool> for StdUniqueOptionSetContains {
     fn from(value: bool) -> Self {
@@ -281,7 +285,7 @@ impl StdUniqueOptionSetContains {
         self.0
     }
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq)]
 pub struct StdUniqueOptionSetIsEmpty(bool);
 impl From<bool> for StdUniqueOptionSetIsEmpty {
     fn from(value: bool) -> Self {
@@ -325,6 +329,7 @@ where
         Ok(())
     }
 }
+#[derive(optml::Optml)]
 #[must_use]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct FirstCommaStripped(bool);
@@ -339,6 +344,7 @@ impl std::ops::Not for FirstCommaStripped {
         !self.0
     }
 }
+#[derive(optml::Optml)]
 #[must_use]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct PartIndex(usize);
@@ -443,6 +449,7 @@ pub fn closure_identifier_and_body<T>(input: T) -> Option<(FirstIdentifier, Proc
 where
     T: Into<ProcMacro2MacroTokens>,
 {
+    #[derive(optml::Optml)]
     struct ClosureIdentifierAndBody {
         body: ProcMacro2MacroTokens,
         identifier: syn::Ident,

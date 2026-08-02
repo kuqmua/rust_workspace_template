@@ -25,11 +25,9 @@ pub(super) async fn sessions(
     auth: super::AdminAuthReq,
     query: super::AxumAdminQuery<server_admin_contract::AdminTableQuery>,
 ) -> Result<super::AxumAdminResponse, super::AdminError> {
-    sessions_view(auth, query).await.map(|sessions| {
-        super::AxumAdminResponse(axum::response::IntoResponse::into_response(axum::Json(
-            sessions,
-        )))
-    })
+    sessions_view(auth, query)
+        .await
+        .map(super::shared::json_response)
 }
 pub(super) async fn revoke_session(
     auth: super::AdminAuthReq,

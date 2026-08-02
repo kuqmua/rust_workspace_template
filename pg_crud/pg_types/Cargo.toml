@@ -13,3 +13,5 @@ workspace = true
 
 [features]
 test-utils = []
+
+[dependencies]

@@ -41,12 +41,9 @@ pub(in crate::ssr) fn render_admin_csr(
         &crate::ssr::AdminSsrText::try_from(title).unwrap_or_else(crate::ssr::AdminSsrText::from),
         leptos::view! {
             <div id=str_constants::ADMIN_CSR_ROOT_ID style=primary_color>
-                <div class="loading-state" role="status" aria-live="polite">
-                    <span class="loading-spinner" aria-hidden="true"></span>
-                    <span class="sr-only">"Loading\u{2026}"</span>
-                </div>
+                <crate::ui::spinner::AdminSpinner />
             </div>
-            <script type="module" src="/admin/assets/csr_bootstrap.js?v=20260730-36"></script>
+            <script type="module" src="/admin/assets/csr_bootstrap.js?v=20260801-37"></script>
         },
     )
 }

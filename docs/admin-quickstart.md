@@ -8,6 +8,7 @@ administrator, and opens the administrator console. It is intended for a clean l
 - the pinned Rust nightly toolchain;
 - Docker Compose;
 - `wasm32-unknown-unknown`;
+- Node.js 22 and npm;
 - Trunk for building the browser application.
 
 Install the browser target and Trunk once:
@@ -55,6 +56,7 @@ Wait until `docker compose ps database` reports a healthy service.
 
 ```bash
 cd server_admin_frontend
+npm ci
 trunk build --release
 cd ..
 ```

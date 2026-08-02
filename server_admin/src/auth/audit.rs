@@ -57,11 +57,9 @@ pub(super) async fn query_log(
     auth: super::AdminAuthReq,
     query: super::AxumAdminQuery<super::AdminAuditQuery>,
 ) -> Result<super::AxumAdminResponse, super::AdminError> {
-    query_page(auth, query).await.map(|page| {
-        super::AxumAdminResponse(axum::response::IntoResponse::into_response(axum::Json(
-            page,
-        )))
-    })
+    query_page(auth, query)
+        .await
+        .map(super::shared::json_response)
 }
 pub(super) async fn export_log(
     auth: super::AdminAuthReq,

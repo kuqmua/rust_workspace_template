@@ -1,18 +1,18 @@
-#[derive(Clone, Copy, Debug, newtype::Display, newtype::FromInner)]
+#[derive(optml::Optml, Clone, Copy, Debug, newtype::Display, newtype::FromInner)]
 pub struct ServiceName(&'static str);
 
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 pub struct OpentelemetryOtlpExporterBuildError(opentelemetry_otlp::ExporterBuildError);
 
-#[derive(Debug, newtype::FromInner)]
+#[derive(optml::Optml, Debug, newtype::FromInner)]
 struct OpentelemetrySdkTracerProvider(opentelemetry_sdk::trace::SdkTracerProvider);
 
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 pub struct TracingSubscriberInitError(tracing_subscriber::util::TryInitError);
 
-#[derive(Debug, thiserror::Error)]
+#[derive(optml::Optml, Debug, thiserror::Error)]
 pub enum ObservabilityInitError {
     #[error("failed to build OTLP span exporter: {0}")]
     Exporter(OpentelemetryOtlpExporterBuildError),
@@ -20,11 +20,11 @@ pub enum ObservabilityInitError {
     Subscriber(TracingSubscriberInitError),
 }
 
-#[derive(Debug, thiserror::Error, newtype::FromInner)]
+#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
 #[error("failed to shut down OpenTelemetry tracer provider: {0}")]
 pub struct OpentelemetrySdkObservabilityShutdownError(opentelemetry_sdk::error::OTelSdkError);
 
-#[derive(Debug)]
+#[derive(optml::Optml, Debug)]
 pub struct ObservabilityGuard {
     tracer_provider: Option<OpentelemetrySdkTracerProvider>,
 }
