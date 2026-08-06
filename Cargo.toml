@@ -127,7 +127,7 @@ atomic-write-file = { version = "=0.3.0", default-features = false }
 base16ct = { version = "=1.0.0", default-features = false, features = ["alloc"] }
 cookie = { version = "=0.18.1", default-features = false }
 geojson = { version = "=1.0.0", default-features = false }
-ipnet = { version = "=2.12.0", default-features = false, features = ["std"] }
+ipnet = { version = "=2.12.1", default-features = false, features = ["std"] }
 mime = { version = "=0.3.17", default-features = false }
 percent-encoding = { version = "=2.3.2", default-features = false, features = ["alloc"] }
 uuid = { version = "=1.24.0", default-features = false, features = [
