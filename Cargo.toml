@@ -279,7 +279,7 @@ criterion = { version = "=0.8.2", default-features = false, features = [
   "cargo_bench_support",
 ] }
 walkdir = { version = "=2.5.0", default-features = false }
-trybuild = { version = "=1.0.118", default-features = false }
+trybuild = { version = "=1.0.120", default-features = false }
 git-version = { version = "=0.3.9", default-features = false }
 app_state = { path = "./app_state" }
 bounded_types = { path = "./bounded_types" }
