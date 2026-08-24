@@ -29,8 +29,9 @@ pub(super) fn cfg() -> Result<server_admin::AdminCleanupCfg, super::RunServerErr
     clippy::single_call_fn,
     reason = "keeps administrator maintenance scheduling policy in its owning module"
 )]
-pub(super) fn interval() -> Result<server_runtime_http::StdRunInterval, super::RunServerError> {
-    server_runtime_http::StdRunInterval::try_from(std::time::Duration::from_secs(
+pub(super) fn interval() -> Result<server_runtime_http::RunIntervalDuration, super::RunServerError>
+{
+    server_runtime_http::RunIntervalDuration::try_from(std::time::Duration::from_secs(
         ADMIN_CLEANUP_INTERVAL_SECONDS,
     ))
     .map_err(|error| {

@@ -131,8 +131,8 @@ pub struct LocationCommit(String);
     newtype::FromInner,
 )]
 #[serde(from = "std::time::Duration")]
-pub struct StdLocationDuration(std::time::Duration);
-impl utoipa::PartialSchema for StdLocationDuration {
+pub struct LocationDuration(std::time::Duration);
+impl utoipa::PartialSchema for LocationDuration {
     fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
         utoipa::openapi::ObjectBuilder::new()
             .property(
@@ -159,7 +159,7 @@ impl utoipa::PartialSchema for StdLocationDuration {
             .into()
     }
 }
-impl utoipa::ToSchema for StdLocationDuration {
+impl utoipa::ToSchema for LocationDuration {
     fn name() -> std::borrow::Cow<'static, str> {
         std::borrow::Cow::Borrowed(constants_str::STDLOCATIONDURATION)
     }
@@ -167,7 +167,7 @@ impl utoipa::ToSchema for StdLocationDuration {
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
 struct LocationFileRef<'file_lt>(&'file_lt str);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
-struct StdFmtRefMut<'fmt_ref_lt, 'fmt_lt>(&'fmt_ref_lt mut std::fmt::Formatter<'fmt_lt>);
+struct FormatterRefMut<'fmt_ref_lt, 'fmt_lt>(&'fmt_ref_lt mut std::fmt::Formatter<'fmt_lt>);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
 struct ChronoLocationDisplayTimezone(chrono::FixedOffset);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
@@ -205,7 +205,7 @@ pub struct Location {
     #[allow(clippy::arbitrary_source_item_ordering)]
     file: LocationFile,
     commit: LocationCommit,
-    duration: StdLocationDuration,
+    duration: LocationDuration,
     occr: Option<Occr>,
     line: LocationLine,
     column: LocationColumn,
@@ -219,7 +219,7 @@ impl Location {
     }
     fn fmt_github_location(
         &self,
-        f: StdFmtRefMut<'_, '_>,
+        f: FormatterRefMut<'_, '_>,
         file: LocationFileRef<'_>,
         line: LocationLine,
     ) -> std::fmt::Result {
@@ -233,7 +233,7 @@ impl Location {
         )
     }
     fn fmt_src_location(
-        f: StdFmtRefMut<'_, '_>,
+        f: FormatterRefMut<'_, '_>,
         file: LocationFileRef<'_>,
         line: LocationLine,
         column: LocationColumn,
@@ -247,7 +247,7 @@ impl Location {
             chrono::DateTime::<chrono::Utc>::from(epoch).with_timezone(&offset.0),
         ))
     }
-    fn fmt_datetime(&self, f: StdFmtRefMut<'_, '_>) -> std::fmt::Result {
+    fn fmt_datetime(&self, f: FormatterRefMut<'_, '_>) -> std::fmt::Result {
         match self.datetime_with_tz() {
             Some(v) => write!(f.0, "{}", v.0.format("%Y-%m-%d %H:%M:%S")),
             None => {
@@ -255,16 +255,16 @@ impl Location {
             }
         }
     }
-    fn fmt_github_place(&self, f: StdFmtRefMut<'_, '_>) -> std::fmt::Result {
+    fn fmt_github_place(&self, f: FormatterRefMut<'_, '_>) -> std::fmt::Result {
         self.fmt_github_location(
-            StdFmtRefMut::from(&mut *f.0),
+            FormatterRefMut::from(&mut *f.0),
             LocationFileRef::from(self.file.as_ref()),
             self.line,
         )?;
         if let Some(v) = self.occr.as_ref() {
             f.0.write_str(constants_str::TEXT)?;
             self.fmt_github_location(
-                StdFmtRefMut::from(&mut *f.0),
+                FormatterRefMut::from(&mut *f.0),
                 LocationFileRef::from(v.file.as_ref()),
                 v.line,
             )?;
@@ -276,16 +276,16 @@ impl Location {
     fn fmt_place(
         &self,
         src_place_type: config_lib::types::SrcPlaceType,
-        f: StdFmtRefMut<'_, '_>,
+        f: FormatterRefMut<'_, '_>,
     ) -> std::fmt::Result {
         match src_place_type {
             config_lib::types::SrcPlaceType::Src => self.fmt_src_place(f),
             config_lib::types::SrcPlaceType::Github => self.fmt_github_place(f),
         }
     }
-    fn fmt_src_place(&self, f: StdFmtRefMut<'_, '_>) -> std::fmt::Result {
+    fn fmt_src_place(&self, f: FormatterRefMut<'_, '_>) -> std::fmt::Result {
         Self::fmt_src_location(
-            StdFmtRefMut::from(&mut *f.0),
+            FormatterRefMut::from(&mut *f.0),
             LocationFileRef::from(self.file.as_ref()),
             self.line,
             self.column,
@@ -293,7 +293,7 @@ impl Location {
         if let Some(v) = self.occr.as_ref() {
             f.0.write_str(constants_str::TEXT)?;
             Self::fmt_src_location(
-                StdFmtRefMut::from(&mut *f.0),
+                FormatterRefMut::from(&mut *f.0),
                 LocationFileRef::from(v.file.as_ref()),
                 v.line,
                 v.column,
@@ -319,10 +319,13 @@ impl Location {
             line,
             column,
             commit: LocationCommit::try_from(
-                git_info::project_git_info().commit().as_ref().to_owned(),
+                git_info::domain_types::project_git_info()
+                    .commit()
+                    .as_ref()
+                    .to_owned(),
             )
             .unwrap_or_else(LocationCommit::from),
-            duration: StdLocationDuration::from(
+            duration: LocationDuration::from(
                 std::time::SystemTime::now()
                     .duration_since(std::time::UNIX_EPOCH)
                     .unwrap_or_default(),
@@ -380,10 +383,10 @@ impl std::fmt::Display for Location {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.fmt_place(
             config_lib::types::SrcPlaceType::from_env_or_default(),
-            StdFmtRefMut::from(&mut *f),
+            FormatterRefMut::from(&mut *f),
         )?;
         f.write_str(constants_str::SPACE)?;
-        self.fmt_datetime(StdFmtRefMut::from(&mut *f))
+        self.fmt_datetime(FormatterRefMut::from(&mut *f))
     }
 }
 #[cfg(test)]
@@ -395,7 +398,7 @@ mod tests {
     }
     impl std::fmt::Display for DatetimeFmt<'_> {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            self.location.fmt_datetime(super::StdFmtRefMut::from(f))
+            self.location.fmt_datetime(super::FormatterRefMut::from(f))
         }
     }
     #[derive(optimal_memory_layout::OptimalMemoryLayout)]
@@ -406,7 +409,7 @@ mod tests {
     impl std::fmt::Display for PlaceFmt<'_> {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
             self.location
-                .fmt_place(self.src_place_type, super::StdFmtRefMut::from(f))
+                .fmt_place(self.src_place_type, super::FormatterRefMut::from(f))
         }
     }
     fn test_location(duration: std::time::Duration, occr: Option<super::Occr>) -> super::Location {
@@ -417,7 +420,7 @@ mod tests {
                 constants_str::TEST_VALUES_COMMIT,
             ))
             .unwrap_or_else(super::LocationCommit::from),
-            duration: super::StdLocationDuration::from(duration),
+            duration: super::LocationDuration::from(duration),
             occr,
             line: super::LocationLine::try_from(10)
                 .expect("fc5a52e8 test_location invariant must hold"),

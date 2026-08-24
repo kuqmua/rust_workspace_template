@@ -17,6 +17,7 @@ serde = { workspace = true }
 strum = { workspace = true }
 strum_macros = { workspace = true }
 thiserror = { workspace = true }
+tracing = { workspace = true }
 to_err_string = { workspace = true }
 dotenv = { workspace = true }
 generate_getter_traits_for_struct_fields = { workspace = true }

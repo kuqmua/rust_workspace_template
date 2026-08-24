@@ -7,7 +7,7 @@
     newtype::AsRefTarget,
     newtype::FromInner,
 )]
-pub struct StdWrittenFilePath(std::path::PathBuf);
+pub struct WrittenFilePathBuf(std::path::PathBuf);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -16,7 +16,7 @@ pub struct StdWrittenFilePath(std::path::PathBuf);
     newtype::AsRefInner,
     newtype::FromInner,
 )]
-pub struct StdWrittenFilePathRef<'path_lt>(&'path_lt std::path::Path);
+pub struct WrittenFilePathRef<'path_lt>(&'path_lt std::path::Path);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -50,12 +50,12 @@ struct GeneratedFileMaximumBytes(usize);
 pub struct ShouldWriteString(bool);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, PartialEq, Eq)]
 pub enum WritePathOutcome {
-    Changed(StdWrittenFilePath),
-    Unchanged(StdWrittenFilePath),
+    Changed(WrittenFilePathBuf),
+    Unchanged(WrittenFilePathBuf),
 }
 impl WritePathOutcome {
     #[must_use]
-    pub fn into_path(self) -> StdWrittenFilePath {
+    pub fn into_path(self) -> WrittenFilePathBuf {
         match self {
             Self::Changed(path) | Self::Unchanged(path) => path,
         }
@@ -65,20 +65,18 @@ impl WritePathOutcome {
         ShouldWriteString::from(matches!(self, Self::Changed(_)))
     }
     #[must_use]
-    pub fn path(&self) -> StdWrittenFilePathRef<'_> {
+    pub fn path(&self) -> WrittenFilePathRef<'_> {
         match self {
-            Self::Changed(path) | Self::Unchanged(path) => {
-                StdWrittenFilePathRef::from(path.as_ref())
-            }
+            Self::Changed(path) | Self::Unchanged(path) => WrittenFilePathRef::from(path.as_ref()),
         }
     }
 }
 fn validate_existing_file_text(
-    path: StdWrittenFilePathRef<'_>,
+    path: WrittenFilePathRef<'_>,
     maximum_bytes: GeneratedFileMaximumBytes,
 ) -> std::io::Result<()> {
     server_runtime_http::read_bounded_file(
-        server_runtime_http::StdPathRef::from(path.as_ref()),
+        server_runtime_http::PathRef::from(path.as_ref()),
         server_runtime_http::BoundedReadMaximumBytes::from(maximum_bytes.0),
     )
     .and_then(server_runtime_http::BoundedText::try_from)
@@ -87,7 +85,7 @@ fn validate_existing_file_text(
 }
 #[allow(clippy::single_call_fn)] // write-decision logic is split out to keep file write path minimal and focused
 fn should_write_string_into_file(
-    path: StdWrittenFilePathRef<'_>,
+    path: WrittenFilePathRef<'_>,
     string_cnt: StringFileContentRef<'_>,
 ) -> std::io::Result<ShouldWriteString> {
     let path_ref = path.as_ref();
@@ -148,7 +146,7 @@ fn should_write_string_into_file(
 }
 #[allow(clippy::single_call_fn)] // extracted side-effect helper keeps write/no-write branching reusable and test-focused
 fn write_string_if_needed(
-    path: StdWrittenFilePathRef<'_>,
+    path: WrittenFilePathRef<'_>,
     string_cnt: StringFileContentRef<'_>,
 ) -> std::io::Result<ShouldWriteString> {
     let should_write = should_write_string_into_file(path, string_cnt)?;
@@ -165,8 +163,8 @@ pub(crate) fn try_write_string_into_path_with_outcome(
     string_cnt: StringFileContentRef<'_>,
 ) -> std::io::Result<WritePathOutcome> {
     let path_ref = path.as_ref();
-    let should_write = write_string_if_needed(StdWrittenFilePathRef::from(path_ref), string_cnt)?;
-    let path_buf = StdWrittenFilePath::from(path_ref.to_path_buf());
+    let should_write = write_string_if_needed(WrittenFilePathRef::from(path_ref), string_cnt)?;
+    let path_buf = WrittenFilePathBuf::from(path_ref.to_path_buf());
     Ok(if bool::from(should_write) {
         WritePathOutcome::Changed(path_buf)
     } else {
@@ -189,13 +187,13 @@ where
 pub(crate) fn try_write_string_into_path(
     path: impl AsRef<std::path::Path>,
     string_cnt: StringFileContentRef<'_>,
-) -> std::io::Result<StdWrittenFilePath> {
+) -> std::io::Result<WrittenFilePathBuf> {
     try_write_string_into_path_with_outcome(path, string_cnt).map(WritePathOutcome::into_path)
 }
 pub fn try_write_string_into_file<P>(
     file_name: P,
     string_cnt: StringFileContentRef<'_>,
-) -> std::io::Result<StdWrittenFilePath>
+) -> std::io::Result<WrittenFilePathBuf>
 where
     P: AsRef<std::path::Path>,
 {
@@ -206,11 +204,11 @@ mod tests {
     fn cnt(v: &str) -> super::StringFileContentRef<'_> {
         super::StringFileContentRef::from(v)
     }
-    fn path_ref(v: &std::path::Path) -> super::StdWrittenFilePathRef<'_> {
-        super::StdWrittenFilePathRef::from(v)
+    fn path_ref(v: &std::path::Path) -> super::WrittenFilePathRef<'_> {
+        super::WrittenFilePathRef::from(v)
     }
-    fn written_path(v: std::path::PathBuf) -> super::StdWrittenFilePath {
-        super::StdWrittenFilePath::from(v)
+    fn written_path(v: std::path::PathBuf) -> super::WrittenFilePathBuf {
+        super::WrittenFilePathBuf::from(v)
     }
     fn txt_path(name: &str) -> std::path::PathBuf {
         crate::test_hlp::test_path(crate::test_hlp::TestPathStem::new(name))

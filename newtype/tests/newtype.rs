@@ -2,40 +2,44 @@ const _: usize = constants_str::MACRO_DIAGNOSTICS_TUPLE_STRUCT_ERROR.len();
 #[cfg(test)]
 mod tests {
     mod to_err_string {
-        #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, PartialEq, Eq)]
-        pub(crate) struct ErrorText(String);
-        #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq)]
-        pub(crate) enum ErrorTextTryFromStringError {
-            TooLong,
-        }
-        impl std::fmt::Display for ErrorTextTryFromStringError {
-            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                match self {
-                    Self::TooLong => f.write_str(constants_str::TOO_LONG),
+        pub(crate) mod domain_types {
+            #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, PartialEq, Eq)]
+            pub(crate) struct ErrorText(String);
+            #[derive(
+                optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq,
+            )]
+            pub(crate) enum ErrorTextTryFromStringError {
+                TooLong,
+            }
+            impl std::fmt::Display for ErrorTextTryFromStringError {
+                fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                    match self {
+                        Self::TooLong => f.write_str(constants_str::TOO_LONG),
+                    }
                 }
             }
-        }
-        impl From<ErrorTextTryFromStringError> for ErrorText {
-            fn from(value: ErrorTextTryFromStringError) -> Self {
-                Self(value.to_string())
-            }
-        }
-        impl TryFrom<String> for ErrorText {
-            type Error = ErrorTextTryFromStringError;
-            fn try_from(value: String) -> Result<Self, Self::Error> {
-                if value.len() > 1024 {
-                    return Err(Self::Error::TooLong);
+            impl From<ErrorTextTryFromStringError> for ErrorText {
+                fn from(value: ErrorTextTryFromStringError) -> Self {
+                    Self(value.to_string())
                 }
-                Ok(Self(value))
             }
-        }
-        impl AsRef<str> for ErrorText {
-            fn as_ref(&self) -> &str {
-                self.0.as_str()
+            impl TryFrom<String> for ErrorText {
+                type Error = ErrorTextTryFromStringError;
+                fn try_from(value: String) -> Result<Self, Self::Error> {
+                    if value.len() > 1024 {
+                        return Err(Self::Error::TooLong);
+                    }
+                    Ok(Self(value))
+                }
             }
-        }
-        pub(crate) trait ToErrString {
-            fn to_err_string(&self) -> ErrorText;
+            impl AsRef<str> for ErrorText {
+                fn as_ref(&self) -> &str {
+                    self.0.as_str()
+                }
+            }
+            pub(crate) trait ToErrString {
+                fn to_err_string(&self) -> ErrorText;
+            }
         }
     }
     const STRING_VALUE_MAX_LEN: usize = 1_048_576;
@@ -92,6 +96,22 @@ mod tests {
         newtype::IntoInner,
     )]
     struct InnerValue(u16);
+    #[derive(
+        optimal_memory_layout::OptimalMemoryLayout,
+        Clone,
+        Copy,
+        newtype::FromInner,
+        newtype::GetInner,
+    )]
+    struct GetInnerValueRef<'value_lt>(&'value_lt str);
+    #[derive(
+        optimal_memory_layout::OptimalMemoryLayout,
+        Clone,
+        Copy,
+        newtype::FromInner,
+        newtype::GetInner,
+    )]
+    struct GetInnerBool(bool);
     #[derive(
         optimal_memory_layout::OptimalMemoryLayout,
         Debug,
@@ -222,7 +242,7 @@ mod tests {
     #[derive(
         optimal_memory_layout::OptimalMemoryLayout, newtype::BorrowPath, newtype::FromInner,
     )]
-    struct StdPathBuf(std::path::PathBuf);
+    struct OwnedPathBuf(std::path::PathBuf);
     #[derive(
         optimal_memory_layout::OptimalMemoryLayout, newtype::DebugTransparent, newtype::FromInner,
     )]
@@ -243,7 +263,7 @@ mod tests {
     #[derive(
         optimal_memory_layout::OptimalMemoryLayout, newtype::CloneInner, newtype::FromInner,
     )]
-    struct StdArcGenericValue<Value>(std::sync::Arc<Value>);
+    struct GenericValueArc<Value>(std::sync::Arc<Value>);
     #[derive(
         optimal_memory_layout::OptimalMemoryLayout, newtype::DefaultInner, newtype::FromInner,
     )]
@@ -302,7 +322,7 @@ mod tests {
         struct NotCloneOrDefault;
         let vec_value = GenericVec::<NotCloneOrDefault>::default();
         assert!(vec_value.0.is_empty(), "cb741d96");
-        let arc_value = StdArcGenericValue::from(std::sync::Arc::new(NotCloneOrDefault));
+        let arc_value = GenericValueArc::from(std::sync::Arc::new(NotCloneOrDefault));
         let cloned = arc_value.clone();
         assert_eq!(std::sync::Arc::strong_count(&cloned.0), 2usize, "03c8e1f4");
         assert!(std::sync::Arc::ptr_eq(&arc_value.0, &cloned.0), "01da5e7c");
@@ -324,7 +344,7 @@ mod tests {
         assert_eq!(&*v, "abc");
         assert_eq!(GetStringValue::get_string_value(&v), "abc");
         assert_eq!(
-            to_err_string::ToErrString::to_err_string(&v).as_ref(),
+            to_err_string::domain_types::ToErrString::to_err_string(&v).as_ref(),
             "abc"
         );
         assert_eq!(
@@ -358,13 +378,16 @@ mod tests {
     fn display_to_err_string_impl_is_generated() {
         let v = UsizeValue::from(42usize);
         assert_eq!(v.to_string(), "42");
-        assert_eq!(to_err_string::ToErrString::to_err_string(&v).as_ref(), "42");
+        assert_eq!(
+            to_err_string::domain_types::ToErrString::to_err_string(&v).as_ref(),
+            "42"
+        );
     }
     #[test]
     fn debug_to_err_string_impl_is_generated() {
         let v = DebugValue::from(vec![1, 2]);
         assert_eq!(
-            to_err_string::ToErrString::to_err_string(&v).as_ref(),
+            to_err_string::domain_types::ToErrString::to_err_string(&v).as_ref(),
             "[1, 2]"
         );
     }
@@ -373,6 +396,13 @@ mod tests {
         let v = InnerValue::from(7);
         assert_eq!(*v.as_ref(), 7);
         assert_eq!(v.into_inner(), 7);
+    }
+    #[test]
+    fn direct_inner_getters_are_generated() {
+        let text = GetInnerValueRef::from(constants_str::ABC_ALT_3).get();
+        let flag = GetInnerBool::from(true).get();
+        assert_eq!(text, constants_str::ABC_ALT_3);
+        assert!(std::hint::black_box(flag));
     }
     #[test]
     fn vec_accessors_are_generated() {
@@ -520,7 +550,7 @@ mod tests {
         assert_eq!(std::borrow::Borrow::<str>::borrow(&string), "abc");
         let owned = InnerValue::from(7u16);
         assert_eq!(*std::borrow::Borrow::<u16>::borrow(&owned), 7u16);
-        let path = StdPathBuf::from(std::path::PathBuf::from(constants_str::ABC_ALT_3));
+        let path = OwnedPathBuf::from(std::path::PathBuf::from(constants_str::ABC_ALT_3));
         assert_eq!(
             std::borrow::Borrow::<std::path::Path>::borrow(&path),
             std::path::Path::new(constants_str::ABC_ALT_3)

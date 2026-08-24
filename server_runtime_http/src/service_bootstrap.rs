@@ -7,21 +7,19 @@ pub struct TokioServiceRuntime(tokio::runtime::Runtime);
     optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
 )]
 #[error("{0}")]
-pub struct StdServiceRuntimeIoError(std::io::Error);
+pub struct ServiceRuntimeIoError(std::io::Error);
 
-pub fn build_service_runtime() -> Result<TokioServiceRuntime, StdServiceRuntimeIoError> {
+pub fn build_service_runtime() -> Result<TokioServiceRuntime, ServiceRuntimeIoError> {
     tokio::runtime::Builder::new_multi_thread()
         .enable_all()
         .build()
         .map(TokioServiceRuntime)
-        .map_err(StdServiceRuntimeIoError)
+        .map_err(ServiceRuntimeIoError)
 }
 
 #[cfg(not(unix))]
-pub async fn wait_for_service_shutdown_signal() -> Result<(), StdServiceRuntimeIoError> {
-    tokio::signal::ctrl_c()
-        .await
-        .map_err(StdServiceRuntimeIoError)
+pub async fn wait_for_service_shutdown_signal() -> Result<(), ServiceRuntimeIoError> {
+    tokio::signal::ctrl_c().await.map_err(ServiceRuntimeIoError)
 }
 
 #[cfg(unix)]
@@ -29,11 +27,11 @@ pub async fn wait_for_service_shutdown_signal() -> Result<(), StdServiceRuntimeI
     clippy::integer_division_remainder_used,
     reason = "tokio::select macro expansion uses integer remainder internally"
 )]
-pub async fn wait_for_service_shutdown_signal() -> Result<(), StdServiceRuntimeIoError> {
+pub async fn wait_for_service_shutdown_signal() -> Result<(), ServiceRuntimeIoError> {
     let mut terminate = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
-        .map_err(StdServiceRuntimeIoError)?;
+        .map_err(ServiceRuntimeIoError)?;
     tokio::select! {
-        ctrl_c = tokio::signal::ctrl_c() => ctrl_c.map_err(StdServiceRuntimeIoError),
+        ctrl_c = tokio::signal::ctrl_c() => ctrl_c.map_err(ServiceRuntimeIoError),
         _signal = terminate.recv() => Ok(()),
     }
 }

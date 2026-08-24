@@ -105,15 +105,15 @@ pub struct ChronoFixedOffsetError(&'static str);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, newtype::DebugTransparent, newtype::FromInner,
 )]
-pub struct StdI32ParsingError(std::num::ParseIntError);
+pub struct I32ParseIntError(std::num::ParseIntError);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, newtype::DebugTransparent, newtype::FromInner,
 )]
-pub struct StdU32ParsingError(std::num::ParseIntError);
+pub struct U32ParseIntError(std::num::ParseIntError);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, newtype::DebugTransparent, newtype::FromInner,
 )]
-pub struct StdUsizeParsingError(std::num::ParseIntError);
+pub struct UsizeParseIntError(std::num::ParseIntError);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -275,7 +275,7 @@ impl std::fmt::Debug for SecrecySecretBoxString {
     newtype::DerefInner,
     newtype::FromInner,
 )]
-pub struct StdNonZeroU64(std::num::NonZeroU64);
+pub struct ConfigNonZeroU64(std::num::NonZeroU64);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -286,15 +286,15 @@ pub struct StdNonZeroU64(std::num::NonZeroU64);
     newtype::DerefInner,
     newtype::FromInner,
 )]
-pub struct StdNonZeroUsize(std::num::NonZeroUsize);
+pub struct ConfigNonZeroUsize(std::num::NonZeroUsize);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, newtype::DebugTransparent, newtype::FromInner,
 )]
-pub struct StdParseIntError(std::num::ParseIntError);
+pub struct ParseIntError(std::num::ParseIntError);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, newtype::DebugTransparent, newtype::FromInner,
 )]
-pub struct StdParseBoolError(std::str::ParseBoolError);
+pub struct ParseBoolError(std::str::ParseBoolError);
 config_lib_macros::impl_try_from_non_empty_string!(
     CorsAllowOrigin,
     TryFromStdEnvVarOkCorsAllowOriginError
@@ -365,7 +365,7 @@ pub enum TryFromStdEnvVarOkTimezoneError {
         chrono_fixed_offset: ChronoFixedOffsetError,
     },
     #[error("{i32_parsing:?}")]
-    I32Parsing { i32_parsing: StdI32ParsingError },
+    I32Parsing { i32_parsing: I32ParseIntError },
 }
 impl TryFromStdEnvVarOk for ChronoTimezone {
     type Error = TryFromStdEnvVarOkTimezoneError;
@@ -373,7 +373,7 @@ impl TryFromStdEnvVarOk for ChronoTimezone {
         let i32_v = TimezoneSeconds::from(parse_from_str_with_error::<i32, _, _>(
             StdEnvVarOkRef::from(v.0.as_str()),
             |i32_parsing| Self::Error::I32Parsing {
-                i32_parsing: StdI32ParsingError::from(i32_parsing),
+                i32_parsing: I32ParseIntError::from(i32_parsing),
             },
         )?);
         parse_east_fixed_offset(i32_v)

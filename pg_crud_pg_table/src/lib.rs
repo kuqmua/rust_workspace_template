@@ -5,7 +5,7 @@ pub trait CombinationOfAppStateLogicTraits:
     + config_lib::GetMaximumSizeOfHttpBodyInBytes
     + config_lib::GetSrcPlaceType
     + config_lib::GetChronoTimezone
-    + app_state::GetSqlxPgPool
+    + app_state::domain_types::GetSqlxPgPool
     + server_runtime_http::GetBulkItemResourceBudget
     + server_runtime_http::GetIdempotencyResponseResourceBudget
     + Send
@@ -38,7 +38,11 @@ pub struct PgTableIdempotencyRequestHash([u8; 32usize]);
     optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::AsRefTarget,
 )]
 pub struct PgTableIdempotencyBody(
-    bounded_types::BoundedVec<u8, { constants_usize::ZERO }, { constants_usize::VALUE_1_048_576 }>,
+    bounded_types::domain_types::vector::BoundedVec<
+        u8,
+        { constants_usize::ZERO },
+        { constants_usize::VALUE_1_048_576 },
+    >,
 );
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
@@ -49,7 +53,7 @@ impl TryFrom<Vec<u8>> for PgTableIdempotencyBody {
     type Error = PgTableIdempotencyBodyError;
 
     fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
-        bounded_types::BoundedVec::try_from(value)
+        bounded_types::domain_types::vector::BoundedVec::try_from(value)
             .map(Self)
             .map_err(|_error| PgTableIdempotencyBodyError)
     }
@@ -195,11 +199,11 @@ pub struct PgTableRevision(i64);
     optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
 )]
 #[error(transparent)]
-pub struct StdPgTableRevisionParseIntError(std::num::ParseIntError);
+pub struct PgTableRevisionParseIntError(std::num::ParseIntError);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum PgTableRevisionTryFromStringError {
     #[error("{}", constants_str::REVISION_MUST_BE_A_DECIMAL_INTEGER)]
-    Invalid(#[source] StdPgTableRevisionParseIntError),
+    Invalid(#[source] PgTableRevisionParseIntError),
     #[error("{}", constants_str::REVISION_MUST_NOT_BE_NEGATIVE)]
     Negative,
 }
@@ -207,7 +211,7 @@ impl TryFrom<String> for PgTableRevision {
     type Error = PgTableRevisionTryFromStringError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
         let parsed = value.parse::<i64>().map_err(|error| {
-            PgTableRevisionTryFromStringError::Invalid(StdPgTableRevisionParseIntError(error))
+            PgTableRevisionTryFromStringError::Invalid(PgTableRevisionParseIntError(error))
         })?;
         if parsed < constants_i64::ZERO {
             Err(PgTableRevisionTryFromStringError::Negative)
@@ -261,10 +265,10 @@ pub enum PgTableIdempotencyTextError {
 )]
 #[error("{}", constants_str::POSTGRESQL_IDEMPOTENCY_OPERATION_FAILED)]
 pub struct SqlxPgTableIdempotencyError(#[source] sqlx::Error);
-impl to_err_string::ToErrString for SqlxPgTableIdempotencyError {
-    fn to_err_string(&self) -> to_err_string::ErrorText {
-        to_err_string::ErrorText::try_from(self.to_string())
-            .unwrap_or_else(to_err_string::ErrorText::from)
+impl to_err_string::domain_types::ToErrString for SqlxPgTableIdempotencyError {
+    fn to_err_string(&self) -> to_err_string::domain_types::ErrorText {
+        to_err_string::domain_types::ErrorText::try_from(self.to_string())
+            .unwrap_or_else(to_err_string::domain_types::ErrorText::from)
     }
 }
 
@@ -395,7 +399,7 @@ pub fn pg_table_idempotency_request_hash(
     PgTableIdempotencyRequestHash::from(bytes)
 }
 pub async fn ensure_pg_table_idempotency_schema(
-    pool: app_state::SqlxPgPoolRef<'_>,
+    pool: app_state::domain_types::SqlxPgPoolRef<'_>,
 ) -> Result<(), SqlxPgTableIdempotencyError> {
     let _query_result = sqlx::query(
         constants_str::CREATE_TABLE_IF_NOT_EXISTS_PG_TABLE_IDEMPOTENCY_ACTOR_TEXT_NOT_NULL,
@@ -412,7 +416,7 @@ pub async fn ensure_pg_table_idempotency_schema(
     Ok(())
 }
 pub async fn begin_pg_table_idempotency(
-    pool: app_state::SqlxPgPoolRef<'_>,
+    pool: app_state::domain_types::SqlxPgPoolRef<'_>,
     request: &PgTableIdempotencyRequest,
 ) -> Result<PgTableIdempotencyBegin, SqlxPgTableIdempotencyError> {
     let inserted = sqlx::query_scalar::<_, bool>(constants_str::INSERT_INTO_PG_TABLE_IDEMPOTENCY_ACTOR_HTTP_METHOD_ROUTE_PATH_IDEMPOTENCY_KEY)
@@ -465,7 +469,7 @@ pub async fn begin_pg_table_idempotency(
     }
 }
 pub async fn complete_pg_table_idempotency(
-    pool: app_state::SqlxPgPoolRef<'_>,
+    pool: app_state::domain_types::SqlxPgPoolRef<'_>,
     request: &PgTableIdempotencyRequest,
     response_status: PgTableIdempotencyResponseStatus,
     response_body: PgTableIdempotencyBodyRef<'_>,
@@ -526,7 +530,7 @@ pub async fn complete_pg_table_idempotency_in_connection(
     }
 }
 pub async fn release_pg_table_idempotency(
-    pool: app_state::SqlxPgPoolRef<'_>,
+    pool: app_state::domain_types::SqlxPgPoolRef<'_>,
     request: &PgTableIdempotencyRequest,
 ) -> Result<(), SqlxPgTableIdempotencyError> {
     let _query_result = sqlx::query(
@@ -544,7 +548,7 @@ pub async fn release_pg_table_idempotency(
 }
 
 pub async fn cleanup_pg_table_idempotency(
-    pool: app_state::SqlxPgPoolRef<'_>,
+    pool: app_state::domain_types::SqlxPgPoolRef<'_>,
     completed_retention_seconds: PgTableIdempotencyCleanupRetentionSeconds,
     pending_retention_seconds: PgTableIdempotencyCleanupRetentionSeconds,
     batch_size: PgTableIdempotencyCleanupBatchSize,

@@ -135,7 +135,7 @@ pub(super) fn parse(
         return Err(super::ScaffoldError::Catalog);
     }
     Ok(super::ServiceCatalogEntries::from(
-        bounded_types::BoundedVec::from_max_iter(entries),
+        bounded_types::domain_types::vector::BoundedVec::from_max_iter(entries),
     ))
 }
 

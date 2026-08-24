@@ -63,9 +63,9 @@ pub fn generate_field_location_new_token_stream(
     line: FieldLocationLine,
     column: FieldLocationColumn,
 ) -> crate::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
-    let location_snake_case = naming::LocationSnakeCase;
+    let location_snake_case = naming::domain_types::LocationSnakeCase;
     let location_new_token_stream = {
-        let file_token_stream = generate_quotes::dq_token_stream(&file.0);
+        let file_token_stream = generate_quotes::domain_types::dq_token_stream(&file.0);
         let line_token_stream = {
             let literal = proc_macro2::Literal::u32_unsuffixed(line.0);
             quote::quote! {#literal}

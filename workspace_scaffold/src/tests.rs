@@ -52,7 +52,7 @@ fn deployment_projection_check_rejects_stale_generated_content() {
         "header\nBEGIN GENERATED\nstale\nEND GENERATED\n",
     );
     let check = super::synchronize_generated_file(
-        super::StdScaffoldPathRef::from(path.as_path()),
+        super::ScaffoldPathRef::from(path.as_path()),
         super::ScaffoldTextRef::from(begin),
         super::ScaffoldTextRef::from(end),
         super::ScaffoldTextRef::from("current\n"),
@@ -63,7 +63,7 @@ fn deployment_projection_check_rejects_stale_generated_content() {
         Err(super::ScaffoldError::GeneratedDeployment)
     ));
     super::synchronize_generated_file(
-        super::StdScaffoldPathRef::from(path.as_path()),
+        super::ScaffoldPathRef::from(path.as_path()),
         super::ScaffoldTextRef::from(begin),
         super::ScaffoldTextRef::from(end),
         super::ScaffoldTextRef::from("current\n"),
@@ -73,7 +73,7 @@ fn deployment_projection_check_rejects_stale_generated_content() {
         "5a7e3c91 deployment_projection_check_rejects_stale_generated_content invariant must hold",
     );
     super::synchronize_generated_file(
-        super::StdScaffoldPathRef::from(path.as_path()),
+        super::ScaffoldPathRef::from(path.as_path()),
         super::ScaffoldTextRef::from(begin),
         super::ScaffoldTextRef::from(end),
         super::ScaffoldTextRef::from("current\n"),
@@ -116,7 +116,7 @@ fn rejects_scaffold_text_over_size_limit() {
     )
     .expect("d97e30ac rejects_scaffold_text_over_size_limit invariant must hold");
     let result =
-        super::template_fs::read_bounded_text(super::StdScaffoldPathRef::from(path.as_path()));
+        super::template_fs::read_bounded_text(super::ScaffoldPathRef::from(path.as_path()));
     assert!(
         matches!(
             result,
@@ -174,7 +174,7 @@ fn service_scaffold_registers_all_artifacts() {
         "[[service]]\ncrate = \"notification_service\"\n",
     );
     super::scaffold_service(
-        super::StdScaffoldPathRef::from(root.as_path()),
+        super::ScaffoldPathRef::from(root.as_path()),
         super::ProjectNameRef::from("order_service"),
         super::ServicePort::from(8082u16),
     )

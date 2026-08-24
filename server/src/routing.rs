@@ -24,16 +24,18 @@ pub(super) fn mount_service_routes(
 }
 
 pub(super) fn mk_api_routes(
-    app_state: &super::StdSharedServerAppState,
-    admin_auth_state: server_admin::auth::StdSharedAdminAuthSvcState,
+    app_state: &super::SharedServerAppStateArc,
+    admin_auth_state: server_admin::auth::SharedAdminAuthSvcStateArc,
     metrics_handle: super::MetricsExporterPrometheusHandle,
 ) -> super::AxumApiRoutes {
     let generated_admin_auth_state = admin_auth_state.clone();
     let generated_table_logic_state: std::sync::Arc<
         dyn server_admin::CombinationOfAppStateLogicTraits,
-    > = std::sync::Arc::<server_app_state::ServerAppState<'static>>::clone(app_state.get());
+    > = std::sync::Arc::<server_app_state::domain_types::ServerAppState<'static>>::clone(
+        app_state.get(),
+    );
     let generated_table_state =
-        server_admin::generated_tables::StdSharedAdminGeneratedTableState::from(
+        server_admin::generated_tables::SharedAdminGeneratedTableStateArc::from(
             generated_table_logic_state,
         );
     let generated_table_routes = axum::Router::from(

@@ -9,7 +9,7 @@ fn large_module_exceptions() -> [&'static str; 3] {
 }
 
 fn is_test_source(path: &std::path::Path) -> bool {
-    super::is_test_source_path(super::types::StdPathRef::from(path)).get()
+    super::is_test_source_path(super::types::PathRef::from(path)).get()
         || path
             .components()
             .any(|component| component.as_os_str() == "test_fixtures")

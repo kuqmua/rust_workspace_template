@@ -7,7 +7,7 @@
     PartialEq,
     newtype::FromInner,
 )]
-pub struct StdPermitWaitTimeout(std::time::Duration);
+pub struct PermitWaitTimeoutDuration(std::time::Duration);
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct RetryAfterSecs(u64);
@@ -33,7 +33,7 @@ impl TryFrom<RetryAfterSecs> for http::HeaderValue {
     }
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, newtype::FromInner)]
-pub struct StdArcTokioSemaphore(std::sync::Arc<tokio::sync::Semaphore>);
+pub struct ArcTokioSemaphore(std::sync::Arc<tokio::sync::Semaphore>);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -43,11 +43,11 @@ pub struct StdArcTokioSemaphore(std::sync::Arc<tokio::sync::Semaphore>);
     PartialEq,
     newtype::FromInner,
 )]
-pub struct StdSemaphorePermitCount(std::num::NonZeroUsize);
+pub struct SemaphorePermitCountNonZeroUsize(std::num::NonZeroUsize);
 
-impl StdArcTokioSemaphore {
+impl ArcTokioSemaphore {
     #[must_use]
-    pub fn new(permit_count: StdSemaphorePermitCount) -> Self {
+    pub fn new(permit_count: SemaphorePermitCountNonZeroUsize) -> Self {
         Self::from(std::sync::Arc::new(tokio::sync::Semaphore::new(
             permit_count.0.get(),
         )))
@@ -82,8 +82,8 @@ impl TokioOwnedSemaphorePermit {
     }
 }
 pub async fn acquire_permit(
-    semaphore: StdArcTokioSemaphore,
-    wait_timeout: StdPermitWaitTimeout,
+    semaphore: ArcTokioSemaphore,
+    wait_timeout: PermitWaitTimeoutDuration,
     retry_after: RetryAfterSecs,
 ) -> Result<TokioOwnedSemaphorePermit, AcquirePermitError> {
     match tokio::time::timeout(wait_timeout.0, semaphore.0.acquire_owned()).await {

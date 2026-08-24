@@ -105,7 +105,7 @@ fn router() -> AxumAdminApiTestRouter {
         .connect_lazy(constants_str::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION)
         .expect("27db915c router invariant must hold");
     let state = server_admin::auth::AdminAuthSvcState::try_new(
-        app_state::SqlxPgPool::from(pool),
+        app_state::domain_types::SqlxPgPool::from(pool),
         &env::<config_lib::AdminJwtSecret>(StdAdminApiTestStrRef::from(
             constants_str::INTEGRATION_TEST_JWT_SECRET_AT_LEAST_32_BYTES,
         )),
@@ -136,12 +136,12 @@ fn router() -> AxumAdminApiTestRouter {
     )
     .expect("f7d8c961 router invariant must hold");
     AxumAdminApiTestRouter::from(axum::Router::from(server_admin::auth::routes(
-        server_admin::auth::StdSharedAdminAuthSvcState::from(std::sync::Arc::new(state)),
+        server_admin::auth::SharedAdminAuthSvcStateArc::from(std::sync::Arc::new(state)),
     )))
 }
 fn router_with_pool(pool: &SqlxAdminApiTestPool) -> AxumAdminApiTestRouter {
     let state = server_admin::auth::AdminAuthSvcState::try_new(
-        app_state::SqlxPgPool::from(pool.0.clone()),
+        app_state::domain_types::SqlxPgPool::from(pool.0.clone()),
         &env::<config_lib::AdminJwtSecret>(StdAdminApiTestStrRef::from(
             constants_str::INTEGRATION_TEST_JWT_SECRET_AT_LEAST_32_BYTES,
         )),
@@ -172,7 +172,7 @@ fn router_with_pool(pool: &SqlxAdminApiTestPool) -> AxumAdminApiTestRouter {
     )
     .expect("a59d73c1 router_with_pool invariant must hold");
     AxumAdminApiTestRouter::from(axum::Router::from(server_admin::auth::routes(
-        server_admin::auth::StdSharedAdminAuthSvcState::from(std::sync::Arc::new(state)),
+        server_admin::auth::SharedAdminAuthSvcStateArc::from(std::sync::Arc::new(state)),
     )))
 }
 fn request_with_peer(
@@ -339,7 +339,7 @@ async fn admin_html_test_fixture_with_password_change(
         .execute(&mut *lock)
         .await
         .expect("a6b7c8d9 admin_html_test_fixture_with_password_change invariant must hold");
-    server_admin::prep_pg(app_state::SqlxPgPoolRef::from(&pool.0))
+    server_admin::prep_pg(app_state::domain_types::SqlxPgPoolRef::from(&pool.0))
         .await
         .expect("45de3a61 admin_html_test_fixture_with_password_change invariant must hold");
     let _truncated = sqlx::query(
@@ -357,14 +357,14 @@ async fn admin_html_test_fixture_with_password_change(
     )
     .expect("d20a35e4 admin_html_test_fixture_with_password_change invariant must hold");
     let hasher = server_admin::AdminPasswordHasher::new(
-        server_admin::AdminPasswordHashConcurrency::from(server_admin::StdAdminNonZeroUsize::from(
+        server_admin::AdminPasswordHashConcurrency::from(server_admin::AdminNonZeroUsize::from(
             std::num::NonZeroUsize::new(constants_usize::ONE).expect(
                 "560498ab admin_html_test_fixture_with_password_change invariant must hold",
             ),
         )),
     );
     let _created_admin_id = server_admin::bootstrap_admin(
-        app_state::SqlxPgPoolRef::from(&pool.0),
+        app_state::domain_types::SqlxPgPoolRef::from(&pool.0),
         server_admin::AdminLogin::try_from(constants_str::ADMIN_ALT.to_owned())
             .expect("6a417bde admin_html_test_fixture_with_password_change invariant must hold"),
         server_admin::AdminDisplayName::try_from(constants_str::ADMIN.to_owned())
@@ -384,7 +384,7 @@ async fn admin_html_test_fixture_with_password_change(
                 );
     }
     let state = server_admin::auth::AdminAuthSvcState::try_new(
-        app_state::SqlxPgPool::from(pool.0.clone()),
+        app_state::domain_types::SqlxPgPool::from(pool.0.clone()),
         &env::<config_lib::AdminJwtSecret>(StdAdminApiTestStrRef::from(
             constants_str::INTEGRATION_TEST_JWT_SECRET_AT_LEAST_32_BYTES,
         )),
@@ -416,7 +416,7 @@ async fn admin_html_test_fixture_with_password_change(
     .expect("ec39b61d admin_html_test_fixture_with_password_change invariant must hold");
     let router = AxumAdminApiTestRouter::from(axum::Router::from(
         server_admin::auth::html_routes_with_swagger(
-            server_admin::auth::StdSharedAdminAuthSvcState::from(std::sync::Arc::new(state)),
+            server_admin::auth::SharedAdminAuthSvcStateArc::from(std::sync::Arc::new(state)),
             server_admin::auth::AdminHtmlSwaggerEnabled::from(true),
         ),
     ));

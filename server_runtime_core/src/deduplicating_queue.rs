@@ -7,7 +7,7 @@
     PartialEq,
     newtype::FromInner,
 )]
-pub struct StdQueueMaximum(std::num::NonZeroUsize);
+pub struct QueueMaximumNonZeroUsize(std::num::NonZeroUsize);
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum QueuePush {
@@ -21,21 +21,21 @@ pub struct DeduplicatingQueue<Item>
 where
     Item: Clone + Eq + std::hash::Hash,
 {
-    items: StdCollectionsVecDeque<Item>,
-    keys: StdCollectionsHashSet<Item>,
-    maximum: StdQueueMaximum,
+    items: CollectionsVecDeque<Item>,
+    keys: CollectionsHashSet<Item>,
+    maximum: QueueMaximumNonZeroUsize,
 }
 impl<Item> DeduplicatingQueue<Item>
 where
     Item: Clone + Eq + std::hash::Hash,
 {
     #[must_use]
-    pub fn new(maximum: StdQueueMaximum) -> Self {
+    pub fn new(maximum: QueueMaximumNonZeroUsize) -> Self {
         Self {
-            items: StdCollectionsVecDeque::from(std::collections::VecDeque::with_capacity(
+            items: CollectionsVecDeque::from(std::collections::VecDeque::with_capacity(
                 maximum.0.get(),
             )),
-            keys: StdCollectionsHashSet::from(std::collections::HashSet::with_capacity(
+            keys: CollectionsHashSet::from(std::collections::HashSet::with_capacity(
                 maximum.0.get(),
             )),
             maximum,
@@ -62,16 +62,16 @@ where
 }
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, newtype::FromInner)]
-struct StdCollectionsHashSet<Item>(std::collections::HashSet<Item>);
+struct CollectionsHashSet<Item>(std::collections::HashSet<Item>);
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, newtype::FromInner)]
-struct StdCollectionsVecDeque<Item>(std::collections::VecDeque<Item>);
+struct CollectionsVecDeque<Item>(std::collections::VecDeque<Item>);
 
 #[cfg(test)]
 mod tests {
     #[test]
     fn queue_deduplicates_limits_and_releases_key_after_pop() {
-        let mut queue = super::DeduplicatingQueue::new(super::StdQueueMaximum::from(
+        let mut queue = super::DeduplicatingQueue::new(super::QueueMaximumNonZeroUsize::from(
             std::num::NonZeroUsize::MIN,
         ));
         assert_eq!(queue.push(1u8), super::QueuePush::Queued);

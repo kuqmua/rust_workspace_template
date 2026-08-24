@@ -36,21 +36,21 @@ pub use batched_cleanup::{
     CleanupContinuation, CleanupReport, CleanupRows, run_batched_cleanup,
 };
 pub use bounded_read::{
-    BoundedBytes, BoundedJsonReadError, BoundedJsonText, BoundedReadError, BoundedReadMaximumBytes,
-    BoundedText, IoErrorPresenceDisposition, ReqwestError, ReqwestResponse, SerdeJsonError,
-    StdBoundedReadConcurrency, StdBoundedReadConcurrencyMaximum, StdFromUtf8Error, StdIoError,
-    StdPathRef, classify_not_found_io_error, parse_bounded_json, read_bounded_file,
-    read_bounded_file_async, read_bounded_http_response, read_bounded_json_file_async,
-    read_bounded_json_http_response,
+    BoundedBytes, BoundedJsonReadError, BoundedJsonText, BoundedReadConcurrencyArcSemaphore,
+    BoundedReadConcurrencyMaximumNonZeroUsize, BoundedReadError, BoundedReadFromUtf8Error,
+    BoundedReadIoError, BoundedReadMaximumBytes, BoundedText, IoErrorPresenceDisposition, PathRef,
+    ReqwestError, ReqwestResponse, SerdeJsonError, classify_not_found_io_error, parse_bounded_json,
+    read_bounded_file, read_bounded_file_async, read_bounded_http_response,
+    read_bounded_json_file_async, read_bounded_json_http_response,
 };
 pub use child_process::{
-    ChildDiagnostic, ChildProcessCompletion, ChildProcessError, ChildProcessId, ChildProcessReport,
-    ChildProcessReports, ChildProcessSet, ChildProcessSetError, ChildProcessSucceeded,
-    ChildProcessSupervisor, StdChildDiagnosticMaximum, StdChildExitStatus, StdChildProcessIoError,
-    StdChildProcessSetMaximum, TokioChildProcess, TokioChildProcessJoinError,
+    ChildDiagnostic, ChildDiagnosticMaximumNonZeroUsize, ChildExitStatus, ChildProcessCompletion,
+    ChildProcessError, ChildProcessId, ChildProcessIoError, ChildProcessReport,
+    ChildProcessReports, ChildProcessSet, ChildProcessSetError, ChildProcessSetMaximumNonZeroUsize,
+    ChildProcessSucceeded, ChildProcessSupervisor, TokioChildProcess, TokioChildProcessJoinError,
 };
 pub use client_ip::{
-    HttpHeaderMapRef, StdAddrParseError, StdParseIntError, StdResolvedClientIp, StdSocketAddr,
+    ClientAddrParseError, ClientSocketAddr, HttpHeaderMapRef, ParseIntError, ResolvedClientIpAddr,
     TrustedProxyRange, TrustedProxyRangeParseError, TrustedProxyRanges, TrustedProxyRangesError,
     TrustedProxyRangesParseError, TrustedProxyRangesTextRef, parse_trusted_proxy_ranges,
     resolve_client_ip, resolve_header_text,
@@ -74,12 +74,12 @@ pub use header_text::{
     HttpHeaderTextMaximumBytesError, HttpHeaderTextRef, HttpHeaderTextResolution,
 };
 pub use health::{
-    HealthComponentStatus, HealthProbeSucceeded, HealthReadiness, HealthSnapshot,
-    ServiceLivenessSnapshot, StdHealthProbeTimeout, add_health_routes, run_health_probe,
+    HealthComponentStatus, HealthProbeSucceeded, HealthProbeTimeoutDuration, HealthReadiness,
+    HealthSnapshot, ServiceLivenessSnapshot, add_health_routes, run_health_probe,
 };
 pub use http_client::{
-    ReqwestClient, ReqwestClientBuildError, ReqwestClientPolicy, StdReqwestConnectTimeout,
-    StdReqwestRequestTimeout, StdReqwestTimeoutError,
+    ReqwestClient, ReqwestClientBuildError, ReqwestClientPolicy, ReqwestConnectTimeoutDuration,
+    ReqwestRequestTimeoutDuration, StdReqwestTimeoutError,
 };
 pub use http_error_diagnostic::{
     HttpErrorCode, HttpErrorDiagnostic, HttpErrorTelemetry, HttpErrorType,
@@ -97,14 +97,14 @@ pub use http_policy::{
 };
 pub use http_status_error::{HttpErrorClass, HttpErrorStatus, classify_http_error_status};
 pub use lifecycle::{
-    BackgroundTask, BackgroundTaskOutcome, BackgroundTaskShutdownError, StdRequestTimeout,
-    StdRequestTimeoutTryFromDurationError, StdRunInterval, StdRunIntervalTryFromDurationError,
+    BackgroundTask, BackgroundTaskOutcome, BackgroundTaskShutdownError, RequestTimeoutDuration,
+    RunIntervalDuration, StdRequestTimeoutTryFromDurationError, StdRunIntervalTryFromDurationError,
     TokioAbortTask, TokioTaskJoinError, abort_and_wait_task, spawn_interval_task,
 };
 pub use limits::{
-    AcquirePermitError, RetryAfterSecs, RetryAfterSecsTryFromU64Error, StdArcTokioSemaphore,
-    StdPermitWaitTimeout, StdSemaphorePermitCount, TokioAcquireError, TokioOwnedSemaphorePermit,
-    acquire_permit,
+    AcquirePermitError, ArcTokioSemaphore, PermitWaitTimeoutDuration, RetryAfterSecs,
+    RetryAfterSecsTryFromU64Error, SemaphorePermitCountNonZeroUsize, TokioAcquireError,
+    TokioOwnedSemaphorePermit, acquire_permit,
 };
 pub use metrics_layer::{
     HttpMetricsLayer, HttpMetricsPathCacheMaximum, HttpMetricsPathCacheMaximumTryFromUsizeError,
@@ -114,7 +114,7 @@ pub use multipart::{
     FileStagingAction, FileStagingDirectoryName, MultipartBytes, MultipartBytesPart,
     MultipartFieldName, MultipartFileName, MultipartPayloadMaximum, MultipartRequestError,
     MultipartTextPart, MultipartTextValue, MultipartUploadRequest, MultipartValueError,
-    MultipartValueLength, StdStorageRelativePath, StoragePathSegment, StoragePathSegmentError,
+    MultipartValueLength, StoragePathSegment, StoragePathSegmentError, StorageRelativePathBuf,
     identifier_file_storage_relative_path, staging_directory_name,
 };
 pub use notification::{
@@ -129,8 +129,8 @@ pub use origin::{
 };
 pub use outbound_url::{
     OutboundAllowedHost, OutboundHostAllowlist, OutboundHostAllowlistError, OutboundHostPolicy,
-    OutboundUrlError, OutboundUrlPolicy, OutboundUrlScheme, OutboundUrlTextRef, ReqwestOutboundUrl,
-    StdOutboundIpAddr,
+    OutboundIpAddr, OutboundUrlError, OutboundUrlPolicy, OutboundUrlScheme, OutboundUrlTextRef,
+    ReqwestOutboundUrl,
 };
 pub use path_policy::{
     HttpAllowedPathPrefixRef, HttpNormalizedPath, HttpNormalizedPathError, HttpProxyPath,
@@ -161,19 +161,19 @@ pub use security_headers::{
 pub use server_observability::*;
 pub use server_runtime_core::*;
 pub use service::{
-    ServeWithGracefulShutdownError, ServiceRuntime, StdServeIoError, TokioTcpListener,
+    ServeIoError, ServeWithGracefulShutdownError, ServiceRuntime, TokioTcpListener,
     add_status_route, serve_with_graceful_shutdown,
 };
 pub use service_bootstrap::{
-    StdServiceRuntimeIoError, TokioServiceRuntime, build_service_runtime,
+    ServiceRuntimeIoError, TokioServiceRuntime, build_service_runtime,
     wait_for_service_shutdown_signal,
 };
-pub use text_policy::{
+pub use text_policy::domain_types::{
     BoundedTextPolicyError, FixedLengthAsciiHexText, FixedLengthAsciiHexTextError,
     NonEmptyTrimmedText, RequiredNulFreeBoundedText, UrlSafeTokenPartText,
     UrlSafeTokenPartTextError,
 };
-pub use text_policy::{
+pub use text_policy::domain_types::{
     PasswordLength, PasswordLengthRange, PasswordLengthRangeError, PasswordPolicyViolation,
     PasswordTextRef, validate_password_policy,
 };
@@ -194,13 +194,13 @@ pub struct AxumRouter(axum::Router);
 pub struct HttpRequestSpanConfig {
     service_name: ServiceName,
     trusted_proxy_ranges: TrustedProxyRanges,
-    server_address: StdSocketAddr,
+    server_address: ClientSocketAddr,
 }
 impl HttpRequestSpanConfig {
     #[must_use]
     pub const fn new(
         service_name: ServiceName,
-        server_address: StdSocketAddr,
+        server_address: ClientSocketAddr,
         trusted_proxy_ranges: TrustedProxyRanges,
     ) -> Self {
         Self {
@@ -298,7 +298,7 @@ where
                 .map(|connect_info| {
                     resolve_client_ip(
                         HttpHeaderMapRef::from(req.headers()),
-                        StdSocketAddr::from(connect_info.0),
+                        ClientSocketAddr::from(connect_info.0),
                         &span_config.trusted_proxy_ranges,
                     )
                 })

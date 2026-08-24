@@ -13,6 +13,7 @@ optimal_memory_layout = { workspace = true }
 constants_str = { workspace = true }
 newtype = { workspace = true }
 to_err_string = { workspace = true }
+tracing = { workspace = true }
 
 [lints]
 workspace = true

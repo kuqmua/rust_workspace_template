@@ -124,13 +124,13 @@ pub fn emit_generate_where_filters(
     }
     panic_location::panic_location();
     let generate_where_filters_config = validated.0;
-    let column_snake_case = naming::ColumnSnakeCase;
-    let error_snake_case = naming::ErrorSnakeCase;
-    let increment_snake_case = naming::IncrementSnakeCase;
-    let pub_snake_case = naming::PubSnakeCase;
-    let query_snake_case = naming::QuerySnakeCase;
-    let self_snake_case = naming::SelfSnakeCase;
-    let v_snake_case = naming::VSnakeCase;
+    let column_snake_case = naming::domain_types::ColumnSnakeCase;
+    let error_snake_case = naming::domain_types::ErrorSnakeCase;
+    let increment_snake_case = naming::domain_types::IncrementSnakeCase;
+    let pub_snake_case = naming::domain_types::PubSnakeCase;
+    let query_snake_case = naming::domain_types::QuerySnakeCase;
+    let self_snake_case = naming::domain_types::SelfSnakeCase;
+    let v_snake_case = naming::domain_types::VSnakeCase;
     let pg_crud_common_default_some_one_element = token_patterns::PgCrudCommonDefaultSomeOneElement;
     let pg_crud_common_default_some_one_element_call =
         token_patterns::PgCrudCommonDefaultSomeOneElementCall;
@@ -281,7 +281,7 @@ pub fn emit_generate_where_filters(
         |v: &dyn std::fmt::Display,
          maybe_dimensions_ies_initialization_token_stream: &dyn quote::ToTokens,
          maybe_extra_parameters_token_stream: &dyn quote::ToTokens| {
-            let format_token_stream = generate_quotes::dq_token_stream(&v);
+            let format_token_stream = generate_quotes::domain_types::dq_token_stream(&v);
             quote::quote! {
                 #maybe_dimensions_ies_initialization_token_stream
                 #v_match_increment_checked_add_one_initialization_token_stream
@@ -433,7 +433,9 @@ pub fn emit_generate_where_filters(
         let generate_filters_token_stream =
             |filter: &pg_crud_macros_common::filters::PgTypeFilter| {
                 let identifier =
-                    naming::parameter::PgTypeWhereSelfUpperCamelCase::from_display(&filter);
+                    naming::domain_types::parameter::PgTypeWhereSelfUpperCamelCase::from_display(
+                        &filter,
+                    );
                 let (
                     generic,
                     struct_extra_fields_token_stream,
@@ -471,7 +473,7 @@ pub fn emit_generate_where_filters(
                             pg_crud_macros_common::IncrementParameterUndrscr::False,
                             generate_query_part_format_with_v_token_stream(
                                 &maybe_dimensions_ies_initialization_token_stream,
-                                &generate_quotes::dq_token_stream(&generate_format_handle_str(&pg_type_kind)),
+                                &generate_quotes::domain_types::dq_token_stream(&generate_format_handle_str(&pg_type_kind)),
                                 &maybe_extra_parameters_token_stream,
                             ),
                             is_query_bind_mut_true,
@@ -516,9 +518,11 @@ pub fn emit_generate_where_filters(
                             ),
                             pg_crud_macros_common::IncrementParameterUndrscr::False,
                             {
-                                let format_token_stream = generate_quotes::dq_token_stream(
-                                    &format!("{{}}({{}}{} {{}})", pg_type_kind.format_argument()),
-                                );
+                                let format_token_stream =
+                                    generate_quotes::domain_types::dq_token_stream(&format!(
+                                        "{{}}({{}}{} {{}})",
+                                        pg_type_kind.format_argument()
+                                    ));
                                 quote::quote! {
                                     #maybe_dimensions_ies_initialization_token_stream
                                     #v_match_self_v_query_part_initialization_token_stream
@@ -573,9 +577,11 @@ pub fn emit_generate_where_filters(
                             ),
                             pg_crud_macros_common::IncrementParameterUndrscr::False,
                             {
-                                let format_token_stream = generate_quotes::dq_token_stream(
-                                    &format!("{{}}({{}}{} in (", pg_type_kind.format_argument()),
-                                );
+                                let format_token_stream =
+                                    generate_quotes::domain_types::dq_token_stream(&format!(
+                                        "{{}}({{}}{} in (",
+                                        pg_type_kind.format_argument()
+                                    ));
                                 let if_write_is_err_token_stream =
                                 macros_helpers::generate_if_write_is_err_token_stream::generate_if_write_is_err_token_stream(
                                     &quote::quote! {query_part_bce8c9ae, "${v_daedba9c},"},
@@ -669,7 +675,7 @@ pub fn emit_generate_where_filters(
                                 pg_crud_macros_common::IncrementParameterUndrscr::True,
                                 {
                                     let format_token_stream =
-                                        generate_quotes::dq_token_stream(&format!(
+                                        generate_quotes::domain_types::dq_token_stream(&format!(
                                             "{{}}({{}}{} {pg_syntax})",
                                             pg_type_kind.format_argument()
                                         ));
@@ -724,7 +730,7 @@ pub fn emit_generate_where_filters(
                                 pg_crud_macros_common::IncrementParameterUndrscr::False,
                                 {
                                     let format_token_stream =
-                                        generate_quotes::dq_token_stream(&format!(
+                                        generate_quotes::domain_types::dq_token_stream(&format!(
                                             "{{}}(encode({{}}{}, '{{}}') = ${{}})",
                                             pg_type_kind.format_argument()
                                         ));
@@ -793,7 +799,7 @@ pub fn emit_generate_where_filters(
                             pg_crud_macros_common::IncrementParameterUndrscr::False,
                             generate_query_part_format_with_v_token_stream(
                                 &maybe_dimensions_ies_initialization_token_stream,
-                                &generate_quotes::dq_token_stream(&format!(
+                                &generate_quotes::domain_types::dq_token_stream(&format!(
                                     "{{}}(upper({{}}{}) - lower({{}}{}) = ${{}})",
                                     pg_type_kind.format_argument(),
                                     pg_type_kind.format_argument(),

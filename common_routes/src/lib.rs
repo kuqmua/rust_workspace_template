@@ -14,12 +14,12 @@ const HEALTH_COMPONENTS_MAX_LEN: usize = 2usize;
 )]
 pub struct GitInfo {
     #[schema(value_type = String)]
-    commit: git_info::StdGitCommitLinkCow,
+    commit: git_info::domain_types::GitCommitLinkCow,
 }
 #[derive(Debug, serde::Serialize, optimal_memory_layout::OptimalMemoryLayout)]
 struct NotFoundHandle {
-    commit: git_info::StdGitCommitLinkCow,
-    message: to_err_string::ErrorText,
+    commit: git_info::domain_types::GitCommitLinkCow,
+    message: to_err_string::domain_types::ErrorText,
     open_api_specification: OpenApiSpecificationPath,
 }
 #[derive(
@@ -111,7 +111,7 @@ pub struct HealthComponent {
 pub struct HealthComponents(Vec<HealthComponent>);
 impl utoipa::PartialSchema for HealthComponents {
     fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
-        <bounded_types::BoundedVec<
+        <bounded_types::domain_types::vector::BoundedVec<
             HealthComponent,
             { constants_usize::ZERO },
             HEALTH_COMPONENTS_MAX_LEN,
@@ -133,12 +133,12 @@ impl TryFrom<Vec<HealthComponent>> for HealthComponents {
     type Error = HealthComponentsError;
 
     fn try_from(value: Vec<HealthComponent>) -> Result<Self, Self::Error> {
-        bounded_types::BoundedVec::<
+        bounded_types::domain_types::vector::BoundedVec::<
             HealthComponent,
             { constants_usize::ZERO },
             HEALTH_COMPONENTS_MAX_LEN,
         >::try_from(value)
-        .map(bounded_types::BoundedVec::into_inner)
+        .map(bounded_types::domain_types::vector::BoundedVec::into_inner)
         .map(Self)
         .map_err(|_error| HealthComponentsError)
     }
@@ -148,7 +148,7 @@ impl<'de> serde::Deserialize<'de> for HealthComponents {
     where
         Deserializer: serde::Deserializer<'de>,
     {
-        let value = <bounded_types::BoundedVec<
+        let value = <bounded_types::domain_types::vector::BoundedVec<
             HealthComponent,
             { constants_usize::ZERO },
             HEALTH_COMPONENTS_MAX_LEN,
@@ -466,7 +466,7 @@ fn health_unavailable_response() -> axum::response::Response {
 )]
 pub struct AxumCommonRoutes(axum::Router);
 #[derive(Clone, optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
-pub struct StdArcCommonRoutesAppState(std::sync::Arc<dyn CommonRoutesParameters>);
+pub struct ArcCommonRoutesAppState(std::sync::Arc<dyn CommonRoutesParameters>);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
 pub struct CommonRoutesOpenApi;
 #[derive(optimal_memory_layout::OptimalMemoryLayout, serde::Serialize)]
@@ -479,13 +479,13 @@ impl CommonRoutesOpenApi {
         UtoipaCommonRoutesOpenApiDocument::from(CommonRouteRegistry::open_api())
     }
 }
-impl std::fmt::Debug for StdArcCommonRoutesAppState {
+impl std::fmt::Debug for ArcCommonRoutesAppState {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_tuple(constants_str::STDARCCOMMONROUTESAPPSTATE)
             .finish()
     }
 }
-impl axum::extract::FromRequestParts<Self> for StdArcCommonRoutesAppState {
+impl axum::extract::FromRequestParts<Self> for ArcCommonRoutesAppState {
     type Rejection = std::convert::Infallible;
     fn from_request_parts(
         _parts: &mut axum::http::request::Parts,
@@ -500,7 +500,7 @@ impl std::fmt::Debug for UtoipaCommonRoutesOpenApiDocument {
             .finish()
     }
 }
-impl<AppStateTy> From<std::sync::Arc<AppStateTy>> for StdArcCommonRoutesAppState
+impl<AppStateTy> From<std::sync::Arc<AppStateTy>> for ArcCommonRoutesAppState
 where
     AppStateTy: CommonRoutesParameters + 'static,
 {
@@ -510,24 +510,27 @@ where
 }
 
 pub trait CommonRoutesParameters:
-    git_info::GetGitCommitLink + app_state::GetSqlxPgPool + Send + Sync
+    git_info::domain_types::GetGitCommitLink + app_state::domain_types::GetSqlxPgPool + Send + Sync
 {
 }
 #[allow(clippy::single_call_fn)] // keeps commit-link extraction shape shared between handlers and tests
-const fn mk_git_info_payload(commit: git_info::StdGitCommitLinkCow) -> GitInfo {
+const fn mk_git_info_payload(commit: git_info::domain_types::GitCommitLinkCow) -> GitInfo {
     GitInfo { commit }
 }
 #[allow(clippy::single_call_fn)] // single source for no-route text reused by payload builder and tests
-fn mk_no_route_message(uri: AxumHttpUriRef<'_>) -> to_err_string::ErrorText {
+fn mk_no_route_message(uri: AxumHttpUriRef<'_>) -> to_err_string::domain_types::ErrorText {
     mk_no_route_message_for_suffix(get_uri_suffix(uri))
 }
 #[allow(clippy::single_call_fn)] // isolated for reuse in tests and payload builder when suffix is precomputed
-fn mk_no_route_message_for_suffix(uri_suffix: UriSuffixRef<'_>) -> to_err_string::ErrorText {
+fn mk_no_route_message_for_suffix(
+    uri_suffix: UriSuffixRef<'_>,
+) -> to_err_string::domain_types::ErrorText {
     let cap = no_route_message_capacity(uri_suffix);
     let mut message = String::with_capacity(cap.0);
     message.push_str(constants_str::COMMON_ROUTES_NO_ROUTE_MSG_PREFIX);
     message.push_str(uri_suffix.0);
-    to_err_string::ErrorText::try_from(message).unwrap_or_else(to_err_string::ErrorText::from)
+    to_err_string::domain_types::ErrorText::try_from(message)
+        .unwrap_or_else(to_err_string::domain_types::ErrorText::from)
 }
 #[allow(clippy::single_call_fn)] // isolated for reuse in tests and message builder
 fn no_route_message_capacity(uri_suffix: UriSuffixRef<'_>) -> NoRouteMessageCapacity {
@@ -548,14 +551,14 @@ fn get_uri_suffix(uri: AxumHttpUriRef<'_>) -> UriSuffixRef<'_> {
 #[allow(clippy::single_call_fn)] // keeps fallback payload assembly in one place
 fn mk_not_found_payload(
     uri: AxumHttpUriRef<'_>,
-    commit: git_info::StdGitCommitLinkCow,
+    commit: git_info::domain_types::GitCommitLinkCow,
 ) -> NotFoundHandle {
     mk_not_found_payload_with_message(mk_no_route_message(uri), commit)
 }
 #[allow(clippy::single_call_fn)] // shared payload constructor keeps not-found response shape centralized
 fn mk_not_found_payload_with_message(
-    message: to_err_string::ErrorText,
-    commit: git_info::StdGitCommitLinkCow,
+    message: to_err_string::domain_types::ErrorText,
+    commit: git_info::domain_types::GitCommitLinkCow,
 ) -> NotFoundHandle {
     NotFoundHandle {
         commit,
@@ -568,14 +571,14 @@ fn mk_not_found_payload_with_message(
 #[allow(clippy::single_call_fn)] // shared helper keeps commit-based status+json responses consistent across handlers
 fn mk_commit_json_res<S, T>(
     commit_src: &S,
-    map: impl FnOnce(git_info::StdGitCommitLinkCow) -> T,
+    map: impl FnOnce(git_info::domain_types::GitCommitLinkCow) -> T,
 ) -> JsonRes<T>
 where
-    S: ?Sized + git_info::GetGitCommitLink,
+    S: ?Sized + git_info::domain_types::GetGitCommitLink,
 {
-    mk_json_res(map(git_info::GetGitCommitLink::get_git_commit_link_cow(
-        commit_src,
-    )))
+    mk_json_res(map(
+        git_info::domain_types::GetGitCommitLink::get_git_commit_link_cow(commit_src),
+    ))
 }
 fn mk_json_res<T>(payload: T) -> JsonRes<T> {
     JsonRes {
@@ -591,7 +594,7 @@ fn map_health_check_status(is_ok: HealthCheckSucceeded) -> AxumHealthCheckStatus
     }
 }
 async fn database_is_ready(app_state: &dyn CommonRoutesParameters) -> HealthCheckSucceeded {
-    let pool = app_state::GetSqlxPgPool::get_sqlx_pg_pool(app_state);
+    let pool = app_state::domain_types::GetSqlxPgPool::get_sqlx_pg_pool(app_state);
     let probe = async {
         sqlx::query(constants_str::COMMON_ROUTES_HEALTH_CHECK_SQL)
             .execute(pool.as_ref())
@@ -600,7 +603,7 @@ async fn database_is_ready(app_state: &dyn CommonRoutesParameters) -> HealthChec
     };
     HealthCheckSucceeded::from(bool::from(
         server_runtime_http::run_health_probe(
-            server_runtime_http::StdHealthProbeTimeout::from(HEALTH_PROBE_TIMEOUT),
+            server_runtime_http::HealthProbeTimeoutDuration::from(HEALTH_PROBE_TIMEOUT),
             probe,
         )
         .await,
@@ -614,7 +617,7 @@ fn health_report_response(report: HealthReport) -> Option<JsonRes<HealthReport>>
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[frontend_contract::route_registry(
-    state = StdArcCommonRoutesAppState,
+    state = ArcCommonRoutesAppState,
     family = CommonRouteFamily;
     ("", "");
     schemas(
@@ -646,7 +649,7 @@ async fn health_live() -> Result<JsonRes<HealthReport>, HealthLiveError> {
     reason = "the concrete handler is intentionally owned by the generated route registry"
 )]
 async fn health_ready(
-    app_state: StdArcCommonRoutesAppState,
+    app_state: ArcCommonRoutesAppState,
 ) -> Result<JsonRes<HealthReport>, HealthReadyError> {
     health_report_response(HealthReport::readiness(HealthDatabaseAvailable::from(
         database_is_ready(app_state.0.as_ref()).await.0,
@@ -658,9 +661,7 @@ async fn health_ready(
     clippy::single_call_fn,
     reason = "the concrete handler is intentionally owned by the generated route registry"
 )]
-async fn health(
-    app_state: StdArcCommonRoutesAppState,
-) -> Result<JsonRes<HealthReport>, HealthError> {
+async fn health(app_state: ArcCommonRoutesAppState) -> Result<JsonRes<HealthReport>, HealthError> {
     health_report_response(HealthReport::readiness(HealthDatabaseAvailable::from(
         database_is_ready(app_state.0.as_ref()).await.0,
     )))
@@ -672,7 +673,7 @@ async fn health(
     reason = "the concrete handler is intentionally owned by the generated route registry"
 )]
 async fn health_check(
-    app_state: StdArcCommonRoutesAppState,
+    app_state: ArcCommonRoutesAppState,
 ) -> Result<AxumHealthCheckStatus, HealthCheckError> {
     let status = map_health_check_status(database_is_ready(app_state.0.as_ref()).await);
     if status.0 == axum::http::StatusCode::OK {
@@ -686,19 +687,19 @@ async fn health_check(
     clippy::single_call_fn,
     reason = "the concrete handler is intentionally owned by the generated route registry"
 )]
-async fn git_info(app_state: StdArcCommonRoutesAppState) -> JsonRes<GitInfo> {
+async fn git_info(app_state: ArcCommonRoutesAppState) -> JsonRes<GitInfo> {
     mk_commit_json_res(app_state.0.as_ref(), mk_git_info_payload)
 }
 
 #[must_use]
-pub fn common_routes(app_state_b9fc2d94: StdArcCommonRoutesAppState) -> AxumCommonRoutes {
+pub fn common_routes(app_state_b9fc2d94: ArcCommonRoutesAppState) -> AxumCommonRoutes {
     AxumCommonRoutes::from(
         CommonRouteRegistry::router()
             .fallback(async |uri, axum::extract::State(app_state_19103bd5_raw)| {
-                let app_state_19103bd5: StdArcCommonRoutesAppState = app_state_19103bd5_raw;
+                let app_state_19103bd5: ArcCommonRoutesAppState = app_state_19103bd5_raw;
                 CommonNotFoundError::NotFound(mk_not_found_payload(
                     AxumHttpUriRef::from(&uri),
-                    git_info::GetGitCommitLink::get_git_commit_link_cow(
+                    git_info::domain_types::GetGitCommitLink::get_git_commit_link_cow(
                         app_state_19103bd5.0.as_ref(),
                     ),
                 ))

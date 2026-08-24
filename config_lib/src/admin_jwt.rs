@@ -9,7 +9,11 @@ const ADMIN_JWT_SECRET_MAX_COUNT: usize = 8;
     newtype::FromInner,
 )]
 pub struct AdminJwtSecret(
-    bounded_types::BoundedVec<super::SecrecySecretBoxString, 1, ADMIN_JWT_SECRET_MAX_COUNT>,
+    bounded_types::domain_types::vector::BoundedVec<
+        super::SecrecySecretBoxString,
+        1,
+        ADMIN_JWT_SECRET_MAX_COUNT,
+    >,
 );
 
 impl AdminJwtSecret {
@@ -67,12 +71,16 @@ impl super::TryFromStdEnvVarOk for AdminJwtSecret {
                 }
             })
             .collect::<Result<Vec<_>, _>>()?;
-        bounded_types::BoundedVec::try_from(secrets)
+        bounded_types::domain_types::vector::BoundedVec::try_from(secrets)
             .map(Self)
             .map_err(|error| match error {
-                bounded_types::BoundedValueError::BelowMin { .. } => Self::Error::Empty,
-                bounded_types::BoundedValueError::AboveMax { .. }
-                | bounded_types::BoundedValueError::InvalidBounds { .. } => Self::Error::TooMany,
+                bounded_types::domain_types::BoundedValueError::BelowMin { .. } => {
+                    Self::Error::Empty
+                }
+                bounded_types::domain_types::BoundedValueError::AboveMax { .. }
+                | bounded_types::domain_types::BoundedValueError::InvalidBounds { .. } => {
+                    Self::Error::TooMany
+                }
             })
     }
 }

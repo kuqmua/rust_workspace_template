@@ -30,7 +30,8 @@ fn bench_sql_select_builder(criterion: &mut criterion::Criterion) {
                 identifier(constants_str::PUBLIC),
                 identifier(constants_str::BENCHMARK_TABLE),
             ),
-            columns.into(),
+            pg_crud_common::SqlIdentifiers::try_from(columns)
+                .expect("04b6cc99 benchmark SQL identifiers invariant must hold"),
         );
         let _criterion = criterion.bench_function(benchmark_name, |bencher| {
             bencher.iter(|| {

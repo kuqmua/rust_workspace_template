@@ -48,9 +48,10 @@ impl<T: PartialEq, const MIN: usize, const MAX: usize> TryFrom<Vec<T>>
 {
     type Error = UniqueVecError;
     fn try_from(values: Vec<T>) -> Result<Self, Self::Error> {
-        let bounded_values = bounded_types::BoundedVec::<T, MIN, MAX>::try_from(values)
-            .map_err(UniqueVecError::from)?
-            .into_inner();
+        let bounded_values =
+            bounded_types::domain_types::vector::BoundedVec::<T, MIN, MAX>::try_from(values)
+                .map_err(UniqueVecError::from)?
+                .into_inner();
         if bounded_values.iter().enumerate().any(|(idx, item)| {
             bounded_values
                 .get(..idx)
@@ -63,11 +64,11 @@ impl<T: PartialEq, const MIN: usize, const MAX: usize> TryFrom<Vec<T>>
 }
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
-struct StdBoundedUniqueVecVisitor<T, const MIN: usize, const MAX: usize>(
+struct BoundedUniqueVecVisitorPhantomData<T, const MIN: usize, const MAX: usize>(
     std::marker::PhantomData<T>,
 );
 impl<'de, T: serde::Deserialize<'de> + PartialEq, const MIN: usize, const MAX: usize>
-    serde::de::Visitor<'de> for StdBoundedUniqueVecVisitor<T, MIN, MAX>
+    serde::de::Visitor<'de> for BoundedUniqueVecVisitorPhantomData<T, MIN, MAX>
 {
     type Value = BoundedUniqueVec<T, MIN, MAX>;
     fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -77,7 +78,7 @@ impl<'de, T: serde::Deserialize<'de> + PartialEq, const MIN: usize, const MAX: u
     where
         Access: serde::de::SeqAccess<'de>,
     {
-        bounded_types::BoundedVec::<T, MIN, MAX>::validate_bounds()
+        bounded_types::domain_types::vector::BoundedVec::<T, MIN, MAX>::validate_bounds()
             .map_err(UniqueVecError::from)
             .map_err(serde::de::Error::custom)?;
         let mut values = Vec::with_capacity(
@@ -114,23 +115,31 @@ impl<'de, T: serde::Deserialize<'de> + PartialEq, const MIN: usize, const MAX: u
     where
         Deserializer: serde::Deserializer<'de>,
     {
-        deserializer.deserialize_seq(StdBoundedUniqueVecVisitor::from(std::marker::PhantomData))
+        deserializer.deserialize_seq(BoundedUniqueVecVisitorPhantomData::from(
+            std::marker::PhantomData,
+        ))
     }
 }
-impl From<bounded_types::BoundedValueError> for UniqueVecError {
-    fn from(value: bounded_types::BoundedValueError) -> Self {
+impl From<bounded_types::domain_types::BoundedValueError> for UniqueVecError {
+    fn from(value: bounded_types::domain_types::BoundedValueError) -> Self {
         match value {
-            bounded_types::BoundedValueError::AboveMax { max, .. } => Self::AboveMax {
-                max: UniqueVecLen::from(max.get()),
-            },
-            bounded_types::BoundedValueError::BelowMin { actual, min } => Self::BelowMin {
-                actual: UniqueVecLen::from(actual.get()),
-                min: UniqueVecLen::from(min.get()),
-            },
-            bounded_types::BoundedValueError::InvalidBounds { min, max } => Self::InvalidBounds {
-                min: UniqueVecLen::from(min.get()),
-                max: UniqueVecLen::from(max.get()),
-            },
+            bounded_types::domain_types::BoundedValueError::AboveMax { max, .. } => {
+                Self::AboveMax {
+                    max: UniqueVecLen::from(max.get()),
+                }
+            }
+            bounded_types::domain_types::BoundedValueError::BelowMin { actual, min } => {
+                Self::BelowMin {
+                    actual: UniqueVecLen::from(actual.get()),
+                    min: UniqueVecLen::from(min.get()),
+                }
+            }
+            bounded_types::domain_types::BoundedValueError::InvalidBounds { min, max } => {
+                Self::InvalidBounds {
+                    min: UniqueVecLen::from(min.get()),
+                    max: UniqueVecLen::from(max.get()),
+                }
+            }
         }
     }
 }

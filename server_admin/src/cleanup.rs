@@ -1,6 +1,6 @@
 #![allow(clippy::single_call_fn)] // stable root cleanup API delegates to the private bounded-cleanup module
 pub(super) async fn cleanup_admin_tables(
-    pool: app_state::SqlxPgPoolRef<'_>,
+    pool: app_state::domain_types::SqlxPgPoolRef<'_>,
     cfg: super::AdminCleanupCfg,
 ) -> Result<super::AdminCleanupReport, super::AdminCleanupError> {
     let repository_report = super::repository::cleanup::cleanup_admin_tables(

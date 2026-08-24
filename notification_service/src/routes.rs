@@ -24,9 +24,11 @@ async fn create_notification(
     Ok(super::AxumNotificationResponse::from(
         axum::response::IntoResponse::into_response((
             http::StatusCode::CREATED,
-            axum::Json(notification_service_contract::CreateNotificationRes::new(
-                notification_service_contract::UuidNotificationId::from(id),
-            )),
+            axum::Json(
+                notification_service_contract::domain_types::CreateNotificationRes::new(
+                    notification_service_contract::domain_types::UuidNotificationId::from(id),
+                ),
+            ),
         )),
     ))
 }
@@ -61,14 +63,14 @@ async fn open_api() -> super::AxumNotificationResponse {
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[frontend_contract::route_registry(
     state = super::NotificationState,
-    family = notification_service_contract::NotificationRouteFamily;
+    family = notification_service_contract::domain_types::NotificationRouteFamily;
     ("", "");
     schemas(
-        notification_service_contract::NotificationMessage,
-        notification_service_contract::UuidNotificationId
+        notification_service_contract::domain_types::NotificationMessage,
+        notification_service_contract::domain_types::UuidNotificationId
     );
     (
-        notification_service_contract::CreateNotificationRoute,
+        notification_service_contract::domain_types::CreateNotificationRoute,
         create_notification
     ),
 )]
@@ -84,11 +86,11 @@ pub(super) fn open_api_document() -> utoipa::openapi::OpenApi {
 #[frontend_contract::handler_registry(
     state = super::NotificationState;
     (
-        notification_service_contract::NotificationOperationalRoute::Metrics,
+        notification_service_contract::domain_types::NotificationOperationalRoute::Metrics,
         metrics
     ),
     (
-        notification_service_contract::NotificationOperationalRoute::OpenApi,
+        notification_service_contract::domain_types::NotificationOperationalRoute::OpenApi,
         open_api
     ),
 )]
@@ -99,7 +101,7 @@ pub(super) fn router(
     body_maximum_bytes: super::NotificationBodyMaximumBytes,
 ) -> super::AxumNotificationRouter {
     let common_routes = axum::Router::from(common_routes::common_routes(
-        common_routes::StdArcCommonRoutesAppState::from(std::sync::Arc::new(state.clone())),
+        common_routes::ArcCommonRoutesAppState::from(std::sync::Arc::new(state.clone())),
     ));
     super::AxumNotificationRouter::from(
         NotificationRouteRegistry::router()

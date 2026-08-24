@@ -1,11 +1,11 @@
 #![allow(clippy::single_call_fn)] // public facade keeps stable auth module paths while this module owns router and OpenAPI composition
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[frontend_contract::route_registry(
-    state = super::StdSharedAdminAuthSvcState,
+    state = super::SharedAdminAuthSvcStateArc,
     family = server_admin_contract::AdminAuthenticationRouteFamily;
     (constants_str::ADMIN_COOKIE, constants_str::ADMIN_CSRF);
     schemas(
-        server_admin_contract::StdAdminPositiveI64,
+        server_admin_contract::PositiveNonZeroI64,
         server_admin_contract::AdminPermissionValues,
         server_admin_contract::AdminRoleNames,
         server_admin_contract::AdminRoleIds,
@@ -159,7 +159,7 @@ pub(super) fn open_api() -> super::UtoipaAdminAuthOpenApi {
     }
     super::UtoipaAdminAuthOpenApi(document)
 }
-pub(super) fn routes(state: super::StdSharedAdminAuthSvcState) -> super::AxumAdminAuthRouter {
+pub(super) fn routes(state: super::SharedAdminAuthSvcStateArc) -> super::AxumAdminAuthRouter {
     let base_router = AdminAuthRouteRegistry::router()
         .method_not_allowed_fallback(async || super::AdminError::MethodNotAllowed);
     let router = match <server_admin_contract::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::body_limit() {

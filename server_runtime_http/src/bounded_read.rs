@@ -1,5 +1,5 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct StdPathRef<'path_lt>(&'path_lt std::path::Path);
+pub struct PathRef<'path_lt>(&'path_lt std::path::Path);
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
@@ -48,20 +48,20 @@ impl TryFrom<BoundedBytes> for BoundedText {
     type Error = BoundedReadError;
     fn try_from(value: BoundedBytes) -> Result<Self, Self::Error> {
         let text = String::from_utf8(value.0).map_err(|source| BoundedReadError::Utf8 {
-            source: StdFromUtf8Error(source),
+            source: BoundedReadFromUtf8Error(source),
         })?;
         Self::try_from(text)
     }
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, newtype::FromInner)]
-pub struct StdBoundedReadConcurrency(std::sync::Arc<tokio::sync::Semaphore>);
+pub struct BoundedReadConcurrencyArcSemaphore(std::sync::Arc<tokio::sync::Semaphore>);
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct StdBoundedReadConcurrencyMaximum(std::num::NonZeroUsize);
+pub struct BoundedReadConcurrencyMaximumNonZeroUsize(std::num::NonZeroUsize);
 
-impl StdBoundedReadConcurrency {
+impl BoundedReadConcurrencyArcSemaphore {
     #[must_use]
-    pub fn new(maximum_concurrent_reads: StdBoundedReadConcurrencyMaximum) -> Self {
+    pub fn new(maximum_concurrent_reads: BoundedReadConcurrencyMaximumNonZeroUsize) -> Self {
         Self::from(std::sync::Arc::new(tokio::sync::Semaphore::new(
             maximum_concurrent_reads.0.get(),
         )))
@@ -71,11 +71,11 @@ impl StdBoundedReadConcurrency {
     optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
 )]
 #[error(transparent)]
-pub struct StdIoError(std::io::Error);
+pub struct BoundedReadIoError(std::io::Error);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 pub enum IoErrorPresenceDisposition {
     Missing,
-    Other(StdIoError),
+    Other(BoundedReadIoError),
 }
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
@@ -86,7 +86,7 @@ pub struct ReqwestError(reqwest::Error);
     optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
 )]
 #[error(transparent)]
-pub struct StdFromUtf8Error(std::string::FromUtf8Error);
+pub struct BoundedReadFromUtf8Error(std::string::FromUtf8Error);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
 pub struct ReqwestResponse(reqwest::Response);
 
@@ -152,21 +152,21 @@ pub enum BoundedReadError {
     #[error("file read failed")]
     Io {
         #[source]
-        source: StdIoError,
+        source: BoundedReadIoError,
     },
     #[error("bounded read concurrency limiter is closed")]
     LimiterClosed,
     #[error("text content must be valid UTF-8")]
     Utf8 {
         #[source]
-        source: StdFromUtf8Error,
+        source: BoundedReadFromUtf8Error,
     },
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 struct BoundedReadObservedBytes(usize);
 
 #[must_use]
-pub fn classify_not_found_io_error(error: StdIoError) -> IoErrorPresenceDisposition {
+pub fn classify_not_found_io_error(error: BoundedReadIoError) -> IoErrorPresenceDisposition {
     if error.0.kind() == std::io::ErrorKind::NotFound {
         IoErrorPresenceDisposition::Missing
     } else {
@@ -189,47 +189,47 @@ const fn ensure_size_within_limit(
     reason = "test seam simulates file growth between metadata and content reads"
 )]
 fn read_bounded_file_with_after_metadata(
-    path: StdPathRef<'_>,
+    path: PathRef<'_>,
     maximum_bytes: BoundedReadMaximumBytes,
     after_metadata: impl FnOnce(),
 ) -> Result<BoundedBytes, BoundedReadError> {
     let metadata = std::fs::metadata(path.0).map_err(|source| BoundedReadError::Io {
-        source: StdIoError::from(source),
+        source: BoundedReadIoError::from(source),
     })?;
     if metadata.len() > u64::try_from(maximum_bytes.0).unwrap_or(u64::MAX) {
         return Err(BoundedReadError::ExceedsMaximum { maximum_bytes });
     }
     after_metadata();
     let bytes = std::fs::read(path.0).map_err(|source| BoundedReadError::Io {
-        source: StdIoError::from(source),
+        source: BoundedReadIoError::from(source),
     })?;
     ensure_size_within_limit(BoundedReadObservedBytes::from(bytes.len()), maximum_bytes)?;
     Ok(BoundedBytes::from(bytes))
 }
 pub fn read_bounded_file(
-    path: StdPathRef<'_>,
+    path: PathRef<'_>,
     maximum_bytes: BoundedReadMaximumBytes,
 ) -> Result<BoundedBytes, BoundedReadError> {
     let metadata = std::fs::metadata(path.0).map_err(|source| BoundedReadError::Io {
-        source: StdIoError::from(source),
+        source: BoundedReadIoError::from(source),
     })?;
     if metadata.len() > u64::try_from(maximum_bytes.0).unwrap_or(u64::MAX) {
         return Err(BoundedReadError::ExceedsMaximum { maximum_bytes });
     }
     let bytes = std::fs::read(path.0).map_err(|source| BoundedReadError::Io {
-        source: StdIoError::from(source),
+        source: BoundedReadIoError::from(source),
     })?;
     ensure_size_within_limit(BoundedReadObservedBytes::from(bytes.len()), maximum_bytes)?;
     Ok(BoundedBytes::from(bytes))
 }
 pub async fn read_bounded_file_async(
-    path: StdPathRef<'_>,
+    path: PathRef<'_>,
     maximum_bytes: BoundedReadMaximumBytes,
 ) -> Result<BoundedBytes, BoundedReadError> {
     let metadata = tokio::fs::metadata(path.0)
         .await
         .map_err(|source| BoundedReadError::Io {
-            source: StdIoError::from(source),
+            source: BoundedReadIoError::from(source),
         })?;
     if metadata.len() > u64::try_from(maximum_bytes.0).unwrap_or(u64::MAX) {
         return Err(BoundedReadError::ExceedsMaximum { maximum_bytes });
@@ -237,7 +237,7 @@ pub async fn read_bounded_file_async(
     let bytes = tokio::fs::read(path.0)
         .await
         .map_err(|source| BoundedReadError::Io {
-            source: StdIoError::from(source),
+            source: BoundedReadIoError::from(source),
         })?;
     ensure_size_within_limit(BoundedReadObservedBytes::from(bytes.len()), maximum_bytes)?;
     Ok(BoundedBytes::from(bytes))
@@ -245,7 +245,7 @@ pub async fn read_bounded_file_async(
 pub async fn read_bounded_http_response(
     response: ReqwestResponse,
     maximum_bytes: BoundedReadMaximumBytes,
-    concurrency: StdBoundedReadConcurrency,
+    concurrency: BoundedReadConcurrencyArcSemaphore,
 ) -> Result<BoundedBytes, BoundedReadError> {
     let _permit = concurrency
         .0
@@ -283,13 +283,13 @@ pub fn parse_bounded_json(bytes: &BoundedBytes) -> Result<BoundedJsonText, Bound
 fn parse_bounded_json_owned(bytes: BoundedBytes) -> Result<BoundedJsonText, BoundedJsonReadError> {
     let text = String::from_utf8(bytes.0).map_err(|error| {
         BoundedJsonReadError::Read(BoundedReadError::Utf8 {
-            source: StdFromUtf8Error::from(error),
+            source: BoundedReadFromUtf8Error::from(error),
         })
     })?;
     BoundedJsonText::try_from(text)
 }
 pub async fn read_bounded_json_file_async(
-    path: StdPathRef<'_>,
+    path: PathRef<'_>,
     maximum_bytes: BoundedReadMaximumBytes,
 ) -> Result<BoundedJsonText, BoundedJsonReadError> {
     let bytes = read_bounded_file_async(path, maximum_bytes)
@@ -300,7 +300,7 @@ pub async fn read_bounded_json_file_async(
 pub async fn read_bounded_json_http_response(
     response: ReqwestResponse,
     maximum_bytes: BoundedReadMaximumBytes,
-    concurrency: StdBoundedReadConcurrency,
+    concurrency: BoundedReadConcurrencyArcSemaphore,
 ) -> Result<BoundedJsonText, BoundedJsonReadError> {
     let bytes = read_bounded_http_response(response, maximum_bytes, concurrency)
         .await
@@ -321,13 +321,13 @@ mod tests {
         std::fs::write(&path, b"abcd")
             .expect("11ddba38 exact_limit_and_one_byte_over_are_distinguished invariant must hold");
         let exact = super::read_bounded_file(
-            super::StdPathRef::from(path.as_path()),
+            super::PathRef::from(path.as_path()),
             super::BoundedReadMaximumBytes::from(4usize),
         )
         .expect("28fce6c8 exact_limit_and_one_byte_over_are_distinguished invariant must hold");
         assert_eq!(exact.into_inner(), b"abcd");
         let over = super::read_bounded_file(
-            super::StdPathRef::from(path.as_path()),
+            super::PathRef::from(path.as_path()),
             super::BoundedReadMaximumBytes::from(3usize),
         );
         assert!(matches!(
@@ -345,7 +345,7 @@ mod tests {
         std::fs::write(&path, b"a")
             .expect("c0745b58 file_growth_after_metadata_is_rechecked invariant must hold");
         let result = super::read_bounded_file_with_after_metadata(
-            super::StdPathRef::from(path.as_path()),
+            super::PathRef::from(path.as_path()),
             super::BoundedReadMaximumBytes::from(constants_usize::ONE),
             || {
                 std::fs::write(&path, b"ab")
@@ -422,7 +422,7 @@ mod tests {
             .await
             .expect("f68e33f3 asynchronous_file_read_obeys_limit invariant must hold");
         let bytes = super::read_bounded_file_async(
-            super::StdPathRef::from(path.as_path()),
+            super::PathRef::from(path.as_path()),
             super::BoundedReadMaximumBytes::from(3usize),
         )
         .await
@@ -441,7 +441,7 @@ mod tests {
         let bytes = super::read_bounded_http_response(
             super::ReqwestResponse::from(reqwest::Response::from(response)),
             super::BoundedReadMaximumBytes::from(4usize),
-            super::StdBoundedReadConcurrency::new(super::StdBoundedReadConcurrencyMaximum::from(
+            super::BoundedReadConcurrencyArcSemaphore::new(super::BoundedReadConcurrencyMaximumNonZeroUsize::from(
                 std::num::NonZeroUsize::MIN,
             )),
         )

@@ -24,7 +24,7 @@ pub struct PgPoolMinConnections(u32);
     newtype::DerefInner,
     newtype::FromInner,
 )]
-pub struct PgPoolAcquireTimeoutSeconds(super::StdNonZeroU64);
+pub struct PgPoolAcquireTimeoutSeconds(super::ConfigNonZeroU64);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -33,7 +33,7 @@ pub struct PgPoolAcquireTimeoutSeconds(super::StdNonZeroU64);
     newtype::DerefInner,
     newtype::FromInner,
 )]
-pub struct PgPoolIdleTimeoutSeconds(super::StdNonZeroU64);
+pub struct PgPoolIdleTimeoutSeconds(super::ConfigNonZeroU64);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -42,7 +42,7 @@ pub struct PgPoolIdleTimeoutSeconds(super::StdNonZeroU64);
     newtype::DerefInner,
     newtype::FromInner,
 )]
-pub struct PgPoolMaxLifetimeSeconds(super::StdNonZeroU64);
+pub struct PgPoolMaxLifetimeSeconds(super::ConfigNonZeroU64);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -51,7 +51,7 @@ pub struct PgPoolMaxLifetimeSeconds(super::StdNonZeroU64);
     newtype::DerefInner,
     newtype::FromInner,
 )]
-pub struct RequestTimeoutSeconds(super::StdNonZeroU64);
+pub struct RequestTimeoutSeconds(super::ConfigNonZeroU64);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq, thiserror::Error,
 )]
@@ -71,12 +71,12 @@ impl super::TryFromStdEnvVarOk for PgPoolMinConnections {
 }
 fn parse_pg_pool_non_zero_seconds(
     v: &super::StdEnvVarOk,
-) -> Result<super::StdNonZeroU64, PgPoolConfigParseError> {
+) -> Result<super::ConfigNonZeroU64, PgPoolConfigParseError> {
     let value =
         v.0.parse::<u64>()
             .map_err(|_error| PgPoolConfigParseError::Parse)?;
     std::num::NonZeroU64::new(value)
-        .map(super::StdNonZeroU64::from)
+        .map(super::ConfigNonZeroU64::from)
         .ok_or(PgPoolConfigParseError::Zero)
 }
 impl super::TryFromStdEnvVarOk for PgPoolAcquireTimeoutSeconds {
@@ -128,7 +128,7 @@ pub enum TryFromStdEnvVarOkPgPoolMaxConnectionsError {
     },
     #[error("{:?}", .u32_parsing)]
     U32Parsing {
-        u32_parsing: super::StdU32ParsingError,
+        u32_parsing: super::U32ParseIntError,
     },
 }
 impl super::TryFromStdEnvVarOk for PgPoolMaxConnections {
@@ -137,7 +137,7 @@ impl super::TryFromStdEnvVarOk for PgPoolMaxConnections {
         let parsed: u32 = super::parse_from_str_with_error(
             super::StdEnvVarOkRef::from(v.0.as_str()),
             |u32_parsing| Self::Error::U32Parsing {
-                u32_parsing: super::StdU32ParsingError::from(u32_parsing),
+                u32_parsing: super::U32ParseIntError::from(u32_parsing),
             },
         )?;
         Self::try_from(parsed).map_err(|pg_pool_max_connections| {

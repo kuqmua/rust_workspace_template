@@ -46,8 +46,8 @@ pub fn build_stable_read_query_plan(
     sort_column: &crate::SqlIdentifier,
     tie_break_column: &crate::SqlIdentifier,
     order: QuerySortOrder,
-    limit_bind: crate::StdReadQueryBindIndex,
-    offset_bind: crate::StdReadQueryBindIndex,
+    limit_bind: crate::ReadQueryBindIndexNonZeroU32,
+    offset_bind: crate::ReadQueryBindIndexNonZeroU32,
 ) -> Result<ReadQueryPlan, ReadQueryPlanError> {
     let mut query = base.into_inner();
     let order_sql = order.sql();

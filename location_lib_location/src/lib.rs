@@ -1,5 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
-struct SynItemEnumMutRef<'item_lt>(&'item_lt mut syn::ItemEnum);
+mod domain_types;
 #[proc_macro_attribute]
 pub fn errors_with_location(
     attr_token_stream: proc_macro::TokenStream,
@@ -17,14 +16,14 @@ pub fn errors_with_location(
         Ok(v) => v,
         Err(error) => return error.into_compile_error().into(),
     };
-    match add_location_fields(SynItemEnumMutRef::from(&mut item)) {
+    match add_location_fields(domain_types::SynItemEnumMutRef::from(&mut item)) {
         Ok(()) => quote::quote! {#item}.into(),
         Err(error) => error.into_compile_error().into(),
     }
 }
 #[allow(clippy::single_call_fn)] // isolated transformation is unit-tested independently from proc-macro parsing
-fn add_location_fields(item: SynItemEnumMutRef<'_>) -> syn::Result<()> {
-    let SynItemEnumMutRef(item_ref) = item;
+fn add_location_fields(item: domain_types::SynItemEnumMutRef<'_>) -> syn::Result<()> {
+    let item_ref = item.into_inner();
     item_ref.variants.iter_mut().try_for_each(|variant| {
         let syn::Fields::Named(fields) = &mut variant.fields else {
             return Err(syn::Error::new_spanned(
@@ -79,9 +78,9 @@ pub fn location(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
         .then(|| quote::quote! {utoipa::ToSchema,});
     let identifier = &di.ident;
     let string_token_stream = token_patterns::StringTokenStream;
-    let location_snake_case = naming::LocationSnakeCase;
-    let v_snake_case = naming::VSnakeCase;
-    let into_serde_version_snake_case = naming::IntoSerdeVersionSnakeCase;
+    let location_snake_case = naming::domain_types::LocationSnakeCase;
+    let v_snake_case = naming::domain_types::VSnakeCase;
+    let into_serde_version_snake_case = naming::domain_types::IntoSerdeVersionSnakeCase;
     let generic_parameters = &di
         .generics
         .params
@@ -94,7 +93,7 @@ pub fn location(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
         })
         .collect::<Vec<&syn::Ident>>();
     let identifier_with_serde_upper_camel_case =
-        naming::parameter::SelfWithSerdeUpperCamelCase::from_tokens(&identifier);
+        naming::domain_types::parameter::SelfWithSerdeUpperCamelCase::from_tokens(&identifier);
     let syn::Data::Enum(data_enum) = di.data else {
         panic!("d98214f7");
     };
@@ -142,7 +141,7 @@ pub fn location(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
         } else {
             let v = generic_parameters
                 .iter()
-                .map(|element| quote::quote! {#element: to_err_string::ToErrString});
+                .map(|element| quote::quote! {#element: to_err_string::domain_types::ToErrString});
             quote::quote! {<#(#v),*>}
         };
     let generate_enum_identifier_with_serde_token_stream = |ts: &dyn quote::ToTokens| {
@@ -167,7 +166,7 @@ pub fn location(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     };
     let tokens = match supported_enum_variant {
         SuportedEnumVariant::Named => {
-            let location_snake_case_str = naming::LocationSnakeCase.to_string();
+            let location_snake_case_str = naming::domain_types::LocationSnakeCase.to_string();
             //todo maybe impl display was a bad idea. .to_string() casts is dangerous
             let impl_display_handle_token_stream = {
                 let vrts_token_stream = data_enum.variants.iter().map(|element| {
@@ -189,7 +188,7 @@ pub fn location(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                             quote::quote! {#(#accumulator_token_stream),*,}
                         }
                     };
-                    let fields_format_excluding_location_token_stream = generate_quotes::dq_token_stream(
+                    let fields_format_excluding_location_token_stream = generate_quotes::domain_types::dq_token_stream(
                         &fields.iter()
                         .filter(|el0| *el0.ident.as_ref().expect("3d70a4f4 location invariant must hold") != *location_snake_case_str)
                         .fold(
@@ -214,7 +213,7 @@ pub fn location(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                         match macros_helpers::location_data::LocationFieldAttr::try_from(el0).expect("8ff56aeb location invariant must hold") {
                             macros_helpers::location_data::LocationFieldAttr::EoToErrString | macros_helpers::location_data::LocationFieldAttr::EoToErrStringSerde => {
                                 quote::quote! {
-                                    to_err_string::ToErrString::to_err_string(#el0_identifier)
+                                    to_err_string::domain_types::ToErrString::to_err_string(#el0_identifier)
                                 }
                             }
                             macros_helpers::location_data::LocationFieldAttr::EoLocation => {
@@ -236,7 +235,7 @@ pub fn location(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                                         #string_token_stream::new(),
                                         |mut accumulator_ac447c4b, element| {
                                             accumulator_ac447c4b.push_str(
-                                                &to_err_string::ToErrString::to_err_string(element)
+                                                &to_err_string::domain_types::ToErrString::to_err_string(element)
                                                 .lines()
                                                 .fold(
                                                     #string_token_stream::new(),
@@ -270,7 +269,7 @@ pub fn location(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                                 }
                             }
                             macros_helpers::location_data::LocationFieldAttr::EoHashMapKStringVToErrString | macros_helpers::location_data::LocationFieldAttr::EoHashMapKStringVToErrStringSerde => {
-                                let if_write_is_err_token_stream = macros_helpers::generate_if_write_is_err_token_stream::generate_if_write_is_err_token_stream(&quote::quote! {accumulator_06473093, "\n {}: {}", &to_err_string::ToErrString::to_err_string(k), &to_err_string::ToErrString::to_err_string(#v_snake_case)}, &quote::quote! {panic!("d030580a");});
+                                let if_write_is_err_token_stream = macros_helpers::generate_if_write_is_err_token_stream::generate_if_write_is_err_token_stream(&quote::quote! {accumulator_06473093, "\n {}: {}", &to_err_string::domain_types::ToErrString::to_err_string(k), &to_err_string::domain_types::ToErrString::to_err_string(#v_snake_case)}, &quote::quote! {panic!("d030580a");});
                                 quote::quote! {
                                     #el0_identifier.iter().fold(
                                         #string_token_stream::new(),
@@ -288,7 +287,7 @@ pub fn location(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                                         quote::quote! {
                                             accumulator_a47e1ba7,
                                             "\n {}: {}",
-                                            to_err_string::ToErrString::to_err_string(k),
+                                            to_err_string::domain_types::ToErrString::to_err_string(k),
                                             #v_snake_case.to_string().lines().fold(
                                                 #string_token_stream::new(),
                                                 |mut accumulator_addfc699, element_8b8f577e| {
@@ -383,7 +382,7 @@ pub fn location(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                             let generate_field_token_stream = |ts: &dyn quote::ToTokens|quote::quote! {#el0_identifier: {#ts}};
                             match macros_helpers::location_data::LocationFieldAttr::try_from(el0).expect("449c3781 location invariant must hold") {
                                 macros_helpers::location_data::LocationFieldAttr::EoToErrString => generate_field_token_stream(&quote::quote! {
-                                    to_err_string::ToErrString::to_err_string(&#el0_identifier).into_inner()
+                                    to_err_string::domain_types::ToErrString::to_err_string(&#el0_identifier).into_inner()
                                 }),
                                 macros_helpers::location_data::LocationFieldAttr::EoToErrStringSerde | macros_helpers::location_data::LocationFieldAttr::EoVecToErrStringSerde => {
                                     quote::quote! {#el0_identifier}
@@ -392,24 +391,24 @@ pub fn location(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                                     #el0_identifier.into_serde_version()
                                 }),
                                 macros_helpers::location_data::LocationFieldAttr::EoVecToErrString => generate_field_token_stream(&quote::quote! {
-                                    #el0_identifier.into_iter().map(|element|to_err_string::ToErrString::to_err_string(&element).into_inner()).collect()
+                                    #el0_identifier.into_iter().map(|element|to_err_string::domain_types::ToErrString::to_err_string(&element).into_inner()).collect()
                                 }),
                                 macros_helpers::location_data::LocationFieldAttr::EoVecLocation => generate_field_token_stream(&quote::quote! {
                                     #el0_identifier.into_iter().map(|element|element.into_serde_version()).collect()
                                 }),
                                 macros_helpers::location_data::LocationFieldAttr::EoHashMapKStringVToErrString => generate_field_token_stream(&quote::quote! {
                                     #el0_identifier.into_iter().map(
-                                        |(k, v)|(to_err_string::ToErrString::to_err_string(&k).into_inner(), to_err_string::ToErrString::to_err_string(&v).into_inner())
+                                        |(k, v)|(to_err_string::domain_types::ToErrString::to_err_string(&k).into_inner(), to_err_string::domain_types::ToErrString::to_err_string(&v).into_inner())
                                     ).collect()
                                 }),
                                 macros_helpers::location_data::LocationFieldAttr::EoHashMapKStringVToErrStringSerde => generate_field_token_stream(&quote::quote! {
                                     #el0_identifier.into_iter().map(
-                                        |(k, v)|(to_err_string::ToErrString::to_err_string(&k).into_inner(), v)
+                                        |(k, v)|(to_err_string::domain_types::ToErrString::to_err_string(&k).into_inner(), v)
                                     ).collect()
                                 }),
                                 macros_helpers::location_data::LocationFieldAttr::EoHashMapKStringVLocation => generate_field_token_stream(&quote::quote! {
                                     #el0_identifier.into_iter().map(
-                                        |(k, v)|(to_err_string::ToErrString::to_err_string(&k).into_inner(), v.into_serde_version())
+                                        |(k, v)|(to_err_string::domain_types::ToErrString::to_err_string(&k).into_inner(), v.into_serde_version())
                                     ).collect()
                                 }),
                             }
@@ -513,7 +512,7 @@ pub fn location(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                                     .ty;
                                 quote::quote! {#field_type}.to_string()
                             },
-                            naming::WithSerdeUpperCamelCase
+                            naming::domain_types::WithSerdeUpperCamelCase
                         )
                         .parse::<proc_macro2::TokenStream>()
                         .expect("9ff40f7e location invariant must hold")
@@ -567,7 +566,7 @@ mod tests {
                 Second {},
             }
         };
-        super::add_location_fields(super::SynItemEnumMutRef::from(&mut item))
+        super::add_location_fields(super::domain_types::SynItemEnumMutRef::from(&mut item))
             .expect("74c1509e adds_location_to_every_named_variant invariant must hold");
         assert_eq!(
             quote::quote! {#item}.to_string(),
@@ -585,8 +584,9 @@ mod tests {
         let mut item: syn::ItemEnum = syn::parse_quote! {
             enum SampleError { First { location: location_lib::location::Location } }
         };
-        let error = super::add_location_fields(super::SynItemEnumMutRef::from(&mut item))
-            .expect_err(constants_str::VALUE_371082FA);
+        let error =
+            super::add_location_fields(super::domain_types::SynItemEnumMutRef::from(&mut item))
+                .expect_err(constants_str::VALUE_371082FA);
         assert_eq!(
             error.to_string(),
             "errors_with_location variant already has a location field"
@@ -597,8 +597,9 @@ mod tests {
         let mut item: syn::ItemEnum = syn::parse_quote! {
             enum SampleError { First(String) }
         };
-        let error = super::add_location_fields(super::SynItemEnumMutRef::from(&mut item))
-            .expect_err(constants_str::VALUE_982F4D17);
+        let error =
+            super::add_location_fields(super::domain_types::SynItemEnumMutRef::from(&mut item))
+                .expect_err(constants_str::VALUE_982F4D17);
         assert_eq!(
             error.to_string(),
             "errors_with_location supports only variants with named fields"

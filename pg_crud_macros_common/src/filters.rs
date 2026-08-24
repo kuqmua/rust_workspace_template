@@ -97,47 +97,65 @@ impl PgFilter for PgTypeFilter {
     fn prefix_where_self_upper_camel_case(
         &self,
     ) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
-        let v = naming::parameter::PgTypeWhereSelfUpperCamelCase::from_display(&self.ucc());
+        let v = naming::domain_types::parameter::PgTypeWhereSelfUpperCamelCase::from_display(
+            &self.ucc(),
+        );
         macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
             quote::quote! {#v},
         )
     }
-    fn ucc(&self) -> &'static dyn naming::DisplayPlusToTokens {
+    fn ucc(&self) -> &'static dyn naming::domain_types::DisplayPlusToTokens {
         match &self {
-            Self::Eq { .. } => &naming::EqUpperCamelCase,
-            Self::GreaterThan { .. } => &naming::GreaterThanUpperCamelCase,
-            Self::Between { .. } => &naming::BetweenUpperCamelCase,
-            Self::In { .. } => &naming::InUpperCamelCase,
-            Self::Regex => &naming::RegexUpperCamelCase,
-            Self::Before { .. } => &naming::BeforeUpperCamelCase,
-            Self::CurrentDate => &naming::CurrentDateUpperCamelCase,
-            Self::GreaterThanCurrentDate => &naming::GreaterThanCurrentDateUpperCamelCase,
-            Self::CurrentTimestamp => &naming::CurrentTimestampUpperCamelCase,
-            Self::GreaterThanCurrentTimestamp => &naming::GreaterThanCurrentTimestampUpperCamelCase,
-            Self::CurrentTime => &naming::CurrentTimeUpperCamelCase,
-            Self::GreaterThanCurrentTime => &naming::GreaterThanCurrentTimeUpperCamelCase,
+            Self::Eq { .. } => &naming::domain_types::EqUpperCamelCase,
+            Self::GreaterThan { .. } => &naming::domain_types::GreaterThanUpperCamelCase,
+            Self::Between { .. } => &naming::domain_types::BetweenUpperCamelCase,
+            Self::In { .. } => &naming::domain_types::InUpperCamelCase,
+            Self::Regex => &naming::domain_types::RegexUpperCamelCase,
+            Self::Before { .. } => &naming::domain_types::BeforeUpperCamelCase,
+            Self::CurrentDate => &naming::domain_types::CurrentDateUpperCamelCase,
+            Self::GreaterThanCurrentDate => {
+                &naming::domain_types::GreaterThanCurrentDateUpperCamelCase
+            }
+            Self::CurrentTimestamp => &naming::domain_types::CurrentTimestampUpperCamelCase,
+            Self::GreaterThanCurrentTimestamp => {
+                &naming::domain_types::GreaterThanCurrentTimestampUpperCamelCase
+            }
+            Self::CurrentTime => &naming::domain_types::CurrentTimeUpperCamelCase,
+            Self::GreaterThanCurrentTime => {
+                &naming::domain_types::GreaterThanCurrentTimeUpperCamelCase
+            }
             Self::EqToEncodedStringRepresentation => {
-                &naming::EqToEncodedStringRepresentationUpperCamelCase
+                &naming::domain_types::EqToEncodedStringRepresentationUpperCamelCase
             }
             Self::FindRangesWithinGivenRange { .. } => {
-                &naming::FindRangesWithinGivenRangeUpperCamelCase
+                &naming::domain_types::FindRangesWithinGivenRangeUpperCamelCase
             }
             Self::FindRangesThatFullyContainTheGivenRange { .. } => {
-                &naming::FindRangesThatFullyContainTheGivenRangeUpperCamelCase
+                &naming::domain_types::FindRangesThatFullyContainTheGivenRangeUpperCamelCase
             }
-            Self::StrictlyToLeftOfRange { .. } => &naming::StrictlyToLeftOfRangeUpperCamelCase,
-            Self::StrictlyToRightOfRange { .. } => &naming::StrictlyToRightOfRangeUpperCamelCase,
-            Self::IncludedLowerBound { .. } => &naming::IncludedLowerBoundUpperCamelCase,
-            Self::ExcludedUpperBound { .. } => &naming::ExcludedUpperBoundUpperCamelCase,
+            Self::StrictlyToLeftOfRange { .. } => {
+                &naming::domain_types::StrictlyToLeftOfRangeUpperCamelCase
+            }
+            Self::StrictlyToRightOfRange { .. } => {
+                &naming::domain_types::StrictlyToRightOfRangeUpperCamelCase
+            }
+            Self::IncludedLowerBound { .. } => {
+                &naming::domain_types::IncludedLowerBoundUpperCamelCase
+            }
+            Self::ExcludedUpperBound { .. } => {
+                &naming::domain_types::ExcludedUpperBoundUpperCamelCase
+            }
             Self::GreaterThanIncludedLowerBound { .. } => {
-                &naming::GreaterThanIncludedLowerBoundUpperCamelCase
+                &naming::domain_types::GreaterThanIncludedLowerBoundUpperCamelCase
             }
             Self::GreaterThanExcludedUpperBound { .. } => {
-                &naming::GreaterThanExcludedUpperBoundUpperCamelCase
+                &naming::domain_types::GreaterThanExcludedUpperBoundUpperCamelCase
             }
-            Self::OverlapWithRange { .. } => &naming::OverlapWithRangeUpperCamelCase,
-            Self::AdjacentWithRange { .. } => &naming::AdjacentWithRangeUpperCamelCase,
-            Self::RangeLen => &naming::RangeLenUpperCamelCase,
+            Self::OverlapWithRange { .. } => &naming::domain_types::OverlapWithRangeUpperCamelCase,
+            Self::AdjacentWithRange { .. } => {
+                &naming::domain_types::AdjacentWithRangeUpperCamelCase
+            }
+            Self::RangeLen => &naming::domain_types::RangeLenUpperCamelCase,
         }
     }
 }
@@ -148,5 +166,5 @@ pub trait PgFilter {
     fn prefix_where_self_upper_camel_case(
         &self,
     ) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream;
-    fn ucc(&self) -> &'static dyn naming::DisplayPlusToTokens;
+    fn ucc(&self) -> &'static dyn naming::domain_types::DisplayPlusToTokens;
 }

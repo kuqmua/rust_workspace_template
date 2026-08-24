@@ -1,10 +1,10 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct StdPathRef<'lt>(&'lt std::path::Path);
+pub struct PathRef<'lt>(&'lt std::path::Path);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
-struct StdProcessCommand(std::process::Command);
+struct ProcessCommand(std::process::Command);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
-struct StdOsString(std::ffi::OsString);
-impl From<&str> for StdOsString {
+struct OsStringValue(std::ffi::OsString);
+impl From<&str> for OsStringValue {
     fn from(value: &str) -> Self {
         Self(std::ffi::OsString::from(value))
     }
@@ -28,7 +28,7 @@ pub struct ToolEnvValueRef<'lt>(&'lt str);
     newtype::Display,
     newtype::FromInner,
 )]
-pub struct StdProcessExitStatus(std::process::ExitStatus);
+pub struct ProcessExitStatus(std::process::ExitStatus);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -36,11 +36,11 @@ pub struct StdProcessExitStatus(std::process::ExitStatus);
     newtype::DerefInner,
     newtype::FromInner,
 )]
-pub struct StdProcessOutput(std::process::Output);
+pub struct ProcessOutput(std::process::Output);
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub struct ToolCommand {
-    inner: StdProcessCommand,
-    program: StdOsString,
+    inner: ProcessCommand,
+    program: OsStringValue,
 }
 impl std::fmt::Debug for ToolCommand {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -59,7 +59,7 @@ impl ToolCommand {
         let _command = self.inner.0.args(values.0);
         self
     }
-    pub fn current_dir(&mut self, value: StdPathRef<'_>) -> &mut Self {
+    pub fn current_dir(&mut self, value: PathRef<'_>) -> &mut Self {
         let _command = self.inner.0.current_dir(value.0);
         self
     }
@@ -70,15 +70,15 @@ impl ToolCommand {
     #[must_use]
     pub fn new(program: ToolProgramRef<'_>) -> Self {
         Self {
-            inner: StdProcessCommand::from(std::process::Command::new(program.0)),
-            program: StdOsString::from(program.0),
+            inner: ProcessCommand::from(std::process::Command::new(program.0)),
+            program: OsStringValue::from(program.0),
         }
     }
-    pub fn output(&mut self) -> std::io::Result<StdProcessOutput> {
-        self.inner.0.output().map(StdProcessOutput)
+    pub fn output(&mut self) -> std::io::Result<ProcessOutput> {
+        self.inner.0.output().map(ProcessOutput)
     }
-    pub fn status(&mut self) -> std::io::Result<StdProcessExitStatus> {
-        self.inner.0.status().map(StdProcessExitStatus)
+    pub fn status(&mut self) -> std::io::Result<ProcessExitStatus> {
+        self.inner.0.status().map(ProcessExitStatus)
     }
 }
 #[cfg(test)]

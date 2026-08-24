@@ -8,10 +8,10 @@
 pub struct ReqwestClient(reqwest::Client);
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
-pub struct StdReqwestConnectTimeout(std::time::Duration);
+pub struct ReqwestConnectTimeoutDuration(std::time::Duration);
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
-pub struct StdReqwestRequestTimeout(std::time::Duration);
+pub struct ReqwestRequestTimeoutDuration(std::time::Duration);
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
@@ -19,7 +19,7 @@ pub struct StdReqwestRequestTimeout(std::time::Duration);
 #[error("HTTP client timeout must be greater than zero")]
 pub struct StdReqwestTimeoutError;
 
-impl TryFrom<std::time::Duration> for StdReqwestConnectTimeout {
+impl TryFrom<std::time::Duration> for ReqwestConnectTimeoutDuration {
     type Error = StdReqwestTimeoutError;
 
     fn try_from(value: std::time::Duration) -> Result<Self, Self::Error> {
@@ -31,7 +31,7 @@ impl TryFrom<std::time::Duration> for StdReqwestConnectTimeout {
     }
 }
 
-impl TryFrom<std::time::Duration> for StdReqwestRequestTimeout {
+impl TryFrom<std::time::Duration> for ReqwestRequestTimeoutDuration {
     type Error = StdReqwestTimeoutError;
 
     fn try_from(value: std::time::Duration) -> Result<Self, Self::Error> {
@@ -45,15 +45,15 @@ impl TryFrom<std::time::Duration> for StdReqwestRequestTimeout {
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
 pub struct ReqwestClientPolicy {
-    connect_timeout: StdReqwestConnectTimeout,
-    request_timeout: StdReqwestRequestTimeout,
+    connect_timeout: ReqwestConnectTimeoutDuration,
+    request_timeout: ReqwestRequestTimeoutDuration,
 }
 
 impl ReqwestClientPolicy {
     #[must_use]
     pub const fn new(
-        connect_timeout: StdReqwestConnectTimeout,
-        request_timeout: StdReqwestRequestTimeout,
+        connect_timeout: ReqwestConnectTimeoutDuration,
+        request_timeout: ReqwestRequestTimeoutDuration,
     ) -> Self {
         Self {
             connect_timeout,
@@ -165,11 +165,11 @@ mod tests {
     #[test]
     fn timeout_wrappers_reject_zero() {
         assert_eq!(
-            super::StdReqwestConnectTimeout::try_from(std::time::Duration::ZERO).err(),
+            super::ReqwestConnectTimeoutDuration::try_from(std::time::Duration::ZERO).err(),
             Some(super::StdReqwestTimeoutError)
         );
         assert_eq!(
-            super::StdReqwestRequestTimeout::try_from(std::time::Duration::ZERO).err(),
+            super::ReqwestRequestTimeoutDuration::try_from(std::time::Duration::ZERO).err(),
             Some(super::StdReqwestTimeoutError)
         );
     }

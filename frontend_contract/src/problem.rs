@@ -216,14 +216,27 @@ pub struct ApiProblemViolation {
     newtype::FromInner,
     serde::Deserialize,
     serde::Serialize,
-    utoipa::ToSchema,
 )]
 #[serde(
-    from = "bounded_types::BoundedVec<ApiProblemViolation, { constants_usize::ZERO }, 128usize>"
+    from = "bounded_types::domain_types::vector::BoundedVec<ApiProblemViolation, { constants_usize::ZERO }, 128usize>"
 )]
 pub(crate) struct ApiProblemViolations(
-    bounded_types::BoundedVec<ApiProblemViolation, { constants_usize::ZERO }, 128usize>,
+    bounded_types::domain_types::vector::BoundedVec<
+        ApiProblemViolation,
+        { constants_usize::ZERO },
+        128usize,
+    >,
 );
+impl utoipa::PartialSchema for ApiProblemViolations {
+    fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
+        <bounded_types::domain_types::vector::BoundedVec<
+            ApiProblemViolation,
+            { constants_usize::ZERO },
+            128usize,
+        > as utoipa::PartialSchema>::schema()
+    }
+}
+impl utoipa::ToSchema for ApiProblemViolations {}
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,

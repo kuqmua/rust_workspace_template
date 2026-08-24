@@ -7,16 +7,16 @@
     PartialEq,
     newtype::FromInner,
 )]
-pub struct StdRetryAttempts(std::num::NonZeroUsize);
+pub struct RetryAttemptsNonZeroUsize(std::num::NonZeroUsize);
 
-impl StdRetryAttempts {
+impl RetryAttemptsNonZeroUsize {
     #[must_use]
     pub const fn get(self) -> usize {
         self.0.get()
     }
 }
 
-impl TryFrom<usize> for StdRetryAttempts {
+impl TryFrom<usize> for RetryAttemptsNonZeroUsize {
     type Error = StdRetryAttemptsError;
 
     fn try_from(value: usize) -> Result<Self, Self::Error> {
@@ -41,40 +41,43 @@ pub struct StdRetryAttemptsError;
     PartialEq,
     newtype::FromInner,
 )]
-pub struct StdRetryDelay(std::time::Duration);
+pub struct RetryDelayDuration(std::time::Duration);
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct RetryPolicy {
-    attempts: StdRetryAttempts,
-    delay: Option<StdRetryDelay>,
+    attempts: RetryAttemptsNonZeroUsize,
+    delay: Option<RetryDelayDuration>,
 }
 
 impl RetryPolicy {
     #[must_use]
-    pub const fn attempts(self) -> StdRetryAttempts {
+    pub const fn attempts(self) -> RetryAttemptsNonZeroUsize {
         self.attempts
     }
 
     #[must_use]
-    pub const fn delay(self) -> Option<StdRetryDelay> {
+    pub const fn delay(self) -> Option<RetryDelayDuration> {
         self.delay
     }
 
     #[must_use]
-    pub const fn new(attempts: StdRetryAttempts, delay: Option<StdRetryDelay>) -> Self {
+    pub const fn new(
+        attempts: RetryAttemptsNonZeroUsize,
+        delay: Option<RetryDelayDuration>,
+    ) -> Self {
         Self { attempts, delay }
     }
 }
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Eq, PartialEq)]
 pub struct RetryOutcome<Success, Error> {
-    attempts: StdRetryAttempts,
+    attempts: RetryAttemptsNonZeroUsize,
     result: Result<Success, Error>,
 }
 
 impl<Success, Error> RetryOutcome<Success, Error> {
     #[must_use]
-    pub const fn attempts(&self) -> StdRetryAttempts {
+    pub const fn attempts(&self) -> RetryAttemptsNonZeroUsize {
         self.attempts
     }
 
@@ -102,7 +105,7 @@ where
             .is_err_and(|error| attempt < maximum_attempts && is_retryable(error));
         if !should_retry {
             return RetryOutcome {
-                attempts: StdRetryAttempts::from(
+                attempts: RetryAttemptsNonZeroUsize::from(
                     std::num::NonZeroUsize::new(attempt).unwrap_or(std::num::NonZeroUsize::MIN),
                 ),
                 result,
@@ -122,7 +125,7 @@ mod tests {
         let mut calls = constants_usize::ZERO;
         let outcome = super::run_with_retries(
             super::RetryPolicy::new(
-                super::StdRetryAttempts::try_from(3usize).expect(
+                super::RetryAttemptsNonZeroUsize::try_from(3usize).expect(
                     "e7bc9a41 retryable_failure_is_retried_until_success invariant must hold",
                 ),
                 None,
@@ -143,7 +146,7 @@ mod tests {
         let mut calls = constants_usize::ZERO;
         let outcome = super::run_with_retries(
             super::RetryPolicy::new(
-                super::StdRetryAttempts::try_from(3usize)
+                super::RetryAttemptsNonZeroUsize::try_from(3usize)
                     .expect("61b6aed5 terminal_failure_is_not_retried invariant must hold"),
                 None,
             ),

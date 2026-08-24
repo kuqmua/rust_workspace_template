@@ -8,15 +8,15 @@ impl CommandIdx {
     }
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-struct StdCommandStartedAt(std::time::Instant);
-impl StdCommandStartedAt {
-    fn elapsed(self) -> StdCommandDuration {
-        StdCommandDuration::from(self.0.elapsed())
+struct CommandStartedAtInstant(std::time::Instant);
+impl CommandStartedAtInstant {
+    fn elapsed(self) -> CommandDuration {
+        CommandDuration::from(self.0.elapsed())
     }
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-struct StdCommandDuration(std::time::Duration);
-impl StdCommandDuration {
+struct CommandDuration(std::time::Duration);
+impl CommandDuration {
     fn as_millis(self) -> CommandDurationMillis {
         CommandDurationMillis::from(self.0.as_millis())
     }
@@ -62,12 +62,14 @@ struct CommandArgsRef<'args_lt>(&'args_lt [&'args_lt str]);
 #[bounded_string(max = constants_usize::VALUE_16_777_216)]
 struct CommandText(String);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
-struct CommandTexts(bounded_types::BoundedVec<CommandText, 0, { usize::MAX }>);
+struct CommandTexts(
+    bounded_types::domain_types::vector::BoundedVec<CommandText, 0, { usize::MAX }>,
+);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
 )]
 #[error(transparent)]
-struct StdExecutionIoError(std::io::Error);
+struct ExecutionIoError(std::io::Error);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 struct TextRef<'text_lt>(&'text_lt str);
 impl<'text_lt> TextRef<'text_lt> {
@@ -76,7 +78,7 @@ impl<'text_lt> TextRef<'text_lt> {
     }
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
-struct StdRunDir(std::path::PathBuf);
+struct RunDirPathBuf(std::path::PathBuf);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::BoundedString, newtype::AsRefStr,
 )]
@@ -98,7 +100,7 @@ impl SummaryText {
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 struct CommandRun {
-    duration: StdCommandDuration,
+    duration: CommandDuration,
     idx: CommandIdx,
     log_text: CommandText,
     status_text: CommandText,
@@ -161,7 +163,7 @@ fn command_log_name(
         .unwrap_or_else(CommandText::from)
 }
 #[allow(clippy::single_call_fn)] // unique run-directory construction has one filesystem owner
-fn create_run_dir() -> Result<StdRunDir, StdExecutionIoError> {
+fn create_run_dir() -> Result<RunDirPathBuf, ExecutionIoError> {
     let timestamp = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap_or_default()
@@ -172,8 +174,8 @@ fn create_run_dir() -> Result<StdRunDir, StdExecutionIoError> {
             std::process::id(),
             RUN_COUNTER.fetch_add(1u64, std::sync::atomic::Ordering::Relaxed)
         ));
-    std::fs::create_dir_all(path.as_path()).map_err(StdExecutionIoError::from)?;
-    Ok(StdRunDir::from(path))
+    std::fs::create_dir_all(path.as_path()).map_err(ExecutionIoError::from)?;
+    Ok(RunDirPathBuf::from(path))
 }
 #[allow(clippy::single_call_fn)] // log parsing stays independently unit-testable
 fn failed_test_names(log_text: TextRef<'_>) -> CommandTexts {
@@ -194,19 +196,19 @@ fn failed_test_names(log_text: TextRef<'_>) -> CommandTexts {
         .collect::<Vec<CommandText>>();
     names.sort_by(|left, right| left.as_ref().cmp(right.as_ref()));
     names.dedup_by(|left, right| left.as_ref() == right.as_ref());
-    CommandTexts::from(bounded_types::BoundedVec::from_max_iter(names))
+    CommandTexts::from(bounded_types::domain_types::vector::BoundedVec::from_max_iter(names))
 }
 #[allow(clippy::single_call_fn)] // summary persistence remains separate from command orchestration
-fn write_summary(run_dir: &StdRunDir, summary: &SummaryText) -> Result<(), StdExecutionIoError> {
+fn write_summary(run_dir: &RunDirPathBuf, summary: &SummaryText) -> Result<(), ExecutionIoError> {
     std::fs::write(
         run_dir.0.join(constants_str::SUMMARY_TXT),
         strip_ansi(TextRef::from(summary.0.as_str())).as_ref(),
     )
-    .map_err(StdExecutionIoError::from)
+    .map_err(ExecutionIoError::from)
 }
 pub(super) fn run_commands(commands: CommandsRef<'_>) -> Result<(), ()> {
     let run_dir = create_run_dir().map_err(|error| {
-        super::reporting::result_directory_failed(super::StdRunnerIoErrorRef::from(&error.0));
+        super::reporting::result_directory_failed(super::RunnerIoErrorRef::from(&error.0));
     })?;
     let mut command_runs = std::thread::scope(|scope| {
         commands
@@ -215,7 +217,7 @@ pub(super) fn run_commands(commands: CommandsRef<'_>) -> Result<(), ()> {
             .enumerate()
             .map(|(idx, (program, args))| {
                 scope.spawn(move || {
-                    let started_at = StdCommandStartedAt::from(std::time::Instant::now());
+                    let started_at = CommandStartedAtInstant::from(std::time::Instant::now());
                     let output = macros_helpers::tool_command::ToolCommand::new(
                         macros_helpers::tool_command::ToolProgramRef::from(*program),
                     )
@@ -284,8 +286,8 @@ pub(super) fn run_commands(commands: CommandsRef<'_>) -> Result<(), ()> {
         let log_path = run_dir.0.join(log_name.as_ref());
         if let Err(error) = std::fs::write(log_path.as_path(), command_run.log_text.as_ref()) {
             super::reporting::result_log_failed(
-                super::StdRunnerPathRef::from(log_path.as_path()),
-                super::StdRunnerIoErrorRef::from(&error),
+                super::RunnerPathRef::from(log_path.as_path()),
+                super::RunnerIoErrorRef::from(&error),
             );
             return Err(());
         }
@@ -330,7 +332,7 @@ pub(super) fn run_commands(commands: CommandsRef<'_>) -> Result<(), ()> {
         Ok(())
     })?;
     write_summary(&run_dir, &summary).map_err(|error| {
-        super::reporting::result_summary_failed(super::StdRunnerIoErrorRef::from(&error.0));
+        super::reporting::result_summary_failed(super::RunnerIoErrorRef::from(&error.0));
     })?;
     if succeeded { Ok(()) } else { Err(()) }
 }

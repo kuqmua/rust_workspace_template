@@ -5,8 +5,8 @@ pub const FRONTEND_CONTRACT_BODY_MAX_BYTES: usize = 16_777_216usize;
 )]
 #[error("frontend contract body exceeds its maximum byte length")]
 pub struct FrontendContractBodyError;
-impl From<bounded_types::BoundedValueError> for FrontendContractBodyError {
-    fn from(_value: bounded_types::BoundedValueError) -> Self {
+impl From<bounded_types::domain_types::BoundedValueError> for FrontendContractBodyError {
+    fn from(_value: bounded_types::domain_types::BoundedValueError) -> Self {
         Self
     }
 }
@@ -67,9 +67,9 @@ mod route;
 mod route_coverage;
 mod url_builder;
 pub use auth_session_keep_alive::{
-    AuthSessionKeepAlive, AuthSessionKeepAliveDecision, AuthSessionKeepAliveError,
-    AuthSessionPresence, AuthSessionRefreshOutcome, StdAuthSessionInstant,
-    StdAuthSessionRefreshInterval,
+    AuthSessionInstant, AuthSessionKeepAlive, AuthSessionKeepAliveDecision,
+    AuthSessionKeepAliveError, AuthSessionPresence, AuthSessionRefreshIntervalDuration,
+    AuthSessionRefreshOutcome,
 };
 pub use client::TypedClient;
 pub use frontend_contract_macros::{
@@ -471,11 +471,11 @@ pub struct FormFieldNameRef<'field_lt>(&'field_lt str);
     newtype::Display,
     newtype::FromInner,
 )]
-pub struct FormValueError(to_err_string::ErrorText);
+pub struct FormValueError(to_err_string::domain_types::ErrorText);
 impl TryFrom<String> for FormValueError {
-    type Error = to_err_string::ErrorTextTryFromStringError;
+    type Error = to_err_string::domain_types::ErrorTextTryFromStringError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        to_err_string::ErrorText::try_from(value).map(Self)
+        to_err_string::domain_types::ErrorText::try_from(value).map(Self)
     }
 }
 #[derive(
@@ -570,10 +570,14 @@ pub struct FieldContract {
     newtype::AsRefTarget,
     newtype::FromInner,
 )]
-pub struct FieldContracts(bounded_types::BoundedVec<FieldContract, 0, { usize::MAX }>);
-impl From<Vec<FieldContract>> for FieldContracts {
-    fn from(value: Vec<FieldContract>) -> Self {
-        Self::from(bounded_types::BoundedVec::from_max_iter(value))
+pub struct FieldContracts(
+    bounded_types::domain_types::vector::BoundedVec<FieldContract, 0, { usize::MAX }>,
+);
+impl TryFrom<Vec<FieldContract>> for FieldContracts {
+    type Error = bounded_types::domain_types::BoundedValueError;
+    fn try_from(value: Vec<FieldContract>) -> Result<Self, Self::Error> {
+        bounded_types::domain_types::vector::BoundedVec::try_from_collection_vec(value)
+            .map(Self::from)
     }
 }
 impl FieldContracts {
@@ -582,7 +586,7 @@ impl FieldContracts {
     where
         Values: IntoIterator<Item = FieldContract>,
     {
-        Self::from(bounded_types::BoundedVec::from_max_iter(values))
+        Self::from(bounded_types::domain_types::vector::BoundedVec::from_max_iter(values))
     }
 }
 const EMPTY_FILTER_CONTRACTS: &[FilterOperation] = &[];
@@ -915,10 +919,14 @@ pub struct ActionContract {
     newtype::AsRefTarget,
     newtype::FromInner,
 )]
-pub struct ActionContracts(bounded_types::BoundedVec<ActionContract, 0, { usize::MAX }>);
-impl From<Vec<ActionContract>> for ActionContracts {
-    fn from(value: Vec<ActionContract>) -> Self {
-        Self::from(bounded_types::BoundedVec::from_max_iter(value))
+pub struct ActionContracts(
+    bounded_types::domain_types::vector::BoundedVec<ActionContract, 0, { usize::MAX }>,
+);
+impl TryFrom<Vec<ActionContract>> for ActionContracts {
+    type Error = bounded_types::domain_types::BoundedValueError;
+    fn try_from(value: Vec<ActionContract>) -> Result<Self, Self::Error> {
+        bounded_types::domain_types::vector::BoundedVec::try_from_collection_vec(value)
+            .map(Self::from)
     }
 }
 impl ActionContracts {
@@ -927,7 +935,7 @@ impl ActionContracts {
     where
         Values: IntoIterator<Item = ActionContract>,
     {
-        Self::from(bounded_types::BoundedVec::from_max_iter(values))
+        Self::from(bounded_types::domain_types::vector::BoundedVec::from_max_iter(values))
     }
 }
 impl ActionContract {
@@ -974,10 +982,14 @@ pub struct RouteContract {
     newtype::AsRefTarget,
     newtype::FromInner,
 )]
-pub struct RouteContracts(bounded_types::BoundedVec<RouteContract, 0, { usize::MAX }>);
-impl From<Vec<RouteContract>> for RouteContracts {
-    fn from(value: Vec<RouteContract>) -> Self {
-        Self::from(bounded_types::BoundedVec::from_max_iter(value))
+pub struct RouteContracts(
+    bounded_types::domain_types::vector::BoundedVec<RouteContract, 0, { usize::MAX }>,
+);
+impl TryFrom<Vec<RouteContract>> for RouteContracts {
+    type Error = bounded_types::domain_types::BoundedValueError;
+    fn try_from(value: Vec<RouteContract>) -> Result<Self, Self::Error> {
+        bounded_types::domain_types::vector::BoundedVec::try_from_collection_vec(value)
+            .map(Self::from)
     }
 }
 impl RouteContracts {
@@ -986,7 +998,7 @@ impl RouteContracts {
     where
         Values: IntoIterator<Item = RouteContract>,
     {
-        Self::from(bounded_types::BoundedVec::from_max_iter(values))
+        Self::from(bounded_types::domain_types::vector::BoundedVec::from_max_iter(values))
     }
 }
 impl RouteContract {
@@ -1038,11 +1050,13 @@ pub struct PageContract {
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, PartialEq, Eq, newtype::AsRefTarget,
 )]
-pub struct TransportBody(bounded_types::BoundedVec<u8, 0, FRONTEND_CONTRACT_BODY_MAX_BYTES>);
+pub struct TransportBody(
+    bounded_types::domain_types::vector::BoundedVec<u8, 0, FRONTEND_CONTRACT_BODY_MAX_BYTES>,
+);
 impl TryFrom<Vec<u8>> for TransportBody {
     type Error = FrontendContractBodyError;
     fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
-        bounded_types::BoundedVec::try_from(value)
+        bounded_types::domain_types::vector::BoundedVec::try_from(value)
             .map(Self)
             .map_err(FrontendContractBodyError::from)
     }
@@ -1233,11 +1247,11 @@ pub fn decode_api_problem(body: &TransportBody) -> Option<ApiProblem> {
     newtype::Display,
     newtype::FromInner,
 )]
-pub struct TransportError(to_err_string::ErrorText);
+pub struct TransportError(to_err_string::domain_types::ErrorText);
 impl TryFrom<String> for TransportError {
-    type Error = to_err_string::ErrorTextTryFromStringError;
+    type Error = to_err_string::domain_types::ErrorTextTryFromStringError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        to_err_string::ErrorText::try_from(value).map(Self)
+        to_err_string::domain_types::ErrorText::try_from(value).map(Self)
     }
 }
 pub trait Transport {

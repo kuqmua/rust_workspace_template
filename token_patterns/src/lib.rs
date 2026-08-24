@@ -1,3 +1,5 @@
+mod domain_types;
+
 token_patterns_macros::tp!(SqlxAcquire, sqlx::Acquire);
 token_patterns_macros::tp!(
     AxumExtractRejectionJsonRejection,
@@ -179,12 +181,6 @@ token_patterns_macros::ts_path_fn!(
     path_all_variants_default_some_one_element_call,
     ::all_variants_default_some_one_element()
 );
-#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
-struct ProcMacro2TokensMut<'tokens_lt>(&'tokens_lt mut proc_macro2::TokenStream);
-
-fn append_tokens(tokens: &mut ProcMacro2TokensMut<'_>, part: impl quote::ToTokens) {
-    part.to_tokens(&mut *tokens.0);
-}
 #[cfg(test)]
 mod tests {
     fn assert_tokens_eq(actual: impl quote::ToTokens, expected: impl quote::ToTokens) {

@@ -94,7 +94,7 @@ impl TryFrom<String> for AllowedOrigin {
 pub struct AllowedOriginError;
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
-pub struct AllowedOrigins(bounded_types::BoundedVec<AllowedOrigin, 0, 128>);
+pub struct AllowedOrigins(bounded_types::domain_types::vector::BoundedVec<AllowedOrigin, 0, 128>);
 
 impl TryFrom<Vec<String>> for AllowedOrigins {
     type Error = AllowedOriginsError;
@@ -105,7 +105,7 @@ impl TryFrom<Vec<String>> for AllowedOrigins {
             .map(AllowedOrigin::try_from)
             .collect::<Result<Vec<AllowedOrigin>, AllowedOriginError>>()
             .map_err(|_error| AllowedOriginsError)?;
-        bounded_types::BoundedVec::try_from(parsed)
+        bounded_types::domain_types::vector::BoundedVec::try_from(parsed)
             .map(Self)
             .map_err(AllowedOriginsError::from)
     }
@@ -116,8 +116,8 @@ impl TryFrom<Vec<String>> for AllowedOrigins {
 )]
 #[error("{message}", message = constants_str::ALLOWED_HTTP_ORIGIN_LIST_IS_INVALID)]
 pub struct AllowedOriginsError;
-impl From<bounded_types::BoundedValueError> for AllowedOriginsError {
-    fn from(_value: bounded_types::BoundedValueError) -> Self {
+impl From<bounded_types::domain_types::BoundedValueError> for AllowedOriginsError {
+    fn from(_value: bounded_types::domain_types::BoundedValueError) -> Self {
         Self
     }
 }

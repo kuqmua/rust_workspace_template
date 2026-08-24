@@ -4,7 +4,7 @@ fn string_wrappers_do_not_use_from_string() {
         super::types::StaticStr::from(constants_str::E2A6B9C4),
         super::types::SourceTextRef::from(constants_str::STRING_WRAPPERS_MUST_VALIDATE_LENGTH_USE_TRYFROM_STRING_WITH_A_LENGTH_CHECK),
         |path, ast, ers| {
-            if !super::domain_type_policy_should_check_path(super::types::StdPathRef::from(path))
+            if !super::domain_type_policy_should_check_path(super::types::PathRef::from(path))
                 .get()
             {
                 return;
@@ -19,8 +19,8 @@ fn string_wrappers_do_not_use_from_string() {
                     ers: super::types::DiagnosticMsgs::default(),
                     len_checked_function_names: &len_checked_function_names,
                     string_wrapper_names: &string_wrapper_names,
-                    try_from_string_names: super::types::StdSourceTextSet::default(),
-                    try_from_string_len_checked_names: super::types::StdSourceTextSet::default(),
+                    try_from_string_names: super::types::SourceTextBTreeSet::default(),
+                    try_from_string_len_checked_names: super::types::SourceTextBTreeSet::default(),
                 },
             );
             ers.extend(string_wrapper_names.iter().filter_map(|name| {
@@ -55,7 +55,7 @@ fn string_wrappers_do_not_use_from_string() {
 #[test]
 fn from_string_impl_visitor_rejects_non_string_wrappers_too() {
     let ast = syn::parse_file(constants_str::NEWLINE_STRUCT_SOURCETEXT_BOX_STR_NEWLINE_IMPL_FROM_STRING_FOR_SOURCETEXT_NEWLINE).expect("f7c0e2a9 from_string_impl_visitor_rejects_non_string_wrappers_too invariant must hold");
-    let string_wrapper_names = super::types::StdSourceTextSet::default();
+    let string_wrapper_names = super::types::SourceTextBTreeSet::default();
     let len_checked_function_names =
         super::len_checked_function_names(super::types::SynFileRef::from(&ast));
     let visitor = super::visit_syn_file(
@@ -64,8 +64,8 @@ fn from_string_impl_visitor_rejects_non_string_wrappers_too() {
             ers: super::types::DiagnosticMsgs::default(),
             len_checked_function_names: &len_checked_function_names,
             string_wrapper_names: &string_wrapper_names,
-            try_from_string_names: super::types::StdSourceTextSet::default(),
-            try_from_string_len_checked_names: super::types::StdSourceTextSet::default(),
+            try_from_string_names: super::types::SourceTextBTreeSet::default(),
+            try_from_string_len_checked_names: super::types::SourceTextBTreeSet::default(),
         },
     );
     let ers = visitor.ers.into_iter().collect::<Vec<String>>();
@@ -91,8 +91,8 @@ fn bounded_string_derive_satisfies_string_wrapper_policy() {
             ers: super::types::DiagnosticMsgs::default(),
             len_checked_function_names: &len_checked_function_names,
             string_wrapper_names: &string_wrapper_names,
-            try_from_string_names: super::types::StdSourceTextSet::default(),
-            try_from_string_len_checked_names: super::types::StdSourceTextSet::default(),
+            try_from_string_names: super::types::SourceTextBTreeSet::default(),
+            try_from_string_len_checked_names: super::types::SourceTextBTreeSet::default(),
         },
     );
     assert!(
@@ -132,8 +132,8 @@ fn newtype_try_from_validator_satisfies_string_wrapper_policy() {
             ers: super::types::DiagnosticMsgs::default(),
             len_checked_function_names: &len_checked_function_names,
             string_wrapper_names: &string_wrapper_names,
-            try_from_string_names: super::types::StdSourceTextSet::default(),
-            try_from_string_len_checked_names: super::types::StdSourceTextSet::default(),
+            try_from_string_names: super::types::SourceTextBTreeSet::default(),
+            try_from_string_len_checked_names: super::types::SourceTextBTreeSet::default(),
         },
     );
     assert!(visitor.try_from_string_names.contains("Value"), "4d8a4c7e");
@@ -170,8 +170,8 @@ fn newtype_try_from_explicit_error_satisfies_string_wrapper_policy() {
             ers: super::types::DiagnosticMsgs::default(),
             len_checked_function_names: &len_checked_function_names,
             string_wrapper_names: &string_wrapper_names,
-            try_from_string_names: super::types::StdSourceTextSet::default(),
-            try_from_string_len_checked_names: super::types::StdSourceTextSet::default(),
+            try_from_string_names: super::types::SourceTextBTreeSet::default(),
+            try_from_string_len_checked_names: super::types::SourceTextBTreeSet::default(),
         },
     );
     assert!(visitor.try_from_string_names.contains("Value"), "89c632cd");
@@ -212,13 +212,13 @@ fn tuple_wrapper_deserialization_uses_from_or_try_from() {
             let collector = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
                 super::domain_analysis::TupleWrapperConversionCollector {
-                    converted_names: super::types::StdSourceTextSet::default(),
+                    converted_names: super::types::SourceTextBTreeSet::default(),
                     inner_types: std::collections::BTreeMap::default(),
-                    names: super::types::StdSourceTextSet::default(),
-                    from_names: super::types::StdSourceTextSet::default(),
-                    from_inner_names: super::types::StdSourceTextSet::default(),
-                    try_from_names: super::types::StdSourceTextSet::default(),
-                    try_from_inner_names: super::types::StdSourceTextSet::default(),
+                    names: super::types::SourceTextBTreeSet::default(),
+                    from_names: super::types::SourceTextBTreeSet::default(),
+                    from_inner_names: super::types::SourceTextBTreeSet::default(),
+                    try_from_names: super::types::SourceTextBTreeSet::default(),
+                    try_from_inner_names: super::types::SourceTextBTreeSet::default(),
                 },
             );
             let derive_visitor = super::visit_syn_file(
@@ -285,13 +285,13 @@ fn tuple_wrapper_deserialization_policy_rejects_direct_derive() {
     let collector = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::domain_analysis::TupleWrapperConversionCollector {
-            converted_names: super::types::StdSourceTextSet::default(),
+            converted_names: super::types::SourceTextBTreeSet::default(),
             inner_types: std::collections::BTreeMap::default(),
-            names: super::types::StdSourceTextSet::default(),
-            from_names: super::types::StdSourceTextSet::default(),
-            from_inner_names: super::types::StdSourceTextSet::default(),
-            try_from_names: super::types::StdSourceTextSet::default(),
-            try_from_inner_names: super::types::StdSourceTextSet::default(),
+            names: super::types::SourceTextBTreeSet::default(),
+            from_names: super::types::SourceTextBTreeSet::default(),
+            from_inner_names: super::types::SourceTextBTreeSet::default(),
+            try_from_names: super::types::SourceTextBTreeSet::default(),
+            try_from_inner_names: super::types::SourceTextBTreeSet::default(),
         },
     );
     let derive_visitor = super::visit_syn_file(
@@ -335,13 +335,13 @@ fn tuple_wrappers_initialize_only_through_from_or_try_from() {
             let collector = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
                 super::domain_analysis::TupleWrapperConversionCollector {
-                    converted_names: super::types::StdSourceTextSet::default(),
+                    converted_names: super::types::SourceTextBTreeSet::default(),
                     inner_types: std::collections::BTreeMap::default(),
-                    names: super::types::StdSourceTextSet::default(),
-                    from_names: super::types::StdSourceTextSet::default(),
-                    from_inner_names: super::types::StdSourceTextSet::default(),
-                    try_from_names: super::types::StdSourceTextSet::default(),
-                    try_from_inner_names: super::types::StdSourceTextSet::default(),
+                    names: super::types::SourceTextBTreeSet::default(),
+                    from_names: super::types::SourceTextBTreeSet::default(),
+                    from_inner_names: super::types::SourceTextBTreeSet::default(),
+                    try_from_names: super::types::SourceTextBTreeSet::default(),
+                    try_from_inner_names: super::types::SourceTextBTreeSet::default(),
                 },
             );
             ers.extend(
@@ -424,13 +424,13 @@ fn tuple_wrapper_rejects_from_and_try_from_for_same_inner_type() {
     let collector = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::domain_analysis::TupleWrapperConversionCollector {
-            converted_names: super::types::StdSourceTextSet::default(),
+            converted_names: super::types::SourceTextBTreeSet::default(),
             inner_types: std::collections::BTreeMap::default(),
-            names: super::types::StdSourceTextSet::default(),
-            from_names: super::types::StdSourceTextSet::default(),
-            from_inner_names: super::types::StdSourceTextSet::default(),
-            try_from_names: super::types::StdSourceTextSet::default(),
-            try_from_inner_names: super::types::StdSourceTextSet::default(),
+            names: super::types::SourceTextBTreeSet::default(),
+            from_names: super::types::SourceTextBTreeSet::default(),
+            from_inner_names: super::types::SourceTextBTreeSet::default(),
+            try_from_names: super::types::SourceTextBTreeSet::default(),
+            try_from_inner_names: super::types::SourceTextBTreeSet::default(),
         },
     );
     let conflicts: std::collections::BTreeSet<String> = collector
@@ -473,13 +473,13 @@ fn tuple_wrapper_initialization_policy_rejects_direct_constructors() {
     let collector = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::domain_analysis::TupleWrapperConversionCollector {
-            converted_names: super::types::StdSourceTextSet::default(),
+            converted_names: super::types::SourceTextBTreeSet::default(),
             inner_types: std::collections::BTreeMap::default(),
-            names: super::types::StdSourceTextSet::default(),
-            from_names: super::types::StdSourceTextSet::default(),
-            from_inner_names: super::types::StdSourceTextSet::default(),
-            try_from_names: super::types::StdSourceTextSet::default(),
-            try_from_inner_names: super::types::StdSourceTextSet::default(),
+            names: super::types::SourceTextBTreeSet::default(),
+            from_names: super::types::SourceTextBTreeSet::default(),
+            from_inner_names: super::types::SourceTextBTreeSet::default(),
+            try_from_names: super::types::SourceTextBTreeSet::default(),
+            try_from_inner_names: super::types::SourceTextBTreeSet::default(),
         },
     );
     assert_eq!(collector.names.len(), 2, "b058f76c");
@@ -512,10 +512,10 @@ fn domain_boundaries_use_repository_declared_types() {
         super::types::StaticStr::from(constants_str::A7F9C3E1),
         super::types::SourceTextRef::from(constants_str::RAW_EXTERNAL_OR_PRIMITIVE_TYPES_FOUND_IN_DOMAIN_BOUNDARIES_USE_REPOSITORY_DOMAIN),
         |path, ast, ers| {
-            if !super::domain_type_policy_should_check_path(super::types::StdPathRef::from(path))
+            if !super::domain_type_policy_should_check_path(super::types::PathRef::from(path))
                 .get()
-                || super::is_test_crate_source_path(super::types::StdPathRef::from(path)).get()
-                || super::is_code_style_meta_harness_source_path(super::types::StdPathRef::from(
+                || super::is_test_crate_source_path(super::types::PathRef::from(path)).get()
+                || super::is_code_style_meta_harness_source_path(super::types::PathRef::from(
                     path,
                 ))
                 .get()
@@ -528,8 +528,8 @@ fn domain_boundaries_use_repository_declared_types() {
                     ers: super::types::DiagnosticMsgs::default(),
                     closure_body_scan_depth: super::types::AnalyzerCount::default(),
                     generic_scopes: Vec::new(),
-                    repo_crates: super::types::StdStdSourceTextSetRef::from(repo_crates.as_ref()),
-                    repo_types: super::types::StdStdSourceTextSetRef::from(repo_types.as_ref()),
+                    repo_crates: super::types::SourceTextBTreeSetRef::from(repo_crates.as_ref()),
+                    repo_types: super::types::SourceTextBTreeSetRef::from(repo_types.as_ref()),
                 },
             );
             ers.extend(
@@ -544,7 +544,7 @@ fn domain_boundaries_use_repository_declared_types() {
 #[test]
 fn environment_initializer_is_in_domain_boundary_policy_scope() {
     assert!(
-        super::domain_type_policy_should_check_path(super::types::StdPathRef::from(
+        super::domain_type_policy_should_check_path(super::types::PathRef::from(
             std::path::Path::new("initialize_environment_files/src/main.rs")
         ))
         .get(),
@@ -554,7 +554,7 @@ fn environment_initializer_is_in_domain_boundary_policy_scope() {
 #[test]
 fn workspace_test_runner_is_in_domain_boundary_policy_scope() {
     assert!(
-        super::domain_type_policy_should_check_path(super::types::StdPathRef::from(
+        super::domain_type_policy_should_check_path(super::types::PathRef::from(
             std::path::Path::new(constants_str::WORKSPACE_TEST_RUNNER_SRC)
         ))
         .get(),
@@ -564,7 +564,7 @@ fn workspace_test_runner_is_in_domain_boundary_policy_scope() {
 #[test]
 fn workspace_scaffold_is_in_domain_boundary_policy_scope() {
     assert!(
-        super::domain_type_policy_should_check_path(super::types::StdPathRef::from(
+        super::domain_type_policy_should_check_path(super::types::PathRef::from(
             std::path::Path::new(constants_str::WORKSPACE_SCAFFOLD_SRC)
         ))
         .get(),
@@ -574,7 +574,7 @@ fn workspace_scaffold_is_in_domain_boundary_policy_scope() {
 #[test]
 fn server_admin_frontend_is_in_domain_boundary_policy_scope() {
     assert!(
-        super::domain_type_policy_should_check_path(super::types::StdPathRef::from(
+        super::domain_type_policy_should_check_path(super::types::PathRef::from(
             std::path::Path::new(constants_str::SERVER_ADMIN_FRONTEND_SRC_APP_RS)
         ))
         .get(),
@@ -585,14 +585,14 @@ fn server_admin_frontend_is_in_domain_boundary_policy_scope() {
 #[test]
 fn server_admin_frontend_ui_is_an_explicit_framework_adapter_boundary() {
     assert!(
-        !super::domain_type_policy_should_check_path(super::types::StdPathRef::from(
+        !super::domain_type_policy_should_check_path(super::types::PathRef::from(
             std::path::Path::new("../server_admin_frontend/src/ui/button.rs")
         ))
         .get(),
         "e33b8472"
     );
     assert!(
-        super::domain_type_policy_should_check_path(super::types::StdPathRef::from(
+        super::domain_type_policy_should_check_path(super::types::PathRef::from(
             std::path::Path::new("server_admin_frontend/src/app/settings.rs")
         ))
         .get(),
@@ -602,28 +602,28 @@ fn server_admin_frontend_ui_is_an_explicit_framework_adapter_boundary() {
 #[test]
 fn domain_fixture_directory_exclusions_are_owner_exact() {
     assert!(
-        !super::domain_type_policy_should_check_path(super::types::StdPathRef::from(
+        !super::domain_type_policy_should_check_path(super::types::PathRef::from(
             std::path::Path::new("../location_lib_location_test/src/lib.rs")
         ))
         .get(),
         "4ab6e2d1"
     );
     assert!(
-        super::domain_type_policy_should_check_path(super::types::StdPathRef::from(
+        super::domain_type_policy_should_check_path(super::types::PathRef::from(
             std::path::Path::new("../location_lib_location/src/location_test.rs")
         ))
         .get(),
         "d8c3175f"
     );
     assert!(
-        !super::domain_type_policy_should_check_path(super::types::StdPathRef::from(
+        !super::domain_type_policy_should_check_path(super::types::PathRef::from(
             std::path::Path::new("../pg_crud_common/benches/query.rs")
         ))
         .get(),
         "09e5a6bc"
     );
     assert!(
-        super::domain_type_policy_should_check_path(super::types::StdPathRef::from(
+        super::domain_type_policy_should_check_path(super::types::PathRef::from(
             std::path::Path::new("../server/benches/query.rs")
         ))
         .get(),
@@ -642,8 +642,8 @@ fn domain_type_policy_reports_raw_browser_external_types_natively() {
             ers: super::types::DiagnosticMsgs::default(),
             closure_body_scan_depth: super::types::AnalyzerCount::default(),
             generic_scopes: Vec::new(),
-            repo_crates: super::types::StdStdSourceTextSetRef::from(&repo_crates),
-            repo_types: super::types::StdStdSourceTextSetRef::from(&repo_types),
+            repo_crates: super::types::SourceTextBTreeSetRef::from(&repo_crates),
+            repo_types: super::types::SourceTextBTreeSetRef::from(&repo_types),
         },
     );
     assert_eq!(
@@ -674,8 +674,8 @@ fn proc_macro_helpers_are_checked_while_compiler_entrypoints_are_exempt() {
             ers: super::types::DiagnosticMsgs::default(),
             closure_body_scan_depth: super::types::AnalyzerCount::default(),
             generic_scopes: Vec::new(),
-            repo_crates: super::types::StdStdSourceTextSetRef::from(&repo_crates),
-            repo_types: super::types::StdStdSourceTextSetRef::from(&repo_types),
+            repo_crates: super::types::SourceTextBTreeSetRef::from(&repo_crates),
+            repo_types: super::types::SourceTextBTreeSetRef::from(&repo_types),
         },
     );
     assert_eq!(visitor.ers.len(), 2usize, "c82fb6d1 {:#?}", visitor.ers);
@@ -700,8 +700,8 @@ fn domain_type_policy_checks_explicit_closure_parameter_types() {
             ers: super::types::DiagnosticMsgs::default(),
             closure_body_scan_depth: super::types::AnalyzerCount::default(),
             generic_scopes: Vec::new(),
-            repo_crates: super::types::StdStdSourceTextSetRef::from(&repo_crates),
-            repo_types: super::types::StdStdSourceTextSetRef::from(&repo_types),
+            repo_crates: super::types::SourceTextBTreeSetRef::from(&repo_crates),
+            repo_types: super::types::SourceTextBTreeSetRef::from(&repo_types),
         },
     );
     let ers = visitor.ers.into_iter().collect::<Vec<String>>();
@@ -744,8 +744,8 @@ fn domain_type_policy_allows_only_option_and_result_containers() {
             ers: super::types::DiagnosticMsgs::default(),
             closure_body_scan_depth: super::types::AnalyzerCount::default(),
             generic_scopes: Vec::new(),
-            repo_crates: super::types::StdStdSourceTextSetRef::from(&repo_crates),
-            repo_types: super::types::StdStdSourceTextSetRef::from(&repo_types),
+            repo_crates: super::types::SourceTextBTreeSetRef::from(&repo_crates),
+            repo_types: super::types::SourceTextBTreeSetRef::from(&repo_types),
         },
     );
     let ers = visitor.ers.into_iter().collect::<Vec<String>>();
@@ -762,7 +762,7 @@ fn analyzer_state_struct_fields_use_repository_declared_wrappers() {
         super::types::StaticStr::from(constants_str::F2C7A91B),
         super::types::SourceTextRef::from(constants_str::RAW_TEXT_CONTAINERS_FOUND_IN_HELPER_STRUCT_FIELDS_USE_REPOSITORY_WRAPPER_TYPES),
         |path, ast, ers| {
-            if !super::domain_type_policy_should_check_path(super::types::StdPathRef::from(path))
+            if !super::domain_type_policy_should_check_path(super::types::PathRef::from(path))
                 .get()
             {
                 return;
@@ -815,7 +815,7 @@ fn helper_return_types_use_repository_declared_text_wrappers() {
         super::types::StaticStr::from(constants_str::VALUE_6D41C8E2),
         super::types::SourceTextRef::from(constants_str::RAW_TEXT_RETURN_TYPES_FOUND_IN_HELPER_FUNCTIONS_USE_REPOSITORY_WRAPPER_TYPES),
         |path, ast, ers| {
-            if !super::is_code_style_meta_harness_source_path(super::types::StdPathRef::from(path))
+            if !super::is_code_style_meta_harness_source_path(super::types::PathRef::from(path))
                 .get()
             {
                 return;
@@ -871,16 +871,15 @@ fn helper_raw_text_return_visitor_reports_free_and_inherent_helpers() {
     );
 }
 #[test]
-fn external_leaf_tuple_wrappers_include_crate_name() {
+fn external_leaf_tuple_wrappers_include_source_name() {
     let repo_crates = super::workspace_crate_names();
     super::assert_rs_ast_ers_empty_with_ctx(
         super::types::StaticStr::from(constants_str::B93D2A8C),
         super::types::SourceTextRef::from(
-            constants_str::TUPLE_WRAPPERS_OVER_EXTERNAL_TYPES_MUST_INCLUDE_THE_EXTERNAL_CRATE_NAME,
+            constants_str::TUPLE_WRAPPERS_OVER_EXTERNAL_TYPES_MUST_INCLUDE_THE_SOURCE_NAME,
         ),
         |path, ast, ers| {
-            if !super::domain_type_policy_should_check_path(super::types::StdPathRef::from(path))
-                .get()
+            if !super::domain_type_policy_should_check_path(super::types::PathRef::from(path)).get()
             {
                 return;
             }
@@ -888,7 +887,7 @@ fn external_leaf_tuple_wrappers_include_crate_name() {
                 super::types::SynFileRef::from(ast),
                 super::domain_analysis::ExternalLeafWrapperNameVisitor {
                     ers: super::types::DiagnosticMsgs::default(),
-                    repo_crates: super::types::StdStdSourceTextSetRef::from(repo_crates.as_ref()),
+                    repo_crates: super::types::SourceTextBTreeSetRef::from(repo_crates.as_ref()),
                 },
             );
             ers.extend(
@@ -901,7 +900,7 @@ fn external_leaf_tuple_wrappers_include_crate_name() {
     );
 }
 #[test]
-fn external_leaf_wrapper_prefix_rule_has_no_name_exceptions() {
+fn external_leaf_wrapper_type_rule_has_no_name_exceptions() {
     assert!(
         super::external_leaf_wrapper_name_exceptions().is_empty(),
         "5f29c4e8"
@@ -915,7 +914,7 @@ fn external_leaf_wrapper_prefix_rule_has_no_name_exceptions() {
         super::types::SynFileRef::from(&ast),
         super::domain_analysis::ExternalLeafWrapperNameVisitor {
             ers: super::types::DiagnosticMsgs::default(),
-            repo_crates: super::types::StdStdSourceTextSetRef::from(&repo_crates),
+            repo_crates: super::types::SourceTextBTreeSetRef::from(&repo_crates),
         },
     );
     assert_eq!(

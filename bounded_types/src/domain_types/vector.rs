@@ -47,6 +47,11 @@ impl<T, const MIN: usize, const MAX: usize> BoundedVec<T, MIN, MAX> {
     }
 }
 impl<T> BoundedVec<T, 0, { usize::MAX }> {
+    pub fn try_from_collection_vec(value: Vec<T>) -> Result<Self, super::BoundedValueError> {
+        let bounded_value = BoundedVec::<T, 0, { super::COLLECTION_MAX_LEN }>::try_from(value)?;
+        Self::try_from(bounded_value.into_inner())
+    }
+
     #[must_use]
     pub fn from_max_iter<Values>(values: Values) -> Self
     where
@@ -103,11 +108,11 @@ impl<T: serde::Serialize, const MIN: usize, const MAX: usize> serde::Serialize
     }
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
-struct StdPhantomDataBoundedVecVisitor<T, const MIN: usize, const MAX: usize>(
+struct BoundedVecVisitorPhantomData<T, const MIN: usize, const MAX: usize>(
     std::marker::PhantomData<T>,
 );
 impl<'de, T: serde::Deserialize<'de>, const MIN: usize, const MAX: usize> serde::de::Visitor<'de>
-    for StdPhantomDataBoundedVecVisitor<T, MIN, MAX>
+    for BoundedVecVisitorPhantomData<T, MIN, MAX>
 {
     type Value = BoundedVec<T, MIN, MAX>;
 
@@ -158,9 +163,7 @@ impl<'de, T: serde::Deserialize<'de>, const MIN: usize, const MAX: usize> serde:
     where
         Deserializer: serde::Deserializer<'de>,
     {
-        deserializer.deserialize_seq(StdPhantomDataBoundedVecVisitor::from(
-            std::marker::PhantomData,
-        ))
+        deserializer.deserialize_seq(BoundedVecVisitorPhantomData::from(std::marker::PhantomData))
     }
 }
 impl<T: utoipa::PartialSchema, const MIN: usize, const MAX: usize> utoipa::__dev::ComposeSchema

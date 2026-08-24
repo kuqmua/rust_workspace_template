@@ -15,7 +15,7 @@ fn auth_state(
     allowed_origin: &str,
 ) -> Result<super::super::AdminAuthSvcState, super::super::AdminAuthSvcStateBuildError> {
     super::super::AdminAuthSvcState::try_new(
-        app_state::SqlxPgPool::from(pool),
+        app_state::domain_types::SqlxPgPool::from(pool),
         &env(constants_str::INTEGRATION_TEST_JWT_SECRET_AT_LEAST_32_BYTES),
         &env(constants_str::VALUE_900),
         &env(constants_str::VALUE_3600),
@@ -38,12 +38,12 @@ fn auth_with_headers(headers: http::HeaderMap) -> super::super::AdminAuthReq {
         .expect("adf9c06e auth_with_headers invariant must hold");
     super::super::AdminAuthReq {
         headers: super::super::HttpAdminHeaderMap::from(headers),
-        peer: super::super::AdminPeerAddr::from(super::super::super::StdAdminSocketAddr::from(
+        peer: super::super::AdminPeerAddr::from(super::super::super::AdminSocketAddr::from(
             constants_str::VALUE_127_0_0_1_43210
                 .parse::<std::net::SocketAddr>()
                 .expect("0ce8ff47 auth_with_headers invariant must hold"),
         )),
-        state: super::super::StdSharedAdminAuthSvcState::from(std::sync::Arc::new(state)),
+        state: super::super::SharedAdminAuthSvcStateArc::from(std::sync::Arc::new(state)),
     }
 }
 

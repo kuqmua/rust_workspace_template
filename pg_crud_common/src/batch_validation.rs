@@ -13,16 +13,10 @@ pub enum BatchDuplicatePolicy {
     Eq,
     PartialEq,
     newtype::FromInner,
+    newtype::GetInner,
 )]
 pub struct BatchProcessedItemCount(usize);
 
-impl BatchProcessedItemCount {
-    #[must_use]
-    pub const fn get(self) -> usize {
-        self.0
-    }
-}
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -31,16 +25,10 @@ impl BatchProcessedItemCount {
     Eq,
     PartialEq,
     newtype::FromInner,
+    newtype::GetInner,
 )]
 pub struct BatchInvalidItemCount(usize);
 
-impl BatchInvalidItemCount {
-    #[must_use]
-    pub const fn get(self) -> usize {
-        self.0
-    }
-}
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -49,15 +37,9 @@ impl BatchInvalidItemCount {
     Eq,
     PartialEq,
     newtype::FromInner,
+    newtype::GetInner,
 )]
 pub struct BatchStoppedEarly(bool);
-
-impl BatchStoppedEarly {
-    #[must_use]
-    pub const fn get(self) -> bool {
-        self.0
-    }
-}
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::FromInner,
@@ -72,19 +54,24 @@ pub struct BatchInvalidItems<InvalidItem>(Vec<InvalidItem>);
     newtype::AsRefOwned,
     newtype::FromInner,
 )]
-pub struct StdBatchRecords<Key, Record>(std::collections::BTreeMap<Key, Record>);
+pub struct BatchRecordsBTreeMap<Key, Record>(std::collections::BTreeMap<Key, Record>);
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct BatchValidationReport<Key, Record, InvalidItem> {
     invalid_items: BatchInvalidItems<InvalidItem>,
     processed_item_count: BatchProcessedItemCount,
-    records_by_key: StdBatchRecords<Key, Record>,
+    records_by_key: BatchRecordsBTreeMap<Key, Record>,
     stopped_early: BatchStoppedEarly,
 }
 
 impl<Key, Record, InvalidItem> BatchValidationReport<Key, Record, InvalidItem> {
     #[must_use]
-    pub fn into_parts(self) -> (StdBatchRecords<Key, Record>, BatchInvalidItems<InvalidItem>) {
+    pub fn into_parts(
+        self,
+    ) -> (
+        BatchRecordsBTreeMap<Key, Record>,
+        BatchInvalidItems<InvalidItem>,
+    ) {
         (self.records_by_key, self.invalid_items)
     }
 
@@ -104,7 +91,7 @@ impl<Key, Record, InvalidItem> BatchValidationReport<Key, Record, InvalidItem> {
     }
 
     #[must_use]
-    pub const fn records_by_key(&self) -> &StdBatchRecords<Key, Record> {
+    pub const fn records_by_key(&self) -> &BatchRecordsBTreeMap<Key, Record> {
         &self.records_by_key
     }
 

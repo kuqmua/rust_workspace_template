@@ -1,13 +1,9 @@
-const SC_STRING_MAX_LEN: usize = 1_048_576;
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
-struct ToSnakeCaseInput<'input_lt>(&'input_lt str);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::BoundedString)]
-#[bounded_string(max = SC_STRING_MAX_LEN, description = "snake case string")]
-struct SnakeCaseString(String);
+mod domain_types;
+
 #[allow(clippy::single_call_fn)] // extracted to isolate case-normalization logic and keep macro expansion flow focused
-fn to_snake_case(input: ToSnakeCaseInput<'_>) -> SnakeCaseString {
-    let (normalized, _) = input.0.chars().fold(
-        (String::with_capacity(input.0.len()), false),
+fn to_snake_case(input: domain_types::ToSnakeCaseInput<'_>) -> domain_types::SnakeCaseString {
+    let (normalized, _) = input.as_ref().chars().fold(
+        (String::with_capacity(input.as_ref().len()), false),
         |(mut normalized, separator_pending), ch| {
             if char::is_alphanumeric(ch) {
                 if separator_pending && !normalized.is_empty() {
@@ -21,8 +17,10 @@ fn to_snake_case(input: ToSnakeCaseInput<'_>) -> SnakeCaseString {
             }
         },
     );
-    SnakeCaseString::try_from(naming_common::AsRefStrToSnakeCaseStr::case(&normalized))
-        .unwrap_or_else(SnakeCaseString::from)
+    domain_types::SnakeCaseString::try_from(
+        naming_common::domain_types::AsRefStrToSnakeCaseStr::case(&normalized),
+    )
+    .unwrap_or_else(domain_types::SnakeCaseString::from)
 }
 #[proc_macro]
 pub fn generate_derive_token_stream_builder(
@@ -42,18 +40,23 @@ pub fn generate_derive_token_stream_builder(
         .expect("c5d09740 generate_derive_token_stream_builder invariant must hold")
         .into_iter()
         .map(|element| {
-            let sc = to_snake_case(ToSnakeCaseInput::from(element.as_str()));
+            let sc = to_snake_case(domain_types::ToSnakeCaseInput::from(element.as_str()));
             Element {
                 d_trait_name_upper_camel_case: {
-                    let v = naming::parameter::DSelfUpperCamelCase::from_display(&sc.0);
+                    let v = naming::domain_types::parameter::DSelfUpperCamelCase::from_display(
+                        &sc.as_ref(),
+                    );
                     quote::quote! {#v}
                 },
                 d_trait_name_snake_case: {
-                    let v = naming::parameter::DSelfSnakeCase::from_display(&sc.0);
+                    let v =
+                        naming::domain_types::parameter::DSelfSnakeCase::from_display(&sc.as_ref());
                     quote::quote! {#v}
                 },
                 d_trait_name_if_snake_case: {
-                    let v = naming::parameter::DSelfIfSnakeCase::from_display(&sc.0);
+                    let v = naming::domain_types::parameter::DSelfIfSnakeCase::from_display(
+                        &sc.as_ref(),
+                    );
                     quote::quote! {#v}
                 },
                 trait_type: element
@@ -268,21 +271,22 @@ mod tests {
     #[test]
     fn to_snake_case_handles_pascal_case() {
         assert_eq!(
-            super::to_snake_case(super::ToSnakeCaseInput("HelloWorld")).0,
+            super::to_snake_case(super::domain_types::ToSnakeCaseInput::from("HelloWorld"))
+                .as_ref(),
             "hello_world"
         );
     }
     #[test]
     fn to_snake_case_collapses_non_alpha_chunks() {
         assert_eq!(
-            super::to_snake_case(super::ToSnakeCaseInput("A--B__C")).0,
+            super::to_snake_case(super::domain_types::ToSnakeCaseInput::from("A--B__C")).as_ref(),
             "a_b_c"
         );
     }
     #[test]
     fn to_snake_case_trims_edge_separators() {
         assert_eq!(
-            super::to_snake_case(super::ToSnakeCaseInput("__Hello__")).0,
+            super::to_snake_case(super::domain_types::ToSnakeCaseInput::from("__Hello__")).as_ref(),
             "hello"
         );
     }

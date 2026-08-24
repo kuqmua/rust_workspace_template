@@ -94,35 +94,37 @@ const ADMIN_HTML_FORM_SELECTED_MAX_ITEMS: usize = 1_000usize;
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 #[error("{message}", message = constants_str::ADMIN_HTML_FORM_TEXT_TOO_LONG)]
 struct AdminHtmlFormTextError;
-impl From<bounded_types::BoundedValueError> for AdminHtmlFormTextError {
-    fn from(_value: bounded_types::BoundedValueError) -> Self {
+impl From<bounded_types::domain_types::BoundedValueError> for AdminHtmlFormTextError {
+    fn from(_value: bounded_types::domain_types::BoundedValueError) -> Self {
         Self
     }
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 #[error("{message}", message = constants_str::ADMIN_HTML_FORM_KEY_TOO_LONG)]
 struct AdminHtmlFormKeyError;
-impl From<bounded_types::BoundedValueError> for AdminHtmlFormKeyError {
-    fn from(_value: bounded_types::BoundedValueError) -> Self {
+impl From<bounded_types::domain_types::BoundedValueError> for AdminHtmlFormKeyError {
+    fn from(_value: bounded_types::domain_types::BoundedValueError) -> Self {
         Self
     }
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 #[error("administrator HTML form contains too many selected fields")]
 struct StdAdminHtmlSelectedError;
-impl From<bounded_types::BoundedValueError> for StdAdminHtmlSelectedError {
-    fn from(_value: bounded_types::BoundedValueError) -> Self {
+impl From<bounded_types::domain_types::BoundedValueError> for StdAdminHtmlSelectedError {
+    fn from(_value: bounded_types::domain_types::BoundedValueError) -> Self {
         Self
     }
 }
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, serde::Deserialize)]
 #[serde(try_from = "String")]
-struct AdminHtmlFormText(bounded_types::BoundedString<0, { constants_usize::VALUE_8_192 }>);
+struct AdminHtmlFormText(
+    bounded_types::domain_types::text::BoundedString<0, { constants_usize::VALUE_8_192 }>,
+);
 impl TryFrom<String> for AdminHtmlFormText {
     type Error = AdminHtmlFormTextError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        bounded_types::BoundedString::try_from(value)
+        bounded_types::domain_types::text::BoundedString::try_from(value)
             .map(Self)
             .map_err(AdminHtmlFormTextError::from)
     }
@@ -137,11 +139,13 @@ impl TryFrom<String> for AdminHtmlFormText {
     serde::Deserialize,
 )]
 #[serde(try_from = "String")]
-struct AdminHtmlFormKey(bounded_types::BoundedString<0, { constants_usize::VALUE_8_192 }>);
+struct AdminHtmlFormKey(
+    bounded_types::domain_types::text::BoundedString<0, { constants_usize::VALUE_8_192 }>,
+);
 impl TryFrom<String> for AdminHtmlFormKey {
     type Error = AdminHtmlFormKeyError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        bounded_types::BoundedString::try_from(value)
+        bounded_types::domain_types::text::BoundedString::try_from(value)
             .map(Self)
             .map_err(AdminHtmlFormKeyError::from)
     }
@@ -150,10 +154,10 @@ impl TryFrom<String> for AdminHtmlFormKey {
     optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner, serde::Deserialize,
 )]
 #[serde(
-    from = "bounded_types::StdBoundedBTreeMap<AdminHtmlFormKey, AdminHtmlFormText, ADMIN_HTML_FORM_SELECTED_MAX_ITEMS>"
+    from = "bounded_types::domain_types::btree::BoundedBTreeMap<AdminHtmlFormKey, AdminHtmlFormText, ADMIN_HTML_FORM_SELECTED_MAX_ITEMS>"
 )]
 struct StdAdminHtmlSelected(
-    bounded_types::StdBoundedBTreeMap<
+    bounded_types::domain_types::btree::BoundedBTreeMap<
         AdminHtmlFormKey,
         AdminHtmlFormText,
         ADMIN_HTML_FORM_SELECTED_MAX_ITEMS,
@@ -166,7 +170,7 @@ impl TryFrom<std::collections::BTreeMap<AdminHtmlFormKey, AdminHtmlFormText>>
     fn try_from(
         value: std::collections::BTreeMap<AdminHtmlFormKey, AdminHtmlFormText>,
     ) -> Result<Self, Self::Error> {
-        bounded_types::StdBoundedBTreeMap::try_from(value)
+        bounded_types::domain_types::btree::BoundedBTreeMap::try_from(value)
             .map(Self)
             .map_err(StdAdminHtmlSelectedError::from)
     }
@@ -638,7 +642,9 @@ async fn version(auth: super::AdminAuthReq) -> axum::response::Response {
                 constants_str::VERSION_ALT.to_owned(),
             ),
             server_admin_frontend::ssr::AdminSsrText::try_from(
-                git_info::project_git_info().commit().to_string(),
+                git_info::domain_types::project_git_info()
+                    .commit()
+                    .to_string(),
             ),
         ) {
             (Ok(title), Ok(text)) => {
@@ -1117,7 +1123,7 @@ async fn sign_in(
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[frontend_contract::handler_registry(
-    state = super::StdSharedAdminAuthSvcState;
+    state = super::SharedAdminAuthSvcStateArc;
     (
         server_admin_contract::AdminFrontendPath::Root,
         root
@@ -1239,7 +1245,7 @@ struct AdminHtmlRouteRegistry;
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[frontend_contract::handler_registry(
-    state = super::StdSharedAdminAuthSvcState;
+    state = super::SharedAdminAuthSvcStateArc;
     (
         server_admin_contract::AdminFrontendPath::OpenApi,
         open_api
@@ -1248,7 +1254,7 @@ struct AdminHtmlRouteRegistry;
 struct AdminHtmlSwaggerRouteRegistry;
 
 pub(super) fn routes(
-    state: super::StdSharedAdminAuthSvcState,
+    state: super::SharedAdminAuthSvcStateArc,
     swagger_enabled: super::AdminHtmlSwaggerEnabled,
 ) -> super::AxumAdminAuthRouter {
     let router = AdminHtmlRouteRegistry::router();

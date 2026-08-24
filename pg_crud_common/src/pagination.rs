@@ -13,16 +13,11 @@
     optimal_memory_layout::OptimalMemoryLayout,
     newtype::Display,
     newtype::FromInner,
+    newtype::GetInner,
     newtype::ToErrString,
 )]
 #[serde(from = "i64")]
 pub struct PaginationLimit(i64);
-impl PaginationLimit {
-    #[must_use]
-    pub const fn get(self) -> i64 {
-        self.0
-    }
-}
 impl From<i32> for PaginationLimit {
     fn from(value: i32) -> Self {
         Self(value.into())
@@ -70,16 +65,11 @@ mod policy_tests {
     optimal_memory_layout::OptimalMemoryLayout,
     newtype::Display,
     newtype::FromInner,
+    newtype::GetInner,
     newtype::ToErrString,
 )]
 #[serde(from = "i64")]
 pub struct PaginationOffset(i64);
-impl PaginationOffset {
-    #[must_use]
-    pub const fn get(self) -> i64 {
-        self.0
-    }
-}
 impl From<i32> for PaginationOffset {
     fn from(value: i32) -> Self {
         Self(value.into())
@@ -95,14 +85,9 @@ impl From<i32> for PaginationOffset {
     PartialOrd,
     optimal_memory_layout::OptimalMemoryLayout,
     newtype::FromInner,
+    newtype::GetInner,
 )]
 pub struct PaginationStart(i64);
-impl PaginationStart {
-    #[must_use]
-    pub const fn get(self) -> i64 {
-        self.0
-    }
-}
 #[derive(
     Debug,
     Default,
@@ -113,11 +98,6 @@ impl PaginationStart {
     PartialOrd,
     optimal_memory_layout::OptimalMemoryLayout,
     newtype::FromInner,
+    newtype::GetInner,
 )]
 pub struct PaginationEnd(i64);
-impl PaginationEnd {
-    #[must_use]
-    pub const fn get(self) -> i64 {
-        self.0
-    }
-}

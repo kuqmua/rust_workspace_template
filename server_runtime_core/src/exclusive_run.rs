@@ -1,12 +1,12 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 pub struct ExclusiveRun {
-    active: StdExclusiveRunAtomicBool,
+    active: ExclusiveRunAtomicBool,
 }
 impl ExclusiveRun {
     #[must_use]
     pub fn new() -> Self {
         Self {
-            active: StdExclusiveRunAtomicBool::from(std::sync::atomic::AtomicBool::new(false)),
+            active: ExclusiveRunAtomicBool::from(std::sync::atomic::AtomicBool::new(false)),
         }
     }
 
@@ -40,7 +40,7 @@ pub struct ExclusiveRunAlreadyActive;
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 #[must_use]
 pub struct ExclusiveRunGuard<'run_lt> {
-    active: &'run_lt StdExclusiveRunAtomicBool,
+    active: &'run_lt ExclusiveRunAtomicBool,
 }
 impl Drop for ExclusiveRunGuard<'_> {
     fn drop(&mut self) {
@@ -51,7 +51,7 @@ impl Drop for ExclusiveRunGuard<'_> {
 }
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
-struct StdExclusiveRunAtomicBool(std::sync::atomic::AtomicBool);
+struct ExclusiveRunAtomicBool(std::sync::atomic::AtomicBool);
 
 #[cfg(test)]
 mod tests {

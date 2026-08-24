@@ -7,13 +7,13 @@
     newtype::AsRefTarget,
     newtype::FromInner,
 )]
-pub(crate) struct StdRsFilePath(std::path::PathBuf);
+pub(crate) struct RsFilePathBuf(std::path::PathBuf);
 #[allow(clippy::single_call_fn)] // centralized .rs extension mapping keeps path behavior consistent across file-write helpers
-pub(crate) fn rs_file_path<P>(file_name: P) -> StdRsFilePath
+pub(crate) fn rs_file_path<P>(file_name: P) -> RsFilePathBuf
 where
     P: AsRef<std::path::Path>,
 {
-    StdRsFilePath::from(file_name.as_ref().with_extension(constants_str::RS))
+    RsFilePathBuf::from(file_name.as_ref().with_extension(constants_str::RS))
 }
 #[cfg(test)]
 mod tests {

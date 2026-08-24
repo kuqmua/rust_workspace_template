@@ -182,9 +182,11 @@ mod tests {
         let metadata = <TestRouteFamily as frontend_contract::RouteFamily>::route_metadata();
         assert_eq!(
             metadata,
-            frontend_contract::RouteMetadataList::from(bounded_types::BoundedVec::from_max_iter([
-                frontend_contract::client_route_metadata::<TestRoute>(),
-            ]),)
+            frontend_contract::RouteMetadataList::from(
+                bounded_types::domain_types::vector::BoundedVec::from_max_iter([
+                    frontend_contract::client_route_metadata::<TestRoute>(),
+                ]),
+            )
         );
     }
     #[test]

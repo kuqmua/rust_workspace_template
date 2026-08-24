@@ -20,10 +20,10 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
         .execute(&mut *admin_db_test_lock)
         .await
         .expect("693b147f postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
-    server_admin::prep_pg(app_state::SqlxPgPoolRef::from(&pool.0))
+    server_admin::prep_pg(app_state::domain_types::SqlxPgPoolRef::from(&pool.0))
         .await
         .expect("0ea8d516 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
-    server_admin::prep_pg(app_state::SqlxPgPoolRef::from(&pool.0))
+    server_admin::prep_pg(app_state::domain_types::SqlxPgPoolRef::from(&pool.0))
         .await
         .expect("676c00f1 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
     server_admin::generated_tables::validate_catalog_schema(
@@ -56,7 +56,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
         .execute(&pool.0)
         .await
         .expect("9d762f8c postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
-    server_admin::prep_pg(app_state::SqlxPgPoolRef::from(&pool.0))
+    server_admin::prep_pg(app_state::domain_types::SqlxPgPoolRef::from(&pool.0))
         .await
         .expect("ea3f641d postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
     let reconciled_permissions = sqlx::query_scalar::<_, String>(
@@ -78,12 +78,12 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     .expect("703a8df2 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
     let hasher =
         server_admin::AdminPasswordHasher::new(server_admin::AdminPasswordHashConcurrency::from(
-            server_admin::StdAdminNonZeroUsize::from(std::num::NonZeroUsize::new(1).expect(
+            server_admin::AdminNonZeroUsize::from(std::num::NonZeroUsize::new(1).expect(
                 "271f96d4 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold",
             )),
         ));
     let _admin_id = server_admin::bootstrap_admin(
-        app_state::SqlxPgPoolRef::from(&pool.0),
+        app_state::domain_types::SqlxPgPoolRef::from(&pool.0),
         server_admin::AdminLogin::try_from(constants_str::ADMIN_ALT.to_owned()).expect(
             "98c7e04a postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold",
         ),
@@ -114,7 +114,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     .expect("e411f376 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
     assert!(matches!(
         server_admin::bootstrap_admin(
-            app_state::SqlxPgPoolRef::from(&pool.0),
+            app_state::domain_types::SqlxPgPoolRef::from(&pool.0),
             server_admin::AdminLogin::try_from("other_admin".to_owned()).expect(
                 "8359ca1a postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold"
             ),

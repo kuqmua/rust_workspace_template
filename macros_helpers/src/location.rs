@@ -108,10 +108,10 @@ pub fn generate_serde_version_of_named_syn_variant(
     v: SynVariantRef<'_>,
 ) -> crate::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     let variant = v.0;
-    let hash_map_upper_camel_case = naming::HashMapUpperCamelCase;
-    let location_snake_case = naming::LocationSnakeCase;
+    let hash_map_upper_camel_case = naming::domain_types::HashMapUpperCamelCase;
+    let location_snake_case = naming::domain_types::LocationSnakeCase;
     let string_token_stream = token_patterns::StringTokenStream;
-    let with_serde_upper_camel_case = naming::WithSerdeUpperCamelCase;
+    let with_serde_upper_camel_case = naming::domain_types::WithSerdeUpperCamelCase;
     let element_identifier = &variant.ident;
     let fields = if let syn::Fields::Named(fields) = &variant.fields {
         &fields.named

@@ -7,144 +7,77 @@
     reason = "the bootstrap command keeps parsing, secret loading, and database orchestration isolated"
 )]
 
+mod domain_types;
+
 const PASSWORD_FILE_MAX_BYTES: usize = 1_024usize;
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
-struct StdBootstrapPath(std::path::PathBuf);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
-)]
-#[error(transparent)]
-struct SqlxBootstrapError(sqlx::Error);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::FromInner,
-)]
-struct BootstrapStatus(u8);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
-struct BootstrapArgs {
-    display_name: server_admin::AdminDisplayName,
-    login: server_admin::AdminLogin,
-    password_file: StdBootstrapPath,
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
-struct PasswordResetArgs {
-    login: server_admin::AdminLogin,
-    password_file: StdBootstrapPath,
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
-enum AdminCommand {
-    Bootstrap(BootstrapArgs),
-    PasswordReset(PasswordResetArgs),
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
-enum BootstrapArgsError {
-    #[error("administrator bootstrap display name is invalid")]
-    DisplayName,
-    #[error("administrator bootstrap login is invalid")]
-    Login,
-    #[error(
-        "usage: admin_bootstrap <login> <display_name> <password_file> | admin_bootstrap reset <login> <password_file>; password_file must contain only the new password"
-    )]
-    Usage,
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
-enum BootstrapCommandError {
-    #[error(transparent)]
-    Args(BootstrapArgsError),
-    #[error("failed to create the first administrator: {0}")]
-    Bootstrap(server_admin::AdminBootstrapError),
-    #[error("failed to read configuration: {0}")]
-    Config(server_config::ConfigTryFromEnvError),
-    #[error("unsafe production configuration: {0}")]
-    ConfigProduction(server_config::ProductionConfigError),
-    #[error("failed to connect to postgres: {0}")]
-    Connect(SqlxBootstrapError),
-    #[error("failed to prepare administrator schema: {0}")]
-    Migrate(server_admin::AdminMigrateError),
-    #[error("failed to read administrator bootstrap password file: {0}")]
-    PasswordFile(server_runtime_http::BoundedReadError),
-    #[error("administrator bootstrap password file is invalid")]
-    PasswordFileValue,
-    #[error("failed to reset the administrator password: {0}")]
-    PasswordReset(server_admin::AdminPasswordResetError),
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
-struct StdBootstrapExitCode(std::process::ExitCode);
-impl std::process::Termination for StdBootstrapExitCode {
-    fn report(self) -> std::process::ExitCode {
-        self.0
-    }
-}
-
-fn parse_args() -> Result<AdminCommand, BootstrapArgsError> {
+fn parse_args() -> Result<domain_types::AdminCommand, domain_types::BootstrapArgsError> {
     let mut args = std::env::args_os().skip(constants_usize::ONE);
-    let login_arg = args.next().ok_or(BootstrapArgsError::Usage)?;
+    let login_arg = args.next().ok_or(domain_types::BootstrapArgsError::Usage)?;
     if login_arg == std::ffi::OsStr::new("reset") {
-        let reset_login_arg = args.next().ok_or(BootstrapArgsError::Usage)?;
-        let password_file = args.next().ok_or(BootstrapArgsError::Usage)?;
+        let reset_login_arg = args.next().ok_or(domain_types::BootstrapArgsError::Usage)?;
+        let password_file = args.next().ok_or(domain_types::BootstrapArgsError::Usage)?;
         if args.next().is_some() {
-            return Err(BootstrapArgsError::Usage);
+            return Err(domain_types::BootstrapArgsError::Usage);
         }
         let login = reset_login_arg.into_string().map_err(|value| {
             drop(value);
-            BootstrapArgsError::Login
+            domain_types::BootstrapArgsError::Login
         })?;
-        return Ok(AdminCommand::PasswordReset(PasswordResetArgs {
-            login: server_admin::AdminLogin::try_from(login).map_err(|error| {
-                let _error_text = format!("{error:?}");
-                BootstrapArgsError::Login
-            })?,
-            password_file: StdBootstrapPath::from(std::path::PathBuf::from(password_file)),
-        }));
+        return Ok(domain_types::AdminCommand::PasswordReset(
+            domain_types::PasswordResetArgs::new(
+                server_admin::AdminLogin::try_from(login).map_err(|error| {
+                    let _error_text = format!("{error:?}");
+                    domain_types::BootstrapArgsError::Login
+                })?,
+                domain_types::BootstrapPathBuf::from(std::path::PathBuf::from(password_file)),
+            ),
+        ));
     }
-    let display_name_arg = args.next().ok_or(BootstrapArgsError::Usage)?;
-    let password_file = args.next().ok_or(BootstrapArgsError::Usage)?;
+    let display_name_arg = args.next().ok_or(domain_types::BootstrapArgsError::Usage)?;
+    let password_file = args.next().ok_or(domain_types::BootstrapArgsError::Usage)?;
     if args.next().is_some() {
-        return Err(BootstrapArgsError::Usage);
+        return Err(domain_types::BootstrapArgsError::Usage);
     }
     let login = login_arg.into_string().map_err(|value| {
         drop(value);
-        BootstrapArgsError::Login
+        domain_types::BootstrapArgsError::Login
     })?;
     let display_name = display_name_arg.into_string().map_err(|value| {
         drop(value);
-        BootstrapArgsError::DisplayName
+        domain_types::BootstrapArgsError::DisplayName
     })?;
-    Ok(AdminCommand::Bootstrap(BootstrapArgs {
-        display_name: server_admin::AdminDisplayName::try_from(display_name).map_err(|error| {
-            let _error_text = format!("{error:?}");
-            BootstrapArgsError::DisplayName
-        })?,
-        login: server_admin::AdminLogin::try_from(login).map_err(|error| {
-            let _error_text = format!("{error:?}");
-            BootstrapArgsError::Login
-        })?,
-        password_file: StdBootstrapPath::from(std::path::PathBuf::from(password_file)),
-    }))
+    Ok(domain_types::AdminCommand::Bootstrap(
+        domain_types::BootstrapArgs::new(
+            server_admin::AdminDisplayName::try_from(display_name).map_err(|error| {
+                let _error_text = format!("{error:?}");
+                domain_types::BootstrapArgsError::DisplayName
+            })?,
+            server_admin::AdminLogin::try_from(login).map_err(|error| {
+                let _error_text = format!("{error:?}");
+                domain_types::BootstrapArgsError::Login
+            })?,
+            domain_types::BootstrapPathBuf::from(std::path::PathBuf::from(password_file)),
+        ),
+    ))
 }
 
 fn password_from_file(
-    password_file: &StdBootstrapPath,
-) -> Result<server_admin_contract::AdminNewPassword, BootstrapCommandError> {
+    password_file: &domain_types::BootstrapPathBuf,
+) -> Result<server_admin_contract::AdminNewPassword, domain_types::BootstrapCommandError> {
     let bytes = server_runtime_http::read_bounded_file(
-        server_runtime_http::StdPathRef::from(password_file.0.as_path()),
+        password_file.as_path_ref(),
         server_runtime_http::BoundedReadMaximumBytes::from(PASSWORD_FILE_MAX_BYTES),
     )
-    .map_err(BootstrapCommandError::PasswordFile)?;
+    .map_err(domain_types::BootstrapCommandError::PasswordFile)?;
     password_from_bytes(bytes)
 }
 
 fn password_from_bytes(
     bytes: server_runtime_http::BoundedBytes,
-) -> Result<server_admin_contract::AdminNewPassword, BootstrapCommandError> {
+) -> Result<server_admin_contract::AdminNewPassword, domain_types::BootstrapCommandError> {
     let text = server_runtime_http::BoundedText::try_from(bytes)
-        .map_err(BootstrapCommandError::PasswordFile)?;
+        .map_err(domain_types::BootstrapCommandError::PasswordFile)?;
     let mut password = text.into_inner();
     if password.ends_with('\n') {
         let _newline = password.pop();
@@ -154,55 +87,62 @@ fn password_from_bytes(
     }
     server_admin_contract::AdminNewPassword::try_from(password).map_err(|error| {
         let _error_text = format!("{error:?}");
-        BootstrapCommandError::PasswordFileValue
+        domain_types::BootstrapCommandError::PasswordFileValue
     })
 }
 
-async fn run() -> Result<server_admin::AdminUserId, BootstrapCommandError> {
-    let command = parse_args().map_err(BootstrapCommandError::Args)?;
-    let config = server_config::Config::try_from_env().map_err(BootstrapCommandError::Config)?;
+async fn run() -> Result<server_admin::AdminUserId, domain_types::BootstrapCommandError> {
+    let command = parse_args().map_err(domain_types::BootstrapCommandError::Args)?;
+    let config = server_config::domain_types::Config::try_from_env()
+        .map_err(domain_types::BootstrapCommandError::Config)?;
     config
         .validate_for_startup()
-        .map_err(BootstrapCommandError::ConfigProduction)?;
+        .map_err(domain_types::BootstrapCommandError::ConfigProduction)?;
     let pool = sqlx::postgres::PgPoolOptions::new()
         .max_connections(1u32)
         .connect(secrecy::ExposeSecret::expose_secret(
             config_lib::GetDatabaseUrl::get_database_url(&config),
         ))
         .await
-        .map_err(|error| BootstrapCommandError::Connect(SqlxBootstrapError::from(error)))?;
-    server_admin::prep_pg(app_state::SqlxPgPoolRef::from(&pool))
+        .map_err(|error| {
+            domain_types::BootstrapCommandError::Connect(domain_types::SqlxBootstrapError::from(
+                error,
+            ))
+        })?;
+    server_admin::prep_pg(app_state::domain_types::SqlxPgPoolRef::from(&pool))
         .await
-        .map_err(BootstrapCommandError::Migrate)?;
+        .map_err(domain_types::BootstrapCommandError::Migrate)?;
     let concurrency = std::num::NonZeroUsize::new(config.admin_password_hash_concurrency.get())
-        .ok_or(BootstrapCommandError::PasswordFileValue)?;
+        .ok_or(domain_types::BootstrapCommandError::PasswordFileValue)?;
     let password_hasher =
         server_admin::AdminPasswordHasher::new(server_admin::AdminPasswordHashConcurrency::from(
-            server_admin::StdAdminNonZeroUsize::from(concurrency),
+            server_admin::AdminNonZeroUsize::from(concurrency),
         ));
     match command {
-        AdminCommand::Bootstrap(args) => {
-            let password = password_from_file(&args.password_file)?;
+        domain_types::AdminCommand::Bootstrap(args) => {
+            let (display_name, login, password_file) = args.into_parts();
+            let password = password_from_file(&password_file)?;
             server_admin::bootstrap_admin(
-                app_state::SqlxPgPoolRef::from(&pool),
-                args.login,
-                args.display_name,
+                app_state::domain_types::SqlxPgPoolRef::from(&pool),
+                login,
+                display_name,
                 password,
                 &password_hasher,
             )
             .await
-            .map_err(BootstrapCommandError::Bootstrap)
+            .map_err(domain_types::BootstrapCommandError::Bootstrap)
         }
-        AdminCommand::PasswordReset(args) => {
-            let password = password_from_file(&args.password_file)?;
+        domain_types::AdminCommand::PasswordReset(args) => {
+            let (login, password_file) = args.into_parts();
+            let password = password_from_file(&password_file)?;
             server_admin::reset_admin_password(
-                app_state::SqlxPgPoolRef::from(&pool),
-                args.login,
+                app_state::domain_types::SqlxPgPoolRef::from(&pool),
+                login,
                 password,
                 &password_hasher,
             )
             .await
-            .map_err(BootstrapCommandError::PasswordReset)
+            .map_err(domain_types::BootstrapCommandError::PasswordReset)
         }
     }
 }
@@ -211,41 +151,44 @@ async fn run() -> Result<server_admin::AdminUserId, BootstrapCommandError> {
     clippy::missing_const_for_fn,
     reason = "repository wrappers initialize through the non-const From trait"
 )]
-fn error_status(error: &BootstrapCommandError) -> BootstrapStatus {
-    BootstrapStatus::from(match error {
-        BootstrapCommandError::Args(_) | BootstrapCommandError::PasswordFileValue => 2u8,
-        BootstrapCommandError::Bootstrap(server_admin::AdminBootstrapError::AlreadyInitialized) => {
-            3u8
-        }
-        BootstrapCommandError::Config(_)
-        | BootstrapCommandError::ConfigProduction(_)
-        | BootstrapCommandError::Connect(_)
-        | BootstrapCommandError::Migrate(_)
-        | BootstrapCommandError::PasswordFile(_)
-        | BootstrapCommandError::PasswordReset(_)
-        | BootstrapCommandError::Bootstrap(_) => 1u8,
+fn error_status(error: &domain_types::BootstrapCommandError) -> domain_types::BootstrapStatus {
+    domain_types::BootstrapStatus::from(match error {
+        domain_types::BootstrapCommandError::Args(_)
+        | domain_types::BootstrapCommandError::PasswordFileValue => 2u8,
+        domain_types::BootstrapCommandError::Bootstrap(
+            server_admin::AdminBootstrapError::AlreadyInitialized,
+        ) => 3u8,
+        domain_types::BootstrapCommandError::Config(_)
+        | domain_types::BootstrapCommandError::ConfigProduction(_)
+        | domain_types::BootstrapCommandError::Connect(_)
+        | domain_types::BootstrapCommandError::Migrate(_)
+        | domain_types::BootstrapCommandError::PasswordFile(_)
+        | domain_types::BootstrapCommandError::PasswordReset(_)
+        | domain_types::BootstrapCommandError::Bootstrap(_) => 1u8,
     })
 }
 
-fn main() -> StdBootstrapExitCode {
+fn main() -> domain_types::BootstrapExitCode {
     let runtime = match tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()
     {
         Ok(runtime) => runtime,
         Err(error) => {
-            eprintln!("failed to create administrator bootstrap runtime: {error}");
-            return StdBootstrapExitCode::from(std::process::ExitCode::FAILURE);
+            tracing::error!(error = %error, "failed to create administrator bootstrap runtime");
+            return domain_types::BootstrapExitCode::from(std::process::ExitCode::FAILURE);
         }
     };
     match runtime.block_on(run()) {
         Ok(user_id) => {
-            println!("administrator operation completed for identifier {user_id}");
-            StdBootstrapExitCode::from(std::process::ExitCode::SUCCESS)
+            tracing::info!(user_id = %user_id, "administrator operation completed");
+            domain_types::BootstrapExitCode::from(std::process::ExitCode::SUCCESS)
         }
         Err(error) => {
-            eprintln!("{error}");
-            StdBootstrapExitCode::from(std::process::ExitCode::from(error_status(&error).0))
+            tracing::error!(error = %error, "administrator operation failed");
+            domain_types::BootstrapExitCode::from(std::process::ExitCode::from(u8::from(
+                error_status(&error),
+            )))
         }
     }
 }
@@ -255,16 +198,16 @@ mod tests {
     #[test]
     fn exit_codes_distinguish_invalid_input_and_completed_bootstrap() {
         assert_eq!(
-            super::error_status(&super::BootstrapCommandError::Args(
-                super::BootstrapArgsError::Usage,
+            super::error_status(&super::domain_types::BootstrapCommandError::Args(
+                super::domain_types::BootstrapArgsError::Usage,
             )),
-            super::BootstrapStatus::from(2u8)
+            super::domain_types::BootstrapStatus::from(2u8)
         );
         assert_eq!(
-            super::error_status(&super::BootstrapCommandError::Bootstrap(
+            super::error_status(&super::domain_types::BootstrapCommandError::Bootstrap(
                 server_admin::AdminBootstrapError::AlreadyInitialized,
             )),
-            super::BootstrapStatus::from(3u8)
+            super::domain_types::BootstrapStatus::from(3u8)
         );
     }
 

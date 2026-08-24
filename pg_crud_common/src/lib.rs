@@ -35,7 +35,7 @@ pub use advisory_lock::{
 };
 pub use batch_validation::{
     BatchDuplicatePolicy, BatchInvalidItemCount, BatchInvalidItems, BatchProcessedItemCount,
-    BatchStoppedEarly, BatchValidationReport, StdBatchRecords, validate_batch_by_key,
+    BatchRecordsBTreeMap, BatchStoppedEarly, BatchValidationReport, validate_batch_by_key,
 };
 pub use bind_index::{
     QueryPartIncrement, QueryPartIncrementMut, increment_checked_add_one_returning_increment,
@@ -51,8 +51,8 @@ pub use cursor::{
     SignedCursorPresence,
 };
 pub use date_sql_filter::{
-    ChronoUtcDateTimeRef, ChronoUtcDateTimes, DateFilterBounds, DateSqlFilter, DateSqlFilterError,
-    StdDateSqlBindStart, build_date_sql_filter,
+    ChronoUtcDateTimeRef, ChronoUtcDateTimes, DateFilterBounds, DateSqlBindStartNonZeroU32,
+    DateSqlFilter, DateSqlFilterError, build_date_sql_filter,
 };
 pub use db_schema_conformance::{
     DbCatalogSnapshot, DbColumnContractSnapshot, DbColumnContractSnapshots,
@@ -119,7 +119,7 @@ pub use query_collections::{
     IsStringEmpty, IsStringEmptyRes, NonPrimaryKeyPgTypeReadIds, NotEmptyUniqueVec,
     NotEmptyUniqueVecTryNewError, V,
 };
-pub use query_fragment::{QueryPartFragment, SqlColumnRef, StdReadQueryBindIndex};
+pub use query_fragment::{QueryPartFragment, ReadQueryBindIndexNonZeroU32, SqlColumnRef};
 pub use query_pagination::{
     Order, OrderBy, OrderSnakeCaseStr, OrderUpperCamelCaseStr, PaginationBase,
     PaginationStartsWithZero, PaginationStartsWithZeroTryNewError,
@@ -214,13 +214,13 @@ mod tests_operator_to_query_part {
             super::Operator::And
                 .to_query_part(super::AddOperator::from(true))
                 .as_ref(),
-            format!("{} ", naming::AndSnakeCase)
+            format!("{} ", naming::domain_types::AndSnakeCase)
         );
         assert_eq!(
             super::Operator::Or
                 .to_query_part(super::AddOperator::from(true))
                 .as_ref(),
-            format!("{} ", naming::OrSnakeCase)
+            format!("{} ", naming::domain_types::OrSnakeCase)
         );
     }
     #[test]
@@ -229,13 +229,21 @@ mod tests_operator_to_query_part {
             super::Operator::AndNot
                 .to_query_part(super::AddOperator::from(true))
                 .as_ref(),
-            format!("{} {} ", naming::AndSnakeCase, naming::NotSnakeCase)
+            format!(
+                "{} {} ",
+                naming::domain_types::AndSnakeCase,
+                naming::domain_types::NotSnakeCase
+            )
         );
         assert_eq!(
             super::Operator::OrNot
                 .to_query_part(super::AddOperator::from(true))
                 .as_ref(),
-            format!("{} {} ", naming::OrSnakeCase, naming::NotSnakeCase)
+            format!(
+                "{} {} ",
+                naming::domain_types::OrSnakeCase,
+                naming::domain_types::NotSnakeCase
+            )
         );
     }
     #[test]
@@ -256,13 +264,13 @@ mod tests_operator_to_query_part {
             super::Operator::AndNot
                 .to_query_part(super::AddOperator::from(false))
                 .as_ref(),
-            format!("{} ", naming::NotSnakeCase)
+            format!("{} ", naming::domain_types::NotSnakeCase)
         );
         assert_eq!(
             super::Operator::OrNot
                 .to_query_part(super::AddOperator::from(false))
                 .as_ref(),
-            format!("{} ", naming::NotSnakeCase)
+            format!("{} ", naming::domain_types::NotSnakeCase)
         );
     }
 }
@@ -607,7 +615,7 @@ where
         )
     }
 }
-impl<T> to_err_string::ToErrString for NullableJsonObjPgTypeWhereFilter<T>
+impl<T> to_err_string::domain_types::ToErrString for NullableJsonObjPgTypeWhereFilter<T>
 where
     T: std::fmt::Debug
         + PartialEq
@@ -615,9 +623,9 @@ where
         + for<'t_lt> PgTypeWhereFilter<'t_lt>
         + AllEnumVariantsArrayDefaultSomeOneElement,
 {
-    fn to_err_string(&self) -> to_err_string::ErrorText {
-        to_err_string::ErrorText::try_from(format!("{self:#?}"))
-            .unwrap_or_else(to_err_string::ErrorText::from)
+    fn to_err_string(&self) -> to_err_string::domain_types::ErrorText {
+        to_err_string::domain_types::ErrorText::try_from(format!("{self:#?}"))
+            .unwrap_or_else(to_err_string::domain_types::ErrorText::from)
     }
 }
 impl<T> AllEnumVariantsArrayDefaultSomeOneElement for NullableJsonObjPgTypeWhereFilter<T>

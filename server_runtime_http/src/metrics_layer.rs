@@ -56,13 +56,13 @@ pub struct HttpMetricsPathCacheMaximumTryFromUsizeError;
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 struct HttpMetricsPathCache {
-    entries: StdHttpMetricsPathEntries,
+    entries: HttpMetricsPathEntriesRwLock,
     maximum: HttpMetricsPathCacheMaximum,
     unmatched: MetricsSharedString,
 }
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
-struct StdHttpMetricsPathEntries(
+struct HttpMetricsPathEntriesRwLock(
     std::sync::RwLock<std::collections::HashMap<HttpMetricsPathText, MetricsSharedString>>,
 );
 
@@ -99,9 +99,9 @@ struct HttpMetricsPathTextError;
 struct HttpMetricsPathTextRef<'path>(&'path str);
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
-struct StdSharedHttpMetricsPathCache(std::sync::Arc<HttpMetricsPathCache>);
+struct SharedHttpMetricsPathCacheArc(std::sync::Arc<HttpMetricsPathCache>);
 
-impl From<HttpMetricsPathCache> for StdSharedHttpMetricsPathCache {
+impl From<HttpMetricsPathCache> for SharedHttpMetricsPathCacheArc {
     fn from(value: HttpMetricsPathCache) -> Self {
         Self(std::sync::Arc::from(value))
     }
@@ -112,7 +112,7 @@ impl HttpMetricsPathCache {
     #[allow(clippy::single_call_fn)] // cache construction owns its capacity invariant
     fn new(maximum: HttpMetricsPathCacheMaximum) -> Self {
         Self {
-            entries: StdHttpMetricsPathEntries::from(std::sync::RwLock::new(
+            entries: HttpMetricsPathEntriesRwLock::from(std::sync::RwLock::new(
                 std::collections::HashMap::with_capacity(
                     maximum.0.min(DEFAULT_HTTP_METRICS_PATH_CACHE_MAXIMUM),
                 ),
@@ -160,7 +160,7 @@ impl HttpMetricsPathCache {
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub struct HttpMetricsLayer {
-    paths: StdSharedHttpMetricsPathCache,
+    paths: SharedHttpMetricsPathCacheArc,
 }
 
 impl Default for HttpMetricsLayer {
@@ -180,7 +180,7 @@ impl HttpMetricsLayer {
     #[must_use]
     pub fn new(path_cache_maximum: HttpMetricsPathCacheMaximum) -> Self {
         Self {
-            paths: StdSharedHttpMetricsPathCache::from(HttpMetricsPathCache::new(
+            paths: SharedHttpMetricsPathCacheArc::from(HttpMetricsPathCache::new(
                 path_cache_maximum,
             )),
         }
@@ -189,7 +189,7 @@ impl HttpMetricsLayer {
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 struct HttpMetricsTowerLayer {
-    paths: StdSharedHttpMetricsPathCache,
+    paths: SharedHttpMetricsPathCacheArc,
 }
 
 impl<Service> tower::Layer<Service> for HttpMetricsTowerLayer {
@@ -206,7 +206,7 @@ impl<Service> tower::Layer<Service> for HttpMetricsTowerLayer {
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 struct HttpMetricsService<Service> {
     inner: Service,
-    paths: StdSharedHttpMetricsPathCache,
+    paths: SharedHttpMetricsPathCacheArc,
 }
 
 impl<Service> tower::Service<axum::extract::Request> for HttpMetricsService<Service>

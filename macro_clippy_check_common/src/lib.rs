@@ -1,55 +1,7 @@
+mod domain_types;
+
 #[cfg(feature = "test-utils")]
-const GENERATED_CRATE_STEPS: [GeneratedCrateStep; 4] = [
-    GeneratedCrateStep {
-        args: &constants_str::MACRO_CLIPPY_CARGO_FMT_ARGS,
-        phase: GeneratedCratePhase::Formatting,
-    },
-    GeneratedCrateStep {
-        args: &constants_str::MACRO_CLIPPY_CARGO_CHECK_ALL_TARGETS_ALL_FEATURES_ARGS,
-        phase: GeneratedCratePhase::Compilation,
-    },
-    GeneratedCrateStep {
-        args: &constants_str::MACRO_CLIPPY_CARGO_CLIPPY_ALL_TARGETS_ALL_FEATURES_ARGS,
-        phase: GeneratedCratePhase::Clippy,
-    },
-    GeneratedCrateStep {
-        args: &constants_str::MACRO_CLIPPY_CARGO_TEST_LIB_ARGS,
-        phase: GeneratedCratePhase::Test,
-    },
-];
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-#[cfg(feature = "test-utils")]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum GeneratedCratePhase {
-    Clippy,
-    Compilation,
-    Formatting,
-    Test,
-}
-#[cfg(feature = "test-utils")]
-impl std::fmt::Display for GeneratedCratePhase {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Clippy => f.write_str(constants_str::CLIPPY),
-            Self::Compilation => f.write_str(constants_str::COMPILATION),
-            Self::Formatting => f.write_str(constants_str::FORMATTING),
-            Self::Test => f.write_str(constants_str::TEST_ALT_3),
-        }
-    }
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-#[cfg(feature = "test-utils")]
-struct GeneratedCrateStep {
-    args: &'static [&'static str],
-    phase: GeneratedCratePhase,
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-#[cfg(feature = "test-utils")]
-struct RemoveDirOnDrop {
-    path: std::path::PathBuf,
-}
-#[cfg(feature = "test-utils")]
-impl Drop for RemoveDirOnDrop {
+impl Drop for domain_types::RemoveDirOnDrop {
     fn drop(&mut self) {
         remove_dir_all_if_exists(&self.path, constants_str::E28698F2);
         if let Some(parent) = self.path.parent()
@@ -80,7 +32,7 @@ pub fn clippy_check(crate_name: &str, _cmd_path: &str, extra_cnt: &str, content_
     remove_dir_all_if_exists(&crate_path, constants_str::E28698F2);
     std::fs::create_dir_all(crate_path.join(constants_str::SRC_ALT))
         .unwrap_or_else(|error| panic!("2b24ef1a: {error}"));
-    let _remove_dir_on_drop = RemoveDirOnDrop {
+    let _remove_dir_on_drop = domain_types::RemoveDirOnDrop {
         path: crate_path.clone(),
     };
     let cargo_toml_cnt = format!(
@@ -101,7 +53,7 @@ categories = ["category"]
     let path_cargo_toml = crate_path.join(constants_str::CARGO_TOML);
     let workspace_manifest_path = root.join(constants_str::CARGO_TOML);
     let workspace_cargo_toml = server_runtime_http::read_bounded_file(
-        server_runtime_http::StdPathRef::from(workspace_manifest_path.as_path()),
+        server_runtime_http::PathRef::from(workspace_manifest_path.as_path()),
         server_runtime_http::BoundedReadMaximumBytes::from(constants_usize::VALUE_1_048_576),
     )
     .and_then(server_runtime_http::BoundedText::try_from)
@@ -214,40 +166,42 @@ categories = ["category"]
         crate_path.join(constants_str::CARGO_LOCK),
     )
     .unwrap_or_else(|error| panic!("1dda80f9: {error}"));
-    GENERATED_CRATE_STEPS.iter().fold((), |(), step| {
-        let status = macros_helpers::tool_command::ToolCommand::new(
-            macros_helpers::tool_command::ToolProgramRef::from(
-                constants_str::WORKSPACE_TEST_RUNNER_CARGO,
-            ),
-        )
-        .current_dir(macros_helpers::tool_command::StdPathRef::from(
-            crate_path.as_path(),
-        ))
-        .args(macros_helpers::tool_command::ToolArgsRef::from(step.args))
-        .status()
-        .unwrap_or_else(|error| {
-            panic!(
-                "cd48b869: generated crate {} phase failed to start at {}: {error}",
-                step.phase,
-                crate_path.display()
+    domain_types::generated_crate_steps()
+        .iter()
+        .fold((), |(), step| {
+            let status = macros_helpers::tool_command::ToolCommand::new(
+                macros_helpers::tool_command::ToolProgramRef::from(
+                    constants_str::WORKSPACE_TEST_RUNNER_CARGO,
+                ),
             )
+            .current_dir(macros_helpers::tool_command::PathRef::from(
+                crate_path.as_path(),
+            ))
+            .args(macros_helpers::tool_command::ToolArgsRef::from(step.args()))
+            .status()
+            .unwrap_or_else(|error| {
+                panic!(
+                    "cd48b869: generated crate {} phase failed to start at {}: {error}",
+                    step.phase(),
+                    crate_path.display()
+                )
+            });
+            assert!(
+                status.success(),
+                "2c037283: generated crate {} phase failed at {}: {status}",
+                step.phase(),
+                crate_path.display()
+            );
         });
-        assert!(
-            status.success(),
-            "2c037283: generated crate {} phase failed at {}: {status}",
-            step.phase,
-            crate_path.display()
-        );
-    });
 }
 #[cfg(test)]
 #[cfg(feature = "test-utils")]
 mod tests {
     static TEST_SEQ: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
     #[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
-    struct StdTmpDir(std::path::PathBuf);
+    struct TmpDirPathBuf(std::path::PathBuf);
 
-    impl StdTmpDir {
+    impl TmpDirPathBuf {
         fn new() -> Self {
             let seq = TEST_SEQ.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
             let path = std::env::temp_dir().join(format!(
@@ -262,7 +216,7 @@ mod tests {
             &self.0
         }
     }
-    impl Drop for StdTmpDir {
+    impl Drop for TmpDirPathBuf {
         fn drop(&mut self) {
             if let Err(error) = std::fs::remove_dir_all(&self.0)
                 && error.kind() != std::io::ErrorKind::NotFound
@@ -273,17 +227,17 @@ mod tests {
     }
     #[test]
     fn remove_dir_on_drop_removes_temp_crate_dir() {
-        let dir = StdTmpDir::new();
+        let dir = TmpDirPathBuf::new();
         let path = dir.path().join(constants_str::CRATE_DIR);
         std::fs::create_dir_all(&path)
             .expect("9b0e24f1 remove_dir_on_drop_removes_temp_crate_dir invariant must hold");
-        let guard = super::RemoveDirOnDrop { path: path.clone() };
+        let guard = super::domain_types::RemoveDirOnDrop { path: path.clone() };
         drop(guard);
         assert!(!path.exists());
     }
     #[test]
     fn remove_dir_all_if_exists_accepts_missing_dir() {
-        let dir = StdTmpDir::new();
+        let dir = TmpDirPathBuf::new();
         let path = dir.path().join(constants_str::MISSING_DIR);
         super::remove_dir_all_if_exists(&path, constants_str::F39C05AA);
         assert!(!path.exists());
@@ -291,10 +245,10 @@ mod tests {
     #[test]
     fn generated_crate_phases_have_stable_diagnostics() {
         let phases = [
-            super::GeneratedCratePhase::Compilation,
-            super::GeneratedCratePhase::Clippy,
-            super::GeneratedCratePhase::Formatting,
-            super::GeneratedCratePhase::Test,
+            super::domain_types::GeneratedCratePhase::Compilation,
+            super::domain_types::GeneratedCratePhase::Clippy,
+            super::domain_types::GeneratedCratePhase::Formatting,
+            super::domain_types::GeneratedCratePhase::Test,
         ];
         assert_eq!(
             phases.map(|phase| phase.to_string()),

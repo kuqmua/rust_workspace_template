@@ -11,8 +11,8 @@ const LOC_TEST_TEXT_MAX_LEN: usize = 1_048_576;
     Debug, thiserror::Error, location::Location, optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub enum ErrorOne {
-    //use to_err_string::ToErrString for hashmap ks instead of Display
-    //todo even for String in serialize deserialize version of error must be using to_err_string::ToErrString impl instead of std::fmt::Display
+    //use to_err_string::domain_types::ToErrString for hashmap ks instead of Display
+    //todo even for String in serialize deserialize version of error must be using to_err_string::domain_types::ToErrString impl instead of std::fmt::Display
     //todo test on using only location as pnly field in named variant
     Variant {
         #[eo_to_err_string]
@@ -106,10 +106,10 @@ pub struct DisplayStruct {
     pub something: LocationTestFlag,
 }
 //todo or maybe two different traits - display foreign type and convert into serializable and deserializable type
-impl to_err_string::ToErrString for DisplayStruct {
-    fn to_err_string(&self) -> to_err_string::ErrorText {
-        to_err_string::ErrorText::try_from(format!("{self:?}"))
-            .unwrap_or_else(to_err_string::ErrorText::from)
+impl to_err_string::domain_types::ToErrString for DisplayStruct {
+    fn to_err_string(&self) -> to_err_string::domain_types::ErrorText {
+        to_err_string::domain_types::ErrorText::try_from(format!("{self:?}"))
+            .unwrap_or_else(to_err_string::domain_types::ErrorText::from)
     }
 }
 //todo rename fields
@@ -122,10 +122,10 @@ pub struct SerdeStruct {
     pub three: LocationTestCount,
     pub two: LocationTestFlag,
 }
-impl to_err_string::ToErrString for SerdeStruct {
-    fn to_err_string(&self) -> to_err_string::ErrorText {
-        to_err_string::ErrorText::try_from(format!("{self:?}"))
-            .unwrap_or_else(to_err_string::ErrorText::from)
+impl to_err_string::domain_types::ToErrString for SerdeStruct {
+    fn to_err_string(&self) -> to_err_string::domain_types::ErrorText {
+        to_err_string::domain_types::ErrorText::try_from(format!("{self:?}"))
+            .unwrap_or_else(to_err_string::domain_types::ErrorText::from)
     }
 }
 fn location_test_text(value: String) -> LocationTestText {

@@ -161,7 +161,7 @@ fn typed_route_registries_own_request_bodies_and_schema_catalogs() {
         });
         [
             "server_admin_contract/src/lib.rs",
-            "notification_service_contract/src/lib.rs",
+            "notification_service_contract/src/domain_types.rs",
         ]
         .iter()
         .for_each(|path_suffix| {
@@ -365,7 +365,11 @@ fn config_reference_getters_use_generated_forwarding() {
         let source = snapshot
             .rs_files()
             .iter()
-            .find(|file| file.path().as_ref().ends_with("server_config/src/lib.rs"))
+            .find(|file| {
+                file.path()
+                    .as_ref()
+                    .ends_with("server_config/src/domain_types.rs")
+            })
             .expect(
                 "e210ffd6 config_reference_getters_use_generated_forwarding invariant must hold",
             )

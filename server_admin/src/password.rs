@@ -3,7 +3,7 @@ impl super::AdminPasswordHasher {
     #[allow(clippy::missing_const_for_fn)] // Tokio semaphore and Arc constructors are not const
     pub fn new(max_concurrent_hashes: super::AdminPasswordHashConcurrency) -> Self {
         Self {
-            semaphore: super::StdAdminSharedSemaphore(std::sync::Arc::new(
+            semaphore: super::AdminSharedSemaphoreArc(std::sync::Arc::new(
                 tokio::sync::Semaphore::new(max_concurrent_hashes.0.get().get()),
             )),
         }

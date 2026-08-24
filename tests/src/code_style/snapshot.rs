@@ -2,18 +2,18 @@
 pub(super) struct RsSourceFile {
     ast: super::types::SynFile,
     content: super::types::SourceText,
-    path: super::types::StdPathBuf,
+    path: super::types::OwnedPathBuf,
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct ProjectSourceFile {
     content: super::types::SourceText,
-    path: super::types::StdPathBuf,
+    path: super::types::OwnedPathBuf,
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct CargoTomlSourceFile {
     content: super::types::SourceText,
     parsed: super::types::TomlTable,
-    path: super::types::StdPathBuf,
+    path: super::types::OwnedPathBuf,
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct CodebaseSnapshot {
@@ -23,17 +23,17 @@ pub(super) struct CodebaseSnapshot {
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct CodebaseSourceSnapshot {
     cargo_toml_by_path:
-        std::collections::BTreeMap<super::types::StdPathBuf, super::types::CargoTomlFileIdx>,
+        std::collections::BTreeMap<super::types::OwnedPathBuf, super::types::CargoTomlFileIdx>,
     cargo_toml_files: Vec<CargoTomlSourceFile>,
     project_source_files: Vec<ProjectSourceFile>,
-    workspace_crate_names: super::types::StdSourceTextSet,
+    workspace_crate_names: super::types::SourceTextBTreeSet,
     workspace_metadata: super::types::CargoMetadata,
 }
 impl ProjectSourceFile {
     pub(super) fn content(&self) -> &super::types::SourceText {
         &self.content
     }
-    pub(super) fn path(&self) -> &super::types::StdPathBuf {
+    pub(super) fn path(&self) -> &super::types::OwnedPathBuf {
         &self.path
     }
 }
@@ -44,7 +44,7 @@ impl RsSourceFile {
     pub(super) fn content(&self) -> &super::types::SourceText {
         &self.content
     }
-    pub(super) fn path(&self) -> &super::types::StdPathBuf {
+    pub(super) fn path(&self) -> &super::types::OwnedPathBuf {
         &self.path
     }
 }
@@ -80,7 +80,7 @@ impl CodebaseSnapshot {
     }
     pub(super) fn cargo_toml_content(
         &self,
-        path: super::types::StdPathRef<'_>,
+        path: super::types::PathRef<'_>,
     ) -> Option<super::types::SourceText> {
         self.source
             .cargo_toml_file(path)
@@ -97,7 +97,7 @@ impl CodebaseSnapshot {
     }
     pub(super) fn read_toml_table(
         &self,
-        path: super::types::StdPathRef<'_>,
+        path: super::types::PathRef<'_>,
     ) -> Option<super::types::TomlTable> {
         self.source
             .cargo_toml_file(path)
@@ -126,7 +126,7 @@ impl CodebaseSnapshot {
         &self.rs_files
     }
     #[allow(clippy::single_call_fn)]
-    pub(super) fn workspace_crate_names(&self) -> super::types::StdSourceTextSet {
+    pub(super) fn workspace_crate_names(&self) -> super::types::SourceTextBTreeSet {
         self.source.workspace_crate_names.clone()
     }
     pub(super) fn workspace_metadata(&self) -> super::types::CargoMetadataRef<'_> {
@@ -163,7 +163,7 @@ impl CodebaseSourceSnapshot {
                     content: super::types::SourceText::try_from(content)
                         .expect("84f6a0d2 build invariant must hold"),
                     parsed: super::types::TomlTable::from(parsed),
-                    path: super::types::StdPathBuf::from(path),
+                    path: super::types::OwnedPathBuf::from(path),
                 }
             })
             .collect();
@@ -178,7 +178,7 @@ impl CodebaseSourceSnapshot {
                     )
                 })
                 .collect::<std::collections::BTreeMap<
-                    super::types::StdPathBuf,
+                    super::types::OwnedPathBuf,
                     super::types::CargoTomlFileIdx,
                 >>();
         let project_source_files = project_source_files_uncached().collect::<Vec<_>>();
@@ -187,10 +187,10 @@ impl CodebaseSourceSnapshot {
             cargo_toml_files,
             project_source_files,
             workspace_metadata: metadata,
-            workspace_crate_names: super::types::StdSourceTextSet::from(workspace_crate_names),
+            workspace_crate_names: super::types::SourceTextBTreeSet::from(workspace_crate_names),
         }
     }
-    fn cargo_toml_file(&self, path: super::types::StdPathRef<'_>) -> Option<&CargoTomlSourceFile> {
+    fn cargo_toml_file(&self, path: super::types::PathRef<'_>) -> Option<&CargoTomlSourceFile> {
         self.cargo_toml_by_path
             .get(path.as_ref())
             .and_then(|idx| self.cargo_toml_files.get(idx.get()))
@@ -222,8 +222,8 @@ fn workspace_metadata_uncached() -> super::types::CargoMetadata {
 #[allow(clippy::single_call_fn)] // keeps workspace membership extraction named while snapshot construction reuses it twice
 fn workspace_member_ids(
     metadata: super::types::CargoMetadataRef<'_>,
-) -> super::types::StdCargoPackageIdRefSet<'_> {
-    super::types::StdCargoPackageIdRefSet::from(
+) -> super::types::CargoPackageIdRefHashSet<'_> {
+    super::types::CargoPackageIdRefHashSet::from(
         metadata
             .get()
             .workspace_members
@@ -262,7 +262,7 @@ fn project_source_file(path: std::path::PathBuf) -> ProjectSourceFile {
     let content = project_source_content(path.as_path(), raw_content);
     ProjectSourceFile {
         content,
-        path: super::types::StdPathBuf::from(path),
+        path: super::types::OwnedPathBuf::from(path),
     }
 }
 fn project_source_content(path: &std::path::Path, raw_content: String) -> super::types::SourceText {

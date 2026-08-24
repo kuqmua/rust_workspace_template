@@ -4,7 +4,7 @@ fn runtime_code_does_not_use_expect_unwrap_or_panic() {
         super::types::StaticStr::from(constants_str::C71F2A8D),
         super::types::SourceTextRef::from(constants_str::RUNTIME_CODE_CONTAINS_FORBIDDEN_EXPECT_UNWRAP_PANIC_CALLS_USE_RESULT_WITH_A),
         |path, ast, ers| {
-            if !super::is_runtime_policy_source_path(super::types::StdPathRef::from(path)).get() {
+            if !super::is_runtime_policy_source_path(super::types::PathRef::from(path)).get() {
                 return;
             }
             let visitor = super::visit_syn_file(
@@ -28,7 +28,7 @@ fn runtime_code_does_not_use_mutex() {
         super::types::StaticStr::from(constants_str::E3F8A1C5),
         super::types::SourceTextRef::from(constants_str::RUNTIME_CODE_CONTAINS_MUTEX_USE_IT_ONLY_FOR_JUSTIFIED_INTERIOR_MUTABILITY),
         |path, ast, ers| {
-            if !super::is_runtime_policy_source_path(super::types::StdPathRef::from(path)).get() {
+            if !super::is_runtime_policy_source_path(super::types::PathRef::from(path)).get() {
                 return;
             }
             let visitor = super::visit_syn_file(
@@ -39,7 +39,7 @@ fn runtime_code_does_not_use_mutex() {
             );
             super::push_repeated_file_error(
                 super::types::DiagnosticMsgsMutRef::from(&mut *ers),
-                super::types::StdPathRef::from(path),
+                super::types::PathRef::from(path),
                 super::types::SourceTextRef::from(constants_str::MUTEX_TYPE_USAGE),
                 visitor.found_count,
             );
@@ -54,7 +54,7 @@ fn runtime_arc_usage_is_limited_to_cross_thread_state() {
             constants_str::RUNTIME_ARC_USAGE_MUST_BE_LIMITED_TO_EXPLICIT_CROSS_THREAD_SHARED_STATE,
         ),
         |path, ast, ers| {
-            if !super::is_runtime_policy_source_path(super::types::StdPathRef::from(path)).get() {
+            if !super::is_runtime_policy_source_path(super::types::PathRef::from(path)).get() {
                 return;
             }
             let visitor = super::visit_syn_file(
@@ -101,14 +101,14 @@ fn runtime_test_crate_detection_uses_exact_package_names() {
 #[test]
 fn runtime_test_helper_exclusion_is_file_exact() {
     assert!(
-        !super::is_runtime_policy_source_path(super::types::StdPathRef::from(
-            std::path::Path::new("../macros_helpers/src/test_hlp.rs")
-        ))
+        !super::is_runtime_policy_source_path(super::types::PathRef::from(std::path::Path::new(
+            "../macros_helpers/src/test_hlp.rs"
+        )))
         .get(),
         "2e8a5d90"
     );
     assert!(
-        super::is_runtime_policy_source_path(super::types::StdPathRef::from(std::path::Path::new(
+        super::is_runtime_policy_source_path(super::types::PathRef::from(std::path::Path::new(
             "../server/src/test_hlp.rs"
         )))
         .get(),
@@ -118,7 +118,7 @@ fn runtime_test_helper_exclusion_is_file_exact() {
 #[test]
 fn environment_initializer_is_in_runtime_policy_scope() {
     assert!(
-        super::is_runtime_policy_source_path(super::types::StdPathRef::from(std::path::Path::new(
+        super::is_runtime_policy_source_path(super::types::PathRef::from(std::path::Path::new(
             "../initialize_environment_files/src/main.rs"
         )))
         .get(),
@@ -133,7 +133,7 @@ fn async_functions_do_not_make_blocking_executor_calls() {
             constants_str::ASYNC_FUNCTIONS_CONTAIN_BLOCKING_EXECUTOR_CALLS,
         ),
         |path, ast, ers| {
-            if !super::is_runtime_policy_source_path(super::types::StdPathRef::from(path)).get() {
+            if !super::is_runtime_policy_source_path(super::types::PathRef::from(path)).get() {
                 return;
             }
             let visitor = super::visit_syn_file(
@@ -199,7 +199,7 @@ fn unit_tests_do_not_create_external_service_clients() {
         super::types::StaticStr::from(constants_str::D1F5B9C7),
         super::types::SourceTextRef::from(constants_str::UNIT_TESTS_CONTAIN_EXTERNAL_SERVICE_CLIENTS_USE_DETERMINISTIC_LOCAL_FAKES_INSTEAD),
         |path, ast, ers| {
-            if super::is_test_source_path(super::types::StdPathRef::from(path)).get() {
+            if super::is_test_source_path(super::types::PathRef::from(path)).get() {
                 return;
             }
             let visitor = super::visit_syn_file(

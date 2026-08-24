@@ -6,7 +6,7 @@ mod routing;
     optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
 )]
 #[error(transparent)]
-struct StdServerIoError(std::io::Error);
+struct ServerIoError(std::io::Error);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
 )]
@@ -71,12 +71,12 @@ impl axum::response::IntoResponse for AdminMetricsError {
     optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
 )]
 #[error(transparent)]
-struct ServerConfigError(server_config::ConfigTryFromEnvError);
+struct ServerConfigError(server_config::domain_types::ConfigTryFromEnvError);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
 )]
 #[error(transparent)]
-struct ServerConfigProductionError(server_config::ProductionConfigError);
+struct ServerConfigProductionError(server_config::domain_types::ProductionConfigError);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
 )]
@@ -109,17 +109,21 @@ struct HttpBodyMaximumBytes(usize);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, newtype::DerefTarget, newtype::FromInner,
 )]
-struct StdSharedServerAppState(std::sync::Arc<server_app_state::ServerAppState<'static>>);
-impl StdSharedServerAppState {
-    const fn get(&self) -> &std::sync::Arc<server_app_state::ServerAppState<'static>> {
+struct SharedServerAppStateArc(
+    std::sync::Arc<server_app_state::domain_types::ServerAppState<'static>>,
+);
+impl SharedServerAppStateArc {
+    const fn get(
+        &self,
+    ) -> &std::sync::Arc<server_app_state::domain_types::ServerAppState<'static>> {
         &self.0
     }
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
 struct TokioServerRuntime(tokio::runtime::Runtime);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
-struct StdServerExitCode(std::process::ExitCode);
-impl std::process::Termination for StdServerExitCode {
+struct ServerExitCode(std::process::ExitCode);
+impl std::process::Termination for ServerExitCode {
     fn report(self) -> std::process::ExitCode {
         self.0
     }
@@ -133,9 +137,9 @@ enum RunServerError {
     #[error("administrator cleanup task shutdown failed: {0}")]
     AdminCleanupShutdown(ServerRuntimeBackgroundTaskShutdownError),
     #[error("failed to bind service socket: {0}")]
-    BindServiceSocket(StdServerIoError),
+    BindServiceSocket(ServerIoError),
     #[error("failed to build tokio runtime: {0}")]
-    BuildRuntime(StdServerIoError),
+    BuildRuntime(ServerIoError),
     #[error("failed to read configuration from environment: {0}")]
     Config(ServerConfigError),
     #[error("unsafe production configuration: {0}")]
@@ -166,7 +170,7 @@ enum RunServerError {
     TrustedProxyRanges(ServerRuntimeTrustedProxyRangesParseError),
 }
 #[allow(clippy::single_call_fn)] // startup flow is grouped for separation from process/bootstrap concerns
-async fn run_server(config: server_config::Config) -> Result<(), RunServerError> {
+async fn run_server(config: server_config::domain_types::Config) -> Result<(), RunServerError> {
     let pg_pool = bootstrap::mk_pg_pool(&config).await?;
     let cleanup_cfg = maintenance::cfg()?;
     let cleanup_interval = maintenance::interval()?;
@@ -177,7 +181,7 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
             let run_pool = cleanup_pool.clone();
             async move {
                 match server_admin::cleanup_admin_tables(
-                    app_state::SqlxPgPoolRef::from(run_pool.as_ref()),
+                    app_state::domain_types::SqlxPgPoolRef::from(run_pool.as_ref()),
                     cleanup_cfg,
                 )
                 .await
@@ -203,10 +207,10 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
         config_lib::GetServiceSocketAddress::get_service_socket_address(&config),
     )
     .await
-    .map_err(|error| RunServerError::BindServiceSocket(StdServerIoError::from(error)))?;
+    .map_err(|error| RunServerError::BindServiceSocket(ServerIoError::from(error)))?;
     let actual_service_socket_address = tcp_listener
         .local_addr()
-        .map_err(|error| RunServerError::BindServiceSocket(StdServerIoError::from(error)))?;
+        .map_err(|error| RunServerError::BindServiceSocket(ServerIoError::from(error)))?;
     tracing::info!(frontend = %actual_service_socket_address);
     let trusted_proxy_ranges = server_runtime_http::parse_trusted_proxy_ranges(
         server_runtime_http::TrustedProxyRangesTextRef::from(
@@ -225,7 +229,7 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
         .map_err(RunServerError::CorsAllowOrigin)?,
     );
     let admin_auth_state =
-        server_admin::auth::StdSharedAdminAuthSvcState::from(std::sync::Arc::new(
+        server_admin::auth::SharedAdminAuthSvcStateArc::from(std::sync::Arc::new(
             server_admin::auth::AdminAuthSvcState::try_new(
                 pg_pool.clone(),
                 &config.admin_jwt_secret,
@@ -314,11 +318,11 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
         ));
     let api_routes = routing::mk_api_routes(&app_state, admin_auth_state, metrics_handle);
     let operational_routes = axum::Router::from(common_routes::common_routes(
-        common_routes::StdArcCommonRoutesAppState::from(std::sync::Arc::<
-            server_app_state::ServerAppState<'static>,
+        common_routes::ArcCommonRoutesAppState::from(std::sync::Arc::<
+            server_app_state::domain_types::ServerAppState<'static>,
         >::clone(app_state.get())),
     ));
-    let request_timeout = server_runtime_http::StdRequestTimeout::try_from(
+    let request_timeout = server_runtime_http::RequestTimeoutDuration::try_from(
         std::time::Duration::from_secs(request_timeout_seconds),
     )
     .map_err(|error| {
@@ -327,7 +331,7 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
     let router = server_runtime_http::RequestIdLayer::with_span_config(
         server_runtime_http::HttpRequestSpanConfig::new(
             server_runtime_http::ServiceName::from(env!("CARGO_PKG_NAME")),
-            server_runtime_http::StdSocketAddr::from(actual_service_socket_address),
+            server_runtime_http::ClientSocketAddr::from(actual_service_socket_address),
             trusted_proxy_ranges,
         ),
     )
@@ -409,11 +413,15 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
     clippy::single_call_fn,
     reason = "migration mode remains isolated from the long-running service startup path"
 )]
-async fn migrate_server(config: &server_config::Config) -> Result<(), RunServerError> {
+async fn migrate_server(
+    config: &server_config::domain_types::Config,
+) -> Result<(), RunServerError> {
     let pg_pool = bootstrap::mk_pg_pool(config).await?;
-    server_admin::prep_pg(app_state::SqlxPgPoolRef::from(pg_pool.as_ref()))
-        .await
-        .map_err(|error| RunServerError::PrepAdminPg(ServerAdminMigrateError::from(error)))
+    server_admin::prep_pg(app_state::domain_types::SqlxPgPoolRef::from(
+        pg_pool.as_ref(),
+    ))
+    .await
+    .map_err(|error| RunServerError::PrepAdminPg(ServerAdminMigrateError::from(error)))
 }
 #[allow(
     clippy::single_call_fn,
@@ -424,21 +432,21 @@ async fn shutdown_signal() {
         tracing::error!(error = %error, "failed to wait for shutdown signal");
     }
 }
-fn main() -> StdServerExitCode {
-    let config = match server_config::Config::try_from_env() {
+fn main() -> ServerExitCode {
+    let config = match server_config::domain_types::Config::try_from_env() {
         Ok(config) => config,
         Err(config_error) => {
             let startup_error = RunServerError::Config(ServerConfigError::from(config_error));
-            eprintln!("{startup_error}");
-            return StdServerExitCode::from(std::process::ExitCode::FAILURE);
+            tracing::error!(error = %startup_error, "server configuration failed");
+            return ServerExitCode::from(std::process::ExitCode::FAILURE);
         }
     };
     if let Err(error) = config.validate_for_startup() {
-        eprintln!(
-            "{}",
-            RunServerError::ConfigProduction(ServerConfigProductionError::from(error))
+        tracing::error!(
+            error = %RunServerError::ConfigProduction(ServerConfigProductionError::from(error)),
+            "server production configuration validation failed"
         );
-        return StdServerExitCode::from(std::process::ExitCode::FAILURE);
+        return ServerExitCode::from(std::process::ExitCode::FAILURE);
     }
     let tracing_format = if config.tracing_format == config_lib::types::TracingFormat::Json {
         server_runtime_http::ServiceTracingFormat::Json
@@ -451,11 +459,11 @@ fn main() -> StdServerExitCode {
     ) {
         Ok(value) => value,
         Err(error) => {
-            eprintln!(
-                "{}",
-                RunServerError::ObservabilityInit(ServerObservabilityInitError::from(error))
+            tracing::error!(
+                error = %RunServerError::ObservabilityInit(ServerObservabilityInitError::from(error)),
+                "server observability initialization failed"
             );
-            return StdServerExitCode::from(std::process::ExitCode::FAILURE);
+            return ServerExitCode::from(std::process::ExitCode::FAILURE);
         }
     };
     let run_result = bootstrap::mk_runtime().and_then(|runtime| match config.svc_mode {
@@ -469,10 +477,10 @@ fn main() -> StdServerExitCode {
         RunServerError::ObservabilityShutdown(ServerObservabilityShutdownError::from(error))
     });
     match run_result.and(shutdown_result) {
-        Ok(()) => StdServerExitCode::from(std::process::ExitCode::SUCCESS),
+        Ok(()) => ServerExitCode::from(std::process::ExitCode::SUCCESS),
         Err(error) => {
-            eprintln!("{error}");
-            StdServerExitCode::from(std::process::ExitCode::FAILURE)
+            tracing::error!(error = %error, "server operation or observability shutdown failed");
+            ServerExitCode::from(std::process::ExitCode::FAILURE)
         }
     }
 }

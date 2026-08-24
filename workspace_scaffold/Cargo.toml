@@ -24,6 +24,7 @@ newtype = { workspace = true }
 server_runtime_http = { workspace = true }
 constants_str = { workspace = true }
 thiserror = { workspace = true }
+tracing = { workspace = true }
 
 [lints]
 workspace = true

@@ -11,12 +11,12 @@ pub(super) fn allocation_tool(
         available.get()
     );
 }
-pub(super) fn result_directory_failed(error: super::StdRunnerIoErrorRef<'_>) {
+pub(super) fn result_directory_failed(error: super::RunnerIoErrorRef<'_>) {
     eprintln!("failed to create test result directory: {}", error.get());
 }
 pub(super) fn result_log_failed(
-    path: super::StdRunnerPathRef<'_>,
-    error: super::StdRunnerIoErrorRef<'_>,
+    path: super::RunnerPathRef<'_>,
+    error: super::RunnerIoErrorRef<'_>,
 ) {
     eprintln!(
         "failed to write test result log {}: {}",
@@ -24,6 +24,6 @@ pub(super) fn result_log_failed(
         error.get()
     );
 }
-pub(super) fn result_summary_failed(error: super::StdRunnerIoErrorRef<'_>) {
+pub(super) fn result_summary_failed(error: super::RunnerIoErrorRef<'_>) {
     eprintln!("failed to write test result summary: {}", error.get());
 }

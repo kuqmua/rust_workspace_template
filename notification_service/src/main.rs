@@ -8,14 +8,14 @@ mod runtime;
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 struct NotificationState {
     metrics: MetricsExporterPrometheusHandle,
-    pool: app_state::SqlxPgPool,
-    project_git_info: git_info::ProjectGitInfo<'static>,
+    pool: app_state::domain_types::SqlxPgPool,
+    project_git_info: git_info::domain_types::ProjectGitInfo<'static>,
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, newtype::FromInner)]
 struct AxumNotificationState(NotificationState);
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
-struct AxumNotificationJson(notification_service_contract::CreateNotificationReq);
+struct AxumNotificationJson(notification_service_contract::domain_types::CreateNotificationReq);
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
 struct AxumNotificationResponse(axum::response::Response);
@@ -47,7 +47,7 @@ struct MetricsExporterPrometheusHandle(metrics_exporter_prometheus::PrometheusHa
 struct NotificationBodyMaximumBytes(usize);
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-struct StdNotificationExitCode(std::process::ExitCode);
+struct NotificationExitCode(std::process::ExitCode);
 
 impl axum::response::IntoResponse for AxumNotificationResponse {
     fn into_response(self) -> axum::response::Response {
@@ -116,7 +116,7 @@ impl axum::response::IntoResponse for MetricsError {
         }
     }
 }
-impl std::process::Termination for StdNotificationExitCode {
+impl std::process::Termination for NotificationExitCode {
     fn report(self) -> std::process::ExitCode {
         self.0
     }
@@ -130,9 +130,9 @@ impl axum::extract::FromRequestParts<NotificationState> for AxumNotificationStat
         std::future::ready(Ok(Self::from(state.clone())))
     }
 }
-impl app_state::GetSqlxPgPool for NotificationState {
-    fn get_sqlx_pg_pool(&self) -> app_state::SqlxPgPoolRef<'_> {
-        app_state::SqlxPgPoolRef::from(self.pool.as_ref())
+impl app_state::domain_types::GetSqlxPgPool for NotificationState {
+    fn get_sqlx_pg_pool(&self) -> app_state::domain_types::SqlxPgPoolRef<'_> {
+        app_state::domain_types::SqlxPgPoolRef::from(self.pool.as_ref())
     }
 }
 impl AsRef<str> for NotificationState {
@@ -147,7 +147,7 @@ impl axum::extract::FromRequest<NotificationState> for AxumNotificationJson {
         req: axum::extract::Request,
         state: &NotificationState,
     ) -> Result<Self, Self::Rejection> {
-        <axum::Json<notification_service_contract::CreateNotificationReq> as axum::extract::FromRequest<NotificationState>>::from_request(req, state)
+        <axum::Json<notification_service_contract::domain_types::CreateNotificationReq> as axum::extract::FromRequest<NotificationState>>::from_request(req, state)
             .await
             .map(|axum::Json(value)| Self::from(value))
             .map_err(|_error| CreateNotificationError::Validation)
@@ -171,14 +171,14 @@ enum NotificationServiceError {
     #[error("notification service failed: {0}")]
     Serve(NotificationServeError),
     #[error("notification service socket bind failed: {0}")]
-    Socket(StdNotificationIoError),
+    Socket(NotificationIoError),
     #[error("notification service timeout configuration is invalid")]
     Timeout,
 }
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner, newtype::Display,
 )]
-struct NotificationConfigError(notification_service_config::ConfigTryFromEnvError);
+struct NotificationConfigError(notification_service_config::domain_types::ConfigTryFromEnvError);
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
@@ -194,7 +194,7 @@ struct SqlxNotificationMigrationError(sqlx::migrate::MigrateError);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner, newtype::Display,
 )]
-struct StdNotificationIoError(std::io::Error);
+struct NotificationIoError(std::io::Error);
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner, newtype::Display,
@@ -233,15 +233,15 @@ impl NotificationErrorCode {
     }
 }
 #[tokio::main]
-async fn main() -> StdNotificationExitCode {
-    let config = match notification_service_config::Config::try_from_env() {
+async fn main() -> NotificationExitCode {
+    let config = match notification_service_config::domain_types::Config::try_from_env() {
         Ok(value) => value,
         Err(error) => {
-            eprintln!(
-                "{}",
-                NotificationServiceError::Config(NotificationConfigError(error))
+            tracing::error!(
+                error = %NotificationServiceError::Config(NotificationConfigError(error)),
+                "notification service configuration failed"
             );
-            return StdNotificationExitCode::from(std::process::ExitCode::FAILURE);
+            return NotificationExitCode::from(std::process::ExitCode::FAILURE);
         }
     };
     let tracing_format = if *config.tracing_format() == config_lib::types::TracingFormat::Json {
@@ -255,13 +255,13 @@ async fn main() -> StdNotificationExitCode {
     ) {
         Ok(value) => value,
         Err(error) => {
-            eprintln!(
-                "{}",
-                NotificationServiceError::ObservabilityInit(
+            tracing::error!(
+                error = %NotificationServiceError::ObservabilityInit(
                     NotificationObservabilityInitError::from(error)
-                )
+                ),
+                "notification service observability initialization failed"
             );
-            return StdNotificationExitCode::from(std::process::ExitCode::FAILURE);
+            return NotificationExitCode::from(std::process::ExitCode::FAILURE);
         }
     };
     let run_result = match config.svc_mode() {
@@ -277,10 +277,13 @@ async fn main() -> StdNotificationExitCode {
         )
     });
     match run_result.and(shutdown_result) {
-        Ok(()) => StdNotificationExitCode::from(std::process::ExitCode::SUCCESS),
+        Ok(()) => NotificationExitCode::from(std::process::ExitCode::SUCCESS),
         Err(error) => {
-            eprintln!("{error}");
-            StdNotificationExitCode::from(std::process::ExitCode::FAILURE)
+            tracing::error!(
+                error = %error,
+                "notification service operation or observability shutdown failed"
+            );
+            NotificationExitCode::from(std::process::ExitCode::FAILURE)
         }
     }
 }
@@ -294,8 +297,8 @@ mod tests {
                     .build_recorder()
                     .handle(),
             ),
-            pool: app_state::SqlxPgPool::from(pool),
-            project_git_info: git_info::project_git_info(),
+            pool: app_state::domain_types::SqlxPgPool::from(pool),
+            project_git_info: git_info::domain_types::project_git_info(),
         }
     }
 
@@ -306,7 +309,7 @@ mod tests {
         );
         assert_eq!(status_response.status(), http::StatusCode::IM_A_TEAPOT);
         assert_eq!(
-            std::process::Termination::report(super::StdNotificationExitCode::from(
+            std::process::Termination::report(super::NotificationExitCode::from(
                 std::process::ExitCode::SUCCESS,
             )),
             std::process::ExitCode::SUCCESS
@@ -332,7 +335,7 @@ mod tests {
             AsRef::<str>::as_ref(&extracted.0),
             AsRef::<str>::as_ref(&state)
         );
-        let _pool = app_state::GetSqlxPgPool::get_sqlx_pg_pool(&state);
+        let _pool = app_state::domain_types::GetSqlxPgPool::get_sqlx_pg_pool(&state);
     }
 
     #[tokio::test]
@@ -349,7 +352,7 @@ mod tests {
         let router = super::routes::router(
             state(pool),
             super::NotificationBodyMaximumBytes::from(
-                notification_service_contract::NOTIFICATION_API_BODY_MAX_BYTES,
+                notification_service_contract::domain_types::NOTIFICATION_API_BODY_MAX_BYTES,
             ),
         )
         .0;
@@ -382,7 +385,7 @@ mod tests {
             http::Request::builder()
                 .uri(
                     frontend_contract::HandlerContract::path(
-                        notification_service_contract::NotificationOperationalRoute::Metrics,
+                        notification_service_contract::domain_types::NotificationOperationalRoute::Metrics,
                     )
                     .get(),
                 )
@@ -395,7 +398,7 @@ mod tests {
         .expect("81c4e6a2 default_service_routes_return_success_statuses invariant must hold");
         assert_eq!(metrics_response.status(), http::StatusCode::OK);
 
-        let create_metadata = <notification_service_contract::CreateNotificationRoute as frontend_contract::TypedRoute>::metadata();
+        let create_metadata = <notification_service_contract::domain_types::CreateNotificationRoute as frontend_contract::TypedRoute>::metadata();
         let invalid_request = tower::ServiceExt::oneshot(
             router,
             http::Request::builder()
@@ -435,7 +438,7 @@ mod tests {
 
     #[test]
     fn open_api_operation_and_statuses_come_from_the_typed_route() {
-        let metadata = <notification_service_contract::CreateNotificationRoute as frontend_contract::TypedRoute>::metadata();
+        let metadata = <notification_service_contract::domain_types::CreateNotificationRoute as frontend_contract::TypedRoute>::metadata();
         let document = serde_json::to_value(super::routes::open_api_document()).expect("3d8a056d open_api_operation_and_statuses_come_from_the_typed_route invariant must hold");
         let operation = document
             .get(constants_str::PATHS)
@@ -569,19 +572,19 @@ mod tests {
             .run(&pool)
             .await
             .expect("128c46f1 create_notification_persists_through_http_route invariant must hold");
-        let message = notification_service_contract::NotificationMessage::try_from(
+        let message = notification_service_contract::domain_types::NotificationMessage::try_from(
             constants_str::INTEGRATION_NOTIFICATION_MESSAGE.to_owned(),
         )
         .expect("f9605432 create_notification_persists_through_http_route invariant must hold");
-        let body = serde_json::to_vec(&notification_service_contract::CreateNotificationReq::new(
-            message,
-        ))
+        let body = serde_json::to_vec(
+            &notification_service_contract::domain_types::CreateNotificationReq::new(message),
+        )
         .expect("3daa1ab0 create_notification_persists_through_http_route invariant must hold");
         let request = http::Request::builder()
             .method(http::Method::POST)
             .uri(
                 frontend_contract::typed_route_path::<
-                    notification_service_contract::CreateNotificationRoute,
+                    notification_service_contract::domain_types::CreateNotificationRoute,
                 >()
                 .as_ref(),
             )
@@ -595,7 +598,7 @@ mod tests {
             super::routes::router(
                 state(pool),
                 super::NotificationBodyMaximumBytes::from(
-                    notification_service_contract::NOTIFICATION_API_BODY_MAX_BYTES,
+                    notification_service_contract::domain_types::NOTIFICATION_API_BODY_MAX_BYTES,
                 ),
             )
             .0,
@@ -607,13 +610,13 @@ mod tests {
         let response_body = axum::body::to_bytes(response.into_body(), 16_384usize)
             .await
             .expect("0aace9dd create_notification_persists_through_http_route invariant must hold");
-        let created: notification_service_contract::CreateNotificationRes = serde_json::from_slice(
-            response_body.as_ref(),
-        )
-        .expect("e5352eef create_notification_persists_through_http_route invariant must hold");
+        let created: notification_service_contract::domain_types::CreateNotificationRes =
+            serde_json::from_slice(response_body.as_ref()).expect(
+                "e5352eef create_notification_persists_through_http_route invariant must hold",
+            );
         assert_ne!(
             created.id(),
-            notification_service_contract::UuidNotificationId::from(uuid::Uuid::nil())
+            notification_service_contract::domain_types::UuidNotificationId::from(uuid::Uuid::nil())
         );
     }
 }

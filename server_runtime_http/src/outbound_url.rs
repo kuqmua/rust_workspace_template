@@ -49,20 +49,22 @@ impl TryFrom<String> for OutboundAllowedHost {
 }
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
-pub struct OutboundHostAllowlist(bounded_types::BoundedVec<OutboundAllowedHost, 1, 64>);
+pub struct OutboundHostAllowlist(
+    bounded_types::domain_types::vector::BoundedVec<OutboundAllowedHost, 1, 64>,
+);
 impl TryFrom<Vec<OutboundAllowedHost>> for OutboundHostAllowlist {
     type Error = OutboundHostAllowlistError;
     fn try_from(mut value: Vec<OutboundAllowedHost>) -> Result<Self, Self::Error> {
         value.sort_unstable();
         value.dedup();
-        bounded_types::BoundedVec::try_from(value)
+        bounded_types::domain_types::vector::BoundedVec::try_from(value)
             .map(Self)
             .map_err(|error| match error {
-                bounded_types::BoundedValueError::BelowMin { .. } => {
+                bounded_types::domain_types::BoundedValueError::BelowMin { .. } => {
                     OutboundHostAllowlistError::Empty
                 }
-                bounded_types::BoundedValueError::AboveMax { .. }
-                | bounded_types::BoundedValueError::InvalidBounds { .. } => {
+                bounded_types::domain_types::BoundedValueError::AboveMax { .. }
+                | bounded_types::domain_types::BoundedValueError::InvalidBounds { .. } => {
                     OutboundHostAllowlistError::TooManyHosts
                 }
             })
@@ -108,7 +110,7 @@ impl std::fmt::Debug for ReqwestOutboundUrl {
 }
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct StdOutboundIpAddr(std::net::IpAddr);
+pub struct OutboundIpAddr(std::net::IpAddr);
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
 #[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
@@ -160,7 +162,7 @@ impl OutboundUrlPolicy {
         }
         if self.host_policy == OutboundHostPolicy::RejectPrivate
             && host.parse::<std::net::IpAddr>().is_ok_and(|address| {
-                outbound_address_disposition(StdOutboundIpAddr::from(address))
+                outbound_address_disposition(OutboundIpAddr::from(address))
                     == OutboundAddressDisposition::Forbidden
             })
         {
@@ -171,7 +173,7 @@ impl OutboundUrlPolicy {
 
     pub fn validate_resolved_addresses(
         self,
-        addresses: &[StdOutboundIpAddr],
+        addresses: &[OutboundIpAddr],
     ) -> Result<(), OutboundUrlError> {
         if addresses.is_empty() {
             return Err(OutboundUrlError::MissingResolvedAddress);
@@ -227,7 +229,7 @@ fn contains_encoded_control(value: OutboundUrlTextRef<'_>) -> OutboundAddressDis
     }
 }
 
-fn outbound_address_disposition(address: StdOutboundIpAddr) -> OutboundAddressDisposition {
+fn outbound_address_disposition(address: OutboundIpAddr) -> OutboundAddressDisposition {
     let forbidden = match address.0 {
         std::net::IpAddr::V4(ipv4_address) => {
             let octets = ipv4_address.octets();
@@ -258,7 +260,7 @@ fn outbound_address_disposition(address: StdOutboundIpAddr) -> OutboundAddressDi
                     || ipv6_address.segments()[..2usize] == [0x2001u16, 0x0db8u16]
             },
             |mapped| {
-                outbound_address_disposition(StdOutboundIpAddr::from(std::net::IpAddr::V4(mapped)))
+                outbound_address_disposition(OutboundIpAddr::from(std::net::IpAddr::V4(mapped)))
                     == OutboundAddressDisposition::Forbidden
             },
         ),

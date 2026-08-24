@@ -77,7 +77,7 @@ fn session_context_hash_is_bound_to_peer_and_user_agent() {
         http::header::USER_AGENT,
         http::HeaderValue::from_static(constants_str::ADMIN_CLIENT_1),
     );
-    let first_peer = super::AdminPeerAddr::from(super::super::StdAdminSocketAddr::from(
+    let first_peer = super::AdminPeerAddr::from(super::super::AdminSocketAddr::from(
         constants_str::VALUE_192_0_2_10_443
             .parse::<std::net::SocketAddr>()
             .expect(
@@ -98,7 +98,7 @@ fn session_context_hash_is_bound_to_peer_and_user_agent() {
         secrecy::ExposeSecret::expose_secret(same_context_hash.0.as_ref()),
         secrecy::ExposeSecret::expose_secret(repeated_context_hash.0.as_ref()),
     );
-    let other_peer = super::AdminPeerAddr::from(super::super::StdAdminSocketAddr::from(
+    let other_peer = super::AdminPeerAddr::from(super::super::AdminSocketAddr::from(
         constants_str::VALUE_192_0_2_11_443
             .parse::<std::net::SocketAddr>()
             .expect(

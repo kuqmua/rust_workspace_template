@@ -2,10 +2,10 @@
 /// A hash map with at most `MAX` retained keys.
 ///
 /// Hash-map deserialization also accepts at most `MAX` wire entries, including repeated keys.
-pub struct StdBoundedHashMap<K: Eq + std::hash::Hash, V, const MAX: usize>(
+pub struct BoundedHashMap<K: Eq + std::hash::Hash, V, const MAX: usize>(
     std::collections::HashMap<K, V>,
 );
-impl<K: Eq + std::hash::Hash, V, const MAX: usize> StdBoundedHashMap<K, V, MAX> {
+impl<K: Eq + std::hash::Hash, V, const MAX: usize> BoundedHashMap<K, V, MAX> {
     #[cfg(test)]
     pub(super) fn allocation_capacity(&self) -> usize {
         self.0.capacity()
@@ -69,7 +69,7 @@ impl<K: Eq + std::hash::Hash, V, const MAX: usize> StdBoundedHashMap<K, V, MAX> 
     }
 }
 impl<'map_lt, K: Eq + std::hash::Hash, V, const MAX: usize> IntoIterator
-    for &'map_lt StdBoundedHashMap<K, V, MAX>
+    for &'map_lt BoundedHashMap<K, V, MAX>
 {
     type IntoIter = std::collections::hash_map::Iter<'map_lt, K, V>;
     type Item = (&'map_lt K, &'map_lt V);
@@ -79,7 +79,7 @@ impl<'map_lt, K: Eq + std::hash::Hash, V, const MAX: usize> IntoIterator
     }
 }
 impl<'map_lt, K: Eq + std::hash::Hash, V, const MAX: usize> IntoIterator
-    for &'map_lt mut StdBoundedHashMap<K, V, MAX>
+    for &'map_lt mut BoundedHashMap<K, V, MAX>
 {
     type IntoIter = std::collections::hash_map::IterMut<'map_lt, K, V>;
     type Item = (&'map_lt K, &'map_lt mut V);
@@ -88,20 +88,18 @@ impl<'map_lt, K: Eq + std::hash::Hash, V, const MAX: usize> IntoIterator
         self.0.iter_mut()
     }
 }
-impl<K: Eq + std::hash::Hash, V, const MAX: usize> Default for StdBoundedHashMap<K, V, MAX> {
+impl<K: Eq + std::hash::Hash, V, const MAX: usize> Default for BoundedHashMap<K, V, MAX> {
     fn default() -> Self {
         Self::from([])
     }
 }
-impl<K: Eq + std::hash::Hash, V, const MAX: usize> From<[(K, V); 0]>
-    for StdBoundedHashMap<K, V, MAX>
-{
+impl<K: Eq + std::hash::Hash, V, const MAX: usize> From<[(K, V); 0]> for BoundedHashMap<K, V, MAX> {
     fn from(_value: [(K, V); 0]) -> Self {
         Self(std::collections::HashMap::new())
     }
 }
 impl<K: Eq + std::hash::Hash, V, const MAX: usize> TryFrom<std::collections::HashMap<K, V>>
-    for StdBoundedHashMap<K, V, MAX>
+    for BoundedHashMap<K, V, MAX>
 {
     type Error = super::BoundedValueError;
 
@@ -110,7 +108,7 @@ impl<K: Eq + std::hash::Hash, V, const MAX: usize> TryFrom<std::collections::Has
     }
 }
 impl<K: Eq + std::hash::Hash + serde::Serialize, V: serde::Serialize, const MAX: usize>
-    serde::Serialize for StdBoundedHashMap<K, V, MAX>
+    serde::Serialize for BoundedHashMap<K, V, MAX>
 {
     fn serialize<Serializer>(
         &self,
@@ -123,17 +121,15 @@ impl<K: Eq + std::hash::Hash + serde::Serialize, V: serde::Serialize, const MAX:
     }
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
-struct StdPhantomDataBoundedHashMapVisitor<K, V, const MAX: usize>(
-    std::marker::PhantomData<(K, V)>,
-);
+struct BoundedHashMapVisitorPhantomData<K, V, const MAX: usize>(std::marker::PhantomData<(K, V)>);
 impl<
     'de,
     K: Eq + std::hash::Hash + serde::Deserialize<'de>,
     V: serde::Deserialize<'de>,
     const MAX: usize,
-> serde::de::Visitor<'de> for StdPhantomDataBoundedHashMapVisitor<K, V, MAX>
+> serde::de::Visitor<'de> for BoundedHashMapVisitorPhantomData<K, V, MAX>
 {
-    type Value = StdBoundedHashMap<K, V, MAX>;
+    type Value = BoundedHashMap<K, V, MAX>;
 
     fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(formatter, "a map with at most {MAX} entries")
@@ -148,7 +144,7 @@ impl<
             .unwrap_or(constants_usize::ZERO)
             .min(MAX)
             .min(super::SERDE_PREALLOC_MAX_ITEMS);
-        let mut values = StdBoundedHashMap::default();
+        let mut values = BoundedHashMap::default();
         values.0.reserve(capacity);
         super::deserialize_bounded_map::<_, K, V, _, _, MAX>(
             map,
@@ -162,13 +158,13 @@ impl<
     K: Eq + std::hash::Hash + serde::Deserialize<'de>,
     V: serde::Deserialize<'de>,
     const MAX: usize,
-> serde::Deserialize<'de> for StdBoundedHashMap<K, V, MAX>
+> serde::Deserialize<'de> for BoundedHashMap<K, V, MAX>
 {
     fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
     where
         Deserializer: serde::Deserializer<'de>,
     {
-        deserializer.deserialize_map(StdPhantomDataBoundedHashMapVisitor::from(
+        deserializer.deserialize_map(BoundedHashMapVisitorPhantomData::from(
             std::marker::PhantomData,
         ))
     }
@@ -178,7 +174,7 @@ impl<
 mod tests {
     #[test]
     fn hash_map_rejects_new_keys_at_capacity() {
-        let mut value = super::StdBoundedHashMap::<u8, u8, 1>::default();
+        let mut value = super::BoundedHashMap::<u8, u8, 1>::default();
         assert!(matches!(value.try_insert(1u8, 1u8), Ok(None)));
         assert!(matches!(
             value.try_insert(2u8, 2u8),

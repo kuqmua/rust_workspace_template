@@ -14,10 +14,10 @@ pub use pg_table::CombinationOfAppStateLogicTraits;
 pub use server_admin_contract::{
     AdminDisplayName, AdminLogin, AdminPermission, AdminPermissionTryFromStrError, AdminRoleName,
 };
-pub use server_admin_core::{
-    AdminAuditLogId, AdminIdTryFromI64Error, AdminPermissionId, AdminPermissionName, AdminRoleId,
-    AdminUserId, SecrecyAdminString, StdAdminBool, StdAdminNonZeroUsize, StdAdminSocketAddr,
-    StdAdminStrRef, StdAdminString, UuidAdminValue,
+pub use server_admin_core::domain_types::{
+    AdminAuditLogId, AdminIdTryFromI64Error, AdminNonZeroUsize, AdminPermissionId,
+    AdminPermissionName, AdminRoleId, AdminSocketAddr, AdminUserId, SecrecyAdminString,
+    StdAdminBool, StdAdminStrRef, StdAdminString, UuidAdminValue,
 };
 const ADMIN_AUTH_COLLECTION_MAX_LEN: usize = 10_000usize;
 #[derive(
@@ -48,16 +48,26 @@ pub enum AdminSecretTextError {
     #[error("administrator secret text has an invalid value")]
     InvalidValue,
 }
-impl From<server_admin_core::StdAdminStringTryFromStringError> for AdminSecretTextError {
-    fn from(value: server_admin_core::StdAdminStringTryFromStringError) -> Self {
+impl From<server_admin_core::domain_types::StdAdminStringTryFromStringError>
+    for AdminSecretTextError
+{
+    fn from(value: server_admin_core::domain_types::StdAdminStringTryFromStringError) -> Self {
         match value {
-            server_admin_core::StdAdminStringTryFromStringError::InvalidBounds { .. } => {
-                Self::InvalidBounds
+            server_admin_core::domain_types::StdAdminStringTryFromStringError::InvalidBounds {
+                ..
+            } => Self::InvalidBounds,
+            server_admin_core::domain_types::StdAdminStringTryFromStringError::TooShort {
+                ..
+            } => Self::TooShort,
+            server_admin_core::domain_types::StdAdminStringTryFromStringError::TooLong {
+                ..
+            } => Self::TooLong,
+            server_admin_core::domain_types::StdAdminStringTryFromStringError::ContainsNul => {
+                Self::ContainsNul
             }
-            server_admin_core::StdAdminStringTryFromStringError::TooShort { .. } => Self::TooShort,
-            server_admin_core::StdAdminStringTryFromStringError::TooLong { .. } => Self::TooLong,
-            server_admin_core::StdAdminStringTryFromStringError::ContainsNul => Self::ContainsNul,
-            server_admin_core::StdAdminStringTryFromStringError::InvalidValue => Self::InvalidValue,
+            server_admin_core::domain_types::StdAdminStringTryFromStringError::InvalidValue => {
+                Self::InvalidValue
+            }
         }
     }
 }
@@ -66,27 +76,53 @@ impl From<server_admin_core::StdAdminStringTryFromStringError> for AdminSecretTe
     Clone,
     Debug,
     serde::Serialize,
-    utoipa::ToSchema,
     newtype::AsRefTarget,
     newtype::IntoInnerFrom,
 )]
 #[serde(transparent)]
 pub(crate) struct AdminPermissions(
-    bounded_types::BoundedVec<AdminPermission, 0, { ADMIN_AUTH_COLLECTION_MAX_LEN }>,
+    bounded_types::domain_types::vector::BoundedVec<
+        AdminPermission,
+        0,
+        { ADMIN_AUTH_COLLECTION_MAX_LEN },
+    >,
 );
+impl utoipa::PartialSchema for AdminPermissions {
+    fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
+        <bounded_types::domain_types::vector::BoundedVec<
+            AdminPermission,
+            0,
+            { ADMIN_AUTH_COLLECTION_MAX_LEN },
+        > as utoipa::PartialSchema>::schema()
+    }
+}
+impl utoipa::ToSchema for AdminPermissions {}
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     serde::Serialize,
-    utoipa::ToSchema,
     newtype::AsRefTarget,
     newtype::IntoInnerFrom,
 )]
 #[serde(transparent)]
 pub(crate) struct AdminRoleNames(
-    bounded_types::BoundedVec<AdminRoleName, 0, { ADMIN_AUTH_COLLECTION_MAX_LEN }>,
+    bounded_types::domain_types::vector::BoundedVec<
+        AdminRoleName,
+        0,
+        { ADMIN_AUTH_COLLECTION_MAX_LEN },
+    >,
 );
+impl utoipa::PartialSchema for AdminRoleNames {
+    fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
+        <bounded_types::domain_types::vector::BoundedVec<
+            AdminRoleName,
+            0,
+            { ADMIN_AUTH_COLLECTION_MAX_LEN },
+        > as utoipa::PartialSchema>::schema()
+    }
+}
+impl utoipa::ToSchema for AdminRoleNames {}
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
 )]
@@ -95,7 +131,7 @@ pub(crate) struct AdminAuthCollectionError;
 impl TryFrom<Vec<AdminPermission>> for AdminPermissions {
     type Error = AdminAuthCollectionError;
     fn try_from(value: Vec<AdminPermission>) -> Result<Self, Self::Error> {
-        bounded_types::BoundedVec::try_from(value)
+        bounded_types::domain_types::vector::BoundedVec::try_from(value)
             .map(Self)
             .map_err(AdminAuthCollectionError::from)
     }
@@ -103,18 +139,18 @@ impl TryFrom<Vec<AdminPermission>> for AdminPermissions {
 impl TryFrom<Vec<AdminRoleName>> for AdminRoleNames {
     type Error = AdminAuthCollectionError;
     fn try_from(value: Vec<AdminRoleName>) -> Result<Self, Self::Error> {
-        bounded_types::BoundedVec::try_from(value)
+        bounded_types::domain_types::vector::BoundedVec::try_from(value)
             .map(Self)
             .map_err(AdminAuthCollectionError::from)
     }
 }
-impl From<bounded_types::BoundedValueError> for AdminAuthCollectionError {
-    fn from(_value: bounded_types::BoundedValueError) -> Self {
+impl From<bounded_types::domain_types::BoundedValueError> for AdminAuthCollectionError {
+    fn from(_value: bounded_types::domain_types::BoundedValueError) -> Self {
         Self
     }
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, newtype::FromInner)]
-pub struct StdAdminSharedSemaphore(std::sync::Arc<tokio::sync::Semaphore>);
+pub struct AdminSharedSemaphoreArc(std::sync::Arc<tokio::sync::Semaphore>);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, newtype::DebugTransparent, newtype::FromInner,
 )]
@@ -193,11 +229,11 @@ impl TryFrom<String> for AdminPassword {
         SecrecyAdminString::try_from(value)
             .map(Self::from)
             .map_err(|error| match error {
-                server_admin_core::StdAdminStringTryFromStringError::InvalidBounds { .. }
-                | server_admin_core::StdAdminStringTryFromStringError::TooShort { .. }
-                | server_admin_core::StdAdminStringTryFromStringError::TooLong { .. }
-                | server_admin_core::StdAdminStringTryFromStringError::ContainsNul
-                | server_admin_core::StdAdminStringTryFromStringError::InvalidValue => {
+                server_admin_core::domain_types::StdAdminStringTryFromStringError::InvalidBounds { .. }
+                | server_admin_core::domain_types::StdAdminStringTryFromStringError::TooShort { .. }
+                | server_admin_core::domain_types::StdAdminStringTryFromStringError::TooLong { .. }
+                | server_admin_core::domain_types::StdAdminStringTryFromStringError::ContainsNul
+                | server_admin_core::domain_types::StdAdminStringTryFromStringError::InvalidValue => {
                     AdminPasswordTryFromStringError::InvalidLength
                 }
             })
@@ -413,7 +449,7 @@ pub fn find_admin_cookie(
     Eq,
     newtype::FromInner,
 )]
-pub struct AdminPasswordHashConcurrency(StdAdminNonZeroUsize);
+pub struct AdminPasswordHashConcurrency(AdminNonZeroUsize);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -497,7 +533,7 @@ pub enum AdminPasswordHashError {
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub struct AdminPasswordHasher {
-    semaphore: StdAdminSharedSemaphore,
+    semaphore: AdminSharedSemaphoreArc,
 }
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, newtype::DebugTransparent, newtype::FromInner,
@@ -594,7 +630,9 @@ enum AdminMigrateErrorInner {
 #[error("failed to prepare administrator schema: {0}")]
 #[derive(newtype::FromInner)]
 pub struct AdminMigrateError(AdminMigrateErrorInner);
-pub async fn prep_pg(pool: app_state::SqlxPgPoolRef<'_>) -> Result<(), AdminMigrateError> {
+pub async fn prep_pg(
+    pool: app_state::domain_types::SqlxPgPoolRef<'_>,
+) -> Result<(), AdminMigrateError> {
     migrations::prep_pg(pool).await
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
@@ -713,7 +751,7 @@ impl AdminCleanupReport {
     }
 }
 pub async fn cleanup_admin_tables(
-    pool: app_state::SqlxPgPoolRef<'_>,
+    pool: app_state::domain_types::SqlxPgPoolRef<'_>,
     cfg: AdminCleanupCfg,
 ) -> Result<AdminCleanupReport, AdminCleanupError> {
     cleanup::cleanup_admin_tables(pool, cfg).await
@@ -751,7 +789,7 @@ pub enum AdminPasswordResetError {
     UnknownLogin,
 }
 pub async fn bootstrap_admin(
-    pool: app_state::SqlxPgPoolRef<'_>,
+    pool: app_state::domain_types::SqlxPgPoolRef<'_>,
     login: AdminLogin,
     display_name: AdminDisplayName,
     password: server_admin_contract::AdminNewPassword,
@@ -760,7 +798,7 @@ pub async fn bootstrap_admin(
     migrations::bootstrap_admin(pool, login, display_name, password, password_hasher).await
 }
 pub async fn reset_admin_password(
-    pool: app_state::SqlxPgPoolRef<'_>,
+    pool: app_state::domain_types::SqlxPgPoolRef<'_>,
     login: AdminLogin,
     password: server_admin_contract::AdminNewPassword,
     password_hasher: &AdminPasswordHasher,
@@ -768,246 +806,9 @@ pub async fn reset_admin_password(
     migrations::reset_admin_password(pool, login, password, password_hasher).await
 }
 #[cfg(test)]
-#[allow(clippy::needless_for_each, clippy::single_call_fn)] // repository policy forbids for loops and compact fixtures keep secret setup deterministic
-mod tests {
-    #[test]
-    fn cleanup_configuration_enforces_positive_bounded_values() {
-        assert_eq!(
-            super::AdminCleanupBatchSize::try_from(constants_i64::ZERO),
-            Err(super::AdminCleanupCfgError::BatchSizeOutOfRange)
-        );
-        assert_eq!(
-            super::AdminCleanupBatchSize::try_from(10_001i64),
-            Err(super::AdminCleanupCfgError::BatchSizeOutOfRange)
-        );
-        assert_eq!(
-            super::AdminCleanupRetentionSeconds::try_from(constants_i64::ZERO),
-            Err(super::AdminCleanupCfgError::RetentionMustBePositive)
-        );
-        assert_eq!(
-            super::AdminCleanupBatchSize::try_from(1_000i64),
-            Ok(super::AdminCleanupBatchSize(1_000i64))
-        );
-        assert_eq!(
-            super::AdminCleanupRetentionSeconds::try_from(3_600i64),
-            Ok(super::AdminCleanupRetentionSeconds(3_600i64))
-        );
-    }
-    fn secret(value: &str) -> super::SecrecyAdminString {
-        super::SecrecyAdminString::try_from(value.to_owned())
-            .expect("c2116874 secret invariant must hold")
-    }
-    fn password_hasher() -> super::AdminPasswordHasher {
-        super::AdminPasswordHasher::new(super::AdminPasswordHashConcurrency::from(
-            super::StdAdminNonZeroUsize::from(
-                std::num::NonZeroUsize::new(1)
-                    .expect("70761471 password_hasher invariant must hold"),
-            ),
-        ))
-    }
-    fn password(value: &str) -> super::AdminPassword {
-        super::AdminPassword::new(secret(value))
-    }
-    fn jwt_secret() -> super::AdminJwtSecret {
-        super::AdminJwtSecret::new(secret(
-            constants_str::TEST_ONLY_SECRET_WITH_SUFFICIENT_ENTROPY,
-        ))
-    }
-    #[test]
-    fn permission_round_trip_is_exhaustive() {
-        super::AdminPermission::ALL
-            .into_iter()
-            .for_each(|permission| {
-                assert_eq!(
-                    super::AdminPermission::try_from(permission.as_str().as_ref())
-                        .expect("0f53b75c permission_round_trip_is_exhaustive invariant must hold"),
-                    permission
-                );
-            });
-    }
-    #[test]
-    fn permission_serializes_as_public_contract_value() {
-        assert_eq!(
-            serde_json::to_string(&super::AdminPermission::UsersRead).expect(
-                "9a6b413e permission_serializes_as_public_contract_value invariant must hold"
-            ),
-            "\"users:read\""
-        );
-    }
-    #[test]
-    fn unknown_permission_is_rejected() {
-        assert_eq!(
-            super::AdminPermission::try_from(constants_str::UNKNOWN_READ).err(),
-            Some(super::AdminPermissionTryFromStrError)
-        );
-    }
-    #[test]
-    fn migration_inventory_is_not_empty() {
-        let migrations = super::migrations::migrator().iter().collect::<Vec<_>>();
-        assert_eq!(migrations.len(), 13usize);
-        assert!(
-            migrations
-                .iter()
-                .any(|migration| migration.description == "admin schema")
-        );
-    }
-    #[test]
-    fn permission_seed_contains_the_complete_typed_catalog() {
-        assert!(super::AdminPermission::ALL.into_iter().all(|permission| {
-            super::migrations::migrator().iter().any(|migration| {
-                migration
-                    .sql
-                    .as_str()
-                    .contains(permission.as_str().as_ref())
-            })
-        }));
-    }
-    #[tokio::test]
-    async fn password_hash_verifies_only_matching_password() {
-        let hasher = password_hasher();
-        let hash = hasher
-            .hash(password(constants_str::CORRECT_PASSWORD_ALT))
-            .await
-            .expect("174a5d2f password_hash_verifies_only_matching_password invariant must hold");
-        assert!(
-            hasher
-                .verify(password("correct password"), hash)
-                .await
-                .expect(
-                    "604f40be password_hash_verifies_only_matching_password invariant must hold"
-                )
-                .get()
-        );
-        let other_hash = hasher
-            .hash(password(constants_str::CORRECT_PASSWORD_ALT))
-            .await
-            .expect("38819b94 password_hash_verifies_only_matching_password invariant must hold");
-        assert!(
-            !hasher
-                .verify(password("wrong password"), other_hash)
-                .await
-                .expect(
-                    "ed6b499a password_hash_verifies_only_matching_password invariant must hold"
-                )
-                .get()
-        );
-    }
-    #[test]
-    fn secrets_are_redacted_in_debug_output() {
-        let raw_secret = constants_str::NEVER_PRINT_THIS_VALUE;
-        let password = password(raw_secret);
-        let jwt_secret = super::AdminJwtSecret::new(secret(raw_secret));
-        let access_token = super::StdAdminAccessToken::try_from(raw_secret.to_owned())
-            .expect("e295277c secrets_are_redacted_in_debug_output invariant must hold");
-        assert!(!format!("{password:?}").contains(raw_secret));
-        assert!(!format!("{jwt_secret:?}").contains(raw_secret));
-        assert!(!format!("{access_token:?}").contains(raw_secret));
-    }
-    #[test]
-    fn generated_token_hash_is_stable_and_does_not_expose_token() {
-        let token = super::AdminOpaqueToken::new(secret(constants_str::FIXED_TEST_TOKEN));
-        let hash = super::hash_opaque_token(&token).expect(
-            "3af32394 generated_token_hash_is_stable_and_does_not_expose_token invariant must hold",
-        );
-        assert_eq!(
-            hash.expose().as_ref(),
-            "abae2c734c2b0249ef1d413fdf30c332c6875fde570f9bbeef4295966f0b4943"
-        );
-        assert!(!format!("{hash:?}").contains("fixed-test-token"));
-    }
-    #[test]
-    fn cookie_policy_marks_only_secret_tokens_http_only() {
-        let access = super::build_admin_cookie(
-            super::AdminCookieKind::Access,
-            super::StdAdminStrRef::from(constants_str::ACCESS),
-            super::AdminCookieMaxAgeSeconds::from(60),
-            super::AdminCookieSecure::from(true),
-        );
-        let csrf = super::build_admin_cookie(
-            super::AdminCookieKind::Csrf,
-            super::StdAdminStrRef::from(constants_str::CSRF),
-            super::AdminCookieMaxAgeSeconds::from(60),
-            super::AdminCookieSecure::from(true),
-        );
-        assert!(access.as_ref().contains("HttpOnly"));
-        assert!(access.as_ref().contains("Secure"));
-        assert!(access.as_ref().contains("SameSite=Strict"));
-        assert!(!csrf.as_ref().contains("HttpOnly"));
-        assert!(csrf.as_ref().contains("Secure"));
-    }
-    #[test]
-    fn cookie_parser_matches_complete_cookie_name() {
-        let mut headers = http::HeaderMap::new();
-        let _previous = headers.insert(
-            http::header::COOKIE,
-            http::HeaderValue::from_static(
-                constants_str::OTHER_1_ADMIN_ACCESS_TOKEN_EXPECTED_ADMIN_ACCESS_TOKEN_SUFFIX_WRONG,
-            ),
-        );
-        assert_eq!(
-            super::find_admin_cookie(
-                super::HttpAdminHeaderMapRef::from(&headers),
-                super::AdminCookieKind::Access,
-            ),
-            Some(super::StdAdminStrRef::from("expected"))
-        );
-    }
-    #[test]
-    fn bootstrap_login_format_accepts_only_database_compatible_values() {
-        let valid =
-            super::AdminLogin::try_from(constants_str::ADMIN_USER_1.to_owned()).expect("078c759d bootstrap_login_format_accepts_only_database_compatible_values invariant must hold");
-        assert_eq!(valid.as_ref(), constants_str::ADMIN_USER_1);
-        let _uppercase_error = super::AdminLogin::try_from(constants_str::ADMIN.to_owned())
-            .expect_err(constants_str::VALUE_5FA1C6E2);
-        let _short_error = super::AdminLogin::try_from(constants_str::AB.to_owned())
-            .expect_err(constants_str::VALUE_B78D42A9);
-    }
-    #[test]
-    fn access_token_round_trip_checks_issuer_and_audience() {
-        let claims = super::AdminAccessClaims::new(
-            super::AdminUserId::try_from(7).expect("d6d3da8a access_token_round_trip_checks_issuer_and_audience invariant must hold"),
-            super::AdminSessionId::from(super::UuidAdminValue::from(
-                uuid::Uuid::parse_str(constants_str::B871BD8F_7810_4D4B_94A1_5458D3016907)
-                    .expect("05562da0 access_token_round_trip_checks_issuer_and_audience invariant must hold"),
-            )),
-            super::AdminUnixTokenStream::from(1),
-            super::AdminUnixTokenStream::from(4_102_444_800),
-            config_lib::AdminTokenIssuer::try_from(constants_str::TEST_ISSUER.to_owned())
-                .expect("fd6a65b0 access_token_round_trip_checks_issuer_and_audience invariant must hold"),
-            config_lib::AdminTokenAudience::try_from(constants_str::TEST_AUDIENCE.to_owned())
-                .expect("6e423e16 access_token_round_trip_checks_issuer_and_audience invariant must hold"),
-        );
-        let secret = jwt_secret();
-        let token = super::encode_access_token(&claims, &secret).expect(
-            "b41052bc access_token_round_trip_checks_issuer_and_audience invariant must hold",
-        );
-        let issuer = config_lib::AdminTokenIssuer::try_from(constants_str::TEST_ISSUER.to_owned())
-            .expect(
-                "5edc807f access_token_round_trip_checks_issuer_and_audience invariant must hold",
-            );
-        let audience = config_lib::AdminTokenAudience::try_from(
-            constants_str::TEST_AUDIENCE.to_owned(),
-        )
-        .expect("0c3975a1 access_token_round_trip_checks_issuer_and_audience invariant must hold");
-        let decoded = super::decode_access_token(&token, &secret, &issuer, &audience).expect(
-            "0ed905ff access_token_round_trip_checks_issuer_and_audience invariant must hold",
-        );
-        assert_eq!(
-            decoded.user_id(),
-            super::AdminUserId::try_from(7).expect(
-                "5b88f22a access_token_round_trip_checks_issuer_and_audience invariant must hold"
-            )
-        );
-        assert_eq!(decoded.session_id(), claims.session_id());
-        drop(
-            super::decode_access_token(
-                &token,
-                &secret,
-                &issuer,
-                &config_lib::AdminTokenAudience::try_from(constants_str::WRONG_AUDIENCE.to_owned())
-                    .expect("92f9c5ec access_token_round_trip_checks_issuer_and_audience invariant must hold"),
-            )
-            .expect_err(constants_str::A82438CC),
-        );
-    }
-}
+#[allow(
+    clippy::needless_for_each,
+    clippy::single_call_fn,
+    reason = "repository policy forbids for loops and compact fixtures keep secret setup deterministic"
+)]
+mod tests;

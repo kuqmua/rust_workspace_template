@@ -1,12 +1,13 @@
 #[proc_macro_derive(TryFromEnv, attributes(config))]
 pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
     panic_location::panic_location();
-    let dotenv_snake_case = naming::DotenvSnakeCase;
-    let dotenv_upper_camel_case = naming::DotenvUpperCamelCase;
-    let env_var_name_snake_case = naming::EnvVarNameSnakeCase;
-    let std_env_var_error_snake_case = naming::StdEnvVarErrorSnakeCase;
-    let std_env_var_error_upper_camel_case = naming::StdEnvVarErrorUpperCamelCase;
-    let try_from_std_env_var_ok_upper_camel_case = naming::TryFromStdEnvVarOkUpperCamelCase;
+    let dotenv_snake_case = naming::domain_types::DotenvSnakeCase;
+    let dotenv_upper_camel_case = naming::domain_types::DotenvUpperCamelCase;
+    let env_var_name_snake_case = naming::domain_types::EnvVarNameSnakeCase;
+    let std_env_var_error_snake_case = naming::domain_types::StdEnvVarErrorSnakeCase;
+    let std_env_var_error_upper_camel_case = naming::domain_types::StdEnvVarErrorUpperCamelCase;
+    let try_from_std_env_var_ok_upper_camel_case =
+        naming::domain_types::TryFromStdEnvVarOkUpperCamelCase;
     let di: syn::DeriveInput = syn::parse(v).expect("e45f75c2 try_from_env invariant must hold");
     let identifier = &di.ident;
     let generate_env_example = di.attrs.iter().any(|attribute| {
@@ -16,7 +17,9 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
                 .is_ok_and(|value| value == constants_str::CONFIG_ENV_EXAMPLE_ATTRIBUTE)
     });
     let identifier_try_from_env_error_upper_camel_case =
-        naming::parameter::SelfTryFromEnvErrorUpperCamelCase::from_tokens(&identifier);
+        naming::domain_types::parameter::SelfTryFromEnvErrorUpperCamelCase::from_tokens(
+            &identifier,
+        );
     let data_struct = match di.data {
         syn::Data::Struct(v0) => v0,
         syn::Data::Enum(_) | syn::Data::Union(_) => panic!("54289ad5"),
@@ -70,7 +73,7 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
             field_identifier(field, constants_str::VALUE_8B79A379);
         let field_type = &field.ty;
         let env_name = syn::LitStr::new(
-            &naming_common::ToTokensToUpperSnakeCaseStr::case(&descriptor_field_identifier),
+            &naming_common::domain_types::ToTokensToUpperSnakeCaseStr::case(&descriptor_field_identifier),
             identifier.span(),
         );
         let sensitivity = if attributes.2 {
@@ -107,8 +110,9 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
             .map(|(field, attributes)| {
                 let example_field_identifier =
                     field_identifier(field, constants_str::VALUE_8B79A379);
-                let env_name =
-                    naming_common::ToTokensToUpperSnakeCaseStr::case(&example_field_identifier);
+                let env_name = naming_common::domain_types::ToTokensToUpperSnakeCaseStr::case(
+                    &example_field_identifier,
+                );
                 let env_name_literal = syn::LitStr::new(&env_name, identifier.span());
                 attributes.0.as_ref().map_or_else(
                     || {
@@ -146,7 +150,7 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
         let vrts_token_stream = fields_named.iter().map(|element| {
             let element_identifier = field_identifier(element, constants_str::VALUE_2ECB63C1);
             let element_identifier_upper_camel_case_token_stream =
-                naming_common::ToTokensToUpperCamelCaseTokenStream::case_or_panic(
+                naming_common::domain_types::ToTokensToUpperCamelCaseTokenStream::case_or_panic(
                     &element_identifier,
                 );
             let element_ty = &element.ty;
@@ -173,7 +177,7 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let display_error_token_stream = {
         let vrts_token_stream = fields_named.iter().map(|element| {
             let element_identifier = field_identifier(element, constants_str::VALUE_8B79A379);
-            let element_identifier_upper_camel_case_token_stream = naming_common::ToTokensToUpperCamelCaseTokenStream::case_or_panic(&element_identifier);
+            let element_identifier_upper_camel_case_token_stream = naming_common::domain_types::ToTokensToUpperCamelCaseTokenStream::case_or_panic(&element_identifier);
             quote::quote! {
                 Self::#element_identifier_upper_camel_case_token_stream { #element_identifier } => write!(f, "{}", #element_identifier)
             }
@@ -201,8 +205,8 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
             let element_identifier = field_identifier(element, constants_str::EBF4E1B2);
             let element_ty = &element.ty;
             let element_identifier_quotes_upper_snake_case_string =
-                syn::LitStr::new(&naming_common::ToTokensToUpperSnakeCaseStr::case(&element_identifier), identifier.span());
-            let element_identifier_upper_camel_case_token_stream = naming_common::ToTokensToUpperCamelCaseTokenStream::case_or_panic(&element_identifier);
+                syn::LitStr::new(&naming_common::domain_types::ToTokensToUpperSnakeCaseStr::case(&element_identifier), identifier.span());
+            let element_identifier_upper_camel_case_token_stream = naming_common::domain_types::ToTokensToUpperCamelCaseTokenStream::case_or_panic(&element_identifier);
             quote::quote! {
                 let #element_identifier = config_lib::parse_required_env_var(
                     config_lib::EnvVarNameRef::from(#element_identifier_quotes_upper_snake_case_string),

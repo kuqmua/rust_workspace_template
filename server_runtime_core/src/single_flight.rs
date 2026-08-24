@@ -39,12 +39,12 @@ pub enum SingleFlightKeyError {
     PartialEq,
     newtype::FromInner,
 )]
-pub struct StdSingleFlightMaximum(std::num::NonZeroUsize);
+pub struct SingleFlightMaximumNonZeroUsize(std::num::NonZeroUsize);
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub struct SingleFlight {
-    inner: StdArcStdSingleFlightRwLock,
-    maximum: StdSingleFlightMaximum,
+    inner: ArcSingleFlightRwLock,
+    maximum: SingleFlightMaximumNonZeroUsize,
 }
 impl SingleFlight {
     #[must_use]
@@ -74,9 +74,9 @@ impl SingleFlight {
     }
 
     #[must_use]
-    pub fn new(maximum: StdSingleFlightMaximum) -> Self {
+    pub fn new(maximum: SingleFlightMaximumNonZeroUsize) -> Self {
         Self {
-            inner: StdArcStdSingleFlightRwLock::default(),
+            inner: ArcSingleFlightRwLock::default(),
             maximum,
         }
     }
@@ -92,7 +92,7 @@ pub enum SingleFlightAcquire {
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 #[must_use]
 pub struct SingleFlightOwner {
-    inner: StdArcStdSingleFlightRwLock,
+    inner: ArcSingleFlightRwLock,
     key: Option<SingleFlightKey>,
 }
 impl Drop for SingleFlightOwner {
@@ -125,12 +125,15 @@ pub enum SingleFlightWaitOutcome {
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Default)]
 struct SingleFlightInner {
-    flights:
-        bounded_types::StdBoundedHashMap<SingleFlightKey, TokioSingleFlightSender, { usize::MAX }>,
+    flights: bounded_types::domain_types::hash::BoundedHashMap<
+        SingleFlightKey,
+        TokioSingleFlightSender,
+        { usize::MAX },
+    >,
 }
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Default, newtype::FromInner)]
-struct StdArcStdSingleFlightRwLock(std::sync::Arc<std::sync::RwLock<SingleFlightInner>>);
+struct ArcSingleFlightRwLock(std::sync::Arc<std::sync::RwLock<SingleFlightInner>>);
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
@@ -139,7 +142,7 @@ struct StdArcStdSingleFlightRwLock(std::sync::Arc<std::sync::RwLock<SingleFlight
     newtype::DerefTarget,
     newtype::FromInner,
 )]
-struct StdSingleFlightWriteGuard<'value_lt>(
+struct SingleFlightRwLockWriteGuard<'value_lt>(
     std::sync::RwLockWriteGuard<'value_lt, SingleFlightInner>,
 );
 
@@ -155,10 +158,10 @@ struct TokioSingleFlightReceiver(tokio::sync::watch::Receiver<SingleFlightSignal
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, newtype::FromInner)]
 struct TokioSingleFlightSender(tokio::sync::watch::Sender<SingleFlightSignal>);
 
-fn write_inner(inner: &StdArcStdSingleFlightRwLock) -> StdSingleFlightWriteGuard<'_> {
+fn write_inner(inner: &ArcSingleFlightRwLock) -> SingleFlightRwLockWriteGuard<'_> {
     match inner.0.write() {
-        Ok(guard) => StdSingleFlightWriteGuard::from(guard),
-        Err(poisoned) => StdSingleFlightWriteGuard::from(poisoned.into_inner()),
+        Ok(guard) => SingleFlightRwLockWriteGuard::from(guard),
+        Err(poisoned) => SingleFlightRwLockWriteGuard::from(poisoned.into_inner()),
     }
 }
 
@@ -171,7 +174,7 @@ mod tests {
 
     #[tokio::test]
     async fn one_owner_notifies_waiters_and_releases_key() {
-        let flights = super::SingleFlight::new(super::StdSingleFlightMaximum::from(
+        let flights = super::SingleFlight::new(super::SingleFlightMaximumNonZeroUsize::from(
             std::num::NonZeroUsize::MIN,
         ));
         let super::SingleFlightAcquire::Owner(owner) = flights.acquire(key()) else {

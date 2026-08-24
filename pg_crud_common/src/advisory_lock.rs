@@ -58,9 +58,9 @@ impl TryFrom<String> for PgRelationLockNamespace {
         if value.len() > 128usize {
             return Err(PgRelationLockError::InvalidNamespace);
         }
-        text_policy::validate_url_safe_token_part(
-            text_policy::UrlSafeTokenPartRef::from(value.as_str()),
-            text_policy::UrlSafeTokenPartMaximumBytes::from(128usize),
+        text_policy::domain_types::validate_url_safe_token_part(
+            text_policy::domain_types::UrlSafeTokenPartRef::from(value.as_str()),
+            text_policy::domain_types::UrlSafeTokenPartMaximumBytes::from(128usize),
         )
         .map_err(|_error| PgRelationLockError::InvalidNamespace)?;
         Ok(Self(value))
@@ -69,7 +69,7 @@ impl TryFrom<String> for PgRelationLockNamespace {
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct PgRelationResourceIds(
-    bounded_types::BoundedVec<
+    bounded_types::domain_types::vector::BoundedVec<
         PgRelationResourceId,
         { constants_usize::ZERO },
         MAXIMUM_RESOURCE_COUNT,
@@ -78,7 +78,7 @@ pub struct PgRelationResourceIds(
 impl TryFrom<Vec<PgRelationResourceId>> for PgRelationResourceIds {
     type Error = PgRelationLockError;
     fn try_from(value: Vec<PgRelationResourceId>) -> Result<Self, Self::Error> {
-        let mut resources = bounded_types::BoundedVec::<
+        let mut resources = bounded_types::domain_types::vector::BoundedVec::<
             PgRelationResourceId,
             { constants_usize::ZERO },
             MAXIMUM_RESOURCE_COUNT,
@@ -87,7 +87,7 @@ impl TryFrom<Vec<PgRelationResourceId>> for PgRelationResourceIds {
         .into_inner();
         resources.sort_unstable();
         resources.dedup();
-        bounded_types::BoundedVec::try_from(resources)
+        bounded_types::domain_types::vector::BoundedVec::try_from(resources)
             .map(Self)
             .map_err(|_error| PgRelationLockError::TooManyResources)
     }

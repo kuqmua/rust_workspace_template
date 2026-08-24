@@ -199,20 +199,22 @@ pub fn emit_generate_pg_table(
         }
         fn operation_error_with_serde_snake_case(
             self,
-        ) -> naming::parameter::SelfErrorWithSerdeSnakeCase {
-            naming::parameter::SelfErrorWithSerdeSnakeCase::from_display(&self)
+        ) -> naming::domain_types::parameter::SelfErrorWithSerdeSnakeCase {
+            naming::domain_types::parameter::SelfErrorWithSerdeSnakeCase::from_display(&self)
         }
-        fn operation_payload_example_snake_case(self) -> impl naming::DisplayPlusToTokens {
-            naming::parameter::SelfPayloadExampleSnakeCase::from_display(&self)
+        fn operation_payload_example_snake_case(
+            self,
+        ) -> impl naming::domain_types::DisplayPlusToTokens {
+            naming::domain_types::parameter::SelfPayloadExampleSnakeCase::from_display(&self)
         }
         fn self_handle_snake_case_token_stream(self) -> proc_macro2::TokenStream {
-            let v = naming::parameter::SelfHSnakeCase::from_tokens(
+            let v = naming::domain_types::parameter::SelfHSnakeCase::from_tokens(
                 &self.self_snake_case_token_stream(),
             );
             quote::quote! {#v}
         }
         fn self_snake_case_str(self) -> String {
-            naming_common::AsRefStrToSnakeCaseStr::case(&self)
+            naming_common::domain_types::AsRefStrToSnakeCaseStr::case(&self)
         }
         fn self_snake_case_token_stream(self) -> proc_macro2::TokenStream {
             let identifier = quote::format_ident!("{}", self.self_snake_case_str());
@@ -228,13 +230,13 @@ pub fn emit_generate_pg_table(
             matches!(self, Self::Uo)
         }
         fn try_self_handle_snake_case_token_stream(self) -> proc_macro2::TokenStream {
-            let v = naming::parameter::TrySelfHSnakeCase::from_tokens(
+            let v = naming::domain_types::parameter::TrySelfHSnakeCase::from_tokens(
                 &self.self_snake_case_token_stream(),
             );
             quote::quote! {#v}
         }
         fn try_self_snake_case_token_stream(self) -> proc_macro2::TokenStream {
-            let v = naming::parameter::TrySelfSnakeCase::from_tokens(
+            let v = naming::domain_types::parameter::TrySelfSnakeCase::from_tokens(
                 &self.self_snake_case_token_stream(),
             );
             quote::quote! {#v}
@@ -413,24 +415,24 @@ pub fn emit_generate_pg_table(
     impl GeneratePgTableAttr {
         fn generate_path_to_attr(self) -> String {
             let attr_name: &dyn std::fmt::Display = match self {
-                Self::CmErrorVariants => &naming::CmErrorVariantsSnakeCase,
-                Self::CoErrorVariants => &naming::CoErrorVariantsSnakeCase,
-                Self::RmErrorVariants => &naming::RmErrorVariantsSnakeCase,
-                Self::RoErrorVariants => &naming::RoErrorVariantsSnakeCase,
-                Self::UmErrorVariants => &naming::UmErrorVariantsSnakeCase,
-                Self::UoErrorVariants => &naming::UoErrorVariantsSnakeCase,
-                Self::DmErrorVariants => &naming::DmErrorVariantsSnakeCase,
-                Self::DloErrorVariants => &naming::DloErrorVariantsSnakeCase,
-                Self::CommonErrorVariants => &naming::CommonErrorVariantsSnakeCase,
-                Self::CmLogic => &naming::CmLogicSnakeCase,
-                Self::CoLogic => &naming::CoLogicSnakeCase,
-                Self::RmLogic => &naming::RmLogicSnakeCase,
-                Self::RoLogic => &naming::RoLogicSnakeCase,
-                Self::UmLogic => &naming::UmLogicSnakeCase,
-                Self::UoLogic => &naming::UoLogicSnakeCase,
-                Self::DmLogic => &naming::DmLogicSnakeCase,
-                Self::DloLogic => &naming::DloLogicSnakeCase,
-                Self::CommonLogic => &naming::CommonLogicSnakeCase,
+                Self::CmErrorVariants => &naming::domain_types::CmErrorVariantsSnakeCase,
+                Self::CoErrorVariants => &naming::domain_types::CoErrorVariantsSnakeCase,
+                Self::RmErrorVariants => &naming::domain_types::RmErrorVariantsSnakeCase,
+                Self::RoErrorVariants => &naming::domain_types::RoErrorVariantsSnakeCase,
+                Self::UmErrorVariants => &naming::domain_types::UmErrorVariantsSnakeCase,
+                Self::UoErrorVariants => &naming::domain_types::UoErrorVariantsSnakeCase,
+                Self::DmErrorVariants => &naming::domain_types::DmErrorVariantsSnakeCase,
+                Self::DloErrorVariants => &naming::domain_types::DloErrorVariantsSnakeCase,
+                Self::CommonErrorVariants => &naming::domain_types::CommonErrorVariantsSnakeCase,
+                Self::CmLogic => &naming::domain_types::CmLogicSnakeCase,
+                Self::CoLogic => &naming::domain_types::CoLogicSnakeCase,
+                Self::RmLogic => &naming::domain_types::RmLogicSnakeCase,
+                Self::RoLogic => &naming::domain_types::RoLogicSnakeCase,
+                Self::UmLogic => &naming::domain_types::UmLogicSnakeCase,
+                Self::UoLogic => &naming::domain_types::UoLogicSnakeCase,
+                Self::DmLogic => &naming::domain_types::DmLogicSnakeCase,
+                Self::DloLogic => &naming::domain_types::DloLogicSnakeCase,
+                Self::CommonLogic => &naming::domain_types::CommonLogicSnakeCase,
             };
             format!("generate_pg_table::{attr_name}")
         }
@@ -782,7 +784,7 @@ pub fn emit_generate_pg_table(
                 .is_ident(constants_str::GENERATE_PG_TABLE_DB_DEFAULT)
         });
         let mut frontend = GeneratePgTableFrontendFieldEmission::default();
-        let mut frontend_flags = workspace_macro_helpers::StdUniqueOptionSet::default();
+        let mut frontend_flags = workspace_macro_helpers::UniqueOptionBTreeSet::default();
         let mut frontend_attr_count = constants_usize::ZERO;
         syn_field
             .attrs
@@ -890,10 +892,11 @@ pub fn emit_generate_pg_table(
                 constants_str::COMPILE_ERROR_CE_030,
             )));
         };
-        let parsed_location_attr = if identifier == naming::LocationSnakeCase.to_string() {
-            None
-        } else {
-            let mut location_attrs = syn_field.attrs.iter().filter_map(|element| {
+        let parsed_location_attr =
+            if identifier == naming::domain_types::LocationSnakeCase.to_string() {
+                None
+            } else {
+                let mut location_attrs = syn_field.attrs.iter().filter_map(|element| {
                 if element.path().segments.len() != 1 {
                     return None;
                 }
@@ -903,19 +906,19 @@ pub fn emit_generate_pg_table(
                 )
                 .ok()
             });
-            let location_attr = location_attrs.next();
-            if location_attrs.next().is_some() {
-                return Err(compile_error_token_stream(CompileErrorMessage::from(
-                    constants_str::COMPILE_ERROR_CE_029,
-                )));
-            }
-            let Some(parsed_location_attr) = location_attr else {
-                return Err(compile_error_token_stream(CompileErrorMessage::from(
-                    constants_str::COMPILE_ERROR_CE_023,
-                )));
+                let location_attr = location_attrs.next();
+                if location_attrs.next().is_some() {
+                    return Err(compile_error_token_stream(CompileErrorMessage::from(
+                        constants_str::COMPILE_ERROR_CE_029,
+                    )));
+                }
+                let Some(parsed_location_attr) = location_attr else {
+                    return Err(compile_error_token_stream(CompileErrorMessage::from(
+                        constants_str::COMPILE_ERROR_CE_023,
+                    )));
+                };
+                Some(parsed_location_attr)
             };
-            Some(parsed_location_attr)
-        };
         Ok(GeneratePgTableVariantFieldEmission {
             identifier,
             location_attr: parsed_location_attr,
@@ -934,7 +937,7 @@ pub fn emit_generate_pg_table(
                 constants_str::MACRO_DIAGNOSTICS_EXPECTED_NAMED_FIELD_A2_ERROR,
             )));
         };
-        if *field_identifier == naming::LocationSnakeCase.to_string() {
+        if *field_identifier == naming::domain_types::LocationSnakeCase.to_string() {
             return Ok(None);
         }
         let mut location_attrs = field.attrs.iter().filter_map(|element| {
@@ -1323,205 +1326,213 @@ pub fn emit_generate_pg_table(
             Err(error) => return error,
         };
     let AllowClippyArbitrarySrcItemOrdering = token_patterns::AllowClippyArbitrarySrcItemOrdering;
-    let AppStateSnakeCase = naming::AppStateSnakeCase;
-    let BeginSnakeCase = naming::BeginSnakeCase;
-    let BindedQuerySnakeCase = naming::BindedQuerySnakeCase;
-    let BodyBytesSnakeCase = naming::BodyBytesSnakeCase;
-    let BodySnakeCase = naming::BodySnakeCase;
-    let BodySizeErrorUpperCamelCase = naming::BodySizeErrorUpperCamelCase;
+    let AppStateSnakeCase = naming::domain_types::AppStateSnakeCase;
+    let BeginSnakeCase = naming::domain_types::BeginSnakeCase;
+    let BindedQuerySnakeCase = naming::domain_types::BindedQuerySnakeCase;
+    let BodyBytesSnakeCase = naming::domain_types::BodyBytesSnakeCase;
+    let BodySnakeCase = naming::domain_types::BodySnakeCase;
+    let BodySizeErrorUpperCamelCase = naming::domain_types::BodySizeErrorUpperCamelCase;
     let Bool = token_patterns::Bool;
-    let BySnakeCase = naming::BySnakeCase;
+    let BySnakeCase = naming::domain_types::BySnakeCase;
     let Char = token_patterns::Char;
-    let CheckBodySizeSnakeCase = naming::CheckBodySizeSnakeCase;
-    let CheckBodySizeUpperCamelCase = naming::CheckBodySizeUpperCamelCase;
-    let CmErrorVariantsSnakeCase = naming::CmErrorVariantsSnakeCase;
-    let CmLogicSnakeCase = naming::CmLogicSnakeCase;
-    let CommonErrorVariantsSnakeCase = naming::CommonErrorVariantsSnakeCase;
-    let CommonLogicSnakeCase = naming::CommonLogicSnakeCase;
-    let CommonReadIdsFromCoSnakeCase = naming::CommonReadIdsFromCoSnakeCase;
-    let CoErrorVariantsSnakeCase = naming::CoErrorVariantsSnakeCase;
-    let CoLogicSnakeCase = naming::CoLogicSnakeCase;
-    let ColumnSnakeCase = naming::ColumnSnakeCase;
-    let ColsSnakeCase = naming::ColsSnakeCase;
-    let CommitSnakeCase = naming::CommitSnakeCase;
-    let ConfigSnakeCase = naming::ConfigSnakeCase;
+    let CheckBodySizeSnakeCase = naming::domain_types::CheckBodySizeSnakeCase;
+    let CheckBodySizeUpperCamelCase = naming::domain_types::CheckBodySizeUpperCamelCase;
+    let CmErrorVariantsSnakeCase = naming::domain_types::CmErrorVariantsSnakeCase;
+    let CmLogicSnakeCase = naming::domain_types::CmLogicSnakeCase;
+    let CommonErrorVariantsSnakeCase = naming::domain_types::CommonErrorVariantsSnakeCase;
+    let CommonLogicSnakeCase = naming::domain_types::CommonLogicSnakeCase;
+    let CommonReadIdsFromCoSnakeCase = naming::domain_types::CommonReadIdsFromCoSnakeCase;
+    let CoErrorVariantsSnakeCase = naming::domain_types::CoErrorVariantsSnakeCase;
+    let CoLogicSnakeCase = naming::domain_types::CoLogicSnakeCase;
+    let ColumnSnakeCase = naming::domain_types::ColumnSnakeCase;
+    let ColsSnakeCase = naming::domain_types::ColsSnakeCase;
+    let CommitSnakeCase = naming::domain_types::CommitSnakeCase;
+    let ConfigSnakeCase = naming::domain_types::ConfigSnakeCase;
     let CoreDefault = token_patterns::CoreDefault;
     let CreateExtensionIfNotExistsUuidOsspUpperCamelCase =
-        naming::CreateExtensionIfNotExistsUuidOsspUpperCamelCase;
-    let CreateQueryBindSnakeCase = naming::CreateQueryBindSnakeCase;
-    let CreateQueryPartSnakeCase = naming::CreateQueryPartSnakeCase;
-    let CreateSnakeCase = naming::CreateSnakeCase;
-    let CreateTableColumnQueryPartSnakeCase = naming::CreateTableColumnQueryPartSnakeCase;
-    let CreateUpperCamelCase = naming::CreateUpperCamelCase;
-    let DeResUpperCamelCase = naming::DeResUpperCamelCase;
+        naming::domain_types::CreateExtensionIfNotExistsUuidOsspUpperCamelCase;
+    let CreateQueryBindSnakeCase = naming::domain_types::CreateQueryBindSnakeCase;
+    let CreateQueryPartSnakeCase = naming::domain_types::CreateQueryPartSnakeCase;
+    let CreateSnakeCase = naming::domain_types::CreateSnakeCase;
+    let CreateTableColumnQueryPartSnakeCase =
+        naming::domain_types::CreateTableColumnQueryPartSnakeCase;
+    let CreateUpperCamelCase = naming::domain_types::CreateUpperCamelCase;
+    let DeResUpperCamelCase = naming::domain_types::DeResUpperCamelCase;
     let DeriveDebugSerdeSerializeSerdeDeserialize =
         token_patterns::DeriveDebugSerdeSerializeSerdeDeserialize;
     let DeriveDebugThiserrorLocation = token_patterns::DeriveDebugThiserrorLocation;
-    let DesirableUpperCamelCase = naming::DesirableUpperCamelCase;
+    let DesirableUpperCamelCase = naming::domain_types::DesirableUpperCamelCase;
     let DefaultSomeOneElementMaxPageSizeSnakeCase =
-        naming::DefaultSomeOneElementMaxPageSizeSnakeCase;
+        naming::domain_types::DefaultSomeOneElementMaxPageSizeSnakeCase;
     let DefaultSomeOneElementMaxPageSizeUpperCamelCase =
-        naming::DefaultSomeOneElementMaxPageSizeUpperCamelCase;
-    let DefaultSomeOneElementSnakeCase = naming::DefaultSomeOneElementSnakeCase;
-    let DefaultSomeOneElementUpperCamelCase = naming::DefaultSomeOneElementUpperCamelCase;
-    let DloErrorVariantsSnakeCase = naming::DloErrorVariantsSnakeCase;
-    let DloLogicSnakeCase = naming::DloLogicSnakeCase;
-    let DmErrorVariantsSnakeCase = naming::DmErrorVariantsSnakeCase;
-    let DmLogicSnakeCase = naming::DmLogicSnakeCase;
-    let ElementSnakeCase = naming::ElementSnakeCase;
-    let EndpointLocationSnakeCase = naming::EndpointLocationSnakeCase;
+        naming::domain_types::DefaultSomeOneElementMaxPageSizeUpperCamelCase;
+    let DefaultSomeOneElementSnakeCase = naming::domain_types::DefaultSomeOneElementSnakeCase;
+    let DefaultSomeOneElementUpperCamelCase =
+        naming::domain_types::DefaultSomeOneElementUpperCamelCase;
+    let DloErrorVariantsSnakeCase = naming::domain_types::DloErrorVariantsSnakeCase;
+    let DloLogicSnakeCase = naming::domain_types::DloLogicSnakeCase;
+    let DmErrorVariantsSnakeCase = naming::domain_types::DmErrorVariantsSnakeCase;
+    let DmLogicSnakeCase = naming::domain_types::DmLogicSnakeCase;
+    let ElementSnakeCase = naming::domain_types::ElementSnakeCase;
+    let EndpointLocationSnakeCase = naming::domain_types::EndpointLocationSnakeCase;
     let Error0 = token_patterns::Error0;
     let Error1 = token_patterns::Error1;
     let Error2 = token_patterns::Error2;
     let Error3 = token_patterns::Error3;
-    let ErrorSnakeCase = naming::ErrorSnakeCase;
-    let ExecutorAcquireSnakeCase = naming::ExecutorAcquireSnakeCase;
-    let ExecutorSnakeCase = naming::ExecutorSnakeCase;
-    let ExpectedResSnakeCase = naming::ExpectedResSnakeCase;
-    let ExtraParametersSnakeCase = naming::ExtraParametersSnakeCase;
+    let ErrorSnakeCase = naming::domain_types::ErrorSnakeCase;
+    let ExecutorAcquireSnakeCase = naming::domain_types::ExecutorAcquireSnakeCase;
+    let ExecutorSnakeCase = naming::domain_types::ExecutorSnakeCase;
+    let ExpectedResSnakeCase = naming::domain_types::ExpectedResSnakeCase;
+    let ExtraParametersSnakeCase = naming::domain_types::ExtraParametersSnakeCase;
     let F32 = token_patterns::F32;
     let F64 = token_patterns::F64;
-    let FailedToGetResTextUpperCamelCase = naming::FailedToGetResTextUpperCamelCase;
-    let FalseSnakeCase = naming::FalseSnakeCase;
+    let FailedToGetResTextUpperCamelCase = naming::domain_types::FailedToGetResTextUpperCamelCase;
+    let FalseSnakeCase = naming::domain_types::FalseSnakeCase;
     let FieldAttrSerdeSkipSerializingIfOptionalIsNone =
         token_patterns::FieldAttrSerdeSkipSerializingIfOptionalIsNone;
-    let FromHSnakeCase = naming::FromHSnakeCase;
-    let FutureSnakeCase = naming::FutureSnakeCase;
+    let FromHSnakeCase = naming::domain_types::FromHSnakeCase;
+    let FutureSnakeCase = naming::domain_types::FutureSnakeCase;
     let GenerateColumnQuealsVCommaUoQueryPartSnakeCase =
-        naming::GenerateColumnQuealsVCommaUoQueryPartSnakeCase;
-    let GeneratePgTablePrimaryKeySnakeCase = naming::GeneratePgTablePrimaryKeySnakeCase;
-    let GenerateSelectQueryPartSnakeCase = naming::GenerateSelectQueryPartSnakeCase;
+        naming::domain_types::GenerateColumnQuealsVCommaUoQueryPartSnakeCase;
+    let GeneratePgTablePrimaryKeySnakeCase =
+        naming::domain_types::GeneratePgTablePrimaryKeySnakeCase;
+    let GenerateSelectQueryPartSnakeCase = naming::domain_types::GenerateSelectQueryPartSnakeCase;
     let GenerateWhenColumnIdThenVUmQueryPartSnakeCase =
-        naming::GenerateWhenColumnIdThenVUmQueryPartSnakeCase;
+        naming::domain_types::GenerateWhenColumnIdThenVUmQueryPartSnakeCase;
     let HeaderContentTypeAppJsonNotFoundUpperCamelCase =
-        naming::HeaderContentTypeAppJsonNotFoundUpperCamelCase;
-    let HeadersSnakeCase = naming::HeadersSnakeCase;
+        naming::domain_types::HeaderContentTypeAppJsonNotFoundUpperCamelCase;
+    let HeadersSnakeCase = naming::domain_types::HeadersSnakeCase;
     let I8 = token_patterns::I8;
     let I16 = token_patterns::I16;
     let I32 = token_patterns::I32;
     let I64 = token_patterns::I64;
-    let IdentifierCreateDefaultSnakeCase = naming::IdentifierCreateDefaultSnakeCase;
-    let IncrementSnakeCase = naming::IncrementSnakeCase;
-    let IntoSerdeVersionSnakeCase = naming::IntoSerdeVersionSnakeCase;
-    let LocationSnakeCase = naming::LocationSnakeCase;
+    let IdentifierCreateDefaultSnakeCase = naming::domain_types::IdentifierCreateDefaultSnakeCase;
+    let IncrementSnakeCase = naming::domain_types::IncrementSnakeCase;
+    let IntoSerdeVersionSnakeCase = naming::domain_types::IntoSerdeVersionSnakeCase;
+    let LocationSnakeCase = naming::domain_types::LocationSnakeCase;
     let MustUse = token_patterns::MustUse;
-    let NoFieldsProvidedUpperCamelCase = naming::NoFieldsProvidedUpperCamelCase;
-    let NotUniqueFieldSnakeCase = naming::NotUniqueFieldSnakeCase;
-    let NotUniqueFieldUpperCamelCase = naming::NotUniqueFieldUpperCamelCase;
-    let NotUniquePrimaryKeySnakeCase = naming::NotUniquePrimaryKeySnakeCase;
-    let NotUniquePrimaryKeyUpperCamelCase = naming::NotUniquePrimaryKeyUpperCamelCase;
-    let OptionalVecCreateSnakeCase = naming::OptionalVecCreateSnakeCase;
-    let OrderBySnakeCase = naming::OrderBySnakeCase;
-    let OrderByUpperCamelCase = naming::OrderByUpperCamelCase;
-    let OrderSnakeCase = naming::OrderSnakeCase;
-    let PayloadSnakeCase = naming::PayloadSnakeCase;
-    let PayloadUpperCamelCase = naming::PayloadUpperCamelCase;
+    let NoFieldsProvidedUpperCamelCase = naming::domain_types::NoFieldsProvidedUpperCamelCase;
+    let NotUniqueFieldSnakeCase = naming::domain_types::NotUniqueFieldSnakeCase;
+    let NotUniqueFieldUpperCamelCase = naming::domain_types::NotUniqueFieldUpperCamelCase;
+    let NotUniquePrimaryKeySnakeCase = naming::domain_types::NotUniquePrimaryKeySnakeCase;
+    let NotUniquePrimaryKeyUpperCamelCase = naming::domain_types::NotUniquePrimaryKeyUpperCamelCase;
+    let OptionalVecCreateSnakeCase = naming::domain_types::OptionalVecCreateSnakeCase;
+    let OrderBySnakeCase = naming::domain_types::OrderBySnakeCase;
+    let OrderByUpperCamelCase = naming::domain_types::OrderByUpperCamelCase;
+    let OrderSnakeCase = naming::domain_types::OrderSnakeCase;
+    let PayloadSnakeCase = naming::domain_types::PayloadSnakeCase;
+    let PayloadUpperCamelCase = naming::domain_types::PayloadUpperCamelCase;
     let PgCrudCommonDefaultSomeOneElement = token_patterns::PgCrudCommonDefaultSomeOneElement;
     let PgCrudCommonDefaultSomeOneElementCall =
         token_patterns::PgCrudCommonDefaultSomeOneElementCall;
     let PgCrudCommonDefaultSomeOneElementMaxPageSizeCall =
         token_patterns::PgCrudCommonDefaultSomeOneElementMaxPageSizeCall;
     let PgCrudSnakeCase = constants_str::PG_CRUD_COMMON;
-    let PgPoolForTokioSpawnSyncMoveSnakeCase = naming::PgPoolForTokioSpawnSyncMoveSnakeCase;
-    let PgPoolSnakeCase = naming::PgPoolSnakeCase;
-    let PgSnakeCase = naming::PgSnakeCase;
+    let PgPoolForTokioSpawnSyncMoveSnakeCase =
+        naming::domain_types::PgPoolForTokioSpawnSyncMoveSnakeCase;
+    let PgPoolSnakeCase = naming::domain_types::PgPoolSnakeCase;
+    let PgSnakeCase = naming::domain_types::PgSnakeCase;
     let PgTypeOptionalVecWhereGreaterThanTestSnakeCase =
-        naming::PgTypeOptionalVecWhereGreaterThanTestSnakeCase;
-    let PgTypeUpperCamelCase = naming::PgTypeUpperCamelCase;
-    let PgUpperCamelCase = naming::PgUpperCamelCase;
-    let PaginationSnakeCase = naming::PaginationSnakeCase;
-    let PrimaryKeyQueryPartSnakeCase = naming::PrimaryKeyQueryPartSnakeCase;
-    let PrimaryKeySnakeCase = naming::PrimaryKeySnakeCase;
-    let PoolConnectionSnakeCase = naming::PoolConnectionSnakeCase;
-    let PoolSnakeCase = naming::PoolSnakeCase;
-    let PrefixSnakeCase = naming::PrefixSnakeCase;
-    let PrepExtensionsSnakeCase = naming::PrepExtensionsSnakeCase;
-    let PrepPgSnakeCase = naming::PrepPgSnakeCase;
-    let PrepPgTableSnakeCase = naming::PrepPgTableSnakeCase;
-    let PrepPgUpperCamelCase = naming::PrepPgUpperCamelCase;
-    let ParametersSnakeCase = naming::ParametersSnakeCase;
-    let QueryBindSnakeCase = naming::QueryBindSnakeCase;
-    let QueryPartErrorUpperCamelCase = naming::QueryPartErrorUpperCamelCase;
-    let QueryPartSnakeCase = naming::QueryPartSnakeCase;
-    let QueryPartUpperCamelCase = naming::QueryPartUpperCamelCase;
-    let QuerySnakeCase = naming::QuerySnakeCase;
-    let QueryStringSnakeCase = naming::QueryStringSnakeCase;
+        naming::domain_types::PgTypeOptionalVecWhereGreaterThanTestSnakeCase;
+    let PgTypeUpperCamelCase = naming::domain_types::PgTypeUpperCamelCase;
+    let PgUpperCamelCase = naming::domain_types::PgUpperCamelCase;
+    let PaginationSnakeCase = naming::domain_types::PaginationSnakeCase;
+    let PrimaryKeyQueryPartSnakeCase = naming::domain_types::PrimaryKeyQueryPartSnakeCase;
+    let PrimaryKeySnakeCase = naming::domain_types::PrimaryKeySnakeCase;
+    let PoolConnectionSnakeCase = naming::domain_types::PoolConnectionSnakeCase;
+    let PoolSnakeCase = naming::domain_types::PoolSnakeCase;
+    let PrefixSnakeCase = naming::domain_types::PrefixSnakeCase;
+    let PrepExtensionsSnakeCase = naming::domain_types::PrepExtensionsSnakeCase;
+    let PrepPgSnakeCase = naming::domain_types::PrepPgSnakeCase;
+    let PrepPgTableSnakeCase = naming::domain_types::PrepPgTableSnakeCase;
+    let PrepPgUpperCamelCase = naming::domain_types::PrepPgUpperCamelCase;
+    let ParametersSnakeCase = naming::domain_types::ParametersSnakeCase;
+    let QueryBindSnakeCase = naming::domain_types::QueryBindSnakeCase;
+    let QueryPartErrorUpperCamelCase = naming::domain_types::QueryPartErrorUpperCamelCase;
+    let QueryPartSnakeCase = naming::domain_types::QueryPartSnakeCase;
+    let QueryPartUpperCamelCase = naming::domain_types::QueryPartUpperCamelCase;
+    let QuerySnakeCase = naming::domain_types::QuerySnakeCase;
+    let QueryStringSnakeCase = naming::domain_types::QueryStringSnakeCase;
     let ReadIdsAndCreateIntoOptionalVecWhereEqToFieldSnakeCase =
-        naming::ReadIdsAndCreateIntoOptionalVecWhereEqToFieldSnakeCase;
+        naming::domain_types::ReadIdsAndCreateIntoOptionalVecWhereEqToFieldSnakeCase;
     let ReadIdsAndCreateIntoVecWhereEqUsingFieldsSnakeCase =
-        naming::ReadIdsAndCreateIntoVecWhereEqUsingFieldsSnakeCase;
-    let ReadIdsAndCreateIntoWhereEqSnakeCase = naming::ReadIdsAndCreateIntoWhereEqSnakeCase;
+        naming::domain_types::ReadIdsAndCreateIntoVecWhereEqUsingFieldsSnakeCase;
+    let ReadIdsAndCreateIntoWhereEqSnakeCase =
+        naming::domain_types::ReadIdsAndCreateIntoWhereEqSnakeCase;
     let ReadIdsAndTableTypeIntoPgTypeOptionalWhereGreaterThanSnakeCase =
-        naming::ReadIdsAndTableTypeIntoPgTypeOptionalWhereGreaterThanSnakeCase;
-    let ReadIdsIntoReadSnakeCase = naming::ReadIdsIntoReadSnakeCase;
-    let ReadIdsIntoTableTypeSnakeCase = naming::ReadIdsIntoTableTypeSnakeCase;
-    let ReadIdsIntoUpdateSnakeCase = naming::ReadIdsIntoUpdateSnakeCase;
-    let ReadIdsSnakeCase = naming::ReadIdsSnakeCase;
-    let ReadIdsUpperCamelCase = naming::ReadIdsUpperCamelCase;
-    let ReadIntoTableTypeSnakeCase = naming::ReadIntoTableTypeSnakeCase;
-    let ReadUpperCamelCase = naming::ReadUpperCamelCase;
+        naming::domain_types::ReadIdsAndTableTypeIntoPgTypeOptionalWhereGreaterThanSnakeCase;
+    let ReadIdsIntoReadSnakeCase = naming::domain_types::ReadIdsIntoReadSnakeCase;
+    let ReadIdsIntoTableTypeSnakeCase = naming::domain_types::ReadIdsIntoTableTypeSnakeCase;
+    let ReadIdsIntoUpdateSnakeCase = naming::domain_types::ReadIdsIntoUpdateSnakeCase;
+    let ReadIdsSnakeCase = naming::domain_types::ReadIdsSnakeCase;
+    let ReadIdsUpperCamelCase = naming::domain_types::ReadIdsUpperCamelCase;
+    let ReadIntoTableTypeSnakeCase = naming::domain_types::ReadIntoTableTypeSnakeCase;
+    let ReadUpperCamelCase = naming::domain_types::ReadUpperCamelCase;
     let RefStr = token_patterns::RefStr;
-    let ReqSnakeCase = naming::ReqSnakeCase;
-    let ReqwestSnakeCase = naming::ReqwestSnakeCase;
-    let ReqwestUpperCamelCase = naming::ReqwestUpperCamelCase;
-    let ResSnakeCase = naming::ResSnakeCase;
-    let ResTextSnakeCase = naming::ResTextSnakeCase;
-    let RmErrorVariantsSnakeCase = naming::RmErrorVariantsSnakeCase;
-    let RmLogicSnakeCase = naming::RmLogicSnakeCase;
-    let RoErrorVariantsSnakeCase = naming::RoErrorVariantsSnakeCase;
-    let RoLogicSnakeCase = naming::RoLogicSnakeCase;
-    let RollbackSnakeCase = naming::RollbackSnakeCase;
-    let RoutesHSnakeCase = naming::RoutesHSnakeCase;
-    let RoutesSnakeCase = naming::RoutesSnakeCase;
-    let RowAndRollbackUpperCamelCase = naming::RowAndRollbackUpperCamelCase;
-    let RowSnakeCase = naming::RowSnakeCase;
-    let RowsSnakeCase = naming::RowsSnakeCase;
-    let SelectOnlyIdsQueryPartSnakeCase = naming::SelectOnlyIdsQueryPartSnakeCase;
-    let SelectOnlyUpdatedIdsQueryPartSnakeCase = naming::SelectOnlyUpdatedIdsQueryPartSnakeCase;
-    let SelectPrimaryKeySnakeCase = naming::SelectPrimaryKeySnakeCase;
-    let SelectQueryPartSnakeCase = naming::SelectQueryPartSnakeCase;
-    let SelectSnakeCase = naming::SelectSnakeCase;
-    let SelectUpperCamelCase = naming::SelectUpperCamelCase;
-    let SerdeJsonSnakeCase = naming::SerdeJsonSnakeCase;
-    let SerdeJsonToStringSnakeCase = naming::SerdeJsonToStringSnakeCase;
-    let SerdeJsonToStringUpperCamelCase = naming::SerdeJsonToStringUpperCamelCase;
-    let SerdeJsonUpperCamelCase = naming::SerdeJsonUpperCamelCase;
-    let SerdeSnakeCase = naming::SerdeSnakeCase;
+    let ReqSnakeCase = naming::domain_types::ReqSnakeCase;
+    let ReqwestSnakeCase = naming::domain_types::ReqwestSnakeCase;
+    let ReqwestUpperCamelCase = naming::domain_types::ReqwestUpperCamelCase;
+    let ResSnakeCase = naming::domain_types::ResSnakeCase;
+    let ResTextSnakeCase = naming::domain_types::ResTextSnakeCase;
+    let RmErrorVariantsSnakeCase = naming::domain_types::RmErrorVariantsSnakeCase;
+    let RmLogicSnakeCase = naming::domain_types::RmLogicSnakeCase;
+    let RoErrorVariantsSnakeCase = naming::domain_types::RoErrorVariantsSnakeCase;
+    let RoLogicSnakeCase = naming::domain_types::RoLogicSnakeCase;
+    let RollbackSnakeCase = naming::domain_types::RollbackSnakeCase;
+    let RoutesHSnakeCase = naming::domain_types::RoutesHSnakeCase;
+    let RoutesSnakeCase = naming::domain_types::RoutesSnakeCase;
+    let RowAndRollbackUpperCamelCase = naming::domain_types::RowAndRollbackUpperCamelCase;
+    let RowSnakeCase = naming::domain_types::RowSnakeCase;
+    let RowsSnakeCase = naming::domain_types::RowsSnakeCase;
+    let SelectOnlyIdsQueryPartSnakeCase = naming::domain_types::SelectOnlyIdsQueryPartSnakeCase;
+    let SelectOnlyUpdatedIdsQueryPartSnakeCase =
+        naming::domain_types::SelectOnlyUpdatedIdsQueryPartSnakeCase;
+    let SelectPrimaryKeySnakeCase = naming::domain_types::SelectPrimaryKeySnakeCase;
+    let SelectQueryPartSnakeCase = naming::domain_types::SelectQueryPartSnakeCase;
+    let SelectSnakeCase = naming::domain_types::SelectSnakeCase;
+    let SelectUpperCamelCase = naming::domain_types::SelectUpperCamelCase;
+    let SerdeJsonSnakeCase = naming::domain_types::SerdeJsonSnakeCase;
+    let SerdeJsonToStringSnakeCase = naming::domain_types::SerdeJsonToStringSnakeCase;
+    let SerdeJsonToStringUpperCamelCase = naming::domain_types::SerdeJsonToStringUpperCamelCase;
+    let SerdeJsonUpperCamelCase = naming::domain_types::SerdeJsonUpperCamelCase;
+    let SerdeSnakeCase = naming::domain_types::SerdeSnakeCase;
     let SqlxAcquire = token_patterns::SqlxAcquire;
     let SqlxRow = token_patterns::SqlxRow;
-    let StatusCodeSnakeCase = naming::StatusCodeSnakeCase;
+    let StatusCodeSnakeCase = naming::domain_types::StatusCodeSnakeCase;
     let StringTokenStream = token_patterns::StringTokenStream;
-    let TableNameSnakeCase = naming::TableNameSnakeCase;
-    let TableSnakeCase = naming::TableSnakeCase;
-    let TrueSnakeCase = naming::TrueSnakeCase;
-    let TryBindSnakeCase = naming::TryBindSnakeCase;
-    let TryBindUpperCamelCase = naming::TryBindUpperCamelCase;
+    let TableNameSnakeCase = naming::domain_types::TableNameSnakeCase;
+    let TableSnakeCase = naming::domain_types::TableSnakeCase;
+    let TrueSnakeCase = naming::domain_types::TrueSnakeCase;
+    let TryBindSnakeCase = naming::domain_types::TryBindSnakeCase;
+    let TryBindUpperCamelCase = naming::domain_types::TryBindUpperCamelCase;
     let U8 = token_patterns::U8;
     let U16 = token_patterns::U16;
     let U32 = token_patterns::U32;
     let U64 = token_patterns::U64;
-    let UmErrorVariantsSnakeCase = naming::UmErrorVariantsSnakeCase;
-    let UmLogicSnakeCase = naming::UmLogicSnakeCase;
-    let UoErrorVariantsSnakeCase = naming::UoErrorVariantsSnakeCase;
-    let UoLogicSnakeCase = naming::UoLogicSnakeCase;
-    let UpdateForQuerySnakeCase = naming::UpdateForQuerySnakeCase;
-    let UpdateForQueryUpperCamelCase = naming::UpdateForQueryUpperCamelCase;
-    let UpdateForQueryVecSnakeCase = naming::UpdateForQueryVecSnakeCase;
-    let UpdateQueryBindSnakeCase = naming::UpdateQueryBindSnakeCase;
-    let UpdateQueryPartPrimaryKeySnakeCase = naming::UpdateQueryPartPrimaryKeySnakeCase;
-    let UpdateQueryPartSnakeCase = naming::UpdateQueryPartSnakeCase;
-    let UpdateSnakeCase = naming::UpdateSnakeCase;
-    let UpdateUpperCamelCase = naming::UpdateUpperCamelCase;
-    let UrlSnakeCase = naming::UrlSnakeCase;
-    let VSnakeCase = naming::VSnakeCase;
-    let VUpperCamelCase = naming::VUpperCamelCase;
-    let WhereManySnakeCase = naming::WhereManySnakeCase;
-    let WhereUpperCamelCase = naming::WhereUpperCamelCase;
+    let UmErrorVariantsSnakeCase = naming::domain_types::UmErrorVariantsSnakeCase;
+    let UmLogicSnakeCase = naming::domain_types::UmLogicSnakeCase;
+    let UoErrorVariantsSnakeCase = naming::domain_types::UoErrorVariantsSnakeCase;
+    let UoLogicSnakeCase = naming::domain_types::UoLogicSnakeCase;
+    let UpdateForQuerySnakeCase = naming::domain_types::UpdateForQuerySnakeCase;
+    let UpdateForQueryUpperCamelCase = naming::domain_types::UpdateForQueryUpperCamelCase;
+    let UpdateForQueryVecSnakeCase = naming::domain_types::UpdateForQueryVecSnakeCase;
+    let UpdateQueryBindSnakeCase = naming::domain_types::UpdateQueryBindSnakeCase;
+    let UpdateQueryPartPrimaryKeySnakeCase =
+        naming::domain_types::UpdateQueryPartPrimaryKeySnakeCase;
+    let UpdateQueryPartSnakeCase = naming::domain_types::UpdateQueryPartSnakeCase;
+    let UpdateSnakeCase = naming::domain_types::UpdateSnakeCase;
+    let UpdateUpperCamelCase = naming::domain_types::UpdateUpperCamelCase;
+    let UrlSnakeCase = naming::domain_types::UrlSnakeCase;
+    let VSnakeCase = naming::domain_types::VSnakeCase;
+    let VUpperCamelCase = naming::domain_types::VUpperCamelCase;
+    let WhereManySnakeCase = naming::domain_types::WhereManySnakeCase;
+    let WhereUpperCamelCase = naming::domain_types::WhereUpperCamelCase;
     let identifier = &di.ident;
-    let identifier_snake_case_string = naming_common::ToTokensToSnakeCaseStr::case(&identifier);
+    let identifier_snake_case_string =
+        naming_common::domain_types::ToTokensToSnakeCaseStr::case(&identifier);
     let identifier_snake_case_double_quoted_token_stream =
-        generate_quotes::dq_token_stream(&identifier_snake_case_string);
-    let db_table_name_double_quoted_token_stream = generate_quotes::dq_token_stream(
+        generate_quotes::domain_types::dq_token_stream(&identifier_snake_case_string);
+    let db_table_name_double_quoted_token_stream = generate_quotes::domain_types::dq_token_stream(
         generate_pg_table_input_model
             .config
             .db_table_name
@@ -1714,7 +1725,7 @@ pub fn emit_generate_pg_table(
             let field = fields.get(*field_idx)?;
             let frontend = frontend_fields.get(*field_idx)?;
             let field_name = field.identifier.to_string();
-            let field_name_double_quoted_token_stream = generate_quotes::dq_token_stream(&field_name);
+            let field_name_double_quoted_token_stream = generate_quotes::domain_types::dq_token_stream(&field_name);
             let label = frontend.label.clone().unwrap_or_else(|| {
                 let mut value = String::with_capacity(field_name.len());
                 field_name
@@ -1732,7 +1743,7 @@ pub fn emit_generate_pg_table(
                     });
                 value
             });
-            let label_double_quoted_token_stream = generate_quotes::dq_token_stream(&label);
+            let label_double_quoted_token_stream = generate_quotes::domain_types::dq_token_stream(&label);
             let field_type = &field.type0;
             let primary_key_token_stream = if *field_idx == primary_key_field_idx.get() {
                 quote::quote! {frontend_contract::PrimaryKeyKind::Primary}
@@ -1782,7 +1793,7 @@ pub fn emit_generate_pg_table(
             let placeholder_token_stream = frontend.placeholder.as_ref().map_or_else(
                 || quote::quote! {frontend_contract::FieldPlaceholder::None},
                 |value| {
-                    let value_double_quoted_token_stream = generate_quotes::dq_token_stream(value);
+                    let value_double_quoted_token_stream = generate_quotes::domain_types::dq_token_stream(value);
                     quote::quote! {frontend_contract::FieldPlaceholder::Value(frontend_contract::ContractStr::from(#value_double_quoted_token_stream))}
                 },
             );
@@ -1864,7 +1875,7 @@ pub fn emit_generate_pg_table(
     }
     //todo must remove this and use trait type instead
     let primary_key_field_type_table_type_token_stream =
-        naming::parameter::SelfTableTypeUpperCamelCase::from_type_last_segment(
+        naming::domain_types::parameter::SelfTableTypeUpperCamelCase::from_type_last_segment(
             &primary_key_field.type0,
         );
     let generate_as_pg_type_token_stream = |ts: &dyn quote::ToTokens| {
@@ -1958,23 +1969,27 @@ pub fn emit_generate_pg_table(
         generate_as_pg_type_tokens_token_stream(&ts, &UpdateForQueryUpperCamelCase)
     };
     let identifier_read_ids_upper_camel_case =
-        naming::parameter::SelfReadIdsUpperCamelCase::from_tokens(&identifier);
+        naming::domain_types::parameter::SelfReadIdsUpperCamelCase::from_tokens(&identifier);
     let identifier_dm_parameters_upper_camel_case =
-        naming::parameter::SelfDmParametersUpperCamelCase::from_tokens(&identifier);
+        naming::domain_types::parameter::SelfDmParametersUpperCamelCase::from_tokens(&identifier);
     let identifier_dm_payload_upper_camel_case =
-        naming::parameter::SelfDmPayloadUpperCamelCase::from_tokens(&identifier);
+        naming::domain_types::parameter::SelfDmPayloadUpperCamelCase::from_tokens(&identifier);
     let identifier_dlo_parameters_upper_camel_case =
-        naming::parameter::SelfDloParametersUpperCamelCase::from_tokens(&identifier);
+        naming::domain_types::parameter::SelfDloParametersUpperCamelCase::from_tokens(&identifier);
     let identifier_dlo_payload_upper_camel_case =
-        naming::parameter::SelfDloPayloadUpperCamelCase::from_tokens(&identifier);
+        naming::domain_types::parameter::SelfDloPayloadUpperCamelCase::from_tokens(&identifier);
     let identifier_try_ro_error_upper_camel_case =
-        naming::parameter::SelfTryRoErrorUpperCamelCase::from_tokens(&identifier);
+        naming::domain_types::parameter::SelfTryRoErrorUpperCamelCase::from_tokens(&identifier);
     let identifier_ro_error_with_serde_upper_camel_case =
-        naming::parameter::SelfRoErrorWithSerdeUpperCamelCase::from_tokens(&identifier);
+        naming::domain_types::parameter::SelfRoErrorWithSerdeUpperCamelCase::from_tokens(
+            &identifier,
+        );
     let identifier_try_dlo_error_upper_camel_case =
-        naming::parameter::SelfTryDloErrorUpperCamelCase::from_tokens(&identifier);
+        naming::domain_types::parameter::SelfTryDloErrorUpperCamelCase::from_tokens(&identifier);
     let identifier_dlo_error_with_serde_upper_camel_case =
-        naming::parameter::SelfDloErrorWithSerdeUpperCamelCase::from_tokens(&identifier);
+        naming::domain_types::parameter::SelfDloErrorWithSerdeUpperCamelCase::from_tokens(
+            &identifier,
+        );
     let vec_primary_key_field_type_read_token_stream =
         pg_crud_macros_common::generate_vec_tokens_declaration_token_stream(
             &primary_key_field_type_as_pg_type_read_upper_camel_case,
@@ -1985,19 +2000,19 @@ pub fn emit_generate_pg_table(
         );
     let primary_key_field_identifier = &primary_key_field.identifier;
     let primary_key_field_upper_camel_case_token_stream =
-        naming_common::ToTokensToUpperCamelCaseTokenStream::case_or_panic(
+        naming_common::domain_types::ToTokensToUpperCamelCaseTokenStream::case_or_panic(
             &primary_key_field_identifier,
         );
     let primary_key_field_type_update_token_stream =
-        &naming::parameter::SelfUpdateUpperCamelCase::from_type_last_segment(
+        &naming::domain_types::parameter::SelfUpdateUpperCamelCase::from_type_last_segment(
             primary_key_field_type,
         );
     let primary_key_field_type_update_for_query_token_stream =
-        &naming::parameter::SelfUpdateForQueryUpperCamelCase::from_type_last_segment(
+        &naming::domain_types::parameter::SelfUpdateForQueryUpperCamelCase::from_type_last_segment(
             primary_key_field_type,
         );
     let identifier_select_upper_camel_case =
-        naming::parameter::SelfSelectUpperCamelCase::from_tokens(&identifier);
+        naming::domain_types::parameter::SelfSelectUpperCamelCase::from_tokens(&identifier);
     let generate_from_handle_token_stream =
         |identifier_token_stream: &dyn quote::ToTokens, ts: &dyn quote::ToTokens| {
             quote::quote! {
@@ -2150,7 +2165,7 @@ pub fn emit_generate_pg_table(
             .d_serde_serialize()
             .d_utoipa_to_schema();
     let identifier_prep_pg_error_upper_camel_case =
-        naming::parameter::SelfPrepPgErrorUpperCamelCase::from_tokens(&identifier);
+        naming::domain_types::parameter::SelfPrepPgErrorUpperCamelCase::from_tokens(&identifier);
     let prep_idempotency_upper_camel_case = quote::format_ident!("PrepIdempotency");
     let identifier_prep_pg_error_token_stream =
         pg_crud_macros_common::token_stream_helpers::error_enum_d_token_stream_builder()
@@ -2180,7 +2195,7 @@ pub fn emit_generate_pg_table(
                 },
             );
     impl_identifier_vec_token_stream.push({
-        let frontend_page_path_double_quoted_token_stream = generate_quotes::dq_token_stream(&format!("/{identifier_snake_case_string}"));
+        let frontend_page_path_double_quoted_token_stream = generate_quotes::domain_types::dq_token_stream(&format!("/{identifier_snake_case_string}"));
         let frontend_page_title = identifier_snake_case_string
             .split('_')
             .enumerate()
@@ -2195,7 +2210,7 @@ pub fn emit_generate_pg_table(
                 }
                 title
             });
-        let frontend_page_title_double_quoted_token_stream = generate_quotes::dq_token_stream(&frontend_page_title);
+        let frontend_page_title_double_quoted_token_stream = generate_quotes::domain_types::dq_token_stream(&frontend_page_title);
         let pub_fn_table_token_stream = quote::quote! {
             #MustUse
             pub const fn #TableNameSnakeCase() -> &'static str {
@@ -2213,7 +2228,7 @@ pub fn emit_generate_pg_table(
         };
         let frontend_filter_value_arms_token_stream = read_fields_iter().map(|field| {
             let field_name = field.identifier.to_string();
-            let field_name_double_quoted_token_stream = generate_quotes::dq_token_stream(&field_name);
+            let field_name_double_quoted_token_stream = generate_quotes::domain_types::dq_token_stream(&field_name);
             let field_type = &field.type0;
             quote::quote! {
                 #field_name_double_quoted_token_stream => Some(
@@ -2246,7 +2261,7 @@ pub fn emit_generate_pg_table(
             }
         };
         let fn_primary_key_token_stream = {
-            let primary_key_field_double_quoted_token_stream = generate_quotes::dq_token_stream(&primary_key_field_identifier);
+            let primary_key_field_double_quoted_token_stream = generate_quotes::domain_types::dq_token_stream(&primary_key_field_identifier);
             quote::quote! {
                 const fn #PrimaryKeySnakeCase() -> &'static str {
                     #primary_key_field_double_quoted_token_stream
@@ -2275,12 +2290,12 @@ pub fn emit_generate_pg_table(
                     accumulator
                 },
             );
-            let prep_pg_double_quoted_token_stream = generate_quotes::dq_token_stream(&format!(
+            let prep_pg_double_quoted_token_stream = generate_quotes::domain_types::dq_token_stream(&format!(
                 "create table if not exists {{table}} ({prep_pg_cols_fmt})"
             ));
             let generate_field_type_as_pg_crud_create_table_column_query_part_create_table_query_part_token_stream = |field_type, field, is_primary_key| {
                 let is_primary_key_token_stream: &dyn quote::ToTokens = if is_primary_key { &TrueSnakeCase } else { &FalseSnakeCase };
-                let field_double_quoted_token_stream = generate_quotes::dq_token_stream(&field);
+                let field_double_quoted_token_stream = generate_quotes::domain_types::dq_token_stream(&field);
                 let field_type_pg_type_token_stream = generate_as_pg_type_path_token_stream(&field_type);
                 quote::quote! {
                     #field_type_pg_type_token_stream #CreateTableColumnQueryPartSnakeCase(#import_token_stream SqlColumnRef::from(&#field_double_quoted_token_stream), #import_token_stream IsPrimaryKey::from(#is_primary_key_token_stream))
@@ -2309,7 +2324,7 @@ pub fn emit_generate_pg_table(
         };
         let prep_idempotency_token_stream = if generate_pg_table_input_model.config.idempotent_mutations {
             quote::quote! {
-                if let Err(error) = pg_table::ensure_pg_table_idempotency_schema(app_state::SqlxPgPoolRef::from(#PoolSnakeCase)).await {
+                if let Err(error) = pg_table::ensure_pg_table_idempotency_schema(app_state::domain_types::SqlxPgPoolRef::from(#PoolSnakeCase)).await {
                     return Err(#identifier_prep_pg_error_upper_camel_case::#prep_idempotency_upper_camel_case {
                         error,
                         location: location_macros::location!(),
@@ -2341,9 +2356,9 @@ pub fn emit_generate_pg_table(
         };
         let fn_generate_select_query_part_token_stream = {
             let vrts_token_stream = generate_read_fields_with_comma_token_stream(&|element: &macros_helpers::field_data::SynField| {
-                let field_upper_camel_case_token_stream = naming_common::ToTokensToUpperCamelCaseTokenStream::case_or_panic(&element.identifier);
+                let field_upper_camel_case_token_stream = naming_common::domain_types::ToTokensToUpperCamelCaseTokenStream::case_or_panic(&element.identifier);
                 let initialization_token_stream = {
-                    let field_string_double_quoted_token_stream = generate_quotes::dq_token_stream(&element.identifier);
+                    let field_string_double_quoted_token_stream = generate_quotes::domain_types::dq_token_stream(&element.identifier);
                     let as_pg_crud_pg_type_pg_type_token_stream = generate_as_pg_type_path_token_stream(&element.type0);
                     let ts0 = generate_match_ok_err_short_token_stream(
                         &quote::quote! {#as_pg_crud_pg_type_pg_type_token_stream #SelectQueryPartSnakeCase(
@@ -2443,7 +2458,7 @@ pub fn emit_generate_pg_table(
                     )
                     .into()
                 } else {
-                    let error_increment_snake_case = naming::parameter::ErrorSelfSnakeCase::from_display(&i);
+                    let error_increment_snake_case = naming::domain_types::parameter::ErrorSelfSnakeCase::from_display(&i);
                     quote::quote! {#field: #error_increment_snake_case}
                 }
             })
@@ -2510,7 +2525,7 @@ pub fn emit_generate_pg_table(
                         let mut segments = syn::punctuated::Punctuated::new();
                         segments.push(syn::PathSegment {
                             ident: syn::Ident::new(
-                                &naming_common::AsRefStrToSnakeCaseStr::case(v),
+                                &naming_common::domain_types::AsRefStrToSnakeCaseStr::case(v),
                                 proc_macro2::Span::call_site(),
                             ),
                             arguments: syn::PathArguments::None,
@@ -2637,7 +2652,7 @@ pub fn emit_generate_pg_table(
             )
         };
     let identifier_read_upper_camel_case =
-        naming::parameter::SelfReadUpperCamelCase::from_tokens(&identifier);
+        naming::domain_types::parameter::SelfReadUpperCamelCase::from_tokens(&identifier);
     let generate_v_declaration_ts0 = |ts: &dyn quote::ToTokens| {
         pg_crud_macros_common::generate_v_declaration_token_stream(&import, &ts)
     };
@@ -2677,7 +2692,7 @@ pub fn emit_generate_pg_table(
             }
         };
     let identifier_create_upper_camel_case =
-        naming::parameter::SelfCreateUpperCamelCase::from_tokens(&identifier);
+        naming::domain_types::parameter::SelfCreateUpperCamelCase::from_tokens(&identifier);
     let identifier_create_token_stream = {
         let identifier_create_token_stream =
             macros_helpers::derive_token_stream_builder::DTokenStreamBuilder::new()
@@ -2869,9 +2884,11 @@ pub fn emit_generate_pg_table(
                 )
         };
     let identifier_where_upper_camel_case =
-        naming::parameter::SelfWhereManyUpperCamelCase::from_tokens(&identifier);
+        naming::domain_types::parameter::SelfWhereManyUpperCamelCase::from_tokens(&identifier);
     let identifier_where_try_new_error_upper_camel_case =
-        naming::parameter::SelfWhereManyTryNewErrorUpperCamelCase::from_tokens(&identifier);
+        naming::domain_types::parameter::SelfWhereManyTryNewErrorUpperCamelCase::from_tokens(
+            &identifier,
+        );
     let identifier_where_token_stream = {
         let fields_schema_declaration_token_stream = generate_read_fields_with_comma_token_stream(
             &|element: &macros_helpers::field_data::SynField| -> proc_macro2::TokenStream {
@@ -2995,7 +3012,7 @@ pub fn emit_generate_pg_table(
         }
     };
     let optional_identifier_where_upper_camel_case =
-        naming::parameter::StdOptionalOptionalSelfWhereManyUpperCamelCase::from_tokens(&identifier);
+        naming::domain_types::parameter::StdOptionalOptionalSelfWhereManyUpperCamelCase::from_tokens(&identifier);
     let optional_identifier_where_token_stream = {
         let optional_identifier_where_token_stream = macros_helpers::derive_token_stream_builder::DTokenStreamBuilder::new()
             .make_pub()
@@ -3048,7 +3065,7 @@ pub fn emit_generate_pg_table(
                         &quote::quote! {&#VSnakeCase.#field},
                         &generate_match_ok_err_token_stream(
                             &{
-                                let field_double_quoted_token_stream = generate_quotes::dq_token_stream(&field);
+                                let field_double_quoted_token_stream = generate_quotes::domain_types::dq_token_stream(&field);
                                 quote::quote! {#import_token_stream PgTypeWhereFilter::query_part(
                                     v_da0f0616,
                                     increment,
@@ -3180,7 +3197,7 @@ pub fn emit_generate_pg_table(
             )
         };
     let try_from_sqlx_pg_pg_row_with_not_empty_unique_vec_identifier_select_snake_case =
-        naming::parameter::TryFromSqlxPgPgRowWithNotEmptyUniqueVecSelfSelectSnakeCase::from_display(
+        naming::domain_types::parameter::TryFromSqlxPgPgRowWithNotEmptyUniqueVecSelfSelectSnakeCase::from_display(
             &identifier,
         );
     let simple_syn_punct_sqlx_error =
@@ -3233,8 +3250,8 @@ pub fn emit_generate_pg_table(
                 &proc_macro2::TokenStream::new(),
                 &{
                     let variants = generate_read_fields_with_comma_token_stream(&|element: &macros_helpers::field_data::SynField| {
-                        let serde_identifier_token_stream = generate_quotes::dq_token_stream(&element.identifier);
-                        let field_upper_camel_case_token_stream = naming_common::ToTokensToUpperCamelCaseTokenStream::case_or_panic(&element.identifier);
+                        let serde_identifier_token_stream = generate_quotes::domain_types::dq_token_stream(&element.identifier);
+                        let field_upper_camel_case_token_stream = naming_common::domain_types::ToTokensToUpperCamelCaseTokenStream::case_or_panic(&element.identifier);
                         let element_syn_field_ty_as_pg_type_select_token_stream = generate_as_pg_type_select_token_stream(&element.type0);
                         let concrete_select_token_stream = generate_concrete_pg_type_role_token_stream(&element.type0, &SelectUpperCamelCase);
                         quote::quote! {
@@ -3269,7 +3286,7 @@ pub fn emit_generate_pg_table(
                 &{
                     let els_token_stream = generate_read_fields_with_comma_token_stream(
                         &|element: &macros_helpers::field_data::SynField| {
-                            let field_upper_camel_case_token_stream = naming_common::ToTokensToUpperCamelCaseTokenStream::case_or_panic(&element.identifier);
+                            let field_upper_camel_case_token_stream = naming_common::domain_types::ToTokensToUpperCamelCaseTokenStream::case_or_panic(&element.identifier);
                             quote::quote! {
                                 Self::#field_upper_camel_case_token_stream(#PgCrudCommonDefaultSomeOneElementCall)
                             }
@@ -3397,16 +3414,20 @@ pub fn emit_generate_pg_table(
                         generate_assign_token_stream(
                             &primary_key_field_upper_camel_case_token_stream,
                             &primary_key_field_type_as_pg_type_read_upper_camel_case,
-                            &generate_quotes::dq_token_stream(&primary_key_field_identifier),
+                            &generate_quotes::domain_types::dq_token_stream(
+                                &primary_key_field_identifier,
+                            ),
                             &primary_key_field_identifier,
                         ),
                         read_fields_without_primary_key_iter().map(|element| {
                             generate_assign_token_stream(
-                                &naming_common::ToTokensToUpperCamelCaseTokenStream::case_or_panic(
+                                &naming_common::domain_types::ToTokensToUpperCamelCaseTokenStream::case_or_panic(
                                     &element.identifier,
                                 ),
                                 &generate_as_pg_type_read_token_stream(&element.type0),
-                                &generate_quotes::dq_token_stream(&element.identifier),
+                                &generate_quotes::domain_types::dq_token_stream(
+                                    &element.identifier,
+                                ),
                                 &element.identifier,
                             )
                         }),
@@ -3509,7 +3530,7 @@ enum WrapIntoOptional {
                 let element_syn_field_ty_as_pg_type_read_ids_token_stream =
                     generate_as_pg_type_read_ids_token_stream(&primary_key_field_type);
                 let field_double_quoted_token_stream =
-                    generate_quotes::dq_token_stream(&primary_key_field_identifier);
+                    generate_quotes::domain_types::dq_token_stream(&primary_key_field_identifier);
                 let ts = generate_match_ok_err_short_token_stream(
                     &quote::quote! {sqlx::Row::try_get::<#element_syn_field_ty_as_pg_type_read_ids_token_stream, &str>(
                         #undescore_undrscr_row,
@@ -3530,7 +3551,7 @@ enum WrapIntoOptional {
                         let field = &element.identifier;
                         let field_type = &element.type0;
                         let field_double_quoted_token_stream =
-                            generate_quotes::dq_token_stream(&quote::quote! {#field});
+                            generate_quotes::domain_types::dq_token_stream(&quote::quote! {#field});
                         let element_syn_field_ty_as_pg_type_read_ids_token_stream =
                             generate_as_pg_type_read_ids_token_stream(&field_type);
                         quote::quote! {
@@ -3582,15 +3603,17 @@ enum WrapIntoOptional {
         };
     let pg_crud_order_by_token_stream = quote::quote! {#import_token_stream #OrderByUpperCamelCase};
     let identifier_update_upper_camel_case =
-        naming::parameter::SelfUpdateUpperCamelCase::from_tokens(&identifier);
+        naming::domain_types::parameter::SelfUpdateUpperCamelCase::from_tokens(&identifier);
     let identifier_um_parameters_upper_camel_case =
-        naming::parameter::SelfUmParametersUpperCamelCase::from_tokens(&identifier);
+        naming::domain_types::parameter::SelfUmParametersUpperCamelCase::from_tokens(&identifier);
     let identifier_um_payload_upper_camel_case =
-        naming::parameter::SelfUmPayloadUpperCamelCase::from_tokens(&identifier);
+        naming::domain_types::parameter::SelfUmPayloadUpperCamelCase::from_tokens(&identifier);
     let identifier_update_try_new_error_upper_camel_case =
-        naming::parameter::SelfUpdateTryNewErrorUpperCamelCase::from_tokens(&identifier);
+        naming::domain_types::parameter::SelfUpdateTryNewErrorUpperCamelCase::from_tokens(
+            &identifier,
+        );
     let identifier_update_for_query_upper_camel_case =
-        naming::parameter::SelfUpdateForQueryUpperCamelCase::from_tokens(&identifier);
+        naming::domain_types::parameter::SelfUpdateForQueryUpperCamelCase::from_tokens(&identifier);
     let path_v_token_stream = quote::quote! {pg_crud_common::#VUpperCamelCase};
     let identifier_update_token_stream = {
         let generate_optional_v_field_type_as_pg_type_update_token_stream: &dyn Fn(
@@ -3815,13 +3838,13 @@ enum WrapIntoOptional {
                     &|element: &macros_helpers::field_data::SynField| {
                         let field = &element.identifier;
                         let update_query_part_field_snake_case =
-                            naming::parameter::UpdateQueryPartSelfSnakeCase::from_tokens(&field);
+                            naming::domain_types::parameter::UpdateQueryPartSelfSnakeCase::from_tokens(&field);
                         let field_type_as_pg_crud_pg_type_pg_type_token_stream =
                             generate_as_pg_type_path_token_stream(&element.type0);
                         let ts = generate_match_ok_err_token_stream(
                             &{
                                 let field_double_quoted_token_stream =
-                                    generate_quotes::dq_token_stream(&field);
+                                    generate_quotes::domain_types::dq_token_stream(&field);
                                 quote::quote! {#field_type_as_pg_crud_pg_type_pg_type_token_stream #UpdateQueryPartSnakeCase(
                                     &#VSnakeCase.#VSnakeCase,
                                     #import_token_stream SqlColumnRef::from(&#field_double_quoted_token_stream),
@@ -3848,7 +3871,9 @@ enum WrapIntoOptional {
             let select_only_updated_ids_query_part_token_stream = {
                 let primary_key_token_stream = {
                     let primary_key_field_double_quoted_token_stream =
-                        generate_quotes::dq_token_stream(&primary_key_field_identifier);
+                        generate_quotes::domain_types::dq_token_stream(
+                            &primary_key_field_identifier,
+                        );
                     let ts = generate_match_ok_err_short_token_stream(
                         &quote::quote! {#primary_key_as_pg_type_token_stream::#SelectOnlyUpdatedIdsQueryPartSnakeCase(
                             &self.#primary_key_field_identifier,
@@ -3867,7 +3892,7 @@ enum WrapIntoOptional {
                     generate_if_let_some_token_stream(&quote::quote! {v_90f79b11}, &quote::quote! {&self.#field}, &{
                         let ts = generate_match_ok_err_short_token_stream(
                             &{
-                                let field_double_quoted_token_stream = generate_quotes::dq_token_stream(&field);
+                                let field_double_quoted_token_stream = generate_quotes::domain_types::dq_token_stream(&field);
                                 let field_type_as_pg_crud_pg_type_pg_type_token_stream =
                                     generate_as_pg_type_path_token_stream(&element.type0);
                                 quote::quote! {#field_type_as_pg_crud_pg_type_pg_type_token_stream #SelectOnlyUpdatedIdsQueryPartSnakeCase(
@@ -4313,19 +4338,20 @@ enum WrapIntoOptional {
                         &pg_syn_variant,
                         std::panic::Location::caller(),
                     );
-                let release_token_stream =
-                    if generate_pg_table_input_model.config.idempotent_mutations
-                        && operation.supports_idempotency()
-                    {
-                        quote::quote! {
-                            let _release_result = pg_table::release_pg_table_idempotency(
-                                app_state::SqlxPgPoolRef::from(idempotency_pool_193acb3c.as_ref()),
-                                &idempotency_request_0a0ae019,
-                            ).await;
-                        }
-                    } else {
-                        proc_macro2::TokenStream::new()
-                    };
+                let release_token_stream = if generate_pg_table_input_model
+                    .config
+                    .idempotent_mutations
+                    && operation.supports_idempotency()
+                {
+                    quote::quote! {
+                        let _release_result = pg_table::release_pg_table_idempotency(
+                            app_state::domain_types::SqlxPgPoolRef::from(idempotency_pool_193acb3c.as_ref()),
+                            &idempotency_request_0a0ae019,
+                        ).await;
+                    }
+                } else {
+                    proc_macro2::TokenStream::new()
+                };
                 quote::quote! {
                     if let Err(#Error0) = #ExecutorSnakeCase.#CommitSnakeCase().await {
                         #release_token_stream
@@ -4349,7 +4375,7 @@ enum WrapIntoOptional {
                         Ok(value) => value,
                         Err(_error) => {
                             let _rollback_result = #ExecutorSnakeCase.#RollbackSnakeCase().await;
-                            let _release_result = pg_table::release_pg_table_idempotency(app_state::SqlxPgPoolRef::from(idempotency_pool_193acb3c.as_ref()), &idempotency_request_0a0ae019).await;
+                            let _release_result = pg_table::release_pg_table_idempotency(app_state::domain_types::SqlxPgPoolRef::from(idempotency_pool_193acb3c.as_ref()), &idempotency_request_0a0ae019).await;
                             return axum::response::IntoResponse::into_response(http::StatusCode::INTERNAL_SERVER_ERROR);
                         }
                     };
@@ -4359,7 +4385,7 @@ enum WrapIntoOptional {
                         Ok(value) => value,
                         Err(_error) => {
                             let _rollback_result = #ExecutorSnakeCase.#RollbackSnakeCase().await;
-                            let _release_result = pg_table::release_pg_table_idempotency(app_state::SqlxPgPoolRef::from(idempotency_pool_193acb3c.as_ref()), &idempotency_request_0a0ae019).await;
+                            let _release_result = pg_table::release_pg_table_idempotency(app_state::domain_types::SqlxPgPoolRef::from(idempotency_pool_193acb3c.as_ref()), &idempotency_request_0a0ae019).await;
                             return axum::response::IntoResponse::into_response(http::StatusCode::TOO_MANY_REQUESTS);
                         }
                     };
@@ -4371,7 +4397,7 @@ enum WrapIntoOptional {
                         pg_table::PgTableIdempotencyBodyRef::from(response_body_649297c9.as_slice()),
                     ).await.is_err() {
                         let _rollback_result = #ExecutorSnakeCase.#RollbackSnakeCase().await;
-                        let _release_result = pg_table::release_pg_table_idempotency(app_state::SqlxPgPoolRef::from(idempotency_pool_193acb3c.as_ref()), &idempotency_request_0a0ae019).await;
+                        let _release_result = pg_table::release_pg_table_idempotency(app_state::domain_types::SqlxPgPoolRef::from(idempotency_pool_193acb3c.as_ref()), &idempotency_request_0a0ae019).await;
                         return axum::response::IntoResponse::into_response(http::StatusCode::INTERNAL_SERVER_ERROR);
                     }
                 }
@@ -4485,8 +4511,8 @@ enum WrapIntoOptional {
             let field = field_ref.get();
             let ty = ty_ref.get();
             let string_token_stream = token_patterns::StringTokenStream;
-            let with_serde_upper_camel_case = naming::WithSerdeUpperCamelCase;
-            let hash_map_upper_camel_case = naming::HashMapUpperCamelCase;
+            let with_serde_upper_camel_case = naming::domain_types::WithSerdeUpperCamelCase;
+            let hash_map_upper_camel_case = naming::domain_types::HashMapUpperCamelCase;
             let ts = if *field == *LocationSnakeCase.to_string() {
                 quote::quote! {#LocationSnakeCase: location_lib::location::Location}
             } else {
@@ -4711,32 +4737,33 @@ enum WrapIntoOptional {
                 Operation::Cm | Operation::Um => &vec_identifier_read_ids_token_stream,
             }
         };
-    let primary_key_field_type_origin_token_stream = if let syn::Type::Path(type_path) =
-        &**primary_key_field_type
-    {
-        let Some(source_last_segment) = type_path.path.segments.last() else {
-            return compile_error_token_stream(CompileErrorMessage::from(
-                constants_str::COMPILE_ERROR_CE_016,
-            ));
-        };
-        let origin_identifier = quote::format_ident!(
-            "{}",
-            naming::parameter::SelfOriginUpperCamelCase::from_tokens(&source_last_segment.ident)
+    let primary_key_field_type_origin_token_stream =
+        if let syn::Type::Path(type_path) = &**primary_key_field_type {
+            let Some(source_last_segment) = type_path.path.segments.last() else {
+                return compile_error_token_stream(CompileErrorMessage::from(
+                    constants_str::COMPILE_ERROR_CE_016,
+                ));
+            };
+            let origin_identifier = quote::format_ident!(
+                "{}",
+                naming::domain_types::parameter::SelfOriginUpperCamelCase::from_tokens(
+                    &source_last_segment.ident
+                )
                 .to_string()
-        );
-        let mut origin_type_path = type_path.clone();
-        let Some(last_segment) = origin_type_path.path.segments.last_mut() else {
+            );
+            let mut origin_type_path = type_path.clone();
+            let Some(last_segment) = origin_type_path.path.segments.last_mut() else {
+                return compile_error_token_stream(CompileErrorMessage::from(
+                    constants_str::COMPILE_ERROR_CE_052,
+                ));
+            };
+            last_segment.ident = origin_identifier;
+            quote::quote! {#origin_type_path}
+        } else {
             return compile_error_token_stream(CompileErrorMessage::from(
-                constants_str::COMPILE_ERROR_CE_052,
+                constants_str::COMPILE_ERROR_CE_009,
             ));
         };
-        last_segment.ident = origin_identifier;
-        quote::quote! {#origin_type_path}
-    } else {
-        return compile_error_token_stream(CompileErrorMessage::from(
-            constants_str::COMPILE_ERROR_CE_009,
-        ));
-    };
     fields.iter().fold((), |(), field| {
         let roles: [&dyn quote::ToTokens; 6] = [
             &CreateUpperCamelCase,
@@ -4779,7 +4806,7 @@ enum WrapIntoOptional {
         quote::quote! {location_lib::location::LocationFile},
         quote::quote! {location_lib::location::LocationLine},
         quote::quote! {location_lib::location::Occr},
-        quote::quote! {location_lib::location::StdLocationDuration},
+        quote::quote! {location_lib::location::LocationDuration},
         quote::quote! {pg_crud_common::Order},
         quote::quote! {pg_crud_common::Operator},
         quote::quote! {pg_crud_common::PgCrudStringWrapperTryFromStringError},
@@ -4823,8 +4850,8 @@ enum WrapIntoOptional {
         let open_api_path = format!("/{identifier_snake_case_string}/{operation_snake_case_string}");
         let open_api_operation_id =
             format!("{identifier_snake_case_string}_{operation_snake_case_string}");
-        let open_api_path_double_quoted_token_stream = generate_quotes::dq_token_stream(&open_api_path);
-        let open_api_tag_double_quoted_token_stream = generate_quotes::dq_token_stream(&identifier_snake_case_string);
+        let open_api_path_double_quoted_token_stream = generate_quotes::domain_types::dq_token_stream(&open_api_path);
+        let open_api_tag_double_quoted_token_stream = generate_quotes::domain_types::dq_token_stream(&identifier_snake_case_string);
         let open_api_http_method_token_stream = match crate::openapi::http_method(operation_dsc) {
             OperationHttpMethod::Post => quote::quote! {utoipa::openapi::path::HttpMethod::Post},
             OperationHttpMethod::Patch => {
@@ -5061,7 +5088,7 @@ enum WrapIntoOptional {
             open_api_schema_types_token_stream.push(open_api_response_type_token_stream);
         }
         let application_json_double_quoted_token_stream =
-            generate_quotes::dq_token_stream(&constants_str::APPLICATION_JSON);
+            generate_quotes::domain_types::dq_token_stream(&constants_str::APPLICATION_JSON);
         let open_api_path_fn_token_stream = quote::quote! {
             #[allow(non_camel_case_types)]
             pub struct #open_api_path_type_identifier;
@@ -5201,7 +5228,7 @@ enum WrapIntoOptional {
             ) = {
                 let generate_token_stream = |
                     v: &dyn std::fmt::Display
-                | generate_quotes::dq_token_stream(&format!("/{v}"));
+                | generate_quotes::domain_types::dq_token_stream(&format!("/{v}"));
                 (
                     generate_token_stream(&operation.self_snake_case_str()),
                     generate_token_stream(&operation_payload_example_snake_case)
@@ -5287,7 +5314,7 @@ enum WrapIntoOptional {
                     }
                 };
                 let url_token_stream = {
-                    let format_token_stream = generate_quotes::dq_token_stream(&format!(
+                    let format_token_stream = generate_quotes::domain_types::dq_token_stream(&format!(
                         "{{endpoint_location}}/{{table}}/{}",
                         operation.self_snake_case_str()
                     ));
@@ -5295,14 +5322,14 @@ enum WrapIntoOptional {
                 };
                 let future_token_stream = {
                     let operation_http_method_snake_case_token_stream =
-                        naming_common::AsRefStrToSnakeCaseTokenStream::case_or_panic(&crate::client::http_method(operation_dsc));
+                        naming_common::domain_types::AsRefStrToSnakeCaseTokenStream::case_or_panic(&crate::client::http_method(operation_dsc));
                     let commit_header_addition_token_stream = quote::quote! {
                         .header(
                             &"commit".to_owned(),
-                            git_info::project_git_info().commit().as_ref(),
+                            git_info::domain_types::project_git_info().commit().as_ref(),
                         )
                     };
-                    let app_json_double_quoted_token_stream = generate_quotes::dq_token_stream(&constants_str::APPLICATION_JSON);
+                    let app_json_double_quoted_token_stream = generate_quotes::domain_types::dq_token_stream(&constants_str::APPLICATION_JSON);
                     let content_type_app_json_header_addition_token_stream = quote::quote! {
                         .header(reqwest::header::CONTENT_TYPE, #app_json_double_quoted_token_stream)
                     };
@@ -5559,8 +5586,8 @@ enum WrapIntoOptional {
                 };
                 let idempotency_begin_token_stream = if idempotency_enabled {
                     quote::quote! {
-                        let idempotency_pool_193acb3c = app_state::GetSqlxPgPool::get_sqlx_pg_pool(#AppStateSnakeCase.as_ref());
-                        match pg_table::begin_pg_table_idempotency(app_state::SqlxPgPoolRef::from(idempotency_pool_193acb3c.as_ref()), &idempotency_request_0a0ae019).await {
+                        let idempotency_pool_193acb3c = app_state::domain_types::GetSqlxPgPool::get_sqlx_pg_pool(#AppStateSnakeCase.as_ref());
+                        match pg_table::begin_pg_table_idempotency(app_state::domain_types::SqlxPgPoolRef::from(idempotency_pool_193acb3c.as_ref()), &idempotency_request_0a0ae019).await {
                             Ok(pg_table::PgTableIdempotencyBegin::Acquired) => {}
                             Ok(pg_table::PgTableIdempotencyBegin::Conflict) => return axum::response::IntoResponse::into_response(http::StatusCode::CONFLICT),
                             Ok(pg_table::PgTableIdempotencyBegin::InProgress) => return axum::response::IntoResponse::into_response(http::StatusCode::TOO_EARLY),
@@ -5659,7 +5686,7 @@ enum WrapIntoOptional {
                         }
                     };
                     let increment_initialization_token_stream = quote::quote! {let mut #IncrementSnakeCase: u64 = 0;};
-                    let column_names_double_quoted_token_stream = generate_quotes::dq_token_stream(&{
+                    let column_names_double_quoted_token_stream = generate_quotes::domain_types::dq_token_stream(&{
                         let mut accumulator = fields.iter().fold(
                             String::with_capacity(fields.len().saturating_mul(32)),
                             |mut acc0, element| {
@@ -5681,7 +5708,7 @@ enum WrapIntoOptional {
                     let select_only_ids_query_part_token_stream = {
                         let select_only_ids_query_part_initialization_token_stream = fields.iter().map(|element: &macros_helpers::field_data::SynField| generate_match_ok_err_query_part_token_stream(
                             &{
-                                let field_double_quoted_token_stream = generate_quotes::dq_token_stream(&element.identifier);
+                                let field_double_quoted_token_stream = generate_quotes::domain_types::dq_token_stream(&element.identifier);
                                 let field_type_as_pg_crud_pg_type_pg_type_token_stream = generate_as_pg_type_path_token_stream(&element.type0);
                                 quote::quote! {#field_type_as_pg_crud_pg_type_pg_type_token_stream #SelectOnlyIdsQueryPartSnakeCase(#import_token_stream SqlColumnRef::from(&#field_double_quoted_token_stream))}
                             },
@@ -5757,12 +5784,12 @@ enum WrapIntoOptional {
                                 &RmOrDm::Rm,
                             );
                             let extra_parameters_order_by_handle_token_stream =
-                                generate_quotes::dq_token_stream(&format!("{{}}{OrderSnakeCase} {BySnakeCase} {{}} {{}}"));
-                            let primary_key_field_double_quoted_token_stream = generate_quotes::dq_token_stream(&primary_key_field_identifier);
+                                generate_quotes::domain_types::dq_token_stream(&format!("{{}}{OrderSnakeCase} {BySnakeCase} {{}} {{}}"));
+                            let primary_key_field_double_quoted_token_stream = generate_quotes::domain_types::dq_token_stream(&primary_key_field_identifier);
                             let order_by_column_match_token_stream =
                                 generate_read_fields_with_comma_token_stream(&|element: &macros_helpers::field_data::SynField| {
-                                    let field_upper_camel_case = naming_common::ToTokensToUpperCamelCaseTokenStream::case_or_panic(&element.identifier);
-                                    let field_double_quoted_token_stream = generate_quotes::dq_token_stream(&element.identifier);
+                                    let field_upper_camel_case = naming_common::domain_types::ToTokensToUpperCamelCaseTokenStream::case_or_panic(&element.identifier);
+                                    let field_double_quoted_token_stream = generate_quotes::domain_types::dq_token_stream(&element.identifier);
                                     quote::quote! {
                                         #identifier_select_upper_camel_case::#field_upper_camel_case(_) => #field_double_quoted_token_stream
                                     }
@@ -5859,9 +5886,9 @@ enum WrapIntoOptional {
                                 &quote::quote! {accumulator_b86a253a},
                                 &generate_fields_named_without_primary_key_without_comma_token_stream(&|element: &macros_helpers::field_data::SynField| {
                                     let field = &element.identifier;
-                                    let field_double_quoted_token_stream = generate_quotes::dq_token_stream(&field);
-                                    let is_field_update_exists_snake_case = naming::parameter::IsSelfUpdateExistSnakeCase::from_tokens(&field);
-                                    let update_query_part_field_snake_case = naming::parameter::UpdateQueryPartSelfSnakeCase::from_tokens(&field);
+                                    let field_double_quoted_token_stream = generate_quotes::domain_types::dq_token_stream(&field);
+                                    let is_field_update_exists_snake_case = naming::domain_types::parameter::IsSelfUpdateExistSnakeCase::from_tokens(&field);
+                                    let update_query_part_field_snake_case = naming::domain_types::parameter::UpdateQueryPartSelfSnakeCase::from_tokens(&field);
                                     let for_element_update_field_exists_token_stream = generate_for_element_in_update_for_query_vec_token_stream(&quote::quote! {
                                         if element_a72f3eac.#field.is_some() {
                                             #is_field_update_exists_snake_case = true;
@@ -5962,15 +5989,15 @@ enum WrapIntoOptional {
                             let extra_parameters_modification_token_stream = generate_fields_named_without_primary_key_without_comma_token_stream(
                                 &|element: &macros_helpers::field_data::SynField| {
                                     let field = &element.identifier;
-                                    let field_double_quoted_token_stream = generate_quotes::dq_token_stream(&field);
+                                    let field_double_quoted_token_stream = generate_quotes::domain_types::dq_token_stream(&field);
                                     if optimistic_revision_field_identifier.as_ref() == Some(field) {
                                         return quote::quote! {
                                             accumulator_683e37b8.push_str(concat!(#field_double_quoted_token_stream, " = ", #field_double_quoted_token_stream, " + 1,"));
                                         };
                                     }
                                     let generate_column_queals_v_comma_uo_query_part_snake_case =
-                                        naming::GenerateColumnQuealsVCommaUoQueryPartSnakeCase;
-                                    let update_query_part_field_snake_case = naming::parameter::UpdateQueryPartSelfSnakeCase::from_tokens(&field);
+                                        naming::domain_types::GenerateColumnQuealsVCommaUoQueryPartSnakeCase;
+                                    let update_query_part_field_snake_case = naming::domain_types::parameter::UpdateQueryPartSelfSnakeCase::from_tokens(&field);
                                     generate_if_let_some_token_stream(
                                         &quote::quote! {v_2d144436},
                                         &quote::quote! {&#UpdateForQuerySnakeCase.#field},
@@ -6005,7 +6032,7 @@ enum WrapIntoOptional {
                                     || quote::quote! {query_297f2e40},
                                     |revision_identifier| {
                                         let revision_identifier_double_quoted_token_stream =
-                                            generate_quotes::dq_token_stream(revision_identifier);
+                                            generate_quotes::domain_types::dq_token_stream(revision_identifier);
                                         quote::quote! {
                                             let optimistic_revision_query_part_f64c18e5 = format!("${}", #IncrementSnakeCase.saturating_add(1u64));
                                             pg_table::add_uo_optimistic_revision_predicate(
@@ -6371,7 +6398,7 @@ enum WrapIntoOptional {
                                 let release_token_stream = if idempotency_enabled {
                                     quote::quote! {
                                         let _release_result = pg_table::release_pg_table_idempotency(
-                                            app_state::SqlxPgPoolRef::from(idempotency_pool_193acb3c.as_ref()),
+                                            app_state::domain_types::SqlxPgPoolRef::from(idempotency_pool_193acb3c.as_ref()),
                                             &idempotency_request_0a0ae019,
                                         ).await;
                                     }
@@ -6633,7 +6660,7 @@ enum WrapIntoOptional {
                         &{
                             let pub_handle_primary_key_field_primary_key_inner_type_handle_token_stream =
                                 generate_pub_handle_primary_key_field_primary_key_inner_type_handle_token_stream(
-                                    &naming::parameter::SelfReadUpperCamelCase::from_type_last_segment(primary_key_field_type),
+                                    &naming::domain_types::parameter::SelfReadUpperCamelCase::from_type_last_segment(primary_key_field_type),
                                 );
                             quote::quote! {{
                                 #pub_handle_primary_key_field_primary_key_inner_type_handle_token_stream,
@@ -6757,7 +6784,7 @@ enum WrapIntoOptional {
                     Operation::Dlo => generate_parameters_payload_and_default_token_stream(
                         &{
                             let ts = generate_pub_handle_primary_key_field_primary_key_inner_type_handle_token_stream(
-                                &naming::parameter::SelfReadUpperCamelCase::from_type_last_segment(primary_key_field_type),
+                                &naming::domain_types::parameter::SelfReadUpperCamelCase::from_type_last_segment(primary_key_field_type),
                             );
                             quote::quote! {{#ts}}
                         },
@@ -7305,7 +7332,7 @@ enum WrapIntoOptional {
             fields
             .iter()
             .map(|field| {
-                let table_type_type_token_stream = generate_as_pg_type_tokens_token_stream(&field.type0, &naming::TableTypeUpperCamelCase);
+                let table_type_type_token_stream = generate_as_pg_type_tokens_token_stream(&field.type0, &naming::domain_types::TableTypeUpperCamelCase);
                 quote::quote! {<where_filters::#filter_upper_camel_case<#table_type_type_token_stream> as utoipa::PartialSchema>::schema()}
             })
             .collect::<Vec<_>>()
@@ -7316,7 +7343,7 @@ enum WrapIntoOptional {
             .iter()
             .map(|field| {
                 let table_type_type_token_stream =
-                    generate_concrete_standard_non_null_pg_type_role_token_stream(&field.type0, &naming::TableTypeUpperCamelCase);
+                    generate_concrete_standard_non_null_pg_type_role_token_stream(&field.type0, &naming::domain_types::TableTypeUpperCamelCase);
                 quote::quote! {<where_filters::#filter_upper_camel_case<#table_type_type_token_stream> as utoipa::PartialSchema>::schema()}
             })
             .collect::<Vec<_>>()
@@ -7336,16 +7363,16 @@ enum WrapIntoOptional {
     let before_filter_schema_items_token_stream =
         generate_filter_schema_items_token_stream(&quote::format_ident!("PgTypeWhereBefore"));
     let range_filter_schemas = [
-        naming::FindRangesWithinGivenRangeUpperCamelCase.to_string(),
-        naming::FindRangesThatFullyContainTheGivenRangeUpperCamelCase.to_string(),
-        naming::StrictlyToLeftOfRangeUpperCamelCase.to_string(),
-        naming::StrictlyToRightOfRangeUpperCamelCase.to_string(),
-        naming::IncludedLowerBoundUpperCamelCase.to_string(),
-        naming::ExcludedUpperBoundUpperCamelCase.to_string(),
-        naming::GreaterThanIncludedLowerBoundUpperCamelCase.to_string(),
-        naming::GreaterThanExcludedUpperBoundUpperCamelCase.to_string(),
-        naming::OverlapWithRangeUpperCamelCase.to_string(),
-        naming::AdjacentWithRangeUpperCamelCase.to_string(),
+        naming::domain_types::FindRangesWithinGivenRangeUpperCamelCase.to_string(),
+        naming::domain_types::FindRangesThatFullyContainTheGivenRangeUpperCamelCase.to_string(),
+        naming::domain_types::StrictlyToLeftOfRangeUpperCamelCase.to_string(),
+        naming::domain_types::StrictlyToRightOfRangeUpperCamelCase.to_string(),
+        naming::domain_types::IncludedLowerBoundUpperCamelCase.to_string(),
+        naming::domain_types::ExcludedUpperBoundUpperCamelCase.to_string(),
+        naming::domain_types::GreaterThanIncludedLowerBoundUpperCamelCase.to_string(),
+        naming::domain_types::GreaterThanExcludedUpperBoundUpperCamelCase.to_string(),
+        naming::domain_types::OverlapWithRangeUpperCamelCase.to_string(),
+        naming::domain_types::AdjacentWithRangeUpperCamelCase.to_string(),
     ]
     .into_iter()
     .map(|name| {
@@ -7363,15 +7390,15 @@ enum WrapIntoOptional {
     let range_filter_schema_names = range_filter_schemas.iter().map(|(name, _items)| name);
     let range_filter_schema_values = range_filter_schemas.iter().map(|(_name, schema)| schema);
     let static_filter_schemas = [
-        naming::RegexUpperCamelCase.to_string(),
-        naming::CurrentDateUpperCamelCase.to_string(),
-        naming::GreaterThanCurrentDateUpperCamelCase.to_string(),
-        naming::CurrentTimestampUpperCamelCase.to_string(),
-        naming::GreaterThanCurrentTimestampUpperCamelCase.to_string(),
-        naming::CurrentTimeUpperCamelCase.to_string(),
-        naming::GreaterThanCurrentTimeUpperCamelCase.to_string(),
-        naming::EqToEncodedStringRepresentationUpperCamelCase.to_string(),
-        naming::RangeLenUpperCamelCase.to_string(),
+        naming::domain_types::RegexUpperCamelCase.to_string(),
+        naming::domain_types::CurrentDateUpperCamelCase.to_string(),
+        naming::domain_types::GreaterThanCurrentDateUpperCamelCase.to_string(),
+        naming::domain_types::CurrentTimestampUpperCamelCase.to_string(),
+        naming::domain_types::GreaterThanCurrentTimestampUpperCamelCase.to_string(),
+        naming::domain_types::CurrentTimeUpperCamelCase.to_string(),
+        naming::domain_types::GreaterThanCurrentTimeUpperCamelCase.to_string(),
+        naming::domain_types::EqToEncodedStringRepresentationUpperCamelCase.to_string(),
+        naming::domain_types::RangeLenUpperCamelCase.to_string(),
     ]
     .into_iter()
     .map(|name| {
@@ -7384,7 +7411,7 @@ enum WrapIntoOptional {
     let static_filter_schema_names = static_filter_schemas.iter().map(|(name, _schema)| name);
     let static_filter_schema_values = static_filter_schemas.iter().map(|(_name, schema)| schema);
     let in_value_schema_items_token_stream = fields.iter().map(|field| {
-        let table_type_type_token_stream = generate_as_pg_type_tokens_token_stream(&field.type0, &naming::TableTypeUpperCamelCase);
+        let table_type_type_token_stream = generate_as_pg_type_tokens_token_stream(&field.type0, &naming::domain_types::TableTypeUpperCamelCase);
         quote::quote! {<where_filters::PgTypeNotEmptyUniqueVec<#table_type_type_token_stream> as utoipa::PartialSchema>::schema()}
     }).collect::<Vec<_>>();
     let in_value_schema_names_token_stream = fields
@@ -7392,7 +7419,7 @@ enum WrapIntoOptional {
         .map(|field| {
             let table_type_type_token_stream = generate_as_pg_type_tokens_token_stream(
                 &field.type0,
-                &naming::TableTypeUpperCamelCase,
+                &naming::domain_types::TableTypeUpperCamelCase,
             );
             quote::quote! {
                 format!(
@@ -7908,9 +7935,9 @@ enum WrapIntoOptional {
             )
         };
         let identifier_tests_snake_case =
-            naming::parameter::SelfTestsSnakeCase::from_display(&identifier);
-        let identifier_double_quoted_token_stream = generate_quotes::dq_token_stream(
-            &naming_common::DisplayToSnakeCaseStr::case(&identifier),
+            naming::domain_types::parameter::SelfTestsSnakeCase::from_display(&identifier);
+        let identifier_double_quoted_token_stream = generate_quotes::domain_types::dq_token_stream(
+            &naming_common::domain_types::DisplayToSnakeCaseStr::case(&identifier),
         );
         let identifier_cm_parameters_upper_camel_case =
             generate_identifier_operation_parameters_upper_camel_case(&Operation::Cm);
@@ -7928,7 +7955,7 @@ enum WrapIntoOptional {
             generate_identifier_operation_payload_upper_camel_case(&Operation::Ro);
         let identifier_uo_parameters_upper_camel_case =
             generate_identifier_operation_parameters_upper_camel_case(&Operation::Uo);
-        let config_path_token_stream = quote::quote! {server_config::Config};
+        let config_path_token_stream = quote::quote! {server_config::domain_types::Config};
         let undrscr_unused_token_stream = quote::quote! {_unused};
         //todo maybe remove it?\
         let generate_some_pg_type_where_try_new_token_stream =
@@ -7976,7 +8003,7 @@ enum WrapIntoOptional {
                     let field = &element.identifier;
                     let field_type = &element.type0;
                     let field_upper_camel_case =
-                        naming_common::ToTokensToUpperCamelCaseTokenStream::case_or_panic(&field);
+                        naming_common::domain_types::ToTokensToUpperCamelCaseTokenStream::case_or_panic(&field);
                     quote::quote! {
                         #identifier_select_upper_camel_case::#field_upper_camel_case(
                             <<#field_type as #import_token_stream PgType>::Select as #import_token_stream #DefaultSomeOneElementMaxPageSizeUpperCamelCase>::#DefaultSomeOneElementMaxPageSizeSnakeCase()
@@ -8199,7 +8226,7 @@ enum WrapIntoOptional {
                     &|element: &macros_helpers::field_data::SynField| {
                         let field = &element.identifier;
                         let initialization_variable_name_token_stream = generate_initialization_variable_name_token_stream(field);
-                        let format_token_stream = generate_quotes::dq_token_stream(&format!("{el0}_{field}"));
+                        let format_token_stream = generate_quotes::domain_types::dq_token_stream(&format!("{el0}_{field}"));
                         quote::quote! {
                             let #initialization_variable_name_token_stream = add_table_postfix(#format_token_stream);
                         }
@@ -8236,7 +8263,7 @@ enum WrapIntoOptional {
                 &|element: &macros_helpers::field_data::SynField| {
                     let field = &element.identifier;
                     let field_read_ids_to_2_dimensions_vec_read_inner_accumulator_snake_case =
-                        naming::parameter::SelfReadIdsTo2DimensionsVecReadInnerAccumulatorSnakeCase::from_tokens(&field);
+                        naming::domain_types::parameter::SelfReadIdsTo2DimensionsVecReadInnerAccumulatorSnakeCase::from_tokens(&field);
                     let identifier_create_dflts_for_column_read_ids_to_2_dimensions_vec_read_inner_token_stream =
                         generate_fields_named_without_primary_key_without_comma_token_stream(
                             &|el0: &macros_helpers::field_data::SynField| {
@@ -9190,8 +9217,10 @@ enum WrapIntoOptional {
                         let ts0 = generate_v_initialization_ts0(&{
                             let ts1 =
                                 generate_as_pg_type_test_cases_path_token_stream(&syn_field.type0);
-                            let expect_0 = generate_quotes::dq_token_stream(&expect_uuid_0);
-                            let expect_1 = generate_quotes::dq_token_stream(&expect_uuid_1);
+                            let expect_0 =
+                                generate_quotes::domain_types::dq_token_stream(&expect_uuid_0);
+                            let expect_1 =
+                                generate_quotes::domain_types::dq_token_stream(&expect_uuid_1);
                             quote::quote! {
                                 #ts1 previous_read_and_optional_update_into_read(
                                     #ts1 read_ids_to_optional_v_read_default_some_one_element(
@@ -9246,7 +9275,7 @@ enum WrapIntoOptional {
                                 proc_macro2::TokenStream::new()
                             };
                         let field_read_ids_to_2_dimensions_vec_read_inner_accumulator_snake_case =
-                        naming::parameter::SelfReadIdsTo2DimensionsVecReadInnerAccumulatorSnakeCase::from_tokens(&field);
+                        naming::domain_types::parameter::SelfReadIdsTo2DimensionsVecReadInnerAccumulatorSnakeCase::from_tokens(&field);
                         let identifier_read_ids_upper_fields_initialization_without_primary_key_token_stream =
                         generate_read_ids_upper_fields_initialization_without_primary_key_token_stream(field);
                         let identifier_update_parameters_initialization_without_primary_key_token_stream = generate_update_parameters_initialization_without_primary_key_token_stream(field);
@@ -9370,7 +9399,7 @@ enum WrapIntoOptional {
                             proc_macro2::TokenStream::new()
                         };
                         let field_read_ids_to_2_dimensions_vec_read_inner_accumulator_snake_case =
-                        naming::parameter::SelfReadIdsTo2DimensionsVecReadInnerAccumulatorSnakeCase::from_tokens(&field);
+                        naming::domain_types::parameter::SelfReadIdsTo2DimensionsVecReadInnerAccumulatorSnakeCase::from_tokens(&field);
                         let identifier_read_ids_upper_fields_initialization_without_primary_key_token_stream =
                         generate_read_ids_upper_fields_initialization_without_primary_key_token_stream(field);
                         let identifier_update_parameters_initialization_without_primary_key_token_stream = generate_update_parameters_initialization_without_primary_key_token_stream(field);
@@ -9966,25 +9995,25 @@ enum WrapIntoOptional {
                         let table_names_cloned = table_names.map(|element_26b304d1| std::sync::Arc::<str>::clone(element_26b304d1));
                         let (started_tx, started_rx) = tokio::sync::oneshot::channel();
                         let #undrscr_unused_token_stream = tokio::spawn(async move {
-                            let #AppStateSnakeCase = std::sync::Arc::new(server_app_state::ServerAppState {
+                            let #AppStateSnakeCase = std::sync::Arc::new(server_app_state::domain_types::ServerAppState {
                                 bulk_item_budget: server_runtime_http::ResourceBudget::new(
                                     server_runtime_http::ResourceBudgetMaximum::try_from(4_096usize).expect("f9304636 crud invariant must hold"),
                                 ),
-                                #PgPoolSnakeCase: app_state::SqlxPgPool::from(#PgPoolForTokioSpawnSyncMoveSnakeCase.clone()),
+                                #PgPoolSnakeCase: app_state::domain_types::SqlxPgPool::from(#PgPoolForTokioSpawnSyncMoveSnakeCase.clone()),
                                 #ConfigSnakeCase,
                                 idempotency_response_budget: server_runtime_http::ResourceBudget::new(
                                     server_runtime_http::ResourceBudgetMaximum::try_from(67_108_864usize).expect("c75e4935 crud invariant must hold"),
                                 ),
-                                project_git_info: git_info::project_git_info(),
+                                project_git_info: git_info::domain_types::project_git_info(),
                             });
                             started_tx.send(()).expect("431a6f8d crud invariant must hold");
                             axum::serve(
                                 tcp_listener,
                                 {
                                     let mut router = axum::Router::new()
-                                        .merge(#identifier::routes(std::sync::Arc::<server_app_state::ServerAppState<'_>>::clone(&app_state)));
+                                        .merge(#identifier::routes(std::sync::Arc::<server_app_state::domain_types::ServerAppState<'_>>::clone(&app_state)));
                                     for element_ef09f2b0 in table_names_cloned {
-                                        router = router.merge(#identifier::routes_handle(std::sync::Arc::<server_app_state::ServerAppState<'_>>::clone(&app_state), &element_ef09f2b0));
+                                        router = router.merge(#identifier::routes_handle(std::sync::Arc::<server_app_state::domain_types::ServerAppState<'_>>::clone(&app_state), &element_ef09f2b0));
                                     }
                                     router.into_make_service()
                                 },
@@ -10053,7 +10082,7 @@ enum WrapIntoOptional {
     }));
     let create_form_conversion_token_stream = create_fields_without_primary_key_iter().map(|field| {
         let field_identifier = &field.identifier;
-        let field_name_double_quoted_token_stream = generate_quotes::dq_token_stream(&field.identifier);
+        let field_name_double_quoted_token_stream = generate_quotes::domain_types::dq_token_stream(&field.identifier);
         let origin_role = quote::format_ident!("Origin");
         let origin_type = generate_concrete_pg_type_role_token_stream(&field.type0, &origin_role);
         let create_type = generate_concrete_pg_type_role_token_stream(&field.type0, &CreateUpperCamelCase);
@@ -10071,7 +10100,7 @@ enum WrapIntoOptional {
     });
     let update_form_conversion_token_stream = std::iter::once({
         let field_identifier = &primary_key_field.identifier;
-        let field_name_double_quoted_token_stream = generate_quotes::dq_token_stream(&primary_key_field.identifier);
+        let field_name_double_quoted_token_stream = generate_quotes::domain_types::dq_token_stream(&primary_key_field.identifier);
         let origin_role = quote::format_ident!("Origin");
         let origin_type = generate_concrete_pg_type_role_token_stream(&primary_key_field.type0, &origin_role);
         let update_type = generate_concrete_pg_type_role_token_stream(&primary_key_field.type0, &UpdateUpperCamelCase);
@@ -10089,7 +10118,7 @@ enum WrapIntoOptional {
     })
     .chain(fields_without_primary_key_iter().map(|field| {
         let field_identifier = &field.identifier;
-        let field_name_double_quoted_token_stream = generate_quotes::dq_token_stream(&field.identifier);
+        let field_name_double_quoted_token_stream = generate_quotes::domain_types::dq_token_stream(&field.identifier);
         let origin_role = quote::format_ident!("Origin");
         let origin_type = generate_concrete_pg_type_role_token_stream(&field.type0, &origin_role);
         let update_type = generate_concrete_pg_type_role_token_stream(&field.type0, &UpdateUpperCamelCase);
@@ -10135,7 +10164,7 @@ enum WrapIntoOptional {
         }
     };
     let db_column_specs_token_stream = fields.iter().enumerate().map(|(index, field)| {
-        let field_name = generate_quotes::dq_token_stream(&field.identifier);
+        let field_name = generate_quotes::domain_types::dq_token_stream(&field.identifier);
         let field_type = &field.type0;
         let has_explicit_default = db_default_field_idxs
             .iter()
@@ -10149,19 +10178,22 @@ enum WrapIntoOptional {
             )
         }
     });
-    let primary_key_field_name = generate_quotes::dq_token_stream(&primary_key_field.identifier);
+    let primary_key_field_name =
+        generate_quotes::domain_types::dq_token_stream(&primary_key_field.identifier);
     let create_excluded_column_token_stream = create_exclude_fields
         .iter()
-        .map(generate_quotes::dq_token_stream);
+        .map(generate_quotes::domain_types::dq_token_stream);
     let read_excluded_column_token_stream = read_exclude_fields
         .iter()
-        .map(generate_quotes::dq_token_stream);
+        .map(generate_quotes::domain_types::dq_token_stream);
     let db_unique_key_token_stream = generate_pg_table_input_model
         .config
         .db_unique_keys
         .iter()
         .map(|columns| {
-            let column_token_stream = columns.iter().map(generate_quotes::dq_token_stream);
+            let column_token_stream = columns
+                .iter()
+                .map(generate_quotes::domain_types::dq_token_stream);
             quote::quote! {
                 pg_crud_common::DbKeySpec::Unique(vec![
                     #(pg_crud_common::DbStaticSchemaText::from(#column_token_stream)),*
@@ -10176,13 +10208,13 @@ enum WrapIntoOptional {
             let column_token_stream = foreign_key
                 .columns
                 .iter()
-                .map(generate_quotes::dq_token_stream);
+                .map(generate_quotes::domain_types::dq_token_stream);
             let referenced_column_token_stream = foreign_key
                 .referenced_columns
                 .iter()
-                .map(generate_quotes::dq_token_stream);
+                .map(generate_quotes::domain_types::dq_token_stream);
             let referenced_table_token_stream =
-                generate_quotes::dq_token_stream(&foreign_key.referenced_table);
+                generate_quotes::domain_types::dq_token_stream(&foreign_key.referenced_table);
             quote::quote! {
                 pg_crud_common::DbKeySpec::ForeignKey {
                     columns: vec![
@@ -10238,7 +10270,9 @@ enum WrapIntoOptional {
     };
     let gend = {
         let identifier_generate_pg_table_mod_snake_case =
-            naming::parameter::SelfGeneratePgTableModSnakeCase::from_tokens(&identifier);
+            naming::domain_types::parameter::SelfGeneratePgTableModSnakeCase::from_tokens(
+                &identifier,
+            );
         let impl_and_content_token_stream = quote::quote! {
                 #AllowClippyArbitrarySrcItemOrdering
                 impl #identifier {

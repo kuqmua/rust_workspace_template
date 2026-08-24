@@ -101,10 +101,10 @@ async fn postgresql_cleanup_is_batched_and_preserves_append_only_policy() {
     )
     .await
     .expect("fab61374 postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
-    server_admin::prep_pg(app_state::SqlxPgPoolRef::from(&pool))
+    server_admin::prep_pg(app_state::domain_types::SqlxPgPoolRef::from(&pool))
         .await
         .expect("029cb682 postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
-    pg_table::ensure_pg_table_idempotency_schema(app_state::SqlxPgPoolRef::from(&pool))
+    pg_table::ensure_pg_table_idempotency_schema(app_state::domain_types::SqlxPgPoolRef::from(&pool))
         .await
         .expect("eb08dffc postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
     let _clear = sqlx::query(constants_str::TRUNCATE_ADMIN_ACCESS_SESSIONS_ADMIN_REFRESH_TOKENS_ADMIN_LOGIN_ATTEMPTS_ADMIN_RATE)
@@ -135,7 +135,7 @@ async fn postgresql_cleanup_is_batched_and_preserves_append_only_policy() {
         retention,
         retention,
     );
-    let report = server_admin::cleanup_admin_tables(app_state::SqlxPgPoolRef::from(&pool), config)
+    let report = server_admin::cleanup_admin_tables(app_state::domain_types::SqlxPgPoolRef::from(&pool), config)
         .await
         .expect("a422e8d4 postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
     assert_eq!(report.total_rows().to_string(), "6");

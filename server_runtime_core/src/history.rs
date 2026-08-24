@@ -1,20 +1,20 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
-struct StdVecDequeRunReports<RunReport>(std::collections::VecDeque<RunReport>);
+struct RunReportsVecDeque<RunReport>(std::collections::VecDeque<RunReport>);
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::CloneInner, newtype::FromInner,
 )]
-struct StdArcSharedRunReports<RunReport>(
-    std::sync::Arc<tokio::sync::RwLock<StdVecDequeRunReports<RunReport>>>,
+struct SharedRunReportsArc<RunReport>(
+    std::sync::Arc<tokio::sync::RwLock<RunReportsVecDeque<RunReport>>>,
 );
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::CloneFields)]
 pub struct AsyncRunHistory<RunReport> {
-    maximum_len: StdAsyncRunHistoryMaximumLen,
-    reports: StdArcSharedRunReports<RunReport>,
+    maximum_len: AsyncRunHistoryMaximumLenNonZeroUsize,
+    reports: SharedRunReportsArc<RunReport>,
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub struct StdAsyncRunHistoryMaximumLen(std::num::NonZeroUsize);
-impl TryFrom<usize> for StdAsyncRunHistoryMaximumLen {
+pub struct AsyncRunHistoryMaximumLenNonZeroUsize(std::num::NonZeroUsize);
+impl TryFrom<usize> for AsyncRunHistoryMaximumLenNonZeroUsize {
     type Error = StdAsyncRunHistoryMaximumLenTryFromUsizeError;
     fn try_from(value: usize) -> Result<Self, Self::Error> {
         std::num::NonZeroUsize::new(value)
@@ -59,13 +59,13 @@ impl<RunReport> AsyncRunHistorySnapshot<RunReport> {
 }
 impl<RunReport: Send + Sync> AsyncRunHistory<RunReport> {
     #[must_use]
-    pub fn new(maximum_len: StdAsyncRunHistoryMaximumLen) -> Self {
-        let reports = StdVecDequeRunReports::from(std::collections::VecDeque::with_capacity(
+    pub fn new(maximum_len: AsyncRunHistoryMaximumLenNonZeroUsize) -> Self {
+        let reports = RunReportsVecDeque::from(std::collections::VecDeque::with_capacity(
             maximum_len.0.get(),
         ));
         Self {
             maximum_len,
-            reports: StdArcSharedRunReports::from(std::sync::Arc::from(tokio::sync::RwLock::new(
+            reports: SharedRunReportsArc::from(std::sync::Arc::from(tokio::sync::RwLock::new(
                 reports,
             ))),
         }
@@ -93,7 +93,7 @@ mod tests {
     fn history_clone_does_not_require_report_clone() {
         #[derive(optimal_memory_layout::OptimalMemoryLayout)]
         struct NotClone;
-        let maximum = super::StdAsyncRunHistoryMaximumLen::try_from(constants_usize::ONE)
+        let maximum = super::AsyncRunHistoryMaximumLenNonZeroUsize::try_from(constants_usize::ONE)
             .expect("91f5d3a8 history_clone_does_not_require_report_clone invariant must hold");
         let history = super::AsyncRunHistory::<NotClone>::new(maximum);
         let cloned = history.clone();

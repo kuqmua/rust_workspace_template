@@ -413,7 +413,7 @@ pub fn generate_impl_pg_type_test_cases_for_identifier_token_stream(
     let self_pg_type_as_pg_type_where_token_stream =
         quote::quote! {#self_pg_type_as_pg_type_token_stream::#WhereUpperCamelCase};
     let identifier_select_upper_camel_case =
-        naming::parameter::SelfSelectUpperCamelCase::from_tokens(&identifier);
+        naming::domain_types::parameter::SelfSelectUpperCamelCase::from_tokens(&identifier);
     let optional_vec_create_token_stream_gnrtd = optional_vec_create_token_stream.map(|ts| {
         generate_optional_vec_create_token_stream(&self_pg_type_as_pg_type_token_stream, ts)
     });
@@ -427,7 +427,7 @@ pub fn generate_impl_pg_type_test_cases_for_identifier_token_stream(
             &ReadInnerIntoReadWithNewOrTryNewUnwrapedSnakeCase,
             &type_token_stream,
             &self_pg_type_as_pg_type_token_stream,
-            &naming::ReadUpperCamelCase,
+            &naming::domain_types::ReadUpperCamelCase,
             &read_inner_into_read_with_new_or_try_new_unwraped_token_stream,
         );
     let read_inner_into_update_with_new_or_try_new_unwraped_token_stream_gnrtd =
@@ -435,7 +435,7 @@ pub fn generate_impl_pg_type_test_cases_for_identifier_token_stream(
             &ReadInnerIntoUpdateWithNewOrTryNewUnwrapedSnakeCase,
             &type_token_stream,
             &self_pg_type_as_pg_type_token_stream,
-            &naming::UpdateUpperCamelCase,
+            &naming::domain_types::UpdateUpperCamelCase,
             &read_inner_into_update_with_new_or_try_new_unwraped_token_stream,
         );
     let update_to_read_ids_token_stream_gnrtd = generate_update_to_read_ids_token_stream(

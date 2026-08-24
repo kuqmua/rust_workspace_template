@@ -123,15 +123,15 @@ impl ToolAvailable {
     }
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
-struct StdRunnerIoErrorRef<'error_lt>(&'error_lt std::io::Error);
-impl<'error_lt> StdRunnerIoErrorRef<'error_lt> {
+struct RunnerIoErrorRef<'error_lt>(&'error_lt std::io::Error);
+impl<'error_lt> RunnerIoErrorRef<'error_lt> {
     const fn get(self) -> &'error_lt std::io::Error {
         self.0
     }
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
-struct StdRunnerPathRef<'path_lt>(&'path_lt std::path::Path);
-impl<'path_lt> StdRunnerPathRef<'path_lt> {
+struct RunnerPathRef<'path_lt>(&'path_lt std::path::Path);
+impl<'path_lt> RunnerPathRef<'path_lt> {
     const fn get(self) -> &'path_lt std::path::Path {
         self.0
     }
@@ -1025,7 +1025,7 @@ fn main() {
             let generate_pg_table_tests_stage_output_path =
                 generate_pg_table_with_tests_dir.join(constants_str::GENERATE_PG_TABLE_TESTS_RS);
             let generate_pg_table_tests_stage_output = match server_runtime_http::read_bounded_file(
-                server_runtime_http::StdPathRef::from(
+                server_runtime_http::PathRef::from(
                     generate_pg_table_tests_stage_output_path.as_path(),
                 ),
                 server_runtime_http::BoundedReadMaximumBytes::from(

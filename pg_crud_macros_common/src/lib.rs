@@ -5,160 +5,175 @@ const IS_NL_PREFIX_STR_MAX_LEN: usize = 1_048_576;
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[allow(dead_code, non_snake_case)]
 struct NamesCtx {
-    AddOperatorSnakeCase: naming::AddOperatorSnakeCase,
+    AddOperatorSnakeCase: naming::domain_types::AddOperatorSnakeCase,
     AllVariantsDefaultSomeOneElementMaxPageSizeSnakeCase:
-        naming::AllVariantsDefaultSomeOneElementMaxPageSizeSnakeCase,
-    AllVariantsDefaultSomeOneElementSnakeCase: naming::AllVariantsDefaultSomeOneElementSnakeCase,
+        naming::domain_types::AllVariantsDefaultSomeOneElementMaxPageSizeSnakeCase,
+    AllVariantsDefaultSomeOneElementSnakeCase:
+        naming::domain_types::AllVariantsDefaultSomeOneElementSnakeCase,
     AllowClippyArbitrarySrcItemOrdering: token_patterns::AllowClippyArbitrarySrcItemOrdering,
-    ColumnSnakeCase: naming::ColumnSnakeCase,
-    CreateQueryBindSnakeCase: naming::CreateQueryBindSnakeCase,
-    CreateQueryPartSnakeCase: naming::CreateQueryPartSnakeCase,
-    CreateSnakeCase: naming::CreateSnakeCase,
-    CreateTableColumnQueryPartSnakeCase: naming::CreateTableColumnQueryPartSnakeCase,
-    CreateUpperCamelCase: naming::CreateUpperCamelCase,
-    DefaultSomeOneElementMaxPageSizeSnakeCase: naming::DefaultSomeOneElementMaxPageSizeSnakeCase,
-    DefaultSomeOneElementSnakeCase: naming::DefaultSomeOneElementSnakeCase,
-    EqOperatorUpperCamelCase: naming::EqOperatorUpperCamelCase,
-    ErrorSnakeCase: naming::ErrorSnakeCase,
-    IncrementSnakeCase: naming::IncrementSnakeCase,
-    NormalizeSnakeCase: naming::NormalizeSnakeCase,
-    OptionalUpdateSnakeCase: naming::OptionalUpdateSnakeCase,
-    OptionalVecCreateSnakeCase: naming::OptionalVecCreateSnakeCase,
+    ColumnSnakeCase: naming::domain_types::ColumnSnakeCase,
+    CreateQueryBindSnakeCase: naming::domain_types::CreateQueryBindSnakeCase,
+    CreateQueryPartSnakeCase: naming::domain_types::CreateQueryPartSnakeCase,
+    CreateSnakeCase: naming::domain_types::CreateSnakeCase,
+    CreateTableColumnQueryPartSnakeCase: naming::domain_types::CreateTableColumnQueryPartSnakeCase,
+    CreateUpperCamelCase: naming::domain_types::CreateUpperCamelCase,
+    DefaultSomeOneElementMaxPageSizeSnakeCase:
+        naming::domain_types::DefaultSomeOneElementMaxPageSizeSnakeCase,
+    DefaultSomeOneElementSnakeCase: naming::domain_types::DefaultSomeOneElementSnakeCase,
+    EqOperatorUpperCamelCase: naming::domain_types::EqOperatorUpperCamelCase,
+    ErrorSnakeCase: naming::domain_types::ErrorSnakeCase,
+    IncrementSnakeCase: naming::domain_types::IncrementSnakeCase,
+    NormalizeSnakeCase: naming::domain_types::NormalizeSnakeCase,
+    OptionalUpdateSnakeCase: naming::domain_types::OptionalUpdateSnakeCase,
+    OptionalVecCreateSnakeCase: naming::domain_types::OptionalVecCreateSnakeCase,
     PgCrudCommonDefaultSomeOneElementCall: token_patterns::PgCrudCommonDefaultSomeOneElementCall,
-    PgTypeEqOperatorUpperCamelCase: naming::PgTypeEqOperatorUpperCamelCase,
-    PgTypeNotPrimaryKeyUpperCamelCase: naming::PgTypeNotPrimaryKeyUpperCamelCase,
+    PgTypeEqOperatorUpperCamelCase: naming::domain_types::PgTypeEqOperatorUpperCamelCase,
+    PgTypeNotPrimaryKeyUpperCamelCase: naming::domain_types::PgTypeNotPrimaryKeyUpperCamelCase,
     PgTypeOptionalVecWhereGreaterThanTestSnakeCase:
-        naming::PgTypeOptionalVecWhereGreaterThanTestSnakeCase,
-    PgTypeTestCasesUpperCamelCase: naming::PgTypeTestCasesUpperCamelCase,
-    PgTypeUpperCamelCase: naming::PgTypeUpperCamelCase,
-    PgTypeWhereFilterUpperCamelCase: naming::PgTypeWhereFilterUpperCamelCase,
+        naming::domain_types::PgTypeOptionalVecWhereGreaterThanTestSnakeCase,
+    PgTypeTestCasesUpperCamelCase: naming::domain_types::PgTypeTestCasesUpperCamelCase,
+    PgTypeUpperCamelCase: naming::domain_types::PgTypeUpperCamelCase,
+    PgTypeWhereFilterUpperCamelCase: naming::domain_types::PgTypeWhereFilterUpperCamelCase,
     PreviousReadAndOptionalUpdateIntoReadSnakeCase:
-        naming::PreviousReadAndOptionalUpdateIntoReadSnakeCase,
-    QueryBindSnakeCase: naming::QueryBindSnakeCase,
-    QueryPartErrorUpperCamelCase: naming::QueryPartErrorUpperCamelCase,
-    QueryPartSnakeCase: naming::QueryPartSnakeCase,
-    QuerySnakeCase: naming::QuerySnakeCase,
-    ReadIdsAndCreateIntoOptionalVReadSnakeCase: naming::ReadIdsAndCreateIntoOptionalVReadSnakeCase,
+        naming::domain_types::PreviousReadAndOptionalUpdateIntoReadSnakeCase,
+    QueryBindSnakeCase: naming::domain_types::QueryBindSnakeCase,
+    QueryPartErrorUpperCamelCase: naming::domain_types::QueryPartErrorUpperCamelCase,
+    QueryPartSnakeCase: naming::domain_types::QueryPartSnakeCase,
+    QuerySnakeCase: naming::domain_types::QuerySnakeCase,
+    ReadIdsAndCreateIntoOptionalVReadSnakeCase:
+        naming::domain_types::ReadIdsAndCreateIntoOptionalVReadSnakeCase,
     ReadIdsAndCreateIntoOptionalVecWhereEqToFieldSnakeCase:
-        naming::ReadIdsAndCreateIntoOptionalVecWhereEqToFieldSnakeCase,
-    ReadIdsAndCreateIntoReadSnakeCase: naming::ReadIdsAndCreateIntoReadSnakeCase,
-    ReadIdsAndCreateIntoTableTypeSnakeCase: naming::ReadIdsAndCreateIntoTableTypeSnakeCase,
+        naming::domain_types::ReadIdsAndCreateIntoOptionalVecWhereEqToFieldSnakeCase,
+    ReadIdsAndCreateIntoReadSnakeCase: naming::domain_types::ReadIdsAndCreateIntoReadSnakeCase,
+    ReadIdsAndCreateIntoTableTypeSnakeCase:
+        naming::domain_types::ReadIdsAndCreateIntoTableTypeSnakeCase,
     ReadIdsAndCreateIntoVecWhereEqUsingFieldsSnakeCase:
-        naming::ReadIdsAndCreateIntoVecWhereEqUsingFieldsSnakeCase,
-    ReadIdsAndCreateIntoWhereEqSnakeCase: naming::ReadIdsAndCreateIntoWhereEqSnakeCase,
+        naming::domain_types::ReadIdsAndCreateIntoVecWhereEqUsingFieldsSnakeCase,
+    ReadIdsAndCreateIntoWhereEqSnakeCase:
+        naming::domain_types::ReadIdsAndCreateIntoWhereEqSnakeCase,
     ReadIdsAndTableTypeIntoPgTypeOptionalWhereGreaterThanSnakeCase:
-        naming::ReadIdsAndTableTypeIntoPgTypeOptionalWhereGreaterThanSnakeCase,
-    ReadIdsSnakeCase: naming::ReadIdsSnakeCase,
-    ReadIdsTo2DimensionsVecReadInnerSnakeCase: naming::ReadIdsTo2DimensionsVecReadInnerSnakeCase,
+        naming::domain_types::ReadIdsAndTableTypeIntoPgTypeOptionalWhereGreaterThanSnakeCase,
+    ReadIdsSnakeCase: naming::domain_types::ReadIdsSnakeCase,
+    ReadIdsTo2DimensionsVecReadInnerSnakeCase:
+        naming::domain_types::ReadIdsTo2DimensionsVecReadInnerSnakeCase,
     ReadIdsToOptionalVReadDefaultSomeOneElementSnakeCase:
-        naming::ReadIdsToOptionalVReadDefaultSomeOneElementSnakeCase,
-    ReadIdsUpperCamelCase: naming::ReadIdsUpperCamelCase,
+        naming::domain_types::ReadIdsToOptionalVReadDefaultSomeOneElementSnakeCase,
+    ReadIdsUpperCamelCase: naming::domain_types::ReadIdsUpperCamelCase,
     ReadInnerIntoReadWithNewOrTryNewUnwrapedSnakeCase:
-        naming::ReadInnerIntoReadWithNewOrTryNewUnwrapedSnakeCase,
+        naming::domain_types::ReadInnerIntoReadWithNewOrTryNewUnwrapedSnakeCase,
     ReadInnerIntoUpdateWithNewOrTryNewUnwrapedSnakeCase:
-        naming::ReadInnerIntoUpdateWithNewOrTryNewUnwrapedSnakeCase,
-    ReadInnerUpperCamelCase: naming::ReadInnerUpperCamelCase,
-    ReadSnakeCase: naming::ReadSnakeCase,
-    ReadUpperCamelCase: naming::ReadUpperCamelCase,
-    SelectOnlyIdsQueryPartSnakeCase: naming::SelectOnlyIdsQueryPartSnakeCase,
-    SelectOnlyUpdatedIdsQueryBindSnakeCase: naming::SelectOnlyUpdatedIdsQueryBindSnakeCase,
-    SelectOnlyUpdatedIdsQueryPartSnakeCase: naming::SelectOnlyUpdatedIdsQueryPartSnakeCase,
-    SelectQueryPartSnakeCase: naming::SelectQueryPartSnakeCase,
-    SelectUpperCamelCase: naming::SelectUpperCamelCase,
-    SelfUpperCamelCase: naming::SelfUpperCamelCase,
-    TableTypeSnakeCase: naming::TableTypeSnakeCase,
-    TableTypeUpperCamelCase: naming::TableTypeUpperCamelCase,
-    UpdateForQueryUpperCamelCase: naming::UpdateForQueryUpperCamelCase,
-    UpdateQueryBindSnakeCase: naming::UpdateQueryBindSnakeCase,
-    UpdateQueryPartSnakeCase: naming::UpdateQueryPartSnakeCase,
-    UpdateToReadIdsSnakeCase: naming::UpdateToReadIdsSnakeCase,
-    UpdateUpperCamelCase: naming::UpdateUpperCamelCase,
-    VSnakeCase: naming::VSnakeCase,
-    VUpperCamelCase: naming::VUpperCamelCase,
-    ValueSnakeCase: naming::ValueSnakeCase,
-    WhereUpperCamelCase: naming::WhereUpperCamelCase,
+        naming::domain_types::ReadInnerIntoUpdateWithNewOrTryNewUnwrapedSnakeCase,
+    ReadInnerUpperCamelCase: naming::domain_types::ReadInnerUpperCamelCase,
+    ReadSnakeCase: naming::domain_types::ReadSnakeCase,
+    ReadUpperCamelCase: naming::domain_types::ReadUpperCamelCase,
+    SelectOnlyIdsQueryPartSnakeCase: naming::domain_types::SelectOnlyIdsQueryPartSnakeCase,
+    SelectOnlyUpdatedIdsQueryBindSnakeCase:
+        naming::domain_types::SelectOnlyUpdatedIdsQueryBindSnakeCase,
+    SelectOnlyUpdatedIdsQueryPartSnakeCase:
+        naming::domain_types::SelectOnlyUpdatedIdsQueryPartSnakeCase,
+    SelectQueryPartSnakeCase: naming::domain_types::SelectQueryPartSnakeCase,
+    SelectUpperCamelCase: naming::domain_types::SelectUpperCamelCase,
+    SelfUpperCamelCase: naming::domain_types::SelfUpperCamelCase,
+    TableTypeSnakeCase: naming::domain_types::TableTypeSnakeCase,
+    TableTypeUpperCamelCase: naming::domain_types::TableTypeUpperCamelCase,
+    UpdateForQueryUpperCamelCase: naming::domain_types::UpdateForQueryUpperCamelCase,
+    UpdateQueryBindSnakeCase: naming::domain_types::UpdateQueryBindSnakeCase,
+    UpdateQueryPartSnakeCase: naming::domain_types::UpdateQueryPartSnakeCase,
+    UpdateToReadIdsSnakeCase: naming::domain_types::UpdateToReadIdsSnakeCase,
+    UpdateUpperCamelCase: naming::domain_types::UpdateUpperCamelCase,
+    VSnakeCase: naming::domain_types::VSnakeCase,
+    VUpperCamelCase: naming::domain_types::VUpperCamelCase,
+    ValueSnakeCase: naming::domain_types::ValueSnakeCase,
+    WhereUpperCamelCase: naming::domain_types::WhereUpperCamelCase,
 }
 impl NamesCtx {
     const fn new() -> Self {
         Self {
-            AddOperatorSnakeCase: naming::AddOperatorSnakeCase,
+            AddOperatorSnakeCase: naming::domain_types::AddOperatorSnakeCase,
             AllVariantsDefaultSomeOneElementMaxPageSizeSnakeCase:
-                naming::AllVariantsDefaultSomeOneElementMaxPageSizeSnakeCase,
+                naming::domain_types::AllVariantsDefaultSomeOneElementMaxPageSizeSnakeCase,
             AllVariantsDefaultSomeOneElementSnakeCase:
-                naming::AllVariantsDefaultSomeOneElementSnakeCase,
+                naming::domain_types::AllVariantsDefaultSomeOneElementSnakeCase,
             AllowClippyArbitrarySrcItemOrdering:
                 token_patterns::AllowClippyArbitrarySrcItemOrdering,
-            ColumnSnakeCase: naming::ColumnSnakeCase,
-            CreateQueryBindSnakeCase: naming::CreateQueryBindSnakeCase,
-            CreateQueryPartSnakeCase: naming::CreateQueryPartSnakeCase,
-            CreateSnakeCase: naming::CreateSnakeCase,
-            CreateTableColumnQueryPartSnakeCase: naming::CreateTableColumnQueryPartSnakeCase,
-            CreateUpperCamelCase: naming::CreateUpperCamelCase,
+            ColumnSnakeCase: naming::domain_types::ColumnSnakeCase,
+            CreateQueryBindSnakeCase: naming::domain_types::CreateQueryBindSnakeCase,
+            CreateQueryPartSnakeCase: naming::domain_types::CreateQueryPartSnakeCase,
+            CreateSnakeCase: naming::domain_types::CreateSnakeCase,
+            CreateTableColumnQueryPartSnakeCase:
+                naming::domain_types::CreateTableColumnQueryPartSnakeCase,
+            CreateUpperCamelCase: naming::domain_types::CreateUpperCamelCase,
             DefaultSomeOneElementMaxPageSizeSnakeCase:
-                naming::DefaultSomeOneElementMaxPageSizeSnakeCase,
-            DefaultSomeOneElementSnakeCase: naming::DefaultSomeOneElementSnakeCase,
-            EqOperatorUpperCamelCase: naming::EqOperatorUpperCamelCase,
-            ErrorSnakeCase: naming::ErrorSnakeCase,
-            IncrementSnakeCase: naming::IncrementSnakeCase,
-            NormalizeSnakeCase: naming::NormalizeSnakeCase,
-            OptionalUpdateSnakeCase: naming::OptionalUpdateSnakeCase,
-            OptionalVecCreateSnakeCase: naming::OptionalVecCreateSnakeCase,
+                naming::domain_types::DefaultSomeOneElementMaxPageSizeSnakeCase,
+            DefaultSomeOneElementSnakeCase: naming::domain_types::DefaultSomeOneElementSnakeCase,
+            EqOperatorUpperCamelCase: naming::domain_types::EqOperatorUpperCamelCase,
+            ErrorSnakeCase: naming::domain_types::ErrorSnakeCase,
+            IncrementSnakeCase: naming::domain_types::IncrementSnakeCase,
+            NormalizeSnakeCase: naming::domain_types::NormalizeSnakeCase,
+            OptionalUpdateSnakeCase: naming::domain_types::OptionalUpdateSnakeCase,
+            OptionalVecCreateSnakeCase: naming::domain_types::OptionalVecCreateSnakeCase,
             PgCrudCommonDefaultSomeOneElementCall:
                 token_patterns::PgCrudCommonDefaultSomeOneElementCall,
-            PgTypeEqOperatorUpperCamelCase: naming::PgTypeEqOperatorUpperCamelCase,
-            PgTypeNotPrimaryKeyUpperCamelCase: naming::PgTypeNotPrimaryKeyUpperCamelCase,
+            PgTypeEqOperatorUpperCamelCase: naming::domain_types::PgTypeEqOperatorUpperCamelCase,
+            PgTypeNotPrimaryKeyUpperCamelCase:
+                naming::domain_types::PgTypeNotPrimaryKeyUpperCamelCase,
             PgTypeOptionalVecWhereGreaterThanTestSnakeCase:
-                naming::PgTypeOptionalVecWhereGreaterThanTestSnakeCase,
-            PgTypeTestCasesUpperCamelCase: naming::PgTypeTestCasesUpperCamelCase,
-            PgTypeUpperCamelCase: naming::PgTypeUpperCamelCase,
-            PgTypeWhereFilterUpperCamelCase: naming::PgTypeWhereFilterUpperCamelCase,
+                naming::domain_types::PgTypeOptionalVecWhereGreaterThanTestSnakeCase,
+            PgTypeTestCasesUpperCamelCase: naming::domain_types::PgTypeTestCasesUpperCamelCase,
+            PgTypeUpperCamelCase: naming::domain_types::PgTypeUpperCamelCase,
+            PgTypeWhereFilterUpperCamelCase: naming::domain_types::PgTypeWhereFilterUpperCamelCase,
             PreviousReadAndOptionalUpdateIntoReadSnakeCase:
-                naming::PreviousReadAndOptionalUpdateIntoReadSnakeCase,
-            QueryBindSnakeCase: naming::QueryBindSnakeCase,
-            QueryPartErrorUpperCamelCase: naming::QueryPartErrorUpperCamelCase,
-            QueryPartSnakeCase: naming::QueryPartSnakeCase,
-            QuerySnakeCase: naming::QuerySnakeCase,
+                naming::domain_types::PreviousReadAndOptionalUpdateIntoReadSnakeCase,
+            QueryBindSnakeCase: naming::domain_types::QueryBindSnakeCase,
+            QueryPartErrorUpperCamelCase: naming::domain_types::QueryPartErrorUpperCamelCase,
+            QueryPartSnakeCase: naming::domain_types::QueryPartSnakeCase,
+            QuerySnakeCase: naming::domain_types::QuerySnakeCase,
             ReadIdsAndCreateIntoOptionalVReadSnakeCase:
-                naming::ReadIdsAndCreateIntoOptionalVReadSnakeCase,
+                naming::domain_types::ReadIdsAndCreateIntoOptionalVReadSnakeCase,
             ReadIdsAndCreateIntoOptionalVecWhereEqToFieldSnakeCase:
-                naming::ReadIdsAndCreateIntoOptionalVecWhereEqToFieldSnakeCase,
-            ReadIdsAndCreateIntoReadSnakeCase: naming::ReadIdsAndCreateIntoReadSnakeCase,
-            ReadIdsAndCreateIntoTableTypeSnakeCase: naming::ReadIdsAndCreateIntoTableTypeSnakeCase,
+                naming::domain_types::ReadIdsAndCreateIntoOptionalVecWhereEqToFieldSnakeCase,
+            ReadIdsAndCreateIntoReadSnakeCase:
+                naming::domain_types::ReadIdsAndCreateIntoReadSnakeCase,
+            ReadIdsAndCreateIntoTableTypeSnakeCase:
+                naming::domain_types::ReadIdsAndCreateIntoTableTypeSnakeCase,
             ReadIdsAndCreateIntoVecWhereEqUsingFieldsSnakeCase:
-                naming::ReadIdsAndCreateIntoVecWhereEqUsingFieldsSnakeCase,
-            ReadIdsAndCreateIntoWhereEqSnakeCase: naming::ReadIdsAndCreateIntoWhereEqSnakeCase,
+                naming::domain_types::ReadIdsAndCreateIntoVecWhereEqUsingFieldsSnakeCase,
+            ReadIdsAndCreateIntoWhereEqSnakeCase:
+                naming::domain_types::ReadIdsAndCreateIntoWhereEqSnakeCase,
             ReadIdsAndTableTypeIntoPgTypeOptionalWhereGreaterThanSnakeCase:
-                naming::ReadIdsAndTableTypeIntoPgTypeOptionalWhereGreaterThanSnakeCase,
-            ReadIdsSnakeCase: naming::ReadIdsSnakeCase,
+                naming::domain_types::ReadIdsAndTableTypeIntoPgTypeOptionalWhereGreaterThanSnakeCase,
+            ReadIdsSnakeCase: naming::domain_types::ReadIdsSnakeCase,
             ReadIdsTo2DimensionsVecReadInnerSnakeCase:
-                naming::ReadIdsTo2DimensionsVecReadInnerSnakeCase,
+                naming::domain_types::ReadIdsTo2DimensionsVecReadInnerSnakeCase,
             ReadIdsToOptionalVReadDefaultSomeOneElementSnakeCase:
-                naming::ReadIdsToOptionalVReadDefaultSomeOneElementSnakeCase,
-            ReadIdsUpperCamelCase: naming::ReadIdsUpperCamelCase,
+                naming::domain_types::ReadIdsToOptionalVReadDefaultSomeOneElementSnakeCase,
+            ReadIdsUpperCamelCase: naming::domain_types::ReadIdsUpperCamelCase,
             ReadInnerIntoReadWithNewOrTryNewUnwrapedSnakeCase:
-                naming::ReadInnerIntoReadWithNewOrTryNewUnwrapedSnakeCase,
+                naming::domain_types::ReadInnerIntoReadWithNewOrTryNewUnwrapedSnakeCase,
             ReadInnerIntoUpdateWithNewOrTryNewUnwrapedSnakeCase:
-                naming::ReadInnerIntoUpdateWithNewOrTryNewUnwrapedSnakeCase,
-            ReadInnerUpperCamelCase: naming::ReadInnerUpperCamelCase,
-            ReadSnakeCase: naming::ReadSnakeCase,
-            ReadUpperCamelCase: naming::ReadUpperCamelCase,
-            SelectOnlyIdsQueryPartSnakeCase: naming::SelectOnlyIdsQueryPartSnakeCase,
-            SelectOnlyUpdatedIdsQueryBindSnakeCase: naming::SelectOnlyUpdatedIdsQueryBindSnakeCase,
-            SelectOnlyUpdatedIdsQueryPartSnakeCase: naming::SelectOnlyUpdatedIdsQueryPartSnakeCase,
-            SelectQueryPartSnakeCase: naming::SelectQueryPartSnakeCase,
-            SelectUpperCamelCase: naming::SelectUpperCamelCase,
-            SelfUpperCamelCase: naming::SelfUpperCamelCase,
-            TableTypeSnakeCase: naming::TableTypeSnakeCase,
-            TableTypeUpperCamelCase: naming::TableTypeUpperCamelCase,
-            UpdateForQueryUpperCamelCase: naming::UpdateForQueryUpperCamelCase,
-            UpdateQueryBindSnakeCase: naming::UpdateQueryBindSnakeCase,
-            UpdateQueryPartSnakeCase: naming::UpdateQueryPartSnakeCase,
-            UpdateToReadIdsSnakeCase: naming::UpdateToReadIdsSnakeCase,
-            UpdateUpperCamelCase: naming::UpdateUpperCamelCase,
-            VSnakeCase: naming::VSnakeCase,
-            VUpperCamelCase: naming::VUpperCamelCase,
-            ValueSnakeCase: naming::ValueSnakeCase,
-            WhereUpperCamelCase: naming::WhereUpperCamelCase,
+                naming::domain_types::ReadInnerIntoUpdateWithNewOrTryNewUnwrapedSnakeCase,
+            ReadInnerUpperCamelCase: naming::domain_types::ReadInnerUpperCamelCase,
+            ReadSnakeCase: naming::domain_types::ReadSnakeCase,
+            ReadUpperCamelCase: naming::domain_types::ReadUpperCamelCase,
+            SelectOnlyIdsQueryPartSnakeCase: naming::domain_types::SelectOnlyIdsQueryPartSnakeCase,
+            SelectOnlyUpdatedIdsQueryBindSnakeCase:
+                naming::domain_types::SelectOnlyUpdatedIdsQueryBindSnakeCase,
+            SelectOnlyUpdatedIdsQueryPartSnakeCase:
+                naming::domain_types::SelectOnlyUpdatedIdsQueryPartSnakeCase,
+            SelectQueryPartSnakeCase: naming::domain_types::SelectQueryPartSnakeCase,
+            SelectUpperCamelCase: naming::domain_types::SelectUpperCamelCase,
+            SelfUpperCamelCase: naming::domain_types::SelfUpperCamelCase,
+            TableTypeSnakeCase: naming::domain_types::TableTypeSnakeCase,
+            TableTypeUpperCamelCase: naming::domain_types::TableTypeUpperCamelCase,
+            UpdateForQueryUpperCamelCase: naming::domain_types::UpdateForQueryUpperCamelCase,
+            UpdateQueryBindSnakeCase: naming::domain_types::UpdateQueryBindSnakeCase,
+            UpdateQueryPartSnakeCase: naming::domain_types::UpdateQueryPartSnakeCase,
+            UpdateToReadIdsSnakeCase: naming::domain_types::UpdateToReadIdsSnakeCase,
+            UpdateUpperCamelCase: naming::domain_types::UpdateUpperCamelCase,
+            VSnakeCase: naming::domain_types::VSnakeCase,
+            VUpperCamelCase: naming::domain_types::VUpperCamelCase,
+            ValueSnakeCase: naming::domain_types::ValueSnakeCase,
+            WhereUpperCamelCase: naming::domain_types::WhereUpperCamelCase,
         }
     }
 }
@@ -227,30 +242,33 @@ pub struct ImportSnakeCaseStr(&'static str);
     newtype::FromInner,
 )]
 pub struct ImportPathStr(&'static str);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    newtype::FromInner,
+    newtype::GetInner,
+)]
 pub struct DimensionNumber(usize);
-impl DimensionNumber {
-    #[must_use]
-    pub const fn get(self) -> usize {
-        self.0
-    }
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    newtype::FromInner,
+    newtype::GetInner,
+)]
 pub struct StructElsLen(usize);
-impl StructElsLen {
-    #[must_use]
-    pub const fn get(self) -> usize {
-        self.0
-    }
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    newtype::FromInner,
+    newtype::GetInner,
+)]
 pub struct DeLen(usize);
-impl DeLen {
-    #[must_use]
-    pub const fn get(self) -> usize {
-        self.0
-    }
-}
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -371,7 +389,7 @@ impl IsNullable {
     pub fn rust(&self) -> &'static dyn std::fmt::Display {
         match &self {
             Self::False => &constants_str::PG_CRUD_EMPTY_SQL_SUFFIX,
-            Self::True => &naming::OptionalUpperCamelCase,
+            Self::True => &naming::domain_types::OptionalUpperCamelCase,
         }
     }
 }
@@ -443,18 +461,18 @@ impl quote::ToTokens for Import {
         .to_tokens(tokens);
     }
 }
-pg_crud_macros_common_macros::bool_enum_to_tokens!(AddOperatorUndrscr, false => naming::AddOperatorSnakeCase, true => quote::quote! {_});
-pg_crud_macros_common_macros::bool_enum_to_tokens!(ColumnParameterUndrscr, false => naming::ColumnSnakeCase, true => quote::quote! {_});
-pg_crud_macros_common_macros::bool_enum_to_tokens!(IncrementParameterUndrscr, false => naming::IncrementSnakeCase, true => quote::quote! {_});
-pg_crud_macros_common_macros::bool_enum_to_tokens!(IsCreateQueryBindMut, false => proc_macro2::TokenStream::new(), true => naming::MutSnakeCase);
-pg_crud_macros_common_macros::bool_enum_to_tokens!(IsQueryBindMut, false => proc_macro2::TokenStream::new(), true => naming::MutSnakeCase);
-pg_crud_macros_common_macros::bool_enum_to_tokens!(IsSelectOnlyCreatedIdsQueryBindMut, false => proc_macro2::TokenStream::new(), true => naming::MutSnakeCase);
-pg_crud_macros_common_macros::bool_enum_to_tokens!(IsSelectOnlyUpdatedIdsQueryBindMut, false => proc_macro2::TokenStream::new(), true => naming::MutSnakeCase);
-pg_crud_macros_common_macros::bool_enum_to_tokens!(IsSelectQueryPartColumnFieldForErrorMessageUsed, false => quote::quote! {_}, true => naming::ColumnFieldForErrorMessageSnakeCase);
+pg_crud_macros_common_macros::bool_enum_to_tokens!(AddOperatorUndrscr, false => naming::domain_types::AddOperatorSnakeCase, true => quote::quote! {_});
+pg_crud_macros_common_macros::bool_enum_to_tokens!(ColumnParameterUndrscr, false => naming::domain_types::ColumnSnakeCase, true => quote::quote! {_});
+pg_crud_macros_common_macros::bool_enum_to_tokens!(IncrementParameterUndrscr, false => naming::domain_types::IncrementSnakeCase, true => quote::quote! {_});
+pg_crud_macros_common_macros::bool_enum_to_tokens!(IsCreateQueryBindMut, false => proc_macro2::TokenStream::new(), true => naming::domain_types::MutSnakeCase);
+pg_crud_macros_common_macros::bool_enum_to_tokens!(IsQueryBindMut, false => proc_macro2::TokenStream::new(), true => naming::domain_types::MutSnakeCase);
+pg_crud_macros_common_macros::bool_enum_to_tokens!(IsSelectOnlyCreatedIdsQueryBindMut, false => proc_macro2::TokenStream::new(), true => naming::domain_types::MutSnakeCase);
+pg_crud_macros_common_macros::bool_enum_to_tokens!(IsSelectOnlyUpdatedIdsQueryBindMut, false => proc_macro2::TokenStream::new(), true => naming::domain_types::MutSnakeCase);
+pg_crud_macros_common_macros::bool_enum_to_tokens!(IsSelectQueryPartColumnFieldForErrorMessageUsed, false => quote::quote! {_}, true => naming::domain_types::ColumnFieldForErrorMessageSnakeCase);
 pg_crud_macros_common_macros::bool_enum_to_tokens!(IsSelectQueryPartIsPgTypeUsed, false => quote::quote! {_}, true => quote::quote! {is_pg_type});
-pg_crud_macros_common_macros::bool_enum_to_tokens!(IsSelectQueryPartSelfSelectUsed, false => quote::quote! {_}, true => naming::VSnakeCase);
-pg_crud_macros_common_macros::bool_enum_to_tokens!(IsUpdateQueryBindMut, false => proc_macro2::TokenStream::new(), true => naming::MutSnakeCase);
-pg_crud_macros_common_macros::bool_enum_to_tokens!(IsUpdateQueryPartSelfUpdateUsed, false => quote::quote! {_}, true => naming::VSnakeCase);
+pg_crud_macros_common_macros::bool_enum_to_tokens!(IsSelectQueryPartSelfSelectUsed, false => quote::quote! {_}, true => naming::domain_types::VSnakeCase);
+pg_crud_macros_common_macros::bool_enum_to_tokens!(IsUpdateQueryBindMut, false => proc_macro2::TokenStream::new(), true => naming::domain_types::MutSnakeCase);
+pg_crud_macros_common_macros::bool_enum_to_tokens!(IsUpdateQueryPartSelfUpdateUsed, false => quote::quote! {_}, true => naming::domain_types::VSnakeCase);
 pg_crud_macros_common_macros::bool_enum_to_tokens!(ShouldDSchemarsJsonSchema, false => proc_macro2::TokenStream::new(), true => quote::quote! {, schemars::JsonSchema});
 pg_crud_macros_common_macros::bool_enum_to_tokens!(ShouldDeriveUtoipaToSchema, false => proc_macro2::TokenStream::new(), true => quote::quote! {, utoipa::ToSchema});
 #[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout)]
@@ -464,14 +482,14 @@ pub enum ReadOrUpdate {
 }
 impl ReadOrUpdate {
     #[must_use]
-    pub fn ucc(&self) -> &dyn naming::DisplayPlusToTokens {
+    pub fn ucc(&self) -> &dyn naming::domain_types::DisplayPlusToTokens {
         match &self {
-            Self::Read => &naming::ReadUpperCamelCase,
-            Self::Update => &naming::UpdateUpperCamelCase,
+            Self::Read => &naming::domain_types::ReadUpperCamelCase,
+            Self::Update => &naming::domain_types::UpdateUpperCamelCase,
         }
     }
 }
-pg_crud_macros_common_macros::bool_enum_to_tokens!(IsPrimaryKeyUndrscr, false => naming::IsPrimaryKeySnakeCase, true => quote::quote! {_});
+pg_crud_macros_common_macros::bool_enum_to_tokens!(IsPrimaryKeyUndrscr, false => naming::domain_types::IsPrimaryKeySnakeCase, true => quote::quote! {_});
 #[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout)]
 pub enum DefaultSomeOneOrDefaultSomeOneWithMaxPageSize {
     DefaultSomeOne,
@@ -530,14 +548,14 @@ impl From<&Dimension> for DimensionIndexNumber {
         }
     }
 }
-pg_crud_macros_common_macros::bool_enum_to_tokens!(CreateQueryBindValueUndrscr, false => naming::VSnakeCase, true => quote::quote! {_});
-pg_crud_macros_common_macros::bool_enum_to_tokens!(CreateQueryPartIncrementUndrscr, false => naming::IncrementSnakeCase, true => quote::quote! {_});
-pg_crud_macros_common_macros::bool_enum_to_tokens!(CreateQueryPartValueUndrscr, false => naming::VSnakeCase, true => quote::quote! {_});
-pg_crud_macros_common_macros::bool_enum_to_tokens!(SelectQueryPartValueUndrscr, false => naming::VSnakeCase, true => quote::quote! {_});
+pg_crud_macros_common_macros::bool_enum_to_tokens!(CreateQueryBindValueUndrscr, false => naming::domain_types::VSnakeCase, true => quote::quote! {_});
+pg_crud_macros_common_macros::bool_enum_to_tokens!(CreateQueryPartIncrementUndrscr, false => naming::domain_types::IncrementSnakeCase, true => quote::quote! {_});
+pg_crud_macros_common_macros::bool_enum_to_tokens!(CreateQueryPartValueUndrscr, false => naming::domain_types::VSnakeCase, true => quote::quote! {_});
+pg_crud_macros_common_macros::bool_enum_to_tokens!(SelectQueryPartValueUndrscr, false => naming::domain_types::VSnakeCase, true => quote::quote! {_});
 pg_crud_macros_common_macros::bool_enum_to_tokens!(UpdateQueryPartAccumulatorUndrscr, false => quote::quote! {update_accumulator}, true => quote::quote! {_});
 pg_crud_macros_common_macros::bool_enum_to_tokens!(UpdateQueryPartPathUndrscr, false => quote::quote! {update_path}, true => quote::quote! {_});
 pg_crud_macros_common_macros::bool_enum_to_tokens!(UpdateQueryPartTargetUndrscr, false => quote::quote! {update_target}, true => quote::quote! {_});
-pg_crud_macros_common_macros::bool_enum_to_tokens!(UpdateQueryPartValueUndrscr, false => naming::VSnakeCase, true => quote::quote! {_});
+pg_crud_macros_common_macros::bool_enum_to_tokens!(UpdateQueryPartValueUndrscr, false => naming::domain_types::VSnakeCase, true => quote::quote! {_});
 pub fn generate_pg_type_where_token_stream<T>(
     attrs_token_stream: &dyn quote::ToTokens,
     variants: &[T],
@@ -566,7 +584,7 @@ where
         &names.QuerySnakeCase,
         &names.VSnakeCase,
     );
-    let identifier = naming::parameter::SelfWhereUpperCamelCase::from_tokens(&prefix);
+    let identifier = naming::domain_types::parameter::SelfWhereUpperCamelCase::from_tokens(&prefix);
     let pg_type_tokens_where_token_stream = {
         let vrts_token_stream = variants.iter().map(|element| {
             let element_upper_camel_case = element.ucc();
@@ -746,14 +764,17 @@ pub fn generate_dimension_number_pagination_token_stream(
 }
 pub fn generate_struct_identifier_double_quoted_token_stream(
     v: &dyn std::fmt::Display,
-) -> generate_quotes::ProcMacro2QuotedLiteralTokenStream {
-    generate_quotes::dq_token_stream(&format!("struct {v}"))
+) -> generate_quotes::domain_types::ProcMacro2QuotedLiteralTokenStream {
+    generate_quotes::domain_types::dq_token_stream(&format!("struct {v}"))
 }
 pub fn generate_struct_identifier_with_number_els_double_quoted_token_stream(
-    identifier: &dyn naming::DisplayPlusToTokens,
+    identifier: &dyn naming::domain_types::DisplayPlusToTokens,
     len: StructElsLen,
-) -> generate_quotes::ProcMacro2QuotedLiteralTokenStream {
-    generate_quotes::dq_token_stream(&format!("struct {identifier} with {} els", len.get()))
+) -> generate_quotes::domain_types::ProcMacro2QuotedLiteralTokenStream {
+    generate_quotes::domain_types::dq_token_stream(&format!(
+        "struct {identifier} with {} els",
+        len.get()
+    ))
 }
 pub fn generate_sqlx_types_json_type_declaration_token_stream(
     type_token_stream: &dyn quote::ToTokens,
@@ -771,12 +792,12 @@ pub fn generate_vec_tokens_declaration_token_stream(
     quote::quote! {Vec<#type_token_stream>}.into()
 }
 pub fn generate_de_double_quoted_token_stream(
-    identifier: &dyn naming::DisplayPlusToTokens,
+    identifier: &dyn naming::domain_types::DisplayPlusToTokens,
     len: DeLen,
 ) -> (
-    generate_quotes::ProcMacro2QuotedLiteralTokenStream,
-    generate_quotes::ProcMacro2QuotedLiteralTokenStream,
-    generate_quotes::ProcMacro2QuotedLiteralTokenStream,
+    generate_quotes::domain_types::ProcMacro2QuotedLiteralTokenStream,
+    generate_quotes::domain_types::ProcMacro2QuotedLiteralTokenStream,
+    generate_quotes::domain_types::ProcMacro2QuotedLiteralTokenStream,
 ) {
     let struct_pg_type_identifier_where_tokens_double_quoted_token_stream =
         generate_struct_identifier_double_quoted_token_stream(identifier);
@@ -786,7 +807,7 @@ pub fn generate_de_double_quoted_token_stream(
             StructElsLen::from(len.get()),
         );
     let pg_type_identifier_where_tokens_double_quoted_token_stream =
-        generate_quotes::dq_token_stream(&identifier);
+        generate_quotes::domain_types::dq_token_stream(&identifier);
     (
         struct_pg_type_identifier_where_tokens_double_quoted_token_stream,
         struct_pg_type_identifier_where_tokens_with_number_els_double_quoted_token_stream,
@@ -1244,12 +1265,13 @@ pub fn generate_impl_pg_type_not_primary_key_for_identifier_token_stream(
     identifier: &dyn quote::ToTokens,
 ) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     let identifier_create_upper_camel_case =
-        naming::parameter::SelfCreateUpperCamelCase::from_tokens(&identifier);
+        naming::domain_types::parameter::SelfCreateUpperCamelCase::from_tokens(&identifier);
     let allow_clippy_arbitrary_src_item_ordering =
         token_patterns::AllowClippyArbitrarySrcItemOrdering;
-    let pg_type_not_primary_key_upper_camel_case = naming::PgTypeNotPrimaryKeyUpperCamelCase;
-    let pg_type_upper_camel_case = naming::PgTypeUpperCamelCase;
-    let create_upper_camel_case = naming::CreateUpperCamelCase;
+    let pg_type_not_primary_key_upper_camel_case =
+        naming::domain_types::PgTypeNotPrimaryKeyUpperCamelCase;
+    let pg_type_upper_camel_case = naming::domain_types::PgTypeUpperCamelCase;
+    let create_upper_camel_case = naming::domain_types::CreateUpperCamelCase;
     quote::quote! {
         #allow_clippy_arbitrary_src_item_ordering
         impl #import::#pg_type_not_primary_key_upper_camel_case for #identifier {
@@ -1290,7 +1312,7 @@ pub fn generate_match_try_new_in_de_token_stream(
     .into()
 }
 pub fn generate_impl_de_for_struct_token_stream(
-    identifier: &dyn naming::DisplayPlusToTokens,
+    identifier: &dyn naming::domain_types::DisplayPlusToTokens,
     vec_identifier_type: SynIdentifierTypeRefs<'_>,
     _len: DeLen,
     generate_type_token_stream: &dyn Fn(
@@ -1335,7 +1357,7 @@ pub fn generate_impl_de_for_struct_token_stream(
     }.into()
 }
 pub fn generate_impl_de_for_struct_by_fields_token_stream(
-    identifier: &dyn naming::DisplayPlusToTokens,
+    identifier: &dyn naming::domain_types::DisplayPlusToTokens,
     fields: SynFieldRefs<'_>,
     _len: DeLen,
     generate_type_token_stream: &dyn Fn(

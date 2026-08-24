@@ -1,4 +1,5 @@
 const FIRST_IDENT_MAX_LEN: usize = 1_048_576;
+const COLLECTION_MAX_LEN: usize = 10_000usize;
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy)]
 pub struct SynDeriveInputRef<'input_lt>(&'input_lt syn::DeriveInput);
 impl<'input_lt> From<&'input_lt syn::DeriveInput> for SynDeriveInputRef<'input_lt> {
@@ -74,7 +75,7 @@ impl<'shape_lt> TryFrom<&'shape_lt syn::DeriveInput> for SynStructShapeRef<'shap
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[must_use]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct ProcMacro2MacroTokens(Vec<proc_macro2::TokenTree>);
 impl From<proc_macro2::TokenStream> for ProcMacro2MacroTokens {
     fn from(value: proc_macro2::TokenStream) -> Self {
@@ -140,11 +141,19 @@ impl syn::parse::Parse for ProcMacro2MacroTokens {
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[must_use]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct ProcMacro2TopLevelCommaParts(Vec<proc_macro2::TokenStream>);
-impl From<Vec<proc_macro2::TokenStream>> for ProcMacro2TopLevelCommaParts {
-    fn from(value: Vec<proc_macro2::TokenStream>) -> Self {
-        Self(value)
+impl TryFrom<Vec<proc_macro2::TokenStream>> for ProcMacro2TopLevelCommaParts {
+    type Error = syn::Error;
+    fn try_from(value: Vec<proc_macro2::TokenStream>) -> Result<Self, Self::Error> {
+        if value.len() > COLLECTION_MAX_LEN {
+            Err(syn::Error::new(
+                proc_macro2::Span::call_site(),
+                stringify!(e54c7219 too many top-level comma parts),
+            ))
+        } else {
+            Ok(Self(value))
+        }
     }
 }
 impl std::ops::Deref for ProcMacro2TopLevelCommaParts {
@@ -174,7 +183,7 @@ impl syn::parse::Parse for ProcMacro2TopLevelCommaParts {
             .into_iter()
             .map(|part| part.0.into_inner())
             .collect::<Vec<_>>();
-        Ok(Self::from(parts))
+        Self::try_from(parts)
     }
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
@@ -259,9 +268,9 @@ impl std::fmt::Display for FirstIdentifierifierTryFromStringError {
     }
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone)]
-pub struct StdUniqueOptionSet<OptionValue>(std::collections::BTreeSet<OptionValue>);
+pub struct UniqueOptionBTreeSet<OptionValue>(std::collections::BTreeSet<OptionValue>);
 impl<OptionValue> From<std::collections::BTreeSet<OptionValue>>
-    for StdUniqueOptionSet<OptionValue>
+    for UniqueOptionBTreeSet<OptionValue>
 {
     fn from(value: std::collections::BTreeSet<OptionValue>) -> Self {
         Self(value)
@@ -293,12 +302,12 @@ impl StdUniqueOptionSetIsEmpty {
         self.0
     }
 }
-impl<OptionValue> Default for StdUniqueOptionSet<OptionValue> {
+impl<OptionValue> Default for UniqueOptionBTreeSet<OptionValue> {
     fn default() -> Self {
         Self::from(std::collections::BTreeSet::new())
     }
 }
-impl<OptionValue> StdUniqueOptionSet<OptionValue>
+impl<OptionValue> UniqueOptionBTreeSet<OptionValue>
 where
     OptionValue: Copy + Ord,
 {
@@ -359,8 +368,7 @@ pub fn split_top_level_commas<T>(input: T) -> ProcMacro2TopLevelCommaParts
 where
     T: Into<ProcMacro2MacroTokens>,
 {
-    syn::parse2::<ProcMacro2TopLevelCommaParts>(input.into().into_inner())
-        .unwrap_or_else(|_| ProcMacro2TopLevelCommaParts::from(Vec::new()))
+    syn::parse2::<ProcMacro2TopLevelCommaParts>(input.into().into_inner()).unwrap_or_default()
 }
 pub fn first_identifier<I>(input: &mut I) -> Option<FirstIdentifier>
 where
@@ -537,7 +545,7 @@ mod tests {
     }
     #[test]
     fn unique_option_set_preserves_first_span_aware_error() {
-        let mut values = super::StdUniqueOptionSet::default();
+        let mut values = super::UniqueOptionBTreeSet::default();
         values
             .try_insert_with(1u8, || {
                 syn::Error::new(proc_macro2::Span::call_site(), constants_str::FIRST_ALT)

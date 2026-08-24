@@ -23,6 +23,7 @@ sqlx = { workspace = true }
 constants_str = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }
+tracing = { workspace = true }
 
 [lints]
 workspace = true

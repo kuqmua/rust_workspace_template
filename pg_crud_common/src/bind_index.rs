@@ -9,14 +9,9 @@
     optimal_memory_layout::OptimalMemoryLayout,
     newtype::Display,
     newtype::FromInner,
+    newtype::GetInner,
 )]
 pub struct QueryPartIncrement(u64);
-impl QueryPartIncrement {
-    #[must_use]
-    pub const fn get(self) -> u64 {
-        self.0
-    }
-}
 pub trait QueryPartIncrementMut {
     fn checked_add_one(&mut self) -> Option<QueryPartIncrement>;
 }

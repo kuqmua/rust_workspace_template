@@ -32,8 +32,8 @@ pub struct SerdeJsonOpenApiSerializationError(serde_json::Error);
 pub struct RuntimeRoutesRef<'value_lt>(&'value_lt [frontend_contract::RouteMetadata]);
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
-struct StdOpenApiSchemaReferences(std::collections::BTreeSet<OpenApiContractText>);
-impl StdOpenApiSchemaReferences {
+struct OpenApiSchemaReferencesBTreeSet(std::collections::BTreeSet<OpenApiContractText>);
+impl OpenApiSchemaReferencesBTreeSet {
     fn validate<Document>(&self, document: &Document) -> Result<(), OpenApiValidationError>
     where
         Document: serde::Serialize,
@@ -165,7 +165,7 @@ pub enum OpenApiPayloadValidationError {
 
 fn openapi_schema_references(
     document: &impl serde::Serialize,
-) -> Result<StdOpenApiSchemaReferences, OpenApiValidationError> {
+) -> Result<OpenApiSchemaReferencesBTreeSet, OpenApiValidationError> {
     let document_value = serde_json::to_value(document).map_err(|error| {
         OpenApiValidationError::DocumentSerialization(SerdeJsonOpenApiSerializationError::from(
             error,
@@ -202,7 +202,7 @@ fn openapi_schema_references(
             | serde_json::Value::String(_) => {}
         }
     }
-    Ok(StdOpenApiSchemaReferences::from(references))
+    Ok(OpenApiSchemaReferencesBTreeSet::from(references))
 }
 
 pub fn validate_openapi_schema_references<Document>(

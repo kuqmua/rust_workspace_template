@@ -22,8 +22,8 @@ pub enum Order {
 impl std::fmt::Display for Order {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Asc => write!(f, "{}", naming::AscUpperCamelCase),
-            Self::Desc => write!(f, "{}", naming::DescUpperCamelCase),
+            Self::Asc => write!(f, "{}", naming::domain_types::AscUpperCamelCase),
+            Self::Desc => write!(f, "{}", naming::domain_types::DescUpperCamelCase),
         }
     }
 }
@@ -77,13 +77,17 @@ impl TryFrom<String> for OrderUpperCamelCaseStr {
 impl Order {
     #[must_use]
     pub fn to_snake_case_str(&self) -> OrderSnakeCaseStr {
-        OrderSnakeCaseStr::try_from(naming_common::DisplayToSnakeCaseStr::case(self))
-            .unwrap_or_else(OrderSnakeCaseStr::from)
+        OrderSnakeCaseStr::try_from(naming_common::domain_types::DisplayToSnakeCaseStr::case(
+            self,
+        ))
+        .unwrap_or_else(OrderSnakeCaseStr::from)
     }
     #[must_use]
     pub fn to_upper_camel_case_str(&self) -> OrderUpperCamelCaseStr {
-        OrderUpperCamelCaseStr::try_from(naming_common::DisplayToUpperCamelCaseStr::case(self))
-            .unwrap_or_else(OrderUpperCamelCaseStr::from)
+        OrderUpperCamelCaseStr::try_from(
+            naming_common::domain_types::DisplayToUpperCamelCaseStr::case(self),
+        )
+        .unwrap_or_else(OrderUpperCamelCaseStr::from)
     }
 }
 #[derive(

@@ -198,7 +198,7 @@ pub struct AdminAuthSvcState {
     issuer: config_lib::AdminTokenIssuer,
     password_hasher: super::AdminPasswordHasher,
     policy: AdminAuthPolicy,
-    pool: app_state::SqlxPgPool,
+    pool: app_state::domain_types::SqlxPgPool,
     refresh_ttl: StdAdminRefreshTtlSeconds,
     session_limit: StdAdminSessionLimit,
     cookie_secure: super::AdminCookieSecure,
@@ -210,7 +210,7 @@ pub struct AdminAuthSvcState {
     newtype::AsRefOwned,
     newtype::FromInner,
 )]
-pub struct StdSharedAdminAuthSvcState(std::sync::Arc<AdminAuthSvcState>);
+pub struct SharedAdminAuthSvcStateArc(std::sync::Arc<AdminAuthSvcState>);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, thiserror::Error)]
 pub enum AdminAuthSvcStateBuildError {
     #[error("administrator allowed origin is invalid")]
@@ -361,13 +361,13 @@ pub struct HttpAdminHeaderMap(http::HeaderMap);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone)]
 pub(crate) struct AdminAuthReq {
     headers: HttpAdminHeaderMap,
-    state: StdSharedAdminAuthSvcState,
+    state: SharedAdminAuthSvcStateArc,
     peer: AdminPeerAddr,
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
-pub(crate) struct AdminPeerAddr(super::StdAdminSocketAddr);
+pub(crate) struct AdminPeerAddr(super::AdminSocketAddr);
 impl AdminPeerAddr {
-    pub(crate) const fn socket_addr(self) -> super::StdAdminSocketAddr {
+    pub(crate) const fn socket_addr(self) -> super::AdminSocketAddr {
         self.0
     }
 }
@@ -384,7 +384,7 @@ where
             parts
                 .extensions
                 .get::<axum::extract::ConnectInfo<std::net::SocketAddr>>()
-                .map(|value| Self::from(super::StdAdminSocketAddr::from(value.0)))
+                .map(|value| Self::from(super::AdminSocketAddr::from(value.0)))
                 .ok_or(AdminError::Authentication),
         )
     }
@@ -413,11 +413,11 @@ where
         std::future::ready(Ok(Self::from(parts.headers.clone())))
     }
 }
-impl axum::extract::FromRequestParts<StdSharedAdminAuthSvcState> for AdminAuthReq {
+impl axum::extract::FromRequestParts<SharedAdminAuthSvcStateArc> for AdminAuthReq {
     type Rejection = AdminError;
     fn from_request_parts(
         parts: &mut http::request::Parts,
-        state: &StdSharedAdminAuthSvcState,
+        state: &SharedAdminAuthSvcStateArc,
     ) -> impl Future<Output = Result<Self, Self::Rejection>> {
         std::future::ready(
             parts
@@ -425,7 +425,7 @@ impl axum::extract::FromRequestParts<StdSharedAdminAuthSvcState> for AdminAuthRe
                 .get::<axum::extract::ConnectInfo<std::net::SocketAddr>>()
                 .map(|peer| Self {
                     headers: HttpAdminHeaderMap::from(parts.headers.clone()),
-                    peer: AdminPeerAddr::from(super::StdAdminSocketAddr::from(peer.0)),
+                    peer: AdminPeerAddr::from(super::AdminSocketAddr::from(peer.0)),
                     state: state.clone(),
                 })
                 .ok_or(AdminError::Authentication),
@@ -520,11 +520,11 @@ where
             .map_err(|_error| AdminError::Validation)
     }
 }
-impl axum::extract::FromRequestParts<StdSharedAdminAuthSvcState> for AdminSessionPath {
+impl axum::extract::FromRequestParts<SharedAdminAuthSvcStateArc> for AdminSessionPath {
     type Rejection = AdminError;
     async fn from_request_parts(
         parts: &mut http::request::Parts,
-        state: &StdSharedAdminAuthSvcState,
+        state: &SharedAdminAuthSvcStateArc,
     ) -> Result<Self, Self::Rejection> {
         axum::extract::Path::<uuid::Uuid>::from_request_parts(parts, state)
             .await
@@ -1140,25 +1140,25 @@ pub fn open_api() -> UtoipaAdminAuthOpenApi {
     routes::open_api()
 }
 #[must_use]
-pub fn routes(state: StdSharedAdminAuthSvcState) -> AxumAdminAuthRouter {
+pub fn routes(state: SharedAdminAuthSvcStateArc) -> AxumAdminAuthRouter {
     routes::routes(state)
 }
 #[must_use]
-pub fn html_routes(state: StdSharedAdminAuthSvcState) -> AxumAdminAuthRouter {
+pub fn html_routes(state: SharedAdminAuthSvcStateArc) -> AxumAdminAuthRouter {
     html::routes(state, AdminHtmlSwaggerEnabled::from(true))
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 pub struct AdminHtmlSwaggerEnabled(bool);
 #[must_use]
 pub fn html_routes_with_swagger(
-    state: StdSharedAdminAuthSvcState,
+    state: SharedAdminAuthSvcStateArc,
     swagger_enabled: AdminHtmlSwaggerEnabled,
 ) -> AxumAdminAuthRouter {
     html::routes(state, swagger_enabled)
 }
 impl AdminAuthSvcState {
     pub fn try_new(
-        pool: app_state::SqlxPgPool,
+        pool: app_state::domain_types::SqlxPgPool,
         jwt_secret: &config_lib::AdminJwtSecret,
         access_ttl: &config_lib::AdminAccessTokenTtlSeconds,
         refresh_ttl: &config_lib::AdminRefreshTokenTtlSeconds,
@@ -1206,7 +1206,7 @@ impl AdminAuthSvcState {
             ),
             issuer: issuer.clone(),
             password_hasher: super::AdminPasswordHasher::new(
-                super::AdminPasswordHashConcurrency::from(super::StdAdminNonZeroUsize::from(
+                super::AdminPasswordHashConcurrency::from(super::AdminNonZeroUsize::from(
                     std::num::NonZeroUsize::new(password_hash_concurrency.get())
                         .ok_or(AdminAuthSvcStateBuildError::PasswordHashConcurrency)?,
                 )),

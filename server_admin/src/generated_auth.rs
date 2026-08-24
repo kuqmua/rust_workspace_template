@@ -1,16 +1,16 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub struct AdminGeneratedAuthLayer {
-    state: crate::auth::StdSharedAdminAuthSvcState,
+    state: crate::auth::SharedAdminAuthSvcStateArc,
 }
-impl From<crate::auth::StdSharedAdminAuthSvcState> for AdminGeneratedAuthLayer {
-    fn from(value: crate::auth::StdSharedAdminAuthSvcState) -> Self {
+impl From<crate::auth::SharedAdminAuthSvcStateArc> for AdminGeneratedAuthLayer {
+    fn from(value: crate::auth::SharedAdminAuthSvcStateArc) -> Self {
         Self { state: value }
     }
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub struct AdminGeneratedAuthService<Service> {
     inner: Service,
-    state: crate::auth::StdSharedAdminAuthSvcState,
+    state: crate::auth::SharedAdminAuthSvcStateArc,
 }
 impl<Service> tower::Layer<Service> for AdminGeneratedAuthLayer {
     type Service = AdminGeneratedAuthService<Service>;
@@ -90,9 +90,7 @@ where
             let Some(peer) = req
                 .extensions()
                 .get::<axum::extract::ConnectInfo<std::net::SocketAddr>>()
-                .map(|peer| {
-                    crate::auth::AdminPeerAddr::from(crate::StdAdminSocketAddr::from(peer.0))
-                })
+                .map(|peer| crate::auth::AdminPeerAddr::from(crate::AdminSocketAddr::from(peer.0)))
             else {
                 return Ok(axum::response::IntoResponse::into_response(
                     crate::auth::AdminError::Authentication,

@@ -38,7 +38,7 @@ mod tests {
             super::super::AdminAuditAction::Update.as_str(),
         ];
         assert_eq!(
-            actual.map(server_admin_core::StdAdminStrRef::get),
+            actual.map(server_admin_core::domain_types::StdAdminStrRef::get),
             [
                 constants_str::PG_CRUD_CREATE_PERMISSION_ACTION,
                 constants_str::PG_CRUD_DELETE_PERMISSION_ACTION,
@@ -61,7 +61,7 @@ mod tests {
             super::super::AdminAuditResource::User.as_str(),
         ];
         assert_eq!(
-            actual.map(server_admin_core::StdAdminStrRef::get),
+            actual.map(server_admin_core::domain_types::StdAdminStrRef::get),
             [
                 constants_str::AUDIT_LOG_ALT,
                 constants_str::PERMISSION,

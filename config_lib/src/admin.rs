@@ -9,7 +9,7 @@
     newtype::DerefInner,
     newtype::FromInner,
 )]
-pub struct AdminAccessTokenTtlSeconds(super::StdNonZeroU64);
+pub struct AdminAccessTokenTtlSeconds(super::ConfigNonZeroU64);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -21,7 +21,7 @@ pub struct AdminAccessTokenTtlSeconds(super::StdNonZeroU64);
     newtype::DerefInner,
     newtype::FromInner,
 )]
-pub struct AdminRefreshTokenTtlSeconds(super::StdNonZeroU64);
+pub struct AdminRefreshTokenTtlSeconds(super::ConfigNonZeroU64);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -33,7 +33,7 @@ pub struct AdminRefreshTokenTtlSeconds(super::StdNonZeroU64);
     newtype::DerefInner,
     newtype::FromInner,
 )]
-pub struct AdminLoginFailureLimit(super::StdNonZeroU64);
+pub struct AdminLoginFailureLimit(super::ConfigNonZeroU64);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -45,7 +45,7 @@ pub struct AdminLoginFailureLimit(super::StdNonZeroU64);
     newtype::DerefInner,
     newtype::FromInner,
 )]
-pub struct AdminSignInRateLimit(super::StdNonZeroU64);
+pub struct AdminSignInRateLimit(super::ConfigNonZeroU64);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -57,11 +57,11 @@ pub struct AdminSignInRateLimit(super::StdNonZeroU64);
     newtype::DerefInner,
     newtype::FromInner,
 )]
-pub struct AdminSessionLimit(super::StdNonZeroUsize);
+pub struct AdminSessionLimit(super::ConfigNonZeroUsize);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, newtype::DebugTransparent, newtype::FromInner,
 )]
-pub struct AdminPositiveU64ParsingError(super::StdParseIntError);
+pub struct AdminPositiveU64ParsingError(super::ParseIntError);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum TryFromStdEnvVarOkAdminPositiveU64Error {
     #[error("administrator duration must be greater than zero")]
@@ -73,16 +73,16 @@ pub enum TryFromStdEnvVarOkAdminPositiveU64Error {
 }
 fn parse_admin_positive_u64(
     v: &super::StdEnvVarOk,
-) -> Result<super::StdNonZeroU64, TryFromStdEnvVarOkAdminPositiveU64Error> {
+) -> Result<super::ConfigNonZeroU64, TryFromStdEnvVarOkAdminPositiveU64Error> {
     let parsed = v.0.parse::<u64>().map_err(|admin_positive_u64_parsing| {
         TryFromStdEnvVarOkAdminPositiveU64Error::Parse {
             admin_positive_u64_parsing: AdminPositiveU64ParsingError::from(
-                super::StdParseIntError::from(admin_positive_u64_parsing),
+                super::ParseIntError::from(admin_positive_u64_parsing),
             ),
         }
     })?;
     std::num::NonZeroU64::new(parsed)
-        .map(super::StdNonZeroU64::from)
+        .map(super::ConfigNonZeroU64::from)
         .ok_or(TryFromStdEnvVarOkAdminPositiveU64Error::IsZero)
 }
 impl super::TryFromStdEnvVarOk for AdminAccessTokenTtlSeconds {
@@ -116,7 +116,7 @@ impl super::TryFromStdEnvVarOk for AdminSessionLimit {
         usize::try_from(value.0.get())
             .ok()
             .and_then(std::num::NonZeroUsize::new)
-            .map(super::StdNonZeroUsize::from)
+            .map(super::ConfigNonZeroUsize::from)
             .map(Self)
             .ok_or(TryFromStdEnvVarOkAdminPositiveU64Error::IsZero)
     }
@@ -132,11 +132,11 @@ impl super::TryFromStdEnvVarOk for AdminSessionLimit {
     newtype::DerefInner,
     newtype::FromInner,
 )]
-pub struct AdminPasswordHashConcurrency(super::StdNonZeroUsize);
+pub struct AdminPasswordHashConcurrency(super::ConfigNonZeroUsize);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, newtype::DebugTransparent, newtype::FromInner,
 )]
-pub struct AdminPositiveUsizeParsingError(super::StdParseIntError);
+pub struct AdminPositiveUsizeParsingError(super::ParseIntError);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum TryFromStdEnvVarOkAdminPasswordHashConcurrencyError {
     #[error("administrator password hash concurrency must be greater than zero")]
@@ -153,11 +153,11 @@ impl super::TryFromStdEnvVarOk for AdminPasswordHashConcurrency {
             v.0.parse::<usize>()
                 .map_err(|admin_positive_usize_parsing| Self::Error::Parse {
                     admin_positive_usize_parsing: AdminPositiveUsizeParsingError::from(
-                        super::StdParseIntError::from(admin_positive_usize_parsing),
+                        super::ParseIntError::from(admin_positive_usize_parsing),
                     ),
                 })?;
         std::num::NonZeroUsize::new(parsed)
-            .map(super::StdNonZeroUsize::from)
+            .map(super::ConfigNonZeroUsize::from)
             .map(Self)
             .ok_or(Self::Error::IsZero)
     }

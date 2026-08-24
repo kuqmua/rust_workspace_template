@@ -319,6 +319,7 @@ pub trait ParameterizedRoute: TypedRoute {
     Eq,
     PartialEq,
     newtype::FromInner,
+    newtype::GetInner,
 )]
 pub struct RouteBodyLimit(usize);
 #[derive(
@@ -333,7 +334,11 @@ pub struct RouteBodyLimit(usize);
     newtype::IntoInnerFrom,
 )]
 pub struct RouteCoverageDescriptors(
-    bounded_types::BoundedVec<crate::RouteCoverageDescriptor, 0, { usize::MAX }>,
+    bounded_types::domain_types::vector::BoundedVec<
+        crate::RouteCoverageDescriptor,
+        0,
+        { usize::MAX },
+    >,
 );
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
@@ -344,7 +349,9 @@ pub struct RouteCoverageDescriptors(
     newtype::FromInner,
     newtype::IntoInnerFrom,
 )]
-pub struct RouteSchemaContracts(bounded_types::BoundedVec<RouteSchemaContract, 0, { usize::MAX }>);
+pub struct RouteSchemaContracts(
+    bounded_types::domain_types::vector::BoundedVec<RouteSchemaContract, 0, { usize::MAX }>,
+);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -356,20 +363,28 @@ pub struct RouteSchemaContracts(bounded_types::BoundedVec<RouteSchemaContract, 0
     newtype::FromInner,
     newtype::IntoInnerFrom,
 )]
-pub struct RouteMetadataList(bounded_types::BoundedVec<RouteMetadata, 0, { usize::MAX }>);
-impl From<Vec<crate::RouteCoverageDescriptor>> for RouteCoverageDescriptors {
-    fn from(value: Vec<crate::RouteCoverageDescriptor>) -> Self {
-        Self::from(bounded_types::BoundedVec::from_max_iter(value))
+pub struct RouteMetadataList(
+    bounded_types::domain_types::vector::BoundedVec<RouteMetadata, 0, { usize::MAX }>,
+);
+impl TryFrom<Vec<crate::RouteCoverageDescriptor>> for RouteCoverageDescriptors {
+    type Error = bounded_types::domain_types::BoundedValueError;
+    fn try_from(value: Vec<crate::RouteCoverageDescriptor>) -> Result<Self, Self::Error> {
+        bounded_types::domain_types::vector::BoundedVec::try_from_collection_vec(value)
+            .map(Self::from)
     }
 }
-impl From<Vec<RouteSchemaContract>> for RouteSchemaContracts {
-    fn from(value: Vec<RouteSchemaContract>) -> Self {
-        Self::from(bounded_types::BoundedVec::from_max_iter(value))
+impl TryFrom<Vec<RouteSchemaContract>> for RouteSchemaContracts {
+    type Error = bounded_types::domain_types::BoundedValueError;
+    fn try_from(value: Vec<RouteSchemaContract>) -> Result<Self, Self::Error> {
+        bounded_types::domain_types::vector::BoundedVec::try_from_collection_vec(value)
+            .map(Self::from)
     }
 }
-impl From<Vec<RouteMetadata>> for RouteMetadataList {
-    fn from(value: Vec<RouteMetadata>) -> Self {
-        Self::from(bounded_types::BoundedVec::from_max_iter(value))
+impl TryFrom<Vec<RouteMetadata>> for RouteMetadataList {
+    type Error = bounded_types::domain_types::BoundedValueError;
+    fn try_from(value: Vec<RouteMetadata>) -> Result<Self, Self::Error> {
+        bounded_types::domain_types::vector::BoundedVec::try_from_collection_vec(value)
+            .map(Self::from)
     }
 }
 impl RouteCoverageDescriptors {
@@ -378,7 +393,7 @@ impl RouteCoverageDescriptors {
     where
         Values: IntoIterator<Item = crate::RouteCoverageDescriptor>,
     {
-        Self::from(bounded_types::BoundedVec::from_max_iter(values))
+        Self::from(bounded_types::domain_types::vector::BoundedVec::from_max_iter(values))
     }
 }
 impl RouteSchemaContracts {
@@ -387,13 +402,7 @@ impl RouteSchemaContracts {
     where
         Values: IntoIterator<Item = RouteSchemaContract>,
     {
-        Self::from(bounded_types::BoundedVec::from_max_iter(values))
-    }
-}
-impl RouteBodyLimit {
-    #[must_use]
-    pub const fn get(self) -> usize {
-        self.0
+        Self::from(bounded_types::domain_types::vector::BoundedVec::from_max_iter(values))
     }
 }
 pub trait RouteFamily {
@@ -408,11 +417,13 @@ pub trait RouteFamily {
         RouteSchemaContracts::default()
     }
     fn route_metadata() -> RouteMetadataList {
-        RouteMetadataList::from(bounded_types::BoundedVec::from_max_iter(
-            bounded_types::BoundedVec::from(Self::coverage_descriptors())
-                .into_iter()
-                .map(crate::RouteCoverageDescriptor::metadata),
-        ))
+        RouteMetadataList::from(
+            bounded_types::domain_types::vector::BoundedVec::from_max_iter(
+                bounded_types::domain_types::vector::BoundedVec::from(Self::coverage_descriptors())
+                    .into_iter()
+                    .map(crate::RouteCoverageDescriptor::metadata),
+            ),
+        )
     }
 }
 pub trait RouteInFamily<Family>

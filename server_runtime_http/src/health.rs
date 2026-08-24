@@ -7,7 +7,7 @@
     PartialEq,
     newtype::FromInner,
 )]
-pub struct StdHealthProbeTimeout(std::time::Duration);
+pub struct HealthProbeTimeoutDuration(std::time::Duration);
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
@@ -69,16 +69,16 @@ impl axum::response::IntoResponse for HealthReadyError {
     }
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, newtype::FromInner)]
-struct StdSharedHealthReadiness(std::sync::Arc<std::sync::atomic::AtomicBool>);
+struct SharedHealthReadinessArc(std::sync::Arc<std::sync::atomic::AtomicBool>);
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub struct HealthReadiness {
-    shared: StdSharedHealthReadiness,
+    shared: SharedHealthReadinessArc,
 }
 impl Default for HealthReadiness {
     fn default() -> Self {
         Self {
-            shared: StdSharedHealthReadiness::from(std::sync::Arc::from(
+            shared: SharedHealthReadinessArc::from(std::sync::Arc::from(
                 std::sync::atomic::AtomicBool::new(false),
             )),
         }
@@ -138,7 +138,7 @@ pub fn add_health_routes(
     )
 }
 pub async fn run_health_probe<Probe>(
-    timeout: StdHealthProbeTimeout,
+    timeout: HealthProbeTimeoutDuration,
     probe: Probe,
 ) -> HealthProbeSucceeded
 where
@@ -153,7 +153,7 @@ where
 mod tests {
     #[tokio::test(start_paused = true)]
     async fn probe_distinguishes_success_failure_and_timeout() {
-        let timeout = super::StdHealthProbeTimeout::from(std::time::Duration::from_secs(1u64));
+        let timeout = super::HealthProbeTimeoutDuration::from(std::time::Duration::from_secs(1u64));
         assert!(bool::from(
             super::run_health_probe(timeout, async { true }).await
         ));

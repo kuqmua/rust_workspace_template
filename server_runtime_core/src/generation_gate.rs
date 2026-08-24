@@ -17,7 +17,7 @@ pub enum GenerationCommit {
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Default)]
 pub struct GenerationGate {
-    current: StdGenerationAtomicU64,
+    current: GenerationAtomicU64,
 }
 impl GenerationGate {
     #[must_use]
@@ -41,7 +41,7 @@ impl GenerationGate {
 }
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Default, newtype::FromInner)]
-struct StdGenerationAtomicU64(std::sync::atomic::AtomicU64);
+struct GenerationAtomicU64(std::sync::atomic::AtomicU64);
 
 #[cfg(test)]
 mod tests {

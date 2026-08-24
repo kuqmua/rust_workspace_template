@@ -5,7 +5,7 @@ async fn shutdown_signal() {
 }
 
 pub(super) async fn run(
-    config: notification_service_config::Config,
+    config: notification_service_config::domain_types::Config,
 ) -> Result<(), super::NotificationServiceError> {
     let metrics = metrics_exporter_prometheus::PrometheusBuilder::new()
         .install_recorder()
@@ -29,19 +29,19 @@ pub(super) async fn run(
     let listener = tokio::net::TcpListener::bind(config.notification_service_socket_address().0)
         .await
         .map_err(|error| {
-            super::NotificationServiceError::Socket(super::StdNotificationIoError::from(error))
+            super::NotificationServiceError::Socket(super::NotificationIoError::from(error))
         })?;
     let actual_service_socket_address = listener.local_addr().map_err(|error| {
-        super::NotificationServiceError::Socket(super::StdNotificationIoError::from(error))
+        super::NotificationServiceError::Socket(super::NotificationIoError::from(error))
     })?;
-    let timeout = server_runtime_http::StdRequestTimeout::try_from(std::time::Duration::from_secs(
-        config.request_timeout_seconds().get(),
-    ))
+    let timeout = server_runtime_http::RequestTimeoutDuration::try_from(
+        std::time::Duration::from_secs(config.request_timeout_seconds().get()),
+    )
     .map_err(|_error| super::NotificationServiceError::Timeout)?;
     let service_router = server_runtime_http::RequestIdLayer::with_span_config(
         server_runtime_http::HttpRequestSpanConfig::new(
             server_runtime_http::ServiceName::from(env!("CARGO_PKG_NAME")),
-            server_runtime_http::StdSocketAddr::from(actual_service_socket_address),
+            server_runtime_http::ClientSocketAddr::from(actual_service_socket_address),
             server_runtime_http::TrustedProxyRanges::default(),
         ),
     )
@@ -55,11 +55,11 @@ pub(super) async fn run(
                     super::routes::router(
                         super::NotificationState {
                             metrics,
-                            pool: app_state::SqlxPgPool::from(pool),
-                            project_git_info: git_info::project_git_info(),
+                            pool: app_state::domain_types::SqlxPgPool::from(pool),
+                            project_git_info: git_info::domain_types::project_git_info(),
                         },
                         super::NotificationBodyMaximumBytes::from(
-                            notification_service_contract::NOTIFICATION_API_BODY_MAX_BYTES,
+                            notification_service_contract::domain_types::NOTIFICATION_API_BODY_MAX_BYTES,
                         ),
                     )
                     .0,
@@ -80,7 +80,7 @@ pub(super) async fn run(
 }
 
 pub(super) async fn migrate_notification(
-    config: &notification_service_config::Config,
+    config: &notification_service_config::domain_types::Config,
 ) -> Result<(), super::NotificationServiceError> {
     let pool = sqlx::postgres::PgPoolOptions::new()
         .max_connections(**config.pg_pool_max_connections())

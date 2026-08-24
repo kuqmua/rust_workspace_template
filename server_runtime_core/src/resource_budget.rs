@@ -12,7 +12,7 @@ pub struct ResourceBudgetMaximum(usize);
 pub struct ResourceBudgetAmount(usize);
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, newtype::FromInner)]
-struct StdSharedAtomicUsize(std::sync::Arc<std::sync::atomic::AtomicUsize>);
+struct SharedAtomicUsizeArc(std::sync::Arc<std::sync::atomic::AtomicUsize>);
 
 impl TryFrom<usize> for ResourceBudgetMaximum {
     type Error = ResourceBudgetConfigError;
@@ -37,7 +37,7 @@ pub struct ResourceBudgetConfigError;
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub struct ResourceBudget {
     maximum: ResourceBudgetMaximum,
-    reserved: StdSharedAtomicUsize,
+    reserved: SharedAtomicUsizeArc,
 }
 pub trait GetBulkItemResourceBudget {
     fn get_bulk_item_resource_budget(&self) -> &ResourceBudget;
@@ -58,14 +58,14 @@ pub enum ResourceBudgetReserveError {
 #[must_use]
 pub struct ResourceBudgetReservation {
     amount: ResourceBudgetAmount,
-    reserved: StdSharedAtomicUsize,
+    reserved: SharedAtomicUsizeArc,
 }
 impl ResourceBudget {
     #[must_use]
     pub fn new(maximum: ResourceBudgetMaximum) -> Self {
         Self {
             maximum,
-            reserved: StdSharedAtomicUsize::from(std::sync::Arc::from(
+            reserved: SharedAtomicUsizeArc::from(std::sync::Arc::from(
                 std::sync::atomic::AtomicUsize::new(constants_usize::ZERO),
             )),
         }

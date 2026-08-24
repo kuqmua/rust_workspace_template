@@ -16,14 +16,9 @@ pub const ADMIN_ROLE_NAME_MIN_CHARS: usize = 1usize;
     Eq,
     PartialEq,
     newtype::FromInner,
+    newtype::GetInner,
 )]
 pub struct AdminApiBodyMaxBytes(usize);
-impl AdminApiBodyMaxBytes {
-    #[must_use]
-    pub const fn get(self) -> usize {
-        self.0
-    }
-}
 pub(crate) const ADMIN_API_BODY_MAX_BYTES_VALUE: usize = 65_536usize;
 #[must_use]
 pub fn admin_api_body_max_bytes() -> AdminApiBodyMaxBytes {
@@ -36,11 +31,11 @@ const ADMIN_LOGIN_IS_VALID: fn(&str) -> bool = |value| {
     })
 };
 const ADMIN_NEW_PASSWORD_IS_VALID: fn(&str) -> bool = |value| {
-    text_policy::validate_password_policy(
-        text_policy::PasswordTextRef::from(value),
-        text_policy::PasswordLengthRange::from_prevalidated(
-            text_policy::PasswordLength::from(ADMIN_NEW_PASSWORD_MIN_CHARS),
-            text_policy::PasswordLength::from(ADMIN_PASSWORD_MAX_CHARS),
+    text_policy::domain_types::validate_password_policy(
+        text_policy::domain_types::PasswordTextRef::from(value),
+        text_policy::domain_types::PasswordLengthRange::from_prevalidated(
+            text_policy::domain_types::PasswordLength::from(ADMIN_NEW_PASSWORD_MIN_CHARS),
+            text_policy::domain_types::PasswordLength::from(ADMIN_PASSWORD_MAX_CHARS),
         ),
     )
     .is_ok()
@@ -59,8 +54,8 @@ const ADMIN_NEW_PASSWORD_IS_VALID: fn(&str) -> bool = |value| {
     newtype::Display,
     newtype::FromInner,
 )]
-pub struct StdAdminPositiveI64(std::num::NonZeroI64);
-impl utoipa::PartialSchema for StdAdminPositiveI64 {
+pub struct PositiveNonZeroI64(std::num::NonZeroI64);
+impl utoipa::PartialSchema for PositiveNonZeroI64 {
     fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
         utoipa::openapi::ObjectBuilder::new()
             .schema_type(utoipa::openapi::schema::Type::Integer)
@@ -71,8 +66,8 @@ impl utoipa::PartialSchema for StdAdminPositiveI64 {
             .into()
     }
 }
-impl utoipa::ToSchema for StdAdminPositiveI64 {}
-impl TryFrom<i64> for StdAdminPositiveI64 {
+impl utoipa::ToSchema for PositiveNonZeroI64 {}
+impl TryFrom<i64> for PositiveNonZeroI64 {
     type Error = AdminIdTryFromI64Error;
     fn try_from(value: i64) -> Result<Self, Self::Error> {
         std::num::NonZeroI64::new(value)
@@ -81,7 +76,7 @@ impl TryFrom<i64> for StdAdminPositiveI64 {
             .ok_or(AdminIdTryFromI64Error)
     }
 }
-impl StdAdminPositiveI64 {
+impl PositiveNonZeroI64 {
     #[must_use]
     pub const fn get(self) -> i64 {
         self.0.get()
@@ -238,14 +233,9 @@ pub struct AdminPermissionValue(String);
     Eq,
     newtype::AsRefInner,
     newtype::FromInner,
+    newtype::GetInner,
 )]
 pub struct AdminPermissionStrRef<'value_lt>(&'value_lt str);
-impl<'value_lt> AdminPermissionStrRef<'value_lt> {
-    #[must_use]
-    pub const fn get(self) -> &'value_lt str {
-        self.0
-    }
-}
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -372,14 +362,9 @@ pub enum AdminDataTable {
     Eq,
     newtype::AsRefInner,
     newtype::FromInner,
+    newtype::GetInner,
 )]
 pub struct AdminDataTableStrRef<'value_lt>(&'value_lt str);
-impl<'value_lt> AdminDataTableStrRef<'value_lt> {
-    #[must_use]
-    pub const fn get(self) -> &'value_lt str {
-        self.0
-    }
-}
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -389,14 +374,9 @@ impl<'value_lt> AdminDataTableStrRef<'value_lt> {
     Eq,
     newtype::AsRefInner,
     newtype::FromInner,
+    newtype::GetInner,
 )]
 pub struct AdminDataColumnsCsvRef<'value_lt>(&'value_lt str);
-impl<'value_lt> AdminDataColumnsCsvRef<'value_lt> {
-    #[must_use]
-    pub const fn get(self) -> &'value_lt str {
-        self.0
-    }
-}
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -406,14 +386,9 @@ impl<'value_lt> AdminDataColumnsCsvRef<'value_lt> {
     Eq,
     newtype::AsRefInner,
     newtype::FromInner,
+    newtype::GetInner,
 )]
 pub struct AdminDataOrderRef<'value_lt>(&'value_lt str);
-impl<'value_lt> AdminDataOrderRef<'value_lt> {
-    #[must_use]
-    pub const fn get(self) -> &'value_lt str {
-        self.0
-    }
-}
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq)]
 pub struct AdminDataTableSpec {
     columns: AdminDataColumnsCsvRef<'static>,
@@ -910,11 +885,11 @@ impl AdminTableSortField {
 )]
 #[serde(try_from = "i64")]
 #[schema(value_type = i64)]
-pub struct AdminUserId(StdAdminPositiveI64);
+pub struct AdminUserId(PositiveNonZeroI64);
 impl TryFrom<i64> for AdminUserId {
     type Error = AdminIdTryFromI64Error;
     fn try_from(value: i64) -> Result<Self, Self::Error> {
-        StdAdminPositiveI64::try_from(value).map(Self)
+        PositiveNonZeroI64::try_from(value).map(Self)
     }
 }
 impl From<AdminUserId> for i64 {
@@ -924,7 +899,7 @@ impl From<AdminUserId> for i64 {
 }
 impl AdminUserId {
     #[must_use]
-    pub const fn value(self) -> StdAdminPositiveI64 {
+    pub const fn value(self) -> PositiveNonZeroI64 {
         self.0
     }
 }
@@ -944,11 +919,11 @@ impl AdminUserId {
 )]
 #[serde(try_from = "i64")]
 #[schema(value_type = i64)]
-pub struct AdminRoleId(StdAdminPositiveI64);
+pub struct AdminRoleId(PositiveNonZeroI64);
 impl TryFrom<i64> for AdminRoleId {
     type Error = AdminIdTryFromI64Error;
     fn try_from(value: i64) -> Result<Self, Self::Error> {
-        StdAdminPositiveI64::try_from(value).map(Self)
+        PositiveNonZeroI64::try_from(value).map(Self)
     }
 }
 impl From<AdminRoleId> for i64 {
@@ -958,7 +933,7 @@ impl From<AdminRoleId> for i64 {
 }
 impl AdminRoleId {
     #[must_use]
-    pub const fn value(self) -> StdAdminPositiveI64 {
+    pub const fn value(self) -> PositiveNonZeroI64 {
         self.0
     }
 }
@@ -978,11 +953,11 @@ impl AdminRoleId {
 )]
 #[serde(try_from = "i64")]
 #[schema(value_type = i64)]
-pub struct AdminPermissionId(StdAdminPositiveI64);
+pub struct AdminPermissionId(PositiveNonZeroI64);
 impl TryFrom<i64> for AdminPermissionId {
     type Error = AdminIdTryFromI64Error;
     fn try_from(value: i64) -> Result<Self, Self::Error> {
-        StdAdminPositiveI64::try_from(value).map(Self)
+        PositiveNonZeroI64::try_from(value).map(Self)
     }
 }
 impl From<AdminPermissionId> for i64 {
@@ -992,7 +967,7 @@ impl From<AdminPermissionId> for i64 {
 }
 impl AdminPermissionId {
     #[must_use]
-    pub const fn value(self) -> StdAdminPositiveI64 {
+    pub const fn value(self) -> PositiveNonZeroI64 {
         self.0
     }
 }
@@ -1011,11 +986,11 @@ impl AdminPermissionId {
 )]
 #[serde(try_from = "i64")]
 #[schema(value_type = i64)]
-pub struct AdminAuditLogId(StdAdminPositiveI64);
+pub struct AdminAuditLogId(PositiveNonZeroI64);
 impl TryFrom<i64> for AdminAuditLogId {
     type Error = AdminIdTryFromI64Error;
     fn try_from(value: i64) -> Result<Self, Self::Error> {
-        StdAdminPositiveI64::try_from(value).map(Self)
+        PositiveNonZeroI64::try_from(value).map(Self)
     }
 }
 impl From<AdminAuditLogId> for i64 {
@@ -1025,7 +1000,7 @@ impl From<AdminAuditLogId> for i64 {
 }
 impl AdminAuditLogId {
     #[must_use]
-    pub const fn value(self) -> StdAdminPositiveI64 {
+    pub const fn value(self) -> PositiveNonZeroI64 {
         self.0
     }
 }

@@ -642,40 +642,41 @@ fn source_modules_with_public_logic_own_unit_tests() {
     ]);
     super::snapshot::with_codebase_snapshot(|snapshot| {
         let mut matched = std::collections::BTreeSet::new();
-        let mut violations =
-            snapshot
-                .rs_files()
-                .iter()
-                .filter(|source_file| {
-                    !super::is_test_source_path(super::types::StdPathRef::from(
-                        std::borrow::Borrow::<std::path::Path>::borrow(source_file.path()),
-                    ))
-                    .get()
-                })
-                .filter_map(|source_file| {
-                    let public_logic = super::visit_syn_file(
-                        super::types::SynFileRef::from(source_file.ast().as_ref()),
-                        super::source_analysis::PublicLogicVisitor::default(),
-                    )
-                    .found
-                    .get();
-                    let owns_test = super::visit_syn_file(
-                        super::types::SynFileRef::from(source_file.ast().as_ref()),
-                        super::source_analysis::OwnedTestVisitor::default(),
-                    )
-                    .found
-                    .get();
-                    let path = source_file.path().as_ref().display().to_string();
-                    let reviewed = reviewed_without_local_tests.iter().any(|(suffix, reason)| {
-                        let matches = path.ends_with(*suffix) && !reason.is_empty();
-                        if matches {
-                            let _inserted = matched.insert((*suffix).to_owned());
-                        }
-                        matches
-                    });
-                    (public_logic && !owns_test && !reviewed).then_some(path)
-                })
-                .collect::<Vec<String>>();
+        let mut violations = snapshot
+            .rs_files()
+            .iter()
+            .filter(|source_file| {
+                !super::is_test_source_path(super::types::PathRef::from(std::borrow::Borrow::<
+                    std::path::Path,
+                >::borrow(
+                    source_file.path()
+                )))
+                .get()
+            })
+            .filter_map(|source_file| {
+                let public_logic = super::visit_syn_file(
+                    super::types::SynFileRef::from(source_file.ast().as_ref()),
+                    super::source_analysis::PublicLogicVisitor::default(),
+                )
+                .found
+                .get();
+                let owns_test = super::visit_syn_file(
+                    super::types::SynFileRef::from(source_file.ast().as_ref()),
+                    super::source_analysis::OwnedTestVisitor::default(),
+                )
+                .found
+                .get();
+                let path = source_file.path().as_ref().display().to_string();
+                let reviewed = reviewed_without_local_tests.iter().any(|(suffix, reason)| {
+                    let matches = path.ends_with(*suffix) && !reason.is_empty();
+                    if matches {
+                        let _inserted = matched.insert((*suffix).to_owned());
+                    }
+                    matches
+                });
+                (public_logic && !owns_test && !reviewed).then_some(path)
+            })
+            .collect::<Vec<String>>();
         if matched.len() != reviewed_without_local_tests.len() {
             violations.push(format!(
                 "stale public-logic test exceptions: matched={matched:#?}"
@@ -722,13 +723,13 @@ fn env_and_env_example_have_same_keys() {
     ));
     let mut ers = super::collect_missing_key_ers(
         super::types::SourceTextListRef::from(env_keys.as_slice()),
-        super::types::StdSourceTextRefSet::from(example_keys_set.as_ref()),
+        super::types::SourceTextRefHashSet::from(example_keys_set.as_ref()),
         super::types::StaticStr::from(constants_str::ENV),
         super::types::StaticStr::from(constants_str::ENV_EXAMPLE),
     );
     ers.extend(super::collect_missing_key_ers(
         super::types::SourceTextListRef::from(example_keys.as_slice()),
-        super::types::StdSourceTextRefSet::from(env_keys_set.as_ref()),
+        super::types::SourceTextRefHashSet::from(env_keys_set.as_ref()),
         super::types::StaticStr::from(constants_str::ENV_EXAMPLE),
         super::types::StaticStr::from(constants_str::ENV),
     ));
@@ -754,7 +755,7 @@ fn workspace_crates_must_use_workspace_dependencies() {
         super::types::StaticStr::from(constants_str::VALUE_5F8A6D17),
         |path, parsed, ers| {
             super::collect_non_workspace_dep_ers(
-                super::types::StdPathRef::from(path),
+                super::types::PathRef::from(path),
                 super::types::TomlTableRef::from(parsed),
                 super::types::DiagnosticMsgsMutRef::from(ers),
             );
@@ -779,7 +780,7 @@ toml = { version = "1" }
     );
     let mut invalid_ers = Vec::new();
     super::collect_non_workspace_dep_ers(
-        super::types::StdPathRef::from(std::path::Path::new("fixture/Cargo.toml")),
+        super::types::PathRef::from(std::path::Path::new("fixture/Cargo.toml")),
         super::types::TomlTableRef::from(&invalid_manifest),
         super::types::DiagnosticMsgsMutRef::from(&mut invalid_ers),
     );
@@ -809,7 +810,7 @@ serde = { workspace = true }
     );
     let mut valid_ers = Vec::new();
     super::collect_non_workspace_dep_ers(
-        super::types::StdPathRef::from(std::path::Path::new("fixture/Cargo.toml")),
+        super::types::PathRef::from(std::path::Path::new("fixture/Cargo.toml")),
         super::types::TomlTableRef::from(&valid_manifest),
         super::types::DiagnosticMsgsMutRef::from(&mut valid_ers),
     );
@@ -822,7 +823,7 @@ fn workspace_dependencies_use_inline_table_style() {
             .expect("ac15d6b9 workspace_dependencies_use_inline_table_style invariant must hold");
     let mut ers = Vec::new();
     super::for_each_crate_manifest_file(|path| {
-        let v = super::cargo_toml_content(super::types::StdPathRef::from(path))
+        let v = super::cargo_toml_content(super::types::PathRef::from(path))
             .expect("762c1d9e workspace_dependencies_use_inline_table_style invariant must hold");
         ers.extend(regex.find_iter(v.as_ref()).filter_map(|mtch| {
             let field = mtch

@@ -69,7 +69,7 @@ impl<'metadata_lt> CargoMetadataRef<'metadata_lt> {
     newtype::AsRefOwned,
     newtype::FromInner,
 )]
-pub(super) struct StdCargoPackageIdRefSet<'metadata_lt>(
+pub(super) struct CargoPackageIdRefHashSet<'metadata_lt>(
     std::collections::HashSet<&'metadata_lt cargo_metadata::PackageId>,
 );
 #[derive(
@@ -80,7 +80,7 @@ pub(super) struct StdCargoPackageIdRefSet<'metadata_lt>(
     newtype::AsRefInner,
     newtype::FromInner,
 )]
-pub(super) struct StdProcessOutputRef<'output_lt>(&'output_lt std::process::Output);
+pub(super) struct ProcessOutputRef<'output_lt>(&'output_lt std::process::Output);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
 pub(super) struct StaticStr(&'static str);
 impl StaticStr {
@@ -118,7 +118,9 @@ impl<'text_lt> SourceTextRef<'text_lt> {
     newtype::AsRefInner,
     newtype::FromInner,
 )]
-pub(super) struct StdSourceTextRefSet<'text_lt>(&'text_lt std::collections::HashSet<&'text_lt str>);
+pub(super) struct SourceTextRefHashSet<'text_lt>(
+    &'text_lt std::collections::HashSet<&'text_lt str>,
+);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -126,7 +128,7 @@ pub(super) struct StdSourceTextRefSet<'text_lt>(&'text_lt std::collections::Hash
     newtype::AsRefOwned,
     newtype::FromInner,
 )]
-pub(super) struct StdSourceTextHashSet<'text_lt>(std::collections::HashSet<&'text_lt str>);
+pub(super) struct SourceTextHashSet<'text_lt>(std::collections::HashSet<&'text_lt str>);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -223,7 +225,7 @@ impl<'text_lt> SourceTextListRef<'text_lt> {
     newtype::FromInner,
     newtype::IntoIterator,
 )]
-pub(super) struct StdSourceTextSet(std::collections::BTreeSet<String>);
+pub(super) struct SourceTextBTreeSet(std::collections::BTreeSet<String>);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -254,7 +256,7 @@ pub(super) struct RegexRegexRef<'regex_lt>(&'regex_lt regex::Regex);
     newtype::FromInner,
     newtype::IntoInnerFrom,
 )]
-pub(super) struct StdFunctionBodyLocationsMap(
+pub(super) struct FunctionBodyLocationsBTreeMap(
     std::collections::BTreeMap<FunctionBodyHash, SourceTextList>,
 );
 #[derive(
@@ -264,13 +266,13 @@ pub(super) struct StdFunctionBodyLocationsMap(
     newtype::DerefTarget,
     newtype::FromInner,
 )]
-pub(super) struct StdFunctionBodyLocationsMapMutRef<'map_lt>(
+pub(super) struct FunctionBodyLocationsBTreeMapMutRef<'map_lt>(
     &'map_lt mut std::collections::BTreeMap<FunctionBodyHash, SourceTextList>,
 );
-impl<'map_lt> From<&'map_lt mut StdFunctionBodyLocationsMap>
-    for StdFunctionBodyLocationsMapMutRef<'map_lt>
+impl<'map_lt> From<&'map_lt mut FunctionBodyLocationsBTreeMap>
+    for FunctionBodyLocationsBTreeMapMutRef<'map_lt>
 {
-    fn from(value: &'map_lt mut StdFunctionBodyLocationsMap) -> Self {
+    fn from(value: &'map_lt mut FunctionBodyLocationsBTreeMap) -> Self {
         Self(&mut value.0)
     }
 }
@@ -282,7 +284,7 @@ impl<'map_lt> From<&'map_lt mut StdFunctionBodyLocationsMap>
     newtype::AsRefInner,
     newtype::FromInner,
 )]
-pub(super) struct StdStdSourceTextSetRef<'text_lt>(&'text_lt std::collections::BTreeSet<String>);
+pub(super) struct SourceTextBTreeSetRef<'text_lt>(&'text_lt std::collections::BTreeSet<String>);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -296,7 +298,7 @@ pub(super) struct StdStdSourceTextSetRef<'text_lt>(&'text_lt std::collections::B
     newtype::DerefTarget,
     newtype::FromInner,
 )]
-pub(super) struct StdPathBuf(std::path::PathBuf);
+pub(super) struct OwnedPathBuf(std::path::PathBuf);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -305,7 +307,7 @@ pub(super) struct StdPathBuf(std::path::PathBuf);
     newtype::AsRefInner,
     newtype::FromInner,
 )]
-pub(super) struct StdPathRef<'path_lt>(&'path_lt std::path::Path);
+pub(super) struct PathRef<'path_lt>(&'path_lt std::path::Path);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,

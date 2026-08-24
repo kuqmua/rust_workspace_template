@@ -29,12 +29,12 @@ pub struct TokioTcpListener(tokio::net::TcpListener);
     optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
 )]
 #[error(transparent)]
-pub struct StdServeIoError(std::io::Error);
+pub struct ServeIoError(std::io::Error);
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum ServeWithGracefulShutdownError {
     #[error("server failed: {0}")]
-    Serve(#[source] StdServeIoError),
+    Serve(#[source] ServeIoError),
     #[error("{}", constants_str::SERVER_GRACEFUL_SHUTDOWN_TIMED_OUT)]
     ShutdownTimeout,
 }
@@ -52,7 +52,7 @@ pub async fn serve_with_graceful_shutdown<Shutdown>(
     listener: TokioTcpListener,
     router: super::AxumRouter,
     shutdown: Shutdown,
-    shutdown_timeout: super::StdRequestTimeout,
+    shutdown_timeout: super::RequestTimeoutDuration,
 ) -> Result<(), ServeWithGracefulShutdownError>
 where
     Shutdown: Future<Output = ()> + Send + 'static,
@@ -72,12 +72,12 @@ where
     );
     tokio::pin!(server);
     tokio::select! {
-        result = &mut server => result.map_err(|error| ServeWithGracefulShutdownError::Serve(StdServeIoError(error))),
+        result = &mut server => result.map_err(|error| ServeWithGracefulShutdownError::Serve(ServeIoError(error))),
         _shutdown_result = shutdown_started_rx => {
             tokio::time::timeout(shutdown_timeout.get(), &mut server)
                 .await
                 .map_err(|_elapsed| ServeWithGracefulShutdownError::ShutdownTimeout)?
-                .map_err(|error| ServeWithGracefulShutdownError::Serve(StdServeIoError(error)))
+                .map_err(|error| ServeWithGracefulShutdownError::Serve(ServeIoError(error)))
         }
     }
 }

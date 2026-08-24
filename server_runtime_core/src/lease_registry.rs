@@ -56,11 +56,11 @@ pub enum LeaseState {
     PartialEq,
     newtype::FromInner,
 )]
-pub struct StdLeaseRegistryMaximum(std::num::NonZeroUsize);
+pub struct LeaseRegistryMaximumNonZeroUsize(std::num::NonZeroUsize);
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub struct StdLeaseStaleTimeout(std::time::Duration);
-impl TryFrom<std::time::Duration> for StdLeaseStaleTimeout {
+pub struct LeaseStaleTimeoutDuration(std::time::Duration);
+impl TryFrom<std::time::Duration> for LeaseStaleTimeoutDuration {
     type Error = StdLeaseStaleTimeoutError;
     fn try_from(value: std::time::Duration) -> Result<Self, Self::Error> {
         if value.is_zero() {
@@ -100,7 +100,7 @@ pub enum LeaseHeartbeat {
     newtype::AsRefTarget,
     newtype::FromInner,
 )]
-pub struct LeaseIds(bounded_types::BoundedVec<LeaseId, 0, { usize::MAX }>);
+pub struct LeaseIds(bounded_types::domain_types::vector::BoundedVec<LeaseId, 0, { usize::MAX }>);
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 struct LeaseEntry {
@@ -111,13 +111,13 @@ struct LeaseEntry {
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Default)]
 struct LeaseRegistryInner {
-    by_id: bounded_types::StdBoundedHashMap<LeaseId, LeaseEntry, { usize::MAX }>,
-    by_key: bounded_types::StdBoundedHashMap<LeaseKey, LeaseId, { usize::MAX }>,
+    by_id: bounded_types::domain_types::hash::BoundedHashMap<LeaseId, LeaseEntry, { usize::MAX }>,
+    by_key: bounded_types::domain_types::hash::BoundedHashMap<LeaseKey, LeaseId, { usize::MAX }>,
 }
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Default)]
 pub struct LeaseRegistry {
-    inner: StdArcTokioLeaseRegistryRwLock,
+    inner: TokioLeaseRegistryRwLockArc,
 }
 impl LeaseRegistry {
     pub async fn heartbeat(&self, id: &LeaseId) -> LeaseHeartbeat {
@@ -152,7 +152,7 @@ impl LeaseRegistry {
         &self,
         id: LeaseId,
         key: LeaseKey,
-        maximum: StdLeaseRegistryMaximum,
+        maximum: LeaseRegistryMaximumNonZeroUsize,
     ) -> LeaseReservation {
         {
             let mut inner = self.inner.0.write().await;
@@ -191,11 +191,11 @@ impl LeaseRegistry {
         }
     }
 
-    pub async fn stale(&self, timeout: StdLeaseStaleTimeout) -> LeaseIds {
+    pub async fn stale(&self, timeout: LeaseStaleTimeoutDuration) -> LeaseIds {
         LeaseIds::from({
             let mut inner = self.inner.0.write().await;
             let now = tokio::time::Instant::now();
-            let mut stale_ids = bounded_types::BoundedVec::default();
+            let mut stale_ids = bounded_types::domain_types::vector::BoundedVec::default();
             inner
                 .by_id
                 .iter_mut()
@@ -215,7 +215,7 @@ impl LeaseRegistry {
 struct LeaseTextRef<'value_lt>(&'value_lt str);
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Default, newtype::FromInner)]
-struct StdArcTokioLeaseRegistryRwLock(std::sync::Arc<tokio::sync::RwLock<LeaseRegistryInner>>);
+struct TokioLeaseRegistryRwLockArc(std::sync::Arc<tokio::sync::RwLock<LeaseRegistryInner>>);
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 struct TokioLeaseInstant(tokio::time::Instant);
@@ -264,8 +264,8 @@ mod tests {
     fn key(value: &str) -> super::LeaseKey {
         super::LeaseKey::try_from(value.to_owned()).expect("699f4283 key invariant must hold")
     }
-    fn maximum() -> super::StdLeaseRegistryMaximum {
-        super::StdLeaseRegistryMaximum::from(std::num::NonZeroUsize::MIN)
+    fn maximum() -> super::LeaseRegistryMaximumNonZeroUsize {
+        super::LeaseRegistryMaximumNonZeroUsize::from(std::num::NonZeroUsize::MIN)
     }
 
     #[tokio::test]
@@ -315,7 +315,7 @@ mod tests {
         tokio::time::advance(std::time::Duration::from_secs(2u64)).await;
         let stale = registry
             .stale(
-                super::StdLeaseStaleTimeout::try_from(std::time::Duration::from_secs(1u64)).expect(
+                super::LeaseStaleTimeoutDuration::try_from(std::time::Duration::from_secs(1u64)).expect(
                     "8cb64054 heartbeat_and_stale_transition_are_observable invariant must hold",
                 ),
             )

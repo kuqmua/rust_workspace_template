@@ -8,6 +8,7 @@
     Ord,
     optimal_memory_layout::OptimalMemoryLayout,
     newtype::FromInner,
+    newtype::GetInner,
 )]
 pub struct DuplicateIdx(usize);
 #[derive(
@@ -20,12 +21,6 @@ pub struct DuplicateIdx(usize);
     newtype::IntoInnerFrom,
 )]
 pub struct DuplicateCandidates<T>(Vec<T>);
-impl DuplicateIdx {
-    #[must_use]
-    pub const fn get(self) -> usize {
-        self.0
-    }
-}
 #[must_use]
 pub fn first_duplicate_idx<T>(values: &[T]) -> Option<DuplicateIdx>
 where

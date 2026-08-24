@@ -7,7 +7,7 @@ pub use observability::{
     initialize_service_observability,
 };
 pub use observed_error::{
-    ObservedError, ObservedErrorCode, StdObservedErrorBacktrace, StdPanicLocation,
+    ObservedError, ObservedErrorBacktrace, ObservedErrorCode, StdPanicLocation,
     TracingObservedErrorSpanTrace,
 };
 

@@ -74,7 +74,9 @@ struct ServiceKubernetesManifest(String);
 #[bounded_string(max = constants_usize::VALUE_16_777_216)]
 struct ServiceSocketEnv(String);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
-struct ServiceCatalogEntries(bounded_types::BoundedVec<ServiceCatalogEntry, 0, { usize::MAX }>);
+struct ServiceCatalogEntries(
+    bounded_types::domain_types::vector::BoundedVec<ServiceCatalogEntry, 0, { usize::MAX }>,
+);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 struct ServiceCatalogEntriesRef<'entries_lt>(&'entries_lt [ServiceCatalogEntry]);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
@@ -158,7 +160,7 @@ struct ScaffoldText(String);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 struct ScaffoldTextRef<'text_lt>(&'text_lt str);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-struct StdScaffoldPathRef<'path_lt>(&'path_lt std::path::Path);
+struct ScaffoldPathRef<'path_lt>(&'path_lt std::path::Path);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 struct ReplacementsRef<'replacements_lt>(&'replacements_lt [(&'replacements_lt str, String)]);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
@@ -183,7 +185,7 @@ struct ShouldSkip(bool);
     optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
 )]
 #[error(transparent)]
-struct StdScaffoldIoError(std::io::Error);
+struct ScaffoldIoError(std::io::Error);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
 )]
@@ -205,7 +207,7 @@ enum ScaffoldError {
     #[error("generated deployment projections are not synchronized")]
     GeneratedDeployment,
     #[error("workspace operation failed: {0}")]
-    Io(#[from] StdScaffoldIoError),
+    Io(#[from] ScaffoldIoError),
     #[error("workspace file does not contain the expected template marker")]
     Marker,
     #[error("project or service name must be non-empty lowercase snake_case ASCII")]
@@ -221,7 +223,7 @@ enum ScaffoldError {
 }
 impl From<std::io::Error> for ScaffoldError {
     fn from(value: std::io::Error) -> Self {
-        Self::Io(StdScaffoldIoError::from(value))
+        Self::Io(ScaffoldIoError::from(value))
     }
 }
 
@@ -229,7 +231,7 @@ impl From<std::io::Error> for ScaffoldError {
     clippy::single_call_fn,
     reason = "catalog validation keeps path traversal checks explicit and typed"
 )]
-fn catalog_path_is_safe(path: StdScaffoldPathRef<'_>) -> IsCatalogPathSafe {
+fn catalog_path_is_safe(path: ScaffoldPathRef<'_>) -> IsCatalogPathSafe {
     IsCatalogPathSafe::from(
         path.0.is_relative()
             && path
@@ -243,7 +245,7 @@ fn catalog_path_is_safe(path: StdScaffoldPathRef<'_>) -> IsCatalogPathSafe {
     reason = "deployment synchronization validates every non-generated catalog consumer"
 )]
 fn validate_deployment_representations(
-    root: StdScaffoldPathRef<'_>,
+    root: ScaffoldPathRef<'_>,
     entries: ServiceCatalogEntriesRef<'_>,
 ) -> Result<(), ScaffoldError> {
     entries.0.iter().try_for_each(|entry| {
@@ -255,7 +257,7 @@ fn validate_deployment_representations(
         ]
         .into_iter()
         .all(|path| {
-            bool::from(catalog_path_is_safe(StdScaffoldPathRef::from(
+            bool::from(catalog_path_is_safe(ScaffoldPathRef::from(
                 std::path::Path::new(path),
             )))
         }) {
@@ -272,7 +274,7 @@ fn validate_deployment_representations(
         }
         let compose_path = root.0.join(entry.compose_file.as_ref());
         let compose =
-            template_fs::read_bounded_text(StdScaffoldPathRef::from(compose_path.as_path()))?;
+            template_fs::read_bounded_text(ScaffoldPathRef::from(compose_path.as_path()))?;
         let port = entry.port.0;
         if !compose
             .as_ref()
@@ -288,7 +290,7 @@ fn validate_deployment_representations(
         }
         let kubernetes_path = root.0.join(entry.kubernetes_manifest.as_ref());
         let kubernetes =
-            template_fs::read_bounded_text(StdScaffoldPathRef::from(kubernetes_path.as_path()))?;
+            template_fs::read_bounded_text(ScaffoldPathRef::from(kubernetes_path.as_path()))?;
         if !kubernetes
             .as_ref()
             .contains(format!("image: {}:", entry.image.as_ref()).as_str())
@@ -309,7 +311,7 @@ fn validate_deployment_representations(
     reason = "deployment synchronization owns all per-service generated sections"
 )]
 fn synchronize_service_deployment_sections(
-    root: StdScaffoldPathRef<'_>,
+    root: ScaffoldPathRef<'_>,
     entry: &ServiceCatalogEntry,
     write_changes: ShouldWrite,
 ) -> Result<(), ScaffoldError> {
@@ -328,7 +330,7 @@ fn synchronize_service_deployment_sections(
         entry.dockerfile.as_ref()
     );
     synchronize_generated_file(
-        StdScaffoldPathRef::from(compose_path.as_path()),
+        ScaffoldPathRef::from(compose_path.as_path()),
         ScaffoldTextRef::from(compose_identity_begin.as_str()),
         ScaffoldTextRef::from(compose_identity_end.as_str()),
         ScaffoldTextRef::from(compose_identity.as_str()),
@@ -348,7 +350,7 @@ fn synchronize_service_deployment_sections(
         entry.port.0
     );
     synchronize_generated_file(
-        StdScaffoldPathRef::from(compose_path.as_path()),
+        ScaffoldPathRef::from(compose_path.as_path()),
         ScaffoldTextRef::from(compose_socket_begin.as_str()),
         ScaffoldTextRef::from(compose_socket_end.as_str()),
         ScaffoldTextRef::from(compose_socket.as_str()),
@@ -370,7 +372,7 @@ fn synchronize_service_deployment_sections(
         ready_path.as_ref()
     );
     synchronize_generated_file(
-        StdScaffoldPathRef::from(compose_path.as_path()),
+        ScaffoldPathRef::from(compose_path.as_path()),
         ScaffoldTextRef::from(compose_health_begin.as_str()),
         ScaffoldTextRef::from(compose_health_end.as_str()),
         ScaffoldTextRef::from(compose_health.as_str()),
@@ -386,7 +388,7 @@ fn synchronize_service_deployment_sections(
     );
     let compose_port = format!("    ports:\n      - \"127.0.0.1:{0}:{0}\"\n", entry.port.0);
     synchronize_generated_file(
-        StdScaffoldPathRef::from(compose_path.as_path()),
+        ScaffoldPathRef::from(compose_path.as_path()),
         ScaffoldTextRef::from(compose_port_begin.as_str()),
         ScaffoldTextRef::from(compose_port_end.as_str()),
         ScaffoldTextRef::from(compose_port.as_str()),
@@ -407,7 +409,7 @@ fn synchronize_service_deployment_sections(
         entry.image.as_ref()
     );
     synchronize_generated_file(
-        StdScaffoldPathRef::from(kubernetes_path.as_path()),
+        ScaffoldPathRef::from(kubernetes_path.as_path()),
         ScaffoldTextRef::from(kubernetes_metadata_begin.as_str()),
         ScaffoldTextRef::from(kubernetes_metadata_end.as_str()),
         ScaffoldTextRef::from(kubernetes_metadata.as_str()),
@@ -426,7 +428,7 @@ fn synchronize_service_deployment_sections(
         entry.image.as_ref()
     );
     synchronize_generated_file(
-        StdScaffoldPathRef::from(kubernetes_path.as_path()),
+        ScaffoldPathRef::from(kubernetes_path.as_path()),
         ScaffoldTextRef::from(kubernetes_workload_identity_begin.as_str()),
         ScaffoldTextRef::from(kubernetes_workload_identity_end.as_str()),
         ScaffoldTextRef::from(kubernetes_workload_identity.as_str()),
@@ -446,7 +448,7 @@ fn synchronize_service_deployment_sections(
         entry.port.0
     );
     synchronize_generated_file(
-        StdScaffoldPathRef::from(kubernetes_path.as_path()),
+        ScaffoldPathRef::from(kubernetes_path.as_path()),
         ScaffoldTextRef::from(kubernetes_container_begin.as_str()),
         ScaffoldTextRef::from(kubernetes_container_end.as_str()),
         ScaffoldTextRef::from(kubernetes_container.as_str()),
@@ -468,7 +470,7 @@ fn synchronize_service_deployment_sections(
         live = live_path.as_ref()
     );
     synchronize_generated_file(
-        StdScaffoldPathRef::from(kubernetes_path.as_path()),
+        ScaffoldPathRef::from(kubernetes_path.as_path()),
         ScaffoldTextRef::from(kubernetes_probe_begin.as_str()),
         ScaffoldTextRef::from(kubernetes_probe_end.as_str()),
         ScaffoldTextRef::from(kubernetes_probe.as_str()),
@@ -487,7 +489,7 @@ fn synchronize_service_deployment_sections(
         entry.image.as_ref()
     );
     synchronize_generated_file(
-        StdScaffoldPathRef::from(kubernetes_path.as_path()),
+        ScaffoldPathRef::from(kubernetes_path.as_path()),
         ScaffoldTextRef::from(kubernetes_service_identity_begin.as_str()),
         ScaffoldTextRef::from(kubernetes_service_identity_end.as_str()),
         ScaffoldTextRef::from(kubernetes_service_identity.as_str()),
@@ -506,7 +508,7 @@ fn synchronize_service_deployment_sections(
         entry.port.0
     );
     synchronize_generated_file(
-        StdScaffoldPathRef::from(kubernetes_path.as_path()),
+        ScaffoldPathRef::from(kubernetes_path.as_path()),
         ScaffoldTextRef::from(kubernetes_service_port_begin.as_str()),
         ScaffoldTextRef::from(kubernetes_service_port_end.as_str()),
         ScaffoldTextRef::from(kubernetes_service_port.as_str()),
@@ -534,7 +536,7 @@ fn replace_generated_section(
     .map_err(|_error| ScaffoldError::Catalog)
 }
 fn synchronize_generated_file(
-    path: StdScaffoldPathRef<'_>,
+    path: ScaffoldPathRef<'_>,
     begin: ScaffoldTextRef<'_>,
     end: ScaffoldTextRef<'_>,
     generated: ScaffoldTextRef<'_>,
@@ -562,18 +564,18 @@ fn synchronize_generated_file(
     reason = "the deployment command owns all generated projections"
 )]
 fn synchronize_deployment_projections(
-    root: StdScaffoldPathRef<'_>,
+    root: ScaffoldPathRef<'_>,
     write_changes: ShouldWrite,
 ) -> Result<(), ScaffoldError> {
     let catalog_path = root.0.join("deploy/services.toml");
-    let catalog = template_fs::read_bounded_text(StdScaffoldPathRef::from(catalog_path.as_path()))?;
+    let catalog = template_fs::read_bounded_text(ScaffoldPathRef::from(catalog_path.as_path()))?;
     let entries = service_catalog::parse(ScaffoldTextRef::from(catalog.as_ref()))?;
     let entries_ref = ServiceCatalogEntriesRef::from(entries.0.as_slice());
     let ci = service_catalog::render_ci_matrix(entries_ref);
     let release = service_catalog::render_release_matrix(entries_ref);
     let ci_path = root.0.join(".github/workflows/ci.yml");
     synchronize_generated_file(
-        StdScaffoldPathRef::from(ci_path.as_path()),
+        ScaffoldPathRef::from(ci_path.as_path()),
         ScaffoldTextRef::from("          # BEGIN GENERATED SERVICE MATRIX\n"),
         ScaffoldTextRef::from("          # END GENERATED SERVICE MATRIX\n"),
         ScaffoldTextRef::from(ci.as_ref()),
@@ -581,7 +583,7 @@ fn synchronize_deployment_projections(
     )?;
     let release_path = root.0.join(".github/workflows/release.yml");
     synchronize_generated_file(
-        StdScaffoldPathRef::from(release_path.as_path()),
+        ScaffoldPathRef::from(release_path.as_path()),
         ScaffoldTextRef::from("          # BEGIN GENERATED RELEASE MATRIX\n"),
         ScaffoldTextRef::from("          # END GENERATED RELEASE MATRIX\n"),
         ScaffoldTextRef::from(release.as_ref()),
@@ -597,7 +599,7 @@ fn synchronize_deployment_projections(
     reason = "the aggregate generation command delegates snapshot ownership to code-style tests"
 )]
 fn synchronize_code_style_snapshots(
-    root: StdScaffoldPathRef<'_>,
+    root: ScaffoldPathRef<'_>,
     write_changes: ShouldWrite,
 ) -> Result<(), ScaffoldError> {
     synchronize_cargo_owned_projection(
@@ -617,7 +619,7 @@ fn synchronize_code_style_snapshots(
 }
 
 fn synchronize_cargo_owned_projection(
-    root: StdScaffoldPathRef<'_>,
+    root: ScaffoldPathRef<'_>,
     arguments: CargoArgsRef<'_>,
     update_environment: UpdateEnvName,
     projection: GeneratedProjection,
@@ -627,7 +629,7 @@ fn synchronize_cargo_owned_projection(
         macros_helpers::tool_command::ToolProgramRef::from("cargo"),
     );
     let _arguments = command
-        .current_dir(macros_helpers::tool_command::StdPathRef::from(root.0))
+        .current_dir(macros_helpers::tool_command::PathRef::from(root.0))
         .args(macros_helpers::tool_command::ToolArgsRef::from(arguments.0));
     if bool::from(write_changes) {
         let _environment = command.env(
@@ -651,7 +653,7 @@ fn synchronize_cargo_owned_projection(
     reason = "the aggregate generation command delegates environment projection ownership to config crates"
 )]
 fn synchronize_config_projections(
-    root: StdScaffoldPathRef<'_>,
+    root: ScaffoldPathRef<'_>,
     write_changes: ShouldWrite,
 ) -> Result<(), ScaffoldError> {
     synchronize_cargo_owned_projection(
@@ -677,7 +679,7 @@ fn synchronize_config_projections(
     reason = "the generate command exposes one aggregate synchronization boundary"
 )]
 fn synchronize_all_generated_artifacts(
-    root: StdScaffoldPathRef<'_>,
+    root: ScaffoldPathRef<'_>,
     write_changes: ShouldWrite,
 ) -> Result<(), ScaffoldError> {
     synchronize_deployment_projections(root, write_changes)?;
@@ -690,7 +692,7 @@ fn synchronize_all_generated_artifacts(
     reason = "service command owns complete scaffold composition"
 )]
 fn scaffold_service(
-    root: StdScaffoldPathRef<'_>,
+    root: ScaffoldPathRef<'_>,
     service_name: ProjectNameRef<'_>,
     port: ServicePort,
 ) -> Result<(), ScaffoldError> {
@@ -736,36 +738,36 @@ fn scaffold_service(
         ),
     ];
     template_fs::copy_template_tree(
-        StdScaffoldPathRef::from(
+        ScaffoldPathRef::from(
             root.0
                 .join(constants_str::WORKSPACE_SCAFFOLD_NOTIFICATION_SERVICE)
                 .as_path(),
         ),
-        StdScaffoldPathRef::from(root.0.join(service).as_path()),
+        ScaffoldPathRef::from(root.0.join(service).as_path()),
         ReplacementsRef::from(replacements.as_slice()),
     )?;
     template_fs::copy_template_tree(
-        StdScaffoldPathRef::from(
+        ScaffoldPathRef::from(
             root.0
                 .join(constants_str::WORKSPACE_SCAFFOLD_NOTIFICATION_CONFIG)
                 .as_path(),
         ),
-        StdScaffoldPathRef::from(root.0.join(config.as_str()).as_path()),
+        ScaffoldPathRef::from(root.0.join(config.as_str()).as_path()),
         ReplacementsRef::from(replacements.as_slice()),
     )?;
     template_fs::copy_template_tree(
-        StdScaffoldPathRef::from(
+        ScaffoldPathRef::from(
             root.0
                 .join(constants_str::WORKSPACE_SCAFFOLD_NOTIFICATION_CONTRACT)
                 .as_path(),
         ),
-        StdScaffoldPathRef::from(root.0.join(contract.as_str()).as_path()),
+        ScaffoldPathRef::from(root.0.join(contract.as_str()).as_path()),
         ReplacementsRef::from(replacements.as_slice()),
     )?;
 
     let manifest = root.0.join(constants_str::CARGO_TOML);
     template_fs::insert_once(
-        StdScaffoldPathRef::from(manifest.as_path()),
+        ScaffoldPathRef::from(manifest.as_path()),
         ScaffoldTextRef::from(constants_str::WORKSPACE_SCAFFOLD_MANIFEST_MEMBER_MARKER),
         ScaffoldTextRef::from(
             format!(
@@ -776,7 +778,7 @@ fn scaffold_service(
     )?;
     let dependency_marker = constants_str::WORKSPACE_SCAFFOLD_MANIFEST_DEPENDENCY_MARKER;
     template_fs::insert_once(
-        StdScaffoldPathRef::from(manifest.as_path()),
+        ScaffoldPathRef::from(manifest.as_path()),
         ScaffoldTextRef::from(dependency_marker),
         ScaffoldTextRef::from(
             format!(
@@ -796,11 +798,11 @@ fn scaffold_service(
         .join(k8s_file_name.as_str());
     let _copied_bytes = std::fs::copy(k8s_source, k8s_destination.as_path())?;
     template_fs::replace_file(
-        StdScaffoldPathRef::from(k8s_destination.as_path()),
+        ScaffoldPathRef::from(k8s_destination.as_path()),
         ReplacementsRef::from(replacements.as_slice()),
     )?;
     let mut k8s_contents =
-        template_fs::read_bounded_text(StdScaffoldPathRef::from(k8s_destination.as_path()))?
+        template_fs::read_bounded_text(ScaffoldPathRef::from(k8s_destination.as_path()))?
             .as_ref()
             .to_owned();
     k8s_contents.push_str(
@@ -815,7 +817,7 @@ fn scaffold_service(
         .0
         .join(constants_str::WORKSPACE_SCAFFOLD_KUSTOMIZATION_PATH);
     template_fs::insert_once(
-        StdScaffoldPathRef::from(kustomization.as_path()),
+        ScaffoldPathRef::from(kustomization.as_path()),
         ScaffoldTextRef::from(constants_str::WORKSPACE_SCAFFOLD_KUSTOMIZATION_MARKER),
         ScaffoldTextRef::from(
             format!("  - notification-service.yaml\n  - {k8s_file_name}").as_str(),
@@ -824,7 +826,7 @@ fn scaffold_service(
 
     let config_example_path = root.0.join(config.as_str()).join(".env.example");
     let config_example =
-        template_fs::read_bounded_text(StdScaffoldPathRef::from(config_example_path.as_path()))?;
+        template_fs::read_bounded_text(ScaffoldPathRef::from(config_example_path.as_path()))?;
     let database_key = format!("{upper_snake}_DATABASE_URL");
     let socket_key = format!("{upper_snake}_SERVICE_SOCKET_ADDRESS");
     let compose_environment = config_example
@@ -867,7 +869,7 @@ fn scaffold_service(
         .0
         .join(constants_str::WORKSPACE_SCAFFOLD_SERVICE_CATALOG_PATH);
     let mut service_catalog_contents =
-        template_fs::read_bounded_text(StdScaffoldPathRef::from(service_catalog.as_path()))?
+        template_fs::read_bounded_text(ScaffoldPathRef::from(service_catalog.as_path()))?
             .as_ref()
             .to_owned();
     service_catalog_contents.push_str(
@@ -881,10 +883,10 @@ fn scaffold_service(
     Ok(())
 }
 
-fn workspace_root() -> Result<StdScaffoldPathRef<'static>, ScaffoldError> {
+fn workspace_root() -> Result<ScaffoldPathRef<'static>, ScaffoldError> {
     std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
-        .map(StdScaffoldPathRef::from)
+        .map(ScaffoldPathRef::from)
         .ok_or(ScaffoldError::Arguments)
 }
 
@@ -950,7 +952,7 @@ fn run() -> Result<(), ScaffoldError> {
 
 fn main() {
     if let Err(error) = run() {
-        eprintln!("{error}");
+        tracing::error!(error = %error, "workspace scaffolding failed");
         std::process::exit(2i32);
     }
 }

@@ -17,7 +17,7 @@ pub struct TrustedProxyRangesTextRef<'text_lt>(&'text_lt str);
     newtype::Display,
     newtype::FromInner,
 )]
-pub struct StdSocketAddr(std::net::SocketAddr);
+pub struct ClientSocketAddr(std::net::SocketAddr);
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
@@ -30,7 +30,7 @@ pub struct StdSocketAddr(std::net::SocketAddr);
     newtype::Display,
     newtype::FromInner,
 )]
-pub struct StdResolvedClientIp(std::net::IpAddr);
+pub struct ResolvedClientIpAddr(std::net::IpAddr);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct TrustedProxyRange {
     network: IpnetNetwork,
@@ -54,7 +54,7 @@ struct IpnetNetwork(ipnet::IpNet);
     PartialEq,
     newtype::FromInner,
 )]
-struct StdIpAddr(std::net::IpAddr);
+struct ParsedIpAddr(std::net::IpAddr);
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
@@ -76,25 +76,25 @@ impl StdRangeContains {
     optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
 )]
 #[error("{0}")]
-pub struct StdAddrParseError(std::net::AddrParseError);
+pub struct ClientAddrParseError(std::net::AddrParseError);
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
 )]
 #[error("{0}")]
-pub struct StdParseIntError(std::num::ParseIntError);
+pub struct ParseIntError(std::num::ParseIntError);
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum TrustedProxyRangeParseError {
     #[error("trusted proxy address is invalid")]
     InvalidAddress {
         #[source]
-        source: StdAddrParseError,
+        source: ClientAddrParseError,
     },
     #[error("trusted proxy prefix is invalid")]
     InvalidPrefix {
         #[source]
-        source: StdParseIntError,
+        source: ParseIntError,
     },
     #[error("trusted proxy range must use address/prefix notation")]
     MissingPrefix,
@@ -116,12 +116,12 @@ impl TryFrom<String> for TrustedProxyRange {
         };
         let network_address = address_text.parse::<std::net::IpAddr>().map_err(|source| {
             TrustedProxyRangeParseError::InvalidAddress {
-                source: StdAddrParseError::from(source),
+                source: ClientAddrParseError::from(source),
             }
         })?;
         let prefix_bits = prefix_text.parse::<u8>().map_err(|source| {
             TrustedProxyRangeParseError::InvalidPrefix {
-                source: StdParseIntError::from(source),
+                source: ParseIntError::from(source),
             }
         })?;
         let Ok(network) = ipnet::IpNet::new(network_address, prefix_bits) else {
@@ -134,48 +134,52 @@ impl TryFrom<String> for TrustedProxyRange {
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Default, Eq, PartialEq)]
 pub struct TrustedProxyRanges(
-    bounded_types::BoundedVec<TrustedProxyRange, 0, TRUSTED_PROXY_RANGES_MAX_ITEMS>,
+    bounded_types::domain_types::vector::BoundedVec<
+        TrustedProxyRange,
+        0,
+        TRUSTED_PROXY_RANGES_MAX_ITEMS,
+    >,
 );
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
 )]
 #[error("trusted proxy range list exceeds its maximum item count")]
 pub struct TrustedProxyRangesError;
-impl From<bounded_types::BoundedValueError> for TrustedProxyRangesError {
-    fn from(_value: bounded_types::BoundedValueError) -> Self {
+impl From<bounded_types::domain_types::BoundedValueError> for TrustedProxyRangesError {
+    fn from(_value: bounded_types::domain_types::BoundedValueError) -> Self {
         Self
     }
 }
 impl TryFrom<Vec<TrustedProxyRange>> for TrustedProxyRanges {
     type Error = TrustedProxyRangesError;
     fn try_from(value: Vec<TrustedProxyRange>) -> Result<Self, Self::Error> {
-        bounded_types::BoundedVec::try_from(value)
+        bounded_types::domain_types::vector::BoundedVec::try_from(value)
             .map(Self)
             .map_err(TrustedProxyRangesError::from)
     }
 }
 impl TrustedProxyRange {
-    fn contains(self, candidate_ip: StdIpAddr) -> StdRangeContains {
+    fn contains(self, candidate_ip: ParsedIpAddr) -> StdRangeContains {
         StdRangeContains::from(self.network.0.contains(&candidate_ip.0))
     }
 }
 impl TrustedProxyRanges {
-    fn contains(&self, candidate: StdIpAddr) -> StdRangeContains {
+    fn contains(&self, candidate: ParsedIpAddr) -> StdRangeContains {
         StdRangeContains::from(self.0.iter().any(|range| range.contains(candidate).get()))
     }
 }
 #[must_use]
 pub fn resolve_client_ip(
     headers: HttpHeaderMapRef<'_>,
-    peer: StdSocketAddr,
+    peer: ClientSocketAddr,
     trusted_proxy_ranges: &TrustedProxyRanges,
-) -> StdResolvedClientIp {
+) -> ResolvedClientIpAddr {
     let peer_ip = peer.0.ip();
     if !trusted_proxy_ranges
-        .contains(StdIpAddr::from(peer_ip))
+        .contains(ParsedIpAddr::from(peer_ip))
         .get()
     {
-        return StdResolvedClientIp::from(peer_ip);
+        return ResolvedClientIpAddr::from(peer_ip);
     }
     let parsed_forwarded_ip = || {
         let values = headers
@@ -195,12 +199,14 @@ pub fn resolve_client_ip(
                 }
                 let parsed = entry.parse::<std::net::IpAddr>().ok()?;
                 let next_first = first.or(Some(parsed));
-                let next_rightmost_untrusted =
-                    if trusted_proxy_ranges.contains(StdIpAddr::from(parsed)).get() {
-                        rightmost_untrusted
-                    } else {
-                        Some(parsed)
-                    };
+                let next_rightmost_untrusted = if trusted_proxy_ranges
+                    .contains(ParsedIpAddr::from(parsed))
+                    .get()
+                {
+                    rightmost_untrusted
+                } else {
+                    Some(parsed)
+                };
                 Some((
                     count.saturating_add(constants_usize::ONE),
                     next_first,
@@ -223,7 +229,7 @@ pub fn resolve_client_ip(
         }
         value.to_str().ok()?.trim().parse::<std::net::IpAddr>().ok()
     };
-    StdResolvedClientIp::from(
+    ResolvedClientIpAddr::from(
         parsed_forwarded_ip()
             .or_else(parsed_real_ip)
             .unwrap_or(peer_ip),
@@ -283,7 +289,7 @@ mod tests {
     ) -> String {
         super::resolve_client_ip(
             super::HttpHeaderMapRef::from(headers),
-            super::StdSocketAddr::from(
+            super::ClientSocketAddr::from(
                 peer_value
                     .parse::<std::net::SocketAddr>()
                     .expect("262819a8 resolved invariant must hold"),
@@ -314,7 +320,7 @@ mod tests {
         assert_eq!(
             super::resolve_client_ip(
                 super::HttpHeaderMapRef::from(&http::HeaderMap::new()),
-                super::StdSocketAddr::from(
+                super::ClientSocketAddr::from(
                     "127.0.0.1:8080"
                         .parse::<std::net::SocketAddr>()
                         .expect("a6f1a8f9 trusted_proxy_ranges_text_parses_comma_separated_ranges invariant must hold")

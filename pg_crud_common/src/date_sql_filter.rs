@@ -34,7 +34,7 @@ impl<'value_lt> DateFilterBounds<'value_lt> {
     PartialEq,
     newtype::FromInner,
 )]
-pub struct StdDateSqlBindStart(std::num::NonZeroU32);
+pub struct DateSqlBindStartNonZeroU32(std::num::NonZeroU32);
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
@@ -72,7 +72,7 @@ pub enum DateSqlFilterError {
 pub fn build_date_sql_filter(
     optional_table_alias: Option<&crate::SqlIdentifier>,
     bounds: DateFilterBounds<'_>,
-    bind_start: StdDateSqlBindStart,
+    bind_start: DateSqlBindStartNonZeroU32,
 ) -> Result<DateSqlFilter, DateSqlFilterError> {
     let mut bind_index = bind_start.0.get();
     let candidates = [

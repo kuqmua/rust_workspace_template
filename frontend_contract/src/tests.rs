@@ -64,18 +64,25 @@ fn contracts_preserve_typed_metadata() {
     assert_eq!(field.readable(), super::FieldCapability::Enabled);
 }
 #[test]
-fn public_catalog_wrappers_preserve_vec_conversions() {
-    let fields = super::FieldContracts::from(Vec::<super::FieldContract>::new());
-    let actions = super::ActionContracts::from(Vec::<super::ActionContract>::new());
-    let routes = super::RouteContracts::from(Vec::<super::RouteContract>::new());
+fn public_catalog_wrappers_preserve_checked_vec_conversions() {
+    let fields = super::FieldContracts::try_from(Vec::<super::FieldContract>::new())
+        .expect("0e62631f empty fields fit collection bound");
+    let actions = super::ActionContracts::try_from(Vec::<super::ActionContract>::new())
+        .expect("8add9c33 empty actions fit collection bound");
+    let routes = super::RouteContracts::try_from(Vec::<super::RouteContract>::new())
+        .expect("96a2f2a6 empty routes fit collection bound");
     let coverage =
-        super::RouteCoverageDescriptors::from(Vec::<super::RouteCoverageDescriptor>::new());
-    let schemas = super::RouteSchemaContracts::from(Vec::<super::RouteSchemaContract>::new());
-    let metadata = super::RouteMetadataList::from(Vec::<super::RouteMetadata>::new());
-    let categories = super::RouteTestCategories::from(vec![
+        super::RouteCoverageDescriptors::try_from(Vec::<super::RouteCoverageDescriptor>::new())
+            .expect("2ba61bce empty coverage descriptors fit collection bound");
+    let schemas = super::RouteSchemaContracts::try_from(Vec::<super::RouteSchemaContract>::new())
+        .expect("c335f3ea empty schemas fit collection bound");
+    let metadata = super::RouteMetadataList::try_from(Vec::<super::RouteMetadata>::new())
+        .expect("207b72cc empty metadata fit collection bound");
+    let categories = super::RouteTestCategories::try_from(vec![
         super::RouteTestCategory::FixtureHook,
         super::RouteTestCategory::Metadata,
-    ]);
+    ])
+    .expect("76f3e14a categories fit collection bound");
     assert!(fields.as_ref().is_empty());
     assert!(actions.as_ref().is_empty());
     assert!(routes.as_ref().is_empty());
@@ -89,6 +96,16 @@ fn public_catalog_wrappers_preserve_vec_conversions() {
             super::RouteTestCategory::Metadata,
         ]
     );
+}
+
+#[test]
+fn route_test_categories_reject_oversized_vec() {
+    let categories = vec![
+        super::RouteTestCategory::Metadata;
+        bounded_types::domain_types::COLLECTION_MAX_LEN + constants_usize::ONE
+    ];
+    let _error = super::RouteTestCategories::try_from(categories)
+        .expect_err("c63ba179 route test category limit invariant must hold");
 }
 #[test]
 fn route_contract_keeps_transport_policy_together() {

@@ -32,7 +32,7 @@ pub enum TryFromStdEnvVarOkMaximumSizeOfHttpBodyInBytesError {
     },
     #[error("{:?}", .usize_parsing)]
     UsizeParsing {
-        usize_parsing: super::StdUsizeParsingError,
+        usize_parsing: super::UsizeParseIntError,
     },
 }
 impl super::TryFromStdEnvVarOk for MaximumSizeOfHttpBodyInBytes {
@@ -41,7 +41,7 @@ impl super::TryFromStdEnvVarOk for MaximumSizeOfHttpBodyInBytes {
         let parsed: usize = super::parse_from_str_with_error(
             super::StdEnvVarOkRef::from(v.0.as_str()),
             |usize_parsing| Self::Error::UsizeParsing {
-                usize_parsing: super::StdUsizeParsingError::from(usize_parsing),
+                usize_parsing: super::UsizeParseIntError::from(usize_parsing),
             },
         )?;
         Self::try_from(parsed).map_err(|maximum_size_of_http_body_in_bytes| {

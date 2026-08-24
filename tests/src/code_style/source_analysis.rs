@@ -357,6 +357,10 @@ pub(super) struct StaticStateVisitor {
 pub(super) struct PrintMacroVisitor {
     pub calls: super::types::DiagnosticMsgs,
 }
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+pub(super) struct ProductionLinePrintMacroVisitor {
+    pub calls: super::types::DiagnosticMsgs,
+}
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 pub(super) struct PublicLogicVisitor {
     pub found: super::types::AnalyzerBool,
@@ -593,6 +597,38 @@ impl<'ast> syn::visit::Visit<'ast> for PrintMacroVisitor {
         syn::visit::visit_macro(self, i);
     }
 }
+impl<'ast> syn::visit::Visit<'ast> for ProductionLinePrintMacroVisitor {
+    fn visit_item(&mut self, i: &'ast syn::Item) {
+        if super::has_test_only_cfg_attr(super::types::SynItemRef::from(i)).get() {
+            return;
+        }
+        syn::visit::visit_item(self, i);
+    }
+    fn visit_item_fn(&mut self, i: &'ast syn::ItemFn) {
+        if i.attrs.iter().any(|attr| {
+            attr.path()
+                .segments
+                .last()
+                .is_some_and(|segment| segment.ident == constants_str::TEST_ALT_3)
+                || super::attr_is_test_only_cfg(super::types::SynAttributeRef::from(attr)).get()
+        }) {
+            return;
+        }
+        syn::visit::visit_item_fn(self, i);
+    }
+    fn visit_macro(&mut self, i: &'ast syn::Macro) {
+        if i.path.segments.last().is_some_and(|segment| {
+            matches!(segment.ident.to_string().as_str(), "println" | "eprintln")
+        }) {
+            self.calls.push(
+                super::path_to_string(super::types::SynPathRef::from(&i.path))
+                    .as_ref()
+                    .to_owned(),
+            );
+        }
+        syn::visit::visit_macro(self, i);
+    }
+}
 impl<'ast> syn::visit::Visit<'ast> for PublicLogicVisitor {
     fn visit_impl_item_fn(&mut self, i: &'ast syn::ImplItemFn) {
         if matches!(i.vis, syn::Visibility::Public(_)) {
@@ -756,7 +792,10 @@ impl<'ast> syn::visit::Visit<'ast> for TestNondeterminismVisitor {
     }
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
-#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
+#[allow(
+    clippy::arbitrary_source_item_ordering,
+    reason = "alignment order required by optimal_memory_layout takes precedence over alphabetical field order"
+)]
 pub(super) struct UseImportVisitor {
     pub public_use_roots: super::types::SourceTextList,
     pub allow_leptos_prelude_import: super::types::AnalyzerBool,
@@ -1209,7 +1248,7 @@ impl<'ast> syn::visit::Visit<'ast> for JsonCallVisitor {
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct JsonIntoResponseErrorVisitor<'names_lt> {
     pub ers: super::types::DiagnosticMsgs,
-    pub thiserror_enum_names: &'names_lt super::types::StdSourceTextSet,
+    pub thiserror_enum_names: &'names_lt super::types::SourceTextBTreeSet,
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 pub(super) struct TupleResponseVisitor {
@@ -1273,8 +1312,8 @@ impl<'ast> syn::visit::Visit<'ast> for JsonIntoResponseErrorVisitor<'_> {
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 pub(super) struct ThiserrorEnumVisitor {
-    pub location_names: super::types::StdSourceTextSet,
-    pub names: super::types::StdSourceTextSet,
+    pub location_names: super::types::SourceTextBTreeSet,
+    pub names: super::types::SourceTextBTreeSet,
 }
 impl<'ast> syn::visit::Visit<'ast> for ThiserrorEnumVisitor {
     fn visit_item_enum(&mut self, i: &'ast syn::ItemEnum) {
@@ -1341,11 +1380,11 @@ impl<'ast> syn::visit::Visit<'ast> for ThiserrorEnumVisitor {
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct ApiErrorLocationVisitor<'names_lt> {
     pub ers: super::types::DiagnosticMsgs,
-    pub thiserror_location_enum_names: &'names_lt super::types::StdSourceTextSet,
+    pub thiserror_location_enum_names: &'names_lt super::types::SourceTextBTreeSet,
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 pub(super) struct IntoResponseTypeVisitor {
-    pub names: super::types::StdSourceTextSet,
+    pub names: super::types::SourceTextBTreeSet,
 }
 impl<'ast> syn::visit::Visit<'ast> for IntoResponseTypeVisitor {
     fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
@@ -1365,15 +1404,15 @@ impl<'ast> syn::visit::Visit<'ast> for IntoResponseTypeVisitor {
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct ApiErrorSourceVisitor<'names_lt> {
-    pub api_error_names: &'names_lt super::types::StdSourceTextSet,
+    pub api_error_names: &'names_lt super::types::SourceTextBTreeSet,
     pub ers: super::types::DiagnosticMsgs,
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 pub(super) struct RouteOperationErrorVisitor {
     pub ers: super::types::DiagnosticMsgs,
-    pub names: super::types::StdSourceTextSet,
-    pub operations: super::types::StdSourceTextSet,
-    pub registered: super::types::StdSourceTextSet,
+    pub names: super::types::SourceTextBTreeSet,
+    pub operations: super::types::SourceTextBTreeSet,
+    pub registered: super::types::SourceTextBTreeSet,
 }
 impl<'ast> syn::visit::Visit<'ast> for RouteOperationErrorVisitor {
     fn visit_item_fn(&mut self, i: &'ast syn::ItemFn) {
@@ -1874,7 +1913,10 @@ impl<'ast> syn::visit::Visit<'ast> for ProductionStringLiteralVisitor {
     }
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
-#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
+#[allow(
+    clippy::arbitrary_source_item_ordering,
+    reason = "alignment order required by optimal_memory_layout takes precedence over alphabetical field order"
+)]
 pub(super) struct StringConstantDeclarationVisitor {
     pub ers: super::types::DiagnosticMsgs,
     pub allow_generated_string_constants: super::types::AnalyzerBool,

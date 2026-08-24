@@ -284,7 +284,7 @@ fn lints_from_help_cmd(
     .output()
     .unwrap_or_else(|_| panic!("{}", exp_id.get()));
     assert_cmd_output_ok(
-        types::StdProcessOutputRef::from(output.as_ref()),
+        types::ProcessOutputRef::from(output.as_ref()),
         types::StaticStr::from(constants_str::VALUE_95D4595A),
         types::StaticStr::from(constants_str::CC4670A2),
     );
@@ -308,7 +308,7 @@ fn lints_from_help_cmd(
 }
 #[allow(clippy::single_call_fn)] // shared command-output assertions keep status/stderr checks reusable for command-driven tests
 fn assert_cmd_output_ok(
-    output: types::StdProcessOutputRef<'_>,
+    output: types::ProcessOutputRef<'_>,
     status_exp_id: types::StaticStr,
     stderr_exp_id: types::StaticStr,
 ) {
@@ -530,8 +530,8 @@ fn compare_lints_vecs(
     assert!(stale_exceptions.is_empty(), "31c5955d {stale_exceptions:?}");
     let (lints_not_in_cargo_toml, _reviewed_missing_lints) = split_lints_missing_from_cargo(
         lints_to_check,
-        types::StdSourceTextRefSet::from(lints_from_cargo_set.as_ref()),
-        types::StdSourceTextRefSet::from(&lints_exceptions_set),
+        types::SourceTextRefHashSet::from(lints_from_cargo_set.as_ref()),
+        types::SourceTextRefHashSet::from(&lints_exceptions_set),
     );
     assert!(
         lints_not_in_cargo_toml.is_empty(),
@@ -539,7 +539,7 @@ fn compare_lints_vecs(
     );
     let outdated_lints_in_file = collect_missing_items(
         lints_vec_from_cargo_toml,
-        types::StdSourceTextRefSet::from(lints_to_check_set.as_ref()),
+        types::SourceTextRefHashSet::from(lints_to_check_set.as_ref()),
     );
     assert!(outdated_lints_in_file.is_empty(), "93787d2d");
 }
@@ -564,7 +564,7 @@ fn env_keys_from_file(path: types::StaticStr) -> types::SourceTextList {
 }
 fn collect_missing_items(
     items: types::SourceTextListRef<'_>,
-    present_set: types::StdSourceTextRefSet<'_>,
+    present_set: types::SourceTextRefHashSet<'_>,
 ) -> types::SourceTextList {
     types::SourceTextList::from(
         items
@@ -578,7 +578,7 @@ fn collect_missing_items(
 }
 fn collect_missing_key_ers(
     source_keys: types::SourceTextListRef<'_>,
-    target_set: types::StdSourceTextRefSet<'_>,
+    target_set: types::SourceTextRefHashSet<'_>,
     source_file: types::StaticStr,
     target_file: types::StaticStr,
 ) -> types::SourceTextList {
@@ -598,8 +598,8 @@ fn collect_missing_key_ers(
 #[allow(clippy::single_call_fn)] // split keeps lint exception handling explicit while reusing missing-item collection
 fn split_lints_missing_from_cargo(
     lints_to_check: types::SourceTextListRef<'_>,
-    lints_from_cargo_set: types::StdSourceTextRefSet<'_>,
-    lints_exceptions_set: types::StdSourceTextRefSet<'_>,
+    lints_from_cargo_set: types::SourceTextRefHashSet<'_>,
+    lints_exceptions_set: types::SourceTextRefHashSet<'_>,
 ) -> (types::SourceTextList, types::SourceTextList) {
     let (lints_missing_by_exception, lints_not_in_cargo_toml) =
         collect_missing_items(lints_to_check, lints_from_cargo_set)
@@ -646,7 +646,7 @@ fn collect_cargo_toml_ers(
 ) -> types::SourceTextList {
     let mut ers = Vec::new();
     for_each_crate_manifest_file(|path| {
-        let Some(parsed) = read_toml_table(types::StdPathRef::from(path)) else {
+        let Some(parsed) = read_toml_table(types::PathRef::from(path)) else {
             return;
         };
         mk_ers(path, parsed.as_ref(), &mut ers);
@@ -706,8 +706,8 @@ fn assert_joined_ers_empty_sorted(
     ers.sort();
     assert_joined_ers_empty(types::SourceTextListRef::from(ers.as_slice()), exp_id);
 }
-fn str_set(v: types::SourceTextListRef<'_>) -> types::StdSourceTextHashSet<'_> {
-    types::StdSourceTextHashSet::from(
+fn str_set(v: types::SourceTextListRef<'_>) -> types::SourceTextHashSet<'_> {
+    types::SourceTextHashSet::from(
         v.get()
             .iter()
             .map(String::as_str)
@@ -753,16 +753,16 @@ fn assert_rs_ast_ers_empty_with_ctx(
     });
     assert_joined_ers_empty_with_ctx(types::SourceTextListRef::from(ers.as_slice()), exp_id, ctx);
 }
-fn read_toml_table(path: types::StdPathRef<'_>) -> Option<types::TomlTable> {
+fn read_toml_table(path: types::PathRef<'_>) -> Option<types::TomlTable> {
     snapshot::with_codebase_snapshot(|snapshot| snapshot.read_toml_table(path))
 }
 #[allow(clippy::single_call_fn)] // shared lookup avoids rereading crate manifests in text-based Cargo.toml style checks
-fn cargo_toml_content(path: types::StdPathRef<'_>) -> Option<types::SourceText> {
+fn cargo_toml_content(path: types::PathRef<'_>) -> Option<types::SourceText> {
     snapshot::with_codebase_snapshot(|snapshot| snapshot.cargo_toml_content(path))
 }
 #[allow(clippy::single_call_fn)] // isolates non-english diagnostics so file-level test stays focused on traversal and assertion
 fn collect_non_english_symbol_ers(
-    path: types::StdPathRef<'_>,
+    path: types::PathRef<'_>,
     v: types::SourceTextRef<'_>,
 ) -> types::SourceTextList {
     types::SourceTextList::from(
@@ -795,7 +795,7 @@ fn is_allowed_english_char(ch: types::AnalyzerChar) -> types::AnalyzerBool {
 }
 fn push_repeated_file_error(
     mut ers: types::DiagnosticMsgsMutRef<'_>,
-    path: types::StdPathRef<'_>,
+    path: types::PathRef<'_>,
     message: types::SourceTextRef<'_>,
     times: types::AnalyzerCount,
 ) {
@@ -804,7 +804,7 @@ fn push_repeated_file_error(
             .take(times.get()),
     );
 }
-fn workspace_crate_names() -> types::StdSourceTextSet {
+fn workspace_crate_names() -> types::SourceTextBTreeSet {
     snapshot::with_codebase_snapshot(snapshot::CodebaseSnapshot::workspace_crate_names)
 }
 #[allow(clippy::single_call_fn)] // shared traversal uses cargo metadata so crate manifests match Cargo's view of workspace packages
@@ -1224,7 +1224,7 @@ fn expr_call_path(call: types::SynExprCallRef<'_>) -> Option<types::SynPathRef<'
 #[allow(clippy::single_call_fn)] // extracts repo macro domain type discovery from the visitor traversal
 fn collect_generate_pg_types_domain_names(
     tokens: types::SourceTextRef<'_>,
-    names: &mut types::StdSourceTextSet,
+    names: &mut types::SourceTextBTreeSet,
 ) {
     let re = regex::Regex::new(constants_str::A_ZA_Z0_9_PLUS_AS_A_ZA_Z0_9_PLUS)
         .expect("f4e61b29 collect_generate_pg_types_domain_names invariant must hold");
@@ -1289,7 +1289,7 @@ fn config_lib_domain_type_macro_path(path: types::SynPathRef<'_>) -> types::Anal
 }
 fn collect_first_macro_identifier_domain_name(
     tokens: types::SourceTextRef<'_>,
-    names: &mut types::StdSourceTextSet,
+    names: &mut types::SourceTextBTreeSet,
 ) {
     let re = regex::Regex::new(constants_str::S_ASTERISK_A_ZA_Z_A_ZA_Z0_9_ASTERISK_S_ASTERISK)
         .expect("fc65b7c4 collect_first_macro_identifier_domain_name invariant must hold");
@@ -1485,37 +1485,37 @@ fn path_is_external_service_client(path: types::SynPathRef<'_>) -> types::Analyz
     )
 }
 #[allow(clippy::single_call_fn)] // extracted to keep the domain policy test focused on assertion flow
-fn declared_domain_type_names() -> types::StdSourceTextSet {
+fn declared_domain_type_names() -> types::SourceTextBTreeSet {
     let mut names = std::collections::BTreeSet::new();
     for_each_rs_file(|file| {
         let ast = file.ast().as_ref();
         let visitor = visit_syn_file(
             types::SynFileRef::from(ast),
             domain_analysis::DeclaredDomainTypeVisitor {
-                names: types::StdSourceTextSet::default(),
+                names: types::SourceTextBTreeSet::default(),
             },
         );
         names.extend(visitor.names);
     });
-    types::StdSourceTextSet::from(names)
+    types::SourceTextBTreeSet::from(names)
 }
-fn len_checked_function_names(file: types::SynFileRef<'_>) -> types::StdSourceTextSet {
+fn len_checked_function_names(file: types::SynFileRef<'_>) -> types::SourceTextBTreeSet {
     let mut visitor = domain_analysis::LenCheckedFunctionNameVisitor {
-        names: types::StdSourceTextSet::default(),
+        names: types::SourceTextBTreeSet::default(),
     };
     syn::visit::Visit::visit_file(&mut visitor, file.as_ref());
     visitor.names
 }
-fn string_wrapper_names(ast: types::SynFileRef<'_>) -> types::StdSourceTextSet {
+fn string_wrapper_names(ast: types::SynFileRef<'_>) -> types::SourceTextBTreeSet {
     visit_syn_file(
         ast,
         domain_analysis::StringWrapperNameVisitor {
-            names: types::StdSourceTextSet::default(),
+            names: types::SourceTextBTreeSet::default(),
         },
     )
     .names
 }
-fn domain_type_policy_should_check_path(path: types::StdPathRef<'_>) -> types::AnalyzerBool {
+fn domain_type_policy_should_check_path(path: types::PathRef<'_>) -> types::AnalyzerBool {
     if path
         .as_ref()
         .starts_with(constants_str::CODE_STYLE_PG_CRUD_COMMON_BENCHES)
@@ -1536,7 +1536,7 @@ fn domain_type_policy_should_check_path(path: types::StdPathRef<'_>) -> types::A
     };
     types::AnalyzerBool::from(cargo_toml_path.as_ref().is_file())
 }
-fn is_code_style_meta_harness_source_path(path: types::StdPathRef<'_>) -> types::AnalyzerBool {
+fn is_code_style_meta_harness_source_path(path: types::PathRef<'_>) -> types::AnalyzerBool {
     types::AnalyzerBool::from(
         path.as_ref()
             .starts_with(constants_str::TESTS_SRC_CODE_STYLE),
@@ -2037,7 +2037,7 @@ fn identifier_to_upper_camel_fragment(
     types::SourceText::try_from(out)
         .expect("9ea072c4 identifier_to_upper_camel_fragment invariant must hold")
 }
-fn is_runtime_policy_source_path(path: types::StdPathRef<'_>) -> types::AnalyzerBool {
+fn is_runtime_policy_source_path(path: types::PathRef<'_>) -> types::AnalyzerBool {
     let path_text = path.as_ref().to_string_lossy();
     if is_test_source_path(path).get() {
         return types::AnalyzerBool::default();
@@ -2058,7 +2058,7 @@ fn is_runtime_policy_source_path(path: types::StdPathRef<'_>) -> types::Analyzer
     let Some(cargo_toml_path) = nearest_cargo_toml_path(path) else {
         return types::AnalyzerBool::default();
     };
-    let Some(parsed) = read_toml_table(types::StdPathRef::from(cargo_toml_path.as_ref())) else {
+    let Some(parsed) = read_toml_table(types::PathRef::from(cargo_toml_path.as_ref())) else {
         return types::AnalyzerBool::default();
     };
     types::AnalyzerBool::from(
@@ -2066,14 +2066,14 @@ fn is_runtime_policy_source_path(path: types::StdPathRef<'_>) -> types::Analyzer
             && !is_test_crate(types::TomlTableRef::from(parsed.as_ref())).get(),
     )
 }
-fn nearest_cargo_toml_path(path: types::StdPathRef<'_>) -> Option<types::StdPathBuf> {
+fn nearest_cargo_toml_path(path: types::PathRef<'_>) -> Option<types::OwnedPathBuf> {
     path.as_ref()
         .ancestors()
         .map(|ancestor| ancestor.join(constants_str::CARGO_TOML))
         .find(|cargo_toml_path| cargo_toml_path.exists())
-        .map(types::StdPathBuf::from)
+        .map(types::OwnedPathBuf::from)
 }
-fn is_str_constants_source_path(path: types::StdPathRef<'_>) -> types::AnalyzerBool {
+fn is_str_constants_source_path(path: types::PathRef<'_>) -> types::AnalyzerBool {
     types::AnalyzerBool::from(
         path.as_ref() == std::path::Path::new(constants_str::STR_CONSTANTS_SRC_LIB_RS),
     )
@@ -2089,19 +2089,17 @@ fn is_test_crate(parsed: types::TomlTableRef<'_>) -> types::AnalyzerBool {
             .is_some_and(|name| constants_str::CODE_STYLE_TEST_CRATE_NAMES.contains(&name)),
     )
 }
-fn is_test_crate_source_path(path: types::StdPathRef<'_>) -> types::AnalyzerBool {
+fn is_test_crate_source_path(path: types::PathRef<'_>) -> types::AnalyzerBool {
     if is_test_source_path(path).get() {
         return types::AnalyzerBool::from(true);
     }
     nearest_cargo_toml_path(path)
-        .and_then(|cargo_toml_path| {
-            read_toml_table(types::StdPathRef::from(cargo_toml_path.as_ref()))
-        })
+        .and_then(|cargo_toml_path| read_toml_table(types::PathRef::from(cargo_toml_path.as_ref())))
         .map_or_else(types::AnalyzerBool::default, |manifest| {
             is_test_crate(types::TomlTableRef::from(manifest.as_ref()))
         })
 }
-fn is_test_source_path(path: types::StdPathRef<'_>) -> types::AnalyzerBool {
+fn is_test_source_path(path: types::PathRef<'_>) -> types::AnalyzerBool {
     types::AnalyzerBool::from(
         path.as_ref()
             .components()
@@ -2112,7 +2110,7 @@ fn is_test_source_path(path: types::StdPathRef<'_>) -> types::AnalyzerBool {
                 .is_some_and(|file_stem| file_stem == constants_str::TESTS_ALT),
     )
 }
-fn is_non_policy_test_source_path(path: types::StdPathRef<'_>) -> types::AnalyzerBool {
+fn is_non_policy_test_source_path(path: types::PathRef<'_>) -> types::AnalyzerBool {
     types::AnalyzerBool::from(
         path.as_ref()
             .starts_with(constants_str::CODE_STYLE_TESTS_SRC_ROOT)
@@ -2121,7 +2119,7 @@ fn is_non_policy_test_source_path(path: types::StdPathRef<'_>) -> types::Analyze
                 .starts_with(constants_str::TESTS_SRC_CODE_STYLE),
     )
 }
-fn is_direct_fs_owner_source_path(path: types::StdPathRef<'_>) -> types::AnalyzerBool {
+fn is_direct_fs_owner_source_path(path: types::PathRef<'_>) -> types::AnalyzerBool {
     let path_text = path.as_ref().to_string_lossy();
     types::AnalyzerBool::from(
         constants_str::CODE_STYLE_DIRECT_FS_OWNER_SUFFIXES
@@ -2272,7 +2270,7 @@ fn toml_val_as_table_ref(
     }
 }
 fn collect_non_workspace_dep_ers(
-    path: types::StdPathRef<'_>,
+    path: types::PathRef<'_>,
     parsed: types::TomlTableRef<'_>,
     mut ers: types::DiagnosticMsgsMutRef<'_>,
 ) {
@@ -2356,7 +2354,7 @@ fn workspace_dep_entry_is_valid(dep_value: types::TomlValueRef<'_>) -> types::An
 }
 #[allow(clippy::single_call_fn)] // shared message builder keeps dependency-policy errors identical across call sites
 fn workspace_dep_entry_error(
-    path: types::StdPathRef<'_>,
+    path: types::PathRef<'_>,
     dep_name: types::SourceTextRef<'_>,
     dep_section: types::SourceTextRef<'_>,
 ) -> types::SourceText {

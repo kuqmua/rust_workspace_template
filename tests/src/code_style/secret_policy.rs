@@ -1,6 +1,6 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct SecretBoxStringVisitor {
-    argument_identifiers: super::types::StdSourceTextSet,
+    argument_identifiers: super::types::SourceTextBTreeSet,
     found_count: super::types::AnalyzerCount,
 }
 impl<'ast> syn::visit::Visit<'ast> for SecretBoxStringVisitor {
@@ -60,7 +60,7 @@ fn secret_boxes_do_not_use_raw_string_anywhere_in_repository() {
             );
             super::push_repeated_file_error(
                 super::types::DiagnosticMsgsMutRef::from(errors),
-                super::types::StdPathRef::from(path),
+                super::types::PathRef::from(path),
                 super::types::SourceTextRef::from("SecretBox<String>"),
                 visitor.found_count,
             );

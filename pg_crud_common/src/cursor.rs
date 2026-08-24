@@ -54,7 +54,11 @@ impl TryFrom<usize> for CursorMaximumLength {
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone)]
 pub struct CursorSigningKey(
-    bounded_types::BoundedVec<u8, { constants_usize::ONE }, CURSOR_SIGNING_KEY_MAXIMUM_LENGTH>,
+    bounded_types::domain_types::vector::BoundedVec<
+        u8,
+        { constants_usize::ONE },
+        CURSOR_SIGNING_KEY_MAXIMUM_LENGTH,
+    >,
 );
 
 impl std::fmt::Debug for CursorSigningKey {
@@ -68,7 +72,7 @@ impl TryFrom<Vec<u8>> for CursorSigningKey {
     type Error = CursorSigningKeyError;
 
     fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
-        bounded_types::BoundedVec::try_from(value)
+        bounded_types::domain_types::vector::BoundedVec::try_from(value)
             .map(Self)
             .map_err(|_error| CursorSigningKeyError)
     }

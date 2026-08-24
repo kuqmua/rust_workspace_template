@@ -24,6 +24,7 @@ pub struct ResourceAmount(u64);
     PartialEq,
     Ord,
     PartialOrd,
+    newtype::GetInner,
     newtype::TryFrom,
 )]
 #[try_from(
@@ -49,10 +50,6 @@ impl From<ResourceUtilizationKnownPercent> for ResourceUtilizationPercent {
 pub struct ResourceUtilizationPercentTryFromU8Error;
 
 impl ResourceUtilizationPercent {
-    #[must_use]
-    pub const fn get(self) -> u8 {
-        self.0
-    }
     #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
     const fn validate(value: &u8) -> Result<(), ResourceUtilizationPercentTryFromU8Error> {
         if *value <= 100u8 {

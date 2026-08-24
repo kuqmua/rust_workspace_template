@@ -12,16 +12,13 @@ pub(crate) mod test_hlp;
     PartialEq,
     Eq,
     newtype::FromInner,
+    newtype::GetInner,
 )]
 pub struct AxumHttpStatusCode(axum::http::StatusCode);
 impl AxumHttpStatusCode {
     #[must_use]
     pub fn bad_request() -> Self {
         Self::from(axum::http::StatusCode::BAD_REQUEST)
-    }
-    #[must_use]
-    pub const fn get(self) -> axum::http::StatusCode {
-        self.0
     }
     #[must_use]
     pub fn im_a_teapot() -> Self {

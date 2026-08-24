@@ -88,7 +88,7 @@ async fn request_span_uses_remote_parent_and_server_kind() {
     let router = axum::Router::from(
         super::RequestIdLayer::with_span_config(super::HttpRequestSpanConfig::new(
             super::ServiceName::from("server-runtime-test"),
-            super::StdSocketAddr::from("127.0.0.1:8080".parse::<std::net::SocketAddr>().expect(
+            super::ClientSocketAddr::from("127.0.0.1:8080".parse::<std::net::SocketAddr>().expect(
                 "773561fe request_span_uses_remote_parent_and_server_kind invariant must hold",
             )),
             trusted_proxy_ranges,
@@ -355,7 +355,7 @@ async fn http_boundary_emits_one_complete_error_event_only_for_server_errors() {
     let router = axum::Router::from(
         super::RequestIdLayer::with_span_config(super::HttpRequestSpanConfig::new(
             super::ServiceName::from("boundary-test"),
-            super::StdSocketAddr::from(
+            super::ClientSocketAddr::from(
                 "127.0.0.1:8080"
                     .parse::<std::net::SocketAddr>()
                     .expect("c74109ca http_boundary_emits_one_complete_error_event_only_for_server_errors invariant must hold"),

@@ -7,7 +7,7 @@
     PartialEq,
     newtype::FromInner,
 )]
-pub struct StdChildDiagnosticMaximum(std::num::NonZeroUsize);
+pub struct ChildDiagnosticMaximumNonZeroUsize(std::num::NonZeroUsize);
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
@@ -31,16 +31,20 @@ pub struct ChildProcessId(u64);
     PartialEq,
     newtype::FromInner,
 )]
-pub struct StdChildProcessSetMaximum(std::num::NonZeroUsize);
+pub struct ChildProcessSetMaximumNonZeroUsize(std::num::NonZeroUsize);
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Default, newtype::FromInner)]
 struct StdCollectionsChildProcessMap(
-    bounded_types::StdBoundedBTreeMap<ChildProcessId, ChildProcessSupervisor, { usize::MAX }>,
+    bounded_types::domain_types::btree::BoundedBTreeMap<
+        ChildProcessId,
+        ChildProcessSupervisor,
+        { usize::MAX },
+    >,
 );
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 pub struct ChildProcessSet {
-    maximum: StdChildProcessSetMaximum,
+    maximum: ChildProcessSetMaximumNonZeroUsize,
     next_id: ChildProcessId,
     processes: StdCollectionsChildProcessMap,
 }
@@ -67,19 +71,19 @@ impl ChildProcessSet {
     }
 
     #[must_use]
-    pub fn new(maximum: StdChildProcessSetMaximum) -> Self {
+    pub fn new(maximum: ChildProcessSetMaximumNonZeroUsize) -> Self {
         Self {
             maximum,
             next_id: ChildProcessId::from(constants_u64::ZERO),
             processes: StdCollectionsChildProcessMap::from(
-                bounded_types::StdBoundedBTreeMap::default(),
+                bounded_types::domain_types::btree::BoundedBTreeMap::default(),
             ),
         }
     }
 
     pub async fn shutdown_all(
         mut self,
-        timeout: crate::StdRequestTimeout,
+        timeout: crate::RequestTimeoutDuration,
     ) -> Result<ChildProcessReports, ChildProcessSetError> {
         let mut reports = Vec::with_capacity(self.processes.0.len().get());
         while let Some((_id, process)) = self.processes.0.pop_first() {
@@ -91,7 +95,7 @@ impl ChildProcessSet {
             );
         }
         Ok(ChildProcessReports::from(
-            bounded_types::BoundedVec::from_max_iter(reports),
+            bounded_types::domain_types::vector::BoundedVec::from_max_iter(reports),
         ))
     }
 }
@@ -103,7 +107,9 @@ impl ChildProcessSet {
     newtype::AsRefTarget,
     newtype::FromInner,
 )]
-pub struct ChildProcessReports(bounded_types::BoundedVec<ChildProcessReport, 0, { usize::MAX }>);
+pub struct ChildProcessReports(
+    bounded_types::domain_types::vector::BoundedVec<ChildProcessReport, 0, { usize::MAX }>,
+);
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum ChildProcessSetError {
@@ -115,8 +121,8 @@ pub enum ChildProcessSetError {
     Process(#[source] ChildProcessError),
 }
 
-impl From<bounded_types::BoundedValueError> for ChildProcessSetError {
-    fn from(_value: bounded_types::BoundedValueError) -> Self {
+impl From<bounded_types::domain_types::BoundedValueError> for ChildProcessSetError {
+    fn from(_value: bounded_types::domain_types::BoundedValueError) -> Self {
         Self::Full
     }
 }
@@ -130,7 +136,7 @@ impl From<bounded_types::BoundedValueError> for ChildProcessSetError {
     newtype::AsRefTarget,
     newtype::FromInner,
 )]
-pub struct ChildDiagnostic(bounded_types::BoundedVec<u8, 0, { usize::MAX }>);
+pub struct ChildDiagnostic(bounded_types::domain_types::vector::BoundedVec<u8, 0, { usize::MAX }>);
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ChildProcessCompletion {
@@ -139,9 +145,9 @@ pub enum ChildProcessCompletion {
 }
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct StdChildExitStatus(std::process::ExitStatus);
+pub struct ChildExitStatus(std::process::ExitStatus);
 
-impl StdChildExitStatus {
+impl ChildExitStatus {
     #[must_use]
     pub fn succeeded(self) -> ChildProcessSucceeded {
         if self.0.success() {
@@ -162,7 +168,7 @@ pub enum ChildProcessSucceeded {
 #[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
 pub struct ChildProcessReport {
     diagnostic: ChildDiagnostic,
-    status: StdChildExitStatus,
+    status: ChildExitStatus,
     completion: ChildProcessCompletion,
 }
 impl ChildProcessReport {
@@ -177,7 +183,7 @@ impl ChildProcessReport {
     }
 
     #[must_use]
-    pub const fn status(&self) -> StdChildExitStatus {
+    pub const fn status(&self) -> ChildExitStatus {
         self.status
     }
 }
@@ -200,7 +206,7 @@ pub struct ChildProcessSupervisor {
     diagnostic: Option<TokioChildDiagnosticTask>,
 }
 impl ChildProcessSupervisor {
-    pub fn new(mut child: TokioChildProcess, maximum: StdChildDiagnosticMaximum) -> Self {
+    pub fn new(mut child: TokioChildProcess, maximum: ChildDiagnosticMaximumNonZeroUsize) -> Self {
         let diagnostic = child.0.stderr.take().map(|stderr| {
             TokioChildDiagnosticTask::from(tokio::spawn(async move {
                 read_child_diagnostic(stderr, maximum).await
@@ -214,26 +220,26 @@ impl ChildProcessSupervisor {
 
     pub async fn shutdown(
         mut self,
-        timeout: crate::StdRequestTimeout,
+        timeout: crate::RequestTimeoutDuration,
     ) -> Result<ChildProcessReport, ChildProcessError> {
         let mut child = self.child.take().ok_or(ChildProcessError::MissingChild)?;
         let (completion, status) = match tokio::time::timeout(timeout.get(), child.0.wait()).await {
             Ok(result) => (
                 ChildProcessCompletion::Exited,
                 result
-                    .map_err(StdChildProcessIoError::from)
+                    .map_err(ChildProcessIoError::from)
                     .map_err(ChildProcessError::Io)?,
             ),
             Err(_graceful_elapsed) => {
                 child
                     .0
                     .start_kill()
-                    .map_err(StdChildProcessIoError::from)
+                    .map_err(ChildProcessIoError::from)
                     .map_err(ChildProcessError::Io)?;
                 let status = tokio::time::timeout(timeout.get(), child.0.wait())
                     .await
                     .map_err(|_kill_elapsed| ChildProcessError::Timeout)?
-                    .map_err(StdChildProcessIoError::from)
+                    .map_err(ChildProcessIoError::from)
                     .map_err(ChildProcessError::Io)?;
                 (ChildProcessCompletion::KilledAfterTimeout, status)
             }
@@ -242,7 +248,7 @@ impl ChildProcessSupervisor {
         Ok(ChildProcessReport {
             completion,
             diagnostic,
-            status: StdChildExitStatus::from(status),
+            status: ChildExitStatus::from(status),
         })
     }
 }
@@ -260,11 +266,11 @@ impl Drop for ChildProcessSupervisor {
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum ChildProcessError {
     #[error("child process diagnostic read failed")]
-    DiagnosticIo(StdChildProcessIoError),
+    DiagnosticIo(ChildProcessIoError),
     #[error("child process diagnostic buffer range is invalid")]
     DiagnosticRange,
     #[error("child process operation failed")]
-    Io(StdChildProcessIoError),
+    Io(ChildProcessIoError),
     #[error("child process diagnostic task failed")]
     Join(TokioChildProcessJoinError),
     #[error("child process is missing")]
@@ -276,7 +282,7 @@ pub enum ChildProcessError {
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 #[error(transparent)]
 #[derive(newtype::FromInner)]
-pub struct StdChildProcessIoError(std::io::Error);
+pub struct ChildProcessIoError(std::io::Error);
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 #[error(transparent)]
@@ -293,14 +299,16 @@ async fn join_diagnostic(
             .await
             .map_err(TokioChildProcessJoinError::from)
             .map_err(ChildProcessError::Join)?,
-        None => Ok(ChildDiagnostic::from(bounded_types::BoundedVec::default())),
+        None => Ok(ChildDiagnostic::from(
+            bounded_types::domain_types::vector::BoundedVec::default(),
+        )),
     }
 }
 
 #[allow(clippy::single_call_fn)] // generic reader keeps bounded diagnostic behavior independently testable
 async fn read_child_diagnostic<Reader>(
     mut reader: Reader,
-    maximum: StdChildDiagnosticMaximum,
+    maximum: ChildDiagnosticMaximumNonZeroUsize,
 ) -> Result<ChildDiagnostic, ChildProcessError>
 where
     Reader: tokio::io::AsyncRead + Unpin,
@@ -315,7 +323,7 @@ where
             .ok_or(ChildProcessError::DiagnosticRange)?;
         let read = tokio::io::AsyncReadExt::read(&mut reader, target)
             .await
-            .map_err(StdChildProcessIoError::from)
+            .map_err(ChildProcessIoError::from)
             .map_err(ChildProcessError::DiagnosticIo)?;
         if read == constants_usize::ZERO {
             break;
@@ -326,7 +334,7 @@ where
         output.extend_from_slice(read_bytes);
     }
     Ok(ChildDiagnostic::from(
-        bounded_types::BoundedVec::from_max_iter(output),
+        bounded_types::domain_types::vector::BoundedVec::from_max_iter(output),
     ))
 }
 
@@ -352,9 +360,9 @@ mod tests {
 
     #[tokio::test]
     async fn process_set_enforces_capacity_and_identifier_overflow() {
-        let mut full = super::ChildProcessSet::new(super::StdChildProcessSetMaximum::from(
-            std::num::NonZeroUsize::MIN,
-        ));
+        let mut full = super::ChildProcessSet::new(
+            super::ChildProcessSetMaximumNonZeroUsize::from(std::num::NonZeroUsize::MIN),
+        );
         assert_eq!(
             full.insert(empty_supervisor()).expect(
                 "806f6943 process_set_enforces_capacity_and_identifier_overflow invariant must hold"
@@ -366,7 +374,7 @@ mod tests {
             Err(super::ChildProcessSetError::Full)
         ));
 
-        let mut overflowing = super::ChildProcessSet::new(super::StdChildProcessSetMaximum::from(
+        let mut overflowing = super::ChildProcessSet::new(super::ChildProcessSetMaximumNonZeroUsize::from(
             std::num::NonZeroUsize::new(2usize).expect("d96a312b process_set_enforces_capacity_and_identifier_overflow invariant must hold"),
         ));
         overflowing.next_id = super::ChildProcessId::from(u64::MAX);
@@ -378,7 +386,7 @@ mod tests {
 
     #[tokio::test]
     async fn missing_child_and_absent_diagnostic_are_explicit() {
-        let timeout = crate::StdRequestTimeout::try_from(std::time::Duration::from_secs(1u64))
+        let timeout = crate::RequestTimeoutDuration::try_from(std::time::Duration::from_secs(1u64))
             .expect(
                 "02c5c4e9 missing_child_and_absent_diagnostic_are_explicit invariant must hold",
             );
@@ -396,7 +404,7 @@ mod tests {
     async fn diagnostic_read_propagates_reader_errors() {
         let result = super::read_child_diagnostic(
             ErrorReader,
-            super::StdChildDiagnosticMaximum::from(std::num::NonZeroUsize::MIN),
+            super::ChildDiagnosticMaximumNonZeroUsize::from(std::num::NonZeroUsize::MIN),
         )
         .await;
         assert!(matches!(
@@ -407,10 +415,10 @@ mod tests {
 
     #[tokio::test]
     async fn empty_process_set_shuts_down_without_reports() {
-        let processes = super::ChildProcessSet::new(super::StdChildProcessSetMaximum::from(
-            std::num::NonZeroUsize::MIN,
-        ));
-        let timeout = crate::StdRequestTimeout::try_from(std::time::Duration::from_secs(1u64))
+        let processes = super::ChildProcessSet::new(
+            super::ChildProcessSetMaximumNonZeroUsize::from(std::num::NonZeroUsize::MIN),
+        );
+        let timeout = crate::RequestTimeoutDuration::try_from(std::time::Duration::from_secs(1u64))
             .expect("69d0d988 empty_process_set_shuts_down_without_reports invariant must hold");
         let reports = processes
             .shutdown_all(timeout)
@@ -429,7 +437,7 @@ mod tests {
         });
         let diagnostic = super::read_child_diagnostic(
             reader,
-            super::StdChildDiagnosticMaximum::from(
+            super::ChildDiagnosticMaximumNonZeroUsize::from(
                 std::num::NonZeroUsize::new(4usize)
                     .expect("9de989aa diagnostic_read_is_bounded invariant must hold"),
             ),

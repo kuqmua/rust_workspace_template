@@ -323,7 +323,7 @@ impl AdminGeneratedTable {
 
     fn routes(
         self,
-        app_state: &StdSharedAdminGeneratedTableState,
+        app_state: &SharedAdminGeneratedTableStateArc,
     ) -> server_runtime_http::AxumRouter {
         server_runtime_http::AxumRouter::from(match self {
             Self::Roles => AdminRoles::routes(std::sync::Arc::clone(&app_state.0)),
@@ -459,7 +459,7 @@ pub struct UtoipaAdminOpenApi(utoipa::openapi::OpenApi);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, newtype::DebugRedacted, newtype::FromInner,
 )]
-pub struct StdSharedAdminGeneratedTableState(
+pub struct SharedAdminGeneratedTableStateArc(
     std::sync::Arc<dyn pg_table::CombinationOfAppStateLogicTraits>,
 );
 #[derive(
@@ -474,7 +474,7 @@ impl std::fmt::Debug for UtoipaAdminOpenApi {
 }
 #[must_use]
 pub fn generated_routes(
-    app_state: &StdSharedAdminGeneratedTableState,
+    app_state: &SharedAdminGeneratedTableStateArc,
 ) -> server_runtime_http::AxumRouter {
     server_runtime_http::AxumRouter::from(
         AdminGeneratedTable::ALL

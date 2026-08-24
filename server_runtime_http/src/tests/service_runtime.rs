@@ -1,7 +1,7 @@
 #[tokio::test]
 async fn async_run_history_keeps_latest_reports() {
     let history = super::super::AsyncRunHistory::new(
-        super::super::StdAsyncRunHistoryMaximumLen::try_from(2usize)
+        super::super::AsyncRunHistoryMaximumLenNonZeroUsize::try_from(2usize)
             .expect("8567a9df async_run_history_keeps_latest_reports invariant must hold"),
     );
     history.push(1u8).await;
@@ -36,12 +36,14 @@ async fn status_route_and_parts_are_stable() {
 
 #[tokio::test]
 async fn background_task_shutdown_is_observable() {
-    let interval = super::super::StdRunInterval::try_from(std::time::Duration::from_secs(1u64))
-        .expect("e76640c4 background_task_shutdown_is_observable invariant must hold");
+    let interval =
+        super::super::RunIntervalDuration::try_from(std::time::Duration::from_secs(1u64))
+            .expect("e76640c4 background_task_shutdown_is_observable invariant must hold");
     let task = super::super::spawn_interval_task(Some(interval), async || {})
         .expect("32858863 background_task_shutdown_is_observable invariant must hold");
-    let timeout = super::super::StdRequestTimeout::try_from(std::time::Duration::from_secs(1u64))
-        .expect("728b52b3 background_task_shutdown_is_observable invariant must hold");
+    let timeout =
+        super::super::RequestTimeoutDuration::try_from(std::time::Duration::from_secs(1u64))
+            .expect("728b52b3 background_task_shutdown_is_observable invariant must hold");
     assert_eq!(
         task.shutdown(timeout)
             .await
@@ -52,8 +54,9 @@ async fn background_task_shutdown_is_observable() {
 
 #[tokio::test]
 async fn background_task_panic_is_observable() {
-    let interval = super::super::StdRunInterval::try_from(std::time::Duration::from_secs(1u64))
-        .expect("c9d73cab background_task_panic_is_observable invariant must hold");
+    let interval =
+        super::super::RunIntervalDuration::try_from(std::time::Duration::from_secs(1u64))
+            .expect("c9d73cab background_task_panic_is_observable invariant must hold");
     let task = super::super::spawn_interval_task(Some(interval), async || panic!("62839854"))
         .expect("7a86a253 background_task_panic_is_observable invariant must hold");
     assert!(matches!(
@@ -64,15 +67,17 @@ async fn background_task_panic_is_observable() {
 
 #[tokio::test(start_paused = true)]
 async fn stuck_background_task_reaches_shutdown_timeout() {
-    let interval = super::super::StdRunInterval::try_from(std::time::Duration::from_secs(1u64))
-        .expect("f797718f stuck_background_task_reaches_shutdown_timeout invariant must hold");
+    let interval =
+        super::super::RunIntervalDuration::try_from(std::time::Duration::from_secs(1u64))
+            .expect("f797718f stuck_background_task_reaches_shutdown_timeout invariant must hold");
     let task = super::super::spawn_interval_task(Some(interval), async || {
         std::future::pending::<()>().await;
     })
     .expect("a58f09dc stuck_background_task_reaches_shutdown_timeout invariant must hold");
     tokio::task::yield_now().await;
-    let timeout = super::super::StdRequestTimeout::try_from(std::time::Duration::from_secs(1u64))
-        .expect("ae1262bb stuck_background_task_reaches_shutdown_timeout invariant must hold");
+    let timeout =
+        super::super::RequestTimeoutDuration::try_from(std::time::Duration::from_secs(1u64))
+            .expect("ae1262bb stuck_background_task_reaches_shutdown_timeout invariant must hold");
     let shutdown = tokio::spawn(task.shutdown(timeout));
     tokio::task::yield_now().await;
     tokio::time::advance(std::time::Duration::from_secs(1u64)).await;
@@ -91,8 +96,8 @@ async fn acquire_permit_distinguishes_available_timeout_and_closed() {
     );
     let semaphore = std::sync::Arc::new(tokio::sync::Semaphore::new(constants_usize::ONE));
     let permit = super::super::acquire_permit(
-        super::super::StdArcTokioSemaphore::from(std::sync::Arc::clone(&semaphore)),
-        super::super::StdPermitWaitTimeout::from(std::time::Duration::ZERO),
+        super::super::ArcTokioSemaphore::from(std::sync::Arc::clone(&semaphore)),
+        super::super::PermitWaitTimeoutDuration::from(std::time::Duration::ZERO),
         retry_after,
     )
     .await
@@ -100,8 +105,8 @@ async fn acquire_permit_distinguishes_available_timeout_and_closed() {
         "e1394cd0 acquire_permit_distinguishes_available_timeout_and_closed invariant must hold",
     );
     let timeout = super::super::acquire_permit(
-        super::super::StdArcTokioSemaphore::from(std::sync::Arc::clone(&semaphore)),
-        super::super::StdPermitWaitTimeout::from(std::time::Duration::ZERO),
+        super::super::ArcTokioSemaphore::from(std::sync::Arc::clone(&semaphore)),
+        super::super::PermitWaitTimeoutDuration::from(std::time::Duration::ZERO),
         retry_after,
     )
     .await;
@@ -113,8 +118,8 @@ async fn acquire_permit_distinguishes_available_timeout_and_closed() {
     drop(permit);
     semaphore.close();
     let closed = super::super::acquire_permit(
-        super::super::StdArcTokioSemaphore::from(semaphore),
-        super::super::StdPermitWaitTimeout::from(std::time::Duration::ZERO),
+        super::super::ArcTokioSemaphore::from(semaphore),
+        super::super::PermitWaitTimeoutDuration::from(std::time::Duration::ZERO),
         retry_after,
     )
     .await;
@@ -138,8 +143,8 @@ fn concurrency_limit_wrappers_validate_boundaries_and_try_acquire() {
         Err(super::super::RetryAfterSecsTryFromU64Error)
     );
     let permit_count = std::num::NonZeroUsize::new(constants_usize::ONE).expect("50a95013 concurrency_limit_wrappers_validate_boundaries_and_try_acquire invariant must hold");
-    let semaphore = super::super::StdArcTokioSemaphore::new(
-        super::super::StdSemaphorePermitCount::from(permit_count),
+    let semaphore = super::super::ArcTokioSemaphore::new(
+        super::super::SemaphorePermitCountNonZeroUsize::from(permit_count),
     );
     let permit = semaphore.try_acquire().expect("626040d0 concurrency_limit_wrappers_validate_boundaries_and_try_acquire invariant must hold");
     assert!(semaphore.try_acquire().is_none());
@@ -150,7 +155,7 @@ fn concurrency_limit_wrappers_validate_boundaries_and_try_acquire() {
 #[test]
 fn zero_limits_are_rejected() {
     let Err(history_error) =
-        super::super::StdAsyncRunHistoryMaximumLen::try_from(constants_usize::ZERO)
+        super::super::AsyncRunHistoryMaximumLenNonZeroUsize::try_from(constants_usize::ZERO)
     else {
         panic!("5500cd77");
     };
@@ -158,7 +163,8 @@ fn zero_limits_are_rejected() {
         history_error,
         super::super::StdAsyncRunHistoryMaximumLenTryFromUsizeError
     );
-    let Err(timeout_error) = super::super::StdRequestTimeout::try_from(std::time::Duration::ZERO)
+    let Err(timeout_error) =
+        super::super::RequestTimeoutDuration::try_from(std::time::Duration::ZERO)
     else {
         panic!("bca83cb0");
     };

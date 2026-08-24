@@ -12,8 +12,8 @@ impl<'stem_lt> TestPathStem<'stem_lt> {
     }
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
-pub(crate) struct StdAssertFilePathRef<'path_lt>(&'path_lt std::path::Path);
-impl<'path_lt> From<&'path_lt std::path::PathBuf> for StdAssertFilePathRef<'path_lt> {
+pub(crate) struct AssertFilePathRef<'path_lt>(&'path_lt std::path::Path);
+impl<'path_lt> From<&'path_lt std::path::PathBuf> for AssertFilePathRef<'path_lt> {
     fn from(value: &'path_lt std::path::PathBuf) -> Self {
         Self(value.as_path())
     }
@@ -23,7 +23,7 @@ pub(crate) struct StdAssertFilePath<'path_lt>(&'path_lt std::path::Path);
 impl<'path_lt> StdAssertFilePath<'path_lt> {
     pub(crate) fn new<T>(v: T) -> Self
     where
-        T: Into<StdAssertFilePathRef<'path_lt>>,
+        T: Into<AssertFilePathRef<'path_lt>>,
     {
         Self::from(v.into().0)
     }
@@ -45,9 +45,9 @@ impl<'content_lt> ExpectedFileContent<'content_lt> {
         Self::from(v.into().0)
     }
 }
-pub(crate) fn test_path(stem: TestPathStem<'_>) -> crate::rs_file_path::StdRsFilePath {
+pub(crate) fn test_path(stem: TestPathStem<'_>) -> crate::rs_file_path::RsFilePathBuf {
     let seq = TEST_SEQ.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-    crate::rs_file_path::StdRsFilePath::from(std::env::temp_dir().join(format!(
+    crate::rs_file_path::RsFilePathBuf::from(std::env::temp_dir().join(format!(
         "{}_{}_{}",
         stem.0,
         std::process::id(),
@@ -63,7 +63,7 @@ pub(crate) fn cleanup_test_file(path: impl AsRef<std::path::Path>) {
 }
 pub(crate) fn assert_file_content(path: StdAssertFilePath<'_>, exp: ExpectedFileContent<'_>) {
     let cnt = server_runtime_http::read_bounded_file(
-        server_runtime_http::StdPathRef::from(path.0),
+        server_runtime_http::PathRef::from(path.0),
         server_runtime_http::BoundedReadMaximumBytes::from(exp.0.len()),
     )
     .and_then(server_runtime_http::BoundedText::try_from)

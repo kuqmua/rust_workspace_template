@@ -142,7 +142,7 @@ impl NotificationRequest {
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub struct NotificationServiceState<Sender> {
-    permits: crate::StdArcTokioSemaphore,
+    permits: crate::ArcTokioSemaphore,
     sender: Sender,
     token: NotificationApiToken,
 }
@@ -151,10 +151,10 @@ impl<Sender> NotificationServiceState<Sender> {
     pub fn new(
         token: NotificationApiToken,
         sender: Sender,
-        maximum_concurrency: crate::StdSemaphorePermitCount,
+        maximum_concurrency: crate::SemaphorePermitCountNonZeroUsize,
     ) -> Self {
         Self {
-            permits: crate::StdArcTokioSemaphore::new(maximum_concurrency),
+            permits: crate::ArcTokioSemaphore::new(maximum_concurrency),
             sender,
             token,
         }

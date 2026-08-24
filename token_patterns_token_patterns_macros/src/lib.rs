@@ -1,13 +1,11 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
-struct ProcMacro2GenerateTpInput(proc_macro2::TokenStream);
+mod domain_types;
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
-struct ProcMacro2GenerateTpOutput(proc_macro2::TokenStream);
-
-fn generate_tp(input: ProcMacro2GenerateTpInput) -> ProcMacro2GenerateTpOutput {
-    let mut iter = input.0.into_iter();
+fn generate_tp(
+    input: domain_types::ProcMacro2GenerateTpInput,
+) -> domain_types::ProcMacro2GenerateTpOutput {
+    let mut iter = proc_macro2::TokenStream::from(input).into_iter();
     let Some(name) = workspace_macro_helpers::first_identifier(&mut iter) else {
-        return ProcMacro2GenerateTpOutput::from(
+        return domain_types::ProcMacro2GenerateTpOutput::from(
             workspace_macro_helpers::compile_error_token_stream(
                 constants_str::COMPILE_ERROR_CE_076,
             )
@@ -15,7 +13,7 @@ fn generate_tp(input: ProcMacro2GenerateTpInput) -> ProcMacro2GenerateTpOutput {
         );
     };
     if !workspace_macro_helpers::strip_first_comma(&mut iter) {
-        return ProcMacro2GenerateTpOutput::from(
+        return domain_types::ProcMacro2GenerateTpOutput::from(
             workspace_macro_helpers::compile_error_token_stream(
                 constants_str::COMPILE_ERROR_CE_075,
             )
@@ -24,22 +22,22 @@ fn generate_tp(input: ProcMacro2GenerateTpInput) -> ProcMacro2GenerateTpOutput {
     }
     let body = iter.collect::<proc_macro2::TokenStream>();
     let name_identifier = quote::format_ident!("{name}");
-    ProcMacro2GenerateTpOutput::from(quote::quote! {
+    domain_types::ProcMacro2GenerateTpOutput::from(quote::quote! {
         #[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout)]
         pub struct #name_identifier;
         impl quote::ToTokens for #name_identifier {
             fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-                append_tokens(&mut ProcMacro2TokensMut(tokens), quote::quote! {#body});
+                crate::domain_types::ProcMacro2TokensMut::from(&mut *tokens)
+                    .append(quote::quote! {#body});
             }
         }
     })
 }
 #[proc_macro]
 pub fn tp(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    generate_tp(ProcMacro2GenerateTpInput::from(
+    proc_macro2::TokenStream::from(generate_tp(domain_types::ProcMacro2GenerateTpInput::from(
         proc_macro2::TokenStream::from(input),
-    ))
-    .0
+    )))
     .into()
 }
 #[proc_macro]
@@ -69,7 +67,7 @@ pub fn tp_parts(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
         pub struct #name_identifier;
         impl quote::ToTokens for #name_identifier {
             fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-                #(append_tokens(&mut ProcMacro2TokensMut(tokens), #part_streams);)*
+                #(crate::domain_types::ProcMacro2TokensMut::from(&mut *tokens).append(#part_streams);)*
             }
         }
     }
@@ -109,7 +107,9 @@ pub fn tp_batch(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
             proc_macro2::TokenTree::Group(group)
                 if group.delimiter() == proc_macro2::Delimiter::Parenthesis =>
             {
-                Some(generate_tp(ProcMacro2GenerateTpInput::from(group.stream())).0)
+                Some(proc_macro2::TokenStream::from(generate_tp(
+                    domain_types::ProcMacro2GenerateTpInput::from(group.stream()),
+                )))
             }
             proc_macro2::TokenTree::Group(_)
             | proc_macro2::TokenTree::Ident(_)

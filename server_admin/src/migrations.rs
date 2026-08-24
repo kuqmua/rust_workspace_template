@@ -5,7 +5,7 @@ pub(super) const fn migrator() -> &'static sqlx::migrate::Migrator {
     &ADMIN_MIGRATOR
 }
 pub(super) async fn prep_pg(
-    pool: app_state::SqlxPgPoolRef<'_>,
+    pool: app_state::domain_types::SqlxPgPoolRef<'_>,
 ) -> Result<(), super::AdminMigrateError> {
     ADMIN_MIGRATOR.run(pool.as_ref()).await.map_err(|error| {
         super::AdminMigrateError(super::AdminMigrateErrorInner::Migration(
@@ -37,7 +37,7 @@ pub(super) async fn prep_pg(
     Ok(())
 }
 pub(super) async fn bootstrap_admin(
-    pool: app_state::SqlxPgPoolRef<'_>,
+    pool: app_state::domain_types::SqlxPgPoolRef<'_>,
     login: super::AdminLogin,
     display_name: super::AdminDisplayName,
     password: server_admin_contract::AdminNewPassword,
@@ -116,7 +116,7 @@ pub(super) async fn bootstrap_admin(
 }
 
 pub(super) async fn reset_admin_password(
-    pool: app_state::SqlxPgPoolRef<'_>,
+    pool: app_state::domain_types::SqlxPgPoolRef<'_>,
     login: super::AdminLogin,
     password: server_admin_contract::AdminNewPassword,
     password_hasher: &super::AdminPasswordHasher,

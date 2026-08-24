@@ -17,7 +17,7 @@ pub fn generate_getter_traits_for_struct_fields(
             .as_ref()
             .expect("e5c23c45 generate_getter_traits_for_struct_fields invariant must hold");
         let upper_camel_case_field =
-            naming_common::ToTokensToUpperCamelCaseStr::case(&field_identifier);
+            naming_common::domain_types::ToTokensToUpperCamelCaseStr::case(&field_identifier);
         let trait_identifier = quote::format_ident!("Get{}", upper_camel_case_field);
         let fn_name_identifier = quote::format_ident!("get_{}", field_identifier);
         quote::quote! {
@@ -57,8 +57,9 @@ pub fn generate_getter_trait(input: proc_macro::TokenStream) -> proc_macro::Toke
         .expect("7c2531fd generate_getter_trait invariant must hold");
     let first_field_unnamed_type = &first_field_unnamed.ty;
     let get_identifier_upper_camel_case =
-        naming::parameter::GetSelfUpperCamelCase::from_tokens(&identifier);
-    let get_identifier_snake_case = naming::parameter::GetSelfSnakeCase::from_tokens(&identifier);
+        naming::domain_types::parameter::GetSelfUpperCamelCase::from_tokens(&identifier);
+    let get_identifier_snake_case =
+        naming::domain_types::parameter::GetSelfSnakeCase::from_tokens(&identifier);
     let generated = quote::quote! {
         pub trait #get_identifier_upper_camel_case {
             fn #get_identifier_snake_case(&self) -> &#first_field_unnamed_type;

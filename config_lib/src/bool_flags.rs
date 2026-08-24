@@ -47,7 +47,7 @@ pub struct ProductionMode(bool);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, newtype::DebugTransparent, newtype::FromInner,
 )]
-pub struct AdminBoolParsingError(super::StdParseBoolError);
+pub struct AdminBoolParsingError(super::ParseBoolError);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 #[error("{0:?}")]
 #[derive(newtype::FromInner)]
@@ -57,7 +57,7 @@ impl super::TryFromStdEnvVarOk for AdminCookieSecure {
     fn try_from_std_env_var_ok(v: super::StdEnvVarOk) -> Result<Self, Self::Error> {
         v.0.parse::<bool>().map(Self).map_err(|admin_bool_parsing| {
             TryFromStdEnvVarOkAdminCookieSecureError::from(AdminBoolParsingError::from(
-                super::StdParseBoolError::from(admin_bool_parsing),
+                super::ParseBoolError::from(admin_bool_parsing),
             ))
         })
     }
@@ -67,7 +67,7 @@ impl super::TryFromStdEnvVarOk for AdminSwaggerEnabled {
     fn try_from_std_env_var_ok(v: super::StdEnvVarOk) -> Result<Self, Self::Error> {
         v.0.parse::<bool>().map(Self).map_err(|admin_bool_parsing| {
             TryFromStdEnvVarOkAdminCookieSecureError::from(AdminBoolParsingError::from(
-                super::StdParseBoolError::from(admin_bool_parsing),
+                super::ParseBoolError::from(admin_bool_parsing),
             ))
         })
     }
@@ -77,7 +77,7 @@ impl super::TryFromStdEnvVarOk for HttpGzipEnabled {
     fn try_from_std_env_var_ok(v: super::StdEnvVarOk) -> Result<Self, Self::Error> {
         v.0.parse::<bool>().map(Self).map_err(|admin_bool_parsing| {
             TryFromStdEnvVarOkAdminCookieSecureError::from(AdminBoolParsingError::from(
-                super::StdParseBoolError::from(admin_bool_parsing),
+                super::ParseBoolError::from(admin_bool_parsing),
             ))
         })
     }
@@ -87,7 +87,7 @@ impl super::TryFromStdEnvVarOk for ProductionMode {
     fn try_from_std_env_var_ok(v: super::StdEnvVarOk) -> Result<Self, Self::Error> {
         v.0.parse::<bool>().map(Self).map_err(|admin_bool_parsing| {
             TryFromStdEnvVarOkAdminCookieSecureError::from(AdminBoolParsingError::from(
-                super::StdParseBoolError::from(admin_bool_parsing),
+                super::ParseBoolError::from(admin_bool_parsing),
             ))
         })
     }

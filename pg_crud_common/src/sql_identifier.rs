@@ -57,14 +57,16 @@ impl TryFrom<String> for SqlIdentifierListText {
     }
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
-enum SqlIdentifierListTextState {
-    Text(SqlIdentifierListText),
-    TooLong(crate::PgCrudStringWrapperTryFromStringError),
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
-pub struct SqlIdentifiers(SqlIdentifierListTextState);
-impl From<Vec<SqlIdentifier>> for SqlIdentifiers {
-    fn from(value: Vec<SqlIdentifier>) -> Self {
+pub struct SqlIdentifiers(SqlIdentifierListText);
+impl TryFrom<Vec<SqlIdentifier>> for SqlIdentifiers {
+    type Error = crate::PgCrudStringWrapperTryFromStringError;
+    fn try_from(value: Vec<SqlIdentifier>) -> Result<Self, Self::Error> {
+        if value.len() > bounded_types::domain_types::COLLECTION_MAX_LEN {
+            return Err(crate::PgCrudStringWrapperTryFromStringError::TooLong {
+                len: value.len(),
+                max: bounded_types::domain_types::COLLECTION_MAX_LEN,
+            });
+        }
         let identifiers_len = value.iter().fold(constants_usize::ZERO, |len, identifier| {
             len.saturating_add(identifier.as_ref().len())
         });
@@ -79,10 +81,7 @@ impl From<Vec<SqlIdentifier>> for SqlIdentifiers {
             }
             text.push_str(identifier.as_ref());
         });
-        Self(match SqlIdentifierListText::try_from(text) {
-            Ok(list_text) => SqlIdentifierListTextState::Text(list_text),
-            Err(error) => SqlIdentifierListTextState::TooLong(error),
-        })
+        SqlIdentifierListText::try_from(text).map(Self)
     }
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
@@ -137,19 +136,7 @@ impl SqlSelectBuilder {
             .saturating_add(self.table.schema.as_ref().len())
             .saturating_add(constants_str::DOT.len())
             .saturating_add(self.table.table.as_ref().len());
-        let columns = match &self.columns.0 {
-            SqlIdentifierListTextState::Text(text) => text.0.as_str(),
-            SqlIdentifierListTextState::TooLong(
-                crate::PgCrudStringWrapperTryFromStringError::TooLong { len, max },
-            ) => {
-                return crate::QueryPartFragment::from(
-                    crate::PgCrudStringWrapperTryFromStringError::TooLong {
-                        len: fixed_len.saturating_add(*len),
-                        max: *max,
-                    },
-                );
-            }
-        };
+        let columns = self.columns.0.0.as_str();
         let capacity = fixed_len.saturating_add(columns.len());
         let mut query = SqlQueryText::try_from(String::with_capacity(capacity))
             .unwrap_or_else(SqlQueryText::from);
@@ -207,11 +194,13 @@ mod tests {
                 identifier(constants_str::PUBLIC),
                 identifier(constants_str::USERS_ALT),
             ),
-            vec![
+            super::SqlIdentifiers::try_from(vec![
                 identifier(constants_str::SQL_NAMES_ID),
                 identifier(constants_str::LOGIN),
-            ]
-            .into(),
+            ])
+            .expect(
+                "c4cf723e query_builder_accepts_only_validated_identifiers invariant must hold",
+            ),
         );
         let first = builder.build();
         let second = builder.build();

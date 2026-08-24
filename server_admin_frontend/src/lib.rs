@@ -15,7 +15,7 @@ pub struct AxumAdminFrontendRouter(axum::Router);
 #[derive(Debug, thiserror::Error)]
 enum AdminAssetsError {
     #[error("administrator asset read failed: {0}")]
-    Read(to_err_string::ErrorText),
+    Read(to_err_string::domain_types::ErrorText),
 }
 #[cfg(not(target_arch = "wasm32"))]
 impl axum::response::IntoResponse for AdminAssetsError {
@@ -41,7 +41,9 @@ pub fn routes() -> AxumAdminFrontendRouter {
                 .await
                 .map(|response| response.map(axum::body::Body::new))
                 .map_err(|error| {
-                    AdminAssetsError::Read(to_err_string::ToErrString::to_err_string(&error))
+                    AdminAssetsError::Read(to_err_string::domain_types::ToErrString::to_err_string(
+                        &error,
+                    ))
                 })
         }),
     ))

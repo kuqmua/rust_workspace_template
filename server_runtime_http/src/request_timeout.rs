@@ -1,5 +1,5 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct RequestTimeoutLayer(super::StdRequestTimeout);
+pub struct RequestTimeoutLayer(super::RequestTimeoutDuration);
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 enum RequestTimeoutError {
@@ -38,12 +38,12 @@ impl RequestTimeoutLayer {
 }
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-struct RequestTimeoutTowerLayer(super::StdRequestTimeout);
+struct RequestTimeoutTowerLayer(super::RequestTimeoutDuration);
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 struct RequestTimeoutService<Service> {
     inner: Service,
-    timeout: super::StdRequestTimeout,
+    timeout: super::RequestTimeoutDuration,
 }
 
 impl<Service> tower::Layer<Service> for RequestTimeoutTowerLayer {
@@ -102,7 +102,7 @@ mod tests {
     #[test]
     fn timeout_layer_preserves_validated_timeout() {
         let timeout =
-            super::super::StdRequestTimeout::try_from(std::time::Duration::from_secs(1u64))
+            super::super::RequestTimeoutDuration::try_from(std::time::Duration::from_secs(1u64))
                 .expect("65a8fd30 timeout_layer_preserves_validated_timeout invariant must hold");
         let layer = super::RequestTimeoutLayer::from(timeout);
         assert_eq!(layer.0.get(), std::time::Duration::from_secs(1u64));
@@ -111,7 +111,7 @@ mod tests {
     #[tokio::test(start_paused = true)]
     async fn timeout_response_contains_retry_after_without_text_round_trip() {
         let timeout =
-            super::super::StdRequestTimeout::try_from(std::time::Duration::from_secs(2u64))
+            super::super::RequestTimeoutDuration::try_from(std::time::Duration::from_secs(2u64))
                 .expect("b140ead4 timeout_response_contains_retry_after_without_text_round_trip invariant must hold");
         let router = axum::Router::from(super::RequestTimeoutLayer::from(timeout).apply(
             super::super::AxumRouter::from(axum::Router::new().route(

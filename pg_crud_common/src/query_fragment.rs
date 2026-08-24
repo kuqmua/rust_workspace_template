@@ -23,7 +23,7 @@ pub struct QueryPartFragment(String);
     PartialEq,
     newtype::FromInner,
 )]
-pub struct StdReadQueryBindIndex(std::num::NonZeroU32);
+pub struct ReadQueryBindIndexNonZeroU32(std::num::NonZeroU32);
 impl From<crate::PgCrudStringWrapperTryFromStringError> for QueryPartFragment {
     fn from(value: crate::PgCrudStringWrapperTryFromStringError) -> Self {
         Self(value.to_string())
@@ -58,7 +58,7 @@ impl std::fmt::Write for QueryPartFragment {
 impl QueryPartFragment {
     pub(super) fn append_read_bind_index(
         &mut self,
-        bind_index: StdReadQueryBindIndex,
+        bind_index: ReadQueryBindIndexNonZeroU32,
     ) -> Result<(), crate::ReadQueryPlanError> {
         let mut digits = [constants_u8::ZERO; 10usize];
         let mut value = bind_index.0.get();

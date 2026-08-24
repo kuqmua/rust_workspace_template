@@ -158,7 +158,7 @@ impl<'ast> syn::visit::Visit<'ast> for LeakApiVisitor {
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct SpawnConsumptionVisitor {
-    consumed: super::types::StdSourceTextSet,
+    consumed: super::types::SourceTextBTreeSet,
 }
 impl SpawnConsumptionVisitor {
     fn record_path(&mut self, expression: &syn::Expr) {
@@ -430,6 +430,33 @@ impl<'ast> syn::visit::Visit<'ast> for IgnoredMapErrBindingVisitor {
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct RawVecTupleWrapperVisitor {
     identifiers: super::types::SourceTextList,
+}
+
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
+struct FromVecImplVisitor {
+    targets: super::types::SourceTextList,
+}
+impl<'ast> syn::visit::Visit<'ast> for FromVecImplVisitor {
+    fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
+        if let Some((trait_path, _)) = &i.trait_
+            && let Some(trait_segment) = trait_path.segments.last()
+            && trait_segment.ident == "From"
+            && let syn::PathArguments::AngleBracketed(arguments) = &trait_segment.arguments
+            && let Some(syn::GenericArgument::Type(syn::Type::Path(value_type))) =
+                arguments.args.first()
+            && value_type
+                .path
+                .segments
+                .last()
+                .is_some_and(|segment| segment.ident == "Vec")
+        {
+            self.targets.push(format!(
+                "line {}",
+                syn::spanned::Spanned::span(i).start().line
+            ));
+        }
+        syn::visit::visit_item_impl(self, i);
+    }
 }
 impl<'ast> syn::visit::Visit<'ast> for RawVecTupleWrapperVisitor {
     fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
@@ -840,7 +867,7 @@ fn lock_guards_are_not_held_across_await() {
 fn allocations_inside_loops_match_reviewed_inventory() {
     let reviewed = std::collections::BTreeMap::from([
         (
-            "../file_storage/src/lib.rs:clone",
+            "../file_storage/src/domain_types.rs:clone",
             (
                 constants_usize::ONE,
                 "multipart chunk assembly must retain owned buffers until the completed file is committed",
@@ -889,7 +916,7 @@ fn allocations_inside_loops_match_reviewed_inventory() {
             ),
         ),
         (
-            "../constants_str_macros/src/lib.rs:collect",
+            "../constants_str_macros/src/domain_types.rs:collect",
             (
                 constants_usize::ONE,
                 "compile-time constant generation collects tokens outside runtime hot paths",
@@ -897,37 +924,38 @@ fn allocations_inside_loops_match_reviewed_inventory() {
         ),
     ]);
     super::snapshot::with_codebase_snapshot(|snapshot| {
-        let observed =
-            snapshot
-                .rs_files()
-                .iter()
-                .filter(|source_file| {
-                    !super::is_test_source_path(super::types::StdPathRef::from(
-                        std::borrow::Borrow::<std::path::Path>::borrow(source_file.path()),
-                    ))
-                    .get()
-                })
-                .flat_map(|source_file| {
-                    let visitor = super::visit_syn_file(
-                        super::types::SynFileRef::from(source_file.ast().as_ref()),
-                        LoopAllocationVisitor::default(),
-                    );
-                    let path = source_file.path().as_ref().display().to_string();
-                    visitor
-                        .entries
-                        .into_iter()
-                        .map(move |entry| format!("{path}:{entry}"))
-                })
-                .fold(
-                    std::collections::BTreeMap::<String, usize>::new(),
-                    |mut counts, entry| {
-                        let _count = counts
-                            .entry(entry)
-                            .and_modify(|count| *count = count.saturating_add(constants_usize::ONE))
-                            .or_insert(constants_usize::ONE);
-                        counts
-                    },
+        let observed = snapshot
+            .rs_files()
+            .iter()
+            .filter(|source_file| {
+                !super::is_test_source_path(super::types::PathRef::from(std::borrow::Borrow::<
+                    std::path::Path,
+                >::borrow(
+                    source_file.path()
+                )))
+                .get()
+            })
+            .flat_map(|source_file| {
+                let visitor = super::visit_syn_file(
+                    super::types::SynFileRef::from(source_file.ast().as_ref()),
+                    LoopAllocationVisitor::default(),
                 );
+                let path = source_file.path().as_ref().display().to_string();
+                visitor
+                    .entries
+                    .into_iter()
+                    .map(move |entry| format!("{path}:{entry}"))
+            })
+            .fold(
+                std::collections::BTreeMap::<String, usize>::new(),
+                |mut counts, entry| {
+                    let _count = counts
+                        .entry(entry)
+                        .and_modify(|count| *count = count.saturating_add(constants_usize::ONE))
+                        .or_insert(constants_usize::ONE);
+                    counts
+                },
+            );
         let expected = reviewed
             .iter()
             .map(|(entry, (count, reason))| {
@@ -1402,7 +1430,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "pg_crud_pg_types_common/src/lib.rs",
+            "pg_crud_pg_types_common/src/domain_types.rs",
             (0, 0, 1, "PostgreSQL query parts use dynamic dispatch"),
         ),
         (
@@ -1448,7 +1476,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             .rs_files()
             .iter()
             .filter(|source_file| {
-                !super::is_test_source_path(super::types::StdPathRef::from(
+                !super::is_test_source_path(super::types::PathRef::from(
                     std::borrow::Borrow::<std::path::Path>::borrow(source_file.path()),
                 ))
                     .get()
@@ -1501,7 +1529,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
 fn ignored_map_err_bindings_match_reviewed_inventory() {
     let reviewed = std::collections::BTreeMap::from([
         (
-            "external_service_emulators/src/lib.rs",
+            "external_service_emulators/src/domain_types.rs",
             (
                 constants_usize::ONE,
                 "the emulator maps channel closure to its domain error",
@@ -1543,7 +1571,7 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             ),
         ),
         (
-            "file_storage/src/lib.rs",
+            "file_storage/src/domain_types.rs",
             (
                 constants_usize::ONE,
                 "storage input failure is classified at the boundary",
@@ -1743,7 +1771,7 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             ),
         ),
         (
-            "server_admin_core/src/lib.rs",
+            "server_admin_core/src/domain_types.rs",
             (
                 4usize,
                 "domain conversion failures map to administrator validation errors",
@@ -1947,7 +1975,7 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
 fn raw_vec_tuple_wrappers_match_reviewed_inventory() {
     let reviewed = std::collections::BTreeMap::from([
         (
-            "../bounded_types/src/vector.rs:BoundedVec",
+            "../bounded_types/src/domain_types/vector.rs:BoundedVec",
             "the shared bounded vector is the reviewed owner of raw Vec storage",
         ),
         (
@@ -1955,7 +1983,7 @@ fn raw_vec_tuple_wrappers_match_reviewed_inventory() {
             "infallible fixed-size array conversions require raw storage; Vec conversion and serde delegate to bounded_types",
         ),
         (
-            "../development_data_bootstrap/src/lib.rs:DevelopmentIdentitySpecs",
+            "../development_data_bootstrap/src/domain_types.rs:DevelopmentIdentitySpecs",
             "the bootstrap catalog owns validated development identities assembled in process",
         ),
         (
@@ -2095,15 +2123,15 @@ fn raw_vec_tuple_wrappers_match_reviewed_inventory() {
             "the multipart budget is supplied dynamically and enforced while parsing",
         ),
         (
-            "../constants_str_macros/src/lib.rs:ConstantParts",
+            "../constants_str_macros/src/domain_types.rs:ConstantParts",
             "the proc-macro compiler owns compile-time constant fragments",
         ),
         (
-            "../constants_str_macros/src/lib.rs:Constants",
+            "../constants_str_macros/src/domain_types.rs:Constants",
             "the proc-macro compiler owns compile-time constant declarations",
         ),
         (
-            "../constants_str_macros/src/lib.rs:Fragments",
+            "../constants_str_macros/src/domain_types.rs:Fragments",
             "the proc-macro compiler owns compile-time string fragments",
         ),
         (
@@ -2119,28 +2147,29 @@ fn raw_vec_tuple_wrappers_match_reviewed_inventory() {
         .values()
         .for_each(|reason| assert!(!reason.is_empty(), "f8c9471a"));
     super::snapshot::with_codebase_snapshot(|snapshot| {
-        let observed =
-            snapshot
-                .rs_files()
-                .iter()
-                .filter(|source_file| {
-                    !super::is_test_source_path(super::types::StdPathRef::from(
-                        std::borrow::Borrow::<std::path::Path>::borrow(source_file.path()),
-                    ))
-                    .get()
-                })
-                .flat_map(|source_file| {
-                    let visitor = super::visit_syn_file(
-                        super::types::SynFileRef::from(source_file.ast().as_ref()),
-                        RawVecTupleWrapperVisitor::default(),
-                    );
-                    let path = source_file.path().as_ref().display().to_string();
-                    visitor
-                        .identifiers
-                        .into_iter()
-                        .map(move |identifier| format!("{path}:{identifier}"))
-                })
-                .collect::<std::collections::BTreeSet<String>>();
+        let observed = snapshot
+            .rs_files()
+            .iter()
+            .filter(|source_file| {
+                !super::is_test_source_path(super::types::PathRef::from(std::borrow::Borrow::<
+                    std::path::Path,
+                >::borrow(
+                    source_file.path()
+                )))
+                .get()
+            })
+            .flat_map(|source_file| {
+                let visitor = super::visit_syn_file(
+                    super::types::SynFileRef::from(source_file.ast().as_ref()),
+                    RawVecTupleWrapperVisitor::default(),
+                );
+                let path = source_file.path().as_ref().display().to_string();
+                visitor
+                    .identifiers
+                    .into_iter()
+                    .map(move |identifier| format!("{path}:{identifier}"))
+            })
+            .collect::<std::collections::BTreeSet<String>>();
         let expected = reviewed
             .keys()
             .map(|entry| (*entry).to_owned())
@@ -2149,6 +2178,28 @@ fn raw_vec_tuple_wrappers_match_reviewed_inventory() {
             observed, expected,
             "f8c9471a raw Vec tuple wrapper inventory changed"
         );
+    });
+}
+
+#[test]
+fn from_vec_implementations_are_forbidden() {
+    super::snapshot::with_codebase_snapshot(|snapshot| {
+        let violations = snapshot
+            .rs_files()
+            .iter()
+            .flat_map(|source_file| {
+                let visitor = super::visit_syn_file(
+                    super::types::SynFileRef::from(source_file.ast().as_ref()),
+                    FromVecImplVisitor::default(),
+                );
+                let path = source_file.path().as_ref().display().to_string();
+                visitor
+                    .targets
+                    .into_iter()
+                    .map(move |target| format!("{path}:{target}"))
+            })
+            .collect::<Vec<String>>();
+        assert!(violations.is_empty(), "6cc64ce8 {violations:#?}");
     });
 }
 
@@ -2174,21 +2225,21 @@ fn raw_vec_tuple_wrapper_visitor_detects_qualified_and_nested_types() {
 fn usize_max_usage_matches_reviewed_inventory() {
     let reviewed = std::collections::BTreeMap::from([
         (
-            "../bounded_types/src/string.rs",
+            "../bounded_types/src/domain_types/text.rs",
             (
                 constants_usize::ONE,
                 "the bounded string schema represents its explicitly unbounded maximum",
             ),
         ),
         (
-            "../bounded_types/src/vector.rs",
+            "../bounded_types/src/domain_types/vector.rs",
             (
                 3usize,
                 "the bounded vector provides its explicitly unbounded specialization, overflow boundary, and schema handling",
             ),
         ),
         (
-            "../file_storage/src/lib.rs",
+            "../file_storage/src/domain_types.rs",
             (
                 constants_usize::ONE,
                 "the process-owned path catalog is assembled from already bounded storage paths",
@@ -2237,7 +2288,7 @@ fn usize_max_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "../prepare_postgresql_databases/src/lib.rs",
+            "../prepare_postgresql_databases/src/domain_types.rs",
             (
                 2usize,
                 "the local process command catalog is derived from finite workspace configuration",
@@ -2283,26 +2334,27 @@ fn usize_max_usage_matches_reviewed_inventory() {
         .values()
         .for_each(|(_count, reason)| assert!(!reason.is_empty(), "cfc5175f"));
     super::snapshot::with_codebase_snapshot(|snapshot| {
-        let observed =
-            snapshot
-                .rs_files()
-                .iter()
-                .filter(|source_file| {
-                    !super::is_test_source_path(super::types::StdPathRef::from(
-                        std::borrow::Borrow::<std::path::Path>::borrow(source_file.path()),
-                    ))
-                    .get()
-                })
-                .filter_map(|source_file| {
-                    let visitor = super::visit_syn_file(
-                        super::types::SynFileRef::from(source_file.ast().as_ref()),
-                        UsizeMaxExprVisitor::default(),
-                    );
-                    let count = visitor.count.get();
-                    (count != constants_usize::ZERO)
-                        .then(|| (source_file.path().as_ref().display().to_string(), count))
-                })
-                .collect::<std::collections::BTreeMap<String, usize>>();
+        let observed = snapshot
+            .rs_files()
+            .iter()
+            .filter(|source_file| {
+                !super::is_test_source_path(super::types::PathRef::from(std::borrow::Borrow::<
+                    std::path::Path,
+                >::borrow(
+                    source_file.path()
+                )))
+                .get()
+            })
+            .filter_map(|source_file| {
+                let visitor = super::visit_syn_file(
+                    super::types::SynFileRef::from(source_file.ast().as_ref()),
+                    UsizeMaxExprVisitor::default(),
+                );
+                let count = visitor.count.get();
+                (count != constants_usize::ZERO)
+                    .then(|| (source_file.path().as_ref().display().to_string(), count))
+            })
+            .collect::<std::collections::BTreeMap<String, usize>>();
         let expected = reviewed
             .iter()
             .map(|(path, (count, _reason))| ((*path).to_owned(), *count))

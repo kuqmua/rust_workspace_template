@@ -9,15 +9,10 @@
     Ord,
     newtype::Display,
     newtype::FromInner,
+    newtype::GetInner,
 )]
 #[allow(clippy::module_name_repetitions)] // the public name remains explicit when imported outside this module
 pub struct BoundedVecLen(usize);
-impl BoundedVecLen {
-    #[must_use]
-    pub const fn get(self) -> usize {
-        self.0
-    }
-}
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
 )]
@@ -62,7 +57,7 @@ impl<T, const MIN: usize, const MAX: usize> BoundedVec<T, MIN, MAX> {
 impl<T, const MIN: usize, const MAX: usize> TryFrom<Vec<T>> for BoundedVec<T, MIN, MAX> {
     type Error = BoundedVecError;
     fn try_from(value: Vec<T>) -> Result<Self, Self::Error> {
-        bounded_types::BoundedVec::<T, MIN, MAX>::try_from(value)
+        bounded_types::domain_types::vector::BoundedVec::<T, MIN, MAX>::try_from(value)
             .map(|bounded| Self(bounded.into_inner()))
             .map_err(BoundedVecError::from)
     }
@@ -87,28 +82,34 @@ impl<'de, T: serde::Deserialize<'de>, const MIN: usize, const MAX: usize> serde:
     where
         Deserializer: serde::Deserializer<'de>,
     {
-        let value = <bounded_types::BoundedVec<T, MIN, MAX> as serde::Deserialize>::deserialize(
+        let value = <bounded_types::domain_types::vector::BoundedVec<T, MIN, MAX> as serde::Deserialize>::deserialize(
             deserializer,
         )?
         .into_inner();
         Self::try_from(value).map_err(serde::de::Error::custom)
     }
 }
-impl From<bounded_types::BoundedValueError> for BoundedVecError {
-    fn from(value: bounded_types::BoundedValueError) -> Self {
+impl From<bounded_types::domain_types::BoundedValueError> for BoundedVecError {
+    fn from(value: bounded_types::domain_types::BoundedValueError) -> Self {
         match value {
-            bounded_types::BoundedValueError::AboveMax { actual, max } => Self::AboveMax {
-                actual: BoundedVecLen::from(actual.get()),
-                max: BoundedVecLen::from(max.get()),
-            },
-            bounded_types::BoundedValueError::BelowMin { actual, min } => Self::BelowMin {
-                actual: BoundedVecLen::from(actual.get()),
-                min: BoundedVecLen::from(min.get()),
-            },
-            bounded_types::BoundedValueError::InvalidBounds { min, max } => Self::InvalidBounds {
-                min: BoundedVecLen::from(min.get()),
-                max: BoundedVecLen::from(max.get()),
-            },
+            bounded_types::domain_types::BoundedValueError::AboveMax { actual, max } => {
+                Self::AboveMax {
+                    actual: BoundedVecLen::from(actual.get()),
+                    max: BoundedVecLen::from(max.get()),
+                }
+            }
+            bounded_types::domain_types::BoundedValueError::BelowMin { actual, min } => {
+                Self::BelowMin {
+                    actual: BoundedVecLen::from(actual.get()),
+                    min: BoundedVecLen::from(min.get()),
+                }
+            }
+            bounded_types::domain_types::BoundedValueError::InvalidBounds { min, max } => {
+                Self::InvalidBounds {
+                    min: BoundedVecLen::from(min.get()),
+                    max: BoundedVecLen::from(max.get()),
+                }
+            }
         }
     }
 }

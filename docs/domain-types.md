@@ -4,13 +4,13 @@ This generated catalog lists every non-test-only struct, enum, trait, and union 
 
 Source files remain authoritative. Regenerate this catalog whenever domain declarations change.
 
-- Direct declarations: 2060
+- Direct declarations: 2061
 - Macro-generated declarations: 116
-- Total declarations: 2176
+- Total declarations: 2177
 
 ## `admin_bootstrap/src/main.rs`
 
-- [`struct StdBootstrapPath`](../admin_bootstrap/src/main.rs#L13)
+- [`struct BootstrapPathBuf`](../admin_bootstrap/src/main.rs#L13)
 - [`struct SqlxBootstrapError`](../admin_bootstrap/src/main.rs#L18)
 - [`struct BootstrapStatus`](../admin_bootstrap/src/main.rs#L28)
 - [`struct BootstrapArgs`](../admin_bootstrap/src/main.rs#L30)
@@ -18,37 +18,37 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`enum AdminCommand`](../admin_bootstrap/src/main.rs#L41)
 - [`enum BootstrapArgsError`](../admin_bootstrap/src/main.rs#L46)
 - [`enum BootstrapCommandError`](../admin_bootstrap/src/main.rs#L57)
-- [`struct StdBootstrapExitCode`](../admin_bootstrap/src/main.rs#L78)
+- [`struct BootstrapExitCode`](../admin_bootstrap/src/main.rs#L78)
 
-## `app_state/src/lib.rs`
+## `app_state/src/domain_types.rs`
 
-- [`struct SqlxPgPoolRef`](../app_state/src/lib.rs#L9)
-- [`struct SqlxPgPool`](../app_state/src/lib.rs#L17)
-- [`trait GetSqlxPgPool`](../app_state/src/lib.rs#L18)
+- [`struct SqlxPgPoolRef`](../app_state/src/domain_types.rs#L9)
+- [`struct SqlxPgPool`](../app_state/src/domain_types.rs#L18)
+- [`trait GetSqlxPgPool`](../app_state/src/domain_types.rs#L20)
 
-## `bounded_types/src/btree_map.rs`
+## `bounded_types/src/domain_types.rs`
 
-- [`struct StdBoundedBTreeMap`](../bounded_types/src/btree_map.rs#L5)
-- [`struct StdPhantomDataBoundedBTreeMapVisitor`](../bounded_types/src/btree_map.rs#L123)
+- [`struct BoundedLen`](../bounded_types/src/domain_types.rs#L24)
+- [`enum BoundedValueError`](../bounded_types/src/domain_types.rs#L34)
 
-## `bounded_types/src/hash_map.rs`
+## `bounded_types/src/domain_types/btree.rs`
 
-- [`struct StdBoundedHashMap`](../bounded_types/src/hash_map.rs#L5)
-- [`struct StdPhantomDataBoundedHashMapVisitor`](../bounded_types/src/hash_map.rs#L126)
+- [`struct BoundedBTreeMap`](../bounded_types/src/domain_types/btree.rs#L5)
+- [`struct BoundedBTreeMapVisitorPhantomData`](../bounded_types/src/domain_types/btree.rs#L123)
 
-## `bounded_types/src/lib.rs`
+## `bounded_types/src/domain_types/hash.rs`
 
-- [`struct BoundedLen`](../bounded_types/src/lib.rs#L25)
-- [`enum BoundedValueError`](../bounded_types/src/lib.rs#L41)
+- [`struct BoundedHashMap`](../bounded_types/src/domain_types/hash.rs#L5)
+- [`struct BoundedHashMapVisitorPhantomData`](../bounded_types/src/domain_types/hash.rs#L124)
 
-## `bounded_types/src/string.rs`
+## `bounded_types/src/domain_types/text.rs`
 
-- [`struct BoundedString`](../bounded_types/src/string.rs#L12)
+- [`struct BoundedString`](../bounded_types/src/domain_types/text.rs#L12)
 
-## `bounded_types/src/vector.rs`
+## `bounded_types/src/domain_types/vector.rs`
 
-- [`struct BoundedVec`](../bounded_types/src/vector.rs#L10)
-- [`struct StdPhantomDataBoundedVecVisitor`](../bounded_types/src/vector.rs#L106)
+- [`struct BoundedVec`](../bounded_types/src/domain_types/vector.rs#L10)
+- [`struct BoundedVecVisitorPhantomData`](../bounded_types/src/domain_types/vector.rs#L111)
 
 ## `common_routes/src/lib.rs`
 
@@ -82,11 +82,11 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`struct GitInfoRoute`](../common_routes/src/lib.rs#L369)
 - [`enum CommonRoute`](../common_routes/src/lib.rs#L381)
 - [`struct AxumCommonRoutes`](../common_routes/src/lib.rs#L467)
-- [`struct StdArcCommonRoutesAppState`](../common_routes/src/lib.rs#L469)
+- [`struct ArcCommonRoutesAppState`](../common_routes/src/lib.rs#L469)
 - [`struct CommonRoutesOpenApi`](../common_routes/src/lib.rs#L471)
 - [`struct UtoipaCommonRoutesOpenApiDocument`](../common_routes/src/lib.rs#L475)
 - [`trait CommonRoutesParameters`](../common_routes/src/lib.rs#L512)
-- [`struct CommonRouteRegistry`](../common_routes/src/lib.rs#L633)
+- [`struct CommonRouteRegistry`](../common_routes/src/lib.rs#L636)
 
 ## `common_routes/src/tests.rs`
 
@@ -115,7 +115,7 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 ## `config_lib/src/admin_jwt.rs`
 
 - [`struct AdminJwtSecret`](../config_lib/src/admin_jwt.rs#L11)
-- [`enum TryFromStdEnvVarOkAdminJwtSecretError`](../config_lib/src/admin_jwt.rs#L30)
+- [`enum TryFromStdEnvVarOkAdminJwtSecretError`](../config_lib/src/admin_jwt.rs#L34)
 
 ## `config_lib/src/bool_flags.rs`
 
@@ -142,9 +142,9 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`struct EnvVarNameRef`](../config_lib/src/lib.rs#L73)
 - [`struct EnvVarName`](../config_lib/src/lib.rs#L77)
 - [`struct ChronoFixedOffsetError`](../config_lib/src/lib.rs#L104)
-- [`struct StdI32ParsingError`](../config_lib/src/lib.rs#L108)
-- [`struct StdU32ParsingError`](../config_lib/src/lib.rs#L112)
-- [`struct StdUsizeParsingError`](../config_lib/src/lib.rs#L116)
+- [`struct I32ParseIntError`](../config_lib/src/lib.rs#L108)
+- [`struct U32ParseIntError`](../config_lib/src/lib.rs#L112)
+- [`struct UsizeParseIntError`](../config_lib/src/lib.rs#L116)
 - [`struct TimezoneSeconds`](../config_lib/src/lib.rs#L126)
 - [`struct ChronoEastFixedOffset`](../config_lib/src/lib.rs#L136)
 - [`trait TryFromStdEnvVarOk`](../config_lib/src/lib.rs#L137)
@@ -156,10 +156,10 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`struct ConfigFieldDescriptor`](../config_lib/src/lib.rs#L174)
 - [`struct StdConfigSecretString`](../config_lib/src/lib.rs#L248)
 - [`struct SecrecySecretBoxString`](../config_lib/src/lib.rs#L255)
-- [`struct StdNonZeroU64`](../config_lib/src/lib.rs#L278)
-- [`struct StdNonZeroUsize`](../config_lib/src/lib.rs#L289)
-- [`struct StdParseIntError`](../config_lib/src/lib.rs#L293)
-- [`struct StdParseBoolError`](../config_lib/src/lib.rs#L297)
+- [`struct ConfigNonZeroU64`](../config_lib/src/lib.rs#L278)
+- [`struct ConfigNonZeroUsize`](../config_lib/src/lib.rs#L289)
+- [`struct ParseIntError`](../config_lib/src/lib.rs#L293)
+- [`struct ParseBoolError`](../config_lib/src/lib.rs#L297)
 - [`macro-generated type CorsAllowOrigin`](../config_lib/src/lib.rs#L298)
 - [`macro-generated type TrustedProxyRangesText`](../config_lib/src/lib.rs#L302)
 - [`macro-generated type DatabaseUrl`](../config_lib/src/lib.rs#L306)
@@ -189,8 +189,8 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 ## `config_lib/src/types.rs`
 
 - [`struct TracingLevelName`](../config_lib/src/types.rs#L11)
-- [`struct StdEnvVarResult`](../config_lib/src/types.rs#L13)
-- [`struct StdEnvVarError`](../config_lib/src/types.rs#L23)
+- [`struct EnvVarResultVarError`](../config_lib/src/types.rs#L13)
+- [`struct EnvVarError`](../config_lib/src/types.rs#L23)
 - [`struct EnvVarNameRef`](../config_lib/src/types.rs#L37)
 - [`struct EnvVarValueRef`](../config_lib/src/types.rs#L39)
 - [`struct ParseCtxRef`](../config_lib/src/types.rs#L50)
@@ -200,73 +200,73 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`enum SvcMode`](../config_lib/src/types.rs#L109)
 - [`enum SrcPlaceType`](../config_lib/src/types.rs#L145)
 
-## `config_lib_config_lib_macros/src/lib.rs`
+## `config_lib_config_lib_macros/src/domain_types.rs`
 
-- [`struct ProcMacro2TryFromParseInput`](../config_lib_config_lib_macros/src/lib.rs#L2)
-- [`struct ProcMacro2TryFromParseFixedErrorTy`](../config_lib_config_lib_macros/src/lib.rs#L5)
-- [`struct ProcMacroTryFromParseTokenStream`](../config_lib_config_lib_macros/src/lib.rs#L8)
+- [`struct ProcMacro2TryFromParseInput`](../config_lib_config_lib_macros/src/domain_types.rs#L4)
+- [`struct ProcMacro2TryFromParseFixedErrorTy`](../config_lib_config_lib_macros/src/domain_types.rs#L9)
+- [`struct ProcMacroTryFromParseTokenStream`](../config_lib_config_lib_macros/src/domain_types.rs#L14)
 
 ## `constants_str_macros/src/lib.rs`
 
-- [`struct SynIdent`](../constants_str_macros/src/lib.rs#L7)
-- [`struct SynLitStr`](../constants_str_macros/src/lib.rs#L21)
-- [`struct SynVisibility`](../constants_str_macros/src/lib.rs#L35)
-- [`struct Fragment`](../constants_str_macros/src/lib.rs#L49)
-- [`enum ConstantPart`](../constants_str_macros/src/lib.rs#L55)
-- [`struct ConstantParts`](../constants_str_macros/src/lib.rs#L60)
-- [`struct Constants`](../constants_str_macros/src/lib.rs#L67)
-- [`struct Fragments`](../constants_str_macros/src/lib.rs#L74)
-- [`struct Constant`](../constants_str_macros/src/lib.rs#L82)
-- [`struct DefineStrConstantsInput`](../constants_str_macros/src/lib.rs#L89)
+- [`struct SynIdent`](../constants_str_macros/src/lib.rs#L8)
+- [`struct SynLitStr`](../constants_str_macros/src/lib.rs#L22)
+- [`struct SynVisibility`](../constants_str_macros/src/lib.rs#L36)
+- [`struct Fragment`](../constants_str_macros/src/lib.rs#L50)
+- [`enum ConstantPart`](../constants_str_macros/src/lib.rs#L56)
+- [`struct ConstantParts`](../constants_str_macros/src/lib.rs#L61)
+- [`struct Constants`](../constants_str_macros/src/lib.rs#L76)
+- [`struct Fragments`](../constants_str_macros/src/lib.rs#L91)
+- [`struct Constant`](../constants_str_macros/src/lib.rs#L107)
+- [`struct DefineStrConstantsInput`](../constants_str_macros/src/lib.rs#L114)
 
-## `development_data_bootstrap/src/lib.rs`
+## `development_data_bootstrap/src/domain_types.rs`
 
-- [`struct DevelopmentIdentitySpecs`](../development_data_bootstrap/src/lib.rs#L15)
-- [`struct DevelopmentIdentitySpecsError`](../development_data_bootstrap/src/lib.rs#L36)
-- [`struct DevelopmentBootstrapPlan`](../development_data_bootstrap/src/lib.rs#L39)
-- [`struct DevelopmentBootstrapSummary`](../development_data_bootstrap/src/lib.rs#L62)
-- [`struct DevelopmentIdentityCount`](../development_data_bootstrap/src/lib.rs#L78)
+- [`struct DevelopmentIdentitySpecs`](../development_data_bootstrap/src/domain_types.rs#L15)
+- [`struct DevelopmentIdentitySpecsError`](../development_data_bootstrap/src/domain_types.rs#L38)
+- [`struct DevelopmentBootstrapPlan`](../development_data_bootstrap/src/domain_types.rs#L41)
+- [`struct DevelopmentBootstrapSummary`](../development_data_bootstrap/src/domain_types.rs#L66)
+- [`struct DevelopmentIdentityCount`](../development_data_bootstrap/src/domain_types.rs#L83)
 
-## `external_service_emulators/src/lib.rs`
+## `external_service_emulators/src/domain_types.rs`
 
-- [`struct MockNotificationProvider`](../external_service_emulators/src/lib.rs#L2)
-- [`struct MockNotificationInbox`](../external_service_emulators/src/lib.rs#L7)
-- [`struct TokioMockNotificationSender`](../external_service_emulators/src/lib.rs#L12)
-- [`struct TokioMockNotificationReceiver`](../external_service_emulators/src/lib.rs#L17)
-- [`struct MockNotificationProviderClosed`](../external_service_emulators/src/lib.rs#L25)
-- [`struct RemoteSyncRequestCount`](../external_service_emulators/src/lib.rs#L59)
-- [`struct RemoteSyncSource`](../external_service_emulators/src/lib.rs#L62)
+- [`struct MockNotificationProvider`](../external_service_emulators/src/domain_types.rs#L2)
+- [`struct MockNotificationInbox`](../external_service_emulators/src/domain_types.rs#L7)
+- [`struct TokioMockNotificationSender`](../external_service_emulators/src/domain_types.rs#L12)
+- [`struct TokioMockNotificationReceiver`](../external_service_emulators/src/domain_types.rs#L17)
+- [`struct MockNotificationProviderClosed`](../external_service_emulators/src/domain_types.rs#L25)
+- [`struct RemoteSyncRequestCount`](../external_service_emulators/src/domain_types.rs#L59)
+- [`struct RemoteSyncSource`](../external_service_emulators/src/domain_types.rs#L62)
 
-## `file_storage/src/lib.rs`
+## `file_storage/src/domain_types.rs`
 
-- [`struct StdFileStorageIoError`](../file_storage/src/lib.rs#L9)
-- [`struct StdStoragePathRef`](../file_storage/src/lib.rs#L11)
-- [`struct StorageDirectoryNameRef`](../file_storage/src/lib.rs#L14)
-- [`struct StdFileStorageRoot`](../file_storage/src/lib.rs#L17)
-- [`struct StdStorageRelativePath`](../file_storage/src/lib.rs#L33)
-- [`struct StdStorageOperationId`](../file_storage/src/lib.rs#L53)
-- [`struct StdFileBytes`](../file_storage/src/lib.rs#L70)
-- [`enum FileStoragePathError`](../file_storage/src/lib.rs#L84)
-- [`enum FileStorageError`](../file_storage/src/lib.rs#L98)
-- [`struct SafeFileStorage`](../file_storage/src/lib.rs#L117)
-- [`enum FileStorageStagingArea`](../file_storage/src/lib.rs#L122)
-- [`struct StdStaleStagingEntryLimit`](../file_storage/src/lib.rs#L140)
-- [`struct StdStaleBefore`](../file_storage/src/lib.rs#L161)
-- [`struct StaleStagingCleanupCfg`](../file_storage/src/lib.rs#L164)
-- [`struct StaleStagingCleanupCfgError`](../file_storage/src/lib.rs#L188)
-- [`struct StdStaleStagingEntryCount`](../file_storage/src/lib.rs#L202)
-- [`struct StaleStagingCleanupReport`](../file_storage/src/lib.rs#L207)
-- [`enum AtomicReplaceDurability`](../file_storage/src/lib.rs#L537)
-- [`struct StdDiskCacheSize`](../file_storage/src/lib.rs#L551)
-- [`struct StdDiskCacheModifiedAt`](../file_storage/src/lib.rs#L562)
-- [`struct DiskCacheEntry`](../file_storage/src/lib.rs#L565)
-- [`struct DiskCacheEvictionPlan`](../file_storage/src/lib.rs#L595)
-- [`enum DiskCacheBudgetError`](../file_storage/src/lib.rs#L602)
+- [`struct FileStorageIoError`](../file_storage/src/domain_types.rs#L9)
+- [`struct StoragePathRef`](../file_storage/src/domain_types.rs#L11)
+- [`struct StorageDirectoryNameRef`](../file_storage/src/domain_types.rs#L14)
+- [`struct FileStorageRootPathBuf`](../file_storage/src/domain_types.rs#L17)
+- [`struct StorageRelativePathBuf`](../file_storage/src/domain_types.rs#L33)
+- [`struct StdStorageOperationId`](../file_storage/src/domain_types.rs#L53)
+- [`struct StdFileBytes`](../file_storage/src/domain_types.rs#L72)
+- [`enum FileStoragePathError`](../file_storage/src/domain_types.rs#L86)
+- [`enum FileStorageError`](../file_storage/src/domain_types.rs#L100)
+- [`struct SafeFileStorage`](../file_storage/src/domain_types.rs#L119)
+- [`enum FileStorageStagingArea`](../file_storage/src/domain_types.rs#L124)
+- [`struct StdStaleStagingEntryLimit`](../file_storage/src/domain_types.rs#L142)
+- [`struct StaleBeforeSystemTime`](../file_storage/src/domain_types.rs#L163)
+- [`struct StaleStagingCleanupCfg`](../file_storage/src/domain_types.rs#L166)
+- [`struct StaleStagingCleanupCfgError`](../file_storage/src/domain_types.rs#L190)
+- [`struct StdStaleStagingEntryCount`](../file_storage/src/domain_types.rs#L204)
+- [`struct StaleStagingCleanupReport`](../file_storage/src/domain_types.rs#L209)
+- [`enum AtomicReplaceDurability`](../file_storage/src/domain_types.rs#L536)
+- [`struct StdDiskCacheSize`](../file_storage/src/domain_types.rs#L550)
+- [`struct DiskCacheModifiedAtSystemTime`](../file_storage/src/domain_types.rs#L561)
+- [`struct DiskCacheEntry`](../file_storage/src/domain_types.rs#L564)
+- [`struct DiskCacheEvictionPlan`](../file_storage/src/domain_types.rs#L594)
+- [`enum DiskCacheBudgetError`](../file_storage/src/domain_types.rs#L601)
 
 ## `frontend_contract/src/auth_session_keep_alive.rs`
 
-- [`struct StdAuthSessionInstant`](../frontend_contract/src/auth_session_keep_alive.rs#L10)
-- [`struct StdAuthSessionRefreshInterval`](../frontend_contract/src/auth_session_keep_alive.rs#L13)
+- [`struct AuthSessionInstant`](../frontend_contract/src/auth_session_keep_alive.rs#L10)
+- [`struct AuthSessionRefreshIntervalDuration`](../frontend_contract/src/auth_session_keep_alive.rs#L13)
 - [`enum AuthSessionPresence`](../frontend_contract/src/auth_session_keep_alive.rs#L26)
 - [`enum AuthSessionRefreshOutcome`](../frontend_contract/src/auth_session_keep_alive.rs#L32)
 - [`enum AuthSessionKeepAliveDecision`](../frontend_contract/src/auth_session_keep_alive.rs#L39)
@@ -280,9 +280,9 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 
 ## `frontend_contract/src/handler_contract.rs`
 
-- [`struct HandlerPath`](../frontend_contract/src/handler_contract.rs#L10)
-- [`trait HandlerContract`](../frontend_contract/src/handler_contract.rs#L18)
-- [`struct AxumHandlerMethodRouter`](../frontend_contract/src/handler_contract.rs#L26)
+- [`struct HandlerPath`](../frontend_contract/src/handler_contract.rs#L11)
+- [`trait HandlerContract`](../frontend_contract/src/handler_contract.rs#L13)
+- [`struct AxumHandlerMethodRouter`](../frontend_contract/src/handler_contract.rs#L21)
 
 ## `frontend_contract/src/lib.rs`
 
@@ -319,30 +319,30 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`enum FieldPlaceholder`](../frontend_contract/src/lib.rs#L544)
 - [`struct FieldContract`](../frontend_contract/src/lib.rs#L549)
 - [`struct FieldContracts`](../frontend_contract/src/lib.rs#L573)
-- [`enum HttpMethod`](../frontend_contract/src/lib.rs#L712)
-- [`enum SuccessStatus`](../frontend_contract/src/lib.rs#L724)
-- [`enum RouteErrorStatus`](../frontend_contract/src/lib.rs#L730)
-- [`enum RouteErrorPolicy`](../frontend_contract/src/lib.rs#L826)
-- [`enum AuthenticationRequirement`](../frontend_contract/src/lib.rs#L877)
-- [`enum MutationKind`](../frontend_contract/src/lib.rs#L883)
-- [`enum OperationKind`](../frontend_contract/src/lib.rs#L888)
-- [`enum ConfirmationRequirement`](../frontend_contract/src/lib.rs#L899)
-- [`struct ActionContract`](../frontend_contract/src/lib.rs#L904)
-- [`struct ActionContracts`](../frontend_contract/src/lib.rs#L918)
-- [`struct RouteContract`](../frontend_contract/src/lib.rs#L961)
-- [`struct RouteContracts`](../frontend_contract/src/lib.rs#L977)
-- [`struct PageContract`](../frontend_contract/src/lib.rs#L1031)
-- [`struct TransportBody`](../frontend_contract/src/lib.rs#L1041)
-- [`struct TransportRequest`](../frontend_contract/src/lib.rs#L1051)
-- [`struct TransportIdempotencyKey`](../frontend_contract/src/lib.rs#L1110)
-- [`struct TransportIfMatch`](../frontend_contract/src/lib.rs#L1121)
-- [`struct TransportPath`](../frontend_contract/src/lib.rs#L1133)
-- [`struct TransportStatus`](../frontend_contract/src/lib.rs#L1149)
-- [`struct TransportRetryAfter`](../frontend_contract/src/lib.rs#L1175)
-- [`struct TransportResponse`](../frontend_contract/src/lib.rs#L1177)
-- [`struct TransportError`](../frontend_contract/src/lib.rs#L1236)
-- [`trait Transport`](../frontend_contract/src/lib.rs#L1243)
-- [`enum ClientError`](../frontend_contract/src/lib.rs#L1250)
+- [`enum HttpMethod`](../frontend_contract/src/lib.rs#L716)
+- [`enum SuccessStatus`](../frontend_contract/src/lib.rs#L728)
+- [`enum RouteErrorStatus`](../frontend_contract/src/lib.rs#L734)
+- [`enum RouteErrorPolicy`](../frontend_contract/src/lib.rs#L830)
+- [`enum AuthenticationRequirement`](../frontend_contract/src/lib.rs#L881)
+- [`enum MutationKind`](../frontend_contract/src/lib.rs#L887)
+- [`enum OperationKind`](../frontend_contract/src/lib.rs#L892)
+- [`enum ConfirmationRequirement`](../frontend_contract/src/lib.rs#L903)
+- [`struct ActionContract`](../frontend_contract/src/lib.rs#L908)
+- [`struct ActionContracts`](../frontend_contract/src/lib.rs#L922)
+- [`struct RouteContract`](../frontend_contract/src/lib.rs#L969)
+- [`struct RouteContracts`](../frontend_contract/src/lib.rs#L985)
+- [`struct PageContract`](../frontend_contract/src/lib.rs#L1043)
+- [`struct TransportBody`](../frontend_contract/src/lib.rs#L1053)
+- [`struct TransportRequest`](../frontend_contract/src/lib.rs#L1065)
+- [`struct TransportIdempotencyKey`](../frontend_contract/src/lib.rs#L1124)
+- [`struct TransportIfMatch`](../frontend_contract/src/lib.rs#L1135)
+- [`struct TransportPath`](../frontend_contract/src/lib.rs#L1147)
+- [`struct TransportStatus`](../frontend_contract/src/lib.rs#L1163)
+- [`struct TransportRetryAfter`](../frontend_contract/src/lib.rs#L1189)
+- [`struct TransportResponse`](../frontend_contract/src/lib.rs#L1191)
+- [`struct TransportError`](../frontend_contract/src/lib.rs#L1250)
+- [`trait Transport`](../frontend_contract/src/lib.rs#L1257)
+- [`enum ClientError`](../frontend_contract/src/lib.rs#L1264)
 
 ## `frontend_contract/src/problem.rs`
 
@@ -353,8 +353,8 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`struct ApiProblemRequestId`](../frontend_contract/src/problem.rs#L179)
 - [`struct ApiProblemField`](../frontend_contract/src/problem.rs#L194)
 - [`struct ApiProblemViolation`](../frontend_contract/src/problem.rs#L205)
-- [`struct ApiProblemViolations`](../frontend_contract/src/problem.rs#L224)
-- [`struct ApiProblem`](../frontend_contract/src/problem.rs#L237)
+- [`struct ApiProblemViolations`](../frontend_contract/src/problem.rs#L223)
+- [`struct ApiProblem`](../frontend_contract/src/problem.rs#L250)
 
 ## `frontend_contract/src/route.rs`
 
@@ -376,14 +376,14 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`struct OpenApiSecuritySchemeRef`](../frontend_contract/src/route.rs#L306)
 - [`trait CoveredRoute`](../frontend_contract/src/route.rs#L307)
 - [`trait ParameterizedRoute`](../frontend_contract/src/route.rs#L310)
-- [`struct RouteBodyLimit`](../frontend_contract/src/route.rs#L323)
-- [`struct RouteCoverageDescriptors`](../frontend_contract/src/route.rs#L335)
-- [`struct RouteSchemaContracts`](../frontend_contract/src/route.rs#L347)
-- [`struct RouteMetadataList`](../frontend_contract/src/route.rs#L359)
-- [`trait RouteFamily`](../frontend_contract/src/route.rs#L399)
-- [`trait RouteInFamily`](../frontend_contract/src/route.rs#L418)
-- [`struct RouteRequest`](../frontend_contract/src/route.rs#L424)
-- [`struct RouteResponse`](../frontend_contract/src/route.rs#L444)
+- [`struct RouteBodyLimit`](../frontend_contract/src/route.rs#L324)
+- [`struct RouteCoverageDescriptors`](../frontend_contract/src/route.rs#L336)
+- [`struct RouteSchemaContracts`](../frontend_contract/src/route.rs#L352)
+- [`struct RouteMetadataList`](../frontend_contract/src/route.rs#L366)
+- [`trait RouteFamily`](../frontend_contract/src/route.rs#L408)
+- [`trait RouteInFamily`](../frontend_contract/src/route.rs#L429)
+- [`struct RouteRequest`](../frontend_contract/src/route.rs#L435)
+- [`struct RouteResponse`](../frontend_contract/src/route.rs#L455)
 
 ## `frontend_contract/src/route_coverage.rs`
 
@@ -395,10 +395,10 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`struct RouteTestCapabilities`](../frontend_contract/src/route_coverage.rs#L32)
 - [`enum RouteTestCategory`](../frontend_contract/src/route_coverage.rs#L54)
 - [`struct RouteTestCategories`](../frontend_contract/src/route_coverage.rs#L72)
-- [`struct RouteCoverageEvidence`](../frontend_contract/src/route_coverage.rs#L109)
-- [`struct RouteCoverageDescriptor`](../frontend_contract/src/route_coverage.rs#L121)
-- [`enum RouteCoverageObligation`](../frontend_contract/src/route_coverage.rs#L150)
-- [`enum RouteCoverageError`](../frontend_contract/src/route_coverage.rs#L183)
+- [`struct RouteCoverageEvidence`](../frontend_contract/src/route_coverage.rs#L119)
+- [`struct RouteCoverageDescriptor`](../frontend_contract/src/route_coverage.rs#L131)
+- [`enum RouteCoverageObligation`](../frontend_contract/src/route_coverage.rs#L160)
+- [`enum RouteCoverageError`](../frontend_contract/src/route_coverage.rs#L193)
 
 ## `frontend_contract/src/url_builder.rs`
 
@@ -449,7 +449,7 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`struct OpenApiContractTextError`](../frontend_contract_validation/src/openapi_validation.rs#L23)
 - [`struct SerdeJsonOpenApiSerializationError`](../frontend_contract_validation/src/openapi_validation.rs#L29)
 - [`struct RuntimeRoutesRef`](../frontend_contract_validation/src/openapi_validation.rs#L32)
-- [`struct StdOpenApiSchemaReferences`](../frontend_contract_validation/src/openapi_validation.rs#L35)
+- [`struct OpenApiSchemaReferencesBTreeSet`](../frontend_contract_validation/src/openapi_validation.rs#L35)
 - [`enum OpenApiValidationError`](../frontend_contract_validation/src/openapi_validation.rs#L65)
 - [`struct OpenApiResponseStatus`](../frontend_contract_validation/src/openapi_validation.rs#L90)
 - [`enum OpenApiSecurityExpectation`](../frontend_contract_validation/src/openapi_validation.rs#L103)
@@ -464,37 +464,37 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`struct RouteContractMismatches`](../frontend_contract_validation/src/route_contract_validation.rs#L26)
 - [`struct HttpContractStatus`](../frontend_contract_validation/src/route_contract_validation.rs#L37)
 - [`struct HttpContractBody`](../frontend_contract_validation/src/route_contract_validation.rs#L50)
-- [`enum HttpContractBodyKind`](../frontend_contract_validation/src/route_contract_validation.rs#L63)
-- [`struct HttpContractObservation`](../frontend_contract_validation/src/route_contract_validation.rs#L69)
-- [`struct HttpContractExpectation`](../frontend_contract_validation/src/route_contract_validation.rs#L91)
-- [`enum HttpContractMismatch`](../frontend_contract_validation/src/route_contract_validation.rs#L112)
+- [`enum HttpContractBodyKind`](../frontend_contract_validation/src/route_contract_validation.rs#L67)
+- [`struct HttpContractObservation`](../frontend_contract_validation/src/route_contract_validation.rs#L73)
+- [`struct HttpContractExpectation`](../frontend_contract_validation/src/route_contract_validation.rs#L95)
+- [`enum HttpContractMismatch`](../frontend_contract_validation/src/route_contract_validation.rs#L116)
 
-## `generate_quotes/src/lib.rs`
+## `generate_quotes/src/domain_types.rs`
 
-- [`struct QuotePrefix`](../generate_quotes/src/lib.rs#L3)
-- [`struct QuoteChar`](../generate_quotes/src/lib.rs#L5)
-- [`struct QuotePanicId`](../generate_quotes/src/lib.rs#L7)
-- [`struct QuoteStyle`](../generate_quotes/src/lib.rs#L9)
-- [`struct QuotedLiteral`](../generate_quotes/src/lib.rs#L25)
-- [`struct ProcMacro2QuotedLiteralTokenStream`](../generate_quotes/src/lib.rs#L36)
+- [`struct QuotePrefix`](../generate_quotes/src/domain_types.rs#L3)
+- [`struct QuoteChar`](../generate_quotes/src/domain_types.rs#L5)
+- [`struct QuotePanicId`](../generate_quotes/src/domain_types.rs#L7)
+- [`struct QuoteStyle`](../generate_quotes/src/domain_types.rs#L9)
+- [`struct QuotedLiteral`](../generate_quotes/src/domain_types.rs#L25)
+- [`struct ProcMacro2QuotedLiteralTokenStream`](../generate_quotes/src/domain_types.rs#L36)
 
-## `git_info/src/lib.rs`
+## `git_info/src/domain_types.rs`
 
-- [`struct GitCommitIdRef`](../git_info/src/lib.rs#L18)
-- [`struct GitCommitId`](../git_info/src/lib.rs#L39)
-- [`enum GitInfoStringTryFromStringError`](../git_info/src/lib.rs#L54)
-- [`struct StdGitCommitIdCow`](../git_info/src/lib.rs#L79)
-- [`struct GitCommitIdFallback`](../git_info/src/lib.rs#L101)
-- [`struct GitCommitLink`](../git_info/src/lib.rs#L116)
-- [`struct StdGitCommitLinkCow`](../git_info/src/lib.rs#L157)
-- [`struct ProjectGitCommitLinkRef`](../git_info/src/lib.rs#L194)
-- [`struct IsProjectCommit`](../git_info/src/lib.rs#L205)
-- [`struct GitCommitLinkCapacity`](../git_info/src/lib.rs#L217)
-- [`struct GitCommitLinkOutputRefMut`](../git_info/src/lib.rs#L219)
-- [`struct ValidateProjectCommitError`](../git_info/src/lib.rs#L232)
-- [`struct ProjectGitInfo`](../git_info/src/lib.rs#L244)
-- [`trait GetGitCommitLink`](../git_info/src/lib.rs#L263)
-- [`trait GetGitCommitId`](../git_info/src/lib.rs#L269)
+- [`struct GitCommitIdRef`](../git_info/src/domain_types.rs#L18)
+- [`struct GitCommitId`](../git_info/src/domain_types.rs#L39)
+- [`enum GitInfoStringTryFromStringError`](../git_info/src/domain_types.rs#L54)
+- [`struct GitCommitIdCow`](../git_info/src/domain_types.rs#L79)
+- [`struct GitCommitIdFallback`](../git_info/src/domain_types.rs#L101)
+- [`struct GitCommitLink`](../git_info/src/domain_types.rs#L116)
+- [`struct GitCommitLinkCow`](../git_info/src/domain_types.rs#L157)
+- [`struct ProjectGitCommitLinkRef`](../git_info/src/domain_types.rs#L194)
+- [`struct IsProjectCommit`](../git_info/src/domain_types.rs#L205)
+- [`struct GitCommitLinkCapacity`](../git_info/src/domain_types.rs#L217)
+- [`struct GitCommitLinkOutputRefMut`](../git_info/src/domain_types.rs#L219)
+- [`struct ValidateProjectCommitError`](../git_info/src/domain_types.rs#L232)
+- [`struct ProjectGitInfo`](../git_info/src/domain_types.rs#L244)
+- [`trait GetGitCommitLink`](../git_info/src/domain_types.rs#L263)
+- [`trait GetGitCommitId`](../git_info/src/domain_types.rs#L269)
 
 ## `initialize_environment_files/src/main.rs`
 
@@ -509,15 +509,15 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`struct WorkspaceMember`](../initialize_environment_files/src/main.rs#L94)
 - [`struct WorkspaceMemberRef`](../initialize_environment_files/src/main.rs#L108)
 - [`struct WorkspaceMembers`](../initialize_environment_files/src/main.rs#L110)
-- [`struct StdWorkspaceRootRef`](../initialize_environment_files/src/main.rs#L118)
-- [`struct StdInitPathRef`](../initialize_environment_files/src/main.rs#L120)
-- [`struct InitMaxBytes`](../initialize_environment_files/src/main.rs#L122)
-- [`struct InitEntries`](../initialize_environment_files/src/main.rs#L124)
-- [`struct StdInitIoError`](../initialize_environment_files/src/main.rs#L129)
-- [`struct ServerRuntimeBoundedReadError`](../initialize_environment_files/src/main.rs#L134)
-- [`struct TomlInitError`](../initialize_environment_files/src/main.rs#L139)
-- [`struct InitStringError`](../initialize_environment_files/src/main.rs#L142)
-- [`enum InitializeError`](../initialize_environment_files/src/main.rs#L144)
+- [`struct WorkspaceRootPathRef`](../initialize_environment_files/src/main.rs#L120)
+- [`struct InitPathRef`](../initialize_environment_files/src/main.rs#L122)
+- [`struct InitMaxBytes`](../initialize_environment_files/src/main.rs#L124)
+- [`struct InitEntries`](../initialize_environment_files/src/main.rs#L126)
+- [`struct InitIoError`](../initialize_environment_files/src/main.rs#L133)
+- [`struct ServerRuntimeBoundedReadError`](../initialize_environment_files/src/main.rs#L138)
+- [`struct TomlInitError`](../initialize_environment_files/src/main.rs#L143)
+- [`struct InitStringError`](../initialize_environment_files/src/main.rs#L146)
+- [`enum InitializeError`](../initialize_environment_files/src/main.rs#L148)
 
 ## `location_lib/src/location.rs`
 
@@ -526,22 +526,25 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`struct LocationColumn`](../location_lib/src/location.rs#L80)
 - [`struct LocationCoordinateTryFromU32Error`](../location_lib/src/location.rs#L104)
 - [`struct LocationCommit`](../location_lib/src/location.rs#L120)
-- [`struct StdLocationDuration`](../location_lib/src/location.rs#L134)
+- [`struct LocationDuration`](../location_lib/src/location.rs#L134)
 - [`struct LocationFileRef`](../location_lib/src/location.rs#L168)
-- [`struct StdFmtRefMut`](../location_lib/src/location.rs#L170)
+- [`struct FormatterRefMut`](../location_lib/src/location.rs#L170)
 - [`struct ChronoLocationDisplayTimezone`](../location_lib/src/location.rs#L172)
 - [`struct ChronoLocationDateTime`](../location_lib/src/location.rs#L174)
 - [`struct Occr`](../location_lib/src/location.rs#L187)
 - [`struct Location`](../location_lib/src/location.rs#L204)
-- [`struct StdTimeDuration`](../location_lib/src/location.rs#L336)
-- [`struct StdTimeDurationSecs`](../location_lib/src/location.rs#L349)
-- [`struct StdTimeDurationNanos`](../location_lib/src/location.rs#L363)
-- [`struct StdTimeDurationNanosTryFromU32Error`](../location_lib/src/location.rs#L378)
+- [`struct StdTimeDuration`](../location_lib/src/location.rs#L339)
+- [`struct StdTimeDurationSecs`](../location_lib/src/location.rs#L352)
+- [`struct StdTimeDurationNanos`](../location_lib/src/location.rs#L366)
+- [`struct StdTimeDurationNanosTryFromU32Error`](../location_lib/src/location.rs#L381)
+
+## `location_lib_location/src/domain_types.rs`
+
+- [`struct SynItemEnumMutRef`](../location_lib_location/src/domain_types.rs#L2)
 
 ## `location_lib_location/src/lib.rs`
 
-- [`struct SynItemEnumMutRef`](../location_lib_location/src/lib.rs#L2)
-- [`enum SuportedEnumVariant`](../location_lib_location/src/lib.rs#L69)
+- [`enum SuportedEnumVariant`](../location_lib_location/src/lib.rs#L68)
 
 ## `location_lib_location_test/src/main.rs`
 
@@ -608,7 +611,7 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 
 ## `macros_helpers/src/rs_file_path.rs`
 
-- [`struct StdRsFilePath`](../macros_helpers/src/rs_file_path.rs#L10)
+- [`struct RsFilePathBuf`](../macros_helpers/src/rs_file_path.rs#L10)
 
 ## `macros_helpers/src/status_code.rs`
 
@@ -633,23 +636,23 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 
 - [`struct TestPathStemRef`](../macros_helpers/src/test_hlp.rs#L3)
 - [`struct TestPathStem`](../macros_helpers/src/test_hlp.rs#L5)
-- [`struct StdAssertFilePathRef`](../macros_helpers/src/test_hlp.rs#L15)
+- [`struct AssertFilePathRef`](../macros_helpers/src/test_hlp.rs#L15)
 - [`struct StdAssertFilePath`](../macros_helpers/src/test_hlp.rs#L22)
 - [`struct ExpectedFileContentRef`](../macros_helpers/src/test_hlp.rs#L32)
 - [`struct ExpectedFileContent`](../macros_helpers/src/test_hlp.rs#L39)
 
 ## `macros_helpers/src/tool_command.rs`
 
-- [`struct StdPathRef`](../macros_helpers/src/tool_command.rs#L2)
-- [`struct StdProcessCommand`](../macros_helpers/src/tool_command.rs#L4)
-- [`struct StdOsString`](../macros_helpers/src/tool_command.rs#L6)
+- [`struct PathRef`](../macros_helpers/src/tool_command.rs#L2)
+- [`struct ProcessCommand`](../macros_helpers/src/tool_command.rs#L4)
+- [`struct OsStringValue`](../macros_helpers/src/tool_command.rs#L6)
 - [`struct ToolProgramRef`](../macros_helpers/src/tool_command.rs#L13)
 - [`struct ToolArgRef`](../macros_helpers/src/tool_command.rs#L15)
 - [`struct ToolArgsRef`](../macros_helpers/src/tool_command.rs#L17)
 - [`struct ToolEnvKeyRef`](../macros_helpers/src/tool_command.rs#L19)
 - [`struct ToolEnvValueRef`](../macros_helpers/src/tool_command.rs#L21)
-- [`struct StdProcessExitStatus`](../macros_helpers/src/tool_command.rs#L31)
-- [`struct StdProcessOutput`](../macros_helpers/src/tool_command.rs#L39)
+- [`struct ProcessExitStatus`](../macros_helpers/src/tool_command.rs#L31)
+- [`struct ProcessOutput`](../macros_helpers/src/tool_command.rs#L39)
 - [`struct ToolCommand`](../macros_helpers/src/tool_command.rs#L41)
 
 ## `macros_helpers/src/wrap_derive.rs`
@@ -658,8 +661,8 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 
 ## `macros_helpers/src/write_string_into_file.rs`
 
-- [`struct StdWrittenFilePath`](../macros_helpers/src/write_string_into_file.rs#L10)
-- [`struct StdWrittenFilePathRef`](../macros_helpers/src/write_string_into_file.rs#L19)
+- [`struct WrittenFilePathBuf`](../macros_helpers/src/write_string_into_file.rs#L10)
+- [`struct WrittenFilePathRef`](../macros_helpers/src/write_string_into_file.rs#L19)
 - [`struct StringFileContentRef`](../macros_helpers/src/write_string_into_file.rs#L28)
 - [`struct GeneratedFileMaximumBytes`](../macros_helpers/src/write_string_into_file.rs#L38)
 - [`struct ShouldWriteString`](../macros_helpers/src/write_string_into_file.rs#L50)
@@ -673,35 +676,38 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`struct StdRustfmtPath`](../macros_helpers/src/write_token_stream_into_file.rs#L21)
 - [`struct ShouldWriteTokenStreamFlag`](../macros_helpers/src/write_token_stream_into_file.rs#L23)
 
+## `macros_helpers_generate_derive_token_stream_builder/src/domain_types.rs`
+
+- [`struct ToSnakeCaseInput`](../macros_helpers_generate_derive_token_stream_builder/src/domain_types.rs#L6)
+- [`struct SnakeCaseString`](../macros_helpers_generate_derive_token_stream_builder/src/domain_types.rs#L10)
+
 ## `macros_helpers_generate_derive_token_stream_builder/src/lib.rs`
 
-- [`struct ToSnakeCaseInput`](../macros_helpers_generate_derive_token_stream_builder/src/lib.rs#L3)
-- [`struct SnakeCaseString`](../macros_helpers_generate_derive_token_stream_builder/src/lib.rs#L6)
-- [`struct Element`](../macros_helpers_generate_derive_token_stream_builder/src/lib.rs#L32)
+- [`struct Element`](../macros_helpers_generate_derive_token_stream_builder/src/lib.rs#L30)
 
-## `naming/src/lib.rs`
+## `naming/src/domain_types.rs`
 
-- [`struct HashMap`](../naming/src/lib.rs#L480)
-- [`struct HashMapUpperCamelCase`](../naming/src/lib.rs#L482)
-- [`struct HashMapSnakeCase`](../naming/src/lib.rs#L494)
-- [`trait DisplayPlusToTokens`](../naming/src/lib.rs#L505)
-- [`struct SwaggerUrlPathPrefix`](../naming/src/lib.rs#L515)
-- [`struct SwaggerUrlPathSelfQuotesStrValue`](../naming/src/lib.rs#L519)
-- [`struct SwaggerUrlPathSelfQuotesTokenStreamValue`](../naming/src/lib.rs#L523)
-- [`trait SwaggerUrlPathSelfQuotesStr`](../naming/src/lib.rs#L526)
-- [`trait SwaggerUrlPathSelfQuotesTokenStream`](../naming/src/lib.rs#L547)
+- [`struct HashMap`](../naming/src/domain_types.rs#L480)
+- [`struct HashMapUpperCamelCase`](../naming/src/domain_types.rs#L482)
+- [`struct HashMapSnakeCase`](../naming/src/domain_types.rs#L494)
+- [`trait DisplayPlusToTokens`](../naming/src/domain_types.rs#L505)
+- [`struct SwaggerUrlPathPrefix`](../naming/src/domain_types.rs#L515)
+- [`struct SwaggerUrlPathSelfQuotesStrValue`](../naming/src/domain_types.rs#L519)
+- [`struct SwaggerUrlPathSelfQuotesTokenStreamValue`](../naming/src/domain_types.rs#L523)
+- [`trait SwaggerUrlPathSelfQuotesStr`](../naming/src/domain_types.rs#L526)
+- [`trait SwaggerUrlPathSelfQuotesTokenStream`](../naming/src/domain_types.rs#L547)
 
-## `naming_naming_common/src/lib.rs`
+## `naming_naming_common/src/domain_types.rs`
 
-- [`struct ConvertCaseKind`](../naming_naming_common/src/lib.rs#L73)
-- [`struct CaseString`](../naming_naming_common/src/lib.rs#L85)
-- [`struct ProcMacro2CaseTokenStream`](../naming_naming_common/src/lib.rs#L87)
+- [`struct ConvertCaseKind`](../naming_naming_common/src/domain_types.rs#L73)
+- [`struct CaseString`](../naming_naming_common/src/domain_types.rs#L85)
+- [`struct ProcMacro2CaseTokenStream`](../naming_naming_common/src/domain_types.rs#L87)
 
-## `naming_naming_macros/src/lib.rs`
+## `naming_naming_macros/src/domain_types.rs`
 
-- [`struct ProcMacro2GeneratedNamingTokenStream`](../naming_naming_macros/src/lib.rs#L2)
-- [`struct SynEnumIdentifierRef`](../naming_naming_macros/src/lib.rs#L4)
-- [`struct ProcMacro2VariantMatchingTokensRef`](../naming_naming_macros/src/lib.rs#L6)
+- [`struct ProcMacro2GeneratedNamingTokenStream`](../naming_naming_macros/src/domain_types.rs#L7)
+- [`struct SynEnumIdentifierRef`](../naming_naming_macros/src/domain_types.rs#L12)
+- [`struct ProcMacro2VariantMatchingTokensRef`](../naming_naming_macros/src/domain_types.rs#L21)
 
 ## `newtype/src/lib.rs`
 
@@ -711,20 +717,20 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`struct WireEnumAttrs`](../newtype/src/lib.rs#L33)
 - [`enum BoundedStringOption`](../newtype/src/lib.rs#L69)
 - [`enum NewtypeOption`](../newtype/src/lib.rs#L80)
-- [`enum ToErrStringMode`](../newtype/src/lib.rs#L113)
-- [`struct ProcMacro2GeneratedTokenStream`](../newtype/src/lib.rs#L119)
-- [`struct ProcMacroInputTokenStream`](../newtype/src/lib.rs#L126)
-- [`struct NewtypeBool`](../newtype/src/lib.rs#L148)
-- [`struct SnakeIdentifier`](../newtype/src/lib.rs#L160)
-- [`struct SnakeIdentifierifierLen`](../newtype/src/lib.rs#L162)
-- [`struct SnakeIdentifierifierTryFromStringError`](../newtype/src/lib.rs#L169)
-- [`struct SynAttrsRef`](../newtype/src/lib.rs#L211)
-- [`struct SynDeriveInputRef`](../newtype/src/lib.rs#L223)
-- [`struct SynIdentifierRef`](../newtype/src/lib.rs#L235)
-- [`struct SynIdentifier`](../newtype/src/lib.rs#L237)
-- [`struct SynTypeRef`](../newtype/src/lib.rs#L254)
-- [`struct SynType`](../newtype/src/lib.rs#L266)
-- [`struct SynExpr`](../newtype/src/lib.rs#L273)
+- [`enum ToErrStringMode`](../newtype/src/lib.rs#L114)
+- [`struct ProcMacro2GeneratedTokenStream`](../newtype/src/lib.rs#L120)
+- [`struct ProcMacroInputTokenStream`](../newtype/src/lib.rs#L127)
+- [`struct NewtypeBool`](../newtype/src/lib.rs#L149)
+- [`struct SnakeIdentifier`](../newtype/src/lib.rs#L161)
+- [`struct SnakeIdentifierifierLen`](../newtype/src/lib.rs#L163)
+- [`struct SnakeIdentifierifierTryFromStringError`](../newtype/src/lib.rs#L170)
+- [`struct SynAttrsRef`](../newtype/src/lib.rs#L212)
+- [`struct SynDeriveInputRef`](../newtype/src/lib.rs#L224)
+- [`struct SynIdentifierRef`](../newtype/src/lib.rs#L236)
+- [`struct SynIdentifier`](../newtype/src/lib.rs#L238)
+- [`struct SynTypeRef`](../newtype/src/lib.rs#L255)
+- [`struct SynType`](../newtype/src/lib.rs#L267)
+- [`struct SynExpr`](../newtype/src/lib.rs#L274)
 
 ## `notification_service/src/main.rs`
 
@@ -738,12 +744,12 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`enum MetricsError`](../notification_service/src/main.rs#L37)
 - [`struct MetricsExporterPrometheusHandle`](../notification_service/src/main.rs#L44)
 - [`struct NotificationBodyMaximumBytes`](../notification_service/src/main.rs#L47)
-- [`struct StdNotificationExitCode`](../notification_service/src/main.rs#L50)
+- [`struct NotificationExitCode`](../notification_service/src/main.rs#L50)
 - [`enum NotificationServiceError`](../notification_service/src/main.rs#L158)
 - [`struct NotificationConfigError`](../notification_service/src/main.rs#L181)
 - [`struct SqlxNotificationDatabaseError`](../notification_service/src/main.rs#L187)
 - [`struct SqlxNotificationMigrationError`](../notification_service/src/main.rs#L192)
-- [`struct StdNotificationIoError`](../notification_service/src/main.rs#L197)
+- [`struct NotificationIoError`](../notification_service/src/main.rs#L197)
 - [`struct NotificationServeError`](../notification_service/src/main.rs#L202)
 - [`struct MetricsExporterPrometheusNotificationBuildError`](../notification_service/src/main.rs#L207)
 - [`struct NotificationObservabilityInitError`](../notification_service/src/main.rs#L212)
@@ -752,29 +758,29 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 
 ## `notification_service/src/routes.rs`
 
-- [`struct NotificationApiRouteRegistry`](../notification_service/src/routes.rs#L76)
-- [`struct NotificationRouteRegistry`](../notification_service/src/routes.rs#L95)
+- [`struct NotificationApiRouteRegistry`](../notification_service/src/routes.rs#L78)
+- [`struct NotificationRouteRegistry`](../notification_service/src/routes.rs#L97)
 
-## `notification_service_config/src/lib.rs`
+## `notification_service_config/src/domain_types.rs`
 
-- [`struct Config`](../notification_service_config/src/lib.rs#L7)
+- [`struct Config`](../notification_service_config/src/domain_types.rs#L7)
 
-## `notification_service_contract/src/lib.rs`
+## `notification_service_contract/src/domain_types.rs`
 
-- [`struct CreateNotificationReq`](../notification_service_contract/src/lib.rs#L15)
-- [`struct CreateNotificationRes`](../notification_service_contract/src/lib.rs#L40)
-- [`struct NotificationMessage`](../notification_service_contract/src/lib.rs#L66)
-- [`struct UuidNotificationId`](../notification_service_contract/src/lib.rs#L82)
-- [`struct CreateNotificationRoute`](../notification_service_contract/src/lib.rs#L101)
-- [`enum NotificationRoute`](../notification_service_contract/src/lib.rs#L116)
-- [`enum NotificationOperationalRoute`](../notification_service_contract/src/lib.rs#L134)
-- [`enum NotificationMessageTryFromStringError`](../notification_service_contract/src/lib.rs#L175)
+- [`struct CreateNotificationReq`](../notification_service_contract/src/domain_types.rs#L15)
+- [`struct CreateNotificationRes`](../notification_service_contract/src/domain_types.rs#L40)
+- [`struct NotificationMessage`](../notification_service_contract/src/domain_types.rs#L66)
+- [`struct UuidNotificationId`](../notification_service_contract/src/domain_types.rs#L82)
+- [`struct CreateNotificationRoute`](../notification_service_contract/src/domain_types.rs#L101)
+- [`enum NotificationRoute`](../notification_service_contract/src/domain_types.rs#L116)
+- [`enum NotificationOperationalRoute`](../notification_service_contract/src/domain_types.rs#L134)
+- [`enum NotificationMessageTryFromStringError`](../notification_service_contract/src/domain_types.rs#L175)
 
-## `panic_location/src/lib.rs`
+## `panic_location/src/domain_types.rs`
 
-- [`struct PanicFile`](../panic_location/src/lib.rs#L5)
-- [`struct PanicLine`](../panic_location/src/lib.rs#L7)
-- [`struct PanicColumn`](../panic_location/src/lib.rs#L9)
+- [`struct PanicFile`](../panic_location/src/domain_types.rs#L2)
+- [`struct PanicLine`](../panic_location/src/domain_types.rs#L5)
+- [`struct PanicColumn`](../panic_location/src/domain_types.rs#L8)
 
 ## `pg_crud_common/src/advisory_lock.rs`
 
@@ -791,41 +797,41 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 ## `pg_crud_common/src/batch_validation.rs`
 
 - [`enum BatchDuplicatePolicy`](../pg_crud_common/src/batch_validation.rs#L2)
-- [`struct BatchProcessedItemCount`](../pg_crud_common/src/batch_validation.rs#L17)
-- [`struct BatchInvalidItemCount`](../pg_crud_common/src/batch_validation.rs#L35)
-- [`struct BatchStoppedEarly`](../pg_crud_common/src/batch_validation.rs#L53)
-- [`struct BatchInvalidItems`](../pg_crud_common/src/batch_validation.rs#L65)
-- [`struct StdBatchRecords`](../pg_crud_common/src/batch_validation.rs#L75)
-- [`struct BatchValidationReport`](../pg_crud_common/src/batch_validation.rs#L78)
+- [`struct BatchProcessedItemCount`](../pg_crud_common/src/batch_validation.rs#L18)
+- [`struct BatchInvalidItemCount`](../pg_crud_common/src/batch_validation.rs#L30)
+- [`struct BatchStoppedEarly`](../pg_crud_common/src/batch_validation.rs#L42)
+- [`struct BatchInvalidItems`](../pg_crud_common/src/batch_validation.rs#L47)
+- [`struct BatchRecordsBTreeMap`](../pg_crud_common/src/batch_validation.rs#L57)
+- [`struct BatchValidationReport`](../pg_crud_common/src/batch_validation.rs#L60)
 
 ## `pg_crud_common/src/bind_index.rs`
 
-- [`struct QueryPartIncrement`](../pg_crud_common/src/bind_index.rs#L13)
-- [`trait QueryPartIncrementMut`](../pg_crud_common/src/bind_index.rs#L20)
+- [`struct QueryPartIncrement`](../pg_crud_common/src/bind_index.rs#L14)
+- [`trait QueryPartIncrementMut`](../pg_crud_common/src/bind_index.rs#L15)
 
 ## `pg_crud_common/src/bounded_btree_map.rs`
 
 - [`struct StdBoundedBTreeMapLen`](../pg_crud_common/src/bounded_btree_map.rs#L11)
 - [`struct BoundedBTreeMapError`](../pg_crud_common/src/bounded_btree_map.rs#L18)
-- [`struct StdBoundedBTreeMap`](../pg_crud_common/src/bounded_btree_map.rs#L21)
+- [`struct BoundedBTreeMap`](../pg_crud_common/src/bounded_btree_map.rs#L21)
 
 ## `pg_crud_common/src/bounded_unique_vec.rs`
 
 - [`struct UniqueVecLen`](../pg_crud_common/src/bounded_unique_vec.rs#L13)
 - [`enum UniqueVecError`](../pg_crud_common/src/bounded_unique_vec.rs#L18)
 - [`struct BoundedUniqueVec`](../pg_crud_common/src/bounded_unique_vec.rs#L45)
-- [`struct StdBoundedUniqueVecVisitor`](../pg_crud_common/src/bounded_unique_vec.rs#L66)
+- [`struct BoundedUniqueVecVisitorPhantomData`](../pg_crud_common/src/bounded_unique_vec.rs#L67)
 
 ## `pg_crud_common/src/bounded_vec.rs`
 
-- [`struct BoundedVecLen`](../pg_crud_common/src/bounded_vec.rs#L14)
-- [`enum BoundedVecError`](../pg_crud_common/src/bounded_vec.rs#L25)
-- [`struct BoundedVec`](../pg_crud_common/src/bounded_vec.rs#L51)
+- [`struct BoundedVecLen`](../pg_crud_common/src/bounded_vec.rs#L15)
+- [`enum BoundedVecError`](../pg_crud_common/src/bounded_vec.rs#L20)
+- [`struct BoundedVec`](../pg_crud_common/src/bounded_vec.rs#L46)
 
 ## `pg_crud_common/src/cardinality.rs`
 
-- [`struct DuplicateIdx`](../pg_crud_common/src/cardinality.rs#L12)
-- [`struct DuplicateCandidates`](../pg_crud_common/src/cardinality.rs#L22)
+- [`struct DuplicateIdx`](../pg_crud_common/src/cardinality.rs#L13)
+- [`struct DuplicateCandidates`](../pg_crud_common/src/cardinality.rs#L23)
 
 ## `pg_crud_common/src/cursor.rs`
 
@@ -834,21 +840,21 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`enum OffsetPaginationPresence`](../pg_crud_common/src/cursor.rs#L34)
 - [`enum SignedCursorPresence`](../pg_crud_common/src/cursor.rs#L40)
 - [`struct CursorSigningKey`](../pg_crud_common/src/cursor.rs#L56)
-- [`struct CursorSigningKeyError`](../pg_crud_common/src/cursor.rs#L81)
-- [`struct CursorPayload`](../pg_crud_common/src/cursor.rs#L86)
-- [`struct CursorPayloadError`](../pg_crud_common/src/cursor.rs#L108)
-- [`struct SignedCursor`](../pg_crud_common/src/cursor.rs#L113)
-- [`struct SignedCursorError`](../pg_crud_common/src/cursor.rs#L135)
-- [`struct CursorCodec`](../pg_crud_common/src/cursor.rs#L138)
-- [`enum CursorCodecBuildError`](../pg_crud_common/src/cursor.rs#L211)
-- [`enum CursorEncodeError`](../pg_crud_common/src/cursor.rs#L219)
-- [`enum CursorDecodeError`](../pg_crud_common/src/cursor.rs#L229)
+- [`struct CursorSigningKeyError`](../pg_crud_common/src/cursor.rs#L85)
+- [`struct CursorPayload`](../pg_crud_common/src/cursor.rs#L90)
+- [`struct CursorPayloadError`](../pg_crud_common/src/cursor.rs#L112)
+- [`struct SignedCursor`](../pg_crud_common/src/cursor.rs#L117)
+- [`struct SignedCursorError`](../pg_crud_common/src/cursor.rs#L139)
+- [`struct CursorCodec`](../pg_crud_common/src/cursor.rs#L142)
+- [`enum CursorCodecBuildError`](../pg_crud_common/src/cursor.rs#L215)
+- [`enum CursorEncodeError`](../pg_crud_common/src/cursor.rs#L223)
+- [`enum CursorDecodeError`](../pg_crud_common/src/cursor.rs#L233)
 
 ## `pg_crud_common/src/date_sql_filter.rs`
 
 - [`struct ChronoUtcDateTimeRef`](../pg_crud_common/src/date_sql_filter.rs#L2)
 - [`struct DateFilterBounds`](../pg_crud_common/src/date_sql_filter.rs#L5)
-- [`struct StdDateSqlBindStart`](../pg_crud_common/src/date_sql_filter.rs#L37)
+- [`struct DateSqlBindStartNonZeroU32`](../pg_crud_common/src/date_sql_filter.rs#L37)
 - [`struct ChronoUtcDateTimes`](../pg_crud_common/src/date_sql_filter.rs#L48)
 - [`struct DateSqlFilter`](../pg_crud_common/src/date_sql_filter.rs#L51)
 - [`enum DateSqlFilterError`](../pg_crud_common/src/date_sql_filter.rs#L65)
@@ -929,21 +935,21 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`trait DefaultSomeOneElement`](../pg_crud_common/src/lib.rs#L155)
 - [`trait DefaultSomeOneElementMaxPageSize`](../pg_crud_common/src/lib.rs#L158)
 - [`enum Operator`](../pg_crud_common/src/lib.rs#L175)
-- [`enum PgTypeGreaterThanVariant`](../pg_crud_common/src/lib.rs#L270)
-- [`trait PgType`](../pg_crud_common/src/lib.rs#L310)
-- [`trait PgTypePrimaryKey`](../pg_crud_common/src/lib.rs#L364)
-- [`trait PgTypeNotPrimaryKey`](../pg_crud_common/src/lib.rs#L379)
-- [`struct PgTypeGreaterThanTest`](../pg_crud_common/src/lib.rs#L461)
-- [`struct PgTypeLenGreaterThanTest`](../pg_crud_common/src/lib.rs#L468)
-- [`struct SqlxPostgresQuery`](../pg_crud_common/src/lib.rs#L474)
-- [`struct AddOperator`](../pg_crud_common/src/lib.rs#L509)
-- [`struct IsPrimaryKey`](../pg_crud_common/src/lib.rs#L520)
-- [`trait PgTypeWhereFilter`](../pg_crud_common/src/lib.rs#L521)
-- [`struct NullableJsonObjPgTypeWhereFilter`](../pg_crud_common/src/lib.rs#L547)
-- [`struct PgTypeWhere`](../pg_crud_common/src/lib.rs#L648)
-- [`enum __Field`](../pg_crud_common/src/lib.rs#L712)
-- [`struct __FieldVisitor`](../pg_crud_common/src/lib.rs#L719)
-- [`struct __Visitor`](../pg_crud_common/src/lib.rs#L773)
+- [`enum PgTypeGreaterThanVariant`](../pg_crud_common/src/lib.rs#L278)
+- [`trait PgType`](../pg_crud_common/src/lib.rs#L318)
+- [`trait PgTypePrimaryKey`](../pg_crud_common/src/lib.rs#L372)
+- [`trait PgTypeNotPrimaryKey`](../pg_crud_common/src/lib.rs#L387)
+- [`struct PgTypeGreaterThanTest`](../pg_crud_common/src/lib.rs#L469)
+- [`struct PgTypeLenGreaterThanTest`](../pg_crud_common/src/lib.rs#L476)
+- [`struct SqlxPostgresQuery`](../pg_crud_common/src/lib.rs#L482)
+- [`struct AddOperator`](../pg_crud_common/src/lib.rs#L517)
+- [`struct IsPrimaryKey`](../pg_crud_common/src/lib.rs#L528)
+- [`trait PgTypeWhereFilter`](../pg_crud_common/src/lib.rs#L529)
+- [`struct NullableJsonObjPgTypeWhereFilter`](../pg_crud_common/src/lib.rs#L555)
+- [`struct PgTypeWhere`](../pg_crud_common/src/lib.rs#L656)
+- [`enum __Field`](../pg_crud_common/src/lib.rs#L720)
+- [`struct __FieldVisitor`](../pg_crud_common/src/lib.rs#L727)
+- [`struct __Visitor`](../pg_crud_common/src/lib.rs#L781)
 
 ## `pg_crud_common/src/list_total.rs`
 
@@ -984,11 +990,11 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 
 ## `pg_crud_common/src/pagination.rs`
 
-- [`struct PaginationLimit`](../pg_crud_common/src/pagination.rs#L19)
-- [`struct PaginationPolicy`](../pg_crud_common/src/pagination.rs#L32)
-- [`struct PaginationOffset`](../pg_crud_common/src/pagination.rs#L76)
-- [`struct PaginationStart`](../pg_crud_common/src/pagination.rs#L99)
-- [`struct PaginationEnd`](../pg_crud_common/src/pagination.rs#L117)
+- [`struct PaginationLimit`](../pg_crud_common/src/pagination.rs#L20)
+- [`struct PaginationPolicy`](../pg_crud_common/src/pagination.rs#L27)
+- [`struct PaginationOffset`](../pg_crud_common/src/pagination.rs#L72)
+- [`struct PaginationStart`](../pg_crud_common/src/pagination.rs#L90)
+- [`struct PaginationEnd`](../pg_crud_common/src/pagination.rs#L103)
 
 ## `pg_crud_common/src/patch_field.rs`
 
@@ -1006,11 +1012,11 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`trait PgTypeEqOperator`](../pg_crud_common/src/pg_values.rs#L27)
 - [`struct UnsignedPartOfI32`](../pg_crud_common/src/pg_values.rs#L44)
 - [`enum UnsignedPartOfI32TryFromI32Error`](../pg_crud_common/src/pg_values.rs#L62)
-- [`struct UnsignedPartOfI32Raw`](../pg_crud_common/src/pg_values.rs#L84)
-- [`struct NotZeroUnsignedPartOfI32`](../pg_crud_common/src/pg_values.rs#L157)
-- [`enum NotZeroUnsignedPartOfI32TryFromI32Error`](../pg_crud_common/src/pg_values.rs#L185)
-- [`enum SingleOrMultiple`](../pg_crud_common/src/pg_values.rs#L255)
-- [`struct UuidUuidTestCases`](../pg_crud_common/src/pg_values.rs#L310)
+- [`struct UnsignedPartOfI32Raw`](../pg_crud_common/src/pg_values.rs#L85)
+- [`struct NotZeroUnsignedPartOfI32`](../pg_crud_common/src/pg_values.rs#L152)
+- [`enum NotZeroUnsignedPartOfI32TryFromI32Error`](../pg_crud_common/src/pg_values.rs#L180)
+- [`enum SingleOrMultiple`](../pg_crud_common/src/pg_values.rs#L250)
+- [`struct UuidUuidTestCases`](../pg_crud_common/src/pg_values.rs#L305)
 
 ## `pg_crud_common/src/query_collections.rs`
 
@@ -1025,7 +1031,7 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 ## `pg_crud_common/src/query_fragment.rs`
 
 - [`struct QueryPartFragment`](../pg_crud_common/src/query_fragment.rs#L16)
-- [`struct StdReadQueryBindIndex`](../pg_crud_common/src/query_fragment.rs#L26)
+- [`struct ReadQueryBindIndexNonZeroU32`](../pg_crud_common/src/query_fragment.rs#L26)
 - [`struct SqlColumnRef`](../pg_crud_common/src/query_fragment.rs#L94)
 
 ## `pg_crud_common/src/query_pagination.rs`
@@ -1033,11 +1039,11 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`enum Order`](../pg_crud_common/src/query_pagination.rs#L15)
 - [`struct OrderSnakeCaseStr`](../pg_crud_common/src/query_pagination.rs#L38)
 - [`struct OrderUpperCamelCaseStr`](../pg_crud_common/src/query_pagination.rs#L59)
-- [`struct OrderBy`](../pg_crud_common/src/query_pagination.rs#L92)
-- [`struct PaginationBase`](../pg_crud_common/src/query_pagination.rs#L131)
-- [`struct PaginationStartsWithZeroRaw`](../pg_crud_common/src/query_pagination.rs#L211)
-- [`struct PaginationStartsWithZero`](../pg_crud_common/src/query_pagination.rs#L230)
-- [`enum PaginationStartsWithZeroTryNewError`](../pg_crud_common/src/query_pagination.rs#L241)
+- [`struct OrderBy`](../pg_crud_common/src/query_pagination.rs#L96)
+- [`struct PaginationBase`](../pg_crud_common/src/query_pagination.rs#L135)
+- [`struct PaginationStartsWithZeroRaw`](../pg_crud_common/src/query_pagination.rs#L215)
+- [`struct PaginationStartsWithZero`](../pg_crud_common/src/query_pagination.rs#L234)
+- [`enum PaginationStartsWithZeroTryNewError`](../pg_crud_common/src/query_pagination.rs#L245)
 
 ## `pg_crud_common/src/read_query_plan.rs`
 
@@ -1056,10 +1062,9 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`enum SqlIdentifierError`](../pg_crud_common/src/sql_identifier.rs#L33)
 - [`struct SqlQualifiedIdentifier`](../pg_crud_common/src/sql_identifier.rs#L40)
 - [`struct SqlIdentifierListText`](../pg_crud_common/src/sql_identifier.rs#L45)
-- [`enum SqlIdentifierListTextState`](../pg_crud_common/src/sql_identifier.rs#L60)
-- [`struct SqlIdentifiers`](../pg_crud_common/src/sql_identifier.rs#L65)
-- [`struct SqlQueryText`](../pg_crud_common/src/sql_identifier.rs#L89)
-- [`struct SqlSelectBuilder`](../pg_crud_common/src/sql_identifier.rs#L127)
+- [`struct SqlIdentifiers`](../pg_crud_common/src/sql_identifier.rs#L60)
+- [`struct SqlQueryText`](../pg_crud_common/src/sql_identifier.rs#L88)
+- [`struct SqlSelectBuilder`](../pg_crud_common/src/sql_identifier.rs#L126)
 
 ## `pg_crud_common/src/sql_like_pattern.rs`
 
@@ -1071,58 +1076,58 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 ## `pg_crud_macros_common/src/filters.rs`
 
 - [`enum PgTypeFilter`](../pg_crud_macros_common/src/filters.rs#L9)
-- [`trait PgFilter`](../pg_crud_macros_common/src/filters.rs#L144)
+- [`trait PgFilter`](../pg_crud_macros_common/src/filters.rs#L162)
 
 ## `pg_crud_macros_common/src/lib.rs`
 
 - [`struct NamesCtx`](../pg_crud_macros_common/src/lib.rs#L7)
-- [`enum DeriveOrImpl`](../pg_crud_macros_common/src/lib.rs#L166)
-- [`struct ProcMacro2GeneratedRustTokenStreamVec`](../pg_crud_macros_common/src/lib.rs#L171)
-- [`struct NonNullOrNullableStr`](../pg_crud_macros_common/src/lib.rs#L201)
-- [`struct IsNullablePrefixStr`](../pg_crud_macros_common/src/lib.rs#L210)
-- [`struct ImportSnakeCaseStr`](../pg_crud_macros_common/src/lib.rs#L220)
-- [`struct ImportPathStr`](../pg_crud_macros_common/src/lib.rs#L229)
-- [`struct DimensionNumber`](../pg_crud_macros_common/src/lib.rs#L231)
-- [`struct StructElsLen`](../pg_crud_macros_common/src/lib.rs#L239)
-- [`struct DeLen`](../pg_crud_macros_common/src/lib.rs#L247)
-- [`struct WrapIntoBraces`](../pg_crud_macros_common/src/lib.rs#L262)
-- [`struct ParseTokenStreamStrings`](../pg_crud_macros_common/src/lib.rs#L264)
-- [`struct ParseErrorIdRef`](../pg_crud_macros_common/src/lib.rs#L293)
-- [`struct PanicUuidRef`](../pg_crud_macros_common/src/lib.rs#L302)
-- [`struct SynIdentifierTypeRefs`](../pg_crud_macros_common/src/lib.rs#L304)
-- [`struct SynFieldRefs`](../pg_crud_macros_common/src/lib.rs#L306)
-- [`enum IsStandardNonNull`](../pg_crud_macros_common/src/lib.rs#L308)
-- [`enum IsNullable`](../pg_crud_macros_common/src/lib.rs#L326)
-- [`enum Import`](../pg_crud_macros_common/src/lib.rs#L379)
-- [`macro-generated type AddOperatorUndrscr`](../pg_crud_macros_common/src/lib.rs#L446)
-- [`macro-generated type ColumnParameterUndrscr`](../pg_crud_macros_common/src/lib.rs#L447)
-- [`macro-generated type IncrementParameterUndrscr`](../pg_crud_macros_common/src/lib.rs#L448)
-- [`macro-generated type IsCreateQueryBindMut`](../pg_crud_macros_common/src/lib.rs#L449)
-- [`macro-generated type IsQueryBindMut`](../pg_crud_macros_common/src/lib.rs#L450)
-- [`macro-generated type IsSelectOnlyCreatedIdsQueryBindMut`](../pg_crud_macros_common/src/lib.rs#L451)
-- [`macro-generated type IsSelectOnlyUpdatedIdsQueryBindMut`](../pg_crud_macros_common/src/lib.rs#L452)
-- [`macro-generated type IsSelectQueryPartColumnFieldForErrorMessageUsed`](../pg_crud_macros_common/src/lib.rs#L453)
-- [`macro-generated type IsSelectQueryPartIsPgTypeUsed`](../pg_crud_macros_common/src/lib.rs#L454)
-- [`macro-generated type IsSelectQueryPartSelfSelectUsed`](../pg_crud_macros_common/src/lib.rs#L455)
-- [`macro-generated type IsUpdateQueryBindMut`](../pg_crud_macros_common/src/lib.rs#L456)
-- [`macro-generated type IsUpdateQueryPartSelfUpdateUsed`](../pg_crud_macros_common/src/lib.rs#L457)
-- [`macro-generated type ShouldDSchemarsJsonSchema`](../pg_crud_macros_common/src/lib.rs#L458)
-- [`macro-generated type ShouldDeriveUtoipaToSchema`](../pg_crud_macros_common/src/lib.rs#L459)
-- [`enum ReadOrUpdate`](../pg_crud_macros_common/src/lib.rs#L461)
-- [`macro-generated type IsPrimaryKeyUndrscr`](../pg_crud_macros_common/src/lib.rs#L474)
-- [`enum DefaultSomeOneOrDefaultSomeOneWithMaxPageSize`](../pg_crud_macros_common/src/lib.rs#L476)
-- [`enum EqOrEqUsingFields`](../pg_crud_macros_common/src/lib.rs#L481)
-- [`enum EqOperatorHandle`](../pg_crud_macros_common/src/lib.rs#L486)
-- [`enum Dimension`](../pg_crud_macros_common/src/lib.rs#L509)
-- [`enum DimensionIndexNumber`](../pg_crud_macros_common/src/lib.rs#L517)
-- [`macro-generated type CreateQueryBindValueUndrscr`](../pg_crud_macros_common/src/lib.rs#L533)
-- [`macro-generated type CreateQueryPartIncrementUndrscr`](../pg_crud_macros_common/src/lib.rs#L534)
-- [`macro-generated type CreateQueryPartValueUndrscr`](../pg_crud_macros_common/src/lib.rs#L535)
-- [`macro-generated type SelectQueryPartValueUndrscr`](../pg_crud_macros_common/src/lib.rs#L536)
-- [`macro-generated type UpdateQueryPartAccumulatorUndrscr`](../pg_crud_macros_common/src/lib.rs#L537)
-- [`macro-generated type UpdateQueryPartPathUndrscr`](../pg_crud_macros_common/src/lib.rs#L538)
-- [`macro-generated type UpdateQueryPartTargetUndrscr`](../pg_crud_macros_common/src/lib.rs#L539)
-- [`macro-generated type UpdateQueryPartValueUndrscr`](../pg_crud_macros_common/src/lib.rs#L540)
+- [`enum DeriveOrImpl`](../pg_crud_macros_common/src/lib.rs#L181)
+- [`struct ProcMacro2GeneratedRustTokenStreamVec`](../pg_crud_macros_common/src/lib.rs#L186)
+- [`struct NonNullOrNullableStr`](../pg_crud_macros_common/src/lib.rs#L216)
+- [`struct IsNullablePrefixStr`](../pg_crud_macros_common/src/lib.rs#L225)
+- [`struct ImportSnakeCaseStr`](../pg_crud_macros_common/src/lib.rs#L235)
+- [`struct ImportPathStr`](../pg_crud_macros_common/src/lib.rs#L244)
+- [`struct DimensionNumber`](../pg_crud_macros_common/src/lib.rs#L253)
+- [`struct StructElsLen`](../pg_crud_macros_common/src/lib.rs#L262)
+- [`struct DeLen`](../pg_crud_macros_common/src/lib.rs#L271)
+- [`struct WrapIntoBraces`](../pg_crud_macros_common/src/lib.rs#L280)
+- [`struct ParseTokenStreamStrings`](../pg_crud_macros_common/src/lib.rs#L282)
+- [`struct ParseErrorIdRef`](../pg_crud_macros_common/src/lib.rs#L311)
+- [`struct PanicUuidRef`](../pg_crud_macros_common/src/lib.rs#L320)
+- [`struct SynIdentifierTypeRefs`](../pg_crud_macros_common/src/lib.rs#L322)
+- [`struct SynFieldRefs`](../pg_crud_macros_common/src/lib.rs#L324)
+- [`enum IsStandardNonNull`](../pg_crud_macros_common/src/lib.rs#L326)
+- [`enum IsNullable`](../pg_crud_macros_common/src/lib.rs#L344)
+- [`enum Import`](../pg_crud_macros_common/src/lib.rs#L397)
+- [`macro-generated type AddOperatorUndrscr`](../pg_crud_macros_common/src/lib.rs#L464)
+- [`macro-generated type ColumnParameterUndrscr`](../pg_crud_macros_common/src/lib.rs#L465)
+- [`macro-generated type IncrementParameterUndrscr`](../pg_crud_macros_common/src/lib.rs#L466)
+- [`macro-generated type IsCreateQueryBindMut`](../pg_crud_macros_common/src/lib.rs#L467)
+- [`macro-generated type IsQueryBindMut`](../pg_crud_macros_common/src/lib.rs#L468)
+- [`macro-generated type IsSelectOnlyCreatedIdsQueryBindMut`](../pg_crud_macros_common/src/lib.rs#L469)
+- [`macro-generated type IsSelectOnlyUpdatedIdsQueryBindMut`](../pg_crud_macros_common/src/lib.rs#L470)
+- [`macro-generated type IsSelectQueryPartColumnFieldForErrorMessageUsed`](../pg_crud_macros_common/src/lib.rs#L471)
+- [`macro-generated type IsSelectQueryPartIsPgTypeUsed`](../pg_crud_macros_common/src/lib.rs#L472)
+- [`macro-generated type IsSelectQueryPartSelfSelectUsed`](../pg_crud_macros_common/src/lib.rs#L473)
+- [`macro-generated type IsUpdateQueryBindMut`](../pg_crud_macros_common/src/lib.rs#L474)
+- [`macro-generated type IsUpdateQueryPartSelfUpdateUsed`](../pg_crud_macros_common/src/lib.rs#L475)
+- [`macro-generated type ShouldDSchemarsJsonSchema`](../pg_crud_macros_common/src/lib.rs#L476)
+- [`macro-generated type ShouldDeriveUtoipaToSchema`](../pg_crud_macros_common/src/lib.rs#L477)
+- [`enum ReadOrUpdate`](../pg_crud_macros_common/src/lib.rs#L479)
+- [`macro-generated type IsPrimaryKeyUndrscr`](../pg_crud_macros_common/src/lib.rs#L492)
+- [`enum DefaultSomeOneOrDefaultSomeOneWithMaxPageSize`](../pg_crud_macros_common/src/lib.rs#L494)
+- [`enum EqOrEqUsingFields`](../pg_crud_macros_common/src/lib.rs#L499)
+- [`enum EqOperatorHandle`](../pg_crud_macros_common/src/lib.rs#L504)
+- [`enum Dimension`](../pg_crud_macros_common/src/lib.rs#L527)
+- [`enum DimensionIndexNumber`](../pg_crud_macros_common/src/lib.rs#L535)
+- [`macro-generated type CreateQueryBindValueUndrscr`](../pg_crud_macros_common/src/lib.rs#L551)
+- [`macro-generated type CreateQueryPartIncrementUndrscr`](../pg_crud_macros_common/src/lib.rs#L552)
+- [`macro-generated type CreateQueryPartValueUndrscr`](../pg_crud_macros_common/src/lib.rs#L553)
+- [`macro-generated type SelectQueryPartValueUndrscr`](../pg_crud_macros_common/src/lib.rs#L554)
+- [`macro-generated type UpdateQueryPartAccumulatorUndrscr`](../pg_crud_macros_common/src/lib.rs#L555)
+- [`macro-generated type UpdateQueryPartPathUndrscr`](../pg_crud_macros_common/src/lib.rs#L556)
+- [`macro-generated type UpdateQueryPartTargetUndrscr`](../pg_crud_macros_common/src/lib.rs#L557)
+- [`macro-generated type UpdateQueryPartValueUndrscr`](../pg_crud_macros_common/src/lib.rs#L558)
 
 ## `pg_crud_pg_table/src/lib.rs`
 
@@ -1133,34 +1138,34 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`struct PgTableIdempotencyRoute`](../pg_crud_pg_table/src/lib.rs#L26)
 - [`struct PgTableIdempotencyRequestHash`](../pg_crud_pg_table/src/lib.rs#L36)
 - [`struct PgTableIdempotencyBody`](../pg_crud_pg_table/src/lib.rs#L40)
-- [`struct PgTableIdempotencyBodyError`](../pg_crud_pg_table/src/lib.rs#L47)
-- [`struct PgTableIdempotencyBodyRef`](../pg_crud_pg_table/src/lib.rs#L67)
-- [`struct PgTableIdempotencyResponseStatus`](../pg_crud_pg_table/src/lib.rs#L82)
-- [`enum PgTableIdempotencyKnownResponseStatus`](../pg_crud_pg_table/src/lib.rs#L84)
-- [`struct PgTableIdempotencyResponseStatusTryFromU16Error`](../pg_crud_pg_table/src/lib.rs#L112)
-- [`struct PgTableIdempotencyTextBytes`](../pg_crud_pg_table/src/lib.rs#L123)
-- [`struct PgTableIdempotencyCleanupRetentionSeconds`](../pg_crud_pg_table/src/lib.rs#L131)
-- [`struct PgTableIdempotencyCleanupBatchSize`](../pg_crud_pg_table/src/lib.rs#L149)
-- [`enum PgTableIdempotencyCleanupValueTryFromI64Error`](../pg_crud_pg_table/src/lib.rs#L163)
-- [`struct PgTableIdempotencyCleanupRows`](../pg_crud_pg_table/src/lib.rs#L179)
-- [`struct SqlxPgTablePgConnectionRef`](../pg_crud_pg_table/src/lib.rs#L181)
-- [`struct PgTableRevision`](../pg_crud_pg_table/src/lib.rs#L193)
-- [`struct StdPgTableRevisionParseIntError`](../pg_crud_pg_table/src/lib.rs#L198)
-- [`enum PgTableRevisionTryFromStringError`](../pg_crud_pg_table/src/lib.rs#L200)
-- [`struct PgTableIdempotencyScope`](../pg_crud_pg_table/src/lib.rs#L220)
-- [`struct PgTableIdempotencyRequest`](../pg_crud_pg_table/src/lib.rs#L227)
-- [`struct PgTableIdempotencyReplay`](../pg_crud_pg_table/src/lib.rs#L232)
-- [`enum PgTableIdempotencyBegin`](../pg_crud_pg_table/src/lib.rs#L237)
-- [`enum PgTableIdempotencyTextError`](../pg_crud_pg_table/src/lib.rs#L246)
-- [`struct SqlxPgTableIdempotencyError`](../pg_crud_pg_table/src/lib.rs#L263)
-- [`enum InsertValuesFmt`](../pg_crud_pg_table/src/lib.rs#L633)
-- [`enum SelectWhereFmt`](../pg_crud_pg_table/src/lib.rs#L638)
-- [`enum UpdateSelectorFmt`](../pg_crud_pg_table/src/lib.rs#L643)
-- [`struct PgTableNameRef`](../pg_crud_pg_table/src/lib.rs#L655)
-- [`struct PgTableSqlFragmentRef`](../pg_crud_pg_table/src/lib.rs#L672)
-- [`struct PgTableQueryString`](../pg_crud_pg_table/src/lib.rs#L684)
-- [`enum PgTableStringWrapperTryFromStringError`](../pg_crud_pg_table/src/lib.rs#L686)
-- [`struct PgTableQueryPartFragment`](../pg_crud_pg_table/src/lib.rs#L721)
+- [`struct PgTableIdempotencyBodyError`](../pg_crud_pg_table/src/lib.rs#L51)
+- [`struct PgTableIdempotencyBodyRef`](../pg_crud_pg_table/src/lib.rs#L71)
+- [`struct PgTableIdempotencyResponseStatus`](../pg_crud_pg_table/src/lib.rs#L86)
+- [`enum PgTableIdempotencyKnownResponseStatus`](../pg_crud_pg_table/src/lib.rs#L88)
+- [`struct PgTableIdempotencyResponseStatusTryFromU16Error`](../pg_crud_pg_table/src/lib.rs#L116)
+- [`struct PgTableIdempotencyTextBytes`](../pg_crud_pg_table/src/lib.rs#L127)
+- [`struct PgTableIdempotencyCleanupRetentionSeconds`](../pg_crud_pg_table/src/lib.rs#L135)
+- [`struct PgTableIdempotencyCleanupBatchSize`](../pg_crud_pg_table/src/lib.rs#L153)
+- [`enum PgTableIdempotencyCleanupValueTryFromI64Error`](../pg_crud_pg_table/src/lib.rs#L167)
+- [`struct PgTableIdempotencyCleanupRows`](../pg_crud_pg_table/src/lib.rs#L183)
+- [`struct SqlxPgTablePgConnectionRef`](../pg_crud_pg_table/src/lib.rs#L185)
+- [`struct PgTableRevision`](../pg_crud_pg_table/src/lib.rs#L197)
+- [`struct PgTableRevisionParseIntError`](../pg_crud_pg_table/src/lib.rs#L202)
+- [`enum PgTableRevisionTryFromStringError`](../pg_crud_pg_table/src/lib.rs#L204)
+- [`struct PgTableIdempotencyScope`](../pg_crud_pg_table/src/lib.rs#L224)
+- [`struct PgTableIdempotencyRequest`](../pg_crud_pg_table/src/lib.rs#L231)
+- [`struct PgTableIdempotencyReplay`](../pg_crud_pg_table/src/lib.rs#L236)
+- [`enum PgTableIdempotencyBegin`](../pg_crud_pg_table/src/lib.rs#L241)
+- [`enum PgTableIdempotencyTextError`](../pg_crud_pg_table/src/lib.rs#L250)
+- [`struct SqlxPgTableIdempotencyError`](../pg_crud_pg_table/src/lib.rs#L267)
+- [`enum InsertValuesFmt`](../pg_crud_pg_table/src/lib.rs#L637)
+- [`enum SelectWhereFmt`](../pg_crud_pg_table/src/lib.rs#L642)
+- [`enum UpdateSelectorFmt`](../pg_crud_pg_table/src/lib.rs#L647)
+- [`struct PgTableNameRef`](../pg_crud_pg_table/src/lib.rs#L659)
+- [`struct PgTableSqlFragmentRef`](../pg_crud_pg_table/src/lib.rs#L676)
+- [`struct PgTableQueryString`](../pg_crud_pg_table/src/lib.rs#L688)
+- [`enum PgTableStringWrapperTryFromStringError`](../pg_crud_pg_table/src/lib.rs#L690)
+- [`struct PgTableQueryPartFragment`](../pg_crud_pg_table/src/lib.rs#L725)
 
 ## `pg_crud_pg_table_generate_src/src/model.rs`
 
@@ -1186,43 +1191,43 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`enum AddBorrow`](../pg_crud_pg_table_generate_src/src/source.rs#L90)
 - [`enum AddReturn`](../pg_crud_pg_table_generate_src/src/source.rs#L103)
 - [`enum Operation`](../pg_crud_pg_table_generate_src/src/source.rs#L116)
-- [`enum OperationHttpMethod`](../pg_crud_pg_table_generate_src/src/source.rs#L302)
-- [`enum OperationKind`](../pg_crud_pg_table_generate_src/src/source.rs#L308)
-- [`enum RmOrDm`](../pg_crud_pg_table_generate_src/src/source.rs#L372)
-- [`enum RmOrRo`](../pg_crud_pg_table_generate_src/src/source.rs#L377)
-- [`enum GeneratePgTableAttr`](../pg_crud_pg_table_generate_src/src/source.rs#L393)
-- [`enum ShouldWrapIntoV`](../pg_crud_pg_table_generate_src/src/source.rs#L439)
-- [`enum CreateOrUpdateOrDm`](../pg_crud_pg_table_generate_src/src/source.rs#L445)
-- [`enum CreateOrUpdateOrDlo`](../pg_crud_pg_table_generate_src/src/source.rs#L452)
-- [`struct GeneratePgTableConfig`](../pg_crud_pg_table_generate_src/src/source.rs#L459)
-- [`struct GeneratePgTableDbForeignKey`](../pg_crud_pg_table_generate_src/src/source.rs#L486)
-- [`struct GeneratePgTableDbColumn`](../pg_crud_pg_table_generate_src/src/source.rs#L501)
-- [`struct GeneratePgTableExcludeField`](../pg_crud_pg_table_generate_src/src/source.rs#L511)
-- [`enum GeneratePgTableApiMode`](../pg_crud_pg_table_generate_src/src/source.rs#L533)
-- [`struct StdBulkItemsMax`](../pg_crud_pg_table_generate_src/src/source.rs#L546)
-- [`struct UsizeGeneratePgTableDbColumns`](../pg_crud_pg_table_generate_src/src/source.rs#L550)
-- [`struct UsizeCreateExcludeFields`](../pg_crud_pg_table_generate_src/src/source.rs#L559)
-- [`struct UsizeReadExcludeFields`](../pg_crud_pg_table_generate_src/src/source.rs#L568)
-- [`struct GeneratePgTableEmissionModel`](../pg_crud_pg_table_generate_src/src/source.rs#L600)
-- [`struct ProcMacro2GeneratePgTableTestsTokenStream`](../pg_crud_pg_table_generate_src/src/source.rs#L608)
-- [`struct ProcMacro2GeneratePgTableCommonTokenStream`](../pg_crud_pg_table_generate_src/src/source.rs#L619)
-- [`struct ProcMacro2GeneratePgTableWholeTokenStream`](../pg_crud_pg_table_generate_src/src/source.rs#L627)
-- [`struct SynGeneratePgTableDeriveInput`](../pg_crud_pg_table_generate_src/src/source.rs#L638)
-- [`struct GeneratePgTableFieldEmissionModel`](../pg_crud_pg_table_generate_src/src/source.rs#L646)
-- [`struct GeneratePgTableFrontendFieldEmission`](../pg_crud_pg_table_generate_src/src/source.rs#L654)
-- [`enum GeneratePgTableFrontendFlag`](../pg_crud_pg_table_generate_src/src/source.rs#L665)
-- [`struct GeneratePgTableVariantFieldEmission`](../pg_crud_pg_table_generate_src/src/source.rs#L672)
-- [`struct GeneratePgTableVariantEmission`](../pg_crud_pg_table_generate_src/src/source.rs#L678)
-- [`enum GeneratePgTableVariantEmissionRef`](../pg_crud_pg_table_generate_src/src/source.rs#L683)
-- [`struct GeneratePgTableFieldIdx`](../pg_crud_pg_table_generate_src/src/source.rs#L696)
-- [`struct GeneratePgTableFieldsEmissionModel`](../pg_crud_pg_table_generate_src/src/source.rs#L704)
-- [`struct SynGeneratePgTableFieldRef`](../pg_crud_pg_table_generate_src/src/source.rs#L712)
-- [`struct SynGeneratePgTableIdentifierRef`](../pg_crud_pg_table_generate_src/src/source.rs#L720)
-- [`struct SynGeneratePgTableTypeRef`](../pg_crud_pg_table_generate_src/src/source.rs#L728)
-- [`struct GeneratePgTableVariantLocationAttr`](../pg_crud_pg_table_generate_src/src/source.rs#L736)
-- [`struct GeneratePgTablePrimaryKeyAttrName`](../pg_crud_pg_table_generate_src/src/source.rs#L746)
-- [`enum WrapIntoOptional`](../pg_crud_pg_table_generate_src/src/source.rs#L3455)
-- [`enum AddDotClone`](../pg_crud_pg_table_generate_src/src/source.rs#L8045)
+- [`enum OperationHttpMethod`](../pg_crud_pg_table_generate_src/src/source.rs#L304)
+- [`enum OperationKind`](../pg_crud_pg_table_generate_src/src/source.rs#L310)
+- [`enum RmOrDm`](../pg_crud_pg_table_generate_src/src/source.rs#L374)
+- [`enum RmOrRo`](../pg_crud_pg_table_generate_src/src/source.rs#L379)
+- [`enum GeneratePgTableAttr`](../pg_crud_pg_table_generate_src/src/source.rs#L395)
+- [`enum ShouldWrapIntoV`](../pg_crud_pg_table_generate_src/src/source.rs#L441)
+- [`enum CreateOrUpdateOrDm`](../pg_crud_pg_table_generate_src/src/source.rs#L447)
+- [`enum CreateOrUpdateOrDlo`](../pg_crud_pg_table_generate_src/src/source.rs#L454)
+- [`struct GeneratePgTableConfig`](../pg_crud_pg_table_generate_src/src/source.rs#L461)
+- [`struct GeneratePgTableDbForeignKey`](../pg_crud_pg_table_generate_src/src/source.rs#L488)
+- [`struct GeneratePgTableDbColumn`](../pg_crud_pg_table_generate_src/src/source.rs#L503)
+- [`struct GeneratePgTableExcludeField`](../pg_crud_pg_table_generate_src/src/source.rs#L513)
+- [`enum GeneratePgTableApiMode`](../pg_crud_pg_table_generate_src/src/source.rs#L535)
+- [`struct StdBulkItemsMax`](../pg_crud_pg_table_generate_src/src/source.rs#L548)
+- [`struct UsizeGeneratePgTableDbColumns`](../pg_crud_pg_table_generate_src/src/source.rs#L552)
+- [`struct UsizeCreateExcludeFields`](../pg_crud_pg_table_generate_src/src/source.rs#L561)
+- [`struct UsizeReadExcludeFields`](../pg_crud_pg_table_generate_src/src/source.rs#L570)
+- [`struct GeneratePgTableEmissionModel`](../pg_crud_pg_table_generate_src/src/source.rs#L602)
+- [`struct ProcMacro2GeneratePgTableTestsTokenStream`](../pg_crud_pg_table_generate_src/src/source.rs#L610)
+- [`struct ProcMacro2GeneratePgTableCommonTokenStream`](../pg_crud_pg_table_generate_src/src/source.rs#L621)
+- [`struct ProcMacro2GeneratePgTableWholeTokenStream`](../pg_crud_pg_table_generate_src/src/source.rs#L629)
+- [`struct SynGeneratePgTableDeriveInput`](../pg_crud_pg_table_generate_src/src/source.rs#L640)
+- [`struct GeneratePgTableFieldEmissionModel`](../pg_crud_pg_table_generate_src/src/source.rs#L648)
+- [`struct GeneratePgTableFrontendFieldEmission`](../pg_crud_pg_table_generate_src/src/source.rs#L656)
+- [`enum GeneratePgTableFrontendFlag`](../pg_crud_pg_table_generate_src/src/source.rs#L667)
+- [`struct GeneratePgTableVariantFieldEmission`](../pg_crud_pg_table_generate_src/src/source.rs#L674)
+- [`struct GeneratePgTableVariantEmission`](../pg_crud_pg_table_generate_src/src/source.rs#L680)
+- [`enum GeneratePgTableVariantEmissionRef`](../pg_crud_pg_table_generate_src/src/source.rs#L685)
+- [`struct GeneratePgTableFieldIdx`](../pg_crud_pg_table_generate_src/src/source.rs#L698)
+- [`struct GeneratePgTableFieldsEmissionModel`](../pg_crud_pg_table_generate_src/src/source.rs#L706)
+- [`struct SynGeneratePgTableFieldRef`](../pg_crud_pg_table_generate_src/src/source.rs#L714)
+- [`struct SynGeneratePgTableIdentifierRef`](../pg_crud_pg_table_generate_src/src/source.rs#L722)
+- [`struct SynGeneratePgTableTypeRef`](../pg_crud_pg_table_generate_src/src/source.rs#L730)
+- [`struct GeneratePgTableVariantLocationAttr`](../pg_crud_pg_table_generate_src/src/source.rs#L738)
+- [`struct GeneratePgTablePrimaryKeyAttrName`](../pg_crud_pg_table_generate_src/src/source.rs#L748)
+- [`enum WrapIntoOptional`](../pg_crud_pg_table_generate_src/src/source.rs#L3476)
+- [`enum AddDotClone`](../pg_crud_pg_table_generate_src/src/source.rs#L8072)
 
 ## `pg_crud_pg_types_chrono_net/src/lib.rs`
 
@@ -1245,13 +1250,13 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`macro-generated struct SqlxTypesIpnetworkIpNetworkAsNonNullInet`](../pg_crud_pg_types_chrono_net/src/lib.rs#L1)
 - [`macro-generated struct SqlxTypesMacAddressMacAddressAsNonNullMacAddr`](../pg_crud_pg_types_chrono_net/src/lib.rs#L1)
 
-## `pg_crud_pg_types_common/src/lib.rs`
+## `pg_crud_pg_types_common/src/domain_types.rs`
 
-- [`struct PaginationStartsWithOneRaw`](../pg_crud_pg_types_common/src/lib.rs#L4)
-- [`struct PaginationStartsWithOneValue`](../pg_crud_pg_types_common/src/lib.rs#L26)
-- [`struct IsPrimaryKey`](../pg_crud_pg_types_common/src/lib.rs#L43)
-- [`struct PaginationStartsWithOne`](../pg_crud_pg_types_common/src/lib.rs#L64)
-- [`enum PaginationStartsWithOneTryNewError`](../pg_crud_pg_types_common/src/lib.rs#L75)
+- [`struct PaginationStartsWithOneRaw`](../pg_crud_pg_types_common/src/domain_types.rs#L4)
+- [`struct PaginationStartsWithOneValue`](../pg_crud_pg_types_common/src/domain_types.rs#L27)
+- [`struct IsPrimaryKey`](../pg_crud_pg_types_common/src/domain_types.rs#L38)
+- [`struct PaginationStartsWithOne`](../pg_crud_pg_types_common/src/domain_types.rs#L59)
+- [`enum PaginationStartsWithOneTryNewError`](../pg_crud_pg_types_common/src/domain_types.rs#L70)
 
 ## `pg_crud_pg_types_generate_src/src/model.rs`
 
@@ -1268,38 +1273,38 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`struct PgSqlName`](../pg_crud_pg_types_generate_src/src/source.rs#L220)
 - [`enum CanBeNullable`](../pg_crud_pg_types_generate_src/src/source.rs#L431)
 - [`enum Range`](../pg_crud_pg_types_generate_src/src/source.rs#L457)
-- [`enum PgTypePattern`](../pg_crud_pg_types_generate_src/src/source.rs#L526)
-- [`struct PgTypeRecord`](../pg_crud_pg_types_generate_src/src/source.rs#L542)
-- [`struct PgTypeRecordRaw`](../pg_crud_pg_types_generate_src/src/source.rs#L549)
-- [`struct GeneratePgTypeRecords`](../pg_crud_pg_types_generate_src/src/source.rs#L585)
-- [`struct GeneratePgTypes`](../pg_crud_pg_types_generate_src/src/source.rs#L590)
-- [`struct GeneratePgTypesLengthError`](../pg_crud_pg_types_generate_src/src/source.rs#L595)
-- [`enum GeneratePgTypesConfigVariant`](../pg_crud_pg_types_generate_src/src/source.rs#L619)
-- [`struct GenerateSecretText`](../pg_crud_pg_types_generate_src/src/source.rs#L629)
-- [`struct GeneratePgTypesConfig`](../pg_crud_pg_types_generate_src/src/source.rs#L633)
-- [`enum PgTypeInitializationTryNew`](../pg_crud_pg_types_generate_src/src/source.rs#L642)
-- [`enum PgTypeImplTryNewForDe`](../pg_crud_pg_types_generate_src/src/source.rs#L710)
-- [`enum PgTypeImplNewForDeserializeOrTryNewForDe`](../pg_crud_pg_types_generate_src/src/source.rs#L721)
-- [`enum PgTypeDeserialize`](../pg_crud_pg_types_generate_src/src/source.rs#L726)
-- [`struct ParsedGeneratePgTypesConfig`](../pg_crud_pg_types_generate_src/src/source.rs#L764)
-- [`struct BuiltGeneratePgTypesModel`](../pg_crud_pg_types_generate_src/src/source.rs#L767)
-- [`struct ValidatedGeneratePgTypesConfig`](../pg_crud_pg_types_generate_src/src/source.rs#L772)
-- [`struct PgTypesModelEntryCount`](../pg_crud_pg_types_generate_src/src/source.rs#L786)
-- [`struct SerdeJsonGeneratePgTypesError`](../pg_crud_pg_types_generate_src/src/source.rs#L797)
-- [`enum GeneratePgTypesPipelineError`](../pg_crud_pg_types_generate_src/src/source.rs#L800)
-- [`enum PgTypeOrPgTypeTestCases`](../pg_crud_pg_types_generate_src/src/source.rs#L1034)
-- [`enum IsNonNullStandardCanBePrimaryKey`](../pg_crud_pg_types_generate_src/src/source.rs#L1039)
-- [`enum StartOrEnd`](../pg_crud_pg_types_generate_src/src/source.rs#L1044)
-- [`enum ShouldImplFrom`](../pg_crud_pg_types_generate_src/src/source.rs#L1049)
-- [`enum IntRangeType`](../pg_crud_pg_types_generate_src/src/source.rs#L1054)
-- [`enum ParameterNumber`](../pg_crud_pg_types_generate_src/src/source.rs#L1516)
-- [`enum DateOrTime`](../pg_crud_pg_types_generate_src/src/source.rs#L1692)
-- [`enum DateNaiveOrTime`](../pg_crud_pg_types_generate_src/src/source.rs#L1727)
-- [`enum IsConst`](../pg_crud_pg_types_generate_src/src/source.rs#L1939)
-- [`enum IsNeedToUseInto`](../pg_crud_pg_types_generate_src/src/source.rs#L4514)
-- [`enum Bnd`](../pg_crud_pg_types_generate_src/src/source.rs#L4533)
-- [`enum IsNeedToImplPgTypeGreaterThanTest`](../pg_crud_pg_types_generate_src/src/source.rs#L5286)
-- [`enum CreateReadIds`](../pg_crud_pg_types_generate_src/src/source.rs#L5292)
+- [`enum PgTypePattern`](../pg_crud_pg_types_generate_src/src/source.rs#L528)
+- [`struct PgTypeRecord`](../pg_crud_pg_types_generate_src/src/source.rs#L544)
+- [`struct PgTypeRecordRaw`](../pg_crud_pg_types_generate_src/src/source.rs#L551)
+- [`struct GeneratePgTypeRecords`](../pg_crud_pg_types_generate_src/src/source.rs#L587)
+- [`struct GeneratePgTypes`](../pg_crud_pg_types_generate_src/src/source.rs#L592)
+- [`struct GeneratePgTypesLengthError`](../pg_crud_pg_types_generate_src/src/source.rs#L597)
+- [`enum GeneratePgTypesConfigVariant`](../pg_crud_pg_types_generate_src/src/source.rs#L621)
+- [`struct GenerateSecretText`](../pg_crud_pg_types_generate_src/src/source.rs#L631)
+- [`struct GeneratePgTypesConfig`](../pg_crud_pg_types_generate_src/src/source.rs#L635)
+- [`enum PgTypeInitializationTryNew`](../pg_crud_pg_types_generate_src/src/source.rs#L644)
+- [`enum PgTypeImplTryNewForDe`](../pg_crud_pg_types_generate_src/src/source.rs#L712)
+- [`enum PgTypeImplNewForDeserializeOrTryNewForDe`](../pg_crud_pg_types_generate_src/src/source.rs#L723)
+- [`enum PgTypeDeserialize`](../pg_crud_pg_types_generate_src/src/source.rs#L728)
+- [`struct ParsedGeneratePgTypesConfig`](../pg_crud_pg_types_generate_src/src/source.rs#L766)
+- [`struct BuiltGeneratePgTypesModel`](../pg_crud_pg_types_generate_src/src/source.rs#L769)
+- [`struct ValidatedGeneratePgTypesConfig`](../pg_crud_pg_types_generate_src/src/source.rs#L774)
+- [`struct PgTypesModelEntryCount`](../pg_crud_pg_types_generate_src/src/source.rs#L788)
+- [`struct SerdeJsonGeneratePgTypesError`](../pg_crud_pg_types_generate_src/src/source.rs#L799)
+- [`enum GeneratePgTypesPipelineError`](../pg_crud_pg_types_generate_src/src/source.rs#L802)
+- [`enum PgTypeOrPgTypeTestCases`](../pg_crud_pg_types_generate_src/src/source.rs#L1039)
+- [`enum IsNonNullStandardCanBePrimaryKey`](../pg_crud_pg_types_generate_src/src/source.rs#L1044)
+- [`enum StartOrEnd`](../pg_crud_pg_types_generate_src/src/source.rs#L1049)
+- [`enum ShouldImplFrom`](../pg_crud_pg_types_generate_src/src/source.rs#L1054)
+- [`enum IntRangeType`](../pg_crud_pg_types_generate_src/src/source.rs#L1059)
+- [`enum ParameterNumber`](../pg_crud_pg_types_generate_src/src/source.rs#L1521)
+- [`enum DateOrTime`](../pg_crud_pg_types_generate_src/src/source.rs#L1697)
+- [`enum DateNaiveOrTime`](../pg_crud_pg_types_generate_src/src/source.rs#L1732)
+- [`enum IsConst`](../pg_crud_pg_types_generate_src/src/source.rs#L1944)
+- [`enum IsNeedToUseInto`](../pg_crud_pg_types_generate_src/src/source.rs#L4519)
+- [`enum Bnd`](../pg_crud_pg_types_generate_src/src/source.rs#L4538)
+- [`enum IsNeedToImplPgTypeGreaterThanTest`](../pg_crud_pg_types_generate_src/src/source.rs#L5291)
+- [`enum CreateReadIds`](../pg_crud_pg_types_generate_src/src/source.rs#L5297)
 
 ## `pg_crud_pg_types_numeric/src/lib.rs`
 
@@ -1361,8 +1366,8 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`struct __Visitor`](../pg_crud_where_filters/src/lib.rs#L577)
 - [`struct BoundedVec`](../pg_crud_where_filters/src/lib.rs#L658)
 - [`enum BoundedVecTryNewError`](../pg_crud_where_filters/src/lib.rs#L677)
-- [`struct BoundedVecLen`](../pg_crud_where_filters/src/lib.rs#L699)
-- [`enum Variant`](../pg_crud_where_filters/src/lib.rs#L713)
+- [`struct BoundedVecLen`](../pg_crud_where_filters/src/lib.rs#L700)
+- [`enum Variant`](../pg_crud_where_filters/src/lib.rs#L708)
 
 ## `pg_crud_where_filters_generate_src/src/bind.rs`
 
@@ -1390,19 +1395,19 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`enum PgTypePtrn`](../pg_crud_where_filters_generate_src/src/source.rs#L110)
 - [`enum PgTypeKind`](../pg_crud_where_filters_generate_src/src/source.rs#L115)
 
-## `prepare_postgresql_databases/src/lib.rs`
+## `prepare_postgresql_databases/src/domain_types.rs`
 
-- [`struct DatabaseUrl`](../prepare_postgresql_databases/src/lib.rs#L11)
-- [`enum DatabaseUrlError`](../prepare_postgresql_databases/src/lib.rs#L16)
-- [`struct MigrationsSource`](../prepare_postgresql_databases/src/lib.rs#L33)
-- [`enum MigrationsSourceError`](../prepare_postgresql_databases/src/lib.rs#L38)
-- [`struct DatabasePreparationSpec`](../prepare_postgresql_databases/src/lib.rs#L44)
-- [`struct ProcessCommand`](../prepare_postgresql_databases/src/lib.rs#L60)
-- [`enum ProcessArgument`](../prepare_postgresql_databases/src/lib.rs#L66)
-- [`struct ProcessStaticArgument`](../prepare_postgresql_databases/src/lib.rs#L81)
-- [`struct ProcessArguments`](../prepare_postgresql_databases/src/lib.rs#L120)
-- [`struct ProcessCommands`](../prepare_postgresql_databases/src/lib.rs#L130)
-- [`struct ProcessProgram`](../prepare_postgresql_databases/src/lib.rs#L142)
+- [`struct DatabaseUrl`](../prepare_postgresql_databases/src/domain_types.rs#L11)
+- [`enum DatabaseUrlError`](../prepare_postgresql_databases/src/domain_types.rs#L16)
+- [`struct MigrationsSource`](../prepare_postgresql_databases/src/domain_types.rs#L33)
+- [`enum MigrationsSourceError`](../prepare_postgresql_databases/src/domain_types.rs#L38)
+- [`struct DatabasePreparationSpec`](../prepare_postgresql_databases/src/domain_types.rs#L44)
+- [`struct ProcessCommand`](../prepare_postgresql_databases/src/domain_types.rs#L60)
+- [`enum ProcessArgument`](../prepare_postgresql_databases/src/domain_types.rs#L66)
+- [`struct ProcessStaticArgument`](../prepare_postgresql_databases/src/domain_types.rs#L81)
+- [`struct ProcessArguments`](../prepare_postgresql_databases/src/domain_types.rs#L120)
+- [`struct ProcessCommands`](../prepare_postgresql_databases/src/domain_types.rs#L132)
+- [`struct ProcessProgram`](../prepare_postgresql_databases/src/domain_types.rs#L146)
 
 ## `route_validators/src/check_body_size.rs`
 
@@ -1430,8 +1435,8 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 
 ## `route_validators/src/lib.rs`
 
-- [`struct AxumHttpStatusCode`](../route_validators/src/lib.rs#L16)
-- [`trait GetAxumHttpStatusCode`](../route_validators/src/lib.rs#L35)
+- [`struct AxumHttpStatusCode`](../route_validators/src/lib.rs#L17)
+- [`trait GetAxumHttpStatusCode`](../route_validators/src/lib.rs#L32)
 
 ## `route_validators/src/test_hlp.rs`
 
@@ -1443,22 +1448,22 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`struct TestPollCount`](../route_validators/src/test_hlp.rs#L27)
 - [`struct TestPollLimitReached`](../route_validators/src/test_hlp.rs#L29)
 
-## `runtime_tests/src/lib.rs`
+## `runtime_tests/src/domain_types.rs`
 
-- [`struct ServiceBaseUrl`](../runtime_tests/src/lib.rs#L4)
-- [`enum ServiceBaseUrlError`](../runtime_tests/src/lib.rs#L9)
-- [`struct RuntimeTestConfig`](../runtime_tests/src/lib.rs#L51)
-- [`enum RuntimeTestKind`](../runtime_tests/src/lib.rs#L80)
-- [`struct RuntimeTestReport`](../runtime_tests/src/lib.rs#L101)
-- [`struct HttpRuntimeTestStatus`](../runtime_tests/src/lib.rs#L122)
-- [`struct ReqwestRuntimeTestClient`](../runtime_tests/src/lib.rs#L125)
-- [`struct ReqwestRuntimeTestResponse`](../runtime_tests/src/lib.rs#L128)
-- [`struct RuntimeTestUrl`](../runtime_tests/src/lib.rs#L133)
-- [`enum RuntimeTestError`](../runtime_tests/src/lib.rs#L148)
+- [`struct ServiceBaseUrl`](../runtime_tests/src/domain_types.rs#L4)
+- [`enum ServiceBaseUrlError`](../runtime_tests/src/domain_types.rs#L9)
+- [`struct RuntimeTestConfig`](../runtime_tests/src/domain_types.rs#L51)
+- [`enum RuntimeTestKind`](../runtime_tests/src/domain_types.rs#L80)
+- [`struct RuntimeTestReport`](../runtime_tests/src/domain_types.rs#L103)
+- [`struct HttpRuntimeTestStatus`](../runtime_tests/src/domain_types.rs#L128)
+- [`struct ReqwestRuntimeTestClient`](../runtime_tests/src/domain_types.rs#L131)
+- [`struct ReqwestRuntimeTestResponse`](../runtime_tests/src/domain_types.rs#L168)
+- [`struct RuntimeTestUrl`](../runtime_tests/src/domain_types.rs#L207)
+- [`enum RuntimeTestError`](../runtime_tests/src/domain_types.rs#L222)
 
 ## `server/src/main.rs`
 
-- [`struct StdServerIoError`](../server/src/main.rs#L9)
+- [`struct ServerIoError`](../server/src/main.rs#L9)
 - [`struct ServerRuntimeServeError`](../server/src/main.rs#L14)
 - [`struct MetricsExporterPrometheusBuildError`](../server/src/main.rs#L19)
 - [`struct MetricsExporterPrometheusHandle`](../server/src/main.rs#L21)
@@ -1478,10 +1483,10 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`struct ServerRuntimeTrustedProxyRangesParseError`](../server/src/main.rs#L104)
 - [`struct AxumApiRoutes`](../server/src/main.rs#L106)
 - [`struct HttpBodyMaximumBytes`](../server/src/main.rs#L108)
-- [`struct StdSharedServerAppState`](../server/src/main.rs#L112)
-- [`struct TokioServerRuntime`](../server/src/main.rs#L119)
-- [`struct StdServerExitCode`](../server/src/main.rs#L121)
-- [`enum RunServerError`](../server/src/main.rs#L128)
+- [`struct SharedServerAppStateArc`](../server/src/main.rs#L112)
+- [`struct TokioServerRuntime`](../server/src/main.rs#L123)
+- [`struct ServerExitCode`](../server/src/main.rs#L125)
+- [`enum RunServerError`](../server/src/main.rs#L132)
 
 ## `server_admin/src/auth.rs`
 
@@ -1497,7 +1502,7 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`struct StdAdminRateLimitWindowSeconds`](../server_admin/src/auth.rs#L152)
 - [`struct AdminAuthPolicy`](../server_admin/src/auth.rs#L154)
 - [`struct AdminAuthSvcState`](../server_admin/src/auth.rs#L192)
-- [`struct StdSharedAdminAuthSvcState`](../server_admin/src/auth.rs#L213)
+- [`struct SharedAdminAuthSvcStateArc`](../server_admin/src/auth.rs#L213)
 - [`enum AdminAuthSvcStateBuildError`](../server_admin/src/auth.rs#L215)
 - [`struct AuthenticatedAdmin`](../server_admin/src/auth.rs#L236)
 - [`struct AdminAuditQuery`](../server_admin/src/auth.rs#L295)
@@ -1571,12 +1576,12 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`struct AdminHtmlFormKeyError`](../server_admin/src/auth/html.rs#L104)
 - [`struct StdAdminHtmlSelectedError`](../server_admin/src/auth/html.rs#L112)
 - [`struct AdminHtmlFormText`](../server_admin/src/auth/html.rs#L121)
-- [`struct AdminHtmlFormKey`](../server_admin/src/auth/html.rs#L140)
-- [`struct StdAdminHtmlSelected`](../server_admin/src/auth/html.rs#L155)
-- [`struct SettingsForm`](../server_admin/src/auth/html.rs#L177)
-- [`enum AdminCrudPage`](../server_admin/src/auth/html.rs#L484)
-- [`struct AdminHtmlRouteRegistry`](../server_admin/src/auth/html.rs#L1238)
-- [`struct AdminHtmlSwaggerRouteRegistry`](../server_admin/src/auth/html.rs#L1248)
+- [`struct AdminHtmlFormKey`](../server_admin/src/auth/html.rs#L142)
+- [`struct StdAdminHtmlSelected`](../server_admin/src/auth/html.rs#L159)
+- [`struct SettingsForm`](../server_admin/src/auth/html.rs#L181)
+- [`enum AdminCrudPage`](../server_admin/src/auth/html.rs#L488)
+- [`struct AdminHtmlRouteRegistry`](../server_admin/src/auth/html.rs#L1244)
+- [`struct AdminHtmlSwaggerRouteRegistry`](../server_admin/src/auth/html.rs#L1254)
 
 ## `server_admin/src/auth/rate_limit.rs`
 
@@ -1602,7 +1607,7 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`enum AdminGeneratedTable`](../server_admin/src/generated_tables.rs#L219)
 - [`struct AdminGeneratedRouteContract`](../server_admin/src/generated_tables.rs#L425)
 - [`struct UtoipaAdminOpenApi`](../server_admin/src/generated_tables.rs#L458)
-- [`struct StdSharedAdminGeneratedTableState`](../server_admin/src/generated_tables.rs#L462)
+- [`struct SharedAdminGeneratedTableStateArc`](../server_admin/src/generated_tables.rs#L462)
 - [`struct AdminGeneratedTablesValidationError`](../server_admin/src/generated_tables.rs#L469)
 
 ## `server_admin/src/generated_tables/tests.rs`
@@ -1613,50 +1618,50 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 
 - [`struct AdminPasswordChangeRequired`](../server_admin/src/lib.rs#L35)
 - [`enum AdminSecretTextError`](../server_admin/src/lib.rs#L39)
-- [`struct AdminPermissions`](../server_admin/src/lib.rs#L74)
-- [`struct AdminRoleNames`](../server_admin/src/lib.rs#L87)
-- [`struct AdminAuthCollectionError`](../server_admin/src/lib.rs#L94)
-- [`struct StdAdminSharedSemaphore`](../server_admin/src/lib.rs#L117)
-- [`struct TokioAdminJoinError`](../server_admin/src/lib.rs#L121)
-- [`struct TokioAdminAcquireError`](../server_admin/src/lib.rs#L125)
-- [`struct Argon2AdminPasswordHashError`](../server_admin/src/lib.rs#L133)
-- [`struct SqlxAdminError`](../server_admin/src/lib.rs#L141)
-- [`struct AdminPassword`](../server_admin/src/lib.rs#L159)
-- [`enum AdminPasswordTryFromStringError`](../server_admin/src/lib.rs#L163)
-- [`struct AdminPasswordHash`](../server_admin/src/lib.rs#L218)
-- [`struct AdminJwtSecret`](../server_admin/src/lib.rs#L228)
-- [`struct AdminOpaqueToken`](../server_admin/src/lib.rs#L238)
-- [`struct AdminRefreshToken`](../server_admin/src/lib.rs#L248)
-- [`struct AdminTokenHash`](../server_admin/src/lib.rs#L262)
-- [`struct AdminGeneratedToken`](../server_admin/src/lib.rs#L278)
-- [`struct AdminCookieSecure`](../server_admin/src/lib.rs#L307)
-- [`struct AdminCookieMaxAgeSeconds`](../server_admin/src/lib.rs#L317)
-- [`struct StdAdminCookie`](../server_admin/src/lib.rs#L329)
-- [`struct HttpAdminHeaderMapRef`](../server_admin/src/lib.rs#L338)
-- [`enum AdminCookieKind`](../server_admin/src/lib.rs#L340)
-- [`struct AdminPasswordHashConcurrency`](../server_admin/src/lib.rs#L416)
-- [`struct AdminUnixTokenStream`](../server_admin/src/lib.rs#L429)
-- [`struct AdminSessionId`](../server_admin/src/lib.rs#L443)
-- [`struct AdminAccessClaims`](../server_admin/src/lib.rs#L453)
-- [`enum AdminPasswordHashError`](../server_admin/src/lib.rs#L490)
-- [`struct AdminPasswordHasher`](../server_admin/src/lib.rs#L499)
-- [`struct JsonwebtokenAdminError`](../server_admin/src/lib.rs#L505)
-- [`struct AdminAccessTokenError`](../server_admin/src/lib.rs#L509)
-- [`struct StdAdminAccessToken`](../server_admin/src/lib.rs#L520)
-- [`enum AdminAuditAction`](../server_admin/src/lib.rs#L553)
-- [`enum AdminAuditResource`](../server_admin/src/lib.rs#L574)
-- [`struct SqlxAdminMigrateError`](../server_admin/src/lib.rs#L585)
-- [`enum AdminMigrateErrorInner`](../server_admin/src/lib.rs#L587)
-- [`struct AdminMigrateError`](../server_admin/src/lib.rs#L596)
-- [`struct AdminCleanupBatchSize`](../server_admin/src/lib.rs#L601)
-- [`struct AdminCleanupRetentionSeconds`](../server_admin/src/lib.rs#L603)
-- [`struct AdminCleanupCfg`](../server_admin/src/lib.rs#L605)
-- [`struct AdminCleanupReport`](../server_admin/src/lib.rs#L614)
-- [`struct AdminCleanupRows`](../server_admin/src/lib.rs#L632)
-- [`enum AdminCleanupCfgError`](../server_admin/src/lib.rs#L647)
-- [`enum AdminCleanupError`](../server_admin/src/lib.rs#L654)
-- [`enum AdminBootstrapError`](../server_admin/src/lib.rs#L722)
-- [`enum AdminPasswordResetError`](../server_admin/src/lib.rs#L739)
+- [`struct AdminPermissions`](../server_admin/src/lib.rs#L83)
+- [`struct AdminRoleNames`](../server_admin/src/lib.rs#L109)
+- [`struct AdminAuthCollectionError`](../server_admin/src/lib.rs#L130)
+- [`struct AdminSharedSemaphoreArc`](../server_admin/src/lib.rs#L153)
+- [`struct TokioAdminJoinError`](../server_admin/src/lib.rs#L157)
+- [`struct TokioAdminAcquireError`](../server_admin/src/lib.rs#L161)
+- [`struct Argon2AdminPasswordHashError`](../server_admin/src/lib.rs#L169)
+- [`struct SqlxAdminError`](../server_admin/src/lib.rs#L177)
+- [`struct AdminPassword`](../server_admin/src/lib.rs#L195)
+- [`enum AdminPasswordTryFromStringError`](../server_admin/src/lib.rs#L199)
+- [`struct AdminPasswordHash`](../server_admin/src/lib.rs#L254)
+- [`struct AdminJwtSecret`](../server_admin/src/lib.rs#L264)
+- [`struct AdminOpaqueToken`](../server_admin/src/lib.rs#L274)
+- [`struct AdminRefreshToken`](../server_admin/src/lib.rs#L284)
+- [`struct AdminTokenHash`](../server_admin/src/lib.rs#L298)
+- [`struct AdminGeneratedToken`](../server_admin/src/lib.rs#L314)
+- [`struct AdminCookieSecure`](../server_admin/src/lib.rs#L343)
+- [`struct AdminCookieMaxAgeSeconds`](../server_admin/src/lib.rs#L353)
+- [`struct StdAdminCookie`](../server_admin/src/lib.rs#L365)
+- [`struct HttpAdminHeaderMapRef`](../server_admin/src/lib.rs#L374)
+- [`enum AdminCookieKind`](../server_admin/src/lib.rs#L376)
+- [`struct AdminPasswordHashConcurrency`](../server_admin/src/lib.rs#L452)
+- [`struct AdminUnixTokenStream`](../server_admin/src/lib.rs#L465)
+- [`struct AdminSessionId`](../server_admin/src/lib.rs#L479)
+- [`struct AdminAccessClaims`](../server_admin/src/lib.rs#L489)
+- [`enum AdminPasswordHashError`](../server_admin/src/lib.rs#L526)
+- [`struct AdminPasswordHasher`](../server_admin/src/lib.rs#L535)
+- [`struct JsonwebtokenAdminError`](../server_admin/src/lib.rs#L541)
+- [`struct AdminAccessTokenError`](../server_admin/src/lib.rs#L545)
+- [`struct StdAdminAccessToken`](../server_admin/src/lib.rs#L556)
+- [`enum AdminAuditAction`](../server_admin/src/lib.rs#L589)
+- [`enum AdminAuditResource`](../server_admin/src/lib.rs#L610)
+- [`struct SqlxAdminMigrateError`](../server_admin/src/lib.rs#L621)
+- [`enum AdminMigrateErrorInner`](../server_admin/src/lib.rs#L623)
+- [`struct AdminMigrateError`](../server_admin/src/lib.rs#L632)
+- [`struct AdminCleanupBatchSize`](../server_admin/src/lib.rs#L639)
+- [`struct AdminCleanupRetentionSeconds`](../server_admin/src/lib.rs#L641)
+- [`struct AdminCleanupCfg`](../server_admin/src/lib.rs#L643)
+- [`struct AdminCleanupReport`](../server_admin/src/lib.rs#L652)
+- [`struct AdminCleanupRows`](../server_admin/src/lib.rs#L670)
+- [`enum AdminCleanupCfgError`](../server_admin/src/lib.rs#L685)
+- [`enum AdminCleanupError`](../server_admin/src/lib.rs#L692)
+- [`enum AdminBootstrapError`](../server_admin/src/lib.rs#L760)
+- [`enum AdminPasswordResetError`](../server_admin/src/lib.rs#L777)
 
 ## `server_admin/src/repository.rs`
 
@@ -1709,23 +1714,23 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 ## `server_admin_contract/src/collections.rs`
 
 - [`enum AdminCollectionError`](../server_admin_contract/src/collections.rs#L5)
-- [`struct AdminBoundedVec`](../server_admin_contract/src/collections.rs#L23)
-- [`struct StdPhantomDataAdminOpenApiVec`](../server_admin_contract/src/collections.rs#L45)
-- [`struct AdminOpenApiVec`](../server_admin_contract/src/collections.rs#L48)
-- [`struct AdminPermissionValues`](../server_admin_contract/src/collections.rs#L90)
-- [`struct AdminRoleNames`](../server_admin_contract/src/collections.rs#L109)
-- [`struct AdminRoleIds`](../server_admin_contract/src/collections.rs#L133)
-- [`struct AdminPermissionIds`](../server_admin_contract/src/collections.rs#L157)
-- [`struct AdminUserSummaries`](../server_admin_contract/src/collections.rs#L181)
-- [`struct AdminRoleSummaries`](../server_admin_contract/src/collections.rs#L205)
-- [`struct AdminPermissionSummaries`](../server_admin_contract/src/collections.rs#L229)
-- [`struct AdminAuditViews`](../server_admin_contract/src/collections.rs#L253)
-- [`struct AdminTexts`](../server_admin_contract/src/collections.rs#L277)
-- [`struct AdminDataRows`](../server_admin_contract/src/collections.rs#L301)
-- [`struct AdminDataTables`](../server_admin_contract/src/collections.rs#L325)
-- [`struct AdminOptionalSettings`](../server_admin_contract/src/collections.rs#L349)
-- [`struct AdminSessionViews`](../server_admin_contract/src/collections.rs#L368)
-- [`struct AdminEmptyCollection`](../server_admin_contract/src/collections.rs#L399)
+- [`struct AdminBoundedVec`](../server_admin_contract/src/collections.rs#L25)
+- [`struct AdminOpenApiVecPhantomData`](../server_admin_contract/src/collections.rs#L47)
+- [`struct AdminOpenApiVec`](../server_admin_contract/src/collections.rs#L50)
+- [`struct AdminPermissionValues`](../server_admin_contract/src/collections.rs#L92)
+- [`struct AdminRoleNames`](../server_admin_contract/src/collections.rs#L111)
+- [`struct AdminRoleIds`](../server_admin_contract/src/collections.rs#L135)
+- [`struct AdminPermissionIds`](../server_admin_contract/src/collections.rs#L159)
+- [`struct AdminUserSummaries`](../server_admin_contract/src/collections.rs#L183)
+- [`struct AdminRoleSummaries`](../server_admin_contract/src/collections.rs#L207)
+- [`struct AdminPermissionSummaries`](../server_admin_contract/src/collections.rs#L231)
+- [`struct AdminAuditViews`](../server_admin_contract/src/collections.rs#L255)
+- [`struct AdminTexts`](../server_admin_contract/src/collections.rs#L279)
+- [`struct AdminDataRows`](../server_admin_contract/src/collections.rs#L303)
+- [`struct AdminDataTables`](../server_admin_contract/src/collections.rs#L327)
+- [`struct AdminOptionalSettings`](../server_admin_contract/src/collections.rs#L351)
+- [`struct AdminSessionViews`](../server_admin_contract/src/collections.rs#L370)
+- [`struct AdminEmptyCollection`](../server_admin_contract/src/collections.rs#L401)
 
 ## `server_admin_contract/src/dto.rs`
 
@@ -1765,43 +1770,43 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 
 ## `server_admin_contract/src/lib.rs`
 
-- [`struct AdminApiBodyMaxBytes`](../server_admin_contract/src/lib.rs#L20)
-- [`struct StdAdminPositiveI64`](../server_admin_contract/src/lib.rs#L62)
-- [`struct AdminText`](../server_admin_contract/src/lib.rs#L108)
-- [`struct AdminLogin`](../server_admin_contract/src/lib.rs#L129)
-- [`struct AdminDisplayName`](../server_admin_contract/src/lib.rs#L150)
-- [`struct AdminRoleName`](../server_admin_contract/src/lib.rs#L171)
-- [`struct AdminPassword`](../server_admin_contract/src/lib.rs#L191)
-- [`struct AdminNewPassword`](../server_admin_contract/src/lib.rs#L212)
-- [`struct AdminPermissionValue`](../server_admin_contract/src/lib.rs#L231)
-- [`struct AdminPermissionStrRef`](../server_admin_contract/src/lib.rs#L242)
-- [`enum AdminPermission`](../server_admin_contract/src/lib.rs#L263)
-- [`enum AdminDataTable`](../server_admin_contract/src/lib.rs#L340)
-- [`struct AdminDataTableStrRef`](../server_admin_contract/src/lib.rs#L376)
-- [`struct AdminDataColumnsCsvRef`](../server_admin_contract/src/lib.rs#L393)
-- [`struct AdminDataOrderRef`](../server_admin_contract/src/lib.rs#L410)
-- [`struct AdminDataTableSpec`](../server_admin_contract/src/lib.rs#L418)
-- [`struct AdminAuditTimestamp`](../server_admin_contract/src/lib.rs#L611)
-- [`struct AdminAuditDetailsBytes`](../server_admin_contract/src/lib.rs#L623)
-- [`struct AdminAuditDetailsTooLarge`](../server_admin_contract/src/lib.rs#L639)
-- [`struct SerdeJsonAdminAuditDetails`](../server_admin_contract/src/lib.rs#L662)
-- [`struct AdminDefaultRoute`](../server_admin_contract/src/lib.rs#L683)
-- [`struct AdminSiteName`](../server_admin_contract/src/lib.rs#L694)
-- [`struct AdminMainLogo`](../server_admin_contract/src/lib.rs#L711)
-- [`struct AdminOrganizationContacts`](../server_admin_contract/src/lib.rs#L726)
-- [`struct AdminOrganizationName`](../server_admin_contract/src/lib.rs#L741)
-- [`struct AdminPrimaryColor`](../server_admin_contract/src/lib.rs#L758)
-- [`struct AdminSupportUrl`](../server_admin_contract/src/lib.rs#L775)
-- [`struct AdminTabTitle`](../server_admin_contract/src/lib.rs#L792)
-- [`enum AdminTableSortField`](../server_admin_contract/src/lib.rs#L794)
-- [`struct AdminTableSortFieldTryFromKeyError`](../server_admin_contract/src/lib.rs#L814)
-- [`struct AdminTableSortValues`](../server_admin_contract/src/lib.rs#L816)
-- [`struct AdminTableSortKeyRef`](../server_admin_contract/src/lib.rs#L829)
-- [`struct AdminUserId`](../server_admin_contract/src/lib.rs#L913)
-- [`struct AdminRoleId`](../server_admin_contract/src/lib.rs#L947)
-- [`struct AdminPermissionId`](../server_admin_contract/src/lib.rs#L981)
-- [`struct AdminAuditLogId`](../server_admin_contract/src/lib.rs#L1014)
-- [`struct AdminIdTryFromI64Error`](../server_admin_contract/src/lib.rs#L1036)
+- [`struct AdminApiBodyMaxBytes`](../server_admin_contract/src/lib.rs#L21)
+- [`struct PositiveNonZeroI64`](../server_admin_contract/src/lib.rs#L57)
+- [`struct AdminText`](../server_admin_contract/src/lib.rs#L103)
+- [`struct AdminLogin`](../server_admin_contract/src/lib.rs#L124)
+- [`struct AdminDisplayName`](../server_admin_contract/src/lib.rs#L145)
+- [`struct AdminRoleName`](../server_admin_contract/src/lib.rs#L166)
+- [`struct AdminPassword`](../server_admin_contract/src/lib.rs#L186)
+- [`struct AdminNewPassword`](../server_admin_contract/src/lib.rs#L207)
+- [`struct AdminPermissionValue`](../server_admin_contract/src/lib.rs#L226)
+- [`struct AdminPermissionStrRef`](../server_admin_contract/src/lib.rs#L238)
+- [`enum AdminPermission`](../server_admin_contract/src/lib.rs#L253)
+- [`enum AdminDataTable`](../server_admin_contract/src/lib.rs#L330)
+- [`struct AdminDataTableStrRef`](../server_admin_contract/src/lib.rs#L367)
+- [`struct AdminDataColumnsCsvRef`](../server_admin_contract/src/lib.rs#L379)
+- [`struct AdminDataOrderRef`](../server_admin_contract/src/lib.rs#L391)
+- [`struct AdminDataTableSpec`](../server_admin_contract/src/lib.rs#L393)
+- [`struct AdminAuditTimestamp`](../server_admin_contract/src/lib.rs#L586)
+- [`struct AdminAuditDetailsBytes`](../server_admin_contract/src/lib.rs#L598)
+- [`struct AdminAuditDetailsTooLarge`](../server_admin_contract/src/lib.rs#L614)
+- [`struct SerdeJsonAdminAuditDetails`](../server_admin_contract/src/lib.rs#L637)
+- [`struct AdminDefaultRoute`](../server_admin_contract/src/lib.rs#L658)
+- [`struct AdminSiteName`](../server_admin_contract/src/lib.rs#L669)
+- [`struct AdminMainLogo`](../server_admin_contract/src/lib.rs#L686)
+- [`struct AdminOrganizationContacts`](../server_admin_contract/src/lib.rs#L701)
+- [`struct AdminOrganizationName`](../server_admin_contract/src/lib.rs#L716)
+- [`struct AdminPrimaryColor`](../server_admin_contract/src/lib.rs#L733)
+- [`struct AdminSupportUrl`](../server_admin_contract/src/lib.rs#L750)
+- [`struct AdminTabTitle`](../server_admin_contract/src/lib.rs#L767)
+- [`enum AdminTableSortField`](../server_admin_contract/src/lib.rs#L769)
+- [`struct AdminTableSortFieldTryFromKeyError`](../server_admin_contract/src/lib.rs#L789)
+- [`struct AdminTableSortValues`](../server_admin_contract/src/lib.rs#L791)
+- [`struct AdminTableSortKeyRef`](../server_admin_contract/src/lib.rs#L804)
+- [`struct AdminUserId`](../server_admin_contract/src/lib.rs#L888)
+- [`struct AdminRoleId`](../server_admin_contract/src/lib.rs#L922)
+- [`struct AdminPermissionId`](../server_admin_contract/src/lib.rs#L956)
+- [`struct AdminAuditLogId`](../server_admin_contract/src/lib.rs#L989)
+- [`struct AdminIdTryFromI64Error`](../server_admin_contract/src/lib.rs#L1011)
 
 ## `server_admin_contract/src/query.rs`
 
@@ -1893,22 +1898,22 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 
 - [`struct ClientTransport`](../server_admin_contract/src/tests.rs#L2)
 
-## `server_admin_core/src/lib.rs`
+## `server_admin_core/src/domain_types.rs`
 
-- [`struct SecrecyAdminString`](../server_admin_core/src/lib.rs#L3)
-- [`struct StdAdminString`](../server_admin_core/src/lib.rs#L37)
-- [`enum AdminResourceText`](../server_admin_core/src/lib.rs#L44)
-- [`struct StdAdminStrRef`](../server_admin_core/src/lib.rs#L85)
-- [`struct StdAdminBool`](../server_admin_core/src/lib.rs#L104)
-- [`struct StdAdminNonZeroUsize`](../server_admin_core/src/lib.rs#L121)
-- [`struct UuidAdminValue`](../server_admin_core/src/lib.rs#L140)
-- [`struct StdAdminSocketAddr`](../server_admin_core/src/lib.rs#L168)
-- [`struct AdminUserId`](../server_admin_core/src/lib.rs#L191)
-- [`struct AdminRoleId`](../server_admin_core/src/lib.rs#L226)
-- [`struct AdminPermissionId`](../server_admin_core/src/lib.rs#L261)
-- [`struct AdminAuditLogId`](../server_admin_core/src/lib.rs#L291)
-- [`struct AdminIdTryFromI64Error`](../server_admin_core/src/lib.rs#L314)
-- [`struct AdminPermissionName`](../server_admin_core/src/lib.rs#L324)
+- [`struct SecrecyAdminString`](../server_admin_core/src/domain_types.rs#L3)
+- [`struct StdAdminString`](../server_admin_core/src/domain_types.rs#L37)
+- [`enum AdminResourceText`](../server_admin_core/src/domain_types.rs#L44)
+- [`struct StdAdminStrRef`](../server_admin_core/src/domain_types.rs#L86)
+- [`struct StdAdminBool`](../server_admin_core/src/domain_types.rs#L100)
+- [`struct AdminNonZeroUsize`](../server_admin_core/src/domain_types.rs#L112)
+- [`struct UuidAdminValue`](../server_admin_core/src/domain_types.rs#L126)
+- [`struct AdminSocketAddr`](../server_admin_core/src/domain_types.rs#L149)
+- [`struct AdminUserId`](../server_admin_core/src/domain_types.rs#L166)
+- [`struct AdminRoleId`](../server_admin_core/src/domain_types.rs#L201)
+- [`struct AdminPermissionId`](../server_admin_core/src/domain_types.rs#L236)
+- [`struct AdminAuditLogId`](../server_admin_core/src/domain_types.rs#L266)
+- [`struct AdminIdTryFromI64Error`](../server_admin_core/src/domain_types.rs#L289)
+- [`struct AdminPermissionName`](../server_admin_core/src/domain_types.rs#L299)
 
 ## `server_admin_frontend/src/app/http/mutation.rs`
 
@@ -2009,14 +2014,14 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`struct LeptosAdminInputSignal`](../server_admin_frontend/src/ui/input.rs#L42)
 - [`enum AdminInputKind`](../server_admin_frontend/src/ui/input.rs#L51)
 
-## `server_app_state/src/lib.rs`
+## `server_app_state/src/domain_types.rs`
 
-- [`struct ServerAppState`](../server_app_state/src/lib.rs#L2)
+- [`struct ServerAppState`](../server_app_state/src/domain_types.rs#L2)
 
-## `server_config/src/lib.rs`
+## `server_config/src/domain_types.rs`
 
-- [`struct Config`](../server_config/src/lib.rs#L4)
-- [`enum ProductionConfigError`](../server_config/src/lib.rs#L75)
+- [`struct Config`](../server_config/src/domain_types.rs#L4)
+- [`enum ProductionConfigError`](../server_config/src/domain_types.rs#L75)
 
 ## `server_observability/src/lib.rs`
 
@@ -2034,11 +2039,11 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 
 ## `server_observability/src/observed_error.rs`
 
-- [`struct ObservedErrorCode`](../server_observability/src/observed_error.rs#L11)
-- [`struct StdObservedErrorBacktrace`](../server_observability/src/observed_error.rs#L23)
-- [`struct StdPanicLocation`](../server_observability/src/observed_error.rs#L33)
-- [`struct TracingObservedErrorSpanTrace`](../server_observability/src/observed_error.rs#L38)
-- [`struct ObservedError`](../server_observability/src/observed_error.rs#L42)
+- [`struct ObservedErrorCode`](../server_observability/src/observed_error.rs#L12)
+- [`struct ObservedErrorBacktrace`](../server_observability/src/observed_error.rs#L17)
+- [`struct StdPanicLocation`](../server_observability/src/observed_error.rs#L27)
+- [`struct TracingObservedErrorSpanTrace`](../server_observability/src/observed_error.rs#L32)
+- [`struct ObservedError`](../server_observability/src/observed_error.rs#L36)
 
 ## `server_runtime_core/src/background_job.rs`
 
@@ -2046,18 +2051,18 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 
 ## `server_runtime_core/src/deduplicating_queue.rs`
 
-- [`struct StdQueueMaximum`](../server_runtime_core/src/deduplicating_queue.rs#L10)
+- [`struct QueueMaximumNonZeroUsize`](../server_runtime_core/src/deduplicating_queue.rs#L10)
 - [`enum QueuePush`](../server_runtime_core/src/deduplicating_queue.rs#L13)
 - [`struct DeduplicatingQueue`](../server_runtime_core/src/deduplicating_queue.rs#L20)
-- [`struct StdCollectionsHashSet`](../server_runtime_core/src/deduplicating_queue.rs#L65)
-- [`struct StdCollectionsVecDeque`](../server_runtime_core/src/deduplicating_queue.rs#L68)
+- [`struct CollectionsHashSet`](../server_runtime_core/src/deduplicating_queue.rs#L65)
+- [`struct CollectionsVecDeque`](../server_runtime_core/src/deduplicating_queue.rs#L68)
 
 ## `server_runtime_core/src/exclusive_run.rs`
 
 - [`struct ExclusiveRun`](../server_runtime_core/src/exclusive_run.rs#L2)
 - [`struct ExclusiveRunAlreadyActive`](../server_runtime_core/src/exclusive_run.rs#L38)
 - [`struct ExclusiveRunGuard`](../server_runtime_core/src/exclusive_run.rs#L42)
-- [`struct StdExclusiveRunAtomicBool`](../server_runtime_core/src/exclusive_run.rs#L54)
+- [`struct ExclusiveRunAtomicBool`](../server_runtime_core/src/exclusive_run.rs#L54)
 
 ## `server_runtime_core/src/execution_plan.rs`
 
@@ -2069,14 +2074,14 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`struct Generation`](../server_runtime_core/src/generation_gate.rs#L10)
 - [`enum GenerationCommit`](../server_runtime_core/src/generation_gate.rs#L13)
 - [`struct GenerationGate`](../server_runtime_core/src/generation_gate.rs#L19)
-- [`struct StdGenerationAtomicU64`](../server_runtime_core/src/generation_gate.rs#L44)
+- [`struct GenerationAtomicU64`](../server_runtime_core/src/generation_gate.rs#L44)
 
 ## `server_runtime_core/src/history.rs`
 
-- [`struct StdVecDequeRunReports`](../server_runtime_core/src/history.rs#L2)
-- [`struct StdArcSharedRunReports`](../server_runtime_core/src/history.rs#L7)
+- [`struct RunReportsVecDeque`](../server_runtime_core/src/history.rs#L2)
+- [`struct SharedRunReportsArc`](../server_runtime_core/src/history.rs#L7)
 - [`struct AsyncRunHistory`](../server_runtime_core/src/history.rs#L11)
-- [`struct StdAsyncRunHistoryMaximumLen`](../server_runtime_core/src/history.rs#L16)
+- [`struct AsyncRunHistoryMaximumLenNonZeroUsize`](../server_runtime_core/src/history.rs#L16)
 - [`struct StdAsyncRunHistoryMaximumLenTryFromUsizeError`](../server_runtime_core/src/history.rs#L32)
 - [`struct StdAsyncRunHistoryReportCount`](../server_runtime_core/src/history.rs#L43)
 - [`struct AsyncRunHistorySnapshot`](../server_runtime_core/src/history.rs#L46)
@@ -2094,8 +2099,8 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`struct LeaseKey`](../server_runtime_core/src/lease_registry.rs#L20)
 - [`enum LeaseTextError`](../server_runtime_core/src/lease_registry.rs#L34)
 - [`enum LeaseState`](../server_runtime_core/src/lease_registry.rs#L44)
-- [`struct StdLeaseRegistryMaximum`](../server_runtime_core/src/lease_registry.rs#L59)
-- [`struct StdLeaseStaleTimeout`](../server_runtime_core/src/lease_registry.rs#L62)
+- [`struct LeaseRegistryMaximumNonZeroUsize`](../server_runtime_core/src/lease_registry.rs#L59)
+- [`struct LeaseStaleTimeoutDuration`](../server_runtime_core/src/lease_registry.rs#L62)
 - [`struct StdLeaseStaleTimeoutError`](../server_runtime_core/src/lease_registry.rs#L78)
 - [`enum LeaseReservation`](../server_runtime_core/src/lease_registry.rs#L81)
 - [`enum LeaseHeartbeat`](../server_runtime_core/src/lease_registry.rs#L88)
@@ -2104,14 +2109,14 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`struct LeaseRegistryInner`](../server_runtime_core/src/lease_registry.rs#L113)
 - [`struct LeaseRegistry`](../server_runtime_core/src/lease_registry.rs#L119)
 - [`struct LeaseTextRef`](../server_runtime_core/src/lease_registry.rs#L215)
-- [`struct StdArcTokioLeaseRegistryRwLock`](../server_runtime_core/src/lease_registry.rs#L218)
+- [`struct TokioLeaseRegistryRwLockArc`](../server_runtime_core/src/lease_registry.rs#L218)
 - [`struct TokioLeaseInstant`](../server_runtime_core/src/lease_registry.rs#L221)
 
 ## `server_runtime_core/src/resource_budget.rs`
 
 - [`struct ResourceBudgetMaximum`](../server_runtime_core/src/resource_budget.rs#L2)
 - [`struct ResourceBudgetAmount`](../server_runtime_core/src/resource_budget.rs#L12)
-- [`struct StdSharedAtomicUsize`](../server_runtime_core/src/resource_budget.rs#L15)
+- [`struct SharedAtomicUsizeArc`](../server_runtime_core/src/resource_budget.rs#L15)
 - [`struct ResourceBudgetConfigError`](../server_runtime_core/src/resource_budget.rs#L36)
 - [`struct ResourceBudget`](../server_runtime_core/src/resource_budget.rs#L38)
 - [`trait GetBulkItemResourceBudget`](../server_runtime_core/src/resource_budget.rs#L42)
@@ -2122,20 +2127,20 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 ## `server_runtime_core/src/resource_utilization.rs`
 
 - [`struct ResourceAmount`](../server_runtime_core/src/resource_utilization.rs#L16)
-- [`struct ResourceUtilizationPercent`](../server_runtime_core/src/resource_utilization.rs#L33)
-- [`enum ResourceUtilizationKnownPercent`](../server_runtime_core/src/resource_utilization.rs#L35)
-- [`struct ResourceUtilizationPercentTryFromU8Error`](../server_runtime_core/src/resource_utilization.rs#L49)
-- [`enum ResourceUtilizationStatus`](../server_runtime_core/src/resource_utilization.rs#L67)
-- [`enum ResourceUtilizationError`](../server_runtime_core/src/resource_utilization.rs#L77)
-- [`struct ResourceUtilization`](../server_runtime_core/src/resource_utilization.rs#L87)
+- [`struct ResourceUtilizationPercent`](../server_runtime_core/src/resource_utilization.rs#L34)
+- [`enum ResourceUtilizationKnownPercent`](../server_runtime_core/src/resource_utilization.rs#L36)
+- [`struct ResourceUtilizationPercentTryFromU8Error`](../server_runtime_core/src/resource_utilization.rs#L50)
+- [`enum ResourceUtilizationStatus`](../server_runtime_core/src/resource_utilization.rs#L64)
+- [`enum ResourceUtilizationError`](../server_runtime_core/src/resource_utilization.rs#L74)
+- [`struct ResourceUtilization`](../server_runtime_core/src/resource_utilization.rs#L84)
 
 ## `server_runtime_core/src/retry.rs`
 
-- [`struct StdRetryAttempts`](../server_runtime_core/src/retry.rs#L10)
+- [`struct RetryAttemptsNonZeroUsize`](../server_runtime_core/src/retry.rs#L10)
 - [`struct StdRetryAttemptsError`](../server_runtime_core/src/retry.rs#L33)
-- [`struct StdRetryDelay`](../server_runtime_core/src/retry.rs#L44)
+- [`struct RetryDelayDuration`](../server_runtime_core/src/retry.rs#L44)
 - [`struct RetryPolicy`](../server_runtime_core/src/retry.rs#L47)
-- [`struct RetryOutcome`](../server_runtime_core/src/retry.rs#L70)
+- [`struct RetryOutcome`](../server_runtime_core/src/retry.rs#L73)
 
 ## `server_runtime_core/src/secret_text.rs`
 
@@ -2148,18 +2153,18 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 
 - [`struct SingleFlightKey`](../server_runtime_core/src/single_flight.rs#L4)
 - [`enum SingleFlightKeyError`](../server_runtime_core/src/single_flight.rs#L24)
-- [`struct StdSingleFlightMaximum`](../server_runtime_core/src/single_flight.rs#L42)
+- [`struct SingleFlightMaximumNonZeroUsize`](../server_runtime_core/src/single_flight.rs#L42)
 - [`struct SingleFlight`](../server_runtime_core/src/single_flight.rs#L45)
 - [`enum SingleFlightAcquire`](../server_runtime_core/src/single_flight.rs#L86)
 - [`struct SingleFlightOwner`](../server_runtime_core/src/single_flight.rs#L94)
 - [`struct SingleFlightWaiter`](../server_runtime_core/src/single_flight.rs#L111)
 - [`enum SingleFlightWaitOutcome`](../server_runtime_core/src/single_flight.rs#L122)
 - [`struct SingleFlightInner`](../server_runtime_core/src/single_flight.rs#L127)
-- [`struct StdArcStdSingleFlightRwLock`](../server_runtime_core/src/single_flight.rs#L133)
-- [`struct StdSingleFlightWriteGuard`](../server_runtime_core/src/single_flight.rs#L142)
-- [`enum SingleFlightSignal`](../server_runtime_core/src/single_flight.rs#L147)
-- [`struct TokioSingleFlightReceiver`](../server_runtime_core/src/single_flight.rs#L153)
-- [`struct TokioSingleFlightSender`](../server_runtime_core/src/single_flight.rs#L156)
+- [`struct ArcSingleFlightRwLock`](../server_runtime_core/src/single_flight.rs#L136)
+- [`struct SingleFlightRwLockWriteGuard`](../server_runtime_core/src/single_flight.rs#L145)
+- [`enum SingleFlightSignal`](../server_runtime_core/src/single_flight.rs#L150)
+- [`struct TokioSingleFlightReceiver`](../server_runtime_core/src/single_flight.rs#L156)
+- [`struct TokioSingleFlightSender`](../server_runtime_core/src/single_flight.rs#L159)
 
 ## `server_runtime_core/src/source_selection.rs`
 
@@ -2178,16 +2183,16 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 
 ## `server_runtime_http/src/bounded_read.rs`
 
-- [`struct StdPathRef`](../server_runtime_http/src/bounded_read.rs#L2)
+- [`struct PathRef`](../server_runtime_http/src/bounded_read.rs#L2)
 - [`struct BoundedReadMaximumBytes`](../server_runtime_http/src/bounded_read.rs#L14)
 - [`struct BoundedBytes`](../server_runtime_http/src/bounded_read.rs#L25)
 - [`struct BoundedText`](../server_runtime_http/src/bounded_read.rs#L35)
-- [`struct StdBoundedReadConcurrency`](../server_runtime_http/src/bounded_read.rs#L57)
-- [`struct StdBoundedReadConcurrencyMaximum`](../server_runtime_http/src/bounded_read.rs#L60)
-- [`struct StdIoError`](../server_runtime_http/src/bounded_read.rs#L74)
+- [`struct BoundedReadConcurrencyArcSemaphore`](../server_runtime_http/src/bounded_read.rs#L57)
+- [`struct BoundedReadConcurrencyMaximumNonZeroUsize`](../server_runtime_http/src/bounded_read.rs#L60)
+- [`struct BoundedReadIoError`](../server_runtime_http/src/bounded_read.rs#L74)
 - [`enum IoErrorPresenceDisposition`](../server_runtime_http/src/bounded_read.rs#L76)
 - [`struct ReqwestError`](../server_runtime_http/src/bounded_read.rs#L84)
-- [`struct StdFromUtf8Error`](../server_runtime_http/src/bounded_read.rs#L89)
+- [`struct BoundedReadFromUtf8Error`](../server_runtime_http/src/bounded_read.rs#L89)
 - [`struct ReqwestResponse`](../server_runtime_http/src/bounded_read.rs#L91)
 - [`struct SerdeJsonError`](../server_runtime_http/src/bounded_read.rs#L97)
 - [`struct BoundedJsonText`](../server_runtime_http/src/bounded_read.rs#L101)
@@ -2197,42 +2202,42 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 
 ## `server_runtime_http/src/child_process.rs`
 
-- [`struct StdChildDiagnosticMaximum`](../server_runtime_http/src/child_process.rs#L10)
+- [`struct ChildDiagnosticMaximumNonZeroUsize`](../server_runtime_http/src/child_process.rs#L10)
 - [`struct ChildProcessId`](../server_runtime_http/src/child_process.rs#L23)
-- [`struct StdChildProcessSetMaximum`](../server_runtime_http/src/child_process.rs#L34)
+- [`struct ChildProcessSetMaximumNonZeroUsize`](../server_runtime_http/src/child_process.rs#L34)
 - [`struct StdCollectionsChildProcessMap`](../server_runtime_http/src/child_process.rs#L37)
-- [`struct ChildProcessSet`](../server_runtime_http/src/child_process.rs#L42)
-- [`struct ChildProcessReports`](../server_runtime_http/src/child_process.rs#L106)
-- [`enum ChildProcessSetError`](../server_runtime_http/src/child_process.rs#L109)
-- [`struct ChildDiagnostic`](../server_runtime_http/src/child_process.rs#L133)
-- [`enum ChildProcessCompletion`](../server_runtime_http/src/child_process.rs#L136)
-- [`struct StdChildExitStatus`](../server_runtime_http/src/child_process.rs#L142)
-- [`enum ChildProcessSucceeded`](../server_runtime_http/src/child_process.rs#L156)
-- [`struct ChildProcessReport`](../server_runtime_http/src/child_process.rs#L163)
-- [`struct TokioManagedChild`](../server_runtime_http/src/child_process.rs#L186)
-- [`struct TokioChildProcess`](../server_runtime_http/src/child_process.rs#L189)
-- [`struct TokioChildDiagnosticTask`](../server_runtime_http/src/child_process.rs#L192)
-- [`struct ChildProcessSupervisor`](../server_runtime_http/src/child_process.rs#L198)
-- [`enum ChildProcessError`](../server_runtime_http/src/child_process.rs#L261)
-- [`struct StdChildProcessIoError`](../server_runtime_http/src/child_process.rs#L279)
-- [`struct TokioChildProcessJoinError`](../server_runtime_http/src/child_process.rs#L284)
+- [`struct ChildProcessSet`](../server_runtime_http/src/child_process.rs#L46)
+- [`struct ChildProcessReports`](../server_runtime_http/src/child_process.rs#L110)
+- [`enum ChildProcessSetError`](../server_runtime_http/src/child_process.rs#L115)
+- [`struct ChildDiagnostic`](../server_runtime_http/src/child_process.rs#L139)
+- [`enum ChildProcessCompletion`](../server_runtime_http/src/child_process.rs#L142)
+- [`struct ChildExitStatus`](../server_runtime_http/src/child_process.rs#L148)
+- [`enum ChildProcessSucceeded`](../server_runtime_http/src/child_process.rs#L162)
+- [`struct ChildProcessReport`](../server_runtime_http/src/child_process.rs#L169)
+- [`struct TokioManagedChild`](../server_runtime_http/src/child_process.rs#L192)
+- [`struct TokioChildProcess`](../server_runtime_http/src/child_process.rs#L195)
+- [`struct TokioChildDiagnosticTask`](../server_runtime_http/src/child_process.rs#L198)
+- [`struct ChildProcessSupervisor`](../server_runtime_http/src/child_process.rs#L204)
+- [`enum ChildProcessError`](../server_runtime_http/src/child_process.rs#L267)
+- [`struct ChildProcessIoError`](../server_runtime_http/src/child_process.rs#L285)
+- [`struct TokioChildProcessJoinError`](../server_runtime_http/src/child_process.rs#L290)
 
 ## `server_runtime_http/src/client_ip.rs`
 
 - [`struct HttpHeaderMapRef`](../server_runtime_http/src/client_ip.rs#L5)
 - [`struct TrustedProxyRangesTextRef`](../server_runtime_http/src/client_ip.rs#L8)
-- [`struct StdSocketAddr`](../server_runtime_http/src/client_ip.rs#L20)
-- [`struct StdResolvedClientIp`](../server_runtime_http/src/client_ip.rs#L33)
+- [`struct ClientSocketAddr`](../server_runtime_http/src/client_ip.rs#L20)
+- [`struct ResolvedClientIpAddr`](../server_runtime_http/src/client_ip.rs#L33)
 - [`struct TrustedProxyRange`](../server_runtime_http/src/client_ip.rs#L35)
 - [`struct IpnetNetwork`](../server_runtime_http/src/client_ip.rs#L47)
-- [`struct StdIpAddr`](../server_runtime_http/src/client_ip.rs#L57)
+- [`struct ParsedIpAddr`](../server_runtime_http/src/client_ip.rs#L57)
 - [`struct StdRangeContains`](../server_runtime_http/src/client_ip.rs#L68)
-- [`struct StdAddrParseError`](../server_runtime_http/src/client_ip.rs#L79)
-- [`struct StdParseIntError`](../server_runtime_http/src/client_ip.rs#L85)
+- [`struct ClientAddrParseError`](../server_runtime_http/src/client_ip.rs#L79)
+- [`struct ParseIntError`](../server_runtime_http/src/client_ip.rs#L85)
 - [`enum TrustedProxyRangeParseError`](../server_runtime_http/src/client_ip.rs#L88)
 - [`enum TrustedProxyRangesParseError`](../server_runtime_http/src/client_ip.rs#L105)
 - [`struct TrustedProxyRanges`](../server_runtime_http/src/client_ip.rs#L136)
-- [`struct TrustedProxyRangesError`](../server_runtime_http/src/client_ip.rs#L143)
+- [`struct TrustedProxyRangesError`](../server_runtime_http/src/client_ip.rs#L147)
 
 ## `server_runtime_http/src/cors.rs`
 
@@ -2278,20 +2283,20 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 
 ## `server_runtime_http/src/health.rs`
 
-- [`struct StdHealthProbeTimeout`](../server_runtime_http/src/health.rs#L10)
+- [`struct HealthProbeTimeoutDuration`](../server_runtime_http/src/health.rs#L10)
 - [`struct HealthProbeSucceeded`](../server_runtime_http/src/health.rs#L22)
 - [`enum HealthComponentStatus`](../server_runtime_http/src/health.rs#L28)
 - [`struct HealthSnapshot`](../server_runtime_http/src/health.rs#L36)
 - [`enum HealthReadyError`](../server_runtime_http/src/health.rs#L41)
 - [`struct ServiceLivenessSnapshot`](../server_runtime_http/src/health.rs#L48)
-- [`struct StdSharedHealthReadiness`](../server_runtime_http/src/health.rs#L72)
+- [`struct SharedHealthReadinessArc`](../server_runtime_http/src/health.rs#L72)
 - [`struct HealthReadiness`](../server_runtime_http/src/health.rs#L75)
 
 ## `server_runtime_http/src/http_client.rs`
 
 - [`struct ReqwestClient`](../server_runtime_http/src/http_client.rs#L8)
-- [`struct StdReqwestConnectTimeout`](../server_runtime_http/src/http_client.rs#L11)
-- [`struct StdReqwestRequestTimeout`](../server_runtime_http/src/http_client.rs#L14)
+- [`struct ReqwestConnectTimeoutDuration`](../server_runtime_http/src/http_client.rs#L11)
+- [`struct ReqwestRequestTimeoutDuration`](../server_runtime_http/src/http_client.rs#L14)
 - [`struct StdReqwestTimeoutError`](../server_runtime_http/src/http_client.rs#L20)
 - [`struct ReqwestClientPolicy`](../server_runtime_http/src/http_client.rs#L47)
 - [`struct ReqwestClientBuildError`](../server_runtime_http/src/http_client.rs#L69)
@@ -2352,18 +2357,18 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`struct BackgroundTask`](../server_runtime_http/src/lifecycle.rs#L23)
 - [`struct TokioBackgroundTaskJoinHandle`](../server_runtime_http/src/lifecycle.rs#L28)
 - [`struct TokioBackgroundTaskShutdownSender`](../server_runtime_http/src/lifecycle.rs#L31)
-- [`struct StdRunInterval`](../server_runtime_http/src/lifecycle.rs#L79)
+- [`struct RunIntervalDuration`](../server_runtime_http/src/lifecycle.rs#L79)
 - [`struct StdRunIntervalTryFromDurationError`](../server_runtime_http/src/lifecycle.rs#L94)
-- [`struct StdRequestTimeout`](../server_runtime_http/src/lifecycle.rs#L96)
+- [`struct RequestTimeoutDuration`](../server_runtime_http/src/lifecycle.rs#L96)
 - [`struct StdRequestTimeoutTryFromDurationError`](../server_runtime_http/src/lifecycle.rs#L116)
 
 ## `server_runtime_http/src/limits.rs`
 
-- [`struct StdPermitWaitTimeout`](../server_runtime_http/src/limits.rs#L10)
+- [`struct PermitWaitTimeoutDuration`](../server_runtime_http/src/limits.rs#L10)
 - [`struct RetryAfterSecs`](../server_runtime_http/src/limits.rs#L13)
 - [`struct RetryAfterSecsTryFromU64Error`](../server_runtime_http/src/limits.rs#L28)
-- [`struct StdArcTokioSemaphore`](../server_runtime_http/src/limits.rs#L36)
-- [`struct StdSemaphorePermitCount`](../server_runtime_http/src/limits.rs#L46)
+- [`struct ArcTokioSemaphore`](../server_runtime_http/src/limits.rs#L36)
+- [`struct SemaphorePermitCountNonZeroUsize`](../server_runtime_http/src/limits.rs#L46)
 - [`struct TokioAcquireError`](../server_runtime_http/src/limits.rs#L68)
 - [`enum AcquirePermitError`](../server_runtime_http/src/limits.rs#L70)
 - [`struct TokioOwnedSemaphorePermit`](../server_runtime_http/src/limits.rs#L77)
@@ -2375,12 +2380,12 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`struct HttpMetricsPathCacheMaximum`](../server_runtime_http/src/metrics_layer.rs#L33)
 - [`struct HttpMetricsPathCacheMaximumTryFromUsizeError`](../server_runtime_http/src/metrics_layer.rs#L55)
 - [`struct HttpMetricsPathCache`](../server_runtime_http/src/metrics_layer.rs#L58)
-- [`struct StdHttpMetricsPathEntries`](../server_runtime_http/src/metrics_layer.rs#L65)
+- [`struct HttpMetricsPathEntriesRwLock`](../server_runtime_http/src/metrics_layer.rs#L65)
 - [`struct MetricsSharedString`](../server_runtime_http/src/metrics_layer.rs#L70)
 - [`struct HttpMetricsPathText`](../server_runtime_http/src/metrics_layer.rs#L81)
 - [`struct HttpMetricsPathTextError`](../server_runtime_http/src/metrics_layer.rs#L96)
 - [`struct HttpMetricsPathTextRef`](../server_runtime_http/src/metrics_layer.rs#L99)
-- [`struct StdSharedHttpMetricsPathCache`](../server_runtime_http/src/metrics_layer.rs#L102)
+- [`struct SharedHttpMetricsPathCacheArc`](../server_runtime_http/src/metrics_layer.rs#L102)
 - [`struct HttpMetricsLayer`](../server_runtime_http/src/metrics_layer.rs#L162)
 - [`struct HttpMetricsTowerLayer`](../server_runtime_http/src/metrics_layer.rs#L191)
 - [`struct HttpMetricsService`](../server_runtime_http/src/metrics_layer.rs#L207)
@@ -2404,7 +2409,7 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`struct FileStagingDirectoryName`](../server_runtime_http/src/multipart.rs#L295)
 - [`struct StoragePathSegment`](../server_runtime_http/src/multipart.rs#L320)
 - [`struct StoragePathSegmentError`](../server_runtime_http/src/multipart.rs#L325)
-- [`struct StdStorageRelativePath`](../server_runtime_http/src/multipart.rs#L349)
+- [`struct StorageRelativePathBuf`](../server_runtime_http/src/multipart.rs#L349)
 
 ## `server_runtime_http/src/notification.rs`
 
@@ -2444,11 +2449,11 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`struct ReqwestOutboundUrl`](../server_runtime_http/src/outbound_url.rs#L18)
 - [`struct OutboundAllowedHost`](../server_runtime_http/src/outbound_url.rs#L35)
 - [`struct OutboundHostAllowlist`](../server_runtime_http/src/outbound_url.rs#L52)
-- [`enum OutboundHostAllowlistError`](../server_runtime_http/src/outbound_url.rs#L92)
-- [`struct StdOutboundIpAddr`](../server_runtime_http/src/outbound_url.rs#L111)
-- [`struct OutboundUrlPolicy`](../server_runtime_http/src/outbound_url.rs#L115)
-- [`enum OutboundUrlError`](../server_runtime_http/src/outbound_url.rs#L194)
-- [`enum OutboundAddressDisposition`](../server_runtime_http/src/outbound_url.rs#L212)
+- [`enum OutboundHostAllowlistError`](../server_runtime_http/src/outbound_url.rs#L94)
+- [`struct OutboundIpAddr`](../server_runtime_http/src/outbound_url.rs#L113)
+- [`struct OutboundUrlPolicy`](../server_runtime_http/src/outbound_url.rs#L117)
+- [`enum OutboundUrlError`](../server_runtime_http/src/outbound_url.rs#L196)
+- [`enum OutboundAddressDisposition`](../server_runtime_http/src/outbound_url.rs#L214)
 
 ## `server_runtime_http/src/path_policy.rs`
 
@@ -2518,13 +2523,13 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 
 - [`struct ServiceRuntime`](../server_runtime_http/src/service.rs#L2)
 - [`struct TokioTcpListener`](../server_runtime_http/src/service.rs#L26)
-- [`struct StdServeIoError`](../server_runtime_http/src/service.rs#L32)
+- [`struct ServeIoError`](../server_runtime_http/src/service.rs#L32)
 - [`enum ServeWithGracefulShutdownError`](../server_runtime_http/src/service.rs#L35)
 
 ## `server_runtime_http/src/service_bootstrap.rs`
 
 - [`struct TokioServiceRuntime`](../server_runtime_http/src/service_bootstrap.rs#L4)
-- [`struct StdServiceRuntimeIoError`](../server_runtime_http/src/service_bootstrap.rs#L10)
+- [`struct ServiceRuntimeIoError`](../server_runtime_http/src/service_bootstrap.rs#L10)
 
 ## `server_runtime_http/src/tests.rs`
 
@@ -2554,12 +2559,12 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`enum VersionedUrlSafeWireTokenTextError`](../server_runtime_http/src/wire_token.rs#L4)
 - [`struct VersionedUrlSafeWireTokenText`](../server_runtime_http/src/wire_token.rs#L14)
 
-## `synchronization_service_runtime/src/lib.rs`
+## `synchronization_service_runtime/src/domain_types.rs`
 
-- [`struct SynchronizationRuntimeConfiguration`](../synchronization_service_runtime/src/lib.rs#L5)
-- [`struct SynchronizationPayloadTooLarge`](../synchronization_service_runtime/src/lib.rs#L14)
-- [`struct SynchronizationPayload`](../synchronization_service_runtime/src/lib.rs#L24)
-- [`trait SynchronizationSource`](../synchronization_service_runtime/src/lib.rs#L38)
+- [`struct SynchronizationRuntimeConfiguration`](../synchronization_service_runtime/src/domain_types.rs#L5)
+- [`struct SynchronizationPayloadTooLarge`](../synchronization_service_runtime/src/domain_types.rs#L14)
+- [`struct SynchronizationPayload`](../synchronization_service_runtime/src/domain_types.rs#L24)
+- [`trait SynchronizationSource`](../synchronization_service_runtime/src/domain_types.rs#L38)
 
 ## `tests/src/code_style/advanced_policy.rs`
 
@@ -2573,11 +2578,12 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`struct ExpressionPathVisitor`](../tests/src/code_style/advanced_policy.rs#L378)
 - [`struct IgnoredMapErrBindingVisitor`](../tests/src/code_style/advanced_policy.rs#L393)
 - [`struct RawVecTupleWrapperVisitor`](../tests/src/code_style/advanced_policy.rs#L431)
-- [`struct UsizeMaxExprVisitor`](../tests/src/code_style/advanced_policy.rs#L453)
-- [`struct SharedDispatchVisitor`](../tests/src/code_style/advanced_policy.rs#L485)
-- [`struct PublicApiVisitor`](../tests/src/code_style/advanced_policy.rs#L508)
-- [`struct StructErrorVisitor`](../tests/src/code_style/advanced_policy.rs#L732)
-- [`struct LoopAllocationVisitor`](../tests/src/code_style/advanced_policy.rs#L751)
+- [`struct FromVecImplVisitor`](../tests/src/code_style/advanced_policy.rs#L436)
+- [`struct UsizeMaxExprVisitor`](../tests/src/code_style/advanced_policy.rs#L480)
+- [`struct SharedDispatchVisitor`](../tests/src/code_style/advanced_policy.rs#L512)
+- [`struct PublicApiVisitor`](../tests/src/code_style/advanced_policy.rs#L535)
+- [`struct StructErrorVisitor`](../tests/src/code_style/advanced_policy.rs#L759)
+- [`struct LoopAllocationVisitor`](../tests/src/code_style/advanced_policy.rs#L778)
 
 ## `tests/src/code_style/cargo_policy.rs`
 
@@ -2612,9 +2618,9 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 
 ## `tests/src/code_style/reuse_policy.rs`
 
-- [`struct FunctionBodyComplexity`](../tests/src/code_style/reuse_policy.rs#L252)
-- [`struct FunctionBodyVisitor`](../tests/src/code_style/reuse_policy.rs#L257)
-- [`struct ReviewedDuplicateGroup`](../tests/src/code_style/reuse_policy.rs#L264)
+- [`struct FunctionBodyComplexity`](../tests/src/code_style/reuse_policy.rs#L260)
+- [`struct FunctionBodyVisitor`](../tests/src/code_style/reuse_policy.rs#L265)
+- [`struct ReviewedDuplicateGroup`](../tests/src/code_style/reuse_policy.rs#L272)
 
 ## `tests/src/code_style/runtime_analysis.rs`
 
@@ -2658,43 +2664,44 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`struct GeneratedRandomnessVisitor`](../tests/src/code_style/source_analysis.rs#L349)
 - [`struct StaticStateVisitor`](../tests/src/code_style/source_analysis.rs#L353)
 - [`struct PrintMacroVisitor`](../tests/src/code_style/source_analysis.rs#L357)
-- [`struct PublicLogicVisitor`](../tests/src/code_style/source_analysis.rs#L361)
-- [`struct OwnedTestVisitor`](../tests/src/code_style/source_analysis.rs#L365)
-- [`struct AllowReasonVisitor`](../tests/src/code_style/source_analysis.rs#L369)
-- [`struct DiagnosticIdVisitor`](../tests/src/code_style/source_analysis.rs#L374)
-- [`struct UseImportVisitor`](../tests/src/code_style/source_analysis.rs#L760)
-- [`struct TypeAliasVisitor`](../tests/src/code_style/source_analysis.rs#L826)
-- [`struct EmptyEnumVisitor`](../tests/src/code_style/source_analysis.rs#L839)
-- [`struct InfallibleResultVisitor`](../tests/src/code_style/source_analysis.rs#L868)
-- [`struct ConstantAliasVisitor`](../tests/src/code_style/source_analysis.rs#L932)
-- [`struct ForwardingDerefVisitor`](../tests/src/code_style/source_analysis.rs#L963)
-- [`struct ForwardingBorrowVisitor`](../tests/src/code_style/source_analysis.rs#L968)
-- [`struct ForwardingDisplayVisitor`](../tests/src/code_style/source_analysis.rs#L1108)
-- [`struct ManualErrorImplVisitor`](../tests/src/code_style/source_analysis.rs#L1112)
-- [`struct ManualNotImplVisitor`](../tests/src/code_style/source_analysis.rs#L1116)
-- [`struct ConstDisplayImplVisitor`](../tests/src/code_style/source_analysis.rs#L1120)
-- [`struct JsonCallVisitor`](../tests/src/code_style/source_analysis.rs#L1192)
-- [`struct JsonIntoResponseErrorVisitor`](../tests/src/code_style/source_analysis.rs#L1210)
-- [`struct TupleResponseVisitor`](../tests/src/code_style/source_analysis.rs#L1215)
-- [`struct ThiserrorEnumVisitor`](../tests/src/code_style/source_analysis.rs#L1275)
-- [`struct ApiErrorLocationVisitor`](../tests/src/code_style/source_analysis.rs#L1342)
-- [`struct IntoResponseTypeVisitor`](../tests/src/code_style/source_analysis.rs#L1347)
-- [`struct ApiErrorSourceVisitor`](../tests/src/code_style/source_analysis.rs#L1367)
-- [`struct RouteOperationErrorVisitor`](../tests/src/code_style/source_analysis.rs#L1372)
-- [`struct ForwardingIntoIteratorVisitor`](../tests/src/code_style/source_analysis.rs#L1603)
-- [`struct PassthroughIntoInnerFromVisitor`](../tests/src/code_style/source_analysis.rs#L1644)
-- [`struct PassthroughFromVisitor`](../tests/src/code_style/source_analysis.rs#L1717)
-- [`struct TestStringLiteralVisitor`](../tests/src/code_style/source_analysis.rs#L1809)
-- [`struct ProductionStringLiteralVisitor`](../tests/src/code_style/source_analysis.rs#L1836)
-- [`struct StringConstantDeclarationVisitor`](../tests/src/code_style/source_analysis.rs#L1878)
-- [`struct ConstantInitializerStringLiteralVisitor`](../tests/src/code_style/source_analysis.rs#L1883)
-- [`struct StringConstantVisitor`](../tests/src/code_style/source_analysis.rs#L2080)
+- [`struct ProductionLinePrintMacroVisitor`](../tests/src/code_style/source_analysis.rs#L361)
+- [`struct PublicLogicVisitor`](../tests/src/code_style/source_analysis.rs#L365)
+- [`struct OwnedTestVisitor`](../tests/src/code_style/source_analysis.rs#L369)
+- [`struct AllowReasonVisitor`](../tests/src/code_style/source_analysis.rs#L373)
+- [`struct DiagnosticIdVisitor`](../tests/src/code_style/source_analysis.rs#L378)
+- [`struct UseImportVisitor`](../tests/src/code_style/source_analysis.rs#L790)
+- [`struct TypeAliasVisitor`](../tests/src/code_style/source_analysis.rs#L856)
+- [`struct EmptyEnumVisitor`](../tests/src/code_style/source_analysis.rs#L869)
+- [`struct InfallibleResultVisitor`](../tests/src/code_style/source_analysis.rs#L898)
+- [`struct ConstantAliasVisitor`](../tests/src/code_style/source_analysis.rs#L962)
+- [`struct ForwardingDerefVisitor`](../tests/src/code_style/source_analysis.rs#L993)
+- [`struct ForwardingBorrowVisitor`](../tests/src/code_style/source_analysis.rs#L998)
+- [`struct ForwardingDisplayVisitor`](../tests/src/code_style/source_analysis.rs#L1138)
+- [`struct ManualErrorImplVisitor`](../tests/src/code_style/source_analysis.rs#L1142)
+- [`struct ManualNotImplVisitor`](../tests/src/code_style/source_analysis.rs#L1146)
+- [`struct ConstDisplayImplVisitor`](../tests/src/code_style/source_analysis.rs#L1150)
+- [`struct JsonCallVisitor`](../tests/src/code_style/source_analysis.rs#L1222)
+- [`struct JsonIntoResponseErrorVisitor`](../tests/src/code_style/source_analysis.rs#L1240)
+- [`struct TupleResponseVisitor`](../tests/src/code_style/source_analysis.rs#L1245)
+- [`struct ThiserrorEnumVisitor`](../tests/src/code_style/source_analysis.rs#L1305)
+- [`struct ApiErrorLocationVisitor`](../tests/src/code_style/source_analysis.rs#L1372)
+- [`struct IntoResponseTypeVisitor`](../tests/src/code_style/source_analysis.rs#L1377)
+- [`struct ApiErrorSourceVisitor`](../tests/src/code_style/source_analysis.rs#L1397)
+- [`struct RouteOperationErrorVisitor`](../tests/src/code_style/source_analysis.rs#L1402)
+- [`struct ForwardingIntoIteratorVisitor`](../tests/src/code_style/source_analysis.rs#L1633)
+- [`struct PassthroughIntoInnerFromVisitor`](../tests/src/code_style/source_analysis.rs#L1674)
+- [`struct PassthroughFromVisitor`](../tests/src/code_style/source_analysis.rs#L1747)
+- [`struct TestStringLiteralVisitor`](../tests/src/code_style/source_analysis.rs#L1839)
+- [`struct ProductionStringLiteralVisitor`](../tests/src/code_style/source_analysis.rs#L1866)
+- [`struct StringConstantDeclarationVisitor`](../tests/src/code_style/source_analysis.rs#L1908)
+- [`struct ConstantInitializerStringLiteralVisitor`](../tests/src/code_style/source_analysis.rs#L1913)
+- [`struct StringConstantVisitor`](../tests/src/code_style/source_analysis.rs#L2110)
 
 ## `tests/src/code_style/source_policy.rs`
 
 - [`struct ReviewedPublicFields`](../tests/src/code_style/source_policy.rs#L2)
 - [`struct StaticStateException`](../tests/src/code_style/source_policy.rs#L888)
-- [`struct LegacySuppression`](../tests/src/code_style/source_policy.rs#L1139)
+- [`struct LegacySuppression`](../tests/src/code_style/source_policy.rs#L1199)
 
 ## `tests/src/code_style/types.rs`
 
@@ -2704,52 +2711,52 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`struct AnalyzerChar`](../tests/src/code_style/types.rs#L37)
 - [`struct CargoMetadata`](../tests/src/code_style/types.rs#L50)
 - [`struct CargoMetadataRef`](../tests/src/code_style/types.rs#L59)
-- [`struct StdCargoPackageIdRefSet`](../tests/src/code_style/types.rs#L72)
-- [`struct StdProcessOutputRef`](../tests/src/code_style/types.rs#L83)
+- [`struct CargoPackageIdRefHashSet`](../tests/src/code_style/types.rs#L72)
+- [`struct ProcessOutputRef`](../tests/src/code_style/types.rs#L83)
 - [`struct StaticStr`](../tests/src/code_style/types.rs#L85)
 - [`struct StaticStrSliceRef`](../tests/src/code_style/types.rs#L92)
 - [`struct SourceTextRef`](../tests/src/code_style/types.rs#L106)
-- [`struct StdSourceTextRefSet`](../tests/src/code_style/types.rs#L121)
-- [`struct StdSourceTextHashSet`](../tests/src/code_style/types.rs#L129)
-- [`struct SynBlockRef`](../tests/src/code_style/types.rs#L138)
-- [`struct DiagnosticMsgs`](../tests/src/code_style/types.rs#L149)
-- [`struct DiagnosticMsgsMutRef`](../tests/src/code_style/types.rs#L157)
-- [`struct SourceText`](../tests/src/code_style/types.rs#L164)
-- [`struct SourceTextTryFromStringError`](../tests/src/code_style/types.rs#L171)
-- [`struct SourceTextList`](../tests/src/code_style/types.rs#L200)
-- [`struct SourceTextListRef`](../tests/src/code_style/types.rs#L209)
-- [`struct StdSourceTextSet`](../tests/src/code_style/types.rs#L226)
-- [`struct FunctionBodyHash`](../tests/src/code_style/types.rs#L238)
-- [`struct RegexRegexRef`](../tests/src/code_style/types.rs#L248)
-- [`struct StdFunctionBodyLocationsMap`](../tests/src/code_style/types.rs#L257)
-- [`struct StdFunctionBodyLocationsMapMutRef`](../tests/src/code_style/types.rs#L267)
-- [`struct StdStdSourceTextSetRef`](../tests/src/code_style/types.rs#L285)
-- [`struct StdPathBuf`](../tests/src/code_style/types.rs#L299)
-- [`struct StdPathRef`](../tests/src/code_style/types.rs#L308)
-- [`struct SynFile`](../tests/src/code_style/types.rs#L316)
-- [`struct SynFileRef`](../tests/src/code_style/types.rs#L325)
-- [`struct SynAttributeRef`](../tests/src/code_style/types.rs#L334)
-- [`struct SynAttributeListRef`](../tests/src/code_style/types.rs#L343)
-- [`struct SynExprCallRef`](../tests/src/code_style/types.rs#L352)
-- [`struct SynFieldsRef`](../tests/src/code_style/types.rs#L366)
-- [`struct SynGenericsRef`](../tests/src/code_style/types.rs#L375)
-- [`struct SynItemImplRef`](../tests/src/code_style/types.rs#L384)
-- [`struct SynItemFnRef`](../tests/src/code_style/types.rs#L393)
-- [`struct SynItemRef`](../tests/src/code_style/types.rs#L402)
-- [`struct SynItemStructRef`](../tests/src/code_style/types.rs#L411)
-- [`struct SynPathArgumentsRef`](../tests/src/code_style/types.rs#L420)
-- [`struct SynPathSegmentRef`](../tests/src/code_style/types.rs#L429)
-- [`struct SynPathRef`](../tests/src/code_style/types.rs#L448)
-- [`struct SynSignatureRef`](../tests/src/code_style/types.rs#L457)
-- [`struct SynTypePathRef`](../tests/src/code_style/types.rs#L466)
-- [`struct SynTypeRef`](../tests/src/code_style/types.rs#L480)
-- [`struct SynUseTreeRef`](../tests/src/code_style/types.rs#L489)
-- [`struct SynIdentifierRef`](../tests/src/code_style/types.rs#L498)
-- [`struct TomlTable`](../tests/src/code_style/types.rs#L512)
-- [`struct TomlTableRef`](../tests/src/code_style/types.rs#L521)
-- [`struct TomlValueRef`](../tests/src/code_style/types.rs#L535)
-- [`struct TomlValue`](../tests/src/code_style/types.rs#L544)
-- [`struct WalkdirWalkDir`](../tests/src/code_style/types.rs#L546)
+- [`struct SourceTextRefHashSet`](../tests/src/code_style/types.rs#L121)
+- [`struct SourceTextHashSet`](../tests/src/code_style/types.rs#L131)
+- [`struct SynBlockRef`](../tests/src/code_style/types.rs#L140)
+- [`struct DiagnosticMsgs`](../tests/src/code_style/types.rs#L151)
+- [`struct DiagnosticMsgsMutRef`](../tests/src/code_style/types.rs#L159)
+- [`struct SourceText`](../tests/src/code_style/types.rs#L166)
+- [`struct SourceTextTryFromStringError`](../tests/src/code_style/types.rs#L173)
+- [`struct SourceTextList`](../tests/src/code_style/types.rs#L202)
+- [`struct SourceTextListRef`](../tests/src/code_style/types.rs#L211)
+- [`struct SourceTextBTreeSet`](../tests/src/code_style/types.rs#L228)
+- [`struct FunctionBodyHash`](../tests/src/code_style/types.rs#L240)
+- [`struct RegexRegexRef`](../tests/src/code_style/types.rs#L250)
+- [`struct FunctionBodyLocationsBTreeMap`](../tests/src/code_style/types.rs#L259)
+- [`struct FunctionBodyLocationsBTreeMapMutRef`](../tests/src/code_style/types.rs#L269)
+- [`struct SourceTextBTreeSetRef`](../tests/src/code_style/types.rs#L287)
+- [`struct OwnedPathBuf`](../tests/src/code_style/types.rs#L301)
+- [`struct PathRef`](../tests/src/code_style/types.rs#L310)
+- [`struct SynFile`](../tests/src/code_style/types.rs#L318)
+- [`struct SynFileRef`](../tests/src/code_style/types.rs#L327)
+- [`struct SynAttributeRef`](../tests/src/code_style/types.rs#L336)
+- [`struct SynAttributeListRef`](../tests/src/code_style/types.rs#L345)
+- [`struct SynExprCallRef`](../tests/src/code_style/types.rs#L354)
+- [`struct SynFieldsRef`](../tests/src/code_style/types.rs#L368)
+- [`struct SynGenericsRef`](../tests/src/code_style/types.rs#L377)
+- [`struct SynItemImplRef`](../tests/src/code_style/types.rs#L386)
+- [`struct SynItemFnRef`](../tests/src/code_style/types.rs#L395)
+- [`struct SynItemRef`](../tests/src/code_style/types.rs#L404)
+- [`struct SynItemStructRef`](../tests/src/code_style/types.rs#L413)
+- [`struct SynPathArgumentsRef`](../tests/src/code_style/types.rs#L422)
+- [`struct SynPathSegmentRef`](../tests/src/code_style/types.rs#L431)
+- [`struct SynPathRef`](../tests/src/code_style/types.rs#L450)
+- [`struct SynSignatureRef`](../tests/src/code_style/types.rs#L459)
+- [`struct SynTypePathRef`](../tests/src/code_style/types.rs#L468)
+- [`struct SynTypeRef`](../tests/src/code_style/types.rs#L482)
+- [`struct SynUseTreeRef`](../tests/src/code_style/types.rs#L491)
+- [`struct SynIdentifierRef`](../tests/src/code_style/types.rs#L500)
+- [`struct TomlTable`](../tests/src/code_style/types.rs#L514)
+- [`struct TomlTableRef`](../tests/src/code_style/types.rs#L523)
+- [`struct TomlValueRef`](../tests/src/code_style/types.rs#L537)
+- [`struct TomlValue`](../tests/src/code_style/types.rs#L546)
+- [`struct WalkdirWalkDir`](../tests/src/code_style/types.rs#L548)
 
 ## `tests/src/domain_type_policy_fixture.rs`
 
@@ -2823,55 +2830,55 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`struct Response`](../tests/trybuild/route_contract_wrong_transport.rs#L11)
 - [`struct AuthenticatedRoute`](../tests/trybuild/route_contract_wrong_transport.rs#L13)
 
-## `text_policy/src/lib.rs`
+## `text_policy/src/domain_types.rs`
 
-- [`enum BoundedTextPolicyError`](../text_policy/src/lib.rs#L11)
-- [`struct RequiredNulFreeBoundedText`](../text_policy/src/lib.rs#L23)
-- [`struct NonEmptyTrimmedText`](../text_policy/src/lib.rs#L43)
-- [`enum FixedLengthAsciiHexTextError`](../text_policy/src/lib.rs#L64)
-- [`struct FixedLengthAsciiHexText`](../text_policy/src/lib.rs#L79)
-- [`struct UrlSafeTokenPartMaximumBytes`](../text_policy/src/lib.rs#L105)
-- [`struct UrlSafeTokenPartRef`](../text_policy/src/lib.rs#L116)
-- [`enum UrlSafeTokenPartTextError`](../text_policy/src/lib.rs#L121)
-- [`struct UrlSafeTokenPartText`](../text_policy/src/lib.rs#L133)
-- [`struct PasswordTextRef`](../text_policy/src/lib.rs#L169)
-- [`struct PasswordLength`](../text_policy/src/lib.rs#L185)
-- [`struct PasswordLengthRange`](../text_policy/src/lib.rs#L188)
-- [`struct PasswordLengthRangeError`](../text_policy/src/lib.rs#L202)
-- [`enum PasswordPolicyViolation`](../text_policy/src/lib.rs#L219)
+- [`enum BoundedTextPolicyError`](../text_policy/src/domain_types.rs#L11)
+- [`struct RequiredNulFreeBoundedText`](../text_policy/src/domain_types.rs#L23)
+- [`struct NonEmptyTrimmedText`](../text_policy/src/domain_types.rs#L43)
+- [`enum FixedLengthAsciiHexTextError`](../text_policy/src/domain_types.rs#L64)
+- [`struct FixedLengthAsciiHexText`](../text_policy/src/domain_types.rs#L79)
+- [`struct UrlSafeTokenPartMaximumBytes`](../text_policy/src/domain_types.rs#L105)
+- [`struct UrlSafeTokenPartRef`](../text_policy/src/domain_types.rs#L116)
+- [`enum UrlSafeTokenPartTextError`](../text_policy/src/domain_types.rs#L121)
+- [`struct UrlSafeTokenPartText`](../text_policy/src/domain_types.rs#L133)
+- [`struct PasswordTextRef`](../text_policy/src/domain_types.rs#L169)
+- [`struct PasswordLength`](../text_policy/src/domain_types.rs#L185)
+- [`struct PasswordLengthRange`](../text_policy/src/domain_types.rs#L188)
+- [`struct PasswordLengthRangeError`](../text_policy/src/domain_types.rs#L202)
+- [`enum PasswordPolicyViolation`](../text_policy/src/domain_types.rs#L219)
 
-## `to_err_string/src/lib.rs`
+## `to_err_string/src/domain_types.rs`
 
-- [`trait ToErrString`](../to_err_string/src/lib.rs#L33)
-- [`struct ErrorText`](../to_err_string/src/lib.rs#L54)
-- [`struct StaticStrToOwnedInput`](../to_err_string/src/lib.rs#L86)
+- [`trait ToErrString`](../to_err_string/src/domain_types.rs#L33)
+- [`struct ErrorText`](../to_err_string/src/domain_types.rs#L54)
+- [`struct StaticStrToOwnedInput`](../to_err_string/src/domain_types.rs#L86)
 
-## `token_patterns/src/lib.rs`
+## `token_patterns/src/domain_types.rs`
 
-- [`struct ProcMacro2TokensMut`](../token_patterns/src/lib.rs#L183)
+- [`struct ProcMacro2TokensMut`](../token_patterns/src/domain_types.rs#L2)
 
-## `token_patterns_token_patterns_macros/src/lib.rs`
+## `token_patterns_token_patterns_macros/src/domain_types.rs`
 
-- [`struct ProcMacro2GenerateTpInput`](../token_patterns_token_patterns_macros/src/lib.rs#L2)
-- [`struct ProcMacro2GenerateTpOutput`](../token_patterns_token_patterns_macros/src/lib.rs#L5)
+- [`struct ProcMacro2GenerateTpInput`](../token_patterns_token_patterns_macros/src/domain_types.rs#L4)
+- [`struct ProcMacro2GenerateTpOutput`](../token_patterns_token_patterns_macros/src/domain_types.rs#L9)
 
 ## `workspace_macro_helpers/src/lib.rs`
 
-- [`struct SynDeriveInputRef`](../workspace_macro_helpers/src/lib.rs#L3)
-- [`enum SynStructShapeRef`](../workspace_macro_helpers/src/lib.rs#L16)
-- [`struct SynFieldsNamedRef`](../workspace_macro_helpers/src/lib.rs#L22)
-- [`struct SynFieldsUnnamedRef`](../workspace_macro_helpers/src/lib.rs#L41)
-- [`struct ProcMacro2MacroTokens`](../workspace_macro_helpers/src/lib.rs#L78)
-- [`struct ProcMacro2TopLevelCommaParts`](../workspace_macro_helpers/src/lib.rs#L144)
-- [`struct TopLevelCommaPart`](../workspace_macro_helpers/src/lib.rs#L181)
-- [`struct FirstIdentifier`](../workspace_macro_helpers/src/lib.rs#L225)
-- [`struct FirstIdentifierifierTryFromStringError`](../workspace_macro_helpers/src/lib.rs#L227)
-- [`struct StdUniqueOptionSet`](../workspace_macro_helpers/src/lib.rs#L262)
-- [`struct StdUniqueOptionSetContains`](../workspace_macro_helpers/src/lib.rs#L271)
-- [`struct StdUniqueOptionSetIsEmpty`](../workspace_macro_helpers/src/lib.rs#L284)
-- [`struct FirstCommaStripped`](../workspace_macro_helpers/src/lib.rs#L330)
-- [`struct PartIndex`](../workspace_macro_helpers/src/lib.rs#L345)
-- [`struct ClosureIdentifierAndBody`](../workspace_macro_helpers/src/lib.rs#L448)
+- [`struct SynDeriveInputRef`](../workspace_macro_helpers/src/lib.rs#L4)
+- [`enum SynStructShapeRef`](../workspace_macro_helpers/src/lib.rs#L17)
+- [`struct SynFieldsNamedRef`](../workspace_macro_helpers/src/lib.rs#L23)
+- [`struct SynFieldsUnnamedRef`](../workspace_macro_helpers/src/lib.rs#L42)
+- [`struct ProcMacro2MacroTokens`](../workspace_macro_helpers/src/lib.rs#L79)
+- [`struct ProcMacro2TopLevelCommaParts`](../workspace_macro_helpers/src/lib.rs#L145)
+- [`struct TopLevelCommaPart`](../workspace_macro_helpers/src/lib.rs#L190)
+- [`struct FirstIdentifier`](../workspace_macro_helpers/src/lib.rs#L234)
+- [`struct FirstIdentifierifierTryFromStringError`](../workspace_macro_helpers/src/lib.rs#L236)
+- [`struct UniqueOptionBTreeSet`](../workspace_macro_helpers/src/lib.rs#L271)
+- [`struct StdUniqueOptionSetContains`](../workspace_macro_helpers/src/lib.rs#L280)
+- [`struct StdUniqueOptionSetIsEmpty`](../workspace_macro_helpers/src/lib.rs#L293)
+- [`struct FirstCommaStripped`](../workspace_macro_helpers/src/lib.rs#L339)
+- [`struct PartIndex`](../workspace_macro_helpers/src/lib.rs#L354)
+- [`struct ClosureIdentifierAndBody`](../workspace_macro_helpers/src/lib.rs#L456)
 
 ## `workspace_scaffold/src/main.rs`
 
@@ -2886,23 +2893,23 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`struct ServiceKubernetesManifest`](../workspace_scaffold/src/main.rs#L66)
 - [`struct ServiceSocketEnv`](../workspace_scaffold/src/main.rs#L75)
 - [`struct ServiceCatalogEntries`](../workspace_scaffold/src/main.rs#L77)
-- [`struct ServiceCatalogEntriesRef`](../workspace_scaffold/src/main.rs#L79)
-- [`struct ServiceCatalogEntry`](../workspace_scaffold/src/main.rs#L82)
-- [`struct ShouldRelease`](../workspace_scaffold/src/main.rs#L101)
-- [`struct IsCatalogPathSafe`](../workspace_scaffold/src/main.rs#L110)
-- [`struct ServiceCatalogDraft`](../workspace_scaffold/src/main.rs#L113)
-- [`struct ShouldWrite`](../workspace_scaffold/src/main.rs#L147)
-- [`struct ScaffoldText`](../workspace_scaffold/src/main.rs#L157)
-- [`struct ScaffoldTextRef`](../workspace_scaffold/src/main.rs#L159)
-- [`struct StdScaffoldPathRef`](../workspace_scaffold/src/main.rs#L161)
-- [`struct ReplacementsRef`](../workspace_scaffold/src/main.rs#L163)
-- [`struct CargoArgsRef`](../workspace_scaffold/src/main.rs#L165)
-- [`struct UpdateEnvName`](../workspace_scaffold/src/main.rs#L167)
-- [`enum GeneratedProjection`](../workspace_scaffold/src/main.rs#L169)
-- [`struct ShouldSkip`](../workspace_scaffold/src/main.rs#L181)
-- [`struct StdScaffoldIoError`](../workspace_scaffold/src/main.rs#L186)
-- [`struct ServerRuntimeBoundedReadError`](../workspace_scaffold/src/main.rs#L191)
-- [`enum ScaffoldError`](../workspace_scaffold/src/main.rs#L194)
+- [`struct ServiceCatalogEntriesRef`](../workspace_scaffold/src/main.rs#L81)
+- [`struct ServiceCatalogEntry`](../workspace_scaffold/src/main.rs#L84)
+- [`struct ShouldRelease`](../workspace_scaffold/src/main.rs#L103)
+- [`struct IsCatalogPathSafe`](../workspace_scaffold/src/main.rs#L112)
+- [`struct ServiceCatalogDraft`](../workspace_scaffold/src/main.rs#L115)
+- [`struct ShouldWrite`](../workspace_scaffold/src/main.rs#L149)
+- [`struct ScaffoldText`](../workspace_scaffold/src/main.rs#L159)
+- [`struct ScaffoldTextRef`](../workspace_scaffold/src/main.rs#L161)
+- [`struct ScaffoldPathRef`](../workspace_scaffold/src/main.rs#L163)
+- [`struct ReplacementsRef`](../workspace_scaffold/src/main.rs#L165)
+- [`struct CargoArgsRef`](../workspace_scaffold/src/main.rs#L167)
+- [`struct UpdateEnvName`](../workspace_scaffold/src/main.rs#L169)
+- [`enum GeneratedProjection`](../workspace_scaffold/src/main.rs#L171)
+- [`struct ShouldSkip`](../workspace_scaffold/src/main.rs#L183)
+- [`struct ScaffoldIoError`](../workspace_scaffold/src/main.rs#L188)
+- [`struct ServerRuntimeBoundedReadError`](../workspace_scaffold/src/main.rs#L193)
+- [`enum ScaffoldError`](../workspace_scaffold/src/main.rs#L196)
 
 ## `workspace_test_runner/src/admin_fixture.rs`
 
@@ -2911,8 +2918,8 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 ## `workspace_test_runner/src/execution.rs`
 
 - [`struct CommandIdx`](../workspace_test_runner/src/execution.rs#L4)
-- [`struct StdCommandStartedAt`](../workspace_test_runner/src/execution.rs#L11)
-- [`struct StdCommandDuration`](../workspace_test_runner/src/execution.rs#L18)
+- [`struct CommandStartedAtInstant`](../workspace_test_runner/src/execution.rs#L11)
+- [`struct CommandDuration`](../workspace_test_runner/src/execution.rs#L18)
 - [`struct CommandDurationMillis`](../workspace_test_runner/src/execution.rs#L32)
 - [`struct CommandSucceeded`](../workspace_test_runner/src/execution.rs#L34)
 - [`struct CommandsRef`](../workspace_test_runner/src/execution.rs#L41)
@@ -2920,11 +2927,11 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`struct CommandArgsRef`](../workspace_test_runner/src/execution.rs#L58)
 - [`struct CommandText`](../workspace_test_runner/src/execution.rs#L63)
 - [`struct CommandTexts`](../workspace_test_runner/src/execution.rs#L65)
-- [`struct StdExecutionIoError`](../workspace_test_runner/src/execution.rs#L70)
-- [`struct TextRef`](../workspace_test_runner/src/execution.rs#L72)
-- [`struct StdRunDir`](../workspace_test_runner/src/execution.rs#L79)
-- [`struct SummaryText`](../workspace_test_runner/src/execution.rs#L84)
-- [`struct CommandRun`](../workspace_test_runner/src/execution.rs#L100)
+- [`struct ExecutionIoError`](../workspace_test_runner/src/execution.rs#L72)
+- [`struct TextRef`](../workspace_test_runner/src/execution.rs#L74)
+- [`struct RunDirPathBuf`](../workspace_test_runner/src/execution.rs#L81)
+- [`struct SummaryText`](../workspace_test_runner/src/execution.rs#L86)
+- [`struct CommandRun`](../workspace_test_runner/src/execution.rs#L102)
 
 ## `workspace_test_runner/src/main.rs`
 
@@ -2944,7 +2951,7 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`struct ToolName`](../workspace_test_runner/src/main.rs#L105)
 - [`struct ToolPath`](../workspace_test_runner/src/main.rs#L112)
 - [`struct ToolAvailable`](../workspace_test_runner/src/main.rs#L119)
-- [`struct StdRunnerIoErrorRef`](../workspace_test_runner/src/main.rs#L126)
-- [`struct StdRunnerPathRef`](../workspace_test_runner/src/main.rs#L133)
+- [`struct RunnerIoErrorRef`](../workspace_test_runner/src/main.rs#L126)
+- [`struct RunnerPathRef`](../workspace_test_runner/src/main.rs#L133)
 - [`struct RunnerMode`](../workspace_test_runner/src/main.rs#L143)
 - [`struct AllocationTool`](../workspace_test_runner/src/main.rs#L145)

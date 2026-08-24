@@ -115,12 +115,12 @@ impl TryFrom<String> for MultipartTextValue {
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::AsRefTarget,
 )]
-pub struct MultipartBytes(bounded_types::BoundedVec<u8, 0, 16_777_216>);
+pub struct MultipartBytes(bounded_types::domain_types::vector::BoundedVec<u8, 0, 16_777_216>);
 impl TryFrom<Vec<u8>> for MultipartBytes {
     type Error = MultipartValueError;
     fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
         let actual = MultipartValueLength(value.len());
-        match bounded_types::BoundedVec::try_from(value) {
+        match bounded_types::domain_types::vector::BoundedVec::try_from(value) {
             Ok(bounded) => Ok(Self(bounded)),
             Err(_error) => Err(Self::Error::TooLong { actual }),
         }
@@ -329,9 +329,9 @@ impl TryFrom<String> for StoragePathSegment {
         if value.len() > 1024usize {
             return Err(StoragePathSegmentError);
         }
-        text_policy::validate_url_safe_token_part(
-            text_policy::UrlSafeTokenPartRef::from(value.as_str()),
-            text_policy::UrlSafeTokenPartMaximumBytes::from(1024usize),
+        text_policy::domain_types::validate_url_safe_token_part(
+            text_policy::domain_types::UrlSafeTokenPartRef::from(value.as_str()),
+            text_policy::domain_types::UrlSafeTokenPartMaximumBytes::from(1024usize),
         )
         .map_err(|_error| StoragePathSegmentError)?;
         Ok(Self(value))
@@ -346,13 +346,13 @@ impl TryFrom<String> for StoragePathSegment {
     newtype::AsRefTarget,
     newtype::FromInner,
 )]
-pub struct StdStorageRelativePath(std::path::PathBuf);
+pub struct StorageRelativePathBuf(std::path::PathBuf);
 #[must_use]
 pub fn identifier_file_storage_relative_path(
     identifier: &StoragePathSegment,
     unique_file_identifier: &StoragePathSegment,
     file_name: &MultipartFileName,
-) -> StdStorageRelativePath {
+) -> StorageRelativePathBuf {
     let extension = std::path::Path::new(file_name.as_ref())
         .extension()
         .and_then(|value| value.to_str());
@@ -360,7 +360,7 @@ pub fn identifier_file_storage_relative_path(
         || unique_file_identifier.as_ref().to_owned(),
         |value| format!("{}.{value}", unique_file_identifier.as_ref()),
     );
-    StdStorageRelativePath::from(std::path::Path::new(identifier.as_ref()).join(stored_file_name))
+    StorageRelativePathBuf::from(std::path::Path::new(identifier.as_ref()).join(stored_file_name))
 }
 
 #[cfg(test)]

@@ -12,7 +12,7 @@ fn dependency_markers<Value>(
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Default)]
 #[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
 struct NewtypeAttrs {
-    options: workspace_macro_helpers::StdUniqueOptionSet<NewtypeOption>,
+    options: workspace_macro_helpers::UniqueOptionBTreeSet<NewtypeOption>,
     try_from: Option<NewtypeTryFromAttrs>,
     to_err_string_mode: Option<ToErrStringMode>,
 }
@@ -26,7 +26,7 @@ struct BoundedStringAttrs {
     description: Option<SynExpr>,
     max: Option<SynExpr>,
     min: Option<SynExpr>,
-    options: workspace_macro_helpers::StdUniqueOptionSet<BoundedStringOption>,
+    options: workspace_macro_helpers::UniqueOptionBTreeSet<BoundedStringOption>,
     validator: Option<SynExpr>,
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
@@ -99,6 +99,7 @@ enum NewtypeOption {
     DerefTarget,
     Display,
     From,
+    GetInner,
     Getter,
     IntoInner,
     IntoInnerFrom,
@@ -301,7 +302,7 @@ fn derive_newtype_option(
         Err(error) => return ProcMacro2GeneratedTokenStream::from(error.into_compile_error()),
     };
     let mut attrs = NewtypeAttrs {
-        options: workspace_macro_helpers::StdUniqueOptionSet::default(),
+        options: workspace_macro_helpers::UniqueOptionBTreeSet::default(),
         to_err_string_mode,
         try_from: None,
     };
@@ -364,7 +365,7 @@ fn derive_newtype_try_from(
         );
     };
     let attrs = NewtypeAttrs {
-        options: workspace_macro_helpers::StdUniqueOptionSet::default(),
+        options: workspace_macro_helpers::UniqueOptionBTreeSet::default(),
         to_err_string_mode: None,
         try_from: Some(NewtypeTryFromAttrs {
             error: error_opt,
@@ -684,6 +685,15 @@ pub fn getter(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
         ProcMacroInputTokenStream::from(input),
         NewtypeOption::Getter,
+        None,
+    )
+    .into()
+}
+#[proc_macro_derive(GetInner)]
+pub fn get_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    derive_newtype_option(
+        ProcMacroInputTokenStream::from(input),
+        NewtypeOption::GetInner,
         None,
     )
     .into()
@@ -1282,6 +1292,16 @@ fn generate_newtype_token_stream_with_attrs(
             }
         }
     });
+    let get_inner_token_stream = attrs.contains(NewtypeOption::GetInner).get().then(|| {
+        quote::quote! {
+            impl #impl_generics #identifier #ty_generics #where_clause {
+                #[must_use]
+                pub const fn get(self) -> #inner_ty_ref {
+                    self.0
+                }
+            }
+        }
+    });
     let into_inner_token_stream = attrs.contains(NewtypeOption::IntoInner).get().then(|| {
         quote::quote! {
             impl #impl_generics #identifier #ty_generics #where_clause {
@@ -1362,6 +1382,7 @@ fn generate_newtype_token_stream_with_attrs(
         #from_token_stream
         #try_from_token_stream
         #getter_token_stream
+        #get_inner_token_stream
         #into_inner_token_stream
         #into_inner_from_token_stream
         #into_iterator_token_stream
@@ -1626,7 +1647,7 @@ fn parse_bounded_string_attrs(attrs: SynAttrsRef<'_>) -> syn::Result<BoundedStri
                 description: None,
                 max: None,
                 min: None,
-                options: workspace_macro_helpers::StdUniqueOptionSet::default(),
+                options: workspace_macro_helpers::UniqueOptionBTreeSet::default(),
                 validator: None,
             },
             |mut parsed, attr| {
@@ -1814,27 +1835,27 @@ fn generate_to_err_string_token_stream(
     attrs.to_err_string_mode.map(|mode| match mode {
         ToErrStringMode::AsRefStr => {
             ProcMacro2GeneratedTokenStream::from(quote::quote! {
-                impl to_err_string::ToErrString for #ident_ref {
-                    fn to_err_string(&self) -> to_err_string::ErrorText {
-                        to_err_string::ErrorText::try_from(AsRef::<str>::as_ref(&self.0).to_owned()).unwrap_or_else(to_err_string::ErrorText::from)
+                impl to_err_string::domain_types::ToErrString for #ident_ref {
+                    fn to_err_string(&self) -> to_err_string::domain_types::ErrorText {
+                        to_err_string::domain_types::ErrorText::try_from(AsRef::<str>::as_ref(&self.0).to_owned()).unwrap_or_else(to_err_string::domain_types::ErrorText::from)
                     }
                 }
             })
         }
         ToErrStringMode::Debug => {
             ProcMacro2GeneratedTokenStream::from(quote::quote! {
-                impl to_err_string::ToErrString for #ident_ref {
-                    fn to_err_string(&self) -> to_err_string::ErrorText {
-                        to_err_string::ErrorText::try_from(format!("{:?}", self.0)).unwrap_or_else(to_err_string::ErrorText::from)
+                impl to_err_string::domain_types::ToErrString for #ident_ref {
+                    fn to_err_string(&self) -> to_err_string::domain_types::ErrorText {
+                        to_err_string::domain_types::ErrorText::try_from(format!("{:?}", self.0)).unwrap_or_else(to_err_string::domain_types::ErrorText::from)
                     }
                 }
             })
         }
         ToErrStringMode::Display => {
             ProcMacro2GeneratedTokenStream::from(quote::quote! {
-                impl to_err_string::ToErrString for #ident_ref {
-                    fn to_err_string(&self) -> to_err_string::ErrorText {
-                        to_err_string::ErrorText::try_from(self.0.to_string()).unwrap_or_else(to_err_string::ErrorText::from)
+                impl to_err_string::domain_types::ToErrString for #ident_ref {
+                    fn to_err_string(&self) -> to_err_string::domain_types::ErrorText {
+                        to_err_string::domain_types::ErrorText::try_from(self.0.to_string()).unwrap_or_else(to_err_string::domain_types::ErrorText::from)
                     }
                 }
             })

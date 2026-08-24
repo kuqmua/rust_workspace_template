@@ -6,14 +6,9 @@
     Eq,
     PartialEq,
     newtype::FromInner,
+    newtype::GetInner,
 )]
 pub struct HandlerPath(&'static str);
-impl HandlerPath {
-    #[must_use]
-    pub const fn get(self) -> &'static str {
-        self.0
-    }
-}
 
 pub trait HandlerContract: Copy {
     fn method(self) -> super::RouteMethod;

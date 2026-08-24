@@ -7,20 +7,14 @@
     PartialEq,
     newtype::Display,
     newtype::FromInner,
+    newtype::GetInner,
 )]
 pub struct ObservedErrorCode(&'static str);
-
-impl ObservedErrorCode {
-    #[must_use]
-    pub const fn get(self) -> &'static str {
-        self.0
-    }
-}
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::Display, newtype::FromInner,
 )]
-pub struct StdObservedErrorBacktrace(std::backtrace::Backtrace);
+pub struct ObservedErrorBacktrace(std::backtrace::Backtrace);
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
@@ -43,7 +37,7 @@ pub struct ObservedError<Source>
 where
     Source: std::error::Error + 'static,
 {
-    backtrace: StdObservedErrorBacktrace,
+    backtrace: ObservedErrorBacktrace,
     error_code: ObservedErrorCode,
     location: StdPanicLocation,
     source: Source,
@@ -55,7 +49,7 @@ where
     Source: std::error::Error + 'static,
 {
     #[must_use]
-    pub const fn backtrace(&self) -> &StdObservedErrorBacktrace {
+    pub const fn backtrace(&self) -> &ObservedErrorBacktrace {
         &self.backtrace
     }
 
@@ -68,7 +62,7 @@ where
             |metadata| format!("{current_span:?} [{}]", metadata.name()),
         );
         Self {
-            backtrace: StdObservedErrorBacktrace::from(std::backtrace::Backtrace::force_capture()),
+            backtrace: ObservedErrorBacktrace::from(std::backtrace::Backtrace::force_capture()),
             error_code,
             location: StdPanicLocation::from(std::panic::Location::caller()),
             source,

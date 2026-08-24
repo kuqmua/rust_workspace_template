@@ -44,7 +44,7 @@ impl BackgroundTask {
     }
     pub async fn shutdown(
         mut self,
-        timeout: StdRequestTimeout,
+        timeout: RequestTimeoutDuration,
     ) -> Result<BackgroundTaskOutcome, BackgroundTaskShutdownError> {
         if let Some(shutdown_tx) = self.shutdown_tx.take() {
             let _send_result = shutdown_tx.0.send(());
@@ -76,8 +76,8 @@ impl Drop for BackgroundTask {
     }
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub struct StdRunInterval(std::time::Duration);
-impl TryFrom<std::time::Duration> for StdRunInterval {
+pub struct RunIntervalDuration(std::time::Duration);
+impl TryFrom<std::time::Duration> for RunIntervalDuration {
     type Error = StdRunIntervalTryFromDurationError;
     fn try_from(value: std::time::Duration) -> Result<Self, Self::Error> {
         if value.is_zero() {
@@ -93,13 +93,13 @@ impl TryFrom<std::time::Duration> for StdRunInterval {
 #[error("{}", constants_str::RUN_INTERVAL_MUST_BE_GREATER_THAN_ZERO)]
 pub struct StdRunIntervalTryFromDurationError;
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub struct StdRequestTimeout(std::time::Duration);
-impl StdRequestTimeout {
+pub struct RequestTimeoutDuration(std::time::Duration);
+impl RequestTimeoutDuration {
     pub(crate) const fn get(self) -> std::time::Duration {
         self.0
     }
 }
-impl TryFrom<std::time::Duration> for StdRequestTimeout {
+impl TryFrom<std::time::Duration> for RequestTimeoutDuration {
     type Error = StdRequestTimeoutTryFromDurationError;
     fn try_from(value: std::time::Duration) -> Result<Self, Self::Error> {
         if value.is_zero() {
@@ -121,7 +121,7 @@ pub async fn abort_and_wait_task(task: TokioAbortTask) -> Result<(), TokioTaskJo
 #[must_use]
 #[allow(clippy::integer_division_remainder_used)]
 pub fn spawn_interval_task<Run, RunFuture>(
-    optional_interval: Option<StdRunInterval>,
+    optional_interval: Option<RunIntervalDuration>,
     mut run: Run,
 ) -> Option<BackgroundTask>
 where

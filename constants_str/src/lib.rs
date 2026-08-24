@@ -2,7 +2,7 @@
 //!
 //! Domain values are owned by typed APIs: administrator routes and frontend paths by
 //! `server_admin_contract` route/path types, permissions by `AdminPermission`, configuration keys
-//! by `server_config::Config` fields interpreted by `TryFromEnv`, and table column names by the
+//! by `server_config::domain_types::Config` fields interpreted by `TryFromEnv`, and table column names by the
 //! generated table descriptors. The remaining `ENV_NAMES_*` constants support infrastructure and
 //! conformance tests; `SQL_NAMES_ID` is a documented generic SQL-protocol token validated through
 //! `pg_crud_common::PgSqlIdentifier`, not an application-schema declaration.
@@ -2071,8 +2071,8 @@ define_str_constants! {
         pub SOURCETEXT = [WORD_SOURCETEXT];
         pub SQLCOLUMNREF = ["SqlColumnRef"];
         pub SQLXPOSTGRESQUERY = ["SqlxPostgresQuery"];
-        pub STDARCCOMMONROUTESAPPSTATE = ["StdArcCommonRoutesAppState"];
-        pub STDLOCATIONDURATION = ["StdLocationDuration"];
+        pub STDARCCOMMONROUTESAPPSTATE = ["ArcCommonRoutesAppState"];
+        pub STDLOCATIONDURATION = ["LocationDuration"];
         pub STDOPTIONALOPTIONAL = ["StdOptionalOptional"];
         pub STRING = [WORD_STRING];
         pub TEST_FUTURE_CONCURRENCY_D281414B = ["TEST_FUTURE_CONCURRENCY_D281414B"];
@@ -3185,15 +3185,15 @@ define_str_constants! {
         pub TRIM = ["trim"];
         pub TRUE = [WORD_TRUE_2];
         pub TRYBUILD_ROUTE_CONTRACT_ASTERISK_RS = ["trybuild/route_contract_*.", WORD_RS];
-        pub TUPLE_WRAPPERS_OVER_EXTERNAL_TYPES_MUST_INCLUDE_THE_EXTERNAL_CRATE_NAME = [WORD_TUPLE, " ", WORD_WRAPPERS, " over ", WORD_EXTERNAL, " ", WORD_TYPES, " ", WORD_MUST, " include ", WORD_THE, " ", WORD_EXTERNAL, " ", WORD_CRATE, " ", WORD_NAME_2, ":"];
+        pub TUPLE_WRAPPERS_OVER_EXTERNAL_TYPES_MUST_INCLUDE_THE_SOURCE_NAME = [WORD_TUPLE, " ", WORD_WRAPPERS, " over ", WORD_EXTERNAL, " ", WORD_TYPES, " ", WORD_MUST, " include ", WORD_THE, " source ", WORD_NAME_2, ":"];
         pub TWO_OR_MORE_SUPPORTED_ATTRS = ["two ", WORD_OR_2, " more supported attrs!"];
         pub TXT = [WORD_TXT];
         pub TYPE_ALIASES_FOUND_USE_EXPLICIT_TYPES_AT_USAGE_SITES = [WORD_TYPE_2, " ", WORD_ALIASES, " ", WORD_FOUND, "; ", WORD_USE, " ", WORD_EXPLICIT, " ", WORD_TYPES, " ", WORD_AT, " ", WORD_USAGE, " ", WORD_SITES, ":"];
         pub TYPES_PATH_SOURCETEXT = [WORD_TYPES, "::", WORD_SOURCETEXT];
         pub TYPES_PATH_SOURCETEXTLIST = [WORD_TYPES, "::", WORD_SOURCETEXTLIST];
         pub TYPES_PATH_SOURCETEXTREF = [WORD_TYPES, "::", WORD_SOURCETEXTREF];
-        pub TYPES_PATH_STDSOURCETEXTHASHSET_OR_TYPES_PATH_STDSOURCETEXTREFSET = [WORD_TYPES, "::StdSourceTextHashSet ", WORD_OR_2, " ", WORD_TYPES, "::StdSourceTextRefSet"];
-        pub TYPES_PATH_STDSOURCETEXTSET = [WORD_TYPES, "::StdSourceTextSet"];
+        pub TYPES_PATH_STDSOURCETEXTHASHSET_OR_TYPES_PATH_STDSOURCETEXTREFSET = [WORD_TYPES, "::SourceTextHashSet ", WORD_OR_2, " ", WORD_TYPES, "::SourceTextRefHashSet"];
+        pub TYPES_PATH_STDSOURCETEXTSET = [WORD_TYPES, "::SourceTextBTreeSet"];
         pub UDEPS = [WORD_UDEPS];
         pub UNAUTHORIZED_401 = ["unauthorized_401"];
         pub UNAVAILABLE = [WORD_UNAVAILABLE];
@@ -3624,12 +3624,12 @@ pub const CODE_STYLE_REVIEWED_PUBLIC_FIELD_PATH_SUFFIXES: [&str; 14] = [
     "location_lib/src/location.rs",
     "location_lib/src/location.rs",
     "macros_helpers/src/syn_field.rs",
-    "server_app_state/src/lib.rs",
+    "server_app_state/src/domain_types.rs",
     "pg_crud_common/src/lib.rs",
     "pg_crud_common/src/lib.rs",
     "pg_crud_common/src/query_pagination.rs",
     "pg_crud_common/src/query_collections.rs",
-    "server_config/src/lib.rs",
+    "server_config/src/domain_types.rs",
     "server_admin/src/generated_tables.rs",
     "server_admin/src/generated_tables.rs",
     "server_admin/src/generated_tables.rs",
@@ -3671,7 +3671,7 @@ pub const CODE_STYLE_REVIEWED_PUBLIC_FIELD_STRUCT_NAMES: [&str; 14] = [
 pub const CODE_STYLE_DIRECT_FS_OWNER_SUFFIXES: [&str; 11] = [
     "/config_lib/src/lib.rs",
     "/config_lib/src/types.rs",
-    "/file_storage/src/lib.rs",
+    "/file_storage/src/domain_types.rs",
     "/initialize_environment_files/src/main.rs",
     CODE_STYLE_MACRO_CLIPPY_FS_OWNER_SUFFIX,
     CODE_STYLE_MACROS_HLP_TEST_FS_OWNER_SUFFIX,

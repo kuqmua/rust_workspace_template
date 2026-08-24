@@ -10,7 +10,7 @@
 )]
 struct TracingLevelName(&'static str);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
-struct StdEnvVarResult(Result<String, std::env::VarError>);
+struct EnvVarResultVarError(Result<String, std::env::VarError>);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -20,8 +20,8 @@ struct StdEnvVarResult(Result<String, std::env::VarError>);
     newtype::FromInner,
 )]
 #[error(transparent)]
-struct StdEnvVarError(std::env::VarError);
-impl TryFrom<Result<String, std::env::VarError>> for StdEnvVarResult {
+struct EnvVarError(std::env::VarError);
+impl TryFrom<Result<String, std::env::VarError>> for EnvVarResultVarError {
     type Error = super::ConfigLibStringWrapperTryFromStringError;
     fn try_from(value: Result<String, std::env::VarError>) -> Result<Self, Self::Error> {
         match value {
@@ -59,12 +59,12 @@ enum EnvParseError {
     Read {
         name: super::EnvVarName,
         #[source]
-        source: StdEnvVarError,
+        source: EnvVarError,
     },
     #[error("{context}: {detail}")]
     Parse {
         context: ParseCtxRef,
-        detail: to_err_string::ErrorText,
+        detail: to_err_string::domain_types::ErrorText,
     },
 }
 impl From<super::ConfigLibStringWrapperTryFromStringError> for EnvParseError {
@@ -152,25 +152,30 @@ impl SrcPlaceType {
     pub fn from_env_or_default() -> Self {
         let default = Self::default();
         if let Err(error) = dotenv::dotenv() {
-            eprintln!("dotenv::dotenv() failed in SrcPlaceType::from_env_or_default: {error}");
+            tracing::warn!(
+                error = %error,
+                "dotenv initialization failed while resolving the source place type"
+            );
         }
         let parsed =
-            StdEnvVarResult::try_from(std::env::var(constants_str::ENV_NAMES_SRC_PLACE_TYPE))
+            EnvVarResultVarError::try_from(std::env::var(constants_str::ENV_NAMES_SRC_PLACE_TYPE))
                 .map_err(EnvParseError::from)
                 .and_then(Self::parse_src_place_type_from_env_var);
         match parsed {
             Ok(v) => v,
             Err(message) => {
-                eprintln!(
-                    "using default SrcPlaceType::{default:#?} ({message}) {}",
-                    constants_str::CONFIG_SRC_PLACE_TYPE_FIX_MSG
+                tracing::warn!(
+                    error = %message,
+                    default = ?default,
+                    fix = constants_str::CONFIG_SRC_PLACE_TYPE_FIX_MSG,
+                    "using the default source place type"
                 );
                 default
             }
         }
     }
     #[allow(clippy::single_call_fn)] // helper keeps env-read error context centralized and deterministic for tests
-    fn parse_src_place_type_from_env_var(v: StdEnvVarResult) -> Result<Self, EnvParseError> {
+    fn parse_src_place_type_from_env_var(v: EnvVarResultVarError) -> Result<Self, EnvParseError> {
         parse_from_env_var_from_str(
             v,
             EnvVarNameRef::from(constants_str::ENV_NAMES_SRC_PLACE_TYPE),
@@ -180,14 +185,14 @@ impl SrcPlaceType {
 }
 #[allow(clippy::single_call_fn)] // helper centralizes env var context mapping for string parsers and is reused by enum parsing
 fn parse_from_env_var_with<T>(
-    env_v: StdEnvVarResult,
+    env_v: EnvVarResultVarError,
     env_var_name: EnvVarNameRef<'static>,
     parse: impl FnOnce(EnvVarValueRef<'_>) -> Result<T, EnvParseError>,
 ) -> Result<T, EnvParseError> {
     let raw_v = env_v.0.map_err(|source| EnvParseError::Read {
         name: super::EnvVarName::try_from(env_var_name.0.to_owned())
             .unwrap_or_else(super::EnvVarName::from),
-        source: StdEnvVarError::from(source),
+        source: EnvVarError::from(source),
     })?;
     parse(EnvVarValueRef::from(raw_v.as_str()))
 }
@@ -202,13 +207,13 @@ where
 {
     T::from_str(v.0).map_err(|error| EnvParseError::Parse {
         context: parse_ctx,
-        detail: to_err_string::ErrorText::try_from(error.to_string())
-            .unwrap_or_else(to_err_string::ErrorText::from),
+        detail: to_err_string::domain_types::ErrorText::try_from(error.to_string())
+            .unwrap_or_else(to_err_string::domain_types::ErrorText::from),
     })
 }
 #[allow(clippy::single_call_fn)] // helper composes env var read + std::str::FromStr context mapping for reuse across enum env parsers
 fn parse_from_env_var_from_str<T>(
-    env_v: StdEnvVarResult,
+    env_v: EnvVarResultVarError,
     env_var_name: EnvVarNameRef<'static>,
     parse_ctx: ParseCtxRef,
 ) -> Result<T, EnvParseError>
@@ -222,15 +227,16 @@ where
 }
 #[cfg(test)]
 mod tests {
-    fn env_result(value: Result<String, std::env::VarError>) -> super::StdEnvVarResult {
-        super::StdEnvVarResult::try_from(value).expect("a4aa0c6f env_result invariant must hold")
+    fn env_result(value: Result<String, std::env::VarError>) -> super::EnvVarResultVarError {
+        super::EnvVarResultVarError::try_from(value)
+            .expect("a4aa0c6f env_result invariant must hold")
     }
     #[test]
     fn environment_result_rejects_values_above_shared_limit() {
         let value = constants_str::TEST_JWT_SECRET_CHARACTER_A.repeat(
             super::super::CONFIG_LIB_STRING_WRAPPER_MAX_LEN.saturating_add(constants_usize::ONE),
         );
-        let Err(_error) = super::StdEnvVarResult::try_from(Ok(value)) else {
+        let Err(_error) = super::EnvVarResultVarError::try_from(Ok(value)) else {
             panic!("3ee39bcb");
         };
     }

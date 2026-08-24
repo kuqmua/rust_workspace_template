@@ -500,7 +500,9 @@ impl std::fmt::Display for Range {
         write!(
             f,
             "{}",
-            naming::parameter::SelfNonNullUpperCamelCase::from_display(&PgType::from(self))
+            naming::domain_types::parameter::SelfNonNullUpperCamelCase::from_display(
+                &PgType::from(self)
+            )
         )
     }
 }
@@ -856,96 +858,99 @@ pub fn emit_generate_pg_types(
     let generate_pg_types_config = validated.config;
     let allow_clippy_arbitrary_src_item_ordering =
         token_patterns::AllowClippyArbitrarySrcItemOrdering;
-    let as_upper_camel_case = naming::AsUpperCamelCase;
-    let column_snake_case = naming::ColumnSnakeCase;
-    let contains_null_byte_upper_camel_case = naming::ContainsNullByteUpperCamelCase;
+    let as_upper_camel_case = naming::domain_types::AsUpperCamelCase;
+    let column_snake_case = naming::domain_types::ColumnSnakeCase;
+    let contains_null_byte_upper_camel_case = naming::domain_types::ContainsNullByteUpperCamelCase;
     let core_default = token_patterns::CoreDefault;
-    let create_snake_case = naming::CreateSnakeCase;
-    let date_naive_snake_case = naming::DateNaiveSnakeCase;
-    let date_naive_upper_camel_case = naming::DateNaiveUpperCamelCase;
-    let date_snake_case = naming::DateSnakeCase;
-    let date_upper_camel_case = naming::DateUpperCamelCase;
-    let days_snake_case = naming::DaysSnakeCase;
-    let earlier_date_not_supported_upper_camel_case = naming::EarlierDateNotSupportedUpperCamelCase;
-    let earliest_supported_date_snake_case = naming::EarliestSupportedDateSnakeCase;
-    let end_snake_case = naming::EndSnakeCase;
-    let end_upper_camel_case = naming::EndUpperCamelCase;
-    let eq_upper_camel_case = naming::EqUpperCamelCase;
-    let error_snake_case = naming::ErrorSnakeCase;
+    let create_snake_case = naming::domain_types::CreateSnakeCase;
+    let date_naive_snake_case = naming::domain_types::DateNaiveSnakeCase;
+    let date_naive_upper_camel_case = naming::domain_types::DateNaiveUpperCamelCase;
+    let date_snake_case = naming::domain_types::DateSnakeCase;
+    let date_upper_camel_case = naming::domain_types::DateUpperCamelCase;
+    let days_snake_case = naming::domain_types::DaysSnakeCase;
+    let earlier_date_not_supported_upper_camel_case =
+        naming::domain_types::EarlierDateNotSupportedUpperCamelCase;
+    let earliest_supported_date_snake_case = naming::domain_types::EarliestSupportedDateSnakeCase;
+    let end_snake_case = naming::domain_types::EndSnakeCase;
+    let end_upper_camel_case = naming::domain_types::EndUpperCamelCase;
+    let eq_upper_camel_case = naming::domain_types::EqUpperCamelCase;
+    let error_snake_case = naming::domain_types::ErrorSnakeCase;
     let excluded_start_greater_than_excluded_end_upper_camel_case =
-        naming::ExcludedStartGreaterThanExcludedEndUpperCamelCase;
+        naming::domain_types::ExcludedStartGreaterThanExcludedEndUpperCamelCase;
     let excluded_start_greater_than_included_end_upper_camel_case =
-        naming::ExcludedStartGreaterThanIncludedEndUpperCamelCase;
-    let excluded_upper_camel_case = naming::ExcludedUpperCamelCase;
+        naming::domain_types::ExcludedStartGreaterThanIncludedEndUpperCamelCase;
+    let excluded_upper_camel_case = naming::domain_types::ExcludedUpperCamelCase;
     let f32_token_stream = token_patterns::F32;
-    let generate_pg_types_mod_snake_case = naming::GeneratePgTypesModSnakeCase;
-    let hour_snake_case = naming::HourSnakeCase;
+    let generate_pg_types_mod_snake_case = naming::domain_types::GeneratePgTypesModSnakeCase;
+    let hour_snake_case = naming::domain_types::HourSnakeCase;
     let i16_token_stream = token_patterns::I16;
     let i32_token_stream = token_patterns::I32;
     let i64_token_stream = token_patterns::I64;
-    let included_end_cannot_be_max_upper_camel_case = naming::IncludedEndCannotBeMaxUpperCamelCase;
+    let included_end_cannot_be_max_upper_camel_case =
+        naming::domain_types::IncludedEndCannotBeMaxUpperCamelCase;
     let included_start_greater_than_excluded_end_upper_camel_case =
-        naming::IncludedStartGreaterThanExcludedEndUpperCamelCase;
+        naming::domain_types::IncludedStartGreaterThanExcludedEndUpperCamelCase;
     let included_start_greater_than_included_end_upper_camel_case =
-        naming::IncludedStartGreaterThanIncludedEndUpperCamelCase;
-    let included_upper_camel_case = naming::IncludedUpperCamelCase;
-    let increment_snake_case = naming::IncrementSnakeCase;
+        naming::domain_types::IncludedStartGreaterThanIncludedEndUpperCamelCase;
+    let included_upper_camel_case = naming::domain_types::IncludedUpperCamelCase;
+    let increment_snake_case = naming::domain_types::IncrementSnakeCase;
     let invalid_hour_or_minute_or_second_or_microsecond_upper_camel_case =
-        naming::InvalidHourOrMinuteOrSecondOrMicrosecondUpperCamelCase;
-    let max_snake_case = naming::MaxSnakeCase;
-    let micro_snake_case = naming::MicroSnakeCase;
-    let microsecond_snake_case = naming::MicrosecondSnakeCase;
-    let microseconds_snake_case = naming::MicrosecondsSnakeCase;
-    let min_snake_case = naming::MinSnakeCase;
-    let minute_snake_case = naming::MinuteSnakeCase;
-    let months_snake_case = naming::MonthsSnakeCase;
+        naming::domain_types::InvalidHourOrMinuteOrSecondOrMicrosecondUpperCamelCase;
+    let max_snake_case = naming::domain_types::MaxSnakeCase;
+    let micro_snake_case = naming::domain_types::MicroSnakeCase;
+    let microsecond_snake_case = naming::domain_types::MicrosecondSnakeCase;
+    let microseconds_snake_case = naming::domain_types::MicrosecondsSnakeCase;
+    let min_snake_case = naming::domain_types::MinSnakeCase;
+    let minute_snake_case = naming::domain_types::MinuteSnakeCase;
+    let months_snake_case = naming::domain_types::MonthsSnakeCase;
     let must_use = token_patterns::MustUse;
     let nanosecond_precision_is_not_supported_upper_camel_case =
-        naming::NanosecondPrecisionIsNotSupportedUpperCamelCase;
-    let nanosecond_snake_case = naming::NanosecondSnakeCase;
-    let near_zero_snake_case = naming::NearZeroSnakeCase;
-    let negative_less_typical_snake_case = naming::NegativeLessTypicalSnakeCase;
-    let negative_more_typical_snake_case = naming::NegativeMoreTypicalSnakeCase;
-    let new_snake_case = naming::NewSnakeCase;
-    let not_uuid_upper_camel_case = naming::NotUuidUpperCamelCase;
-    let optional_update_snake_case = naming::OptionalUpdateSnakeCase;
-    let optional_vec_create_snake_case = naming::OptionalVecCreateSnakeCase;
+        naming::domain_types::NanosecondPrecisionIsNotSupportedUpperCamelCase;
+    let nanosecond_snake_case = naming::domain_types::NanosecondSnakeCase;
+    let near_zero_snake_case = naming::domain_types::NearZeroSnakeCase;
+    let negative_less_typical_snake_case = naming::domain_types::NegativeLessTypicalSnakeCase;
+    let negative_more_typical_snake_case = naming::domain_types::NegativeMoreTypicalSnakeCase;
+    let new_snake_case = naming::domain_types::NewSnakeCase;
+    let not_uuid_upper_camel_case = naming::domain_types::NotUuidUpperCamelCase;
+    let optional_update_snake_case = naming::domain_types::OptionalUpdateSnakeCase;
+    let optional_vec_create_snake_case = naming::domain_types::OptionalVecCreateSnakeCase;
     let pg_crud_common_default_some_one_element_call =
         token_patterns::PgCrudCommonDefaultSomeOneElementCall;
-    let pg_type_primary_key_upper_camel_case = naming::PgTypePrimaryKeyUpperCamelCase;
-    let pg_type_upper_camel_case = naming::PgTypeUpperCamelCase;
-    let positive_less_typical_snake_case = naming::PositiveLessTypicalSnakeCase;
-    let positive_more_typical_snake_case = naming::PositiveMoreTypicalSnakeCase;
-    let query_snake_case = naming::QuerySnakeCase;
-    let read_ids_and_create_into_read_snake_case = naming::ReadIdsAndCreateIntoReadSnakeCase;
-    let read_ids_into_read_snake_case = naming::ReadIdsIntoReadSnakeCase;
-    let read_ids_into_table_type_snake_case = naming::ReadIdsIntoTableTypeSnakeCase;
-    let read_ids_into_update_snake_case = naming::ReadIdsIntoUpdateSnakeCase;
-    let read_ids_snake_case = naming::ReadIdsSnakeCase;
+    let pg_type_primary_key_upper_camel_case = naming::domain_types::PgTypePrimaryKeyUpperCamelCase;
+    let pg_type_upper_camel_case = naming::domain_types::PgTypeUpperCamelCase;
+    let positive_less_typical_snake_case = naming::domain_types::PositiveLessTypicalSnakeCase;
+    let positive_more_typical_snake_case = naming::domain_types::PositiveMoreTypicalSnakeCase;
+    let query_snake_case = naming::domain_types::QuerySnakeCase;
+    let read_ids_and_create_into_read_snake_case =
+        naming::domain_types::ReadIdsAndCreateIntoReadSnakeCase;
+    let read_ids_into_read_snake_case = naming::domain_types::ReadIdsIntoReadSnakeCase;
+    let read_ids_into_table_type_snake_case = naming::domain_types::ReadIdsIntoTableTypeSnakeCase;
+    let read_ids_into_update_snake_case = naming::domain_types::ReadIdsIntoUpdateSnakeCase;
+    let read_ids_snake_case = naming::domain_types::ReadIdsSnakeCase;
     let read_ids_to_2_dimensions_vec_read_inner_snake_case =
-        naming::ReadIdsTo2DimensionsVecReadInnerSnakeCase;
-    let read_ids_upper_camel_case = naming::ReadIdsUpperCamelCase;
-    let read_into_table_type_snake_case = naming::ReadIntoTableTypeSnakeCase;
-    let read_snake_case = naming::ReadSnakeCase;
-    let read_upper_camel_case = naming::ReadUpperCamelCase;
-    let sec_snake_case = naming::SecSnakeCase;
-    let second_snake_case = naming::SecondSnakeCase;
-    let self_snake_case = naming::SelfSnakeCase;
-    let self_upper_camel_case = naming::SelfUpperCamelCase;
-    let start_snake_case = naming::StartSnakeCase;
-    let start_upper_camel_case = naming::StartUpperCamelCase;
+        naming::domain_types::ReadIdsTo2DimensionsVecReadInnerSnakeCase;
+    let read_ids_upper_camel_case = naming::domain_types::ReadIdsUpperCamelCase;
+    let read_into_table_type_snake_case = naming::domain_types::ReadIntoTableTypeSnakeCase;
+    let read_snake_case = naming::domain_types::ReadSnakeCase;
+    let read_upper_camel_case = naming::domain_types::ReadUpperCamelCase;
+    let sec_snake_case = naming::domain_types::SecSnakeCase;
+    let second_snake_case = naming::domain_types::SecondSnakeCase;
+    let self_snake_case = naming::domain_types::SelfSnakeCase;
+    let self_upper_camel_case = naming::domain_types::SelfUpperCamelCase;
+    let start_snake_case = naming::domain_types::StartSnakeCase;
+    let start_upper_camel_case = naming::domain_types::StartUpperCamelCase;
     let string_token_stream = token_patterns::StringTokenStream;
-    let time_snake_case = naming::TimeSnakeCase;
-    let time_upper_camel_case = naming::TimeUpperCamelCase;
-    let to_err_string_snake_case = naming::ToErrStringSnakeCase;
-    let try_new_snake_case = naming::TryNewSnakeCase;
-    let table_type_snake_case = naming::TableTypeSnakeCase;
-    let table_type_upper_camel_case = naming::TableTypeUpperCamelCase;
+    let time_snake_case = naming::domain_types::TimeSnakeCase;
+    let time_upper_camel_case = naming::domain_types::TimeUpperCamelCase;
+    let to_err_string_snake_case = naming::domain_types::ToErrStringSnakeCase;
+    let try_new_snake_case = naming::domain_types::TryNewSnakeCase;
+    let table_type_snake_case = naming::domain_types::TableTypeSnakeCase;
+    let table_type_upper_camel_case = naming::domain_types::TableTypeUpperCamelCase;
     let u8_token_stream = token_patterns::U8;
     let u32_token_stream = token_patterns::U32;
-    let unbounded_upper_camel_case = naming::UnboundedUpperCamelCase;
-    let update_upper_camel_case = naming::UpdateUpperCamelCase;
-    let v_snake_case = naming::VSnakeCase;
+    let unbounded_upper_camel_case = naming::domain_types::UnboundedUpperCamelCase;
+    let update_upper_camel_case = naming::domain_types::UpdateUpperCamelCase;
+    let v_snake_case = naming::domain_types::VSnakeCase;
     let (cols_token_stream_vec, mut pg_type_array_vec) = {
         let generate_variants = |should_include: &dyn Fn(&PgType) -> bool| {
             let pg_type_iter =
@@ -1131,11 +1136,11 @@ enum IntRangeType {
         let identifier_standard_non_null_as_pg_type_token_stream = generate_as_pg_type_token_stream(&identifier_standard_non_null_upper_camel_case);
         let self_pg_type_as_pg_type_token_stream = generate_as_pg_type_token_stream(&quote::quote! {Self::#pg_type_upper_camel_case});
         let identifier_standard_non_null_as_pg_type_test_cases_token_stream = generate_as_pg_type_test_cases_token_stream(&identifier_standard_non_null_upper_camel_case);
-        let generate_identifier_standard_non_null_origin_token_stream = |pg_type_parameter: &PgType| naming::parameter::SelfOriginUpperCamelCase::from_tokens(
+        let generate_identifier_standard_non_null_origin_token_stream = |pg_type_parameter: &PgType| naming::domain_types::parameter::SelfOriginUpperCamelCase::from_tokens(
             &generate_identifier_standard_non_null_token_stream(pg_type_parameter)
         );
         let identifier_standard_non_null_origin_upper_camel_case = generate_identifier_standard_non_null_origin_token_stream(pg_type);
-        let identifier_origin_upper_camel_case = naming::parameter::SelfOriginUpperCamelCase::from_tokens(&identifier);
+        let identifier_origin_upper_camel_case = naming::domain_types::parameter::SelfOriginUpperCamelCase::from_tokens(&identifier);
         let identifier_origin_wire_upper_camel_case = quote::format_ident!("{}Wire", identifier_origin_upper_camel_case.to_string());
         let generate_impl_wrapper_traits_token_stream = |identifier_token_stream: &dyn quote::ToTokens,
                                           target_token_stream: &dyn quote::ToTokens,
@@ -1162,7 +1167,7 @@ enum IntRangeType {
         let sqlx_types_chrono_naive_time_as_non_null_time_origin_upper_camel_case = generate_identifier_standard_non_null_origin_token_stream(&PgType::SqlxTypesChronoNaiveTimeAsTime);
         let sqlx_types_chrono_naive_date_time_as_non_null_timestamp_origin_upper_camel_case = generate_identifier_standard_non_null_origin_token_stream(&PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp);
         let sqlx_types_chrono_date_time_sqlx_types_chrono_utc_as_non_null_timestamptz_origin_upper_camel_case = generate_identifier_standard_non_null_origin_token_stream(&PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz);
-        let generate_identifier_standard_non_null_origin_try_new_error_token_stream = |pg_type_parameter: &PgType| naming::parameter::SelfOriginTryNewErrorUpperCamelCase::from_tokens(
+        let generate_identifier_standard_non_null_origin_try_new_error_token_stream = |pg_type_parameter: &PgType| naming::domain_types::parameter::SelfOriginTryNewErrorUpperCamelCase::from_tokens(
             &generate_identifier_standard_non_null_token_stream(pg_type_parameter)
         );
         let sqlx_types_chrono_naive_date_as_non_null_date_origin_try_new_error_upper_camel_case = generate_identifier_standard_non_null_origin_try_new_error_token_stream(&PgType::SqlxTypesChronoNaiveDateAsDate);
@@ -1498,13 +1503,13 @@ enum IntRangeType {
         } else {
             IsNonNullStandardCanBePrimaryKey::False
         };
-        let generate_start_or_end_upper_camel_case = |start_or_end: &StartOrEnd| -> &dyn naming::DisplayPlusToTokens {
+        let generate_start_or_end_upper_camel_case = |start_or_end: &StartOrEnd| -> &dyn naming::domain_types::DisplayPlusToTokens {
             match &start_or_end {
                 StartOrEnd::End => &end_upper_camel_case,
                 StartOrEnd::Start => &start_upper_camel_case,
             }
         };
-        let generate_start_or_end_snake_case = |start_or_end: &StartOrEnd| -> &dyn naming::DisplayPlusToTokens {
+        let generate_start_or_end_snake_case = |start_or_end: &StartOrEnd| -> &dyn naming::domain_types::DisplayPlusToTokens {
             match &start_or_end {
                 StartOrEnd::End => &end_snake_case,
                 StartOrEnd::Start => &start_snake_case,
@@ -1531,7 +1536,7 @@ enum IntRangeType {
             let parameter_number_two = ParameterNumber::Two;
             let parameter_number_three = ParameterNumber::Three;
             let parameter_number_four = ParameterNumber::Four;
-            let identifier_standard_non_null_origin_double_quoted_token_stream = generate_quotes::dq_token_stream(&identifier_standard_non_null_origin_upper_camel_case);
+            let identifier_standard_non_null_origin_double_quoted_token_stream = generate_quotes::domain_types::dq_token_stream(&identifier_standard_non_null_origin_upper_camel_case);
             (
                 {
                     let generate_impl_ser_for_identifier_standard_non_null_origin_tokens = |ts: &dyn quote::ToTokens| {
@@ -1570,7 +1575,7 @@ enum IntRangeType {
                     let serde_state_initialization_three_fields_token_stream = generate_serde_state_initialization_token_stream(&parameter_number_three);
                     let serde_state_initialization_four_fields_token_stream = generate_serde_state_initialization_token_stream(&parameter_number_four);
                     let generate_ser_field_token_stream = |field_name: &dyn std::fmt::Display, third_parameter_token_stream: &dyn quote::ToTokens| {
-                        let field_name_double_quoted_token_stream = generate_quotes::dq_token_stream(&field_name);
+                        let field_name_double_quoted_token_stream = generate_quotes::domain_types::dq_token_stream(&field_name);
                         quote::quote! {_serde::ser::SerializeStruct::serialize_field(&mut __serde_state, #field_name_double_quoted_token_stream, #third_parameter_token_stream)?;}
                     };
                     let serde_ser_ser_struct_end_token_stream = quote::quote! {_serde::ser::SerializeStruct::end(__serde_state)};
@@ -1667,7 +1672,7 @@ enum IntRangeType {
                             generate_four_field_time_ser_token_stream(&hour_ser_field_token_stream, &min_ser_field_token_stream, &sec_ser_field_token_stream, &micro_ser_field_token_stream)
                         }))),
                         PgType::SqlxTypesTimeTimeAsTime => pg_crud_macros_common::DeriveOrImpl::Impl(macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(generate_impl_ser_for_identifier_standard_non_null_origin_tokens(&{
-                            let generate_ser_field_self_zero_token_stream = |v: &dyn naming::DisplayPlusToTokens| generate_ser_field_token_stream(&v, &quote::quote! {&self.0.#v()});
+                            let generate_ser_field_self_zero_token_stream = |v: &dyn naming::domain_types::DisplayPlusToTokens| generate_ser_field_token_stream(&v, &quote::quote! {&self.0.#v()});
                             let hour_ser_field_token_stream = generate_ser_field_self_zero_token_stream(&hour_snake_case);
                             let minute_ser_field_token_stream = generate_ser_field_self_zero_token_stream(&minute_snake_case);
                             let second_ser_field_token_stream = generate_ser_field_self_zero_token_stream(&second_snake_case);
@@ -1675,7 +1680,7 @@ enum IntRangeType {
                             generate_four_field_time_ser_token_stream(&hour_ser_field_token_stream, &minute_ser_field_token_stream, &second_ser_field_token_stream, &microsecond_ser_field_token_stream)
                         }))),
                         PgType::SqlxPgTypesPgIntervalAsInterval => pg_crud_macros_common::DeriveOrImpl::Impl(macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(generate_impl_ser_for_identifier_standard_non_null_origin_tokens(&{
-                            let generate_ser_field_handle_token_stream = |v: &dyn naming::DisplayPlusToTokens| generate_ser_field_token_stream(&v, &quote::quote! {&#self_dot_zero_token_stream.#v});
+                            let generate_ser_field_handle_token_stream = |v: &dyn naming::domain_types::DisplayPlusToTokens| generate_ser_field_token_stream(&v, &quote::quote! {&#self_dot_zero_token_stream.#v});
                             let months_ser_field_token_stream = generate_ser_field_handle_token_stream(&months_snake_case);
                             let days_ser_field_token_stream = generate_ser_field_handle_token_stream(&days_snake_case);
                             let microseconds_ser_field_token_stream = generate_ser_field_handle_token_stream(&microseconds_snake_case);
@@ -1694,7 +1699,7 @@ enum DateOrTime {
                                 Time,
                             }
                             let generate_ser_field_try_new_unwrap_token_stream = |date_or_time: &DateOrTime| {
-                                let date_or_time_token_stream: &dyn naming::DisplayPlusToTokens = match &date_or_time {
+                                let date_or_time_token_stream: &dyn naming::domain_types::DisplayPlusToTokens = match &date_or_time {
                                     DateOrTime::Date => &date_snake_case,
                                     DateOrTime::Time => &time_snake_case,
                                 };
@@ -1729,7 +1734,7 @@ enum DateNaiveOrTime {
                                 Time,
                             }
                             let generate_ser_field_try_new_unwrap_token_stream = |date_naive_or_time: &DateNaiveOrTime| {
-                                let date_naive_or_time_token_stream: &dyn naming::DisplayPlusToTokens = match &date_naive_or_time {
+                                let date_naive_or_time_token_stream: &dyn naming::domain_types::DisplayPlusToTokens = match &date_naive_or_time {
                                     DateNaiveOrTime::Date => &date_naive_snake_case,
                                     DateNaiveOrTime::Time => &time_snake_case,
                                 };
@@ -1818,9 +1823,9 @@ enum DateNaiveOrTime {
             (pg_crud_macros_common::DeriveOrImpl::Derive, pg_crud_macros_common::DeriveOrImpl::Derive)
         };
         let v_identifier_inner_type_token_stream = quote::quote! {#v_snake_case: #identifier_inner_type_token_stream};
-        let identifier_standard_non_null_read_upper_camel_case = naming::parameter::SelfReadUpperCamelCase::from_tokens(&identifier_standard_non_null_upper_camel_case);
-        let identifier_standard_non_null_origin_try_new_error_upper_camel_case = naming::parameter::SelfOriginTryNewErrorUpperCamelCase::from_display(&identifier_standard_non_null_upper_camel_case);
-        let identifier_standard_non_null_origin_try_new_for_de_error_upper_camel_case = naming::parameter::SelfOriginTryNewForDeErrorUpperCamelCase::from_display(&identifier_standard_non_null_upper_camel_case);
+        let identifier_standard_non_null_read_upper_camel_case = naming::domain_types::parameter::SelfReadUpperCamelCase::from_tokens(&identifier_standard_non_null_upper_camel_case);
+        let identifier_standard_non_null_origin_try_new_error_upper_camel_case = naming::domain_types::parameter::SelfOriginTryNewErrorUpperCamelCase::from_display(&identifier_standard_non_null_upper_camel_case);
+        let identifier_standard_non_null_origin_try_new_for_de_error_upper_camel_case = naming::domain_types::parameter::SelfOriginTryNewForDeErrorUpperCamelCase::from_display(&identifier_standard_non_null_upper_camel_case);
         let int_range_type_to_range_inner_type_token_stream = |int_range_type: &IntRangeType| -> proc_macro2::TokenStream {
             match &int_range_type {
                 IntRangeType::SqlxPgTypesPgRangeI32AsInt4Range => quote::quote! {#i32_token_stream},
@@ -2381,8 +2386,8 @@ enum IsConst {
                 #maybe_impl_identifier_token_stream
             }
         };
-        let sqlx_types_chrono_naive_date_as_date_standard_non_null_orig_token_stream = naming::parameter::SelfOriginUpperCamelCase::from_tokens(&generate_identifier_standard_non_null_token_stream(&PgType::SqlxTypesChronoNaiveDateAsDate));
-        let identifier_update_upper_camel_case = naming::parameter::SelfUpdateUpperCamelCase::from_tokens(&identifier);
+        let sqlx_types_chrono_naive_date_as_date_standard_non_null_orig_token_stream = naming::domain_types::parameter::SelfOriginUpperCamelCase::from_tokens(&generate_identifier_standard_non_null_token_stream(&PgType::SqlxTypesChronoNaiveDateAsDate));
+        let identifier_update_upper_camel_case = naming::domain_types::parameter::SelfUpdateUpperCamelCase::from_tokens(&identifier);
         let sqlx_encode_self_dot_zero_token_stream = quote::quote! {#self_snake_case.0};
         let identifier_origin_token_stream = {
             let identifier_origin_wire_token_stream = if matches!(&is_standard_non_null, pg_crud_macros_common::IsStandardNonNull::True) {
@@ -2504,13 +2509,13 @@ enum IsConst {
                             PgType::SqlxTypesChronoNaiveTimeAsTime |
                             PgType::SqlxTypesTimeTimeAsTime |
                             PgType::SqlxPgTypesPgRangeI32AsInt4Range |
-                            PgType::SqlxPgTypesPgRangeI64AsInt8Range => generate_serde_try_from_token_stream(&generate_quotes::dq_token_stream(&identifier_origin_wire_upper_camel_case)),
+                            PgType::SqlxPgTypesPgRangeI64AsInt8Range => generate_serde_try_from_token_stream(&generate_quotes::domain_types::dq_token_stream(&identifier_origin_wire_upper_camel_case)),
                             PgType::SqlxPgTypesPgIntervalAsInterval |
                             PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp |
                             PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz |
                             PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange |
                             PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange |
-                            PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => generate_serde_from_token_stream(&generate_quotes::dq_token_stream(&identifier_origin_wire_upper_camel_case)),
+                            PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => generate_serde_from_token_stream(&generate_quotes::domain_types::dq_token_stream(&identifier_origin_wire_upper_camel_case)),
                             PgType::SqlxTypesChronoNaiveDateAsDate => generate_serde_try_from_token_stream(&quote::quote! {"sqlx::types::chrono::NaiveDate"}),
                             PgType::StringAsText |
                             PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg |
@@ -2646,7 +2651,7 @@ enum IsConst {
                                 PgTypeInitializationTryNew::SqlxTypesChronoNaiveTimeAsTime | PgTypeInitializationTryNew::SqlxTypesTimeTimeAsTime => &nanosecond_precision_is_not_supported_variant_try_new_token_stream,
                                 PgTypeInitializationTryNew::SqlxTypesChronoNaiveDateAsDate => &sqlx_types_chrono_naive_date_as_date_try_new_error_variants_token_stream,
                                 PgTypeInitializationTryNew::SqlxTypesChronoNaiveDateTimeAsTimestamp | PgTypeInitializationTryNew::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz => &{
-                                    let date_name_upper_camel_case: &dyn naming::DisplayPlusToTokens = if matches!(&pg_type_initialization_try_new, PgTypeInitializationTryNew::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz) {
+                                    let date_name_upper_camel_case: &dyn naming::domain_types::DisplayPlusToTokens = if matches!(&pg_type_initialization_try_new, PgTypeInitializationTryNew::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz) {
                                         &date_naive_upper_camel_case
                                     } else {
                                         &date_upper_camel_case
@@ -2812,7 +2817,7 @@ enum IsConst {
                                             |range_try_from| generate_pg_range_conversion_token_stream(
                                                 &v_snake_case,
                                                 &{
-                                                    let range_pg_type_identifier_origin = naming::parameter::SelfOriginUpperCamelCase::from_display(&generate_identifier_str(&PgType::from(range_try_from), is_nullable, pg_type_pattern));
+                                                    let range_pg_type_identifier_origin = naming::domain_types::parameter::SelfOriginUpperCamelCase::from_display(&generate_identifier_str(&PgType::from(range_try_from), is_nullable, pg_type_pattern));
                                                     quote::quote! {#range_pg_type_identifier_origin::#new_snake_case(v_af65ccce)}
                                                 }
                                             )
@@ -3692,7 +3697,7 @@ enum IsConst {
         let identifier_origin_struct_token_stream = quote::quote! {(#identifier_origin_upper_camel_case);};
         let self_default_some_one_element_call_token_stream = quote::quote! {Self(#pg_crud_common_default_some_one_element_call)};
         let ok_self_v_token_stream = quote::quote! {Ok(Self(v))};
-        let identifier_table_type_upper_camel_case = naming::parameter::SelfTableTypeUpperCamelCase::from_tokens(&identifier);
+        let identifier_table_type_upper_camel_case = naming::domain_types::parameter::SelfTableTypeUpperCamelCase::from_tokens(&identifier);
         let identifier_table_type_token_stream = {
             let identifier_table_type_token_stream = macros_helpers::derive_token_stream_builder::DTokenStreamBuilder::new()
                 .make_pub()
@@ -3751,10 +3756,10 @@ enum IsConst {
                 #impl_as_ref_and_borrow_for_identifier_table_type_token_stream
             }
         };
-        let identifier_standard_non_null_table_type_upper_camel_case = naming::parameter::SelfTableTypeUpperCamelCase::from_tokens(&identifier_standard_non_null_upper_camel_case);
+        let identifier_standard_non_null_table_type_upper_camel_case = naming::domain_types::parameter::SelfTableTypeUpperCamelCase::from_tokens(&identifier_standard_non_null_upper_camel_case);
         let common_d_token_stream_builder = pg_crud_macros_common::token_stream_helpers::common_d_token_stream_builder()
             .d_copy_if(derive_copy);
-        let identifier_create_upper_camel_case = naming::parameter::SelfCreateUpperCamelCase::from_tokens(&identifier);
+        let identifier_create_upper_camel_case = naming::domain_types::parameter::SelfCreateUpperCamelCase::from_tokens(&identifier);
         let identifier_create_token_stream = {
             let identifier_create_token_stream = match &can_be_primary_key {
                 CanBePrimaryKey::False => common_d_token_stream_builder.d_utoipa_to_schema().build_struct(
@@ -3792,7 +3797,7 @@ enum IsConst {
                 #maybe_impl_as_ref_and_borrow_for_identifier_create_token_stream
             }
         };
-        let identifier_select_upper_camel_case = naming::parameter::SelfSelectUpperCamelCase::from_tokens(&identifier);
+        let identifier_select_upper_camel_case = naming::domain_types::parameter::SelfSelectUpperCamelCase::from_tokens(&identifier);
         let identifier_select_token_stream = {
             let pub_struct_identifier_select_token_stream = generate_pub_struct_tokens_token_stream(
                 &identifier_select_upper_camel_case,
@@ -3811,8 +3816,8 @@ enum IsConst {
                 #impl_default_some_one_element_max_page_size_for_identifier_select_token_stream
             }
         };
-        let identifier_read_upper_camel_case = naming::parameter::SelfReadUpperCamelCase::from_tokens(&identifier);
-        let identifier_where_upper_camel_case = naming::parameter::SelfWhereUpperCamelCase::from_tokens(&identifier);
+        let identifier_read_upper_camel_case = naming::domain_types::parameter::SelfReadUpperCamelCase::from_tokens(&identifier);
+        let identifier_where_upper_camel_case = naming::domain_types::parameter::SelfWhereUpperCamelCase::from_tokens(&identifier);
         let (identifier_where_token_stream, frontend_filter_contracts_token_stream) = {
             let pg_type_filters = {
                 fn generate_flts_with<T>(
@@ -4018,7 +4023,7 @@ enum IsConst {
                 #impl_as_ref_and_borrow_for_identifier_read_token_stream
             }
         };
-        let identifier_read_ids_upper_camel_case = naming::parameter::SelfReadIdsUpperCamelCase::from_tokens(&identifier);
+        let identifier_read_ids_upper_camel_case = naming::domain_types::parameter::SelfReadIdsUpperCamelCase::from_tokens(&identifier);
         let identifier_read_ids_token_stream = if matches!(&is_non_null_standard_can_be_primary_key, IsNonNullStandardCanBePrimaryKey::True) {
             let identifier_read_ids_token_stream = common_d_token_stream_builder.d_utoipa_to_schema().build_struct(
                     &proc_macro2::TokenStream::new(),
@@ -4043,7 +4048,7 @@ enum IsConst {
         } else {
             proc_macro2::TokenStream::new()
         };
-        let identifier_read_inner_upper_camel_case = naming::parameter::SelfReadInnerUpperCamelCase::from_tokens(&identifier);
+        let identifier_read_inner_upper_camel_case = naming::domain_types::parameter::SelfReadInnerUpperCamelCase::from_tokens(&identifier);
         let identifier_read_inner_token_stream = quote::quote! {
             pub type #identifier_read_inner_upper_camel_case = #identifier_inner_type_token_stream;
         };
@@ -4082,7 +4087,7 @@ enum IsConst {
                 #impl_as_ref_and_borrow_for_identifier_update_token_stream
             }
         };
-        let identifier_update_for_query_upper_camel_case = naming::parameter::SelfUpdateForQueryUpperCamelCase::from_tokens(&identifier);
+        let identifier_update_for_query_upper_camel_case = naming::domain_types::parameter::SelfUpdateForQueryUpperCamelCase::from_tokens(&identifier);
         let identifier_update_for_query_token_stream = {
             let identifier_update_for_query_token_stream = common_d_token_stream_builder.d_utoipa_to_schema().build_struct(
                     &proc_macro2::TokenStream::new(),
@@ -4158,7 +4163,7 @@ enum IsConst {
                 }
             };
             let select_only_ids_and_select_only_updated_ids_query_common_token_stream = {
-                let format_token_stream = generate_quotes::dq_token_stream(&{
+                let format_token_stream = generate_quotes::domain_types::dq_token_stream(&{
                     let column_comma = constants_str::COLUMN_ALT;
                     column_comma.to_owned()
                 });
@@ -4206,13 +4211,13 @@ enum IsConst {
                         PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => constants_str::PG_CRUD_PG_TSRANGE,
                         PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => constants_str::PG_CRUD_PG_TSTZRANGE,
                     };
-                    let maybe_primary_key_is_primary_key_token_stream = quote::quote! {pg_types_common::maybe_primary_key(is_primary_key)};
+                    let maybe_primary_key_is_primary_key_token_stream = quote::quote! {pg_types_common::domain_types::maybe_primary_key(is_primary_key)};
                     let column_pg_query_type = format!("{{column}} {pg_query_type}");
                     let column_pg_query_type_non_null = format!("{{column}} {pg_query_type} not null");
                     let space_extra_parameter = constants_str::TEXT_ALT_3;
                     match (&is_nullable, &can_be_primary_key) {
                         (pg_crud_macros_common::IsNullable::False, CanBePrimaryKey::False) => {
-                            let format_token_stream = generate_quotes::dq_token_stream(&column_pg_query_type_non_null);
+                            let format_token_stream = generate_quotes::domain_types::dq_token_stream(&column_pg_query_type_non_null);
                             quote::quote! {
                                 let mut query_part_f8ad7c79 = String::with_capacity(32);
                                 if std::fmt::Write::write_fmt(&mut query_part_f8ad7c79, format_args!(#format_token_stream)).is_err() {
@@ -4222,7 +4227,7 @@ enum IsConst {
                             }
                         }
                         (pg_crud_macros_common::IsNullable::False, CanBePrimaryKey::True) => {
-                            let format_token_stream = generate_quotes::dq_token_stream(&format!("{column_pg_query_type_non_null}{space_extra_parameter}"));
+                            let format_token_stream = generate_quotes::domain_types::dq_token_stream(&format!("{column_pg_query_type_non_null}{space_extra_parameter}"));
                             quote::quote! {
                                 let mut query_part_06cdb263 = String::with_capacity(48);
                                 if std::fmt::Write::write_fmt(
@@ -4237,7 +4242,7 @@ enum IsConst {
                             }
                         }
                         (pg_crud_macros_common::IsNullable::True, CanBePrimaryKey::False) => {
-                            let format_token_stream = generate_quotes::dq_token_stream(&column_pg_query_type);
+                            let format_token_stream = generate_quotes::domain_types::dq_token_stream(&column_pg_query_type);
                             quote::quote! {
                                 let mut query_part_277407be = String::with_capacity(32);
                                 if std::fmt::Write::write_fmt(&mut query_part_277407be, format_args!(#format_token_stream)).is_err() {
@@ -4247,7 +4252,7 @@ enum IsConst {
                             }
                         }
                         (pg_crud_macros_common::IsNullable::True, CanBePrimaryKey::True) => {
-                            let format_token_stream = generate_quotes::dq_token_stream(&format!("{column_pg_query_type}{space_extra_parameter}"));
+                            let format_token_stream = generate_quotes::domain_types::dq_token_stream(&format!("{column_pg_query_type}{space_extra_parameter}"));
                             quote::quote! {
                                 let mut query_part_3265d12f = String::with_capacity(48);
                                 if std::fmt::Write::write_fmt(
@@ -4413,7 +4418,7 @@ enum IsConst {
                                             Range::I32AsInt4 | Range::I64AsInt8 => int_range_normalize_token_stream,
                                             Range::SqlxTypesChronoNaiveDateAsDate => {
                                                 let generate_dot_succ_opt_expect_token_stream = |id: &dyn std::fmt::Display| {
-                                                    let id_double_quoted_token_stream = generate_quotes::dq_token_stream(&id);
+                                                    let id_double_quoted_token_stream = generate_quotes::domain_types::dq_token_stream(&id);
                                                     quote::quote! {.succ_opt().expect(#id_double_quoted_token_stream)}
                                                 };
                                                 let generate_included_start_succ_opt_token_stream = |id: &dyn std::fmt::Display| {

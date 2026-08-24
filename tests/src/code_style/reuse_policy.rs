@@ -10,6 +10,14 @@
 fn reviewed_duplicate_groups() -> Vec<ReviewedDuplicateGroup> {
     vec![
         ReviewedDuplicateGroup {
+            locations: "../tests/src/code_style/domain_analysis.rs::external_leaf_segment\n../tests/src/code_style/domain_analysis.rs::external_root_segment",
+            reason: "root and leaf discovery traverse the same syn type shapes but intentionally select different path segments",
+        },
+        ReviewedDuplicateGroup {
+            locations: "../tests/src/code_style/domain_analysis.rs::external_leaf_segment_from_arguments\n../tests/src/code_style/domain_analysis.rs::external_root_segment_from_arguments",
+            reason: "root and leaf discovery recurse through the same generic argument shapes while preserving distinct segment selection",
+        },
+        ReviewedDuplicateGroup {
             locations: "../tests/src/code_style/domain_analysis.rs::visit_item_impl\n../tests/src/code_style/domain_analysis.rs::visit_item_struct",
             reason: "syn Visit requires separate callbacks for impl and struct items; both delegate to the same visitor state",
         },
@@ -26,11 +34,11 @@ fn reviewed_duplicate_groups() -> Vec<ReviewedDuplicateGroup> {
             reason: "independent AST analyses must implement the same syn Visit callback",
         },
         ReviewedDuplicateGroup {
-            locations: "../git_info/src/lib.rs::try_from\n../git_info/src/lib.rs::try_from",
+            locations: "../git_info/src/domain_types.rs::try_from\n../git_info/src/domain_types.rs::try_from",
             reason: "separate repository-domain wrappers retain distinct validation errors",
         },
         ReviewedDuplicateGroup {
-            locations: "../tests/src/code_style/domain_analysis.rs::visit_item\n../tests/src/code_style/runtime_analysis.rs::visit_item\n../tests/src/code_style/runtime_analysis.rs::visit_item\n../tests/src/code_style/runtime_analysis.rs::visit_item\n../tests/src/code_style/runtime_analysis.rs::visit_item\n../tests/src/code_style/source_analysis.rs::visit_item\n../tests/src/code_style/source_analysis.rs::visit_item",
+            locations: "../tests/src/code_style/domain_analysis.rs::visit_item\n../tests/src/code_style/runtime_analysis.rs::visit_item\n../tests/src/code_style/runtime_analysis.rs::visit_item\n../tests/src/code_style/runtime_analysis.rs::visit_item\n../tests/src/code_style/runtime_analysis.rs::visit_item\n../tests/src/code_style/source_analysis.rs::visit_item\n../tests/src/code_style/source_analysis.rs::visit_item\n../tests/src/code_style/source_analysis.rs::visit_item",
             reason: "independent policy visitors collect different facts through the required syn Visit item callback",
         },
         ReviewedDuplicateGroup {
@@ -58,7 +66,7 @@ fn reviewed_duplicate_groups() -> Vec<ReviewedDuplicateGroup> {
             reason: "generated table metadata wrappers require separate TryFrom trait implementations",
         },
         ReviewedDuplicateGroup {
-            locations: "../bounded_types/src/btree_map.rs::try_from\n../bounded_types/src/hash_map.rs::try_from",
+            locations: "../bounded_types/src/domain_types/btree.rs::try_from\n../bounded_types/src/domain_types/hash.rs::try_from",
             reason: "collection-specific trait adapters already reuse validate_len; their concrete map types cannot share an impl",
         },
         ReviewedDuplicateGroup {
@@ -94,7 +102,7 @@ fn reviewed_duplicate_groups() -> Vec<ReviewedDuplicateGroup> {
             reason: "positive-value conversions define unrelated PostgreSQL domain types and public errors",
         },
         ReviewedDuplicateGroup {
-            locations: "../config_lib/src/lib.rs::try_from\n../server_admin_core/src/lib.rs::try_from",
+            locations: "../config_lib/src/lib.rs::try_from\n../server_admin_core/src/domain_types.rs::try_from",
             reason: "configuration and administrator identifiers require separate domain conversion boundaries",
         },
         ReviewedDuplicateGroup {
@@ -102,7 +110,7 @@ fn reviewed_duplicate_groups() -> Vec<ReviewedDuplicateGroup> {
             reason: "syn Visit exposes free, impl, and trait functions through distinct required callbacks",
         },
         ReviewedDuplicateGroup {
-            locations: "../git_info/src/lib.rs::validate\n../git_info/src/lib.rs::validate",
+            locations: "../git_info/src/domain_types.rs::validate\n../git_info/src/domain_types.rs::validate",
             reason: "two git metadata wrappers validate the same character policy but retain separate domain types",
         },
         ReviewedDuplicateGroup {
@@ -170,7 +178,7 @@ fn reviewed_duplicate_groups() -> Vec<ReviewedDuplicateGroup> {
             reason: "separate audit action and resource enums require exhaustive domain-specific wire mappings",
         },
         ReviewedDuplicateGroup {
-            locations: "../generate_quotes/src/lib.rs::binary_double_quote_style\n../generate_quotes/src/lib.rs::double_quote_style",
+            locations: "../generate_quotes/src/domain_types.rs::binary_double_quote_style\n../generate_quotes/src/domain_types.rs::double_quote_style",
             reason: "quote style declarations already delegate construction and retain distinct prefix and diagnostic metadata",
         },
         ReviewedDuplicateGroup {
@@ -178,7 +186,7 @@ fn reviewed_duplicate_groups() -> Vec<ReviewedDuplicateGroup> {
             reason: "derive validators are required on three distinct GeoJSON domain wrapper boundaries",
         },
         ReviewedDuplicateGroup {
-            locations: "../bounded_types/src/string.rs::try_from\n../bounded_types/src/vector.rs::try_from",
+            locations: "../bounded_types/src/domain_types/text.rs::try_from\n../bounded_types/src/domain_types/vector.rs::try_from",
             reason: "string and vector conversion adapters expose distinct collection types and errors while reusing bounded validation",
         },
         ReviewedDuplicateGroup {
@@ -198,7 +206,7 @@ fn reviewed_duplicate_groups() -> Vec<ReviewedDuplicateGroup> {
             reason: "policy predicates inspect different syntax owners and only share the required AST traversal shape",
         },
         ReviewedDuplicateGroup {
-            locations: "../generate_quotes/src/lib.rs::binary_single_quote_style\n../generate_quotes/src/lib.rs::single_quote_style",
+            locations: "../generate_quotes/src/domain_types.rs::binary_single_quote_style\n../generate_quotes/src/domain_types.rs::single_quote_style",
             reason: "quote style declarations already delegate construction and retain distinct prefix and diagnostic metadata",
         },
         ReviewedDuplicateGroup {
@@ -255,9 +263,9 @@ struct FunctionBodyComplexity {
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct FunctionBodyVisitor<'visitor_lt> {
-    bodies: super::types::StdFunctionBodyLocationsMapMutRef<'visitor_lt>,
+    bodies: super::types::FunctionBodyLocationsBTreeMapMutRef<'visitor_lt>,
     identifier_pattern: super::types::RegexRegexRef<'visitor_lt>,
-    path: super::types::StdPathRef<'visitor_lt>,
+    path: super::types::PathRef<'visitor_lt>,
 }
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
@@ -318,16 +326,16 @@ fn function_body_hash(
 
 #[test]
 fn substantial_function_bodies_have_one_source_of_truth() {
-    let mut bodies = super::types::StdFunctionBodyLocationsMap::default();
+    let mut bodies = super::types::FunctionBodyLocationsBTreeMap::default();
     let identifier_pattern = regex::Regex::new(r"Ident \{ sym: [^,]+, span: [^}]+ \}").expect(
         "d4a8c2f1 substantial_function_bodies_have_one_source_of_truth invariant must hold",
     );
     super::snapshot::with_codebase_snapshot(|snapshot| {
         snapshot.rs_files().iter().for_each(|file| {
             let mut visitor = FunctionBodyVisitor {
-                bodies: super::types::StdFunctionBodyLocationsMapMutRef::from(&mut bodies),
+                bodies: super::types::FunctionBodyLocationsBTreeMapMutRef::from(&mut bodies),
                 identifier_pattern: super::types::RegexRegexRef::from(&identifier_pattern),
-                path: super::types::StdPathRef::from(file.path().as_ref()),
+                path: super::types::PathRef::from(file.path().as_ref()),
             };
             syn::visit::Visit::visit_file(&mut visitor, file.ast().as_ref());
         });

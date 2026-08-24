@@ -267,9 +267,9 @@ mod tests {
             crate::RequestId::try_from(constants_str::REQUEST_ID_TEST_VALUE.to_owned())
                 .expect("50c01ea8 validates_and_applies_w3c_trace_context invariant must hold");
         let client = crate::ReqwestClient::try_new(crate::ReqwestClientPolicy::new(
-            crate::StdReqwestConnectTimeout::try_from(std::time::Duration::from_secs(1u64))
+            crate::ReqwestConnectTimeoutDuration::try_from(std::time::Duration::from_secs(1u64))
                 .expect("ce032a9f validates_and_applies_w3c_trace_context invariant must hold"),
-            crate::StdReqwestRequestTimeout::try_from(std::time::Duration::from_secs(2u64))
+            crate::ReqwestRequestTimeoutDuration::try_from(std::time::Duration::from_secs(2u64))
                 .expect("a1dabed3 validates_and_applies_w3c_trace_context invariant must hold"),
         ))
         .expect("8ded9d63 validates_and_applies_w3c_trace_context invariant must hold");

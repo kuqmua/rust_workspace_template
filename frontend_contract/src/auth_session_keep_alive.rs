@@ -7,11 +7,11 @@
     PartialEq,
     newtype::FromInner,
 )]
-pub struct StdAuthSessionInstant(std::time::Instant);
+pub struct AuthSessionInstant(std::time::Instant);
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub struct StdAuthSessionRefreshInterval(std::time::Duration);
-impl TryFrom<std::time::Duration> for StdAuthSessionRefreshInterval {
+pub struct AuthSessionRefreshIntervalDuration(std::time::Duration);
+impl TryFrom<std::time::Duration> for AuthSessionRefreshIntervalDuration {
     type Error = AuthSessionKeepAliveError;
     fn try_from(value: std::time::Duration) -> Result<Self, Self::Error> {
         if value.is_zero() {
@@ -40,7 +40,7 @@ pub enum AuthSessionKeepAliveDecision {
     RefreshNow,
     SkipAlreadyRunning,
     SkipMissing,
-    SkipNotDue { next: StdAuthSessionInstant },
+    SkipNotDue { next: AuthSessionInstant },
 }
 
 #[derive(
@@ -59,14 +59,14 @@ enum AuthSessionRefreshState {
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct AuthSessionKeepAlive {
-    interval: StdAuthSessionRefreshInterval,
-    next: Option<StdAuthSessionInstant>,
+    interval: AuthSessionRefreshIntervalDuration,
+    next: Option<AuthSessionInstant>,
     state: AuthSessionRefreshState,
 }
 impl AuthSessionKeepAlive {
     pub fn begin(
         &mut self,
-        now: StdAuthSessionInstant,
+        now: AuthSessionInstant,
         presence: AuthSessionPresence,
     ) -> AuthSessionKeepAliveDecision {
         if presence == AuthSessionPresence::Missing {
@@ -87,15 +87,14 @@ impl AuthSessionKeepAlive {
 
     pub fn finish(
         &mut self,
-        now: StdAuthSessionInstant,
+        now: AuthSessionInstant,
         outcome: AuthSessionRefreshOutcome,
     ) -> AuthSessionRefreshOutcome {
         self.state = AuthSessionRefreshState::Idle;
         self.next = match outcome {
-            AuthSessionRefreshOutcome::Failed | AuthSessionRefreshOutcome::Refreshed => now
-                .0
-                .checked_add(self.interval.0)
-                .map(StdAuthSessionInstant),
+            AuthSessionRefreshOutcome::Failed | AuthSessionRefreshOutcome::Refreshed => {
+                now.0.checked_add(self.interval.0).map(AuthSessionInstant)
+            }
             AuthSessionRefreshOutcome::Rejected => None,
         };
         outcome
@@ -107,7 +106,7 @@ impl AuthSessionKeepAlive {
     }
 
     #[must_use]
-    pub const fn new(interval: StdAuthSessionRefreshInterval) -> Self {
+    pub const fn new(interval: AuthSessionRefreshIntervalDuration) -> Self {
         Self {
             interval,
             next: None,
@@ -120,13 +119,13 @@ impl AuthSessionKeepAlive {
 mod tests {
     #[test]
     fn refresh_is_single_flight_and_rejection_clears_schedule() {
-        let interval = super::StdAuthSessionRefreshInterval::try_from(
+        let interval = super::AuthSessionRefreshIntervalDuration::try_from(
             std::time::Duration::from_secs(60u64),
         )
         .expect(
             "99658ad5 refresh_is_single_flight_and_rejection_clears_schedule invariant must hold",
         );
-        let now = super::StdAuthSessionInstant::from(std::time::Instant::now());
+        let now = super::AuthSessionInstant::from(std::time::Instant::now());
         let mut keep_alive = super::AuthSessionKeepAlive::new(interval);
         assert_eq!(
             keep_alive.begin(now, super::AuthSessionPresence::Present),

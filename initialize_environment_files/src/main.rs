@@ -70,7 +70,7 @@ impl EnvKey {
     }
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Eq, PartialEq, newtype::FromInner)]
-struct EnvKeys(bounded_types::BoundedVec<EnvKey, 0, { usize::MAX }>);
+struct EnvKeys(bounded_types::domain_types::vector::BoundedVec<EnvKey, 0, { usize::MAX }>);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -107,7 +107,9 @@ impl WorkspaceMember {
 )]
 struct WorkspaceMemberRef<'member_lt>(&'member_lt str);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
-struct WorkspaceMembers(bounded_types::BoundedVec<WorkspaceMember, 0, { usize::MAX }>);
+struct WorkspaceMembers(
+    bounded_types::domain_types::vector::BoundedVec<WorkspaceMember, 0, { usize::MAX }>,
+);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -115,18 +117,20 @@ struct WorkspaceMembers(bounded_types::BoundedVec<WorkspaceMember, 0, { usize::M
     newtype::AsRefTarget,
     newtype::FromInner,
 )]
-struct StdWorkspaceRootRef<'root_lt>(&'root_lt std::path::Path);
+struct WorkspaceRootPathRef<'root_lt>(&'root_lt std::path::Path);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
-struct StdInitPathRef<'path_lt>(&'path_lt std::path::Path);
+struct InitPathRef<'path_lt>(&'path_lt std::path::Path);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
 struct InitMaxBytes(usize);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
-struct InitEntries(bounded_types::BoundedVec<InitializationEntry, 0, { usize::MAX }>);
+struct InitEntries(
+    bounded_types::domain_types::vector::BoundedVec<InitializationEntry, 0, { usize::MAX }>,
+);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
 )]
 #[error(transparent)]
-struct StdInitIoError(std::io::Error);
+struct InitIoError(std::io::Error);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
 )]
@@ -166,15 +170,15 @@ enum InitializeError {
     #[error("failed to write environment file")]
     WriteEnvironment {
         #[source]
-        source: StdInitIoError,
+        source: InitIoError,
     },
 }
 fn read_bounded_content(
-    path: StdInitPathRef<'_>,
+    path: InitPathRef<'_>,
     maximum_bytes: InitMaxBytes,
 ) -> Result<EnvContent, ServerRuntimeBoundedReadError> {
     let bytes = server_runtime_http::read_bounded_file(
-        server_runtime_http::StdPathRef::from(path.0),
+        server_runtime_http::PathRef::from(path.0),
         server_runtime_http::BoundedReadMaximumBytes::from(maximum_bytes.0),
     )
     .map_err(ServerRuntimeBoundedReadError::from)?;
@@ -210,7 +214,7 @@ fn environment_keys(content: EnvContentRef<'_>) -> Result<EnvKeys, InitStringErr
                 .flatten()
         })
         .collect::<Result<Vec<EnvKey>, InitStringError>>()
-        .map(bounded_types::BoundedVec::from_max_iter)
+        .map(bounded_types::domain_types::vector::BoundedVec::from_max_iter)
         .map(EnvKeys::from)
 }
 #[allow(
@@ -251,10 +255,10 @@ fn merge_missing_assignments(
     clippy::single_call_fn,
     reason = "separates manifest validation from filesystem mutation"
 )]
-fn workspace_members(root: StdWorkspaceRootRef<'_>) -> Result<WorkspaceMembers, InitializeError> {
+fn workspace_members(root: WorkspaceRootPathRef<'_>) -> Result<WorkspaceMembers, InitializeError> {
     let manifest_path = root.as_ref().join(constants_str::CARGO_TOML);
     let manifest = read_bounded_content(
-        StdInitPathRef::from(manifest_path.as_path()),
+        InitPathRef::from(manifest_path.as_path()),
         InitMaxBytes::from(constants_usize::VALUE_1_048_576),
     )
     .map_err(|source| InitializeError::ReadManifest { source })?;
@@ -280,7 +284,7 @@ fn workspace_members(root: StdWorkspaceRootRef<'_>) -> Result<WorkspaceMembers, 
             }
         })
         .collect::<Result<Vec<WorkspaceMember>, InitializeError>>()
-        .map(bounded_types::BoundedVec::from_max_iter)
+        .map(bounded_types::domain_types::vector::BoundedVec::from_max_iter)
         .map(WorkspaceMembers::from)
 }
 #[allow(
@@ -288,7 +292,7 @@ fn workspace_members(root: StdWorkspaceRootRef<'_>) -> Result<WorkspaceMembers, 
     reason = "provides one testable dry-run and apply entry point"
 )]
 fn initialize(
-    root: StdWorkspaceRootRef<'_>,
+    root: WorkspaceRootPathRef<'_>,
     mode: RunMode,
 ) -> Result<InitEntries, InitializeError> {
     workspace_members(root)?
@@ -303,14 +307,14 @@ fn initialize(
                 return Ok(entries);
             }
             let content = read_bounded_content(
-                StdInitPathRef::from(example_path.as_path()),
+                InitPathRef::from(example_path.as_path()),
                 InitMaxBytes::from(constants_usize::VALUE_1_048_576),
             )
             .map_err(|source| InitializeError::ReadExample { source })?;
             let environment_path = root.as_ref().join(member.as_ref()).join(constants_str::ENV);
             let status = if environment_path.exists() {
                 let current = read_bounded_content(
-                    StdInitPathRef::from(environment_path.as_path()),
+                    InitPathRef::from(environment_path.as_path()),
                     InitMaxBytes::from(constants_usize::VALUE_1_048_576),
                 )
                 .map_err(|source| InitializeError::ReadExample { source })?;
@@ -346,7 +350,7 @@ fn initialize(
             });
             Ok(entries)
         })
-        .map(bounded_types::BoundedVec::from_max_iter)
+        .map(bounded_types::domain_types::vector::BoundedVec::from_max_iter)
         .map(InitEntries::from)
 }
 fn main() -> Result<(), InitializeError> {
@@ -358,7 +362,7 @@ fn main() -> Result<(), InitializeError> {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .ok_or(InitializeError::MembersMissing)?;
-    initialize(StdWorkspaceRootRef::from(root), mode)?
+    initialize(WorkspaceRootPathRef::from(root), mode)?
         .0
         .into_iter()
         .for_each(|entry| {
@@ -388,11 +392,11 @@ fn main() -> Result<(), InitializeError> {
                     keys
                 },
             );
-            println!(
-                "member={} status={:?} keys={}",
-                entry.member.as_ref(),
-                entry.status,
-                keys
+            tracing::info!(
+                member = entry.member.as_ref(),
+                status = ?entry.status,
+                keys,
+                "environment file initialization completed"
             );
         });
     Ok(())
@@ -422,7 +426,7 @@ mod tests {
     fn dry_run_apply_and_repeat_are_safe_and_idempotent() {
         let root = fixture();
         let dry = super::initialize(
-            super::StdWorkspaceRootRef::from(root.as_path()),
+            super::WorkspaceRootPathRef::from(root.as_path()),
             super::RunMode::DryRun,
         )
         .expect("93ce4136 dry_run_apply_and_repeat_are_safe_and_idempotent invariant must hold");
@@ -437,7 +441,7 @@ mod tests {
         );
         assert!(!root.join("service/.env").exists());
         let applied = super::initialize(
-            super::StdWorkspaceRootRef::from(root.as_path()),
+            super::WorkspaceRootPathRef::from(root.as_path()),
             super::RunMode::Apply,
         )
         .expect("d58ed6a5 dry_run_apply_and_repeat_are_safe_and_idempotent invariant must hold");
@@ -457,7 +461,7 @@ mod tests {
         )
         .expect("2d67b058 dry_run_apply_and_repeat_are_safe_and_idempotent invariant must hold");
         let updated = super::initialize(
-            super::StdWorkspaceRootRef::from(root.as_path()),
+            super::WorkspaceRootPathRef::from(root.as_path()),
             super::RunMode::Apply,
         )
         .expect("546af7b6 dry_run_apply_and_repeat_are_safe_and_idempotent invariant must hold");
@@ -478,7 +482,7 @@ mod tests {
         assert!(updated_content.contains("SECRET=custom"));
         assert!(updated_content.contains("PUBLIC=value"));
         let repeated = super::initialize(
-            super::StdWorkspaceRootRef::from(root.as_path()),
+            super::WorkspaceRootPathRef::from(root.as_path()),
             super::RunMode::Apply,
         )
         .expect("a452843a dry_run_apply_and_repeat_are_safe_and_idempotent invariant must hold");
@@ -506,7 +510,7 @@ mod tests {
         .expect("350646f2 escaping_member_is_rejected invariant must hold");
         assert!(matches!(
             super::initialize(
-                super::StdWorkspaceRootRef::from(root.as_path()),
+                super::WorkspaceRootPathRef::from(root.as_path()),
                 super::RunMode::DryRun
             ),
             Err(super::InitializeError::InvalidMember { .. })
@@ -525,7 +529,7 @@ mod tests {
         .expect("f6290e85 oversized_environment_example_is_rejected invariant must hold");
         assert!(matches!(
             super::initialize(
-                super::StdWorkspaceRootRef::from(root.as_path()),
+                super::WorkspaceRootPathRef::from(root.as_path()),
                 super::RunMode::DryRun
             ),
             Err(super::InitializeError::ReadExample {

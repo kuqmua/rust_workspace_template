@@ -1,6 +1,6 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct StringWrapperNameVisitor {
-    pub names: super::types::StdSourceTextSet,
+    pub names: super::types::SourceTextBTreeSet,
 }
 impl<'ast> syn::visit::Visit<'ast> for StringWrapperNameVisitor {
     fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
@@ -15,10 +15,10 @@ impl<'ast> syn::visit::Visit<'ast> for StringWrapperNameVisitor {
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct StringWrapperFromVisitor<'names_lt> {
     pub ers: super::types::DiagnosticMsgs,
-    pub len_checked_function_names: &'names_lt super::types::StdSourceTextSet,
-    pub string_wrapper_names: &'names_lt super::types::StdSourceTextSet,
-    pub try_from_string_len_checked_names: super::types::StdSourceTextSet,
-    pub try_from_string_names: super::types::StdSourceTextSet,
+    pub len_checked_function_names: &'names_lt super::types::SourceTextBTreeSet,
+    pub string_wrapper_names: &'names_lt super::types::SourceTextBTreeSet,
+    pub try_from_string_len_checked_names: super::types::SourceTextBTreeSet,
+    pub try_from_string_names: super::types::SourceTextBTreeSet,
 }
 impl StringWrapperFromVisitor<'_> {
     fn check_bounded_string_attr(&mut self, item: super::types::SynItemStructRef<'_>) {
@@ -181,7 +181,7 @@ impl StringWrapperFromVisitor<'_> {
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct LenCheckedFunctionNameVisitor {
-    pub names: super::types::StdSourceTextSet,
+    pub names: super::types::SourceTextBTreeSet,
 }
 impl<'ast> syn::visit::Visit<'ast> for LenCheckedFunctionNameVisitor {
     fn visit_item_fn(&mut self, i: &'ast syn::ItemFn) {
@@ -257,24 +257,24 @@ pub(super) struct DeserializeConversionCallVisitor {
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct ManualDeserializeTupleWrapperVisitor<'names> {
     pub ers: super::types::DiagnosticMsgs,
-    pub names: &'names super::types::StdSourceTextSet,
+    pub names: &'names super::types::SourceTextBTreeSet,
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct TupleWrapperConversionCollector {
-    pub converted_names: super::types::StdSourceTextSet,
-    pub from_inner_names: super::types::StdSourceTextSet,
-    pub from_names: super::types::StdSourceTextSet,
+    pub converted_names: super::types::SourceTextBTreeSet,
+    pub from_inner_names: super::types::SourceTextBTreeSet,
+    pub from_names: super::types::SourceTextBTreeSet,
     pub inner_types: std::collections::BTreeMap<String, syn::Type>,
-    pub names: super::types::StdSourceTextSet,
-    pub try_from_inner_names: super::types::StdSourceTextSet,
-    pub try_from_names: super::types::StdSourceTextSet,
+    pub names: super::types::SourceTextBTreeSet,
+    pub try_from_inner_names: super::types::SourceTextBTreeSet,
+    pub try_from_names: super::types::SourceTextBTreeSet,
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct DirectTupleWrapperConstructorVisitor<'names> {
     pub current_wrapper_name: Option<String>,
     pub ers: super::types::DiagnosticMsgs,
     pub inside_conversion_impl: super::types::AnalyzerBool,
-    pub names: &'names super::types::StdSourceTextSet,
+    pub names: &'names super::types::SourceTextBTreeSet,
 }
 impl<'ast> syn::visit::Visit<'ast> for PublicTupleWrapperFieldVisitor {
     fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
@@ -448,7 +448,7 @@ impl<'ast> syn::visit::Visit<'ast> for DirectTupleWrapperConstructorVisitor<'_> 
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct DeclaredDomainTypeVisitor {
-    pub names: super::types::StdSourceTextSet,
+    pub names: super::types::SourceTextBTreeSet,
 }
 impl<'ast> syn::visit::Visit<'ast> for DeclaredDomainTypeVisitor {
     fn visit_item(&mut self, i: &'ast syn::Item) {
@@ -544,9 +544,9 @@ impl<'ast> syn::visit::Visit<'ast> for DeclaredDomainTypeVisitor {
 pub(super) struct DomainTypePolicyVisitor<'types> {
     pub closure_body_scan_depth: super::types::AnalyzerCount,
     pub ers: super::types::DiagnosticMsgs,
-    pub generic_scopes: Vec<super::types::StdSourceTextSet>,
-    pub repo_crates: super::types::StdStdSourceTextSetRef<'types>,
-    pub repo_types: super::types::StdStdSourceTextSetRef<'types>,
+    pub generic_scopes: Vec<super::types::SourceTextBTreeSet>,
+    pub repo_crates: super::types::SourceTextBTreeSetRef<'types>,
+    pub repo_types: super::types::SourceTextBTreeSetRef<'types>,
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct AnalyzerStateRawContainerFieldVisitor {
@@ -559,7 +559,7 @@ pub(super) struct HelperRawTextReturnVisitor {
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct ExternalLeafWrapperNameVisitor<'types> {
     pub ers: super::types::DiagnosticMsgs,
-    pub repo_crates: super::types::StdStdSourceTextSetRef<'types>,
+    pub repo_crates: super::types::SourceTextBTreeSetRef<'types>,
 }
 impl DomainTypePolicyVisitor<'_> {
     fn check_fields(
@@ -869,7 +869,7 @@ impl DomainTypePolicyVisitor<'_> {
                 }),
         );
         self.generic_scopes
-            .push(super::types::StdSourceTextSet::from(names));
+            .push(super::types::SourceTextBTreeSet::from(names));
     }
     fn scan_block_for_closure_inputs(&mut self, block: super::types::SynBlockRef<'_>) {
         self.closure_body_scan_depth.saturating_inc();
@@ -1150,19 +1150,32 @@ impl<'ast> syn::visit::Visit<'ast> for ExternalLeafWrapperNameVisitor<'_> {
         syn::visit::visit_item_struct(self, i);
     }
 }
+#[allow(
+    clippy::arbitrary_source_item_ordering,
+    reason = "root and leaf path traversal helpers stay grouped by traversal direction"
+)]
 impl ExternalLeafWrapperNameVisitor<'_> {
     fn check_external_leaf_wrapper_name(
         &mut self,
         item: super::types::SynItemStructRef<'_>,
         ty: super::types::SynTypeRef<'_>,
     ) {
-        let Some(first_segment) = self.external_root_segment(ty) else {
+        let Some(leaf_segment) = self.external_leaf_segment(ty) else {
             return;
         };
-        let first_segment_ref = first_segment.get();
+        let Some(root_segment) = self.external_root_segment(ty) else {
+            return;
+        };
+        let leaf_segment_ref = leaf_segment.get();
+        let root_segment_ref = root_segment.get();
         let item_ref = item.as_ref();
-        let expected_prefix = super::identifier_to_upper_camel_fragment(
-            super::types::SynIdentifierRef::from(&first_segment_ref.ident),
+        let required_segment = if root_segment_ref.ident == constants_str::STD {
+            leaf_segment_ref
+        } else {
+            root_segment_ref
+        };
+        let expected_fragment = super::identifier_to_upper_camel_fragment(
+            super::types::SynIdentifierRef::from(&required_segment.ident),
         );
         let identifier = item_ref.ident.to_string();
         if super::is_external_leaf_wrapper_name_exception(super::types::SourceTextRef::from(
@@ -1172,14 +1185,15 @@ impl ExternalLeafWrapperNameVisitor<'_> {
         {
             return;
         }
-        if identifier.starts_with(expected_prefix.as_ref()) {
+        if identifier.contains(expected_fragment.as_ref()) {
             return;
         }
         self.ers.push(format!(
-            "tuple wrapper `{}` wraps external crate `{}`; rename it so it starts with `{}`",
+            "tuple wrapper `{}` wraps external type `{}::{}`; rename it so it contains `{}`",
             item_ref.ident,
-            first_segment_ref.ident,
-            expected_prefix.as_ref()
+            root_segment_ref.ident,
+            leaf_segment_ref.ident,
+            expected_fragment.as_ref()
         ));
     }
     fn external_root_segment<'ty_lt>(
@@ -1220,6 +1234,36 @@ impl ExternalLeafWrapperNameVisitor<'_> {
             | _ => None,
         }
     }
+    fn external_root_segment_from_path<'path_lt>(
+        &self,
+        ty_path: super::types::SynTypePathRef<'path_lt>,
+    ) -> Option<super::types::SynPathSegmentRef<'path_lt>> {
+        let ty_path_ref = ty_path.get();
+        if let Some(qself) = &ty_path_ref.qself {
+            return self.external_root_segment(super::types::SynTypeRef::from(&*qself.ty));
+        }
+        let first_segment = ty_path_ref.path.segments.first()?;
+        let first_identifier = first_segment.ident.to_string();
+        if first_identifier == constants_str::CRATE
+            || first_identifier == constants_str::SELF_ALT
+            || first_identifier == constants_str::SUPER
+            || self.repo_crates.as_ref().contains(&first_identifier)
+        {
+            return ty_path_ref.path.segments.iter().find_map(|segment| {
+                self.external_root_segment_from_arguments(super::types::SynPathArgumentsRef::from(
+                    &segment.arguments,
+                ))
+            });
+        }
+        if ty_path_ref.path.segments.len() > 1 {
+            return Some(super::types::SynPathSegmentRef::from(first_segment));
+        }
+        ty_path_ref.path.segments.iter().find_map(|segment| {
+            self.external_root_segment_from_arguments(super::types::SynPathArgumentsRef::from(
+                &segment.arguments,
+            ))
+        })
+    }
     fn external_root_segment_from_arguments<'args_lt>(
         &self,
         arguments: super::types::SynPathArgumentsRef<'args_lt>,
@@ -1251,13 +1295,82 @@ impl ExternalLeafWrapperNameVisitor<'_> {
             syn::PathArguments::None => None,
         }
     }
-    fn external_root_segment_from_path<'path_lt>(
+    fn external_leaf_segment<'ty_lt>(
+        &self,
+        ty: super::types::SynTypeRef<'ty_lt>,
+    ) -> Option<super::types::SynPathSegmentRef<'ty_lt>> {
+        match ty.get() {
+            syn::Type::Array(ty_array) => {
+                self.external_leaf_segment(super::types::SynTypeRef::from(&*ty_array.elem))
+            }
+            syn::Type::Group(ty_group) => {
+                self.external_leaf_segment(super::types::SynTypeRef::from(&*ty_group.elem))
+            }
+            syn::Type::Paren(ty_paren) => {
+                self.external_leaf_segment(super::types::SynTypeRef::from(&*ty_paren.elem))
+            }
+            syn::Type::Path(ty_path) => {
+                self.external_leaf_segment_from_path(super::types::SynTypePathRef::from(ty_path))
+            }
+            syn::Type::Reference(ty_reference) => {
+                self.external_leaf_segment(super::types::SynTypeRef::from(&*ty_reference.elem))
+            }
+            syn::Type::Slice(ty_slice) => {
+                self.external_leaf_segment(super::types::SynTypeRef::from(&*ty_slice.elem))
+            }
+            syn::Type::Tuple(ty_tuple) => ty_tuple
+                .elems
+                .iter()
+                .find_map(|elem| self.external_leaf_segment(super::types::SynTypeRef::from(elem))),
+            syn::Type::FnPtr(_)
+            | syn::Type::ImplTrait(_)
+            | syn::Type::Infer(_)
+            | syn::Type::Macro(_)
+            | syn::Type::Never(_)
+            | syn::Type::Ptr(_)
+            | syn::Type::TraitObject(_)
+            | syn::Type::Verbatim(_)
+            | _ => None,
+        }
+    }
+    fn external_leaf_segment_from_arguments<'args_lt>(
+        &self,
+        arguments: super::types::SynPathArgumentsRef<'args_lt>,
+    ) -> Option<super::types::SynPathSegmentRef<'args_lt>> {
+        match arguments.get() {
+            syn::PathArguments::AngleBracketed(args) => {
+                args.args.iter().find_map(|arg| match arg {
+                    syn::GenericArgument::Type(ty) => {
+                        self.external_leaf_segment(super::types::SynTypeRef::from(ty))
+                    }
+                    syn::GenericArgument::AssocConst(_)
+                    | syn::GenericArgument::AssocType(_)
+                    | syn::GenericArgument::Constraint(_)
+                    | syn::GenericArgument::Const(_)
+                    | syn::GenericArgument::Lifetime(_)
+                    | _ => None,
+                })
+            }
+            syn::PathArguments::Parenthesized(args) => args
+                .inputs
+                .iter()
+                .find_map(|arg| self.external_leaf_segment(super::types::SynTypeRef::from(&arg.ty)))
+                .or_else(|| match &args.output {
+                    syn::ReturnType::Default => None,
+                    syn::ReturnType::Type(_, ty) => {
+                        self.external_leaf_segment(super::types::SynTypeRef::from(&**ty))
+                    }
+                }),
+            syn::PathArguments::None => None,
+        }
+    }
+    fn external_leaf_segment_from_path<'path_lt>(
         &self,
         ty_path: super::types::SynTypePathRef<'path_lt>,
     ) -> Option<super::types::SynPathSegmentRef<'path_lt>> {
         let ty_path_ref = ty_path.get();
         if let Some(qself) = &ty_path_ref.qself {
-            return self.external_root_segment(super::types::SynTypeRef::from(&*qself.ty));
+            return self.external_leaf_segment(super::types::SynTypeRef::from(&*qself.ty));
         }
         let first_segment = ty_path_ref.path.segments.first()?;
         let first_identifier = first_segment.ident.to_string();
@@ -1267,16 +1380,20 @@ impl ExternalLeafWrapperNameVisitor<'_> {
             || self.repo_crates.as_ref().contains(&first_identifier)
         {
             return ty_path_ref.path.segments.iter().find_map(|segment| {
-                self.external_root_segment_from_arguments(super::types::SynPathArgumentsRef::from(
+                self.external_leaf_segment_from_arguments(super::types::SynPathArgumentsRef::from(
                     &segment.arguments,
                 ))
             });
         }
         if ty_path_ref.path.segments.len() > 1 {
-            return Some(super::types::SynPathSegmentRef::from(first_segment));
+            return ty_path_ref
+                .path
+                .segments
+                .last()
+                .map(super::types::SynPathSegmentRef::from);
         }
         ty_path_ref.path.segments.iter().find_map(|segment| {
-            self.external_root_segment_from_arguments(super::types::SynPathArgumentsRef::from(
+            self.external_leaf_segment_from_arguments(super::types::SynPathArgumentsRef::from(
                 &segment.arguments,
             ))
         })

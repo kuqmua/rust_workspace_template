@@ -22,7 +22,7 @@ async fn generated_admin_descriptors_match_applied_migrations() {
         .expect(
             "77883cf4 generated_admin_descriptors_match_applied_migrations invariant must hold",
         );
-    server_admin::prep_pg(app_state::SqlxPgPoolRef::from(&pool.0))
+    server_admin::prep_pg(app_state::domain_types::SqlxPgPoolRef::from(&pool.0))
         .await
         .expect(
             "9eceddf1 generated_admin_descriptors_match_applied_migrations invariant must hold",
@@ -56,7 +56,7 @@ async fn admin_string_policies_match_postgresql_constraints() {
         .execute(&mut *admin_db_test_lock)
         .await
         .expect("168b689c admin_string_policies_match_postgresql_constraints invariant must hold");
-    server_admin::prep_pg(app_state::SqlxPgPoolRef::from(&pool.0))
+    server_admin::prep_pg(app_state::domain_types::SqlxPgPoolRef::from(&pool.0))
         .await
         .expect("a453b862 admin_string_policies_match_postgresql_constraints invariant must hold");
     let valid_login =

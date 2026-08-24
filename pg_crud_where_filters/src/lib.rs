@@ -694,19 +694,14 @@ pub enum BoundedVecTryNewError {
     optimal_memory_layout::OptimalMemoryLayout,
     newtype::Display,
     newtype::FromInner,
+    newtype::GetInner,
 )]
 #[serde(from = "usize")]
 pub struct BoundedVecLen(usize);
-impl BoundedVecLen {
-    #[must_use]
-    pub const fn get(self) -> usize {
-        self.0
-    }
-}
-impl to_err_string::ToErrString for BoundedVecLen {
-    fn to_err_string(&self) -> to_err_string::ErrorText {
-        to_err_string::ErrorText::try_from(self.to_string())
-            .unwrap_or_else(to_err_string::ErrorText::from)
+impl to_err_string::domain_types::ToErrString for BoundedVecLen {
+    fn to_err_string(&self) -> to_err_string::domain_types::ErrorText {
+        to_err_string::domain_types::ErrorText::try_from(self.to_string())
+            .unwrap_or_else(to_err_string::domain_types::ErrorText::from)
     }
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
@@ -785,8 +780,8 @@ impl<T, const LENGTH: usize> TryFrom<Vec<T>> for BoundedVec<T, LENGTH> {
     type Error = BoundedVecTryNewError;
     fn try_from(v: Vec<T>) -> Result<Self, Self::Error> {
         let len = v.len();
-        bounded_types::BoundedVec::<T, LENGTH, LENGTH>::try_from(v)
-            .map(bounded_types::BoundedVec::into_inner)
+        bounded_types::domain_types::vector::BoundedVec::<T, LENGTH, LENGTH>::try_from(v)
+            .map(bounded_types::domain_types::vector::BoundedVec::into_inner)
             .map(Self)
             .map_err(|_error| BoundedVecTryNewError::LenIsNotCorrect {
                 wrong_len: BoundedVecLen::from(len),
@@ -803,7 +798,7 @@ impl<'de, T: serde::Deserialize<'de>, const LENGTH: usize> serde::Deserialize<'d
         Deserializer: serde::Deserializer<'de>,
     {
         let value =
-            <bounded_types::BoundedVec<T, LENGTH, LENGTH> as serde::Deserialize>::deserialize(
+            <bounded_types::domain_types::vector::BoundedVec<T, LENGTH, LENGTH> as serde::Deserialize>::deserialize(
                 deserializer,
             )?
             .into_inner();

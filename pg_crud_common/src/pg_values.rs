@@ -79,19 +79,14 @@ pub enum UnsignedPartOfI32TryFromI32Error {
     optimal_memory_layout::OptimalMemoryLayout,
     newtype::Display,
     newtype::FromInner,
+    newtype::GetInner,
 )]
 #[serde(from = "i32")]
 pub struct UnsignedPartOfI32Raw(i32);
-impl UnsignedPartOfI32Raw {
-    #[must_use]
-    pub const fn get(self) -> i32 {
-        self.0
-    }
-}
-impl to_err_string::ToErrString for UnsignedPartOfI32Raw {
-    fn to_err_string(&self) -> to_err_string::ErrorText {
-        to_err_string::ErrorText::try_from(self.to_string())
-            .unwrap_or_else(to_err_string::ErrorText::from)
+impl to_err_string::domain_types::ToErrString for UnsignedPartOfI32Raw {
+    fn to_err_string(&self) -> to_err_string::domain_types::ErrorText {
+        to_err_string::domain_types::ErrorText::try_from(self.to_string())
+            .unwrap_or_else(to_err_string::domain_types::ErrorText::from)
     }
 }
 impl TryFrom<i32> for UnsignedPartOfI32 {
@@ -107,10 +102,10 @@ impl TryFrom<i32> for UnsignedPartOfI32 {
         }
     }
 }
-impl to_err_string::ToErrString for UnsignedPartOfI32 {
-    fn to_err_string(&self) -> to_err_string::ErrorText {
-        to_err_string::ErrorText::try_from(self.0.to_string())
-            .unwrap_or_else(to_err_string::ErrorText::from)
+impl to_err_string::domain_types::ToErrString for UnsignedPartOfI32 {
+    fn to_err_string(&self) -> to_err_string::domain_types::ErrorText {
+        to_err_string::domain_types::ErrorText::try_from(self.0.to_string())
+            .unwrap_or_else(to_err_string::domain_types::ErrorText::from)
     }
 }
 impl sqlx::Type<sqlx::Postgres> for UnsignedPartOfI32 {
@@ -210,8 +205,8 @@ impl TryFrom<i32> for NotZeroUnsignedPartOfI32 {
         }
     }
 }
-impl to_err_string::ToErrString for NotZeroUnsignedPartOfI32 {
-    fn to_err_string(&self) -> to_err_string::ErrorText {
+impl to_err_string::domain_types::ToErrString for NotZeroUnsignedPartOfI32 {
+    fn to_err_string(&self) -> to_err_string::domain_types::ErrorText {
         self.0.to_err_string()
     }
 }
