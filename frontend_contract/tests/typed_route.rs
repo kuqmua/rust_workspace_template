@@ -3,18 +3,33 @@
 #[cfg(test)]
 mod tests {
     #[derive(
-        optml::Optml, Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema,
+        optimal_memory_layout::OptimalMemoryLayout,
+        Clone,
+        Debug,
+        serde::Deserialize,
+        serde::Serialize,
+        utoipa::ToSchema,
     )]
     struct TestRequest;
     #[derive(
-        optml::Optml, Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema,
+        optimal_memory_layout::OptimalMemoryLayout,
+        Clone,
+        Debug,
+        serde::Deserialize,
+        serde::Serialize,
+        utoipa::ToSchema,
     )]
     struct TestResponse;
     #[derive(
-        optml::Optml, Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema,
+        optimal_memory_layout::OptimalMemoryLayout,
+        Clone,
+        Debug,
+        serde::Deserialize,
+        serde::Serialize,
+        utoipa::ToSchema,
     )]
     struct TestErrorResponse;
-    #[derive(optml::Optml, Clone, Copy)]
+    #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
     struct TestTransport;
     impl frontend_contract::Transport for TestTransport {
         fn send(
@@ -30,7 +45,7 @@ mod tests {
         }
     }
 
-    #[derive(optml::Optml, frontend_contract::TypedRoute)]
+    #[derive(optimal_memory_layout::OptimalMemoryLayout, frontend_contract::TypedRoute)]
     #[typed_route(
         authentication = frontend_contract::AuthenticationRequirement::Public,
         error_response = TestErrorResponse,
@@ -52,11 +67,19 @@ mod tests {
     )]
     struct TestRoute;
 
-    #[derive(optml::Optml, frontend_contract::RouteFamily)]
+    #[derive(optimal_memory_layout::OptimalMemoryLayout, frontend_contract::RouteFamily)]
     #[route_family(TestRoute)]
     struct TestRouteFamily;
 
-    #[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, frontend_contract::RouteCatalog)]
+    #[derive(
+        optimal_memory_layout::OptimalMemoryLayout,
+        Clone,
+        Copy,
+        Debug,
+        Eq,
+        PartialEq,
+        frontend_contract::RouteCatalog,
+    )]
     #[route_catalog(family = TestCatalogFamily, body_limit = 1024usize)]
     enum TestCatalog {
         #[route_catalog_route(

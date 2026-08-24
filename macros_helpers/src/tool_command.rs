@@ -1,31 +1,43 @@
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 pub struct StdPathRef<'lt>(&'lt std::path::Path);
-#[derive(optml::Optml, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
 struct StdProcessCommand(std::process::Command);
-#[derive(optml::Optml, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 struct StdOsString(std::ffi::OsString);
 impl From<&str> for StdOsString {
     fn from(value: &str) -> Self {
         Self(std::ffi::OsString::from(value))
     }
 }
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 pub struct ToolProgramRef<'lt>(&'lt str);
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 pub struct ToolArgRef<'lt>(&'lt str);
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 pub struct ToolArgsRef<'lt>(&'lt [&'lt str]);
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 pub struct ToolEnvKeyRef<'lt>(&'lt str);
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 pub struct ToolEnvValueRef<'lt>(&'lt str);
 #[derive(
-    optml::Optml, Clone, Copy, Debug, newtype::DerefInner, newtype::Display, newtype::FromInner,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    newtype::DerefInner,
+    newtype::Display,
+    newtype::FromInner,
 )]
 pub struct StdProcessExitStatus(std::process::ExitStatus);
-#[derive(optml::Optml, Debug, newtype::AsRefOwned, newtype::DerefInner, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    newtype::AsRefOwned,
+    newtype::DerefInner,
+    newtype::FromInner,
+)]
 pub struct StdProcessOutput(std::process::Output);
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub struct ToolCommand {
     inner: StdProcessCommand,
     program: StdOsString,

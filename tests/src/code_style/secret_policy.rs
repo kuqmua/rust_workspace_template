@@ -1,4 +1,4 @@
-#[derive(optml::Optml, Default)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct SecretBoxStringVisitor {
     argument_identifiers: super::types::StdSourceTextSet,
     found_count: super::types::AnalyzerCount,

@@ -1,4 +1,4 @@
-#[derive(optml::Optml, Clone, Copy, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
 pub(in crate::app) enum AdminMutationMethod {
     Delete,
     Patch,

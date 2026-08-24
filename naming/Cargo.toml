@@ -16,6 +16,6 @@ generate_quotes = { workspace = true }
 naming_macros = { workspace = true }
 naming_common = { workspace = true }
 newtype = { workspace = true }
-optml = { workspace = true }
+optimal_memory_layout = { workspace = true }
 [lints]
 workspace = true

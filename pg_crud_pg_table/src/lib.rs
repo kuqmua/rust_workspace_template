@@ -15,21 +15,35 @@ pub trait CombinationOfAppStateLogicTraits:
 const PG_TBL_IDEMPOTENCY_TEXT_MAX_BYTES: usize = 255usize;
 const PG_TBL_IDEMPOTENCY_ROUTE_MAX_BYTES: usize = 1024usize;
 const PG_TBL_IDEMPOTENCY_RESPONSE_MAX_BYTES: usize = 1_048_576usize;
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct PgTableIdempotencyActor(String);
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::AsRefStr,
+)]
 pub struct PgTableIdempotencyKey(String);
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct PgTableIdempotencyMethod(String);
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct PgTableIdempotencyRoute(String);
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::FromInner,
+)]
 pub struct PgTableIdempotencyRequestHash([u8; 32usize]);
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefTarget)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::AsRefTarget,
+)]
 pub struct PgTableIdempotencyBody(
     bounded_types::BoundedVec<u8, 0usize, PG_TBL_IDEMPOTENCY_RESPONSE_MAX_BYTES>,
 );
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 #[error("{}", str_constants::IDEMPOTENCY_RESPONSE_EXCEEDS_THE_STORAGE_LIMIT)]
 pub struct PgTableIdempotencyBodyError;
 impl TryFrom<Vec<u8>> for PgTableIdempotencyBody {
@@ -42,18 +56,32 @@ impl TryFrom<Vec<u8>> for PgTableIdempotencyBody {
     }
 }
 #[derive(
-    optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::AsRefInner, newtype::FromInner,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::AsRefInner,
+    newtype::FromInner,
 )]
 pub struct PgTableIdempotencyBodyRef<'body_lt>(&'body_lt [u8]);
 #[derive(
-    optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::IntoInnerFrom, newtype::TryFrom,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::IntoInnerFrom,
+    newtype::TryFrom,
 )]
 #[try_from(
     error = PgTableIdempotencyResponseStatusTryFromU16Error,
     validator = PgTableIdempotencyResponseStatus::validate
 )]
 pub struct PgTableIdempotencyResponseStatus(u16);
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum PgTableIdempotencyKnownResponseStatus {
     InternalServerError,
 }
@@ -78,12 +106,25 @@ impl PgTableIdempotencyResponseStatus {
         }
     }
 }
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 #[error("{self:?}")]
 pub struct PgTableIdempotencyResponseStatusTryFromU16Error;
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::Display, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::Display,
+    newtype::FromInner,
+)]
 pub struct PgTableIdempotencyTextBytes(usize);
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::TryFrom)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, newtype::TryFrom,
+)]
 #[try_from(
     error = PgTableIdempotencyCleanupValueTryFromI64Error,
     validator = PgTableIdempotencyCleanupRetentionSeconds::validate
@@ -99,7 +140,9 @@ impl PgTableIdempotencyCleanupRetentionSeconds {
         }
     }
 }
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::TryFrom)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, newtype::TryFrom,
+)]
 #[try_from(
     error = PgTableIdempotencyCleanupValueTryFromI64Error,
     validator = PgTableIdempotencyCleanupBatchSize::validate
@@ -115,7 +158,9 @@ impl PgTableIdempotencyCleanupBatchSize {
         }
     }
 }
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 pub enum PgTableIdempotencyCleanupValueTryFromI64Error {
     #[error("{self:?}")]
     Negative,
@@ -123,18 +168,36 @@ pub enum PgTableIdempotencyCleanupValueTryFromI64Error {
     NotPositive,
 }
 #[derive(
-    optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
 )]
 pub struct PgTableIdempotencyCleanupRows(u64);
-#[derive(optml::Optml, Debug, newtype::AsMut, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::AsMut, newtype::FromInner)]
 pub struct SqlxPgTablePgConnectionRef<'connection_lt>(&'connection_lt mut sqlx::PgConnection);
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, sqlx::Type, newtype::Display)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    sqlx::Type,
+    newtype::Display,
+)]
 #[sqlx(transparent)]
 pub struct PgTableRevision(i64);
-#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
+)]
 #[error(transparent)]
 pub struct StdPgTableRevisionParseIntError(std::num::ParseIntError);
-#[derive(optml::Optml, Debug, thiserror::Error)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum PgTableRevisionTryFromStringError {
     #[error("{}", str_constants::REVISION_MUST_BE_A_DECIMAL_INTEGER)]
     Invalid(#[source] StdPgTableRevisionParseIntError),
@@ -154,31 +217,33 @@ impl TryFrom<String> for PgTableRevision {
         }
     }
 }
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct PgTableIdempotencyScope {
     route: PgTableIdempotencyRoute,
     method: PgTableIdempotencyMethod,
     key: PgTableIdempotencyKey,
     actor: PgTableIdempotencyActor,
 }
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct PgTableIdempotencyRequest {
     scope: PgTableIdempotencyScope,
     request_hash: PgTableIdempotencyRequestHash,
 }
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct PgTableIdempotencyReplay {
     response_body: PgTableIdempotencyBody,
     response_status: PgTableIdempotencyResponseStatus,
 }
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub enum PgTableIdempotencyBegin {
     Acquired,
     Conflict,
     InProgress,
     Replay(PgTableIdempotencyReplay),
 }
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 pub enum PgTableIdempotencyTextError {
     #[error("{}", str_constants::IDEMPOTENCY_TEXT_MUST_NOT_BE_EMPTY)]
     Empty,
@@ -192,7 +257,9 @@ pub enum PgTableIdempotencyTextError {
         maximum_bytes: PgTableIdempotencyTextBytes,
     },
 }
-#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
+)]
 #[error("{}", str_constants::POSTGRESQL_IDEMPOTENCY_OPERATION_FAILED)]
 pub struct SqlxPgTableIdempotencyError(#[source] sqlx::Error);
 impl to_err_string::ToErrString for SqlxPgTableIdempotencyError {
@@ -566,22 +633,29 @@ mod idempotency_tests {
         );
     }
 }
-#[derive(optml::Optml, Clone, Copy)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
 enum InsertValuesFmt {
     Raw,
     Wrapped,
 }
-#[derive(optml::Optml, Clone, Copy)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
 enum SelectWhereFmt {
     Plain,
     Where,
 }
-#[derive(optml::Optml, Clone, Copy)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
 enum UpdateSelectorFmt {
     Eq,
     InList,
 }
-#[derive(optml::Optml, Debug, Clone, Copy, newtype::AsRefInner, newtype::Display)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    newtype::AsRefInner,
+    newtype::Display,
+)]
 pub struct PgTableNameRef<'lt>(&'lt str);
 impl<'lt, T> From<&'lt T> for PgTableNameRef<'lt>
 where
@@ -591,7 +665,14 @@ where
         Self(value.as_ref())
     }
 }
-#[derive(optml::Optml, Debug, Clone, Copy, newtype::AsRefInner, newtype::Display)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    newtype::AsRefInner,
+    newtype::Display,
+)]
 pub struct PgTableSqlFragmentRef<'lt>(&'lt str);
 impl<'lt, T> From<&'lt T> for PgTableSqlFragmentRef<'lt>
 where
@@ -601,9 +682,11 @@ where
         Self(value.as_ref())
     }
 }
-#[derive(optml::Optml, Debug, Clone, newtype::DerefTarget, newtype::Display)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, newtype::DerefTarget, newtype::Display,
+)]
 pub struct PgTableQueryString(String);
-#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PgTableStringWrapperTryFromStringError {
     TooLong { len: usize, max: usize },
 }
@@ -636,7 +719,9 @@ impl TryFrom<String> for PgTableQueryString {
         Ok(Self(value))
     }
 }
-#[derive(optml::Optml, Debug, Clone, newtype::DerefTarget, newtype::Display)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, newtype::DerefTarget, newtype::Display,
+)]
 pub struct PgTableQueryPartFragment(String);
 impl From<PgTableStringWrapperTryFromStringError> for PgTableQueryPartFragment {
     fn from(value: PgTableStringWrapperTryFromStringError) -> Self {

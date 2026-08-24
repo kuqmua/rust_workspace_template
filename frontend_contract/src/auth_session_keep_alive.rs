@@ -1,7 +1,15 @@
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::FromInner,
+)]
 pub struct StdAuthSessionInstant(std::time::Instant);
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct StdAuthSessionRefreshInterval(std::time::Duration);
 impl TryFrom<std::time::Duration> for StdAuthSessionRefreshInterval {
     type Error = AuthSessionKeepAliveError;
@@ -14,20 +22,20 @@ impl TryFrom<std::time::Duration> for StdAuthSessionRefreshInterval {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum AuthSessionPresence {
     Missing,
     Present,
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum AuthSessionRefreshOutcome {
     Failed,
     Refreshed,
     Rejected,
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum AuthSessionKeepAliveDecision {
     RefreshNow,
     SkipAlreadyRunning,
@@ -35,19 +43,21 @@ pub enum AuthSessionKeepAliveDecision {
     SkipNotDue { next: StdAuthSessionInstant },
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 pub enum AuthSessionKeepAliveError {
     #[error("authentication session refresh interval must not be zero")]
     ZeroInterval,
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 enum AuthSessionRefreshState {
     Idle,
     Running,
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct AuthSessionKeepAlive {
     interval: StdAuthSessionRefreshInterval,
     next: Option<StdAuthSessionInstant>,

@@ -157,7 +157,7 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
             }
         });
         quote::quote! {
-            #[derive(Debug, thiserror::Error, optml::Optml)]
+            #[derive(Debug, thiserror::Error, optimal_memory_layout::OptimalMemoryLayout)]
             pub enum #identifier_try_from_env_error_upper_camel_case {
                 #dotenv_upper_camel_case {
                     #dotenv_snake_case: dotenv::Error,

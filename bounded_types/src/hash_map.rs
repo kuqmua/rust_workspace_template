@@ -1,4 +1,4 @@
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 /// A hash map with at most `MAX` retained keys.
 ///
 /// Hash-map deserialization also accepts at most `MAX` wire entries, including repeated keys.
@@ -122,7 +122,7 @@ impl<K: Eq + std::hash::Hash + serde::Serialize, V: serde::Serialize, const MAX:
         serde::Serialize::serialize(&self.0, serializer)
     }
 }
-#[derive(optml::Optml, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
 struct StdPhantomDataBoundedHashMapVisitor<K, V, const MAX: usize>(
     std::marker::PhantomData<(K, V)>,
 );

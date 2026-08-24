@@ -1,5 +1,5 @@
 #[allow(clippy::arbitrary_source_item_ordering)]
-#[derive(Debug, Clone, Copy, optml::Optml)]
+#[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout)]
 pub enum LocationFieldAttr {
     EoToErrString,
     EoToErrStringSerde,
@@ -86,14 +86,14 @@ impl LocationFieldAttr {
         }
     }
 }
-#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
 struct CompileErrorMessage<'message_lt>(&'message_lt str);
 impl<'message_lt> From<&'message_lt String> for CompileErrorMessage<'message_lt> {
     fn from(value: &'message_lt String) -> Self {
         Self(value.as_str())
     }
 }
-#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
 pub struct SynVariantRef<'variant_lt>(&'variant_lt syn::Variant);
 fn compile_error_token_stream(
     message: CompileErrorMessage<'_>,

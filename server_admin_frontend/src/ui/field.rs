@@ -15,7 +15,7 @@
 
 use leptos::prelude::{AddAnyAttr, ElementChild};
 
-#[derive(optml::Optml, Clone, Debug, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, PartialEq, Eq)]
 pub(crate) struct AdminFieldLabel(Box<str>);
 
 impl From<&'static str> for AdminFieldLabel {

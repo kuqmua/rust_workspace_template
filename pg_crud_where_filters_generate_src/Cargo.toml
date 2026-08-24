@@ -23,7 +23,7 @@ naming = { workspace = true }
 newtype = { workspace = true }
 token_patterns = { workspace = true }
 macros_helpers = { workspace = true }
-optml = { workspace = true }
+optimal_memory_layout = { workspace = true }
 thiserror = { workspace = true }
 [lints]
 workspace = true

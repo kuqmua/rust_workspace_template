@@ -1,10 +1,20 @@
-#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, thiserror::Error,
+)]
 pub enum FiniteF64Error {
     #[error("floating-point value must be finite")]
     NotFinite,
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, PartialOrd, newtype::IntoInnerFrom)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    PartialOrd,
+    newtype::IntoInnerFrom,
+)]
 pub struct FiniteF64(f64);
 
 impl TryFrom<f64> for FiniteF64 {
@@ -18,7 +28,9 @@ impl TryFrom<f64> for FiniteF64 {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, thiserror::Error,
+)]
 pub enum PositiveFiniteF64Error {
     #[error("floating-point value must be finite")]
     NotFinite,
@@ -26,7 +38,15 @@ pub enum PositiveFiniteF64Error {
     NotPositive,
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, PartialOrd, newtype::IntoInnerFrom)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    PartialOrd,
+    newtype::IntoInnerFrom,
+)]
 pub struct PositiveFiniteF64(f64);
 
 impl TryFrom<f64> for PositiveFiniteF64 {
@@ -43,7 +63,9 @@ impl TryFrom<f64> for PositiveFiniteF64 {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, thiserror::Error,
+)]
 pub enum UnitIntervalF64Error {
     #[error("floating-point value must be finite")]
     NotFinite,
@@ -51,7 +73,15 @@ pub enum UnitIntervalF64Error {
     OutOfRange,
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, PartialOrd, newtype::IntoInnerFrom)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    PartialOrd,
+    newtype::IntoInnerFrom,
+)]
 pub struct UnitIntervalF64(f64);
 
 impl TryFrom<f64> for UnitIntervalF64 {

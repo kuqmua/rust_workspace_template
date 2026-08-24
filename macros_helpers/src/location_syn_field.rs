@@ -1,4 +1,6 @@
-#[derive(optml::Optml, Debug, newtype::IntoInnerFrom, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::IntoInnerFrom, newtype::FromInner,
+)]
 pub struct SynLocationField(syn::Field);
 #[must_use]
 pub fn location_syn_field() -> SynLocationField {

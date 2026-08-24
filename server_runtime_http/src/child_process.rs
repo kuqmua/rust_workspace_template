@@ -1,18 +1,44 @@
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::FromInner,
+)]
 pub struct StdChildDiagnosticMaximum(std::num::NonZeroUsize);
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Ord,
+    PartialEq,
+    PartialOrd,
+    newtype::FromInner,
+)]
 pub struct ChildProcessId(u64);
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::FromInner,
+)]
 pub struct StdChildProcessSetMaximum(std::num::NonZeroUsize);
 
-#[derive(optml::Optml, Debug, Default, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Default, newtype::FromInner)]
 struct StdCollectionsChildProcessMap(
     bounded_types::StdBoundedBTreeMap<ChildProcessId, ChildProcessSupervisor, { usize::MAX }>,
 );
 
-#[derive(optml::Optml, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 pub struct ChildProcessSet {
     maximum: StdChildProcessSetMaximum,
     next_id: ChildProcessId,
@@ -70,10 +96,16 @@ impl ChildProcessSet {
     }
 }
 
-#[derive(optml::Optml, Clone, Debug, newtype::AsRefTarget, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    newtype::AsRefTarget,
+    newtype::FromInner,
+)]
 pub struct ChildProcessReports(bounded_types::BoundedVec<ChildProcessReport, 0, { usize::MAX }>);
 
-#[derive(optml::Optml, Debug, thiserror::Error)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum ChildProcessSetError {
     #[error("child process set is full")]
     Full,
@@ -89,16 +121,24 @@ impl From<bounded_types::BoundedValueError> for ChildProcessSetError {
     }
 }
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::AsRefTarget,
+    newtype::FromInner,
+)]
 pub struct ChildDiagnostic(bounded_types::BoundedVec<u8, 0, { usize::MAX }>);
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ChildProcessCompletion {
     Exited,
     KilledAfterTimeout,
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 pub struct StdChildExitStatus(std::process::ExitStatus);
 
 impl StdChildExitStatus {
@@ -112,14 +152,14 @@ impl StdChildExitStatus {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ChildProcessSucceeded {
     No,
     Yes,
 }
 
-#[derive(optml::Optml, Clone, Debug)]
-#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optml takes precedence over alphabetical field order
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
+#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
 pub struct ChildProcessReport {
     diagnostic: ChildDiagnostic,
     status: StdChildExitStatus,
@@ -142,18 +182,18 @@ impl ChildProcessReport {
     }
 }
 
-#[derive(optml::Optml, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
 struct TokioManagedChild(tokio::process::Child);
 
-#[derive(optml::Optml, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
 pub struct TokioChildProcess(tokio::process::Child);
 
-#[derive(optml::Optml, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
 struct TokioChildDiagnosticTask(
     tokio::task::JoinHandle<Result<ChildDiagnostic, ChildProcessError>>,
 );
 
-#[derive(optml::Optml, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 #[must_use]
 pub struct ChildProcessSupervisor {
     child: Option<TokioManagedChild>,
@@ -217,7 +257,7 @@ impl Drop for ChildProcessSupervisor {
     }
 }
 
-#[derive(optml::Optml, Debug, thiserror::Error)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum ChildProcessError {
     #[error("child process diagnostic read failed")]
     DiagnosticIo(StdChildProcessIoError),
@@ -233,12 +273,12 @@ pub enum ChildProcessError {
     Timeout,
 }
 
-#[derive(optml::Optml, Debug, thiserror::Error)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 #[error(transparent)]
 #[derive(newtype::FromInner)]
 pub struct StdChildProcessIoError(std::io::Error);
 
-#[derive(optml::Optml, Debug, thiserror::Error)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 #[error(transparent)]
 #[derive(newtype::FromInner)]
 pub struct TokioChildProcessJoinError(tokio::task::JoinError);
@@ -292,7 +332,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    #[derive(optml::Optml)]
+    #[derive(optimal_memory_layout::OptimalMemoryLayout)]
     struct ErrorReader;
     impl tokio::io::AsyncRead for ErrorReader {
         fn poll_read(

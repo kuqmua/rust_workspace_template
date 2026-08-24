@@ -2,13 +2,15 @@ const HTTP_CSP_MAXIMUM_BYTES: usize = 4096usize;
 const HTTP_CSP_NAME_MAXIMUM_BYTES: usize = 64usize;
 const HTTP_CSP_VALUE_MAXIMUM_BYTES: usize = 1024usize;
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct HttpCspDirectiveName(String);
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct HttpCspDirectiveValue(String);
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 pub enum HttpCspTokenError {
     #[error("content security policy token must not be empty")]
     Empty,
@@ -58,7 +60,7 @@ impl TryFrom<String> for HttpCspDirectiveValue {
     }
 }
 
-#[derive(optml::Optml, Clone, Debug, Default, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Default, Eq, PartialEq)]
 pub struct HttpCspBuilder(String);
 
 impl TryFrom<String> for HttpCspBuilder {
@@ -72,7 +74,9 @@ impl TryFrom<String> for HttpCspBuilder {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 #[error("content security policy exceeds 4096 bytes")]
 pub struct HttpCspMaximumBytesError;
 

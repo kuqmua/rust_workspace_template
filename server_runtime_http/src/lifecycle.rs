@@ -1,31 +1,33 @@
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum BackgroundTaskOutcome {
     Completed,
     ShutdownRequested,
 }
-#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
+)]
 #[error(transparent)]
 pub struct TokioTaskJoinError(tokio::task::JoinError);
-#[derive(optml::Optml, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
 pub struct TokioAbortTask(tokio::task::JoinHandle<()>);
 
-#[derive(optml::Optml, Debug, thiserror::Error)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum BackgroundTaskShutdownError {
     #[error("background task failed: {0}")]
     Join(#[source] TokioTaskJoinError),
     #[error("{}", str_constants::BACKGROUND_TASK_SHUTDOWN_TIMED_OUT)]
     Timeout,
 }
-#[derive(optml::Optml, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 #[must_use]
 pub struct BackgroundTask {
     handle: Option<TokioBackgroundTaskJoinHandle>,
     shutdown_tx: Option<TokioBackgroundTaskShutdownSender>,
 }
-#[derive(optml::Optml, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
 struct TokioBackgroundTaskJoinHandle(tokio::task::JoinHandle<BackgroundTaskOutcome>);
 
-#[derive(optml::Optml, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
 struct TokioBackgroundTaskShutdownSender(tokio::sync::oneshot::Sender<()>);
 
 impl BackgroundTask {
@@ -73,7 +75,7 @@ impl Drop for BackgroundTask {
         }
     }
 }
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct StdRunInterval(std::time::Duration);
 impl TryFrom<std::time::Duration> for StdRunInterval {
     type Error = StdRunIntervalTryFromDurationError;
@@ -85,10 +87,12 @@ impl TryFrom<std::time::Duration> for StdRunInterval {
         }
     }
 }
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 #[error("{}", str_constants::RUN_INTERVAL_MUST_BE_GREATER_THAN_ZERO)]
 pub struct StdRunIntervalTryFromDurationError;
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct StdRequestTimeout(std::time::Duration);
 impl StdRequestTimeout {
     pub(crate) const fn get(self) -> std::time::Duration {
@@ -105,7 +109,9 @@ impl TryFrom<std::time::Duration> for StdRequestTimeout {
         }
     }
 }
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 #[error("{}", str_constants::REQUEST_TIMEOUT_MUST_BE_GREATER_THAN_ZERO)]
 pub struct StdRequestTimeoutTryFromDurationError;
 pub async fn abort_and_wait_task(task: TokioAbortTask) -> Result<(), TokioTaskJoinError> {

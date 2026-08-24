@@ -1,25 +1,45 @@
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::Display, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    newtype::Display,
+    newtype::FromInner,
+)]
 pub struct HttpErrorCode(&'static str);
 
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::Display, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    newtype::Display,
+    newtype::FromInner,
+)]
 pub struct HttpErrorType(&'static str);
 
-#[derive(optml::Optml, Clone, Copy, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
 pub struct HttpErrorTelemetry {
     error_code: HttpErrorCode,
     error_type: HttpErrorType,
 }
 
-#[derive(optml::Optml, Clone, Debug, newtype::Display, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, newtype::Display, newtype::FromInner,
+)]
 pub(super) struct StdHttpErrorBacktrace(Box<str>);
 
-#[derive(optml::Optml, Clone, Debug, newtype::Display, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, newtype::Display, newtype::FromInner,
+)]
 pub(super) struct StdHttpErrorChain(Box<str>);
 
-#[derive(optml::Optml, Clone, Debug, newtype::Display, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, newtype::Display, newtype::FromInner,
+)]
 pub(super) struct TracingHttpSpanTrace(Box<str>);
 
-#[derive(optml::Optml, Clone, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub struct HttpErrorDiagnostic {
     backtrace: StdHttpErrorBacktrace,
     error_chain: StdHttpErrorChain,
@@ -109,7 +129,7 @@ impl HttpErrorDiagnostic {
     }
 }
 
-#[derive(optml::Optml, Debug, thiserror::Error)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 #[error("{}", str_constants::HTTP_ERROR_WITHOUT_DIAGNOSTIC_CONTEXT)]
 struct HttpErrorWithoutDiagnosticContext;
 

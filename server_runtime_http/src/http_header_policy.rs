@@ -10,13 +10,21 @@ const CONTENT_DISPOSITION_PERCENT_ENCODE_SET: &percent_encoding::AsciiSet =
         .remove(b'_')
         .remove(b'~');
 
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 pub struct HttpAttachmentFileNameRef<'value_lt>(&'value_lt str);
 
-#[derive(optml::Optml, Clone, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
 pub struct HttpContentDisposition(http::HeaderValue);
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 pub enum HttpContentDispositionError {
     #[error("attachment file name must not be empty")]
     Empty,
@@ -74,7 +82,9 @@ pub fn build_attachment_content_disposition(
         .map_err(|_error| HttpContentDispositionError::InvalidHeaderValue)
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 pub enum HttpContentLengthError {
     #[error("Content-Length must not be empty")]
     Empty,
@@ -85,7 +95,9 @@ pub enum HttpContentLengthError {
     #[error("Content-Length contains too many digits")]
     TooLong,
 }
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::AsRefStr,
+)]
 pub struct HttpContentLength(String);
 impl TryFrom<String> for HttpContentLength {
     type Error = HttpContentLengthError;

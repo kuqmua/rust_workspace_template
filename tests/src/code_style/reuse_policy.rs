@@ -252,19 +252,19 @@ fn reviewed_duplicate_groups() -> Vec<ReviewedDuplicateGroup> {
     ]
 }
 
-#[derive(optml::Optml, Debug, Default)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Default)]
 struct FunctionBodyComplexity {
     expression_count: usize,
 }
 
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct FunctionBodyVisitor<'visitor_lt> {
     bodies: super::types::StdFunctionBodyLocationsMapMutRef<'visitor_lt>,
     identifier_pattern: super::types::RegexRegexRef<'visitor_lt>,
     path: super::types::StdPathRef<'visitor_lt>,
 }
 
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct ReviewedDuplicateGroup {
     locations: &'static str,
     reason: &'static str,

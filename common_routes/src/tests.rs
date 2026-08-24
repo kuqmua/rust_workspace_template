@@ -1,4 +1,4 @@
-#[derive(optml::Optml, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 struct TestState {
     commit: &'static str,
 }

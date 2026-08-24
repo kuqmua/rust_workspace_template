@@ -10,7 +10,7 @@
     serde::Deserialize,
     utoipa::ToSchema,
     schemars::JsonSchema,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     newtype::Display,
     newtype::FromInner,
     newtype::ToErrString,
@@ -28,7 +28,7 @@ impl From<i32> for PaginationLimit {
         Self(value.into())
     }
 }
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct PaginationPolicy {
     default_limit: PaginationLimit,
 }
@@ -67,7 +67,7 @@ mod policy_tests {
     serde::Deserialize,
     utoipa::ToSchema,
     schemars::JsonSchema,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     newtype::Display,
     newtype::FromInner,
     newtype::ToErrString,
@@ -86,7 +86,15 @@ impl From<i32> for PaginationOffset {
     }
 }
 #[derive(
-    Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, optml::Optml, newtype::FromInner,
+    Debug,
+    Default,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    optimal_memory_layout::OptimalMemoryLayout,
+    newtype::FromInner,
 )]
 pub struct PaginationStart(i64);
 impl PaginationStart {
@@ -96,7 +104,15 @@ impl PaginationStart {
     }
 }
 #[derive(
-    Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, optml::Optml, newtype::FromInner,
+    Debug,
+    Default,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    optimal_memory_layout::OptimalMemoryLayout,
+    newtype::FromInner,
 )]
 pub struct PaginationEnd(i64);
 impl PaginationEnd {

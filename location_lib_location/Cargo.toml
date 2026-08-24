@@ -21,7 +21,7 @@ generate_quotes = { workspace = true }
 panic_location = { workspace = true }
 token_patterns = { workspace = true }
 naming = { workspace = true }
-optml = { workspace = true }
+optimal_memory_layout = { workspace = true }
 newtype = { workspace = true }
 [lints]
 workspace = true

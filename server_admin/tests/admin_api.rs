@@ -16,33 +16,33 @@ mod routing;
 #[path = "admin_api/schema.rs"]
 mod schema;
 
-#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
 struct StdAdminApiTestStrRef<'value_lt>(&'value_lt str);
-#[derive(optml::Optml, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
 struct AxumAdminApiTestRouter(axum::Router);
-#[derive(optml::Optml, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
 struct SqlxAdminApiTestPool(sqlx::PgPool);
-#[derive(optml::Optml, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
 struct SqlxAdminHtmlTestTransaction(sqlx::Transaction<'static, sqlx::Postgres>);
-#[derive(optml::Optml, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
 struct HttpAdminApiTestMethod(http::Method);
-#[derive(optml::Optml, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
 struct HttpAdminApiTestRequest(http::Request<axum::body::Body>);
-#[derive(optml::Optml, newtype::DerefInner, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::DerefInner, newtype::FromInner)]
 struct HttpAdminHtmlTestResponse(http::Response<axum::body::Body>);
-#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
 struct HttpAdminApiTestResponseRef<'value_lt>(&'value_lt http::Response<axum::body::Body>);
-#[derive(optml::Optml, newtype::BoundedString)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::BoundedString)]
 #[bounded_string(max = 16384)]
 #[derive(newtype::Display)]
 struct StdAdminApiTestCookie(String);
-#[derive(optml::Optml, newtype::BoundedString)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::BoundedString)]
 #[bounded_string(max = 1_048_576)]
 struct AdminHtmlTestBody(String);
-#[derive(optml::Optml, newtype::BoundedString)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::BoundedString)]
 #[bounded_string(max = 65_536)]
 struct AdminHtmlTestFormBody(String);
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct AdminHtmlTestFixture {
     cookie: StdAdminApiTestCookie,
     csrf: StdAdminApiTestCookie,
@@ -50,7 +50,7 @@ struct AdminHtmlTestFixture {
     pool: SqlxAdminApiTestPool,
     router: AxumAdminApiTestRouter,
 }
-#[derive(optml::Optml, Clone, Copy)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
 struct AdminHtmlSettingsTestValues<'value_lt> {
     default_admin_route: StdAdminApiTestStrRef<'value_lt>,
     main_logo: StdAdminApiTestStrRef<'value_lt>,

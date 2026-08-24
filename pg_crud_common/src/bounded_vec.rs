@@ -1,5 +1,5 @@
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,
@@ -18,7 +18,9 @@ impl BoundedVecLen {
         self.0
     }
 }
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 #[allow(clippy::module_name_repetitions)] // callers need an unambiguous error name in public signatures
 pub enum BoundedVecError {
     #[error("bounded vector length {actual} exceeds limit {max}")]
@@ -38,7 +40,13 @@ pub enum BoundedVecError {
     },
 }
 #[derive(
-    optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefTarget, newtype::IntoInnerFrom,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::AsRefTarget,
+    newtype::IntoInnerFrom,
 )]
 pub struct BoundedVec<T, const MIN: usize, const MAX: usize>(Vec<T>);
 impl<T, const MIN: usize, const MAX: usize> BoundedVec<T, MIN, MAX> {

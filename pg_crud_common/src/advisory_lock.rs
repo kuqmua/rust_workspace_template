@@ -1,11 +1,18 @@
 const MAXIMUM_RESOURCE_COUNT: usize = 10_000usize;
 
 #[derive(
-    optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
 )]
 pub struct PgRelationRowCount(u64);
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct PgRelationCapacityMaximum(u64);
 impl TryFrom<u64> for PgRelationCapacityMaximum {
     type Error = PgRelationCapacityError;
@@ -18,7 +25,9 @@ impl TryFrom<u64> for PgRelationCapacityMaximum {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 pub enum PgRelationCapacityError {
     #[error("PostgreSQL relation capacity would be exceeded")]
     Exceeded,
@@ -28,10 +37,20 @@ pub enum PgRelationCapacityError {
     ZeroMaximum,
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Ord,
+    PartialEq,
+    PartialOrd,
+    newtype::FromInner,
+)]
 pub struct PgRelationResourceId(i64);
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct PgRelationLockNamespace(String);
 impl TryFrom<String> for PgRelationLockNamespace {
     type Error = PgRelationLockError;
@@ -48,7 +67,7 @@ impl TryFrom<String> for PgRelationLockNamespace {
     }
 }
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct PgRelationResourceIds(
     bounded_types::BoundedVec<PgRelationResourceId, 0usize, MAXIMUM_RESOURCE_COUNT>,
 );
@@ -70,7 +89,9 @@ impl TryFrom<Vec<PgRelationResourceId>> for PgRelationResourceIds {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 pub enum PgRelationLockError {
     #[error("PostgreSQL relation lock namespace is invalid")]
     InvalidNamespace,
@@ -78,11 +99,13 @@ pub enum PgRelationLockError {
     TooManyResources,
 }
 
-#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
+)]
 #[error(transparent)]
 pub struct SqlxPgRelationLockError(sqlx::Error);
 
-#[derive(optml::Optml, Debug, newtype::AsMut, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::AsMut, newtype::FromInner)]
 pub struct SqlxPgRelationLockConnectionRef<'connection>(&'connection mut sqlx::PgConnection);
 
 pub async fn lock_pg_relation_resources(

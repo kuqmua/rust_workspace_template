@@ -1,15 +1,15 @@
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct DbgVisitor {
     pub found: super::types::AnalyzerBool,
 }
 
-#[derive(Default, optml::Optml)]
-pub(super) struct OptmlDeriveVisitor {
+#[derive(Default, optimal_memory_layout::OptimalMemoryLayout)]
+pub(super) struct OptimalMemoryLayoutVisitor {
     pub ers: super::types::DiagnosticMsgs,
 }
-impl OptmlDeriveVisitor {
+impl OptimalMemoryLayoutVisitor {
     fn check_attrs(&mut self, identifier: &syn::Ident, attrs: &[syn::Attribute], kind: &str) {
-        let mut derives_optml = false;
+        let mut derives_optimal_memory_layout = false;
         attrs
             .iter()
             .filter(|attr| attr.path().is_ident("derive"))
@@ -19,20 +19,21 @@ impl OptmlDeriveVisitor {
                         .path
                         .segments
                         .last()
-                        .is_some_and(|segment| segment.ident == "Optml")
+                        .is_some_and(|segment| segment.ident == "OptimalMemoryLayout")
                     {
-                        derives_optml = true;
+                        derives_optimal_memory_layout = true;
                     }
                     Ok(())
                 }));
             });
-        if !derives_optml {
-            self.ers
-                .push(format!("{kind} `{identifier}` must derive `optml::Optml`"));
+        if !derives_optimal_memory_layout {
+            self.ers.push(format!(
+                "{kind} `{identifier}` must derive `optimal_memory_layout::OptimalMemoryLayout`"
+            ));
         }
     }
 }
-impl<'ast> syn::visit::Visit<'ast> for OptmlDeriveVisitor {
+impl<'ast> syn::visit::Visit<'ast> for OptimalMemoryLayoutVisitor {
     fn visit_item_enum(&mut self, i: &'ast syn::ItemEnum) {
         self.check_attrs(&i.ident, &i.attrs, "enum");
         syn::visit::visit_item_enum(self, i);
@@ -53,7 +54,7 @@ impl<'ast> syn::visit::Visit<'ast> for DbgVisitor {
         }
     }
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct TodoUnimplVisitor {
     pub todo_found: super::types::AnalyzerCount,
     pub unimplemented_found: super::types::AnalyzerCount,
@@ -73,7 +74,7 @@ impl<'ast> syn::visit::Visit<'ast> for TodoUnimplVisitor {
         }
     }
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct UnwrapVisitor {
     pub found_count: super::types::AnalyzerCount,
 }
@@ -85,12 +86,12 @@ impl<'ast> syn::visit::Visit<'ast> for UnwrapVisitor {
         syn::visit::visit_expr_method_call(self, i);
     }
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct ForLoopVisitor {
     pub found_count: super::types::AnalyzerCount,
 }
 
-#[derive(optml::Optml, Default)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 pub(super) struct SourceDroppingMapErrVisitor {
     pub found_count: super::types::AnalyzerCount,
 }
@@ -107,12 +108,12 @@ impl<'ast> syn::visit::Visit<'ast> for SourceDroppingMapErrVisitor {
     }
 }
 
-#[derive(optml::Optml, Default)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 pub(super) struct NumericAsCastVisitor {
     pub found_count: super::types::AnalyzerCount,
 }
 
-#[derive(optml::Optml, Default)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 pub(super) struct SerdeJsonValueFieldVisitor {
     pub violations: super::types::DiagnosticMsgs,
 }
@@ -139,12 +140,12 @@ impl<'ast> syn::visit::Visit<'ast> for SerdeJsonValueFieldVisitor {
     }
 }
 
-#[derive(optml::Optml, Default)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 pub(super) struct SerdeJsonValueTypeVisitor {
     pub found: super::types::AnalyzerBool,
 }
 
-#[derive(optml::Optml, Default)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 pub(super) struct PublicStructFieldVisitor {
     pub violations: super::types::DiagnosticMsgs,
 }
@@ -227,7 +228,7 @@ impl<'ast> syn::visit::Visit<'ast> for ForLoopVisitor {
         syn::visit::visit_expr_for_loop(self, i);
     }
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct IncludeAssetMacroVisitor {
     pub ers: super::types::DiagnosticMsgs,
 }
@@ -242,11 +243,11 @@ impl<'ast> syn::visit::Visit<'ast> for IncludeAssetMacroVisitor {
         syn::visit::visit_macro(self, i);
     }
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct DirectPathCallVisitor {
     pub calls: super::types::DiagnosticMsgs,
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct UnboundedReadVisitor {
     pub calls: super::types::DiagnosticMsgs,
 }
@@ -288,7 +289,7 @@ impl<'ast> syn::visit::Visit<'ast> for DirectPathCallVisitor {
         syn::visit::visit_expr_call(self, i);
     }
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct LostSpawnVisitor {
     pub ers: super::types::DiagnosticMsgs,
 }
@@ -331,45 +332,45 @@ impl<'ast> syn::visit::Visit<'ast> for LostSpawnVisitor {
         syn::visit::visit_stmt(self, i);
     }
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct TestNondeterminismVisitor {
     pub calls: super::types::DiagnosticMsgs,
     pub test_depth: super::types::AnalyzerCount,
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct SensitiveTextDebugDeriveVisitor {
     pub ers: super::types::DiagnosticMsgs,
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct SensitiveErrorFormatVisitor {
     pub ers: super::types::DiagnosticMsgs,
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct GeneratedRandomnessVisitor {
     pub calls: super::types::DiagnosticMsgs,
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct StaticStateVisitor {
     pub identifiers: super::types::SourceTextList,
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct PrintMacroVisitor {
     pub calls: super::types::DiagnosticMsgs,
 }
-#[derive(optml::Optml, Default)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 pub(super) struct PublicLogicVisitor {
     pub found: super::types::AnalyzerBool,
 }
-#[derive(optml::Optml, Default)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 pub(super) struct OwnedTestVisitor {
     pub found: super::types::AnalyzerBool,
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct AllowReasonVisitor {
     pub ers: super::types::DiagnosticMsgs,
     pub lines: super::types::SourceTextList,
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct DiagnosticIdVisitor {
     pub ers: super::types::DiagnosticMsgs,
     pub ids: super::types::SourceTextList,
@@ -754,8 +755,8 @@ impl<'ast> syn::visit::Visit<'ast> for TestNondeterminismVisitor {
         }
     }
 }
-#[derive(optml::Optml)]
-#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optml takes precedence over alphabetical field order
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
 pub(super) struct UseImportVisitor {
     pub public_use_roots: super::types::SourceTextList,
     pub allow_leptos_prelude_import: super::types::AnalyzerBool,
@@ -821,7 +822,7 @@ impl<'ast> syn::visit::Visit<'ast> for UseImportVisitor {
         syn::visit::visit_item_use(self, i);
     }
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct TypeAliasVisitor {
     pub ers: super::types::DiagnosticMsgs,
 }
@@ -834,7 +835,7 @@ impl<'ast> syn::visit::Visit<'ast> for TypeAliasVisitor {
         syn::visit::visit_item_type(self, i);
     }
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct EmptyEnumVisitor {
     pub ers: super::types::DiagnosticMsgs,
 }
@@ -863,7 +864,7 @@ impl<'ast> syn::visit::Visit<'ast> for EmptyEnumVisitor {
         syn::visit::visit_item_enum(self, i);
     }
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct InfallibleResultVisitor {
     pub ers: super::types::DiagnosticMsgs,
 }
@@ -927,7 +928,7 @@ impl<'ast> syn::visit::Visit<'ast> for InfallibleResultVisitor {
         syn::visit::visit_item_struct(self, i);
     }
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct ConstantAliasVisitor {
     pub ers: super::types::DiagnosticMsgs,
 }
@@ -958,12 +959,12 @@ impl<'ast> syn::visit::Visit<'ast> for ConstantAliasVisitor {
         syn::visit::visit_item_const(self, i);
     }
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct ForwardingDerefVisitor {
     pub ers: super::types::DiagnosticMsgs,
     pub inner_types: std::collections::BTreeMap<String, syn::Type>,
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct ForwardingBorrowVisitor {
     pub ers: super::types::DiagnosticMsgs,
 }
@@ -1103,19 +1104,19 @@ impl<'ast> syn::visit::Visit<'ast> for ForwardingDerefVisitor {
         syn::visit::visit_item_struct(self, i);
     }
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct ForwardingDisplayVisitor {
     pub ers: super::types::DiagnosticMsgs,
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct ManualErrorImplVisitor {
     pub ers: super::types::DiagnosticMsgs,
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct ManualNotImplVisitor {
     pub ers: super::types::DiagnosticMsgs,
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct ConstDisplayImplVisitor {
     pub ers: super::types::DiagnosticMsgs,
 }
@@ -1187,7 +1188,7 @@ impl<'ast> syn::visit::Visit<'ast> for ManualErrorImplVisitor {
         syn::visit::visit_item_impl(self, i);
     }
 }
-#[derive(optml::Optml, Default)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 pub(super) struct JsonCallVisitor {
     pub found: super::types::AnalyzerBool,
 }
@@ -1205,12 +1206,12 @@ impl<'ast> syn::visit::Visit<'ast> for JsonCallVisitor {
         syn::visit::visit_expr_call(self, i);
     }
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct JsonIntoResponseErrorVisitor<'names_lt> {
     pub ers: super::types::DiagnosticMsgs,
     pub thiserror_enum_names: &'names_lt super::types::StdSourceTextSet,
 }
-#[derive(optml::Optml, Default)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 pub(super) struct TupleResponseVisitor {
     pub found: super::types::AnalyzerBool,
 }
@@ -1270,7 +1271,7 @@ impl<'ast> syn::visit::Visit<'ast> for JsonIntoResponseErrorVisitor<'_> {
         syn::visit::visit_item_impl(self, i);
     }
 }
-#[derive(optml::Optml, Default)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 pub(super) struct ThiserrorEnumVisitor {
     pub location_names: super::types::StdSourceTextSet,
     pub names: super::types::StdSourceTextSet,
@@ -1337,12 +1338,12 @@ impl<'ast> syn::visit::Visit<'ast> for ThiserrorEnumVisitor {
         syn::visit::visit_item_enum(self, i);
     }
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct ApiErrorLocationVisitor<'names_lt> {
     pub ers: super::types::DiagnosticMsgs,
     pub thiserror_location_enum_names: &'names_lt super::types::StdSourceTextSet,
 }
-#[derive(optml::Optml, Default)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 pub(super) struct IntoResponseTypeVisitor {
     pub names: super::types::StdSourceTextSet,
 }
@@ -1362,12 +1363,12 @@ impl<'ast> syn::visit::Visit<'ast> for IntoResponseTypeVisitor {
         syn::visit::visit_item_impl(self, i);
     }
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct ApiErrorSourceVisitor<'names_lt> {
     pub api_error_names: &'names_lt super::types::StdSourceTextSet,
     pub ers: super::types::DiagnosticMsgs,
 }
-#[derive(optml::Optml, Default)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 pub(super) struct RouteOperationErrorVisitor {
     pub ers: super::types::DiagnosticMsgs,
     pub names: super::types::StdSourceTextSet,
@@ -1598,7 +1599,7 @@ impl<'ast> syn::visit::Visit<'ast> for ForwardingDisplayVisitor {
         syn::visit::visit_item_impl(self, i);
     }
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct ForwardingIntoIteratorVisitor {
     pub ers: super::types::DiagnosticMsgs,
 }
@@ -1639,7 +1640,7 @@ impl<'ast> syn::visit::Visit<'ast> for ForwardingIntoIteratorVisitor {
         syn::visit::visit_item_impl(self, i);
     }
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct PassthroughIntoInnerFromVisitor {
     pub ers: super::types::DiagnosticMsgs,
     pub inner_types: std::collections::BTreeMap<String, syn::Type>,
@@ -1712,7 +1713,7 @@ impl<'ast> syn::visit::Visit<'ast> for PassthroughIntoInnerFromVisitor {
         syn::visit::visit_item_struct(self, i);
     }
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct PassthroughFromVisitor {
     pub ers: super::types::DiagnosticMsgs,
     pub inner_types: std::collections::BTreeMap<String, syn::Type>,
@@ -1804,7 +1805,7 @@ impl<'ast> syn::visit::Visit<'ast> for PassthroughFromVisitor {
         syn::visit::visit_item_struct(self, i);
     }
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct TestStringLiteralVisitor {
     pub values: super::types::SourceTextList,
 }
@@ -1831,7 +1832,7 @@ impl<'ast> syn::visit::Visit<'ast> for TestStringLiteralVisitor {
         syn::visit::visit_macro(self, i);
     }
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct ProductionStringLiteralVisitor {
     pub values: super::types::SourceTextList,
 }
@@ -1872,13 +1873,13 @@ impl<'ast> syn::visit::Visit<'ast> for ProductionStringLiteralVisitor {
         syn::visit::visit_item_mod(self, i);
     }
 }
-#[derive(optml::Optml)]
-#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optml takes precedence over alphabetical field order
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
 pub(super) struct StringConstantDeclarationVisitor {
     pub ers: super::types::DiagnosticMsgs,
     pub allow_generated_string_constants: super::types::AnalyzerBool,
 }
-#[derive(optml::Optml, Default)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 pub(super) struct ConstantInitializerStringLiteralVisitor {
     pub found: super::types::AnalyzerBool,
 }
@@ -2075,7 +2076,7 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantDeclarationVisitor {
         syn::visit::visit_trait_item_fn(self, i);
     }
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct StringConstantVisitor {
     pub ers: super::types::DiagnosticMsgs,
 }

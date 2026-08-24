@@ -1,4 +1,6 @@
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::Display)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::Display,
+)]
 pub struct RequestId(String);
 
 impl TryFrom<String> for RequestId {
@@ -11,16 +13,20 @@ impl TryFrom<String> for RequestId {
         }
     }
 }
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 #[error(
     "{}",
     str_constants::REQUEST_ID_MUST_BE_NON_EMPTY_ASCII_UP_TO_128_BYTES
 )]
 pub struct RequestIdTryFromStringError;
-#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
+)]
 #[error(transparent)]
 pub struct HttpHeaderToStrError(http::header::ToStrError);
-#[derive(optml::Optml, Debug, thiserror::Error)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum RequestIdTryFromHttpHeaderValueError {
     #[error(transparent)]
     Invalid(RequestIdTryFromStringError),

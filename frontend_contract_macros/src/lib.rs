@@ -2,26 +2,33 @@
     clippy::arbitrary_source_item_ordering,
     reason = "proc-macro parser models precede their entrypoints while related derive parsers remain adjacent"
 )]
-#[derive(optml::Optml, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
 struct SynExpr(syn::Expr);
 
-#[derive(optml::Optml, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
 struct SynType(syn::Type);
 
-#[derive(optml::Optml, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
 struct SynIdent(syn::Ident);
 
-#[derive(optml::Optml, Clone, Copy, Default, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Default,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
 struct StdBool(bool);
-#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
 struct SynAttributesRef<'attributes_lt>(&'attributes_lt [syn::Attribute]);
 
-#[derive(optml::Optml, Default)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct ContractStructApiArgs {
     into_parts: StdBool,
     new: StdBool,
 }
-#[derive(optml::Optml, Default)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 #[allow(
     clippy::struct_excessive_bools,
     reason = "each flag independently opts one field into a distinct generated method"
@@ -133,25 +140,25 @@ fn parse_contract_struct_api_field_args(
     Ok(args)
 }
 
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct RouteCatalogArgs {
     body_limit: SynExpr,
     family: SynIdent,
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct RouteCatalogRouteArgs {
     contract: Option<SynExpr>,
     path: Option<SynExpr>,
     route: Option<SynType>,
     exclude_from_family: StdBool,
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct PageCatalogArgs {
     inventory: SynIdent,
     path_ref: SynIdent,
     spec: SynIdent,
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct PageCatalogPageArgs {
     capability: SynExpr,
     metadata: SynExpr,
@@ -314,7 +321,7 @@ impl syn::parse::Parse for RouteCatalogRouteArgs {
         }
     }
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct TypedRouteArgs {
     authentication: SynExpr,
     error_response: Option<SynType>,
@@ -331,51 +338,51 @@ struct TypedRouteArgs {
     success_status: SynExpr,
     transport: SynType,
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 enum SynTypedRouteErrors {
     Policy(SynExpr),
     Statuses(SynExpr),
 }
 
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct RouteRegistryBinding {
     handler: SynRouteRegistryHandler,
     route: SynRouteRegistryRoute,
 }
-#[derive(optml::Optml, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
 struct SynRouteRegistryHandler(syn::Path);
 
-#[derive(optml::Optml, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
 struct SynRouteRegistryRoute(syn::Type);
 
-#[derive(optml::Optml, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
 struct SynRouteRegistryBindings(syn::punctuated::Punctuated<RouteRegistryBinding, syn::Token![,]>);
 
-#[derive(optml::Optml, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
 struct SynRouteRegistrySchemas(Vec<syn::Type>);
 
-#[derive(optml::Optml, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
 struct SynRouteRegistryState(syn::Type);
 
-#[derive(optml::Optml, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
 struct SynRouteRegistryFamily(syn::Type);
 
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct HandlerRegistryBinding {
     contract: SynHandlerRegistryContract,
     handler: SynHandlerRegistryHandler,
 }
-#[derive(optml::Optml, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
 struct SynHandlerRegistryContract(syn::Expr);
-#[derive(optml::Optml, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
 struct SynHandlerRegistryHandler(syn::Path);
 
-#[derive(optml::Optml, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
 struct SynHandlerRegistryBindings(
     syn::punctuated::Punctuated<HandlerRegistryBinding, syn::Token![,]>,
 );
 
-#[derive(optml::Optml, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
 struct SynHandlerRegistryState(syn::Type);
 
 impl syn::parse::Parse for HandlerRegistryBinding {
@@ -389,7 +396,7 @@ impl syn::parse::Parse for HandlerRegistryBinding {
     }
 }
 
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct HandlerRegistryArgs {
     bindings: SynHandlerRegistryBindings,
     state: SynHandlerRegistryState,
@@ -431,7 +438,7 @@ impl syn::parse::Parse for RouteRegistryBinding {
         Ok(Self { handler, route })
     }
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct RouteRegistryArgs {
     authenticated_security: SynExpr,
     bindings: SynRouteRegistryBindings,

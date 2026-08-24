@@ -1,18 +1,49 @@
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::IntoInnerFrom)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::IntoInnerFrom,
+)]
 pub struct HttpHeaderTextMaximumBytes(usize);
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::FromInner,
+)]
 pub struct HttpHeaderTextBytes(usize);
 
-#[derive(optml::Optml, Clone, Debug, newtype::AsRefOwned, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    newtype::AsRefOwned,
+    newtype::FromInner,
+)]
 pub struct HttpHeaderName(http::HeaderName);
 
 #[derive(
-    optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::AsRefInner, newtype::FromInner,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::AsRefInner,
+    newtype::FromInner,
 )]
 pub struct HttpHeaderTextRef<'header>(&'header str);
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 #[error("HTTP header text maximum must be greater than zero")]
 pub struct HttpHeaderTextMaximumBytesError;
 
@@ -27,7 +58,7 @@ impl TryFrom<usize> for HttpHeaderTextMaximumBytes {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum HttpHeaderTextResolution<'header> {
     ExceedsMaximumBytes { actual_bytes: HttpHeaderTextBytes },
     InvalidText,

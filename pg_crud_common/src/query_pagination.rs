@@ -9,7 +9,7 @@
     Eq,
     utoipa::ToSchema,
     strum_macros::EnumString,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
 )]
 #[strum(serialize_all = "snake_case")]
 pub enum Order {
@@ -32,7 +32,9 @@ impl super::DefaultSomeOneElement for Order {
         Self::default()
     }
 }
-#[derive(Debug, Clone, PartialEq, Eq, optml::Optml, newtype::Display)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, optimal_memory_layout::OptimalMemoryLayout, newtype::Display,
+)]
 pub struct OrderSnakeCaseStr(String);
 impl From<super::PgCrudStringWrapperTryFromStringError> for OrderSnakeCaseStr {
     fn from(value: super::PgCrudStringWrapperTryFromStringError) -> Self {
@@ -51,7 +53,9 @@ impl TryFrom<String> for OrderSnakeCaseStr {
         Ok(Self(value))
     }
 }
-#[derive(Debug, Clone, PartialEq, Eq, optml::Optml, newtype::Display)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, optimal_memory_layout::OptimalMemoryLayout, newtype::Display,
+)]
 pub struct OrderUpperCamelCaseStr(String);
 impl From<super::PgCrudStringWrapperTryFromStringError> for OrderUpperCamelCaseStr {
     fn from(value: super::PgCrudStringWrapperTryFromStringError) -> Self {
@@ -82,7 +86,9 @@ impl Order {
             .unwrap_or_else(OrderUpperCamelCaseStr::from)
     }
 }
-#[derive(Debug, serde::Serialize, serde::Deserialize, optml::Optml)]
+#[derive(
+    Debug, serde::Serialize, serde::Deserialize, optimal_memory_layout::OptimalMemoryLayout,
+)]
 pub struct OrderBy<ColumnGeneric> {
     pub column: ColumnGeneric,
     pub order: Option<Order>,
@@ -120,7 +126,7 @@ impl<ColumnGeneric: utoipa::ToSchema> utoipa::ToSchema for OrderBy<ColumnGeneric
     serde::Deserialize,
     utoipa::ToSchema,
     schemars::JsonSchema,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub struct PaginationBase {
     limit: super::PaginationLimit,
@@ -199,7 +205,9 @@ impl Default for PaginationBase {
         Self::new_unchecked(super::PaginationPolicy::standard().default_limit().get(), 0)
     }
 }
-#[derive(Debug, serde::Deserialize, schemars::JsonSchema, optml::Optml)]
+#[derive(
+    Debug, serde::Deserialize, schemars::JsonSchema, optimal_memory_layout::OptimalMemoryLayout,
+)]
 struct PaginationStartsWithZeroRaw {
     limit: super::PaginationLimit,
     offset: super::PaginationOffset,
@@ -215,7 +223,7 @@ struct PaginationStartsWithZeroRaw {
     serde::Deserialize,
     utoipa::ToSchema,
     schemars::JsonSchema,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
 )]
 #[serde(try_from = "PaginationStartsWithZeroRaw")]
 #[derive(newtype::FromInner)]
@@ -223,7 +231,12 @@ pub struct PaginationStartsWithZero(PaginationBase);
 
 #[location::errors_with_location]
 #[derive(
-    Debug, serde::Serialize, serde::Deserialize, thiserror::Error, location::Location, optml::Optml,
+    Debug,
+    serde::Serialize,
+    serde::Deserialize,
+    thiserror::Error,
+    location::Location,
+    optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub enum PaginationStartsWithZeroTryNewError {
     LimitIsLessThanOrEqToZero {

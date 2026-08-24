@@ -27,7 +27,7 @@ naming_macros = { workspace = true }
 token_patterns = { workspace = true }
 workspace_macro_helpers = { workspace = true }
 pg_crud_macros_common = { workspace = true }
-optml = { workspace = true }
+optimal_memory_layout = { workspace = true }
 thiserror = { workspace = true }
 [lints]
 workspace = true

@@ -1,11 +1,11 @@
 // Intentional process-wide state: std exposes the panic hook as one global slot, and this guard
 // prevents repeatedly replacing that hook from proc-macro entrypoints.
 static PANIC_HOOK_ONCE: std::sync::Once = std::sync::Once::new();
-#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
 struct PanicFile<'file_lt>(&'file_lt str);
-#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
 struct PanicLine(u32);
-#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
 struct PanicColumn(u32);
 #[allow(clippy::single_call_fn)] // keeps panic message construction reusable and testable in one place
 fn panic_with_location_message(

@@ -1,18 +1,29 @@
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::Display, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    newtype::Display,
+    newtype::FromInner,
+)]
 pub struct ServiceName(&'static str);
 
-#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
+)]
 #[error(transparent)]
 pub struct OpentelemetryOtlpExporterBuildError(opentelemetry_otlp::ExporterBuildError);
 
-#[derive(optml::Optml, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
 struct OpentelemetrySdkTracerProvider(opentelemetry_sdk::trace::SdkTracerProvider);
 
-#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
+)]
 #[error(transparent)]
 pub struct TracingSubscriberInitError(tracing_subscriber::util::TryInitError);
 
-#[derive(optml::Optml, Debug, thiserror::Error)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum ObservabilityInitError {
     #[error("failed to build OTLP span exporter: {0}")]
     Exporter(OpentelemetryOtlpExporterBuildError),
@@ -20,11 +31,13 @@ pub enum ObservabilityInitError {
     Subscriber(TracingSubscriberInitError),
 }
 
-#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
+)]
 #[error("failed to shut down OpenTelemetry tracer provider: {0}")]
 pub struct OpentelemetrySdkObservabilityShutdownError(opentelemetry_sdk::error::OTelSdkError);
 
-#[derive(optml::Optml, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 pub struct ObservabilityGuard {
     tracer_provider: Option<OpentelemetrySdkTracerProvider>,
 }

@@ -1,7 +1,11 @@
-#[derive(optml::Optml, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner, newtype::IntoInnerFrom,
+)]
 pub struct TokioServiceRuntime(tokio::runtime::Runtime);
 
-#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
+)]
 #[error("{0}")]
 pub struct StdServiceRuntimeIoError(std::io::Error);
 

@@ -11,7 +11,7 @@ categories = ["filesystem"]
 edition.workspace = true
 
 [dependencies]
-optml = { workspace = true }
+optimal_memory_layout = { workspace = true }
 bounded_types = { workspace = true }
 newtype = { workspace = true }
 str_constants = { workspace = true }

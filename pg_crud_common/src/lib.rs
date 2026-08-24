@@ -136,7 +136,15 @@ pub use sql_like_pattern::{
 };
 pub(crate) const PG_CRUD_STRING_WRAPPER_MAX_LEN: usize = 1_048_576;
 const NOT_EMPTY_UNIQUE_VEC_MAX_LEN: usize = 10_000usize;
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
 pub struct AllEnumVariants<T>(Vec<T>);
 pub trait AllEnumVariantsArrayDefaultSomeOneElement: Sized {
     fn all_variants_default_some_one_element() -> AllEnumVariants<Self>;
@@ -161,7 +169,7 @@ pub trait DefaultSomeOneElementMaxPageSize: Sized {
     PartialEq,
     utoipa::ToSchema,
     schemars::JsonSchema,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     newtype::DebugDisplay,
 )]
 pub enum Operator {
@@ -258,7 +266,7 @@ mod tests_operator_to_query_part {
         );
     }
 }
-#[derive(Debug, Clone, Copy, PartialEq, optml::Optml)]
+#[derive(Debug, Clone, Copy, PartialEq, optimal_memory_layout::OptimalMemoryLayout)]
 pub enum PgTypeGreaterThanVariant {
     EqNotGreaterThan,
     GreaterThan,
@@ -449,20 +457,20 @@ pub trait PgTypeTestCases {
     }
 }
 #[allow(clippy::arbitrary_source_item_ordering)]
-#[derive(Debug, Clone, PartialEq, optml::Optml)]
+#[derive(Debug, Clone, PartialEq, optimal_memory_layout::OptimalMemoryLayout)]
 pub struct PgTypeGreaterThanTest<T: PgType> {
     pub greater_than: <T as PgType>::TableType,
     pub create: <T as PgType>::Create,
     pub variant: PgTypeGreaterThanVariant,
 }
 #[allow(clippy::arbitrary_source_item_ordering)]
-#[derive(Debug, optml::Optml)]
+#[derive(Debug, optimal_memory_layout::OptimalMemoryLayout)]
 pub struct PgTypeLenGreaterThanTest<T: PgType> {
     pub create: <T as PgType>::Create,
     pub variant: PgTypeGreaterThanVariant,
     pub len_greater_than: UnsignedPartOfI32,
 }
-#[derive(optml::Optml, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
 pub struct SqlxPostgresQuery<'query_lt>(
     sqlx::query::Query<'query_lt, sqlx::Postgres, sqlx::postgres::PgArguments>,
 );
@@ -489,11 +497,25 @@ impl std::fmt::Debug for SqlxPostgresQuery<'_> {
     }
 }
 #[derive(
-    Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::FromInner, newtype::IntoInnerFrom,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    optimal_memory_layout::OptimalMemoryLayout,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
 )]
 pub struct AddOperator(bool);
 #[derive(
-    Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::FromInner, newtype::IntoInnerFrom,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    optimal_memory_layout::OptimalMemoryLayout,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
 )]
 pub struct IsPrimaryKey(bool);
 pub trait PgTypeWhereFilter<'query_lt> {
@@ -518,7 +540,7 @@ pub trait PgTypeWhereFilter<'query_lt> {
     serde::Deserialize,
     utoipa::ToSchema,
     schemars::JsonSchema,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     newtype::FromInner,
 )]
 #[serde(from = "Option<NotEmptyUniqueVec<T>>")]
@@ -614,7 +636,15 @@ where
     }
 }
 #[allow(clippy::arbitrary_source_item_ordering)]
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, schemars::JsonSchema, optml::Optml)]
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    schemars::JsonSchema,
+    optimal_memory_layout::OptimalMemoryLayout,
+)]
 pub struct PgTypeWhere<T> {
     v: NotEmptyUniqueVec<T>,
     operator: Operator,
@@ -676,7 +706,7 @@ const _: () = {
         where
             __D: serde::Deserializer<'de>,
         {
-            #[derive(optml::Optml)]
+            #[derive(optimal_memory_layout::OptimalMemoryLayout)]
             #[expect(non_camel_case_types)]
             #[doc(hidden)]
             enum __Field {
@@ -684,7 +714,7 @@ const _: () = {
                 f1,
                 __ignore,
             }
-            #[derive(optml::Optml)]
+            #[derive(optimal_memory_layout::OptimalMemoryLayout)]
             #[doc(hidden)]
             struct __FieldVisitor;
             impl _serde::de::Visitor<'_> for __FieldVisitor {
@@ -738,7 +768,7 @@ const _: () = {
                     serde::Deserializer::deserialize_identifier(__deserializer, __FieldVisitor)
                 }
             }
-            #[derive(optml::Optml)]
+            #[derive(optimal_memory_layout::OptimalMemoryLayout)]
             #[doc(hidden)]
             struct __Visitor<'de, PgTypeWhere> {
                 marker: _serde::__private229::PhantomData<PgTypeWhere>,

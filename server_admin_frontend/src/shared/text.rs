@@ -1,12 +1,16 @@
 const ADMIN_JOINED_TEXT_MAX_BYTES: usize = 16_777_216usize;
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 pub(crate) enum AdminJoinedTextTryFromStringError {
     #[error("joined administrator frontend text exceeds the size limit")]
     TooLong,
 }
 
-#[derive(optml::Optml, Debug, newtype::AsRefStr, newtype::IntoInnerFrom)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::AsRefStr, newtype::IntoInnerFrom,
+)]
 pub(crate) struct AdminJoinedText(String);
 
 impl TryFrom<String> for AdminJoinedText {

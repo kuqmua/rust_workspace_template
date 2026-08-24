@@ -20,7 +20,7 @@ server_config = { workspace = true }
 server_runtime_core = { workspace = true }
 sqlx = { workspace = true, optional = true }
 pg_table = { workspace = true, features = ["test-utils"] }
-optml = { workspace = true }
+optimal_memory_layout = { workspace = true }
 server_app_state_macros = { workspace = true }
 [dev-dependencies]
 sqlx = { workspace = true }

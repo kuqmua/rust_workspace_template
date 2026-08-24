@@ -1,4 +1,6 @@
-#[derive(optml::Optml, Clone, newtype::AsRefStr, newtype::BoundedString)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, newtype::AsRefStr, newtype::BoundedString,
+)]
 #[bounded_string(max = 8_192usize, chars)]
 struct AdminCsrfToken(String);
 

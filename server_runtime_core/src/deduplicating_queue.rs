@@ -1,14 +1,22 @@
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::FromInner,
+)]
 pub struct StdQueueMaximum(std::num::NonZeroUsize);
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum QueuePush {
     Duplicate,
     Full,
     Queued,
 }
 
-#[derive(optml::Optml, Clone, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub struct DeduplicatingQueue<Item>
 where
     Item: Clone + Eq + std::hash::Hash,
@@ -53,10 +61,10 @@ where
     }
 }
 
-#[derive(optml::Optml, Clone, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, newtype::FromInner)]
 struct StdCollectionsHashSet<Item>(std::collections::HashSet<Item>);
 
-#[derive(optml::Optml, Clone, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, newtype::FromInner)]
 struct StdCollectionsVecDeque<Item>(std::collections::VecDeque<Item>);
 
 #[cfg(test)]

@@ -80,31 +80,31 @@ fn base_sql(
     ))
 }
 
-#[derive(optml::Optml, Clone, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, newtype::FromInner)]
 pub(crate) struct DataPermissionsFlt(
     crate::generated_tables::StdOptionalOptionalAdminPermissionsWhereMany,
 );
-#[derive(optml::Optml, Clone, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, newtype::FromInner)]
 pub(crate) struct DataRolePermissionsFlt(
     crate::generated_tables::StdOptionalOptionalAdminRolePermissionsWhereMany,
 );
-#[derive(optml::Optml, Clone, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, newtype::FromInner)]
 pub(crate) struct DataRolesFlt(crate::generated_tables::StdOptionalOptionalAdminRolesWhereMany);
-#[derive(optml::Optml, Clone, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, newtype::FromInner)]
 pub(crate) struct DataSystemSettingsFlt(
     crate::generated_tables::StdOptionalOptionalAdminSystemSettingsWhereMany,
 );
-#[derive(optml::Optml, Clone, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, newtype::FromInner)]
 pub(crate) struct DataUserRolesFlt(
     crate::generated_tables::StdOptionalOptionalAdminUserRolesWhereMany,
 );
-#[derive(optml::Optml, Clone, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, newtype::FromInner)]
 pub(crate) struct DataUsersFlt(crate::generated_tables::StdOptionalOptionalAdminUsersWhereMany);
-#[derive(optml::Optml, newtype::AsRefStr, newtype::BoundedString)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::AsRefStr, newtype::BoundedString)]
 #[bounded_string(max = 1_048_576usize)]
 struct DataFltJson(String);
 
-#[derive(optml::Optml, Clone)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone)]
 pub(crate) enum DataFlt {
     Permissions(DataPermissionsFlt),
     RolePermissions(DataRolePermissionsFlt),

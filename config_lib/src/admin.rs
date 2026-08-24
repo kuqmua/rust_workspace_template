@@ -1,5 +1,5 @@
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     Copy,
@@ -11,7 +11,7 @@
 )]
 pub struct AdminAccessTokenTtlSeconds(super::StdNonZeroU64);
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     Copy,
@@ -23,7 +23,7 @@ pub struct AdminAccessTokenTtlSeconds(super::StdNonZeroU64);
 )]
 pub struct AdminRefreshTokenTtlSeconds(super::StdNonZeroU64);
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     Copy,
@@ -35,7 +35,7 @@ pub struct AdminRefreshTokenTtlSeconds(super::StdNonZeroU64);
 )]
 pub struct AdminLoginFailureLimit(super::StdNonZeroU64);
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     Copy,
@@ -47,7 +47,7 @@ pub struct AdminLoginFailureLimit(super::StdNonZeroU64);
 )]
 pub struct AdminSignInRateLimit(super::StdNonZeroU64);
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     Copy,
@@ -58,9 +58,11 @@ pub struct AdminSignInRateLimit(super::StdNonZeroU64);
     newtype::FromInner,
 )]
 pub struct AdminSessionLimit(super::StdNonZeroUsize);
-#[derive(optml::Optml, newtype::DebugTransparent, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, newtype::DebugTransparent, newtype::FromInner,
+)]
 pub struct AdminPositiveU64ParsingError(super::StdParseIntError);
-#[derive(optml::Optml, Debug, thiserror::Error)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum TryFromStdEnvVarOkAdminPositiveU64Error {
     #[error("administrator duration must be greater than zero")]
     IsZero,
@@ -120,7 +122,7 @@ impl super::TryFromStdEnvVarOk for AdminSessionLimit {
     }
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     Copy,
@@ -131,9 +133,11 @@ impl super::TryFromStdEnvVarOk for AdminSessionLimit {
     newtype::FromInner,
 )]
 pub struct AdminPasswordHashConcurrency(super::StdNonZeroUsize);
-#[derive(optml::Optml, newtype::DebugTransparent, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, newtype::DebugTransparent, newtype::FromInner,
+)]
 pub struct AdminPositiveUsizeParsingError(super::StdParseIntError);
-#[derive(optml::Optml, Debug, thiserror::Error)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum TryFromStdEnvVarOkAdminPasswordHashConcurrencyError {
     #[error("administrator password hash concurrency must be greater than zero")]
     IsZero,
@@ -159,7 +163,7 @@ impl super::TryFromStdEnvVarOk for AdminPasswordHashConcurrency {
     }
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     PartialEq,
@@ -174,7 +178,7 @@ impl super::TryFromStdEnvVarOk for AdminPasswordHashConcurrency {
 #[serde(try_from = "String")]
 pub struct AdminTokenIssuer(String);
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     PartialEq,
@@ -188,7 +192,9 @@ pub struct AdminTokenIssuer(String);
 #[bounded_string(max = 256, description = "administrator token audience")]
 #[serde(try_from = "String")]
 pub struct AdminTokenAudience(String);
-#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq, thiserror::Error,
+)]
 pub enum TryFromStdEnvVarOkAdminTokenTextError {
     #[error("administrator token text is empty")]
     Empty,

@@ -1,4 +1,4 @@
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct ListOffset(i64);
 impl From<crate::PaginationOffset> for ListOffset {
     fn from(value: crate::PaginationOffset) -> Self {
@@ -6,29 +6,39 @@ impl From<crate::PaginationOffset> for ListOffset {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ListRowsPresence {
     Empty,
     Present,
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum WindowTotalPresence {
     Absent,
     Present,
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ListTotalSource {
     CountQuery,
     Window,
     Zero,
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::IntoInnerFrom)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::IntoInnerFrom,
+)]
 pub struct ListTotal(i64);
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 #[error("list total must not be negative")]
 pub struct ListTotalError;
 impl TryFrom<i64> for ListTotal {
@@ -48,10 +58,12 @@ impl From<u32> for ListTotal {
     }
 }
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::FromInner,
+)]
 pub struct ListItems<Item>(Vec<Item>);
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct ListPage<Item> {
     items: ListItems<Item>,
     total: ListTotal,
@@ -68,7 +80,7 @@ impl<Item> ListPage<Item> {
     }
 }
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct ListRows<Item> {
     items: ListItems<Item>,
     window_total: Option<ListTotal>,

@@ -1,4 +1,4 @@
-#[derive(optml::Optml, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 pub struct ServiceRuntime {
     optional_task: Option<super::BackgroundTask>,
     router: super::AxumRouter,
@@ -22,14 +22,16 @@ impl ServiceRuntime {
     }
 }
 
-#[derive(optml::Optml, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
 pub struct TokioTcpListener(tokio::net::TcpListener);
 
-#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
+)]
 #[error(transparent)]
 pub struct StdServeIoError(std::io::Error);
 
-#[derive(optml::Optml, Debug, thiserror::Error)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum ServeWithGracefulShutdownError {
     #[error("server failed: {0}")]
     Serve(#[source] StdServeIoError),

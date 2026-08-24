@@ -1,7 +1,7 @@
-#[derive(optml::Optml, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
 struct ProcMacro2GenerateTpInput(proc_macro2::TokenStream);
 
-#[derive(optml::Optml, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
 struct ProcMacro2GenerateTpOutput(proc_macro2::TokenStream);
 
 fn generate_tp(input: ProcMacro2GenerateTpInput) -> ProcMacro2GenerateTpOutput {
@@ -25,7 +25,7 @@ fn generate_tp(input: ProcMacro2GenerateTpInput) -> ProcMacro2GenerateTpOutput {
     let body = iter.collect::<proc_macro2::TokenStream>();
     let name_identifier = quote::format_ident!("{name}");
     ProcMacro2GenerateTpOutput::from(quote::quote! {
-        #[derive(Debug, Clone, Copy, optml::Optml)]
+        #[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout)]
         pub struct #name_identifier;
         impl quote::ToTokens for #name_identifier {
             fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
@@ -65,7 +65,7 @@ pub fn tp_parts(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let name_identifier = quote::format_ident!("{name}");
     let part_streams = parts.into_iter().collect::<Vec<proc_macro2::TokenStream>>();
     quote::quote! {
-        #[derive(Debug, Clone, Copy, optml::Optml)]
+        #[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout)]
         pub struct #name_identifier;
         impl quote::ToTokens for #name_identifier {
             fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {

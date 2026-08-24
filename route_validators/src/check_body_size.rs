@@ -1,7 +1,7 @@
-#[derive(optml::Optml, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
 pub struct AxumBody(axum::body::Body);
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     Copy,
@@ -15,9 +15,11 @@ pub struct AxumBody(axum::body::Body);
 )]
 #[serde(from = "usize")]
 pub struct BodySizeLimitBytes(usize);
-#[derive(optml::Optml, Debug, newtype::ToErrString, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::ToErrString, newtype::FromInner,
+)]
 pub struct AxumBodySizeError(axum::Error);
-#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
 pub struct HttpBodySizeHint(http_body::SizeHint);
 impl to_err_string::ToErrString for HttpBodySizeHint {
     fn to_err_string(&self) -> to_err_string::ErrorText {
@@ -26,7 +28,7 @@ impl to_err_string::ToErrString for HttpBodySizeHint {
     }
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     PartialEq,
@@ -37,7 +39,9 @@ impl to_err_string::ToErrString for HttpBodySizeHint {
 )]
 pub struct BytesBodyBytes(bytes::Bytes);
 #[location::errors_with_location]
-#[derive(Debug, thiserror::Error, location::Location, optml::Optml)]
+#[derive(
+    Debug, thiserror::Error, location::Location, optimal_memory_layout::OptimalMemoryLayout,
+)]
 #[location_to_schema]
 pub enum BodySizeError {
     ReachedMaximumSizeOfBody {

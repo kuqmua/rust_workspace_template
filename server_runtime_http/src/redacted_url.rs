@@ -1,4 +1,4 @@
-#[derive(optml::Optml, Clone, Eq, PartialEq, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Eq, PartialEq, newtype::FromInner)]
 pub struct RedactedUrl(Option<crate::RequiredNulFreeBoundedText>);
 
 impl AsRef<str> for RedactedUrl {
@@ -21,7 +21,7 @@ impl std::fmt::Debug for RedactedUrl {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 pub struct RedactedUrlTextRef<'value_lt>(&'value_lt str);
 
 #[must_use]

@@ -46,7 +46,7 @@ pub fn bool_enum_to_tokens(input: proc_macro::TokenStream) -> proc_macro::TokenS
     };
     let name_identifier = quote::format_ident!("{name}");
     quote::quote! {
-        #[derive(Debug, Clone, Copy, optml::Optml)]
+        #[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout)]
         pub enum #name_identifier {
             False,
             True,

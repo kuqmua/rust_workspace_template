@@ -10,7 +10,7 @@ edition.workspace = true
 
 
 [dependencies]
-optml = { workspace = true }
+optimal_memory_layout = { workspace = true }
 str_constants = { workspace = true }
 tracing = { workspace = true }
 serde = { workspace = true }

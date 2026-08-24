@@ -20,7 +20,7 @@ git_info = { workspace = true }
 location_lib = { workspace = true }
 location_macros = { workspace = true }
 location = { workspace = true }
-optml = { workspace = true }
+optimal_memory_layout = { workspace = true }
 newtype = { workspace = true }
 to_err_string = { workspace = true }
 utoipa = { workspace = true }

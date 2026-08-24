@@ -3,21 +3,58 @@
     Clone,
     Copy,
     generate_getter_traits_for_struct_fields::GenerateGetterTrait,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     newtype::DerefInner,
 )]
 pub struct PgPoolMaxConnections(u32);
-#[derive(Debug, Clone, Copy, optml::Optml, newtype::DerefInner, newtype::FromInner)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    optimal_memory_layout::OptimalMemoryLayout,
+    newtype::DerefInner,
+    newtype::FromInner,
+)]
 pub struct PgPoolMinConnections(u32);
-#[derive(optml::Optml, Debug, Clone, Copy, newtype::DerefInner, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    newtype::DerefInner,
+    newtype::FromInner,
+)]
 pub struct PgPoolAcquireTimeoutSeconds(super::StdNonZeroU64);
-#[derive(optml::Optml, Debug, Clone, Copy, newtype::DerefInner, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    newtype::DerefInner,
+    newtype::FromInner,
+)]
 pub struct PgPoolIdleTimeoutSeconds(super::StdNonZeroU64);
-#[derive(optml::Optml, Debug, Clone, Copy, newtype::DerefInner, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    newtype::DerefInner,
+    newtype::FromInner,
+)]
 pub struct PgPoolMaxLifetimeSeconds(super::StdNonZeroU64);
-#[derive(optml::Optml, Debug, Clone, Copy, newtype::DerefInner, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    newtype::DerefInner,
+    newtype::FromInner,
+)]
 pub struct RequestTimeoutSeconds(super::StdNonZeroU64);
-#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq, thiserror::Error,
+)]
 pub enum PgPoolConfigParseError {
     #[error("pg pool numeric configuration is invalid")]
     Parse,
@@ -66,7 +103,9 @@ impl super::TryFromStdEnvVarOk for RequestTimeoutSeconds {
         parse_pg_pool_non_zero_seconds(&v).map(Self)
     }
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error, optml::Optml)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, thiserror::Error, optimal_memory_layout::OptimalMemoryLayout,
+)]
 pub enum PgPoolMaxConnectionsTryFromU32Error {
     #[error("pg pool max connections must be greater than zero")]
     IsZero,
@@ -81,7 +120,7 @@ impl TryFrom<u32> for PgPoolMaxConnections {
         }
     }
 }
-#[derive(Debug, thiserror::Error, optml::Optml)]
+#[derive(Debug, thiserror::Error, optimal_memory_layout::OptimalMemoryLayout)]
 pub enum TryFromStdEnvVarOkPgPoolMaxConnectionsError {
     #[error("{pg_pool_max_connections:?}")]
     PgPoolMaxConnections {

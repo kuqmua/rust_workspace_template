@@ -2,7 +2,7 @@ pub mod filters;
 pub mod pg_type_test_cases;
 pub mod token_stream_helpers;
 const IS_NL_PREFIX_STR_MAX_LEN: usize = 1_048_576;
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[allow(dead_code, non_snake_case)]
 struct NamesCtx {
     AddOperatorSnakeCase: naming::AddOperatorSnakeCase,
@@ -162,12 +162,12 @@ impl NamesCtx {
         }
     }
 }
-#[derive(Debug, Clone, optml::Optml)]
+#[derive(Debug, Clone, optimal_memory_layout::OptimalMemoryLayout)]
 pub enum DeriveOrImpl {
     Derive,
     Impl(macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream),
 }
-#[derive(optml::Optml, Debug, Clone, Default, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Default, newtype::FromInner)]
 pub struct ProcMacro2GeneratedRustTokenStreamVec(
     Vec<macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream>,
 );
@@ -190,18 +190,44 @@ impl FromIterator<macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTok
         Self::from(iter.into_iter().collect::<Vec<_>>())
     }
 }
-#[derive(optml::Optml, Debug, Clone, Copy, newtype::Display, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    newtype::Display,
+    newtype::FromInner,
+)]
 pub struct NonNullOrNullableStr(&'static str);
-#[derive(optml::Optml, Debug, Clone, newtype::BoundedString, newtype::Display)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    newtype::BoundedString,
+    newtype::Display,
+)]
 #[bounded_string(max = IS_NL_PREFIX_STR_MAX_LEN, description = "is nullable prefix string" )]
 pub struct IsNullablePrefixStr(String);
 #[derive(
-    optml::Optml, Debug, Clone, Copy, newtype::AsRefStr, newtype::Display, newtype::FromInner,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    newtype::AsRefStr,
+    newtype::Display,
+    newtype::FromInner,
 )]
 pub struct ImportSnakeCaseStr(&'static str);
-#[derive(optml::Optml, Debug, Clone, Copy, newtype::Display, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    newtype::Display,
+    newtype::FromInner,
+)]
 pub struct ImportPathStr(&'static str);
-#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
 pub struct DimensionNumber(usize);
 impl DimensionNumber {
     #[must_use]
@@ -209,7 +235,7 @@ impl DimensionNumber {
         self.0
     }
 }
-#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
 pub struct StructElsLen(usize);
 impl StructElsLen {
     #[must_use]
@@ -217,7 +243,7 @@ impl StructElsLen {
         self.0
     }
 }
-#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
 pub struct DeLen(usize);
 impl DeLen {
     #[must_use]
@@ -225,9 +251,16 @@ impl DeLen {
         self.0
     }
 }
-#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
 pub struct WrapIntoBraces(bool);
-#[derive(optml::Optml, Debug, Clone, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, newtype::FromInner)]
 pub struct ParseTokenStreamStrings(Vec<String>);
 impl ParseTokenStreamStrings {
     #[must_use]
@@ -249,15 +282,29 @@ impl ParseTokenStreamStrings {
             .collect::<ProcMacro2GeneratedRustTokenStreamVec>()
     }
 }
-#[derive(optml::Optml, Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    newtype::AsRefInner,
+    newtype::FromInner,
+)]
 pub struct ParseErrorIdRef<'lt>(&'lt str);
-#[derive(optml::Optml, Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    newtype::AsRefInner,
+    newtype::FromInner,
+)]
 pub struct PanicUuidRef<'lt>(&'lt str);
-#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
 pub struct SynIdentifierTypeRefs<'lt>(&'lt [(&'lt syn::Ident, &'lt syn::Type)]);
-#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
 pub struct SynFieldRefs<'lt>(&'lt [macros_helpers::field_data::SynField]);
-#[derive(Debug, Clone, Copy, optml::Optml)]
+#[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout)]
 pub enum IsStandardNonNull {
     False,
     True,
@@ -274,7 +321,7 @@ pub enum IsStandardNonNull {
     serde::Deserialize,
     strum_macros::Display,
     strum_macros::EnumIter,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub enum IsNullable {
     #[default]
@@ -328,7 +375,7 @@ impl IsNullable {
         }
     }
 }
-#[derive(Debug, Clone, Copy, optml::Optml)]
+#[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout)]
 pub enum Import {
     Crate,
     PgCrudCommon,
@@ -410,7 +457,7 @@ pg_crud_macros_common_macros::bool_enum_to_tokens!(IsUpdateQueryBindMut, false =
 pg_crud_macros_common_macros::bool_enum_to_tokens!(IsUpdateQueryPartSelfUpdateUsed, false => quote::quote! {_}, true => naming::VSnakeCase);
 pg_crud_macros_common_macros::bool_enum_to_tokens!(ShouldDSchemarsJsonSchema, false => proc_macro2::TokenStream::new(), true => quote::quote! {, schemars::JsonSchema});
 pg_crud_macros_common_macros::bool_enum_to_tokens!(ShouldDeriveUtoipaToSchema, false => proc_macro2::TokenStream::new(), true => quote::quote! {, utoipa::ToSchema});
-#[derive(Debug, Clone, Copy, optml::Optml)]
+#[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout)]
 pub enum ReadOrUpdate {
     Read,
     Update,
@@ -425,17 +472,17 @@ impl ReadOrUpdate {
     }
 }
 pg_crud_macros_common_macros::bool_enum_to_tokens!(IsPrimaryKeyUndrscr, false => naming::IsPrimaryKeySnakeCase, true => quote::quote! {_});
-#[derive(Debug, Clone, Copy, optml::Optml)]
+#[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout)]
 pub enum DefaultSomeOneOrDefaultSomeOneWithMaxPageSize {
     DefaultSomeOne,
     DefaultSomeOneWithMaxPageSize,
 }
-#[derive(Debug, Clone, Copy, optml::Optml)]
+#[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout)]
 pub enum EqOrEqUsingFields {
     Eq,
     EqUsingFields,
 }
-#[derive(Debug, Clone, Copy, optml::Optml)]
+#[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout)]
 pub enum EqOperatorHandle {
     Eq,
     IsNull,
@@ -458,7 +505,7 @@ impl EqOperatorHandle {
 }
 //todo maybe reuse with other structs
 #[allow(clippy::arbitrary_source_item_ordering)]
-#[derive(Debug, Clone, Copy, optml::Optml)]
+#[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout)]
 pub enum Dimension {
     One,
     Two,
@@ -466,7 +513,7 @@ pub enum Dimension {
     Four,
 }
 #[allow(clippy::arbitrary_source_item_ordering)]
-#[derive(Debug, Clone, Copy, optml::Optml)]
+#[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout)]
 pub enum DimensionIndexNumber {
     Zero,
     One,
@@ -575,7 +622,7 @@ where
         };
         quote::quote! {
             #attrs_token_stream
-            #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize #should_derive_schemars_json_schema, optml::Optml)]
+            #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize #should_derive_schemars_json_schema, optimal_memory_layout::OptimalMemoryLayout)]
             pub enum #identifier {
                 #(#vrts_token_stream),*
             }

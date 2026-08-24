@@ -6,7 +6,7 @@
     Eq,
     PartialOrd,
     Ord,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     newtype::Display,
     newtype::FromInner,
 )]

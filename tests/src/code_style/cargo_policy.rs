@@ -311,7 +311,7 @@ fn workspace_normal_dependency_graph_is_acyclic() {
 }
 #[test]
 fn library_crates_with_public_logic_own_tests() {
-    #[derive(optml::Optml)]
+    #[derive(optimal_memory_layout::OptimalMemoryLayout)]
     struct TestOwnershipException {
         crate_name: &'static str,
         reason: &'static str,
@@ -350,12 +350,8 @@ fn library_crates_with_public_logic_own_tests() {
             reason: "the proc-macro is exercised by naming tests",
         },
         TestOwnershipException {
-            crate_name: "optml",
+            crate_name: "optimal_memory_layout",
             reason: "the proc-macro is exercised by downstream derive users",
-        },
-        TestOwnershipException {
-            crate_name: "pg_crud",
-            reason: "the crate is a facade over tested CRUD crates",
         },
         TestOwnershipException {
             crate_name: "pg_crud_common_macros",
@@ -372,10 +368,6 @@ fn library_crates_with_public_logic_own_tests() {
         TestOwnershipException {
             crate_name: "generate_pg_table",
             reason: "the proc-macro is exercised by generate_pg_table_test",
-        },
-        TestOwnershipException {
-            crate_name: "pg_types",
-            reason: "the crate is a facade over tested PostgreSQL type crates",
         },
         TestOwnershipException {
             crate_name: "generate_pg_types",
@@ -544,7 +536,7 @@ fn source_modules_with_public_logic_own_unit_tests() {
             "the token helper is covered by downstream display tests",
         ),
         (
-            "optml/src/lib.rs",
+            "optimal_memory_layout/src/lib.rs",
             "the proc-macro is covered by downstream derive users",
         ),
         (

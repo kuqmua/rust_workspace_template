@@ -1,5 +1,5 @@
 #![allow(clippy::field_scoped_visibility_modifiers)] // auth state reads the validated count while the private module owns construction and enforcement
-#[derive(optml::Optml, Debug, Clone, Copy)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy)]
 pub(super) enum AdminRateLimitScope {
     AuditExport,
     Mutation,

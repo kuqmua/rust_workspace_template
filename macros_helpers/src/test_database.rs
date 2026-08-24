@@ -1,10 +1,20 @@
 const SANITIZED_DATABASE_TARGET_MAX_LEN: usize = 4096;
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 pub struct UrlRef<'url_lt>(&'url_lt str);
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::BoundedString, newtype::Display)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::BoundedString,
+    newtype::Display,
+)]
 #[bounded_string(max = SANITIZED_DATABASE_TARGET_MAX_LEN)]
 pub struct SanitizedDatabaseTarget(String);
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, thiserror::Error,
+)]
 pub enum UrlError {
     #[error("database name is not explicitly test-only: {target}")]
     AmbiguousDatabase { target: SanitizedDatabaseTarget },

@@ -7,14 +7,14 @@ const MEASURE_REPEAT_COUNT: usize = 1000;
 const RUNNER_MODE_MAX_LEN: usize = 1_024usize;
 const SQL_BUILDER_MEASURE_SERIES_COUNT: usize = 5;
 const CLEAN_ANSI_TEXT_MAX_LEN: usize = 16_777_216;
-#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
 struct MeasurementName(&'static str);
 impl MeasurementName {
     const fn get(self) -> &'static str {
         self.0
     }
 }
-#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
 struct CargoArgs(&'static [&'static str]);
 impl<const N: usize> From<&'static [&'static str; N]> for CargoArgs {
     fn from(value: &'static [&'static str; N]) -> Self {
@@ -26,59 +26,59 @@ impl CargoArgs {
         self.0
     }
 }
-#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
 struct StderrTextRef<'lt>(&'lt str);
 impl<'lt> StderrTextRef<'lt> {
     const fn get(self) -> &'lt str {
         self.0
     }
 }
-#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
 struct AnsiTextRef<'lt>(&'lt str);
 impl<'lt> AnsiTextRef<'lt> {
     const fn get(self) -> &'lt str {
         self.0
     }
 }
-#[derive(optml::Optml, newtype::BoundedString)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::BoundedString)]
 #[bounded_string(max = CLEAN_ANSI_TEXT_MAX_LEN)]
 struct CleanAnsiText(String);
-#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
 struct MemusageKey(&'static str);
 impl MemusageKey {
     const fn get(self) -> &'static str {
         self.0
     }
 }
-#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
 struct MemusageRowName(&'static str);
 impl MemusageRowName {
     const fn get(self) -> &'static str {
         self.0
     }
 }
-#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
 struct MemusageColumnIdx(usize);
 impl MemusageColumnIdx {
     const fn get(self) -> usize {
         self.0
     }
 }
-#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
 struct MemusageValueRef<'lt>(&'lt str);
 impl<'lt> MemusageValueRef<'lt> {
     const fn get(self) -> &'lt str {
         self.0
     }
 }
-#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
 struct ProgramPathRef<'lt>(&'lt str);
 impl<'lt> ProgramPathRef<'lt> {
     const fn get(self) -> &'lt str {
         self.0
     }
 }
-#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
 struct ProgramArgsRef<'lt>(&'lt [&'lt str]);
 impl<'lt, const N: usize> From<&'lt [&'lt str; N]> for ProgramArgsRef<'lt> {
     fn from(value: &'lt [&'lt str; N]) -> Self {
@@ -90,54 +90,58 @@ impl<'lt> ProgramArgsRef<'lt> {
         self.0
     }
 }
-#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
 struct MemusageProgNameRef<'lt>(&'lt str);
 impl<'lt> MemusageProgNameRef<'lt> {
     const fn get(self) -> &'lt str {
         self.0
     }
 }
-#[derive(optml::Optml, Clone, newtype::AsRefOwned, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, newtype::AsRefOwned, newtype::FromInner,
+)]
 struct QuoteTokenStreamGeneratePgTableMeasureInputTokenStream(quote::__private::TokenStream);
-#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
 struct ToolName(&'static str);
 impl ToolName {
     const fn get(self) -> &'static str {
         self.0
     }
 }
-#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
 struct ToolPath(&'static str);
 impl ToolPath {
     const fn get(self) -> &'static str {
         self.0
     }
 }
-#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
 struct ToolAvailable(bool);
 impl ToolAvailable {
     const fn get(self) -> bool {
         self.0
     }
 }
-#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
 struct StdRunnerIoErrorRef<'error_lt>(&'error_lt std::io::Error);
 impl<'error_lt> StdRunnerIoErrorRef<'error_lt> {
     const fn get(self) -> &'error_lt std::io::Error {
         self.0
     }
 }
-#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
 struct StdRunnerPathRef<'path_lt>(&'path_lt std::path::Path);
 impl<'path_lt> StdRunnerPathRef<'path_lt> {
     const fn get(self) -> &'path_lt std::path::Path {
         self.0
     }
 }
-#[derive(optml::Optml, Debug, newtype::AsRefStr, newtype::BoundedString)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::AsRefStr, newtype::BoundedString,
+)]
 #[bounded_string(max = RUNNER_MODE_MAX_LEN)]
 struct RunnerMode(String);
-#[derive(optml::Optml, Clone, Copy)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
 struct AllocationTool {
     name: ToolName,
     path: ToolPath,
@@ -505,7 +509,7 @@ fn generate_pg_table_measure_input_token_stream(
         token_patterns::AllowClippyArbitrarySrcItemOrdering;
     QuoteTokenStreamGeneratePgTableMeasureInputTokenStream::from(quote::quote! {
         #allow_clippy_arbitrary_src_item_ordering
-        #[derive(Debug, Clone, Copy, optml::Optml)]
+        #[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout)]
         #[generate_pg_table::generate_pg_table_config{{
             "cm_write_into_file": "False",
             "co_write_into_file": "False",

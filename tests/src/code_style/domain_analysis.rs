@@ -1,4 +1,4 @@
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct StringWrapperNameVisitor {
     pub names: super::types::StdSourceTextSet,
 }
@@ -12,7 +12,7 @@ impl<'ast> syn::visit::Visit<'ast> for StringWrapperNameVisitor {
         syn::visit::visit_item_struct(self, i);
     }
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct StringWrapperFromVisitor<'names_lt> {
     pub ers: super::types::DiagnosticMsgs,
     pub len_checked_function_names: &'names_lt super::types::StdSourceTextSet,
@@ -179,7 +179,7 @@ impl StringWrapperFromVisitor<'_> {
         }
     }
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct LenCheckedFunctionNameVisitor {
     pub names: super::types::StdSourceTextSet,
 }
@@ -230,7 +230,7 @@ impl<'ast> syn::visit::Visit<'ast> for StringWrapperFromVisitor<'_> {
         syn::visit::visit_item_struct(self, i);
     }
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct LenMethodCallVisitor {
     pub found: super::types::AnalyzerBool,
 }
@@ -242,24 +242,24 @@ impl<'ast> syn::visit::Visit<'ast> for LenMethodCallVisitor {
         syn::visit::visit_expr_method_call(self, i);
     }
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct PublicTupleWrapperFieldVisitor {
     pub ers: super::types::DiagnosticMsgs,
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct DirectDeserializeTupleWrapperVisitor {
     pub ers: super::types::DiagnosticMsgs,
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct DeserializeConversionCallVisitor {
     pub found: super::types::AnalyzerBool,
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct ManualDeserializeTupleWrapperVisitor<'names> {
     pub ers: super::types::DiagnosticMsgs,
     pub names: &'names super::types::StdSourceTextSet,
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct TupleWrapperConversionCollector {
     pub converted_names: super::types::StdSourceTextSet,
     pub from_inner_names: super::types::StdSourceTextSet,
@@ -269,7 +269,7 @@ pub(super) struct TupleWrapperConversionCollector {
     pub try_from_inner_names: super::types::StdSourceTextSet,
     pub try_from_names: super::types::StdSourceTextSet,
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct DirectTupleWrapperConstructorVisitor<'names> {
     pub current_wrapper_name: Option<String>,
     pub ers: super::types::DiagnosticMsgs,
@@ -446,7 +446,7 @@ impl<'ast> syn::visit::Visit<'ast> for DirectTupleWrapperConstructorVisitor<'_> 
         self.current_wrapper_name = previous_wrapper_name;
     }
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct DeclaredDomainTypeVisitor {
     pub names: super::types::StdSourceTextSet,
 }
@@ -540,7 +540,7 @@ impl<'ast> syn::visit::Visit<'ast> for DeclaredDomainTypeVisitor {
         syn::visit::visit_macro(self, i);
     }
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct DomainTypePolicyVisitor<'types> {
     pub closure_body_scan_depth: super::types::AnalyzerCount,
     pub ers: super::types::DiagnosticMsgs,
@@ -548,15 +548,15 @@ pub(super) struct DomainTypePolicyVisitor<'types> {
     pub repo_crates: super::types::StdStdSourceTextSetRef<'types>,
     pub repo_types: super::types::StdStdSourceTextSetRef<'types>,
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct AnalyzerStateRawContainerFieldVisitor {
     pub ers: super::types::DiagnosticMsgs,
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct HelperRawTextReturnVisitor {
     pub ers: super::types::DiagnosticMsgs,
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct ExternalLeafWrapperNameVisitor<'types> {
     pub ers: super::types::DiagnosticMsgs,
     pub repo_crates: super::types::StdStdSourceTextSetRef<'types>,

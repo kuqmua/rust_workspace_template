@@ -1,6 +1,14 @@
 const JSON_CONTRACT_SNAPSHOT_MAX_BYTES: usize = 1_048_576usize;
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefStr, newtype::TryFrom)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::AsRefStr,
+    newtype::TryFrom,
+)]
 #[try_from(validator = JsonContractSnapshot::validate)]
 pub struct JsonContractSnapshot(String);
 impl JsonContractSnapshot {
@@ -14,10 +22,12 @@ impl JsonContractSnapshot {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 pub struct JsonSnapshotDynamicFieldRef<'value_lt>(&'value_lt str);
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 pub enum JsonContractSnapshotError {
     #[error("{}", str_constants::JSON_SNAPSHOT_SERIALIZATION_ERROR)]
     Serialization,

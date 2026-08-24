@@ -22,7 +22,7 @@ location_lib = { workspace = true }
 location_macros = { workspace = true }
 location = { workspace = true }
 pg_crud_common = { workspace = true, features = ["test-utils"] }
-optml = { workspace = true }
+optimal_memory_layout = { workspace = true }
 newtype = { workspace = true }
 to_err_string = { workspace = true }
 [lints]

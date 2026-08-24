@@ -1,8 +1,18 @@
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefStr, newtype::TryFrom)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::AsRefStr,
+    newtype::TryFrom,
+)]
 #[try_from(validator = validate_database_url)]
 pub struct DatabaseUrl(String);
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 pub enum DatabaseUrlError {
     #[error("{0}", str_constants::DATABASE_URL_MUST_NOT_BE_EMPTY)]
     Empty,
@@ -10,17 +20,27 @@ pub enum DatabaseUrlError {
     TooLong,
 }
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefStr, newtype::TryFrom)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::AsRefStr,
+    newtype::TryFrom,
+)]
 #[try_from(validator = validate_migrations_source)]
 pub struct MigrationsSource(String);
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 pub enum MigrationsSourceError {
     #[error("{0}", str_constants::MIGRATIONS_SOURCE_EXCEEDS_MAXIMUM_LENGTH)]
     TooLong,
 }
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct DatabasePreparationSpec {
     migrations_source: MigrationsSource,
     url: DatabaseUrl,
@@ -36,20 +56,28 @@ impl DatabasePreparationSpec {
     }
 }
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct ProcessCommand {
     arguments: ProcessArguments,
     program: ProcessProgram,
 }
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub enum ProcessArgument {
     DatabaseUrl(DatabaseUrl),
     MigrationsSource(MigrationsSource),
     Static(ProcessStaticArgument),
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::FromInner,
+)]
 pub struct ProcessStaticArgument(&'static str);
 
 impl From<DatabaseUrl> for ProcessArgument {
@@ -80,13 +108,36 @@ impl AsRef<str> for ProcessArgument {
     }
 }
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::AsRefTarget,
+    newtype::FromInner,
+)]
 pub struct ProcessArguments(bounded_types::BoundedVec<ProcessArgument, 0, { usize::MAX }>);
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::AsRefTarget,
+    newtype::FromInner,
+)]
 pub struct ProcessCommands(bounded_types::BoundedVec<ProcessCommand, 0, { usize::MAX }>);
 
 #[derive(
-    optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::AsRefInner, newtype::FromInner,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::AsRefInner,
+    newtype::FromInner,
 )]
 pub struct ProcessProgram(&'static str);
 

@@ -1,12 +1,23 @@
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::Display, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::Display,
+    newtype::FromInner,
+)]
 pub struct StdBoundedBTreeMapLen(usize);
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 #[error("bounded map length exceeds limit {0}")]
 #[derive(newtype::FromInner)]
 pub struct BoundedBTreeMapError(StdBoundedBTreeMapLen);
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct StdBoundedBTreeMap<K, V, const MAX: usize>(std::collections::BTreeMap<K, V>);
 
 impl<K, V, const MAX: usize> StdBoundedBTreeMap<K, V, MAX> {

@@ -3,10 +3,12 @@
     reason = "the settings value collection keeps its conversion adjacent to indexed access"
 )]
 
-#[derive(optml::Optml, Clone, Debug, newtype::AsRefStr, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, newtype::AsRefStr, newtype::FromInner,
+)]
 pub(crate) struct AdminSettingInputValue(Box<str>);
 
-#[derive(optml::Optml, Clone, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub(crate) struct AdminSettingsFormValues(
     [AdminSettingInputValue; server_admin_contract::AdminSetting::COUNT],
 );

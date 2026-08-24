@@ -5,10 +5,17 @@
     reason = "pagination accessors follow calculation order, the deterministic test helper converts raw inputs in place, and the shared constructor has one SSR production caller plus focused unit tests"
 )]
 
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
 pub(crate) struct AdminPageNavDisabled(bool);
 
-#[derive(optml::Optml, Clone, Copy, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
 pub(crate) struct AdminPageRange {
     end: server_admin_contract::AdminPageTotal,
     start: server_admin_contract::AdminPageTotal,

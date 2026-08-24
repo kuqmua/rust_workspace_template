@@ -1,14 +1,16 @@
-#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
+)]
 #[error("{0}")]
 pub(crate) struct SqlxBoxDynError(#[source] sqlx::error::BoxDynError);
-#[derive(optml::Optml, Debug, thiserror::Error)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 #[error("failed to bind PostgreSQL query parameter")]
 pub struct SqlxPostgresQueryBindError {
     #[source]
     source: SqlxBoxDynError,
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     Copy,
@@ -45,7 +47,7 @@ impl From<sqlx::error::BoxDynError> for SqlxPostgresQueryBindError {
     serde::Deserialize,
     thiserror::Error,
     location::Location,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
 )]
 #[location_to_schema]
 pub enum QueryPartError {

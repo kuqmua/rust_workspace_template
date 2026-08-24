@@ -14,7 +14,7 @@ const REGEX_PATTERN_MAX_BYTES: usize = 1_048_576usize;
     serde::Deserialize,
     schemars::JsonSchema,
     utoipa::ToSchema,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub enum EncodeFormat {
     #[default]
@@ -43,24 +43,26 @@ impl pg_crud_common::DefaultSomeOneElement for EncodeFormat {
     Eq,
     serde::Serialize,
     serde::Deserialize,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     newtype::AsRefOwned,
     newtype::Display,
     newtype::IntoInnerFrom,
 )]
 #[serde(try_from = "String", into = "String")]
 pub struct RegexRegex(String);
-#[derive(optml::Optml, Clone, Copy, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
 struct DefaultRegexPattern;
 impl From<DefaultRegexPattern> for RegexRegex {
     fn from(_value: DefaultRegexPattern) -> Self {
         Self(String::from(str_constants::A_Z_PLUS))
     }
 }
-#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
+)]
 #[error(transparent)]
 pub struct RegexError(regex::Error);
-#[derive(optml::Optml, Debug, thiserror::Error)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum RegexRegexTryFromStringError {
     #[error("regular expression pattern is invalid")]
     Regex(#[from] RegexError),
@@ -129,7 +131,7 @@ impl pg_crud_common::DefaultSomeOneElement for RegexRegex {
     serde::Deserialize,
     schemars::JsonSchema,
     utoipa::ToSchema,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub enum RegexCase {
     Insensitive,
@@ -141,7 +143,7 @@ pub enum RegexCase {
     Copy,
     PartialEq,
     Eq,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     newtype::AsRefInner,
     newtype::Display,
     newtype::FromInner,
@@ -162,7 +164,15 @@ impl RegexCase {
     }
 }
 #[allow(clippy::arbitrary_source_item_ordering)]
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, schemars::JsonSchema, optml::Optml)]
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    schemars::JsonSchema,
+    optimal_memory_layout::OptimalMemoryLayout,
+)]
 pub struct Between<T>
 where
     T: sqlx::Type<sqlx::Postgres> + for<'__> sqlx::Encode<'__, sqlx::Postgres>,
@@ -212,7 +222,7 @@ where
     serde::Deserialize,
     thiserror::Error,
     location::Location,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub enum BetweenTryNewError<T> {
     StartMoreOrEqToEnd {
@@ -255,7 +265,7 @@ const _: () = {
         where
             __D: _serde::Deserializer<'de>,
         {
-            #[derive(optml::Optml)]
+            #[derive(optimal_memory_layout::OptimalMemoryLayout)]
             #[expect(non_camel_case_types)]
             #[doc(hidden)]
             enum __Field {
@@ -263,7 +273,7 @@ const _: () = {
                 f1,
                 __ignore,
             }
-            #[derive(optml::Optml)]
+            #[derive(optimal_memory_layout::OptimalMemoryLayout)]
             #[doc(hidden)]
             struct __FieldVisitor;
             impl _serde::de::Visitor<'_> for __FieldVisitor {
@@ -317,7 +327,7 @@ const _: () = {
                     _serde::Deserializer::deserialize_identifier(__deserializer, __FieldVisitor)
                 }
             }
-            #[derive(optml::Optml)]
+            #[derive(optimal_memory_layout::OptimalMemoryLayout)]
             #[doc(hidden)]
             struct __Visitor<'de, T>
             where
@@ -506,7 +516,7 @@ impl<'lt, T: Send + sqlx::Type<sqlx::Postgres> + for<'__> sqlx::Encode<'__, sqlx
     Eq,
     serde::Serialize,
     schemars::JsonSchema,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     newtype::AsSlice,
     newtype::IntoInnerFrom,
 )]
@@ -563,7 +573,7 @@ const _: () = {
         where
             __D: _serde::Deserializer<'de>,
         {
-            #[derive(optml::Optml)]
+            #[derive(optimal_memory_layout::OptimalMemoryLayout)]
             #[doc(hidden)]
             struct __Visitor<'de, T>
             where
@@ -642,7 +652,7 @@ impl<T: pg_crud_common::DefaultSomeOneElement> pg_crud_common::DefaultSomeOneEle
     PartialOrd,
     serde::Serialize,
     schemars::JsonSchema,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     newtype::AsSlice,
     newtype::IntoInner,
 )]
@@ -663,7 +673,7 @@ impl<T, const LENGTH: usize> From<[T; LENGTH]> for BoundedVec<T, LENGTH> {
     thiserror::Error,
     location::Location,
     schemars::JsonSchema,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub enum BoundedVecTryNewError {
     LenIsNotCorrect {
@@ -682,7 +692,7 @@ pub enum BoundedVecTryNewError {
     serde::Serialize,
     serde::Deserialize,
     schemars::JsonSchema,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     newtype::Display,
     newtype::FromInner,
 )]
@@ -700,7 +710,7 @@ impl to_err_string::ToErrString for BoundedVecLen {
             .unwrap_or_else(to_err_string::ErrorText::from)
     }
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 enum Variant {
     MinusOne,
     Normal,
@@ -812,7 +822,9 @@ impl<T: Clone + pg_crud_common::DefaultSomeOneElement, const LENGTH: usize>
 }
 #[cfg(test)]
 mod tests {
-    #[derive(optml::Optml, Debug, PartialEq, Eq, newtype::FromInner)]
+    #[derive(
+        optimal_memory_layout::OptimalMemoryLayout, Debug, PartialEq, Eq, newtype::FromInner,
+    )]
     struct NonClone(u8);
     #[test]
     fn pg_type_not_empty_unique_vec_try_from_ok() {

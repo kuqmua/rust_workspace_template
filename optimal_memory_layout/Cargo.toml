@@ -1,5 +1,5 @@
 [package]
-name = "optml"
+name = "optimal_memory_layout"
 version.workspace = true
 publish.workspace = true
 description.workspace = true

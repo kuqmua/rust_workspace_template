@@ -1,4 +1,4 @@
-#[derive(Debug, Clone, Copy, optml::Optml)]
+#[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout)]
 pub enum EqOperator {
     Eq,
     IsNull,
@@ -18,7 +18,7 @@ impl EqOperator {
     Copy,
     PartialEq,
     Eq,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     newtype::AsRefInner,
     newtype::Display,
     newtype::FromInner,
@@ -38,7 +38,7 @@ pub trait PgTypeEqOperator {
     serde::Serialize,
     serde::Deserialize,
     schemars::JsonSchema,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
 )]
 #[serde(try_from = "i32")]
 pub struct UnsignedPartOfI32(i32);
@@ -57,7 +57,7 @@ impl From<u16> for UnsignedPartOfI32 {
     thiserror::Error,
     location::Location,
     schemars::JsonSchema,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub enum UnsignedPartOfI32TryFromI32Error {
     LessThanZero {
@@ -76,7 +76,7 @@ pub enum UnsignedPartOfI32TryFromI32Error {
     serde::Serialize,
     serde::Deserialize,
     schemars::JsonSchema,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     newtype::Display,
     newtype::FromInner,
 )]
@@ -151,7 +151,7 @@ impl super::DefaultSomeOneElement for UnsignedPartOfI32 {
     serde::Serialize,
     serde::Deserialize,
     schemars::JsonSchema,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
 )]
 #[serde(try_from = "i32")]
 pub struct NotZeroUnsignedPartOfI32(UnsignedPartOfI32);
@@ -180,7 +180,7 @@ impl utoipa::ToSchema for NotZeroUnsignedPartOfI32 {}
     thiserror::Error,
     location::Location,
     schemars::JsonSchema,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub enum NotZeroUnsignedPartOfI32TryFromI32Error {
     IsZero {
@@ -250,7 +250,7 @@ impl super::DefaultSomeOneElement for NotZeroUnsignedPartOfI32 {
     serde::Serialize,
     serde::Deserialize,
     schemars::JsonSchema,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub enum SingleOrMultiple<T: std::fmt::Debug + PartialEq + Clone> {
     Multiple(super::NotEmptyUniqueVec<T>),
@@ -298,7 +298,14 @@ where
     }
 }
 #[derive(
-    Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::FromInner, newtype::IntoIterator,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    optimal_memory_layout::OptimalMemoryLayout,
+    newtype::FromInner,
+    newtype::IntoIterator,
 )]
 pub struct UuidUuidTestCases([uuid::Uuid; 1]);
 #[cfg(feature = "test-utils")]

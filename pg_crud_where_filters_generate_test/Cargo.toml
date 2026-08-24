@@ -9,7 +9,7 @@ license.workspace = true
 edition.workspace = true
 
 [dev-dependencies]
-optml = { workspace = true }
+optimal_memory_layout = { workspace = true }
 generate_where_filters_src = { workspace = true }
 macro_clippy_check_common = { workspace = true, features = ["test-utils"] }
 quote = { workspace = true }

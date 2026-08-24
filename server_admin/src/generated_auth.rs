@@ -1,4 +1,4 @@
-#[derive(optml::Optml, Clone, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub struct AdminGeneratedAuthLayer {
     state: crate::auth::StdSharedAdminAuthSvcState,
 }
@@ -7,7 +7,7 @@ impl From<crate::auth::StdSharedAdminAuthSvcState> for AdminGeneratedAuthLayer {
         Self { state: value }
     }
 }
-#[derive(optml::Optml, Clone, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub struct AdminGeneratedAuthService<Service> {
     inner: Service,
     state: crate::auth::StdSharedAdminAuthSvcState,

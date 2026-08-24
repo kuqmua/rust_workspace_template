@@ -10,7 +10,7 @@ const GIT_INFO_STRING_MAX_LEN: usize = 1_048_576;
     Eq,
     Default,
     serde_derive::Serialize,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     newtype::AsRefInner,
     newtype::Display,
     newtype::FromInner,
@@ -22,7 +22,15 @@ impl PartialEq<&str> for GitCommitIdRef<'_> {
     }
 }
 #[derive(
-    Debug, Clone, Hash, PartialEq, Eq, Default, optml::Optml, newtype::AsRefStr, newtype::TryFrom,
+    Debug,
+    Clone,
+    Hash,
+    PartialEq,
+    Eq,
+    Default,
+    optimal_memory_layout::OptimalMemoryLayout,
+    newtype::AsRefStr,
+    newtype::TryFrom,
 )]
 #[try_from(
     error = GitInfoStringTryFromStringError,
@@ -42,7 +50,7 @@ impl GitCommitId {
         }
     }
 }
-#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum GitInfoStringTryFromStringError {
     TooLong { len: usize, max: usize },
 }
@@ -65,7 +73,9 @@ impl From<GitInfoStringTryFromStringError> for GitCommitId {
         Self(value.to_string())
     }
 }
-#[derive(Debug, Clone, PartialEq, Eq, optml::Optml, newtype::AsRefStr)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, optimal_memory_layout::OptimalMemoryLayout, newtype::AsRefStr,
+)]
 pub struct StdGitCommitIdCow<'commit_lt>(std::borrow::Cow<'commit_lt, str>);
 impl<'commit_lt> TryFrom<std::borrow::Cow<'commit_lt, str>> for StdGitCommitIdCow<'commit_lt> {
     type Error = GitInfoStringTryFromStringError;
@@ -85,14 +95,16 @@ impl From<GitInfoStringTryFromStringError> for StdGitCommitIdCow<'_> {
         Self(std::borrow::Cow::Owned(value.to_string()))
     }
 }
-#[derive(Debug, Clone, PartialEq, Eq, optml::Optml, newtype::FromInner)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner,
+)]
 pub struct GitCommitIdFallback(Option<GitCommitId>);
 #[derive(
     Debug,
     Clone,
     PartialEq,
     Eq,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     newtype::AsRefStr,
     newtype::PartialEqInner,
     newtype::TryFrom,
@@ -137,7 +149,7 @@ impl PartialEq<ProjectGitCommitLinkRef> for GitCommitLink {
     Eq,
     serde_derive::Deserialize,
     serde_derive::Serialize,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     newtype::AsRefStr,
     newtype::Display,
 )]
@@ -173,7 +185,7 @@ impl From<GitInfoStringTryFromStringError> for StdGitCommitLinkCow {
     Copy,
     PartialEq,
     Eq,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     newtype::AsRefInner,
     newtype::Display,
     newtype::IntoInnerFrom,
@@ -181,7 +193,14 @@ impl From<GitInfoStringTryFromStringError> for StdGitCommitLinkCow {
 )]
 pub struct ProjectGitCommitLinkRef(&'static str);
 #[derive(
-    Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::FromInner, newtype::NotInner,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    optimal_memory_layout::OptimalMemoryLayout,
+    newtype::FromInner,
+    newtype::NotInner,
 )]
 pub struct IsProjectCommit(bool);
 #[derive(
@@ -190,13 +209,13 @@ pub struct IsProjectCommit(bool);
     Copy,
     PartialEq,
     Eq,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     newtype::DerefInner,
     newtype::FromInner,
     newtype::PartialEqInner,
 )]
 pub struct GitCommitLinkCapacity(usize);
-#[derive(Debug, optml::Optml, newtype::FromInner)]
+#[derive(Debug, optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
 struct GitCommitLinkOutputRefMut<'output_lt>(&'output_lt mut String);
 
 #[derive(
@@ -205,14 +224,22 @@ struct GitCommitLinkOutputRefMut<'output_lt>(&'output_lt mut String);
     Copy,
     PartialEq,
     Eq,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     newtype::AsRefOwned,
     newtype::IntoInnerFrom,
     newtype::FromInner,
 )]
 pub struct ValidateProjectCommitError(ProjectGitCommitLinkRef);
 #[derive(
-    Debug, serde_derive::Serialize, Clone, Copy, Hash, PartialEq, Eq, Default, optml::Optml,
+    Debug,
+    serde_derive::Serialize,
+    Clone,
+    Copy,
+    Hash,
+    PartialEq,
+    Eq,
+    Default,
+    optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub struct ProjectGitInfo<'commit_lt> {
     commit: GitCommitIdRef<'commit_lt>,
@@ -399,8 +426,8 @@ where
 }
 #[cfg(test)]
 mod tests {
-    #[derive(optml::Optml, Debug)]
-    #[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optml takes precedence over alphabetical field order
+    #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
+    #[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
     struct TestGitCommit {
         commit: &'static str,
         fallback_calls: std::cell::Cell<usize>,

@@ -2,15 +2,33 @@
     clippy::arbitrary_source_item_ordering,
     reason = "multipart domain declarations stay adjacent to their validation implementations"
 )]
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::FromInner,
+)]
 pub struct MultipartPayloadMaximum(usize);
 
 #[derive(
-    optml::Optml, Clone, Copy, Debug, Default, Eq, PartialEq, newtype::FromInner, newtype::Display,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Default,
+    Eq,
+    PartialEq,
+    newtype::FromInner,
+    newtype::Display,
 )]
 pub struct MultipartValueLength(usize);
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 pub enum MultipartValueError {
     #[error("multipart name must not contain control characters")]
     ControlCharacter,
@@ -26,7 +44,9 @@ pub enum MultipartValueError {
     TooLong { actual: MultipartValueLength },
 }
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::AsRefStr,
+)]
 pub struct MultipartFieldName(String);
 impl TryFrom<String> for MultipartFieldName {
     type Error = MultipartValueError;
@@ -45,7 +65,9 @@ impl TryFrom<String> for MultipartFieldName {
         Ok(Self(value))
     }
 }
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::AsRefStr,
+)]
 pub struct MultipartFileName(String);
 impl TryFrom<String> for MultipartFileName {
     type Error = MultipartValueError;
@@ -72,7 +94,9 @@ impl TryFrom<String> for MultipartFileName {
         Ok(Self(value))
     }
 }
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::AsRefStr,
+)]
 pub struct MultipartTextValue(String);
 impl TryFrom<String> for MultipartTextValue {
     type Error = MultipartValueError;
@@ -88,7 +112,9 @@ impl TryFrom<String> for MultipartTextValue {
         Ok(Self(value))
     }
 }
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefTarget)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::AsRefTarget,
+)]
 pub struct MultipartBytes(bounded_types::BoundedVec<u8, 0, 16_777_216>);
 impl TryFrom<Vec<u8>> for MultipartBytes {
     type Error = MultipartValueError;
@@ -100,7 +126,7 @@ impl TryFrom<Vec<u8>> for MultipartBytes {
         }
     }
 }
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct MultipartTextPart {
     name: MultipartFieldName,
     value: MultipartTextValue,
@@ -120,19 +146,33 @@ impl MultipartTextPart {
     }
 }
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct MultipartBytesPart {
     bytes: MultipartBytes,
     file_name: Option<MultipartFileName>,
     name: MultipartFieldName,
 }
 #[derive(
-    optml::Optml, Clone, Debug, Default, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Default,
+    Eq,
+    PartialEq,
+    newtype::AsRefTarget,
+    newtype::FromInner,
 )]
 struct MultipartBytesParts(Vec<MultipartBytesPart>);
 
 #[derive(
-    optml::Optml, Clone, Debug, Default, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Default,
+    Eq,
+    PartialEq,
+    newtype::AsRefTarget,
+    newtype::FromInner,
 )]
 struct MultipartTextParts(Vec<MultipartTextPart>);
 impl MultipartBytesPart {
@@ -163,7 +203,9 @@ impl MultipartBytesPart {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 pub enum MultipartRequestError {
     #[error("multipart request payload exceeds its maximum")]
     PayloadTooLarge,
@@ -171,7 +213,7 @@ pub enum MultipartRequestError {
     TooManyParts,
 }
 
-#[derive(optml::Optml, Clone, Debug, Default, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Default, Eq, PartialEq)]
 pub struct MultipartUploadRequest {
     bytes_parts: MultipartBytesParts,
     payload_bytes: MultipartValueLength,
@@ -241,13 +283,15 @@ impl MultipartUploadRequest {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum FileStagingAction {
     Delete,
     Upload,
 }
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::AsRefStr,
+)]
 pub struct FileStagingDirectoryName(String);
 impl TryFrom<String> for FileStagingDirectoryName {
     type Error = MultipartValueError;
@@ -270,9 +314,13 @@ pub fn staging_directory_name(
     }))
 }
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::AsRefStr,
+)]
 pub struct StoragePathSegment(String);
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 #[error("invalid storage path segment")]
 pub struct StoragePathSegmentError;
 impl TryFrom<String> for StoragePathSegment {
@@ -289,7 +337,15 @@ impl TryFrom<String> for StoragePathSegment {
         Ok(Self(value))
     }
 }
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::AsRefTarget,
+    newtype::FromInner,
+)]
 pub struct StdStorageRelativePath(std::path::PathBuf);
 #[must_use]
 pub fn identifier_file_storage_relative_path(

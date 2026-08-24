@@ -56,7 +56,7 @@ runtime, transport, persistence, presentation, or policy concerns.
 | `pg_crud_common`, `pg_crud_common_macros` | Shared query/schema policy and its derive surface. Internal modules separate query construction, schema conformance, and validation. |
 | `pg_crud_macros_common`, `pg_crud_macros_common_macros` | Shared proc-macro parsing and generation helpers. |
 | `pg_table`, `generate_pg_table`, `generate_pg_table_src`, `generate_pg_table_test` | Table contract, proc-macro entry point, token emitter, and isolated generated-code tests. The large `source` module is one ordered emitter and is not runtime application logic. |
-| `pg_types`, `generate_pg_types`, `generate_pg_types_src`, `generate_pg_types_test` | PostgreSQL type facade, proc-macro entry point, token emitter, and isolated generated-code tests. |
+| `generate_pg_types`, `generate_pg_types_src`, `generate_pg_types_test` | PostgreSQL type proc-macro entry point, token emitter, and isolated generated-code tests. |
 | `pg_types_common`, `pg_types_numeric`, `pg_types_text_misc`, `pg_types_chrono_net` | Type implementations split by semantic family. |
 | `where_filters`, `generate_where_filters`, `generate_where_filters_src`, `generate_where_filters_test` | Filter contract, proc-macro entry point, token emitter, and generated-code tests. |
 | `prepare_postgresql_databases` | Database preparation command; no application queries. |
@@ -70,7 +70,7 @@ runtime, transport, persistence, presentation, or policy concerns.
 | `naming`, `naming_common`, `naming_common_macros`, `naming_macros` | Naming domain, shared implementation, and compile-time frontends. |
 | `location_lib`, `location`, `location_macros`, `location_test` | Location API, derive implementation, and isolated compile tests. |
 | `to_err_string`, `to_err_string_macros`, `panic_location` | Error formatting and diagnostic-location support. |
-| `workspace_macro_helpers`, `macros_helpers`, `generate_derive_token_stream_builder`, `generate_quotes`, `macro_clippy_check_common`, `optml` | Compile-time support crates; none owns service runtime behavior. |
+| `workspace_macro_helpers`, `macros_helpers`, `generate_derive_token_stream_builder`, `generate_quotes`, `macro_clippy_check_common`, `optimal_memory_layout` | Compile-time support crates; none owns service runtime behavior. |
 | `git_info` | Build/repository metadata only. |
 
 ## Repository tooling and verification

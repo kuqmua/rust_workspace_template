@@ -8,7 +8,15 @@ pub const ADMIN_PASSWORD_MIN_CHARS: usize = 1usize;
 pub const ADMIN_NEW_PASSWORD_MIN_CHARS: usize = 12usize;
 pub const ADMIN_ROLE_NAME_MAX_CHARS: usize = 128usize;
 pub const ADMIN_ROLE_NAME_MIN_CHARS: usize = 1usize;
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::FromInner,
+)]
 pub struct AdminApiBodyMaxBytes(usize);
 impl AdminApiBodyMaxBytes {
     #[must_use]
@@ -38,7 +46,7 @@ const ADMIN_NEW_PASSWORD_IS_VALID: fn(&str) -> bool = |value| {
     .is_ok()
 };
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,
@@ -80,7 +88,7 @@ impl StdAdminPositiveI64 {
     }
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     PartialEq,
@@ -99,7 +107,7 @@ impl StdAdminPositiveI64 {
 )]
 pub struct AdminText(String);
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     PartialEq,
@@ -120,7 +128,7 @@ pub struct AdminText(String);
 )]
 pub struct AdminLogin(String);
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     PartialEq,
@@ -141,7 +149,7 @@ pub struct AdminLogin(String);
 )]
 pub struct AdminDisplayName(String);
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     PartialEq,
@@ -162,7 +170,7 @@ pub struct AdminDisplayName(String);
 )]
 pub struct AdminRoleName(String);
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     PartialEq,
     Eq,
@@ -182,7 +190,7 @@ pub struct AdminRoleName(String);
 )]
 pub struct AdminPassword(String);
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     PartialEq,
     Eq,
@@ -203,7 +211,7 @@ pub struct AdminPassword(String);
 )]
 pub struct AdminNewPassword(String);
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     PartialEq,
@@ -222,7 +230,14 @@ pub struct AdminNewPassword(String);
 )]
 pub struct AdminPermissionValue(String);
 #[derive(
-    optml::Optml, Debug, Clone, Copy, PartialEq, Eq, newtype::AsRefInner, newtype::FromInner,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    newtype::AsRefInner,
+    newtype::FromInner,
 )]
 pub struct AdminPermissionStrRef<'value_lt>(&'value_lt str);
 impl<'value_lt> AdminPermissionStrRef<'value_lt> {
@@ -231,7 +246,16 @@ impl<'value_lt> AdminPermissionStrRef<'value_lt> {
         self.0
     }
 }
-#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq, newtype::WireEnum, utoipa::ToSchema)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    newtype::WireEnum,
+    utoipa::ToSchema,
+)]
 #[wire_enum(
     ref_type = AdminPermissionStrRef,
     error_message = str_constants::UNKNOWN_ADMINISTRATOR_PERMISSION,
@@ -298,7 +322,7 @@ pub enum AdminPermission {
 }
 
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     Copy,
@@ -340,7 +364,14 @@ pub enum AdminDataTable {
     Users,
 }
 #[derive(
-    optml::Optml, Debug, Clone, Copy, PartialEq, Eq, newtype::AsRefInner, newtype::FromInner,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    newtype::AsRefInner,
+    newtype::FromInner,
 )]
 pub struct AdminDataTableStrRef<'value_lt>(&'value_lt str);
 impl<'value_lt> AdminDataTableStrRef<'value_lt> {
@@ -350,7 +381,14 @@ impl<'value_lt> AdminDataTableStrRef<'value_lt> {
     }
 }
 #[derive(
-    optml::Optml, Debug, Clone, Copy, PartialEq, Eq, newtype::AsRefInner, newtype::FromInner,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    newtype::AsRefInner,
+    newtype::FromInner,
 )]
 pub struct AdminDataColumnsCsvRef<'value_lt>(&'value_lt str);
 impl<'value_lt> AdminDataColumnsCsvRef<'value_lt> {
@@ -360,7 +398,14 @@ impl<'value_lt> AdminDataColumnsCsvRef<'value_lt> {
     }
 }
 #[derive(
-    optml::Optml, Debug, Clone, Copy, PartialEq, Eq, newtype::AsRefInner, newtype::FromInner,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    newtype::AsRefInner,
+    newtype::FromInner,
 )]
 pub struct AdminDataOrderRef<'value_lt>(&'value_lt str);
 impl<'value_lt> AdminDataOrderRef<'value_lt> {
@@ -369,7 +414,7 @@ impl<'value_lt> AdminDataOrderRef<'value_lt> {
         self.0
     }
 }
-#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq)]
 pub struct AdminDataTableSpec {
     columns: AdminDataColumnsCsvRef<'static>,
     order: AdminDataOrderRef<'static>,
@@ -546,7 +591,7 @@ impl TryFrom<String> for AdminDataTable {
     }
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     PartialEq,
@@ -565,9 +610,27 @@ impl TryFrom<String> for AdminDataTable {
 )]
 pub struct AdminAuditTimestamp(String);
 pub const ADMIN_AUDIT_DETAILS_MAX_BYTES: usize = 4096usize;
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, PartialOrd, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    PartialOrd,
+    newtype::FromInner,
+)]
 pub struct AdminAuditDetailsBytes(usize);
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    thiserror::Error,
+    newtype::FromInner,
+)]
 #[error(
     "administrator audit details contain {} bytes, maximum is {} bytes",
     .0.0,
@@ -585,7 +648,7 @@ impl AdminAuditDetailsTooLarge {
     }
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     serde::Serialize,
@@ -609,15 +672,33 @@ impl TryFrom<serde_json::Value> for SerdeJsonAdminAuditDetails {
         Ok(Self(value))
     }
 }
-#[derive(optml::Optml, Clone, Debug, newtype::BoundedString, newtype::AsRefStr)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    newtype::BoundedString,
+    newtype::AsRefStr,
+)]
 #[bounded_string(max = 8_192usize, chars, serde, utoipa, validator = |value: &String| { let path = AdminPagePathRef::from(value.as_str()); AdminPage::from_path(path).is_some() || AdminDataTable::from_frontend_path(path).is_some() }, description = "administrator default route")]
 pub struct AdminDefaultRoute(String);
-#[derive(optml::Optml, Clone, Debug, newtype::BoundedString, newtype::AsRefStr)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    newtype::BoundedString,
+    newtype::AsRefStr,
+)]
 #[bounded_string(max = 8192usize, min = 1usize, chars, serde, utoipa, validator = |value: &String| !value
     .trim()
     .is_empty(), description = "administrator site name")]
 pub struct AdminSiteName(String);
-#[derive(optml::Optml, Clone, Debug, newtype::BoundedString, newtype::AsRefStr)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    newtype::BoundedString,
+    newtype::AsRefStr,
+)]
 #[bounded_string(
     max = 8_192usize,
     min = 1usize,
@@ -628,7 +709,13 @@ pub struct AdminSiteName(String);
     description = "administrator main logo"
 )]
 pub struct AdminMainLogo(String);
-#[derive(optml::Optml, Clone, Debug, newtype::BoundedString, newtype::AsRefStr)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    newtype::BoundedString,
+    newtype::AsRefStr,
+)]
 #[bounded_string(
     max = 8_192usize,
     chars,
@@ -637,7 +724,13 @@ pub struct AdminMainLogo(String);
     description = "administrator organization contacts"
 )]
 pub struct AdminOrganizationContacts(String);
-#[derive(optml::Optml, Clone, Debug, newtype::BoundedString, newtype::AsRefStr)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    newtype::BoundedString,
+    newtype::AsRefStr,
+)]
 #[bounded_string(
     max = 8_192usize,
     chars,
@@ -646,7 +739,13 @@ pub struct AdminOrganizationContacts(String);
     description = "administrator organization name"
 )]
 pub struct AdminOrganizationName(String);
-#[derive(optml::Optml, Clone, Debug, newtype::BoundedString, newtype::AsRefStr)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    newtype::BoundedString,
+    newtype::AsRefStr,
+)]
 #[bounded_string(
     max = 8_192usize,
     min = 7usize,
@@ -657,7 +756,13 @@ pub struct AdminOrganizationName(String);
     description = "administrator primary color"
 )]
 pub struct AdminPrimaryColor(String);
-#[derive(optml::Optml, Clone, Debug, newtype::BoundedString, newtype::AsRefStr)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    newtype::BoundedString,
+    newtype::AsRefStr,
+)]
 #[bounded_string(
     max = 8_192usize,
     min = 1usize,
@@ -668,7 +773,13 @@ pub struct AdminPrimaryColor(String);
     description = "administrator support URL"
 )]
 pub struct AdminSupportUrl(String);
-#[derive(optml::Optml, Clone, Debug, newtype::BoundedString, newtype::AsRefStr)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    newtype::BoundedString,
+    newtype::AsRefStr,
+)]
 #[bounded_string(
     max = 8_192usize,
     min = 1usize,
@@ -679,7 +790,7 @@ pub struct AdminSupportUrl(String);
     description = "administrator tab title"
 )]
 pub struct AdminTabTitle(String);
-#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum AdminTableSortField {
     AuditAction,
     AuditCreatedAt,
@@ -696,15 +807,25 @@ pub enum AdminTableSortField {
     UserLogin,
     UserStatus,
 }
-#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq, thiserror::Error,
+)]
 #[error("{}", str_constants::UNKNOWN_ADMIN_TABLE_SORT_FIELD)]
 pub struct AdminTableSortFieldTryFromKeyError;
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct AdminTableSortValues {
     key: frontend_contract::ContractStr,
     label: frontend_contract::ContractStr,
 }
-#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    newtype::FromInner,
+)]
 pub struct AdminTableSortKeyRef<'value_lt>(&'value_lt str);
 impl AdminTableSortField {
     pub const USER: [Self; 4] = [
@@ -774,7 +895,7 @@ impl AdminTableSortField {
     }
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,
@@ -808,7 +929,7 @@ impl AdminUserId {
     }
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,
@@ -842,7 +963,7 @@ impl AdminRoleId {
     }
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,
@@ -876,7 +997,7 @@ impl AdminPermissionId {
     }
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,
@@ -908,7 +1029,9 @@ impl AdminAuditLogId {
         self.0
     }
 }
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 #[error("{self:?}")]
 pub struct AdminIdTryFromI64Error;
 mod query;

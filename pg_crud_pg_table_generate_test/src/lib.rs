@@ -1,12 +1,18 @@
 #[cfg(test)]
 mod tests {
-    #[derive(optml::Optml, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+    #[derive(
+        optimal_memory_layout::OptimalMemoryLayout,
+        Eq,
+        PartialEq,
+        serde::Deserialize,
+        serde::Serialize,
+    )]
     struct JsonContractValue {
         operation: String,
     }
     fn table_input(field_attrs: &proc_macro2::TokenStream) -> proc_macro2::TokenStream {
         quote::quote! {
-            #[derive(Debug, Clone, Copy, optml::Optml)]
+            #[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout)]
             #[generate_pg_table::generate_pg_table_config{{
                 "tests_write_into_file": "False",
                 "common_write_into_file": "False",
@@ -91,7 +97,7 @@ mod tests {
             str_constants::PG_CRUD_PG_TABLE,
             str_constants::DEPENDENCIES_NEWLINE_APP_STATE_WORKSPACE_TRUE_NEWLINE_AXUM_WORKSPACE_TRUE_NEWLINE_FUTURES,
             &{
-                #[derive(optml::Optml)]
+                #[derive(optimal_memory_layout::OptimalMemoryLayout)]
                 enum AddGeneratePgTablePrimaryKey {
                     False,
                     True,
@@ -107,7 +113,7 @@ mod tests {
                     };
                     quote::quote! {
                         #allow_clippy_arbitrary_src_item_ordering
-                        #[derive(Debug, Clone, Copy, optml::Optml)]
+                        #[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout)]
                         #[generate_pg_table::generate_pg_table_config{{
                             "cm_write_into_file": "False",
                             "co_write_into_file": "False",

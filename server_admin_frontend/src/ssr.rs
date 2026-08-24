@@ -34,7 +34,9 @@ where
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 #[error("administrator SSR HTML exceeds the size limit")]
 pub struct AdminSsrHtmlTryFromStringError;
 impl From<AdminSsrHtmlTryFromStringError> for AdminSsrHtml {
@@ -42,7 +44,9 @@ impl From<AdminSsrHtmlTryFromStringError> for AdminSsrHtml {
         Self(value.to_string())
     }
 }
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 #[error("{message}", message = str_constants::ADMIN_SSR_TITLE_TOO_LONG)]
 pub struct AdminSsrTextTryFromStringError;
 impl From<AdminSsrTextTryFromStringError> for AdminSsrText {
@@ -51,7 +55,9 @@ impl From<AdminSsrTextTryFromStringError> for AdminSsrText {
     }
 }
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::Display)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::Display,
+)]
 pub struct AdminSsrErrorMessage(to_err_string::ErrorText);
 impl TryFrom<String> for AdminSsrErrorMessage {
     type Error = to_err_string::ErrorTextTryFromStringError;
@@ -61,7 +67,7 @@ impl TryFrom<String> for AdminSsrErrorMessage {
 }
 
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Eq,
@@ -80,7 +86,15 @@ impl TryFrom<String> for AdminSsrText {
     }
 }
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefStr, newtype::IntoInnerFrom)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::AsRefStr,
+    newtype::IntoInnerFrom,
+)]
 pub struct AdminSsrHtml(String);
 impl TryFrom<String> for AdminSsrHtml {
     type Error = AdminSsrHtmlTryFromStringError;

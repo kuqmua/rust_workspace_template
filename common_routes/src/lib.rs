@@ -5,31 +5,60 @@
 )]
 const HEALTH_PROBE_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(2u64);
 const HEALTH_COMPONENTS_MAX_LEN: usize = 2usize;
-#[derive(Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema, optml::Optml)]
+#[derive(
+    Debug,
+    serde::Deserialize,
+    serde::Serialize,
+    utoipa::ToSchema,
+    optimal_memory_layout::OptimalMemoryLayout,
+)]
 pub struct GitInfo {
     #[schema(value_type = String)]
     commit: git_info::StdGitCommitLinkCow,
 }
-#[derive(Debug, serde::Serialize, optml::Optml)]
+#[derive(Debug, serde::Serialize, optimal_memory_layout::OptimalMemoryLayout)]
 struct NotFoundHandle {
     commit: git_info::StdGitCommitLinkCow,
     message: to_err_string::ErrorText,
     open_api_specification: OpenApiSpecificationPath,
 }
-#[derive(Debug, Clone, Copy, serde::Serialize, optml::Optml, newtype::FromInner)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    serde::Serialize,
+    optimal_memory_layout::OptimalMemoryLayout,
+    newtype::FromInner,
+)]
 struct OpenApiSpecificationPath(&'static str);
-#[derive(Debug, Clone, Copy, optml::Optml, newtype::FromInner)]
+#[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
 struct AxumHttpUriRef<'uri_lt>(&'uri_lt axum::http::Uri);
-#[derive(Debug, Clone, Copy, optml::Optml, newtype::FromInner)]
+#[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
 struct UriSuffixRef<'suffix_lt>(&'suffix_lt str);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::FromInner)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    optimal_memory_layout::OptimalMemoryLayout,
+    newtype::FromInner,
+)]
 struct NoRouteMessageCapacity(usize);
-#[derive(Debug, Clone, Copy, optml::Optml, newtype::FromInner)]
+#[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
 struct HealthCheckSucceeded(bool);
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::FromInner,
+)]
 pub struct HealthDatabaseAvailable(bool);
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     Copy,
@@ -46,7 +75,7 @@ pub enum HealthStatus {
     Ok,
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     Copy,
@@ -62,7 +91,7 @@ pub enum HealthComponentKind {
     ServiceAvailability,
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     Copy,
@@ -76,7 +105,9 @@ pub struct HealthComponent {
     kind: HealthComponentKind,
     status: HealthStatus,
 }
-#[derive(optml::Optml, Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, PartialEq, Eq, serde::Serialize,
+)]
 pub struct HealthComponents(Vec<HealthComponent>);
 impl utoipa::PartialSchema for HealthComponents {
     fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
@@ -124,11 +155,13 @@ impl<'de> serde::Deserialize<'de> for HealthComponents {
         Self::try_from(value).map_err(serde::de::Error::custom)
     }
 }
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 #[error("{}", str_constants::HEALTH_COMPONENTS_LENGTH_EXCEEDS_LIMIT)]
 pub struct HealthComponentsError;
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     PartialEq,
@@ -183,50 +216,66 @@ impl HealthReport {
         self.status
     }
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::FromInner)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    optimal_memory_layout::OptimalMemoryLayout,
+    newtype::FromInner,
+)]
 struct AxumHealthCheckStatus(axum::http::StatusCode);
 impl axum::response::IntoResponse for AxumHealthCheckStatus {
     fn into_response(self) -> axum::response::Response {
         axum::response::IntoResponse::into_response(self.0)
     }
 }
-#[derive(Debug, optml::Optml)]
+#[derive(Debug, optimal_memory_layout::OptimalMemoryLayout)]
 struct JsonRes<T> {
     payload: AxumJsonPayload<T>,
 }
-#[derive(optml::Optml, Debug, thiserror::Error)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 enum CommonNotFoundError {
     #[error("common route was not found")]
     NotFound(NotFoundHandle),
 }
-#[derive(optml::Optml, Debug, thiserror::Error)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 enum HealthCheckError {
     #[error("service is unavailable")]
     Unavailable,
 }
-#[derive(optml::Optml, Debug, thiserror::Error)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 enum HealthError {
     #[error("service is unavailable")]
     Unavailable,
 }
-#[derive(optml::Optml, Debug, thiserror::Error)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 enum HealthLiveError {
     #[error("service is unavailable")]
     Unavailable,
 }
-#[derive(optml::Optml, Debug, thiserror::Error)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 enum HealthReadyError {
     #[error("service is unavailable")]
     Unavailable,
 }
-#[derive(Debug, optml::Optml, newtype::FromInner)]
+#[derive(Debug, optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
 struct AxumJsonPayload<T>(axum::Json<T>);
 #[derive(
-    optml::Optml, Clone, Copy, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    serde::Deserialize,
+    serde::Serialize,
+    utoipa::ToSchema,
 )]
 pub struct CommonNoBody;
 
-#[derive(optml::Optml, Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, frontend_contract::TypedRoute,
+)]
 #[typed_route(
     authentication = frontend_contract::AuthenticationRequirement::Public,
     error_statuses = &[],
@@ -242,7 +291,9 @@ pub struct CommonNoBody;
 )]
 pub struct HealthLiveRoute;
 
-#[derive(optml::Optml, Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, frontend_contract::TypedRoute,
+)]
 #[typed_route(
     authentication = frontend_contract::AuthenticationRequirement::Public,
     error_response = HealthReport,
@@ -259,7 +310,9 @@ pub struct HealthLiveRoute;
 )]
 pub struct HealthReadyRoute;
 
-#[derive(optml::Optml, Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, frontend_contract::TypedRoute,
+)]
 #[typed_route(
     authentication = frontend_contract::AuthenticationRequirement::Public,
     error_response = HealthReport,
@@ -276,7 +329,9 @@ pub struct HealthReadyRoute;
 )]
 pub struct HealthRoute;
 
-#[derive(optml::Optml, Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, frontend_contract::TypedRoute,
+)]
 #[typed_route(
     authentication = frontend_contract::AuthenticationRequirement::Public,
     error_response = (),
@@ -293,7 +348,9 @@ pub struct HealthRoute;
 )]
 pub struct HealthCheckRoute;
 
-#[derive(optml::Optml, Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, frontend_contract::TypedRoute,
+)]
 #[typed_route(
     authentication = frontend_contract::AuthenticationRequirement::Public,
     error_statuses = &[],
@@ -309,7 +366,15 @@ pub struct HealthCheckRoute;
 )]
 pub struct GitInfoRoute;
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, frontend_contract::RouteCatalog)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    frontend_contract::RouteCatalog,
+)]
 #[route_catalog(family = CommonRouteFamily, body_limit = 0usize)]
 pub enum CommonRoute {
     #[route_catalog_route(GitInfoRoute)]
@@ -390,13 +455,19 @@ fn health_unavailable_response() -> axum::response::Response {
         frontend_contract::ApiProblemError::ServiceUnavailable,
     )
 }
-#[derive(Debug, Clone, optml::Optml, newtype::IntoInnerFrom, newtype::FromInner)]
+#[derive(
+    Debug,
+    Clone,
+    optimal_memory_layout::OptimalMemoryLayout,
+    newtype::IntoInnerFrom,
+    newtype::FromInner,
+)]
 pub struct AxumCommonRoutes(axum::Router);
-#[derive(Clone, optml::Optml, newtype::FromInner)]
+#[derive(Clone, optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
 pub struct StdArcCommonRoutesAppState(std::sync::Arc<dyn CommonRoutesParameters>);
-#[derive(optml::Optml, Clone, Copy, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
 pub struct CommonRoutesOpenApi;
-#[derive(optml::Optml, serde::Serialize)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, serde::Serialize)]
 #[serde(transparent)]
 #[derive(newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct UtoipaCommonRoutesOpenApiDocument(utoipa::openapi::OpenApi);
@@ -539,7 +610,7 @@ fn health_report_response(report: HealthReport) -> Option<JsonRes<HealthReport>>
         HealthStatus::Degraded | HealthStatus::Error => None,
     }
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[frontend_contract::route_registry(
     state = StdArcCommonRoutesAppState,
     family = CommonRouteFamily;

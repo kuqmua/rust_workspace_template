@@ -1,5 +1,5 @@
 #![allow(clippy::field_scoped_visibility_modifiers)] // the private descriptor is constructed by its sibling catalog while fields remain hidden outside this generator
-#[derive(optml::Optml, Clone, Copy)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
 pub(super) struct PgTypeSpec<CanBeNullable, CanBePrimaryKey, FilterKind, PgName, WireKind> {
     pub(super) can_be_nullable: CanBeNullable,
     pub(super) can_be_primary_key: CanBePrimaryKey,

@@ -1,4 +1,4 @@
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct IdentitySpec<Login, DisplayName, Role, SecretSource> {
     display_name: DisplayName,
     login: Login,
@@ -43,19 +43,19 @@ impl<Login, DisplayName, Role, SecretSource> IdentitySpec<Login, DisplayName, Ro
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum IdentityPresence {
     Missing,
     Present,
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum IdentityRolePresence {
     Missing,
     Present,
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum IdentityBootstrapDecision {
     AlreadyExists,
     Create,

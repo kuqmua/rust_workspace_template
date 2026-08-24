@@ -1,11 +1,11 @@
-#[derive(Debug, Clone, optml::Optml)]
+#[derive(Debug, Clone, optimal_memory_layout::OptimalMemoryLayout)]
 pub struct SynField {
     pub identifier: SynFieldIdentifier,
     pub type0: SynFieldType,
     pub vis: SynFieldVis,
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     PartialEq,
@@ -17,7 +17,7 @@ pub struct SynField {
 )]
 pub struct SynFieldIdentifier(syn::Ident);
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     newtype::AsRefOwned,
@@ -27,7 +27,7 @@ pub struct SynFieldIdentifier(syn::Ident);
 )]
 pub struct SynFieldType(syn::Type);
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     newtype::AsRefOwned,

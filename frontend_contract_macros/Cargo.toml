@@ -14,7 +14,7 @@ edition.workspace = true
 proc-macro = true
 
 [dependencies]
-optml = { workspace = true }
+optimal_memory_layout = { workspace = true }
 newtype = { workspace = true }
 proc-macro2 = { workspace = true }
 quote = { workspace = true }

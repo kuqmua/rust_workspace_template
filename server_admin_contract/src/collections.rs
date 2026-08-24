@@ -1,5 +1,7 @@
 pub(crate) const ADMIN_COLLECTION_MAX_ITEMS: usize = 10_000usize;
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 pub enum AdminCollectionError {
     #[error(
         "{}",
@@ -8,7 +10,7 @@ pub enum AdminCollectionError {
     TooLong,
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     newtype::DerefTarget,
@@ -39,9 +41,9 @@ impl<T> TryFrom<Vec<T>> for AdminBoundedVec<T> {
             .map_err(|_error| AdminCollectionError::TooLong)
     }
 }
-#[derive(optml::Optml, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
 struct StdPhantomDataAdminOpenApiVec<T>(std::marker::PhantomData<T>);
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[allow(dead_code)] // schema-only generic carries its item type without runtime construction
 pub(crate) struct AdminOpenApiVec<T, const MAX: usize> {
     marker: StdPhantomDataAdminOpenApiVec<T>,
@@ -74,7 +76,7 @@ impl<T: utoipa::ToSchema, const MAX: usize> utoipa::ToSchema for AdminOpenApiVec
     }
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     serde::Deserialize,
@@ -93,7 +95,7 @@ impl TryFrom<Vec<super::AdminPermissionValue>> for AdminPermissionValues {
     }
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     serde::Deserialize,
@@ -117,7 +119,7 @@ impl AdminRoleNames {
     }
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     serde::Deserialize,
@@ -141,7 +143,7 @@ impl AdminRoleIds {
     }
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     serde::Deserialize,
@@ -165,7 +167,7 @@ impl AdminPermissionIds {
     }
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     serde::Deserialize,
@@ -189,7 +191,7 @@ impl AdminUserSummaries {
     }
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     serde::Deserialize,
@@ -213,7 +215,7 @@ impl AdminRoleSummaries {
     }
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     serde::Deserialize,
@@ -237,7 +239,7 @@ impl AdminPermissionSummaries {
     }
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     serde::Deserialize,
@@ -261,7 +263,7 @@ impl AdminAuditViews {
     }
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     serde::Deserialize,
@@ -285,7 +287,7 @@ impl AdminTexts {
     }
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     serde::Deserialize,
@@ -309,7 +311,7 @@ impl AdminDataRows {
     }
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     serde::Deserialize,
@@ -333,7 +335,7 @@ impl AdminDataTables {
     }
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     serde::Deserialize,
@@ -352,7 +354,7 @@ impl TryFrom<Vec<super::AdminOptionalSetting>> for AdminOptionalSettings {
     }
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     serde::Deserialize,
@@ -393,7 +395,7 @@ impl Default for AdminPermissionIds {
         Self::from(AdminEmptyCollection)
     }
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct AdminEmptyCollection;
 impl From<AdminEmptyCollection> for AdminRoleIds {
     fn from(_value: AdminEmptyCollection) -> Self {

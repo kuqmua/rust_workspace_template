@@ -1,7 +1,7 @@
 const SC_STRING_MAX_LEN: usize = 1_048_576;
-#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
 struct ToSnakeCaseInput<'input_lt>(&'input_lt str);
-#[derive(optml::Optml, newtype::BoundedString)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::BoundedString)]
 #[bounded_string(max = SC_STRING_MAX_LEN, description = "snake case string")]
 struct SnakeCaseString(String);
 #[allow(clippy::single_call_fn)] // extracted to isolate case-normalization logic and keep macro expansion flow focused
@@ -28,7 +28,7 @@ fn to_snake_case(input: ToSnakeCaseInput<'_>) -> SnakeCaseString {
 pub fn generate_derive_token_stream_builder(
     input_token_stream: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
-    #[derive(Clone, optml::Optml)]
+    #[derive(Clone, optimal_memory_layout::OptimalMemoryLayout)]
     struct Element {
         d_trait_name_if_snake_case: proc_macro2::TokenStream,
         d_trait_name_snake_case: proc_macro2::TokenStream,
@@ -65,7 +65,7 @@ pub fn generate_derive_token_stream_builder(
     let (make_pub_pub_enum_token_stream, pub_enum_derive_vec_token_stream) = {
         fn generate_token_stream(identifier: &dyn quote::ToTokens) -> proc_macro2::TokenStream {
             quote::quote! {
-                #[derive(Debug, Clone, Copy, optml::Optml)]
+                #[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout)]
                 pub enum #identifier {
                     True,
                     False
@@ -143,12 +143,12 @@ pub fn generate_derive_token_stream_builder(
     let generated: proc_macro2::TokenStream = quote::quote! {
         #make_pub_pub_enum_token_stream
         #(#pub_enum_derive_vec_token_stream)*
-        #[derive(Debug, Clone, Copy, optml::Optml)]
+        #[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout)]
         enum #struct_or_enum_upper_camel_case {
             Struct,
             Enum
         }
-        #[derive(Debug, Default, Clone, Copy, optml::Optml)]
+        #[derive(Debug, Default, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout)]
         pub struct #derive_token_stream_builder_upper_camel_case {
             #make_pub_derive_trait_name_bool_token_stream
             #(#field_vec_token_stream)*

@@ -1,7 +1,9 @@
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct CleanupBatchSize(u64);
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 #[error("cleanup batch size must be greater than zero")]
 pub struct CleanupBatchSizeError;
 
@@ -18,7 +20,7 @@ impl TryFrom<u64> for CleanupBatchSize {
 }
 
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,
@@ -31,7 +33,7 @@ impl TryFrom<u64> for CleanupBatchSize {
 pub struct CleanupRows(u64);
 
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,
@@ -43,20 +45,20 @@ pub struct CleanupRows(u64);
 )]
 pub struct CleanupBatchCount(u64);
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum CleanupContinuation {
     Continue,
     Stop,
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum CleanupCompletion {
     Drained,
     Stopped,
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
-#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optml takes precedence over alphabetical field order
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
+#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
 pub struct CleanupReport {
     batches: CleanupBatchCount,
     rows: CleanupRows,

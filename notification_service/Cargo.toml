@@ -15,7 +15,7 @@ name = "notification_service"
 path = "src/main.rs"
 
 [dependencies]
-optml = { workspace = true }
+optimal_memory_layout = { workspace = true }
 app_state = { workspace = true }
 axum = { workspace = true }
 common_routes = { workspace = true }

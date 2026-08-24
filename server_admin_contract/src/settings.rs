@@ -1,5 +1,5 @@
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     frontend_contract::ContractStructApi,
@@ -28,7 +28,14 @@ pub struct AdminSettingsView {
 }
 #[cfg(test)]
 mod tests;
-#[derive(optml::Optml, Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+)]
 pub struct AdminBrandingView {
     default_admin_route: super::AdminDefaultRoute,
     main_logo: Option<super::AdminMainLogo>,
@@ -74,7 +81,14 @@ impl AdminBrandingView {
         self.tab_title.as_ref()
     }
 }
-#[derive(optml::Optml, Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+)]
 #[serde(deny_unknown_fields)]
 pub struct AdminUpdateSettingsReq {
     #[schema(max_items = 6)]
@@ -88,21 +102,35 @@ pub struct AdminUpdateSettingsReq {
     support_url: Option<super::AdminSupportUrl>,
     tab_title: Option<super::AdminTabTitle>,
 }
-#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum AdminSettingInputKind {
     Text,
     TextArea,
     Url,
 }
 #[derive(
-    optml::Optml, Clone, Copy, Debug, PartialEq, Eq, newtype::AsRefStr, newtype::FromInner,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    newtype::AsRefStr,
+    newtype::FromInner,
 )]
 pub struct AdminSettingLabel(&'static str);
 #[derive(
-    optml::Optml, Clone, Copy, Debug, PartialEq, Eq, newtype::AsRefStr, newtype::FromInner,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    newtype::AsRefStr,
+    newtype::FromInner,
 )]
 pub struct AdminSettingName(&'static str);
-#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)]
 pub struct AdminSettingSpec {
     label: AdminSettingLabel,
     name: AdminSettingName,
@@ -134,13 +162,13 @@ impl AdminSettingSpec {
         ))
     }
 }
-#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum AdminSettingOptionality {
     Clearable(AdminOptionalSetting),
     Required,
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,
@@ -160,7 +188,7 @@ pub enum AdminSetting {
     MainLogo,
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,

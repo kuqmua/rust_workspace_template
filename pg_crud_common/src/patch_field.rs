@@ -1,4 +1,12 @@
-#[derive(optml::Optml, Clone, Debug, Default, Eq, PartialEq, schemars::JsonSchema)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Default,
+    Eq,
+    PartialEq,
+    schemars::JsonSchema,
+)]
 #[serde(untagged)]
 pub enum PatchField<Value> {
     Null,
@@ -47,7 +55,14 @@ impl<Value: utoipa::ToSchema> utoipa::ToSchema for PatchField<Value> {}
 
 #[cfg(test)]
 mod tests {
-    #[derive(optml::Optml, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+    #[derive(
+        optimal_memory_layout::OptimalMemoryLayout,
+        Debug,
+        Eq,
+        PartialEq,
+        serde::Deserialize,
+        serde::Serialize,
+    )]
     struct Patch {
         #[serde(default)]
         value: super::PatchField<String>,

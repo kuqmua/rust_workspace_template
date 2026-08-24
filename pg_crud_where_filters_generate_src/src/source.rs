@@ -1,7 +1,14 @@
-#[derive(optml::Optml, Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    newtype::AsRefInner,
+    newtype::FromInner,
+)]
 pub struct ProcMacro2GenerateWhereFiltersInput<'input_lt>(&'input_lt proc_macro2::TokenStream);
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     newtype::AsRefOwned,
     newtype::Display,
@@ -9,22 +16,24 @@ pub struct ProcMacro2GenerateWhereFiltersInput<'input_lt>(&'input_lt proc_macro2
     newtype::IntoInnerFrom,
 )]
 pub struct ProcMacro2GenerateWhereFiltersTokenStream(proc_macro2::TokenStream);
-#[derive(Clone, Copy, Debug, serde::Deserialize, optml::Optml)]
+#[derive(Clone, Copy, Debug, serde::Deserialize, optimal_memory_layout::OptimalMemoryLayout)]
 pub struct ParsedGenerateWhereFiltersConfig {
     pg_types_write_into_file: macros_helpers::ts_writer::ShouldWriteTokenStreamIntoFile,
     whole_write_into_file: macros_helpers::ts_writer::ShouldWriteTokenStreamIntoFile,
 }
-#[derive(optml::Optml, Clone, Copy, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
 pub struct BuiltGenerateWhereFiltersModel {
     config: ParsedGenerateWhereFiltersConfig,
     contract_valid: crate::model::FilterSpecValid,
 }
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 pub struct ValidatedGenerateWhereFiltersConfig(ParsedGenerateWhereFiltersConfig);
-#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
+)]
 #[error(transparent)]
 pub struct SerdeJsonGenerateWhereFiltersError(serde_json::Error);
-#[derive(optml::Optml, Debug, thiserror::Error)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum GenerateWhereFiltersPipelineError {
     #[error("{}", str_constants::INVALID_FILTER_SPECIFICATION)]
     InvalidContract,
@@ -89,7 +98,7 @@ pub fn generate_where_filters(
 pub fn emit_generate_where_filters(
     validated: ValidatedGenerateWhereFiltersConfig,
 ) -> ProcMacro2GenerateWhereFiltersTokenStream {
-    #[derive(Clone, optml::Optml)]
+    #[derive(Clone, optimal_memory_layout::OptimalMemoryLayout)]
     enum Generic {
         False,
         True {
@@ -97,11 +106,11 @@ pub fn emit_generate_where_filters(
         },
     }
     #[allow(clippy::arbitrary_source_item_ordering)]
-    #[derive(Clone, optml::Optml)]
+    #[derive(Clone, optimal_memory_layout::OptimalMemoryLayout)]
     enum PgTypePtrn {
         Standard,
     }
-    #[derive(optml::Optml)]
+    #[derive(optimal_memory_layout::OptimalMemoryLayout)]
     #[allow(clippy::arbitrary_source_item_ordering)]
     enum PgTypeKind {
         Standard,

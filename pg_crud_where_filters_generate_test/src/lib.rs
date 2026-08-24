@@ -1,7 +1,13 @@
 #[cfg(test)]
 #[allow(clippy::needless_for_each)] // table-driven assertions avoid repository-forbidden for loops
 mod tests {
-    #[derive(optml::Optml, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+    #[derive(
+        optimal_memory_layout::OptimalMemoryLayout,
+        Eq,
+        PartialEq,
+        serde::Deserialize,
+        serde::Serialize,
+    )]
     struct JsonContractValue {
         value: Vec<i32>,
     }

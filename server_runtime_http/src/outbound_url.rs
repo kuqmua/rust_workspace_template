@@ -1,20 +1,20 @@
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum OutboundHostPolicy {
     AllowPrivate,
     RejectPrivate,
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum OutboundUrlScheme {
     Http,
     Https,
     Rtsp,
     Rtsps,
 }
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 pub struct OutboundUrlTextRef<'value_lt>(&'value_lt str);
 
-#[derive(optml::Optml, Clone, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, newtype::FromInner)]
 pub struct ReqwestOutboundUrl(reqwest::Url);
 
 impl ReqwestOutboundUrl {
@@ -29,7 +29,9 @@ impl ReqwestOutboundUrl {
     }
 }
 
-#[derive(optml::Optml, Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, Ord, PartialEq, PartialOrd,
+)]
 pub struct OutboundAllowedHost(String);
 impl TryFrom<String> for OutboundAllowedHost {
     type Error = OutboundHostAllowlistError;
@@ -46,7 +48,7 @@ impl TryFrom<String> for OutboundAllowedHost {
     }
 }
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct OutboundHostAllowlist(bounded_types::BoundedVec<OutboundAllowedHost, 1, 64>);
 impl TryFrom<Vec<OutboundAllowedHost>> for OutboundHostAllowlist {
     type Error = OutboundHostAllowlistError;
@@ -84,7 +86,9 @@ impl OutboundHostAllowlist {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 pub enum OutboundHostAllowlistError {
     #[error("outbound host allowlist must not be empty")]
     Empty,
@@ -103,11 +107,11 @@ impl std::fmt::Debug for ReqwestOutboundUrl {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 pub struct StdOutboundIpAddr(std::net::IpAddr);
 
-#[derive(optml::Optml, Clone, Copy, Debug)]
-#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optml takes precedence over alphabetical field order
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
+#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
 pub struct OutboundUrlPolicy {
     schemes: &'static [OutboundUrlScheme],
     host_policy: OutboundHostPolicy,
@@ -184,7 +188,9 @@ impl OutboundUrlPolicy {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 pub enum OutboundUrlError {
     #[error("outbound URL contains a forbidden control character")]
     ControlCharacter,
@@ -202,7 +208,7 @@ pub enum OutboundUrlError {
     UserInfo,
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 enum OutboundAddressDisposition {
     Allowed,
     Forbidden,

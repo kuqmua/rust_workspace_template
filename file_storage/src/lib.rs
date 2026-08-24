@@ -2,16 +2,18 @@ const MAXIMUM_FILE_BYTES: usize = 104_857_600usize;
 const MAXIMUM_OPERATION_ID_BYTES: usize = 128usize;
 const MAXIMUM_PATH_BYTES: usize = 4_096usize;
 
-#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
+)]
 #[error(transparent)]
 pub struct StdFileStorageIoError(std::io::Error);
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 struct StdStoragePathRef<'value_lt>(&'value_lt std::path::Path);
 
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 struct StorageDirectoryNameRef<'value_lt>(&'value_lt str);
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct StdFileStorageRoot(std::path::PathBuf);
 impl TryFrom<std::path::PathBuf> for StdFileStorageRoot {
     type Error = FileStoragePathError;
@@ -27,7 +29,7 @@ impl TryFrom<std::path::PathBuf> for StdFileStorageRoot {
     }
 }
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct StdStorageRelativePath(std::path::PathBuf);
 impl TryFrom<std::path::PathBuf> for StdStorageRelativePath {
     type Error = FileStoragePathError;
@@ -47,7 +49,7 @@ impl TryFrom<std::path::PathBuf> for StdStorageRelativePath {
     }
 }
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct StdStorageOperationId(String);
 impl TryFrom<String> for StdStorageOperationId {
     type Error = FileStoragePathError;
@@ -64,7 +66,7 @@ impl TryFrom<String> for StdStorageOperationId {
     }
 }
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct StdFileBytes(bounded_types::BoundedVec<u8, 0, MAXIMUM_FILE_BYTES>);
 impl TryFrom<Vec<u8>> for StdFileBytes {
     type Error = FileStoragePathError;
@@ -76,7 +78,9 @@ impl TryFrom<Vec<u8>> for StdFileBytes {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 pub enum FileStoragePathError {
     #[error("{}", str_constants::FILE_STORAGE_FILE_TOO_LARGE)]
     FileTooLarge,
@@ -90,7 +94,7 @@ pub enum FileStoragePathError {
     RootMustBeAbsolute,
 }
 
-#[derive(optml::Optml, Debug, thiserror::Error)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum FileStorageError {
     #[error("{}", str_constants::FILE_STORAGE_ATOMIC_REPLACE_AND_CLEANUP_ERROR)]
     AtomicReplaceAndCleanup {
@@ -109,12 +113,12 @@ pub enum FileStorageError {
     Symlink,
 }
 
-#[derive(optml::Optml, Clone, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub struct SafeFileStorage {
     root: StdFileStorageRoot,
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum FileStorageStagingArea {
     Delete,
     Upload,
@@ -132,7 +136,7 @@ impl FileStorageStagingArea {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct StdStaleStagingEntryLimit(usize);
 impl TryFrom<usize> for StdStaleStagingEntryLimit {
     type Error = StaleStagingCleanupCfgError;
@@ -145,10 +149,18 @@ impl TryFrom<usize> for StdStaleStagingEntryLimit {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::FromInner,
+)]
 pub struct StdStaleBefore(std::time::SystemTime);
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct StaleStagingCleanupCfg {
     maximum_removed: StdStaleStagingEntryLimit,
     maximum_scanned: StdStaleStagingEntryLimit,
@@ -169,12 +181,14 @@ impl StaleStagingCleanupCfg {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 #[error("stale staging cleanup limit must be between 1 and 10000")]
 pub struct StaleStagingCleanupCfgError;
 
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,
@@ -187,7 +201,9 @@ pub struct StaleStagingCleanupCfgError;
 )]
 pub struct StdStaleStagingEntryCount(usize);
 
-#[derive(optml::Optml, Clone, Copy, Debug, Default, Eq, PartialEq)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Default, Eq, PartialEq,
+)]
 pub struct StaleStagingCleanupReport {
     removed: StdStaleStagingEntryCount,
     scanned: StdStaleStagingEntryCount,
@@ -517,19 +533,35 @@ impl SafeFileStorage {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum AtomicReplaceDurability {
     Flush,
     SyncAll,
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::FromInner,
+)]
 pub struct StdDiskCacheSize(u64);
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::FromInner,
+)]
 pub struct StdDiskCacheModifiedAt(std::time::SystemTime);
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct DiskCacheEntry {
     modified_at: StdDiskCacheModifiedAt,
     path: StdStorageRelativePath,
@@ -551,13 +583,22 @@ impl DiskCacheEntry {
 }
 
 #[derive(
-    optml::Optml, Clone, Debug, Default, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Default,
+    Eq,
+    PartialEq,
+    newtype::AsRefTarget,
+    newtype::FromInner,
 )]
 pub struct DiskCacheEvictionPlan(
     bounded_types::BoundedVec<StdStorageRelativePath, 0, { usize::MAX }>,
 );
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 pub enum DiskCacheBudgetError {
     #[error("incoming cache entry exceeds the cache budget")]
     IncomingTooLarge,

@@ -7,7 +7,9 @@
 // eo_location_field
 // https://github.com/kuqmua/rust_workspace_template/blob/ebb9f680ea508fb5df5ee5d2791e96ca34610bc2/location_test/src/main.rs#L85 2024-05-06 09:17:23
 const LOC_TEST_TEXT_MAX_LEN: usize = 1_048_576;
-#[derive(Debug, thiserror::Error, location::Location, optml::Optml)]
+#[derive(
+    Debug, thiserror::Error, location::Location, optimal_memory_layout::OptimalMemoryLayout,
+)]
 pub enum ErrorOne {
     //use to_err_string::ToErrString for hashmap ks instead of Display
     //todo even for String in serialize deserialize version of error must be using to_err_string::ToErrString impl instead of std::fmt::Display
@@ -42,7 +44,7 @@ pub enum ErrorOne {
     Hash,
     serde::Deserialize,
     serde::Serialize,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     newtype::BoundedString,
     newtype::ToErrStringAsRefStr,
 )]
@@ -57,7 +59,7 @@ pub struct LocationTestText(String);
     Eq,
     serde::Serialize,
     serde::Deserialize,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     newtype::FromInner,
     newtype::ToErrString,
 )]
@@ -71,13 +73,15 @@ pub struct LocationTestFlag(bool);
     Eq,
     serde::Serialize,
     serde::Deserialize,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     newtype::FromInner,
     newtype::ToErrString,
 )]
 #[serde(from = "u32")]
 pub struct LocationTestCount(u32);
-#[derive(Debug, thiserror::Error, location::Location, optml::Optml)]
+#[derive(
+    Debug, thiserror::Error, location::Location, optimal_memory_layout::OptimalMemoryLayout,
+)]
 pub enum ErrorTwo {
     Another {
         #[eo_to_err_string_serde]
@@ -90,11 +94,13 @@ pub enum ErrorTwo {
         location: location_lib::location::Location,
     },
 }
-#[derive(Debug, thiserror::Error, location::Location, optml::Optml)]
+#[derive(
+    Debug, thiserror::Error, location::Location, optimal_memory_layout::OptimalMemoryLayout,
+)]
 pub enum ErrorUnnamedOne {
     Something(ErrorTwo),
 }
-#[derive(Debug, optml::Optml)]
+#[derive(Debug, optimal_memory_layout::OptimalMemoryLayout)]
 pub struct DisplayStruct {
     pub display: LocationTestText,
     pub something: LocationTestFlag,
@@ -108,7 +114,9 @@ impl to_err_string::ToErrString for DisplayStruct {
 }
 //todo rename fields
 #[allow(clippy::arbitrary_source_item_ordering)]
-#[derive(Debug, serde::Serialize, serde::Deserialize, optml::Optml)]
+#[derive(
+    Debug, serde::Serialize, serde::Deserialize, optimal_memory_layout::OptimalMemoryLayout,
+)]
 pub struct SerdeStruct {
     pub one: LocationTestText,
     pub three: LocationTestCount,

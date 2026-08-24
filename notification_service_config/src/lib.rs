@@ -1,8 +1,8 @@
 #[allow(
     clippy::arbitrary_source_item_ordering,
-    reason = "fields are ordered by decreasing alignment as enforced by optml"
+    reason = "fields are ordered by decreasing alignment as enforced by optimal_memory_layout"
 )]
-#[derive(Debug, try_from_env::TryFromEnv, optml::Optml)]
+#[derive(Debug, try_from_env::TryFromEnv, optimal_memory_layout::OptimalMemoryLayout)]
 #[config(env_example)]
 pub struct Config {
     #[config(secret)]

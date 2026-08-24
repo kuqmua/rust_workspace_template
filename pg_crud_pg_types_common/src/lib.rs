@@ -1,4 +1,6 @@
-#[derive(Debug, serde::Deserialize, schemars::JsonSchema, optml::Optml)]
+#[derive(
+    Debug, serde::Deserialize, schemars::JsonSchema, optimal_memory_layout::OptimalMemoryLayout,
+)]
 struct PaginationStartsWithOneRaw {
     limit: PaginationStartsWithOneValue,
     offset: PaginationStartsWithOneValue,
@@ -15,7 +17,7 @@ struct PaginationStartsWithOneRaw {
     serde::Deserialize,
     utoipa::ToSchema,
     schemars::JsonSchema,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     newtype::Display,
     newtype::FromInner,
     newtype::ToErrString,
@@ -29,7 +31,14 @@ impl PaginationStartsWithOneValue {
     }
 }
 #[derive(
-    Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::FromInner, newtype::IntoInnerFrom,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    optimal_memory_layout::OptimalMemoryLayout,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
 )]
 pub struct IsPrimaryKey(bool);
 impl From<pg_crud_common::IsPrimaryKey> for IsPrimaryKey {
@@ -48,7 +57,7 @@ impl From<pg_crud_common::IsPrimaryKey> for IsPrimaryKey {
     serde::Deserialize,
     utoipa::ToSchema,
     schemars::JsonSchema,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
 )]
 #[serde(try_from = "PaginationStartsWithOneRaw")]
 #[derive(newtype::FromInner)]
@@ -56,7 +65,12 @@ pub struct PaginationStartsWithOne(pg_crud_common::PaginationBase);
 
 #[location::errors_with_location]
 #[derive(
-    Debug, serde::Serialize, serde::Deserialize, thiserror::Error, location::Location, optml::Optml,
+    Debug,
+    serde::Serialize,
+    serde::Deserialize,
+    thiserror::Error,
+    location::Location,
+    optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub enum PaginationStartsWithOneTryNewError {
     LimitIsLessThanOrEqToZero {

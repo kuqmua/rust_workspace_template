@@ -1,18 +1,18 @@
 const QUOTED_LITERAL_MAX_LEN: usize = 1_048_576;
-#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
 struct QuotePrefix(&'static str);
-#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
 struct QuoteChar(char);
-#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
 struct QuotePanicId(&'static str);
-#[derive(optml::Optml, Clone, Copy)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
 struct QuoteStyle {
     panic_id: QuotePanicId,
     prefix: QuotePrefix,
     quote_ch: QuoteChar,
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     PartialEq,
@@ -24,7 +24,7 @@ struct QuoteStyle {
 #[bounded_string(max = QUOTED_LITERAL_MAX_LEN )]
 pub struct QuotedLiteral(String);
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     newtype::Display,

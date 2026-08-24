@@ -1,4 +1,12 @@
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::FromInner,
+)]
 pub struct StdRetryAttempts(std::num::NonZeroUsize);
 
 impl StdRetryAttempts {
@@ -18,14 +26,24 @@ impl TryFrom<usize> for StdRetryAttempts {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 #[error("retry attempts must be greater than zero")]
 pub struct StdRetryAttemptsError;
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::FromInner,
+)]
 pub struct StdRetryDelay(std::time::Duration);
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct RetryPolicy {
     attempts: StdRetryAttempts,
     delay: Option<StdRetryDelay>,
@@ -48,7 +66,7 @@ impl RetryPolicy {
     }
 }
 
-#[derive(optml::Optml, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Eq, PartialEq)]
 pub struct RetryOutcome<Success, Error> {
     attempts: StdRetryAttempts,
     result: Result<Success, Error>,

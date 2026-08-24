@@ -17,7 +17,7 @@ serde = { workspace = true }
 schemars = { workspace = true }
 git_info = { workspace = true }
 config_lib = { workspace = true }
-optml = { workspace = true }
+optimal_memory_layout = { workspace = true }
 newtype = { workspace = true }
 thiserror = { workspace = true }
 [lints]

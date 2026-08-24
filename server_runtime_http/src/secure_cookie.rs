@@ -1,6 +1,6 @@
 const COOKIE_TEXT_MAXIMUM_BYTES: usize = 8192usize;
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct HttpCookieName(String);
 impl TryFrom<String> for HttpCookieName {
     type Error = HttpSecureCookieError;
@@ -35,7 +35,7 @@ impl TryFrom<String> for HttpCookieName {
     }
 }
 
-#[derive(optml::Optml, Clone, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Eq, PartialEq)]
 pub struct HttpCookieValue(String);
 impl std::fmt::Debug for HttpCookieValue {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -57,25 +57,43 @@ impl TryFrom<String> for HttpCookieValue {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::FromInner,
+)]
 pub struct StdCookieMaxAgeSeconds(u64);
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum HttpCookieAccess {
     HttpOnly,
     ScriptReadable,
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum HttpCookieSecure {
     Disabled,
     Enabled,
 }
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
 pub struct HttpSetCookieHeaderValue(http::HeaderValue);
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 pub enum HttpSecureCookieError {
     #[error("generated Set-Cookie header is invalid")]
     InvalidHeader,

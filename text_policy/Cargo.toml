@@ -11,7 +11,7 @@ categories = ["data-structures"]
 edition.workspace = true
 
 [dependencies]
-optml = { workspace = true }
+optimal_memory_layout = { workspace = true }
 newtype = { workspace = true }
 thiserror = { workspace = true }
 

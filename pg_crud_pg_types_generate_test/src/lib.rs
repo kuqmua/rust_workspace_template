@@ -1,7 +1,13 @@
 #[cfg(test)]
 #[allow(clippy::default_numeric_fallback, clippy::indexing_slicing)] // literal JSON assertions mirror the exact serialized OpenAPI wire values
 mod tests {
-    #[derive(optml::Optml, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+    #[derive(
+        optimal_memory_layout::OptimalMemoryLayout,
+        Eq,
+        PartialEq,
+        serde::Deserialize,
+        serde::Serialize,
+    )]
     struct JsonContractValue {
         value: i32,
     }

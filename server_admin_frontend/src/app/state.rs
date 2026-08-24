@@ -1,4 +1,4 @@
-#[derive(optml::Optml, Clone, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub(in crate::app) enum AdminLoadState {
     Empty(server_admin_contract::AuthenticatedAdmin),
     Error(AdminTableLoadError),
@@ -46,7 +46,7 @@ impl AdminLoadState {
     }
 }
 
-#[derive(optml::Optml, Clone, Debug, thiserror::Error)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, thiserror::Error)]
 pub(in crate::app) enum AdminTableLoadError {
     #[error("The table request failed.")]
     Fetch,

@@ -15,7 +15,7 @@ categories = ["web-programming"]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-optml = { workspace = true }
+optimal_memory_layout = { workspace = true }
 newtype = { workspace = true }
 server_admin_contract = { workspace = true }
 singlestage = { workspace = true }

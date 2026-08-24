@@ -17,7 +17,7 @@ const GENERATED_CRATE_STEPS: [GeneratedCrateStep; 4] = [
         phase: GeneratedCratePhase::Test,
     },
 ];
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[cfg(feature = "test-utils")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum GeneratedCratePhase {
@@ -37,13 +37,13 @@ impl std::fmt::Display for GeneratedCratePhase {
         }
     }
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[cfg(feature = "test-utils")]
 struct GeneratedCrateStep {
     args: &'static [&'static str],
     phase: GeneratedCratePhase,
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[cfg(feature = "test-utils")]
 struct RemoveDirOnDrop {
     path: std::path::PathBuf,
@@ -240,7 +240,7 @@ categories = ["category"]
 #[cfg(feature = "test-utils")]
 mod tests {
     static TEST_SEQ: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
-    #[derive(optml::Optml, newtype::FromInner)]
+    #[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
     struct StdTmpDir(std::path::PathBuf);
 
     impl StdTmpDir {

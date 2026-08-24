@@ -1,13 +1,17 @@
 const CORS_ALLOW_ORIGIN_SPLIT_CH: char = ',';
 const CORS_ALLOW_ORIGIN_MAX_BYTES: usize = 65_536usize;
 const CORS_ALLOW_ORIGIN_MAX_ITEMS: usize = 128usize;
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 pub struct HttpCorsAllowOriginTextRef<'text_lt>(&'text_lt str);
 
-#[derive(optml::Optml, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner, newtype::IntoInnerFrom,
+)]
 pub struct HttpCorsAllowOriginHeaderValues(Vec<http::HeaderValue>);
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 pub enum HttpCorsAllowOriginHeaderValuesError {
     #[error("CORS allow-origin configuration contains an invalid origin")]
     InvalidOrigin,

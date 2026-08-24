@@ -11,7 +11,7 @@ const LOC_COMMIT_MAX_LEN: usize = 1_048_576;
     serde::Serialize,
     utoipa::ToSchema,
     schemars::JsonSchema,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     newtype::BoundedString,
     newtype::AsRefStr,
     newtype::Display,
@@ -29,7 +29,7 @@ pub struct LocationFile(String);
     serde::Deserialize,
     utoipa::ToSchema,
     schemars::JsonSchema,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     newtype::Display,
     newtype::TryFrom,
 )]
@@ -68,7 +68,7 @@ impl LocationLine {
     serde::Deserialize,
     utoipa::ToSchema,
     schemars::JsonSchema,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     newtype::Display,
     newtype::TryFrom,
 )]
@@ -97,7 +97,9 @@ impl LocationColumn {
         }
     }
 }
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 #[error("{self:?}")]
 pub struct LocationCoordinateTryFromU32Error;
 #[derive(
@@ -109,7 +111,7 @@ pub struct LocationCoordinateTryFromU32Error;
     serde::Serialize,
     utoipa::ToSchema,
     schemars::JsonSchema,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     newtype::BoundedString,
     newtype::AsRefStr,
 )]
@@ -125,7 +127,7 @@ pub struct LocationCommit(String);
     serde::Serialize,
     serde::Deserialize,
     schemars::JsonSchema,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     newtype::FromInner,
 )]
 #[serde(from = "std::time::Duration")]
@@ -162,13 +164,13 @@ impl utoipa::ToSchema for StdLocationDuration {
         std::borrow::Cow::Borrowed(str_constants::STDLOCATIONDURATION)
     }
 }
-#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
 struct LocationFileRef<'file_lt>(&'file_lt str);
-#[derive(optml::Optml, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
 struct StdFmtRefMut<'fmt_ref_lt, 'fmt_lt>(&'fmt_ref_lt mut std::fmt::Formatter<'fmt_lt>);
-#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
 struct ChronoLocationDisplayTimezone(chrono::FixedOffset);
-#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
 struct ChronoLocationDateTime(chrono::DateTime<chrono::FixedOffset>);
 #[allow(clippy::arbitrary_source_item_ordering)]
 #[derive(
@@ -180,7 +182,7 @@ struct ChronoLocationDateTime(chrono::DateTime<chrono::FixedOffset>);
     serde::Deserialize,
     utoipa::ToSchema,
     schemars::JsonSchema,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub struct Occr {
     pub file: LocationFile,
@@ -197,7 +199,7 @@ pub struct Occr {
     serde::Deserialize,
     utoipa::ToSchema,
     schemars::JsonSchema,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub struct Location {
     #[allow(clippy::arbitrary_source_item_ordering)]
@@ -330,17 +332,29 @@ impl Location {
     }
 }
 #[allow(clippy::arbitrary_source_item_ordering)]
-#[derive(Debug, Clone, Copy, utoipa::ToSchema, optml::Optml)] //todo check somehow what its eq to std::time::Duration
+#[derive(Debug, Clone, Copy, utoipa::ToSchema, optimal_memory_layout::OptimalMemoryLayout)] //todo check somehow what its eq to std::time::Duration
 pub struct StdTimeDuration {
     pub secs: StdTimeDurationSecs,
     pub nanos: StdTimeDurationNanos,
 }
 #[derive(
-    Debug, Clone, Copy, utoipa::ToSchema, optml::Optml, newtype::DerefInner, newtype::FromInner,
+    Debug,
+    Clone,
+    Copy,
+    utoipa::ToSchema,
+    optimal_memory_layout::OptimalMemoryLayout,
+    newtype::DerefInner,
+    newtype::FromInner,
 )]
 pub struct StdTimeDurationSecs(u64);
 #[derive(
-    Debug, Clone, Copy, utoipa::ToSchema, optml::Optml, newtype::DerefInner, newtype::TryFrom,
+    Debug,
+    Clone,
+    Copy,
+    utoipa::ToSchema,
+    optimal_memory_layout::OptimalMemoryLayout,
+    newtype::DerefInner,
+    newtype::TryFrom,
 )]
 #[try_from(
     error = StdTimeDurationNanosTryFromU32Error,
@@ -357,7 +371,9 @@ impl StdTimeDurationNanos {
         }
     }
 }
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 #[error("{self:?}")]
 pub struct StdTimeDurationNanosTryFromU32Error;
 impl std::fmt::Display for Location {
@@ -373,7 +389,7 @@ impl std::fmt::Display for Location {
 #[cfg(test)]
 #[allow(clippy::arbitrary_source_item_ordering)]
 mod tests {
-    #[derive(optml::Optml)]
+    #[derive(optimal_memory_layout::OptimalMemoryLayout)]
     struct DatetimeFmt<'location_lt> {
         location: &'location_lt super::Location,
     }
@@ -382,7 +398,7 @@ mod tests {
             self.location.fmt_datetime(super::StdFmtRefMut::from(f))
         }
     }
-    #[derive(optml::Optml)]
+    #[derive(optimal_memory_layout::OptimalMemoryLayout)]
     struct PlaceFmt<'location_lt> {
         location: &'location_lt super::Location,
         src_place_type: config_lib::types::SrcPlaceType,

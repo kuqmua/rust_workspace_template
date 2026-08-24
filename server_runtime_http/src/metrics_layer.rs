@@ -1,7 +1,9 @@
 const DEFAULT_HTTP_METRICS_PATH_CACHE_MAXIMUM: usize = 4_096usize;
 const METRICS_RESPONSE_BODY_MAXIMUM_BYTES: usize = 8 * 1_024 * 1_024usize;
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::IntoInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::IntoInner,
+)]
 pub struct MetricsResponseBody(String);
 impl axum::response::IntoResponse for MetricsResponseBody {
     fn into_response(self) -> axum::response::Response {
@@ -21,11 +23,13 @@ impl TryFrom<String> for MetricsResponseBody {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 #[error("{message}", message = str_constants::METRICS_RESPONSE_BODY_EXCEEDS_MAXIMUM_LENGTH)]
 pub struct MetricsResponseBodyError;
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct HttpMetricsPathCacheMaximum(usize);
 
 impl TryFrom<usize> for HttpMetricsPathCacheMaximum {
@@ -44,26 +48,36 @@ impl From<std::num::NonZeroUsize> for HttpMetricsPathCacheMaximum {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 #[error("{message}", message = str_constants::HTTP_METRICS_PATH_CACHE_MAXIMUM_MUST_BE_GREATER_THAN_ZERO)]
 pub struct HttpMetricsPathCacheMaximumTryFromUsizeError;
 
-#[derive(optml::Optml, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 struct HttpMetricsPathCache {
     entries: StdHttpMetricsPathEntries,
     maximum: HttpMetricsPathCacheMaximum,
     unmatched: MetricsSharedString,
 }
 
-#[derive(optml::Optml, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
 struct StdHttpMetricsPathEntries(
     std::sync::RwLock<std::collections::HashMap<HttpMetricsPathText, MetricsSharedString>>,
 );
 
-#[derive(optml::Optml, Clone, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, newtype::FromInner)]
 struct MetricsSharedString(metrics::SharedString);
 
-#[derive(optml::Optml, Clone, Debug, Eq, Hash, PartialEq, newtype::BorrowStr)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Eq,
+    Hash,
+    PartialEq,
+    newtype::BorrowStr,
+)]
 struct HttpMetricsPathText(String);
 
 impl TryFrom<String> for HttpMetricsPathText {
@@ -78,13 +92,13 @@ impl TryFrom<String> for HttpMetricsPathText {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 struct HttpMetricsPathTextError;
 
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 struct HttpMetricsPathTextRef<'path>(&'path str);
 
-#[derive(optml::Optml, Clone, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 struct StdSharedHttpMetricsPathCache(std::sync::Arc<HttpMetricsPathCache>);
 
 impl From<HttpMetricsPathCache> for StdSharedHttpMetricsPathCache {
@@ -144,7 +158,7 @@ impl HttpMetricsPathCache {
     }
 }
 
-#[derive(optml::Optml, Clone, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub struct HttpMetricsLayer {
     paths: StdSharedHttpMetricsPathCache,
 }
@@ -173,7 +187,7 @@ impl HttpMetricsLayer {
     }
 }
 
-#[derive(optml::Optml, Clone, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 struct HttpMetricsTowerLayer {
     paths: StdSharedHttpMetricsPathCache,
 }
@@ -189,7 +203,7 @@ impl<Service> tower::Layer<Service> for HttpMetricsTowerLayer {
     }
 }
 
-#[derive(optml::Optml, Clone, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 struct HttpMetricsService<Service> {
     inner: Service,
     paths: StdSharedHttpMetricsPathCache,

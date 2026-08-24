@@ -1,18 +1,25 @@
-#[derive(Debug, Clone, Copy, optml::Optml)]
+#[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout)]
 pub enum FormatWithCargofmt {
     False,
     True,
 }
-#[derive(Debug, Copy, Clone, serde::Deserialize, optml::Optml)]
+#[derive(Debug, Copy, Clone, serde::Deserialize, optimal_memory_layout::OptimalMemoryLayout)]
 pub enum ShouldWriteTokenStreamIntoFile {
     False,
     True,
 }
-#[derive(optml::Optml, Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    newtype::AsRefInner,
+    newtype::FromInner,
+)]
 pub struct ProcMacro2TokenStreamRef<'ts_lt>(&'ts_lt proc_macro2::TokenStream);
-#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
 struct StdRustfmtPath<'path_lt>(&'path_lt std::path::Path);
-#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
 struct ShouldWriteTokenStreamFlag(bool);
 #[allow(clippy::single_call_fn)] // rustfmt execution is isolated so io/process errors stay localized and easy to test
 fn try_run_rustfmt(path: StdRustfmtPath<'_>) -> std::io::Result<()> {

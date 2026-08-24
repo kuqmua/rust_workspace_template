@@ -1,4 +1,13 @@
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::Display, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::Display,
+    newtype::FromInner,
+)]
 pub struct ObservedErrorCode(&'static str);
 
 impl ObservedErrorCode {
@@ -8,16 +17,27 @@ impl ObservedErrorCode {
     }
 }
 
-#[derive(optml::Optml, Debug, newtype::Display, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::Display, newtype::FromInner,
+)]
 pub struct StdObservedErrorBacktrace(std::backtrace::Backtrace);
 
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::Display, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    newtype::Display,
+    newtype::FromInner,
+)]
 pub struct StdPanicLocation(&'static std::panic::Location<'static>);
 
-#[derive(optml::Optml, Debug, newtype::Display, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::Display, newtype::FromInner,
+)]
 pub struct TracingObservedErrorSpanTrace(Box<str>);
 
-#[derive(optml::Optml, Debug, thiserror::Error)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 #[error("{source}")]
 pub struct ObservedError<Source>
 where
@@ -79,7 +99,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    #[derive(optml::Optml, Debug, thiserror::Error)]
+    #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
     #[error("infrastructure failed")]
     struct InfrastructureTestError;
 

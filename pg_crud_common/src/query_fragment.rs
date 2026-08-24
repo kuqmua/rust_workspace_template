@@ -3,7 +3,7 @@
     Clone,
     PartialEq,
     Eq,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     newtype::AsRefStr,
     newtype::DerefTarget,
     newtype::Display,
@@ -14,7 +14,15 @@
     reason = "the private parent module assembles query fragments without widening public API"
 )]
 pub struct QueryPartFragment(String);
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::FromInner,
+)]
 pub struct StdReadQueryBindIndex(std::num::NonZeroU32);
 impl From<crate::PgCrudStringWrapperTryFromStringError> for QueryPartFragment {
     fn from(value: crate::PgCrudStringWrapperTryFromStringError) -> Self {
@@ -82,7 +90,7 @@ impl QueryPartFragment {
         Ok(())
     }
 }
-#[derive(optml::Optml, Clone, Copy)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
 pub struct SqlColumnRef<'column_lt>(&'column_lt dyn std::fmt::Display);
 impl<'column_lt, T> From<&'column_lt T> for SqlColumnRef<'column_lt>
 where

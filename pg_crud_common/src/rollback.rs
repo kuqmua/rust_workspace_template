@@ -1,4 +1,4 @@
-#[derive(optml::Optml, Debug, thiserror::Error)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum TransactionFailure<OperationError, RollbackError>
 where
     OperationError: std::error::Error + 'static,

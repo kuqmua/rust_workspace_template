@@ -8,7 +8,9 @@ fn admin_permission_requirement(
 #[cfg(test)]
 mod tests;
 
-#[derive(optml::Optml, Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, frontend_contract::TypedRoute,
+)]
 #[typed_route(
     authentication = frontend_contract::AuthenticationRequirement::Public,
     method = frontend_contract::RouteMethod::Post,
@@ -25,7 +27,9 @@ mod tests;
 )]
 pub struct AdminSignInRoute;
 
-#[derive(optml::Optml, Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, frontend_contract::TypedRoute,
+)]
 #[typed_route(
     authentication = frontend_contract::AuthenticationRequirement::Public,
     method = frontend_contract::RouteMethod::Post,
@@ -41,7 +45,9 @@ pub struct AdminSignInRoute;
 )]
 pub struct AdminRefreshRoute;
 
-#[derive(optml::Optml, Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, frontend_contract::TypedRoute,
+)]
 #[typed_route(
     authentication = frontend_contract::AuthenticationRequirement::Authenticated,
     method = frontend_contract::RouteMethod::Get,
@@ -57,107 +63,165 @@ pub struct AdminRefreshRoute;
 )]
 pub struct AdminMeRoute;
 
-#[derive(optml::Optml, Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, frontend_contract::TypedRoute,
+)]
 #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::Default, authentication = frontend_contract::AuthenticationRequirement::Authenticated, method = frontend_contract::RouteMethod::Post, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "change_own_password", path = "/auth/password", request = super::AdminChangeOwnPasswordReq, request_body = frontend_contract::RouteRequestBody::Json, response = super::AdminNoBody, success_status = frontend_contract::SuccessStatus::Code204, transport = frontend_contract::AuthenticatedTransport)]
 pub struct AdminChangeOwnPasswordRoute;
 
-#[derive(optml::Optml, Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, frontend_contract::TypedRoute,
+)]
 #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::Default, authentication = frontend_contract::AuthenticationRequirement::Authenticated, method = frontend_contract::RouteMethod::Post, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "sign_out", path = "/auth/sign_out", request = super::AdminNoBody, response = super::AdminNoBody, success_status = frontend_contract::SuccessStatus::Code204, transport = frontend_contract::AuthenticatedTransport)]
 pub struct AdminSignOutRoute;
 
-#[derive(optml::Optml, Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, frontend_contract::TypedRoute,
+)]
 #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::Default, authentication = frontend_contract::AuthenticationRequirement::Authenticated, method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "sessions", path = "/auth/sessions", request = super::AdminNoBody, response = super::AdminSessionsPage, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)]
 pub struct AdminSessionsRoute;
 
-#[derive(optml::Optml, Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, frontend_contract::TypedRoute,
+)]
 #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::Default, authentication = frontend_contract::AuthenticationRequirement::Authenticated, method = frontend_contract::RouteMethod::Delete, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "revoke_session", path = "/auth/sessions/{session_id}", path_parameter = super::AdminSessionIdentifier, request = super::AdminNoBody, response = super::AdminNoBody, success_status = frontend_contract::SuccessStatus::Code204, transport = frontend_contract::AuthenticatedTransport)]
 pub struct AdminRevokeSessionRoute;
 
-#[derive(optml::Optml, Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, frontend_contract::TypedRoute,
+)]
 #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::Default, authentication = frontend_contract::AuthenticationRequirement::Authenticated, method = frontend_contract::RouteMethod::Delete, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "revoke_all_sessions", path = "/auth/sessions", request = super::AdminNoBody, response = super::AdminNoBody, success_status = frontend_contract::SuccessStatus::Code204, transport = frontend_contract::AuthenticatedTransport)]
 pub struct AdminRevokeAllSessionsRoute;
 
-#[derive(optml::Optml, Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, frontend_contract::TypedRoute,
+)]
 #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::Default, authentication = admin_permission_requirement(super::AdminPermission::UsersRead), method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "list_users", path = "/users", request = super::AdminNoBody, response = super::AdminUsersPage, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)]
 pub struct AdminListUsersRoute;
 
-#[derive(optml::Optml, Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, frontend_contract::TypedRoute,
+)]
 #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::Default, authentication = admin_permission_requirement(super::AdminPermission::UsersCreate), method = frontend_contract::RouteMethod::Post, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "create_user", path = "/users", request = super::AdminCreateUserReq, request_body = frontend_contract::RouteRequestBody::Json, response = super::AdminCreateUserRes, success_status = frontend_contract::SuccessStatus::Code201, transport = frontend_contract::AuthenticatedTransport)]
 pub struct AdminCreateUserRoute;
 
-#[derive(optml::Optml, Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, frontend_contract::TypedRoute,
+)]
 #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::Default, authentication = admin_permission_requirement(super::AdminPermission::UsersUpdate), method = frontend_contract::RouteMethod::Patch, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "update_user", path = "/users/{user_id}", path_parameter = super::AdminUserId, request = super::AdminUpdateUserReq, request_body = frontend_contract::RouteRequestBody::Json, response = super::AdminNoBody, success_status = frontend_contract::SuccessStatus::Code204, transport = frontend_contract::AuthenticatedTransport)]
 pub struct AdminUpdateUserRoute;
 
-#[derive(optml::Optml, Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, frontend_contract::TypedRoute,
+)]
 #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::Delete, authentication = admin_permission_requirement(super::AdminPermission::UsersDelete), method = frontend_contract::RouteMethod::Delete, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "delete_user", path = "/users/{user_id}", path_parameter = super::AdminUserId, request = super::AdminNoBody, response = super::AdminNoBody, success_status = frontend_contract::SuccessStatus::Code204, transport = frontend_contract::AuthenticatedTransport)]
 pub struct AdminDeleteUserRoute;
 
-#[derive(optml::Optml, Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, frontend_contract::TypedRoute,
+)]
 #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::Default, authentication = admin_permission_requirement(super::AdminPermission::UsersUpdate), method = frontend_contract::RouteMethod::Post, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "set_user_password", path = "/users/{user_id}/password", path_parameter = super::AdminUserId, request = super::AdminSetUserPasswordReq, request_body = frontend_contract::RouteRequestBody::Json, response = super::AdminNoBody, success_status = frontend_contract::SuccessStatus::Code204, transport = frontend_contract::AuthenticatedTransport)]
 pub struct AdminSetUserPasswordRoute;
 
-#[derive(optml::Optml, Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, frontend_contract::TypedRoute,
+)]
 #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::Default, authentication = admin_permission_requirement(super::AdminPermission::UsersUpdate), method = frontend_contract::RouteMethod::Post, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "set_user_ban", path = "/users/{user_id}/ban", path_parameter = super::AdminUserId, request = super::AdminSetUserBanReq, request_body = frontend_contract::RouteRequestBody::Json, response = super::AdminNoBody, success_status = frontend_contract::SuccessStatus::Code204, transport = frontend_contract::AuthenticatedTransport)]
 pub struct AdminSetUserBanRoute;
 
-#[derive(optml::Optml, Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, frontend_contract::TypedRoute,
+)]
 #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::Default, authentication = admin_permission_requirement(super::AdminPermission::UserRolesUpdate), method = frontend_contract::RouteMethod::Put, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "set_user_roles", path = "/users/{user_id}/roles", path_parameter = super::AdminUserId, request = super::AdminSetUserRolesReq, request_body = frontend_contract::RouteRequestBody::Json, response = super::AdminNoBody, success_status = frontend_contract::SuccessStatus::Code204, transport = frontend_contract::AuthenticatedTransport)]
 pub struct AdminSetUserRolesRoute;
 
-#[derive(optml::Optml, Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, frontend_contract::TypedRoute,
+)]
 #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::Default, authentication = admin_permission_requirement(super::AdminPermission::RolesRead), method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "list_roles", path = "/roles", request = super::AdminNoBody, response = super::AdminRolesPage, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)]
 pub struct AdminListRolesRoute;
 
-#[derive(optml::Optml, Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, frontend_contract::TypedRoute,
+)]
 #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::Default, authentication = admin_permission_requirement(super::AdminPermission::RolesCreate), method = frontend_contract::RouteMethod::Post, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "create_role", path = "/roles", request = super::AdminCreateRoleReq, request_body = frontend_contract::RouteRequestBody::Json, response = super::AdminCreateRoleRes, success_status = frontend_contract::SuccessStatus::Code201, transport = frontend_contract::AuthenticatedTransport)]
 pub struct AdminCreateRoleRoute;
 
-#[derive(optml::Optml, Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, frontend_contract::TypedRoute,
+)]
 #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::Default, authentication = admin_permission_requirement(super::AdminPermission::RolesUpdate), method = frontend_contract::RouteMethod::Patch, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "update_role", path = "/roles/{role_id}", path_parameter = super::AdminRoleId, request = super::AdminUpdateRoleReq, request_body = frontend_contract::RouteRequestBody::Json, response = super::AdminNoBody, success_status = frontend_contract::SuccessStatus::Code204, transport = frontend_contract::AuthenticatedTransport)]
 pub struct AdminUpdateRoleRoute;
 
-#[derive(optml::Optml, Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, frontend_contract::TypedRoute,
+)]
 #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::Delete, authentication = admin_permission_requirement(super::AdminPermission::RolesDelete), method = frontend_contract::RouteMethod::Delete, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "delete_role", path = "/roles/{role_id}", path_parameter = super::AdminRoleId, request = super::AdminNoBody, response = super::AdminNoBody, success_status = frontend_contract::SuccessStatus::Code204, transport = frontend_contract::AuthenticatedTransport)]
 pub struct AdminDeleteRoleRoute;
 
-#[derive(optml::Optml, Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, frontend_contract::TypedRoute,
+)]
 #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::Default, authentication = admin_permission_requirement(super::AdminPermission::RolePermissionsUpdate), method = frontend_contract::RouteMethod::Put, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "set_role_permissions", path = "/roles/{role_id}/permissions", path_parameter = super::AdminRoleId, request = super::AdminSetRolePermissionsReq, request_body = frontend_contract::RouteRequestBody::Json, response = super::AdminNoBody, success_status = frontend_contract::SuccessStatus::Code204, transport = frontend_contract::AuthenticatedTransport)]
 pub struct AdminSetRolePermissionsRoute;
 
-#[derive(optml::Optml, Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, frontend_contract::TypedRoute,
+)]
 #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::Default, authentication = admin_permission_requirement(super::AdminPermission::PermissionsRead), method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "list_permissions", path = "/permissions", request = super::AdminNoBody, response = super::AdminPermissionsPage, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)]
 pub struct AdminListPermissionsRoute;
 
-#[derive(optml::Optml, Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, frontend_contract::TypedRoute,
+)]
 #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::ValidatedRead, authentication = admin_permission_requirement(super::AdminPermission::AuditLogRead), method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "audit_log", path = "/audit_log", request = super::AdminNoBody, response = super::AdminAuditPage, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)]
 pub struct AdminAuditLogRoute;
 
-#[derive(optml::Optml, Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, frontend_contract::TypedRoute,
+)]
 #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::ValidatedRead, authentication = admin_permission_requirement(super::AdminPermission::AuditLogExport), method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "export_audit_log", path = "/audit_log/export", request = super::AdminNoBody, response = super::AdminAuditExport, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)]
 pub struct AdminAuditExportRoute;
 
-#[derive(optml::Optml, Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, frontend_contract::TypedRoute,
+)]
 #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::Default, authentication = frontend_contract::AuthenticationRequirement::Public, method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::PUBLIC_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "branding", path = "/branding", request = super::AdminNoBody, response = super::AdminBrandingView, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::PublicTransport)]
 pub struct AdminBrandingRoute;
 
-#[derive(optml::Optml, Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, frontend_contract::TypedRoute,
+)]
 #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::Default, authentication = admin_permission_requirement(super::AdminPermission::TablesRead), method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "list_data_tables", path = "/tables", request = super::AdminNoBody, response = super::AdminDataTableCatalog, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)]
 pub struct AdminDataTablesRoute;
 
-#[derive(optml::Optml, Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, frontend_contract::TypedRoute,
+)]
 #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::ValidatedRead, authentication = frontend_contract::AuthenticationRequirement::Authenticated, method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "read_data_table", path = "/tables/{table}", path_parameter = super::AdminDataTable, request = super::AdminNoBody, response = super::AdminDataTableView, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)]
 pub struct AdminDataTableRoute;
 
-#[derive(optml::Optml, Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, frontend_contract::TypedRoute,
+)]
 #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::Default, authentication = admin_permission_requirement(super::AdminPermission::SystemSettingsRead), method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "settings", path = "/system_settings", request = super::AdminNoBody, response = super::AdminSettingsView, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)]
 pub struct AdminSettingsRoute;
 
-#[derive(optml::Optml, Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, frontend_contract::TypedRoute,
+)]
 #[typed_route(error_policy = frontend_contract::RouteErrorPolicy::Default, authentication = admin_permission_requirement(super::AdminPermission::SystemSettingsUpdate), method = frontend_contract::RouteMethod::Patch, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "update_settings", path = "/system_settings", request = super::AdminUpdateSettingsReq, request_body = frontend_contract::RouteRequestBody::Json, response = super::AdminNoBody, success_status = frontend_contract::SuccessStatus::Code204, transport = frontend_contract::AuthenticatedTransport)]
 pub struct AdminUpdateSettingsRoute;
 
-#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq, frontend_contract::RouteCatalog)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    frontend_contract::RouteCatalog,
+)]
 #[route_catalog(
     family = AdminAuthenticationRouteFamily,
     body_limit = super::ADMIN_API_BODY_MAX_BYTES_VALUE,
@@ -256,13 +320,28 @@ pub enum AdminRoute {
     )]
     Version,
 }
-#[derive(optml::Optml, Clone, Debug, PartialEq, Eq, newtype::AsRefStr, newtype::Display)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    PartialEq,
+    Eq,
+    newtype::AsRefStr,
+    newtype::Display,
+)]
 pub struct AdminDataTableFrontendPath(Box<str>);
 #[derive(
-    optml::Optml, Clone, Debug, Default, PartialEq, Eq, newtype::AsRefStr, newtype::Display,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Default,
+    PartialEq,
+    Eq,
+    newtype::AsRefStr,
+    newtype::Display,
 )]
 pub struct AdminRoutePath(Box<str>);
-#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum AdminRoutePathError {
     TooLong,
 }
@@ -283,14 +362,30 @@ impl TryFrom<String> for AdminRoutePath {
         }
     }
 }
-#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    newtype::FromInner,
+)]
 pub struct AdminPagePathRef<'path_lt>(&'path_lt str);
 impl<'path_lt> AdminPagePathRef<'path_lt> {
     pub(crate) const fn get(self) -> &'path_lt str {
         self.0
     }
 }
-#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq, strum_macros::IntoStaticStr)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    strum_macros::IntoStaticStr,
+)]
 pub enum AdminFrontendPath {
     #[strum(serialize = "/admin/assets")]
     Assets,
@@ -330,7 +425,7 @@ pub enum AdminFrontendPath {
     Version,
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     Copy,
@@ -413,7 +508,15 @@ impl From<super::AdminDataTable> for AdminDataTableFrontendPath {
         Self(format!("{}/{}", AdminFrontendPath::Root.get(), value).into_boxed_str())
     }
 }
-#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq, frontend_contract::PageCatalog)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    frontend_contract::PageCatalog,
+)]
 #[page_catalog(
     spec = AdminPageSpec,
     path_ref = AdminPagePathRef,
@@ -519,18 +622,20 @@ pub enum AdminPage {
     )]
     OpenApi,
 }
-#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AdminPageCapability {
     Always,
     Swagger,
 }
-#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AdminPageClientMode {
     Csr,
     CsrTableQuery,
     Ssr,
 }
-#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord,
+)]
 pub enum AdminPageNavigation {
     OpenApi,
     Metrics,
@@ -539,7 +644,7 @@ pub enum AdminPageNavigation {
     Settings,
     Version,
 }
-#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq)]
 pub struct AdminPageMetadata {
     client_mode: AdminPageClientMode,
     navigation: Option<AdminPageNavigation>,
@@ -563,7 +668,7 @@ impl AdminPageClientMode {
         super::AdminBool::from(matches!(self, Self::CsrTableQuery))
     }
 }
-#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq)]
 enum AdminPageTitle {
     Api,
     Metrics,
@@ -576,7 +681,7 @@ enum AdminPageTitle {
     Users,
     Version,
 }
-#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq)]
 pub struct AdminPageSpec {
     route: AdminRoute,
     capability: AdminPageCapability,

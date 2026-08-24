@@ -1,5 +1,5 @@
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     Copy,
@@ -11,7 +11,7 @@
 )]
 pub struct AdminCookieSecure(bool);
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     Copy,
@@ -23,16 +23,32 @@ pub struct AdminCookieSecure(bool);
 )]
 pub struct AdminSwaggerEnabled(bool);
 #[derive(
-    optml::Optml, Debug, Clone, Copy, PartialEq, Eq, newtype::DerefInner, newtype::FromInner,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    newtype::DerefInner,
+    newtype::FromInner,
 )]
 pub struct HttpGzipEnabled(bool);
 #[derive(
-    optml::Optml, Debug, Clone, Copy, PartialEq, Eq, newtype::DerefInner, newtype::FromInner,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    newtype::DerefInner,
+    newtype::FromInner,
 )]
 pub struct ProductionMode(bool);
-#[derive(optml::Optml, newtype::DebugTransparent, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, newtype::DebugTransparent, newtype::FromInner,
+)]
 pub struct AdminBoolParsingError(super::StdParseBoolError);
-#[derive(optml::Optml, Debug, thiserror::Error)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 #[error("{0:?}")]
 #[derive(newtype::FromInner)]
 pub struct TryFromStdEnvVarOkAdminCookieSecureError(AdminBoolParsingError);

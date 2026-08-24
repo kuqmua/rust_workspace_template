@@ -16,12 +16,12 @@ mod snapshot;
 mod source_analysis;
 mod source_policy;
 mod types;
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct ExternalLeafWrapperNameException {
     identifier: types::StaticStr,
     reason: types::StaticStr,
 }
-#[derive(Debug, Clone, Copy, optml::Optml)]
+#[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout)]
 enum RustOrClippy {
     Clippy,
     Rust,

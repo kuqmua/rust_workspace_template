@@ -3,7 +3,7 @@ mod keyword {
     syn::custom_keyword!(fragments);
 }
 
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct SynIdent(syn::Ident);
 impl From<syn::Ident> for SynIdent {
     fn from(value: syn::Ident) -> Self {
@@ -17,7 +17,7 @@ impl syn::parse::Parse for SynIdent {
     }
 }
 
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct SynLitStr(syn::LitStr);
 impl From<syn::LitStr> for SynLitStr {
     fn from(value: syn::LitStr) -> Self {
@@ -31,7 +31,7 @@ impl syn::parse::Parse for SynLitStr {
     }
 }
 
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct SynVisibility(syn::Visibility);
 impl From<syn::Visibility> for SynVisibility {
     fn from(value: syn::Visibility) -> Self {
@@ -45,32 +45,32 @@ impl syn::parse::Parse for SynVisibility {
     }
 }
 
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct Fragment {
     name: SynIdent,
     value: SynLitStr,
 }
 
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 enum ConstantPart {
     Fragment(SynIdent),
     Literal(SynLitStr),
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct ConstantParts(Vec<ConstantPart>);
 impl From<Vec<ConstantPart>> for ConstantParts {
     fn from(value: Vec<ConstantPart>) -> Self {
         Self(value)
     }
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct Constants(Vec<Constant>);
 impl From<Vec<Constant>> for Constants {
     fn from(value: Vec<Constant>) -> Self {
         Self(value)
     }
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct Fragments(Vec<Fragment>);
 impl From<Vec<Fragment>> for Fragments {
     fn from(value: Vec<Fragment>) -> Self {
@@ -78,14 +78,14 @@ impl From<Vec<Fragment>> for Fragments {
     }
 }
 
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct Constant {
     name: SynIdent,
     parts: ConstantParts,
     visibility: Option<SynVisibility>,
 }
 
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct DefineStrConstantsInput {
     constants: Constants,
     fragments: Fragments,

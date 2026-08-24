@@ -1,4 +1,4 @@
-#[derive(optml::Optml, Clone, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub struct BackgroundJob<Report> {
     history: crate::AsyncRunHistory<Report>,
     retry_policy: crate::RetryPolicy,

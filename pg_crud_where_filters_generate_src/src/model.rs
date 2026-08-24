@@ -1,7 +1,7 @@
-#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
 struct BindCount(usize);
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     newtype::AsRefInner,
@@ -10,21 +10,28 @@ struct BindCount(usize);
     newtype::FromInner,
 )]
 pub(super) struct FilterSqlOperator(&'static str);
-#[derive(optml::Optml, Clone, Copy, newtype::AsRefInner, newtype::ToTokens, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    newtype::AsRefInner,
+    newtype::ToTokens,
+    newtype::FromInner,
+)]
 pub(super) struct FilterSqlSuffix(&'static str);
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 pub(super) struct FilterSpecValid(bool);
 impl FilterSpecValid {
     pub(super) const fn get(self) -> bool {
         self.0
     }
 }
-#[derive(optml::Optml, Clone, Copy)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
 enum FilterValueShape {
     Scalar,
     Text,
 }
-#[derive(optml::Optml, Clone, Copy)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
 pub(super) struct FilterSpec {
     bind_count: BindCount,
     sql_operator: FilterSqlOperator,

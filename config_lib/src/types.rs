@@ -1,8 +1,24 @@
-#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq, newtype::Display, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    newtype::Display,
+    newtype::FromInner,
+)]
 struct TracingLevelName(&'static str);
-#[derive(optml::Optml, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 struct StdEnvVarResult(Result<String, std::env::VarError>);
-#[derive(optml::Optml, Debug, PartialEq, Eq, thiserror::Error, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    PartialEq,
+    Eq,
+    thiserror::Error,
+    newtype::FromInner,
+)]
 #[error(transparent)]
 struct StdEnvVarError(std::env::VarError);
 impl TryFrom<Result<String, std::env::VarError>> for StdEnvVarResult {
@@ -17,13 +33,22 @@ impl TryFrom<Result<String, std::env::VarError>> for StdEnvVarResult {
         }
     }
 }
-#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
 struct EnvVarNameRef<'name_lt>(&'name_lt str);
-#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
 struct EnvVarValueRef<'value_lt>(&'value_lt str);
-#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq, newtype::Display, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    newtype::Display,
+    newtype::FromInner,
+)]
 struct ParseCtxRef(&'static str);
-#[derive(optml::Optml, Debug, PartialEq, Eq, thiserror::Error)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, PartialEq, Eq, thiserror::Error)]
 enum EnvParseError {
     #[error("environment variable value exceeds the size limit")]
     ValueTooLong {
@@ -58,7 +83,7 @@ impl From<super::ConfigLibStringWrapperTryFromStringError> for EnvParseError {
     serde::Deserialize,
     PartialEq,
     Eq,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     newtype::EnumFromStr,
 )]
 #[strum(serialize_all = "snake_case")]
@@ -70,13 +95,17 @@ pub enum TracingLevel {
     #[default]
     Error,
 }
-#[derive(optml::Optml, Debug, Default, Clone, Copy, PartialEq, Eq)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, Default, Clone, Copy, PartialEq, Eq,
+)]
 pub enum TracingFormat {
     Json,
     #[default]
     Text,
 }
-#[derive(optml::Optml, Debug, Default, Clone, Copy, PartialEq, Eq)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, Default, Clone, Copy, PartialEq, Eq,
+)]
 pub enum SvcMode {
     Migrate,
     #[default]
@@ -109,7 +138,7 @@ impl std::fmt::Display for TracingLevel {
     strum_macros::EnumIter,
     serde::Serialize,
     serde::Deserialize,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     newtype::EnumFromStr,
 )]
 #[strum(serialize_all = "snake_case")]

@@ -7,7 +7,7 @@
     serde::Serialize,
     serde::Deserialize,
     schemars::JsonSchema,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub struct V<T> {
     pub v: T,
@@ -33,7 +33,14 @@ impl<T: utoipa::ToSchema> utoipa::ToSchema for V<T> {
 }
 //todo ExactSizeIterator now is not a solution. error[E0658]: use of unstable library feature `exact_size_is_empty`. maybe rewrite it later
 #[derive(
-    Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::FromInner, newtype::IntoInnerFrom,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    optimal_memory_layout::OptimalMemoryLayout,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
 )]
 pub struct IsStringEmptyRes(bool);
 pub trait IsStringEmpty {
@@ -41,7 +48,12 @@ pub trait IsStringEmpty {
 }
 #[location::errors_with_location]
 #[derive(
-    Debug, serde::Serialize, serde::Deserialize, thiserror::Error, location::Location, optml::Optml,
+    Debug,
+    serde::Serialize,
+    serde::Deserialize,
+    thiserror::Error,
+    location::Location,
+    optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub enum NotEmptyUniqueVecTryNewError<T> {
     IsEmpty {},
@@ -58,7 +70,7 @@ pub enum NotEmptyUniqueVecTryNewError<T> {
     Eq,
     serde::Serialize,
     schemars::JsonSchema,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     newtype::DefaultInner,
     newtype::IntoVec,
     newtype::FromInner,
@@ -134,7 +146,7 @@ const _: () = {
         where
             __D: serde::Deserializer<'de>,
         {
-            #[derive(optml::Optml)]
+            #[derive(optimal_memory_layout::OptimalMemoryLayout)]
             #[doc(hidden)]
             struct __Visitor<'de, T>
             where
@@ -226,7 +238,9 @@ impl<T1> NotEmptyUniqueVec<T1> {
 }
 #[cfg(test)]
 mod tests_not_empty_unique_vec {
-    #[derive(optml::Optml, Debug, PartialEq, Eq, newtype::FromInner)]
+    #[derive(
+        optimal_memory_layout::OptimalMemoryLayout, Debug, PartialEq, Eq, newtype::FromInner,
+    )]
     struct NonClone(u8);
     #[test]
     fn not_empty_unique_vec_try_new_supports_non_clone_values() {
@@ -368,7 +382,15 @@ where
         Ok(super::QueryPartFragment::try_from(accumulator)?)
     }
 }
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize, optml::Optml)]
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
+    optimal_memory_layout::OptimalMemoryLayout,
+)]
 #[serde(from = "V<Option<()>>")]
 #[derive(newtype::FromInner)]
 pub struct NonPrimaryKeyPgTypeReadIds(V<Option<()>>);

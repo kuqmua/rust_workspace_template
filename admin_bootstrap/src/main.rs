@@ -9,30 +9,40 @@
 
 const PASSWORD_FILE_MAX_BYTES: usize = 1_024usize;
 
-#[derive(optml::Optml, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
 struct StdBootstrapPath(std::path::PathBuf);
-#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
+)]
 #[error(transparent)]
 struct SqlxBootstrapError(sqlx::Error);
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::FromInner,
+)]
 struct BootstrapStatus(u8);
-#[derive(optml::Optml, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 struct BootstrapArgs {
     display_name: server_admin::AdminDisplayName,
     login: server_admin::AdminLogin,
     password_file: StdBootstrapPath,
 }
-#[derive(optml::Optml, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 struct PasswordResetArgs {
     login: server_admin::AdminLogin,
     password_file: StdBootstrapPath,
 }
-#[derive(optml::Optml, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 enum AdminCommand {
     Bootstrap(BootstrapArgs),
     PasswordReset(PasswordResetArgs),
 }
-#[derive(optml::Optml, Debug, thiserror::Error)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 enum BootstrapArgsError {
     #[error("administrator bootstrap display name is invalid")]
     DisplayName,
@@ -43,7 +53,7 @@ enum BootstrapArgsError {
     )]
     Usage,
 }
-#[derive(optml::Optml, Debug, thiserror::Error)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 enum BootstrapCommandError {
     #[error(transparent)]
     Args(BootstrapArgsError),
@@ -64,7 +74,7 @@ enum BootstrapCommandError {
     #[error("failed to reset the administrator password: {0}")]
     PasswordReset(server_admin::AdminPasswordResetError),
 }
-#[derive(optml::Optml, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
 struct StdBootstrapExitCode(std::process::ExitCode);
 impl std::process::Termination for StdBootstrapExitCode {
     fn report(self) -> std::process::ExitCode {

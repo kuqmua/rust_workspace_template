@@ -1,4 +1,4 @@
-#[derive(optml::Optml, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
 struct SynItemEnumMutRef<'item_lt>(&'item_lt mut syn::ItemEnum);
 #[proc_macro_attribute]
 pub fn errors_with_location(
@@ -65,7 +65,7 @@ fn add_location_fields(item: SynItemEnumMutRef<'_>) -> syn::Result<()> {
     )
 )]
 pub fn location(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    #[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml)]
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, optimal_memory_layout::OptimalMemoryLayout)]
     enum SuportedEnumVariant {
         Named,
         Unnamed,
@@ -147,7 +147,7 @@ pub fn location(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
         };
     let generate_enum_identifier_with_serde_token_stream = |ts: &dyn quote::ToTokens| {
         quote::quote! {
-            #[derive(Debug, thiserror::Error, serde::Serialize, serde::Deserialize, #utoipa_to_schema_token_stream optml::Optml)]
+            #[derive(Debug, thiserror::Error, serde::Serialize, serde::Deserialize, #utoipa_to_schema_token_stream optimal_memory_layout::OptimalMemoryLayout)]
             pub enum #identifier_with_serde_upper_camel_case #maybe_generic_parameters_token_stream {
                 #ts
             }

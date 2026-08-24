@@ -1,7 +1,7 @@
 const OPENAPI_CONTRACT_TEXT_MAX_LEN: usize = 1_048_576usize;
 
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Eq,
@@ -14,17 +14,26 @@ const OPENAPI_CONTRACT_TEXT_MAX_LEN: usize = 1_048_576usize;
 #[bounded_string(max = OPENAPI_CONTRACT_TEXT_MAX_LEN)]
 pub struct OpenApiContractText(String);
 
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::Display, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    newtype::Display,
+    newtype::FromInner,
+)]
 pub struct OpenApiContractTextError(OpenApiContractTextTryFromStringError);
 
-#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
+)]
 #[error(transparent)]
 pub struct SerdeJsonOpenApiSerializationError(serde_json::Error);
 
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 pub struct RuntimeRoutesRef<'value_lt>(&'value_lt [frontend_contract::RouteMetadata]);
 
-#[derive(optml::Optml, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
 struct StdOpenApiSchemaReferences(std::collections::BTreeSet<OpenApiContractText>);
 impl StdOpenApiSchemaReferences {
     fn validate<Document>(&self, document: &Document) -> Result<(), OpenApiValidationError>
@@ -52,7 +61,9 @@ impl StdOpenApiSchemaReferences {
     }
 }
 
-#[derive(optml::Optml, Debug, newtype::DebugDisplay, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::DebugDisplay, thiserror::Error,
+)]
 pub enum OpenApiValidationError {
     DocumentSerialization(SerdeJsonOpenApiSerializationError),
     MissingOperationId(OpenApiContractText, OpenApiContractText),
@@ -71,7 +82,9 @@ pub enum OpenApiValidationError {
     UnusedSchema(OpenApiContractText),
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::TryFrom)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, newtype::TryFrom,
+)]
 #[try_from(
     error = frontend_contract::HttpStatusTryFromU16Error,
     validator = OpenApiResponseStatus::validate
@@ -88,13 +101,13 @@ impl OpenApiResponseStatus {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum OpenApiSecurityExpectation {
     Public,
     Required(frontend_contract::ContractStr),
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct OpenApiOperationExpectation {
     content_type: frontend_contract::ContractStr,
     metadata: frontend_contract::RouteMetadata,
@@ -118,7 +131,9 @@ impl OpenApiOperationExpectation {
     }
 }
 
-#[derive(optml::Optml, Debug, newtype::DebugDisplay, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::DebugDisplay, thiserror::Error,
+)]
 pub enum OpenApiOperationValidationError {
     DocumentSerialization(SerdeJsonOpenApiSerializationError),
     MissingContentType,
@@ -128,7 +143,7 @@ pub enum OpenApiOperationValidationError {
     SecurityMismatch,
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum OpenApiSchemaMismatch {
     AdditionalProperty,
     AnyOf,
@@ -140,7 +155,9 @@ pub enum OpenApiSchemaMismatch {
     Type,
 }
 
-#[derive(optml::Optml, Debug, newtype::DebugDisplay, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::DebugDisplay, thiserror::Error,
+)]
 pub enum OpenApiPayloadValidationError {
     DocumentSerialization(SerdeJsonOpenApiSerializationError),
     Mismatch(OpenApiSchemaMismatch),

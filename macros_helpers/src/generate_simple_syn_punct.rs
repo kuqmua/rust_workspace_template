@@ -1,7 +1,18 @@
-#[derive(optml::Optml, Debug, Clone, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
 pub struct SynPathSegment(syn::PathSegment);
 #[derive(
-    optml::Optml, Debug, Clone, newtype::FromInner, newtype::IntoInnerFrom, newtype::ToTokens,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+    newtype::ToTokens,
 )]
 pub struct SynPathSegments(syn::punctuated::Punctuated<syn::PathSegment, syn::token::PathSep>);
 #[must_use]

@@ -1,6 +1,8 @@
 const LEASE_TEXT_MAXIMUM_BYTES: usize = 1024usize;
 
-#[derive(optml::Optml, Clone, Debug, Eq, Hash, PartialEq, newtype::AsRefStr)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, Hash, PartialEq, newtype::AsRefStr,
+)]
 pub struct LeaseId(String);
 impl TryFrom<String> for LeaseId {
     type Error = LeaseTextError;
@@ -12,7 +14,9 @@ impl TryFrom<String> for LeaseId {
     }
 }
 
-#[derive(optml::Optml, Clone, Debug, Eq, Hash, PartialEq, newtype::AsRefStr)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, Hash, PartialEq, newtype::AsRefStr,
+)]
 pub struct LeaseKey(String);
 impl TryFrom<String> for LeaseKey {
     type Error = LeaseTextError;
@@ -24,7 +28,9 @@ impl TryFrom<String> for LeaseKey {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 pub enum LeaseTextError {
     #[error("lease text contains a NUL character")]
     ContainsNul,
@@ -34,17 +40,25 @@ pub enum LeaseTextError {
     TooLong,
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum LeaseState {
     Ready,
     Reserved,
     Stale,
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::FromInner,
+)]
 pub struct StdLeaseRegistryMaximum(std::num::NonZeroUsize);
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct StdLeaseStaleTimeout(std::time::Duration);
 impl TryFrom<std::time::Duration> for StdLeaseStaleTimeout {
     type Error = StdLeaseStaleTimeoutError;
@@ -57,42 +71,51 @@ impl TryFrom<std::time::Duration> for StdLeaseStaleTimeout {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 #[error("lease stale timeout must be greater than zero")]
 pub struct StdLeaseStaleTimeoutError;
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub enum LeaseReservation {
     Existing(LeaseId),
     LimitReached,
     Reserved,
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum LeaseHeartbeat {
     Accepted,
     Missing,
 }
 
 #[derive(
-    optml::Optml, Clone, Debug, Default, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Default,
+    Eq,
+    PartialEq,
+    newtype::AsRefTarget,
+    newtype::FromInner,
 )]
 pub struct LeaseIds(bounded_types::BoundedVec<LeaseId, 0, { usize::MAX }>);
 
-#[derive(optml::Optml, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 struct LeaseEntry {
     heartbeat: TokioLeaseInstant,
     key: LeaseKey,
     state: LeaseState,
 }
 
-#[derive(optml::Optml, Debug, Default)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Default)]
 struct LeaseRegistryInner {
     by_id: bounded_types::StdBoundedHashMap<LeaseId, LeaseEntry, { usize::MAX }>,
     by_key: bounded_types::StdBoundedHashMap<LeaseKey, LeaseId, { usize::MAX }>,
 }
 
-#[derive(optml::Optml, Clone, Debug, Default)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Default)]
 pub struct LeaseRegistry {
     inner: StdArcTokioLeaseRegistryRwLock,
 }
@@ -188,13 +211,13 @@ impl LeaseRegistry {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 struct LeaseTextRef<'value_lt>(&'value_lt str);
 
-#[derive(optml::Optml, Clone, Debug, Default, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Default, newtype::FromInner)]
 struct StdArcTokioLeaseRegistryRwLock(std::sync::Arc<tokio::sync::RwLock<LeaseRegistryInner>>);
 
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 struct TokioLeaseInstant(tokio::time::Instant);
 
 #[allow(clippy::single_call_fn)] // keeps the two-index conflict update atomic and locally auditable

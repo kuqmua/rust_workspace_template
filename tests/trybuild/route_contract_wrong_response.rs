@@ -1,10 +1,10 @@
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[derive(serde::Serialize, serde::Deserialize)]
 struct Request;
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[derive(serde::Serialize, serde::Deserialize)]
 struct Response;
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct Route;
 impl frontend_contract::TypedRoute for Route {
     type Request = Request;

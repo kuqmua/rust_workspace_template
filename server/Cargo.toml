@@ -11,7 +11,7 @@ license.workspace = true
 
 
 [dependencies]
-optml = { workspace = true }
+optimal_memory_layout = { workspace = true }
 str_constants = { workspace = true }
 axum = { workspace = true }
 tower = { workspace = true }

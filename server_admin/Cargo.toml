@@ -32,7 +32,7 @@ location_macros = { workspace = true }
 location = { workspace = true }
 metrics = { workspace = true }
 newtype = { workspace = true }
-optml = { workspace = true }
+optimal_memory_layout = { workspace = true }
 pg_crud_common = { workspace = true, features = ["test-utils"] }
 pg_table = { workspace = true, features = ["test-utils"] }
 pg_types_chrono_net = { workspace = true, features = ["test-utils"] }

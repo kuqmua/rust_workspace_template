@@ -26,7 +26,7 @@ naming_common = { workspace = true }
 naming_macros = { workspace = true }
 newtype = { workspace = true }
 generate_derive_token_stream_builder = { workspace = true }
-optml = { workspace = true }
+optimal_memory_layout = { workspace = true }
 [features]
 test-utils = ["dep:serde_json"]
 [lints]

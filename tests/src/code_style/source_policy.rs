@@ -1,4 +1,4 @@
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct ReviewedPublicFields {
     fields: &'static [&'static str],
     path_suffix: &'static str,
@@ -705,19 +705,19 @@ fn abort_and_transmute_calls_match_reviewed_baseline() {
     );
 }
 #[test]
-fn every_workspace_struct_and_enum_derives_optml() {
+fn every_workspace_struct_and_enum_derives_optimal_memory_layout() {
     super::assert_rs_ast_ers_empty_with_ctx(
         super::types::StaticStr::from("4dc60c31"),
         super::types::SourceTextRef::from(
-            "workspace structs and enums without optml::Optml derive",
+            "workspace structs and enums without optimal_memory_layout::OptimalMemoryLayout derive",
         ),
         |path, ast, ers| {
-            if path.ends_with("optml/src/lib.rs") {
+            if path.ends_with("optimal_memory_layout/src/lib.rs") {
                 return;
             }
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::source_analysis::OptmlDeriveVisitor::default(),
+                super::source_analysis::OptimalMemoryLayoutVisitor::default(),
             );
             ers.extend(
                 visitor
@@ -729,27 +729,27 @@ fn every_workspace_struct_and_enum_derives_optml() {
     );
 }
 #[test]
-fn optml_derive_visitor_checks_structs_and_enums() {
+fn optimal_memory_layout_derive_visitor_checks_structs_and_enums() {
     let ast = syn::parse_file(
         "
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct CheckedStruct;
 enum MissingEnum { Variant }
 struct MissingStruct;
-#[derive(Debug, optml::Optml)]
+#[derive(Debug, optimal_memory_layout::OptimalMemoryLayout)]
 enum CheckedEnum { Variant }
 ",
     )
-    .expect("34fb5a61 optml_derive_visitor_checks_structs_and_enums invariant must hold");
+    .expect("34fb5a61 optimal_memory_layout_derive_visitor_checks_structs_and_enums invariant must hold");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
-        super::source_analysis::OptmlDeriveVisitor::default(),
+        super::source_analysis::OptimalMemoryLayoutVisitor::default(),
     );
     assert_eq!(
         visitor.ers.as_slice(),
         [
-            "enum `MissingEnum` must derive `optml::Optml`",
-            "struct `MissingStruct` must derive `optml::Optml`",
+            "enum `MissingEnum` must derive `optimal_memory_layout::OptimalMemoryLayout`",
+            "struct `MissingStruct` must derive `optimal_memory_layout::OptimalMemoryLayout`",
         ],
         "42dc6e3b"
     );
@@ -884,7 +884,7 @@ fn generated_randomness_policy_inspects_quote_token_streams() {
 }
 #[test]
 fn process_static_state_matches_reviewed_inventory() {
-    #[derive(optml::Optml)]
+    #[derive(optimal_memory_layout::OptimalMemoryLayout)]
     struct StaticStateException {
         identifier: &'static str,
         path_suffix: &'static str,
@@ -1135,7 +1135,7 @@ fn no_todo_or_unimplemented_macro_in_source_code() {
 }
 #[test]
 fn source_lint_suppressions_have_explicit_reasons() {
-    #[derive(optml::Optml)]
+    #[derive(optimal_memory_layout::OptimalMemoryLayout)]
     struct LegacySuppression {
         limit: usize,
         path_suffix: &'static str,

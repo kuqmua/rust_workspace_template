@@ -1,4 +1,4 @@
-#[derive(optml::Optml, Clone, Copy)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
 struct ClientTransport;
 impl frontend_contract::Transport for ClientTransport {
     fn send(

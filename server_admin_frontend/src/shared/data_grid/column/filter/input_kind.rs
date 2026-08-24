@@ -1,4 +1,4 @@
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub(super) enum AdminDataGridInputType {
     Date,
     DateTime,

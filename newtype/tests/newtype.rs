@@ -2,9 +2,9 @@ const _: usize = str_constants::MACRO_DIAGNOSTICS_TUPLE_STRUCT_ERROR.len();
 #[cfg(test)]
 mod tests {
     mod to_err_string {
-        #[derive(optml::Optml, Debug, Clone, PartialEq, Eq)]
+        #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, PartialEq, Eq)]
         pub(crate) struct ErrorText(String);
-        #[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq)]
+        #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq)]
         pub(crate) enum ErrorTextTryFromStringError {
             TooLong,
         }
@@ -43,7 +43,7 @@ mod tests {
     const VALIDATE_LOWERCASE_ASCII: fn(&str) -> bool =
         |value| value.bytes().all(|byte| byte.is_ascii_lowercase());
     #[derive(
-        optml::Optml,
+        optimal_memory_layout::OptimalMemoryLayout,
         Debug,
         Clone,
         PartialEq,
@@ -59,7 +59,7 @@ mod tests {
     #[bounded_string(max = STRING_VALUE_MAX_LEN)]
     struct StringValue(String);
     #[derive(
-        optml::Optml,
+        optimal_memory_layout::OptimalMemoryLayout,
         Debug,
         Clone,
         PartialEq,
@@ -70,11 +70,17 @@ mod tests {
     )]
     struct UsizeValue(usize);
     #[derive(
-        optml::Optml, Debug, Clone, PartialEq, Eq, newtype::FromInner, newtype::ToErrStringDebug,
+        optimal_memory_layout::OptimalMemoryLayout,
+        Debug,
+        Clone,
+        PartialEq,
+        Eq,
+        newtype::FromInner,
+        newtype::ToErrStringDebug,
     )]
     struct DebugValue(Vec<u8>);
     #[derive(
-        optml::Optml,
+        optimal_memory_layout::OptimalMemoryLayout,
         Debug,
         Clone,
         Copy,
@@ -87,7 +93,7 @@ mod tests {
     )]
     struct InnerValue(u16);
     #[derive(
-        optml::Optml,
+        optimal_memory_layout::OptimalMemoryLayout,
         Debug,
         Clone,
         PartialEq,
@@ -98,7 +104,7 @@ mod tests {
     )]
     struct VecValue<T>(Vec<T>);
     #[derive(
-        optml::Optml,
+        optimal_memory_layout::OptimalMemoryLayout,
         Debug,
         Clone,
         PartialEq,
@@ -111,7 +117,7 @@ mod tests {
     )]
     struct InnerVecValue<T>(Vec<T>);
     #[derive(
-        optml::Optml,
+        optimal_memory_layout::OptimalMemoryLayout,
         Debug,
         Clone,
         PartialEq,
@@ -121,20 +127,48 @@ mod tests {
         newtype::FromInner,
     )]
     struct TargetVecValue(Vec<u8>);
-    #[derive(optml::Optml, Debug, Clone, PartialEq, Eq, newtype::BoundedString)]
+    #[derive(
+        optimal_memory_layout::OptimalMemoryLayout,
+        Debug,
+        Clone,
+        PartialEq,
+        Eq,
+        newtype::BoundedString,
+    )]
     #[bounded_string(max = DESCRIBED_VALUE_MAX_LEN, description = "described value")]
     struct DescribedValue(String);
-    #[derive(optml::Optml, Debug, Clone, PartialEq, Eq, newtype::BoundedString)]
+    #[derive(
+        optimal_memory_layout::OptimalMemoryLayout,
+        Debug,
+        Clone,
+        PartialEq,
+        Eq,
+        newtype::BoundedString,
+    )]
     #[bounded_string(max = 3usize, min = 1usize, chars, nul_free, serde, trim, utoipa)]
     struct RichValue(String);
-    #[derive(optml::Optml, Debug, Clone, PartialEq, Eq, newtype::BoundedString)]
+    #[derive(
+        optimal_memory_layout::OptimalMemoryLayout,
+        Debug,
+        Clone,
+        PartialEq,
+        Eq,
+        newtype::BoundedString,
+    )]
     #[bounded_string(max = 3usize, chars, utoipa, write_only)]
     struct WriteOnlyValue(String);
-    #[derive(optml::Optml, Debug, Clone, PartialEq, Eq, newtype::BoundedString)]
+    #[derive(
+        optimal_memory_layout::OptimalMemoryLayout,
+        Debug,
+        Clone,
+        PartialEq,
+        Eq,
+        newtype::BoundedString,
+    )]
     #[bounded_string(max = 3usize, validator = VALIDATE_LOWERCASE_ASCII)]
     struct ValidatedValue(String);
     #[derive(
-        optml::Optml,
+        optimal_memory_layout::OptimalMemoryLayout,
         Debug,
         Clone,
         newtype::Display,
@@ -143,12 +177,19 @@ mod tests {
         newtype::ToTokens,
     )]
     struct ProcMacro2TokenValue(proc_macro2::TokenStream);
-    #[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq)]
+    #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq)]
     struct ReferentValue<'value_lt>(&'value_lt str, &'value_lt str);
-    #[derive(optml::Optml, Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
+    #[derive(
+        optimal_memory_layout::OptimalMemoryLayout,
+        Debug,
+        Clone,
+        Copy,
+        newtype::AsRefInner,
+        newtype::FromInner,
+    )]
     struct ReferentValueRef<'value_lt>(&'value_lt ReferentValue<'value_lt>);
     #[derive(
-        optml::Optml,
+        optimal_memory_layout::OptimalMemoryLayout,
         Debug,
         Clone,
         PartialEq,
@@ -159,11 +200,17 @@ mod tests {
     )]
     struct OwnedValue(Vec<u8>);
     #[derive(
-        optml::Optml, Debug, Clone, PartialEq, Eq, newtype::AsRefTarget, newtype::FromInner,
+        optimal_memory_layout::OptimalMemoryLayout,
+        Debug,
+        Clone,
+        PartialEq,
+        Eq,
+        newtype::AsRefTarget,
+        newtype::FromInner,
     )]
     struct OwnedSliceValue(Vec<u8>);
     #[derive(
-        optml::Optml,
+        optimal_memory_layout::OptimalMemoryLayout,
         Debug,
         Clone,
         Copy,
@@ -172,38 +219,60 @@ mod tests {
         newtype::FromInner,
     )]
     struct SliceValueRef<'value_lt>(&'value_lt [u8]);
-    #[derive(optml::Optml, newtype::BorrowPath, newtype::FromInner)]
+    #[derive(
+        optimal_memory_layout::OptimalMemoryLayout, newtype::BorrowPath, newtype::FromInner,
+    )]
     struct StdPathBuf(std::path::PathBuf);
-    #[derive(optml::Optml, newtype::DebugTransparent, newtype::FromInner)]
+    #[derive(
+        optimal_memory_layout::OptimalMemoryLayout, newtype::DebugTransparent, newtype::FromInner,
+    )]
     struct TransparentDebugValue(u16);
-    #[derive(optml::Optml, newtype::DebugRedacted, newtype::FromInner)]
+    #[derive(
+        optimal_memory_layout::OptimalMemoryLayout, newtype::DebugRedacted, newtype::FromInner,
+    )]
     struct RedactedDebugValue(Vec<u8>);
-    #[derive(optml::Optml, newtype::FromInner, newtype::NotInner)]
+    #[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner, newtype::NotInner)]
     struct BoolValue(bool);
-    #[derive(optml::Optml, Debug, newtype::DebugDisplay)]
+    #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::DebugDisplay)]
     enum DebugDisplayError {
         Failed,
     }
-    #[derive(optml::Optml, newtype::DisplayConst)]
+    #[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::DisplayConst)]
     #[display_const("fixed")]
     struct ConstDisplayError;
-    #[derive(optml::Optml, newtype::CloneInner, newtype::FromInner)]
+    #[derive(
+        optimal_memory_layout::OptimalMemoryLayout, newtype::CloneInner, newtype::FromInner,
+    )]
     struct StdArcGenericValue<Value>(std::sync::Arc<Value>);
-    #[derive(optml::Optml, newtype::DefaultInner, newtype::FromInner)]
+    #[derive(
+        optimal_memory_layout::OptimalMemoryLayout, newtype::DefaultInner, newtype::FromInner,
+    )]
     struct GenericVec<Value>(Vec<Value>);
-    #[derive(optml::Optml, newtype::AsMut, newtype::FromInner)]
+    #[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::AsMut, newtype::FromInner)]
     struct MutableValueRef<'value_lt>(&'value_lt mut u16);
-    #[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq)]
+    #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq)]
     enum CheckedTextError {
         TooLong,
     }
-    #[derive(optml::Optml, Debug, Clone, PartialEq, Eq, newtype::TryFrom)]
+    #[derive(
+        optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, PartialEq, Eq, newtype::TryFrom,
+    )]
     #[try_from(validator = validate_checked_text)]
     struct CheckedText(String);
-    #[derive(optml::Optml, Debug, Clone, PartialEq, Eq, newtype::TryFrom)]
+    #[derive(
+        optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, PartialEq, Eq, newtype::TryFrom,
+    )]
     #[try_from(error = CheckedTextError, validator = validate_checked_text)]
     struct ExplicitErrorCheckedText(String);
-    #[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq, newtype::EnumFromStr)]
+    #[derive(
+        optimal_memory_layout::OptimalMemoryLayout,
+        Debug,
+        Clone,
+        Copy,
+        PartialEq,
+        Eq,
+        newtype::EnumFromStr,
+    )]
     enum SampleEnum {
         FirstValue,
         Second,
@@ -229,7 +298,7 @@ mod tests {
     }
     #[test]
     fn clone_and_default_inner_do_not_require_value_bounds() {
-        #[derive(optml::Optml)]
+        #[derive(optimal_memory_layout::OptimalMemoryLayout)]
         struct NotCloneOrDefault;
         let vec_value = GenericVec::<NotCloneOrDefault>::default();
         assert!(vec_value.0.is_empty(), "cb741d96");

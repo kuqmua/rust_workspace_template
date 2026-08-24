@@ -1,4 +1,4 @@
-#[derive(Debug, optml::Optml)]
+#[derive(Debug, optimal_memory_layout::OptimalMemoryLayout)]
 pub struct ServerAppState<'lt> {
     pub bulk_item_budget: server_runtime_core::ResourceBudget,
     pub config: server_config::Config,

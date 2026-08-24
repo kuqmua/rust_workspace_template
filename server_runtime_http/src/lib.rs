@@ -184,11 +184,13 @@ pub use trace_context::{
     extract_remote_trace_context, inject_trace_context,
 };
 pub use wire_token::{VersionedUrlSafeWireTokenText, VersionedUrlSafeWireTokenTextError};
-#[derive(optml::Optml, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner, newtype::IntoInnerFrom,
+)]
 pub struct AxumRouter(axum::Router);
 
-#[derive(optml::Optml, Clone, Debug)]
-#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optml takes precedence over alphabetical field order
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
+#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
 pub struct HttpRequestSpanConfig {
     service_name: ServiceName,
     trusted_proxy_ranges: TrustedProxyRanges,
@@ -208,7 +210,7 @@ impl HttpRequestSpanConfig {
         }
     }
 }
-#[derive(optml::Optml, Clone, Debug, Default)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Default)]
 pub struct RequestIdLayer {
     span_config: Option<HttpRequestSpanConfig>,
 }
@@ -227,11 +229,11 @@ impl RequestIdLayer {
         }
     }
 }
-#[derive(optml::Optml, Clone, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 struct RequestIdTowerLayer {
     span_config: Option<HttpRequestSpanConfig>,
 }
-#[derive(optml::Optml, Clone, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 struct RequestIdService<Service> {
     inner: Service,
     span_config: Option<HttpRequestSpanConfig>,

@@ -1,13 +1,15 @@
 const MAXIMUM_SCOPED_FOREIGN_KEY_COLUMNS: usize = 16usize;
 const MINIMUM_SCOPED_FOREIGN_KEY_COLUMNS: usize = 2usize;
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum PgScopedForeignKeyOnDelete {
     Cascade,
     Restrict,
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 pub enum PgScopedForeignKeyError {
     #[error("{}", str_constants::PG_SCOPED_FOREIGN_KEY_COLUMN_COUNT_MISMATCH)]
     ColumnCountMismatch,
@@ -16,11 +18,13 @@ pub enum PgScopedForeignKeyError {
     #[error("{}", str_constants::PG_SCOPED_FOREIGN_KEY_INVALID_COLUMN_COUNT)]
     InvalidColumnCount,
 }
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::FromInner,
+)]
 pub struct PgSqlIdentifiers(Vec<crate::SqlIdentifier>);
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
-#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optml takes precedence over alphabetical field order
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
+#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
 pub struct PgScopedForeignKey {
     local_columns: PgSqlIdentifiers,
     referenced_columns: PgSqlIdentifiers,
@@ -28,13 +32,13 @@ pub struct PgScopedForeignKey {
     on_delete: PgScopedForeignKeyOnDelete,
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 enum PgDuplicateIdentifierPresence {
     Absent,
     Present,
 }
 
-#[derive(optml::Optml, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 struct PgScopedForeignKeyClauseText(String);
 
 impl TryFrom<String> for PgScopedForeignKeyClauseText {
@@ -83,17 +87,29 @@ impl PgScopedForeignKey {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    Ord,
+    PartialOrd,
+    newtype::FromInner,
+)]
 pub struct PgCounterValue(u64);
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum PgCounterReconciliation {
     ActualAhead(PgCounterValue),
     InSync,
     TrackedAhead(PgCounterValue),
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd,
+)]
 pub struct PgOperationalLimit(u64);
 
 impl TryFrom<u64> for PgOperationalLimit {
@@ -108,13 +124,15 @@ impl TryFrom<u64> for PgOperationalLimit {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum PgOperationalLimitUpdateAuthority {
     MigrationDefault,
     Operator,
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 pub enum PgOperationalLimitError {
     #[error("{}", str_constants::PG_OPERATIONAL_LIMIT_BELOW_CURRENT_USAGE)]
     BelowCurrentUsage,

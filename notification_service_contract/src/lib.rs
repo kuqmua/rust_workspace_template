@@ -2,7 +2,7 @@ pub const NOTIFICATION_API_BODY_MAX_BYTES: usize = 8_192;
 const NOTIFICATION_MESSAGE_MAX_LEN: usize = 4_096;
 
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Eq,
@@ -27,7 +27,7 @@ impl CreateNotificationReq {
 }
 
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,
@@ -52,7 +52,7 @@ impl CreateNotificationRes {
 }
 
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Eq,
@@ -65,7 +65,7 @@ impl CreateNotificationRes {
 #[serde(try_from = "String")]
 pub struct NotificationMessage(String);
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,
@@ -81,7 +81,9 @@ pub struct NotificationMessage(String);
 #[schema(value_type = String, format = "uuid")]
 pub struct UuidNotificationId(uuid::Uuid);
 
-#[derive(optml::Optml, Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, frontend_contract::TypedRoute,
+)]
 #[typed_route(
     authentication = frontend_contract::AuthenticationRequirement::Public,
     error_policy = frontend_contract::RouteErrorPolicy::Default,
@@ -98,7 +100,15 @@ pub struct UuidNotificationId(uuid::Uuid);
 )]
 pub struct CreateNotificationRoute;
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, frontend_contract::RouteCatalog)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    frontend_contract::RouteCatalog,
+)]
 #[route_catalog(
     family = NotificationRouteFamily,
     body_limit = NOTIFICATION_API_BODY_MAX_BYTES,
@@ -108,7 +118,15 @@ pub enum NotificationRoute {
     Create,
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, frontend_contract::RouteCatalog)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    frontend_contract::RouteCatalog,
+)]
 #[route_catalog(
     family = NotificationOperationalRouteFamily,
     body_limit = NOTIFICATION_API_BODY_MAX_BYTES,
@@ -151,7 +169,9 @@ impl frontend_contract::HandlerContract for NotificationOperationalRoute {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 pub enum NotificationMessageTryFromStringError {
     #[error("notification message must not be empty")]
     Empty,
@@ -172,7 +192,7 @@ impl TryFrom<String> for NotificationMessage {
 }
 #[cfg(test)]
 mod tests {
-    #[derive(optml::Optml, Clone, Copy)]
+    #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
     struct ClientTransport;
     impl frontend_contract::Transport for ClientTransport {
         fn send(

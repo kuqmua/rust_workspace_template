@@ -12,7 +12,7 @@ edition.workspace = true
 proc-macro = true
 
 [dependencies]
-optml = { workspace = true }
+optimal_memory_layout = { workspace = true }
 str_constants = { workspace = true }
 regex = { workspace = true }
 serde_json = { workspace = true }

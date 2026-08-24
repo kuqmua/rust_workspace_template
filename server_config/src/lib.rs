@@ -1,5 +1,5 @@
 #[allow(clippy::arbitrary_source_item_ordering)]
-#[derive(Debug, try_from_env::TryFromEnv, optml::Optml)]
+#[derive(Debug, try_from_env::TryFromEnv, optimal_memory_layout::OptimalMemoryLayout)]
 #[config(env_example)]
 pub struct Config {
     #[config(example = "http://127.0.0.1:8080")]
@@ -69,7 +69,9 @@ pub struct Config {
     #[config(example = "serve")]
     pub svc_mode: config_lib::types::SvcMode,
 }
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 pub enum ProductionConfigError {
     #[error("production administrator cookies must be secure")]
     AdminCookieInsecure,

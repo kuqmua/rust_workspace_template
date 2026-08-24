@@ -1,13 +1,32 @@
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::Display, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    newtype::Display,
+    newtype::FromInner,
+)]
 pub(in crate::app) struct AdminHttpStatus(u16);
 
 #[derive(
-    optml::Optml, Clone, Debug, newtype::AsRefStr, newtype::BoundedString, newtype::Display,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    newtype::AsRefStr,
+    newtype::BoundedString,
+    newtype::Display,
 )]
 #[bounded_string(max = 16_384usize, chars)]
 pub(in crate::app) struct AdminCsrApiUrl(String);
 
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::AsRefStr, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    newtype::AsRefStr,
+    newtype::FromInner,
+)]
 pub(in crate::app) struct AdminCsrApiUrlSuffixRef<'suffix_lt>(&'suffix_lt str);
 
 pub(in crate::app) fn admin_api_url(

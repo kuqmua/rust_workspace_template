@@ -29,7 +29,7 @@ const API_URL_COMPONENT_ENCODE_SET: &percent_encoding::AsciiSet = &percent_encod
     .add(b'|')
     .add(b'}');
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct ApiUrlPathSegmentRef<'value_lt>(&'value_lt str);
 impl<'value_lt> TryFrom<&'value_lt str> for ApiUrlPathSegmentRef<'value_lt> {
     type Error = ApiUrlBuildError;
@@ -46,17 +46,27 @@ impl<'value_lt> TryFrom<&'value_lt str> for ApiUrlPathSegmentRef<'value_lt> {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::FromInner,
+)]
 pub struct ApiUrlQueryComponentRef<'value_lt>(&'value_lt str);
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 #[error("{}", str_constants::INVALID_API_URL_PATH_SEGMENT)]
 pub enum ApiUrlBuildError {
     InvalidPathSegment,
 }
 
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Eq,

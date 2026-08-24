@@ -5,7 +5,9 @@
     clippy::partial_pub_fields
 )]
 // generated declarations follow PostgreSQL order while the source table fields stay private to protect password hashes
-#[derive(Clone, Copy, generate_pg_table::GeneratePgTable, optml::Optml)]
+#[derive(
+    Clone, Copy, generate_pg_table::GeneratePgTable, optimal_memory_layout::OptimalMemoryLayout,
+)]
 #[generate_pg_table::generate_pg_table_config{{
     "api_mode": "ReadOnly",
     "db_table_name": "users",
@@ -47,7 +49,13 @@ impl std::fmt::Debug for AdminUsers {
     }
 }
 #[allow(clippy::arbitrary_source_item_ordering, clippy::needless_for_each)] // generated declarations follow the PostgreSQL column order
-#[derive(Debug, Clone, Copy, generate_pg_table::GeneratePgTable, optml::Optml)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    generate_pg_table::GeneratePgTable,
+    optimal_memory_layout::OptimalMemoryLayout,
+)]
 #[generate_pg_table::generate_pg_table_config{{
     "api_mode": "ReadOnly",
     "db_table_name": "user_roles",
@@ -72,7 +80,13 @@ pub struct AdminUserRoles {
         pg_types_chrono_net::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,
 }
 #[allow(clippy::arbitrary_source_item_ordering, clippy::needless_for_each)] // generated declarations follow the PostgreSQL column order
-#[derive(Debug, Clone, Copy, generate_pg_table::GeneratePgTable, optml::Optml)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    generate_pg_table::GeneratePgTable,
+    optimal_memory_layout::OptimalMemoryLayout,
+)]
 #[generate_pg_table::generate_pg_table_config{{
     "api_mode": "ReadOnly",
     "db_table_name": "role_permissions",
@@ -97,7 +111,13 @@ pub struct AdminRolePermissions {
         pg_types_chrono_net::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,
 }
 #[allow(clippy::arbitrary_source_item_ordering, clippy::needless_for_each)] // generated declarations follow the PostgreSQL column order
-#[derive(Debug, Clone, Copy, generate_pg_table::GeneratePgTable, optml::Optml)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    generate_pg_table::GeneratePgTable,
+    optimal_memory_layout::OptimalMemoryLayout,
+)]
 #[generate_pg_table::generate_pg_table_config{{
     "api_mode": "ReadOnly",
     "db_table_name": "roles",
@@ -122,7 +142,13 @@ pub struct AdminRoles {
         pg_types_chrono_net::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,
 }
 #[allow(clippy::arbitrary_source_item_ordering, clippy::needless_for_each)] // generated declarations follow the PostgreSQL column order
-#[derive(Debug, Clone, Copy, generate_pg_table::GeneratePgTable, optml::Optml)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    generate_pg_table::GeneratePgTable,
+    optimal_memory_layout::OptimalMemoryLayout,
+)]
 #[generate_pg_table::generate_pg_table_config{{
     "api_mode": "ReadOnly",
     "db_table_name": "permissions",
@@ -142,7 +168,13 @@ pub struct AdminPermissions {
         pg_types_chrono_net::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,
 }
 #[allow(clippy::arbitrary_source_item_ordering, clippy::needless_for_each)] // generated declarations follow the PostgreSQL column order
-#[derive(Debug, Clone, Copy, generate_pg_table::GeneratePgTable, optml::Optml)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    generate_pg_table::GeneratePgTable,
+    optimal_memory_layout::OptimalMemoryLayout,
+)]
 #[generate_pg_table::generate_pg_table_config{{
     "api_mode": "ReadOnly",
     "db_table_name": "system_settings",
@@ -175,7 +207,15 @@ pub struct AdminSystemSettings {
     pub updated_at:
         pg_types_chrono_net::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,
 }
-#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq, frontend_contract::UnitEnumCatalog)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    frontend_contract::UnitEnumCatalog,
+)]
 pub(crate) enum AdminGeneratedTable {
     Roles,
     RolePermissions,
@@ -381,7 +421,7 @@ impl AdminGeneratedTable {
         }
     }
 }
-#[derive(optml::Optml, Clone, Copy, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
 pub(crate) struct AdminGeneratedRouteContract {
     permission: Option<crate::StdAdminStrRef<'static>>,
     mutates: crate::StdAdminBool,
@@ -412,13 +452,19 @@ impl AdminGeneratedRouteContract {
         self.permission
     }
 }
-#[derive(optml::Optml, Clone, newtype::IntoInnerFrom, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, newtype::IntoInnerFrom, newtype::FromInner,
+)]
 pub struct UtoipaAdminOpenApi(utoipa::openapi::OpenApi);
-#[derive(optml::Optml, Clone, newtype::DebugRedacted, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, newtype::DebugRedacted, newtype::FromInner,
+)]
 pub struct StdSharedAdminGeneratedTableState(
     std::sync::Arc<dyn pg_table::CombinationOfAppStateLogicTraits>,
 );
-#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
+)]
 #[error(transparent)]
 pub struct AdminGeneratedTablesValidationError(pg_crud_common::DbSchemaConformanceError);
 impl std::fmt::Debug for UtoipaAdminOpenApi {

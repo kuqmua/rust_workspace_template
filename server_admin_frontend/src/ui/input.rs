@@ -17,7 +17,7 @@
 #[rustfmt::skip]
 use leptos::prelude::{AddAnyAttr};
 
-#[derive(optml::Optml, Clone, Debug, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, PartialEq, Eq)]
 pub(crate) struct AdminInputName(Box<str>);
 
 impl From<&'static str> for AdminInputName {
@@ -38,7 +38,7 @@ impl AsRef<str> for AdminInputName {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 pub(crate) struct LeptosAdminInputSignal(leptos::prelude::RwSignal<String>);
 
 impl LeptosAdminInputSignal {
@@ -47,7 +47,7 @@ impl LeptosAdminInputSignal {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Default, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Default, PartialEq, Eq)]
 pub(crate) enum AdminInputKind {
     #[default]
     Text,

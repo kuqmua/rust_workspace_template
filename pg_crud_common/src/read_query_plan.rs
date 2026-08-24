@@ -1,4 +1,4 @@
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum QuerySortOrder {
     Ascending,
     Descending,
@@ -13,14 +13,31 @@ impl QuerySortOrder {
 }
 
 #[derive(
-    optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::AsRefInner, newtype::FromInner,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::AsRefInner,
+    newtype::FromInner,
 )]
 struct SqlSortOrderText(&'static str);
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::IntoInnerFrom, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::IntoInnerFrom,
+    newtype::FromInner,
+)]
 pub struct ReadQueryPlan(crate::QueryPartFragment);
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 #[error("read query plan exceeds the query fragment limit")]
 pub struct ReadQueryPlanError;
 

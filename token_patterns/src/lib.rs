@@ -17,12 +17,12 @@ token_patterns_macros::tp!(ThiserrorError, thiserror::Error);
 token_patterns_macros::tp!(Char, char);
 token_patterns_macros::tp!(RefStr, &str);
 token_patterns_macros::tp!(StringTokenStream, String);
-token_patterns_macros::tp!(DeriveDebug, #[derive(Debug, Optml)]);
-token_patterns_macros::tp!(DeriveDebugThiserrorLocation, #[derive(Debug, thiserror::Error, location::Location, Optml)]);
-token_patterns_macros::tp!(DeriveDebugUtoipaToSchema, #[derive(Debug, utoipa::ToSchema, Optml)]);
-token_patterns_macros::tp!(DeriveDebugSerdeSerializeSerdeDeserialize, #[derive(Debug, serde::Serialize, serde::Deserialize, Optml)]);
-token_patterns_macros::tp!(DeriveDebugSerdeSerializeSerdeDeserializeUtoipaToSchema, #[derive(Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema, Optml)]);
-token_patterns_macros::tp!(DeriveDebugCloneCopy, #[derive(Debug, Clone, Copy, Optml)]);
+token_patterns_macros::tp!(DeriveDebug, #[derive(Debug, OptimalMemoryLayout)]);
+token_patterns_macros::tp!(DeriveDebugThiserrorLocation, #[derive(Debug, thiserror::Error, location::Location, OptimalMemoryLayout)]);
+token_patterns_macros::tp!(DeriveDebugUtoipaToSchema, #[derive(Debug, utoipa::ToSchema, OptimalMemoryLayout)]);
+token_patterns_macros::tp!(DeriveDebugSerdeSerializeSerdeDeserialize, #[derive(Debug, serde::Serialize, serde::Deserialize, OptimalMemoryLayout)]);
+token_patterns_macros::tp!(DeriveDebugSerdeSerializeSerdeDeserializeUtoipaToSchema, #[derive(Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema, OptimalMemoryLayout)]);
+token_patterns_macros::tp!(DeriveDebugCloneCopy, #[derive(Debug, Clone, Copy, OptimalMemoryLayout)]);
 token_patterns_macros::tp!(StrSqlxColumnIndex, &'lt str: sqlx::ColumnIndex<R>,);
 token_patterns_macros::tp!(
     SqlxDecodeDecodeDatabase,
@@ -179,7 +179,7 @@ token_patterns_macros::ts_path_fn!(
     path_all_variants_default_some_one_element_call,
     ::all_variants_default_some_one_element()
 );
-#[derive(optml::Optml, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
 struct ProcMacro2TokensMut<'tokens_lt>(&'tokens_lt mut proc_macro2::TokenStream);
 
 fn append_tokens(tokens: &mut ProcMacro2TokensMut<'_>, part: impl quote::ToTokens) {
@@ -198,7 +198,7 @@ mod tests {
         assert_tokens_eq(super::SqlxAcquire, quote::quote! {sqlx::Acquire});
         assert_tokens_eq(
             super::DeriveDebugCloneCopy,
-            quote::quote! {#[derive(Debug, Clone, Copy, Optml)]},
+            quote::quote! {#[derive(Debug, Clone, Copy, OptimalMemoryLayout)]},
         );
     }
     #[test]

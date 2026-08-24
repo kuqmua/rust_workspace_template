@@ -1,9 +1,13 @@
 const SERVICE_BASE_URL_MAX_LEN: usize = 8_192usize;
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::AsRefStr,
+)]
 pub struct ServiceBaseUrl(String);
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 pub enum ServiceBaseUrlError {
     #[error("service base URL must include a host")]
     Host,
@@ -45,7 +49,7 @@ impl TryFrom<String> for ServiceBaseUrl {
     }
 }
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct RuntimeTestConfig {
     application_base_url: ServiceBaseUrl,
     notification_service_base_url: ServiceBaseUrl,
@@ -74,7 +78,7 @@ impl RuntimeTestConfig {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RuntimeTestKind {
     ApplicationLiveness,
     ApplicationReadiness,
@@ -95,7 +99,7 @@ impl std::fmt::Display for RuntimeTestKind {
     }
 }
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct RuntimeTestReport {
     passed: bounded_types::BoundedVec<RuntimeTestKind, 0usize, 5usize>,
 }
@@ -107,16 +111,27 @@ impl RuntimeTestReport {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::Display, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::Display,
+    newtype::FromInner,
+)]
 pub struct HttpRuntimeTestStatus(u16);
 
-#[derive(optml::Optml, Clone, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, newtype::FromInner)]
 struct ReqwestRuntimeTestClient(reqwest::blocking::Client);
 
-#[derive(optml::Optml, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
 struct ReqwestRuntimeTestResponse(reqwest::blocking::Response);
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::AsRefStr,
+)]
 struct RuntimeTestUrl(String);
 
 impl TryFrom<String> for RuntimeTestUrl {
@@ -131,7 +146,7 @@ impl TryFrom<String> for RuntimeTestUrl {
     }
 }
 
-#[derive(optml::Optml, Debug, thiserror::Error)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum RuntimeTestError {
     #[error("runtime service URL is invalid: {0}")]
     BaseUrl(#[from] ServiceBaseUrlError),

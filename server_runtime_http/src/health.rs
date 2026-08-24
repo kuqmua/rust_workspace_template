@@ -1,29 +1,50 @@
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::FromInner,
+)]
 pub struct StdHealthProbeTimeout(std::time::Duration);
 
 #[derive(
-    optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
 )]
 pub struct HealthProbeSucceeded(bool);
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, serde::Serialize)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, serde::Serialize,
+)]
 #[serde(rename_all = "snake_case")]
 pub enum HealthComponentStatus {
     Error,
     Ok,
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, serde::Serialize)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, serde::Serialize,
+)]
 pub struct HealthSnapshot {
     database: HealthComponentStatus,
     service: HealthComponentStatus,
 }
-#[derive(optml::Optml, Debug, thiserror::Error)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 enum HealthReadyError {
     #[error("service is unavailable")]
     Unavailable(HealthSnapshot),
 }
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, serde::Serialize)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, serde::Serialize,
+)]
 pub struct ServiceLivenessSnapshot {
     service: HealthComponentStatus,
 }
@@ -47,10 +68,10 @@ impl axum::response::IntoResponse for HealthReadyError {
         }
     }
 }
-#[derive(optml::Optml, Clone, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, newtype::FromInner)]
 struct StdSharedHealthReadiness(std::sync::Arc<std::sync::atomic::AtomicBool>);
 
-#[derive(optml::Optml, Clone, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub struct HealthReadiness {
     shared: StdSharedHealthReadiness,
 }

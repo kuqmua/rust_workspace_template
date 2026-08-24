@@ -1,8 +1,8 @@
-#[derive(optml::Optml, newtype::ToTokens, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::ToTokens, newtype::FromInner)]
 struct ProcMacro2GeneratedNamingTokenStream(proc_macro2::TokenStream);
-#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
 struct SynEnumIdentifierRef<'identifier_lt>(&'identifier_lt syn::Ident);
-#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
 struct ProcMacro2VariantMatchingTokensRef<'tokens_lt>(&'tokens_lt [proc_macro2::TokenStream]);
 fn generate_impl_to_tokens_token_stream(
     ts0: &dyn quote::ToTokens,
@@ -60,7 +60,7 @@ pub fn generate_upper_camel_case_and_snake_case_str_and_token_stream(
             let (ucc_struct_declaration_token_stream, sc_struct_declaration_token_stream) = {
                 let generate_token_stream = |ts: &dyn quote::ToTokens| {
                     quote::quote! {
-                        #[derive(Debug, optml::Optml)]
+                        #[derive(Debug, optimal_memory_layout::OptimalMemoryLayout)]
                         pub struct #ts;
                     }
                 };
@@ -204,7 +204,7 @@ pub fn generate_self_upper_camel_case_and_snake_case_str_and_token_stream(
                 &quote::quote! {quote::ToTokens::to_tokens(&self.to_string().parse::<proc_macro2::TokenStream>().expect("71c8d26b generate_self_upper_camel_case_and_snake_case_str_and_token_stream invariant must hold"), tokens);}
             );
             quote::quote! {
-                #[derive(Debug, optml::Optml)]
+                #[derive(Debug, optimal_memory_layout::OptimalMemoryLayout)]
                 pub struct #struct_identifier_token_stream(String);
                 impl #struct_identifier_token_stream {
                     fn wrap(v: &dyn std::fmt::Display) -> Self {

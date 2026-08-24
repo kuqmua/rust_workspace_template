@@ -1,4 +1,4 @@
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct RuntimePanicExpectUnwrapVisitor {
     pub ers: super::types::DiagnosticMsgs,
 }
@@ -29,7 +29,7 @@ impl<'ast> syn::visit::Visit<'ast> for RuntimePanicExpectUnwrapVisitor {
         syn::visit::visit_macro(self, i);
     }
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct RuntimeMutexVisitor {
     pub found_count: super::types::AnalyzerCount,
 }
@@ -52,8 +52,8 @@ impl<'ast> syn::visit::Visit<'ast> for RuntimeMutexVisitor {
         syn::visit::visit_type_path(self, i);
     }
 }
-#[derive(optml::Optml)]
-#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optml takes precedence over alphabetical field order
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
 pub(super) struct RuntimeArcVisitor {
     pub ers: super::types::DiagnosticMsgs,
     pub allow_arc_value_usage: super::types::AnalyzerBool,
@@ -100,7 +100,7 @@ impl<'ast> syn::visit::Visit<'ast> for RuntimeArcVisitor {
         syn::visit::visit_item_type(self, i);
     }
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct AsyncBlockingCallVisitor {
     pub async_fn_depth: super::types::AnalyzerCount,
     pub ers: super::types::DiagnosticMsgs,
@@ -182,7 +182,7 @@ impl<'ast> syn::visit::Visit<'ast> for AsyncBlockingCallVisitor {
         }
     }
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct UnitTestExternalServiceVisitor {
     pub ers: super::types::DiagnosticMsgs,
     pub test_depth: super::types::AnalyzerCount,

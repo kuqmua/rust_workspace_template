@@ -1,5 +1,11 @@
 #[derive(
-    optml::Optml, Clone, Debug, Eq, PartialEq, newtype::DerefTarget, newtype::IntoIterator,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::DerefTarget,
+    newtype::IntoIterator,
 )]
 pub struct BoundedVec<T, const MIN: usize, const MAX: usize>(Vec<T>);
 impl<T, const MIN: usize, const MAX: usize> BoundedVec<T, MIN, MAX> {
@@ -96,7 +102,7 @@ impl<T: serde::Serialize, const MIN: usize, const MAX: usize> serde::Serialize
         serde::Serialize::serialize(&self.0, serializer)
     }
 }
-#[derive(optml::Optml, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
 struct StdPhantomDataBoundedVecVisitor<T, const MIN: usize, const MAX: usize>(
     std::marker::PhantomData<T>,
 );

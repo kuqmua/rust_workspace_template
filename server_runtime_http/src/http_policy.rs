@@ -2,17 +2,25 @@
     clippy::arbitrary_source_item_ordering,
     reason = "HTTP policy types stay grouped with their corresponding resolver functions"
 )]
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 pub struct HttpAuthorizationHeaderTextRef<'value_lt>(Option<&'value_lt str>);
 
-#[derive(optml::Optml, Clone, Copy, Eq, PartialEq, newtype::AsRefInner, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Eq,
+    PartialEq,
+    newtype::AsRefInner,
+    newtype::FromInner,
+)]
 pub struct HttpBearerTokenRef<'value_lt>(&'value_lt str);
 impl std::fmt::Debug for HttpBearerTokenRef<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(str_constants::REDACTED_ALT_3)
     }
 }
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum BearerAuthorizationResolution<'value_lt> {
     Invalid,
     Missing,
@@ -41,14 +49,14 @@ pub fn resolve_bearer_authorization(
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 pub struct HttpCookieHeadersRef<'value_lt>(&'value_lt http::HeaderMap);
 
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 pub struct HttpCookieNameRef<'value_lt>(&'value_lt str);
 
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Eq,
@@ -63,7 +71,7 @@ impl std::fmt::Debug for HttpCookieValueRef<'_> {
         f.write_str(str_constants::REDACTED_ALT_3)
     }
 }
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum CookieResolution<'value_lt> {
     Invalid,
     Missing,
@@ -113,10 +121,10 @@ pub fn resolve_unique_cookie<'value_lt>(
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 pub struct HttpContentTypeTextRef<'value_lt>(Option<&'value_lt str>);
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum OptionalJsonContentType {
     ApplicationJson,
     Missing,
@@ -141,12 +149,12 @@ pub fn classify_optional_json_content_type(
         OptionalJsonContentType::NonJson
     }
 }
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum OptionalJsonBodyPresence {
     Empty,
     NonEmpty,
 }
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum OptionalJsonContentTypeDecision {
     Accept,
     RejectUnsupportedMediaType,

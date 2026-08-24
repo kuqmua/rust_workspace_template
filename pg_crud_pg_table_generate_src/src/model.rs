@@ -1,17 +1,28 @@
 #![allow(clippy::field_scoped_visibility_modifiers)] // sibling emitters read the private descriptor directly while it remains hidden outside the generator
 #[derive(
-    optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
 )]
 pub struct GeneratePgTableFieldCount(usize);
 
-#[derive(optml::Optml, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 pub struct GeneratePgTableModel {
     field_count: GeneratePgTableFieldCount,
     input: SynGeneratePgTableModelInput,
 }
-#[derive(optml::Optml, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner, newtype::IntoInnerFrom,
+)]
 pub(super) struct SynGeneratePgTableModelInput(syn::DeriveInput);
-#[derive(optml::Optml, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner, newtype::IntoInnerFrom,
+)]
 pub(super) struct SynGeneratePgTableModelError(syn::Error);
 impl GeneratePgTableModel {
     #[must_use]
@@ -45,7 +56,7 @@ impl GeneratePgTableModel {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
 pub(super) struct OperationDsc<
     Capability,
     HttpMethod,

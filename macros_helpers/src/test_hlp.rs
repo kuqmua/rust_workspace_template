@@ -1,7 +1,7 @@
 static TEST_SEQ: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
-#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
 pub(crate) struct TestPathStemRef<'stem_lt>(&'stem_lt str);
-#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
 pub(crate) struct TestPathStem<'stem_lt>(&'stem_lt str);
 impl<'stem_lt> TestPathStem<'stem_lt> {
     pub(crate) fn new<T>(v: T) -> Self
@@ -11,14 +11,14 @@ impl<'stem_lt> TestPathStem<'stem_lt> {
         Self::from(v.into().0)
     }
 }
-#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
 pub(crate) struct StdAssertFilePathRef<'path_lt>(&'path_lt std::path::Path);
 impl<'path_lt> From<&'path_lt std::path::PathBuf> for StdAssertFilePathRef<'path_lt> {
     fn from(value: &'path_lt std::path::PathBuf) -> Self {
         Self(value.as_path())
     }
 }
-#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
 pub(crate) struct StdAssertFilePath<'path_lt>(&'path_lt std::path::Path);
 impl<'path_lt> StdAssertFilePath<'path_lt> {
     pub(crate) fn new<T>(v: T) -> Self
@@ -28,14 +28,14 @@ impl<'path_lt> StdAssertFilePath<'path_lt> {
         Self::from(v.into().0)
     }
 }
-#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
 pub(crate) struct ExpectedFileContentRef<'content_lt>(&'content_lt str);
 impl<'content_lt> From<&'content_lt String> for ExpectedFileContentRef<'content_lt> {
     fn from(value: &'content_lt String) -> Self {
         Self(value.as_str())
     }
 }
-#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
 pub(crate) struct ExpectedFileContent<'content_lt>(&'content_lt str);
 impl<'content_lt> ExpectedFileContent<'content_lt> {
     pub(crate) fn new<T>(v: T) -> Self

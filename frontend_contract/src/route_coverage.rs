@@ -1,34 +1,34 @@
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RouteAccess {
     Authenticated,
     Public,
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RouteMutation {
     Mutating,
     ReadOnly,
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RouteDatabaseUsage {
     Database,
     None,
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RouteJsonBodyUsage {
     JsonBody,
     None,
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RouteResponseKind {
     Buffered,
     Streaming,
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct RouteTestCapabilities {
     database: RouteDatabaseUsage,
     json_body: RouteJsonBodyUsage,
@@ -50,7 +50,7 @@ impl RouteTestCapabilities {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RouteTestCategory {
     DatabaseFixture,
     FixtureHook,
@@ -59,7 +59,7 @@ pub enum RouteTestCategory {
     StreamingResponse,
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Default,
@@ -105,7 +105,7 @@ pub fn required_test_categories(capabilities: RouteTestCapabilities) -> RouteTes
     RouteTestCategories::from(bounded_types::BoundedVec::from_max_iter(categories))
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct RouteCoverageEvidence {
     obligations: &'static [RouteCoverageObligation],
 }
@@ -117,7 +117,7 @@ impl RouteCoverageEvidence {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct RouteCoverageDescriptor {
     evidence: RouteCoverageEvidence,
     metadata: crate::RouteMetadata,
@@ -146,7 +146,7 @@ impl RouteCoverageDescriptor {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RouteCoverageObligation {
     IntegrationFixture,
     OpenApiOperation,
@@ -179,7 +179,7 @@ pub const AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS: &[RouteCoverageObli
     RouteCoverageObligation::SecurityValidation,
 ];
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RouteCoverageError {
     DuplicateRoute {
         metadata: crate::RouteMetadata,

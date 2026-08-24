@@ -3,7 +3,7 @@
     reason = "converted query values intentionally replace borrowed inputs"
 )]
 
-#[derive(optml::Optml, Clone, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub(crate) enum AdminTableQueryDirection {
     #[cfg(target_arch = "wasm32")]
     Csr(Option<server_admin_contract::AdminText>),

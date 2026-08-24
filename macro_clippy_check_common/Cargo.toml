@@ -9,7 +9,7 @@ license.workspace = true
 edition.workspace = true
 
 [dependencies]
-optml = { workspace = true }
+optimal_memory_layout = { workspace = true }
 str_constants = { workspace = true, optional = true }
 macros_helpers = { workspace = true, optional = true }
 server_runtime_http = { workspace = true, optional = true }

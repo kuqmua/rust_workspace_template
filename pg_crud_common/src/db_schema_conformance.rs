@@ -4,14 +4,40 @@
 
 const DB_SCHEMA_TEXT_MAX_LEN: usize = 1_048_576usize;
 
-#[derive(optml::Optml, Clone, Debug, Eq, Ord, PartialEq, PartialOrd, newtype::BoundedString)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Eq,
+    Ord,
+    PartialEq,
+    PartialOrd,
+    newtype::BoundedString,
+)]
 #[bounded_string(max = DB_SCHEMA_TEXT_MAX_LEN)]
 pub struct DbSchemaText(String);
 
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::Display, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    newtype::Display,
+    newtype::FromInner,
+)]
 pub struct DbSchemaTextError(DbSchemaTextTryFromStringError);
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Ord,
+    PartialEq,
+    PartialOrd,
+    newtype::FromInner,
+)]
 pub struct DbColumnNullable(bool);
 
 pub trait PgColumnSchema {
@@ -21,15 +47,32 @@ pub trait PgColumnSchema {
 }
 
 #[derive(
-    optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::AsRefInner, newtype::FromInner,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::AsRefInner,
+    newtype::FromInner,
 )]
 pub struct DbStaticSchemaText(&'static str);
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Ord,
+    PartialEq,
+    PartialOrd,
+    newtype::FromInner,
+)]
 pub struct DbColumnHasServerDefault(bool);
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
-#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optml takes precedence over alphabetical field order
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
+#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
 pub struct DbColumnSpec {
     data_type: DbStaticSchemaText,
     name: DbStaticSchemaText,
@@ -37,7 +80,7 @@ pub struct DbColumnSpec {
     nullable: DbColumnNullable,
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Default,
@@ -50,7 +93,7 @@ pub struct DbColumnSpec {
 )]
 pub struct DbColumnSpecs(Vec<DbColumnSpec>);
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Default,
@@ -63,7 +106,7 @@ pub struct DbColumnSpecs(Vec<DbColumnSpec>);
 )]
 pub struct DbStaticSchemaTexts(Vec<DbStaticSchemaText>);
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Default,
@@ -76,7 +119,7 @@ pub struct DbStaticSchemaTexts(Vec<DbStaticSchemaText>);
 )]
 pub struct DbKeySpecs(Vec<DbKeySpec>);
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Default,
@@ -89,7 +132,7 @@ pub struct DbKeySpecs(Vec<DbKeySpec>);
 )]
 pub struct DbObjectSpecs(Vec<DbObjectSpec>);
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Default,
@@ -127,7 +170,7 @@ pub trait DbTableSchema {
     fn read_excluded_columns() -> DbStaticSchemaTexts;
     fn schema_table_text() -> DbStaticSchemaText;
 }
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct DbDefaultSpec {
     column: DbStaticSchemaText,
     expression: DbStaticSchemaText,
@@ -138,8 +181,8 @@ impl DbDefaultSpec {
         Self { column, expression }
     }
 }
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
-#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optml takes precedence over alphabetical field order
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
+#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
 pub struct DbObjectSpec {
     definition: DbStaticSchemaText,
     name: DbStaticSchemaText,
@@ -164,7 +207,7 @@ pub trait DbExtendedTableSchema: DbTableSchema {
     fn exact_defaults() -> DbDefaultSpecs;
 }
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub enum DbKeySpec {
     ForeignKey {
         columns: DbStaticSchemaTexts,
@@ -175,7 +218,9 @@ pub enum DbKeySpec {
     Unique(DbStaticSchemaTexts),
 }
 
-#[derive(optml::Optml, Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, Ord, PartialEq, PartialOrd,
+)]
 pub enum DbKeyContractSnapshot {
     ForeignKey {
         columns: DbSchemaTexts,
@@ -187,7 +232,7 @@ pub enum DbKeyContractSnapshot {
 }
 
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Default,
@@ -202,7 +247,7 @@ pub enum DbKeyContractSnapshot {
 )]
 pub struct DbSchemaTexts(Vec<DbSchemaText>);
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Default,
@@ -217,7 +262,7 @@ pub struct DbSchemaTexts(Vec<DbSchemaText>);
 )]
 pub struct DbColumnContractSnapshots(Vec<DbColumnContractSnapshot>);
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Default,
@@ -232,7 +277,7 @@ pub struct DbColumnContractSnapshots(Vec<DbColumnContractSnapshot>);
 )]
 pub struct DbKeyContractSnapshots(Vec<DbKeyContractSnapshot>);
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Default,
@@ -247,7 +292,7 @@ pub struct DbKeyContractSnapshots(Vec<DbKeyContractSnapshot>);
 )]
 pub struct DbColumnSnapshots(Vec<DbColumnSnapshot>);
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Default,
@@ -262,8 +307,10 @@ pub struct DbColumnSnapshots(Vec<DbColumnSnapshot>);
 )]
 pub struct DbObjectSnapshots(Vec<DbObjectSnapshot>);
 
-#[derive(optml::Optml, Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
-#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optml takes precedence over alphabetical field order
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, Ord, PartialEq, PartialOrd,
+)]
+#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
 pub struct DbColumnContractSnapshot {
     data_type: DbSchemaText,
     name: DbSchemaText,
@@ -287,16 +334,18 @@ impl DbColumnContractSnapshot {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 pub struct SqlxPgPoolRef<'value_lt>(&'value_lt sqlx::PgPool);
 
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 pub struct DbSchemaNameRef<'value_lt>(&'value_lt str);
 
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 pub struct DbTableNameRef<'value_lt>(&'value_lt str);
 
-#[derive(optml::Optml, Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, Ord, PartialEq, PartialOrd,
+)]
 pub struct DbColumnSnapshot {
     data_type: DbSchemaText,
     default: Option<DbSchemaText>,
@@ -320,7 +369,9 @@ impl DbColumnSnapshot {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd,
+)]
 pub enum DbObjectKind {
     Check,
     Default,
@@ -334,8 +385,10 @@ pub enum DbObjectKind {
     View,
 }
 
-#[derive(optml::Optml, Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
-#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optml takes precedence over alphabetical field order
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, Ord, PartialEq, PartialOrd,
+)]
+#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
 pub struct DbObjectSnapshot {
     definition: DbSchemaText,
     name: DbSchemaText,
@@ -352,13 +405,13 @@ impl DbObjectSnapshot {
     }
 }
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct DbTableSnapshot {
     columns: DbColumnSnapshots,
     objects: DbObjectSnapshots,
 }
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct DbCatalogSnapshot {
     objects: DbObjectSnapshots,
 }
@@ -378,10 +431,12 @@ impl DbTableSnapshot {
     }
 }
 
-#[derive(optml::Optml, Debug, newtype::FromInner, newtype::Display)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner, newtype::Display,
+)]
 pub struct SqlxDbSchemaInspectionError(sqlx::Error);
 
-#[derive(optml::Optml, Debug, thiserror::Error)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum DbSchemaConformanceError {
     #[error("PostgreSQL catalog differs from the expected snapshot")]
     CatalogMismatch {

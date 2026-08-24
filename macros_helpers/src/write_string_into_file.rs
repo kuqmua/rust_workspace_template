@@ -1,13 +1,43 @@
-#[derive(optml::Optml, Debug, Clone, PartialEq, Eq, newtype::AsRefTarget, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    newtype::AsRefTarget,
+    newtype::FromInner,
+)]
 pub struct StdWrittenFilePath(std::path::PathBuf);
-#[derive(optml::Optml, Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    newtype::AsRefInner,
+    newtype::FromInner,
+)]
 pub struct StdWrittenFilePathRef<'path_lt>(&'path_lt std::path::Path);
-#[derive(optml::Optml, Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    newtype::AsRefInner,
+    newtype::FromInner,
+)]
 pub struct StringFileContentRef<'cnt_lt>(&'cnt_lt str);
-#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    newtype::FromInner,
+)]
 struct GeneratedFileMaximumBytes(usize);
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     Copy,
@@ -18,7 +48,7 @@ struct GeneratedFileMaximumBytes(usize);
     newtype::NotInner,
 )]
 pub struct ShouldWriteString(bool);
-#[derive(optml::Optml, Debug, Clone, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, PartialEq, Eq)]
 pub enum WritePathOutcome {
     Changed(StdWrittenFilePath),
     Unchanged(StdWrittenFilePath),

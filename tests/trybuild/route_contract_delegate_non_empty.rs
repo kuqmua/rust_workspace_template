@@ -1,4 +1,4 @@
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct DelegateInput;
 
 async fn delegate(value: DelegateInput) -> Result<(), DelegateError> {
@@ -6,7 +6,7 @@ async fn delegate(value: DelegateInput) -> Result<(), DelegateError> {
     Ok(())
 }
 
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[derive(Debug)]
 struct DelegateError;
 

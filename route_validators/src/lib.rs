@@ -4,7 +4,15 @@ pub mod hdr_val;
 #[cfg(test)]
 pub(crate) mod test_hlp;
 //todo request per second middleware
-#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    newtype::FromInner,
+)]
 pub struct AxumHttpStatusCode(axum::http::StatusCode);
 impl AxumHttpStatusCode {
     #[must_use]
@@ -29,7 +37,7 @@ pub trait GetAxumHttpStatusCode {
 }
 #[cfg(test)]
 mod tests {
-    #[derive(optml::Optml)]
+    #[derive(optimal_memory_layout::OptimalMemoryLayout)]
     struct TestError;
     impl super::GetAxumHttpStatusCode for TestError {
         fn get_axum_http_status_code(&self) -> super::AxumHttpStatusCode {

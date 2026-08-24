@@ -34,9 +34,8 @@ members = [
   "notification_service",
   "notification_service_config",
   "notification_service_contract",
-  "optml",
+  "optimal_memory_layout",
   "panic_location",
-  "pg_crud",
   "pg_crud_common",
   "pg_crud_common_macros",
   "pg_crud_macros_common",
@@ -45,7 +44,6 @@ members = [
   "pg_crud_pg_table_generate",
   "pg_crud_pg_table_generate_src",
   "pg_crud_pg_table_generate_test",
-  "pg_crud_pg_types",
   "pg_crud_pg_types_chrono_net",
   "pg_crud_pg_types_common",
   "pg_crud_pg_types_generate",
@@ -336,15 +334,13 @@ newtype = { path = "./newtype" }
 notification_service = { path = "./notification_service" }
 notification_service_config = { path = "./notification_service_config" }
 notification_service_contract = { path = "./notification_service_contract" }
-optml = { path = "./optml" }
+optimal_memory_layout = { path = "./optimal_memory_layout" }
 panic_location = { path = "./panic_location" }
-pg_crud = { path = "./pg_crud" }
 pg_crud_common = { path = "./pg_crud_common" }
 pg_crud_common_macros = { path = "./pg_crud_common_macros" }
 pg_crud_macros_common = { path = "./pg_crud_macros_common" }
 pg_crud_macros_common_macros = { path = "./pg_crud_macros_common_macros" }
 pg_table = { path = "./pg_crud_pg_table" }
-pg_types = { path = "./pg_crud_pg_types" }
 pg_types_chrono_net = { path = "./pg_crud_pg_types_chrono_net" }
 pg_types_common = { path = "./pg_crud_pg_types_common" }
 pg_types_numeric = { path = "./pg_crud_pg_types_numeric" }

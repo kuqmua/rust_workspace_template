@@ -1,9 +1,20 @@
 const SERDE_PREALLOC_MAX_ITEMS: usize = 1024usize;
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::Display, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::Display,
+    newtype::FromInner,
+)]
 pub struct UniqueVecLen(usize);
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 pub enum UniqueVecError {
     #[error("{} {max}", str_constants::BOUNDED_UNIQUE_VEC_ABOVE_MAX)]
     AboveMax { max: UniqueVecLen },
@@ -21,7 +32,15 @@ pub enum UniqueVecError {
     },
 }
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, serde::Serialize, newtype::AsRefTarget)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    serde::Serialize,
+    newtype::AsRefTarget,
+)]
 #[serde(transparent)]
 pub struct BoundedUniqueVec<T, const MIN: usize, const MAX: usize>(Vec<T>);
 impl<T: PartialEq, const MIN: usize, const MAX: usize> TryFrom<Vec<T>>
@@ -43,7 +62,7 @@ impl<T: PartialEq, const MIN: usize, const MAX: usize> TryFrom<Vec<T>>
     }
 }
 
-#[derive(optml::Optml, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
 struct StdBoundedUniqueVecVisitor<T, const MIN: usize, const MAX: usize>(
     std::marker::PhantomData<T>,
 );

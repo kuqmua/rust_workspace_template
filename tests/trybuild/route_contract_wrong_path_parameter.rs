@@ -1,4 +1,4 @@
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct ParameterizedTestRoute;
 
 impl frontend_contract::TypedRoute for ParameterizedTestRoute {

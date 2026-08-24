@@ -1,7 +1,7 @@
 const COMMIT_HEADER_NAME: axum::http::HeaderName =
     axum::http::HeaderName::from_static(str_constants::ROUTE_VALIDATORS_COMMIT_HEADER_NAME);
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     Copy,
@@ -12,7 +12,7 @@ const COMMIT_HEADER_NAME: axum::http::HeaderName =
 )]
 pub struct CommitNotEqMessage(&'static str);
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     Copy,
@@ -23,7 +23,7 @@ pub struct CommitNotEqMessage(&'static str);
 )]
 pub struct CommitToUse(&'static str);
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     Copy,
@@ -33,11 +33,23 @@ pub struct CommitToUse(&'static str);
     newtype::FromInner,
 )]
 pub struct NoCommitHeaderMessage(&'static str);
-#[derive(optml::Optml, Debug, newtype::ToErrString, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::ToErrString, newtype::FromInner,
+)]
 pub struct AxumCommitToStrConversionError(axum::http::header::ToStrError);
-#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    newtype::FromInner,
+)]
 pub struct EnableApiGitCommitCheck(bool);
-#[derive(Debug, thiserror::Error, location::Location, optml::Optml)]
+#[derive(
+    Debug, thiserror::Error, location::Location, optimal_memory_layout::OptimalMemoryLayout,
+)]
 pub enum CommitError {
     CommitNotEq {
         #[eo_to_err_string]

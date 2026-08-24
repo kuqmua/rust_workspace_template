@@ -3,11 +3,13 @@
     Clone,
     Copy,
     generate_getter_traits_for_struct_fields::GenerateGetterTrait,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     newtype::DerefInner,
 )]
 pub struct MaximumSizeOfHttpBodyInBytes(usize);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error, optml::Optml)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, thiserror::Error, optimal_memory_layout::OptimalMemoryLayout,
+)]
 pub enum MaximumSizeOfHttpBodyInBytesTryFromUsizeError {
     #[error("maximum size of http body in bytes must be greater than zero")]
     IsZero,
@@ -22,7 +24,7 @@ impl TryFrom<usize> for MaximumSizeOfHttpBodyInBytes {
         }
     }
 }
-#[derive(Debug, thiserror::Error, optml::Optml)]
+#[derive(Debug, thiserror::Error, optimal_memory_layout::OptimalMemoryLayout)]
 pub enum TryFromStdEnvVarOkMaximumSizeOfHttpBodyInBytesError {
     #[error("{maximum_size_of_http_body_in_bytes:?}")]
     MaximumSizeOfHttpBodyInBytes {
@@ -49,9 +51,13 @@ impl super::TryFromStdEnvVarOk for MaximumSizeOfHttpBodyInBytes {
         })
     }
 }
-#[derive(optml::Optml, Debug, Clone, PartialEq, Eq, newtype::AsRefOwned)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, PartialEq, Eq, newtype::AsRefOwned,
+)]
 pub struct ContentSecurityPolicy(String);
-#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq, thiserror::Error,
+)]
 pub enum ContentSecurityPolicyError {
     #[error("content security policy must not be empty")]
     Empty,

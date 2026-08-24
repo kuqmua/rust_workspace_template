@@ -1,5 +1,5 @@
 #![allow(clippy::field_scoped_visibility_modifiers)] // sibling domain modules require raw representations while facade reexports must keep fields externally private
-#[derive(optml::Optml, newtype::AsRefOwned, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::AsRefOwned, newtype::FromInner)]
 pub struct SecrecyAdminString(secrecy::SecretBox<StdAdminString>);
 
 impl std::fmt::Debug for SecrecyAdminString {
@@ -21,7 +21,7 @@ impl secrecy::ExposeSecret<StdAdminString> for SecrecyAdminString {
     }
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     PartialEq,
@@ -40,7 +40,7 @@ impl secrecy::zeroize::Zeroize for StdAdminString {
         secrecy::zeroize::Zeroize::zeroize(&mut self.0);
     }
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 enum AdminResourceText {
     PositiveI64(server_admin_contract::StdAdminPositiveI64),
     SystemSettings,
@@ -72,7 +72,7 @@ impl StdAdminString {
     }
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     Copy,
@@ -90,7 +90,7 @@ impl<'value_lt> StdAdminStrRef<'value_lt> {
     }
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     Copy,
@@ -109,7 +109,14 @@ impl StdAdminBool {
     }
 }
 #[derive(
-    optml::Optml, Debug, Clone, Copy, PartialEq, Eq, newtype::DerefInner, newtype::FromInner,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    newtype::DerefInner,
+    newtype::FromInner,
 )]
 pub struct StdAdminNonZeroUsize(std::num::NonZeroUsize);
 impl StdAdminNonZeroUsize {
@@ -119,7 +126,7 @@ impl StdAdminNonZeroUsize {
     }
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     Copy,
@@ -149,7 +156,14 @@ impl utoipa::PartialSchema for UuidAdminValue {
 }
 impl utoipa::ToSchema for UuidAdminValue {}
 #[derive(
-    optml::Optml, Debug, Clone, Copy, PartialEq, Eq, newtype::AsRefOwned, newtype::FromInner,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    newtype::AsRefOwned,
+    newtype::FromInner,
 )]
 pub struct StdAdminSocketAddr(std::net::SocketAddr);
 impl StdAdminSocketAddr {
@@ -159,7 +173,7 @@ impl StdAdminSocketAddr {
     }
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     Copy,
@@ -194,7 +208,7 @@ impl AdminUserId {
     }
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     Copy,
@@ -229,7 +243,7 @@ impl AdminRoleId {
     }
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     Copy,
@@ -264,7 +278,7 @@ impl AdminPermissionId {
     }
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     Copy,
@@ -293,10 +307,20 @@ impl AdminAuditLogId {
         self.0
     }
 }
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 #[error("{self:?}")]
 pub struct AdminIdTryFromI64Error;
-#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    newtype::FromInner,
+)]
 pub struct AdminPermissionName(server_admin_contract::AdminPermission);
 
 #[cfg(test)]

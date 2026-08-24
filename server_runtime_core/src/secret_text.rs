@@ -1,7 +1,9 @@
 const SECRET_TEXT_MAXIMUM_BYTES: usize = 8192usize;
 const SECRET_TEXT_MINIMUM_BYTES: usize = 16usize;
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 pub enum BoundedSecretTextError {
     #[error("secret text length is outside the allowed range")]
     InvalidLength,
@@ -11,7 +13,9 @@ pub enum BoundedSecretTextError {
     SurroundingWhitespace,
 }
 
-#[derive(optml::Optml, Clone, Eq, PartialEq, newtype::DisplayConst)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Eq, PartialEq, newtype::DisplayConst,
+)]
 #[display_const(str_constants::REDACTED_ALT_3)]
 pub struct BoundedSecretText(String);
 impl TryFrom<String> for BoundedSecretText {
@@ -39,7 +43,7 @@ impl std::fmt::Debug for BoundedSecretText {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
 pub struct SecretTextRef<'value_lt>(&'value_lt str);
 impl<'value_lt> TryFrom<&'value_lt str> for SecretTextRef<'value_lt> {
     type Error = BoundedSecretTextError;
@@ -66,7 +70,7 @@ impl<'value_lt> From<&'value_lt BoundedSecretText> for SecretTextRef<'value_lt> 
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum SecretTextMatch {
     Different,
     Equal,

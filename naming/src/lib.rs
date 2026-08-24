@@ -476,9 +476,9 @@ naming_macros::generate_upper_camel_case_and_snake_case_str_and_token_stream!([
     ["v"],
     ["not", "uuid"]
 ]);
-#[derive(Debug, Clone, Copy, optml::Optml)]
+#[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout)]
 pub struct HashMap;
-#[derive(Debug, Clone, Copy, optml::Optml)]
+#[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout)]
 pub struct HashMapUpperCamelCase;
 impl std::fmt::Display for HashMapUpperCamelCase {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -490,7 +490,7 @@ impl quote::ToTokens for HashMapUpperCamelCase {
         quote::quote! {HashMap}.to_tokens(tokens);
     }
 }
-#[derive(Debug, Clone, Copy, optml::Optml)]
+#[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout)]
 pub struct HashMapSnakeCase;
 impl std::fmt::Display for HashMapSnakeCase {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -504,11 +504,22 @@ impl quote::ToTokens for HashMapSnakeCase {
 }
 pub trait DisplayPlusToTokens: std::fmt::Display + quote::ToTokens {}
 impl<T> DisplayPlusToTokens for T where T: std::fmt::Display + quote::ToTokens {}
-#[derive(optml::Optml, Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    newtype::AsRefInner,
+    newtype::FromInner,
+)]
 pub struct SwaggerUrlPathPrefix<'prefix_lt>(&'prefix_lt str);
-#[derive(optml::Optml, Debug, Clone, newtype::AsRefStr, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, newtype::AsRefStr, newtype::FromInner,
+)]
 pub struct SwaggerUrlPathSelfQuotesStrValue(generate_quotes::QuotedLiteral);
-#[derive(optml::Optml, Debug, Clone, newtype::FromInner, newtype::ToTokens)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, newtype::FromInner, newtype::ToTokens,
+)]
 pub struct SwaggerUrlPathSelfQuotesTokenStreamValue(
     generate_quotes::ProcMacro2QuotedLiteralTokenStream,
 );

@@ -6,7 +6,7 @@
     reason = "policy visitors stay grouped with their invariant, repository policy requires iterator methods, and syn non-exhaustive enums require fallback handling"
 )]
 
-#[derive(optml::Optml, Default)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct AwaitVisitor {
     found: super::types::AnalyzerBool,
 }
@@ -17,7 +17,7 @@ impl<'ast> syn::visit::Visit<'ast> for AwaitVisitor {
     }
 }
 
-#[derive(optml::Optml, Default)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct LockAcrossAwaitVisitor {
     violations: super::types::DiagnosticMsgs,
 }
@@ -109,7 +109,7 @@ fn dropped_identifier(statement: &syn::Stmt) -> Option<super::types::SourceText>
         .flatten()
 }
 
-#[derive(optml::Optml, Default)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct LeakApiVisitor {
     violations: super::types::DiagnosticMsgs,
 }
@@ -156,7 +156,7 @@ impl<'ast> syn::visit::Visit<'ast> for LeakApiVisitor {
     }
 }
 
-#[derive(optml::Optml, Default)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct SpawnConsumptionVisitor {
     consumed: super::types::StdSourceTextSet,
 }
@@ -224,7 +224,7 @@ impl<'ast> syn::visit::Visit<'ast> for SpawnConsumptionVisitor {
     }
 }
 
-#[derive(optml::Optml, Default)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct SpawnLifecycleVisitor {
     violations: super::types::DiagnosticMsgs,
 }
@@ -257,7 +257,7 @@ impl<'ast> syn::visit::Visit<'ast> for SpawnLifecycleVisitor {
     }
 }
 
-#[derive(optml::Optml, Default)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct RouteLiteralVisitor {
     violations: super::types::DiagnosticMsgs,
 }
@@ -327,7 +327,7 @@ impl<'ast> syn::visit::Visit<'ast> for RouteLiteralVisitor {
     }
 }
 
-#[derive(optml::Optml, Default)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct SelectMacroVisitor {
     count: super::types::AnalyzerCount,
     unsafe_operations: super::types::DiagnosticMsgs,
@@ -374,7 +374,7 @@ impl<'ast> syn::visit::Visit<'ast> for SelectMacroVisitor {
     }
 }
 
-#[derive(optml::Optml, Default)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct ExpressionPathVisitor {
     paths: super::types::SourceTextList,
 }
@@ -389,7 +389,7 @@ impl<'ast> syn::visit::Visit<'ast> for ExpressionPathVisitor {
     }
 }
 
-#[derive(optml::Optml, Default)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct IgnoredMapErrBindingVisitor {
     entries: super::types::DiagnosticMsgs,
 }
@@ -427,7 +427,7 @@ impl<'ast> syn::visit::Visit<'ast> for IgnoredMapErrBindingVisitor {
     }
 }
 
-#[derive(optml::Optml, Default)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct RawVecTupleWrapperVisitor {
     identifiers: super::types::SourceTextList,
 }
@@ -449,7 +449,7 @@ impl<'ast> syn::visit::Visit<'ast> for RawVecTupleWrapperVisitor {
     }
 }
 
-#[derive(optml::Optml, Default)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct UsizeMaxExprVisitor {
     count: super::types::AnalyzerCount,
 }
@@ -481,7 +481,7 @@ impl<'ast> syn::visit::Visit<'ast> for UsizeMaxExprVisitor {
     }
 }
 
-#[derive(optml::Optml, Default)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct SharedDispatchVisitor {
     arc_types: super::types::AnalyzerCount,
     lock_types: super::types::AnalyzerCount,
@@ -504,7 +504,7 @@ impl<'ast> syn::visit::Visit<'ast> for SharedDispatchVisitor {
     }
 }
 
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct PublicApiVisitor {
     entries: super::types::SourceTextList,
     lines: super::types::SourceTextList,
@@ -728,7 +728,7 @@ impl<'ast> syn::visit::Visit<'ast> for PublicApiVisitor {
     }
 }
 
-#[derive(optml::Optml, Default)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct StructErrorVisitor {
     identifiers: super::types::SourceTextList,
 }
@@ -747,7 +747,7 @@ impl<'ast> syn::visit::Visit<'ast> for StructErrorVisitor {
     }
 }
 
-#[derive(optml::Optml, Default)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct LoopAllocationVisitor {
     depth: super::types::AnalyzerCount,
     entries: super::types::DiagnosticMsgs,
@@ -1152,7 +1152,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "optml/src/lib.rs",
+            "optimal_memory_layout/src/lib.rs",
             (
                 0,
                 0,

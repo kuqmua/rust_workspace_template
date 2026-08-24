@@ -1,26 +1,26 @@
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct RsSourceFile {
     ast: super::types::SynFile,
     content: super::types::SourceText,
     path: super::types::StdPathBuf,
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct ProjectSourceFile {
     content: super::types::SourceText,
     path: super::types::StdPathBuf,
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct CargoTomlSourceFile {
     content: super::types::SourceText,
     parsed: super::types::TomlTable,
     path: super::types::StdPathBuf,
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct CodebaseSnapshot {
     rs_files: Vec<RsSourceFile>,
     source: std::sync::Arc<CodebaseSourceSnapshot>,
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct CodebaseSourceSnapshot {
     cargo_toml_by_path:
         std::collections::BTreeMap<super::types::StdPathBuf, super::types::CargoTomlFileIdx>,

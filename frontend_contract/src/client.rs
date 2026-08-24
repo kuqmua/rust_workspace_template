@@ -1,4 +1,4 @@
-#[derive(optml::Optml, Clone, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub struct TypedClient<Transport> {
     path_prefix: crate::TransportPath,
     transport: Transport,
@@ -118,15 +118,29 @@ fn form_value_error(error: impl std::fmt::Display) -> crate::FormValueError {
 
 #[cfg(test)]
 mod tests {
-    #[derive(optml::Optml, Clone, Debug, serde::Deserialize, serde::Serialize)]
+    #[derive(
+        optimal_memory_layout::OptimalMemoryLayout,
+        Clone,
+        Debug,
+        serde::Deserialize,
+        serde::Serialize,
+    )]
     struct Request {
         value: u64,
     }
-    #[derive(optml::Optml, Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+    #[derive(
+        optimal_memory_layout::OptimalMemoryLayout,
+        Clone,
+        Debug,
+        Eq,
+        PartialEq,
+        serde::Deserialize,
+        serde::Serialize,
+    )]
     struct Response {
         value: u64,
     }
-    #[derive(optml::Optml, Clone, Debug, serde::Deserialize)]
+    #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, serde::Deserialize)]
     struct FailingRequest;
     impl serde::Serialize for FailingRequest {
         fn serialize<Serializer>(
@@ -139,11 +153,17 @@ mod tests {
             Err(serde::ser::Error::custom("request serialization failed"))
         }
     }
-    #[derive(optml::Optml, Clone, Debug, serde::Deserialize, serde::Serialize)]
+    #[derive(
+        optimal_memory_layout::OptimalMemoryLayout,
+        Clone,
+        Debug,
+        serde::Deserialize,
+        serde::Serialize,
+    )]
     struct LargeRequest {
         value: String,
     }
-    #[derive(optml::Optml, Clone, Copy, Debug)]
+    #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
     struct Route;
     impl crate::TypedRoute for Route {
         type Request = Request;
@@ -164,7 +184,7 @@ mod tests {
             crate::RouteRequestBody::Json
         }
     }
-    #[derive(optml::Optml, Clone, Copy, Debug)]
+    #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
     struct CreatedRoute;
     impl crate::TypedRoute for CreatedRoute {
         type Request = Request;
@@ -185,7 +205,7 @@ mod tests {
             crate::RouteRequestBody::Json
         }
     }
-    #[derive(optml::Optml, Clone, Copy, Debug)]
+    #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
     struct FailingRequestRoute;
     impl crate::TypedRoute for FailingRequestRoute {
         type Request = FailingRequest;
@@ -202,7 +222,7 @@ mod tests {
             crate::RouteRequestBody::Json
         }
     }
-    #[derive(optml::Optml, Clone, Copy, Debug)]
+    #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
     struct LargeRequestRoute;
     impl crate::TypedRoute for LargeRequestRoute {
         type Request = LargeRequest;
@@ -220,10 +240,17 @@ mod tests {
         }
     }
     #[derive(
-        optml::Optml, Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize,
+        optimal_memory_layout::OptimalMemoryLayout,
+        Clone,
+        Copy,
+        Debug,
+        Eq,
+        PartialEq,
+        serde::Deserialize,
+        serde::Serialize,
     )]
     struct NoBody;
-    #[derive(optml::Optml, Clone, Copy, Debug)]
+    #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
     struct NoContentRoute;
     impl crate::TypedRoute for NoContentRoute {
         type Request = NoBody;
@@ -241,7 +268,7 @@ mod tests {
             )
         }
     }
-    #[derive(optml::Optml, Clone, Copy, Debug)]
+    #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
     struct EmptyOkRoute;
     impl crate::TypedRoute for EmptyOkRoute {
         type Request = NoBody;
@@ -264,12 +291,12 @@ mod tests {
             }
         }
     }
-    #[derive(optml::Optml, Clone)]
+    #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone)]
     struct TestTransport {
         expected: ExpectedRequest,
         response: Result<crate::TransportResponse, crate::TransportError>,
     }
-    #[derive(optml::Optml, Clone)]
+    #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone)]
     enum ExpectedRequest {
         BodyLen(crate::TransportPath, usize),
         Empty(crate::TransportPath),

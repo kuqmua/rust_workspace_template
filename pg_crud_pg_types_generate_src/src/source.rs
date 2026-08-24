@@ -2,7 +2,7 @@
 const GENERATE_PG_TYPES_MAX_LEN: usize = 128usize;
 
 #[allow(clippy::arbitrary_source_item_ordering)]
-#[derive(Debug, strum_macros::Display, optml::Optml)]
+#[derive(Debug, strum_macros::Display, optimal_memory_layout::OptimalMemoryLayout)]
 enum RustTypeName {
     I16,
     I32,
@@ -58,7 +58,7 @@ impl From<&PgType> for RustTypeName {
     }
 }
 #[allow(clippy::arbitrary_source_item_ordering)]
-#[derive(Debug, strum_macros::Display, optml::Optml)]
+#[derive(Debug, strum_macros::Display, optimal_memory_layout::OptimalMemoryLayout)]
 enum PgTypeName {
     Int2,
     Int4,
@@ -131,7 +131,7 @@ impl From<&PgType> for PgTypeName {
     serde::Deserialize,
     strum_macros::Display,
     strum_macros::EnumIter,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
 )]
 enum PgType {
     I16AsInt2,
@@ -163,7 +163,7 @@ enum PgType {
     SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange,
     SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange,
 }
-#[derive(optml::Optml, Clone, Copy)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
 enum WireKind {
     Bool,
     Bytes,
@@ -188,7 +188,7 @@ enum WireKind {
     TimestampTz,
     Uuid,
 }
-#[derive(optml::Optml, Clone, Copy)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
 enum FilterKind {
     Bool,
     Bytes,
@@ -204,12 +204,19 @@ enum FilterKind {
     TimestampTz,
     Uuid,
 }
-#[derive(optml::Optml, Clone, Copy)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
 enum CanBePrimaryKey {
     False,
     True,
 }
-#[derive(optml::Optml, Clone, Copy, newtype::AsRefInner, newtype::FromInner, newtype::ToTokens)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    newtype::AsRefInner,
+    newtype::FromInner,
+    newtype::ToTokens,
+)]
 struct PgSqlName(&'static str);
 impl PgType {
     fn can_be_nullable(self) -> CanBeNullable {
@@ -420,7 +427,7 @@ impl PgType {
         }
     }
 }
-#[derive(optml::Optml, Clone, Copy)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
 enum CanBeNullable {
     False,
     True,
@@ -445,7 +452,7 @@ impl From<&Range> for PgType {
         }
     }
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[allow(clippy::arbitrary_source_item_ordering)]
 enum Range {
     I32AsInt4,
@@ -514,7 +521,7 @@ impl quote::ToTokens for Range {
     serde::Deserialize,
     strum_macros::Display,
     strum_macros::EnumIter,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
 )]
 enum PgTypePattern {
     Standard,
@@ -529,7 +536,7 @@ enum PgTypePattern {
     std::hash::Hash,
     serde::Serialize,
     serde::Deserialize,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
 )]
 #[serde(try_from = "PgTypeRecordRaw")]
 struct PgTypeRecord {
@@ -538,7 +545,7 @@ struct PgTypeRecord {
     pg_type_pattern: PgTypePattern,
 }
 #[allow(clippy::arbitrary_source_item_ordering)]
-#[derive(Debug, serde::Deserialize, optml::Optml)]
+#[derive(Debug, serde::Deserialize, optimal_memory_layout::OptimalMemoryLayout)]
 struct PgTypeRecordRaw {
     pg_type: PgType,
     is_nullable: pg_crud_macros_common::IsNullable,
@@ -567,13 +574,23 @@ impl TryFrom<PgTypeRecordRaw> for PgTypeRecord {
         }
     }
 }
-#[derive(optml::Optml, Debug, newtype::DerefTarget, newtype::IntoInnerFrom, serde::Deserialize)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    newtype::DerefTarget,
+    newtype::IntoInnerFrom,
+    serde::Deserialize,
+)]
 #[serde(try_from = "Vec<PgTypeRecord>")]
 struct GeneratePgTypeRecords(Vec<PgTypeRecord>);
-#[derive(optml::Optml, Debug, newtype::DerefTarget, serde::Deserialize)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::DerefTarget, serde::Deserialize,
+)]
 #[serde(try_from = "Vec<PgType>")]
 struct GeneratePgTypes(Vec<PgType>);
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 #[error("{self:?}")]
 struct GeneratePgTypesLengthError;
 impl TryFrom<Vec<PgTypeRecord>> for GeneratePgTypeRecords {
@@ -598,19 +615,21 @@ impl TryFrom<Vec<PgType>> for GeneratePgTypes {
         }
     }
 }
-#[derive(Debug, serde::Deserialize, optml::Optml)]
+#[derive(Debug, serde::Deserialize, optimal_memory_layout::OptimalMemoryLayout)]
 enum GeneratePgTypesConfigVariant {
     All,
     Concrete(GeneratePgTypeRecords),
     Subset(GeneratePgTypes),
 }
-#[derive(optml::Optml, Clone, Copy, Debug, Default, serde::Deserialize)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Default, serde::Deserialize,
+)]
 #[serde(from = "bool")]
 #[derive(newtype::FromInner)]
 struct GenerateSecretText(bool);
 
 #[allow(clippy::arbitrary_source_item_ordering)]
-#[derive(Debug, serde::Deserialize, optml::Optml)]
+#[derive(Debug, serde::Deserialize, optimal_memory_layout::OptimalMemoryLayout)]
 struct GeneratePgTypesConfig {
     variant: GeneratePgTypesConfigVariant,
     pg_table_cols_write_into_file: macros_helpers::ts_writer::ShouldWriteTokenStreamIntoFile,
@@ -619,7 +638,7 @@ struct GeneratePgTypesConfig {
     generate_secret_text: GenerateSecretText,
 }
 #[allow(clippy::arbitrary_source_item_ordering)]
-#[derive(Debug, optml::Optml)]
+#[derive(Debug, optimal_memory_layout::OptimalMemoryLayout)]
 enum PgTypeInitializationTryNew {
     F64AsFloat8,
     StringAsText,
@@ -687,7 +706,7 @@ impl From<&PgTypeInitializationTryNew> for PgType {
     }
 }
 #[allow(clippy::arbitrary_source_item_ordering)]
-#[derive(Debug, optml::Optml)]
+#[derive(Debug, optimal_memory_layout::OptimalMemoryLayout)]
 enum PgTypeImplTryNewForDe {
     StringAsText,
     SqlxTypesChronoNaiveTimeAsTime,
@@ -698,12 +717,12 @@ enum PgTypeImplTryNewForDe {
     SqlxTypesUuidUuidAsUuidV4InitializationByPg,
     SqlxTypesUuidUuidAsUuidInitializationByClient,
 }
-#[derive(Debug, optml::Optml)]
+#[derive(Debug, optimal_memory_layout::OptimalMemoryLayout)]
 enum PgTypeImplNewForDeserializeOrTryNewForDe {
     NewForDeserialize,
     TryNewForDe(PgTypeImplTryNewForDe),
 }
-#[derive(Debug, optml::Optml)]
+#[derive(Debug, optimal_memory_layout::OptimalMemoryLayout)]
 enum PgTypeDeserialize {
     Derive,
     ImplNewForDeserializeOrTryNewForDe(PgTypeImplNewForDeserializeOrTryNewForDe),
@@ -741,21 +760,28 @@ impl From<&PgType> for PgTypeDeserialize {
             }
     }
 }
-#[derive(optml::Optml, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
 pub struct ParsedGeneratePgTypesConfig(GeneratePgTypesConfig);
 
-#[derive(optml::Optml, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 pub struct BuiltGeneratePgTypesModel {
     config: GeneratePgTypesConfig,
     entry_count: PgTypesModelEntryCount,
 }
-#[derive(optml::Optml, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 pub struct ValidatedGeneratePgTypesConfig {
     config: GeneratePgTypesConfig,
     entry_count: PgTypesModelEntryCount,
 }
 #[derive(
-    optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
 )]
 pub struct PgTypesModelEntryCount(usize);
 impl ValidatedGeneratePgTypesConfig {
@@ -764,11 +790,13 @@ impl ValidatedGeneratePgTypesConfig {
         self.entry_count
     }
 }
-#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
+)]
 #[error(transparent)]
 pub struct SerdeJsonGeneratePgTypesError(serde_json::Error);
 
-#[derive(optml::Optml, Debug, thiserror::Error)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum GeneratePgTypesPipelineError {
     #[error("{0}")]
     Parse(SerdeJsonGeneratePgTypesError),
@@ -1002,27 +1030,27 @@ pub fn emit_generate_pg_types(
     .into_iter()
     .enumerate()
     .map(|(i, element)| {
-        #[derive(optml::Optml)]
+        #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 enum PgTypeOrPgTypeTestCases {
             PgType,
             PgTypeTestCases,
         }
-        #[derive(optml::Optml)]
+        #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 enum IsNonNullStandardCanBePrimaryKey {
             False,
             True,
         }
-        #[derive(optml::Optml)]
+        #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 enum StartOrEnd {
             End,
             Start,
         }
-        #[derive(optml::Optml)]
+        #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 enum ShouldImplFrom {
             False,
             True,
         }
-        #[derive(optml::Optml)]
+        #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 enum IntRangeType {
             SqlxPgTypesPgRangeI32AsInt4Range,
             SqlxPgTypesPgRangeI64AsInt8Range,
@@ -1483,7 +1511,7 @@ enum IntRangeType {
             }
         };
         let (ser_derive_or_impl, de_derive_or_impl) = if matches!(&is_standard_non_null, pg_crud_macros_common::IsStandardNonNull::True) {
-            #[derive(optml::Optml)]
+            #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[allow(clippy::arbitrary_source_item_ordering)]
             enum ParameterNumber {
                 Two,
@@ -1660,7 +1688,7 @@ enum IntRangeType {
                             }
                         }))),
                         PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp => pg_crud_macros_common::DeriveOrImpl::Impl(macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(generate_impl_ser_for_identifier_standard_non_null_origin_tokens(&{
-                            #[derive(optml::Optml)]
+                            #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 enum DateOrTime {
                                 Date,
                                 Time,
@@ -1695,7 +1723,7 @@ enum DateOrTime {
                             }
                         }))),
                         PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz => pg_crud_macros_common::DeriveOrImpl::Impl(macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(generate_impl_ser_for_identifier_standard_non_null_origin_tokens(&{
-                            #[derive(optml::Optml)]
+                            #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 enum DateNaiveOrTime {
                                 Date,
                                 Time,
@@ -1907,7 +1935,7 @@ enum DateNaiveOrTime {
             let maybe_impl_identifier_token_stream = if matches!(&pg_type_pattern, PgTypePattern::Standard) &&
                 matches!(&is_nullable, pg_crud_macros_common::IsNullable::False)
             {
-                #[derive(optml::Optml)]
+                #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 enum IsConst {
                     False,
                     True,
@@ -4482,7 +4510,7 @@ enum IsConst {
             )
         };
         let impl_pg_type_test_cases_for_identifier_token_stream = {
-            #[derive(optml::Optml)]
+            #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 enum IsNeedToUseInto {
                 False,
                 True,
@@ -4501,7 +4529,7 @@ enum IsNeedToUseInto {
             let generate_standard_non_null_test_case_handle_token_stream = |is_need_to_use_into: &IsNeedToUseInto| {
                 let generate_range_read_ids_to_2_dimensions_vec_read_inner_token_stream =
                     |min_token_stream: &dyn quote::ToTokens, negative_less_typical_token_stream: &dyn quote::ToTokens, negative_more_typical_token_stream: &dyn quote::ToTokens, near_zero_token_stream: &dyn quote::ToTokens, positive_less_typical_token_stream: &dyn quote::ToTokens, positive_more_typical_token_stream: &dyn quote::ToTokens, max_token_stream: &dyn quote::ToTokens| {
-                        #[derive(optml::Optml)]
+                        #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 enum Bnd<'lt> {
                             Excl(&'lt dyn quote::ToTokens),
                             Incl(&'lt dyn quote::ToTokens),
@@ -5254,13 +5282,13 @@ enum Bnd<'lt> {
             };
             let read_ids_and_table_type_into_pg_type_optional_where_greater_than_token_stream: Option<proc_macro2::TokenStream> = match &pg_type_pattern {
                 PgTypePattern::Standard => {
-                    #[derive(optml::Optml)]
+                    #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 enum IsNeedToImplPgTypeGreaterThanTest {
                         False,
                         TrueFromCreate,
                         TrueFromReadIds,
                     }
-                    #[derive(optml::Optml)]
+                    #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 enum CreateReadIds {
                         Create,
                         ReadIds,

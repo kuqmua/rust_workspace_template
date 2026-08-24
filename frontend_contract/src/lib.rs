@@ -1,6 +1,8 @@
 #![allow(clippy::arbitrary_source_item_ordering)] // contract implementations keep constructors before accessors and fluent modifiers
 pub const FRONTEND_CONTRACT_BODY_MAX_BYTES: usize = 16_777_216usize;
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 #[error("frontend contract body exceeds its maximum byte length")]
 pub struct FrontendContractBodyError;
 impl From<bounded_types::BoundedValueError> for FrontendContractBodyError {
@@ -8,10 +10,12 @@ impl From<bounded_types::BoundedValueError> for FrontendContractBodyError {
         Self
     }
 }
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 #[error("{self:?}")]
 pub struct HttpStatusTryFromU16Error;
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum KnownHttpStatus {
     BadRequest,
     Conflict,
@@ -106,7 +110,7 @@ pub use route_coverage::{
 };
 pub use url_builder::{ApiUrl, ApiUrlBuildError, ApiUrlPathSegmentRef, ApiUrlQueryComponentRef};
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,
@@ -122,7 +126,7 @@ impl From<ContractStr> for String {
         Self::from(value.0)
     }
 }
-#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum InputKind {
     Checkbox,
     Date,
@@ -132,7 +136,7 @@ pub enum InputKind {
     Time,
     Uuid,
 }
-#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ValueFormat {
     Bool,
     Bytes,
@@ -153,18 +157,18 @@ pub enum ValueFormat {
     TimestampTz,
     Uuid,
 }
-#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Nullability {
     NonNullable,
     Nullable,
 }
-#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum CapabilitySupport {
     Supported,
     Unsupported,
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,
@@ -202,7 +206,7 @@ pub enum FilterOperation {
     StrictlyToRightOfRange,
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,
@@ -253,7 +257,14 @@ impl FilterOperation {
     }
 }
 #[derive(
-    optml::Optml, Clone, Copy, Debug, PartialEq, Eq, newtype::AsRefInner, newtype::FromInner,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    newtype::AsRefInner,
+    newtype::FromInner,
 )]
 pub struct FilterContracts(&'static [FilterOperation]);
 pub trait HasFilterContracts {
@@ -263,18 +274,26 @@ pub trait HasFilterContracts {
         FilterContracts::from(Self::FILTER_CONTRACTS)
     }
 }
-#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum InputStep {
     Any,
     Decimal,
     Integer,
 }
-#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum NumericBound {
     None,
     Inclusive(ContractI64),
 }
-#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    newtype::FromInner,
+)]
 pub struct ContractI64(i64);
 impl ContractI64 {
     #[must_use]
@@ -302,7 +321,7 @@ impl ContractI64 {
         Self::from(i64::MIN)
     }
 }
-#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ValueExample {
     Boolean,
     Date,
@@ -314,7 +333,7 @@ pub enum ValueExample {
     Time,
     Uuid,
 }
-#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)]
 pub struct TypeContract {
     maximum: NumericBound,
     minimum: NumericBound,
@@ -409,20 +428,48 @@ pub trait HasTypeContract {
     fn type_contract() -> TypeContract;
 }
 #[derive(
-    optml::Optml, Clone, Debug, Default, PartialEq, Eq, newtype::AsRefStr, newtype::BoundedString,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Default,
+    PartialEq,
+    Eq,
+    newtype::AsRefStr,
+    newtype::BoundedString,
 )]
 #[bounded_string(max = 1_048_576usize)]
 pub struct FormValue(String);
 #[derive(
-    optml::Optml, Clone, Copy, Debug, PartialEq, Eq, newtype::AsRefInner, newtype::FromInner,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    newtype::AsRefInner,
+    newtype::FromInner,
 )]
 pub struct FormValueRef<'value_lt>(&'value_lt str);
 #[derive(
-    optml::Optml, Clone, Copy, Debug, PartialEq, Eq, newtype::AsRefStr, newtype::FromInner,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    newtype::AsRefStr,
+    newtype::FromInner,
 )]
 pub struct FormFieldNameRef<'field_lt>(&'field_lt str);
 #[derive(
-    optml::Optml, Clone, Debug, Default, PartialEq, Eq, newtype::Display, newtype::FromInner,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Default,
+    PartialEq,
+    Eq,
+    newtype::Display,
+    newtype::FromInner,
 )]
 pub struct FormValueError(to_err_string::ErrorText);
 impl TryFrom<String> for FormValueError {
@@ -431,7 +478,15 @@ impl TryFrom<String> for FormValueError {
         to_err_string::ErrorText::try_from(value).map(Self)
     }
 }
-#[derive(optml::Optml, Clone, Debug, PartialEq, Eq, newtype::AsRefStr, newtype::BoundedString)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    PartialEq,
+    Eq,
+    newtype::AsRefStr,
+    newtype::BoundedString,
+)]
 #[bounded_string(max = 1_048_576usize)]
 pub struct FilterWireJson(String);
 pub trait FormValueContract: Sized {
@@ -441,7 +496,7 @@ pub trait FormValueContract: Sized {
 pub trait FilterFormValueContract {
     fn parse_filter_form_value(value: FormValueRef<'_>) -> Result<FilterWireJson, FormValueError>;
 }
-#[derive(optml::Optml, Clone, Debug, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, PartialEq, Eq)]
 pub struct FormFieldError {
     error: FormValueError,
     field: ContractStr,
@@ -460,29 +515,37 @@ impl FormFieldError {
         self.field
     }
 }
-#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum FieldCapability {
     Disabled,
     Enabled,
 }
-#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum PrimaryKeyKind {
     NonPrimary,
     Primary,
 }
-#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    newtype::FromInner,
+)]
 pub struct FieldOrder(usize);
-#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum FieldVisibility {
     Hidden,
     Visible,
 }
-#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum FieldPlaceholder {
     None,
     Value(ContractStr),
 }
-#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)]
 pub struct FieldContract {
     filters: FilterContracts,
     label: ContractStr,
@@ -498,7 +561,15 @@ pub struct FieldContract {
     updatable: FieldCapability,
     visibility: FieldVisibility,
 }
-#[derive(optml::Optml, Clone, Debug, PartialEq, Eq, newtype::AsRefTarget, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    PartialEq,
+    Eq,
+    newtype::AsRefTarget,
+    newtype::FromInner,
+)]
 pub struct FieldContracts(bounded_types::BoundedVec<FieldContract, 0, { usize::MAX }>);
 impl From<Vec<FieldContract>> for FieldContracts {
     fn from(value: Vec<FieldContract>) -> Self {
@@ -637,7 +708,7 @@ impl FieldContract {
         self
     }
 }
-#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum HttpMethod {
     Connect,
     Delete,
@@ -649,13 +720,13 @@ pub enum HttpMethod {
     Put,
     Trace,
 }
-#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum SuccessStatus {
     Code200,
     Code201,
     Code204,
 }
-#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum RouteErrorStatus {
     Authentication,
     Authorization,
@@ -751,7 +822,7 @@ pub const AUTHORIZED_DELETE_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] = &[
     RouteErrorStatus::RateLimited,
     RouteErrorStatus::Internal,
 ];
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RouteErrorPolicy {
     Authentication,
     Default,
@@ -802,18 +873,18 @@ impl SuccessStatus {
         }
     }
 }
-#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum AuthenticationRequirement {
     Authenticated,
     Permission(ContractStr),
     Public,
 }
-#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum MutationKind {
     ReadOnly,
     Mutating,
 }
-#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum OperationKind {
     CreateMany,
     CreateOne,
@@ -824,18 +895,26 @@ pub enum OperationKind {
     UpdateMany,
     UpdateOne,
 }
-#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ConfirmationRequirement {
     NotRequired,
     Required,
 }
-#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ActionContract {
     route: RouteContract,
     confirmation: ConfirmationRequirement,
     operation: OperationKind,
 }
-#[derive(optml::Optml, Clone, Debug, PartialEq, Eq, newtype::AsRefTarget, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    PartialEq,
+    Eq,
+    newtype::AsRefTarget,
+    newtype::FromInner,
+)]
 pub struct ActionContracts(bounded_types::BoundedVec<ActionContract, 0, { usize::MAX }>);
 impl From<Vec<ActionContract>> for ActionContracts {
     fn from(value: Vec<ActionContract>) -> Self {
@@ -878,7 +957,7 @@ impl ActionContract {
         self
     }
 }
-#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)]
 pub struct RouteContract {
     path: ContractStr,
     authentication: AuthenticationRequirement,
@@ -886,7 +965,15 @@ pub struct RouteContract {
     mutation: MutationKind,
     success_status: SuccessStatus,
 }
-#[derive(optml::Optml, Clone, Debug, PartialEq, Eq, newtype::AsRefTarget, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    PartialEq,
+    Eq,
+    newtype::AsRefTarget,
+    newtype::FromInner,
+)]
 pub struct RouteContracts(bounded_types::BoundedVec<RouteContract, 0, { usize::MAX }>);
 impl From<Vec<RouteContract>> for RouteContracts {
     fn from(value: Vec<RouteContract>) -> Self {
@@ -940,7 +1027,7 @@ impl RouteContract {
         self.success_status
     }
 }
-#[derive(optml::Optml, Clone, Debug, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, PartialEq, Eq)]
 pub struct PageContract {
     actions: ActionContracts,
     fields: FieldContracts,
@@ -948,7 +1035,9 @@ pub struct PageContract {
     routes: RouteContracts,
     title: ContractStr,
 }
-#[derive(optml::Optml, Clone, Debug, PartialEq, Eq, newtype::AsRefTarget)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, PartialEq, Eq, newtype::AsRefTarget,
+)]
 pub struct TransportBody(bounded_types::BoundedVec<u8, 0, FRONTEND_CONTRACT_BODY_MAX_BYTES>);
 impl TryFrom<Vec<u8>> for TransportBody {
     type Error = FrontendContractBodyError;
@@ -958,7 +1047,7 @@ impl TryFrom<Vec<u8>> for TransportBody {
             .map_err(FrontendContractBodyError::from)
     }
 }
-#[derive(optml::Optml, Clone, Debug, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, PartialEq, Eq)]
 pub struct TransportRequest {
     body: TransportBody,
     path: TransportPath,
@@ -1008,19 +1097,42 @@ impl TransportRequest {
         self
     }
 }
-#[derive(optml::Optml, Clone, Debug, PartialEq, Eq, newtype::AsRefStr, newtype::BoundedString)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    PartialEq,
+    Eq,
+    newtype::AsRefStr,
+    newtype::BoundedString,
+)]
 #[bounded_string(max = 255usize, min = 1usize)]
 pub struct TransportIdempotencyKey(String);
-#[derive(optml::Optml, Clone, Debug, PartialEq, Eq, newtype::AsRefStr, newtype::BoundedString)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    PartialEq,
+    Eq,
+    newtype::AsRefStr,
+    newtype::BoundedString,
+)]
 #[bounded_string(max = 20usize, min = 1usize)]
 pub struct TransportIfMatch(String);
 #[derive(
-    optml::Optml, Clone, Debug, Default, PartialEq, Eq, newtype::AsRefStr, newtype::BoundedString,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Default,
+    PartialEq,
+    Eq,
+    newtype::AsRefStr,
+    newtype::BoundedString,
 )]
 #[bounded_string(max = 8192usize)]
 pub struct TransportPath(String);
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,
@@ -1050,10 +1162,18 @@ impl TransportStatus {
         }
     }
 }
-#[derive(optml::Optml, Clone, Debug, PartialEq, Eq, newtype::AsRefStr, newtype::BoundedString)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    PartialEq,
+    Eq,
+    newtype::AsRefStr,
+    newtype::BoundedString,
+)]
 #[bounded_string(max = 128usize, min = 1usize)]
 pub struct TransportRetryAfter(String);
-#[derive(optml::Optml, Clone, Debug, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, PartialEq, Eq)]
 pub struct TransportResponse {
     body: TransportBody,
     retry_after: Option<TransportRetryAfter>,
@@ -1104,7 +1224,14 @@ pub fn decode_api_problem(body: &TransportBody) -> Option<ApiProblem> {
     serde_json::from_slice(body.as_ref()).ok()
 }
 #[derive(
-    optml::Optml, Clone, Debug, Default, PartialEq, Eq, newtype::Display, newtype::FromInner,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Default,
+    PartialEq,
+    Eq,
+    newtype::Display,
+    newtype::FromInner,
 )]
 pub struct TransportError(to_err_string::ErrorText);
 impl TryFrom<String> for TransportError {
@@ -1119,7 +1246,7 @@ pub trait Transport {
         request: TransportRequest,
     ) -> impl Future<Output = Result<TransportResponse, TransportError>> + '_;
 }
-#[derive(optml::Optml, Clone, Debug, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, PartialEq, Eq)]
 pub enum ClientError {
     Decode(FormValueError),
     Encode(FormValueError),

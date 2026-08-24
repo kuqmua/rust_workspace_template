@@ -1,5 +1,5 @@
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,
@@ -17,7 +17,7 @@
 pub struct AdminBool(bool);
 
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,
@@ -31,7 +31,7 @@ pub struct AdminBool(bool);
     newtype::IntoInnerFrom,
 )]
 pub struct AdminPageOffset(u32);
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct AdminPageOffsetVisitor;
 impl serde::de::Visitor<'_> for AdminPageOffsetVisitor {
     type Value = AdminPageOffset;
@@ -68,7 +68,7 @@ impl<'de> serde::Deserialize<'de> for AdminPageOffset {
 }
 
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,
@@ -79,7 +79,7 @@ impl<'de> serde::Deserialize<'de> for AdminPageOffset {
     utoipa::ToSchema,
 )]
 pub struct AdminPageLimit(u16);
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct AdminPageLimitVisitor;
 impl serde::de::Visitor<'_> for AdminPageLimitVisitor {
     type Value = AdminPageLimit;
@@ -115,7 +115,7 @@ impl<'de> serde::Deserialize<'de> for AdminPageLimit {
         Self::try_from(u16::from(value)).map_err(serde::de::Error::custom)
     }
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct AdminDefaultPageLimit;
 impl From<AdminDefaultPageLimit> for AdminPageLimit {
     fn from(_value: AdminDefaultPageLimit) -> Self {
@@ -142,7 +142,9 @@ impl AdminPageLimit {
     pub const MAX: u16 = 100u16;
     pub const MIN: u16 = 1u16;
 }
-#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq, thiserror::Error,
+)]
 #[error(
     "administrator page limit must be between {min} and {max}",
     min = AdminPageLimit::MIN,
@@ -151,7 +153,7 @@ impl AdminPageLimit {
 pub struct AdminPageLimitError;
 
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,
@@ -168,7 +170,14 @@ pub struct AdminPageLimitError;
 #[serde(from = "u64")]
 pub struct AdminPageTotal(u64);
 
-#[derive(optml::Optml, Clone, Debug, Default, newtype::BoundedString, newtype::AsRefStr)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Default,
+    newtype::BoundedString,
+    newtype::AsRefStr,
+)]
 #[bounded_string(
     max = 128usize,
     chars,
@@ -178,7 +187,14 @@ pub struct AdminPageTotal(u64);
 )]
 pub struct AdminTableSearch(String);
 
-#[derive(optml::Optml, Clone, Debug, Default, newtype::BoundedString, newtype::AsRefStr)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Default,
+    newtype::BoundedString,
+    newtype::AsRefStr,
+)]
 #[bounded_string(
     max = 32usize,
     chars,
@@ -189,7 +205,7 @@ pub struct AdminTableSearch(String);
 pub struct AdminTableSortKey(String);
 
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,
@@ -216,7 +232,7 @@ impl AsRef<str> for AdminSortDirection {
 }
 
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Default,
@@ -274,7 +290,7 @@ impl AdminTableQuery {
     }
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Default,
@@ -293,7 +309,7 @@ impl AdminTableQuery {
 )]
 pub struct AdminFilterField(String);
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Default,
@@ -312,7 +328,7 @@ pub struct AdminFilterField(String);
 )]
 pub struct AdminFilterValue(String);
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Default,
@@ -341,7 +357,7 @@ impl From<frontend_contract::FilterOperation> for AdminFilterOperationKey {
     }
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Default,
@@ -398,7 +414,13 @@ impl AdminDataTableFilterQuery {
     }
 }
 #[derive(
-    optml::Optml, Clone, Debug, Default, serde::Deserialize, serde::Serialize, utoipa::ToSchema,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Default,
+    serde::Deserialize,
+    serde::Serialize,
+    utoipa::ToSchema,
 )]
 pub struct AdminDataTableQuery {
     #[serde(flatten)]

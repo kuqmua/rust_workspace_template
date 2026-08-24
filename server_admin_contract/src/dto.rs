@@ -1,4 +1,11 @@
-#[derive(optml::Optml, Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+)]
 pub struct AuthenticatedAdmin {
     display_name: super::AdminDisplayName,
     id: super::AdminUserId,
@@ -65,7 +72,7 @@ impl AuthenticatedAdmin {
     }
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     frontend_contract::ContractStructApi,
@@ -79,7 +86,7 @@ pub struct AdminSignInRes {
     user: AuthenticatedAdmin,
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     frontend_contract::ContractStructApi,
@@ -95,7 +102,7 @@ pub struct AdminCreateUserReq {
     password: super::AdminNewPassword,
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,
@@ -109,7 +116,7 @@ pub struct AdminCreateUserRes {
     id: super::AdminUserId,
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     frontend_contract::ContractStructApi,
@@ -124,7 +131,7 @@ pub struct AdminUpdateUserReq {
     login: Option<super::AdminLogin>,
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     frontend_contract::ContractStructApi,
@@ -139,7 +146,7 @@ pub struct AdminSetUserPasswordReq {
     password: super::AdminNewPassword,
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     frontend_contract::ContractStructApi,
@@ -154,7 +161,7 @@ pub struct AdminChangeOwnPasswordReq {
     new_password: super::AdminNewPassword,
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,
@@ -170,7 +177,7 @@ pub struct AdminSetUserBanReq {
     is_banned: super::AdminBool,
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     frontend_contract::ContractStructApi,
@@ -185,7 +192,7 @@ pub struct AdminCreateRoleReq {
     name: super::AdminRoleName,
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,
@@ -199,7 +206,7 @@ pub struct AdminCreateRoleRes {
     id: super::AdminRoleId,
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     frontend_contract::ContractStructApi,
@@ -214,7 +221,7 @@ pub struct AdminUpdateRoleReq {
     name: super::AdminRoleName,
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     frontend_contract::ContractStructApi,
@@ -229,7 +236,7 @@ pub struct AdminSetUserRolesReq {
     role_ids: super::AdminRoleIds,
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     frontend_contract::ContractStructApi,
@@ -244,7 +251,7 @@ pub struct AdminSetRolePermissionsReq {
     permission_ids: super::AdminPermissionIds,
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     frontend_contract::ContractStructApi,
@@ -253,7 +260,7 @@ pub struct AdminSetRolePermissionsReq {
     utoipa::ToSchema,
 )]
 #[contract_struct_api(new)]
-#[optml(skip)]
+#[optimal_memory_layout(skip)]
 pub struct AdminUserSummary {
     #[contract_struct_api(borrow)]
     display_name: super::AdminDisplayName,
@@ -268,7 +275,7 @@ pub struct AdminUserSummary {
     role_ids: super::AdminRoleIds,
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     frontend_contract::ContractStructApi,
@@ -277,7 +284,7 @@ pub struct AdminUserSummary {
     utoipa::ToSchema,
 )]
 #[contract_struct_api(new)]
-#[optml(skip)]
+#[optimal_memory_layout(skip)]
 pub struct AdminRoleSummary {
     #[contract_struct_api(copy_ref)]
     id: super::AdminRoleId,
@@ -295,7 +302,14 @@ impl AdminRoleSummary {
         &self.name
     }
 }
-#[derive(optml::Optml, Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+)]
 pub struct AdminPermissionSummary {
     id: super::AdminPermissionId,
     name: super::AdminPermissionValue,
@@ -316,7 +330,7 @@ impl AdminPermissionSummary {
     }
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     frontend_contract::ContractStructApi,
@@ -335,7 +349,7 @@ pub struct AdminUsersPage {
     total: super::AdminPageTotal,
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     frontend_contract::ContractStructApi,
@@ -354,7 +368,7 @@ pub struct AdminRolesPage {
     total: super::AdminPageTotal,
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     frontend_contract::ContractStructApi,
@@ -371,7 +385,7 @@ pub struct AdminPermissionsPage {
     total: super::AdminPageTotal,
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     frontend_contract::ContractStructApi,
@@ -380,7 +394,7 @@ pub struct AdminPermissionsPage {
     utoipa::ToSchema,
 )]
 #[contract_struct_api(new)]
-#[optml(skip)]
+#[optimal_memory_layout(skip)]
 pub struct AdminAuditView {
     #[contract_struct_api(borrow)]
     action: super::AdminText,
@@ -402,7 +416,7 @@ pub struct AdminAuditView {
     user_login: Option<super::AdminLogin>,
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     frontend_contract::ContractStructApi,
@@ -418,7 +432,7 @@ pub struct AdminAuditCursor {
     id: super::AdminAuditLogId,
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     frontend_contract::ContractStructApi,
@@ -437,7 +451,14 @@ pub struct AdminAuditPage {
     #[contract_struct_api(copy_ref)]
     total: super::AdminPageTotal,
 }
-#[derive(optml::Optml, Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+)]
 pub struct AdminDataColumn {
     filters: AdminDataFilters,
     label: super::AdminText,
@@ -478,7 +499,7 @@ impl AdminDataColumn {
     }
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,
@@ -525,7 +546,7 @@ impl AdminDataFilter {
     }
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     serde::Deserialize,
@@ -549,7 +570,7 @@ impl AdminDataFilters {
     }
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,
@@ -583,7 +604,7 @@ impl From<frontend_contract::InputKind> for AdminDataInputKind {
     }
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     serde::Deserialize,
@@ -607,7 +628,7 @@ impl AdminDataColumns {
     }
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     frontend_contract::ContractStructApi,
@@ -621,7 +642,7 @@ pub struct AdminDataRow {
     values: super::AdminTexts,
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     frontend_contract::ContractStructApi,
@@ -630,7 +651,7 @@ pub struct AdminDataRow {
     utoipa::ToSchema,
 )]
 #[contract_struct_api(new)]
-#[optml(skip)]
+#[optimal_memory_layout(skip)]
 pub struct AdminDataTableView {
     #[contract_struct_api(slice = AdminDataColumn)]
     columns: AdminDataColumns,
@@ -643,7 +664,7 @@ pub struct AdminDataTableView {
     total: super::AdminPageTotal,
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     frontend_contract::ContractStructApi,
@@ -657,7 +678,12 @@ pub struct AdminDataTableCatalog {
     items: super::AdminDataTables,
 }
 #[derive(
-    optml::Optml, Clone, Debug, newtype::BoundedString, newtype::AsRefStr, newtype::Display,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    newtype::BoundedString,
+    newtype::AsRefStr,
+    newtype::Display,
 )]
 #[bounded_string(
     max = 262_144usize,
@@ -668,7 +694,7 @@ pub struct AdminDataTableCatalog {
 )]
 pub struct AdminAuditExportCsv(String);
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     frontend_contract::ContractStructApi,
@@ -682,7 +708,14 @@ pub struct AdminAuditExport {
     #[contract_struct_api(borrow)]
     csv: AdminAuditExportCsv,
 }
-#[derive(optml::Optml, Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+)]
 #[serde(deny_unknown_fields)]
 pub struct AdminSignInReq {
     login: super::AdminLogin,

@@ -1,13 +1,21 @@
-#[derive(optml::Optml, Clone, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
 pub struct ReqwestClient(reqwest::Client);
 
-#[derive(optml::Optml, Clone, Copy, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
 pub struct StdReqwestConnectTimeout(std::time::Duration);
 
-#[derive(optml::Optml, Clone, Copy, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
 pub struct StdReqwestRequestTimeout(std::time::Duration);
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 #[error("HTTP client timeout must be greater than zero")]
 pub struct StdReqwestTimeoutError;
 
@@ -35,7 +43,7 @@ impl TryFrom<std::time::Duration> for StdReqwestRequestTimeout {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
 pub struct ReqwestClientPolicy {
     connect_timeout: StdReqwestConnectTimeout,
     request_timeout: StdReqwestRequestTimeout,
@@ -54,11 +62,13 @@ impl ReqwestClientPolicy {
     }
 }
 
-#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
+)]
 #[error(transparent)]
 pub struct ReqwestClientBuildError(reqwest::Error);
 
-#[derive(optml::Optml, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
 pub(super) struct TracingHttpClientSpan(tracing::Span);
 
 impl TracingHttpClientSpan {

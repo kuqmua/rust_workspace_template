@@ -1,10 +1,10 @@
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct AllowedOrigin {
     authority: HttpOriginAuthorityText,
     scheme: HttpOriginSchemeText,
 }
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 struct HttpOriginAuthorityText(String);
 
 impl TryFrom<String> for HttpOriginAuthorityText {
@@ -38,7 +38,7 @@ impl TryFrom<String> for HttpOriginAuthorityText {
     }
 }
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 struct HttpOriginSchemeText(String);
 
 impl TryFrom<String> for HttpOriginSchemeText {
@@ -83,11 +83,13 @@ impl TryFrom<String> for AllowedOrigin {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 #[error("{message}", message = str_constants::ALLOWED_HTTP_ORIGIN_IS_INVALID)]
 pub struct AllowedOriginError;
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct AllowedOrigins(bounded_types::BoundedVec<AllowedOrigin, 0, 128>);
 
 impl TryFrom<Vec<String>> for AllowedOrigins {
@@ -105,7 +107,9 @@ impl TryFrom<Vec<String>> for AllowedOrigins {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 #[error("{message}", message = str_constants::ALLOWED_HTTP_ORIGIN_LIST_IS_INVALID)]
 pub struct AllowedOriginsError;
 impl From<bounded_types::BoundedValueError> for AllowedOriginsError {
@@ -114,23 +118,30 @@ impl From<bounded_types::BoundedValueError> for AllowedOriginsError {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 pub struct HttpOriginHeadersRef<'header>(&'header http::HeaderMap);
 
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 struct HttpOriginTextRef<'text>(&'text str);
 
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 struct AllowOriginSuffix(bool);
 
-#[derive(optml::Optml, Clone, Copy, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
 struct ParsedHttpOriginRef<'text> {
     authority: HttpOriginTextRef<'text>,
     scheme: HttpOriginTextRef<'text>,
 }
 
 #[derive(
-    optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
 )]
 pub struct RequestOriginAllowed(bool);
 

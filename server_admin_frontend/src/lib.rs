@@ -5,12 +5,12 @@ mod shared;
 pub mod ssr;
 mod ui;
 
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[cfg(not(target_arch = "wasm32"))]
 #[derive(Debug, Clone, newtype::IntoInnerFrom, newtype::FromInner)]
 pub struct AxumAdminFrontendRouter(axum::Router);
 
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[cfg(not(target_arch = "wasm32"))]
 #[derive(Debug, thiserror::Error)]
 enum AdminAssetsError {

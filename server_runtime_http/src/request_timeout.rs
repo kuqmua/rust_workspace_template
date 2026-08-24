@@ -1,18 +1,18 @@
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 pub struct RequestTimeoutLayer(super::StdRequestTimeout);
 
-#[derive(optml::Optml, Debug, thiserror::Error)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 enum RequestTimeoutError {
     #[error("request timeout")]
     TimedOut,
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, serde::Serialize)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, serde::Serialize)]
 #[serde(transparent)]
 #[derive(newtype::FromInner)]
 struct StdRequestTimeoutMessage(&'static str);
 
-#[derive(optml::Optml, Debug, serde::Serialize)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, serde::Serialize)]
 struct RequestTimeoutBody {
     error: StdRequestTimeoutMessage,
 }
@@ -37,10 +37,10 @@ impl RequestTimeoutLayer {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 struct RequestTimeoutTowerLayer(super::StdRequestTimeout);
 
-#[derive(optml::Optml, Clone, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 struct RequestTimeoutService<Service> {
     inner: Service,
     timeout: super::StdRequestTimeout,

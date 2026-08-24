@@ -2,16 +2,36 @@ const CRITICAL_PERCENT: u8 = 85u8;
 const REJECT_NON_ESSENTIAL_WRITES_PERCENT: u8 = 95u8;
 const WARNING_PERCENT: u8 = 70u8;
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    Ord,
+    PartialOrd,
+    newtype::FromInner,
+)]
 pub struct ResourceAmount(u64);
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, newtype::TryFrom)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    Ord,
+    PartialOrd,
+    newtype::TryFrom,
+)]
 #[try_from(
     error = ResourceUtilizationPercentTryFromU8Error,
     validator = ResourceUtilizationPercent::validate
 )]
 pub struct ResourceUtilizationPercent(u8);
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 enum ResourceUtilizationKnownPercent {
     Max,
 }
@@ -22,7 +42,9 @@ impl From<ResourceUtilizationKnownPercent> for ResourceUtilizationPercent {
         }
     }
 }
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 #[error("{self:?}")]
 pub struct ResourceUtilizationPercentTryFromU8Error;
 
@@ -41,7 +63,7 @@ impl ResourceUtilizationPercent {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ResourceUtilizationStatus {
     Critical,
     Ok,
@@ -49,7 +71,9 @@ pub enum ResourceUtilizationStatus {
     Warning,
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 pub enum ResourceUtilizationError {
     #[error(
         "{}",
@@ -58,8 +82,8 @@ pub enum ResourceUtilizationError {
     ZeroMaximum,
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
-#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optml takes precedence over alphabetical field order
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
+#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
 pub struct ResourceUtilization {
     maximum: ResourceAmount,
     used: ResourceAmount,

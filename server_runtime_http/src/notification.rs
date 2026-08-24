@@ -1,7 +1,7 @@
-#[derive(optml::Optml, Clone, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Eq, PartialEq)]
 pub struct NotificationApiToken(String);
 
-#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
 pub struct NotificationApiTokenRef<'value_lt>(&'value_lt str);
 impl std::fmt::Debug for NotificationApiTokenRef<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -10,7 +10,14 @@ impl std::fmt::Debug for NotificationApiTokenRef<'_> {
 }
 
 #[derive(
-    optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
 )]
 pub struct NotificationApiTokenAuthorized(bool);
 
@@ -38,7 +45,9 @@ impl std::fmt::Debug for NotificationApiToken {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 pub enum NotificationApiTokenError {
     #[error("notification API token must not be empty")]
     Empty,
@@ -61,7 +70,7 @@ impl TryFrom<String> for NotificationApiToken {
 }
 
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Eq,
@@ -73,7 +82,9 @@ impl TryFrom<String> for NotificationApiToken {
 #[serde(try_from = "String")]
 pub struct NotificationMessage(String);
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 pub enum NotificationMessageError {
     #[error("notification message must not be empty")]
     Empty,
@@ -104,7 +115,9 @@ pub trait NotificationSender: Clone + Send + Sync + 'static {
     ) -> impl Future<Output = Result<(), Self::Error>> + Send;
 }
 
-#[derive(optml::Optml, Clone, Debug, serde::Deserialize, serde::Serialize)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, serde::Deserialize, serde::Serialize,
+)]
 #[serde(deny_unknown_fields)]
 pub struct NotificationRequest {
     message: NotificationMessage,
@@ -116,7 +129,7 @@ impl NotificationRequest {
     }
 }
 
-#[derive(optml::Optml, Clone, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub struct NotificationServiceState<Sender> {
     permits: crate::StdArcTokioSemaphore,
     sender: Sender,
@@ -137,12 +150,14 @@ impl<Sender> NotificationServiceState<Sender> {
     }
 }
 
-#[derive(optml::Optml, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner, newtype::IntoInnerFrom,
+)]
 pub struct AxumNotificationRouter(axum::Router);
-#[derive(optml::Optml, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
 struct HttpNotificationHeaderMap(http::HeaderMap);
 
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct AxumNotificationState<Sender> {
     headers: HttpNotificationHeaderMap,
     state: NotificationServiceState<Sender>,
@@ -163,7 +178,7 @@ where
         }))
     }
 }
-#[derive(optml::Optml, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
 struct AxumNotificationJson(NotificationRequest);
 
 impl<State> axum::extract::FromRequest<State> for AxumNotificationJson
@@ -235,7 +250,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    #[derive(optml::Optml, Clone, Debug)]
+    #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
     struct TestSender;
     impl super::NotificationSender for TestSender {
         type Error = std::convert::Infallible;

@@ -1,5 +1,11 @@
 #[allow(clippy::arbitrary_source_item_ordering)]
-#[derive(Debug, Clone, strum_macros::Display, strum_macros::EnumIter, optml::Optml)]
+#[derive(
+    Debug,
+    Clone,
+    strum_macros::Display,
+    strum_macros::EnumIter,
+    optimal_memory_layout::OptimalMemoryLayout,
+)]
 pub enum PgTypeFilter {
     Eq {
         identifier: macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,

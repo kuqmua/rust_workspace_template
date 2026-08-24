@@ -1,7 +1,7 @@
-#[derive(optml::Optml, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
 pub struct SynParsedGeneratePgTableInput(syn::DeriveInput);
 
-#[derive(optml::Optml, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
 pub struct SynBuiltGeneratePgTableInput(crate::model::GeneratePgTableModel);
 
 impl SynBuiltGeneratePgTableInput {
@@ -11,7 +11,7 @@ impl SynBuiltGeneratePgTableInput {
     }
 }
 
-#[derive(optml::Optml, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
 pub struct SynValidatedGeneratePgTableInput(crate::model::GeneratePgTableModel);
 
 impl SynValidatedGeneratePgTableInput {
@@ -20,11 +20,17 @@ impl SynValidatedGeneratePgTableInput {
     }
 }
 
-#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    thiserror::Error,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
 #[error(transparent)]
 pub struct SynGeneratePgTablePipelineError(syn::Error);
 
-#[derive(optml::Optml, Debug, thiserror::Error)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum GeneratePgTablePipelineError {
     #[error("{0}")]
     Build(SynGeneratePgTablePipelineError),

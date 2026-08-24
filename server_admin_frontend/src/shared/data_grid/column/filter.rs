@@ -13,7 +13,7 @@ use leptos::prelude::{
     StyleAttribute,
 };
 
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 pub(super) struct LeptosAdminFilterOperationSignal(leptos::prelude::RwSignal<String>);
 
 pub(super) fn admin_data_grid_filter(

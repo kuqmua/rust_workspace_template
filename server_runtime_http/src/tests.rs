@@ -4,7 +4,7 @@ mod security_headers;
 mod service_runtime;
 
 const HTTP_ERROR_EVENT_REQUIRED_FIELD_MASK: u16 = (1u16 << 12u16) - 1u16;
-#[derive(optml::Optml, Clone, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 struct HttpErrorEventCapture {
     error_count: std::sync::Arc<std::sync::atomic::AtomicUsize>,
     field_mask: std::sync::Arc<std::sync::atomic::AtomicU16>,
@@ -31,7 +31,7 @@ where
             .fetch_or(visitor.mask, std::sync::atomic::Ordering::SeqCst);
     }
 }
-#[derive(optml::Optml, Debug, Default)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Default)]
 struct HttpErrorEventFieldVisitor {
     mask: u16,
 }
@@ -309,7 +309,7 @@ async fn request_span_limits_url_path_and_records_error_telemetry() {
 }
 #[tokio::test(flavor = "current_thread")]
 async fn http_boundary_emits_one_complete_error_event_only_for_server_errors() {
-    #[derive(optml::Optml, Debug, thiserror::Error)]
+    #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
     #[error("boundary test operation failed")]
     struct BoundaryTestError {
         #[source]

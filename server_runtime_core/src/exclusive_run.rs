@@ -1,4 +1,4 @@
-#[derive(optml::Optml, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 pub struct ExclusiveRun {
     active: StdExclusiveRunAtomicBool,
 }
@@ -31,11 +31,13 @@ impl Default for ExclusiveRun {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 #[error("operation is already running")]
 pub struct ExclusiveRunAlreadyActive;
 
-#[derive(optml::Optml, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 #[must_use]
 pub struct ExclusiveRunGuard<'run_lt> {
     active: &'run_lt StdExclusiveRunAtomicBool,
@@ -48,7 +50,7 @@ impl Drop for ExclusiveRunGuard<'_> {
     }
 }
 
-#[derive(optml::Optml, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
 struct StdExclusiveRunAtomicBool(std::sync::atomic::AtomicBool);
 
 #[cfg(test)]

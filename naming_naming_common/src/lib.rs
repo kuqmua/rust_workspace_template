@@ -69,10 +69,10 @@ naming_common_macros::case_trait_pair!(
     quote::ToTokens,
     |self_ref| tokenized_case_str(self_ref, ConvertCaseKind(convert_case::Case::UpperSnake)).0
 );
-#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
 struct ConvertCaseKind(convert_case::Case<'static>);
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     PartialEq,
@@ -83,7 +83,7 @@ struct ConvertCaseKind(convert_case::Case<'static>);
 )]
 #[bounded_string(max = CASE_STRING_MAX_LEN )]
 struct CaseString(String);
-#[derive(optml::Optml, Debug, Clone, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, newtype::FromInner)]
 struct ProcMacro2CaseTokenStream(proc_macro2::TokenStream);
 fn to_token_stream_or_panic<T>(v: &T) -> ProcMacro2CaseTokenStream
 where

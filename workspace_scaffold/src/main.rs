@@ -3,41 +3,83 @@ mod service_catalog;
 mod template_fs;
 
 const SCAFFOLD_TEXT_MAX_BYTES: usize = 16_777_216usize;
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 struct ProjectNameRef<'value>(&'value str);
 
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 struct RepositoryUrlRef<'value>(&'value str);
 
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 struct ServicePort(u16);
-#[derive(optml::Optml, Clone, Debug, newtype::AsRefStr, newtype::BoundedString)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    newtype::AsRefStr,
+    newtype::BoundedString,
+)]
 #[bounded_string(max = SCAFFOLD_TEXT_MAX_BYTES)]
 struct ServiceCrate(String);
-#[derive(optml::Optml, Clone, Debug, newtype::AsRefStr, newtype::BoundedString)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    newtype::AsRefStr,
+    newtype::BoundedString,
+)]
 #[bounded_string(max = SCAFFOLD_TEXT_MAX_BYTES)]
 struct ServiceComposeName(String);
-#[derive(optml::Optml, Clone, Debug, newtype::AsRefStr, newtype::BoundedString)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    newtype::AsRefStr,
+    newtype::BoundedString,
+)]
 #[bounded_string(max = SCAFFOLD_TEXT_MAX_BYTES)]
 struct ServiceComposeFile(String);
-#[derive(optml::Optml, Clone, Debug, newtype::AsRefStr, newtype::BoundedString)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    newtype::AsRefStr,
+    newtype::BoundedString,
+)]
 #[bounded_string(max = SCAFFOLD_TEXT_MAX_BYTES)]
 struct ServiceDockerfile(String);
-#[derive(optml::Optml, Clone, Debug, newtype::AsRefStr, newtype::BoundedString)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    newtype::AsRefStr,
+    newtype::BoundedString,
+)]
 #[bounded_string(max = SCAFFOLD_TEXT_MAX_BYTES)]
 struct ServiceImage(String);
-#[derive(optml::Optml, Clone, Debug, newtype::AsRefStr, newtype::BoundedString)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    newtype::AsRefStr,
+    newtype::BoundedString,
+)]
 #[bounded_string(max = SCAFFOLD_TEXT_MAX_BYTES)]
 struct ServiceKubernetesManifest(String);
-#[derive(optml::Optml, Clone, Debug, newtype::AsRefStr, newtype::BoundedString)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    newtype::AsRefStr,
+    newtype::BoundedString,
+)]
 #[bounded_string(max = SCAFFOLD_TEXT_MAX_BYTES)]
 struct ServiceSocketEnv(String);
-#[derive(optml::Optml, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
 struct ServiceCatalogEntries(bounded_types::BoundedVec<ServiceCatalogEntry, 0, { usize::MAX }>);
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 struct ServiceCatalogEntriesRef<'entries_lt>(&'entries_lt [ServiceCatalogEntry]);
-#[derive(optml::Optml, Debug)]
-#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optml takes precedence over alphabetical field order
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
+#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
 struct ServiceCatalogEntry {
     compose_file: ServiceComposeFile,
     compose_name: ServiceComposeName,
@@ -49,12 +91,26 @@ struct ServiceCatalogEntry {
     port: ServicePort,
     release: ShouldRelease,
 }
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
 struct ShouldRelease(bool);
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
 struct IsCatalogPathSafe(bool);
-#[derive(optml::Optml, Default)]
-#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optml takes precedence over alphabetical field order
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
+#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
 struct ServiceCatalogDraft {
     compose_file: Option<ServiceComposeFile>,
     compose_name: Option<ServiceComposeName>,
@@ -81,38 +137,61 @@ impl ServiceCatalogDraft {
         })
     }
 }
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
 struct ShouldWrite(bool);
 #[derive(
-    optml::Optml, Clone, Debug, newtype::AsRefStr, newtype::BoundedString, newtype::Display,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    newtype::AsRefStr,
+    newtype::BoundedString,
+    newtype::Display,
 )]
 #[bounded_string(max = SCAFFOLD_TEXT_MAX_BYTES)]
 struct ScaffoldText(String);
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 struct ScaffoldTextRef<'text_lt>(&'text_lt str);
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 struct StdScaffoldPathRef<'path_lt>(&'path_lt std::path::Path);
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 struct ReplacementsRef<'replacements_lt>(&'replacements_lt [(&'replacements_lt str, String)]);
-#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
 struct CargoArgsRef<'args_lt>(&'args_lt [&'args_lt str]);
-#[derive(optml::Optml, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
 struct UpdateEnvName(&'static str);
-#[derive(optml::Optml, Clone, Copy)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
 enum GeneratedProjection {
     CodeStyle,
     Config,
 }
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
 struct ShouldSkip(bool);
-#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
+)]
 #[error(transparent)]
 struct StdScaffoldIoError(std::io::Error);
-#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
+)]
 #[error(transparent)]
 struct ServerRuntimeBoundedReadError(server_runtime_http::BoundedReadError);
 
-#[derive(optml::Optml, Debug, thiserror::Error)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 enum ScaffoldError {
     #[error(
         "usage: workspace-scaffold project <snake_case_name> <repository_url> | service <snake_case_name> <port> | generate <sync|check> | deployment <sync|check>"

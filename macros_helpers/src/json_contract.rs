@@ -1,9 +1,11 @@
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 pub struct JsonFixtureRef<'fixture_lt>(&'fixture_lt str);
-#[derive(optml::Optml, Debug, thiserror::Error, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
+)]
 #[error(transparent)]
 pub struct SerdeJsonError(serde_json::Error);
-#[derive(optml::Optml, Debug, thiserror::Error)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum ContractError {
     #[error("fixture JSON deserialization failed: {0}")]
     DeserializeFixture(SerdeJsonError),
@@ -34,11 +36,20 @@ where
 }
 #[cfg(test)]
 mod tests {
-    #[derive(optml::Optml, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+    #[derive(
+        optimal_memory_layout::OptimalMemoryLayout,
+        Debug,
+        Eq,
+        PartialEq,
+        serde::Deserialize,
+        serde::Serialize,
+    )]
     struct TestValue {
         value: u8,
     }
-    #[derive(optml::Optml, Debug, Eq, PartialEq, serde::Deserialize)]
+    #[derive(
+        optimal_memory_layout::OptimalMemoryLayout, Debug, Eq, PartialEq, serde::Deserialize,
+    )]
     struct SerializeFails;
     impl serde::Serialize for SerializeFails {
         fn serialize<Serializer>(
@@ -53,7 +64,7 @@ mod tests {
             ))
         }
     }
-    #[derive(optml::Optml, Debug, Eq, PartialEq)]
+    #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Eq, PartialEq)]
     struct ReparseFails;
     impl serde::Serialize for ReparseFails {
         fn serialize<Serializer>(

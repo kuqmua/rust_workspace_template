@@ -1,9 +1,21 @@
 #[derive(
-    optml::Optml, Clone, Copy, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    serde::Deserialize,
+    serde::Serialize,
+    utoipa::ToSchema,
 )]
 pub struct AdminNoBody;
 
-#[derive(optml::Optml, Clone, Debug, newtype::BoundedString, newtype::Display)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    newtype::BoundedString,
+    newtype::Display,
+)]
 #[bounded_string(
     max = 64,
     chars,
@@ -13,7 +25,13 @@ pub struct AdminNoBody;
 )]
 pub struct AdminSessionIdentifier(String);
 
-#[derive(optml::Optml, Clone, Debug, newtype::BoundedString, newtype::Display)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    newtype::BoundedString,
+    newtype::Display,
+)]
 #[bounded_string(
     max = 64,
     chars,
@@ -23,7 +41,14 @@ pub struct AdminSessionIdentifier(String);
 )]
 pub struct AdminSessionTimestamp(String);
 
-#[derive(optml::Optml, Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    serde::Deserialize,
+    serde::Serialize,
+    utoipa::ToSchema,
+)]
 pub struct AdminSessionView {
     created_at: AdminSessionTimestamp,
     expires_at: AdminSessionTimestamp,
@@ -34,7 +59,14 @@ pub struct AdminSessionView {
 #[cfg(test)]
 mod tests;
 
-#[derive(optml::Optml, Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    serde::Deserialize,
+    serde::Serialize,
+    utoipa::ToSchema,
+)]
 pub struct AdminSessionsPage {
     items: super::AdminSessionViews,
     #[schema(value_type = u64)]

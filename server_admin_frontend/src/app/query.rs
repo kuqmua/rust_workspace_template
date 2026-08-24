@@ -2,7 +2,7 @@ pub(in crate::app) mod page;
 
 mod location;
 
-#[derive(optml::Optml, Clone, Debug, Default)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Default)]
 pub(in crate::app) struct AdminCsrQuery {
     pub(in crate::app) direction: Option<server_admin_contract::AdminText>,
     pub(in crate::app) filter_end: Option<server_admin_contract::AdminFilterValue>,

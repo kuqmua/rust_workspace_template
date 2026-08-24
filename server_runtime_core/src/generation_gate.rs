@@ -1,13 +1,21 @@
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::FromInner,
+)]
 pub struct Generation(u64);
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum GenerationCommit {
     Current,
     Stale,
 }
 
-#[derive(optml::Optml, Debug, Default)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Default)]
 pub struct GenerationGate {
     current: StdGenerationAtomicU64,
 }
@@ -32,7 +40,7 @@ impl GenerationGate {
     }
 }
 
-#[derive(optml::Optml, Debug, Default, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Default, newtype::FromInner)]
 struct StdGenerationAtomicU64(std::sync::atomic::AtomicU64);
 
 #[cfg(test)]

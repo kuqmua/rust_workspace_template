@@ -1,11 +1,11 @@
 pub trait RouteTransport {}
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct PublicTransport;
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct AuthenticatedTransport;
 impl RouteTransport for PublicTransport {}
 impl RouteTransport for AuthenticatedTransport {}
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RouteMethod {
     Connect,
     Delete,
@@ -33,7 +33,7 @@ impl RouteMethod {
         })
     }
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[cfg(not(target_arch = "wasm32"))]
 #[derive(Clone, Copy, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct AxumMethodFilter(axum::routing::MethodFilter);
@@ -52,7 +52,7 @@ pub fn axum_method_filter(method: crate::HttpMethod) -> AxumMethodFilter {
         crate::HttpMethod::Trace => axum::routing::MethodFilter::TRACE,
     })
 }
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct RouteMetadata {
     authentication: crate::AuthenticationRequirement,
     error_statuses: &'static [crate::RouteErrorStatus],
@@ -163,7 +163,7 @@ impl RouteMetadata {
         )
     }
 }
-#[derive(optml::Optml, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
 pub struct UtoipaOpenApiComponentsRefMut<'value_lt>(
     &'value_lt mut utoipa::openapi::schema::Components,
 );
@@ -173,7 +173,7 @@ impl std::fmt::Debug for UtoipaOpenApiComponentsRefMut<'_> {
             .finish_non_exhaustive()
     }
 }
-#[derive(optml::Optml, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
 pub struct UtoipaOpenApiRefMut<'value_lt>(&'value_lt mut utoipa::openapi::OpenApi);
 impl std::fmt::Debug for UtoipaOpenApiRefMut<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -216,12 +216,12 @@ pub trait TypedRoute: Sized {
     }
     fn register_openapi_schemas(_components: &mut UtoipaOpenApiComponentsRefMut<'_>) {}
 }
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RouteRequestBody {
     Absent,
     Json,
 }
-#[derive(optml::Optml, Clone, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub struct RouteSchemaContract {
     metadata: RouteMetadata,
     request_schema: Option<UtoipaOpenApiRouteSchema>,
@@ -252,7 +252,9 @@ impl RouteSchemaContract {
         self.response_schema.as_ref()
     }
 }
-#[derive(optml::Optml, Clone, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, newtype::FromInner, newtype::IntoInnerFrom,
+)]
 pub struct UtoipaOpenApiRouteSchema(utoipa::openapi::RefOr<utoipa::openapi::Schema>);
 impl std::fmt::Debug for UtoipaOpenApiRouteSchema {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -260,7 +262,9 @@ impl std::fmt::Debug for UtoipaOpenApiRouteSchema {
             .finish_non_exhaustive()
     }
 }
-#[derive(optml::Optml, Clone, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, newtype::FromInner, newtype::IntoInnerFrom,
+)]
 pub struct UtoipaOpenApiPathParameter(utoipa::openapi::path::Parameter);
 impl std::fmt::Debug for UtoipaOpenApiPathParameter {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -268,9 +272,17 @@ impl std::fmt::Debug for UtoipaOpenApiPathParameter {
             .finish_non_exhaustive()
     }
 }
-#[derive(optml::Optml, Clone, Debug, Default, Eq, PartialEq, newtype::IntoInnerFrom)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Default,
+    Eq,
+    PartialEq,
+    newtype::IntoInnerFrom,
+)]
 pub struct ParameterizedRoutePath(String);
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct ParameterizedRoutePathTryFromStringError;
 impl TryFrom<String> for ParameterizedRoutePath {
     type Error = ParameterizedRoutePathTryFromStringError;
@@ -282,7 +294,15 @@ impl TryFrom<String> for ParameterizedRoutePath {
         }
     }
 }
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::FromInner,
+)]
 pub struct OpenApiSecuritySchemeRef<'value_lt>(&'value_lt str);
 pub trait CoveredRoute: TypedRoute {
     fn coverage_descriptor() -> crate::RouteCoverageDescriptor;
@@ -291,10 +311,18 @@ pub trait ParameterizedRoute: TypedRoute {
     type Parameter;
     fn path(parameter: &Self::Parameter) -> ParameterizedRoutePath;
 }
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::FromInner,
+)]
 pub struct RouteBodyLimit(usize);
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Default,
@@ -308,7 +336,7 @@ pub struct RouteCoverageDescriptors(
     bounded_types::BoundedVec<crate::RouteCoverageDescriptor, 0, { usize::MAX }>,
 );
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Default,
@@ -318,7 +346,7 @@ pub struct RouteCoverageDescriptors(
 )]
 pub struct RouteSchemaContracts(bounded_types::BoundedVec<RouteSchemaContract, 0, { usize::MAX }>);
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Default,
@@ -392,7 +420,7 @@ where
     Family: RouteFamily,
 {
 }
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct RouteRequest<Route>
 where
     Route: TypedRoute,
@@ -412,7 +440,7 @@ where
         &self.body
     }
 }
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct RouteResponse<Route>
 where
     Route: TypedRoute,
@@ -647,17 +675,33 @@ where
 }
 #[cfg(test)]
 mod tests {
-    #[derive(optml::Optml, Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+    #[derive(
+        optimal_memory_layout::OptimalMemoryLayout,
+        Clone,
+        Debug,
+        Eq,
+        PartialEq,
+        serde::Deserialize,
+        serde::Serialize,
+    )]
     #[serde(from = "u64")]
     #[derive(newtype::FromInner)]
     struct Request(u64);
 
-    #[derive(optml::Optml, Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+    #[derive(
+        optimal_memory_layout::OptimalMemoryLayout,
+        Clone,
+        Debug,
+        Eq,
+        PartialEq,
+        serde::Deserialize,
+        serde::Serialize,
+    )]
     #[serde(from = "u64")]
     #[derive(newtype::FromInner)]
     struct Response(u64);
 
-    #[derive(optml::Optml)]
+    #[derive(optimal_memory_layout::OptimalMemoryLayout)]
     struct Route;
     impl super::TypedRoute for Route {
         type Request = Request;

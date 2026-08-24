@@ -1,4 +1,4 @@
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RouteContractMismatch {
     Method {
         expected: frontend_contract::ContractStr,
@@ -14,12 +14,22 @@ pub enum RouteContractMismatch {
     },
 }
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::AsRefTarget,
+    newtype::FromInner,
+)]
 pub struct RouteContractMismatches(
     bounded_types::BoundedVec<RouteContractMismatch, 0, { usize::MAX }>,
 );
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::TryFrom)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, newtype::TryFrom,
+)]
 #[try_from(
     error = frontend_contract::HttpStatusTryFromU16Error,
     validator = HttpContractStatus::validate
@@ -36,7 +46,7 @@ impl HttpContractStatus {
     }
 }
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct HttpContractBody(
     bounded_types::BoundedVec<u8, 0, { frontend_contract::FRONTEND_CONTRACT_BODY_MAX_BYTES }>,
 );
@@ -49,13 +59,13 @@ impl TryFrom<Vec<u8>> for HttpContractBody {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum HttpContractBodyKind {
     Empty,
     Json,
 }
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct HttpContractObservation {
     body: HttpContractBody,
     metadata: frontend_contract::RouteMetadata,
@@ -76,8 +86,8 @@ impl HttpContractObservation {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
-#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optml takes precedence over alphabetical field order
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
+#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
 pub struct HttpContractExpectation {
     metadata: frontend_contract::RouteMetadata,
     status: HttpContractStatus,
@@ -98,7 +108,7 @@ impl HttpContractExpectation {
     }
 }
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub enum HttpContractMismatch {
     BodyExpectedEmpty,
     BodyExpectedJson,
@@ -182,7 +192,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    #[derive(optml::Optml)]
+    #[derive(optimal_memory_layout::OptimalMemoryLayout)]
     struct ReadRoute;
     impl frontend_contract::TypedRoute for ReadRoute {
         type Request = ();

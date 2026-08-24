@@ -4,84 +4,84 @@
     reason = "form adapters deliberately replace unvalidated extractor values with validated domain values"
 )]
 
-#[derive(optml::Optml, Debug, serde::Deserialize)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 struct SignInForm {
     login: server_admin_contract::AdminLogin,
     password: server_admin_contract::AdminPassword,
 }
 
-#[derive(optml::Optml, Debug, serde::Deserialize)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 struct ChangePasswordForm {
     current_password: server_admin_contract::AdminPassword,
     new_password: server_admin_contract::AdminNewPassword,
 }
 
-#[derive(optml::Optml, Debug, serde::Deserialize)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 struct RevokeSessionForm {
     session_id: server_admin_contract::AdminSessionIdentifier,
     confirmation: server_admin_contract::AdminBool,
 }
 
-#[derive(optml::Optml, Debug, serde::Deserialize)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 struct CreateUserForm {
     display_name: server_admin_contract::AdminDisplayName,
     login: server_admin_contract::AdminLogin,
     password: server_admin_contract::AdminNewPassword,
 }
-#[derive(optml::Optml, Debug, serde::Deserialize)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 struct UpdateUserForm {
     display_name: server_admin_contract::AdminDisplayName,
     login: server_admin_contract::AdminLogin,
     user_id: server_admin_contract::AdminUserId,
 }
-#[derive(optml::Optml, Debug, serde::Deserialize)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 struct UserPasswordForm {
     password: server_admin_contract::AdminNewPassword,
     user_id: server_admin_contract::AdminUserId,
 }
-#[derive(optml::Optml, Debug, serde::Deserialize)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 struct UserBanForm {
     user_id: server_admin_contract::AdminUserId,
     is_banned: server_admin_contract::AdminBool,
 }
-#[derive(optml::Optml, Debug, serde::Deserialize)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 struct UserIdForm {
     user_id: server_admin_contract::AdminUserId,
     confirmation: server_admin_contract::AdminBool,
 }
-#[derive(optml::Optml, Debug, serde::Deserialize)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, serde::Deserialize)]
 struct UserRolesForm {
     expected_role_ids: AdminHtmlFormText,
     #[serde(flatten)]
     selected: StdAdminHtmlSelected,
     user_id: server_admin_contract::AdminUserId,
 }
-#[derive(optml::Optml, Debug, serde::Deserialize)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 struct CreateRoleForm {
     name: server_admin_contract::AdminRoleName,
 }
-#[derive(optml::Optml, Debug, serde::Deserialize)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 struct UpdateRoleForm {
     name: server_admin_contract::AdminRoleName,
     role_id: server_admin_contract::AdminRoleId,
 }
-#[derive(optml::Optml, Debug, serde::Deserialize)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 struct RoleIdForm {
     role_id: server_admin_contract::AdminRoleId,
     confirmation: server_admin_contract::AdminBool,
 }
-#[derive(optml::Optml, Debug, serde::Deserialize)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, serde::Deserialize)]
 struct RolePermissionsForm {
     expected_permission_ids: AdminHtmlFormText,
     #[serde(flatten)]
@@ -92,7 +92,7 @@ struct RolePermissionsForm {
 const ADMIN_HTML_FORM_TEXT_MAX_BYTES: usize = 8_192usize;
 const ADMIN_HTML_FORM_SELECTED_MAX_ITEMS: usize = 1_000usize;
 
-#[derive(optml::Optml, Debug, thiserror::Error)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 #[error("{message}", message = str_constants::ADMIN_HTML_FORM_TEXT_TOO_LONG)]
 struct AdminHtmlFormTextError;
 impl From<bounded_types::BoundedValueError> for AdminHtmlFormTextError {
@@ -100,7 +100,7 @@ impl From<bounded_types::BoundedValueError> for AdminHtmlFormTextError {
         Self
     }
 }
-#[derive(optml::Optml, Debug, thiserror::Error)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 #[error("{message}", message = str_constants::ADMIN_HTML_FORM_KEY_TOO_LONG)]
 struct AdminHtmlFormKeyError;
 impl From<bounded_types::BoundedValueError> for AdminHtmlFormKeyError {
@@ -108,7 +108,7 @@ impl From<bounded_types::BoundedValueError> for AdminHtmlFormKeyError {
         Self
     }
 }
-#[derive(optml::Optml, Debug, thiserror::Error)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 #[error("administrator HTML form contains too many selected fields")]
 struct StdAdminHtmlSelectedError;
 impl From<bounded_types::BoundedValueError> for StdAdminHtmlSelectedError {
@@ -117,7 +117,7 @@ impl From<bounded_types::BoundedValueError> for StdAdminHtmlSelectedError {
     }
 }
 
-#[derive(optml::Optml, Debug, serde::Deserialize)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, serde::Deserialize)]
 #[serde(try_from = "String")]
 struct AdminHtmlFormText(bounded_types::BoundedString<0, ADMIN_HTML_FORM_TEXT_MAX_BYTES>);
 impl TryFrom<String> for AdminHtmlFormText {
@@ -128,7 +128,15 @@ impl TryFrom<String> for AdminHtmlFormText {
             .map_err(AdminHtmlFormTextError::from)
     }
 }
-#[derive(optml::Optml, Debug, Eq, Ord, PartialEq, PartialOrd, serde::Deserialize)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Eq,
+    Ord,
+    PartialEq,
+    PartialOrd,
+    serde::Deserialize,
+)]
 #[serde(try_from = "String")]
 struct AdminHtmlFormKey(bounded_types::BoundedString<0, ADMIN_HTML_FORM_TEXT_MAX_BYTES>);
 impl TryFrom<String> for AdminHtmlFormKey {
@@ -139,7 +147,9 @@ impl TryFrom<String> for AdminHtmlFormKey {
             .map_err(AdminHtmlFormKeyError::from)
     }
 }
-#[derive(optml::Optml, Debug, newtype::FromInner, serde::Deserialize)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner, serde::Deserialize,
+)]
 #[serde(
     from = "bounded_types::StdBoundedBTreeMap<AdminHtmlFormKey, AdminHtmlFormText, ADMIN_HTML_FORM_SELECTED_MAX_ITEMS>"
 )]
@@ -163,7 +173,7 @@ impl TryFrom<std::collections::BTreeMap<AdminHtmlFormKey, AdminHtmlFormText>>
     }
 }
 
-#[derive(optml::Optml, Debug, serde::Deserialize)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 struct SettingsForm {
     default_admin_route: server_admin_contract::AdminDefaultRoute,
@@ -471,7 +481,7 @@ where
     }
 }
 
-#[derive(optml::Optml, Clone, Copy)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
 enum AdminCrudPage {
     RoleCreate,
     RoleManage,
@@ -1106,7 +1116,7 @@ async fn sign_in(
     .await
 }
 
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[frontend_contract::handler_registry(
     state = super::StdSharedAdminAuthSvcState;
     (
@@ -1228,7 +1238,7 @@ async fn sign_in(
 )]
 struct AdminHtmlRouteRegistry;
 
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[frontend_contract::handler_registry(
     state = super::StdSharedAdminAuthSvcState;
     (

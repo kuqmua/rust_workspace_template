@@ -1,5 +1,5 @@
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,
@@ -26,7 +26,9 @@ pub enum ApiProblemKind {
     RequestFailed,
     Validation,
 }
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 pub enum ApiProblemError {
     #[error("API authentication failed")]
     Authentication,
@@ -60,7 +62,7 @@ pub enum ApiProblemError {
     Validation,
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,
@@ -145,7 +147,7 @@ impl ApiProblemError {
     }
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Default,
@@ -161,7 +163,7 @@ impl ApiProblemError {
 #[serde(try_from = "String")]
 pub struct ApiProblemDetail(String);
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Default,
@@ -176,7 +178,7 @@ pub struct ApiProblemDetail(String);
 #[serde(try_from = "String")]
 pub struct ApiProblemRequestId(String);
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Default,
@@ -191,7 +193,7 @@ pub struct ApiProblemRequestId(String);
 #[serde(try_from = "String")]
 pub struct ApiProblemField(String);
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     PartialEq,
@@ -205,7 +207,7 @@ pub struct ApiProblemViolation {
     field: ApiProblemField,
 }
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Default,
@@ -221,7 +223,7 @@ pub(crate) struct ApiProblemViolations(
     bounded_types::BoundedVec<ApiProblemViolation, 0usize, 128usize>,
 );
 #[derive(
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     PartialEq,

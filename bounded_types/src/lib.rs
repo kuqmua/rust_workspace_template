@@ -11,7 +11,17 @@ pub use hash_map::StdBoundedHashMap;
 pub use string::BoundedString;
 pub use vector::BoundedVec;
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Ord,
+    PartialEq,
+    PartialOrd,
+    newtype::FromInner,
+)]
 pub struct BoundedLen(usize);
 impl BoundedLen {
     #[must_use]
@@ -25,7 +35,9 @@ impl std::fmt::Display for BoundedLen {
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 pub enum BoundedValueError {
     #[error("bounded value length {actual} exceeds maximum {max}")]
     AboveMax { actual: BoundedLen, max: BoundedLen },
@@ -95,7 +107,7 @@ const SERDE_PREALLOC_MAX_ITEMS: usize = 1024usize;
 
 #[cfg(test)]
 mod tests {
-    #[derive(optml::Optml)]
+    #[derive(optimal_memory_layout::OptimalMemoryLayout)]
     enum TestDeserializerValue {
         Number(u8),
         Text(&'static str),
@@ -442,7 +454,7 @@ mod tests {
         assert!(error.to_string().contains("exceeds maximum 1"));
     }
 
-    #[derive(optml::Optml)]
+    #[derive(optimal_memory_layout::OptimalMemoryLayout)]
     struct MisleadingSizeHintIter<Value> {
         values: std::vec::IntoIter<Value>,
     }

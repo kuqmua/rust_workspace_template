@@ -9,7 +9,7 @@
     Hash,
     naming_macros::AsRefStrEnumWithUnitFieldsToUpperCamelCaseStr,
     naming_macros::AsRefStrEnumWithUnitFieldsToSnakeCaseStr,
-    optml::Optml,
+    optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub enum StatusCode {
     Continue100,
@@ -435,14 +435,16 @@ impl TryFrom<&String> for StatusCode {
         }
     }
 }
-#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq, thiserror::Error,
+)]
 pub enum GetOnlyOneStatusCodeError {
     #[error("07286cf0: two or more supported status code attrs")]
     MoreThanOne,
     #[error("19fc6512: supported status code attr not found")]
     NotFound,
 }
-#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
 pub struct SynStatusCodeVariantRef<'variant_lt>(&'variant_lt syn::Variant);
 pub fn get_only_one(
     variant_ref: SynStatusCodeVariantRef<'_>,

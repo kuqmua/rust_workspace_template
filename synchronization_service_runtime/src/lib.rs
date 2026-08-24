@@ -1,13 +1,15 @@
 const SYNCHRONIZATION_PAYLOAD_MAX_BYTES: usize = 16 * 1024 * 1024;
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq)]
-#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optml takes precedence over alphabetical field order
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
+#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
 pub struct SynchronizationRuntimeConfiguration {
     retry_policy: server_runtime_core::RetryPolicy,
     execution_mode: server_runtime_core::ExecutionMode,
 }
 
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 #[error("{}", std::any::type_name::<Self>())]
 pub struct SynchronizationPayloadTooLarge;
 impl From<bounded_types::BoundedValueError> for SynchronizationPayloadTooLarge {
@@ -16,7 +18,9 @@ impl From<bounded_types::BoundedValueError> for SynchronizationPayloadTooLarge {
     }
 }
 
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq, newtype::AsRefTarget)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::AsRefTarget,
+)]
 pub struct SynchronizationPayload(
     bounded_types::BoundedVec<u8, 0, SYNCHRONIZATION_PAYLOAD_MAX_BYTES>,
 );

@@ -1,26 +1,28 @@
-#[proc_macro_derive(Optml, attributes(optml))]
-pub fn optml(input_token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
+#[proc_macro_derive(OptimalMemoryLayout, attributes(optimal_memory_layout))]
+pub fn optimal_memory_layout(
+    input_token_stream: proc_macro::TokenStream,
+) -> proc_macro::TokenStream {
     let generate_alignments_identifier_token_stream = |i: usize| {
         format!("alignments_{i}")
             .parse::<proc_macro2::TokenStream>()
-            .expect("5a0bb723 optml invariant must hold")
+            .expect("5a0bb723 optimal_memory_layout invariant must hold")
     };
     let di: syn::DeriveInput =
-        syn::parse(input_token_stream).expect("a1d306de optml invariant must hold");
+        syn::parse(input_token_stream).expect("a1d306de optimal_memory_layout invariant must hold");
     let mut skip = false;
     di.attrs
         .iter()
-        .filter(|attr| attr.path().is_ident("optml"))
+        .filter(|attr| attr.path().is_ident("optimal_memory_layout"))
         .for_each(|attr| {
             attr.parse_nested_meta(|metadata| {
                 if metadata.path.is_ident("skip") {
                     skip = true;
                     Ok(())
                 } else {
-                    Err(metadata.error("6e9230ab unsupported optml attribute"))
+                    Err(metadata.error("6e9230ab unsupported optimal_memory_layout attribute"))
                 }
             })
-            .expect("58bd65a7 optml invariant must hold");
+            .expect("58bd65a7 optimal_memory_layout invariant must hold");
         });
     if skip {
         return proc_macro::TokenStream::new();

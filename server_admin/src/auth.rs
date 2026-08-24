@@ -9,12 +9,23 @@ mod sessions;
 mod settings;
 mod shared;
 mod users;
-#[derive(optml::Optml, newtype::DebugTransparent, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, newtype::DebugTransparent, newtype::FromInner,
+)]
 pub struct JsonwebtokenAdminEncodingKey(jsonwebtoken::EncodingKey);
-#[derive(optml::Optml, Debug, newtype::AsRefTarget, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::AsRefTarget, newtype::FromInner,
+)]
 struct JsonwebtokenAdminDecodingKeys(Vec<jsonwebtoken::DecodingKey>);
 #[derive(
-    optml::Optml, Debug, Clone, Copy, PartialEq, Eq, newtype::IntoInnerFrom, newtype::TryFrom,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    newtype::IntoInnerFrom,
+    newtype::TryFrom,
 )]
 #[try_from(
     error = AdminAuthPositiveValueError,
@@ -32,7 +43,14 @@ impl StdAdminAccessTtlSeconds {
     }
 }
 #[derive(
-    optml::Optml, Debug, Clone, Copy, PartialEq, Eq, newtype::IntoInnerFrom, newtype::TryFrom,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    newtype::IntoInnerFrom,
+    newtype::TryFrom,
 )]
 #[try_from(
     error = AdminAuthPositiveValueError,
@@ -50,7 +68,14 @@ impl StdAdminRefreshTtlSeconds {
     }
 }
 #[derive(
-    optml::Optml, Debug, Clone, Copy, PartialEq, Eq, newtype::IntoInnerFrom, newtype::TryFrom,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    newtype::IntoInnerFrom,
+    newtype::TryFrom,
 )]
 #[try_from(
     error = AdminAuthPositiveValueError,
@@ -68,7 +93,14 @@ impl StdAdminSessionLimit {
     }
 }
 #[derive(
-    optml::Optml, Debug, Clone, Copy, PartialEq, Eq, newtype::IntoInnerFrom, newtype::TryFrom,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    newtype::IntoInnerFrom,
+    newtype::TryFrom,
 )]
 #[try_from(
     error = AdminAuthPositiveValueError,
@@ -85,16 +117,40 @@ impl StdAdminFailureThreshold {
         }
     }
 }
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 #[error("{self:?}")]
 pub struct AdminAuthPositiveValueError;
-#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    newtype::FromInner,
+)]
 pub struct StdAdminFailureDelayMillis(u64);
-#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
 pub(crate) struct StdAdminRateLimitCount(i64);
-#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
 pub(crate) struct StdAdminRateLimitWindowSeconds(i32);
-#[derive(optml::Optml, Debug, Clone, Copy)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy)]
 pub struct AdminAuthPolicy {
     audit_export_limit: StdAdminRateLimitCount,
     failure_delay: StdAdminFailureDelayMillis,
@@ -132,7 +188,7 @@ impl AdminAuthPolicy {
         }
     }
 }
-#[derive(optml::Optml, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 pub struct AdminAuthSvcState {
     access_ttl: StdAdminAccessTtlSeconds,
     allowed_origins: server_runtime_http::AllowedOrigins,
@@ -147,9 +203,15 @@ pub struct AdminAuthSvcState {
     session_limit: StdAdminSessionLimit,
     cookie_secure: super::AdminCookieSecure,
 }
-#[derive(optml::Optml, Clone, Debug, newtype::AsRefOwned, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    newtype::AsRefOwned,
+    newtype::FromInner,
+)]
 pub struct StdSharedAdminAuthSvcState(std::sync::Arc<AdminAuthSvcState>);
-#[derive(optml::Optml, Clone, Copy, Debug, thiserror::Error)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, thiserror::Error)]
 pub enum AdminAuthSvcStateBuildError {
     #[error("administrator allowed origin is invalid")]
     AllowedOrigin,
@@ -170,7 +232,7 @@ fn admin_new_password_from_contract(
 ) -> Result<super::AdminPassword, super::AdminPasswordTryFromStringError> {
     super::AdminPassword::try_from(value.into_inner())
 }
-#[derive(optml::Optml, Debug, serde::Serialize, utoipa::ToSchema)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, serde::Serialize, utoipa::ToSchema)]
 pub struct AuthenticatedAdmin {
     display_name: super::AdminDisplayName,
     id: super::AdminUserId,
@@ -226,7 +288,9 @@ fn authenticated_admin_contract(
             .map_err(|_error| AdminError::Validation)?,
     ))
 }
-#[derive(optml::Optml, Clone, Debug, serde::Deserialize, utoipa::IntoParams)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, serde::Deserialize, utoipa::IntoParams,
+)]
 #[into_params(parameter_in = Query)]
 pub struct AdminAuditQuery {
     created_after: Option<server_admin_contract::AdminAuditTimestamp>,
@@ -249,7 +313,7 @@ pub struct AdminAuditQuery {
     #[param(inline)]
     action: Option<super::AdminAuditAction>,
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[allow(clippy::field_scoped_visibility_modifiers)] // repository query binding consumes this internal cross-module DTO field-by-field
 pub(crate) struct AdminAuditQueryParts {
     pub(crate) created_after: Option<server_admin_contract::AdminAuditTimestamp>,
@@ -286,15 +350,21 @@ impl AdminAuditQuery {
         }
     }
 }
-#[derive(optml::Optml, Clone, Debug, newtype::AsRefOwned, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    newtype::AsRefOwned,
+    newtype::FromInner,
+)]
 pub struct HttpAdminHeaderMap(http::HeaderMap);
-#[derive(optml::Optml, Debug, Clone)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone)]
 pub(crate) struct AdminAuthReq {
     headers: HttpAdminHeaderMap,
     state: StdSharedAdminAuthSvcState,
     peer: AdminPeerAddr,
 }
-#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
 pub(crate) struct AdminPeerAddr(super::StdAdminSocketAddr);
 impl AdminPeerAddr {
     pub(crate) const fn socket_addr(self) -> super::StdAdminSocketAddr {
@@ -319,17 +389,17 @@ where
         )
     }
 }
-#[derive(optml::Optml, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
 pub(crate) struct AdminSignInJson(server_admin_contract::AdminSignInReq);
-#[derive(optml::Optml, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
 pub(crate) struct AxumAdminJson<Value>(Value);
-#[derive(optml::Optml, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
 pub(crate) struct AxumAdminForm<Value>(Value);
-#[derive(optml::Optml, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
 pub(crate) struct AxumAdminPath<Value>(Value);
-#[derive(optml::Optml, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
 pub(crate) struct AxumAdminQuery<Value>(Value);
-#[derive(optml::Optml, Debug, Clone, Copy, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
 pub(crate) struct AdminSessionPath(super::AdminSessionId);
 impl<S> axum::extract::FromRequestParts<S> for HttpAdminHeaderMap
 where
@@ -632,10 +702,15 @@ pub(crate) async fn authorize_generated_request(
     }
     Ok(authenticated)
 }
-#[derive(optml::Optml, newtype::DebugTransparent, thiserror::Error, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    newtype::DebugTransparent,
+    thiserror::Error,
+    newtype::FromInner,
+)]
 #[error(transparent)]
 pub struct HttpAdminHeaderValueError(http::header::InvalidHeaderValue);
-#[derive(optml::Optml, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)]
 enum AdminObservedErrorCode {
     AuthenticationSecretText,
     CsrfSecretText,
@@ -660,7 +735,7 @@ impl AdminObservedErrorCode {
         }
     }
 }
-#[derive(optml::Optml, Debug, thiserror::Error)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub(crate) enum AdminError {
     #[error("administrator authentication failed")]
     Authentication,
@@ -791,7 +866,9 @@ impl From<super::SqlxAdminError> for AdminError {
         Self::pg(value)
     }
 }
-#[derive(optml::Optml, Debug, newtype::IntoInnerFrom, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::IntoInnerFrom, newtype::FromInner,
+)]
 pub struct AxumAdminResponse(axum::response::Response);
 impl axum::response::IntoResponse for AdminError {
     fn into_response(self) -> axum::response::Response {
@@ -900,7 +977,7 @@ async fn record_login_attempt(
     .await
     .map_err(AdminError::pg)
 }
-#[derive(optml::Optml, Debug, Clone, Copy)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy)]
 struct AdminAuditSuccessRef<'value_lt> {
     action: super::AdminAuditAction,
     login: &'value_lt super::AdminLogin,
@@ -908,7 +985,7 @@ struct AdminAuditSuccessRef<'value_lt> {
     resource_id: AdminAuditResourceId,
     user_id: super::AdminUserId,
 }
-#[derive(optml::Optml, Debug, Clone, Copy)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy)]
 enum AdminAuditResourceId {
     Role(super::AdminRoleId),
     Session(super::AdminSessionId),
@@ -931,7 +1008,7 @@ async fn record_audit_success_in_connection(
 ) -> Result<(), AdminError> {
     audit::record_success_in_connection(connection, event).await
 }
-#[derive(optml::Optml, newtype::AsMut, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::AsMut, newtype::FromInner)]
 struct SqlxAdminPgConnectionRef<'connection_lt>(&'connection_lt mut sqlx::PgConnection);
 
 async fn load_authenticated_admin(
@@ -1039,9 +1116,17 @@ fn append_cleared_session_cookies(
             .map_err(|error| AdminError::header(HttpAdminHeaderValueError::from(error)))
     })
 }
-#[derive(optml::Optml, Debug, Clone, newtype::IntoInnerFrom, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    newtype::IntoInnerFrom,
+    newtype::FromInner,
+)]
 pub struct AxumAdminAuthRouter(axum::Router);
-#[derive(optml::Optml, Clone, newtype::IntoInnerFrom, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, newtype::IntoInnerFrom, newtype::FromInner,
+)]
 pub struct UtoipaAdminAuthOpenApi(utoipa::openapi::OpenApi);
 impl std::fmt::Debug for UtoipaAdminAuthOpenApi {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -1060,7 +1145,7 @@ pub fn routes(state: StdSharedAdminAuthSvcState) -> AxumAdminAuthRouter {
 pub fn html_routes(state: StdSharedAdminAuthSvcState) -> AxumAdminAuthRouter {
     html::routes(state, AdminHtmlSwaggerEnabled::from(true))
 }
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 pub struct AdminHtmlSwaggerEnabled(bool);
 #[must_use]
 pub fn html_routes_with_swagger(
@@ -1141,7 +1226,7 @@ impl AdminAuthSvcState {
         })
     }
 }
-#[derive(optml::Optml, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 pub struct AdminSessionBundle {
     access_token: super::StdAdminAccessToken,
     csrf_token: super::AdminOpaqueToken,
@@ -1166,7 +1251,7 @@ impl AdminSessionBundle {
         self.session_id
     }
 }
-#[derive(optml::Optml, Debug, thiserror::Error)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum AdminSessionError {
     #[error("administrator access token creation failed: {0:?}")]
     AccessToken(super::AdminAccessTokenError),

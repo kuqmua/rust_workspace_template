@@ -58,7 +58,7 @@ async fn open_api() -> super::AxumNotificationResponse {
     )))
 }
 
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[frontend_contract::route_registry(
     state = super::NotificationState,
     family = notification_service_contract::NotificationRouteFamily;
@@ -80,7 +80,7 @@ pub(super) fn open_api_document() -> utoipa::openapi::OpenApi {
     NotificationApiRouteRegistry::open_api()
 }
 
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[frontend_contract::handler_registry(
     state = super::NotificationState;
     (

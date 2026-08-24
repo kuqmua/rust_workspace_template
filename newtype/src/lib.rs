@@ -9,19 +9,19 @@ fn dependency_markers<Value>(
     Value: serde::Serialize,
 {
 }
-#[derive(optml::Optml, Debug, Default)]
-#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optml takes precedence over alphabetical field order
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Default)]
+#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
 struct NewtypeAttrs {
     options: workspace_macro_helpers::StdUniqueOptionSet<NewtypeOption>,
     try_from: Option<NewtypeTryFromAttrs>,
     to_err_string_mode: Option<ToErrStringMode>,
 }
-#[derive(optml::Optml, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 struct NewtypeTryFromAttrs {
     error: Option<SynType>,
     validator: SynExpr,
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct BoundedStringAttrs {
     description: Option<SynExpr>,
     max: Option<SynExpr>,
@@ -29,7 +29,7 @@ struct BoundedStringAttrs {
     options: workspace_macro_helpers::StdUniqueOptionSet<BoundedStringOption>,
     validator: Option<SynExpr>,
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct WireEnumAttrs {
     error_message: SynExpr,
     ref_type: SynIdentifier,
@@ -63,7 +63,9 @@ impl syn::parse::Parse for WireEnumAttrs {
         })
     }
 }
-#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord,
+)]
 enum BoundedStringOption {
     Chars,
     NulFree,
@@ -72,7 +74,9 @@ enum BoundedStringOption {
     Utoipa,
     WriteOnly,
 }
-#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord,
+)]
 enum NewtypeOption {
     AsMut,
     AsRef,
@@ -105,20 +109,20 @@ enum NewtypeOption {
     Secret,
     ToTokens,
 }
-#[derive(optml::Optml, Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq)]
 enum ToErrStringMode {
     AsRefStr,
     Debug,
     Display,
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct ProcMacro2GeneratedTokenStream(proc_macro2::TokenStream);
 impl From<proc_macro2::TokenStream> for ProcMacro2GeneratedTokenStream {
     fn from(value: proc_macro2::TokenStream) -> Self {
         Self(value)
     }
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct ProcMacroInputTokenStream(proc_macro::TokenStream);
 impl From<proc_macro::TokenStream> for ProcMacroInputTokenStream {
     fn from(value: proc_macro::TokenStream) -> Self {
@@ -140,7 +144,7 @@ impl quote::ToTokens for ProcMacro2GeneratedTokenStream {
         self.0.to_tokens(tokens);
     }
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct NewtypeBool(bool);
 impl From<bool> for NewtypeBool {
     fn from(value: bool) -> Self {
@@ -152,16 +156,16 @@ impl NewtypeBool {
         self.0
     }
 }
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct SnakeIdentifier(String);
-#[derive(optml::Optml, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 struct SnakeIdentifierifierLen(usize);
 impl From<usize> for SnakeIdentifierifierLen {
     fn from(value: usize) -> Self {
         Self(value)
     }
 }
-#[derive(optml::Optml, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 struct SnakeIdentifierifierTryFromStringError(SnakeIdentifierifierLen);
 impl From<SnakeIdentifierifierLen> for SnakeIdentifierifierTryFromStringError {
     fn from(value: SnakeIdentifierifierLen) -> Self {
@@ -203,7 +207,7 @@ impl quote::ToTokens for SnakeIdentifier {
         self.0.to_tokens(tokens);
     }
 }
-#[derive(optml::Optml, Clone, Copy)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
 struct SynAttrsRef<'syn_lt>(&'syn_lt [syn::Attribute]);
 impl<'syn_lt> From<&'syn_lt [syn::Attribute]> for SynAttrsRef<'syn_lt> {
     fn from(value: &'syn_lt [syn::Attribute]) -> Self {
@@ -215,7 +219,7 @@ impl AsRef<[syn::Attribute]> for SynAttrsRef<'_> {
         self.0
     }
 }
-#[derive(optml::Optml, Clone, Copy)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
 struct SynDeriveInputRef<'syn_lt>(&'syn_lt syn::DeriveInput);
 impl<'syn_lt> From<&'syn_lt syn::DeriveInput> for SynDeriveInputRef<'syn_lt> {
     fn from(value: &'syn_lt syn::DeriveInput) -> Self {
@@ -227,9 +231,9 @@ impl AsRef<syn::DeriveInput> for SynDeriveInputRef<'_> {
         self.0
     }
 }
-#[derive(optml::Optml, Clone, Copy)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
 struct SynIdentifierRef<'syn_lt>(&'syn_lt syn::Ident);
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct SynIdentifier(syn::Ident);
 impl From<syn::Ident> for SynIdentifier {
     fn from(value: syn::Ident) -> Self {
@@ -246,7 +250,7 @@ impl AsRef<syn::Ident> for SynIdentifierRef<'_> {
         self.0
     }
 }
-#[derive(optml::Optml, Clone, Copy)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
 struct SynTypeRef<'syn_lt>(&'syn_lt syn::Type);
 impl<'syn_lt> From<&'syn_lt syn::Type> for SynTypeRef<'syn_lt> {
     fn from(value: &'syn_lt syn::Type) -> Self {
@@ -258,14 +262,14 @@ impl AsRef<syn::Type> for SynTypeRef<'_> {
         self.0
     }
 }
-#[derive(optml::Optml, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 struct SynType(syn::Type);
 impl From<syn::Type> for SynType {
     fn from(value: syn::Type) -> Self {
         Self(value)
     }
 }
-#[derive(optml::Optml, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 struct SynExpr(syn::Expr);
 impl From<syn::Expr> for SynExpr {
     fn from(value: syn::Expr) -> Self {

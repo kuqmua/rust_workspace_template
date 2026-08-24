@@ -17,7 +17,7 @@
 #[rustfmt::skip]
 use leptos::prelude::{AddAnyAttr};
 
-#[derive(optml::Optml, Clone, Copy, Default, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Default, PartialEq, Eq)]
 pub(crate) enum AdminAlertVariant {
     #[default]
     Error,

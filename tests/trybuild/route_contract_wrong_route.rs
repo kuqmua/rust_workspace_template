@@ -1,15 +1,15 @@
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[derive(serde::Serialize, serde::Deserialize)]
 struct FirstRequest;
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[derive(serde::Serialize, serde::Deserialize)]
 struct SecondRequest;
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[derive(serde::Serialize, serde::Deserialize)]
 struct Response;
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct FirstRoute;
-#[derive(optml::Optml)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct SecondRoute;
 impl frontend_contract::TypedRoute for FirstRoute {
     type Request = FirstRequest;

@@ -8,9 +8,23 @@
 mod text;
 mod textarea;
 
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
 pub(crate) struct AdminSettingDisabled(bool);
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
 struct AdminSettingRequired(bool);
 impl crate::ui::input::LeptosAdminInputSignal {
     #[cfg(target_arch = "wasm32")]

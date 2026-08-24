@@ -15,7 +15,7 @@
 
 use leptos::prelude::{Callable, ClassAttribute, ElementChild, OnAttribute};
 
-#[derive(optml::Optml, Clone, Copy, Default, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Default, PartialEq, Eq)]
 pub(crate) enum AdminButtonVariant {
     #[default]
     Primary,
@@ -54,7 +54,7 @@ pub(crate) fn AdminButtonLink(
     }
 }
 
-#[derive(optml::Optml, Clone, Copy, Default, PartialEq, Eq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Default, PartialEq, Eq)]
 pub(crate) enum AdminButtonKind {
     Button,
     #[default]

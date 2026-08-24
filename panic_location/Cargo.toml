@@ -9,7 +9,7 @@ license.workspace = true
 edition.workspace = true
 
 [dependencies]
-optml = { workspace = true }
+optimal_memory_layout = { workspace = true }
 str_constants = { workspace = true }
 newtype = { workspace = true }
 to_err_string = { workspace = true }

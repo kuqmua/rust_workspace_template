@@ -1,5 +1,13 @@
 #[derive(
-    optml::Optml, Clone, Debug, Eq, Ord, PartialEq, PartialOrd, newtype::AsRefStr, newtype::TryFrom,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Eq,
+    Ord,
+    PartialEq,
+    PartialOrd,
+    newtype::AsRefStr,
+    newtype::TryFrom,
 )]
 #[try_from(validator = SqlIdentifier::validate)]
 pub struct SqlIdentifier(String);
@@ -19,19 +27,21 @@ impl SqlIdentifier {
         Ok(())
     }
 }
-#[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
 pub enum SqlIdentifierError {
     #[error("SQL identifier is empty")]
     Empty,
     #[error("SQL identifier contains unsupported characters")]
     Invalid,
 }
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct SqlQualifiedIdentifier {
     schema: SqlIdentifier,
     table: SqlIdentifier,
 }
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 struct SqlIdentifierListText(String);
 impl TryFrom<String> for SqlIdentifierListText {
     type Error = crate::PgCrudStringWrapperTryFromStringError;
@@ -46,12 +56,12 @@ impl TryFrom<String> for SqlIdentifierListText {
         }
     }
 }
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 enum SqlIdentifierListTextState {
     Text(SqlIdentifierListText),
     TooLong(crate::PgCrudStringWrapperTryFromStringError),
 }
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct SqlIdentifiers(SqlIdentifierListTextState);
 impl From<Vec<SqlIdentifier>> for SqlIdentifiers {
     fn from(value: Vec<SqlIdentifier>) -> Self {
@@ -75,7 +85,7 @@ impl From<Vec<SqlIdentifier>> for SqlIdentifiers {
         })
     }
 }
-#[derive(optml::Optml, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 struct SqlQueryText(String);
 impl From<crate::PgCrudStringWrapperTryFromStringError> for SqlQueryText {
     fn from(value: crate::PgCrudStringWrapperTryFromStringError) -> Self {
@@ -113,7 +123,7 @@ impl std::fmt::Display for SqlQualifiedIdentifier {
         f.write_str(self.table.as_ref())
     }
 }
-#[derive(optml::Optml, Clone, Debug, Eq, PartialEq)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct SqlSelectBuilder {
     columns: SqlIdentifiers,
     table: SqlQualifiedIdentifier,

@@ -1,9 +1,9 @@
 #![allow(clippy::single_call_fn)] // each typed function owns one SQL bind/result contract
 
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 struct AdminActiveAdministratorCount(i64);
 
-#[derive(optml::Optml, Clone, Copy, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
 pub(crate) struct LastAdminState {
     active_count: AdminActiveAdministratorCount,
     target_is_admin: crate::StdAdminBool,
