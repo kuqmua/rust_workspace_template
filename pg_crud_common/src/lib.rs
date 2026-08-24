@@ -733,7 +733,7 @@ const _: () = {
                     __E: _serde::de::Error,
                 {
                     match v {
-                        0u64 => Ok(__Field::f0),
+                        u64_constants::ZERO => Ok(__Field::f0),
                         1u64 => Ok(__Field::f1),
                         _ => Ok(__Field::__ignore),
                     }
@@ -795,14 +795,14 @@ const _: () = {
                     let Some(f0) = _serde::de::SeqAccess::next_element::<Operator>(&mut __seq)?
                     else {
                         return Err(_serde::de::Error::invalid_length(
-                            0usize,
+                            usize_constants::ZERO,
                             &str_constants::PG_CRUD_PG_TYPE_WHERE_EXPECTING,
                         ));
                     };
                     let Some(f1) = _serde::de::SeqAccess::next_element::<Vec<T>>(&mut __seq)?
                     else {
                         return Err(_serde::de::Error::invalid_length(
-                            1usize,
+                            usize_constants::ONE,
                             &str_constants::PG_CRUD_PG_TYPE_WHERE_EXPECTING,
                         ));
                     };

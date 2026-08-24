@@ -17,7 +17,7 @@ pub struct PgRelationCapacityMaximum(u64);
 impl TryFrom<u64> for PgRelationCapacityMaximum {
     type Error = PgRelationCapacityError;
     fn try_from(value: u64) -> Result<Self, Self::Error> {
-        if value == 0u64 {
+        if value == u64_constants::ZERO {
             Err(PgRelationCapacityError::ZeroMaximum)
         } else {
             Ok(Self(value))
@@ -69,14 +69,18 @@ impl TryFrom<String> for PgRelationLockNamespace {
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct PgRelationResourceIds(
-    bounded_types::BoundedVec<PgRelationResourceId, 0usize, MAXIMUM_RESOURCE_COUNT>,
+    bounded_types::BoundedVec<
+        PgRelationResourceId,
+        { usize_constants::ZERO },
+        MAXIMUM_RESOURCE_COUNT,
+    >,
 );
 impl TryFrom<Vec<PgRelationResourceId>> for PgRelationResourceIds {
     type Error = PgRelationLockError;
     fn try_from(value: Vec<PgRelationResourceId>) -> Result<Self, Self::Error> {
         let mut resources = bounded_types::BoundedVec::<
             PgRelationResourceId,
-            0usize,
+            { usize_constants::ZERO },
             MAXIMUM_RESOURCE_COUNT,
         >::try_from(value)
         .map_err(|_error| PgRelationLockError::TooManyResources)?
@@ -170,7 +174,7 @@ mod tests {
     fn resources_are_sorted_and_deduplicated_before_locking() {
         let resources = super::PgRelationResourceIds::try_from(vec![
             super::PgRelationResourceId::from(2i64),
-            super::PgRelationResourceId::from(1i64),
+            super::PgRelationResourceId::from(i64_constants::ONE),
             super::PgRelationResourceId::from(2i64),
         ])
         .expect(
@@ -179,7 +183,7 @@ mod tests {
         assert_eq!(
             resources.0.as_slice(),
             [
-                super::PgRelationResourceId::from(1i64),
+                super::PgRelationResourceId::from(i64_constants::ONE),
                 super::PgRelationResourceId::from(2i64),
             ]
         );

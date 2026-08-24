@@ -94,7 +94,7 @@ where
     IsRetryable: Fn(&Error) -> bool,
 {
     let maximum_attempts = policy.attempts().get();
-    let mut attempt = 1usize;
+    let mut attempt = usize_constants::ONE;
     loop {
         let result = run().await;
         let should_retry = result
@@ -111,7 +111,7 @@ where
         if let Some(delay) = policy.delay() {
             tokio::time::sleep(delay.0).await;
         }
-        attempt = attempt.saturating_add(1usize);
+        attempt = attempt.saturating_add(usize_constants::ONE);
     }
 }
 
@@ -119,7 +119,7 @@ where
 mod tests {
     #[tokio::test]
     async fn retryable_failure_is_retried_until_success() {
-        let mut calls = 0usize;
+        let mut calls = usize_constants::ZERO;
         let outcome = super::run_with_retries(
             super::RetryPolicy::new(
                 super::StdRetryAttempts::try_from(3usize).expect(
@@ -128,7 +128,7 @@ mod tests {
                 None,
             ),
             || {
-                calls = calls.saturating_add(1usize);
+                calls = calls.saturating_add(usize_constants::ONE);
                 std::future::ready(if calls < 3usize { Err(()) } else { Ok(7usize) })
             },
             |()| true,
@@ -140,7 +140,7 @@ mod tests {
 
     #[tokio::test]
     async fn terminal_failure_is_not_retried() {
-        let mut calls = 0usize;
+        let mut calls = usize_constants::ZERO;
         let outcome = super::run_with_retries(
             super::RetryPolicy::new(
                 super::StdRetryAttempts::try_from(3usize)
@@ -148,13 +148,13 @@ mod tests {
                 None,
             ),
             || {
-                calls = calls.saturating_add(1usize);
+                calls = calls.saturating_add(usize_constants::ONE);
                 std::future::ready(Err::<(), usize>(calls))
             },
             |_| false,
         )
         .await;
-        assert_eq!(outcome.attempts().get(), 1usize);
-        assert_eq!(outcome.into_result(), Err(1usize));
+        assert_eq!(outcome.attempts().get(), usize_constants::ONE);
+        assert_eq!(outcome.into_result(), Err(usize_constants::ONE));
     }
 }

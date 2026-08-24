@@ -5,7 +5,7 @@ fn page_limit_accepts_only_the_contract_range() {
         Ok(_value)
     ));
     assert!(matches!(
-        super::AdminPageLimit::try_from(0u16),
+        super::AdminPageLimit::try_from(u16_constants::ZERO),
         Err(super::AdminPageLimitError)
     ));
     assert!(matches!(

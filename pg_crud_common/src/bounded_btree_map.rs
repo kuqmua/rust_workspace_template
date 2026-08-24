@@ -83,6 +83,6 @@ mod tests {
             str_constants::TEST_JSON_MAP_WITH_ONE_ENTRY,
         )
         .expect("298b587f map_at_limit_is_accepted invariant must hold");
-        assert_eq!(value.get().len(), 1usize);
+        assert_eq!(value.get().len(), usize_constants::ONE);
     }
 }

@@ -2,8 +2,6 @@
 //! Generated Rust table descriptors are compile-time expectations and must be
 //! checked against a database with all migrations applied before deployment.
 
-const DB_SCHEMA_TEXT_MAX_LEN: usize = 1_048_576usize;
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -14,7 +12,7 @@ const DB_SCHEMA_TEXT_MAX_LEN: usize = 1_048_576usize;
     PartialOrd,
     newtype::BoundedString,
 )]
-#[bounded_string(max = DB_SCHEMA_TEXT_MAX_LEN)]
+#[bounded_string(max = usize_constants::VALUE_1_048_576)]
 pub struct DbSchemaText(String);
 
 #[derive(

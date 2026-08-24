@@ -116,7 +116,7 @@ impl TryFrom<u64> for PgOperationalLimit {
     type Error = PgOperationalLimitError;
 
     fn try_from(value: u64) -> Result<Self, Self::Error> {
-        if value == 0u64 {
+        if value == u64_constants::ZERO {
             Err(PgOperationalLimitError::ZeroLimit)
         } else {
             Ok(Self(value))
@@ -179,7 +179,7 @@ fn push_identifier_list(
     columns: &[crate::SqlIdentifier],
 ) {
     columns.iter().enumerate().for_each(|(index, column)| {
-        if index != 0usize {
+        if index != usize_constants::ZERO {
             output.0.push_str(str_constants::TEXT_ALT_6);
         }
         output.0.push_str(column.as_ref());

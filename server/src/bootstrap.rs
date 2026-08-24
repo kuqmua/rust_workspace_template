@@ -13,8 +13,10 @@ pub(super) fn mk_app_state(
         config,
         idempotency_response_budget: server_runtime_http::ResourceBudget::new(
             server_runtime_http::ResourceBudgetMaximum::from(
-                std::num::NonZeroUsize::new(64usize.saturating_mul(1_048_576usize))
-                    .unwrap_or(std::num::NonZeroUsize::MIN),
+                std::num::NonZeroUsize::new(
+                    64usize.saturating_mul(usize_constants::VALUE_1_048_576),
+                )
+                .unwrap_or(std::num::NonZeroUsize::MIN),
             ),
         ),
         pg_pool,

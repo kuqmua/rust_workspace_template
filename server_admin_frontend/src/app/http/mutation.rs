@@ -1,7 +1,7 @@
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, newtype::AsRefStr, newtype::BoundedString,
 )]
-#[bounded_string(max = 8_192usize, chars)]
+#[bounded_string(max = usize_constants::VALUE_8_192, chars)]
 struct AdminCsrfToken(String);
 
 impl std::fmt::Debug for AdminCsrfToken {

@@ -388,7 +388,7 @@ impl<'ast> syn::visit::Visit<'ast> for TupleWrapperConversionCollector {
             let name = i.ident.to_string();
             let _: bool = self.names.insert(name.clone());
             if let syn::Fields::Unnamed(fields) = &i.fields
-                && fields.unnamed.len() == 1usize
+                && fields.unnamed.len() == usize_constants::ONE
                 && let Some(field) = fields.unnamed.first()
             {
                 drop(self.inner_types.insert(name.clone(), field.ty.clone()));

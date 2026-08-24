@@ -9,6 +9,12 @@ license.workspace = true
 edition.workspace = true
 
 [dependencies]
+usize_constants = { workspace = true }
+u8_constants = { workspace = true }
+u64_constants = { workspace = true }
+u32_constants = { workspace = true }
+u16_constants = { workspace = true }
+i64_constants = { workspace = true }
 bounded_types = { workspace = true }
 str_constants = { workspace = true }
 text_policy = { workspace = true }
@@ -37,6 +43,7 @@ to_err_string = { workspace = true }
 test-utils = []
 
 [dev-dependencies]
+i32_constants = { workspace = true }
 proptest = { workspace = true }
 serde_json = { workspace = true }
 criterion = { workspace = true }

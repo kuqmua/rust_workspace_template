@@ -519,7 +519,7 @@ mod tests {
     }
     #[test]
     fn owned_git_values_and_generated_links_enforce_length_limit() {
-        let oversized = "x".repeat(super::GIT_INFO_STRING_MAX_LEN + 1usize);
+        let oversized = "x".repeat(super::GIT_INFO_STRING_MAX_LEN + usize_constants::ONE);
         let Err(_commit_id_error) =
             super::StdGitCommitIdCow::try_from(std::borrow::Cow::Owned(oversized.clone()))
         else {

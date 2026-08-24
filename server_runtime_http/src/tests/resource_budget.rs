@@ -1,13 +1,13 @@
 #[test]
 fn maximum_rejects_zero_and_accepts_positive_values() {
     assert_eq!(
-        super::super::ResourceBudgetMaximum::try_from(0usize),
+        super::super::ResourceBudgetMaximum::try_from(usize_constants::ZERO),
         Err(super::super::ResourceBudgetConfigError)
     );
-    let maximum = std::num::NonZeroUsize::new(1usize)
+    let maximum = std::num::NonZeroUsize::new(usize_constants::ONE)
         .expect("9e83081e maximum_rejects_zero_and_accepts_positive_values invariant must hold");
     assert_eq!(
-        super::super::ResourceBudgetMaximum::try_from(1usize).expect(
+        super::super::ResourceBudgetMaximum::try_from(usize_constants::ONE).expect(
             "19c82820 maximum_rejects_zero_and_accepts_positive_values invariant must hold"
         ),
         super::super::ResourceBudgetMaximum::from(maximum)
@@ -52,7 +52,7 @@ fn reservations_are_bounded_and_released() {
     drop(second);
     assert_eq!(
         budget.reserved(),
-        super::super::ResourceBudgetAmount::from(0usize)
+        super::super::ResourceBudgetAmount::from(usize_constants::ZERO)
     );
 }
 
@@ -63,7 +63,9 @@ fn overflow_does_not_change_reserved_count() {
             .expect("65f2f229 overflow_does_not_change_reserved_count invariant must hold"),
     );
     let reservation = budget
-        .reserve(super::super::ResourceBudgetAmount::from(1usize))
+        .reserve(super::super::ResourceBudgetAmount::from(
+            usize_constants::ONE,
+        ))
         .expect("1a2bb321 overflow_does_not_change_reserved_count invariant must hold");
     assert_eq!(
         budget
@@ -73,7 +75,7 @@ fn overflow_does_not_change_reserved_count() {
     );
     assert_eq!(
         budget.reserved(),
-        super::super::ResourceBudgetAmount::from(1usize)
+        super::super::ResourceBudgetAmount::from(usize_constants::ONE)
     );
     drop(reservation);
 }
@@ -124,7 +126,10 @@ fn concurrent_reservations_never_exceed_maximum() {
                 "67824b65 concurrent_reservations_never_exceed_maximum invariant must hold",
             ),
         ];
-        assert_eq!(outcomes.into_iter().filter(|value| *value).count(), 1usize);
+        assert_eq!(
+            outcomes.into_iter().filter(|value| *value).count(),
+            usize_constants::ONE
+        );
         assert_eq!(
             budget.reserved(),
             super::super::ResourceBudgetAmount::from(3usize)
@@ -133,6 +138,6 @@ fn concurrent_reservations_never_exceed_maximum() {
     });
     assert_eq!(
         budget.reserved(),
-        super::super::ResourceBudgetAmount::from(0usize)
+        super::super::ResourceBudgetAmount::from(usize_constants::ZERO)
     );
 }

@@ -53,7 +53,7 @@ impl TryFrom<String> for HttpTraceParent {
     fn try_from(value: String) -> Result<Self, Self::Error> {
         let bytes = value.as_bytes();
         if bytes.len() != TRACE_PARENT_LEN
-            || bytes.get(0usize..3usize) != Some(b"00-")
+            || bytes.get(usize_constants::ZERO..3usize) != Some(b"00-")
             || bytes.get(35usize) != Some(&b'-')
             || bytes.get(52usize) != Some(&b'-')
             || !bytes

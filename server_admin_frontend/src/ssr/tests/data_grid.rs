@@ -198,11 +198,11 @@ fn generated_column_metadata_drives_data_table_markup() {
             .as_ref()
             .matches("action=\"/admin/role_permissions\"")
             .count(),
-        1usize
+        usize_constants::ONE
     );
     assert_eq!(
         filters_html.as_ref().matches(">Apply</button>").count(),
-        1usize
+        usize_constants::ONE
     );
     assert!(
         filters_html
@@ -216,7 +216,7 @@ fn generated_column_metadata_drives_data_table_markup() {
             .as_ref()
             .matches("class=\"table-filter-form\"")
             .count(),
-        1usize
+        usize_constants::ONE
     );
 
     let admin = test_admin();

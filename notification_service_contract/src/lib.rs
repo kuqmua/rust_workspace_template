@@ -211,7 +211,7 @@ mod tests {
     fn every_notification_route_has_named_route_and_client_functions() {
         assert_eq!(
             <super::NotificationRouteFamily as frontend_contract::RouteFamily>::ROUTE_COUNT,
-            1usize
+            usize_constants::ONE
         );
         assert_eq!(
             super::create_notification_route(),
@@ -219,11 +219,11 @@ mod tests {
         );
         assert_eq!(
             size_of_val(&super::create_notification_client::<ClientTransport>),
-            0usize
+            usize_constants::ZERO
         );
         assert_eq!(
             <super::NotificationOperationalRouteFamily as frontend_contract::RouteFamily>::ROUTE_COUNT,
-            0usize
+            usize_constants::ZERO
         );
         assert_eq!(
             super::metrics_route(),
@@ -239,11 +239,11 @@ mod tests {
         );
         assert_eq!(
             size_of_val(&super::metrics_client::<ClientTransport>),
-            0usize
+            usize_constants::ZERO
         );
         assert_eq!(
             size_of_val(&super::open_api_client::<ClientTransport>),
-            0usize
+            usize_constants::ZERO
         );
     }
     #[test]
@@ -270,7 +270,7 @@ mod tests {
         .expect_err("6406611c");
         let _too_long_error = <super::NotificationMessage as serde::Deserialize>::deserialize(
             serde::de::value::StringDeserializer::<serde::de::value::Error>::new(
-                "x".repeat(super::NOTIFICATION_MESSAGE_MAX_LEN + 1usize),
+                "x".repeat(super::NOTIFICATION_MESSAGE_MAX_LEN + usize_constants::ONE),
             ),
         )
         .expect_err("48d2019d");

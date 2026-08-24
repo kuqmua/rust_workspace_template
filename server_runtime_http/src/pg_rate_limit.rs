@@ -44,7 +44,7 @@ impl TryFrom<i64> for PgRateLimitMaximum {
     type Error = PgRateLimitValidationError;
 
     fn try_from(value: i64) -> Result<Self, Self::Error> {
-        if value > 0i64 {
+        if value > i64_constants::ZERO {
             Ok(Self(value))
         } else {
             Err(PgRateLimitValidationError::MustBePositive)
@@ -58,7 +58,7 @@ impl TryFrom<i32> for PgRateLimitWindowSeconds {
     type Error = PgRateLimitValidationError;
 
     fn try_from(value: i32) -> Result<Self, Self::Error> {
-        if value > 0i32 {
+        if value > i32_constants::ZERO {
             Ok(Self(value))
         } else {
             Err(PgRateLimitValidationError::MustBePositive)
@@ -130,7 +130,7 @@ mod tests {
     #[test]
     fn configuration_and_key_parts_are_bounded() {
         assert_eq!(
-            super::PgRateLimitMaximum::try_from(0i64),
+            super::PgRateLimitMaximum::try_from(i64_constants::ZERO),
             Err(super::PgRateLimitValidationError::MustBePositive)
         );
         assert_eq!(
@@ -141,13 +141,13 @@ mod tests {
     #[test]
     fn numeric_configuration_requires_positive_values() {
         assert_eq!(
-            super::PgRateLimitMaximum::try_from(-1i64),
+            super::PgRateLimitMaximum::try_from(-i64_constants::ONE),
             Err(super::PgRateLimitValidationError::MustBePositive)
         );
-        let _maximum = super::PgRateLimitMaximum::try_from(1i64)
+        let _maximum = super::PgRateLimitMaximum::try_from(i64_constants::ONE)
             .expect("1c63c380 numeric_configuration_requires_positive_values invariant must hold");
         assert_eq!(
-            super::PgRateLimitWindowSeconds::try_from(0i32),
+            super::PgRateLimitWindowSeconds::try_from(i32_constants::ZERO),
             Err(super::PgRateLimitValidationError::MustBePositive)
         );
         assert_eq!(
@@ -166,7 +166,7 @@ mod tests {
         let _subject = super::PgRateLimitSubjectRef::try_from(exact.as_str()).expect(
             "082e2933 scope_and_subject_accept_exact_limit_and_reject_excess invariant must hold",
         );
-        let excess = "a".repeat(super::PG_RATE_LIMIT_KEY_PART_MAX_LEN + 1usize);
+        let excess = "a".repeat(super::PG_RATE_LIMIT_KEY_PART_MAX_LEN + usize_constants::ONE);
         assert_eq!(
             super::PgRateLimitScopeRef::try_from(excess.as_str()),
             Err(super::PgRateLimitValidationError::KeyPartTooLong)

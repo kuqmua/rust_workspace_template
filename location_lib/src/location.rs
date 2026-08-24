@@ -51,7 +51,7 @@ impl LocationLine {
     }
     #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
     const fn validate(value: &u32) -> Result<(), LocationCoordinateTryFromU32Error> {
-        if *value == 0u32 {
+        if *value == u32_constants::ZERO {
             Err(LocationCoordinateTryFromU32Error)
         } else {
             Ok(())
@@ -90,7 +90,7 @@ impl LocationColumn {
     }
     #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
     const fn validate(value: &u32) -> Result<(), LocationCoordinateTryFromU32Error> {
-        if *value == 0u32 {
+        if *value == u32_constants::ZERO {
             Err(LocationCoordinateTryFromU32Error)
         } else {
             Ok(())
@@ -519,7 +519,7 @@ mod tests {
     }
     #[test]
     fn location_text_deserialization_uses_bounded_try_from() {
-        let oversized = "x".repeat(super::LOC_FILE_MAX_LEN + 1usize);
+        let oversized = "x".repeat(super::LOC_FILE_MAX_LEN + usize_constants::ONE);
         let _file_error = <super::LocationFile as serde::Deserialize>::deserialize(
             serde::de::value::StringDeserializer::<serde::de::value::Error>::new(oversized.clone()),
         )
@@ -531,8 +531,9 @@ mod tests {
     }
     #[test]
     fn coordinates_and_nanoseconds_reject_zero_based_or_overflowing_values() {
-        let _line_error = super::LocationLine::try_from(0u32).expect_err("f4dfc0b1");
-        let _column_error = super::LocationColumn::try_from(0u32).expect_err("86102562");
+        let _line_error = super::LocationLine::try_from(u32_constants::ZERO).expect_err("f4dfc0b1");
+        let _column_error =
+            super::LocationColumn::try_from(u32_constants::ZERO).expect_err("86102562");
         let _nanos_error =
             super::StdTimeDurationNanos::try_from(1_000_000_000u32).expect_err("c342a3f2");
     }

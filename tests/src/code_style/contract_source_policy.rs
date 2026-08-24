@@ -103,7 +103,7 @@ fn service_route_handler_composition_uses_shared_registries() {
     super::snapshot::with_codebase_snapshot(|snapshot| {
         [
             ("server_admin/src/auth/html.rs", 2usize),
-            ("notification_service/src/routes.rs", 1usize),
+            ("notification_service/src/routes.rs", usize_constants::ONE),
         ]
         .iter()
         .for_each(|(path_suffix, expected_registry_count)| {

@@ -83,7 +83,7 @@ impl std::process::Termination for StdBootstrapExitCode {
 }
 
 fn parse_args() -> Result<AdminCommand, BootstrapArgsError> {
-    let mut args = std::env::args_os().skip(1usize);
+    let mut args = std::env::args_os().skip(usize_constants::ONE);
     let login_arg = args.next().ok_or(BootstrapArgsError::Usage)?;
     if login_arg == std::ffi::OsStr::new("reset") {
         let reset_login_arg = args.next().ok_or(BootstrapArgsError::Usage)?;
@@ -287,7 +287,7 @@ mod tests {
             super::password_from_bytes(server_runtime_http::BoundedBytes::from(vec![
                 b'a';
                 super::PASSWORD_FILE_MAX_BYTES
-                    .saturating_add(1usize)
+                    .saturating_add(usize_constants::ONE)
             ]))
         else {
             panic!("7ad9edb5 expected an excessive password file to fail");

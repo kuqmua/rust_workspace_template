@@ -40,23 +40,23 @@ fn every_route_has_named_route_and_client_functions() {
     );
     assert_eq!(
         size_of_val(&super::super::git_info_client::<ClientTransport>),
-        0usize
+        usize_constants::ZERO
     );
     assert_eq!(
         size_of_val(&super::super::health_client::<ClientTransport>),
-        0usize
+        usize_constants::ZERO
     );
     assert_eq!(
         size_of_val(&super::super::health_check_client::<ClientTransport>),
-        0usize
+        usize_constants::ZERO
     );
     assert_eq!(
         size_of_val(&super::super::health_live_client::<ClientTransport>),
-        0usize
+        usize_constants::ZERO
     );
     assert_eq!(
         size_of_val(&super::super::health_ready_client::<ClientTransport>),
-        0usize
+        usize_constants::ZERO
     );
 }
 

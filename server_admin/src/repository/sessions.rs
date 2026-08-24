@@ -105,7 +105,8 @@ pub(crate) async fn enforce_session_limit(
     revoke_refresh: crate::StdAdminBool,
 ) -> Result<(), crate::SqlxAdminError> {
     let session_offset =
-        i64::try_from(usize::from(session_limit).saturating_sub(1usize)).unwrap_or(i64::MAX);
+        i64::try_from(usize::from(session_limit).saturating_sub(usize_constants::ONE))
+            .unwrap_or(i64::MAX);
     let _access_result = sqlx::query(str_constants::SERVER_ADMIN_REVOKE_EXCESS_ACCESS_SESSIONS_SQL)
         .bind(user_id.get())
         .bind(session_offset)

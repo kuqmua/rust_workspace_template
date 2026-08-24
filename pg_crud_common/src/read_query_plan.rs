@@ -52,19 +52,19 @@ pub fn build_stable_read_query_plan(
     let mut query = base.into_inner();
     let order_sql = order.sql();
     let tie_break_len = if sort_column == tie_break_column {
-        0usize
+        usize_constants::ZERO
     } else {
         str_constants::TEXT_ALT_6
             .len()
             .saturating_add(tie_break_column.as_ref().len())
-            .saturating_add(1usize)
+            .saturating_add(usize_constants::ONE)
             .saturating_add(order_sql.as_ref().len())
     };
     query.reserve(
         str_constants::READ_ORDER_BY
             .len()
             .saturating_add(sort_column.as_ref().len())
-            .saturating_add(1usize)
+            .saturating_add(usize_constants::ONE)
             .saturating_add(order_sql.as_ref().len())
             .saturating_add(tie_break_len)
             .saturating_add(str_constants::LIMIT_DOLLAR.len())

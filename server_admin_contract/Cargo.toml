@@ -12,6 +12,7 @@ keywords = ["admin", "contract"]
 categories = ["web-programming"]
 
 [dependencies]
+usize_constants = { workspace = true }
 optimal_memory_layout = { workspace = true }
 bounded_types = { workspace = true }
 str_constants = { workspace = true }
@@ -23,6 +24,10 @@ strum_macros = { workspace = true }
 text_policy = { workspace = true }
 thiserror = { workspace = true }
 utoipa = { workspace = true }
+
+[dev-dependencies]
+i64_constants = { workspace = true }
+u16_constants = { workspace = true }
 
 [lints]
 workspace = true

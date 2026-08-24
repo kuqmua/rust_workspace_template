@@ -18,6 +18,9 @@ serde_json = { workspace = true }
 to_err_string_macros = { workspace = true }
 newtype = { workspace = true }
 
+[dev-dependencies]
+usize_constants = { workspace = true }
+
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 axum = { workspace = true }
 http = { workspace = true }

@@ -14,7 +14,7 @@ fn unsigned_database_value_rejects_negative_input() {
 #[test]
 fn nonzero_database_value_rejects_zero() {
     assert!(matches!(
-        super::NotZeroUnsignedPartOfI32::try_from(0i32),
+        super::NotZeroUnsignedPartOfI32::try_from(i32_constants::ZERO),
         Err(super::NotZeroUnsignedPartOfI32TryFromI32Error::IsZero { .. })
     ));
     assert!(matches!(

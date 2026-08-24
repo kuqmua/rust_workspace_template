@@ -1,12 +1,10 @@
-const COOKIE_TEXT_MAXIMUM_BYTES: usize = 8192usize;
-
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct HttpCookieName(String);
 impl TryFrom<String> for HttpCookieName {
     type Error = HttpSecureCookieError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
         let valid = !value.is_empty()
-            && value.len() <= COOKIE_TEXT_MAXIMUM_BYTES
+            && value.len() <= usize_constants::VALUE_8_192
             && value.bytes().all(|byte| {
                 byte.is_ascii_alphanumeric()
                     || matches!(
@@ -45,7 +43,7 @@ impl std::fmt::Debug for HttpCookieValue {
 impl TryFrom<String> for HttpCookieValue {
     type Error = HttpSecureCookieError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        let valid = value.len() <= COOKIE_TEXT_MAXIMUM_BYTES
+        let valid = value.len() <= usize_constants::VALUE_8_192
             && value.bytes().all(
                 |byte| matches!(byte, 0x21 | 0x23..=0x2b | 0x2d..=0x3a | 0x3c..=0x5b | 0x5d..=0x7e),
             );

@@ -129,8 +129,8 @@ fn route_registry_args_parse_family_and_bindings() {
     let Ok(args) = result else {
         panic!("6282e207");
     };
-    assert_eq!(args.bindings.0.len(), 1usize);
-    assert_eq!(args.schemas.0.len(), 1usize);
+    assert_eq!(args.bindings.0.len(), usize_constants::ONE);
+    assert_eq!(args.schemas.0.len(), usize_constants::ONE);
     assert_eq!(
         quote::ToTokens::to_token_stream(&args.family.0).to_string(),
         str_constants::FAMILY_UPPER_CAMEL_CASE

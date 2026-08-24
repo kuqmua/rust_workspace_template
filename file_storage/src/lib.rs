@@ -141,7 +141,7 @@ pub struct StdStaleStagingEntryLimit(usize);
 impl TryFrom<usize> for StdStaleStagingEntryLimit {
     type Error = StaleStagingCleanupCfgError;
     fn try_from(value: usize) -> Result<Self, Self::Error> {
-        if value == 0usize || value > 10_000usize {
+        if value == usize_constants::ZERO || value > 10_000usize {
             Err(StaleStagingCleanupCfgError)
         } else {
             Ok(Self(value))
@@ -240,7 +240,7 @@ impl SafeFileStorage {
             else {
                 break;
             };
-            report.scanned.0 = report.scanned.0.saturating_add(1usize);
+            report.scanned.0 = report.scanned.0.saturating_add(usize_constants::ONE);
             let file_type = entry
                 .file_type()
                 .await
@@ -259,7 +259,7 @@ impl SafeFileStorage {
                 continue;
             }
             match tokio::fs::remove_file(entry.path()).await {
-                Ok(()) => report.removed.0 = report.removed.0.saturating_add(1usize),
+                Ok(()) => report.removed.0 = report.removed.0.saturating_add(usize_constants::ONE),
                 Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
                 Err(error) => return Err(FileStorageError::Io(error.into())),
             }
@@ -614,11 +614,13 @@ pub fn plan_disk_cache_eviction(
     if incoming.0 > maximum.0 {
         return Err(DiskCacheBudgetError::IncomingTooLarge);
     }
-    let mut current = entries.iter().try_fold(0u64, |total, entry| {
-        total
-            .checked_add(entry.size.0)
-            .ok_or(DiskCacheBudgetError::SizeOverflow)
-    })?;
+    let mut current = entries
+        .iter()
+        .try_fold(u64_constants::ZERO, |total, entry| {
+            total
+                .checked_add(entry.size.0)
+                .ok_or(DiskCacheBudgetError::SizeOverflow)
+        })?;
     let mut ordered = entries.iter().collect::<Vec<_>>();
     ordered.sort_unstable_by_key(|entry| entry.modified_at.0);
     let projected = current
@@ -627,7 +629,7 @@ pub fn plan_disk_cache_eviction(
     let required = projected.saturating_sub(maximum.0);
     let remove_capacity = ordered
         .iter()
-        .scan(0u64, |removed, entry| {
+        .scan(u64_constants::ZERO, |removed, entry| {
             if *removed >= required {
                 None
             } else {
@@ -693,7 +695,7 @@ mod tests {
         let stale_before = std::time::UNIX_EPOCH
             .checked_add(std::time::Duration::from_hours(1_139_568u64))
             .expect("c81a56d9 stale_staging_cleanup_is_bounded_and_removes_regular_files invariant must hold");
-        let limit = super::StdStaleStagingEntryLimit::try_from(1usize).expect("c35f98c6 stale_staging_cleanup_is_bounded_and_removes_regular_files invariant must hold");
+        let limit = super::StdStaleStagingEntryLimit::try_from(usize_constants::ONE).expect("c35f98c6 stale_staging_cleanup_is_bounded_and_removes_regular_files invariant must hold");
         let report = storage
             .cleanup_stale_staging(
                 super::FileStorageStagingArea::Upload,
@@ -704,8 +706,8 @@ mod tests {
         assert_eq!(
             report,
             super::StaleStagingCleanupReport {
-                removed: super::StdStaleStagingEntryCount::from(1usize),
-                scanned: super::StdStaleStagingEntryCount::from(1usize),
+                removed: super::StdStaleStagingEntryCount::from(usize_constants::ONE),
+                scanned: super::StdStaleStagingEntryCount::from(usize_constants::ONE),
             }
         );
         let mut remaining_entries =
@@ -750,7 +752,7 @@ mod tests {
     #[test]
     fn storage_paths_reject_values_above_maximum_length() {
         let relative = str_constants::TEST_JWT_SECRET_CHARACTER_A
-            .repeat(super::MAXIMUM_PATH_BYTES.saturating_add(1usize));
+            .repeat(super::MAXIMUM_PATH_BYTES.saturating_add(usize_constants::ONE));
         let mut absolute = std::path::MAIN_SEPARATOR.to_string();
         absolute.push_str(relative.as_str());
         assert_eq!(

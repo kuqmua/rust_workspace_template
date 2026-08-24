@@ -180,7 +180,7 @@ fn map_err_does_not_discard_source_with_wildcard() {
             .filter_map(|source_file| {
                 let mut visitor = super::source_analysis::SourceDroppingMapErrVisitor::default();
                 syn::visit::Visit::visit_file(&mut visitor, source_file.ast().as_ref());
-                (visitor.found_count.get() != 0usize).then(|| {
+                (visitor.found_count.get() != usize_constants::ZERO).then(|| {
                     format!(
                         "{} discards a map_err source with a wildcard",
                         source_file.path().as_ref().display()
@@ -201,7 +201,7 @@ fn numeric_conversions_do_not_use_as_casts() {
             .filter_map(|source_file| {
                 let mut visitor = super::source_analysis::NumericAsCastVisitor::default();
                 syn::visit::Visit::visit_file(&mut visitor, source_file.ast().as_ref());
-                (visitor.found_count.get() != 0usize).then(|| {
+                (visitor.found_count.get() != usize_constants::ZERO).then(|| {
                     format!(
                         "{} contains {} numeric as cast(s)",
                         source_file.path().as_ref().display(),
@@ -595,7 +595,7 @@ fn raw_runtime_sql_identifier_inventory_matches_reviewed_baseline() {
         .into_iter()
         .map(|pattern| content.matches(pattern).count())
         .sum::<usize>();
-        if count != 0usize {
+        if count != usize_constants::ZERO {
             let workspace_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
                 .parent()
                 .expect("19512c63 raw_runtime_sql_identifier_inventory_matches_reviewed_baseline invariant must hold");
@@ -609,7 +609,7 @@ fn raw_runtime_sql_identifier_inventory_matches_reviewed_baseline() {
     });
     let expected = std::collections::BTreeMap::from([(
         String::from("../notification_service/src/routes.rs"),
-        1usize,
+        usize_constants::ONE,
     )]);
     assert_eq!(observed, expected, "raw SQL identifier baseline changed");
 }
@@ -836,7 +836,7 @@ fn integration_test_helper() {
         super::types::SynFileRef::from(&ast),
         super::source_analysis::TestNondeterminismVisitor {
             calls: super::types::DiagnosticMsgs::default(),
-            test_depth: super::types::AnalyzerCount::from(1usize),
+            test_depth: super::types::AnalyzerCount::from(usize_constants::ONE),
         },
     );
     assert_eq!(integration_visitor.calls.len(), 8usize, "78fde80e");
@@ -1311,7 +1311,7 @@ fn argument_reason() {}
             ),
         },
     );
-    assert_eq!(visitor.ers.len(), 1usize);
+    assert_eq!(visitor.ers.len(), usize_constants::ONE);
 }
 #[test]
 fn handler_route_operation_error_policy_rejects_shared_types() {
@@ -1564,7 +1564,11 @@ fn use_import_policy_narrows_facade_and_leptos_exceptions() {
     );
     assert!(visitor.found_non_public_use_import.get(), "ac09626a");
     assert!(!visitor.found_use_rename.get(), "c2bff14e");
-    assert_eq!(visitor.public_use_roots.len(), 1usize, "3f4798c8");
+    assert_eq!(
+        visitor.public_use_roots.len(),
+        usize_constants::ONE,
+        "3f4798c8"
+    );
 
     let leptos_ast = syn::parse_file("use leptos::prelude::{ElementChild};").expect(
         "56f86b52 use_import_policy_narrows_facade_and_leptos_exceptions invariant must hold",
@@ -2037,7 +2041,7 @@ fn api_response_error_source_policy_rejects_raw_sources() {
             ers: super::types::DiagnosticMsgs::default(),
         },
     );
-    assert_eq!(visitor.ers.len(), 1usize);
+    assert_eq!(visitor.ers.len(), usize_constants::ONE);
 }
 #[test]
 fn every_fallible_typed_route_operation_has_its_own_error_type() {
@@ -2078,7 +2082,7 @@ fn typed_route_operation_error_policy_rejects_shared_types() {
         super::types::SynFileRef::from(&ast),
         super::source_analysis::RouteOperationErrorVisitor::default(),
     );
-    assert_eq!(visitor.ers.len(), 1usize);
+    assert_eq!(visitor.ers.len(), usize_constants::ONE);
 }
 #[test]
 fn error_implementation_source_uses_only_thiserror_derive() {
@@ -2307,7 +2311,7 @@ fn production_string_literals_are_reused() {
     });
     let ers = literal_locations_by_value
         .into_iter()
-        .filter(|(_, locations)| locations.len() > 1usize)
+        .filter(|(_, locations)| locations.len() > usize_constants::ONE)
         .map(|(literal_value, locations)| {
             format!("duplicated production string literal {literal_value:?} in {locations:?}")
         })
@@ -2505,7 +2509,7 @@ fn string_constant_declaration_policy_rejects_aliases_to_exported_constants() {
             ers: super::types::DiagnosticMsgs::default(),
         },
     );
-    assert_eq!(visitor.ers.len(), 1usize);
+    assert_eq!(visitor.ers.len(), usize_constants::ONE);
 }
 #[test]
 fn no_unwrap_in_source_code() {

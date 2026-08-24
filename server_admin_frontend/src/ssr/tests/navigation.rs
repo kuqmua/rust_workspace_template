@@ -77,7 +77,7 @@ fn navigation_only_contains_accessible_pages() {
     let admin = server_admin_contract::AuthenticatedAdmin::new(
         server_admin_contract::AdminDisplayName::try_from(str_constants::ADMIN.to_owned())
             .expect("cdae3e58 navigation_only_contains_accessible_pages invariant must hold"),
-        server_admin_contract::AdminUserId::try_from(1i64)
+        server_admin_contract::AdminUserId::try_from(i64_constants::ONE)
             .expect("4ff30835 navigation_only_contains_accessible_pages invariant must hold"),
         server_admin_contract::AdminLogin::try_from(str_constants::ROOT.to_owned())
             .expect("9ae5b850 navigation_only_contains_accessible_pages invariant must hold"),

@@ -17,7 +17,7 @@ struct StdSharedAtomicUsize(std::sync::Arc<std::sync::atomic::AtomicUsize>);
 impl TryFrom<usize> for ResourceBudgetMaximum {
     type Error = ResourceBudgetConfigError;
     fn try_from(value: usize) -> Result<Self, Self::Error> {
-        if value == 0usize {
+        if value == usize_constants::ZERO {
             Err(ResourceBudgetConfigError)
         } else {
             Ok(Self(value))
@@ -66,7 +66,7 @@ impl ResourceBudget {
         Self {
             maximum,
             reserved: StdSharedAtomicUsize::from(std::sync::Arc::from(
-                std::sync::atomic::AtomicUsize::new(0usize),
+                std::sync::atomic::AtomicUsize::new(usize_constants::ZERO),
             )),
         }
     }

@@ -70,7 +70,7 @@ impl ChildProcessSet {
     pub fn new(maximum: StdChildProcessSetMaximum) -> Self {
         Self {
             maximum,
-            next_id: ChildProcessId::from(0u64),
+            next_id: ChildProcessId::from(u64_constants::ZERO),
             processes: StdCollectionsChildProcessMap::from(
                 bounded_types::StdBoundedBTreeMap::default(),
             ),
@@ -306,7 +306,7 @@ where
     Reader: tokio::io::AsyncRead + Unpin,
 {
     let mut output = Vec::with_capacity(maximum.0.get());
-    let mut buffer = [0u8; 4096usize];
+    let mut buffer = [u8_constants::ZERO; 4096usize];
     while output.len() < maximum.0.get() {
         let remaining = maximum.0.get().saturating_sub(output.len());
         let read_length = remaining.min(buffer.len());
@@ -317,7 +317,7 @@ where
             .await
             .map_err(StdChildProcessIoError::from)
             .map_err(ChildProcessError::DiagnosticIo)?;
-        if read == 0usize {
+        if read == usize_constants::ZERO {
             break;
         }
         let read_bytes = buffer
@@ -359,7 +359,7 @@ mod tests {
             full.insert(empty_supervisor()).expect(
                 "806f6943 process_set_enforces_capacity_and_identifier_overflow invariant must hold"
             ),
-            super::ChildProcessId::from(0u64)
+            super::ChildProcessId::from(u64_constants::ZERO)
         );
         assert!(matches!(
             full.insert(empty_supervisor()),

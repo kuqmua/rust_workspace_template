@@ -355,7 +355,7 @@ impl std::fmt::Display for AdminRoutePathError {
 impl TryFrom<String> for AdminRoutePath {
     type Error = AdminRoutePathError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > 8192usize {
+        if value.len() > usize_constants::VALUE_8_192 {
             Err(AdminRoutePathError::TooLong)
         } else {
             Ok(Self(value.into_boxed_str()))

@@ -81,14 +81,14 @@ where
     Value: serde::Deserialize<'de>,
     Insert: FnMut(&mut Values, Key, Value) -> Result<(), BoundedValueError>,
 {
-    let mut entry_count = 0usize;
+    let mut entry_count = usize_constants::ZERO;
     loop {
         if entry_count == MAX {
             return map.next_key::<serde::de::IgnoredAny>()?.map_or_else(
                 || Ok(values),
                 |_ignored| {
                     Err(serde::de::Error::custom(BoundedValueError::AboveMax {
-                        actual: BoundedLen::from(MAX.saturating_add(1usize)),
+                        actual: BoundedLen::from(MAX.saturating_add(usize_constants::ONE)),
                         max: BoundedLen::from(MAX),
                     }))
                 },
@@ -99,7 +99,7 @@ where
         };
         let value = map.next_value()?;
         insert(&mut values, key, value).map_err(serde::de::Error::custom)?;
-        entry_count = entry_count.saturating_add(1usize);
+        entry_count = entry_count.saturating_add(usize_constants::ONE);
     }
 }
 
@@ -178,8 +178,8 @@ mod tests {
         assert_eq!(
             super::BoundedString::<1, 3>::try_from(String::new()).expect_err("0ef05b85"),
             super::BoundedValueError::BelowMin {
-                actual: super::BoundedLen::from(0usize),
-                min: super::BoundedLen::from(1usize),
+                actual: super::BoundedLen::from(usize_constants::ZERO),
+                min: super::BoundedLen::from(usize_constants::ONE),
             }
         );
         assert_eq!(
@@ -187,7 +187,7 @@ mod tests {
                 .expect_err("2de961c6"),
             super::BoundedValueError::InvalidBounds {
                 min: super::BoundedLen::from(2usize),
-                max: super::BoundedLen::from(1usize),
+                max: super::BoundedLen::from(usize_constants::ONE),
             }
         );
     }
@@ -251,7 +251,11 @@ mod tests {
             .try_push(1u8)
             .expect("28f49231 vec_bounds_and_growth_are_enforced invariant must hold");
         assert_eq!(values.as_slice(), &[1u8]);
-        assert_above_max(values.try_push(2u8).expect_err("9a1c5ee4"), 2usize, 1usize);
+        assert_above_max(
+            values.try_push(2u8).expect_err("9a1c5ee4"),
+            2usize,
+            usize_constants::ONE,
+        );
         assert_eq!(values.into_inner(), vec![1u8]);
     }
 
@@ -260,15 +264,15 @@ mod tests {
         assert_eq!(
             super::BoundedVec::<u8, 1, 2>::try_from(Vec::new()).expect_err("8bf60687"),
             super::BoundedValueError::BelowMin {
-                actual: super::BoundedLen::from(0usize),
-                min: super::BoundedLen::from(1usize),
+                actual: super::BoundedLen::from(usize_constants::ZERO),
+                min: super::BoundedLen::from(usize_constants::ONE),
             }
         );
         assert_eq!(
             super::BoundedVec::<u8, 2, 1>::try_from(vec![1u8]).expect_err("7e536e25"),
             super::BoundedValueError::InvalidBounds {
                 min: super::BoundedLen::from(2usize),
-                max: super::BoundedLen::from(1usize),
+                max: super::BoundedLen::from(usize_constants::ONE),
             }
         );
     }
@@ -299,7 +303,7 @@ mod tests {
         assert_above_max(
             values.try_insert(2u8, 4u8).expect_err("e14a5d23"),
             2usize,
-            1usize,
+            usize_constants::ONE,
         );
     }
 
@@ -325,7 +329,7 @@ mod tests {
         assert_above_max(
             values.try_insert(2u8, 5u8).expect_err("3f1263eb"),
             2usize,
-            1usize,
+            usize_constants::ONE,
         );
         assert_eq!(values.remove(&1u8), Some(4u8));
         assert_eq!(
@@ -370,7 +374,7 @@ mod tests {
         assert_above_max(
             super::StdBoundedHashMap::<u8, u8, 1>::try_from(hash_values).expect_err("5c0d1871"),
             2usize,
-            1usize,
+            usize_constants::ONE,
         );
         let tree_values = [(1u8, 1u8), (2u8, 2u8)]
             .into_iter()
@@ -378,7 +382,7 @@ mod tests {
         assert_above_max(
             super::StdBoundedBTreeMap::<u8, u8, 1>::try_from(tree_values).expect_err("8c8a9759"),
             2usize,
-            1usize,
+            usize_constants::ONE,
         );
     }
 
@@ -428,9 +432,9 @@ mod tests {
 
     #[test]
     fn vec_deserialization_stops_after_first_excess_item() {
-        let consumed = std::cell::Cell::new(0usize);
+        let consumed = std::cell::Cell::new(usize_constants::ZERO);
         let values = [1u8, 2u8, 3u8].into_iter().inspect(|_value| {
-            consumed.set(consumed.get().saturating_add(1usize));
+            consumed.set(consumed.get().saturating_add(usize_constants::ONE));
         });
         let result = <super::BoundedVec<u8, 0, 1> as serde::Deserialize>::deserialize(
             serde::de::value::SeqDeserializer::<_, serde::de::value::Error>::new(values),
@@ -619,7 +623,7 @@ mod tests {
         else {
             panic!("5fb9ee86");
         };
-        assert_eq!(array.min_items, Some(0usize));
+        assert_eq!(array.min_items, Some(usize_constants::ZERO));
         assert_eq!(array.max_items, None);
     }
 

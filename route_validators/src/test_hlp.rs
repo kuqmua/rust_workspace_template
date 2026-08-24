@@ -48,7 +48,7 @@ pub(crate) fn block_on<T>(input_future: impl Future<Output = T>) -> T {
     let mut future = std::pin::pin!(input_future);
     let waker = std::task::Waker::noop();
     let mut context = std::task::Context::from_waker(waker);
-    let mut poll_count = TestPollCount::from(0usize);
+    let mut poll_count = TestPollCount::from(usize_constants::ZERO);
     loop {
         match future.as_mut().poll(&mut context) {
             std::task::Poll::Ready(output) => {
@@ -328,9 +328,9 @@ mod tests {
     }
     #[test]
     fn poll_count_increment_helper_increments_once() {
-        let mut poll_count = super::TestPollCount::from(0usize);
+        let mut poll_count = super::TestPollCount::from(usize_constants::ZERO);
         super::increment_block_on_poll_count(&mut poll_count);
-        assert_eq!(poll_count.0, 1usize);
+        assert_eq!(poll_count.0, usize_constants::ONE);
     }
     #[test]
     fn expect_ok_returns_inner_value() {

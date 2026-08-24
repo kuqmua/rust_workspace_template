@@ -102,15 +102,16 @@ pub fn build_date_sql_filter(
         .filter(|(_column, _comparator, value)| value.is_some())
         .count();
     let mut values = Vec::with_capacity(active_count);
-    let alias_bytes =
-        optional_table_alias.map_or(0usize, |alias| alias.as_ref().len().saturating_add(1usize));
+    let alias_bytes = optional_table_alias.map_or(usize_constants::ZERO, |alias| {
+        alias.as_ref().len().saturating_add(usize_constants::ONE)
+    });
     let fragment_capacity = candidates
         .iter()
         .filter(|(_column, _comparator, value)| value.is_some())
         .map(|(column, comparator, _value)| {
             alias_bytes
                 .saturating_add(column.len())
-                .saturating_add(1usize)
+                .saturating_add(usize_constants::ONE)
                 .saturating_add(comparator.len())
                 .saturating_add(str_constants::DOLLAR_SIGN.len())
                 .saturating_add(10usize)
@@ -118,7 +119,7 @@ pub fn build_date_sql_filter(
         .sum::<usize>()
         .saturating_add(
             active_count
-                .saturating_sub(1usize)
+                .saturating_sub(usize_constants::ONE)
                 .saturating_mul(str_constants::AND.len()),
         );
     let mut fragment = String::with_capacity(fragment_capacity);

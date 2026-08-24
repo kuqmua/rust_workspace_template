@@ -33,7 +33,7 @@ impl GeneratePgTableModel {
     pub(super) fn from_struct(input: SynGeneratePgTableModelInput) -> Self {
         let field_count = match &input.0.data {
             syn::Data::Struct(data) => data.fields.iter().count(),
-            syn::Data::Enum(_) | syn::Data::Union(_) => 0usize,
+            syn::Data::Enum(_) | syn::Data::Union(_) => usize_constants::ZERO,
         };
         Self {
             field_count: GeneratePgTableFieldCount::from(field_count),
@@ -44,7 +44,7 @@ impl GeneratePgTableModel {
         self.input
     }
     pub(super) fn validate(self) -> Result<Self, SynGeneratePgTableModelError> {
-        if self.field_count.0 == 0usize {
+        if self.field_count.0 == usize_constants::ZERO {
             Err(syn::Error::new_spanned(
                 &self.input.0.ident,
                 str_constants::GENERATE_PG_TABLE_REQUIRES_FIELD,

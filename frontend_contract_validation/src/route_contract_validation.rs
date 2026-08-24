@@ -291,7 +291,7 @@ mod tests {
             Some(super::RouteContractMismatch::Method { .. })
         ));
         assert!(matches!(
-            mismatches.as_ref().get(1usize),
+            mismatches.as_ref().get(usize_constants::ONE),
             Some(super::RouteContractMismatch::OpenApiOperationId { .. })
         ));
         assert!(matches!(

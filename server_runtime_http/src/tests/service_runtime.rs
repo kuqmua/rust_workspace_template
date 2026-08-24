@@ -89,7 +89,7 @@ async fn acquire_permit_distinguishes_available_timeout_and_closed() {
     let retry_after = super::super::RetryAfterSecs::try_from(3u64).expect(
         "c52d0e93 acquire_permit_distinguishes_available_timeout_and_closed invariant must hold",
     );
-    let semaphore = std::sync::Arc::new(tokio::sync::Semaphore::new(1usize));
+    let semaphore = std::sync::Arc::new(tokio::sync::Semaphore::new(usize_constants::ONE));
     let permit = super::super::acquire_permit(
         super::super::StdArcTokioSemaphore::from(std::sync::Arc::clone(&semaphore)),
         super::super::StdPermitWaitTimeout::from(std::time::Duration::ZERO),
@@ -134,10 +134,10 @@ async fn acquire_permit_distinguishes_available_timeout_and_closed() {
 #[test]
 fn concurrency_limit_wrappers_validate_boundaries_and_try_acquire() {
     assert_eq!(
-        super::super::RetryAfterSecs::try_from(0u64),
+        super::super::RetryAfterSecs::try_from(u64_constants::ZERO),
         Err(super::super::RetryAfterSecsTryFromU64Error)
     );
-    let permit_count = std::num::NonZeroUsize::new(1usize).expect("50a95013 concurrency_limit_wrappers_validate_boundaries_and_try_acquire invariant must hold");
+    let permit_count = std::num::NonZeroUsize::new(usize_constants::ONE).expect("50a95013 concurrency_limit_wrappers_validate_boundaries_and_try_acquire invariant must hold");
     let semaphore = super::super::StdArcTokioSemaphore::new(
         super::super::StdSemaphorePermitCount::from(permit_count),
     );
@@ -149,7 +149,9 @@ fn concurrency_limit_wrappers_validate_boundaries_and_try_acquire() {
 
 #[test]
 fn zero_limits_are_rejected() {
-    let Err(history_error) = super::super::StdAsyncRunHistoryMaximumLen::try_from(0usize) else {
+    let Err(history_error) =
+        super::super::StdAsyncRunHistoryMaximumLen::try_from(usize_constants::ZERO)
+    else {
         panic!("5500cd77");
     };
     assert_eq!(

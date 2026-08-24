@@ -182,7 +182,8 @@ async fn invalid_admin_json_uses_problem_details_and_body_limit_contract() {
     let body_limit = <server_admin_contract::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::body_limit()
         .expect("a60751db invalid_admin_json_uses_problem_details_and_body_limit_contract invariant must hold")
         .get();
-    let oversized_password = str_constants::X.repeat(body_limit.saturating_add(1usize));
+    let oversized_password =
+        str_constants::X.repeat(body_limit.saturating_add(usize_constants::ONE));
     let oversized_body = format!(r#"{{"login":"admin","password":"{oversized_password}"}}"#);
     let oversized_response = tower::ServiceExt::oneshot(
         router().0,

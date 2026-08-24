@@ -9,7 +9,7 @@ fn test_admin() -> server_admin_contract::AuthenticatedAdmin {
     server_admin_contract::AuthenticatedAdmin::new(
         server_admin_contract::AdminDisplayName::try_from(String::from("Alice Admin"))
             .expect("21d86f4c test_admin invariant must hold"),
-        server_admin_contract::AdminUserId::try_from(1i64)
+        server_admin_contract::AdminUserId::try_from(i64_constants::ONE)
             .expect("3ac90e75 test_admin invariant must hold"),
         server_admin_contract::AdminLogin::try_from(String::from("alice"))
             .expect("d5810a3f test_admin invariant must hold"),

@@ -51,7 +51,7 @@ mod tests {
         );
         let oversized = str_constants::A_ALT.repeat(
             usize::from(where_filters::TextSearchPolicy::DEFAULT.maximum_input_bytes())
-                .saturating_add(1usize),
+                .saturating_add(usize_constants::ONE),
         );
         assert_eq!(
             where_filters::build_text_search_pattern(

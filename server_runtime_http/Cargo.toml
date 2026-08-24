@@ -11,6 +11,11 @@ categories = ["web-programming"]
 edition.workspace = true
 
 [dependencies]
+usize_constants = { workspace = true }
+u8_constants = { workspace = true }
+u64_constants = { workspace = true }
+i32_constants = { workspace = true }
+i64_constants = { workspace = true }
 optimal_memory_layout = { workspace = true }
 newtype = { workspace = true }
 server_observability = { workspace = true }
@@ -38,6 +43,7 @@ tracing = { workspace = true }
 tracing-opentelemetry = { workspace = true }
 uuid = { workspace = true }
 [dev-dependencies]
+u16_constants = { workspace = true }
 opentelemetry_sdk = { workspace = true, features = ["testing"] }
 tokio = { workspace = true, features = ["test-util"] }
 tracing-subscriber = { workspace = true }

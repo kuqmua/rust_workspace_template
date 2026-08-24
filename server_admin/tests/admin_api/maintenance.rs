@@ -32,7 +32,7 @@ async fn postgresql_optimistic_revision_allows_one_concurrent_writer() {
     let update = str_constants::UPDATE_PG_TABLE_OPTIMISTIC_REVISION_TEST_SET_VALUE_DOLLAR_1_REVISION_REVISION;
     let (left, right) = tokio::join!(
         sqlx::query_scalar::<_, i64>(update)
-            .bind(1i64)
+            .bind(i64_constants::ONE)
             .bind(
                 pg_table::PgTableRevision::try_from(str_constants::VALUE_0.to_owned())
                     .expect("979fa4b2 postgresql_optimistic_revision_allows_one_concurrent_writer invariant must hold")
@@ -49,7 +49,7 @@ async fn postgresql_optimistic_revision_allows_one_concurrent_writer() {
     let outcomes = [left.expect("a1a1382a postgresql_optimistic_revision_allows_one_concurrent_writer invariant must hold"), right.expect("8406b933 postgresql_optimistic_revision_allows_one_concurrent_writer invariant must hold")];
     assert_eq!(
         outcomes.iter().filter(|value| value.is_some()).count(),
-        1usize
+        usize_constants::ONE
     );
     assert_eq!(
         sqlx::query_scalar::<_, i64>(
@@ -58,7 +58,7 @@ async fn postgresql_optimistic_revision_allows_one_concurrent_writer() {
         .fetch_one(&pool)
         .await
         .expect("c0f01a04 postgresql_optimistic_revision_allows_one_concurrent_writer invariant must hold"),
-        1i64
+        i64_constants::ONE
     );
     let stale = sqlx::query_scalar::<_, i64>(update)
         .bind(3i64)
@@ -95,7 +95,7 @@ async fn postgresql_cleanup_is_batched_and_preserves_append_only_policy() {
         &pg_crud_common::PgRelationLockNamespace::try_from(str_constants::ACTOR_ATOMIC.to_owned())
             .expect("861fe23d postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold"),
         &pg_crud_common::PgRelationResourceIds::try_from(vec![
-            pg_crud_common::PgRelationResourceId::from(1i64),
+            pg_crud_common::PgRelationResourceId::from(i64_constants::ONE),
         ])
         .expect("a18f804c postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold"),
     )
@@ -143,7 +143,10 @@ async fn postgresql_cleanup_is_batched_and_preserves_append_only_policy() {
         .fetch_one(&pool)
         .await
         .expect("f37a3ab4 postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
-    assert_eq!(remaining, (1i64, 1i64, 1i64));
+    assert_eq!(
+        remaining,
+        (i64_constants::ONE, i64_constants::ONE, i64_constants::ONE)
+    );
     let ordinary_delete = sqlx::query(str_constants::DELETE_FROM_ADMIN_AUDIT_LOG)
         .execute(&pool)
         .await;

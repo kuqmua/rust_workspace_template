@@ -23,7 +23,7 @@ pub enum HttpProxyPathError {
 impl TryFrom<String> for HttpProxyPath {
     type Error = HttpProxyPathError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > 8192usize {
+        if value.len() > usize_constants::VALUE_8_192 {
             return Err(Self::Error::ForbiddenSyntax);
         }
         Self::try_from(HttpProxyPathRef::from(value.as_str()))
@@ -36,7 +36,7 @@ impl TryFrom<HttpProxyPathRef<'_>> for HttpProxyPath {
         if path.is_empty() {
             return Err(Self::Error::Empty);
         }
-        if path.len() > 8192usize {
+        if path.len() > usize_constants::VALUE_8_192 {
             return Err(Self::Error::ForbiddenSyntax);
         }
         let starts_with_ignore_ascii_case = |prefix: &str| {
@@ -119,7 +119,7 @@ pub struct HttpNormalizedPathError;
 impl TryFrom<String> for HttpNormalizedPath {
     type Error = HttpNormalizedPathError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > 8192usize {
+        if value.len() > usize_constants::VALUE_8_192 {
             Err(HttpNormalizedPathError)
         } else {
             Ok(Self(value))
@@ -128,13 +128,15 @@ impl TryFrom<String> for HttpNormalizedPath {
 }
 #[must_use]
 pub fn normalize_identifier_path(path: HttpRequestPathRef<'_>) -> Option<HttpNormalizedPath> {
-    if path.0.len() > 8192usize || !path.0.bytes().any(|byte| byte.is_ascii_digit()) {
+    if path.0.len() > usize_constants::VALUE_8_192
+        || !path.0.bytes().any(|byte| byte.is_ascii_digit())
+    {
         return None;
     }
     let normalized = path.0.split('/').enumerate().fold(
         String::with_capacity(path.0.len()),
         |mut normalized, (index, segment)| {
-            if index > 0usize {
+            if index > usize_constants::ZERO {
                 normalized.push('/');
             }
             if !segment.is_empty()

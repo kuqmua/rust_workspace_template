@@ -188,7 +188,7 @@ const _: () = {
                     let Some(f0) = _serde::de::SeqAccess::next_element::<Vec<T>>(&mut __seq)?
                     else {
                         return Err(_serde::de::Error::invalid_length(
-                            0usize,
+                            usize_constants::ZERO,
                             &str_constants::PG_CRUD_NOT_EMPTY_UNIQUE_VEC_TUPLE_EXPECTING,
                         ));
                     };
@@ -255,7 +255,8 @@ mod tests_not_empty_unique_vec {
     }
     #[test]
     fn not_empty_unique_vec_rejects_oversized_and_deserialized_empty_values() {
-        let oversized = (0usize..=super::super::NOT_EMPTY_UNIQUE_VEC_MAX_LEN).collect::<Vec<_>>();
+        let oversized = (usize_constants::ZERO..=super::super::NOT_EMPTY_UNIQUE_VEC_MAX_LEN)
+            .collect::<Vec<_>>();
         assert!(matches!(
             super::NotEmptyUniqueVec::try_new(oversized.into()),
             Err(super::NotEmptyUniqueVecTryNewError::TooLong { .. })

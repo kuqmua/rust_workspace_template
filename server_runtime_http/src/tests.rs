@@ -23,7 +23,7 @@ where
         }
         let _previous_count = self
             .error_count
-            .fetch_add(1usize, std::sync::atomic::Ordering::SeqCst);
+            .fetch_add(usize_constants::ONE, std::sync::atomic::Ordering::SeqCst);
         let mut visitor = HttpErrorEventFieldVisitor::default();
         event.record(&mut visitor);
         let _previous_mask = self
@@ -38,7 +38,7 @@ struct HttpErrorEventFieldVisitor {
 impl HttpErrorEventFieldVisitor {
     fn record_field(&mut self, field: &tracing::field::Field) {
         let bit = match field.name() {
-            "request_id" => 1u16 << 0u16,
+            "request_id" => 1u16 << u16_constants::ZERO,
             "trace_id" => 1u16 << 1u16,
             "service_name" => 1u16 << 2u16,
             "http_route" => 1u16 << 3u16,
@@ -50,7 +50,7 @@ impl HttpErrorEventFieldVisitor {
             "backtrace" => 1u16 << 9u16,
             "span_trace" => 1u16 << 10u16,
             "error_location" => 1u16 << 11u16,
-            _other => 0u16,
+            _other => u16_constants::ZERO,
         };
         self.mask |= bit;
     }
@@ -315,8 +315,9 @@ async fn http_boundary_emits_one_complete_error_event_only_for_server_errors() {
         #[source]
         source: std::io::Error,
     }
-    let error_count = std::sync::Arc::new(std::sync::atomic::AtomicUsize::new(0usize));
-    let field_mask = std::sync::Arc::new(std::sync::atomic::AtomicU16::new(0u16));
+    let error_count =
+        std::sync::Arc::new(std::sync::atomic::AtomicUsize::new(usize_constants::ZERO));
+    let field_mask = std::sync::Arc::new(std::sync::atomic::AtomicU16::new(u16_constants::ZERO));
     let subscriber = tracing_subscriber::layer::SubscriberExt::with(
         tracing_subscriber::registry(),
         HttpErrorEventCapture {
@@ -398,7 +399,7 @@ async fn http_boundary_emits_one_complete_error_event_only_for_server_errors() {
     drop(server_error_response);
     assert_eq!(
         error_count.load(std::sync::atomic::Ordering::SeqCst),
-        1usize
+        usize_constants::ONE
     );
     assert_eq!(
         field_mask.load(std::sync::atomic::Ordering::SeqCst),
@@ -420,7 +421,7 @@ async fn http_boundary_emits_one_complete_error_event_only_for_server_errors() {
     drop(client_error_response);
     assert_eq!(
         error_count.load(std::sync::atomic::Ordering::SeqCst),
-        1usize
+        usize_constants::ONE
     );
 }
 #[test]

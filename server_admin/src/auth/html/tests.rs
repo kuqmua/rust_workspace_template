@@ -139,7 +139,7 @@ async fn role_assignment_form_accepts_dynamic_checkbox_fields() {
 
 #[test]
 fn selected_form_fields_reject_oversized_maps() {
-    let values = (0usize..=super::ADMIN_HTML_FORM_SELECTED_MAX_ITEMS)
+    let values = (usize_constants::ZERO..=super::ADMIN_HTML_FORM_SELECTED_MAX_ITEMS)
         .map(|idx| {
             (
                 super::AdminHtmlFormKey::try_from(idx.to_string()).expect(

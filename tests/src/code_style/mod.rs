@@ -132,17 +132,17 @@ fn scan_generated_diagnostic_tokens(
         };
         let identifier_text = identifier.to_string();
         let is_expect = identifier_text == str_constants::CODE_STYLE_EXPECT_METHOD_NAME
-            && index.checked_sub(1usize).and_then(|previous| trees.get(previous)).is_some_and(
+            && index.checked_sub(usize_constants::ONE).and_then(|previous| trees.get(previous)).is_some_and(
                 |previous| matches!(previous, proc_macro2::TokenTree::Punct(punct) if punct.as_char() == '.'),
             );
         let is_panic = identifier_text == str_constants::CODE_STYLE_PANIC_METHOD_NAME
             && trees
-                .get(index.saturating_add(1usize))
+                .get(index.saturating_add(usize_constants::ONE))
                 .is_some_and(|next| matches!(next, proc_macro2::TokenTree::Punct(punct) if punct.as_char() == '!'));
         if !is_expect && !is_panic {
             return;
         }
-        let group_index = index.saturating_add(if is_panic { 2usize } else { 1usize });
+        let group_index = index.saturating_add(if is_panic { 2usize } else { usize_constants::ONE });
         let Some(proc_macro2::TokenTree::Group(arguments)) = trees.get(group_index) else {
             visitor
                 .ers
@@ -400,7 +400,13 @@ fn unjustified_workspace_lint_allows(source: types::SourceTextRef<'_>) -> types:
                     .map_or((line, None), |(setting, comment)| (setting, Some(comment)));
                 (setting.trim_end().ends_with("= \"allow\"")
                     && comment.is_none_or(|reason| reason.trim().is_empty()))
-                .then(|| format!("line {}: {}", index.saturating_add(1usize), trimmed))
+                .then(|| {
+                    format!(
+                        "line {}: {}",
+                        index.saturating_add(usize_constants::ONE),
+                        trimmed
+                    )
+                })
             })
             .collect::<Vec<String>>(),
     )
@@ -416,7 +422,13 @@ fn commented_debug_statements(source: types::SourceTextRef<'_>) -> types::Diagno
                 ["dbg!", "print!", "println!", "eprint!", "eprintln!"]
                     .into_iter()
                     .any(|macro_name| comment.starts_with(macro_name))
-                    .then(|| format!("line {}: {}", index.saturating_add(1usize), line.trim()))
+                    .then(|| {
+                        format!(
+                            "line {}: {}",
+                            index.saturating_add(usize_constants::ONE),
+                            line.trim()
+                        )
+                    })
             })
             .collect::<Vec<String>>(),
     )
@@ -437,7 +449,7 @@ fn text_content_hygiene_ers(source: types::SourceTextRef<'_>) -> types::Diagnost
         .for_each(|(index, _)| {
             ers.push(format!(
                 "line {} contains trailing whitespace",
-                index.saturating_add(1usize)
+                index.saturating_add(usize_constants::ONE)
             ));
         });
     ers

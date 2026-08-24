@@ -237,13 +237,15 @@ fn outbound_address_disposition(address: StdOutboundIpAddr) -> OutboundAddressDi
                 || ipv4_address.is_multicast()
                 || ipv4_address.is_private()
                 || ipv4_address.is_unspecified()
-                || octets[0] == 0u8
+                || octets[0] == u8_constants::ZERO
                 || (octets[0] == 100u8 && (64u8..=127u8).contains(&octets[1]))
-                || (octets[0] == 192u8 && octets[1] == 0u8 && octets[2] == 0u8)
-                || (octets[0] == 192u8 && octets[1] == 0u8 && octets[2] == 2u8)
+                || (octets[0] == 192u8
+                    && octets[1] == u8_constants::ZERO
+                    && octets[2] == u8_constants::ZERO)
+                || (octets[0] == 192u8 && octets[1] == u8_constants::ZERO && octets[2] == 2u8)
                 || (octets[0] == 198u8 && (octets[1] == 18u8 || octets[1] == 19u8))
                 || (octets[0] == 198u8 && octets[1] == 51u8 && octets[2] == 100u8)
-                || (octets[0] == 203u8 && octets[1] == 0u8 && octets[2] == 113u8)
+                || (octets[0] == 203u8 && octets[1] == u8_constants::ZERO && octets[2] == 113u8)
                 || octets[0] >= 240u8
         }
         std::net::IpAddr::V6(ipv6_address) => ipv6_address.to_ipv4_mapped().map_or_else(
@@ -313,15 +315,47 @@ mod tests {
     fn non_global_special_addresses_are_rejected() {
         assert!(
             [
-                std::net::IpAddr::V4(std::net::Ipv4Addr::new(0u8, 0u8, 0u8, 1u8)),
-                std::net::IpAddr::V4(std::net::Ipv4Addr::new(100u8, 64u8, 0u8, 1u8)),
-                std::net::IpAddr::V4(std::net::Ipv4Addr::new(192u8, 0u8, 2u8, 1u8)),
-                std::net::IpAddr::V4(std::net::Ipv4Addr::new(198u8, 18u8, 0u8, 1u8)),
+                std::net::IpAddr::V4(std::net::Ipv4Addr::new(
+                    u8_constants::ZERO,
+                    u8_constants::ZERO,
+                    u8_constants::ZERO,
+                    1u8
+                )),
+                std::net::IpAddr::V4(std::net::Ipv4Addr::new(
+                    100u8,
+                    64u8,
+                    u8_constants::ZERO,
+                    1u8
+                )),
+                std::net::IpAddr::V4(std::net::Ipv4Addr::new(192u8, u8_constants::ZERO, 2u8, 1u8)),
+                std::net::IpAddr::V4(std::net::Ipv4Addr::new(
+                    198u8,
+                    18u8,
+                    u8_constants::ZERO,
+                    1u8
+                )),
                 std::net::IpAddr::V4(std::net::Ipv4Addr::new(198u8, 51u8, 100u8, 1u8)),
-                std::net::IpAddr::V4(std::net::Ipv4Addr::new(203u8, 0u8, 113u8, 1u8)),
-                std::net::IpAddr::V4(std::net::Ipv4Addr::new(240u8, 0u8, 0u8, 1u8)),
+                std::net::IpAddr::V4(std::net::Ipv4Addr::new(
+                    203u8,
+                    u8_constants::ZERO,
+                    113u8,
+                    1u8
+                )),
+                std::net::IpAddr::V4(std::net::Ipv4Addr::new(
+                    240u8,
+                    u8_constants::ZERO,
+                    u8_constants::ZERO,
+                    1u8
+                )),
                 std::net::IpAddr::V6(std::net::Ipv6Addr::new(
-                    0x2001u16, 0x0db8u16, 0u16, 0u16, 0u16, 0u16, 0u16, 1u16,
+                    0x2001u16,
+                    0x0db8u16,
+                    u16_constants::ZERO,
+                    u16_constants::ZERO,
+                    u16_constants::ZERO,
+                    u16_constants::ZERO,
+                    u16_constants::ZERO,
+                    1u16,
                 )),
             ]
             .into_iter()

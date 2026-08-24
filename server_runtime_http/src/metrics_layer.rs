@@ -84,7 +84,7 @@ impl TryFrom<String> for HttpMetricsPathText {
     type Error = HttpMetricsPathTextError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.is_empty() || value.len() > 8_192usize {
+        if value.is_empty() || value.len() > usize_constants::VALUE_8_192 {
             Err(HttpMetricsPathTextError)
         } else {
             Ok(Self(value))
@@ -313,7 +313,7 @@ mod tests {
             String::from_utf8(vec![
                 b'x';
                 super::METRICS_RESPONSE_BODY_MAXIMUM_BYTES
-                    .saturating_add(1usize)
+                    .saturating_add(usize_constants::ONE)
             ])
             .expect("329fb604 metrics_response_body_is_bounded invariant must hold"),
         )
@@ -323,14 +323,14 @@ mod tests {
     #[test]
     fn cache_configuration_and_path_text_validate_boundaries() {
         assert_eq!(
-            super::HttpMetricsPathCacheMaximum::try_from(0usize),
+            super::HttpMetricsPathCacheMaximum::try_from(usize_constants::ZERO),
             Err(super::HttpMetricsPathCacheMaximumTryFromUsizeError)
         );
         assert_eq!(
             super::HttpMetricsPathText::try_from(String::new()),
             Err(super::HttpMetricsPathTextError)
         );
-        let _path = super::HttpMetricsPathText::try_from("a".repeat(8_192usize)).expect(
+        let _path = super::HttpMetricsPathText::try_from("a".repeat(usize_constants::VALUE_8_192)).expect(
             "c1b07056 cache_configuration_and_path_text_validate_boundaries invariant must hold",
         );
         assert_eq!(

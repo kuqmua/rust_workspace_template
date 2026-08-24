@@ -1,6 +1,5 @@
-static RUN_COUNTER: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0u64);
-const COMMAND_TEXT_MAX_BYTES: usize = 16_777_216usize;
-const SUMMARY_MAX_BYTES: usize = 1_048_576usize;
+static RUN_COUNTER: std::sync::atomic::AtomicU64 =
+    std::sync::atomic::AtomicU64::new(u64_constants::ZERO);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 struct CommandIdx(usize);
 impl CommandIdx {
@@ -60,7 +59,7 @@ struct CommandArgsRef<'args_lt>(&'args_lt [&'args_lt str]);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::AsRefStr, newtype::BoundedString,
 )]
-#[bounded_string(max = COMMAND_TEXT_MAX_BYTES)]
+#[bounded_string(max = usize_constants::VALUE_16_777_216)]
 struct CommandText(String);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
 struct CommandTexts(bounded_types::BoundedVec<CommandText, 0, { usize::MAX }>);
@@ -81,7 +80,7 @@ struct StdRunDir(std::path::PathBuf);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::BoundedString, newtype::AsRefStr,
 )]
-#[bounded_string(max = SUMMARY_MAX_BYTES)]
+#[bounded_string(max = usize_constants::VALUE_1_048_576)]
 struct SummaryText(String);
 impl SummaryText {
     fn push_str(&mut self, value: TextRef<'_>) -> Result<(), ()> {
@@ -89,7 +88,7 @@ impl SummaryText {
             .0
             .len()
             .checked_add(value.get().len())
-            .is_none_or(|len| len > SUMMARY_MAX_BYTES)
+            .is_none_or(|len| len > usize_constants::VALUE_1_048_576)
         {
             return Err(());
         }
@@ -137,11 +136,11 @@ fn command_log_name(
         .clone()
         .map(str::len)
         .sum::<usize>()
-        .saturating_add(parts.clone().count().saturating_sub(1usize));
+        .saturating_add(parts.clone().count().saturating_sub(usize_constants::ONE));
     let raw = parts.enumerate().fold(
         String::with_capacity(raw_capacity),
         |mut raw, (index, part)| {
-            if index > 0usize {
+            if index > usize_constants::ZERO {
                 raw.push_str(str_constants::HYPHEN);
             }
             raw.push_str(part);
@@ -301,13 +300,13 @@ pub(super) fn run_commands(commands: CommandsRef<'_>) -> Result<(), ()> {
                     .0
                     .len()
                     .get()
-                    .saturating_sub(1usize)
+                    .saturating_sub(usize_constants::ONE)
                     .saturating_mul(str_constants::TEXT_ALT_7.len()),
             );
         let failed_names = failed_test_names.0.iter().enumerate().fold(
             String::with_capacity(failed_names_capacity),
             |mut names, (index, name)| {
-                if index > 0usize {
+                if index > usize_constants::ZERO {
                     names.push_str(str_constants::TEXT_ALT_7);
                 }
                 names.push_str(name.as_ref());

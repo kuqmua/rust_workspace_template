@@ -89,7 +89,6 @@ struct RolePermissionsForm {
     role_id: server_admin_contract::AdminRoleId,
 }
 
-const ADMIN_HTML_FORM_TEXT_MAX_BYTES: usize = 8_192usize;
 const ADMIN_HTML_FORM_SELECTED_MAX_ITEMS: usize = 1_000usize;
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
@@ -119,7 +118,7 @@ impl From<bounded_types::BoundedValueError> for StdAdminHtmlSelectedError {
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, serde::Deserialize)]
 #[serde(try_from = "String")]
-struct AdminHtmlFormText(bounded_types::BoundedString<0, ADMIN_HTML_FORM_TEXT_MAX_BYTES>);
+struct AdminHtmlFormText(bounded_types::BoundedString<0, { usize_constants::VALUE_8_192 }>);
 impl TryFrom<String> for AdminHtmlFormText {
     type Error = AdminHtmlFormTextError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
@@ -138,7 +137,7 @@ impl TryFrom<String> for AdminHtmlFormText {
     serde::Deserialize,
 )]
 #[serde(try_from = "String")]
-struct AdminHtmlFormKey(bounded_types::BoundedString<0, ADMIN_HTML_FORM_TEXT_MAX_BYTES>);
+struct AdminHtmlFormKey(bounded_types::BoundedString<0, { usize_constants::VALUE_8_192 }>);
 impl TryFrom<String> for AdminHtmlFormKey {
     type Error = AdminHtmlFormKeyError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
@@ -371,13 +370,13 @@ fn selected_form_text(
                 .0
                 .len()
                 .get()
-                .saturating_sub(1usize)
+                .saturating_sub(usize_constants::ONE)
                 .saturating_mul(separator.len()),
         );
     let text = selected.0.into_values().enumerate().fold(
         String::with_capacity(capacity),
         |mut text, (index, value)| {
-            if index > 0usize {
+            if index > usize_constants::ZERO {
                 text.push_str(separator);
             }
             text.push_str(value.0.as_ref());

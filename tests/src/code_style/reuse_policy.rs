@@ -34,24 +34,24 @@ fn reviewed_duplicate_groups() -> Vec<ReviewedDuplicateGroup> {
             reason: "independent policy visitors collect different facts through the required syn Visit item callback",
         },
         ReviewedDuplicateGroup {
-            locations: "../pg_crud_common/src/filter_bind_plan.rs::try_from\n../pg_crud_pg_types_generate_src/src/source.rs::try_from\n../pg_crud_pg_types_generate_src/src/source.rs::try_from\n../server_runtime_http/src/metrics_layer.rs::try_from",
+            locations: "../pg_crud_pg_types_generate_src/src/source.rs::try_from\n../pg_crud_pg_types_generate_src/src/source.rs::try_from\n../server_runtime_http/src/metrics_layer.rs::try_from",
             reason: "mechanical TryFrom adapters call type-specific invariant constructors and preserve domain-specific errors",
+        },
+        ReviewedDuplicateGroup {
+            locations: "../server_runtime_http/src/pg_rate_limit.rs::try_from\n../server_runtime_http/src/pg_rate_limit.rs::try_from",
+            reason: "rate-limit wrappers have separate domain meanings and validation error variants",
         },
         ReviewedDuplicateGroup {
             locations: "../server_admin/src/auth/html.rs::delete_role\n../server_admin/src/auth/html.rs::delete_user",
             reason: "route handlers are separate Axum registration targets and delegate authentication through authenticated_action",
         },
         ReviewedDuplicateGroup {
-            locations: "../server_runtime_http/src/batched_cleanup.rs::try_from\n../server_runtime_http/src/limits.rs::try_from",
+            locations: "../server_runtime_core/src/resource_budget.rs::try_from\n../server_runtime_http/src/batched_cleanup.rs::try_from\n../server_runtime_http/src/limits.rs::try_from",
             reason: "positive-value domain boundaries expose distinct public errors; the shared shape is only trait glue",
         },
         ReviewedDuplicateGroup {
             locations: "../config_lib/src/lib.rs::try_from\n../config_lib/src/lib.rs::try_from\n../pg_crud_pg_table/src/lib.rs::try_from\n../pg_crud_pg_table/src/lib.rs::try_from\n../tests/src/domain_type_policy_fixture.rs::try_from",
             reason: "conversion adapters map external values into unrelated domain wrappers and error contracts",
-        },
-        ReviewedDuplicateGroup {
-            locations: "../server_runtime_http/src/pg_rate_limit.rs::try_from\n../server_runtime_http/src/pg_rate_limit.rs::try_from",
-            reason: "rate-limit wrappers have separate domain meanings and validation error variants",
         },
         ReviewedDuplicateGroup {
             locations: "../pg_crud_pg_table/src/lib.rs::try_from\n../pg_crud_pg_table/src/lib.rs::try_from",
@@ -82,7 +82,7 @@ fn reviewed_duplicate_groups() -> Vec<ReviewedDuplicateGroup> {
             reason: "validators enforce unrelated contracts and return their own domain-specific errors",
         },
         ReviewedDuplicateGroup {
-            locations: "../location_lib/src/location.rs::validate\n../location_lib/src/location.rs::validate\n../macros_helpers/src/generate_field_location_new_token_stream.rs::validate\n../macros_helpers/src/generate_field_location_new_token_stream.rs::validate",
+            locations: "../location_lib/src/location.rs::validate\n../location_lib/src/location.rs::validate\n../macros_helpers/src/generate_field_location_new_token_stream.rs::validate\n../macros_helpers/src/generate_field_location_new_token_stream.rs::validate\n../server_admin/src/auth.rs::validate\n../server_admin/src/auth.rs::validate\n../server_admin/src/auth.rs::validate",
             reason: "location newtypes and generated tokens each require a local validator at their invariant boundary",
         },
         ReviewedDuplicateGroup {
@@ -118,7 +118,7 @@ fn reviewed_duplicate_groups() -> Vec<ReviewedDuplicateGroup> {
             reason: "derive macro parsers consume different attributes but use the same syn error propagation skeleton",
         },
         ReviewedDuplicateGroup {
-            locations: "../pg_crud_common/src/cursor.rs::try_from\n../pg_crud_common/src/cursor.rs::try_from",
+            locations: "../pg_crud_common/src/cursor.rs::try_from\n../pg_crud_common/src/cursor.rs::try_from\n../server_runtime_http/src/metrics_layer.rs::try_from",
             reason: "cursor wire formats have separate domain wrappers and decoding error variants",
         },
         ReviewedDuplicateGroup {
@@ -130,7 +130,7 @@ fn reviewed_duplicate_groups() -> Vec<ReviewedDuplicateGroup> {
             reason: "derive-policy predicates check different conversion capabilities with common syntax matching",
         },
         ReviewedDuplicateGroup {
-            locations: "../server_admin/src/lib.rs::try_from\n../server_runtime_http/src/pg_rate_limit.rs::try_from",
+            locations: "../server_admin/src/lib.rs::try_from\n../server_runtime_http/src/pg_rate_limit.rs::try_from\n../server_runtime_http/src/pg_rate_limit.rs::try_from",
             reason: "database count conversions target unrelated bounded domain types and errors",
         },
         ReviewedDuplicateGroup {
@@ -150,11 +150,7 @@ fn reviewed_duplicate_groups() -> Vec<ReviewedDuplicateGroup> {
             reason: "query fragment and pagination wrappers retain distinct SQL-domain invariants and errors",
         },
         ReviewedDuplicateGroup {
-            locations: "../server_admin/src/auth.rs::validate\n../server_admin/src/auth.rs::validate",
-            reason: "administrator token TTL wrappers require separate derive validators and domain types",
-        },
-        ReviewedDuplicateGroup {
-            locations: "../frontend_contract/src/route.rs::try_from\n../server_runtime_http/src/path_policy.rs::try_from",
+            locations: "../frontend_contract/src/route.rs::try_from\n../pg_crud_common/src/filter_bind_plan.rs::try_from\n../server_runtime_http/src/path_policy.rs::try_from",
             reason: "frontend routes and proxy paths have separate public domain contracts despite similar conversion flow",
         },
         ReviewedDuplicateGroup {
@@ -272,7 +268,7 @@ struct ReviewedDuplicateGroup {
 
 impl<'ast> syn::visit::Visit<'ast> for FunctionBodyComplexity {
     fn visit_expr(&mut self, i: &'ast syn::Expr) {
-        self.expression_count = self.expression_count.saturating_add(1usize);
+        self.expression_count = self.expression_count.saturating_add(usize_constants::ONE);
         syn::visit::visit_expr(self, i);
     }
 }
@@ -359,7 +355,7 @@ fn substantial_function_bodies_have_one_source_of_truth() {
         super::types::SourceTextList,
     >::from(bodies)
     .into_values()
-    .filter(|locations| locations.len() > 1usize)
+    .filter(|locations| locations.len() > usize_constants::ONE)
     .filter_map(|mut locations| {
         locations.sort_unstable();
         let location_signature = locations.join("\n");

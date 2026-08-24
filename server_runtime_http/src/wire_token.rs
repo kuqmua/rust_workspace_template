@@ -1,5 +1,3 @@
-const VERSIONED_WIRE_TOKEN_MAXIMUM_BYTES: usize = 8192usize;
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
 )]
@@ -37,7 +35,7 @@ impl VersionedUrlSafeWireTokenText {
 impl TryFrom<String> for VersionedUrlSafeWireTokenText {
     type Error = VersionedUrlSafeWireTokenTextError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > VERSIONED_WIRE_TOKEN_MAXIMUM_BYTES {
+        if value.len() > usize_constants::VALUE_8_192 {
             return Err(Self::Error::TooLong);
         }
         let mut parts = value.split('.');

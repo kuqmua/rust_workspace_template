@@ -408,7 +408,7 @@ impl<'ast> syn::visit::Visit<'ast> for DiagnosticIdVisitor {
                 Some(syn::Expr::Lit(syn::ExprLit {
                     lit: syn::Lit::Str(lit_str),
                     ..
-                })) if i.args.len() == 1usize => self.record(
+                })) if i.args.len() == usize_constants::ONE => self.record(
                     super::types::SourceTextRef::from(str_constants::CODE_STYLE_EXPECT_METHOD_NAME),
                     super::types::SourceTextRef::from(lit_str.value().as_str()),
                 ),
@@ -657,7 +657,7 @@ impl<'ast> syn::visit::Visit<'ast> for AllowReasonVisitor {
             let end_line = span.end().line;
             let has_same_line_reason = self
                 .lines
-                .get(end_line.saturating_sub(1usize))
+                .get(end_line.saturating_sub(usize_constants::ONE))
                 .and_then(|line| line.split_once("//").map(|(_attribute, reason)| reason))
                 .is_some_and(|reason| !reason.trim().is_empty());
             let has_preceding_reason = start_line
@@ -901,7 +901,7 @@ impl<'ast> syn::visit::Visit<'ast> for InfallibleResultVisitor {
                     };
                     Some(argument_type)
                 })
-                .nth(1usize)
+                .nth(usize_constants::ONE)
         };
         if let syn::ReturnType::Type(_, ty) = &i.sig.output
             && result_error(ty).is_some_and(Self::type_is_infallible)
@@ -995,7 +995,7 @@ impl ForwardingBorrowVisitor {
         receiver
             .path
             .is_ident(str_constants::CODE_STYLE_SELF_VALUE_IDENTIFIER)
-            && matches!(&field.member, syn::Member::Unnamed(index) if index.index == 0u32)
+            && matches!(&field.member, syn::Member::Unnamed(index) if index.index == u32_constants::ZERO)
     }
 }
 impl<'ast> syn::visit::Visit<'ast> for ForwardingBorrowVisitor {
@@ -1010,7 +1010,7 @@ impl<'ast> syn::visit::Visit<'ast> for ForwardingBorrowVisitor {
                 return false;
             };
             function.sig.ident == str_constants::CODE_STYLE_BORROW_FN_IDENTIFIER
-                && function.block.stmts.len() == 1usize
+                && function.block.stmts.len() == usize_constants::ONE
                 && function.block.stmts.first().is_some_and(|statement| {
                     let syn::Stmt::Expr(expression, None) = statement else {
                         return false;
@@ -1043,7 +1043,7 @@ impl ForwardingDerefVisitor {
         receiver
             .path
             .is_ident(str_constants::CODE_STYLE_SELF_VALUE_IDENTIFIER)
-            && matches!(&field.member, syn::Member::Unnamed(index) if index.index == 0u32)
+            && matches!(&field.member, syn::Member::Unnamed(index) if index.index == u32_constants::ZERO)
     }
 }
 impl<'ast> syn::visit::Visit<'ast> for ForwardingDerefVisitor {
@@ -1078,7 +1078,7 @@ impl<'ast> syn::visit::Visit<'ast> for ForwardingDerefVisitor {
                 return false;
             };
             function.sig.ident == str_constants::CODE_STYLE_DEREF_FN_IDENTIFIER
-                && function.block.stmts.len() == 1usize
+                && function.block.stmts.len() == usize_constants::ONE
                 && function.block.stmts.first().is_some_and(|statement| {
                     let syn::Stmt::Expr(expression, None) = statement else {
                         return false;
@@ -1094,7 +1094,7 @@ impl<'ast> syn::visit::Visit<'ast> for ForwardingDerefVisitor {
     }
     fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
         if let syn::Fields::Unnamed(fields) = &i.fields
-            && fields.unnamed.len() == 1usize
+            && fields.unnamed.len() == usize_constants::ONE
             && let Some(field) = fields.unnamed.first()
         {
             let _previous = self
@@ -1127,18 +1127,18 @@ impl<'ast> syn::visit::Visit<'ast> for ConstDisplayImplVisitor {
                 segment.ident == str_constants::CODE_STYLE_DISPLAY_TRAIT_IDENTIFIER
             })
         });
-        let writes_constant = i.items.len() == 1usize
+        let writes_constant = i.items.len() == usize_constants::ONE
             && i.items.first().is_some_and(|item| {
                 let syn::ImplItem::Fn(function) = item else {
                     return false;
                 };
-                function.block.stmts.len() == 1usize
+                function.block.stmts.len() == usize_constants::ONE
                     && function.block.stmts.first().is_some_and(|statement| {
                         let syn::Stmt::Expr(syn::Expr::MethodCall(call), None) = statement else {
                             return false;
                         };
                         call.method == str_constants::CODE_STYLE_WRITE_STR_FN_IDENTIFIER
-                            && call.args.len() == 1usize
+                            && call.args.len() == usize_constants::ONE
                             && call.args.first().is_some_and(|argument| {
                                 matches!(argument, syn::Expr::Path(path) if path.path.segments.first().is_some_and(|segment| segment.ident == str_constants::STR_CONSTANTS_CRATE_IDENTIFIER))
                             })
@@ -1402,7 +1402,7 @@ impl<'ast> syn::visit::Visit<'ast> for RouteOperationErrorVisitor {
                         .last()
                         .and_then(|segment| match &segment.arguments {
                             syn::PathArguments::AngleBracketed(arguments) => {
-                                arguments.args.iter().nth(1usize)
+                                arguments.args.iter().nth(usize_constants::ONE)
                             }
                             syn::PathArguments::None | syn::PathArguments::Parenthesized(_) => None,
                         })
@@ -1558,9 +1558,9 @@ impl ForwardingDisplayVisitor {
         receiver
             .path
             .is_ident(str_constants::CODE_STYLE_SELF_VALUE_IDENTIFIER)
-            && matches!(&field.member, syn::Member::Unnamed(index) if index.index == 0u32)
+            && matches!(&field.member, syn::Member::Unnamed(index) if index.index == u32_constants::ZERO)
             && call.method == str_constants::CODE_STYLE_FMT_FN_IDENTIFIER
-            && call.args.len() == 1usize
+            && call.args.len() == usize_constants::ONE
             && call.args.first().is_some_and(|argument| {
                 let syn::Expr::Path(formatter) = argument else {
                     return false;
@@ -1578,13 +1578,13 @@ impl<'ast> syn::visit::Visit<'ast> for ForwardingDisplayVisitor {
                 segment.ident == str_constants::CODE_STYLE_DISPLAY_TRAIT_IDENTIFIER
             })
         });
-        let is_forwarding = i.items.len() == 1usize
+        let is_forwarding = i.items.len() == usize_constants::ONE
             && i.items.first().is_some_and(|item| {
                 let syn::ImplItem::Fn(function) = item else {
                     return false;
                 };
                 function.sig.ident == str_constants::CODE_STYLE_FMT_FN_IDENTIFIER
-                    && function.block.stmts.len() == 1usize
+                    && function.block.stmts.len() == usize_constants::ONE
                     && function.block.stmts.first().is_some_and(|statement| {
                         let syn::Stmt::Expr(expression, None) = statement else {
                             return false;
@@ -1615,7 +1615,7 @@ impl<'ast> syn::visit::Visit<'ast> for ForwardingIntoIteratorVisitor {
                 return false;
             };
             function.sig.ident == str_constants::CODE_STYLE_INTO_ITERATOR_FN_IDENTIFIER
-                && function.block.stmts.len() == 1usize
+                && function.block.stmts.len() == usize_constants::ONE
                 && function.block.stmts.first().is_some_and(|statement| {
                     let syn::Stmt::Expr(syn::Expr::MethodCall(call), None) = statement else {
                         return false;
@@ -1630,7 +1630,7 @@ impl<'ast> syn::visit::Visit<'ast> for ForwardingIntoIteratorVisitor {
                         && receiver
                             .path
                             .is_ident(str_constants::CODE_STYLE_SELF_VALUE_IDENTIFIER)
-                        && matches!(&field.member, syn::Member::Unnamed(index) if index.index == 0u32)
+                        && matches!(&field.member, syn::Member::Unnamed(index) if index.index == u32_constants::ZERO)
                 })
         });
         if is_into_iterator_impl && forwards_inner {
@@ -1683,7 +1683,7 @@ impl<'ast> syn::visit::Visit<'ast> for PassthroughIntoInnerFromVisitor {
                 Some(&identifier.ident)
             });
             function.sig.ident == str_constants::CODE_STYLE_FROM_FN_IDENTIFIER
-                && function.block.stmts.len() == 1usize
+                && function.block.stmts.len() == usize_constants::ONE
                 && function.block.stmts.first().is_some_and(|statement| {
                     let syn::Stmt::Expr(syn::Expr::Field(field), None) = statement else {
                         return false;
@@ -1692,7 +1692,7 @@ impl<'ast> syn::visit::Visit<'ast> for PassthroughIntoInnerFromVisitor {
                         return false;
                     };
                     parameter_name.is_some_and(|name| receiver.path.is_ident(name))
-                        && matches!(&field.member, syn::Member::Unnamed(index) if index.index == 0u32)
+                        && matches!(&field.member, syn::Member::Unnamed(index) if index.index == u32_constants::ZERO)
                 })
         });
         if targets_inner && forwards_inner {
@@ -1703,7 +1703,7 @@ impl<'ast> syn::visit::Visit<'ast> for PassthroughIntoInnerFromVisitor {
     }
     fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
         if let syn::Fields::Unnamed(fields) = &i.fields
-            && fields.unnamed.len() == 1usize
+            && fields.unnamed.len() == usize_constants::ONE
             && let Some(field) = fields.unnamed.first()
         {
             let _previous = self
@@ -1733,7 +1733,7 @@ impl PassthroughFromVisitor {
         constructor
             .path
             .is_ident(str_constants::CODE_STYLE_SELF_CONSTRUCTOR_IDENTIFIER)
-            && call.args.len() == 1usize
+            && call.args.len() == usize_constants::ONE
             && call.args.first().is_some_and(|argument| {
                 let syn::Expr::Path(value) = argument else {
                     return false;
@@ -1773,13 +1773,13 @@ impl<'ast> syn::visit::Visit<'ast> for PassthroughFromVisitor {
             .and_then(|name| self.inner_types.get(name))
             .zip(from_type)
             .is_some_and(|(inner_type, source_type)| inner_type == source_type);
-        let is_passthrough = i.items.len() == 1usize
+        let is_passthrough = i.items.len() == usize_constants::ONE
             && i.items.first().is_some_and(|item| {
                 let syn::ImplItem::Fn(function) = item else {
                     return false;
                 };
                 function.sig.ident == str_constants::CODE_STYLE_FROM_FN_IDENTIFIER
-                    && function.block.stmts.len() == 1usize
+                    && function.block.stmts.len() == usize_constants::ONE
                     && function.block.stmts.first().is_some_and(|statement| {
                         let syn::Stmt::Expr(expression, None) = statement else {
                             return false;
@@ -1795,7 +1795,7 @@ impl<'ast> syn::visit::Visit<'ast> for PassthroughFromVisitor {
     }
     fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
         if let syn::Fields::Unnamed(fields) = &i.fields
-            && fields.unnamed.len() == 1usize
+            && fields.unnamed.len() == usize_constants::ONE
             && let Some(field) = fields.unnamed.first()
         {
             let _previous = self
@@ -1999,13 +1999,13 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantDeclarationVisitor {
                     return false;
                 }
                 if matches!(
-                    index.checked_sub(1usize).and_then(|previous| token_trees.get(previous)),
+                    index.checked_sub(usize_constants::ONE).and_then(|previous| token_trees.get(previous)),
                     Some(proc_macro2::TokenTree::Punct(punct)) if punct.as_char() == '\''
                 ) {
                     return false;
                 }
                 if matches!(
-                    token_trees.iter().skip(index).nth(1usize),
+                    token_trees.iter().skip(index).nth(usize_constants::ONE),
                     Some(proc_macro2::TokenTree::Ident(ident)) if ident == "fn"
                 ) {
                     return false;
@@ -2013,7 +2013,7 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantDeclarationVisitor {
                 token_trees
                     .iter()
                     .skip(index)
-                    .skip(1usize)
+                    .skip(usize_constants::ONE)
                     .try_fold(false, |stores_string, following| match following {
                         proc_macro2::TokenTree::Group(group) => {
                             Ok(stores_string || group_contains_str(group))

@@ -95,24 +95,34 @@ pub fn resolve_unique_cookie<'value_lt>(
     if text.len() > 4096usize {
         return CookieResolution::Invalid;
     }
-    match text
-        .split(';')
-        .try_fold((0usize, None), |(pair_count, found), pair| {
+    match text.split(';').try_fold(
+        (usize_constants::ZERO, None),
+        |(pair_count, found), pair| {
             if pair_count == 128usize {
                 return std::ops::ControlFlow::Break(());
             }
             let Some((pair_name, value)) = pair.trim().split_once('=') else {
-                return std::ops::ControlFlow::Continue((pair_count.saturating_add(1usize), found));
+                return std::ops::ControlFlow::Continue((
+                    pair_count.saturating_add(usize_constants::ONE),
+                    found,
+                ));
             };
             if pair_name != name.0 {
-                return std::ops::ControlFlow::Continue((pair_count.saturating_add(1usize), found));
+                return std::ops::ControlFlow::Continue((
+                    pair_count.saturating_add(usize_constants::ONE),
+                    found,
+                ));
             }
             if found.is_some() {
                 std::ops::ControlFlow::Break(())
             } else {
-                std::ops::ControlFlow::Continue((pair_count.saturating_add(1usize), Some(value)))
+                std::ops::ControlFlow::Continue((
+                    pair_count.saturating_add(usize_constants::ONE),
+                    Some(value),
+                ))
             }
-        }) {
+        },
+    ) {
         std::ops::ControlFlow::Break(()) => CookieResolution::Invalid,
         std::ops::ControlFlow::Continue((_pair_count, Some(value))) => {
             CookieResolution::Resolved(HttpCookieValueRef::from(value))

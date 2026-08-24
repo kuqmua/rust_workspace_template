@@ -49,7 +49,7 @@ pub(crate) async fn query_audit_log(
     let action_text = parts.action.map(crate::AdminAuditAction::as_str);
     let resource_text = parts.resource.map(crate::AdminAuditResource::as_str);
     let limit = usize::from(u16::from(parts.limit));
-    let fetch_limit = i64::try_from(limit.saturating_add(1usize))
+    let fetch_limit = i64::try_from(limit.saturating_add(usize_constants::ONE))
         .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?;
     let total =
         sqlx::query_scalar::<_, i64>(str_constants::SERVER_ADMIN_COUNT_FILTERED_AUDIT_LOG_SQL)

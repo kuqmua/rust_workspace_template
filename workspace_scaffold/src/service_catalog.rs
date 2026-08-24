@@ -150,7 +150,7 @@ fn render_release_entries(entries: super::ServiceCatalogEntriesRef<'_>) -> super
                 .saturating_add(entry.image.as_ref().len())
                 .saturating_add(str_constants::WORKSPACE_SCAFFOLD_MATRIX_DOCKERFILE_INDENT.len())
                 .saturating_add(entry.dockerfile.as_ref().len())
-                .saturating_add(1usize)
+                .saturating_add(usize_constants::ONE)
         })
         .sum::<usize>();
     super::ScaffoldText::try_from(

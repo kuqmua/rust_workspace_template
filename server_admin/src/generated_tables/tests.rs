@@ -437,7 +437,7 @@ fn generated_payload_example_routes_have_contracts_and_named_clients() {
         ),
     ]
     .into_iter()
-    .for_each(|size| assert_eq!(size, 0usize));
+    .for_each(|size| assert_eq!(size, usize_constants::ZERO));
 }
 #[test]
 fn every_admin_open_api_operation_has_a_unique_identifier() {

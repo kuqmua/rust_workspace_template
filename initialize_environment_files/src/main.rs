@@ -1,5 +1,3 @@
-const ENV_FILE_MAX_BYTES: usize = 1_048_576usize;
-const WORKSPACE_MANIFEST_MAX_BYTES: usize = 1_048_576usize;
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 enum RunMode {
     Apply,
@@ -257,7 +255,7 @@ fn workspace_members(root: StdWorkspaceRootRef<'_>) -> Result<WorkspaceMembers, 
     let manifest_path = root.as_ref().join(str_constants::CARGO_TOML);
     let manifest = read_bounded_content(
         StdInitPathRef::from(manifest_path.as_path()),
-        InitMaxBytes::from(WORKSPACE_MANIFEST_MAX_BYTES),
+        InitMaxBytes::from(usize_constants::VALUE_1_048_576),
     )
     .map_err(|source| InitializeError::ReadManifest { source })?;
     let value = toml::from_str::<toml::Value>(manifest.as_ref()).map_err(|source| {
@@ -306,14 +304,14 @@ fn initialize(
             }
             let content = read_bounded_content(
                 StdInitPathRef::from(example_path.as_path()),
-                InitMaxBytes::from(ENV_FILE_MAX_BYTES),
+                InitMaxBytes::from(usize_constants::VALUE_1_048_576),
             )
             .map_err(|source| InitializeError::ReadExample { source })?;
             let environment_path = root.as_ref().join(member.as_ref()).join(str_constants::ENV);
             let status = if environment_path.exists() {
                 let current = read_bounded_content(
                     StdInitPathRef::from(environment_path.as_path()),
-                    InitMaxBytes::from(ENV_FILE_MAX_BYTES),
+                    InitMaxBytes::from(usize_constants::VALUE_1_048_576),
                 )
                 .map_err(|source| InitializeError::ReadExample { source })?;
                 match merge_missing_assignments(
@@ -377,13 +375,13 @@ fn main() -> Result<(), InitializeError> {
                         .0
                         .len()
                         .get()
-                        .saturating_sub(1usize)
+                        .saturating_sub(usize_constants::ONE)
                         .saturating_mul(separator.len()),
                 );
             let keys = entry.keys.0.iter().enumerate().fold(
                 String::with_capacity(keys_capacity),
                 |mut keys, (index, key)| {
-                    if index > 0usize {
+                    if index > usize_constants::ZERO {
                         keys.push_str(separator);
                     }
                     keys.push_str(key.as_ref());
@@ -521,7 +519,8 @@ mod tests {
         let root = fixture();
         std::fs::write(
             root.join(str_constants::SERVICE_ENV_EXAMPLE),
-            str_constants::A_ALT.repeat(super::ENV_FILE_MAX_BYTES.saturating_add(1usize)),
+            str_constants::A_ALT
+                .repeat(usize_constants::VALUE_1_048_576.saturating_add(usize_constants::ONE)),
         )
         .expect("f6290e85 oversized_environment_example_is_rejected invariant must hold");
         assert!(matches!(

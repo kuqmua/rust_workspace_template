@@ -11,6 +11,7 @@ categories = ["web-programming"]
 edition.workspace = true
 
 [dependencies]
+usize_constants = { workspace = true }
 optimal_memory_layout = { workspace = true }
 bounded_types = { workspace = true }
 frontend_contract_macros = { workspace = true }
@@ -27,6 +28,7 @@ utoipa = { workspace = true }
 axum = { workspace = true }
 
 [dev-dependencies]
+u8_constants = { workspace = true }
 futures = { workspace = true }
 
 [lints]

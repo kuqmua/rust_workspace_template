@@ -35,7 +35,7 @@ pub struct StdAdminAccessTtlSeconds(u64);
 impl StdAdminAccessTtlSeconds {
     #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
     const fn validate(value: &u64) -> Result<(), AdminAuthPositiveValueError> {
-        if *value == 0u64 {
+        if *value == u64_constants::ZERO {
             Err(AdminAuthPositiveValueError)
         } else {
             Ok(())
@@ -60,7 +60,7 @@ pub struct StdAdminRefreshTtlSeconds(u64);
 impl StdAdminRefreshTtlSeconds {
     #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
     const fn validate(value: &u64) -> Result<(), AdminAuthPositiveValueError> {
-        if *value == 0u64 {
+        if *value == u64_constants::ZERO {
             Err(AdminAuthPositiveValueError)
         } else {
             Ok(())
@@ -85,7 +85,7 @@ pub struct StdAdminSessionLimit(usize);
 impl StdAdminSessionLimit {
     #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
     const fn validate(value: &usize) -> Result<(), AdminAuthPositiveValueError> {
-        if *value == 0usize {
+        if *value == usize_constants::ZERO {
             Err(AdminAuthPositiveValueError)
         } else {
             Ok(())
@@ -110,7 +110,7 @@ pub struct StdAdminFailureThreshold(i64);
 impl StdAdminFailureThreshold {
     #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
     const fn validate(value: &i64) -> Result<(), AdminAuthPositiveValueError> {
-        if *value <= 0i64 {
+        if *value <= i64_constants::ZERO {
             Err(AdminAuthPositiveValueError)
         } else {
             Ok(())
@@ -550,7 +550,9 @@ fn session_context_hash(
         .get(http::header::USER_AGENT)
         .and_then(|value| value.to_str().ok())
         .map(str::trim)
-        .filter(|candidate| !candidate.is_empty() && candidate.len() <= 8_192usize);
+        .filter(|candidate| {
+            !candidate.is_empty() && candidate.len() <= usize_constants::VALUE_8_192
+        });
     match user_agent {
         Some(normalized_user_agent) => {
             context.extend(normalized_user_agent.chars().take(256usize));

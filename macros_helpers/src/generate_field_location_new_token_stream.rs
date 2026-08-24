@@ -20,7 +20,7 @@ impl FieldLocationLine {
     }
     #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
     const fn validate(value: &u32) -> Result<(), FieldLocationCoordinateTryFromU32Error> {
-        if *value == 0u32 {
+        if *value == u32_constants::ZERO {
             Err(FieldLocationCoordinateTryFromU32Error)
         } else {
             Ok(())
@@ -45,7 +45,7 @@ impl FieldLocationColumn {
     }
     #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
     const fn validate(value: &u32) -> Result<(), FieldLocationCoordinateTryFromU32Error> {
-        if *value == 0u32 {
+        if *value == u32_constants::ZERO {
             Err(FieldLocationCoordinateTryFromU32Error)
         } else {
             Ok(())
@@ -102,8 +102,10 @@ pub fn generate_field_location_new_token_stream(
 mod tests {
     #[test]
     fn coordinates_reject_zero_and_accept_positive_values() {
-        let _line_error = super::FieldLocationLine::try_from(0u32).expect_err("c2f0b6ca");
-        let _column_error = super::FieldLocationColumn::try_from(0u32).expect_err("9cf06f3e");
+        let _line_error =
+            super::FieldLocationLine::try_from(u32_constants::ZERO).expect_err("c2f0b6ca");
+        let _column_error =
+            super::FieldLocationColumn::try_from(u32_constants::ZERO).expect_err("9cf06f3e");
         let _line = super::FieldLocationLine::try_from(7u32).expect(
             "070dbee8 coordinates_reject_zero_and_accept_positive_values invariant must hold",
         );

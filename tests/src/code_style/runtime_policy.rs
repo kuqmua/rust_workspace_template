@@ -264,5 +264,5 @@ fn external_service_policy_requires_a_reason_for_ignored_integration_tests() {
             ers: super::types::DiagnosticMsgs::default(),
         },
     );
-    assert_eq!(visitor.ers.len(), 1usize, "31fd7ca0");
+    assert_eq!(visitor.ers.len(), usize_constants::ONE, "31fd7ca0");
 }

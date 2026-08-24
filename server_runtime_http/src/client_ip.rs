@@ -188,7 +188,7 @@ pub fn resolve_client_ip(
         }
         let value_text = value.to_str().ok()?;
         let (count, first, rightmost_untrusted) = value_text.split(',').map(str::trim).try_fold(
-            (0usize, None, None),
+            (usize_constants::ZERO, None, None),
             |(count, first, rightmost_untrusted), entry| {
                 if count >= MAX_FORWARDED_ENTRIES {
                     return None;
@@ -202,13 +202,13 @@ pub fn resolve_client_ip(
                         Some(parsed)
                     };
                 Some((
-                    count.saturating_add(1usize),
+                    count.saturating_add(usize_constants::ONE),
                     next_first,
                     next_rightmost_untrusted,
                 ))
             },
         )?;
-        (count > 0usize)
+        (count > usize_constants::ZERO)
             .then_some(rightmost_untrusted.or(first))
             .flatten()
     };
@@ -296,7 +296,8 @@ mod tests {
     #[test]
     fn trusted_proxy_ranges_reject_oversized_lists() {
         let item = range(str_constants::VALUE_127_0_0_1_32);
-        let values = vec![item; super::TRUSTED_PROXY_RANGES_MAX_ITEMS.saturating_add(1usize)];
+        let values =
+            vec![item; super::TRUSTED_PROXY_RANGES_MAX_ITEMS.saturating_add(usize_constants::ONE)];
         assert_eq!(
             super::TrustedProxyRanges::try_from(values),
             Err(super::TrustedProxyRangesError)
@@ -416,8 +417,8 @@ mod tests {
     }
     #[test]
     fn oversized_header_falls_back_without_reflecting_input() {
-        let oversized =
-            str_constants::VALUE_1.repeat(super::MAX_FORWARDED_HEADER_BYTES.saturating_add(1usize));
+        let oversized = str_constants::VALUE_1
+            .repeat(super::MAX_FORWARDED_HEADER_BYTES.saturating_add(usize_constants::ONE));
         let mut headers = http::HeaderMap::new();
         let _previous = headers.insert(
             str_constants::RUNTIME_FORWARDED_FOR_HEADER_NAME,

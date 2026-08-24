@@ -161,7 +161,7 @@ where
     let value_ref = value.as_ref();
     if value_ref.trim().is_empty() {
         Err(DatabaseUrlError::Empty)
-    } else if value_ref.len() > 8_192usize {
+    } else if value_ref.len() > usize_constants::VALUE_8_192 {
         Err(DatabaseUrlError::TooLong)
     } else {
         Ok(())
@@ -213,7 +213,7 @@ mod tests {
                 super::DatabasePreparationSpec::new(valid_url, valid_source)
             },
         ));
-        assert_eq!(commands.as_ref().len(), 1usize);
+        assert_eq!(commands.as_ref().len(), usize_constants::ONE);
         let command = commands
             .as_ref()
             .first()

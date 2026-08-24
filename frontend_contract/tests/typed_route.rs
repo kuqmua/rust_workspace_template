@@ -113,7 +113,10 @@ mod tests {
             test_route(),
             frontend_contract::ContractStr::from(str_constants::ROUTE)
         );
-        assert_eq!(size_of_val(&test_client::<TestTransport>), 0usize);
+        assert_eq!(
+            size_of_val(&test_client::<TestTransport>),
+            usize_constants::ZERO
+        );
     }
 
     #[test]
@@ -166,9 +169,9 @@ mod tests {
             <TestRouteFamily as frontend_contract::RouteFamily>::coverage_descriptors();
         assert_eq!(
             <TestRouteFamily as frontend_contract::RouteFamily>::ROUTE_COUNT,
-            1usize
+            usize_constants::ONE
         );
-        assert_eq!(descriptors.as_ref().len(), 1usize);
+        assert_eq!(descriptors.as_ref().len(), usize_constants::ONE);
         assert_eq!(
             frontend_contract::validate_route_coverage(descriptors.as_ref()),
             Ok(())
@@ -191,7 +194,10 @@ mod tests {
             custom_route(),
             frontend_contract::ContractStr::from(str_constants::ROUTE)
         );
-        assert_eq!(size_of_val(&custom_client::<TestTransport>), 0usize);
+        assert_eq!(
+            size_of_val(&custom_client::<TestTransport>),
+            usize_constants::ZERO
+        );
         assert_eq!(
             TestCatalog::Read.contract(),
             frontend_contract::client_route_metadata::<TestRoute>().contract()
@@ -204,15 +210,15 @@ mod tests {
             <TestCatalogFamily as frontend_contract::RouteFamily>::coverage_descriptors()
                 .as_ref()
                 .len(),
-            1usize
+            usize_constants::ONE
         );
         assert_eq!(
             <TestCatalogFamily as frontend_contract::RouteFamily>::ROUTE_COUNT,
-            1usize
+            usize_constants::ONE
         );
         let schema_contracts =
             <TestCatalogFamily as frontend_contract::RouteFamily>::schema_contracts();
-        assert_eq!(schema_contracts.as_ref().len(), 1usize);
+        assert_eq!(schema_contracts.as_ref().len(), usize_constants::ONE);
         let schema_contract = schema_contracts.as_ref().first().expect(
             "b4e9f1c3 route_catalog_generates_contract_paths_and_family invariant must hold",
         );

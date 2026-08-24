@@ -22,7 +22,11 @@ impl TryFrom<String> for HttpOriginAuthorityText {
             authority
                 .as_str()
                 .find(']')
-                .and_then(|end| authority.as_str().get(end.saturating_add(1usize)..))
+                .and_then(|end| {
+                    authority
+                        .as_str()
+                        .get(end.saturating_add(usize_constants::ONE)..)
+                })
                 .filter(|suffix| !suffix.is_empty())
                 .and_then(|suffix| suffix.strip_prefix(':'))
         } else {

@@ -117,7 +117,7 @@ pub fn calculate_resource_utilization(
     used: ResourceAmount,
     maximum: ResourceAmount,
 ) -> Result<ResourceUtilization, ResourceUtilizationError> {
-    if maximum.0 == 0u64 {
+    if maximum.0 == u64_constants::ZERO {
         return Err(ResourceUtilizationError::ZeroMaximum);
     }
     let percent_u128 = u128::from(used.0)
@@ -136,7 +136,7 @@ pub fn calculate_resource_utilization(
             ResourceUtilizationStatus::Critical
         }
         WARNING_PERCENT..CRITICAL_PERCENT => ResourceUtilizationStatus::Warning,
-        0u8..WARNING_PERCENT => ResourceUtilizationStatus::Ok,
+        u8_constants::ZERO..WARNING_PERCENT => ResourceUtilizationStatus::Ok,
     };
     Ok(ResourceUtilization {
         maximum,
@@ -190,8 +190,8 @@ mod tests {
 
     #[test]
     fn percentage_uses_integer_floor_and_zero_usage_is_ok() {
-        let zero = calculate(0u64, u64::MAX);
-        assert_eq!(zero.percent().get(), 0u8);
+        let zero = calculate(u64_constants::ZERO, u64::MAX);
+        assert_eq!(zero.percent().get(), u8_constants::ZERO);
         assert_eq!(zero.status(), super::ResourceUtilizationStatus::Ok);
         let rounded_down = calculate(699u64, 1000u64);
         assert_eq!(rounded_down.percent().get(), 69u8);
@@ -202,8 +202,8 @@ mod tests {
     fn rejects_zero_maximum() {
         assert_eq!(
             super::calculate_resource_utilization(
-                super::ResourceAmount::from(0u64),
-                super::ResourceAmount::from(0u64),
+                super::ResourceAmount::from(u64_constants::ZERO),
+                super::ResourceAmount::from(u64_constants::ZERO),
             ),
             Err(super::ResourceUtilizationError::ZeroMaximum)
         );

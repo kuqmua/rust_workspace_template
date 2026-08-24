@@ -14,7 +14,7 @@ pub struct RetryAfterSecs(u64);
 impl TryFrom<u64> for RetryAfterSecs {
     type Error = RetryAfterSecsTryFromU64Error;
     fn try_from(value: u64) -> Result<Self, Self::Error> {
-        if value == 0u64 {
+        if value == u64_constants::ZERO {
             Err(RetryAfterSecsTryFromU64Error)
         } else {
             Ok(Self(value))

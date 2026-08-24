@@ -1,5 +1,3 @@
-const ADMIN_JOINED_TEXT_MAX_BYTES: usize = 16_777_216usize;
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
 )]
@@ -17,8 +15,10 @@ impl TryFrom<String> for AdminJoinedText {
     type Error = AdminJoinedTextTryFromStringError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        match value.len().checked_sub(ADMIN_JOINED_TEXT_MAX_BYTES) {
-            Some(excess) if excess > 0usize => Err(AdminJoinedTextTryFromStringError::TooLong),
+        match value.len().checked_sub(usize_constants::VALUE_16_777_216) {
+            Some(excess) if excess > usize_constants::ZERO => {
+                Err(AdminJoinedTextTryFromStringError::TooLong)
+            }
             _within_limit => Ok(Self(value)),
         }
     }
@@ -37,7 +37,7 @@ where
     let value_iter = values.into_iter();
     let mut text = String::with_capacity(value_iter.size_hint().0.saturating_mul(16usize));
     value_iter.enumerate().for_each(|(index, value)| {
-        if index > 0usize {
+        if index > usize_constants::ZERO {
             text.push_str(str_constants::COMMA_SPACE);
         }
         text.push_str(value);

@@ -646,7 +646,12 @@ fn domain_type_policy_reports_raw_browser_external_types_natively() {
             repo_types: super::types::StdStdSourceTextSetRef::from(&repo_types),
         },
     );
-    assert_eq!(visitor.ers.len(), 1usize, "79ce162a {:#?}", visitor.ers);
+    assert_eq!(
+        visitor.ers.len(),
+        usize_constants::ONE,
+        "79ce162a {:#?}",
+        visitor.ers
+    );
     assert!(
         visitor
             .ers
@@ -913,7 +918,12 @@ fn external_leaf_wrapper_prefix_rule_has_no_name_exceptions() {
             repo_crates: super::types::StdStdSourceTextSetRef::from(&repo_crates),
         },
     );
-    assert_eq!(visitor.ers.len(), 1usize, "9db6310a {:#?}", visitor.ers);
+    assert_eq!(
+        visitor.ers.len(),
+        usize_constants::ONE,
+        "9db6310a {:#?}",
+        visitor.ers
+    );
     assert!(
         visitor
             .ers

@@ -20,7 +20,7 @@ pub(super) fn read_bounded_text(
 ) -> Result<super::ScaffoldText, super::ServerRuntimeBoundedReadError> {
     let bytes = server_runtime_http::read_bounded_file(
         server_runtime_http::StdPathRef::from(path.0),
-        server_runtime_http::BoundedReadMaximumBytes::from(super::SCAFFOLD_TEXT_MAX_BYTES),
+        server_runtime_http::BoundedReadMaximumBytes::from(usize_constants::VALUE_16_777_216),
     )
     .map_err(super::ServerRuntimeBoundedReadError::from)?;
     let text = server_runtime_http::BoundedText::try_from(bytes)
@@ -129,7 +129,9 @@ pub(super) fn insert_once(
     if contents.as_ref().contains(replacement.0) {
         return Ok(());
     }
-    let updated = contents.as_ref().replacen(marker.0, replacement.0, 1usize);
+    let updated = contents
+        .as_ref()
+        .replacen(marker.0, replacement.0, usize_constants::ONE);
     if updated == contents.as_ref() {
         return Err(super::ScaffoldError::Marker);
     }

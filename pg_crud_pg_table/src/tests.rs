@@ -231,7 +231,8 @@ fn idempotency_numeric_values_enforce_protocol_and_cleanup_ranges() {
     let _status_error =
         super::PgTableIdempotencyResponseStatus::try_from(99u16).expect_err("822bee51");
     let _retention_error =
-        super::PgTableIdempotencyCleanupRetentionSeconds::try_from(-1i64).expect_err("0f74cd07");
-    let _batch_error =
-        super::PgTableIdempotencyCleanupBatchSize::try_from(0i64).expect_err("92ff15a3");
+        super::PgTableIdempotencyCleanupRetentionSeconds::try_from(-i64_constants::ONE)
+            .expect_err("0f74cd07");
+    let _batch_error = super::PgTableIdempotencyCleanupBatchSize::try_from(i64_constants::ZERO)
+        .expect_err("92ff15a3");
 }

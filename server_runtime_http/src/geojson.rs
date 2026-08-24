@@ -1,5 +1,3 @@
-const GEO_JSON_MAXIMUM_BYTES: usize = 16_777_216usize;
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::AsRefStr,
 )]
@@ -7,7 +5,7 @@ pub struct GeoJsonDocumentText(String);
 impl TryFrom<String> for GeoJsonDocumentText {
     type Error = GeoJsonValidationError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > GEO_JSON_MAXIMUM_BYTES {
+        if value.len() > usize_constants::VALUE_16_777_216 {
             return Err(GeoJsonValidationError::TooLarge);
         }
         let json_document = serde_json::from_str::<serde_json::Value>(value.as_str())
@@ -92,9 +90,12 @@ impl GeoJsonValidation for geojson::Position {
         let longitude_valid = self.as_slice().first().is_some_and(|coordinate| {
             coordinate.is_finite() && (-180.0f64..=180.0f64).contains(coordinate)
         });
-        let latitude_valid = self.as_slice().get(1usize).is_some_and(|coordinate| {
-            coordinate.is_finite() && (-90.0f64..=90.0f64).contains(coordinate)
-        });
+        let latitude_valid = self
+            .as_slice()
+            .get(usize_constants::ONE)
+            .is_some_and(|coordinate| {
+                coordinate.is_finite() && (-90.0f64..=90.0f64).contains(coordinate)
+            });
         if longitude_valid && latitude_valid {
             Ok(())
         } else {
@@ -194,7 +195,7 @@ mod tests {
         ));
         assert!(matches!(
             super::GeoJsonDocumentText::try_from(
-                " ".repeat(super::GEO_JSON_MAXIMUM_BYTES + 1usize)
+                " ".repeat(usize_constants::VALUE_16_777_216 + usize_constants::ONE)
             ),
             Err(super::GeoJsonValidationError::TooLarge)
         ));

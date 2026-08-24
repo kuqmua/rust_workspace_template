@@ -16,8 +16,6 @@ mod table;
 mod text_page;
 mod users;
 
-const SSR_TEXT_MAX_BYTES: usize = 16_777_216usize;
-
 #[cfg(test)]
 mod tests;
 #[cfg(test)]
@@ -80,7 +78,7 @@ pub struct AdminSsrText(String);
 impl TryFrom<String> for AdminSsrText {
     type Error = AdminSsrTextTryFromStringError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        (value.len() <= SSR_TEXT_MAX_BYTES)
+        (value.len() <= usize_constants::VALUE_16_777_216)
             .then_some(Self(value))
             .ok_or(AdminSsrTextTryFromStringError)
     }
@@ -99,7 +97,7 @@ pub struct AdminSsrHtml(String);
 impl TryFrom<String> for AdminSsrHtml {
     type Error = AdminSsrHtmlTryFromStringError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        (value.len() <= SSR_TEXT_MAX_BYTES)
+        (value.len() <= usize_constants::VALUE_16_777_216)
             .then_some(Self(value))
             .ok_or(AdminSsrHtmlTryFromStringError)
     }

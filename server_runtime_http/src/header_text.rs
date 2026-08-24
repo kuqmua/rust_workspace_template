@@ -51,7 +51,7 @@ impl TryFrom<usize> for HttpHeaderTextMaximumBytes {
     type Error = HttpHeaderTextMaximumBytesError;
 
     fn try_from(value: usize) -> Result<Self, Self::Error> {
-        if value == 0usize {
+        if value == usize_constants::ZERO {
             return Err(HttpHeaderTextMaximumBytesError);
         }
         Ok(Self(value))
@@ -110,7 +110,7 @@ mod tests {
     #[test]
     fn maximum_rejects_zero() {
         assert_eq!(
-            super::HttpHeaderTextMaximumBytes::try_from(0usize),
+            super::HttpHeaderTextMaximumBytes::try_from(usize_constants::ZERO),
             Err(super::HttpHeaderTextMaximumBytesError)
         );
     }

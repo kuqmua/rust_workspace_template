@@ -27,7 +27,7 @@ fn memusage_parsers_distinguish_values_and_missing_fields() {
         super::memusage_table_value(
             &text,
             super::MemusageRowName::from("malloc"),
-            super::MemusageColumnIdx::from(1usize)
+            super::MemusageColumnIdx::from(usize_constants::ONE)
         )
         .get(),
         "89"
@@ -36,7 +36,7 @@ fn memusage_parsers_distinguish_values_and_missing_fields() {
         super::memusage_table_value(
             &text,
             super::MemusageRowName::from("calloc"),
-            super::MemusageColumnIdx::from(0usize)
+            super::MemusageColumnIdx::from(usize_constants::ZERO)
         )
         .get(),
         str_constants::UNAVAILABLE

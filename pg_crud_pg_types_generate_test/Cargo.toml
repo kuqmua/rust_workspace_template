@@ -9,6 +9,7 @@ license.workspace = true
 edition.workspace = true
 
 [dev-dependencies]
+usize_constants = { workspace = true }
 optimal_memory_layout = { workspace = true }
 str_constants = { workspace = true }
 quote = { workspace = true }

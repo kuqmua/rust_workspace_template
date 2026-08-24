@@ -57,7 +57,7 @@ impl<K: Eq + std::hash::Hash, V, const MAX: usize> StdBoundedHashMap<K, V, MAX> 
             std::collections::hash_map::Entry::Vacant(entry) if is_full => {
                 drop(entry);
                 Err(super::BoundedValueError::AboveMax {
-                    actual: super::BoundedLen::from(MAX.saturating_add(1usize)),
+                    actual: super::BoundedLen::from(MAX.saturating_add(usize_constants::ONE)),
                     max: super::BoundedLen::from(MAX),
                 })
             }
@@ -145,7 +145,7 @@ impl<
     {
         let capacity = map
             .size_hint()
-            .unwrap_or(0usize)
+            .unwrap_or(usize_constants::ZERO)
             .min(MAX)
             .min(super::SERDE_PREALLOC_MAX_ITEMS);
         let mut values = StdBoundedHashMap::default();

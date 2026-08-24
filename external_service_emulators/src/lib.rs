@@ -69,7 +69,7 @@ impl RemoteSyncSource {
     pub fn new(payload: synchronization_service_runtime::SynchronizationPayload) -> Self {
         Self {
             payload,
-            request_count: RemoteSyncRequestCount::from(0usize),
+            request_count: RemoteSyncRequestCount::from(usize_constants::ZERO),
         }
     }
 
@@ -87,7 +87,7 @@ impl synchronization_service_runtime::SynchronizationSource for RemoteSyncSource
     ) -> impl Future<
         Output = Result<synchronization_service_runtime::SynchronizationPayload, Self::Error>,
     > + Send {
-        self.request_count.0 = self.request_count.0.saturating_add(1usize);
+        self.request_count.0 = self.request_count.0.saturating_add(usize_constants::ONE);
         std::future::ready(Ok(self.payload.clone()))
     }
 }
@@ -117,7 +117,7 @@ mod tests {
             .await
             .expect("a64993d6 remote_source_implements_synchronization_source_contract invariant must hold");
         assert_eq!(payload.as_ref(), &[1u8, 2u8]);
-        assert_eq!(usize::from(source.request_count()), 1usize);
+        assert_eq!(usize::from(source.request_count()), usize_constants::ONE);
     }
 
     #[tokio::test]

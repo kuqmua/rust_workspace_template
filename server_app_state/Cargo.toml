@@ -23,6 +23,7 @@ pg_table = { workspace = true, features = ["test-utils"] }
 optimal_memory_layout = { workspace = true }
 server_app_state_macros = { workspace = true }
 [dev-dependencies]
+usize_constants = { workspace = true }
 sqlx = { workspace = true }
 str_constants = { workspace = true }
 tokio = { workspace = true }

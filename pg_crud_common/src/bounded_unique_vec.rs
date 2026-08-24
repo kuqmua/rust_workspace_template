@@ -82,7 +82,7 @@ impl<'de, T: serde::Deserialize<'de> + PartialEq, const MIN: usize, const MAX: u
             .map_err(serde::de::Error::custom)?;
         let mut values = Vec::with_capacity(
             seq.size_hint()
-                .unwrap_or(0usize)
+                .unwrap_or(usize_constants::ZERO)
                 .min(MAX)
                 .min(SERDE_PREALLOC_MAX_ITEMS),
         );
@@ -152,21 +152,21 @@ mod tests {
         assert_eq!(
             super::BoundedUniqueVec::<u8, 1, 2>::try_from(Vec::new()).expect_err("e71d26a6"),
             super::UniqueVecError::BelowMin {
-                actual: super::UniqueVecLen::from(0usize),
-                min: super::UniqueVecLen::from(1usize),
+                actual: super::UniqueVecLen::from(usize_constants::ZERO),
+                min: super::UniqueVecLen::from(usize_constants::ONE),
             }
         );
         assert_eq!(
             super::BoundedUniqueVec::<u8, 0, 1>::try_from(vec![1u8, 2u8]).expect_err("c98b4208"),
             super::UniqueVecError::AboveMax {
-                max: super::UniqueVecLen::from(1usize),
+                max: super::UniqueVecLen::from(usize_constants::ONE),
             }
         );
         assert_eq!(
             super::BoundedUniqueVec::<u8, 2, 1>::try_from(vec![1u8]).expect_err("6898eb44"),
             super::UniqueVecError::InvalidBounds {
                 min: super::UniqueVecLen::from(2usize),
-                max: super::UniqueVecLen::from(1usize),
+                max: super::UniqueVecLen::from(usize_constants::ONE),
             }
         );
         assert_eq!(

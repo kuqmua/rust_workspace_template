@@ -55,7 +55,7 @@ pub fn fallback_response_mode(
         .is_some_and(|value| {
             value
                 .split(',')
-                .take(MAXIMUM_ACCEPT_MEDIA_RANGE_COUNT.saturating_add(1usize))
+                .take(MAXIMUM_ACCEPT_MEDIA_RANGE_COUNT.saturating_add(usize_constants::ONE))
                 .enumerate()
                 .any(|(index, range)| {
                     index < MAXIMUM_ACCEPT_MEDIA_RANGE_COUNT

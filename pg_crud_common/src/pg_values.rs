@@ -137,7 +137,7 @@ impl UnsignedPartOfI32 {
 }
 impl super::DefaultSomeOneElement for UnsignedPartOfI32 {
     fn default_some_one_element() -> Self {
-        Self::from(0u16)
+        Self::from(u16_constants::ZERO)
     }
 }
 #[derive(

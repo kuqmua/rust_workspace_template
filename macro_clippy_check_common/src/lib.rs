@@ -102,7 +102,7 @@ categories = ["category"]
     let workspace_manifest_path = root.join(str_constants::CARGO_TOML);
     let workspace_cargo_toml = server_runtime_http::read_bounded_file(
         server_runtime_http::StdPathRef::from(workspace_manifest_path.as_path()),
-        server_runtime_http::BoundedReadMaximumBytes::from(1_048_576usize),
+        server_runtime_http::BoundedReadMaximumBytes::from(usize_constants::VALUE_1_048_576),
     )
     .and_then(server_runtime_http::BoundedText::try_from)
     .unwrap_or_else(|error| panic!("bf40d675: {error}"));
@@ -119,15 +119,17 @@ categories = ["category"]
                 };
                 let prefix = format!("{dep_name} = ");
                 let braces_balance = |value: &str| -> i32 {
-                    value.chars().fold(0i32, |accumulator, ch| match ch {
-                        '{' | '[' => accumulator
-                            .checked_add(1i32)
-                            .unwrap_or_else(|| panic!("0a8df093")),
-                        '}' | ']' => accumulator
-                            .checked_sub(1i32)
-                            .unwrap_or_else(|| panic!("4e404fc9")),
-                        _ => accumulator,
-                    })
+                    value
+                        .chars()
+                        .fold(i32_constants::ZERO, |accumulator, ch| match ch {
+                            '{' | '[' => accumulator
+                                .checked_add(1i32)
+                                .unwrap_or_else(|| panic!("0a8df093")),
+                            '}' | ']' => accumulator
+                                .checked_sub(1i32)
+                                .unwrap_or_else(|| panic!("4e404fc9")),
+                            _ => accumulator,
+                        })
                 };
                 let mut in_workspace_deps = false;
                 let mut workspace_lines = workspace_cargo_toml.as_ref().lines();
@@ -146,7 +148,7 @@ categories = ["category"]
                     if in_workspace_deps && workspace_line.starts_with(&prefix) {
                         let mut out = String::from(workspace_line);
                         let mut balance = braces_balance(workspace_line);
-                        while balance > 0i32 {
+                        while balance > i32_constants::ZERO {
                             let next_line =
                                 workspace_lines.next().unwrap_or_else(|| panic!("7bb3cd14"));
                             out.push('\n');
@@ -180,11 +182,13 @@ categories = ["category"]
                 }
                 if let Some(path_prefix_idx) = dep_entry.find(str_constants::PATH_ALT_4) {
                     let dot_idx = path_prefix_idx.saturating_add(str_constants::PATH_ALT_3.len());
-                    if dep_entry.get(dot_idx..dot_idx.saturating_add(1usize))
+                    if dep_entry.get(dot_idx..dot_idx.saturating_add(usize_constants::ONE))
                         == Some(str_constants::DOT)
                     {
-                        dep_entry
-                            .replace_range(dot_idx..dot_idx.saturating_add(1usize), &root_path);
+                        dep_entry.replace_range(
+                            dot_idx..dot_idx.saturating_add(usize_constants::ONE),
+                            &root_path,
+                        );
                     }
                 }
                 std::borrow::Cow::Owned(dep_entry)
@@ -197,7 +201,7 @@ categories = ["category"]
         },
     );
     let mut cargo_toml_full = cargo_toml_cnt;
-    cargo_toml_full.reserve(1usize.saturating_add(cargo_toml_extra.len()));
+    cargo_toml_full.reserve(usize_constants::ONE.saturating_add(cargo_toml_extra.len()));
     cargo_toml_full.push('\n');
     cargo_toml_full.push_str(&cargo_toml_extra);
     drop(cargo_toml_extra);

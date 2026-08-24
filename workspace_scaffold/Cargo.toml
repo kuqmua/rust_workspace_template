@@ -13,6 +13,8 @@ name = "workspace-scaffold"
 path = "src/main.rs"
 
 [dependencies]
+usize_constants = { workspace = true }
+u16_constants = { workspace = true }
 optimal_memory_layout = { workspace = true }
 bounded_types = { workspace = true }
 common_routes = { workspace = true }

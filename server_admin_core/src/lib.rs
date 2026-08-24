@@ -327,7 +327,7 @@ pub struct AdminPermissionName(server_admin_contract::AdminPermission);
 mod tests {
     #[test]
     fn administrator_secret_text_enforces_internal_bound() {
-        let at_limit = "a".repeat(8_192usize);
+        let at_limit = "a".repeat(usize_constants::VALUE_8_192);
         let secret = super::SecrecyAdminString::try_from(at_limit.clone()).expect(
             "6673b876 administrator_secret_text_enforces_internal_bound invariant must hold",
         );
@@ -341,7 +341,7 @@ mod tests {
             super::SecrecyAdminString::try_from("a".repeat(8_193usize)).err(),
             Some(super::StdAdminStringTryFromStringError::TooLong {
                 len: 8_193usize,
-                max: 8_192usize,
+                max: usize_constants::VALUE_8_192,
             })
         );
     }

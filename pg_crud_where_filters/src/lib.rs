@@ -2,7 +2,6 @@ generate_where_filters::generate_where_filters!({
     "pg_types_write_into_file": "False",
     "whole_write_into_file": "False"
 });
-const REGEX_PATTERN_MAX_BYTES: usize = 1_048_576usize;
 #[derive(
     Debug,
     Default,
@@ -84,7 +83,7 @@ impl utoipa::ToSchema for RegexRegex {
 impl TryFrom<String> for RegexRegex {
     type Error = RegexRegexTryFromStringError;
     fn try_from(v: String) -> Result<Self, Self::Error> {
-        if v.len() > REGEX_PATTERN_MAX_BYTES {
+        if v.len() > usize_constants::VALUE_1_048_576 {
             return Err(RegexRegexTryFromStringError::TooLong);
         }
         let _validated_regex = regex::Regex::new(&v).map_err(RegexError::from)?;
@@ -363,7 +362,7 @@ const _: () = {
                 {
                     let Some(f0) = _serde::de::SeqAccess::next_element::<T>(&mut __seq)? else {
                         return Err(_serde::de::Error::invalid_length(
-                            1usize,
+                            usize_constants::ONE,
                             &str_constants::PG_CRUD_BETWEEN_EXPECTING,
                         ));
                     };
@@ -615,7 +614,7 @@ const _: () = {
                     let Some(f0) = _serde::de::SeqAccess::next_element::<Vec<T>>(&mut __seq)?
                     else {
                         return Err(_serde::de::Error::invalid_length(
-                            0usize,
+                            usize_constants::ZERO,
                             &str_constants::PG_CRUD_PG_TYPE_NOT_EMPTY_UNIQUE_VEC_TUPLE_EXPECTING,
                         ));
                     };
@@ -852,7 +851,7 @@ mod tests {
     #[test]
     fn pg_type_not_empty_unique_vec_try_from_too_long() {
         let rslt = super::PgTypeNotEmptyUniqueVec::<usize>::try_from(
-            (0usize..=10_000usize).collect::<Vec<_>>(),
+            (usize_constants::ZERO..=10_000usize).collect::<Vec<_>>(),
         );
         assert!(matches!(
             rslt,

@@ -58,7 +58,7 @@ pub fn redact_url_userinfo(value: RedactedUrlTextRef<'_>) -> RedactedUrl {
         );
     };
     let host = authority
-        .get(userinfo_end.saturating_add(1usize)..)
+        .get(userinfo_end.saturating_add(usize_constants::ONE)..)
         .unwrap_or(str_constants::REDACTED_ALT_3);
     let suffix = remainder.get(authority_end..).unwrap_or_default();
     let mut output = String::with_capacity(input.len());

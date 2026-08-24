@@ -2,7 +2,6 @@ mod naming;
 mod service_catalog;
 mod template_fs;
 
-const SCAFFOLD_TEXT_MAX_BYTES: usize = 16_777_216usize;
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 struct ProjectNameRef<'value>(&'value str);
 
@@ -18,7 +17,7 @@ struct ServicePort(u16);
     newtype::AsRefStr,
     newtype::BoundedString,
 )]
-#[bounded_string(max = SCAFFOLD_TEXT_MAX_BYTES)]
+#[bounded_string(max = usize_constants::VALUE_16_777_216)]
 struct ServiceCrate(String);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
@@ -27,7 +26,7 @@ struct ServiceCrate(String);
     newtype::AsRefStr,
     newtype::BoundedString,
 )]
-#[bounded_string(max = SCAFFOLD_TEXT_MAX_BYTES)]
+#[bounded_string(max = usize_constants::VALUE_16_777_216)]
 struct ServiceComposeName(String);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
@@ -36,7 +35,7 @@ struct ServiceComposeName(String);
     newtype::AsRefStr,
     newtype::BoundedString,
 )]
-#[bounded_string(max = SCAFFOLD_TEXT_MAX_BYTES)]
+#[bounded_string(max = usize_constants::VALUE_16_777_216)]
 struct ServiceComposeFile(String);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
@@ -45,7 +44,7 @@ struct ServiceComposeFile(String);
     newtype::AsRefStr,
     newtype::BoundedString,
 )]
-#[bounded_string(max = SCAFFOLD_TEXT_MAX_BYTES)]
+#[bounded_string(max = usize_constants::VALUE_16_777_216)]
 struct ServiceDockerfile(String);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
@@ -54,7 +53,7 @@ struct ServiceDockerfile(String);
     newtype::AsRefStr,
     newtype::BoundedString,
 )]
-#[bounded_string(max = SCAFFOLD_TEXT_MAX_BYTES)]
+#[bounded_string(max = usize_constants::VALUE_16_777_216)]
 struct ServiceImage(String);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
@@ -63,7 +62,7 @@ struct ServiceImage(String);
     newtype::AsRefStr,
     newtype::BoundedString,
 )]
-#[bounded_string(max = SCAFFOLD_TEXT_MAX_BYTES)]
+#[bounded_string(max = usize_constants::VALUE_16_777_216)]
 struct ServiceKubernetesManifest(String);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
@@ -72,7 +71,7 @@ struct ServiceKubernetesManifest(String);
     newtype::AsRefStr,
     newtype::BoundedString,
 )]
-#[bounded_string(max = SCAFFOLD_TEXT_MAX_BYTES)]
+#[bounded_string(max = usize_constants::VALUE_16_777_216)]
 struct ServiceSocketEnv(String);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
 struct ServiceCatalogEntries(bounded_types::BoundedVec<ServiceCatalogEntry, 0, { usize::MAX }>);
@@ -154,7 +153,7 @@ struct ShouldWrite(bool);
     newtype::BoundedString,
     newtype::Display,
 )]
-#[bounded_string(max = SCAFFOLD_TEXT_MAX_BYTES)]
+#[bounded_string(max = usize_constants::VALUE_16_777_216)]
 struct ScaffoldText(String);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 struct ScaffoldTextRef<'text_lt>(&'text_lt str);
@@ -696,7 +695,7 @@ fn scaffold_service(
     port: ServicePort,
 ) -> Result<(), ScaffoldError> {
     naming::validate_project_name(service_name)?;
-    if port.0 == 0u16 {
+    if port.0 == u16_constants::ZERO {
         return Err(ScaffoldError::ServicePort);
     }
     let service = service_name.0;
@@ -894,7 +893,7 @@ fn workspace_root() -> Result<StdScaffoldPathRef<'static>, ScaffoldError> {
     reason = "binary entry point delegates fallible argument handling"
 )]
 fn run() -> Result<(), ScaffoldError> {
-    let mut arguments = std::env::args().skip(1usize);
+    let mut arguments = std::env::args().skip(usize_constants::ONE);
     match arguments.next().as_deref() {
         Some(str_constants::WORKSPACE_SCAFFOLD_PROJECT_COMMAND) => {
             let name = arguments.next().ok_or(ScaffoldError::Arguments)?;

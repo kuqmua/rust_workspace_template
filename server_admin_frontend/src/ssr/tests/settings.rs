@@ -19,7 +19,7 @@ fn settings_page_uses_centered_layout_container() {
     let admin = server_admin_contract::AuthenticatedAdmin::new(
         server_admin_contract::AdminDisplayName::try_from(str_constants::ADMIN.to_owned())
             .expect("a0eb7df6 settings_page_uses_centered_layout_container invariant must hold"),
-        server_admin_contract::AdminUserId::try_from(1i64)
+        server_admin_contract::AdminUserId::try_from(i64_constants::ONE)
             .expect("9ff62b22 settings_page_uses_centered_layout_container invariant must hold"),
         server_admin_contract::AdminLogin::try_from(str_constants::ROOT.to_owned())
             .expect("984553cd settings_page_uses_centered_layout_container invariant must hold"),
@@ -77,7 +77,7 @@ fn editable_settings_render_every_input_kind_from_the_contract_catalog() {
     );
     let admin = server_admin_contract::AuthenticatedAdmin::new(
         server_admin_contract::AdminDisplayName::try_from(String::from("Admin")).expect("6fa15bc0 editable_settings_render_every_input_kind_from_the_contract_catalog invariant must hold"),
-        server_admin_contract::AdminUserId::try_from(1i64).expect("9e80d2c4 editable_settings_render_every_input_kind_from_the_contract_catalog invariant must hold"),
+        server_admin_contract::AdminUserId::try_from(i64_constants::ONE).expect("9e80d2c4 editable_settings_render_every_input_kind_from_the_contract_catalog invariant must hold"),
         server_admin_contract::AdminLogin::try_from(String::from("root")).expect("241b70ae editable_settings_render_every_input_kind_from_the_contract_catalog invariant must hold"),
         server_admin_contract::AdminPermissionValues::try_from(vec![
             server_admin_contract::AdminPermissionValue::try_from(

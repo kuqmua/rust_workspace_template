@@ -2,7 +2,7 @@
 fn reports_distinguish_liveness_and_dependency_readiness() {
     let live = super::super::HealthReport::liveness();
     assert_eq!(live.status(), super::super::HealthStatus::Ok);
-    assert_eq!(live.components.0.len(), 1usize);
+    assert_eq!(live.components.0.len(), usize_constants::ONE);
     let ready =
         super::super::HealthReport::readiness(super::super::HealthDatabaseAvailable::from(true));
     assert_eq!(ready.status(), super::super::HealthStatus::Ok);
@@ -14,7 +14,7 @@ fn reports_distinguish_liveness_and_dependency_readiness() {
         degraded
             .components
             .0
-            .get(1usize)
+            .get(usize_constants::ONE)
             .expect(
                 "16ca1c84 reports_distinguish_liveness_and_dependency_readiness invariant must hold"
             )
@@ -41,7 +41,7 @@ fn component_schema_matches_runtime_limit() {
     let utoipa::openapi::RefOr::T(utoipa::openapi::schema::Schema::Array(array)) = schema else {
         panic!("d0d44742");
     };
-    assert_eq!(array.min_items, Some(0usize));
+    assert_eq!(array.min_items, Some(usize_constants::ZERO));
     assert_eq!(
         array.max_items,
         Some(super::super::HEALTH_COMPONENTS_MAX_LEN)

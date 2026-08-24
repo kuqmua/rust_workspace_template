@@ -63,7 +63,7 @@ fn every_admin_api_route_has_named_route_and_client_functions() {
         size_of_val(&super::version_route),
     ]
     .into_iter()
-    .for_each(|size| assert_eq!(size, 0usize));
+    .for_each(|size| assert_eq!(size, usize_constants::ZERO));
     [
         size_of_val(&super::audit_log_client::<ClientTransport>),
         size_of_val(&super::export_audit_log_client::<ClientTransport>),
@@ -98,7 +98,7 @@ fn every_admin_api_route_has_named_route_and_client_functions() {
         size_of_val(&super::version_client::<ClientTransport>),
     ]
     .into_iter()
-    .for_each(|size| assert_eq!(size, 0usize));
+    .for_each(|size| assert_eq!(size, usize_constants::ZERO));
 }
 fn assert_rejects_unknown_field<Value>(json: &str)
 where
@@ -111,7 +111,7 @@ where
 #[test]
 fn administrator_collections_enforce_item_limit_for_construction_and_deserialization() {
     let maximum_values = vec![
-        super::AdminRoleId::try_from(1i64).expect("4cd8c4ef administrator_collections_enforce_item_limit_for_construction_and_deserialization invariant must hold");
+        super::AdminRoleId::try_from(i64_constants::ONE).expect("4cd8c4ef administrator_collections_enforce_item_limit_for_construction_and_deserialization invariant must hold");
         super::ADMIN_COLLECTION_MAX_ITEMS
     ];
     let Ok(maximum_role_ids) = super::AdminRoleIds::try_from(maximum_values) else {
@@ -122,16 +122,17 @@ fn administrator_collections_enforce_item_limit_for_construction_and_deserializa
         super::ADMIN_COLLECTION_MAX_ITEMS
     );
     let oversized = vec![
-        super::AdminRoleId::try_from(1i64).expect("1c1b920f administrator_collections_enforce_item_limit_for_construction_and_deserialization invariant must hold");
-        super::ADMIN_COLLECTION_MAX_ITEMS.saturating_add(1usize)
+        super::AdminRoleId::try_from(i64_constants::ONE).expect("1c1b920f administrator_collections_enforce_item_limit_for_construction_and_deserialization invariant must hold");
+        super::ADMIN_COLLECTION_MAX_ITEMS.saturating_add(usize_constants::ONE)
     ];
     assert!(matches!(
         super::AdminRoleIds::try_from(oversized),
         Err(super::AdminCollectionError::TooLong)
     ));
     let json = serde_json::json!(vec![
-        1i64;
-        super::ADMIN_COLLECTION_MAX_ITEMS.saturating_add(1usize)
+        i64_constants::ONE;
+        super::ADMIN_COLLECTION_MAX_ITEMS
+            .saturating_add(usize_constants::ONE)
     ])
     .to_string();
     let Err(_error) = serde_json::from_str::<super::AdminRoleIds>(&json) else {
@@ -548,8 +549,9 @@ fn data_tables_round_trip_and_require_read_permissions() {
 
 #[test]
 fn administrator_identifiers_require_positive_database_values() {
-    let _user_error = super::AdminUserId::try_from(0i64).expect_err("6088ff6a");
-    let _role_error = super::AdminRoleId::try_from(-1i64).expect_err("4406ffcc");
-    let _permission_error = super::AdminPermissionId::try_from(0i64).expect_err("f5d79bb8");
-    let _audit_error = super::AdminAuditLogId::try_from(-1i64).expect_err("3ca5fe6c");
+    let _user_error = super::AdminUserId::try_from(i64_constants::ZERO).expect_err("6088ff6a");
+    let _role_error = super::AdminRoleId::try_from(-i64_constants::ONE).expect_err("4406ffcc");
+    let _permission_error =
+        super::AdminPermissionId::try_from(i64_constants::ZERO).expect_err("f5d79bb8");
+    let _audit_error = super::AdminAuditLogId::try_from(-i64_constants::ONE).expect_err("3ca5fe6c");
 }

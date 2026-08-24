@@ -36,9 +36,9 @@ pub struct BoundedText(String);
 impl TryFrom<String> for BoundedText {
     type Error = BoundedReadError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > 16_777_216usize {
+        if value.len() > usize_constants::VALUE_16_777_216 {
             return Err(BoundedReadError::ExceedsMaximum {
-                maximum_bytes: BoundedReadMaximumBytes(16_777_216usize),
+                maximum_bytes: BoundedReadMaximumBytes(usize_constants::VALUE_16_777_216),
             });
         }
         Ok(Self(value))
@@ -119,10 +119,10 @@ impl BoundedJsonText {
 impl TryFrom<String> for BoundedJsonText {
     type Error = BoundedJsonReadError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > 16_777_216usize {
+        if value.len() > usize_constants::VALUE_16_777_216 {
             return Err(BoundedJsonReadError::Read(
                 BoundedReadError::ExceedsMaximum {
-                    maximum_bytes: BoundedReadMaximumBytes(16_777_216usize),
+                    maximum_bytes: BoundedReadMaximumBytes(usize_constants::VALUE_16_777_216),
                 },
             ));
         }
@@ -261,7 +261,7 @@ pub async fn read_bounded_http_response(
     let initial_capacity = inner_response
         .content_length()
         .and_then(|length| usize::try_from(length).ok())
-        .map_or(0usize, |length| length.min(maximum_bytes.0));
+        .map_or(usize_constants::ZERO, |length| length.min(maximum_bytes.0));
     let mut bytes = Vec::with_capacity(initial_capacity);
     while let Some(chunk) =
         inner_response
@@ -346,7 +346,7 @@ mod tests {
             .expect("c0745b58 file_growth_after_metadata_is_rechecked invariant must hold");
         let result = super::read_bounded_file_with_after_metadata(
             super::StdPathRef::from(path.as_path()),
-            super::BoundedReadMaximumBytes::from(1usize),
+            super::BoundedReadMaximumBytes::from(usize_constants::ONE),
             || {
                 std::fs::write(&path, b"ab")
                     .expect("d34a7bc1 file_growth_after_metadata_is_rechecked invariant must hold");
@@ -355,7 +355,7 @@ mod tests {
         assert!(matches!(
             result,
             Err(super::BoundedReadError::ExceedsMaximum {
-                maximum_bytes: super::BoundedReadMaximumBytes(1usize)
+                maximum_bytes: super::BoundedReadMaximumBytes(usize_constants::ONE)
             })
         ));
         std::fs::remove_file(path)

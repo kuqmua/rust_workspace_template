@@ -14,7 +14,6 @@ pub trait CombinationOfAppStateLogicTraits:
 }
 const PG_TBL_IDEMPOTENCY_TEXT_MAX_BYTES: usize = 255usize;
 const PG_TBL_IDEMPOTENCY_ROUTE_MAX_BYTES: usize = 1024usize;
-const PG_TBL_IDEMPOTENCY_RESPONSE_MAX_BYTES: usize = 1_048_576usize;
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct PgTableIdempotencyActor(String);
 #[derive(
@@ -39,7 +38,7 @@ pub struct PgTableIdempotencyRequestHash([u8; 32usize]);
     optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::AsRefTarget,
 )]
 pub struct PgTableIdempotencyBody(
-    bounded_types::BoundedVec<u8, 0usize, PG_TBL_IDEMPOTENCY_RESPONSE_MAX_BYTES>,
+    bounded_types::BoundedVec<u8, { usize_constants::ZERO }, { usize_constants::VALUE_1_048_576 }>,
 );
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
@@ -133,7 +132,7 @@ pub struct PgTableIdempotencyCleanupRetentionSeconds(i64);
 impl PgTableIdempotencyCleanupRetentionSeconds {
     #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
     const fn validate(value: &i64) -> Result<(), PgTableIdempotencyCleanupValueTryFromI64Error> {
-        if *value < 0i64 {
+        if *value < i64_constants::ZERO {
             Err(PgTableIdempotencyCleanupValueTryFromI64Error::Negative)
         } else {
             Ok(())
@@ -151,7 +150,7 @@ pub struct PgTableIdempotencyCleanupBatchSize(i64);
 impl PgTableIdempotencyCleanupBatchSize {
     #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
     const fn validate(value: &i64) -> Result<(), PgTableIdempotencyCleanupValueTryFromI64Error> {
-        if *value <= 0i64 {
+        if *value <= i64_constants::ZERO {
             Err(PgTableIdempotencyCleanupValueTryFromI64Error::NotPositive)
         } else {
             Ok(())
@@ -210,7 +209,7 @@ impl TryFrom<String> for PgTableRevision {
         let parsed = value.parse::<i64>().map_err(|error| {
             PgTableRevisionTryFromStringError::Invalid(StdPgTableRevisionParseIntError(error))
         })?;
-        if parsed < 0i64 {
+        if parsed < i64_constants::ZERO {
             Err(PgTableRevisionTryFromStringError::Negative)
         } else {
             Ok(Self(parsed))
@@ -391,7 +390,7 @@ pub fn pg_table_idempotency_request_hash(
     body: PgTableIdempotencyBodyRef<'_>,
 ) -> PgTableIdempotencyRequestHash {
     let digest = <sha2::Sha256 as sha2::Digest>::digest(body.0);
-    let mut bytes = [0u8; 32usize];
+    let mut bytes = [u8_constants::ZERO; 32usize];
     bytes.copy_from_slice(&digest);
     PgTableIdempotencyRequestHash::from(bytes)
 }
@@ -471,7 +470,7 @@ pub async fn complete_pg_table_idempotency(
     response_status: PgTableIdempotencyResponseStatus,
     response_body: PgTableIdempotencyBodyRef<'_>,
 ) -> Result<(), SqlxPgTableIdempotencyError> {
-    if response_body.0.len() > PG_TBL_IDEMPOTENCY_RESPONSE_MAX_BYTES {
+    if response_body.0.len() > usize_constants::VALUE_1_048_576 {
         return release_pg_table_idempotency(pool, request).await;
     }
     let response_status_i16 = match i16::try_from(response_status.0) {
@@ -497,7 +496,7 @@ pub async fn complete_pg_table_idempotency_in_connection(
     response_status: PgTableIdempotencyResponseStatus,
     response_body: PgTableIdempotencyBodyRef<'_>,
 ) -> Result<(), SqlxPgTableIdempotencyError> {
-    if response_body.0.len() > PG_TBL_IDEMPOTENCY_RESPONSE_MAX_BYTES {
+    if response_body.0.len() > usize_constants::VALUE_1_048_576 {
         return Err(SqlxPgTableIdempotencyError::from(sqlx::Error::Protocol(
             str_constants::IDEMPOTENCY_RESPONSE_EXCEEDS_THE_STORAGE_LIMIT.to_owned(),
         )));
@@ -592,7 +591,7 @@ mod idempotency_tests {
             Err(super::PgTableIdempotencyTextError::InvalidRoute)
         );
         let oversized = str_constants::A_ALT
-            .repeat(super::PG_TBL_IDEMPOTENCY_TEXT_MAX_BYTES.saturating_add(1usize));
+            .repeat(super::PG_TBL_IDEMPOTENCY_TEXT_MAX_BYTES.saturating_add(usize_constants::ONE));
         assert_eq!(
             super::PgTableIdempotencyKey::try_from(oversized.clone()),
             Err(super::PgTableIdempotencyTextError::TooLong {
@@ -614,19 +613,16 @@ mod idempotency_tests {
     #[test]
     fn persisted_idempotency_body_enforces_inclusive_storage_limit() {
         let exact = super::PgTableIdempotencyBody::try_from(vec![
-            0u8;
-            super::PG_TBL_IDEMPOTENCY_RESPONSE_MAX_BYTES
+            u8_constants::ZERO;
+            usize_constants::VALUE_1_048_576
         ])
         .expect("aa90ef11 persisted_idempotency_body_enforces_inclusive_storage_limit invariant must hold");
-        assert_eq!(
-            exact.as_ref().len(),
-            super::PG_TBL_IDEMPOTENCY_RESPONSE_MAX_BYTES
-        );
+        assert_eq!(exact.as_ref().len(), usize_constants::VALUE_1_048_576);
         assert_eq!(
             super::PgTableIdempotencyBody::try_from(vec![
-                0u8;
-                super::PG_TBL_IDEMPOTENCY_RESPONSE_MAX_BYTES
-                    + 1usize
+                u8_constants::ZERO;
+                usize_constants::VALUE_1_048_576
+                    + usize_constants::ONE
             ])
             .map(drop),
             Err(super::PgTableIdempotencyBodyError)
@@ -748,7 +744,7 @@ fn generate_insert_query_string(
     insert_values_fmt: InsertValuesFmt,
 ) -> PgTableQueryString {
     let wrapper_len = match insert_values_fmt {
-        InsertValuesFmt::Raw => 0usize,
+        InsertValuesFmt::Raw => usize_constants::ZERO,
         InsertValuesFmt::Wrapped => 2usize,
     };
     let mut query = String::with_capacity(
@@ -782,7 +778,7 @@ fn generate_select_query_string(
     select_where_fmt: SelectWhereFmt,
 ) -> PgTableQueryString {
     let where_len = match select_where_fmt {
-        SelectWhereFmt::Plain => 1usize,
+        SelectWhereFmt::Plain => usize_constants::ONE,
         SelectWhereFmt::Where => 7usize,
     };
     let mut query = String::with_capacity(

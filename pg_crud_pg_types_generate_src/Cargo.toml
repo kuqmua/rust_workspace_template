@@ -26,5 +26,9 @@ naming = { workspace = true }
 token_patterns = { workspace = true }
 optimal_memory_layout = { workspace = true }
 thiserror = { workspace = true }
+
+[dev-dependencies]
+usize_constants = { workspace = true }
+
 [lints]
 workspace = true

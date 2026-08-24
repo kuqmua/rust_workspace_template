@@ -18,6 +18,8 @@ members = [
   "fuzz",
   "generate_quotes",
   "git_info",
+  "i32_constants",
+  "i64_constants",
   "initialize_environment_files",
   "location_lib",
   "location_lib_location",
@@ -78,6 +80,12 @@ members = [
   "to_err_string_to_err_string_macros",
   "token_patterns",
   "token_patterns_token_patterns_macros",
+  "u128_constants",
+  "u16_constants",
+  "u32_constants",
+  "u64_constants",
+  "u8_constants",
+  "usize_constants",
   "workspace_macro_helpers",
   "workspace_scaffold",
   "workspace_test_runner",
@@ -334,6 +342,8 @@ newtype = { path = "./newtype" }
 notification_service = { path = "./notification_service" }
 notification_service_config = { path = "./notification_service_config" }
 notification_service_contract = { path = "./notification_service_contract" }
+i32_constants = { path = "./i32_constants" }
+i64_constants = { path = "./i64_constants" }
 optimal_memory_layout = { path = "./optimal_memory_layout" }
 panic_location = { path = "./panic_location" }
 pg_crud_common = { path = "./pg_crud_common" }
@@ -368,6 +378,12 @@ to_err_string = { path = "./to_err_string" }
 to_err_string_macros = { path = "./to_err_string_to_err_string_macros" }
 token_patterns = { path = "./token_patterns", default-features = false }
 token_patterns_macros = { path = "./token_patterns_token_patterns_macros" }
+u128_constants = { path = "./u128_constants" }
+u16_constants = { path = "./u16_constants" }
+u32_constants = { path = "./u32_constants" }
+u64_constants = { path = "./u64_constants" }
+u8_constants = { path = "./u8_constants" }
+usize_constants = { path = "./usize_constants" }
 try_from_env = { path = "./config_lib_try_from_env" }
 where_filters = { path = "./pg_crud_where_filters" }
 workspace_macro_helpers = { path = "./workspace_macro_helpers" }

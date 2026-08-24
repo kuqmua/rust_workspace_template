@@ -1,5 +1,3 @@
-const FILTER_TEXT_MAXIMUM_BYTES: usize = 1_048_576usize;
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -27,7 +25,7 @@ pub struct PgFilterText(String);
 impl TryFrom<String> for PgFilterText {
     type Error = PgFilterTextError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > FILTER_TEXT_MAXIMUM_BYTES {
+        if value.len() > usize_constants::VALUE_1_048_576 {
             Err(PgFilterTextError)
         } else {
             Ok(Self(value))

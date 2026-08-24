@@ -1,5 +1,3 @@
-const JSON_CONTRACT_SNAPSHOT_MAX_BYTES: usize = 1_048_576usize;
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -14,7 +12,7 @@ pub struct JsonContractSnapshot(String);
 impl JsonContractSnapshot {
     #[allow(clippy::single_call_fn)] // derive-generated TryFrom owns the single validator call
     const fn validate(value: &str) -> Result<(), JsonContractSnapshotError> {
-        if value.len() > JSON_CONTRACT_SNAPSHOT_MAX_BYTES {
+        if value.len() > usize_constants::VALUE_1_048_576 {
             Err(JsonContractSnapshotError::TooLong)
         } else {
             Ok(())

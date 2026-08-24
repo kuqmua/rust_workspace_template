@@ -519,7 +519,7 @@ pub fn clone_fields(input_token_stream: proc_macro::TokenStream) -> proc_macro::
             }
         }
         syn::Fields::Unnamed(fields) => {
-            let indices = (0usize..fields.unnamed.len()).map(syn::Index::from);
+            let indices = (usize_constants::ZERO..fields.unnamed.len()).map(syn::Index::from);
             quote::quote! { Self(#(Clone::clone(&self.#indices),)*) }
         }
         syn::Fields::Unit => quote::quote! { Self },
@@ -1584,13 +1584,13 @@ fn generate_enum_from_str_token_stream(
         .saturating_add(
             variants
                 .len()
-                .saturating_sub(1usize)
+                .saturating_sub(usize_constants::ONE)
                 .saturating_mul(str_constants::TEXT_ALT_6.len()),
         );
     let allowed_values = variants.iter().enumerate().fold(
         String::with_capacity(allowed_values_capacity),
         |mut values, (index, (_identifier, name))| {
-            if index > 0usize {
+            if index > usize_constants::ZERO {
                 values.push_str(str_constants::TEXT_ALT_6);
             }
             values.push_str(name.as_ref());

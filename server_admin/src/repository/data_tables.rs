@@ -58,7 +58,7 @@ fn base_sql(
     let mut data = spec.columns().get().split(',').enumerate().fold(
         str_constants::SERVER_ADMIN_DATA_SELECT_ARRAY_PREFIX.to_owned(),
         |mut sql, (index, column)| {
-            if index > 0usize {
+            if index > usize_constants::ZERO {
                 sql.push_str(str_constants::TEXT_ALT_7);
             }
             sql.push_str(str_constants::SERVER_ADMIN_DATA_SELECT_COLUMN_PREFIX);
@@ -101,7 +101,7 @@ pub(crate) struct DataUserRolesFlt(
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, newtype::FromInner)]
 pub(crate) struct DataUsersFlt(crate::generated_tables::StdOptionalOptionalAdminUsersWhereMany);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::AsRefStr, newtype::BoundedString)]
-#[bounded_string(max = 1_048_576usize)]
+#[bounded_string(max = usize_constants::VALUE_1_048_576)]
 struct DataFltJson(String);
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone)]
@@ -412,7 +412,7 @@ pub(crate) async fn read(
     let columns = data_columns(table, spec.columns())?;
     let (base_count_sql, base_sql) = base_sql(table)?;
     let filter = data_filter(table, query.filter())?;
-    let mut increment = pg_crud_common::QueryPartIncrement::from(0u64);
+    let mut increment = pg_crud_common::QueryPartIncrement::from(u64_constants::ZERO);
     let fragment = filter
         .as_ref()
         .map(|value| value.query_part(&mut increment))
@@ -450,8 +450,8 @@ pub(crate) async fn read(
         .fetch_one(pool.0)
         .await
         .map_err(crate::SqlxAdminError::from)?;
-    let total =
-        sqlx::Row::try_get::<i64, _>(&count_row, 0usize).map_err(crate::SqlxAdminError::from)?;
+    let total = sqlx::Row::try_get::<i64, _>(&count_row, usize_constants::ZERO)
+        .map_err(crate::SqlxAdminError::from)?;
     let unbound_data_query = sqlx::query(sqlx::AssertSqlSafe(sql.as_ref().as_str()));
     let bound_data_query = filter
         .map(|value| value.query_bind(pg_crud_common::SqlxPostgresQuery::from(unbound_data_query)))
@@ -469,7 +469,7 @@ pub(crate) async fn read(
         .map_err(crate::SqlxAdminError::from)?
         .into_iter()
         .map(|row| {
-            sqlx::Row::try_get::<Vec<Option<String>>, _>(&row, 0usize)
+            sqlx::Row::try_get::<Vec<Option<String>>, _>(&row, usize_constants::ZERO)
                 .map_err(crate::SqlxAdminError::from)
         })
         .collect::<Result<Vec<_>, crate::SqlxAdminError>>()?;
@@ -579,7 +579,7 @@ mod tests {
         )
         .expect("4e779df0 generated_where_filter_builds_typed_table_predicate invariant must hold")
         .expect("d9c8cf39 generated_where_filter_builds_typed_table_predicate invariant must hold");
-        let mut increment = pg_crud_common::QueryPartIncrement::from(0u64);
+        let mut increment = pg_crud_common::QueryPartIncrement::from(u64_constants::ZERO);
 
         let fragment = filter.query_part(&mut increment).expect(
             "a25fe142 generated_where_filter_builds_typed_table_predicate invariant must hold",
@@ -685,7 +685,7 @@ mod tests {
             super::data_filter(server_admin_contract::AdminDataTable::Users, query.filter())
                 .expect("e0b1326d regex_filter_builds_a_typed_predicate invariant must hold")
                 .expect("8a4e68fb regex_filter_builds_a_typed_predicate invariant must hold");
-        let mut increment = pg_crud_common::QueryPartIncrement::from(0u64);
+        let mut increment = pg_crud_common::QueryPartIncrement::from(u64_constants::ZERO);
 
         let fragment = filter
             .query_part(&mut increment)

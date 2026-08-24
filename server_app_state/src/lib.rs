@@ -300,8 +300,10 @@ mod tests {
                     .expect("4bd3f0a1 mk_structure invariant must hold"),
             ),
             idempotency_response_budget: server_runtime_core::ResourceBudget::new(
-                server_runtime_core::ResourceBudgetMaximum::try_from(1_048_576usize)
-                    .expect("926ce310 mk_structure invariant must hold"),
+                server_runtime_core::ResourceBudgetMaximum::try_from(
+                    usize_constants::VALUE_1_048_576,
+                )
+                .expect("926ce310 mk_structure invariant must hold"),
             ),
             project_git_info,
         }

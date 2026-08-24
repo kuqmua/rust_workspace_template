@@ -472,18 +472,22 @@ mod tests {
             Err(super::MultipartRequestError::PayloadTooLarge)
         );
 
-        let full_request = (0usize..32usize)
+        let full_request = (usize_constants::ZERO..32usize)
             .try_fold(super::MultipartUploadRequest::new(), |accumulator, _idx| {
-                accumulator
-                    .with_text_part(text_part(""), super::MultipartPayloadMaximum::from(0usize))
+                accumulator.with_text_part(
+                    text_part(""),
+                    super::MultipartPayloadMaximum::from(usize_constants::ZERO),
+                )
             })
             .expect(
                 "9cbea721 request_enforces_combined_payload_and_part_count invariant must hold",
             );
         assert_eq!(full_request.text_parts().len(), 32usize);
         assert_eq!(
-            full_request
-                .with_text_part(text_part(""), super::MultipartPayloadMaximum::from(0usize)),
+            full_request.with_text_part(
+                text_part(""),
+                super::MultipartPayloadMaximum::from(usize_constants::ZERO)
+            ),
             Err(super::MultipartRequestError::TooManyParts)
         );
     }
@@ -539,11 +543,11 @@ mod tests {
             str_constants::TEST_MULTIPART_FILE_FIELD,
         ))
         .expect("3696f97d request_rejects_payload_above_limit invariant must hold");
-        let bytes = super::MultipartBytes::try_from(vec![0u8; 2usize])
+        let bytes = super::MultipartBytes::try_from(vec![u8_constants::ZERO; 2usize])
             .expect("24f930b8 request_rejects_payload_above_limit invariant must hold");
         let result = super::MultipartUploadRequest::new().with_bytes_part(
             super::MultipartBytesPart::new(name, bytes),
-            super::MultipartPayloadMaximum::from(1usize),
+            super::MultipartPayloadMaximum::from(usize_constants::ONE),
         );
         assert_eq!(result, Err(super::MultipartRequestError::PayloadTooLarge));
     }

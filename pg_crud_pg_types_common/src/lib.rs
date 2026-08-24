@@ -194,25 +194,25 @@ where
 mod tests {
     #[test]
     fn pagination_starts_with_one_accepts_inclusive_boundaries() {
-        let pagination = super::PaginationStartsWithOne::try_new(2i64, 1i64).expect(
+        let pagination = super::PaginationStartsWithOne::try_new(2i64, i64_constants::ONE).expect(
             "007c805e pagination_starts_with_one_accepts_inclusive_boundaries invariant must hold",
         );
-        assert_eq!(pagination.start().get(), 1i64);
+        assert_eq!(pagination.start().get(), i64_constants::ONE);
         assert_eq!(pagination.end().get(), 3i64);
     }
 
     #[test]
     fn pagination_starts_with_one_distinguishes_validation_errors() {
         assert!(matches!(
-            super::PaginationStartsWithOne::try_new(0i64, 1i64),
+            super::PaginationStartsWithOne::try_new(i64_constants::ZERO, i64_constants::ONE),
             Err(super::PaginationStartsWithOneTryNewError::LimitIsLessThanOrEqToZero { .. })
         ));
         assert!(matches!(
-            super::PaginationStartsWithOne::try_new(1i64, 0i64),
+            super::PaginationStartsWithOne::try_new(i64_constants::ONE, i64_constants::ZERO),
             Err(super::PaginationStartsWithOneTryNewError::OffsetIsLessThanOne { .. })
         ));
         assert!(matches!(
-            super::PaginationStartsWithOne::try_new(1i64, i64::MAX),
+            super::PaginationStartsWithOne::try_new(i64_constants::ONE, i64::MAX),
             Err(super::PaginationStartsWithOneTryNewError::OffsetPlusLimitIsIntOverflow { .. })
         ));
     }
@@ -221,17 +221,17 @@ mod tests {
     fn pagination_defaults_start_at_one_and_use_the_expected_limits() {
         let standard =
             <super::PaginationStartsWithOne as pg_crud_common::DefaultSomeOneElement>::default_some_one_element();
-        assert_eq!(standard.start().get(), 1i64);
+        assert_eq!(standard.start().get(), i64_constants::ONE);
         assert_eq!(
             standard.end().get(),
             pg_crud_common::PaginationPolicy::standard()
                 .default_limit()
                 .get()
-                + 1i64
+                + i64_constants::ONE
         );
         let maximum =
             <super::PaginationStartsWithOne as pg_crud_common::DefaultSomeOneElementMaxPageSize>::default_some_one_element_max_page_size();
-        assert_eq!(maximum.start().get(), 1i64);
+        assert_eq!(maximum.start().get(), i64_constants::ONE);
         assert_eq!(maximum.end().get(), i64::from(i32::MAX));
     }
 

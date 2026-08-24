@@ -239,7 +239,7 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
         .fetch_one(&fixture.pool.0)
         .await
         .expect("72c950ea postgresql_html_users_crud_covers_every_frontend_field_separately invariant must hold");
-    assert_eq!(deleted_count, 0i64);
+    assert_eq!(deleted_count, i64_constants::ZERO);
     let deleted_users_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::GET),
@@ -357,7 +357,7 @@ async fn postgresql_html_roles_crud_covers_every_frontend_field_separately() {
         .fetch_one(&fixture.pool.0)
         .await
         .expect("2db479f8 postgresql_html_roles_crud_covers_every_frontend_field_separately invariant must hold");
-    assert_eq!(deleted_count, 0i64);
+    assert_eq!(deleted_count, i64_constants::ZERO);
     let deleted_roles_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::GET),
@@ -552,7 +552,7 @@ async fn postgresql_html_settings_updates_and_reads_every_field_separately() {
                 support_url: support_url_b,
                 tab_title: empty,
             },
-            1usize,
+            usize_constants::ONE,
         ),
         (
             AdminHtmlSettingsTestValues {
@@ -841,7 +841,7 @@ async fn postgresql_html_profile_reads_every_field_and_changes_own_password() {
     .fetch_one(&fixture.pool.0)
     .await
     .expect("740d6dc9 postgresql_html_profile_reads_every_field_and_changes_own_password invariant must hold");
-    assert_eq!(active_refresh_token_count, 0i64);
+    assert_eq!(active_refresh_token_count, i64_constants::ZERO);
     let authenticated_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::GET),
@@ -866,7 +866,7 @@ async fn postgresql_html_sessions_reads_every_field_and_revokes_session() {
     )
     .bind(admin_id)
     .bind(100i64)
-    .bind(0i64)
+    .bind(i64_constants::ZERO)
     .fetch_one(&fixture.pool.0)
     .await
     .expect("32e44a86 postgresql_html_sessions_reads_every_field_and_revokes_session invariant must hold");

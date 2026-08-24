@@ -1,4 +1,3 @@
-const API_URL_MAX_LEN: usize = 1_048_576usize;
 const API_URL_COMPONENT_ENCODE_SET: &percent_encoding::AsciiSet = &percent_encoding::CONTROLS
     .add(b' ')
     .add(b'!')
@@ -75,7 +74,7 @@ pub enum ApiUrlBuildError {
     newtype::BoundedString,
     newtype::IntoInnerFrom,
 )]
-#[bounded_string(max = API_URL_MAX_LEN)]
+#[bounded_string(max = usize_constants::VALUE_1_048_576)]
 pub struct ApiUrl(String);
 impl ApiUrl {
     pub fn push_path_segment(&mut self, segment: ApiUrlPathSegmentRef<'_>) {
@@ -98,7 +97,7 @@ impl ApiUrl {
             .into_iter()
             .enumerate()
             .for_each(|(idx, component)| {
-                if idx == 1usize {
+                if idx == usize_constants::ONE {
                     self.0.push('=');
                 }
                 self.0.extend(percent_encoding::utf8_percent_encode(

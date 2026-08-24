@@ -679,7 +679,7 @@ impl TryFrom<serde_json::Value> for SerdeJsonAdminAuditDetails {
     newtype::BoundedString,
     newtype::AsRefStr,
 )]
-#[bounded_string(max = 8_192usize, chars, serde, utoipa, validator = |value: &String| { let path = AdminPagePathRef::from(value.as_str()); AdminPage::from_path(path).is_some() || AdminDataTable::from_frontend_path(path).is_some() }, description = "administrator default route")]
+#[bounded_string(max = usize_constants::VALUE_8_192, chars, serde, utoipa, validator = |value: &String| { let path = AdminPagePathRef::from(value.as_str()); AdminPage::from_path(path).is_some() || AdminDataTable::from_frontend_path(path).is_some() }, description = "administrator default route")]
 pub struct AdminDefaultRoute(String);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
@@ -688,7 +688,7 @@ pub struct AdminDefaultRoute(String);
     newtype::BoundedString,
     newtype::AsRefStr,
 )]
-#[bounded_string(max = 8192usize, min = 1usize, chars, serde, utoipa, validator = |value: &String| !value
+#[bounded_string(max = usize_constants::VALUE_8_192, min = usize_constants::ONE, chars, serde, utoipa, validator = |value: &String| !value
     .trim()
     .is_empty(), description = "administrator site name")]
 pub struct AdminSiteName(String);
@@ -700,8 +700,8 @@ pub struct AdminSiteName(String);
     newtype::AsRefStr,
 )]
 #[bounded_string(
-    max = 8_192usize,
-    min = 1usize,
+    max = usize_constants::VALUE_8_192,
+    min = usize_constants::ONE,
     chars,
     serde,
     utoipa,
@@ -717,7 +717,7 @@ pub struct AdminMainLogo(String);
     newtype::AsRefStr,
 )]
 #[bounded_string(
-    max = 8_192usize,
+    max = usize_constants::VALUE_8_192,
     chars,
     serde,
     utoipa,
@@ -732,7 +732,7 @@ pub struct AdminOrganizationContacts(String);
     newtype::AsRefStr,
 )]
 #[bounded_string(
-    max = 8_192usize,
+    max = usize_constants::VALUE_8_192,
     chars,
     serde,
     utoipa,
@@ -747,12 +747,12 @@ pub struct AdminOrganizationName(String);
     newtype::AsRefStr,
 )]
 #[bounded_string(
-    max = 8_192usize,
+    max = usize_constants::VALUE_8_192,
     min = 7usize,
     chars,
     serde,
     utoipa,
-    validator = |value: &String| value.len() == 7usize && value.bytes().next() == Some(b'#') && value.bytes().skip(1usize).all(|byte| byte.is_ascii_hexdigit()),
+    validator = |value: &String| value.len() == 7usize && value.bytes().next() == Some(b'#') && value.bytes().skip(usize_constants::ONE).all(|byte| byte.is_ascii_hexdigit()),
     description = "administrator primary color"
 )]
 pub struct AdminPrimaryColor(String);
@@ -764,8 +764,8 @@ pub struct AdminPrimaryColor(String);
     newtype::AsRefStr,
 )]
 #[bounded_string(
-    max = 8_192usize,
-    min = 1usize,
+    max = usize_constants::VALUE_8_192,
+    min = usize_constants::ONE,
     chars,
     serde,
     utoipa,
@@ -781,8 +781,8 @@ pub struct AdminSupportUrl(String);
     newtype::AsRefStr,
 )]
 #[bounded_string(
-    max = 8_192usize,
-    min = 1usize,
+    max = usize_constants::VALUE_8_192,
+    min = usize_constants::ONE,
     chars,
     serde,
     utoipa,

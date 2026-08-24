@@ -101,11 +101,11 @@ fn should_write_string_into_file(
                 return Ok(ShouldWriteString::from(true));
             }
             let mut old_file = std::fs::File::open(path_ref)?;
-            let mut offset = 0usize;
-            let mut old_chunk = [0u8; 8192];
+            let mut offset = usize_constants::ZERO;
+            let mut old_chunk = [u8_constants::ZERO; 8192];
             loop {
                 let read_len = std::io::Read::read(&mut old_file, &mut old_chunk)?;
-                if read_len == 0usize {
+                if read_len == usize_constants::ZERO {
                     if offset == string_cnt_ref.len() {
                         return Ok(ShouldWriteString::from(false));
                     }

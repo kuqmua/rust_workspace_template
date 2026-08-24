@@ -13,13 +13,16 @@ fn identifier(value: &str) -> pg_crud_common::SqlIdentifier {
 )]
 fn bench_sql_select_builder(criterion: &mut criterion::Criterion) {
     [
-        (str_constants::SQL_SELECT_BUILDER_1_COLUMN, 1usize),
+        (
+            str_constants::SQL_SELECT_BUILDER_1_COLUMN,
+            usize_constants::ONE,
+        ),
         (str_constants::SQL_SELECT_BUILDER_16_COLUMNS, 16usize),
         (str_constants::SQL_SELECT_BUILDER_128_COLUMNS, 128usize),
     ]
     .into_iter()
     .for_each(|(benchmark_name, columns_len)| {
-        let columns = (0usize..columns_len)
+        let columns = (usize_constants::ZERO..columns_len)
             .map(|idx| identifier(format!("column_{idx}").as_str()))
             .collect::<Vec<_>>();
         let builder = pg_crud_common::SqlSelectBuilder::new(

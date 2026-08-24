@@ -86,10 +86,14 @@ impl HttpCspBuilder {
         name: &HttpCspDirectiveName,
         values: &[HttpCspDirectiveValue],
     ) -> Result<(), HttpCspMaximumBytesError> {
-        let separator_bytes = if self.0.is_empty() { 0usize } else { 2usize };
+        let separator_bytes = if self.0.is_empty() {
+            usize_constants::ZERO
+        } else {
+            2usize
+        };
         let values_bytes = values
             .iter()
-            .map(|value| value.0.len().saturating_add(1usize))
+            .map(|value| value.0.len().saturating_add(usize_constants::ONE))
             .sum::<usize>();
         let added_bytes = separator_bytes
             .saturating_add(name.0.len())

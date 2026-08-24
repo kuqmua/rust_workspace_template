@@ -28,14 +28,25 @@ impl NotificationApiToken {
         candidate: NotificationApiTokenRef<'_>,
     ) -> NotificationApiTokenAuthorized {
         let maximum_len = self.0.len().max(candidate.0.len());
-        let difference =
-            (0usize..maximum_len).fold(self.0.len() ^ candidate.0.len(), |acc, index| {
+        let difference = (usize_constants::ZERO..maximum_len).fold(
+            self.0.len() ^ candidate.0.len(),
+            |acc, index| {
                 acc | usize::from(
-                    self.0.as_bytes().get(index).copied().unwrap_or(0u8)
-                        ^ candidate.0.as_bytes().get(index).copied().unwrap_or(0u8),
+                    self.0
+                        .as_bytes()
+                        .get(index)
+                        .copied()
+                        .unwrap_or(u8_constants::ZERO)
+                        ^ candidate
+                            .0
+                            .as_bytes()
+                            .get(index)
+                            .copied()
+                            .unwrap_or(u8_constants::ZERO),
                 )
-            });
-        NotificationApiTokenAuthorized::from(difference == 0usize)
+            },
+        );
+        NotificationApiTokenAuthorized::from(difference == usize_constants::ZERO)
     }
 }
 

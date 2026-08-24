@@ -15,6 +15,9 @@ categories = ["web-programming"]
 test-utils = []
 
 [dependencies]
+usize_constants = { workspace = true }
+u64_constants = { workspace = true }
+i64_constants = { workspace = true }
 app_state = { workspace = true }
 argon2 = { workspace = true }
 axum = { workspace = true }

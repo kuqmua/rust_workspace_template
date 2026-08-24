@@ -3,7 +3,6 @@
     reason = "validators stay adjacent to their domain wrappers and ranges retain minimum-then-maximum order"
 )]
 
-const TEXT_POLICY_MAXIMUM_BYTES: usize = 1_048_576usize;
 const URL_SAFE_TOKEN_PART_MAXIMUM_BYTES: usize = 4096usize;
 
 #[derive(
@@ -25,7 +24,7 @@ pub struct RequiredNulFreeBoundedText(String);
 impl TryFrom<String> for RequiredNulFreeBoundedText {
     type Error = BoundedTextPolicyError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > TEXT_POLICY_MAXIMUM_BYTES {
+        if value.len() > usize_constants::VALUE_1_048_576 {
             return Err(Self::Error::TooLong);
         }
         if value.is_empty() {
@@ -45,7 +44,7 @@ pub struct NonEmptyTrimmedText(String);
 impl TryFrom<String> for NonEmptyTrimmedText {
     type Error = BoundedTextPolicyError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > TEXT_POLICY_MAXIMUM_BYTES {
+        if value.len() > usize_constants::VALUE_1_048_576 {
             return Err(Self::Error::TooLong);
         }
         let trimmed = value.trim();

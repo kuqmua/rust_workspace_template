@@ -14,7 +14,7 @@ impl FilterPlaceholderCount {
         self.0
     }
     pub(super) fn one() -> Self {
-        Self::from(1usize)
+        Self::from(usize_constants::ONE)
     }
 }
 pub(super) fn bind_count_matches(

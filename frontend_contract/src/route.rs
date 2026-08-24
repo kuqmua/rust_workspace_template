@@ -287,7 +287,7 @@ pub struct ParameterizedRoutePathTryFromStringError;
 impl TryFrom<String> for ParameterizedRoutePath {
     type Error = ParameterizedRoutePathTryFromStringError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > 8192usize {
+        if value.len() > usize_constants::VALUE_8_192 {
             Err(ParameterizedRoutePathTryFromStringError)
         } else {
             Ok(Self(value))
@@ -397,7 +397,7 @@ impl RouteBodyLimit {
     }
 }
 pub trait RouteFamily {
-    const ROUTE_COUNT: usize = 0usize;
+    const ROUTE_COUNT: usize = usize_constants::ZERO;
     #[must_use]
     fn body_limit() -> Option<RouteBodyLimit> {
         None

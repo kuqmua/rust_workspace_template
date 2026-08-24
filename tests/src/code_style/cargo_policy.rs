@@ -901,7 +901,7 @@ fn workspace_crates_are_direct_children_of_workspace_root() {
                 .components()
                 .map(|component| component.as_os_str().to_string_lossy())
                 .collect::<Vec<std::borrow::Cow<'_, str>>>();
-            (parts.len() > 1usize).then(|| {
+            (parts.len() > usize_constants::ONE).then(|| {
                 format!(
                     "nested crate `{}` must be moved to `{}` and `[workspace].members` must use `{}`",
                     relative.display(),
@@ -960,7 +960,7 @@ fn workspace_packages_have_at_most_one_binary_target() {
                     .filter(|target| target.kind.contains(&cargo_metadata::TargetKind::Bin))
                     .map(|target| target.name.as_str())
                     .collect::<Vec<&str>>();
-                (binary_names.len() > 1usize).then(|| {
+                (binary_names.len() > usize_constants::ONE).then(|| {
                     format!(
                         "package `{}` owns multiple binaries: {}; move each additional binary into a dedicated workspace crate",
                         package.name,

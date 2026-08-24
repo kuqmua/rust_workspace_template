@@ -218,9 +218,11 @@ pub struct ApiProblemViolation {
     serde::Serialize,
     utoipa::ToSchema,
 )]
-#[serde(from = "bounded_types::BoundedVec<ApiProblemViolation, 0usize, 128usize>")]
+#[serde(
+    from = "bounded_types::BoundedVec<ApiProblemViolation, { usize_constants::ZERO }, 128usize>"
+)]
 pub(crate) struct ApiProblemViolations(
-    bounded_types::BoundedVec<ApiProblemViolation, 0usize, 128usize>,
+    bounded_types::BoundedVec<ApiProblemViolation, { usize_constants::ZERO }, 128usize>,
 );
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,

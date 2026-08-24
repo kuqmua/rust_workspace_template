@@ -146,7 +146,7 @@ where
     let maximum_invalid_item_count = maximum_invalid_items.get();
     let mut records_by_key = std::collections::BTreeMap::new();
     let mut invalid_items = Vec::with_capacity(maximum_invalid_item_count);
-    let mut processed_item_count = 0usize;
+    let mut processed_item_count = usize_constants::ZERO;
     let mut stopped_early = false;
 
     let _validation_flow =
@@ -158,7 +158,7 @@ where
                     stopped_early = true;
                     return std::ops::ControlFlow::Break(());
                 }
-                processed_item_count = processed_item_count.saturating_add(1usize);
+                processed_item_count = processed_item_count.saturating_add(usize_constants::ONE);
                 match validate_source_item(source_item) {
                     Ok(record) => {
                         let key = select_record_key(&record);
@@ -204,7 +204,7 @@ mod tests {
             super::BatchInvalidItemCount::from(maximum_invalid_items),
             duplicate_policy,
             |value| {
-                if value >= 0i32 {
+                if value >= i32_constants::ZERO {
                     Ok(value)
                 } else {
                     Err(str_constants::TEST_NEGATIVE)
@@ -226,7 +226,7 @@ mod tests {
         assert_eq!(report.records_by_key().as_ref().len(), 2usize);
         assert_eq!(
             report.invalid_items(),
-            &[(1usize, str_constants::TEST_DUPLICATE)]
+            &[(usize_constants::ONE, str_constants::TEST_DUPLICATE)]
         );
         assert_eq!(report.processed_item_count().get(), 3usize);
         assert!(!report.stopped_early().get());
@@ -239,7 +239,7 @@ mod tests {
                 (1i32, str_constants::TEST_FIRST),
                 (1i32, str_constants::TEST_LAST),
             ],
-            super::BatchInvalidItemCount::from(1usize),
+            super::BatchInvalidItemCount::from(usize_constants::ONE),
             super::BatchDuplicatePolicy::KeepFirst,
             Ok::<_, std::convert::Infallible>,
             |record| record.0,
@@ -251,7 +251,7 @@ mod tests {
                 (1i32, str_constants::TEST_FIRST),
                 (1i32, str_constants::TEST_LAST),
             ],
-            super::BatchInvalidItemCount::from(1usize),
+            super::BatchInvalidItemCount::from(usize_constants::ONE),
             super::BatchDuplicatePolicy::KeepLast,
             Ok::<_, std::convert::Infallible>,
             |record| record.0,
@@ -275,8 +275,8 @@ mod tests {
             1,
             super::BatchDuplicatePolicy::Reject,
         );
-        assert_eq!(report.invalid_item_count().get(), 1usize);
-        assert_eq!(report.processed_item_count().get(), 1usize);
+        assert_eq!(report.invalid_item_count().get(), usize_constants::ONE);
+        assert_eq!(report.processed_item_count().get(), usize_constants::ONE);
         assert!(report.stopped_early().get());
         assert!(report.records_by_key().as_ref().is_empty());
     }
@@ -284,7 +284,7 @@ mod tests {
     #[test]
     fn zero_invalid_item_limit_processes_nothing() {
         let report = validate(vec![1i32], 0, super::BatchDuplicatePolicy::Reject);
-        assert_eq!(report.processed_item_count().get(), 0usize);
+        assert_eq!(report.processed_item_count().get(), usize_constants::ZERO);
         assert!(report.stopped_early().get());
     }
 }

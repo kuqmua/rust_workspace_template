@@ -554,12 +554,13 @@ fn generate_pg_table_measure_input_token_stream(
 #[allow(clippy::single_call_fn)]
 fn run_alloc_workload_generate_pg_table_src() {
     let input = generate_pg_table_measure_input_token_stream(&quote::quote! {"False"});
-    let output_bytes = (0..DIRECT_GENERATION_REPEAT_COUNT).fold(0usize, |accumulator, _| {
-        let output = generate_pg_table_src::generate_pg_table(
-            macros_helpers::ts_writer::ProcMacro2TokenStreamRef::from(input.as_ref()),
-        );
-        accumulator.saturating_add(output.to_string().len())
-    });
+    let output_bytes =
+        (0..DIRECT_GENERATION_REPEAT_COUNT).fold(usize_constants::ZERO, |accumulator, _| {
+            let output = generate_pg_table_src::generate_pg_table(
+                macros_helpers::ts_writer::ProcMacro2TokenStreamRef::from(input.as_ref()),
+            );
+            accumulator.saturating_add(output.to_string().len())
+        });
     println!(
         "allocation_workload=generate_pg_table_src repeat_count={DIRECT_GENERATION_REPEAT_COUNT} output_bytes={output_bytes}"
     );
@@ -574,12 +575,13 @@ fn run_alloc_workload_generate_pg_types_src() {
             "variant": "All"
         }
     };
-    let output_bytes = (0..DIRECT_GENERATION_REPEAT_COUNT).fold(0usize, |accumulator, _| {
-        let output = generate_pg_types_src::generate_pg_types(
-            macros_helpers::ts_writer::ProcMacro2TokenStreamRef::from(&input),
-        );
-        accumulator.saturating_add(output.to_string().len())
-    });
+    let output_bytes =
+        (0..DIRECT_GENERATION_REPEAT_COUNT).fold(usize_constants::ZERO, |accumulator, _| {
+            let output = generate_pg_types_src::generate_pg_types(
+                macros_helpers::ts_writer::ProcMacro2TokenStreamRef::from(&input),
+            );
+            accumulator.saturating_add(output.to_string().len())
+        });
     println!(
         "allocation_workload=generate_pg_types_src repeat_count={DIRECT_GENERATION_REPEAT_COUNT} output_bytes={output_bytes}"
     );
@@ -588,9 +590,9 @@ fn run_alloc_workload_generate_pg_types_src() {
 #[allow(clippy::single_call_fn)]
 fn run_alloc_workload_pg_crud_common_query_part() -> Result<(), ()> {
     let output_bytes =
-        (0..SQL_BUILDER_MEASURE_SERIES_COUNT).try_fold(0usize, |series_accumulator, _| {
+        (0..SQL_BUILDER_MEASURE_SERIES_COUNT).try_fold(usize_constants::ZERO, |series_accumulator, _| {
             (0..MEASURE_REPEAT_COUNT).try_fold(series_accumulator, |accumulator, _| {
-                let mut increment = 0u64;
+                let mut increment = u64_constants::ZERO;
                 match pg_crud_common::PgTypeWhereFilter::query_part(
                     &pg_crud_common::PaginationBase::default(),
                     &mut increment,
@@ -615,7 +617,7 @@ fn run_alloc_workload_pg_crud_common_query_part() -> Result<(), ()> {
 // Allocation workloads are separate process entry points dispatched by CLI mode.
 #[allow(clippy::single_call_fn)]
 fn run_alloc_workload_where_filters_query_part() -> Result<(), ()> {
-    let where_filters_values = (0i32..64i32).collect::<Vec<i32>>();
+    let where_filters_values = (i32_constants::ZERO..64i32).collect::<Vec<i32>>();
     let where_filters_bounded_vec = match where_filters::BoundedVec::<i32, 64>::try_from(
         where_filters_values,
     ) {
@@ -628,9 +630,9 @@ fn run_alloc_workload_where_filters_query_part() -> Result<(), ()> {
         }
     };
     let output_bytes =
-        (0..SQL_BUILDER_MEASURE_SERIES_COUNT).try_fold(0usize, |series_accumulator, _| {
+        (0..SQL_BUILDER_MEASURE_SERIES_COUNT).try_fold(usize_constants::ZERO, |series_accumulator, _| {
             (0..MEASURE_REPEAT_COUNT).try_fold(series_accumulator, |accumulator, _| {
-                let mut increment = 0u64;
+                let mut increment = u64_constants::ZERO;
                 match where_filters_bounded_vec.pg_type_query_part(
                     &mut increment,
                     pg_crud_common::SqlColumnRef::from(&str_constants::COLUMN),
@@ -923,7 +925,13 @@ fn main() {
                 staged_output.to_string().len()
             );
             let generate_pg_table_measurement = (0..DIRECT_GENERATION_REPEAT_COUNT).fold(
-                (u128::MAX, 0u128, 0u128, 0usize, 0usize),
+                (
+                    u128::MAX,
+                    u128_constants::ZERO,
+                    u128_constants::ZERO,
+                    usize_constants::ZERO,
+                    usize_constants::ZERO,
+                ),
                 |(min_wall_us, max_wall_us, total_wall_us, _, _), _| {
                     let started = std::time::Instant::now();
                     let output = generate_pg_table_src::generate_pg_table(
@@ -984,7 +992,13 @@ fn main() {
             }
             let generate_pg_table_with_tests_measurement = (0..DIRECT_GENERATION_REPEAT_COUNT)
                 .fold(
-                    (u128::MAX, 0u128, 0u128, 0usize, 0usize),
+                    (
+                        u128::MAX,
+                        u128_constants::ZERO,
+                        u128_constants::ZERO,
+                        usize_constants::ZERO,
+                        usize_constants::ZERO,
+                    ),
                     |(min_wall_us, max_wall_us, total_wall_us, _, _), _| {
                         let started = std::time::Instant::now();
                         let output = generate_pg_table_src::generate_pg_table(
@@ -1014,7 +1028,9 @@ fn main() {
                 server_runtime_http::StdPathRef::from(
                     generate_pg_table_tests_stage_output_path.as_path(),
                 ),
-                server_runtime_http::BoundedReadMaximumBytes::from(16_777_216usize),
+                server_runtime_http::BoundedReadMaximumBytes::from(
+                    usize_constants::VALUE_16_777_216,
+                ),
             )
             .and_then(server_runtime_http::BoundedText::try_from)
             {
@@ -1087,7 +1103,13 @@ fn main() {
                 staged_pg_types.to_string().len()
             );
             let generate_pg_types_measurement = (0..DIRECT_GENERATION_REPEAT_COUNT).fold(
-                (u128::MAX, 0u128, 0u128, 0usize, 0usize),
+                (
+                    u128::MAX,
+                    u128_constants::ZERO,
+                    u128_constants::ZERO,
+                    usize_constants::ZERO,
+                    usize_constants::ZERO,
+                ),
                 |(min_wall_us, max_wall_us, total_wall_us, _, _), _| {
                     let started = std::time::Instant::now();
                     let output = generate_pg_types_src::generate_pg_types(
@@ -1147,7 +1169,13 @@ fn main() {
                 staged_where_filters.to_string().len()
             );
             let generate_where_filters_measurement = (0..DIRECT_GENERATION_REPEAT_COUNT).fold(
-                (u128::MAX, 0u128, 0u128, 0usize, 0usize),
+                (
+                    u128::MAX,
+                    u128_constants::ZERO,
+                    u128_constants::ZERO,
+                    usize_constants::ZERO,
+                    usize_constants::ZERO,
+                ),
                 |(min_wall_us, max_wall_us, total_wall_us, _, _), _| {
                     let started = std::time::Instant::now();
                     let output = generate_where_filters_src::generate_where_filters(
@@ -1178,12 +1206,18 @@ fn main() {
                 (u128, u128, u128, usize),
                 pg_crud_common::QueryPartError,
             > = (0..SQL_BUILDER_MEASURE_SERIES_COUNT).try_fold(
-                (u128::MAX, 0u128, 0u128, 0usize),
+                (
+                    u128::MAX,
+                    u128_constants::ZERO,
+                    u128_constants::ZERO,
+                    usize_constants::ZERO,
+                ),
                 |(min_wall_us, max_wall_us, total_wall_us, _), _| {
                     let started = std::time::Instant::now();
-                    let output_bytes =
-                        (0..MEASURE_REPEAT_COUNT).try_fold(0usize, |accumulator, _| {
-                            let mut increment = 0u64;
+                    let output_bytes = (0..MEASURE_REPEAT_COUNT).try_fold(
+                        usize_constants::ZERO,
+                        |accumulator, _| {
+                            let mut increment = u64_constants::ZERO;
                             match pg_crud_common::PgTypeWhereFilter::query_part(
                                 &pg_crud_common::PaginationBase::default(),
                                 &mut increment,
@@ -1195,7 +1229,8 @@ fn main() {
                                 }
                                 Err(error) => Err(error),
                             }
-                        })?;
+                        },
+                    )?;
                     let wall_us = started.elapsed().as_micros();
                     Ok((
                         min_wall_us.min(wall_us),
@@ -1218,7 +1253,7 @@ fn main() {
                     std::process::exit(1);
                 }
             }
-            let where_filters_values = (0i32..64i32).collect::<Vec<i32>>();
+            let where_filters_values = (i32_constants::ZERO..64i32).collect::<Vec<i32>>();
             let where_filters_bounded_vec = match where_filters::BoundedVec::<i32, 64>::try_from(
                 where_filters_values,
             ) {
@@ -1234,12 +1269,18 @@ fn main() {
                 (u128, u128, u128, usize),
                 pg_crud_common::QueryPartError,
             > = (0..SQL_BUILDER_MEASURE_SERIES_COUNT).try_fold(
-                (u128::MAX, 0u128, 0u128, 0usize),
+                (
+                    u128::MAX,
+                    u128_constants::ZERO,
+                    u128_constants::ZERO,
+                    usize_constants::ZERO,
+                ),
                 |(min_wall_us, max_wall_us, total_wall_us, _), _| {
                     let started = std::time::Instant::now();
-                    let output_bytes =
-                        (0..MEASURE_REPEAT_COUNT).try_fold(0usize, |accumulator, _| {
-                            let mut increment = 0u64;
+                    let output_bytes = (0..MEASURE_REPEAT_COUNT).try_fold(
+                        usize_constants::ZERO,
+                        |accumulator, _| {
+                            let mut increment = u64_constants::ZERO;
                             match where_filters_bounded_vec.pg_type_query_part(
                                 &mut increment,
                                 pg_crud_common::SqlColumnRef::from(&str_constants::COLUMN),
@@ -1250,7 +1291,8 @@ fn main() {
                                 }
                                 Err(error) => Err(error),
                             }
-                        })?;
+                        },
+                    )?;
                     let wall_us = started.elapsed().as_micros();
                     Ok((
                         min_wall_us.min(wall_us),

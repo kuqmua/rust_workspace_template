@@ -1,4 +1,3 @@
-const SECRET_TEXT_MAXIMUM_BYTES: usize = 8192usize;
 const SECRET_TEXT_MINIMUM_BYTES: usize = 16usize;
 
 #[derive(
@@ -21,7 +20,7 @@ pub struct BoundedSecretText(String);
 impl TryFrom<String> for BoundedSecretText {
     type Error = BoundedSecretTextError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() < SECRET_TEXT_MINIMUM_BYTES || value.len() > SECRET_TEXT_MAXIMUM_BYTES {
+        if value.len() < SECRET_TEXT_MINIMUM_BYTES || value.len() > usize_constants::VALUE_8_192 {
             return Err(BoundedSecretTextError::InvalidLength);
         }
         if value.trim().len() != value.len() {
@@ -48,7 +47,7 @@ pub struct SecretTextRef<'value_lt>(&'value_lt str);
 impl<'value_lt> TryFrom<&'value_lt str> for SecretTextRef<'value_lt> {
     type Error = BoundedSecretTextError;
     fn try_from(value: &'value_lt str) -> Result<Self, Self::Error> {
-        if value.len() < SECRET_TEXT_MINIMUM_BYTES || value.len() > SECRET_TEXT_MAXIMUM_BYTES {
+        if value.len() < SECRET_TEXT_MINIMUM_BYTES || value.len() > usize_constants::VALUE_8_192 {
             return Err(BoundedSecretTextError::InvalidLength);
         }
         if value.trim().len() != value.len() {
@@ -89,13 +88,15 @@ pub fn secret_texts_match(
     let expected_bytes = expected.0.as_bytes();
     let provided_bytes = provided.0.as_bytes();
     let length_difference = expected_bytes.len() ^ provided_bytes.len();
-    let difference =
-        (0usize..SECRET_TEXT_MAXIMUM_BYTES).fold(length_difference, |accumulated, index| {
+    let difference = (usize_constants::ZERO..usize_constants::VALUE_8_192).fold(
+        length_difference,
+        |accumulated, index| {
             let expected_byte = expected_bytes.get(index).copied().unwrap_or_default();
             let provided_byte = provided_bytes.get(index).copied().unwrap_or_default();
             accumulated | usize::from(expected_byte ^ provided_byte)
-        });
-    if difference == 0usize {
+        },
+    );
+    if difference == usize_constants::ZERO {
         SecretTextMatch::Equal
     } else {
         SecretTextMatch::Different

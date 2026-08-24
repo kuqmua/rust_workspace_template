@@ -60,14 +60,14 @@ impl QueryPartFragment {
         &mut self,
         bind_index: StdReadQueryBindIndex,
     ) -> Result<(), crate::ReadQueryPlanError> {
-        let mut digits = [0u8; 10usize];
+        let mut digits = [u8_constants::ZERO; 10usize];
         let mut value = bind_index.0.get();
         let mut start = digits.len();
-        while value != 0u32 {
-            start = start.saturating_sub(1usize);
+        while value != u32_constants::ZERO {
+            start = start.saturating_sub(usize_constants::ONE);
             let quotient = value.checked_div(10u32).ok_or(crate::ReadQueryPlanError)?;
             let digit = match value.saturating_sub(quotient.saturating_mul(10u32)) {
-                0u32 => b'0',
+                u32_constants::ZERO => b'0',
                 1u32 => b'1',
                 2u32 => b'2',
                 3u32 => b'3',

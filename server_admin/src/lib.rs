@@ -664,7 +664,7 @@ pub enum AdminCleanupError {
 impl TryFrom<i64> for AdminCleanupBatchSize {
     type Error = AdminCleanupCfgError;
     fn try_from(value: i64) -> Result<Self, Self::Error> {
-        if (1i64..=10_000i64).contains(&value) {
+        if (i64_constants::ONE..=10_000i64).contains(&value) {
             Ok(Self(value))
         } else {
             Err(AdminCleanupCfgError::BatchSizeOutOfRange)
@@ -674,7 +674,7 @@ impl TryFrom<i64> for AdminCleanupBatchSize {
 impl TryFrom<i64> for AdminCleanupRetentionSeconds {
     type Error = AdminCleanupCfgError;
     fn try_from(value: i64) -> Result<Self, Self::Error> {
-        if value > 0i64 {
+        if value > i64_constants::ZERO {
             Ok(Self(value))
         } else {
             Err(AdminCleanupCfgError::RetentionMustBePositive)
@@ -773,7 +773,7 @@ mod tests {
     #[test]
     fn cleanup_configuration_enforces_positive_bounded_values() {
         assert_eq!(
-            super::AdminCleanupBatchSize::try_from(0i64),
+            super::AdminCleanupBatchSize::try_from(i64_constants::ZERO),
             Err(super::AdminCleanupCfgError::BatchSizeOutOfRange)
         );
         assert_eq!(
@@ -781,7 +781,7 @@ mod tests {
             Err(super::AdminCleanupCfgError::BatchSizeOutOfRange)
         );
         assert_eq!(
-            super::AdminCleanupRetentionSeconds::try_from(0i64),
+            super::AdminCleanupRetentionSeconds::try_from(i64_constants::ZERO),
             Err(super::AdminCleanupCfgError::RetentionMustBePositive)
         );
         assert_eq!(

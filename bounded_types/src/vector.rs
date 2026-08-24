@@ -34,14 +34,14 @@ impl<T, const MIN: usize, const MAX: usize> BoundedVec<T, MIN, MAX> {
     }
 
     pub fn try_push(&mut self, value: T) -> Result<(), super::BoundedValueError> {
-        let next_len =
-            self.0
-                .len()
-                .checked_add(1usize)
-                .ok_or_else(|| super::BoundedValueError::AboveMax {
-                    actual: super::BoundedLen::from(usize::MAX),
-                    max: super::BoundedLen::from(MAX),
-                })?;
+        let next_len = self
+            .0
+            .len()
+            .checked_add(usize_constants::ONE)
+            .ok_or_else(|| super::BoundedValueError::AboveMax {
+                actual: super::BoundedLen::from(usize::MAX),
+                max: super::BoundedLen::from(MAX),
+            })?;
         super::validate_len::<0, MAX>(super::BoundedLen::from(next_len))
             .map(|()| self.0.push(value))
     }
@@ -133,7 +133,9 @@ impl<'de, T: serde::Deserialize<'de>, const MIN: usize, const MAX: usize> serde:
                     |_ignored| {
                         Err(serde::de::Error::custom(
                             super::BoundedValueError::AboveMax {
-                                actual: super::BoundedLen::from(MAX.saturating_add(1usize)),
+                                actual: super::BoundedLen::from(
+                                    MAX.saturating_add(usize_constants::ONE),
+                                ),
                                 max: super::BoundedLen::from(MAX),
                             },
                         ))

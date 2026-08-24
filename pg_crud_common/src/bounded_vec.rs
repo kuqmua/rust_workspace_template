@@ -222,7 +222,7 @@ mod tests {
         else {
             panic!("06be97f2");
         };
-        assert_eq!(array.min_items, Some(1usize));
+        assert_eq!(array.min_items, Some(usize_constants::ONE));
         assert_eq!(array.max_items, Some(2usize));
     }
 }

@@ -1325,7 +1325,7 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
                 String::with_capacity(identifier_value.len().saturating_mul(2usize)),
                 |mut value, (index, character)| {
                     if character.is_ascii_uppercase() {
-                        if index != 0usize {
+                        if index != usize_constants::ZERO {
                             value.push('_');
                         }
                         value.push(character.to_ascii_lowercase());
@@ -1934,7 +1934,7 @@ pub fn derive_route_catalog(input: proc_macro::TokenStream) -> proc_macro::Token
             String::with_capacity(identifier_value.len().saturating_mul(2usize)),
             |mut value, (index, character)| {
                 if character.is_ascii_uppercase() {
-                    if index != 0usize {
+                    if index != usize_constants::ZERO {
                         value.push('_');
                     }
                     value.push(character.to_ascii_lowercase());
@@ -1988,7 +1988,9 @@ pub fn derive_route_catalog(input: proc_macro::TokenStream) -> proc_macro::Token
                 });
                 family_routes.push(route_type);
             }
-            (Some(route), syn::Fields::Unnamed(fields)) if fields.unnamed.len() == 1usize => {
+            (Some(route), syn::Fields::Unnamed(fields))
+                if fields.unnamed.len() == usize_constants::ONE =>
+            {
                 let route_type = route.0;
                 contract_arms.push(quote::quote! {
                     Self::#variant_identifier(_value) => <#route_type as frontend_contract::TypedRoute>::metadata().contract()
@@ -2206,7 +2208,7 @@ pub fn derive_unit_enum_index(input: proc_macro::TokenStream) -> proc_macro::Tok
         Ok(value) => value,
         Err(error) => return error.to_compile_error().into(),
     };
-    let indices = 0usize..identifiers.len();
+    let indices = usize_constants::ZERO..identifiers.len();
     let count = identifiers.len();
     quote::quote! {
         impl #identifier {

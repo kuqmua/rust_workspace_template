@@ -3,7 +3,7 @@ fn authenticated_admin_checks_owned_permissions() {
     let admin = super::AuthenticatedAdmin::new(
         crate::AdminDisplayName::try_from(str_constants::ADMIN.to_owned())
             .expect("68e94b2f authenticated_admin_checks_owned_permissions invariant must hold"),
-        crate::AdminUserId::try_from(1i64)
+        crate::AdminUserId::try_from(i64_constants::ONE)
             .expect("134f7a9c authenticated_admin_checks_owned_permissions invariant must hold"),
         crate::AdminLogin::try_from(str_constants::ROOT.to_owned())
             .expect("971c5e42 authenticated_admin_checks_owned_permissions invariant must hold"),

@@ -38,7 +38,7 @@ async fn postgresql_data_table_api_reads_every_public_field_from_every_table() {
                 http::StatusCode::OK,
                 "table API {table} failed"
             );
-            let body = axum::body::to_bytes(response.into_body(), 1_048_576usize)
+            let body = axum::body::to_bytes(response.into_body(), usize_constants::VALUE_1_048_576)
                 .await
                 .expect("78547eed postgresql_data_table_api_reads_every_public_field_from_every_table invariant must hold");
             let view =
@@ -96,7 +96,7 @@ async fn postgresql_generated_mutation_idempotency_contract() {
                 "136c5acc postgresql_generated_mutation_idempotency_contract invariant must hold",
             ),
         &pg_crud_common::PgRelationResourceIds::try_from(vec![
-            pg_crud_common::PgRelationResourceId::from(1i64),
+            pg_crud_common::PgRelationResourceId::from(i64_constants::ONE),
         ])
         .expect("8b0c7ae1 postgresql_generated_mutation_idempotency_contract invariant must hold"),
     )
@@ -236,14 +236,14 @@ async fn postgresql_generated_mutation_idempotency_contract() {
             .iter()
             .filter(|outcome| **outcome == pg_table::PgTableIdempotencyBegin::Acquired)
             .count(),
-        1usize
+        usize_constants::ONE
     );
     assert_eq!(
         outcomes
             .iter()
             .filter(|outcome| **outcome == pg_table::PgTableIdempotencyBegin::InProgress)
             .count(),
-        1usize
+        usize_constants::ONE
     );
     let _atomic_table = sqlx::query(
         str_constants::CREATE_TABLE_IF_NOT_EXISTS_PG_TABLE_IDEMPOTENCY_ATOMIC_TEST_ID_BIGINT,
@@ -300,7 +300,7 @@ async fn postgresql_generated_mutation_idempotency_contract() {
     .fetch_one(&pool)
     .await
     .expect("84e57ab6 postgresql_generated_mutation_idempotency_contract invariant must hold");
-    assert_eq!(mutation_count, 0i64);
+    assert_eq!(mutation_count, i64_constants::ZERO);
     assert_eq!(
         pg_table::begin_pg_table_idempotency(app_state::SqlxPgPoolRef::from(&pool), &atomic)
             .await

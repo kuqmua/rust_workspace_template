@@ -227,8 +227,9 @@ mod tests {
     }
     #[test]
     fn environment_result_rejects_values_above_shared_limit() {
-        let value = str_constants::TEST_JWT_SECRET_CHARACTER_A
-            .repeat(super::super::CONFIG_LIB_STRING_WRAPPER_MAX_LEN.saturating_add(1usize));
+        let value = str_constants::TEST_JWT_SECRET_CHARACTER_A.repeat(
+            super::super::CONFIG_LIB_STRING_WRAPPER_MAX_LEN.saturating_add(usize_constants::ONE),
+        );
         let Err(_error) = super::StdEnvVarResult::try_from(Ok(value)) else {
             panic!("3ee39bcb");
         };

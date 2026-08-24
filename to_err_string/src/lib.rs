@@ -152,7 +152,7 @@ mod tests {
             .expect("11a745a8 error_text_owns_the_shared_length_invariant invariant must hold");
         assert_eq!(valid.as_ref(), str_constants::ERROR);
 
-        let oversized = "x".repeat(super::ERROR_TEXT_MAX_LEN.saturating_add(1usize));
+        let oversized = "x".repeat(super::ERROR_TEXT_MAX_LEN.saturating_add(usize_constants::ONE));
         let _conversion_error =
             super::ErrorText::try_from(oversized.clone()).expect_err("06920f8a");
         let serialized = serde_json::to_string(&oversized)

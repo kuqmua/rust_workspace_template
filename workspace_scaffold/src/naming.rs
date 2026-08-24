@@ -23,7 +23,7 @@ fn capitalized_parts(
         .fold(
             String::with_capacity(value.0.len()),
             |mut output, (index, part)| {
-                if index > 0usize {
+                if index > usize_constants::ZERO {
                     output.push_str(separator.0);
                 }
                 let mut chars = part.chars();

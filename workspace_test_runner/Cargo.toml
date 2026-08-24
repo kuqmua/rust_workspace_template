@@ -8,6 +8,11 @@ repository.workspace = true
 license.workspace = true
 edition.workspace = true
 [dependencies]
+usize_constants = { workspace = true }
+u64_constants = { workspace = true }
+u128_constants = { workspace = true }
+i32_constants = { workspace = true }
+i64_constants = { workspace = true }
 optimal_memory_layout = { workspace = true }
 bounded_types = { workspace = true }
 str_constants = { workspace = true }

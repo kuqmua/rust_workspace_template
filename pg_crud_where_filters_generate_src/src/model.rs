@@ -85,7 +85,7 @@ impl FilterSpec {
     }
     fn scalar(sql_operator: FilterSqlOperator) -> Self {
         Self {
-            bind_count: BindCount::from(1usize),
+            bind_count: BindCount::from(usize_constants::ONE),
             sql_operator,
             sql_suffix: FilterSqlSuffix::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
             value_shape: FilterValueShape::Scalar,
@@ -99,7 +99,7 @@ impl FilterSpec {
     }
     pub(super) fn text_search() -> Self {
         Self {
-            bind_count: BindCount::from(1usize),
+            bind_count: BindCount::from(usize_constants::ONE),
             sql_operator: FilterSqlOperator::from(str_constants::PG_CRUD_TEXT_SEARCH_SQL_OPERATOR),
             sql_suffix: FilterSqlSuffix::from(str_constants::PG_CRUD_TEXT_SEARCH_SQL_SUFFIX),
             value_shape: FilterValueShape::Text,

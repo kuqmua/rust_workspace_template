@@ -291,7 +291,7 @@ async fn admin_html_response(
     .expect("3cb98672 admin_html_response invariant must hold")
 }
 async fn admin_html_body(response: HttpAdminHtmlTestResponse) -> AdminHtmlTestBody {
-    axum::body::to_bytes(response.0.into_body(), 1_048_576usize)
+    axum::body::to_bytes(response.0.into_body(), usize_constants::VALUE_1_048_576)
         .await
         .map(|bytes| {
             String::from_utf8(bytes.to_vec()).expect("86547438 admin_html_body invariant must hold")
@@ -356,12 +356,13 @@ async fn admin_html_test_fixture_with_password_change(
         str_constants::CORRECT_PASSWORD,
     )
     .expect("d20a35e4 admin_html_test_fixture_with_password_change invariant must hold");
-    let hasher =
-        server_admin::AdminPasswordHasher::new(server_admin::AdminPasswordHashConcurrency::from(
-            server_admin::StdAdminNonZeroUsize::from(std::num::NonZeroUsize::new(1usize).expect(
+    let hasher = server_admin::AdminPasswordHasher::new(
+        server_admin::AdminPasswordHashConcurrency::from(server_admin::StdAdminNonZeroUsize::from(
+            std::num::NonZeroUsize::new(usize_constants::ONE).expect(
                 "560498ab admin_html_test_fixture_with_password_change invariant must hold",
-            )),
-        ));
+            ),
+        )),
+    );
     let _created_admin_id = server_admin::bootstrap_admin(
         app_state::SqlxPgPoolRef::from(&pool.0),
         server_admin::AdminLogin::try_from(str_constants::ADMIN_ALT.to_owned())

@@ -24,5 +24,9 @@ optimal_memory_layout = { workspace = true }
 config_lib_macros = { workspace = true }
 str_constants = { workspace = true }
 newtype = { workspace = true }
+
+[dev-dependencies]
+usize_constants = { workspace = true }
+
 [lints]
 workspace = true

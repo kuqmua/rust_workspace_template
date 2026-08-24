@@ -10,6 +10,7 @@ edition.workspace = true
 
 
 [dependencies]
+u32_constants = { workspace = true }
 str_constants = { workspace = true }
 utoipa = { workspace = true }
 chrono = { workspace = true }
@@ -20,5 +21,9 @@ config_lib = { workspace = true }
 optimal_memory_layout = { workspace = true }
 newtype = { workspace = true }
 thiserror = { workspace = true }
+
+[dev-dependencies]
+usize_constants = { workspace = true }
+
 [lints]
 workspace = true

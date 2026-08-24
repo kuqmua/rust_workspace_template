@@ -101,20 +101,24 @@ where
 {
     reports.into_iter().fold(
         DevelopmentBootstrapSummary {
-            already_exists: DevelopmentIdentityCount::from(0usize),
-            create: DevelopmentIdentityCount::from(0usize),
-            missing_role: DevelopmentIdentityCount::from(0usize),
+            already_exists: DevelopmentIdentityCount::from(usize_constants::ZERO),
+            create: DevelopmentIdentityCount::from(usize_constants::ZERO),
+            missing_role: DevelopmentIdentityCount::from(usize_constants::ZERO),
         },
         |mut summary, decision| {
             match decision {
                 server_runtime_http::IdentityBootstrapDecision::AlreadyExists => {
-                    summary.already_exists.0 = summary.already_exists.0.saturating_add(1usize);
+                    summary.already_exists.0 = summary
+                        .already_exists
+                        .0
+                        .saturating_add(usize_constants::ONE);
                 }
                 server_runtime_http::IdentityBootstrapDecision::Create => {
-                    summary.create.0 = summary.create.0.saturating_add(1usize);
+                    summary.create.0 = summary.create.0.saturating_add(usize_constants::ONE);
                 }
                 server_runtime_http::IdentityBootstrapDecision::MissingRole => {
-                    summary.missing_role.0 = summary.missing_role.0.saturating_add(1usize);
+                    summary.missing_role.0 =
+                        summary.missing_role.0.saturating_add(usize_constants::ONE);
                 }
             }
             summary
@@ -141,9 +145,9 @@ mod tests {
             ),
         ];
         let summary = super::summarize_identity_bootstrap(reports);
-        assert_eq!(usize::from(summary.create()), 1usize);
-        assert_eq!(usize::from(summary.already_exists()), 1usize);
-        assert_eq!(usize::from(summary.missing_role()), 1usize);
+        assert_eq!(usize::from(summary.create()), usize_constants::ONE);
+        assert_eq!(usize::from(summary.already_exists()), usize_constants::ONE);
+        assert_eq!(usize::from(summary.missing_role()), usize_constants::ONE);
     }
 
     #[test]
@@ -164,7 +168,9 @@ mod tests {
     fn identity_specs_rejects_more_than_supported_entries() {
         let values =
             std::iter::repeat_with(|| server_runtime_http::IdentitySpec::new(1u8, 2u8, 3u8, 4u8))
-                .take(super::DEVELOPMENT_IDENTITY_SPECS_MAX_LEN.saturating_add(1usize))
+                .take(
+                    super::DEVELOPMENT_IDENTITY_SPECS_MAX_LEN.saturating_add(usize_constants::ONE),
+                )
                 .collect::<Vec<_>>();
         assert_eq!(
             super::DevelopmentIdentitySpecs::try_from(values),

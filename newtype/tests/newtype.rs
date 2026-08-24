@@ -145,7 +145,7 @@ mod tests {
         Eq,
         newtype::BoundedString,
     )]
-    #[bounded_string(max = 3usize, min = 1usize, chars, nul_free, serde, trim, utoipa)]
+    #[bounded_string(max = 3usize, min = usize_constants::ONE, chars, nul_free, serde, trim, utoipa)]
     struct RichValue(String);
     #[derive(
         optimal_memory_layout::OptimalMemoryLayout,
@@ -453,7 +453,10 @@ mod tests {
         let json = serde_json::to_value(schema).expect(
             "756f3fe9 bounded_string_openapi_limits_match_runtime_limits invariant must hold",
         );
-        assert_eq!(json.get("minLength"), Some(&serde_json::json!(1usize)));
+        assert_eq!(
+            json.get("minLength"),
+            Some(&serde_json::json!(usize_constants::ONE))
+        );
         assert_eq!(json.get("maxLength"), Some(&serde_json::json!(3usize)));
     }
     #[test]
@@ -480,7 +483,7 @@ mod tests {
                 let value = chars.into_iter().collect::<String>();
                 let normalized = value.trim();
                 let expected_ok = !normalized.contains('\0')
-                    && (1usize..=3usize).contains(&normalized.chars().count());
+                    && (usize_constants::ONE..=3usize).contains(&normalized.chars().count());
                 RichValue::try_from(value).is_ok() == expected_ok
             });
         assert!(all_match);

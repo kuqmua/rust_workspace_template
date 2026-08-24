@@ -30,7 +30,7 @@ libfuzzer_sys::fuzz_target!(|data: &[u8]| {
         return;
     };
     match parser_byte & 7u8 {
-        0u8 => drop(file_storage::StdStorageOperationId::try_from(value)),
+        u8_constants::ZERO => drop(file_storage::StdStorageOperationId::try_from(value)),
         1u8 => drop(file_storage::StdStorageRelativePath::try_from(
             std::path::PathBuf::from(value),
         )),

@@ -141,7 +141,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
             .expect(
                 "ae89c3bd postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold",
             );
-    assert_eq!(administrator_count, 1i64);
+    assert_eq!(administrator_count, i64_constants::ONE);
     let admin_id =
         sqlx::query_scalar::<_, i64>(str_constants::SELECT_ID_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN)
             .fetch_one(&pool.0)
@@ -155,14 +155,14 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     .fetch_one(&pool.0)
     .await
     .expect("08ef120f postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
-    assert_eq!(dangling_role_links, 0i64);
+    assert_eq!(dangling_role_links, i64_constants::ZERO);
     let dangling_permission_links = sqlx::query_scalar::<_, i64>(
         str_constants::SELECT_COUNT_ASTERISK_FROM_ADMIN_ROLE_PERMISSIONS_LINK_LEFT_JOIN_ADMIN_ROLES,
     )
     .fetch_one(&pool.0)
     .await
     .expect("aebf6dc8 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
-    assert_eq!(dangling_permission_links, 0i64);
+    assert_eq!(dangling_permission_links, i64_constants::ZERO);
     let wrong_response = tower::ServiceExt::oneshot(
         router_with_pool(&pool).0,
         request_with_peer(
@@ -838,15 +838,18 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
         .await
         .expect("8103cd5f postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
     assert_eq!(audit_response.status(), http::StatusCode::OK);
-    let audit_page = axum::body::to_bytes(audit_response.into_body(), 1_048_576usize)
-        .await
-        .map(|body| {
-            serde_json::from_slice::<server_admin_contract::AdminAuditPage>(&body).expect(
-                "ed125d4a postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold",
-            )
-        })
-        .expect("50612a4d postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
-    assert!(audit_page.items().len() <= 1usize);
+    let audit_page =
+        axum::body::to_bytes(audit_response.into_body(), usize_constants::VALUE_1_048_576)
+            .await
+            .map(|body| {
+                serde_json::from_slice::<server_admin_contract::AdminAuditPage>(&body).expect(
+                    "ed125d4a postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold",
+                )
+            })
+            .expect(
+                "50612a4d postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold",
+            );
+    assert!(audit_page.items().len() <= usize_constants::ONE);
     assert!(
         u64::from(audit_page.total())
             >= u64::try_from(audit_page.items().len()).expect(
@@ -854,7 +857,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
             )
     );
     futures::StreamExt::fold(
-        futures::stream::iter(0usize..61usize),
+        futures::stream::iter(usize_constants::ZERO..61usize),
         (),
         async |(), _index| {
             let response = tower::ServiceExt::oneshot(
@@ -899,15 +902,17 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     .await
     .expect("449bf918 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
     assert_eq!(sessions_response.status(), http::StatusCode::OK);
-    let sessions_page = axum::body::to_bytes(sessions_response.into_body(), 1_048_576usize)
-        .await
-        .map(|body| {
-            serde_json::from_slice::<server_admin_contract::AdminSessionsPage>(&body).expect(
-                "e544366c postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold",
-            )
-        })
-        .expect("141ddcdc postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
-    assert!(sessions_page.items().len() <= 1usize);
+    let sessions_page = axum::body::to_bytes(
+        sessions_response.into_body(),
+        usize_constants::VALUE_1_048_576,
+    )
+    .await
+    .map(|body| {
+        serde_json::from_slice::<server_admin_contract::AdminSessionsPage>(&body)
+            .expect("e544366c postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold")
+    })
+    .expect("141ddcdc postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
+    assert!(sessions_page.items().len() <= usize_constants::ONE);
     assert!(
         u64::from(sessions_page.total())
             >= u64::try_from(sessions_page.items().len()).expect(
@@ -929,15 +934,17 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     .await
     .expect("ca94aec1 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
     assert_eq!(data_table_response.status(), http::StatusCode::OK);
-    let data_table = axum::body::to_bytes(data_table_response.into_body(), 1_048_576usize)
-        .await
-        .map(|body| {
-            serde_json::from_slice::<server_admin_contract::AdminDataTableView>(&body).expect(
-                "e16283f4 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold",
-            )
-        })
-        .expect("3f927581 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
-    assert!(data_table.items().len() <= 1usize);
+    let data_table = axum::body::to_bytes(
+        data_table_response.into_body(),
+        usize_constants::VALUE_1_048_576,
+    )
+    .await
+    .map(|body| {
+        serde_json::from_slice::<server_admin_contract::AdminDataTableView>(&body)
+            .expect("e16283f4 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold")
+    })
+    .expect("3f927581 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
+    assert!(data_table.items().len() <= usize_constants::ONE);
     assert!(
         u64::from(data_table.total())
             >= u64::try_from(data_table.items().len()).expect(
@@ -964,19 +971,18 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     .await
     .expect("766f5654 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
     assert_eq!(filtered_data_table_response.status(), http::StatusCode::OK);
-    let filtered_data_table =
-        axum::body::to_bytes(filtered_data_table_response.into_body(), 1_048_576usize)
-            .await
-            .map(|body| {
-                serde_json::from_slice::<server_admin_contract::AdminDataTableView>(&body).expect(
-                    "02d611ab postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold",
-                )
-            })
-            .expect(
-                "6dfe8f37 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold",
-            );
+    let filtered_data_table = axum::body::to_bytes(
+        filtered_data_table_response.into_body(),
+        usize_constants::VALUE_1_048_576,
+    )
+    .await
+    .map(|body| {
+        serde_json::from_slice::<server_admin_contract::AdminDataTableView>(&body)
+            .expect("02d611ab postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold")
+    })
+    .expect("6dfe8f37 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
     assert_eq!(u64::from(filtered_data_table.total()), 1u64);
-    assert_eq!(filtered_data_table.items().len(), 1usize);
+    assert_eq!(filtered_data_table.items().len(), usize_constants::ONE);
     assert!(
         filtered_data_table
             .items()
@@ -1000,18 +1006,17 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     .await
     .expect("1310e021 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
     assert_eq!(empty_data_table_response.status(), http::StatusCode::OK);
-    let empty_data_table =
-        axum::body::to_bytes(empty_data_table_response.into_body(), 1_048_576usize)
-            .await
-            .map(|body| {
-                serde_json::from_slice::<server_admin_contract::AdminDataTableView>(&body).expect(
-                    "aa8376d3 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold",
-                )
-            })
-            .expect(
-                "a98d6360 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold",
-            );
-    assert_eq!(u64::from(empty_data_table.total()), 0u64);
+    let empty_data_table = axum::body::to_bytes(
+        empty_data_table_response.into_body(),
+        usize_constants::VALUE_1_048_576,
+    )
+    .await
+    .map(|body| {
+        serde_json::from_slice::<server_admin_contract::AdminDataTableView>(&body)
+            .expect("aa8376d3 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold")
+    })
+    .expect("a98d6360 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
+    assert_eq!(u64::from(empty_data_table.total()), u64_constants::ZERO);
     assert!(empty_data_table.items().is_empty());
     let unsupported_filter_response = tower::ServiceExt::oneshot(
         router_with_pool(&pool).0,

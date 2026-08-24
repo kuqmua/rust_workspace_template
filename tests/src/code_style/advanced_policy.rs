@@ -99,7 +99,7 @@ fn dropped_identifier(statement: &syn::Stmt) -> Option<super::types::SourceText>
     let syn::Expr::Path(argument) = call.args.first()? else {
         return None;
     };
-    (argument.path.segments.len() == 1usize)
+    (argument.path.segments.len() == usize_constants::ONE)
         .then(|| {
             argument.path.segments.first().map(|segment| {
                 super::types::SourceText::try_from(segment.ident.to_string())
@@ -163,7 +163,7 @@ struct SpawnConsumptionVisitor {
 impl SpawnConsumptionVisitor {
     fn record_path(&mut self, expression: &syn::Expr) {
         if let syn::Expr::Path(path) = expression
-            && path.path.segments.len() == 1usize
+            && path.path.segments.len() == usize_constants::ONE
             && let Some(segment) = path.path.segments.first()
         {
             let _inserted = self.consumed.insert(segment.ident.to_string());
@@ -434,7 +434,7 @@ struct RawVecTupleWrapperVisitor {
 impl<'ast> syn::visit::Visit<'ast> for RawVecTupleWrapperVisitor {
     fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
         if let syn::Fields::Unnamed(fields) = &i.fields
-            && fields.unnamed.len() == 1usize
+            && fields.unnamed.len() == usize_constants::ONE
             && let Some(field) = fields.unnamed.first()
             && let syn::Type::Path(path) = &field.ty
             && path
@@ -511,7 +511,7 @@ struct PublicApiVisitor {
 }
 impl PublicApiVisitor {
     fn source(&self, span: proc_macro2::Span) -> super::types::SourceText {
-        let start = span.start().line.saturating_sub(1usize);
+        let start = span.start().line.saturating_sub(usize_constants::ONE);
         let end = span.end().line;
         let normalized = self
             .lines
@@ -534,7 +534,7 @@ impl PublicApiVisitor {
             .expect("3e2d89ef field_type invariant must hold")
     }
     fn record(&mut self, span: proc_macro2::Span, signature_only: bool) {
-        let start = span.start().line.saturating_sub(1usize);
+        let start = span.start().line.saturating_sub(usize_constants::ONE);
         let end = span.end().line;
         let source = self
             .lines
@@ -754,7 +754,7 @@ struct LoopAllocationVisitor {
 }
 impl LoopAllocationVisitor {
     fn record(&mut self, operation: super::types::SourceTextRef<'_>) {
-        if self.depth.get() != 0usize {
+        if self.depth.get() != usize_constants::ZERO {
             self.entries.push(operation.as_ref().to_owned());
         }
     }
@@ -842,56 +842,56 @@ fn allocations_inside_loops_match_reviewed_inventory() {
         (
             "../file_storage/src/lib.rs:clone",
             (
-                1usize,
+                usize_constants::ONE,
                 "multipart chunk assembly must retain owned buffers until the completed file is committed",
             ),
         ),
         (
             "../frontend_contract_validation/src/json_snapshot.rs:String::from",
             (
-                1usize,
+                usize_constants::ONE,
                 "the bounded JSON parser materializes one owned map key per parsed object field",
             ),
         ),
         (
             "../frontend_contract_validation/src/openapi_validation.rs:to_owned",
             (
-                1usize,
+                usize_constants::ONE,
                 "OpenAPI validation records independently owned operation identifiers",
             ),
         ),
         (
             "../frontend_contract_macros/src/lib.rs:to_string",
             (
-                1usize,
+                usize_constants::ONE,
                 "compile-time route generation materializes variant identifiers outside runtime hot paths",
             ),
         ),
         (
             "../macro_clippy_check_common/src/lib.rs:String::from",
             (
-                1usize,
+                usize_constants::ONE,
                 "compile-time lint inspection owns diagnostic source fragments",
             ),
         ),
         (
             "../server_runtime_http/src/http_error_diagnostic.rs:to_string",
             (
-                1usize,
+                usize_constants::ONE,
                 "diagnostic capture materializes each owned source in the bounded error chain",
             ),
         ),
         (
             "../server_runtime_http/src/lib.rs:to_string",
             (
-                1usize,
+                usize_constants::ONE,
                 "request middleware materializes validated protocol values that outlive input buffers",
             ),
         ),
         (
             "../str_constants_macros/src/lib.rs:collect",
             (
-                1usize,
+                usize_constants::ONE,
                 "compile-time constant generation collects tokens outside runtime hot paths",
             ),
         ),
@@ -923,8 +923,8 @@ fn allocations_inside_loops_match_reviewed_inventory() {
                     |mut counts, entry| {
                         let _count = counts
                             .entry(entry)
-                            .and_modify(|count| *count = count.saturating_add(1usize))
-                            .or_insert(1usize);
+                            .and_modify(|count| *count = count.saturating_add(usize_constants::ONE))
+                            .or_insert(usize_constants::ONE);
                         counts
                     },
                 );
@@ -1055,8 +1055,8 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
         (
             "location_lib_location/src/lib.rs",
             (
-                0usize,
-                0usize,
+                usize_constants::ZERO,
+                usize_constants::ZERO,
                 3usize,
                 "location formatting accepts heterogeneous display values",
             ),
@@ -1463,7 +1463,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
                     visitor.lock_types.get(),
                     visitor.trait_objects.get(),
                 );
-                if observed == (0usize, 0usize, 0usize) {
+                if observed == (usize_constants::ZERO, usize_constants::ZERO, usize_constants::ZERO) {
                     return;
                 }
                 let path = source_file.path().as_ref().display().to_string();
@@ -1503,7 +1503,7 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
         (
             "external_service_emulators/src/lib.rs",
             (
-                1usize,
+                usize_constants::ONE,
                 "the emulator maps channel closure to its domain error",
             ),
         ),
@@ -1517,89 +1517,98 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
         (
             "macros_helpers/src/test_database.rs",
             (
-                1usize,
+                usize_constants::ONE,
                 "the test database helper maps setup failure to its fixture error",
             ),
         ),
         (
             "macros_helpers/src/write_string_into_file.rs",
             (
-                1usize,
+                usize_constants::ONE,
                 "the file helper maps conversion failure to its domain error",
             ),
         ),
         (
             "notification_service/src/main.rs",
             (
-                1usize,
+                usize_constants::ONE,
                 "service bootstrap classifies configuration failures",
             ),
         ),
         (
             "notification_service/src/runtime.rs",
             (
-                1usize,
+                usize_constants::ONE,
                 "service runtime classifies timeout configuration failures",
             ),
         ),
         (
             "file_storage/src/lib.rs",
             (
-                1usize,
+                usize_constants::ONE,
                 "storage input failure is classified at the boundary",
             ),
         ),
         (
             "common_routes/src/lib.rs",
             (
-                1usize,
+                usize_constants::ONE,
                 "health component capacity maps to the established public contract error",
             ),
         ),
         (
             "server_runtime_http/src/outbound_url.rs",
             (
-                1usize,
+                usize_constants::ONE,
                 "URL parse details are intentionally hidden by the domain error",
             ),
         ),
         (
             "server_runtime_http/src/wire_token.rs",
             (
-                1usize,
+                usize_constants::ONE,
                 "wire token part failures map to a stable public category",
             ),
         ),
         (
             "server_runtime_http/src/origin.rs",
-            (1usize, "origin parsing maps to a stable validation error"),
+            (
+                usize_constants::ONE,
+                "origin parsing maps to a stable validation error",
+            ),
         ),
         (
             "server_runtime_http/src/secure_cookie.rs",
-            (1usize, "cookie header details are intentionally redacted"),
+            (
+                usize_constants::ONE,
+                "cookie header details are intentionally redacted",
+            ),
         ),
         (
             "server_runtime_http/src/multipart.rs",
             (
-                1usize,
+                usize_constants::ONE,
                 "multipart path validation exposes a stable domain error",
             ),
         ),
         (
             "server_runtime_http/src/security_headers.rs",
             (
-                1usize,
+                usize_constants::ONE,
                 "content-security-policy parse details map to a stable configuration error",
             ),
         ),
         (
             "server_runtime_http/src/bounded_read.rs",
-            (1usize, "closed limiter state maps to a stable read error"),
+            (
+                usize_constants::ONE,
+                "closed limiter state maps to a stable read error",
+            ),
         ),
         (
             "server_runtime_http/src/child_process.rs",
             (
-                1usize,
+                usize_constants::ONE,
                 "elapsed timeout details map to the child timeout variant",
             ),
         ),
@@ -1612,7 +1621,10 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
         ),
         (
             "server_runtime_core/src/exclusive_run.rs",
-            (1usize, "the atomic compare failure maps to already active"),
+            (
+                usize_constants::ONE,
+                "the atomic compare failure maps to already active",
+            ),
         ),
         (
             "pg_crud_common/src/read_query_plan.rs",
@@ -1631,14 +1643,14 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
         (
             "pg_crud_common/src/bounded_btree_map.rs",
             (
-                1usize,
+                usize_constants::ONE,
                 "the compatibility wrapper maps the shared capacity error to its existing public error",
             ),
         ),
         (
             "pg_crud_where_filters/src/lib.rs",
             (
-                1usize,
+                usize_constants::ONE,
                 "the exact-length compatibility wrapper preserves its location-aware public error",
             ),
         ),
@@ -1659,7 +1671,7 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
         (
             "server_admin_contract/src/collections.rs",
             (
-                1usize,
+                usize_constants::ONE,
                 "administrator collections preserve their stable public capacity error",
             ),
         ),
@@ -1680,27 +1692,30 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
         (
             "config_lib/src/admin.rs",
             (
-                1usize,
+                usize_constants::ONE,
                 "administrator token parsing maps bounded text to its stable public error",
             ),
         ),
         (
             "config_lib/src/admin_jwt.rs",
             (
-                1usize,
+                usize_constants::ONE,
                 "administrator JWT parsing maps bounded secrets to its stable public error",
             ),
         ),
         (
             "workspace_test_runner/src/admin_fixture.rs",
             (
-                1usize,
+                usize_constants::ONE,
                 "fixture input conversion maps bounded text to command failure",
             ),
         ),
         (
             "workspace_test_runner/src/execution.rs",
-            (1usize, "summary initialization maps to the runner error"),
+            (
+                usize_constants::ONE,
+                "summary initialization maps to the runner error",
+            ),
         ),
         (
             "frontend_contract_validation/src/json_snapshot.rs",
@@ -1711,7 +1726,10 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
         ),
         (
             "workspace_scaffold/src/main.rs",
-            (1usize, "projection parsing maps to a stable scaffold error"),
+            (
+                usize_constants::ONE,
+                "projection parsing maps to a stable scaffold error",
+            ),
         ),
         (
             "workspace_scaffold/src/service_catalog.rs",
@@ -1719,7 +1737,10 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
         ),
         (
             "newtype/src/lib.rs",
-            (1usize, "invalid derive input maps to the macro diagnostic"),
+            (
+                usize_constants::ONE,
+                "invalid derive input maps to the macro diagnostic",
+            ),
         ),
         (
             "server_admin_core/src/lib.rs",
@@ -1731,7 +1752,7 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
         (
             "server_admin/src/generated_tables.rs",
             (
-                1usize,
+                usize_constants::ONE,
                 "generated table conformance maps to its public error",
             ),
         ),
@@ -1780,7 +1801,7 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
         (
             "server_admin/src/repository/cleanup.rs",
             (
-                1usize,
+                usize_constants::ONE,
                 "cleanup conversion maps to a typed repository error",
             ),
         ),
@@ -1797,7 +1818,10 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
         ),
         (
             "server_admin/src/auth/session.rs",
-            (1usize, "system clock failure maps to the session category"),
+            (
+                usize_constants::ONE,
+                "system clock failure maps to the session category",
+            ),
         ),
         (
             "server_admin/src/auth/authn.rs",
@@ -1809,7 +1833,7 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
         (
             "server_admin/src/auth/data_tables.rs",
             (
-                1usize,
+                usize_constants::ONE,
                 "data-table input failures map to stable API categories",
             ),
         ),
@@ -1859,7 +1883,7 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
         (
             "server_admin_frontend/src/app/loader.rs",
             (
-                1usize,
+                usize_constants::ONE,
                 "browser page loading failures map to a stable query error",
             ),
         ),
@@ -1873,7 +1897,7 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
         (
             "server_admin_frontend/src/app/query/page.rs",
             (
-                1usize,
+                usize_constants::ONE,
                 "browser page-location failures map to a stable UI fetch error",
             ),
         ),
@@ -2152,7 +2176,7 @@ fn usize_max_usage_matches_reviewed_inventory() {
         (
             "../bounded_types/src/string.rs",
             (
-                1usize,
+                usize_constants::ONE,
                 "the bounded string schema represents its explicitly unbounded maximum",
             ),
         ),
@@ -2166,7 +2190,7 @@ fn usize_max_usage_matches_reviewed_inventory() {
         (
             "../file_storage/src/lib.rs",
             (
-                1usize,
+                usize_constants::ONE,
                 "the process-owned path catalog is assembled from already bounded storage paths",
             ),
         ),
@@ -2187,14 +2211,14 @@ fn usize_max_usage_matches_reviewed_inventory() {
         (
             "../frontend_contract/src/route_coverage.rs",
             (
-                1usize,
+                usize_constants::ONE,
                 "the compile-time route test category catalog has no wire-controlled cardinality",
             ),
         ),
         (
             "../frontend_contract_validation/src/route_contract_validation.rs",
             (
-                1usize,
+                usize_constants::ONE,
                 "validation mismatches are bounded by the already finite route catalog",
             ),
         ),
@@ -2229,7 +2253,7 @@ fn usize_max_usage_matches_reviewed_inventory() {
         (
             "../server_runtime_core/src/single_flight.rs",
             (
-                1usize,
+                usize_constants::ONE,
                 "the runtime-configured single-flight maximum is enforced before insertion",
             ),
         ),
@@ -2243,7 +2267,7 @@ fn usize_max_usage_matches_reviewed_inventory() {
         (
             "../workspace_scaffold/src/main.rs",
             (
-                1usize,
+                usize_constants::ONE,
                 "the local service catalog is bounded by the checked-out workspace",
             ),
         ),
@@ -2275,7 +2299,7 @@ fn usize_max_usage_matches_reviewed_inventory() {
                         UsizeMaxExprVisitor::default(),
                     );
                     let count = visitor.count.get();
-                    (count != 0usize)
+                    (count != usize_constants::ZERO)
                         .then(|| (source_file.path().as_ref().display().to_string(), count))
                 })
                 .collect::<std::collections::BTreeMap<String, usize>>();
@@ -2300,7 +2324,7 @@ fn usize_max_expression_visitor_skips_test_modules() {
         super::types::SynFileRef::from(&file),
         UsizeMaxExprVisitor::default(),
     );
-    assert_eq!(visitor.count.get(), 1usize);
+    assert_eq!(visitor.count.get(), usize_constants::ONE);
 }
 
 #[test]
@@ -2308,17 +2332,17 @@ fn select_sites_match_reviewed_cancellation_inventory() {
     let reviewed = [
         (
             "server_runtime_http/src/service.rs",
-            1usize,
+            usize_constants::ONE,
             "the pinned server future is resumed after the shutdown notification branch",
         ),
         (
             "server_runtime_http/src/lifecycle.rs",
-            1usize,
+            usize_constants::ONE,
             "the interval tick and oneshot shutdown receiver are cancellation-safe",
         ),
         (
             "server_runtime_http/src/service_bootstrap.rs",
-            1usize,
+            usize_constants::ONE,
             "the shutdown signal races two cancellation-safe signal receivers",
         ),
     ];
@@ -2332,7 +2356,7 @@ fn select_sites_match_reviewed_cancellation_inventory() {
                     super::types::SynFileRef::from(source_file.ast().as_ref()),
                     SelectMacroVisitor::default(),
                 );
-                if visitor.count.get() != 0usize {
+                if visitor.count.get() != usize_constants::ZERO {
                     let _previous = observed.insert(
                         source_file.path().as_ref().display().to_string(),
                         visitor.count.get(),
@@ -2489,7 +2513,11 @@ fn lock_across_await_policy_requires_explicit_drop() {
         super::types::SynFileRef::from(&valid),
         LockAcrossAwaitVisitor::default(),
     );
-    assert_eq!(invalid_visitor.violations.len(), 1usize, "bbfce72c");
+    assert_eq!(
+        invalid_visitor.violations.len(),
+        usize_constants::ONE,
+        "bbfce72c"
+    );
     assert!(valid_visitor.violations.is_empty(), "4b732bd1");
 }
 
@@ -2592,7 +2620,7 @@ fn route_path_policy_rejects_kebab_case() {
         super::types::SynFileRef::from(&ast),
         RouteLiteralVisitor::default(),
     );
-    assert_eq!(visitor.violations.len(), 1usize, "d15287e9");
+    assert_eq!(visitor.violations.len(), usize_constants::ONE, "d15287e9");
 }
 
 #[test]
@@ -2608,5 +2636,5 @@ fn route_path_policy_rejects_api_prefix() {
         super::types::SynFileRef::from(&ast),
         RouteLiteralVisitor::default(),
     );
-    assert_eq!(visitor.violations.len(), 1usize, "5caaea72");
+    assert_eq!(visitor.violations.len(), usize_constants::ONE, "5caaea72");
 }

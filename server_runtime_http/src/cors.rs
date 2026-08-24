@@ -41,7 +41,7 @@ pub fn parse_cors_allow_origin(
         .chars()
         .filter(|character| *character == CORS_ALLOW_ORIGIN_SPLIT_CH)
         .count()
-        .saturating_add(1usize);
+        .saturating_add(usize_constants::ONE);
     if capacity > CORS_ALLOW_ORIGIN_MAX_ITEMS {
         return Err(HttpCorsAllowOriginHeaderValuesError::TooManyItems);
     }

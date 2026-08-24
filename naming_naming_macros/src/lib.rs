@@ -36,7 +36,7 @@ pub fn generate_upper_camel_case_and_snake_case_str_and_token_stream(
                 },
             );
             let phrase_part_snake_case_str = element.iter().enumerate().fold(
-                String::with_capacity(parts_len.saturating_add(element.len().saturating_sub(1usize))),
+                String::with_capacity(parts_len.saturating_add(element.len().saturating_sub(usize_constants::ONE))),
                 |mut accumulator, (i, el0)| {
                         let element_snake_case_str = naming_common::AsRefStrToSnakeCaseStr::case(el0);
                         if i == 0 {

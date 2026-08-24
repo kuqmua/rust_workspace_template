@@ -65,16 +65,16 @@ enum SqlIdentifierListTextState {
 pub struct SqlIdentifiers(SqlIdentifierListTextState);
 impl From<Vec<SqlIdentifier>> for SqlIdentifiers {
     fn from(value: Vec<SqlIdentifier>) -> Self {
-        let identifiers_len = value.iter().fold(0usize, |len, identifier| {
+        let identifiers_len = value.iter().fold(usize_constants::ZERO, |len, identifier| {
             len.saturating_add(identifier.as_ref().len())
         });
         let separators_len = value
             .len()
-            .saturating_sub(1usize)
+            .saturating_sub(usize_constants::ONE)
             .saturating_mul(str_constants::TEXT_ALT_6.len());
         let mut text = String::with_capacity(identifiers_len.saturating_add(separators_len));
         value.iter().enumerate().for_each(|(idx, identifier)| {
-            if idx != 0usize {
+            if idx != usize_constants::ZERO {
                 text.push_str(str_constants::TEXT_ALT_6);
             }
             text.push_str(identifier.as_ref());
@@ -220,6 +220,6 @@ mod tests {
     }
     #[test]
     fn benchmark_black_box_dependency_is_available() {
-        assert_ne!(size_of::<criterion::Criterion>(), 0usize);
+        assert_ne!(size_of::<criterion::Criterion>(), usize_constants::ZERO);
     }
 }

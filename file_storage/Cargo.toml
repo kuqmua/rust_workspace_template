@@ -11,6 +11,8 @@ categories = ["filesystem"]
 edition.workspace = true
 
 [dependencies]
+usize_constants = { workspace = true }
+u64_constants = { workspace = true }
 optimal_memory_layout = { workspace = true }
 bounded_types = { workspace = true }
 newtype = { workspace = true }

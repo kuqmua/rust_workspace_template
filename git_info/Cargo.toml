@@ -15,5 +15,9 @@ serde = { workspace = true }
 serde_derive = { workspace = true }
 newtype = { workspace = true }
 optimal_memory_layout = { workspace = true }
+
+[dev-dependencies]
+usize_constants = { workspace = true }
+
 [lints]
 workspace = true

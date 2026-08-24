@@ -54,7 +54,7 @@ impl TryFrom<usize> for CursorMaximumLength {
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone)]
 pub struct CursorSigningKey(
-    bounded_types::BoundedVec<u8, 1usize, CURSOR_SIGNING_KEY_MAXIMUM_LENGTH>,
+    bounded_types::BoundedVec<u8, { usize_constants::ONE }, CURSOR_SIGNING_KEY_MAXIMUM_LENGTH>,
 );
 
 impl std::fmt::Debug for CursorSigningKey {
@@ -271,7 +271,7 @@ mod tests {
             let signature_start = modified_bytes
                 .iter()
                 .rposition(|byte| *byte == b'.')
-                .and_then(|index| index.checked_add(1usize))
+                .and_then(|index| index.checked_add(usize_constants::ONE))
                 .expect(str_constants::VALUE_02A18550);
             let signature_byte = modified_bytes.get_mut(signature_start).expect(str_constants::VALUE_EB8B9918);
             *signature_byte = if *signature_byte == b'A' { b'B' } else { b'A' };
@@ -301,9 +301,9 @@ mod tests {
         );
         assert_eq!(
             super::CursorSigningKey::try_from(vec![
-                0u8;
+                u8_constants::ZERO;
                 super::CURSOR_SIGNING_KEY_MAXIMUM_LENGTH
-                    + 1usize
+                    + usize_constants::ONE
             ])
             .map(drop),
             Err(super::CursorSigningKeyError)

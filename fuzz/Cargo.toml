@@ -12,6 +12,7 @@ edition.workspace = true
 cargo-fuzz = true
 
 [dependencies]
+u8_constants = { workspace = true }
 file_storage = { workspace = true }
 libfuzzer-sys = { workspace = true }
 pg_crud_common = { workspace = true }

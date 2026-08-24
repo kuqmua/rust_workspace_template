@@ -59,7 +59,7 @@ fn service_deployment_probes_use_registered_health_routes() {
                 .lines()
                 .filter(|line| line.trim() == format!("path: {}", live_path.as_ref()))
                 .count(),
-            1usize,
+            usize_constants::ONE,
             "4173ba47"
         );
     });
@@ -310,12 +310,12 @@ fn unpinned_dockerfile_base_images(
         let image_index = words
             .iter()
             .enumerate()
-            .skip(1usize)
+            .skip(usize_constants::ONE)
             .find(|(_, word)| !word.starts_with("--"))
             .map(|(index, _)| index)?;
         let image = words.get(image_index)?.to_string();
         let stage = words
-            .get(image_index.saturating_add(1usize))
+            .get(image_index.saturating_add(usize_constants::ONE))
             .filter(|keyword| keyword.eq_ignore_ascii_case("AS"))
             .and_then(|_| words.get(image_index.saturating_add(2usize)))
             .map(|stage| (*stage).to_ascii_lowercase());

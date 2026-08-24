@@ -348,7 +348,7 @@ impl From<frontend_contract::FilterOperation> for AdminFilterOperationKey {
             .chars()
             .enumerate()
             .for_each(|(index, character)| {
-                if character.is_uppercase() && index > 0usize {
+                if character.is_uppercase() && index > usize_constants::ZERO {
                     key.push('_');
                 }
                 key.extend(character.to_lowercase());

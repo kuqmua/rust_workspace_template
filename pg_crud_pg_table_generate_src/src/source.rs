@@ -507,7 +507,7 @@ pub fn emit_generate_pg_table(
         newtype::Display,
         newtype::BoundedString,
     )]
-    #[bounded_string(max = GENERATE_PG_TABLE_MAX_IDENTIFIER_LEN, min = 1usize, serde)]
+    #[bounded_string(max = GENERATE_PG_TABLE_MAX_IDENTIFIER_LEN, min = usize_constants::ONE, serde)]
     struct GeneratePgTableExcludeField(String);
     impl std::ops::Deref for UsizeGeneratePgTableDbColumns {
         type Target = [GeneratePgTableDbColumn];
@@ -548,14 +548,18 @@ pub fn emit_generate_pg_table(
     #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, serde::Deserialize)]
     #[serde(try_from = "Vec<GeneratePgTableDbColumn>")]
     struct UsizeGeneratePgTableDbColumns(
-        pg_crud_common::bounded_vec::BoundedVec<GeneratePgTableDbColumn, 0usize, { usize::MAX }>,
+        pg_crud_common::bounded_vec::BoundedVec<
+            GeneratePgTableDbColumn,
+            { usize_constants::ZERO },
+            { usize::MAX },
+        >,
     );
     #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, serde::Deserialize)]
     #[serde(try_from = "Vec<GeneratePgTableExcludeField>")]
     struct UsizeCreateExcludeFields(
         pg_crud_common::bounded_vec::BoundedVec<
             GeneratePgTableExcludeField,
-            0usize,
+            { usize_constants::ZERO },
             { usize::MAX },
         >,
     );
@@ -564,7 +568,7 @@ pub fn emit_generate_pg_table(
     struct UsizeReadExcludeFields(
         pg_crud_common::bounded_vec::BoundedVec<
             GeneratePgTableExcludeField,
-            0usize,
+            { usize_constants::ZERO },
             { usize::MAX },
         >,
     );
@@ -779,7 +783,7 @@ pub fn emit_generate_pg_table(
         });
         let mut frontend = GeneratePgTableFrontendFieldEmission::default();
         let mut frontend_flags = workspace_macro_helpers::StdUniqueOptionSet::default();
-        let mut frontend_attr_count = 0usize;
+        let mut frontend_attr_count = usize_constants::ZERO;
         syn_field
             .attrs
             .iter()
@@ -788,8 +792,8 @@ pub fn emit_generate_pg_table(
                     .is_ident(str_constants::GENERATE_PG_TABLE_FRONTEND)
             })
             .try_for_each(|attr| {
-                frontend_attr_count = frontend_attr_count.saturating_add(1usize);
-                if frontend_attr_count > 1usize {
+                frontend_attr_count = frontend_attr_count.saturating_add(usize_constants::ONE);
+                if frontend_attr_count > usize_constants::ONE {
                     return Err(syn::Error::new_spanned(
                         attr,
                         str_constants::DUPLICATE_GENERATE_PG_TABLE_FRONTEND_ATTRIBUTE,
@@ -1107,7 +1111,7 @@ pub fn emit_generate_pg_table(
             .cm_max_items
             .into_iter()
             .chain(config.um_max_items)
-            .any(|limit| limit.0 == 0usize)
+            .any(|limit| limit.0 == usize_constants::ZERO)
         {
             return Err(compile_error_token_stream(CompileErrorMessage::from(
                 str_constants::COMPILE_ERROR_CE_013,
@@ -1717,7 +1721,7 @@ pub fn emit_generate_pg_table(
                     .split('_')
                     .enumerate()
                     .for_each(|(part_idx, part)| {
-                        if part_idx != 0usize {
+                        if part_idx != usize_constants::ZERO {
                             value.push(' ');
                         }
                         let mut chars = part.chars();
@@ -2181,7 +2185,7 @@ pub fn emit_generate_pg_table(
             .split('_')
             .enumerate()
             .fold(String::with_capacity(identifier_snake_case_string.len()), |mut title, (index, part)| {
-                if index > 0usize {
+                if index > usize_constants::ZERO {
                     title.push_str(str_constants::SPACE);
                 }
                 let mut chars = part.chars();
@@ -3054,7 +3058,7 @@ pub fn emit_generate_pg_table(
                             },
                             &quote::quote! {v_9e3f8fdd},
                             &{
-                                let ts = if i.saturating_add(1usize) == read_fields_len {
+                                let ts = if i.saturating_add(usize_constants::ONE) == read_fields_len {
                                     proc_macro2::TokenStream::new()
                                 } else {
                                     quote::quote! {is_first_push_to_extra_parameters_already_happend = true;}
@@ -4147,9 +4151,9 @@ enum WrapIntoOptional {
         let optional_common_error_variants = generate_pg_table_input_model
             .error_variants_by_attr
             .get(&GeneratePgTableAttr::CommonErrorVariants);
-        let mut accumulator = Vec::with_capacity(
-            4usize.saturating_add(optional_common_error_variants.map_or(0usize, Vec::len)),
-        );
+        let mut accumulator = Vec::with_capacity(4usize.saturating_add(
+            optional_common_error_variants.map_or(usize_constants::ZERO, Vec::len),
+        ));
         accumulator.push(GeneratePgTableVariantEmissionRef::Syn(
             check_body_size_syn_variant.get_syn_variant(),
         ));
@@ -4916,9 +4920,9 @@ enum WrapIntoOptional {
                         quote::quote! {
                             operation.security = Some(vec![
                                 utoipa::openapi::security::SecurityRequirement::default()
-                                    .add::<&str, [&str; 0usize], &str>("admin_cookie", []),
+                                    .add::<&str, [&str; usize_constants::ZERO], &str>("admin_cookie", []),
                                 utoipa::openapi::security::SecurityRequirement::default()
-                                    .add::<&str, [&str; 0usize], &str>("admin_csrf", []),
+                                    .add::<&str, [&str; usize_constants::ZERO], &str>("admin_csrf", []),
                             ]);
                         },
                         quote::quote! {
@@ -5152,7 +5156,7 @@ enum WrapIntoOptional {
             let error_variants_len = generate_pg_table_input_model
                 .error_variants_by_attr
                 .get(&operation.generate_pg_table_attr_error_variants())
-                .map_or(0usize, Vec::len);
+                .map_or(usize_constants::ZERO, Vec::len);
             let mut accumulator = Vec::with_capacity(
                 common_route_syn_variants
                     .len()
@@ -6577,7 +6581,7 @@ enum WrapIntoOptional {
                                     where
                                         Deserializer: serde::Deserializer<'de>,
                                     {
-                                        let bounded = <pg_crud_common::bounded_vec::BoundedVec<#identifier_create_upper_camel_case, 0usize, #limit_value> as serde::Deserialize>::deserialize(deserializer)?;
+                                        let bounded = <pg_crud_common::bounded_vec::BoundedVec<#identifier_create_upper_camel_case, { usize_constants::ZERO }, #limit_value> as serde::Deserialize>::deserialize(deserializer)?;
                                         Ok(Self(Vec::from(bounded)))
                                     }
                                 }
@@ -6709,7 +6713,7 @@ enum WrapIntoOptional {
                             |limit| {
                                 let limit_value = limit.0;
                                 quote::quote! {
-                                    Vec::from(<pg_crud_common::bounded_vec::BoundedVec<#identifier_update_upper_camel_case, 0usize, #limit_value> as _serde::Deserialize>::deserialize(__deserializer)?)
+                                    Vec::from(<pg_crud_common::bounded_vec::BoundedVec<#identifier_update_upper_camel_case, { usize_constants::ZERO }, #limit_value> as _serde::Deserialize>::deserialize(__deserializer)?)
                                 }
                             },
                         );
@@ -6945,7 +6949,7 @@ enum WrapIntoOptional {
             let try_operation_token_stream = {
                 let enum_token_stream = pg_crud_macros_common::token_stream_helpers::error_enum_d_token_stream_builder()
                         .build_enum(&proc_macro2::TokenStream::new(), &generate_identifier_try_operation_error_upper_camel_case(operation), &proc_macro2::TokenStream::new(), &{
-                        let mut syn_variants = Vec::with_capacity(common_http_req_syn_variants.len().saturating_add(1usize));
+                        let mut syn_variants = Vec::with_capacity(common_http_req_syn_variants.len().saturating_add(usize_constants::ONE));
                         syn_variants.extend_from_slice(common_http_req_syn_variants.as_slice());
                         if let Operation::Rm | Operation::Ro = &operation {
                             syn_variants.push(GeneratePgTableVariantEmissionRef::Syn(not_unique_field_syn_variant.get_syn_variant()));
@@ -7724,7 +7728,7 @@ enum WrapIntoOptional {
                     let original_value = serde_json::to_value(original).expect("d4d4cc0d collect_refs invariant must hold");
                     let item = original_value.as_array().and_then(|items| items.first()).cloned().expect("79b00707 collect_refs invariant must hold");
                     assert!(serde_json::from_value::<#payload_type_token_stream>(original_value).is_ok());
-                    let above_limit = serde_json::Value::Array(std::iter::repeat_n(item, #limit_value.saturating_add(1usize)).collect());
+                    let above_limit = serde_json::Value::Array(std::iter::repeat_n(item, #limit_value.saturating_add(usize_constants::ONE)).collect());
                     match serde_json::from_value::<#payload_type_token_stream>(above_limit) {
                         Ok(_) => panic!("1a74209c"),
                         Err(error) => assert!(error.to_string().contains("exceeds limit")),
@@ -7811,7 +7815,7 @@ enum WrapIntoOptional {
                     let (field_name, field_filter) = where_many.iter().next().expect("5d781d42 collect_refs invariant must hold");
                     let filters = field_filter.get("v").and_then(serde_json::Value::as_array).expect("2ca9da9a collect_refs invariant must hold");
                     let mut multi_operator = filters.first().and_then(serde_json::Value::as_object).cloned().expect("3a86c2c9 collect_refs invariant must hold");
-                    let (second_operator_name, second_operator_value) = filters.get(1usize).and_then(serde_json::Value::as_object).and_then(|value| value.iter().next()).expect("8589f0ef collect_refs invariant must hold");
+                    let (second_operator_name, second_operator_value) = filters.get(usize_constants::ONE).and_then(serde_json::Value::as_object).and_then(|value| value.iter().next()).expect("8589f0ef collect_refs invariant must hold");
                     multi_operator.insert(second_operator_name.clone(), second_operator_value.clone());
                     let mut multi_operator_field_filter = field_filter.clone();
                     let multi_operator_filters = multi_operator_field_filter.as_object_mut().and_then(|value| value.get_mut("v")).and_then(serde_json::Value::as_array_mut).expect("5df08753 collect_refs invariant must hold");

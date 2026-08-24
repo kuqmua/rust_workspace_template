@@ -21,5 +21,9 @@ location = { workspace = true }
 optimal_memory_layout = { workspace = true }
 newtype = { workspace = true }
 to_err_string = { workspace = true }
+
+[dev-dependencies]
+i64_constants = { workspace = true }
+
 [lints]
 workspace = true

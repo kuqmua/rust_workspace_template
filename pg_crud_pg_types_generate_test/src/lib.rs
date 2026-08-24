@@ -348,7 +348,9 @@ mod tests {
             ]
         );
         assert_eq!(
-            text.as_ref().get(1usize).map(|filter| filter.value_shape()),
+            text.as_ref()
+                .get(usize_constants::ONE)
+                .map(|filter| filter.value_shape()),
             Some(frontend_contract::FilterValueShape::Regex)
         );
     }

@@ -113,7 +113,7 @@ impl utoipa::PartialSchema for HealthComponents {
     fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
         <bounded_types::BoundedVec<
             HealthComponent,
-            0usize,
+            { usize_constants::ZERO },
             HEALTH_COMPONENTS_MAX_LEN,
         > as utoipa::PartialSchema>::schema()
     }
@@ -133,9 +133,11 @@ impl TryFrom<Vec<HealthComponent>> for HealthComponents {
     type Error = HealthComponentsError;
 
     fn try_from(value: Vec<HealthComponent>) -> Result<Self, Self::Error> {
-        bounded_types::BoundedVec::<HealthComponent, 0usize, HEALTH_COMPONENTS_MAX_LEN>::try_from(
-            value,
-        )
+        bounded_types::BoundedVec::<
+            HealthComponent,
+            { usize_constants::ZERO },
+            HEALTH_COMPONENTS_MAX_LEN,
+        >::try_from(value)
         .map(bounded_types::BoundedVec::into_inner)
         .map(Self)
         .map_err(|_error| HealthComponentsError)
@@ -148,7 +150,7 @@ impl<'de> serde::Deserialize<'de> for HealthComponents {
     {
         let value = <bounded_types::BoundedVec<
             HealthComponent,
-            0usize,
+            { usize_constants::ZERO },
             HEALTH_COMPONENTS_MAX_LEN,
         > as serde::Deserialize>::deserialize(deserializer)?
         .into_inner();
@@ -375,7 +377,7 @@ pub struct GitInfoRoute;
     PartialEq,
     frontend_contract::RouteCatalog,
 )]
-#[route_catalog(family = CommonRouteFamily, body_limit = 0usize)]
+#[route_catalog(family = CommonRouteFamily, body_limit = usize_constants::ZERO)]
 pub enum CommonRoute {
     #[route_catalog_route(GitInfoRoute)]
     GitInfo,

@@ -10,7 +10,9 @@ pub(crate) struct LastAdminState {
 }
 impl LastAdminState {
     pub(crate) fn would_remove_last(self) -> crate::StdAdminBool {
-        crate::StdAdminBool::from(self.target_is_admin.get() && self.active_count.0 <= 1i64)
+        crate::StdAdminBool::from(
+            self.target_is_admin.get() && self.active_count.0 <= i64_constants::ONE,
+        )
     }
 }
 
@@ -228,7 +230,7 @@ pub(crate) async fn replace_user_roles(
                 .fetch_one(&mut *connection.0)
                 .await
                 .map_err(crate::SqlxAdminError::from)?;
-        if active_admin_count <= 1i64 {
+        if active_admin_count <= i64_constants::ONE {
             return Ok(super::ReplaceUserRolesOutcome::LastActiveAdministrator);
         }
     }
@@ -302,9 +304,9 @@ mod tests {
             .would_remove_last()
             .get()
         };
-        assert!(would_remove(1i64, true));
-        assert!(would_remove(0i64, true));
+        assert!(would_remove(i64_constants::ONE, true));
+        assert!(would_remove(i64_constants::ZERO, true));
         assert!(!would_remove(2i64, true));
-        assert!(!would_remove(1i64, false));
+        assert!(!would_remove(i64_constants::ONE, false));
     }
 }

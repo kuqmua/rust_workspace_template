@@ -1,5 +1,3 @@
-const OPENAPI_CONTRACT_TEXT_MAX_LEN: usize = 1_048_576usize;
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -11,7 +9,7 @@ const OPENAPI_CONTRACT_TEXT_MAX_LEN: usize = 1_048_576usize;
     newtype::AsRefStr,
     newtype::BoundedString,
 )]
-#[bounded_string(max = OPENAPI_CONTRACT_TEXT_MAX_LEN)]
+#[bounded_string(max = usize_constants::VALUE_1_048_576)]
 pub struct OpenApiContractText(String);
 
 #[derive(
@@ -476,7 +474,7 @@ where
                 validate_openapi_json_payload(&payload_value, *candidate, &document_value).is_ok()
             })
             .count();
-        if matches != 1usize {
+        if matches != usize_constants::ONE {
             return Err(OpenApiPayloadValidationError::Mismatch(
                 OpenApiSchemaMismatch::OneOf,
             ));
