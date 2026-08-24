@@ -13,7 +13,9 @@
     reason = "Leptos component macro expansion generates builders, fields, and bindings with framework-defined shapes"
 )]
 
-use leptos::prelude::{ClassAttribute, CustomAttribute, ElementChild};
+#[allow(unused_import_braces, reason = "grouped Leptos prelude imports are required by workspace source policy")]
+#[rustfmt::skip]
+use leptos::prelude::{AddAnyAttr};
 
 #[derive(optml::Optml, Clone, Copy, Default, PartialEq, Eq)]
 pub(crate) enum AdminCardVariant {
@@ -65,8 +67,54 @@ pub(crate) fn AdminCard(
     children: leptos::prelude::Children,
 ) -> impl leptos::prelude::IntoView {
     leptos::view! {
-        <div data-name="Card" data-size="default" class=variant.class()>
-            <div data-name="CardContent" class="px-6">{children()}</div>
-        </div>
+        <singlestage::Card attr:data-name="Card" attr:data-size="default" attr:class=variant.class()>
+            <singlestage::CardContent attr:data-name="CardContent" attr:class="px-6">{children()}</singlestage::CardContent>
+        </singlestage::Card>
     }
+}
+
+#[leptos::component]
+#[allow(
+    unreachable_pub,
+    reason = "Leptos component visibility is required for card composition"
+)]
+pub(crate) fn AdminCardHeader(
+    children: leptos::prelude::Children,
+) -> impl leptos::prelude::IntoView {
+    leptos::view! { <singlestage::CardHeader attr:data-name="CardHeader">{children()}</singlestage::CardHeader> }
+}
+
+#[leptos::component]
+#[allow(
+    unreachable_pub,
+    reason = "Leptos component visibility is required for card composition"
+)]
+pub(crate) fn AdminCardTitle(
+    #[prop(optional)] class: Option<&'static str>,
+    children: leptos::prelude::Children,
+) -> impl leptos::prelude::IntoView {
+    leptos::view! { <singlestage::CardTitle attr:data-name="CardTitle" class=class.map(String::from)>{children()}</singlestage::CardTitle> }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+#[leptos::component]
+#[allow(
+    unreachable_pub,
+    reason = "Leptos component visibility is required for card composition"
+)]
+pub(crate) fn AdminCardDescription(
+    children: leptos::prelude::Children,
+) -> impl leptos::prelude::IntoView {
+    leptos::view! { <singlestage::CardDescription attr:data-name="CardDescription">{children()}</singlestage::CardDescription> }
+}
+
+#[leptos::component]
+#[allow(
+    unreachable_pub,
+    reason = "Leptos component visibility is required for card composition"
+)]
+pub(crate) fn AdminCardFooter(
+    children: leptos::prelude::Children,
+) -> impl leptos::prelude::IntoView {
+    leptos::view! { <singlestage::CardFooter attr:data-name="CardFooter">{children()}</singlestage::CardFooter> }
 }

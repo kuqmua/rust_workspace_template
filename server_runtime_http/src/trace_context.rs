@@ -116,10 +116,14 @@ pub struct HttpOpentelemetryHeaderMapMut<'headers_lt>(&'headers_lt mut http::Hea
 #[derive(optml::Optml, Clone, Copy, Debug, newtype::DerefInner, newtype::FromInner)]
 pub struct HttpOpentelemetryHeaderMapRef<'headers_lt>(&'headers_lt http::HeaderMap);
 
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::DerefInner, newtype::FromInner)]
+#[derive(
+    optml::Optml, Clone, Copy, Debug, newtype::DerefInner, newtype::Display, newtype::FromInner,
+)]
 pub struct HttpHostRef<'host_lt>(&'host_lt str);
 
-#[derive(optml::Optml, Clone, Copy, Debug, newtype::DerefInner, newtype::FromInner)]
+#[derive(
+    optml::Optml, Clone, Copy, Debug, newtype::DerefInner, newtype::Display, newtype::FromInner,
+)]
 pub struct HttpMethodRef<'method_lt>(&'method_lt http::Method);
 
 #[derive(optml::Optml, Clone, Debug, newtype::DerefInner, newtype::FromInner)]

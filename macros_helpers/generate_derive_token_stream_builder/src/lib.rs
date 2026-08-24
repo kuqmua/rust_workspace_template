@@ -139,6 +139,7 @@ pub fn generate_derive_token_stream_builder(
     let struct_or_enum_upper_camel_case = quote::quote! {StructOrEnum};
     let quote_to_tokens_token_stream = quote::quote! {quote::ToTokens};
     let ts2_token_stream = quote::quote! {proc_macro2::TokenStream};
+    let element_count = element_vec.len();
     let generated: proc_macro2::TokenStream = quote::quote! {
         #make_pub_pub_enum_token_stream
         #(#pub_enum_derive_vec_token_stream)*
@@ -168,7 +169,7 @@ pub fn generate_derive_token_stream_builder(
             ) -> #ts2_token_stream {
                 let maybe_pub_token_stream = self.#make_pub_snake_case_token_stream.then(|| quote::quote!{pub});
                 let derive_token_stream = {
-                    let mut accumulator_2a71375c = Vec::new();
+                    let mut accumulator_2a71375c = Vec::with_capacity(#element_count);
                     #(#if_self_derive_accumulator_push_vec_token_stream)*
                     accumulator_2a71375c
                 };

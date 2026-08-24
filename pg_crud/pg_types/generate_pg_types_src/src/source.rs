@@ -918,7 +918,7 @@ pub fn emit_generate_pg_types(
     let unbounded_upper_camel_case = naming::UnboundedUpperCamelCase;
     let update_upper_camel_case = naming::UpdateUpperCamelCase;
     let v_snake_case = naming::VSnakeCase;
-    let (cols_token_stream, mut pg_type_array) = {
+    let (cols_token_stream_vec, mut pg_type_array_vec) = {
         let generate_variants = |should_include: &dyn Fn(&PgType) -> bool| {
             let pg_type_iter =
                 <PgType as strum::IntoEnumIterator>::iter().filter(|element| should_include(element));
@@ -5639,14 +5639,17 @@ enum CreateReadIds {
                 quote::quote! {
                     pub #field: crate::#identifier,
                 }
-                .to_string()
+                .into()
             },
-            generated.to_string(),
+            generated.into(),
         )
     })
-    .collect::<(Vec<String>, Vec<String>)>();
+    .collect::<(
+        Vec<macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream>,
+        Vec<macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream>,
+    )>();
     if generate_pg_types_config.generate_secret_text.0 {
-        pg_type_array.push(quote::quote! {
+        pg_type_array_vec.push(quote::quote! {
             /// Secret PostgreSQL text deliberately has no serialization contract.
             ///
             /// ```compile_fail
@@ -5715,17 +5718,16 @@ enum CreateReadIds {
                     self.0
                 }
             }
-        }.to_string());
+        }.into());
     }
-    let parse_strs_to_ts2_vec = pg_crud_macros_common::token_stream_helpers::parse_strs_to_ts2_vec;
+    let cols_token_stream =
+        pg_crud_macros_common::ProcMacro2GeneratedRustTokenStreamVec::from(cols_token_stream_vec);
+    let pg_type_array =
+        pg_crud_macros_common::ProcMacro2GeneratedRustTokenStreamVec::from(pg_type_array_vec);
     let pg_table_cols_token_stream = {
-        let ts = parse_strs_to_ts2_vec(
-            pg_crud_macros_common::ParseTokenStreamStrings::from(cols_token_stream),
-            pg_crud_macros_common::ParseErrorIdRef::from(str_constants::VALUE_79EE6381),
-        );
         quote::quote! {
             struct PgTableColsUsingPgTypes {
-                #ts
+                #cols_token_stream
             }
         }
     };
@@ -5741,13 +5743,9 @@ enum CreateReadIds {
         );
     }
     let generated = {
-        let ts = parse_strs_to_ts2_vec(
-            pg_crud_macros_common::ParseTokenStreamStrings::from(pg_type_array),
-            pg_crud_macros_common::ParseErrorIdRef::from(str_constants::E0C9257D),
-        );
         pg_crud_macros_common::token_stream_helpers::generate_mod_with_pub_use_token_stream(
             &generate_pg_types_mod_snake_case,
-            &ts,
+            &pg_type_array,
         )
     };
     if let Err(error) = macros_helpers::ts_writer::maybe_write_token_stream_into_file(

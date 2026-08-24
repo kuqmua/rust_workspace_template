@@ -101,8 +101,7 @@ pub fn required_test_categories(capabilities: RouteTestCapabilities) -> RouteTes
             .then_some(RouteTestCategory::StreamingResponse),
     ]
     .into_iter()
-    .flatten()
-    .collect::<Vec<_>>();
+    .flatten();
     RouteTestCategories::from(bounded_types::BoundedVec::from_max_iter(categories))
 }
 

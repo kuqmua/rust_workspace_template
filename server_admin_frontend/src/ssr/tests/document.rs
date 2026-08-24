@@ -41,7 +41,7 @@ fn server_rendered_pages_contain_forms_and_no_scripts() {
     assert!(
         page.as_ref().contains(
             format!(
-                "{}</button></form></nav>",
+                "{}</button></form></li></ul></nav>",
                 server_admin_contract::AdminHtmlAction::SignOut
                     .route_name()
                     .as_ref()
@@ -153,7 +153,7 @@ fn csr_page_contains_only_bootstrap_shell() {
     );
 
     assert!(html.as_ref().contains("id=\"admin-csr-root\""));
-    assert!(html.as_ref().contains("class=\"loading-spinner "));
+    assert!(html.as_ref().contains("loading-spinner size-4"));
     assert!(html.as_ref().contains("aria-live=\"polite\""));
     assert!(
         html.as_ref()

@@ -13,7 +13,9 @@
     reason = "Leptos component macro expansion generates builders, fields, and bindings with framework-defined shapes"
 )]
 
-use leptos::prelude::{ClassAttribute, CustomAttribute};
+#[allow(unused_import_braces, reason = "grouped Leptos prelude imports are required by workspace source policy")]
+#[rustfmt::skip]
+use leptos::prelude::{AddAnyAttr};
 
 #[leptos::component]
 #[allow(
@@ -26,10 +28,9 @@ pub(crate) fn AdminCheckbox(
     #[prop(optional)] required: bool,
 ) -> impl leptos::prelude::IntoView {
     leptos::view! {
-        <input
-            data-name="Checkbox"
+        <singlestage::Checkbox
+            attr:data-name="Checkbox"
             class="peer size-4 shrink-0 rounded-[4px] border border-input shadow-xs outline-none transition-shadow dark:bg-input/30 checked:border-primary checked:bg-primary checked:text-primary-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
-            type="checkbox"
             name=name
             value=value
             required=required

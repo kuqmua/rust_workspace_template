@@ -296,7 +296,7 @@ fn assert_admin_csr_shell(body: &AdminHtmlTestBody) {
     );
     assert!(
         body.0
-            .contains("src=\"/admin/assets/csr_bootstrap.js?v=20260728-34\""),
+            .contains("src=\"/admin/assets/csr_bootstrap.js?v=20260801-37\""),
         "CSR bootstrap script is missing"
     );
     assert!(!body.0.contains("<table"), "server rendered a data table");
@@ -331,6 +331,10 @@ async fn admin_html_test_fixture_with_password_change(
     .execute(&pool.0)
     .await
     .expect("cf37a9e2");
+    let _deleted_non_system_roles = sqlx::query("DELETE FROM roles WHERE NOT is_system")
+        .execute(&pool.0)
+        .await
+        .expect("b267a647");
     let password = serde_json::from_str::<server_admin_contract::AdminNewPassword>(
         str_constants::CORRECT_PASSWORD,
     )

@@ -335,17 +335,37 @@ fn main() -> Result<(), InitializeError> {
         .0
         .into_iter()
         .for_each(|entry| {
+            let separator = str_constants::COMMA_SPACE.trim();
+            let keys_capacity = entry
+                .keys
+                .0
+                .iter()
+                .map(|key| key.as_ref().len())
+                .sum::<usize>()
+                .saturating_add(
+                    entry
+                        .keys
+                        .0
+                        .len()
+                        .get()
+                        .saturating_sub(1usize)
+                        .saturating_mul(separator.len()),
+                );
+            let keys = entry.keys.0.iter().enumerate().fold(
+                String::with_capacity(keys_capacity),
+                |mut keys, (index, key)| {
+                    if index > 0usize {
+                        keys.push_str(separator);
+                    }
+                    keys.push_str(key.as_ref());
+                    keys
+                },
+            );
             println!(
                 "member={} status={:?} keys={}",
                 entry.member.as_ref(),
                 entry.status,
-                entry
-                    .keys
-                    .0
-                    .iter()
-                    .map(EnvKey::as_ref)
-                    .collect::<Vec<&str>>()
-                    .join(",")
+                keys
             );
         });
     Ok(())

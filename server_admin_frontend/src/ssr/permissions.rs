@@ -6,7 +6,7 @@
 )]
 
 use leptos::prelude::{
-    AriaAttributes, ClassAttribute, CustomAttribute, ElementChild, GlobalAttributes,
+    AddAnyAttr, AriaAttributes, ClassAttribute, CustomAttribute, ElementChild, GlobalAttributes,
     InnerHtmlAttribute, StyleAttribute,
 };
 
@@ -17,12 +17,17 @@ pub(super) fn render_permissions(
     admin: &server_admin_contract::AuthenticatedAdmin,
     branding: &server_admin_contract::AdminBrandingView,
 ) -> super::AdminSsrHtml {
+    let rows = page.items().iter().map(|item| {
+        let id = item.id().to_string();
+        let permission = item.name().to_string();
+        leptos::view! {
+            <crate::ui::table::TableRow><crate::ui::table::TableCell data_label="id">{id}</crate::ui::table::TableCell><crate::ui::table::TableCell data_label="permission">{permission}</crate::ui::table::TableCell></crate::ui::table::TableRow>
+        }
+    }).collect::<Vec<_>>();
     let content_view = leptos::view! {
         <section class="table-page">
-        <div data-name="TableWrapper" class="table-scroll max-h-96 overflow-auto rounded-md border"><table data-name="Table" class="w-full max-w-7xl text-sm caption-bottom"><thead data-name="TableHeader" class="[&_tr]:border-b sticky top-0 z-10 bg-card"><tr data-name="TableRow" class="border-b transition-colors data-[state=selected]:bg-muted hover:bg-muted/50"><th data-name="TableHead" class="h-10 px-2 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]">"id"</th><th data-name="TableHead" class="h-10 px-2 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]">"permission"</th></tr></thead>
-        <tbody data-name="TableBody" class="[&_tr:last-child]:border-0">{page.items().iter().map(|item| leptos::view! {
-            <tr data-name="TableRow" class="border-b transition-colors data-[state=selected]:bg-muted hover:bg-muted/50"><td data-name="TableCell" class="p-4 align-middle [&:has([role=checkbox])]:pr-0 [&:has([role=checkbox])]:pl-3" data-label="id">{item.id().to_string()}</td><td data-name="TableCell" class="p-4 align-middle [&:has([role=checkbox])]:pr-0 [&:has([role=checkbox])]:pl-3" data-label="permission">{item.name().to_string()}</td></tr>
-        }).collect::<Vec<_>>()}</tbody></table></div>
+        <crate::ui::table::TableWrapper><crate::ui::table::Table><crate::ui::table::TableHeader><crate::ui::table::TableRow><crate::ui::table::TableHead>"id"</crate::ui::table::TableHead><crate::ui::table::TableHead>"permission"</crate::ui::table::TableHead></crate::ui::table::TableRow></crate::ui::table::TableHeader>
+        <crate::ui::table::TableBody>{rows}</crate::ui::table::TableBody></crate::ui::table::Table></crate::ui::table::TableWrapper>
         {super::table_pagination(server_admin_contract::AdminPage::Permissions, query, page.total(), None, None)}
         </section>
     };

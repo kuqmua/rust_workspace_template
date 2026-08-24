@@ -23,10 +23,12 @@ pub(in crate::app) fn AdminSettingsView(
             request::save(signals);
         }>
             {crate::shared::settings::input::admin_setting_inputs(signals, crate::shared::settings::input::AdminSettingDisabled::from(!can_update))}
-            <crate::ui::button::AdminButton disabled=!can_update>"Save settings"</crate::ui::button::AdminButton>
-            <crate::ui::alert_dialog::AdminAlertDialog id=String::from("reset-settings-dialog") title="Reset settings?" description="All administrator settings will return to the template defaults." trigger="Reset to template defaults" confirm="Reset settings" disabled=!can_update on_confirm=leptos::prelude::Callback::new(move |()| {
-                reset::reset();
-            }) />
+            <crate::ui::card::AdminCardFooter>
+                <crate::ui::button::AdminButton disabled=!can_update>"Save settings"</crate::ui::button::AdminButton>
+                <crate::ui::alert_dialog::AdminAlertDialog id=String::from("reset-settings-dialog") title="Reset settings?" description="All administrator settings will return to the template defaults." trigger="Reset to template defaults" confirm="Reset settings" disabled=!can_update on_confirm=leptos::prelude::Callback::new(move |()| {
+                    reset::reset();
+                }) />
+            </crate::ui::card::AdminCardFooter>
         </form></crate::ui::card::AdminCard></section>
     }
 }

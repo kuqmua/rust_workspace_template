@@ -148,25 +148,30 @@ pub fn resolve_client_ip(
             return None;
         }
         let value_text = value.to_str().ok()?;
-        let entries = value_text.split(',').map(str::trim).collect::<Vec<&str>>();
-        if entries.is_empty() || entries.len() > MAX_FORWARDED_ENTRIES {
-            return None;
-        }
-        let parsed = entries
-            .iter()
-            .map(|entry| entry.parse::<std::net::IpAddr>())
-            .collect::<Result<Vec<std::net::IpAddr>, std::net::AddrParseError>>()
-            .ok()?;
-        parsed
-            .iter()
-            .rev()
-            .find(|candidate| {
-                !trusted_proxy_ranges
-                    .contains(StdIpAddr::from(**candidate))
-                    .get()
-            })
-            .copied()
-            .or_else(|| parsed.first().copied())
+        let (count, first, rightmost_untrusted) = value_text.split(',').map(str::trim).try_fold(
+            (0usize, None, None),
+            |(count, first, rightmost_untrusted), entry| {
+                if count >= MAX_FORWARDED_ENTRIES {
+                    return None;
+                }
+                let parsed = entry.parse::<std::net::IpAddr>().ok()?;
+                let next_first = first.or(Some(parsed));
+                let next_rightmost_untrusted =
+                    if trusted_proxy_ranges.contains(StdIpAddr::from(parsed)).get() {
+                        rightmost_untrusted
+                    } else {
+                        Some(parsed)
+                    };
+                Some((
+                    count.saturating_add(1usize),
+                    next_first,
+                    next_rightmost_untrusted,
+                ))
+            },
+        )?;
+        (count > 0usize)
+            .then_some(rightmost_untrusted.or(first))
+            .flatten()
     };
     let parsed_real_ip = || {
         let values = headers
@@ -189,11 +194,13 @@ pub fn resolve_client_ip(
 pub fn parse_trusted_proxy_ranges(
     value: TrustedProxyRangesTextRef<'_>,
 ) -> Result<TrustedProxyRanges, TrustedProxyRangesParseError> {
+    if value.0.trim().is_empty() {
+        return Ok(TrustedProxyRanges::default());
+    }
     let ranges = value
         .0
         .split(',')
         .map(str::trim)
-        .filter(|item| !item.is_empty())
         .map(|item| {
             TrustedProxyRange::try_from(item.to_owned())
                 .map_err(TrustedProxyRangesParseError::Range)
@@ -273,6 +280,20 @@ mod tests {
             .to_string(),
             "127.0.0.1"
         );
+    }
+    #[test]
+    fn trusted_proxy_ranges_text_rejects_empty_list_entries() {
+        assert!(matches!(
+            super::parse_trusted_proxy_ranges(super::TrustedProxyRangesTextRef::from(
+                "127.0.0.1/32,,::1/128",
+            )),
+            Err(super::TrustedProxyRangesParseError::Range(
+                super::TrustedProxyRangeParseError::MissingPrefix
+            ))
+        ));
+        let empty = super::parse_trusted_proxy_ranges(super::TrustedProxyRangesTextRef::from(" "))
+            .expect("639128ba");
+        assert_eq!(empty, super::TrustedProxyRanges::default());
     }
     #[test]
     fn untrusted_peer_cannot_spoof_forwarded_header() {

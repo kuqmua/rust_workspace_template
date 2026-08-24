@@ -1573,11 +1573,26 @@ fn generate_enum_from_str_token_stream(
             ))
         })
         .collect::<syn::Result<Vec<(&syn::Ident, SnakeIdentifier)>>>()?;
-    let allowed_values = variants
+    let allowed_values_capacity = variants
         .iter()
-        .map(|(_, name)| name.as_ref())
-        .collect::<Vec<&str>>()
-        .join(str_constants::TEXT_ALT_6);
+        .map(|(_identifier, name)| name.as_ref().len())
+        .sum::<usize>()
+        .saturating_add(
+            variants
+                .len()
+                .saturating_sub(1usize)
+                .saturating_mul(str_constants::TEXT_ALT_6.len()),
+        );
+    let allowed_values = variants.iter().enumerate().fold(
+        String::with_capacity(allowed_values_capacity),
+        |mut values, (index, (_identifier, name))| {
+            if index > 0usize {
+                values.push_str(str_constants::TEXT_ALT_6);
+            }
+            values.push_str(name.as_ref());
+            values
+        },
+    );
     let arms = variants.iter().map(|(variant_identifier, name)| {
         let name_ref = name.as_ref();
         quote::quote! {

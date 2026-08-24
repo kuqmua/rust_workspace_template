@@ -2152,14 +2152,18 @@ pub fn emit_generate_pg_table(
         let frontend_page_path_double_quoted_token_stream = generate_quotes::dq_token_stream(&format!("/{identifier_snake_case_string}"));
         let frontend_page_title = identifier_snake_case_string
             .split('_')
-            .map(|part| {
+            .enumerate()
+            .fold(String::with_capacity(identifier_snake_case_string.len()), |mut title, (index, part)| {
+                if index > 0usize {
+                    title.push_str(str_constants::SPACE);
+                }
                 let mut chars = part.chars();
-                chars.next().map_or_else(String::new, |first| {
-                    first.to_uppercase().chain(chars).collect::<String>()
-                })
-            })
-            .collect::<Vec<_>>()
-            .join(str_constants::SPACE);
+                if let Some(first) = chars.next() {
+                    title.extend(first.to_uppercase());
+                    title.extend(chars);
+                }
+                title
+            });
         let frontend_page_title_double_quoted_token_stream = generate_quotes::dq_token_stream(&frontend_page_title);
         let pub_fn_table_token_stream = quote::quote! {
             #MustUse

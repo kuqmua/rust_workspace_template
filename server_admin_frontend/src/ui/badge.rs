@@ -13,7 +13,9 @@
     reason = "Leptos component macro expansion generates builders, fields, and bindings with framework-defined shapes"
 )]
 
-use leptos::prelude::{ClassAttribute, CustomAttribute, ElementChild};
+#[allow(unused_import_braces, reason = "grouped Leptos prelude imports are required by workspace source policy")]
+#[rustfmt::skip]
+use leptos::prelude::{AddAnyAttr};
 
 #[derive(optml::Optml, Clone, Copy, Default, PartialEq, Eq)]
 pub(crate) enum AdminBadgeVariant {
@@ -45,6 +47,6 @@ pub(crate) fn AdminBadge(
     children: leptos::prelude::Children,
 ) -> impl leptos::prelude::IntoView {
     leptos::view! {
-        <span data-name="Badge" class=variant.class()>{children()}</span>
+        <singlestage::Badge attr:data-name="Badge" attr:class=variant.class()>{children()}</singlestage::Badge>
     }
 }

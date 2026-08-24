@@ -580,7 +580,22 @@ pub fn plan_disk_cache_eviction(
     })?;
     let mut ordered = entries.iter().collect::<Vec<_>>();
     ordered.sort_unstable_by_key(|entry| entry.modified_at.0);
-    let mut remove = Vec::new();
+    let projected = current
+        .checked_add(incoming.0)
+        .ok_or(DiskCacheBudgetError::SizeOverflow)?;
+    let required = projected.saturating_sub(maximum.0);
+    let remove_capacity = ordered
+        .iter()
+        .scan(0u64, |removed, entry| {
+            if *removed >= required {
+                None
+            } else {
+                *removed = removed.saturating_add(entry.size.0);
+                Some(())
+            }
+        })
+        .count();
+    let mut remove = Vec::with_capacity(remove_capacity);
     let mut candidates = ordered.into_iter();
     while current
         .checked_add(incoming.0)

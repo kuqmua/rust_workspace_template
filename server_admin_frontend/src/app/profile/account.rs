@@ -4,28 +4,30 @@
     reason = "the account card is composed once by the profile screen"
 )]
 
-use leptos::prelude::{ClassAttribute, ElementChild};
+#[allow(
+    unused_import_braces,
+    reason = "grouped Leptos prelude imports are required by workspace source policy"
+)]
+#[rustfmt::skip]
+use leptos::prelude::{ElementChild};
 
 pub(super) fn admin_profile_account(
     admin: &server_admin_contract::AuthenticatedAdmin,
 ) -> impl leptos::prelude::IntoView + use<> {
     let login = admin.login().to_string();
     let display_name = admin.display_name().to_string();
-    let roles = admin
-        .roles()
-        .iter()
-        .map(ToString::to_string)
-        .collect::<Vec<_>>()
-        .join(str_constants::COMMA_SPACE);
-    let permissions = admin
-        .permissions()
-        .iter()
-        .map(ToString::to_string)
-        .collect::<Vec<_>>()
-        .join(str_constants::COMMA_SPACE);
+    let roles = String::from(crate::shared::text::join_txt(
+        admin.roles().iter().map(|name| name.as_ref().as_str()),
+    ));
+    let permissions = String::from(crate::shared::text::join_txt(
+        admin
+            .permissions()
+            .iter()
+            .map(|permission| permission.as_ref().as_str()),
+    ));
     leptos::view! {
         <crate::ui::card::AdminCard variant=crate::ui::card::AdminCardVariant::Profile>
-            <h2 class="profile-card-title">"Account"</h2>
+            <crate::ui::card::AdminCardHeader><crate::ui::card::AdminCardTitle class="profile-card-title">"Account"</crate::ui::card::AdminCardTitle></crate::ui::card::AdminCardHeader>
             <dl>
                 <dt>"Login"</dt><dd>{login}</dd>
                 <dt>"Display name"</dt><dd>{display_name}</dd>

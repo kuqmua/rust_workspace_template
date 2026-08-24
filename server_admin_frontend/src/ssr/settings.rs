@@ -25,9 +25,9 @@ pub(super) fn render_settings(
         <section class="settings-grid"><crate::ui::card::AdminCard variant=crate::ui::card::AdminCardVariant::Settings>
         {can_update.then(|| leptos::view! { <form class="settings-form" method="post" action=server_admin_contract::AdminHtmlAction::SettingsUpdate.get()>
             {crate::shared::settings::input::admin_setting_inputs(signals, crate::shared::settings::input::AdminSettingDisabled::from(false))}
-            <crate::ui::button::AdminButton>"Save settings"</crate::ui::button::AdminButton>
+            <crate::ui::card::AdminCardFooter><crate::ui::button::AdminButton>"Save settings"</crate::ui::button::AdminButton></crate::ui::card::AdminCardFooter>
         </form> })}
-        {(!can_update).then(|| leptos::view! { <p>"Settings are read-only for this account."</p> })}
+        {(!can_update).then(|| leptos::view! { <crate::ui::alert::AdminAlert>"Settings are read-only for this account."</crate::ui::alert::AdminAlert> })}
         </crate::ui::card::AdminCard></section>
     };
     let content = super::render_view(content_view);

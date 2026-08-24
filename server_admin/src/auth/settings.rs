@@ -75,6 +75,11 @@ pub(super) async fn branding(
 pub(super) async fn branding_view(
     auth: super::AdminAuthReq,
 ) -> Result<server_admin_contract::AdminBrandingView, super::AdminError> {
+    branding_view_ref(&auth).await
+}
+pub(super) async fn branding_view_ref(
+    auth: &super::AdminAuthReq,
+) -> Result<server_admin_contract::AdminBrandingView, super::AdminError> {
     let settings = super::super::repository::settings::read_settings(
         super::super::repository::SqlxAdminRepositoryPoolRef::from(
             auth.state.as_ref().pool.as_ref(),

@@ -24,18 +24,22 @@ pub(in crate::app) fn AdminApp() -> impl leptos::prelude::IntoView {
     }
     leptos::view! {
         <div class="app-shell">
-        {move || leptos::prelude::Get::get(&state).admin().cloned().map(|admin| leptos::view! { <super::navigation::AdminNav admin=admin /> })}
-        <main class="main-content">{move || match leptos::prelude::Get::get(&state) {
-            super::state::AdminLoadState::Empty(_admin) => leptos::prelude::IntoAny::into_any(leptos::view! { <crate::ui::empty::AdminEmpty>"Choose a table."</crate::ui::empty::AdminEmpty> }),
-            super::state::AdminLoadState::Error(error) => leptos::prelude::IntoAny::into_any(leptos::view! { <crate::ui::alert::AdminAlert>{error.to_string()}</crate::ui::alert::AdminAlert> }),
-            super::state::AdminLoadState::Loading => leptos::prelude::IntoAny::into_any(leptos::view! { <crate::ui::spinner::AdminSpinner /> }),
-            super::state::AdminLoadState::Permissions(_admin, page) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::permissions::AdminPermissionsView page=page query=query_result.clone().unwrap_or_default() /> }),
-            super::state::AdminLoadState::Profile(admin) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::profile::AdminProfileView admin=admin /> }),
-            super::state::AdminLoadState::Roles(admin, page) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::roles::AdminRolesView admin=admin page=page query=query_result.clone().unwrap_or_default() /> }),
-            super::state::AdminLoadState::Sessions(_admin, page) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::sessions::AdminSessionsView page=page /> }),
-            super::state::AdminLoadState::Settings(admin, page) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::settings::AdminSettingsView admin=admin page=page /> }),
-            super::state::AdminLoadState::Table(_admin, view) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::data_grid::AdminDataGrid view=view query=query_result.clone().unwrap_or_default() /> }),
-            super::state::AdminLoadState::Users(admin, page) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::users::AdminUsersView admin=admin page=page query=query_result.clone().unwrap_or_default() /> }),
-        }}</main></div>
+        {move || {
+            let current_state = leptos::prelude::Get::get(&state);
+            let admin = current_state.admin().cloned();
+            let content = match current_state {
+                super::state::AdminLoadState::Empty(_admin) => leptos::prelude::IntoAny::into_any(leptos::view! { <crate::ui::empty::AdminEmpty>"Choose a table."</crate::ui::empty::AdminEmpty> }),
+                super::state::AdminLoadState::Error(error) => leptos::prelude::IntoAny::into_any(leptos::view! { <crate::ui::alert::AdminAlert>{error.to_string()}</crate::ui::alert::AdminAlert> }),
+                super::state::AdminLoadState::Loading => leptos::prelude::IntoAny::into_any(leptos::view! { <crate::ui::spinner::AdminSpinner /> }),
+                super::state::AdminLoadState::Permissions(_admin, page) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::permissions::AdminPermissionsView page=page query=query_result.clone().unwrap_or_default() /> }),
+                super::state::AdminLoadState::Profile(admin) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::profile::AdminProfileView admin=admin /> }),
+                super::state::AdminLoadState::Roles(admin, page) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::roles::AdminRolesView admin=admin page=page query=query_result.clone().unwrap_or_default() /> }),
+                super::state::AdminLoadState::Sessions(_admin, page) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::sessions::AdminSessionsView page=page /> }),
+                super::state::AdminLoadState::Settings(admin, page) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::settings::AdminSettingsView admin=admin page=page /> }),
+                super::state::AdminLoadState::Table(_admin, view) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::data_grid::AdminDataGrid view=view query=query_result.clone().unwrap_or_default() /> }),
+                super::state::AdminLoadState::Users(admin, page) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::users::AdminUsersView admin=admin page=page query=query_result.clone().unwrap_or_default() /> }),
+            };
+            leptos::view! { <super::navigation::AdminNav admin=admin /><main class="main-content"><div class="page-frame">{content}</div></main> }
+        }}</div>
     }
 }

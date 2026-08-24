@@ -3068,6 +3068,7 @@ define_str_constants! {
         pub SERVER_ADMIN_FRONTEND_SRC_SSR_DOCUMENT_PAGE_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/ssr/document/page.", WORD_RS];
         pub SERVER_ADMIN_FRONTEND_SRC_SSR_DOCUMENT_PAGE_NAVIGATION_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/ssr/document/page/navigation.", WORD_RS];
         pub SERVER_ADMIN_FRONTEND_SRC_SSR_DOCUMENT_SIGN_IN_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/ssr/document/sign_in.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SSR_CRUD_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/ssr/crud.", WORD_RS];
         pub SERVER_ADMIN_FRONTEND_SRC_SSR_PERMISSIONS_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/ssr/", WORD_PERMISSIONS_2, ".", WORD_RS];
         pub SERVER_ADMIN_FRONTEND_SRC_SSR_PROFILE_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/ssr/profile.", WORD_RS];
         pub SERVER_ADMIN_FRONTEND_SRC_SSR_SESSIONS_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/ssr/", WORD_SESSIONS, ".", WORD_RS];
@@ -3782,7 +3783,7 @@ pub const CODE_STYLE_FACADE_REEXPORT_REASONS: [&str; 13] = [
     "server runtime core facade exports dependency-light runtime primitives",
     "server HTTP runtime facade exports HTTP and integration primitives",
 ];
-pub const CODE_STYLE_LEPTOS_PRELUDE_SUFFIXES: [&str; 56] = [
+pub const CODE_STYLE_LEPTOS_PRELUDE_SUFFIXES: [&str; 58] = [
     SERVER_ADMIN_FRONTEND_SRC_APP_RS,
     SERVER_ADMIN_FRONTEND_SRC_APP_DATA_GRID_RS,
     SERVER_ADMIN_FRONTEND_SRC_APP_NAVIGATION_RS,
@@ -3816,6 +3817,7 @@ pub const CODE_STYLE_LEPTOS_PRELUDE_SUFFIXES: [&str; 56] = [
     SERVER_ADMIN_FRONTEND_SRC_SSR_DOCUMENT_PAGE_RS,
     SERVER_ADMIN_FRONTEND_SRC_SSR_DOCUMENT_PAGE_NAVIGATION_RS,
     SERVER_ADMIN_FRONTEND_SRC_SSR_DOCUMENT_SIGN_IN_RS,
+    SERVER_ADMIN_FRONTEND_SRC_SSR_CRUD_RS,
     SERVER_ADMIN_FRONTEND_SRC_SSR_PERMISSIONS_RS,
     SERVER_ADMIN_FRONTEND_SRC_SSR_PROFILE_RS,
     SERVER_ADMIN_FRONTEND_SRC_SSR_ROLES_RS,
@@ -3837,10 +3839,11 @@ pub const CODE_STYLE_LEPTOS_PRELUDE_SUFFIXES: [&str; 56] = [
     "server_admin_frontend/src/ui/input.rs",
     "server_admin_frontend/src/ui/navigation.rs",
     "server_admin_frontend/src/ui/spinner.rs",
+    "server_admin_frontend/src/ui/table.rs",
     "server_admin_frontend/src/ui/textarea.rs",
     SSR_SOURCE_PATH,
 ];
-pub const CODE_STYLE_LEPTOS_PRELUDE_REASONS: [&str; 56] = [
+pub const CODE_STYLE_LEPTOS_PRELUDE_REASONS: [&str; 58] = [
     "Leptos CSR view macro expansion requires attribute traits in lexical scope",
     "Leptos CSR data-grid component requires attribute traits in lexical scope",
     "Leptos CSR navigation component requires attribute traits in lexical scope",
@@ -3874,6 +3877,7 @@ pub const CODE_STYLE_LEPTOS_PRELUDE_REASONS: [&str; 56] = [
     "Leptos SSR administrator page rendering requires attribute traits in lexical scope",
     "Leptos SSR administrator navigation requires attribute traits in lexical scope",
     "Leptos SSR sign-in rendering requires attribute traits in lexical scope",
+    "Leptos SSR CRUD rendering requires attribute traits in lexical scope",
     "Leptos SSR permissions rendering requires attribute traits in lexical scope",
     "Leptos SSR profile rendering requires attribute traits in lexical scope",
     "Leptos SSR roles rendering requires attribute traits in lexical scope",
@@ -3895,6 +3899,7 @@ pub const CODE_STYLE_LEPTOS_PRELUDE_REASONS: [&str; 56] = [
     "Leptos input primitive requires attribute traits in lexical scope",
     "Leptos navigation primitive requires attribute traits in lexical scope",
     "Leptos spinner primitive requires attribute traits in lexical scope",
+    "Leptos table primitives require attribute traits in lexical scope",
     "Leptos textarea primitive requires attribute traits in lexical scope",
     "Leptos SSR view macro expansion requires attribute traits in lexical scope",
 ];

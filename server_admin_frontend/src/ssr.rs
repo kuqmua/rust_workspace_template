@@ -4,6 +4,7 @@
     reason = "the stable SSR facade delegates to screen, document, and table modules; test view rendering requires the named extension trait"
 )]
 
+mod crud;
 mod data_tables;
 mod document;
 mod permissions;
@@ -172,6 +173,40 @@ pub fn render_roles(
     branding: &server_admin_contract::AdminBrandingView,
 ) -> AdminSsrHtml {
     roles::render(page, query, admin, branding)
+}
+
+#[must_use]
+pub fn render_user_create(
+    admin: &server_admin_contract::AuthenticatedAdmin,
+    branding: &server_admin_contract::AdminBrandingView,
+) -> AdminSsrHtml {
+    crud::render_user_create(admin, branding)
+}
+
+#[must_use]
+pub fn render_user_manage(
+    page: &server_admin_contract::AdminUsersPage,
+    admin: &server_admin_contract::AuthenticatedAdmin,
+    branding: &server_admin_contract::AdminBrandingView,
+) -> AdminSsrHtml {
+    crud::render_user_manage(page, admin, branding)
+}
+
+#[must_use]
+pub fn render_role_create(
+    admin: &server_admin_contract::AuthenticatedAdmin,
+    branding: &server_admin_contract::AdminBrandingView,
+) -> AdminSsrHtml {
+    crud::render_role_create(admin, branding)
+}
+
+#[must_use]
+pub fn render_role_manage(
+    page: &server_admin_contract::AdminRolesPage,
+    admin: &server_admin_contract::AuthenticatedAdmin,
+    branding: &server_admin_contract::AdminBrandingView,
+) -> AdminSsrHtml {
+    crud::render_role_manage(page, admin, branding)
 }
 
 #[must_use]

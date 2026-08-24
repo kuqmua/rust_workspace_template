@@ -1,3 +1,5 @@
+const SERDE_PREALLOC_MAX_ITEMS: usize = 1024usize;
+
 #[derive(optml::Optml, Clone, Copy, Debug, Eq, PartialEq, newtype::Display, newtype::FromInner)]
 pub struct UniqueVecLen(usize);
 
@@ -59,7 +61,12 @@ impl<'de, T: serde::Deserialize<'de> + PartialEq, const MIN: usize, const MAX: u
         bounded_types::BoundedVec::<T, MIN, MAX>::validate_bounds()
             .map_err(UniqueVecError::from)
             .map_err(serde::de::Error::custom)?;
-        let mut values = Vec::new();
+        let mut values = Vec::with_capacity(
+            seq.size_hint()
+                .unwrap_or(0usize)
+                .min(MAX)
+                .min(SERDE_PREALLOC_MAX_ITEMS),
+        );
         loop {
             if values.len() == MAX {
                 return seq.next_element::<serde::de::IgnoredAny>()?.map_or_else(

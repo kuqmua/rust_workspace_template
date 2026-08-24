@@ -306,6 +306,10 @@ pub enum AdminFrontendPath {
     Profile,
     #[strum(serialize = "/admin/roles")]
     Roles,
+    #[strum(serialize = "/admin/roles/create")]
+    RolesCreate,
+    #[strum(serialize = "/admin/roles/manage")]
+    RolesManage,
     #[strum(serialize = "/admin/sessions")]
     Sessions,
     #[strum(serialize = "/admin")]
@@ -318,6 +322,10 @@ pub enum AdminFrontendPath {
     Tables,
     #[strum(serialize = "/admin/users")]
     Users,
+    #[strum(serialize = "/admin/users/create")]
+    UsersCreate,
+    #[strum(serialize = "/admin/users/manage")]
+    UsersManage,
     #[strum(serialize = "/admin/version")]
     Version,
 }

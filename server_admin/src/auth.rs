@@ -1094,7 +1094,6 @@ impl AdminAuthSvcState {
             .0
             .split(',')
             .map(str::trim)
-            .filter(|value| !value.is_empty())
             .map(str::to_owned)
             .collect::<Vec<String>>();
         Ok(Self {

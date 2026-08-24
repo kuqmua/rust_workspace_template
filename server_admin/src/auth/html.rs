@@ -200,8 +200,8 @@ async fn page_context(
     ),
     super::AdminError,
 > {
-    let (admin, password_change_required) = super::account::me_context_view(auth.clone()).await?;
-    let branding = super::settings::branding_view(auth.clone()).await?;
+    let (admin, password_change_required) = super::account::me_context_view_ref(auth).await?;
+    let branding = super::settings::branding_view_ref(auth).await?;
     Ok((admin, branding, password_change_required))
 }
 
@@ -304,10 +304,14 @@ where
 fn role_ids(
     value: &AdminHtmlFormText,
 ) -> Result<server_admin_contract::AdminRoleIds, super::AdminError> {
+    if value.0.is_empty() {
+        return server_admin_contract::AdminRoleIds::try_from(Vec::new()).map_err(
+            |server_admin_contract::AdminCollectionError::TooLong| super::AdminError::Validation,
+        );
+    }
     let values = value
         .0
         .split(',')
-        .filter(|item| !item.is_empty())
         .map(|item| {
             let parsed = item
                 .parse::<i64>()
@@ -323,10 +327,14 @@ fn role_ids(
 fn permission_ids(
     value: &AdminHtmlFormText,
 ) -> Result<server_admin_contract::AdminPermissionIds, super::AdminError> {
+    if value.0.is_empty() {
+        return server_admin_contract::AdminPermissionIds::try_from(Vec::new()).map_err(
+            |server_admin_contract::AdminCollectionError::TooLong| super::AdminError::Validation,
+        );
+    }
     let values = value
         .0
         .split(',')
-        .filter(|item| !item.is_empty())
         .map(|item| {
             let parsed = item
                 .parse::<i64>()
@@ -337,6 +345,53 @@ fn permission_ids(
         .collect::<Result<Vec<_>, _>>()?;
     server_admin_contract::AdminPermissionIds::try_from(values)
         .map_err(|_error| super::AdminError::Validation)
+}
+
+fn selected_form_text(
+    selected: StdAdminHtmlSelected,
+) -> Result<AdminHtmlFormText, AdminHtmlFormTextError> {
+    let separator = str_constants::COMMA_SPACE.trim();
+    let capacity = selected
+        .0
+        .iter()
+        .map(|(_key, value)| value.0.len().get())
+        .sum::<usize>()
+        .saturating_add(
+            selected
+                .0
+                .len()
+                .get()
+                .saturating_sub(1usize)
+                .saturating_mul(separator.len()),
+        );
+    let text = selected.0.into_values().enumerate().fold(
+        String::with_capacity(capacity),
+        |mut text, (index, value)| {
+            if index > 0usize {
+                text.push_str(separator);
+            }
+            text.push_str(value.0.as_ref());
+            text
+        },
+    );
+    AdminHtmlFormText::try_from(text)
+}
+
+fn authenticated_selected_form<Ids, Parse>(
+    auth: super::AdminAuthReq,
+    expected: &AdminHtmlFormText,
+    selected: StdAdminHtmlSelected,
+    parse: Parse,
+) -> Result<(super::AdminAuthReq, Ids, Ids), super::AdminError>
+where
+    Parse: Fn(&AdminHtmlFormText) -> Result<Ids, super::AdminError>,
+{
+    let auth = form_auth(auth)?;
+    let expected = parse(expected)?;
+    let selected = selected_form_text(selected)
+        .map_err(|_error| super::AdminError::Validation)
+        .and_then(|value| parse(&value))?;
+    Ok((auth, expected, selected))
 }
 
 #[frontend_contract::route_error(AdminSignInPageError)]
@@ -380,6 +435,114 @@ async fn csr_page(
     }
 }
 
+async fn crud_page<View, Load, LoadFuture, Render>(
+    auth: super::AdminAuthReq,
+    permissions: &[server_admin_contract::AdminPermission],
+    load: Load,
+    render: Render,
+) -> axum::response::Response
+where
+    Load: FnOnce(super::AdminAuthReq) -> LoadFuture,
+    LoadFuture: Future<Output = Result<View, super::AdminError>>,
+    Render: FnOnce(
+        &View,
+        &server_admin_contract::AuthenticatedAdmin,
+        &server_admin_contract::AdminBrandingView,
+    ) -> server_admin_frontend::ssr::AdminSsrHtml,
+{
+    match page_context(&auth).await {
+        Ok((_admin, _branding, password_change_required)) if *password_change_required => {
+            axum::response::IntoResponse::into_response(axum::response::Redirect::to(
+                server_admin_contract::AdminFrontendPath::Profile.get(),
+            ))
+        }
+        Ok((admin, branding, _password_change_required))
+            if permissions
+                .iter()
+                .any(|permission| bool::from(admin.has_permission(*permission))) =>
+        {
+            match load(auth).await {
+                Ok(view) => html_response(render(&view, &admin, &branding)),
+                Err(error) => html_page_error(error),
+            }
+        }
+        Ok(_context) => html_page_error(super::AdminError::Authorization),
+        Err(error) => html_page_error(error),
+    }
+}
+
+#[derive(optml::Optml, Clone, Copy)]
+enum AdminCrudPage {
+    RoleCreate,
+    RoleManage,
+    UserCreate,
+    UserManage,
+}
+
+async fn crud_resource_page(
+    auth: super::AdminAuthReq,
+    page: AdminCrudPage,
+) -> axum::response::Response {
+    match page {
+        AdminCrudPage::UserCreate => {
+            crud_page(
+                auth,
+                &[server_admin_contract::AdminPermission::UsersCreate],
+                async |_auth| Ok(()),
+                |_view, admin, branding| {
+                    server_admin_frontend::ssr::render_user_create(admin, branding)
+                },
+            )
+            .await
+        }
+        AdminCrudPage::UserManage => {
+            crud_page(
+                auth,
+                &[
+                    server_admin_contract::AdminPermission::UsersUpdate,
+                    server_admin_contract::AdminPermission::UsersDelete,
+                ],
+                |auth| {
+                    super::users::users_page(
+                        auth,
+                        super::AxumAdminQuery(server_admin_contract::AdminTableQuery::default()),
+                    )
+                },
+                server_admin_frontend::ssr::render_user_manage,
+            )
+            .await
+        }
+        AdminCrudPage::RoleCreate => {
+            crud_page(
+                auth,
+                &[server_admin_contract::AdminPermission::RolesCreate],
+                async |_auth| Ok(()),
+                |_view, admin, branding| {
+                    server_admin_frontend::ssr::render_role_create(admin, branding)
+                },
+            )
+            .await
+        }
+        AdminCrudPage::RoleManage => {
+            crud_page(
+                auth,
+                &[
+                    server_admin_contract::AdminPermission::RolesUpdate,
+                    server_admin_contract::AdminPermission::RolesDelete,
+                ],
+                |auth| {
+                    super::roles::roles_page(
+                        auth,
+                        super::AxumAdminQuery(server_admin_contract::AdminTableQuery::default()),
+                    )
+                },
+                server_admin_frontend::ssr::render_role_manage,
+            )
+            .await
+        }
+    }
+}
+
 #[frontend_contract::route_error(AdminDataTablesPageError)]
 async fn data_tables(
     auth: super::AdminAuthReq,
@@ -398,6 +561,16 @@ async fn users(auth: super::AdminAuthReq) -> axum::response::Response {
     .await
 }
 
+#[frontend_contract::route_error(AdminUsersCreatePageError)]
+async fn users_create_page(auth: super::AdminAuthReq) -> axum::response::Response {
+    crud_resource_page(auth, AdminCrudPage::UserCreate).await
+}
+
+#[frontend_contract::route_error(AdminUsersManagePageError)]
+async fn users_manage_page(auth: super::AdminAuthReq) -> axum::response::Response {
+    crud_resource_page(auth, AdminCrudPage::UserManage).await
+}
+
 #[frontend_contract::route_error(AdminRolesPageError)]
 async fn roles(auth: super::AdminAuthReq) -> axum::response::Response {
     csr_page(
@@ -406,6 +579,16 @@ async fn roles(auth: super::AdminAuthReq) -> axum::response::Response {
         Some(server_admin_contract::AdminDataTable::Roles),
     )
     .await
+}
+
+#[frontend_contract::route_error(AdminRolesCreatePageError)]
+async fn roles_create_page(auth: super::AdminAuthReq) -> axum::response::Response {
+    crud_resource_page(auth, AdminCrudPage::RoleCreate).await
+}
+
+#[frontend_contract::route_error(AdminRolesManagePageError)]
+async fn roles_manage_page(auth: super::AdminAuthReq) -> axum::response::Response {
+    crud_resource_page(auth, AdminCrudPage::RoleManage).await
 }
 
 #[frontend_contract::route_error(AdminPermissionsPageError)]
@@ -468,7 +651,7 @@ async fn version(auth: super::AdminAuthReq) -> axum::response::Response {
 
 #[frontend_contract::route_error(AdminOpenApiPageError)]
 async fn open_api(auth: super::AdminAuthReq) -> axum::response::Response {
-    let branding_result = super::settings::branding_view(auth.clone()).await;
+    let branding_result = super::settings::branding_view_ref(&auth).await;
     let authorized = super::authorize_generated_request(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
@@ -692,24 +875,11 @@ async fn user_roles(
     auth: super::AdminAuthReq,
     super::AxumAdminForm(form): super::AxumAdminForm<UserRolesForm>,
 ) -> axum::response::Response {
-    let Ok(auth) = form_auth(auth) else {
-        return axum::response::IntoResponse::into_response(super::AdminError::Csrf);
-    };
-    let expected = role_ids(&form.expected_role_ids);
-    let selected_text = AdminHtmlFormText::try_from(
-        form.selected
-            .0
-            .into_values()
-            .map(|value| value.0.into_inner())
-            .collect::<Vec<_>>()
-            .join(str_constants::COMMA_SPACE.trim()),
-    );
-    let selected = selected_text
-        .map_err(|_error| super::AdminError::Validation)
-        .and_then(|value| role_ids(&value));
-    let (Ok(expected), Ok(selected)) = (expected, selected) else {
-        return axum::response::IntoResponse::into_response(super::AdminError::Validation);
-    };
+    let (auth, expected, selected) =
+        match authenticated_selected_form(auth, &form.expected_role_ids, form.selected, role_ids) {
+            Ok(values) => values,
+            Err(error) => return axum::response::IntoResponse::into_response(error),
+        };
     let request = server_admin_contract::AdminSetUserRolesReq::new(expected, selected);
     action_result(
         super::users::set_roles(
@@ -780,23 +950,14 @@ async fn role_permissions(
     auth: super::AdminAuthReq,
     super::AxumAdminForm(form): super::AxumAdminForm<RolePermissionsForm>,
 ) -> axum::response::Response {
-    let Ok(auth) = form_auth(auth) else {
-        return axum::response::IntoResponse::into_response(super::AdminError::Csrf);
-    };
-    let expected = permission_ids(&form.expected_permission_ids);
-    let selected_text = AdminHtmlFormText::try_from(
-        form.selected
-            .0
-            .into_values()
-            .map(|value| value.0.into_inner())
-            .collect::<Vec<_>>()
-            .join(str_constants::COMMA_SPACE.trim()),
-    );
-    let selected = selected_text
-        .map_err(|_error| super::AdminError::Validation)
-        .and_then(|value| permission_ids(&value));
-    let (Ok(expected), Ok(selected)) = (expected, selected) else {
-        return axum::response::IntoResponse::into_response(super::AdminError::Validation);
+    let (auth, expected, selected) = match authenticated_selected_form(
+        auth,
+        &form.expected_permission_ids,
+        form.selected,
+        permission_ids,
+    ) {
+        Ok(values) => values,
+        Err(error) => return axum::response::IntoResponse::into_response(error),
     };
     let request = server_admin_contract::AdminSetRolePermissionsReq::new(expected, selected);
     action_result(
@@ -894,7 +1055,7 @@ async fn finish_sign_in(
     peer: super::AdminPeerAddr,
     request: server_admin_contract::AdminSignInReq,
 ) -> axum::response::Response {
-    let branding = super::settings::branding_view(auth.clone()).await.ok();
+    let branding = super::settings::branding_view_ref(&auth).await.ok();
     match super::authn::sign_in(auth, peer, super::AdminSignInJson(request)).await {
         Ok(response) => {
             let source = response.0;
@@ -965,8 +1126,24 @@ async fn sign_in(
         users
     ),
     (
+        server_admin_contract::AdminFrontendPath::UsersCreate,
+        users_create_page
+    ),
+    (
+        server_admin_contract::AdminFrontendPath::UsersManage,
+        users_manage_page
+    ),
+    (
         server_admin_contract::AdminFrontendPath::Roles,
         roles
+    ),
+    (
+        server_admin_contract::AdminFrontendPath::RolesCreate,
+        roles_create_page
+    ),
+    (
+        server_admin_contract::AdminFrontendPath::RolesManage,
+        roles_manage_page
     ),
     (
         server_admin_contract::AdminFrontendPath::Permissions,

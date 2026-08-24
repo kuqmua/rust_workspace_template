@@ -117,11 +117,24 @@ fn command_log_name(
     program: CommandProgramRef<'_>,
     args: CommandArgsRef<'_>,
 ) -> CommandText {
-    let raw = std::iter::once(program.0)
+    let parts = std::iter::once(program.0)
         .chain(args.0.iter().copied())
-        .take(3usize)
-        .collect::<Vec<&str>>()
-        .join(str_constants::HYPHEN);
+        .take(3usize);
+    let raw_capacity = parts
+        .clone()
+        .map(str::len)
+        .sum::<usize>()
+        .saturating_add(parts.clone().count().saturating_sub(1usize));
+    let raw = parts.enumerate().fold(
+        String::with_capacity(raw_capacity),
+        |mut raw, (index, part)| {
+            if index > 0usize {
+                raw.push_str(str_constants::HYPHEN);
+            }
+            raw.push_str(part);
+            raw
+        },
+    );
     let sanitized = raw
         .chars()
         .map(|character| {
@@ -264,12 +277,30 @@ pub(super) fn run_commands(commands: CommandsRef<'_>) -> Result<(), ()> {
             );
             return Err(());
         }
-        let failed_names = failed_test_names(TextRef::from(command_run.log_text.as_ref()))
+        let failed_test_names = failed_test_names(TextRef::from(command_run.log_text.as_ref()));
+        let failed_names_capacity = failed_test_names
             .0
             .iter()
-            .map(CommandText::as_ref)
-            .collect::<Vec<&str>>()
-            .join(str_constants::TEXT_ALT_7);
+            .map(|name| name.as_ref().len())
+            .sum::<usize>()
+            .saturating_add(
+                failed_test_names
+                    .0
+                    .len()
+                    .get()
+                    .saturating_sub(1usize)
+                    .saturating_mul(str_constants::TEXT_ALT_7.len()),
+            );
+        let failed_names = failed_test_names.0.iter().enumerate().fold(
+            String::with_capacity(failed_names_capacity),
+            |mut names, (index, name)| {
+                if index > 0usize {
+                    names.push_str(str_constants::TEXT_ALT_7);
+                }
+                names.push_str(name.as_ref());
+                names
+            },
+        );
         summary.push_str(
             TextRef::from(
                 format!(

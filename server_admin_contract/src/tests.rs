@@ -321,6 +321,26 @@ fn administrator_routes_use_snake_case_segments() {
             .all(|action| !action.get().contains('-'))
     );
 }
+
+#[test]
+fn administrator_crud_frontend_paths_are_dedicated_pages() {
+    assert_eq!(
+        super::AdminFrontendPath::UsersCreate.get(),
+        "/admin/users/create"
+    );
+    assert_eq!(
+        super::AdminFrontendPath::UsersManage.get(),
+        "/admin/users/manage"
+    );
+    assert_eq!(
+        super::AdminFrontendPath::RolesCreate.get(),
+        "/admin/roles/create"
+    );
+    assert_eq!(
+        super::AdminFrontendPath::RolesManage.get(),
+        "/admin/roles/manage"
+    );
+}
 #[test]
 fn audit_details_enforce_serialized_byte_limit() {
     let accepted = super::SerdeJsonAdminAuditDetails::try_from(serde_json::json!({

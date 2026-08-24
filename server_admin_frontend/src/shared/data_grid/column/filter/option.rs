@@ -7,7 +7,7 @@
 mod range_end;
 mod value;
 
-use leptos::prelude::{ClassAttribute, CustomAttribute, ElementChild, OnAttribute};
+use leptos::prelude::{AddAnyAttr, ClassAttribute, ElementChild};
 
 pub(super) fn admin_data_grid_filter_option(
     filter: server_admin_contract::AdminDataFilter,
@@ -18,22 +18,17 @@ pub(super) fn admin_data_grid_filter_option(
 ) -> impl leptos::prelude::IntoView + use<> {
     let operation = filter.operation();
     let operation_key = server_admin_contract::AdminFilterOperationKey::from(operation).to_string();
-    let checked_operation = operation_key.clone();
-    let changed_operation = operation_key.clone();
+    let checked = leptos::prelude::Get::get(&selected_operation.0) == operation_key;
     leptos::view! {
         <div class="table-filter-option">
-            <label data-name="Label" class="table-filter-operation-label flex items-center gap-2 text-sm leading-none font-medium select-none">
-                <input
-                    data-name="RadioButton"
+            <singlestage::Label attr:data-name="Label" class="table-filter-operation-label flex items-center gap-2 text-sm leading-none font-medium select-none">
+                <singlestage::Radio
                     class="radio__button peer size-4 shrink-0 rounded-full border border-input shadow-xs outline-none transition-shadow focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-                    type="radio"
-                    name="filter_operation"
                     value=operation_key
-                    checked=move || leptos::prelude::Get::get(&selected_operation.0) == checked_operation
-                    on:change=move |_event| leptos::prelude::Set::set(&selected_operation.0, changed_operation.clone())
+                    checked=checked
                 />
                 <span>{format!("{operation:?}")}</span>
-            </label>
+            </singlestage::Label>
             {value::admin_filter_value(filter, active_value, input_type, selected_operation)}
             {range_end::admin_filter_range_end(filter, active_end, input_type, selected_operation)}
         </div>

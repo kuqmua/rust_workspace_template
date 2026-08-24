@@ -67,7 +67,9 @@ pub(crate) async fn list_role_catalog(
             .await
             .map_err(crate::SqlxAdminError::from)?;
     let mut permission_ids_by_role = links.into_iter().try_fold(
-        std::collections::HashMap::<i64, Vec<server_admin_contract::AdminPermissionId>>::new(),
+        std::collections::HashMap::<i64, Vec<server_admin_contract::AdminPermissionId>>::with_capacity(
+            role_ids.len(),
+        ),
         |mut values, (role_id, permission_id)| {
             values.entry(role_id).or_default().push(
                 server_admin_contract::AdminPermissionId::try_from(permission_id)
@@ -130,7 +132,9 @@ pub(crate) async fn list_roles(
             .await
             .map_err(crate::SqlxAdminError::from)?;
     let mut permission_ids_by_role = links.into_iter().try_fold(
-        std::collections::HashMap::<i64, Vec<server_admin_contract::AdminPermissionId>>::new(),
+        std::collections::HashMap::<i64, Vec<server_admin_contract::AdminPermissionId>>::with_capacity(
+            role_ids.len(),
+        ),
         |mut values, (role_id, permission_id)| {
             values.entry(role_id).or_default().push(
                 server_admin_contract::AdminPermissionId::try_from(permission_id)

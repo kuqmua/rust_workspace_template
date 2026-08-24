@@ -13,9 +13,7 @@
     reason = "Leptos component macro expansion generates builders, fields, and bindings with framework-defined shapes"
 )]
 
-use leptos::prelude::{
-    AriaAttributes, Callable, ClassAttribute, CustomAttribute, ElementChild, GlobalAttributes,
-};
+use leptos::prelude::{AddAnyAttr, Callable, ClassAttribute, CustomAttribute, ElementChild};
 
 #[leptos::component]
 #[allow(
@@ -31,21 +29,24 @@ pub(crate) fn AdminAlertDialog(
     #[prop(optional)] disabled: bool,
     on_confirm: leptos::prelude::Callback<()>,
 ) -> impl leptos::prelude::IntoView {
-    let cancel_id = id.clone();
-    let confirm_id = id.clone();
-    leptos::view! {
-        <crate::ui::button::AdminButton variant=crate::ui::button::AdminButtonVariant::Danger kind=crate::ui::button::AdminButtonKind::Button disabled=disabled command_for=id.clone() command="show-modal">{trigger}</crate::ui::button::AdminButton>
-            <dialog data-name="AlertDialogContent" id=id class="w-full max-w-lg rounded-2xl border bg-background p-6 shadow-lg backdrop:bg-black/50" aria-label=title>
-                <div data-name="AlertDialogBody" class="flex flex-col gap-4">
-                    <div data-name="AlertDialogHeader" class="flex flex-col gap-2 text-center sm:text-left">
-                        <h3 data-name="AlertDialogTitle" class="text-lg leading-none font-semibold">{title}</h3>
-                        <p data-name="AlertDialogDescription" class="text-sm text-muted-foreground">{description}</p>
-                    </div>
-                    <footer data-name="AlertDialogFooter" class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-                        <crate::ui::button::AdminButton variant=crate::ui::button::AdminButtonVariant::Secondary kind=crate::ui::button::AdminButtonKind::Button command_for=cancel_id command="close">"Cancel"</crate::ui::button::AdminButton>
-                        <crate::ui::button::AdminButton variant=crate::ui::button::AdminButtonVariant::Danger kind=crate::ui::button::AdminButtonKind::Button command_for=confirm_id command="close" on_click=leptos::prelude::Callback::new(move |_event| on_confirm.run(()))>{confirm}</crate::ui::button::AdminButton>
-                    </footer>
+    crate::ui::with_owner(move || {
+        leptos::view! {
+            <singlestage::Dialog alert=true id=id class="w-full max-w-lg rounded-2xl border bg-background p-6 shadow-lg" dialog_trigger=singlestage::DialogTrigger::builder().children(leptos::prelude::ToChildren::to_children(move || leptos::view! {
+                <crate::ui::button::AdminButton variant=crate::ui::button::AdminButtonVariant::Danger kind=crate::ui::button::AdminButtonKind::Button disabled=disabled>{trigger}</crate::ui::button::AdminButton>
+            })).build()>
+            <singlestage::DialogContent attr:data-name="AlertDialogContent" class="flex flex-col gap-4">
+                <div data-name="AlertDialogBody" class="contents">
+                    <singlestage::DialogHeader attr:data-name="AlertDialogHeader" class="flex flex-col gap-2 text-center sm:text-left">
+                        <singlestage::DialogTitle attr:data-name="AlertDialogTitle" class="text-lg leading-none font-semibold">{title}</singlestage::DialogTitle>
+                        <singlestage::DialogDescription attr:data-name="AlertDialogDescription" class="text-sm text-muted-foreground">{description}</singlestage::DialogDescription>
+                    </singlestage::DialogHeader>
+                    <singlestage::DialogFooter attr:data-name="AlertDialogFooter" class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                        <crate::ui::button::AdminButton variant=crate::ui::button::AdminButtonVariant::Secondary>"Cancel"</crate::ui::button::AdminButton>
+                        <crate::ui::button::AdminButton variant=crate::ui::button::AdminButtonVariant::Danger on_click=leptos::prelude::Callback::new(move |_event| on_confirm.run(()))>{confirm}</crate::ui::button::AdminButton>
+                    </singlestage::DialogFooter>
                 </div>
-            </dialog>
-    }
+            </singlestage::DialogContent>
+            </singlestage::Dialog>
+        }
+    })
 }

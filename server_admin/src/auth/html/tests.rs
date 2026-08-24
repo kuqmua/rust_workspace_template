@@ -9,11 +9,11 @@ where
     .expect("135a22e8")
 }
 
-fn auth_with_headers(headers: http::HeaderMap) -> super::super::AdminAuthReq {
-    let pool = sqlx::postgres::PgPoolOptions::new()
-        .connect_lazy(str_constants::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION)
-        .expect("1c2a7f54");
-    let state = super::super::AdminAuthSvcState::try_new(
+fn auth_state(
+    pool: sqlx::PgPool,
+    allowed_origin: &str,
+) -> Result<super::super::AdminAuthSvcState, super::super::AdminAuthSvcStateBuildError> {
+    super::super::AdminAuthSvcState::try_new(
         app_state::SqlxPgPool::from(pool),
         &env(str_constants::INTEGRATION_TEST_JWT_SECRET_AT_LEAST_32_BYTES),
         &env(str_constants::VALUE_900),
@@ -25,9 +25,15 @@ fn auth_with_headers(headers: http::HeaderMap) -> super::super::AdminAuthReq {
         &env(str_constants::FALSE),
         &env(str_constants::INTEGRATION_TEST),
         &env(str_constants::INTEGRATION_TEST_ADMIN),
-        &config_lib::CorsAllowOrigin(str_constants::HTTP_LOCALHOST.to_owned()),
+        &config_lib::CorsAllowOrigin(allowed_origin.to_owned()),
     )
-    .expect("adf9c06e");
+}
+
+fn auth_with_headers(headers: http::HeaderMap) -> super::super::AdminAuthReq {
+    let pool = sqlx::postgres::PgPoolOptions::new()
+        .connect_lazy(str_constants::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION)
+        .expect("1c2a7f54");
+    let state = auth_state(pool, str_constants::HTTP_LOCALHOST).expect("adf9c06e");
     super::super::AdminAuthReq {
         headers: super::super::HttpAdminHeaderMap::from(headers),
         peer: super::super::AdminPeerAddr::from(super::super::super::StdAdminSocketAddr::from(
@@ -37,6 +43,17 @@ fn auth_with_headers(headers: http::HeaderMap) -> super::super::AdminAuthReq {
         )),
         state: super::super::StdSharedAdminAuthSvcState::from(std::sync::Arc::new(state)),
     }
+}
+
+#[tokio::test]
+async fn auth_state_rejects_empty_cors_origin_entries() {
+    let pool = sqlx::postgres::PgPoolOptions::new()
+        .connect_lazy(str_constants::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION)
+        .expect("5bd94807");
+    assert!(matches!(
+        auth_state(pool, "http://localhost,,https://example.com"),
+        Err(super::super::AdminAuthSvcStateBuildError::AllowedOrigin)
+    ));
 }
 
 #[tokio::test]
@@ -70,6 +87,23 @@ fn successful_mutation_redirects_to_visible_server_feedback() {
         response.headers().get(http::header::LOCATION),
         Some(&http::HeaderValue::from_static("/admin/users#saved"))
     );
+}
+
+#[test]
+fn assignment_id_lists_reject_empty_entries() {
+    let empty = super::AdminHtmlFormText::try_from(String::new()).expect("1a37ef06");
+    assert!(matches!(super::role_ids(&empty), Ok(_ids)));
+    assert!(matches!(super::permission_ids(&empty), Ok(_ids)));
+
+    let malformed = super::AdminHtmlFormText::try_from(String::from("1,,2")).expect("c2d76f19");
+    assert!(matches!(
+        super::role_ids(&malformed),
+        Err(super::super::AdminError::Validation)
+    ));
+    assert!(matches!(
+        super::permission_ids(&malformed),
+        Err(super::super::AdminError::Validation)
+    ));
 }
 
 #[tokio::test]

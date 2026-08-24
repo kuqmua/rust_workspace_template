@@ -77,14 +77,12 @@ where
             match tokio::time::timeout(timeout.get(), response_future).await {
                 Ok(response) => response,
                 Err(_elapsed) => {
-                    let retry_after = timeout.get().as_secs().max(1u64).to_string();
                     let mut response =
                         axum::response::IntoResponse::into_response(RequestTimeoutError::TimedOut);
-                    if let Ok(value) = http::HeaderValue::from_str(retry_after.as_str()) {
-                        let _previous = response
-                            .headers_mut()
-                            .insert(http::header::RETRY_AFTER, value);
-                    }
+                    let _previous = response.headers_mut().insert(
+                        http::header::RETRY_AFTER,
+                        http::HeaderValue::from(timeout.get().as_secs().max(1u64)),
+                    );
                     Ok(response)
                 }
             }
@@ -108,5 +106,32 @@ mod tests {
                 .expect("65a8fd30");
         let layer = super::RequestTimeoutLayer::from(timeout);
         assert_eq!(layer.0.get(), std::time::Duration::from_secs(1u64));
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn timeout_response_contains_retry_after_without_text_round_trip() {
+        let timeout =
+            super::super::StdRequestTimeout::try_from(std::time::Duration::from_secs(2u64))
+                .expect("b140ead4");
+        let router = axum::Router::from(super::RequestTimeoutLayer::from(timeout).apply(
+            super::super::AxumRouter::from(axum::Router::new().route(
+                "/slow",
+                axum::routing::get(async || std::future::pending::<http::StatusCode>().await),
+            )),
+        ));
+        let response = tower::ServiceExt::oneshot(
+            router,
+            http::Request::builder()
+                .uri("/slow")
+                .body(axum::body::Body::empty())
+                .expect("9a076c51"),
+        )
+        .await
+        .expect("57912096");
+        assert_eq!(response.status(), http::StatusCode::SERVICE_UNAVAILABLE);
+        assert_eq!(
+            response.headers().get(http::header::RETRY_AFTER),
+            Some(&http::HeaderValue::from_static("2"))
+        );
     }
 }

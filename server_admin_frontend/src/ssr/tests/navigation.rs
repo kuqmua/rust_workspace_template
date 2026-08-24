@@ -12,11 +12,9 @@ fn pagination_preserves_server_side_navigation() {
     )
     .render_admin_ssr();
     assert!(html.as_ref().contains("class=\"table-page-size\""));
-    assert!(
-        html.as_ref()
-            .contains("<span>Rows</span><input data-name=\"Input\"")
-    );
-    assert!(html.as_ref().contains("name=\"limit\" type=\"number\""));
+    assert!(html.as_ref().contains("<span>Rows</span><input"));
+    assert!(html.as_ref().contains("name=\"limit\""));
+    assert!(html.as_ref().contains("type=\"number\""));
     assert!(html.as_ref().contains("name=\"offset\" value=\"20\""));
     assert!(html.as_ref().contains(" disabled"));
     assert!(html.as_ref().contains(">Previous</button>"));

@@ -28,6 +28,8 @@ impl AdminJwtSecret {
 pub enum TryFromStdEnvVarOkAdminJwtSecretError {
     #[error("administrator JWT secret list must not be empty")]
     Empty,
+    #[error("administrator JWT secret list contains an empty entry")]
+    EmptyEntry,
     #[error(
         "administrator JWT secret list must contain at most {ADMIN_JWT_SECRET_MAX_COUNT} entries"
     )]
@@ -42,21 +44,20 @@ impl super::TryFromStdEnvVarOk for AdminJwtSecret {
     type Error = TryFromStdEnvVarOkAdminJwtSecretError;
 
     fn try_from_std_env_var_ok(v: super::StdEnvVarOk) -> Result<Self, Self::Error> {
-        let raw_secrets =
-            v.0.split(',')
-                .map(str::trim)
-                .filter(|value| !value.is_empty())
-                .collect::<Vec<_>>();
-        if raw_secrets.is_empty() {
+        if v.0.split(',').map(str::trim).all(str::is_empty) {
             return Err(Self::Error::Empty);
         }
-        if raw_secrets.len() > ADMIN_JWT_SECRET_MAX_COUNT {
+        let raw_secrets = v.0.split(',').map(str::trim);
+        let raw_secret_count = raw_secrets.clone().count();
+        if raw_secret_count > ADMIN_JWT_SECRET_MAX_COUNT {
             return Err(Self::Error::TooMany);
         }
         let secrets = raw_secrets
             .into_iter()
             .map(|value| {
-                if value.len() < ADMIN_JWT_SECRET_MIN_LEN {
+                if value.is_empty() {
+                    Err(Self::Error::EmptyEntry)
+                } else if value.len() < ADMIN_JWT_SECRET_MIN_LEN {
                     Err(Self::Error::TooShort)
                 } else {
                     super::SecrecySecretBoxString::try_from(value.to_owned())
@@ -122,6 +123,21 @@ mod tests {
         assert!(matches!(
             result,
             Err(super::TryFromStdEnvVarOkAdminJwtSecretError::Empty)
+        ));
+    }
+
+    #[test]
+    fn rejects_empty_secret_between_rotation_keys() {
+        let secret =
+            str_constants::TEST_JWT_SECRET_CHARACTER_A.repeat(super::ADMIN_JWT_SECRET_MIN_LEN);
+        let result =
+            <super::AdminJwtSecret as super::super::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
+                super::super::StdEnvVarOk::try_from(format!("{secret},,{secret}"))
+                    .expect("9674829d"),
+            );
+        assert!(matches!(
+            result,
+            Err(super::TryFromStdEnvVarOkAdminJwtSecretError::EmptyEntry)
         ));
     }
 }

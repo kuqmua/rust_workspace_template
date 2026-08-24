@@ -158,8 +158,9 @@ impl syn::parse::Parse for DefineStrConstantsInput {
 #[proc_macro]
 pub fn define_str_constants(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let expand = |parsed: DefineStrConstantsInput| {
+        let fragment_count = parsed.fragments.0.len();
         let fragments = parsed.fragments.0.into_iter().try_fold(
-            std::collections::HashMap::new(),
+            std::collections::HashMap::with_capacity(fragment_count),
             |mut fragments, fragment| {
                 let name = fragment.name.0.to_string();
                 if fragments.insert(name, fragment.value.0.value()).is_some() {
@@ -173,12 +174,13 @@ pub fn define_str_constants(input: proc_macro::TokenStream) -> proc_macro::Token
             },
         )?;
 
+        let constant_count = parsed.constants.0.len();
         let (_, _, generated) =
             parsed.constants.0.into_iter().try_fold(
                 (
-                    std::collections::HashSet::new(),
-                    std::collections::HashMap::new(),
-                    Vec::new(),
+                    std::collections::HashSet::with_capacity(constant_count),
+                    std::collections::HashMap::with_capacity(constant_count),
+                    Vec::with_capacity(constant_count),
                 ),
                 |(mut names, mut values, mut generated), constant| {
                     if !names.insert(constant.name.0.to_string()) {
@@ -207,9 +209,8 @@ pub fn define_str_constants(input: proc_macro::TokenStream) -> proc_macro::Token
                             }
                         },
                     )?;
-                    if let Some(previous_name) =
-                        values.insert(value.clone(), constant.name.0.to_string())
-                    {
+                    let literal = syn::LitStr::new(&value, proc_macro2::Span::call_site());
+                    if let Some(previous_name) = values.insert(value, constant.name.0.to_string()) {
                         return Err(syn::Error::new(
                             constant.name.0.span(),
                             format!(
@@ -218,7 +219,6 @@ pub fn define_str_constants(input: proc_macro::TokenStream) -> proc_macro::Token
                         ));
                     }
                     let name = constant.name.0;
-                    let literal = syn::LitStr::new(&value, proc_macro2::Span::call_site());
                     if let Some(visibility) = constant.visibility {
                         let syn_visibility = visibility.0;
                         generated.push(quote::quote! {

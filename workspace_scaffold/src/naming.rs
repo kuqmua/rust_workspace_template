@@ -3,19 +3,37 @@ pub(super) fn kebab_case(value: super::ProjectNameRef<'_>) -> super::ScaffoldTex
         .unwrap_or_else(super::ScaffoldText::from)
 }
 
+#[allow(
+    clippy::single_call_fn,
+    reason = "service scaffold owns title case conversion"
+)]
 pub(super) fn title_case(value: super::ProjectNameRef<'_>) -> super::ScaffoldText {
+    capitalized_parts(value, super::ScaffoldTextRef::from(str_constants::SPACE))
+}
+
+fn capitalized_parts(
+    value: super::ProjectNameRef<'_>,
+    separator: super::ScaffoldTextRef<'_>,
+) -> super::ScaffoldText {
     let output = value
         .0
         .split('_')
         .filter(|part| !part.is_empty())
-        .map(|part| {
-            let mut chars = part.chars();
-            chars.next().map_or_else(String::new, |first| {
-                first.to_uppercase().chain(chars).collect::<String>()
-            })
-        })
-        .collect::<Vec<String>>()
-        .join(str_constants::SPACE);
+        .enumerate()
+        .fold(
+            String::with_capacity(value.0.len()),
+            |mut output, (index, part)| {
+                if index > 0usize {
+                    output.push_str(separator.0);
+                }
+                let mut chars = part.chars();
+                if let Some(first) = chars.next() {
+                    output.extend(first.to_uppercase());
+                    output.extend(chars);
+                }
+                output
+            },
+        );
     super::ScaffoldText::try_from(output).unwrap_or_else(super::ScaffoldText::from)
 }
 
@@ -24,12 +42,7 @@ pub(super) fn title_case(value: super::ProjectNameRef<'_>) -> super::ScaffoldTex
     reason = "service scaffold owns identifier case conversion"
 )]
 pub(super) fn upper_camel_case(value: super::ProjectNameRef<'_>) -> super::ScaffoldText {
-    super::ScaffoldText::try_from(
-        title_case(value)
-            .as_ref()
-            .replace(' ', str_constants::EMPTY),
-    )
-    .unwrap_or_else(super::ScaffoldText::from)
+    capitalized_parts(value, super::ScaffoldTextRef::from(str_constants::EMPTY))
 }
 
 pub(super) fn validate_project_name(

@@ -4,7 +4,7 @@
     reason = "the filter range-end control is composed once by its range operation"
 )]
 
-use leptos::prelude::{ClassAttribute, CustomAttribute, ElementChild};
+use leptos::prelude::{AddAnyAttr, ElementChild};
 
 pub(super) fn admin_filter_range_end(
     filter: server_admin_contract::AdminDataFilter,
@@ -17,19 +17,19 @@ pub(super) fn admin_filter_range_end(
         server_admin_contract::AdminFilterOperationKey::from(filter.operation()).to_string();
     bool::from(filter.requires_end()).then(|| {
         leptos::prelude::IntoAny::into_any(leptos::view! {
-            <label data-name="Label" class="table-filter-input-label flex items-center gap-2 text-sm leading-none font-medium select-none">
+            <singlestage::Label attr:data-name="Label" class="table-filter-input-label flex items-center gap-2 text-sm leading-none font-medium select-none">
                 <span>"End"</span>
-                <input
-                    data-name="Input"
-                    class="flex h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
+                <singlestage::Input
+                    attr:data-name="Input"
+                    attr:class="flex h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
                     name="filter_end"
-                    type=input_type.as_ref()
+                    input_type=String::from(input_type.as_ref())
                     value=end
                     placeholder="End"
-                    required
-                    disabled=move || leptos::prelude::Get::get(&selected_operation.0) != operation
+                    required=true
+                    disabled=leptos::prelude::Signal::derive(move || leptos::prelude::Get::get(&selected_operation.0) != operation)
                 />
-            </label>
+            </singlestage::Label>
         })
     })
 }

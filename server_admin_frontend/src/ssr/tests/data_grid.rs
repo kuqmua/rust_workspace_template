@@ -140,41 +140,25 @@ fn generated_column_metadata_drives_data_table_markup() {
             .as_ref()
             .contains("name=\"filter_field\" value=\"login\"")
     );
+    assert!(filters_html.as_ref().contains("name=\"filter_operation\""));
+    assert!(filters_html.as_ref().contains("value=\"eq\""));
+    assert!(filters_html.as_ref().contains("value=\"regex\""));
+    assert!(filters_html.as_ref().contains("name=\"filter_value\""));
+    assert!(filters_html.as_ref().contains("type=\"text\""));
+    assert!(filters_html.as_ref().contains("value=\"alice\""));
     assert!(
         filters_html
             .as_ref()
-            .contains("name=\"filter_operation\" value=\"eq\"")
+            .contains("singlestage-label table-filter-input-label")
     );
-    assert!(
-        filters_html
-            .as_ref()
-            .contains("name=\"filter_operation\" value=\"regex\"")
-    );
-    assert!(
-        filters_html
-            .as_ref()
-            .contains("name=\"filter_value\" type=\"text\" value=\"alice\"")
-    );
-    assert!(filters_html.as_ref().contains(
-            "data-name=\"Label\" class=\"table-filter-input-label flex items-center gap-2 text-sm leading-none font-medium select-none\"><span>Value</span><input data-name=\"Input\""
-        ));
+    assert!(filters_html.as_ref().contains("<span>Value</span>"));
+    assert!(filters_html.as_ref().contains("data-name=\"Input\""));
     assert!(!filters_html.as_ref().contains("placeholder=\"Value\""));
-    assert!(filters_html.as_ref().contains(
-            "data-name=\"Label\" class=\"table-filter-input-label flex items-center gap-2 text-sm leading-none font-medium select-none\"><span>Start</span><input data-name=\"Input\""
-        ));
-    assert!(filters_html.as_ref().contains(
-            "data-name=\"Label\" class=\"table-filter-input-label flex items-center gap-2 text-sm leading-none font-medium select-none\"><span>End</span><input data-name=\"Input\""
-        ));
-    assert!(
-        filters_html
-            .as_ref()
-            .contains("name=\"filter_value\" type=\"text\" value=\"\" placeholder=\"Start\"")
-    );
-    assert!(
-        filters_html
-            .as_ref()
-            .contains("name=\"filter_end\" type=\"text\" value=\"\" placeholder=\"End\"")
-    );
+    assert!(filters_html.as_ref().contains("<span>Start</span>"));
+    assert!(filters_html.as_ref().contains("<span>End</span>"));
+    assert!(filters_html.as_ref().contains("placeholder=\"Start\""));
+    assert!(filters_html.as_ref().contains("name=\"filter_end\""));
+    assert!(filters_html.as_ref().contains("placeholder=\"End\""));
     assert!(filters_html.as_ref().contains(">Clear</a>"));
     let apply_position = filters_html
         .as_ref()

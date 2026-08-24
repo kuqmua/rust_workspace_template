@@ -46,10 +46,14 @@ impl<T> BoundedVec<T, 0, { usize::MAX }> {
     where
         Values: IntoIterator<Item = T>,
     {
-        let mut bounded = Self::default();
-        values
-            .into_iter()
-            .for_each(|value| bounded.push_max_capacity(value));
+        let value_iter = values.into_iter();
+        let capacity = value_iter
+            .size_hint()
+            .0
+            .min(super::SERDE_PREALLOC_MAX_ITEMS);
+        let mut bounded = Self::from([]);
+        bounded.0.reserve(capacity);
+        value_iter.for_each(|value| bounded.push_max_capacity(value));
         bounded
     }
 
@@ -192,5 +196,11 @@ mod tests {
             value.try_push(2u8),
             Err(super::super::BoundedValueError::AboveMax { .. })
         ));
+    }
+
+    #[test]
+    fn max_iterator_uses_bounded_size_hint_capacity() {
+        let value = super::BoundedVec::from_max_iter([1u8, 2u8, 3u8]);
+        assert!(value.allocation_capacity() >= 3usize);
     }
 }

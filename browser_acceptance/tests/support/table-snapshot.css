@@ -1,0 +1,3 @@
+.table-scroll {
+  height: min(384px, calc(100dvh - 188px)) !important;
+}

@@ -6,7 +6,7 @@
 )]
 
 use leptos::prelude::{
-    AriaAttributes, ClassAttribute, CustomAttribute, ElementChild, GlobalAttributes,
+    AddAnyAttr, AriaAttributes, ClassAttribute, CustomAttribute, ElementChild, GlobalAttributes,
     InnerHtmlAttribute, StyleAttribute,
 };
 
@@ -17,7 +17,7 @@ pub(super) fn render_text_page(
     text: super::AdminSsrText,
 ) -> super::AdminSsrHtml {
     let content_view = leptos::view! {
-        <section><crate::ui::card::AdminCard variant=crate::ui::card::AdminCardVariant::Code><pre>{text.0}</pre></crate::ui::card::AdminCard></section>
+        <section><crate::ui::card::AdminCard variant=crate::ui::card::AdminCardVariant::Code><singlestage::ScrollArea attr:data-name="CodeScrollArea" class="max-h-[70vh] overflow-auto"><pre>{text.0}</pre></singlestage::ScrollArea></crate::ui::card::AdminCard></section>
     };
     let content = super::render_view(content_view);
     super::render_admin_page(page, content)
@@ -32,7 +32,7 @@ pub(super) fn render_text_page_with_access(
     branding: &server_admin_contract::AdminBrandingView,
 ) -> super::AdminSsrHtml {
     let content_view = leptos::view! {
-        <section><crate::ui::card::AdminCard variant=crate::ui::card::AdminCardVariant::Code><pre>{text.0}</pre></crate::ui::card::AdminCard></section>
+        <section><crate::ui::card::AdminCard variant=crate::ui::card::AdminCardVariant::Code><singlestage::ScrollArea attr:data-name="CodeScrollArea" class="max-h-[70vh] overflow-auto"><pre>{text.0}</pre></singlestage::ScrollArea></crate::ui::card::AdminCard></section>
     };
     let content = super::render_view(content_view);
     super::render_admin_page_with_access(page, content, Some(admin), Some(branding))

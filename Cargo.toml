@@ -142,6 +142,27 @@ reqwest = { version = "=0.13.4", default-features = false, features = [
   "http2",
 ] }
 leptos = { version = "=0.8.20", default-features = false }
+singlestage = { version = "=0.4.1", default-features = false, features = [
+  "alert",
+  "badge",
+  "button",
+  "card",
+  "checkbox",
+  "dialog",
+  "dropdown",
+  "empty",
+  "field",
+  "input",
+  "input_group",
+  "link",
+  "pagination",
+  "popover",
+  "radio",
+  "scroll_area",
+  "spinner",
+  "table",
+  "textarea",
+] }
 libfuzzer-sys = { version = "=0.4.13", default-features = false, features = [
   "link_libfuzzer",
 ] }

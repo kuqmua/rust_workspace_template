@@ -56,20 +56,29 @@ impl TryFrom<String> for HttpOriginSchemeText {
 impl TryFrom<String> for AllowedOrigin {
     type Error = AllowedOriginError;
 
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        let (scheme, remainder) = value
-            .split_once(str_constants::TEXT_ALT_10)
-            .ok_or(AllowedOriginError)?;
-        if (!scheme.eq_ignore_ascii_case(str_constants::HTTP)
-            && !scheme.eq_ignore_ascii_case(str_constants::HTTPS))
-            || remainder.is_empty()
-            || remainder.contains(['/', '?', '#'])
-        {
-            return Err(AllowedOriginError);
-        }
+    fn try_from(mut value: String) -> Result<Self, Self::Error> {
+        let (scheme, authority_start) = {
+            let (scheme, remainder) = value
+                .split_once(str_constants::TEXT_ALT_10)
+                .ok_or(AllowedOriginError)?;
+            if (!scheme.eq_ignore_ascii_case(str_constants::HTTP)
+                && !scheme.eq_ignore_ascii_case(str_constants::HTTPS))
+                || remainder.is_empty()
+                || remainder.contains(['/', '?', '#'])
+            {
+                return Err(AllowedOriginError);
+            }
+            (
+                scheme.to_owned(),
+                scheme
+                    .len()
+                    .saturating_add(str_constants::TEXT_ALT_10.len()),
+            )
+        };
+        drop(value.drain(..authority_start));
         Ok(Self {
-            authority: HttpOriginAuthorityText::try_from(remainder.to_owned())?,
-            scheme: HttpOriginSchemeText::try_from(scheme.to_owned())?,
+            authority: HttpOriginAuthorityText::try_from(value)?,
+            scheme: HttpOriginSchemeText::try_from(scheme)?,
         })
     }
 }

@@ -93,6 +93,7 @@ impl HttpCspBuilder {
         if self.0.len().saturating_add(added_bytes) > HTTP_CSP_MAXIMUM_BYTES {
             return Err(HttpCspMaximumBytesError);
         }
+        self.0.reserve(added_bytes);
         if !self.0.is_empty() {
             self.0.push_str(str_constants::HTTP_CSP_DIRECTIVE_SEPARATOR);
         }

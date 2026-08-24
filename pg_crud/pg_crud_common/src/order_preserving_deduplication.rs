@@ -35,7 +35,7 @@ where
 
 #[must_use]
 pub fn deduplicate_preserving_order_by_key<Value, Key, AccessKey>(
-    values: OrderPreservingValues<Value>,
+    mut values: OrderPreservingValues<Value>,
     access_key: AccessKey,
 ) -> OrderPreservingValues<Value>
 where
@@ -43,12 +43,8 @@ where
     AccessKey: Fn(&Value) -> Key,
 {
     let mut seen = std::collections::HashSet::with_capacity(values.0.len());
+    values.0.retain(|value| seen.insert(access_key(value)));
     values
-        .0
-        .into_iter()
-        .filter(|value| seen.insert(access_key(value)))
-        .collect::<Vec<_>>()
-        .into()
 }
 
 #[cfg(test)]

@@ -206,21 +206,16 @@ impl syn::parse::Parse for TopLevelCommaPart {
         }
         input.step(|cursor| {
             let mut rest = *cursor;
-            let mut tokens = Vec::new();
+            let mut tokens = proc_macro2::TokenStream::new();
             while let Some((token, next)) = rest.token_tree() {
                 if matches!(&token, proc_macro2::TokenTree::Punct(punct) if punct.as_char() == ',')
                 {
                     break;
                 }
-                tokens.push(token);
+                tokens.extend(std::iter::once(token));
                 rest = next;
             }
-            Ok((
-                Self::from(ProcMacro2MacroTokens::from(
-                    tokens.into_iter().collect::<proc_macro2::TokenStream>(),
-                )),
-                rest,
-            ))
+            Ok((Self::from(ProcMacro2MacroTokens::from(tokens)), rest))
         })
     }
 }

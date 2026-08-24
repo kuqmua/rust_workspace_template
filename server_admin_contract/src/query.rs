@@ -326,8 +326,9 @@ pub struct AdminFilterValue(String);
 pub struct AdminFilterOperationKey(String);
 impl From<frontend_contract::FilterOperation> for AdminFilterOperationKey {
     fn from(value: frontend_contract::FilterOperation) -> Self {
-        let mut key = String::new();
-        format!("{value:?}")
+        let formatted = format!("{value:?}");
+        let mut key = String::with_capacity(formatted.len().saturating_mul(2usize));
+        formatted
             .chars()
             .enumerate()
             .for_each(|(index, character)| {

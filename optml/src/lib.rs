@@ -136,6 +136,7 @@ pub fn optml(input_token_stream: proc_macro::TokenStream) -> proc_macro::TokenSt
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
     let const_name_token_stream = quote::quote! {_OPTIMAL_PACK_CHECK};
     let impl_check_token_stream = quote::quote! {
+        #[cfg(not(target_arch = "wasm32"))]
         #[allow(unused_qualifications)]
         impl #impl_generics #identifier #ty_generics #where_clause {
             const #const_name_token_stream: () = {
@@ -145,6 +146,7 @@ pub fn optml(input_token_stream: proc_macro::TokenStream) -> proc_macro::TokenSt
     };
     let generated = quote::quote! {
         #impl_check_token_stream
+        #[cfg(not(target_arch = "wasm32"))]
         const _: () = #identifier::#const_name_token_stream;
     };
     generated.into()

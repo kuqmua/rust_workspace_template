@@ -1,3 +1,4 @@
+mod crud;
 mod data_grid;
 mod document;
 mod navigation;

@@ -131,6 +131,39 @@ test("administrator roles page contains only its header, table, and pagination",
   expect(rolesCellStyle).toEqual(await firstCellStyle(page));
 });
 
+test("shared administrator layout stays fixed while pages change", async ({ page }) => {
+  await signInAdministrator(page);
+  await page.setViewportSize({ width: 1440, height: 900 });
+
+  const geometry = [];
+  for (const path of [
+    "/admin/users",
+    "/admin/profile",
+    "/admin/settings",
+    "/admin/users/create",
+    "/admin/roles/manage"
+  ]) {
+    await page.goto(path);
+    await expect(page.locator(".page-frame")).toBeVisible();
+    geometry.push({
+      content: await page
+        .locator(".page-frame > :not(.flash-success)")
+        .first()
+        .boundingBox(),
+      main: await page.locator("main.main-content").boundingBox(),
+      navigation: await page.locator("header.topbar").boundingBox()
+    });
+  }
+
+  const expected = geometry[0];
+  for (const current of geometry.slice(1)) {
+    expect(current.main).toEqual(expected.main);
+    expect(current.navigation).toEqual(expected.navigation);
+    expect(current.content.x).toBe(expected.content.x);
+    expect(current.content.width).toBe(expected.content.width);
+  }
+});
+
 test("administrator permissions page contains only its header, table, and pagination", async ({
   page
 }) => {
@@ -141,6 +174,65 @@ test("administrator permissions page contains only its header, table, and pagina
   await expect(page.getByRole("table")).toHaveCount(1);
   await expect(page.locator("nav.table-pagination")).toHaveCount(1);
   await expect(page.locator("form.table-tools")).toHaveCount(0);
+});
+
+test("administrator can create, update, and delete users and roles from dedicated pages", async ({
+  page
+}) => {
+  await signInAdministrator(page);
+
+  await page.goto("/admin/users");
+  await page.getByRole("link", { name: "Create user" }).click();
+  await expect(page).toHaveURL(/\/admin\/users\/create$/);
+  await page.getByLabel("Login").fill("crud_user");
+  await page.getByLabel("Display name").fill("CRUD User");
+  await page.getByLabel("Initial password").fill("CrudUser1!Secure");
+  await page.getByRole("button", { name: "Create user" }).click();
+  await expect(page).toHaveURL(/\/admin\/users#saved$/);
+  await expect(page.getByRole("cell", { name: "crud_user" })).toBeVisible();
+
+  await page.getByRole("link", { name: "Manage users" }).click();
+  await expect(page).toHaveURL(/\/admin\/users\/manage$/);
+  const userCard = page.locator("article.crud-record").filter({
+    has: page.locator('input[name="login"][value="crud_user"]')
+  });
+  await userCard.getByLabel("Display name").fill("Updated CRUD User");
+  await userCard.getByRole("button", { name: "Save changes" }).click();
+  await expect(page).toHaveURL(/\/admin\/users#saved$/);
+  await expect(page.getByRole("cell", { name: "Updated CRUD User" })).toBeVisible();
+  await page.getByRole("link", { name: "Manage users" }).click();
+  const updatedUserCard = page.locator("article.crud-record").filter({
+    has: page.locator('input[name="login"][value="crud_user"]')
+  });
+  await updatedUserCard.getByLabel("I understand this cannot be undone").check();
+  await updatedUserCard.getByRole("button", { name: "Delete user" }).click();
+  await expect(page).toHaveURL(/\/admin\/users#saved$/);
+  await expect(page.getByRole("cell", { name: "crud_user" })).toHaveCount(0);
+
+  await page.goto("/admin/roles");
+  await page.getByRole("link", { name: "Create role" }).click();
+  await expect(page).toHaveURL(/\/admin\/roles\/create$/);
+  await page.getByLabel("Role name").fill("crud_role");
+  await page.getByRole("button", { name: "Create role" }).click();
+  await expect(page).toHaveURL(/\/admin\/roles#saved$/);
+  await expect(page.getByRole("cell", { name: "crud_role" })).toBeVisible();
+
+  await page.getByRole("link", { name: "Manage roles" }).click();
+  const roleCard = page.locator("article.crud-record").filter({
+    has: page.locator('input[name="name"][value="crud_role"]')
+  });
+  await roleCard.getByLabel("Role name").fill("updated_crud_role");
+  await roleCard.getByRole("button", { name: "Save changes" }).click();
+  await expect(page).toHaveURL(/\/admin\/roles#saved$/);
+  await expect(page.getByRole("cell", { name: "updated_crud_role" })).toBeVisible();
+  await page.getByRole("link", { name: "Manage roles" }).click();
+  const updatedRoleCard = page.locator("article.crud-record").filter({
+    has: page.locator('input[name="name"][value="updated_crud_role"]')
+  });
+  await updatedRoleCard.getByLabel("I understand this cannot be undone").check();
+  await updatedRoleCard.getByRole("button", { name: "Delete role" }).click();
+  await expect(page).toHaveURL(/\/admin\/roles#saved$/);
+  await expect(page.getByRole("cell", { name: "updated_crud_role" })).toHaveCount(0);
 });
 
 test("Rust UI primitives expose their semantic component contracts", async ({ page }) => {
@@ -164,7 +256,7 @@ test("Rust UI primitives expose their semantic component contracts", async ({ pa
   await expect(page.locator('[data-name="Field"]').first()).toBeVisible();
   await expect(page.locator('[data-name="Label"]').first()).toBeVisible();
   await expect(page.locator('input[data-name="Input"]').first()).toBeVisible();
-  await expect(page.locator('button[data-name="Button"]').first()).toBeVisible();
+  await expect(page.locator('button.ui-button').first()).toBeVisible();
 
   await page.goto("/admin/settings");
   const textarea = page.locator('textarea[data-name="Textarea"]').first();
@@ -244,4 +336,36 @@ test("keyboard navigation reaches every primary administrator route", async ({ p
   await expect
     .poll(() => page.evaluate(() => document.activeElement?.tagName))
     .not.toBe("BODY");
+});
+
+test("shared administrator shell remains visually stable across page navigation", async ({
+  page
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await signInAdministrator(page);
+  await page.goto("/admin/users");
+  await expect(page.locator('[data-renderer="csr"]')).toBeVisible();
+
+  const header = page.locator("header.topbar");
+  const main = page.locator("main.main-content");
+  const initialHeaderBox = await header.boundingBox();
+  const initialMainBox = await main.boundingBox();
+  const initialStructure = await header.evaluate(element =>
+    Array.from(element.querySelectorAll("*")).map(child => child.tagName)
+  );
+  for (const path of ["/admin/roles", "/admin/settings", "/admin/users"]) {
+    await page.locator(`header a[href="${path}"]`).click();
+    await expect(page).toHaveURL(new RegExp(`${path.replaceAll("/", "\\/")}$`));
+    await expect(page.locator(`header a[href="${path}"]`)).toHaveAttribute(
+      "aria-current",
+      "page"
+    );
+    expect(await header.boundingBox()).toEqual(initialHeaderBox);
+    expect(await main.boundingBox()).toEqual(initialMainBox);
+    expect(
+      await header.evaluate(element =>
+        Array.from(element.querySelectorAll("*")).map(child => child.tagName)
+      )
+    ).toEqual(initialStructure);
+  }
 });

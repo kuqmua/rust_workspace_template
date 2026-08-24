@@ -13,10 +13,7 @@
     reason = "Leptos component macro expansion generates builders, fields, and bindings with framework-defined shapes"
 )]
 
-use leptos::prelude::{
-    AriaAttributes, Callable, ClassAttribute, CustomAttribute, ElementChild, OnAttribute,
-    StyleAttribute,
-};
+use leptos::prelude::{Callable, ClassAttribute, ElementChild, OnAttribute};
 
 #[derive(optml::Optml, Clone, Copy, Default, PartialEq, Eq)]
 pub(crate) enum AdminButtonVariant {
@@ -39,6 +36,21 @@ impl AdminButtonVariant {
                 "ui-button ui-button-danger danger-button inline-flex h-9 w-fit shrink-0 touch-manipulation select-none items-center justify-center gap-2 whitespace-nowrap rounded-md bg-destructive px-4 py-2 text-sm font-medium text-white shadow-xs outline-none transition-all [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] hover:cursor-pointer hover:bg-destructive/90 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-destructive/20 active:scale-[0.98] active:opacity-100 aria-invalid:border-destructive aria-invalid:ring-destructive/20 disabled:pointer-events-none disabled:opacity-50 dark:bg-destructive/60 dark:aria-invalid:ring-destructive/40 dark:focus-visible:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
             }
         }
+    }
+}
+
+#[leptos::component]
+#[allow(
+    unreachable_pub,
+    reason = "Leptos component visibility is required for composition across frontend modules"
+)]
+pub(crate) fn AdminButtonLink(
+    href: &'static str,
+    #[prop(default = AdminButtonVariant::default())] variant: AdminButtonVariant,
+    children: leptos::prelude::Children,
+) -> impl leptos::prelude::IntoView {
+    leptos::view! {
+        <singlestage::Link class=variant.class() href=href>{children()}</singlestage::Link>
     }
 }
 
@@ -73,15 +85,16 @@ pub(crate) fn AdminButton(
     #[prop(optional)] popover_target_action: Option<&'static str>,
     #[prop(optional)] aria_label: Option<String>,
     #[prop(optional)] style: Option<String>,
+    #[prop(optional)] form: Option<String>,
     #[prop(optional)] on_click: Option<leptos::prelude::Callback<leptos::ev::MouseEvent>>,
     children: leptos::prelude::Children,
 ) -> impl leptos::prelude::IntoView {
     match on_click {
         Some(callback) => leptos::prelude::IntoAny::into_any(leptos::view! {
-            <button data-name="Button" class=variant.class() type=kind.value() disabled=disabled commandfor=command_for command=command popovertarget=popover_target popovertargetaction=popover_target_action aria-label=aria_label style=style on:click=move |event| callback.run(event)>{children()}</button>
+            <span class="contents" on:click=move |event| callback.run(event)><singlestage::Button class=variant.class() button_type=kind.value() disabled=disabled commandfor=command_for command=command.map(String::from) popovertarget=popover_target popovertargetaction=popover_target_action.map(String::from) aria_label=aria_label style=style form=form>{children()}</singlestage::Button></span>
         }),
         None => leptos::prelude::IntoAny::into_any(leptos::view! {
-            <button data-name="Button" class=variant.class() type=kind.value() disabled=disabled commandfor=command_for command=command popovertarget=popover_target popovertargetaction=popover_target_action aria-label=aria_label style=style>{children()}</button>
+            <singlestage::Button class=variant.class() button_type=kind.value() disabled=disabled commandfor=command_for command=command.map(String::from) popovertarget=popover_target popovertargetaction=popover_target_action.map(String::from) aria_label=aria_label style=style form=form>{children()}</singlestage::Button>
         }),
     }
 }

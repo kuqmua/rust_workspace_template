@@ -14,6 +14,17 @@ pub(super) async fn me_context_view(
     ),
     super::AdminError,
 > {
+    me_context_view_ref(&auth).await
+}
+pub(super) async fn me_context_view_ref(
+    auth: &super::AdminAuthReq,
+) -> Result<
+    (
+        server_admin_contract::AuthenticatedAdmin,
+        super::super::AdminPasswordChangeRequired,
+    ),
+    super::AdminError,
+> {
     super::authenticate(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),

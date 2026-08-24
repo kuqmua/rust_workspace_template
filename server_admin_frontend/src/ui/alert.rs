@@ -13,7 +13,9 @@
     reason = "Leptos component macro expansion generates builders, fields, and bindings with framework-defined shapes"
 )]
 
-use leptos::prelude::{ClassAttribute, CustomAttribute, ElementChild, GlobalAttributes};
+#[allow(unused_import_braces, reason = "grouped Leptos prelude imports are required by workspace source policy")]
+#[rustfmt::skip]
+use leptos::prelude::{AddAnyAttr};
 
 #[derive(optml::Optml, Clone, Copy, Default, PartialEq, Eq)]
 pub(crate) enum AdminAlertVariant {
@@ -56,6 +58,6 @@ pub(crate) fn AdminAlert(
     children: leptos::prelude::Children,
 ) -> impl leptos::prelude::IntoView {
     leptos::view! {
-        <div data-name="Alert" id=id class=variant.class() role=variant.role()>{children()}</div>
+        <singlestage::Alert attr:data-name="Alert" id=id.map(String::from) attr:class=variant.class() role=variant.role()>{children()}</singlestage::Alert>
     }
 }

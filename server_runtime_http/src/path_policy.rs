@@ -35,9 +35,18 @@ impl TryFrom<HttpProxyPathRef<'_>> for HttpProxyPath {
         if path.len() > 8192usize {
             return Err(Self::Error::ForbiddenSyntax);
         }
-        let lowercase = path.to_ascii_lowercase();
-        if lowercase.starts_with(str_constants::HTTP_SCHEME_PREFIX)
-            || lowercase.starts_with(str_constants::HTTPS_SCHEME_PREFIX)
+        let starts_with_ignore_ascii_case = |prefix: &str| {
+            path.as_bytes()
+                .get(..prefix.len())
+                .is_some_and(|prefix_bytes| prefix_bytes.eq_ignore_ascii_case(prefix.as_bytes()))
+        };
+        let contains_ignore_ascii_case = |pattern: &str| {
+            path.as_bytes()
+                .windows(pattern.len())
+                .any(|window| window.eq_ignore_ascii_case(pattern.as_bytes()))
+        };
+        if starts_with_ignore_ascii_case(str_constants::HTTP_SCHEME_PREFIX)
+            || starts_with_ignore_ascii_case(str_constants::HTTPS_SCHEME_PREFIX)
             || [
                 str_constants::ENCODED_DOT,
                 str_constants::ENCODED_SLASH,
@@ -46,7 +55,7 @@ impl TryFrom<HttpProxyPathRef<'_>> for HttpProxyPath {
                 str_constants::ENCODED_BACKSLASH,
             ]
             .into_iter()
-            .any(|encoded_syntax| lowercase.contains(encoded_syntax))
+            .any(contains_ignore_ascii_case)
             || path.contains(['\\', '?', '#', '\0'])
             || path.chars().any(char::is_whitespace)
         {
@@ -107,25 +116,27 @@ pub fn normalize_identifier_path(path: HttpRequestPathRef<'_>) -> Option<HttpNor
     if path.0.len() > 8192usize || !path.0.bytes().any(|byte| byte.is_ascii_digit()) {
         return None;
     }
-    let normalized = path
-        .0
-        .split('/')
-        .map(|segment| {
+    let normalized = path.0.split('/').enumerate().fold(
+        String::with_capacity(path.0.len()),
+        |mut normalized, (index, segment)| {
+            if index > 0usize {
+                normalized.push('/');
+            }
             if !segment.is_empty()
                 && segment.len() <= 19usize
                 && segment.bytes().all(|byte| byte.is_ascii_digit())
             {
-                str_constants::HTTP_NORMALIZED_IDENTIFIER_SEGMENT
+                normalized.push_str(str_constants::HTTP_NORMALIZED_IDENTIFIER_SEGMENT);
             } else if uuid::Uuid::parse_str(segment)
                 .is_ok_and(|value| value.get_version_num() == 4usize)
             {
-                str_constants::HTTP_NORMALIZED_UUID_SEGMENT
+                normalized.push_str(str_constants::HTTP_NORMALIZED_UUID_SEGMENT);
             } else {
-                segment
+                normalized.push_str(segment);
             }
-        })
-        .collect::<Vec<_>>()
-        .join(str_constants::SLASH);
+            normalized
+        },
+    );
     if normalized == path.0 {
         None
     } else {

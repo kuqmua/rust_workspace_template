@@ -1314,17 +1314,20 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
             .unwrap_or(identifier_value.as_str())
             .chars()
             .enumerate()
-            .fold(String::new(), |mut value, (index, character)| {
-                if character.is_ascii_uppercase() {
-                    if index != 0usize {
-                        value.push('_');
+            .fold(
+                String::with_capacity(identifier_value.len().saturating_mul(2usize)),
+                |mut value, (index, character)| {
+                    if character.is_ascii_uppercase() {
+                        if index != 0usize {
+                            value.push('_');
+                        }
+                        value.push(character.to_ascii_lowercase());
+                    } else {
+                        value.push(character);
                     }
-                    value.push(character.to_ascii_lowercase());
-                } else {
-                    value.push(character);
-                }
-                value
-            })
+                    value
+                },
+            )
     });
     let route_function_identifier =
         quote::format_ident!("{}_route", operation_name, span = identifier.span());
@@ -1913,13 +1916,15 @@ pub fn derive_route_catalog(input: proc_macro::TokenStream) -> proc_macro::Token
         .to_compile_error()
         .into();
     };
-    let mut contract_arms = Vec::new();
-    let mut family_routes = Vec::new();
-    let mut path_arms = Vec::new();
-    let mut custom_route_functions = Vec::new();
+    let variants_capacity = data_enum.variants.len();
+    let mut contract_arms = Vec::with_capacity(variants_capacity);
+    let mut family_routes = Vec::with_capacity(variants_capacity);
+    let mut path_arms = Vec::with_capacity(variants_capacity);
+    let mut custom_route_functions = Vec::with_capacity(variants_capacity);
     let snake_case_identifier = |identifier: SynIdent| {
-        let value = identifier.0.to_string().chars().enumerate().fold(
-            String::new(),
+        let identifier_value = identifier.0.to_string();
+        let value = identifier_value.chars().enumerate().fold(
+            String::with_capacity(identifier_value.len().saturating_mul(2usize)),
             |mut value, (index, character)| {
                 if character.is_ascii_uppercase() {
                     if index != 0usize {

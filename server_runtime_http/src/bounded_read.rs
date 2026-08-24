@@ -223,7 +223,11 @@ pub async fn read_bounded_http_response(
     {
         return Err(BoundedReadError::ExceedsMaximum { maximum_bytes });
     }
-    let mut bytes = Vec::new();
+    let initial_capacity = inner_response
+        .content_length()
+        .and_then(|length| usize::try_from(length).ok())
+        .map_or(0usize, |length| length.min(maximum_bytes.0));
+    let mut bytes = Vec::with_capacity(initial_capacity);
     while let Some(chunk) =
         inner_response
             .chunk()
@@ -239,7 +243,10 @@ pub async fn read_bounded_http_response(
     Ok(BoundedBytes::from(bytes))
 }
 pub fn parse_bounded_json(bytes: &BoundedBytes) -> Result<BoundedJsonText, BoundedJsonReadError> {
-    let text = String::from_utf8(bytes.0.clone()).map_err(|error| {
+    parse_bounded_json_owned(bytes.clone())
+}
+fn parse_bounded_json_owned(bytes: BoundedBytes) -> Result<BoundedJsonText, BoundedJsonReadError> {
+    let text = String::from_utf8(bytes.0).map_err(|error| {
         BoundedJsonReadError::Read(BoundedReadError::Utf8 {
             source: StdFromUtf8Error::from(error),
         })
@@ -253,7 +260,7 @@ pub async fn read_bounded_json_file_async(
     let bytes = read_bounded_file_async(path, maximum_bytes)
         .await
         .map_err(BoundedJsonReadError::Read)?;
-    parse_bounded_json(&bytes)
+    parse_bounded_json_owned(bytes)
 }
 pub async fn read_bounded_json_http_response(
     response: ReqwestResponse,
@@ -263,7 +270,7 @@ pub async fn read_bounded_json_http_response(
     let bytes = read_bounded_http_response(response, maximum_bytes, concurrency)
         .await
         .map_err(BoundedJsonReadError::Read)?;
-    parse_bounded_json(&bytes)
+    parse_bounded_json_owned(bytes)
 }
 #[cfg(test)]
 mod tests {

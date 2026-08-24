@@ -92,8 +92,9 @@ fn editable_settings_render_every_input_kind_from_the_contract_catalog() {
 
     let html = super::super::render_settings(&settings, &admin, &branding);
 
-    assert!(html.as_ref().contains("name=\"site_name\" type=\"text\""));
-    assert!(html.as_ref().contains("name=\"main_logo\" type=\"url\""));
+    assert!(html.as_ref().contains("name=\"site_name\""));
+    assert!(html.as_ref().contains("name=\"main_logo\""));
+    assert!(html.as_ref().contains("type=\"url\""));
     assert!(html.as_ref().contains("data-name=\"Textarea\""));
     assert!(html.as_ref().contains("name=\"organization_contacts\""));
     assert!(html.as_ref().contains(">Support desk</textarea>"));

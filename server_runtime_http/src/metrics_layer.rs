@@ -243,20 +243,21 @@ where
             let status = MetricsSharedString::from(metrics::SharedString::from(
                 response.status().as_str().to_owned(),
             ));
-            let labels = vec![
+            let labels = [
                 metrics::Label::new(str_constants::HTTP_METRICS_LABEL_METHOD, method),
                 metrics::Label::new(str_constants::PATH_ALT_5, path_label.0),
                 metrics::Label::new(str_constants::STATUS_ALT, status.0),
             ];
-            metrics::counter!(str_constants::HTTP_METRICS_REQUESTS_TOTAL, labels.clone())
+            metrics::counter!(str_constants::HTTP_METRICS_REQUESTS_TOTAL, labels.iter())
                 .increment(1u64);
             metrics::histogram!(
                 str_constants::HTTP_METRICS_REQUEST_DURATION_SECONDS,
-                labels.clone()
+                labels.iter()
             )
             .record(started_at.elapsed().as_secs_f64());
             if response.status().is_server_error() {
-                metrics::counter!(str_constants::HTTP_METRICS_ERRORS_TOTAL, labels).increment(1u64);
+                metrics::counter!(str_constants::HTTP_METRICS_ERRORS_TOTAL, labels.iter())
+                    .increment(1u64);
             }
             Ok(response)
         })

@@ -54,7 +54,7 @@ pub(super) fn render_with_table_access(
                 <header class="topbar">
                     {navigation::admin_nav(page, admin, active_table)}
                 </header>
-                <main class="main-content"><crate::ui::alert::AdminAlert variant=crate::ui::alert::AdminAlertVariant::Success id="saved">"Changes saved."</crate::ui::alert::AdminAlert><div inner_html=String::from(content)></div></main>
+                <main class="main-content"><div class="page-frame"><crate::ui::alert::AdminAlert variant=crate::ui::alert::AdminAlertVariant::Success id="saved">"Changes saved."</crate::ui::alert::AdminAlert><div inner_html=String::from(content)></div></div></main>
             </div>
         },
     )

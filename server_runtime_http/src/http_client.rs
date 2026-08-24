@@ -107,21 +107,24 @@ impl ReqwestClient {
     pub(super) fn prepare_observed_http_request(
         request: &mut super::ReqwestRequest,
     ) -> TracingHttpClientSpan {
-        let method = request.method().to_string();
-        let host = request
-            .host()
-            .map_or_else(String::new, |value| value.to_string());
-        let span = tracing::info_span!(
-            "http.client",
-            otel.kind = "client",
-            otel.name = tracing::field::Empty,
-            otel.status_code = tracing::field::Empty,
-            "http.request.method" = %method,
-            "server.address" = %host,
-            "http.response.status_code" = tracing::field::Empty,
-        );
-        let _client_name_record =
-            span.record(str_constants::OTEL_NAME, format_args!("{method} {host}"));
+        let span = {
+            let method = request.method();
+            let host = request
+                .host()
+                .unwrap_or_else(|| super::HttpHostRef::from(""));
+            let span = tracing::info_span!(
+                "http.client",
+                otel.kind = "client",
+                otel.name = tracing::field::Empty,
+                otel.status_code = tracing::field::Empty,
+                "http.request.method" = %method,
+                "server.address" = %host,
+                "http.response.status_code" = tracing::field::Empty,
+            );
+            let _client_name_record =
+                span.record(str_constants::OTEL_NAME, format_args!("{method} {host}"));
+            span
+        };
         super::inject_trace_context(
             &super::OpentelemetryContext::from(
                 tracing_opentelemetry::OpenTelemetrySpanExt::context(&span),

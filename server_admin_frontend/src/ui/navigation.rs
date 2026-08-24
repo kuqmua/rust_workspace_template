@@ -10,10 +10,13 @@
     clippy::shadow_reuse,
     clippy::single_call_fn,
     clippy::unused_trait_names,
+    unused_imports,
     reason = "Leptos component macro expansion generates builders, fields, and bindings with framework-defined shapes"
 )]
 
-use leptos::prelude::{AriaAttributes, ClassAttribute, CustomAttribute, ElementChild};
+#[allow(unused_import_braces, reason = "grouped Leptos prelude imports are required by workspace source policy")]
+#[rustfmt::skip]
+use leptos::prelude::{AddAnyAttr, ClassAttribute, CustomAttribute, ElementChild};
 
 #[leptos::component]
 #[allow(
@@ -26,14 +29,43 @@ pub(crate) fn AdminNavigationLink(
     children: leptos::prelude::Children,
 ) -> impl leptos::prelude::IntoView {
     leptos::view! {
-        <a
-            data-name="NavigationMenuLink"
-            class=("active inline-flex items-center rounded-sm text-sm font-medium text-foreground transition-colors focus:outline-none", active)
-            class=("inline-flex items-center rounded-sm text-sm font-medium text-foreground/70 transition-colors hover:text-foreground focus:outline-none", !active)
-            aria-current=active.then_some("page")
+        <singlestage::Link
+            attr:data-name="NavigationMenuLink"
+            class=if active { "active inline-flex items-center rounded-sm text-sm font-medium text-foreground transition-colors focus:outline-none" } else { "inline-flex items-center rounded-sm text-sm font-medium text-foreground/70 transition-colors hover:text-foreground focus:outline-none" }
+            attr:aria-current=active.then_some("page")
             href=href
         >
             {children()}
-        </a>
+        </singlestage::Link>
     }
+}
+
+#[leptos::component]
+#[allow(
+    unreachable_pub,
+    reason = "Leptos component visibility is required for navigation composition"
+)]
+pub(crate) fn AdminSidebar(children: leptos::prelude::Children) -> impl leptos::prelude::IntoView {
+    leptos::view! {
+        <div class="nav-menu">
+            <label class="nav-menu-toggle">
+                <input type="checkbox" />
+                <span>"Navigation"</span>
+            </label>
+            <nav data-name="NavigationMenu" class="relative z-10 max-w-max flex-1 items-center justify-center">
+                <ul class="nav-menu-list">{children()}</ul>
+            </nav>
+        </div>
+    }
+}
+
+#[leptos::component]
+#[allow(
+    unreachable_pub,
+    reason = "Leptos component visibility is required for navigation composition"
+)]
+pub(crate) fn AdminSidebarItem(
+    children: leptos::prelude::Children,
+) -> impl leptos::prelude::IntoView {
+    leptos::view! { <li>{children()}</li> }
 }

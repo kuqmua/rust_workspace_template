@@ -95,7 +95,8 @@ fn typed_static_pages_render_rows_actions_roles_and_escaped_text() {
             .as_ref()
             .contains("data-name=\"AlertDialogContent\"")
     );
-    assert!(sessions_html.as_ref().contains("command=\"show-modal\""));
+    assert!(sessions_html.as_ref().contains("singlestage-dialog"));
+    assert!(!sessions_html.as_ref().contains("command=\"show-modal\""));
     assert!(
         sessions_html
             .as_ref()

@@ -4,34 +4,32 @@
     reason = "CSR and SSR targets each compile one call site and Leptos cell rendering requires attribute traits in lexical scope"
 )]
 
-use leptos::prelude::{ClassAttribute, CustomAttribute, ElementChild};
-
 pub(crate) fn admin_user_roles(
     item: &server_admin_contract::AdminUserSummary,
     page: &server_admin_contract::AdminUsersPage,
 ) -> impl leptos::prelude::IntoView + use<> {
-    let names = page
-        .roles()
-        .iter()
-        .filter(|role| item.role_ids().contains(&role.id()))
-        .map(|role| role.name().to_string())
-        .collect::<Vec<_>>()
-        .join(str_constants::COMMA_SPACE);
-    leptos::view! { <td data-name="TableCell" class="p-4 align-middle [&:has([role=checkbox])]:pr-0 [&:has([role=checkbox])]:pl-3" data-label="roles">{names}</td> }
+    let names = String::from(super::text::join_txt(
+        page.roles()
+            .iter()
+            .filter(|role| item.role_ids().contains(&role.id()))
+            .map(server_admin_contract::AdminRoleSummary::name)
+            .map(|name| name.as_ref().as_str()),
+    ));
+    leptos::view! { <crate::ui::table::TableCell data_label="roles">{names}</crate::ui::table::TableCell> }
 }
 
 pub(crate) fn admin_role_permissions(
     item: &server_admin_contract::AdminRoleSummary,
     page: &server_admin_contract::AdminRolesPage,
 ) -> impl leptos::prelude::IntoView + use<> {
-    let names = page
-        .permissions()
-        .iter()
-        .filter(|permission| item.permission_ids().contains(&permission.id()))
-        .map(|permission| permission.name().to_string())
-        .collect::<Vec<_>>()
-        .join(str_constants::COMMA_SPACE);
-    leptos::view! { <td data-name="TableCell" class="p-4 align-middle [&:has([role=checkbox])]:pr-0 [&:has([role=checkbox])]:pl-3" data-label="permissions">{names}</td> }
+    let names = String::from(super::text::join_txt(
+        page.permissions()
+            .iter()
+            .filter(|permission| item.permission_ids().contains(&permission.id()))
+            .map(server_admin_contract::AdminPermissionSummary::name)
+            .map(|name| name.as_ref().as_str()),
+    ));
+    leptos::view! { <crate::ui::table::TableCell data_label="permissions">{names}</crate::ui::table::TableCell> }
 }
 
 #[cfg(test)]

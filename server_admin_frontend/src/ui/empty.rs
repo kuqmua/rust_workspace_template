@@ -13,7 +13,9 @@
     reason = "Leptos component macro expansion generates builders, fields, and bindings with framework-defined shapes"
 )]
 
-use leptos::prelude::{ClassAttribute, CustomAttribute, ElementChild};
+#[allow(unused_import_braces, reason = "grouped Leptos prelude imports are required by workspace source policy")]
+#[rustfmt::skip]
+use leptos::prelude::{AddAnyAttr};
 
 #[leptos::component]
 #[allow(
@@ -22,6 +24,10 @@ use leptos::prelude::{ClassAttribute, CustomAttribute, ElementChild};
 )]
 pub(crate) fn AdminEmpty(children: leptos::prelude::Children) -> impl leptos::prelude::IntoView {
     leptos::view! {
-        <div data-name="Empty" class="ui-empty empty-state flex flex-col items-center justify-center gap-4 rounded-lg border border-dashed p-8 text-center">{children()}</div>
+        <singlestage::Empty attr:data-name="Empty" attr:class="ui-empty empty-state flex flex-col items-center justify-center gap-4 rounded-lg border border-dashed p-8 text-center">
+            <singlestage::EmptyHeader attr:data-name="EmptyHeader">
+                <singlestage::EmptyTitle attr:data-name="EmptyTitle">{children()}</singlestage::EmptyTitle>
+            </singlestage::EmptyHeader>
+        </singlestage::Empty>
     }
 }

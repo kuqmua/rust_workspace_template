@@ -18,6 +18,7 @@ crate-type = ["cdylib", "rlib"]
 optml = { workspace = true }
 newtype = { workspace = true }
 server_admin_contract = { workspace = true }
+singlestage = { workspace = true }
 str_constants = { workspace = true }
 thiserror = { workspace = true }
 

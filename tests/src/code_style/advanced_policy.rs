@@ -1783,7 +1783,7 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
         (
             "server_admin/src/auth/html.rs",
             (
-                9usize,
+                8usize,
                 "HTML form parsing maps details to stable API errors",
             ),
         ),

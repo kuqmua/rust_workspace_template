@@ -6,7 +6,7 @@
 )]
 
 use leptos::prelude::{
-    AriaAttributes, ClassAttribute, CustomAttribute, ElementChild, GlobalAttributes,
+    AddAnyAttr, AriaAttributes, ClassAttribute, CustomAttribute, ElementChild, GlobalAttributes,
 };
 
 pub(super) fn table_pagination(
@@ -31,27 +31,69 @@ pub(super) fn table_pagination(
     let filter_value =
         table_filter.and_then(server_admin_contract::AdminDataTableFilterQuery::value);
     let filter_end = table_filter.and_then(server_admin_contract::AdminDataTableFilterQuery::end);
+    let page_size_query = crate::shared::table_filters::query::admin_table_query_hidden_inputs(
+        query.search(),
+        query.sort(),
+        &crate::shared::table_filters::query::AdminTableQueryDirection::Ssr(query.direction()),
+        query.limit(),
+    );
+    let page_size_filter = crate::shared::table_filters::filter::admin_filter_hidden_inputs(
+        filter_field,
+        filter_operation.as_ref(),
+        filter_value,
+        filter_end,
+    );
+    let previous_query = crate::shared::table_filters::query::admin_table_query_hidden_inputs(
+        query.search(),
+        query.sort(),
+        &crate::shared::table_filters::query::AdminTableQueryDirection::Ssr(query.direction()),
+        query.limit(),
+    );
+    let previous_filter = crate::shared::table_filters::filter::admin_filter_hidden_inputs(
+        filter_field,
+        filter_operation.as_ref(),
+        filter_value,
+        filter_end,
+    );
+    let next_query = crate::shared::table_filters::query::admin_table_query_hidden_inputs(
+        query.search(),
+        query.sort(),
+        &crate::shared::table_filters::query::AdminTableQueryDirection::Ssr(query.direction()),
+        query.limit(),
+    );
+    let next_filter = crate::shared::table_filters::filter::admin_filter_hidden_inputs(
+        filter_field,
+        filter_operation.as_ref(),
+        filter_value,
+        filter_end,
+    );
+    let page_size_action = action.clone();
+    let previous_action = action.clone();
     leptos::view! {
-        <nav data-name="Pagination" class="table-pagination mx-auto flex w-full items-center justify-center gap-2" aria-label="Table pages">
-            <form class="table-page-size" method="get" action=action.clone()>
-                {crate::shared::table_filters::query::admin_table_query_hidden_inputs(query.search(), query.sort(), &crate::shared::table_filters::query::AdminTableQueryDirection::Ssr(query.direction()), query.limit())}
-                {crate::shared::table_filters::filter::admin_filter_hidden_inputs(filter_field, filter_operation.as_ref(), filter_value, filter_end)}
+        <singlestage::Pagination attr:data-name="Pagination" attr:aria-label="Table pages" class="table-pagination mx-auto flex w-full items-center justify-center gap-2">
+            <singlestage::PaginationContent class="contents">
+            <singlestage::PaginationItem class="contents"><form class="table-page-size" method="get" action=page_size_action>
+                {page_size_query}
+                {page_size_filter}
                 <input type="hidden" name="offset" value="0" />
-                <crate::ui::field::AdminField label="Rows"><crate::ui::input::AdminInput name="limit" kind=crate::ui::input::AdminInputKind::Number min=server_admin_contract::AdminPageLimit::MIN max=server_admin_contract::AdminPageLimit::MAX initial_value=limit.to_string() /></crate::ui::field::AdminField>
-                <crate::ui::button::AdminButton>"Apply"</crate::ui::button::AdminButton>
-            </form>
-            <form method="get" action=action.clone()>
-                {crate::shared::table_filters::query::admin_table_query_hidden_inputs(query.search(), query.sort(), &crate::shared::table_filters::query::AdminTableQueryDirection::Ssr(query.direction()), query.limit())}
-                {crate::shared::table_filters::filter::admin_filter_hidden_inputs(filter_field, filter_operation.as_ref(), filter_value, filter_end)}
+                <crate::ui::input::AdminInputGroup>
+                    <crate::ui::field::AdminField label="Rows"><crate::ui::input::AdminInput name="limit" kind=crate::ui::input::AdminInputKind::Number min=server_admin_contract::AdminPageLimit::MIN max=server_admin_contract::AdminPageLimit::MAX initial_value=limit.to_string() /></crate::ui::field::AdminField>
+                    <crate::ui::button::AdminButton>"Apply"</crate::ui::button::AdminButton>
+                </crate::ui::input::AdminInputGroup>
+            </form></singlestage::PaginationItem>
+            <singlestage::PaginationItem class="contents"><form method="get" action=previous_action>
+                {previous_query}
+                {previous_filter}
                 <input type="hidden" name="offset" value=u32::from(range.previous_offset()).to_string() /><crate::ui::button::AdminButton variant=crate::ui::button::AdminButtonVariant::Secondary disabled=bool::from(range.previous_disabled())>"Previous"</crate::ui::button::AdminButton>
-            </form>
-            <span>{format!("{}-{} of {}", u64::from(range.start()), u64::from(range.end()), total)}</span>
-            <form method="get" action=action>
-                {crate::shared::table_filters::query::admin_table_query_hidden_inputs(query.search(), query.sort(), &crate::shared::table_filters::query::AdminTableQueryDirection::Ssr(query.direction()), query.limit())}
-                {crate::shared::table_filters::filter::admin_filter_hidden_inputs(filter_field, filter_operation.as_ref(), filter_value, filter_end)}
+            </form></singlestage::PaginationItem>
+            <singlestage::PaginationItem class="contents"><span>{format!("{}-{} of {}", u64::from(range.start()), u64::from(range.end()), total)}</span></singlestage::PaginationItem>
+            <singlestage::PaginationItem class="contents"><form method="get" action=action>
+                {next_query}
+                {next_filter}
                 <input type="hidden" name="offset" value=u32::from(range.next_offset()).to_string() /><crate::ui::button::AdminButton variant=crate::ui::button::AdminButtonVariant::Secondary disabled=bool::from(range.next_disabled())>"Next"</crate::ui::button::AdminButton>
-            </form>
-        </nav>
+            </form></singlestage::PaginationItem>
+            </singlestage::PaginationContent>
+        </singlestage::Pagination>
     }
 }
 

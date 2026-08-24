@@ -200,7 +200,9 @@ pub(crate) async fn list_users(
         .await
         .map_err(crate::SqlxAdminError::from)?;
     let mut role_ids_by_user = links.into_iter().try_fold(
-        std::collections::HashMap::<i64, Vec<server_admin_contract::AdminRoleId>>::new(),
+        std::collections::HashMap::<i64, Vec<server_admin_contract::AdminRoleId>>::with_capacity(
+            user_ids.len(),
+        ),
         |mut values, (user_id, role_id)| {
             values.entry(user_id).or_default().push(
                 server_admin_contract::AdminRoleId::try_from(role_id)

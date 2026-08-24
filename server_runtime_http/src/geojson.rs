@@ -136,35 +136,32 @@ impl SupportedGeoJsonTypeValidation for serde_json::Value {
             .get(str_constants::GEO_JSON_TYPE)
             .and_then(Self::as_str)
             .ok_or(GeoJsonValidationError::Document)?;
-        let children = match value_type {
+        match value_type {
             str_constants::GEO_JSON_FEATURE => object
                 .get(str_constants::GEO_JSON_GEOMETRY)
                 .filter(|geometry| !geometry.is_null())
                 .into_iter()
-                .collect::<Vec<_>>(),
+                .try_for_each(Self::validate_supported_geo_json_types),
             str_constants::GEO_JSON_FEATURE_COLLECTION => object
                 .get(str_constants::GEO_JSON_FEATURES)
                 .and_then(Self::as_array)
                 .ok_or(GeoJsonValidationError::Document)?
                 .iter()
-                .collect::<Vec<_>>(),
+                .try_for_each(Self::validate_supported_geo_json_types),
             str_constants::GEO_JSON_GEOMETRY_COLLECTION => object
                 .get(str_constants::GEO_JSON_GEOMETRIES)
                 .and_then(Self::as_array)
                 .ok_or(GeoJsonValidationError::Document)?
                 .iter()
-                .collect::<Vec<_>>(),
+                .try_for_each(Self::validate_supported_geo_json_types),
             str_constants::GEO_JSON_POINT
             | str_constants::GEO_JSON_LINE_STRING
             | str_constants::GEO_JSON_MULTI_POINT
             | str_constants::GEO_JSON_MULTI_LINE_STRING
             | str_constants::GEO_JSON_POLYGON
-            | str_constants::GEO_JSON_MULTI_POLYGON => Vec::new(),
-            _ => return Err(GeoJsonValidationError::UnsupportedGeometry),
-        };
-        children
-            .into_iter()
-            .try_for_each(Self::validate_supported_geo_json_types)
+            | str_constants::GEO_JSON_MULTI_POLYGON => Ok(()),
+            _ => Err(GeoJsonValidationError::UnsupportedGeometry),
+        }
     }
 }
 

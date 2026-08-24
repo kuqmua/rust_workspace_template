@@ -56,8 +56,6 @@ pub fn build_date_sql_filter(
     bounds: DateFilterBounds<'_>,
     bind_start: StdDateSqlBindStart,
 ) -> Result<DateSqlFilter, DateSqlFilterError> {
-    let mut fragment = String::new();
-    let mut values = Vec::with_capacity(4usize);
     let mut bind_index = bind_start.0.get();
     let candidates = [
         (
@@ -81,6 +79,31 @@ pub fn build_date_sql_filter(
             bounds.updated_at_to,
         ),
     ];
+    let active_count = candidates
+        .iter()
+        .filter(|(_column, _comparator, value)| value.is_some())
+        .count();
+    let mut values = Vec::with_capacity(active_count);
+    let alias_bytes =
+        optional_table_alias.map_or(0usize, |alias| alias.as_ref().len().saturating_add(1usize));
+    let fragment_capacity = candidates
+        .iter()
+        .filter(|(_column, _comparator, value)| value.is_some())
+        .map(|(column, comparator, _value)| {
+            alias_bytes
+                .saturating_add(column.len())
+                .saturating_add(1usize)
+                .saturating_add(comparator.len())
+                .saturating_add(str_constants::DOLLAR_SIGN.len())
+                .saturating_add(10usize)
+        })
+        .sum::<usize>()
+        .saturating_add(
+            active_count
+                .saturating_sub(1usize)
+                .saturating_mul(str_constants::AND.len()),
+        );
+    let mut fragment = String::with_capacity(fragment_capacity);
     candidates
         .into_iter()
         .try_for_each(|(column, comparator, optional_value)| {
