@@ -7,7 +7,7 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let std_env_var_error_snake_case = naming::StdEnvVarErrorSnakeCase;
     let std_env_var_error_upper_camel_case = naming::StdEnvVarErrorUpperCamelCase;
     let try_from_std_env_var_ok_upper_camel_case = naming::TryFromStdEnvVarOkUpperCamelCase;
-    let di: syn::DeriveInput = syn::parse(v).expect("e45f75c2");
+    let di: syn::DeriveInput = syn::parse(v).expect("e45f75c2 try_from_env invariant must hold");
     let identifier = &di.ident;
     let generate_env_example = di.attrs.iter().any(|attribute| {
         attribute.path().is_ident(str_constants::CONFIG)

@@ -129,7 +129,7 @@ mod tests {
             super::ResourceAmount::from(used),
             super::ResourceAmount::from(maximum),
         )
-        .expect("8c23bc92")
+        .expect("8c23bc92 calculate invariant must hold")
     }
 
     #[test]
@@ -189,7 +189,7 @@ mod tests {
         let _error = super::ResourceUtilizationPercent::try_from(101u8).expect_err("7ba1d197");
         assert_eq!(
             super::ResourceUtilizationPercent::try_from(100u8)
-                .expect("f17abeab")
+                .expect("f17abeab percentage_rejects_values_above_one_hundred invariant must hold")
                 .get(),
             100u8
         );

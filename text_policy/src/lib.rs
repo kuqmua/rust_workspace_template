@@ -230,7 +230,7 @@ mod tests {
         let _value = super::FixedLengthAsciiHexText::try_from(
             str_constants::TEST_GIT_COMMIT_HASH.to_owned(),
         )
-        .expect("fdb4f77c");
+        .expect("fdb4f77c fixed_hex_requires_lowercase_and_exact_length invariant must hold");
         assert_eq!(
             super::FixedLengthAsciiHexText::try_from(
                 str_constants::TEST_UPPERCASE_GIT_COMMIT_HASH.to_owned()

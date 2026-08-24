@@ -270,8 +270,10 @@ mod tests {
 
     fn codec() -> super::CursorCodec {
         super::CursorCodec::new(
-            super::CursorSigningKey::try_from(vec![7u8; 32usize]).expect("556f25ae"),
-            super::CursorMaximumLength::try_from(1_024usize).expect("30c8f351"),
+            super::CursorSigningKey::try_from(vec![7u8; 32usize])
+                .expect("556f25ae codec invariant must hold"),
+            super::CursorMaximumLength::try_from(1_024usize)
+                .expect("30c8f351 codec invariant must hold"),
         )
     }
 
@@ -296,19 +298,28 @@ mod tests {
     fn signed_cursor_round_trip_preserves_payload() {
         let payload =
             super::CursorPayload::try_from(String::from(str_constants::CURSOR_TEST_JSON_PAYLOAD))
-                .expect("ead70a9e");
-        let cursor = codec().encode(&payload).expect("47ad934b");
-        assert_eq!(codec().decode(&cursor).expect("cc4bf589"), payload);
+                .expect("ead70a9e signed_cursor_round_trip_preserves_payload invariant must hold");
+        let cursor = codec()
+            .encode(&payload)
+            .expect("47ad934b signed_cursor_round_trip_preserves_payload invariant must hold");
+        assert_eq!(
+            codec()
+                .decode(&cursor)
+                .expect("cc4bf589 signed_cursor_round_trip_preserves_payload invariant must hold"),
+            payload
+        );
     }
 
     #[test]
     fn modified_cursor_is_rejected() {
         let payload =
             super::CursorPayload::try_from(String::from(str_constants::CURSOR_TEST_PAYLOAD))
-                .expect("256860a7");
-        let cursor = codec().encode(&payload).expect("22fc1ce9");
-        let modified =
-            super::SignedCursor::try_from(format!("{}x", cursor.as_ref())).expect("64b5f541");
+                .expect("256860a7 modified_cursor_is_rejected invariant must hold");
+        let cursor = codec()
+            .encode(&payload)
+            .expect("22fc1ce9 modified_cursor_is_rejected invariant must hold");
+        let modified = super::SignedCursor::try_from(format!("{}x", cursor.as_ref()))
+            .expect("64b5f541 modified_cursor_is_rejected invariant must hold");
         assert_eq!(
             codec().decode(&modified),
             Err(super::CursorDecodeError::InvalidSignature)

@@ -11,7 +11,14 @@ fn reports_distinguish_liveness_and_dependency_readiness() {
         super::super::HealthReport::readiness(super::super::HealthDatabaseAvailable::from(false));
     assert_eq!(degraded.status(), super::super::HealthStatus::Degraded);
     assert_eq!(
-        degraded.components.0.get(1usize).expect("16ca1c84").status,
+        degraded
+            .components
+            .0
+            .get(1usize)
+            .expect(
+                "16ca1c84 reports_distinguish_liveness_and_dependency_readiness invariant must hold"
+            )
+            .status,
         super::super::HealthStatus::Error
     );
 }
@@ -52,9 +59,10 @@ fn component_serde_accepts_exact_runtime_limit() {
         status: super::super::HealthStatus::Degraded,
     };
     let expected = super::super::HealthComponents::from([first, second]);
-    let encoded = serde_json::to_value(&expected).expect("60490918");
-    let decoded =
-        serde_json::from_value::<super::super::HealthComponents>(encoded).expect("4363452f");
+    let encoded = serde_json::to_value(&expected)
+        .expect("60490918 component_serde_accepts_exact_runtime_limit invariant must hold");
+    let decoded = serde_json::from_value::<super::super::HealthComponents>(encoded)
+        .expect("4363452f component_serde_accepts_exact_runtime_limit invariant must hold");
     assert_eq!(decoded, expected);
 }
 

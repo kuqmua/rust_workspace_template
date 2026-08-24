@@ -8,10 +8,10 @@ async fn protected_routes_reject_missing_authentication_without_database_io() {
                     .as_ref(),
             )
             .body(axum::body::Body::empty())
-            .expect("b319e84d"),
+            .expect("b319e84d protected_routes_reject_missing_authentication_without_database_io invariant must hold"),
     )
     .await
-    .expect("0ac617de");
+    .expect("0ac617de protected_routes_reject_missing_authentication_without_database_io invariant must hold");
     assert_eq!(users_response.status(), http::StatusCode::UNAUTHORIZED);
     let response = tower::ServiceExt::oneshot(
         router().0,
@@ -21,10 +21,10 @@ async fn protected_routes_reject_missing_authentication_without_database_io() {
                     .as_ref(),
             )
             .body(axum::body::Body::empty())
-            .expect("895e12fc"),
+            .expect("895e12fc protected_routes_reject_missing_authentication_without_database_io invariant must hold"),
     )
     .await
-    .expect("1fe80ad3");
+    .expect("1fe80ad3 protected_routes_reject_missing_authentication_without_database_io invariant must hold");
     assert_eq!(response.status(), http::StatusCode::UNAUTHORIZED);
 }
 #[tokio::test]
@@ -36,11 +36,13 @@ async fn runtime_auth_router_contains_every_open_api_operation() {
     let document = serde_json::to_value(utoipa::openapi::OpenApi::from(
         server_admin::auth::open_api(),
     ))
-    .expect("71599514");
+    .expect("71599514 runtime_auth_router_contains_every_open_api_operation invariant must hold");
     let paths = document
         .get(str_constants::PATHS)
         .and_then(serde_json::Value::as_object)
-        .expect("d908872f");
+        .expect(
+            "d908872f runtime_auth_router_contains_every_open_api_operation invariant must hold",
+        );
     let responses = futures::future::join_all(
         paths
             .iter()
@@ -68,7 +70,7 @@ async fn runtime_auth_router_contains_every_open_api_operation() {
                     );
                 let method =
                     http::Method::from_bytes(documented_method.to_ascii_uppercase().as_bytes())
-                        .expect("9d31a7e4");
+                        .expect("9d31a7e4 runtime_auth_router_contains_every_open_api_operation invariant must hold");
                 async move {
                     (
                         documented_method,
@@ -79,7 +81,7 @@ async fn runtime_auth_router_contains_every_open_api_operation() {
                                 .method(method)
                                 .uri(runtime_path)
                                 .body(axum::body::Body::empty())
-                                .expect("a3d6fb65"),
+                                .expect("a3d6fb65 runtime_auth_router_contains_every_open_api_operation invariant must hold"),
                         )
                         .await,
                     )
@@ -88,7 +90,7 @@ async fn runtime_auth_router_contains_every_open_api_operation() {
     )
     .await;
     responses.into_iter().for_each(|(method, path, response)| {
-        let status = response.expect("f7bd9f15").status();
+        let status = response.expect("f7bd9f15 runtime_auth_router_contains_every_open_api_operation invariant must hold").status();
         assert!(
             status != http::StatusCode::METHOD_NOT_ALLOWED && status != http::StatusCode::NOT_FOUND,
             "runtime router does not expose documented operation {method} {path}"
@@ -109,10 +111,12 @@ async fn invalid_access_cookie_is_rejected_before_database_io() {
                 str_constants::ADMIN_ACCESS_TOKEN_INVALID_JWT_TOKEN,
             )
             .body(axum::body::Body::empty())
-            .expect("819acd53"),
+            .expect(
+                "819acd53 invalid_access_cookie_is_rejected_before_database_io invariant must hold",
+            ),
     )
     .await
-    .expect("c3af0891");
+    .expect("c3af0891 invalid_access_cookie_is_rejected_before_database_io invariant must hold");
     assert_eq!(response.status(), http::StatusCode::UNAUTHORIZED);
 }
 #[tokio::test]
@@ -122,10 +126,10 @@ async fn unknown_admin_api_route_is_not_captured_by_spa_fallback() {
         http::Request::builder()
             .uri(str_constants::NOT_AN_API_ROUTE)
             .body(axum::body::Body::empty())
-            .expect("1ca76f8d"),
+            .expect("1ca76f8d unknown_admin_api_route_is_not_captured_by_spa_fallback invariant must hold"),
     )
     .await
-    .expect("ce417390");
+    .expect("ce417390 unknown_admin_api_route_is_not_captured_by_spa_fallback invariant must hold");
     assert_eq!(response.status(), http::StatusCode::NOT_FOUND);
 }
 #[tokio::test]
@@ -139,10 +143,10 @@ async fn wrong_admin_http_method_uses_problem_details_contract() {
                     .as_ref(),
             )
             .body(axum::body::Body::empty())
-            .expect("4eb1c098"),
+            .expect("4eb1c098 wrong_admin_http_method_uses_problem_details_contract invariant must hold"),
     )
     .await
-    .expect("6764152a");
+    .expect("6764152a wrong_admin_http_method_uses_problem_details_contract invariant must hold");
     assert_eq!(response.status(), http::StatusCode::METHOD_NOT_ALLOWED);
     assert_eq!(
         response.headers().get(http::header::CONTENT_TYPE),
@@ -166,7 +170,7 @@ async fn invalid_admin_json_uses_problem_details_and_body_limit_contract() {
         .0,
     )
     .await
-    .expect("5fb0627d");
+    .expect("5fb0627d invalid_admin_json_uses_problem_details_and_body_limit_contract invariant must hold");
     assert_eq!(
         malformed_response.status(),
         http::StatusCode::UNPROCESSABLE_ENTITY
@@ -176,7 +180,7 @@ async fn invalid_admin_json_uses_problem_details_and_body_limit_contract() {
         Some(&http::HeaderValue::from_static("application/problem+json")),
     );
     let body_limit = <server_admin_contract::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::body_limit()
-        .expect("a60751db")
+        .expect("a60751db invalid_admin_json_uses_problem_details_and_body_limit_contract invariant must hold")
         .get();
     let oversized_password = str_constants::X.repeat(body_limit.saturating_add(1usize));
     let oversized_body = format!(r#"{{"login":"admin","password":"{oversized_password}"}}"#);
@@ -195,7 +199,7 @@ async fn invalid_admin_json_uses_problem_details_and_body_limit_contract() {
         .0,
     )
     .await
-    .expect("fcd3dd3f");
+    .expect("fcd3dd3f invalid_admin_json_uses_problem_details_and_body_limit_contract invariant must hold");
     assert_eq!(
         oversized_response.status(),
         http::StatusCode::PAYLOAD_TOO_LARGE
@@ -225,17 +229,19 @@ async fn sign_in_requires_trusted_origin_without_database_io() {
             .body(axum::body::Body::from(
                 str_constants::LOGIN_ADMIN_PASSWORD_PASSWORD,
             ))
-            .expect("168060a3");
+            .expect(
+                "168060a3 sign_in_requires_trusted_origin_without_database_io invariant must hold",
+            );
         let _previous_peer = request.extensions_mut().insert(axum::extract::ConnectInfo(
             str_constants::VALUE_127_0_0_1_43210
                 .parse::<std::net::SocketAddr>()
-                .expect("c90cba14"),
+                .expect("c90cba14 sign_in_requires_trusted_origin_without_database_io invariant must hold"),
         ));
         request
     };
     let missing_origin_response = tower::ServiceExt::oneshot(router().0, make_request(None, None))
         .await
-        .expect("ed2f56fb");
+        .expect("ed2f56fb sign_in_requires_trusted_origin_without_database_io invariant must hold");
     assert_eq!(
         missing_origin_response.status(),
         http::StatusCode::UNAUTHORIZED
@@ -248,7 +254,7 @@ async fn sign_in_requires_trusted_origin_without_database_io() {
         ),
     )
     .await
-    .expect("df43c793");
+    .expect("df43c793 sign_in_requires_trusted_origin_without_database_io invariant must hold");
     assert_eq!(
         blocked_origin_response.status(),
         http::StatusCode::UNAUTHORIZED

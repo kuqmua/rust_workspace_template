@@ -111,7 +111,7 @@ where
 #[test]
 fn administrator_collections_enforce_item_limit_for_construction_and_deserialization() {
     let maximum_values = vec![
-        super::AdminRoleId::try_from(1i64).expect("4cd8c4ef");
+        super::AdminRoleId::try_from(1i64).expect("4cd8c4ef administrator_collections_enforce_item_limit_for_construction_and_deserialization invariant must hold");
         super::ADMIN_COLLECTION_MAX_ITEMS
     ];
     let Ok(maximum_role_ids) = super::AdminRoleIds::try_from(maximum_values) else {
@@ -122,7 +122,7 @@ fn administrator_collections_enforce_item_limit_for_construction_and_deserializa
         super::ADMIN_COLLECTION_MAX_ITEMS
     );
     let oversized = vec![
-        super::AdminRoleId::try_from(1i64).expect("1c1b920f");
+        super::AdminRoleId::try_from(1i64).expect("1c1b920f administrator_collections_enforce_item_limit_for_construction_and_deserialization invariant must hold");
         super::ADMIN_COLLECTION_MAX_ITEMS.saturating_add(1usize)
     ];
     assert!(matches!(
@@ -187,7 +187,9 @@ fn request_payloads_reject_unknown_fields() {
 }
 #[test]
 fn route_contract_keeps_custom_action_policy_and_path_together() {
-    let route = super::AdminRoute::SetUserBan(super::AdminUserId::try_from(7).expect("8bed843c"));
+    let route = super::AdminRoute::SetUserBan(super::AdminUserId::try_from(7).expect(
+        "8bed843c route_contract_keeps_custom_action_policy_and_path_together invariant must hold",
+    ));
     assert_eq!(route.path().as_ref(), "/v1/admin/users/7/ban");
     assert_eq!(
         route.contract().method(),
@@ -208,10 +210,15 @@ fn route_contract_keeps_custom_action_policy_and_path_together() {
 }
 #[test]
 fn parameterized_admin_route_path_uses_typed_route_metadata() {
-    let session_id =
-        super::AdminSessionIdentifier::try_from(String::from("test-session")).expect("84d51132");
-    let role_id = super::AdminRoleId::try_from(7i64).expect("1d69f24c");
-    let user_id = super::AdminUserId::try_from(8i64).expect("35959579");
+    let session_id = super::AdminSessionIdentifier::try_from(String::from("test-session")).expect(
+        "84d51132 parameterized_admin_route_path_uses_typed_route_metadata invariant must hold",
+    );
+    let role_id = super::AdminRoleId::try_from(7i64).expect(
+        "1d69f24c parameterized_admin_route_path_uses_typed_route_metadata invariant must hold",
+    );
+    let user_id = super::AdminUserId::try_from(8i64).expect(
+        "35959579 parameterized_admin_route_path_uses_typed_route_metadata invariant must hold",
+    );
     let path = super::admin_parameterized_route_path::<super::AdminRevokeSessionRoute>(&session_id);
     assert_eq!(path.as_ref(), "/v1/admin/auth/sessions/test-session");
     assert_eq!(
@@ -346,7 +353,8 @@ fn audit_details_enforce_serialized_byte_limit() {
     let accepted = super::SerdeJsonAdminAuditDetails::try_from(serde_json::json!({
         "operation": "create"
     }));
-    let _accepted = accepted.expect("20697dc1");
+    let _accepted =
+        accepted.expect("20697dc1 audit_details_enforce_serialized_byte_limit invariant must hold");
     let oversized = super::SerdeJsonAdminAuditDetails::try_from(serde_json::Value::String(
         str_constants::A_ALT.repeat(super::ADMIN_AUDIT_DETAILS_MAX_BYTES),
     ));
@@ -515,7 +523,9 @@ fn data_tables_round_trip_and_require_read_permissions() {
         assert_eq!(spec.permission(), table.permission());
         assert_eq!(spec.supports_filters(), table.supports_filters());
         assert_eq!(
-            super::AdminDataTable::try_from(table.to_string()).expect("0596134b"),
+            super::AdminDataTable::try_from(table.to_string()).expect(
+                "0596134b data_tables_round_trip_and_require_read_permissions invariant must hold"
+            ),
             table
         );
         assert_eq!(

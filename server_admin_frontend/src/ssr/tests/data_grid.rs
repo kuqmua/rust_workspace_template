@@ -7,11 +7,16 @@ use super::{test_admin, test_branding};
 fn generated_column_metadata_drives_data_table_markup() {
     let columns = server_admin_contract::AdminDataColumns::try_from(vec![
         server_admin_contract::AdminDataColumn::new(
-            server_admin_contract::AdminDataFilters::try_from(Vec::new()).expect("2239fb0a"),
+            server_admin_contract::AdminDataFilters::try_from(Vec::new()).expect(
+                "2239fb0a generated_column_metadata_drives_data_table_markup invariant must hold",
+            ),
             server_admin_contract::AdminDataInputKind::Number,
-            server_admin_contract::AdminText::try_from(String::from("User identifier"))
-                .expect("f707908b"),
-            server_admin_contract::AdminText::try_from(String::from("id")).expect("694184c1"),
+            server_admin_contract::AdminText::try_from(String::from("User identifier")).expect(
+                "f707908b generated_column_metadata_drives_data_table_markup invariant must hold",
+            ),
+            server_admin_contract::AdminText::try_from(String::from("id")).expect(
+                "694184c1 generated_column_metadata_drives_data_table_markup invariant must hold",
+            ),
         ),
         server_admin_contract::AdminDataColumn::new(
             server_admin_contract::AdminDataFilters::try_from(vec![
@@ -25,23 +30,32 @@ fn generated_column_metadata_drives_data_table_markup() {
                     frontend_contract::FilterOperation::Between,
                 ),
             ])
-            .expect("5ba25cf7"),
+            .expect(
+                "5ba25cf7 generated_column_metadata_drives_data_table_markup invariant must hold",
+            ),
             server_admin_contract::AdminDataInputKind::Text,
-            server_admin_contract::AdminText::try_from(String::from("Login name"))
-                .expect("0336b6ad"),
-            server_admin_contract::AdminText::try_from(String::from("login")).expect("fdcaa4d2"),
+            server_admin_contract::AdminText::try_from(String::from("Login name")).expect(
+                "0336b6ad generated_column_metadata_drives_data_table_markup invariant must hold",
+            ),
+            server_admin_contract::AdminText::try_from(String::from("login")).expect(
+                "fdcaa4d2 generated_column_metadata_drives_data_table_markup invariant must hold",
+            ),
         ),
     ])
-    .expect("57462ad9");
+    .expect("57462ad9 generated_column_metadata_drives_data_table_markup invariant must hold");
     let values = server_admin_contract::AdminTexts::try_from(vec![
-        server_admin_contract::AdminText::try_from(String::from("42")).expect("32862269"),
-        server_admin_contract::AdminText::try_from(String::from("alice")).expect("77e6370f"),
+        server_admin_contract::AdminText::try_from(String::from("42")).expect(
+            "32862269 generated_column_metadata_drives_data_table_markup invariant must hold",
+        ),
+        server_admin_contract::AdminText::try_from(String::from("alice")).expect(
+            "77e6370f generated_column_metadata_drives_data_table_markup invariant must hold",
+        ),
     ])
-    .expect("58fed1d1");
+    .expect("58fed1d1 generated_column_metadata_drives_data_table_markup invariant must hold");
     let rows = server_admin_contract::AdminDataRows::try_from(vec![
         server_admin_contract::AdminDataRow::new(values),
     ])
-    .expect("ac944ccc");
+    .expect("ac944ccc generated_column_metadata_drives_data_table_markup invariant must hold");
     let view = server_admin_contract::AdminDataTableView::new(
         columns.clone(),
         rows.clone(),
@@ -76,12 +90,12 @@ fn generated_column_metadata_drives_data_table_markup() {
         server_admin_contract::AdminDataTableFilterQuery::new(
             Some(
                 server_admin_contract::AdminFilterField::try_from(String::from("login"))
-                    .expect("774bc583"),
+                    .expect("774bc583 generated_column_metadata_drives_data_table_markup invariant must hold"),
             ),
             Some(frontend_contract::FilterOperation::Eq),
             Some(
                 server_admin_contract::AdminFilterValue::try_from(String::from("alice"))
-                    .expect("63d17f8e"),
+                    .expect("63d17f8e generated_column_metadata_drives_data_table_markup invariant must hold"),
             ),
             None,
         ),
@@ -102,8 +116,10 @@ fn generated_column_metadata_drives_data_table_markup() {
     let (_before_login, login_tail) = filters_html
         .as_ref()
         .split_once("data-field=\"login\"")
-        .expect("45b73477");
-    let (login_header, _after_login) = login_tail.split_once("</th>").expect("e8120a92");
+        .expect("45b73477 generated_column_metadata_drives_data_table_markup invariant must hold");
+    let (login_header, _after_login) = login_tail
+        .split_once("</th>")
+        .expect("e8120a92 generated_column_metadata_drives_data_table_markup invariant must hold");
     assert!(login_header.contains("class=\"table-column-filter\""));
     assert!(login_header.contains("data-name=\"Popover\""));
     assert!(login_header.contains("data-name=\"PopoverContent\""));
@@ -111,8 +127,10 @@ fn generated_column_metadata_drives_data_table_markup() {
     let (_before_id, id_tail) = filters_html
         .as_ref()
         .split_once("data-field=\"id\"")
-        .expect("c8a92ef4");
-    let (id_header, _after_id) = id_tail.split_once("</th>").expect("58cdf783");
+        .expect("c8a92ef4 generated_column_metadata_drives_data_table_markup invariant must hold");
+    let (id_header, _after_id) = id_tail
+        .split_once("</th>")
+        .expect("58cdf783 generated_column_metadata_drives_data_table_markup invariant must hold");
     assert!(!id_header.contains("class=\"table-column-filter\""));
     assert!(
         filters_html
@@ -163,12 +181,15 @@ fn generated_column_metadata_drives_data_table_markup() {
     let apply_position = filters_html
         .as_ref()
         .find(">Apply</button>")
-        .expect("10c26d45");
+        .expect("10c26d45 generated_column_metadata_drives_data_table_markup invariant must hold");
     let close_position = filters_html
         .as_ref()
         .find(">Close</button>")
-        .expect("1542a5c3");
-    let clear_position = filters_html.as_ref().find(">Clear</a>").expect("58f35e11");
+        .expect("1542a5c3 generated_column_metadata_drives_data_table_markup invariant must hold");
+    let clear_position = filters_html
+        .as_ref()
+        .find(">Clear</a>")
+        .expect("58f35e11 generated_column_metadata_drives_data_table_markup invariant must hold");
     assert!(close_position > apply_position);
     assert!(clear_position > apply_position);
     assert!(clear_position > close_position);

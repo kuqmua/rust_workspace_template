@@ -1048,8 +1048,12 @@ mod pipeline_tests {
         let parsed = super::parse_generate_where_filters(
             super::ProcMacro2GenerateWhereFiltersInput::from(&input),
         )
-        .expect("4fb319d6");
-        let built = super::build_generate_where_filters(parsed).expect("98c270ea");
-        let _validated = super::validate_generate_where_filters(built).expect("e61243af");
+        .expect("4fb319d6 config_builds_and_validates_without_emitting_source invariant must hold");
+        let built = super::build_generate_where_filters(parsed).expect(
+            "98c270ea config_builds_and_validates_without_emitting_source invariant must hold",
+        );
+        let _validated = super::validate_generate_where_filters(built).expect(
+            "e61243af config_builds_and_validates_without_emitting_source invariant must hold",
+        );
     }
 }

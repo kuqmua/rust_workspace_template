@@ -40,7 +40,7 @@ fn probe_lint(tool: &str, lint: &str) -> LintProbeDisposition {
         args.as_slice(),
     ))
     .output()
-    .expect("3a17d9c2");
+    .expect("3a17d9c2 probe_lint invariant must hold");
     if let Err(error) = std::fs::remove_file(output_path.as_path())
         && error.kind() != std::io::ErrorKind::NotFound
     {

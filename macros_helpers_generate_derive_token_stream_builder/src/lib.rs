@@ -39,7 +39,7 @@ pub fn generate_derive_token_stream_builder(
     let make_pub_if_snake_case_token_stream = quote::quote! {make_pub_if};
     let make_pub_upper_camel_case_token_stream = quote::quote! {MakePub};
     let element_vec = serde_json::from_str::<Vec<String>>(&input_token_stream.to_string())
-        .expect("c5d09740")
+        .expect("c5d09740 generate_derive_token_stream_builder invariant must hold")
         .into_iter()
         .map(|element| {
             let sc = to_snake_case(ToSnakeCaseInput::from(element.as_str()));
@@ -58,7 +58,7 @@ pub fn generate_derive_token_stream_builder(
                 },
                 trait_type: element
                     .parse::<proc_macro2::TokenStream>()
-                    .expect("8672240f"),
+                    .expect("8672240f generate_derive_token_stream_builder invariant must hold"),
             }
         })
         .collect::<Vec<Element>>();

@@ -49,7 +49,7 @@ fn fixture(result: Result<(), ()>) {
 }
 "#,
     )
-    .expect("95d174ac");
+    .expect("95d174ac fixture invariant must hold");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::source_analysis::DiagnosticIdVisitor {
@@ -67,11 +67,12 @@ fn fixture(result: Result<(), ()>) {
         r#"
 fn fixture(result: Result<(), ()>) {
     result.expect("not-an-id");
+    result.expect("1a2b3c4d");
     panic!("also-not-an-id");
 }
 "#,
     )
-    .expect("6c3a48f1");
+    .expect("6c3a48f1 fixture invariant must hold");
     let invalid_visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&invalid_ast),
         super::source_analysis::DiagnosticIdVisitor {
@@ -79,7 +80,7 @@ fn fixture(result: Result<(), ()>) {
             ids: super::types::SourceTextList::default(),
         },
     );
-    assert_eq!(invalid_visitor.ers.len(), 2usize);
+    assert_eq!(invalid_visitor.ers.len(), 3usize);
 }
 #[test]
 fn diagnostic_id_visitor_checks_generated_expect_and_panic_tokens() {
@@ -100,7 +101,7 @@ fn generate() {
 }
 "#,
     )
-    .expect("227c291c");
+    .expect("227c291c generate invariant must hold");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::source_analysis::DiagnosticIdVisitor {
@@ -113,12 +114,14 @@ fn generate() {
 }
 #[test]
 fn check_rs_files_contains_only_unique_uuid_v4() {
-    let regex = regex::Regex::new(str_constants::B_0_9A_FA_F_8_0_9A_FA_F_4_4).expect("e098a1ff");
+    let regex = regex::Regex::new(str_constants::B_0_9A_FA_F_8_0_9A_FA_F_4_4)
+        .expect("e098a1ff check_rs_files_contains_only_unique_uuid_v4 invariant must hold");
     let mut seen = std::collections::HashSet::new();
     super::for_each_rs_file(|file| {
         let v = file.content().as_ref();
         regex.find_iter(v).for_each(|element_714b3d9c| {
-            let uuid = uuid::Uuid::parse_str(element_714b3d9c.as_str()).expect("c9711efd");
+            let uuid = uuid::Uuid::parse_str(element_714b3d9c.as_str())
+                .expect("c9711efd check_rs_files_contains_only_unique_uuid_v4 invariant must hold");
             assert!(uuid.get_version_num() == 4, "49b49b21");
             assert!(seen.insert(uuid), "4cf9d239");
         });
@@ -358,7 +361,7 @@ fn spawn_tasks() {
 }
 ",
     )
-    .expect("94b344d7");
+    .expect("94b344d7 spawn_tasks invariant must hold");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::source_analysis::LostSpawnVisitor {
@@ -403,7 +406,7 @@ fn direct_filesystem_owner_inventory_is_exact_justified_and_current() {
     );
     let workspace_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
-        .expect("4d82f1b7");
+        .expect("4d82f1b7 direct_filesystem_owner_inventory_is_exact_justified_and_current invariant must hold");
     let missing_or_unjustified = str_constants::CODE_STYLE_DIRECT_FS_OWNER_SUFFIXES
         .iter()
         .zip(str_constants::CODE_STYLE_DIRECT_FS_OWNER_REASONS)
@@ -444,7 +447,7 @@ fn direct_filesystem_owner_inventory_is_exact_justified_and_current() {
 fn retained_path_exception_inventories_are_exact_justified_unique_and_current() {
     let workspace_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
-        .expect("28d4f1a9");
+        .expect("28d4f1a9 retained_path_exception_inventories_are_exact_justified_unique_and_current invariant must hold");
     let validate = |suffixes: &[&str], reasons: &[&str]| {
         assert_eq!(suffixes.len(), reasons.len(), "5c71e8b3");
         assert_eq!(
@@ -595,7 +598,7 @@ fn raw_runtime_sql_identifier_inventory_matches_reviewed_baseline() {
         if count != 0usize {
             let workspace_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
                 .parent()
-                .expect("19512c63");
+                .expect("19512c63 raw_runtime_sql_identifier_inventory_matches_reviewed_baseline invariant must hold");
             let relative = path
                 .strip_prefix(workspace_root)
                 .unwrap_or(path)
@@ -737,7 +740,7 @@ struct MissingStruct;
 enum CheckedEnum { Variant }
 ",
     )
-    .expect("34fb5a61");
+    .expect("34fb5a61 optml_derive_visitor_checks_structs_and_enums invariant must hold");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::source_analysis::OptmlDeriveVisitor::default(),
@@ -808,7 +811,7 @@ fn integration_test_helper() {
 }
 ",
     )
-    .expect("9354f086");
+    .expect("9354f086 integration_test_helper invariant must hold");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::source_analysis::TestNondeterminismVisitor {
@@ -870,7 +873,7 @@ fn generated_randomness_policy_inspects_quote_token_streams() {
         "}",
     ]
     .join("\n");
-    let ast = syn::parse_file(source.as_str()).expect("04e98f91");
+    let ast = syn::parse_file(source.as_str()).expect("04e98f91 generated invariant must hold");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::source_analysis::GeneratedRandomnessVisitor {
@@ -1026,7 +1029,9 @@ struct PasswordHash([u8; 32]);
 struct ApiSecret(String);
 ",
     )
-    .expect("3d72b9e0");
+    .expect(
+        "3d72b9e0 sensitive_text_debug_policy_distinguishes_redacted_derives invariant must hold",
+    );
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::source_analysis::SensitiveTextDebugDeriveVisitor {
@@ -1091,7 +1096,7 @@ enum AuthenticationError {
 }
 "#,
     )
-    .expect("d8cc09ca");
+    .expect("d8cc09ca sensitive_error_format_policy_rejects_named_and_tuple_placeholders invariant must hold");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::source_analysis::SensitiveErrorFormatVisitor {
@@ -1252,7 +1257,9 @@ fn source_lint_suppressions_have_explicit_reasons() {
         super::types::StaticStr::from("07a7d7d1"),
         super::types::SourceTextRef::from("source allow and expect attributes require reasons"),
         |path, ast, ers| {
-            let source = std::fs::read_to_string(path).expect("8d3bca08");
+            let source = std::fs::read_to_string(path).expect(
+                "8d3bca08 source_lint_suppressions_have_explicit_reasons invariant must hold",
+            );
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
                 super::source_analysis::AllowReasonVisitor {
@@ -1294,7 +1301,7 @@ fn comment_reason() {}
 #[allow(dead_code, reason = "fixture is intentionally unused")]
 fn argument_reason() {}
 "#;
-    let ast = syn::parse_file(source).expect("ec218827");
+    let ast = syn::parse_file(source).expect("ec218827 argument_reason invariant must hold");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::source_analysis::AllowReasonVisitor {
@@ -1309,7 +1316,7 @@ fn argument_reason() {}
 #[test]
 fn handler_route_operation_error_policy_rejects_shared_types() {
     let ast = syn::parse_file(str_constants::CODE_STYLE_HANDLER_ROUTE_OPERATION_ERROR_FIXTURE)
-        .expect("752fbb70");
+        .expect("752fbb70 handler_route_operation_error_policy_rejects_shared_types invariant must hold");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::source_analysis::RouteOperationErrorVisitor::default(),
@@ -1324,7 +1331,7 @@ fn admin_route_errors_do_not_wrap_a_shared_operation_error() {
             .rs_files()
             .iter()
             .find(|file| file.path().as_ref().ends_with("server_admin/src/auth.rs"))
-            .expect("9585d60c")
+            .expect("9585d60c admin_route_errors_do_not_wrap_a_shared_operation_error invariant must hold")
             .content()
             .as_ref();
         let macros = snapshot
@@ -1335,7 +1342,7 @@ fn admin_route_errors_do_not_wrap_a_shared_operation_error() {
                     .as_ref()
                     .ends_with("frontend_contract_macros/src/lib.rs")
             })
-            .expect("890b3180")
+            .expect("890b3180 admin_route_errors_do_not_wrap_a_shared_operation_error invariant must hold")
             .content()
             .as_ref();
         assert!(!auth.contains("Operation(AdminError)"), "7c9f1bb0");
@@ -1373,7 +1380,9 @@ fn source_does_not_retain_commented_debug_statements() {
         super::types::StaticStr::from("a1a18a02"),
         super::types::SourceTextRef::from("commented debug statements must be deleted"),
         |path, _, ers| {
-            let source = std::fs::read_to_string(path).expect("2b06297b");
+            let source = std::fs::read_to_string(path).expect(
+                "2b06297b source_does_not_retain_commented_debug_statements invariant must hold",
+            );
             ers.extend(
                 super::commented_debug_statements(super::types::SourceTextRef::from(
                     source.as_str(),
@@ -1401,7 +1410,7 @@ fn commented_debug_statement_policy_rejects_debug_macros_only() {
 fn project_text_files_have_stable_line_endings_and_no_trailing_whitespace() {
     let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
-        .expect("fd1294e4");
+        .expect("fd1294e4 project_text_files_have_stable_line_endings_and_no_trailing_whitespace invariant must hold");
     let mut command = macros_helpers::tool_command::ToolCommand::new(
         macros_helpers::tool_command::ToolProgramRef::from(str_constants::GIT_PROGRAM),
     );
@@ -1412,9 +1421,9 @@ fn project_text_files_have_stable_line_endings_and_no_trailing_whitespace() {
         .args(macros_helpers::tool_command::ToolArgsRef::from(
             str_constants::GIT_LS_FILES_ARGS.as_slice(),
         ));
-    let output = command.output().expect("e6c52471");
+    let output = command.output().expect("e6c52471 project_text_files_have_stable_line_endings_and_no_trailing_whitespace invariant must hold");
     assert!(output.status.success(), "9041df16");
-    let tracked_paths = std::str::from_utf8(&output.stdout).expect("b9976fe8");
+    let tracked_paths = std::str::from_utf8(&output.stdout).expect("b9976fe8 project_text_files_have_stable_line_endings_and_no_trailing_whitespace invariant must hold");
     let mut violations = Vec::<String>::new();
     tracked_paths
         .split_terminator('\0')
@@ -1543,7 +1552,7 @@ fn use_import_policy_narrows_facade_and_leptos_exceptions() {
     let ast = syn::parse_file(
         "use leptos::prelude::{ElementChild};\nuse std::fmt::Debug;\npub use facade::Item;",
     )
-    .expect("7b9e6f31");
+    .expect("7b9e6f31 use_import_policy_narrows_facade_and_leptos_exceptions invariant must hold");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::source_analysis::UseImportVisitor {
@@ -1557,7 +1566,9 @@ fn use_import_policy_narrows_facade_and_leptos_exceptions() {
     assert!(!visitor.found_use_rename.get(), "c2bff14e");
     assert_eq!(visitor.public_use_roots.len(), 1usize, "3f4798c8");
 
-    let leptos_ast = syn::parse_file("use leptos::prelude::{ElementChild};").expect("56f86b52");
+    let leptos_ast = syn::parse_file("use leptos::prelude::{ElementChild};").expect(
+        "56f86b52 use_import_policy_narrows_facade_and_leptos_exceptions invariant must hold",
+    );
     let leptos_visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&leptos_ast),
         super::source_analysis::UseImportVisitor {
@@ -1629,7 +1640,9 @@ fn empty_enum_policy_checks_items_and_attribute_payloads() {
         "enum NonEmpty { Value }",
     ]
     .join("\n");
-    let ast = syn::parse_file(&source).expect("e52f247c");
+    let ast = syn::parse_file(&source).expect(
+        "e52f247c empty_enum_policy_checks_items_and_attribute_payloads invariant must hold",
+    );
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::source_analysis::EmptyEnumVisitor {
@@ -1683,7 +1696,7 @@ fn infallible_result_policy_rejects_wrappers_and_free_function_results() {
         "fn concrete() -> u8 { 1u8 }",
     ]
     .join("");
-    let ast = syn::parse_file(&source).expect("aa0bacf7");
+    let ast = syn::parse_file(&source).expect("aa0bacf7 concrete invariant must hold");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::source_analysis::InfallibleResultVisitor {
@@ -1920,7 +1933,7 @@ fn json_api_error_responses_originate_from_thiserror_enums() {
 #[test]
 fn json_api_error_response_policy_rejects_structs_and_accepts_thiserror_enums() {
     let ast =
-        syn::parse_file(str_constants::CODE_STYLE_JSON_API_ERROR_ENUM_FIXTURE).expect("e45c8f09");
+        syn::parse_file(str_constants::CODE_STYLE_JSON_API_ERROR_ENUM_FIXTURE).expect("e45c8f09 json_api_error_response_policy_rejects_structs_and_accepts_thiserror_enums invariant must hold");
     let thiserror_enums = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::source_analysis::ThiserrorEnumVisitor::default(),
@@ -1964,8 +1977,9 @@ fn api_response_errors_keep_source_locations_out_of_public_error_enums() {
 }
 #[test]
 fn api_response_location_policy_rejects_location_fields() {
-    let ast =
-        syn::parse_file(str_constants::CODE_STYLE_JSON_API_ERROR_ENUM_FIXTURE).expect("6d8c50f1");
+    let ast = syn::parse_file(str_constants::CODE_STYLE_JSON_API_ERROR_ENUM_FIXTURE).expect(
+        "6d8c50f1 api_response_location_policy_rejects_location_fields invariant must hold",
+    );
     let thiserror_enums = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::source_analysis::ThiserrorEnumVisitor::default(),
@@ -2009,8 +2023,9 @@ fn api_response_error_sources_use_observed_error() {
 }
 #[test]
 fn api_response_error_source_policy_rejects_raw_sources() {
-    let ast =
-        syn::parse_file(str_constants::CODE_STYLE_JSON_API_ERROR_ENUM_FIXTURE).expect("b26f4527");
+    let ast = syn::parse_file(str_constants::CODE_STYLE_JSON_API_ERROR_ENUM_FIXTURE).expect(
+        "b26f4527 api_response_error_source_policy_rejects_raw_sources invariant must hold",
+    );
     let response_types = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::source_analysis::IntoResponseTypeVisitor::default(),
@@ -2056,8 +2071,9 @@ fn every_fallible_typed_route_operation_has_its_own_error_type() {
 }
 #[test]
 fn typed_route_operation_error_policy_rejects_shared_types() {
-    let ast =
-        syn::parse_file(str_constants::CODE_STYLE_ROUTE_OPERATION_ERROR_FIXTURE).expect("60ff98c7");
+    let ast = syn::parse_file(str_constants::CODE_STYLE_ROUTE_OPERATION_ERROR_FIXTURE).expect(
+        "60ff98c7 typed_route_operation_error_policy_rejects_shared_types invariant must hold",
+    );
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::source_analysis::RouteOperationErrorVisitor::default(),
@@ -2310,8 +2326,9 @@ fn production_string_literals_are_reused() {
     reason = "repository source policy requires iterator methods instead of for loops"
 )]
 fn domain_owned_string_catalogs_do_not_return_to_str_constants() {
-    let source =
-        std::fs::read_to_string(str_constants::STR_CONSTANTS_SRC_LIB_RS).expect("84c15a0e");
+    let source = std::fs::read_to_string(str_constants::STR_CONSTANTS_SRC_LIB_RS).expect(
+        "84c15a0e domain_owned_string_catalogs_do_not_return_to_str_constants invariant must hold",
+    );
     [
         "ADMIN_SETTING_DEFAULT_ROUTE_LABEL",
         "ADMIN_DATABASE_ERROR_CODE",
@@ -2324,8 +2341,8 @@ fn domain_owned_string_catalogs_do_not_return_to_str_constants() {
 
 #[test]
 fn server_admin_string_constants_reuse_macro_fragments() {
-    let source =
-        std::fs::read_to_string(str_constants::STR_CONSTANTS_SRC_LIB_RS).expect("4629edbb");
+    let source = std::fs::read_to_string(str_constants::STR_CONSTANTS_SRC_LIB_RS)
+        .expect("4629edbb server_admin_string_constants_reuse_macro_fragments invariant must hold");
     assert!(!source.contains("pub const SERVER_ADMIN_"));
 }
 
@@ -2368,8 +2385,8 @@ fn admin_application_modules_do_not_own_admin_sql() {
 
 #[test]
 fn str_constants_does_not_own_typed_domain_values() {
-    let source =
-        std::fs::read_to_string(str_constants::STR_CONSTANTS_SRC_LIB_RS).expect("3caa56a9");
+    let source = std::fs::read_to_string(str_constants::STR_CONSTANTS_SRC_LIB_RS)
+        .expect("3caa56a9 str_constants_does_not_own_typed_domain_values invariant must hold");
     let ers = [
         concat!("ADMIN_API_", "PATHS_"),
         concat!("ADMIN_", "OPERATION_"),
@@ -2391,7 +2408,7 @@ fn str_constants_does_not_own_typed_domain_values() {
 #[test]
 fn string_constant_visitor_allows_only_reviewed_syntax_boundaries() {
     let ast = syn::parse_file(str_constants::CODE_STYLE_STRING_GUARD_ALLOWED_SYNTAX_FIXTURE)
-        .expect("87c9a142");
+        .expect("87c9a142 string_constant_visitor_allows_only_reviewed_syntax_boundaries invariant must hold");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::source_analysis::StringConstantVisitor {
@@ -2403,7 +2420,7 @@ fn string_constant_visitor_allows_only_reviewed_syntax_boundaries() {
 #[test]
 fn string_constant_visitor_detects_expression_and_nested_macro_literals() {
     let ast = syn::parse_file(str_constants::CODE_STYLE_STRING_GUARD_DETECTION_FIXTURE)
-        .expect("bc91574f");
+        .expect("bc91574f string_constant_visitor_detects_expression_and_nested_macro_literals invariant must hold");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::source_analysis::StringConstantVisitor {
@@ -2467,7 +2484,7 @@ fn string_constant_policy_has_only_one_exact_source_exception() {
 #[test]
 fn string_constant_declaration_policy_ignores_runtime_literals_and_rejects_all_const_forms() {
     let ast = syn::parse_file(str_constants::CODE_STYLE_STRING_CONSTANT_DECLARATION_FIXTURE)
-        .expect("02ec1d16");
+        .expect("02ec1d16 string_constant_declaration_policy_ignores_runtime_literals_and_rejects_all_const_forms invariant must hold");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::source_analysis::StringConstantDeclarationVisitor {
@@ -2480,7 +2497,7 @@ fn string_constant_declaration_policy_ignores_runtime_literals_and_rejects_all_c
 #[test]
 fn string_constant_declaration_policy_rejects_aliases_to_exported_constants() {
     let ast =
-        syn::parse_file(str_constants::CODE_STYLE_STRING_CONSTANT_ALIAS_FIXTURE).expect("56f8e2c1");
+        syn::parse_file(str_constants::CODE_STYLE_STRING_CONSTANT_ALIAS_FIXTURE).expect("56f8e2c1 string_constant_declaration_policy_rejects_aliases_to_exported_constants invariant must hold");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::source_analysis::StringConstantDeclarationVisitor {

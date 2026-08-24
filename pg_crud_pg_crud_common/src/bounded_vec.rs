@@ -149,13 +149,13 @@ mod tests {
         ));
         assert_eq!(
             super::BoundedVec::<u8, 1, 2>::try_from(vec![1u8])
-                .expect("0901ec3d")
+                .expect("0901ec3d try_from_enforces_inclusive_bounds invariant must hold")
                 .as_slice(),
             &[1u8]
         );
         assert_eq!(
             super::BoundedVec::<u8, 1, 2>::try_from(vec![1u8, 2u8])
-                .expect("324b4da9")
+                .expect("324b4da9 try_from_enforces_inclusive_bounds invariant must hold")
                 .as_slice(),
             &[1u8, 2u8]
         );
@@ -178,7 +178,7 @@ mod tests {
                 [1u8, 2u8].into_iter(),
             ),
         )
-        .expect("9dcb60bc");
+        .expect("9dcb60bc serde_round_trip_and_limits_are_stable invariant must hold");
         assert_eq!(value.as_slice(), &[1u8, 2u8]);
         let below_min = <super::BoundedVec<u8, 1, 2> as serde::Deserialize>::deserialize(
             serde::de::value::SeqDeserializer::<_, serde::de::value::Error>::new(

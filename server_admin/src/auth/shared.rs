@@ -108,7 +108,7 @@ mod tests {
         let total = super::page_total(super::super::super::repository::AdminPageTotalCount::from(
             17i64,
         ))
-        .expect("8d31f2a7");
+        .expect("8d31f2a7 page_total_accepts_non_negative_values_and_rejects_negative_values invariant must hold");
         assert_eq!(u64::from(total), 17u64);
         assert!(matches!(
             super::page_total(super::super::super::repository::AdminPageTotalCount::from(
@@ -124,17 +124,23 @@ mod tests {
             &server_admin_contract::AdminTableQuery::default(),
             &server_admin_contract::AdminTableSortField::USER,
         )
-        .expect("41d8a6c2");
+        .expect(
+            "41d8a6c2 table_sort_validation_accepts_empty_and_known_keys_only invariant must hold",
+        );
         let known = serde_json::from_value::<server_admin_contract::AdminTableQuery>(
             serde_json::json!({ "sort": "login" }),
         )
-        .expect("f20a91c6");
+        .expect(
+            "f20a91c6 table_sort_validation_accepts_empty_and_known_keys_only invariant must hold",
+        );
         super::validate_table_sort(&known, &server_admin_contract::AdminTableSortField::USER)
-            .expect("b70c35e9");
+            .expect("b70c35e9 table_sort_validation_accepts_empty_and_known_keys_only invariant must hold");
         let unknown = serde_json::from_value::<server_admin_contract::AdminTableQuery>(
             serde_json::json!({ "sort": "created_at" }),
         )
-        .expect("c731d84e");
+        .expect(
+            "c731d84e table_sort_validation_accepts_empty_and_known_keys_only invariant must hold",
+        );
         assert!(matches!(
             super::validate_table_sort(&unknown, &server_admin_contract::AdminTableSortField::USER,),
             Err(super::super::AdminError::Validation)

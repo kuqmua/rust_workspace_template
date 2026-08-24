@@ -876,12 +876,12 @@ mod tests {
     }
     #[test]
     fn regex_regex_eq_compares_pattern_content() {
-        let left =
-            super::RegexRegex::try_from(String::from(str_constants::D_PLUS)).expect("8342ad27");
-        let right =
-            super::RegexRegex::try_from(String::from(str_constants::D_PLUS)).expect("4d0fa8e3");
-        let other =
-            super::RegexRegex::try_from(String::from(str_constants::A_Z_PLUS)).expect("abcc9a72");
+        let left = super::RegexRegex::try_from(String::from(str_constants::D_PLUS))
+            .expect("8342ad27 regex_regex_eq_compares_pattern_content invariant must hold");
+        let right = super::RegexRegex::try_from(String::from(str_constants::D_PLUS))
+            .expect("4d0fa8e3 regex_regex_eq_compares_pattern_content invariant must hold");
+        let other = super::RegexRegex::try_from(String::from(str_constants::A_Z_PLUS))
+            .expect("abcc9a72 regex_regex_eq_compares_pattern_content invariant must hold");
         assert_eq!(left, right);
         assert_ne!(left, other);
     }

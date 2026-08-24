@@ -27,7 +27,8 @@ mod tests {
             }
         }
         let schema = <T as utoipa::PartialSchema>::schema();
-        let schema_json = serde_json::to_value(schema).expect("489f8964");
+        let schema_json =
+            serde_json::to_value(schema).expect("489f8964 first_example invariant must hold");
         let example = first_example(&schema_json).unwrap_or_else(|| {
             panic!(
                 "dff79e9d schema for {} has no examples array: {schema_json}",
@@ -40,7 +41,10 @@ mod tests {
                 std::any::type_name::<T>(),
             )
         });
-        assert_eq!(serde_json::to_value(value).expect("f126efbe"), example);
+        assert_eq!(
+            serde_json::to_value(value).expect("f126efbe first_example invariant must hold"),
+            example
+        );
     }
     fn assert_wrapper_traits<T, Inner>()
     where
@@ -52,7 +56,9 @@ mod tests {
         macros_helpers::json_contract::ensure_json_contract_round_trip::<JsonContractValue>(
             macros_helpers::json_contract::JsonFixtureRef::from(str_constants::VALUE_7),
         )
-        .expect("13df9134");
+        .expect(
+            "13df9134 shared_json_contract_helper_round_trips_pg_type_fixture invariant must hold",
+        );
     }
     #[test]
     #[cfg_attr(
@@ -100,7 +106,7 @@ mod tests {
     #[test]
     fn generated_integer_open_api_schema_has_format_bounds_and_example() {
         let schema = <pg_types_numeric::I16AsNonNullInt2Origin as utoipa::PartialSchema>::schema();
-        let schema_json = serde_json::to_value(schema).expect("8af67e13");
+        let schema_json = serde_json::to_value(schema).expect("8af67e13 generated_integer_open_api_schema_has_format_bounds_and_example invariant must hold");
         assert_eq!(schema_json["type"], "integer");
         assert_eq!(schema_json["format"], "int32");
         assert_eq!(schema_json["minimum"], -32768);
@@ -138,53 +144,54 @@ mod tests {
     }
     #[test]
     fn generated_form_value_contract_parses_and_formats_wire_values() {
-        let integer = <pg_types_numeric::I16AsNonNullInt2Origin as frontend_contract::FormValueContract>::parse_form_value(frontend_contract::FormValueRef::from(str_constants::VALUE_42)).expect("0935c11d");
+        let integer = <pg_types_numeric::I16AsNonNullInt2Origin as frontend_contract::FormValueContract>::parse_form_value(frontend_contract::FormValueRef::from(str_constants::VALUE_42)).expect("0935c11d generated_form_value_contract_parses_and_formats_wire_values invariant must hold");
         assert_eq!(
             frontend_contract::FormValueContract::format_form_value(&integer)
-                .expect("144c7c4c")
+                .expect("144c7c4c generated_form_value_contract_parses_and_formats_wire_values invariant must hold")
                 .as_ref(),
             "42"
         );
-        let nullable = <pg_types_numeric::OptionalI16AsNullableInt2Origin as frontend_contract::FormValueContract>::parse_form_value(frontend_contract::FormValueRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX)).expect("502918c1");
+        let nullable = <pg_types_numeric::OptionalI16AsNullableInt2Origin as frontend_contract::FormValueContract>::parse_form_value(frontend_contract::FormValueRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX)).expect("502918c1 generated_form_value_contract_parses_and_formats_wire_values invariant must hold");
         assert_eq!(
             frontend_contract::FormValueContract::format_form_value(&nullable)
-                .expect("56531064")
+                .expect("56531064 generated_form_value_contract_parses_and_formats_wire_values invariant must hold")
                 .as_ref(),
             ""
         );
         let uuid_value = str_constants::VALUE_7B93D4A1_6F28_4C70_9A51_2E8D3F640C12;
-        let uuid = <pg_types_text_misc::SqlxTypesUuidUuidAsNonNullUuidInitializationByClientOrigin as frontend_contract::FormValueContract>::parse_form_value(frontend_contract::FormValueRef::from(uuid_value)).expect("804f13b2");
+        let uuid = <pg_types_text_misc::SqlxTypesUuidUuidAsNonNullUuidInitializationByClientOrigin as frontend_contract::FormValueContract>::parse_form_value(frontend_contract::FormValueRef::from(uuid_value)).expect("804f13b2 generated_form_value_contract_parses_and_formats_wire_values invariant must hold");
         assert_eq!(
             frontend_contract::FormValueContract::format_form_value(&uuid)
-                .expect("a17bcb42")
+                .expect("a17bcb42 generated_form_value_contract_parses_and_formats_wire_values invariant must hold")
                 .as_ref(),
             uuid_value
         );
-        let timestamp = <pg_types_chrono_net::SqlxTypesChronoNaiveDateTimeAsNonNullTimestampOrigin as frontend_contract::FormValueContract>::parse_form_value(frontend_contract::FormValueRef::from(str_constants::VALUE_2026_07_13T12_30_00)).expect("ad1de295");
+        let timestamp = <pg_types_chrono_net::SqlxTypesChronoNaiveDateTimeAsNonNullTimestampOrigin as frontend_contract::FormValueContract>::parse_form_value(frontend_contract::FormValueRef::from(str_constants::VALUE_2026_07_13T12_30_00)).expect("ad1de295 generated_form_value_contract_parses_and_formats_wire_values invariant must hold");
         assert_eq!(
             frontend_contract::FormValueContract::format_form_value(&timestamp)
-                .expect("5a9f7d9c")
+                .expect("5a9f7d9c generated_form_value_contract_parses_and_formats_wire_values invariant must hold")
                 .as_ref(),
             "2026-07-13T12:30:00"
         );
     }
     #[test]
     fn generated_filter_form_values_preserve_json_wire_types() {
-        let integer = <pg_types_numeric::I16AsNonNullInt2 as frontend_contract::FilterFormValueContract>::parse_filter_form_value(frontend_contract::FormValueRef::from(str_constants::VALUE_42)).expect("12df8cb5");
+        let integer = <pg_types_numeric::I16AsNonNullInt2 as frontend_contract::FilterFormValueContract>::parse_filter_form_value(frontend_contract::FormValueRef::from(str_constants::VALUE_42)).expect("12df8cb5 generated_filter_form_values_preserve_json_wire_types invariant must hold");
         assert_eq!(integer.as_ref(), "42");
-        let timestamp = <pg_types_chrono_net::SqlxTypesChronoNaiveDateTimeAsNonNullTimestamp as frontend_contract::FilterFormValueContract>::parse_filter_form_value(frontend_contract::FormValueRef::from(str_constants::VALUE_2026_07_13T12_30_00)).expect("98f3df36");
+        let timestamp = <pg_types_chrono_net::SqlxTypesChronoNaiveDateTimeAsNonNullTimestamp as frontend_contract::FilterFormValueContract>::parse_filter_form_value(frontend_contract::FormValueRef::from(str_constants::VALUE_2026_07_13T12_30_00)).expect("98f3df36 generated_filter_form_values_preserve_json_wire_types invariant must hold");
         assert_eq!(
             timestamp.as_ref(),
             r#"{"date":"2026-07-13","time":{"hour":12,"min":30,"sec":0,"micro":0}}"#
         );
-        let nullable = <pg_types_numeric::OptionalI16AsNullableInt2 as frontend_contract::FilterFormValueContract>::parse_filter_form_value(frontend_contract::FormValueRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX)).expect("b5939e08");
+        let nullable = <pg_types_numeric::OptionalI16AsNullableInt2 as frontend_contract::FilterFormValueContract>::parse_filter_form_value(frontend_contract::FormValueRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX)).expect("b5939e08 generated_filter_form_values_preserve_json_wire_types invariant must hold");
         assert_eq!(nullable.as_ref(), "null");
     }
     #[test]
     fn generated_nullable_open_api_schema_is_nullable() {
         let schema =
             <pg_types_numeric::OptionalI16AsNullableInt2Origin as utoipa::PartialSchema>::schema();
-        let schema_json = serde_json::to_value(schema).expect("f3b5a711");
+        let schema_json = serde_json::to_value(schema)
+            .expect("f3b5a711 generated_nullable_open_api_schema_is_nullable invariant must hold");
         assert!(schema_json["oneOf"].as_array().is_some_and(|schemas| {
             schemas
                 .iter()
@@ -194,35 +201,51 @@ mod tests {
     #[test]
     fn generated_uuid_open_api_schema_matches_wire_string() {
         let schema = <pg_types_text_misc::SqlxTypesUuidUuidAsNonNullUuidInitializationByClientOrigin as utoipa::PartialSchema>::schema();
-        let schema_json = serde_json::to_value(schema).expect("80cb3ea4");
+        let schema_json = serde_json::to_value(schema).expect(
+            "80cb3ea4 generated_uuid_open_api_schema_matches_wire_string invariant must hold",
+        );
         assert_eq!(schema_json["type"], "string");
         assert_eq!(schema_json["format"], "uuid");
     }
     #[test]
     fn std_bound_wire_shape_is_stable_for_range_schemas() {
         assert_eq!(
-            serde_json::to_value(std::ops::Bound::Included(1i32)).expect("90cdfba3"),
+            serde_json::to_value(std::ops::Bound::Included(1i32)).expect(
+                "90cdfba3 std_bound_wire_shape_is_stable_for_range_schemas invariant must hold"
+            ),
             serde_json::json!({"Included": 1})
         );
         assert_eq!(
-            serde_json::to_value(std::ops::Bound::<i32>::Unbounded).expect("2e7bd0da"),
+            serde_json::to_value(std::ops::Bound::<i32>::Unbounded).expect(
+                "2e7bd0da std_bound_wire_shape_is_stable_for_range_schemas invariant must hold"
+            ),
             serde_json::json!("Unbounded")
         );
     }
     #[test]
     fn generated_time_open_api_properties_match_wire_object() {
         let time = pg_types_chrono_net::SqlxTypesChronoNaiveTimeAsNonNullTimeOrigin::try_new(
-            chrono::NaiveTime::from_hms_micro_opt(12, 34, 56, 789).expect("c19f58a4"),
+            chrono::NaiveTime::from_hms_micro_opt(12, 34, 56, 789).expect(
+                "c19f58a4 generated_time_open_api_properties_match_wire_object invariant must hold",
+            ),
         )
-        .expect("68c0e12b");
-        let wire = serde_json::to_value(time).expect("de790942");
+        .expect(
+            "68c0e12b generated_time_open_api_properties_match_wire_object invariant must hold",
+        );
+        let wire = serde_json::to_value(time).expect(
+            "de790942 generated_time_open_api_properties_match_wire_object invariant must hold",
+        );
         let schema =
             <pg_types_chrono_net::SqlxTypesChronoNaiveTimeAsNonNullTimeOrigin as utoipa::PartialSchema>::schema();
-        let schema_json = serde_json::to_value(schema).expect("dc191318");
-        let wire_obj = wire.as_object().expect("e7150f4c");
-        let schema_props = schema_json[str_constants::PROPERTIES]
-            .as_object()
-            .expect("85098dc5");
+        let schema_json = serde_json::to_value(schema).expect(
+            "dc191318 generated_time_open_api_properties_match_wire_object invariant must hold",
+        );
+        let wire_obj = wire.as_object().expect(
+            "e7150f4c generated_time_open_api_properties_match_wire_object invariant must hold",
+        );
+        let schema_props = schema_json[str_constants::PROPERTIES].as_object().expect(
+            "85098dc5 generated_time_open_api_properties_match_wire_object invariant must hold",
+        );
         assert!(wire_obj.keys().all(|key| schema_props.contains_key(key)));
         assert_eq!(schema_json["required"].as_array().map(Vec::len), Some(4));
     }
@@ -234,15 +257,23 @@ mod tests {
                 end: std::ops::Bound::Excluded(3),
             },
         )
-        .expect("760545b6");
-        let wire = serde_json::to_value(range).expect("290b56bb");
+        .expect(
+            "760545b6 generated_range_open_api_properties_match_wire_object invariant must hold",
+        );
+        let wire = serde_json::to_value(range).expect(
+            "290b56bb generated_range_open_api_properties_match_wire_object invariant must hold",
+        );
         let schema =
             <pg_types_numeric::SqlxPgTypesPgRangeI32AsNonNullInt4RangeOrigin as utoipa::PartialSchema>::schema();
-        let schema_json = serde_json::to_value(schema).expect("72860bf4");
-        let wire_obj = wire.as_object().expect("06a340b9");
-        let schema_props = schema_json[str_constants::PROPERTIES]
-            .as_object()
-            .expect("3dc31cc6");
+        let schema_json = serde_json::to_value(schema).expect(
+            "72860bf4 generated_range_open_api_properties_match_wire_object invariant must hold",
+        );
+        let wire_obj = wire.as_object().expect(
+            "06a340b9 generated_range_open_api_properties_match_wire_object invariant must hold",
+        );
+        let schema_props = schema_json[str_constants::PROPERTIES].as_object().expect(
+            "3dc31cc6 generated_range_open_api_properties_match_wire_object invariant must hold",
+        );
         assert!(wire_obj.keys().all(|key| schema_props.contains_key(key)));
         assert_eq!(
             schema_json["properties"]["start"]["oneOf"]
@@ -254,7 +285,8 @@ mod tests {
     #[test]
     fn generated_filter_has_open_api_one_of_schema() {
         let schema = <pg_types_numeric::I16AsNonNullInt2Where as utoipa::PartialSchema>::schema();
-        let schema_json = serde_json::to_value(schema).expect("4bbd5367");
+        let schema_json = serde_json::to_value(schema)
+            .expect("4bbd5367 generated_filter_has_open_api_one_of_schema invariant must hold");
         assert!(
             schema_json["oneOf"]
                 .as_array()
@@ -265,21 +297,27 @@ mod tests {
     fn generated_filters_follow_descriptor_capabilities() {
         let uuid_schema =
             <pg_types_text_misc::SqlxTypesUuidUuidAsNonNullUuidInitializationByClientWhere as utoipa::PartialSchema>::schema();
-        let uuid_schema_json = serde_json::to_string(&uuid_schema).expect("c3af72f5");
+        let uuid_schema_json = serde_json::to_string(&uuid_schema).expect(
+            "c3af72f5 generated_filters_follow_descriptor_capabilities invariant must hold",
+        );
         assert!(uuid_schema_json.contains("In"));
         assert!(!uuid_schema_json.contains("Regex"));
         let string_schema =
             <pg_types_text_misc::StringAsNonNullTextWhere as utoipa::PartialSchema>::schema();
         assert!(
             serde_json::to_string(&string_schema)
-                .expect("2672b8c6")
+                .expect(
+                    "2672b8c6 generated_filters_follow_descriptor_capabilities invariant must hold"
+                )
                 .contains("Regex")
         );
         let range_schema =
             <pg_types_numeric::SqlxPgTypesPgRangeI32AsNonNullInt4RangeWhere as utoipa::PartialSchema>::schema();
         assert!(
             serde_json::to_string(&range_schema)
-                .expect("c7954e5c")
+                .expect(
+                    "c7954e5c generated_filters_follow_descriptor_capabilities invariant must hold"
+                )
                 .contains("OverlapWithRange")
         );
     }
@@ -372,7 +410,7 @@ mod tests {
         let _nullable_value = serde_json::from_value::<
             pg_types_numeric::OptionalI16AsNullableInt2Origin,
         >(serde_json::Value::Null)
-        .expect("4063a869");
+        .expect("4063a869 generated_schema_examples_deserialize_for_every_wire_kind invariant must hold");
     }
     #[test]
     fn generated_wire_contract_rejects_invalid_values() {
@@ -403,8 +441,8 @@ mod tests {
     }
     #[test]
     fn generated_float8_rejects_non_finite_values() {
-        let _finite =
-            pg_types_numeric::F64AsNonNullFloat8Origin::try_new(1.5f64).expect("40483cd5");
+        let _finite = pg_types_numeric::F64AsNonNullFloat8Origin::try_new(1.5f64)
+            .expect("40483cd5 generated_float8_rejects_non_finite_values invariant must hold");
         drop(
             pg_types_numeric::F64AsNonNullFloat8Origin::try_new(f64::NAN)
                 .expect_err(str_constants::VALUE_A3C9AE5D),

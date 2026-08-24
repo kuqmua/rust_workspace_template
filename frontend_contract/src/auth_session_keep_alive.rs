@@ -110,9 +110,12 @@ impl AuthSessionKeepAlive {
 mod tests {
     #[test]
     fn refresh_is_single_flight_and_rejection_clears_schedule() {
-        let interval =
-            super::StdAuthSessionRefreshInterval::try_from(std::time::Duration::from_secs(60u64))
-                .expect("99658ad5");
+        let interval = super::StdAuthSessionRefreshInterval::try_from(
+            std::time::Duration::from_secs(60u64),
+        )
+        .expect(
+            "99658ad5 refresh_is_single_flight_and_rejection_clears_schedule invariant must hold",
+        );
         let now = super::StdAuthSessionInstant::from(std::time::Instant::now());
         let mut keep_alive = super::AuthSessionKeepAlive::new(interval);
         assert_eq!(

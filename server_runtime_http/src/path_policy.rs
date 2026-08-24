@@ -151,7 +151,7 @@ mod tests {
         let path = super::HttpProxyPath::try_from(super::HttpProxyPathRef::from(
             str_constants::TEST_PROXY_USERS_PATH,
         ))
-        .expect("6e90cb42");
+        .expect("6e90cb42 proxy_path_matches_only_segment_prefix invariant must hold");
         assert!(bool::from(super::proxy_path_matches_prefix(
             &path,
             super::HttpAllowedPathPrefixRef::from(str_constants::TEST_PROXY_PREFIX)
@@ -171,7 +171,7 @@ mod tests {
         let normalized = super::normalize_identifier_path(super::HttpRequestPathRef::from(
             str_constants::TEST_DYNAMIC_IDENTIFIER_PATH,
         ))
-        .expect("a36c01e4");
+        .expect("a36c01e4 identifier_path_normalizes_numbers_and_uuid_v4 invariant must hold");
         assert_eq!(
             normalized.as_ref(),
             str_constants::TEST_NORMALIZED_IDENTIFIER_PATH

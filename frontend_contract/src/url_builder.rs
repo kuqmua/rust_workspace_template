@@ -104,10 +104,10 @@ mod tests {
     #[test]
     fn path_and_query_components_are_encoded() {
         let mut url = super::ApiUrl::try_from(String::from(str_constants::TEST_API_URL_BASE))
-            .expect("17480cb4");
+            .expect("17480cb4 path_and_query_components_are_encoded invariant must hold");
         url.push_path_segment(
             super::ApiUrlPathSegmentRef::try_from(str_constants::TEST_API_URL_SEGMENT)
-                .expect("c013abc7"),
+                .expect("c013abc7 path_and_query_components_are_encoded invariant must hold"),
         );
         url.push_query_pair(
             str_constants::TEST_API_URL_QUERY_NAME.into(),

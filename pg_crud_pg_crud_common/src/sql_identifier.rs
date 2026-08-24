@@ -157,7 +157,8 @@ impl SqlSelectBuilder {
 #[cfg(test)]
 mod tests {
     fn identifier(value: &str) -> super::SqlIdentifier {
-        super::SqlIdentifier::try_from(value.to_owned()).expect("940eb924")
+        super::SqlIdentifier::try_from(value.to_owned())
+            .expect("940eb924 identifier invariant must hold")
     }
     #[test]
     #[allow(
@@ -172,7 +173,9 @@ mod tests {
         ]
         .into_iter()
         .for_each(|value| {
-            let _identifier = super::SqlIdentifier::try_from(value.to_owned()).expect("326a4da9");
+            let _identifier = super::SqlIdentifier::try_from(value.to_owned()).expect(
+                "326a4da9 sql_identifier_uses_restricted_ascii_grammar invariant must hold",
+            );
         });
         [
             str_constants::PG_CRUD_EMPTY_SQL_SUFFIX,

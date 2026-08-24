@@ -6,5 +6,5 @@ pub fn generate_pg_types(input_token_stream: proc_macro::TokenStream) -> proc_ma
     )
     .to_string()
     .parse::<proc_macro::TokenStream>()
-    .expect("122809ba")
+    .expect("122809ba generate_pg_types invariant must hold")
 }

@@ -28,10 +28,11 @@ fn test_commit_link() -> String {
 }
 fn test_commit_link_cow() -> git_info::StdGitCommitLinkCow {
     git_info::StdGitCommitLinkCow::try_from(std::borrow::Cow::Owned(test_commit_link()))
-        .expect("931b775c")
+        .expect("931b775c test_commit_link_cow invariant must hold")
 }
 fn b_cow(v: &'static str) -> git_info::StdGitCommitLinkCow {
-    git_info::StdGitCommitLinkCow::try_from(std::borrow::Cow::Borrowed(v)).expect("36301996")
+    git_info::StdGitCommitLinkCow::try_from(std::borrow::Cow::Borrowed(v))
+        .expect("36301996 b_cow invariant must hold")
 }
 fn uri_ref(uri: &axum::http::Uri) -> super::AxumHttpUriRef<'_> {
     super::AxumHttpUriRef::from(uri)
@@ -202,7 +203,7 @@ async fn default_service_routes_return_success_statuses_and_match_openapi() {
     let router = axum::Router::from(super::common_routes(
         super::StdArcCommonRoutesAppState::from(test_state()),
     ));
-    let document = serde_json::to_value(super::CommonRoutesOpenApi::open_api()).expect("f96bcc6e");
+    let document = serde_json::to_value(super::CommonRoutesOpenApi::open_api()).expect("f96bcc6e default_service_routes_return_success_statuses_and_match_openapi invariant must hold");
     let check = |path: String| {
         let cloned_router = router.clone();
         let cloned_document = document.clone();
@@ -212,10 +213,10 @@ async fn default_service_routes_return_success_statuses_and_match_openapi() {
                 axum::http::Request::builder()
                     .uri(path.as_str())
                     .body(axum::body::Body::empty())
-                    .expect("6e9abf44"),
+                    .expect("6e9abf44 default_service_routes_return_success_statuses_and_match_openapi invariant must hold"),
             )
             .await
-            .expect("634c635b");
+            .expect("634c635b default_service_routes_return_success_statuses_and_match_openapi invariant must hold");
             assert_eq!(response.status(), axum::http::StatusCode::OK);
             assert!(
                 response
@@ -231,10 +232,10 @@ async fn default_service_routes_return_success_statuses_and_match_openapi() {
             );
             let body = axum::body::to_bytes(response.into_body(), 16_384usize)
                 .await
-                .expect("e7d5f988");
+                .expect("e7d5f988 default_service_routes_return_success_statuses_and_match_openapi invariant must hold");
             assert!(
                 serde_json::from_slice::<serde_json::Value>(&body)
-                    .expect("5013a777")
+                    .expect("5013a777 default_service_routes_return_success_statuses_and_match_openapi invariant must hold")
                     .is_object()
             );
         }
@@ -274,10 +275,10 @@ async fn default_service_routes_return_success_statuses_and_match_openapi() {
         axum::http::Request::builder()
             .uri(str_constants::MISSING)
             .body(axum::body::Body::empty())
-            .expect("bb258755"),
+            .expect("bb258755 default_service_routes_return_success_statuses_and_match_openapi invariant must hold"),
     )
     .await
-    .expect("d2b9cc45");
+    .expect("d2b9cc45 default_service_routes_return_success_statuses_and_match_openapi invariant must hold");
     assert_eq!(not_found.status(), axum::http::StatusCode::NOT_FOUND);
 }
 mod health;

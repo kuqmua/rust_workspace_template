@@ -28,11 +28,11 @@ fn pagination_values_deserialize_from_url_query_strings() {
     let limit = <super::AdminPageLimit as serde::Deserialize>::deserialize(
         serde::de::value::StrDeserializer::<serde::de::value::Error>::new("100"),
     )
-    .expect("a6aa5b42");
+    .expect("a6aa5b42 pagination_values_deserialize_from_url_query_strings invariant must hold");
     let offset = <super::AdminPageOffset as serde::Deserialize>::deserialize(
         serde::de::value::StrDeserializer::<serde::de::value::Error>::new("42"),
     )
-    .expect("799e47b0");
+    .expect("799e47b0 pagination_values_deserialize_from_url_query_strings invariant must hold");
     assert_eq!(u16::from(limit), super::AdminPageLimit::MAX);
     assert_eq!(u32::from(offset), 42u32);
 }

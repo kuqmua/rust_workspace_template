@@ -9,7 +9,9 @@ fn empty_settings_update_has_no_fields_and_is_valid() {
         None,
         None,
         None,
-        crate::AdminOptionalSettings::try_from(Vec::new()).expect("d1846f3a"),
+        crate::AdminOptionalSettings::try_from(Vec::new()).expect(
+            "d1846f3a empty_settings_update_has_no_fields_and_is_valid invariant must hold",
+        ),
     );
     assert!(!bool::from(request.has_fields()));
     assert!(bool::from(request.is_valid()));
@@ -25,17 +27,17 @@ fn setting_types_match_database_constraints() {
     else {
         panic!("b5fba19e");
     };
-    let _site_name =
-        crate::AdminSiteName::try_from(str_constants::ADMIN.to_owned()).expect("adb58327");
+    let _site_name = crate::AdminSiteName::try_from(str_constants::ADMIN.to_owned())
+        .expect("adb58327 setting_types_match_database_constraints invariant must hold");
     let _default_route =
         crate::AdminDefaultRoute::try_from(crate::AdminFrontendPath::Users.get().to_owned())
-            .expect("3582a0ec");
+            .expect("3582a0ec setting_types_match_database_constraints invariant must hold");
     let _table_default_route = crate::AdminDefaultRoute::try_from(
         crate::AdminDataTable::RolePermissions
             .frontend_path()
             .to_string(),
     )
-    .expect("e3d42017");
+    .expect("e3d42017 setting_types_match_database_constraints invariant must hold");
     let Err(_invalid_route_error) =
         crate::AdminDefaultRoute::try_from(str_constants::ROUTE.to_owned())
     else {
@@ -54,7 +56,8 @@ fn update_reports_whether_it_contains_a_field() {
         None,
         None,
         None,
-        crate::AdminOptionalSettings::try_from(Vec::new()).expect("c4a1e2d3"),
+        crate::AdminOptionalSettings::try_from(Vec::new())
+            .expect("c4a1e2d3 update_reports_whether_it_contains_a_field invariant must hold"),
     );
     assert!(!bool::from(empty.has_fields()));
     let with_site_name = super::AdminUpdateSettingsReq::new(
@@ -63,10 +66,14 @@ fn update_reports_whether_it_contains_a_field() {
         None,
         None,
         None,
-        Some(crate::AdminSiteName::try_from(str_constants::ADMIN.to_owned()).expect("5db76a91")),
+        Some(
+            crate::AdminSiteName::try_from(str_constants::ADMIN.to_owned())
+                .expect("5db76a91 update_reports_whether_it_contains_a_field invariant must hold"),
+        ),
         None,
         None,
-        crate::AdminOptionalSettings::try_from(Vec::new()).expect("32e4e74d"),
+        crate::AdminOptionalSettings::try_from(Vec::new())
+            .expect("32e4e74d update_reports_whether_it_contains_a_field invariant must hold"),
     );
     assert!(bool::from(with_site_name.has_fields()));
     assert!(bool::from(with_site_name.is_valid()));
@@ -80,7 +87,7 @@ fn update_reports_whether_it_contains_a_field() {
         None,
         None,
         crate::AdminOptionalSettings::try_from(vec![crate::AdminOptionalSetting::MainLogo])
-            .expect("96e94562"),
+            .expect("96e94562 update_reports_whether_it_contains_a_field invariant must hold"),
     );
     assert!(bool::from(clear_logo.has_fields()));
     assert!(bool::from(clear_logo.is_valid()));
@@ -88,7 +95,8 @@ fn update_reports_whether_it_contains_a_field() {
 
 #[test]
 fn catalog_covers_read_and_update_wire_fields() {
-    let empty_clear = crate::AdminOptionalSettings::try_from(Vec::new()).expect("7f3a9c2e");
+    let empty_clear = crate::AdminOptionalSettings::try_from(Vec::new())
+        .expect("7f3a9c2e catalog_covers_read_and_update_wire_fields invariant must hold");
     let update = super::AdminUpdateSettingsReq::new(
         None,
         None,
@@ -101,9 +109,9 @@ fn catalog_covers_read_and_update_wire_fields() {
         empty_clear,
     );
     let update_fields = serde_json::to_value(update)
-        .expect("c84d1e6a")
+        .expect("c84d1e6a catalog_covers_read_and_update_wire_fields invariant must hold")
         .as_object()
-        .expect("49b2e7c1")
+        .expect("49b2e7c1 catalog_covers_read_and_update_wire_fields invariant must hold")
         .keys()
         .cloned()
         .collect::<std::collections::BTreeSet<_>>();
@@ -116,19 +124,21 @@ fn catalog_covers_read_and_update_wire_fields() {
     assert_eq!(update_fields, expected_update_fields);
 
     let view = super::AdminSettingsView::new(
-        crate::AdminDefaultRoute::try_from(String::from("/admin/users")).expect("b6831fd4"),
+        crate::AdminDefaultRoute::try_from(String::from("/admin/users"))
+            .expect("b6831fd4 catalog_covers_read_and_update_wire_fields invariant must hold"),
         None,
         None,
         None,
         None,
-        crate::AdminSiteName::try_from(String::from("Admin")).expect("e15c7a93"),
+        crate::AdminSiteName::try_from(String::from("Admin"))
+            .expect("e15c7a93 catalog_covers_read_and_update_wire_fields invariant must hold"),
         None,
         None,
     );
     let view_fields = serde_json::to_value(view)
-        .expect("86d4a2f9")
+        .expect("86d4a2f9 catalog_covers_read_and_update_wire_fields invariant must hold")
         .as_object()
-        .expect("21c9e5b7")
+        .expect("21c9e5b7 catalog_covers_read_and_update_wire_fields invariant must hold")
         .keys()
         .cloned()
         .collect::<std::collections::BTreeSet<_>>();

@@ -128,10 +128,13 @@ mod tests {
     #[test]
     fn builder_sets_security_attributes_and_rejects_injection() {
         let name = super::HttpCookieName::try_from(String::from(str_constants::TEST_COOKIE_NAME))
-            .expect("977f74f0");
-        let value =
-            super::HttpCookieValue::try_from(String::from(str_constants::TEST_COOKIE_VALUE))
-                .expect("38fc5531");
+            .expect("977f74f0 builder_sets_security_attributes_and_rejects_injection invariant must hold");
+        let value = super::HttpCookieValue::try_from(String::from(
+            str_constants::TEST_COOKIE_VALUE,
+        ))
+        .expect(
+            "38fc5531 builder_sets_security_attributes_and_rejects_injection invariant must hold",
+        );
         let header = super::build_secure_strict_cookie(
             &name,
             &value,
@@ -139,9 +142,13 @@ mod tests {
             super::HttpCookieAccess::HttpOnly,
             super::HttpCookieSecure::Enabled,
         )
-        .expect("0b4600b3");
+        .expect(
+            "0b4600b3 builder_sets_security_attributes_and_rejects_injection invariant must hold",
+        );
         let header_value = http::HeaderValue::from(header);
-        let text = header_value.to_str().expect("3176fb72");
+        let text = header_value.to_str().expect(
+            "3176fb72 builder_sets_security_attributes_and_rejects_injection invariant must hold",
+        );
         assert!(text.contains(str_constants::HTTPONLY));
         assert!(text.contains(str_constants::SECURE));
         assert_eq!(
@@ -161,10 +168,12 @@ mod tests {
     #[test]
     fn builder_preserves_unsigned_maximum_age_range() {
         let name = super::HttpCookieName::try_from(String::from(str_constants::TEST_COOKIE_NAME))
-            .expect("3dde3ff2");
+            .expect("3dde3ff2 builder_preserves_unsigned_maximum_age_range invariant must hold");
         let value =
             super::HttpCookieValue::try_from(String::from(str_constants::TEST_COOKIE_VALUE))
-                .expect("7b47e5b5");
+                .expect(
+                    "7b47e5b5 builder_preserves_unsigned_maximum_age_range invariant must hold",
+                );
         let header = super::build_secure_strict_cookie(
             &name,
             &value,
@@ -172,11 +181,11 @@ mod tests {
             super::HttpCookieAccess::ScriptReadable,
             super::HttpCookieSecure::Disabled,
         )
-        .expect("0a722d46");
+        .expect("0a722d46 builder_preserves_unsigned_maximum_age_range invariant must hold");
         assert!(
             http::HeaderValue::from(header)
                 .to_str()
-                .expect("b1dde58f")
+                .expect("b1dde58f builder_preserves_unsigned_maximum_age_range invariant must hold")
                 .contains(u64::MAX.to_string().as_str())
         );
     }

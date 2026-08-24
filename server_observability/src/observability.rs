@@ -127,7 +127,7 @@ mod tests {
         let guard = super::ObservabilityGuard {
             tracer_provider: None,
         };
-        guard.shutdown().expect("599ca192");
+        guard.shutdown().expect("599ca192 empty_guard_shutdown_is_idempotent_and_service_name_displays invariant must hold");
         assert_eq!(
             super::ServiceName::from("notification_service").to_string(),
             "notification_service"
@@ -142,7 +142,9 @@ mod tests {
         let guard = super::ObservabilityGuard {
             tracer_provider: Some(super::OpentelemetrySdkTracerProvider::from(tracer_provider)),
         };
-        guard.shutdown().expect("8d66ae8c");
+        guard
+            .shutdown()
+            .expect("8d66ae8c guard_shuts_down_owned_tracer_provider invariant must hold");
         assert!(exporter.is_shutdown_called());
     }
     #[test]

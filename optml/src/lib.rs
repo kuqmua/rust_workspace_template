@@ -3,9 +3,10 @@ pub fn optml(input_token_stream: proc_macro::TokenStream) -> proc_macro::TokenSt
     let generate_alignments_identifier_token_stream = |i: usize| {
         format!("alignments_{i}")
             .parse::<proc_macro2::TokenStream>()
-            .expect("5a0bb723")
+            .expect("5a0bb723 optml invariant must hold")
     };
-    let di: syn::DeriveInput = syn::parse(input_token_stream).expect("a1d306de");
+    let di: syn::DeriveInput =
+        syn::parse(input_token_stream).expect("a1d306de optml invariant must hold");
     let mut skip = false;
     di.attrs
         .iter()
@@ -19,7 +20,7 @@ pub fn optml(input_token_stream: proc_macro::TokenStream) -> proc_macro::TokenSt
                     Err(metadata.error("6e9230ab unsupported optml attribute"))
                 }
             })
-            .expect("58bd65a7");
+            .expect("58bd65a7 optml invariant must hold");
         });
     if skip {
         return proc_macro::TokenStream::new();

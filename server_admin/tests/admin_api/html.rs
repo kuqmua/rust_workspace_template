@@ -12,7 +12,7 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
     let create_body = AdminHtmlTestFormBody::try_from(format!(
         "login={login}&display_name=HTML+CRUD+User&password={password}"
     ))
-    .expect("801d9a43");
+    .expect("801d9a43 postgresql_html_users_crud_covers_every_frontend_field_separately invariant must hold");
     let create_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
@@ -27,7 +27,7 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
     .bind(login)
     .fetch_one(&fixture.pool.0)
     .await
-    .expect("5de4fc12");
+    .expect("5de4fc12 postgresql_html_users_crud_covers_every_frontend_field_separately invariant must hold");
     assert_eq!(created.1, login);
     assert_eq!(created.2, display_name);
     assert!(!created.3);
@@ -46,7 +46,7 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
         "user_id={}&login={updated_login}&display_name=HTML+CRUD+User",
         created.0
     ))
-    .expect("b0714f29");
+    .expect("b0714f29 postgresql_html_users_crud_covers_every_frontend_field_separately invariant must hold");
     let login_update_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
@@ -61,7 +61,7 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
     .bind(created.0)
     .fetch_one(&fixture.pool.0)
     .await
-    .expect("68fae270");
+    .expect("68fae270 postgresql_html_users_crud_covers_every_frontend_field_separately invariant must hold");
     assert_eq!(
         login_update,
         (updated_login.to_owned(), display_name.to_owned())
@@ -71,7 +71,7 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
         "user_id={}&login={updated_login}&display_name=HTML+CRUD+User+Updated",
         created.0
     ))
-    .expect("9a6eb324");
+    .expect("9a6eb324 postgresql_html_users_crud_covers_every_frontend_field_separately invariant must hold");
     let display_update_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
@@ -89,7 +89,7 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
     .bind(created.0)
     .fetch_one(&fixture.pool.0)
     .await
-    .expect("10df386a");
+    .expect("10df386a postgresql_html_users_crud_covers_every_frontend_field_separately invariant must hold");
     assert_eq!(
         display_update,
         (updated_login.to_owned(), updated_display_name.to_owned())
@@ -99,7 +99,7 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
         "user_id={}&password={updated_password}",
         created.0
     ))
-    .expect("cd82f375");
+    .expect("cd82f375 postgresql_html_users_crud_covers_every_frontend_field_separately invariant must hold");
     let password_update_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
@@ -113,7 +113,7 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
     );
     let old_sign_in_body =
         AdminHtmlTestFormBody::try_from(format!("login={updated_login}&password={password}"))
-            .expect("8c42d7e1");
+            .expect("8c42d7e1 postgresql_html_users_crud_covers_every_frontend_field_separately invariant must hold");
     let old_sign_in_response = tower::ServiceExt::oneshot(
         fixture.router.0.clone(),
         html_request_with_peer(
@@ -125,7 +125,7 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
         .0,
     )
     .await
-    .expect("26ab3584");
+    .expect("26ab3584 postgresql_html_users_crud_covers_every_frontend_field_separately invariant must hold");
     assert_eq!(
         old_sign_in_response.status(),
         http::StatusCode::UNAUTHORIZED
@@ -133,7 +133,7 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
     let new_sign_in_body = AdminHtmlTestFormBody::try_from(format!(
         "login={updated_login}&password={updated_password}"
     ))
-    .expect("ef05a691");
+    .expect("ef05a691 postgresql_html_users_crud_covers_every_frontend_field_separately invariant must hold");
     let new_sign_in_response = tower::ServiceExt::oneshot(
         fixture.router.0.clone(),
         html_request_with_peer(
@@ -145,18 +145,18 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
         .0,
     )
     .await
-    .expect("b9306c2e");
+    .expect("b9306c2e postgresql_html_users_crud_covers_every_frontend_field_separately invariant must hold");
     assert_eq!(new_sign_in_response.status(), http::StatusCode::SEE_OTHER);
 
     let role_id = sqlx::query_scalar::<_, i64>(str_constants::SERVER_ADMIN_READ_ADMIN_ROLE_ID_SQL)
         .fetch_one(&fixture.pool.0)
         .await
-        .expect("f1674ab9");
+        .expect("f1674ab9 postgresql_html_users_crud_covers_every_frontend_field_separately invariant must hold");
     let roles_update_body = AdminHtmlTestFormBody::try_from(format!(
         "user_id={}&expected_role_ids=&role_{role_id}={role_id}",
         created.0
     ))
-    .expect("410e6a8c");
+    .expect("410e6a8c postgresql_html_users_crud_covers_every_frontend_field_separately invariant must hold");
     let roles_update_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
@@ -170,11 +170,11 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
             .bind(created.0)
             .fetch_all(&fixture.pool.0)
             .await
-            .expect("739cb4f5");
+            .expect("739cb4f5 postgresql_html_users_crud_covers_every_frontend_field_separately invariant must hold");
     assert_eq!(assigned_roles, vec![role_id]);
 
     let ban_body = AdminHtmlTestFormBody::try_from(format!("user_id={}&is_banned=true", created.0))
-        .expect("a17fdc64");
+        .expect("a17fdc64 postgresql_html_users_crud_covers_every_frontend_field_separately invariant must hold");
     let ban_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
@@ -194,7 +194,7 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
     assert_admin_csr_shell(&final_users_html);
     let unban_body =
         AdminHtmlTestFormBody::try_from(format!("user_id={}&is_banned=false", created.0))
-            .expect("9d304db3");
+            .expect("9d304db3 postgresql_html_users_crud_covers_every_frontend_field_separately invariant must hold");
     let unban_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
@@ -207,13 +207,13 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
         .bind(created.0)
         .fetch_one(&fixture.pool.0)
         .await
-        .expect("55208887");
+        .expect("55208887 postgresql_html_users_crud_covers_every_frontend_field_separately invariant must hold");
     assert!(!is_banned);
     let roles_clear_body = AdminHtmlTestFormBody::try_from(format!(
         "user_id={}&expected_role_ids={role_id}",
         created.0
     ))
-    .expect("04b638dc");
+    .expect("04b638dc postgresql_html_users_crud_covers_every_frontend_field_separately invariant must hold");
     let roles_clear_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
@@ -225,7 +225,7 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
 
     let delete_body =
         AdminHtmlTestFormBody::try_from(format!("user_id={}&confirmation=true", created.0))
-            .expect("d4fe3069");
+            .expect("d4fe3069 postgresql_html_users_crud_covers_every_frontend_field_separately invariant must hold");
     let delete_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
@@ -238,7 +238,7 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
         .bind(created.0)
         .fetch_one(&fixture.pool.0)
         .await
-        .expect("72c950ea");
+        .expect("72c950ea postgresql_html_users_crud_covers_every_frontend_field_separately invariant must hold");
     assert_eq!(deleted_count, 0i64);
     let deleted_users_response = admin_html_response(
         &fixture,
@@ -249,7 +249,7 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
     .await;
     let deleted_users_html = admin_html_body(deleted_users_response).await;
     assert_admin_csr_shell(&deleted_users_html);
-    fixture.lock.0.rollback().await.expect("93db561a");
+    fixture.lock.0.rollback().await.expect("93db561a postgresql_html_users_crud_covers_every_frontend_field_separately invariant must hold");
 }
 #[tokio::test]
 #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
@@ -258,7 +258,7 @@ async fn postgresql_html_roles_crud_covers_every_frontend_field_separately() {
     let role_name = "html_crud_role";
     let updated_role_name = "html_crud_role_updated";
     let create_body =
-        AdminHtmlTestFormBody::try_from(format!("name={role_name}")).expect("c593e840");
+        AdminHtmlTestFormBody::try_from(format!("name={role_name}")).expect("c593e840 postgresql_html_roles_crud_covers_every_frontend_field_separately invariant must hold");
     let create_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
@@ -273,7 +273,7 @@ async fn postgresql_html_roles_crud_covers_every_frontend_field_separately() {
     .bind(role_name)
     .fetch_one(&fixture.pool.0)
     .await
-    .expect("196fbd27");
+    .expect("196fbd27 postgresql_html_roles_crud_covers_every_frontend_field_separately invariant must hold");
     assert_eq!(created.1, role_name);
     assert!(!created.2);
     let roles_response = admin_html_response(
@@ -289,7 +289,7 @@ async fn postgresql_html_roles_crud_covers_every_frontend_field_separately() {
 
     let update_body =
         AdminHtmlTestFormBody::try_from(format!("role_id={}&name={updated_role_name}", created.0))
-            .expect("7ea84503");
+            .expect("7ea84503 postgresql_html_roles_crud_covers_every_frontend_field_separately invariant must hold");
     let update_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
@@ -302,19 +302,19 @@ async fn postgresql_html_roles_crud_covers_every_frontend_field_separately() {
         .bind(created.0)
         .fetch_one(&fixture.pool.0)
         .await
-        .expect("43f81d69");
+        .expect("43f81d69 postgresql_html_roles_crud_covers_every_frontend_field_separately invariant must hold");
     assert_eq!(updated, updated_role_name);
 
     let permission =
         sqlx::query_as::<_, (i64, String)>("SELECT id, name FROM permissions ORDER BY id LIMIT 1")
             .fetch_one(&fixture.pool.0)
             .await
-            .expect("ba920f54");
+            .expect("ba920f54 postgresql_html_roles_crud_covers_every_frontend_field_separately invariant must hold");
     let permissions_body = AdminHtmlTestFormBody::try_from(format!(
         "role_id={}&expected_permission_ids=&permission_{}={}",
         created.0, permission.0, permission.0
     ))
-    .expect("0d476c31");
+    .expect("0d476c31 postgresql_html_roles_crud_covers_every_frontend_field_separately invariant must hold");
     let permissions_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
@@ -329,7 +329,7 @@ async fn postgresql_html_roles_crud_covers_every_frontend_field_separately() {
     .bind(created.0)
     .fetch_all(&fixture.pool.0)
     .await
-    .expect("82b0d9f3");
+    .expect("82b0d9f3 postgresql_html_roles_crud_covers_every_frontend_field_separately invariant must hold");
     assert_eq!(assigned_permissions, vec![permission.0]);
     let final_roles_response = admin_html_response(
         &fixture,
@@ -343,7 +343,7 @@ async fn postgresql_html_roles_crud_covers_every_frontend_field_separately() {
 
     let delete_body =
         AdminHtmlTestFormBody::try_from(format!("role_id={}&confirmation=true", created.0))
-            .expect("e1547a60");
+            .expect("e1547a60 postgresql_html_roles_crud_covers_every_frontend_field_separately invariant must hold");
     let delete_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
@@ -356,7 +356,7 @@ async fn postgresql_html_roles_crud_covers_every_frontend_field_separately() {
         .bind(created.0)
         .fetch_one(&fixture.pool.0)
         .await
-        .expect("2db479f8");
+        .expect("2db479f8 postgresql_html_roles_crud_covers_every_frontend_field_separately invariant must hold");
     assert_eq!(deleted_count, 0i64);
     let deleted_roles_response = admin_html_response(
         &fixture,
@@ -367,7 +367,7 @@ async fn postgresql_html_roles_crud_covers_every_frontend_field_separately() {
     .await;
     let deleted_roles_html = admin_html_body(deleted_roles_response).await;
     assert_admin_csr_shell(&deleted_roles_html);
-    fixture.lock.0.rollback().await.expect("674dc2a9");
+    fixture.lock.0.rollback().await.expect("674dc2a9 postgresql_html_roles_crud_covers_every_frontend_field_separately invariant must hold");
 }
 #[tokio::test]
 #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
@@ -530,7 +530,7 @@ async fn postgresql_html_settings_updates_and_reads_every_field_separately() {
     )
     .fetch_one(&fixture.pool.0)
     .await
-    .expect("a8f201de");
+    .expect("a8f201de postgresql_html_settings_updates_and_reads_every_field_separately invariant must hold");
     assert_eq!(stored.0, site_name_b.0);
     assert_eq!(stored.1, route_b.0);
     assert_eq!(stored.2, tab_title_b.0);
@@ -650,7 +650,7 @@ async fn postgresql_html_settings_updates_and_reads_every_field_separately() {
             )
             .fetch_one(&fixture_ref.pool.0)
             .await
-            .expect("d418f9c0");
+            .expect("d418f9c0 postgresql_html_settings_updates_and_reads_every_field_separately invariant must hold");
             assert_eq!(
                 [
                     (
@@ -686,7 +686,7 @@ async fn postgresql_html_settings_updates_and_reads_every_field_separately() {
         },
     )
     .await;
-    fixture.lock.0.rollback().await.expect("c7659b40");
+    fixture.lock.0.rollback().await.expect("c7659b40 postgresql_html_settings_updates_and_reads_every_field_separately invariant must hold");
 }
 #[tokio::test]
 #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
@@ -717,11 +717,11 @@ async fn postgresql_bootstrap_password_must_change_before_admin_access() {
     .await;
     assert_eq!(profile_response.status(), http::StatusCode::OK);
     let correct_password =
-        serde_json::from_str::<String>(str_constants::CORRECT_PASSWORD).expect("e20a72a8");
+        serde_json::from_str::<String>(str_constants::CORRECT_PASSWORD).expect("e20a72a8 postgresql_bootstrap_password_must_change_before_admin_access invariant must hold");
     let change_password_body = AdminHtmlTestFormBody::try_from(format!(
         "current_password={correct_password}&new_password=Bootstrap-changed-pass2",
     ))
-    .expect("b42a390d");
+    .expect("b42a390d postgresql_bootstrap_password_must_change_before_admin_access invariant must hold");
     let change_password_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
@@ -738,7 +738,7 @@ async fn postgresql_bootstrap_password_must_change_before_admin_access() {
     )
     .fetch_one(&fixture.pool.0)
     .await
-    .expect("ea57fc2d");
+    .expect("ea57fc2d postgresql_bootstrap_password_must_change_before_admin_access invariant must hold");
     assert!(!password_change_required);
     let post_change_users_response = admin_html_response(
         &fixture,
@@ -748,7 +748,7 @@ async fn postgresql_bootstrap_password_must_change_before_admin_access() {
     )
     .await;
     assert_eq!(post_change_users_response.status(), http::StatusCode::OK);
-    fixture.lock.0.rollback().await.expect("6a8ce0f3");
+    fixture.lock.0.rollback().await.expect("6a8ce0f3 postgresql_bootstrap_password_must_change_before_admin_access invariant must hold");
 }
 
 #[tokio::test]
@@ -771,13 +771,13 @@ async fn postgresql_html_profile_reads_every_field_and_changes_own_password() {
     )
     .fetch_one(&fixture.pool.0)
     .await
-    .expect("c09b5e4e");
+    .expect("c09b5e4e postgresql_html_profile_reads_every_field_and_changes_own_password invariant must hold");
     let (current_session_id, user_id) = sqlx::query_as::<_, (uuid::Uuid, i64)>(
         "SELECT id, user_id FROM access_sessions WHERE revoked_at IS NULL",
     )
     .fetch_one(&fixture.pool.0)
     .await
-    .expect("ae46b7c1");
+    .expect("ae46b7c1 postgresql_html_profile_reads_every_field_and_changes_own_password invariant must hold");
     let other_session_id = uuid::Uuid::from_u128(2u128);
     let _inserted_other_session = sqlx::query(
         "INSERT INTO access_sessions (id, user_id, token_identifier_hash, csrf_token_hash, token_context_hash, expires_at) VALUES ($1, $2, 'other-token-hash', 'other-csrf-hash', repeat('a', 64), NOW() + INTERVAL '1 hour')",
@@ -786,7 +786,7 @@ async fn postgresql_html_profile_reads_every_field_and_changes_own_password() {
     .bind(user_id)
     .execute(&fixture.pool.0)
     .await
-    .expect("3e216ecd");
+    .expect("3e216ecd postgresql_html_profile_reads_every_field_and_changes_own_password invariant must hold");
     let _inserted_other_refresh_token = sqlx::query(
         "INSERT INTO refresh_tokens (id, user_id, token_hash, expires_at) VALUES ($1, $2, 'other-refresh-hash', NOW() + INTERVAL '1 hour')",
     )
@@ -794,13 +794,13 @@ async fn postgresql_html_profile_reads_every_field_and_changes_own_password() {
     .bind(user_id)
     .execute(&fixture.pool.0)
     .await
-    .expect("d61fc342");
+    .expect("d61fc342 postgresql_html_profile_reads_every_field_and_changes_own_password invariant must hold");
     let correct_password =
-        serde_json::from_str::<String>(str_constants::CORRECT_PASSWORD).expect("c59b011a");
+        serde_json::from_str::<String>(str_constants::CORRECT_PASSWORD).expect("c59b011a postgresql_html_profile_reads_every_field_and_changes_own_password invariant must hold");
     let change_password_body = AdminHtmlTestFormBody::try_from(format!(
         "current_password={correct_password}&new_password=Html-profile-pass2",
     ))
-    .expect("c93d69e3");
+    .expect("c93d69e3 postgresql_html_profile_reads_every_field_and_changes_own_password invariant must hold");
     let change_password_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
@@ -817,7 +817,7 @@ async fn postgresql_html_profile_reads_every_field_and_changes_own_password() {
     )
     .fetch_one(&fixture.pool.0)
     .await
-    .expect("696330ca");
+    .expect("696330ca postgresql_html_profile_reads_every_field_and_changes_own_password invariant must hold");
     assert_ne!(changed_password_hash, original_password_hash);
     let current_session_revoked = sqlx::query_scalar::<_, bool>(
         "SELECT revoked_at IS NOT NULL FROM access_sessions WHERE id = $1",
@@ -825,7 +825,7 @@ async fn postgresql_html_profile_reads_every_field_and_changes_own_password() {
     .bind(current_session_id)
     .fetch_one(&fixture.pool.0)
     .await
-    .expect("38923e84");
+    .expect("38923e84 postgresql_html_profile_reads_every_field_and_changes_own_password invariant must hold");
     assert!(!current_session_revoked);
     let other_session_revoked = sqlx::query_scalar::<_, bool>(
         "SELECT revoked_at IS NOT NULL FROM access_sessions WHERE id = $1",
@@ -833,14 +833,14 @@ async fn postgresql_html_profile_reads_every_field_and_changes_own_password() {
     .bind(other_session_id)
     .fetch_one(&fixture.pool.0)
     .await
-    .expect("f0168dc5");
+    .expect("f0168dc5 postgresql_html_profile_reads_every_field_and_changes_own_password invariant must hold");
     assert!(other_session_revoked);
     let active_refresh_token_count = sqlx::query_scalar::<_, i64>(
         "SELECT COUNT(*) FROM refresh_tokens WHERE revoked_at IS NULL",
     )
     .fetch_one(&fixture.pool.0)
     .await
-    .expect("740d6dc9");
+    .expect("740d6dc9 postgresql_html_profile_reads_every_field_and_changes_own_password invariant must hold");
     assert_eq!(active_refresh_token_count, 0i64);
     let authenticated_response = admin_html_response(
         &fixture,
@@ -850,7 +850,7 @@ async fn postgresql_html_profile_reads_every_field_and_changes_own_password() {
     )
     .await;
     assert_eq!(authenticated_response.status(), http::StatusCode::OK);
-    fixture.lock.0.rollback().await.expect("737bbbe6");
+    fixture.lock.0.rollback().await.expect("737bbbe6 postgresql_html_profile_reads_every_field_and_changes_own_password invariant must hold");
 }
 #[tokio::test]
 #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
@@ -860,7 +860,7 @@ async fn postgresql_html_sessions_reads_every_field_and_revokes_session() {
         sqlx::query_scalar::<_, i64>(str_constants::SELECT_ID_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN)
             .fetch_one(&fixture.pool.0)
             .await
-            .expect("7f0a7c64");
+            .expect("7f0a7c64 postgresql_html_sessions_reads_every_field_and_revokes_session invariant must hold");
     let (session_id, _created_at, _expires_at) = sqlx::query_as::<_, (uuid::Uuid, String, String)>(
         str_constants::SERVER_ADMIN_LIST_ACTIVE_SESSIONS_SQL,
     )
@@ -869,7 +869,7 @@ async fn postgresql_html_sessions_reads_every_field_and_revokes_session() {
     .bind(0i64)
     .fetch_one(&fixture.pool.0)
     .await
-    .expect("32e44a86");
+    .expect("32e44a86 postgresql_html_sessions_reads_every_field_and_revokes_session invariant must hold");
     let sessions_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::GET),
@@ -883,7 +883,7 @@ async fn postgresql_html_sessions_reads_every_field_and_revokes_session() {
 
     let revoke_body =
         AdminHtmlTestFormBody::try_from(format!("session_id={session_id}&confirmation=true"))
-            .expect("2f8bea59");
+            .expect("2f8bea59 postgresql_html_sessions_reads_every_field_and_revokes_session invariant must hold");
     let revoke_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
@@ -898,7 +898,7 @@ async fn postgresql_html_sessions_reads_every_field_and_revokes_session() {
     .bind(session_id)
     .fetch_one(&fixture.pool.0)
     .await
-    .expect("e443902e");
+    .expect("e443902e postgresql_html_sessions_reads_every_field_and_revokes_session invariant must hold");
     assert!(revoked);
     let rejected_response = admin_html_response(
         &fixture,
@@ -908,7 +908,7 @@ async fn postgresql_html_sessions_reads_every_field_and_revokes_session() {
     )
     .await;
     assert_eq!(rejected_response.status(), http::StatusCode::SEE_OTHER);
-    fixture.lock.0.rollback().await.expect("9f41b8bd");
+    fixture.lock.0.rollback().await.expect("9f41b8bd postgresql_html_sessions_reads_every_field_and_revokes_session invariant must hold");
 }
 #[tokio::test]
 #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
@@ -998,7 +998,7 @@ async fn postgresql_html_router_registers_every_owned_page_and_action() {
                 .0,
             )
             .await
-            .expect("d9567273");
+            .expect("d9567273 postgresql_html_router_registers_every_owned_page_and_action invariant must hold");
             assert!(
                 !matches!(
                     response.status(),
@@ -1013,7 +1013,9 @@ async fn postgresql_html_router_registers_every_owned_page_and_action() {
         },
     )
     .await;
-    fixture.lock.0.rollback().await.expect("c0c53cdc");
+    fixture.lock.0.rollback().await.expect(
+        "c0c53cdc postgresql_html_router_registers_every_owned_page_and_action invariant must hold",
+    );
 }
 #[tokio::test]
 #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
@@ -1030,7 +1032,7 @@ async fn postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_fi
         .0,
     )
     .await
-    .expect("184ec7b2");
+    .expect("184ec7b2 postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_filtering invariant must hold");
     assert_eq!(
         unauthenticated_response.status(),
         http::StatusCode::SEE_OTHER
@@ -1048,7 +1050,7 @@ async fn postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_fi
     let valid_body = AdminHtmlTestFormBody::try_from(format!(
         "login={login}&display_name=HTML+Form+Contract+User&password=Html-form-pass1"
     ))
-    .expect("94b36ec1");
+    .expect("94b36ec1 postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_filtering invariant must hold");
     let missing_csrf_response = tower::ServiceExt::oneshot(
         fixture.router.0.clone(),
         html_request_with_peer(
@@ -1060,11 +1062,11 @@ async fn postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_fi
         .0,
     )
     .await
-    .expect("e6013d7a");
+    .expect("e6013d7a postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_filtering invariant must hold");
     assert_eq!(missing_csrf_response.status(), http::StatusCode::FORBIDDEN);
     let unknown_field_body =
         AdminHtmlTestFormBody::try_from(format!("{}&unknown_field=true", valid_body.0))
-            .expect("af2948d3");
+            .expect("af2948d3 postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_filtering invariant must hold");
     let unknown_field_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
@@ -1096,12 +1098,12 @@ async fn postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_fi
         .bind(login)
         .fetch_one(&fixture.pool.0)
         .await
-        .expect("378a4e50");
+        .expect("378a4e50 postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_filtering invariant must hold");
     let filtered_path = AdminHtmlTestFormBody::try_from(format!(
         "{}?search={login}",
         server_admin_contract::AdminFrontendPath::Users.get()
     ))
-    .expect("60bf2c91");
+    .expect("60bf2c91 postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_filtering invariant must hold");
     let filtered_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::GET),
@@ -1116,11 +1118,11 @@ async fn postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_fi
     let role_id = sqlx::query_scalar::<_, i64>(str_constants::SERVER_ADMIN_READ_ADMIN_ROLE_ID_SQL)
         .fetch_one(&fixture.pool.0)
         .await
-        .expect("bc10a764");
+        .expect("bc10a764 postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_filtering invariant must hold");
     let stale_roles_body = AdminHtmlTestFormBody::try_from(format!(
         "user_id={created_id}&expected_role_ids={role_id}"
     ))
-    .expect("1934ad6f");
+    .expect("1934ad6f postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_filtering invariant must hold");
     let stale_roles_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
@@ -1132,7 +1134,7 @@ async fn postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_fi
 
     let role_name = "html_form_contract_role";
     let create_role_body =
-        AdminHtmlTestFormBody::try_from(format!("name={role_name}")).expect("8cf4260d");
+        AdminHtmlTestFormBody::try_from(format!("name={role_name}")).expect("8cf4260d postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_filtering invariant must hold");
     let create_role_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
@@ -1153,16 +1155,16 @@ async fn postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_fi
         .bind(role_name)
         .fetch_one(&fixture.pool.0)
         .await
-        .expect("2643be19");
+        .expect("2643be19 postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_filtering invariant must hold");
     let permission_id =
         sqlx::query_scalar::<_, i64>("SELECT id FROM permissions ORDER BY id LIMIT 1")
             .fetch_one(&fixture.pool.0)
             .await
-            .expect("d8134c5b");
+            .expect("d8134c5b postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_filtering invariant must hold");
     let stale_permissions_body = AdminHtmlTestFormBody::try_from(format!(
         "role_id={created_role_id}&expected_permission_ids={permission_id}"
     ))
-    .expect("49fac702");
+    .expect("49fac702 postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_filtering invariant must hold");
     let stale_permissions_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
@@ -1176,7 +1178,7 @@ async fn postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_fi
     );
     let delete_role_body =
         AdminHtmlTestFormBody::try_from(format!("role_id={created_role_id}&confirmation=true"))
-            .expect("f1c637d8");
+            .expect("f1c637d8 postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_filtering invariant must hold");
     let delete_role_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
@@ -1189,7 +1191,7 @@ async fn postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_fi
     let unknown_delete_body = AdminHtmlTestFormBody::try_from(String::from(
         "user_id=9223372036854775807&confirmation=true",
     ))
-    .expect("d96b20e4");
+    .expect("d96b20e4 postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_filtering invariant must hold");
     let unknown_delete_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
@@ -1201,7 +1203,7 @@ async fn postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_fi
 
     let delete_body =
         AdminHtmlTestFormBody::try_from(format!("user_id={created_id}&confirmation=true"))
-            .expect("4cf9072d");
+            .expect("4cf9072d postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_filtering invariant must hold");
     let delete_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
@@ -1210,7 +1212,7 @@ async fn postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_fi
     )
     .await;
     assert_eq!(delete_response.status(), http::StatusCode::SEE_OTHER);
-    fixture.lock.0.rollback().await.expect("7361eb5c");
+    fixture.lock.0.rollback().await.expect("7361eb5c postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_filtering invariant must hold");
 }
 #[cfg(test)]
 use super::{

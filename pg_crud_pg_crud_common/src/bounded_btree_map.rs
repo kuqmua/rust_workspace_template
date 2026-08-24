@@ -71,7 +71,7 @@ mod tests {
         let value = serde_json::from_str::<super::StdBoundedBTreeMap<String, u8, 1>>(
             str_constants::TEST_JSON_MAP_WITH_ONE_ENTRY,
         )
-        .expect("298b587f");
+        .expect("298b587f map_at_limit_is_accepted invariant must hold");
         assert_eq!(value.get().len(), 1usize);
     }
 }

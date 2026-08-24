@@ -550,7 +550,7 @@ mod idempotency_tests {
             0u8;
             super::PG_TBL_IDEMPOTENCY_RESPONSE_MAX_BYTES
         ])
-        .expect("aa90ef11");
+        .expect("aa90ef11 persisted_idempotency_body_enforces_inclusive_storage_limit invariant must hold");
         assert_eq!(
             exact.as_ref().len(),
             super::PG_TBL_IDEMPOTENCY_RESPONSE_MAX_BYTES

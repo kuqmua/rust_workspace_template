@@ -511,16 +511,16 @@ mod tests {
             server_admin_contract::AdminDataTableFilterQuery::new(
                 Some(
                     server_admin_contract::AdminFilterField::try_from(field.to_owned())
-                        .expect("a17498dc"),
+                        .expect("a17498dc filter_query invariant must hold"),
                 ),
                 Some(operation),
                 filter_value.map(|raw_filter_value| {
                     server_admin_contract::AdminFilterValue::try_from(raw_filter_value.to_owned())
-                        .expect("f064fcd7")
+                        .expect("f064fcd7 filter_query invariant must hold")
                 }),
                 end.map(|raw_filter_end| {
                     server_admin_contract::AdminFilterValue::try_from(raw_filter_end.to_owned())
-                        .expect("9b563f27")
+                        .expect("9b563f27 filter_query invariant must hold")
                 }),
             ),
             server_admin_contract::AdminTableQuery::default(),
@@ -535,7 +535,9 @@ mod tests {
                 .spec()
                 .columns(),
         )
-        .expect("f3c897af");
+        .expect(
+            "f3c897af generated_table_fields_supply_client_column_metadata invariant must hold",
+        );
         let id = columns
             .as_slice()
             .iter()
@@ -547,7 +549,9 @@ mod tests {
             .as_slice()
             .iter()
             .find(|column| column.name().as_ref() == str_constants::LOGIN)
-            .expect("7a340d1f");
+            .expect(
+                "7a340d1f generated_table_fields_supply_client_column_metadata invariant must hold",
+            );
         assert_eq!(
             login
                 .filters()
@@ -569,13 +573,17 @@ mod tests {
             Some("alice"),
             None,
         );
-        let filter =
-            super::data_filter(server_admin_contract::AdminDataTable::Users, query.filter())
-                .expect("4e779df0")
-                .expect("d9c8cf39");
+        let filter = super::data_filter(
+            server_admin_contract::AdminDataTable::Users,
+            query.filter(),
+        )
+        .expect("4e779df0 generated_where_filter_builds_typed_table_predicate invariant must hold")
+        .expect("d9c8cf39 generated_where_filter_builds_typed_table_predicate invariant must hold");
         let mut increment = pg_crud_common::QueryPartIncrement::from(0u64);
 
-        let fragment = filter.query_part(&mut increment).expect("a25fe142");
+        let fragment = filter.query_part(&mut increment).expect(
+            "a25fe142 generated_where_filter_builds_typed_table_predicate invariant must hold",
+        );
 
         assert!(fragment.as_ref().contains(str_constants::LOGIN));
         assert!(fragment.as_ref().contains("$1"));
@@ -603,7 +611,7 @@ mod tests {
 
         assert!(
             super::data_filter(server_admin_contract::AdminDataTable::Users, &query)
-                .expect("fd36a6f5")
+                .expect("fd36a6f5 empty_filter_query_omits_the_predicate invariant must hold")
                 .is_none()
         );
     }
@@ -612,9 +620,9 @@ mod tests {
     fn incomplete_filter_queries_are_rejected() {
         let field =
             server_admin_contract::AdminFilterField::try_from(str_constants::LOGIN.to_owned())
-                .expect("f1832a34");
+                .expect("f1832a34 incomplete_filter_queries_are_rejected invariant must hold");
         let value = server_admin_contract::AdminFilterValue::try_from(String::from("alice"))
-            .expect("16849a06");
+            .expect("16849a06 incomplete_filter_queries_are_rejected invariant must hold");
         let queries = [
             server_admin_contract::AdminDataTableFilterQuery::new(Some(field), None, None, None),
             server_admin_contract::AdminDataTableFilterQuery::new(
@@ -675,11 +683,13 @@ mod tests {
         );
         let filter =
             super::data_filter(server_admin_contract::AdminDataTable::Users, query.filter())
-                .expect("e0b1326d")
-                .expect("8a4e68fb");
+                .expect("e0b1326d regex_filter_builds_a_typed_predicate invariant must hold")
+                .expect("8a4e68fb regex_filter_builds_a_typed_predicate invariant must hold");
         let mut increment = pg_crud_common::QueryPartIncrement::from(0u64);
 
-        let fragment = filter.query_part(&mut increment).expect("9f5e101d");
+        let fragment = filter
+            .query_part(&mut increment)
+            .expect("9f5e101d regex_filter_builds_a_typed_predicate invariant must hold");
 
         assert!(fragment.as_ref().contains(str_constants::LOGIN));
         assert_eq!(increment.get(), 1u64);
@@ -687,19 +697,22 @@ mod tests {
 
     #[test]
     fn filtered_sql_places_pagination_after_filter_binds() {
-        let fragment =
-            pg_crud_common::QueryPartFragment::try_from(String::from("where login = $1"))
-                .expect("45d292b8");
+        let fragment = pg_crud_common::QueryPartFragment::try_from(String::from(
+            "where login = $1",
+        ))
+        .expect("45d292b8 filtered_sql_places_pagination_after_filter_binds invariant must hold");
 
-        let (base_count, base_data) =
-            super::base_sql(server_admin_contract::AdminDataTable::Users).expect("44c43299");
+        let (base_count, base_data) = super::base_sql(server_admin_contract::AdminDataTable::Users)
+            .expect(
+                "44c43299 filtered_sql_places_pagination_after_filter_binds invariant must hold",
+            );
         let (_count, data) = super::filtered_sql(
             crate::StdAdminStrRef::from(base_count.as_ref().as_str()),
             crate::StdAdminStrRef::from(base_data.as_ref().as_str()),
             &fragment,
             pg_crud_common::QueryPartIncrement::from(1u64),
         )
-        .expect("c33365ba");
+        .expect("c33365ba filtered_sql_places_pagination_after_filter_binds invariant must hold");
 
         assert!(data.as_ref().contains("where login = $1"));
         assert!(data.as_ref().contains("LIMIT $2 OFFSET $3"));
@@ -711,7 +724,7 @@ mod tests {
         server_admin_contract::AdminDataTable::ALL
             .into_iter()
             .for_each(|table| {
-                let (count, data) = super::base_sql(table).expect("5f714b28");
+                let (count, data) = super::base_sql(table).expect("5f714b28 table_spec_generates_bounded_projection_and_count_sql_for_every_table invariant must hold");
                 let table_name = table.to_string();
                 assert!(count.as_ref().contains(table_name.as_str()));
                 assert!(data.as_ref().contains(table_name.as_str()));

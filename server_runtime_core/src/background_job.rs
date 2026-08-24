@@ -44,12 +44,16 @@ mod tests {
     #[tokio::test]
     async fn run_records_retry_outcome_in_bounded_history() {
         let history = crate::AsyncRunHistory::new(
-            crate::StdAsyncRunHistoryMaximumLen::try_from(1usize).expect("5dc81fa2"),
+            crate::StdAsyncRunHistoryMaximumLen::try_from(1usize).expect(
+                "5dc81fa2 run_records_retry_outcome_in_bounded_history invariant must hold",
+            ),
         );
         let job = super::BackgroundJob::new(
             history,
             crate::RetryPolicy::new(
-                crate::StdRetryAttempts::try_from(2usize).expect("4792b3e0"),
+                crate::StdRetryAttempts::try_from(2usize).expect(
+                    "4792b3e0 run_records_retry_outcome_in_bounded_history invariant must hold",
+                ),
                 None,
             ),
         );

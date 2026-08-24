@@ -33,7 +33,9 @@ mod tests {
         macros_helpers::json_contract::ensure_json_contract_round_trip::<JsonContractValue>(
             macros_helpers::json_contract::JsonFixtureRef::from(str_constants::OPERATION_RM),
         )
-        .expect("f9f9af71");
+        .expect(
+            "f9f9af71 shared_json_contract_helper_round_trips_table_fixture invariant must hold",
+        );
     }
     #[test]
     fn duplicate_frontend_order_is_rejected_during_generation() {

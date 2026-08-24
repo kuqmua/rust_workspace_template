@@ -248,7 +248,8 @@ mod tests {
     }
     #[test]
     fn string_newtype_impls_are_generated() {
-        let v = StringValue::try_from(String::from(str_constants::ABC_ALT_3)).expect("9d27b01c");
+        let v = StringValue::try_from(String::from(str_constants::ABC_ALT_3))
+            .expect("9d27b01c string_newtype_impls_are_generated invariant must hold");
         assert_eq!(v.to_string(), "abc");
         assert_eq!(v.as_ref(), "abc");
         assert_eq!(&*v, "abc");
@@ -371,7 +372,7 @@ mod tests {
             Err(RichValueTryFromStringError::ContainsNul)
         ));
         assert_eq!(
-            serde_json::from_str::<RichValue>("\"  \\u0430\\u0431  \"").expect("1d3222b1"),
+            serde_json::from_str::<RichValue>("\"  \\u0430\\u0431  \"").expect("1d3222b1 bounded_string_rich_policies_share_runtime_and_serde_validation invariant must hold"),
             RichValue(String::from("\u{430}\u{431}"))
         );
         let _error = serde_json::from_str::<RichValue>(str_constants::ABCD)
@@ -380,14 +381,16 @@ mod tests {
     #[test]
     fn bounded_string_openapi_limits_match_runtime_limits() {
         let schema = <RichValue as utoipa::PartialSchema>::schema();
-        let json = serde_json::to_value(schema).expect("756f3fe9");
+        let json = serde_json::to_value(schema).expect(
+            "756f3fe9 bounded_string_openapi_limits_match_runtime_limits invariant must hold",
+        );
         assert_eq!(json.get("minLength"), Some(&serde_json::json!(1usize)));
         assert_eq!(json.get("maxLength"), Some(&serde_json::json!(3usize)));
     }
     #[test]
     fn bounded_string_openapi_write_only_matches_secret_contract() {
         let schema = <WriteOnlyValue as utoipa::PartialSchema>::schema();
-        let json = serde_json::to_value(schema).expect("ce9351d4");
+        let json = serde_json::to_value(schema).expect("ce9351d4 bounded_string_openapi_write_only_matches_secret_contract invariant must hold");
         assert_eq!(json.get("writeOnly"), Some(&serde_json::json!(true)));
     }
     #[test]
@@ -440,8 +443,8 @@ mod tests {
     }
     #[test]
     fn borrow_impls_are_generated() {
-        let string =
-            StringValue::try_from(String::from(str_constants::ABC_ALT_3)).expect("f37f2ed0");
+        let string = StringValue::try_from(String::from(str_constants::ABC_ALT_3))
+            .expect("f37f2ed0 borrow_impls_are_generated invariant must hold");
         assert_eq!(std::borrow::Borrow::<str>::borrow(&string), "abc");
         let owned = InnerValue::from(7u16);
         assert_eq!(*std::borrow::Borrow::<u16>::borrow(&owned), 7u16);

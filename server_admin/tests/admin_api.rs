@@ -75,17 +75,19 @@ impl AdminHtmlSettingsTestValues<'_> {
             self.support_url.0,
             self.tab_title.0,
         ))
-        .expect("c2af6158")
+        .expect("c2af6158 form_body invariant must hold")
     }
 }
 
 fn one_admin_role_id(
     value: server_admin_contract::AdminRoleId,
 ) -> server_admin_contract::AdminRoleIds {
-    server_admin_contract::AdminRoleIds::try_from(vec![value]).expect("69bc51bc")
+    server_admin_contract::AdminRoleIds::try_from(vec![value])
+        .expect("69bc51bc one_admin_role_id invariant must hold")
 }
 fn empty_admin_role_ids() -> server_admin_contract::AdminRoleIds {
-    server_admin_contract::AdminRoleIds::try_from(Vec::new()).expect("d5ccd621")
+    server_admin_contract::AdminRoleIds::try_from(Vec::new())
+        .expect("d5ccd621 empty_admin_role_ids invariant must hold")
 }
 fn env<T>(value: StdAdminApiTestStrRef<'_>) -> T
 where
@@ -93,14 +95,15 @@ where
     T::Error: std::fmt::Debug,
 {
     T::try_from_std_env_var_ok(
-        config_lib::StdEnvVarOk::try_from(value.0.to_owned()).expect("92b71c4e"),
+        config_lib::StdEnvVarOk::try_from(value.0.to_owned())
+            .expect("92b71c4e env invariant must hold"),
     )
-    .expect("afe20c19")
+    .expect("afe20c19 env invariant must hold")
 }
 fn router() -> AxumAdminApiTestRouter {
     let pool = sqlx::postgres::PgPoolOptions::new()
         .connect_lazy(str_constants::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION)
-        .expect("27db915c");
+        .expect("27db915c router invariant must hold");
     let state = server_admin::auth::AdminAuthSvcState::try_new(
         app_state::SqlxPgPool::from(pool),
         &env::<config_lib::AdminJwtSecret>(StdAdminApiTestStrRef::from(
@@ -131,7 +134,7 @@ fn router() -> AxumAdminApiTestRouter {
         )),
         &config_lib::CorsAllowOrigin(str_constants::HTTP_LOCALHOST.to_owned()),
     )
-    .expect("f7d8c961");
+    .expect("f7d8c961 router invariant must hold");
     AxumAdminApiTestRouter::from(axum::Router::from(server_admin::auth::routes(
         server_admin::auth::StdSharedAdminAuthSvcState::from(std::sync::Arc::new(state)),
     )))
@@ -167,7 +170,7 @@ fn router_with_pool(pool: &SqlxAdminApiTestPool) -> AxumAdminApiTestRouter {
         )),
         &config_lib::CorsAllowOrigin(str_constants::HTTP_LOCALHOST.to_owned()),
     )
-    .expect("a59d73c1");
+    .expect("a59d73c1 router_with_pool invariant must hold");
     AxumAdminApiTestRouter::from(axum::Router::from(server_admin::auth::routes(
         server_admin::auth::StdSharedAdminAuthSvcState::from(std::sync::Arc::new(state)),
     )))
@@ -209,9 +212,11 @@ fn request_with_peer_at(
     }
     let mut request = builder
         .body(axum::body::Body::from(body.0.to_owned()))
-        .expect("7d924f8a");
+        .expect("7d924f8a request_with_peer_at invariant must hold");
     let _previous_peer = request.extensions_mut().insert(axum::extract::ConnectInfo(
-        peer.0.parse::<std::net::SocketAddr>().expect("d80fc31b"),
+        peer.0
+            .parse::<std::net::SocketAddr>()
+            .expect("d80fc31b request_with_peer_at invariant must hold"),
     ));
     HttpAdminApiTestRequest::from(request)
 }
@@ -234,11 +239,11 @@ fn html_request_with_peer(
     }
     let mut request = builder
         .body(axum::body::Body::from(body.0.to_owned()))
-        .expect("9f211b84");
+        .expect("9f211b84 html_request_with_peer invariant must hold");
     let _previous_peer = request.extensions_mut().insert(axum::extract::ConnectInfo(
         str_constants::VALUE_127_0_0_1_43210
             .parse::<std::net::SocketAddr>()
-            .expect("bcd41a67"),
+            .expect("bcd41a67 html_request_with_peer invariant must hold"),
     ));
     HttpAdminApiTestRequest::from(request)
 }
@@ -259,8 +264,11 @@ fn cookie_value(
                 .and_then(|pair| pair.strip_prefix(name.0))
                 .map(str::to_owned)
         })
-        .map(|value| StdAdminApiTestCookie::try_from(value).expect("b9a203e6"))
-        .expect("360de719")
+        .map(|value| {
+            StdAdminApiTestCookie::try_from(value)
+                .expect("b9a203e6 cookie_value invariant must hold")
+        })
+        .expect("360de719 cookie_value invariant must hold")
 }
 async fn admin_html_response(
     fixture: &AdminHtmlTestFixture,
@@ -280,14 +288,18 @@ async fn admin_html_response(
     )
     .await
     .map(HttpAdminHtmlTestResponse::from)
-    .expect("3cb98672")
+    .expect("3cb98672 admin_html_response invariant must hold")
 }
 async fn admin_html_body(response: HttpAdminHtmlTestResponse) -> AdminHtmlTestBody {
     axum::body::to_bytes(response.0.into_body(), 1_048_576usize)
         .await
-        .map(|bytes| String::from_utf8(bytes.to_vec()).expect("86547438"))
-        .map(|body| AdminHtmlTestBody::try_from(body).expect("ec7261cd"))
-        .expect("8b54de37")
+        .map(|bytes| {
+            String::from_utf8(bytes.to_vec()).expect("86547438 admin_html_body invariant must hold")
+        })
+        .map(|body| {
+            AdminHtmlTestBody::try_from(body).expect("ec7261cd admin_html_body invariant must hold")
+        })
+        .expect("8b54de37 admin_html_body invariant must hold")
 }
 fn assert_admin_csr_shell(body: &AdminHtmlTestBody) {
     assert!(
@@ -309,57 +321,66 @@ fn assert_admin_csr_shell(body: &AdminHtmlTestBody) {
 async fn admin_html_test_fixture_with_password_change(
     password_change_required: server_admin_contract::AdminBool,
 ) -> AdminHtmlTestFixture {
-    let database_url = std::env::var(str_constants::ENV_NAMES_DATABASE_URL).expect("fbe54d19");
+    let database_url = std::env::var(str_constants::ENV_NAMES_DATABASE_URL)
+        .expect("fbe54d19 admin_html_test_fixture_with_password_change invariant must hold");
     let pool = SqlxAdminApiTestPool::from(
         sqlx::postgres::PgPoolOptions::new()
             .max_connections(5u32)
             .connect(database_url.as_str())
             .await
-            .expect("ac089d31"),
+            .expect("ac089d31 admin_html_test_fixture_with_password_change invariant must hold"),
     );
-    let mut lock = pool.0.begin().await.expect("37480e56");
+    let mut lock = pool
+        .0
+        .begin()
+        .await
+        .expect("37480e56 admin_html_test_fixture_with_password_change invariant must hold");
     let _locked = sqlx::query(str_constants::SELECT_PG_ADVISORY_XACT_LOCK_ADMIN_TESTS)
         .execute(&mut *lock)
         .await
-        .expect("a6b7c8d9");
+        .expect("a6b7c8d9 admin_html_test_fixture_with_password_change invariant must hold");
     server_admin::prep_pg(app_state::SqlxPgPoolRef::from(&pool.0))
         .await
-        .expect("45de3a61");
+        .expect("45de3a61 admin_html_test_fixture_with_password_change invariant must hold");
     let _truncated = sqlx::query(
         str_constants::TRUNCATE_ADMIN_RATE_LIMITS_ADMIN_AUDIT_LOG_ADMIN_LOGIN_ATTEMPTS_ADMIN_ACCESS,
     )
     .execute(&pool.0)
     .await
-    .expect("cf37a9e2");
+    .expect("cf37a9e2 admin_html_test_fixture_with_password_change invariant must hold");
     let _deleted_non_system_roles = sqlx::query("DELETE FROM roles WHERE NOT is_system")
         .execute(&pool.0)
         .await
-        .expect("b267a647");
+        .expect("b267a647 admin_html_test_fixture_with_password_change invariant must hold");
     let password = serde_json::from_str::<server_admin_contract::AdminNewPassword>(
         str_constants::CORRECT_PASSWORD,
     )
-    .expect("d20a35e4");
-    let hasher = server_admin::AdminPasswordHasher::new(
-        server_admin::AdminPasswordHashConcurrency::from(server_admin::StdAdminNonZeroUsize::from(
-            std::num::NonZeroUsize::new(1usize).expect("560498ab"),
-        )),
-    );
+    .expect("d20a35e4 admin_html_test_fixture_with_password_change invariant must hold");
+    let hasher =
+        server_admin::AdminPasswordHasher::new(server_admin::AdminPasswordHashConcurrency::from(
+            server_admin::StdAdminNonZeroUsize::from(std::num::NonZeroUsize::new(1usize).expect(
+                "560498ab admin_html_test_fixture_with_password_change invariant must hold",
+            )),
+        ));
     let _created_admin_id = server_admin::bootstrap_admin(
         app_state::SqlxPgPoolRef::from(&pool.0),
-        server_admin::AdminLogin::try_from(str_constants::ADMIN_ALT.to_owned()).expect("6a417bde"),
+        server_admin::AdminLogin::try_from(str_constants::ADMIN_ALT.to_owned())
+            .expect("6a417bde admin_html_test_fixture_with_password_change invariant must hold"),
         server_admin::AdminDisplayName::try_from(str_constants::ADMIN.to_owned())
-            .expect("703fc568"),
+            .expect("703fc568 admin_html_test_fixture_with_password_change invariant must hold"),
         password,
         &hasher,
     )
     .await
-    .expect("1e29c87f");
+    .expect("1e29c87f admin_html_test_fixture_with_password_change invariant must hold");
     if !bool::from(password_change_required) {
         let _updated =
             sqlx::query(str_constants::UPDATE_ADMIN_USERS_SET_MUST_CHANGE_PASSWORD_FALSE)
                 .execute(&pool.0)
                 .await
-                .expect("a37042f1");
+                .expect(
+                    "a37042f1 admin_html_test_fixture_with_password_change invariant must hold",
+                );
     }
     let state = server_admin::auth::AdminAuthSvcState::try_new(
         app_state::SqlxPgPool::from(pool.0.clone()),
@@ -391,20 +412,20 @@ async fn admin_html_test_fixture_with_password_change(
         )),
         &config_lib::CorsAllowOrigin(str_constants::HTTP_LOCALHOST.to_owned()),
     )
-    .expect("ec39b61d");
+    .expect("ec39b61d admin_html_test_fixture_with_password_change invariant must hold");
     let router = AxumAdminApiTestRouter::from(axum::Router::from(
         server_admin::auth::html_routes_with_swagger(
             server_admin::auth::StdSharedAdminAuthSvcState::from(std::sync::Arc::new(state)),
             server_admin::auth::AdminHtmlSwaggerEnabled::from(true),
         ),
     ));
-    let correct_password =
-        serde_json::from_str::<String>(str_constants::CORRECT_PASSWORD).expect("825e50c7");
+    let correct_password = serde_json::from_str::<String>(str_constants::CORRECT_PASSWORD)
+        .expect("825e50c7 admin_html_test_fixture_with_password_change invariant must hold");
     let sign_in_body = AdminHtmlTestFormBody::try_from(format!(
         "login={}&password={correct_password}",
         str_constants::ADMIN_ALT,
     ))
-    .expect("9df2164c");
+    .expect("9df2164c admin_html_test_fixture_with_password_change invariant must hold");
     let sign_in_response = tower::ServiceExt::oneshot(
         router.0.clone(),
         html_request_with_peer(
@@ -416,7 +437,7 @@ async fn admin_html_test_fixture_with_password_change(
         .0,
     )
     .await
-    .expect("68a2cb40");
+    .expect("68a2cb40 admin_html_test_fixture_with_password_change invariant must hold");
     assert_eq!(sign_in_response.status(), http::StatusCode::SEE_OTHER);
     let access = cookie_value(
         HttpAdminApiTestResponseRef::from(&sign_in_response),
@@ -437,7 +458,7 @@ async fn admin_html_test_fixture_with_password_change(
             str_constants::ADMIN_REFRESH_TOKEN_ALT,
             str_constants::ADMIN_CSRF_TOKEN_ALT,
         ))
-        .expect("a4df94d1"),
+        .expect("a4df94d1 admin_html_test_fixture_with_password_change invariant must hold"),
         csrf,
         lock: SqlxAdminHtmlTestTransaction::from(lock),
         pool,
@@ -453,7 +474,11 @@ async fn postgres_accepts_admin_user_policy_values(
     display_name: StdAdminApiTestStrRef<'_>,
     login: StdAdminApiTestStrRef<'_>,
 ) -> server_admin_contract::AdminBool {
-    let mut transaction = pool.0.begin().await.expect("e6f2cdf7");
+    let mut transaction = pool
+        .0
+        .begin()
+        .await
+        .expect("e6f2cdf7 postgres_accepts_admin_user_policy_values invariant must hold");
     let accepted = sqlx::query(str_constants::INSERT_ADMIN_USER_POLICY_PROBE)
         .bind(login.0)
         .bind(display_name.0)
@@ -461,19 +486,29 @@ async fn postgres_accepts_admin_user_policy_values(
         .execute(&mut *transaction)
         .await
         .is_ok();
-    transaction.rollback().await.expect("fc4eec8f");
+    transaction
+        .rollback()
+        .await
+        .expect("fc4eec8f postgres_accepts_admin_user_policy_values invariant must hold");
     server_admin_contract::AdminBool::from(accepted)
 }
 async fn postgres_accepts_admin_role_policy_value(
     pool: &SqlxAdminApiTestPool,
     name: StdAdminApiTestStrRef<'_>,
 ) -> server_admin_contract::AdminBool {
-    let mut transaction = pool.0.begin().await.expect("77c2db82");
+    let mut transaction = pool
+        .0
+        .begin()
+        .await
+        .expect("77c2db82 postgres_accepts_admin_role_policy_value invariant must hold");
     let accepted = sqlx::query(str_constants::INSERT_ADMIN_ROLE_POLICY_PROBE)
         .bind(name.0)
         .execute(&mut *transaction)
         .await
         .is_ok();
-    transaction.rollback().await.expect("aa9b0106");
+    transaction
+        .rollback()
+        .await
+        .expect("aa9b0106 postgres_accepts_admin_role_policy_value invariant must hold");
     server_admin_contract::AdminBool::from(accepted)
 }

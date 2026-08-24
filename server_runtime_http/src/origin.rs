@@ -213,7 +213,7 @@ pub fn request_origin_allowed(
 mod tests {
     fn allowed_origins() -> super::AllowedOrigins {
         super::AllowedOrigins::try_from(vec![String::from(str_constants::HTTPS_ADMIN_EXAMPLE_COM)])
-            .expect("782d2bed")
+            .expect("782d2bed allowed_origins invariant must hold")
     }
 
     #[test]

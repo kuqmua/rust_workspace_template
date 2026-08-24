@@ -15,7 +15,7 @@ fn server_rendered_pages_contain_forms_and_no_scripts() {
     let failed_sign_in = super::super::render_sign_in(
         Some(
             super::super::AdminSsrErrorMessage::try_from(String::from("Invalid credentials"))
-                .expect("31b0d69f"),
+                .expect("31b0d69f server_rendered_pages_contain_forms_and_no_scripts invariant must hold"),
         ),
         None,
     );
@@ -28,7 +28,9 @@ fn server_rendered_pages_contain_forms_and_no_scripts() {
 
     let page = super::super::render_admin_page(
         server_admin_contract::AdminPage::Users,
-        super::super::AdminSsrHtml::try_from(String::from("<p>ready</p>")).expect("c78bd3a1"),
+        super::super::AdminSsrHtml::try_from(String::from("<p>ready</p>")).expect(
+            "c78bd3a1 server_rendered_pages_contain_forms_and_no_scripts invariant must hold",
+        ),
     );
     assert!(page.as_ref().contains("<p>ready</p>"));
     assert!(!page.as_ref().contains("<h1"));
@@ -56,7 +58,9 @@ fn server_rendered_pages_contain_forms_and_no_scripts() {
 fn header_table_labels_match_table_names_and_routes() {
     let page = super::super::render_admin_page(
         server_admin_contract::AdminPage::Users,
-        super::super::AdminSsrHtml::try_from(String::new()).expect("5a984c96"),
+        super::super::AdminSsrHtml::try_from(String::new()).expect(
+            "5a984c96 header_table_labels_match_table_names_and_routes invariant must hold",
+        ),
     );
 
     assert!(
@@ -65,10 +69,9 @@ fn header_table_labels_match_table_names_and_routes() {
             .all(|table| {
                 let table_name = table.to_string();
                 let route = table.frontend_path().to_string();
-                let route_name = route
-                    .rsplit_once('/')
-                    .map(|(_prefix, name)| name)
-                    .expect("100762f4");
+                let route_name = route.rsplit_once('/').map(|(_prefix, name)| name).expect(
+                    "100762f4 header_table_labels_match_table_names_and_routes invariant must hold",
+                );
                 let href = format!("href=\"{route}\"");
                 let header_label = page
                     .as_ref()
@@ -86,11 +89,15 @@ fn header_table_labels_match_table_names_and_routes() {
 fn header_items_stay_stable_between_static_and_table_pages() {
     let metrics = super::super::render_admin_page(
         server_admin_contract::AdminPage::Metrics,
-        super::super::AdminSsrHtml::try_from(String::new()).expect("f2d57bb4"),
+        super::super::AdminSsrHtml::try_from(String::new()).expect(
+            "f2d57bb4 header_items_stay_stable_between_static_and_table_pages invariant must hold",
+        ),
     );
     let cleanup_status = super::super::render_admin_page_with_table_access(
         server_admin_contract::AdminPage::Tables,
-        super::super::AdminSsrHtml::try_from(String::new()).expect("7f46cfd6"),
+        super::super::AdminSsrHtml::try_from(String::new()).expect(
+            "7f46cfd6 header_items_stay_stable_between_static_and_table_pages invariant must hold",
+        ),
         None,
         None,
         Some(server_admin_contract::AdminDataTable::CleanupStatus),
@@ -122,12 +129,15 @@ fn header_items_stay_stable_between_static_and_table_pages() {
 fn csr_page_contains_only_bootstrap_shell() {
     let admin = server_admin_contract::AuthenticatedAdmin::new(
         server_admin_contract::AdminDisplayName::try_from(str_constants::ADMIN.to_owned())
-            .expect("642357a8"),
-        server_admin_contract::AdminUserId::try_from(1i64).expect("41856438"),
+            .expect("642357a8 csr_page_contains_only_bootstrap_shell invariant must hold"),
+        server_admin_contract::AdminUserId::try_from(1i64)
+            .expect("41856438 csr_page_contains_only_bootstrap_shell invariant must hold"),
         server_admin_contract::AdminLogin::try_from(str_constants::ROOT.to_owned())
-            .expect("71a3b6e5"),
-        server_admin_contract::AdminPermissionValues::try_from(Vec::new()).expect("8e3cf81f"),
-        server_admin_contract::AdminRoleNames::try_from(Vec::new()).expect("a5677f33"),
+            .expect("71a3b6e5 csr_page_contains_only_bootstrap_shell invariant must hold"),
+        server_admin_contract::AdminPermissionValues::try_from(Vec::new())
+            .expect("8e3cf81f csr_page_contains_only_bootstrap_shell invariant must hold"),
+        server_admin_contract::AdminRoleNames::try_from(Vec::new())
+            .expect("a5677f33 csr_page_contains_only_bootstrap_shell invariant must hold"),
     );
     let settings = server_admin_contract::AdminSettingsView::new(
         server_admin_contract::AdminDefaultRoute::try_from(
@@ -135,12 +145,13 @@ fn csr_page_contains_only_bootstrap_shell() {
                 .get()
                 .to_owned(),
         )
-        .expect("44758b19"),
+        .expect("44758b19 csr_page_contains_only_bootstrap_shell invariant must hold"),
         None,
         None,
         None,
         None,
-        server_admin_contract::AdminSiteName::try_from(String::from("Admin")).expect("8ba6b381"),
+        server_admin_contract::AdminSiteName::try_from(String::from("Admin"))
+            .expect("8ba6b381 csr_page_contains_only_bootstrap_shell invariant must hold"),
         None,
         None,
     );

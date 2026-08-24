@@ -28,11 +28,15 @@ fn api_problem_status_mapping_is_stable_and_redacted() {
     ];
     cases.into_iter().for_each(|(status, expected_kind)| {
         let problem = super::ApiProblem::from_error(super::ApiProblemError::from_status(
-            super::ApiProblemStatus::try_from(status).expect("ff774b42"),
+            super::ApiProblemStatus::try_from(status).expect(
+                "ff774b42 api_problem_status_mapping_is_stable_and_redacted invariant must hold",
+            ),
         ));
         assert_eq!(problem.kind(), expected_kind);
         assert_eq!(u16::from(problem.status()), status);
-        let serialized = serde_json::to_string(&problem).expect("f459312e");
+        let serialized = serde_json::to_string(&problem).expect(
+            "f459312e api_problem_status_mapping_is_stable_and_redacted invariant must hold",
+        );
         assert!(!serialized.contains("postgres://"));
         assert!(!serialized.contains("sqlx"));
         assert!(!serialized.contains("password"));
@@ -140,13 +144,13 @@ fn route_error_policy_derives_statuses_from_access_and_mutation() {
 #[test]
 fn response_interpretation_uses_shared_success_and_problem_contract() {
     let problem = super::ApiProblem::from_error(super::ApiProblemError::from_status(
-        super::ApiProblemStatus::try_from(401u16).expect("b8fc4707"),
+        super::ApiProblemStatus::try_from(401u16).expect("b8fc4707 response_interpretation_uses_shared_success_and_problem_contract invariant must hold"),
     ));
-    let body = super::TransportBody::try_from(serde_json::to_vec(&problem).expect("f542a3cb"))
-        .expect("864276f2");
+    let body = super::TransportBody::try_from(serde_json::to_vec(&problem).expect("f542a3cb response_interpretation_uses_shared_success_and_problem_contract invariant must hold"))
+        .expect("864276f2 response_interpretation_uses_shared_success_and_problem_contract invariant must hold");
     let response = super::TransportResponse::new(
         body,
-        super::TransportStatus::try_from(401u16).expect("a05ea02c"),
+        super::TransportStatus::try_from(401u16).expect("a05ea02c response_interpretation_uses_shared_success_and_problem_contract invariant must hold"),
     );
     let error = response
         .success_body(super::SuccessStatus::Code200.transport_status())
@@ -164,12 +168,14 @@ fn response_interpretation_uses_shared_success_and_problem_contract() {
 #[test]
 fn transport_response_preserves_retry_after() {
     let response = super::TransportResponse::new(
-        super::TransportBody::try_from(Vec::new()).expect("da32dc29"),
-        super::TransportStatus::try_from(429u16).expect("7a783a69"),
+        super::TransportBody::try_from(Vec::new())
+            .expect("da32dc29 transport_response_preserves_retry_after invariant must hold"),
+        super::TransportStatus::try_from(429u16)
+            .expect("7a783a69 transport_response_preserves_retry_after invariant must hold"),
     )
     .with_retry_after(Some(
         super::TransportRetryAfter::try_from(str_constants::TEST_VALUE_30.to_owned())
-            .expect("9b6750d4"),
+            .expect("9b6750d4 transport_response_preserves_retry_after invariant must hold"),
     ));
     assert_eq!(
         response.retry_after().map(AsRef::as_ref),

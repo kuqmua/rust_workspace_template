@@ -5,7 +5,8 @@ fn unsigned_database_value_rejects_negative_input() {
         Err(super::UnsignedPartOfI32TryFromI32Error::LessThanZero { .. })
     ));
     assert_eq!(
-        super::UnsignedPartOfI32::try_from(7i32).expect("ea8c2d71"),
+        super::UnsignedPartOfI32::try_from(7i32)
+            .expect("ea8c2d71 unsigned_database_value_rejects_negative_input invariant must hold"),
         super::UnsignedPartOfI32::from(7u16)
     );
 }

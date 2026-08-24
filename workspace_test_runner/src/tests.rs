@@ -14,7 +14,7 @@ fn memusage_parsers_distinguish_values_and_missing_fields() {
     let text = super::CleanAnsiText::try_from(String::from(
         "Heap total: 1,234 bytes\nmalloc | 7 89 0\nfree | 6 78\n",
     ))
-    .expect("afa44055");
+    .expect("afa44055 memusage_parsers_distinguish_values_and_missing_fields invariant must hold");
     assert_eq!(
         super::memusage_heap_value(&text, super::MemusageKey::from("Heap total:")).get(),
         "1"

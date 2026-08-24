@@ -403,16 +403,20 @@ mod tests {
             .unwrap_or_else(super::LocationCommit::from),
             duration: super::StdLocationDuration::from(duration),
             occr,
-            line: super::LocationLine::try_from(10).expect("fc5a52e8"),
-            column: super::LocationColumn::try_from(20).expect("8a180198"),
+            line: super::LocationLine::try_from(10)
+                .expect("fc5a52e8 test_location invariant must hold"),
+            column: super::LocationColumn::try_from(20)
+                .expect("8a180198 test_location invariant must hold"),
         }
     }
     fn test_occr() -> super::Occr {
         super::Occr {
             file: super::LocationFile::try_from(String::from(str_constants::SRC_ERROR_RS))
                 .unwrap_or_else(super::LocationFile::from),
-            line: super::LocationLine::try_from(30).expect("1fbd3424"),
-            column: super::LocationColumn::try_from(40).expect("44a1f8ca"),
+            line: super::LocationLine::try_from(30)
+                .expect("1fbd3424 test_occr invariant must hold"),
+            column: super::LocationColumn::try_from(40)
+                .expect("44a1f8ca test_occr invariant must hold"),
         }
     }
     fn fmt_place(
@@ -482,7 +486,7 @@ mod tests {
     #[test]
     fn datetime_with_tz_returns_expected_epoch_time_for_zero_duration() {
         let location = test_location(std::time::Duration::from_secs(0), None);
-        let date_time = location.datetime_with_tz().expect("f5c41dd8");
+        let date_time = location.datetime_with_tz().expect("f5c41dd8 datetime_with_tz_returns_expected_epoch_time_for_zero_duration invariant must hold");
         assert_eq!(
             date_time.0.format("%Y-%m-%d %H:%M:%S").to_string(),
             "1970-01-01 03:00:00"
@@ -490,7 +494,8 @@ mod tests {
     }
     #[test]
     fn location_display_timezone_uses_expected_offset() {
-        let offset = super::Location::location_display_timezone().expect("5c53d969");
+        let offset = super::Location::location_display_timezone()
+            .expect("5c53d969 location_display_timezone_uses_expected_offset invariant must hold");
         assert_eq!(
             offset.0.local_minus_utc(),
             super::LOC_DISPLAY_UTC_OFFSET_SECS

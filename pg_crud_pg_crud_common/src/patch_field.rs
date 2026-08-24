@@ -56,19 +56,25 @@ mod tests {
     #[test]
     fn deserialization_distinguishes_omitted_null_and_value() {
         assert_eq!(
-            serde_json::from_str::<Patch>("{}").expect("d3e7aa4a"),
+            serde_json::from_str::<Patch>("{}").expect(
+                "d3e7aa4a deserialization_distinguishes_omitted_null_and_value invariant must hold"
+            ),
             Patch {
                 value: super::PatchField::Omitted,
             }
         );
         assert_eq!(
-            serde_json::from_str::<Patch>(r#"{"value":null}"#).expect("3c55056d"),
+            serde_json::from_str::<Patch>(r#"{"value":null}"#).expect(
+                "3c55056d deserialization_distinguishes_omitted_null_and_value invariant must hold"
+            ),
             Patch {
                 value: super::PatchField::Null,
             }
         );
         assert_eq!(
-            serde_json::from_str::<Patch>(r#"{"value":"next"}"#).expect("4471155f"),
+            serde_json::from_str::<Patch>(r#"{"value":"next"}"#).expect(
+                "4471155f deserialization_distinguishes_omitted_null_and_value invariant must hold"
+            ),
             Patch {
                 value: super::PatchField::Value(String::from("next")),
             }
@@ -81,14 +87,18 @@ mod tests {
             serde_json::to_string(&Patch {
                 value: super::PatchField::<String>::Null,
             })
-            .expect("f2053f9c"),
+            .expect(
+                "f2053f9c serialization_preserves_null_and_value_wire_shapes invariant must hold"
+            ),
             r#"{"value":null}"#
         );
         assert_eq!(
             serde_json::to_string(&Patch {
                 value: super::PatchField::Value(String::from("next")),
             })
-            .expect("cccae65f"),
+            .expect(
+                "cccae65f serialization_preserves_null_and_value_wire_shapes invariant must hold"
+            ),
             r#"{"value":"next"}"#
         );
     }

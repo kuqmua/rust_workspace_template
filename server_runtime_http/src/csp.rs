@@ -120,16 +120,20 @@ mod tests {
         let mut builder = super::HttpCspBuilder::default();
         let default_src =
             super::HttpCspDirectiveName::try_from(String::from(str_constants::TEST_DEFAULT_SRC))
-                .expect("e692ea17");
+                .expect("e692ea17 builder_joins_validated_directives invariant must hold");
         let self_value =
             super::HttpCspDirectiveValue::try_from(String::from(str_constants::TEST_CSP_SELF))
-                .expect("ca342c81");
+                .expect("ca342c81 builder_joins_validated_directives invariant must hold");
         builder
             .try_add(&default_src, &[self_value])
-            .expect("6d089fc9");
-        let policy = builder.try_build().expect("1a987236");
+            .expect("6d089fc9 builder_joins_validated_directives invariant must hold");
+        let policy = builder
+            .try_build()
+            .expect("1a987236 builder_joins_validated_directives invariant must hold");
         assert_eq!(
-            policy.to_str().expect("ba8ae30f"),
+            policy
+                .to_str()
+                .expect("ba8ae30f builder_joins_validated_directives invariant must hold"),
             str_constants::TEST_DEFAULT_SRC_SELF
         );
     }

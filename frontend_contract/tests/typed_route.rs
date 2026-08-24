@@ -98,7 +98,7 @@ mod tests {
         let mut document = utoipa::openapi::OpenApi::default();
         let mut open_api = frontend_contract::UtoipaOpenApiRefMut::from(&mut document);
         frontend_contract::register_openapi_route_schemas::<TestRoute>(&mut open_api);
-        let schemas = &document.components.expect("307e6e5f").schemas;
+        let schemas = &document.components.expect("307e6e5f typed_route_registers_request_response_and_problem_schemas invariant must hold").schemas;
         assert!(schemas.contains_key("TestRequest"));
         assert!(schemas.contains_key("TestResponse"));
         assert!(schemas.contains_key("TestErrorResponse"));
@@ -123,7 +123,9 @@ mod tests {
     fn typed_route_applies_declared_json_request_body() {
         let mut operation = utoipa::openapi::path::Operation::default();
         frontend_contract::apply_openapi_request_contract::<TestRoute>(&mut operation);
-        let request_body = operation.request_body.expect("6d9c2d44");
+        let request_body = operation
+            .request_body
+            .expect("6d9c2d44 typed_route_applies_declared_json_request_body invariant must hold");
         assert!(matches!(
             request_body.required,
             Some(utoipa::openapi::Required::True)
@@ -188,7 +190,9 @@ mod tests {
         let schema_contracts =
             <TestCatalogFamily as frontend_contract::RouteFamily>::schema_contracts();
         assert_eq!(schema_contracts.as_ref().len(), 1usize);
-        let schema_contract = schema_contracts.as_ref().first().expect("b4e9f1c3");
+        let schema_contract = schema_contracts.as_ref().first().expect(
+            "b4e9f1c3 route_catalog_generates_contract_paths_and_family invariant must hold",
+        );
         assert_eq!(
             schema_contract.metadata(),
             frontend_contract::client_route_metadata::<TestRoute>()

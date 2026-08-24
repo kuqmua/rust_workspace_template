@@ -1799,7 +1799,7 @@ fn identifier_to_snake(identifier: SynIdentifierRef<'_>) -> SnakeIdentifier {
             (out, prev_lowercase)
         },
     );
-    SnakeIdentifier::try_from(out).expect("2e7a9c4f")
+    SnakeIdentifier::try_from(out).expect("2e7a9c4f identifier_to_snake invariant must hold")
 }
 #[allow(clippy::single_call_fn)] // ToErrString code generation has distinct modes from base newtype impls
 fn generate_to_err_string_token_stream(

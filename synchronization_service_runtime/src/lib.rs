@@ -66,7 +66,7 @@ mod tests {
     fn configuration_keeps_retry_and_execution_policies_together() {
         let attempts = server_runtime_core::StdRetryAttempts::try_from(2usize);
         let delay = server_runtime_core::StdRetryDelay::from(std::time::Duration::ZERO);
-        let valid_attempts = attempts.expect("36b4ca8f");
+        let valid_attempts = attempts.expect("36b4ca8f configuration_keeps_retry_and_execution_policies_together invariant must hold");
         let retry_policy = server_runtime_core::RetryPolicy::new(valid_attempts, Some(delay));
         let configuration = super::SynchronizationRuntimeConfiguration::new(
             retry_policy,

@@ -39,7 +39,7 @@ pub enum HttpHeaderTextResolution<'header> {
 mod tests {
     #[test]
     fn resolution_distinguishes_missing_invalid_oversized_and_valid_values() {
-        let maximum = super::HttpHeaderTextMaximumBytes::try_from(5usize).expect("84792c6a");
+        let maximum = super::HttpHeaderTextMaximumBytes::try_from(5usize).expect("84792c6a resolution_distinguishes_missing_invalid_oversized_and_valid_values invariant must hold");
         let name = super::HttpHeaderName::from(http::header::HeaderName::from_static(
             str_constants::TEST_X_TEST_HEADER,
         ));
@@ -50,7 +50,7 @@ mod tests {
         );
         let _invalid_previous = headers.insert(
             name.as_ref(),
-            http::HeaderValue::from_bytes(&[0xffu8]).expect("fd47f469"),
+            http::HeaderValue::from_bytes(&[0xffu8]).expect("fd47f469 resolution_distinguishes_missing_invalid_oversized_and_valid_values invariant must hold"),
         );
         assert_eq!(
             crate::resolve_header_text(crate::HttpHeaderMapRef::from(&headers), &name, maximum),

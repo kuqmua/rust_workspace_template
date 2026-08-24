@@ -67,9 +67,9 @@ fn private_shared_modules_do_not_forward_crate_root_exports() {
 }
 #[test]
 fn private_shared_module_forwarding_policy_distinguishes_public_visibility_and_owner() {
-    let public_forward = syn::parse_file("pub use crate::owner::Item;").expect("b2d1e940");
-    let crate_forward = syn::parse_file("pub(crate) use crate::owner::Item;").expect("53f91ac7");
-    let local_public = syn::parse_file("pub use self::owner::Item;").expect("9a47e2c6");
+    let public_forward = syn::parse_file("pub use crate::owner::Item;").expect("b2d1e940 private_shared_module_forwarding_policy_distinguishes_public_visibility_and_owner invariant must hold");
+    let crate_forward = syn::parse_file("pub(crate) use crate::owner::Item;").expect("53f91ac7 private_shared_module_forwarding_policy_distinguishes_public_visibility_and_owner invariant must hold");
+    let local_public = syn::parse_file("pub use self::owner::Item;").expect("9a47e2c6 private_shared_module_forwarding_policy_distinguishes_public_visibility_and_owner invariant must hold");
     assert!(
         public_forward
             .items
@@ -111,7 +111,7 @@ fn service_route_handler_composition_uses_shared_registries() {
                 .rs_files()
                 .iter()
                 .find(|file| file.path().as_ref().ends_with(path_suffix))
-                .expect("249edc4a")
+                .expect("249edc4a service_route_handler_composition_uses_shared_registries invariant must hold")
                 .content()
                 .as_ref();
             assert_eq!(
@@ -139,7 +139,7 @@ fn typed_route_registries_own_request_bodies_and_schema_catalogs() {
                 .rs_files()
                 .iter()
                 .find(|file| file.path().as_ref().ends_with(path_suffix))
-                .expect("a63a8d31")
+                .expect("a63a8d31 typed_route_registries_own_request_bodies_and_schema_catalogs invariant must hold")
                 .content()
                 .as_ref();
             assert!(!source.contains("components(schemas"), "94cc9de1");
@@ -154,7 +154,7 @@ fn typed_route_registries_own_request_bodies_and_schema_catalogs() {
                 .rs_files()
                 .iter()
                 .find(|file| file.path().as_ref().ends_with(path_suffix))
-                .expect("5bde3d5c")
+                .expect("5bde3d5c typed_route_registries_own_request_bodies_and_schema_catalogs invariant must hold")
                 .content()
                 .as_ref();
             assert!(!source.contains("request_body ="), "95cc867b");
@@ -169,7 +169,7 @@ fn typed_route_registries_own_request_bodies_and_schema_catalogs() {
                 .rs_files()
                 .iter()
                 .find(|file| file.path().as_ref().ends_with(path_suffix))
-                .expect("d07be29f")
+                .expect("d07be29f typed_route_registries_own_request_bodies_and_schema_catalogs invariant must hold")
                 .content()
                 .as_ref();
             assert!(!source.contains("error_statuses ="), "5a8ed6cf");
@@ -200,7 +200,7 @@ fn generated_admin_table_consumers_use_the_shared_catalog() {
                 .rs_files()
                 .iter()
                 .find(|file| file.path().as_ref().ends_with(path_suffix))
-                .expect("94a2f8c1")
+                .expect("94a2f8c1 generated_admin_table_consumers_use_the_shared_catalog invariant must hold")
                 .content()
                 .as_ref();
             assert!(!source.contains(forbidden), "8b137dd2");
@@ -210,7 +210,7 @@ fn generated_admin_table_consumers_use_the_shared_catalog() {
             .rs_files()
             .iter()
             .find(|file| file.path().as_ref().ends_with("server/src/routing.rs"))
-            .expect("148223ec")
+            .expect("148223ec generated_admin_table_consumers_use_the_shared_catalog invariant must hold")
             .content()
             .as_ref();
         [
@@ -267,7 +267,7 @@ fn administrator_data_table_queries_come_from_the_typed_spec() {
                     .as_ref()
                     .ends_with("server_admin/src/repository/data_tables.rs")
             })
-            .expect("3ac24886")
+            .expect("3ac24886 administrator_data_table_queries_come_from_the_typed_spec invariant must hold")
             .content()
             .as_ref();
         let admin_api = snapshot
@@ -307,7 +307,7 @@ fn administrator_csr_page_behavior_comes_from_the_page_catalog() {
                     .as_ref()
                     .ends_with("server_admin_frontend/src/app/query/page.rs")
             })
-            .expect("58e2110e")
+            .expect("58e2110e administrator_csr_page_behavior_comes_from_the_page_catalog invariant must hold")
             .content()
             .as_ref();
         let loader = snapshot
@@ -318,7 +318,7 @@ fn administrator_csr_page_behavior_comes_from_the_page_catalog() {
                     .as_ref()
                     .ends_with("server_admin_frontend/src/app/loader.rs")
             })
-            .expect("04bb78af")
+            .expect("04bb78af administrator_csr_page_behavior_comes_from_the_page_catalog invariant must hold")
             .content()
             .as_ref();
         assert!(!query.contains("AdminCsrPage"), "438888fd");
@@ -333,7 +333,7 @@ fn administrator_csr_page_behavior_comes_from_the_page_catalog() {
                     .as_ref()
                     .ends_with(str_constants::SERVER_ADMIN_FRONTEND_SRC_APP_SETTINGS_RS)
             })
-            .expect("2f3afe52")
+            .expect("2f3afe52 administrator_csr_page_behavior_comes_from_the_page_catalog invariant must hold")
             .content()
             .as_ref();
         let ssr = snapshot
@@ -344,7 +344,7 @@ fn administrator_csr_page_behavior_comes_from_the_page_catalog() {
                     .as_ref()
                     .ends_with(str_constants::SERVER_ADMIN_FRONTEND_SRC_SSR_SETTINGS_RS)
             })
-            .expect("2c589b2b")
+            .expect("2c589b2b administrator_csr_page_behavior_comes_from_the_page_catalog invariant must hold")
             .content()
             .as_ref();
         assert!(
@@ -366,7 +366,9 @@ fn config_reference_getters_use_generated_forwarding() {
             .rs_files()
             .iter()
             .find(|file| file.path().as_ref().ends_with("server_config/src/lib.rs"))
-            .expect("e210ffd6")
+            .expect(
+                "e210ffd6 config_reference_getters_use_generated_forwarding invariant must hold",
+            )
             .content()
             .as_ref();
         assert!(!source.contains(" for &Config"), "c0f0354a");

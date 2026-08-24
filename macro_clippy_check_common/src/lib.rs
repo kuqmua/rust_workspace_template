@@ -251,7 +251,7 @@ mod tests {
                 std::process::id(),
                 seq
             ));
-            std::fs::create_dir_all(&path).expect("0c77b4c7");
+            std::fs::create_dir_all(&path).expect("0c77b4c7 new invariant must hold");
             Self::from(path)
         }
         fn path(&self) -> &std::path::Path {
@@ -271,7 +271,8 @@ mod tests {
     fn remove_dir_on_drop_removes_temp_crate_dir() {
         let dir = StdTmpDir::new();
         let path = dir.path().join(str_constants::CRATE_DIR);
-        std::fs::create_dir_all(&path).expect("9b0e24f1");
+        std::fs::create_dir_all(&path)
+            .expect("9b0e24f1 remove_dir_on_drop_removes_temp_crate_dir invariant must hold");
         let guard = super::RemoveDirOnDrop { path: path.clone() };
         drop(guard);
         assert!(!path.exists());
@@ -309,6 +310,6 @@ mod tests {
         .into_iter()
         .all(|args| args.contains(&"--locked") && args.contains(&"--offline"))
         .then_some(())
-        .expect("3f63f262");
+        .expect("3f63f262 generated_crate_compilation_is_offline_and_follow_up_steps_are_locked invariant must hold");
     }
 }

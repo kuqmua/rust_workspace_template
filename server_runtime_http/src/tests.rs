@@ -82,17 +82,15 @@ async fn request_span_uses_remote_parent_and_server_kind() {
     let _dispatch_guard = tracing::dispatcher::set_default(&dispatch);
     let trusted_proxy_ranges = super::TrustedProxyRanges::try_from(vec![
         super::TrustedProxyRange::try_from(str_constants::VALUE_127_0_0_1_32.to_owned())
-            .expect("0bb46390"),
+            .expect("0bb46390 request_span_uses_remote_parent_and_server_kind invariant must hold"),
     ])
-    .expect("04cbe253");
+    .expect("04cbe253 request_span_uses_remote_parent_and_server_kind invariant must hold");
     let router = axum::Router::from(
         super::RequestIdLayer::with_span_config(super::HttpRequestSpanConfig::new(
             super::ServiceName::from("server-runtime-test"),
-            super::StdSocketAddr::from(
-                "127.0.0.1:8080"
-                    .parse::<std::net::SocketAddr>()
-                    .expect("773561fe"),
-            ),
+            super::StdSocketAddr::from("127.0.0.1:8080".parse::<std::net::SocketAddr>().expect(
+                "773561fe request_span_uses_remote_parent_and_server_kind invariant must hold",
+            )),
             trusted_proxy_ranges,
         ))
         .apply(super::AxumRouter::from(axum::Router::new().route(
@@ -111,29 +109,33 @@ async fn request_span_uses_remote_parent_and_server_kind() {
             str_constants::VALUE_203_0_113_1,
         )
         .body(axum::body::Body::empty())
-        .expect("f56d84cc");
+        .expect("f56d84cc request_span_uses_remote_parent_and_server_kind invariant must hold");
     let _previous_connect_info = request.extensions_mut().insert(axum::extract::ConnectInfo(
         "127.0.0.1:45000"
             .parse::<std::net::SocketAddr>()
-            .expect("0f4a8de7"),
+            .expect("0f4a8de7 request_span_uses_remote_parent_and_server_kind invariant must hold"),
     ));
     let response = tower::ServiceExt::oneshot(router, request)
         .await
-        .expect("20b587e3");
+        .expect("20b587e3 request_span_uses_remote_parent_and_server_kind invariant must hold");
     assert_eq!(response.status(), http::StatusCode::OK);
     drop(response);
-    tracer_provider.force_flush().expect("8f53d724");
-    let spans = exporter.get_finished_spans().expect("88d108d2");
+    tracer_provider
+        .force_flush()
+        .expect("8f53d724 request_span_uses_remote_parent_and_server_kind invariant must hold");
+    let spans = exporter
+        .get_finished_spans()
+        .expect("88d108d2 request_span_uses_remote_parent_and_server_kind invariant must hold");
     let request_span = spans
         .iter()
         .find(|span| span.name == "GET /users/{user_id}")
-        .expect("fc30b586");
+        .expect("fc30b586 request_span_uses_remote_parent_and_server_kind invariant must hold");
     let expected_trace_id = str_constants::TRACEPARENT_TEST_VALUE
         .get(3usize..35usize)
-        .expect("34620ae8");
+        .expect("34620ae8 request_span_uses_remote_parent_and_server_kind invariant must hold");
     let expected_parent_span_id = str_constants::TRACEPARENT_TEST_VALUE
         .get(36usize..52usize)
-        .expect("9c70ecdf");
+        .expect("9c70ecdf request_span_uses_remote_parent_and_server_kind invariant must hold");
     assert_eq!(
         request_span.span_context.trace_id().to_string(),
         expected_trace_id
@@ -181,7 +183,9 @@ async fn request_span_uses_remote_parent_and_server_kind() {
         Some(request_span.span_context.span_id().to_string().as_str())
     );
     assert_eq!(attribute(str_constants::OTEL_URL_PATH), None);
-    tracer_provider.shutdown().expect("d478940b");
+    tracer_provider
+        .shutdown()
+        .expect("d478940b request_span_uses_remote_parent_and_server_kind invariant must hold");
 }
 #[tokio::test(flavor = "current_thread")]
 async fn request_span_limits_url_path_and_records_error_telemetry() {
@@ -218,10 +222,10 @@ async fn request_span_limits_url_path_and_records_error_telemetry() {
         axum::extract::Request::builder()
             .uri("/status")
             .body(axum::body::Body::empty())
-            .expect("bd141981"),
+            .expect("bd141981 request_span_limits_url_path_and_records_error_telemetry invariant must hold"),
     )
     .await
-    .expect("22fb2978");
+    .expect("22fb2978 request_span_limits_url_path_and_records_error_telemetry invariant must hold");
     assert_eq!(
         status_response.status(),
         http::StatusCode::INTERNAL_SERVER_ERROR
@@ -232,18 +236,21 @@ async fn request_span_limits_url_path_and_records_error_telemetry() {
         axum::extract::Request::builder()
             .uri("/missing/private-123")
             .body(axum::body::Body::empty())
-            .expect("18a1dc0e"),
+            .expect("18a1dc0e request_span_limits_url_path_and_records_error_telemetry invariant must hold"),
     )
     .await
-    .expect("4dca0c87");
+    .expect("4dca0c87 request_span_limits_url_path_and_records_error_telemetry invariant must hold");
     assert_eq!(missing_response.status(), http::StatusCode::NOT_FOUND);
     drop(missing_response);
-    tracer_provider.force_flush().expect("38b83256");
-    let spans = exporter.get_finished_spans().expect("72d79c7e");
-    let status_span = spans
-        .iter()
-        .find(|span| span.name == "GET /status")
-        .expect("6e0f3748");
+    tracer_provider.force_flush().expect(
+        "38b83256 request_span_limits_url_path_and_records_error_telemetry invariant must hold",
+    );
+    let spans = exporter.get_finished_spans().expect(
+        "72d79c7e request_span_limits_url_path_and_records_error_telemetry invariant must hold",
+    );
+    let status_span = spans.iter().find(|span| span.name == "GET /status").expect(
+        "6e0f3748 request_span_limits_url_path_and_records_error_telemetry invariant must hold",
+    );
     let status_attribute = |key| {
         status_span
             .attributes
@@ -266,7 +273,9 @@ async fn request_span_limits_url_path_and_records_error_telemetry() {
     let unmatched_span = spans
         .iter()
         .find(|span| span.name == "GET __unmatched__")
-        .expect("aa6097d2");
+        .expect(
+            "aa6097d2 request_span_limits_url_path_and_records_error_telemetry invariant must hold",
+        );
     assert!(
         unmatched_span
             .attributes
@@ -294,7 +303,9 @@ async fn request_span_limits_url_path_and_records_error_telemetry() {
         unmatched_attribute(str_constants::OTEL_ERROR_CODE).as_deref(),
         Some(str_constants::OTEL_HTTP_4XX_ERROR_CODE)
     );
-    tracer_provider.shutdown().expect("a4f89d4d");
+    tracer_provider.shutdown().expect(
+        "a4f89d4d request_span_limits_url_path_and_records_error_telemetry invariant must hold",
+    );
 }
 #[tokio::test(flavor = "current_thread")]
 async fn http_boundary_emits_one_complete_error_event_only_for_server_errors() {
@@ -346,7 +357,7 @@ async fn http_boundary_emits_one_complete_error_event_only_for_server_errors() {
             super::StdSocketAddr::from(
                 "127.0.0.1:8080"
                     .parse::<std::net::SocketAddr>()
-                    .expect("c74109ca"),
+                    .expect("c74109ca http_boundary_emits_one_complete_error_event_only_for_server_errors invariant must hold"),
             ),
             super::TrustedProxyRanges::default(),
         ))
@@ -376,10 +387,10 @@ async fn http_boundary_emits_one_complete_error_event_only_for_server_errors() {
         axum::extract::Request::builder()
             .uri("/failure")
             .body(axum::body::Body::empty())
-            .expect("2b710c82"),
+            .expect("2b710c82 http_boundary_emits_one_complete_error_event_only_for_server_errors invariant must hold"),
     )
     .await
-    .expect("33c72c1c");
+    .expect("33c72c1c http_boundary_emits_one_complete_error_event_only_for_server_errors invariant must hold");
     assert_eq!(
         server_error_response.status(),
         http::StatusCode::INTERNAL_SERVER_ERROR
@@ -398,10 +409,10 @@ async fn http_boundary_emits_one_complete_error_event_only_for_server_errors() {
         axum::extract::Request::builder()
             .uri("/invalid")
             .body(axum::body::Body::empty())
-            .expect("b362c5d1"),
+            .expect("b362c5d1 http_boundary_emits_one_complete_error_event_only_for_server_errors invariant must hold"),
     )
     .await
-    .expect("e271f216");
+    .expect("e271f216 http_boundary_emits_one_complete_error_event_only_for_server_errors invariant must hold");
     assert_eq!(
         client_error_response.status(),
         http::StatusCode::UNPROCESSABLE_ENTITY
@@ -431,7 +442,7 @@ fn observed_client_preparation_injects_context_and_creates_child_span() {
     );
     let dispatch = tracing::Dispatch::new(subscriber);
     let _dispatch_guard = tracing::dispatcher::set_default(&dispatch);
-    let url = reqwest::Url::parse(str_constants::HTTPS_EXAMPLE_COM).expect("a0c9b8a8");
+    let url = reqwest::Url::parse(str_constants::HTTPS_EXAMPLE_COM).expect("a0c9b8a8 observed_client_preparation_injects_context_and_creates_child_span invariant must hold");
     let mut request = super::ReqwestRequest::from(reqwest::Request::new(http::Method::GET, url));
     let root_span = tracing::info_span!("caller");
     let prepared_client_span =
@@ -445,15 +456,15 @@ fn observed_client_preparation_injects_context_and_creates_child_span() {
     );
     drop(prepared_client_span);
     drop(root_span);
-    let spans = exporter.get_finished_spans().expect("a472015a");
+    let spans = exporter.get_finished_spans().expect("a472015a observed_client_preparation_injects_context_and_creates_child_span invariant must hold");
     let caller_span = spans
         .iter()
         .find(|span| span.name == "caller")
-        .expect("87c0e547");
+        .expect("87c0e547 observed_client_preparation_injects_context_and_creates_child_span invariant must hold");
     let exported_client_span = spans
         .iter()
         .find(|span| span.name == "GET example.com")
-        .expect("5bfcb617");
+        .expect("5bfcb617 observed_client_preparation_injects_context_and_creates_child_span invariant must hold");
     assert_eq!(
         exported_client_span.span_context.trace_id(),
         caller_span.span_context.trace_id()
@@ -466,5 +477,5 @@ fn observed_client_preparation_injects_context_and_creates_child_span() {
         exported_client_span.span_kind,
         opentelemetry::trace::SpanKind::Client
     );
-    tracer_provider.shutdown().expect("721ff26e");
+    tracer_provider.shutdown().expect("721ff26e observed_client_preparation_injects_context_and_creates_child_span invariant must hold");
 }

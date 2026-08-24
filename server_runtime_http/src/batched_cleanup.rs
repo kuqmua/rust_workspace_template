@@ -120,7 +120,8 @@ mod tests {
         let batches = [3u64, 3u64, 1u64];
         let batch_index = std::sync::atomic::AtomicUsize::new(0usize);
         let report = super::run_batched_cleanup(
-            super::CleanupBatchSize::try_from(3u64).expect("c3cfcb75"),
+            super::CleanupBatchSize::try_from(3u64)
+                .expect("c3cfcb75 drains_full_batches_until_partial_batch invariant must hold"),
             async |_batch_size| {
                 let index = batch_index.fetch_add(1usize, std::sync::atomic::Ordering::Relaxed);
                 let rows = batches.get(index).copied().unwrap_or_default();
@@ -129,7 +130,7 @@ mod tests {
             || super::CleanupContinuation::Continue,
         )
         .await
-        .expect("8846789f");
+        .expect("8846789f drains_full_batches_until_partial_batch invariant must hold");
         assert_eq!(u64::from(report.batches()), 3u64);
         assert_eq!(u64::from(report.rows()), 7u64);
         assert_eq!(report.completion(), super::CleanupCompletion::Drained);
@@ -138,12 +139,13 @@ mod tests {
     #[tokio::test]
     async fn cancellation_stops_before_query() {
         let report = super::run_batched_cleanup(
-            super::CleanupBatchSize::try_from(3u64).expect("116ff79d"),
+            super::CleanupBatchSize::try_from(3u64)
+                .expect("116ff79d cancellation_stops_before_query invariant must hold"),
             async |_batch_size| Ok::<super::CleanupRows, std::convert::Infallible>(3u64.into()),
             || super::CleanupContinuation::Stop,
         )
         .await
-        .expect("39247aa8");
+        .expect("39247aa8 cancellation_stops_before_query invariant must hold");
         assert_eq!(u64::from(report.batches()), 0u64);
         assert_eq!(report.completion(), super::CleanupCompletion::Stopped);
     }

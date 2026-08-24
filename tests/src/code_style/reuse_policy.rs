@@ -323,8 +323,9 @@ fn function_body_hash(
 #[test]
 fn substantial_function_bodies_have_one_source_of_truth() {
     let mut bodies = super::types::StdFunctionBodyLocationsMap::default();
-    let identifier_pattern =
-        regex::Regex::new(r"Ident \{ sym: [^,]+, span: [^}]+ \}").expect("d4a8c2f1");
+    let identifier_pattern = regex::Regex::new(r"Ident \{ sym: [^,]+, span: [^}]+ \}").expect(
+        "d4a8c2f1 substantial_function_bodies_have_one_source_of_truth invariant must hold",
+    );
     super::snapshot::with_codebase_snapshot(|snapshot| {
         snapshot.rs_files().iter().for_each(|file| {
             let mut visitor = FunctionBodyVisitor {
@@ -383,12 +384,12 @@ fn substantial_function_bodies_have_one_source_of_truth() {
 #[test]
 fn function_body_similarity_ignores_identifier_names() {
     let first = syn::parse_str::<syn::ItemFn>("fn first(input: u32) { let value = input + 1; }")
-        .expect("ca632fad");
+        .expect("ca632fad first invariant must hold");
     let second =
         syn::parse_str::<syn::ItemFn>("fn second(source: u32) { let result = source + 1; }")
-            .expect("b608f7e1");
-    let identifier_pattern =
-        regex::Regex::new(r"Ident \{ sym: [^,]+, span: [^}]+ \}").expect("9658f225");
+            .expect("b608f7e1 second invariant must hold");
+    let identifier_pattern = regex::Regex::new(r"Ident \{ sym: [^,]+, span: [^}]+ \}")
+        .expect("9658f225 second invariant must hold");
     let identifier_pattern_ref = super::types::RegexRegexRef::from(&identifier_pattern);
     assert_eq!(
         function_body_hash(&first.block, identifier_pattern_ref),
@@ -399,12 +400,12 @@ fn function_body_similarity_ignores_identifier_names() {
 #[test]
 fn function_body_similarity_preserves_behavioral_structure() {
     let addition = syn::parse_str::<syn::ItemFn>("fn value(input: u32) { let value = input + 1; }")
-        .expect("cb1d077f");
+        .expect("cb1d077f value invariant must hold");
     let subtraction =
         syn::parse_str::<syn::ItemFn>("fn value(input: u32) { let value = input - 1; }")
-            .expect("ae9313cb");
-    let identifier_pattern =
-        regex::Regex::new(r"Ident \{ sym: [^,]+, span: [^}]+ \}").expect("fdf7075b");
+            .expect("ae9313cb value invariant must hold");
+    let identifier_pattern = regex::Regex::new(r"Ident \{ sym: [^,]+, span: [^}]+ \}")
+        .expect("fdf7075b value invariant must hold");
     let identifier_pattern_ref = super::types::RegexRegexRef::from(&identifier_pattern);
     assert_ne!(
         function_body_hash(&addition.block, identifier_pattern_ref),
@@ -417,6 +418,6 @@ fn short_mechanical_adapters_are_not_substantial() {
     let adapter = syn::parse_str::<syn::ItemFn>(
         "fn value(input: Option<u32>) -> u32 { input.map(|value| value + 1).unwrap_or_default() }",
     )
-    .expect("9dc062d1");
+    .expect("9dc062d1 value invariant must hold");
     assert!(!function_body_is_substantial(&adapter.block));
 }

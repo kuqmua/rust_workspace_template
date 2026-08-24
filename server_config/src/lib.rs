@@ -207,9 +207,10 @@ mod tests {
         T::Error: std::fmt::Debug,
     {
         T::try_from_std_env_var_ok(
-            config_lib::StdEnvVarOk::try_from(value.to_owned()).expect("aa12cd88"),
+            config_lib::StdEnvVarOk::try_from(value.to_owned())
+                .expect("aa12cd88 env invariant must hold"),
         )
-        .expect("741e5201")
+        .expect("741e5201 env invariant must hold")
     }
     #[test]
     fn generated_getters_return_expected_refs_and_values() {
@@ -230,23 +231,23 @@ mod tests {
                 admin_swagger_enabled: env(str_constants::TRUE),
                 http_gzip_enabled: env(str_constants::TRUE),
                 maximum_size_of_http_body_in_bytes:
-                    config_lib::MaximumSizeOfHttpBodyInBytes::try_from(16_384).expect("0d9e4b7a"),
+                    config_lib::MaximumSizeOfHttpBodyInBytes::try_from(16_384).expect("0d9e4b7a generated_getters_return_expected_refs_and_values invariant must hold"),
                 service_socket_address: config_lib::ServiceSocketAddress(
                     str_constants::VALUE_127_0_0_1_8080
                         .parse()
-                        .expect("e7a3d5c1"),
+                        .expect("e7a3d5c1 generated_getters_return_expected_refs_and_values invariant must hold"),
                 ),
                 pg_pool_max_connections: config_lib::PgPoolMaxConnections::try_from(8)
-                    .expect("39a84c10"),
+                    .expect("39a84c10 generated_getters_return_expected_refs_and_values invariant must hold"),
                 pg_pool_min_connections: env(str_constants::VALUE_0),
                 pg_pool_acquire_timeout_seconds: env(str_constants::TEST_VALUE_30),
                 pg_pool_idle_timeout_seconds: env(str_constants::TEST_VALUE_30),
                 pg_pool_max_lifetime_seconds: env(str_constants::TEST_VALUE_30),
                 request_timeout_seconds: env(str_constants::TEST_VALUE_30),
                 timezone: config_lib::ChronoTimezone::try_from(
-                    chrono::FixedOffset::east_opt(3i32 * 3_600i32).expect("93cbf4a2"),
+                    chrono::FixedOffset::east_opt(3i32 * 3_600i32).expect("93cbf4a2 generated_getters_return_expected_refs_and_values invariant must hold"),
                 )
-                .expect("50e91ec9"),
+                .expect("50e91ec9 generated_getters_return_expected_refs_and_values invariant must hold"),
                 src_place_type: config_lib::SrcPlaceType(config_lib::types::SrcPlaceType::Github),
                 tracing_level: config_lib::TracingLevel(config_lib::types::TracingLevel::Info),
                 tracing_format: config_lib::types::TracingFormat::Text,

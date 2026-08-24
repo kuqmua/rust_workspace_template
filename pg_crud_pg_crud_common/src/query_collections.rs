@@ -321,8 +321,8 @@ mod tests_not_empty_unique_vec {
     }
     #[test]
     fn as_slice_matches_to_vec_view() {
-        let values =
-            super::NotEmptyUniqueVec::try_new(vec![1u8, 2u8, 3u8].into()).expect("3f6e8a12");
+        let values = super::NotEmptyUniqueVec::try_new(vec![1u8, 2u8, 3u8].into())
+            .expect("3f6e8a12 as_slice_matches_to_vec_view invariant must hold");
         assert_eq!(values.as_slice(), &[1u8, 2u8, 3u8]);
         assert_eq!(values.as_slice(), &[1u8, 2u8, 3u8]);
     }

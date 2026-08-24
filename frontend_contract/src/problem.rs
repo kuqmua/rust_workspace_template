@@ -354,8 +354,10 @@ mod tests {
         }
 
         assert_error::<super::ApiProblemError>();
-        let internal_status = super::ApiProblemStatus::try_from(500u16).expect("d2372bb7");
-        let request_failed_status = super::ApiProblemStatus::try_from(418u16).expect("805da7f4");
+        let internal_status = super::ApiProblemStatus::try_from(500u16)
+            .expect("d2372bb7 assert_error invariant must hold");
+        let request_failed_status = super::ApiProblemStatus::try_from(418u16)
+            .expect("805da7f4 assert_error invariant must hold");
         [
             (
                 super::ApiProblemError::InvalidRequest,
@@ -453,8 +455,9 @@ mod tests {
                 response.into_body(),
                 16_384usize,
             ))
-            .expect("3e43e7bc");
-            let problem = serde_json::from_slice::<super::ApiProblem>(&body).expect("116dc695");
+            .expect("3e43e7bc assert_error invariant must hold");
+            let problem = serde_json::from_slice::<super::ApiProblem>(&body)
+                .expect("116dc695 assert_error invariant must hold");
             assert_eq!(u16::from(problem.status()), status);
             assert_eq!(problem.kind(), kind);
         });
@@ -462,8 +465,12 @@ mod tests {
 
     #[test]
     fn problem_text_deserialization_uses_bounded_try_from() {
-        let detail = serde_json::to_string(&"x".repeat(1_025usize)).expect("6e2db8a1");
-        let request_id = serde_json::to_string(&"x".repeat(129usize)).expect("f289a40c");
+        let detail = serde_json::to_string(&"x".repeat(1_025usize)).expect(
+            "6e2db8a1 problem_text_deserialization_uses_bounded_try_from invariant must hold",
+        );
+        let request_id = serde_json::to_string(&"x".repeat(129usize)).expect(
+            "f289a40c problem_text_deserialization_uses_bounded_try_from invariant must hold",
+        );
         let _detail_error =
             serde_json::from_str::<super::ApiProblemDetail>(&detail).expect_err("b653c1c0");
         let _field_error =
@@ -478,7 +485,9 @@ mod tests {
             "detail": "invalid",
             "field": "name"
         });
-        let serialized = serde_json::to_string(&vec![item; 129usize]).expect("a1010d3f");
+        let serialized = serde_json::to_string(&vec![item; 129usize]).expect(
+            "a1010d3f problem_violation_deserialization_rejects_too_many_items invariant must hold",
+        );
         let _error =
             serde_json::from_str::<super::ApiProblemViolations>(&serialized).expect_err("a05e84a8");
     }

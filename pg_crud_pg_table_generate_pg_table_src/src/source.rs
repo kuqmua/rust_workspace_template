@@ -7581,7 +7581,7 @@ enum WrapIntoOptional {
             );
             let normalize_default_filter_token_stream = if matches!(operation, Operation::Rm | Operation::Dm) {
                 quote::quote! {
-                    serialized.as_object_mut().expect("58c97ca7").insert(
+                    serialized.as_object_mut().expect("58c97ca7 collect_refs invariant must hold").insert(
                         "where_many".to_owned(),
                         serde_json::Value::Null,
                     );
@@ -7594,10 +7594,10 @@ enum WrapIntoOptional {
                 #[test]
                 fn #test_identifier() {
                     let original: #payload_type_token_stream = pg_crud_common::DefaultSomeOneElement::default_some_one_element();
-                    let #mut_token_stream serialized = serde_json::to_value(&original).expect("84094d13");
+                    let #mut_token_stream serialized = serde_json::to_value(&original).expect("84094d13 collect_refs invariant must hold");
                     #normalize_default_filter_token_stream
-                    let deserialized = serde_json::from_value::<#payload_type_token_stream>(serialized.clone()).expect("b388de0c");
-                    let round_trip = serde_json::to_value(deserialized).expect("570ac825");
+                    let deserialized = serde_json::from_value::<#payload_type_token_stream>(serialized.clone()).expect("b388de0c collect_refs invariant must hold");
+                    let round_trip = serde_json::to_value(deserialized).expect("570ac825 collect_refs invariant must hold");
                     assert_eq!(round_trip, serialized);
                 }
             }
@@ -7613,8 +7613,8 @@ enum WrapIntoOptional {
                 #[test]
                 fn #test_identifier() {
                     let original: #payload_type_token_stream = pg_crud_common::DefaultSomeOneElement::default_some_one_element();
-                    let mut serialized = serde_json::to_value(original).expect("aeedc9e8");
-                    serialized.as_object_mut().expect("b9d4b58e").insert(
+                    let mut serialized = serde_json::to_value(original).expect("aeedc9e8 collect_refs invariant must hold");
+                    serialized.as_object_mut().expect("b9d4b58e collect_refs invariant must hold").insert(
                         "unknown_field".to_owned(),
                         serde_json::Value::Bool(true),
                     );
@@ -7660,10 +7660,10 @@ enum WrapIntoOptional {
             let optimistic_revision_required = optimistic_revision_field_idx.is_some()
                 && crate::sql::optimistic_concurrency_capable(operation_dsc);
             quote::quote! {
-                let route_contract = #identifier_route_contract_upper_camel_case::for_path(#path).expect("80dc7c11");
+                let route_contract = #identifier_route_contract_upper_camel_case::for_path(#path).expect("80dc7c11 collect_refs invariant must hold");
                 assert_eq!(route_contract.idempotency_required(), #idempotency_required);
                 assert_eq!(route_contract.optimistic_revision_required(), #optimistic_revision_required);
-                let operation_document = document.pointer(&format!("/paths/{}/{}", #path.replace('/', "~1"), #method)).expect("b822e594");
+                let operation_document = document.pointer(&format!("/paths/{}/{}", #path.replace('/', "~1"), #method)).expect("b822e594 collect_refs invariant must hold");
                 assert_eq!(operation_document.get("operationId").and_then(serde_json::Value::as_str), Some(#open_api_operation_id));
                 assert!(operation_document.pointer(&format!("/responses/{}", #success_status)).is_some());
                 assert!(operation_document.pointer("/requestBody/content/application~1json").is_some());
@@ -7694,8 +7694,8 @@ enum WrapIntoOptional {
                 #[test]
                 fn #test_identifier() {
                     let original: #payload_type_token_stream = pg_crud_common::DefaultSomeOneElement::default_some_one_element();
-                    let original_value = serde_json::to_value(original).expect("d4d4cc0d");
-                    let item = original_value.as_array().and_then(|items| items.first()).cloned().expect("79b00707");
+                    let original_value = serde_json::to_value(original).expect("d4d4cc0d collect_refs invariant must hold");
+                    let item = original_value.as_array().and_then(|items| items.first()).cloned().expect("79b00707 collect_refs invariant must hold");
                     assert!(serde_json::from_value::<#payload_type_token_stream>(original_value).is_ok());
                     let above_limit = serde_json::Value::Array(std::iter::repeat_n(item, #limit_value.saturating_add(1usize)).collect());
                     match serde_json::from_value::<#payload_type_token_stream>(above_limit) {
@@ -7717,13 +7717,13 @@ enum WrapIntoOptional {
             quote::quote! {
                 #[test]
                 fn #test_identifier() {
-                    let value = serde_json::to_value(<#identifier_create_upper_camel_case as pg_crud_common::DefaultSomeOneElement>::default_some_one_element()).expect("629e2f81");
-                    let properties = value.as_object().expect("e3f16d97");
+                    let value = serde_json::to_value(<#identifier_create_upper_camel_case as pg_crud_common::DefaultSomeOneElement>::default_some_one_element()).expect("629e2f81 collect_refs invariant must hold");
+                    let properties = value.as_object().expect("e3f16d97 collect_refs invariant must hold");
                     #(
                         assert!(!properties.contains_key(#excluded_fields));
                     )*
-                    let document = serde_json::to_value(#identifier_open_api_upper_camel_case::open_api()).expect("46eabc30");
-                    let schema_properties = document.pointer(concat!("/components/schemas/", stringify!(#identifier_create_upper_camel_case), "/properties")).and_then(serde_json::Value::as_object).expect("b8537774");
+                    let document = serde_json::to_value(#identifier_open_api_upper_camel_case::open_api()).expect("46eabc30 collect_refs invariant must hold");
+                    let schema_properties = document.pointer(concat!("/components/schemas/", stringify!(#identifier_create_upper_camel_case), "/properties")).and_then(serde_json::Value::as_object).expect("b8537774 collect_refs invariant must hold");
                     #(
                         assert!(!schema_properties.contains_key(#excluded_fields));
                     )*
@@ -7742,10 +7742,10 @@ enum WrapIntoOptional {
             quote::quote! {
                 #[test]
                 fn #test_identifier() {
-                    let document = serde_json::to_value(#identifier_open_api_upper_camel_case::open_api()).expect("5014a91c");
-                    let read_properties = document.pointer(concat!("/components/schemas/", stringify!(#identifier_read_upper_camel_case), "/properties")).and_then(serde_json::Value::as_object).expect("0241d202");
-                    let filter_properties = document.pointer(concat!("/components/schemas/", stringify!(#identifier_where_upper_camel_case), "/properties")).and_then(serde_json::Value::as_object).expect("ad94914b");
-                    let selection_schema = document.pointer(concat!("/components/schemas/", stringify!(#identifier_select_upper_camel_case))).expect("fae40d82").to_string();
+                    let document = serde_json::to_value(#identifier_open_api_upper_camel_case::open_api()).expect("5014a91c collect_refs invariant must hold");
+                    let read_properties = document.pointer(concat!("/components/schemas/", stringify!(#identifier_read_upper_camel_case), "/properties")).and_then(serde_json::Value::as_object).expect("0241d202 collect_refs invariant must hold");
+                    let filter_properties = document.pointer(concat!("/components/schemas/", stringify!(#identifier_where_upper_camel_case), "/properties")).and_then(serde_json::Value::as_object).expect("ad94914b collect_refs invariant must hold");
+                    let selection_schema = document.pointer(concat!("/components/schemas/", stringify!(#identifier_select_upper_camel_case))).expect("fae40d82 collect_refs invariant must hold").to_string();
                     #(
                         assert!(!read_properties.contains_key(#excluded_fields));
                         assert!(!filter_properties.contains_key(#excluded_fields));
@@ -7764,7 +7764,7 @@ enum WrapIntoOptional {
                     ignore = "native TLS initialization calls OpenSSL functions that Miri does not support"
                 )]
                 fn #api_client_owns_reusable_client_test_identifier() {
-                    let url = reqwest::Url::parse("http://127.0.0.1:3000/").expect("ca76d3e6");
+                    let url = reqwest::Url::parse("http://127.0.0.1:3000/").expect("ca76d3e6 collect_refs invariant must hold");
                     let endpoint = #identifier_api_endpoint_upper_camel_case::from(url.clone());
                     assert_eq!(endpoint.as_url(), &url);
                     let client = #identifier_api_client_upper_camel_case::new(reqwest::Client::new(), endpoint);
@@ -7773,37 +7773,37 @@ enum WrapIntoOptional {
                 #[test]
                 fn #read_query_negative_contracts_test_identifier() {
                     let original: #identifier_rm_payload_upper_camel_case = pg_crud_common::DefaultSomeOneElement::default_some_one_element();
-                    let serialized = serde_json::to_value(original).expect("bbb88adf");
+                    let serialized = serde_json::to_value(original).expect("bbb88adf collect_refs invariant must hold");
                     let mut empty_filter_payload = serialized.clone();
-                    empty_filter_payload.as_object_mut().expect("aa1919f0").insert("where_many".to_owned(), serde_json::json!({}));
+                    empty_filter_payload.as_object_mut().expect("aa1919f0 collect_refs invariant must hold").insert("where_many".to_owned(), serde_json::json!({}));
                     assert!(serde_json::from_value::<#identifier_rm_payload_upper_camel_case>(empty_filter_payload).is_err());
                     let mut unknown_filter_payload = serialized.clone();
-                    unknown_filter_payload.as_object_mut().expect("42671a58").insert("where_many".to_owned(), serde_json::json!({"unknown_field": null}));
+                    unknown_filter_payload.as_object_mut().expect("42671a58 collect_refs invariant must hold").insert("where_many".to_owned(), serde_json::json!({"unknown_field": null}));
                     assert!(serde_json::from_value::<#identifier_rm_payload_upper_camel_case>(unknown_filter_payload).is_err());
-                    let where_many = serialized.get("where_many").and_then(serde_json::Value::as_object).expect("e0b089c7");
-                    let (field_name, field_filter) = where_many.iter().next().expect("5d781d42");
-                    let filters = field_filter.get("v").and_then(serde_json::Value::as_array).expect("2ca9da9a");
-                    let mut multi_operator = filters.first().and_then(serde_json::Value::as_object).cloned().expect("3a86c2c9");
-                    let (second_operator_name, second_operator_value) = filters.get(1usize).and_then(serde_json::Value::as_object).and_then(|value| value.iter().next()).expect("8589f0ef");
+                    let where_many = serialized.get("where_many").and_then(serde_json::Value::as_object).expect("e0b089c7 collect_refs invariant must hold");
+                    let (field_name, field_filter) = where_many.iter().next().expect("5d781d42 collect_refs invariant must hold");
+                    let filters = field_filter.get("v").and_then(serde_json::Value::as_array).expect("2ca9da9a collect_refs invariant must hold");
+                    let mut multi_operator = filters.first().and_then(serde_json::Value::as_object).cloned().expect("3a86c2c9 collect_refs invariant must hold");
+                    let (second_operator_name, second_operator_value) = filters.get(1usize).and_then(serde_json::Value::as_object).and_then(|value| value.iter().next()).expect("8589f0ef collect_refs invariant must hold");
                     multi_operator.insert(second_operator_name.clone(), second_operator_value.clone());
                     let mut multi_operator_field_filter = field_filter.clone();
-                    let multi_operator_filters = multi_operator_field_filter.as_object_mut().and_then(|value| value.get_mut("v")).and_then(serde_json::Value::as_array_mut).expect("5df08753");
+                    let multi_operator_filters = multi_operator_field_filter.as_object_mut().and_then(|value| value.get_mut("v")).and_then(serde_json::Value::as_array_mut).expect("5df08753 collect_refs invariant must hold");
                     multi_operator_filters.clear();
                     multi_operator_filters.push(serde_json::Value::Object(multi_operator));
                     let mut multi_operator_payload = serialized.clone();
                     let mut multi_operator_where_many = serde_json::Map::new();
                     multi_operator_where_many.insert(field_name.clone(), multi_operator_field_filter);
-                    multi_operator_payload.as_object_mut().expect("c92118fe").insert("where_many".to_owned(), serde_json::Value::Object(multi_operator_where_many));
+                    multi_operator_payload.as_object_mut().expect("c92118fe collect_refs invariant must hold").insert("where_many".to_owned(), serde_json::Value::Object(multi_operator_where_many));
                     assert!(serde_json::from_value::<#identifier_rm_payload_upper_camel_case>(multi_operator_payload).is_err());
                     let duplicate_filter_json = format!("{{\"{field_name}\":{field_filter},\"{field_name}\":{field_filter}}}");
                     assert!(serde_json::from_str::<#identifier_where_upper_camel_case>(&duplicate_filter_json).is_err());
                     let mut cursor_payload = serialized;
-                    cursor_payload.as_object_mut().expect("c12f9360").insert("cursor".to_owned(), serde_json::Value::String("forbidden".to_owned()));
+                    cursor_payload.as_object_mut().expect("c12f9360 collect_refs invariant must hold").insert("cursor".to_owned(), serde_json::Value::String("forbidden".to_owned()));
                     assert!(serde_json::from_value::<#identifier_rm_payload_upper_camel_case>(cursor_payload).is_err());
                 }
                 #[test]
                 fn #route_open_api_parity_test_identifier() {
-                    let document = serde_json::to_value(#identifier_open_api_upper_camel_case::open_api()).expect("eb512de9");
+                    let document = serde_json::to_value(#identifier_open_api_upper_camel_case::open_api()).expect("eb512de9 collect_refs invariant must hold");
                     assert_eq!(#identifier_route_contract_upper_camel_case::ALL.len(), #enabled_operation_count);
                     #api_mode_assertion_token_stream
                     #route_auth_assertion_token_stream
@@ -7907,7 +7907,7 @@ enum WrapIntoOptional {
                         #import_token_stream PgTypeWhere::try_new(
                             #operator_token_stream,
                             (#ts).into()
-                        ).expect("6b0491b2"),
+                        ).expect("6b0491b2 generate_assert_eq_token_stream invariant must hold"),
                     )
                 }
             };
@@ -7918,7 +7918,7 @@ enum WrapIntoOptional {
             #import_token_stream PgTypeWhere::try_new(
                 operator,
                 vec.into()
-            ).expect("fd20ad6d")
+            ).expect("fd20ad6d generate_assert_eq_token_stream invariant must hold")
         };
         let identifier_create_default_fields_initialization_without_primary_key_token_stream =
             generate_fields_named_without_primary_key_with_comma_token_stream(
@@ -7956,7 +7956,7 @@ enum WrapIntoOptional {
             quote::quote! {
                 let select_default_all_with_max_page_size = #import_token_stream NotEmptyUniqueVec::try_new_by_hash(vec![
                     #ts
-                ].into()).expect("5e82ac66");
+                ].into()).expect("5e82ac66 generate_assert_eq_token_stream invariant must hold");
             }
         };
         let primary_key_field_type_as_pg_type_primary_key_token_stream =
@@ -8030,7 +8030,7 @@ enum WrapIntoOptional {
                                 generate_as_pg_type_test_cases_path_token_stream(&element.type0);
                             quote::quote! {
                                 #field: #field_type_token_stream read_ids_and_create_into_optional_v_read(
-                                    #read_ids_token_stream.#field #maybe_dot_clone_token_stream.expect("f967434c"),
+                                    #read_ids_token_stream.#field #maybe_dot_clone_token_stream.expect("f967434c generate_assert_eq_token_stream invariant must hold"),
                                     #create_token_stream.#field #maybe_dot_clone_token_stream
                                 )
                             }
@@ -8086,7 +8086,7 @@ enum WrapIntoOptional {
                         &table_initialization
                     )
                     .await
-                    .expect("36b95e96")
+                    .expect("36b95e96 generate_assert_eq_token_stream invariant must hold")
                 },
                 &quote::quote! {"3d9f2ec0"},
             );
@@ -8096,7 +8096,7 @@ enum WrapIntoOptional {
                         &url,
                         #primary_key_read_clone_token_stream,
                         &table_initialization,
-                    ).await.expect("4d96d385")
+                    ).await.expect("4d96d385 generate_assert_eq_token_stream invariant must hold")
                 },
                 &quote::quote! {#primary_key_read_clone_token_stream},
                 &quote::quote! {"26e2058b"},
@@ -8313,7 +8313,7 @@ enum WrapIntoOptional {
                             table_9c259e1c
                         )
                         .await
-                        .expect("097d5e7d")
+                        .expect("097d5e7d generate_assert_eq_token_stream invariant must hold")
                         .into_iter(),
                         #primary_key_sort_cmp_token_stream
                     )
@@ -8346,7 +8346,7 @@ enum WrapIntoOptional {
                                         payload: #identifier_cm_payload_upper_camel_case(element_8e425cb1)
                                     },
                                     table_9c259e1c
-                                ).await.expect("38a24e7a") })
+                                ).await.expect("38a24e7a generate_read_ids_els_8a1ef027 invariant must hold") })
                             ),
                             CM_CONCURRENCY_7CCFD82D
                         ),
@@ -8411,7 +8411,7 @@ enum WrapIntoOptional {
                         &#table_token_stream
                     )
                     .await
-                    .expect("716e470e")
+                    .expect("716e470e generate_read_ids_els_8a1ef027 invariant must hold")
                 }
             };
         let generate_read_ids_from_try_dm_token_stream = |ts: &dyn quote::ToTokens| {
@@ -8476,7 +8476,7 @@ enum WrapIntoOptional {
                                     #where_primary_key_or_read_ids_cm_token_stream,
                                     #select_default_all_with_max_page_size_cloned_clone_token_stream,
                                     &table_cm_cloned
-                                ).await.expect("bdb72341")
+                                ).await.expect("bdb72341 generate_read_ids_els_8a1ef027 invariant must hold")
                             },
                             &quote::quote! {"d19bbbf6"},
                         );
@@ -8507,7 +8507,7 @@ enum WrapIntoOptional {
                                         #select_default_all_with_max_page_size_cloned_clone_token_stream,
                                         &table_cm_cloned
                                     ).await
-                                    .expect("24ab86d6")
+                                    .expect("24ab86d6 generate_read_ids_els_8a1ef027 invariant must hold")
                                     .is_empty()
                                 }
                             },
@@ -8540,7 +8540,7 @@ enum WrapIntoOptional {
                                             #PayloadSnakeCase: #identifier_cm_payload_upper_camel_case(identifier_vec_create.clone())
                                         },
                                         &table_cm_cloned
-                                    ).await.expect("5eecedc4");
+                                    ).await.expect("5eecedc4 generate_read_ids_els_8a1ef027 invariant must hold");
                                     #assert_eq_cm_rm_token_stream
                                     #cm_read_ids_from_try_dm_sorted_primary_key_token_stream
                                     #assert_eq_cm_dm_pks_token_stream
@@ -8587,7 +8587,7 @@ enum WrapIntoOptional {
                                         &table_co_cloned
                                     )
                                     .await
-                                    .expect("f8e1cb88")
+                                    .expect("f8e1cb88 generate_read_ids_els_8a1ef027 invariant must hold")
                                 },
                                 &quote::quote! {"5f2adbed"},
                             );
@@ -8598,7 +8598,7 @@ enum WrapIntoOptional {
                                         &url_cloned,
                                         #primary_key_field_type_read_ids_into_read_read_ids_from_try_co_primary_key_field_token_stream,
                                         &table_co_cloned
-                                    ).await.expect("20d5a40a")
+                                    ).await.expect("20d5a40a generate_read_ids_els_8a1ef027 invariant must hold")
                                 },
                                 &quote::quote! {#primary_key_field_type_read_ids_into_read_read_ids_from_try_co_primary_key_field_token_stream},
                                 &quote::quote! {"4f563faf"},
@@ -8647,7 +8647,7 @@ enum WrapIntoOptional {
                         &url_cloned,
                         #primary_key_field_type_read_ids_into_read_read_ids_from_try_co_primary_key_field_token_stream,
                         &table_7e35b1ce
-                    ).await.expect("93b4bf61");
+                    ).await.expect("93b4bf61 generate_read_ids_els_8a1ef027 invariant must hold");
                     generate_check_no_rows_from_identifier_try_ro_handle_primary_key(
                         &url_cloned,
                         #primary_key_field_type_read_ids_into_read_read_ids_from_try_co_primary_key_field_token_stream,
@@ -8676,7 +8676,7 @@ enum WrapIntoOptional {
                                 select_default_all_with_max_page_size_cloned.clone(),
                                 &table_7e35b1ce
                             ).await
-                            .expect("e661c49b")
+                            .expect("e661c49b generate_read_ids_els_8a1ef027 invariant must hold")
                             .is_empty()
                         },
                         &quote::quote! {"06df4025"}
@@ -8699,7 +8699,7 @@ enum WrapIntoOptional {
                                         #where_primary_key_or_read_ids_cm_token_stream,
                                         select_default_all_with_max_page_size_cloned.clone(),
                                         &table_7e35b1ce
-                                    ).await.expect("b8efe770")
+                                    ).await.expect("b8efe770 generate_read_ids_els_8a1ef027 invariant must hold")
                                 },
                                 &quote::quote! {"error 3b2cf1f5-2c4e-4908-ba66-f4af84fe0893"},
                             );
@@ -8723,7 +8723,7 @@ enum WrapIntoOptional {
                                             select_default_all_with_max_page_size_cloned.clone(),
                                             &table_7e35b1ce
                                         ).await
-                                        .expect("1f079962")
+                                        .expect("1f079962 generate_read_ids_els_8a1ef027 invariant must hold")
                                         .is_empty()
                                     }
                                 },
@@ -8746,7 +8746,7 @@ enum WrapIntoOptional {
                                         payload: #identifier_cm_payload_upper_camel_case(identifier_vec_create.clone())
                                     },
                                     &table_7e35b1ce
-                                ).await.expect("d775179f");
+                                ).await.expect("d775179f generate_read_ids_els_8a1ef027 invariant must hold");
                                 #assert_eq_rm_created_pks_token_stream
                                 #rm_read_ids_from_try_dm_sorted_primary_key_token_stream
                                 #assert_eq_rm_dm_pks_token_stream
@@ -8774,10 +8774,10 @@ enum WrapIntoOptional {
                         &quote::quote! {
                             generate_try_rm_order_by_primary_key_with_big_pagination(
                                 &url_cloned,
-                                #identifier_where_upper_camel_case::try_new(#ts).expect("83c2d430"),
+                                #identifier_where_upper_camel_case::try_new(#ts).expect("83c2d430 generate_read_ids_els_8a1ef027 invariant must hold"),
                                 #select_default_all_with_max_page_size_cloned_clone_token_stream,
                                 &table_7e35b1ce
-                            ).await.expect("c3e316c0")
+                            ).await.expect("c3e316c0 generate_read_ids_els_8a1ef027 invariant must hold")
                         },
                         &quote::quote! {"ee8d232d"},
                     )
@@ -8825,7 +8825,7 @@ enum WrapIntoOptional {
                                             #select_default_all_with_max_page_size_cloned_clone_token_stream,
                                             &table_7e35b1ce
                                         ).await
-                                        .expect("1817b67a")
+                                        .expect("1817b67a generate_read_ids_els_8a1ef027 invariant must hold")
                                         .is_empty()
                                     }
                                 },
@@ -8950,7 +8950,7 @@ enum WrapIntoOptional {
                                                         generate_as_pg_type_test_cases_path_token_stream(&ft0);
                                                     quote::quote! {
                                                         #ts0 #method_token_stream(
-                                                            read_ids_from_co.#fi0.clone().expect("11c3740b"),
+                                                            read_ids_from_co.#fi0.clone().expect("11c3740b generate_read_ids_els_8a1ef027 invariant must hold"),
                                                             identifier_create.#fi0.clone()
                                                         )
                                                     }
@@ -9005,7 +9005,7 @@ enum WrapIntoOptional {
                                         &element.type0,
                                     );
                                 quote::quote! {#field_type_token_stream #ReadIdsAndCreateIntoOptionalVecWhereEqToFieldSnakeCase(
-                                    read_ids_from_co.#field.clone().expect("65cef584"),
+                                    read_ids_from_co.#field.clone().expect("65cef584 generate_read_ids_els_8a1ef027 invariant must hold"),
                                     identifier_create.#field.clone()
                                 )}
                             },
@@ -9043,7 +9043,7 @@ enum WrapIntoOptional {
                                     );
                                 quote::quote! {#field_type_token_stream #ReadIdsAndTableTypeIntoPgTypeOptionalWhereGreaterThanSnakeCase(
                                     #ElementSnakeCase.variant,
-                                    read_ids_from_co.#field.clone().expect("c8d34556"),
+                                    read_ids_from_co.#field.clone().expect("c8d34556 generate_read_ids_els_8a1ef027 invariant must hold"),
                                     #ElementSnakeCase.greater_than,
                                 )}
                             },
@@ -9095,7 +9095,7 @@ enum WrapIntoOptional {
                         let mut i_e0d2f9db: usize = 0;
                         let mut optional_test_case = None;
                         for element_3a9a65ee in #field_type_token_stream read_ids_to_2_dimensions_vec_read_inner(
-                            &read_ids_element_937c5af3.#field.clone().expect("c4d98a71")
+                            &read_ids_element_937c5af3.#field.clone().expect("c4d98a71 generate_read_ids_els_8a1ef027 invariant must hold")
                         ) {
                             let mut should_break = false;
                             for element_bb734c11 in element_3a9a65ee {
@@ -9104,13 +9104,13 @@ enum WrapIntoOptional {
                                     should_break = true;
                                     break;
                                 }
-                                i_e0d2f9db = i_e0d2f9db.checked_add(1).expect("326274d1");
+                                i_e0d2f9db = i_e0d2f9db.checked_add(1).expect("326274d1 generate_read_ids_els_8a1ef027 invariant must hold");
                             }
                             if should_break {
                                 break;
                             }
                         }
-                        optional_test_case.expect("bd79056e")
+                        optional_test_case.expect("bd79056e generate_read_ids_els_8a1ef027 invariant must hold")
                     });
                 }
             };
@@ -9206,7 +9206,7 @@ enum WrapIntoOptional {
                                             &table_um_cloned
                                         )
                                         .await
-                                        .expect("540ec737")
+                                        .expect("540ec737 generate_read_ids_els_8a1ef027 invariant must hold")
                                         .into_iter(),
                                         #primary_key_sort_cmp_token_stream
                                     );
@@ -9256,11 +9256,11 @@ enum WrapIntoOptional {
                                             #identifier_update_upper_camel_case::try_new(
                                                 #primary_key_field_type_as_pg_type_update_as_pg_type_primary_key_read_ids_into_update_token_stream,
                                                 #identifier_update_parameters_initialization_without_primary_key_token_stream
-                                            ).expect("42dc87b3")
-                                        ]).expect("69e1bd8a")
+                                            ).expect("42dc87b3 generate_read_ids_els_8a1ef027 invariant must hold")
+                                        ]).expect("69e1bd8a generate_read_ids_els_8a1ef027 invariant must hold")
                                     },
                                     &table_um_cloned
-                                ).await.expect("d2de0bd6")
+                                ).await.expect("d2de0bd6 generate_read_ids_els_8a1ef027 invariant must hold")
                             },
                             &quote::quote! {"34bfb3c7"},
                         );
@@ -9283,7 +9283,7 @@ enum WrapIntoOptional {
                                             &table_um_cloned
                                         )
                                         .await
-                                        .expect("25c561e2")
+                                        .expect("25c561e2 generate_read_ids_els_8a1ef027 invariant must hold")
                                         .into_iter(),
                                         #primary_key_sort_cmp_token_stream
                                     ).collect::<Vec<#identifier_read_upper_camel_case>>()
@@ -9333,7 +9333,7 @@ enum WrapIntoOptional {
                                     #select_default_all_with_max_page_size_cloned_clone_token_stream,
                                     &table_uo_cloned
                                 )
-                                .await.expect("e6998b47");
+                                .await.expect("e6998b47 generate_read_ids_els_8a1ef027 invariant must hold");
                             }
                         } else {
                             proc_macro2::TokenStream::new()
@@ -9369,10 +9369,10 @@ enum WrapIntoOptional {
                                         payload: #identifier_update_upper_camel_case::try_new(
                                             #primary_key_field_type_as_pg_type_update_as_pg_type_primary_key_read_ids_into_update_token_stream,
                                             #identifier_update_parameters_initialization_without_primary_key_token_stream
-                                        ).expect("0e5d65a5")//todo add column identifier
+                                        ).expect("0e5d65a5 generate_read_ids_els_8a1ef027 invariant must hold")//todo add column identifier
                                     },
                                     &table_uo_cloned
-                                ).await.expect("4d755542")
+                                ).await.expect("4d755542 generate_read_ids_els_8a1ef027 invariant must hold")
                             },
                             &quote::quote! {"564de31c"},
                         );
@@ -9385,7 +9385,7 @@ enum WrapIntoOptional {
                                 select_default_all_with_max_page_size_cloned,
                                 &table_uo_cloned
                             )
-                            .await.expect("75894c76")
+                            .await.expect("75894c76 generate_read_ids_els_8a1ef027 invariant must hold")
                         },
                         &quote::quote! {"d5dec823"},
                     );
@@ -9454,7 +9454,7 @@ enum WrapIntoOptional {
                                 read_ids_from_try_cm.iter().map(|element_ba0f6b1c|
                                     #primary_key_as_pg_type_test_cases_path_token_stream read_ids_to_optional_v_read_default_some_one_element(
                                         &element_ba0f6b1c.#primary_key_field_identifier
-                                    ).expect("3ee5ee86").#VSnakeCase
+                                    ).expect("3ee5ee86 generate_read_ids_els_8a1ef027 invariant must hold").#VSnakeCase
                                 ).collect::<Vec<#primary_key_field_type_as_pg_type_read_token_stream>>()
                             }},
                             &quote::quote! {"db5e88a6"}
@@ -9472,7 +9472,7 @@ enum WrapIntoOptional {
                                         select_default_all_with_max_page_size_cloned.clone(),
                                         &table_7e35b1ce
                                     ).await
-                                    .expect("bcb79917")
+                                    .expect("bcb79917 generate_read_ids_els_8a1ef027 invariant must hold")
                                     .is_empty()
                                 }
                             },
@@ -9503,7 +9503,7 @@ enum WrapIntoOptional {
                                     )
                                 },
                                 &table_7e35b1ce
-                            ).await.expect("b8695890");
+                            ).await.expect("b8695890 generate_read_ids_els_8a1ef027 invariant must hold");
                             #dm_read_ids_from_try_dm_token_stream
                             #assert_eq_dm_read_ids_token_stream
                             #assert_dm_empty_token_stream
@@ -9535,7 +9535,7 @@ enum WrapIntoOptional {
                         #select_default_all_with_max_page_size_cloned_clone_token_stream,
                         &table_dlo_cloned
                     )
-                    .await.expect("c8c44c89")
+                    .await.expect("c8c44c89 generate_read_ids_els_8a1ef027 invariant must hold")
                 },
                 &quote::quote! {"86ef08ae"},
             );
@@ -9545,7 +9545,7 @@ enum WrapIntoOptional {
                         &url,
                         #primary_key_field_type_read_ids_into_read_read_ids_from_co_primary_key_field_token_stream,
                         &table_dlo_cloned
-                    ).await.expect("7e1d1a70")
+                    ).await.expect("7e1d1a70 generate_read_ids_els_8a1ef027 invariant must hold")
                 },
                 &quote::quote! {#primary_key_field_type_read_ids_into_read_read_ids_from_co_primary_key_field_token_stream},
                 &quote::quote! {"99f81971"},
@@ -9622,7 +9622,7 @@ enum WrapIntoOptional {
                     optional_pg_type_where,
                     #fields_named_without_primary_key_with_comma_none_token_stream
                 )
-                .expect("5fb2b219")
+                .expect("5fb2b219 generate_identifier_where_primary_key_others_none invariant must hold")
             }
         };
         let generate_pg_type_where_try_new_primary_key_fn_token_stream = quote::quote! {
@@ -9668,7 +9668,7 @@ enum WrapIntoOptional {
                                 ),
                                 order: Some(#import_token_stream Order::Asc)
                             },
-                            pagination: #import_token_stream PaginationStartsWithZero::try_new(10000, 0).expect("b0cdf0cb"),
+                            pagination: #import_token_stream PaginationStartsWithZero::try_new(10000, 0).expect("b0cdf0cb generate_try_rm_order_by_primary_key_with_big_pagination invariant must hold"),
                         }
                     },
                     table
@@ -9751,7 +9751,7 @@ enum WrapIntoOptional {
                         #PayloadSnakeCase
                     },
                     table
-                ).await.expect("32e30b87")
+                ).await.expect("32e30b87 generate_read_ids_from_try_co invariant must hold")
             }
         };
         let generate_read_ids_from_try_co_default_fn_token_stream = quote::quote! {
@@ -9835,47 +9835,47 @@ enum WrapIntoOptional {
                     #generate_vec_identifier_read_from_vec_identifier_read_ids_with_vec_identifier_create_fn_token_stream
                     #generate_read_ids_els_token_stream
                     tracing_subscriber::fmt::initialization();
-                    tokio::runtime::Builder::new_multi_thread().worker_threads(num_cpus::get()).enable_all().build().expect("38823c21").block_on(async {
+                    tokio::runtime::Builder::new_multi_thread().worker_threads(num_cpus::get()).enable_all().build().expect("38823c21 crud invariant must hold").block_on(async {
                         //todo maybe refactor
                         let database_url = "postgres://postgres:postgres@127.0.0.1:5432/rust_workspace_template_test?connect_timeout=10";
                         macros_helpers::test_database::validate_test_database_url(
                             macros_helpers::test_database::UrlRef::from(database_url)
-                        ).expect("1876fb4e");
+                        ).expect("1876fb4e crud invariant must hold");
                         let mut #ConfigSnakeCase = #config_path_token_stream {
                             service_socket_address: <config_lib::ServiceSocketAddress as config_lib::TryFromStdEnvVarOk>::try_from_std_env_var_ok(config_lib::StdEnvVarOk(
                                 "127.0.0.1:0".to_owned()
-                            )).expect("b5b3915a").0,
+                            )).expect("b5b3915a crud invariant must hold").0,
                             database_url: <config_lib::DatabaseUrl as config_lib::TryFromStdEnvVarOk>::try_from_std_env_var_ok(config_lib::StdEnvVarOk(
                                 database_url.to_owned()
-                            )).expect("f9c20f05").0,
+                            )).expect("f9c20f05 crud invariant must hold").0,
                             timezone: <config_lib::ChronoTimezone as config_lib::TryFromStdEnvVarOk>::try_from_std_env_var_ok(config_lib::StdEnvVarOk(
                                 "10800".to_owned()
-                            )).expect("d00d8998").0,
+                            )).expect("d00d8998 crud invariant must hold").0,
                             tracing_level: <config_lib::TracingLevel as config_lib::TryFromStdEnvVarOk>::try_from_std_env_var_ok(config_lib::StdEnvVarOk(
                                 "error".to_owned()
-                            )).expect("957178c9").0,
+                            )).expect("957178c9 crud invariant must hold").0,
                             src_place_type: <config_lib::SrcPlaceType as config_lib::TryFromStdEnvVarOk>::try_from_std_env_var_ok(config_lib::StdEnvVarOk(
                                 "src".to_owned()
-                            )).expect("bec0950e").0,
+                            )).expect("bec0950e crud invariant must hold").0,
                             enable_api_git_commit_check: <config_lib::EnableApiGitCommitCheck as config_lib::TryFromStdEnvVarOk>::try_from_std_env_var_ok(config_lib::StdEnvVarOk(
                                 "true".to_owned()
-                            )).expect("31f02640").0,
+                            )).expect("31f02640 crud invariant must hold").0,
                             maximum_size_of_http_body_in_bytes: <config_lib::MaximumSizeOfHttpBodyInBytes as config_lib::TryFromStdEnvVarOk>::try_from_std_env_var_ok(config_lib::StdEnvVarOk(
                                 "1048576000".to_owned()
-                            )).expect("93b2f818").0,
+                            )).expect("93b2f818 crud invariant must hold").0,
                             pg_pool_max_connections: <config_lib::PgPoolMaxConnections as config_lib::TryFromStdEnvVarOk>::try_from_std_env_var_ok(config_lib::StdEnvVarOk(
                                 "50".to_owned()
-                            )).expect("7c4e9f12").0,
+                            )).expect("7c4e9f12 crud invariant must hold").0,
                             cors_allow_origin: <config_lib::CorsAllowOrigin as config_lib::TryFromStdEnvVarOk>::try_from_std_env_var_ok(config_lib::StdEnvVarOk(
                                 "http://127.0.0.1".to_owned()
-                            )).expect("a1b2c3d4").0,
+                            )).expect("a1b2c3d4 crud invariant must hold").0,
                         };
                         let #PgPoolSnakeCase = sqlx::postgres::PgPoolOptions::new()
                         .max_connections(50)
                         .connect(secrecy::ExposeSecret::expose_secret(app_state::GetDatabaseUrl::get_database_url(&#ConfigSnakeCase)))
-                        .await.expect("e3044bb9");
-                        let tcp_listener = tokio::net::TcpListener::bind(app_state::GetServiceSocketAddress::get_service_socket_address(&#ConfigSnakeCase)).await.expect("663ae29e");
-                        let actual_service_socket_address = tcp_listener.local_addr().expect("f31a9d0c");
+                        .await.expect("e3044bb9 crud invariant must hold");
+                        let tcp_listener = tokio::net::TcpListener::bind(app_state::GetServiceSocketAddress::get_service_socket_address(&#ConfigSnakeCase)).await.expect("663ae29e crud invariant must hold");
+                        let actual_service_socket_address = tcp_listener.local_addr().expect("f31a9d0c crud invariant must hold");
                         #ConfigSnakeCase.service_socket_address = actual_service_socket_address;
                         let #UrlSnakeCase: std::sync::Arc<str> = std::sync::Arc::from(format!("http://{actual_service_socket_address}"));
                         let table = #identifier_double_quoted_token_stream;
@@ -9920,16 +9920,16 @@ enum WrapIntoOptional {
                                 })
                             )
                             .await
-                            .expect("b9c1eb2e");
+                            .expect("b9c1eb2e crud invariant must hold");
                         };
                         drop_all_test_tbls().await;
-                        #identifier::prep_extensions(&#PgPoolSnakeCase).await.expect("0633ff48");
+                        #identifier::prep_extensions(&#PgPoolSnakeCase).await.expect("0633ff48 crud invariant must hold");
                         //do not make it concrnt. would be pg error: "duplicate k v violates unique constraint \"pg_class_relname_nsp_index\""
                         for element_dac43b91 in table_names {
                             #identifier::prep_pg_table(
                                 &#PgPoolSnakeCase,
                                 element_dac43b91,
-                            ).await.expect("c7952247");
+                            ).await.expect("c7952247 crud invariant must hold");
                         }
                         let #PgPoolForTokioSpawnSyncMoveSnakeCase = #PgPoolSnakeCase.clone();
                         let table_names_cloned = table_names.map(|element_26b304d1| std::sync::Arc::<str>::clone(element_26b304d1));
@@ -9937,16 +9937,16 @@ enum WrapIntoOptional {
                         let #undrscr_unused_token_stream = tokio::spawn(async move {
                             let #AppStateSnakeCase = std::sync::Arc::new(server_app_state::ServerAppState {
                                 bulk_item_budget: server_runtime_http::ResourceBudget::new(
-                                    server_runtime_http::ResourceBudgetMaximum::try_from(4_096usize).expect("f9304636"),
+                                    server_runtime_http::ResourceBudgetMaximum::try_from(4_096usize).expect("f9304636 crud invariant must hold"),
                                 ),
                                 #PgPoolSnakeCase: app_state::SqlxPgPool::from(#PgPoolForTokioSpawnSyncMoveSnakeCase.clone()),
                                 #ConfigSnakeCase,
                                 idempotency_response_budget: server_runtime_http::ResourceBudget::new(
-                                    server_runtime_http::ResourceBudgetMaximum::try_from(67_108_864usize).expect("c75e4935"),
+                                    server_runtime_http::ResourceBudgetMaximum::try_from(67_108_864usize).expect("c75e4935 crud invariant must hold"),
                                 ),
                                 project_git_info: git_info::project_git_info(),
                             });
-                            started_tx.send(()).expect("431a6f8d");
+                            started_tx.send(()).expect("431a6f8d crud invariant must hold");
                             axum::serve(
                                 tcp_listener,
                                 {
@@ -9959,15 +9959,15 @@ enum WrapIntoOptional {
                                 },
                             )
                             .await
-                            .expect("71c1bc30");
+                            .expect("71c1bc30 crud invariant must hold");
                         });
-                        started_rx.await.expect("87003141");
+                        started_rx.await.expect("87003141 crud invariant must hold");
                         let #SelectPrimaryKeySnakeCase = #import_token_stream NotEmptyUniqueVec::try_new_by_hash(vec![
                             #identifier_select_upper_camel_case::#primary_key_field_upper_camel_case_token_stream(
                                 #primary_key_field_type_as_pg_type_select_token_stream::default(),
                             )
                         ].into())
-                        .expect("0776170e");
+                        .expect("0776170e crud invariant must hold");
                         let #IdentifierCreateDefaultSnakeCase = identifier_create_default();
                         #select_default_all_with_max_page_size_not_empty_unique_vec_token_stream
                         #common_read_ids_from_co_token_stream
@@ -10266,7 +10266,7 @@ mod pipeline_tests {
         let parsed = crate::pipeline::parse_generate_pg_table(
             macros_helpers::ts_writer::ProcMacro2TokenStreamRef::from(&input),
         )
-        .expect("5d4f86a1");
+        .expect("5d4f86a1 validation_rejects_non_struct_input_without_emitting_source invariant must hold");
         assert!(matches!(
             crate::pipeline::build_generate_pg_table(parsed),
             Err(crate::pipeline::GeneratePgTablePipelineError::Build(_error))
@@ -10279,8 +10279,12 @@ mod pipeline_tests {
         let parsed = crate::pipeline::parse_generate_pg_table(
             macros_helpers::ts_writer::ProcMacro2TokenStreamRef::from(&input),
         )
-        .expect("0f8b43d2");
-        let built = crate::pipeline::build_generate_pg_table(parsed).expect("a715e9c4");
+        .expect(
+            "0f8b43d2 build_stage_exposes_typed_model_without_emitting_source invariant must hold",
+        );
+        let built = crate::pipeline::build_generate_pg_table(parsed).expect(
+            "a715e9c4 build_stage_exposes_typed_model_without_emitting_source invariant must hold",
+        );
         assert_eq!(usize::from(built.model().field_count()), 2usize);
     }
 
@@ -10290,8 +10294,8 @@ mod pipeline_tests {
         let parsed = crate::pipeline::parse_generate_pg_table(
             macros_helpers::ts_writer::ProcMacro2TokenStreamRef::from(&input),
         )
-        .expect("67d029ab");
-        let built = crate::pipeline::build_generate_pg_table(parsed).expect("c15b8f34");
+        .expect("67d029ab validation_rejects_empty_table_model_without_emitting_source invariant must hold");
+        let built = crate::pipeline::build_generate_pg_table(parsed).expect("c15b8f34 validation_rejects_empty_table_model_without_emitting_source invariant must hold");
         assert!(matches!(
             crate::pipeline::validate_generate_pg_table(built),
             Err(crate::pipeline::GeneratePgTablePipelineError::Validate(

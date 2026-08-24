@@ -218,20 +218,20 @@ mod tests {
     fn validates_and_applies_w3c_trace_context() {
         let trace_parent =
             super::HttpTraceParent::try_from(str_constants::TRACEPARENT_TEST_VALUE.to_owned())
-                .expect("6b490bf8");
+                .expect("6b490bf8 validates_and_applies_w3c_trace_context invariant must hold");
         let trace_state =
             super::HttpTraceState::try_from(str_constants::TRACESTATE_TEST_VALUE.to_owned())
-                .expect("b82fb9ef");
+                .expect("b82fb9ef validates_and_applies_w3c_trace_context invariant must hold");
         let request_id =
             crate::RequestId::try_from(str_constants::REQUEST_ID_TEST_VALUE.to_owned())
-                .expect("50c01ea8");
+                .expect("50c01ea8 validates_and_applies_w3c_trace_context invariant must hold");
         let client = crate::ReqwestClient::try_new(crate::ReqwestClientPolicy::new(
             crate::StdReqwestConnectTimeout::try_from(std::time::Duration::from_secs(1u64))
-                .expect("ce032a9f"),
+                .expect("ce032a9f validates_and_applies_w3c_trace_context invariant must hold"),
             crate::StdReqwestRequestTimeout::try_from(std::time::Duration::from_secs(2u64))
-                .expect("a1dabed3"),
+                .expect("a1dabed3 validates_and_applies_w3c_trace_context invariant must hold"),
         ))
-        .expect("8ded9d63");
+        .expect("8ded9d63 validates_and_applies_w3c_trace_context invariant must hold");
         let request_builder: reqwest::RequestBuilder =
             super::OutboundTraceContext::new(trace_parent, Some(trace_state), Some(request_id))
                 .apply(
@@ -240,7 +240,9 @@ mod tests {
                         .into(),
                 )
                 .into();
-        let request = request_builder.build().expect("1574578f");
+        let request = request_builder
+            .build()
+            .expect("1574578f validates_and_applies_w3c_trace_context invariant must hold");
         assert_eq!(
             request.headers()[str_constants::TRACESTATE],
             str_constants::TRACESTATE_TEST_VALUE
@@ -278,7 +280,7 @@ mod tests {
         assert!(span.span_context().is_remote());
         let expected_trace_id = str_constants::TRACEPARENT_TEST_VALUE
             .get(3usize..35usize)
-            .expect("65aa5eca");
+            .expect("65aa5eca extracts_valid_w3c_parent_context invariant must hold");
         assert_eq!(
             span.span_context().trace_id().to_string(),
             expected_trace_id

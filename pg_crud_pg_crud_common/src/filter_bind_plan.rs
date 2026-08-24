@@ -63,7 +63,7 @@ mod tests {
         let mut plan = super::FilterBindPlan::new();
         plan.push_text(
             super::PgFilterText::try_from(String::from(str_constants::TEST_FILTER_TEXT))
-                .expect("43d8053d"),
+                .expect("43d8053d bind_plan_preserves_cross_type_order invariant must hold"),
         );
         plan.push_i64(7i64.into());
         plan.push_bool(true.into());

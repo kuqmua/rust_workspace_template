@@ -146,5 +146,5 @@ pub fn generate_pg_table(input: proc_macro::TokenStream) -> proc_macro::TokenStr
     )
     .to_string()
     .parse::<proc_macro::TokenStream>()
-    .expect("6bff799b")
+    .expect("6bff799b generate_pg_table invariant must hold")
 }

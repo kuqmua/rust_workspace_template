@@ -155,7 +155,9 @@ mod tests {
             Err(super::ListTotalError)
         );
         assert_eq!(
-            i64::from(super::ListTotal::try_from(0i64).expect("93f8d6c5")),
+            i64::from(super::ListTotal::try_from(0i64).expect(
+                "93f8d6c5 list_total_rejects_negative_and_accepts_zero invariant must hold"
+            )),
             0i64
         );
         assert_eq!(
@@ -172,7 +174,7 @@ mod tests {
             async || {
                 Ok::<_, ()>(super::ListRows::new(
                     super::ListItems::from(vec![7u8]),
-                    Some(super::ListTotal::try_from(11i64).expect("8d096c08")),
+                    Some(super::ListTotal::try_from(11i64).expect("8d096c08 run_list_uses_window_total_without_calling_count invariant must hold")),
                 ))
             },
             || {
@@ -180,7 +182,7 @@ mod tests {
                 async { Ok::<_, ()>(super::ListTotal::from(99u32)) }
             },
         ))
-        .expect("cba64f03");
+        .expect("cba64f03 run_list_uses_window_total_without_calling_count invariant must hold");
         assert_eq!(window_page.items(), &[7u8]);
         assert_eq!(i64::from(window_page.total()), 11i64);
         assert!(!count_called.get());
@@ -202,7 +204,7 @@ mod tests {
                 async { Ok::<_, ()>(super::ListTotal::from(99u32)) }
             },
         ))
-        .expect("704c4827");
+        .expect("704c4827 run_list_uses_zero_for_empty_first_page_without_calling_count invariant must hold");
         assert!(page.items().is_empty());
         assert_eq!(i64::from(page.total()), 0i64);
         assert!(!count_called.get());
@@ -224,7 +226,7 @@ mod tests {
                 async { Ok::<_, ()>(super::ListTotal::from(17u32)) }
             },
         ))
-        .expect("27f9f3eb");
+        .expect("27f9f3eb run_list_uses_count_for_later_or_windowless_pages invariant must hold");
         assert_eq!(i64::from(later_page.total()), 17i64);
         assert_eq!(count_calls.get(), 1usize);
 
@@ -241,7 +243,7 @@ mod tests {
                 async { Ok::<_, ()>(super::ListTotal::from(23u32)) }
             },
         ))
-        .expect("0ff9c45e");
+        .expect("0ff9c45e run_list_uses_count_for_later_or_windowless_pages invariant must hold");
         assert_eq!(i64::from(windowless_page.total()), 23i64);
         assert_eq!(count_calls.get(), 2usize);
     }

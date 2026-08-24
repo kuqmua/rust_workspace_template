@@ -276,7 +276,7 @@ mod tests {
     fn public_url_and_address_are_accepted() {
         let url = POLICY
             .validate(str_constants::TEST_PUBLIC_HTTPS_URL.into())
-            .expect("a275c7bf");
+            .expect("a275c7bf public_url_and_address_are_accepted invariant must hold");
         assert_eq!(url.scheme(), super::OutboundUrlScheme::Https);
         assert_eq!(
             POLICY.validate_resolved_addresses(&[std::net::IpAddr::V4(std::net::Ipv4Addr::new(
@@ -330,18 +330,22 @@ mod tests {
 
     #[test]
     fn allowlist_requires_exact_host_and_url_rejects_userinfo() {
-        let allowed_host =
-            super::OutboundAllowedHost::try_from(String::from(str_constants::TEST_PUBLIC_HOST))
-                .expect("3e5decb1");
-        let allowlist =
-            super::OutboundHostAllowlist::try_from(vec![allowed_host]).expect("920be78f");
+        let allowed_host = super::OutboundAllowedHost::try_from(String::from(
+            str_constants::TEST_PUBLIC_HOST,
+        ))
+        .expect(
+            "3e5decb1 allowlist_requires_exact_host_and_url_rejects_userinfo invariant must hold",
+        );
+        let allowlist = super::OutboundHostAllowlist::try_from(vec![allowed_host]).expect(
+            "920be78f allowlist_requires_exact_host_and_url_rejects_userinfo invariant must hold",
+        );
         let allowed = POLICY
             .validate(str_constants::TEST_PUBLIC_HTTPS_URL.into())
-            .expect("27a67a96");
+            .expect("27a67a96 allowlist_requires_exact_host_and_url_rejects_userinfo invariant must hold");
         assert_eq!(allowlist.validate(&allowed), Ok(()));
         let other = POLICY
             .validate(str_constants::TEST_OTHER_PUBLIC_HTTPS_URL.into())
-            .expect("b3981504");
+            .expect("b3981504 allowlist_requires_exact_host_and_url_rejects_userinfo invariant must hold");
         assert_eq!(
             allowlist.validate(&other),
             Err(super::OutboundHostAllowlistError::HostNotAllowed)

@@ -304,7 +304,9 @@ mod tests {
     #[test]
     fn administrator_secret_text_enforces_internal_bound() {
         let at_limit = "a".repeat(8_192usize);
-        let secret = super::SecrecyAdminString::try_from(at_limit.clone()).expect("6673b876");
+        let secret = super::SecrecyAdminString::try_from(at_limit.clone()).expect(
+            "6673b876 administrator_secret_text_enforces_internal_bound invariant must hold",
+        );
         assert_eq!(
             secrecy::ExposeSecret::expose_secret(&secret)
                 .as_ref()
@@ -322,16 +324,20 @@ mod tests {
     #[test]
     fn administrator_secret_text_is_redacted_and_zeroizable() {
         let raw = str_constants::NEVER_PRINT_THIS_VALUE;
-        let secret = super::SecrecyAdminString::try_from(raw.to_owned()).expect("67b629e2");
+        let secret = super::SecrecyAdminString::try_from(raw.to_owned()).expect(
+            "67b629e2 administrator_secret_text_is_redacted_and_zeroizable invariant must hold",
+        );
         assert!(!format!("{secret:?}").contains(raw));
-        let mut bounded = super::StdAdminString::try_from(raw.to_owned()).expect("201f3c4b");
+        let mut bounded = super::StdAdminString::try_from(raw.to_owned()).expect(
+            "201f3c4b administrator_secret_text_is_redacted_and_zeroizable invariant must hold",
+        );
         secrecy::zeroize::Zeroize::zeroize(&mut bounded);
         assert!(bounded.as_ref().is_empty());
     }
     #[test]
     fn administrator_resource_values_are_stable() {
-        let positive =
-            server_admin_contract::StdAdminPositiveI64::try_from(42i64).expect("2570af3b");
+        let positive = server_admin_contract::StdAdminPositiveI64::try_from(42i64)
+            .expect("2570af3b administrator_resource_values_are_stable invariant must hold");
         assert_eq!(
             super::StdAdminString::from_positive_i64(positive).as_ref(),
             "42"

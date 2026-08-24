@@ -252,7 +252,7 @@ mod tests {
         let token = super::NotificationApiToken::try_from(String::from(
             str_constants::TEST_NOTIFICATION_API_TOKEN,
         ))
-        .expect("9ac320d1");
+        .expect("9ac320d1 api_token_debug_is_redacted invariant must hold");
         assert!(!format!("{token:?}").contains(str_constants::TEST_NOTIFICATION_API_TOKEN));
         assert!(
             !format!(
@@ -279,7 +279,7 @@ mod tests {
         let token = super::NotificationApiToken::try_from(
             str_constants::TEST_NOTIFICATION_API_TOKEN.to_owned(),
         )
-        .expect("cd592f18");
+        .expect("cd592f18 router_requires_token_and_delivers_valid_request invariant must hold");
         let router: axum::Router =
             super::notification_router(super::NotificationServiceState::new(
                 token,
@@ -298,10 +298,12 @@ mod tests {
             .body(axum::body::Body::from(
                 str_constants::TEST_NOTIFICATION_REQUEST_JSON,
             ))
-            .expect("9e3b810c");
-        let response = tower::ServiceExt::oneshot(router, request)
-            .await
-            .expect("db062fe4");
+            .expect(
+                "9e3b810c router_requires_token_and_delivers_valid_request invariant must hold",
+            );
+        let response = tower::ServiceExt::oneshot(router, request).await.expect(
+            "db062fe4 router_requires_token_and_delivers_valid_request invariant must hold",
+        );
         assert_eq!(response.status(), http::StatusCode::NO_CONTENT);
     }
 }

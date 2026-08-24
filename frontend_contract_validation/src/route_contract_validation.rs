@@ -241,15 +241,20 @@ mod tests {
         let result = futures::executor::block_on(super::run_http_contract_fixture(
             super::HttpContractExpectation::new(
                 metadata,
-                super::HttpContractStatus::try_from(200u16).expect("a76c9e6b"),
+                super::HttpContractStatus::try_from(200u16).expect(
+                    "a76c9e6b http_fixture_checks_status_and_json_body invariant must hold",
+                ),
                 super::HttpContractBodyKind::Json,
             ),
             async |observed_metadata| {
                 super::HttpContractObservation::new(
                     observed_metadata,
-                    super::HttpContractStatus::try_from(200u16).expect("d0abdccc"),
-                    super::HttpContractBody::try_from(br#"{"ok":true}"#.to_vec())
-                        .expect("08bddb5e"),
+                    super::HttpContractStatus::try_from(200u16).expect(
+                        "d0abdccc http_fixture_checks_status_and_json_body invariant must hold",
+                    ),
+                    super::HttpContractBody::try_from(br#"{"ok":true}"#.to_vec()).expect(
+                        "08bddb5e http_fixture_checks_status_and_json_body invariant must hold",
+                    ),
                 )
             },
         ));

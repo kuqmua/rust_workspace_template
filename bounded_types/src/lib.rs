@@ -150,7 +150,7 @@ mod tests {
     #[test]
     fn string_bounds_are_inclusive() {
         let value = super::BoundedString::<1, 3>::try_from(str_constants::ABC_ALT_3.to_owned())
-            .expect("6f09ad52");
+            .expect("6f09ad52 string_bounds_are_inclusive invariant must hold");
         assert_eq!(value.as_ref(), str_constants::ABC_ALT_3);
         assert_eq!(value.len().get(), 3usize);
         assert_above_max(
@@ -182,7 +182,8 @@ mod tests {
 
     #[test]
     fn byte_string_bounds_count_utf8_bytes() {
-        let unicode = String::from_utf8(vec![0xc3u8, 0xa9u8, 0xc3u8, 0xa9u8]).expect("9167aed1");
+        let unicode = String::from_utf8(vec![0xc3u8, 0xa9u8, 0xc3u8, 0xa9u8])
+            .expect("9167aed1 byte_string_bounds_count_utf8_bytes invariant must hold");
         assert_above_max(
             super::BoundedString::<0, 2>::try_from(unicode).expect_err("9fd40773"),
             4usize,
@@ -197,7 +198,9 @@ mod tests {
         else {
             panic!("43ea6e9b");
         };
-        let extensions = object.extensions.expect("177a114d");
+        let extensions = object
+            .extensions
+            .expect("177a114d byte_string_schema_publishes_byte_extensions invariant must hold");
         assert_eq!(
             extensions
                 .get(str_constants::OPENAPI_MIN_BYTES_EXTENSION)
@@ -221,15 +224,20 @@ mod tests {
         else {
             panic!("43fbea64");
         };
-        let extensions = object.extensions.expect("803cfa80");
+        let extensions = object.extensions.expect(
+            "803cfa80 unbounded_byte_string_schema_omits_max_bytes_extension invariant must hold",
+        );
         assert!(extensions.contains_key(str_constants::OPENAPI_MIN_BYTES_EXTENSION));
         assert!(!extensions.contains_key(str_constants::OPENAPI_MAX_BYTES_EXTENSION));
     }
 
     #[test]
     fn vec_bounds_and_growth_are_enforced() {
-        let mut values = super::BoundedVec::<u8, 0, 1>::try_from(Vec::new()).expect("cb18bc21");
-        values.try_push(1u8).expect("28f49231");
+        let mut values = super::BoundedVec::<u8, 0, 1>::try_from(Vec::new())
+            .expect("cb18bc21 vec_bounds_and_growth_are_enforced invariant must hold");
+        values
+            .try_push(1u8)
+            .expect("28f49231 vec_bounds_and_growth_are_enforced invariant must hold");
         assert_eq!(values.as_slice(), &[1u8]);
         assert_above_max(values.try_push(2u8).expect_err("9a1c5ee4"), 2usize, 1usize);
         assert_eq!(values.into_inner(), vec![1u8]);
@@ -264,9 +272,18 @@ mod tests {
     fn btree_map_replacement_is_allowed_at_capacity() {
         let mut values =
             super::StdBoundedBTreeMap::<u8, u8, 1>::try_from(std::collections::BTreeMap::new())
-                .expect("ea1fdc07");
-        let _previous = values.try_insert(1u8, 2u8).expect("285278fe");
-        assert_eq!(values.try_insert(1u8, 3u8).expect("946eb9a8"), Some(2u8));
+                .expect(
+                    "ea1fdc07 btree_map_replacement_is_allowed_at_capacity invariant must hold",
+                );
+        let _previous = values
+            .try_insert(1u8, 2u8)
+            .expect("285278fe btree_map_replacement_is_allowed_at_capacity invariant must hold");
+        assert_eq!(
+            values.try_insert(1u8, 3u8).expect(
+                "946eb9a8 btree_map_replacement_is_allowed_at_capacity invariant must hold"
+            ),
+            Some(2u8)
+        );
         assert_above_max(
             values.try_insert(2u8, 4u8).expect_err("e14a5d23"),
             2usize,
@@ -277,12 +294,21 @@ mod tests {
     #[test]
     fn hash_map_capacity_mutation_and_removal_are_enforced() {
         let mut values = super::StdBoundedHashMap::<u8, u8, 1>::default();
-        assert_eq!(values.try_insert(1u8, 2u8).expect("c1b15ee9"), None);
-        assert_eq!(values.try_insert(1u8, 3u8).expect("b4e85208"), Some(2u8));
-        values
-            .get_mut(&1u8)
-            .map(|value| *value = 4u8)
-            .expect("32578cec");
+        assert_eq!(
+            values.try_insert(1u8, 2u8).expect(
+                "c1b15ee9 hash_map_capacity_mutation_and_removal_are_enforced invariant must hold"
+            ),
+            None
+        );
+        assert_eq!(
+            values.try_insert(1u8, 3u8).expect(
+                "b4e85208 hash_map_capacity_mutation_and_removal_are_enforced invariant must hold"
+            ),
+            Some(2u8)
+        );
+        values.get_mut(&1u8).map(|value| *value = 4u8).expect(
+            "32578cec hash_map_capacity_mutation_and_removal_are_enforced invariant must hold",
+        );
         assert_eq!(values.get(&1u8), Some(&4u8));
         assert_above_max(
             values.try_insert(2u8, 5u8).expect_err("3f1263eb"),
@@ -290,7 +316,12 @@ mod tests {
             1usize,
         );
         assert_eq!(values.remove(&1u8), Some(4u8));
-        assert_eq!(values.try_insert(2u8, 5u8).expect("98c16ca4"), None);
+        assert_eq!(
+            values.try_insert(2u8, 5u8).expect(
+                "98c16ca4 hash_map_capacity_mutation_and_removal_are_enforced invariant must hold"
+            ),
+            None
+        );
     }
 
     #[test]
@@ -301,7 +332,9 @@ mod tests {
     fn btree_map_iteration_and_pop_preserve_key_order() {
         let mut values = super::StdBoundedBTreeMap::<u8, u8, 3>::default();
         [3u8, 1u8, 2u8].into_iter().for_each(|key| {
-            let _previous = values.try_insert(key, key).expect("02efac64");
+            let _previous = values.try_insert(key, key).expect(
+                "02efac64 btree_map_iteration_and_pop_preserve_key_order invariant must hold",
+            );
         });
         values.iter_mut().for_each(|(_key, value)| {
             *value = value.saturating_add(10u8);
@@ -434,7 +467,7 @@ mod tests {
                 },
             ),
         )
-        .expect("d1ce80f4");
+        .expect("d1ce80f4 vec_deserialization_caps_untrusted_size_hint invariant must hold");
         assert_eq!(values.as_slice(), &[1u8]);
         assert!(values.allocation_capacity() <= super::SERDE_PREALLOC_MAX_ITEMS);
     }
@@ -447,7 +480,7 @@ mod tests {
         let values = <super::StdBoundedBTreeMap<u8, u8, 2> as serde::Deserialize>::deserialize(
             duplicate_map,
         )
-        .expect("22d831a5");
+        .expect("22d831a5 map_deserialization_enforces_capacity_and_allows_duplicate_replacement invariant must hold");
         assert_eq!(values.get(&1u8), Some(&3u8));
 
         let hash_duplicate_map =
@@ -457,7 +490,7 @@ mod tests {
         let hash_values = <super::StdBoundedHashMap<u8, u8, 2> as serde::Deserialize>::deserialize(
             hash_duplicate_map,
         )
-        .expect("75beb0a8");
+        .expect("75beb0a8 map_deserialization_enforces_capacity_and_allows_duplicate_replacement invariant must hold");
         assert_eq!(hash_values.get(&1u8), Some(&3u8));
 
         let duplicate_above_wire_limit = serde::de::value::MapDeserializer::<
@@ -557,7 +590,9 @@ mod tests {
             <super::StdBoundedHashMap<u8, u8, { usize::MAX }> as serde::Deserialize>::deserialize(
                 serde::de::value::MapDeserializer::<_, serde::de::value::Error>::new(entries),
             )
-            .expect("b3cda4f2");
+            .expect(
+                "b3cda4f2 hash_map_deserialization_caps_untrusted_size_hint invariant must hold",
+            );
         assert_eq!(values.get(&1u8), Some(&2u8));
         let capped_capacity =
             std::collections::HashMap::<u8, u8>::with_capacity(super::SERDE_PREALLOC_MAX_ITEMS)

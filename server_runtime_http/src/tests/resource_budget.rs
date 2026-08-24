@@ -4,9 +4,12 @@ fn maximum_rejects_zero_and_accepts_positive_values() {
         super::super::ResourceBudgetMaximum::try_from(0usize),
         Err(super::super::ResourceBudgetConfigError)
     );
-    let maximum = std::num::NonZeroUsize::new(1usize).expect("9e83081e");
+    let maximum = std::num::NonZeroUsize::new(1usize)
+        .expect("9e83081e maximum_rejects_zero_and_accepts_positive_values invariant must hold");
     assert_eq!(
-        super::super::ResourceBudgetMaximum::try_from(1usize).expect("19c82820"),
+        super::super::ResourceBudgetMaximum::try_from(1usize).expect(
+            "19c82820 maximum_rejects_zero_and_accepts_positive_values invariant must hold"
+        ),
         super::super::ResourceBudgetMaximum::from(maximum)
     );
 }
@@ -14,11 +17,12 @@ fn maximum_rejects_zero_and_accepts_positive_values() {
 #[test]
 fn reservations_are_bounded_and_released() {
     let budget = super::super::ResourceBudget::new(
-        super::super::ResourceBudgetMaximum::try_from(5usize).expect("0c6362a4"),
+        super::super::ResourceBudgetMaximum::try_from(5usize)
+            .expect("0c6362a4 reservations_are_bounded_and_released invariant must hold"),
     );
     let first = budget
         .reserve(super::super::ResourceBudgetAmount::from(3usize))
-        .expect("3bfeb37c");
+        .expect("3bfeb37c reservations_are_bounded_and_released invariant must hold");
     assert_eq!(
         budget.reserved(),
         super::super::ResourceBudgetAmount::from(3usize)
@@ -35,7 +39,7 @@ fn reservations_are_bounded_and_released() {
     );
     let second = budget
         .reserve(super::super::ResourceBudgetAmount::from(2usize))
-        .expect("d86085db");
+        .expect("d86085db reservations_are_bounded_and_released invariant must hold");
     assert_eq!(
         budget.reserved(),
         super::super::ResourceBudgetAmount::from(5usize)
@@ -55,11 +59,12 @@ fn reservations_are_bounded_and_released() {
 #[test]
 fn overflow_does_not_change_reserved_count() {
     let budget = super::super::ResourceBudget::new(
-        super::super::ResourceBudgetMaximum::try_from(usize::MAX).expect("65f2f229"),
+        super::super::ResourceBudgetMaximum::try_from(usize::MAX)
+            .expect("65f2f229 overflow_does_not_change_reserved_count invariant must hold"),
     );
     let reservation = budget
         .reserve(super::super::ResourceBudgetAmount::from(1usize))
-        .expect("1a2bb321");
+        .expect("1a2bb321 overflow_does_not_change_reserved_count invariant must hold");
     assert_eq!(
         budget
             .reserve(super::super::ResourceBudgetAmount::from(usize::MAX))
@@ -76,7 +81,8 @@ fn overflow_does_not_change_reserved_count() {
 #[test]
 fn concurrent_reservations_never_exceed_maximum() {
     let budget = super::super::ResourceBudget::new(
-        super::super::ResourceBudgetMaximum::try_from(5usize).expect("57a61ca4"),
+        super::super::ResourceBudgetMaximum::try_from(5usize)
+            .expect("57a61ca4 concurrent_reservations_never_exceed_maximum invariant must hold"),
     );
     let start = std::sync::Arc::new(std::sync::Barrier::new(3usize));
     let finish = std::sync::Arc::new(std::sync::Barrier::new(3usize));
@@ -89,7 +95,9 @@ fn concurrent_reservations_never_exceed_maximum() {
         let _left_handle = scope.spawn(move || {
             let _start_result = left_start.wait();
             let reservation = left_budget.reserve(super::super::ResourceBudgetAmount::from(3usize));
-            left_tx.send(reservation.is_ok()).expect("b048535e");
+            left_tx.send(reservation.is_ok()).expect(
+                "b048535e concurrent_reservations_never_exceed_maximum invariant must hold",
+            );
             let _finish_result = left_finish.wait();
             drop(reservation);
         });
@@ -101,12 +109,21 @@ fn concurrent_reservations_never_exceed_maximum() {
             let _start_result = right_start.wait();
             let reservation =
                 right_budget.reserve(super::super::ResourceBudgetAmount::from(3usize));
-            right_tx.send(reservation.is_ok()).expect("cd734995");
+            right_tx.send(reservation.is_ok()).expect(
+                "cd734995 concurrent_reservations_never_exceed_maximum invariant must hold",
+            );
             let _finish_result = right_finish.wait();
             drop(reservation);
         });
         let _start_result = start.wait();
-        let outcomes = [rx.recv().expect("7393afca"), rx.recv().expect("67824b65")];
+        let outcomes = [
+            rx.recv().expect(
+                "7393afca concurrent_reservations_never_exceed_maximum invariant must hold",
+            ),
+            rx.recv().expect(
+                "67824b65 concurrent_reservations_never_exceed_maximum invariant must hold",
+            ),
+        ];
         assert_eq!(outcomes.into_iter().filter(|value| *value).count(), 1usize);
         assert_eq!(
             budget.reserved(),

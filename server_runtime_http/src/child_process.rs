@@ -316,7 +316,9 @@ mod tests {
             std::num::NonZeroUsize::MIN,
         ));
         assert_eq!(
-            full.insert(empty_supervisor()).expect("806f6943"),
+            full.insert(empty_supervisor()).expect(
+                "806f6943 process_set_enforces_capacity_and_identifier_overflow invariant must hold"
+            ),
             super::ChildProcessId::from(0u64)
         );
         assert!(matches!(
@@ -325,7 +327,7 @@ mod tests {
         ));
 
         let mut overflowing = super::ChildProcessSet::new(super::StdChildProcessSetMaximum::from(
-            std::num::NonZeroUsize::new(2usize).expect("d96a312b"),
+            std::num::NonZeroUsize::new(2usize).expect("d96a312b process_set_enforces_capacity_and_identifier_overflow invariant must hold"),
         ));
         overflowing.next_id = super::ChildProcessId::from(u64::MAX);
         assert!(matches!(
@@ -337,12 +339,16 @@ mod tests {
     #[tokio::test]
     async fn missing_child_and_absent_diagnostic_are_explicit() {
         let timeout = crate::StdRequestTimeout::try_from(std::time::Duration::from_secs(1u64))
-            .expect("02c5c4e9");
+            .expect(
+                "02c5c4e9 missing_child_and_absent_diagnostic_are_explicit invariant must hold",
+            );
         assert!(matches!(
             empty_supervisor().shutdown(timeout).await,
             Err(super::ChildProcessError::MissingChild)
         ));
-        let diagnostic = super::join_diagnostic(None).await.expect("bfc19618");
+        let diagnostic = super::join_diagnostic(None).await.expect(
+            "bfc19618 missing_child_and_absent_diagnostic_are_explicit invariant must hold",
+        );
         assert!(diagnostic.as_ref().is_empty());
     }
 
@@ -365,8 +371,11 @@ mod tests {
             std::num::NonZeroUsize::MIN,
         ));
         let timeout = crate::StdRequestTimeout::try_from(std::time::Duration::from_secs(1u64))
-            .expect("69d0d988");
-        let reports = processes.shutdown_all(timeout).await.expect("b85cbf78");
+            .expect("69d0d988 empty_process_set_shuts_down_without_reports invariant must hold");
+        let reports = processes
+            .shutdown_all(timeout)
+            .await
+            .expect("b85cbf78 empty_process_set_shuts_down_without_reports invariant must hold");
         assert!(reports.as_ref().is_empty());
     }
 
@@ -376,17 +385,20 @@ mod tests {
         let write = tokio::spawn(async move {
             tokio::io::AsyncWriteExt::write_all(&mut writer, b"123456")
                 .await
-                .expect("248f268d");
+                .expect("248f268d diagnostic_read_is_bounded invariant must hold");
         });
         let diagnostic = super::read_child_diagnostic(
             reader,
             super::StdChildDiagnosticMaximum::from(
-                std::num::NonZeroUsize::new(4usize).expect("9de989aa"),
+                std::num::NonZeroUsize::new(4usize)
+                    .expect("9de989aa diagnostic_read_is_bounded invariant must hold"),
             ),
         )
         .await
-        .expect("35f4e073");
-        write.await.expect("f859fb47");
+        .expect("35f4e073 diagnostic_read_is_bounded invariant must hold");
+        write
+            .await
+            .expect("f859fb47 diagnostic_read_is_bounded invariant must hold");
         assert_eq!(diagnostic.as_ref(), b"1234");
     }
 }

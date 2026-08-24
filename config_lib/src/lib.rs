@@ -394,21 +394,21 @@ mod tests {
         assert_eq!(
             <super::types::SvcMode as super::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
                 super::StdEnvVarOk::try_from(str_constants::SERVICE_MODE_MIGRATE.to_owned())
-                    .expect("39a8e94f"),
+                    .expect("39a8e94f svc_mode_accepts_only_documented_values invariant must hold"),
             ),
             Ok(super::types::SvcMode::Migrate)
         );
         assert_eq!(
             <super::types::SvcMode as super::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
                 super::StdEnvVarOk::try_from(str_constants::SERVICE_MODE_SERVE.to_owned())
-                    .expect("045ca5a1"),
+                    .expect("045ca5a1 svc_mode_accepts_only_documented_values invariant must hold"),
             ),
             Ok(super::types::SvcMode::Serve)
         );
         assert_eq!(
             <super::types::SvcMode as super::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
                 super::StdEnvVarOk::try_from(str_constants::INVALID_REQUEST.to_owned())
-                    .expect("156cc47b"),
+                    .expect("156cc47b svc_mode_accepts_only_documented_values invariant must hold"),
             ),
             Err(super::TryFromStdEnvVarOkSvcModeError::Unknown)
         );
@@ -486,7 +486,7 @@ mod tests {
         ]
         .into_iter()
         .all(|raw| {
-            let value = parse_env::<super::DatabaseUrl>(raw).expect("ae91f62c");
+            let value = parse_env::<super::DatabaseUrl>(raw).expect("ae91f62c secret_url_debug_output_redacts_credentials invariant must hold");
             let debug = format!("{value:?}");
             !debug.contains(raw)
                 && !debug.contains(str_constants::USERNAME)
@@ -578,7 +578,7 @@ mod tests {
     #[test]
     fn maximum_size_of_http_body_in_bytes_parsing_returns_usize() {
         let parsed = parse_env::<super::MaximumSizeOfHttpBodyInBytes>(str_constants::VALUE_128)
-            .expect("d5b7a09e");
+            .expect("d5b7a09e maximum_size_of_http_body_in_bytes_parsing_returns_usize invariant must hold");
         assert_eq!(*parsed, 128usize);
     }
     #[test]
@@ -599,8 +599,8 @@ mod tests {
     }
     #[test]
     fn pg_pool_max_connections_parsing_returns_u32() {
-        let parsed =
-            parse_env::<super::PgPoolMaxConnections>(str_constants::VALUE_10).expect("5d9032ac");
+        let parsed = parse_env::<super::PgPoolMaxConnections>(str_constants::VALUE_10)
+            .expect("5d9032ac pg_pool_max_connections_parsing_returns_u32 invariant must hold");
         assert_eq!(*parsed, 10u32);
     }
     #[test]

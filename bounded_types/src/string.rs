@@ -70,7 +70,8 @@ impl<const MIN: usize, const MAX: usize> utoipa::ToSchema for BoundedString<MIN,
 mod tests {
     #[test]
     fn string_validates_inclusive_bounds() {
-        let value = super::BoundedString::<1, 1>::try_from(String::from("a")).expect("3ca72d81");
+        let value = super::BoundedString::<1, 1>::try_from(String::from("a"))
+            .expect("3ca72d81 string_validates_inclusive_bounds invariant must hold");
         assert_eq!(value.as_ref(), "a");
         assert!(matches!(
             super::BoundedString::<1, 1>::try_from(String::new()),

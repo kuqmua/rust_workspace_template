@@ -3,7 +3,8 @@
     reason = "the benchmark target links the library package but directly exercises only its public query API"
 )]
 fn identifier(value: &str) -> pg_crud_common::SqlIdentifier {
-    pg_crud_common::SqlIdentifier::try_from(value.to_owned()).expect("cd596c44")
+    pg_crud_common::SqlIdentifier::try_from(value.to_owned())
+        .expect("cd596c44 identifier invariant must hold")
 }
 #[allow(
     clippy::needless_for_each,
@@ -63,11 +64,13 @@ fn bench_stable_read_query_plan(criterion: &mut criterion::Criterion) {
     let base = pg_crud_common::QueryPartFragment::try_from(String::from(
         str_constants::TEST_READ_QUERY_BASE,
     ))
-    .expect("bdca9e10");
+    .expect("bdca9e10 bench_stable_read_query_plan invariant must hold");
     let sort_column = identifier(str_constants::CREATED_AT);
     let tie_break_column = identifier(str_constants::SQL_NAMES_ID);
-    let limit_bind = std::num::NonZeroU32::new(1u32).expect("54b6f80d");
-    let offset_bind = std::num::NonZeroU32::new(2u32).expect("f05a624b");
+    let limit_bind = std::num::NonZeroU32::new(1u32)
+        .expect("54b6f80d bench_stable_read_query_plan invariant must hold");
+    let offset_bind = std::num::NonZeroU32::new(2u32)
+        .expect("f05a624b bench_stable_read_query_plan invariant must hold");
     let _criterion = criterion.bench_function(str_constants::STABLE_READ_QUERY_PLAN, |bencher| {
         bencher.iter(|| {
             let plan = pg_crud_common::build_stable_read_query_plan(

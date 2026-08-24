@@ -81,7 +81,8 @@ mod tests {
     #[test]
     fn query_bind_error_preserves_its_source() {
         let error = super::mk_query_bind_err(std::io::Error::other(str_constants::ERROR));
-        let source = std::error::Error::source(&error).expect("c9d460e5");
+        let source = std::error::Error::source(&error)
+            .expect("c9d460e5 query_bind_error_preserves_its_source invariant must hold");
 
         assert_eq!(source.to_string(), str_constants::ERROR);
         assert_eq!(
@@ -89,7 +90,10 @@ mod tests {
             "failed to bind PostgreSQL query parameter"
         );
         assert_eq!(
-            source.source().expect("4e5bcc6b").to_string(),
+            source
+                .source()
+                .expect("4e5bcc6b query_bind_error_preserves_its_source invariant must hold")
+                .to_string(),
             str_constants::ERROR
         );
     }

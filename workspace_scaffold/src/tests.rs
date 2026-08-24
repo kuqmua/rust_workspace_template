@@ -1,19 +1,21 @@
 fn assert_file_content(path: &std::path::Path, expected: &str) {
-    let actual = std::fs::read_to_string(path).expect("371dbe92");
+    let actual =
+        std::fs::read_to_string(path).expect("371dbe92 assert_file_content invariant must hold");
     assert_eq!(actual, expected, "239c17b0: {}", path.display());
 }
 
 fn write(path: &std::path::Path, value: &str) {
     if let Some(parent) = path.parent() {
-        std::fs::create_dir_all(parent).expect("2f0ad03a");
+        std::fs::create_dir_all(parent).expect("2f0ad03a write invariant must hold");
     }
-    std::fs::write(path, value).expect("79af6dc8");
+    std::fs::write(path, value).expect("79af6dc8 write invariant must hold");
 }
 
 #[test]
 fn validates_and_converts_project_names() {
     let valid = super::ProjectNameRef::from("order_platform");
-    super::naming::validate_project_name(valid).expect("96de3a80");
+    super::naming::validate_project_name(valid)
+        .expect("96de3a80 validates_and_converts_project_names invariant must hold");
     assert_eq!(super::naming::kebab_case(valid).as_ref(), "order-platform");
     assert_eq!(super::naming::title_case(valid).as_ref(), "Order Platform");
     assert_eq!(
@@ -28,7 +30,7 @@ fn requires_https_repository_url() {
     super::naming::validate_repository_url(super::RepositoryUrlRef::from(
         "https://example.com/team/order_platform",
     ))
-    .expect("28c1e7a4");
+    .expect("28c1e7a4 requires_https_repository_url invariant must hold");
     assert!(
         super::naming::validate_repository_url(super::RepositoryUrlRef(
             "http://example.com/team/order_platform"
@@ -67,7 +69,9 @@ fn deployment_projection_check_rejects_stale_generated_content() {
         super::ScaffoldTextRef::from("current\n"),
         super::ShouldWrite::from(true),
     )
-    .expect("5a7e3c91");
+    .expect(
+        "5a7e3c91 deployment_projection_check_rejects_stale_generated_content invariant must hold",
+    );
     super::synchronize_generated_file(
         super::StdScaffoldPathRef::from(path.as_path()),
         super::ScaffoldTextRef::from(begin),
@@ -75,8 +79,12 @@ fn deployment_projection_check_rejects_stale_generated_content() {
         super::ScaffoldTextRef::from("current\n"),
         super::ShouldWrite::from(false),
     )
-    .expect("d2f8b4a6");
-    std::fs::remove_file(path).expect("9c1e6a3f");
+    .expect(
+        "d2f8b4a6 deployment_projection_check_rejects_stale_generated_content invariant must hold",
+    );
+    std::fs::remove_file(path).expect(
+        "9c1e6a3f deployment_projection_check_rejects_stale_generated_content invariant must hold",
+    );
 }
 
 #[test]
@@ -84,7 +92,7 @@ fn service_catalog_owns_ci_and_release_projection_values() {
     let entries = super::service_catalog::parse(super::ScaffoldTextRef::from(
             "[[service]]\ncrate = \"server\"\ncompose = \"server\"\ncompose_file = \"docker-compose.yml\"\ndockerfile = \"Dockerfile\"\nimage = \"application\"\nkubernetes = \"deploy/k8s/base/application.yaml\"\nport = 8080\nrelease = true\nsocket_env = \"SERVICE_SOCKET_ADDRESS\"\n\n[[service]]\ncrate = \"worker\"\ncompose = \"worker\"\ncompose_file = \"docker-compose.worker.yml\"\ndockerfile = \"worker/Dockerfile\"\nimage = \"worker\"\nkubernetes = \"deploy/k8s/base/worker.yaml\"\nport = 8082\nrelease = false\nsocket_env = \"WORKER_SERVICE_SOCKET_ADDRESS\"\n",
         ))
-        .expect("4e8b2d7a");
+        .expect("4e8b2d7a service_catalog_owns_ci_and_release_projection_values invariant must hold");
     let entries_ref = super::ServiceCatalogEntriesRef::from(entries.0.as_slice());
     assert_eq!(
         super::service_catalog::render_ci_matrix(entries_ref).as_ref(),
@@ -106,7 +114,7 @@ fn rejects_scaffold_text_over_size_limit() {
         path.as_path(),
         vec![b'x'; super::SCAFFOLD_TEXT_MAX_BYTES.saturating_add(1usize)],
     )
-    .expect("d97e30ac");
+    .expect("d97e30ac rejects_scaffold_text_over_size_limit invariant must hold");
     let result =
         super::template_fs::read_bounded_text(super::StdScaffoldPathRef::from(path.as_path()));
     assert!(
@@ -118,14 +126,16 @@ fn rejects_scaffold_text_over_size_limit() {
         ),
         "8f32bc16"
     );
-    std::fs::remove_file(path).expect("51cd7b2e");
+    std::fs::remove_file(path)
+        .expect("51cd7b2e rejects_scaffold_text_over_size_limit invariant must hold");
 }
 
 #[test]
 fn service_scaffold_registers_all_artifacts() {
     let root = std::env::temp_dir().join(format!("workspace-scaffold-test-{}", std::process::id()));
     if root.exists() {
-        std::fs::remove_dir_all(root.as_path()).expect("1449608d");
+        std::fs::remove_dir_all(root.as_path())
+            .expect("1449608d service_scaffold_registers_all_artifacts invariant must hold");
     }
     write(
         root.join("Cargo.toml").as_path(),
@@ -168,7 +178,7 @@ fn service_scaffold_registers_all_artifacts() {
         super::ProjectNameRef::from("order_service"),
         super::ServicePort::from(8082u16),
     )
-    .expect("4bff1d79");
+    .expect("4bff1d79 insert_sql invariant must hold");
     assert_file_content(
         root.join("Cargo.toml").as_path(),
         "[workspace]\nmembers = [\n  \"notification_service_contract\",\n  \"order_service\",\n  \"order_service_config\",\n  \"order_service_contract\",\n]\n[workspace.dependencies]\nnotification_service_contract = { path = \"./notification_service_contract\" }\norder_service = { path = \"./order_service\" }\norder_service_config = { path = \"./order_service_config\" }\norder_service_contract = { path = \"./order_service_contract\" }\n",
@@ -201,5 +211,5 @@ fn service_scaffold_registers_all_artifacts() {
         root.join("deploy/services.toml").as_path(),
         "[[service]]\ncrate = \"notification_service\"\n\n[[service]]\ncrate = \"order_service\"\ncompose = \"order_service\"\ncompose_file = \"docker-compose.order_service.yml\"\ndockerfile = \"order_service/Dockerfile\"\nimage = \"order-service\"\nkubernetes = \"deploy/k8s/base/order-service.yaml\"\nport = 8082\nrelease = false\nsocket_env = \"ORDER_SERVICE_SERVICE_SOCKET_ADDRESS\"\n",
     );
-    std::fs::remove_dir_all(root).expect("6f608418");
+    std::fs::remove_dir_all(root).expect("6f608418 insert_sql invariant must hold");
 }

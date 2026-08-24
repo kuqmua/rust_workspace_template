@@ -450,10 +450,10 @@ mod tests {
             axum::Router::from(server_admin_frontend::routes()),
             axum::http::Request::get("/admin/assets/style.css")
                 .body(axum::body::Body::empty())
-                .expect("d694b6f6"),
+                .expect("d694b6f6 administrator_asset_route_preserves_static_file_serving invariant must hold"),
         )
         .await
-        .expect("499f35e2");
+        .expect("499f35e2 administrator_asset_route_preserves_static_file_serving invariant must hold");
         assert_eq!(response.status(), axum::http::StatusCode::OK);
     }
 
@@ -483,26 +483,26 @@ mod tests {
                 axum::http::Request::builder()
                     .uri(path)
                     .body(axum::body::Body::empty())
-                    .expect("7496f84f"),
+                    .expect("7496f84f operational_routes_are_root_mounted_and_api_routes_are_v1_mounted invariant must hold"),
             )
         };
         assert_eq!(
             status(operational_path.as_ref())
                 .await
-                .expect("0a94fcc5")
+                .expect("0a94fcc5 operational_routes_are_root_mounted_and_api_routes_are_v1_mounted invariant must hold")
                 .status(),
             axum::http::StatusCode::NO_CONTENT
         );
         assert_eq!(
-            status("/v1/probe").await.expect("6bb8e3f5").status(),
+            status("/v1/probe").await.expect("6bb8e3f5 operational_routes_are_root_mounted_and_api_routes_are_v1_mounted invariant must hold").status(),
             axum::http::StatusCode::OK
         );
         assert_eq!(
-            status("/api/v1/probe").await.expect("11fd3e4a").status(),
+            status("/api/v1/probe").await.expect("11fd3e4a operational_routes_are_root_mounted_and_api_routes_are_v1_mounted invariant must hold").status(),
             axum::http::StatusCode::SEE_OTHER
         );
         assert_eq!(
-            status("/v1/health/live").await.expect("6e17db87").status(),
+            status("/v1/health/live").await.expect("6e17db87 operational_routes_are_root_mounted_and_api_routes_are_v1_mounted invariant must hold").status(),
             axum::http::StatusCode::SEE_OTHER
         );
     }
@@ -514,10 +514,10 @@ mod tests {
             axum::http::Request::builder()
                 .uri("/missing-page")
                 .body(axum::body::Body::empty())
-                .expect("cfe228d8"),
+                .expect("cfe228d8 missing_page_redirects_to_default_authentication_page invariant must hold"),
         )
         .await
-        .expect("bd9f2b00");
+        .expect("bd9f2b00 missing_page_redirects_to_default_authentication_page invariant must hold");
         assert_eq!(response.status(), axum::http::StatusCode::SEE_OTHER);
         assert_eq!(
             response.headers().get(axum::http::header::LOCATION),

@@ -180,7 +180,9 @@ where
 mod tests {
     #[test]
     fn pagination_starts_with_one_accepts_inclusive_boundaries() {
-        let pagination = super::PaginationStartsWithOne::try_new(2i64, 1i64).expect("007c805e");
+        let pagination = super::PaginationStartsWithOne::try_new(2i64, 1i64).expect(
+            "007c805e pagination_starts_with_one_accepts_inclusive_boundaries invariant must hold",
+        );
         assert_eq!(pagination.start().get(), 1i64);
         assert_eq!(pagination.end().get(), 3i64);
     }

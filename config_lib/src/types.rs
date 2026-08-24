@@ -194,7 +194,7 @@ where
 #[cfg(test)]
 mod tests {
     fn env_result(value: Result<String, std::env::VarError>) -> super::StdEnvVarResult {
-        super::StdEnvVarResult::try_from(value).expect("a4aa0c6f")
+        super::StdEnvVarResult::try_from(value).expect("a4aa0c6f env_result invariant must hold")
     }
     #[test]
     fn environment_result_rejects_values_above_shared_limit() {
@@ -304,7 +304,9 @@ mod tests {
         );
         assert_eq!(
             std::error::Error::source(&error)
-                .expect("e6fbfe6b")
+                .expect(
+                    "e6fbfe6b parse_from_env_var_with_wraps_missing_var_context invariant must hold"
+                )
                 .to_string(),
             "environment variable not found"
         );

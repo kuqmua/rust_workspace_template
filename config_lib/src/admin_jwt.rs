@@ -99,9 +99,9 @@ mod tests {
         let parsed =
             <super::AdminJwtSecret as super::super::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
                 super::super::StdEnvVarOk::try_from(format!("{first}, {second}"))
-                    .expect("12fd7c6a"),
+                    .expect("12fd7c6a parses_primary_and_verification_secrets invariant must hold"),
             )
-            .expect("2c18577d");
+            .expect("2c18577d parses_primary_and_verification_secrets invariant must hold");
         assert_eq!(parsed.verification_secrets().len(), 2usize);
         assert_eq!(
             parsed
@@ -118,7 +118,7 @@ mod tests {
                 super::super::StdEnvVarOk::try_from(String::from(
                     str_constants::TEST_EMPTY_DELIMITED_LIST,
                 ))
-                .expect("86c514b2"),
+                .expect("86c514b2 rejects_empty_effective_secret_list invariant must hold"),
             );
         assert!(matches!(
             result,
@@ -132,8 +132,9 @@ mod tests {
             str_constants::TEST_JWT_SECRET_CHARACTER_A.repeat(super::ADMIN_JWT_SECRET_MIN_LEN);
         let result =
             <super::AdminJwtSecret as super::super::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
-                super::super::StdEnvVarOk::try_from(format!("{secret},,{secret}"))
-                    .expect("9674829d"),
+                super::super::StdEnvVarOk::try_from(format!("{secret},,{secret}")).expect(
+                    "9674829d rejects_empty_secret_between_rotation_keys invariant must hold",
+                ),
             );
         assert!(matches!(
             result,

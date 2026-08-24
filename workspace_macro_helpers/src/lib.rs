@@ -542,7 +542,9 @@ mod tests {
             .try_insert_with(1u8, || {
                 syn::Error::new(proc_macro2::Span::call_site(), str_constants::FIRST_ALT)
             })
-            .expect("12817d29");
+            .expect(
+                "12817d29 unique_option_set_preserves_first_span_aware_error invariant must hold",
+            );
         let error = values
             .try_insert_with(1u8, || {
                 syn::Error::new(proc_macro2::Span::call_site(), str_constants::DUPLICATE)

@@ -49,14 +49,15 @@ fn server_error_response_preserves_http_diagnostic() {
         ))
     );
     let body = futures::executor::block_on(axum::body::to_bytes(response.into_body(), 16_384usize))
-        .expect("8770f4d3");
-    let contract_problem =
-        serde_json::from_slice::<frontend_contract::ApiProblem>(&body).expect("4f705ab8");
+        .expect("8770f4d3 server_error_response_preserves_http_diagnostic invariant must hold");
+    let contract_problem = serde_json::from_slice::<frontend_contract::ApiProblem>(&body)
+        .expect("4f705ab8 server_error_response_preserves_http_diagnostic invariant must hold");
     assert_eq!(
         contract_problem.kind(),
         frontend_contract::ApiProblemKind::Internal
     );
-    let problem = serde_json::from_slice::<serde_json::Value>(&body).expect("1e7ec09d");
+    let problem = serde_json::from_slice::<serde_json::Value>(&body)
+        .expect("1e7ec09d server_error_response_preserves_http_diagnostic invariant must hold");
     [
         "location",
         "error_location",
@@ -79,18 +80,20 @@ fn session_context_hash_is_bound_to_peer_and_user_agent() {
     let first_peer = super::AdminPeerAddr::from(super::super::StdAdminSocketAddr::from(
         str_constants::VALUE_192_0_2_10_443
             .parse::<std::net::SocketAddr>()
-            .expect("f133a4ca"),
+            .expect(
+                "f133a4ca session_context_hash_is_bound_to_peer_and_user_agent invariant must hold",
+            ),
     ));
     let same_context_hash = super::session_context_hash(
         super::super::HttpAdminHeaderMapRef::from(&first_headers),
         first_peer,
     )
-    .expect("14f0aa2d");
+    .expect("14f0aa2d session_context_hash_is_bound_to_peer_and_user_agent invariant must hold");
     let repeated_context_hash = super::session_context_hash(
         super::super::HttpAdminHeaderMapRef::from(&first_headers),
         first_peer,
     )
-    .expect("998805c8");
+    .expect("998805c8 session_context_hash_is_bound_to_peer_and_user_agent invariant must hold");
     assert_eq!(
         secrecy::ExposeSecret::expose_secret(same_context_hash.0.as_ref()),
         secrecy::ExposeSecret::expose_secret(repeated_context_hash.0.as_ref()),
@@ -98,13 +101,15 @@ fn session_context_hash_is_bound_to_peer_and_user_agent() {
     let other_peer = super::AdminPeerAddr::from(super::super::StdAdminSocketAddr::from(
         str_constants::VALUE_192_0_2_11_443
             .parse::<std::net::SocketAddr>()
-            .expect("5a831a2f"),
+            .expect(
+                "5a831a2f session_context_hash_is_bound_to_peer_and_user_agent invariant must hold",
+            ),
     ));
     let other_peer_hash = super::session_context_hash(
         super::super::HttpAdminHeaderMapRef::from(&first_headers),
         other_peer,
     )
-    .expect("0803469a");
+    .expect("0803469a session_context_hash_is_bound_to_peer_and_user_agent invariant must hold");
     assert_ne!(
         secrecy::ExposeSecret::expose_secret(same_context_hash.0.as_ref()),
         secrecy::ExposeSecret::expose_secret(other_peer_hash.0.as_ref()),
@@ -118,7 +123,7 @@ fn session_context_hash_is_bound_to_peer_and_user_agent() {
         super::super::HttpAdminHeaderMapRef::from(&other_headers),
         first_peer,
     )
-    .expect("90ce47ee");
+    .expect("90ce47ee session_context_hash_is_bound_to_peer_and_user_agent invariant must hold");
     assert_ne!(
         secrecy::ExposeSecret::expose_secret(same_context_hash.0.as_ref()),
         secrecy::ExposeSecret::expose_secret(other_user_agent_hash.0.as_ref()),
@@ -127,15 +132,19 @@ fn session_context_hash_is_bound_to_peer_and_user_agent() {
 #[test]
 fn audit_resource_identifier_uses_target_identifier() {
     assert_eq!(
-        super::AdminAuditResourceId::User(crate::AdminUserId::try_from(42i64).expect("423b91b9"),)
-            .value()
-            .as_ref(),
+        super::AdminAuditResourceId::User(crate::AdminUserId::try_from(42i64).expect(
+            "423b91b9 audit_resource_identifier_uses_target_identifier invariant must hold"
+        ),)
+        .value()
+        .as_ref(),
         "42"
     );
     assert_eq!(
-        super::AdminAuditResourceId::Role(crate::AdminRoleId::try_from(7i64).expect("af8df9d2"),)
-            .value()
-            .as_ref(),
+        super::AdminAuditResourceId::Role(crate::AdminRoleId::try_from(7i64).expect(
+            "af8df9d2 audit_resource_identifier_uses_target_identifier invariant must hold"
+        ),)
+        .value()
+        .as_ref(),
         "7"
     );
     assert_eq!(
@@ -148,13 +157,13 @@ fn open_api_contains_auth_and_user_security_contracts() {
     frontend_contract_validation::validate_openapi_schema_references(
         &utoipa::openapi::OpenApi::from(super::open_api()),
     )
-    .expect("2151641d");
-    let document =
-        serde_json::to_value(utoipa::openapi::OpenApi::from(super::open_api())).expect("869d28d7");
+    .expect("2151641d open_api_contains_auth_and_user_security_contracts invariant must hold");
+    let document = serde_json::to_value(utoipa::openapi::OpenApi::from(super::open_api()))
+        .expect("869d28d7 open_api_contains_auth_and_user_security_contracts invariant must hold");
     let paths = document
         .get(str_constants::PATHS)
         .and_then(serde_json::Value::as_object)
-        .expect("6e15edec");
+        .expect("6e15edec open_api_contains_auth_and_user_security_contracts invariant must hold");
     assert_eq!(paths.len(), 22usize);
     assert!(!paths.contains_key("/auth/mfa"));
     assert!(!paths.contains_key("/auth/mfa/enroll"));
@@ -173,7 +182,7 @@ fn open_api_contains_auth_and_user_security_contracts() {
                         operation
                             .get(str_constants::OPERATION_ID_JSON)
                             .and_then(serde_json::Value::as_str)
-                            .expect("4252acc8")
+                            .expect("4252acc8 open_api_contains_auth_and_user_security_contracts invariant must hold")
                             .to_owned(),
                         path.to_owned(),
                     )
@@ -260,7 +269,7 @@ fn open_api_contains_auth_and_user_security_contracts() {
             "{}{}",
             str_constants::OPENAPI_REQUEST_BODY_MAXIMUM_BYTES_PREFIX,
             <server_admin_contract::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::body_limit()
-                .expect("be105d90")
+                .expect("be105d90 open_api_contains_auth_and_user_security_contracts invariant must hold")
                 .get()
         );
     let request_body_descriptions = paths

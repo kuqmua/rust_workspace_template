@@ -8,9 +8,15 @@ fn model_can_be_parsed_and_validated_without_emitting_source() {
     let parsed = super::parse_generate_pg_types(
         macros_helpers::ts_writer::ProcMacro2TokenStreamRef::from(&input),
     )
-    .expect("35a0f719");
-    let built = super::build_generate_pg_types(parsed).expect("3c8d514f");
-    let validated = super::validate_generate_pg_types(built).expect("b24816de");
+    .expect(
+        "35a0f719 model_can_be_parsed_and_validated_without_emitting_source invariant must hold",
+    );
+    let built = super::build_generate_pg_types(parsed).expect(
+        "3c8d514f model_can_be_parsed_and_validated_without_emitting_source invariant must hold",
+    );
+    let validated = super::validate_generate_pg_types(built).expect(
+        "b24816de model_can_be_parsed_and_validated_without_emitting_source invariant must hold",
+    );
     assert_eq!(usize::from(validated.entry_count()), 2usize);
 }
 
@@ -31,6 +37,8 @@ fn generated_type_list_deserialization_rejects_too_many_entries() {
         super::PgType::I16AsInt2;
         super::GENERATE_PG_TYPES_MAX_LEN + 1usize
     ])
-    .expect("7cd2e0af");
+    .expect(
+        "7cd2e0af generated_type_list_deserialization_rejects_too_many_entries invariant must hold",
+    );
     let _error = serde_json::from_str::<super::GeneratePgTypes>(&serialized).expect_err("40b96aa2");
 }

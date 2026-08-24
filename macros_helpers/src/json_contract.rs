@@ -88,7 +88,7 @@ mod tests {
         super::ensure_json_contract_round_trip::<TestValue>(super::JsonFixtureRef::from(
             str_constants::VALUE_1_ALT,
         ))
-        .expect("7557a4b4");
+        .expect("7557a4b4 round_trip_and_fixture_error_phases_are_stable invariant must hold");
         assert!(matches!(
             super::ensure_json_contract_round_trip::<TestValue>(super::JsonFixtureRef::from("{")),
             Err(super::ContractError::DeserializeFixture(_))

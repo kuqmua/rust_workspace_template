@@ -635,7 +635,7 @@ mod tests {
                 str_constants::TEST_OPENAPI_OPERATION_ID.into(),
                 str_constants::TEST_OPENAPI_PATH.into(),
             ),
-            super::OpenApiResponseStatus::try_from(200u16).expect("9f6e9528"),
+            super::OpenApiResponseStatus::try_from(200u16).expect("9f6e9528 operation_security_status_and_content_type_are_checked invariant must hold"),
             str_constants::APPLICATION_JSON.into(),
             super::OpenApiSecurityExpectation::Public,
         );

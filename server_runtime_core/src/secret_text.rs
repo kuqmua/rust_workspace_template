@@ -101,7 +101,8 @@ pub fn secret_texts_match(
 #[cfg(test)]
 mod tests {
     fn secret(value: &str) -> super::BoundedSecretText {
-        super::BoundedSecretText::try_from(value.to_owned()).expect("2c20f43d")
+        super::BoundedSecretText::try_from(value.to_owned())
+            .expect("2c20f43d secret invariant must hold")
     }
 
     #[test]

@@ -295,7 +295,7 @@ mod tests {
     #[test]
     fn service_base_url_normalizes_trailing_slashes() {
         let base_url = super::ServiceBaseUrl::try_from(String::from("http://127.0.0.1:8080///"))
-            .expect("087da3f2");
+            .expect("087da3f2 service_base_url_normalizes_trailing_slashes invariant must hold");
         assert_eq!(base_url.as_ref(), "http://127.0.0.1:8080");
     }
 
@@ -313,11 +313,11 @@ mod tests {
 
     #[test]
     fn route_url_uses_contract_path() {
-        let base_url =
-            super::ServiceBaseUrl::try_from(String::from("http://application")).expect("6cde5062");
+        let base_url = super::ServiceBaseUrl::try_from(String::from("http://application"))
+            .expect("6cde5062 route_url_uses_contract_path invariant must hold");
         assert_eq!(
             super::route_url(&base_url, common_routes::CommonRoute::HealthLive.path())
-                .expect("ea911c48"),
+                .expect("ea911c48 route_url_uses_contract_path invariant must hold"),
             super::RuntimeTestUrl(String::from("http://application/health/live"))
         );
     }

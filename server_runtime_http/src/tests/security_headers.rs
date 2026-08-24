@@ -5,13 +5,13 @@ async fn only_trusts_forwarded_proto_when_configured() {
             .uri(str_constants::V1_TEST)
             .header(str_constants::X_FORWARDED_PROTO, str_constants::HTTPS)
             .body(axum::body::Body::empty())
-            .expect("94149bdd")
+            .expect("94149bdd only_trusts_forwarded_proto_when_configured invariant must hold")
     };
     let make_router = |trust| {
         let policy = super::super::HttpContentSecurityPolicy::try_from(
             str_constants::TEST_CONTENT_SECURITY_POLICY.to_owned(),
         )
-        .expect("abf8cd24");
+        .expect("abf8cd24 only_trusts_forwarded_proto_when_configured invariant must hold");
         axum::Router::from(
             super::super::SecurityHeadersLayer::from(trust)
                 .with_content_security_policy(policy)
@@ -26,7 +26,7 @@ async fn only_trusts_forwarded_proto_when_configured() {
         make_request(),
     )
     .await
-    .expect("8c89e84f");
+    .expect("8c89e84f only_trusts_forwarded_proto_when_configured invariant must hold");
     assert!(
         ignored_response
             .headers()
@@ -38,7 +38,7 @@ async fn only_trusts_forwarded_proto_when_configured() {
         make_request(),
     )
     .await
-    .expect("db05c4be");
+    .expect("db05c4be only_trusts_forwarded_proto_when_configured invariant must hold");
     assert!(
         trusted_response
             .headers()
@@ -103,10 +103,10 @@ async fn marks_credentials_as_sensitive() {
                 str_constants::TEST_BEARER_AUTHORIZATION,
             )
             .body(axum::body::Body::empty())
-            .expect("703affc9"),
+            .expect("703affc9 marks_credentials_as_sensitive invariant must hold"),
     )
     .await
-    .expect("c975d44e");
+    .expect("c975d44e marks_credentials_as_sensitive invariant must hold");
     assert!(
         response
             .headers()

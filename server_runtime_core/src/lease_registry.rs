@@ -236,10 +236,10 @@ fn validate_lease_text(value: LeaseTextRef<'_>) -> Result<(), LeaseTextError> {
 #[cfg(test)]
 mod tests {
     fn id(value: &str) -> super::LeaseId {
-        super::LeaseId::try_from(value.to_owned()).expect("f1f58adc")
+        super::LeaseId::try_from(value.to_owned()).expect("f1f58adc id invariant must hold")
     }
     fn key(value: &str) -> super::LeaseKey {
-        super::LeaseKey::try_from(value.to_owned()).expect("699f4283")
+        super::LeaseKey::try_from(value.to_owned()).expect("699f4283 key invariant must hold")
     }
     fn maximum() -> super::StdLeaseRegistryMaximum {
         super::StdLeaseRegistryMaximum::from(std::num::NonZeroUsize::MIN)
@@ -292,8 +292,9 @@ mod tests {
         tokio::time::advance(std::time::Duration::from_secs(2u64)).await;
         let stale = registry
             .stale(
-                super::StdLeaseStaleTimeout::try_from(std::time::Duration::from_secs(1u64))
-                    .expect("8cb64054"),
+                super::StdLeaseStaleTimeout::try_from(std::time::Duration::from_secs(1u64)).expect(
+                    "8cb64054 heartbeat_and_stale_transition_are_observable invariant must hold",
+                ),
             )
             .await;
         assert_eq!(stale.as_ref(), std::slice::from_ref(&lease_id));

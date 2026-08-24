@@ -56,12 +56,16 @@ mod tests {
     #[test]
     fn guard_prevents_overlap_and_releases_on_drop() {
         let run = super::ExclusiveRun::new();
-        let guard = run.try_acquire().expect("9b776c85");
+        let guard = run
+            .try_acquire()
+            .expect("9b776c85 guard_prevents_overlap_and_releases_on_drop invariant must hold");
         assert!(matches!(
             run.try_acquire(),
             Err(super::ExclusiveRunAlreadyActive)
         ));
         drop(guard);
-        let _next_guard = run.try_acquire().expect("d43a617d");
+        let _next_guard = run
+            .try_acquire()
+            .expect("d43a617d guard_prevents_overlap_and_releases_on_drop invariant must hold");
     }
 }

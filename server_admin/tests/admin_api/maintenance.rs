@@ -1,45 +1,52 @@
 #[tokio::test]
 #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
 async fn postgresql_optimistic_revision_allows_one_concurrent_writer() {
-    let database_url = std::env::var(str_constants::ENV_NAMES_DATABASE_URL).expect("63a09eec");
+    let database_url = std::env::var(str_constants::ENV_NAMES_DATABASE_URL).expect(
+        "63a09eec postgresql_optimistic_revision_allows_one_concurrent_writer invariant must hold",
+    );
     let pool = sqlx::postgres::PgPoolOptions::new()
         .max_connections(4u32)
         .connect(database_url.as_str())
         .await
-        .expect("2480f8c4");
-    let _drop_before =
-        sqlx::query(str_constants::DROP_TABLE_IF_EXISTS_PG_TABLE_OPTIMISTIC_REVISION_TEST)
-            .execute(&pool)
-            .await
-            .expect("e5e1f7cb");
+        .expect("2480f8c4 postgresql_optimistic_revision_allows_one_concurrent_writer invariant must hold");
+    let _drop_before = sqlx::query(
+        str_constants::DROP_TABLE_IF_EXISTS_PG_TABLE_OPTIMISTIC_REVISION_TEST,
+    )
+    .execute(&pool)
+    .await
+    .expect(
+        "e5e1f7cb postgresql_optimistic_revision_allows_one_concurrent_writer invariant must hold",
+    );
     let _create = sqlx::query(str_constants::CREATE_TABLE_PG_TABLE_OPTIMISTIC_REVISION_TEST_ID_BIGINT_PRIMARY_KEY_REVISION)
         .execute(&pool)
         .await
-        .expect("a75bc224");
+        .expect("a75bc224 postgresql_optimistic_revision_allows_one_concurrent_writer invariant must hold");
     let _insert = sqlx::query(
         str_constants::INSERT_INTO_PG_TABLE_OPTIMISTIC_REVISION_TEST_ID_REVISION_VALUE_VALUES_1,
     )
     .execute(&pool)
     .await
-    .expect("da271038");
+    .expect(
+        "da271038 postgresql_optimistic_revision_allows_one_concurrent_writer invariant must hold",
+    );
     let update = str_constants::UPDATE_PG_TABLE_OPTIMISTIC_REVISION_TEST_SET_VALUE_DOLLAR_1_REVISION_REVISION;
     let (left, right) = tokio::join!(
         sqlx::query_scalar::<_, i64>(update)
             .bind(1i64)
             .bind(
                 pg_table::PgTableRevision::try_from(str_constants::VALUE_0.to_owned())
-                    .expect("979fa4b2")
+                    .expect("979fa4b2 postgresql_optimistic_revision_allows_one_concurrent_writer invariant must hold")
             )
             .fetch_optional(&pool),
         sqlx::query_scalar::<_, i64>(update)
             .bind(2i64)
             .bind(
                 pg_table::PgTableRevision::try_from(str_constants::VALUE_0.to_owned())
-                    .expect("589ea31d")
+                    .expect("589ea31d postgresql_optimistic_revision_allows_one_concurrent_writer invariant must hold")
             )
             .fetch_optional(&pool),
     );
-    let outcomes = [left.expect("a1a1382a"), right.expect("8406b933")];
+    let outcomes = [left.expect("a1a1382a postgresql_optimistic_revision_allows_one_concurrent_writer invariant must hold"), right.expect("8406b933 postgresql_optimistic_revision_allows_one_concurrent_writer invariant must hold")];
     assert_eq!(
         outcomes.iter().filter(|value| value.is_some()).count(),
         1usize
@@ -50,78 +57,78 @@ async fn postgresql_optimistic_revision_allows_one_concurrent_writer() {
         )
         .fetch_one(&pool)
         .await
-        .expect("c0f01a04"),
+        .expect("c0f01a04 postgresql_optimistic_revision_allows_one_concurrent_writer invariant must hold"),
         1i64
     );
     let stale = sqlx::query_scalar::<_, i64>(update)
         .bind(3i64)
         .bind(
             pg_table::PgTableRevision::try_from(str_constants::VALUE_0.to_owned())
-                .expect("a3a08aeb"),
+                .expect("a3a08aeb postgresql_optimistic_revision_allows_one_concurrent_writer invariant must hold"),
         )
         .fetch_optional(&pool)
         .await
-        .expect("964e3ef4");
+        .expect("964e3ef4 postgresql_optimistic_revision_allows_one_concurrent_writer invariant must hold");
     assert_eq!(stale, None);
     let _drop_after = sqlx::query(str_constants::DROP_TABLE_PG_TABLE_OPTIMISTIC_REVISION_TEST)
         .execute(&pool)
         .await
-        .expect("a4d77f54");
+        .expect("a4d77f54 postgresql_optimistic_revision_allows_one_concurrent_writer invariant must hold");
 }
 #[tokio::test]
 #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
 async fn postgresql_cleanup_is_batched_and_preserves_append_only_policy() {
-    let database_url = std::env::var(str_constants::ENV_NAMES_DATABASE_URL).expect("7316cf4d");
+    let database_url = std::env::var(str_constants::ENV_NAMES_DATABASE_URL).expect("7316cf4d postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
     let pool = sqlx::postgres::PgPoolOptions::new()
         .max_connections(3u32)
         .connect(database_url.as_str())
         .await
-        .expect("f6a51733");
-    let mut admin_db_test_lock = pool.begin().await.expect("847caf57");
+        .expect("f6a51733 postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
+    let mut admin_db_test_lock = pool.begin().await.expect("847caf57 postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
     let _locked = sqlx::query(str_constants::SELECT_PG_ADVISORY_XACT_LOCK_ADMIN_TESTS)
         .execute(&mut *admin_db_test_lock)
         .await
-        .expect("8c298fef");
-    let mut idempotency_test_isolation = pool.begin().await.expect("f56c4c85");
+        .expect("8c298fef postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
+    let mut idempotency_test_isolation = pool.begin().await.expect("f56c4c85 postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
     pg_crud_common::lock_pg_relation_resources(
         pg_crud_common::SqlxPgRelationLockConnectionRef::from(&mut *idempotency_test_isolation),
         &pg_crud_common::PgRelationLockNamespace::try_from(str_constants::ACTOR_ATOMIC.to_owned())
-            .expect("861fe23d"),
+            .expect("861fe23d postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold"),
         &pg_crud_common::PgRelationResourceIds::try_from(vec![
             pg_crud_common::PgRelationResourceId::from(1i64),
         ])
-        .expect("a18f804c"),
+        .expect("a18f804c postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold"),
     )
     .await
-    .expect("fab61374");
+    .expect("fab61374 postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
     server_admin::prep_pg(app_state::SqlxPgPoolRef::from(&pool))
         .await
-        .expect("029cb682");
+        .expect("029cb682 postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
     pg_table::ensure_pg_table_idempotency_schema(app_state::SqlxPgPoolRef::from(&pool))
         .await
-        .expect("eb08dffc");
+        .expect("eb08dffc postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
     let _clear = sqlx::query(str_constants::TRUNCATE_ADMIN_ACCESS_SESSIONS_ADMIN_REFRESH_TOKENS_ADMIN_LOGIN_ATTEMPTS_ADMIN_RATE)
         .execute(&pool)
         .await
-        .expect("e1b22572");
+        .expect("e1b22572 postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
     let _attempts = sqlx::query(str_constants::INSERT_INTO_ADMIN_LOGIN_ATTEMPTS_LOGIN_SUCCEEDED_ATTEMPTED_AT_SELECT_OLD_VALUE)
         .execute(&pool)
         .await
-        .expect("480b06eb");
+        .expect("480b06eb postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
     let _limits = sqlx::query(str_constants::INSERT_INTO_ADMIN_RATE_LIMITS_SCOPE_SUBJECT_WINDOW_STARTED_AT_REQUEST_COUNT_ALT)
         .execute(&pool)
         .await
-        .expect("0375574d");
+        .expect("0375574d postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
     let _audit = sqlx::query(
         str_constants::INSERT_INTO_ADMIN_AUDIT_LOG_ACTION_RESOURCE_SUCCEEDED_CREATED_AT_SELECT_TEST,
     )
     .execute(&pool)
     .await
-    .expect("f50ef817");
+    .expect("f50ef817 postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
     let retention =
-        server_admin::AdminCleanupRetentionSeconds::try_from(3_600i64).expect("ab892fc5");
+        server_admin::AdminCleanupRetentionSeconds::try_from(3_600i64).expect("ab892fc5 postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
     let config = server_admin::AdminCleanupCfg::new(
-        server_admin::AdminCleanupBatchSize::try_from(2i64).expect("1d97b31c"),
+        server_admin::AdminCleanupBatchSize::try_from(2i64).expect("1d97b31c postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold"),
         retention,
         retention,
         retention,
@@ -130,12 +137,12 @@ async fn postgresql_cleanup_is_batched_and_preserves_append_only_policy() {
     );
     let report = server_admin::cleanup_admin_tables(app_state::SqlxPgPoolRef::from(&pool), config)
         .await
-        .expect("a422e8d4");
+        .expect("a422e8d4 postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
     assert_eq!(report.total_rows().to_string(), "6");
     let remaining = sqlx::query_as::<_, (i64, i64, i64)>(str_constants::SELECT_SELECT_COUNT_ASTERISK_FROM_ADMIN_LOGIN_ATTEMPTS_SELECT_COUNT_ASTERISK_FROM)
         .fetch_one(&pool)
         .await
-        .expect("f37a3ab4");
+        .expect("f37a3ab4 postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
     assert_eq!(remaining, (1i64, 1i64, 1i64));
     let ordinary_delete = sqlx::query(str_constants::DELETE_FROM_ADMIN_AUDIT_LOG)
         .execute(&pool)
@@ -145,26 +152,27 @@ async fn postgresql_cleanup_is_batched_and_preserves_append_only_policy() {
 #[tokio::test]
 #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
 async fn postgresql_migration_creates_complete_schema() {
-    let database_url = std::env::var(str_constants::ENV_NAMES_DATABASE_URL).expect("b65d1786");
+    let database_url = std::env::var(str_constants::ENV_NAMES_DATABASE_URL)
+        .expect("b65d1786 postgresql_migration_creates_complete_schema invariant must hold");
     let base_pool = sqlx::postgres::PgPoolOptions::new()
         .max_connections(1u32)
         .connect(database_url.as_str())
         .await
-        .expect("0047f74e");
+        .expect("0047f74e postgresql_migration_creates_complete_schema invariant must hold");
     let _drop_schema =
         sqlx::raw_sql(str_constants::DROP_SCHEMA_IF_EXISTS_ADMIN_MIGRATION_FRESH_TEST_CASCADE)
             .execute(&base_pool)
             .await
-            .expect("df91b04d");
+            .expect("df91b04d postgresql_migration_creates_complete_schema invariant must hold");
     let _create_schema = sqlx::raw_sql(str_constants::CREATE_SCHEMA_ADMIN_MIGRATION_FRESH_TEST)
         .execute(&base_pool)
         .await
-        .expect("02bcd1c2");
+        .expect("02bcd1c2 postgresql_migration_creates_complete_schema invariant must hold");
     let connect = |schema: StdAdminApiTestStrRef<'static>| {
         let options = <sqlx::postgres::PgConnectOptions as std::str::FromStr>::from_str(
             database_url.as_str(),
         )
-        .expect("aa7735db")
+        .expect("aa7735db postgresql_migration_creates_complete_schema invariant must hold")
         .options([(str_constants::SEARCH_PATH, schema.0)]);
         sqlx::postgres::PgPoolOptions::new()
             .max_connections(1u32)
@@ -174,19 +182,21 @@ async fn postgresql_migration_creates_complete_schema() {
         str_constants::ADMIN_MIGRATION_FRESH_TEST,
     ));
     let full = sqlx::migrate!("./migrations");
-    full.run(&fresh_pool).await.expect("4b6c3bd6");
+    full.run(&fresh_pool)
+        .await
+        .expect("4b6c3bd6 postgresql_migration_creates_complete_schema invariant must hold");
     server_admin::generated_tables::validate_catalog_schema(
         pg_crud_common::SqlxPgPoolRef::from(&fresh_pool),
         pg_crud_common::DbSchemaNameRef::from(str_constants::ADMIN_MIGRATION_FRESH_TEST),
     )
     .await
-    .expect("fac299aa");
+    .expect("fac299aa postgresql_migration_creates_complete_schema invariant must hold");
     let catalog_snapshot = pg_crud_common::inspect_postgres_catalog(
         pg_crud_common::SqlxPgPoolRef::from(&fresh_pool),
         pg_crud_common::DbSchemaNameRef::from(str_constants::ADMIN_MIGRATION_FRESH_TEST),
     )
     .await
-    .expect("518b93e4");
+    .expect("518b93e4 postgresql_migration_creates_complete_schema invariant must hold");
     let fresh_pool_ref = &fresh_pool;
     let table_snapshots = futures::future::try_join_all(
         server_admin_contract::AdminDataTable::PG_ORDER
@@ -204,7 +214,7 @@ async fn postgresql_migration_creates_complete_schema() {
             }),
     )
     .await
-    .expect("34d80f68");
+    .expect("34d80f68 postgresql_migration_creates_complete_schema invariant must hold");
     let current_schema_snapshot = table_snapshots.into_iter().fold(
         format!(
             "# GENERATED FROM ORDERED SERVER ADMIN MIGRATIONS; DO NOT EDIT\n{catalog_snapshot:#?}\n"
@@ -221,10 +231,10 @@ async fn postgresql_migration_creates_complete_schema() {
             current_schema_snapshot_path.as_path(),
             current_schema_snapshot.as_bytes(),
         )
-        .expect("abe4d63f");
+        .expect("abe4d63f postgresql_migration_creates_complete_schema invariant must hold");
     }
-    let expected_current_schema_snapshot =
-        std::fs::read_to_string(current_schema_snapshot_path).expect("3af279e1");
+    let expected_current_schema_snapshot = std::fs::read_to_string(current_schema_snapshot_path)
+        .expect("3af279e1 postgresql_migration_creates_complete_schema invariant must hold");
     assert_eq!(
         current_schema_snapshot, expected_current_schema_snapshot,
         "cb6ce4a9 migration-derived PostgreSQL schema snapshot changed"
@@ -234,7 +244,7 @@ async fn postgresql_migration_creates_complete_schema() {
     )
     .fetch_one(&base_pool)
     .await
-    .expect("5c10c931");
+    .expect("5c10c931 postgresql_migration_creates_complete_schema invariant must hold");
     assert_eq!(version, 13i64);
     let expected_tables = server_admin_contract::AdminDataTable::PG_ORDER
         .map(|table| table.to_string())
@@ -246,7 +256,7 @@ async fn postgresql_migration_creates_complete_schema() {
     .bind(str_constants::ADMIN_MIGRATION_FRESH_TEST)
     .fetch_all(&base_pool)
     .await
-    .expect("ab254ff4")
+    .expect("ab254ff4 postgresql_migration_creates_complete_schema invariant must hold")
     .into_iter()
     .collect::<std::collections::BTreeSet<String>>();
     assert_eq!(fresh_tables, expected_tables);
@@ -254,7 +264,7 @@ async fn postgresql_migration_creates_complete_schema() {
     let _drop_after = sqlx::raw_sql(str_constants::DROP_SCHEMA_ADMIN_MIGRATION_FRESH_TEST_CASCADE)
         .execute(&base_pool)
         .await
-        .expect("88dd90b8");
+        .expect("88dd90b8 postgresql_migration_creates_complete_schema invariant must hold");
 }
 #[cfg(test)]
 use super::StdAdminApiTestStrRef;

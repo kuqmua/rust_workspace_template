@@ -5,7 +5,8 @@ fn validates_string_and_header_boundaries() {
         Err(super::super::RequestIdTryFromStringError)
     );
     let maximum = "a".repeat(128usize);
-    let request_id = super::super::RequestId::try_from(maximum.clone()).expect("3ff39236");
+    let request_id = super::super::RequestId::try_from(maximum.clone())
+        .expect("3ff39236 validates_string_and_header_boundaries invariant must hold");
     assert_eq!(request_id.to_string(), maximum);
     assert_eq!(
         super::super::RequestId::try_from("a".repeat(129usize)),
@@ -13,19 +14,23 @@ fn validates_string_and_header_boundaries() {
     );
     assert_eq!(
         super::super::RequestId::try_from(
-            String::from_utf8(vec![0xc3u8, 0xa9u8]).expect("f246e4f8")
+            String::from_utf8(vec![0xc3u8, 0xa9u8])
+                .expect("f246e4f8 validates_string_and_header_boundaries invariant must hold")
         ),
         Err(super::super::RequestIdTryFromStringError)
     );
     assert!(matches!(
         super::super::RequestId::try_from(
-            &http::HeaderValue::from_bytes(&[0xffu8]).expect("dcb3f9a8")
+            &http::HeaderValue::from_bytes(&[0xffu8])
+                .expect("dcb3f9a8 validates_string_and_header_boundaries invariant must hold")
         ),
         Err(super::super::RequestIdTryFromHttpHeaderValueError::ToStr(_))
     ));
     assert_eq!(
-        http::HeaderValue::try_from(&request_id).expect("b0a0854a"),
-        http::HeaderValue::from_str(maximum.as_str()).expect("07132954")
+        http::HeaderValue::try_from(&request_id)
+            .expect("b0a0854a validates_string_and_header_boundaries invariant must hold"),
+        http::HeaderValue::from_str(maximum.as_str())
+            .expect("07132954 validates_string_and_header_boundaries invariant must hold")
     );
 }
 
@@ -49,10 +54,10 @@ async fn layer_propagates_existing_and_generated_values() {
                 existing.clone(),
             )
             .body(axum::body::Body::empty())
-            .expect("319b3cb4"),
+            .expect("319b3cb4 layer_propagates_existing_and_generated_values invariant must hold"),
     )
     .await
-    .expect("d5a0693b");
+    .expect("d5a0693b layer_propagates_existing_and_generated_values invariant must hold");
     assert_eq!(
         existing_response
             .headers()
@@ -70,14 +75,14 @@ async fn layer_propagates_existing_and_generated_values() {
         axum::extract::Request::builder()
             .uri(str_constants::SLASH)
             .body(axum::body::Body::empty())
-            .expect("27ce5fbd"),
+            .expect("27ce5fbd layer_propagates_existing_and_generated_values invariant must hold"),
     )
     .await
-    .expect("4cd32371");
+    .expect("4cd32371 layer_propagates_existing_and_generated_values invariant must hold");
     let generated = generated_response
         .headers()
         .get(str_constants::HTTP_HEADER_NAMES_X_REQUEST_ID)
-        .expect("12ed6f85");
+        .expect("12ed6f85 layer_propagates_existing_and_generated_values invariant must hold");
     assert_eq!(generated.as_bytes().len(), 36usize);
     assert_eq!(
         generated_response

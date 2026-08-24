@@ -149,7 +149,7 @@ fn revision_rejects_invalid_and_negative_values() {
     ));
     assert_eq!(
         super::PgTableRevision::try_from("7".to_owned())
-            .expect("63520e0f")
+            .expect("63520e0f revision_rejects_invalid_and_negative_values invariant must hold")
             .to_string(),
         "7"
     );

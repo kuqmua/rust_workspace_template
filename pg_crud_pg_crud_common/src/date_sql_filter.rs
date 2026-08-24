@@ -142,17 +142,17 @@ mod tests {
     #[test]
     fn date_bounds_have_ordered_bind_indices_and_values() {
         let from = chrono::DateTime::parse_from_rfc3339(str_constants::TEST_DATE_SQL_FROM)
-            .expect("69ee8323")
+            .expect("69ee8323 date_bounds_have_ordered_bind_indices_and_values invariant must hold")
             .to_utc();
         let to = chrono::DateTime::parse_from_rfc3339(str_constants::TEST_DATE_SQL_TO)
-            .expect("91eae791")
+            .expect("91eae791 date_bounds_have_ordered_bind_indices_and_values invariant must hold")
             .to_utc();
         let filter = super::build_date_sql_filter(
             None,
             super::DateFilterBounds::new(Some((&from).into()), Some((&to).into()), None, None),
             std::num::NonZeroU32::MIN.into(),
         )
-        .expect("512fa2fb");
+        .expect("512fa2fb date_bounds_have_ordered_bind_indices_and_values invariant must hold");
         let (fragment, values) = filter.into_parts();
         assert_eq!(fragment.into_inner(), str_constants::TEST_DATE_SQL_FILTER);
         assert_eq!(values.as_ref(), &[from, to]);

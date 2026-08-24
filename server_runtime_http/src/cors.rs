@@ -66,7 +66,7 @@ mod tests {
             super::parse_cors_allow_origin(super::HttpCorsAllowOriginTextRef::from(
                 " https://a.example , https://b.example ",
             ))
-            .expect("d8a0e140"),
+            .expect("d8a0e140 parser_trims_valid_origins invariant must hold"),
         );
         assert_eq!(
             parsed,
@@ -82,7 +82,7 @@ mod tests {
             super::parse_cors_allow_origin(super::HttpCorsAllowOriginTextRef::from(
                 str_constants::PG_CRUD_EMPTY_SQL_SUFFIX,
             ))
-            .expect("3b681d57"),
+            .expect("3b681d57 parser_preserves_empty_configuration_behavior invariant must hold"),
         );
         assert!(parsed.is_empty());
     }

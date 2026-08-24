@@ -67,6 +67,6 @@ pub(crate) fn assert_file_content(path: StdAssertFilePath<'_>, exp: ExpectedFile
         server_runtime_http::BoundedReadMaximumBytes::from(exp.0.len()),
     )
     .and_then(server_runtime_http::BoundedText::try_from)
-    .expect("d5ec6712");
+    .expect("d5ec6712 assert_file_content invariant must hold");
     assert_eq!(cnt.as_ref(), exp.0);
 }

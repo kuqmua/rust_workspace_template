@@ -222,12 +222,12 @@ mod tests {
     #[test]
     fn positive_values_and_token_text_preserve_validation() {
         let ttl = <super::AdminAccessTokenTtlSeconds as super::super::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
-            super::super::StdEnvVarOk::try_from(String::from("1")).expect("f39b6c2a"),
+            super::super::StdEnvVarOk::try_from(String::from("1")).expect("f39b6c2a positive_values_and_token_text_preserve_validation invariant must hold"),
         )
-        .expect("de4810af");
+        .expect("de4810af positive_values_and_token_text_preserve_validation invariant must hold");
         assert_eq!(ttl.0.0.get(), 1u64);
         let zero = <super::AdminAccessTokenTtlSeconds as super::super::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
-            super::super::StdEnvVarOk::try_from(String::from("0")).expect("a48e903d"),
+            super::super::StdEnvVarOk::try_from(String::from("0")).expect("a48e903d positive_values_and_token_text_preserve_validation invariant must hold"),
         );
         assert!(matches!(
             zero,
@@ -235,9 +235,9 @@ mod tests {
         ));
         let issuer =
             <super::AdminTokenIssuer as super::super::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
-                super::super::StdEnvVarOk::try_from(String::from("issuer")).expect("01f2db8a"),
+                super::super::StdEnvVarOk::try_from(String::from("issuer")).expect("01f2db8a positive_values_and_token_text_preserve_validation invariant must hold"),
             )
-            .expect("80c5df37");
+            .expect("80c5df37 positive_values_and_token_text_preserve_validation invariant must hold");
         assert_eq!(issuer.as_ref(), "issuer");
     }
 }

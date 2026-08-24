@@ -71,7 +71,7 @@ pub fn location(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
         Unnamed,
     }
     panic_location::panic_location();
-    let di: syn::DeriveInput = syn::parse(input).expect("d94f091a");
+    let di: syn::DeriveInput = syn::parse(input).expect("d94f091a location invariant must hold");
     let utoipa_to_schema_token_stream = di
         .attrs
         .iter()
@@ -129,7 +129,7 @@ pub fn location(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                 },
                 syn::Fields::Unit => panic!("2f2e9385"),
             });
-        all_eq.expect("b9da972a")
+        all_eq.expect("b9da972a location invariant must hold")
     };
     let maybe_generic_parameters_token_stream = if generic_parameters.is_empty() {
         proc_macro2::TokenStream::new()
@@ -179,8 +179,8 @@ pub fn location(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                     };
                     let fields_idents_excluding_location_token_stream = {
                         let accumulator_token_stream = fields.iter()
-                        .filter(|el0| *el0.ident.as_ref().expect("07504636") != *location_snake_case_str)
-                        .map(|el0| el0.ident.as_ref().expect("971ace15"))
+                        .filter(|el0| *el0.ident.as_ref().expect("07504636 location invariant must hold") != *location_snake_case_str)
+                        .map(|el0| el0.ident.as_ref().expect("971ace15 location invariant must hold"))
                         .collect::<Vec<&syn::Ident>>();
                         if accumulator_token_stream.is_empty() {
                             proc_macro2::TokenStream::new()
@@ -191,11 +191,11 @@ pub fn location(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                     };
                     let fields_format_excluding_location_token_stream = generate_quotes::dq_token_stream(
                         &fields.iter()
-                        .filter(|el0| *el0.ident.as_ref().expect("3d70a4f4") != *location_snake_case_str)
+                        .filter(|el0| *el0.ident.as_ref().expect("3d70a4f4 location invariant must hold") != *location_snake_case_str)
                         .fold(
                             String::new(),
                             |mut accumulator, el0| {
-                                let el0_identifier = &el0.ident.as_ref().expect("2e7cd5fe");
+                                let el0_identifier = &el0.ident.as_ref().expect("2e7cd5fe location invariant must hold");
                                 assert!(
                                     std::fmt::Write::write_fmt(
                                         &mut accumulator,
@@ -208,10 +208,10 @@ pub fn location(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                         )
                     );
                     let fields_format_vs_excluding_location_token_stream = fields.iter()
-                    .filter(|el0| *el0.ident.as_ref().expect("f6f6fb24") != *location_snake_case_str)
+                    .filter(|el0| *el0.ident.as_ref().expect("f6f6fb24 location invariant must hold") != *location_snake_case_str)
                     .map(|el0| {
-                        let el0_identifier = &el0.ident.as_ref().expect("e97b25b9");
-                        match macros_helpers::location_data::LocationFieldAttr::try_from(el0).expect("8ff56aeb") {
+                        let el0_identifier = &el0.ident.as_ref().expect("e97b25b9 location invariant must hold");
+                        match macros_helpers::location_data::LocationFieldAttr::try_from(el0).expect("8ff56aeb location invariant must hold") {
                             macros_helpers::location_data::LocationFieldAttr::EoToErrString | macros_helpers::location_data::LocationFieldAttr::EoToErrStringSerde => {
                                 quote::quote! {
                                     to_err_string::ToErrString::to_err_string(#el0_identifier)
@@ -375,13 +375,13 @@ pub fn location(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                     let fields_idents_token_stream = fields.iter().map(|el0| &el0.ident);
                     let fields_token_stream = fields.iter()
                     .map(|el0| {
-                        let el0_identifier = &el0.ident.as_ref().expect("9a672ac2");
+                        let el0_identifier = &el0.ident.as_ref().expect("9a672ac2 location invariant must hold");
                         if **el0_identifier == *location_snake_case_str {
                             quote::quote! {#el0_identifier}
                         }
                         else {
                             let generate_field_token_stream = |ts: &dyn quote::ToTokens|quote::quote! {#el0_identifier: {#ts}};
-                            match macros_helpers::location_data::LocationFieldAttr::try_from(el0).expect("449c3781") {
+                            match macros_helpers::location_data::LocationFieldAttr::try_from(el0).expect("449c3781 location invariant must hold") {
                                 macros_helpers::location_data::LocationFieldAttr::EoToErrString => generate_field_token_stream(&quote::quote! {
                                     to_err_string::ToErrString::to_err_string(&#el0_identifier).into_inner()
                                 }),
@@ -506,13 +506,17 @@ pub fn location(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                             "{}{}",
                             {
                                 assert!(fields.len() == 1, "d7a6b955");
-                                let field_type = &fields.iter().next().expect("8a80c36d").ty;
+                                let field_type = &fields
+                                    .iter()
+                                    .next()
+                                    .expect("8a80c36d location invariant must hold")
+                                    .ty;
                                 quote::quote! {#field_type}.to_string()
                             },
                             naming::WithSerdeUpperCamelCase
                         )
                         .parse::<proc_macro2::TokenStream>()
-                        .expect("9ff40f7e")
+                        .expect("9ff40f7e location invariant must hold")
                     };
                     quote::quote! {#element_identifier(#inner_type_with_serde_token_stream)}
                 });
@@ -563,7 +567,8 @@ mod tests {
                 Second {},
             }
         };
-        super::add_location_fields(super::SynItemEnumMutRef::from(&mut item)).expect("74c1509e");
+        super::add_location_fields(super::SynItemEnumMutRef::from(&mut item))
+            .expect("74c1509e adds_location_to_every_named_variant invariant must hold");
         assert_eq!(
             quote::quote! {#item}.to_string(),
             quote::quote! {

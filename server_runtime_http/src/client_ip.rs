@@ -234,7 +234,8 @@ pub fn resolve_header_text<'header>(
 #[cfg(test)]
 mod tests {
     fn range(value: &str) -> super::TrustedProxyRange {
-        super::TrustedProxyRange::try_from(value.to_owned()).expect("46cc9e0a")
+        super::TrustedProxyRange::try_from(value.to_owned())
+            .expect("46cc9e0a range invariant must hold")
     }
     fn resolved(
         headers: &http::HeaderMap,
@@ -246,9 +247,10 @@ mod tests {
             super::StdSocketAddr::from(
                 peer_value
                     .parse::<std::net::SocketAddr>()
-                    .expect("262819a8"),
+                    .expect("262819a8 resolved invariant must hold"),
             ),
-            &super::TrustedProxyRanges::try_from(ranges).expect("38546d0b"),
+            &super::TrustedProxyRanges::try_from(ranges)
+                .expect("38546d0b resolved invariant must hold"),
         )
         .to_string()
     }
@@ -266,14 +268,16 @@ mod tests {
         let ranges = super::parse_trusted_proxy_ranges(super::TrustedProxyRangesTextRef::from(
             str_constants::VALUE_127_0_0_1_32_PATH_1_128,
         ))
-        .expect("60ad1a64");
+        .expect(
+            "60ad1a64 trusted_proxy_ranges_text_parses_comma_separated_ranges invariant must hold",
+        );
         assert_eq!(
             super::resolve_client_ip(
                 super::HttpHeaderMapRef::from(&http::HeaderMap::new()),
                 super::StdSocketAddr::from(
                     "127.0.0.1:8080"
                         .parse::<std::net::SocketAddr>()
-                        .expect("a6f1a8f9")
+                        .expect("a6f1a8f9 trusted_proxy_ranges_text_parses_comma_separated_ranges invariant must hold")
                 ),
                 &ranges,
             )
@@ -292,7 +296,9 @@ mod tests {
             ))
         ));
         let empty = super::parse_trusted_proxy_ranges(super::TrustedProxyRangesTextRef::from(" "))
-            .expect("639128ba");
+            .expect(
+                "639128ba trusted_proxy_ranges_text_rejects_empty_list_entries invariant must hold",
+            );
         assert_eq!(empty, super::TrustedProxyRanges::default());
     }
     #[test]
@@ -376,7 +382,9 @@ mod tests {
         let mut headers = http::HeaderMap::new();
         let _previous = headers.insert(
             str_constants::RUNTIME_FORWARDED_FOR_HEADER_NAME,
-            http::HeaderValue::from_str(oversized.as_str()).expect("6353255d"),
+            http::HeaderValue::from_str(oversized.as_str()).expect(
+                "6353255d oversized_header_falls_back_without_reflecting_input invariant must hold",
+            ),
         );
         assert_eq!(
             resolved(&headers, "10.0.0.10:80", vec![range("10.0.0.0/24")]),

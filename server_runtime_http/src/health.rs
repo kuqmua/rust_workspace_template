@@ -171,19 +171,19 @@ mod tests {
             router.clone(),
             http::Request::get(str_constants::LIVE_PATH)
                 .body(axum::body::Body::empty())
-                .expect("a943ebaa"),
+                .expect("a943ebaa health_routes_distinguish_live_and_ready_statuses invariant must hold"),
         )
         .await
-        .expect("8112486b");
+        .expect("8112486b health_routes_distinguish_live_and_ready_statuses invariant must hold");
         assert_eq!(live_response.status(), http::StatusCode::OK);
         let unavailable_response = tower::ServiceExt::oneshot(
             router.clone(),
             http::Request::get(str_constants::READY_PATH)
                 .body(axum::body::Body::empty())
-                .expect("341e303a"),
+                .expect("341e303a health_routes_distinguish_live_and_ready_statuses invariant must hold"),
         )
         .await
-        .expect("ee4cfce6");
+        .expect("ee4cfce6 health_routes_distinguish_live_and_ready_statuses invariant must hold");
         assert_eq!(
             unavailable_response.status(),
             http::StatusCode::SERVICE_UNAVAILABLE
@@ -193,10 +193,10 @@ mod tests {
             router,
             http::Request::get(str_constants::READY_PATH)
                 .body(axum::body::Body::empty())
-                .expect("67247299"),
+                .expect("67247299 health_routes_distinguish_live_and_ready_statuses invariant must hold"),
         )
         .await
-        .expect("7cf14a1f");
+        .expect("7cf14a1f health_routes_distinguish_live_and_ready_statuses invariant must hold");
         assert_eq!(ready_response.status(), http::StatusCode::OK);
     }
 }

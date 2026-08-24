@@ -10,7 +10,9 @@ mod tests {
         macros_helpers::json_contract::ensure_json_contract_round_trip::<JsonContractValue>(
             macros_helpers::json_contract::JsonFixtureRef::from(str_constants::VALUE_1_2),
         )
-        .expect("46f3bec1");
+        .expect(
+            "46f3bec1 shared_json_contract_helper_round_trips_filter_fixture invariant must hold",
+        );
     }
     #[test]
     fn text_search_patterns_escape_reserved_symbols_for_every_mode() {
@@ -31,7 +33,7 @@ mod tests {
         cases.into_iter().for_each(|(mode, expected)| {
             let pattern =
                 where_filters::build_text_search_pattern(str_constants::A_PERCENT_B, mode)
-                    .expect("bfcd929a");
+                    .expect("bfcd929a text_search_patterns_escape_reserved_symbols_for_every_mode invariant must hold");
             assert_eq!(pattern.as_ref(), expected);
         });
     }
@@ -65,7 +67,7 @@ mod tests {
             where_filters::TextSearchMode::Contains,
             str_constants::LITERAL_PERCENT_VALUE.to_owned(),
         )
-        .expect("20d018ab");
+        .expect("20d018ab text_search_query_fragment_uses_ilike_escape_and_ordered_placeholder invariant must hold");
         let mut parameter_index = 4u64;
         let column = str_constants::DISPLAY_NAME.to_owned();
         let fragment = <where_filters::PgTypeWhereTextSearch as pg_crud_common::PgTypeWhereFilter>::query_part(
@@ -74,7 +76,7 @@ mod tests {
             pg_crud_common::SqlColumnRef::from(&column),
             pg_crud_common::AddOperator::from(true),
         )
-        .expect("509f61f8");
+        .expect("509f61f8 text_search_query_fragment_uses_ilike_escape_and_ordered_placeholder invariant must hold");
         assert_eq!(fragment.as_ref(), "and display_name ILIKE $5 ESCAPE '\\'");
         assert_eq!(parameter_index, 5u64);
     }

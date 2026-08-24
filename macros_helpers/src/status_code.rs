@@ -528,7 +528,7 @@ mod tests {
                 );
                 Ok::<(), ()>(())
             })
-            .expect("1f309f5c");
+            .expect("1f309f5c status_code_token_views_are_consistent invariant must hold");
     }
 
     #[test]

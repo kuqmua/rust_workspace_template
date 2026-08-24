@@ -119,11 +119,12 @@ impl TryFrom<HttpContentLength> for u64 {
 mod tests {
     #[test]
     fn content_disposition_sanitizes_and_encodes_file_name() {
-        let value =
-            super::build_attachment_content_disposition(super::HttpAttachmentFileNameRef::from(
+        let value = super::build_attachment_content_disposition(
+            super::HttpAttachmentFileNameRef::from(
                 str_constants::TEST_UNSAFE_UNICODE_ATTACHMENT_FILE_NAME,
-            ))
-            .expect("ec78ce2e");
+            ),
+        )
+        .expect("ec78ce2e content_disposition_sanitizes_and_encodes_file_name invariant must hold");
         let header = http::HeaderValue::from(value);
         assert_eq!(
             header,
@@ -137,7 +138,7 @@ mod tests {
     fn content_length_accepts_u64_maximum() {
         let value =
             super::HttpContentLength::try_from(str_constants::TEST_U64_MAXIMUM_TEXT.to_owned())
-                .expect("f87ab266");
+                .expect("f87ab266 content_length_accepts_u64_maximum invariant must hold");
         assert_eq!(u64::try_from(value), Ok(u64::MAX));
     }
 }

@@ -203,7 +203,7 @@ mod tests {
             str_constants::GEO_JSON_GEOMETRY: null,
             (properties): {}
         });
-        let _feature = document(&feature).expect("c0bd64d6");
+        let _feature = document(&feature).expect("c0bd64d6 feature_and_geometry_collections_validate_children_recursively invariant must hold");
         let collection = serde_json::json!({
             str_constants::GEO_JSON_TYPE: str_constants::GEO_JSON_FEATURE_COLLECTION,
             str_constants::GEO_JSON_FEATURES: [{
@@ -215,7 +215,7 @@ mod tests {
                 (properties): {}
             }]
         });
-        let _collection = document(&collection).expect("bc4861b1");
+        let _collection = document(&collection).expect("bc4861b1 feature_and_geometry_collections_validate_children_recursively invariant must hold");
         let geometry_collection = serde_json::json!({
             str_constants::GEO_JSON_TYPE: str_constants::GEO_JSON_GEOMETRY_COLLECTION,
             str_constants::GEO_JSON_GEOMETRIES: [{
@@ -223,7 +223,7 @@ mod tests {
                 str_constants::GEO_JSON_COORDINATES: [180.0f64, -90.0f64]
             }]
         });
-        let _geometry_collection = document(&geometry_collection).expect("ba7f5e93");
+        let _geometry_collection = document(&geometry_collection).expect("ba7f5e93 feature_and_geometry_collections_validate_children_recursively invariant must hold");
     }
     #[test]
     fn coordinate_collections_reject_empty_levels() {
@@ -256,7 +256,7 @@ mod tests {
     fn point_coordinates_are_range_checked() {
         let _document =
             super::GeoJsonDocumentText::try_from(String::from(str_constants::TEST_GEO_JSON_POINT))
-                .expect("34818d2e");
+                .expect("34818d2e point_coordinates_are_range_checked invariant must hold");
         assert!(matches!(
             super::GeoJsonDocumentText::try_from(String::from(
                 str_constants::TEST_GEO_JSON_INVALID_POINT

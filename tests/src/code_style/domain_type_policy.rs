@@ -54,7 +54,7 @@ fn string_wrappers_do_not_use_from_string() {
 }
 #[test]
 fn from_string_impl_visitor_rejects_non_string_wrappers_too() {
-    let ast = syn::parse_file(str_constants::NEWLINE_STRUCT_SOURCETEXT_BOX_STR_NEWLINE_IMPL_FROM_STRING_FOR_SOURCETEXT_NEWLINE).expect("f7c0e2a9");
+    let ast = syn::parse_file(str_constants::NEWLINE_STRUCT_SOURCETEXT_BOX_STR_NEWLINE_IMPL_FROM_STRING_FOR_SOURCETEXT_NEWLINE).expect("f7c0e2a9 from_string_impl_visitor_rejects_non_string_wrappers_too invariant must hold");
     let string_wrapper_names = super::types::StdSourceTextSet::default();
     let len_checked_function_names =
         super::len_checked_function_names(super::types::SynFileRef::from(&ast));
@@ -81,7 +81,7 @@ fn bounded_string_derive_satisfies_string_wrapper_policy() {
     let ast = syn::parse_file(
         str_constants::NEWLINE_CONST_SOURCE_TEXT_MAX_LEN_USIZE_1024_NEWLINE_DERIVE_NEWTYPE_PATH,
     )
-    .expect("90df57a8");
+    .expect("90df57a8 bounded_string_derive_satisfies_string_wrapper_policy invariant must hold");
     let string_wrapper_names = super::string_wrapper_names(super::types::SynFileRef::from(&ast));
     let len_checked_function_names =
         super::len_checked_function_names(super::types::SynFileRef::from(&ast));
@@ -632,7 +632,8 @@ fn domain_fixture_directory_exclusions_are_owner_exact() {
 }
 #[test]
 fn domain_type_policy_reports_raw_browser_external_types_natively() {
-    let ast = syn::parse_file("fn browser(response: web_sys::Response) {}").expect("d031ea92");
+    let ast = syn::parse_file("fn browser(response: web_sys::Response) {}")
+        .expect("d031ea92 browser invariant must hold");
     let repo_crates = std::collections::BTreeSet::new();
     let repo_types = std::collections::BTreeSet::new();
     let visitor = super::visit_syn_file(
@@ -659,7 +660,7 @@ fn proc_macro_helpers_are_checked_while_compiler_entrypoints_are_exempt() {
     let ast = syn::parse_file(
         "#[proc_macro]\npub fn entry(input: proc_macro::TokenStream) -> proc_macro::TokenStream { input }\nfn helper(values: Vec<String>) {}",
     )
-    .expect("5a1d8c34");
+    .expect("5a1d8c34 entry invariant must hold");
     let repo_crates = std::collections::BTreeSet::new();
     let repo_types = std::collections::BTreeSet::new();
     let visitor = super::visit_syn_file(
@@ -683,7 +684,9 @@ fn domain_type_policy_checks_explicit_closure_parameter_types() {
     let ast = syn::parse_file(
         str_constants::NEWLINE_STRUCT_SOURCETEXT_BOX_STR_NEWLINE_FN_DEMO_NEWLINE_LET_PATH_CB,
     )
-    .expect("c81a6f20");
+    .expect(
+        "c81a6f20 domain_type_policy_checks_explicit_closure_parameter_types invariant must hold",
+    );
     let repo_crates = std::collections::BTreeSet::new();
     let repo_types = std::collections::BTreeSet::from([String::from(str_constants::SOURCETEXT)]);
     let visitor = super::visit_syn_file(
@@ -776,7 +779,7 @@ fn analyzer_state_struct_fields_use_repository_declared_wrappers() {
 }
 #[test]
 fn analyzer_state_raw_container_field_visitor_reports_helper_fields() {
-    let ast = syn::parse_file(str_constants::NEWLINE_STRUCT_HELPERSTATE_NEWLINE_NAMES_VEC_STRING_NEWLINE_SEEN_STD_PATH_COLLECTIONS).expect("9f4d2a7c");
+    let ast = syn::parse_file(str_constants::NEWLINE_STRUCT_HELPERSTATE_NEWLINE_NAMES_VEC_STRING_NEWLINE_SEEN_STD_PATH_COLLECTIONS).expect("9f4d2a7c analyzer_state_raw_container_field_visitor_reports_helper_fields invariant must hold");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::domain_analysis::AnalyzerStateRawContainerFieldVisitor {
@@ -832,7 +835,7 @@ fn helper_raw_text_return_visitor_reports_free_and_inherent_helpers() {
     let ast = syn::parse_file(
         str_constants::NEWLINE_FN_DIRECT_ARROW_STRING_NEWLINE_STRING_PATH_NEW_NEWLINE_NEWLINE_FN,
     )
-    .expect("3a9d7e2c");
+    .expect("3a9d7e2c helper_raw_text_return_visitor_reports_free_and_inherent_helpers invariant must hold");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::domain_analysis::HelperRawTextReturnVisitor {

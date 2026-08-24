@@ -104,7 +104,9 @@ mod tests {
         let mut calls = 0usize;
         let outcome = super::run_with_retries(
             super::RetryPolicy::new(
-                super::StdRetryAttempts::try_from(3usize).expect("e7bc9a41"),
+                super::StdRetryAttempts::try_from(3usize).expect(
+                    "e7bc9a41 retryable_failure_is_retried_until_success invariant must hold",
+                ),
                 None,
             ),
             || {
@@ -123,7 +125,8 @@ mod tests {
         let mut calls = 0usize;
         let outcome = super::run_with_retries(
             super::RetryPolicy::new(
-                super::StdRetryAttempts::try_from(3usize).expect("61b6aed5"),
+                super::StdRetryAttempts::try_from(3usize)
+                    .expect("61b6aed5 terminal_failure_is_not_retried invariant must hold"),
                 None,
             ),
             || {

@@ -95,14 +95,14 @@ mod tests {
         ));
         let path = crate::rs_file_path::rs_file_path(&base);
         let ts: proc_macro2::TokenStream =
-            str_constants::STRUCT_SKIPWRITE.parse().expect("5994e7e2");
+            str_constants::STRUCT_SKIPWRITE.parse().expect("5994e7e2 maybe_write_token_stream_into_file_skips_when_flag_is_false invariant must hold");
         super::maybe_write_token_stream_into_file(
             super::ShouldWriteTokenStreamIntoFile::False,
             &base,
             super::ProcMacro2TokenStreamRef::from(&ts),
             &super::FormatWithCargofmt::False,
         )
-        .expect("5ecc3880");
+        .expect("5ecc3880 maybe_write_token_stream_into_file_skips_when_flag_is_false invariant must hold");
         let _error = std::fs::metadata(&path).expect_err(str_constants::VALUE_7BE5F201);
     }
     #[test]
@@ -112,7 +112,7 @@ mod tests {
         ));
         let path = crate::rs_file_path::rs_file_path(&base);
         let ts: proc_macro2::TokenStream =
-            str_constants::STRUCT_DIDWRITE.parse().expect("6c20f49a");
+            str_constants::STRUCT_DIDWRITE.parse().expect("6c20f49a maybe_write_token_stream_into_file_writes_tokens_when_flag_is_true invariant must hold");
         let expected = ts.to_string();
         super::maybe_write_token_stream_into_file(
             super::ShouldWriteTokenStreamIntoFile::True,
@@ -120,7 +120,7 @@ mod tests {
             super::ProcMacro2TokenStreamRef::from(&ts),
             &super::FormatWithCargofmt::False,
         )
-        .expect("04f83dc1");
+        .expect("04f83dc1 maybe_write_token_stream_into_file_writes_tokens_when_flag_is_true invariant must hold");
         crate::test_hlp::assert_file_content(
             crate::test_hlp::StdAssertFilePath::new(path.as_ref()),
             crate::test_hlp::ExpectedFileContent::new(&expected),
@@ -143,7 +143,7 @@ mod tests {
         ));
         let path = crate::rs_file_path::rs_file_path(&base);
         let ts: proc_macro2::TokenStream =
-            str_constants::STRUCT_TRYDIDWRITE.parse().expect("f771ac2d");
+            str_constants::STRUCT_TRYDIDWRITE.parse().expect("f771ac2d try_maybe_write_token_stream_into_file_writes_tokens_when_enabled invariant must hold");
         let expected = ts.to_string();
         super::try_maybe_write_token_stream_into_file(
             super::ShouldWriteTokenStreamIntoFile::True,
@@ -151,7 +151,7 @@ mod tests {
             super::ProcMacro2TokenStreamRef::from(&ts),
             &super::FormatWithCargofmt::False,
         )
-        .expect("6fee9f6f");
+        .expect("6fee9f6f try_maybe_write_token_stream_into_file_writes_tokens_when_enabled invariant must hold");
         crate::test_hlp::assert_file_content(
             crate::test_hlp::StdAssertFilePath::new(path.as_ref()),
             crate::test_hlp::ExpectedFileContent::new(&expected),
@@ -165,7 +165,7 @@ mod tests {
         ));
         let path = crate::rs_file_path::rs_file_path(&base);
         let ts: proc_macro2::TokenStream =
-            str_constants::STRUCT_PATHINPUT.parse().expect("f9b0cd83");
+            str_constants::STRUCT_PATHINPUT.parse().expect("f9b0cd83 try_maybe_write_token_stream_into_file_accepts_path_input invariant must hold");
         let expected = ts.to_string();
         super::try_maybe_write_token_stream_into_file(
             super::ShouldWriteTokenStreamIntoFile::True,
@@ -173,7 +173,7 @@ mod tests {
             super::ProcMacro2TokenStreamRef::from(&ts),
             &super::FormatWithCargofmt::False,
         )
-        .expect("f341cde7");
+        .expect("f341cde7 try_maybe_write_token_stream_into_file_accepts_path_input invariant must hold");
         crate::test_hlp::assert_file_content(
             crate::test_hlp::StdAssertFilePath::new(path.as_ref()),
             crate::test_hlp::ExpectedFileContent::new(&expected),
@@ -187,15 +187,15 @@ mod tests {
             str_constants::MACROS_HELPERS_TRY_RUN_RUSTFMT,
         ));
         let path = crate::rs_file_path::rs_file_path(&base);
-        std::fs::write(&path, str_constants::STRUCT_B).expect("7091840d");
-        let ts: proc_macro2::TokenStream = str_constants::STRUCT_A.parse().expect("0f30ca53");
+        std::fs::write(&path, str_constants::STRUCT_B).expect("7091840d try_maybe_write_token_stream_into_file_formats_when_rustfmt_enabled invariant must hold");
+        let ts: proc_macro2::TokenStream = str_constants::STRUCT_A.parse().expect("0f30ca53 try_maybe_write_token_stream_into_file_formats_when_rustfmt_enabled invariant must hold");
         super::try_maybe_write_token_stream_into_file(
             super::ShouldWriteTokenStreamIntoFile::True,
             &base,
             super::ProcMacro2TokenStreamRef::from(&ts),
             &super::FormatWithCargofmt::True,
         )
-        .expect("00a995a4");
+        .expect("00a995a4 try_maybe_write_token_stream_into_file_formats_when_rustfmt_enabled invariant must hold");
         crate::test_hlp::assert_file_content(
             crate::test_hlp::StdAssertFilePath::new(path.as_ref()),
             crate::test_hlp::ExpectedFileContent::new(str_constants::STRUCT_A_NEWLINE),

@@ -102,10 +102,9 @@ fn check_workspace_dependencies_having_exact_version() {
     let workspace = super::workspace_table_from_cargo_toml();
     super::toml_val_as_table_ref(
         super::types::TomlValueRef::from(
-            workspace
-                .as_ref()
-                .get(str_constants::DEPENDENCIES)
-                .expect("2376f58e"),
+            workspace.as_ref().get(str_constants::DEPENDENCIES).expect(
+                "2376f58e check_workspace_dependencies_having_exact_version invariant must hold",
+            ),
         ),
         super::types::StaticStr::from(str_constants::E117FA5A),
     )
@@ -121,7 +120,7 @@ fn external_workspace_dependencies_disable_default_features() {
             workspace
                 .as_ref()
                 .get(str_constants::DEPENDENCIES)
-                .expect("9ac9fb4c"),
+                .expect("9ac9fb4c external_workspace_dependencies_disable_default_features invariant must hold"),
         ),
         super::types::StaticStr::from("2db3165f"),
     );
@@ -149,35 +148,35 @@ version = "=1.2.3"
 default-features = false
 "#,
     )
-    .expect("227e7634");
+    .expect("227e7634 workspace_dependency_default_feature_policy_rejects_missing_and_true_values invariant must hold");
     let missing = toml::from_str::<toml::Value>(
         r#"[dependency]
 version = "=1.2.3"
 "#,
     )
-    .expect("0e82eab4");
+    .expect("0e82eab4 workspace_dependency_default_feature_policy_rejects_missing_and_true_values invariant must hold");
     let enabled = toml::from_str::<toml::Value>(
         r#"[dependency]
 version = "=1.2.3"
 default-features = true
 "#,
     )
-    .expect("e441c429");
+    .expect("e441c429 workspace_dependency_default_feature_policy_rejects_missing_and_true_values invariant must hold");
     assert!(
         super::workspace_dep_disables_default_features(super::types::TomlValueRef::from(
-            valid.get("dependency").expect("34136b6c"),
+            valid.get("dependency").expect("34136b6c workspace_dependency_default_feature_policy_rejects_missing_and_true_values invariant must hold"),
         ))
         .get()
     );
     assert!(
         !super::workspace_dep_disables_default_features(super::types::TomlValueRef::from(
-            missing.get("dependency").expect("e9b5ed95"),
+            missing.get("dependency").expect("e9b5ed95 workspace_dependency_default_feature_policy_rejects_missing_and_true_values invariant must hold"),
         ))
         .get()
     );
     assert!(
         !super::workspace_dep_disables_default_features(super::types::TomlValueRef::from(
-            enabled.get("dependency").expect("3e8046ef"),
+            enabled.get("dependency").expect("3e8046ef workspace_dependency_default_feature_policy_rejects_missing_and_true_values invariant must hold"),
         ))
         .get()
     );
@@ -230,10 +229,9 @@ fn workspace_dependency_catalog_has_no_unused_entries() {
     let workspace = super::workspace_table_from_cargo_toml();
     let catalog = super::toml_val_as_table_ref(
         super::types::TomlValueRef::from(
-            workspace
-                .as_ref()
-                .get(str_constants::DEPENDENCIES)
-                .expect("3e0ac397"),
+            workspace.as_ref().get(str_constants::DEPENDENCIES).expect(
+                "3e0ac397 workspace_dependency_catalog_has_no_unused_entries invariant must hold",
+            ),
         ),
         super::types::StaticStr::from("0c6249e6"),
     );
@@ -697,7 +695,7 @@ fn source_modules_with_public_logic_own_unit_tests() {
 #[test]
 fn workspace_lint_allows_have_inline_reasons() {
     let source = std::fs::read_to_string(str_constants::CODE_STYLE_WORKSPACE_MANIFEST_PATH)
-        .expect("68dcaf75");
+        .expect("68dcaf75 workspace_lint_allows_have_inline_reasons invariant must hold");
     let violations = super::unjustified_workspace_lint_allows(super::types::SourceTextRef::from(
         source.as_str(),
     ));
@@ -784,7 +782,9 @@ serde_json = { path = "../serde_json" }
 toml = { version = "1" }
 "#
     .parse::<toml::Table>()
-    .expect("b49e27c1");
+    .expect(
+        "b49e27c1 target_specific_dependencies_must_use_workspace_dependencies invariant must hold",
+    );
     let mut invalid_ers = Vec::new();
     super::collect_non_workspace_dep_ers(
         super::types::StdPathRef::from(std::path::Path::new("fixture/Cargo.toml")),
@@ -812,7 +812,9 @@ toml = { version = "1" }
 serde = { workspace = true }
 "#
     .parse::<toml::Table>()
-    .expect("8f1c3a6d");
+    .expect(
+        "8f1c3a6d target_specific_dependencies_must_use_workspace_dependencies invariant must hold",
+    );
     let mut valid_ers = Vec::new();
     super::collect_non_workspace_dep_ers(
         super::types::StdPathRef::from(std::path::Path::new("fixture/Cargo.toml")),
@@ -825,16 +827,17 @@ serde = { workspace = true }
 fn workspace_dependencies_use_inline_table_style() {
     let regex =
         regex::Regex::new(str_constants::QUESTION_M_S_ASTERISK_A_ZA_Z0_9_PLUS_WORKSPACE_S_ASTERISK)
-            .expect("ac15d6b9");
+            .expect("ac15d6b9 workspace_dependencies_use_inline_table_style invariant must hold");
     let mut ers = Vec::new();
     super::for_each_crate_manifest_file(|path| {
-        let v = super::cargo_toml_content(super::types::StdPathRef::from(path)).expect("762c1d9e");
+        let v = super::cargo_toml_content(super::types::StdPathRef::from(path))
+            .expect("762c1d9e workspace_dependencies_use_inline_table_style invariant must hold");
         ers.extend(regex.find_iter(v.as_ref()).filter_map(|mtch| {
             let field = mtch
                 .as_str()
                 .split_once('.')
                 .map(|(field, _suffix)| field.trim())
-                .expect("34f5ed27");
+                .expect("34f5ed27 workspace_dependencies_use_inline_table_style invariant must hold");
             if [
                 "description",
                 str_constants::EDITION,
@@ -885,7 +888,9 @@ fn workspace_members_exist_on_disk() {
 fn workspace_crates_are_direct_children_of_workspace_root() {
     let workspace_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
-        .expect("f7a31d9c");
+        .expect(
+            "f7a31d9c workspace_crates_are_direct_children_of_workspace_root invariant must hold",
+        );
     let mut violations = walkdir::WalkDir::new(workspace_root)
         .into_iter()
         .filter_entry(|entry| {
@@ -896,10 +901,10 @@ fn workspace_crates_are_direct_children_of_workspace_root() {
         .map(|entry| entry.unwrap_or_else(|error| panic!("b93c6e41 {error}")))
         .filter(|entry| !entry.file_type().is_dir() && entry.file_name() == "Cargo.toml")
         .filter_map(|entry| {
-            let crate_directory = entry.path().parent().expect("3de790a4");
+            let crate_directory = entry.path().parent().expect("3de790a4 workspace_crates_are_direct_children_of_workspace_root invariant must hold");
             let relative = crate_directory
                 .strip_prefix(workspace_root)
-                .expect("c16f84b2");
+                .expect("c16f84b2 workspace_crates_are_direct_children_of_workspace_root invariant must hold");
             let parts = relative
                 .components()
                 .map(|component| component.as_os_str().to_string_lossy())

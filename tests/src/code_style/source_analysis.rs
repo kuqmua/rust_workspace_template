@@ -381,7 +381,16 @@ impl DiagnosticIdVisitor {
         value: super::types::SourceTextRef<'_>,
     ) {
         if let Some(prefix) = super::diagnostic_id_prefix(value) {
-            self.ids.push(prefix.as_ref().to_owned());
+            if kind.as_ref() == str_constants::CODE_STYLE_EXPECT_METHOD_NAME
+                && !super::diagnostic_id_has_context(value).get()
+            {
+                self.ers.push(format!(
+                    "expect message diagnostic ID must be followed by at least two context words: {value:?}",
+                    value = value.as_ref(),
+                ));
+            } else {
+                self.ids.push(prefix.as_ref().to_owned());
+            }
         } else {
             self.ers.push(format!(
                 "{kind} message must start with a unique eight-character lowercase hexadecimal diagnostic ID: {value:?}",

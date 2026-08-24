@@ -704,11 +704,15 @@ mod tests {
         );
     }
     fn secret(value: &str) -> super::SecrecyAdminString {
-        super::SecrecyAdminString::try_from(value.to_owned()).expect("c2116874")
+        super::SecrecyAdminString::try_from(value.to_owned())
+            .expect("c2116874 secret invariant must hold")
     }
     fn password_hasher() -> super::AdminPasswordHasher {
         super::AdminPasswordHasher::new(super::AdminPasswordHashConcurrency::from(
-            super::StdAdminNonZeroUsize::from(std::num::NonZeroUsize::new(1).expect("70761471")),
+            super::StdAdminNonZeroUsize::from(
+                std::num::NonZeroUsize::new(1)
+                    .expect("70761471 password_hasher invariant must hold"),
+            ),
         ))
     }
     fn password(value: &str) -> super::AdminPassword {
@@ -726,7 +730,7 @@ mod tests {
             .for_each(|permission| {
                 assert_eq!(
                     super::AdminPermission::try_from(permission.as_str().as_ref())
-                        .expect("0f53b75c"),
+                        .expect("0f53b75c permission_round_trip_is_exhaustive invariant must hold"),
                     permission
                 );
             });
@@ -734,7 +738,9 @@ mod tests {
     #[test]
     fn permission_serializes_as_public_contract_value() {
         assert_eq!(
-            serde_json::to_string(&super::AdminPermission::UsersRead).expect("9a6b413e"),
+            serde_json::to_string(&super::AdminPermission::UsersRead).expect(
+                "9a6b413e permission_serializes_as_public_contract_value invariant must hold"
+            ),
             "\"users:read\""
         );
     }
@@ -772,23 +778,27 @@ mod tests {
         let hash = hasher
             .hash(password(str_constants::CORRECT_PASSWORD_ALT))
             .await
-            .expect("174a5d2f");
+            .expect("174a5d2f password_hash_verifies_only_matching_password invariant must hold");
         assert!(
             hasher
                 .verify(password("correct password"), hash)
                 .await
-                .expect("604f40be")
+                .expect(
+                    "604f40be password_hash_verifies_only_matching_password invariant must hold"
+                )
                 .get()
         );
         let other_hash = hasher
             .hash(password(str_constants::CORRECT_PASSWORD_ALT))
             .await
-            .expect("38819b94");
+            .expect("38819b94 password_hash_verifies_only_matching_password invariant must hold");
         assert!(
             !hasher
                 .verify(password("wrong password"), other_hash)
                 .await
-                .expect("ed6b499a")
+                .expect(
+                    "ed6b499a password_hash_verifies_only_matching_password invariant must hold"
+                )
                 .get()
         );
     }
@@ -797,8 +807,8 @@ mod tests {
         let raw_secret = str_constants::NEVER_PRINT_THIS_VALUE;
         let password = password(raw_secret);
         let jwt_secret = super::AdminJwtSecret::new(secret(raw_secret));
-        let access_token =
-            super::StdAdminAccessToken::try_from(raw_secret.to_owned()).expect("e295277c");
+        let access_token = super::StdAdminAccessToken::try_from(raw_secret.to_owned())
+            .expect("e295277c secrets_are_redacted_in_debug_output invariant must hold");
         assert!(!format!("{password:?}").contains(raw_secret));
         assert!(!format!("{jwt_secret:?}").contains(raw_secret));
         assert!(!format!("{access_token:?}").contains(raw_secret));
@@ -806,7 +816,9 @@ mod tests {
     #[test]
     fn generated_token_hash_is_stable_and_does_not_expose_token() {
         let token = super::AdminOpaqueToken::new(secret(str_constants::FIXED_TEST_TOKEN));
-        let hash = super::hash_opaque_token(&token).expect("3af32394");
+        let hash = super::hash_opaque_token(&token).expect(
+            "3af32394 generated_token_hash_is_stable_and_does_not_expose_token invariant must hold",
+        );
         assert_eq!(
             hash.expose().as_ref(),
             "abae2c734c2b0249ef1d413fdf30c332c6875fde570f9bbeef4295966f0b4943"
@@ -853,7 +865,7 @@ mod tests {
     #[test]
     fn bootstrap_login_format_accepts_only_database_compatible_values() {
         let valid =
-            super::AdminLogin::try_from(str_constants::ADMIN_USER_1.to_owned()).expect("078c759d");
+            super::AdminLogin::try_from(str_constants::ADMIN_USER_1.to_owned()).expect("078c759d bootstrap_login_format_accepts_only_database_compatible_values invariant must hold");
         assert_eq!(valid.as_ref(), str_constants::ADMIN_USER_1);
         let _uppercase_error = super::AdminLogin::try_from(str_constants::ADMIN.to_owned())
             .expect_err(str_constants::VALUE_5FA1C6E2);
@@ -863,30 +875,38 @@ mod tests {
     #[test]
     fn access_token_round_trip_checks_issuer_and_audience() {
         let claims = super::AdminAccessClaims::new(
-            super::AdminUserId::try_from(7).expect("d6d3da8a"),
+            super::AdminUserId::try_from(7).expect("d6d3da8a access_token_round_trip_checks_issuer_and_audience invariant must hold"),
             super::AdminSessionId::from(super::UuidAdminValue::from(
                 uuid::Uuid::parse_str(str_constants::B871BD8F_7810_4D4B_94A1_5458D3016907)
-                    .expect("05562da0"),
+                    .expect("05562da0 access_token_round_trip_checks_issuer_and_audience invariant must hold"),
             )),
             super::AdminUnixTokenStream::from(1),
             super::AdminUnixTokenStream::from(4_102_444_800),
             config_lib::AdminTokenIssuer::try_from(str_constants::TEST_ISSUER.to_owned())
-                .expect("fd6a65b0"),
+                .expect("fd6a65b0 access_token_round_trip_checks_issuer_and_audience invariant must hold"),
             config_lib::AdminTokenAudience::try_from(str_constants::TEST_AUDIENCE.to_owned())
-                .expect("6e423e16"),
+                .expect("6e423e16 access_token_round_trip_checks_issuer_and_audience invariant must hold"),
         );
         let secret = jwt_secret();
-        let token = super::encode_access_token(&claims, &secret).expect("b41052bc");
+        let token = super::encode_access_token(&claims, &secret).expect(
+            "b41052bc access_token_round_trip_checks_issuer_and_audience invariant must hold",
+        );
         let issuer = config_lib::AdminTokenIssuer::try_from(str_constants::TEST_ISSUER.to_owned())
-            .expect("5edc807f");
-        let audience =
-            config_lib::AdminTokenAudience::try_from(str_constants::TEST_AUDIENCE.to_owned())
-                .expect("0c3975a1");
-        let decoded =
-            super::decode_access_token(&token, &secret, &issuer, &audience).expect("0ed905ff");
+            .expect(
+                "5edc807f access_token_round_trip_checks_issuer_and_audience invariant must hold",
+            );
+        let audience = config_lib::AdminTokenAudience::try_from(
+            str_constants::TEST_AUDIENCE.to_owned(),
+        )
+        .expect("0c3975a1 access_token_round_trip_checks_issuer_and_audience invariant must hold");
+        let decoded = super::decode_access_token(&token, &secret, &issuer, &audience).expect(
+            "0ed905ff access_token_round_trip_checks_issuer_and_audience invariant must hold",
+        );
         assert_eq!(
             decoded.user_id(),
-            super::AdminUserId::try_from(7).expect("5b88f22a")
+            super::AdminUserId::try_from(7).expect(
+                "5b88f22a access_token_round_trip_checks_issuer_and_audience invariant must hold"
+            )
         );
         assert_eq!(decoded.session_id(), claims.session_id());
         drop(
@@ -895,7 +915,7 @@ mod tests {
                 &secret,
                 &issuer,
                 &config_lib::AdminTokenAudience::try_from(str_constants::WRONG_AUDIENCE.to_owned())
-                    .expect("92f9c5ec"),
+                    .expect("92f9c5ec access_token_round_trip_checks_issuer_and_audience invariant must hold"),
             )
             .expect_err(str_constants::A82438CC),
         );

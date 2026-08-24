@@ -202,11 +202,12 @@ pub fn resolve_pg_operational_limit_update(
 #[cfg(test)]
 mod tests {
     fn identifier(value: &str) -> crate::SqlIdentifier {
-        crate::SqlIdentifier::try_from(value.to_owned()).expect("2ec15e48")
+        crate::SqlIdentifier::try_from(value.to_owned())
+            .expect("2ec15e48 identifier invariant must hold")
     }
 
     fn limit(value: u64) -> super::PgOperationalLimit {
-        super::PgOperationalLimit::try_from(value).expect("2710e8b4")
+        super::PgOperationalLimit::try_from(value).expect("2710e8b4 limit invariant must hold")
     }
 
     #[test]
@@ -266,10 +267,10 @@ mod tests {
             .into(),
             super::PgScopedForeignKeyOnDelete::Cascade,
         )
-        .expect("21fc516e");
+        .expect("21fc516e scoped_foreign_key_uses_validated_composite_columns invariant must hold");
         assert_eq!(
             super::build_pg_scoped_foreign_key_clause(&foreign_key)
-                .expect("594452b0")
+                .expect("594452b0 scoped_foreign_key_uses_validated_composite_columns invariant must hold")
                 .into_inner(),
             str_constants::TEST_SCOPED_FOREIGN_KEY_CLAUSE
         );

@@ -89,6 +89,19 @@ fn diagnostic_id_prefix(value: types::SourceTextRef<'_>) -> Option<types::Source
         })
         .map(types::SourceTextRef::from)
 }
+#[allow(clippy::single_call_fn)] // keeps expect-message context validation separate from shared diagnostic-ID syntax validation
+fn diagnostic_id_has_context(value: types::SourceTextRef<'_>) -> types::AnalyzerBool {
+    let context = value.get().get(8usize..).and_then(|suffix| {
+        suffix
+            .strip_prefix(": ")
+            .or_else(|| suffix.strip_prefix(' '))
+    });
+    types::AnalyzerBool::from(
+        context.is_some_and(|diagnostic_context| {
+            diagnostic_context.split_whitespace().count() >= 2usize
+        }),
+    )
+}
 fn panic_uses_dynamic_diagnostic_id(value: types::SourceTextRef<'_>) -> types::AnalyzerBool {
     types::AnalyzerBool::from(
         value.as_ref().starts_with("{}")
@@ -278,10 +291,10 @@ fn lints_from_help_cmd(
     let stdout = String::from_utf8_lossy(&output.stdout);
     let regex = if parse_only_clippy.get() {
         regex::Regex::new(str_constants::QUESTION_M_S_ASTERISK_CLIPPY_PATH_A_Z0_9_A_Z0_9)
-            .expect("fbf14346")
+            .expect("fbf14346 lints_from_help_cmd invariant must hold")
     } else {
         regex::Regex::new(str_constants::QUESTION_M_S_ASTERISK_A_Z0_9_A_Z0_9_PLUS_S)
-            .expect("60d99c87")
+            .expect("60d99c87 lints_from_help_cmd invariant must hold")
     };
     regex
         .captures_iter(&stdout)
@@ -306,7 +319,7 @@ fn assert_cmd_output_ok(
 #[allow(clippy::single_call_fn)] // centralizes lint-name normalization used by command output parsing
 fn normalize_lint_name(v: types::SourceTextRef<'_>) -> types::SourceText {
     types::SourceText::try_from(v.as_ref().replace('-', str_constants::UNDERSCORE))
-        .expect("f3d821a6")
+        .expect("f3d821a6 normalize_lint_name invariant must hold")
 }
 #[allow(clippy::single_call_fn)] // keeps workspace-dependency shape checks reusable and focused in one helper
 fn validate_workspace_dep_spec(v: types::TomlValueRef<'_>) {
@@ -343,7 +356,7 @@ fn validate_workspace_dep_default_features(v_table: types::TomlTableRef<'_>) {
     match v_table
         .get()
         .get(str_constants::DEFAULT_FEATURES)
-        .expect("d2a8c4e1")
+        .expect("d2a8c4e1 validate_workspace_dep_default_features invariant must hold")
     {
         &toml::Value::Boolean(false) => (),
         &toml::Value::Boolean(true) => panic!("847a138f"),
@@ -434,7 +447,7 @@ fn validate_workspace_dep_version(v_table: types::TomlTableRef<'_>) {
     match v_table
         .get()
         .get(str_constants::VERSION_ALT_3)
-        .expect("d5b2b269")
+        .expect("d5b2b269 validate_workspace_dep_version invariant must hold")
     {
         toml::Value::String(version_string) => {
             assert!(
@@ -456,7 +469,7 @@ fn validate_workspace_dep_features(v_table: types::TomlTableRef<'_>) {
     match v_table
         .get()
         .get(str_constants::FEATURES_ALT)
-        .expect("473577d5")
+        .expect("473577d5 validate_workspace_dep_features invariant must hold")
     {
         &toml::Value::Array(_) => (),
         &toml::Value::String(_)
@@ -530,7 +543,7 @@ fn parse_env_key_line(line: types::SourceTextRef<'_>) -> Option<types::SourceTex
 }
 fn env_keys_from_file(path: types::StaticStr) -> types::SourceTextList {
     std::fs::read_to_string(path.get())
-        .expect("b3a7c1e4")
+        .expect("b3a7c1e4 env_keys_from_file invariant must hold")
         .lines()
         .filter_map(|line| parse_env_key_line(types::SourceTextRef::from(line)))
         .map(|key| key.as_ref().to_owned())
@@ -595,7 +608,7 @@ fn lints_vec_from_cargo_toml_workspace(rust_or_clippy: RustOrClippy) -> types::S
             workspace
                 .as_ref()
                 .get(str_constants::LINTS)
-                .expect("82eaea37"),
+                .expect("82eaea37 lints_vec_from_cargo_toml_workspace invariant must hold"),
         ),
         types::StaticStr::from(str_constants::CAE226CD),
     );
@@ -604,7 +617,7 @@ fn lints_vec_from_cargo_toml_workspace(rust_or_clippy: RustOrClippy) -> types::S
             lints
                 .as_ref()
                 .get(rust_or_clippy.name().get())
-                .expect("dbd02f72"),
+                .expect("dbd02f72 lints_vec_from_cargo_toml_workspace invariant must hold"),
         ),
         types::StaticStr::from(str_constants::VALUE_6F4580CE),
     );
@@ -846,7 +859,8 @@ fn item_impl_contains_len_call(item: types::SynItemImplRef<'_>) -> types::Analyz
 fn item_impl_self_ty_identifier(item: types::SynItemImplRef<'_>) -> Option<types::SourceText> {
     match item.as_ref().self_ty.as_ref() {
         syn::Type::Path(ty_path) => ty_path.path.segments.last().map(|segment| {
-            types::SourceText::try_from(segment.ident.to_string()).expect("6a9f03d2")
+            types::SourceText::try_from(segment.ident.to_string())
+                .expect("6a9f03d2 item_impl_self_ty_identifier invariant must hold")
         }),
         syn::Type::Array(_)
         | syn::Type::FnPtr(_)
@@ -1200,7 +1214,8 @@ fn collect_generate_pg_types_domain_names(
     tokens: types::SourceTextRef<'_>,
     names: &mut types::StdSourceTextSet,
 ) {
-    let re = regex::Regex::new(str_constants::A_ZA_Z0_9_PLUS_AS_A_ZA_Z0_9_PLUS).expect("f4e61b29");
+    let re = regex::Regex::new(str_constants::A_ZA_Z0_9_PLUS_AS_A_ZA_Z0_9_PLUS)
+        .expect("f4e61b29 collect_generate_pg_types_domain_names invariant must hold");
     re.captures_iter(tokens.as_ref())
         .filter_map(|captures| {
             let base = captures.get(1).map(|element| element.as_str())?;
@@ -1265,7 +1280,7 @@ fn collect_first_macro_identifier_domain_name(
     names: &mut types::StdSourceTextSet,
 ) {
     let re = regex::Regex::new(str_constants::S_ASTERISK_A_ZA_Z_A_ZA_Z0_9_ASTERISK_S_ASTERISK)
-        .expect("fc65b7c4");
+        .expect("fc65b7c4 collect_first_macro_identifier_domain_name invariant must hold");
     if let Some(name) = re
         .captures(tokens.as_ref())
         .and_then(|captures| captures.get(1))
@@ -1985,7 +2000,7 @@ fn path_to_string(path: types::SynPathRef<'_>) -> types::SourceText {
             .collect::<Vec<String>>()
             .join(str_constants::PATH_SEPARATOR),
     )
-    .expect("50c1e4a8")
+    .expect("50c1e4a8 path_to_string invariant must hold")
 }
 #[allow(clippy::single_call_fn)] // keeps external-wrapper naming suggestion generation readable at the call site
 fn identifier_to_upper_camel_fragment(
@@ -2007,7 +2022,8 @@ fn identifier_to_upper_camel_fragment(
             (out, next_upper)
         },
     );
-    types::SourceText::try_from(out).expect("9ea072c4")
+    types::SourceText::try_from(out)
+        .expect("9ea072c4 identifier_to_upper_camel_fragment invariant must hold")
 }
 fn is_runtime_policy_source_path(path: types::StdPathRef<'_>) -> types::AnalyzerBool {
     let path_text = path.as_ref().to_string_lossy();
@@ -2205,11 +2221,15 @@ fn for_each_rs_file(mut on_file: impl FnMut(&snapshot::RsSourceFile)) {
 }
 fn workspace_table_from_cargo_toml() -> types::TomlTable {
     let mut table = std::fs::read_to_string(str_constants::CODE_STYLE_WORKSPACE_MANIFEST_PATH)
-        .expect("39a0d238")
+        .expect("39a0d238 workspace_table_from_cargo_toml invariant must hold")
         .parse::<toml::Table>()
-        .expect("beb11586");
+        .expect("beb11586 workspace_table_from_cargo_toml invariant must hold");
     toml_val_as_table(
-        types::TomlValue::from(table.remove(str_constants::WORKSPACE).expect("f728192d")),
+        types::TomlValue::from(
+            table
+                .remove(str_constants::WORKSPACE)
+                .expect("f728192d workspace_table_from_cargo_toml invariant must hold"),
+        ),
         types::StaticStr::from(str_constants::VALUE_2BFB0B62),
     )
 }
@@ -2334,7 +2354,7 @@ fn workspace_dep_entry_error(
         dep_name = dep_name.as_ref(),
         dep_section = dep_section.as_ref(),
     ))
-    .expect("c836ad25")
+    .expect("c836ad25 workspace_dep_entry_error invariant must hold")
 }
 #[allow(clippy::single_call_fn)] // dedicated collector keeps workspace-members existence diagnostics reusable and deterministic with caller-managed sorting
 fn collect_workspace_member_missing_cargo_toml_ers(

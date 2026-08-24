@@ -102,7 +102,8 @@ fn dropped_identifier(statement: &syn::Stmt) -> Option<super::types::SourceText>
     (argument.path.segments.len() == 1usize)
         .then(|| {
             argument.path.segments.first().map(|segment| {
-                super::types::SourceText::try_from(segment.ident.to_string()).expect("d4f6bdce")
+                super::types::SourceText::try_from(segment.ident.to_string())
+                    .expect("d4f6bdce dropped_identifier invariant must hold")
             })
         })
         .flatten()
@@ -516,11 +517,11 @@ impl PublicApiVisitor {
             .lines
             .get(start..end)
             .map(|lines| lines.join("\n"))
-            .expect("c9d73e55")
+            .expect("c9d73e55 source invariant must hold")
             .split_whitespace()
             .collect::<Vec<_>>()
             .join(" ");
-        super::types::SourceText::try_from(normalized).expect("31f04bb7")
+        super::types::SourceText::try_from(normalized).expect("31f04bb7 source invariant must hold")
     }
     fn field_type(&self, field: &syn::Field) -> super::types::SourceText {
         let source = self.source(syn::spanned::Spanned::span(field));
@@ -528,8 +529,9 @@ impl PublicApiVisitor {
             .as_ref()
             .split_once(':')
             .map(|(_field, field_type)| field_type.trim().trim_end_matches(',').to_owned())
-            .expect("5af91e82");
-        super::types::SourceText::try_from(field_type).expect("3e2d89ef")
+            .expect("5af91e82 field_type invariant must hold");
+        super::types::SourceText::try_from(field_type)
+            .expect("3e2d89ef field_type invariant must hold")
     }
     fn record(&mut self, span: proc_macro2::Span, signature_only: bool) {
         let start = span.start().line.saturating_sub(1usize);
@@ -538,7 +540,7 @@ impl PublicApiVisitor {
             .lines
             .get(start..end)
             .map(|lines| lines.join("\n"))
-            .expect("3e180abf");
+            .expect("3e180abf record invariant must hold");
         let relevant = if signature_only {
             source
                 .split_once('{')
@@ -569,7 +571,7 @@ impl PublicApiVisitor {
                 }
                 Ok(())
             })
-            .expect("d932a5f1");
+            .expect("d932a5f1 record_contract_struct_api invariant must hold");
         let syn::Fields::Named(fields) = &item.fields else {
             return;
         };
@@ -639,7 +641,7 @@ impl PublicApiVisitor {
                                 let inner_type = field_type
                                     .strip_prefix("Option<")
                                     .and_then(|value| value.strip_suffix('>'))
-                                    .expect("9ba9415c");
+                                    .expect("9ba9415c into_ invariant must hold");
                                 format!(
                                     "#[must_use] pub const fn {identifier}(&self) -> Option<&{inner_type}>"
                                 )
@@ -660,7 +662,7 @@ impl PublicApiVisitor {
                             }
                             Ok(())
                         })
-                        .expect("206adbf7");
+                        .expect("206adbf7 into_ invariant must hold");
                 });
         });
     }
@@ -969,9 +971,12 @@ fn struct_error_exceptions_match_reviewed_snapshot() {
         let snapshot_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
             .join(str_constants::STRUCT_ERROR_SNAPSHOT_PATH);
         if std::env::var_os(str_constants::UPDATE_CODE_STYLE_SNAPSHOTS).is_some() {
-            std::fs::write(snapshot_path.as_path(), current_snapshot.as_bytes()).expect("65e1d4f0");
+            std::fs::write(snapshot_path.as_path(), current_snapshot.as_bytes()).expect(
+                "65e1d4f0 struct_error_exceptions_match_reviewed_snapshot invariant must hold",
+            );
         }
-        let expected_snapshot = std::fs::read_to_string(snapshot_path).expect("ba047d32");
+        let expected_snapshot = std::fs::read_to_string(snapshot_path)
+            .expect("ba047d32 struct_error_exceptions_match_reviewed_snapshot invariant must hold");
         assert_eq!(
             current_snapshot, expected_snapshot,
             "731ffc35 struct error inventory changed"
@@ -1031,9 +1036,12 @@ fn contract_public_api_matches_reviewed_snapshot() {
         if std::env::var_os(str_constants::UPDATE_CODE_STYLE_SNAPSHOTS).is_some()
             || std::env::var_os(str_constants::UPDATE_CONTRACT_PUBLIC_API_SNAPSHOT).is_some()
         {
-            std::fs::write(snapshot_path.as_path(), current_snapshot.as_bytes()).expect("e2c6b190");
+            std::fs::write(snapshot_path.as_path(), current_snapshot.as_bytes()).expect(
+                "e2c6b190 contract_public_api_matches_reviewed_snapshot invariant must hold",
+            );
         }
-        let expected_snapshot = std::fs::read_to_string(snapshot_path).expect("fd9130e7");
+        let expected_snapshot = std::fs::read_to_string(snapshot_path)
+            .expect("fd9130e7 contract_public_api_matches_reviewed_snapshot invariant must hold");
         assert_eq!(
             current_snapshot, expected_snapshot,
             "505a0cf7 contract public API snapshot changed"
@@ -2364,7 +2372,7 @@ fn select_policy_rejects_cancellation_sensitive_operations() {
             }
         }",
     )
-    .expect("714c620f");
+    .expect("714c620f invalid invariant must hold");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         SelectMacroVisitor::default(),
@@ -2411,7 +2419,7 @@ fn architectural_boundaries_reject_upward_dependencies() {
                 .packages
                 .iter()
                 .find(|package| package.name == *package_name)
-                .expect("010e6a3f");
+                .expect("010e6a3f architectural_boundaries_reject_upward_dependencies invariant must hold");
             let observed = package
                 .dependencies
                 .iter()
@@ -2464,7 +2472,7 @@ fn lock_across_await_policy_requires_explicit_drop() {
             drop(guard);
         }",
     )
-    .expect("b57df6a3");
+    .expect("b57df6a3 invalid invariant must hold");
     let valid = syn::parse_file(
         "async fn valid(lock: &tokio::sync::Mutex<u8>) {
             let guard = lock.lock().await;
@@ -2472,7 +2480,7 @@ fn lock_across_await_policy_requires_explicit_drop() {
             operation().await;
         }",
     )
-    .expect("a62f1ce9");
+    .expect("a62f1ce9 valid invariant must hold");
     let invalid_visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&invalid),
         LockAcrossAwaitVisitor::default(),
@@ -2537,7 +2545,7 @@ fn spawn_lifecycle_policy_rejects_unconsumed_handles() {
             supervise(transferred);
         }",
     )
-    .expect("834138af");
+    .expect("834138af tasks invariant must hold");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         SpawnLifecycleVisitor::default(),
@@ -2579,7 +2587,7 @@ fn route_path_policy_rejects_kebab_case() {
          #[typed_route(path = \"/admin/swagger-ui\")]
          struct Invalid;",
     )
-    .expect("9aa037dc");
+    .expect("9aa037dc route_path_policy_rejects_kebab_case invariant must hold");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         RouteLiteralVisitor::default(),
@@ -2595,7 +2603,7 @@ fn route_path_policy_rejects_api_prefix() {
          #[typed_route(path = \"/api/projects\")]
          struct Invalid;",
     )
-    .expect("3eaa623d");
+    .expect("3eaa623d route_path_policy_rejects_api_prefix invariant must hold");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         RouteLiteralVisitor::default(),

@@ -66,7 +66,7 @@ mod tests {
         let value = super::VersionedUrlSafeWireTokenText::try_from(
             str_constants::TEST_VERSIONED_URL_SAFE_WIRE_TOKEN.to_owned(),
         )
-        .expect("8c3d9457");
+        .expect("8c3d9457 versioned_wire_token_splits_valid_parts invariant must hold");
         assert_eq!(value.version().as_ref(), str_constants::TEST_TOKEN_VERSION);
         assert_eq!(
             value.encoded_payload().as_ref(),

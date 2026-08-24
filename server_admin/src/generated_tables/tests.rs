@@ -19,7 +19,7 @@ fn typed_operation(
         .get(str_constants::PATHS)
         .and_then(|paths| paths.get(metadata.path().as_ref()))
         .and_then(|path| path.get(metadata.method().as_ref().to_ascii_lowercase()))
-        .expect("61b8f042")
+        .expect("61b8f042 typed_operation invariant must hold")
 }
 
 fn parameter_names(operation: &serde_json::Value, location: &str) -> Vec<String> {
@@ -115,9 +115,12 @@ fn generated_table_catalog_maps_every_supported_data_table_once() {
 
 #[test]
 fn generated_admin_open_api_has_no_unresolved_local_references() {
-    let document =
-        serde_json::to_value(utoipa::openapi::OpenApi::from(super::generated_open_api()))
-            .expect("f514a558");
+    let document = serde_json::to_value(
+        utoipa::openapi::OpenApi::from(super::generated_open_api()),
+    )
+    .expect(
+        "f514a558 generated_admin_open_api_has_no_unresolved_local_references invariant must hold",
+    );
     assert_local_references_resolve(&document, &document);
 }
 
@@ -125,7 +128,7 @@ fn generated_admin_open_api_has_no_unresolved_local_references() {
 fn every_typed_route_path_and_each_path_parameter_match_open_api() {
     let document =
         serde_json::to_value(utoipa::openapi::OpenApi::from(super::generated_open_api()))
-            .expect("ab2e610c");
+            .expect("ab2e610c every_typed_route_path_and_each_path_parameter_match_open_api invariant must hold");
     <server_admin_contract::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::route_metadata()
             .as_ref()
             .iter()
@@ -143,7 +146,7 @@ fn every_typed_route_path_and_each_path_parameter_match_open_api() {
                 let success_response = operation
                     .get("responses")
                     .and_then(|responses| responses.get(success_status.as_str()))
-                    .expect("021e4af7");
+                    .expect("021e4af7 every_typed_route_path_and_each_path_parameter_match_open_api invariant must hold");
                 if success_status == "204" {
                     assert!(success_response.get("content").is_none());
                 } else {
@@ -166,7 +169,7 @@ fn every_typed_route_path_and_each_path_parameter_match_open_api() {
                             parameter.get("name").and_then(serde_json::Value::as_str) == Some(name)
                                 && parameter.get("in").and_then(serde_json::Value::as_str) == Some("path")
                         }))
-                        .expect("7e45cd91");
+                        .expect("7e45cd91 every_typed_route_path_and_each_path_parameter_match_open_api invariant must hold");
                     assert_eq!(parameter.get("required").and_then(serde_json::Value::as_bool), Some(true));
                     assert!(parameter.get("schema").is_some(), "missing schema for path parameter {name}");
                 });
@@ -177,7 +180,7 @@ fn every_typed_route_path_and_each_path_parameter_match_open_api() {
 fn every_typed_route_query_parameter_matches_open_api_individually() {
     let document =
         serde_json::to_value(utoipa::openapi::OpenApi::from(super::generated_open_api()))
-            .expect("d083c1a9");
+            .expect("d083c1a9 every_typed_route_query_parameter_matches_open_api_individually invariant must hold");
     <server_admin_contract::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::route_metadata()
             .as_ref()
             .iter()
@@ -202,9 +205,9 @@ fn every_typed_route_query_parameter_matches_open_api_individually() {
                         .get("parameters")
                         .and_then(serde_json::Value::as_array)
                         .and_then(|parameters| parameters.iter().find(|parameter| parameter.get("name").and_then(serde_json::Value::as_str) == Some(name)))
-                        .expect("ba482f35");
+                        .expect("ba482f35 every_typed_route_query_parameter_matches_open_api_individually invariant must hold");
                     assert!(parameter.get("schema").is_some(), "missing schema for query parameter {name}");
-                    let schema = parameter.get("schema").expect("cf18a7d5");
+                    let schema = parameter.get("schema").expect("cf18a7d5 every_typed_route_query_parameter_matches_open_api_individually invariant must hold");
                     match name.as_str() {
                         "direction" => assert_eq!(
                             schema.get("enum"),
@@ -233,11 +236,11 @@ fn every_typed_route_query_parameter_matches_open_api_individually() {
 fn proc_macro_generated_request_contracts_match_open_api_and_each_field() {
     let document =
         serde_json::to_value(utoipa::openapi::OpenApi::from(super::generated_open_api()))
-            .expect("40a639b7");
+            .expect("40a639b7 proc_macro_generated_request_contracts_match_open_api_and_each_field invariant must hold");
     let no_body_schema = serde_json::to_value(
         <server_admin_contract::AdminNoBody as utoipa::PartialSchema>::schema(),
     )
-    .expect("e185e575");
+    .expect("e185e575 proc_macro_generated_request_contracts_match_open_api_and_each_field invariant must hold");
     <server_admin_contract::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::schema_contracts()
             .as_ref()
             .iter()
@@ -253,8 +256,8 @@ fn proc_macro_generated_request_contracts_match_open_api_and_each_field() {
                         serde_json::to_value(openapi_schema)
                     })
                     .transpose()
-                    .expect("506e754a")
-                    .expect("eb67c5a0");
+                    .expect("506e754a proc_macro_generated_request_contracts_match_open_api_and_each_field invariant must hold")
+                    .expect("eb67c5a0 proc_macro_generated_request_contracts_match_open_api_and_each_field invariant must hold");
                 if expected_schema == no_body_schema {
                     assert!(request_body.is_none(), "unexpected request body for {}", metadata.openapi_operation_id().as_ref());
                     return;
@@ -262,8 +265,8 @@ fn proc_macro_generated_request_contracts_match_open_api_and_each_field() {
                 let reference = request_body
                     .and_then(|body| body.pointer("/content/application~1json/schema/$ref"))
                     .and_then(serde_json::Value::as_str)
-                    .expect("26d0f83b");
-                let actual_schema = document.pointer(reference.trim_start_matches('#')).expect("3754bca2");
+                    .expect("26d0f83b proc_macro_generated_request_contracts_match_open_api_and_each_field invariant must hold");
+                let actual_schema = document.pointer(reference.trim_start_matches('#')).expect("3754bca2 proc_macro_generated_request_contracts_match_open_api_and_each_field invariant must hold");
                 assert_eq!(actual_schema, &expected_schema, "request schema differs for {}", metadata.openapi_operation_id().as_ref());
                 expected_schema
                     .get(str_constants::PROPERTIES)
@@ -278,9 +281,10 @@ fn proc_macro_generated_request_contracts_match_open_api_and_each_field() {
 
 #[test]
 fn proc_macro_generated_response_contracts_match_open_api() {
-    let document =
-        serde_json::to_value(utoipa::openapi::OpenApi::from(super::generated_open_api()))
-            .expect("c4ddf19e");
+    let document = serde_json::to_value(
+        utoipa::openapi::OpenApi::from(super::generated_open_api()),
+    )
+    .expect("c4ddf19e proc_macro_generated_response_contracts_match_open_api invariant must hold");
     <server_admin_contract::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::schema_contracts()
             .as_ref()
             .iter()
@@ -301,21 +305,24 @@ fn proc_macro_generated_response_contracts_match_open_api() {
                         serde_json::to_value(openapi_schema)
                     })
                     .transpose()
-                    .expect("2edb7155")
-                    .expect("54d97b5d");
+                    .expect("2edb7155 proc_macro_generated_response_contracts_match_open_api invariant must hold")
+                    .expect("54d97b5d proc_macro_generated_response_contracts_match_open_api invariant must hold");
                 assert_eq!(actual_schema, Some(&expected_schema), "response schema differs for {}", metadata.openapi_operation_id().as_ref());
             });
 }
 
 #[test]
 fn generated_admin_open_api_combines_enabled_routes_only() {
-    let document =
-        serde_json::to_value(utoipa::openapi::OpenApi::from(super::generated_open_api()))
-            .expect("87b2e8fb");
+    let document = serde_json::to_value(
+        utoipa::openapi::OpenApi::from(super::generated_open_api()),
+    )
+    .expect("87b2e8fb generated_admin_open_api_combines_enabled_routes_only invariant must hold");
     let paths = document
         .get(str_constants::PATHS)
         .and_then(serde_json::Value::as_object)
-        .expect("274479a7");
+        .expect(
+            "274479a7 generated_admin_open_api_combines_enabled_routes_only invariant must hold",
+        );
     assert_eq!(paths.len(), 34usize);
     assert!(paths.contains_key("/auth/sign_in"));
     assert!(!paths.contains_key("/auth/mfa"));
@@ -397,7 +404,7 @@ fn generated_payload_example_routes_have_contracts_and_named_clients() {
     let contract = super::AdminUsersRouteContract::for_path(
         super::AdminUsers::rm_payload_example_route().as_ref(),
     )
-    .expect("8fb87492");
+    .expect("8fb87492 generated_payload_example_routes_have_contracts_and_named_clients invariant must hold");
     assert_eq!(
         contract.frontend_contract().method(),
         frontend_contract::HttpMethod::Get
@@ -434,13 +441,14 @@ fn generated_payload_example_routes_have_contracts_and_named_clients() {
 }
 #[test]
 fn every_admin_open_api_operation_has_a_unique_identifier() {
-    let document =
-        serde_json::to_value(utoipa::openapi::OpenApi::from(super::generated_open_api()))
-            .expect("c731d604");
+    let document = serde_json::to_value(
+        utoipa::openapi::OpenApi::from(super::generated_open_api()),
+    )
+    .expect("c731d604 every_admin_open_api_operation_has_a_unique_identifier invariant must hold");
     let operation_ids = document
         .get(str_constants::PATHS)
         .and_then(serde_json::Value::as_object)
-        .expect("f9b402ac")
+        .expect("f9b402ac every_admin_open_api_operation_has_a_unique_identifier invariant must hold")
         .values()
         .filter_map(serde_json::Value::as_object)
         .flat_map(|operations| operations.values())
@@ -448,7 +456,7 @@ fn every_admin_open_api_operation_has_a_unique_identifier() {
             operation
                 .get("operationId")
                 .and_then(serde_json::Value::as_str)
-                .expect("18f4ae63")
+                .expect("18f4ae63 every_admin_open_api_operation_has_a_unique_identifier invariant must hold")
         })
         .collect::<Vec<_>>();
     let unique = operation_ids
@@ -461,11 +469,11 @@ fn every_admin_open_api_operation_has_a_unique_identifier() {
 fn generated_read_routes_expose_filter_sort_and_pagination_contract() {
     let document =
         serde_json::to_value(utoipa::openapi::OpenApi::from(super::generated_open_api()))
-            .expect("8457a8ca");
+            .expect("8457a8ca generated_read_routes_expose_filter_sort_and_pagination_contract invariant must hold");
     let paths = document
         .get(str_constants::PATHS)
         .and_then(serde_json::Value::as_object)
-        .expect("44d17ab0");
+        .expect("44d17ab0 generated_read_routes_expose_filter_sort_and_pagination_contract invariant must hold");
     [
         str_constants::ADMIN_USERS_RM,
         str_constants::ADMIN_ROLES_RM,
@@ -488,7 +496,7 @@ fn generated_read_routes_expose_filter_sort_and_pagination_contract() {
     let schemas = document
         .pointer(str_constants::COMPONENTS_SCHEMAS_ALT)
         .and_then(serde_json::Value::as_object)
-        .expect("8dcf412e");
+        .expect("8dcf412e generated_read_routes_expose_filter_sort_and_pagination_contract invariant must hold");
     [
         str_constants::ADMINUSERSRMPAYLOAD,
         str_constants::ADMINROLESRMPAYLOAD,
@@ -503,7 +511,7 @@ fn generated_read_routes_expose_filter_sort_and_pagination_contract() {
             .get(schema_name)
             .and_then(|schema| schema.get(str_constants::PROPERTIES))
             .and_then(serde_json::Value::as_object)
-            .expect("5b8bbdd1");
+            .expect("5b8bbdd1 generated_read_routes_expose_filter_sort_and_pagination_contract invariant must hold");
         [
             str_constants::WHERE_MANY,
             str_constants::SELECT_ALT_3,
@@ -526,7 +534,7 @@ fn generated_frontend_filter_metadata_matches_api_filter_schema() {
         .as_ref()
         .iter()
         .find(|field| field.name().as_ref() == str_constants::LOGIN)
-        .expect("c2a69d51");
+        .expect("c2a69d51 generated_frontend_filter_metadata_matches_api_filter_schema invariant must hold");
     assert_eq!(
         login.filters().to_vec(),
         vec![
@@ -536,7 +544,7 @@ fn generated_frontend_filter_metadata_matches_api_filter_schema() {
     );
     let schema = <pg_types_text_misc::StringAsNonNullTextWhere as utoipa::PartialSchema>::schema();
     let variants = serde_json::to_value(schema)
-        .expect("84d658fc")
+        .expect("84d658fc generated_frontend_filter_metadata_matches_api_filter_schema invariant must hold")
         .get("oneOf")
         .and_then(serde_json::Value::as_array)
         .map(Vec::len);

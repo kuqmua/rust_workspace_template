@@ -1633,7 +1633,7 @@ enum IntRangeType {
                             let micro_ser_field_token_stream = generate_ser_field_token_stream(
                                 &micro_snake_case,
                                 &generate_field_inner_type_standard_non_null_token_stream_as_chrono_timelike_token_stream(&quote::quote! {
-                                    #nanosecond_snake_case(&self.0).checked_div(1000).expect("aea037b7")
+                                    #nanosecond_snake_case(&self.0).checked_div(1000).expect("aea037b7 serialize invariant must hold")
                                 }),
                             );
                             generate_four_field_time_ser_token_stream(&hour_ser_field_token_stream, &min_ser_field_token_stream, &sec_ser_field_token_stream, &micro_ser_field_token_stream)
@@ -1809,7 +1809,7 @@ enum DateNaiveOrTime {
             quote::quote! {sqlx::types::chrono::NaiveDateTime::#new_snake_case(#ts)}
         };
         let generate_sqlx_types_time_time_from_hms_micro_unwrap_token_stream = |ts: &dyn quote::ToTokens| {
-            quote::quote! {sqlx::types::time::Time::from_hms_micro(#ts).expect("7a1a18fa")}
+            quote::quote! {sqlx::types::time::Time::from_hms_micro(#ts).expect("7a1a18fa deserialize invariant must hold")}
         };
         let generate_pub_const_new_or_pub_try_new_token_stream = |ts: &dyn quote::ToTokens| {
             let pub_fn_new_or_try_new_token_stream = if pg_type_initialization_try_new_try_from_pg_type.is_ok() {
@@ -1934,7 +1934,7 @@ enum IsConst {
                             generate_min_inner_type_token_stream(
                                 IsConst::True,
                                 &quote::quote! {
-                                    sqlx::types::chrono::NaiveTime::from_hms_micro_opt(0, 0, 0, 0).expect("000ddcc2")
+                                    sqlx::types::chrono::NaiveTime::from_hms_micro_opt(0, 0, 0, 0).expect("000ddcc2 deserialize invariant must hold")
                                 }
                             )
                         ),
@@ -1942,7 +1942,7 @@ enum IsConst {
                             generate_min_inner_type_token_stream(
                                 IsConst::False,
                                 &quote::quote! {
-                                    sqlx::types::time::Time::from_hms_micro(0, 0, 0, 0).expect("f065e2b1")
+                                    sqlx::types::time::Time::from_hms_micro(0, 0, 0, 0).expect("f065e2b1 deserialize invariant must hold")
                                 }
                             )
                         ),
@@ -1980,7 +1980,7 @@ enum IsConst {
                             generate_slightly_more_than_min_inner_type_token_stream(
                                 IsConst::True,
                                 &quote::quote! {
-                                    sqlx::types::chrono::NaiveTime::from_hms_micro_opt(0, 0, 0, 1).expect("9545a47c")
+                                    sqlx::types::chrono::NaiveTime::from_hms_micro_opt(0, 0, 0, 1).expect("9545a47c deserialize invariant must hold")
                                 }
                             )
                         ),
@@ -1988,7 +1988,7 @@ enum IsConst {
                             generate_slightly_more_than_min_inner_type_token_stream(
                                 IsConst::False,
                                 &quote::quote! {
-                                    sqlx::types::time::Time::from_hms_micro(0, 0, 0, 1).expect("03f9561a")
+                                    sqlx::types::time::Time::from_hms_micro(0, 0, 0, 1).expect("03f9561a deserialize invariant must hold")
                                 }
                             )
                         ),
@@ -2026,7 +2026,7 @@ enum IsConst {
                             generate_middle_inner_type_token_stream(
                                 IsConst::True,
                                 &quote::quote! {
-                                    sqlx::types::chrono::NaiveTime::from_hms_micro_opt(0, 0, 0, 0).expect("0dafc3fc")
+                                    sqlx::types::chrono::NaiveTime::from_hms_micro_opt(0, 0, 0, 0).expect("0dafc3fc deserialize invariant must hold")
                                 }
                             )
                         ),
@@ -2034,7 +2034,7 @@ enum IsConst {
                             generate_middle_inner_type_token_stream(
                                 IsConst::False,
                                 &quote::quote! {
-                                    sqlx::types::time::Time::from_hms_micro(0, 0, 0, 0).expect("d2ec329f")
+                                    sqlx::types::time::Time::from_hms_micro(0, 0, 0, 0).expect("d2ec329f deserialize invariant must hold")
                                 }
                             )
                         ),
@@ -2042,7 +2042,7 @@ enum IsConst {
                             generate_middle_inner_type_token_stream(
                                 IsConst::True,
                                 &quote::quote! {
-                                    sqlx::types::chrono::NaiveDate::from_ymd_opt(0, 1, 1).expect("a2f306ea")
+                                    sqlx::types::chrono::NaiveDate::from_ymd_opt(0, 1, 1).expect("a2f306ea deserialize invariant must hold")
                                 }
                             )
                         ),
@@ -2079,7 +2079,7 @@ enum IsConst {
                             generate_slightly_more_than_middle_inner_type_token_stream(
                                 IsConst::True,
                                 &quote::quote! {
-                                    sqlx::types::chrono::NaiveTime::from_hms_micro_opt(0, 0, 0, 1).expect("235276a7")
+                                    sqlx::types::chrono::NaiveTime::from_hms_micro_opt(0, 0, 0, 1).expect("235276a7 deserialize invariant must hold")
                                 }
                             )
                         ),
@@ -2087,7 +2087,7 @@ enum IsConst {
                             generate_slightly_more_than_middle_inner_type_token_stream(
                                 IsConst::False,
                                 &quote::quote! {
-                                    sqlx::types::time::Time::from_hms_micro(0, 0, 0, 1).expect("6a3dbcaa")
+                                    sqlx::types::time::Time::from_hms_micro(0, 0, 0, 1).expect("6a3dbcaa deserialize invariant must hold")
                                 }
                             )
                         ),
@@ -2125,7 +2125,7 @@ enum IsConst {
                             generate_max_inner_type_token_stream(
                                 IsConst::True,
                                 &quote::quote! {
-                                    sqlx::types::chrono::NaiveTime::from_hms_micro_opt(23, 59, 59, 999_999).expect("b217e3bf")
+                                    sqlx::types::chrono::NaiveTime::from_hms_micro_opt(23, 59, 59, 999_999).expect("b217e3bf deserialize invariant must hold")
                                 }
                             )
                         ),
@@ -2171,7 +2171,7 @@ enum IsConst {
                             generate_slightly_less_than_max_inner_type_token_stream(
                                 IsConst::True,
                                 &quote::quote! {
-                                    sqlx::types::chrono::NaiveTime::from_hms_micro_opt(23, 59, 59, 999_998).expect("5d6cf475")
+                                    sqlx::types::chrono::NaiveTime::from_hms_micro_opt(23, 59, 59, 999_998).expect("5d6cf475 deserialize invariant must hold")
                                 }
                             )
                         ),
@@ -2241,7 +2241,7 @@ enum IsConst {
                         PgType::SqlxTypesChronoNaiveTimeAsTime => Some({
                             let generate_fn_identifier_inner_type_token_stream = |name_token_stream: &dyn quote::ToTokens, parameters_token_stream: &dyn quote::ToTokens| quote::quote! {
                                 const fn #name_token_stream() -> #identifier_inner_type_token_stream {
-                                    #identifier_inner_type_token_stream::from_hms_micro_opt(#parameters_token_stream).expect("149e01cc")
+                                    #identifier_inner_type_token_stream::from_hms_micro_opt(#parameters_token_stream).expect("149e01cc deserialize invariant must hold")
                                 }
                             };
                             let ser_de_array_token_stream = [
@@ -2270,48 +2270,48 @@ enum IsConst {
                                     ),
                                     generate_fn_token_stream(
                                         &sqlx_types_chrono_naive_date_max_pred_opt_expect_fn_token_stream,
-                                        &quote::quote! {Self::#sqlx_types_chrono_naive_date_max_fn_token_stream().pred_opt().expect("b7e16bf1")}
+                                        &quote::quote! {Self::#sqlx_types_chrono_naive_date_max_fn_token_stream().pred_opt().expect("b7e16bf1 deserialize invariant must hold")}
                                     ),
                                     generate_fn_identifier_inner_type_token_stream(
                                         &sqlx_types_chrono_naive_date_min_fn_token_stream,
                                         &quote::quote! {
                                             from_ymd_opt(-4713, 12, 31)
-                                                .expect("d074927c")
+                                                .expect("d074927c deserialize invariant must hold")
                                         },
                                     ),
                                     generate_fn_identifier_inner_type_token_stream(
                                         &sqlx_types_chrono_naive_date_negative_less_typical_fn_token_stream,
                                         &quote::quote! {
                                             from_ymd_opt(-2000, 1, 1)
-                                                .expect("c4e31c47")
+                                                .expect("c4e31c47 deserialize invariant must hold")
                                         },
                                     ),
                                     generate_fn_identifier_inner_type_token_stream(
                                         &sqlx_types_chrono_naive_date_negative_more_typical_fn_token_stream,
                                         &quote::quote! {
                                             from_ymd_opt(-1000, 1, 1)
-                                                .expect("22400727")
+                                                .expect("22400727 deserialize invariant must hold")
                                         },
                                     ),
                                     generate_fn_identifier_inner_type_token_stream(
                                         &sqlx_types_chrono_naive_date_near_zero_fn_token_stream,
                                         &quote::quote! {
                                             from_ymd_opt(0, 1, 1)
-                                                .expect("05c3dc8c")
+                                                .expect("05c3dc8c deserialize invariant must hold")
                                         },
                                     ),
                                     generate_fn_identifier_inner_type_token_stream(
                                         &sqlx_types_chrono_naive_date_positive_less_typical_fn_token_stream,
                                         &quote::quote! {
                                             from_ymd_opt(1000, 1, 1)
-                                                .expect("56140676")
+                                                .expect("56140676 deserialize invariant must hold")
                                         },
                                     ),
                                     generate_fn_identifier_inner_type_token_stream(
                                         &sqlx_types_chrono_naive_date_positive_more_typical_fn_token_stream,
                                         &quote::quote! {
                                             from_ymd_opt(2000, 1, 1)
-                                                .expect("739e0bc9")
+                                                .expect("739e0bc9 deserialize invariant must hold")
                                         },
                                     ),
                                 ]
@@ -2956,7 +2956,7 @@ enum IsConst {
                                             }
                                         },
                                         PgTypeInitializationTryNew::SqlxTypesChronoNaiveTimeAsTime => quote::quote! {
-                                            if <#inner_type_standard_non_null_token_stream as chrono::Timelike>::nanosecond(&#v_snake_case).checked_rem(1000).expect("7c8b4e12") != 0 {
+                                            if <#inner_type_standard_non_null_token_stream as chrono::Timelike>::nanosecond(&#v_snake_case).checked_rem(1000).expect("7c8b4e12 deserialize invariant must hold") != 0 {
                                                 return Err(#identifier_standard_non_null_origin_try_new_error_upper_camel_case::#nanosecond_precision_is_not_supported_upper_camel_case {
                                                     #v_snake_case: #v_snake_case.to_string(),
                                                     location: location_macros::location!(),
@@ -2965,7 +2965,7 @@ enum IsConst {
                                             Ok(Self(#v_snake_case))
                                         },
                                         PgTypeInitializationTryNew::SqlxTypesTimeTimeAsTime => quote::quote! {
-                                            if #v_snake_case.nanosecond().checked_rem(1000).expect("ce47524f") != 0 {
+                                            if #v_snake_case.nanosecond().checked_rem(1000).expect("ce47524f deserialize invariant must hold") != 0 {
                                                 return Err(#identifier_standard_non_null_origin_try_new_error_upper_camel_case::#nanosecond_precision_is_not_supported_upper_camel_case {
                                                     #v_snake_case: #v_snake_case.to_string(),
                                                     location: location_macros::location!(),
@@ -2974,7 +2974,7 @@ enum IsConst {
                                             Ok(Self(#v_snake_case))
                                         },
                                         PgTypeInitializationTryNew::SqlxTypesChronoNaiveDateAsDate => quote::quote! {
-                                            let #earliest_supported_date_snake_case = #inner_type_standard_non_null_token_stream::from_ymd_opt(-4713, 12, 31).expect("9f6241e5");
+                                            let #earliest_supported_date_snake_case = #inner_type_standard_non_null_token_stream::from_ymd_opt(-4713, 12, 31).expect("9f6241e5 deserialize invariant must hold");
                                             if #v_snake_case >= #earliest_supported_date_snake_case {
                                                 Ok(Self(#v_snake_case))
                                             }
@@ -3405,7 +3405,7 @@ enum IsConst {
                                 v.micro,
                             ) {
                                 Some(v_b143b9e1) => {
-                                    if <#inner_type_standard_non_null_token_stream as chrono::Timelike>::nanosecond(&v_b143b9e1).checked_rem(1000).expect("c0514180") != 0 {
+                                    if <#inner_type_standard_non_null_token_stream as chrono::Timelike>::nanosecond(&v_b143b9e1).checked_rem(1000).expect("c0514180 deserialize invariant must hold") != 0 {
                                         return Err(#identifier_standard_non_null_origin_try_new_for_de_error_upper_camel_case::#nanosecond_precision_is_not_supported_upper_camel_case {
                                             #v_snake_case: v_b143b9e1.to_string(),
                                             location: location_macros::location!(),
@@ -3433,7 +3433,7 @@ enum IsConst {
                                 v.microsecond,
                             ) {
                                 Ok(v_9932d535) => {
-                                    if v_9932d535.nanosecond().checked_rem(1000).expect("0def33ce") != 0 {
+                                    if v_9932d535.nanosecond().checked_rem(1000).expect("0def33ce deserialize invariant must hold") != 0 {
                                         return Err(#identifier_standard_non_null_origin_try_new_for_de_error_upper_camel_case::#nanosecond_precision_is_not_supported_upper_camel_case {
                                             #v_snake_case: v_9932d535.to_string(),
                                             location: location_macros::location!(),
@@ -3550,7 +3550,7 @@ enum IsConst {
                                     #sqlx_types_chrono_naive_time_as_non_null_time_origin_as_default_some_one_element_call_token_stream.0,
                                 })),
                                 PgType::SqlxTypesIpnetworkIpNetworkAsInet => &quote::quote! {
-                                    sqlx::types::ipnetwork::IpNetwork::V4(sqlx::types::ipnetwork::Ipv4Network::#new_snake_case(core::net::Ipv4Addr::UNSPECIFIED, #core_default).expect("9e9c9b57"))
+                                    sqlx::types::ipnetwork::IpNetwork::V4(sqlx::types::ipnetwork::Ipv4Network::#new_snake_case(core::net::Ipv4Addr::UNSPECIFIED, #core_default).expect("9e9c9b57 deserialize invariant must hold"))
                                 },
                                 PgType::SqlxPgTypesPgRangeI32AsInt4Range | PgType::SqlxPgTypesPgRangeI64AsInt8Range => &pg_range_int_default_initialization_token_stream,
                                 PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange => &generate_sqlx_pg_types_pg_range_default_some_one_element_token_stream(&sqlx_types_chrono_naive_date_as_non_null_date_origin_upper_camel_case),
@@ -4346,7 +4346,7 @@ enum IsConst {
                                                 excluded_end_checked_add_token_stream
                                             ) = {
                                                 let generate_token_stream = |first_token_stream: &dyn quote::ToTokens, second_token_stream: &dyn quote::ToTokens| {
-                                                    quote::quote! {#first_token_stream(#second_token_stream.checked_add(1).expect("0ec0992f"))}
+                                                    quote::quote! {#first_token_stream(#second_token_stream.checked_add(1).expect("0ec0992f generate_flts_with invariant must hold"))}
                                                 };
                                                 (
                                                     generate_token_stream(&included_upper_camel_case, &start_snake_case),
@@ -4397,7 +4397,7 @@ enum IsConst {
                                                     quote::quote! {#excluded_upper_camel_case(#end_snake_case #dot_succ_opt_expect_token_stream)}
                                                 };
                                                 generate_range_match_token_stream(
-                                                    &generate_sqlx_pg_types_pg_range_token_stream(&included_start_token_stream, &quote::quote! {#excluded_upper_camel_case(#end_snake_case.succ_opt().expect("9ebce3b4"))}),
+                                                    &generate_sqlx_pg_types_pg_range_token_stream(&included_start_token_stream, &quote::quote! {#excluded_upper_camel_case(#end_snake_case.succ_opt().expect("9ebce3b4 generate_flts_with invariant must hold"))}),
                                                     &if_eq_unbounded_unbounded_or_included_excluded_token_stream,
                                                     &sqlx_pg_types_pg_range_included_unbounded_token_stream,
                                                     &generate_if_start_end_eq_token_stream(
@@ -4490,7 +4490,7 @@ enum IsNeedToUseInto {
             let generate_read_or_read_inner_into_update_with_new_or_try_new_unwraped_token_stream = |read_or_update: &pg_crud_macros_common::ReadOrUpdate| {
                 let read_or_update_upper_camel_case = read_or_update.ucc();
                 let ts = if pg_type_initialization_try_new_try_from_pg_type.is_ok() {
-                    quote::quote! {#try_new_snake_case(#v_snake_case).expect("69477d2f")}
+                    quote::quote! {#try_new_snake_case(#v_snake_case).expect("69477d2f generate_flts_with invariant must hold")}
                 } else {
                     quote::quote! {#new_snake_case(#v_snake_case)}
                 };
@@ -4813,17 +4813,17 @@ enum Bnd<'lt> {
                         sqlx::types::Uuid::from_u128(1u128)
                     ]},
                     PgType::SqlxTypesIpnetworkIpNetworkAsInet => quote::quote! {vec![
-                        <sqlx::types::ipnetwork::IpNetwork as std::str::FromStr>::from_str("192.168.0.0/24").expect("478dbded"),
-                        <sqlx::types::ipnetwork::IpNetwork as std::str::FromStr>::from_str("10.0.0.0/8").expect("8af9e27e"),
-                        <sqlx::types::ipnetwork::IpNetwork as std::str::FromStr>::from_str("172.16.0.0/12").expect("ba86505f"),
-                        <sqlx::types::ipnetwork::IpNetwork as std::str::FromStr>::from_str("127.0.0.1/32").expect("32c744a0"),
-                        <sqlx::types::ipnetwork::IpNetwork as std::str::FromStr>::from_str("::1/128").expect("560815f8"),
-                        <sqlx::types::ipnetwork::IpNetwork as std::str::FromStr>::from_str("2001:db8::/32").expect("793db0ef"),
-                        sqlx::types::ipnetwork::IpNetwork::V4(sqlx::types::ipnetwork::Ipv4Network::#new_snake_case(std::net::Ipv4Addr::#new_snake_case(192, 168, 0, 0), 24).expect("c44934f2")),
-                        sqlx::types::ipnetwork::IpNetwork::V4(sqlx::types::ipnetwork::Ipv4Network::#new_snake_case(std::net::Ipv4Addr::#new_snake_case(10, 0, 0, 0), 8).expect("39e588d9")),
-                        sqlx::types::ipnetwork::IpNetwork::V4(sqlx::types::ipnetwork::Ipv4Network::#new_snake_case(std::net::Ipv4Addr::LOCALHOST, 32).expect("43fb25bd")),
-                        sqlx::types::ipnetwork::IpNetwork::V6(sqlx::types::ipnetwork::Ipv6Network::#new_snake_case(std::net::Ipv6Addr::LOCALHOST, 128).expect("b443be46")),
-                        sqlx::types::ipnetwork::IpNetwork::V6(sqlx::types::ipnetwork::Ipv6Network::#new_snake_case("2001:db8::".parse().expect("d4e6df27"), 32).expect("a7486c5e")),
+                        <sqlx::types::ipnetwork::IpNetwork as std::str::FromStr>::from_str("192.168.0.0/24").expect("478dbded generate_flts_with invariant must hold"),
+                        <sqlx::types::ipnetwork::IpNetwork as std::str::FromStr>::from_str("10.0.0.0/8").expect("8af9e27e generate_flts_with invariant must hold"),
+                        <sqlx::types::ipnetwork::IpNetwork as std::str::FromStr>::from_str("172.16.0.0/12").expect("ba86505f generate_flts_with invariant must hold"),
+                        <sqlx::types::ipnetwork::IpNetwork as std::str::FromStr>::from_str("127.0.0.1/32").expect("32c744a0 generate_flts_with invariant must hold"),
+                        <sqlx::types::ipnetwork::IpNetwork as std::str::FromStr>::from_str("::1/128").expect("560815f8 generate_flts_with invariant must hold"),
+                        <sqlx::types::ipnetwork::IpNetwork as std::str::FromStr>::from_str("2001:db8::/32").expect("793db0ef generate_flts_with invariant must hold"),
+                        sqlx::types::ipnetwork::IpNetwork::V4(sqlx::types::ipnetwork::Ipv4Network::#new_snake_case(std::net::Ipv4Addr::#new_snake_case(192, 168, 0, 0), 24).expect("c44934f2 generate_flts_with invariant must hold")),
+                        sqlx::types::ipnetwork::IpNetwork::V4(sqlx::types::ipnetwork::Ipv4Network::#new_snake_case(std::net::Ipv4Addr::#new_snake_case(10, 0, 0, 0), 8).expect("39e588d9 generate_flts_with invariant must hold")),
+                        sqlx::types::ipnetwork::IpNetwork::V4(sqlx::types::ipnetwork::Ipv4Network::#new_snake_case(std::net::Ipv4Addr::LOCALHOST, 32).expect("43fb25bd generate_flts_with invariant must hold")),
+                        sqlx::types::ipnetwork::IpNetwork::V6(sqlx::types::ipnetwork::Ipv6Network::#new_snake_case(std::net::Ipv6Addr::LOCALHOST, 128).expect("b443be46 generate_flts_with invariant must hold")),
+                        sqlx::types::ipnetwork::IpNetwork::V6(sqlx::types::ipnetwork::Ipv6Network::#new_snake_case("2001:db8::".parse().expect("d4e6df27 generate_flts_with invariant must hold"), 32).expect("a7486c5e generate_flts_with invariant must hold")),
                     ]},
                     PgType::SqlxTypesMacAddressMacAddressAsMacAddr => quote::quote! {vec![
                         sqlx::types::mac_address::MacAddress::#new_snake_case([0x00, 0x00, 0x00, 0x00, 0x00, 0x00]), // All zeros
@@ -4871,11 +4871,11 @@ enum Bnd<'lt> {
                     additonal_token_stream: &dyn quote::ToTokens
                 | {
                     let (new_or_try_new_token_stream, maybe_accumulator_push_none_token_stream) = match (&is_nullable_parameter, pg_type_initialization_try_new_try_from_pg_type.is_ok()) {
-                        (pg_crud_macros_common::IsNullable::False, true) => (quote::quote! {try_new(vec![element_0fd5865b.0.into()]).expect("adbae6b3")}, proc_macro2::TokenStream::new()),
+                        (pg_crud_macros_common::IsNullable::False, true) => (quote::quote! {try_new(vec![element_0fd5865b.0.into()]).expect("adbae6b3 generate_flts_with invariant must hold")}, proc_macro2::TokenStream::new()),
                         (pg_crud_macros_common::IsNullable::False, false) => (quote::quote! {new(vec![element_0fd5865b.0.into()])}, proc_macro2::TokenStream::new()),
                         (pg_crud_macros_common::IsNullable::True, true) => (
-                            quote::quote! {try_new(Some(element_0fd5865b.0.into())).expect("b244d498")},
-                            quote::quote! {accumulator_0b59a062.push(#self_as_pg_type_token_stream::Create::try_new(None).expect("31878971"));},
+                            quote::quote! {try_new(Some(element_0fd5865b.0.into())).expect("b244d498 generate_flts_with invariant must hold")},
+                            quote::quote! {accumulator_0b59a062.push(#self_as_pg_type_token_stream::Create::try_new(None).expect("31878971 generate_flts_with invariant must hold"));},
                         ),
                         (pg_crud_macros_common::IsNullable::True, false) => (quote::quote! {new(Some(element_0fd5865b.0.into()))}, quote::quote! {accumulator_0b59a062.push(#self_as_pg_type_token_stream::Create::new(None));}),
                     };
@@ -4902,7 +4902,7 @@ enum Bnd<'lt> {
                                         quote::quote! {
                                             |element_043a7d30|#self_as_pg_type_create_token_stream::try_new(
                                                 element_043a7d30
-                                            ).expect("941bd15c")
+                                            ).expect("941bd15c generate_flts_with invariant must hold")
                                         }
                                     } else {
                                         quote::quote! {#self_as_pg_type_create_token_stream::#new_snake_case}
@@ -5019,7 +5019,7 @@ enum Bnd<'lt> {
             let read_ids_and_create_into_vec_where_eq_using_fields_token_stream = quote::quote! {
                 #import::NotEmptyUniqueVec::try_new(vec![
                     #read_ids_and_create_into_where_eq_token_stream
-                ].into()).expect("4c08b551")
+                ].into()).expect("4c08b551 generate_flts_with invariant must hold")
             };
             let read_ids_and_create_into_optional_vec_where_eq_to_field_token_stream: Option<proc_macro2::TokenStream> = None;
             let pg_type_optional_vec_where_greater_than_test_token_stream: Option<proc_macro2::TokenStream> = {
@@ -5054,8 +5054,8 @@ enum Bnd<'lt> {
                 let generate_greater_than_test_try_new_try_new_token_stream = |greater_than_variant_token_stream: &pg_crud_common::PgTypeGreaterThanVariant, create_token_stream: &dyn quote::ToTokens, greater_than_token_stream: &dyn quote::ToTokens| {
                     generate_greater_than_test_token_stream(
                         greater_than_variant_token_stream,
-                        &quote::quote! {try_new(#create_token_stream).expect("8327c651")},
-                        &quote::quote! {try_new(#greater_than_token_stream).expect("c369e6ea")},
+                        &quote::quote! {try_new(#create_token_stream).expect("8327c651 generate_flts_with invariant must hold")},
+                        &quote::quote! {try_new(#greater_than_token_stream).expect("c369e6ea generate_flts_with invariant must hold")},
                     )
                 };
                 let generate_greater_than_test_vec_token_stream = |
@@ -5108,7 +5108,7 @@ enum Bnd<'lt> {
                     PgTypePattern::Standard => match &is_nullable {
                         pg_crud_macros_common::IsNullable::False => {
                             let wrap_into_not_empty_unique_vec_token_stream = |ts: &dyn quote::ToTokens| Some(quote::quote! {Some(
-                                #import::NotEmptyUniqueVec::try_new(vec![#ts].into()).expect("3ad4b6bf")
+                                #import::NotEmptyUniqueVec::try_new(vec![#ts].into()).expect("3ad4b6bf generate_flts_with invariant must hold")
                             )});
                             let sqlx_types_chrono_naive_time_as_time_standard_non_null_token_stream = &generate_identifier_token_stream(
                                 &PgType::SqlxTypesChronoNaiveTimeAsTime,
@@ -5175,8 +5175,8 @@ enum Bnd<'lt> {
                                     &quote::quote! {Self::slightly_more_than_min_inner_type()},
                                     &quote::quote! {Self::middle_inner_type()},
                                     &quote::quote! {Self::slightly_more_than_middle_inner_type()},
-                                    &quote::quote! {sqlx::types::time::Time::from_hms_micro(23, 59, 59, 999_999).expect("f3d895bb")},
-                                    &quote::quote! {sqlx::types::time::Time::from_hms_micro(23, 59, 59, 999_998).expect("1e71f8c6")},
+                                    &quote::quote! {sqlx::types::time::Time::from_hms_micro(23, 59, 59, 999_999).expect("f3d895bb generate_flts_with invariant must hold")},
+                                    &quote::quote! {sqlx::types::time::Time::from_hms_micro(23, 59, 59, 999_998).expect("1e71f8c6 generate_flts_with invariant must hold")},
                                 )),
                                 PgType::SqlxTypesChronoNaiveDateAsDate => wrap_into_not_empty_unique_vec_token_stream(&generate_greater_than_test_try_new_try_new_vec_token_stream(
                                     &quote::quote! {sqlx::types::chrono::NaiveDate::from_ymd_opt(-4712, 12, 30)?},//todo not sure about this values. maybe reuse
@@ -5246,7 +5246,7 @@ enum Bnd<'lt> {
                                     })
                                     .collect::<Vec<_>>()
                                     .into()
-                                ).expect("63ce5df3")
+                                ).expect("63ce5df3 generate_flts_with invariant must hold")
                             )
                         }),
                     },

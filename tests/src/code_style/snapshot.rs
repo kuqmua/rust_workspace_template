@@ -64,7 +64,8 @@ impl CodebaseSnapshot {
                     == Some(str_constants::RS)
             })
             .map(|source_file| {
-                let ast = syn::parse_file(source_file.content.as_ref()).expect("5e7a83eb");
+                let ast = syn::parse_file(source_file.content.as_ref())
+                    .expect("5e7a83eb build invariant must hold");
                 RsSourceFile {
                     ast: super::types::SynFile::from(ast),
                     content: source_file.content.clone(),
@@ -159,7 +160,8 @@ impl CodebaseSourceSnapshot {
                     panic!("96f2c78a failed to parse {}: {error}", path.display())
                 });
                 CargoTomlSourceFile {
-                    content: super::types::SourceText::try_from(content).expect("84f6a0d2"),
+                    content: super::types::SourceText::try_from(content)
+                        .expect("84f6a0d2 build invariant must hold"),
                     parsed: super::types::TomlTable::from(parsed),
                     path: super::types::StdPathBuf::from(path),
                 }
@@ -214,7 +216,7 @@ fn workspace_metadata_uncached() -> super::types::CargoMetadata {
         cargo_metadata::MetadataCommand::new()
             .manifest_path(str_constants::CODE_STYLE_WORKSPACE_MANIFEST_PATH)
             .exec()
-            .expect("c84e9d1f"),
+            .expect("c84e9d1f workspace_metadata_uncached invariant must hold"),
     )
 }
 #[allow(clippy::single_call_fn)] // keeps workspace membership extraction named while snapshot construction reuses it twice
@@ -293,7 +295,7 @@ fn walk_error_fails_snapshot_loading() {
             let missing = walkdir::WalkDir::new("code_style_snapshot_missing_directory")
                 .into_iter()
                 .next()
-                .expect("1da2f4ed");
+                .expect("1da2f4ed walk_error_fails_snapshot_loading invariant must hold");
             project_walk_entry(missing)
         })
         .is_err(),

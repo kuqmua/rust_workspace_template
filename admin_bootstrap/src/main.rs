@@ -264,7 +264,7 @@ mod tests {
         let password = super::password_from_bytes(server_runtime_http::BoundedBytes::from(
             format!("{password_text}\r\n").into_bytes(),
         ))
-        .expect("05536bb6");
+        .expect("05536bb6 password_file_accepts_one_trailing_line_ending invariant must hold");
 
         let debug = format!("{password:?}");
         assert!(debug.contains(str_constants::REDACTED_ALT_3));

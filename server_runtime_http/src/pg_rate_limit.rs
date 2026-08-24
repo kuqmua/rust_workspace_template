@@ -136,7 +136,8 @@ mod tests {
             super::PgRateLimitMaximum::try_from(-1i64),
             Err(super::PgRateLimitValidationError::MustBePositive)
         );
-        let _maximum = super::PgRateLimitMaximum::try_from(1i64).expect("1c63c380");
+        let _maximum = super::PgRateLimitMaximum::try_from(1i64)
+            .expect("1c63c380 numeric_configuration_requires_positive_values invariant must hold");
         assert_eq!(
             super::PgRateLimitWindowSeconds::try_from(0i32),
             Err(super::PgRateLimitValidationError::MustBePositive)
@@ -145,13 +146,18 @@ mod tests {
             super::PgRateLimitWindowSeconds::try_from(-1i32),
             Err(super::PgRateLimitValidationError::MustBePositive)
         );
-        let _window = super::PgRateLimitWindowSeconds::try_from(1i32).expect("a5726134");
+        let _window = super::PgRateLimitWindowSeconds::try_from(1i32)
+            .expect("a5726134 numeric_configuration_requires_positive_values invariant must hold");
     }
     #[test]
     fn scope_and_subject_accept_exact_limit_and_reject_excess() {
         let exact = "a".repeat(super::PG_RATE_LIMIT_KEY_PART_MAX_LEN);
-        let _scope = super::PgRateLimitScopeRef::try_from(exact.as_str()).expect("1b100a47");
-        let _subject = super::PgRateLimitSubjectRef::try_from(exact.as_str()).expect("082e2933");
+        let _scope = super::PgRateLimitScopeRef::try_from(exact.as_str()).expect(
+            "1b100a47 scope_and_subject_accept_exact_limit_and_reject_excess invariant must hold",
+        );
+        let _subject = super::PgRateLimitSubjectRef::try_from(exact.as_str()).expect(
+            "082e2933 scope_and_subject_accept_exact_limit_and_reject_excess invariant must hold",
+        );
         let excess = "a".repeat(super::PG_RATE_LIMIT_KEY_PART_MAX_LEN + 1usize);
         assert_eq!(
             super::PgRateLimitScopeRef::try_from(excess.as_str()),

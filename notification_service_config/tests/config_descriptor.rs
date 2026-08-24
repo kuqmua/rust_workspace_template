@@ -16,11 +16,13 @@ mod tests {
             .into_iter()
             .filter(|(name, _value)| name.ends_with("_SERVICE_SOCKET_ADDRESS"))
             .map(|(_name, value)| value);
-        let socket_address = socket_addresses.next().expect("6ff25e0d");
+        let socket_address = socket_addresses
+            .next()
+            .expect("6ff25e0d descriptor_service_port invariant must hold");
         assert!(socket_addresses.next().is_none(), "d11594d2");
         socket_address
             .parse::<std::net::SocketAddr>()
-            .expect("323370cc")
+            .expect("323370cc descriptor_service_port invariant must hold")
             .port()
     }
 
@@ -28,10 +30,10 @@ mod tests {
         std::fs::read_to_string(
             std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
                 .parent()
-                .expect("a884a7d7")
+                .expect("a884a7d7 repository_file invariant must hold")
                 .join(path),
         )
-        .expect("36a7831b")
+        .expect("36a7831b repository_file invariant must hold")
     }
 
     #[allow(clippy::single_call_fn)] // derives deployment identity from the config crate instead of repeating it
@@ -41,7 +43,7 @@ mod tests {
             .and_then(std::ffi::OsStr::to_str)
             .and_then(|name| name.strip_suffix("_config"))
             .map(str::to_owned)
-            .expect("f53ffbf0")
+            .expect("f53ffbf0 service_name invariant must hold")
             .into_boxed_str()
     }
 
@@ -54,9 +56,10 @@ mod tests {
                 example_path.as_path(),
                 notification_service_config::Config::env_example(),
             )
-            .expect("49f0c61e");
+            .expect("49f0c61e env_example_matches_generated_descriptor invariant must hold");
         }
-        let example_source = std::fs::read_to_string(example_path).expect("8db042aa");
+        let example_source = std::fs::read_to_string(example_path)
+            .expect("8db042aa env_example_matches_generated_descriptor invariant must hold");
         assert_eq!(
             example_source,
             notification_service_config::Config::env_example()
@@ -68,7 +71,7 @@ mod tests {
             let value = examples
                 .get(descriptor.env_name().as_ref())
                 .cloned()
-                .expect("00960401");
+                .expect("00960401 env_example_matches_generated_descriptor invariant must hold");
             assert_eq!(value, descriptor.example().as_ref());
             assert_eq!(
                 descriptor.requirement(),
@@ -76,9 +79,9 @@ mod tests {
             );
             if descriptor.sensitivity() == config_lib::ConfigFieldSensitivity::Public {
                 assert_eq!(
-                    descriptor.validate_example(
-                        config_lib::StdEnvVarOk::try_from(value).expect("51cc2fcf")
-                    ),
+                    descriptor.validate_example(config_lib::StdEnvVarOk::try_from(value).expect(
+                        "51cc2fcf env_example_matches_generated_descriptor invariant must hold"
+                    )),
                     config_lib::ConfigExampleValidity::Valid
                 );
             }
@@ -96,11 +99,15 @@ mod tests {
                     .split_once("    healthcheck:\n")
                     .map(|(env, _after)| env)
             })
-            .expect("f30296b7");
+            .expect(
+                "f30296b7 compose_environment_keys_match_generated_descriptor invariant must hold",
+            );
         let environment = service
             .split_once("    environment:\n")
             .map(|(_before, environment)| environment)
-            .expect("0a7b014c");
+            .expect(
+                "0a7b014c compose_environment_keys_match_generated_descriptor invariant must hold",
+            );
         let observed = environment
             .lines()
             .filter_map(|line| {
@@ -168,12 +175,14 @@ mod tests {
         assert!(
             std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
                 .parent()
-                .expect("85dce7d5")
+                .expect("85dce7d5 service_image_references_follow_the_config_crate_name invariant must hold")
                 .join(&dockerfile)
                 .is_file(),
             "add133fd"
         );
-        let dockerfile_text = dockerfile.to_str().expect("abc73cd7");
+        let dockerfile_text = dockerfile.to_str().expect(
+            "abc73cd7 service_image_references_follow_the_config_crate_name invariant must hold",
+        );
         let compose_source = repository_file(std::path::Path::new("docker-compose.yml"));
         assert!(
             compose_source.contains(format!("dockerfile: {dockerfile_text}").as_str()),

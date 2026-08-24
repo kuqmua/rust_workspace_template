@@ -288,7 +288,10 @@ pub(crate) fn replace_header_name<'headers_lt>(
     insert_header_no_prev(headers.0, to_name, value);
 }
 pub(crate) fn non_utf8_header_value() -> AxumTestHeaderValue {
-    AxumTestHeaderValue::from(axum::http::HeaderValue::from_bytes(&[0x80]).expect("86eb20cf"))
+    AxumTestHeaderValue::from(
+        axum::http::HeaderValue::from_bytes(&[0x80])
+            .expect("86eb20cf non_utf8_header_value invariant must hold"),
+    )
 }
 #[track_caller]
 pub(crate) fn assert_panics(

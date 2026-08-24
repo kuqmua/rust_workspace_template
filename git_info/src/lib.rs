@@ -410,7 +410,8 @@ mod tests {
         fn get_git_commit_id(&self) -> super::GitCommitId {
             let calls = self.fallback_calls.get().saturating_add(1);
             self.fallback_calls.set(calls);
-            super::GitCommitId::try_from(self.commit.to_owned()).expect("45a9c31d")
+            super::GitCommitId::try_from(self.commit.to_owned())
+                .expect("45a9c31d get_git_commit_id invariant must hold")
         }
         fn get_git_commit_id_ref(&self) -> Option<super::GitCommitIdRef<'_>> {
             self.borrow_commit_ref

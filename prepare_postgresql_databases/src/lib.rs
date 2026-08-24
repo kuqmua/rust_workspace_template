@@ -163,7 +163,10 @@ mod tests {
             },
         ));
         assert_eq!(commands.as_ref().len(), 1usize);
-        let command = commands.as_ref().first().expect("989c8d37");
+        let command = commands
+            .as_ref()
+            .first()
+            .expect("989c8d37 builds_one_migration_command_per_database invariant must hold");
         assert_eq!(command.program().as_ref(), str_constants::SQLX);
         assert_eq!(command.arguments().as_ref().len(), 5usize);
     }

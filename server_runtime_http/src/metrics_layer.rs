@@ -280,26 +280,28 @@ mod tests {
                 .method(method)
                 .uri("/items/123")
                 .body(axum::body::Body::empty())
-                .expect("49ef0e86"),
+                .expect("49ef0e86 call_method invariant must hold"),
         )
         .await
-        .expect("12a54113")
+        .expect("12a54113 call_method invariant must hold")
         .status()
     }
 
     #[test]
     fn metrics_response_body_is_bounded() {
-        let _empty_body = super::MetricsResponseBody::try_from(String::new()).expect("52410ad9");
+        let _empty_body = super::MetricsResponseBody::try_from(String::new())
+            .expect("52410ad9 metrics_response_body_is_bounded invariant must hold");
         let exact = String::from_utf8(vec![b'x'; super::METRICS_RESPONSE_BODY_MAXIMUM_BYTES])
-            .expect("560d1f1e");
-        let _exact_body = super::MetricsResponseBody::try_from(exact).expect("2701b706");
+            .expect("560d1f1e metrics_response_body_is_bounded invariant must hold");
+        let _exact_body = super::MetricsResponseBody::try_from(exact)
+            .expect("2701b706 metrics_response_body_is_bounded invariant must hold");
         let _error = super::MetricsResponseBody::try_from(
             String::from_utf8(vec![
                 b'x';
                 super::METRICS_RESPONSE_BODY_MAXIMUM_BYTES
                     .saturating_add(1usize)
             ])
-            .expect("329fb604"),
+            .expect("329fb604 metrics_response_body_is_bounded invariant must hold"),
         )
         .expect_err(str_constants::F0FC293DD);
     }
@@ -314,7 +316,9 @@ mod tests {
             super::HttpMetricsPathText::try_from(String::new()),
             Err(super::HttpMetricsPathTextError)
         );
-        let _path = super::HttpMetricsPathText::try_from("a".repeat(8_192usize)).expect("c1b07056");
+        let _path = super::HttpMetricsPathText::try_from("a".repeat(8_192usize)).expect(
+            "c1b07056 cache_configuration_and_path_text_validate_boundaries invariant must hold",
+        );
         assert_eq!(
             super::HttpMetricsPathText::try_from("a".repeat(8_193usize)),
             Err(super::HttpMetricsPathTextError)
@@ -378,7 +382,9 @@ mod tests {
                 axum::routing::any(async || http::StatusCode::INTERNAL_SERVER_ERROR),
             )),
         ));
-        let custom = http::Method::from_bytes(b"CUSTOM").expect("6e90dca2");
+        let custom = http::Method::from_bytes(b"CUSTOM").expect(
+            "6e90dca2 layer_handles_every_standard_and_custom_http_method invariant must hold",
+        );
         let statuses = tokio::join!(
             call_method(router.clone(), http::Method::CONNECT),
             call_method(router.clone(), http::Method::DELETE),

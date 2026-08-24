@@ -127,7 +127,8 @@ pub fn validate_pg_relation_capacity(
 mod tests {
     #[test]
     fn capacity_rejects_excess_and_overflow() {
-        let maximum = super::PgRelationCapacityMaximum::try_from(5u64).expect("4ddf36da");
+        let maximum = super::PgRelationCapacityMaximum::try_from(5u64)
+            .expect("4ddf36da capacity_rejects_excess_and_overflow invariant must hold");
         assert_eq!(
             super::validate_pg_relation_capacity(3u64.into(), 2u64.into(), maximum),
             Ok(super::PgRelationRowCount::from(5u64))
@@ -149,7 +150,9 @@ mod tests {
             super::PgRelationResourceId::from(1i64),
             super::PgRelationResourceId::from(2i64),
         ])
-        .expect("a9cf9ea3");
+        .expect(
+            "a9cf9ea3 resources_are_sorted_and_deduplicated_before_locking invariant must hold",
+        );
         assert_eq!(
             resources.0.as_slice(),
             [

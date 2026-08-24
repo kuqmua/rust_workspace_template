@@ -102,8 +102,12 @@ mod tests {
     fn coordinates_reject_zero_and_accept_positive_values() {
         let _line_error = super::FieldLocationLine::try_from(0u32).expect_err("c2f0b6ca");
         let _column_error = super::FieldLocationColumn::try_from(0u32).expect_err("9cf06f3e");
-        let _line = super::FieldLocationLine::try_from(7u32).expect("070dbee8");
-        let _column = super::FieldLocationColumn::try_from(11u32).expect("e067c790");
+        let _line = super::FieldLocationLine::try_from(7u32).expect(
+            "070dbee8 coordinates_reject_zero_and_accept_positive_values invariant must hold",
+        );
+        let _column = super::FieldLocationColumn::try_from(11u32).expect(
+            "e067c790 coordinates_reject_zero_and_accept_positive_values invariant must hold",
+        );
     }
     #[test]
     fn first_coordinates_generate_complete_location_field() {
