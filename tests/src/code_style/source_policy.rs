@@ -1169,52 +1169,52 @@ fn source_lint_suppressions_have_explicit_reasons() {
         },
         LegacySuppression {
             limit: 12,
-            path_suffix: "pg_crud/pg_crud_common/src/lib.rs",
+            path_suffix: "pg_crud_pg_crud_common/src/lib.rs",
             reason: "generated SQL token shapes predate per-attribute reasons",
         },
         LegacySuppression {
             limit: 1,
-            path_suffix: "pg_crud/pg_crud_macros_common/src/filters.rs",
+            path_suffix: "pg_crud_pg_crud_macros_common/src/filters.rs",
             reason: "generated filter token shapes predate per-attribute reasons",
         },
         LegacySuppression {
             limit: 14,
-            path_suffix: "pg_crud/pg_crud_macros_common/src/lib.rs",
+            path_suffix: "pg_crud_pg_crud_macros_common/src/lib.rs",
             reason: "generated CRUD token shapes predate per-attribute reasons",
         },
         LegacySuppression {
             limit: 13,
-            path_suffix: "pg_crud/pg_crud_macros_common/src/pg_type_test_cases.rs",
+            path_suffix: "pg_crud_pg_crud_macros_common/src/pg_type_test_cases.rs",
             reason: "generated database fixtures predate per-attribute reasons",
         },
         LegacySuppression {
             limit: 3,
-            path_suffix: "pg_crud/pg_crud_macros_common/src/token_stream_helpers.rs",
+            path_suffix: "pg_crud_pg_crud_macros_common/src/token_stream_helpers.rs",
             reason: "token-stream compatibility helpers predate per-attribute reasons",
         },
         LegacySuppression {
             limit: 20,
-            path_suffix: "pg_crud/pg_table/generate_pg_table_src/src/source.rs",
+            path_suffix: "pg_crud_pg_table_generate_pg_table_src/src/source.rs",
             reason: "generated table templates predate per-attribute reasons",
         },
         LegacySuppression {
             limit: 11,
-            path_suffix: "pg_crud/pg_types/generate_pg_types_src/src/source.rs",
+            path_suffix: "pg_crud_pg_types_generate_pg_types_src/src/source.rs",
             reason: "generated type templates predate per-attribute reasons",
         },
         LegacySuppression {
             limit: 1,
-            path_suffix: "pg_crud/where_filters/generate_where_filters_src/src/contract_tests.rs",
+            path_suffix: "pg_crud_where_filters_generate_where_filters_src/src/contract_tests.rs",
             reason: "generated contract fixtures predate per-attribute reasons",
         },
         LegacySuppression {
             limit: 2,
-            path_suffix: "pg_crud/where_filters/generate_where_filters_src/src/source.rs",
+            path_suffix: "pg_crud_where_filters_generate_where_filters_src/src/source.rs",
             reason: "generated filter templates predate per-attribute reasons",
         },
         LegacySuppression {
             limit: 13,
-            path_suffix: "pg_crud/where_filters/src/lib.rs",
+            path_suffix: "pg_crud_where_filters/src/lib.rs",
             reason: "generated filter API shapes predate per-attribute reasons",
         },
         LegacySuppression {

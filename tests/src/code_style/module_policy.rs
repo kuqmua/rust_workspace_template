@@ -2,8 +2,8 @@ const PRODUCTION_MODULE_MAX_LINES: usize = 2_500usize;
 const INLINE_TEST_SEPARATION_MIN_LINES: usize = 1_000usize;
 fn large_module_exceptions() -> [&'static str; 3] {
     [
-        "pg_crud/pg_table/generate_pg_table_src/src/source.rs",
-        "pg_crud/pg_types/generate_pg_types_src/src/source.rs",
+        "pg_crud_pg_table_generate_pg_table_src/src/source.rs",
+        "pg_crud_pg_types_generate_pg_types_src/src/source.rs",
         "str_constants/src/lib.rs",
     ]
 }

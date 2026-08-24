@@ -6,9 +6,9 @@ members = [
   "bounded_types",
   "common_routes",
   "config_lib",
-  "config_lib/config_lib_macros",
-  "config_lib/generate_getter_traits_for_struct_fields",
-  "config_lib/try_from_env",
+  "config_lib_config_lib_macros",
+  "config_lib_generate_getter_traits_for_struct_fields",
+  "config_lib_try_from_env",
   "development_data_bootstrap",
   "external_service_emulators",
   "file_storage",
@@ -20,15 +20,16 @@ members = [
   "git_info",
   "initialize_environment_files",
   "location_lib",
-  "location_lib/location_macros",
-  "location_lib/location_test",
+  "location_lib_location",
+  "location_lib_location_macros",
+  "location_lib_location_test",
   "macro_clippy_check_common",
   "macros_helpers",
-  "macros_helpers/generate_derive_token_stream_builder",
+  "macros_helpers_generate_derive_token_stream_builder",
   "naming",
-  "naming/naming_common",
-  "naming/naming_common_macros",
-  "naming/naming_macros",
+  "naming_naming_common",
+  "naming_naming_common_macros",
+  "naming_naming_macros",
   "newtype",
   "notification_service",
   "notification_service_config",
@@ -36,26 +37,26 @@ members = [
   "optml",
   "panic_location",
   "pg_crud",
-  "pg_crud/pg_crud_common",
-  "pg_crud/pg_crud_common_macros",
-  "pg_crud/pg_crud_macros_common",
-  "pg_crud/pg_crud_macros_common_macros",
-  "pg_crud/pg_table",
-  "pg_crud/pg_table/generate_pg_table",
-  "pg_crud/pg_table/generate_pg_table_src",
-  "pg_crud/pg_table/generate_pg_table_test",
-  "pg_crud/pg_types",
-  "pg_crud/pg_types/generate_pg_types",
-  "pg_crud/pg_types/generate_pg_types_src",
-  "pg_crud/pg_types/generate_pg_types_test",
-  "pg_crud/pg_types/pg_types_chrono_net",
-  "pg_crud/pg_types/pg_types_common",
-  "pg_crud/pg_types/pg_types_numeric",
-  "pg_crud/pg_types/pg_types_text_misc",
-  "pg_crud/where_filters",
-  "pg_crud/where_filters/generate_where_filters",
-  "pg_crud/where_filters/generate_where_filters_src",
-  "pg_crud/where_filters/generate_where_filters_test",
+  "pg_crud_pg_crud_common",
+  "pg_crud_pg_crud_common_macros",
+  "pg_crud_pg_crud_macros_common",
+  "pg_crud_pg_crud_macros_common_macros",
+  "pg_crud_pg_table",
+  "pg_crud_pg_table_generate_pg_table",
+  "pg_crud_pg_table_generate_pg_table_src",
+  "pg_crud_pg_table_generate_pg_table_test",
+  "pg_crud_pg_types",
+  "pg_crud_pg_types_generate_pg_types",
+  "pg_crud_pg_types_generate_pg_types_src",
+  "pg_crud_pg_types_generate_pg_types_test",
+  "pg_crud_pg_types_pg_types_chrono_net",
+  "pg_crud_pg_types_pg_types_common",
+  "pg_crud_pg_types_pg_types_numeric",
+  "pg_crud_pg_types_pg_types_text_misc",
+  "pg_crud_where_filters",
+  "pg_crud_where_filters_generate_where_filters",
+  "pg_crud_where_filters_generate_where_filters_src",
+  "pg_crud_where_filters_generate_where_filters_test",
   "prepare_postgresql_databases",
   "route_validators",
   "runtime_tests",
@@ -65,7 +66,7 @@ members = [
   "server_admin_core",
   "server_admin_frontend",
   "server_app_state",
-  "server_app_state/server_app_state_macros",
+  "server_app_state_server_app_state_macros",
   "server_config",
   "server_observability",
   "server_runtime_core",
@@ -76,9 +77,9 @@ members = [
   "tests",
   "text_policy",
   "to_err_string",
-  "to_err_string/to_err_string_macros",
+  "to_err_string_to_err_string_macros",
   "token_patterns",
-  "token_patterns/token_patterns_macros",
+  "token_patterns_token_patterns_macros",
   "workspace_macro_helpers",
   "workspace_scaffold",
   "workspace_test_runner",
@@ -306,31 +307,31 @@ app_state = { path = "./app_state" }
 bounded_types = { path = "./bounded_types" }
 common_routes = { path = "./common_routes" }
 config_lib = { path = "./config_lib" }
-config_lib_macros = { path = "./config_lib/config_lib_macros" }
+config_lib_macros = { path = "./config_lib_config_lib_macros" }
 file_storage = { path = "./file_storage" }
 frontend_contract = { path = "./frontend_contract" }
 frontend_contract_validation = { path = "./frontend_contract_validation" }
 frontend_contract_macros = { path = "./frontend_contract_macros" }
-generate_derive_token_stream_builder = { path = "./macros_helpers/generate_derive_token_stream_builder" }
-generate_getter_traits_for_struct_fields = { path = "./config_lib/generate_getter_traits_for_struct_fields" }
-generate_pg_table = { path = "./pg_crud/pg_table/generate_pg_table" }
-generate_pg_table_src = { path = "./pg_crud/pg_table/generate_pg_table_src", default-features = false }
-generate_pg_types = { path = "./pg_crud/pg_types/generate_pg_types" }
-generate_pg_types_src = { path = "./pg_crud/pg_types/generate_pg_types_src", default-features = false }
+generate_derive_token_stream_builder = { path = "./macros_helpers_generate_derive_token_stream_builder" }
+generate_getter_traits_for_struct_fields = { path = "./config_lib_generate_getter_traits_for_struct_fields" }
+generate_pg_table = { path = "./pg_crud_pg_table_generate_pg_table" }
+generate_pg_table_src = { path = "./pg_crud_pg_table_generate_pg_table_src", default-features = false }
+generate_pg_types = { path = "./pg_crud_pg_types_generate_pg_types" }
+generate_pg_types_src = { path = "./pg_crud_pg_types_generate_pg_types_src", default-features = false }
 generate_quotes = { path = "./generate_quotes" }
-generate_where_filters = { path = "./pg_crud/where_filters/generate_where_filters" }
-generate_where_filters_src = { path = "./pg_crud/where_filters/generate_where_filters_src", default-features = false }
+generate_where_filters = { path = "./pg_crud_where_filters_generate_where_filters" }
+generate_where_filters_src = { path = "./pg_crud_where_filters_generate_where_filters_src", default-features = false }
 git_info = { path = "./git_info" }
 initialize_environment_files = { path = "./initialize_environment_files" }
 location_lib = { path = "./location_lib" }
-location_macros = { path = "./location_lib/location_macros" }
-location = { path = "./location_lib/location" }
+location_macros = { path = "./location_lib_location_macros" }
+location = { path = "./location_lib_location" }
 macro_clippy_check_common = { path = "./macro_clippy_check_common", default-features = false }
 macros_helpers = { path = "./macros_helpers" }
 naming = { path = "./naming" }
-naming_common = { path = "./naming/naming_common" }
-naming_common_macros = { path = "./naming/naming_common_macros" }
-naming_macros = { path = "./naming/naming_macros" }
+naming_common = { path = "./naming_naming_common" }
+naming_common_macros = { path = "./naming_naming_common_macros" }
+naming_macros = { path = "./naming_naming_macros" }
 newtype = { path = "./newtype" }
 notification_service = { path = "./notification_service" }
 notification_service_config = { path = "./notification_service_config" }
@@ -338,16 +339,16 @@ notification_service_contract = { path = "./notification_service_contract" }
 optml = { path = "./optml" }
 panic_location = { path = "./panic_location" }
 pg_crud = { path = "./pg_crud" }
-pg_crud_common = { path = "./pg_crud/pg_crud_common" }
-pg_crud_common_macros = { path = "./pg_crud/pg_crud_common_macros" }
-pg_crud_macros_common = { path = "./pg_crud/pg_crud_macros_common" }
-pg_crud_macros_common_macros = { path = "./pg_crud/pg_crud_macros_common_macros" }
-pg_table = { path = "./pg_crud/pg_table" }
-pg_types = { path = "./pg_crud/pg_types" }
-pg_types_chrono_net = { path = "./pg_crud/pg_types/pg_types_chrono_net" }
-pg_types_common = { path = "./pg_crud/pg_types/pg_types_common" }
-pg_types_numeric = { path = "./pg_crud/pg_types/pg_types_numeric" }
-pg_types_text_misc = { path = "./pg_crud/pg_types/pg_types_text_misc" }
+pg_crud_common = { path = "./pg_crud_pg_crud_common" }
+pg_crud_common_macros = { path = "./pg_crud_pg_crud_common_macros" }
+pg_crud_macros_common = { path = "./pg_crud_pg_crud_macros_common" }
+pg_crud_macros_common_macros = { path = "./pg_crud_pg_crud_macros_common_macros" }
+pg_table = { path = "./pg_crud_pg_table" }
+pg_types = { path = "./pg_crud_pg_types" }
+pg_types_chrono_net = { path = "./pg_crud_pg_types_pg_types_chrono_net" }
+pg_types_common = { path = "./pg_crud_pg_types_pg_types_common" }
+pg_types_numeric = { path = "./pg_crud_pg_types_pg_types_numeric" }
+pg_types_text_misc = { path = "./pg_crud_pg_types_pg_types_text_misc" }
 route_validators = { path = "./route_validators" }
 runtime_tests = { path = "./runtime_tests" }
 server_admin = { path = "./server_admin" }
@@ -355,7 +356,7 @@ server_admin_core = { path = "./server_admin_core" }
 server_admin_contract = { path = "./server_admin_contract" }
 server_admin_frontend = { path = "./server_admin_frontend" }
 server_app_state = { path = "./server_app_state" }
-server_app_state_macros = { path = "./server_app_state/server_app_state_macros" }
+server_app_state_macros = { path = "./server_app_state_server_app_state_macros" }
 server_config = { path = "./server_config" }
 server_observability = { path = "./server_observability" }
 server_runtime_core = { path = "./server_runtime_core" }
@@ -368,11 +369,11 @@ external_service_emulators = { path = "./external_service_emulators" }
 str_constants = { path = "./str_constants" }
 str_constants_macros = { path = "./str_constants_macros" }
 to_err_string = { path = "./to_err_string" }
-to_err_string_macros = { path = "./to_err_string/to_err_string_macros" }
+to_err_string_macros = { path = "./to_err_string_to_err_string_macros" }
 token_patterns = { path = "./token_patterns", default-features = false }
-token_patterns_macros = { path = "./token_patterns/token_patterns_macros" }
-try_from_env = { path = "./config_lib/try_from_env" }
-where_filters = { path = "./pg_crud/where_filters" }
+token_patterns_macros = { path = "./token_patterns_token_patterns_macros" }
+try_from_env = { path = "./config_lib_try_from_env" }
+where_filters = { path = "./pg_crud_where_filters" }
 workspace_macro_helpers = { path = "./workspace_macro_helpers" }
 workspace_test_runner = { path = "./workspace_test_runner" }
 [workspace.lints.rust]

@@ -490,7 +490,7 @@ fn library_crates_with_public_logic_own_tests() {
 fn source_modules_with_public_logic_own_unit_tests() {
     let reviewed_without_local_tests = std::collections::BTreeMap::from([
         (
-            "location_lib/location_macros/src/lib.rs",
+            "location_lib_location_macros/src/lib.rs",
             "the proc-macro is covered by location_lib expansion tests",
         ),
         (
@@ -550,19 +550,19 @@ fn source_modules_with_public_logic_own_unit_tests() {
             "the proc-macro is covered by downstream derive users",
         ),
         (
-            "naming/naming_common_macros/src/lib.rs",
+            "naming_naming_common_macros/src/lib.rs",
             "the macro surface is covered by naming_common tests",
         ),
         (
-            "naming/naming_macros/src/lib.rs",
+            "naming_naming_macros/src/lib.rs",
             "the proc-macro is covered by naming tests",
         ),
         (
-            "server_app_state/server_app_state_macros/src/lib.rs",
+            "server_app_state_server_app_state_macros/src/lib.rs",
             "the proc-macro is covered by server_app_state tests",
         ),
         (
-            "token_patterns/token_patterns_macros/src/lib.rs",
+            "token_patterns_token_patterns_macros/src/lib.rs",
             "the proc-macro is covered by token_patterns tests",
         ),
         (
@@ -578,59 +578,59 @@ fn source_modules_with_public_logic_own_unit_tests() {
             "the proc-macro is covered by str_constants tests",
         ),
         (
-            "pg_crud/where_filters/generate_where_filters/src/lib.rs",
+            "pg_crud_where_filters_generate_where_filters/src/lib.rs",
             "the proc-macro is covered by generate_where_filters_test",
         ),
         (
-            "pg_crud/pg_crud_common_macros/src/lib.rs",
+            "pg_crud_pg_crud_common_macros/src/lib.rs",
             "the macro surface is covered by pg_crud_common tests",
         ),
         (
-            "pg_crud/pg_crud_macros_common/src/lib.rs",
+            "pg_crud_pg_crud_macros_common/src/lib.rs",
             "the generator support surface is covered by generated contract tests",
         ),
         (
-            "pg_crud/pg_crud_macros_common/src/pg_type_test_cases.rs",
+            "pg_crud_pg_crud_macros_common/src/pg_type_test_cases.rs",
             "the fixture catalog is consumed by generated PostgreSQL type tests",
         ),
         (
-            "pg_crud/pg_crud_macros_common/src/token_stream_helpers.rs",
+            "pg_crud_pg_crud_macros_common/src/token_stream_helpers.rs",
             "the token helpers are covered by generated CRUD tests",
         ),
         (
-            "pg_crud/pg_crud_common/src/cardinality.rs",
+            "pg_crud_pg_crud_common/src/cardinality.rs",
             "cardinality behavior is covered by generated CRUD contract tests",
         ),
         (
-            "pg_crud/pg_crud_macros_common_macros/src/lib.rs",
+            "pg_crud_pg_crud_macros_common_macros/src/lib.rs",
             "the macro surface is covered by generated CRUD tests",
         ),
         (
-            "pg_crud/pg_table/generate_pg_table_src/src/pipeline.rs",
+            "pg_crud_pg_table_generate_pg_table_src/src/pipeline.rs",
             "the generation pipeline is covered by generate_pg_table tests",
         ),
         (
-            "pg_crud/pg_table/generate_pg_table/src/lib.rs",
+            "pg_crud_pg_table_generate_pg_table/src/lib.rs",
             "the proc-macro is covered by generate_pg_table_test",
         ),
         (
-            "pg_crud/pg_types/generate_pg_types/src/lib.rs",
+            "pg_crud_pg_types_generate_pg_types/src/lib.rs",
             "the proc-macro is covered by generate_pg_types_test",
         ),
         (
-            "pg_crud/pg_types/pg_types_common/src/lib.rs",
+            "pg_crud_pg_types_pg_types_common/src/lib.rs",
             "the generated adapter surface is covered by generated type tests",
         ),
         (
-            "config_lib/try_from_env/src/lib.rs",
+            "config_lib_try_from_env/src/lib.rs",
             "the proc-macro is covered by config_lib tests",
         ),
         (
-            "config_lib/generate_getter_traits_for_struct_fields/src/lib.rs",
+            "config_lib_generate_getter_traits_for_struct_fields/src/lib.rs",
             "the generator is covered by config_lib expansion tests",
         ),
         (
-            "config_lib/config_lib_macros/src/lib.rs",
+            "config_lib_config_lib_macros/src/lib.rs",
             "the proc-macro is covered by config_lib tests",
         ),
         (
@@ -638,7 +638,7 @@ fn source_modules_with_public_logic_own_unit_tests() {
             "handler contracts are covered by route contract compile tests",
         ),
         (
-            "to_err_string/to_err_string_macros/src/lib.rs",
+            "to_err_string_to_err_string_macros/src/lib.rs",
             "the proc-macro is covered by to_err_string tests",
         ),
         (

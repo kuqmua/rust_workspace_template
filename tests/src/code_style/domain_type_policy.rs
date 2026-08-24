@@ -603,21 +603,21 @@ fn server_admin_frontend_ui_is_an_explicit_framework_adapter_boundary() {
 fn domain_fixture_directory_exclusions_are_owner_exact() {
     assert!(
         !super::domain_type_policy_should_check_path(super::types::StdPathRef::from(
-            std::path::Path::new("../location_lib/location_test/src/lib.rs")
+            std::path::Path::new("../location_lib_location_test/src/lib.rs")
         ))
         .get(),
         "4ab6e2d1"
     );
     assert!(
         super::domain_type_policy_should_check_path(super::types::StdPathRef::from(
-            std::path::Path::new("../location_lib/location/src/location_test.rs")
+            std::path::Path::new("../location_lib_location/src/location_test.rs")
         ))
         .get(),
         "d8c3175f"
     );
     assert!(
         !super::domain_type_policy_should_check_path(super::types::StdPathRef::from(
-            std::path::Path::new("../pg_crud/pg_crud_common/benches/query.rs")
+            std::path::Path::new("../pg_crud_pg_crud_common/benches/query.rs")
         ))
         .get(),
         "09e5a6bc"

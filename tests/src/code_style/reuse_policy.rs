@@ -14,7 +14,7 @@ fn reviewed_duplicate_groups() -> Vec<ReviewedDuplicateGroup> {
             reason: "syn Visit requires separate callbacks for impl and struct items; both delegate to the same visitor state",
         },
         ReviewedDuplicateGroup {
-            locations: "../pg_crud/pg_crud_common/src/operational_invariants.rs::try_from\n../pg_crud/pg_crud_common/src/sql_identifier.rs::try_from\n../pg_crud/pg_crud_common/src/sql_identifier.rs::try_from",
+            locations: "../pg_crud_pg_crud_common/src/operational_invariants.rs::try_from\n../pg_crud_pg_crud_common/src/sql_identifier.rs::try_from\n../pg_crud_pg_crud_common/src/sql_identifier.rs::try_from",
             reason: "TryFrom implementations are domain boundaries with distinct wrapper and error types",
         },
         ReviewedDuplicateGroup {
@@ -34,7 +34,7 @@ fn reviewed_duplicate_groups() -> Vec<ReviewedDuplicateGroup> {
             reason: "independent policy visitors collect different facts through the required syn Visit item callback",
         },
         ReviewedDuplicateGroup {
-            locations: "../pg_crud/pg_crud_common/src/filter_bind_plan.rs::try_from\n../pg_crud/pg_types/generate_pg_types_src/src/source.rs::try_from\n../pg_crud/pg_types/generate_pg_types_src/src/source.rs::try_from\n../server_runtime_http/src/metrics_layer.rs::try_from",
+            locations: "../pg_crud_pg_crud_common/src/filter_bind_plan.rs::try_from\n../pg_crud_pg_types_generate_pg_types_src/src/source.rs::try_from\n../pg_crud_pg_types_generate_pg_types_src/src/source.rs::try_from\n../server_runtime_http/src/metrics_layer.rs::try_from",
             reason: "mechanical TryFrom adapters call type-specific invariant constructors and preserve domain-specific errors",
         },
         ReviewedDuplicateGroup {
@@ -46,7 +46,7 @@ fn reviewed_duplicate_groups() -> Vec<ReviewedDuplicateGroup> {
             reason: "positive-value domain boundaries expose distinct public errors; the shared shape is only trait glue",
         },
         ReviewedDuplicateGroup {
-            locations: "../config_lib/src/lib.rs::try_from\n../config_lib/src/lib.rs::try_from\n../pg_crud/pg_table/src/lib.rs::try_from\n../pg_crud/pg_table/src/lib.rs::try_from\n../tests/src/domain_type_policy_fixture.rs::try_from",
+            locations: "../config_lib/src/lib.rs::try_from\n../config_lib/src/lib.rs::try_from\n../pg_crud_pg_table/src/lib.rs::try_from\n../pg_crud_pg_table/src/lib.rs::try_from\n../tests/src/domain_type_policy_fixture.rs::try_from",
             reason: "conversion adapters map external values into unrelated domain wrappers and error contracts",
         },
         ReviewedDuplicateGroup {
@@ -54,7 +54,7 @@ fn reviewed_duplicate_groups() -> Vec<ReviewedDuplicateGroup> {
             reason: "rate-limit wrappers have separate domain meanings and validation error variants",
         },
         ReviewedDuplicateGroup {
-            locations: "../pg_crud/pg_table/src/lib.rs::try_from\n../pg_crud/pg_table/src/lib.rs::try_from",
+            locations: "../pg_crud_pg_table/src/lib.rs::try_from\n../pg_crud_pg_table/src/lib.rs::try_from",
             reason: "generated table metadata wrappers require separate TryFrom trait implementations",
         },
         ReviewedDuplicateGroup {
@@ -66,7 +66,7 @@ fn reviewed_duplicate_groups() -> Vec<ReviewedDuplicateGroup> {
             reason: "lease domain wrappers preserve distinct types and error contracts",
         },
         ReviewedDuplicateGroup {
-            locations: "../frontend_contract/src/lib.rs::validate\n../pg_crud/pg_table/src/lib.rs::validate",
+            locations: "../frontend_contract/src/lib.rs::validate\n../pg_crud_pg_table/src/lib.rs::validate",
             reason: "derive validators live at separate macro expansion boundaries and construct different domain errors",
         },
         ReviewedDuplicateGroup {
@@ -90,7 +90,7 @@ fn reviewed_duplicate_groups() -> Vec<ReviewedDuplicateGroup> {
             reason: "separate route handlers delegate shared CSRF and result handling through authenticated_action",
         },
         ReviewedDuplicateGroup {
-            locations: "../pg_crud/pg_crud_common/src/advisory_lock.rs::try_from\n../pg_crud/pg_crud_common/src/operational_invariants.rs::try_from",
+            locations: "../pg_crud_pg_crud_common/src/advisory_lock.rs::try_from\n../pg_crud_pg_crud_common/src/operational_invariants.rs::try_from",
             reason: "positive-value conversions define unrelated PostgreSQL domain types and public errors",
         },
         ReviewedDuplicateGroup {
@@ -106,7 +106,7 @@ fn reviewed_duplicate_groups() -> Vec<ReviewedDuplicateGroup> {
             reason: "two git metadata wrappers validate the same character policy but retain separate domain types",
         },
         ReviewedDuplicateGroup {
-            locations: "../pg_crud/pg_crud_macros_common/src/lib.rs::generate_impl_pg_crud_common_default_some_one_element_max_page_size_token_stream\n../pg_crud/pg_crud_macros_common/src/lib.rs::generate_impl_pg_crud_common_default_some_one_element_token_stream",
+            locations: "../pg_crud_pg_crud_macros_common/src/lib.rs::generate_impl_pg_crud_common_default_some_one_element_max_page_size_token_stream\n../pg_crud_pg_crud_macros_common/src/lib.rs::generate_impl_pg_crud_common_default_some_one_element_token_stream",
             reason: "macro entry points emit different trait implementations and must remain separately addressable",
         },
         ReviewedDuplicateGroup {
@@ -118,7 +118,7 @@ fn reviewed_duplicate_groups() -> Vec<ReviewedDuplicateGroup> {
             reason: "derive macro parsers consume different attributes but use the same syn error propagation skeleton",
         },
         ReviewedDuplicateGroup {
-            locations: "../pg_crud/pg_crud_common/src/cursor.rs::try_from\n../pg_crud/pg_crud_common/src/cursor.rs::try_from",
+            locations: "../pg_crud_pg_crud_common/src/cursor.rs::try_from\n../pg_crud_pg_crud_common/src/cursor.rs::try_from",
             reason: "cursor wire formats have separate domain wrappers and decoding error variants",
         },
         ReviewedDuplicateGroup {
@@ -146,7 +146,7 @@ fn reviewed_duplicate_groups() -> Vec<ReviewedDuplicateGroup> {
             reason: "HTTP and PostgreSQL configuration values expose separate parsing errors and wrapper types",
         },
         ReviewedDuplicateGroup {
-            locations: "../pg_crud/pg_crud_common/src/query_fragment.rs::try_from\n../pg_crud/pg_crud_common/src/query_pagination.rs::try_from\n../pg_crud/pg_crud_common/src/query_pagination.rs::try_from",
+            locations: "../pg_crud_pg_crud_common/src/query_fragment.rs::try_from\n../pg_crud_pg_crud_common/src/query_pagination.rs::try_from\n../pg_crud_pg_crud_common/src/query_pagination.rs::try_from",
             reason: "query fragment and pagination wrappers retain distinct SQL-domain invariants and errors",
         },
         ReviewedDuplicateGroup {
@@ -186,7 +186,7 @@ fn reviewed_duplicate_groups() -> Vec<ReviewedDuplicateGroup> {
             reason: "string and vector conversion adapters expose distinct collection types and errors while reusing bounded validation",
         },
         ReviewedDuplicateGroup {
-            locations: "../pg_crud/pg_crud_common/src/bounded_btree_map.rs::deserialize\n../pg_crud/pg_crud_common/src/bounded_vec.rs::deserialize\n../pg_crud/where_filters/src/lib.rs::deserialize",
+            locations: "../pg_crud_pg_crud_common/src/bounded_btree_map.rs::deserialize\n../pg_crud_pg_crud_common/src/bounded_vec.rs::deserialize\n../pg_crud_where_filters/src/lib.rs::deserialize",
             reason: "serde requires concrete deserializers for distinct bounded domain collections; each delegates validation to its wrapper",
         },
         ReviewedDuplicateGroup {
@@ -206,7 +206,7 @@ fn reviewed_duplicate_groups() -> Vec<ReviewedDuplicateGroup> {
             reason: "quote style declarations already delegate construction and retain distinct prefix and diagnostic metadata",
         },
         ReviewedDuplicateGroup {
-            locations: "../pg_crud/pg_crud_common/src/db_schema_conformance.rs::schema_text\n../pg_crud/pg_crud_common/src/db_schema_conformance.rs::schema_text",
+            locations: "../pg_crud_pg_crud_common/src/db_schema_conformance.rs::schema_text\n../pg_crud_pg_crud_common/src/db_schema_conformance.rs::schema_text",
             reason: "schema name and type wrappers preserve distinct domain boundaries and typed validation errors",
         },
         ReviewedDuplicateGroup {
@@ -214,7 +214,7 @@ fn reviewed_duplicate_groups() -> Vec<ReviewedDuplicateGroup> {
             reason: "syn exposes each domain declaration kind through a distinct required callback that delegates to shared field analysis",
         },
         ReviewedDuplicateGroup {
-            locations: "../pg_crud/pg_table/generate_pg_table_src/src/source.rs::generate_pg_table_attr_error_variants\n../pg_crud/pg_table/generate_pg_table_src/src/source.rs::generate_pg_table_attr_logic\n../server_admin/src/auth.rs::get",
+            locations: "../pg_crud_pg_table_generate_pg_table_src/src/source.rs::generate_pg_table_attr_error_variants\n../pg_crud_pg_table_generate_pg_table_src/src/source.rs::generate_pg_table_attr_logic\n../server_admin/src/auth.rs::get",
             reason: "identifier-normalized token emitters and an unrelated typed accessor coincide structurally but have different behavior and owners",
         },
         ReviewedDuplicateGroup {
@@ -222,11 +222,11 @@ fn reviewed_duplicate_groups() -> Vec<ReviewedDuplicateGroup> {
             reason: "distinct derive entry points emit different conversion expressions through the same proc-macro parsing contract",
         },
         ReviewedDuplicateGroup {
-            locations: "../pg_crud/pg_crud_macros_common/src/lib.rs::generate_impl_pg_crud_default_some_one_element_max_page_size_token_stream\n../pg_crud/pg_crud_macros_common/src/lib.rs::generate_impl_pg_crud_default_some_one_element_token_stream",
+            locations: "../pg_crud_pg_crud_macros_common/src/lib.rs::generate_impl_pg_crud_default_some_one_element_max_page_size_token_stream\n../pg_crud_pg_crud_macros_common/src/lib.rs::generate_impl_pg_crud_default_some_one_element_token_stream",
             reason: "separate stable macro entry points emit distinct default traits while sharing the surrounding token construction shape",
         },
         ReviewedDuplicateGroup {
-            locations: "../pg_crud/pg_crud_common/src/lib.rs::visit_str\n../pg_crud/where_filters/src/lib.rs::visit_str",
+            locations: "../pg_crud_pg_crud_common/src/lib.rs::visit_str\n../pg_crud_where_filters/src/lib.rs::visit_str",
             reason: "independent serde visitors must implement the same required string callback for unrelated wire types",
         },
         ReviewedDuplicateGroup {
@@ -234,7 +234,7 @@ fn reviewed_duplicate_groups() -> Vec<ReviewedDuplicateGroup> {
             reason: "compile-fail fixtures deliberately reproduce invalid trait metadata implementations for distinct diagnostics",
         },
         ReviewedDuplicateGroup {
-            locations: "../pg_crud/pg_crud_common/src/pg_values.rs::to_query_str\n../pg_crud/pg_crud_macros_common/src/lib.rs::non_null_or_nullable_str\n../pg_crud/pg_crud_macros_common/src/lib.rs::sc_str\n../pg_crud/pg_crud_macros_common/src/lib.rs::to_path\n../pg_crud/where_filters/src/lib.rs::postgreql_syntax",
+            locations: "../pg_crud_pg_crud_common/src/pg_values.rs::to_query_str\n../pg_crud_pg_crud_macros_common/src/lib.rs::non_null_or_nullable_str\n../pg_crud_pg_crud_macros_common/src/lib.rs::sc_str\n../pg_crud_pg_crud_macros_common/src/lib.rs::to_path\n../pg_crud_where_filters/src/lib.rs::postgreql_syntax",
             reason: "identifier normalization makes unrelated small enum-to-domain-value mappings structurally equal despite distinct return types and semantics",
         },
         ReviewedDuplicateGroup {
