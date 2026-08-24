@@ -37,26 +37,26 @@ members = [
   "optml",
   "panic_location",
   "pg_crud",
-  "pg_crud_pg_crud_common",
-  "pg_crud_pg_crud_common_macros",
-  "pg_crud_pg_crud_macros_common",
-  "pg_crud_pg_crud_macros_common_macros",
+  "pg_crud_common",
+  "pg_crud_common_macros",
+  "pg_crud_macros_common",
+  "pg_crud_macros_common_macros",
   "pg_crud_pg_table",
-  "pg_crud_pg_table_generate_pg_table",
-  "pg_crud_pg_table_generate_pg_table_src",
-  "pg_crud_pg_table_generate_pg_table_test",
+  "pg_crud_pg_table_generate",
+  "pg_crud_pg_table_generate_src",
+  "pg_crud_pg_table_generate_test",
   "pg_crud_pg_types",
-  "pg_crud_pg_types_generate_pg_types",
-  "pg_crud_pg_types_generate_pg_types_src",
-  "pg_crud_pg_types_generate_pg_types_test",
-  "pg_crud_pg_types_pg_types_chrono_net",
-  "pg_crud_pg_types_pg_types_common",
-  "pg_crud_pg_types_pg_types_numeric",
-  "pg_crud_pg_types_pg_types_text_misc",
+  "pg_crud_pg_types_chrono_net",
+  "pg_crud_pg_types_common",
+  "pg_crud_pg_types_generate",
+  "pg_crud_pg_types_generate_src",
+  "pg_crud_pg_types_generate_test",
+  "pg_crud_pg_types_numeric",
+  "pg_crud_pg_types_text_misc",
   "pg_crud_where_filters",
-  "pg_crud_where_filters_generate_where_filters",
-  "pg_crud_where_filters_generate_where_filters_src",
-  "pg_crud_where_filters_generate_where_filters_test",
+  "pg_crud_where_filters_generate",
+  "pg_crud_where_filters_generate_src",
+  "pg_crud_where_filters_generate_test",
   "prepare_postgresql_databases",
   "route_validators",
   "runtime_tests",
@@ -314,13 +314,13 @@ frontend_contract_validation = { path = "./frontend_contract_validation" }
 frontend_contract_macros = { path = "./frontend_contract_macros" }
 generate_derive_token_stream_builder = { path = "./macros_helpers_generate_derive_token_stream_builder" }
 generate_getter_traits_for_struct_fields = { path = "./config_lib_generate_getter_traits_for_struct_fields" }
-generate_pg_table = { path = "./pg_crud_pg_table_generate_pg_table" }
-generate_pg_table_src = { path = "./pg_crud_pg_table_generate_pg_table_src", default-features = false }
-generate_pg_types = { path = "./pg_crud_pg_types_generate_pg_types" }
-generate_pg_types_src = { path = "./pg_crud_pg_types_generate_pg_types_src", default-features = false }
+generate_pg_table = { path = "./pg_crud_pg_table_generate" }
+generate_pg_table_src = { path = "./pg_crud_pg_table_generate_src", default-features = false }
+generate_pg_types = { path = "./pg_crud_pg_types_generate" }
+generate_pg_types_src = { path = "./pg_crud_pg_types_generate_src", default-features = false }
 generate_quotes = { path = "./generate_quotes" }
-generate_where_filters = { path = "./pg_crud_where_filters_generate_where_filters" }
-generate_where_filters_src = { path = "./pg_crud_where_filters_generate_where_filters_src", default-features = false }
+generate_where_filters = { path = "./pg_crud_where_filters_generate" }
+generate_where_filters_src = { path = "./pg_crud_where_filters_generate_src", default-features = false }
 git_info = { path = "./git_info" }
 initialize_environment_files = { path = "./initialize_environment_files" }
 location_lib = { path = "./location_lib" }
@@ -339,16 +339,16 @@ notification_service_contract = { path = "./notification_service_contract" }
 optml = { path = "./optml" }
 panic_location = { path = "./panic_location" }
 pg_crud = { path = "./pg_crud" }
-pg_crud_common = { path = "./pg_crud_pg_crud_common" }
-pg_crud_common_macros = { path = "./pg_crud_pg_crud_common_macros" }
-pg_crud_macros_common = { path = "./pg_crud_pg_crud_macros_common" }
-pg_crud_macros_common_macros = { path = "./pg_crud_pg_crud_macros_common_macros" }
+pg_crud_common = { path = "./pg_crud_common" }
+pg_crud_common_macros = { path = "./pg_crud_common_macros" }
+pg_crud_macros_common = { path = "./pg_crud_macros_common" }
+pg_crud_macros_common_macros = { path = "./pg_crud_macros_common_macros" }
 pg_table = { path = "./pg_crud_pg_table" }
 pg_types = { path = "./pg_crud_pg_types" }
-pg_types_chrono_net = { path = "./pg_crud_pg_types_pg_types_chrono_net" }
-pg_types_common = { path = "./pg_crud_pg_types_pg_types_common" }
-pg_types_numeric = { path = "./pg_crud_pg_types_pg_types_numeric" }
-pg_types_text_misc = { path = "./pg_crud_pg_types_pg_types_text_misc" }
+pg_types_chrono_net = { path = "./pg_crud_pg_types_chrono_net" }
+pg_types_common = { path = "./pg_crud_pg_types_common" }
+pg_types_numeric = { path = "./pg_crud_pg_types_numeric" }
+pg_types_text_misc = { path = "./pg_crud_pg_types_text_misc" }
 route_validators = { path = "./route_validators" }
 runtime_tests = { path = "./runtime_tests" }
 server_admin = { path = "./server_admin" }

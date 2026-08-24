@@ -576,47 +576,47 @@ fn source_modules_with_public_logic_own_unit_tests() {
             "the proc-macro is covered by str_constants tests",
         ),
         (
-            "pg_crud_where_filters_generate_where_filters/src/lib.rs",
+            "pg_crud_where_filters_generate/src/lib.rs",
             "the proc-macro is covered by generate_where_filters_test",
         ),
         (
-            "pg_crud_pg_crud_common_macros/src/lib.rs",
+            "pg_crud_common_macros/src/lib.rs",
             "the macro surface is covered by pg_crud_common tests",
         ),
         (
-            "pg_crud_pg_crud_macros_common/src/lib.rs",
+            "pg_crud_macros_common/src/lib.rs",
             "the generator support surface is covered by generated contract tests",
         ),
         (
-            "pg_crud_pg_crud_macros_common/src/pg_type_test_cases.rs",
+            "pg_crud_macros_common/src/pg_type_test_cases.rs",
             "the fixture catalog is consumed by generated PostgreSQL type tests",
         ),
         (
-            "pg_crud_pg_crud_macros_common/src/token_stream_helpers.rs",
+            "pg_crud_macros_common/src/token_stream_helpers.rs",
             "the token helpers are covered by generated CRUD tests",
         ),
         (
-            "pg_crud_pg_crud_common/src/cardinality.rs",
+            "pg_crud_common/src/cardinality.rs",
             "cardinality behavior is covered by generated CRUD contract tests",
         ),
         (
-            "pg_crud_pg_crud_macros_common_macros/src/lib.rs",
+            "pg_crud_macros_common_macros/src/lib.rs",
             "the macro surface is covered by generated CRUD tests",
         ),
         (
-            "pg_crud_pg_table_generate_pg_table_src/src/pipeline.rs",
+            "pg_crud_pg_table_generate_src/src/pipeline.rs",
             "the generation pipeline is covered by generate_pg_table tests",
         ),
         (
-            "pg_crud_pg_table_generate_pg_table/src/lib.rs",
+            "pg_crud_pg_table_generate/src/lib.rs",
             "the proc-macro is covered by generate_pg_table_test",
         ),
         (
-            "pg_crud_pg_types_generate_pg_types/src/lib.rs",
+            "pg_crud_pg_types_generate/src/lib.rs",
             "the proc-macro is covered by generate_pg_types_test",
         ),
         (
-            "pg_crud_pg_types_pg_types_common/src/lib.rs",
+            "pg_crud_pg_types_common/src/lib.rs",
             "the generated adapter surface is covered by generated type tests",
         ),
         (

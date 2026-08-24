@@ -2854,11 +2854,11 @@ define_str_constants! {
         pub PERMANENT_REDIRECT_308 = ["permanent_redirect_308"];
         pub PERMISSION = [WORD_PERMISSION];
         pub PERMISSIONS_NEWLINE_CONTENTS_READ = [WORD_PERMISSIONS_2, ":\n  contents: ", WORD_READ];
-        pub PG_CRUD_PG_CRUD_COMMON_SRC_LIB_RS = [WORD_PG_CRUD, "_", WORD_PG_CRUD_COMMON, "/", WORD_SRC, "/", WORD_LIB, ".", WORD_RS];
-        pub PG_CRUD_PG_CRUD_COMMON_SRC_SQL_IDENTIFIER_RS = [WORD_PG_CRUD, "_", WORD_PG_CRUD_COMMON, "/", WORD_SRC, "/sql_identifier.", WORD_RS];
-        pub PG_CRUD_PG_TABLE_GENERATE_PG_TABLE_SRC_SRC_LIB_RS = [WORD_PG_CRUD, "_", WORD_PG_TABLE, "_", WORD_GENERATE_PG_TABLE_SRC, "/", WORD_SRC, "/", WORD_LIB, ".", WORD_RS];
-        pub PG_CRUD_PG_TYPES_GENERATE_PG_TYPES_SRC_SRC_LIB_RS = [WORD_PG_CRUD, "_", WORD_PG_TYPES, "_", WORD_GENERATE_PG_TYPES_SRC, "/", WORD_SRC, "/", WORD_LIB, ".", WORD_RS];
-        pub PG_CRUD_WHERE_FILTERS_GENERATE_WHERE_FILTERS_SRC_SRC_LIB_RS = [WORD_PG_CRUD, "_", WORD_WHERE_FILTERS, "_generate_where_filters_src/", WORD_SRC, "/", WORD_LIB, ".", WORD_RS];
+        pub PG_CRUD_PG_CRUD_COMMON_SRC_LIB_RS = [WORD_PG_CRUD_COMMON, "/", WORD_SRC, "/", WORD_LIB, ".", WORD_RS];
+        pub PG_CRUD_PG_CRUD_COMMON_SRC_SQL_IDENTIFIER_RS = [WORD_PG_CRUD_COMMON, "/", WORD_SRC, "/sql_identifier.", WORD_RS];
+        pub PG_CRUD_PG_TABLE_GENERATE_PG_TABLE_SRC_SRC_LIB_RS = [WORD_PG_CRUD, "_", WORD_PG_TABLE, "_generate_src/", WORD_SRC, "/", WORD_LIB, ".", WORD_RS];
+        pub PG_CRUD_PG_TYPES_GENERATE_PG_TYPES_SRC_SRC_LIB_RS = [WORD_PG_CRUD, "_", WORD_PG_TYPES, "_generate_src/", WORD_SRC, "/", WORD_LIB, ".", WORD_RS];
+        pub PG_CRUD_WHERE_FILTERS_GENERATE_WHERE_FILTERS_SRC_SRC_LIB_RS = [WORD_PG_CRUD, "_", WORD_WHERE_FILTERS, "_generate_src/", WORD_SRC, "/", WORD_LIB, ".", WORD_RS];
         pub PG_CRUD_WHERE_FILTERS_SRC_LIB_RS = [WORD_PG_CRUD, "_", WORD_WHERE_FILTERS, "/", WORD_SRC, "/", WORD_LIB, ".", WORD_RS];
         pub PG_CRUD_COMMON = [WORD_PG_CRUD_COMMON];
         pub PG_CRUD_COMMON_PGTYPE_READ = [WORD_PG_CRUD_COMMON, ".", WORD_PGTYPE, ".Read"];
@@ -3625,10 +3625,10 @@ pub const CODE_STYLE_REVIEWED_PUBLIC_FIELD_PATH_SUFFIXES: [&str; 14] = [
     "location_lib/src/location.rs",
     "macros_helpers/src/syn_field.rs",
     "server_app_state/src/lib.rs",
-    "pg_crud_pg_crud_common/src/lib.rs",
-    "pg_crud_pg_crud_common/src/lib.rs",
-    "pg_crud_pg_crud_common/src/query_pagination.rs",
-    "pg_crud_pg_crud_common/src/query_collections.rs",
+    "pg_crud_common/src/lib.rs",
+    "pg_crud_common/src/lib.rs",
+    "pg_crud_common/src/query_pagination.rs",
+    "pg_crud_common/src/query_collections.rs",
     "server_config/src/lib.rs",
     "server_admin/src/generated_tables.rs",
     "server_admin/src/generated_tables.rs",
@@ -3698,7 +3698,7 @@ pub const CODE_STYLE_DOMAIN_FIXTURE_PATH: &str = "../tests/src/domain_type_polic
 pub const CODE_STYLE_BOUNDED_TYPES_SRC: &str = "../bounded_types/src";
 pub const CODE_STYLE_LOCATION_TEST_SRC: &str = "../location_lib_location_test/src";
 pub const CODE_STYLE_LOCATION_TEST_REASON: &str = "location macro fixture deliberately exposes raw Vec fields required by the macro input contract";
-pub const CODE_STYLE_PG_CRUD_COMMON_BENCHES: &str = "../pg_crud_pg_crud_common/benches";
+pub const CODE_STYLE_PG_CRUD_COMMON_BENCHES: &str = "../pg_crud_common/benches";
 pub const CODE_STYLE_PG_CRUD_COMMON_BENCHES_REASON: &str =
     "benchmark-only boundaries are outside the production domain API";
 pub const CODE_STYLE_LEPTOS_CRATE: &str = "leptos";
@@ -4609,7 +4609,7 @@ pub const PG_SQLSTATE_PREFIX: &str = "PG_SQLSTATE_";
 pub const PG_SQLSTATE_SERIALIZATION_FAILURE: &str = "40001";
 pub const PG_SQLSTATE_STRING_DATA_RIGHT_TRUNCATION: &str = "22001";
 pub const PG_SQLSTATE_UNIQUE_VIOLATION: &str = "23505";
-pub const PG_CRUD_COMMON_SRC_PG_ERROR_RS: &str = "pg_crud_pg_crud_common/src/pg_error.rs";
+pub const PG_CRUD_COMMON_SRC_PG_ERROR_RS: &str = "pg_crud_common/src/pg_error.rs";
 pub const NEWTYPE_TRY_FROM: &str = "try_from";
 pub const NEWTYPE_FROM_INNER_DERIVE_NAME: &str = "FromInner";
 pub const NEWTYPE_TRY_FROM_DERIVE_NAME: &str = "TryFrom";

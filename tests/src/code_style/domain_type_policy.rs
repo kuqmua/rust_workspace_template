@@ -617,7 +617,7 @@ fn domain_fixture_directory_exclusions_are_owner_exact() {
     );
     assert!(
         !super::domain_type_policy_should_check_path(super::types::StdPathRef::from(
-            std::path::Path::new("../pg_crud_pg_crud_common/benches/query.rs")
+            std::path::Path::new("../pg_crud_common/benches/query.rs")
         ))
         .get(),
         "09e5a6bc"

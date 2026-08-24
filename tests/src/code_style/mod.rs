@@ -192,22 +192,22 @@ fn scan_generated_diagnostic_tokens(
 fn check_expect_and_panic_contain_unique_diagnostic_ids() {
     let reviewed_interpolations = [
         (
-            "pg_crud_pg_crud_macros_common/src/token_stream_helpers.rs",
+            "pg_crud_macros_common/src/token_stream_helpers.rs",
             "generated `panic` uses unchecked interpolated diagnostic message `#panic_uuid_token_stream`",
             "PanicUuidRef validates the diagnostic identifier before token generation",
         ),
         (
-            "pg_crud_pg_table_generate_pg_table_src/src/source.rs",
+            "pg_crud_pg_table_generate_src/src/source.rs",
             "generated `expect` uses unchecked interpolated diagnostic message `#expect_0`",
             "the generator receives the reviewed diagnostic identifier from its fixture catalog",
         ),
         (
-            "pg_crud_pg_table_generate_pg_table_src/src/source.rs",
+            "pg_crud_pg_table_generate_src/src/source.rs",
             "generated `expect` uses unchecked interpolated diagnostic message `#expect_1`",
             "the generator receives the reviewed diagnostic identifier from its fixture catalog",
         ),
         (
-            "pg_crud_pg_types_generate_pg_types_src/src/source.rs",
+            "pg_crud_pg_types_generate_src/src/source.rs",
             "generated `expect` uses unchecked interpolated diagnostic message `#id_double_quoted_token_stream`",
             "the date-range fixture passes a reviewed diagnostic identifier into the generator",
         ),

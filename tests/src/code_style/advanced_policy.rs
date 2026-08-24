@@ -1299,7 +1299,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "pg_crud_where_filters_generate_where_filters_src/src/source.rs",
+            "pg_crud_where_filters_generate_src/src/source.rs",
             (
                 0,
                 0,
@@ -1308,7 +1308,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "pg_crud_pg_crud_macros_common/src/filters.rs",
+            "pg_crud_macros_common/src/filters.rs",
             (
                 0,
                 0,
@@ -1317,7 +1317,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "pg_crud_pg_crud_macros_common/src/lib.rs",
+            "pg_crud_macros_common/src/lib.rs",
             (
                 0,
                 0,
@@ -1326,7 +1326,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "pg_crud_pg_crud_macros_common/src/pg_type_test_cases.rs",
+            "pg_crud_macros_common/src/pg_type_test_cases.rs",
             (
                 0,
                 0,
@@ -1335,7 +1335,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "pg_crud_pg_crud_macros_common/src/token_stream_helpers.rs",
+            "pg_crud_macros_common/src/token_stream_helpers.rs",
             (
                 0,
                 0,
@@ -1344,7 +1344,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "pg_crud_pg_crud_common/src/query_fragment.rs",
+            "pg_crud_common/src/query_fragment.rs",
             (
                 0,
                 0,
@@ -1353,7 +1353,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "pg_crud_pg_crud_common/src/lib.rs",
+            "pg_crud_common/src/lib.rs",
             (
                 0,
                 0,
@@ -1362,7 +1362,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "pg_crud_pg_crud_common/src/pg_values.rs",
+            "pg_crud_common/src/pg_values.rs",
             (
                 0,
                 0,
@@ -1371,7 +1371,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "pg_crud_pg_crud_common/src/query_collections.rs",
+            "pg_crud_common/src/query_collections.rs",
             (
                 0,
                 0,
@@ -1380,11 +1380,11 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "pg_crud_pg_crud_common/src/query_pagination.rs",
+            "pg_crud_common/src/query_pagination.rs",
             (0, 0, 2, "pagination composes heterogeneous query bindings"),
         ),
         (
-            "pg_crud_pg_table_generate_pg_table_src/src/source.rs",
+            "pg_crud_pg_table_generate_src/src/source.rs",
             (
                 0,
                 0,
@@ -1393,7 +1393,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "pg_crud_pg_types_generate_pg_types_src/src/source.rs",
+            "pg_crud_pg_types_generate_src/src/source.rs",
             (
                 0,
                 0,
@@ -1402,7 +1402,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "pg_crud_pg_types_pg_types_common/src/lib.rs",
+            "pg_crud_pg_types_common/src/lib.rs",
             (0, 0, 1, "PostgreSQL query parts use dynamic dispatch"),
         ),
         (
@@ -1615,21 +1615,21 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             (1usize, "the atomic compare failure maps to already active"),
         ),
         (
-            "pg_crud_pg_crud_common/src/read_query_plan.rs",
+            "pg_crud_common/src/read_query_plan.rs",
             (
                 2usize,
                 "query plan validation maps to stable contract errors",
             ),
         ),
         (
-            "pg_crud_pg_crud_common/src/cursor.rs",
+            "pg_crud_common/src/cursor.rs",
             (
                 9usize,
                 "cursor parsing maps low-level failures to wire categories",
             ),
         ),
         (
-            "pg_crud_pg_crud_common/src/bounded_btree_map.rs",
+            "pg_crud_common/src/bounded_btree_map.rs",
             (
                 1usize,
                 "the compatibility wrapper maps the shared capacity error to its existing public error",
@@ -1643,14 +1643,14 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             ),
         ),
         (
-            "pg_crud_pg_crud_common/src/date_sql_filter.rs",
+            "pg_crud_common/src/date_sql_filter.rs",
             (
                 2usize,
                 "date filter parsing maps to contract validation errors",
             ),
         ),
         (
-            "pg_crud_pg_crud_common/src/advisory_lock.rs",
+            "pg_crud_common/src/advisory_lock.rs",
             (
                 3usize,
                 "advisory lock conversion maps to its bounded domain error",
@@ -1939,107 +1939,107 @@ fn raw_vec_tuple_wrappers_match_reviewed_inventory() {
             "the proc-macro compiler owns a compile-time syntax collection",
         ),
         (
-            "../pg_crud_pg_crud_common/src/batch_validation.rs:BatchInvalidItems",
+            "../pg_crud_common/src/batch_validation.rs:BatchInvalidItems",
             "batch validation owns its bounded invalid-item accumulator",
         ),
         (
-            "../pg_crud_pg_crud_common/src/bounded_unique_vec.rs:BoundedUniqueVec",
+            "../pg_crud_common/src/bounded_unique_vec.rs:BoundedUniqueVec",
             "the compatibility collection enforces both length and uniqueness invariants",
         ),
         (
-            "../pg_crud_pg_crud_common/src/bounded_vec.rs:BoundedVec",
+            "../pg_crud_common/src/bounded_vec.rs:BoundedVec",
             "the compatibility wrapper delegates validation and serde to bounded_types",
         ),
         (
-            "../pg_crud_pg_crud_common/src/cardinality.rs:DuplicateCandidates",
+            "../pg_crud_common/src/cardinality.rs:DuplicateCandidates",
             "cardinality analysis owns an internal duplicate candidate collection",
         ),
         (
-            "../pg_crud_pg_crud_common/src/date_sql_filter.rs:ChronoUtcDateTimes",
+            "../pg_crud_common/src/date_sql_filter.rs:ChronoUtcDateTimes",
             "the SQL bind plan owns an operational collection assembled from validated filters",
         ),
         (
-            "../pg_crud_pg_crud_common/src/db_schema_conformance.rs:DbColumnContractSnapshots",
+            "../pg_crud_common/src/db_schema_conformance.rs:DbColumnContractSnapshots",
             "schema conformance owns an internal deterministic snapshot collection",
         ),
         (
-            "../pg_crud_pg_crud_common/src/db_schema_conformance.rs:DbColumnSnapshots",
+            "../pg_crud_common/src/db_schema_conformance.rs:DbColumnSnapshots",
             "schema conformance owns an internal deterministic snapshot collection",
         ),
         (
-            "../pg_crud_pg_crud_common/src/db_schema_conformance.rs:DbColumnSpecs",
+            "../pg_crud_common/src/db_schema_conformance.rs:DbColumnSpecs",
             "schema conformance owns an internal static specification collection",
         ),
         (
-            "../pg_crud_pg_crud_common/src/db_schema_conformance.rs:DbKeyContractSnapshots",
+            "../pg_crud_common/src/db_schema_conformance.rs:DbKeyContractSnapshots",
             "schema conformance owns an internal deterministic snapshot collection",
         ),
         (
-            "../pg_crud_pg_crud_common/src/db_schema_conformance.rs:DbKeySpecs",
+            "../pg_crud_common/src/db_schema_conformance.rs:DbKeySpecs",
             "schema conformance owns an internal static specification collection",
         ),
         (
-            "../pg_crud_pg_crud_common/src/db_schema_conformance.rs:DbObjectSnapshots",
+            "../pg_crud_common/src/db_schema_conformance.rs:DbObjectSnapshots",
             "schema conformance owns an internal deterministic snapshot collection",
         ),
         (
-            "../pg_crud_pg_crud_common/src/db_schema_conformance.rs:DbObjectSpecs",
+            "../pg_crud_common/src/db_schema_conformance.rs:DbObjectSpecs",
             "schema conformance owns an internal static specification collection",
         ),
         (
-            "../pg_crud_pg_crud_common/src/db_schema_conformance.rs:DbDefaultSpecs",
+            "../pg_crud_common/src/db_schema_conformance.rs:DbDefaultSpecs",
             "schema conformance owns an internal static specification collection",
         ),
         (
-            "../pg_crud_pg_crud_common/src/db_schema_conformance.rs:DbSchemaTexts",
+            "../pg_crud_common/src/db_schema_conformance.rs:DbSchemaTexts",
             "schema conformance owns an internal deterministic text collection",
         ),
         (
-            "../pg_crud_pg_crud_common/src/db_schema_conformance.rs:DbStaticSchemaTexts",
+            "../pg_crud_common/src/db_schema_conformance.rs:DbStaticSchemaTexts",
             "schema conformance owns an internal static text collection",
         ),
         (
-            "../pg_crud_pg_crud_common/src/filter_bind_plan.rs:FilterBindPlan",
+            "../pg_crud_common/src/filter_bind_plan.rs:FilterBindPlan",
             "the query planner owns an internal ordered bind collection",
         ),
         (
-            "../pg_crud_pg_crud_common/src/lib.rs:AllEnumVariants",
+            "../pg_crud_common/src/lib.rs:AllEnumVariants",
             "the enum helper owns a compile-time-complete variant collection",
         ),
         (
-            "../pg_crud_pg_crud_common/src/query_collections.rs:NotEmptyUniqueVec",
+            "../pg_crud_common/src/query_collections.rs:NotEmptyUniqueVec",
             "the collection enforces non-empty and uniqueness invariants together",
         ),
         (
-            "../pg_crud_pg_crud_common/src/list_total.rs:ListItems",
+            "../pg_crud_common/src/list_total.rs:ListItems",
             "list-total planning owns an operational result collection",
         ),
         (
-            "../pg_crud_pg_crud_common/src/operational_invariants.rs:PgSqlIdentifiers",
+            "../pg_crud_common/src/operational_invariants.rs:PgSqlIdentifiers",
             "the invariant checker owns validated SQL identifier wrappers",
         ),
         (
-            "../pg_crud_pg_crud_common/src/order_preserving_deduplication.rs:OrderPreservingValues",
+            "../pg_crud_common/src/order_preserving_deduplication.rs:OrderPreservingValues",
             "the deduplication helper owns its ordered working collection",
         ),
         (
-            "../pg_crud_pg_crud_macros_common/src/lib.rs:ParseTokenStreamStrings",
+            "../pg_crud_macros_common/src/lib.rs:ParseTokenStreamStrings",
             "the proc-macro compiler owns a compile-time token rendering collection",
         ),
         (
-            "../pg_crud_pg_crud_macros_common/src/lib.rs:ProcMacro2GeneratedRustTokenStreamVec",
+            "../pg_crud_macros_common/src/lib.rs:ProcMacro2GeneratedRustTokenStreamVec",
             "the proc-macro compiler owns generated token streams",
         ),
         (
-            "../pg_crud_pg_table_generate_pg_table_src/src/source.rs:TableTestNames",
+            "../pg_crud_pg_table_generate_src/src/source.rs:TableTestNames",
             "the source generator owns compile-time generated test names",
         ),
         (
-            "../pg_crud_pg_types_generate_pg_types_src/src/source.rs:GeneratePgTypeRecords",
+            "../pg_crud_pg_types_generate_src/src/source.rs:GeneratePgTypeRecords",
             "the source generator owns compile-time catalog records",
         ),
         (
-            "../pg_crud_pg_types_generate_pg_types_src/src/source.rs:GeneratePgTypes",
+            "../pg_crud_pg_types_generate_src/src/source.rs:GeneratePgTypes",
             "the source generator owns compile-time generated types",
         ),
         (
@@ -2206,7 +2206,7 @@ fn usize_max_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "../pg_crud_pg_table_generate_pg_table_src/src/source.rs",
+            "../pg_crud_pg_table_generate_src/src/source.rs",
             (
                 3usize,
                 "the proc-macro source generator operates on finite compile-time schema declarations",
