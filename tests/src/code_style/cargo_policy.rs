@@ -882,6 +882,46 @@ fn workspace_members_exist_on_disk() {
     );
 }
 #[test]
+fn workspace_crates_are_direct_children_of_workspace_root() {
+    let workspace_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .expect("f7a31d9c");
+    let mut violations = walkdir::WalkDir::new(workspace_root)
+        .into_iter()
+        .filter_entry(|entry| {
+            entry.file_name() != str_constants::TARGET
+                && entry.file_name() != str_constants::GIT
+                && entry.file_name() != str_constants::WORKSPACE_SCAFFOLD_NODE_MODULES
+        })
+        .map(|entry| entry.unwrap_or_else(|error| panic!("b93c6e41 {error}")))
+        .filter(|entry| !entry.file_type().is_dir() && entry.file_name() == "Cargo.toml")
+        .filter_map(|entry| {
+            let crate_directory = entry.path().parent().expect("3de790a4");
+            let relative = crate_directory
+                .strip_prefix(workspace_root)
+                .expect("c16f84b2");
+            let parts = relative
+                .components()
+                .map(|component| component.as_os_str().to_string_lossy())
+                .collect::<Vec<std::borrow::Cow<'_, str>>>();
+            (parts.len() > 1usize).then(|| {
+                format!(
+                    "nested crate `{}` must be moved to `{}` and `[workspace].members` must use `{}`",
+                    relative.display(),
+                    parts.join(str_constants::UNDERSCORE),
+                    parts.join(str_constants::UNDERSCORE),
+                )
+            })
+        })
+        .collect::<Vec<String>>();
+    violations.sort_unstable();
+    assert!(
+        violations.is_empty(),
+        "5a2e8c71 workspace crates must be direct children of the workspace root. Nested paths such as `my_folder/my_logic/my_crate` are forbidden; flatten every path by joining its directory names with underscores:\n{}",
+        violations.join("\n")
+    );
+}
+#[test]
 fn workspace_members_sorted_alphabetically() {
     let workspace = super::workspace_table_from_cargo_toml();
     let members_vec = super::workspace_members_as_strs(
