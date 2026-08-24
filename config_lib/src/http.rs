@@ -92,7 +92,7 @@ mod tests {
             super::super::StdEnvVarOk::try_from(String::from("1")).expect("42f6d81c http_limits_and_csp_validate_boundary_values invariant must hold"),
         )
         .expect("85a01fbd http_limits_and_csp_validate_boundary_values invariant must hold");
-        assert_eq!(body_limit.0, usize_constants::ONE);
+        assert_eq!(body_limit.0, constants_usize::ONE);
         assert!(matches!(
             super::ContentSecurityPolicy::try_from(String::from("\n")),
             Err(super::ContentSecurityPolicyError::Empty)

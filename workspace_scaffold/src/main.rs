@@ -17,7 +17,7 @@ struct ServicePort(u16);
     newtype::AsRefStr,
     newtype::BoundedString,
 )]
-#[bounded_string(max = usize_constants::VALUE_16_777_216)]
+#[bounded_string(max = constants_usize::VALUE_16_777_216)]
 struct ServiceCrate(String);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
@@ -26,7 +26,7 @@ struct ServiceCrate(String);
     newtype::AsRefStr,
     newtype::BoundedString,
 )]
-#[bounded_string(max = usize_constants::VALUE_16_777_216)]
+#[bounded_string(max = constants_usize::VALUE_16_777_216)]
 struct ServiceComposeName(String);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
@@ -35,7 +35,7 @@ struct ServiceComposeName(String);
     newtype::AsRefStr,
     newtype::BoundedString,
 )]
-#[bounded_string(max = usize_constants::VALUE_16_777_216)]
+#[bounded_string(max = constants_usize::VALUE_16_777_216)]
 struct ServiceComposeFile(String);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
@@ -44,7 +44,7 @@ struct ServiceComposeFile(String);
     newtype::AsRefStr,
     newtype::BoundedString,
 )]
-#[bounded_string(max = usize_constants::VALUE_16_777_216)]
+#[bounded_string(max = constants_usize::VALUE_16_777_216)]
 struct ServiceDockerfile(String);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
@@ -53,7 +53,7 @@ struct ServiceDockerfile(String);
     newtype::AsRefStr,
     newtype::BoundedString,
 )]
-#[bounded_string(max = usize_constants::VALUE_16_777_216)]
+#[bounded_string(max = constants_usize::VALUE_16_777_216)]
 struct ServiceImage(String);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
@@ -62,7 +62,7 @@ struct ServiceImage(String);
     newtype::AsRefStr,
     newtype::BoundedString,
 )]
-#[bounded_string(max = usize_constants::VALUE_16_777_216)]
+#[bounded_string(max = constants_usize::VALUE_16_777_216)]
 struct ServiceKubernetesManifest(String);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
@@ -71,7 +71,7 @@ struct ServiceKubernetesManifest(String);
     newtype::AsRefStr,
     newtype::BoundedString,
 )]
-#[bounded_string(max = usize_constants::VALUE_16_777_216)]
+#[bounded_string(max = constants_usize::VALUE_16_777_216)]
 struct ServiceSocketEnv(String);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
 struct ServiceCatalogEntries(bounded_types::BoundedVec<ServiceCatalogEntry, 0, { usize::MAX }>);
@@ -153,7 +153,7 @@ struct ShouldWrite(bool);
     newtype::BoundedString,
     newtype::Display,
 )]
-#[bounded_string(max = usize_constants::VALUE_16_777_216)]
+#[bounded_string(max = constants_usize::VALUE_16_777_216)]
 struct ScaffoldText(String);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 struct ScaffoldTextRef<'text_lt>(&'text_lt str);
@@ -264,7 +264,7 @@ fn validate_deployment_representations(
         if !root
             .0
             .join(entry.crate_name.as_ref())
-            .join(str_constants::CARGO_TOML)
+            .join(constants_str::CARGO_TOML)
             .is_file()
             || !root.0.join(entry.dockerfile.as_ref()).is_file()
         {
@@ -604,13 +604,13 @@ fn synchronize_code_style_snapshots(
         root,
         CargoArgsRef::from(
             &[
-                str_constants::TEST_ALT_3,
-                str_constants::P,
+                constants_str::TEST_ALT_3,
+                constants_str::P,
                 "tests",
                 "code_style",
             ][..],
         ),
-        UpdateEnvName::from(str_constants::UPDATE_CODE_STYLE_SNAPSHOTS),
+        UpdateEnvName::from(constants_str::UPDATE_CODE_STYLE_SNAPSHOTS),
         GeneratedProjection::CodeStyle,
         write_changes,
     )
@@ -658,15 +658,15 @@ fn synchronize_config_projections(
         root,
         CargoArgsRef::from(
             &[
-                str_constants::TEST_ALT_3,
-                str_constants::P,
+                constants_str::TEST_ALT_3,
+                constants_str::P,
                 "server_config",
-                str_constants::P,
+                constants_str::P,
                 "notification_service_config",
                 "--tests",
             ][..],
         ),
-        UpdateEnvName::from(str_constants::UPDATE_CONFIG_PROJECTIONS),
+        UpdateEnvName::from(constants_str::UPDATE_CONFIG_PROJECTIONS),
         GeneratedProjection::Config,
         write_changes,
     )
@@ -695,7 +695,7 @@ fn scaffold_service(
     port: ServicePort,
 ) -> Result<(), ScaffoldError> {
     naming::validate_project_name(service_name)?;
-    if port.0 == u16_constants::ZERO {
+    if port.0 == constants_u16::ZERO {
         return Err(ScaffoldError::ServicePort);
     }
     let service = service_name.0;
@@ -711,34 +711,34 @@ fn scaffold_service(
     let upper_snake = service.to_ascii_uppercase();
     let replacements = [
         (
-            str_constants::WORKSPACE_SCAFFOLD_NOTIFICATION_SERVICE,
+            constants_str::WORKSPACE_SCAFFOLD_NOTIFICATION_SERVICE,
             service.to_owned(),
         ),
         (
-            str_constants::WORKSPACE_SCAFFOLD_NOTIFICATION_SERVICE_KEBAB,
+            constants_str::WORKSPACE_SCAFFOLD_NOTIFICATION_SERVICE_KEBAB,
             kebab.as_ref().to_owned(),
         ),
         (
-            str_constants::WORKSPACE_SCAFFOLD_NOTIFICATION_UPPER,
+            constants_str::WORKSPACE_SCAFFOLD_NOTIFICATION_UPPER,
             upper_snake.clone(),
         ),
         (
-            str_constants::WORKSPACE_SCAFFOLD_NOTIFICATION_TITLE,
+            constants_str::WORKSPACE_SCAFFOLD_NOTIFICATION_TITLE,
             naming::upper_camel_case(service_name).as_ref().to_owned(),
         ),
         (
-            str_constants::WORKSPACE_SCAFFOLD_NOTIFICATION_LOWER,
+            constants_str::WORKSPACE_SCAFFOLD_NOTIFICATION_LOWER,
             service.to_owned(),
         ),
         (
-            str_constants::WORKSPACE_SCAFFOLD_NOTIFICATION_PORT,
+            constants_str::WORKSPACE_SCAFFOLD_NOTIFICATION_PORT,
             port.0.to_string(),
         ),
     ];
     template_fs::copy_template_tree(
         StdScaffoldPathRef::from(
             root.0
-                .join(str_constants::WORKSPACE_SCAFFOLD_NOTIFICATION_SERVICE)
+                .join(constants_str::WORKSPACE_SCAFFOLD_NOTIFICATION_SERVICE)
                 .as_path(),
         ),
         StdScaffoldPathRef::from(root.0.join(service).as_path()),
@@ -747,7 +747,7 @@ fn scaffold_service(
     template_fs::copy_template_tree(
         StdScaffoldPathRef::from(
             root.0
-                .join(str_constants::WORKSPACE_SCAFFOLD_NOTIFICATION_CONFIG)
+                .join(constants_str::WORKSPACE_SCAFFOLD_NOTIFICATION_CONFIG)
                 .as_path(),
         ),
         StdScaffoldPathRef::from(root.0.join(config.as_str()).as_path()),
@@ -756,17 +756,17 @@ fn scaffold_service(
     template_fs::copy_template_tree(
         StdScaffoldPathRef::from(
             root.0
-                .join(str_constants::WORKSPACE_SCAFFOLD_NOTIFICATION_CONTRACT)
+                .join(constants_str::WORKSPACE_SCAFFOLD_NOTIFICATION_CONTRACT)
                 .as_path(),
         ),
         StdScaffoldPathRef::from(root.0.join(contract.as_str()).as_path()),
         ReplacementsRef::from(replacements.as_slice()),
     )?;
 
-    let manifest = root.0.join(str_constants::CARGO_TOML);
+    let manifest = root.0.join(constants_str::CARGO_TOML);
     template_fs::insert_once(
         StdScaffoldPathRef::from(manifest.as_path()),
-        ScaffoldTextRef::from(str_constants::WORKSPACE_SCAFFOLD_MANIFEST_MEMBER_MARKER),
+        ScaffoldTextRef::from(constants_str::WORKSPACE_SCAFFOLD_MANIFEST_MEMBER_MARKER),
         ScaffoldTextRef::from(
             format!(
                 "  \"notification_service_contract\",\n  \"{service}\",\n  \"{config}\",\n  \"{contract}\","
@@ -774,7 +774,7 @@ fn scaffold_service(
             .as_str(),
         ),
     )?;
-    let dependency_marker = str_constants::WORKSPACE_SCAFFOLD_MANIFEST_DEPENDENCY_MARKER;
+    let dependency_marker = constants_str::WORKSPACE_SCAFFOLD_MANIFEST_DEPENDENCY_MARKER;
     template_fs::insert_once(
         StdScaffoldPathRef::from(manifest.as_path()),
         ScaffoldTextRef::from(dependency_marker),
@@ -788,11 +788,11 @@ fn scaffold_service(
 
     let k8s_source = root
         .0
-        .join(str_constants::WORKSPACE_SCAFFOLD_NOTIFICATION_K8S_PATH);
+        .join(constants_str::WORKSPACE_SCAFFOLD_NOTIFICATION_K8S_PATH);
     let k8s_file_name = format!("{kebab}.yaml");
     let k8s_destination = root
         .0
-        .join(str_constants::WORKSPACE_SCAFFOLD_K8S_BASE_PATH)
+        .join(constants_str::WORKSPACE_SCAFFOLD_K8S_BASE_PATH)
         .join(k8s_file_name.as_str());
     let _copied_bytes = std::fs::copy(k8s_source, k8s_destination.as_path())?;
     template_fs::replace_file(
@@ -813,10 +813,10 @@ fn scaffold_service(
     std::fs::write(k8s_destination.as_path(), k8s_contents)?;
     let kustomization = root
         .0
-        .join(str_constants::WORKSPACE_SCAFFOLD_KUSTOMIZATION_PATH);
+        .join(constants_str::WORKSPACE_SCAFFOLD_KUSTOMIZATION_PATH);
     template_fs::insert_once(
         StdScaffoldPathRef::from(kustomization.as_path()),
-        ScaffoldTextRef::from(str_constants::WORKSPACE_SCAFFOLD_KUSTOMIZATION_MARKER),
+        ScaffoldTextRef::from(constants_str::WORKSPACE_SCAFFOLD_KUSTOMIZATION_MARKER),
         ScaffoldTextRef::from(
             format!("  - notification-service.yaml\n  - {k8s_file_name}").as_str(),
         ),
@@ -865,7 +865,7 @@ fn scaffold_service(
 
     let service_catalog = root
         .0
-        .join(str_constants::WORKSPACE_SCAFFOLD_SERVICE_CATALOG_PATH);
+        .join(constants_str::WORKSPACE_SCAFFOLD_SERVICE_CATALOG_PATH);
     let mut service_catalog_contents =
         template_fs::read_bounded_text(StdScaffoldPathRef::from(service_catalog.as_path()))?
             .as_ref()
@@ -893,9 +893,9 @@ fn workspace_root() -> Result<StdScaffoldPathRef<'static>, ScaffoldError> {
     reason = "binary entry point delegates fallible argument handling"
 )]
 fn run() -> Result<(), ScaffoldError> {
-    let mut arguments = std::env::args().skip(usize_constants::ONE);
+    let mut arguments = std::env::args().skip(constants_usize::ONE);
     match arguments.next().as_deref() {
-        Some(str_constants::WORKSPACE_SCAFFOLD_PROJECT_COMMAND) => {
+        Some(constants_str::WORKSPACE_SCAFFOLD_PROJECT_COMMAND) => {
             let name = arguments.next().ok_or(ScaffoldError::Arguments)?;
             let repository_url = arguments.next().ok_or(ScaffoldError::Arguments)?;
             if arguments.next().is_some() {
@@ -907,7 +907,7 @@ fn run() -> Result<(), ScaffoldError> {
             naming::validate_repository_url(repository_url_ref)?;
             template_fs::rename_identity(workspace_root()?, name_ref, repository_url_ref)
         }
-        Some(str_constants::SERVICE) => {
+        Some(constants_str::SERVICE) => {
             let name = arguments.next().ok_or(ScaffoldError::Arguments)?;
             let port = match arguments
                 .next()
@@ -924,8 +924,8 @@ fn run() -> Result<(), ScaffoldError> {
         }
         Some("generate") => {
             let write_changes = match arguments.next().as_deref() {
-                Some(str_constants::SYNC) => ShouldWrite::from(true),
-                Some(str_constants::CHECK) => ShouldWrite::from(false),
+                Some(constants_str::SYNC) => ShouldWrite::from(true),
+                Some(constants_str::CHECK) => ShouldWrite::from(false),
                 Some(_) | None => return Err(ScaffoldError::Arguments),
             };
             if arguments.next().is_some() {
@@ -935,8 +935,8 @@ fn run() -> Result<(), ScaffoldError> {
         }
         Some("deployment") => {
             let write_changes = match arguments.next().as_deref() {
-                Some(str_constants::SYNC) => ShouldWrite::from(true),
-                Some(str_constants::CHECK) => ShouldWrite::from(false),
+                Some(constants_str::SYNC) => ShouldWrite::from(true),
+                Some(constants_str::CHECK) => ShouldWrite::from(false),
                 Some(_) | None => return Err(ScaffoldError::Arguments),
             };
             if arguments.next().is_some() {

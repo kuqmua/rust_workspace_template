@@ -65,17 +65,17 @@ enum SqlIdentifierListTextState {
 pub struct SqlIdentifiers(SqlIdentifierListTextState);
 impl From<Vec<SqlIdentifier>> for SqlIdentifiers {
     fn from(value: Vec<SqlIdentifier>) -> Self {
-        let identifiers_len = value.iter().fold(usize_constants::ZERO, |len, identifier| {
+        let identifiers_len = value.iter().fold(constants_usize::ZERO, |len, identifier| {
             len.saturating_add(identifier.as_ref().len())
         });
         let separators_len = value
             .len()
-            .saturating_sub(usize_constants::ONE)
-            .saturating_mul(str_constants::TEXT_ALT_6.len());
+            .saturating_sub(constants_usize::ONE)
+            .saturating_mul(constants_str::TEXT_ALT_6.len());
         let mut text = String::with_capacity(identifiers_len.saturating_add(separators_len));
         value.iter().enumerate().for_each(|(idx, identifier)| {
-            if idx != usize_constants::ZERO {
-                text.push_str(str_constants::TEXT_ALT_6);
+            if idx != constants_usize::ZERO {
+                text.push_str(constants_str::TEXT_ALT_6);
             }
             text.push_str(identifier.as_ref());
         });
@@ -119,7 +119,7 @@ impl SqlQualifiedIdentifier {
 impl std::fmt::Display for SqlQualifiedIdentifier {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(self.schema.as_ref())?;
-        f.write_str(str_constants::DOT)?;
+        f.write_str(constants_str::DOT)?;
         f.write_str(self.table.as_ref())
     }
 }
@@ -131,11 +131,11 @@ pub struct SqlSelectBuilder {
 impl SqlSelectBuilder {
     #[must_use]
     pub fn build(&self) -> crate::QueryPartFragment {
-        let fixed_len = str_constants::SELECT
+        let fixed_len = constants_str::SELECT
             .len()
-            .saturating_add(str_constants::FROM.len())
+            .saturating_add(constants_str::FROM.len())
             .saturating_add(self.table.schema.as_ref().len())
-            .saturating_add(str_constants::DOT.len())
+            .saturating_add(constants_str::DOT.len())
             .saturating_add(self.table.table.as_ref().len());
         let columns = match &self.columns.0 {
             SqlIdentifierListTextState::Text(text) => text.0.as_str(),
@@ -153,9 +153,9 @@ impl SqlSelectBuilder {
         let capacity = fixed_len.saturating_add(columns.len());
         let mut query = SqlQueryText::try_from(String::with_capacity(capacity))
             .unwrap_or_else(SqlQueryText::from);
-        query.0.push_str(str_constants::SELECT);
+        query.0.push_str(constants_str::SELECT);
         query.0.push_str(columns);
-        query.0.push_str(str_constants::FROM);
+        query.0.push_str(constants_str::FROM);
         self.table.push_to(&mut query);
         crate::QueryPartFragment::try_from(query.0).unwrap_or_else(crate::QueryPartFragment::from)
     }
@@ -177,9 +177,9 @@ mod tests {
     )]
     fn sql_identifier_uses_restricted_ascii_grammar() {
         [
-            str_constants::TABLE_ALT,
-            str_constants::TABLE,
-            str_constants::TABLE_2,
+            constants_str::TABLE_ALT,
+            constants_str::TABLE,
+            constants_str::TABLE_2,
         ]
         .into_iter()
         .for_each(|value| {
@@ -188,28 +188,28 @@ mod tests {
             );
         });
         [
-            str_constants::PG_CRUD_EMPTY_SQL_SUFFIX,
-            str_constants::VALUE_2TABLE,
-            str_constants::TABLE_NAME,
-            str_constants::NON_ASCII_U_E9,
-            str_constants::TABLE_NAME_ALT,
+            constants_str::PG_CRUD_EMPTY_SQL_SUFFIX,
+            constants_str::VALUE_2TABLE,
+            constants_str::TABLE_NAME,
+            constants_str::NON_ASCII_U_E9,
+            constants_str::TABLE_NAME_ALT,
         ]
         .into_iter()
         .for_each(|value| {
             let _error = super::SqlIdentifier::try_from(value.to_owned())
-                .expect_err(str_constants::F698FD6D);
+                .expect_err(constants_str::F698FD6D);
         });
     }
     #[test]
     fn query_builder_accepts_only_validated_identifiers() {
         let builder = super::SqlSelectBuilder::new(
             super::SqlQualifiedIdentifier::new(
-                identifier(str_constants::PUBLIC),
-                identifier(str_constants::USERS_ALT),
+                identifier(constants_str::PUBLIC),
+                identifier(constants_str::USERS_ALT),
             ),
             vec![
-                identifier(str_constants::SQL_NAMES_ID),
-                identifier(str_constants::LOGIN),
+                identifier(constants_str::SQL_NAMES_ID),
+                identifier(constants_str::LOGIN),
             ]
             .into(),
         );
@@ -220,6 +220,6 @@ mod tests {
     }
     #[test]
     fn benchmark_black_box_dependency_is_available() {
-        assert_ne!(size_of::<criterion::Criterion>(), usize_constants::ZERO);
+        assert_ne!(size_of::<criterion::Criterion>(), constants_usize::ZERO);
     }
 }

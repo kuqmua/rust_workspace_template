@@ -268,8 +268,8 @@ mod tests {
     fn metadata() -> crate::RouteMetadata {
         crate::RouteMetadata::new(
             crate::RouteMethod::Post,
-            str_constants::ROUTE_READ.into(),
-            str_constants::ROUTE.into(),
+            constants_str::ROUTE_READ.into(),
+            constants_str::ROUTE.into(),
         )
     }
 

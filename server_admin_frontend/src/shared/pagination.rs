@@ -44,7 +44,7 @@ impl AdminPageRange {
             ),
             next_disabled: AdminPageNavDisabled::from(u64::from(next_offset) >= total_value),
             next_offset: server_admin_contract::AdminPageOffset::from(next_offset),
-            previous_disabled: AdminPageNavDisabled::from(offset_value == u32_constants::ZERO),
+            previous_disabled: AdminPageNavDisabled::from(offset_value == constants_u32::ZERO),
             previous_offset: server_admin_contract::AdminPageOffset::from(previous_offset),
             start: server_admin_contract::AdminPageTotal::from(
                 u64::from(offset_value)
@@ -94,13 +94,13 @@ mod tests {
 
     #[test]
     fn page_range_handles_empty_and_first_pages() {
-        let empty = page_range(u32_constants::ZERO, 20u16, u64_constants::ZERO);
-        assert_eq!(u64::from(empty.start()), u64_constants::ZERO);
-        assert_eq!(u64::from(empty.end()), u64_constants::ZERO);
+        let empty = page_range(constants_u32::ZERO, 20u16, constants_u64::ZERO);
+        assert_eq!(u64::from(empty.start()), constants_u64::ZERO);
+        assert_eq!(u64::from(empty.end()), constants_u64::ZERO);
         assert!(bool::from(empty.previous_disabled()));
         assert!(bool::from(empty.next_disabled()));
 
-        let first = page_range(u32_constants::ZERO, 20u16, 41u64);
+        let first = page_range(constants_u32::ZERO, 20u16, 41u64);
         assert_eq!(u64::from(first.start()), 1u64);
         assert_eq!(u64::from(first.end()), 20u64);
         assert_eq!(u32::from(first.next_offset()), 20u32);

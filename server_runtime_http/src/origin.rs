@@ -25,7 +25,7 @@ impl TryFrom<String> for HttpOriginAuthorityText {
                 .and_then(|end| {
                     authority
                         .as_str()
-                        .get(end.saturating_add(usize_constants::ONE)..)
+                        .get(end.saturating_add(constants_usize::ONE)..)
                 })
                 .filter(|suffix| !suffix.is_empty())
                 .and_then(|suffix| suffix.strip_prefix(':'))
@@ -63,10 +63,10 @@ impl TryFrom<String> for AllowedOrigin {
     fn try_from(mut value: String) -> Result<Self, Self::Error> {
         let (scheme, authority_start) = {
             let (scheme, remainder) = value
-                .split_once(str_constants::TEXT_ALT_10)
+                .split_once(constants_str::TEXT_ALT_10)
                 .ok_or(AllowedOriginError)?;
-            if (!scheme.eq_ignore_ascii_case(str_constants::HTTP)
-                && !scheme.eq_ignore_ascii_case(str_constants::HTTPS))
+            if (!scheme.eq_ignore_ascii_case(constants_str::HTTP)
+                && !scheme.eq_ignore_ascii_case(constants_str::HTTPS))
                 || remainder.is_empty()
                 || remainder.contains(['/', '?', '#'])
             {
@@ -76,7 +76,7 @@ impl TryFrom<String> for AllowedOrigin {
                 scheme.to_owned(),
                 scheme
                     .len()
-                    .saturating_add(str_constants::TEXT_ALT_10.len()),
+                    .saturating_add(constants_str::TEXT_ALT_10.len()),
             )
         };
         drop(value.drain(..authority_start));
@@ -90,7 +90,7 @@ impl TryFrom<String> for AllowedOrigin {
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
 )]
-#[error("{message}", message = str_constants::ALLOWED_HTTP_ORIGIN_IS_INVALID)]
+#[error("{message}", message = constants_str::ALLOWED_HTTP_ORIGIN_IS_INVALID)]
 pub struct AllowedOriginError;
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
@@ -114,7 +114,7 @@ impl TryFrom<Vec<String>> for AllowedOrigins {
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
 )]
-#[error("{message}", message = str_constants::ALLOWED_HTTP_ORIGIN_LIST_IS_INVALID)]
+#[error("{message}", message = constants_str::ALLOWED_HTTP_ORIGIN_LIST_IS_INVALID)]
 pub struct AllowedOriginsError;
 impl From<bounded_types::BoundedValueError> for AllowedOriginsError {
     fn from(_value: bounded_types::BoundedValueError) -> Self {
@@ -154,9 +154,9 @@ fn parse_request_origin(
     value: HttpOriginTextRef<'_>,
     allow_suffix: AllowOriginSuffix,
 ) -> Option<ParsedHttpOriginRef<'_>> {
-    let (scheme, remainder) = value.0.trim().split_once(str_constants::TEXT_ALT_10)?;
-    if !scheme.eq_ignore_ascii_case(str_constants::HTTP)
-        && !scheme.eq_ignore_ascii_case(str_constants::HTTPS)
+    let (scheme, remainder) = value.0.trim().split_once(constants_str::TEXT_ALT_10)?;
+    if !scheme.eq_ignore_ascii_case(constants_str::HTTP)
+        && !scheme.eq_ignore_ascii_case(constants_str::HTTPS)
     {
         return None;
     }
@@ -227,13 +227,13 @@ pub fn request_origin_allowed(
 #[cfg(test)]
 mod tests {
     fn allowed_origins() -> super::AllowedOrigins {
-        super::AllowedOrigins::try_from(vec![String::from(str_constants::HTTPS_ADMIN_EXAMPLE_COM)])
+        super::AllowedOrigins::try_from(vec![String::from(constants_str::HTTPS_ADMIN_EXAMPLE_COM)])
             .expect("782d2bed allowed_origins invariant must hold")
     }
 
     #[test]
     fn allowed_origins_reject_oversized_lists() {
-        let values = vec![String::from(str_constants::HTTPS_ADMIN_EXAMPLE_COM); 129usize];
+        let values = vec![String::from(constants_str::HTTPS_ADMIN_EXAMPLE_COM); 129usize];
         assert_eq!(
             super::AllowedOrigins::try_from(values),
             Err(super::AllowedOriginsError)
@@ -244,13 +244,13 @@ mod tests {
     fn allowed_origins_reject_userinfo_and_invalid_ports() {
         assert_eq!(
             super::AllowedOrigin::try_from(String::from(
-                str_constants::HTTPS_ADMIN_EXAMPLE_COM_WITH_USERINFO,
+                constants_str::HTTPS_ADMIN_EXAMPLE_COM_WITH_USERINFO,
             )),
             Err(super::AllowedOriginError)
         );
         assert_eq!(
             super::AllowedOrigin::try_from(String::from(
-                str_constants::HTTPS_ADMIN_EXAMPLE_COM_WITH_INVALID_PORT,
+                constants_str::HTTPS_ADMIN_EXAMPLE_COM_WITH_INVALID_PORT,
             )),
             Err(super::AllowedOriginError)
         );
@@ -261,7 +261,7 @@ mod tests {
         let mut headers = http::HeaderMap::new();
         let _previous = headers.insert(
             http::header::ORIGIN,
-            http::HeaderValue::from_static(str_constants::HTTPS_ADMIN_EXAMPLE_COM_PATH),
+            http::HeaderValue::from_static(constants_str::HTTPS_ADMIN_EXAMPLE_COM_PATH),
         );
         assert!(!bool::from(super::request_origin_allowed(
             super::HttpOriginHeadersRef::from(&headers),
@@ -274,7 +274,7 @@ mod tests {
         let mut headers = http::HeaderMap::new();
         let _previous = headers.insert(
             http::header::REFERER,
-            http::HeaderValue::from_static(str_constants::HTTPS_ADMIN_EXAMPLE_COM_SETTINGS_UPPER),
+            http::HeaderValue::from_static(constants_str::HTTPS_ADMIN_EXAMPLE_COM_SETTINGS_UPPER),
         );
         assert!(bool::from(super::request_origin_allowed(
             super::HttpOriginHeadersRef::from(&headers),

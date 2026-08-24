@@ -58,7 +58,7 @@ pub(super) fn text_search_token_stream(
             }
             let wildcard_count = match mode {
                 TextSearchMode::Contains => 2usize,
-                TextSearchMode::EndsWith | TextSearchMode::StartsWith => usize_constants::ONE,
+                TextSearchMode::EndsWith | TextSearchMode::StartsWith => constants_usize::ONE,
             };
             let escaped_symbol_count = value.as_bytes().iter().copied().filter(|byte| matches!(byte, b'\\' | b'%' | b'_')).count();
             let mut pattern = String::with_capacity(value.len().saturating_add(escaped_symbol_count).saturating_add(wildcard_count));

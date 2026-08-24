@@ -38,7 +38,7 @@ async fn runtime_auth_router_contains_every_open_api_operation() {
     ))
     .expect("71599514 runtime_auth_router_contains_every_open_api_operation invariant must hold");
     let paths = document
-        .get(str_constants::PATHS)
+        .get(constants_str::PATHS)
         .and_then(serde_json::Value::as_object)
         .expect(
             "d908872f runtime_auth_router_contains_every_open_api_operation invariant must hold",
@@ -57,16 +57,16 @@ async fn runtime_auth_router_contains_every_open_api_operation() {
             .map(|(documented_path, documented_method)| {
                 let runtime_path = documented_path
                     .replace(
-                        str_constants::ADMIN_SESSION_ID_PLACEHOLDER,
-                        str_constants::VALUE_1,
+                        constants_str::ADMIN_SESSION_ID_PLACEHOLDER,
+                        constants_str::VALUE_1,
                     )
                     .replace(
-                        str_constants::ADMIN_USER_ID_PLACEHOLDER,
-                        str_constants::VALUE_1,
+                        constants_str::ADMIN_USER_ID_PLACEHOLDER,
+                        constants_str::VALUE_1,
                     )
                     .replace(
-                        str_constants::ADMIN_ROLE_ID_PLACEHOLDER,
-                        str_constants::VALUE_1,
+                        constants_str::ADMIN_ROLE_ID_PLACEHOLDER,
+                        constants_str::VALUE_1,
                     );
                 let method =
                     http::Method::from_bytes(documented_method.to_ascii_uppercase().as_bytes())
@@ -108,7 +108,7 @@ async fn invalid_access_cookie_is_rejected_before_database_io() {
             )
             .header(
                 http::header::COOKIE,
-                str_constants::ADMIN_ACCESS_TOKEN_INVALID_JWT_TOKEN,
+                constants_str::ADMIN_ACCESS_TOKEN_INVALID_JWT_TOKEN,
             )
             .body(axum::body::Body::empty())
             .expect(
@@ -124,7 +124,7 @@ async fn unknown_admin_api_route_is_not_captured_by_spa_fallback() {
     let response = tower::ServiceExt::oneshot(
         router().0,
         http::Request::builder()
-            .uri(str_constants::NOT_AN_API_ROUTE)
+            .uri(constants_str::NOT_AN_API_ROUTE)
             .body(axum::body::Body::empty())
             .expect("1ca76f8d unknown_admin_api_route_is_not_captured_by_spa_fallback invariant must hold"),
     )
@@ -163,7 +163,7 @@ async fn invalid_admin_json_uses_problem_details_and_body_limit_contract() {
                 frontend_contract::typed_route_path::<server_admin_contract::AdminSignInRoute>()
                     .as_ref(),
             ),
-            StdAdminApiTestStrRef::from(str_constants::LOGIN_ALT),
+            StdAdminApiTestStrRef::from(constants_str::LOGIN_ALT),
             None,
             None,
         )
@@ -183,7 +183,7 @@ async fn invalid_admin_json_uses_problem_details_and_body_limit_contract() {
         .expect("a60751db invalid_admin_json_uses_problem_details_and_body_limit_contract invariant must hold")
         .get();
     let oversized_password =
-        str_constants::X.repeat(body_limit.saturating_add(usize_constants::ONE));
+        constants_str::X.repeat(body_limit.saturating_add(constants_usize::ONE));
     let oversized_body = format!(r#"{{"login":"admin","password":"{oversized_password}"}}"#);
     let oversized_response = tower::ServiceExt::oneshot(
         router().0,
@@ -219,7 +219,7 @@ async fn sign_in_requires_trusted_origin_without_database_io() {
                 frontend_contract::typed_route_path::<server_admin_contract::AdminSignInRoute>()
                     .as_ref(),
             )
-            .header(http::header::CONTENT_TYPE, str_constants::APPLICATION_JSON);
+            .header(http::header::CONTENT_TYPE, constants_str::APPLICATION_JSON);
         if let Some(value) = origin {
             builder = builder.header(http::header::ORIGIN, value);
         }
@@ -228,13 +228,13 @@ async fn sign_in_requires_trusted_origin_without_database_io() {
         }
         let mut request = builder
             .body(axum::body::Body::from(
-                str_constants::LOGIN_ADMIN_PASSWORD_PASSWORD,
+                constants_str::LOGIN_ADMIN_PASSWORD_PASSWORD,
             ))
             .expect(
                 "168060a3 sign_in_requires_trusted_origin_without_database_io invariant must hold",
             );
         let _previous_peer = request.extensions_mut().insert(axum::extract::ConnectInfo(
-            str_constants::VALUE_127_0_0_1_43210
+            constants_str::VALUE_127_0_0_1_43210
                 .parse::<std::net::SocketAddr>()
                 .expect("c90cba14 sign_in_requires_trusted_origin_without_database_io invariant must hold"),
         ));
@@ -250,8 +250,8 @@ async fn sign_in_requires_trusted_origin_without_database_io() {
     let blocked_origin_response = tower::ServiceExt::oneshot(
         router().0,
         make_request(
-            Some(str_constants::HTTP_BLOCKED_EXAMPLE),
-            Some(str_constants::HTTP_LOCALHOST_ADMIN_SIGN_IN),
+            Some(constants_str::HTTP_BLOCKED_EXAMPLE),
+            Some(constants_str::HTTP_LOCALHOST_ADMIN_SIGN_IN),
         ),
     )
     .await

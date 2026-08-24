@@ -88,21 +88,21 @@ impl ReqwestClient {
                 match self.0.execute(request.into_inner()).await {
                     Ok(response) => {
                         let _client_status_record = tracing::Span::current().record(
-                            str_constants::OTEL_HTTP_RESPONSE_STATUS_CODE,
+                            constants_str::OTEL_HTTP_RESPONSE_STATUS_CODE,
                             response.status().as_u16(),
                         );
                         if response.status().is_server_error() {
                             let _client_error_record = tracing::Span::current().record(
-                                str_constants::OTEL_STATUS_CODE,
-                                str_constants::OTEL_ERROR_STATUS,
+                                constants_str::OTEL_STATUS_CODE,
+                                constants_str::OTEL_ERROR_STATUS,
                             );
                         }
                         Ok(super::ReqwestResponse::from(response))
                     }
                     Err(error) => {
                         let _client_error_record = tracing::Span::current().record(
-                            str_constants::OTEL_STATUS_CODE,
-                            str_constants::OTEL_ERROR_STATUS,
+                            constants_str::OTEL_STATUS_CODE,
+                            constants_str::OTEL_ERROR_STATUS,
                         );
                         Err(super::ReqwestError::from(error))
                     }
@@ -132,7 +132,7 @@ impl ReqwestClient {
                 "http.response.status_code" = tracing::field::Empty,
             );
             let _client_name_record =
-                span.record(str_constants::OTEL_NAME, format_args!("{method} {host}"));
+                span.record(constants_str::OTEL_NAME, format_args!("{method} {host}"));
             span
         };
         super::inject_trace_context(

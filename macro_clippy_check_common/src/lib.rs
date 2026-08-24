@@ -1,19 +1,19 @@
 #[cfg(feature = "test-utils")]
 const GENERATED_CRATE_STEPS: [GeneratedCrateStep; 4] = [
     GeneratedCrateStep {
-        args: &str_constants::MACRO_CLIPPY_CARGO_FMT_ARGS,
+        args: &constants_str::MACRO_CLIPPY_CARGO_FMT_ARGS,
         phase: GeneratedCratePhase::Formatting,
     },
     GeneratedCrateStep {
-        args: &str_constants::MACRO_CLIPPY_CARGO_CHECK_ALL_TARGETS_ALL_FEATURES_ARGS,
+        args: &constants_str::MACRO_CLIPPY_CARGO_CHECK_ALL_TARGETS_ALL_FEATURES_ARGS,
         phase: GeneratedCratePhase::Compilation,
     },
     GeneratedCrateStep {
-        args: &str_constants::MACRO_CLIPPY_CARGO_CLIPPY_ALL_TARGETS_ALL_FEATURES_ARGS,
+        args: &constants_str::MACRO_CLIPPY_CARGO_CLIPPY_ALL_TARGETS_ALL_FEATURES_ARGS,
         phase: GeneratedCratePhase::Clippy,
     },
     GeneratedCrateStep {
-        args: &str_constants::MACRO_CLIPPY_CARGO_TEST_LIB_ARGS,
+        args: &constants_str::MACRO_CLIPPY_CARGO_TEST_LIB_ARGS,
         phase: GeneratedCratePhase::Test,
     },
 ];
@@ -30,10 +30,10 @@ enum GeneratedCratePhase {
 impl std::fmt::Display for GeneratedCratePhase {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Clippy => f.write_str(str_constants::CLIPPY),
-            Self::Compilation => f.write_str(str_constants::COMPILATION),
-            Self::Formatting => f.write_str(str_constants::FORMATTING),
-            Self::Test => f.write_str(str_constants::TEST_ALT_3),
+            Self::Clippy => f.write_str(constants_str::CLIPPY),
+            Self::Compilation => f.write_str(constants_str::COMPILATION),
+            Self::Formatting => f.write_str(constants_str::FORMATTING),
+            Self::Test => f.write_str(constants_str::TEST_ALT_3),
         }
     }
 }
@@ -51,7 +51,7 @@ struct RemoveDirOnDrop {
 #[cfg(feature = "test-utils")]
 impl Drop for RemoveDirOnDrop {
     fn drop(&mut self) {
-        remove_dir_all_if_exists(&self.path, str_constants::E28698F2);
+        remove_dir_all_if_exists(&self.path, constants_str::E28698F2);
         if let Some(parent) = self.path.parent()
             && let Err(error) = std::fs::remove_dir(parent)
             && error.kind() != std::io::ErrorKind::NotFound
@@ -75,10 +75,10 @@ pub fn clippy_check(crate_name: &str, _cmd_path: &str, extra_cnt: &str, content_
         .parent()
         .map_or_else(|| panic!("2d592b13"), std::path::Path::to_path_buf);
     let crate_path = root
-        .join(str_constants::TARGET_MACRO_CHECK)
+        .join(constants_str::TARGET_MACRO_CHECK)
         .join(crate_name);
-    remove_dir_all_if_exists(&crate_path, str_constants::E28698F2);
-    std::fs::create_dir_all(crate_path.join(str_constants::SRC_ALT))
+    remove_dir_all_if_exists(&crate_path, constants_str::E28698F2);
+    std::fs::create_dir_all(crate_path.join(constants_str::SRC_ALT))
         .unwrap_or_else(|error| panic!("2b24ef1a: {error}"));
     let _remove_dir_on_drop = RemoveDirOnDrop {
         path: crate_path.clone(),
@@ -97,12 +97,12 @@ keywords = ["keyword"]
 categories = ["category"]
 [workspace]"#
     );
-    let path_lib_rs = crate_path.join(str_constants::SRC_LIB_RS);
-    let path_cargo_toml = crate_path.join(str_constants::CARGO_TOML);
-    let workspace_manifest_path = root.join(str_constants::CARGO_TOML);
+    let path_lib_rs = crate_path.join(constants_str::SRC_LIB_RS);
+    let path_cargo_toml = crate_path.join(constants_str::CARGO_TOML);
+    let workspace_manifest_path = root.join(constants_str::CARGO_TOML);
     let workspace_cargo_toml = server_runtime_http::read_bounded_file(
         server_runtime_http::StdPathRef::from(workspace_manifest_path.as_path()),
-        server_runtime_http::BoundedReadMaximumBytes::from(usize_constants::VALUE_1_048_576),
+        server_runtime_http::BoundedReadMaximumBytes::from(constants_usize::VALUE_1_048_576),
     )
     .and_then(server_runtime_http::BoundedText::try_from)
     .unwrap_or_else(|error| panic!("bf40d675: {error}"));
@@ -111,17 +111,17 @@ categories = ["category"]
         String::with_capacity(extra_cnt.len()),
         |mut output, line| {
             let transform_line = || -> std::borrow::Cow<'_, str> {
-                if !line.contains(str_constants::WORKSPACE_TRUE) {
+                if !line.contains(constants_str::WORKSPACE_TRUE) {
                     return std::borrow::Cow::Borrowed(line);
                 }
-                let Some((dep_name, _)) = line.split_once(str_constants::TEXT_ALT) else {
+                let Some((dep_name, _)) = line.split_once(constants_str::TEXT_ALT) else {
                     return std::borrow::Cow::Borrowed(line);
                 };
                 let prefix = format!("{dep_name} = ");
                 let braces_balance = |value: &str| -> i32 {
                     value
                         .chars()
-                        .fold(i32_constants::ZERO, |accumulator, ch| match ch {
+                        .fold(constants_i32::ZERO, |accumulator, ch| match ch {
                             '{' | '[' => accumulator
                                 .checked_add(1i32)
                                 .unwrap_or_else(|| panic!("0a8df093")),
@@ -137,7 +137,7 @@ categories = ["category"]
                     let Some(workspace_line) = workspace_lines.next() else {
                         panic!("1bb3996c");
                     };
-                    if workspace_line == str_constants::WORKSPACE_DEPENDENCIES {
+                    if workspace_line == constants_str::WORKSPACE_DEPENDENCIES {
                         in_workspace_deps = true;
                         continue;
                     }
@@ -148,7 +148,7 @@ categories = ["category"]
                     if in_workspace_deps && workspace_line.starts_with(&prefix) {
                         let mut out = String::from(workspace_line);
                         let mut balance = braces_balance(workspace_line);
-                        while balance > i32_constants::ZERO {
+                        while balance > constants_i32::ZERO {
                             let next_line =
                                 workspace_lines.next().unwrap_or_else(|| panic!("7bb3cd14"));
                             out.push('\n');
@@ -160,7 +160,7 @@ categories = ["category"]
                         break out;
                     }
                 };
-                let feature_list = line.split_once(str_constants::FEATURES).map(|(_, tail)| {
+                let feature_list = line.split_once(constants_str::FEATURES).map(|(_, tail)| {
                     tail.chars()
                         .scan(false, |done, ch| {
                             if *done {
@@ -174,19 +174,19 @@ categories = ["category"]
                         })
                         .collect::<String>()
                 });
-                if !dep_entry.contains(str_constants::FEATURES)
+                if !dep_entry.contains(constants_str::FEATURES)
                     && let Some(features) = feature_list
                     && let Some(idx) = dep_entry.rfind('}')
                 {
                     dep_entry.insert_str(idx, &format!(", features = {features}"));
                 }
-                if let Some(path_prefix_idx) = dep_entry.find(str_constants::PATH_ALT_4) {
-                    let dot_idx = path_prefix_idx.saturating_add(str_constants::PATH_ALT_3.len());
-                    if dep_entry.get(dot_idx..dot_idx.saturating_add(usize_constants::ONE))
-                        == Some(str_constants::DOT)
+                if let Some(path_prefix_idx) = dep_entry.find(constants_str::PATH_ALT_4) {
+                    let dot_idx = path_prefix_idx.saturating_add(constants_str::PATH_ALT_3.len());
+                    if dep_entry.get(dot_idx..dot_idx.saturating_add(constants_usize::ONE))
+                        == Some(constants_str::DOT)
                     {
                         dep_entry.replace_range(
-                            dot_idx..dot_idx.saturating_add(usize_constants::ONE),
+                            dot_idx..dot_idx.saturating_add(constants_usize::ONE),
                             &root_path,
                         );
                     }
@@ -201,7 +201,7 @@ categories = ["category"]
         },
     );
     let mut cargo_toml_full = cargo_toml_cnt;
-    cargo_toml_full.reserve(usize_constants::ONE.saturating_add(cargo_toml_extra.len()));
+    cargo_toml_full.reserve(constants_usize::ONE.saturating_add(cargo_toml_extra.len()));
     cargo_toml_full.push('\n');
     cargo_toml_full.push_str(&cargo_toml_extra);
     drop(cargo_toml_extra);
@@ -210,14 +210,14 @@ categories = ["category"]
     std::fs::write(path_lib_rs, content_to_generate)
         .unwrap_or_else(|error| panic!("55124f90: {error}"));
     let _copied_lock_bytes = std::fs::copy(
-        root.join(str_constants::CARGO_LOCK),
-        crate_path.join(str_constants::CARGO_LOCK),
+        root.join(constants_str::CARGO_LOCK),
+        crate_path.join(constants_str::CARGO_LOCK),
     )
     .unwrap_or_else(|error| panic!("1dda80f9: {error}"));
     GENERATED_CRATE_STEPS.iter().fold((), |(), step| {
         let status = macros_helpers::tool_command::ToolCommand::new(
             macros_helpers::tool_command::ToolProgramRef::from(
-                str_constants::WORKSPACE_TEST_RUNNER_CARGO,
+                constants_str::WORKSPACE_TEST_RUNNER_CARGO,
             ),
         )
         .current_dir(macros_helpers::tool_command::StdPathRef::from(
@@ -274,7 +274,7 @@ mod tests {
     #[test]
     fn remove_dir_on_drop_removes_temp_crate_dir() {
         let dir = StdTmpDir::new();
-        let path = dir.path().join(str_constants::CRATE_DIR);
+        let path = dir.path().join(constants_str::CRATE_DIR);
         std::fs::create_dir_all(&path)
             .expect("9b0e24f1 remove_dir_on_drop_removes_temp_crate_dir invariant must hold");
         let guard = super::RemoveDirOnDrop { path: path.clone() };
@@ -284,8 +284,8 @@ mod tests {
     #[test]
     fn remove_dir_all_if_exists_accepts_missing_dir() {
         let dir = StdTmpDir::new();
-        let path = dir.path().join(str_constants::MISSING_DIR);
-        super::remove_dir_all_if_exists(&path, str_constants::F39C05AA);
+        let path = dir.path().join(constants_str::MISSING_DIR);
+        super::remove_dir_all_if_exists(&path, constants_str::F39C05AA);
         assert!(!path.exists());
     }
     #[test]
@@ -304,12 +304,12 @@ mod tests {
     #[test]
     fn generated_crate_compilation_is_offline_and_follow_up_steps_are_locked() {
         assert!(
-            str_constants::MACRO_CLIPPY_CARGO_CHECK_ALL_TARGETS_ALL_FEATURES_ARGS
+            constants_str::MACRO_CLIPPY_CARGO_CHECK_ALL_TARGETS_ALL_FEATURES_ARGS
                 .contains(&"--offline")
         );
         [
-            str_constants::MACRO_CLIPPY_CARGO_CLIPPY_ALL_TARGETS_ALL_FEATURES_ARGS.as_slice(),
-            str_constants::MACRO_CLIPPY_CARGO_TEST_LIB_ARGS.as_slice(),
+            constants_str::MACRO_CLIPPY_CARGO_CLIPPY_ALL_TARGETS_ALL_FEATURES_ARGS.as_slice(),
+            constants_str::MACRO_CLIPPY_CARGO_TEST_LIB_ARGS.as_slice(),
         ]
         .into_iter()
         .all(|args| args.contains(&"--locked") && args.contains(&"--offline"))

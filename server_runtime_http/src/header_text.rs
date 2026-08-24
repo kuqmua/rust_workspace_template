@@ -51,7 +51,7 @@ impl TryFrom<usize> for HttpHeaderTextMaximumBytes {
     type Error = HttpHeaderTextMaximumBytesError;
 
     fn try_from(value: usize) -> Result<Self, Self::Error> {
-        if value == usize_constants::ZERO {
+        if value == constants_usize::ZERO {
             return Err(HttpHeaderTextMaximumBytesError);
         }
         Ok(Self(value))
@@ -72,7 +72,7 @@ mod tests {
     fn resolution_distinguishes_missing_invalid_oversized_and_valid_values() {
         let maximum = super::HttpHeaderTextMaximumBytes::try_from(5usize).expect("84792c6a resolution_distinguishes_missing_invalid_oversized_and_valid_values invariant must hold");
         let name = super::HttpHeaderName::from(http::header::HeaderName::from_static(
-            str_constants::TEST_X_TEST_HEADER,
+            constants_str::TEST_X_TEST_HEADER,
         ));
         let mut headers = http::HeaderMap::new();
         assert_eq!(
@@ -89,7 +89,7 @@ mod tests {
         );
         let _oversized_previous = headers.insert(
             name.as_ref(),
-            http::HeaderValue::from_static(str_constants::VALUE_123456),
+            http::HeaderValue::from_static(constants_str::VALUE_123456),
         );
         assert_eq!(
             crate::resolve_header_text(crate::HttpHeaderMapRef::from(&headers), &name, maximum),
@@ -99,18 +99,18 @@ mod tests {
         );
         let _valid_previous = headers.insert(
             name.as_ref(),
-            http::HeaderValue::from_static(str_constants::TEST_TRIMMED_OK),
+            http::HeaderValue::from_static(constants_str::TEST_TRIMMED_OK),
         );
         assert_eq!(
             crate::resolve_header_text(crate::HttpHeaderMapRef::from(&headers), &name, maximum),
-            super::HttpHeaderTextResolution::Value(super::HttpHeaderTextRef(str_constants::OK_ALT))
+            super::HttpHeaderTextResolution::Value(super::HttpHeaderTextRef(constants_str::OK_ALT))
         );
     }
 
     #[test]
     fn maximum_rejects_zero() {
         assert_eq!(
-            super::HttpHeaderTextMaximumBytes::try_from(usize_constants::ZERO),
+            super::HttpHeaderTextMaximumBytes::try_from(constants_usize::ZERO),
             Err(super::HttpHeaderTextMaximumBytesError)
         );
     }

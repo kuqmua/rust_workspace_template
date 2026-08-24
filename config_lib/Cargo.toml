@@ -22,11 +22,11 @@ dotenv = { workspace = true }
 generate_getter_traits_for_struct_fields = { workspace = true }
 optimal_memory_layout = { workspace = true }
 config_lib_macros = { workspace = true }
-str_constants = { workspace = true }
+constants_str = { workspace = true }
 newtype = { workspace = true }
 
 [dev-dependencies]
-usize_constants = { workspace = true }
+constants_usize = { workspace = true }
 
 [lints]
 workspace = true

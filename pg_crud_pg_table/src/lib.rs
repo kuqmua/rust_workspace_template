@@ -38,12 +38,12 @@ pub struct PgTableIdempotencyRequestHash([u8; 32usize]);
     optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::AsRefTarget,
 )]
 pub struct PgTableIdempotencyBody(
-    bounded_types::BoundedVec<u8, { usize_constants::ZERO }, { usize_constants::VALUE_1_048_576 }>,
+    bounded_types::BoundedVec<u8, { constants_usize::ZERO }, { constants_usize::VALUE_1_048_576 }>,
 );
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
 )]
-#[error("{}", str_constants::IDEMPOTENCY_RESPONSE_EXCEEDS_THE_STORAGE_LIMIT)]
+#[error("{}", constants_str::IDEMPOTENCY_RESPONSE_EXCEEDS_THE_STORAGE_LIMIT)]
 pub struct PgTableIdempotencyBodyError;
 impl TryFrom<Vec<u8>> for PgTableIdempotencyBody {
     type Error = PgTableIdempotencyBodyError;
@@ -132,7 +132,7 @@ pub struct PgTableIdempotencyCleanupRetentionSeconds(i64);
 impl PgTableIdempotencyCleanupRetentionSeconds {
     #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
     const fn validate(value: &i64) -> Result<(), PgTableIdempotencyCleanupValueTryFromI64Error> {
-        if *value < i64_constants::ZERO {
+        if *value < constants_i64::ZERO {
             Err(PgTableIdempotencyCleanupValueTryFromI64Error::Negative)
         } else {
             Ok(())
@@ -150,7 +150,7 @@ pub struct PgTableIdempotencyCleanupBatchSize(i64);
 impl PgTableIdempotencyCleanupBatchSize {
     #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
     const fn validate(value: &i64) -> Result<(), PgTableIdempotencyCleanupValueTryFromI64Error> {
-        if *value <= i64_constants::ZERO {
+        if *value <= constants_i64::ZERO {
             Err(PgTableIdempotencyCleanupValueTryFromI64Error::NotPositive)
         } else {
             Ok(())
@@ -198,9 +198,9 @@ pub struct PgTableRevision(i64);
 pub struct StdPgTableRevisionParseIntError(std::num::ParseIntError);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum PgTableRevisionTryFromStringError {
-    #[error("{}", str_constants::REVISION_MUST_BE_A_DECIMAL_INTEGER)]
+    #[error("{}", constants_str::REVISION_MUST_BE_A_DECIMAL_INTEGER)]
     Invalid(#[source] StdPgTableRevisionParseIntError),
-    #[error("{}", str_constants::REVISION_MUST_NOT_BE_NEGATIVE)]
+    #[error("{}", constants_str::REVISION_MUST_NOT_BE_NEGATIVE)]
     Negative,
 }
 impl TryFrom<String> for PgTableRevision {
@@ -209,7 +209,7 @@ impl TryFrom<String> for PgTableRevision {
         let parsed = value.parse::<i64>().map_err(|error| {
             PgTableRevisionTryFromStringError::Invalid(StdPgTableRevisionParseIntError(error))
         })?;
-        if parsed < i64_constants::ZERO {
+        if parsed < constants_i64::ZERO {
             Err(PgTableRevisionTryFromStringError::Negative)
         } else {
             Ok(Self(parsed))
@@ -244,11 +244,11 @@ pub enum PgTableIdempotencyBegin {
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
 )]
 pub enum PgTableIdempotencyTextError {
-    #[error("{}", str_constants::IDEMPOTENCY_TEXT_MUST_NOT_BE_EMPTY)]
+    #[error("{}", constants_str::IDEMPOTENCY_TEXT_MUST_NOT_BE_EMPTY)]
     Empty,
-    #[error("{}", str_constants::IDEMPOTENCY_METHOD_MUST_BE_POST_PATCH_OR_DELETE)]
+    #[error("{}", constants_str::IDEMPOTENCY_METHOD_MUST_BE_POST_PATCH_OR_DELETE)]
     InvalidMethod,
-    #[error("{}", str_constants::IDEMPOTENCY_ROUTE_MUST_START_WITH_A_SLASH)]
+    #[error("{}", constants_str::IDEMPOTENCY_ROUTE_MUST_START_WITH_A_SLASH)]
     InvalidRoute,
     #[error("idempotency text exceeds {maximum_bytes} bytes: got {actual_bytes}")]
     TooLong {
@@ -259,7 +259,7 @@ pub enum PgTableIdempotencyTextError {
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
 )]
-#[error("{}", str_constants::POSTGRESQL_IDEMPOTENCY_OPERATION_FAILED)]
+#[error("{}", constants_str::POSTGRESQL_IDEMPOTENCY_OPERATION_FAILED)]
 pub struct SqlxPgTableIdempotencyError(#[source] sqlx::Error);
 impl to_err_string::ToErrString for SqlxPgTableIdempotencyError {
     fn to_err_string(&self) -> to_err_string::ErrorText {
@@ -321,7 +321,7 @@ impl TryFrom<String> for PgTableIdempotencyMethod {
         }
         if matches!(
             value.as_str(),
-            str_constants::POST | str_constants::PATCH | str_constants::DELETE
+            constants_str::POST | constants_str::PATCH | constants_str::DELETE
         ) {
             Ok(Self(value))
         } else {
@@ -390,7 +390,7 @@ pub fn pg_table_idempotency_request_hash(
     body: PgTableIdempotencyBodyRef<'_>,
 ) -> PgTableIdempotencyRequestHash {
     let digest = <sha2::Sha256 as sha2::Digest>::digest(body.0);
-    let mut bytes = [u8_constants::ZERO; 32usize];
+    let mut bytes = [constants_u8::ZERO; 32usize];
     bytes.copy_from_slice(&digest);
     PgTableIdempotencyRequestHash::from(bytes)
 }
@@ -398,13 +398,13 @@ pub async fn ensure_pg_table_idempotency_schema(
     pool: app_state::SqlxPgPoolRef<'_>,
 ) -> Result<(), SqlxPgTableIdempotencyError> {
     let _query_result = sqlx::query(
-        str_constants::CREATE_TABLE_IF_NOT_EXISTS_PG_TABLE_IDEMPOTENCY_ACTOR_TEXT_NOT_NULL,
+        constants_str::CREATE_TABLE_IF_NOT_EXISTS_PG_TABLE_IDEMPOTENCY_ACTOR_TEXT_NOT_NULL,
     )
     .execute(pool.as_ref())
     .await
     .map_err(SqlxPgTableIdempotencyError::from)?;
     let _index_result = sqlx::query(
-        str_constants::CREATE_INDEX_IF_NOT_EXISTS_PG_TABLE_IDEMPOTENCY_CREATED_AT_IDX_ON,
+        constants_str::CREATE_INDEX_IF_NOT_EXISTS_PG_TABLE_IDEMPOTENCY_CREATED_AT_IDX_ON,
     )
     .execute(pool.as_ref())
     .await
@@ -415,7 +415,7 @@ pub async fn begin_pg_table_idempotency(
     pool: app_state::SqlxPgPoolRef<'_>,
     request: &PgTableIdempotencyRequest,
 ) -> Result<PgTableIdempotencyBegin, SqlxPgTableIdempotencyError> {
-    let inserted = sqlx::query_scalar::<_, bool>(str_constants::INSERT_INTO_PG_TABLE_IDEMPOTENCY_ACTOR_HTTP_METHOD_ROUTE_PATH_IDEMPOTENCY_KEY)
+    let inserted = sqlx::query_scalar::<_, bool>(constants_str::INSERT_INTO_PG_TABLE_IDEMPOTENCY_ACTOR_HTTP_METHOD_ROUTE_PATH_IDEMPOTENCY_KEY)
         .bind(request.scope.actor.0.as_str())
         .bind(request.scope.method.0.as_str())
         .bind(request.scope.route.0.as_str())
@@ -428,7 +428,7 @@ pub async fn begin_pg_table_idempotency(
         return Ok(PgTableIdempotencyBegin::Acquired);
     }
     let existing = sqlx::query_as::<_, (Vec<u8>, String, Option<i16>, Option<Vec<u8>>)>(
-        str_constants::SELECT_REQUEST_HASH_STATE_RESPONSE_STATUS_RESPONSE_BODY_FROM_PG_TABLE_IDEMPOTENCY,
+        constants_str::SELECT_REQUEST_HASH_STATE_RESPONSE_STATUS_RESPONSE_BODY_FROM_PG_TABLE_IDEMPOTENCY,
     )
     .bind(request.scope.actor.0.as_str())
     .bind(request.scope.method.0.as_str())
@@ -440,7 +440,7 @@ pub async fn begin_pg_table_idempotency(
     if existing.0.as_slice() != request.request_hash.0.as_slice() {
         return Ok(PgTableIdempotencyBegin::Conflict);
     }
-    if existing.1 == str_constants::PENDING {
+    if existing.1 == constants_str::PENDING {
         return Ok(PgTableIdempotencyBegin::InProgress);
     }
     match (existing.2, existing.3) {
@@ -470,14 +470,14 @@ pub async fn complete_pg_table_idempotency(
     response_status: PgTableIdempotencyResponseStatus,
     response_body: PgTableIdempotencyBodyRef<'_>,
 ) -> Result<(), SqlxPgTableIdempotencyError> {
-    if response_body.0.len() > usize_constants::VALUE_1_048_576 {
+    if response_body.0.len() > constants_usize::VALUE_1_048_576 {
         return release_pg_table_idempotency(pool, request).await;
     }
     let response_status_i16 = match i16::try_from(response_status.0) {
         Ok(value) => value,
         Err(_error) => return release_pg_table_idempotency(pool, request).await,
     };
-    let _query_result = sqlx::query(str_constants::PG_CRUD_COMPLETE_IDEMPOTENCY_SQL)
+    let _query_result = sqlx::query(constants_str::PG_CRUD_COMPLETE_IDEMPOTENCY_SQL)
         .bind(request.scope.actor.0.as_str())
         .bind(request.scope.method.0.as_str())
         .bind(request.scope.route.0.as_str())
@@ -496,17 +496,17 @@ pub async fn complete_pg_table_idempotency_in_connection(
     response_status: PgTableIdempotencyResponseStatus,
     response_body: PgTableIdempotencyBodyRef<'_>,
 ) -> Result<(), SqlxPgTableIdempotencyError> {
-    if response_body.0.len() > usize_constants::VALUE_1_048_576 {
+    if response_body.0.len() > constants_usize::VALUE_1_048_576 {
         return Err(SqlxPgTableIdempotencyError::from(sqlx::Error::Protocol(
-            str_constants::IDEMPOTENCY_RESPONSE_EXCEEDS_THE_STORAGE_LIMIT.to_owned(),
+            constants_str::IDEMPOTENCY_RESPONSE_EXCEEDS_THE_STORAGE_LIMIT.to_owned(),
         )));
     }
     let response_status_i16 = i16::try_from(response_status.0).map_err(|_error| {
         SqlxPgTableIdempotencyError::from(sqlx::Error::Protocol(
-            str_constants::IDEMPOTENCY_RESPONSE_STATUS_IS_OUTSIDE_SMALLINT.to_owned(),
+            constants_str::IDEMPOTENCY_RESPONSE_STATUS_IS_OUTSIDE_SMALLINT.to_owned(),
         ))
     })?;
-    let result = sqlx::query(str_constants::PG_CRUD_COMPLETE_IDEMPOTENCY_SQL)
+    let result = sqlx::query(constants_str::PG_CRUD_COMPLETE_IDEMPOTENCY_SQL)
         .bind(request.scope.actor.0.as_str())
         .bind(request.scope.method.0.as_str())
         .bind(request.scope.route.0.as_str())
@@ -521,7 +521,7 @@ pub async fn complete_pg_table_idempotency_in_connection(
         Ok(())
     } else {
         Err(SqlxPgTableIdempotencyError::from(sqlx::Error::Protocol(
-            str_constants::IDEMPOTENCY_RESERVATION_IS_UNAVAILABLE_FOR_COMPLETION.to_owned(),
+            constants_str::IDEMPOTENCY_RESERVATION_IS_UNAVAILABLE_FOR_COMPLETION.to_owned(),
         )))
     }
 }
@@ -530,7 +530,7 @@ pub async fn release_pg_table_idempotency(
     request: &PgTableIdempotencyRequest,
 ) -> Result<(), SqlxPgTableIdempotencyError> {
     let _query_result = sqlx::query(
-        str_constants::DELETE_FROM_PG_TABLE_IDEMPOTENCY_WHERE_ACTOR_DOLLAR_1_AND_HTTP_METHOD,
+        constants_str::DELETE_FROM_PG_TABLE_IDEMPOTENCY_WHERE_ACTOR_DOLLAR_1_AND_HTTP_METHOD,
     )
     .bind(request.scope.actor.0.as_str())
     .bind(request.scope.method.0.as_str())
@@ -550,7 +550,7 @@ pub async fn cleanup_pg_table_idempotency(
     batch_size: PgTableIdempotencyCleanupBatchSize,
 ) -> Result<PgTableIdempotencyCleanupRows, SqlxPgTableIdempotencyError> {
     let result = sqlx::query(
-        str_constants::WITH_EXPIRED_AS_SELECT_ACTOR_HTTP_METHOD_ROUTE_PATH_IDEMPOTENCY_KEY_FROM,
+        constants_str::WITH_EXPIRED_AS_SELECT_ACTOR_HTTP_METHOD_ROUTE_PATH_IDEMPOTENCY_KEY_FROM,
     )
     .bind(completed_retention_seconds.0)
     .bind(pending_retention_seconds.0)
@@ -590,8 +590,8 @@ mod idempotency_tests {
             super::PgTableIdempotencyRoute::try_from("without-slash".to_owned()),
             Err(super::PgTableIdempotencyTextError::InvalidRoute)
         );
-        let oversized = str_constants::A_ALT
-            .repeat(super::PG_TBL_IDEMPOTENCY_TEXT_MAX_BYTES.saturating_add(usize_constants::ONE));
+        let oversized = constants_str::A_ALT
+            .repeat(super::PG_TBL_IDEMPOTENCY_TEXT_MAX_BYTES.saturating_add(constants_usize::ONE));
         assert_eq!(
             super::PgTableIdempotencyKey::try_from(oversized.clone()),
             Err(super::PgTableIdempotencyTextError::TooLong {
@@ -613,16 +613,16 @@ mod idempotency_tests {
     #[test]
     fn persisted_idempotency_body_enforces_inclusive_storage_limit() {
         let exact = super::PgTableIdempotencyBody::try_from(vec![
-            u8_constants::ZERO;
-            usize_constants::VALUE_1_048_576
+            constants_u8::ZERO;
+            constants_usize::VALUE_1_048_576
         ])
         .expect("aa90ef11 persisted_idempotency_body_enforces_inclusive_storage_limit invariant must hold");
-        assert_eq!(exact.as_ref().len(), usize_constants::VALUE_1_048_576);
+        assert_eq!(exact.as_ref().len(), constants_usize::VALUE_1_048_576);
         assert_eq!(
             super::PgTableIdempotencyBody::try_from(vec![
-                u8_constants::ZERO;
-                usize_constants::VALUE_1_048_576
-                    + usize_constants::ONE
+                constants_u8::ZERO;
+                constants_usize::VALUE_1_048_576
+                    + constants_usize::ONE
             ])
             .map(drop),
             Err(super::PgTableIdempotencyBodyError)
@@ -744,7 +744,7 @@ fn generate_insert_query_string(
     insert_values_fmt: InsertValuesFmt,
 ) -> PgTableQueryString {
     let wrapper_len = match insert_values_fmt {
-        InsertValuesFmt::Raw => usize_constants::ZERO,
+        InsertValuesFmt::Raw => constants_usize::ZERO,
         InsertValuesFmt::Wrapped => 2usize,
     };
     let mut query = String::with_capacity(
@@ -755,11 +755,11 @@ fn generate_insert_query_string(
             .saturating_add(cols_to_return.as_ref().len())
             .saturating_add(wrapper_len),
     );
-    query.push_str(str_constants::INSERT_INTO);
+    query.push_str(constants_str::INSERT_INTO);
     query.push_str(table.as_ref());
-    query.push_str(str_constants::TEXT);
+    query.push_str(constants_str::TEXT);
     query.push_str(cols.as_ref());
-    query.push_str(str_constants::VALUES);
+    query.push_str(constants_str::VALUES);
     if matches!(insert_values_fmt, InsertValuesFmt::Wrapped) {
         query.push('(');
     }
@@ -767,7 +767,7 @@ fn generate_insert_query_string(
     if matches!(insert_values_fmt, InsertValuesFmt::Wrapped) {
         query.push(')');
     }
-    query.push_str(str_constants::RETURNING);
+    query.push_str(constants_str::RETURNING);
     query.push_str(cols_to_return.as_ref());
     PgTableQueryString::try_from(query).unwrap_or_else(PgTableQueryString::from)
 }
@@ -778,7 +778,7 @@ fn generate_select_query_string(
     select_where_fmt: SelectWhereFmt,
 ) -> PgTableQueryString {
     let where_len = match select_where_fmt {
-        SelectWhereFmt::Plain => usize_constants::ONE,
+        SelectWhereFmt::Plain => constants_usize::ONE,
         SelectWhereFmt::Where => 7usize,
     };
     let mut query = String::with_capacity(
@@ -788,13 +788,13 @@ fn generate_select_query_string(
             .saturating_add(where_string.as_ref().len())
             .saturating_add(where_len),
     );
-    query.push_str(str_constants::SELECT_ALT);
+    query.push_str(constants_str::SELECT_ALT);
     query.push_str(select_string.as_ref());
-    query.push_str(str_constants::FROM_ALT);
+    query.push_str(constants_str::FROM_ALT);
     query.push_str(table.as_ref());
     match select_where_fmt {
         SelectWhereFmt::Plain => query.push(' '),
-        SelectWhereFmt::Where => query.push_str(str_constants::WHERE),
+        SelectWhereFmt::Where => query.push_str(constants_str::WHERE),
     }
     query.push_str(where_string.as_ref());
     PgTableQueryString::try_from(query).unwrap_or_else(PgTableQueryString::from)
@@ -820,21 +820,21 @@ fn generate_update_query_string(
             .saturating_add(cols_to_return.as_ref().len())
             .saturating_add(selector_len),
     );
-    query.push_str(str_constants::UPDATE_ALT);
+    query.push_str(constants_str::UPDATE_ALT);
     query.push_str(table.as_ref());
-    query.push_str(str_constants::SET);
+    query.push_str(constants_str::SET);
     query.push_str(cols_or_els.as_ref());
-    query.push_str(str_constants::WHERE);
+    query.push_str(constants_str::WHERE);
     query.push_str(primary_key_field_name.as_ref());
     match update_selector_fmt {
-        UpdateSelectorFmt::Eq => query.push_str(str_constants::TEXT_ALT),
-        UpdateSelectorFmt::InList => query.push_str(str_constants::IN),
+        UpdateSelectorFmt::Eq => query.push_str(constants_str::TEXT_ALT),
+        UpdateSelectorFmt::InList => query.push_str(constants_str::IN),
     }
     query.push_str(primary_key_selector.as_ref());
     if matches!(update_selector_fmt, UpdateSelectorFmt::InList) {
         query.push(')');
     }
-    query.push_str(str_constants::RETURNING);
+    query.push_str(constants_str::RETURNING);
     query.push_str(cols_to_return.as_ref());
     PgTableQueryString::try_from(query).unwrap_or_else(PgTableQueryString::from)
 }
@@ -853,17 +853,17 @@ fn generate_delete_query_string(
             .saturating_add(where_len)
             .saturating_add(primary_key_field_name.as_ref().len()),
     );
-    query.push_str(str_constants::DELETE_FROM);
+    query.push_str(constants_str::DELETE_FROM);
     query.push_str(table.as_ref());
     query.push(' ');
     if let Some(v) = where_string {
         query.push_str(v.as_ref());
     } else {
-        query.push_str(str_constants::WHERE_ALT);
+        query.push_str(constants_str::WHERE_ALT);
         query.push_str(primary_key_field_name.as_ref());
-        query.push_str(str_constants::DOLLAR_1);
+        query.push_str(constants_str::DOLLAR_1);
     }
-    query.push_str(str_constants::RETURNING);
+    query.push_str(constants_str::RETURNING);
     query.push_str(primary_key_field_name.as_ref());
     PgTableQueryString::try_from(query).unwrap_or_else(PgTableQueryString::from)
 }
@@ -1017,7 +1017,7 @@ pub fn add_uo_optimistic_revision_predicate(
     expected_revision_query_part: PgTableSqlFragmentRef<'_>,
 ) -> PgTableQueryString {
     let query_text = query.to_string();
-    let Some((statement, returning)) = query_text.rsplit_once(str_constants::RETURNING) else {
+    let Some((statement, returning)) = query_text.rsplit_once(constants_str::RETURNING) else {
         return query;
     };
     let mut optimistic_query = String::with_capacity(
@@ -1028,11 +1028,11 @@ pub fn add_uo_optimistic_revision_predicate(
             .saturating_add(9usize),
     );
     optimistic_query.push_str(statement);
-    optimistic_query.push_str(str_constants::AND);
+    optimistic_query.push_str(constants_str::AND);
     optimistic_query.push_str(revision_column.as_ref());
-    optimistic_query.push_str(str_constants::TEXT_ALT);
+    optimistic_query.push_str(constants_str::TEXT_ALT);
     optimistic_query.push_str(expected_revision_query_part.as_ref());
-    optimistic_query.push_str(str_constants::RETURNING);
+    optimistic_query.push_str(constants_str::RETURNING);
     optimistic_query.push_str(returning);
     PgTableQueryString::try_from(optimistic_query).unwrap_or_else(PgTableQueryString::from)
 }

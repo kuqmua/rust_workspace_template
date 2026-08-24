@@ -37,14 +37,14 @@ pub struct AdminUsers {
 #[allow(clippy::missing_fields_in_debug)] // password_hash is intentionally represented by a redacted constant
 impl std::fmt::Debug for AdminUsers {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct(str_constants::ADMINUSERS)
-            .field(str_constants::SQL_NAMES_ID, &self.id)
-            .field(str_constants::LOGIN, &self.login)
-            .field(str_constants::DISPLAY_NAME, &self.display_name)
-            .field(str_constants::PASSWORD_HASH, &str_constants::REDACTED_ALT_3)
-            .field(str_constants::IS_BANNED, &self.is_banned)
-            .field(str_constants::CREATED_AT, &self.created_at)
-            .field(str_constants::UPDATED_AT, &self.updated_at)
+        f.debug_struct(constants_str::ADMINUSERS)
+            .field(constants_str::SQL_NAMES_ID, &self.id)
+            .field(constants_str::LOGIN, &self.login)
+            .field(constants_str::DISPLAY_NAME, &self.display_name)
+            .field(constants_str::PASSWORD_HASH, &constants_str::REDACTED_ALT_3)
+            .field(constants_str::IS_BANNED, &self.is_banned)
+            .field(constants_str::CREATED_AT, &self.created_at)
+            .field(constants_str::UPDATED_AT, &self.updated_at)
             .finish()
     }
 }
@@ -469,7 +469,7 @@ pub struct StdSharedAdminGeneratedTableState(
 pub struct AdminGeneratedTablesValidationError(pg_crud_common::DbSchemaConformanceError);
 impl std::fmt::Debug for UtoipaAdminOpenApi {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(str_constants::UTOIPAADMINOPENAPI)
+        f.write_str(constants_str::UTOIPAADMINOPENAPI)
     }
 }
 #[must_use]
@@ -507,9 +507,9 @@ pub fn generated_open_api() -> UtoipaAdminOpenApi {
                 .iter()
                 .for_each(|child| collect_schema_refs(child, refs)),
             serde_json::Value::Object(values) => values.iter().for_each(|(key, child)| {
-                if key == str_constants::DOLLAR_REF
+                if key == constants_str::DOLLAR_REF
                     && let Some(name) = child.as_str().and_then(|reference| {
-                        reference.strip_prefix(str_constants::COMPONENTS_SCHEMAS)
+                        reference.strip_prefix(constants_str::COMPONENTS_SCHEMAS)
                     })
                 {
                     let _inserted = refs.insert(name.to_owned());

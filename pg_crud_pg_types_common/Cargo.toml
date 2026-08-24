@@ -9,7 +9,7 @@ license.workspace = true
 edition.workspace = true
 
 [dependencies]
-str_constants = { workspace = true }
+constants_str = { workspace = true }
 serde = { workspace = true }
 utoipa = { workspace = true }
 thiserror = { workspace = true }
@@ -23,7 +23,7 @@ newtype = { workspace = true }
 to_err_string = { workspace = true }
 
 [dev-dependencies]
-i64_constants = { workspace = true }
+constants_i64 = { workspace = true }
 
 [lints]
 workspace = true

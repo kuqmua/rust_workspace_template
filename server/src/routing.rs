@@ -15,7 +15,7 @@ pub(super) fn mount_service_routes(
         axum::Router::new()
             .merge(axum::Router::from(operational_routes).reset_fallback())
             .nest(
-                str_constants::V1,
+                constants_str::V1,
                 api_routes
                     .0
                     .layer(axum::extract::DefaultBodyLimit::max(body_maximum_bytes.0)),

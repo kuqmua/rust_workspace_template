@@ -9,6 +9,16 @@ members = [
   "config_lib_config_lib_macros",
   "config_lib_generate_getter_traits_for_struct_fields",
   "config_lib_try_from_env",
+  "constants_i32",
+  "constants_i64",
+  "constants_str",
+  "constants_str_macros",
+  "constants_u128",
+  "constants_u16",
+  "constants_u32",
+  "constants_u64",
+  "constants_u8",
+  "constants_usize",
   "development_data_bootstrap",
   "external_service_emulators",
   "file_storage",
@@ -18,8 +28,6 @@ members = [
   "fuzz",
   "generate_quotes",
   "git_info",
-  "i32_constants",
-  "i64_constants",
   "initialize_environment_files",
   "location_lib",
   "location_lib_location",
@@ -71,8 +79,6 @@ members = [
   "server_observability",
   "server_runtime_core",
   "server_runtime_http",
-  "str_constants",
-  "str_constants_macros",
   "synchronization_service_runtime",
   "tests",
   "text_policy",
@@ -80,12 +86,6 @@ members = [
   "to_err_string_to_err_string_macros",
   "token_patterns",
   "token_patterns_token_patterns_macros",
-  "u128_constants",
-  "u16_constants",
-  "u32_constants",
-  "u64_constants",
-  "u8_constants",
-  "usize_constants",
   "workspace_macro_helpers",
   "workspace_scaffold",
   "workspace_test_runner",
@@ -342,8 +342,8 @@ newtype = { path = "./newtype" }
 notification_service = { path = "./notification_service" }
 notification_service_config = { path = "./notification_service_config" }
 notification_service_contract = { path = "./notification_service_contract" }
-i32_constants = { path = "./i32_constants" }
-i64_constants = { path = "./i64_constants" }
+constants_i32 = { path = "./constants_i32" }
+constants_i64 = { path = "./constants_i64" }
 optimal_memory_layout = { path = "./optimal_memory_layout" }
 panic_location = { path = "./panic_location" }
 pg_crud_common = { path = "./pg_crud_common" }
@@ -372,18 +372,18 @@ text_policy = { path = "./text_policy" }
 development_data_bootstrap = { path = "./development_data_bootstrap" }
 prepare_postgresql_databases = { path = "./prepare_postgresql_databases" }
 external_service_emulators = { path = "./external_service_emulators" }
-str_constants = { path = "./str_constants" }
-str_constants_macros = { path = "./str_constants_macros" }
+constants_str = { path = "./constants_str" }
+constants_str_macros = { path = "./constants_str_macros" }
 to_err_string = { path = "./to_err_string" }
 to_err_string_macros = { path = "./to_err_string_to_err_string_macros" }
 token_patterns = { path = "./token_patterns", default-features = false }
 token_patterns_macros = { path = "./token_patterns_token_patterns_macros" }
-u128_constants = { path = "./u128_constants" }
-u16_constants = { path = "./u16_constants" }
-u32_constants = { path = "./u32_constants" }
-u64_constants = { path = "./u64_constants" }
-u8_constants = { path = "./u8_constants" }
-usize_constants = { path = "./usize_constants" }
+constants_u128 = { path = "./constants_u128" }
+constants_u16 = { path = "./constants_u16" }
+constants_u32 = { path = "./constants_u32" }
+constants_u64 = { path = "./constants_u64" }
+constants_u8 = { path = "./constants_u8" }
+constants_usize = { path = "./constants_usize" }
 try_from_env = { path = "./config_lib_try_from_env" }
 where_filters = { path = "./pg_crud_where_filters" }
 workspace_macro_helpers = { path = "./workspace_macro_helpers" }

@@ -13,23 +13,23 @@ pub(crate) fn rs_file_path<P>(file_name: P) -> StdRsFilePath
 where
     P: AsRef<std::path::Path>,
 {
-    StdRsFilePath::from(file_name.as_ref().with_extension(str_constants::RS))
+    StdRsFilePath::from(file_name.as_ref().with_extension(constants_str::RS))
 }
 #[cfg(test)]
 mod tests {
     #[test]
     fn rs_file_path_adds_rs_extension_for_path_without_extension() {
-        let actual = super::rs_file_path(str_constants::SRC_GENERATED);
+        let actual = super::rs_file_path(constants_str::SRC_GENERATED);
         assert_eq!(actual.0, std::path::Path::new("src/generated.rs"));
     }
     #[test]
     fn rs_file_path_replaces_existing_extension() {
-        let actual = super::rs_file_path(str_constants::SRC_GENERATED_TXT);
+        let actual = super::rs_file_path(constants_str::SRC_GENERATED_TXT);
         assert_eq!(actual.0, std::path::Path::new("src/generated.rs"));
     }
     #[test]
     fn rs_file_path_keeps_parent_directories() {
-        let actual = super::rs_file_path(str_constants::TMP_A_B_C);
+        let actual = super::rs_file_path(constants_str::TMP_A_B_C);
         assert_eq!(actual.0, std::path::Path::new("tmp/a/b/c.rs"));
     }
 }

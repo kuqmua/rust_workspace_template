@@ -5,7 +5,7 @@ fn page_limit_accepts_only_the_contract_range() {
         Ok(_value)
     ));
     assert!(matches!(
-        super::AdminPageLimit::try_from(u16_constants::ZERO),
+        super::AdminPageLimit::try_from(constants_u16::ZERO),
         Err(super::AdminPageLimitError)
     ));
     assert!(matches!(
@@ -16,12 +16,12 @@ fn page_limit_accepts_only_the_contract_range() {
 
 #[test]
 fn pagination_values_deserialize_from_url_query_strings() {
-    let Err(_zero_error) = serde_json::from_str::<super::AdminPageLimit>(str_constants::VALUE_0)
+    let Err(_zero_error) = serde_json::from_str::<super::AdminPageLimit>(constants_str::VALUE_0)
     else {
         panic!("e8fd3a29");
     };
     let Err(_above_maximum_error) =
-        serde_json::from_str::<super::AdminPageLimit>(str_constants::VALUE_101)
+        serde_json::from_str::<super::AdminPageLimit>(constants_str::VALUE_101)
     else {
         panic!("36f08ad7");
     };

@@ -15,13 +15,13 @@ impl frontend_contract::TypedRoute for FirstRoute {
     type Request = FirstRequest;
     type Response = Response;
     type Transport = frontend_contract::PublicTransport;
-    fn metadata() -> frontend_contract::RouteMetadata { frontend_contract::RouteMetadata::new(frontend_contract::RouteMethod::Get, frontend_contract::ContractStr::from(str_constants::FIRST_ALT), frontend_contract::ContractStr::from(str_constants::FIRST)) }
+    fn metadata() -> frontend_contract::RouteMetadata { frontend_contract::RouteMetadata::new(frontend_contract::RouteMethod::Get, frontend_contract::ContractStr::from(constants_str::FIRST_ALT), frontend_contract::ContractStr::from(constants_str::FIRST)) }
 }
 impl frontend_contract::TypedRoute for SecondRoute {
     type Request = SecondRequest;
     type Response = Response;
     type Transport = frontend_contract::PublicTransport;
-    fn metadata() -> frontend_contract::RouteMetadata { frontend_contract::RouteMetadata::new(frontend_contract::RouteMethod::Get, frontend_contract::ContractStr::from(str_constants::SECOND_ALT), frontend_contract::ContractStr::from(str_constants::SECOND)) }
+    fn metadata() -> frontend_contract::RouteMetadata { frontend_contract::RouteMetadata::new(frontend_contract::RouteMethod::Get, frontend_contract::ContractStr::from(constants_str::SECOND_ALT), frontend_contract::ContractStr::from(constants_str::SECOND)) }
 }
 fn main() {
     let request = frontend_contract::client_request::<FirstRoute>(FirstRequest);

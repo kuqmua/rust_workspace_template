@@ -20,7 +20,7 @@ utoipa = { workspace = true }
 uuid = { workspace = true }
 
 [dev-dependencies]
-usize_constants = { workspace = true }
+constants_usize = { workspace = true }
 
 [lints]
 workspace = true

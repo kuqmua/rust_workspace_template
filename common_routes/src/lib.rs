@@ -113,7 +113,7 @@ impl utoipa::PartialSchema for HealthComponents {
     fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
         <bounded_types::BoundedVec<
             HealthComponent,
-            { usize_constants::ZERO },
+            { constants_usize::ZERO },
             HEALTH_COMPONENTS_MAX_LEN,
         > as utoipa::PartialSchema>::schema()
     }
@@ -135,7 +135,7 @@ impl TryFrom<Vec<HealthComponent>> for HealthComponents {
     fn try_from(value: Vec<HealthComponent>) -> Result<Self, Self::Error> {
         bounded_types::BoundedVec::<
             HealthComponent,
-            { usize_constants::ZERO },
+            { constants_usize::ZERO },
             HEALTH_COMPONENTS_MAX_LEN,
         >::try_from(value)
         .map(bounded_types::BoundedVec::into_inner)
@@ -150,7 +150,7 @@ impl<'de> serde::Deserialize<'de> for HealthComponents {
     {
         let value = <bounded_types::BoundedVec<
             HealthComponent,
-            { usize_constants::ZERO },
+            { constants_usize::ZERO },
             HEALTH_COMPONENTS_MAX_LEN,
         > as serde::Deserialize>::deserialize(deserializer)?
         .into_inner();
@@ -160,7 +160,7 @@ impl<'de> serde::Deserialize<'de> for HealthComponents {
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
 )]
-#[error("{}", str_constants::HEALTH_COMPONENTS_LENGTH_EXCEEDS_LIMIT)]
+#[error("{}", constants_str::HEALTH_COMPONENTS_LENGTH_EXCEEDS_LIMIT)]
 pub struct HealthComponentsError;
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
@@ -377,7 +377,7 @@ pub struct GitInfoRoute;
     PartialEq,
     frontend_contract::RouteCatalog,
 )]
-#[route_catalog(family = CommonRouteFamily, body_limit = usize_constants::ZERO)]
+#[route_catalog(family = CommonRouteFamily, body_limit = constants_usize::ZERO)]
 pub enum CommonRoute {
     #[route_catalog_route(GitInfoRoute)]
     GitInfo,
@@ -481,7 +481,7 @@ impl CommonRoutesOpenApi {
 }
 impl std::fmt::Debug for StdArcCommonRoutesAppState {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple(str_constants::STDARCCOMMONROUTESAPPSTATE)
+        f.debug_tuple(constants_str::STDARCCOMMONROUTESAPPSTATE)
             .finish()
     }
 }
@@ -496,7 +496,7 @@ impl axum::extract::FromRequestParts<Self> for StdArcCommonRoutesAppState {
 }
 impl std::fmt::Debug for UtoipaCommonRoutesOpenApiDocument {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple(str_constants::UTOIPACOMMONROUTESOPENAPIDOCUMENT)
+        f.debug_tuple(constants_str::UTOIPACOMMONROUTESOPENAPIDOCUMENT)
             .finish()
     }
 }
@@ -525,14 +525,14 @@ fn mk_no_route_message(uri: AxumHttpUriRef<'_>) -> to_err_string::ErrorText {
 fn mk_no_route_message_for_suffix(uri_suffix: UriSuffixRef<'_>) -> to_err_string::ErrorText {
     let cap = no_route_message_capacity(uri_suffix);
     let mut message = String::with_capacity(cap.0);
-    message.push_str(str_constants::COMMON_ROUTES_NO_ROUTE_MSG_PREFIX);
+    message.push_str(constants_str::COMMON_ROUTES_NO_ROUTE_MSG_PREFIX);
     message.push_str(uri_suffix.0);
     to_err_string::ErrorText::try_from(message).unwrap_or_else(to_err_string::ErrorText::from)
 }
 #[allow(clippy::single_call_fn)] // isolated for reuse in tests and message builder
 fn no_route_message_capacity(uri_suffix: UriSuffixRef<'_>) -> NoRouteMessageCapacity {
     NoRouteMessageCapacity::from(
-        str_constants::COMMON_ROUTES_NO_ROUTE_MSG_PREFIX
+        constants_str::COMMON_ROUTES_NO_ROUTE_MSG_PREFIX
             .len()
             .saturating_add(uri_suffix.0.len()),
     )
@@ -561,7 +561,7 @@ fn mk_not_found_payload_with_message(
         commit,
         message,
         open_api_specification: OpenApiSpecificationPath::from(
-            str_constants::COMMON_ROUTES_SWAGGER_UI,
+            constants_str::COMMON_ROUTES_SWAGGER_UI,
         ),
     }
 }
@@ -593,7 +593,7 @@ fn map_health_check_status(is_ok: HealthCheckSucceeded) -> AxumHealthCheckStatus
 async fn database_is_ready(app_state: &dyn CommonRoutesParameters) -> HealthCheckSucceeded {
     let pool = app_state::GetSqlxPgPool::get_sqlx_pg_pool(app_state);
     let probe = async {
-        sqlx::query(str_constants::COMMON_ROUTES_HEALTH_CHECK_SQL)
+        sqlx::query(constants_str::COMMON_ROUTES_HEALTH_CHECK_SQL)
             .execute(pool.as_ref())
             .await
             .is_ok()

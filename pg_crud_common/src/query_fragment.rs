@@ -60,14 +60,14 @@ impl QueryPartFragment {
         &mut self,
         bind_index: StdReadQueryBindIndex,
     ) -> Result<(), crate::ReadQueryPlanError> {
-        let mut digits = [u8_constants::ZERO; 10usize];
+        let mut digits = [constants_u8::ZERO; 10usize];
         let mut value = bind_index.0.get();
         let mut start = digits.len();
-        while value != u32_constants::ZERO {
-            start = start.saturating_sub(usize_constants::ONE);
+        while value != constants_u32::ZERO {
+            start = start.saturating_sub(constants_usize::ONE);
             let quotient = value.checked_div(10u32).ok_or(crate::ReadQueryPlanError)?;
             let digit = match value.saturating_sub(quotient.saturating_mul(10u32)) {
-                u32_constants::ZERO => b'0',
+                constants_u32::ZERO => b'0',
                 1u32 => b'1',
                 2u32 => b'2',
                 3u32 => b'3',
@@ -102,7 +102,7 @@ where
 }
 impl std::fmt::Debug for SqlColumnRef<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple(str_constants::SQLCOLUMNREF).finish()
+        f.debug_tuple(constants_str::SQLCOLUMNREF).finish()
     }
 }
 impl std::fmt::Display for SqlColumnRef<'_> {
@@ -118,7 +118,7 @@ mod tests {
         let mut fragment =
             super::QueryPartFragment::try_from("x".repeat(crate::PG_CRUD_STRING_WRAPPER_MAX_LEN))
                 .expect("63af01f6 write_does_not_grow_fragment_above_limit invariant must hold");
-        let write_result = std::fmt::Write::write_str(&mut fragment, str_constants::X);
+        let write_result = std::fmt::Write::write_str(&mut fragment, constants_str::X);
         assert_eq!(write_result, Err(std::fmt::Error));
         assert_eq!(
             fragment.as_ref().len(),

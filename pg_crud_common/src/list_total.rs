@@ -45,7 +45,7 @@ impl TryFrom<i64> for ListTotal {
     type Error = ListTotalError;
 
     fn try_from(value: i64) -> Result<Self, Self::Error> {
-        if value < i64_constants::ZERO {
+        if value < constants_i64::ZERO {
             Err(ListTotalError)
         } else {
             Ok(Self(value))
@@ -128,8 +128,8 @@ where
         ListTotalSource::CountQuery => fetch_count().await?,
         ListTotalSource::Window => rows
             .window_total
-            .unwrap_or_else(|| ListTotal::from(u32_constants::ZERO)),
-        ListTotalSource::Zero => ListTotal::from(u32_constants::ZERO),
+            .unwrap_or_else(|| ListTotal::from(constants_u32::ZERO)),
+        ListTotalSource::Zero => ListTotal::from(constants_u32::ZERO),
     };
     Ok(ListPage {
         items: rows.items,
@@ -145,7 +145,7 @@ pub const fn list_total_source(
 ) -> ListTotalSource {
     match (rows, window_total, offset.0) {
         (ListRowsPresence::Present, WindowTotalPresence::Present, _) => ListTotalSource::Window,
-        (ListRowsPresence::Empty, _, i64_constants::ZERO) => ListTotalSource::Zero,
+        (ListRowsPresence::Empty, _, constants_i64::ZERO) => ListTotalSource::Zero,
         (ListRowsPresence::Empty | ListRowsPresence::Present, _, _) => ListTotalSource::CountQuery,
     }
 }
@@ -165,14 +165,14 @@ mod tests {
     #[test]
     fn list_total_rejects_negative_and_accepts_zero() {
         assert_eq!(
-            super::ListTotal::try_from(-i64_constants::ONE),
+            super::ListTotal::try_from(-constants_i64::ONE),
             Err(super::ListTotalError)
         );
         assert_eq!(
-            i64::from(super::ListTotal::try_from(i64_constants::ZERO).expect(
+            i64::from(super::ListTotal::try_from(constants_i64::ZERO).expect(
                 "93f8d6c5 list_total_rejects_negative_and_accepts_zero invariant must hold"
             )),
-            i64_constants::ZERO
+            constants_i64::ZERO
         );
         assert_eq!(
             i64::from(super::ListTotal::from(u32::MAX)),
@@ -184,7 +184,7 @@ mod tests {
     fn run_list_uses_window_total_without_calling_count() {
         let count_called = std::cell::Cell::new(false);
         let window_page = block_on(super::run_list_with_total(
-            crate::PaginationOffset::from(i32_constants::ZERO).into(),
+            crate::PaginationOffset::from(constants_i32::ZERO).into(),
             async || {
                 Ok::<_, ()>(super::ListRows::new(
                     super::ListItems::from(vec![7u8]),
@@ -206,7 +206,7 @@ mod tests {
     fn run_list_uses_zero_for_empty_first_page_without_calling_count() {
         let count_called = std::cell::Cell::new(false);
         let page = block_on(super::run_list_with_total(
-            crate::PaginationOffset::from(i32_constants::ZERO).into(),
+            crate::PaginationOffset::from(constants_i32::ZERO).into(),
             async || {
                 Ok::<_, ()>(super::ListRows::new(
                     super::ListItems::from(Vec::<u8>::new()),
@@ -220,13 +220,13 @@ mod tests {
         ))
         .expect("704c4827 run_list_uses_zero_for_empty_first_page_without_calling_count invariant must hold");
         assert!(page.items().is_empty());
-        assert_eq!(i64::from(page.total()), i64_constants::ZERO);
+        assert_eq!(i64::from(page.total()), constants_i64::ZERO);
         assert!(!count_called.get());
     }
 
     #[test]
     fn run_list_uses_count_for_later_or_windowless_pages() {
-        let count_calls = std::cell::Cell::new(usize_constants::ZERO);
+        let count_calls = std::cell::Cell::new(constants_usize::ZERO);
         let later_page = block_on(super::run_list_with_total(
             crate::PaginationOffset::from(1i32).into(),
             async || {
@@ -236,16 +236,16 @@ mod tests {
                 ))
             },
             || {
-                count_calls.set(count_calls.get() + usize_constants::ONE);
+                count_calls.set(count_calls.get() + constants_usize::ONE);
                 async { Ok::<_, ()>(super::ListTotal::from(17u32)) }
             },
         ))
         .expect("27f9f3eb run_list_uses_count_for_later_or_windowless_pages invariant must hold");
         assert_eq!(i64::from(later_page.total()), 17i64);
-        assert_eq!(count_calls.get(), usize_constants::ONE);
+        assert_eq!(count_calls.get(), constants_usize::ONE);
 
         let windowless_page = block_on(super::run_list_with_total(
-            crate::PaginationOffset::from(i32_constants::ZERO).into(),
+            crate::PaginationOffset::from(constants_i32::ZERO).into(),
             async || {
                 Ok::<_, ()>(super::ListRows::new(
                     super::ListItems::from(vec![1u8]),
@@ -253,7 +253,7 @@ mod tests {
                 ))
             },
             || {
-                count_calls.set(count_calls.get() + usize_constants::ONE);
+                count_calls.set(count_calls.get() + constants_usize::ONE);
                 async { Ok::<_, ()>(super::ListTotal::from(23u32)) }
             },
         ))
@@ -265,9 +265,9 @@ mod tests {
     #[test]
     fn run_list_propagates_list_and_count_errors() {
         let list_error = block_on(super::run_list_with_total(
-            crate::PaginationOffset::from(i32_constants::ZERO).into(),
+            crate::PaginationOffset::from(constants_i32::ZERO).into(),
             async || Err::<super::ListRows<u8>, _>("list"),
-            async || Ok::<_, &str>(super::ListTotal::from(u32_constants::ZERO)),
+            async || Ok::<_, &str>(super::ListTotal::from(constants_u32::ZERO)),
         ))
         .expect_err("729e9c33");
         assert_eq!(list_error, "list");
@@ -289,7 +289,7 @@ mod tests {
     fn window_total_avoids_separate_count_query() {
         assert_eq!(
             super::list_total_source(
-                crate::PaginationOffset::from(i32_constants::ZERO).into(),
+                crate::PaginationOffset::from(constants_i32::ZERO).into(),
                 super::ListRowsPresence::Present,
                 super::WindowTotalPresence::Present,
             ),
@@ -301,7 +301,7 @@ mod tests {
     fn empty_first_page_has_zero_total_without_count_query() {
         assert_eq!(
             super::list_total_source(
-                crate::PaginationOffset::from(i32_constants::ZERO).into(),
+                crate::PaginationOffset::from(constants_i32::ZERO).into(),
                 super::ListRowsPresence::Empty,
                 super::WindowTotalPresence::Absent,
             ),

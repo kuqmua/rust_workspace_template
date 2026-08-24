@@ -3,7 +3,7 @@ fn workflow() -> super::types::SourceText {
         std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
             .parent()
             .expect("c02ae58b workflow invariant must hold")
-            .join(str_constants::CODE_STYLE_CI_WORKFLOW_PATH),
+            .join(constants_str::CODE_STYLE_CI_WORKFLOW_PATH),
     )
     .expect("da504e54 workflow invariant must hold");
     active_workflow_source(super::types::SourceTextRef::from(source.as_str()))
@@ -65,12 +65,12 @@ fn active_yaml_line(line: super::types::SourceTextRef<'_>) -> super::types::Sour
 fn continuous_integration_contains_required_security_and_quality_commands() {
     let workflow = workflow();
     [
-        str_constants::PERMISSIONS_NEWLINE_CONTENTS_READ,
-        str_constants::RHYSD_ACTIONLINT,
-        str_constants::CARGO_MACHETE,
-        str_constants::CARGO_LLVM_COV_WORKSPACE_ALL_FEATURES_SUMMARY_ONLY,
-        str_constants::AQUASECURITY_TRIVY_ACTION,
-        str_constants::CARGO_PLUS_NIGHTLY_UDEPS_WORKSPACE_ALL_TARGETS_ALL_FEATURES_LOCKED,
+        constants_str::PERMISSIONS_NEWLINE_CONTENTS_READ,
+        constants_str::RHYSD_ACTIONLINT,
+        constants_str::CARGO_MACHETE,
+        constants_str::CARGO_LLVM_COV_WORKSPACE_ALL_FEATURES_SUMMARY_ONLY,
+        constants_str::AQUASECURITY_TRIVY_ACTION,
+        constants_str::CARGO_PLUS_NIGHTLY_UDEPS_WORKSPACE_ALL_TARGETS_ALL_FEATURES_LOCKED,
     ]
     .into_iter()
     .for_each(|required| assert!(workflow.as_ref().contains(required), "missing `{required}`"));
@@ -83,10 +83,10 @@ fn continuous_integration_contains_required_security_and_quality_commands() {
 fn continuous_integration_runs_specialized_test_families() {
     let workflow = workflow();
     [
-        str_constants::CI_MIRI_COMPONENT,
-        str_constants::CI_MIRI_TEST_CMD,
-        str_constants::CI_DATABASE_TEST_CMD,
-        str_constants::CI_BROWSER_TEST_CMD,
+        constants_str::CI_MIRI_COMPONENT,
+        constants_str::CI_MIRI_TEST_CMD,
+        constants_str::CI_DATABASE_TEST_CMD,
+        constants_str::CI_BROWSER_TEST_CMD,
     ]
     .into_iter()
     .for_each(|required| {
@@ -159,15 +159,15 @@ fn workflow_jobs_have_timeouts_and_marketplace_actions_use_commit_shas() {
     let workflow = workflow();
     let workflow_jobs = workflow
         .as_ref()
-        .split_once(str_constants::JOBS_NEWLINE)
+        .split_once(constants_str::JOBS_NEWLINE)
         .map(|(_prefix, jobs)| jobs)
         .expect("ed8bc4d0 workflow_jobs_have_timeouts_and_marketplace_actions_use_commit_shas invariant must hold");
     let mut inside_job = false;
     let mut current_job_has_timeout = false;
     workflow_jobs.lines().for_each(|line| {
-        if line.starts_with(str_constants::TWO_SPACES)
+        if line.starts_with(constants_str::TWO_SPACES)
             && line.ends_with(':')
-            && !line.starts_with(str_constants::FOUR_SPACES)
+            && !line.starts_with(constants_str::FOUR_SPACES)
         {
             if inside_job {
                 assert!(
@@ -179,17 +179,17 @@ fn workflow_jobs_have_timeouts_and_marketplace_actions_use_commit_shas() {
             current_job_has_timeout = false;
         }
         if inside_job
-            && line.starts_with(str_constants::FOUR_SPACES)
+            && line.starts_with(constants_str::FOUR_SPACES)
             && !line
-                .strip_prefix(str_constants::FOUR_SPACES)
-                .is_some_and(|remainder| remainder.starts_with(str_constants::TWO_SPACES))
+                .strip_prefix(constants_str::FOUR_SPACES)
+                .is_some_and(|remainder| remainder.starts_with(constants_str::TWO_SPACES))
             && line
                 .trim_start()
-                .starts_with(str_constants::TIMEOUT_MINUTES)
+                .starts_with(constants_str::TIMEOUT_MINUTES)
         {
             current_job_has_timeout = true;
         }
-        if let Some(action) = line.trim().strip_prefix(str_constants::USES) {
+        if let Some(action) = line.trim().strip_prefix(constants_str::USES) {
             if action.starts_with("./") {
                 return;
             }
@@ -212,8 +212,8 @@ fn workflow_policy_ignores_commented_commands_and_actions() {
     let source = active_workflow_source(super::types::SourceTextRef::from(
         "# cargo machete\n# uses: actions/checkout@0123456789012345678901234567890123456789\nname: \"quality # gate\"\nrun: 'printf #active'\njobs:\n  check:\n    # timeout-minutes: 10\n    runs-on: ubuntu-latest\n",
     ));
-    assert!(!source.as_ref().contains(str_constants::CARGO_MACHETE));
-    assert!(!source.as_ref().contains(str_constants::TIMEOUT_MINUTES));
+    assert!(!source.as_ref().contains(constants_str::CARGO_MACHETE));
+    assert!(!source.as_ref().contains(constants_str::TIMEOUT_MINUTES));
     assert!(!source.as_ref().contains("actions/checkout"));
     assert!(source.as_ref().contains("quality # gate"));
     assert!(source.as_ref().contains("printf #active"));

@@ -16,7 +16,7 @@ pub(super) fn render(
     let tab_title = branding
         .and_then(server_admin_contract::AdminBrandingView::tab_title)
         .map_or_else(
-            || String::from(str_constants::ADMINISTRATOR_SIGN_IN),
+            || String::from(constants_str::ADMINISTRATOR_SIGN_IN),
             |value| AsRef::<str>::as_ref(value).to_owned(),
         );
     let primary_color = branding

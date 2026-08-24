@@ -30,7 +30,7 @@ notification_service_contract = { workspace = true }
 secrecy = { workspace = true }
 server_runtime_http = { workspace = true }
 sqlx = { workspace = true, features = ["macros"] }
-str_constants = { workspace = true }
+constants_str = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }

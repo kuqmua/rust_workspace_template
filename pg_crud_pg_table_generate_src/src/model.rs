@@ -33,7 +33,7 @@ impl GeneratePgTableModel {
     pub(super) fn from_struct(input: SynGeneratePgTableModelInput) -> Self {
         let field_count = match &input.0.data {
             syn::Data::Struct(data) => data.fields.iter().count(),
-            syn::Data::Enum(_) | syn::Data::Union(_) => usize_constants::ZERO,
+            syn::Data::Enum(_) | syn::Data::Union(_) => constants_usize::ZERO,
         };
         Self {
             field_count: GeneratePgTableFieldCount::from(field_count),
@@ -44,10 +44,10 @@ impl GeneratePgTableModel {
         self.input
     }
     pub(super) fn validate(self) -> Result<Self, SynGeneratePgTableModelError> {
-        if self.field_count.0 == usize_constants::ZERO {
+        if self.field_count.0 == constants_usize::ZERO {
             Err(syn::Error::new_spanned(
                 &self.input.0.ident,
-                str_constants::GENERATE_PG_TABLE_REQUIRES_FIELD,
+                constants_str::GENERATE_PG_TABLE_REQUIRES_FIELD,
             )
             .into())
         } else {
@@ -78,12 +78,12 @@ mod tests {
     #[test]
     fn operation_descriptor_keeps_transport_permission_and_capabilities_together() {
         let spec = super::OperationDsc {
-            http_method: str_constants::PATCH,
+            http_method: constants_str::PATCH,
             idempotency_capable: true,
-            operation: str_constants::UO,
-            operation_kind: str_constants::UPDATE_ONE,
+            operation: constants_str::UO,
+            operation_kind: constants_str::UPDATE_ONE,
             optimistic_concurrency_capable: true,
-            permission_action: str_constants::PG_CRUD_UPDATE_PERMISSION_ACTION,
+            permission_action: constants_str::PG_CRUD_UPDATE_PERMISSION_ACTION,
             success_status_code: 200u16,
         };
         assert_eq!(spec.http_method, "PATCH");

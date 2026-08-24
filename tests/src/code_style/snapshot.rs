@@ -61,7 +61,7 @@ impl CodebaseSnapshot {
                     .as_ref()
                     .extension()
                     .and_then(std::ffi::OsStr::to_str)
-                    == Some(str_constants::RS)
+                    == Some(constants_str::RS)
             })
             .map(|source_file| {
                 let ast = syn::parse_file(source_file.content.as_ref())
@@ -214,7 +214,7 @@ pub(super) fn with_codebase_snapshot<R>(f: impl FnOnce(&CodebaseSnapshot) -> R) 
 fn workspace_metadata_uncached() -> super::types::CargoMetadata {
     super::types::CargoMetadata::from(
         cargo_metadata::MetadataCommand::new()
-            .manifest_path(str_constants::CODE_STYLE_WORKSPACE_MANIFEST_PATH)
+            .manifest_path(constants_str::CODE_STYLE_WORKSPACE_MANIFEST_PATH)
             .exec()
             .expect("c84e9d1f workspace_metadata_uncached invariant must hold"),
     )
@@ -233,12 +233,12 @@ fn workspace_member_ids(
 }
 #[allow(clippy::single_call_fn)] // keeps filesystem walker rules separate from snapshot materialization
 fn project_source_files_uncached() -> impl Iterator<Item = ProjectSourceFile> {
-    super::types::WalkdirWalkDir::from(walkdir::WalkDir::new(str_constants::TEXT_ALT_9))
+    super::types::WalkdirWalkDir::from(walkdir::WalkDir::new(constants_str::TEXT_ALT_9))
         .into_iter()
         .filter_entry(|element| {
-            element.file_name() != str_constants::TARGET
-                && element.file_name() != str_constants::GIT
-                && element.file_name() != str_constants::WORKSPACE_SCAFFOLD_NODE_MODULES
+            element.file_name() != constants_str::TARGET
+                && element.file_name() != constants_str::GIT
+                && element.file_name() != constants_str::WORKSPACE_SCAFFOLD_NODE_MODULES
                 && (element.file_type().is_dir()
                     || super::is_allowed_english_check_ext(
                         element

@@ -39,11 +39,11 @@ pub struct HttpTraceParent(String);
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
 )]
 pub enum HttpTraceParentError {
-    #[error("{}", str_constants::TRACEPARENT_W3C_VERSION_00_FORMAT)]
+    #[error("{}", constants_str::TRACEPARENT_W3C_VERSION_00_FORMAT)]
     Format,
-    #[error("{}", str_constants::TRACEPARENT_PARENT_ID_NOT_ZERO)]
+    #[error("{}", constants_str::TRACEPARENT_PARENT_ID_NOT_ZERO)]
     ZeroParentId,
-    #[error("{}", str_constants::TRACEPARENT_TRACE_ID_NOT_ZERO)]
+    #[error("{}", constants_str::TRACEPARENT_TRACE_ID_NOT_ZERO)]
     ZeroTraceId,
 }
 
@@ -53,7 +53,7 @@ impl TryFrom<String> for HttpTraceParent {
     fn try_from(value: String) -> Result<Self, Self::Error> {
         let bytes = value.as_bytes();
         if bytes.len() != TRACE_PARENT_LEN
-            || bytes.get(usize_constants::ZERO..3usize) != Some(b"00-")
+            || bytes.get(constants_usize::ZERO..3usize) != Some(b"00-")
             || bytes.get(35usize) != Some(&b'-')
             || bytes.get(52usize) != Some(&b'-')
             || !bytes
@@ -88,7 +88,7 @@ pub struct HttpTraceState(String);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
 )]
-#[error("{}", str_constants::TRACESTATE_PRINTABLE_ASCII_MAX_512)]
+#[error("{}", constants_str::TRACESTATE_PRINTABLE_ASCII_MAX_512)]
 pub struct HttpTraceStateError;
 
 impl TryFrom<String> for HttpTraceState {
@@ -201,16 +201,16 @@ impl OutboundTraceContext {
     pub fn apply(&self, request: ReqwestRequestBuilder) -> ReqwestRequestBuilder {
         let request_with_parent = request
             .0
-            .header(str_constants::TRACEPARENT, self.trace_parent.as_ref());
+            .header(constants_str::TRACEPARENT, self.trace_parent.as_ref());
         let request_with_state = match self.trace_state.as_ref() {
             Some(trace_state) => {
-                request_with_parent.header(str_constants::TRACESTATE, trace_state.as_ref())
+                request_with_parent.header(constants_str::TRACESTATE, trace_state.as_ref())
             }
             None => request_with_parent,
         };
         match self.request_id.as_ref() {
             Some(request_id) => {
-                request_with_state.header(str_constants::X_REQUEST_ID, request_id.to_string())
+                request_with_state.header(constants_str::X_REQUEST_ID, request_id.to_string())
             }
             None => request_with_state,
         }
@@ -258,13 +258,13 @@ mod tests {
     )]
     fn validates_and_applies_w3c_trace_context() {
         let trace_parent =
-            super::HttpTraceParent::try_from(str_constants::TRACEPARENT_TEST_VALUE.to_owned())
+            super::HttpTraceParent::try_from(constants_str::TRACEPARENT_TEST_VALUE.to_owned())
                 .expect("6b490bf8 validates_and_applies_w3c_trace_context invariant must hold");
         let trace_state =
-            super::HttpTraceState::try_from(str_constants::TRACESTATE_TEST_VALUE.to_owned())
+            super::HttpTraceState::try_from(constants_str::TRACESTATE_TEST_VALUE.to_owned())
                 .expect("b82fb9ef validates_and_applies_w3c_trace_context invariant must hold");
         let request_id =
-            crate::RequestId::try_from(str_constants::REQUEST_ID_TEST_VALUE.to_owned())
+            crate::RequestId::try_from(constants_str::REQUEST_ID_TEST_VALUE.to_owned())
                 .expect("50c01ea8 validates_and_applies_w3c_trace_context invariant must hold");
         let client = crate::ReqwestClient::try_new(crate::ReqwestClientPolicy::new(
             crate::StdReqwestConnectTimeout::try_from(std::time::Duration::from_secs(1u64))
@@ -277,7 +277,7 @@ mod tests {
             super::OutboundTraceContext::new(trace_parent, Some(trace_state), Some(request_id))
                 .apply(
                     reqwest::Client::from(client)
-                        .get(str_constants::HTTPS_EXAMPLE_COM)
+                        .get(constants_str::HTTPS_EXAMPLE_COM)
                         .into(),
                 )
                 .into();
@@ -285,12 +285,12 @@ mod tests {
             .build()
             .expect("1574578f validates_and_applies_w3c_trace_context invariant must hold");
         assert_eq!(
-            request.headers()[str_constants::TRACESTATE],
-            str_constants::TRACESTATE_TEST_VALUE
+            request.headers()[constants_str::TRACESTATE],
+            constants_str::TRACESTATE_TEST_VALUE
         );
         assert_eq!(
-            request.headers()[str_constants::X_REQUEST_ID],
-            str_constants::REQUEST_ID_TEST_VALUE
+            request.headers()[constants_str::X_REQUEST_ID],
+            constants_str::REQUEST_ID_TEST_VALUE
         );
     }
 
@@ -298,7 +298,7 @@ mod tests {
     fn rejects_zero_identifiers() {
         assert_eq!(
             super::HttpTraceParent::try_from(
-                str_constants::TRACEPARENT_ZERO_TRACE_ID_TEST_VALUE.to_owned(),
+                constants_str::TRACEPARENT_ZERO_TRACE_ID_TEST_VALUE.to_owned(),
             ),
             Err(super::HttpTraceParentError::ZeroTraceId)
         );
@@ -311,15 +311,15 @@ mod tests {
         );
         let mut headers = http::HeaderMap::new();
         let _previous = headers.insert(
-            http::HeaderName::from_static(str_constants::TRACEPARENT),
-            http::HeaderValue::from_static(str_constants::TRACEPARENT_TEST_VALUE),
+            http::HeaderName::from_static(constants_str::TRACEPARENT),
+            http::HeaderValue::from_static(constants_str::TRACEPARENT_TEST_VALUE),
         );
         let context = super::extract_remote_trace_context(
             super::HttpOpentelemetryHeaderMapRef::from(&headers),
         );
         let span = opentelemetry::trace::TraceContextExt::span(&context.0);
         assert!(span.span_context().is_remote());
-        let expected_trace_id = str_constants::TRACEPARENT_TEST_VALUE
+        let expected_trace_id = constants_str::TRACEPARENT_TEST_VALUE
             .get(3usize..35usize)
             .expect("65aa5eca extracts_valid_w3c_parent_context invariant must hold");
         assert_eq!(
@@ -335,12 +335,12 @@ mod tests {
         );
         let headers = http::HeaderMap::from_iter([
             (
-                http::HeaderName::from_static(str_constants::TRACEPARENT),
-                http::HeaderValue::from_static(str_constants::TRACEPARENT_TEST_VALUE),
+                http::HeaderName::from_static(constants_str::TRACEPARENT),
+                http::HeaderValue::from_static(constants_str::TRACEPARENT_TEST_VALUE),
             ),
             (
-                http::HeaderName::from_static(str_constants::TRACESTATE),
-                http::HeaderValue::from_static(str_constants::TRACESTATE_TEST_VALUE),
+                http::HeaderName::from_static(constants_str::TRACESTATE),
+                http::HeaderValue::from_static(constants_str::TRACESTATE_TEST_VALUE),
             ),
         ]);
         let context = super::extract_remote_trace_context(
@@ -352,15 +352,15 @@ mod tests {
             super::HttpOpentelemetryHeaderMapMut::from(&mut injected_headers),
         );
         assert_eq!(
-            injected_headers.get(str_constants::TRACEPARENT),
+            injected_headers.get(constants_str::TRACEPARENT),
             Some(&http::HeaderValue::from_static(
-                str_constants::TRACEPARENT_TEST_VALUE
+                constants_str::TRACEPARENT_TEST_VALUE
             ))
         );
         assert_eq!(
-            injected_headers.get(str_constants::TRACESTATE),
+            injected_headers.get(constants_str::TRACESTATE),
             Some(&http::HeaderValue::from_static(
-                str_constants::TRACESTATE_TEST_VALUE
+                constants_str::TRACESTATE_TEST_VALUE
             ))
         );
     }

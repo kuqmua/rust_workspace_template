@@ -85,8 +85,8 @@ mod tests {
         ignore = "Miri interpretation is prohibitively slow when zeroizing the intentional oversized allocation"
     )]
     fn secret_box_string_rejects_values_above_shared_limit() {
-        let value = str_constants::TEST_JWT_SECRET_CHARACTER_A.repeat(
-            super::super::CONFIG_LIB_STRING_WRAPPER_MAX_LEN.saturating_add(usize_constants::ONE),
+        let value = constants_str::TEST_JWT_SECRET_CHARACTER_A.repeat(
+            super::super::CONFIG_LIB_STRING_WRAPPER_MAX_LEN.saturating_add(constants_usize::ONE),
         );
         let Err(_error) = super::super::SecrecySecretBoxString::try_from(value) else {
             panic!("41c03fcc");
@@ -96,9 +96,9 @@ mod tests {
     #[test]
     fn parses_primary_and_verification_secrets() {
         let first =
-            str_constants::TEST_JWT_SECRET_CHARACTER_A.repeat(super::ADMIN_JWT_SECRET_MIN_LEN);
+            constants_str::TEST_JWT_SECRET_CHARACTER_A.repeat(super::ADMIN_JWT_SECRET_MIN_LEN);
         let second =
-            str_constants::TEST_JWT_SECRET_CHARACTER_B.repeat(super::ADMIN_JWT_SECRET_MIN_LEN);
+            constants_str::TEST_JWT_SECRET_CHARACTER_B.repeat(super::ADMIN_JWT_SECRET_MIN_LEN);
         let parsed =
             <super::AdminJwtSecret as super::super::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
                 super::super::StdEnvVarOk::try_from(format!("{first}, {second}"))
@@ -119,7 +119,7 @@ mod tests {
         let result =
             <super::AdminJwtSecret as super::super::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
                 super::super::StdEnvVarOk::try_from(String::from(
-                    str_constants::TEST_EMPTY_DELIMITED_LIST,
+                    constants_str::TEST_EMPTY_DELIMITED_LIST,
                 ))
                 .expect("86c514b2 rejects_empty_effective_secret_list invariant must hold"),
             );
@@ -132,7 +132,7 @@ mod tests {
     #[test]
     fn rejects_empty_secret_between_rotation_keys() {
         let secret =
-            str_constants::TEST_JWT_SECRET_CHARACTER_A.repeat(super::ADMIN_JWT_SECRET_MIN_LEN);
+            constants_str::TEST_JWT_SECRET_CHARACTER_A.repeat(super::ADMIN_JWT_SECRET_MIN_LEN);
         let result =
             <super::AdminJwtSecret as super::super::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
                 super::super::StdEnvVarOk::try_from(format!("{secret},,{secret}")).expect(

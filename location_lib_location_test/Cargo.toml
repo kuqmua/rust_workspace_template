@@ -9,7 +9,7 @@ license.workspace = true
 edition.workspace = true
 
 [dependencies]
-str_constants = { workspace = true }
+constants_str = { workspace = true }
 thiserror = { workspace = true }
 serde = { workspace = true }
 location_lib = { workspace = true }

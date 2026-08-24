@@ -161,7 +161,7 @@ pub struct AdminPassword(SecrecyAdminString);
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
 )]
 pub enum AdminPasswordTryFromStringError {
-    #[error("{}", str_constants::ADMINISTRATOR_PASSWORD_LENGTH_IS_INVALID)]
+    #[error("{}", constants_str::ADMINISTRATOR_PASSWORD_LENGTH_IS_INVALID)]
     InvalidLength,
 }
 impl utoipa::PartialSchema for AdminPassword {
@@ -177,7 +177,7 @@ impl utoipa::PartialSchema for AdminPassword {
 }
 impl utoipa::ToSchema for AdminPassword {
     fn name() -> std::borrow::Cow<'static, str> {
-        std::borrow::Cow::Borrowed(str_constants::ADMINPASSWORD)
+        std::borrow::Cow::Borrowed(constants_str::ADMINPASSWORD)
     }
 }
 impl TryFrom<String> for AdminPassword {
@@ -348,9 +348,9 @@ impl AdminCookieKind {
     }
     fn name(self) -> StdAdminStrRef<'static> {
         StdAdminStrRef::from(match self {
-            Self::Access => str_constants::SERVER_ADMIN_ACCESS_COOKIE_NAME,
-            Self::Csrf => str_constants::ADMIN_CSRF_TOKEN,
-            Self::Refresh => str_constants::ADMIN_REFRESH_TOKEN,
+            Self::Access => constants_str::SERVER_ADMIN_ACCESS_COOKIE_NAME,
+            Self::Csrf => constants_str::ADMIN_CSRF_TOKEN,
+            Self::Refresh => constants_str::ADMIN_REFRESH_TOKEN,
         })
     }
 }
@@ -362,14 +362,14 @@ pub fn build_admin_cookie(
     secure: AdminCookieSecure,
 ) -> StdAdminCookie {
     let http_only = if kind.is_http_only().get() {
-        str_constants::HTTPONLY
+        constants_str::HTTPONLY
     } else {
-        str_constants::PG_CRUD_EMPTY_SQL_SUFFIX
+        constants_str::PG_CRUD_EMPTY_SQL_SUFFIX
     };
     let secure_attr = if secure.0 {
-        str_constants::SECURE
+        constants_str::SECURE
     } else {
-        str_constants::PG_CRUD_EMPTY_SQL_SUFFIX
+        constants_str::PG_CRUD_EMPTY_SQL_SUFFIX
     };
     StdAdminCookie::try_from(format!(
         "{}={}; Path=/; Max-Age={}; SameSite=Strict{http_only}{secure_attr}",
@@ -383,7 +383,7 @@ pub fn build_admin_cookie(
 pub fn clear_admin_cookie(kind: AdminCookieKind, secure: AdminCookieSecure) -> StdAdminCookie {
     build_admin_cookie(
         kind,
-        StdAdminStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+        StdAdminStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
         AdminCookieMaxAgeSeconds::from(0),
         secure,
     )
@@ -520,7 +520,7 @@ pub struct AdminAccessTokenError(JsonwebtokenAdminError);
 pub struct StdAdminAccessToken(String);
 impl std::fmt::Debug for StdAdminAccessToken {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(str_constants::REDACTED_ALT_3)
+        f.write_str(constants_str::REDACTED_ALT_3)
     }
 }
 pub fn encode_access_token(
@@ -645,14 +645,14 @@ impl AdminCleanupRows {
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
 )]
 pub enum AdminCleanupCfgError {
-    #[error("{}", str_constants::CLEANUP_BATCH_SIZE_MUST_BE_BETWEEN_1_AND_10000)]
+    #[error("{}", constants_str::CLEANUP_BATCH_SIZE_MUST_BE_BETWEEN_1_AND_10000)]
     BatchSizeOutOfRange,
-    #[error("{}", str_constants::CLEANUP_RETENTION_MUST_BE_GREATER_THAN_ZERO)]
+    #[error("{}", constants_str::CLEANUP_RETENTION_MUST_BE_GREATER_THAN_ZERO)]
     RetentionMustBePositive,
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum AdminCleanupError {
-    #[error("{}", str_constants::ADMIN_CLEANUP_ROWS_EXCEED_I64)]
+    #[error("{}", constants_str::ADMIN_CLEANUP_ROWS_EXCEED_I64)]
     Count,
     #[error("idempotency cleanup failed: {0}")]
     Idempotency(#[source] pg_table::SqlxPgTableIdempotencyError),
@@ -664,7 +664,7 @@ pub enum AdminCleanupError {
 impl TryFrom<i64> for AdminCleanupBatchSize {
     type Error = AdminCleanupCfgError;
     fn try_from(value: i64) -> Result<Self, Self::Error> {
-        if (i64_constants::ONE..=10_000i64).contains(&value) {
+        if (constants_i64::ONE..=10_000i64).contains(&value) {
             Ok(Self(value))
         } else {
             Err(AdminCleanupCfgError::BatchSizeOutOfRange)
@@ -674,7 +674,7 @@ impl TryFrom<i64> for AdminCleanupBatchSize {
 impl TryFrom<i64> for AdminCleanupRetentionSeconds {
     type Error = AdminCleanupCfgError;
     fn try_from(value: i64) -> Result<Self, Self::Error> {
-        if value > i64_constants::ZERO {
+        if value > constants_i64::ZERO {
             Ok(Self(value))
         } else {
             Err(AdminCleanupCfgError::RetentionMustBePositive)
@@ -773,7 +773,7 @@ mod tests {
     #[test]
     fn cleanup_configuration_enforces_positive_bounded_values() {
         assert_eq!(
-            super::AdminCleanupBatchSize::try_from(i64_constants::ZERO),
+            super::AdminCleanupBatchSize::try_from(constants_i64::ZERO),
             Err(super::AdminCleanupCfgError::BatchSizeOutOfRange)
         );
         assert_eq!(
@@ -781,7 +781,7 @@ mod tests {
             Err(super::AdminCleanupCfgError::BatchSizeOutOfRange)
         );
         assert_eq!(
-            super::AdminCleanupRetentionSeconds::try_from(i64_constants::ZERO),
+            super::AdminCleanupRetentionSeconds::try_from(constants_i64::ZERO),
             Err(super::AdminCleanupCfgError::RetentionMustBePositive)
         );
         assert_eq!(
@@ -810,7 +810,7 @@ mod tests {
     }
     fn jwt_secret() -> super::AdminJwtSecret {
         super::AdminJwtSecret::new(secret(
-            str_constants::TEST_ONLY_SECRET_WITH_SUFFICIENT_ENTROPY,
+            constants_str::TEST_ONLY_SECRET_WITH_SUFFICIENT_ENTROPY,
         ))
     }
     #[test]
@@ -837,7 +837,7 @@ mod tests {
     #[test]
     fn unknown_permission_is_rejected() {
         assert_eq!(
-            super::AdminPermission::try_from(str_constants::UNKNOWN_READ).err(),
+            super::AdminPermission::try_from(constants_str::UNKNOWN_READ).err(),
             Some(super::AdminPermissionTryFromStrError)
         );
     }
@@ -866,7 +866,7 @@ mod tests {
     async fn password_hash_verifies_only_matching_password() {
         let hasher = password_hasher();
         let hash = hasher
-            .hash(password(str_constants::CORRECT_PASSWORD_ALT))
+            .hash(password(constants_str::CORRECT_PASSWORD_ALT))
             .await
             .expect("174a5d2f password_hash_verifies_only_matching_password invariant must hold");
         assert!(
@@ -879,7 +879,7 @@ mod tests {
                 .get()
         );
         let other_hash = hasher
-            .hash(password(str_constants::CORRECT_PASSWORD_ALT))
+            .hash(password(constants_str::CORRECT_PASSWORD_ALT))
             .await
             .expect("38819b94 password_hash_verifies_only_matching_password invariant must hold");
         assert!(
@@ -894,7 +894,7 @@ mod tests {
     }
     #[test]
     fn secrets_are_redacted_in_debug_output() {
-        let raw_secret = str_constants::NEVER_PRINT_THIS_VALUE;
+        let raw_secret = constants_str::NEVER_PRINT_THIS_VALUE;
         let password = password(raw_secret);
         let jwt_secret = super::AdminJwtSecret::new(secret(raw_secret));
         let access_token = super::StdAdminAccessToken::try_from(raw_secret.to_owned())
@@ -905,7 +905,7 @@ mod tests {
     }
     #[test]
     fn generated_token_hash_is_stable_and_does_not_expose_token() {
-        let token = super::AdminOpaqueToken::new(secret(str_constants::FIXED_TEST_TOKEN));
+        let token = super::AdminOpaqueToken::new(secret(constants_str::FIXED_TEST_TOKEN));
         let hash = super::hash_opaque_token(&token).expect(
             "3af32394 generated_token_hash_is_stable_and_does_not_expose_token invariant must hold",
         );
@@ -919,13 +919,13 @@ mod tests {
     fn cookie_policy_marks_only_secret_tokens_http_only() {
         let access = super::build_admin_cookie(
             super::AdminCookieKind::Access,
-            super::StdAdminStrRef::from(str_constants::ACCESS),
+            super::StdAdminStrRef::from(constants_str::ACCESS),
             super::AdminCookieMaxAgeSeconds::from(60),
             super::AdminCookieSecure::from(true),
         );
         let csrf = super::build_admin_cookie(
             super::AdminCookieKind::Csrf,
-            super::StdAdminStrRef::from(str_constants::CSRF),
+            super::StdAdminStrRef::from(constants_str::CSRF),
             super::AdminCookieMaxAgeSeconds::from(60),
             super::AdminCookieSecure::from(true),
         );
@@ -941,7 +941,7 @@ mod tests {
         let _previous = headers.insert(
             http::header::COOKIE,
             http::HeaderValue::from_static(
-                str_constants::OTHER_1_ADMIN_ACCESS_TOKEN_EXPECTED_ADMIN_ACCESS_TOKEN_SUFFIX_WRONG,
+                constants_str::OTHER_1_ADMIN_ACCESS_TOKEN_EXPECTED_ADMIN_ACCESS_TOKEN_SUFFIX_WRONG,
             ),
         );
         assert_eq!(
@@ -955,38 +955,38 @@ mod tests {
     #[test]
     fn bootstrap_login_format_accepts_only_database_compatible_values() {
         let valid =
-            super::AdminLogin::try_from(str_constants::ADMIN_USER_1.to_owned()).expect("078c759d bootstrap_login_format_accepts_only_database_compatible_values invariant must hold");
-        assert_eq!(valid.as_ref(), str_constants::ADMIN_USER_1);
-        let _uppercase_error = super::AdminLogin::try_from(str_constants::ADMIN.to_owned())
-            .expect_err(str_constants::VALUE_5FA1C6E2);
-        let _short_error = super::AdminLogin::try_from(str_constants::AB.to_owned())
-            .expect_err(str_constants::VALUE_B78D42A9);
+            super::AdminLogin::try_from(constants_str::ADMIN_USER_1.to_owned()).expect("078c759d bootstrap_login_format_accepts_only_database_compatible_values invariant must hold");
+        assert_eq!(valid.as_ref(), constants_str::ADMIN_USER_1);
+        let _uppercase_error = super::AdminLogin::try_from(constants_str::ADMIN.to_owned())
+            .expect_err(constants_str::VALUE_5FA1C6E2);
+        let _short_error = super::AdminLogin::try_from(constants_str::AB.to_owned())
+            .expect_err(constants_str::VALUE_B78D42A9);
     }
     #[test]
     fn access_token_round_trip_checks_issuer_and_audience() {
         let claims = super::AdminAccessClaims::new(
             super::AdminUserId::try_from(7).expect("d6d3da8a access_token_round_trip_checks_issuer_and_audience invariant must hold"),
             super::AdminSessionId::from(super::UuidAdminValue::from(
-                uuid::Uuid::parse_str(str_constants::B871BD8F_7810_4D4B_94A1_5458D3016907)
+                uuid::Uuid::parse_str(constants_str::B871BD8F_7810_4D4B_94A1_5458D3016907)
                     .expect("05562da0 access_token_round_trip_checks_issuer_and_audience invariant must hold"),
             )),
             super::AdminUnixTokenStream::from(1),
             super::AdminUnixTokenStream::from(4_102_444_800),
-            config_lib::AdminTokenIssuer::try_from(str_constants::TEST_ISSUER.to_owned())
+            config_lib::AdminTokenIssuer::try_from(constants_str::TEST_ISSUER.to_owned())
                 .expect("fd6a65b0 access_token_round_trip_checks_issuer_and_audience invariant must hold"),
-            config_lib::AdminTokenAudience::try_from(str_constants::TEST_AUDIENCE.to_owned())
+            config_lib::AdminTokenAudience::try_from(constants_str::TEST_AUDIENCE.to_owned())
                 .expect("6e423e16 access_token_round_trip_checks_issuer_and_audience invariant must hold"),
         );
         let secret = jwt_secret();
         let token = super::encode_access_token(&claims, &secret).expect(
             "b41052bc access_token_round_trip_checks_issuer_and_audience invariant must hold",
         );
-        let issuer = config_lib::AdminTokenIssuer::try_from(str_constants::TEST_ISSUER.to_owned())
+        let issuer = config_lib::AdminTokenIssuer::try_from(constants_str::TEST_ISSUER.to_owned())
             .expect(
                 "5edc807f access_token_round_trip_checks_issuer_and_audience invariant must hold",
             );
         let audience = config_lib::AdminTokenAudience::try_from(
-            str_constants::TEST_AUDIENCE.to_owned(),
+            constants_str::TEST_AUDIENCE.to_owned(),
         )
         .expect("0c3975a1 access_token_round_trip_checks_issuer_and_audience invariant must hold");
         let decoded = super::decode_access_token(&token, &secret, &issuer, &audience).expect(
@@ -1004,10 +1004,10 @@ mod tests {
                 &token,
                 &secret,
                 &issuer,
-                &config_lib::AdminTokenAudience::try_from(str_constants::WRONG_AUDIENCE.to_owned())
+                &config_lib::AdminTokenAudience::try_from(constants_str::WRONG_AUDIENCE.to_owned())
                     .expect("92f9c5ec access_token_round_trip_checks_issuer_and_audience invariant must hold"),
             )
-            .expect_err(str_constants::A82438CC),
+            .expect_err(constants_str::A82438CC),
         );
     }
 }

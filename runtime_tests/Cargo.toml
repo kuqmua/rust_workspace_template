@@ -11,7 +11,7 @@ categories = ["development-tools::testing"]
 edition.workspace = true
 
 [dependencies]
-usize_constants = { workspace = true }
+constants_usize = { workspace = true }
 optimal_memory_layout = { workspace = true }
 bounded_types = { workspace = true }
 common_routes = { workspace = true }

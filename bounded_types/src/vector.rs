@@ -37,7 +37,7 @@ impl<T, const MIN: usize, const MAX: usize> BoundedVec<T, MIN, MAX> {
         let next_len = self
             .0
             .len()
-            .checked_add(usize_constants::ONE)
+            .checked_add(constants_usize::ONE)
             .ok_or_else(|| super::BoundedValueError::AboveMax {
                 actual: super::BoundedLen::from(usize::MAX),
                 max: super::BoundedLen::from(MAX),
@@ -134,7 +134,7 @@ impl<'de, T: serde::Deserialize<'de>, const MIN: usize, const MAX: usize> serde:
                         Err(serde::de::Error::custom(
                             super::BoundedValueError::AboveMax {
                                 actual: super::BoundedLen::from(
-                                    MAX.saturating_add(usize_constants::ONE),
+                                    MAX.saturating_add(constants_usize::ONE),
                                 ),
                                 max: super::BoundedLen::from(MAX),
                             },
@@ -185,7 +185,7 @@ impl<T: utoipa::ToSchema, const MIN: usize, const MAX: usize> utoipa::ToSchema
     fn name() -> std::borrow::Cow<'static, str> {
         let mut name = T::name().into_owned();
         name.push('_');
-        name.push_str(str_constants::BOUNDEDVEC);
+        name.push_str(constants_str::BOUNDEDVEC);
         name.push('_');
         name.push_str(MIN.to_string().as_str());
         name.push('_');

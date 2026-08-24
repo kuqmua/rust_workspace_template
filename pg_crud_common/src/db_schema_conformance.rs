@@ -12,7 +12,7 @@
     PartialOrd,
     newtype::BoundedString,
 )]
-#[bounded_string(max = usize_constants::VALUE_1_048_576)]
+#[bounded_string(max = constants_usize::VALUE_1_048_576)]
 pub struct DbSchemaText(String);
 
 #[derive(
@@ -498,7 +498,7 @@ where
             ))
         })
         .collect::<Result<Vec<_>, DbSchemaConformanceError>>()?;
-    let default_rows = sqlx::query(str_constants::DB_SCHEMA_EXACT_DEFAULT_QUERY)
+    let default_rows = sqlx::query(constants_str::DB_SCHEMA_EXACT_DEFAULT_QUERY)
         .bind(schema.0)
         .bind(Table::schema_table_text().0)
         .fetch_all(pool.0)
@@ -511,7 +511,7 @@ where
         .map(|row| {
             Ok(DbObjectSnapshot::new(
                 schema_text(
-                    sqlx::Row::try_get(&row, str_constants::COLUMN_NAME).map_err(|error| {
+                    sqlx::Row::try_get(&row, constants_str::COLUMN_NAME).map_err(|error| {
                         DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError::from(
                             error,
                         ))
@@ -519,7 +519,7 @@ where
                 )?,
                 DbObjectKind::Default,
                 schema_text(
-                    sqlx::Row::try_get(&row, str_constants::COLUMN_DEFAULT).map_err(|error| {
+                    sqlx::Row::try_get(&row, constants_str::COLUMN_DEFAULT).map_err(|error| {
                         DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError::from(
                             error,
                         ))
@@ -536,7 +536,7 @@ where
             observed: observed_defaults.into(),
         });
     }
-    let public_schema_qualifier = format!("{}.", str_constants::PUBLIC);
+    let public_schema_qualifier = format!("{}.", constants_str::PUBLIC);
     let observed_schema_qualifier = format!("{}.", schema.0);
     let mut expected_objects = Table::checks_and_indexes()
         .iter()
@@ -551,7 +551,7 @@ where
             ))
         })
         .collect::<Result<Vec<_>, DbSchemaConformanceError>>()?;
-    let rows = sqlx::query(str_constants::DB_SCHEMA_CHECK_AND_NON_CONSTRAINT_INDEX_QUERY)
+    let rows = sqlx::query(constants_str::DB_SCHEMA_CHECK_AND_NON_CONSTRAINT_INDEX_QUERY)
         .bind(schema.0)
         .bind(Table::schema_table_text().0)
         .fetch_all(pool.0)
@@ -562,19 +562,19 @@ where
     let mut observed_objects = rows
         .into_iter()
         .map(|row| {
-            let kind = match sqlx::Row::try_get::<String, _>(&row, str_constants::OBJECT_KIND)
+            let kind = match sqlx::Row::try_get::<String, _>(&row, constants_str::OBJECT_KIND)
                 .map_err(|error| {
                     DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError::from(error))
                 })?
                 .as_str()
             {
-                str_constants::CHECK => DbObjectKind::Check,
-                str_constants::INDEX => DbObjectKind::Index,
+                constants_str::CHECK => DbObjectKind::Check,
+                constants_str::INDEX => DbObjectKind::Index,
                 _ => return Err(DbSchemaConformanceError::UnknownObjectKind),
             };
             Ok(DbObjectSnapshot::new(
                 schema_text(
-                    sqlx::Row::try_get(&row, str_constants::OBJECT_NAME).map_err(|error| {
+                    sqlx::Row::try_get(&row, constants_str::OBJECT_NAME).map_err(|error| {
                         DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError::from(
                             error,
                         ))
@@ -582,7 +582,7 @@ where
                 )?,
                 kind,
                 schema_text(
-                    sqlx::Row::try_get(&row, str_constants::OBJECT_DEFINITION).map_err(
+                    sqlx::Row::try_get(&row, constants_str::OBJECT_DEFINITION).map_err(
                         |error| {
                             DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError::from(
                                 error,
@@ -675,7 +675,7 @@ where
                 Err(DbSchemaConformanceError::DescriptorFieldMismatch(name))
             }
         })?;
-    let rows = sqlx::query(str_constants::DB_SCHEMA_COLUMN_CONTRACT_QUERY)
+    let rows = sqlx::query(constants_str::DB_SCHEMA_COLUMN_CONTRACT_QUERY)
         .bind(schema.0)
         .bind(Table::schema_table_text().0)
         .fetch_all(pool.0)
@@ -687,12 +687,12 @@ where
         .into_iter()
         .map(|row| {
             let nullable: String =
-                sqlx::Row::try_get(&row, str_constants::IS_NULLABLE).map_err(|error| {
+                sqlx::Row::try_get(&row, constants_str::IS_NULLABLE).map_err(|error| {
                     DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError::from(error))
                 })?;
             Ok(DbColumnContractSnapshot::new(
                 DbSchemaText::try_from(
-                    sqlx::Row::try_get::<String, _>(&row, str_constants::COLUMN_NAME).map_err(
+                    sqlx::Row::try_get::<String, _>(&row, constants_str::COLUMN_NAME).map_err(
                         |error| {
                             DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError::from(
                                 error,
@@ -704,7 +704,7 @@ where
                     DbSchemaConformanceError::SchemaTextTooLong(DbSchemaTextError::from(error))
                 })?,
                 DbSchemaText::try_from(
-                    sqlx::Row::try_get::<String, _>(&row, str_constants::DATA_TYPE).map_err(
+                    sqlx::Row::try_get::<String, _>(&row, constants_str::DATA_TYPE).map_err(
                         |error| {
                             DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError::from(
                                 error,
@@ -715,9 +715,9 @@ where
                 .map_err(|error| {
                     DbSchemaConformanceError::SchemaTextTooLong(DbSchemaTextError::from(error))
                 })?,
-                DbColumnNullable::from(nullable == str_constants::YES),
+                DbColumnNullable::from(nullable == constants_str::YES),
                 DbColumnHasServerDefault::from(
-                    sqlx::Row::try_get::<bool, _>(&row, str_constants::HAS_SERVER_DEFAULT)
+                    sqlx::Row::try_get::<bool, _>(&row, constants_str::HAS_SERVER_DEFAULT)
                         .map_err(|error| {
                             DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError::from(
                                 error,
@@ -755,7 +755,7 @@ where
             }
         })
         .collect::<Result<Vec<_>, DbSchemaConformanceError>>()?;
-    let key_rows = sqlx::query(str_constants::DB_SCHEMA_KEY_CONTRACT_QUERY)
+    let key_rows = sqlx::query(constants_str::DB_SCHEMA_KEY_CONTRACT_QUERY)
         .bind(schema.0)
         .bind(Table::schema_table_text().0)
         .fetch_all(pool.0)
@@ -766,12 +766,12 @@ where
     let mut observed_keys = key_rows
         .into_iter()
         .map(|row| {
-            let kind = sqlx::Row::try_get::<String, _>(&row, str_constants::CONSTRAINT_TYPE)
+            let kind = sqlx::Row::try_get::<String, _>(&row, constants_str::CONSTRAINT_TYPE)
                 .map_err(|error| {
                     DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError::from(error))
                 })?;
             let columns = schema_texts(
-                sqlx::Row::try_get::<Vec<String>, _>(&row, str_constants::COLUMNS).map_err(
+                sqlx::Row::try_get::<Vec<String>, _>(&row, constants_str::COLUMNS).map_err(
                     |error| {
                         DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError::from(
                             error,
@@ -780,11 +780,11 @@ where
                 )?,
             )?;
             match kind.as_str() {
-                str_constants::DB_CONSTRAINT_FOREIGN_KEY_SHORT => {
+                constants_str::DB_CONSTRAINT_FOREIGN_KEY_SHORT => {
                     let referenced_columns = schema_texts(
                         sqlx::Row::try_get::<Vec<String>, _>(
                             &row,
-                            str_constants::REFERENCED_COLUMNS,
+                            constants_str::REFERENCED_COLUMNS,
                         )
                         .map_err(|error| {
                             DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError::from(
@@ -793,7 +793,7 @@ where
                         })?,
                     )?;
                     let referenced_table = schema_text(
-                        sqlx::Row::try_get::<String, _>(&row, str_constants::REFERENCED_TABLE)
+                        sqlx::Row::try_get::<String, _>(&row, constants_str::REFERENCED_TABLE)
                             .map_err(|error| {
                                 DbSchemaConformanceError::Inspection(
                                     SqlxDbSchemaInspectionError::from(error),
@@ -806,10 +806,10 @@ where
                         referenced_table,
                     })
                 }
-                str_constants::DB_CONSTRAINT_PRIMARY_KEY_SHORT => {
+                constants_str::DB_CONSTRAINT_PRIMARY_KEY_SHORT => {
                     Ok(DbKeyContractSnapshot::PrimaryKey(columns.into()))
                 }
-                str_constants::DB_CONSTRAINT_UNIQUE_SHORT => {
+                constants_str::DB_CONSTRAINT_UNIQUE_SHORT => {
                     Ok(DbKeyContractSnapshot::Unique(columns.into()))
                 }
                 _ => Err(DbSchemaConformanceError::UnknownObjectKind),
@@ -876,7 +876,7 @@ pub async fn inspect_postgres_catalog(
     pool: SqlxPgPoolRef<'_>,
     schema: DbSchemaNameRef<'_>,
 ) -> Result<DbCatalogSnapshot, DbSchemaConformanceError> {
-    let rows = sqlx::query(str_constants::DB_SCHEMA_CATALOG_QUERY)
+    let rows = sqlx::query(constants_str::DB_SCHEMA_CATALOG_QUERY)
         .bind(schema.0)
         .fetch_all(pool.0)
         .await
@@ -886,24 +886,24 @@ pub async fn inspect_postgres_catalog(
     rows.into_iter()
         .map(|row| {
             let kind_text: String =
-                sqlx::Row::try_get(&row, str_constants::OBJECT_KIND).map_err(|error| {
+                sqlx::Row::try_get(&row, constants_str::OBJECT_KIND).map_err(|error| {
                     DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError::from(error))
                 })?;
             let kind = match kind_text.as_str() {
-                str_constants::EXTENSION => DbObjectKind::Extension,
-                str_constants::FUNCTION => DbObjectKind::Function,
-                str_constants::TRIGGER => DbObjectKind::Trigger,
-                str_constants::VIEW => DbObjectKind::View,
+                constants_str::EXTENSION => DbObjectKind::Extension,
+                constants_str::FUNCTION => DbObjectKind::Function,
+                constants_str::TRIGGER => DbObjectKind::Trigger,
+                constants_str::VIEW => DbObjectKind::View,
                 _ => return Err(DbSchemaConformanceError::UnknownObjectKind),
             };
-            let name = sqlx::Row::try_get::<String, _>(&row, str_constants::OBJECT_NAME).map_err(
+            let name = sqlx::Row::try_get::<String, _>(&row, constants_str::OBJECT_NAME).map_err(
                 |error| {
                     DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError::from(error))
                 },
             )?;
             let definition = sqlx::Row::try_get::<String, _>(
                 &row,
-                str_constants::OBJECT_DEFINITION,
+                constants_str::OBJECT_DEFINITION,
             )
             .map_err(|error| {
                 DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError::from(error))
@@ -927,7 +927,7 @@ pub async fn inspect_postgres_table(
     schema: DbSchemaNameRef<'_>,
     table: DbTableNameRef<'_>,
 ) -> Result<DbTableSnapshot, DbSchemaConformanceError> {
-    let column_rows = sqlx::query(str_constants::DB_SCHEMA_COLUMN_QUERY)
+    let column_rows = sqlx::query(constants_str::DB_SCHEMA_COLUMN_QUERY)
         .bind(schema.0)
         .bind(table.0)
         .fetch_all(pool.0)
@@ -939,16 +939,16 @@ pub async fn inspect_postgres_table(
         .into_iter()
         .map(|row| {
             let nullable: String =
-                sqlx::Row::try_get(&row, str_constants::IS_NULLABLE).map_err(|error| {
+                sqlx::Row::try_get(&row, constants_str::IS_NULLABLE).map_err(|error| {
                     DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError::from(error))
                 })?;
-            let default: Option<String> = sqlx::Row::try_get(&row, str_constants::COLUMN_DEFAULT)
+            let default: Option<String> = sqlx::Row::try_get(&row, constants_str::COLUMN_DEFAULT)
                 .map_err(|error| {
                 DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError::from(error))
             })?;
             Ok(DbColumnSnapshot::new(
                 DbSchemaText::try_from(
-                    sqlx::Row::try_get::<String, _>(&row, str_constants::COLUMN_NAME).map_err(
+                    sqlx::Row::try_get::<String, _>(&row, constants_str::COLUMN_NAME).map_err(
                         |error| {
                             DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError::from(
                                 error,
@@ -960,7 +960,7 @@ pub async fn inspect_postgres_table(
                     DbSchemaConformanceError::SchemaTextTooLong(DbSchemaTextError::from(error))
                 })?,
                 DbSchemaText::try_from(
-                    sqlx::Row::try_get::<String, _>(&row, str_constants::DATA_TYPE).map_err(
+                    sqlx::Row::try_get::<String, _>(&row, constants_str::DATA_TYPE).map_err(
                         |error| {
                             DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError::from(
                                 error,
@@ -971,7 +971,7 @@ pub async fn inspect_postgres_table(
                 .map_err(|error| {
                     DbSchemaConformanceError::SchemaTextTooLong(DbSchemaTextError::from(error))
                 })?,
-                (nullable == str_constants::YES).into(),
+                (nullable == constants_str::YES).into(),
                 default
                     .map(DbSchemaText::try_from)
                     .transpose()
@@ -982,7 +982,7 @@ pub async fn inspect_postgres_table(
         })
         .collect::<Result<Vec<_>, DbSchemaConformanceError>>()?;
 
-    let constraint_rows = sqlx::query(str_constants::DB_SCHEMA_CONSTRAINT_QUERY)
+    let constraint_rows = sqlx::query(constants_str::DB_SCHEMA_CONSTRAINT_QUERY)
         .bind(schema.0)
         .bind(table.0)
         .fetch_all(pool.0)
@@ -993,20 +993,20 @@ pub async fn inspect_postgres_table(
     let mut objects = constraint_rows
         .into_iter()
         .map(|row| {
-            let constraint_type: String = sqlx::Row::try_get(&row, str_constants::CONSTRAINT_TYPE)
+            let constraint_type: String = sqlx::Row::try_get(&row, constants_str::CONSTRAINT_TYPE)
                 .map_err(|error| {
                     DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError::from(error))
                 })?;
             let kind = match constraint_type.as_str() {
-                str_constants::DB_CONSTRAINT_CHECK => DbObjectKind::Check,
-                str_constants::DB_CONSTRAINT_FOREIGN_KEY => DbObjectKind::ForeignKey,
-                str_constants::DB_CONSTRAINT_PRIMARY_KEY => DbObjectKind::PrimaryKey,
-                str_constants::DB_CONSTRAINT_UNIQUE => DbObjectKind::Unique,
+                constants_str::DB_CONSTRAINT_CHECK => DbObjectKind::Check,
+                constants_str::DB_CONSTRAINT_FOREIGN_KEY => DbObjectKind::ForeignKey,
+                constants_str::DB_CONSTRAINT_PRIMARY_KEY => DbObjectKind::PrimaryKey,
+                constants_str::DB_CONSTRAINT_UNIQUE => DbObjectKind::Unique,
                 _ => return Ok(None),
             };
             Ok(Some(
                 DbSchemaText::try_from(
-                    sqlx::Row::try_get::<String, _>(&row, str_constants::CONSTRAINT_NAME).map_err(
+                    sqlx::Row::try_get::<String, _>(&row, constants_str::CONSTRAINT_NAME).map_err(
                         |error| {
                             DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError::from(
                                 error,
@@ -1019,7 +1019,7 @@ pub async fn inspect_postgres_table(
                 })
                 .and_then(|name| {
                     DbSchemaText::try_from(
-                        sqlx::Row::try_get::<String, _>(&row, str_constants::CONSTRAINT_DEFINITION)
+                        sqlx::Row::try_get::<String, _>(&row, constants_str::CONSTRAINT_DEFINITION)
                             .map_err(|error| {
                                 DbSchemaConformanceError::Inspection(
                                     SqlxDbSchemaInspectionError::from(error),
@@ -1038,7 +1038,7 @@ pub async fn inspect_postgres_table(
         .flatten()
         .collect::<Vec<_>>();
 
-    let index_rows = sqlx::query(str_constants::DB_SCHEMA_INDEX_QUERY)
+    let index_rows = sqlx::query(constants_str::DB_SCHEMA_INDEX_QUERY)
         .bind(schema.0)
         .bind(table.0)
         .fetch_all(pool.0)
@@ -1052,7 +1052,7 @@ pub async fn inspect_postgres_table(
             .map(|row| {
                 Ok(DbObjectSnapshot::new(
                     DbSchemaText::try_from(
-                        sqlx::Row::try_get::<String, _>(&row, str_constants::INDEX_NAME).map_err(
+                        sqlx::Row::try_get::<String, _>(&row, constants_str::INDEX_NAME).map_err(
                             |error| {
                                 DbSchemaConformanceError::Inspection(
                                     SqlxDbSchemaInspectionError::from(error),
@@ -1065,7 +1065,7 @@ pub async fn inspect_postgres_table(
                     })?,
                     DbObjectKind::Index,
                     DbSchemaText::try_from(
-                        sqlx::Row::try_get::<String, _>(&row, str_constants::INDEX_DEFINITION)
+                        sqlx::Row::try_get::<String, _>(&row, constants_str::INDEX_DEFINITION)
                             .map_err(|error| {
                                 DbSchemaConformanceError::Inspection(
                                     SqlxDbSchemaInspectionError::from(error),

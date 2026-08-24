@@ -10,8 +10,8 @@ edition.workspace = true
 
 
 [dependencies]
-u32_constants = { workspace = true }
-str_constants = { workspace = true }
+constants_u32 = { workspace = true }
+constants_str = { workspace = true }
 utoipa = { workspace = true }
 chrono = { workspace = true }
 serde = { workspace = true }
@@ -23,7 +23,7 @@ newtype = { workspace = true }
 thiserror = { workspace = true }
 
 [dev-dependencies]
-usize_constants = { workspace = true }
+constants_usize = { workspace = true }
 
 [lints]
 workspace = true

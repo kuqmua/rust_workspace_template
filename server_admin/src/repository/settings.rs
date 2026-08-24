@@ -15,7 +15,7 @@ pub(crate) async fn read_settings(
             String,
             String,
         ),
-    >(str_constants::SERVER_ADMIN_READ_SETTINGS_SQL)
+    >(constants_str::SERVER_ADMIN_READ_SETTINGS_SQL)
     .fetch_one(pool.0)
     .await
     .map_err(crate::SqlxAdminError::from)?;
@@ -66,7 +66,7 @@ pub(crate) async fn update_settings(
         tab_title,
         clear,
     ) = request.into_parts();
-    sqlx::query_scalar::<_, bool>(str_constants::SERVER_ADMIN_UPDATE_SETTINGS_SQL)
+    sqlx::query_scalar::<_, bool>(constants_str::SERVER_ADMIN_UPDATE_SETTINGS_SQL)
         .bind(site_name.as_ref().map(AsRef::<str>::as_ref))
         .bind(tab_title.as_ref().map(AsRef::<str>::as_ref))
         .bind(main_logo.as_ref().map(AsRef::<str>::as_ref))

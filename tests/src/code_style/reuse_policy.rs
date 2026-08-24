@@ -5,7 +5,7 @@
 
 #[allow(
     clippy::single_call_fn,
-    reason = "the named runtime constructor isolates the exact reviewed inventory while avoiding string constants outside str_constants"
+    reason = "the named runtime constructor isolates the exact reviewed inventory while avoiding string constants outside constants_str"
 )]
 fn reviewed_duplicate_groups() -> Vec<ReviewedDuplicateGroup> {
     vec![
@@ -268,7 +268,7 @@ struct ReviewedDuplicateGroup {
 
 impl<'ast> syn::visit::Visit<'ast> for FunctionBodyComplexity {
     fn visit_expr(&mut self, i: &'ast syn::Expr) {
-        self.expression_count = self.expression_count.saturating_add(usize_constants::ONE);
+        self.expression_count = self.expression_count.saturating_add(constants_usize::ONE);
         syn::visit::visit_expr(self, i);
     }
 }
@@ -310,7 +310,7 @@ fn function_body_hash(
 ) -> super::types::FunctionBodyHash {
     let body = format!("{block:?}");
     let normalized_body =
-        identifier_pattern.replace_all(&body, str_constants::NORMALIZED_IDENTIFIER);
+        identifier_pattern.replace_all(&body, constants_str::NORMALIZED_IDENTIFIER);
     let mut hasher = std::hash::DefaultHasher::new();
     std::hash::Hash::hash(&normalized_body, &mut hasher);
     super::types::FunctionBodyHash::from(std::hash::Hasher::finish(&hasher))
@@ -355,7 +355,7 @@ fn substantial_function_bodies_have_one_source_of_truth() {
         super::types::SourceTextList,
     >::from(bodies)
     .into_values()
-    .filter(|locations| locations.len() > usize_constants::ONE)
+    .filter(|locations| locations.len() > constants_usize::ONE)
     .filter_map(|mut locations| {
         locations.sort_unstable();
         let location_signature = locations.join("\n");

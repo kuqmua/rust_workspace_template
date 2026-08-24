@@ -99,7 +99,7 @@ fn dropped_identifier(statement: &syn::Stmt) -> Option<super::types::SourceText>
     let syn::Expr::Path(argument) = call.args.first()? else {
         return None;
     };
-    (argument.path.segments.len() == usize_constants::ONE)
+    (argument.path.segments.len() == constants_usize::ONE)
         .then(|| {
             argument.path.segments.first().map(|segment| {
                 super::types::SourceText::try_from(segment.ident.to_string())
@@ -163,7 +163,7 @@ struct SpawnConsumptionVisitor {
 impl SpawnConsumptionVisitor {
     fn record_path(&mut self, expression: &syn::Expr) {
         if let syn::Expr::Path(path) = expression
-            && path.path.segments.len() == usize_constants::ONE
+            && path.path.segments.len() == constants_usize::ONE
             && let Some(segment) = path.path.segments.first()
         {
             let _inserted = self.consumed.insert(segment.ident.to_string());
@@ -434,7 +434,7 @@ struct RawVecTupleWrapperVisitor {
 impl<'ast> syn::visit::Visit<'ast> for RawVecTupleWrapperVisitor {
     fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
         if let syn::Fields::Unnamed(fields) = &i.fields
-            && fields.unnamed.len() == usize_constants::ONE
+            && fields.unnamed.len() == constants_usize::ONE
             && let Some(field) = fields.unnamed.first()
             && let syn::Type::Path(path) = &field.ty
             && path
@@ -511,7 +511,7 @@ struct PublicApiVisitor {
 }
 impl PublicApiVisitor {
     fn source(&self, span: proc_macro2::Span) -> super::types::SourceText {
-        let start = span.start().line.saturating_sub(usize_constants::ONE);
+        let start = span.start().line.saturating_sub(constants_usize::ONE);
         let end = span.end().line;
         let normalized = self
             .lines
@@ -534,7 +534,7 @@ impl PublicApiVisitor {
             .expect("3e2d89ef field_type invariant must hold")
     }
     fn record(&mut self, span: proc_macro2::Span, signature_only: bool) {
-        let start = span.start().line.saturating_sub(usize_constants::ONE);
+        let start = span.start().line.saturating_sub(constants_usize::ONE);
         let end = span.end().line;
         let source = self
             .lines
@@ -754,7 +754,7 @@ struct LoopAllocationVisitor {
 }
 impl LoopAllocationVisitor {
     fn record(&mut self, operation: super::types::SourceTextRef<'_>) {
-        if self.depth.get() != usize_constants::ZERO {
+        if self.depth.get() != constants_usize::ZERO {
             self.entries.push(operation.as_ref().to_owned());
         }
     }
@@ -842,56 +842,56 @@ fn allocations_inside_loops_match_reviewed_inventory() {
         (
             "../file_storage/src/lib.rs:clone",
             (
-                usize_constants::ONE,
+                constants_usize::ONE,
                 "multipart chunk assembly must retain owned buffers until the completed file is committed",
             ),
         ),
         (
             "../frontend_contract_validation/src/json_snapshot.rs:String::from",
             (
-                usize_constants::ONE,
+                constants_usize::ONE,
                 "the bounded JSON parser materializes one owned map key per parsed object field",
             ),
         ),
         (
             "../frontend_contract_validation/src/openapi_validation.rs:to_owned",
             (
-                usize_constants::ONE,
+                constants_usize::ONE,
                 "OpenAPI validation records independently owned operation identifiers",
             ),
         ),
         (
             "../frontend_contract_macros/src/lib.rs:to_string",
             (
-                usize_constants::ONE,
+                constants_usize::ONE,
                 "compile-time route generation materializes variant identifiers outside runtime hot paths",
             ),
         ),
         (
             "../macro_clippy_check_common/src/lib.rs:String::from",
             (
-                usize_constants::ONE,
+                constants_usize::ONE,
                 "compile-time lint inspection owns diagnostic source fragments",
             ),
         ),
         (
             "../server_runtime_http/src/http_error_diagnostic.rs:to_string",
             (
-                usize_constants::ONE,
+                constants_usize::ONE,
                 "diagnostic capture materializes each owned source in the bounded error chain",
             ),
         ),
         (
             "../server_runtime_http/src/lib.rs:to_string",
             (
-                usize_constants::ONE,
+                constants_usize::ONE,
                 "request middleware materializes validated protocol values that outlive input buffers",
             ),
         ),
         (
-            "../str_constants_macros/src/lib.rs:collect",
+            "../constants_str_macros/src/lib.rs:collect",
             (
-                usize_constants::ONE,
+                constants_usize::ONE,
                 "compile-time constant generation collects tokens outside runtime hot paths",
             ),
         ),
@@ -923,8 +923,8 @@ fn allocations_inside_loops_match_reviewed_inventory() {
                     |mut counts, entry| {
                         let _count = counts
                             .entry(entry)
-                            .and_modify(|count| *count = count.saturating_add(usize_constants::ONE))
-                            .or_insert(usize_constants::ONE);
+                            .and_modify(|count| *count = count.saturating_add(constants_usize::ONE))
+                            .or_insert(constants_usize::ONE);
                         counts
                     },
                 );
@@ -969,8 +969,8 @@ fn struct_error_exceptions_match_reviewed_snapshot() {
             current_snapshot.push('\n');
         });
         let snapshot_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join(str_constants::STRUCT_ERROR_SNAPSHOT_PATH);
-        if std::env::var_os(str_constants::UPDATE_CODE_STYLE_SNAPSHOTS).is_some() {
+            .join(constants_str::STRUCT_ERROR_SNAPSHOT_PATH);
+        if std::env::var_os(constants_str::UPDATE_CODE_STYLE_SNAPSHOTS).is_some() {
             std::fs::write(snapshot_path.as_path(), current_snapshot.as_bytes()).expect(
                 "65e1d4f0 struct_error_exceptions_match_reviewed_snapshot invariant must hold",
             );
@@ -1032,9 +1032,9 @@ fn contract_public_api_matches_reviewed_snapshot() {
             });
         });
         let snapshot_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join(str_constants::CONTRACT_PUBLIC_API_SNAPSHOT_PATH);
-        if std::env::var_os(str_constants::UPDATE_CODE_STYLE_SNAPSHOTS).is_some()
-            || std::env::var_os(str_constants::UPDATE_CONTRACT_PUBLIC_API_SNAPSHOT).is_some()
+            .join(constants_str::CONTRACT_PUBLIC_API_SNAPSHOT_PATH);
+        if std::env::var_os(constants_str::UPDATE_CODE_STYLE_SNAPSHOTS).is_some()
+            || std::env::var_os(constants_str::UPDATE_CONTRACT_PUBLIC_API_SNAPSHOT).is_some()
         {
             std::fs::write(snapshot_path.as_path(), current_snapshot.as_bytes()).expect(
                 "e2c6b190 contract_public_api_matches_reviewed_snapshot invariant must hold",
@@ -1055,8 +1055,8 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
         (
             "location_lib_location/src/lib.rs",
             (
-                usize_constants::ZERO,
-                usize_constants::ZERO,
+                constants_usize::ZERO,
+                constants_usize::ZERO,
                 3usize,
                 "location formatting accepts heterogeneous display values",
             ),
@@ -1463,7 +1463,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
                     visitor.lock_types.get(),
                     visitor.trait_objects.get(),
                 );
-                if observed == (usize_constants::ZERO, usize_constants::ZERO, usize_constants::ZERO) {
+                if observed == (constants_usize::ZERO, constants_usize::ZERO, constants_usize::ZERO) {
                     return;
                 }
                 let path = source_file.path().as_ref().display().to_string();
@@ -1503,7 +1503,7 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
         (
             "external_service_emulators/src/lib.rs",
             (
-                usize_constants::ONE,
+                constants_usize::ONE,
                 "the emulator maps channel closure to its domain error",
             ),
         ),
@@ -1517,98 +1517,98 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
         (
             "macros_helpers/src/test_database.rs",
             (
-                usize_constants::ONE,
+                constants_usize::ONE,
                 "the test database helper maps setup failure to its fixture error",
             ),
         ),
         (
             "macros_helpers/src/write_string_into_file.rs",
             (
-                usize_constants::ONE,
+                constants_usize::ONE,
                 "the file helper maps conversion failure to its domain error",
             ),
         ),
         (
             "notification_service/src/main.rs",
             (
-                usize_constants::ONE,
+                constants_usize::ONE,
                 "service bootstrap classifies configuration failures",
             ),
         ),
         (
             "notification_service/src/runtime.rs",
             (
-                usize_constants::ONE,
+                constants_usize::ONE,
                 "service runtime classifies timeout configuration failures",
             ),
         ),
         (
             "file_storage/src/lib.rs",
             (
-                usize_constants::ONE,
+                constants_usize::ONE,
                 "storage input failure is classified at the boundary",
             ),
         ),
         (
             "common_routes/src/lib.rs",
             (
-                usize_constants::ONE,
+                constants_usize::ONE,
                 "health component capacity maps to the established public contract error",
             ),
         ),
         (
             "server_runtime_http/src/outbound_url.rs",
             (
-                usize_constants::ONE,
+                constants_usize::ONE,
                 "URL parse details are intentionally hidden by the domain error",
             ),
         ),
         (
             "server_runtime_http/src/wire_token.rs",
             (
-                usize_constants::ONE,
+                constants_usize::ONE,
                 "wire token part failures map to a stable public category",
             ),
         ),
         (
             "server_runtime_http/src/origin.rs",
             (
-                usize_constants::ONE,
+                constants_usize::ONE,
                 "origin parsing maps to a stable validation error",
             ),
         ),
         (
             "server_runtime_http/src/secure_cookie.rs",
             (
-                usize_constants::ONE,
+                constants_usize::ONE,
                 "cookie header details are intentionally redacted",
             ),
         ),
         (
             "server_runtime_http/src/multipart.rs",
             (
-                usize_constants::ONE,
+                constants_usize::ONE,
                 "multipart path validation exposes a stable domain error",
             ),
         ),
         (
             "server_runtime_http/src/security_headers.rs",
             (
-                usize_constants::ONE,
+                constants_usize::ONE,
                 "content-security-policy parse details map to a stable configuration error",
             ),
         ),
         (
             "server_runtime_http/src/bounded_read.rs",
             (
-                usize_constants::ONE,
+                constants_usize::ONE,
                 "closed limiter state maps to a stable read error",
             ),
         ),
         (
             "server_runtime_http/src/child_process.rs",
             (
-                usize_constants::ONE,
+                constants_usize::ONE,
                 "elapsed timeout details map to the child timeout variant",
             ),
         ),
@@ -1622,7 +1622,7 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
         (
             "server_runtime_core/src/exclusive_run.rs",
             (
-                usize_constants::ONE,
+                constants_usize::ONE,
                 "the atomic compare failure maps to already active",
             ),
         ),
@@ -1643,14 +1643,14 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
         (
             "pg_crud_common/src/bounded_btree_map.rs",
             (
-                usize_constants::ONE,
+                constants_usize::ONE,
                 "the compatibility wrapper maps the shared capacity error to its existing public error",
             ),
         ),
         (
             "pg_crud_where_filters/src/lib.rs",
             (
-                usize_constants::ONE,
+                constants_usize::ONE,
                 "the exact-length compatibility wrapper preserves its location-aware public error",
             ),
         ),
@@ -1671,7 +1671,7 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
         (
             "server_admin_contract/src/collections.rs",
             (
-                usize_constants::ONE,
+                constants_usize::ONE,
                 "administrator collections preserve their stable public capacity error",
             ),
         ),
@@ -1692,28 +1692,28 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
         (
             "config_lib/src/admin.rs",
             (
-                usize_constants::ONE,
+                constants_usize::ONE,
                 "administrator token parsing maps bounded text to its stable public error",
             ),
         ),
         (
             "config_lib/src/admin_jwt.rs",
             (
-                usize_constants::ONE,
+                constants_usize::ONE,
                 "administrator JWT parsing maps bounded secrets to its stable public error",
             ),
         ),
         (
             "workspace_test_runner/src/admin_fixture.rs",
             (
-                usize_constants::ONE,
+                constants_usize::ONE,
                 "fixture input conversion maps bounded text to command failure",
             ),
         ),
         (
             "workspace_test_runner/src/execution.rs",
             (
-                usize_constants::ONE,
+                constants_usize::ONE,
                 "summary initialization maps to the runner error",
             ),
         ),
@@ -1727,7 +1727,7 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
         (
             "workspace_scaffold/src/main.rs",
             (
-                usize_constants::ONE,
+                constants_usize::ONE,
                 "projection parsing maps to a stable scaffold error",
             ),
         ),
@@ -1738,7 +1738,7 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
         (
             "newtype/src/lib.rs",
             (
-                usize_constants::ONE,
+                constants_usize::ONE,
                 "invalid derive input maps to the macro diagnostic",
             ),
         ),
@@ -1752,7 +1752,7 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
         (
             "server_admin/src/generated_tables.rs",
             (
-                usize_constants::ONE,
+                constants_usize::ONE,
                 "generated table conformance maps to its public error",
             ),
         ),
@@ -1801,7 +1801,7 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
         (
             "server_admin/src/repository/cleanup.rs",
             (
-                usize_constants::ONE,
+                constants_usize::ONE,
                 "cleanup conversion maps to a typed repository error",
             ),
         ),
@@ -1819,7 +1819,7 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
         (
             "server_admin/src/auth/session.rs",
             (
-                usize_constants::ONE,
+                constants_usize::ONE,
                 "system clock failure maps to the session category",
             ),
         ),
@@ -1833,7 +1833,7 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
         (
             "server_admin/src/auth/data_tables.rs",
             (
-                usize_constants::ONE,
+                constants_usize::ONE,
                 "data-table input failures map to stable API categories",
             ),
         ),
@@ -1883,7 +1883,7 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
         (
             "server_admin_frontend/src/app/loader.rs",
             (
-                usize_constants::ONE,
+                constants_usize::ONE,
                 "browser page loading failures map to a stable query error",
             ),
         ),
@@ -1897,7 +1897,7 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
         (
             "server_admin_frontend/src/app/query/page.rs",
             (
-                usize_constants::ONE,
+                constants_usize::ONE,
                 "browser page-location failures map to a stable UI fetch error",
             ),
         ),
@@ -2095,15 +2095,15 @@ fn raw_vec_tuple_wrappers_match_reviewed_inventory() {
             "the multipart budget is supplied dynamically and enforced while parsing",
         ),
         (
-            "../str_constants_macros/src/lib.rs:ConstantParts",
+            "../constants_str_macros/src/lib.rs:ConstantParts",
             "the proc-macro compiler owns compile-time constant fragments",
         ),
         (
-            "../str_constants_macros/src/lib.rs:Constants",
+            "../constants_str_macros/src/lib.rs:Constants",
             "the proc-macro compiler owns compile-time constant declarations",
         ),
         (
-            "../str_constants_macros/src/lib.rs:Fragments",
+            "../constants_str_macros/src/lib.rs:Fragments",
             "the proc-macro compiler owns compile-time string fragments",
         ),
         (
@@ -2176,7 +2176,7 @@ fn usize_max_usage_matches_reviewed_inventory() {
         (
             "../bounded_types/src/string.rs",
             (
-                usize_constants::ONE,
+                constants_usize::ONE,
                 "the bounded string schema represents its explicitly unbounded maximum",
             ),
         ),
@@ -2190,7 +2190,7 @@ fn usize_max_usage_matches_reviewed_inventory() {
         (
             "../file_storage/src/lib.rs",
             (
-                usize_constants::ONE,
+                constants_usize::ONE,
                 "the process-owned path catalog is assembled from already bounded storage paths",
             ),
         ),
@@ -2211,14 +2211,14 @@ fn usize_max_usage_matches_reviewed_inventory() {
         (
             "../frontend_contract/src/route_coverage.rs",
             (
-                usize_constants::ONE,
+                constants_usize::ONE,
                 "the compile-time route test category catalog has no wire-controlled cardinality",
             ),
         ),
         (
             "../frontend_contract_validation/src/route_contract_validation.rs",
             (
-                usize_constants::ONE,
+                constants_usize::ONE,
                 "validation mismatches are bounded by the already finite route catalog",
             ),
         ),
@@ -2253,7 +2253,7 @@ fn usize_max_usage_matches_reviewed_inventory() {
         (
             "../server_runtime_core/src/single_flight.rs",
             (
-                usize_constants::ONE,
+                constants_usize::ONE,
                 "the runtime-configured single-flight maximum is enforced before insertion",
             ),
         ),
@@ -2267,7 +2267,7 @@ fn usize_max_usage_matches_reviewed_inventory() {
         (
             "../workspace_scaffold/src/main.rs",
             (
-                usize_constants::ONE,
+                constants_usize::ONE,
                 "the local service catalog is bounded by the checked-out workspace",
             ),
         ),
@@ -2299,7 +2299,7 @@ fn usize_max_usage_matches_reviewed_inventory() {
                         UsizeMaxExprVisitor::default(),
                     );
                     let count = visitor.count.get();
-                    (count != usize_constants::ZERO)
+                    (count != constants_usize::ZERO)
                         .then(|| (source_file.path().as_ref().display().to_string(), count))
                 })
                 .collect::<std::collections::BTreeMap<String, usize>>();
@@ -2324,7 +2324,7 @@ fn usize_max_expression_visitor_skips_test_modules() {
         super::types::SynFileRef::from(&file),
         UsizeMaxExprVisitor::default(),
     );
-    assert_eq!(visitor.count.get(), usize_constants::ONE);
+    assert_eq!(visitor.count.get(), constants_usize::ONE);
 }
 
 #[test]
@@ -2332,17 +2332,17 @@ fn select_sites_match_reviewed_cancellation_inventory() {
     let reviewed = [
         (
             "server_runtime_http/src/service.rs",
-            usize_constants::ONE,
+            constants_usize::ONE,
             "the pinned server future is resumed after the shutdown notification branch",
         ),
         (
             "server_runtime_http/src/lifecycle.rs",
-            usize_constants::ONE,
+            constants_usize::ONE,
             "the interval tick and oneshot shutdown receiver are cancellation-safe",
         ),
         (
             "server_runtime_http/src/service_bootstrap.rs",
-            usize_constants::ONE,
+            constants_usize::ONE,
             "the shutdown signal races two cancellation-safe signal receivers",
         ),
     ];
@@ -2356,7 +2356,7 @@ fn select_sites_match_reviewed_cancellation_inventory() {
                     super::types::SynFileRef::from(source_file.ast().as_ref()),
                     SelectMacroVisitor::default(),
                 );
-                if visitor.count.get() != usize_constants::ZERO {
+                if visitor.count.get() != constants_usize::ZERO {
                     let _previous = observed.insert(
                         source_file.path().as_ref().display().to_string(),
                         visitor.count.get(),
@@ -2515,7 +2515,7 @@ fn lock_across_await_policy_requires_explicit_drop() {
     );
     assert_eq!(
         invalid_visitor.violations.len(),
-        usize_constants::ONE,
+        constants_usize::ONE,
         "bbfce72c"
     );
     assert!(valid_visitor.violations.is_empty(), "4b732bd1");
@@ -2620,7 +2620,7 @@ fn route_path_policy_rejects_kebab_case() {
         super::types::SynFileRef::from(&ast),
         RouteLiteralVisitor::default(),
     );
-    assert_eq!(visitor.violations.len(), usize_constants::ONE, "d15287e9");
+    assert_eq!(visitor.violations.len(), constants_usize::ONE, "d15287e9");
 }
 
 #[test]
@@ -2636,5 +2636,5 @@ fn route_path_policy_rejects_api_prefix() {
         super::types::SynFileRef::from(&ast),
         RouteLiteralVisitor::default(),
     );
-    assert_eq!(visitor.violations.len(), usize_constants::ONE, "5caaea72");
+    assert_eq!(visitor.violations.len(), constants_usize::ONE, "5caaea72");
 }

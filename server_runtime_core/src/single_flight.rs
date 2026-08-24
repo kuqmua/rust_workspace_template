@@ -165,7 +165,7 @@ fn write_inner(inner: &StdArcStdSingleFlightRwLock) -> StdSingleFlightWriteGuard
 #[cfg(test)]
 mod tests {
     fn key() -> super::SingleFlightKey {
-        super::SingleFlightKey::try_from(String::from(str_constants::TEST_SINGLE_FLIGHT_KEY))
+        super::SingleFlightKey::try_from(String::from(constants_str::TEST_SINGLE_FLIGHT_KEY))
             .expect("68276323 key invariant must hold")
     }
 

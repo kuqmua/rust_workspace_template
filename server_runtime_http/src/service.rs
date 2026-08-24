@@ -35,14 +35,14 @@ pub struct StdServeIoError(std::io::Error);
 pub enum ServeWithGracefulShutdownError {
     #[error("server failed: {0}")]
     Serve(#[source] StdServeIoError),
-    #[error("{}", str_constants::SERVER_GRACEFUL_SHUTDOWN_TIMED_OUT)]
+    #[error("{}", constants_str::SERVER_GRACEFUL_SHUTDOWN_TIMED_OUT)]
     ShutdownTimeout,
 }
 
 #[must_use]
 pub fn add_status_route(router: super::AxumRouter) -> super::AxumRouter {
     super::AxumRouter::from(router.0.route(
-        str_constants::STATUS,
+        constants_str::STATUS,
         axum::routing::get(async || http::StatusCode::OK),
     ))
 }

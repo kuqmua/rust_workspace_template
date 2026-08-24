@@ -180,7 +180,7 @@ pub fn resolve_client_ip(
     let parsed_forwarded_ip = || {
         let values = headers
             .0
-            .get_all(str_constants::RUNTIME_FORWARDED_FOR_HEADER_NAME);
+            .get_all(constants_str::RUNTIME_FORWARDED_FOR_HEADER_NAME);
         let mut iter = values.iter();
         let value = iter.next()?;
         if iter.next().is_some() || value.as_bytes().len() > MAX_FORWARDED_HEADER_BYTES {
@@ -188,7 +188,7 @@ pub fn resolve_client_ip(
         }
         let value_text = value.to_str().ok()?;
         let (count, first, rightmost_untrusted) = value_text.split(',').map(str::trim).try_fold(
-            (usize_constants::ZERO, None, None),
+            (constants_usize::ZERO, None, None),
             |(count, first, rightmost_untrusted), entry| {
                 if count >= MAX_FORWARDED_ENTRIES {
                     return None;
@@ -202,20 +202,20 @@ pub fn resolve_client_ip(
                         Some(parsed)
                     };
                 Some((
-                    count.saturating_add(usize_constants::ONE),
+                    count.saturating_add(constants_usize::ONE),
                     next_first,
                     next_rightmost_untrusted,
                 ))
             },
         )?;
-        (count > usize_constants::ZERO)
+        (count > constants_usize::ZERO)
             .then_some(rightmost_untrusted.or(first))
             .flatten()
     };
     let parsed_real_ip = || {
         let values = headers
             .0
-            .get_all(str_constants::RUNTIME_REAL_IP_HEADER_NAME);
+            .get_all(constants_str::RUNTIME_REAL_IP_HEADER_NAME);
         let mut iter = values.iter();
         let value = iter.next()?;
         if iter.next().is_some() || value.as_bytes().len() > MAX_FORWARDED_HEADER_BYTES {
@@ -295,9 +295,9 @@ mod tests {
     }
     #[test]
     fn trusted_proxy_ranges_reject_oversized_lists() {
-        let item = range(str_constants::VALUE_127_0_0_1_32);
+        let item = range(constants_str::VALUE_127_0_0_1_32);
         let values =
-            vec![item; super::TRUSTED_PROXY_RANGES_MAX_ITEMS.saturating_add(usize_constants::ONE)];
+            vec![item; super::TRUSTED_PROXY_RANGES_MAX_ITEMS.saturating_add(constants_usize::ONE)];
         assert_eq!(
             super::TrustedProxyRanges::try_from(values),
             Err(super::TrustedProxyRangesError)
@@ -306,7 +306,7 @@ mod tests {
     #[test]
     fn trusted_proxy_ranges_text_parses_comma_separated_ranges() {
         let ranges = super::parse_trusted_proxy_ranges(super::TrustedProxyRangesTextRef::from(
-            str_constants::VALUE_127_0_0_1_32_PATH_1_128,
+            constants_str::VALUE_127_0_0_1_32_PATH_1_128,
         ))
         .expect(
             "60ad1a64 trusted_proxy_ranges_text_parses_comma_separated_ranges invariant must hold",
@@ -345,8 +345,8 @@ mod tests {
     fn untrusted_peer_cannot_spoof_forwarded_header() {
         let mut headers = http::HeaderMap::new();
         let _previous = headers.insert(
-            str_constants::RUNTIME_FORWARDED_FOR_HEADER_NAME,
-            http::HeaderValue::from_static(str_constants::VALUE_203_0_113_1),
+            constants_str::RUNTIME_FORWARDED_FOR_HEADER_NAME,
+            http::HeaderValue::from_static(constants_str::VALUE_203_0_113_1),
         );
         assert_eq!(
             resolved(&headers, "198.51.100.2:80", Vec::new()),
@@ -357,8 +357,8 @@ mod tests {
     fn trusted_chain_resolves_first_untrusted_address_from_right() {
         let mut headers = http::HeaderMap::new();
         let _previous = headers.insert(
-            str_constants::RUNTIME_FORWARDED_FOR_HEADER_NAME,
-            http::HeaderValue::from_static(str_constants::VALUE_203_0_113_7_10_0_0_8_10_0_0),
+            constants_str::RUNTIME_FORWARDED_FOR_HEADER_NAME,
+            http::HeaderValue::from_static(constants_str::VALUE_203_0_113_7_10_0_0_8_10_0_0),
         );
         assert_eq!(
             resolved(&headers, "10.0.0.10:80", vec![range("10.0.0.0/24")]),
@@ -369,8 +369,8 @@ mod tests {
     fn ipv4_range_does_not_trust_ipv6_peer() {
         let mut headers = http::HeaderMap::new();
         let _previous = headers.insert(
-            str_constants::RUNTIME_FORWARDED_FOR_HEADER_NAME,
-            http::HeaderValue::from_static(str_constants::VALUE_203_0_113_7),
+            constants_str::RUNTIME_FORWARDED_FOR_HEADER_NAME,
+            http::HeaderValue::from_static(constants_str::VALUE_203_0_113_7),
         );
         assert_eq!(
             resolved(&headers, "[::1]:80", vec![range("127.0.0.0/8")]),
@@ -381,8 +381,8 @@ mod tests {
     fn malformed_and_multiple_headers_fall_back_to_peer() {
         let mut malformed_headers = http::HeaderMap::new();
         let _inserted_malformed = malformed_headers.append(
-            str_constants::RUNTIME_FORWARDED_FOR_HEADER_NAME,
-            http::HeaderValue::from_static(str_constants::NOT_AN_IP),
+            constants_str::RUNTIME_FORWARDED_FOR_HEADER_NAME,
+            http::HeaderValue::from_static(constants_str::NOT_AN_IP),
         );
         assert_eq!(
             resolved(
@@ -394,8 +394,8 @@ mod tests {
         );
         let mut mixed_headers = http::HeaderMap::new();
         let _inserted_mixed = mixed_headers.append(
-            str_constants::RUNTIME_FORWARDED_FOR_HEADER_NAME,
-            http::HeaderValue::from_static(str_constants::VALUE_203_0_113_1_NOT_AN_IP),
+            constants_str::RUNTIME_FORWARDED_FOR_HEADER_NAME,
+            http::HeaderValue::from_static(constants_str::VALUE_203_0_113_1_NOT_AN_IP),
         );
         assert_eq!(
             resolved(&mixed_headers, "10.0.0.10:80", vec![range("10.0.0.0/24")]),
@@ -403,12 +403,12 @@ mod tests {
         );
         let mut headers = http::HeaderMap::new();
         let _inserted_first = headers.append(
-            str_constants::RUNTIME_FORWARDED_FOR_HEADER_NAME,
-            http::HeaderValue::from_static(str_constants::VALUE_203_0_113_1),
+            constants_str::RUNTIME_FORWARDED_FOR_HEADER_NAME,
+            http::HeaderValue::from_static(constants_str::VALUE_203_0_113_1),
         );
         let _inserted_second = headers.append(
-            str_constants::RUNTIME_FORWARDED_FOR_HEADER_NAME,
-            http::HeaderValue::from_static(str_constants::VALUE_203_0_113_2),
+            constants_str::RUNTIME_FORWARDED_FOR_HEADER_NAME,
+            http::HeaderValue::from_static(constants_str::VALUE_203_0_113_2),
         );
         assert_eq!(
             resolved(&headers, "10.0.0.10:80", vec![range("10.0.0.0/24")]),
@@ -417,11 +417,11 @@ mod tests {
     }
     #[test]
     fn oversized_header_falls_back_without_reflecting_input() {
-        let oversized = str_constants::VALUE_1
-            .repeat(super::MAX_FORWARDED_HEADER_BYTES.saturating_add(usize_constants::ONE));
+        let oversized = constants_str::VALUE_1
+            .repeat(super::MAX_FORWARDED_HEADER_BYTES.saturating_add(constants_usize::ONE));
         let mut headers = http::HeaderMap::new();
         let _previous = headers.insert(
-            str_constants::RUNTIME_FORWARDED_FOR_HEADER_NAME,
+            constants_str::RUNTIME_FORWARDED_FOR_HEADER_NAME,
             http::HeaderValue::from_str(oversized.as_str()).expect(
                 "6353255d oversized_header_falls_back_without_reflecting_input invariant must hold",
             ),

@@ -101,7 +101,7 @@ pub(super) async fn export_log(
             super::AdminError::pg(sqlx_error)
         }
     })?;
-    let mut csv = String::from(str_constants::AUDIT_CSV_HEADER);
+    let mut csv = String::from(constants_str::AUDIT_CSV_HEADER);
     page.items().iter().for_each(|value| {
         let fields = [
             value.id().to_string(),
@@ -123,7 +123,7 @@ pub(super) async fn export_log(
         csv.push_str(
             fields
                 .map(|field| format!("\"{}\"", field.replace('"', "\"\"")))
-                .join(str_constants::TEXT_ALT_7)
+                .join(constants_str::TEXT_ALT_7)
                 .as_str(),
         );
         csv.push('\n');

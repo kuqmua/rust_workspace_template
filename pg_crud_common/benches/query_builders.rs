@@ -14,21 +14,21 @@ fn identifier(value: &str) -> pg_crud_common::SqlIdentifier {
 fn bench_sql_select_builder(criterion: &mut criterion::Criterion) {
     [
         (
-            str_constants::SQL_SELECT_BUILDER_1_COLUMN,
-            usize_constants::ONE,
+            constants_str::SQL_SELECT_BUILDER_1_COLUMN,
+            constants_usize::ONE,
         ),
-        (str_constants::SQL_SELECT_BUILDER_16_COLUMNS, 16usize),
-        (str_constants::SQL_SELECT_BUILDER_128_COLUMNS, 128usize),
+        (constants_str::SQL_SELECT_BUILDER_16_COLUMNS, 16usize),
+        (constants_str::SQL_SELECT_BUILDER_128_COLUMNS, 128usize),
     ]
     .into_iter()
     .for_each(|(benchmark_name, columns_len)| {
-        let columns = (usize_constants::ZERO..columns_len)
+        let columns = (constants_usize::ZERO..columns_len)
             .map(|idx| identifier(format!("column_{idx}").as_str()))
             .collect::<Vec<_>>();
         let builder = pg_crud_common::SqlSelectBuilder::new(
             pg_crud_common::SqlQualifiedIdentifier::new(
-                identifier(str_constants::PUBLIC),
-                identifier(str_constants::BENCHMARK_TABLE),
+                identifier(constants_str::PUBLIC),
+                identifier(constants_str::BENCHMARK_TABLE),
             ),
             columns.into(),
         );
@@ -47,7 +47,7 @@ fn bench_sql_select_builder(criterion: &mut criterion::Criterion) {
 fn bench_sql_like_pattern(criterion: &mut criterion::Criterion) {
     let input = "a%b_c\\d".repeat(32usize);
     let _criterion = criterion.bench_function(
-        str_constants::SQL_LIKE_PATTERN_RESERVED_256_BYTES,
+        constants_str::SQL_LIKE_PATTERN_RESERVED_256_BYTES,
         |bencher| {
             bencher.iter(|| {
                 let pattern = pg_crud_common::build_sql_like_pattern(
@@ -65,16 +65,16 @@ fn bench_sql_like_pattern(criterion: &mut criterion::Criterion) {
 )]
 fn bench_stable_read_query_plan(criterion: &mut criterion::Criterion) {
     let base = pg_crud_common::QueryPartFragment::try_from(String::from(
-        str_constants::TEST_READ_QUERY_BASE,
+        constants_str::TEST_READ_QUERY_BASE,
     ))
     .expect("bdca9e10 bench_stable_read_query_plan invariant must hold");
-    let sort_column = identifier(str_constants::CREATED_AT);
-    let tie_break_column = identifier(str_constants::SQL_NAMES_ID);
+    let sort_column = identifier(constants_str::CREATED_AT);
+    let tie_break_column = identifier(constants_str::SQL_NAMES_ID);
     let limit_bind = std::num::NonZeroU32::new(1u32)
         .expect("54b6f80d bench_stable_read_query_plan invariant must hold");
     let offset_bind = std::num::NonZeroU32::new(2u32)
         .expect("f05a624b bench_stable_read_query_plan invariant must hold");
-    let _criterion = criterion.bench_function(str_constants::STABLE_READ_QUERY_PLAN, |bencher| {
+    let _criterion = criterion.bench_function(constants_str::STABLE_READ_QUERY_PLAN, |bencher| {
         bencher.iter(|| {
             let plan = pg_crud_common::build_stable_read_query_plan(
                 std::hint::black_box(base.clone()),

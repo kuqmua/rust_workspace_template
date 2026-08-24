@@ -9,9 +9,9 @@ license.workspace = true
 edition.workspace = true
 
 [dependencies]
-usize_constants = { workspace = true }
+constants_usize = { workspace = true }
 bounded_types = { workspace = true }
-str_constants = { workspace = true }
+constants_str = { workspace = true }
 axum = { workspace = true }
 serde = { workspace = true }
 server_runtime_http = { workspace = true }

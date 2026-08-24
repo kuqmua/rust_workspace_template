@@ -106,63 +106,63 @@ pub fn mk_test_server_app_state() -> ServerAppState<'static> {
         ),
         config: server_config::Config {
             svc_mode: config_lib::types::SvcMode::Serve,
-            cors_allow_origin: config_lib::CorsAllowOrigin(str_constants::ASTERISK.to_owned()),
+            cors_allow_origin: config_lib::CorsAllowOrigin(constants_str::ASTERISK.to_owned()),
             content_security_policy: test_env(
                 config_lib::StdEnvVarOk::try_from(
-                    str_constants::TEST_CONTENT_SECURITY_POLICY.to_owned(),
+                    constants_str::TEST_CONTENT_SECURITY_POLICY.to_owned(),
                 )
                 .expect("957dc3b8 mk_test_server_app_state invariant must hold"),
             ),
             database_url: test_env(
                 config_lib::StdEnvVarOk::try_from(
-                    str_constants::TEST_VALUES_UNREACHABLE_DATABASE_URL.to_owned(),
+                    constants_str::TEST_VALUES_UNREACHABLE_DATABASE_URL.to_owned(),
                 )
                 .expect("3e33c100 mk_test_server_app_state invariant must hold"),
             ),
             admin_jwt_secret: test_env(
                 config_lib::StdEnvVarOk::try_from(
-                    str_constants::TEST_ONLY_ADMIN_JWT_SECRET_WITH_32_BYTES.to_owned(),
+                    constants_str::TEST_ONLY_ADMIN_JWT_SECRET_WITH_32_BYTES.to_owned(),
                 )
                 .expect("f29cc79a mk_test_server_app_state invariant must hold"),
             ),
             admin_token_audience: test_env(
-                config_lib::StdEnvVarOk::try_from(str_constants::TEST_AUDIENCE.to_owned())
+                config_lib::StdEnvVarOk::try_from(constants_str::TEST_AUDIENCE.to_owned())
                     .expect("5b218444 mk_test_server_app_state invariant must hold"),
             ),
             admin_token_issuer: test_env(
-                config_lib::StdEnvVarOk::try_from(str_constants::TEST_ISSUER.to_owned())
+                config_lib::StdEnvVarOk::try_from(constants_str::TEST_ISSUER.to_owned())
                     .expect("8357484d mk_test_server_app_state invariant must hold"),
             ),
             admin_access_token_ttl_seconds: test_env(
-                config_lib::StdEnvVarOk::try_from(str_constants::VALUE_900.to_owned())
+                config_lib::StdEnvVarOk::try_from(constants_str::VALUE_900.to_owned())
                     .expect("4e1b2430 mk_test_server_app_state invariant must hold"),
             ),
             admin_password_hash_concurrency: test_env(
-                config_lib::StdEnvVarOk::try_from(str_constants::VALUE_1.to_owned())
+                config_lib::StdEnvVarOk::try_from(constants_str::VALUE_1.to_owned())
                     .expect("763e1bd9 mk_test_server_app_state invariant must hold"),
             ),
             admin_login_failure_limit: test_env(
-                config_lib::StdEnvVarOk::try_from(str_constants::VALUE_10.to_owned())
+                config_lib::StdEnvVarOk::try_from(constants_str::VALUE_10.to_owned())
                     .expect("fb8d620e mk_test_server_app_state invariant must hold"),
             ),
             admin_refresh_token_ttl_seconds: test_env(
-                config_lib::StdEnvVarOk::try_from(str_constants::VALUE_3600.to_owned())
+                config_lib::StdEnvVarOk::try_from(constants_str::VALUE_3600.to_owned())
                     .expect("467a6513 mk_test_server_app_state invariant must hold"),
             ),
             admin_session_limit: test_env(
-                config_lib::StdEnvVarOk::try_from(str_constants::VALUE_20.to_owned())
+                config_lib::StdEnvVarOk::try_from(constants_str::VALUE_20.to_owned())
                     .expect("b26f4a08 mk_test_server_app_state invariant must hold"),
             ),
             admin_sign_in_rate_limit: test_env(
-                config_lib::StdEnvVarOk::try_from(str_constants::VALUE_10.to_owned())
+                config_lib::StdEnvVarOk::try_from(constants_str::VALUE_10.to_owned())
                     .expect("53224f39 mk_test_server_app_state invariant must hold"),
             ),
             admin_swagger_enabled: test_env(
-                config_lib::StdEnvVarOk::try_from(str_constants::TRUE.to_owned())
+                config_lib::StdEnvVarOk::try_from(constants_str::TRUE.to_owned())
                     .expect("818b46e8 mk_test_server_app_state invariant must hold"),
             ),
             http_gzip_enabled: test_env(
-                config_lib::StdEnvVarOk::try_from(str_constants::TRUE.to_owned())
+                config_lib::StdEnvVarOk::try_from(constants_str::TRUE.to_owned())
                     .expect("7c36108e mk_test_server_app_state invariant must hold"),
             ),
             production_mode: config_lib::ProductionMode::from(false),
@@ -171,30 +171,30 @@ pub fn mk_test_server_app_state() -> ServerAppState<'static> {
             )
             .expect("d7a590e3 mk_test_server_app_state invariant must hold"),
             service_socket_address: config_lib::ServiceSocketAddress(
-                str_constants::VALUE_127_0_0_1_3000
+                constants_str::VALUE_127_0_0_1_3000
                     .parse()
                     .expect("9cba6537 mk_test_server_app_state invariant must hold"),
             ),
             pg_pool_max_connections: config_lib::PgPoolMaxConnections::try_from(1u32)
                 .expect("58530f0e mk_test_server_app_state invariant must hold"),
             pg_pool_min_connections: test_env(
-                config_lib::StdEnvVarOk::try_from(str_constants::VALUE_0.to_owned())
+                config_lib::StdEnvVarOk::try_from(constants_str::VALUE_0.to_owned())
                     .expect("d816fc9a mk_test_server_app_state invariant must hold"),
             ),
             pg_pool_acquire_timeout_seconds: test_env(
-                config_lib::StdEnvVarOk::try_from(str_constants::TEST_VALUE_30.to_owned())
+                config_lib::StdEnvVarOk::try_from(constants_str::TEST_VALUE_30.to_owned())
                     .expect("48634ca9 mk_test_server_app_state invariant must hold"),
             ),
             pg_pool_idle_timeout_seconds: test_env(
-                config_lib::StdEnvVarOk::try_from(str_constants::TEST_VALUE_30.to_owned())
+                config_lib::StdEnvVarOk::try_from(constants_str::TEST_VALUE_30.to_owned())
                     .expect("4d68545f mk_test_server_app_state invariant must hold"),
             ),
             pg_pool_max_lifetime_seconds: test_env(
-                config_lib::StdEnvVarOk::try_from(str_constants::TEST_VALUE_30.to_owned())
+                config_lib::StdEnvVarOk::try_from(constants_str::TEST_VALUE_30.to_owned())
                     .expect("8b271546 mk_test_server_app_state invariant must hold"),
             ),
             request_timeout_seconds: test_env(
-                config_lib::StdEnvVarOk::try_from(str_constants::TEST_VALUE_30.to_owned())
+                config_lib::StdEnvVarOk::try_from(constants_str::TEST_VALUE_30.to_owned())
                     .expect("1e6a4c92 mk_test_server_app_state invariant must hold"),
             ),
             timezone: config_lib::ChronoTimezone::try_from(
@@ -206,11 +206,11 @@ pub fn mk_test_server_app_state() -> ServerAppState<'static> {
             tracing_level: config_lib::TracingLevel(config_lib::types::TracingLevel::Info),
             tracing_format: config_lib::types::TracingFormat::Text,
             trusted_proxy_ranges_text: config_lib::TrustedProxyRangesText(
-                str_constants::VALUE_127_0_0_1_32_PATH_1_128.to_owned(),
+                constants_str::VALUE_127_0_0_1_32_PATH_1_128.to_owned(),
             ),
             enable_api_git_commit_check: config_lib::EnableApiGitCommitCheck(false),
             admin_cookie_secure: test_env(
-                config_lib::StdEnvVarOk::try_from(str_constants::FALSE.to_owned())
+                config_lib::StdEnvVarOk::try_from(constants_str::FALSE.to_owned())
                     .expect("dbe97ef3 mk_test_server_app_state invariant must hold"),
             ),
         },
@@ -219,7 +219,7 @@ pub fn mk_test_server_app_state() -> ServerAppState<'static> {
                 .expect("799dc227 mk_test_server_app_state invariant must hold"),
         ),
         pg_pool: app_state::SqlxPgPool::from(
-            sqlx::PgPool::connect_lazy(str_constants::TEST_VALUES_UNREACHABLE_DATABASE_URL)
+            sqlx::PgPool::connect_lazy(constants_str::TEST_VALUES_UNREACHABLE_DATABASE_URL)
                 .expect("d53d8ff0 mk_test_server_app_state invariant must hold"),
         ),
         project_git_info: git_info::project_git_info(),
@@ -229,7 +229,7 @@ pub fn mk_test_server_app_state() -> ServerAppState<'static> {
 mod tests {
     fn mk_git_info() -> git_info::ProjectGitInfo<'static> {
         git_info::ProjectGitInfo::from(git_info::GitCommitIdRef::from(
-            str_constants::TEST_VALUES_COMMIT,
+            constants_str::TEST_VALUES_COMMIT,
         ))
     }
     fn env<T>(value: &str) -> T
@@ -251,36 +251,36 @@ mod tests {
             ),
             config: server_config::Config {
                 svc_mode: config_lib::types::SvcMode::Serve,
-                cors_allow_origin: config_lib::CorsAllowOrigin(str_constants::ASTERISK.to_owned()),
-                content_security_policy: env(str_constants::TEST_CONTENT_SECURITY_POLICY),
-                database_url: env(str_constants::POSTGRES_DB),
-                admin_jwt_secret: env(str_constants::TEST_ONLY_ADMIN_JWT_SECRET_WITH_32_BYTES),
-                admin_token_audience: env(str_constants::TEST_AUDIENCE),
-                admin_token_issuer: env(str_constants::TEST_ISSUER),
-                admin_access_token_ttl_seconds: env(str_constants::VALUE_900),
-                admin_login_failure_limit: env(str_constants::VALUE_10),
-                admin_password_hash_concurrency: env(str_constants::VALUE_4),
-                admin_refresh_token_ttl_seconds: env(str_constants::VALUE_2592000),
-                admin_session_limit: env(str_constants::VALUE_20),
-                admin_sign_in_rate_limit: env(str_constants::VALUE_10),
-                admin_swagger_enabled: env(str_constants::TRUE),
-                http_gzip_enabled: env(str_constants::TRUE),
+                cors_allow_origin: config_lib::CorsAllowOrigin(constants_str::ASTERISK.to_owned()),
+                content_security_policy: env(constants_str::TEST_CONTENT_SECURITY_POLICY),
+                database_url: env(constants_str::POSTGRES_DB),
+                admin_jwt_secret: env(constants_str::TEST_ONLY_ADMIN_JWT_SECRET_WITH_32_BYTES),
+                admin_token_audience: env(constants_str::TEST_AUDIENCE),
+                admin_token_issuer: env(constants_str::TEST_ISSUER),
+                admin_access_token_ttl_seconds: env(constants_str::VALUE_900),
+                admin_login_failure_limit: env(constants_str::VALUE_10),
+                admin_password_hash_concurrency: env(constants_str::VALUE_4),
+                admin_refresh_token_ttl_seconds: env(constants_str::VALUE_2592000),
+                admin_session_limit: env(constants_str::VALUE_20),
+                admin_sign_in_rate_limit: env(constants_str::VALUE_10),
+                admin_swagger_enabled: env(constants_str::TRUE),
+                http_gzip_enabled: env(constants_str::TRUE),
                 production_mode: config_lib::ProductionMode::from(false),
                 maximum_size_of_http_body_in_bytes:
                     config_lib::MaximumSizeOfHttpBodyInBytes::try_from(16_384)
                         .expect("d81f6a42 mk_structure invariant must hold"),
                 service_socket_address: config_lib::ServiceSocketAddress(
-                    str_constants::VALUE_127_0_0_1_3000
+                    constants_str::VALUE_127_0_0_1_3000
                         .parse()
                         .expect("73f8bc91 mk_structure invariant must hold"),
                 ),
                 pg_pool_max_connections: config_lib::PgPoolMaxConnections::try_from(7)
                     .expect("f20c4a91 mk_structure invariant must hold"),
-                pg_pool_min_connections: env(str_constants::VALUE_0),
-                pg_pool_acquire_timeout_seconds: env(str_constants::TEST_VALUE_30),
-                pg_pool_idle_timeout_seconds: env(str_constants::TEST_VALUE_30),
-                pg_pool_max_lifetime_seconds: env(str_constants::TEST_VALUE_30),
-                request_timeout_seconds: env(str_constants::TEST_VALUE_30),
+                pg_pool_min_connections: env(constants_str::VALUE_0),
+                pg_pool_acquire_timeout_seconds: env(constants_str::TEST_VALUE_30),
+                pg_pool_idle_timeout_seconds: env(constants_str::TEST_VALUE_30),
+                pg_pool_max_lifetime_seconds: env(constants_str::TEST_VALUE_30),
+                request_timeout_seconds: env(constants_str::TEST_VALUE_30),
                 timezone: config_lib::ChronoTimezone::try_from(
                     chrono::FixedOffset::east_opt(3i32 * 3_600i32)
                         .expect("a95d3c17 mk_structure invariant must hold"),
@@ -290,18 +290,18 @@ mod tests {
                 tracing_level: config_lib::TracingLevel(config_lib::types::TracingLevel::Info),
                 tracing_format: config_lib::types::TracingFormat::Text,
                 trusted_proxy_ranges_text: config_lib::TrustedProxyRangesText(
-                    str_constants::VALUE_127_0_0_1_32_PATH_1_128.to_owned(),
+                    constants_str::VALUE_127_0_0_1_32_PATH_1_128.to_owned(),
                 ),
                 enable_api_git_commit_check: config_lib::EnableApiGitCommitCheck(true),
-                admin_cookie_secure: env(str_constants::FALSE),
+                admin_cookie_secure: env(constants_str::FALSE),
             },
             pg_pool: app_state::SqlxPgPool::from(
-                sqlx::PgPool::connect_lazy(str_constants::POSTGRES_USR_PWD_LOCALHOST_5432_DB)
+                sqlx::PgPool::connect_lazy(constants_str::POSTGRES_USR_PWD_LOCALHOST_5432_DB)
                     .expect("4bd3f0a1 mk_structure invariant must hold"),
             ),
             idempotency_response_budget: server_runtime_core::ResourceBudget::new(
                 server_runtime_core::ResourceBudgetMaximum::try_from(
-                    usize_constants::VALUE_1_048_576,
+                    constants_usize::VALUE_1_048_576,
                 )
                 .expect("926ce310 mk_structure invariant must hold"),
             ),
@@ -355,10 +355,10 @@ mod tests {
     async fn as_ref_and_git_commit_link_are_consistent() {
         let git_info = mk_git_info();
         let structure = mk_structure(git_info);
-        assert_eq!(structure.as_ref(), str_constants::TEST_VALUES_COMMIT);
+        assert_eq!(structure.as_ref(), constants_str::TEST_VALUES_COMMIT);
         assert_eq!(
             git_info::GetGitCommitLink::get_git_commit_link(&structure),
-            git_info::git_commit_link(str_constants::TEST_VALUES_COMMIT)
+            git_info::git_commit_link(constants_str::TEST_VALUES_COMMIT)
         );
     }
 }

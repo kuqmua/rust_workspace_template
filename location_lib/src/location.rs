@@ -51,7 +51,7 @@ impl LocationLine {
     }
     #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
     const fn validate(value: &u32) -> Result<(), LocationCoordinateTryFromU32Error> {
-        if *value == u32_constants::ZERO {
+        if *value == constants_u32::ZERO {
             Err(LocationCoordinateTryFromU32Error)
         } else {
             Ok(())
@@ -90,7 +90,7 @@ impl LocationColumn {
     }
     #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
     const fn validate(value: &u32) -> Result<(), LocationCoordinateTryFromU32Error> {
-        if *value == u32_constants::ZERO {
+        if *value == constants_u32::ZERO {
             Err(LocationCoordinateTryFromU32Error)
         } else {
             Ok(())
@@ -136,7 +136,7 @@ impl utoipa::PartialSchema for StdLocationDuration {
     fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
         utoipa::openapi::ObjectBuilder::new()
             .property(
-                str_constants::SECS,
+                constants_str::SECS,
                 utoipa::openapi::ObjectBuilder::new()
                     .schema_type(utoipa::openapi::schema::Type::Integer)
                     .format(Some(utoipa::openapi::SchemaFormat::KnownFormat(
@@ -144,7 +144,7 @@ impl utoipa::PartialSchema for StdLocationDuration {
                     ))),
             )
             .property(
-                str_constants::NANOS,
+                constants_str::NANOS,
                 utoipa::openapi::ObjectBuilder::new()
                     .schema_type(utoipa::openapi::schema::Type::Integer)
                     .format(Some(utoipa::openapi::SchemaFormat::KnownFormat(
@@ -153,15 +153,15 @@ impl utoipa::PartialSchema for StdLocationDuration {
                     .minimum(Some(0.0))
                     .maximum(Some(999_999_999.0)),
             )
-            .required(str_constants::SECS)
-            .required(str_constants::NANOS)
+            .required(constants_str::SECS)
+            .required(constants_str::NANOS)
             .build()
             .into()
     }
 }
 impl utoipa::ToSchema for StdLocationDuration {
     fn name() -> std::borrow::Cow<'static, str> {
-        std::borrow::Cow::Borrowed(str_constants::STDLOCATIONDURATION)
+        std::borrow::Cow::Borrowed(constants_str::STDLOCATIONDURATION)
     }
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
@@ -226,7 +226,7 @@ impl Location {
         write!(
             f.0,
             "{}/blob/{}/{}#L{}",
-            str_constants::NAMING_GITHUB_URL,
+            constants_str::NAMING_GITHUB_URL,
             self.commit.as_ref(),
             file.0,
             line
@@ -251,7 +251,7 @@ impl Location {
         match self.datetime_with_tz() {
             Some(v) => write!(f.0, "{}", v.0.format("%Y-%m-%d %H:%M:%S")),
             None => {
-                f.0.write_str(str_constants::LOCATION_INCORRECT_DATETIME_MSG)
+                f.0.write_str(constants_str::LOCATION_INCORRECT_DATETIME_MSG)
             }
         }
     }
@@ -262,13 +262,13 @@ impl Location {
             self.line,
         )?;
         if let Some(v) = self.occr.as_ref() {
-            f.0.write_str(str_constants::TEXT)?;
+            f.0.write_str(constants_str::TEXT)?;
             self.fmt_github_location(
                 StdFmtRefMut::from(&mut *f.0),
                 LocationFileRef::from(v.file.as_ref()),
                 v.line,
             )?;
-            f.0.write_str(str_constants::TEXT_ALT_5)
+            f.0.write_str(constants_str::TEXT_ALT_5)
         } else {
             Ok(())
         }
@@ -291,14 +291,14 @@ impl Location {
             self.column,
         )?;
         if let Some(v) = self.occr.as_ref() {
-            f.0.write_str(str_constants::TEXT)?;
+            f.0.write_str(constants_str::TEXT)?;
             Self::fmt_src_location(
                 StdFmtRefMut::from(&mut *f.0),
                 LocationFileRef::from(v.file.as_ref()),
                 v.line,
                 v.column,
             )?;
-            f.0.write_str(str_constants::TEXT_ALT_5)
+            f.0.write_str(constants_str::TEXT_ALT_5)
         } else {
             Ok(())
         }
@@ -382,7 +382,7 @@ impl std::fmt::Display for Location {
             config_lib::types::SrcPlaceType::from_env_or_default(),
             StdFmtRefMut::from(&mut *f),
         )?;
-        f.write_str(str_constants::SPACE)?;
+        f.write_str(constants_str::SPACE)?;
         self.fmt_datetime(StdFmtRefMut::from(&mut *f))
     }
 }
@@ -411,10 +411,10 @@ mod tests {
     }
     fn test_location(duration: std::time::Duration, occr: Option<super::Occr>) -> super::Location {
         super::Location {
-            file: super::LocationFile::try_from(String::from(str_constants::SRC_LIB_RS))
+            file: super::LocationFile::try_from(String::from(constants_str::SRC_LIB_RS))
                 .unwrap_or_else(super::LocationFile::from),
             commit: super::LocationCommit::try_from(String::from(
-                str_constants::TEST_VALUES_COMMIT,
+                constants_str::TEST_VALUES_COMMIT,
             ))
             .unwrap_or_else(super::LocationCommit::from),
             duration: super::StdLocationDuration::from(duration),
@@ -427,7 +427,7 @@ mod tests {
     }
     fn test_occr() -> super::Occr {
         super::Occr {
-            file: super::LocationFile::try_from(String::from(str_constants::SRC_ERROR_RS))
+            file: super::LocationFile::try_from(String::from(constants_str::SRC_ERROR_RS))
                 .unwrap_or_else(super::LocationFile::from),
             line: super::LocationLine::try_from(30)
                 .expect("1fbd3424 test_occr invariant must hold"),
@@ -470,7 +470,7 @@ mod tests {
             fmt_place(&location, config_lib::types::SrcPlaceType::Github),
             format!(
                 "{}/blob/abc123/src/lib.rs#L10",
-                str_constants::NAMING_GITHUB_URL
+                constants_str::NAMING_GITHUB_URL
             )
         );
     }
@@ -481,8 +481,8 @@ mod tests {
             fmt_place(&location, config_lib::types::SrcPlaceType::Github),
             format!(
                 "{}/blob/abc123/src/lib.rs#L10 ({}/blob/abc123/src/error.rs#L30)",
-                str_constants::NAMING_GITHUB_URL,
-                str_constants::NAMING_GITHUB_URL
+                constants_str::NAMING_GITHUB_URL,
+                constants_str::NAMING_GITHUB_URL
             )
         );
     }
@@ -496,7 +496,7 @@ mod tests {
                     location: &location
                 }
             ),
-            str_constants::LOCATION_INCORRECT_DATETIME_MSG
+            constants_str::LOCATION_INCORRECT_DATETIME_MSG
         );
     }
     #[test]
@@ -519,7 +519,7 @@ mod tests {
     }
     #[test]
     fn location_text_deserialization_uses_bounded_try_from() {
-        let oversized = "x".repeat(super::LOC_FILE_MAX_LEN + usize_constants::ONE);
+        let oversized = "x".repeat(super::LOC_FILE_MAX_LEN + constants_usize::ONE);
         let _file_error = <super::LocationFile as serde::Deserialize>::deserialize(
             serde::de::value::StringDeserializer::<serde::de::value::Error>::new(oversized.clone()),
         )
@@ -531,9 +531,9 @@ mod tests {
     }
     #[test]
     fn coordinates_and_nanoseconds_reject_zero_based_or_overflowing_values() {
-        let _line_error = super::LocationLine::try_from(u32_constants::ZERO).expect_err("f4dfc0b1");
+        let _line_error = super::LocationLine::try_from(constants_u32::ZERO).expect_err("f4dfc0b1");
         let _column_error =
-            super::LocationColumn::try_from(u32_constants::ZERO).expect_err("86102562");
+            super::LocationColumn::try_from(constants_u32::ZERO).expect_err("86102562");
         let _nanos_error =
             super::StdTimeDurationNanos::try_from(1_000_000_000u32).expect_err("c342a3f2");
     }

@@ -102,37 +102,37 @@ where
 }
 fn router() -> AxumAdminApiTestRouter {
     let pool = sqlx::postgres::PgPoolOptions::new()
-        .connect_lazy(str_constants::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION)
+        .connect_lazy(constants_str::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION)
         .expect("27db915c router invariant must hold");
     let state = server_admin::auth::AdminAuthSvcState::try_new(
         app_state::SqlxPgPool::from(pool),
         &env::<config_lib::AdminJwtSecret>(StdAdminApiTestStrRef::from(
-            str_constants::INTEGRATION_TEST_JWT_SECRET_AT_LEAST_32_BYTES,
+            constants_str::INTEGRATION_TEST_JWT_SECRET_AT_LEAST_32_BYTES,
         )),
         &env::<config_lib::AdminAccessTokenTtlSeconds>(StdAdminApiTestStrRef::from(
-            str_constants::VALUE_900,
+            constants_str::VALUE_900,
         )),
         &env::<config_lib::AdminRefreshTokenTtlSeconds>(StdAdminApiTestStrRef::from(
-            str_constants::VALUE_3600,
+            constants_str::VALUE_3600,
         )),
-        &env::<config_lib::AdminSessionLimit>(StdAdminApiTestStrRef::from(str_constants::VALUE_20)),
+        &env::<config_lib::AdminSessionLimit>(StdAdminApiTestStrRef::from(constants_str::VALUE_20)),
         &env::<config_lib::AdminSignInRateLimit>(StdAdminApiTestStrRef::from(
-            str_constants::VALUE_2,
+            constants_str::VALUE_2,
         )),
         &env::<config_lib::AdminLoginFailureLimit>(StdAdminApiTestStrRef::from(
-            str_constants::VALUE_10,
+            constants_str::VALUE_10,
         )),
         &env::<config_lib::AdminPasswordHashConcurrency>(StdAdminApiTestStrRef::from(
-            str_constants::VALUE_1,
+            constants_str::VALUE_1,
         )),
-        &env::<config_lib::AdminCookieSecure>(StdAdminApiTestStrRef::from(str_constants::FALSE)),
+        &env::<config_lib::AdminCookieSecure>(StdAdminApiTestStrRef::from(constants_str::FALSE)),
         &env::<config_lib::AdminTokenIssuer>(StdAdminApiTestStrRef::from(
-            str_constants::INTEGRATION_TEST,
+            constants_str::INTEGRATION_TEST,
         )),
         &env::<config_lib::AdminTokenAudience>(StdAdminApiTestStrRef::from(
-            str_constants::INTEGRATION_TEST_ADMIN,
+            constants_str::INTEGRATION_TEST_ADMIN,
         )),
-        &config_lib::CorsAllowOrigin(str_constants::HTTP_LOCALHOST.to_owned()),
+        &config_lib::CorsAllowOrigin(constants_str::HTTP_LOCALHOST.to_owned()),
     )
     .expect("f7d8c961 router invariant must hold");
     AxumAdminApiTestRouter::from(axum::Router::from(server_admin::auth::routes(
@@ -143,32 +143,32 @@ fn router_with_pool(pool: &SqlxAdminApiTestPool) -> AxumAdminApiTestRouter {
     let state = server_admin::auth::AdminAuthSvcState::try_new(
         app_state::SqlxPgPool::from(pool.0.clone()),
         &env::<config_lib::AdminJwtSecret>(StdAdminApiTestStrRef::from(
-            str_constants::INTEGRATION_TEST_JWT_SECRET_AT_LEAST_32_BYTES,
+            constants_str::INTEGRATION_TEST_JWT_SECRET_AT_LEAST_32_BYTES,
         )),
         &env::<config_lib::AdminAccessTokenTtlSeconds>(StdAdminApiTestStrRef::from(
-            str_constants::VALUE_900,
+            constants_str::VALUE_900,
         )),
         &env::<config_lib::AdminRefreshTokenTtlSeconds>(StdAdminApiTestStrRef::from(
-            str_constants::VALUE_3600,
+            constants_str::VALUE_3600,
         )),
-        &env::<config_lib::AdminSessionLimit>(StdAdminApiTestStrRef::from(str_constants::VALUE_20)),
+        &env::<config_lib::AdminSessionLimit>(StdAdminApiTestStrRef::from(constants_str::VALUE_20)),
         &env::<config_lib::AdminSignInRateLimit>(StdAdminApiTestStrRef::from(
-            str_constants::VALUE_2,
+            constants_str::VALUE_2,
         )),
         &env::<config_lib::AdminLoginFailureLimit>(StdAdminApiTestStrRef::from(
-            str_constants::VALUE_10,
+            constants_str::VALUE_10,
         )),
         &env::<config_lib::AdminPasswordHashConcurrency>(StdAdminApiTestStrRef::from(
-            str_constants::VALUE_1,
+            constants_str::VALUE_1,
         )),
-        &env::<config_lib::AdminCookieSecure>(StdAdminApiTestStrRef::from(str_constants::FALSE)),
+        &env::<config_lib::AdminCookieSecure>(StdAdminApiTestStrRef::from(constants_str::FALSE)),
         &env::<config_lib::AdminTokenIssuer>(StdAdminApiTestStrRef::from(
-            str_constants::INTEGRATION_TEST,
+            constants_str::INTEGRATION_TEST,
         )),
         &env::<config_lib::AdminTokenAudience>(StdAdminApiTestStrRef::from(
-            str_constants::INTEGRATION_TEST_ADMIN,
+            constants_str::INTEGRATION_TEST_ADMIN,
         )),
-        &config_lib::CorsAllowOrigin(str_constants::HTTP_LOCALHOST.to_owned()),
+        &config_lib::CorsAllowOrigin(constants_str::HTTP_LOCALHOST.to_owned()),
     )
     .expect("a59d73c1 router_with_pool invariant must hold");
     AxumAdminApiTestRouter::from(axum::Router::from(server_admin::auth::routes(
@@ -188,7 +188,7 @@ fn request_with_peer(
         body,
         cookie,
         csrf,
-        StdAdminApiTestStrRef::from(str_constants::VALUE_127_0_0_1_43210),
+        StdAdminApiTestStrRef::from(constants_str::VALUE_127_0_0_1_43210),
     )
 }
 fn request_with_peer_at(
@@ -202,13 +202,13 @@ fn request_with_peer_at(
     let mut builder = http::Request::builder()
         .method(method.0)
         .uri(uri.0)
-        .header(http::header::CONTENT_TYPE, str_constants::APPLICATION_JSON)
-        .header(http::header::ORIGIN, str_constants::HTTP_LOCALHOST);
+        .header(http::header::CONTENT_TYPE, constants_str::APPLICATION_JSON)
+        .header(http::header::ORIGIN, constants_str::HTTP_LOCALHOST);
     if let Some(value) = cookie {
         builder = builder.header(http::header::COOKIE, value.0);
     }
     if let Some(value) = csrf {
-        builder = builder.header(str_constants::X_CSRF_TOKEN_ALT, value.0);
+        builder = builder.header(constants_str::X_CSRF_TOKEN_ALT, value.0);
     }
     let mut request = builder
         .body(axum::body::Body::from(body.0.to_owned()))
@@ -231,9 +231,9 @@ fn html_request_with_peer(
         .uri(uri.0)
         .header(
             http::header::CONTENT_TYPE,
-            str_constants::APPLICATION_X_WWW_FORM_URLENCODED,
+            constants_str::APPLICATION_X_WWW_FORM_URLENCODED,
         )
-        .header(http::header::ORIGIN, str_constants::HTTP_LOCALHOST);
+        .header(http::header::ORIGIN, constants_str::HTTP_LOCALHOST);
     if let Some(value) = cookie {
         builder = builder.header(http::header::COOKIE, value.0);
     }
@@ -241,7 +241,7 @@ fn html_request_with_peer(
         .body(axum::body::Body::from(body.0.to_owned()))
         .expect("9f211b84 html_request_with_peer invariant must hold");
     let _previous_peer = request.extensions_mut().insert(axum::extract::ConnectInfo(
-        str_constants::VALUE_127_0_0_1_43210
+        constants_str::VALUE_127_0_0_1_43210
             .parse::<std::net::SocketAddr>()
             .expect("bcd41a67 html_request_with_peer invariant must hold"),
     ));
@@ -291,7 +291,7 @@ async fn admin_html_response(
     .expect("3cb98672 admin_html_response invariant must hold")
 }
 async fn admin_html_body(response: HttpAdminHtmlTestResponse) -> AdminHtmlTestBody {
-    axum::body::to_bytes(response.0.into_body(), usize_constants::VALUE_1_048_576)
+    axum::body::to_bytes(response.0.into_body(), constants_usize::VALUE_1_048_576)
         .await
         .map(|bytes| {
             String::from_utf8(bytes.to_vec()).expect("86547438 admin_html_body invariant must hold")
@@ -321,7 +321,7 @@ fn assert_admin_csr_shell(body: &AdminHtmlTestBody) {
 async fn admin_html_test_fixture_with_password_change(
     password_change_required: server_admin_contract::AdminBool,
 ) -> AdminHtmlTestFixture {
-    let database_url = std::env::var(str_constants::ENV_NAMES_DATABASE_URL)
+    let database_url = std::env::var(constants_str::ENV_NAMES_DATABASE_URL)
         .expect("fbe54d19 admin_html_test_fixture_with_password_change invariant must hold");
     let pool = SqlxAdminApiTestPool::from(
         sqlx::postgres::PgPoolOptions::new()
@@ -335,7 +335,7 @@ async fn admin_html_test_fixture_with_password_change(
         .begin()
         .await
         .expect("37480e56 admin_html_test_fixture_with_password_change invariant must hold");
-    let _locked = sqlx::query(str_constants::SELECT_PG_ADVISORY_XACT_LOCK_ADMIN_TESTS)
+    let _locked = sqlx::query(constants_str::SELECT_PG_ADVISORY_XACT_LOCK_ADMIN_TESTS)
         .execute(&mut *lock)
         .await
         .expect("a6b7c8d9 admin_html_test_fixture_with_password_change invariant must hold");
@@ -343,7 +343,7 @@ async fn admin_html_test_fixture_with_password_change(
         .await
         .expect("45de3a61 admin_html_test_fixture_with_password_change invariant must hold");
     let _truncated = sqlx::query(
-        str_constants::TRUNCATE_ADMIN_RATE_LIMITS_ADMIN_AUDIT_LOG_ADMIN_LOGIN_ATTEMPTS_ADMIN_ACCESS,
+        constants_str::TRUNCATE_ADMIN_RATE_LIMITS_ADMIN_AUDIT_LOG_ADMIN_LOGIN_ATTEMPTS_ADMIN_ACCESS,
     )
     .execute(&pool.0)
     .await
@@ -353,21 +353,21 @@ async fn admin_html_test_fixture_with_password_change(
         .await
         .expect("b267a647 admin_html_test_fixture_with_password_change invariant must hold");
     let password = serde_json::from_str::<server_admin_contract::AdminNewPassword>(
-        str_constants::CORRECT_PASSWORD,
+        constants_str::CORRECT_PASSWORD,
     )
     .expect("d20a35e4 admin_html_test_fixture_with_password_change invariant must hold");
     let hasher = server_admin::AdminPasswordHasher::new(
         server_admin::AdminPasswordHashConcurrency::from(server_admin::StdAdminNonZeroUsize::from(
-            std::num::NonZeroUsize::new(usize_constants::ONE).expect(
+            std::num::NonZeroUsize::new(constants_usize::ONE).expect(
                 "560498ab admin_html_test_fixture_with_password_change invariant must hold",
             ),
         )),
     );
     let _created_admin_id = server_admin::bootstrap_admin(
         app_state::SqlxPgPoolRef::from(&pool.0),
-        server_admin::AdminLogin::try_from(str_constants::ADMIN_ALT.to_owned())
+        server_admin::AdminLogin::try_from(constants_str::ADMIN_ALT.to_owned())
             .expect("6a417bde admin_html_test_fixture_with_password_change invariant must hold"),
-        server_admin::AdminDisplayName::try_from(str_constants::ADMIN.to_owned())
+        server_admin::AdminDisplayName::try_from(constants_str::ADMIN.to_owned())
             .expect("703fc568 admin_html_test_fixture_with_password_change invariant must hold"),
         password,
         &hasher,
@@ -376,7 +376,7 @@ async fn admin_html_test_fixture_with_password_change(
     .expect("1e29c87f admin_html_test_fixture_with_password_change invariant must hold");
     if !bool::from(password_change_required) {
         let _updated =
-            sqlx::query(str_constants::UPDATE_ADMIN_USERS_SET_MUST_CHANGE_PASSWORD_FALSE)
+            sqlx::query(constants_str::UPDATE_ADMIN_USERS_SET_MUST_CHANGE_PASSWORD_FALSE)
                 .execute(&pool.0)
                 .await
                 .expect(
@@ -386,32 +386,32 @@ async fn admin_html_test_fixture_with_password_change(
     let state = server_admin::auth::AdminAuthSvcState::try_new(
         app_state::SqlxPgPool::from(pool.0.clone()),
         &env::<config_lib::AdminJwtSecret>(StdAdminApiTestStrRef::from(
-            str_constants::INTEGRATION_TEST_JWT_SECRET_AT_LEAST_32_BYTES,
+            constants_str::INTEGRATION_TEST_JWT_SECRET_AT_LEAST_32_BYTES,
         )),
         &env::<config_lib::AdminAccessTokenTtlSeconds>(StdAdminApiTestStrRef::from(
-            str_constants::VALUE_900,
+            constants_str::VALUE_900,
         )),
         &env::<config_lib::AdminRefreshTokenTtlSeconds>(StdAdminApiTestStrRef::from(
-            str_constants::VALUE_3600,
+            constants_str::VALUE_3600,
         )),
-        &env::<config_lib::AdminSessionLimit>(StdAdminApiTestStrRef::from(str_constants::VALUE_20)),
+        &env::<config_lib::AdminSessionLimit>(StdAdminApiTestStrRef::from(constants_str::VALUE_20)),
         &env::<config_lib::AdminSignInRateLimit>(StdAdminApiTestStrRef::from(
-            str_constants::VALUE_20,
+            constants_str::VALUE_20,
         )),
         &env::<config_lib::AdminLoginFailureLimit>(StdAdminApiTestStrRef::from(
-            str_constants::VALUE_10,
+            constants_str::VALUE_10,
         )),
         &env::<config_lib::AdminPasswordHashConcurrency>(StdAdminApiTestStrRef::from(
-            str_constants::VALUE_1,
+            constants_str::VALUE_1,
         )),
-        &env::<config_lib::AdminCookieSecure>(StdAdminApiTestStrRef::from(str_constants::FALSE)),
+        &env::<config_lib::AdminCookieSecure>(StdAdminApiTestStrRef::from(constants_str::FALSE)),
         &env::<config_lib::AdminTokenIssuer>(StdAdminApiTestStrRef::from(
-            str_constants::INTEGRATION_TEST,
+            constants_str::INTEGRATION_TEST,
         )),
         &env::<config_lib::AdminTokenAudience>(StdAdminApiTestStrRef::from(
-            str_constants::INTEGRATION_TEST_ADMIN,
+            constants_str::INTEGRATION_TEST_ADMIN,
         )),
-        &config_lib::CorsAllowOrigin(str_constants::HTTP_LOCALHOST.to_owned()),
+        &config_lib::CorsAllowOrigin(constants_str::HTTP_LOCALHOST.to_owned()),
     )
     .expect("ec39b61d admin_html_test_fixture_with_password_change invariant must hold");
     let router = AxumAdminApiTestRouter::from(axum::Router::from(
@@ -420,11 +420,11 @@ async fn admin_html_test_fixture_with_password_change(
             server_admin::auth::AdminHtmlSwaggerEnabled::from(true),
         ),
     ));
-    let correct_password = serde_json::from_str::<String>(str_constants::CORRECT_PASSWORD)
+    let correct_password = serde_json::from_str::<String>(constants_str::CORRECT_PASSWORD)
         .expect("825e50c7 admin_html_test_fixture_with_password_change invariant must hold");
     let sign_in_body = AdminHtmlTestFormBody::try_from(format!(
         "login={}&password={correct_password}",
-        str_constants::ADMIN_ALT,
+        constants_str::ADMIN_ALT,
     ))
     .expect("9df2164c admin_html_test_fixture_with_password_change invariant must hold");
     let sign_in_response = tower::ServiceExt::oneshot(
@@ -442,22 +442,22 @@ async fn admin_html_test_fixture_with_password_change(
     assert_eq!(sign_in_response.status(), http::StatusCode::SEE_OTHER);
     let access = cookie_value(
         HttpAdminApiTestResponseRef::from(&sign_in_response),
-        StdAdminApiTestStrRef::from(str_constants::ADMIN_ACCESS_TOKEN),
+        StdAdminApiTestStrRef::from(constants_str::ADMIN_ACCESS_TOKEN),
     );
     let refresh = cookie_value(
         HttpAdminApiTestResponseRef::from(&sign_in_response),
-        StdAdminApiTestStrRef::from(str_constants::ADMIN_REFRESH_TOKEN_ALT),
+        StdAdminApiTestStrRef::from(constants_str::ADMIN_REFRESH_TOKEN_ALT),
     );
     let csrf = cookie_value(
         HttpAdminApiTestResponseRef::from(&sign_in_response),
-        StdAdminApiTestStrRef::from(str_constants::ADMIN_CSRF_TOKEN_ALT),
+        StdAdminApiTestStrRef::from(constants_str::ADMIN_CSRF_TOKEN_ALT),
     );
     AdminHtmlTestFixture {
         cookie: StdAdminApiTestCookie::try_from(format!(
             "{}{access}; {}{refresh}; {}{csrf}",
-            str_constants::ADMIN_ACCESS_TOKEN,
-            str_constants::ADMIN_REFRESH_TOKEN_ALT,
-            str_constants::ADMIN_CSRF_TOKEN_ALT,
+            constants_str::ADMIN_ACCESS_TOKEN,
+            constants_str::ADMIN_REFRESH_TOKEN_ALT,
+            constants_str::ADMIN_CSRF_TOKEN_ALT,
         ))
         .expect("a4df94d1 admin_html_test_fixture_with_password_change invariant must hold"),
         csrf,
@@ -480,10 +480,10 @@ async fn postgres_accepts_admin_user_policy_values(
         .begin()
         .await
         .expect("e6f2cdf7 postgres_accepts_admin_user_policy_values invariant must hold");
-    let accepted = sqlx::query(str_constants::INSERT_ADMIN_USER_POLICY_PROBE)
+    let accepted = sqlx::query(constants_str::INSERT_ADMIN_USER_POLICY_PROBE)
         .bind(login.0)
         .bind(display_name.0)
-        .bind(str_constants::X)
+        .bind(constants_str::X)
         .execute(&mut *transaction)
         .await
         .is_ok();
@@ -502,7 +502,7 @@ async fn postgres_accepts_admin_role_policy_value(
         .begin()
         .await
         .expect("77c2db82 postgres_accepts_admin_role_policy_value invariant must hold");
-    let accepted = sqlx::query(str_constants::INSERT_ADMIN_ROLE_POLICY_PROBE)
+    let accepted = sqlx::query(constants_str::INSERT_ADMIN_ROLE_POLICY_PROBE)
         .bind(name.0)
         .execute(&mut *transaction)
         .await

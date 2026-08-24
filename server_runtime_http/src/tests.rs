@@ -23,7 +23,7 @@ where
         }
         let _previous_count = self
             .error_count
-            .fetch_add(usize_constants::ONE, std::sync::atomic::Ordering::SeqCst);
+            .fetch_add(constants_usize::ONE, std::sync::atomic::Ordering::SeqCst);
         let mut visitor = HttpErrorEventFieldVisitor::default();
         event.record(&mut visitor);
         let _previous_mask = self
@@ -38,7 +38,7 @@ struct HttpErrorEventFieldVisitor {
 impl HttpErrorEventFieldVisitor {
     fn record_field(&mut self, field: &tracing::field::Field) {
         let bit = match field.name() {
-            "request_id" => 1u16 << u16_constants::ZERO,
+            "request_id" => 1u16 << constants_u16::ZERO,
             "trace_id" => 1u16 << 1u16,
             "service_name" => 1u16 << 2u16,
             "http_route" => 1u16 << 3u16,
@@ -50,7 +50,7 @@ impl HttpErrorEventFieldVisitor {
             "backtrace" => 1u16 << 9u16,
             "span_trace" => 1u16 << 10u16,
             "error_location" => 1u16 << 11u16,
-            _other => u16_constants::ZERO,
+            _other => constants_u16::ZERO,
         };
         self.mask |= bit;
     }
@@ -81,7 +81,7 @@ async fn request_span_uses_remote_parent_and_server_kind() {
     let dispatch = tracing::Dispatch::new(subscriber);
     let _dispatch_guard = tracing::dispatcher::set_default(&dispatch);
     let trusted_proxy_ranges = super::TrustedProxyRanges::try_from(vec![
-        super::TrustedProxyRange::try_from(str_constants::VALUE_127_0_0_1_32.to_owned())
+        super::TrustedProxyRange::try_from(constants_str::VALUE_127_0_0_1_32.to_owned())
             .expect("0bb46390 request_span_uses_remote_parent_and_server_kind invariant must hold"),
     ])
     .expect("04cbe253 request_span_uses_remote_parent_and_server_kind invariant must hold");
@@ -101,12 +101,12 @@ async fn request_span_uses_remote_parent_and_server_kind() {
     let mut request = axum::extract::Request::builder()
         .uri("/users/42")
         .header(
-            str_constants::TRACEPARENT,
-            str_constants::TRACEPARENT_TEST_VALUE,
+            constants_str::TRACEPARENT,
+            constants_str::TRACEPARENT_TEST_VALUE,
         )
         .header(
-            str_constants::RUNTIME_FORWARDED_FOR_HEADER_NAME,
-            str_constants::VALUE_203_0_113_1,
+            constants_str::RUNTIME_FORWARDED_FOR_HEADER_NAME,
+            constants_str::VALUE_203_0_113_1,
         )
         .body(axum::body::Body::empty())
         .expect("f56d84cc request_span_uses_remote_parent_and_server_kind invariant must hold");
@@ -130,10 +130,10 @@ async fn request_span_uses_remote_parent_and_server_kind() {
         .iter()
         .find(|span| span.name == "GET /users/{user_id}")
         .expect("fc30b586 request_span_uses_remote_parent_and_server_kind invariant must hold");
-    let expected_trace_id = str_constants::TRACEPARENT_TEST_VALUE
+    let expected_trace_id = constants_str::TRACEPARENT_TEST_VALUE
         .get(3usize..35usize)
         .expect("34620ae8 request_span_uses_remote_parent_and_server_kind invariant must hold");
-    let expected_parent_span_id = str_constants::TRACEPARENT_TEST_VALUE
+    let expected_parent_span_id = constants_str::TRACEPARENT_TEST_VALUE
         .get(36usize..52usize)
         .expect("9c70ecdf request_span_uses_remote_parent_and_server_kind invariant must hold");
     assert_eq!(
@@ -159,30 +159,30 @@ async fn request_span_uses_remote_parent_and_server_kind() {
     assert_eq!(attribute("http.request.method").as_deref(), Some("GET"));
     assert_eq!(attribute("http.route").as_deref(), Some("/users/{user_id}"));
     assert_eq!(
-        attribute(str_constants::OTEL_HTTP_RESPONSE_STATUS_CODE).as_deref(),
+        attribute(constants_str::OTEL_HTTP_RESPONSE_STATUS_CODE).as_deref(),
         Some("200")
     );
     assert_eq!(
-        attribute(str_constants::OTEL_SERVER_ADDRESS).as_deref(),
+        attribute(constants_str::OTEL_SERVER_ADDRESS).as_deref(),
         Some("127.0.0.1:8080")
     );
     assert_eq!(
-        attribute(str_constants::OTEL_CLIENT_ADDRESS).as_deref(),
-        Some(str_constants::VALUE_203_0_113_1)
+        attribute(constants_str::OTEL_CLIENT_ADDRESS).as_deref(),
+        Some(constants_str::VALUE_203_0_113_1)
     );
     assert_eq!(
-        attribute(str_constants::OTEL_SERVICE_NAME).as_deref(),
+        attribute(constants_str::OTEL_SERVICE_NAME).as_deref(),
         Some("server-runtime-test")
     );
     assert_eq!(
-        attribute(str_constants::OTEL_TRACE_ID).as_deref(),
+        attribute(constants_str::OTEL_TRACE_ID).as_deref(),
         Some(expected_trace_id)
     );
     assert_eq!(
-        attribute(str_constants::OTEL_SPAN_ID).as_deref(),
+        attribute(constants_str::OTEL_SPAN_ID).as_deref(),
         Some(request_span.span_context.span_id().to_string().as_str())
     );
-    assert_eq!(attribute(str_constants::OTEL_URL_PATH), None);
+    assert_eq!(attribute(constants_str::OTEL_URL_PATH), None);
     tracer_provider
         .shutdown()
         .expect("d478940b request_span_uses_remote_parent_and_server_kind invariant must hold");
@@ -259,15 +259,15 @@ async fn request_span_limits_url_path_and_records_error_telemetry() {
             .map(|attribute| attribute.value.to_string())
     };
     assert_eq!(
-        status_attribute(str_constants::OTEL_URL_PATH).as_deref(),
+        status_attribute(constants_str::OTEL_URL_PATH).as_deref(),
         Some("/status")
     );
     assert_eq!(
-        status_attribute(str_constants::OTEL_ERROR_TYPE).as_deref(),
+        status_attribute(constants_str::OTEL_ERROR_TYPE).as_deref(),
         Some("persistence.error")
     );
     assert_eq!(
-        status_attribute(str_constants::OTEL_ERROR_CODE).as_deref(),
+        status_attribute(constants_str::OTEL_ERROR_CODE).as_deref(),
         Some("database_unavailable")
     );
     let unmatched_span = spans
@@ -286,7 +286,7 @@ async fn request_span_limits_url_path_and_records_error_telemetry() {
         unmatched_span
             .attributes
             .iter()
-            .all(|attribute| attribute.key.as_str() != str_constants::OTEL_URL_PATH)
+            .all(|attribute| attribute.key.as_str() != constants_str::OTEL_URL_PATH)
     );
     let unmatched_attribute = |key| {
         unmatched_span
@@ -296,12 +296,12 @@ async fn request_span_limits_url_path_and_records_error_telemetry() {
             .map(|attribute| attribute.value.to_string())
     };
     assert_eq!(
-        unmatched_attribute(str_constants::OTEL_ERROR_TYPE).as_deref(),
-        Some(str_constants::OTEL_HTTP_CLIENT_ERROR_TYPE)
+        unmatched_attribute(constants_str::OTEL_ERROR_TYPE).as_deref(),
+        Some(constants_str::OTEL_HTTP_CLIENT_ERROR_TYPE)
     );
     assert_eq!(
-        unmatched_attribute(str_constants::OTEL_ERROR_CODE).as_deref(),
-        Some(str_constants::OTEL_HTTP_4XX_ERROR_CODE)
+        unmatched_attribute(constants_str::OTEL_ERROR_CODE).as_deref(),
+        Some(constants_str::OTEL_HTTP_4XX_ERROR_CODE)
     );
     tracer_provider.shutdown().expect(
         "a4f89d4d request_span_limits_url_path_and_records_error_telemetry invariant must hold",
@@ -316,8 +316,8 @@ async fn http_boundary_emits_one_complete_error_event_only_for_server_errors() {
         source: std::io::Error,
     }
     let error_count =
-        std::sync::Arc::new(std::sync::atomic::AtomicUsize::new(usize_constants::ZERO));
-    let field_mask = std::sync::Arc::new(std::sync::atomic::AtomicU16::new(u16_constants::ZERO));
+        std::sync::Arc::new(std::sync::atomic::AtomicUsize::new(constants_usize::ZERO));
+    let field_mask = std::sync::Arc::new(std::sync::atomic::AtomicU16::new(constants_u16::ZERO));
     let subscriber = tracing_subscriber::layer::SubscriberExt::with(
         tracing_subscriber::registry(),
         HttpErrorEventCapture {
@@ -399,7 +399,7 @@ async fn http_boundary_emits_one_complete_error_event_only_for_server_errors() {
     drop(server_error_response);
     assert_eq!(
         error_count.load(std::sync::atomic::Ordering::SeqCst),
-        usize_constants::ONE
+        constants_usize::ONE
     );
     assert_eq!(
         field_mask.load(std::sync::atomic::Ordering::SeqCst),
@@ -421,7 +421,7 @@ async fn http_boundary_emits_one_complete_error_event_only_for_server_errors() {
     drop(client_error_response);
     assert_eq!(
         error_count.load(std::sync::atomic::Ordering::SeqCst),
-        usize_constants::ONE
+        constants_usize::ONE
     );
 }
 #[test]
@@ -443,7 +443,7 @@ fn observed_client_preparation_injects_context_and_creates_child_span() {
     );
     let dispatch = tracing::Dispatch::new(subscriber);
     let _dispatch_guard = tracing::dispatcher::set_default(&dispatch);
-    let url = reqwest::Url::parse(str_constants::HTTPS_EXAMPLE_COM).expect("a0c9b8a8 observed_client_preparation_injects_context_and_creates_child_span invariant must hold");
+    let url = reqwest::Url::parse(constants_str::HTTPS_EXAMPLE_COM).expect("a0c9b8a8 observed_client_preparation_injects_context_and_creates_child_span invariant must hold");
     let mut request = super::ReqwestRequest::from(reqwest::Request::new(http::Method::GET, url));
     let root_span = tracing::info_span!("caller");
     let prepared_client_span =
@@ -452,7 +452,7 @@ fn observed_client_preparation_injects_context_and_creates_child_span() {
     assert!(
         prepared_request
             .headers()
-            .get(str_constants::TRACEPARENT)
+            .get(constants_str::TRACEPARENT)
             .is_some()
     );
     drop(prepared_client_span);

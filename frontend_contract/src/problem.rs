@@ -219,10 +219,10 @@ pub struct ApiProblemViolation {
     utoipa::ToSchema,
 )]
 #[serde(
-    from = "bounded_types::BoundedVec<ApiProblemViolation, { usize_constants::ZERO }, 128usize>"
+    from = "bounded_types::BoundedVec<ApiProblemViolation, { constants_usize::ZERO }, 128usize>"
 )]
 pub(crate) struct ApiProblemViolations(
-    bounded_types::BoundedVec<ApiProblemViolation, { usize_constants::ZERO }, 128usize>,
+    bounded_types::BoundedVec<ApiProblemViolation, { constants_usize::ZERO }, 128usize>,
 );
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
@@ -249,57 +249,57 @@ impl ApiProblem {
         let (kind, detail) = match error {
             ApiProblemError::Authentication => (
                 ApiProblemKind::Authentication,
-                str_constants::AUTHENTICATION_REQUIRED,
+                constants_str::AUTHENTICATION_REQUIRED,
             ),
             ApiProblemError::Authorization => (
                 ApiProblemKind::Authorization,
-                str_constants::AUTHORIZATION_FAILED,
+                constants_str::AUTHORIZATION_FAILED,
             ),
             ApiProblemError::Conflict => (
                 ApiProblemKind::Conflict,
-                str_constants::RESOURCE_STATE_CONFLICT,
+                constants_str::RESOURCE_STATE_CONFLICT,
             ),
             ApiProblemError::InProgress => (
                 ApiProblemKind::InProgress,
-                str_constants::MATCHING_REQUEST_IS_STILL_IN_PROGRESS,
+                constants_str::MATCHING_REQUEST_IS_STILL_IN_PROGRESS,
             ),
             ApiProblemError::Internal(_) | ApiProblemError::ServiceUnavailable => (
                 ApiProblemKind::Internal,
-                str_constants::INTERNAL_SERVER_ERROR,
+                constants_str::INTERNAL_SERVER_ERROR,
             ),
             ApiProblemError::InvalidRequest => (
                 ApiProblemKind::InvalidRequest,
-                str_constants::INVALID_REQUEST,
+                constants_str::INVALID_REQUEST,
             ),
             ApiProblemError::MethodNotAllowed => (
                 ApiProblemKind::MethodNotAllowed,
-                str_constants::METHOD_NOT_ALLOWED,
+                constants_str::METHOD_NOT_ALLOWED,
             ),
             ApiProblemError::NotFound => {
-                (ApiProblemKind::NotFound, str_constants::RESOURCE_NOT_FOUND)
+                (ApiProblemKind::NotFound, constants_str::RESOURCE_NOT_FOUND)
             }
             ApiProblemError::PayloadTooLarge => (
                 ApiProblemKind::PayloadTooLarge,
-                str_constants::REQUEST_BODY_IS_TOO_LARGE,
+                constants_str::REQUEST_BODY_IS_TOO_LARGE,
             ),
             ApiProblemError::Precondition => (
                 ApiProblemKind::Precondition,
-                str_constants::RESOURCE_PRECONDITION_FAILED,
+                constants_str::RESOURCE_PRECONDITION_FAILED,
             ),
             ApiProblemError::PreconditionRequired => (
                 ApiProblemKind::PreconditionRequired,
-                str_constants::REQUEST_PRECONDITION_IS_REQUIRED,
+                constants_str::REQUEST_PRECONDITION_IS_REQUIRED,
             ),
             ApiProblemError::RateLimited => (
                 ApiProblemKind::RateLimited,
-                str_constants::REQUEST_RATE_LIMIT_EXCEEDED_ALT,
+                constants_str::REQUEST_RATE_LIMIT_EXCEEDED_ALT,
             ),
             ApiProblemError::RequestFailed(_) => {
-                (ApiProblemKind::RequestFailed, str_constants::REQUEST_FAILED)
+                (ApiProblemKind::RequestFailed, constants_str::REQUEST_FAILED)
             }
             ApiProblemError::Validation => (
                 ApiProblemKind::Validation,
-                str_constants::REQUEST_VALIDATION_FAILED,
+                constants_str::REQUEST_VALIDATION_FAILED,
             ),
         };
         Self {
@@ -334,12 +334,12 @@ impl axum::response::IntoResponse for ApiProblemError {
         ));
         let _previous_content_type = response.headers_mut().insert(
             axum::http::header::CONTENT_TYPE,
-            axum::http::HeaderValue::from_static(str_constants::APPLICATION_PROBLEM_PLUS_JSON),
+            axum::http::HeaderValue::from_static(constants_str::APPLICATION_PROBLEM_PLUS_JSON),
         );
         if self == Self::RateLimited {
             let _previous_retry_after = response.headers_mut().insert(
                 axum::http::header::RETRY_AFTER,
-                axum::http::HeaderValue::from_static(str_constants::VALUE_60),
+                axum::http::HeaderValue::from_static(constants_str::VALUE_60),
             );
         }
         response
@@ -446,7 +446,7 @@ mod tests {
             assert_eq!(
                 response.headers().get(axum::http::header::CONTENT_TYPE),
                 Some(&axum::http::HeaderValue::from_static(
-                    str_constants::APPLICATION_PROBLEM_PLUS_JSON
+                    constants_str::APPLICATION_PROBLEM_PLUS_JSON
                 ))
             );
             assert_eq!(

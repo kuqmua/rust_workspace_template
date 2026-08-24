@@ -27,7 +27,7 @@ impl TryFrom<usize> for StdAsyncRunHistoryMaximumLen {
 )]
 #[error(
     "{}",
-    str_constants::RUN_HISTORY_MAXIMUM_LENGTH_MUST_BE_GREATER_THAN_ZERO
+    constants_str::RUN_HISTORY_MAXIMUM_LENGTH_MUST_BE_GREATER_THAN_ZERO
 )]
 pub struct StdAsyncRunHistoryMaximumLenTryFromUsizeError;
 #[derive(
@@ -93,7 +93,7 @@ mod tests {
     fn history_clone_does_not_require_report_clone() {
         #[derive(optimal_memory_layout::OptimalMemoryLayout)]
         struct NotClone;
-        let maximum = super::StdAsyncRunHistoryMaximumLen::try_from(usize_constants::ONE)
+        let maximum = super::StdAsyncRunHistoryMaximumLen::try_from(constants_usize::ONE)
             .expect("91f5d3a8 history_clone_does_not_require_report_clone invariant must hold");
         let history = super::AsyncRunHistory::<NotClone>::new(maximum);
         let cloned = history.clone();

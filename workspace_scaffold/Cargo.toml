@@ -13,8 +13,8 @@ name = "workspace-scaffold"
 path = "src/main.rs"
 
 [dependencies]
-usize_constants = { workspace = true }
-u16_constants = { workspace = true }
+constants_usize = { workspace = true }
+constants_u16 = { workspace = true }
 optimal_memory_layout = { workspace = true }
 bounded_types = { workspace = true }
 common_routes = { workspace = true }
@@ -22,7 +22,7 @@ frontend_contract = { workspace = true }
 macros_helpers = { workspace = true }
 newtype = { workspace = true }
 server_runtime_http = { workspace = true }
-str_constants = { workspace = true }
+constants_str = { workspace = true }
 thiserror = { workspace = true }
 
 [lints]

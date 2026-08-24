@@ -9,7 +9,7 @@ pub fn location_syn_field() -> SynLocationField {
         vis: syn::Visibility::Inherited,
         modifiers: syn::FieldModifiers::default(),
         ident: Some(syn::Ident::new(
-            str_constants::LOCATION_ALT,
+            constants_str::LOCATION_ALT,
             proc_macro2::Span::call_site(),
         )),
         colon_token: Some(syn::token::Colon {
@@ -22,9 +22,9 @@ pub fn location_syn_field() -> SynLocationField {
             path: syn::Path {
                 leading_colon: None,
                 segments: crate::generate_simple_syn_punct::generate_simple_syn_punct([
-                    str_constants::LOCATION_LIB,
-                    str_constants::LOCATION_ALT,
-                    str_constants::LOCATION,
+                    constants_str::LOCATION_LIB,
+                    constants_str::LOCATION_ALT,
+                    constants_str::LOCATION,
                 ])
                 .into(),
             },

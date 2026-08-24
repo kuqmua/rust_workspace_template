@@ -114,7 +114,7 @@ pub fn add_health_routes(
         router
             .0
             .route(
-                str_constants::LIVE_PATH,
+                constants_str::LIVE_PATH,
                 axum::routing::get(async || {
                     axum::Json(ServiceLivenessSnapshot {
                         service: HealthComponentStatus::Ok,
@@ -122,7 +122,7 @@ pub fn add_health_routes(
                 }),
             )
             .route(
-                str_constants::READY_PATH,
+                constants_str::READY_PATH,
                 axum::routing::get(move || {
                     let route_readiness = readiness_for_route.clone();
                     async move {
@@ -190,7 +190,7 @@ mod tests {
             super::add_health_routes(crate::AxumRouter::from(axum::Router::new()), &readiness).0;
         let live_response = tower::ServiceExt::oneshot(
             router.clone(),
-            http::Request::get(str_constants::LIVE_PATH)
+            http::Request::get(constants_str::LIVE_PATH)
                 .body(axum::body::Body::empty())
                 .expect("a943ebaa health_routes_distinguish_live_and_ready_statuses invariant must hold"),
         )
@@ -199,7 +199,7 @@ mod tests {
         assert_eq!(live_response.status(), http::StatusCode::OK);
         let unavailable_response = tower::ServiceExt::oneshot(
             router.clone(),
-            http::Request::get(str_constants::READY_PATH)
+            http::Request::get(constants_str::READY_PATH)
                 .body(axum::body::Body::empty())
                 .expect("341e303a health_routes_distinguish_live_and_ready_statuses invariant must hold"),
         )
@@ -212,7 +212,7 @@ mod tests {
         readiness.store_database_probe(super::HealthProbeSucceeded::from(true));
         let ready_response = tower::ServiceExt::oneshot(
             router,
-            http::Request::get(str_constants::READY_PATH)
+            http::Request::get(constants_str::READY_PATH)
                 .body(axum::body::Body::empty())
                 .expect("67247299 health_routes_distinguish_live_and_ready_statuses invariant must hold"),
         )

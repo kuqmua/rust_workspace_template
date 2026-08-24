@@ -1,7 +1,7 @@
 #[tokio::test]
 #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
 async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
-    let database_url = std::env::var(str_constants::ENV_NAMES_DATABASE_URL)
+    let database_url = std::env::var(constants_str::ENV_NAMES_DATABASE_URL)
         .expect("ac0cb9e3 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
     let pool = SqlxAdminApiTestPool::from(
         sqlx::postgres::PgPoolOptions::new()
@@ -16,7 +16,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
         pool.0.begin().await.expect(
             "4dfb6865 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold",
         );
-    let _locked = sqlx::query(str_constants::SELECT_PG_ADVISORY_XACT_LOCK_ADMIN_TESTS)
+    let _locked = sqlx::query(constants_str::SELECT_PG_ADVISORY_XACT_LOCK_ADMIN_TESTS)
         .execute(&mut *admin_db_test_lock)
         .await
         .expect("693b147f postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
@@ -28,12 +28,12 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
         .expect("676c00f1 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
     server_admin::generated_tables::validate_catalog_schema(
         pg_crud_common::SqlxPgPoolRef::from(&pool.0),
-        pg_crud_common::DbSchemaNameRef::from(str_constants::PUBLIC),
+        pg_crud_common::DbSchemaNameRef::from(constants_str::PUBLIC),
     )
     .await
     .expect("65ce07e9 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
     let observed_permissions = sqlx::query_scalar::<_, String>(
-        str_constants::SELECT_NAME_FROM_ADMIN_PERMISSIONS_ORDER_BY_NAME,
+        constants_str::SELECT_NAME_FROM_ADMIN_PERMISSIONS_ORDER_BY_NAME,
     )
     .fetch_all(&pool.0)
     .await
@@ -43,7 +43,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
         .map(|permission| permission.as_str().as_ref().to_owned())
         .collect::<Vec<_>>();
     assert_eq!(observed_permissions, expected_permissions);
-    let _deleted_permission = sqlx::query(str_constants::DELETE_ADMIN_PERMISSION_BY_NAME)
+    let _deleted_permission = sqlx::query(constants_str::DELETE_ADMIN_PERMISSION_BY_NAME)
         .bind(
             server_admin::AdminPermission::ALL
                 .first()
@@ -60,20 +60,20 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
         .await
         .expect("ea3f641d postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
     let reconciled_permissions = sqlx::query_scalar::<_, String>(
-        str_constants::SELECT_NAME_FROM_ADMIN_PERMISSIONS_ORDER_BY_NAME,
+        constants_str::SELECT_NAME_FROM_ADMIN_PERMISSIONS_ORDER_BY_NAME,
     )
     .fetch_all(&pool.0)
     .await
     .expect("458ab19e postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
     assert_eq!(reconciled_permissions, expected_permissions);
     let _truncate_result = sqlx::query(
-        str_constants::TRUNCATE_ADMIN_RATE_LIMITS_ADMIN_AUDIT_LOG_ADMIN_LOGIN_ATTEMPTS_ADMIN_ACCESS,
+        constants_str::TRUNCATE_ADMIN_RATE_LIMITS_ADMIN_AUDIT_LOG_ADMIN_LOGIN_ATTEMPTS_ADMIN_ACCESS,
     )
     .execute(&pool.0)
     .await
     .expect("97b5ad2f postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
     let password = serde_json::from_str::<server_admin_contract::AdminNewPassword>(
-        str_constants::CORRECT_PASSWORD,
+        constants_str::CORRECT_PASSWORD,
     )
     .expect("703a8df2 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
     let hasher =
@@ -84,10 +84,10 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
         ));
     let _admin_id = server_admin::bootstrap_admin(
         app_state::SqlxPgPoolRef::from(&pool.0),
-        server_admin::AdminLogin::try_from(str_constants::ADMIN_ALT.to_owned()).expect(
+        server_admin::AdminLogin::try_from(constants_str::ADMIN_ALT.to_owned()).expect(
             "98c7e04a postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold",
         ),
-        server_admin::AdminDisplayName::try_from(str_constants::ADMIN.to_owned()).expect(
+        server_admin::AdminDisplayName::try_from(constants_str::ADMIN.to_owned()).expect(
             "48efed01 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold",
         ),
         password,
@@ -96,20 +96,20 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     .await
     .expect("e2c94d67 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
     let password_change_required = sqlx::query_scalar::<_, bool>(
-        str_constants::SELECT_MUST_CHANGE_PASSWORD_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN,
+        constants_str::SELECT_MUST_CHANGE_PASSWORD_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN,
     )
     .fetch_one(&pool.0)
     .await
     .expect("81f3c9d2 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
     assert!(password_change_required);
     let original_password_hash = sqlx::query_scalar::<_, String>(
-        str_constants::SELECT_PASSWORD_HASH_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN,
+        constants_str::SELECT_PASSWORD_HASH_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN,
     )
     .fetch_one(&pool.0)
     .await
     .expect("1282b56e postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
     let repeated_password = serde_json::from_str::<server_admin_contract::AdminNewPassword>(
-        str_constants::DIFFERENT_PASSWORD,
+        constants_str::DIFFERENT_PASSWORD,
     )
     .expect("e411f376 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
     assert!(matches!(
@@ -128,41 +128,41 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
         Err(server_admin::AdminBootstrapError::AlreadyInitialized)
     ));
     let preserved_password_hash = sqlx::query_scalar::<_, String>(
-        str_constants::SELECT_PASSWORD_HASH_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN,
+        constants_str::SELECT_PASSWORD_HASH_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN,
     )
     .fetch_one(&pool.0)
     .await
     .expect("65ff827e postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
     assert_eq!(preserved_password_hash, original_password_hash);
     let administrator_count =
-        sqlx::query_scalar::<_, i64>(str_constants::SELECT_COUNT_ASTERISK_FROM_ADMIN_USERS)
+        sqlx::query_scalar::<_, i64>(constants_str::SELECT_COUNT_ASTERISK_FROM_ADMIN_USERS)
             .fetch_one(&pool.0)
             .await
             .expect(
                 "ae89c3bd postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold",
             );
-    assert_eq!(administrator_count, i64_constants::ONE);
+    assert_eq!(administrator_count, constants_i64::ONE);
     let admin_id =
-        sqlx::query_scalar::<_, i64>(str_constants::SELECT_ID_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN)
+        sqlx::query_scalar::<_, i64>(constants_str::SELECT_ID_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN)
             .fetch_one(&pool.0)
             .await
             .expect(
                 "a61329bf postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold",
             );
     let dangling_role_links = sqlx::query_scalar::<_, i64>(
-        str_constants::SELECT_COUNT_ASTERISK_FROM_ADMIN_USER_ROLES_LINK_LEFT_JOIN_ADMIN_USERS,
+        constants_str::SELECT_COUNT_ASTERISK_FROM_ADMIN_USER_ROLES_LINK_LEFT_JOIN_ADMIN_USERS,
     )
     .fetch_one(&pool.0)
     .await
     .expect("08ef120f postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
-    assert_eq!(dangling_role_links, i64_constants::ZERO);
+    assert_eq!(dangling_role_links, constants_i64::ZERO);
     let dangling_permission_links = sqlx::query_scalar::<_, i64>(
-        str_constants::SELECT_COUNT_ASTERISK_FROM_ADMIN_ROLE_PERMISSIONS_LINK_LEFT_JOIN_ADMIN_ROLES,
+        constants_str::SELECT_COUNT_ASTERISK_FROM_ADMIN_ROLE_PERMISSIONS_LINK_LEFT_JOIN_ADMIN_ROLES,
     )
     .fetch_one(&pool.0)
     .await
     .expect("aebf6dc8 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
-    assert_eq!(dangling_permission_links, i64_constants::ZERO);
+    assert_eq!(dangling_permission_links, constants_i64::ZERO);
     let wrong_response = tower::ServiceExt::oneshot(
         router_with_pool(&pool).0,
         request_with_peer(
@@ -171,7 +171,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
                 frontend_contract::typed_route_path::<server_admin_contract::AdminSignInRoute>()
                     .as_ref(),
             ),
-            StdAdminApiTestStrRef::from(str_constants::LOGIN_ADMIN_PASSWORD_WRONG_PASSWORD),
+            StdAdminApiTestStrRef::from(constants_str::LOGIN_ADMIN_PASSWORD_WRONG_PASSWORD),
             None,
             None,
         )
@@ -188,7 +188,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
                 frontend_contract::typed_route_path::<server_admin_contract::AdminSignInRoute>()
                     .as_ref(),
             ),
-            StdAdminApiTestStrRef::from(str_constants::LOGIN_ADMIN_PASSWORD_CORRECT_PASSWORD),
+            StdAdminApiTestStrRef::from(constants_str::LOGIN_ADMIN_PASSWORD_CORRECT_PASSWORD),
             None,
             None,
         )
@@ -199,15 +199,15 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     assert_eq!(sign_in_response.status(), http::StatusCode::OK);
     let access = cookie_value(
         HttpAdminApiTestResponseRef::from(&sign_in_response),
-        StdAdminApiTestStrRef::from(str_constants::ADMIN_ACCESS_TOKEN),
+        StdAdminApiTestStrRef::from(constants_str::ADMIN_ACCESS_TOKEN),
     );
     let refresh = cookie_value(
         HttpAdminApiTestResponseRef::from(&sign_in_response),
-        StdAdminApiTestStrRef::from(str_constants::ADMIN_REFRESH_TOKEN_ALT),
+        StdAdminApiTestStrRef::from(constants_str::ADMIN_REFRESH_TOKEN_ALT),
     );
     let csrf = cookie_value(
         HttpAdminApiTestResponseRef::from(&sign_in_response),
-        StdAdminApiTestStrRef::from(str_constants::ADMIN_CSRF_TOKEN_ALT),
+        StdAdminApiTestStrRef::from(constants_str::ADMIN_CSRF_TOKEN_ALT),
     );
     let cookie = format!(
         "admin_access_token={access}; admin_refresh_token={refresh}; admin_csrf_token={csrf}"
@@ -220,7 +220,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
                 frontend_contract::typed_route_path::<server_admin_contract::AdminMeRoute>()
                     .as_ref(),
             ),
-            StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+            StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
             Some(StdAdminApiTestStrRef::from(cookie.as_str())),
             None,
         )
@@ -237,10 +237,10 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
                 frontend_contract::typed_route_path::<server_admin_contract::AdminMeRoute>()
                     .as_ref(),
             ),
-            StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+            StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
             Some(StdAdminApiTestStrRef::from(cookie.as_str())),
             None,
-            StdAdminApiTestStrRef::from(str_constants::VALUE_127_0_0_2_43210),
+            StdAdminApiTestStrRef::from(constants_str::VALUE_127_0_0_2_43210),
         )
         .0,
     )
@@ -259,7 +259,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
                 frontend_contract::typed_route_path::<server_admin_contract::AdminRefreshRoute>()
                     .as_ref(),
             ),
-            StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+            StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
             Some(StdAdminApiTestStrRef::from(first_refresh_cookie.as_str())),
             None,
         )
@@ -270,7 +270,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     assert_eq!(refresh_response.status(), http::StatusCode::OK);
     let refreshed_access = cookie_value(
         HttpAdminApiTestResponseRef::from(&refresh_response),
-        StdAdminApiTestStrRef::from(str_constants::ADMIN_ACCESS_TOKEN),
+        StdAdminApiTestStrRef::from(constants_str::ADMIN_ACCESS_TOKEN),
     );
     assert!(
         refresh_response
@@ -282,11 +282,11 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     );
     let rotated_refresh = cookie_value(
         HttpAdminApiTestResponseRef::from(&refresh_response),
-        StdAdminApiTestStrRef::from(str_constants::ADMIN_REFRESH_TOKEN),
+        StdAdminApiTestStrRef::from(constants_str::ADMIN_REFRESH_TOKEN),
     );
     let refreshed_csrf = cookie_value(
         HttpAdminApiTestResponseRef::from(&refresh_response),
-        StdAdminApiTestStrRef::from(str_constants::ADMIN_CSRF_TOKEN_ALT),
+        StdAdminApiTestStrRef::from(constants_str::ADMIN_CSRF_TOKEN_ALT),
     );
     let active_cookie = format!(
         "admin_access_token={refreshed_access}; admin_refresh_token={rotated_refresh}; admin_csrf_token={refreshed_csrf}"
@@ -299,7 +299,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
                 frontend_contract::typed_route_path::<server_admin_contract::AdminRefreshRoute>()
                     .as_ref(),
             ),
-            StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+            StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
             Some(StdAdminApiTestStrRef::from(first_refresh_cookie.as_str())),
             None,
         )
@@ -319,7 +319,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
                 frontend_contract::typed_route_path::<server_admin_contract::AdminSignInRoute>()
                     .as_ref(),
             ),
-            StdAdminApiTestStrRef::from(str_constants::LOGIN_LOCKED_USER_PASSWORD_WRONG_PASSWORD),
+            StdAdminApiTestStrRef::from(constants_str::LOGIN_LOCKED_USER_PASSWORD_WRONG_PASSWORD),
             None,
             None,
         )
@@ -339,7 +339,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
                 frontend_contract::typed_route_path::<server_admin_contract::AdminSignInRoute>()
                     .as_ref(),
             ),
-            StdAdminApiTestStrRef::from(str_constants::LOGIN_LOCKED_USER_PASSWORD_WRONG_PASSWORD),
+            StdAdminApiTestStrRef::from(constants_str::LOGIN_LOCKED_USER_PASSWORD_WRONG_PASSWORD),
             None,
             None,
         )
@@ -359,7 +359,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
                 frontend_contract::typed_route_path::<server_admin_contract::AdminSignInRoute>()
                     .as_ref(),
             ),
-            StdAdminApiTestStrRef::from(str_constants::LOGIN_LOCKED_USER_PASSWORD_WRONG_PASSWORD),
+            StdAdminApiTestStrRef::from(constants_str::LOGIN_LOCKED_USER_PASSWORD_WRONG_PASSWORD),
             None,
             None,
         )
@@ -376,7 +376,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
         request_with_peer(
             HttpAdminApiTestMethod::from(http::Method::POST),
             StdAdminApiTestStrRef::from(frontend_contract::typed_route_path::<server_admin_contract::AdminListUsersRoute>().as_ref()),
-            StdAdminApiTestStrRef::from(str_constants::LOGIN_LIMITED_USER_DISPLAY_NAME_LIMITED_USER_PASSWORD_LIMITED_PASSWORD),
+            StdAdminApiTestStrRef::from(constants_str::LOGIN_LIMITED_USER_DISPLAY_NAME_LIMITED_USER_PASSWORD_LIMITED_PASSWORD),
             Some(StdAdminApiTestStrRef::from(active_cookie.as_str())),
             Some(StdAdminApiTestStrRef::from(refreshed_csrf.0.as_str())),
         )
@@ -399,7 +399,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
                 .as_ref(),
             ),
             StdAdminApiTestStrRef::from(
-                str_constants::CURRENT_PASSWORD_CORRECT_NEW_PASSWORD_CHANGED,
+                constants_str::CURRENT_PASSWORD_CORRECT_NEW_PASSWORD_CHANGED,
             ),
             Some(StdAdminApiTestStrRef::from(active_cookie.as_str())),
             Some(StdAdminApiTestStrRef::from(refreshed_csrf.0.as_str())),
@@ -417,7 +417,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
         request_with_peer(
             HttpAdminApiTestMethod::from(http::Method::POST),
             StdAdminApiTestStrRef::from(frontend_contract::typed_route_path::<server_admin_contract::AdminListUsersRoute>().as_ref()),
-            StdAdminApiTestStrRef::from(str_constants::LOGIN_LIMITED_USER_DISPLAY_NAME_LIMITED_USER_PASSWORD_LIMITED_PASSWORD),
+            StdAdminApiTestStrRef::from(constants_str::LOGIN_LIMITED_USER_DISPLAY_NAME_LIMITED_USER_PASSWORD_LIMITED_PASSWORD),
             Some(StdAdminApiTestStrRef::from(active_cookie.as_str())),
             None,
         )
@@ -431,7 +431,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
         request_with_peer(
             HttpAdminApiTestMethod::from(http::Method::POST),
             StdAdminApiTestStrRef::from(frontend_contract::typed_route_path::<server_admin_contract::AdminListUsersRoute>().as_ref()),
-            StdAdminApiTestStrRef::from(str_constants::LOGIN_LIMITED_USER_DISPLAY_NAME_LIMITED_USER_PASSWORD_LIMITED_PASSWORD),
+            StdAdminApiTestStrRef::from(constants_str::LOGIN_LIMITED_USER_DISPLAY_NAME_LIMITED_USER_PASSWORD_LIMITED_PASSWORD),
             Some(StdAdminApiTestStrRef::from(active_cookie.as_str())),
             Some(StdAdminApiTestStrRef::from(refreshed_csrf.0.as_str())),
         )
@@ -449,7 +449,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
                     .as_ref(),
             ),
             StdAdminApiTestStrRef::from(
-                str_constants::LOGIN_LIMITED_USER_PASSWORD_LIMITED_PASSWORD,
+                constants_str::LOGIN_LIMITED_USER_PASSWORD_LIMITED_PASSWORD,
             ),
             None,
             None,
@@ -461,15 +461,15 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     assert_eq!(limited_sign_in_response.status(), http::StatusCode::OK);
     let limited_access = cookie_value(
         HttpAdminApiTestResponseRef::from(&limited_sign_in_response),
-        StdAdminApiTestStrRef::from(str_constants::ADMIN_ACCESS_TOKEN),
+        StdAdminApiTestStrRef::from(constants_str::ADMIN_ACCESS_TOKEN),
     );
     let limited_refresh = cookie_value(
         HttpAdminApiTestResponseRef::from(&limited_sign_in_response),
-        StdAdminApiTestStrRef::from(str_constants::ADMIN_REFRESH_TOKEN_ALT),
+        StdAdminApiTestStrRef::from(constants_str::ADMIN_REFRESH_TOKEN_ALT),
     );
     let limited_csrf = cookie_value(
         HttpAdminApiTestResponseRef::from(&limited_sign_in_response),
-        StdAdminApiTestStrRef::from(str_constants::ADMIN_CSRF_TOKEN_ALT),
+        StdAdminApiTestStrRef::from(constants_str::ADMIN_CSRF_TOKEN_ALT),
     );
     let limited_cookie = format!(
         "admin_access_token={limited_access}; admin_refresh_token={limited_refresh}; admin_csrf_token={limited_csrf}"
@@ -482,7 +482,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
                 frontend_contract::typed_route_path::<server_admin_contract::AdminListUsersRoute>()
                     .as_ref(),
             ),
-            StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+            StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
             Some(StdAdminApiTestStrRef::from(limited_cookie.as_str())),
             None,
         )
@@ -499,7 +499,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
                 frontend_contract::typed_route_path::<server_admin_contract::AdminSessionsRoute>()
                     .as_ref(),
             ),
-            StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+            StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
             Some(StdAdminApiTestStrRef::from(limited_cookie.as_str())),
             Some(StdAdminApiTestStrRef::from(limited_csrf.0.as_str())),
         )
@@ -516,7 +516,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
                 frontend_contract::typed_route_path::<server_admin_contract::AdminMeRoute>()
                     .as_ref(),
             ),
-            StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+            StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
             Some(StdAdminApiTestStrRef::from(limited_cookie.as_str())),
             None,
         )
@@ -529,7 +529,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
         http::StatusCode::UNAUTHORIZED
     );
     let limited_id = sqlx::query_scalar::<_, i64>(
-        str_constants::SELECT_ID_FROM_ADMIN_USERS_WHERE_LOGIN_LIMITED_USER,
+        constants_str::SELECT_ID_FROM_ADMIN_USERS_WHERE_LOGIN_LIMITED_USER,
     )
     .fetch_one(&pool.0)
     .await
@@ -539,7 +539,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
         request_with_peer(
             HttpAdminApiTestMethod::from(http::Method::PATCH),
             StdAdminApiTestStrRef::from(format!("/users/{limited_id}").as_str()),
-            StdAdminApiTestStrRef::from(str_constants::DISPLAY_NAME_UPDATED_USER),
+            StdAdminApiTestStrRef::from(constants_str::DISPLAY_NAME_UPDATED_USER),
             Some(StdAdminApiTestStrRef::from(active_cookie.as_str())),
             Some(StdAdminApiTestStrRef::from(refreshed_csrf.0.as_str())),
         )
@@ -553,7 +553,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
         request_with_peer(
             HttpAdminApiTestMethod::from(http::Method::POST),
             StdAdminApiTestStrRef::from(format!("/users/{limited_id}/ban").as_str()),
-            StdAdminApiTestStrRef::from(str_constants::IS_BANNED_TRUE),
+            StdAdminApiTestStrRef::from(constants_str::IS_BANNED_TRUE),
             Some(StdAdminApiTestStrRef::from(active_cookie.as_str())),
             Some(StdAdminApiTestStrRef::from(refreshed_csrf.0.as_str())),
         )
@@ -570,7 +570,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
                 frontend_contract::typed_route_path::<server_admin_contract::AdminMeRoute>()
                     .as_ref(),
             ),
-            StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+            StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
             Some(StdAdminApiTestStrRef::from(limited_cookie.as_str())),
             None,
         )
@@ -588,7 +588,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
                     .as_ref(),
             ),
             StdAdminApiTestStrRef::from(
-                str_constants::LOGIN_LIMITED_USER_PASSWORD_LIMITED_PASSWORD,
+                constants_str::LOGIN_LIMITED_USER_PASSWORD_LIMITED_PASSWORD,
             ),
             None,
             None,
@@ -609,7 +609,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
                 frontend_contract::typed_route_path::<server_admin_contract::AdminListUsersRoute>()
                     .as_ref(),
             ),
-            StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+            StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
             Some(StdAdminApiTestStrRef::from(active_cookie.as_str())),
             None,
         )
@@ -626,7 +626,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
                 frontend_contract::typed_route_path::<server_admin_contract::AdminListRolesRoute>()
                     .as_ref(),
             ),
-            StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+            StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
             Some(StdAdminApiTestStrRef::from(active_cookie.as_str())),
             None,
         )
@@ -643,7 +643,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
                 frontend_contract::typed_route_path::<server_admin_contract::AdminListRolesRoute>()
                     .as_ref(),
             ),
-            StdAdminApiTestStrRef::from(str_constants::NAME_TEMPORARY_ROLE),
+            StdAdminApiTestStrRef::from(constants_str::NAME_TEMPORARY_ROLE),
             Some(StdAdminApiTestStrRef::from(active_cookie.as_str())),
             Some(StdAdminApiTestStrRef::from(refreshed_csrf.0.as_str())),
         )
@@ -653,7 +653,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     .expect("6d9384fe postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
     assert_eq!(create_role_response.status(), http::StatusCode::CREATED);
     let role_id = sqlx::query_scalar::<_, i64>(
-        str_constants::SELECT_ID_FROM_ADMIN_ROLES_WHERE_NAME_TEMPORARY_ROLE,
+        constants_str::SELECT_ID_FROM_ADMIN_ROLES_WHERE_NAME_TEMPORARY_ROLE,
     )
     .fetch_one(&pool.0)
     .await
@@ -730,7 +730,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
         request_with_peer(
             HttpAdminApiTestMethod::from(http::Method::PATCH),
             StdAdminApiTestStrRef::from(format!("/roles/{role_id}").as_str()),
-            StdAdminApiTestStrRef::from(str_constants::NAME_RENAMED_ROLE),
+            StdAdminApiTestStrRef::from(constants_str::NAME_RENAMED_ROLE),
             Some(StdAdminApiTestStrRef::from(active_cookie.as_str())),
             Some(StdAdminApiTestStrRef::from(refreshed_csrf.0.as_str())),
         )
@@ -744,7 +744,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
         request_with_peer(
             HttpAdminApiTestMethod::from(http::Method::DELETE),
             StdAdminApiTestStrRef::from(format!("/roles/{role_id}").as_str()),
-            StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+            StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
             Some(StdAdminApiTestStrRef::from(active_cookie.as_str())),
             Some(StdAdminApiTestStrRef::from(refreshed_csrf.0.as_str())),
         )
@@ -758,7 +758,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
         request_with_peer(
             HttpAdminApiTestMethod::from(http::Method::DELETE),
             StdAdminApiTestStrRef::from(format!("/users/{limited_id}").as_str()),
-            StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+            StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
             Some(StdAdminApiTestStrRef::from(active_cookie.as_str())),
             Some(StdAdminApiTestStrRef::from(refreshed_csrf.0.as_str())),
         )
@@ -768,7 +768,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     .expect("c19be784 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
     assert_eq!(delete_user_response.status(), http::StatusCode::NO_CONTENT);
     let admin_role_id =
-        sqlx::query_scalar::<_, i64>(str_constants::SERVER_ADMIN_READ_ADMIN_ROLE_ID_SQL)
+        sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_READ_ADMIN_ROLE_ID_SQL)
             .fetch_one(&pool.0)
             .await
             .expect(
@@ -806,7 +806,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
         request_with_peer(
             HttpAdminApiTestMethod::from(http::Method::DELETE),
             StdAdminApiTestStrRef::from(format!("/users/{admin_id}").as_str()),
-            StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+            StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
             Some(StdAdminApiTestStrRef::from(active_cookie.as_str())),
             Some(StdAdminApiTestStrRef::from(refreshed_csrf.0.as_str())),
         )
@@ -829,7 +829,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
                     )
                     .as_str(),
                 ),
-                StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+                StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
                 Some(StdAdminApiTestStrRef::from(active_cookie.as_str())),
                 None,
             )
@@ -839,7 +839,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
         .expect("8103cd5f postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
     assert_eq!(audit_response.status(), http::StatusCode::OK);
     let audit_page =
-        axum::body::to_bytes(audit_response.into_body(), usize_constants::VALUE_1_048_576)
+        axum::body::to_bytes(audit_response.into_body(), constants_usize::VALUE_1_048_576)
             .await
             .map(|body| {
                 serde_json::from_slice::<server_admin_contract::AdminAuditPage>(&body).expect(
@@ -849,7 +849,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
             .expect(
                 "50612a4d postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold",
             );
-    assert!(audit_page.items().len() <= usize_constants::ONE);
+    assert!(audit_page.items().len() <= constants_usize::ONE);
     assert!(
         u64::from(audit_page.total())
             >= u64::try_from(audit_page.items().len()).expect(
@@ -857,7 +857,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
             )
     );
     futures::StreamExt::fold(
-        futures::stream::iter(usize_constants::ZERO..61usize),
+        futures::stream::iter(constants_usize::ZERO..61usize),
         (),
         async |(), _index| {
             let response = tower::ServiceExt::oneshot(
@@ -873,7 +873,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
                         )
                         .as_str(),
                     ),
-                    StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+                    StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
                     Some(StdAdminApiTestStrRef::from(active_cookie.as_str())),
                     None,
                 )
@@ -893,7 +893,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
         request_with_peer(
             HttpAdminApiTestMethod::from(http::Method::GET),
             StdAdminApiTestStrRef::from("/auth/sessions?limit=1&offset=0"),
-            StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+            StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
             Some(StdAdminApiTestStrRef::from(active_cookie.as_str())),
             None,
         )
@@ -904,7 +904,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     assert_eq!(sessions_response.status(), http::StatusCode::OK);
     let sessions_page = axum::body::to_bytes(
         sessions_response.into_body(),
-        usize_constants::VALUE_1_048_576,
+        constants_usize::VALUE_1_048_576,
     )
     .await
     .map(|body| {
@@ -912,7 +912,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
             .expect("e544366c postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold")
     })
     .expect("141ddcdc postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
-    assert!(sessions_page.items().len() <= usize_constants::ONE);
+    assert!(sessions_page.items().len() <= constants_usize::ONE);
     assert!(
         u64::from(sessions_page.total())
             >= u64::try_from(sessions_page.items().len()).expect(
@@ -925,7 +925,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
         request_with_peer(
             HttpAdminApiTestMethod::from(http::Method::GET),
             StdAdminApiTestStrRef::from("/tables/users?limit=1&offset=0"),
-            StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+            StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
             Some(StdAdminApiTestStrRef::from(active_cookie.as_str())),
             None,
         )
@@ -936,7 +936,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     assert_eq!(data_table_response.status(), http::StatusCode::OK);
     let data_table = axum::body::to_bytes(
         data_table_response.into_body(),
-        usize_constants::VALUE_1_048_576,
+        constants_usize::VALUE_1_048_576,
     )
     .await
     .map(|body| {
@@ -944,7 +944,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
             .expect("e16283f4 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold")
     })
     .expect("3f927581 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
-    assert!(data_table.items().len() <= usize_constants::ONE);
+    assert!(data_table.items().len() <= constants_usize::ONE);
     assert!(
         u64::from(data_table.total())
             >= u64::try_from(data_table.items().len()).expect(
@@ -958,11 +958,11 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
             StdAdminApiTestStrRef::from(
                 format!(
                     "/tables/users?filter_field=login&filter_operation=eq&filter_value={}&limit=20&offset=0",
-                    str_constants::ADMIN_ALT
+                    constants_str::ADMIN_ALT
                 )
                 .as_str(),
             ),
-            StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+            StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
             Some(StdAdminApiTestStrRef::from(active_cookie.as_str())),
             None,
         )
@@ -973,7 +973,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     assert_eq!(filtered_data_table_response.status(), http::StatusCode::OK);
     let filtered_data_table = axum::body::to_bytes(
         filtered_data_table_response.into_body(),
-        usize_constants::VALUE_1_048_576,
+        constants_usize::VALUE_1_048_576,
     )
     .await
     .map(|body| {
@@ -982,7 +982,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     })
     .expect("6dfe8f37 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
     assert_eq!(u64::from(filtered_data_table.total()), 1u64);
-    assert_eq!(filtered_data_table.items().len(), usize_constants::ONE);
+    assert_eq!(filtered_data_table.items().len(), constants_usize::ONE);
     assert!(
         filtered_data_table
             .items()
@@ -990,14 +990,14 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
             .expect("753fa97c postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold")
             .values()
             .iter()
-            .any(|value| value.as_ref() == str_constants::ADMIN_ALT)
+            .any(|value| value.as_ref() == constants_str::ADMIN_ALT)
     );
     let empty_data_table_response = tower::ServiceExt::oneshot(
         router_with_pool(&pool).0,
         request_with_peer(
             HttpAdminApiTestMethod::from(http::Method::GET),
             StdAdminApiTestStrRef::from("/tables/users?filter_field=login&filter_operation=eq&filter_value=missing_filter_user&limit=20&offset=0"),
-            StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+            StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
             Some(StdAdminApiTestStrRef::from(active_cookie.as_str())),
             None,
         )
@@ -1008,7 +1008,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     assert_eq!(empty_data_table_response.status(), http::StatusCode::OK);
     let empty_data_table = axum::body::to_bytes(
         empty_data_table_response.into_body(),
-        usize_constants::VALUE_1_048_576,
+        constants_usize::VALUE_1_048_576,
     )
     .await
     .map(|body| {
@@ -1016,14 +1016,14 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
             .expect("aa8376d3 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold")
     })
     .expect("a98d6360 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
-    assert_eq!(u64::from(empty_data_table.total()), u64_constants::ZERO);
+    assert_eq!(u64::from(empty_data_table.total()), constants_u64::ZERO);
     assert!(empty_data_table.items().is_empty());
     let unsupported_filter_response = tower::ServiceExt::oneshot(
         router_with_pool(&pool).0,
         request_with_peer(
             HttpAdminApiTestMethod::from(http::Method::GET),
             StdAdminApiTestStrRef::from("/tables/users?filter_field=login&filter_operation=between&filter_value=admin&filter_end=root&limit=20&offset=0"),
-            StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+            StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
             Some(StdAdminApiTestStrRef::from(active_cookie.as_str())),
             None,
         )
@@ -1042,7 +1042,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
             StdAdminApiTestStrRef::from(
                 "/tables/users?filter_field=login&filter_value=admin&limit=20&offset=0",
             ),
-            StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+            StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
             Some(StdAdminApiTestStrRef::from(active_cookie.as_str())),
             None,
         )
@@ -1062,7 +1062,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
                 frontend_contract::typed_route_path::<server_admin_contract::AdminSignOutRoute>()
                     .as_ref(),
             ),
-            StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+            StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
             Some(StdAdminApiTestStrRef::from(active_cookie.as_str())),
             Some(StdAdminApiTestStrRef::from(refreshed_csrf.0.as_str())),
         )
@@ -1079,7 +1079,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
                 frontend_contract::typed_route_path::<server_admin_contract::AdminMeRoute>()
                     .as_ref(),
             ),
-            StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+            StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
             Some(StdAdminApiTestStrRef::from(active_cookie.as_str())),
             None,
         )
@@ -1088,7 +1088,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     .await
     .expect("54b9dc03 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
     assert_eq!(revoked_response.status(), http::StatusCode::UNAUTHORIZED);
-    let audit_outcomes = sqlx::query_as::<_, (bool, i64)>(str_constants::SELECT_SUCCEEDED_COUNT_ASTERISK_FROM_ADMIN_AUDIT_LOG_GROUP_BY_SUCCEEDED_ORDER)
+    let audit_outcomes = sqlx::query_as::<_, (bool, i64)>(constants_str::SELECT_SUCCEEDED_COUNT_ASTERISK_FROM_ADMIN_AUDIT_LOG_GROUP_BY_SUCCEEDED_ORDER)
         .fetch_all(&pool.0)
         .await
         .expect("3de105a4 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");

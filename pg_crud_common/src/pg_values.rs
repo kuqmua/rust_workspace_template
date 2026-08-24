@@ -7,8 +7,8 @@ impl EqOperator {
     #[must_use]
     pub fn to_query_str(&self) -> EqOperatorQueryStr {
         match &self {
-            Self::Eq => EqOperatorQueryStr::from(str_constants::PG_CRUD_EQUALITY_SQL_OPERATOR),
-            Self::IsNull => EqOperatorQueryStr::from(str_constants::IS_NULL),
+            Self::Eq => EqOperatorQueryStr::from(constants_str::PG_CRUD_EQUALITY_SQL_OPERATOR),
+            Self::IsNull => EqOperatorQueryStr::from(constants_str::IS_NULL),
         }
     }
 }
@@ -137,7 +137,7 @@ impl UnsignedPartOfI32 {
 }
 impl super::DefaultSomeOneElement for UnsignedPartOfI32 {
     fn default_some_one_element() -> Self {
-        Self::from(u16_constants::ZERO)
+        Self::from(constants_u16::ZERO)
     }
 }
 #[derive(
@@ -406,17 +406,17 @@ pub const fn bool_test_cases_vec() -> [bool; 2] {
 pub fn string_test_cases_vec() -> [String; 12] {
     [
         String::new(),
-        str_constants::A_ALT.to_owned(),
-        str_constants::HELLO_WORLD.to_owned(),
-        str_constants::THREE_SPACES.to_owned(),
-        str_constants::NEWLINE_CARRIAGE_RETURN_TAB.to_owned(),
-        str_constants::VALUE_1234567890.to_owned(),
-        str_constants::U_1F600.to_owned(),
-        str_constants::U_3053_U_3093_U_306B_U_3061_U_306F.to_owned(),
-        str_constants::U_1F30D_U_1F680_U_2728_RUST_U_1F496_U_1F980.to_owned(),
-        str_constants::A_ALT.repeat(1024),
-        str_constants::LINE1_NEWLINE_LINE2_NEWLINE_LINE3.to_owned(),
-        str_constants::U_1F496.to_owned(),
+        constants_str::A_ALT.to_owned(),
+        constants_str::HELLO_WORLD.to_owned(),
+        constants_str::THREE_SPACES.to_owned(),
+        constants_str::NEWLINE_CARRIAGE_RETURN_TAB.to_owned(),
+        constants_str::VALUE_1234567890.to_owned(),
+        constants_str::U_1F600.to_owned(),
+        constants_str::U_3053_U_3093_U_306B_U_3061_U_306F.to_owned(),
+        constants_str::U_1F30D_U_1F680_U_2728_RUST_U_1F496_U_1F980.to_owned(),
+        constants_str::A_ALT.repeat(1024),
+        constants_str::LINE1_NEWLINE_LINE2_NEWLINE_LINE3.to_owned(),
+        constants_str::U_1F496.to_owned(),
     ]
 }
 #[must_use]

@@ -21,13 +21,13 @@ fn memusage_parsers_distinguish_values_and_missing_fields() {
     );
     assert_eq!(
         super::memusage_heap_value(&text, super::MemusageKey::from("Stack peak:")).get(),
-        str_constants::UNAVAILABLE
+        constants_str::UNAVAILABLE
     );
     assert_eq!(
         super::memusage_table_value(
             &text,
             super::MemusageRowName::from("malloc"),
-            super::MemusageColumnIdx::from(usize_constants::ONE)
+            super::MemusageColumnIdx::from(constants_usize::ONE)
         )
         .get(),
         "89"
@@ -36,10 +36,10 @@ fn memusage_parsers_distinguish_values_and_missing_fields() {
         super::memusage_table_value(
             &text,
             super::MemusageRowName::from("calloc"),
-            super::MemusageColumnIdx::from(usize_constants::ZERO)
+            super::MemusageColumnIdx::from(constants_usize::ZERO)
         )
         .get(),
-        str_constants::UNAVAILABLE
+        constants_str::UNAVAILABLE
     );
     assert_eq!(
         super::memusage_table_value(
@@ -48,7 +48,7 @@ fn memusage_parsers_distinguish_values_and_missing_fields() {
             super::MemusageColumnIdx::from(9usize)
         )
         .get(),
-        str_constants::UNAVAILABLE
+        constants_str::UNAVAILABLE
     );
 }
 #[test]
@@ -57,19 +57,19 @@ fn measurement_catalogs_are_complete_and_ordered() {
     assert_eq!(measurements.len(), 3usize);
     assert_eq!(
         measurements[0].0.get(),
-        str_constants::WORKSPACE_TEST_RUNNER_GENERATE_PG_TABLE_MEASUREMENT
+        constants_str::WORKSPACE_TEST_RUNNER_GENERATE_PG_TABLE_MEASUREMENT
     );
     assert_eq!(
         measurements[2].0.get(),
-        str_constants::WORKSPACE_TEST_RUNNER_GENERATE_WHERE_FILTERS_MEASUREMENT
+        constants_str::WORKSPACE_TEST_RUNNER_GENERATE_WHERE_FILTERS_MEASUREMENT
     );
     let tools = super::allocation_tools();
     assert_eq!(tools.len(), 6usize);
     assert_eq!(
         tools[0].name.get(),
-        str_constants::WORKSPACE_TEST_RUNNER_LIBMEMUSAGE_TOOL
+        constants_str::WORKSPACE_TEST_RUNNER_LIBMEMUSAGE_TOOL
     );
-    assert_eq!(tools[5].name.get(), str_constants::PG_CRUD_PG_TIME);
+    assert_eq!(tools[5].name.get(), constants_str::PG_CRUD_PG_TIME);
 }
 #[test]
 fn tool_discovery_checks_the_exact_path() {
@@ -85,21 +85,21 @@ fn tool_discovery_checks_the_exact_path() {
 }
 #[test]
 fn database_mode_runs_the_workspace_ignored_suite() {
-    assert!(str_constants::WORKSPACE_TEST_RUNNER_CARGO_TEST_DATABASE_ARGS.contains(&"--workspace"));
+    assert!(constants_str::WORKSPACE_TEST_RUNNER_CARGO_TEST_DATABASE_ARGS.contains(&"--workspace"));
     assert!(
-        str_constants::WORKSPACE_TEST_RUNNER_CARGO_TEST_DATABASE_ARGS.contains(&"--all-features")
+        constants_str::WORKSPACE_TEST_RUNNER_CARGO_TEST_DATABASE_ARGS.contains(&"--all-features")
     );
-    assert!(str_constants::WORKSPACE_TEST_RUNNER_CARGO_TEST_DATABASE_ARGS.contains(&"--ignored"));
+    assert!(constants_str::WORKSPACE_TEST_RUNNER_CARGO_TEST_DATABASE_ARGS.contains(&"--ignored"));
 }
 #[test]
 fn tests_mode_leaves_ignored_suite_to_database_mode() {
     assert!(
-        str_constants::WORKSPACE_TEST_RUNNER_CARGO_TEST_COMMANDS
+        constants_str::WORKSPACE_TEST_RUNNER_CARGO_TEST_COMMANDS
             .iter()
             .all(|(_program, args)| !args.contains(&"--ignored"))
     );
     assert!(
-        str_constants::WORKSPACE_TEST_RUNNER_NEXTEST_COMMANDS
+        constants_str::WORKSPACE_TEST_RUNNER_NEXTEST_COMMANDS
             .iter()
             .all(|(_program, args)| !args.contains(&"--run-ignored"))
     );

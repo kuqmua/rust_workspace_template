@@ -89,7 +89,7 @@ pub fn initialize_service_observability(
     let tracer = opentelemetry::trace::TracerProvider::tracer(&tracer_provider, service_name.0);
     opentelemetry::global::set_tracer_provider(tracer_provider.clone());
     let filter = tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_error| {
-        tracing_subscriber::EnvFilter::new(str_constants::CONFIG_TRACING_INFO)
+        tracing_subscriber::EnvFilter::new(constants_str::CONFIG_TRACING_INFO)
     });
     let init_result = match format {
         crate::ServiceTracingFormat::Json => tracing_subscriber::util::SubscriberInitExt::try_init(

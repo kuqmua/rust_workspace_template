@@ -252,10 +252,10 @@ fn merge_missing_assignments(
     reason = "separates manifest validation from filesystem mutation"
 )]
 fn workspace_members(root: StdWorkspaceRootRef<'_>) -> Result<WorkspaceMembers, InitializeError> {
-    let manifest_path = root.as_ref().join(str_constants::CARGO_TOML);
+    let manifest_path = root.as_ref().join(constants_str::CARGO_TOML);
     let manifest = read_bounded_content(
         StdInitPathRef::from(manifest_path.as_path()),
-        InitMaxBytes::from(usize_constants::VALUE_1_048_576),
+        InitMaxBytes::from(constants_usize::VALUE_1_048_576),
     )
     .map_err(|source| InitializeError::ReadManifest { source })?;
     let value = toml::from_str::<toml::Value>(manifest.as_ref()).map_err(|source| {
@@ -264,8 +264,8 @@ fn workspace_members(root: StdWorkspaceRootRef<'_>) -> Result<WorkspaceMembers, 
         }
     })?;
     let members = value
-        .get(str_constants::WORKSPACE)
-        .and_then(|workspace| workspace.get(str_constants::MEMBERS))
+        .get(constants_str::WORKSPACE)
+        .and_then(|workspace| workspace.get(constants_str::MEMBERS))
         .and_then(toml::Value::as_array)
         .ok_or(InitializeError::MembersMissing)?;
     members
@@ -298,20 +298,20 @@ fn initialize(
             let example_path = root
                 .as_ref()
                 .join(member.as_ref())
-                .join(str_constants::ENV_EXAMPLE);
+                .join(constants_str::ENV_EXAMPLE);
             if !example_path.exists() {
                 return Ok(entries);
             }
             let content = read_bounded_content(
                 StdInitPathRef::from(example_path.as_path()),
-                InitMaxBytes::from(usize_constants::VALUE_1_048_576),
+                InitMaxBytes::from(constants_usize::VALUE_1_048_576),
             )
             .map_err(|source| InitializeError::ReadExample { source })?;
-            let environment_path = root.as_ref().join(member.as_ref()).join(str_constants::ENV);
+            let environment_path = root.as_ref().join(member.as_ref()).join(constants_str::ENV);
             let status = if environment_path.exists() {
                 let current = read_bounded_content(
                     StdInitPathRef::from(environment_path.as_path()),
-                    InitMaxBytes::from(usize_constants::VALUE_1_048_576),
+                    InitMaxBytes::from(constants_usize::VALUE_1_048_576),
                 )
                 .map_err(|source| InitializeError::ReadExample { source })?;
                 match merge_missing_assignments(
@@ -350,7 +350,7 @@ fn initialize(
         .map(InitEntries::from)
 }
 fn main() -> Result<(), InitializeError> {
-    let mode = if std::env::args().any(|argument| argument == str_constants::DRY_RUN) {
+    let mode = if std::env::args().any(|argument| argument == constants_str::DRY_RUN) {
         RunMode::DryRun
     } else {
         RunMode::Apply
@@ -362,7 +362,7 @@ fn main() -> Result<(), InitializeError> {
         .0
         .into_iter()
         .for_each(|entry| {
-            let separator = str_constants::COMMA_SPACE.trim();
+            let separator = constants_str::COMMA_SPACE.trim();
             let keys_capacity = entry
                 .keys
                 .0
@@ -375,13 +375,13 @@ fn main() -> Result<(), InitializeError> {
                         .0
                         .len()
                         .get()
-                        .saturating_sub(usize_constants::ONE)
+                        .saturating_sub(constants_usize::ONE)
                         .saturating_mul(separator.len()),
                 );
             let keys = entry.keys.0.iter().enumerate().fold(
                 String::with_capacity(keys_capacity),
                 |mut keys, (index, key)| {
-                    if index > usize_constants::ZERO {
+                    if index > constants_usize::ZERO {
                         keys.push_str(separator);
                     }
                     keys.push_str(key.as_ref());
@@ -404,16 +404,16 @@ mod tests {
             "rust-workspace-template-environment-{}",
             uuid::Uuid::new_v4()
         ));
-        std::fs::create_dir_all(root.join(str_constants::SERVICE))
+        std::fs::create_dir_all(root.join(constants_str::SERVICE))
             .expect("fdbf7411 fixture invariant must hold");
         std::fs::write(
-            root.join(str_constants::CARGO_TOML),
-            str_constants::WORKSPACE_NEWLINE_MEMBERS_SERVICE_NEWLINE,
+            root.join(constants_str::CARGO_TOML),
+            constants_str::WORKSPACE_NEWLINE_MEMBERS_SERVICE_NEWLINE,
         )
         .expect("8e781c83 fixture invariant must hold");
         std::fs::write(
-            root.join(str_constants::SERVICE_ENV_EXAMPLE),
-            str_constants::PUBLIC_VALUE_NEWLINE_SECRET_CHANGE_ME_NEWLINE,
+            root.join(constants_str::SERVICE_ENV_EXAMPLE),
+            constants_str::PUBLIC_VALUE_NEWLINE_SECRET_CHANGE_ME_NEWLINE,
         )
         .expect("f24fca72 fixture invariant must hold");
         root
@@ -452,8 +452,8 @@ mod tests {
             super::InitializationStatus::Created
         );
         std::fs::write(
-            root.join(str_constants::SERVICE_ENV),
-            str_constants::SECRET_CUSTOM_NEWLINE,
+            root.join(constants_str::SERVICE_ENV),
+            constants_str::SECRET_CUSTOM_NEWLINE,
         )
         .expect("2d67b058 dry_run_apply_and_repeat_are_safe_and_idempotent invariant must hold");
         let updated = super::initialize(
@@ -471,7 +471,7 @@ mod tests {
                 .status,
             super::InitializationStatus::Updated
         );
-        let updated_content = std::fs::read_to_string(root.join(str_constants::SERVICE_ENV))
+        let updated_content = std::fs::read_to_string(root.join(constants_str::SERVICE_ENV))
             .expect(
                 "bd9f5208 dry_run_apply_and_repeat_are_safe_and_idempotent invariant must hold",
             );
@@ -500,8 +500,8 @@ mod tests {
     fn escaping_member_is_rejected() {
         let root = fixture();
         std::fs::write(
-            root.join(str_constants::CARGO_TOML),
-            str_constants::WORKSPACE_NEWLINE_MEMBERS_OUTSIDE_NEWLINE,
+            root.join(constants_str::CARGO_TOML),
+            constants_str::WORKSPACE_NEWLINE_MEMBERS_OUTSIDE_NEWLINE,
         )
         .expect("350646f2 escaping_member_is_rejected invariant must hold");
         assert!(matches!(
@@ -518,9 +518,9 @@ mod tests {
     fn oversized_environment_example_is_rejected() {
         let root = fixture();
         std::fs::write(
-            root.join(str_constants::SERVICE_ENV_EXAMPLE),
-            str_constants::A_ALT
-                .repeat(usize_constants::VALUE_1_048_576.saturating_add(usize_constants::ONE)),
+            root.join(constants_str::SERVICE_ENV_EXAMPLE),
+            constants_str::A_ALT
+                .repeat(constants_usize::VALUE_1_048_576.saturating_add(constants_usize::ONE)),
         )
         .expect("f6290e85 oversized_environment_example_is_rejected invariant must hold");
         assert!(matches!(

@@ -14,9 +14,9 @@ pub struct DatabaseUrl(String);
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
 )]
 pub enum DatabaseUrlError {
-    #[error("{0}", str_constants::DATABASE_URL_MUST_NOT_BE_EMPTY)]
+    #[error("{0}", constants_str::DATABASE_URL_MUST_NOT_BE_EMPTY)]
     Empty,
-    #[error("{0}", str_constants::DATABASE_URL_EXCEEDS_MAXIMUM_LENGTH)]
+    #[error("{0}", constants_str::DATABASE_URL_EXCEEDS_MAXIMUM_LENGTH)]
     TooLong,
 }
 
@@ -36,7 +36,7 @@ pub struct MigrationsSource(String);
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
 )]
 pub enum MigrationsSourceError {
-    #[error("{0}", str_constants::MIGRATIONS_SOURCE_EXCEEDS_MAXIMUM_LENGTH)]
+    #[error("{0}", constants_str::MIGRATIONS_SOURCE_EXCEEDS_MAXIMUM_LENGTH)]
     TooLong,
 }
 
@@ -161,7 +161,7 @@ where
     let value_ref = value.as_ref();
     if value_ref.trim().is_empty() {
         Err(DatabaseUrlError::Empty)
-    } else if value_ref.len() > usize_constants::VALUE_8_192 {
+    } else if value_ref.len() > constants_usize::VALUE_8_192 {
         Err(DatabaseUrlError::TooLong)
     } else {
         Ok(())
@@ -188,13 +188,13 @@ where
     ProcessCommands::from(bounded_types::BoundedVec::from_max_iter(
         specs.into_iter().map(|spec| ProcessCommand {
             arguments: ProcessArguments::from(bounded_types::BoundedVec::from_max_iter([
-                ProcessArgument::from(str_constants::DATABASE_URL_FLAG),
+                ProcessArgument::from(constants_str::DATABASE_URL_FLAG),
                 ProcessArgument::from(spec.url),
-                ProcessArgument::from(str_constants::SOURCE_FLAG),
+                ProcessArgument::from(constants_str::SOURCE_FLAG),
                 ProcessArgument::from(spec.migrations_source),
-                ProcessArgument::from(str_constants::RUN),
+                ProcessArgument::from(constants_str::RUN),
             ])),
-            program: ProcessProgram::from(str_constants::SQLX),
+            program: ProcessProgram::from(constants_str::SQLX),
         }),
     ))
 }
@@ -203,9 +203,9 @@ where
 mod tests {
     #[test]
     fn builds_one_migration_command_per_database() {
-        let url = super::DatabaseUrl::try_from(str_constants::TEST_DATABASE_URL.to_owned());
+        let url = super::DatabaseUrl::try_from(constants_str::TEST_DATABASE_URL.to_owned());
         let source =
-            super::MigrationsSource::try_from(str_constants::TEST_MIGRATIONS_PATH.to_owned());
+            super::MigrationsSource::try_from(constants_str::TEST_MIGRATIONS_PATH.to_owned());
         assert!(url.is_ok());
         assert!(source.is_ok());
         let commands = super::migration_commands(url.into_iter().zip(source).map(
@@ -213,12 +213,12 @@ mod tests {
                 super::DatabasePreparationSpec::new(valid_url, valid_source)
             },
         ));
-        assert_eq!(commands.as_ref().len(), usize_constants::ONE);
+        assert_eq!(commands.as_ref().len(), constants_usize::ONE);
         let command = commands
             .as_ref()
             .first()
             .expect("989c8d37 builds_one_migration_command_per_database invariant must hold");
-        assert_eq!(command.program().as_ref(), str_constants::SQLX);
+        assert_eq!(command.program().as_ref(), constants_str::SQLX);
         assert_eq!(command.arguments().as_ref().len(), 5usize);
     }
 

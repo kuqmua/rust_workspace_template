@@ -92,7 +92,7 @@ struct RolePermissionsForm {
 const ADMIN_HTML_FORM_SELECTED_MAX_ITEMS: usize = 1_000usize;
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
-#[error("{message}", message = str_constants::ADMIN_HTML_FORM_TEXT_TOO_LONG)]
+#[error("{message}", message = constants_str::ADMIN_HTML_FORM_TEXT_TOO_LONG)]
 struct AdminHtmlFormTextError;
 impl From<bounded_types::BoundedValueError> for AdminHtmlFormTextError {
     fn from(_value: bounded_types::BoundedValueError) -> Self {
@@ -100,7 +100,7 @@ impl From<bounded_types::BoundedValueError> for AdminHtmlFormTextError {
     }
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
-#[error("{message}", message = str_constants::ADMIN_HTML_FORM_KEY_TOO_LONG)]
+#[error("{message}", message = constants_str::ADMIN_HTML_FORM_KEY_TOO_LONG)]
 struct AdminHtmlFormKeyError;
 impl From<bounded_types::BoundedValueError> for AdminHtmlFormKeyError {
     fn from(_value: bounded_types::BoundedValueError) -> Self {
@@ -118,7 +118,7 @@ impl From<bounded_types::BoundedValueError> for StdAdminHtmlSelectedError {
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, serde::Deserialize)]
 #[serde(try_from = "String")]
-struct AdminHtmlFormText(bounded_types::BoundedString<0, { usize_constants::VALUE_8_192 }>);
+struct AdminHtmlFormText(bounded_types::BoundedString<0, { constants_usize::VALUE_8_192 }>);
 impl TryFrom<String> for AdminHtmlFormText {
     type Error = AdminHtmlFormTextError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
@@ -137,7 +137,7 @@ impl TryFrom<String> for AdminHtmlFormText {
     serde::Deserialize,
 )]
 #[serde(try_from = "String")]
-struct AdminHtmlFormKey(bounded_types::BoundedString<0, { usize_constants::VALUE_8_192 }>);
+struct AdminHtmlFormKey(bounded_types::BoundedString<0, { constants_usize::VALUE_8_192 }>);
 impl TryFrom<String> for AdminHtmlFormKey {
     type Error = AdminHtmlFormKeyError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
@@ -232,7 +232,7 @@ fn form_auth(mut auth: super::AdminAuthReq) -> Result<super::AdminAuthReq, super
         super::AdminError::header(super::HttpAdminHeaderValueError::from(error))
     })?;
     let _previous = auth.headers.0.insert(
-        http::HeaderName::from_static(str_constants::X_CSRF_TOKEN_ALT),
+        http::HeaderName::from_static(constants_str::X_CSRF_TOKEN_ALT),
         value,
     );
     Ok(auth)
@@ -258,7 +258,7 @@ fn redirect_with_headers(
 
 fn success_redirect(path: server_admin_contract::AdminFrontendPath) -> axum::response::Response {
     axum::response::IntoResponse::into_response(axum::response::Redirect::to(
-        format!("{}{}", path.get(), str_constants::ADMIN_HTML_SAVED_FRAGMENT).as_str(),
+        format!("{}{}", path.get(), constants_str::ADMIN_HTML_SAVED_FRAGMENT).as_str(),
     ))
 }
 
@@ -359,7 +359,7 @@ fn permission_ids(
 fn selected_form_text(
     selected: StdAdminHtmlSelected,
 ) -> Result<AdminHtmlFormText, AdminHtmlFormTextError> {
-    let separator = str_constants::COMMA_SPACE.trim();
+    let separator = constants_str::COMMA_SPACE.trim();
     let capacity = selected
         .0
         .iter()
@@ -370,13 +370,13 @@ fn selected_form_text(
                 .0
                 .len()
                 .get()
-                .saturating_sub(usize_constants::ONE)
+                .saturating_sub(constants_usize::ONE)
                 .saturating_mul(separator.len()),
         );
     let text = selected.0.into_values().enumerate().fold(
         String::with_capacity(capacity),
         |mut text, (index, value)| {
-            if index > usize_constants::ZERO {
+            if index > constants_usize::ZERO {
                 text.push_str(separator);
             }
             text.push_str(value.0.as_ref());
@@ -635,7 +635,7 @@ async fn version(auth: super::AdminAuthReq) -> axum::response::Response {
         }
         Ok((admin, branding, _password_change_required)) => match (
             server_admin_frontend::ssr::AdminSsrText::try_from(
-                str_constants::VERSION_ALT.to_owned(),
+                constants_str::VERSION_ALT.to_owned(),
             ),
             server_admin_frontend::ssr::AdminSsrText::try_from(
                 git_info::project_git_info().commit().to_string(),
@@ -681,7 +681,7 @@ async fn open_api(auth: super::AdminAuthReq) -> axum::response::Response {
             match serde_json::to_string_pretty(&document) {
                 Ok(text) => match (
                     server_admin_frontend::ssr::AdminSsrText::try_from(
-                        str_constants::OPENAPI_DOCUMENT.to_owned(),
+                        constants_str::OPENAPI_DOCUMENT.to_owned(),
                     ),
                     server_admin_frontend::ssr::AdminSsrText::try_from(text),
                 ) {
@@ -1083,7 +1083,7 @@ async fn finish_sign_in(
         }
         Err(_error) => {
             let message_result = server_admin_frontend::ssr::AdminSsrErrorMessage::try_from(
-                String::from(str_constants::SIGN_IN_FAILED),
+                String::from(constants_str::SIGN_IN_FAILED),
             );
             match message_result {
                 Ok(error_message) => axum::response::IntoResponse::into_response((

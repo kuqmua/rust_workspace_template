@@ -6,14 +6,14 @@
 #[test]
 fn all_crates_have_publish_false() {
     super::assert_crate_manifest_cargo_policy(
-        super::types::StaticStr::from(str_constants::F2A8C5D3),
+        super::types::StaticStr::from(constants_str::F2A8C5D3),
         |path, parsed, ers| {
             let publish = parsed
-                .get(str_constants::PACKAGE)
-                .and_then(|v_1c7b4e9d| v_1c7b4e9d.get(str_constants::PUBLISH));
+                .get(constants_str::PACKAGE)
+                .and_then(|v_1c7b4e9d| v_1c7b4e9d.get(constants_str::PUBLISH));
             let inherits_workspace = publish
                 .and_then(toml::Value::as_table)
-                .and_then(|table| table.get(str_constants::WORKSPACE))
+                .and_then(|table| table.get(constants_str::WORKSPACE))
                 == Some(&toml::Value::Boolean(true));
             if !inherits_workspace {
                 ers.push(format!(
@@ -27,13 +27,13 @@ fn all_crates_have_publish_false() {
 #[test]
 fn all_crates_have_workspace_lints() {
     super::assert_crate_manifest_cargo_policy(
-        super::types::StaticStr::from(str_constants::D5F1A4E7),
+        super::types::StaticStr::from(constants_str::D5F1A4E7),
         |path, parsed, ers| match parsed
-            .get(str_constants::LINTS)
+            .get(constants_str::LINTS)
             .and_then(|v_8f2a3d6b| v_8f2a3d6b.as_table())
         {
             Some(lints_table) => {
-                if lints_table.get(str_constants::WORKSPACE) != Some(&toml::Value::Boolean(true)) {
+                if lints_table.get(constants_str::WORKSPACE) != Some(&toml::Value::Boolean(true)) {
                     ers.push(format!(
                         "{}: [lints] missing `workspace = true`",
                         path.display()
@@ -49,14 +49,14 @@ fn all_crates_have_workspace_lints() {
 #[test]
 fn all_crates_use_edition_2024() {
     super::assert_crate_manifest_cargo_policy(
-        super::types::StaticStr::from(str_constants::A3D7F1C8),
+        super::types::StaticStr::from(constants_str::A3D7F1C8),
         |path, parsed, ers| {
             let edition = parsed
-                .get(str_constants::PACKAGE)
-                .and_then(|v_6d9f2a3e| v_6d9f2a3e.get(str_constants::EDITION));
+                .get(constants_str::PACKAGE)
+                .and_then(|v_6d9f2a3e| v_6d9f2a3e.get(constants_str::EDITION));
             let inherits_workspace = edition
                 .and_then(toml::Value::as_table)
-                .and_then(|table| table.get(str_constants::WORKSPACE))
+                .and_then(|table| table.get(constants_str::WORKSPACE))
                 == Some(&toml::Value::Boolean(true));
             if !inherits_workspace {
                 ers.push(format!(
@@ -74,18 +74,18 @@ fn all_crates_inherit_shared_package_metadata() {
         |path, parsed, ers| {
             [
                 "version",
-                str_constants::PUBLISH,
+                constants_str::PUBLISH,
                 "repository",
                 "license",
-                str_constants::EDITION,
+                constants_str::EDITION,
             ]
             .into_iter()
             .for_each(|field| {
                 let inherits_workspace = parsed
-                    .get(str_constants::PACKAGE)
+                    .get(constants_str::PACKAGE)
                     .and_then(|package| package.get(field))
                     .and_then(toml::Value::as_table)
-                    .and_then(|table| table.get(str_constants::WORKSPACE))
+                    .and_then(|table| table.get(constants_str::WORKSPACE))
                     == Some(&toml::Value::Boolean(true));
                 if !inherits_workspace {
                     ers.push(format!(
@@ -102,11 +102,11 @@ fn check_workspace_dependencies_having_exact_version() {
     let workspace = super::workspace_table_from_cargo_toml();
     super::toml_val_as_table_ref(
         super::types::TomlValueRef::from(
-            workspace.as_ref().get(str_constants::DEPENDENCIES).expect(
+            workspace.as_ref().get(constants_str::DEPENDENCIES).expect(
                 "2376f58e check_workspace_dependencies_having_exact_version invariant must hold",
             ),
         ),
-        super::types::StaticStr::from(str_constants::E117FA5A),
+        super::types::StaticStr::from(constants_str::E117FA5A),
     )
     .as_ref()
     .values()
@@ -119,7 +119,7 @@ fn external_workspace_dependencies_disable_default_features() {
         super::types::TomlValueRef::from(
             workspace
                 .as_ref()
-                .get(str_constants::DEPENDENCIES)
+                .get(constants_str::DEPENDENCIES)
                 .expect("9ac9fb4c external_workspace_dependencies_disable_default_features invariant must hold"),
         ),
         super::types::StaticStr::from("2db3165f"),
@@ -130,7 +130,7 @@ fn external_workspace_dependencies_disable_default_features() {
         .filter(|(_, dependency)| {
             dependency
                 .as_table()
-                .is_some_and(|table| table.contains_key(str_constants::VERSION_ALT_3))
+                .is_some_and(|table| table.contains_key(constants_str::VERSION_ALT_3))
                 && !super::workspace_dep_disables_default_features(
                     super::types::TomlValueRef::from(*dependency),
                 )
@@ -229,7 +229,7 @@ fn workspace_dependency_catalog_has_no_unused_entries() {
     let workspace = super::workspace_table_from_cargo_toml();
     let catalog = super::toml_val_as_table_ref(
         super::types::TomlValueRef::from(
-            workspace.as_ref().get(str_constants::DEPENDENCIES).expect(
+            workspace.as_ref().get(constants_str::DEPENDENCIES).expect(
                 "3e0ac397 workspace_dependency_catalog_has_no_unused_entries invariant must hold",
             ),
         ),
@@ -252,7 +252,7 @@ fn workspace_dependency_catalog_has_no_unused_entries() {
             .filter(|(name, dependency)| {
                 dependency
                     .as_table()
-                    .is_some_and(|table| table.contains_key(str_constants::VERSION_ALT_3))
+                    .is_some_and(|table| table.contains_key(constants_str::VERSION_ALT_3))
                     && !used.contains(name.as_str())
             })
             .map(|(name, _)| name)
@@ -398,8 +398,8 @@ fn library_crates_with_public_logic_own_tests() {
             reason: "the proc-macro is exercised by server_app_state tests",
         },
         TestOwnershipException {
-            crate_name: "str_constants_macros",
-            reason: "the proc-macro is exercised by str_constants tests",
+            crate_name: "constants_str_macros",
+            reason: "the proc-macro is exercised by constants_str tests",
         },
         TestOwnershipException {
             crate_name: "to_err_string_macros",
@@ -564,8 +564,8 @@ fn source_modules_with_public_logic_own_unit_tests() {
             "the resource budget is exercised by server runtime integration paths",
         ),
         (
-            "str_constants_macros/src/lib.rs",
-            "the proc-macro is covered by str_constants tests",
+            "constants_str_macros/src/lib.rs",
+            "the proc-macro is covered by constants_str tests",
         ),
         (
             "pg_crud_where_filters_generate/src/lib.rs",
@@ -686,7 +686,7 @@ fn source_modules_with_public_logic_own_unit_tests() {
 }
 #[test]
 fn workspace_lint_allows_have_inline_reasons() {
-    let source = std::fs::read_to_string(str_constants::CODE_STYLE_WORKSPACE_MANIFEST_PATH)
+    let source = std::fs::read_to_string(constants_str::CODE_STYLE_WORKSPACE_MANIFEST_PATH)
         .expect("68dcaf75 workspace_lint_allows_have_inline_reasons invariant must hold");
     let violations = super::unjustified_workspace_lint_allows(super::types::SourceTextRef::from(
         source.as_str(),
@@ -712,9 +712,9 @@ debug = true
 #[test]
 fn env_and_env_example_have_same_keys() {
     let env_keys =
-        super::env_keys_from_file(super::types::StaticStr::from(str_constants::SERVER_ENV));
+        super::env_keys_from_file(super::types::StaticStr::from(constants_str::SERVER_ENV));
     let example_keys = super::env_keys_from_file(super::types::StaticStr::from(
-        str_constants::SERVER_DOT_ENV_EXAMPLE,
+        constants_str::SERVER_DOT_ENV_EXAMPLE,
     ));
     let env_keys_set = super::str_set(super::types::SourceTextListRef::from(env_keys.as_slice()));
     let example_keys_set = super::str_set(super::types::SourceTextListRef::from(
@@ -723,18 +723,18 @@ fn env_and_env_example_have_same_keys() {
     let mut ers = super::collect_missing_key_ers(
         super::types::SourceTextListRef::from(env_keys.as_slice()),
         super::types::StdSourceTextRefSet::from(example_keys_set.as_ref()),
-        super::types::StaticStr::from(str_constants::ENV),
-        super::types::StaticStr::from(str_constants::ENV_EXAMPLE),
+        super::types::StaticStr::from(constants_str::ENV),
+        super::types::StaticStr::from(constants_str::ENV_EXAMPLE),
     );
     ers.extend(super::collect_missing_key_ers(
         super::types::SourceTextListRef::from(example_keys.as_slice()),
         super::types::StdSourceTextRefSet::from(env_keys_set.as_ref()),
-        super::types::StaticStr::from(str_constants::ENV_EXAMPLE),
-        super::types::StaticStr::from(str_constants::ENV),
+        super::types::StaticStr::from(constants_str::ENV_EXAMPLE),
+        super::types::StaticStr::from(constants_str::ENV),
     ));
     super::assert_joined_ers_empty_sorted(
         super::types::DiagnosticMsgsMutRef::from(&mut ers),
-        super::types::StaticStr::from(str_constants::C8D2F1A3),
+        super::types::StaticStr::from(constants_str::C8D2F1A3),
     );
 }
 #[test]
@@ -744,14 +744,14 @@ fn server_has_one_tracked_environment_example() {
         "42fa780c"
     );
     assert!(
-        std::path::Path::new(str_constants::SERVER_DOT_ENV_EXAMPLE).is_file(),
+        std::path::Path::new(constants_str::SERVER_DOT_ENV_EXAMPLE).is_file(),
         "73be248d"
     );
 }
 #[test]
 fn workspace_crates_must_use_workspace_dependencies() {
     super::assert_cargo_toml_ers_empty(
-        super::types::StaticStr::from(str_constants::VALUE_5F8A6D17),
+        super::types::StaticStr::from(constants_str::VALUE_5F8A6D17),
         |path, parsed, ers| {
             super::collect_non_workspace_dep_ers(
                 super::types::StdPathRef::from(path),
@@ -818,7 +818,7 @@ serde = { workspace = true }
 #[test]
 fn workspace_dependencies_use_inline_table_style() {
     let regex =
-        regex::Regex::new(str_constants::QUESTION_M_S_ASTERISK_A_ZA_Z0_9_PLUS_WORKSPACE_S_ASTERISK)
+        regex::Regex::new(constants_str::QUESTION_M_S_ASTERISK_A_ZA_Z0_9_PLUS_WORKSPACE_S_ASTERISK)
             .expect("ac15d6b9 workspace_dependencies_use_inline_table_style invariant must hold");
     let mut ers = Vec::new();
     super::for_each_crate_manifest_file(|path| {
@@ -832,9 +832,9 @@ fn workspace_dependencies_use_inline_table_style() {
                 .expect("34f5ed27 workspace_dependencies_use_inline_table_style invariant must hold");
             if [
                 "description",
-                str_constants::EDITION,
+                constants_str::EDITION,
                 "license",
-                str_constants::PUBLISH,
+                constants_str::PUBLISH,
                 "repository",
                 "version",
             ]
@@ -857,8 +857,8 @@ fn workspace_dependencies_use_inline_table_style() {
     });
     super::assert_joined_ers_empty_with_ctx(
         super::types::SourceTextListRef::from(ers.as_slice()),
-        super::types::StaticStr::from(str_constants::D7A3C5B1),
-        super::types::SourceTextRef::from(str_constants::DOTTED_WORKSPACE_DEPENDENCY_STYLE_FOUND),
+        super::types::StaticStr::from(constants_str::D7A3C5B1),
+        super::types::SourceTextRef::from(constants_str::DOTTED_WORKSPACE_DEPENDENCY_STYLE_FOUND),
     );
 }
 #[test]
@@ -866,14 +866,14 @@ fn workspace_members_exist_on_disk() {
     let workspace = super::workspace_table_from_cargo_toml();
     let members = super::workspace_members_as_strs(
         super::types::TomlTableRef::from(workspace.as_ref()),
-        super::types::StaticStr::from(str_constants::VALUE_7F3A1C4E),
+        super::types::StaticStr::from(constants_str::VALUE_7F3A1C4E),
     );
     let mut ers = super::collect_workspace_member_missing_cargo_toml_ers(
         super::types::SourceTextListRef::from(members.as_slice()),
     );
     super::assert_joined_ers_empty_sorted(
         super::types::DiagnosticMsgsMutRef::from(&mut ers),
-        super::types::StaticStr::from(str_constants::A4E3B8D1),
+        super::types::StaticStr::from(constants_str::A4E3B8D1),
     );
 }
 #[test]
@@ -886,9 +886,9 @@ fn workspace_crates_are_direct_children_of_workspace_root() {
     let mut violations = walkdir::WalkDir::new(workspace_root)
         .into_iter()
         .filter_entry(|entry| {
-            entry.file_name() != str_constants::TARGET
-                && entry.file_name() != str_constants::GIT
-                && entry.file_name() != str_constants::WORKSPACE_SCAFFOLD_NODE_MODULES
+            entry.file_name() != constants_str::TARGET
+                && entry.file_name() != constants_str::GIT
+                && entry.file_name() != constants_str::WORKSPACE_SCAFFOLD_NODE_MODULES
         })
         .map(|entry| entry.unwrap_or_else(|error| panic!("b93c6e41 {error}")))
         .filter(|entry| !entry.file_type().is_dir() && entry.file_name() == "Cargo.toml")
@@ -901,12 +901,12 @@ fn workspace_crates_are_direct_children_of_workspace_root() {
                 .components()
                 .map(|component| component.as_os_str().to_string_lossy())
                 .collect::<Vec<std::borrow::Cow<'_, str>>>();
-            (parts.len() > usize_constants::ONE).then(|| {
+            (parts.len() > constants_usize::ONE).then(|| {
                 format!(
                     "nested crate `{}` must be moved to `{}` and `[workspace].members` must use `{}`",
                     relative.display(),
-                    parts.join(str_constants::UNDERSCORE),
-                    parts.join(str_constants::UNDERSCORE),
+                    parts.join(constants_str::UNDERSCORE),
+                    parts.join(constants_str::UNDERSCORE),
                 )
             })
         })
@@ -923,7 +923,7 @@ fn workspace_members_sorted_alphabetically() {
     let workspace = super::workspace_table_from_cargo_toml();
     let members_vec = super::workspace_members_as_strs(
         super::types::TomlTableRef::from(workspace.as_ref()),
-        super::types::StaticStr::from(str_constants::C1D4F7A2),
+        super::types::StaticStr::from(constants_str::C1D4F7A2),
     );
     let mut sorted = members_vec.clone();
     sorted.sort_unstable();
@@ -938,8 +938,8 @@ fn workspace_members_sorted_alphabetically() {
         .collect::<Vec<String>>();
     super::assert_joined_ers_empty_with_ctx(
         super::types::SourceTextListRef::from(ers.as_slice()),
-        super::types::StaticStr::from(str_constants::B7C2E5F8),
-        super::types::SourceTextRef::from(str_constants::MEMBERS_NOT_SORTED),
+        super::types::StaticStr::from(constants_str::B7C2E5F8),
+        super::types::SourceTextRef::from(constants_str::MEMBERS_NOT_SORTED),
     );
 }
 
@@ -960,7 +960,7 @@ fn workspace_packages_have_at_most_one_binary_target() {
                     .filter(|target| target.kind.contains(&cargo_metadata::TargetKind::Bin))
                     .map(|target| target.name.as_str())
                     .collect::<Vec<&str>>();
-                (binary_names.len() > usize_constants::ONE).then(|| {
+                (binary_names.len() > constants_usize::ONE).then(|| {
                     format!(
                         "package `{}` owns multiple binaries: {}; move each additional binary into a dedicated workspace crate",
                         package.name,

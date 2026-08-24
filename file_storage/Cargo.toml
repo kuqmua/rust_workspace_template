@@ -11,12 +11,12 @@ categories = ["filesystem"]
 edition.workspace = true
 
 [dependencies]
-usize_constants = { workspace = true }
-u64_constants = { workspace = true }
+constants_usize = { workspace = true }
+constants_u64 = { workspace = true }
 optimal_memory_layout = { workspace = true }
 bounded_types = { workspace = true }
 newtype = { workspace = true }
-str_constants = { workspace = true }
+constants_str = { workspace = true }
 text_policy = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }

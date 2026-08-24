@@ -11,11 +11,11 @@ categories = ["command-line-utilities"]
 edition.workspace = true
 
 [dependencies]
-usize_constants = { workspace = true }
+constants_usize = { workspace = true }
 optimal_memory_layout = { workspace = true }
 bounded_types = { workspace = true }
 newtype = { workspace = true }
-str_constants = { workspace = true }
+constants_str = { workspace = true }
 thiserror = { workspace = true }
 
 [lints]

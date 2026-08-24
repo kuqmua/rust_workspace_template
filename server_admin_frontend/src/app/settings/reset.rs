@@ -8,7 +8,7 @@ pub(super) fn reset() {
                 .get()
                 .to_owned(),
         ),
-        server_admin_contract::AdminSiteName::try_from(str_constants::ADMIN.to_owned()),
+        server_admin_contract::AdminSiteName::try_from(constants_str::ADMIN.to_owned()),
         clear,
         super::super::http::url::admin_api_url(server_admin_contract::AdminRoute::UpdateSettings),
     );

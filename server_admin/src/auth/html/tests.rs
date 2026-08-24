@@ -16,30 +16,30 @@ fn auth_state(
 ) -> Result<super::super::AdminAuthSvcState, super::super::AdminAuthSvcStateBuildError> {
     super::super::AdminAuthSvcState::try_new(
         app_state::SqlxPgPool::from(pool),
-        &env(str_constants::INTEGRATION_TEST_JWT_SECRET_AT_LEAST_32_BYTES),
-        &env(str_constants::VALUE_900),
-        &env(str_constants::VALUE_3600),
-        &env(str_constants::VALUE_20),
-        &env(str_constants::VALUE_2),
-        &env(str_constants::VALUE_10),
-        &env(str_constants::VALUE_1),
-        &env(str_constants::FALSE),
-        &env(str_constants::INTEGRATION_TEST),
-        &env(str_constants::INTEGRATION_TEST_ADMIN),
+        &env(constants_str::INTEGRATION_TEST_JWT_SECRET_AT_LEAST_32_BYTES),
+        &env(constants_str::VALUE_900),
+        &env(constants_str::VALUE_3600),
+        &env(constants_str::VALUE_20),
+        &env(constants_str::VALUE_2),
+        &env(constants_str::VALUE_10),
+        &env(constants_str::VALUE_1),
+        &env(constants_str::FALSE),
+        &env(constants_str::INTEGRATION_TEST),
+        &env(constants_str::INTEGRATION_TEST_ADMIN),
         &config_lib::CorsAllowOrigin(allowed_origin.to_owned()),
     )
 }
 
 fn auth_with_headers(headers: http::HeaderMap) -> super::super::AdminAuthReq {
     let pool = sqlx::postgres::PgPoolOptions::new()
-        .connect_lazy(str_constants::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION)
+        .connect_lazy(constants_str::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION)
         .expect("1c2a7f54 auth_with_headers invariant must hold");
-    let state = auth_state(pool, str_constants::HTTP_LOCALHOST)
+    let state = auth_state(pool, constants_str::HTTP_LOCALHOST)
         .expect("adf9c06e auth_with_headers invariant must hold");
     super::super::AdminAuthReq {
         headers: super::super::HttpAdminHeaderMap::from(headers),
         peer: super::super::AdminPeerAddr::from(super::super::super::StdAdminSocketAddr::from(
-            str_constants::VALUE_127_0_0_1_43210
+            constants_str::VALUE_127_0_0_1_43210
                 .parse::<std::net::SocketAddr>()
                 .expect("0ce8ff47 auth_with_headers invariant must hold"),
         )),
@@ -50,7 +50,7 @@ fn auth_with_headers(headers: http::HeaderMap) -> super::super::AdminAuthReq {
 #[tokio::test]
 async fn auth_state_rejects_empty_cors_origin_entries() {
     let pool = sqlx::postgres::PgPoolOptions::new()
-        .connect_lazy(str_constants::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION)
+        .connect_lazy(constants_str::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION)
         .expect("5bd94807 auth_state_rejects_empty_cors_origin_entries invariant must hold");
     assert!(matches!(
         auth_state(pool, "http://localhost,,https://example.com"),
@@ -116,7 +116,7 @@ async fn role_assignment_form_accepts_dynamic_checkbox_fields() {
         .method(http::Method::POST)
         .header(
             http::header::CONTENT_TYPE,
-            str_constants::APPLICATION_X_WWW_FORM_URLENCODED,
+            constants_str::APPLICATION_X_WWW_FORM_URLENCODED,
         )
         .body(axum::body::Body::from(
             "expected_role_ids=1%2C2&user_id=7&role_1=1&role_2=2",
@@ -139,7 +139,7 @@ async fn role_assignment_form_accepts_dynamic_checkbox_fields() {
 
 #[test]
 fn selected_form_fields_reject_oversized_maps() {
-    let values = (usize_constants::ZERO..=super::ADMIN_HTML_FORM_SELECTED_MAX_ITEMS)
+    let values = (constants_usize::ZERO..=super::ADMIN_HTML_FORM_SELECTED_MAX_ITEMS)
         .map(|idx| {
             (
                 super::AdminHtmlFormKey::try_from(idx.to_string()).expect(

@@ -58,7 +58,7 @@ impl<K: Ord, V, const MAX: usize> StdBoundedBTreeMap<K, V, MAX> {
             std::collections::btree_map::Entry::Vacant(entry) if is_full => {
                 drop(entry);
                 Err(super::BoundedValueError::AboveMax {
-                    actual: super::BoundedLen::from(MAX.saturating_add(usize_constants::ONE)),
+                    actual: super::BoundedLen::from(MAX.saturating_add(constants_usize::ONE)),
                     max: super::BoundedLen::from(MAX),
                 })
             }

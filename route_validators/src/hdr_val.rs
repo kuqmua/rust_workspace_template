@@ -104,7 +104,7 @@ pub(crate) fn get_required_header_str_parsed<'headers, E, T>(
 #[cfg(test)]
 mod tests {
     const TEST_HEADER_NAME: axum::http::HeaderName =
-        axum::http::HeaderName::from_static(str_constants::ROUTE_VALIDATORS_TEST_HEADER_NAME);
+        axum::http::HeaderName::from_static(constants_str::ROUTE_VALIDATORS_TEST_HEADER_NAME);
     #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, PartialEq, Eq)]
     enum TestError {
         NoHeader,
@@ -161,7 +161,7 @@ mod tests {
     }
     #[test]
     fn get_required_header_str_returns_header_when_present_and_utf8() {
-        let headers = mk_test_headers_static(str_constants::ABC_ALT_3);
+        let headers = mk_test_headers_static(constants_str::ABC_ALT_3);
         let actual = get_header(&headers, TEST_HEADER_NAME);
         assert_eq!(actual.map(|v| v.0), Ok("abc"));
     }
@@ -177,13 +177,13 @@ mod tests {
     }
     #[test]
     fn get_required_header_str_accepts_str_header_name() {
-        let headers = mk_test_headers_static(str_constants::ABC_ALT_3);
-        let actual = get_header(&headers, str_constants::ROUTE_VALIDATORS_TEST_HEADER_NAME);
+        let headers = mk_test_headers_static(constants_str::ABC_ALT_3);
+        let actual = get_header(&headers, constants_str::ROUTE_VALIDATORS_TEST_HEADER_NAME);
         assert_eq!(actual.map(|v| v.0), Ok("abc"));
     }
     #[test]
     fn get_required_header_returns_header_value_when_present() {
-        let headers = mk_test_headers_static(str_constants::ABC_ALT_3);
+        let headers = mk_test_headers_static(constants_str::ABC_ALT_3);
         let actual = get_raw_header(&headers, TEST_HEADER_NAME);
         assert_eq!(
             actual.map(|v| v.0),
@@ -200,13 +200,13 @@ mod tests {
     }
     #[test]
     fn get_required_header_parsed_returns_parsed_value_for_valid_header() {
-        let headers = mk_test_headers_static(str_constants::TRUE);
+        let headers = mk_test_headers_static(constants_str::TRUE);
         let actual = get_bool_header(&headers, TEST_HEADER_NAME);
         assert_eq!(actual, Ok(true));
     }
     #[test]
     fn get_required_header_parsed_returns_parse_error_for_invalid_header_value() {
-        let headers = mk_test_headers_static(str_constants::NOPE);
+        let headers = mk_test_headers_static(constants_str::NOPE);
         assert_header_err(
             get_bool_header(&headers, TEST_HEADER_NAME),
             &TestError::ParseBool,
@@ -214,7 +214,7 @@ mod tests {
     }
     #[test]
     fn get_required_header_mapped_applies_mapping_for_present_header() {
-        let headers = mk_test_headers_static(str_constants::ABC_ALT_3);
+        let headers = mk_test_headers_static(constants_str::ABC_ALT_3);
         let actual = super::get_required_header_mapped(
             super::AxumHeadersRef::from(&headers),
             TEST_HEADER_NAME,

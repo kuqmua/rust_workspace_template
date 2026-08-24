@@ -21,7 +21,7 @@ impl TryFrom<String> for ServiceBaseUrl {
     type Error = ServiceBaseUrlError;
 
     fn try_from(mut value: String) -> Result<Self, Self::Error> {
-        if value.len() > usize_constants::VALUE_8_192 {
+        if value.len() > constants_usize::VALUE_8_192 {
             return Err(ServiceBaseUrlError::Length);
         }
         while value.ends_with('/') {
@@ -99,7 +99,7 @@ impl std::fmt::Display for RuntimeTestKind {
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct RuntimeTestReport {
-    passed: bounded_types::BoundedVec<RuntimeTestKind, { usize_constants::ZERO }, 5usize>,
+    passed: bounded_types::BoundedVec<RuntimeTestKind, { constants_usize::ZERO }, 5usize>,
 }
 
 impl RuntimeTestReport {
@@ -136,7 +136,7 @@ impl TryFrom<String> for RuntimeTestUrl {
     type Error = ServiceBaseUrlError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > usize_constants::VALUE_8_192 {
+        if value.len() > constants_usize::VALUE_8_192 {
             Err(ServiceBaseUrlError::Length)
         } else {
             Ok(Self(value))

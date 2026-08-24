@@ -36,22 +36,22 @@ pub struct QuotedLiteral(String);
 pub struct ProcMacro2QuotedLiteralTokenStream(proc_macro2::TokenStream);
 fn binary_double_quote_style() -> QuoteStyle {
     quote_style(
-        QuotePanicId::from(str_constants::VALUE_5DC6F142),
-        QuotePrefix::from(str_constants::B),
+        QuotePanicId::from(constants_str::VALUE_5DC6F142),
+        QuotePrefix::from(constants_str::B),
         QuoteChar::from('"'),
     )
 }
 fn binary_single_quote_style() -> QuoteStyle {
     quote_style(
-        QuotePanicId::from(str_constants::VALUE_8BCE26E7),
-        QuotePrefix::from(str_constants::B),
+        QuotePanicId::from(constants_str::VALUE_8BCE26E7),
+        QuotePrefix::from(constants_str::B),
         QuoteChar::from('\''),
     )
 }
 fn double_quote_style() -> QuoteStyle {
     quote_style(
-        QuotePanicId::from(str_constants::VALUE_0391AC99),
-        QuotePrefix::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+        QuotePanicId::from(constants_str::VALUE_0391AC99),
+        QuotePrefix::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
         QuoteChar::from('"'),
     )
 }
@@ -98,8 +98,8 @@ where
 }
 fn single_quote_style() -> QuoteStyle {
     quote_style(
-        QuotePanicId::from(str_constants::EC1E77D5),
-        QuotePrefix::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+        QuotePanicId::from(constants_str::EC1E77D5),
+        QuotePrefix::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
         QuoteChar::from('\''),
     )
 }
@@ -179,71 +179,71 @@ mod tests {
     #[test]
     fn quote_str_helpers_return_expected_literals() {
         assert_quote_str(
-            &super::single_quotes_str(str_constants::ABC_ALT_3),
-            str_constants::ABC,
+            &super::single_quotes_str(constants_str::ABC_ALT_3),
+            constants_str::ABC,
         );
         assert_quote_str(
-            &super::dq_str(&str_constants::ABC_ALT_3),
-            str_constants::ABC_ALT,
+            &super::dq_str(&constants_str::ABC_ALT_3),
+            constants_str::ABC_ALT,
         );
         assert_quote_str(
-            &super::binary_single_quotes_str(str_constants::ABC_ALT_3),
-            str_constants::B_ABC,
+            &super::binary_single_quotes_str(constants_str::ABC_ALT_3),
+            constants_str::B_ABC,
         );
         assert_quote_str(
-            &super::binary_double_quoted_str(&str_constants::ABC_ALT_3),
-            str_constants::B_ABC_ALT,
+            &super::binary_double_quoted_str(&constants_str::ABC_ALT_3),
+            constants_str::B_ABC_ALT,
         );
     }
     #[test]
     fn quote_token_stream_helpers_return_expected_tokens() {
         assert_quote_token_stream(
-            &super::single_quotes_token_stream(str_constants::A_ALT),
-            str_constants::A,
+            &super::single_quotes_token_stream(constants_str::A_ALT),
+            constants_str::A,
         );
         assert_quote_token_stream(
-            &super::dq_token_stream(&str_constants::ABC_ALT_3),
-            str_constants::ABC_ALT,
+            &super::dq_token_stream(&constants_str::ABC_ALT_3),
+            constants_str::ABC_ALT,
         );
         assert_quote_token_stream(
-            &super::binary_single_quotes_token_stream(str_constants::A_ALT),
-            str_constants::B_A,
+            &super::binary_single_quotes_token_stream(constants_str::A_ALT),
+            constants_str::B_A,
         );
         assert_quote_token_stream(
-            &super::binary_double_quoted_token_stream(&str_constants::ABC_ALT_3),
-            str_constants::B_ABC_ALT,
+            &super::binary_double_quoted_token_stream(&constants_str::ABC_ALT_3),
+            constants_str::B_ABC_ALT,
         );
     }
     #[test]
     fn quote_helpers_support_non_string_display_inputs() {
-        assert_quote_str(&super::dq_str(&42i32), str_constants::VALUE_42_ALT);
+        assert_quote_str(&super::dq_str(&42i32), constants_str::VALUE_42_ALT);
         assert_quote_str(
             &super::binary_double_quoted_str(&42i32),
-            str_constants::B_42,
+            constants_str::B_42,
         );
-        assert_quote_token_stream(&super::dq_token_stream(&42i32), str_constants::VALUE_42_ALT);
+        assert_quote_token_stream(&super::dq_token_stream(&42i32), constants_str::VALUE_42_ALT);
         assert_quote_token_stream(
             &super::binary_double_quoted_token_stream(&42i32),
-            str_constants::B_42,
+            constants_str::B_42,
         );
     }
     #[test]
     fn quote_helpers_handle_empty_input() {
         assert_quote_str(
-            &super::single_quotes_str(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
-            str_constants::TEXT_ALT_4,
+            &super::single_quotes_str(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
+            constants_str::TEXT_ALT_4,
         );
         assert_quote_str(
-            &super::dq_str(&str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
-            str_constants::TEXT_ALT_12,
+            &super::dq_str(&constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
+            constants_str::TEXT_ALT_12,
         );
         assert_quote_str(
-            &super::binary_single_quotes_str(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
-            str_constants::B_ALT,
+            &super::binary_single_quotes_str(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
+            constants_str::B_ALT,
         );
         assert_quote_str(
-            &super::binary_double_quoted_str(&str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
-            str_constants::B_ALT_3,
+            &super::binary_double_quoted_str(&constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
+            constants_str::B_ALT_3,
         );
         assert!(
             super::single_quotes_token_stream("")
@@ -251,8 +251,8 @@ mod tests {
                 .contains("compile_error !")
         );
         assert_quote_token_stream(
-            &super::dq_token_stream(&str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
-            str_constants::TEXT_ALT_12,
+            &super::dq_token_stream(&constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
+            constants_str::TEXT_ALT_12,
         );
         assert!(
             super::binary_single_quotes_token_stream("")
@@ -260,8 +260,8 @@ mod tests {
                 .contains("compile_error !")
         );
         assert_quote_token_stream(
-            &super::binary_double_quoted_token_stream(&str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
-            str_constants::B_ALT_3,
+            &super::binary_double_quoted_token_stream(&constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
+            constants_str::B_ALT_3,
         );
     }
 }

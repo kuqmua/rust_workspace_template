@@ -41,13 +41,13 @@ mod tests {
     #[test]
     fn display_preserves_operation_and_rollback_errors() {
         let failure = super::TransactionFailure::from_operation_and_rollback(
-            std::io::Error::other(str_constants::TEST_TRANSACTION_OPERATION_ERROR),
+            std::io::Error::other(constants_str::TEST_TRANSACTION_OPERATION_ERROR),
             Err(std::io::Error::other(
-                str_constants::TEST_TRANSACTION_ROLLBACK_ERROR,
+                constants_str::TEST_TRANSACTION_ROLLBACK_ERROR,
             )),
         );
         let message = failure.to_string();
-        assert!(message.contains(str_constants::TEST_TRANSACTION_OPERATION_ERROR));
-        assert!(message.contains(str_constants::TEST_TRANSACTION_ROLLBACK_ERROR));
+        assert!(message.contains(constants_str::TEST_TRANSACTION_OPERATION_ERROR));
+        assert!(message.contains(constants_str::TEST_TRANSACTION_ROLLBACK_ERROR));
     }
 }

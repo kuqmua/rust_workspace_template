@@ -24,11 +24,11 @@ impl From<server_admin_contract::AdminDataInputKind> for AdminDataGridInputType 
 impl AsRef<str> for AdminDataGridInputType {
     fn as_ref(&self) -> &str {
         match self {
-            Self::Date => str_constants::HTML_DATE_INPUT_TYPE,
-            Self::DateTime => str_constants::HTML_DATETIME_LOCAL_INPUT_TYPE,
-            Self::Number => str_constants::HTML_NUMBER_INPUT_TYPE,
-            Self::Text => str_constants::HTML_TEXT_INPUT_TYPE,
-            Self::Time => str_constants::HTML_TIME_INPUT_TYPE,
+            Self::Date => constants_str::HTML_DATE_INPUT_TYPE,
+            Self::DateTime => constants_str::HTML_DATETIME_LOCAL_INPUT_TYPE,
+            Self::Number => constants_str::HTML_NUMBER_INPUT_TYPE,
+            Self::Text => constants_str::HTML_TEXT_INPUT_TYPE,
+            Self::Time => constants_str::HTML_TIME_INPUT_TYPE,
         }
     }
 }
@@ -40,31 +40,31 @@ mod tests {
         [
             (
                 server_admin_contract::AdminDataInputKind::Date,
-                str_constants::HTML_DATE_INPUT_TYPE,
+                constants_str::HTML_DATE_INPUT_TYPE,
             ),
             (
                 server_admin_contract::AdminDataInputKind::DateTime,
-                str_constants::HTML_DATETIME_LOCAL_INPUT_TYPE,
+                constants_str::HTML_DATETIME_LOCAL_INPUT_TYPE,
             ),
             (
                 server_admin_contract::AdminDataInputKind::Number,
-                str_constants::HTML_NUMBER_INPUT_TYPE,
+                constants_str::HTML_NUMBER_INPUT_TYPE,
             ),
             (
                 server_admin_contract::AdminDataInputKind::Time,
-                str_constants::HTML_TIME_INPUT_TYPE,
+                constants_str::HTML_TIME_INPUT_TYPE,
             ),
             (
                 server_admin_contract::AdminDataInputKind::Checkbox,
-                str_constants::HTML_TEXT_INPUT_TYPE,
+                constants_str::HTML_TEXT_INPUT_TYPE,
             ),
             (
                 server_admin_contract::AdminDataInputKind::Text,
-                str_constants::HTML_TEXT_INPUT_TYPE,
+                constants_str::HTML_TEXT_INPUT_TYPE,
             ),
             (
                 server_admin_contract::AdminDataInputKind::Uuid,
-                str_constants::HTML_TEXT_INPUT_TYPE,
+                constants_str::HTML_TEXT_INPUT_TYPE,
             ),
         ]
         .into_iter()

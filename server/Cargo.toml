@@ -11,9 +11,9 @@ license.workspace = true
 
 
 [dependencies]
-usize_constants = { workspace = true }
+constants_usize = { workspace = true }
 optimal_memory_layout = { workspace = true }
-str_constants = { workspace = true }
+constants_str = { workspace = true }
 axum = { workspace = true }
 tower = { workspace = true }
 tower-http = { workspace = true }

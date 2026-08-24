@@ -1,11 +1,11 @@
 fn catalog_snapshot(kind: super::DbObjectKind) -> super::DbCatalogSnapshot {
     super::DbCatalogSnapshot::new(
         vec![super::DbObjectSnapshot::new(
-            super::DbSchemaText::try_from(String::from(str_constants::TEST_DB_OBJECT_NAME))
-                .expect(str_constants::VALUE_E84FED1B),
+            super::DbSchemaText::try_from(String::from(constants_str::TEST_DB_OBJECT_NAME))
+                .expect(constants_str::VALUE_E84FED1B),
             kind,
-            super::DbSchemaText::try_from(String::from(str_constants::TEST_DB_OBJECT_DEFINITION))
-                .expect(str_constants::VALUE_A7950FF0),
+            super::DbSchemaText::try_from(String::from(constants_str::TEST_DB_OBJECT_DEFINITION))
+                .expect(constants_str::VALUE_A7950FF0),
         )]
         .into(),
     )
@@ -14,22 +14,22 @@ fn catalog_snapshot(kind: super::DbObjectKind) -> super::DbCatalogSnapshot {
 fn snapshot(nullable: bool) -> super::DbTableSnapshot {
     super::DbTableSnapshot::new(
         vec![super::DbColumnSnapshot::new(
-            super::DbSchemaText::try_from(String::from(str_constants::TEST_DB_COLUMN_ID))
-                .expect(str_constants::VALUE_11F0D7F5),
-            super::DbSchemaText::try_from(String::from(str_constants::TEST_DB_DATA_TYPE_UUID))
-                .expect(str_constants::VALUE_9CB64C93),
+            super::DbSchemaText::try_from(String::from(constants_str::TEST_DB_COLUMN_ID))
+                .expect(constants_str::VALUE_11F0D7F5),
+            super::DbSchemaText::try_from(String::from(constants_str::TEST_DB_DATA_TYPE_UUID))
+                .expect(constants_str::VALUE_9CB64C93),
             nullable.into(),
             None,
         )]
         .into(),
         vec![super::DbObjectSnapshot::new(
-            super::DbSchemaText::try_from(String::from(str_constants::TEST_DB_CONSTRAINT_NAME))
-                .expect(str_constants::VALUE_61F95647),
+            super::DbSchemaText::try_from(String::from(constants_str::TEST_DB_CONSTRAINT_NAME))
+                .expect(constants_str::VALUE_61F95647),
             super::DbObjectKind::PrimaryKey,
             super::DbSchemaText::try_from(String::from(
-                str_constants::TEST_DB_CONSTRAINT_DEFINITION,
+                constants_str::TEST_DB_CONSTRAINT_DEFINITION,
             ))
-            .expect(str_constants::VALUE_A4B28D38),
+            .expect(constants_str::VALUE_A4B28D38),
         )]
         .into(),
     )

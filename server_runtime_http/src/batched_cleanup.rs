@@ -11,7 +11,7 @@ impl TryFrom<u64> for CleanupBatchSize {
     type Error = CleanupBatchSizeError;
 
     fn try_from(value: u64) -> Result<Self, Self::Error> {
-        if value == u64_constants::ZERO {
+        if value == constants_u64::ZERO {
             Err(CleanupBatchSizeError)
         } else {
             Ok(Self(value))
@@ -92,8 +92,8 @@ where
     CleanupFuture: Future<Output = Result<CleanupRows, CleanupError>>,
     Continue: FnMut() -> CleanupContinuation,
 {
-    let mut batches = u64_constants::ZERO;
-    let mut rows = u64_constants::ZERO;
+    let mut batches = constants_u64::ZERO;
+    let mut rows = constants_u64::ZERO;
     loop {
         if continuation() == CleanupContinuation::Stop {
             return Ok(CleanupReport {
@@ -120,13 +120,13 @@ mod tests {
     #[tokio::test]
     async fn drains_full_batches_until_partial_batch() {
         let batches = [3u64, 3u64, 1u64];
-        let batch_index = std::sync::atomic::AtomicUsize::new(usize_constants::ZERO);
+        let batch_index = std::sync::atomic::AtomicUsize::new(constants_usize::ZERO);
         let report = super::run_batched_cleanup(
             super::CleanupBatchSize::try_from(3u64)
                 .expect("c3cfcb75 drains_full_batches_until_partial_batch invariant must hold"),
             async |_batch_size| {
                 let index = batch_index
-                    .fetch_add(usize_constants::ONE, std::sync::atomic::Ordering::Relaxed);
+                    .fetch_add(constants_usize::ONE, std::sync::atomic::Ordering::Relaxed);
                 let rows = batches.get(index).copied().unwrap_or_default();
                 Ok::<super::CleanupRows, std::convert::Infallible>(rows.into())
             },
@@ -149,14 +149,14 @@ mod tests {
         )
         .await
         .expect("39247aa8 cancellation_stops_before_query invariant must hold");
-        assert_eq!(u64::from(report.batches()), u64_constants::ZERO);
+        assert_eq!(u64::from(report.batches()), constants_u64::ZERO);
         assert_eq!(report.completion(), super::CleanupCompletion::Stopped);
     }
 
     #[test]
     fn zero_batch_size_is_rejected() {
         assert_eq!(
-            super::CleanupBatchSize::try_from(u64_constants::ZERO),
+            super::CleanupBatchSize::try_from(constants_u64::ZERO),
             Err(super::CleanupBatchSizeError)
         );
     }

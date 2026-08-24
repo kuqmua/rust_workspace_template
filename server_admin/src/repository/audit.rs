@@ -7,7 +7,7 @@ pub(crate) async fn record_login_attempt(
     succeeded: crate::StdAdminBool,
     request_id: crate::UuidAdminValue,
 ) -> Result<(), crate::SqlxAdminError> {
-    sqlx::query(str_constants::SERVER_ADMIN_RECORD_LOGIN_ATTEMPT_SQL)
+    sqlx::query(constants_str::SERVER_ADMIN_RECORD_LOGIN_ATTEMPT_SQL)
         .bind(login.as_ref())
         .bind(peer.socket_addr().get().ip())
         .bind(succeeded.get())
@@ -28,7 +28,7 @@ pub(crate) async fn insert_audit_success(
     request_id: crate::UuidAdminValue,
     details: &server_admin_contract::SerdeJsonAdminAuditDetails,
 ) -> Result<(), crate::SqlxAdminError> {
-    sqlx::query(str_constants::SERVER_ADMIN_INSERT_AUDIT_SUCCESS_SQL)
+    sqlx::query(constants_str::SERVER_ADMIN_INSERT_AUDIT_SUCCESS_SQL)
         .bind(user_id.get())
         .bind(login.as_ref())
         .bind(action.as_str().as_ref())
@@ -49,10 +49,10 @@ pub(crate) async fn query_audit_log(
     let action_text = parts.action.map(crate::AdminAuditAction::as_str);
     let resource_text = parts.resource.map(crate::AdminAuditResource::as_str);
     let limit = usize::from(u16::from(parts.limit));
-    let fetch_limit = i64::try_from(limit.saturating_add(usize_constants::ONE))
+    let fetch_limit = i64::try_from(limit.saturating_add(constants_usize::ONE))
         .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?;
     let total =
-        sqlx::query_scalar::<_, i64>(str_constants::SERVER_ADMIN_COUNT_FILTERED_AUDIT_LOG_SQL)
+        sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_COUNT_FILTERED_AUDIT_LOG_SQL)
             .bind(parts.user_id.map(crate::AdminUserId::get))
             .bind(action_text.map(|value| value.as_ref().to_owned()))
             .bind(resource_text.map(|value| value.as_ref().to_owned()))
@@ -97,7 +97,7 @@ pub(crate) async fn query_audit_log(
             Option<serde_json::Value>,
             String,
         ),
-    >(str_constants::SERVER_ADMIN_PAGE_AUDIT_LOG_SQL)
+    >(constants_str::SERVER_ADMIN_PAGE_AUDIT_LOG_SQL)
     .bind(parts.user_id.map(crate::AdminUserId::get))
     .bind(action_text.map(|value| value.as_ref().to_owned()))
     .bind(resource_text.map(|value| value.as_ref().to_owned()))

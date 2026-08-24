@@ -254,10 +254,10 @@ pub enum AdminRoute {
             admin_permission_requirement(super::AdminPermission::MetricsRead),
             frontend_contract::HttpMethod::Get,
             frontend_contract::MutationKind::ReadOnly,
-            frontend_contract::ContractStr::from(str_constants::METRICS),
+            frontend_contract::ContractStr::from(constants_str::METRICS),
             frontend_contract::SuccessStatus::Code200,
         ),
-        path = str_constants::METRICS,
+        path = constants_str::METRICS,
         exclude_from_family,
     )]
     Metrics,
@@ -266,10 +266,10 @@ pub enum AdminRoute {
             admin_permission_requirement(super::AdminPermission::OpenApiRead),
             frontend_contract::HttpMethod::Get,
             frontend_contract::MutationKind::ReadOnly,
-            frontend_contract::ContractStr::from(str_constants::OPENAPI_JSON),
+            frontend_contract::ContractStr::from(constants_str::OPENAPI_JSON),
             frontend_contract::SuccessStatus::Code200,
         ),
-        path = str_constants::OPENAPI_JSON,
+        path = constants_str::OPENAPI_JSON,
         exclude_from_family,
     )]
     OpenApi,
@@ -312,10 +312,10 @@ pub enum AdminRoute {
             frontend_contract::AuthenticationRequirement::Public,
             frontend_contract::HttpMethod::Get,
             frontend_contract::MutationKind::ReadOnly,
-            frontend_contract::ContractStr::from(str_constants::COMMON_ROUTES_GIT_INFO),
+            frontend_contract::ContractStr::from(constants_str::COMMON_ROUTES_GIT_INFO),
             frontend_contract::SuccessStatus::Code200,
         ),
-        path = str_constants::COMMON_ROUTES_GIT_INFO,
+        path = constants_str::COMMON_ROUTES_GIT_INFO,
         exclude_from_family,
     )]
     Version,
@@ -348,14 +348,14 @@ pub enum AdminRoutePathError {
 impl std::fmt::Display for AdminRoutePathError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::TooLong => f.write_str(str_constants::ADMINISTRATOR_ROUTE_PATH_IS_TOO_LONG),
+            Self::TooLong => f.write_str(constants_str::ADMINISTRATOR_ROUTE_PATH_IS_TOO_LONG),
         }
     }
 }
 impl TryFrom<String> for AdminRoutePath {
     type Error = AdminRoutePathError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > usize_constants::VALUE_8_192 {
+        if value.len() > constants_usize::VALUE_8_192 {
             Err(AdminRoutePathError::TooLong)
         } else {
             Ok(Self(value.into_boxed_str()))
@@ -743,16 +743,16 @@ impl AdminPageSpec {
     #[must_use]
     pub fn title(self) -> frontend_contract::ContractStr {
         frontend_contract::ContractStr::from(match self.title {
-            AdminPageTitle::Api => str_constants::API_ALT,
-            AdminPageTitle::Metrics => str_constants::METRICS_ALT,
-            AdminPageTitle::Permissions => str_constants::PERMISSIONS,
-            AdminPageTitle::Profile => str_constants::PROFILE,
-            AdminPageTitle::Roles => str_constants::ROLES,
-            AdminPageTitle::Sessions => str_constants::SESSIONS_ALT,
-            AdminPageTitle::Settings => str_constants::SETTINGS,
-            AdminPageTitle::Tables => str_constants::TABLES,
-            AdminPageTitle::Users => str_constants::USERS,
-            AdminPageTitle::Version => str_constants::VERSION_ALT,
+            AdminPageTitle::Api => constants_str::API_ALT,
+            AdminPageTitle::Metrics => constants_str::METRICS_ALT,
+            AdminPageTitle::Permissions => constants_str::PERMISSIONS,
+            AdminPageTitle::Profile => constants_str::PROFILE,
+            AdminPageTitle::Roles => constants_str::ROLES,
+            AdminPageTitle::Sessions => constants_str::SESSIONS_ALT,
+            AdminPageTitle::Settings => constants_str::SETTINGS,
+            AdminPageTitle::Tables => constants_str::TABLES,
+            AdminPageTitle::Users => constants_str::USERS,
+            AdminPageTitle::Version => constants_str::VERSION_ALT,
         })
     }
 }
@@ -824,7 +824,7 @@ where
 fn admin_api_route_path(suffix: frontend_contract::ParameterizedRoutePath) -> AdminRoutePath {
     AdminRoutePath::try_from(format!(
         "{}{}{suffix}",
-        str_constants::V1,
+        constants_str::V1,
         AdminFrontendPath::Root.get(),
         suffix = String::from(suffix),
     ))

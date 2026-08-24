@@ -64,7 +64,7 @@ where
     pub fn capture(source: Source, error_code: ObservedErrorCode) -> Self {
         let current_span = tracing::Span::current();
         let span_trace = current_span.metadata().map_or_else(
-            || str_constants::HTTP_SPAN_UNAVAILABLE.to_owned(),
+            || constants_str::HTTP_SPAN_UNAVAILABLE.to_owned(),
             |metadata| format!("{current_span:?} [{}]", metadata.name()),
         );
         Self {

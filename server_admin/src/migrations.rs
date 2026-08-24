@@ -16,7 +16,7 @@ pub(super) async fn prep_pg(
         .into_iter()
         .map(|permission| permission.as_str().as_ref().to_owned())
         .collect::<Vec<_>>();
-    let _permission_result = sqlx::query(str_constants::SERVER_ADMIN_RECONCILE_PERMISSIONS_SQL)
+    let _permission_result = sqlx::query(constants_str::SERVER_ADMIN_RECONCILE_PERMISSIONS_SQL)
         .bind(permission_names)
         .execute(pool.as_ref())
         .await
@@ -26,7 +26,7 @@ pub(super) async fn prep_pg(
             ))
         })?;
     let _role_permission_result =
-        sqlx::query(str_constants::SERVER_ADMIN_RECONCILE_ROLE_PERMISSIONS_SQL)
+        sqlx::query(constants_str::SERVER_ADMIN_RECONCILE_ROLE_PERMISSIONS_SQL)
             .execute(pool.as_ref())
             .await
             .map_err(|error| {
@@ -57,11 +57,11 @@ pub(super) async fn bootstrap_admin(
         .begin()
         .await
         .map_err(|error| super::AdminBootstrapError::Pg(super::SqlxAdminError::from(error)))?;
-    let _lock_result = sqlx::query(str_constants::SERVER_ADMIN_LOCK_USERS_SQL)
+    let _lock_result = sqlx::query(constants_str::SERVER_ADMIN_LOCK_USERS_SQL)
         .execute(&mut *tx)
         .await
         .map_err(|error| super::AdminBootstrapError::Pg(super::SqlxAdminError::from(error)))?;
-    let user_exists = sqlx::query_scalar::<_, bool>(str_constants::SERVER_ADMIN_USERS_EXIST_SQL)
+    let user_exists = sqlx::query_scalar::<_, bool>(constants_str::SERVER_ADMIN_USERS_EXIST_SQL)
         .fetch_one(&mut *tx)
         .await
         .map_err(|error| super::AdminBootstrapError::Pg(super::SqlxAdminError::from(error)))?;
@@ -76,7 +76,7 @@ pub(super) async fn bootstrap_admin(
     )
     .await
     .map_err(super::AdminBootstrapError::Pg)?;
-    let _role_link_result = sqlx::query(str_constants::SERVER_ADMIN_INSERT_ADMIN_ROLE_SQL)
+    let _role_link_result = sqlx::query(constants_str::SERVER_ADMIN_INSERT_ADMIN_ROLE_SQL)
         .bind(user_id.get())
         .execute(&mut *tx)
         .await
@@ -139,12 +139,12 @@ pub(super) async fn reset_admin_password(
         pool.as_ref().begin().await.map_err(|error| {
             super::AdminPasswordResetError::Pg(super::SqlxAdminError::from(error))
         })?;
-    let _lock_result = sqlx::query(str_constants::SERVER_ADMIN_LOCK_USERS_SQL)
+    let _lock_result = sqlx::query(constants_str::SERVER_ADMIN_LOCK_USERS_SQL)
         .execute(&mut *tx)
         .await
         .map_err(|error| super::AdminPasswordResetError::Pg(super::SqlxAdminError::from(error)))?;
     let optional_user_id =
-        sqlx::query_scalar::<_, i64>(str_constants::SERVER_ADMIN_USER_ID_BY_LOGIN_SQL)
+        sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_USER_ID_BY_LOGIN_SQL)
             .bind(login.as_ref())
             .fetch_optional(&mut *tx)
             .await

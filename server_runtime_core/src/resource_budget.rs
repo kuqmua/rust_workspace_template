@@ -17,7 +17,7 @@ struct StdSharedAtomicUsize(std::sync::Arc<std::sync::atomic::AtomicUsize>);
 impl TryFrom<usize> for ResourceBudgetMaximum {
     type Error = ResourceBudgetConfigError;
     fn try_from(value: usize) -> Result<Self, Self::Error> {
-        if value == usize_constants::ZERO {
+        if value == constants_usize::ZERO {
             Err(ResourceBudgetConfigError)
         } else {
             Ok(Self(value))
@@ -32,7 +32,7 @@ impl From<std::num::NonZeroUsize> for ResourceBudgetMaximum {
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
 )]
-#[error("{}", str_constants::RESOURCE_BUDGET_MAXIMUM_MUST_BE_GREATER_THAN_ZERO)]
+#[error("{}", constants_str::RESOURCE_BUDGET_MAXIMUM_MUST_BE_GREATER_THAN_ZERO)]
 pub struct ResourceBudgetConfigError;
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub struct ResourceBudget {
@@ -49,9 +49,9 @@ pub trait GetIdempotencyResponseResourceBudget {
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
 )]
 pub enum ResourceBudgetReserveError {
-    #[error("{}", str_constants::RESOURCE_BUDGET_EXHAUSTED)]
+    #[error("{}", constants_str::RESOURCE_BUDGET_EXHAUSTED)]
     Exhausted,
-    #[error("{}", str_constants::RESOURCE_BUDGET_RESERVATION_OVERFLOW)]
+    #[error("{}", constants_str::RESOURCE_BUDGET_RESERVATION_OVERFLOW)]
     Overflow,
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
@@ -66,7 +66,7 @@ impl ResourceBudget {
         Self {
             maximum,
             reserved: StdSharedAtomicUsize::from(std::sync::Arc::from(
-                std::sync::atomic::AtomicUsize::new(usize_constants::ZERO),
+                std::sync::atomic::AtomicUsize::new(constants_usize::ZERO),
             )),
         }
     }

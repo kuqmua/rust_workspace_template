@@ -17,7 +17,7 @@ pub struct PgRelationCapacityMaximum(u64);
 impl TryFrom<u64> for PgRelationCapacityMaximum {
     type Error = PgRelationCapacityError;
     fn try_from(value: u64) -> Result<Self, Self::Error> {
-        if value == u64_constants::ZERO {
+        if value == constants_u64::ZERO {
             Err(PgRelationCapacityError::ZeroMaximum)
         } else {
             Ok(Self(value))
@@ -71,7 +71,7 @@ impl TryFrom<String> for PgRelationLockNamespace {
 pub struct PgRelationResourceIds(
     bounded_types::BoundedVec<
         PgRelationResourceId,
-        { usize_constants::ZERO },
+        { constants_usize::ZERO },
         MAXIMUM_RESOURCE_COUNT,
     >,
 );
@@ -80,7 +80,7 @@ impl TryFrom<Vec<PgRelationResourceId>> for PgRelationResourceIds {
     fn try_from(value: Vec<PgRelationResourceId>) -> Result<Self, Self::Error> {
         let mut resources = bounded_types::BoundedVec::<
             PgRelationResourceId,
-            { usize_constants::ZERO },
+            { constants_usize::ZERO },
             MAXIMUM_RESOURCE_COUNT,
         >::try_from(value)
         .map_err(|_error| PgRelationLockError::TooManyResources)?
@@ -125,7 +125,7 @@ pub async fn lock_pg_relation_resources(
         .iter()
         .map(|resource| resource.0)
         .collect::<Vec<_>>();
-    let _result = sqlx::query(str_constants::PG_RELATION_RESOURCE_ADVISORY_LOCK_SQL)
+    let _result = sqlx::query(constants_str::PG_RELATION_RESOURCE_ADVISORY_LOCK_SQL)
         .bind(namespace.0.as_str())
         .bind(resource_values)
         .execute(connection.as_mut())
@@ -174,7 +174,7 @@ mod tests {
     fn resources_are_sorted_and_deduplicated_before_locking() {
         let resources = super::PgRelationResourceIds::try_from(vec![
             super::PgRelationResourceId::from(2i64),
-            super::PgRelationResourceId::from(i64_constants::ONE),
+            super::PgRelationResourceId::from(constants_i64::ONE),
             super::PgRelationResourceId::from(2i64),
         ])
         .expect(
@@ -183,7 +183,7 @@ mod tests {
         assert_eq!(
             resources.0.as_slice(),
             [
-                super::PgRelationResourceId::from(i64_constants::ONE),
+                super::PgRelationResourceId::from(constants_i64::ONE),
                 super::PgRelationResourceId::from(2i64),
             ]
         );
@@ -193,7 +193,7 @@ mod tests {
     fn namespace_rejects_sql_syntax() {
         assert_eq!(
             super::PgRelationLockNamespace::try_from(String::from(
-                str_constants::TEST_SQL_INJECTION
+                constants_str::TEST_SQL_INJECTION
             )),
             Err(super::PgRelationLockError::InvalidNamespace)
         );

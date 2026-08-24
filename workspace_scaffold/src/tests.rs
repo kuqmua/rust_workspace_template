@@ -112,7 +112,7 @@ fn rejects_scaffold_text_over_size_limit() {
     ));
     std::fs::write(
         path.as_path(),
-        vec![b'x'; usize_constants::VALUE_16_777_216.saturating_add(usize_constants::ONE)],
+        vec![b'x'; constants_usize::VALUE_16_777_216.saturating_add(constants_usize::ONE)],
     )
     .expect("d97e30ac rejects_scaffold_text_over_size_limit invariant must hold");
     let result =

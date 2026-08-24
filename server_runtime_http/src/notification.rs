@@ -5,7 +5,7 @@ pub struct NotificationApiToken(String);
 pub struct NotificationApiTokenRef<'value_lt>(&'value_lt str);
 impl std::fmt::Debug for NotificationApiTokenRef<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(str_constants::NOTIFICATION_API_TOKEN_REDACTED)
+        f.write_str(constants_str::NOTIFICATION_API_TOKEN_REDACTED)
     }
 }
 
@@ -28,7 +28,7 @@ impl NotificationApiToken {
         candidate: NotificationApiTokenRef<'_>,
     ) -> NotificationApiTokenAuthorized {
         let maximum_len = self.0.len().max(candidate.0.len());
-        let difference = (usize_constants::ZERO..maximum_len).fold(
+        let difference = (constants_usize::ZERO..maximum_len).fold(
             self.0.len() ^ candidate.0.len(),
             |acc, index| {
                 acc | usize::from(
@@ -36,23 +36,23 @@ impl NotificationApiToken {
                         .as_bytes()
                         .get(index)
                         .copied()
-                        .unwrap_or(u8_constants::ZERO)
+                        .unwrap_or(constants_u8::ZERO)
                         ^ candidate
                             .0
                             .as_bytes()
                             .get(index)
                             .copied()
-                            .unwrap_or(u8_constants::ZERO),
+                            .unwrap_or(constants_u8::ZERO),
                 )
             },
         );
-        NotificationApiTokenAuthorized::from(difference == usize_constants::ZERO)
+        NotificationApiTokenAuthorized::from(difference == constants_usize::ZERO)
     }
 }
 
 impl std::fmt::Debug for NotificationApiToken {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(str_constants::NOTIFICATION_API_TOKEN_REDACTED)
+        f.write_str(constants_str::NOTIFICATION_API_TOKEN_REDACTED)
     }
 }
 
@@ -252,7 +252,7 @@ where
     AxumNotificationRouter::from(
         axum::Router::new()
             .route(
-                str_constants::NOTIFICATIONS_PATH,
+                constants_str::NOTIFICATIONS_PATH,
                 axum::routing::post(send_notification::<Sender>),
             )
             .with_state(state),
@@ -276,19 +276,19 @@ mod tests {
     #[test]
     fn api_token_debug_is_redacted() {
         let token = super::NotificationApiToken::try_from(String::from(
-            str_constants::TEST_NOTIFICATION_API_TOKEN,
+            constants_str::TEST_NOTIFICATION_API_TOKEN,
         ))
         .expect("9ac320d1 api_token_debug_is_redacted invariant must hold");
-        assert!(!format!("{token:?}").contains(str_constants::TEST_NOTIFICATION_API_TOKEN));
+        assert!(!format!("{token:?}").contains(constants_str::TEST_NOTIFICATION_API_TOKEN));
         assert!(
             !format!(
                 "{:?}",
-                super::NotificationApiTokenRef::from(str_constants::TEST_NOTIFICATION_API_TOKEN)
+                super::NotificationApiTokenRef::from(constants_str::TEST_NOTIFICATION_API_TOKEN)
             )
-            .contains(str_constants::TEST_NOTIFICATION_API_TOKEN)
+            .contains(constants_str::TEST_NOTIFICATION_API_TOKEN)
         );
         assert!(bool::from(token.authorizes(
-            super::NotificationApiTokenRef::from(str_constants::TEST_NOTIFICATION_API_TOKEN,)
+            super::NotificationApiTokenRef::from(constants_str::TEST_NOTIFICATION_API_TOKEN,)
         )));
     }
 
@@ -303,7 +303,7 @@ mod tests {
     #[tokio::test]
     async fn router_requires_token_and_delivers_valid_request() {
         let token = super::NotificationApiToken::try_from(
-            str_constants::TEST_NOTIFICATION_API_TOKEN.to_owned(),
+            constants_str::TEST_NOTIFICATION_API_TOKEN.to_owned(),
         )
         .expect("cd592f18 router_requires_token_and_delivers_valid_request invariant must hold");
         let router: axum::Router =
@@ -315,14 +315,14 @@ mod tests {
             .into();
         let request = http::Request::builder()
             .method(http::Method::POST)
-            .uri(str_constants::NOTIFICATIONS_PATH)
+            .uri(constants_str::NOTIFICATIONS_PATH)
             .header(
                 http::header::AUTHORIZATION,
-                str_constants::TEST_BEARER_AUTHORIZATION,
+                constants_str::TEST_BEARER_AUTHORIZATION,
             )
-            .header(http::header::CONTENT_TYPE, str_constants::APPLICATION_JSON)
+            .header(http::header::CONTENT_TYPE, constants_str::APPLICATION_JSON)
             .body(axum::body::Body::from(
-                str_constants::TEST_NOTIFICATION_REQUEST_JSON,
+                constants_str::TEST_NOTIFICATION_REQUEST_JSON,
             ))
             .expect(
                 "9e3b810c router_requires_token_and_delivers_valid_request invariant must hold",

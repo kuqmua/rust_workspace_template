@@ -88,7 +88,7 @@ fn repository_secret_box_policy_checks_generated_tokens() {
         super::types::SynFileRef::from(&ast),
         SecretBoxStringVisitor::default(),
     );
-    assert_eq!(visitor.found_count.get(), usize_constants::ONE);
+    assert_eq!(visitor.found_count.get(), constants_usize::ONE);
 }
 #[test]
 fn repository_secret_boxes_use_bounded_string_types() {

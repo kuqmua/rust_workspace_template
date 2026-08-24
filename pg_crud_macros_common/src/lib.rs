@@ -352,8 +352,8 @@ impl IsNullable {
     #[must_use]
     pub fn non_null_or_nullable_str(&self) -> NonNullOrNullableStr {
         match &self {
-            Self::False => NonNullOrNullableStr::from(str_constants::NONNULL),
-            Self::True => NonNullOrNullableStr::from(str_constants::NULLABLE),
+            Self::False => NonNullOrNullableStr::from(constants_str::NONNULL),
+            Self::True => NonNullOrNullableStr::from(constants_str::NULLABLE),
         }
     }
     #[must_use]
@@ -362,7 +362,7 @@ impl IsNullable {
             Self::False => IsNullablePrefixStr::try_from(String::default())
                 .unwrap_or_else(IsNullablePrefixStr::from),
             Self::True => {
-                IsNullablePrefixStr::try_from(String::from(str_constants::STDOPTIONALOPTIONAL))
+                IsNullablePrefixStr::try_from(String::from(constants_str::STDOPTIONALOPTIONAL))
                     .unwrap_or_else(IsNullablePrefixStr::from)
             }
         }
@@ -370,7 +370,7 @@ impl IsNullable {
     #[must_use]
     pub fn rust(&self) -> &'static dyn std::fmt::Display {
         match &self {
-            Self::False => &str_constants::PG_CRUD_EMPTY_SQL_SUFFIX,
+            Self::False => &constants_str::PG_CRUD_EMPTY_SQL_SUFFIX,
             Self::True => &naming::OptionalUpperCamelCase,
         }
     }
@@ -422,15 +422,15 @@ impl Import {
     #[must_use]
     pub fn sc_str(&self) -> ImportSnakeCaseStr {
         match &self {
-            Self::Crate => ImportSnakeCaseStr::from(str_constants::CRATE),
-            Self::PgCrudCommon => ImportSnakeCaseStr::from(str_constants::PG_CRUD_COMMON),
+            Self::Crate => ImportSnakeCaseStr::from(constants_str::CRATE),
+            Self::PgCrudCommon => ImportSnakeCaseStr::from(constants_str::PG_CRUD_COMMON),
         }
     }
     #[must_use]
     pub fn to_path(&self) -> ImportPathStr {
         match &self {
-            Self::Crate => ImportPathStr::from(str_constants::CRATE),
-            Self::PgCrudCommon => ImportPathStr::from(str_constants::PG_CRUD_COMMON),
+            Self::Crate => ImportPathStr::from(constants_str::CRATE),
+            Self::PgCrudCommon => ImportPathStr::from(constants_str::PG_CRUD_COMMON),
         }
     }
 }

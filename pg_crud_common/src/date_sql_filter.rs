@@ -77,23 +77,23 @@ pub fn build_date_sql_filter(
     let mut bind_index = bind_start.0.get();
     let candidates = [
         (
-            str_constants::CREATED_AT,
-            str_constants::GREATER_OR_EQUAL,
+            constants_str::CREATED_AT,
+            constants_str::GREATER_OR_EQUAL,
             bounds.created_at_from,
         ),
         (
-            str_constants::CREATED_AT,
-            str_constants::LESS_OR_EQUAL,
+            constants_str::CREATED_AT,
+            constants_str::LESS_OR_EQUAL,
             bounds.created_at_to,
         ),
         (
-            str_constants::UPDATED_AT,
-            str_constants::GREATER_OR_EQUAL,
+            constants_str::UPDATED_AT,
+            constants_str::GREATER_OR_EQUAL,
             bounds.updated_at_from,
         ),
         (
-            str_constants::UPDATED_AT,
-            str_constants::LESS_OR_EQUAL,
+            constants_str::UPDATED_AT,
+            constants_str::LESS_OR_EQUAL,
             bounds.updated_at_to,
         ),
     ];
@@ -102,8 +102,8 @@ pub fn build_date_sql_filter(
         .filter(|(_column, _comparator, value)| value.is_some())
         .count();
     let mut values = Vec::with_capacity(active_count);
-    let alias_bytes = optional_table_alias.map_or(usize_constants::ZERO, |alias| {
-        alias.as_ref().len().saturating_add(usize_constants::ONE)
+    let alias_bytes = optional_table_alias.map_or(constants_usize::ZERO, |alias| {
+        alias.as_ref().len().saturating_add(constants_usize::ONE)
     });
     let fragment_capacity = candidates
         .iter()
@@ -111,16 +111,16 @@ pub fn build_date_sql_filter(
         .map(|(column, comparator, _value)| {
             alias_bytes
                 .saturating_add(column.len())
-                .saturating_add(usize_constants::ONE)
+                .saturating_add(constants_usize::ONE)
                 .saturating_add(comparator.len())
-                .saturating_add(str_constants::DOLLAR_SIGN.len())
+                .saturating_add(constants_str::DOLLAR_SIGN.len())
                 .saturating_add(10usize)
         })
         .sum::<usize>()
         .saturating_add(
             active_count
-                .saturating_sub(usize_constants::ONE)
-                .saturating_mul(str_constants::AND.len()),
+                .saturating_sub(constants_usize::ONE)
+                .saturating_mul(constants_str::AND.len()),
         );
     let mut fragment = String::with_capacity(fragment_capacity);
     candidates
@@ -130,7 +130,7 @@ pub fn build_date_sql_filter(
                 return Ok(());
             };
             if !fragment.is_empty() {
-                fragment.push_str(str_constants::AND);
+                fragment.push_str(constants_str::AND);
             }
             if let Some(table_alias) = optional_table_alias {
                 fragment.push_str(table_alias.as_ref());
@@ -139,7 +139,7 @@ pub fn build_date_sql_filter(
             fragment.push_str(column);
             fragment.push(' ');
             fragment.push_str(comparator);
-            fragment.push_str(str_constants::DOLLAR_SIGN);
+            fragment.push_str(constants_str::DOLLAR_SIGN);
             std::fmt::Write::write_fmt(&mut fragment, format_args!("{bind_index}"))
                 .map_err(|_error| DateSqlFilterError::FragmentTooLong)?;
             values.push(*value.0);
@@ -160,10 +160,10 @@ pub fn build_date_sql_filter(
 mod tests {
     #[test]
     fn date_bounds_have_ordered_bind_indices_and_values() {
-        let from = chrono::DateTime::parse_from_rfc3339(str_constants::TEST_DATE_SQL_FROM)
+        let from = chrono::DateTime::parse_from_rfc3339(constants_str::TEST_DATE_SQL_FROM)
             .expect("69ee8323 date_bounds_have_ordered_bind_indices_and_values invariant must hold")
             .to_utc();
-        let to = chrono::DateTime::parse_from_rfc3339(str_constants::TEST_DATE_SQL_TO)
+        let to = chrono::DateTime::parse_from_rfc3339(constants_str::TEST_DATE_SQL_TO)
             .expect("91eae791 date_bounds_have_ordered_bind_indices_and_values invariant must hold")
             .to_utc();
         let filter = super::build_date_sql_filter(
@@ -173,7 +173,7 @@ mod tests {
         )
         .expect("512fa2fb date_bounds_have_ordered_bind_indices_and_values invariant must hold");
         let (fragment, values) = filter.into_parts();
-        assert_eq!(fragment.into_inner(), str_constants::TEST_DATE_SQL_FILTER);
+        assert_eq!(fragment.into_inner(), constants_str::TEST_DATE_SQL_FILTER);
         assert_eq!(values.as_ref(), &[from, to]);
     }
 }

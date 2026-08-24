@@ -10,10 +10,10 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let di: syn::DeriveInput = syn::parse(v).expect("e45f75c2 try_from_env invariant must hold");
     let identifier = &di.ident;
     let generate_env_example = di.attrs.iter().any(|attribute| {
-        attribute.path().is_ident(str_constants::CONFIG)
+        attribute.path().is_ident(constants_str::CONFIG)
             && attribute
                 .parse_args::<syn::Ident>()
-                .is_ok_and(|value| value == str_constants::CONFIG_ENV_EXAMPLE_ATTRIBUTE)
+                .is_ok_and(|value| value == constants_str::CONFIG_ENV_EXAMPLE_ATTRIBUTE)
     });
     let identifier_try_from_env_error_upper_camel_case =
         naming::parameter::SelfTryFromEnvErrorUpperCamelCase::from_tokens(&identifier);
@@ -32,20 +32,20 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
         field
             .attrs
             .iter()
-            .filter(|attribute| attribute.path().is_ident(str_constants::CONFIG))
+            .filter(|attribute| attribute.path().is_ident(constants_str::CONFIG))
             .try_for_each(|attribute| {
                 attribute.parse_nested_meta(|meta| {
-                    if meta.path.is_ident(str_constants::EXAMPLE) {
+                    if meta.path.is_ident(constants_str::EXAMPLE) {
                         example = Some(meta.value()?.parse::<syn::LitStr>()?);
                         Ok(())
-                    } else if meta.path.is_ident(str_constants::GETTER) {
+                    } else if meta.path.is_ident(constants_str::GETTER) {
                         getter = true;
                         Ok(())
-                    } else if meta.path.is_ident(str_constants::SECRET) {
+                    } else if meta.path.is_ident(constants_str::SECRET) {
                         secret = true;
                         Ok(())
                     } else {
-                        Err(meta.error(str_constants::UNSUPPORTED_CONFIG_FIELD_ATTRIBUTE))
+                        Err(meta.error(constants_str::UNSUPPORTED_CONFIG_FIELD_ATTRIBUTE))
                     }
                 })
             })?;
@@ -67,7 +67,7 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
         .zip(field_attributes.iter())
         .map(|(field, attributes)| {
         let descriptor_field_identifier =
-            field_identifier(field, str_constants::VALUE_8B79A379);
+            field_identifier(field, constants_str::VALUE_8B79A379);
         let field_type = &field.ty;
         let env_name = syn::LitStr::new(
             &naming_common::ToTokensToUpperSnakeCaseStr::case(&descriptor_field_identifier),
@@ -80,7 +80,7 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
         };
         let Some(example) = attributes.0.as_ref() else {
             return quote::quote! {
-                compile_error!(str_constants::CONFIG_ENV_EXAMPLE_REQUIRES_FIELD_EXAMPLE);
+                compile_error!(constants_str::CONFIG_ENV_EXAMPLE_REQUIRES_FIELD_EXAMPLE);
             };
         };
         quote::quote! {
@@ -106,7 +106,7 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
             .zip(field_attributes.iter())
             .map(|(field, attributes)| {
                 let example_field_identifier =
-                    field_identifier(field, str_constants::VALUE_8B79A379);
+                    field_identifier(field, constants_str::VALUE_8B79A379);
                 let env_name =
                     naming_common::ToTokensToUpperSnakeCaseStr::case(&example_field_identifier);
                 let env_name_literal = syn::LitStr::new(&env_name, identifier.span());
@@ -114,7 +114,7 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
                     || {
                         Err(syn::Error::new_spanned(
                             field,
-                            str_constants::CONFIG_ENV_EXAMPLE_REQUIRES_FIELD_EXAMPLE,
+                            constants_str::CONFIG_ENV_EXAMPLE_REQUIRES_FIELD_EXAMPLE,
                         ))
                     },
                     |example| {
@@ -144,7 +144,7 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
     };
     let error_token_stream = {
         let vrts_token_stream = fields_named.iter().map(|element| {
-            let element_identifier = field_identifier(element, str_constants::VALUE_2ECB63C1);
+            let element_identifier = field_identifier(element, constants_str::VALUE_2ECB63C1);
             let element_identifier_upper_camel_case_token_stream =
                 naming_common::ToTokensToUpperCamelCaseTokenStream::case_or_panic(
                     &element_identifier,
@@ -172,7 +172,7 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
     };
     let display_error_token_stream = {
         let vrts_token_stream = fields_named.iter().map(|element| {
-            let element_identifier = field_identifier(element, str_constants::VALUE_8B79A379);
+            let element_identifier = field_identifier(element, constants_str::VALUE_8B79A379);
             let element_identifier_upper_camel_case_token_stream = naming_common::ToTokensToUpperCamelCaseTokenStream::case_or_panic(&element_identifier);
             quote::quote! {
                 Self::#element_identifier_upper_camel_case_token_stream { #element_identifier } => write!(f, "{}", #element_identifier)
@@ -198,7 +198,7 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
     };
     let try_from_env_token_stream = {
         let fields_initialization_token_stream = fields_named.iter().map(|element| {
-            let element_identifier = field_identifier(element, str_constants::EBF4E1B2);
+            let element_identifier = field_identifier(element, constants_str::EBF4E1B2);
             let element_ty = &element.ty;
             let element_identifier_quotes_upper_snake_case_string =
                 syn::LitStr::new(&naming_common::ToTokensToUpperSnakeCaseStr::case(&element_identifier), identifier.span());
@@ -226,7 +226,7 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
             .zip(field_attributes.iter())
             .filter(|(_field, attributes)| attributes.1)
             .map(|(field, _attributes)| {
-                let getter_identifier = field_identifier(field, str_constants::VALUE_8B79A379);
+                let getter_identifier = field_identifier(field, constants_str::VALUE_8B79A379);
                 let field_type = &field.ty;
                 quote::quote! {
                     #[must_use]

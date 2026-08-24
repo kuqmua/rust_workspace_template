@@ -6,7 +6,7 @@ fn server_rendered_pages_contain_forms_and_no_scripts() {
     assert!(!sign_in.as_ref().contains("recovery code"));
     assert_eq!(
         sign_in.as_ref().matches("<form method=\"post\"").count(),
-        usize_constants::ONE
+        constants_usize::ONE
     );
     assert!(!sign_in.as_ref().contains("<h1"));
     assert!(!sign_in.as_ref().contains("<h2"));
@@ -128,11 +128,11 @@ fn header_items_stay_stable_between_static_and_table_pages() {
 #[test]
 fn csr_page_contains_only_bootstrap_shell() {
     let admin = server_admin_contract::AuthenticatedAdmin::new(
-        server_admin_contract::AdminDisplayName::try_from(str_constants::ADMIN.to_owned())
+        server_admin_contract::AdminDisplayName::try_from(constants_str::ADMIN.to_owned())
             .expect("642357a8 csr_page_contains_only_bootstrap_shell invariant must hold"),
-        server_admin_contract::AdminUserId::try_from(i64_constants::ONE)
+        server_admin_contract::AdminUserId::try_from(constants_i64::ONE)
             .expect("41856438 csr_page_contains_only_bootstrap_shell invariant must hold"),
-        server_admin_contract::AdminLogin::try_from(str_constants::ROOT.to_owned())
+        server_admin_contract::AdminLogin::try_from(constants_str::ROOT.to_owned())
             .expect("71a3b6e5 csr_page_contains_only_bootstrap_shell invariant must hold"),
         server_admin_contract::AdminPermissionValues::try_from(Vec::new())
             .expect("8e3cf81f csr_page_contains_only_bootstrap_shell invariant must hold"),

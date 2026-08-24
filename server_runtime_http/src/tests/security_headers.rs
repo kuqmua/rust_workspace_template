@@ -2,21 +2,21 @@
 async fn only_trusts_forwarded_proto_when_configured() {
     let make_request = || {
         axum::extract::Request::builder()
-            .uri(str_constants::V1_TEST)
-            .header(str_constants::X_FORWARDED_PROTO, str_constants::HTTPS)
+            .uri(constants_str::V1_TEST)
+            .header(constants_str::X_FORWARDED_PROTO, constants_str::HTTPS)
             .body(axum::body::Body::empty())
             .expect("94149bdd only_trusts_forwarded_proto_when_configured invariant must hold")
     };
     let make_router = |trust| {
         let policy = super::super::HttpContentSecurityPolicy::try_from(
-            str_constants::TEST_CONTENT_SECURITY_POLICY.to_owned(),
+            constants_str::TEST_CONTENT_SECURITY_POLICY.to_owned(),
         )
         .expect("abf8cd24 only_trusts_forwarded_proto_when_configured invariant must hold");
         axum::Router::from(
             super::super::SecurityHeadersLayer::from(trust)
                 .with_content_security_policy(policy)
                 .apply(super::super::AxumRouter::from(axum::Router::new().route(
-                    str_constants::V1_TEST,
+                    constants_str::V1_TEST,
                     axum::routing::get(async || http::StatusCode::OK),
                 ))),
         )
@@ -30,7 +30,7 @@ async fn only_trusts_forwarded_proto_when_configured() {
     assert!(
         ignored_response
             .headers()
-            .get(str_constants::STRICT_TRANSPORT_SECURITY)
+            .get(constants_str::STRICT_TRANSPORT_SECURITY)
             .is_none()
     );
     let trusted_response = tower::ServiceExt::oneshot(
@@ -42,31 +42,31 @@ async fn only_trusts_forwarded_proto_when_configured() {
     assert!(
         trusted_response
             .headers()
-            .get(str_constants::STRICT_TRANSPORT_SECURITY)
+            .get(constants_str::STRICT_TRANSPORT_SECURITY)
             .is_some()
     );
     assert_eq!(
         trusted_response.headers().get(http::header::CACHE_CONTROL),
-        Some(&http::HeaderValue::from_static(str_constants::NO_STORE))
+        Some(&http::HeaderValue::from_static(constants_str::NO_STORE))
     );
     assert_eq!(
         trusted_response
             .headers()
-            .get(str_constants::X_CONTENT_TYPE_OPTIONS),
-        Some(&http::HeaderValue::from_static(str_constants::NOSNIFF))
+            .get(constants_str::X_CONTENT_TYPE_OPTIONS),
+        Some(&http::HeaderValue::from_static(constants_str::NOSNIFF))
     );
     assert_eq!(
         trusted_response
             .headers()
-            .get(str_constants::REFERRER_POLICY),
-        Some(&http::HeaderValue::from_static(str_constants::SAME_ORIGIN))
+            .get(constants_str::REFERRER_POLICY),
+        Some(&http::HeaderValue::from_static(constants_str::SAME_ORIGIN))
     );
     assert_eq!(
         trusted_response
             .headers()
-            .get(str_constants::CONTENT_SECURITY_POLICY_HEADER),
+            .get(constants_str::CONTENT_SECURITY_POLICY_HEADER),
         Some(&http::HeaderValue::from_static(
-            str_constants::TEST_CONTENT_SECURITY_POLICY
+            constants_str::TEST_CONTENT_SECURITY_POLICY
         ))
     );
 }
@@ -76,7 +76,7 @@ async fn marks_credentials_as_sensitive() {
     let router = axum::Router::from(
         super::super::SecurityHeadersLayer::from(super::super::ForwardedProtoTrust::Ignore).apply(
             super::super::AxumRouter::from(axum::Router::new().route(
-                str_constants::V1_TEST,
+                constants_str::V1_TEST,
                 axum::routing::get(async |headers: http::HeaderMap| {
                     assert!(
                         headers
@@ -86,7 +86,7 @@ async fn marks_credentials_as_sensitive() {
                     (
                         [(
                             http::header::SET_COOKIE,
-                            str_constants::TEST_SESSION_COOKIE_HEADER_VALUE,
+                            constants_str::TEST_SESSION_COOKIE_HEADER_VALUE,
                         )],
                         http::StatusCode::OK,
                     )
@@ -97,10 +97,10 @@ async fn marks_credentials_as_sensitive() {
     let response = tower::ServiceExt::oneshot(
         router,
         axum::extract::Request::builder()
-            .uri(str_constants::V1_TEST)
+            .uri(constants_str::V1_TEST)
             .header(
                 http::header::AUTHORIZATION,
-                str_constants::TEST_BEARER_AUTHORIZATION,
+                constants_str::TEST_BEARER_AUTHORIZATION,
             )
             .body(axum::body::Body::empty())
             .expect("703affc9 marks_credentials_as_sensitive invariant must hold"),

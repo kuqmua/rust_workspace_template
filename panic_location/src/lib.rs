@@ -33,7 +33,7 @@ pub fn panic_location() {
                     .as_ref()
                 );
             } else {
-                eprintln!("{}", str_constants::PANIC_LOCATION_NO_LOCATION_MSG);
+                eprintln!("{}", constants_str::PANIC_LOCATION_NO_LOCATION_MSG);
             }
         }));
     });
@@ -48,7 +48,7 @@ mod tests {
     #[test]
     fn panic_no_location_message_is_stable() {
         assert_eq!(
-            str_constants::PANIC_LOCATION_NO_LOCATION_MSG,
+            constants_str::PANIC_LOCATION_NO_LOCATION_MSG,
             "panic occurred but can't get location information..."
         );
     }

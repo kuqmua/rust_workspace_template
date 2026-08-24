@@ -93,7 +93,7 @@ fn admin_frontend_api_urls_come_from_typed_routes() {
             })
             .map(|file| file.content().as_ref())
             .collect::<String>();
-        assert!(!source.contains("str_constants::V1"), "24e5ceeb");
+        assert!(!source.contains("constants_str::V1"), "24e5ceeb");
         assert!(!source.contains("ADMIN_API_"), "72b66898");
     });
 }
@@ -103,7 +103,7 @@ fn service_route_handler_composition_uses_shared_registries() {
     super::snapshot::with_codebase_snapshot(|snapshot| {
         [
             ("server_admin/src/auth/html.rs", 2usize),
-            ("notification_service/src/routes.rs", usize_constants::ONE),
+            ("notification_service/src/routes.rs", constants_usize::ONE),
         ]
         .iter()
         .for_each(|(path_suffix, expected_registry_count)| {
@@ -331,7 +331,7 @@ fn administrator_csr_page_behavior_comes_from_the_page_catalog() {
             .find(|file| {
                 file.path()
                     .as_ref()
-                    .ends_with(str_constants::SERVER_ADMIN_FRONTEND_SRC_APP_SETTINGS_RS)
+                    .ends_with(constants_str::SERVER_ADMIN_FRONTEND_SRC_APP_SETTINGS_RS)
             })
             .expect("2f3afe52 administrator_csr_page_behavior_comes_from_the_page_catalog invariant must hold")
             .content()
@@ -342,7 +342,7 @@ fn administrator_csr_page_behavior_comes_from_the_page_catalog() {
             .find(|file| {
                 file.path()
                     .as_ref()
-                    .ends_with(str_constants::SERVER_ADMIN_FRONTEND_SRC_SSR_SETTINGS_RS)
+                    .ends_with(constants_str::SERVER_ADMIN_FRONTEND_SRC_SSR_SETTINGS_RS)
             })
             .expect("2c589b2b administrator_csr_page_behavior_comes_from_the_page_catalog invariant must hold")
             .content()

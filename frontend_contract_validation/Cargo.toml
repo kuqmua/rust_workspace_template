@@ -8,14 +8,14 @@ license.workspace = true
 edition.workspace = true
 
 [dependencies]
-usize_constants = { workspace = true }
+constants_usize = { workspace = true }
 optimal_memory_layout = { workspace = true }
 bounded_types = { workspace = true }
 frontend_contract = { workspace = true }
 newtype = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
-str_constants = { workspace = true }
+constants_str = { workspace = true }
 thiserror = { workspace = true }
 
 [dev-dependencies]

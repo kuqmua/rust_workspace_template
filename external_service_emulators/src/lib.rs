@@ -21,7 +21,7 @@ struct TokioMockNotificationReceiver(
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
 )]
-#[error("{}", str_constants::MOCK_NOTIFICATION_PROVIDER_CLOSED)]
+#[error("{}", constants_str::MOCK_NOTIFICATION_PROVIDER_CLOSED)]
 pub struct MockNotificationProviderClosed;
 
 impl MockNotificationInbox {
@@ -69,7 +69,7 @@ impl RemoteSyncSource {
     pub fn new(payload: synchronization_service_runtime::SynchronizationPayload) -> Self {
         Self {
             payload,
-            request_count: RemoteSyncRequestCount::from(usize_constants::ZERO),
+            request_count: RemoteSyncRequestCount::from(constants_usize::ZERO),
         }
     }
 
@@ -87,7 +87,7 @@ impl synchronization_service_runtime::SynchronizationSource for RemoteSyncSource
     ) -> impl Future<
         Output = Result<synchronization_service_runtime::SynchronizationPayload, Self::Error>,
     > + Send {
-        self.request_count.0 = self.request_count.0.saturating_add(usize_constants::ONE);
+        self.request_count.0 = self.request_count.0.saturating_add(constants_usize::ONE);
         std::future::ready(Ok(self.payload.clone()))
     }
 }
@@ -117,14 +117,14 @@ mod tests {
             .await
             .expect("a64993d6 remote_source_implements_synchronization_source_contract invariant must hold");
         assert_eq!(payload.as_ref(), &[1u8, 2u8]);
-        assert_eq!(usize::from(source.request_count()), usize_constants::ONE);
+        assert_eq!(usize::from(source.request_count()), constants_usize::ONE);
     }
 
     #[tokio::test]
     async fn notification_provider_records_messages_through_runtime_contract() {
         let (provider, mut inbox) = super::mock_notification_provider();
         let message = server_runtime_http::NotificationMessage::try_from(
-            str_constants::TEST_NOTIFICATION_MESSAGE.to_owned(),
+            constants_str::TEST_NOTIFICATION_MESSAGE.to_owned(),
         )
         .expect("6ef25d4a notification_provider_records_messages_through_runtime_contract invariant must hold");
         let result = server_runtime_http::NotificationSender::send(&provider, message).await;

@@ -202,8 +202,8 @@ mod tests {
         fn metadata() -> frontend_contract::RouteMetadata {
             metadata(
                 frontend_contract::RouteMethod::Get,
-                str_constants::ROUTE_READ,
-                str_constants::ROUTE,
+                constants_str::ROUTE_READ,
+                constants_str::ROUTE,
             )
         }
     }
@@ -220,8 +220,8 @@ mod tests {
     fn equal_metadata_satisfies_contract() {
         let metadata = metadata(
             frontend_contract::RouteMethod::Get,
-            str_constants::ROUTE_READ,
-            str_constants::ROUTE,
+            constants_str::ROUTE_READ,
+            constants_str::ROUTE,
         );
         assert_eq!(
             super::validate_route_contract_metadata(metadata, metadata),
@@ -234,8 +234,8 @@ mod tests {
         assert_eq!(
             super::validate_typed_route_contract::<ReadRoute>(metadata(
                 frontend_contract::RouteMethod::Get,
-                str_constants::ROUTE_READ,
-                str_constants::ROUTE,
+                constants_str::ROUTE_READ,
+                constants_str::ROUTE,
             )),
             Ok(())
         );
@@ -245,8 +245,8 @@ mod tests {
     fn http_fixture_checks_status_and_json_body() {
         let metadata = metadata(
             frontend_contract::RouteMethod::Get,
-            str_constants::ROUTE_READ,
-            str_constants::ROUTE,
+            constants_str::ROUTE_READ,
+            constants_str::ROUTE,
         );
         let result = futures::executor::block_on(super::run_http_contract_fixture(
             super::HttpContractExpectation::new(
@@ -275,23 +275,23 @@ mod tests {
     fn every_metadata_difference_is_reported() {
         let expected = metadata(
             frontend_contract::RouteMethod::Get,
-            str_constants::ROUTE_READ,
-            str_constants::ROUTE,
+            constants_str::ROUTE_READ,
+            constants_str::ROUTE,
         );
         let observed = metadata(
             frontend_contract::RouteMethod::Post,
-            str_constants::ADMIN_ALT,
-            str_constants::NOT_AN_API_ROUTE,
+            constants_str::ADMIN_ALT,
+            constants_str::NOT_AN_API_ROUTE,
         );
         let mismatches = super::validate_route_contract_metadata(expected, observed)
-            .expect_err(str_constants::VALUE_5067F83C);
+            .expect_err(constants_str::VALUE_5067F83C);
         assert_eq!(mismatches.as_ref().len(), 3usize);
         assert!(matches!(
             mismatches.as_ref().first(),
             Some(super::RouteContractMismatch::Method { .. })
         ));
         assert!(matches!(
-            mismatches.as_ref().get(usize_constants::ONE),
+            mismatches.as_ref().get(constants_usize::ONE),
             Some(super::RouteContractMismatch::OpenApiOperationId { .. })
         ));
         assert!(matches!(

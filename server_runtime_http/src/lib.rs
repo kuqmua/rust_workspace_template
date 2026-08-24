@@ -263,8 +263,8 @@ where
         let remote_context =
             extract_remote_trace_context(HttpOpentelemetryHeaderMapRef::from(req.headers()));
         let request_id_and_header_value = [
-            str_constants::HTTP_HEADER_NAMES_X_REQUEST_ID,
-            str_constants::RUNTIME_CORRELATION_ID_HEADER_NAME,
+            constants_str::HTTP_HEADER_NAMES_X_REQUEST_ID,
+            constants_str::RUNTIME_CORRELATION_ID_HEADER_NAME,
         ]
         .into_iter()
         .find_map(|header_name| {
@@ -288,7 +288,7 @@ where
             .extensions()
             .get::<axum::extract::MatchedPath>()
             .map(axum::extract::MatchedPath::as_str);
-        let route = matched_route.unwrap_or(str_constants::HTTP_METRICS_UNMATCHED_PATH);
+        let route = matched_route.unwrap_or(constants_str::HTTP_METRICS_UNMATCHED_PATH);
         let safe_url_path = matched_route.filter(|matched_path| {
             !matched_path.contains('{') && *matched_path == req.uri().path()
         });
@@ -322,25 +322,25 @@ where
             "service.name" = tracing::field::Empty,
         );
         let _server_name_record = span.record(
-            str_constants::OTEL_NAME,
+            constants_str::OTEL_NAME,
             format_args!("{} {route}", req.method()),
         );
         if let Some(path) = safe_url_path {
-            let _url_path_record = span.record(str_constants::OTEL_URL_PATH, path);
+            let _url_path_record = span.record(constants_str::OTEL_URL_PATH, path);
         }
         if let Some(span_config) = &self.span_config {
             let _server_address_record = span.record(
-                str_constants::OTEL_SERVER_ADDRESS,
+                constants_str::OTEL_SERVER_ADDRESS,
                 tracing::field::display(span_config.server_address),
             );
             let _service_name_record = span.record(
-                str_constants::OTEL_SERVICE_NAME,
+                constants_str::OTEL_SERVICE_NAME,
                 tracing::field::display(&span_config.service_name),
             );
         }
         if let Some(address) = client_address {
             let _client_address_record = span.record(
-                str_constants::OTEL_CLIENT_ADDRESS,
+                constants_str::OTEL_CLIENT_ADDRESS,
                 tracing::field::display(address),
             );
         }
@@ -361,8 +361,8 @@ where
             .span_config
             .as_ref()
             .map_or_else(String::new, |config| config.service_name.to_string());
-        let _trace_id_record = span.record(str_constants::OTEL_TRACE_ID, trace_id.as_str());
-        let _span_id_record = span.record(str_constants::OTEL_SPAN_ID, span_id.as_str());
+        let _trace_id_record = span.record(constants_str::OTEL_TRACE_ID, trace_id.as_str());
+        let _span_id_record = span.record(constants_str::OTEL_SPAN_ID, span_id.as_str());
         let _previous_extension_request_id =
             req.extensions_mut().insert(request_id_and_header_value.0);
         let response_future = tower::Service::call(&mut self.inner, req);
@@ -370,25 +370,25 @@ where
             async move {
                 let mut response = response_future.await?;
                 let _server_status_record = tracing::Span::current().record(
-                    str_constants::OTEL_HTTP_RESPONSE_STATUS_CODE,
+                    constants_str::OTEL_HTTP_RESPONSE_STATUS_CODE,
                     response.status().as_u16(),
                 );
                 if response.status().is_server_error() {
                     let _server_error_record = tracing::Span::current().record(
-                        str_constants::OTEL_STATUS_CODE,
-                        str_constants::OTEL_ERROR_STATUS,
+                        constants_str::OTEL_STATUS_CODE,
+                        constants_str::OTEL_ERROR_STATUS,
                     );
                 }
                 if response.status().is_client_error() || response.status().is_server_error() {
                     let default_error_telemetry = if response.status().is_server_error() {
                         HttpErrorTelemetry::new(
-                            HttpErrorType::from(str_constants::OTEL_HTTP_SERVER_ERROR_TYPE),
-                            HttpErrorCode::from(str_constants::OTEL_HTTP_5XX_ERROR_CODE),
+                            HttpErrorType::from(constants_str::OTEL_HTTP_SERVER_ERROR_TYPE),
+                            HttpErrorCode::from(constants_str::OTEL_HTTP_5XX_ERROR_CODE),
                         )
                     } else {
                         HttpErrorTelemetry::new(
-                            HttpErrorType::from(str_constants::OTEL_HTTP_CLIENT_ERROR_TYPE),
-                            HttpErrorCode::from(str_constants::OTEL_HTTP_4XX_ERROR_CODE),
+                            HttpErrorType::from(constants_str::OTEL_HTTP_CLIENT_ERROR_TYPE),
+                            HttpErrorCode::from(constants_str::OTEL_HTTP_4XX_ERROR_CODE),
                         )
                     };
                     let optional_diagnostic = response.extensions().get::<HttpErrorDiagnostic>();
@@ -397,11 +397,11 @@ where
                         .or_else(|| response.extensions().get::<HttpErrorTelemetry>().copied())
                         .unwrap_or(default_error_telemetry);
                     let _error_type_record = tracing::Span::current().record(
-                        str_constants::OTEL_ERROR_TYPE,
+                        constants_str::OTEL_ERROR_TYPE,
                         tracing::field::display(error_telemetry.error_type()),
                     );
                     let _error_code_record = tracing::Span::current().record(
-                        str_constants::OTEL_ERROR_CODE,
+                        constants_str::OTEL_ERROR_CODE,
                         tracing::field::display(error_telemetry.error_code()),
                     );
                     if response.status().is_server_error() {
@@ -429,7 +429,7 @@ where
                             span_trace = %diagnostic.span_trace(),
                             duration_ms = started_at.elapsed().as_millis(),
                             "{}",
-                            str_constants::HTTP_REQUEST_FAILED
+                            constants_str::HTTP_REQUEST_FAILED
                         );
                     }
                 }
@@ -441,12 +441,12 @@ where
                     );
                 }
                 let _previous_header_request_id = response.headers_mut().insert(
-                    http::HeaderName::from_static(str_constants::HTTP_HEADER_NAMES_X_REQUEST_ID),
+                    http::HeaderName::from_static(constants_str::HTTP_HEADER_NAMES_X_REQUEST_ID),
                     request_id_and_header_value.1.clone(),
                 );
                 let _previous_correlation_id = response.headers_mut().insert(
                     http::HeaderName::from_static(
-                        str_constants::RUNTIME_CORRELATION_ID_HEADER_NAME,
+                        constants_str::RUNTIME_CORRELATION_ID_HEADER_NAME,
                     ),
                     request_id_and_header_value.1,
                 );

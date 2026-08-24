@@ -2,12 +2,12 @@ impl super::AdminAuditAction {
     #[must_use]
     pub fn as_str(self) -> super::StdAdminStrRef<'static> {
         super::StdAdminStrRef::from(match self {
-            Self::Create => str_constants::PG_CRUD_CREATE_PERMISSION_ACTION,
-            Self::Delete => str_constants::PG_CRUD_DELETE_PERMISSION_ACTION,
-            Self::Refresh => str_constants::REFRESH,
-            Self::SignIn => str_constants::SIGN_IN,
-            Self::SignOut => str_constants::SIGN_OUT,
-            Self::Update => str_constants::PG_CRUD_UPDATE_PERMISSION_ACTION,
+            Self::Create => constants_str::PG_CRUD_CREATE_PERMISSION_ACTION,
+            Self::Delete => constants_str::PG_CRUD_DELETE_PERMISSION_ACTION,
+            Self::Refresh => constants_str::REFRESH,
+            Self::SignIn => constants_str::SIGN_IN,
+            Self::SignOut => constants_str::SIGN_OUT,
+            Self::Update => constants_str::PG_CRUD_UPDATE_PERMISSION_ACTION,
         })
     }
 }
@@ -15,12 +15,12 @@ impl super::AdminAuditResource {
     #[must_use]
     pub fn as_str(self) -> super::StdAdminStrRef<'static> {
         super::StdAdminStrRef::from(match self {
-            Self::AuditLog => str_constants::AUDIT_LOG_ALT,
-            Self::Permission => str_constants::PERMISSION,
-            Self::Role => str_constants::ROLE,
-            Self::Session => str_constants::SESSION,
-            Self::SystemSettings => str_constants::SYSTEM_SETTINGS,
-            Self::User => str_constants::USER,
+            Self::AuditLog => constants_str::AUDIT_LOG_ALT,
+            Self::Permission => constants_str::PERMISSION,
+            Self::Role => constants_str::ROLE,
+            Self::Session => constants_str::SESSION,
+            Self::SystemSettings => constants_str::SYSTEM_SETTINGS,
+            Self::User => constants_str::USER,
         })
     }
 }
@@ -40,12 +40,12 @@ mod tests {
         assert_eq!(
             actual.map(server_admin_core::StdAdminStrRef::get),
             [
-                str_constants::PG_CRUD_CREATE_PERMISSION_ACTION,
-                str_constants::PG_CRUD_DELETE_PERMISSION_ACTION,
-                str_constants::REFRESH,
-                str_constants::SIGN_IN,
-                str_constants::SIGN_OUT,
-                str_constants::PG_CRUD_UPDATE_PERMISSION_ACTION,
+                constants_str::PG_CRUD_CREATE_PERMISSION_ACTION,
+                constants_str::PG_CRUD_DELETE_PERMISSION_ACTION,
+                constants_str::REFRESH,
+                constants_str::SIGN_IN,
+                constants_str::SIGN_OUT,
+                constants_str::PG_CRUD_UPDATE_PERMISSION_ACTION,
             ]
         );
     }
@@ -63,12 +63,12 @@ mod tests {
         assert_eq!(
             actual.map(server_admin_core::StdAdminStrRef::get),
             [
-                str_constants::AUDIT_LOG_ALT,
-                str_constants::PERMISSION,
-                str_constants::ROLE,
-                str_constants::SESSION,
-                str_constants::SYSTEM_SETTINGS,
-                str_constants::USER,
+                constants_str::AUDIT_LOG_ALT,
+                constants_str::PERMISSION,
+                constants_str::ROLE,
+                constants_str::SESSION,
+                constants_str::SYSTEM_SETTINGS,
+                constants_str::USER,
             ]
         );
     }

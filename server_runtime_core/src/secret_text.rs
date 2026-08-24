@@ -15,12 +15,12 @@ pub enum BoundedSecretTextError {
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Eq, PartialEq, newtype::DisplayConst,
 )]
-#[display_const(str_constants::REDACTED_ALT_3)]
+#[display_const(constants_str::REDACTED_ALT_3)]
 pub struct BoundedSecretText(String);
 impl TryFrom<String> for BoundedSecretText {
     type Error = BoundedSecretTextError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() < SECRET_TEXT_MINIMUM_BYTES || value.len() > usize_constants::VALUE_8_192 {
+        if value.len() < SECRET_TEXT_MINIMUM_BYTES || value.len() > constants_usize::VALUE_8_192 {
             return Err(BoundedSecretTextError::InvalidLength);
         }
         if value.trim().len() != value.len() {
@@ -38,7 +38,7 @@ impl TryFrom<String> for BoundedSecretText {
 }
 impl std::fmt::Debug for BoundedSecretText {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(str_constants::REDACTED_ALT_3)
+        f.write_str(constants_str::REDACTED_ALT_3)
     }
 }
 
@@ -47,7 +47,7 @@ pub struct SecretTextRef<'value_lt>(&'value_lt str);
 impl<'value_lt> TryFrom<&'value_lt str> for SecretTextRef<'value_lt> {
     type Error = BoundedSecretTextError;
     fn try_from(value: &'value_lt str) -> Result<Self, Self::Error> {
-        if value.len() < SECRET_TEXT_MINIMUM_BYTES || value.len() > usize_constants::VALUE_8_192 {
+        if value.len() < SECRET_TEXT_MINIMUM_BYTES || value.len() > constants_usize::VALUE_8_192 {
             return Err(BoundedSecretTextError::InvalidLength);
         }
         if value.trim().len() != value.len() {
@@ -76,7 +76,7 @@ pub enum SecretTextMatch {
 }
 impl std::fmt::Debug for SecretTextRef<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(str_constants::REDACTED_ALT_3)
+        f.write_str(constants_str::REDACTED_ALT_3)
     }
 }
 
@@ -88,7 +88,7 @@ pub fn secret_texts_match(
     let expected_bytes = expected.0.as_bytes();
     let provided_bytes = provided.0.as_bytes();
     let length_difference = expected_bytes.len() ^ provided_bytes.len();
-    let difference = (usize_constants::ZERO..usize_constants::VALUE_8_192).fold(
+    let difference = (constants_usize::ZERO..constants_usize::VALUE_8_192).fold(
         length_difference,
         |accumulated, index| {
             let expected_byte = expected_bytes.get(index).copied().unwrap_or_default();
@@ -96,7 +96,7 @@ pub fn secret_texts_match(
             accumulated | usize::from(expected_byte ^ provided_byte)
         },
     );
-    if difference == usize_constants::ZERO {
+    if difference == constants_usize::ZERO {
         SecretTextMatch::Equal
     } else {
         SecretTextMatch::Different
@@ -112,9 +112,9 @@ mod tests {
 
     #[test]
     fn secrets_are_redacted_validated_and_compared() {
-        let expected = secret(str_constants::TEST_SECRET_TEXT);
-        let equal = secret(str_constants::TEST_SECRET_TEXT);
-        let different = secret(str_constants::TEST_DIFFERENT_SECRET_TEXT);
+        let expected = secret(constants_str::TEST_SECRET_TEXT);
+        let equal = secret(constants_str::TEST_SECRET_TEXT);
+        let different = secret(constants_str::TEST_DIFFERENT_SECRET_TEXT);
         assert_eq!(
             super::secret_texts_match((&expected).into(), (&equal).into()),
             super::SecretTextMatch::Equal,
@@ -123,13 +123,13 @@ mod tests {
             super::secret_texts_match((&expected).into(), (&different).into()),
             super::SecretTextMatch::Different,
         );
-        assert_eq!(format!("{expected:?}"), str_constants::REDACTED_ALT_3);
+        assert_eq!(format!("{expected:?}"), constants_str::REDACTED_ALT_3);
         assert!(matches!(
-            super::SecretTextRef::try_from(str_constants::TEST_SECRET_TEXT),
+            super::SecretTextRef::try_from(constants_str::TEST_SECRET_TEXT),
             Ok(_value)
         ));
         assert_eq!(
-            super::BoundedSecretText::try_from(String::from(str_constants::TEST_REPEATED_SECRET)),
+            super::BoundedSecretText::try_from(String::from(constants_str::TEST_REPEATED_SECRET)),
             Err(super::BoundedSecretTextError::RepeatedByte),
         );
     }

@@ -39,7 +39,7 @@ pub(super) fn admin_change_password() -> impl leptos::prelude::IntoView {
                 <crate::ui::field::AdminField label="Current password"><crate::ui::input::AdminInput name="current_password" kind=crate::ui::input::AdminInputKind::Password required=true bind_value=current_password /></crate::ui::field::AdminField>
                 <crate::ui::field::AdminField label="New password">
                     <crate::ui::input::AdminInput name="new_password" kind=crate::ui::input::AdminInputKind::Password minlength=server_admin_contract::ADMIN_NEW_PASSWORD_MIN_CHARS maxlength=server_admin_contract::ADMIN_PASSWORD_MAX_CHARS required=true bind_value=new_password />
-                    <singlestage::FieldDescription attr:class="password-policy">{str_constants::ADMIN_PASSWORD_POLICY_DESCRIPTION}</singlestage::FieldDescription>
+                    <singlestage::FieldDescription attr:class="password-policy">{constants_str::ADMIN_PASSWORD_POLICY_DESCRIPTION}</singlestage::FieldDescription>
                     {move || leptos::prelude::Get::get(&password_validation_failed).then(|| leptos::view! {
                         <singlestage::FieldError>"Check both passwords and ensure the new password satisfies the policy."</singlestage::FieldError>
                     })}

@@ -14,7 +14,7 @@ pub struct RetryAfterSecs(u64);
 impl TryFrom<u64> for RetryAfterSecs {
     type Error = RetryAfterSecsTryFromU64Error;
     fn try_from(value: u64) -> Result<Self, Self::Error> {
-        if value == u64_constants::ZERO {
+        if value == constants_u64::ZERO {
             Err(RetryAfterSecsTryFromU64Error)
         } else {
             Ok(Self(value))
@@ -24,7 +24,7 @@ impl TryFrom<u64> for RetryAfterSecs {
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
 )]
-#[error("{}", str_constants::RETRY_AFTER_SECONDS_MUST_BE_GREATER_THAN_ZERO)]
+#[error("{}", constants_str::RETRY_AFTER_SECONDS_MUST_BE_GREATER_THAN_ZERO)]
 pub struct RetryAfterSecsTryFromU64Error;
 impl TryFrom<RetryAfterSecs> for http::HeaderValue {
     type Error = http::header::InvalidHeaderValue;

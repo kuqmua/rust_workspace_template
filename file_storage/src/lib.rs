@@ -82,34 +82,34 @@ impl TryFrom<Vec<u8>> for StdFileBytes {
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
 )]
 pub enum FileStoragePathError {
-    #[error("{}", str_constants::FILE_STORAGE_FILE_TOO_LARGE)]
+    #[error("{}", constants_str::FILE_STORAGE_FILE_TOO_LARGE)]
     FileTooLarge,
-    #[error("{}", str_constants::FILE_STORAGE_OPERATION_ID_INVALID)]
+    #[error("{}", constants_str::FILE_STORAGE_OPERATION_ID_INVALID)]
     OperationIdInvalid,
-    #[error("{}", str_constants::FILE_STORAGE_PATH_TOO_LONG)]
+    #[error("{}", constants_str::FILE_STORAGE_PATH_TOO_LONG)]
     PathTooLong,
-    #[error("{}", str_constants::FILE_STORAGE_RELATIVE_PATH_INVALID)]
+    #[error("{}", constants_str::FILE_STORAGE_RELATIVE_PATH_INVALID)]
     RelativePathInvalid,
-    #[error("{}", str_constants::FILE_STORAGE_ROOT_MUST_BE_ABSOLUTE)]
+    #[error("{}", constants_str::FILE_STORAGE_ROOT_MUST_BE_ABSOLUTE)]
     RootMustBeAbsolute,
 }
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum FileStorageError {
-    #[error("{}", str_constants::FILE_STORAGE_ATOMIC_REPLACE_AND_CLEANUP_ERROR)]
+    #[error("{}", constants_str::FILE_STORAGE_ATOMIC_REPLACE_AND_CLEANUP_ERROR)]
     AtomicReplaceAndCleanup {
         cleanup: StdFileStorageIoError,
         replace: StdFileStorageIoError,
     },
-    #[error("{}", str_constants::FILE_STORAGE_DESTINATION_EXISTS)]
+    #[error("{}", constants_str::FILE_STORAGE_DESTINATION_EXISTS)]
     DestinationExists,
-    #[error("{}", str_constants::FILE_STORAGE_IO_ERROR)]
+    #[error("{}", constants_str::FILE_STORAGE_IO_ERROR)]
     Io(#[source] StdFileStorageIoError),
-    #[error("{}", str_constants::FILE_STORAGE_SOURCE_NOT_REGULAR)]
+    #[error("{}", constants_str::FILE_STORAGE_SOURCE_NOT_REGULAR)]
     SourceNotRegular,
-    #[error("{}", str_constants::FILE_STORAGE_STAGING_ENTRY_EXISTS)]
+    #[error("{}", constants_str::FILE_STORAGE_STAGING_ENTRY_EXISTS)]
     StagingEntryExists,
-    #[error("{}", str_constants::FILE_STORAGE_PATH_IS_SYMLINK)]
+    #[error("{}", constants_str::FILE_STORAGE_PATH_IS_SYMLINK)]
     Symlink,
 }
 
@@ -127,10 +127,10 @@ impl FileStorageStagingArea {
     fn directory_name(self) -> StorageDirectoryNameRef<'static> {
         match self {
             Self::Delete => {
-                StorageDirectoryNameRef::from(str_constants::FILE_DELETE_STAGING_DIRECTORY)
+                StorageDirectoryNameRef::from(constants_str::FILE_DELETE_STAGING_DIRECTORY)
             }
             Self::Upload => {
-                StorageDirectoryNameRef::from(str_constants::FILE_UPLOAD_STAGING_DIRECTORY)
+                StorageDirectoryNameRef::from(constants_str::FILE_UPLOAD_STAGING_DIRECTORY)
             }
         }
     }
@@ -141,7 +141,7 @@ pub struct StdStaleStagingEntryLimit(usize);
 impl TryFrom<usize> for StdStaleStagingEntryLimit {
     type Error = StaleStagingCleanupCfgError;
     fn try_from(value: usize) -> Result<Self, Self::Error> {
-        if value == usize_constants::ZERO || value > 10_000usize {
+        if value == constants_usize::ZERO || value > 10_000usize {
             Err(StaleStagingCleanupCfgError)
         } else {
             Ok(Self(value))
@@ -240,7 +240,7 @@ impl SafeFileStorage {
             else {
                 break;
             };
-            report.scanned.0 = report.scanned.0.saturating_add(usize_constants::ONE);
+            report.scanned.0 = report.scanned.0.saturating_add(constants_usize::ONE);
             let file_type = entry
                 .file_type()
                 .await
@@ -259,7 +259,7 @@ impl SafeFileStorage {
                 continue;
             }
             match tokio::fs::remove_file(entry.path()).await {
-                Ok(()) => report.removed.0 = report.removed.0.saturating_add(usize_constants::ONE),
+                Ok(()) => report.removed.0 = report.removed.0.saturating_add(constants_usize::ONE),
                 Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
                 Err(error) => return Err(FileStorageError::Io(error.into())),
             }
@@ -277,7 +277,7 @@ impl SafeFileStorage {
         let staging_path = self
             .root
             .0
-            .join(str_constants::FILE_UPLOAD_STAGING_DIRECTORY)
+            .join(constants_str::FILE_UPLOAD_STAGING_DIRECTORY)
             .join(operation_id.0.as_str());
         if durability == AtomicReplaceDurability::SyncAll {
             let file = tokio::fs::OpenOptions::new()
@@ -325,9 +325,9 @@ impl SafeFileStorage {
             .map_err(|error| FileStorageError::Io(error.into()))?;
         self.ensure_directory_not_symlink(self.root.0.as_path().into())
             .await?;
-        self.prepare_staging_directory(str_constants::FILE_UPLOAD_STAGING_DIRECTORY.into())
+        self.prepare_staging_directory(constants_str::FILE_UPLOAD_STAGING_DIRECTORY.into())
             .await?;
-        self.prepare_staging_directory(str_constants::FILE_DELETE_STAGING_DIRECTORY.into())
+        self.prepare_staging_directory(constants_str::FILE_DELETE_STAGING_DIRECTORY.into())
             .await
     }
 
@@ -339,7 +339,7 @@ impl SafeFileStorage {
         let staging_path = self
             .root
             .0
-            .join(str_constants::FILE_UPLOAD_STAGING_DIRECTORY)
+            .join(constants_str::FILE_UPLOAD_STAGING_DIRECTORY)
             .join(operation_id.0.as_str());
         let mut file = tokio::fs::OpenOptions::new()
             .create_new(true)
@@ -373,7 +373,7 @@ impl SafeFileStorage {
         tokio::fs::rename(
             self.root
                 .0
-                .join(str_constants::FILE_UPLOAD_STAGING_DIRECTORY)
+                .join(constants_str::FILE_UPLOAD_STAGING_DIRECTORY)
                 .join(operation_id.0.as_str()),
             destination_path,
         )
@@ -388,7 +388,7 @@ impl SafeFileStorage {
         tokio::fs::remove_file(
             self.root
                 .0
-                .join(str_constants::FILE_UPLOAD_STAGING_DIRECTORY)
+                .join(constants_str::FILE_UPLOAD_STAGING_DIRECTORY)
                 .join(operation_id.0.as_str()),
         )
         .await
@@ -407,7 +407,7 @@ impl SafeFileStorage {
             source_path,
             self.root
                 .0
-                .join(str_constants::FILE_DELETE_STAGING_DIRECTORY)
+                .join(constants_str::FILE_DELETE_STAGING_DIRECTORY)
                 .join(operation_id.0.as_str()),
         )
         .await
@@ -426,7 +426,7 @@ impl SafeFileStorage {
         tokio::fs::rename(
             self.root
                 .0
-                .join(str_constants::FILE_DELETE_STAGING_DIRECTORY)
+                .join(constants_str::FILE_DELETE_STAGING_DIRECTORY)
                 .join(operation_id.0.as_str()),
             destination_path,
         )
@@ -441,7 +441,7 @@ impl SafeFileStorage {
         tokio::fs::remove_file(
             self.root
                 .0
-                .join(str_constants::FILE_DELETE_STAGING_DIRECTORY)
+                .join(constants_str::FILE_DELETE_STAGING_DIRECTORY)
                 .join(operation_id.0.as_str()),
         )
         .await
@@ -616,7 +616,7 @@ pub fn plan_disk_cache_eviction(
     }
     let mut current = entries
         .iter()
-        .try_fold(u64_constants::ZERO, |total, entry| {
+        .try_fold(constants_u64::ZERO, |total, entry| {
             total
                 .checked_add(entry.size.0)
                 .ok_or(DiskCacheBudgetError::SizeOverflow)
@@ -629,7 +629,7 @@ pub fn plan_disk_cache_eviction(
     let required = projected.saturating_sub(maximum.0);
     let remove_capacity = ordered
         .iter()
-        .scan(u64_constants::ZERO, |removed, entry| {
+        .scan(constants_u64::ZERO, |removed, entry| {
             if *removed >= required {
                 None
             } else {
@@ -660,7 +660,7 @@ pub fn plan_disk_cache_eviction(
 mod tests {
     #[tokio::test]
     async fn stale_staging_cleanup_is_bounded_and_removes_regular_files() {
-        let root_path = std::env::temp_dir().join(str_constants::TEST_STALE_STAGING_DIRECTORY);
+        let root_path = std::env::temp_dir().join(constants_str::TEST_STALE_STAGING_DIRECTORY);
         match tokio::fs::remove_dir_all(&root_path).await {
             Ok(()) => {}
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
@@ -671,7 +671,7 @@ mod tests {
         );
         storage.prepare().await.expect("73802bd5 stale_staging_cleanup_is_bounded_and_removes_regular_files invariant must hold");
         let operation_id = super::StdStorageOperationId::try_from(String::from(
-            str_constants::TEST_STALE_STAGING_OPERATION_ID,
+            constants_str::TEST_STALE_STAGING_OPERATION_ID,
         ))
         .expect("d374ce69 stale_staging_cleanup_is_bounded_and_removes_regular_files invariant must hold");
         storage
@@ -682,7 +682,7 @@ mod tests {
             .await
             .expect("df4e565c stale_staging_cleanup_is_bounded_and_removes_regular_files invariant must hold");
         let second_operation_id = super::StdStorageOperationId::try_from(String::from(
-            str_constants::TEST_STALE_STAGING_SECOND_OPERATION_ID,
+            constants_str::TEST_STALE_STAGING_SECOND_OPERATION_ID,
         ))
         .expect("de441c7a stale_staging_cleanup_is_bounded_and_removes_regular_files invariant must hold");
         storage
@@ -695,7 +695,7 @@ mod tests {
         let stale_before = std::time::UNIX_EPOCH
             .checked_add(std::time::Duration::from_hours(1_139_568u64))
             .expect("c81a56d9 stale_staging_cleanup_is_bounded_and_removes_regular_files invariant must hold");
-        let limit = super::StdStaleStagingEntryLimit::try_from(usize_constants::ONE).expect("c35f98c6 stale_staging_cleanup_is_bounded_and_removes_regular_files invariant must hold");
+        let limit = super::StdStaleStagingEntryLimit::try_from(constants_usize::ONE).expect("c35f98c6 stale_staging_cleanup_is_bounded_and_removes_regular_files invariant must hold");
         let report = storage
             .cleanup_stale_staging(
                 super::FileStorageStagingArea::Upload,
@@ -706,12 +706,12 @@ mod tests {
         assert_eq!(
             report,
             super::StaleStagingCleanupReport {
-                removed: super::StdStaleStagingEntryCount::from(usize_constants::ONE),
-                scanned: super::StdStaleStagingEntryCount::from(usize_constants::ONE),
+                removed: super::StdStaleStagingEntryCount::from(constants_usize::ONE),
+                scanned: super::StdStaleStagingEntryCount::from(constants_usize::ONE),
             }
         );
         let mut remaining_entries =
-            tokio::fs::read_dir(root_path.join(str_constants::FILE_UPLOAD_STAGING_DIRECTORY))
+            tokio::fs::read_dir(root_path.join(constants_str::FILE_UPLOAD_STAGING_DIRECTORY))
                 .await
                 .expect("acdbf8da stale_staging_cleanup_is_bounded_and_removes_regular_files invariant must hold");
         assert!(
@@ -737,13 +737,13 @@ mod tests {
     fn relative_paths_and_operation_ids_reject_traversal() {
         assert_eq!(
             super::StdStorageRelativePath::try_from(std::path::PathBuf::from(
-                str_constants::TEST_PATH_TRAVERSAL
+                constants_str::TEST_PATH_TRAVERSAL
             )),
             Err(super::FileStoragePathError::RelativePathInvalid),
         );
         assert_eq!(
             super::StdStorageOperationId::try_from(String::from(
-                str_constants::TEST_PATH_TRAVERSAL,
+                constants_str::TEST_PATH_TRAVERSAL,
             )),
             Err(super::FileStoragePathError::OperationIdInvalid),
         );
@@ -751,8 +751,8 @@ mod tests {
 
     #[test]
     fn storage_paths_reject_values_above_maximum_length() {
-        let relative = str_constants::TEST_JWT_SECRET_CHARACTER_A
-            .repeat(super::MAXIMUM_PATH_BYTES.saturating_add(usize_constants::ONE));
+        let relative = constants_str::TEST_JWT_SECRET_CHARACTER_A
+            .repeat(super::MAXIMUM_PATH_BYTES.saturating_add(constants_usize::ONE));
         let mut absolute = std::path::MAIN_SEPARATOR.to_string();
         absolute.push_str(relative.as_str());
         assert_eq!(
@@ -768,11 +768,11 @@ mod tests {
     #[test]
     fn disk_cache_budget_evicts_oldest_entries_first() {
         let old_path = super::StdStorageRelativePath::try_from(std::path::PathBuf::from(
-            str_constants::TEST_DISK_CACHE_OLD_PATH,
+            constants_str::TEST_DISK_CACHE_OLD_PATH,
         ))
         .expect("0dc17257 disk_cache_budget_evicts_oldest_entries_first invariant must hold");
         let new_path = super::StdStorageRelativePath::try_from(std::path::PathBuf::from(
-            str_constants::TEST_DISK_CACHE_NEW_PATH,
+            constants_str::TEST_DISK_CACHE_NEW_PATH,
         ))
         .expect("38c1eca1 disk_cache_budget_evicts_oldest_entries_first invariant must hold");
         let entries = [
@@ -790,7 +790,7 @@ mod tests {
 
     #[tokio::test]
     async fn staged_upload_delete_and_rollback_preserve_transaction_boundaries() {
-        let root_path = std::env::temp_dir().join(str_constants::TEST_FILE_STORAGE_DIRECTORY);
+        let root_path = std::env::temp_dir().join(constants_str::TEST_FILE_STORAGE_DIRECTORY);
         match tokio::fs::remove_dir_all(&root_path).await {
             Ok(()) => {}
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
@@ -801,11 +801,11 @@ mod tests {
         );
         storage.prepare().await.expect("ab760e42 staged_upload_delete_and_rollback_preserve_transaction_boundaries invariant must hold");
         let operation_id = super::StdStorageOperationId::try_from(String::from(
-            str_constants::TEST_FILE_STORAGE_OPERATION_ID,
+            constants_str::TEST_FILE_STORAGE_OPERATION_ID,
         ))
         .expect("ca3f4821 staged_upload_delete_and_rollback_preserve_transaction_boundaries invariant must hold");
         let relative_path = super::StdStorageRelativePath::try_from(std::path::PathBuf::from(
-            str_constants::TEST_FILE_STORAGE_RELATIVE_PATH,
+            constants_str::TEST_FILE_STORAGE_RELATIVE_PATH,
         ))
         .expect("85ed3042 staged_upload_delete_and_rollback_preserve_transaction_boundaries invariant must hold");
         let bytes = super::StdFileBytes::try_from(vec![1u8, 2u8, 3u8]).expect("d7df0f1c staged_upload_delete_and_rollback_preserve_transaction_boundaries invariant must hold");
@@ -832,7 +832,7 @@ mod tests {
             .await
             .expect("3c48b27d staged_upload_delete_and_rollback_preserve_transaction_boundaries invariant must hold");
         let replacement_operation_id = super::StdStorageOperationId::try_from(String::from(
-            str_constants::TEST_FILE_STORAGE_REPLACEMENT_OPERATION_ID,
+            constants_str::TEST_FILE_STORAGE_REPLACEMENT_OPERATION_ID,
         ))
         .expect("fb7e68b1 staged_upload_delete_and_rollback_preserve_transaction_boundaries invariant must hold");
         let replacement_bytes = super::StdFileBytes::try_from(vec![4u8, 5u8]).expect("23566f2b staged_upload_delete_and_rollback_preserve_transaction_boundaries invariant must hold");

@@ -23,7 +23,7 @@ async fn status_route_and_parts_are_stable() {
     let response = tower::ServiceExt::oneshot(
         axum::Router::from(router),
         axum::extract::Request::builder()
-            .uri(str_constants::STATUS)
+            .uri(constants_str::STATUS)
             .body(axum::body::Body::empty())
             .expect("8e9c3da1 status_route_and_parts_are_stable invariant must hold"),
     )
@@ -89,7 +89,7 @@ async fn acquire_permit_distinguishes_available_timeout_and_closed() {
     let retry_after = super::super::RetryAfterSecs::try_from(3u64).expect(
         "c52d0e93 acquire_permit_distinguishes_available_timeout_and_closed invariant must hold",
     );
-    let semaphore = std::sync::Arc::new(tokio::sync::Semaphore::new(usize_constants::ONE));
+    let semaphore = std::sync::Arc::new(tokio::sync::Semaphore::new(constants_usize::ONE));
     let permit = super::super::acquire_permit(
         super::super::StdArcTokioSemaphore::from(std::sync::Arc::clone(&semaphore)),
         super::super::StdPermitWaitTimeout::from(std::time::Duration::ZERO),
@@ -134,10 +134,10 @@ async fn acquire_permit_distinguishes_available_timeout_and_closed() {
 #[test]
 fn concurrency_limit_wrappers_validate_boundaries_and_try_acquire() {
     assert_eq!(
-        super::super::RetryAfterSecs::try_from(u64_constants::ZERO),
+        super::super::RetryAfterSecs::try_from(constants_u64::ZERO),
         Err(super::super::RetryAfterSecsTryFromU64Error)
     );
-    let permit_count = std::num::NonZeroUsize::new(usize_constants::ONE).expect("50a95013 concurrency_limit_wrappers_validate_boundaries_and_try_acquire invariant must hold");
+    let permit_count = std::num::NonZeroUsize::new(constants_usize::ONE).expect("50a95013 concurrency_limit_wrappers_validate_boundaries_and_try_acquire invariant must hold");
     let semaphore = super::super::StdArcTokioSemaphore::new(
         super::super::StdSemaphorePermitCount::from(permit_count),
     );
@@ -150,7 +150,7 @@ fn concurrency_limit_wrappers_validate_boundaries_and_try_acquire() {
 #[test]
 fn zero_limits_are_rejected() {
     let Err(history_error) =
-        super::super::StdAsyncRunHistoryMaximumLen::try_from(usize_constants::ZERO)
+        super::super::StdAsyncRunHistoryMaximumLen::try_from(constants_usize::ZERO)
     else {
         panic!("5500cd77");
     };

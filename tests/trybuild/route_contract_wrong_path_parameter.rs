@@ -9,8 +9,8 @@ impl frontend_contract::TypedRoute for ParameterizedTestRoute {
     fn metadata() -> frontend_contract::RouteMetadata {
         frontend_contract::RouteMetadata::new(
             frontend_contract::RouteMethod::Get,
-            frontend_contract::ContractStr::from(str_constants::READ),
-            frontend_contract::ContractStr::from(str_constants::ROUTE),
+            frontend_contract::ContractStr::from(constants_str::READ),
+            frontend_contract::ContractStr::from(constants_str::ROUTE),
         )
     }
 }

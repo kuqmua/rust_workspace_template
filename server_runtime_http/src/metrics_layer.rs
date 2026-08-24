@@ -26,7 +26,7 @@ impl TryFrom<String> for MetricsResponseBody {
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
 )]
-#[error("{message}", message = str_constants::METRICS_RESPONSE_BODY_EXCEEDS_MAXIMUM_LENGTH)]
+#[error("{message}", message = constants_str::METRICS_RESPONSE_BODY_EXCEEDS_MAXIMUM_LENGTH)]
 pub struct MetricsResponseBodyError;
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
@@ -51,7 +51,7 @@ impl From<std::num::NonZeroUsize> for HttpMetricsPathCacheMaximum {
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
 )]
-#[error("{message}", message = str_constants::HTTP_METRICS_PATH_CACHE_MAXIMUM_MUST_BE_GREATER_THAN_ZERO)]
+#[error("{message}", message = constants_str::HTTP_METRICS_PATH_CACHE_MAXIMUM_MUST_BE_GREATER_THAN_ZERO)]
 pub struct HttpMetricsPathCacheMaximumTryFromUsizeError;
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
@@ -84,7 +84,7 @@ impl TryFrom<String> for HttpMetricsPathText {
     type Error = HttpMetricsPathTextError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.is_empty() || value.len() > usize_constants::VALUE_8_192 {
+        if value.is_empty() || value.len() > constants_usize::VALUE_8_192 {
             Err(HttpMetricsPathTextError)
         } else {
             Ok(Self(value))
@@ -119,7 +119,7 @@ impl HttpMetricsPathCache {
             )),
             maximum,
             unmatched: MetricsSharedString::from(metrics::SharedString::const_str(
-                str_constants::HTTP_METRICS_UNMATCHED_PATH,
+                constants_str::HTTP_METRICS_UNMATCHED_PATH,
             )),
         }
     }
@@ -224,16 +224,16 @@ where
 
     fn call(&mut self, req: axum::extract::Request) -> Self::Future {
         let method = match *req.method() {
-            http::Method::CONNECT => str_constants::HTTP_METHOD_CONNECT_LABEL,
-            http::Method::DELETE => str_constants::DELETE,
-            http::Method::GET => str_constants::GET,
-            http::Method::HEAD => str_constants::HTTP_METHOD_HEAD_LABEL,
-            http::Method::OPTIONS => str_constants::HTTP_METHOD_OPTIONS_LABEL,
-            http::Method::PATCH => str_constants::PATCH,
-            http::Method::POST => str_constants::POST,
-            http::Method::PUT => str_constants::HTTP_METHOD_PUT_LABEL,
-            http::Method::TRACE => str_constants::HTTP_METHOD_TRACE_LABEL,
-            _ => str_constants::HTTP_METHOD_OTHER_LABEL,
+            http::Method::CONNECT => constants_str::HTTP_METHOD_CONNECT_LABEL,
+            http::Method::DELETE => constants_str::DELETE,
+            http::Method::GET => constants_str::GET,
+            http::Method::HEAD => constants_str::HTTP_METHOD_HEAD_LABEL,
+            http::Method::OPTIONS => constants_str::HTTP_METHOD_OPTIONS_LABEL,
+            http::Method::PATCH => constants_str::PATCH,
+            http::Method::POST => constants_str::POST,
+            http::Method::PUT => constants_str::HTTP_METHOD_PUT_LABEL,
+            http::Method::TRACE => constants_str::HTTP_METHOD_TRACE_LABEL,
+            _ => constants_str::HTTP_METHOD_OTHER_LABEL,
         };
         let normalized_path = req
             .extensions()
@@ -248,7 +248,7 @@ where
             .get::<axum::extract::MatchedPath>()
             .map(axum::extract::MatchedPath::as_str)
             .or_else(|| normalized_path.as_ref().map(AsRef::as_ref))
-            .unwrap_or(str_constants::HTTP_METRICS_UNMATCHED_PATH);
+            .unwrap_or(constants_str::HTTP_METRICS_UNMATCHED_PATH);
         let path_label = self.paths.0.label(HttpMetricsPathTextRef::from(path_text));
         let started_at = std::time::Instant::now();
         let response_future = tower::Service::call(&mut self.inner, req);
@@ -258,19 +258,19 @@ where
                 response.status().as_str().to_owned(),
             ));
             let labels = [
-                metrics::Label::new(str_constants::HTTP_METRICS_LABEL_METHOD, method),
-                metrics::Label::new(str_constants::PATH_ALT_5, path_label.0),
-                metrics::Label::new(str_constants::STATUS_ALT, status.0),
+                metrics::Label::new(constants_str::HTTP_METRICS_LABEL_METHOD, method),
+                metrics::Label::new(constants_str::PATH_ALT_5, path_label.0),
+                metrics::Label::new(constants_str::STATUS_ALT, status.0),
             ];
-            metrics::counter!(str_constants::HTTP_METRICS_REQUESTS_TOTAL, labels.iter())
+            metrics::counter!(constants_str::HTTP_METRICS_REQUESTS_TOTAL, labels.iter())
                 .increment(1u64);
             metrics::histogram!(
-                str_constants::HTTP_METRICS_REQUEST_DURATION_SECONDS,
+                constants_str::HTTP_METRICS_REQUEST_DURATION_SECONDS,
                 labels.iter()
             )
             .record(started_at.elapsed().as_secs_f64());
             if response.status().is_server_error() {
-                metrics::counter!(str_constants::HTTP_METRICS_ERRORS_TOTAL, labels.iter())
+                metrics::counter!(constants_str::HTTP_METRICS_ERRORS_TOTAL, labels.iter())
                     .increment(1u64);
             }
             Ok(response)
@@ -313,24 +313,24 @@ mod tests {
             String::from_utf8(vec![
                 b'x';
                 super::METRICS_RESPONSE_BODY_MAXIMUM_BYTES
-                    .saturating_add(usize_constants::ONE)
+                    .saturating_add(constants_usize::ONE)
             ])
             .expect("329fb604 metrics_response_body_is_bounded invariant must hold"),
         )
-        .expect_err(str_constants::F0FC293DD);
+        .expect_err(constants_str::F0FC293DD);
     }
 
     #[test]
     fn cache_configuration_and_path_text_validate_boundaries() {
         assert_eq!(
-            super::HttpMetricsPathCacheMaximum::try_from(usize_constants::ZERO),
+            super::HttpMetricsPathCacheMaximum::try_from(constants_usize::ZERO),
             Err(super::HttpMetricsPathCacheMaximumTryFromUsizeError)
         );
         assert_eq!(
             super::HttpMetricsPathText::try_from(String::new()),
             Err(super::HttpMetricsPathTextError)
         );
-        let _path = super::HttpMetricsPathText::try_from("a".repeat(usize_constants::VALUE_8_192)).expect(
+        let _path = super::HttpMetricsPathText::try_from("a".repeat(constants_usize::VALUE_8_192)).expect(
             "c1b07056 cache_configuration_and_path_text_validate_boundaries invariant must hold",
         );
         assert_eq!(
@@ -346,24 +346,24 @@ mod tests {
         ));
         assert_eq!(
             cache
-                .label(super::HttpMetricsPathTextRef::from(str_constants::ROOT))
+                .label(super::HttpMetricsPathTextRef::from(constants_str::ROOT))
                 .0
                 .as_ref(),
-            str_constants::ROOT
+            constants_str::ROOT
         );
         assert_eq!(
             cache
-                .label(super::HttpMetricsPathTextRef::from(str_constants::ROOT))
+                .label(super::HttpMetricsPathTextRef::from(constants_str::ROOT))
                 .0
                 .as_ref(),
-            str_constants::ROOT
+            constants_str::ROOT
         );
         assert_eq!(
             cache
-                .label(super::HttpMetricsPathTextRef::from(str_constants::V1))
+                .label(super::HttpMetricsPathTextRef::from(constants_str::V1))
                 .0
                 .as_ref(),
-            str_constants::HTTP_METRICS_UNMATCHED_PATH
+            constants_str::HTTP_METRICS_UNMATCHED_PATH
         );
     }
 
@@ -374,17 +374,17 @@ mod tests {
         ));
         assert_eq!(
             cache
-                .label(super::HttpMetricsPathTextRef::from(str_constants::EMPTY))
+                .label(super::HttpMetricsPathTextRef::from(constants_str::EMPTY))
                 .0
                 .as_ref(),
-            str_constants::HTTP_METRICS_UNMATCHED_PATH
+            constants_str::HTTP_METRICS_UNMATCHED_PATH
         );
         assert_eq!(
             cache
-                .label(super::HttpMetricsPathTextRef::from(str_constants::ROOT))
+                .label(super::HttpMetricsPathTextRef::from(constants_str::ROOT))
                 .0
                 .as_ref(),
-            str_constants::ROOT
+            constants_str::ROOT
         );
     }
 

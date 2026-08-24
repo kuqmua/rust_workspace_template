@@ -282,7 +282,7 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
                         },
                         |body| {
                             let title_result = server_admin_frontend::ssr::AdminSsrText::try_from(
-                                str_constants::METRICS_ALT.to_owned(),
+                                constants_str::METRICS_ALT.to_owned(),
                             );
                             let text_result = server_admin_frontend::ssr::AdminSsrText::try_from(
                                 body.into_inner(),
@@ -361,16 +361,16 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
                                     .allow_headers([
                                         axum::http::header::CONTENT_TYPE,
                                         axum::http::HeaderName::from_static(
-                                            str_constants::ROUTE_VALIDATORS_COMMIT_HEADER_NAME,
+                                            constants_str::ROUTE_VALIDATORS_COMMIT_HEADER_NAME,
                                         ),
                                         axum::http::HeaderName::from_static(
-                                            str_constants::IDEMPOTENCY_KEY_ALT,
+                                            constants_str::IDEMPOTENCY_KEY_ALT,
                                         ),
                                         axum::http::HeaderName::from_static(
-                                            str_constants::IF_MATCH_ALT,
+                                            constants_str::IF_MATCH_ALT,
                                         ),
                                         axum::http::HeaderName::from_static(
-                                            str_constants::X_CSRF_TOKEN_ALT,
+                                            constants_str::X_CSRF_TOKEN_ALT,
                                         ),
                                     ])
                                     .allow_methods([
@@ -562,6 +562,6 @@ mod tests {
     }
     #[test]
     fn tracing_default_filter_is_stable() {
-        assert_eq!(str_constants::CONFIG_TRACING_INFO, "info");
+        assert_eq!(constants_str::CONFIG_TRACING_INFO, "info");
     }
 }

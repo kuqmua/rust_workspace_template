@@ -24,7 +24,7 @@ pub struct RequiredNulFreeBoundedText(String);
 impl TryFrom<String> for RequiredNulFreeBoundedText {
     type Error = BoundedTextPolicyError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > usize_constants::VALUE_1_048_576 {
+        if value.len() > constants_usize::VALUE_1_048_576 {
             return Err(Self::Error::TooLong);
         }
         if value.is_empty() {
@@ -44,7 +44,7 @@ pub struct NonEmptyTrimmedText(String);
 impl TryFrom<String> for NonEmptyTrimmedText {
     type Error = BoundedTextPolicyError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > usize_constants::VALUE_1_048_576 {
+        if value.len() > constants_usize::VALUE_1_048_576 {
             return Err(Self::Error::TooLong);
         }
         let trimmed = value.trim();
@@ -266,7 +266,7 @@ mod tests {
     fn required_bounded_text_rejects_nul() {
         assert_eq!(
             super::RequiredNulFreeBoundedText::try_from(
-                str_constants::TEST_TEXT_WITH_NUL.to_owned()
+                constants_str::TEST_TEXT_WITH_NUL.to_owned()
             ),
             Err(super::BoundedTextPolicyError::ContainsNul)
         );
@@ -275,12 +275,12 @@ mod tests {
     #[test]
     fn fixed_hex_requires_lowercase_and_exact_length() {
         let _value = super::FixedLengthAsciiHexText::try_from(
-            str_constants::TEST_GIT_COMMIT_HASH.to_owned(),
+            constants_str::TEST_GIT_COMMIT_HASH.to_owned(),
         )
         .expect("fdb4f77c fixed_hex_requires_lowercase_and_exact_length invariant must hold");
         assert_eq!(
             super::FixedLengthAsciiHexText::try_from(
-                str_constants::TEST_UPPERCASE_GIT_COMMIT_HASH.to_owned()
+                constants_str::TEST_UPPERCASE_GIT_COMMIT_HASH.to_owned()
             ),
             Err(super::FixedLengthAsciiHexTextError::InvalidSymbol)
         );
@@ -290,8 +290,8 @@ mod tests {
     fn url_safe_token_policy_is_table_driven() {
         assert_eq!(
             [
-                str_constants::ABC_ALT_3,
-                str_constants::TEST_URL_TOKEN_WITH_SEPARATOR,
+                constants_str::ABC_ALT_3,
+                constants_str::TEST_URL_TOKEN_WITH_SEPARATOR,
                 "",
             ]
             .map(|value| {
@@ -308,7 +308,7 @@ mod tests {
         );
         assert_eq!(
             super::validate_url_safe_token_part(
-                super::UrlSafeTokenPartRef::from(str_constants::ABC_ALT_3),
+                super::UrlSafeTokenPartRef::from(constants_str::ABC_ALT_3),
                 super::UrlSafeTokenPartMaximumBytes::from(2usize),
             ),
             Err(super::UrlSafeTokenPartTextError::TooLong)
@@ -323,9 +323,9 @@ mod tests {
         );
         assert_eq!(
             [
-                str_constants::TEST_STRONG_PASSWORD,
-                str_constants::PASSWORD,
-                str_constants::TEST_PASSWORD_WITH_WHITESPACE,
+                constants_str::TEST_STRONG_PASSWORD,
+                constants_str::PASSWORD,
+                constants_str::TEST_PASSWORD_WITH_WHITESPACE,
             ]
             .map(|value| {
                 super::validate_password_policy(super::PasswordTextRef::from(value), range)
@@ -336,7 +336,7 @@ mod tests {
                 Err(super::PasswordPolicyViolation::ContainsWhitespace),
             ]
         );
-        let secret = str_constants::NEVER_PRINT_THIS_VALUE;
+        let secret = constants_str::NEVER_PRINT_THIS_VALUE;
         assert!(!format!("{:?}", super::PasswordTextRef::from(secret)).contains(secret));
     }
 }

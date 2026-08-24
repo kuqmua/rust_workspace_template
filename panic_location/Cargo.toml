@@ -10,7 +10,7 @@ edition.workspace = true
 
 [dependencies]
 optimal_memory_layout = { workspace = true }
-str_constants = { workspace = true }
+constants_str = { workspace = true }
 newtype = { workspace = true }
 to_err_string = { workspace = true }
 

@@ -94,21 +94,21 @@ where
     type Response = axum::response::Response;
 
     fn call(&mut self, mut req: axum::extract::Request) -> Self::Future {
-        let is_api_path = req.uri().path().starts_with(str_constants::V1_SLASH);
+        let is_api_path = req.uri().path().starts_with(constants_str::V1_SLASH);
         let is_forwarded_https = matches!(self.forwarded_proto_trust, ForwardedProtoTrust::Trust)
             && req
                 .headers()
-                .get(str_constants::X_FORWARDED_PROTO)
+                .get(constants_str::X_FORWARDED_PROTO)
                 .and_then(|value| value.to_str().ok())
                 .is_some_and(|value| {
                     value.split(',').next().is_some_and(|first| {
-                        first.trim().eq_ignore_ascii_case(str_constants::HTTPS)
+                        first.trim().eq_ignore_ascii_case(constants_str::HTTPS)
                     })
                 });
         req.headers_mut().iter_mut().for_each(|(name, value)| {
             if name == http::header::AUTHORIZATION
                 || name == http::header::COOKIE
-                || name.as_str() == str_constants::X_CSRF_TOKEN_ALT
+                || name.as_str() == constants_str::X_CSRF_TOKEN_ALT
             {
                 value.set_sensitive(true);
             }
@@ -118,20 +118,20 @@ where
         Box::pin(async move {
             let mut response = response_future.await?;
             let _content_type_options = response.headers_mut().insert(
-                http::HeaderName::from_static(str_constants::X_CONTENT_TYPE_OPTIONS),
-                http::HeaderValue::from_static(str_constants::NOSNIFF),
+                http::HeaderName::from_static(constants_str::X_CONTENT_TYPE_OPTIONS),
+                http::HeaderValue::from_static(constants_str::NOSNIFF),
             );
             let _frame_options = response.headers_mut().insert(
-                http::HeaderName::from_static(str_constants::X_FRAME_OPTIONS),
-                http::HeaderValue::from_static(str_constants::DENY),
+                http::HeaderName::from_static(constants_str::X_FRAME_OPTIONS),
+                http::HeaderValue::from_static(constants_str::DENY),
             );
             let _referrer_policy = response.headers_mut().insert(
-                http::HeaderName::from_static(str_constants::REFERRER_POLICY),
-                http::HeaderValue::from_static(str_constants::SAME_ORIGIN),
+                http::HeaderName::from_static(constants_str::REFERRER_POLICY),
+                http::HeaderValue::from_static(constants_str::SAME_ORIGIN),
             );
             if let Some(resolved_content_security_policy) = content_security_policy {
                 let _previous_content_security_policy = response.headers_mut().insert(
-                    http::HeaderName::from_static(str_constants::CONTENT_SECURITY_POLICY_HEADER),
+                    http::HeaderName::from_static(constants_str::CONTENT_SECURITY_POLICY_HEADER),
                     resolved_content_security_policy.0,
                 );
             }
@@ -143,14 +143,14 @@ where
             if is_api_path {
                 let _cache_control = response.headers_mut().insert(
                     http::header::CACHE_CONTROL,
-                    http::HeaderValue::from_static(str_constants::NO_STORE),
+                    http::HeaderValue::from_static(constants_str::NO_STORE),
                 );
             }
             if is_forwarded_https {
                 let _strict_transport_security = response.headers_mut().insert(
-                    http::HeaderName::from_static(str_constants::STRICT_TRANSPORT_SECURITY),
+                    http::HeaderName::from_static(constants_str::STRICT_TRANSPORT_SECURITY),
                     http::HeaderValue::from_static(
-                        str_constants::MAX_AGE_31536000_INCLUDESUBDOMAINS,
+                        constants_str::MAX_AGE_31536000_INCLUDESUBDOMAINS,
                     ),
                 );
             }

@@ -5,7 +5,7 @@ pub(crate) const ADMIN_COLLECTION_MAX_ITEMS: usize = 10_000usize;
 pub enum AdminCollectionError {
     #[error(
         "{}",
-        str_constants::ADMINISTRATOR_COLLECTION_EXCEEDS_MAXIMUM_ITEM_COUNT
+        constants_str::ADMINISTRATOR_COLLECTION_EXCEEDS_MAXIMUM_ITEM_COUNT
     )]
     TooLong,
 }

@@ -10,7 +10,7 @@ edition.workspace = true
 
 
 [dependencies]
-str_constants = { workspace = true }
+constants_str = { workspace = true }
 axum = { workspace = true }
 thiserror = { workspace = true }
 serde = { workspace = true }
@@ -26,7 +26,7 @@ to_err_string = { workspace = true }
 utoipa = { workspace = true }
 
 [dev-dependencies]
-usize_constants = { workspace = true }
+constants_usize = { workspace = true }
 
 [lints]
 workspace = true

@@ -61,11 +61,11 @@ impl<'de, const MIN: usize, const MAX: usize> serde::Deserialize<'de> for Bounde
 impl<const MIN: usize, const MAX: usize> utoipa::PartialSchema for BoundedString<MIN, MAX> {
     fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
         let extensions_builder = utoipa::openapi::extensions::ExtensionsBuilder::new()
-            .add(str_constants::OPENAPI_MIN_BYTES_EXTENSION, MIN);
+            .add(constants_str::OPENAPI_MIN_BYTES_EXTENSION, MIN);
         let extensions = if MAX == usize::MAX {
             extensions_builder
         } else {
-            extensions_builder.add(str_constants::OPENAPI_MAX_BYTES_EXTENSION, MAX)
+            extensions_builder.add(constants_str::OPENAPI_MAX_BYTES_EXTENSION, MAX)
         };
         utoipa::openapi::ObjectBuilder::new()
             .schema_type(utoipa::openapi::schema::Type::String)

@@ -7,7 +7,7 @@
 //! conformance tests; `SQL_NAMES_ID` is a documented generic SQL-protocol token validated through
 //! `pg_crud_common::PgSqlIdentifier`, not an application-schema declaration.
 
-str_constants_macros::define_str_constants! {
+constants_str_macros::define_str_constants! {
     fragments {
         WORD_A = "A";
         WORD_ABC = "abc";
@@ -604,7 +604,7 @@ str_constants_macros::define_str_constants! {
         WORD_STRING_2 = "string";
         WORD_STRUCT = "struct";
         WORD_STRUCTS = "structs";
-        WORD_STR_CONSTANTS = "str_constants";
+        WORD_STR_CONSTANTS = "constants_str";
         WORD_SUBJECT = "subject";
         WORD_SUCCEEDED = "succeeded";
         WORD_SUCCESS = "success";
@@ -1093,8 +1093,8 @@ str_constants_macros::define_str_constants! {
         pub CODE_STYLE_THISERROR_CRATE_IDENTIFIER = [WORD_THISERROR];
         pub CODE_STYLE_STRING_GUARD_ALLOWED_SYNTAX_FIXTURE = ["#[", WORD_PATH, " = \"", WORD_FIXTURE, ".", WORD_RS, "\"] mod ", WORD_FIXTURE, "; ", WORD_FN, " ", WORD_F_2, "() { ", WORD_VALUE, ".", WORD_EXPECT, "(\"12345678\"); } #[test] fn test_f() { \"test literal\"; } #[cfg(test)] mod tests { const VALUE: &str = \"test literal\"; }"];
         pub CODE_STYLE_STRING_GUARD_DETECTION_FIXTURE = [WORD_FN, " ", WORD_F_2, "() { consume(\"ordinary\"); outer!(", WORD_INNER, "(\"", WORD_MACRO, "\")); }"];
-        pub CODE_STYLE_STRING_CONSTANT_ALIAS_FIXTURE = [r#"const LOCAL_ALIAS: &str = str_constants::EXPORTED;
-fn runtime_value() -> &'static str { str_constants::EXPORTED }
+        pub CODE_STYLE_STRING_CONSTANT_ALIAS_FIXTURE = [r#"const LOCAL_ALIAS: &str = constants_str::EXPORTED;
+fn runtime_value() -> &'static str { constants_str::EXPORTED }
 "#];
         pub CODE_STYLE_JSON_API_ERROR_ENUM_FIXTURE = [r#"
 struct StructError;
@@ -4824,7 +4824,7 @@ pub const CODE_STYLE_INTO_ITERATOR_FN_IDENTIFIER: &str = "into_iter";
 pub const CODE_STYLE_INTO_ITERATOR_TRAIT_IDENTIFIER: &str = "IntoIterator";
 pub const CODE_STYLE_NOT_TRAIT_IDENTIFIER: &str = "Not";
 pub const CODE_STYLE_WRITE_STR_FN_IDENTIFIER: &str = "write_str";
-pub const STR_CONSTANTS_CRATE_IDENTIFIER: &str = "str_constants";
+pub const STR_CONSTANTS_CRATE_IDENTIFIER: &str = "constants_str";
 pub const DISPLAY_CONST_REQUIRES_ATTRIBUTE: &str =
     "DisplayConst requires #[display_const(expression)]";
 pub const DISPLAY_CONST: &str = "display_const";

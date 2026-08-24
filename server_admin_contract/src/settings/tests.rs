@@ -23,11 +23,11 @@ fn setting_types_match_database_constraints() {
         panic!("4cfb6820");
     };
     let Err(_blank_site_name_error) =
-        crate::AdminSiteName::try_from(str_constants::SPACE.to_owned())
+        crate::AdminSiteName::try_from(constants_str::SPACE.to_owned())
     else {
         panic!("b5fba19e");
     };
-    let _site_name = crate::AdminSiteName::try_from(str_constants::ADMIN.to_owned())
+    let _site_name = crate::AdminSiteName::try_from(constants_str::ADMIN.to_owned())
         .expect("adb58327 setting_types_match_database_constraints invariant must hold");
     let _default_route =
         crate::AdminDefaultRoute::try_from(crate::AdminFrontendPath::Users.get().to_owned())
@@ -39,7 +39,7 @@ fn setting_types_match_database_constraints() {
     )
     .expect("e3d42017 setting_types_match_database_constraints invariant must hold");
     let Err(_invalid_route_error) =
-        crate::AdminDefaultRoute::try_from(str_constants::ROUTE.to_owned())
+        crate::AdminDefaultRoute::try_from(constants_str::ROUTE.to_owned())
     else {
         panic!("bb0d454a");
     };
@@ -67,7 +67,7 @@ fn update_reports_whether_it_contains_a_field() {
         None,
         None,
         Some(
-            crate::AdminSiteName::try_from(str_constants::ADMIN.to_owned())
+            crate::AdminSiteName::try_from(constants_str::ADMIN.to_owned())
                 .expect("5db76a91 update_reports_whether_it_contains_a_field invariant must hold"),
         ),
         None,

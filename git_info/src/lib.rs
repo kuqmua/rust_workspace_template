@@ -1,5 +1,5 @@
 const BASE_GIT_COMMIT_LINK_LEN: usize =
-    str_constants::NAMING_GITHUB_URL.len() + str_constants::GIT_INFO_TREE_SEGMENT.len();
+    constants_str::NAMING_GITHUB_URL.len() + constants_str::GIT_INFO_TREE_SEGMENT.len();
 const GIT_INFO_STRING_MAX_LEN: usize = 1_048_576;
 #[derive(
     Debug,
@@ -333,7 +333,7 @@ where
 #[must_use]
 pub fn project_git_info() -> ProjectGitInfo<'static> {
     ProjectGitInfo::from(GitCommitIdRef::from(
-        str_constants::GIT_INFO_PROJECT_GIT_COMMIT_ID,
+        constants_str::GIT_INFO_PROJECT_GIT_COMMIT_ID,
     ))
 }
 #[must_use]
@@ -364,7 +364,7 @@ pub fn project_git_commit_link() -> GitCommitLink {
 }
 #[must_use]
 pub fn project_git_commit_link_ref() -> ProjectGitCommitLinkRef {
-    ProjectGitCommitLinkRef::from(str_constants::GIT_INFO_PROJECT_GIT_COMMIT_LINK)
+    ProjectGitCommitLinkRef::from(constants_str::GIT_INFO_PROJECT_GIT_COMMIT_LINK)
 }
 #[must_use]
 pub fn git_commit_link<'commit_lt, CommitIdTy>(commit_id: CommitIdTy) -> GitCommitLink
@@ -410,8 +410,8 @@ fn write_git_commit_link<'commit_lt, CommitIdTy>(
     CommitIdTy: Into<GitCommitIdRef<'commit_lt>>,
 {
     let commit_id_ref = commit_id.into();
-    output.0.push_str(str_constants::NAMING_GITHUB_URL);
-    output.0.push_str(str_constants::GIT_INFO_TREE_SEGMENT);
+    output.0.push_str(constants_str::NAMING_GITHUB_URL);
+    output.0.push_str(constants_str::GIT_INFO_TREE_SEGMENT);
     output.0.push_str(commit_id_ref.0);
 }
 #[must_use]
@@ -519,7 +519,7 @@ mod tests {
     }
     #[test]
     fn owned_git_values_and_generated_links_enforce_length_limit() {
-        let oversized = "x".repeat(super::GIT_INFO_STRING_MAX_LEN + usize_constants::ONE);
+        let oversized = "x".repeat(super::GIT_INFO_STRING_MAX_LEN + constants_usize::ONE);
         let Err(_commit_id_error) =
             super::StdGitCommitIdCow::try_from(std::borrow::Cow::Owned(oversized.clone()))
         else {
@@ -537,13 +537,13 @@ mod tests {
     }
     #[test]
     fn git_commit_link_builds_expected_url() {
-        let link = super::git_commit_link(str_constants::TEST_VALUES_COMMIT);
-        assert_expected_git_commit_link(&link, str_constants::TEST_VALUES_COMMIT);
+        let link = super::git_commit_link(constants_str::TEST_VALUES_COMMIT);
+        assert_expected_git_commit_link(&link, constants_str::TEST_VALUES_COMMIT);
     }
     #[test]
     fn git_commit_link_handles_empty_commit() {
-        let link = super::git_commit_link(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX);
-        assert_expected_git_commit_link(&link, str_constants::PG_CRUD_EMPTY_SQL_SUFFIX);
+        let link = super::git_commit_link(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX);
+        assert_expected_git_commit_link(&link, constants_str::PG_CRUD_EMPTY_SQL_SUFFIX);
     }
     #[test]
     fn git_commit_link_cow_borrows_static_project_link_for_project_commit() {
@@ -561,7 +561,7 @@ mod tests {
     }
     #[test]
     fn git_commit_link_cow_owns_link_for_non_project_commit() {
-        let actual = super::git_commit_link_cow(str_constants::TEST_VALUES_WRONG_COMMIT);
+        let actual = super::git_commit_link_cow(constants_str::TEST_VALUES_WRONG_COMMIT);
         assert!(
             matches!(actual.0, std::borrow::Cow::Owned(v) if v == expected_git_commit_link("deadbeef"))
         );
@@ -592,8 +592,8 @@ mod tests {
     }
     #[test]
     fn validate_project_commit_reuses_static_project_link_ref() {
-        let error = super::validate_project_commit(str_constants::TEST_VALUES_WRONG_COMMIT)
-            .expect_err(str_constants::VALUE_46BC13A9);
+        let error = super::validate_project_commit(constants_str::TEST_VALUES_WRONG_COMMIT)
+            .expect_err(constants_str::VALUE_46BC13A9);
         let project_link = super::project_git_commit_link_ref();
         assert!(std::ptr::eq(error.0.0, project_link.0));
     }
@@ -614,19 +614,19 @@ mod tests {
     #[test]
     fn project_git_info_returns_commit_link() {
         let git_info = super::ProjectGitInfo {
-            commit: super::GitCommitIdRef::from(str_constants::TEST_VALUES_WRONG_COMMIT),
+            commit: super::GitCommitIdRef::from(constants_str::TEST_VALUES_WRONG_COMMIT),
         };
         let link = super::GetGitCommitLink::get_git_commit_link(&git_info);
-        assert_expected_git_commit_link(&link, str_constants::TEST_VALUES_WRONG_COMMIT);
+        assert_expected_git_commit_link(&link, constants_str::TEST_VALUES_WRONG_COMMIT);
     }
     #[test]
     fn get_git_commit_link_uses_trait_based_commit_id() {
-        let test_git_commit = mk_owned_test_git_commit(str_constants::F00DBABE);
-        assert_commit_link_and_fallback_calls(&test_git_commit, str_constants::F00DBABE, 1);
+        let test_git_commit = mk_owned_test_git_commit(constants_str::F00DBABE);
+        assert_commit_link_and_fallback_calls(&test_git_commit, constants_str::F00DBABE, 1);
     }
     #[test]
     fn get_git_commit_link_calls_allocating_fallback_once_without_ref() {
-        let test_git_commit = mk_owned_test_git_commit(str_constants::F00DBABE);
+        let test_git_commit = mk_owned_test_git_commit(constants_str::F00DBABE);
         drop(super::GetGitCommitLink::get_git_commit_link(
             &test_git_commit,
         ));
@@ -634,7 +634,7 @@ mod tests {
     }
     #[test]
     fn get_git_commit_id_or_else_computes_fallback_once() {
-        let test_git_commit = mk_owned_test_git_commit(str_constants::F00DBABE);
+        let test_git_commit = mk_owned_test_git_commit(constants_str::F00DBABE);
         let mut fallback = super::GitCommitIdFallback::from(None);
         let first =
             super::GetGitCommitId::get_git_commit_id_or_else(&test_git_commit, &mut fallback);
@@ -646,7 +646,7 @@ mod tests {
     }
     #[test]
     fn get_git_commit_id_or_else_prefers_borrowed_ref_without_fallback() {
-        let test_git_commit = mk_borrowed_test_git_commit(str_constants::CAFEBABE);
+        let test_git_commit = mk_borrowed_test_git_commit(constants_str::CAFEBABE);
         let mut fallback = super::GitCommitIdFallback::from(None);
         let commit =
             super::GetGitCommitId::get_git_commit_id_or_else(&test_git_commit, &mut fallback);
@@ -656,18 +656,18 @@ mod tests {
     }
     #[test]
     fn get_git_commit_id_cow_returns_owned_without_ref() {
-        let test_git_commit = mk_owned_test_git_commit(str_constants::CAFEBABE);
+        let test_git_commit = mk_owned_test_git_commit(constants_str::CAFEBABE);
         assert_commit_id_cow_and_fallback_calls(
             &test_git_commit,
-            str_constants::CAFEBABE,
+            constants_str::CAFEBABE,
             false,
             1,
         );
     }
     #[test]
     fn get_git_commit_link_prefers_borrowed_commit_id() {
-        let test_git_commit = mk_borrowed_test_git_commit(str_constants::CAFEBABE);
-        assert_commit_link_and_fallback_calls(&test_git_commit, str_constants::CAFEBABE, 0);
+        let test_git_commit = mk_borrowed_test_git_commit(constants_str::CAFEBABE);
+        assert_commit_link_and_fallback_calls(&test_git_commit, constants_str::CAFEBABE, 0);
     }
     #[test]
     fn get_git_commit_link_cow_borrows_project_link_for_project_commit() {
@@ -681,60 +681,60 @@ mod tests {
     }
     #[test]
     fn get_git_commit_id_cow_returns_borrowed_when_ref_is_available() {
-        let test_git_commit = mk_borrowed_test_git_commit(str_constants::CAFEBABE);
-        assert_commit_id_cow_and_fallback_calls(&test_git_commit, str_constants::CAFEBABE, true, 0);
+        let test_git_commit = mk_borrowed_test_git_commit(constants_str::CAFEBABE);
+        assert_commit_id_cow_and_fallback_calls(&test_git_commit, constants_str::CAFEBABE, true, 0);
     }
     #[test]
     fn with_git_commit_id_uses_allocating_fallback_once_without_ref() {
-        let test_git_commit = mk_owned_test_git_commit(str_constants::CAFEBABE);
-        assert_commit_len_and_fallback_calls(&test_git_commit, str_constants::CAFEBABE.len(), 1);
+        let test_git_commit = mk_owned_test_git_commit(constants_str::CAFEBABE);
+        assert_commit_len_and_fallback_calls(&test_git_commit, constants_str::CAFEBABE.len(), 1);
     }
     #[test]
     fn with_git_commit_id_prefers_borrowed_ref_when_available() {
-        let test_git_commit = mk_borrowed_test_git_commit(str_constants::CAFEBABE);
-        assert_commit_len_and_fallback_calls(&test_git_commit, str_constants::CAFEBABE.len(), 0);
+        let test_git_commit = mk_borrowed_test_git_commit(constants_str::CAFEBABE);
+        assert_commit_len_and_fallback_calls(&test_git_commit, constants_str::CAFEBABE.len(), 0);
     }
     #[test]
     fn with_git_commit_id_ref_or_prefers_borrowed_ref_when_available() {
-        let test_git_commit = mk_borrowed_test_git_commit(str_constants::CAFEBABE);
-        assert_with_git_commit_id_ref_or(&test_git_commit, str_constants::CAFEBABE.len(), 0);
+        let test_git_commit = mk_borrowed_test_git_commit(constants_str::CAFEBABE);
+        assert_with_git_commit_id_ref_or(&test_git_commit, constants_str::CAFEBABE.len(), 0);
     }
     #[test]
     fn with_git_commit_id_ref_or_uses_fallback_without_ref() {
-        let test_git_commit = mk_owned_test_git_commit(str_constants::CAFEBABE);
-        assert_with_git_commit_id_ref_or(&test_git_commit, str_constants::CAFEBABE.len(), 1);
+        let test_git_commit = mk_owned_test_git_commit(constants_str::CAFEBABE);
+        assert_with_git_commit_id_ref_or(&test_git_commit, constants_str::CAFEBABE.len(), 1);
     }
     #[test]
     fn base_git_commit_link_len_matches_expected_prefix_len() {
-        let commit_id = str_constants::TEST_VALUES_COMMIT;
-        let expected = format!("{}/tree/{commit_id}", str_constants::NAMING_GITHUB_URL).len();
+        let commit_id = constants_str::TEST_VALUES_COMMIT;
+        let expected = format!("{}/tree/{commit_id}", constants_str::NAMING_GITHUB_URL).len();
         assert_eq!(super::git_commit_link_capacity(commit_id), expected);
     }
     #[test]
     fn get_git_commit_link_works_for_str_and_string() {
         let str_link =
-            super::GetGitCommitLink::get_git_commit_link(str_constants::TEST_VALUES_COMMIT);
-        assert_expected_git_commit_link(&str_link, str_constants::TEST_VALUES_COMMIT);
-        let string = String::from(str_constants::TEST_VALUES_COMMIT);
+            super::GetGitCommitLink::get_git_commit_link(constants_str::TEST_VALUES_COMMIT);
+        assert_expected_git_commit_link(&str_link, constants_str::TEST_VALUES_COMMIT);
+        let string = String::from(constants_str::TEST_VALUES_COMMIT);
         let string_link = super::GetGitCommitLink::get_git_commit_link(&string);
-        assert_expected_git_commit_link(&string_link, str_constants::TEST_VALUES_COMMIT);
+        assert_expected_git_commit_link(&string_link, constants_str::TEST_VALUES_COMMIT);
     }
     #[test]
     fn get_git_commit_link_works_for_cow_str() {
-        let borrowed = std::borrow::Cow::Borrowed(str_constants::TEST_VALUES_COMMIT);
+        let borrowed = std::borrow::Cow::Borrowed(constants_str::TEST_VALUES_COMMIT);
         let borrowed_link = super::GetGitCommitLink::get_git_commit_link(&borrowed);
-        assert_expected_git_commit_link(&borrowed_link, str_constants::TEST_VALUES_COMMIT);
+        assert_expected_git_commit_link(&borrowed_link, constants_str::TEST_VALUES_COMMIT);
         let owned =
-            std::borrow::Cow::<'_, str>::Owned(str_constants::TEST_VALUES_COMMIT.to_owned());
+            std::borrow::Cow::<'_, str>::Owned(constants_str::TEST_VALUES_COMMIT.to_owned());
         assert_expected_git_commit_link(
             super::GetGitCommitLink::get_git_commit_link(&owned),
-            str_constants::TEST_VALUES_COMMIT,
+            constants_str::TEST_VALUES_COMMIT,
         );
     }
     #[test]
     fn project_git_info_as_ref_returns_commit() {
         let info = super::ProjectGitInfo {
-            commit: super::GitCommitIdRef::from(str_constants::TEST_VALUES_COMMIT),
+            commit: super::GitCommitIdRef::from(constants_str::TEST_VALUES_COMMIT),
         };
         assert_eq!(info.as_ref(), "abc123");
     }
@@ -742,7 +742,7 @@ mod tests {
     fn git_commit_link_capacity_handles_empty_commit() {
         assert_eq!(
             super::git_commit_link_capacity(""),
-            str_constants::NAMING_GITHUB_URL.len() + str_constants::GIT_INFO_TREE_SEGMENT.len()
+            constants_str::NAMING_GITHUB_URL.len() + constants_str::GIT_INFO_TREE_SEGMENT.len()
         );
     }
 }

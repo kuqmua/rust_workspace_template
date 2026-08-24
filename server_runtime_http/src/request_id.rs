@@ -18,7 +18,7 @@ impl TryFrom<String> for RequestId {
 )]
 #[error(
     "{}",
-    str_constants::REQUEST_ID_MUST_BE_NON_EMPTY_ASCII_UP_TO_128_BYTES
+    constants_str::REQUEST_ID_MUST_BE_NON_EMPTY_ASCII_UP_TO_128_BYTES
 )]
 pub struct RequestIdTryFromStringError;
 #[derive(

@@ -1,7 +1,7 @@
 #[test]
 fn contract_bodies_reject_values_above_shared_limit() {
     let oversized =
-        vec![u8_constants::ZERO; super::FRONTEND_CONTRACT_BODY_MAX_BYTES + usize_constants::ONE];
+        vec![constants_u8::ZERO; super::FRONTEND_CONTRACT_BODY_MAX_BYTES + constants_usize::ONE];
     assert_eq!(
         super::TransportBody::try_from(oversized),
         Err(super::FrontendContractBodyError)
@@ -53,8 +53,8 @@ fn contracts_preserve_typed_metadata() {
     .with_minimum(super::NumericBound::Inclusive(super::ContractI64::from(1)))
     .with_step(super::InputStep::Integer);
     let field = super::FieldContract::new(
-        super::ContractStr::from(str_constants::SQL_NAMES_ID),
-        super::ContractStr::from(str_constants::ID),
+        super::ContractStr::from(constants_str::SQL_NAMES_ID),
+        super::ContractStr::from(constants_str::ID),
         type_contract,
     )
     .with_primary_key(super::PrimaryKeyKind::Primary)
@@ -94,11 +94,11 @@ fn public_catalog_wrappers_preserve_vec_conversions() {
 fn route_contract_keeps_transport_policy_together() {
     let route = super::RouteContract::new(
         super::AuthenticationRequirement::Permission(super::ContractStr::from(
-            str_constants::PERMISSION,
+            constants_str::PERMISSION,
         )),
         super::HttpMethod::Patch,
         super::MutationKind::Mutating,
-        super::ContractStr::from(str_constants::USERS_ID),
+        super::ContractStr::from(constants_str::USERS_ID),
         super::SuccessStatus::Code204,
     );
     assert_eq!(route.mutation(), super::MutationKind::Mutating);
@@ -108,7 +108,7 @@ fn route_contract_keeps_transport_policy_together() {
 #[test]
 fn route_error_policy_derives_statuses_from_access_and_mutation() {
     let permission = super::AuthenticationRequirement::Permission(super::ContractStr::from(
-        str_constants::PERMISSION,
+        constants_str::PERMISSION,
     ));
     assert_eq!(
         super::RouteErrorPolicy::Default.statuses(
@@ -155,7 +155,7 @@ fn response_interpretation_uses_shared_success_and_problem_contract() {
     );
     let error = response
         .success_body(super::SuccessStatus::Code200.transport_status())
-        .expect_err(str_constants::VALUE_5EEA7F90);
+        .expect_err(constants_str::VALUE_5EEA7F90);
     assert!(matches!(
         error,
         super::ClientError::Problem(value)
@@ -175,12 +175,12 @@ fn transport_response_preserves_retry_after() {
             .expect("7a783a69 transport_response_preserves_retry_after invariant must hold"),
     )
     .with_retry_after(Some(
-        super::TransportRetryAfter::try_from(str_constants::TEST_VALUE_30.to_owned())
+        super::TransportRetryAfter::try_from(constants_str::TEST_VALUE_30.to_owned())
             .expect("9b6750d4 transport_response_preserves_retry_after invariant must hold"),
     ));
     assert_eq!(
         response.retry_after().map(AsRef::as_ref),
-        Some(str_constants::TEST_VALUE_30)
+        Some(constants_str::TEST_VALUE_30)
     );
 }
 #[test]

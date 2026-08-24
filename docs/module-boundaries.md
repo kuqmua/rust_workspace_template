@@ -47,7 +47,7 @@ runtime, transport, persistence, presentation, or policy concerns.
 | `notification_service_config` | Notification-service environment schema and production validation. |
 | `notification_service_contract` | Provider-owned notification wire contract. |
 | `frontend_contract`, `frontend_contract_macros`, `frontend_contract_validation` | Typed route contracts, their compile-time generation, and independent validation. Macro files are generation pipelines rather than runtime modules. |
-| `str_constants`, `str_constants_macros` | Reviewed string catalog and its compile-time support. The catalog stays atomic to prevent competing sources of truth. |
+| `constants_str`, `constants_str_macros` | Reviewed string catalog and its compile-time support. The catalog stays atomic to prevent competing sources of truth. |
 
 ## PostgreSQL CRUD generation
 

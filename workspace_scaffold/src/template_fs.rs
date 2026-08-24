@@ -7,9 +7,9 @@ fn should_skip(path: super::StdScaffoldPathRef<'_>) -> super::ShouldSkip {
         matches!(
             component.as_os_str().to_str(),
             Some(
-                str_constants::GIT
-                    | str_constants::TARGET
-                    | str_constants::WORKSPACE_SCAFFOLD_NODE_MODULES
+                constants_str::GIT
+                    | constants_str::TARGET
+                    | constants_str::WORKSPACE_SCAFFOLD_NODE_MODULES
             )
         )
     }))
@@ -20,7 +20,7 @@ pub(super) fn read_bounded_text(
 ) -> Result<super::ScaffoldText, super::ServerRuntimeBoundedReadError> {
     let bytes = server_runtime_http::read_bounded_file(
         server_runtime_http::StdPathRef::from(path.0),
-        server_runtime_http::BoundedReadMaximumBytes::from(usize_constants::VALUE_16_777_216),
+        server_runtime_http::BoundedReadMaximumBytes::from(constants_usize::VALUE_16_777_216),
     )
     .map_err(super::ServerRuntimeBoundedReadError::from)?;
     let text = server_runtime_http::BoundedText::try_from(bytes)
@@ -57,19 +57,19 @@ pub(super) fn rename_identity(
 ) -> Result<(), super::ScaffoldError> {
     let replacements = [
         (
-            str_constants::WORKSPACE_SCAFFOLD_TEMPLATE_REPOSITORY_URL,
+            constants_str::WORKSPACE_SCAFFOLD_TEMPLATE_REPOSITORY_URL,
             repository_url.0.to_owned(),
         ),
         (
-            str_constants::WORKSPACE_SCAFFOLD_TEMPLATE_PROJECT_SNAKE,
+            constants_str::WORKSPACE_SCAFFOLD_TEMPLATE_PROJECT_SNAKE,
             project_name.0.to_owned(),
         ),
         (
-            str_constants::WORKSPACE_SCAFFOLD_TEMPLATE_PROJECT_KEBAB,
+            constants_str::WORKSPACE_SCAFFOLD_TEMPLATE_PROJECT_KEBAB,
             super::naming::kebab_case(project_name).as_ref().to_owned(),
         ),
         (
-            str_constants::WORKSPACE_SCAFFOLD_TEMPLATE_PROJECT_TITLE,
+            constants_str::WORKSPACE_SCAFFOLD_TEMPLATE_PROJECT_TITLE,
             super::naming::title_case(project_name).as_ref().to_owned(),
         ),
     ];
@@ -131,7 +131,7 @@ pub(super) fn insert_once(
     }
     let updated = contents
         .as_ref()
-        .replacen(marker.0, replacement.0, usize_constants::ONE);
+        .replacen(marker.0, replacement.0, constants_usize::ONE);
     if updated == contents.as_ref() {
         return Err(super::ScaffoldError::Marker);
     }

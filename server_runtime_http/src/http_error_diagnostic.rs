@@ -61,7 +61,7 @@ impl HttpErrorDiagnostic {
     ) -> Self {
         let current_span = tracing::Span::current();
         let span_trace = current_span.metadata().map_or_else(
-            || str_constants::HTTP_SPAN_UNAVAILABLE.to_owned(),
+            || constants_str::HTTP_SPAN_UNAVAILABLE.to_owned(),
             |metadata| format!("{current_span:?} [{}]", metadata.name()),
         );
         Self {
@@ -81,7 +81,7 @@ impl HttpErrorDiagnostic {
         let mut error_chain = error.to_string();
         let mut optional_source = error.source();
         while let Some(source) = optional_source {
-            error_chain.push_str(str_constants::HTTP_ERROR_CHAIN_SEPARATOR);
+            error_chain.push_str(constants_str::HTTP_ERROR_CHAIN_SEPARATOR);
             error_chain.push_str(source.to_string().as_str());
             optional_source = source.source();
         }
@@ -130,7 +130,7 @@ impl HttpErrorDiagnostic {
 }
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
-#[error("{}", str_constants::HTTP_ERROR_WITHOUT_DIAGNOSTIC_CONTEXT)]
+#[error("{}", constants_str::HTTP_ERROR_WITHOUT_DIAGNOSTIC_CONTEXT)]
 struct HttpErrorWithoutDiagnosticContext;
 
 impl HttpErrorTelemetry {

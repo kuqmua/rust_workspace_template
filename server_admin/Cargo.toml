@@ -15,9 +15,9 @@ categories = ["web-programming"]
 test-utils = []
 
 [dependencies]
-usize_constants = { workspace = true }
-u64_constants = { workspace = true }
-i64_constants = { workspace = true }
+constants_usize = { workspace = true }
+constants_u64 = { workspace = true }
+constants_i64 = { workspace = true }
 app_state = { workspace = true }
 argon2 = { workspace = true }
 axum = { workspace = true }
@@ -52,7 +52,7 @@ server_admin_frontend = { workspace = true }
 server_runtime_http = { workspace = true }
 sha2 = { workspace = true }
 sqlx = { workspace = true, features = ["macros"] }
-str_constants = { workspace = true }
+constants_str = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }
 to_err_string = { workspace = true }

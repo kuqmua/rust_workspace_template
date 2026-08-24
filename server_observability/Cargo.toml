@@ -13,7 +13,7 @@ newtype = { workspace = true }
 opentelemetry = { workspace = true }
 opentelemetry-otlp = { workspace = true }
 opentelemetry_sdk = { workspace = true }
-str_constants = { workspace = true }
+constants_str = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 tracing-opentelemetry = { workspace = true }

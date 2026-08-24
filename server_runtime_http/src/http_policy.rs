@@ -17,7 +17,7 @@ pub struct HttpAuthorizationHeaderTextRef<'value_lt>(Option<&'value_lt str>);
 pub struct HttpBearerTokenRef<'value_lt>(&'value_lt str);
 impl std::fmt::Debug for HttpBearerTokenRef<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(str_constants::REDACTED_ALT_3)
+        f.write_str(constants_str::REDACTED_ALT_3)
     }
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
@@ -39,7 +39,7 @@ pub fn resolve_bearer_authorization(
     let Some((scheme, token)) = value.split_once(' ') else {
         return BearerAuthorizationResolution::Invalid;
     };
-    if !scheme.eq_ignore_ascii_case(str_constants::BEARER)
+    if !scheme.eq_ignore_ascii_case(constants_str::BEARER)
         || token.is_empty()
         || token.contains(char::is_whitespace)
     {
@@ -68,7 +68,7 @@ pub struct HttpCookieNameRef<'value_lt>(&'value_lt str);
 pub struct HttpCookieValueRef<'value_lt>(&'value_lt str);
 impl std::fmt::Debug for HttpCookieValueRef<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(str_constants::REDACTED_ALT_3)
+        f.write_str(constants_str::REDACTED_ALT_3)
     }
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
@@ -96,20 +96,20 @@ pub fn resolve_unique_cookie<'value_lt>(
         return CookieResolution::Invalid;
     }
     match text.split(';').try_fold(
-        (usize_constants::ZERO, None),
+        (constants_usize::ZERO, None),
         |(pair_count, found), pair| {
             if pair_count == 128usize {
                 return std::ops::ControlFlow::Break(());
             }
             let Some((pair_name, value)) = pair.trim().split_once('=') else {
                 return std::ops::ControlFlow::Continue((
-                    pair_count.saturating_add(usize_constants::ONE),
+                    pair_count.saturating_add(constants_usize::ONE),
                     found,
                 ));
             };
             if pair_name != name.0 {
                 return std::ops::ControlFlow::Continue((
-                    pair_count.saturating_add(usize_constants::ONE),
+                    pair_count.saturating_add(constants_usize::ONE),
                     found,
                 ));
             }
@@ -117,7 +117,7 @@ pub fn resolve_unique_cookie<'value_lt>(
                 std::ops::ControlFlow::Break(())
             } else {
                 std::ops::ControlFlow::Continue((
-                    pair_count.saturating_add(usize_constants::ONE),
+                    pair_count.saturating_add(constants_usize::ONE),
                     Some(value),
                 ))
             }
@@ -152,7 +152,7 @@ pub fn classify_optional_json_content_type(
     }
     if text
         .parse::<mime::Mime>()
-        .is_ok_and(|media_type| media_type.essence_str() == str_constants::APPLICATION_JSON)
+        .is_ok_and(|media_type| media_type.essence_str() == constants_str::APPLICATION_JSON)
     {
         OptionalJsonContentType::ApplicationJson
     } else {
@@ -189,11 +189,11 @@ mod tests {
     fn bearer_authorization_requires_exact_scheme_and_token() {
         assert!(matches!(
             super::resolve_bearer_authorization(super::HttpAuthorizationHeaderTextRef::from(Some(
-                str_constants::TEST_BEARER_AUTHORIZATION
+                constants_str::TEST_BEARER_AUTHORIZATION
             ))),
             super::BearerAuthorizationResolution::Resolved(_)
         ));
-        let secret = str_constants::NEVER_PRINT_THIS_VALUE;
+        let secret = constants_str::NEVER_PRINT_THIS_VALUE;
         assert!(!format!("{:?}", super::HttpBearerTokenRef::from(secret)).contains(secret));
         assert!(!format!("{:?}", super::HttpCookieValueRef::from(secret)).contains(secret));
     }
@@ -202,12 +202,12 @@ mod tests {
         let mut headers = http::HeaderMap::new();
         let _previous = headers.insert(
             http::header::COOKIE,
-            http::HeaderValue::from_static(str_constants::TEST_DUPLICATE_COOKIE),
+            http::HeaderValue::from_static(constants_str::TEST_DUPLICATE_COOKIE),
         );
         assert_eq!(
             super::resolve_unique_cookie(
                 super::HttpCookieHeadersRef::from(&headers),
-                super::HttpCookieNameRef::from(str_constants::TEST_COOKIE_NAME)
+                super::HttpCookieNameRef::from(constants_str::TEST_COOKIE_NAME)
             ),
             super::CookieResolution::Invalid
         );
@@ -216,7 +216,7 @@ mod tests {
     fn json_content_type_supports_charset() {
         assert_eq!(
             super::classify_optional_json_content_type(super::HttpContentTypeTextRef::from(Some(
-                str_constants::TEST_JSON_CONTENT_TYPE_WITH_CHARSET
+                constants_str::TEST_JSON_CONTENT_TYPE_WITH_CHARSET
             ))),
             super::OptionalJsonContentType::ApplicationJson
         );

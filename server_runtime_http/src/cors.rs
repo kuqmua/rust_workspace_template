@@ -41,7 +41,7 @@ pub fn parse_cors_allow_origin(
         .chars()
         .filter(|character| *character == CORS_ALLOW_ORIGIN_SPLIT_CH)
         .count()
-        .saturating_add(usize_constants::ONE);
+        .saturating_add(constants_usize::ONE);
     if capacity > CORS_ALLOW_ORIGIN_MAX_ITEMS {
         return Err(HttpCorsAllowOriginHeaderValuesError::TooManyItems);
     }
@@ -84,7 +84,7 @@ mod tests {
     fn parser_preserves_empty_configuration_behavior() {
         let parsed = Vec::<http::HeaderValue>::from(
             super::parse_cors_allow_origin(super::HttpCorsAllowOriginTextRef::from(
-                str_constants::PG_CRUD_EMPTY_SQL_SUFFIX,
+                constants_str::PG_CRUD_EMPTY_SQL_SUFFIX,
             ))
             .expect("3b681d57 parser_preserves_empty_configuration_behavior invariant must hold"),
         );
@@ -94,8 +94,8 @@ mod tests {
     fn parser_rejects_invalid_wildcard_and_opaque_origins() {
         assert!(
             [
-                str_constants::HTTPS_A_EXAMPLE_BAD_NEWLINE_VALUE_HTTPS_B_EXAMPLE,
-                str_constants::ASTERISK,
+                constants_str::HTTPS_A_EXAMPLE_BAD_NEWLINE_VALUE_HTTPS_B_EXAMPLE,
+                constants_str::ASTERISK,
                 "null",
                 "https://a.example/path",
                 "https://a.example,,https://b.example",

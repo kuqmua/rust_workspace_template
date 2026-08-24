@@ -1,8 +1,8 @@
 # Type wrapper policy
 
-The Rust source tree is the only inventory of repository type wrappers. This document deliberately
-does not duplicate the list: tuple structs are added, renamed, and removed in code, so a handwritten
-table becomes stale immediately.
+The Rust source tree remains authoritative. The generated
+[`domain-types.md`](domain-types.md) catalog provides a navigable snapshot of every declaration
+recognized by the repository domain-type policy.
 
 The `tests` crate inspects the workspace Rust AST and enforces the wrapper policy:
 

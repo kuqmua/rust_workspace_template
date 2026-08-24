@@ -11,11 +11,11 @@ pub enum PgScopedForeignKeyOnDelete {
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
 )]
 pub enum PgScopedForeignKeyError {
-    #[error("{}", str_constants::PG_SCOPED_FOREIGN_KEY_COLUMN_COUNT_MISMATCH)]
+    #[error("{}", constants_str::PG_SCOPED_FOREIGN_KEY_COLUMN_COUNT_MISMATCH)]
     ColumnCountMismatch,
-    #[error("{}", str_constants::PG_SCOPED_FOREIGN_KEY_DUPLICATE_COLUMN)]
+    #[error("{}", constants_str::PG_SCOPED_FOREIGN_KEY_DUPLICATE_COLUMN)]
     DuplicateColumn,
-    #[error("{}", str_constants::PG_SCOPED_FOREIGN_KEY_INVALID_COLUMN_COUNT)]
+    #[error("{}", constants_str::PG_SCOPED_FOREIGN_KEY_INVALID_COLUMN_COUNT)]
     InvalidColumnCount,
 }
 #[derive(
@@ -116,7 +116,7 @@ impl TryFrom<u64> for PgOperationalLimit {
     type Error = PgOperationalLimitError;
 
     fn try_from(value: u64) -> Result<Self, Self::Error> {
-        if value == u64_constants::ZERO {
+        if value == constants_u64::ZERO {
             Err(PgOperationalLimitError::ZeroLimit)
         } else {
             Ok(Self(value))
@@ -134,9 +134,9 @@ pub enum PgOperationalLimitUpdateAuthority {
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
 )]
 pub enum PgOperationalLimitError {
-    #[error("{}", str_constants::PG_OPERATIONAL_LIMIT_BELOW_CURRENT_USAGE)]
+    #[error("{}", constants_str::PG_OPERATIONAL_LIMIT_BELOW_CURRENT_USAGE)]
     BelowCurrentUsage,
-    #[error("{}", str_constants::PG_OPERATIONAL_LIMIT_MUST_BE_GREATER_THAN_ZERO)]
+    #[error("{}", constants_str::PG_OPERATIONAL_LIMIT_MUST_BE_GREATER_THAN_ZERO)]
     ZeroLimit,
 }
 
@@ -144,9 +144,9 @@ pub fn build_pg_scoped_foreign_key_clause(
     foreign_key: &PgScopedForeignKey,
 ) -> Result<crate::QueryPartFragment, crate::PgCrudStringWrapperTryFromStringError> {
     let mut clause =
-        PgScopedForeignKeyClauseText::try_from(String::from(str_constants::FOREIGN_KEY_OPENING))?;
+        PgScopedForeignKeyClauseText::try_from(String::from(constants_str::FOREIGN_KEY_OPENING))?;
     push_identifier_list(&mut clause, foreign_key.local_columns.0.as_slice());
-    clause.0.push_str(str_constants::REFERENCES);
+    clause.0.push_str(constants_str::REFERENCES);
     clause
         .0
         .push_str(foreign_key.referenced_table.to_string().as_str());
@@ -154,8 +154,8 @@ pub fn build_pg_scoped_foreign_key_clause(
     push_identifier_list(&mut clause, foreign_key.referenced_columns.0.as_slice());
     clause.0.push(')');
     clause.0.push_str(match foreign_key.on_delete {
-        PgScopedForeignKeyOnDelete::Cascade => str_constants::ON_DELETE_CASCADE,
-        PgScopedForeignKeyOnDelete::Restrict => str_constants::ON_DELETE_RESTRICT,
+        PgScopedForeignKeyOnDelete::Cascade => constants_str::ON_DELETE_CASCADE,
+        PgScopedForeignKeyOnDelete::Restrict => constants_str::ON_DELETE_RESTRICT,
     });
     crate::QueryPartFragment::try_from(clause.0)
 }
@@ -179,8 +179,8 @@ fn push_identifier_list(
     columns: &[crate::SqlIdentifier],
 ) {
     columns.iter().enumerate().for_each(|(index, column)| {
-        if index != usize_constants::ZERO {
-            output.0.push_str(str_constants::TEXT_ALT_6);
+        if index != constants_usize::ZERO {
+            output.0.push_str(constants_str::TEXT_ALT_6);
         }
         output.0.push_str(column.as_ref());
     });
@@ -270,17 +270,17 @@ mod tests {
     fn scoped_foreign_key_uses_validated_composite_columns() {
         let foreign_key = super::PgScopedForeignKey::new(
             vec![
-                identifier(str_constants::PG_TEST_FEATURE_ID),
-                identifier(str_constants::PG_TEST_LAYER_ID),
+                identifier(constants_str::PG_TEST_FEATURE_ID),
+                identifier(constants_str::PG_TEST_LAYER_ID),
             ]
             .into(),
             crate::SqlQualifiedIdentifier::new(
-                identifier(str_constants::PUBLIC),
-                identifier(str_constants::PG_TEST_FEATURES),
+                identifier(constants_str::PUBLIC),
+                identifier(constants_str::PG_TEST_FEATURES),
             ),
             vec![
-                identifier(str_constants::SQL_NAMES_ID),
-                identifier(str_constants::PG_TEST_LAYER_ID),
+                identifier(constants_str::SQL_NAMES_ID),
+                identifier(constants_str::PG_TEST_LAYER_ID),
             ]
             .into(),
             super::PgScopedForeignKeyOnDelete::Cascade,
@@ -290,7 +290,7 @@ mod tests {
             super::build_pg_scoped_foreign_key_clause(&foreign_key)
                 .expect("594452b0 scoped_foreign_key_uses_validated_composite_columns invariant must hold")
                 .into_inner(),
-            str_constants::TEST_SCOPED_FOREIGN_KEY_CLAUSE
+            constants_str::TEST_SCOPED_FOREIGN_KEY_CLAUSE
         );
     }
 }

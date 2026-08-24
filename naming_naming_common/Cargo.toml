@@ -17,6 +17,6 @@ naming_common_macros = { workspace = true }
 newtype = { workspace = true }
 
 [dev-dependencies]
-str_constants = { workspace = true }
+constants_str = { workspace = true }
 [lints]
 workspace = true

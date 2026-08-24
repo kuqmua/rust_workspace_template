@@ -46,7 +46,7 @@ where
     let mut attr_segments = attr.0.path().segments.iter();
     let mut expected_segments = attr_path
         .as_ref()
-        .split(str_constants::PATH_SEPARATOR)
+        .split(constants_str::PATH_SEPARATOR)
         .map(str::trim)
         .filter(|element| !element.is_empty());
     loop {
@@ -105,14 +105,14 @@ where
 mod tests {
     fn attrs() -> Vec<syn::Attribute> {
         vec![
-            syn::parse_quote!(#[sqlx::type_name(name = str_constants::X)]),
+            syn::parse_quote!(#[sqlx::type_name(name = constants_str::X)]),
             syn::parse_quote!(#[serde(default)]),
         ]
     }
     #[test]
     fn get_macro_attr_ignores_spaces_in_lookup_path() {
         let attrs = attrs();
-        let attr = super::try_get_macro_attr(&attrs, str_constants::SQLX_PATH_TYPE_NAME)
+        let attr = super::try_get_macro_attr(&attrs, constants_str::SQLX_PATH_TYPE_NAME)
             .expect("193fa8d2 get_macro_attr_ignores_spaces_in_lookup_path invariant must hold");
         assert!(
             quote::quote! {#attr}
@@ -123,7 +123,7 @@ mod tests {
     #[test]
     fn get_macro_attr_meta_list_token_stream_returns_list_tokens() {
         let attrs = attrs();
-        let ts = super::try_get_macro_attr_meta_list_token_stream(&attrs, str_constants::SERDE)
+        let ts = super::try_get_macro_attr_meta_list_token_stream(&attrs, constants_str::SERDE)
             .expect("647b0c3e get_macro_attr_meta_list_token_stream_returns_list_tokens invariant must hold");
         assert_eq!(ts.to_string(), "default");
     }
@@ -151,31 +151,31 @@ mod tests {
     #[test]
     fn find_macro_attr_ignores_spaces_in_lookup_path() {
         let attrs = attrs();
-        let attr = super::find_macro_attr(&attrs, str_constants::SQLX_PATH_TYPE_NAME);
+        let attr = super::find_macro_attr(&attrs, constants_str::SQLX_PATH_TYPE_NAME);
         assert!(attr.is_some());
     }
     #[test]
     fn find_macro_attr_accepts_leading_colons_in_lookup_path() {
         let attrs = attrs();
-        let attr = super::find_macro_attr(&attrs, str_constants::PATH_SQLX_PATH_TYPE_NAME);
+        let attr = super::find_macro_attr(&attrs, constants_str::PATH_SQLX_PATH_TYPE_NAME);
         assert!(attr.is_some());
     }
     #[test]
     fn find_macro_attr_returns_none_for_empty_lookup_path() {
         let attrs = attrs();
-        let attr = super::find_macro_attr(&attrs, str_constants::PATH);
+        let attr = super::find_macro_attr(&attrs, constants_str::PATH);
         assert!(attr.is_none());
     }
     #[test]
     fn find_macro_attr_ignores_empty_segments_between_path_separators() {
         let attrs = attrs();
-        let attr = super::find_macro_attr(&attrs, str_constants::SQLX_PATH_PATH_TYPE_NAME);
+        let attr = super::find_macro_attr(&attrs, constants_str::SQLX_PATH_PATH_TYPE_NAME);
         assert!(attr.is_some());
     }
     #[test]
     fn find_macro_attr_returns_none_for_partial_path_match() {
         let attrs = attrs();
-        let attr = super::find_macro_attr(&attrs, str_constants::SQLX);
+        let attr = super::find_macro_attr(&attrs, constants_str::SQLX);
         assert!(attr.is_none());
     }
 }

@@ -194,11 +194,11 @@ impl Operator {
                     Err(error) => QueryPartFragment::from(error),
                 };
             }
-            (false, Self::AndNot | Self::OrNot) => str_constants::NOT,
-            (true, Self::And) => str_constants::AND_ALT,
-            (true, Self::AndNot) => str_constants::AND_NOT,
-            (true, Self::Or) => str_constants::OR,
-            (true, Self::OrNot) => str_constants::OR_NOT,
+            (false, Self::AndNot | Self::OrNot) => constants_str::NOT,
+            (true, Self::And) => constants_str::AND_ALT,
+            (true, Self::AndNot) => constants_str::AND_NOT,
+            (true, Self::Or) => constants_str::OR,
+            (true, Self::OrNot) => constants_str::OR_NOT,
         };
         match QueryPartFragment::try_from(String::from(fragment)) {
             Ok(v) => v,
@@ -493,7 +493,7 @@ impl<'query_lt> AsMut<sqlx::query::Query<'query_lt, sqlx::Postgres, sqlx::postgr
 }
 impl std::fmt::Debug for SqlxPostgresQuery<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple(str_constants::SQLXPOSTGRESQUERY).finish()
+        f.debug_tuple(constants_str::SQLXPOSTGRESQUERY).finish()
     }
 }
 #[derive(
@@ -655,22 +655,22 @@ impl<T: utoipa::PartialSchema> utoipa::__dev::ComposeSchema for PgTypeWhere<T> {
     ) -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
         utoipa::openapi::ObjectBuilder::new()
             .property(
-                str_constants::PG_CRUD_V_FIELD,
+                constants_str::PG_CRUD_V_FIELD,
                 <NotEmptyUniqueVec<T> as utoipa::PartialSchema>::schema(),
             )
             .property(
-                str_constants::PG_CRUD_OPERATOR_FIELD,
+                constants_str::PG_CRUD_OPERATOR_FIELD,
                 <Operator as utoipa::PartialSchema>::schema(),
             )
-            .required(str_constants::PG_CRUD_V_FIELD)
-            .required(str_constants::PG_CRUD_OPERATOR_FIELD)
+            .required(constants_str::PG_CRUD_V_FIELD)
+            .required(constants_str::PG_CRUD_OPERATOR_FIELD)
             .build()
             .into()
     }
 }
 impl<T: utoipa::ToSchema> utoipa::ToSchema for PgTypeWhere<T> {
     fn name() -> std::borrow::Cow<'static, str> {
-        std::borrow::Cow::Borrowed(str_constants::PG_CRUD_PG_TYPE_WHERE_SCHEMA_NAME)
+        std::borrow::Cow::Borrowed(constants_str::PG_CRUD_PG_TYPE_WHERE_SCHEMA_NAME)
     }
 }
 impl<T: PartialEq + Clone> PgTypeWhere<T> {
@@ -725,7 +725,7 @@ const _: () = {
                 ) -> _serde::__private229::fmt::Result {
                     _serde::__private229::Formatter::write_str(
                         __f,
-                        str_constants::PG_CRUD_FIELD_IDENTIFIER,
+                        constants_str::PG_CRUD_FIELD_IDENTIFIER,
                     )
                 }
                 fn visit_u64<__E>(self, v: u64) -> Result<Self::Value, __E>
@@ -733,7 +733,7 @@ const _: () = {
                     __E: _serde::de::Error,
                 {
                     match v {
-                        u64_constants::ZERO => Ok(__Field::f0),
+                        constants_u64::ZERO => Ok(__Field::f0),
                         1u64 => Ok(__Field::f1),
                         _ => Ok(__Field::__ignore),
                     }
@@ -743,8 +743,8 @@ const _: () = {
                     __E: _serde::de::Error,
                 {
                     match v {
-                        str_constants::PG_CRUD_OPERATOR_FIELD => Ok(__Field::f0),
-                        str_constants::PG_CRUD_V_FIELD => Ok(__Field::f1),
+                        constants_str::PG_CRUD_OPERATOR_FIELD => Ok(__Field::f0),
+                        constants_str::PG_CRUD_V_FIELD => Ok(__Field::f1),
                         _ => Ok(__Field::__ignore),
                     }
                 }
@@ -784,7 +784,7 @@ const _: () = {
                 ) -> _serde::__private229::fmt::Result {
                     std::fmt::Formatter::write_str(
                         __f,
-                        str_constants::PG_CRUD_PG_TYPE_WHERE_STRUCT_NAME,
+                        constants_str::PG_CRUD_PG_TYPE_WHERE_STRUCT_NAME,
                     )
                 }
                 #[inline]
@@ -795,15 +795,15 @@ const _: () = {
                     let Some(f0) = _serde::de::SeqAccess::next_element::<Operator>(&mut __seq)?
                     else {
                         return Err(_serde::de::Error::invalid_length(
-                            usize_constants::ZERO,
-                            &str_constants::PG_CRUD_PG_TYPE_WHERE_EXPECTING,
+                            constants_usize::ZERO,
+                            &constants_str::PG_CRUD_PG_TYPE_WHERE_EXPECTING,
                         ));
                     };
                     let Some(f1) = _serde::de::SeqAccess::next_element::<Vec<T>>(&mut __seq)?
                     else {
                         return Err(_serde::de::Error::invalid_length(
-                            usize_constants::ONE,
-                            &str_constants::PG_CRUD_PG_TYPE_WHERE_EXPECTING,
+                            constants_usize::ONE,
+                            &constants_str::PG_CRUD_PG_TYPE_WHERE_EXPECTING,
                         ));
                     };
                     match PgTypeWhere::try_new(f0, f1.into()) {
@@ -824,7 +824,7 @@ const _: () = {
                                 if Option::is_some(&f0) {
                                     return Err(
                                         <__A::Error as _serde::de::Error>::duplicate_field(
-                                            str_constants::PG_CRUD_OPERATOR_FIELD,
+                                            constants_str::PG_CRUD_OPERATOR_FIELD,
                                         ),
                                     );
                                 }
@@ -836,7 +836,7 @@ const _: () = {
                                 if Option::is_some(&f1) {
                                     return Err(
                                         <__A::Error as _serde::de::Error>::duplicate_field(
-                                            str_constants::PG_CRUD_V_FIELD,
+                                            constants_str::PG_CRUD_V_FIELD,
                                         ),
                                     );
                                 }
@@ -853,13 +853,13 @@ const _: () = {
                     let f0_v = match f0 {
                         Some(v) => v,
                         None => _serde::__private229::de::missing_field(
-                            str_constants::PG_CRUD_OPERATOR_FIELD,
+                            constants_str::PG_CRUD_OPERATOR_FIELD,
                         )?,
                     };
                     let f1_v = match f1 {
                         Some(v) => v,
                         None => {
-                            _serde::__private229::de::missing_field(str_constants::PG_CRUD_V_FIELD)?
+                            _serde::__private229::de::missing_field(constants_str::PG_CRUD_V_FIELD)?
                         }
                     };
                     match PgTypeWhere::try_new(f0_v, f1_v.into()) {
@@ -870,8 +870,8 @@ const _: () = {
             }
             serde::Deserializer::deserialize_struct(
                 __deserializer,
-                str_constants::PG_CRUD_PG_TYPE_WHERE_SCHEMA_NAME,
-                str_constants::PG_CRUD_SERDE_PG_TYPE_WHERE_FIELDS,
+                constants_str::PG_CRUD_PG_TYPE_WHERE_SCHEMA_NAME,
+                constants_str::PG_CRUD_SERDE_PG_TYPE_WHERE_FIELDS,
                 __Visitor {
                     marker: _serde::__private229::PhantomData::<T>,
                     lt: _serde::__private229::PhantomData,

@@ -1,5 +1,5 @@
 static RUN_COUNTER: std::sync::atomic::AtomicU64 =
-    std::sync::atomic::AtomicU64::new(u64_constants::ZERO);
+    std::sync::atomic::AtomicU64::new(constants_u64::ZERO);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 struct CommandIdx(usize);
 impl CommandIdx {
@@ -59,7 +59,7 @@ struct CommandArgsRef<'args_lt>(&'args_lt [&'args_lt str]);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::AsRefStr, newtype::BoundedString,
 )]
-#[bounded_string(max = usize_constants::VALUE_16_777_216)]
+#[bounded_string(max = constants_usize::VALUE_16_777_216)]
 struct CommandText(String);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
 struct CommandTexts(bounded_types::BoundedVec<CommandText, 0, { usize::MAX }>);
@@ -80,7 +80,7 @@ struct StdRunDir(std::path::PathBuf);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::BoundedString, newtype::AsRefStr,
 )]
-#[bounded_string(max = usize_constants::VALUE_1_048_576)]
+#[bounded_string(max = constants_usize::VALUE_1_048_576)]
 struct SummaryText(String);
 impl SummaryText {
     fn push_str(&mut self, value: TextRef<'_>) -> Result<(), ()> {
@@ -88,7 +88,7 @@ impl SummaryText {
             .0
             .len()
             .checked_add(value.get().len())
-            .is_none_or(|len| len > usize_constants::VALUE_1_048_576)
+            .is_none_or(|len| len > constants_usize::VALUE_1_048_576)
         {
             return Err(());
         }
@@ -136,12 +136,12 @@ fn command_log_name(
         .clone()
         .map(str::len)
         .sum::<usize>()
-        .saturating_add(parts.clone().count().saturating_sub(usize_constants::ONE));
+        .saturating_add(parts.clone().count().saturating_sub(constants_usize::ONE));
     let raw = parts.enumerate().fold(
         String::with_capacity(raw_capacity),
         |mut raw, (index, part)| {
-            if index > usize_constants::ZERO {
-                raw.push_str(str_constants::HYPHEN);
+            if index > constants_usize::ZERO {
+                raw.push_str(constants_str::HYPHEN);
             }
             raw.push_str(part);
             raw
@@ -167,7 +167,7 @@ fn create_run_dir() -> Result<StdRunDir, StdExecutionIoError> {
         .unwrap_or_default()
         .as_nanos();
     let path =
-        std::path::Path::new(str_constants::WORKSPACE_TEST_RUNNER_RESULT_ROOT).join(format!(
+        std::path::Path::new(constants_str::WORKSPACE_TEST_RUNNER_RESULT_ROOT).join(format!(
             "{timestamp}-{}-{}",
             std::process::id(),
             RUN_COUNTER.fetch_add(1u64, std::sync::atomic::Ordering::Relaxed)
@@ -181,11 +181,11 @@ fn failed_test_names(log_text: TextRef<'_>) -> CommandTexts {
         .get()
         .lines()
         .filter_map(|line| {
-            line.strip_prefix(str_constants::TEST_ALT)
-                .and_then(|tail| tail.strip_suffix(str_constants::FAILED_ALT))
+            line.strip_prefix(constants_str::TEST_ALT)
+                .and_then(|tail| tail.strip_suffix(constants_str::FAILED_ALT))
                 .or_else(|| {
-                    let tail = line.strip_prefix(str_constants::FOUR_SPACES)?;
-                    tail.strip_suffix(str_constants::FAILED)
+                    let tail = line.strip_prefix(constants_str::FOUR_SPACES)?;
+                    tail.strip_suffix(constants_str::FAILED)
                 })
                 .map(|name| {
                     CommandText::try_from(name.to_owned()).unwrap_or_else(CommandText::from)
@@ -199,7 +199,7 @@ fn failed_test_names(log_text: TextRef<'_>) -> CommandTexts {
 #[allow(clippy::single_call_fn)] // summary persistence remains separate from command orchestration
 fn write_summary(run_dir: &StdRunDir, summary: &SummaryText) -> Result<(), StdExecutionIoError> {
     std::fs::write(
-        run_dir.0.join(str_constants::SUMMARY_TXT),
+        run_dir.0.join(constants_str::SUMMARY_TXT),
         strip_ansi(TextRef::from(summary.0.as_str())).as_ref(),
     )
     .map_err(StdExecutionIoError::from)
@@ -266,7 +266,7 @@ pub(super) fn run_commands(commands: CommandsRef<'_>) -> Result<(), ()> {
             Err(_panic) => {
                 succeeded = false;
                 summary.push_str(TextRef::from(
-                    str_constants::COMMAND_THREAD_PANICKED_SUMMARY,
+                    constants_str::COMMAND_THREAD_PANICKED_SUMMARY,
                 ))?;
                 return Ok(());
             }
@@ -300,14 +300,14 @@ pub(super) fn run_commands(commands: CommandsRef<'_>) -> Result<(), ()> {
                     .0
                     .len()
                     .get()
-                    .saturating_sub(usize_constants::ONE)
-                    .saturating_mul(str_constants::TEXT_ALT_7.len()),
+                    .saturating_sub(constants_usize::ONE)
+                    .saturating_mul(constants_str::TEXT_ALT_7.len()),
             );
         let failed_names = failed_test_names.0.iter().enumerate().fold(
             String::with_capacity(failed_names_capacity),
             |mut names, (index, name)| {
-                if index > usize_constants::ZERO {
-                    names.push_str(str_constants::TEXT_ALT_7);
+                if index > constants_usize::ZERO {
+                    names.push_str(constants_str::TEXT_ALT_7);
                 }
                 names.push_str(name.as_ref());
                 names

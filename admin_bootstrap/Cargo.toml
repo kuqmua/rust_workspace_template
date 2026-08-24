@@ -9,7 +9,7 @@ license.workspace = true
 edition.workspace = true
 
 [dependencies]
-usize_constants = { workspace = true }
+constants_usize = { workspace = true }
 optimal_memory_layout = { workspace = true }
 app_state = { workspace = true }
 config_lib = { workspace = true }
@@ -20,7 +20,7 @@ server_admin_contract = { workspace = true }
 server_config = { workspace = true }
 server_runtime_http = { workspace = true }
 sqlx = { workspace = true }
-str_constants = { workspace = true }
+constants_str = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }
 

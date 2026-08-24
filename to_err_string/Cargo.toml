@@ -11,7 +11,7 @@ edition.workspace = true
 
 [dependencies]
 optimal_memory_layout = { workspace = true }
-str_constants = { workspace = true }
+constants_str = { workspace = true }
 tracing = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
@@ -19,7 +19,7 @@ to_err_string_macros = { workspace = true }
 newtype = { workspace = true }
 
 [dev-dependencies]
-usize_constants = { workspace = true }
+constants_usize = { workspace = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 axum = { workspace = true }

@@ -25,7 +25,7 @@ pub struct PgFilterText(String);
 impl TryFrom<String> for PgFilterText {
     type Error = PgFilterTextError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > usize_constants::VALUE_1_048_576 {
+        if value.len() > constants_usize::VALUE_1_048_576 {
             Err(PgFilterTextError)
         } else {
             Ok(Self(value))
@@ -86,7 +86,7 @@ mod tests {
     fn bind_plan_preserves_cross_type_order() {
         let mut plan = super::FilterBindPlan::new();
         plan.push_text(
-            super::PgFilterText::try_from(String::from(str_constants::TEST_FILTER_TEXT))
+            super::PgFilterText::try_from(String::from(constants_str::TEST_FILTER_TEXT))
                 .expect("43d8053d bind_plan_preserves_cross_type_order invariant must hold"),
         );
         plan.push_i64(7i64.into());

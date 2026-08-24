@@ -1,12 +1,12 @@
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, newtype::AsRefStr, newtype::BoundedString,
 )]
-#[bounded_string(max = usize_constants::VALUE_8_192, chars)]
+#[bounded_string(max = constants_usize::VALUE_8_192, chars)]
 struct AdminCsrfToken(String);
 
 impl std::fmt::Debug for AdminCsrfToken {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(str_constants::REDACTED_ALT_3)
+        f.write_str(constants_str::REDACTED_ALT_3)
     }
 }
 
@@ -21,7 +21,7 @@ fn csrf_token() -> Result<AdminCsrfToken, crate::app::state::AdminTableLoadError
         .map_err(|_error| crate::app::state::AdminTableLoadError::Fetch)?
         .split(';')
         .map(str::trim)
-        .find_map(|cookie| cookie.strip_prefix(str_constants::ADMIN_CSRF_TOKEN_ALT))
+        .find_map(|cookie| cookie.strip_prefix(constants_str::ADMIN_CSRF_TOKEN_ALT))
         .map(str::to_owned)
         .map(AdminCsrfToken::try_from)
         .transpose()
@@ -51,13 +51,13 @@ where
     request
         .headers()
         .set(
-            str_constants::CONTENT_TYPE,
-            str_constants::HTTP_APPLICATION_JSON,
+            constants_str::CONTENT_TYPE,
+            constants_str::HTTP_APPLICATION_JSON,
         )
         .map_err(|_error| crate::app::state::AdminTableLoadError::Fetch)?;
     request
         .headers()
-        .set(str_constants::X_CSRF_TOKEN, csrf_token()?.as_ref())
+        .set(constants_str::X_CSRF_TOKEN, csrf_token()?.as_ref())
         .map_err(|_error| crate::app::state::AdminTableLoadError::Fetch)?;
     let response_value = wasm_bindgen_futures::JsFuture::from(
         web_sys::window()

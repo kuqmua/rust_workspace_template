@@ -1,5 +1,5 @@
 [package]
-name = "i32_constants"
+name = "constants_i32"
 version.workspace = true
 publish.workspace = true
 description.workspace = true

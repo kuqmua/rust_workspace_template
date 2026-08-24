@@ -1,5 +1,5 @@
 pub(super) fn kebab_case(value: super::ProjectNameRef<'_>) -> super::ScaffoldText {
-    super::ScaffoldText::try_from(value.0.replace('_', str_constants::HYPHEN))
+    super::ScaffoldText::try_from(value.0.replace('_', constants_str::HYPHEN))
         .unwrap_or_else(super::ScaffoldText::from)
 }
 
@@ -8,7 +8,7 @@ pub(super) fn kebab_case(value: super::ProjectNameRef<'_>) -> super::ScaffoldTex
     reason = "service scaffold owns title case conversion"
 )]
 pub(super) fn title_case(value: super::ProjectNameRef<'_>) -> super::ScaffoldText {
-    capitalized_parts(value, super::ScaffoldTextRef::from(str_constants::SPACE))
+    capitalized_parts(value, super::ScaffoldTextRef::from(constants_str::SPACE))
 }
 
 fn capitalized_parts(
@@ -23,7 +23,7 @@ fn capitalized_parts(
         .fold(
             String::with_capacity(value.0.len()),
             |mut output, (index, part)| {
-                if index > usize_constants::ZERO {
+                if index > constants_usize::ZERO {
                     output.push_str(separator.0);
                 }
                 let mut chars = part.chars();
@@ -42,7 +42,7 @@ fn capitalized_parts(
     reason = "service scaffold owns identifier case conversion"
 )]
 pub(super) fn upper_camel_case(value: super::ProjectNameRef<'_>) -> super::ScaffoldText {
-    capitalized_parts(value, super::ScaffoldTextRef::from(str_constants::EMPTY))
+    capitalized_parts(value, super::ScaffoldTextRef::from(constants_str::EMPTY))
 }
 
 pub(super) fn validate_project_name(
@@ -52,7 +52,7 @@ pub(super) fn validate_project_name(
     if text.is_empty()
         || text.starts_with('_')
         || text.ends_with('_')
-        || text.contains(str_constants::WORKSPACE_SCAFFOLD_DOUBLE_UNDERSCORE)
+        || text.contains(constants_str::WORKSPACE_SCAFFOLD_DOUBLE_UNDERSCORE)
         || !text
             .bytes()
             .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'_')
@@ -69,7 +69,7 @@ pub(super) fn validate_project_name(
 pub(super) fn validate_repository_url(
     value: super::RepositoryUrlRef<'_>,
 ) -> Result<(), super::ScaffoldError> {
-    if !value.0.starts_with(str_constants::HTTPS_SCHEME_PREFIX) || value.0.ends_with('/') {
+    if !value.0.starts_with(constants_str::HTTPS_SCHEME_PREFIX) || value.0.ends_with('/') {
         return Err(super::ScaffoldError::RepositoryUrl);
     }
     Ok(())

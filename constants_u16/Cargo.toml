@@ -1,5 +1,5 @@
 [package]
-name = "i64_constants"
+name = "constants_u16"
 version.workspace = true
 publish.workspace = true
 description.workspace = true

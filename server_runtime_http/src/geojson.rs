@@ -5,7 +5,7 @@ pub struct GeoJsonDocumentText(String);
 impl TryFrom<String> for GeoJsonDocumentText {
     type Error = GeoJsonValidationError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > usize_constants::VALUE_16_777_216 {
+        if value.len() > constants_usize::VALUE_16_777_216 {
             return Err(GeoJsonValidationError::TooLarge);
         }
         let json_document = serde_json::from_str::<serde_json::Value>(value.as_str())
@@ -92,7 +92,7 @@ impl GeoJsonValidation for geojson::Position {
         });
         let latitude_valid = self
             .as_slice()
-            .get(usize_constants::ONE)
+            .get(constants_usize::ONE)
             .is_some_and(|coordinate| {
                 coordinate.is_finite() && (-90.0f64..=90.0f64).contains(coordinate)
             });
@@ -138,33 +138,33 @@ impl SupportedGeoJsonTypeValidation for serde_json::Value {
     fn validate_supported_geo_json_types(&self) -> Result<(), GeoJsonValidationError> {
         let object = self.as_object().ok_or(GeoJsonValidationError::Document)?;
         let value_type = object
-            .get(str_constants::GEO_JSON_TYPE)
+            .get(constants_str::GEO_JSON_TYPE)
             .and_then(Self::as_str)
             .ok_or(GeoJsonValidationError::Document)?;
         match value_type {
-            str_constants::GEO_JSON_FEATURE => object
-                .get(str_constants::GEO_JSON_GEOMETRY)
+            constants_str::GEO_JSON_FEATURE => object
+                .get(constants_str::GEO_JSON_GEOMETRY)
                 .filter(|geometry| !geometry.is_null())
                 .into_iter()
                 .try_for_each(Self::validate_supported_geo_json_types),
-            str_constants::GEO_JSON_FEATURE_COLLECTION => object
-                .get(str_constants::GEO_JSON_FEATURES)
+            constants_str::GEO_JSON_FEATURE_COLLECTION => object
+                .get(constants_str::GEO_JSON_FEATURES)
                 .and_then(Self::as_array)
                 .ok_or(GeoJsonValidationError::Document)?
                 .iter()
                 .try_for_each(Self::validate_supported_geo_json_types),
-            str_constants::GEO_JSON_GEOMETRY_COLLECTION => object
-                .get(str_constants::GEO_JSON_GEOMETRIES)
+            constants_str::GEO_JSON_GEOMETRY_COLLECTION => object
+                .get(constants_str::GEO_JSON_GEOMETRIES)
                 .and_then(Self::as_array)
                 .ok_or(GeoJsonValidationError::Document)?
                 .iter()
                 .try_for_each(Self::validate_supported_geo_json_types),
-            str_constants::GEO_JSON_POINT
-            | str_constants::GEO_JSON_LINE_STRING
-            | str_constants::GEO_JSON_MULTI_POINT
-            | str_constants::GEO_JSON_MULTI_LINE_STRING
-            | str_constants::GEO_JSON_POLYGON
-            | str_constants::GEO_JSON_MULTI_POLYGON => Ok(()),
+            constants_str::GEO_JSON_POINT
+            | constants_str::GEO_JSON_LINE_STRING
+            | constants_str::GEO_JSON_MULTI_POINT
+            | constants_str::GEO_JSON_MULTI_LINE_STRING
+            | constants_str::GEO_JSON_POLYGON
+            | constants_str::GEO_JSON_MULTI_POLYGON => Ok(()),
             _ => Err(GeoJsonValidationError::UnsupportedGeometry),
         }
     }
@@ -180,7 +180,7 @@ mod tests {
     #[test]
     fn document_validation_distinguishes_text_shape_type_and_size_errors() {
         assert!(matches!(
-            super::GeoJsonDocumentText::try_from(String::from(str_constants::TEST_INVALID_JSON)),
+            super::GeoJsonDocumentText::try_from(String::from(constants_str::TEST_INVALID_JSON)),
             Err(super::GeoJsonValidationError::SerdeJson(_))
         ));
         assert!(matches!(
@@ -189,13 +189,13 @@ mod tests {
         ));
         assert!(matches!(
             document(&serde_json::json!({
-                str_constants::GEO_JSON_TYPE: "Unsupported"
+                constants_str::GEO_JSON_TYPE: "Unsupported"
             })),
             Err(super::GeoJsonValidationError::UnsupportedGeometry)
         ));
         assert!(matches!(
             super::GeoJsonDocumentText::try_from(
-                " ".repeat(usize_constants::VALUE_16_777_216 + usize_constants::ONE)
+                " ".repeat(constants_usize::VALUE_16_777_216 + constants_usize::ONE)
             ),
             Err(super::GeoJsonValidationError::TooLarge)
         ));
@@ -204,28 +204,28 @@ mod tests {
     fn feature_and_geometry_collections_validate_children_recursively() {
         let properties = "properties";
         let feature = serde_json::json!({
-            str_constants::GEO_JSON_TYPE: str_constants::GEO_JSON_FEATURE,
-            str_constants::GEO_JSON_GEOMETRY: null,
+            constants_str::GEO_JSON_TYPE: constants_str::GEO_JSON_FEATURE,
+            constants_str::GEO_JSON_GEOMETRY: null,
             (properties): {}
         });
         let _feature = document(&feature).expect("c0bd64d6 feature_and_geometry_collections_validate_children_recursively invariant must hold");
         let collection = serde_json::json!({
-            str_constants::GEO_JSON_TYPE: str_constants::GEO_JSON_FEATURE_COLLECTION,
-            str_constants::GEO_JSON_FEATURES: [{
-                str_constants::GEO_JSON_TYPE: str_constants::GEO_JSON_FEATURE,
-                str_constants::GEO_JSON_GEOMETRY: {
-                    str_constants::GEO_JSON_TYPE: str_constants::GEO_JSON_POINT,
-                    str_constants::GEO_JSON_COORDINATES: [-180.0f64, 90.0f64]
+            constants_str::GEO_JSON_TYPE: constants_str::GEO_JSON_FEATURE_COLLECTION,
+            constants_str::GEO_JSON_FEATURES: [{
+                constants_str::GEO_JSON_TYPE: constants_str::GEO_JSON_FEATURE,
+                constants_str::GEO_JSON_GEOMETRY: {
+                    constants_str::GEO_JSON_TYPE: constants_str::GEO_JSON_POINT,
+                    constants_str::GEO_JSON_COORDINATES: [-180.0f64, 90.0f64]
                 },
                 (properties): {}
             }]
         });
         let _collection = document(&collection).expect("bc4861b1 feature_and_geometry_collections_validate_children_recursively invariant must hold");
         let geometry_collection = serde_json::json!({
-            str_constants::GEO_JSON_TYPE: str_constants::GEO_JSON_GEOMETRY_COLLECTION,
-            str_constants::GEO_JSON_GEOMETRIES: [{
-                str_constants::GEO_JSON_TYPE: str_constants::GEO_JSON_POINT,
-                str_constants::GEO_JSON_COORDINATES: [180.0f64, -90.0f64]
+            constants_str::GEO_JSON_TYPE: constants_str::GEO_JSON_GEOMETRY_COLLECTION,
+            constants_str::GEO_JSON_GEOMETRIES: [{
+                constants_str::GEO_JSON_TYPE: constants_str::GEO_JSON_POINT,
+                constants_str::GEO_JSON_COORDINATES: [180.0f64, -90.0f64]
             }]
         });
         let _geometry_collection = document(&geometry_collection).expect("ba7f5e93 feature_and_geometry_collections_validate_children_recursively invariant must hold");
@@ -233,24 +233,24 @@ mod tests {
     #[test]
     fn coordinate_collections_reject_empty_levels() {
         let line = serde_json::json!({
-            str_constants::GEO_JSON_TYPE: str_constants::GEO_JSON_LINE_STRING,
-            str_constants::GEO_JSON_COORDINATES: []
+            constants_str::GEO_JSON_TYPE: constants_str::GEO_JSON_LINE_STRING,
+            constants_str::GEO_JSON_COORDINATES: []
         });
         assert!(matches!(
             document(&line),
             Err(super::GeoJsonValidationError::Coordinates)
         ));
         let polygon = serde_json::json!({
-            str_constants::GEO_JSON_TYPE: str_constants::GEO_JSON_POLYGON,
-            str_constants::GEO_JSON_COORDINATES: []
+            constants_str::GEO_JSON_TYPE: constants_str::GEO_JSON_POLYGON,
+            constants_str::GEO_JSON_COORDINATES: []
         });
         assert!(matches!(
             document(&polygon),
             Err(super::GeoJsonValidationError::Coordinates)
         ));
         let multi_polygon = serde_json::json!({
-            str_constants::GEO_JSON_TYPE: str_constants::GEO_JSON_MULTI_POLYGON,
-            str_constants::GEO_JSON_COORDINATES: []
+            constants_str::GEO_JSON_TYPE: constants_str::GEO_JSON_MULTI_POLYGON,
+            constants_str::GEO_JSON_COORDINATES: []
         });
         assert!(matches!(
             document(&multi_polygon),
@@ -260,11 +260,11 @@ mod tests {
     #[test]
     fn point_coordinates_are_range_checked() {
         let _document =
-            super::GeoJsonDocumentText::try_from(String::from(str_constants::TEST_GEO_JSON_POINT))
+            super::GeoJsonDocumentText::try_from(String::from(constants_str::TEST_GEO_JSON_POINT))
                 .expect("34818d2e point_coordinates_are_range_checked invariant must hold");
         assert!(matches!(
             super::GeoJsonDocumentText::try_from(String::from(
-                str_constants::TEST_GEO_JSON_INVALID_POINT
+                constants_str::TEST_GEO_JSON_INVALID_POINT
             )),
             Err(super::GeoJsonValidationError::Coordinates)
         ));

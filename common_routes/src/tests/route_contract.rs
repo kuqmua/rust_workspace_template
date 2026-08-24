@@ -40,29 +40,29 @@ fn every_route_has_named_route_and_client_functions() {
     );
     assert_eq!(
         size_of_val(&super::super::git_info_client::<ClientTransport>),
-        usize_constants::ZERO
+        constants_usize::ZERO
     );
     assert_eq!(
         size_of_val(&super::super::health_client::<ClientTransport>),
-        usize_constants::ZERO
+        constants_usize::ZERO
     );
     assert_eq!(
         size_of_val(&super::super::health_check_client::<ClientTransport>),
-        usize_constants::ZERO
+        constants_usize::ZERO
     );
     assert_eq!(
         size_of_val(&super::super::health_live_client::<ClientTransport>),
-        usize_constants::ZERO
+        constants_usize::ZERO
     );
     assert_eq!(
         size_of_val(&super::super::health_ready_client::<ClientTransport>),
-        usize_constants::ZERO
+        constants_usize::ZERO
     );
 }
 
 #[test]
 fn paths_use_snake_case_segments() {
-    assert!(!str_constants::COMMON_ROUTES_SWAGGER_UI.contains('-'));
+    assert!(!constants_str::COMMON_ROUTES_SWAGGER_UI.contains('-'));
     super::super::CommonRoute::ALL
         .into_iter()
         .for_each(|route| {

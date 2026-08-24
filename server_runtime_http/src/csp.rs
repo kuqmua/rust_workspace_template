@@ -87,13 +87,13 @@ impl HttpCspBuilder {
         values: &[HttpCspDirectiveValue],
     ) -> Result<(), HttpCspMaximumBytesError> {
         let separator_bytes = if self.0.is_empty() {
-            usize_constants::ZERO
+            constants_usize::ZERO
         } else {
             2usize
         };
         let values_bytes = values
             .iter()
-            .map(|value| value.0.len().saturating_add(usize_constants::ONE))
+            .map(|value| value.0.len().saturating_add(constants_usize::ONE))
             .sum::<usize>();
         let added_bytes = separator_bytes
             .saturating_add(name.0.len())
@@ -103,7 +103,7 @@ impl HttpCspBuilder {
         }
         self.0.reserve(added_bytes);
         if !self.0.is_empty() {
-            self.0.push_str(str_constants::HTTP_CSP_DIRECTIVE_SEPARATOR);
+            self.0.push_str(constants_str::HTTP_CSP_DIRECTIVE_SEPARATOR);
         }
         self.0.push_str(name.0.as_str());
         let _text = values.iter().fold(&mut self.0, |text, value| {
@@ -127,10 +127,10 @@ mod tests {
     fn builder_joins_validated_directives() {
         let mut builder = super::HttpCspBuilder::default();
         let default_src =
-            super::HttpCspDirectiveName::try_from(String::from(str_constants::TEST_DEFAULT_SRC))
+            super::HttpCspDirectiveName::try_from(String::from(constants_str::TEST_DEFAULT_SRC))
                 .expect("e692ea17 builder_joins_validated_directives invariant must hold");
         let self_value =
-            super::HttpCspDirectiveValue::try_from(String::from(str_constants::TEST_CSP_SELF))
+            super::HttpCspDirectiveValue::try_from(String::from(constants_str::TEST_CSP_SELF))
                 .expect("ca342c81 builder_joins_validated_directives invariant must hold");
         builder
             .try_add(&default_src, &[self_value])
@@ -142,23 +142,23 @@ mod tests {
             policy
                 .to_str()
                 .expect("ba8ae30f builder_joins_validated_directives invariant must hold"),
-            str_constants::TEST_DEFAULT_SRC_SELF
+            constants_str::TEST_DEFAULT_SRC_SELF
         );
     }
 
     #[test]
     fn tokens_reject_whitespace_semicolon_and_uppercase_name() {
         assert_eq!(
-            super::HttpCspDirectiveValue::try_from(String::from(str_constants::TEST_CSP_SELF_DATA)),
+            super::HttpCspDirectiveValue::try_from(String::from(constants_str::TEST_CSP_SELF_DATA)),
             Err(super::HttpCspTokenError::InvalidCharacter)
         );
         assert_eq!(
-            super::HttpCspDirectiveValue::try_from(String::from(str_constants::TEST_CSP_DATA_SEMI)),
+            super::HttpCspDirectiveValue::try_from(String::from(constants_str::TEST_CSP_DATA_SEMI)),
             Err(super::HttpCspTokenError::InvalidCharacter)
         );
         assert_eq!(
             super::HttpCspDirectiveName::try_from(String::from(
-                str_constants::TEST_DEFAULT_SRC_UPPER
+                constants_str::TEST_DEFAULT_SRC_UPPER
             )),
             Err(super::HttpCspTokenError::InvalidCharacter)
         );

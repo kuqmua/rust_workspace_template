@@ -10,7 +10,7 @@ pub(crate) async fn enforce_rate_limit(
     server_runtime_http::enforce_pg_rate_limit(
         server_runtime_http::SqlxPgRateLimitPoolRef::from(pool.0),
         server_runtime_http::PgRateLimitQueryRef::from(
-            str_constants::SERVER_ADMIN_ENFORCE_RATE_LIMIT_SQL,
+            constants_str::SERVER_ADMIN_ENFORCE_RATE_LIMIT_SQL,
         ),
         server_runtime_http::PgRateLimitScopeRef::try_from(scope.as_ref())
             .map_err(|_error| super::AdminRateLimitRepositoryError::InvalidPolicy)?,

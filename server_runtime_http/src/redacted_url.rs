@@ -5,7 +5,7 @@ impl AsRef<str> for RedactedUrl {
     fn as_ref(&self) -> &str {
         self.0
             .as_ref()
-            .map_or(str_constants::REDACTED_ALT_3, AsRef::as_ref)
+            .map_or(constants_str::REDACTED_ALT_3, AsRef::as_ref)
     }
 }
 impl std::fmt::Display for RedactedUrl {
@@ -15,7 +15,7 @@ impl std::fmt::Display for RedactedUrl {
 }
 impl std::fmt::Debug for RedactedUrl {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple(str_constants::REDACTED_URL)
+        f.debug_tuple(constants_str::REDACTED_URL)
             .field(&self.as_ref())
             .finish()
     }
@@ -33,22 +33,22 @@ pub fn redact_url_userinfo(value: RedactedUrlTextRef<'_>) -> RedactedUrl {
                 crate::RequiredNulFreeBoundedText::try_from(input.to_owned()).ok(),
             );
         }
-        if url.set_username(str_constants::REDACTED_ALT).is_ok() && url.set_password(None).is_ok() {
+        if url.set_username(constants_str::REDACTED_ALT).is_ok() && url.set_password(None).is_ok() {
             return RedactedUrl::from(
                 crate::RequiredNulFreeBoundedText::try_from(url.to_string()).ok(),
             );
         }
     }
-    let Some((scheme, remainder)) = input.split_once(str_constants::TEXT_ALT_10) else {
+    let Some((scheme, remainder)) = input.split_once(constants_str::TEXT_ALT_10) else {
         return RedactedUrl::from(
-            crate::RequiredNulFreeBoundedText::try_from(str_constants::REDACTED_ALT_3.to_owned())
+            crate::RequiredNulFreeBoundedText::try_from(constants_str::REDACTED_ALT_3.to_owned())
                 .ok(),
         );
     };
     let authority_end = remainder.find(['/', '?', '#']).unwrap_or(remainder.len());
     let Some(authority) = remainder.get(..authority_end) else {
         return RedactedUrl::from(
-            crate::RequiredNulFreeBoundedText::try_from(str_constants::REDACTED_ALT_3.to_owned())
+            crate::RequiredNulFreeBoundedText::try_from(constants_str::REDACTED_ALT_3.to_owned())
                 .ok(),
         );
     };
@@ -58,13 +58,13 @@ pub fn redact_url_userinfo(value: RedactedUrlTextRef<'_>) -> RedactedUrl {
         );
     };
     let host = authority
-        .get(userinfo_end.saturating_add(usize_constants::ONE)..)
-        .unwrap_or(str_constants::REDACTED_ALT_3);
+        .get(userinfo_end.saturating_add(constants_usize::ONE)..)
+        .unwrap_or(constants_str::REDACTED_ALT_3);
     let suffix = remainder.get(authority_end..).unwrap_or_default();
     let mut output = String::with_capacity(input.len());
     output.push_str(scheme);
-    output.push_str(str_constants::TEXT_ALT_10);
-    output.push_str(str_constants::REDACTED_ALT);
+    output.push_str(constants_str::TEXT_ALT_10);
+    output.push_str(constants_str::REDACTED_ALT);
     output.push('@');
     output.push_str(host);
     output.push_str(suffix);
@@ -90,9 +90,9 @@ mod tests {
     #[test]
     fn malformed_urls_do_not_reflect_unstructured_input() {
         let malformed = super::redact_url_userinfo("not a url".into());
-        assert_eq!(malformed.as_ref(), str_constants::REDACTED_ALT_3);
+        assert_eq!(malformed.as_ref(), constants_str::REDACTED_ALT_3);
         let nul = super::redact_url_userinfo("\0secret".into());
-        assert_eq!(nul.as_ref(), str_constants::REDACTED_ALT_3);
+        assert_eq!(nul.as_ref(), constants_str::REDACTED_ALT_3);
     }
 
     #[test]
@@ -104,7 +104,7 @@ mod tests {
             redacted.as_ref(),
             format!(
                 "1invalid://{}@example.com/path?query=value",
-                str_constants::REDACTED_ALT
+                constants_str::REDACTED_ALT
             )
         );
         assert!(!redacted.as_ref().contains(secret));
@@ -112,21 +112,21 @@ mod tests {
 
     #[test]
     fn credentials_are_removed_while_non_secret_parts_remain() {
-        let redacted = super::redact_url_userinfo(str_constants::TEST_URL_WITH_CREDENTIALS.into());
-        assert!(!redacted.as_ref().contains(str_constants::TEST_URL_PASSWORD));
-        assert!(redacted.as_ref().contains(str_constants::LOCALHOST));
-        assert!(redacted.as_ref().contains(str_constants::REDACTED_ALT));
+        let redacted = super::redact_url_userinfo(constants_str::TEST_URL_WITH_CREDENTIALS.into());
+        assert!(!redacted.as_ref().contains(constants_str::TEST_URL_PASSWORD));
+        assert!(redacted.as_ref().contains(constants_str::LOCALHOST));
+        assert!(redacted.as_ref().contains(constants_str::REDACTED_ALT));
     }
 
     #[test]
     fn rtsp_credentials_are_removed() {
         let redacted =
-            super::redact_rtsp_url_userinfo(str_constants::TEST_RTSP_URL_WITH_CREDENTIALS.into());
-        assert!(!redacted.as_ref().contains(str_constants::TEST_URL_PASSWORD));
+            super::redact_rtsp_url_userinfo(constants_str::TEST_RTSP_URL_WITH_CREDENTIALS.into());
+        assert!(!redacted.as_ref().contains(constants_str::TEST_URL_PASSWORD));
         assert!(
             redacted
                 .as_ref()
-                .starts_with(str_constants::RTSP_SCHEME_PREFIX)
+                .starts_with(constants_str::RTSP_SCHEME_PREFIX)
         );
     }
 }

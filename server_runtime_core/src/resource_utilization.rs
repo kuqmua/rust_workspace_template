@@ -77,7 +77,7 @@ pub enum ResourceUtilizationStatus {
 pub enum ResourceUtilizationError {
     #[error(
         "{}",
-        str_constants::RESOURCE_UTILIZATION_MAXIMUM_MUST_BE_GREATER_THAN_ZERO
+        constants_str::RESOURCE_UTILIZATION_MAXIMUM_MUST_BE_GREATER_THAN_ZERO
     )]
     ZeroMaximum,
 }
@@ -117,7 +117,7 @@ pub fn calculate_resource_utilization(
     used: ResourceAmount,
     maximum: ResourceAmount,
 ) -> Result<ResourceUtilization, ResourceUtilizationError> {
-    if maximum.0 == u64_constants::ZERO {
+    if maximum.0 == constants_u64::ZERO {
         return Err(ResourceUtilizationError::ZeroMaximum);
     }
     let percent_u128 = u128::from(used.0)
@@ -136,7 +136,7 @@ pub fn calculate_resource_utilization(
             ResourceUtilizationStatus::Critical
         }
         WARNING_PERCENT..CRITICAL_PERCENT => ResourceUtilizationStatus::Warning,
-        u8_constants::ZERO..WARNING_PERCENT => ResourceUtilizationStatus::Ok,
+        constants_u8::ZERO..WARNING_PERCENT => ResourceUtilizationStatus::Ok,
     };
     Ok(ResourceUtilization {
         maximum,
@@ -190,8 +190,8 @@ mod tests {
 
     #[test]
     fn percentage_uses_integer_floor_and_zero_usage_is_ok() {
-        let zero = calculate(u64_constants::ZERO, u64::MAX);
-        assert_eq!(zero.percent().get(), u8_constants::ZERO);
+        let zero = calculate(constants_u64::ZERO, u64::MAX);
+        assert_eq!(zero.percent().get(), constants_u8::ZERO);
         assert_eq!(zero.status(), super::ResourceUtilizationStatus::Ok);
         let rounded_down = calculate(699u64, 1000u64);
         assert_eq!(rounded_down.percent().get(), 69u8);
@@ -202,8 +202,8 @@ mod tests {
     fn rejects_zero_maximum() {
         assert_eq!(
             super::calculate_resource_utilization(
-                super::ResourceAmount::from(u64_constants::ZERO),
-                super::ResourceAmount::from(u64_constants::ZERO),
+                super::ResourceAmount::from(constants_u64::ZERO),
+                super::ResourceAmount::from(constants_u64::ZERO),
             ),
             Err(super::ResourceUtilizationError::ZeroMaximum)
         );

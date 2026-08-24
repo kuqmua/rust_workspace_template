@@ -35,7 +35,7 @@ impl SqlLikePattern {
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
 )]
-#[error("{}", str_constants::SQL_LIKE_PATTERN_EXCEEDS_MAXIMUM_LENGTH)]
+#[error("{}", constants_str::SQL_LIKE_PATTERN_EXCEEDS_MAXIMUM_LENGTH)]
 pub struct SqlLikePatternError;
 pub fn build_sql_like_pattern(
     input: SqlLikeInputRef<'_>,
@@ -43,7 +43,7 @@ pub fn build_sql_like_pattern(
 ) -> Result<SqlLikePattern, SqlLikePatternError> {
     let wildcard_count = match match_mode {
         SqlLikeMatchMode::Contains => 2usize,
-        SqlLikeMatchMode::EndsWith | SqlLikeMatchMode::StartsWith => usize_constants::ONE,
+        SqlLikeMatchMode::EndsWith | SqlLikeMatchMode::StartsWith => constants_usize::ONE,
     };
     let reserved_count = input
         .0
@@ -84,24 +84,24 @@ mod tests {
     fn match_modes_place_wildcards_at_the_requested_edges() {
         assert!(matches!(
             super::build_sql_like_pattern(
-                str_constants::TEST_SQL_LIKE_INPUT.into(),
+                constants_str::TEST_SQL_LIKE_INPUT.into(),
                 super::SqlLikeMatchMode::Contains,
             ),
-            Ok(pattern) if pattern.as_ref() == str_constants::TEST_SQL_LIKE_CONTAINS_PATTERN
+            Ok(pattern) if pattern.as_ref() == constants_str::TEST_SQL_LIKE_CONTAINS_PATTERN
         ));
         assert!(matches!(
             super::build_sql_like_pattern(
-                str_constants::TEST_SQL_LIKE_INPUT.into(),
+                constants_str::TEST_SQL_LIKE_INPUT.into(),
                 super::SqlLikeMatchMode::StartsWith,
             ),
-            Ok(pattern) if pattern.as_ref() == str_constants::TEST_SQL_LIKE_STARTS_WITH_PATTERN
+            Ok(pattern) if pattern.as_ref() == constants_str::TEST_SQL_LIKE_STARTS_WITH_PATTERN
         ));
         assert!(matches!(
             super::build_sql_like_pattern(
-                str_constants::TEST_SQL_LIKE_INPUT.into(),
+                constants_str::TEST_SQL_LIKE_INPUT.into(),
                 super::SqlLikeMatchMode::EndsWith,
             ),
-            Ok(pattern) if pattern.as_ref() == str_constants::TEST_SQL_LIKE_ENDS_WITH_PATTERN
+            Ok(pattern) if pattern.as_ref() == constants_str::TEST_SQL_LIKE_ENDS_WITH_PATTERN
         ));
     }
 
@@ -109,10 +109,10 @@ mod tests {
     fn reserved_symbols_are_escaped_as_literals() {
         assert!(matches!(
             super::build_sql_like_pattern(
-                str_constants::TEST_SQL_LIKE_RESERVED_INPUT.into(),
+                constants_str::TEST_SQL_LIKE_RESERVED_INPUT.into(),
                 super::SqlLikeMatchMode::Contains,
             ),
-            Ok(pattern) if pattern.as_ref() == str_constants::TEST_SQL_LIKE_RESERVED_PATTERN
+            Ok(pattern) if pattern.as_ref() == constants_str::TEST_SQL_LIKE_RESERVED_PATTERN
         ));
     }
 
@@ -120,7 +120,7 @@ mod tests {
     fn deserialization_uses_bounded_try_from() {
         let _error = <super::SqlLikePattern as serde::Deserialize>::deserialize(
             serde::de::value::StringDeserializer::<serde::de::value::Error>::new(
-                "x".repeat(super::super::PG_CRUD_STRING_WRAPPER_MAX_LEN + usize_constants::ONE),
+                "x".repeat(super::super::PG_CRUD_STRING_WRAPPER_MAX_LEN + constants_usize::ONE),
             ),
         )
         .expect_err("432eaebe");

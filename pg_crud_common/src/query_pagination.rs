@@ -99,21 +99,21 @@ impl<ColumnGeneric: utoipa::PartialSchema> utoipa::__dev::ComposeSchema for Orde
     ) -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
         utoipa::openapi::ObjectBuilder::new()
             .property(
-                str_constants::COLUMN,
+                constants_str::COLUMN,
                 <ColumnGeneric as utoipa::PartialSchema>::schema(),
             )
             .property(
-                str_constants::ORDER,
+                constants_str::ORDER,
                 <Order as utoipa::PartialSchema>::schema(),
             )
-            .required(str_constants::COLUMN)
+            .required(constants_str::COLUMN)
             .build()
             .into()
     }
 }
 impl<ColumnGeneric: utoipa::ToSchema> utoipa::ToSchema for OrderBy<ColumnGeneric> {
     fn name() -> std::borrow::Cow<'static, str> {
-        std::borrow::Cow::Borrowed(str_constants::ORDERBY)
+        std::borrow::Cow::Borrowed(constants_str::ORDERBY)
     }
 }
 #[derive(

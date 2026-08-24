@@ -9,9 +9,9 @@ license.workspace = true
 edition.workspace = true
 
 [dependencies]
-usize_constants = { workspace = true }
+constants_usize = { workspace = true }
 newtype = { workspace = true }
-str_constants = { workspace = true }
+constants_str = { workspace = true }
 proc-macro2 = { workspace = true }
 quote = { workspace = true }
 syn = { workspace = true }

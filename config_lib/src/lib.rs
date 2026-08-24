@@ -181,12 +181,12 @@ pub struct ConfigFieldDescriptor {
 }
 impl std::fmt::Debug for ConfigFieldDescriptor {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct(str_constants::CONFIG_FIELD_DESCRIPTOR)
-            .field(str_constants::ENV_NAME, &self.env_name)
-            .field(str_constants::EXAMPLE, &self.example)
-            .field(str_constants::REQUIRED, &self.requirement)
-            .field(str_constants::RUST_TYPE_NAME, &self.rust_type_name)
-            .field(str_constants::SENSITIVITY, &self.sensitivity)
+        f.debug_struct(constants_str::CONFIG_FIELD_DESCRIPTOR)
+            .field(constants_str::ENV_NAME, &self.env_name)
+            .field(constants_str::EXAMPLE, &self.example)
+            .field(constants_str::REQUIRED, &self.requirement)
+            .field(constants_str::RUST_TYPE_NAME, &self.rust_type_name)
+            .field(constants_str::SENSITIVITY, &self.sensitivity)
             .finish_non_exhaustive()
     }
 }
@@ -262,7 +262,7 @@ impl TryFrom<String> for SecrecySecretBoxString {
 }
 impl std::fmt::Debug for SecrecySecretBoxString {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(str_constants::REDACTED_ALT_3)
+        f.write_str(constants_str::REDACTED_ALT_3)
     }
 }
 #[derive(
@@ -386,7 +386,7 @@ impl TryFromStdEnvVarOk for ChronoTimezone {
 impl TryFromStdEnvVarOk for types::TracingFormat {
     type Error = std::convert::Infallible;
     fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
-        Ok(if v.0.eq_ignore_ascii_case(str_constants::JSON) {
+        Ok(if v.0.eq_ignore_ascii_case(constants_str::JSON) {
             Self::Json
         } else {
             Self::Text
@@ -404,8 +404,8 @@ impl TryFromStdEnvVarOk for types::SvcMode {
     type Error = TryFromStdEnvVarOkSvcModeError;
     fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
         match v.0.as_str() {
-            str_constants::SERVICE_MODE_MIGRATE => Ok(Self::Migrate),
-            str_constants::SERVICE_MODE_SERVE => Ok(Self::Serve),
+            constants_str::SERVICE_MODE_MIGRATE => Ok(Self::Migrate),
+            constants_str::SERVICE_MODE_SERVE => Ok(Self::Serve),
             _unknown => Err(TryFromStdEnvVarOkSvcModeError::Unknown),
         }
     }
@@ -442,7 +442,7 @@ fn try_map_non_empty_env_value<T, Error>(
     map_ok: impl FnOnce(String) -> T,
 ) -> Result<T, Error> {
     if v.0.is_empty() {
-        return Err(mk_error(str_constants::CONFIG_ENV_VALUE_IS_EMPTY_MSG));
+        return Err(mk_error(constants_str::CONFIG_ENV_VALUE_IS_EMPTY_MSG));
     }
     Ok(map_ok(v.0))
 }
@@ -460,7 +460,7 @@ fn parse_east_fixed_offset(
 ) -> Result<ChronoEastFixedOffset, ChronoFixedOffsetError> {
     chrono::FixedOffset::east_opt(v.0)
         .map(ChronoEastFixedOffset)
-        .ok_or_else(|| ChronoFixedOffsetError::from(str_constants::CONFIG_TIMEZONE_NOT_EAST_MSG))
+        .ok_or_else(|| ChronoFixedOffsetError::from(constants_str::CONFIG_TIMEZONE_NOT_EAST_MSG))
 }
 #[cfg(test)]
 mod tests {
@@ -468,21 +468,21 @@ mod tests {
     fn svc_mode_accepts_only_documented_values() {
         assert_eq!(
             <super::types::SvcMode as super::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
-                super::StdEnvVarOk::try_from(str_constants::SERVICE_MODE_MIGRATE.to_owned())
+                super::StdEnvVarOk::try_from(constants_str::SERVICE_MODE_MIGRATE.to_owned())
                     .expect("39a8e94f svc_mode_accepts_only_documented_values invariant must hold"),
             ),
             Ok(super::types::SvcMode::Migrate)
         );
         assert_eq!(
             <super::types::SvcMode as super::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
-                super::StdEnvVarOk::try_from(str_constants::SERVICE_MODE_SERVE.to_owned())
+                super::StdEnvVarOk::try_from(constants_str::SERVICE_MODE_SERVE.to_owned())
                     .expect("045ca5a1 svc_mode_accepts_only_documented_values invariant must hold"),
             ),
             Ok(super::types::SvcMode::Serve)
         );
         assert_eq!(
             <super::types::SvcMode as super::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
-                super::StdEnvVarOk::try_from(str_constants::INVALID_REQUEST.to_owned())
+                super::StdEnvVarOk::try_from(constants_str::INVALID_REQUEST.to_owned())
                     .expect("156cc47b svc_mode_accepts_only_documented_values invariant must hold"),
             ),
             Err(super::TryFromStdEnvVarOkSvcModeError::Unknown)
@@ -505,11 +505,11 @@ mod tests {
     fn administrator_token_text_deserialization_uses_bounded_try_from() {
         let issuer_deserializer =
             serde::de::value::StringDeserializer::<serde::de::value::Error>::new(
-                str_constants::TEST_JWT_SECRET_CHARACTER_A.repeat(257usize),
+                constants_str::TEST_JWT_SECRET_CHARACTER_A.repeat(257usize),
             );
         let audience_deserializer =
             serde::de::value::StringDeserializer::<serde::de::value::Error>::new(
-                str_constants::TEST_JWT_SECRET_CHARACTER_A.repeat(257usize),
+                constants_str::TEST_JWT_SECRET_CHARACTER_A.repeat(257usize),
             );
         let Err(_issuer_error) =
             <super::AdminTokenIssuer as serde::Deserialize>::deserialize(issuer_deserializer)
@@ -526,7 +526,7 @@ mod tests {
     fn cors_allow_origin_parsing_returns_value() {
         config_lib_macros::assert_parse_ok_matches!(
             super::CorsAllowOrigin,
-            str_constants::ASTERISK,
+            constants_str::ASTERISK,
             super::CorsAllowOrigin(_)
         );
     }
@@ -541,7 +541,7 @@ mod tests {
     fn database_url_parsing_returns_value_for_non_empty_input() {
         config_lib_macros::assert_parse_ok_matches!(
             super::DatabaseUrl,
-            str_constants::POSTGRES_DB,
+            constants_str::POSTGRES_DB,
             super::DatabaseUrl(_)
         );
     }
@@ -555,20 +555,20 @@ mod tests {
     #[test]
     fn secret_url_debug_output_redacts_credentials() {
         let all_redacted = [
-            str_constants::POSTGRES_USERNAME_LOCALHOST_TEST,
-            str_constants::POSTGRES_USERNAME_PASSWORD_LOCALHOST_TEST_QUESTION_SSLMODE_DISABLE,
-            str_constants::POSTGRES_PERCENT_PERCENT_40NAME_PERCENT_PERCENT_2FPASSWORD_PATH_1_TEST_FRAGMENT,
+            constants_str::POSTGRES_USERNAME_LOCALHOST_TEST,
+            constants_str::POSTGRES_USERNAME_PASSWORD_LOCALHOST_TEST_QUESTION_SSLMODE_DISABLE,
+            constants_str::POSTGRES_PERCENT_PERCENT_40NAME_PERCENT_PERCENT_2FPASSWORD_PATH_1_TEST_FRAGMENT,
         ]
         .into_iter()
         .all(|raw| {
             let value = parse_env::<super::DatabaseUrl>(raw).expect("ae91f62c secret_url_debug_output_redacts_credentials invariant must hold");
             let debug = format!("{value:?}");
             !debug.contains(raw)
-                && !debug.contains(str_constants::USERNAME)
-                && !debug.contains(str_constants::PASSWORD)
-                && !debug.contains(str_constants::PERCENT_PERCENT_40NAME)
-                && !debug.contains(str_constants::PERCENT_PERCENT_2FPASSWORD)
-                && debug.contains(str_constants::REDACTED_ALT)
+                && !debug.contains(constants_str::USERNAME)
+                && !debug.contains(constants_str::PASSWORD)
+                && !debug.contains(constants_str::PERCENT_PERCENT_40NAME)
+                && !debug.contains(constants_str::PERCENT_PERCENT_2FPASSWORD)
+                && debug.contains(constants_str::REDACTED_ALT)
         });
         assert!(all_redacted);
     }
@@ -576,7 +576,7 @@ mod tests {
     fn mongo_url_parsing_returns_value_for_non_empty_input() {
         config_lib_macros::assert_parse_ok_matches!(
             super::MongoUrl,
-            str_constants::MONGODB_DB,
+            constants_str::MONGODB_DB,
             super::MongoUrl(_)
         );
     }
@@ -591,7 +591,7 @@ mod tests {
     fn redis_url_parsing_returns_value_for_non_empty_input() {
         config_lib_macros::assert_parse_ok_matches!(
             super::RedisUrl,
-            str_constants::REDIS_DB,
+            constants_str::REDIS_DB,
             super::RedisUrl(_)
         );
     }
@@ -606,7 +606,7 @@ mod tests {
     fn src_place_type_parsing_is_case_insensitive() {
         config_lib_macros::assert_parse_ok_matches!(
             super::SrcPlaceType,
-            str_constants::GITHUB_ALT,
+            constants_str::GITHUB_ALT,
             super::SrcPlaceType(super::types::SrcPlaceType::Github)
         );
     }
@@ -614,7 +614,7 @@ mod tests {
     fn src_place_type_parsing_returns_error_for_unknown_value() {
         config_lib_macros::assert_parse_err_matches!(
             super::SrcPlaceType,
-            str_constants::BAD,
+            constants_str::BAD,
             super::TryFromStdEnvVarOkSrcPlaceTypeError::AppStateSrcPlaceTypeParsing { .. }
         );
     }
@@ -622,7 +622,7 @@ mod tests {
     fn tracing_level_parsing_is_case_insensitive() {
         config_lib_macros::assert_parse_ok_matches!(
             super::TracingLevel,
-            str_constants::DEBUG,
+            constants_str::DEBUG,
             super::TracingLevel(super::types::TracingLevel::Debug)
         );
     }
@@ -630,7 +630,7 @@ mod tests {
     fn tracing_level_parsing_returns_error_for_unknown_value() {
         config_lib_macros::assert_parse_err_matches!(
             super::TracingLevel,
-            str_constants::BAD,
+            constants_str::BAD,
             super::TryFromStdEnvVarOkTracingLevelError::AppStateTracingLevelParsing { .. }
         );
     }
@@ -638,7 +638,7 @@ mod tests {
     fn enable_api_git_commit_check_parsing_returns_bool() {
         config_lib_macros::assert_parse_ok_matches!(
             super::EnableApiGitCommitCheck,
-            str_constants::TRUE,
+            constants_str::TRUE,
             super::EnableApiGitCommitCheck(true)
         );
     }
@@ -646,13 +646,13 @@ mod tests {
     fn enable_api_git_commit_check_parsing_returns_error_for_invalid_bool() {
         config_lib_macros::assert_parse_err_matches!(
             super::EnableApiGitCommitCheck,
-            str_constants::TRUTHY,
+            constants_str::TRUTHY,
             super::TryFromStdEnvVarOkEnableApiGitCommitCheckError::BoolParsing { .. }
         );
     }
     #[test]
     fn maximum_size_of_http_body_in_bytes_parsing_returns_usize() {
-        let parsed = parse_env::<super::MaximumSizeOfHttpBodyInBytes>(str_constants::VALUE_128)
+        let parsed = parse_env::<super::MaximumSizeOfHttpBodyInBytes>(constants_str::VALUE_128)
             .expect("d5b7a09e maximum_size_of_http_body_in_bytes_parsing_returns_usize invariant must hold");
         assert_eq!(*parsed, 128usize);
     }
@@ -660,7 +660,7 @@ mod tests {
     fn maximum_size_of_http_body_in_bytes_parsing_returns_error_for_invalid_number() {
         config_lib_macros::assert_parse_err_matches!(
             super::MaximumSizeOfHttpBodyInBytes,
-            str_constants::VALUE_1K,
+            constants_str::VALUE_1K,
             super::TryFromStdEnvVarOkMaximumSizeOfHttpBodyInBytesError::UsizeParsing { .. }
         );
     }
@@ -668,13 +668,13 @@ mod tests {
     fn maximum_size_of_http_body_in_bytes_parsing_returns_error_for_zero() {
         config_lib_macros::assert_parse_err_matches!(
             super::MaximumSizeOfHttpBodyInBytes,
-            str_constants::VALUE_0,
+            constants_str::VALUE_0,
             super::TryFromStdEnvVarOkMaximumSizeOfHttpBodyInBytesError::MaximumSizeOfHttpBodyInBytes { .. }
         );
     }
     #[test]
     fn pg_pool_max_connections_parsing_returns_u32() {
-        let parsed = parse_env::<super::PgPoolMaxConnections>(str_constants::VALUE_10)
+        let parsed = parse_env::<super::PgPoolMaxConnections>(constants_str::VALUE_10)
             .expect("5d9032ac pg_pool_max_connections_parsing_returns_u32 invariant must hold");
         assert_eq!(*parsed, 10u32);
     }
@@ -682,7 +682,7 @@ mod tests {
     fn pg_pool_max_connections_parsing_returns_error_for_invalid_number() {
         config_lib_macros::assert_parse_err_matches!(
             super::PgPoolMaxConnections,
-            str_constants::BAD,
+            constants_str::BAD,
             super::TryFromStdEnvVarOkPgPoolMaxConnectionsError::U32Parsing { .. }
         );
     }
@@ -690,7 +690,7 @@ mod tests {
     fn pg_pool_max_connections_parsing_returns_error_for_zero() {
         config_lib_macros::assert_parse_err_matches!(
             super::PgPoolMaxConnections,
-            str_constants::VALUE_0,
+            constants_str::VALUE_0,
             super::TryFromStdEnvVarOkPgPoolMaxConnectionsError::PgPoolMaxConnections { .. }
         );
     }
@@ -705,7 +705,7 @@ mod tests {
     fn non_empty_string_parser_returns_value_for_non_empty_value() {
         config_lib_macros::assert_parse_ok_matches!(
             super::StartingCheckLink,
-            str_constants::HTTPS_EXAMPLE_COM,
+            constants_str::HTTPS_EXAMPLE_COM,
             super::StartingCheckLink(_)
         );
     }
@@ -713,13 +713,13 @@ mod tests {
     fn service_socket_address_parsing_returns_socket_addr() {
         config_lib_macros::assert_parse_ok_matches!(
             super::ServiceSocketAddress,
-            str_constants::VALUE_127_0_0_1_3000,
+            constants_str::VALUE_127_0_0_1_3000,
             super::ServiceSocketAddress(_)
         );
     }
     #[test]
     fn service_socket_address_parsing_returns_error_for_invalid_addr() {
-        let error = parse_env::<super::ServiceSocketAddress>(str_constants::VALUE_127_0_0_1);
+        let error = parse_env::<super::ServiceSocketAddress>(constants_str::VALUE_127_0_0_1);
         assert!(matches!(
             error,
             Err(super::TryFromStdEnvVarOkServiceSocketAddressError::StdNetSocketAddr { .. })
@@ -729,7 +729,7 @@ mod tests {
     fn timezone_parsing_returns_timezone_for_valid_offset() {
         config_lib_macros::assert_parse_ok_matches!(
             super::ChronoTimezone,
-            str_constants::VALUE_0,
+            constants_str::VALUE_0,
             super::ChronoTimezone(_)
         );
     }
@@ -737,7 +737,7 @@ mod tests {
     fn timezone_parsing_returns_i32_error_for_non_number() {
         config_lib_macros::assert_parse_err_matches!(
             super::ChronoTimezone,
-            str_constants::NAN,
+            constants_str::NAN,
             super::TryFromStdEnvVarOkTimezoneError::I32Parsing { .. }
         );
     }
@@ -752,7 +752,7 @@ mod tests {
         assert_eq!(
             parsed,
             Err(super::ChronoFixedOffsetError(
-                str_constants::CONFIG_TIMEZONE_NOT_EAST_MSG,
+                constants_str::CONFIG_TIMEZONE_NOT_EAST_MSG,
             ))
         );
     }
@@ -768,7 +768,7 @@ mod tests {
     #[test]
     fn parse_required_env_var_parses_value_when_env_var_exists() {
         let parsed = super::parse_required_env_var(
-            super::EnvVarNameRef::from(str_constants::PATH_ALT),
+            super::EnvVarNameRef::from(constants_str::PATH_ALT),
             |_std_env_var_error, env_var_name| ParseRequiredEnvVarTestError::EnvVar {
                 env_var_name,
             },
@@ -780,7 +780,7 @@ mod tests {
     #[test]
     fn parse_required_env_var_maps_missing_env_var_error() {
         let parsed = super::parse_required_env_var(
-            super::EnvVarNameRef::from(str_constants::CONFIG_LIB_TEST_ENV_VAR_4E8A7F21),
+            super::EnvVarNameRef::from(constants_str::CONFIG_LIB_TEST_ENV_VAR_4E8A7F21),
             |_std_env_var_error, env_var_name| ParseRequiredEnvVarTestError::EnvVar {
                 env_var_name,
             },
@@ -800,11 +800,11 @@ mod tests {
     #[test]
     fn parse_required_env_var_maps_parse_error() {
         let parsed = super::parse_required_env_var(
-            super::EnvVarNameRef::from(str_constants::PATH_ALT),
+            super::EnvVarNameRef::from(constants_str::PATH_ALT),
             |_std_env_var_error, env_var_name| ParseRequiredEnvVarTestError::EnvVar {
                 env_var_name,
             },
-            |_v| Err::<(), _>(str_constants::PARSE_FAILED),
+            |_v| Err::<(), _>(constants_str::PARSE_FAILED),
             |parse| ParseRequiredEnvVarTestError::Parse { parse },
         );
         assert_eq!(

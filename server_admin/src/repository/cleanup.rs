@@ -4,21 +4,21 @@ pub(crate) async fn cleanup_admin_tables(
     pool: super::SqlxAdminRepositoryPoolRef<'_>,
     cfg: &crate::AdminCleanupCfg,
 ) -> Result<super::AdminCleanupRepositoryReport, crate::SqlxAdminError> {
-    let access_sessions = sqlx::query(str_constants::SERVER_ADMIN_CLEANUP_ACCESS_SESSIONS_SQL)
+    let access_sessions = sqlx::query(constants_str::SERVER_ADMIN_CLEANUP_ACCESS_SESSIONS_SQL)
         .bind(cfg.auth_retention.0)
         .bind(cfg.batch_size.0)
         .execute(pool.0)
         .await
         .map_err(crate::SqlxAdminError::from)?
         .rows_affected();
-    let refresh_tokens = sqlx::query(str_constants::SERVER_ADMIN_CLEANUP_REFRESH_TOKENS_SQL)
+    let refresh_tokens = sqlx::query(constants_str::SERVER_ADMIN_CLEANUP_REFRESH_TOKENS_SQL)
         .bind(cfg.auth_retention.0)
         .bind(cfg.batch_size.0)
         .execute(pool.0)
         .await
         .map_err(crate::SqlxAdminError::from)?
         .rows_affected();
-    let login_attempts = sqlx::query(str_constants::SERVER_ADMIN_CLEANUP_LOGIN_ATTEMPTS_SQL)
+    let login_attempts = sqlx::query(constants_str::SERVER_ADMIN_CLEANUP_LOGIN_ATTEMPTS_SQL)
         .bind(cfg.auth_retention.0)
         .bind(cfg.batch_size.0)
         .execute(pool.0)
@@ -29,11 +29,11 @@ pub(crate) async fn cleanup_admin_tables(
         .await
         .map_err(crate::SqlxAdminError::from)?;
     let _audit_cleanup_permission =
-        sqlx::query(str_constants::SERVER_ADMIN_ENABLE_AUDIT_CLEANUP_SQL)
+        sqlx::query(constants_str::SERVER_ADMIN_ENABLE_AUDIT_CLEANUP_SQL)
             .execute(&mut *audit_tx)
             .await
             .map_err(crate::SqlxAdminError::from)?;
-    let audit_log = sqlx::query(str_constants::SERVER_ADMIN_CLEANUP_AUDIT_LOG_SQL)
+    let audit_log = sqlx::query(constants_str::SERVER_ADMIN_CLEANUP_AUDIT_LOG_SQL)
         .bind(cfg.audit_retention.0)
         .bind(cfg.batch_size.0)
         .execute(&mut *audit_tx)
@@ -44,7 +44,7 @@ pub(crate) async fn cleanup_admin_tables(
         .commit()
         .await
         .map_err(crate::SqlxAdminError::from)?;
-    let rate_limits = sqlx::query(str_constants::SERVER_ADMIN_CLEANUP_RATE_LIMITS_SQL)
+    let rate_limits = sqlx::query(constants_str::SERVER_ADMIN_CLEANUP_RATE_LIMITS_SQL)
         .bind(cfg.rate_limit_retention.0)
         .bind(cfg.batch_size.0)
         .execute(pool.0)
@@ -65,7 +65,7 @@ pub(crate) async fn record_success(
     rows: crate::AdminCleanupRows,
 ) -> Result<(), crate::AdminCleanupError> {
     let stored_rows = i64::try_from(rows.0).map_err(|_error| crate::AdminCleanupError::Count)?;
-    sqlx::query(str_constants::SERVER_ADMIN_RECORD_CLEANUP_STATUS_SQL)
+    sqlx::query(constants_str::SERVER_ADMIN_RECORD_CLEANUP_STATUS_SQL)
         .bind(stored_rows)
         .execute(pool.0)
         .await

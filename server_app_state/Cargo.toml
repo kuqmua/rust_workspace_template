@@ -10,7 +10,7 @@ edition.workspace = true
 
 [dependencies]
 bounded_types = { workspace = true }
-str_constants = { workspace = true, optional = true }
+constants_str = { workspace = true, optional = true }
 chrono = { workspace = true }
 config_lib = { workspace = true }
 common_routes = { workspace = true }
@@ -23,11 +23,11 @@ pg_table = { workspace = true, features = ["test-utils"] }
 optimal_memory_layout = { workspace = true }
 server_app_state_macros = { workspace = true }
 [dev-dependencies]
-usize_constants = { workspace = true }
+constants_usize = { workspace = true }
 sqlx = { workspace = true }
-str_constants = { workspace = true }
+constants_str = { workspace = true }
 tokio = { workspace = true }
 [features]
-test-utils = ["dep:sqlx", "dep:str_constants"]
+test-utils = ["dep:sqlx", "dep:constants_str"]
 [lints]
 workspace = true

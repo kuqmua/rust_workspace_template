@@ -14,7 +14,7 @@ pub(super) fn mk_app_state(
         idempotency_response_budget: server_runtime_http::ResourceBudget::new(
             server_runtime_http::ResourceBudgetMaximum::from(
                 std::num::NonZeroUsize::new(
-                    64usize.saturating_mul(usize_constants::VALUE_1_048_576),
+                    64usize.saturating_mul(constants_usize::VALUE_1_048_576),
                 )
                 .unwrap_or(std::num::NonZeroUsize::MIN),
             ),
@@ -57,7 +57,7 @@ pub(super) async fn mk_pg_pool(
             Box::pin(async move {
                 sqlx::Executor::execute(
                     &mut *connection,
-                    str_constants::POSTGRES_STATEMENT_TIMEOUT_SQL,
+                    constants_str::POSTGRES_STATEMENT_TIMEOUT_SQL,
                 )
                 .await
                 .map(drop)

@@ -44,7 +44,7 @@ mod tests {
     #[tokio::test]
     async fn run_records_retry_outcome_in_bounded_history() {
         let history = crate::AsyncRunHistory::new(
-            crate::StdAsyncRunHistoryMaximumLen::try_from(usize_constants::ONE).expect(
+            crate::StdAsyncRunHistoryMaximumLen::try_from(constants_usize::ONE).expect(
                 "5dc81fa2 run_records_retry_outcome_in_bounded_history invariant must hold",
             ),
         );
@@ -57,12 +57,12 @@ mod tests {
                 None,
             ),
         );
-        let mut calls = usize_constants::ZERO;
+        let mut calls = constants_usize::ZERO;
         let report = job
             .run_once(
                 || {
-                    calls = calls.saturating_add(usize_constants::ONE);
-                    std::future::ready(if calls == usize_constants::ONE {
+                    calls = calls.saturating_add(constants_usize::ONE);
+                    std::future::ready(if calls == constants_usize::ONE {
                         Err(())
                     } else {
                         Ok(7usize)

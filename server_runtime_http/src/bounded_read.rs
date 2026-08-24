@@ -36,9 +36,9 @@ pub struct BoundedText(String);
 impl TryFrom<String> for BoundedText {
     type Error = BoundedReadError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > usize_constants::VALUE_16_777_216 {
+        if value.len() > constants_usize::VALUE_16_777_216 {
             return Err(BoundedReadError::ExceedsMaximum {
-                maximum_bytes: BoundedReadMaximumBytes(usize_constants::VALUE_16_777_216),
+                maximum_bytes: BoundedReadMaximumBytes(constants_usize::VALUE_16_777_216),
             });
         }
         Ok(Self(value))
@@ -119,10 +119,10 @@ impl BoundedJsonText {
 impl TryFrom<String> for BoundedJsonText {
     type Error = BoundedJsonReadError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > usize_constants::VALUE_16_777_216 {
+        if value.len() > constants_usize::VALUE_16_777_216 {
             return Err(BoundedJsonReadError::Read(
                 BoundedReadError::ExceedsMaximum {
-                    maximum_bytes: BoundedReadMaximumBytes(usize_constants::VALUE_16_777_216),
+                    maximum_bytes: BoundedReadMaximumBytes(constants_usize::VALUE_16_777_216),
                 },
             ));
         }
@@ -261,7 +261,7 @@ pub async fn read_bounded_http_response(
     let initial_capacity = inner_response
         .content_length()
         .and_then(|length| usize::try_from(length).ok())
-        .map_or(usize_constants::ZERO, |length| length.min(maximum_bytes.0));
+        .map_or(constants_usize::ZERO, |length| length.min(maximum_bytes.0));
     let mut bytes = Vec::with_capacity(initial_capacity);
     while let Some(chunk) =
         inner_response
@@ -317,7 +317,7 @@ mod tests {
     }
     #[test]
     fn exact_limit_and_one_byte_over_are_distinguished() {
-        let path = unique_path(str_constants::LIMIT);
+        let path = unique_path(constants_str::LIMIT);
         std::fs::write(&path, b"abcd")
             .expect("11ddba38 exact_limit_and_one_byte_over_are_distinguished invariant must hold");
         let exact = super::read_bounded_file(
@@ -341,12 +341,12 @@ mod tests {
     }
     #[test]
     fn file_growth_after_metadata_is_rechecked() {
-        let path = unique_path(str_constants::GROWTH);
+        let path = unique_path(constants_str::GROWTH);
         std::fs::write(&path, b"a")
             .expect("c0745b58 file_growth_after_metadata_is_rechecked invariant must hold");
         let result = super::read_bounded_file_with_after_metadata(
             super::StdPathRef::from(path.as_path()),
-            super::BoundedReadMaximumBytes::from(usize_constants::ONE),
+            super::BoundedReadMaximumBytes::from(constants_usize::ONE),
             || {
                 std::fs::write(&path, b"ab")
                     .expect("d34a7bc1 file_growth_after_metadata_is_rechecked invariant must hold");
@@ -355,7 +355,7 @@ mod tests {
         assert!(matches!(
             result,
             Err(super::BoundedReadError::ExceedsMaximum {
-                maximum_bytes: super::BoundedReadMaximumBytes(usize_constants::ONE)
+                maximum_bytes: super::BoundedReadMaximumBytes(constants_usize::ONE)
             })
         ));
         std::fs::remove_file(path)
@@ -384,14 +384,14 @@ mod tests {
     #[test]
     fn bounded_json_distinguishes_invalid_document() {
         let valid = super::BoundedBytes::from(
-            str_constants::TEST_JSON_MAP_WITH_ONE_ENTRY
+            constants_str::TEST_JSON_MAP_WITH_ONE_ENTRY
                 .as_bytes()
                 .to_vec(),
         );
         let _json = super::parse_bounded_json(&valid)
             .expect("712a0ea9 bounded_json_distinguishes_invalid_document invariant must hold");
         let invalid =
-            super::BoundedBytes::from(str_constants::TEST_INVALID_JSON.as_bytes().to_vec());
+            super::BoundedBytes::from(constants_str::TEST_INVALID_JSON.as_bytes().to_vec());
         assert!(matches!(
             super::parse_bounded_json(&invalid),
             Err(super::BoundedJsonReadError::SerdeJson(_))
@@ -400,7 +400,7 @@ mod tests {
     #[test]
     fn bounded_json_formats_pretty_and_compact_text() {
         let json = super::BoundedJsonText::try_from(String::from(
-            str_constants::TEST_JSON_MAP_WITH_ONE_ENTRY,
+            constants_str::TEST_JSON_MAP_WITH_ONE_ENTRY,
         ))
         .expect("d2d69400 bounded_json_formats_pretty_and_compact_text invariant must hold");
         let pretty = json
@@ -412,12 +412,12 @@ mod tests {
                 .compact()
                 .expect("08123a26 bounded_json_formats_pretty_and_compact_text invariant must hold")
                 .as_ref(),
-            str_constants::TEST_JSON_MAP_WITH_ONE_ENTRY
+            constants_str::TEST_JSON_MAP_WITH_ONE_ENTRY
         );
     }
     #[tokio::test]
     async fn asynchronous_file_read_obeys_limit() {
-        let path = unique_path(str_constants::ASYNC);
+        let path = unique_path(constants_str::ASYNC);
         tokio::fs::write(&path, b"abc")
             .await
             .expect("f68e33f3 asynchronous_file_read_obeys_limit invariant must hold");
@@ -435,8 +435,8 @@ mod tests {
     #[tokio::test]
     async fn http_response_stream_obeys_limit_without_external_network() {
         let response = http::Response::builder()
-            .header(http::header::CONTENT_LENGTH, str_constants::VALUE_4)
-            .body(str_constants::ABCD_ALT)
+            .header(http::header::CONTENT_LENGTH, constants_str::VALUE_4)
+            .body(constants_str::ABCD_ALT)
             .expect("2306b26a http_response_stream_obeys_limit_without_external_network invariant must hold");
         let bytes = super::read_bounded_http_response(
             super::ReqwestResponse::from(reqwest::Response::from(response)),

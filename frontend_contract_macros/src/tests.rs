@@ -69,7 +69,7 @@ fn contract_struct_api_rejects_unknown_attributes() {
     assert!(
         error
             .to_string()
-            .contains(str_constants::CONTRACT_STRUCT_API_UNSUPPORTED_ATTRIBUTE)
+            .contains(constants_str::CONTRACT_STRUCT_API_UNSUPPORTED_ATTRIBUTE)
     );
 }
 
@@ -92,7 +92,7 @@ fn typed_route_args_require_exactly_one_error_source() {
             assert!(
                 error
                     .to_string()
-                    .contains(str_constants::TYPED_ROUTE_REQUIRES_ERROR_POLICY_OR_STATUSES)
+                    .contains(constants_str::TYPED_ROUTE_REQUIRES_ERROR_POLICY_OR_STATUSES)
             );
         });
     ["error_policy = Policy,", "error_statuses = Statuses,"]
@@ -117,7 +117,7 @@ fn route_registry_args_require_family_after_state() {
     assert!(
         error
             .to_string()
-            .contains(str_constants::ROUTE_REGISTRY_REQUIRES_FAMILY)
+            .contains(constants_str::ROUTE_REGISTRY_REQUIRES_FAMILY)
     );
 }
 
@@ -129,10 +129,10 @@ fn route_registry_args_parse_family_and_bindings() {
     let Ok(args) = result else {
         panic!("6282e207");
     };
-    assert_eq!(args.bindings.0.len(), usize_constants::ONE);
-    assert_eq!(args.schemas.0.len(), usize_constants::ONE);
+    assert_eq!(args.bindings.0.len(), constants_usize::ONE);
+    assert_eq!(args.schemas.0.len(), constants_usize::ONE);
     assert_eq!(
         quote::ToTokens::to_token_stream(&args.family.0).to_string(),
-        str_constants::FAMILY_UPPER_CAMEL_CASE
+        constants_str::FAMILY_UPPER_CAMEL_CASE
     );
 }

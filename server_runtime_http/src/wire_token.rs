@@ -35,7 +35,7 @@ impl VersionedUrlSafeWireTokenText {
 impl TryFrom<String> for VersionedUrlSafeWireTokenText {
     type Error = VersionedUrlSafeWireTokenTextError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > usize_constants::VALUE_8_192 {
+        if value.len() > constants_usize::VALUE_8_192 {
             return Err(Self::Error::TooLong);
         }
         let mut parts = value.split('.');
@@ -64,17 +64,17 @@ mod tests {
     #[test]
     fn versioned_wire_token_splits_valid_parts() {
         let value = super::VersionedUrlSafeWireTokenText::try_from(
-            str_constants::TEST_VERSIONED_URL_SAFE_WIRE_TOKEN.to_owned(),
+            constants_str::TEST_VERSIONED_URL_SAFE_WIRE_TOKEN.to_owned(),
         )
         .expect("8c3d9457 versioned_wire_token_splits_valid_parts invariant must hold");
-        assert_eq!(value.version().as_ref(), str_constants::TEST_TOKEN_VERSION);
+        assert_eq!(value.version().as_ref(), constants_str::TEST_TOKEN_VERSION);
         assert_eq!(
             value.encoded_payload().as_ref(),
-            str_constants::TEST_TOKEN_PAYLOAD
+            constants_str::TEST_TOKEN_PAYLOAD
         );
         assert_eq!(
             value.encoded_signature().as_ref(),
-            str_constants::TEST_TOKEN_SIGNATURE
+            constants_str::TEST_TOKEN_SIGNATURE
         );
     }
 }

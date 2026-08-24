@@ -4,7 +4,7 @@ fn large_module_exceptions() -> [&'static str; 3] {
     [
         "pg_crud_pg_table_generate_src/src/source.rs",
         "pg_crud_pg_types_generate_src/src/source.rs",
-        "str_constants/src/lib.rs",
+        "constants_str/src/lib.rs",
     ]
 }
 

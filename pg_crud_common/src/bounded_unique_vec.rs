@@ -16,16 +16,16 @@ pub struct UniqueVecLen(usize);
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
 )]
 pub enum UniqueVecError {
-    #[error("{} {max}", str_constants::BOUNDED_UNIQUE_VEC_ABOVE_MAX)]
+    #[error("{} {max}", constants_str::BOUNDED_UNIQUE_VEC_ABOVE_MAX)]
     AboveMax { max: UniqueVecLen },
-    #[error("{}: {actual} < {min}", str_constants::BOUNDED_UNIQUE_VEC_BELOW_MIN)]
+    #[error("{}: {actual} < {min}", constants_str::BOUNDED_UNIQUE_VEC_BELOW_MIN)]
     BelowMin {
         actual: UniqueVecLen,
         min: UniqueVecLen,
     },
-    #[error("{}", str_constants::BOUNDED_UNIQUE_VEC_DUPLICATE)]
+    #[error("{}", constants_str::BOUNDED_UNIQUE_VEC_DUPLICATE)]
     Duplicate,
-    #[error("{}: {min} > {max}", str_constants::BOUNDED_UNIQUE_VEC_INVALID_BOUNDS)]
+    #[error("{}: {min} > {max}", constants_str::BOUNDED_UNIQUE_VEC_INVALID_BOUNDS)]
     InvalidBounds {
         min: UniqueVecLen,
         max: UniqueVecLen,
@@ -71,7 +71,7 @@ impl<'de, T: serde::Deserialize<'de> + PartialEq, const MIN: usize, const MAX: u
 {
     type Value = BoundedUniqueVec<T, MIN, MAX>;
     fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        formatter.write_str(str_constants::BOUNDED_UNIQUE_VEC_EXPECTING)
+        formatter.write_str(constants_str::BOUNDED_UNIQUE_VEC_EXPECTING)
     }
     fn visit_seq<Access>(self, mut seq: Access) -> Result<Self::Value, Access::Error>
     where
@@ -82,7 +82,7 @@ impl<'de, T: serde::Deserialize<'de> + PartialEq, const MIN: usize, const MAX: u
             .map_err(serde::de::Error::custom)?;
         let mut values = Vec::with_capacity(
             seq.size_hint()
-                .unwrap_or(usize_constants::ZERO)
+                .unwrap_or(constants_usize::ZERO)
                 .min(MAX)
                 .min(SERDE_PREALLOC_MAX_ITEMS),
         );
@@ -140,10 +140,10 @@ mod tests {
     #[test]
     fn duplicate_is_rejected_before_later_invalid_item() {
         let result = serde_json::from_str::<super::BoundedUniqueVec<u8, 1, 4>>(
-            str_constants::TEST_BOUNDED_UNIQUE_VEC_DUPLICATE_THEN_INVALID,
+            constants_str::TEST_BOUNDED_UNIQUE_VEC_DUPLICATE_THEN_INVALID,
         );
         assert!(
-            matches!(result, Err(error) if error.to_string().contains(str_constants::DUPLICATE))
+            matches!(result, Err(error) if error.to_string().contains(constants_str::DUPLICATE))
         );
     }
 
@@ -152,21 +152,21 @@ mod tests {
         assert_eq!(
             super::BoundedUniqueVec::<u8, 1, 2>::try_from(Vec::new()).expect_err("e71d26a6"),
             super::UniqueVecError::BelowMin {
-                actual: super::UniqueVecLen::from(usize_constants::ZERO),
-                min: super::UniqueVecLen::from(usize_constants::ONE),
+                actual: super::UniqueVecLen::from(constants_usize::ZERO),
+                min: super::UniqueVecLen::from(constants_usize::ONE),
             }
         );
         assert_eq!(
             super::BoundedUniqueVec::<u8, 0, 1>::try_from(vec![1u8, 2u8]).expect_err("c98b4208"),
             super::UniqueVecError::AboveMax {
-                max: super::UniqueVecLen::from(usize_constants::ONE),
+                max: super::UniqueVecLen::from(constants_usize::ONE),
             }
         );
         assert_eq!(
             super::BoundedUniqueVec::<u8, 2, 1>::try_from(vec![1u8]).expect_err("6898eb44"),
             super::UniqueVecError::InvalidBounds {
                 min: super::UniqueVecLen::from(2usize),
-                max: super::UniqueVecLen::from(usize_constants::ONE),
+                max: super::UniqueVecLen::from(constants_usize::ONE),
             }
         );
         assert_eq!(
@@ -178,13 +178,13 @@ mod tests {
     #[test]
     fn excess_item_is_ignored_without_deserializing_target_type() {
         let error = serde_json::from_str::<super::BoundedUniqueVec<u8, 0, 1>>(
-            str_constants::TEST_BOUNDED_UNIQUE_VEC_EXCESS_INVALID,
+            constants_str::TEST_BOUNDED_UNIQUE_VEC_EXCESS_INVALID,
         )
         .expect_err("f551f290");
         assert!(
             error
                 .to_string()
-                .contains(str_constants::BOUNDED_UNIQUE_VEC_ABOVE_MAX)
+                .contains(constants_str::BOUNDED_UNIQUE_VEC_ABOVE_MAX)
         );
     }
 }

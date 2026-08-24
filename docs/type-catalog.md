@@ -1,8 +1,8 @@
 # Type catalog
 
-The Rust source is the canonical type catalog. This document intentionally does not mirror every
-type, visibility, module, line number, or crate count: such a snapshot becomes stale as soon as the
-source changes.
+The Rust source is the canonical type catalog. The generated
+[`domain-types.md`](domain-types.md) snapshot lists every declaration recognized by the repository's
+domain-type policy, including its explicitly supported declaration macros.
 
 Use Cargo for the current workspace package graph:
 
@@ -20,5 +20,5 @@ The enforced design rules live in [`AGENTS.md`](../AGENTS.md), while automated a
 domain-wrapper checks live in [`tests/src/code_style`](../tests/src/code_style). The wrapper design
 rationale and examples are documented in [`type-wrappers.md`](type-wrappers.md).
 
-When a durable catalog is needed for external publication, generate it from the same commit being
-published; do not edit a second hand-maintained inventory.
+Regenerate the declaration snapshot from the same commit being published; do not edit its entries
+by hand.

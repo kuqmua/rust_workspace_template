@@ -40,9 +40,9 @@ impl AdminAlertVariant {
 
     fn role(self) -> &'static str {
         match self {
-            Self::Error => str_constants::HTML_ALERT_ROLE,
+            Self::Error => constants_str::HTML_ALERT_ROLE,
             #[cfg(not(target_arch = "wasm32"))]
-            Self::Success => str_constants::HTML_STATUS_ROLE,
+            Self::Success => constants_str::HTML_STATUS_ROLE,
         }
     }
 }

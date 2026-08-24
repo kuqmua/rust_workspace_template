@@ -9,7 +9,7 @@
     newtype::AsRefStr,
     newtype::BoundedString,
 )]
-#[bounded_string(max = usize_constants::VALUE_1_048_576)]
+#[bounded_string(max = constants_usize::VALUE_1_048_576)]
 pub struct OpenApiContractText(String);
 
 #[derive(
@@ -44,7 +44,7 @@ impl StdOpenApiSchemaReferences {
             ))
         })?;
         let schemas = document_value
-            .pointer(str_constants::COMPONENTS_SCHEMAS_ALT)
+            .pointer(constants_str::COMPONENTS_SCHEMAS_ALT)
             .and_then(serde_json::Value::as_object)
             .ok_or(OpenApiValidationError::MissingSchemas)?;
         self.0.iter().try_for_each(|reference| {
@@ -172,7 +172,7 @@ fn openapi_schema_references(
         ))
     })?;
     let _schemas = document_value
-        .pointer(str_constants::COMPONENTS_SCHEMAS_ALT)
+        .pointer(constants_str::COMPONENTS_SCHEMAS_ALT)
         .and_then(serde_json::Value::as_object)
         .ok_or(OpenApiValidationError::MissingSchemas)?;
     let mut references = std::collections::BTreeSet::new();
@@ -182,9 +182,9 @@ fn openapi_schema_references(
             serde_json::Value::Array(values) => pending.extend(values),
             serde_json::Value::Object(values) => {
                 if let Some(name) = values
-                    .get(str_constants::DOLLAR_REF)
+                    .get(constants_str::DOLLAR_REF)
                     .and_then(serde_json::Value::as_str)
-                    .and_then(|reference| reference.strip_prefix(str_constants::COMPONENTS_SCHEMAS))
+                    .and_then(|reference| reference.strip_prefix(constants_str::COMPONENTS_SCHEMAS))
                 {
                     let reference =
                         OpenApiContractText::try_from(name.to_owned()).map_err(|error| {
@@ -234,7 +234,7 @@ where
     let references = openapi_schema_references(&document_value)?;
     references.validate(&document_value)?;
     let schemas = document_value
-        .pointer(str_constants::COMPONENTS_SCHEMAS_ALT)
+        .pointer(constants_str::COMPONENTS_SCHEMAS_ALT)
         .and_then(serde_json::Value::as_object)
         .ok_or(OpenApiValidationError::MissingSchemas)?;
     schemas.keys().try_for_each(|name| {
@@ -249,7 +249,7 @@ where
     })?;
 
     let paths = document_value
-        .get(str_constants::PATHS)
+        .get(constants_str::PATHS)
         .and_then(serde_json::Value::as_object)
         .ok_or(OpenApiValidationError::MissingPaths)?;
     let mut documented = std::collections::BTreeMap::new();
@@ -260,21 +260,21 @@ where
             .flatten()
             .filter(|(method, _)| {
                 [
-                    str_constants::DELETE,
-                    str_constants::GET,
-                    str_constants::HEAD,
-                    str_constants::OPTIONS,
-                    str_constants::PATCH,
-                    str_constants::POST,
-                    str_constants::PUT,
-                    str_constants::TRACE,
+                    constants_str::DELETE,
+                    constants_str::GET,
+                    constants_str::HEAD,
+                    constants_str::OPTIONS,
+                    constants_str::PATCH,
+                    constants_str::POST,
+                    constants_str::PUT,
+                    constants_str::TRACE,
                 ]
                 .iter()
                 .any(|candidate| candidate.eq_ignore_ascii_case(method))
             })
             .try_for_each(|(method, operation)| {
                 let Some(operation_id) = operation
-                    .get(str_constants::OPERATION_ID_JSON)
+                    .get(constants_str::OPERATION_ID_JSON)
                     .and_then(serde_json::Value::as_str)
                 else {
                     return Err(OpenApiValidationError::MissingOperationId(
@@ -367,16 +367,16 @@ where
     expectations.iter().try_for_each(|expectation| {
         let method = expectation.metadata.method().as_ref().to_ascii_lowercase();
         let operation = document_value
-            .get(str_constants::PATHS)
+            .get(constants_str::PATHS)
             .and_then(|paths| paths.get(expectation.metadata.path().as_ref()))
             .and_then(|path| path.get(method.as_str()))
             .ok_or(OpenApiOperationValidationError::MissingOperation)?;
         let security_matches = match expectation.security {
             OpenApiSecurityExpectation::Public => operation
-                .get(str_constants::SECURITY)
+                .get(constants_str::SECURITY)
                 .is_none_or(|security| security.as_array().is_some_and(Vec::is_empty)),
             OpenApiSecurityExpectation::Required(name) => operation
-                .get(str_constants::SECURITY)
+                .get(constants_str::SECURITY)
                 .and_then(serde_json::Value::as_array)
                 .is_some_and(|requirements| {
                     requirements.iter().any(|requirement| {
@@ -391,15 +391,15 @@ where
         }
         let status = expectation.status.0.to_string();
         let response = operation
-            .get(str_constants::RESPONSES)
+            .get(constants_str::RESPONSES)
             .and_then(|responses| responses.get(status.as_str()))
             .ok_or(OpenApiOperationValidationError::MissingResponseStatus)?;
         let content = response
-            .get(str_constants::OPENAPI_CONTENT)
+            .get(constants_str::OPENAPI_CONTENT)
             .and_then(serde_json::Value::as_object)
             .and_then(|content| content.get(expectation.content_type.as_ref()))
             .ok_or(OpenApiOperationValidationError::MissingContentType)?;
-        if content.get(str_constants::JSON_SCHEMA).is_none() {
+        if content.get(constants_str::JSON_SCHEMA).is_none() {
             Err(OpenApiOperationValidationError::MissingResponseSchema)
         } else {
             Ok(())
@@ -434,13 +434,13 @@ where
     })?;
 
     if let Some(reference) = schema_value
-        .get(str_constants::DOLLAR_REF)
+        .get(constants_str::DOLLAR_REF)
         .and_then(serde_json::Value::as_str)
     {
         let referenced_schema = reference
-            .strip_prefix(str_constants::COMPONENTS_SCHEMAS)
+            .strip_prefix(constants_str::COMPONENTS_SCHEMAS)
             .and_then(|name| {
-                let schemas = document_value.pointer(str_constants::COMPONENTS_SCHEMAS_ALT)?;
+                let schemas = document_value.pointer(constants_str::COMPONENTS_SCHEMAS_ALT)?;
                 schemas.get(name)
             })
             .ok_or(OpenApiPayloadValidationError::Mismatch(
@@ -450,14 +450,14 @@ where
     }
     if payload_value.is_null()
         && schema_value
-            .get(str_constants::NULLABLE)
+            .get(constants_str::NULLABLE)
             .and_then(serde_json::Value::as_bool)
             .unwrap_or(false)
     {
         return Ok(());
     }
     if let Some(all_of) = schema_value
-        .get(str_constants::ALL_OF)
+        .get(constants_str::ALL_OF)
         .and_then(serde_json::Value::as_array)
     {
         all_of.iter().try_for_each(|candidate| {
@@ -465,7 +465,7 @@ where
         })?;
     }
     if let Some(one_of) = schema_value
-        .get(str_constants::ONE_OF)
+        .get(constants_str::ONE_OF)
         .and_then(serde_json::Value::as_array)
     {
         let matches = one_of
@@ -474,14 +474,14 @@ where
                 validate_openapi_json_payload(&payload_value, *candidate, &document_value).is_ok()
             })
             .count();
-        if matches != usize_constants::ONE {
+        if matches != constants_usize::ONE {
             return Err(OpenApiPayloadValidationError::Mismatch(
                 OpenApiSchemaMismatch::OneOf,
             ));
         }
     }
     if let Some(any_of) = schema_value
-        .get(str_constants::ANY_OF)
+        .get(constants_str::ANY_OF)
         .and_then(serde_json::Value::as_array)
         && !any_of.iter().any(|candidate| {
             validate_openapi_json_payload(&payload_value, candidate, &document_value).is_ok()
@@ -492,19 +492,19 @@ where
         ));
     }
     if let Some(expected_type) = schema_value
-        .get(str_constants::JSON_TYPE)
+        .get(constants_str::JSON_TYPE)
         .and_then(serde_json::Value::as_str)
     {
         let type_matches = match expected_type {
-            str_constants::ARRAY => payload_value.is_array(),
-            str_constants::BOOLEAN => payload_value.is_boolean(),
-            str_constants::INTEGER => {
+            constants_str::ARRAY => payload_value.is_array(),
+            constants_str::BOOLEAN => payload_value.is_boolean(),
+            constants_str::INTEGER => {
                 payload_value.as_i64().is_some() || payload_value.as_u64().is_some()
             }
-            str_constants::JSON_NULL => payload_value.is_null(),
-            str_constants::NUMBER => payload_value.is_number(),
-            str_constants::OBJECT => payload_value.is_object(),
-            str_constants::STRING => payload_value.is_string(),
+            constants_str::JSON_NULL => payload_value.is_null(),
+            constants_str::NUMBER => payload_value.is_number(),
+            constants_str::OBJECT => payload_value.is_object(),
+            constants_str::STRING => payload_value.is_string(),
             _ => false,
         };
         if !type_matches {
@@ -514,7 +514,7 @@ where
         }
     }
     if schema_value
-        .get(str_constants::ENUM)
+        .get(constants_str::ENUM)
         .and_then(serde_json::Value::as_array)
         .is_some_and(|values| !values.contains(&payload_value))
     {
@@ -523,7 +523,7 @@ where
         ));
     }
     if schema_value
-        .get(str_constants::CONST)
+        .get(constants_str::CONST)
         .is_some_and(|value| value != &payload_value)
     {
         return Err(OpenApiPayloadValidationError::Mismatch(
@@ -532,10 +532,10 @@ where
     }
     if let Some(object) = payload_value.as_object() {
         let properties = schema_value
-            .get(str_constants::PROPERTIES)
+            .get(constants_str::PROPERTIES)
             .and_then(serde_json::Value::as_object);
         if let Some(required) = schema_value
-            .get(str_constants::REQUIRED)
+            .get(constants_str::REQUIRED)
             .and_then(serde_json::Value::as_array)
             && required.iter().any(|field| {
                 field
@@ -548,7 +548,7 @@ where
             ));
         }
         if schema_value
-            .get(str_constants::ADDITIONAL_PROPERTIES)
+            .get(constants_str::ADDITIONAL_PROPERTIES)
             .and_then(serde_json::Value::as_bool)
             == Some(false)
             && object.keys().any(|field| {
@@ -569,7 +569,7 @@ where
                 })?;
         }
         if let Some(additional_schema) = schema_value
-            .get(str_constants::ADDITIONAL_PROPERTIES)
+            .get(constants_str::ADDITIONAL_PROPERTIES)
             .and_then(serde_json::Value::as_object)
         {
             object
@@ -582,7 +582,7 @@ where
                 })?;
         }
     }
-    if let Some(items_schema) = schema_value.get(str_constants::ITEMS)
+    if let Some(items_schema) = schema_value.get(constants_str::ITEMS)
         && let Some(items) = payload_value.as_array()
     {
         items.iter().try_for_each(|item| {
@@ -597,18 +597,18 @@ mod tests {
     #[test]
     fn valid_document_matches_runtime_route_and_references() {
         let document = serde_json::json!({
-            str_constants::PATHS: { str_constants::TEST_OPENAPI_PATH: { str_constants::GET_LOWERCASE: {
-                str_constants::OPERATION_ID_JSON: str_constants::TEST_OPENAPI_OPERATION_ID,
-                str_constants::RESPONSES: { str_constants::STATUS_OK: { str_constants::OPENAPI_CONTENT: { str_constants::APPLICATION_JSON: {
-                    str_constants::JSON_SCHEMA: { str_constants::DOLLAR_REF: str_constants::TEST_OPENAPI_SCHEMA_REF }
+            constants_str::PATHS: { constants_str::TEST_OPENAPI_PATH: { constants_str::GET_LOWERCASE: {
+                constants_str::OPERATION_ID_JSON: constants_str::TEST_OPENAPI_OPERATION_ID,
+                constants_str::RESPONSES: { constants_str::STATUS_OK: { constants_str::OPENAPI_CONTENT: { constants_str::APPLICATION_JSON: {
+                    constants_str::JSON_SCHEMA: { constants_str::DOLLAR_REF: constants_str::TEST_OPENAPI_SCHEMA_REF }
                 }}}}
             }}},
-            str_constants::COMPONENTS: { str_constants::SCHEMAS: { str_constants::TEST_OPENAPI_SCHEMA: { str_constants::JSON_TYPE: str_constants::OBJECT }}}
+            constants_str::COMPONENTS: { constants_str::SCHEMAS: { constants_str::TEST_OPENAPI_SCHEMA: { constants_str::JSON_TYPE: constants_str::OBJECT }}}
         });
         let routes = [frontend_contract::RouteMetadata::new(
             frontend_contract::RouteMethod::Get,
-            str_constants::TEST_OPENAPI_OPERATION_ID.into(),
-            str_constants::TEST_OPENAPI_PATH.into(),
+            constants_str::TEST_OPENAPI_OPERATION_ID.into(),
+            constants_str::TEST_OPENAPI_PATH.into(),
         )];
         assert!(matches!(
             super::validate_openapi_contract(&document, routes.as_slice().into()),
@@ -619,9 +619,9 @@ mod tests {
     #[test]
     fn dangling_reference_is_rejected() {
         let document = serde_json::json!({
-            str_constants::PATHS: {},
-            str_constants::COMPONENTS: { str_constants::SCHEMAS: { str_constants::TEST_OPENAPI_SCHEMA: {
-                str_constants::DOLLAR_REF: str_constants::TEST_OPENAPI_MISSING_SCHEMA_REF
+            constants_str::PATHS: {},
+            constants_str::COMPONENTS: { constants_str::SCHEMAS: { constants_str::TEST_OPENAPI_SCHEMA: {
+                constants_str::DOLLAR_REF: constants_str::TEST_OPENAPI_MISSING_SCHEMA_REF
             }}}
         });
         assert!(matches!(
@@ -637,21 +637,21 @@ mod tests {
     #[test]
     fn operation_security_status_and_content_type_are_checked() {
         let document = serde_json::json!({
-            str_constants::PATHS: { str_constants::TEST_OPENAPI_PATH: { str_constants::GET_LOWERCASE: {
-                str_constants::OPERATION_ID_JSON: str_constants::TEST_OPENAPI_OPERATION_ID,
-                str_constants::RESPONSES: { str_constants::STATUS_OK: { str_constants::OPENAPI_CONTENT: {
-                    str_constants::APPLICATION_JSON: { str_constants::JSON_SCHEMA: { str_constants::JSON_TYPE: str_constants::OBJECT }}
+            constants_str::PATHS: { constants_str::TEST_OPENAPI_PATH: { constants_str::GET_LOWERCASE: {
+                constants_str::OPERATION_ID_JSON: constants_str::TEST_OPENAPI_OPERATION_ID,
+                constants_str::RESPONSES: { constants_str::STATUS_OK: { constants_str::OPENAPI_CONTENT: {
+                    constants_str::APPLICATION_JSON: { constants_str::JSON_SCHEMA: { constants_str::JSON_TYPE: constants_str::OBJECT }}
                 }}}
             }}}
         });
         let expectation = super::OpenApiOperationExpectation::new(
             frontend_contract::RouteMetadata::new(
                 frontend_contract::RouteMethod::Get,
-                str_constants::TEST_OPENAPI_OPERATION_ID.into(),
-                str_constants::TEST_OPENAPI_PATH.into(),
+                constants_str::TEST_OPENAPI_OPERATION_ID.into(),
+                constants_str::TEST_OPENAPI_PATH.into(),
             ),
             super::OpenApiResponseStatus::try_from(200u16).expect("9f6e9528 operation_security_status_and_content_type_are_checked invariant must hold"),
-            str_constants::APPLICATION_JSON.into(),
+            constants_str::APPLICATION_JSON.into(),
             super::OpenApiSecurityExpectation::Public,
         );
         assert!(matches!(
@@ -663,19 +663,19 @@ mod tests {
     #[test]
     fn payload_schema_checks_required_fields_and_additional_properties() {
         let document = serde_json::json!({
-            str_constants::COMPONENTS: { str_constants::SCHEMAS: {}}
+            constants_str::COMPONENTS: { constants_str::SCHEMAS: {}}
         });
         let schema = serde_json::json!({
-            str_constants::JSON_TYPE: str_constants::OBJECT,
-            str_constants::REQUIRED: [str_constants::NAME],
-            str_constants::PROPERTIES: {
-                str_constants::NAME: { str_constants::JSON_TYPE: str_constants::STRING }
+            constants_str::JSON_TYPE: constants_str::OBJECT,
+            constants_str::REQUIRED: [constants_str::NAME],
+            constants_str::PROPERTIES: {
+                constants_str::NAME: { constants_str::JSON_TYPE: constants_str::STRING }
             },
-            str_constants::ADDITIONAL_PROPERTIES: false
+            constants_str::ADDITIONAL_PROPERTIES: false
         });
         assert!(matches!(
             super::validate_openapi_json_payload(
-                &serde_json::json!({str_constants::NAME: str_constants::TEST_OPENAPI_SCHEMA}),
+                &serde_json::json!({constants_str::NAME: constants_str::TEST_OPENAPI_SCHEMA}),
                 &schema,
                 &document,
             ),

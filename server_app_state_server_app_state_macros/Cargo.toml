@@ -10,7 +10,7 @@ edition.workspace = true
 [lib]
 proc-macro = true
 [dependencies]
-str_constants = { workspace = true }
+constants_str = { workspace = true }
 quote = { workspace = true }
 workspace_macro_helpers = { workspace = true }
 [lints]

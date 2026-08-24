@@ -6,7 +6,7 @@ pub(crate) async fn insert_user(
     display_name: &server_admin_contract::AdminDisplayName,
     password_hash: &crate::AdminPasswordHash,
 ) -> Result<crate::AdminUserId, crate::SqlxAdminError> {
-    sqlx::query_scalar::<_, i64>(str_constants::SERVER_ADMIN_INSERT_USER_SQL)
+    sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_INSERT_USER_SQL)
         .bind(login.as_ref())
         .bind(display_name.as_ref())
         .bind(password_hash.0.as_ref())
@@ -20,7 +20,7 @@ pub(crate) async fn recent_login_failure_count(
     pool: super::SqlxAdminRepositoryPoolRef<'_>,
     login: &server_admin_contract::AdminLogin,
 ) -> Result<super::AdminRecentLoginFailureCount, crate::SqlxAdminError> {
-    sqlx::query_scalar::<_, i64>(str_constants::SERVER_ADMIN_RECENT_LOGIN_FAILURE_COUNT_SQL)
+    sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_RECENT_LOGIN_FAILURE_COUNT_SQL)
         .bind(login.as_ref())
         .fetch_one(pool.0)
         .await
@@ -32,7 +32,7 @@ pub(crate) async fn find_sign_in_user(
     pool: super::SqlxAdminRepositoryPoolRef<'_>,
     login: &server_admin_contract::AdminLogin,
 ) -> Result<Option<super::AdminSignInUser>, crate::SqlxAdminError> {
-    sqlx::query_as::<_, (i64, String, bool)>(str_constants::SERVER_ADMIN_SIGN_IN_USER_SQL)
+    sqlx::query_as::<_, (i64, String, bool)>(constants_str::SERVER_ADMIN_SIGN_IN_USER_SQL)
         .bind(login.as_ref())
         .fetch_optional(pool.0)
         .await
@@ -56,7 +56,7 @@ pub(crate) async fn lock_refresh_token_user(
     connection: super::SqlxAdminRepositoryConnectionMutRef<'_>,
     token_hash: &crate::AdminTokenHash,
 ) -> Result<Option<crate::AdminUserId>, crate::SqlxAdminError> {
-    sqlx::query_scalar::<_, i64>(str_constants::SERVER_ADMIN_LOCK_REFRESH_TOKEN_USER_SQL)
+    sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_LOCK_REFRESH_TOKEN_USER_SQL)
         .bind(
             secrecy::ExposeSecret::expose_secret(token_hash.0.as_ref())
                 .as_ref()
@@ -78,7 +78,7 @@ pub(crate) async fn revoke_refresh_token(
     token_hash: &crate::AdminTokenHash,
     user_id: crate::AdminUserId,
 ) -> Result<(), crate::SqlxAdminError> {
-    sqlx::query(str_constants::SERVER_ADMIN_REVOKE_REFRESH_TOKEN_SQL)
+    sqlx::query(constants_str::SERVER_ADMIN_REVOKE_REFRESH_TOKEN_SQL)
         .bind(
             secrecy::ExposeSecret::expose_secret(token_hash.0.as_ref())
                 .as_ref()
@@ -97,7 +97,7 @@ pub(crate) async fn update_user(
     login: Option<&server_admin_contract::AdminLogin>,
     display_name: Option<&server_admin_contract::AdminDisplayName>,
 ) -> Result<crate::StdAdminBool, crate::SqlxAdminError> {
-    sqlx::query_scalar::<_, bool>(str_constants::SERVER_ADMIN_UPDATE_USER_SQL)
+    sqlx::query_scalar::<_, bool>(constants_str::SERVER_ADMIN_UPDATE_USER_SQL)
         .bind(user_id.get())
         .bind(login.map(|value| value.as_ref().as_str()))
         .bind(display_name.map(|value| value.as_ref().as_str()))
@@ -113,7 +113,7 @@ pub(crate) async fn update_user_password(
     password_hash: &crate::AdminPasswordHash,
     password_change_required: crate::AdminPasswordChangeRequired,
 ) -> Result<crate::StdAdminBool, crate::SqlxAdminError> {
-    sqlx::query_scalar::<_, bool>(str_constants::SERVER_ADMIN_UPDATE_USER_PASSWORD_SQL)
+    sqlx::query_scalar::<_, bool>(constants_str::SERVER_ADMIN_UPDATE_USER_PASSWORD_SQL)
         .bind(user_id.get())
         .bind(password_hash.0.as_ref())
         .bind(*password_change_required)
@@ -126,7 +126,7 @@ pub(crate) async fn read_password_hash(
     pool: super::SqlxAdminRepositoryPoolRef<'_>,
     user_id: crate::AdminUserId,
 ) -> Result<Option<crate::AdminPasswordHash>, crate::SqlxAdminError> {
-    sqlx::query_scalar::<_, String>(str_constants::SERVER_ADMIN_READ_PASSWORD_HASH_SQL)
+    sqlx::query_scalar::<_, String>(constants_str::SERVER_ADMIN_READ_PASSWORD_HASH_SQL)
         .bind(user_id.get())
         .fetch_optional(pool.0)
         .await
@@ -145,7 +145,7 @@ pub(crate) async fn update_user_ban(
     user_id: crate::AdminUserId,
     is_banned: crate::StdAdminBool,
 ) -> Result<crate::StdAdminBool, crate::SqlxAdminError> {
-    sqlx::query_scalar::<_, bool>(str_constants::SERVER_ADMIN_UPDATE_USER_BAN_SQL)
+    sqlx::query_scalar::<_, bool>(constants_str::SERVER_ADMIN_UPDATE_USER_BAN_SQL)
         .bind(user_id.get())
         .bind(is_banned.get())
         .fetch_optional(connection.0)
@@ -158,7 +158,7 @@ pub(crate) async fn delete_user(
     connection: super::SqlxAdminRepositoryConnectionMutRef<'_>,
     user_id: crate::AdminUserId,
 ) -> Result<crate::StdAdminBool, crate::SqlxAdminError> {
-    sqlx::query_scalar::<_, bool>(str_constants::SERVER_ADMIN_DELETE_USER_SQL)
+    sqlx::query_scalar::<_, bool>(constants_str::SERVER_ADMIN_DELETE_USER_SQL)
         .bind(user_id.get())
         .fetch_optional(connection.0)
         .await
@@ -177,13 +177,13 @@ pub(crate) async fn list_users(
     super::AdminRepositoryError,
 > {
     let search = query.search().as_ref();
-    let total = sqlx::query_scalar::<_, i64>(str_constants::SERVER_ADMIN_COUNT_FILTERED_USERS_SQL)
+    let total = sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_COUNT_FILTERED_USERS_SQL)
         .bind(search)
         .fetch_one(pool.0)
         .await
         .map_err(crate::SqlxAdminError::from)?;
     let rows = sqlx::query_as::<_, (i64, String, String, bool)>(
-        str_constants::SERVER_ADMIN_PAGE_USERS_SQL,
+        constants_str::SERVER_ADMIN_PAGE_USERS_SQL,
     )
     .bind(search)
     .bind(query.sort().as_ref())
@@ -194,7 +194,7 @@ pub(crate) async fn list_users(
     .await
     .map_err(crate::SqlxAdminError::from)?;
     let user_ids = rows.iter().map(|row| row.0).collect::<Vec<_>>();
-    let links = sqlx::query_as::<_, (i64, i64)>(str_constants::SERVER_ADMIN_LIST_USER_ROLE_IDS_SQL)
+    let links = sqlx::query_as::<_, (i64, i64)>(constants_str::SERVER_ADMIN_LIST_USER_ROLE_IDS_SQL)
         .bind(user_ids.as_slice())
         .fetch_all(pool.0)
         .await
@@ -241,7 +241,7 @@ pub(crate) async fn read_authenticated_record(
     user_id: crate::AdminUserId,
 ) -> Result<Option<super::AdminAuthenticatedRecord>, super::AdminRepositoryError> {
     let user_query =
-        sqlx::query_as::<_, (String, String, bool)>(str_constants::SERVER_ADMIN_READ_AUTH_USER_SQL)
+        sqlx::query_as::<_, (String, String, bool)>(constants_str::SERVER_ADMIN_READ_AUTH_USER_SQL)
             .bind(user_id.get());
     let optional_user = match db {
         super::AdminRepositoryDbRef::Connection(connection) => {
@@ -254,7 +254,7 @@ pub(crate) async fn read_authenticated_record(
         return Ok(None);
     };
     let roles_query =
-        sqlx::query_scalar::<_, String>(str_constants::SERVER_ADMIN_READ_AUTH_ROLES_SQL)
+        sqlx::query_scalar::<_, String>(constants_str::SERVER_ADMIN_READ_AUTH_ROLES_SQL)
             .bind(user_id.get());
     let raw_roles = match db {
         super::AdminRepositoryDbRef::Connection(connection) => {
@@ -264,7 +264,7 @@ pub(crate) async fn read_authenticated_record(
     }
     .map_err(crate::SqlxAdminError::from)?;
     let permissions_query =
-        sqlx::query_scalar::<_, String>(str_constants::SERVER_ADMIN_READ_AUTH_PERMISSIONS_SQL)
+        sqlx::query_scalar::<_, String>(constants_str::SERVER_ADMIN_READ_AUTH_PERMISSIONS_SQL)
             .bind(user_id.get());
     let raw_permissions = match db {
         super::AdminRepositoryDbRef::Connection(connection) => {

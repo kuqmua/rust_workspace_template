@@ -4,7 +4,7 @@ pub struct SecrecyAdminString(secrecy::SecretBox<StdAdminString>);
 
 impl std::fmt::Debug for SecrecyAdminString {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(str_constants::REDACTED_ALT_3)
+        f.write_str(constants_str::REDACTED_ALT_3)
     }
 }
 impl TryFrom<String> for SecrecyAdminString {
@@ -50,7 +50,7 @@ impl From<AdminResourceText> for StdAdminString {
     fn from(resource: AdminResourceText) -> Self {
         Self(match resource {
             AdminResourceText::PositiveI64(value) => value.get().to_string(),
-            AdminResourceText::SystemSettings => str_constants::VALUE_1.to_owned(),
+            AdminResourceText::SystemSettings => constants_str::VALUE_1.to_owned(),
             AdminResourceText::Uuid(value) => value.get().to_string(),
         })
     }
@@ -149,7 +149,7 @@ impl utoipa::PartialSchema for UuidAdminValue {
         utoipa::openapi::ObjectBuilder::new()
             .schema_type(utoipa::openapi::schema::Type::String)
             .format(Some(utoipa::openapi::SchemaFormat::Custom(
-                str_constants::PG_CRUD_PG_UUID.to_owned(),
+                constants_str::PG_CRUD_PG_UUID.to_owned(),
             )))
             .into()
     }
@@ -327,7 +327,7 @@ pub struct AdminPermissionName(server_admin_contract::AdminPermission);
 mod tests {
     #[test]
     fn administrator_secret_text_enforces_internal_bound() {
-        let at_limit = "a".repeat(usize_constants::VALUE_8_192);
+        let at_limit = "a".repeat(constants_usize::VALUE_8_192);
         let secret = super::SecrecyAdminString::try_from(at_limit.clone()).expect(
             "6673b876 administrator_secret_text_enforces_internal_bound invariant must hold",
         );
@@ -341,13 +341,13 @@ mod tests {
             super::SecrecyAdminString::try_from("a".repeat(8_193usize)).err(),
             Some(super::StdAdminStringTryFromStringError::TooLong {
                 len: 8_193usize,
-                max: usize_constants::VALUE_8_192,
+                max: constants_usize::VALUE_8_192,
             })
         );
     }
     #[test]
     fn administrator_secret_text_is_redacted_and_zeroizable() {
-        let raw = str_constants::NEVER_PRINT_THIS_VALUE;
+        let raw = constants_str::NEVER_PRINT_THIS_VALUE;
         let secret = super::SecrecyAdminString::try_from(raw.to_owned()).expect(
             "67b629e2 administrator_secret_text_is_redacted_and_zeroizable invariant must hold",
         );

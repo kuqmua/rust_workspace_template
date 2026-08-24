@@ -45,7 +45,7 @@ impl From<AdminSsrHtmlTryFromStringError> for AdminSsrHtml {
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
 )]
-#[error("{message}", message = str_constants::ADMIN_SSR_TITLE_TOO_LONG)]
+#[error("{message}", message = constants_str::ADMIN_SSR_TITLE_TOO_LONG)]
 pub struct AdminSsrTextTryFromStringError;
 impl From<AdminSsrTextTryFromStringError> for AdminSsrText {
     fn from(value: AdminSsrTextTryFromStringError) -> Self {
@@ -78,7 +78,7 @@ pub struct AdminSsrText(String);
 impl TryFrom<String> for AdminSsrText {
     type Error = AdminSsrTextTryFromStringError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        (value.len() <= usize_constants::VALUE_16_777_216)
+        (value.len() <= constants_usize::VALUE_16_777_216)
             .then_some(Self(value))
             .ok_or(AdminSsrTextTryFromStringError)
     }
@@ -97,7 +97,7 @@ pub struct AdminSsrHtml(String);
 impl TryFrom<String> for AdminSsrHtml {
     type Error = AdminSsrHtmlTryFromStringError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        (value.len() <= usize_constants::VALUE_16_777_216)
+        (value.len() <= constants_usize::VALUE_16_777_216)
             .then_some(Self(value))
             .ok_or(AdminSsrHtmlTryFromStringError)
     }

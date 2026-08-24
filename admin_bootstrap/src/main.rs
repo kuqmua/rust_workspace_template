@@ -1,6 +1,6 @@
 #![allow(
     unused_crate_dependencies,
-    reason = "str_constants is used by binary unit tests"
+    reason = "constants_str is used by binary unit tests"
 )]
 #![allow(
     clippy::single_call_fn,
@@ -83,7 +83,7 @@ impl std::process::Termination for StdBootstrapExitCode {
 }
 
 fn parse_args() -> Result<AdminCommand, BootstrapArgsError> {
-    let mut args = std::env::args_os().skip(usize_constants::ONE);
+    let mut args = std::env::args_os().skip(constants_usize::ONE);
     let login_arg = args.next().ok_or(BootstrapArgsError::Usage)?;
     if login_arg == std::ffi::OsStr::new("reset") {
         let reset_login_arg = args.next().ok_or(BootstrapArgsError::Usage)?;
@@ -270,14 +270,14 @@ mod tests {
 
     #[test]
     fn password_file_accepts_one_trailing_line_ending() {
-        let password_text = str_constants::TEST_STRONG_PASSWORD;
+        let password_text = constants_str::TEST_STRONG_PASSWORD;
         let password = super::password_from_bytes(server_runtime_http::BoundedBytes::from(
             format!("{password_text}\r\n").into_bytes(),
         ))
         .expect("05536bb6 password_file_accepts_one_trailing_line_ending invariant must hold");
 
         let debug = format!("{password:?}");
-        assert!(debug.contains(str_constants::REDACTED_ALT_3));
+        assert!(debug.contains(constants_str::REDACTED_ALT_3));
         assert!(!debug.contains(password_text));
     }
 
@@ -287,7 +287,7 @@ mod tests {
             super::password_from_bytes(server_runtime_http::BoundedBytes::from(vec![
                 b'a';
                 super::PASSWORD_FILE_MAX_BYTES
-                    .saturating_add(usize_constants::ONE)
+                    .saturating_add(constants_usize::ONE)
             ]))
         else {
             panic!("7ad9edb5 expected an excessive password file to fail");

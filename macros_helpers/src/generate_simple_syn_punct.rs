@@ -43,9 +43,9 @@ where
 #[must_use]
 pub fn string_syn_punct() -> SynPathSegments {
     generate_simple_syn_punct([
-        str_constants::STD,
-        str_constants::STRING_ALT,
-        str_constants::STRING,
+        constants_str::STD,
+        constants_str::STRING_ALT,
+        constants_str::STRING,
     ])
 }
 #[cfg(test)]
@@ -53,9 +53,9 @@ mod tests {
     #[test]
     fn generate_simple_syn_punct_builds_three_segment_path() {
         let punct = super::generate_simple_syn_punct([
-            str_constants::STD,
-            str_constants::STRING_ALT,
-            str_constants::STRING,
+            constants_str::STD,
+            constants_str::STRING_ALT,
+            constants_str::STRING,
         ]);
         assert_eq!(
             quote::quote! {#punct}.to_string(),
@@ -64,7 +64,7 @@ mod tests {
     }
     #[test]
     fn generate_simple_syn_punct_builds_single_segment_path() {
-        let punct = super::generate_simple_syn_punct([str_constants::ONLY]);
+        let punct = super::generate_simple_syn_punct([constants_str::ONLY]);
         assert_eq!(quote::quote! {#punct}.to_string(), "Only");
     }
     #[test]

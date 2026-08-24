@@ -55,7 +55,7 @@ pub fn fallback_response_mode(
         .is_some_and(|value| {
             value
                 .split(',')
-                .take(MAXIMUM_ACCEPT_MEDIA_RANGE_COUNT.saturating_add(usize_constants::ONE))
+                .take(MAXIMUM_ACCEPT_MEDIA_RANGE_COUNT.saturating_add(constants_usize::ONE))
                 .enumerate()
                 .any(|(index, range)| {
                     index < MAXIMUM_ACCEPT_MEDIA_RANGE_COUNT
@@ -73,11 +73,11 @@ fn media_range_accepts_json(range: HttpMediaRangeRef<'_>) -> AcceptsApplicationJ
     let mut segments = range.0.split(';').map(str::trim);
     AcceptsApplicationJson::from(
         segments.next().is_some_and(|media_type| {
-            media_type.eq_ignore_ascii_case(str_constants::APPLICATION_JSON)
+            media_type.eq_ignore_ascii_case(constants_str::APPLICATION_JSON)
         }) && !segments.any(|parameter| {
             parameter.split_once('=').is_some_and(|(name, value)| {
                 name.trim()
-                    .eq_ignore_ascii_case(str_constants::HTTP_ACCEPT_QUALITY_PARAMETER)
+                    .eq_ignore_ascii_case(constants_str::HTTP_ACCEPT_QUALITY_PARAMETER)
                     && value.trim().strip_prefix('0').is_some_and(|suffix| {
                         suffix.is_empty()
                             || suffix.strip_prefix('.').is_some_and(|digits| {
@@ -95,9 +95,9 @@ mod tests {
     fn api_path_is_machine_readable_without_accept_header() {
         assert_eq!(
             super::fallback_response_mode(
-                super::HttpFallbackRequestPathRef::from(str_constants::TEST_SERVICE_USERS_PATH),
-                super::HttpFallbackApiPrefixRef::from(str_constants::TEST_SERVICE_PREFIX),
-                super::HttpFallbackMetricsPathRef::from(str_constants::METRICS),
+                super::HttpFallbackRequestPathRef::from(constants_str::TEST_SERVICE_USERS_PATH),
+                super::HttpFallbackApiPrefixRef::from(constants_str::TEST_SERVICE_PREFIX),
+                super::HttpFallbackMetricsPathRef::from(constants_str::METRICS),
                 super::HttpOptionalAcceptHeaderRef::from(None),
                 super::HttpAcceptHeaderMaximumBytes::from(1024usize),
             ),
@@ -107,12 +107,12 @@ mod tests {
     #[test]
     fn zero_quality_json_is_not_accepted() {
         let accept =
-            http::HeaderValue::from_static(str_constants::TEST_ACCEPT_HTML_JSON_ZERO_QUALITY);
+            http::HeaderValue::from_static(constants_str::TEST_ACCEPT_HTML_JSON_ZERO_QUALITY);
         assert_eq!(
             super::fallback_response_mode(
-                super::HttpFallbackRequestPathRef::from(str_constants::TEST_SIGNIN_PATH),
-                super::HttpFallbackApiPrefixRef::from(str_constants::TEST_SERVICE_PREFIX),
-                super::HttpFallbackMetricsPathRef::from(str_constants::METRICS),
+                super::HttpFallbackRequestPathRef::from(constants_str::TEST_SIGNIN_PATH),
+                super::HttpFallbackApiPrefixRef::from(constants_str::TEST_SERVICE_PREFIX),
+                super::HttpFallbackMetricsPathRef::from(constants_str::METRICS),
                 super::HttpOptionalAcceptHeaderRef::from(Some(&accept)),
                 super::HttpAcceptHeaderMaximumBytes::from(1024usize),
             ),

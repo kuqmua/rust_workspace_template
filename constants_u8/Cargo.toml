@@ -1,14 +1,11 @@
 [package]
-name = "str_constants"
+name = "constants_u8"
 version.workspace = true
 publish.workspace = true
 description.workspace = true
 repository.workspace = true
-
 license.workspace = true
 edition.workspace = true
 [dependencies]
-git-version = { workspace = true }
-str_constants_macros = { workspace = true }
 [lints]
 workspace = true

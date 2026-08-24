@@ -79,8 +79,8 @@ where
 }
 to_err_string_macros::impl_to_err_string_as_ref_str!(String, str, std::borrow::Cow<'_, str>);
 to_err_string_macros::impl_to_err_string_const!(
-    tracing::dispatcher::SetGlobalDefaultError => str_constants::TRACING_PATH_DISPATCHER_PATH_SETGLOBALDEFAULTERROR,
-    tracing::log::SetLoggerError => str_constants::TRACING_PATH_LOG_PATH_TRACING_PATH_LOG_PATH_SETLOGGERERROR,
+    tracing::dispatcher::SetGlobalDefaultError => constants_str::TRACING_PATH_DISPATCHER_PATH_SETGLOBALDEFAULTERROR,
+    tracing::log::SetLoggerError => constants_str::TRACING_PATH_LOG_PATH_TRACING_PATH_LOG_PATH_SETLOGGERERROR,
 );
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
 struct StaticStrToOwnedInput(&'static str);
@@ -106,40 +106,40 @@ mod tests {
     }
     #[test]
     fn to_err_string_for_primitives_and_options() {
-        assert_to_err_string(42i32, str_constants::VALUE_42);
-        assert_to_err_string(42i128, str_constants::VALUE_42);
-        assert_to_err_string(42isize, str_constants::VALUE_42);
-        assert_to_err_string(42u128, str_constants::VALUE_42);
-        assert_to_err_string(Some(7u8), str_constants::SOME_7);
-        assert_to_err_string(None::<u16>, str_constants::NONE);
-        assert_to_err_string(true, str_constants::TRUE);
-        assert_to_err_string('x', str_constants::X);
+        assert_to_err_string(42i32, constants_str::VALUE_42);
+        assert_to_err_string(42i128, constants_str::VALUE_42);
+        assert_to_err_string(42isize, constants_str::VALUE_42);
+        assert_to_err_string(42u128, constants_str::VALUE_42);
+        assert_to_err_string(Some(7u8), constants_str::SOME_7);
+        assert_to_err_string(None::<u16>, constants_str::NONE);
+        assert_to_err_string(true, constants_str::TRUE);
+        assert_to_err_string('x', constants_str::X);
         assert_to_err_string(
-            Some(String::from(str_constants::ABC_ALT_3)),
-            str_constants::SOME_ABC,
+            Some(String::from(constants_str::ABC_ALT_3)),
+            constants_str::SOME_ABC,
         );
     }
     #[test]
     fn to_err_string_for_strings_and_str_refs() {
-        let owned = String::from(str_constants::ABC_ALT_3);
-        let borrowed = str_constants::XYZ;
-        assert_to_err_string(owned, str_constants::ABC_ALT_3);
-        assert_to_err_string(borrowed, str_constants::XYZ);
+        let owned = String::from(constants_str::ABC_ALT_3);
+        let borrowed = constants_str::XYZ;
+        assert_to_err_string(owned, constants_str::ABC_ALT_3);
+        assert_to_err_string(borrowed, constants_str::XYZ);
         assert_to_err_string(
-            std::borrow::Cow::Borrowed(str_constants::QWE),
-            str_constants::QWE,
+            std::borrow::Cow::Borrowed(constants_str::QWE),
+            constants_str::QWE,
         );
         assert_to_err_string(
-            std::borrow::Cow::<'_, str>::Owned(String::from(str_constants::RTY)),
-            str_constants::RTY,
+            std::borrow::Cow::<'_, str>::Owned(String::from(constants_str::RTY)),
+            constants_str::RTY,
         );
     }
     #[test]
     fn to_err_string_for_result_values() {
-        assert_to_err_string(Result::<u8, u16>::Ok(5), str_constants::OK_5);
+        assert_to_err_string(Result::<u8, u16>::Ok(5), constants_str::OK_5);
         assert_to_err_string(
-            Result::<u8, &'static str>::Err(str_constants::CONFIG_TRACING_ERROR),
-            str_constants::ERR_ERROR,
+            Result::<u8, &'static str>::Err(constants_str::CONFIG_TRACING_ERROR),
+            constants_str::ERR_ERROR,
         );
     }
     #[test]
@@ -148,11 +148,11 @@ mod tests {
         ignore = "oversized JSON serialization is covered natively and is prohibitively slow under interpretation"
     )]
     fn error_text_owns_the_shared_length_invariant() {
-        let valid = super::ErrorText::try_from(String::from(str_constants::ERROR))
+        let valid = super::ErrorText::try_from(String::from(constants_str::ERROR))
             .expect("11a745a8 error_text_owns_the_shared_length_invariant invariant must hold");
-        assert_eq!(valid.as_ref(), str_constants::ERROR);
+        assert_eq!(valid.as_ref(), constants_str::ERROR);
 
-        let oversized = "x".repeat(super::ERROR_TEXT_MAX_LEN.saturating_add(usize_constants::ONE));
+        let oversized = "x".repeat(super::ERROR_TEXT_MAX_LEN.saturating_add(constants_usize::ONE));
         let _conversion_error =
             super::ErrorText::try_from(oversized.clone()).expect_err("06920f8a");
         let serialized = serde_json::to_string(&oversized)

@@ -1,5 +1,5 @@
 [package]
-name = "usize_constants"
+name = "constants_usize"
 version.workspace = true
 publish.workspace = true
 description.workspace = true

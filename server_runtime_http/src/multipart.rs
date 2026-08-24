@@ -309,8 +309,8 @@ pub fn staging_directory_name(
     action: FileStagingAction,
 ) -> Result<FileStagingDirectoryName, MultipartValueError> {
     FileStagingDirectoryName::try_from(String::from(match action {
-        FileStagingAction::Delete => str_constants::FILE_DELETE_STAGING_DIRECTORY,
-        FileStagingAction::Upload => str_constants::FILE_UPLOAD_STAGING_DIRECTORY,
+        FileStagingAction::Delete => constants_str::FILE_DELETE_STAGING_DIRECTORY,
+        FileStagingAction::Upload => constants_str::FILE_UPLOAD_STAGING_DIRECTORY,
     }))
 }
 
@@ -472,11 +472,11 @@ mod tests {
             Err(super::MultipartRequestError::PayloadTooLarge)
         );
 
-        let full_request = (usize_constants::ZERO..32usize)
+        let full_request = (constants_usize::ZERO..32usize)
             .try_fold(super::MultipartUploadRequest::new(), |accumulator, _idx| {
                 accumulator.with_text_part(
                     text_part(""),
-                    super::MultipartPayloadMaximum::from(usize_constants::ZERO),
+                    super::MultipartPayloadMaximum::from(constants_usize::ZERO),
                 )
             })
             .expect(
@@ -486,7 +486,7 @@ mod tests {
         assert_eq!(
             full_request.with_text_part(
                 text_part(""),
-                super::MultipartPayloadMaximum::from(usize_constants::ZERO)
+                super::MultipartPayloadMaximum::from(constants_usize::ZERO)
             ),
             Err(super::MultipartRequestError::TooManyParts)
         );
@@ -528,33 +528,33 @@ mod tests {
             super::staging_directory_name(super::FileStagingAction::Delete)
                 .expect("c5076b2f storage_paths_validate_segments_and_preserve_file_extensions invariant must hold")
                 .as_ref(),
-            str_constants::FILE_DELETE_STAGING_DIRECTORY
+            constants_str::FILE_DELETE_STAGING_DIRECTORY
         );
         assert_eq!(
             super::staging_directory_name(super::FileStagingAction::Upload)
                 .expect("725e03de storage_paths_validate_segments_and_preserve_file_extensions invariant must hold")
                 .as_ref(),
-            str_constants::FILE_UPLOAD_STAGING_DIRECTORY
+            constants_str::FILE_UPLOAD_STAGING_DIRECTORY
         );
     }
     #[test]
     fn request_rejects_payload_above_limit() {
         let name = super::MultipartFieldName::try_from(String::from(
-            str_constants::TEST_MULTIPART_FILE_FIELD,
+            constants_str::TEST_MULTIPART_FILE_FIELD,
         ))
         .expect("3696f97d request_rejects_payload_above_limit invariant must hold");
-        let bytes = super::MultipartBytes::try_from(vec![u8_constants::ZERO; 2usize])
+        let bytes = super::MultipartBytes::try_from(vec![constants_u8::ZERO; 2usize])
             .expect("24f930b8 request_rejects_payload_above_limit invariant must hold");
         let result = super::MultipartUploadRequest::new().with_bytes_part(
             super::MultipartBytesPart::new(name, bytes),
-            super::MultipartPayloadMaximum::from(usize_constants::ONE),
+            super::MultipartPayloadMaximum::from(constants_usize::ONE),
         );
         assert_eq!(result, Err(super::MultipartRequestError::PayloadTooLarge));
     }
     #[test]
     fn file_name_rejects_path_traversal() {
         assert_eq!(
-            super::MultipartFileName::try_from(String::from(str_constants::TEST_PATH_TRAVERSAL,)),
+            super::MultipartFileName::try_from(String::from(constants_str::TEST_PATH_TRAVERSAL,)),
             Err(super::MultipartValueError::PathComponent)
         );
     }

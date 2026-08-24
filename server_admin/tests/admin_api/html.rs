@@ -35,7 +35,7 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::GET),
         StdAdminApiTestStrRef::from(server_admin_contract::AdminFrontendPath::Users.get()),
-        StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+        StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
     )
     .await;
     assert_eq!(users_response.status(), http::StatusCode::OK);
@@ -148,7 +148,7 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
     .expect("b9306c2e postgresql_html_users_crud_covers_every_frontend_field_separately invariant must hold");
     assert_eq!(new_sign_in_response.status(), http::StatusCode::SEE_OTHER);
 
-    let role_id = sqlx::query_scalar::<_, i64>(str_constants::SERVER_ADMIN_READ_ADMIN_ROLE_ID_SQL)
+    let role_id = sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_READ_ADMIN_ROLE_ID_SQL)
         .fetch_one(&fixture.pool.0)
         .await
         .expect("f1674ab9 postgresql_html_users_crud_covers_every_frontend_field_separately invariant must hold");
@@ -187,7 +187,7 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::GET),
         StdAdminApiTestStrRef::from(server_admin_contract::AdminFrontendPath::Users.get()),
-        StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+        StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
     )
     .await;
     let final_users_html = admin_html_body(final_users_response).await;
@@ -239,12 +239,12 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
         .fetch_one(&fixture.pool.0)
         .await
         .expect("72c950ea postgresql_html_users_crud_covers_every_frontend_field_separately invariant must hold");
-    assert_eq!(deleted_count, i64_constants::ZERO);
+    assert_eq!(deleted_count, constants_i64::ZERO);
     let deleted_users_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::GET),
         StdAdminApiTestStrRef::from(server_admin_contract::AdminFrontendPath::Users.get()),
-        StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+        StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
     )
     .await;
     let deleted_users_html = admin_html_body(deleted_users_response).await;
@@ -280,7 +280,7 @@ async fn postgresql_html_roles_crud_covers_every_frontend_field_separately() {
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::GET),
         StdAdminApiTestStrRef::from(server_admin_contract::AdminFrontendPath::Roles.get()),
-        StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+        StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
     )
     .await;
     assert_eq!(roles_response.status(), http::StatusCode::OK);
@@ -335,7 +335,7 @@ async fn postgresql_html_roles_crud_covers_every_frontend_field_separately() {
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::GET),
         StdAdminApiTestStrRef::from(server_admin_contract::AdminFrontendPath::Roles.get()),
-        StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+        StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
     )
     .await;
     let final_roles_html = admin_html_body(final_roles_response).await;
@@ -357,12 +357,12 @@ async fn postgresql_html_roles_crud_covers_every_frontend_field_separately() {
         .fetch_one(&fixture.pool.0)
         .await
         .expect("2db479f8 postgresql_html_roles_crud_covers_every_frontend_field_separately invariant must hold");
-    assert_eq!(deleted_count, i64_constants::ZERO);
+    assert_eq!(deleted_count, constants_i64::ZERO);
     let deleted_roles_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::GET),
         StdAdminApiTestStrRef::from(server_admin_contract::AdminFrontendPath::Roles.get()),
-        StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+        StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
     )
     .await;
     let deleted_roles_html = admin_html_body(deleted_roles_response).await;
@@ -505,7 +505,7 @@ async fn postgresql_html_settings_updates_and_reads_every_field_separately() {
             fixture_ref,
             HttpAdminApiTestMethod::from(http::Method::GET),
             StdAdminApiTestStrRef::from(server_admin_contract::AdminFrontendPath::Settings.get()),
-            StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+            StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
         )
         .await;
         assert_eq!(read_response.status(), http::StatusCode::OK);
@@ -539,7 +539,7 @@ async fn postgresql_html_settings_updates_and_reads_every_field_separately() {
     assert_eq!(stored.5, organization_name_b.0);
     assert_eq!(stored.6, organization_contacts_b.0);
     assert_eq!(stored.7, support_url_b.0);
-    let empty = StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX);
+    let empty = StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX);
     let clear_states = [
         (
             AdminHtmlSettingsTestValues {
@@ -552,7 +552,7 @@ async fn postgresql_html_settings_updates_and_reads_every_field_separately() {
                 support_url: support_url_b,
                 tab_title: empty,
             },
-            usize_constants::ONE,
+            constants_usize::ONE,
         ),
         (
             AdminHtmlSettingsTestValues {
@@ -655,27 +655,27 @@ async fn postgresql_html_settings_updates_and_reads_every_field_separately() {
                 [
                     (
                         optional_values.0.as_str(),
-                        str_constants::ADMIN,
+                        constants_str::ADMIN,
                     ),
                     (
                         optional_values.1.as_str(),
-                        str_constants::ADMIN_DEFAULT_MAIN_LOGO,
+                        constants_str::ADMIN_DEFAULT_MAIN_LOGO,
                     ),
                     (
                         optional_values.2.as_str(),
-                        str_constants::PRIMARY_COLOR_DEFAULT,
+                        constants_str::PRIMARY_COLOR_DEFAULT,
                     ),
                     (
                         optional_values.3.as_str(),
-                        str_constants::ADMIN,
+                        constants_str::ADMIN,
                     ),
                     (
                         optional_values.4.as_str(),
-                        str_constants::ADMIN_DEFAULT_ORGANIZATION_CONTACTS,
+                        constants_str::ADMIN_DEFAULT_ORGANIZATION_CONTACTS,
                     ),
                     (
                         optional_values.5.as_str(),
-                        str_constants::ADMIN_DEFAULT_SUPPORT_URL,
+                        constants_str::ADMIN_DEFAULT_SUPPORT_URL,
                     ),
                 ]
                 .iter()
@@ -698,7 +698,7 @@ async fn postgresql_bootstrap_password_must_change_before_admin_access() {
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::GET),
         StdAdminApiTestStrRef::from(server_admin_contract::AdminFrontendPath::Users.get()),
-        StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+        StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
     )
     .await;
     assert_eq!(users_response.status(), http::StatusCode::SEE_OTHER);
@@ -712,12 +712,12 @@ async fn postgresql_bootstrap_password_must_change_before_admin_access() {
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::GET),
         StdAdminApiTestStrRef::from(server_admin_contract::AdminFrontendPath::Profile.get()),
-        StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+        StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
     )
     .await;
     assert_eq!(profile_response.status(), http::StatusCode::OK);
     let correct_password =
-        serde_json::from_str::<String>(str_constants::CORRECT_PASSWORD).expect("e20a72a8 postgresql_bootstrap_password_must_change_before_admin_access invariant must hold");
+        serde_json::from_str::<String>(constants_str::CORRECT_PASSWORD).expect("e20a72a8 postgresql_bootstrap_password_must_change_before_admin_access invariant must hold");
     let change_password_body = AdminHtmlTestFormBody::try_from(format!(
         "current_password={correct_password}&new_password=Bootstrap-changed-pass2",
     ))
@@ -734,7 +734,7 @@ async fn postgresql_bootstrap_password_must_change_before_admin_access() {
         http::StatusCode::SEE_OTHER
     );
     let password_change_required = sqlx::query_scalar::<_, bool>(
-        str_constants::SELECT_MUST_CHANGE_PASSWORD_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN,
+        constants_str::SELECT_MUST_CHANGE_PASSWORD_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN,
     )
     .fetch_one(&fixture.pool.0)
     .await
@@ -744,7 +744,7 @@ async fn postgresql_bootstrap_password_must_change_before_admin_access() {
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::GET),
         StdAdminApiTestStrRef::from(server_admin_contract::AdminFrontendPath::Users.get()),
-        StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+        StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
     )
     .await;
     assert_eq!(post_change_users_response.status(), http::StatusCode::OK);
@@ -759,7 +759,7 @@ async fn postgresql_html_profile_reads_every_field_and_changes_own_password() {
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::GET),
         StdAdminApiTestStrRef::from(server_admin_contract::AdminFrontendPath::Profile.get()),
-        StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+        StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
     )
     .await;
     assert_eq!(profile_response.status(), http::StatusCode::OK);
@@ -767,7 +767,7 @@ async fn postgresql_html_profile_reads_every_field_and_changes_own_password() {
     assert_admin_csr_shell(&profile_html);
 
     let original_password_hash = sqlx::query_scalar::<_, String>(
-        str_constants::SELECT_PASSWORD_HASH_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN,
+        constants_str::SELECT_PASSWORD_HASH_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN,
     )
     .fetch_one(&fixture.pool.0)
     .await
@@ -796,7 +796,7 @@ async fn postgresql_html_profile_reads_every_field_and_changes_own_password() {
     .await
     .expect("d61fc342 postgresql_html_profile_reads_every_field_and_changes_own_password invariant must hold");
     let correct_password =
-        serde_json::from_str::<String>(str_constants::CORRECT_PASSWORD).expect("c59b011a postgresql_html_profile_reads_every_field_and_changes_own_password invariant must hold");
+        serde_json::from_str::<String>(constants_str::CORRECT_PASSWORD).expect("c59b011a postgresql_html_profile_reads_every_field_and_changes_own_password invariant must hold");
     let change_password_body = AdminHtmlTestFormBody::try_from(format!(
         "current_password={correct_password}&new_password=Html-profile-pass2",
     ))
@@ -813,7 +813,7 @@ async fn postgresql_html_profile_reads_every_field_and_changes_own_password() {
         http::StatusCode::SEE_OTHER
     );
     let changed_password_hash = sqlx::query_scalar::<_, String>(
-        str_constants::SELECT_PASSWORD_HASH_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN,
+        constants_str::SELECT_PASSWORD_HASH_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN,
     )
     .fetch_one(&fixture.pool.0)
     .await
@@ -841,12 +841,12 @@ async fn postgresql_html_profile_reads_every_field_and_changes_own_password() {
     .fetch_one(&fixture.pool.0)
     .await
     .expect("740d6dc9 postgresql_html_profile_reads_every_field_and_changes_own_password invariant must hold");
-    assert_eq!(active_refresh_token_count, i64_constants::ZERO);
+    assert_eq!(active_refresh_token_count, constants_i64::ZERO);
     let authenticated_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::GET),
         StdAdminApiTestStrRef::from(server_admin_contract::AdminFrontendPath::Profile.get()),
-        StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+        StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
     )
     .await;
     assert_eq!(authenticated_response.status(), http::StatusCode::OK);
@@ -857,16 +857,16 @@ async fn postgresql_html_profile_reads_every_field_and_changes_own_password() {
 async fn postgresql_html_sessions_reads_every_field_and_revokes_session() {
     let fixture = admin_html_test_fixture().await;
     let admin_id =
-        sqlx::query_scalar::<_, i64>(str_constants::SELECT_ID_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN)
+        sqlx::query_scalar::<_, i64>(constants_str::SELECT_ID_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN)
             .fetch_one(&fixture.pool.0)
             .await
             .expect("7f0a7c64 postgresql_html_sessions_reads_every_field_and_revokes_session invariant must hold");
     let (session_id, _created_at, _expires_at) = sqlx::query_as::<_, (uuid::Uuid, String, String)>(
-        str_constants::SERVER_ADMIN_LIST_ACTIVE_SESSIONS_SQL,
+        constants_str::SERVER_ADMIN_LIST_ACTIVE_SESSIONS_SQL,
     )
     .bind(admin_id)
     .bind(100i64)
-    .bind(i64_constants::ZERO)
+    .bind(constants_i64::ZERO)
     .fetch_one(&fixture.pool.0)
     .await
     .expect("32e44a86 postgresql_html_sessions_reads_every_field_and_revokes_session invariant must hold");
@@ -874,7 +874,7 @@ async fn postgresql_html_sessions_reads_every_field_and_revokes_session() {
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::GET),
         StdAdminApiTestStrRef::from(server_admin_contract::AdminFrontendPath::Sessions.get()),
-        StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+        StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
     )
     .await;
     assert_eq!(sessions_response.status(), http::StatusCode::OK);
@@ -904,7 +904,7 @@ async fn postgresql_html_sessions_reads_every_field_and_revokes_session() {
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::GET),
         StdAdminApiTestStrRef::from(server_admin_contract::AdminFrontendPath::Sessions.get()),
-        StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+        StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
     )
     .await;
     assert_eq!(rejected_response.status(), http::StatusCode::SEE_OTHER);
@@ -935,7 +935,7 @@ async fn postgresql_html_router_registers_every_owned_page_and_action() {
                 fixture_ref,
                 HttpAdminApiTestMethod::from(http::Method::GET),
                 StdAdminApiTestStrRef::from(path.get()),
-                StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+                StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
             )
             .await;
             assert!(
@@ -970,7 +970,7 @@ async fn postgresql_html_router_registers_every_owned_page_and_action() {
                 fixture_ref,
                 HttpAdminApiTestMethod::from(http::Method::GET),
                 StdAdminApiTestStrRef::from(uri.as_ref()),
-                StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+                StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
             )
             .await;
             assert_eq!(
@@ -992,7 +992,7 @@ async fn postgresql_html_router_registers_every_owned_page_and_action() {
                 html_request_with_peer(
                     HttpAdminApiTestMethod::from(http::Method::POST),
                     StdAdminApiTestStrRef::from(action.get()),
-                    StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+                    StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
                     None,
                 )
                 .0,
@@ -1026,7 +1026,7 @@ async fn postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_fi
         html_request_with_peer(
             HttpAdminApiTestMethod::from(http::Method::GET),
             StdAdminApiTestStrRef::from(server_admin_contract::AdminFrontendPath::Users.get()),
-            StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+            StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
             None,
         )
         .0,
@@ -1108,14 +1108,14 @@ async fn postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_fi
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::GET),
         StdAdminApiTestStrRef::from(filtered_path.0.as_str()),
-        StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+        StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
     )
     .await;
     assert_eq!(filtered_response.status(), http::StatusCode::OK);
     let filtered_html = admin_html_body(filtered_response).await;
     assert_admin_csr_shell(&filtered_html);
 
-    let role_id = sqlx::query_scalar::<_, i64>(str_constants::SERVER_ADMIN_READ_ADMIN_ROLE_ID_SQL)
+    let role_id = sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_READ_ADMIN_ROLE_ID_SQL)
         .fetch_one(&fixture.pool.0)
         .await
         .expect("bc10a764 postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_filtering invariant must hold");

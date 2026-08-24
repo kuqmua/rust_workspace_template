@@ -23,7 +23,7 @@ pub enum HttpProxyPathError {
 impl TryFrom<String> for HttpProxyPath {
     type Error = HttpProxyPathError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > usize_constants::VALUE_8_192 {
+        if value.len() > constants_usize::VALUE_8_192 {
             return Err(Self::Error::ForbiddenSyntax);
         }
         Self::try_from(HttpProxyPathRef::from(value.as_str()))
@@ -36,7 +36,7 @@ impl TryFrom<HttpProxyPathRef<'_>> for HttpProxyPath {
         if path.is_empty() {
             return Err(Self::Error::Empty);
         }
-        if path.len() > usize_constants::VALUE_8_192 {
+        if path.len() > constants_usize::VALUE_8_192 {
             return Err(Self::Error::ForbiddenSyntax);
         }
         let starts_with_ignore_ascii_case = |prefix: &str| {
@@ -49,14 +49,14 @@ impl TryFrom<HttpProxyPathRef<'_>> for HttpProxyPath {
                 .windows(pattern.len())
                 .any(|window| window.eq_ignore_ascii_case(pattern.as_bytes()))
         };
-        if starts_with_ignore_ascii_case(str_constants::HTTP_SCHEME_PREFIX)
-            || starts_with_ignore_ascii_case(str_constants::HTTPS_SCHEME_PREFIX)
+        if starts_with_ignore_ascii_case(constants_str::HTTP_SCHEME_PREFIX)
+            || starts_with_ignore_ascii_case(constants_str::HTTPS_SCHEME_PREFIX)
             || [
-                str_constants::ENCODED_DOT,
-                str_constants::ENCODED_SLASH,
-                str_constants::ENCODED_QUERY,
-                str_constants::ENCODED_FRAGMENT,
-                str_constants::ENCODED_BACKSLASH,
+                constants_str::ENCODED_DOT,
+                constants_str::ENCODED_SLASH,
+                constants_str::ENCODED_QUERY,
+                constants_str::ENCODED_FRAGMENT,
+                constants_str::ENCODED_BACKSLASH,
             ]
             .into_iter()
             .any(contains_ignore_ascii_case)
@@ -67,8 +67,8 @@ impl TryFrom<HttpProxyPathRef<'_>> for HttpProxyPath {
         }
         if path.split('/').any(|segment| {
             segment.is_empty()
-                || segment == str_constants::CURRENT_PATH_SEGMENT
-                || segment == str_constants::PARENT_PATH_SEGMENT
+                || segment == constants_str::CURRENT_PATH_SEGMENT
+                || segment == constants_str::PARENT_PATH_SEGMENT
         }) {
             return Err(Self::Error::ForbiddenSegment);
         }
@@ -119,7 +119,7 @@ pub struct HttpNormalizedPathError;
 impl TryFrom<String> for HttpNormalizedPath {
     type Error = HttpNormalizedPathError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > usize_constants::VALUE_8_192 {
+        if value.len() > constants_usize::VALUE_8_192 {
             Err(HttpNormalizedPathError)
         } else {
             Ok(Self(value))
@@ -128,7 +128,7 @@ impl TryFrom<String> for HttpNormalizedPath {
 }
 #[must_use]
 pub fn normalize_identifier_path(path: HttpRequestPathRef<'_>) -> Option<HttpNormalizedPath> {
-    if path.0.len() > usize_constants::VALUE_8_192
+    if path.0.len() > constants_usize::VALUE_8_192
         || !path.0.bytes().any(|byte| byte.is_ascii_digit())
     {
         return None;
@@ -136,18 +136,18 @@ pub fn normalize_identifier_path(path: HttpRequestPathRef<'_>) -> Option<HttpNor
     let normalized = path.0.split('/').enumerate().fold(
         String::with_capacity(path.0.len()),
         |mut normalized, (index, segment)| {
-            if index > usize_constants::ZERO {
+            if index > constants_usize::ZERO {
                 normalized.push('/');
             }
             if !segment.is_empty()
                 && segment.len() <= 19usize
                 && segment.bytes().all(|byte| byte.is_ascii_digit())
             {
-                normalized.push_str(str_constants::HTTP_NORMALIZED_IDENTIFIER_SEGMENT);
+                normalized.push_str(constants_str::HTTP_NORMALIZED_IDENTIFIER_SEGMENT);
             } else if uuid::Uuid::parse_str(segment)
                 .is_ok_and(|value| value.get_version_num() == 4usize)
             {
-                normalized.push_str(str_constants::HTTP_NORMALIZED_UUID_SEGMENT);
+                normalized.push_str(constants_str::HTTP_NORMALIZED_UUID_SEGMENT);
             } else {
                 normalized.push_str(segment);
             }
@@ -166,19 +166,19 @@ mod tests {
     #[test]
     fn proxy_path_matches_only_segment_prefix() {
         let path = super::HttpProxyPath::try_from(super::HttpProxyPathRef::from(
-            str_constants::TEST_PROXY_USERS_PATH,
+            constants_str::TEST_PROXY_USERS_PATH,
         ))
         .expect("6e90cb42 proxy_path_matches_only_segment_prefix invariant must hold");
         assert!(bool::from(super::proxy_path_matches_prefix(
             &path,
-            super::HttpAllowedPathPrefixRef::from(str_constants::TEST_PROXY_PREFIX)
+            super::HttpAllowedPathPrefixRef::from(constants_str::TEST_PROXY_PREFIX)
         )));
     }
     #[test]
     fn proxy_path_rejects_encoded_traversal() {
         assert_eq!(
             super::HttpProxyPath::try_from(super::HttpProxyPathRef::from(
-                str_constants::TEST_ENCODED_PATH_TRAVERSAL
+                constants_str::TEST_ENCODED_PATH_TRAVERSAL
             )),
             Err(super::HttpProxyPathError::ForbiddenSyntax)
         );
@@ -186,12 +186,12 @@ mod tests {
     #[test]
     fn identifier_path_normalizes_numbers_and_uuid_v4() {
         let normalized = super::normalize_identifier_path(super::HttpRequestPathRef::from(
-            str_constants::TEST_DYNAMIC_IDENTIFIER_PATH,
+            constants_str::TEST_DYNAMIC_IDENTIFIER_PATH,
         ))
         .expect("a36c01e4 identifier_path_normalizes_numbers_and_uuid_v4 invariant must hold");
         assert_eq!(
             normalized.as_ref(),
-            str_constants::TEST_NORMALIZED_IDENTIFIER_PATH
+            constants_str::TEST_NORMALIZED_IDENTIFIER_PATH
         );
     }
 }

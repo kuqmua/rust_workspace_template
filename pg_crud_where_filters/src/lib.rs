@@ -53,7 +53,7 @@ pub struct RegexRegex(String);
 struct DefaultRegexPattern;
 impl From<DefaultRegexPattern> for RegexRegex {
     fn from(_value: DefaultRegexPattern) -> Self {
-        Self(String::from(str_constants::A_Z_PLUS))
+        Self(String::from(constants_str::A_Z_PLUS))
     }
 }
 #[derive(
@@ -77,13 +77,13 @@ impl utoipa::PartialSchema for RegexRegex {
 }
 impl utoipa::ToSchema for RegexRegex {
     fn name() -> std::borrow::Cow<'static, str> {
-        std::borrow::Cow::Borrowed(str_constants::PG_CRUD_REGEX_REGEX_SCHEMA_NAME)
+        std::borrow::Cow::Borrowed(constants_str::PG_CRUD_REGEX_REGEX_SCHEMA_NAME)
     }
 }
 impl TryFrom<String> for RegexRegex {
     type Error = RegexRegexTryFromStringError;
     fn try_from(v: String) -> Result<Self, Self::Error> {
-        if v.len() > usize_constants::VALUE_1_048_576 {
+        if v.len() > constants_usize::VALUE_1_048_576 {
             return Err(RegexRegexTryFromStringError::TooLong);
         }
         let _validated_regex = regex::Regex::new(&v).map_err(RegexError::from)?;
@@ -99,12 +99,12 @@ const _: () = {
     impl schemars::JsonSchema for RegexRegex {
         fn schema_name() -> schemars::_private::alloc::borrow::Cow<'static, str> {
             schemars::_private::alloc::borrow::Cow::Borrowed(
-                str_constants::PG_CRUD_REGEX_REGEX_SCHEMA_NAME,
+                constants_str::PG_CRUD_REGEX_REGEX_SCHEMA_NAME,
             )
         }
         fn schema_id() -> schemars::_private::alloc::borrow::Cow<'static, str> {
             schemars::_private::alloc::borrow::Cow::Borrowed(
-                str_constants::PG_CRUD_REGEX_REGEX_SCHEMA_ID,
+                constants_str::PG_CRUD_REGEX_REGEX_SCHEMA_ID,
             )
         }
         fn json_schema(generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
@@ -157,8 +157,8 @@ impl RegexCase {
     #[must_use]
     pub fn postgreql_syntax(&self) -> RegexCasePostgreqlSyntax {
         match &self {
-            Self::Insensitive => RegexCasePostgreqlSyntax::from(str_constants::ASTERISK_ALT),
-            Self::Sensitive => RegexCasePostgreqlSyntax::from(str_constants::TEXT_ALT_15),
+            Self::Insensitive => RegexCasePostgreqlSyntax::from(constants_str::ASTERISK_ALT),
+            Self::Sensitive => RegexCasePostgreqlSyntax::from(constants_str::TEXT_ALT_15),
         }
     }
 }
@@ -190,15 +190,15 @@ where
     ) -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
         utoipa::openapi::ObjectBuilder::new()
             .property(
-                str_constants::PG_CRUD_START_FIELD,
+                constants_str::PG_CRUD_START_FIELD,
                 <T as utoipa::PartialSchema>::schema(),
             )
             .property(
-                str_constants::PG_CRUD_END_FIELD,
+                constants_str::PG_CRUD_END_FIELD,
                 <T as utoipa::PartialSchema>::schema(),
             )
-            .required(str_constants::PG_CRUD_START_FIELD)
-            .required(str_constants::PG_CRUD_END_FIELD)
+            .required(constants_str::PG_CRUD_START_FIELD)
+            .required(constants_str::PG_CRUD_END_FIELD)
             .build()
             .into()
     }
@@ -210,7 +210,7 @@ where
         + utoipa::ToSchema,
 {
     fn name() -> std::borrow::Cow<'static, str> {
-        std::borrow::Cow::Borrowed(str_constants::PG_CRUD_BETWEEN_SCHEMA_NAME)
+        std::borrow::Cow::Borrowed(constants_str::PG_CRUD_BETWEEN_SCHEMA_NAME)
     }
 }
 #[location::errors_with_location]
@@ -283,7 +283,7 @@ const _: () = {
                 ) -> _serde::__private229::fmt::Result {
                     _serde::__private229::Formatter::write_str(
                         __f,
-                        str_constants::PG_CRUD_FIELD_IDENTIFIER,
+                        constants_str::PG_CRUD_FIELD_IDENTIFIER,
                     )
                 }
                 fn visit_u64<__E>(self, v: u64) -> Result<Self::Value, __E>
@@ -301,8 +301,8 @@ const _: () = {
                     __E: _serde::de::Error,
                 {
                     match v {
-                        str_constants::PG_CRUD_START_FIELD => Ok(__Field::f0),
-                        str_constants::PG_CRUD_END_FIELD => Ok(__Field::f1),
+                        constants_str::PG_CRUD_START_FIELD => Ok(__Field::f0),
+                        constants_str::PG_CRUD_END_FIELD => Ok(__Field::f1),
                         _ => Ok(__Field::__ignore),
                     }
                 }
@@ -352,7 +352,7 @@ const _: () = {
                 ) -> _serde::__private229::fmt::Result {
                     _serde::__private229::Formatter::write_str(
                         __f,
-                        str_constants::PG_CRUD_BETWEEN_STRUCT_NAME,
+                        constants_str::PG_CRUD_BETWEEN_STRUCT_NAME,
                     )
                 }
                 #[inline]
@@ -362,14 +362,14 @@ const _: () = {
                 {
                     let Some(f0) = _serde::de::SeqAccess::next_element::<T>(&mut __seq)? else {
                         return Err(_serde::de::Error::invalid_length(
-                            usize_constants::ONE,
-                            &str_constants::PG_CRUD_BETWEEN_EXPECTING,
+                            constants_usize::ONE,
+                            &constants_str::PG_CRUD_BETWEEN_EXPECTING,
                         ));
                     };
                     let Some(f1) = _serde::de::SeqAccess::next_element::<T>(&mut __seq)? else {
                         return Err(_serde::de::Error::invalid_length(
                             2usize,
-                            &str_constants::PG_CRUD_BETWEEN_EXPECTING,
+                            &constants_str::PG_CRUD_BETWEEN_EXPECTING,
                         ));
                     };
                     match Between::try_new(f0, f1) {
@@ -390,7 +390,7 @@ const _: () = {
                                 if Option::is_some(&f0) {
                                     return Err(
                                         <__A::Error as _serde::de::Error>::duplicate_field(
-                                            str_constants::PG_CRUD_START_FIELD,
+                                            constants_str::PG_CRUD_START_FIELD,
                                         ),
                                     );
                                 }
@@ -400,7 +400,7 @@ const _: () = {
                                 if Option::is_some(&f1) {
                                     return Err(
                                         <__A::Error as _serde::de::Error>::duplicate_field(
-                                            str_constants::PG_CRUD_END_FIELD,
+                                            constants_str::PG_CRUD_END_FIELD,
                                         ),
                                     );
                                 }
@@ -417,13 +417,13 @@ const _: () = {
                     let f0_v = match f0 {
                         Some(v) => v,
                         None => _serde::__private229::de::missing_field(
-                            str_constants::PG_CRUD_START_FIELD,
+                            constants_str::PG_CRUD_START_FIELD,
                         )?,
                     };
                     let f1_v = match f1 {
                         Some(v) => v,
                         None => _serde::__private229::de::missing_field(
-                            str_constants::PG_CRUD_END_FIELD,
+                            constants_str::PG_CRUD_END_FIELD,
                         )?,
                     };
                     match Between::try_new(f0_v, f1_v) {
@@ -434,8 +434,8 @@ const _: () = {
             }
             _serde::Deserializer::deserialize_struct(
                 __deserializer,
-                str_constants::PG_CRUD_BETWEEN_SCHEMA_NAME,
-                str_constants::PG_CRUD_SERDE_BETWEEN_FIELDS,
+                constants_str::PG_CRUD_BETWEEN_SCHEMA_NAME,
+                constants_str::PG_CRUD_SERDE_BETWEEN_FIELDS,
                 __Visitor {
                     marker: _serde::__private229::PhantomData::<Self>,
                     lt: _serde::__private229::PhantomData,
@@ -538,7 +538,7 @@ impl<T: utoipa::PartialSchema> utoipa::__dev::ComposeSchema for PgTypeNotEmptyUn
 }
 impl<T: utoipa::ToSchema> utoipa::ToSchema for PgTypeNotEmptyUniqueVec<T> {
     fn name() -> std::borrow::Cow<'static, str> {
-        std::borrow::Cow::Borrowed(str_constants::PG_CRUD_PG_TYPE_NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME)
+        std::borrow::Cow::Borrowed(constants_str::PG_CRUD_PG_TYPE_NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME)
     }
 }
 impl<T: PartialEq> TryFrom<Vec<T>> for PgTypeNotEmptyUniqueVec<T> {
@@ -592,7 +592,7 @@ const _: () = {
                 ) -> _serde::__private229::fmt::Result {
                     _serde::__private229::Formatter::write_str(
                         __f,
-                        str_constants::PG_CRUD_PG_TYPE_NOT_EMPTY_UNIQUE_VEC_TUPLE_NAME,
+                        constants_str::PG_CRUD_PG_TYPE_NOT_EMPTY_UNIQUE_VEC_TUPLE_NAME,
                     )
                 }
                 #[inline]
@@ -614,8 +614,8 @@ const _: () = {
                     let Some(f0) = _serde::de::SeqAccess::next_element::<Vec<T>>(&mut __seq)?
                     else {
                         return Err(_serde::de::Error::invalid_length(
-                            usize_constants::ZERO,
-                            &str_constants::PG_CRUD_PG_TYPE_NOT_EMPTY_UNIQUE_VEC_TUPLE_EXPECTING,
+                            constants_usize::ZERO,
+                            &constants_str::PG_CRUD_PG_TYPE_NOT_EMPTY_UNIQUE_VEC_TUPLE_EXPECTING,
                         ));
                     };
                     match PgTypeNotEmptyUniqueVec::try_from(f0) {
@@ -626,7 +626,7 @@ const _: () = {
             }
             _serde::Deserializer::deserialize_newtype_struct(
                 __deserializer,
-                str_constants::PG_CRUD_PG_TYPE_NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME,
+                constants_str::PG_CRUD_PG_TYPE_NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME,
                 __Visitor {
                     marker: _serde::__private229::PhantomData::<Self>,
                     lt: _serde::__private229::PhantomData,
@@ -851,7 +851,7 @@ mod tests {
     #[test]
     fn pg_type_not_empty_unique_vec_try_from_too_long() {
         let rslt = super::PgTypeNotEmptyUniqueVec::<usize>::try_from(
-            (usize_constants::ZERO..=10_000usize).collect::<Vec<_>>(),
+            (constants_usize::ZERO..=10_000usize).collect::<Vec<_>>(),
         );
         assert!(matches!(
             rslt,
@@ -887,11 +887,11 @@ mod tests {
     }
     #[test]
     fn regex_regex_eq_compares_pattern_content() {
-        let left = super::RegexRegex::try_from(String::from(str_constants::D_PLUS))
+        let left = super::RegexRegex::try_from(String::from(constants_str::D_PLUS))
             .expect("8342ad27 regex_regex_eq_compares_pattern_content invariant must hold");
-        let right = super::RegexRegex::try_from(String::from(str_constants::D_PLUS))
+        let right = super::RegexRegex::try_from(String::from(constants_str::D_PLUS))
             .expect("4d0fa8e3 regex_regex_eq_compares_pattern_content invariant must hold");
-        let other = super::RegexRegex::try_from(String::from(str_constants::A_Z_PLUS))
+        let other = super::RegexRegex::try_from(String::from(constants_str::A_Z_PLUS))
             .expect("abcc9a72 regex_regex_eq_compares_pattern_content invariant must hold");
         assert_eq!(left, right);
         assert_ne!(left, other);

@@ -37,7 +37,7 @@ mod tests {
         }
 
         assert!(
-            !str_constants::UPDATE_CONFIG_PROJECTIONS.is_empty(),
+            !constants_str::UPDATE_CONFIG_PROJECTIONS.is_empty(),
             "4b913df2"
         );
         assert!(is_typed_getter::<config_lib::DatabaseUrl>(

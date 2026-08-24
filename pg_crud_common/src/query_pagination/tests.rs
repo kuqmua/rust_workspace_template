@@ -9,7 +9,7 @@ fn pagination_reports_start_and_end() {
 #[test]
 fn pagination_rejects_invalid_bounds() {
     assert!(matches!(
-        super::PaginationStartsWithZero::try_new(i32_constants::ZERO, i32_constants::ZERO),
+        super::PaginationStartsWithZero::try_new(constants_i32::ZERO, constants_i32::ZERO),
         Err(super::PaginationStartsWithZeroTryNewError::LimitIsLessThanOrEqToZero { .. })
     ));
     assert!(matches!(

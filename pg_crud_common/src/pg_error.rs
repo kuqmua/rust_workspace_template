@@ -26,25 +26,25 @@ pub fn classify_pg_error(error_ref: SqlxPgErrorRef<'_>) -> PgErrorKind {
                 .code()
                 .as_deref()
                 .map_or(PgErrorKind::Unknown, |code| match code {
-                    str_constants::PG_SQLSTATE_STRING_DATA_RIGHT_TRUNCATION => {
+                    constants_str::PG_SQLSTATE_STRING_DATA_RIGHT_TRUNCATION => {
                         PgErrorKind::StringDataRightTruncation
                     }
-                    str_constants::PG_SQLSTATE_NUMERIC_VALUE_OUT_OF_RANGE => {
+                    constants_str::PG_SQLSTATE_NUMERIC_VALUE_OUT_OF_RANGE => {
                         PgErrorKind::NumericValueOutOfRange
                     }
-                    str_constants::PG_SQLSTATE_INVALID_TEXT_REPRESENTATION => {
+                    constants_str::PG_SQLSTATE_INVALID_TEXT_REPRESENTATION => {
                         PgErrorKind::InvalidTextRepresentation
                     }
-                    str_constants::PG_SQLSTATE_NOT_NULL_VIOLATION => PgErrorKind::NotNullViolation,
-                    str_constants::PG_SQLSTATE_FOREIGN_KEY_VIOLATION => {
+                    constants_str::PG_SQLSTATE_NOT_NULL_VIOLATION => PgErrorKind::NotNullViolation,
+                    constants_str::PG_SQLSTATE_FOREIGN_KEY_VIOLATION => {
                         PgErrorKind::ForeignKeyViolation
                     }
-                    str_constants::PG_SQLSTATE_UNIQUE_VIOLATION => PgErrorKind::UniqueViolation,
-                    str_constants::PG_SQLSTATE_CHECK_VIOLATION => PgErrorKind::CheckViolation,
-                    str_constants::PG_SQLSTATE_SERIALIZATION_FAILURE => {
+                    constants_str::PG_SQLSTATE_UNIQUE_VIOLATION => PgErrorKind::UniqueViolation,
+                    constants_str::PG_SQLSTATE_CHECK_VIOLATION => PgErrorKind::CheckViolation,
+                    constants_str::PG_SQLSTATE_SERIALIZATION_FAILURE => {
                         PgErrorKind::SerializationFailure
                     }
-                    str_constants::PG_SQLSTATE_DEADLOCK_DETECTED => PgErrorKind::Deadlock,
+                    constants_str::PG_SQLSTATE_DEADLOCK_DETECTED => PgErrorKind::Deadlock,
                     _ => PgErrorKind::Unknown,
                 })
         }
@@ -74,21 +74,21 @@ pub fn classify_pg_error(error_ref: SqlxPgErrorRef<'_>) -> PgErrorKind {
 #[cfg(test)]
 fn classify_pg_code(code: &str) -> PgErrorKind {
     match code {
-        str_constants::PG_SQLSTATE_STRING_DATA_RIGHT_TRUNCATION => {
+        constants_str::PG_SQLSTATE_STRING_DATA_RIGHT_TRUNCATION => {
             PgErrorKind::StringDataRightTruncation
         }
-        str_constants::PG_SQLSTATE_NUMERIC_VALUE_OUT_OF_RANGE => {
+        constants_str::PG_SQLSTATE_NUMERIC_VALUE_OUT_OF_RANGE => {
             PgErrorKind::NumericValueOutOfRange
         }
-        str_constants::PG_SQLSTATE_INVALID_TEXT_REPRESENTATION => {
+        constants_str::PG_SQLSTATE_INVALID_TEXT_REPRESENTATION => {
             PgErrorKind::InvalidTextRepresentation
         }
-        str_constants::PG_SQLSTATE_NOT_NULL_VIOLATION => PgErrorKind::NotNullViolation,
-        str_constants::PG_SQLSTATE_FOREIGN_KEY_VIOLATION => PgErrorKind::ForeignKeyViolation,
-        str_constants::PG_SQLSTATE_UNIQUE_VIOLATION => PgErrorKind::UniqueViolation,
-        str_constants::PG_SQLSTATE_CHECK_VIOLATION => PgErrorKind::CheckViolation,
-        str_constants::PG_SQLSTATE_SERIALIZATION_FAILURE => PgErrorKind::SerializationFailure,
-        str_constants::PG_SQLSTATE_DEADLOCK_DETECTED => PgErrorKind::Deadlock,
+        constants_str::PG_SQLSTATE_NOT_NULL_VIOLATION => PgErrorKind::NotNullViolation,
+        constants_str::PG_SQLSTATE_FOREIGN_KEY_VIOLATION => PgErrorKind::ForeignKeyViolation,
+        constants_str::PG_SQLSTATE_UNIQUE_VIOLATION => PgErrorKind::UniqueViolation,
+        constants_str::PG_SQLSTATE_CHECK_VIOLATION => PgErrorKind::CheckViolation,
+        constants_str::PG_SQLSTATE_SERIALIZATION_FAILURE => PgErrorKind::SerializationFailure,
+        constants_str::PG_SQLSTATE_DEADLOCK_DETECTED => PgErrorKind::Deadlock,
         _ => PgErrorKind::Unknown,
     }
 }
@@ -98,19 +98,19 @@ mod tests {
     #[test]
     fn classifies_known_postgres_codes() {
         assert_eq!(
-            super::classify_pg_code(str_constants::PG_SQLSTATE_UNIQUE_VIOLATION),
+            super::classify_pg_code(constants_str::PG_SQLSTATE_UNIQUE_VIOLATION),
             super::PgErrorKind::UniqueViolation
         );
         assert_eq!(
-            super::classify_pg_code(str_constants::PG_SQLSTATE_FOREIGN_KEY_VIOLATION),
+            super::classify_pg_code(constants_str::PG_SQLSTATE_FOREIGN_KEY_VIOLATION),
             super::PgErrorKind::ForeignKeyViolation
         );
         assert_eq!(
-            super::classify_pg_code(str_constants::PG_SQLSTATE_SERIALIZATION_FAILURE),
+            super::classify_pg_code(constants_str::PG_SQLSTATE_SERIALIZATION_FAILURE),
             super::PgErrorKind::SerializationFailure
         );
         assert_eq!(
-            super::classify_pg_code(str_constants::PG_SQLSTATE_DEADLOCK_DETECTED),
+            super::classify_pg_code(constants_str::PG_SQLSTATE_DEADLOCK_DETECTED),
             super::PgErrorKind::Deadlock
         );
     }
@@ -118,7 +118,7 @@ mod tests {
     #[test]
     fn classifies_unknown_postgres_code() {
         assert_eq!(
-            super::classify_pg_code(str_constants::TEST_UNKNOWN_PG_SQLSTATE),
+            super::classify_pg_code(constants_str::TEST_UNKNOWN_PG_SQLSTATE),
             super::PgErrorKind::Unknown
         );
     }

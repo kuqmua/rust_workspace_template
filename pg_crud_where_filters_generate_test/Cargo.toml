@@ -9,7 +9,7 @@ license.workspace = true
 edition.workspace = true
 
 [dev-dependencies]
-usize_constants = { workspace = true }
+constants_usize = { workspace = true }
 optimal_memory_layout = { workspace = true }
 generate_where_filters_src = { workspace = true }
 macro_clippy_check_common = { workspace = true, features = ["test-utils"] }
@@ -18,7 +18,7 @@ macros_helpers = { workspace = true, features = ["test-utils"] }
 serde = { workspace = true }
 pg_crud_common = { workspace = true }
 where_filters = { workspace = true }
-str_constants = { workspace = true }
+constants_str = { workspace = true }
 [lints]
 workspace = true
 

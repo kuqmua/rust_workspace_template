@@ -66,7 +66,7 @@ impl axum::response::IntoResponse for CreateNotificationError {
             Self::Validation => http::StatusCode::UNPROCESSABLE_ENTITY,
         };
         let error_type =
-            server_runtime_http::HttpErrorType::from(str_constants::NOTIFICATION_API_ERROR_TYPE);
+            server_runtime_http::HttpErrorType::from(constants_str::NOTIFICATION_API_ERROR_TYPE);
         let optional_diagnostic = match &self {
             Self::Persistence(error) => Some(
                 server_runtime_http::HttpErrorDiagnostic::from_observed(error_type, error),
@@ -99,7 +99,7 @@ impl axum::response::IntoResponse for MetricsError {
         match self {
             Self::Render(error) => {
                 let error_type = server_runtime_http::HttpErrorType::from(
-                    str_constants::NOTIFICATION_API_ERROR_TYPE,
+                    constants_str::NOTIFICATION_API_ERROR_TYPE,
                 );
                 let mut response = axum::response::IntoResponse::into_response(
                     frontend_contract::ApiProblemError::Internal(
@@ -226,9 +226,9 @@ enum NotificationErrorCode {
 impl NotificationErrorCode {
     const fn get(self) -> &'static str {
         match self {
-            Self::MetricsRender => str_constants::NOTIFICATION_OBSERVED_ERROR_METRICS_RENDER,
-            Self::Persistence => str_constants::NOTIFICATION_OBSERVED_ERROR_PERSISTENCE,
-            Self::Validation => str_constants::NOTIFICATION_OBSERVED_ERROR_VALIDATION,
+            Self::MetricsRender => constants_str::NOTIFICATION_OBSERVED_ERROR_METRICS_RENDER,
+            Self::Persistence => constants_str::NOTIFICATION_OBSERVED_ERROR_PERSISTENCE,
+            Self::Validation => constants_str::NOTIFICATION_OBSERVED_ERROR_VALIDATION,
         }
     }
 }
@@ -315,7 +315,7 @@ mod tests {
         let state = state(
             sqlx::postgres::PgPoolOptions::new()
                 .connect_lazy(
-                    str_constants::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION,
+                    constants_str::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION,
                 )
                 .expect("75b0f8e4 boundary_adapters_preserve_status_state_and_exit_code invariant must hold"),
         );
@@ -343,7 +343,7 @@ mod tests {
     async fn default_service_routes_return_success_statuses() {
         let pool = sqlx::postgres::PgPoolOptions::new()
             .connect_lazy(
-                str_constants::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION,
+                constants_str::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION,
             )
             .expect("52a25be1 default_service_routes_return_success_statuses invariant must hold");
         let router = super::routes::router(
@@ -368,7 +368,7 @@ mod tests {
         let open_api_response = tower::ServiceExt::oneshot(
             router.clone(),
             http::Request::builder()
-                .uri(str_constants::OPENAPI_JSON)
+                .uri(constants_str::OPENAPI_JSON)
                 .body(axum::body::Body::empty())
                 .expect(
                     "789db8f3 default_service_routes_return_success_statuses invariant must hold",
@@ -438,18 +438,18 @@ mod tests {
         let metadata = <notification_service_contract::CreateNotificationRoute as frontend_contract::TypedRoute>::metadata();
         let document = serde_json::to_value(super::routes::open_api_document()).expect("3d8a056d open_api_operation_and_statuses_come_from_the_typed_route invariant must hold");
         let operation = document
-            .get(str_constants::PATHS)
+            .get(constants_str::PATHS)
             .and_then(|paths| paths.get(metadata.path().as_ref()))
             .and_then(|path| path.get(metadata.method().as_ref().to_ascii_lowercase()))
             .expect("fb8bb06a open_api_operation_and_statuses_come_from_the_typed_route invariant must hold");
         assert_eq!(
             operation
-                .get(str_constants::OPERATION_ID_JSON)
+                .get(constants_str::OPERATION_ID_JSON)
                 .and_then(serde_json::Value::as_str),
             Some(metadata.openapi_operation_id().as_ref()),
         );
         let observed_statuses = operation
-            .get(str_constants::RESPONSES)
+            .get(constants_str::RESPONSES)
             .and_then(serde_json::Value::as_object)
             .expect("251c95e8 open_api_operation_and_statuses_come_from_the_typed_route invariant must hold")
             .keys()
@@ -532,7 +532,7 @@ mod tests {
     #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
     async fn create_notification_persists_through_http_route() {
         let database_url = config_lib::parse_required_env_var(
-            config_lib::EnvVarNameRef::from(str_constants::ENV_NAMES_DATABASE_URL),
+            config_lib::EnvVarNameRef::from(constants_str::ENV_NAMES_DATABASE_URL),
             |error, name| format!("{error} {name}"),
             <config_lib::DatabaseUrl as config_lib::TryFromStdEnvVarOk>::try_from_std_env_var_ok,
             |error| error.to_string(),
@@ -545,7 +545,7 @@ mod tests {
             .await
             .expect("ceff90ad create_notification_persists_through_http_route invariant must hold");
         let _schema_result = sqlx::query(sqlx::AssertSqlSafe(
-            str_constants::NOTIFICATION_SERVICE_CREATE_TEST_SCHEMA_SQL.concat(),
+            constants_str::NOTIFICATION_SERVICE_CREATE_TEST_SCHEMA_SQL.concat(),
         ))
         .execute(&setup_pool)
         .await
@@ -557,8 +557,8 @@ mod tests {
                     "2145d54a create_notification_persists_through_http_route invariant must hold",
                 )
                 .options([(
-                    str_constants::SEARCH_PATH,
-                    str_constants::NOTIFICATION_SERVICE_TEST_SCHEMA,
+                    constants_str::SEARCH_PATH,
+                    constants_str::NOTIFICATION_SERVICE_TEST_SCHEMA,
                 )]);
         let pool = sqlx::postgres::PgPoolOptions::new()
             .max_connections(2u32)
@@ -570,7 +570,7 @@ mod tests {
             .await
             .expect("128c46f1 create_notification_persists_through_http_route invariant must hold");
         let message = notification_service_contract::NotificationMessage::try_from(
-            str_constants::INTEGRATION_NOTIFICATION_MESSAGE.to_owned(),
+            constants_str::INTEGRATION_NOTIFICATION_MESSAGE.to_owned(),
         )
         .expect("f9605432 create_notification_persists_through_http_route invariant must hold");
         let body = serde_json::to_vec(&notification_service_contract::CreateNotificationReq::new(
@@ -587,7 +587,7 @@ mod tests {
             )
             .header(
                 http::header::CONTENT_TYPE,
-                str_constants::HTTP_APPLICATION_JSON,
+                constants_str::HTTP_APPLICATION_JSON,
             )
             .body(axum::body::Body::from(body))
             .expect("f8d2ab0b create_notification_persists_through_http_route invariant must hold");

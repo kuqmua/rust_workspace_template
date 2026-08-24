@@ -39,18 +39,18 @@ async fn layer_propagates_existing_and_generated_values() {
     let make_router = || {
         axum::Router::from(super::super::RequestIdLayer::default().apply(
             super::super::AxumRouter::from(axum::Router::new().route(
-                str_constants::SLASH,
+                constants_str::SLASH,
                 axum::routing::get(async || http::StatusCode::OK),
             )),
         ))
     };
-    let existing = http::HeaderValue::from_static(str_constants::EXISTING_REQUEST_ID);
+    let existing = http::HeaderValue::from_static(constants_str::EXISTING_REQUEST_ID);
     let existing_response = tower::ServiceExt::oneshot(
         make_router(),
         axum::extract::Request::builder()
-            .uri(str_constants::SLASH)
+            .uri(constants_str::SLASH)
             .header(
-                str_constants::HTTP_HEADER_NAMES_X_REQUEST_ID,
+                constants_str::HTTP_HEADER_NAMES_X_REQUEST_ID,
                 existing.clone(),
             )
             .body(axum::body::Body::empty())
@@ -61,19 +61,19 @@ async fn layer_propagates_existing_and_generated_values() {
     assert_eq!(
         existing_response
             .headers()
-            .get(str_constants::HTTP_HEADER_NAMES_X_REQUEST_ID),
+            .get(constants_str::HTTP_HEADER_NAMES_X_REQUEST_ID),
         Some(&existing)
     );
     assert_eq!(
         existing_response
             .headers()
-            .get(str_constants::RUNTIME_CORRELATION_ID_HEADER_NAME),
+            .get(constants_str::RUNTIME_CORRELATION_ID_HEADER_NAME),
         Some(&existing)
     );
     let generated_response = tower::ServiceExt::oneshot(
         make_router(),
         axum::extract::Request::builder()
-            .uri(str_constants::SLASH)
+            .uri(constants_str::SLASH)
             .body(axum::body::Body::empty())
             .expect("27ce5fbd layer_propagates_existing_and_generated_values invariant must hold"),
     )
@@ -81,13 +81,13 @@ async fn layer_propagates_existing_and_generated_values() {
     .expect("4cd32371 layer_propagates_existing_and_generated_values invariant must hold");
     let generated = generated_response
         .headers()
-        .get(str_constants::HTTP_HEADER_NAMES_X_REQUEST_ID)
+        .get(constants_str::HTTP_HEADER_NAMES_X_REQUEST_ID)
         .expect("12ed6f85 layer_propagates_existing_and_generated_values invariant must hold");
     assert_eq!(generated.as_bytes().len(), 36usize);
     assert_eq!(
         generated_response
             .headers()
-            .get(str_constants::RUNTIME_CORRELATION_ID_HEADER_NAME),
+            .get(constants_str::RUNTIME_CORRELATION_ID_HEADER_NAME),
         Some(generated)
     );
 }

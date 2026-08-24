@@ -36,7 +36,7 @@ fn generated_type_list_deserialization_rejects_too_many_entries() {
     let serialized = serde_json::to_string(&vec![
         super::PgType::I16AsInt2;
         super::GENERATE_PG_TYPES_MAX_LEN
-            + usize_constants::ONE
+            + constants_usize::ONE
     ])
     .expect(
         "7cd2e0af generated_type_list_deserialization_rejects_too_many_entries invariant must hold",

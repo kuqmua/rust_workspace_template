@@ -23,7 +23,7 @@ impl axum::response::IntoResponse for RequestTimeoutError {
             Self::TimedOut => axum::response::IntoResponse::into_response((
                 http::StatusCode::SERVICE_UNAVAILABLE,
                 axum::Json(RequestTimeoutBody {
-                    error: StdRequestTimeoutMessage::from(str_constants::REQUEST_TIMEOUT),
+                    error: StdRequestTimeoutMessage::from(constants_str::REQUEST_TIMEOUT),
                 }),
             )),
         }

@@ -15,13 +15,13 @@ categories = ["web-programming"]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-usize_constants = { workspace = true }
-u32_constants = { workspace = true }
+constants_usize = { workspace = true }
+constants_u32 = { workspace = true }
 optimal_memory_layout = { workspace = true }
 newtype = { workspace = true }
 server_admin_contract = { workspace = true }
 singlestage = { workspace = true }
-str_constants = { workspace = true }
+constants_str = { workspace = true }
 thiserror = { workspace = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
@@ -51,8 +51,8 @@ web-sys = { workspace = true, features = [
 ] }
 
 [dev-dependencies]
-i64_constants = { workspace = true }
-u64_constants = { workspace = true }
+constants_i64 = { workspace = true }
+constants_u64 = { workspace = true }
 frontend_contract = { workspace = true }
 
 [lints]

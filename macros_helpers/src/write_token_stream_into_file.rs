@@ -24,7 +24,7 @@ struct ShouldWriteTokenStreamFlag(bool);
 #[allow(clippy::single_call_fn)] // rustfmt execution is isolated so io/process errors stay localized and easy to test
 fn try_run_rustfmt(path: StdRustfmtPath<'_>) -> std::io::Result<()> {
     let mut command = crate::tool_command::ToolCommand::new(
-        crate::tool_command::ToolProgramRef::from(str_constants::RUSTFMT),
+        crate::tool_command::ToolProgramRef::from(constants_str::RUSTFMT),
     );
     let path_text = path.0.to_string_lossy();
     let status = command
@@ -98,11 +98,11 @@ mod tests {
     #[test]
     fn maybe_write_token_stream_into_file_skips_when_flag_is_false() {
         let base = crate::test_hlp::test_path(crate::test_hlp::TestPathStem::new(
-            str_constants::MACROS_HELPERS_SKIP,
+            constants_str::MACROS_HELPERS_SKIP,
         ));
         let path = crate::rs_file_path::rs_file_path(&base);
         let ts: proc_macro2::TokenStream =
-            str_constants::STRUCT_SKIPWRITE.parse().expect("5994e7e2 maybe_write_token_stream_into_file_skips_when_flag_is_false invariant must hold");
+            constants_str::STRUCT_SKIPWRITE.parse().expect("5994e7e2 maybe_write_token_stream_into_file_skips_when_flag_is_false invariant must hold");
         super::maybe_write_token_stream_into_file(
             super::ShouldWriteTokenStreamIntoFile::False,
             &base,
@@ -110,16 +110,16 @@ mod tests {
             &super::FormatWithCargofmt::False,
         )
         .expect("5ecc3880 maybe_write_token_stream_into_file_skips_when_flag_is_false invariant must hold");
-        let _error = std::fs::metadata(&path).expect_err(str_constants::VALUE_7BE5F201);
+        let _error = std::fs::metadata(&path).expect_err(constants_str::VALUE_7BE5F201);
     }
     #[test]
     fn maybe_write_token_stream_into_file_writes_tokens_when_flag_is_true() {
         let base = crate::test_hlp::test_path(crate::test_hlp::TestPathStem::new(
-            str_constants::MACROS_HELPERS_WRITE,
+            constants_str::MACROS_HELPERS_WRITE,
         ));
         let path = crate::rs_file_path::rs_file_path(&base);
         let ts: proc_macro2::TokenStream =
-            str_constants::STRUCT_DIDWRITE.parse().expect("6c20f49a maybe_write_token_stream_into_file_writes_tokens_when_flag_is_true invariant must hold");
+            constants_str::STRUCT_DIDWRITE.parse().expect("6c20f49a maybe_write_token_stream_into_file_writes_tokens_when_flag_is_true invariant must hold");
         let expected = ts.to_string();
         super::maybe_write_token_stream_into_file(
             super::ShouldWriteTokenStreamIntoFile::True,
@@ -146,11 +146,11 @@ mod tests {
     #[test]
     fn try_maybe_write_token_stream_into_file_writes_tokens_when_enabled() {
         let base = crate::test_hlp::test_path(crate::test_hlp::TestPathStem::new(
-            str_constants::MACROS_HELPERS_TRY_WRITE,
+            constants_str::MACROS_HELPERS_TRY_WRITE,
         ));
         let path = crate::rs_file_path::rs_file_path(&base);
         let ts: proc_macro2::TokenStream =
-            str_constants::STRUCT_TRYDIDWRITE.parse().expect("f771ac2d try_maybe_write_token_stream_into_file_writes_tokens_when_enabled invariant must hold");
+            constants_str::STRUCT_TRYDIDWRITE.parse().expect("f771ac2d try_maybe_write_token_stream_into_file_writes_tokens_when_enabled invariant must hold");
         let expected = ts.to_string();
         super::try_maybe_write_token_stream_into_file(
             super::ShouldWriteTokenStreamIntoFile::True,
@@ -168,11 +168,11 @@ mod tests {
     #[test]
     fn try_maybe_write_token_stream_into_file_accepts_path_input() {
         let base = crate::test_hlp::test_path(crate::test_hlp::TestPathStem::new(
-            str_constants::MACROS_HELPERS_TRY_WRITE_PATH,
+            constants_str::MACROS_HELPERS_TRY_WRITE_PATH,
         ));
         let path = crate::rs_file_path::rs_file_path(&base);
         let ts: proc_macro2::TokenStream =
-            str_constants::STRUCT_PATHINPUT.parse().expect("f9b0cd83 try_maybe_write_token_stream_into_file_accepts_path_input invariant must hold");
+            constants_str::STRUCT_PATHINPUT.parse().expect("f9b0cd83 try_maybe_write_token_stream_into_file_accepts_path_input invariant must hold");
         let expected = ts.to_string();
         super::try_maybe_write_token_stream_into_file(
             super::ShouldWriteTokenStreamIntoFile::True,
@@ -191,11 +191,11 @@ mod tests {
     #[cfg_attr(miri, ignore = "Miri does not support spawning the rustfmt subprocess")]
     fn try_maybe_write_token_stream_into_file_formats_when_rustfmt_enabled() {
         let base = crate::test_hlp::test_path(crate::test_hlp::TestPathStem::new(
-            str_constants::MACROS_HELPERS_TRY_RUN_RUSTFMT,
+            constants_str::MACROS_HELPERS_TRY_RUN_RUSTFMT,
         ));
         let path = crate::rs_file_path::rs_file_path(&base);
-        std::fs::write(&path, str_constants::STRUCT_B).expect("7091840d try_maybe_write_token_stream_into_file_formats_when_rustfmt_enabled invariant must hold");
-        let ts: proc_macro2::TokenStream = str_constants::STRUCT_A.parse().expect("0f30ca53 try_maybe_write_token_stream_into_file_formats_when_rustfmt_enabled invariant must hold");
+        std::fs::write(&path, constants_str::STRUCT_B).expect("7091840d try_maybe_write_token_stream_into_file_formats_when_rustfmt_enabled invariant must hold");
+        let ts: proc_macro2::TokenStream = constants_str::STRUCT_A.parse().expect("0f30ca53 try_maybe_write_token_stream_into_file_formats_when_rustfmt_enabled invariant must hold");
         super::try_maybe_write_token_stream_into_file(
             super::ShouldWriteTokenStreamIntoFile::True,
             &base,
@@ -205,7 +205,7 @@ mod tests {
         .expect("00a995a4 try_maybe_write_token_stream_into_file_formats_when_rustfmt_enabled invariant must hold");
         crate::test_hlp::assert_file_content(
             crate::test_hlp::StdAssertFilePath::new(path.as_ref()),
-            crate::test_hlp::ExpectedFileContent::new(str_constants::STRUCT_A_NEWLINE),
+            crate::test_hlp::ExpectedFileContent::new(constants_str::STRUCT_A_NEWLINE),
         );
         crate::test_hlp::cleanup_test_file(path);
     }

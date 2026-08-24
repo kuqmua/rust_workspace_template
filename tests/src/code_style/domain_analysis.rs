@@ -44,7 +44,7 @@ impl StringWrapperFromVisitor<'_> {
             return;
         }
         let identifier = super::item_impl_self_ty_identifier(item).map_or_else(
-            || String::from(str_constants::NON_PATH_TARGET),
+            || String::from(constants_str::NON_PATH_TARGET),
             String::from,
         );
         self.ers.push(format!(
@@ -65,27 +65,27 @@ impl StringWrapperFromVisitor<'_> {
                     ));
         }
         let has_try_from = item_ref.attrs.iter().any(|attr| {
-            attr.path().is_ident(str_constants::DERIVE)
+            attr.path().is_ident(constants_str::DERIVE)
                 && attr.meta.require_list().is_ok_and(|list| {
                     list.tokens
                         .to_string()
-                        .contains(str_constants::NEWTYPE_TRY_FROM_DERIVE_NAME)
+                        .contains(constants_str::NEWTYPE_TRY_FROM_DERIVE_NAME)
                 })
         });
         let mut has_len_check = false;
         item_ref
             .attrs
             .iter()
-            .filter(|attr| attr.path().is_ident(str_constants::NEWTYPE_TRY_FROM))
+            .filter(|attr| attr.path().is_ident(constants_str::NEWTYPE_TRY_FROM))
             .for_each(|attr| {
                 drop(attr.parse_nested_meta(|meta| {
-                    if meta.path.is_ident(str_constants::NEWTYPE_TRY_FROM_ERROR) {
+                    if meta.path.is_ident(constants_str::NEWTYPE_TRY_FROM_ERROR) {
                         let _error_type = meta.value()?.parse::<syn::Type>()?;
                         return Ok(());
                     }
                     if meta
                         .path
-                        .is_ident(str_constants::NEWTYPE_TRY_FROM_VALIDATOR)
+                        .is_ident(constants_str::NEWTYPE_TRY_FROM_VALIDATOR)
                     {
                         let expr = meta.value()?.parse::<syn::Expr>()?;
                         let mut visitor = LenMethodCallVisitor {
@@ -236,7 +236,7 @@ pub(super) struct LenMethodCallVisitor {
 }
 impl<'ast> syn::visit::Visit<'ast> for LenMethodCallVisitor {
     fn visit_expr_method_call(&mut self, i: &'ast syn::ExprMethodCall) {
-        if i.method == str_constants::LEN {
+        if i.method == constants_str::LEN {
             self.found.set_true();
         }
         syn::visit::visit_expr_method_call(self, i);
@@ -316,8 +316,8 @@ impl<'ast> syn::visit::Visit<'ast> for DeserializeConversionCallVisitor {
     fn visit_expr_call(&mut self, i: &'ast syn::ExprCall) {
         if let syn::Expr::Path(path) = i.func.as_ref()
             && path.path.segments.last().is_some_and(|segment| {
-                segment.ident == str_constants::FROM_ALT_4
-                    || segment.ident == str_constants::NEWTYPE_TRY_FROM
+                segment.ident == constants_str::FROM_ALT_4
+                    || segment.ident == constants_str::NEWTYPE_TRY_FROM
             })
         {
             self.found.set_true();
@@ -329,7 +329,7 @@ impl<'ast> syn::visit::Visit<'ast> for ManualDeserializeTupleWrapperVisitor<'_> 
     fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
         let is_deserialize_impl = i.trait_.as_ref().is_some_and(|(path, _)| {
             path.segments.last().is_some_and(|segment| {
-                segment.ident == str_constants::CODE_STYLE_DESERIALIZE_DERIVE_NAME
+                segment.ident == constants_str::CODE_STYLE_DESERIALIZE_DERIVE_NAME
             })
         });
         let Some(name) = super::item_impl_self_ty_identifier(super::types::SynItemImplRef::from(i))
@@ -388,7 +388,7 @@ impl<'ast> syn::visit::Visit<'ast> for TupleWrapperConversionCollector {
             let name = i.ident.to_string();
             let _: bool = self.names.insert(name.clone());
             if let syn::Fields::Unnamed(fields) = &i.fields
-                && fields.unnamed.len() == usize_constants::ONE
+                && fields.unnamed.len() == constants_usize::ONE
                 && let Some(field) = fields.unnamed.first()
             {
                 drop(self.inner_types.insert(name.clone(), field.ty.clone()));
@@ -415,7 +415,7 @@ impl<'ast> syn::visit::Visit<'ast> for DirectTupleWrapperConstructorVisitor<'_> 
             && let syn::Expr::Path(path) = i.func.as_ref()
             && let Some(segment) = path.path.segments.last()
             && (self.names.contains(segment.ident.to_string().as_str())
-                || (segment.ident == str_constants::SELF && self.current_wrapper_name.is_some()))
+                || (segment.ident == constants_str::SELF && self.current_wrapper_name.is_some()))
         {
             let span = syn::spanned::Spanned::span(i.func.as_ref());
             let start = span.start();
@@ -423,7 +423,7 @@ impl<'ast> syn::visit::Visit<'ast> for DirectTupleWrapperConstructorVisitor<'_> 
             let wrapper_name = self
                 .current_wrapper_name
                 .as_deref()
-                .filter(|_| segment.ident == str_constants::SELF)
+                .filter(|_| segment.ident == constants_str::SELF)
                 .map_or_else(|| segment.ident.to_string(), str::to_owned);
             self.ers.push(format!(
                 "tuple wrapper `{}` is initialized directly at {}:{}-{}:{}; use From/TryFrom",
@@ -478,8 +478,8 @@ impl<'ast> syn::visit::Visit<'ast> for DeclaredDomainTypeVisitor {
             super::types::SynPathRef::from(&i.path),
             super::types::StaticStrSliceRef::from(
                 [
-                    str_constants::CODE_STYLE_GENERATE_PG_TYPES_MACRO_NAME,
-                    str_constants::CODE_STYLE_GENERATE_PG_TYPES_MACRO_NAME,
+                    constants_str::CODE_STYLE_GENERATE_PG_TYPES_MACRO_NAME,
+                    constants_str::CODE_STYLE_GENERATE_PG_TYPES_MACRO_NAME,
                 ]
                 .as_slice(),
             ),
@@ -500,7 +500,7 @@ impl<'ast> syn::visit::Visit<'ast> for DeclaredDomainTypeVisitor {
         if super::path_ends_with(
             super::types::SynPathRef::from(&i.path),
             super::types::StaticStrSliceRef::from(
-                [str_constants::API_OPERATION_ERROR_MACRO_IDENTIFIER].as_slice(),
+                [constants_str::API_OPERATION_ERROR_MACRO_IDENTIFIER].as_slice(),
             ),
         )
         .get()
@@ -512,7 +512,7 @@ impl<'ast> syn::visit::Visit<'ast> for DeclaredDomainTypeVisitor {
         }
         if super::path_ends_with(
             super::types::SynPathRef::from(&i.path),
-            super::types::StaticStrSliceRef::from([str_constants::BOOL_ENUM_TO_TOKENS].as_slice()),
+            super::types::StaticStrSliceRef::from([constants_str::BOOL_ENUM_TO_TOKENS].as_slice()),
         )
         .get()
         {
@@ -525,8 +525,8 @@ impl<'ast> syn::visit::Visit<'ast> for DeclaredDomainTypeVisitor {
             super::types::SynPathRef::from(&i.path),
             super::types::StaticStrSliceRef::from(
                 [
-                    str_constants::CODE_STYLE_GENERATE_DERIVE_TOKEN_STREAM_BUILDER_MACRO_NAME,
-                    str_constants::CODE_STYLE_GENERATE_DERIVE_TOKEN_STREAM_BUILDER_MACRO_NAME,
+                    constants_str::CODE_STYLE_GENERATE_DERIVE_TOKEN_STREAM_BUILDER_MACRO_NAME,
+                    constants_str::CODE_STYLE_GENERATE_DERIVE_TOKEN_STREAM_BUILDER_MACRO_NAME,
                 ]
                 .as_slice(),
             ),
@@ -535,7 +535,7 @@ impl<'ast> syn::visit::Visit<'ast> for DeclaredDomainTypeVisitor {
         {
             let _: bool = self
                 .names
-                .insert(String::from(str_constants::DTOKENSTREAMBUILDER));
+                .insert(String::from(constants_str::DTOKENSTREAMBUILDER));
         }
         syn::visit::visit_macro(self, i);
     }
@@ -794,7 +794,7 @@ impl DomainTypePolicyVisitor<'_> {
     ) -> super::types::AnalyzerBool {
         let identifier_ref = identifier.as_ref();
         super::types::AnalyzerBool::from(
-            identifier_ref == str_constants::SELF
+            identifier_ref == constants_str::SELF
                 || self.repo_types.as_ref().contains(identifier_ref)
                 || self
                     .generic_scopes
@@ -827,9 +827,9 @@ impl DomainTypePolicyVisitor<'_> {
             path_ref.segments.len() > 1
                 && path_ref.segments.first().is_some_and(|segment| {
                     let identifier = segment.ident.to_string();
-                    identifier != str_constants::CRATE
-                        && identifier != str_constants::SELF_ALT
-                        && identifier != str_constants::SUPER
+                    identifier != constants_str::CRATE
+                        && identifier != constants_str::SELF_ALT
+                        && identifier != constants_str::SUPER
                         && !self.repo_crates.as_ref().contains(&identifier)
                         && !self
                             .is_allowed_type_identifier(super::types::SourceTextRef::from(
@@ -883,7 +883,7 @@ impl<'ast> syn::visit::Visit<'ast> for DomainTypePolicyVisitor<'_> {
             if let syn::Pat::Type(pat_ty) = input {
                 self.check_ty(
                     super::types::SynTypeRef::from(&*pat_ty.ty),
-                    super::types::SourceTextRef::from(str_constants::CLOSURE_PARAMETER),
+                    super::types::SourceTextRef::from(constants_str::CLOSURE_PARAMETER),
                 );
             }
         });
@@ -1036,7 +1036,7 @@ impl AnalyzerStateRawContainerFieldVisitor {
                 let field_name = field
                     .ident
                     .as_ref()
-                    .map_or_else(|| String::from(str_constants::TUPLE), ToString::to_string);
+                    .map_or_else(|| String::from(constants_str::TUPLE), ToString::to_string);
                 self.ers.push(format!(
                     "struct `{}` field `{}` uses `{}`; use `{}`",
                     item_ref.ident,
@@ -1261,9 +1261,9 @@ impl ExternalLeafWrapperNameVisitor<'_> {
         }
         let first_segment = ty_path_ref.path.segments.first()?;
         let first_identifier = first_segment.ident.to_string();
-        if first_identifier == str_constants::CRATE
-            || first_identifier == str_constants::SELF_ALT
-            || first_identifier == str_constants::SUPER
+        if first_identifier == constants_str::CRATE
+            || first_identifier == constants_str::SELF_ALT
+            || first_identifier == constants_str::SUPER
             || self.repo_crates.as_ref().contains(&first_identifier)
         {
             return ty_path_ref.path.segments.iter().find_map(|segment| {

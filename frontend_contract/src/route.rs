@@ -21,15 +21,15 @@ impl RouteMethod {
     #[must_use]
     pub fn as_str(self) -> crate::ContractStr {
         crate::ContractStr::from(match self {
-            Self::Connect => str_constants::CONNECT,
-            Self::Delete => str_constants::DELETE,
-            Self::Get => str_constants::GET,
-            Self::Head => str_constants::HEAD,
-            Self::Options => str_constants::OPTIONS,
-            Self::Patch => str_constants::PATCH,
-            Self::Post => str_constants::POST,
-            Self::Put => str_constants::PUT,
-            Self::Trace => str_constants::TRACE,
+            Self::Connect => constants_str::CONNECT,
+            Self::Delete => constants_str::DELETE,
+            Self::Get => constants_str::GET,
+            Self::Head => constants_str::HEAD,
+            Self::Options => constants_str::OPTIONS,
+            Self::Patch => constants_str::PATCH,
+            Self::Post => constants_str::POST,
+            Self::Put => constants_str::PUT,
+            Self::Trace => constants_str::TRACE,
         })
     }
 }
@@ -169,7 +169,7 @@ pub struct UtoipaOpenApiComponentsRefMut<'value_lt>(
 );
 impl std::fmt::Debug for UtoipaOpenApiComponentsRefMut<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct(str_constants::UTOIPAOPENAPICOMPONENTSREFMUT)
+        f.debug_struct(constants_str::UTOIPAOPENAPICOMPONENTSREFMUT)
             .finish_non_exhaustive()
     }
 }
@@ -177,7 +177,7 @@ impl std::fmt::Debug for UtoipaOpenApiComponentsRefMut<'_> {
 pub struct UtoipaOpenApiRefMut<'value_lt>(&'value_lt mut utoipa::openapi::OpenApi);
 impl std::fmt::Debug for UtoipaOpenApiRefMut<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct(str_constants::UTOIPAOPENAPIREFMUT)
+        f.debug_struct(constants_str::UTOIPAOPENAPIREFMUT)
             .finish_non_exhaustive()
     }
 }
@@ -258,7 +258,7 @@ impl RouteSchemaContract {
 pub struct UtoipaOpenApiRouteSchema(utoipa::openapi::RefOr<utoipa::openapi::Schema>);
 impl std::fmt::Debug for UtoipaOpenApiRouteSchema {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct(str_constants::OPEN_API_ROUTE_SCHEMA)
+        f.debug_struct(constants_str::OPEN_API_ROUTE_SCHEMA)
             .finish_non_exhaustive()
     }
 }
@@ -268,7 +268,7 @@ impl std::fmt::Debug for UtoipaOpenApiRouteSchema {
 pub struct UtoipaOpenApiPathParameter(utoipa::openapi::path::Parameter);
 impl std::fmt::Debug for UtoipaOpenApiPathParameter {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct(str_constants::UTOIPAOPENAPIPATHPARAMETER)
+        f.debug_struct(constants_str::UTOIPAOPENAPIPATHPARAMETER)
             .finish_non_exhaustive()
     }
 }
@@ -287,7 +287,7 @@ pub struct ParameterizedRoutePathTryFromStringError;
 impl TryFrom<String> for ParameterizedRoutePath {
     type Error = ParameterizedRoutePathTryFromStringError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > usize_constants::VALUE_8_192 {
+        if value.len() > constants_usize::VALUE_8_192 {
             Err(ParameterizedRoutePathTryFromStringError)
         } else {
             Ok(Self(value))
@@ -397,7 +397,7 @@ impl RouteBodyLimit {
     }
 }
 pub trait RouteFamily {
-    const ROUTE_COUNT: usize = usize_constants::ZERO;
+    const ROUTE_COUNT: usize = constants_usize::ZERO;
     #[must_use]
     fn body_limit() -> Option<RouteBodyLimit> {
         None
@@ -506,7 +506,7 @@ where
         && let Some(schema) = Route::openapi_response_schema()
     {
         let _previous_content = response.content.insert(
-            str_constants::APPLICATION_JSON.to_owned(),
+            constants_str::APPLICATION_JSON.to_owned(),
             utoipa::openapi::Content::new(Some(
                 utoipa::openapi::RefOr::<utoipa::openapi::Schema>::from(schema),
             )),
@@ -527,7 +527,7 @@ where
             utoipa::openapi::request_body::RequestBodyBuilder::new()
                 .required(Some(utoipa::openapi::Required::True))
                 .content(
-                    str_constants::APPLICATION_JSON,
+                    constants_str::APPLICATION_JSON,
                     utoipa::openapi::Content::new(Some(utoipa::openapi::RefOr::<
                         utoipa::openapi::Schema,
                     >::from(schema))),
@@ -544,10 +544,10 @@ where
     let name = Schema::name();
     let schema = <Schema as utoipa::PartialSchema>::schema();
     let qualified_name =
-        std::any::type_name::<Schema>().replace(str_constants::DOUBLE_COLON, str_constants::DOT);
+        std::any::type_name::<Schema>().replace(constants_str::DOUBLE_COLON, constants_str::DOT);
     let _previous_qualified_schema = components.0.schemas.insert(qualified_name, schema.clone());
     if let Some(crate_name) = std::any::type_name::<Schema>()
-        .split(str_constants::DOUBLE_COLON)
+        .split(constants_str::DOUBLE_COLON)
         .next()
     {
         let _previous_crate_schema = components
@@ -641,7 +641,7 @@ where
             let mut response = utoipa::openapi::response::Response::new(status.clone());
             if let Some(schema) = Route::openapi_error_response_schema(error_status) {
                 let _previous_content = response.content.insert(
-                    str_constants::APPLICATION_JSON.to_owned(),
+                    constants_str::APPLICATION_JSON.to_owned(),
                     utoipa::openapi::Content::new(Some(utoipa::openapi::RefOr::<
                         utoipa::openapi::Schema,
                     >::from(schema))),
@@ -649,7 +649,7 @@ where
             }
             if error_status == crate::RouteErrorStatus::RateLimited {
                 let _previous_header = response.headers.insert(
-                    str_constants::RETRY_AFTER.to_owned(),
+                    constants_str::RETRY_AFTER.to_owned(),
                     utoipa::openapi::header::Header::default(),
                 );
             }
@@ -710,8 +710,8 @@ mod tests {
         fn metadata() -> super::RouteMetadata {
             super::RouteMetadata::new(
                 super::RouteMethod::Get,
-                crate::ContractStr::from(str_constants::ROUTE_READ),
-                crate::ContractStr::from(str_constants::ROUTE),
+                crate::ContractStr::from(constants_str::ROUTE_READ),
+                crate::ContractStr::from(constants_str::ROUTE),
             )
         }
     }

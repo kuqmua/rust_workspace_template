@@ -16,7 +16,7 @@ fn typed_operation(
     metadata: frontend_contract::RouteMetadata,
 ) -> &serde_json::Value {
     document
-        .get(str_constants::PATHS)
+        .get(constants_str::PATHS)
         .and_then(|paths| paths.get(metadata.path().as_ref()))
         .and_then(|path| path.get(metadata.method().as_ref().to_ascii_lowercase()))
         .expect("61b8f042 typed_operation invariant must hold")
@@ -43,7 +43,7 @@ fn assert_local_references_resolve(document: &serde_json::Value, value: &serde_j
             .for_each(|child| assert_local_references_resolve(document, child)),
         serde_json::Value::Object(values) => {
             if let Some(reference) = values
-                .get(str_constants::DOLLAR_REF)
+                .get(constants_str::DOLLAR_REF)
                 .and_then(serde_json::Value::as_str)
                 .and_then(|reference| reference.strip_prefix('#'))
             {
@@ -269,12 +269,12 @@ fn proc_macro_generated_request_contracts_match_open_api_and_each_field() {
                 let actual_schema = document.pointer(reference.trim_start_matches('#')).expect("3754bca2 proc_macro_generated_request_contracts_match_open_api_and_each_field invariant must hold");
                 assert_eq!(actual_schema, &expected_schema, "request schema differs for {}", metadata.openapi_operation_id().as_ref());
                 expected_schema
-                    .get(str_constants::PROPERTIES)
+                    .get(constants_str::PROPERTIES)
                     .and_then(serde_json::Value::as_object)
                     .into_iter()
                     .flatten()
                     .for_each(|(property, expected)| {
-                        assert_eq!(actual_schema.get(str_constants::PROPERTIES).and_then(|properties| properties.get(property)), Some(expected), "request field differs for {}.{property}", metadata.openapi_operation_id().as_ref());
+                        assert_eq!(actual_schema.get(constants_str::PROPERTIES).and_then(|properties| properties.get(property)), Some(expected), "request field differs for {}.{property}", metadata.openapi_operation_id().as_ref());
                     });
             });
 }
@@ -318,7 +318,7 @@ fn generated_admin_open_api_combines_enabled_routes_only() {
     )
     .expect("87b2e8fb generated_admin_open_api_combines_enabled_routes_only invariant must hold");
     let paths = document
-        .get(str_constants::PATHS)
+        .get(constants_str::PATHS)
         .and_then(serde_json::Value::as_object)
         .expect(
             "274479a7 generated_admin_open_api_combines_enabled_routes_only invariant must hold",
@@ -437,7 +437,7 @@ fn generated_payload_example_routes_have_contracts_and_named_clients() {
         ),
     ]
     .into_iter()
-    .for_each(|size| assert_eq!(size, usize_constants::ZERO));
+    .for_each(|size| assert_eq!(size, constants_usize::ZERO));
 }
 #[test]
 fn every_admin_open_api_operation_has_a_unique_identifier() {
@@ -446,7 +446,7 @@ fn every_admin_open_api_operation_has_a_unique_identifier() {
     )
     .expect("c731d604 every_admin_open_api_operation_has_a_unique_identifier invariant must hold");
     let operation_ids = document
-        .get(str_constants::PATHS)
+        .get(constants_str::PATHS)
         .and_then(serde_json::Value::as_object)
         .expect("f9b402ac every_admin_open_api_operation_has_a_unique_identifier invariant must hold")
         .values()
@@ -471,16 +471,16 @@ fn generated_read_routes_expose_filter_sort_and_pagination_contract() {
         serde_json::to_value(utoipa::openapi::OpenApi::from(super::generated_open_api()))
             .expect("8457a8ca generated_read_routes_expose_filter_sort_and_pagination_contract invariant must hold");
     let paths = document
-        .get(str_constants::PATHS)
+        .get(constants_str::PATHS)
         .and_then(serde_json::Value::as_object)
         .expect("44d17ab0 generated_read_routes_expose_filter_sort_and_pagination_contract invariant must hold");
     [
-        str_constants::ADMIN_USERS_RM,
-        str_constants::ADMIN_ROLES_RM,
-        str_constants::ADMIN_PERMISSIONS_RM,
-        str_constants::ADMIN_ROLE_PERMISSIONS_RM,
-        str_constants::ADMIN_USER_ROLES_RM,
-        str_constants::ADMIN_SYSTEM_SETTINGS_RM,
+        constants_str::ADMIN_USERS_RM,
+        constants_str::ADMIN_ROLES_RM,
+        constants_str::ADMIN_PERMISSIONS_RM,
+        constants_str::ADMIN_ROLE_PERMISSIONS_RM,
+        constants_str::ADMIN_USER_ROLES_RM,
+        constants_str::ADMIN_SYSTEM_SETTINGS_RM,
     ]
     .into_iter()
     .for_each(|path| {
@@ -494,29 +494,29 @@ fn generated_read_routes_expose_filter_sort_and_pagination_contract() {
         );
     });
     let schemas = document
-        .pointer(str_constants::COMPONENTS_SCHEMAS_ALT)
+        .pointer(constants_str::COMPONENTS_SCHEMAS_ALT)
         .and_then(serde_json::Value::as_object)
         .expect("8dcf412e generated_read_routes_expose_filter_sort_and_pagination_contract invariant must hold");
     [
-        str_constants::ADMINUSERSRMPAYLOAD,
-        str_constants::ADMINROLESRMPAYLOAD,
-        str_constants::ADMINPERMISSIONSRMPAYLOAD,
-        str_constants::ADMINROLEPERMISSIONSRMPAYLOAD,
-        str_constants::ADMINUSERROLESRMPAYLOAD,
-        str_constants::ADMINSYSTEMSETTINGSRMPAYLOAD,
+        constants_str::ADMINUSERSRMPAYLOAD,
+        constants_str::ADMINROLESRMPAYLOAD,
+        constants_str::ADMINPERMISSIONSRMPAYLOAD,
+        constants_str::ADMINROLEPERMISSIONSRMPAYLOAD,
+        constants_str::ADMINUSERROLESRMPAYLOAD,
+        constants_str::ADMINSYSTEMSETTINGSRMPAYLOAD,
     ]
     .into_iter()
     .for_each(|schema_name| {
         let properties = schemas
             .get(schema_name)
-            .and_then(|schema| schema.get(str_constants::PROPERTIES))
+            .and_then(|schema| schema.get(constants_str::PROPERTIES))
             .and_then(serde_json::Value::as_object)
             .expect("5b8bbdd1 generated_read_routes_expose_filter_sort_and_pagination_contract invariant must hold");
         [
-            str_constants::WHERE_MANY,
-            str_constants::SELECT_ALT_3,
-            str_constants::ORDER_BY,
-            str_constants::PAGINATION,
+            constants_str::WHERE_MANY,
+            constants_str::SELECT_ALT_3,
+            constants_str::ORDER_BY,
+            constants_str::PAGINATION,
         ]
         .into_iter()
         .for_each(|property| {
@@ -533,7 +533,7 @@ fn generated_frontend_filter_metadata_matches_api_filter_schema() {
     let login = fields
         .as_ref()
         .iter()
-        .find(|field| field.name().as_ref() == str_constants::LOGIN)
+        .find(|field| field.name().as_ref() == constants_str::LOGIN)
         .expect("c2a69d51 generated_frontend_filter_metadata_matches_api_filter_schema invariant must hold");
     assert_eq!(
         login.filters().to_vec(),

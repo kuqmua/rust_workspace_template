@@ -18,17 +18,17 @@ impl<T: utoipa::PartialSchema> utoipa::__dev::ComposeSchema for V<T> {
     ) -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
         utoipa::openapi::ObjectBuilder::new()
             .property(
-                str_constants::PG_CRUD_V_FIELD,
+                constants_str::PG_CRUD_V_FIELD,
                 <T as utoipa::PartialSchema>::schema(),
             )
-            .required(str_constants::PG_CRUD_V_FIELD)
+            .required(constants_str::PG_CRUD_V_FIELD)
             .build()
             .into()
     }
 }
 impl<T: utoipa::ToSchema> utoipa::ToSchema for V<T> {
     fn name() -> std::borrow::Cow<'static, str> {
-        std::borrow::Cow::Borrowed(str_constants::V)
+        std::borrow::Cow::Borrowed(constants_str::V)
     }
 }
 //todo ExactSizeIterator now is not a solution. error[E0658]: use of unstable library feature `exact_size_is_empty`. maybe rewrite it later
@@ -91,7 +91,7 @@ impl<T: utoipa::PartialSchema> utoipa::__dev::ComposeSchema for NotEmptyUniqueVe
 }
 impl<T: utoipa::ToSchema> utoipa::ToSchema for NotEmptyUniqueVec<T> {
     fn name() -> std::borrow::Cow<'static, str> {
-        std::borrow::Cow::Borrowed(str_constants::PG_CRUD_NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME)
+        std::borrow::Cow::Borrowed(constants_str::PG_CRUD_NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME)
     }
 }
 impl<T> NotEmptyUniqueVec<T> {
@@ -166,7 +166,7 @@ const _: () = {
                 ) -> _serde::__private229::fmt::Result {
                     std::fmt::Formatter::write_str(
                         __f,
-                        str_constants::PG_CRUD_NOT_EMPTY_UNIQUE_VEC_TUPLE_NAME,
+                        constants_str::PG_CRUD_NOT_EMPTY_UNIQUE_VEC_TUPLE_NAME,
                     )
                 }
                 #[inline]
@@ -188,8 +188,8 @@ const _: () = {
                     let Some(f0) = _serde::de::SeqAccess::next_element::<Vec<T>>(&mut __seq)?
                     else {
                         return Err(_serde::de::Error::invalid_length(
-                            usize_constants::ZERO,
-                            &str_constants::PG_CRUD_NOT_EMPTY_UNIQUE_VEC_TUPLE_EXPECTING,
+                            constants_usize::ZERO,
+                            &constants_str::PG_CRUD_NOT_EMPTY_UNIQUE_VEC_TUPLE_EXPECTING,
                         ));
                     };
                     match NotEmptyUniqueVec::try_from(super::DuplicateCandidates::from(f0)) {
@@ -200,7 +200,7 @@ const _: () = {
             }
             serde::Deserializer::deserialize_newtype_struct(
                 __deserializer,
-                str_constants::PG_CRUD_NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME,
+                constants_str::PG_CRUD_NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME,
                 __Visitor {
                     marker: _serde::__private229::PhantomData::<Self>,
                     lt: _serde::__private229::PhantomData,
@@ -246,7 +246,7 @@ mod tests_not_empty_unique_vec {
     fn not_empty_unique_vec_try_new_supports_non_clone_values() {
         let error =
             super::NotEmptyUniqueVec::try_new(vec![NonClone(1), NonClone(2), NonClone(1)].into())
-                .expect_err(str_constants::ADF2B8C1);
+                .expect_err(constants_str::ADF2B8C1);
         match error {
             super::NotEmptyUniqueVecTryNewError::NotUnique { v, .. } => assert_eq!(v, NonClone(1)),
             super::NotEmptyUniqueVecTryNewError::IsEmpty { .. }
@@ -255,7 +255,7 @@ mod tests_not_empty_unique_vec {
     }
     #[test]
     fn not_empty_unique_vec_rejects_oversized_and_deserialized_empty_values() {
-        let oversized = (usize_constants::ZERO..=super::super::NOT_EMPTY_UNIQUE_VEC_MAX_LEN)
+        let oversized = (constants_usize::ZERO..=super::super::NOT_EMPTY_UNIQUE_VEC_MAX_LEN)
             .collect::<Vec<_>>();
         assert!(matches!(
             super::NotEmptyUniqueVec::try_new(oversized.into()),
@@ -267,7 +267,7 @@ mod tests_not_empty_unique_vec {
     #[test]
     fn not_empty_unique_vec_try_new_returns_is_empty_for_empty_vec() {
         let error = super::NotEmptyUniqueVec::<u8>::try_new(Vec::new().into())
-            .expect_err(str_constants::VALUE_3B41DE7F);
+            .expect_err(constants_str::VALUE_3B41DE7F);
         assert!(matches!(
             error,
             super::NotEmptyUniqueVecTryNewError::IsEmpty { .. }
@@ -328,7 +328,7 @@ mod tests_not_empty_unique_vec {
     #[test]
     fn not_empty_unique_vec_try_new_by_hash_returns_not_unique() {
         let error = super::NotEmptyUniqueVec::try_new_by_hash(vec![1u8, 2u8, 1u8].into())
-            .expect_err(str_constants::VALUE_59C80912);
+            .expect_err(constants_str::VALUE_59C80912);
         assert!(matches!(
             error,
             super::NotEmptyUniqueVecTryNewError::NotUnique { v: 1u8, .. }
@@ -399,7 +399,7 @@ impl utoipa::PartialSchema for NonPrimaryKeyPgTypeReadIds {
     fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
         utoipa::openapi::ObjectBuilder::new()
             .property(
-                str_constants::PG_CRUD_V_FIELD,
+                constants_str::PG_CRUD_V_FIELD,
                 utoipa::openapi::schema::OneOfBuilder::new()
                     .item(
                         utoipa::openapi::ObjectBuilder::new()
@@ -407,14 +407,14 @@ impl utoipa::PartialSchema for NonPrimaryKeyPgTypeReadIds {
                     )
                     .item(utoipa::openapi::schema::empty()),
             )
-            .required(str_constants::PG_CRUD_V_FIELD)
+            .required(constants_str::PG_CRUD_V_FIELD)
             .build()
             .into()
     }
 }
 impl utoipa::ToSchema for NonPrimaryKeyPgTypeReadIds {
     fn name() -> std::borrow::Cow<'static, str> {
-        std::borrow::Cow::Borrowed(str_constants::NONPRIMARYKEYPGTYPEREADIDS)
+        std::borrow::Cow::Borrowed(constants_str::NONPRIMARYKEYPGTYPEREADIDS)
     }
 }
 

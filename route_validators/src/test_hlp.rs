@@ -48,7 +48,7 @@ pub(crate) fn block_on<T>(input_future: impl Future<Output = T>) -> T {
     let mut future = std::pin::pin!(input_future);
     let waker = std::task::Waker::noop();
     let mut context = std::task::Context::from_waker(waker);
-    let mut poll_count = TestPollCount::from(usize_constants::ZERO);
+    let mut poll_count = TestPollCount::from(constants_usize::ZERO);
     loop {
         match future.as_mut().poll(&mut context) {
             std::task::Poll::Ready(output) => {
@@ -58,7 +58,7 @@ pub(crate) fn block_on<T>(input_future: impl Future<Output = T>) -> T {
                 assert!(
                     !is_block_on_poll_limit_reached(poll_count),
                     "{} super::block_on exceeded poll limit",
-                    str_constants::ROUTE_VALIDATORS_BLOCK_ON_POLL_LIMIT_ER_ID
+                    constants_str::ROUTE_VALIDATORS_BLOCK_ON_POLL_LIMIT_ER_ID
                 );
                 increment_block_on_poll_count(&mut poll_count);
                 std::thread::yield_now();
@@ -108,9 +108,9 @@ fn panic_unexpected_result(
 pub(crate) fn expect_ok<T, E>(v: Result<T, E>, exp_id: impl Into<TestExpId>) -> T {
     v.unwrap_or_else(|_| {
         panic_unexpected_result(
-            str_constants::ROUTE_VALIDATORS_EXPECT_OK_ER_ID,
-            str_constants::EXPECT_OK,
-            str_constants::ERR,
+            constants_str::ROUTE_VALIDATORS_EXPECT_OK_ER_ID,
+            constants_str::EXPECT_OK,
+            constants_str::ERR,
             exp_id,
         )
     })
@@ -126,9 +126,9 @@ where
 pub(crate) fn expect_error<T, E>(v: Result<T, E>, exp_id: impl Into<TestExpId>) -> E {
     v.err().unwrap_or_else(|| {
         panic_unexpected_result(
-            str_constants::ROUTE_VALIDATORS_EXPECT_ER_ER_ID,
-            str_constants::EXPECT_ERROR,
-            str_constants::OK,
+            constants_str::ROUTE_VALIDATORS_EXPECT_ER_ER_ID,
+            constants_str::EXPECT_ERROR,
+            constants_str::OK,
             exp_id,
         )
     })
@@ -282,7 +282,7 @@ pub(crate) fn replace_header_name<'headers_lt>(
         let exp_id = exp_id.into();
         panic!(
             "{} missing source header while replacing, id={exp_id}",
-            str_constants::ROUTE_VALIDATORS_REPLACE_HEADER_MISSING_SRC_ER_ID
+            constants_str::ROUTE_VALIDATORS_REPLACE_HEADER_MISSING_SRC_ER_ID
         );
     });
     insert_header_no_prev(headers.0, to_name, value);
@@ -311,7 +311,7 @@ mod tests {
                 let _ignored =
                     super::block_on(std::future::poll_fn(|_| std::task::Poll::<u8>::Pending));
             },
-            str_constants::VALUE_1FC8C9F0,
+            constants_str::VALUE_1FC8C9F0,
         );
     }
     #[test]
@@ -328,29 +328,29 @@ mod tests {
     }
     #[test]
     fn poll_count_increment_helper_increments_once() {
-        let mut poll_count = super::TestPollCount::from(usize_constants::ZERO);
+        let mut poll_count = super::TestPollCount::from(constants_usize::ZERO);
         super::increment_block_on_poll_count(&mut poll_count);
-        assert_eq!(poll_count.0, usize_constants::ONE);
+        assert_eq!(poll_count.0, constants_usize::ONE);
     }
     #[test]
     fn expect_ok_returns_inner_value() {
-        let v = super::expect_ok::<u8, u16>(Ok(7), str_constants::VALUE_4F607799);
+        let v = super::expect_ok::<u8, u16>(Ok(7), constants_str::VALUE_4F607799);
         assert_eq!(v, 7);
     }
     #[test]
     fn assert_ok_eq_checks_ok_result_value() {
-        super::assert_ok_eq::<u8, u16>(Ok(7), str_constants::VALUE_9665F80A, &7);
+        super::assert_ok_eq::<u8, u16>(Ok(7), constants_str::VALUE_9665F80A, &7);
     }
     #[test]
     fn expect_error_returns_inner_error() {
-        let v = super::expect_error::<u8, u16>(Err(9), str_constants::VALUE_5CD39E4B);
+        let v = super::expect_error::<u8, u16>(Err(9), constants_str::VALUE_5CD39E4B);
         assert_eq!(v, 9);
     }
     #[test]
     fn expect_error_mapped_passes_error_and_exp_id_to_mapper() {
         let v = super::expect_error_mapped::<u8, u16, (u16, &'static str)>(
             Err(9),
-            str_constants::VALUE_8CE7A316,
+            constants_str::VALUE_8CE7A316,
             |error, exp_id| (error, exp_id),
         );
         assert_eq!(v, (9, "8ce7a316"));
@@ -358,19 +358,19 @@ mod tests {
     #[test]
     fn panic_unexpected_variant_always_panics() {
         super::assert_panics(
-            || super::panic_unexpected_variant(str_constants::F66647AB),
-            str_constants::B6DBA95D,
+            || super::panic_unexpected_variant(constants_str::F66647AB),
+            constants_str::B6DBA95D,
         );
     }
     #[test]
     fn expect_variant_returns_mapped_value_for_matching_variant() {
-        let v = super::expect_variant(Some(7u8), |v| v, str_constants::VALUE_0DFD9A91);
+        let v = super::expect_variant(Some(7u8), |v| v, constants_str::VALUE_0DFD9A91);
         assert_eq!(v, 7);
     }
     #[test]
     fn expect_variant_ref_returns_mapped_value_for_matching_variant() {
         let value = Some(7u8);
-        let v = super::expect_variant_ref(&value, |v| *v, str_constants::A2FCBAD4);
+        let v = super::expect_variant_ref(&value, |v| *v, constants_str::A2FCBAD4);
         assert_eq!(v, 7);
     }
     #[test]
@@ -378,9 +378,9 @@ mod tests {
         super::assert_panics(
             || {
                 let _: u8 =
-                    super::expect_variant::<Option<u8>, u8>(None, |v| v, str_constants::DBA097B9);
+                    super::expect_variant::<Option<u8>, u8>(None, |v| v, constants_str::DBA097B9);
             },
-            str_constants::A9651F69,
+            constants_str::A9651F69,
         );
     }
     #[test]
@@ -391,7 +391,7 @@ mod tests {
         }
         let v = super::expect_error_variant::<(), TestError, u8>(
             Err(TestError::A(3)),
-            str_constants::VALUE_9BF4CE17,
+            constants_str::VALUE_9BF4CE17,
             |error| match error {
                 TestError::A(v) => Some(v),
             },
@@ -406,7 +406,7 @@ mod tests {
         }
         let v = super::expect_error_variant_ref::<(), TestError, u8>(
             Err(TestError::A(3)),
-            str_constants::VALUE_8DFC4389,
+            constants_str::VALUE_8DFC4389,
             |error| match error {
                 TestError::A(v) => Some(*v),
             },
@@ -426,7 +426,7 @@ mod tests {
         }
         let _: () = super::assert_err_status_code_variant::<(), TestError, ()>(
             Err(TestError::A),
-            str_constants::C1D74A8E,
+            constants_str::C1D74A8E,
             crate::AxumHttpStatusCode::bad_request(),
             |error| match error {
                 TestError::A => Some(()),
@@ -446,7 +446,7 @@ mod tests {
         }
         let v = super::assert_err_status_code_variant_ref::<(), TestError, u8>(
             Err(TestError::A(7)),
-            str_constants::VALUE_8AFB4FFD,
+            constants_str::VALUE_8AFB4FFD,
             crate::AxumHttpStatusCode::bad_request(),
             |error| match error {
                 TestError::A(v) => Some(*v),
@@ -457,10 +457,10 @@ mod tests {
     #[test]
     fn mk_headers_with_entry_inserts_value_for_case_insensitive_name() {
         let headers = super::mk_headers_with_entry(
-            str_constants::COMMIT,
-            axum::http::HeaderValue::from_static(str_constants::TEST_VALUES_WRONG_COMMIT),
+            constants_str::COMMIT,
+            axum::http::HeaderValue::from_static(constants_str::TEST_VALUES_WRONG_COMMIT),
         );
-        let actual = headers.get(str_constants::ROUTE_VALIDATORS_COMMIT_HEADER_NAME);
+        let actual = headers.get(constants_str::ROUTE_VALIDATORS_COMMIT_HEADER_NAME);
         assert_eq!(
             actual,
             Some(&axum::http::HeaderValue::from_static("deadbeef"))
@@ -469,14 +469,14 @@ mod tests {
     #[test]
     fn replace_header_name_moves_value_to_new_key() {
         let mut headers = super::mk_headers_with_entry(
-            str_constants::X_COMMIT,
-            axum::http::HeaderValue::from_static(str_constants::TEST_VALUES_WRONG_COMMIT),
+            constants_str::X_COMMIT,
+            axum::http::HeaderValue::from_static(constants_str::TEST_VALUES_WRONG_COMMIT),
         );
         super::replace_header_name(
             &mut headers,
-            str_constants::X_COMMIT,
-            axum::http::HeaderName::from_static(str_constants::ROUTE_VALIDATORS_COMMIT_HEADER_NAME),
-            str_constants::VALUE_348C0E57,
+            constants_str::X_COMMIT,
+            axum::http::HeaderName::from_static(constants_str::ROUTE_VALIDATORS_COMMIT_HEADER_NAME),
+            constants_str::VALUE_348C0E57,
         );
         assert!(headers.get("x-commit").is_none());
         assert_eq!(
@@ -502,12 +502,12 @@ mod tests {
         }
         let _err = super::assert_err_status_code::<(), TestErr>(
             Err(TestErr),
-            str_constants::VALUE_4A1791D2,
+            constants_str::VALUE_4A1791D2,
             crate::AxumHttpStatusCode::bad_request(),
         );
         super::assert_err_status_code_only::<(), TestErr>(
             Err(TestErr),
-            str_constants::VALUE_773C5AF2,
+            constants_str::VALUE_773C5AF2,
             crate::AxumHttpStatusCode::bad_request(),
         );
     }

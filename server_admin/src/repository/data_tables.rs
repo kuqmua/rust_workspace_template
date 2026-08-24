@@ -53,25 +53,25 @@ fn base_sql(
 ) -> Result<(crate::StdAdminString, crate::StdAdminString), super::AdminRepositoryError> {
     let spec = table.spec();
     let table_name = table.to_string();
-    let mut count = str_constants::SERVER_ADMIN_DATA_COUNT_PREFIX.to_owned();
+    let mut count = constants_str::SERVER_ADMIN_DATA_COUNT_PREFIX.to_owned();
     count.push_str(table_name.as_str());
     let mut data = spec.columns().get().split(',').enumerate().fold(
-        str_constants::SERVER_ADMIN_DATA_SELECT_ARRAY_PREFIX.to_owned(),
+        constants_str::SERVER_ADMIN_DATA_SELECT_ARRAY_PREFIX.to_owned(),
         |mut sql, (index, column)| {
-            if index > usize_constants::ZERO {
-                sql.push_str(str_constants::TEXT_ALT_7);
+            if index > constants_usize::ZERO {
+                sql.push_str(constants_str::TEXT_ALT_7);
             }
-            sql.push_str(str_constants::SERVER_ADMIN_DATA_SELECT_COLUMN_PREFIX);
+            sql.push_str(constants_str::SERVER_ADMIN_DATA_SELECT_COLUMN_PREFIX);
             sql.push_str(column);
-            sql.push_str(str_constants::SERVER_ADMIN_DATA_SELECT_COLUMN_SUFFIX);
+            sql.push_str(constants_str::SERVER_ADMIN_DATA_SELECT_COLUMN_SUFFIX);
             sql
         },
     );
-    data.push_str(str_constants::SERVER_ADMIN_DATA_SELECT_FROM);
+    data.push_str(constants_str::SERVER_ADMIN_DATA_SELECT_FROM);
     data.push_str(table_name.as_str());
-    data.push_str(str_constants::SERVER_ADMIN_FILTER_ORDER_BY_SEPARATOR);
+    data.push_str(constants_str::SERVER_ADMIN_FILTER_ORDER_BY_SEPARATOR);
     data.push_str(spec.order().get());
-    data.push_str(str_constants::SERVER_ADMIN_FILTER_LIMIT_SEPARATOR);
+    data.push_str(constants_str::SERVER_ADMIN_FILTER_LIMIT_SEPARATOR);
     Ok((
         crate::StdAdminString::try_from(count)
             .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
@@ -101,7 +101,7 @@ pub(crate) struct DataUserRolesFlt(
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, newtype::FromInner)]
 pub(crate) struct DataUsersFlt(crate::generated_tables::StdOptionalOptionalAdminUsersWhereMany);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::AsRefStr, newtype::BoundedString)]
-#[bounded_string(max = usize_constants::VALUE_1_048_576)]
+#[bounded_string(max = constants_usize::VALUE_1_048_576)]
 struct DataFltJson(String);
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone)]
@@ -118,7 +118,7 @@ impl DataFlt {
         &self,
         increment: &mut pg_crud_common::QueryPartIncrement,
     ) -> Result<pg_crud_common::QueryPartFragment, pg_crud_common::QueryPartError> {
-        let column = str_constants::PG_CRUD_EMPTY_SQL_SUFFIX;
+        let column = constants_str::PG_CRUD_EMPTY_SQL_SUFFIX;
         match self {
             Self::Permissions(value) => pg_crud_common::PgTypeWhereFilter::query_part(
                 &value.0,
@@ -235,8 +235,8 @@ fn filter_payload(
     };
     let mut body = serde_json::Map::new();
     let _body_operator_replaced = body.insert(
-        str_constants::PG_CRUD_OPERATOR_FIELD.to_owned(),
-        serde_json::Value::String(str_constants::SERVER_ADMIN_FILTER_OPERATOR_AND.to_owned()),
+        constants_str::PG_CRUD_OPERATOR_FIELD.to_owned(),
+        serde_json::Value::String(constants_str::SERVER_ADMIN_FILTER_OPERATOR_AND.to_owned()),
     );
     match operation.value_shape() {
         frontend_contract::FilterValueShape::None => {
@@ -255,11 +255,11 @@ fn filter_payload(
                 .and_then(parse_value)?;
             let mut range = serde_json::Map::new();
             let _range_start_replaced =
-                range.insert(str_constants::PG_CRUD_START_FIELD.to_owned(), start);
+                range.insert(constants_str::PG_CRUD_START_FIELD.to_owned(), start);
             let _range_end_replaced =
-                range.insert(str_constants::PG_CRUD_END_FIELD.to_owned(), end);
+                range.insert(constants_str::PG_CRUD_END_FIELD.to_owned(), end);
             let _body_range_replaced = body.insert(
-                str_constants::PG_CRUD_V_FIELD.to_owned(),
+                constants_str::PG_CRUD_V_FIELD.to_owned(),
                 serde_json::Value::Object(range),
             );
         }
@@ -271,7 +271,7 @@ fn filter_payload(
                 .value()
                 .ok_or(super::AdminRepositoryError::InvalidStoredValue)?
                 .as_ref()
-                .split(str_constants::TEXT_ALT_7)
+                .split(constants_str::TEXT_ALT_7)
                 .map(str::trim)
                 .map(|raw_value| {
                     let typed_value =
@@ -281,7 +281,7 @@ fn filter_payload(
                 })
                 .collect::<Result<Vec<_>, super::AdminRepositoryError>>()?;
             let _body_list_replaced = body.insert(
-                str_constants::PG_CRUD_V_FIELD.to_owned(),
+                constants_str::PG_CRUD_V_FIELD.to_owned(),
                 serde_json::Value::Array(values),
             );
         }
@@ -294,13 +294,13 @@ fn filter_payload(
                 .ok_or(super::AdminRepositoryError::InvalidStoredValue)
                 .and_then(parse_value)?;
             let _body_regex_case_replaced = body.insert(
-                str_constants::SERVER_ADMIN_FILTER_REGEX_CASE_FIELD.to_owned(),
+                constants_str::SERVER_ADMIN_FILTER_REGEX_CASE_FIELD.to_owned(),
                 serde_json::Value::String(
-                    str_constants::SERVER_ADMIN_FILTER_REGEX_SENSITIVE.to_owned(),
+                    constants_str::SERVER_ADMIN_FILTER_REGEX_SENSITIVE.to_owned(),
                 ),
             );
             let _body_regex_value_replaced =
-                body.insert(str_constants::PG_CRUD_V_FIELD.to_owned(), value);
+                body.insert(constants_str::PG_CRUD_V_FIELD.to_owned(), value);
         }
         frontend_contract::FilterValueShape::EncodedText => {
             if query.end().is_some() {
@@ -310,13 +310,13 @@ fn filter_payload(
                 .value()
                 .ok_or(super::AdminRepositoryError::InvalidStoredValue)?;
             let _body_encode_format_replaced = body.insert(
-                str_constants::SERVER_ADMIN_FILTER_ENCODE_FORMAT_FIELD.to_owned(),
+                constants_str::SERVER_ADMIN_FILTER_ENCODE_FORMAT_FIELD.to_owned(),
                 serde_json::Value::String(
-                    str_constants::SERVER_ADMIN_FILTER_ENCODE_BASE64.to_owned(),
+                    constants_str::SERVER_ADMIN_FILTER_ENCODE_BASE64.to_owned(),
                 ),
             );
             let _body_encoded_value_replaced = body.insert(
-                str_constants::SERVER_ADMIN_FILTER_ENCODED_VALUE_FIELD.to_owned(),
+                constants_str::SERVER_ADMIN_FILTER_ENCODED_VALUE_FIELD.to_owned(),
                 serde_json::Value::String(value.as_ref().to_owned()),
             );
         }
@@ -329,7 +329,7 @@ fn filter_payload(
                 .ok_or(super::AdminRepositoryError::InvalidStoredValue)
                 .and_then(parse_value)?;
             let _body_scalar_replaced =
-                body.insert(str_constants::PG_CRUD_V_FIELD.to_owned(), value);
+                body.insert(constants_str::PG_CRUD_V_FIELD.to_owned(), value);
         }
     }
     let mut operation_entry = serde_json::Map::new();
@@ -337,12 +337,12 @@ fn filter_payload(
         operation_entry.insert(format!("{operation:?}"), serde_json::Value::Object(body));
     let mut field_filters = serde_json::Map::new();
     let _field_values_replaced = field_filters.insert(
-        str_constants::PG_CRUD_V_FIELD.to_owned(),
+        constants_str::PG_CRUD_V_FIELD.to_owned(),
         serde_json::Value::Array(vec![serde_json::Value::Object(operation_entry)]),
     );
     let _field_operator_replaced = field_filters.insert(
-        str_constants::PG_CRUD_OPERATOR_FIELD.to_owned(),
-        serde_json::Value::String(str_constants::SERVER_ADMIN_FILTER_OPERATOR_AND.to_owned()),
+        constants_str::PG_CRUD_OPERATOR_FIELD.to_owned(),
+        serde_json::Value::String(constants_str::SERVER_ADMIN_FILTER_OPERATOR_AND.to_owned()),
     );
     let mut where_many = serde_json::Map::new();
     let _field_replaced = where_many.insert(
@@ -380,21 +380,21 @@ fn filtered_sql(
     filtered_count.push_str(fragment.as_ref());
     let (data_prefix, ordered_suffix) = data_sql
         .get()
-        .split_once(str_constants::SERVER_ADMIN_FILTER_ORDER_BY_SEPARATOR)
+        .split_once(constants_str::SERVER_ADMIN_FILTER_ORDER_BY_SEPARATOR)
         .ok_or(super::AdminRepositoryError::InvalidStoredValue)?;
     let order = ordered_suffix
-        .strip_suffix(str_constants::SERVER_ADMIN_FILTER_LIMIT_SEPARATOR)
+        .strip_suffix(constants_str::SERVER_ADMIN_FILTER_LIMIT_SEPARATOR)
         .ok_or(super::AdminRepositoryError::InvalidStoredValue)?;
     let limit_index = bind_count.get().saturating_add(1u64);
     let offset_index = limit_index.saturating_add(1u64);
     let mut filtered_data = data_prefix.to_owned();
     filtered_data.push(' ');
     filtered_data.push_str(fragment.as_ref());
-    filtered_data.push_str(str_constants::SERVER_ADMIN_FILTER_ORDER_BY_SEPARATOR);
+    filtered_data.push_str(constants_str::SERVER_ADMIN_FILTER_ORDER_BY_SEPARATOR);
     filtered_data.push_str(order);
-    filtered_data.push_str(str_constants::SERVER_ADMIN_FILTER_LIMIT_PREFIX);
+    filtered_data.push_str(constants_str::SERVER_ADMIN_FILTER_LIMIT_PREFIX);
     filtered_data.push_str(limit_index.to_string().as_str());
-    filtered_data.push_str(str_constants::SERVER_ADMIN_FILTER_OFFSET_PREFIX);
+    filtered_data.push_str(constants_str::SERVER_ADMIN_FILTER_OFFSET_PREFIX);
     filtered_data.push_str(offset_index.to_string().as_str());
     let count = crate::StdAdminString::try_from(filtered_count)
         .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?;
@@ -412,7 +412,7 @@ pub(crate) async fn read(
     let columns = data_columns(table, spec.columns())?;
     let (base_count_sql, base_sql) = base_sql(table)?;
     let filter = data_filter(table, query.filter())?;
-    let mut increment = pg_crud_common::QueryPartIncrement::from(u64_constants::ZERO);
+    let mut increment = pg_crud_common::QueryPartIncrement::from(constants_u64::ZERO);
     let fragment = filter
         .as_ref()
         .map(|value| value.query_part(&mut increment))
@@ -450,7 +450,7 @@ pub(crate) async fn read(
         .fetch_one(pool.0)
         .await
         .map_err(crate::SqlxAdminError::from)?;
-    let total = sqlx::Row::try_get::<i64, _>(&count_row, usize_constants::ZERO)
+    let total = sqlx::Row::try_get::<i64, _>(&count_row, constants_usize::ZERO)
         .map_err(crate::SqlxAdminError::from)?;
     let unbound_data_query = sqlx::query(sqlx::AssertSqlSafe(sql.as_ref().as_str()));
     let bound_data_query = filter
@@ -469,7 +469,7 @@ pub(crate) async fn read(
         .map_err(crate::SqlxAdminError::from)?
         .into_iter()
         .map(|row| {
-            sqlx::Row::try_get::<Vec<Option<String>>, _>(&row, usize_constants::ZERO)
+            sqlx::Row::try_get::<Vec<Option<String>>, _>(&row, constants_usize::ZERO)
                 .map_err(crate::SqlxAdminError::from)
         })
         .collect::<Result<Vec<_>, crate::SqlxAdminError>>()?;
@@ -480,7 +480,7 @@ pub(crate) async fn read(
                 .into_iter()
                 .map(|value| {
                     server_admin_contract::AdminText::try_from(
-                        value.unwrap_or_else(|| str_constants::SERVER_ADMIN_DATA_NULL.to_owned()),
+                        value.unwrap_or_else(|| constants_str::SERVER_ADMIN_DATA_NULL.to_owned()),
                     )
                     .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)
                 })
@@ -541,14 +541,14 @@ mod tests {
         let id = columns
             .as_slice()
             .iter()
-            .find(|column| column.name().as_ref() == str_constants::SQL_NAMES_ID);
+            .find(|column| column.name().as_ref() == constants_str::SQL_NAMES_ID);
         assert!(id.is_some_and(|column| {
             column.input_kind() == server_admin_contract::AdminDataInputKind::Number
         }));
         let login = columns
             .as_slice()
             .iter()
-            .find(|column| column.name().as_ref() == str_constants::LOGIN)
+            .find(|column| column.name().as_ref() == constants_str::LOGIN)
             .expect(
                 "7a340d1f generated_table_fields_supply_client_column_metadata invariant must hold",
             );
@@ -568,7 +568,7 @@ mod tests {
     #[test]
     fn generated_where_filter_builds_typed_table_predicate() {
         let query = filter_query(
-            str_constants::LOGIN,
+            constants_str::LOGIN,
             frontend_contract::FilterOperation::Eq,
             Some("alice"),
             None,
@@ -579,13 +579,13 @@ mod tests {
         )
         .expect("4e779df0 generated_where_filter_builds_typed_table_predicate invariant must hold")
         .expect("d9c8cf39 generated_where_filter_builds_typed_table_predicate invariant must hold");
-        let mut increment = pg_crud_common::QueryPartIncrement::from(u64_constants::ZERO);
+        let mut increment = pg_crud_common::QueryPartIncrement::from(constants_u64::ZERO);
 
         let fragment = filter.query_part(&mut increment).expect(
             "a25fe142 generated_where_filter_builds_typed_table_predicate invariant must hold",
         );
 
-        assert!(fragment.as_ref().contains(str_constants::LOGIN));
+        assert!(fragment.as_ref().contains(constants_str::LOGIN));
         assert!(fragment.as_ref().contains("$1"));
         assert_eq!(increment.get(), 1u64);
     }
@@ -593,7 +593,7 @@ mod tests {
     #[test]
     fn unsupported_field_operation_is_rejected() {
         let query = filter_query(
-            str_constants::LOGIN,
+            constants_str::LOGIN,
             frontend_contract::FilterOperation::Between,
             Some("alice"),
             Some("bob"),
@@ -619,7 +619,7 @@ mod tests {
     #[test]
     fn incomplete_filter_queries_are_rejected() {
         let field =
-            server_admin_contract::AdminFilterField::try_from(str_constants::LOGIN.to_owned())
+            server_admin_contract::AdminFilterField::try_from(constants_str::LOGIN.to_owned())
                 .expect("f1832a34 incomplete_filter_queries_are_rejected invariant must hold");
         let value = server_admin_contract::AdminFilterValue::try_from(String::from("alice"))
             .expect("16849a06 incomplete_filter_queries_are_rejected invariant must hold");
@@ -667,7 +667,7 @@ mod tests {
             frontend_contract::FilterOperation::Regex,
         ];
         assert!(operations.into_iter().all(|operation| {
-            let query = filter_query(str_constants::LOGIN, operation, Some("alice"), Some("bob"));
+            let query = filter_query(constants_str::LOGIN, operation, Some("alice"), Some("bob"));
             super::data_filter(server_admin_contract::AdminDataTable::Users, query.filter())
                 .is_err()
         }));
@@ -676,7 +676,7 @@ mod tests {
     #[test]
     fn regex_filter_builds_a_typed_predicate() {
         let query = filter_query(
-            str_constants::LOGIN,
+            constants_str::LOGIN,
             frontend_contract::FilterOperation::Regex,
             Some("^alice"),
             None,
@@ -685,13 +685,13 @@ mod tests {
             super::data_filter(server_admin_contract::AdminDataTable::Users, query.filter())
                 .expect("e0b1326d regex_filter_builds_a_typed_predicate invariant must hold")
                 .expect("8a4e68fb regex_filter_builds_a_typed_predicate invariant must hold");
-        let mut increment = pg_crud_common::QueryPartIncrement::from(u64_constants::ZERO);
+        let mut increment = pg_crud_common::QueryPartIncrement::from(constants_u64::ZERO);
 
         let fragment = filter
             .query_part(&mut increment)
             .expect("9f5e101d regex_filter_builds_a_typed_predicate invariant must hold");
 
-        assert!(fragment.as_ref().contains(str_constants::LOGIN));
+        assert!(fragment.as_ref().contains(constants_str::LOGIN));
         assert_eq!(increment.get(), 1u64);
     }
 
@@ -733,11 +733,11 @@ mod tests {
                 });
                 assert!(
                     data.as_ref()
-                        .contains(str_constants::SERVER_ADMIN_DATA_SELECT_COLUMN_SUFFIX)
+                        .contains(constants_str::SERVER_ADMIN_DATA_SELECT_COLUMN_SUFFIX)
                 );
                 assert!(
                     data.as_ref()
-                        .ends_with(str_constants::SERVER_ADMIN_FILTER_LIMIT_SEPARATOR)
+                        .ends_with(constants_str::SERVER_ADMIN_FILTER_LIMIT_SEPARATOR)
                 );
             });
     }

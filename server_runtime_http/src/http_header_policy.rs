@@ -67,15 +67,15 @@ pub fn build_attachment_content_disposition(
     )
     .to_string();
     let mut header = String::with_capacity(
-        str_constants::CONTENT_DISPOSITION_ATTACHMENT_PREFIX
+        constants_str::CONTENT_DISPOSITION_ATTACHMENT_PREFIX
             .len()
             .saturating_add(fallback.len())
-            .saturating_add(str_constants::CONTENT_DISPOSITION_UTF8_DELIMITER.len())
+            .saturating_add(constants_str::CONTENT_DISPOSITION_UTF8_DELIMITER.len())
             .saturating_add(encoded.len()),
     );
-    header.push_str(str_constants::CONTENT_DISPOSITION_ATTACHMENT_PREFIX);
+    header.push_str(constants_str::CONTENT_DISPOSITION_ATTACHMENT_PREFIX);
     header.push_str(fallback.as_str());
-    header.push_str(str_constants::CONTENT_DISPOSITION_UTF8_DELIMITER);
+    header.push_str(constants_str::CONTENT_DISPOSITION_UTF8_DELIMITER);
     header.push_str(encoded.as_str());
     http::HeaderValue::try_from(header)
         .map(HttpContentDisposition)
@@ -133,7 +133,7 @@ mod tests {
     fn content_disposition_sanitizes_and_encodes_file_name() {
         let value = super::build_attachment_content_disposition(
             super::HttpAttachmentFileNameRef::from(
-                str_constants::TEST_UNSAFE_UNICODE_ATTACHMENT_FILE_NAME,
+                constants_str::TEST_UNSAFE_UNICODE_ATTACHMENT_FILE_NAME,
             ),
         )
         .expect("ec78ce2e content_disposition_sanitizes_and_encodes_file_name invariant must hold");
@@ -141,7 +141,7 @@ mod tests {
         assert_eq!(
             header,
             http::HeaderValue::from_static(
-                str_constants::TEST_SAFE_UNICODE_ATTACHMENT_CONTENT_DISPOSITION
+                constants_str::TEST_SAFE_UNICODE_ATTACHMENT_CONTENT_DISPOSITION
             )
         );
     }
@@ -149,7 +149,7 @@ mod tests {
     #[test]
     fn content_length_accepts_u64_maximum() {
         let value =
-            super::HttpContentLength::try_from(str_constants::TEST_U64_MAXIMUM_TEXT.to_owned())
+            super::HttpContentLength::try_from(constants_str::TEST_U64_MAXIMUM_TEXT.to_owned())
                 .expect("f87ab266 content_length_accepts_u64_maximum invariant must hold");
         assert_eq!(u64::try_from(value), Ok(u64::MAX));
     }

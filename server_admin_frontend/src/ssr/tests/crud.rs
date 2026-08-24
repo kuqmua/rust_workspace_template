@@ -16,7 +16,7 @@ fn crud_pages_render_dedicated_forms_and_navigation() {
         server_admin_contract::AdminDisplayName::try_from(String::from("CRUD Admin")).expect(
             "ee23b99d crud_pages_render_dedicated_forms_and_navigation invariant must hold",
         ),
-        server_admin_contract::AdminUserId::try_from(i64_constants::ONE).expect(
+        server_admin_contract::AdminUserId::try_from(constants_i64::ONE).expect(
             "f56d7f68 crud_pages_render_dedicated_forms_and_navigation invariant must hold",
         ),
         server_admin_contract::AdminLogin::try_from(String::from("crud_admin")).expect(

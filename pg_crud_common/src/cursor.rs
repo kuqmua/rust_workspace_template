@@ -54,7 +54,7 @@ impl TryFrom<usize> for CursorMaximumLength {
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone)]
 pub struct CursorSigningKey(
-    bounded_types::BoundedVec<u8, { usize_constants::ONE }, CURSOR_SIGNING_KEY_MAXIMUM_LENGTH>,
+    bounded_types::BoundedVec<u8, { constants_usize::ONE }, CURSOR_SIGNING_KEY_MAXIMUM_LENGTH>,
 );
 
 impl std::fmt::Debug for CursorSigningKey {
@@ -77,7 +77,7 @@ impl TryFrom<Vec<u8>> for CursorSigningKey {
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
 )]
-#[error("{message}", message = str_constants::CURSOR_SIGNING_KEY_LENGTH_INVALID)]
+#[error("{message}", message = constants_str::CURSOR_SIGNING_KEY_LENGTH_INVALID)]
 pub struct CursorSigningKeyError;
 
 #[derive(
@@ -104,7 +104,7 @@ impl TryFrom<String> for CursorPayload {
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
 )]
-#[error("{message}", message = str_constants::CURSOR_PAYLOAD_MUST_NOT_BE_EMPTY)]
+#[error("{message}", message = constants_str::CURSOR_PAYLOAD_MUST_NOT_BE_EMPTY)]
 pub struct CursorPayloadError;
 
 #[derive(
@@ -131,7 +131,7 @@ impl TryFrom<String> for SignedCursor {
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
 )]
-#[error("{message}", message = str_constants::SIGNED_CURSOR_MUST_NOT_BE_EMPTY)]
+#[error("{message}", message = constants_str::SIGNED_CURSOR_MUST_NOT_BE_EMPTY)]
 pub struct SignedCursorError;
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
@@ -155,7 +155,7 @@ impl CursorCodec {
             &base64::engine::general_purpose::URL_SAFE_NO_PAD,
             payload.as_ref().as_bytes(),
         );
-        let signed_text = format!("{}.{encoded_payload}", str_constants::CURSOR_VERSION_V1);
+        let signed_text = format!("{}.{encoded_payload}", constants_str::CURSOR_VERSION_V1);
         let mut mac =
             <hmac::Hmac<sha2::Sha256> as hmac::KeyInit>::new_from_slice(self.key.0.as_slice())
                 .map_err(|_error| CursorEncodeError::InvalidSigningKey)?;
@@ -180,7 +180,7 @@ impl CursorCodec {
         let version = parts.next().ok_or(CursorDecodeError::InvalidFormat)?;
         let encoded_payload = parts.next().ok_or(CursorDecodeError::InvalidFormat)?;
         let encoded_signature = parts.next().ok_or(CursorDecodeError::InvalidFormat)?;
-        if parts.next().is_some() || version != str_constants::CURSOR_VERSION_V1 {
+        if parts.next().is_some() || version != constants_str::CURSOR_VERSION_V1 {
             return Err(CursorDecodeError::InvalidFormat);
         }
         let signature = base64::Engine::decode(
@@ -209,7 +209,7 @@ impl CursorCodec {
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
 )]
 pub enum CursorCodecBuildError {
-    #[error("{message}", message = str_constants::CURSOR_MAXIMUM_LENGTH_MUST_BE_GREATER_THAN_ZERO)]
+    #[error("{message}", message = constants_str::CURSOR_MAXIMUM_LENGTH_MUST_BE_GREATER_THAN_ZERO)]
     ZeroMaximumLength,
 }
 
@@ -217,9 +217,9 @@ pub enum CursorCodecBuildError {
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
 )]
 pub enum CursorEncodeError {
-    #[error("{message}", message = str_constants::CURSOR_SIGNING_KEY_IS_INVALID)]
+    #[error("{message}", message = constants_str::CURSOR_SIGNING_KEY_IS_INVALID)]
     InvalidSigningKey,
-    #[error("{message}", message = str_constants::CURSOR_EXCEEDS_MAXIMUM_LENGTH)]
+    #[error("{message}", message = constants_str::CURSOR_EXCEEDS_MAXIMUM_LENGTH)]
     MaximumLengthExceeded,
 }
 
@@ -227,15 +227,15 @@ pub enum CursorEncodeError {
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
 )]
 pub enum CursorDecodeError {
-    #[error("{message}", message = str_constants::CURSOR_FORMAT_IS_INVALID)]
+    #[error("{message}", message = constants_str::CURSOR_FORMAT_IS_INVALID)]
     InvalidFormat,
-    #[error("{message}", message = str_constants::CURSOR_PAYLOAD_IS_INVALID)]
+    #[error("{message}", message = constants_str::CURSOR_PAYLOAD_IS_INVALID)]
     InvalidPayload,
-    #[error("{message}", message = str_constants::CURSOR_SIGNATURE_IS_INVALID)]
+    #[error("{message}", message = constants_str::CURSOR_SIGNATURE_IS_INVALID)]
     InvalidSignature,
-    #[error("{message}", message = str_constants::CURSOR_SIGNING_KEY_IS_INVALID)]
+    #[error("{message}", message = constants_str::CURSOR_SIGNING_KEY_IS_INVALID)]
     InvalidSigningKey,
-    #[error("{message}", message = str_constants::CURSOR_EXCEEDS_MAXIMUM_LENGTH)]
+    #[error("{message}", message = constants_str::CURSOR_EXCEEDS_MAXIMUM_LENGTH)]
     MaximumLengthExceeded,
 }
 
@@ -253,9 +253,9 @@ mod tests {
             miri,
             ignore = "the deterministic property suite is covered natively and is prohibitively slow under interpretation"
         )]
-        fn signed_cursor_round_trips_generated_payloads(payload_text in str_constants::TEST_CURSOR_PAYLOAD_PATTERN) {
-            let domain_payload = super::CursorPayload::try_from(payload_text).expect(str_constants::VALUE_28167829);
-            let cursor = codec().encode(&domain_payload).expect(str_constants::VALUE_58718EC8);
+        fn signed_cursor_round_trips_generated_payloads(payload_text in constants_str::TEST_CURSOR_PAYLOAD_PATTERN) {
+            let domain_payload = super::CursorPayload::try_from(payload_text).expect(constants_str::VALUE_28167829);
+            let cursor = codec().encode(&domain_payload).expect(constants_str::VALUE_58718EC8);
             proptest::prop_assert_eq!(codec().decode(&cursor), Ok(domain_payload));
         }
 
@@ -264,19 +264,19 @@ mod tests {
             miri,
             ignore = "the deterministic property suite is covered natively and is prohibitively slow under interpretation"
         )]
-        fn changing_signature_is_always_rejected(payload_text in str_constants::TEST_CURSOR_PAYLOAD_PATTERN) {
-            let domain_payload = super::CursorPayload::try_from(payload_text).expect(str_constants::VALUE_52BB899A);
-            let cursor = codec().encode(&domain_payload).expect(str_constants::VALUE_5E1A9245);
+        fn changing_signature_is_always_rejected(payload_text in constants_str::TEST_CURSOR_PAYLOAD_PATTERN) {
+            let domain_payload = super::CursorPayload::try_from(payload_text).expect(constants_str::VALUE_52BB899A);
+            let cursor = codec().encode(&domain_payload).expect(constants_str::VALUE_5E1A9245);
             let mut modified_bytes = cursor.as_ref().as_bytes().to_vec();
             let signature_start = modified_bytes
                 .iter()
                 .rposition(|byte| *byte == b'.')
-                .and_then(|index| index.checked_add(usize_constants::ONE))
-                .expect(str_constants::VALUE_02A18550);
-            let signature_byte = modified_bytes.get_mut(signature_start).expect(str_constants::VALUE_EB8B9918);
+                .and_then(|index| index.checked_add(constants_usize::ONE))
+                .expect(constants_str::VALUE_02A18550);
+            let signature_byte = modified_bytes.get_mut(signature_start).expect(constants_str::VALUE_EB8B9918);
             *signature_byte = if *signature_byte == b'A' { b'B' } else { b'A' };
-            let modified_text = String::from_utf8(modified_bytes).expect(str_constants::VALUE_130A34B8);
-            let modified_cursor = super::SignedCursor::try_from(modified_text).expect(str_constants::VALUE_D1169A2F);
+            let modified_text = String::from_utf8(modified_bytes).expect(constants_str::VALUE_130A34B8);
+            let modified_cursor = super::SignedCursor::try_from(modified_text).expect(constants_str::VALUE_D1169A2F);
             proptest::prop_assert_eq!(
                 codec().decode(&modified_cursor),
                 Err(super::CursorDecodeError::InvalidSignature)
@@ -301,9 +301,9 @@ mod tests {
         );
         assert_eq!(
             super::CursorSigningKey::try_from(vec![
-                u8_constants::ZERO;
+                constants_u8::ZERO;
                 super::CURSOR_SIGNING_KEY_MAXIMUM_LENGTH
-                    + usize_constants::ONE
+                    + constants_usize::ONE
             ])
             .map(drop),
             Err(super::CursorSigningKeyError)
@@ -313,7 +313,7 @@ mod tests {
     #[test]
     fn signed_cursor_round_trip_preserves_payload() {
         let payload =
-            super::CursorPayload::try_from(String::from(str_constants::CURSOR_TEST_JSON_PAYLOAD))
+            super::CursorPayload::try_from(String::from(constants_str::CURSOR_TEST_JSON_PAYLOAD))
                 .expect("ead70a9e signed_cursor_round_trip_preserves_payload invariant must hold");
         let cursor = codec()
             .encode(&payload)
@@ -329,7 +329,7 @@ mod tests {
     #[test]
     fn modified_cursor_is_rejected() {
         let payload =
-            super::CursorPayload::try_from(String::from(str_constants::CURSOR_TEST_PAYLOAD))
+            super::CursorPayload::try_from(String::from(constants_str::CURSOR_TEST_PAYLOAD))
                 .expect("256860a7 modified_cursor_is_rejected invariant must hold");
         let cursor = codec()
             .encode(&payload)

@@ -44,7 +44,7 @@ mod tests {
         let item = server_admin_contract::AdminUserSummary::new(
             server_admin_contract::AdminDisplayName::try_from(String::from("Alice"))
                 .expect("63f1b9e4 user_roles_render_only_matching_names_in_catalog_order invariant must hold"),
-            server_admin_contract::AdminUserId::try_from(i64_constants::ONE).expect("9ac2e751 user_roles_render_only_matching_names_in_catalog_order invariant must hold"),
+            server_admin_contract::AdminUserId::try_from(constants_i64::ONE).expect("9ac2e751 user_roles_render_only_matching_names_in_catalog_order invariant must hold"),
             server_admin_contract::AdminBool::from(false),
             server_admin_contract::AdminLogin::try_from(String::from("alice")).expect("4e70c31d user_roles_render_only_matching_names_in_catalog_order invariant must hold"),
             server_admin_contract::AdminRoleIds::try_from(vec![assigned_role]).expect("5b38d0a2 user_roles_render_only_matching_names_in_catalog_order invariant must hold"),
@@ -53,7 +53,7 @@ mod tests {
             server_admin_contract::AdminUserSummaries::try_from(vec![item]).expect("7f294cb8 user_roles_render_only_matching_names_in_catalog_order invariant must hold"),
             server_admin_contract::AdminRoleSummaries::try_from(vec![
                 server_admin_contract::AdminRoleSummary::new(
-                    server_admin_contract::AdminRoleId::try_from(i64_constants::ONE).expect("a014de95 user_roles_render_only_matching_names_in_catalog_order invariant must hold"),
+                    server_admin_contract::AdminRoleId::try_from(constants_i64::ONE).expect("a014de95 user_roles_render_only_matching_names_in_catalog_order invariant must hold"),
                     server_admin_contract::AdminBool::from(false),
                     server_admin_contract::AdminRoleName::try_from(String::from("reader"))
                         .expect("2d6b15c9 user_roles_render_only_matching_names_in_catalog_order invariant must hold"),
@@ -82,11 +82,11 @@ mod tests {
     #[test]
     fn role_permissions_render_matching_names_with_stable_separator() {
         let first_permission =
-            server_admin_contract::AdminPermissionId::try_from(i64_constants::ONE).expect("61bc809e role_permissions_render_matching_names_with_stable_separator invariant must hold");
+            server_admin_contract::AdminPermissionId::try_from(constants_i64::ONE).expect("61bc809e role_permissions_render_matching_names_with_stable_separator invariant must hold");
         let second_permission =
             server_admin_contract::AdminPermissionId::try_from(2i64).expect("0f72ad46 role_permissions_render_matching_names_with_stable_separator invariant must hold");
         let item = server_admin_contract::AdminRoleSummary::new(
-            server_admin_contract::AdminRoleId::try_from(i64_constants::ONE).expect("392bd170 role_permissions_render_matching_names_with_stable_separator invariant must hold"),
+            server_admin_contract::AdminRoleId::try_from(constants_i64::ONE).expect("392bd170 role_permissions_render_matching_names_with_stable_separator invariant must hold"),
             server_admin_contract::AdminBool::from(false),
             server_admin_contract::AdminRoleName::try_from(String::from("operator"))
                 .expect("d5a91f28 role_permissions_render_matching_names_with_stable_separator invariant must hold"),

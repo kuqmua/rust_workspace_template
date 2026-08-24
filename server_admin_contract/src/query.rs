@@ -36,7 +36,7 @@ struct AdminPageOffsetVisitor;
 impl serde::de::Visitor<'_> for AdminPageOffsetVisitor {
     type Value = AdminPageOffset;
     fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        formatter.write_str(str_constants::ADMIN_PAGE_OFFSET_EXPECTING)
+        formatter.write_str(constants_str::ADMIN_PAGE_OFFSET_EXPECTING)
     }
     fn visit_str<Error>(self, v: &str) -> Result<Self::Value, Error>
     where
@@ -225,8 +225,8 @@ pub enum AdminSortDirection {
 impl AsRef<str> for AdminSortDirection {
     fn as_ref(&self) -> &str {
         match self {
-            Self::Asc => str_constants::ASC_ALT,
-            Self::Desc => str_constants::DESC_ALT,
+            Self::Asc => constants_str::ASC_ALT,
+            Self::Desc => constants_str::DESC_ALT,
         }
     }
 }
@@ -348,7 +348,7 @@ impl From<frontend_contract::FilterOperation> for AdminFilterOperationKey {
             .chars()
             .enumerate()
             .for_each(|(index, character)| {
-                if character.is_uppercase() && index > usize_constants::ZERO {
+                if character.is_uppercase() && index > constants_usize::ZERO {
                     key.push('_');
                 }
                 key.extend(character.to_lowercase());

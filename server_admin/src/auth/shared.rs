@@ -112,7 +112,7 @@ mod tests {
         assert_eq!(u64::from(total), 17u64);
         assert!(matches!(
             super::page_total(super::super::super::repository::AdminPageTotalCount::from(
-                -i64_constants::ONE
+                -constants_i64::ONE
             )),
             Err(super::super::AdminError::Validation)
         ));

@@ -35,7 +35,7 @@ pub struct StdAdminAccessTtlSeconds(u64);
 impl StdAdminAccessTtlSeconds {
     #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
     const fn validate(value: &u64) -> Result<(), AdminAuthPositiveValueError> {
-        if *value == u64_constants::ZERO {
+        if *value == constants_u64::ZERO {
             Err(AdminAuthPositiveValueError)
         } else {
             Ok(())
@@ -60,7 +60,7 @@ pub struct StdAdminRefreshTtlSeconds(u64);
 impl StdAdminRefreshTtlSeconds {
     #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
     const fn validate(value: &u64) -> Result<(), AdminAuthPositiveValueError> {
-        if *value == u64_constants::ZERO {
+        if *value == constants_u64::ZERO {
             Err(AdminAuthPositiveValueError)
         } else {
             Ok(())
@@ -85,7 +85,7 @@ pub struct StdAdminSessionLimit(usize);
 impl StdAdminSessionLimit {
     #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
     const fn validate(value: &usize) -> Result<(), AdminAuthPositiveValueError> {
-        if *value == usize_constants::ZERO {
+        if *value == constants_usize::ZERO {
             Err(AdminAuthPositiveValueError)
         } else {
             Ok(())
@@ -110,7 +110,7 @@ pub struct StdAdminFailureThreshold(i64);
 impl StdAdminFailureThreshold {
     #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
     const fn validate(value: &i64) -> Result<(), AdminAuthPositiveValueError> {
-        if *value <= i64_constants::ZERO {
+        if *value <= constants_i64::ZERO {
             Err(AdminAuthPositiveValueError)
         } else {
             Ok(())
@@ -541,23 +541,23 @@ fn session_context_hash(
     peer: AdminPeerAddr,
 ) -> Result<super::AdminTokenHash, super::AdminSecretTextError> {
     let mut context = String::with_capacity(352usize);
-    context.push_str(str_constants::CLIENT_ADDRESS);
+    context.push_str(constants_str::CLIENT_ADDRESS);
     let client_address = peer.0.as_ref().ip().to_string();
     context.extend(client_address.chars().take(256usize));
-    context.push_str(str_constants::USER_AGENT);
+    context.push_str(constants_str::USER_AGENT);
     let user_agent = headers
         .0
         .get(http::header::USER_AGENT)
         .and_then(|value| value.to_str().ok())
         .map(str::trim)
         .filter(|candidate| {
-            !candidate.is_empty() && candidate.len() <= usize_constants::VALUE_8_192
+            !candidate.is_empty() && candidate.len() <= constants_usize::VALUE_8_192
         });
     match user_agent {
         Some(normalized_user_agent) => {
             context.extend(normalized_user_agent.chars().take(256usize));
         }
-        None => context.push_str(str_constants::UNKNOWN_USER_AGENT),
+        None => context.push_str(constants_str::UNKNOWN_USER_AGENT),
     }
     let token = super::SecrecyAdminString::try_from(context).map(super::AdminOpaqueToken::new)?;
     super::hash_opaque_token(&token)
@@ -634,7 +634,7 @@ async fn validate_csrf(
     let provided = headers
         .0
         .get(http::HeaderName::from_static(
-            str_constants::X_CSRF_TOKEN_ALT,
+            constants_str::X_CSRF_TOKEN_ALT,
         ))
         .and_then(|value| value.to_str().ok())
         .ok_or(AdminError::Csrf)?;
@@ -726,14 +726,14 @@ enum AdminObservedErrorCode {
 impl AdminObservedErrorCode {
     const fn get(self) -> &'static str {
         match self {
-            Self::AuthenticationSecretText => str_constants::ADMIN_OBSERVED_ERROR_AUTH_SECRET_TEXT,
-            Self::CsrfSecretText => str_constants::ADMIN_OBSERVED_ERROR_CSRF_SECRET_TEXT,
-            Self::Database => str_constants::ADMIN_OBSERVED_ERROR_DATABASE,
-            Self::Header => str_constants::ADMIN_OBSERVED_ERROR_RESPONSE_HEADER,
-            Self::PasswordHash => str_constants::ADMIN_OBSERVED_ERROR_PASSWORD_HASH,
-            Self::PasswordText => str_constants::ADMIN_OBSERVED_ERROR_PASSWORD_TEXT,
-            Self::SecretText => str_constants::ADMIN_OBSERVED_ERROR_SECRET_TEXT,
-            Self::Session => str_constants::ADMIN_OBSERVED_ERROR_SESSION,
+            Self::AuthenticationSecretText => constants_str::ADMIN_OBSERVED_ERROR_AUTH_SECRET_TEXT,
+            Self::CsrfSecretText => constants_str::ADMIN_OBSERVED_ERROR_CSRF_SECRET_TEXT,
+            Self::Database => constants_str::ADMIN_OBSERVED_ERROR_DATABASE,
+            Self::Header => constants_str::ADMIN_OBSERVED_ERROR_RESPONSE_HEADER,
+            Self::PasswordHash => constants_str::ADMIN_OBSERVED_ERROR_PASSWORD_HASH,
+            Self::PasswordText => constants_str::ADMIN_OBSERVED_ERROR_PASSWORD_TEXT,
+            Self::SecretText => constants_str::ADMIN_OBSERVED_ERROR_SECRET_TEXT,
+            Self::Session => constants_str::ADMIN_OBSERVED_ERROR_SESSION,
         }
     }
 }
@@ -876,7 +876,7 @@ impl axum::response::IntoResponse for AdminError {
     fn into_response(self) -> axum::response::Response {
         let route_error_status = self.route_error_status();
         let error_type =
-            server_runtime_http::HttpErrorType::from(str_constants::ADMIN_API_ERROR_TYPE);
+            server_runtime_http::HttpErrorType::from(constants_str::ADMIN_API_ERROR_TYPE);
         let optional_diagnostic = match &self {
             Self::Pg(source) => Some(server_runtime_http::HttpErrorDiagnostic::from_observed(
                 error_type, source,
@@ -1132,7 +1132,7 @@ pub struct AxumAdminAuthRouter(axum::Router);
 pub struct UtoipaAdminAuthOpenApi(utoipa::openapi::OpenApi);
 impl std::fmt::Debug for UtoipaAdminAuthOpenApi {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(str_constants::UTOIPAADMINAUTHOPENAPI)
+        f.write_str(constants_str::UTOIPAADMINAUTHOPENAPI)
     }
 }
 #[must_use]

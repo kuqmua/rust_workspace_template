@@ -14,12 +14,12 @@ edition.workspace = true
 proc-macro = true
 
 [dependencies]
-usize_constants = { workspace = true }
+constants_usize = { workspace = true }
 optimal_memory_layout = { workspace = true }
 newtype = { workspace = true }
 proc-macro2 = { workspace = true }
 quote = { workspace = true }
-str_constants = { workspace = true }
+constants_str = { workspace = true }
 syn = { workspace = true }
 
 [lints]

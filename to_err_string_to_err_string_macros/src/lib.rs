@@ -4,14 +4,14 @@ pub fn impl_to_err_string_with(input: proc_macro::TokenStream) -> proc_macro::To
         workspace_macro_helpers::ProcMacro2MacroTokens::from_into(input),
     ) else {
         return workspace_macro_helpers::compile_error_token_stream(
-            str_constants::COMPILE_ERROR_CE_062,
+            constants_str::COMPILE_ERROR_CE_062,
         )
         .into_inner()
         .into();
     };
     let Some((value, body)) = workspace_macro_helpers::closure_identifier_and_body(closure) else {
         return workspace_macro_helpers::compile_error_token_stream(
-            str_constants::COMPILE_ERROR_CE_061,
+            constants_str::COMPILE_ERROR_CE_061,
         )
         .into_inner()
         .into();
@@ -42,7 +42,7 @@ pub fn impl_to_err_string_const(input: proc_macro::TokenStream) -> proc_macro::T
             .map(|(ty, message)| (ty.into_inner(), message.into_inner()))
             .ok_or_else(|| {
                 workspace_macro_helpers::compile_error_token_stream(
-                    str_constants::COMPILE_ERROR_CE_060,
+                    constants_str::COMPILE_ERROR_CE_060,
                 )
             })
     })

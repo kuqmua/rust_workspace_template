@@ -3,7 +3,7 @@
 #[frontend_contract::route_registry(
     state = super::StdSharedAdminAuthSvcState,
     family = server_admin_contract::AdminAuthenticationRouteFamily;
-    (str_constants::ADMIN_COOKIE, str_constants::ADMIN_CSRF);
+    (constants_str::ADMIN_COOKIE, constants_str::ADMIN_CSRF);
     schemas(
         server_admin_contract::StdAdminPositiveI64,
         server_admin_contract::AdminPermissionValues,
@@ -103,7 +103,7 @@ pub(super) fn open_api() -> super::UtoipaAdminAuthOpenApi {
             .map(|limit| {
                 format!(
                     "{}{}",
-                    str_constants::OPENAPI_REQUEST_BODY_MAXIMUM_BYTES_PREFIX,
+                    constants_str::OPENAPI_REQUEST_BODY_MAXIMUM_BYTES_PREFIX,
                     limit.get()
                 )
             });
@@ -135,23 +135,23 @@ pub(super) fn open_api() -> super::UtoipaAdminAuthOpenApi {
         });
     if let Some(components) = document.components.as_mut() {
         components.add_security_scheme(
-            str_constants::ADMIN_COOKIE,
+            constants_str::ADMIN_COOKIE,
             utoipa::openapi::security::SecurityScheme::ApiKey(
                 utoipa::openapi::security::ApiKey::Cookie(
                     utoipa::openapi::security::ApiKeyValue::with_description(
-                        str_constants::SERVER_ADMIN_ACCESS_COOKIE_NAME,
-                        str_constants::HTTPONLY_ADMINISTRATOR_ACCESS_TOKEN_COOKIE,
+                        constants_str::SERVER_ADMIN_ACCESS_COOKIE_NAME,
+                        constants_str::HTTPONLY_ADMINISTRATOR_ACCESS_TOKEN_COOKIE,
                     ),
                 ),
             ),
         );
         components.add_security_scheme(
-            str_constants::ADMIN_CSRF,
+            constants_str::ADMIN_CSRF,
             utoipa::openapi::security::SecurityScheme::ApiKey(
                 utoipa::openapi::security::ApiKey::Header(
                     utoipa::openapi::security::ApiKeyValue::with_description(
-                        str_constants::X_CSRF_TOKEN,
-                        str_constants::CSRF_TOKEN_BOUND_TO_THE_ADMINISTRATOR_ACCESS_SESSION,
+                        constants_str::X_CSRF_TOKEN,
+                        constants_str::CSRF_TOKEN_BOUND_TO_THE_ADMINISTRATOR_ACCESS_SESSION,
                     ),
                 ),
             ),

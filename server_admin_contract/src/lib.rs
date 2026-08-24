@@ -258,7 +258,7 @@ impl<'value_lt> AdminPermissionStrRef<'value_lt> {
 )]
 #[wire_enum(
     ref_type = AdminPermissionStrRef,
-    error_message = str_constants::UNKNOWN_ADMINISTRATOR_PERMISSION,
+    error_message = constants_str::UNKNOWN_ADMINISTRATOR_PERMISSION,
 )]
 pub enum AdminPermission {
     #[wire("access_sessions:read")]
@@ -335,7 +335,7 @@ pub enum AdminPermission {
 #[serde(try_from = "String")]
 #[wire_enum(
     ref_type = AdminDataTableStrRef,
-    error_message = str_constants::UNKNOWN_ADMINISTRATOR_DATA_TABLE,
+    error_message = constants_str::UNKNOWN_ADMINISTRATOR_DATA_TABLE,
 )]
 pub enum AdminDataTable {
     #[wire("access_sessions")]
@@ -497,82 +497,82 @@ impl AdminDataTable {
     pub fn spec(self) -> AdminDataTableSpec {
         match self {
             Self::AccessSessions => AdminDataTableSpec::new(
-                AdminDataColumnsCsvRef::from(str_constants::SERVER_ADMIN_DATA_SESSION_COLUMNS),
-                AdminDataOrderRef::from(str_constants::SERVER_ADMIN_DATA_ORDER_CREATED_AT),
+                AdminDataColumnsCsvRef::from(constants_str::SERVER_ADMIN_DATA_SESSION_COLUMNS),
+                AdminDataOrderRef::from(constants_str::SERVER_ADMIN_DATA_ORDER_CREATED_AT),
                 AdminPermission::AccessSessionsRead,
                 AdminBool::from(false),
             ),
             Self::AuditLog => AdminDataTableSpec::new(
-                AdminDataColumnsCsvRef::from(str_constants::SERVER_ADMIN_DATA_AUDIT_LOG_COLUMNS),
-                AdminDataOrderRef::from(str_constants::SERVER_ADMIN_DATA_ORDER_CREATED_AT),
+                AdminDataColumnsCsvRef::from(constants_str::SERVER_ADMIN_DATA_AUDIT_LOG_COLUMNS),
+                AdminDataOrderRef::from(constants_str::SERVER_ADMIN_DATA_ORDER_CREATED_AT),
                 AdminPermission::AuditLogRead,
                 AdminBool::from(false),
             ),
             Self::CleanupStatus => AdminDataTableSpec::new(
                 AdminDataColumnsCsvRef::from(
-                    str_constants::SERVER_ADMIN_DATA_CLEANUP_STATUS_COLUMNS,
+                    constants_str::SERVER_ADMIN_DATA_CLEANUP_STATUS_COLUMNS,
                 ),
-                AdminDataOrderRef::from(str_constants::SERVER_ADMIN_DATA_ORDER_SINGLETON),
+                AdminDataOrderRef::from(constants_str::SERVER_ADMIN_DATA_ORDER_SINGLETON),
                 AdminPermission::CleanupStatusRead,
                 AdminBool::from(false),
             ),
             Self::LoginAttempts => AdminDataTableSpec::new(
                 AdminDataColumnsCsvRef::from(
-                    str_constants::SERVER_ADMIN_DATA_LOGIN_ATTEMPTS_COLUMNS,
+                    constants_str::SERVER_ADMIN_DATA_LOGIN_ATTEMPTS_COLUMNS,
                 ),
-                AdminDataOrderRef::from(str_constants::SERVER_ADMIN_DATA_ORDER_ATTEMPTED_AT),
+                AdminDataOrderRef::from(constants_str::SERVER_ADMIN_DATA_ORDER_ATTEMPTED_AT),
                 AdminPermission::LoginAttemptsRead,
                 AdminBool::from(false),
             ),
             Self::Permissions => AdminDataTableSpec::new(
-                AdminDataColumnsCsvRef::from(str_constants::SERVER_ADMIN_DATA_PERMISSIONS_COLUMNS),
-                AdminDataOrderRef::from(str_constants::SQL_NAMES_ID),
+                AdminDataColumnsCsvRef::from(constants_str::SERVER_ADMIN_DATA_PERMISSIONS_COLUMNS),
+                AdminDataOrderRef::from(constants_str::SQL_NAMES_ID),
                 AdminPermission::PermissionsRead,
                 AdminBool::from(false),
             ),
             Self::RateLimits => AdminDataTableSpec::new(
-                AdminDataColumnsCsvRef::from(str_constants::SERVER_ADMIN_DATA_RATE_LIMITS_COLUMNS),
-                AdminDataOrderRef::from(str_constants::SERVER_ADMIN_DATA_ORDER_WINDOW),
+                AdminDataColumnsCsvRef::from(constants_str::SERVER_ADMIN_DATA_RATE_LIMITS_COLUMNS),
+                AdminDataOrderRef::from(constants_str::SERVER_ADMIN_DATA_ORDER_WINDOW),
                 AdminPermission::RateLimitsRead,
                 AdminBool::from(false),
             ),
             Self::RefreshTokens => AdminDataTableSpec::new(
-                AdminDataColumnsCsvRef::from(str_constants::SERVER_ADMIN_DATA_SESSION_COLUMNS),
-                AdminDataOrderRef::from(str_constants::SERVER_ADMIN_DATA_ORDER_CREATED_AT),
+                AdminDataColumnsCsvRef::from(constants_str::SERVER_ADMIN_DATA_SESSION_COLUMNS),
+                AdminDataOrderRef::from(constants_str::SERVER_ADMIN_DATA_ORDER_CREATED_AT),
                 AdminPermission::RefreshTokensRead,
                 AdminBool::from(false),
             ),
             Self::RolePermissions => AdminDataTableSpec::new(
                 AdminDataColumnsCsvRef::from(
-                    str_constants::SERVER_ADMIN_DATA_ROLE_PERMISSIONS_COLUMNS,
+                    constants_str::SERVER_ADMIN_DATA_ROLE_PERMISSIONS_COLUMNS,
                 ),
-                AdminDataOrderRef::from(str_constants::SQL_NAMES_ID),
+                AdminDataOrderRef::from(constants_str::SQL_NAMES_ID),
                 AdminPermission::RolePermissionsRead,
                 AdminBool::from(true),
             ),
             Self::Roles => AdminDataTableSpec::new(
-                AdminDataColumnsCsvRef::from(str_constants::SERVER_ADMIN_DATA_ROLES_COLUMNS),
-                AdminDataOrderRef::from(str_constants::SQL_NAMES_ID),
+                AdminDataColumnsCsvRef::from(constants_str::SERVER_ADMIN_DATA_ROLES_COLUMNS),
+                AdminDataOrderRef::from(constants_str::SQL_NAMES_ID),
                 AdminPermission::RolesRead,
                 AdminBool::from(false),
             ),
             Self::SystemSettings => AdminDataTableSpec::new(
                 AdminDataColumnsCsvRef::from(
-                    str_constants::SERVER_ADMIN_DATA_SYSTEM_SETTINGS_COLUMNS,
+                    constants_str::SERVER_ADMIN_DATA_SYSTEM_SETTINGS_COLUMNS,
                 ),
-                AdminDataOrderRef::from(str_constants::SQL_NAMES_ID),
+                AdminDataOrderRef::from(constants_str::SQL_NAMES_ID),
                 AdminPermission::SystemSettingsRead,
                 AdminBool::from(false),
             ),
             Self::UserRoles => AdminDataTableSpec::new(
-                AdminDataColumnsCsvRef::from(str_constants::SERVER_ADMIN_DATA_USER_ROLES_COLUMNS),
-                AdminDataOrderRef::from(str_constants::SQL_NAMES_ID),
+                AdminDataColumnsCsvRef::from(constants_str::SERVER_ADMIN_DATA_USER_ROLES_COLUMNS),
+                AdminDataOrderRef::from(constants_str::SQL_NAMES_ID),
                 AdminPermission::UserRolesRead,
                 AdminBool::from(false),
             ),
             Self::Users => AdminDataTableSpec::new(
-                AdminDataColumnsCsvRef::from(str_constants::SERVER_ADMIN_DATA_USERS_COLUMNS),
-                AdminDataOrderRef::from(str_constants::SQL_NAMES_ID),
+                AdminDataColumnsCsvRef::from(constants_str::SERVER_ADMIN_DATA_USERS_COLUMNS),
+                AdminDataOrderRef::from(constants_str::SQL_NAMES_ID),
                 AdminPermission::UsersRead,
                 AdminBool::from(false),
             ),
@@ -679,7 +679,7 @@ impl TryFrom<serde_json::Value> for SerdeJsonAdminAuditDetails {
     newtype::BoundedString,
     newtype::AsRefStr,
 )]
-#[bounded_string(max = usize_constants::VALUE_8_192, chars, serde, utoipa, validator = |value: &String| { let path = AdminPagePathRef::from(value.as_str()); AdminPage::from_path(path).is_some() || AdminDataTable::from_frontend_path(path).is_some() }, description = "administrator default route")]
+#[bounded_string(max = constants_usize::VALUE_8_192, chars, serde, utoipa, validator = |value: &String| { let path = AdminPagePathRef::from(value.as_str()); AdminPage::from_path(path).is_some() || AdminDataTable::from_frontend_path(path).is_some() }, description = "administrator default route")]
 pub struct AdminDefaultRoute(String);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
@@ -688,7 +688,7 @@ pub struct AdminDefaultRoute(String);
     newtype::BoundedString,
     newtype::AsRefStr,
 )]
-#[bounded_string(max = usize_constants::VALUE_8_192, min = usize_constants::ONE, chars, serde, utoipa, validator = |value: &String| !value
+#[bounded_string(max = constants_usize::VALUE_8_192, min = constants_usize::ONE, chars, serde, utoipa, validator = |value: &String| !value
     .trim()
     .is_empty(), description = "administrator site name")]
 pub struct AdminSiteName(String);
@@ -700,8 +700,8 @@ pub struct AdminSiteName(String);
     newtype::AsRefStr,
 )]
 #[bounded_string(
-    max = usize_constants::VALUE_8_192,
-    min = usize_constants::ONE,
+    max = constants_usize::VALUE_8_192,
+    min = constants_usize::ONE,
     chars,
     serde,
     utoipa,
@@ -717,7 +717,7 @@ pub struct AdminMainLogo(String);
     newtype::AsRefStr,
 )]
 #[bounded_string(
-    max = usize_constants::VALUE_8_192,
+    max = constants_usize::VALUE_8_192,
     chars,
     serde,
     utoipa,
@@ -732,7 +732,7 @@ pub struct AdminOrganizationContacts(String);
     newtype::AsRefStr,
 )]
 #[bounded_string(
-    max = usize_constants::VALUE_8_192,
+    max = constants_usize::VALUE_8_192,
     chars,
     serde,
     utoipa,
@@ -747,12 +747,12 @@ pub struct AdminOrganizationName(String);
     newtype::AsRefStr,
 )]
 #[bounded_string(
-    max = usize_constants::VALUE_8_192,
+    max = constants_usize::VALUE_8_192,
     min = 7usize,
     chars,
     serde,
     utoipa,
-    validator = |value: &String| value.len() == 7usize && value.bytes().next() == Some(b'#') && value.bytes().skip(usize_constants::ONE).all(|byte| byte.is_ascii_hexdigit()),
+    validator = |value: &String| value.len() == 7usize && value.bytes().next() == Some(b'#') && value.bytes().skip(constants_usize::ONE).all(|byte| byte.is_ascii_hexdigit()),
     description = "administrator primary color"
 )]
 pub struct AdminPrimaryColor(String);
@@ -764,8 +764,8 @@ pub struct AdminPrimaryColor(String);
     newtype::AsRefStr,
 )]
 #[bounded_string(
-    max = usize_constants::VALUE_8_192,
-    min = usize_constants::ONE,
+    max = constants_usize::VALUE_8_192,
+    min = constants_usize::ONE,
     chars,
     serde,
     utoipa,
@@ -781,8 +781,8 @@ pub struct AdminSupportUrl(String);
     newtype::AsRefStr,
 )]
 #[bounded_string(
-    max = usize_constants::VALUE_8_192,
-    min = usize_constants::ONE,
+    max = constants_usize::VALUE_8_192,
+    min = constants_usize::ONE,
     chars,
     serde,
     utoipa,
@@ -810,7 +810,7 @@ pub enum AdminTableSortField {
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq, thiserror::Error,
 )]
-#[error("{}", str_constants::UNKNOWN_ADMIN_TABLE_SORT_FIELD)]
+#[error("{}", constants_str::UNKNOWN_ADMIN_TABLE_SORT_FIELD)]
 pub struct AdminTableSortFieldTryFromKeyError;
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct AdminTableSortValues {
@@ -863,29 +863,29 @@ impl AdminTableSortField {
     }
     fn values(self) -> AdminTableSortValues {
         let (key, label) = match self {
-            Self::AuditAction => (str_constants::ACTION, str_constants::SHARED_VALUES_ACTION_2),
-            Self::AuditCreatedAt => (str_constants::CREATED_AT, str_constants::SHARED_VALUES_TIME),
+            Self::AuditAction => (constants_str::ACTION, constants_str::SHARED_VALUES_ACTION_2),
+            Self::AuditCreatedAt => (constants_str::CREATED_AT, constants_str::SHARED_VALUES_TIME),
             Self::AuditResource => (
-                str_constants::RESOURCE,
-                str_constants::SHARED_VALUES_RESOURCE_2,
+                constants_str::RESOURCE,
+                constants_str::SHARED_VALUES_RESOURCE_2,
             ),
-            Self::AuditSucceeded => (str_constants::SUCCEEDED, str_constants::RESULT),
-            Self::AuditUserId => (str_constants::USER_ID, str_constants::SHARED_VALUES_USER),
+            Self::AuditSucceeded => (constants_str::SUCCEEDED, constants_str::RESULT),
+            Self::AuditUserId => (constants_str::USER_ID, constants_str::SHARED_VALUES_USER),
             Self::PermissionId | Self::RoleId | Self::UserId => {
-                (str_constants::SQL_NAMES_ID, str_constants::ID)
+                (constants_str::SQL_NAMES_ID, constants_str::ID)
             }
             Self::PermissionName | Self::RoleName => {
-                (str_constants::NAME, str_constants::SHARED_VALUES_NAME_2)
+                (constants_str::NAME, constants_str::SHARED_VALUES_NAME_2)
             }
-            Self::RoleSystem => (str_constants::SYSTEM, str_constants::SHARED_VALUES_SYSTEM_2),
+            Self::RoleSystem => (constants_str::SYSTEM, constants_str::SHARED_VALUES_SYSTEM_2),
             Self::UserDisplayName => (
-                str_constants::DISPLAY_NAME,
-                str_constants::SHARED_VALUES_DISPLAY_NAME_2,
+                constants_str::DISPLAY_NAME,
+                constants_str::SHARED_VALUES_DISPLAY_NAME_2,
             ),
-            Self::UserLogin => (str_constants::LOGIN, str_constants::SHARED_VALUES_LOGIN_2),
+            Self::UserLogin => (constants_str::LOGIN, constants_str::SHARED_VALUES_LOGIN_2),
             Self::UserStatus => (
-                str_constants::STATUS_ALT,
-                str_constants::SHARED_VALUES_STATUS_2,
+                constants_str::STATUS_ALT,
+                constants_str::SHARED_VALUES_STATUS_2,
             ),
         };
         AdminTableSortValues {

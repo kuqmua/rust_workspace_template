@@ -10,7 +10,7 @@ edition.workspace = true
 
 [dependencies]
 newtype = { workspace = true }
-str_constants = { workspace = true }
+constants_str = { workspace = true }
 proc-macro2 = { workspace = true }
 quote = { workspace = true }
 serde = { workspace = true }
@@ -28,7 +28,7 @@ optimal_memory_layout = { workspace = true }
 thiserror = { workspace = true }
 
 [dev-dependencies]
-usize_constants = { workspace = true }
+constants_usize = { workspace = true }
 
 [lints]
 workspace = true

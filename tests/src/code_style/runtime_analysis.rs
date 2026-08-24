@@ -4,11 +4,11 @@ pub(super) struct RuntimePanicExpectUnwrapVisitor {
 }
 impl<'ast> syn::visit::Visit<'ast> for RuntimePanicExpectUnwrapVisitor {
     fn visit_expr_method_call(&mut self, i: &'ast syn::ExprMethodCall) {
-        if i.method == str_constants::CODE_STYLE_EXPECT_METHOD_NAME {
-            self.ers.push(str_constants::EXPECT_CALL.to_owned());
+        if i.method == constants_str::CODE_STYLE_EXPECT_METHOD_NAME {
+            self.ers.push(constants_str::EXPECT_CALL.to_owned());
         }
-        if i.method == str_constants::UNWRAP {
-            self.ers.push(str_constants::UNWRAP_CALL.to_owned());
+        if i.method == constants_str::UNWRAP {
+            self.ers.push(constants_str::UNWRAP_CALL.to_owned());
         }
         syn::visit::visit_expr_method_call(self, i);
     }
@@ -22,9 +22,9 @@ impl<'ast> syn::visit::Visit<'ast> for RuntimePanicExpectUnwrapVisitor {
         if i.path
             .segments
             .last()
-            .is_some_and(|segment| segment.ident == str_constants::CODE_STYLE_PANIC_METHOD_NAME)
+            .is_some_and(|segment| segment.ident == constants_str::CODE_STYLE_PANIC_METHOD_NAME)
         {
-            self.ers.push(str_constants::PANIC_CALL.to_owned());
+            self.ers.push(constants_str::PANIC_CALL.to_owned());
         }
         syn::visit::visit_macro(self, i);
     }
@@ -43,7 +43,7 @@ impl<'ast> syn::visit::Visit<'ast> for RuntimeMutexVisitor {
     fn visit_type_path(&mut self, i: &'ast syn::TypePath) {
         if super::path_has_segment(
             super::types::SynPathRef::from(&i.path),
-            super::types::SourceTextRef::from(str_constants::MUTEX),
+            super::types::SourceTextRef::from(constants_str::MUTEX),
         )
         .get()
         {
@@ -64,14 +64,14 @@ impl<'ast> syn::visit::Visit<'ast> for RuntimeArcVisitor {
             super::path_ends_with(
                 path,
                 super::types::StaticStrSliceRef::from(
-                    [str_constants::ARC, str_constants::NEW].as_slice(),
+                    [constants_str::ARC, constants_str::NEW].as_slice(),
                 ),
             )
             .get()
         }) && !self.allow_arc_value_usage.get()
         {
             self.ers.push(
-                str_constants::ARC_PATH_NEW_OUTSIDE_APPROVED_CROSS_THREAD_STATE_CONSTRUCTION
+                constants_str::ARC_PATH_NEW_OUTSIDE_APPROVED_CROSS_THREAD_STATE_CONSTRUCTION
                     .to_owned(),
             );
         }
@@ -86,12 +86,12 @@ impl<'ast> syn::visit::Visit<'ast> for RuntimeArcVisitor {
     fn visit_item_type(&mut self, i: &'ast syn::ItemType) {
         if super::type_contains_segment(
             super::types::SynTypeRef::from(&*i.ty),
-            super::types::SourceTextRef::from(str_constants::ARC),
+            super::types::SourceTextRef::from(constants_str::ARC),
         )
         .get()
         {
             let name = i.ident.to_string();
-            if !name.contains(str_constants::SHARED) && !name.contains(str_constants::DYNARC) {
+            if !name.contains(constants_str::SHARED) && !name.contains(constants_str::DYNARC) {
                 self.ers.push(format!(
                     "Arc type alias `{name}` must be explicitly named as shared cross-thread state"
                 ));
@@ -117,7 +117,7 @@ impl<'ast> syn::visit::Visit<'ast> for AsyncBlockingCallVisitor {
                 .is_some_and(|path| super::path_is_blocking_async_call(path).get())
         {
             self.ers
-                .push(str_constants::BLOCKING_CALL_INSIDE_ASYNC_FUNCTION.to_owned());
+                .push(constants_str::BLOCKING_CALL_INSIDE_ASYNC_FUNCTION.to_owned());
         }
         syn::visit::visit_expr_call(self, i);
     }

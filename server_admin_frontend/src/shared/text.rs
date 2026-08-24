@@ -15,8 +15,8 @@ impl TryFrom<String> for AdminJoinedText {
     type Error = AdminJoinedTextTryFromStringError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        match value.len().checked_sub(usize_constants::VALUE_16_777_216) {
-            Some(excess) if excess > usize_constants::ZERO => {
+        match value.len().checked_sub(constants_usize::VALUE_16_777_216) {
+            Some(excess) if excess > constants_usize::ZERO => {
                 Err(AdminJoinedTextTryFromStringError::TooLong)
             }
             _within_limit => Ok(Self(value)),
@@ -37,8 +37,8 @@ where
     let value_iter = values.into_iter();
     let mut text = String::with_capacity(value_iter.size_hint().0.saturating_mul(16usize));
     value_iter.enumerate().for_each(|(index, value)| {
-        if index > usize_constants::ZERO {
-            text.push_str(str_constants::COMMA_SPACE);
+        if index > constants_usize::ZERO {
+            text.push_str(constants_str::COMMA_SPACE);
         }
         text.push_str(value);
     });

@@ -437,7 +437,7 @@ pub trait HasTypeContract {
     newtype::AsRefStr,
     newtype::BoundedString,
 )]
-#[bounded_string(max = usize_constants::VALUE_1_048_576)]
+#[bounded_string(max = constants_usize::VALUE_1_048_576)]
 pub struct FormValue(String);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
@@ -487,7 +487,7 @@ impl TryFrom<String> for FormValueError {
     newtype::AsRefStr,
     newtype::BoundedString,
 )]
-#[bounded_string(max = usize_constants::VALUE_1_048_576)]
+#[bounded_string(max = constants_usize::VALUE_1_048_576)]
 pub struct FilterWireJson(String);
 pub trait FormValueContract: Sized {
     fn format_form_value(&self) -> Result<FormValue, FormValueError>;
@@ -595,7 +595,7 @@ impl FieldContract {
             filters: FilterContracts::from(EMPTY_FILTER_CONTRACTS),
             label,
             name,
-            order: FieldOrder::from(usize_constants::ZERO),
+            order: FieldOrder::from(constants_usize::ZERO),
             placeholder: FieldPlaceholder::None,
             primary_key: PrimaryKeyKind::NonPrimary,
             readable: FieldCapability::Disabled,
@@ -1106,7 +1106,7 @@ impl TransportRequest {
     newtype::AsRefStr,
     newtype::BoundedString,
 )]
-#[bounded_string(max = 255usize, min = usize_constants::ONE)]
+#[bounded_string(max = 255usize, min = constants_usize::ONE)]
 pub struct TransportIdempotencyKey(String);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
@@ -1117,7 +1117,7 @@ pub struct TransportIdempotencyKey(String);
     newtype::AsRefStr,
     newtype::BoundedString,
 )]
-#[bounded_string(max = 20usize, min = usize_constants::ONE)]
+#[bounded_string(max = 20usize, min = constants_usize::ONE)]
 pub struct TransportIfMatch(String);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
@@ -1129,7 +1129,7 @@ pub struct TransportIfMatch(String);
     newtype::AsRefStr,
     newtype::BoundedString,
 )]
-#[bounded_string(max = usize_constants::VALUE_8_192)]
+#[bounded_string(max = constants_usize::VALUE_8_192)]
 pub struct TransportPath(String);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
@@ -1171,7 +1171,7 @@ impl TransportStatus {
     newtype::AsRefStr,
     newtype::BoundedString,
 )]
-#[bounded_string(max = 128usize, min = usize_constants::ONE)]
+#[bounded_string(max = 128usize, min = constants_usize::ONE)]
 pub struct TransportRetryAfter(String);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, PartialEq, Eq)]
 pub struct TransportResponse {
@@ -1269,7 +1269,7 @@ impl std::fmt::Display for ClientError {
             }
             Self::Transport(value) => write!(f, "transport failed: {value}"),
             Self::UnexpectedResponse => {
-                f.write_str(str_constants::SERVER_RETURNED_AN_ERROR_RESPONSE)
+                f.write_str(constants_str::SERVER_RETURNED_AN_ERROR_RESPONSE)
             }
         }
     }
