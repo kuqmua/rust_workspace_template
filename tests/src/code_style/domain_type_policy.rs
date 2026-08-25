@@ -545,7 +545,7 @@ fn domain_boundaries_use_repository_declared_types() {
 fn environment_initializer_is_in_domain_boundary_policy_scope() {
     assert!(
         super::domain_type_policy_should_check_path(super::types::PathRef::from(
-            std::path::Path::new("initialize_environment_files/src/main.rs")
+            std::path::Path::new("initialize_environment_files/src/domain_types.rs")
         ))
         .get(),
         "c4a791e2"
@@ -586,14 +586,14 @@ fn server_admin_frontend_is_in_domain_boundary_policy_scope() {
 fn server_admin_frontend_ui_is_an_explicit_framework_adapter_boundary() {
     assert!(
         !super::domain_type_policy_should_check_path(super::types::PathRef::from(
-            std::path::Path::new("../server_admin_frontend/src/ui/button.rs")
+            std::path::Path::new("../server_admin_frontend/src/domain_types/ui/button.rs")
         ))
         .get(),
         "e33b8472"
     );
     assert!(
         super::domain_type_policy_should_check_path(super::types::PathRef::from(
-            std::path::Path::new("server_admin_frontend/src/app/settings.rs")
+            std::path::Path::new("server_admin_frontend/src/domain_types/app/settings.rs")
         ))
         .get(),
         "29bc703d"

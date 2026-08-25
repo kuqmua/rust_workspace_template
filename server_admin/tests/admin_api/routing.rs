@@ -4,7 +4,7 @@ async fn protected_routes_reject_missing_authentication_without_database_io() {
         router().0,
         http::Request::builder()
             .uri(
-                frontend_contract::typed_route_path::<server_admin_contract::AdminMeRoute>()
+                frontend_contract::domain_types::typed_route_path::<server_admin_contract::domain_types::AdminMeRoute>()
                     .as_ref(),
             )
             .body(axum::body::Body::empty())
@@ -17,7 +17,7 @@ async fn protected_routes_reject_missing_authentication_without_database_io() {
         router().0,
         http::Request::builder()
             .uri(
-                frontend_contract::typed_route_path::<server_admin_contract::AdminListUsersRoute>()
+                frontend_contract::domain_types::typed_route_path::<server_admin_contract::domain_types::AdminListUsersRoute>()
                     .as_ref(),
             )
             .body(axum::body::Body::empty())
@@ -34,7 +34,7 @@ async fn protected_routes_reject_missing_authentication_without_database_io() {
 )]
 async fn runtime_auth_router_contains_every_open_api_operation() {
     let document = serde_json::to_value(utoipa::openapi::OpenApi::from(
-        server_admin::auth::open_api(),
+        server_admin::domain_types::auth::open_api(),
     ))
     .expect("71599514 runtime_auth_router_contains_every_open_api_operation invariant must hold");
     let paths = document
@@ -103,8 +103,10 @@ async fn invalid_access_cookie_is_rejected_before_database_io() {
         router().0,
         http::Request::builder()
             .uri(
-                frontend_contract::typed_route_path::<server_admin_contract::AdminMeRoute>()
-                    .as_ref(),
+                frontend_contract::domain_types::typed_route_path::<
+                    server_admin_contract::domain_types::AdminMeRoute,
+                >()
+                .as_ref(),
             )
             .header(
                 http::header::COOKIE,
@@ -139,7 +141,7 @@ async fn wrong_admin_http_method_uses_problem_details_contract() {
         http::Request::builder()
             .method(http::Method::GET)
             .uri(
-                frontend_contract::typed_route_path::<server_admin_contract::AdminSignInRoute>()
+                frontend_contract::domain_types::typed_route_path::<server_admin_contract::domain_types::AdminSignInRoute>()
                     .as_ref(),
             )
             .body(axum::body::Body::empty())
@@ -160,7 +162,7 @@ async fn invalid_admin_json_uses_problem_details_and_body_limit_contract() {
         request_with_peer(
             HttpAdminApiTestMethod::from(http::Method::POST),
             StdAdminApiTestStrRef::from(
-                frontend_contract::typed_route_path::<server_admin_contract::AdminSignInRoute>()
+                frontend_contract::domain_types::typed_route_path::<server_admin_contract::domain_types::AdminSignInRoute>()
                     .as_ref(),
             ),
             StdAdminApiTestStrRef::from(constants_str::LOGIN_ALT),
@@ -179,7 +181,7 @@ async fn invalid_admin_json_uses_problem_details_and_body_limit_contract() {
         malformed_response.headers().get(http::header::CONTENT_TYPE),
         Some(&http::HeaderValue::from_static("application/problem+json")),
     );
-    let body_limit = <server_admin_contract::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::body_limit()
+    let body_limit = <server_admin_contract::domain_types::AdminAuthenticationRouteFamily as frontend_contract::domain_types::RouteFamily>::body_limit()
         .expect("a60751db invalid_admin_json_uses_problem_details_and_body_limit_contract invariant must hold")
         .get();
     let oversized_password =
@@ -190,7 +192,7 @@ async fn invalid_admin_json_uses_problem_details_and_body_limit_contract() {
         request_with_peer(
             HttpAdminApiTestMethod::from(http::Method::POST),
             StdAdminApiTestStrRef::from(
-                frontend_contract::typed_route_path::<server_admin_contract::AdminSignInRoute>()
+                frontend_contract::domain_types::typed_route_path::<server_admin_contract::domain_types::AdminSignInRoute>()
                     .as_ref(),
             ),
             StdAdminApiTestStrRef::from(oversized_body.as_str()),
@@ -216,8 +218,10 @@ async fn sign_in_requires_trusted_origin_without_database_io() {
         let mut builder = http::Request::builder()
             .method(http::Method::POST)
             .uri(
-                frontend_contract::typed_route_path::<server_admin_contract::AdminSignInRoute>()
-                    .as_ref(),
+                frontend_contract::domain_types::typed_route_path::<
+                    server_admin_contract::domain_types::AdminSignInRoute,
+                >()
+                .as_ref(),
             )
             .header(http::header::CONTENT_TYPE, constants_str::APPLICATION_JSON);
         if let Some(value) = origin {

@@ -77,9 +77,9 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
             identifier.span(),
         );
         let sensitivity = if attributes.2 {
-            quote::quote!(config_lib::ConfigFieldSensitivity::Secret)
+            quote::quote!(config_lib::domain_types::ConfigFieldSensitivity::Secret)
         } else {
-            quote::quote!(config_lib::ConfigFieldSensitivity::Public)
+            quote::quote!(config_lib::domain_types::ConfigFieldSensitivity::Public)
         };
         let Some(example) = attributes.0.as_ref() else {
             return quote::quote! {
@@ -87,18 +87,18 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
             };
         };
         quote::quote! {
-            config_lib::ConfigFieldDescriptor::new(
-                config_lib::EnvVarNameRef::from(#env_name),
-                config_lib::ConfigFieldExampleRef::from(#example),
+            config_lib::domain_types::ConfigFieldDescriptor::new(
+                config_lib::domain_types::EnvVarNameRef::from(#env_name),
+                config_lib::domain_types::ConfigFieldExampleRef::from(#example),
                 |value| {
-                    if <#field_type as config_lib::TryFromStdEnvVarOk>::try_from_std_env_var_ok(value).is_ok() {
-                        config_lib::ConfigExampleValidity::Valid
+                    if <#field_type as config_lib::domain_types::TryFromStdEnvVarOk>::try_from_std_env_var_ok(value).is_ok() {
+                        config_lib::domain_types::ConfigExampleValidity::Valid
                     } else {
-                        config_lib::ConfigExampleValidity::Invalid
+                        config_lib::domain_types::ConfigExampleValidity::Invalid
                     }
                 },
-                config_lib::ConfigFieldRequirement::Required,
-                config_lib::ConfigRustTypeName::from(stringify!(#field_type)),
+                config_lib::domain_types::ConfigFieldRequirement::Required,
+                config_lib::domain_types::ConfigRustTypeName::from(stringify!(#field_type)),
                 #sensitivity,
             )
         }
@@ -156,7 +156,7 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
             let element_ty = &element.ty;
             quote::quote! {
                 #element_identifier_upper_camel_case_token_stream {
-                    #element_identifier: <#element_ty as config_lib::TryFromStdEnvVarOk>::Error,
+                    #element_identifier: <#element_ty as config_lib::domain_types::TryFromStdEnvVarOk>::Error,
                 }
             }
         });
@@ -168,7 +168,7 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
                 },
                 #std_env_var_error_upper_camel_case {
                     #std_env_var_error_snake_case: std::env::VarError,
-                    env_var_name: config_lib::EnvVarName,
+                    env_var_name: config_lib::domain_types::EnvVarName,
                 },
                 #(#vrts_token_stream),*
             }
@@ -182,7 +182,7 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
                 Self::#element_identifier_upper_camel_case_token_stream { #element_identifier } => write!(f, "{}", #element_identifier)
             }
         });
-        macros_helpers::generate_impl_display_token_stream::generate_impl_display_token_stream(
+        macros_helpers::domain_types::generate_impl_display_token_stream::generate_impl_display_token_stream(
             &proc_macro2::TokenStream::new(),
             &identifier_try_from_env_error_upper_camel_case,
             &proc_macro2::TokenStream::new(),
@@ -208,15 +208,15 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
                 syn::LitStr::new(&naming_common::domain_types::ToTokensToUpperSnakeCaseStr::case(&element_identifier), identifier.span());
             let element_identifier_upper_camel_case_token_stream = naming_common::domain_types::ToTokensToUpperCamelCaseTokenStream::case_or_panic(&element_identifier);
             quote::quote! {
-                let #element_identifier = config_lib::parse_required_env_var(
-                    config_lib::EnvVarNameRef::from(#element_identifier_quotes_upper_snake_case_string),
+                let #element_identifier = config_lib::domain_types::parse_required_env_var(
+                    config_lib::domain_types::EnvVarNameRef::from(#element_identifier_quotes_upper_snake_case_string),
                     |#std_env_var_error_snake_case, #env_var_name_snake_case| #identifier_try_from_env_error_upper_camel_case::#std_env_var_error_upper_camel_case {
                         #std_env_var_error_snake_case,
                         #env_var_name_snake_case,
                     },
                     |v| <
                         #element_ty as
-                        config_lib::#try_from_std_env_var_ok_upper_camel_case
+                        config_lib::domain_types::#try_from_std_env_var_ok_upper_camel_case
                     >::try_from_std_env_var_ok(v),
                     |#element_identifier| #identifier_try_from_env_error_upper_camel_case::#element_identifier_upper_camel_case_token_stream {
                         #element_identifier,
@@ -243,7 +243,7 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
             impl #identifier {
                 #env_example
                 #(#getters_token_stream)*
-                pub fn field_descriptors() -> Vec<config_lib::ConfigFieldDescriptor> {
+                pub fn field_descriptors() -> Vec<config_lib::domain_types::ConfigFieldDescriptor> {
                     vec![#(#config_descriptors),*]
                 }
                 pub fn try_from_env() -> Result<Self, #identifier_try_from_env_error_upper_camel_case> {

@@ -3,8 +3,8 @@ const SYNCHRONIZATION_PAYLOAD_MAX_BYTES: usize = 16 * 1024 * 1024;
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 #[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
 pub struct SynchronizationRuntimeConfiguration {
-    retry_policy: server_runtime_core::RetryPolicy,
-    execution_mode: server_runtime_core::ExecutionMode,
+    retry_policy: server_runtime_core::domain_types::RetryPolicy,
+    execution_mode: server_runtime_core::domain_types::ExecutionMode,
 }
 
 #[derive(
@@ -43,14 +43,14 @@ pub trait SynchronizationSource {
 
 impl SynchronizationRuntimeConfiguration {
     #[must_use]
-    pub const fn execution_mode(&self) -> server_runtime_core::ExecutionMode {
+    pub const fn execution_mode(&self) -> server_runtime_core::domain_types::ExecutionMode {
         self.execution_mode
     }
 
     #[must_use]
     pub const fn new(
-        retry_policy: server_runtime_core::RetryPolicy,
-        execution_mode: server_runtime_core::ExecutionMode,
+        retry_policy: server_runtime_core::domain_types::RetryPolicy,
+        execution_mode: server_runtime_core::domain_types::ExecutionMode,
     ) -> Self {
         Self {
             retry_policy,
@@ -59,7 +59,7 @@ impl SynchronizationRuntimeConfiguration {
     }
 
     #[must_use]
-    pub const fn retry_policy(&self) -> server_runtime_core::RetryPolicy {
+    pub const fn retry_policy(&self) -> server_runtime_core::domain_types::RetryPolicy {
         self.retry_policy
     }
 }
@@ -68,18 +68,21 @@ impl SynchronizationRuntimeConfiguration {
 mod tests {
     #[test]
     fn configuration_keeps_retry_and_execution_policies_together() {
-        let attempts = server_runtime_core::RetryAttemptsNonZeroUsize::try_from(2usize);
-        let delay = server_runtime_core::RetryDelayDuration::from(std::time::Duration::ZERO);
+        let attempts =
+            server_runtime_core::domain_types::RetryAttemptsNonZeroUsize::try_from(2usize);
+        let delay =
+            server_runtime_core::domain_types::RetryDelayDuration::from(std::time::Duration::ZERO);
         let valid_attempts = attempts.expect("36b4ca8f configuration_keeps_retry_and_execution_policies_together invariant must hold");
-        let retry_policy = server_runtime_core::RetryPolicy::new(valid_attempts, Some(delay));
+        let retry_policy =
+            server_runtime_core::domain_types::RetryPolicy::new(valid_attempts, Some(delay));
         let configuration = super::SynchronizationRuntimeConfiguration::new(
             retry_policy,
-            server_runtime_core::ExecutionMode::DryRun,
+            server_runtime_core::domain_types::ExecutionMode::DryRun,
         );
         assert_eq!(configuration.retry_policy(), retry_policy);
         assert_eq!(
             configuration.execution_mode(),
-            server_runtime_core::ExecutionMode::DryRun
+            server_runtime_core::domain_types::ExecutionMode::DryRun
         );
     }
 

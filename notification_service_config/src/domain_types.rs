@@ -10,22 +10,22 @@ pub struct Config {
     #[config(
         example = "postgres://notification_service:change-me@127.0.0.1:5432/notification_service"
     )]
-    notification_database_url: config_lib::DatabaseUrl,
+    notification_database_url: config_lib::domain_types::DatabaseUrl,
     #[config(getter)]
     #[config(example = "30")]
-    request_timeout_seconds: config_lib::RequestTimeoutSeconds,
+    request_timeout_seconds: config_lib::domain_types::RequestTimeoutSeconds,
     #[config(getter)]
     #[config(example = "127.0.0.1:8081")]
-    notification_service_socket_address: config_lib::ServiceSocketAddress,
+    notification_service_socket_address: config_lib::domain_types::ServiceSocketAddress,
     #[config(getter)]
     #[config(example = "10")]
-    pg_pool_max_connections: config_lib::PgPoolMaxConnections,
+    pg_pool_max_connections: config_lib::domain_types::PgPoolMaxConnections,
     #[config(getter)]
     #[config(example = "text")]
-    tracing_format: config_lib::types::TracingFormat,
+    tracing_format: config_lib::domain_types::types::TracingFormat,
     #[config(getter)]
     #[config(example = "serve")]
-    svc_mode: config_lib::types::SvcMode,
+    svc_mode: config_lib::domain_types::types::SvcMode,
 }
 
 #[cfg(test)]
@@ -40,20 +40,20 @@ mod tests {
             !constants_str::UPDATE_CONFIG_PROJECTIONS.is_empty(),
             "4b913df2"
         );
-        assert!(is_typed_getter::<config_lib::DatabaseUrl>(
+        assert!(is_typed_getter::<config_lib::domain_types::DatabaseUrl>(
             super::Config::notification_database_url
         ));
-        assert!(is_typed_getter::<config_lib::ServiceSocketAddress>(
-            super::Config::notification_service_socket_address
-        ));
-        assert!(is_typed_getter::<config_lib::types::TracingFormat>(
-            super::Config::tracing_format
-        ));
-        assert!(is_typed_getter::<config_lib::PgPoolMaxConnections>(
-            super::Config::pg_pool_max_connections
-        ));
-        assert!(is_typed_getter::<config_lib::RequestTimeoutSeconds>(
-            super::Config::request_timeout_seconds
-        ));
+        assert!(is_typed_getter::<
+            config_lib::domain_types::ServiceSocketAddress,
+        >(super::Config::notification_service_socket_address));
+        assert!(is_typed_getter::<
+            config_lib::domain_types::types::TracingFormat,
+        >(super::Config::tracing_format));
+        assert!(is_typed_getter::<
+            config_lib::domain_types::PgPoolMaxConnections,
+        >(super::Config::pg_pool_max_connections));
+        assert!(is_typed_getter::<
+            config_lib::domain_types::RequestTimeoutSeconds,
+        >(super::Config::request_timeout_seconds));
     }
 }

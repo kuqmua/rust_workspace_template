@@ -2,8 +2,8 @@
 pub(crate) struct BootstrapPathBuf(std::path::PathBuf);
 
 impl BootstrapPathBuf {
-    pub(crate) fn as_path_ref(&self) -> server_runtime_http::PathRef<'_> {
-        server_runtime_http::PathRef::from(self.0.as_path())
+    pub(crate) fn as_path_ref(&self) -> server_runtime_http::domain_types::PathRef<'_> {
+        server_runtime_http::domain_types::PathRef::from(self.0.as_path())
     }
 }
 
@@ -27,8 +27,8 @@ pub(crate) struct BootstrapStatus(u8);
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 pub(crate) struct BootstrapArgs {
-    display_name: server_admin::AdminDisplayName,
-    login: server_admin::AdminLogin,
+    display_name: server_admin::domain_types::AdminDisplayName,
+    login: server_admin::domain_types::AdminLogin,
     password_file: BootstrapPathBuf,
 }
 
@@ -36,16 +36,17 @@ impl BootstrapArgs {
     pub(crate) fn into_parts(
         self,
     ) -> (
-        server_admin::AdminDisplayName,
-        server_admin::AdminLogin,
+        server_admin::domain_types::AdminDisplayName,
+        server_admin::domain_types::AdminLogin,
         BootstrapPathBuf,
     ) {
         (self.display_name, self.login, self.password_file)
     }
 
+    #[allow(clippy::single_call_fn)] // the application parser has one construction site for this command model
     pub(crate) const fn new(
-        display_name: server_admin::AdminDisplayName,
-        login: server_admin::AdminLogin,
+        display_name: server_admin::domain_types::AdminDisplayName,
+        login: server_admin::domain_types::AdminLogin,
         password_file: BootstrapPathBuf,
     ) -> Self {
         Self {
@@ -58,17 +59,18 @@ impl BootstrapArgs {
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 pub(crate) struct PasswordResetArgs {
-    login: server_admin::AdminLogin,
+    login: server_admin::domain_types::AdminLogin,
     password_file: BootstrapPathBuf,
 }
 
 impl PasswordResetArgs {
-    pub(crate) fn into_parts(self) -> (server_admin::AdminLogin, BootstrapPathBuf) {
+    pub(crate) fn into_parts(self) -> (server_admin::domain_types::AdminLogin, BootstrapPathBuf) {
         (self.login, self.password_file)
     }
 
+    #[allow(clippy::single_call_fn)] // the application parser has one construction site for this command model
     pub(crate) const fn new(
-        login: server_admin::AdminLogin,
+        login: server_admin::domain_types::AdminLogin,
         password_file: BootstrapPathBuf,
     ) -> Self {
         Self {
@@ -101,7 +103,7 @@ pub(crate) enum BootstrapCommandError {
     #[error(transparent)]
     Args(BootstrapArgsError),
     #[error("failed to create the first administrator: {0}")]
-    Bootstrap(server_admin::AdminBootstrapError),
+    Bootstrap(server_admin::domain_types::AdminBootstrapError),
     #[error("failed to read configuration: {0}")]
     Config(server_config::domain_types::ConfigTryFromEnvError),
     #[error("unsafe production configuration: {0}")]
@@ -109,13 +111,13 @@ pub(crate) enum BootstrapCommandError {
     #[error("failed to connect to postgres: {0}")]
     Connect(SqlxBootstrapError),
     #[error("failed to prepare administrator schema: {0}")]
-    Migrate(server_admin::AdminMigrateError),
+    Migrate(server_admin::domain_types::AdminMigrateError),
     #[error("failed to read administrator bootstrap password file: {0}")]
-    PasswordFile(server_runtime_http::BoundedReadError),
+    PasswordFile(server_runtime_http::domain_types::BoundedReadError),
     #[error("administrator bootstrap password file is invalid")]
     PasswordFileValue,
     #[error("failed to reset the administrator password: {0}")]
-    PasswordReset(server_admin::AdminPasswordResetError),
+    PasswordReset(server_admin::domain_types::AdminPasswordResetError),
 }
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]

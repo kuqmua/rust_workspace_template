@@ -34,14 +34,14 @@ async fn postgresql_optimistic_revision_allows_one_concurrent_writer() {
         sqlx::query_scalar::<_, i64>(update)
             .bind(constants_i64::ONE)
             .bind(
-                pg_table::PgTableRevision::try_from(constants_str::VALUE_0.to_owned())
+                pg_table::domain_types::PgTableRevision::try_from(constants_str::VALUE_0.to_owned())
                     .expect("979fa4b2 postgresql_optimistic_revision_allows_one_concurrent_writer invariant must hold")
             )
             .fetch_optional(&pool),
         sqlx::query_scalar::<_, i64>(update)
             .bind(2i64)
             .bind(
-                pg_table::PgTableRevision::try_from(constants_str::VALUE_0.to_owned())
+                pg_table::domain_types::PgTableRevision::try_from(constants_str::VALUE_0.to_owned())
                     .expect("589ea31d postgresql_optimistic_revision_allows_one_concurrent_writer invariant must hold")
             )
             .fetch_optional(&pool),
@@ -63,7 +63,7 @@ async fn postgresql_optimistic_revision_allows_one_concurrent_writer() {
     let stale = sqlx::query_scalar::<_, i64>(update)
         .bind(3i64)
         .bind(
-            pg_table::PgTableRevision::try_from(constants_str::VALUE_0.to_owned())
+            pg_table::domain_types::PgTableRevision::try_from(constants_str::VALUE_0.to_owned())
                 .expect("a3a08aeb postgresql_optimistic_revision_allows_one_concurrent_writer invariant must hold"),
         )
         .fetch_optional(&pool)
@@ -90,21 +90,21 @@ async fn postgresql_cleanup_is_batched_and_preserves_append_only_policy() {
         .await
         .expect("8c298fef postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
     let mut idempotency_test_isolation = pool.begin().await.expect("f56c4c85 postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
-    pg_crud_common::lock_pg_relation_resources(
-        pg_crud_common::SqlxPgRelationLockConnectionRef::from(&mut *idempotency_test_isolation),
-        &pg_crud_common::PgRelationLockNamespace::try_from(constants_str::ACTOR_ATOMIC.to_owned())
+    pg_crud_common::domain_types::lock_pg_relation_resources(
+        pg_crud_common::domain_types::SqlxPgRelationLockConnectionRef::from(&mut *idempotency_test_isolation),
+        &pg_crud_common::domain_types::PgRelationLockNamespace::try_from(constants_str::ACTOR_ATOMIC.to_owned())
             .expect("861fe23d postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold"),
-        &pg_crud_common::PgRelationResourceIds::try_from(vec![
-            pg_crud_common::PgRelationResourceId::from(constants_i64::ONE),
+        &pg_crud_common::domain_types::PgRelationResourceIds::try_from(vec![
+            pg_crud_common::domain_types::PgRelationResourceId::from(constants_i64::ONE),
         ])
         .expect("a18f804c postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold"),
     )
     .await
     .expect("fab61374 postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
-    server_admin::prep_pg(app_state::domain_types::SqlxPgPoolRef::from(&pool))
+    server_admin::domain_types::prep_pg(app_state::domain_types::SqlxPgPoolRef::from(&pool))
         .await
         .expect("029cb682 postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
-    pg_table::ensure_pg_table_idempotency_schema(app_state::domain_types::SqlxPgPoolRef::from(&pool))
+    pg_table::domain_types::ensure_pg_table_idempotency_schema(app_state::domain_types::SqlxPgPoolRef::from(&pool))
         .await
         .expect("eb08dffc postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
     let _clear = sqlx::query(constants_str::TRUNCATE_ADMIN_ACCESS_SESSIONS_ADMIN_REFRESH_TOKENS_ADMIN_LOGIN_ATTEMPTS_ADMIN_RATE)
@@ -126,16 +126,16 @@ async fn postgresql_cleanup_is_batched_and_preserves_append_only_policy() {
     .await
     .expect("f50ef817 postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
     let retention =
-        server_admin::AdminCleanupRetentionSeconds::try_from(3_600i64).expect("ab892fc5 postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
-    let config = server_admin::AdminCleanupCfg::new(
-        server_admin::AdminCleanupBatchSize::try_from(2i64).expect("1d97b31c postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold"),
+        server_admin::domain_types::AdminCleanupRetentionSeconds::try_from(3_600i64).expect("ab892fc5 postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
+    let config = server_admin::domain_types::AdminCleanupCfg::new(
+        server_admin::domain_types::AdminCleanupBatchSize::try_from(2i64).expect("1d97b31c postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold"),
         retention,
         retention,
         retention,
         retention,
         retention,
     );
-    let report = server_admin::cleanup_admin_tables(app_state::domain_types::SqlxPgPoolRef::from(&pool), config)
+    let report = server_admin::domain_types::cleanup_admin_tables(app_state::domain_types::SqlxPgPoolRef::from(&pool), config)
         .await
         .expect("a422e8d4 postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
     assert_eq!(report.total_rows().to_string(), "6");
@@ -188,29 +188,33 @@ async fn postgresql_migration_creates_complete_schema() {
     full.run(&fresh_pool)
         .await
         .expect("4b6c3bd6 postgresql_migration_creates_complete_schema invariant must hold");
-    server_admin::generated_tables::validate_catalog_schema(
-        pg_crud_common::SqlxPgPoolRef::from(&fresh_pool),
-        pg_crud_common::DbSchemaNameRef::from(constants_str::ADMIN_MIGRATION_FRESH_TEST),
+    server_admin::domain_types::generated_tables::validate_catalog_schema(
+        pg_crud_common::domain_types::SqlxPgPoolRef::from(&fresh_pool),
+        pg_crud_common::domain_types::DbSchemaNameRef::from(
+            constants_str::ADMIN_MIGRATION_FRESH_TEST,
+        ),
     )
     .await
     .expect("fac299aa postgresql_migration_creates_complete_schema invariant must hold");
-    let catalog_snapshot = pg_crud_common::inspect_postgres_catalog(
-        pg_crud_common::SqlxPgPoolRef::from(&fresh_pool),
-        pg_crud_common::DbSchemaNameRef::from(constants_str::ADMIN_MIGRATION_FRESH_TEST),
+    let catalog_snapshot = pg_crud_common::domain_types::inspect_postgres_catalog(
+        pg_crud_common::domain_types::SqlxPgPoolRef::from(&fresh_pool),
+        pg_crud_common::domain_types::DbSchemaNameRef::from(
+            constants_str::ADMIN_MIGRATION_FRESH_TEST,
+        ),
     )
     .await
     .expect("518b93e4 postgresql_migration_creates_complete_schema invariant must hold");
     let fresh_pool_ref = &fresh_pool;
     let table_snapshots = futures::future::try_join_all(
-        server_admin_contract::AdminDataTable::PG_ORDER
+        server_admin_contract::domain_types::AdminDataTable::PG_ORDER
             .into_iter()
             .map(async |table| {
-                pg_crud_common::inspect_postgres_table(
-                    pg_crud_common::SqlxPgPoolRef::from(fresh_pool_ref),
-                    pg_crud_common::DbSchemaNameRef::from(
+                pg_crud_common::domain_types::inspect_postgres_table(
+                    pg_crud_common::domain_types::SqlxPgPoolRef::from(fresh_pool_ref),
+                    pg_crud_common::domain_types::DbSchemaNameRef::from(
                         constants_str::ADMIN_MIGRATION_FRESH_TEST,
                     ),
-                    pg_crud_common::DbTableNameRef::from(table.as_str().get()),
+                    pg_crud_common::domain_types::DbTableNameRef::from(table.as_str().get()),
                 )
                 .await
                 .map(|snapshot| (table, snapshot))
@@ -249,7 +253,7 @@ async fn postgresql_migration_creates_complete_schema() {
     .await
     .expect("5c10c931 postgresql_migration_creates_complete_schema invariant must hold");
     assert_eq!(version, 13i64);
-    let expected_tables = server_admin_contract::AdminDataTable::PG_ORDER
+    let expected_tables = server_admin_contract::domain_types::AdminDataTable::PG_ORDER
         .map(|table| table.to_string())
         .into_iter()
         .collect::<std::collections::BTreeSet<String>>();

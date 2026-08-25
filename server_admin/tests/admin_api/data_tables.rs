@@ -16,7 +16,7 @@ async fn postgresql_data_table_api_reads_every_public_field_from_every_table() {
     .expect("f8f27048 postgresql_data_table_api_reads_every_public_field_from_every_table invariant must hold");
     let fixture_ref = &fixture;
     futures::StreamExt::fold(
-        futures::stream::iter(server_admin_contract::AdminDataTable::PG_ORDER),
+        futures::stream::iter(server_admin_contract::domain_types::AdminDataTable::PG_ORDER),
         (),
         async |(), table| {
             let uri = format!("/tables/{table}?limit=100&offset=0");
@@ -42,7 +42,7 @@ async fn postgresql_data_table_api_reads_every_public_field_from_every_table() {
                 .await
                 .expect("78547eed postgresql_data_table_api_reads_every_public_field_from_every_table invariant must hold");
             let view =
-                serde_json::from_slice::<server_admin_contract::AdminDataTableView>(body.as_ref())
+                serde_json::from_slice::<server_admin_contract::domain_types::AdminDataTableView>(body.as_ref())
                     .expect("6d2a32e6 postgresql_data_table_api_reads_every_public_field_from_every_table invariant must hold");
             assert_eq!(view.table(), table);
             let expected_columns = table.spec().columns().get().split(',').collect::<Vec<_>>();
@@ -89,103 +89,115 @@ async fn postgresql_generated_mutation_idempotency_contract() {
         .begin()
         .await
         .expect("ea1d891d postgresql_generated_mutation_idempotency_contract invariant must hold");
-    pg_crud_common::lock_pg_relation_resources(
-        pg_crud_common::SqlxPgRelationLockConnectionRef::from(&mut *idempotency_test_isolation),
-        &pg_crud_common::PgRelationLockNamespace::try_from(constants_str::ACTOR_ATOMIC.to_owned())
-            .expect(
-                "136c5acc postgresql_generated_mutation_idempotency_contract invariant must hold",
-            ),
-        &pg_crud_common::PgRelationResourceIds::try_from(vec![
-            pg_crud_common::PgRelationResourceId::from(constants_i64::ONE),
+    pg_crud_common::domain_types::lock_pg_relation_resources(
+        pg_crud_common::domain_types::SqlxPgRelationLockConnectionRef::from(
+            &mut *idempotency_test_isolation,
+        ),
+        &pg_crud_common::domain_types::PgRelationLockNamespace::try_from(
+            constants_str::ACTOR_ATOMIC.to_owned(),
+        )
+        .expect("136c5acc postgresql_generated_mutation_idempotency_contract invariant must hold"),
+        &pg_crud_common::domain_types::PgRelationResourceIds::try_from(vec![
+            pg_crud_common::domain_types::PgRelationResourceId::from(constants_i64::ONE),
         ])
         .expect("8b0c7ae1 postgresql_generated_mutation_idempotency_contract invariant must hold"),
     )
     .await
     .expect("508db033 postgresql_generated_mutation_idempotency_contract invariant must hold");
-    pg_table::ensure_pg_table_idempotency_schema(app_state::domain_types::SqlxPgPoolRef::from(
-        &pool,
-    ))
+    pg_table::domain_types::ensure_pg_table_idempotency_schema(
+        app_state::domain_types::SqlxPgPoolRef::from(&pool),
+    )
     .await
     .expect("6c338824 postgresql_generated_mutation_idempotency_contract invariant must hold");
     let _truncate_result = sqlx::query(constants_str::TRUNCATE_PG_TABLE_IDEMPOTENCY)
         .execute(&pool)
         .await
         .expect("d93beb69 postgresql_generated_mutation_idempotency_contract invariant must hold");
-    let make_request = |actor: StdAdminApiTestStrRef<'_>,
-                        route: StdAdminApiTestStrRef<'_>,
-                        key: StdAdminApiTestStrRef<'_>,
-                        body: pg_table::PgTableIdempotencyBodyRef<'_>| {
-        pg_table::PgTableIdempotencyRequest::new(
-            pg_table::PgTableIdempotencyScope::new(
-                pg_table::PgTableIdempotencyActor::try_from(actor.0.to_owned()).expect("e6640036 postgresql_generated_mutation_idempotency_contract invariant must hold"),
-                pg_table::PgTableIdempotencyMethod::try_from(constants_str::POST.to_owned())
+    let make_request =
+        |actor: StdAdminApiTestStrRef<'_>,
+         route: StdAdminApiTestStrRef<'_>,
+         key: StdAdminApiTestStrRef<'_>,
+         body: pg_table::domain_types::PgTableIdempotencyBodyRef<'_>| {
+            pg_table::domain_types::PgTableIdempotencyRequest::new(
+            pg_table::domain_types::PgTableIdempotencyScope::new(
+                pg_table::domain_types::PgTableIdempotencyActor::try_from(actor.0.to_owned()).expect("e6640036 postgresql_generated_mutation_idempotency_contract invariant must hold"),
+                pg_table::domain_types::PgTableIdempotencyMethod::try_from(constants_str::POST.to_owned())
                     .expect("94bc0508 postgresql_generated_mutation_idempotency_contract invariant must hold"),
-                pg_table::PgTableIdempotencyRoute::try_from(route.0.to_owned()).expect("4e8c040f postgresql_generated_mutation_idempotency_contract invariant must hold"),
-                pg_table::PgTableIdempotencyKey::try_from(key.0.to_owned()).expect("2028024d postgresql_generated_mutation_idempotency_contract invariant must hold"),
+                pg_table::domain_types::PgTableIdempotencyRoute::try_from(route.0.to_owned()).expect("4e8c040f postgresql_generated_mutation_idempotency_contract invariant must hold"),
+                pg_table::domain_types::PgTableIdempotencyKey::try_from(key.0.to_owned()).expect("2028024d postgresql_generated_mutation_idempotency_contract invariant must hold"),
             ),
             body,
         )
-    };
+        };
     let first_request = make_request(
         StdAdminApiTestStrRef::from(constants_str::ACTOR_A),
         StdAdminApiTestStrRef::from(constants_str::ITEMS_CM),
         StdAdminApiTestStrRef::from(constants_str::KEY_A),
-        pg_table::PgTableIdempotencyBodyRef::from(br#"{"value":1}"#.as_slice()),
+        pg_table::domain_types::PgTableIdempotencyBodyRef::from(br#"{"value":1}"#.as_slice()),
     );
-    let first = pg_table::begin_pg_table_idempotency(
+    let first = pg_table::domain_types::begin_pg_table_idempotency(
         app_state::domain_types::SqlxPgPoolRef::from(&pool),
         &first_request,
     )
     .await
     .expect("c8b3565c postgresql_generated_mutation_idempotency_contract invariant must hold");
-    assert_eq!(first, pg_table::PgTableIdempotencyBegin::Acquired);
-    let pending = pg_table::begin_pg_table_idempotency(
+    assert_eq!(
+        first,
+        pg_table::domain_types::PgTableIdempotencyBegin::Acquired
+    );
+    let pending = pg_table::domain_types::begin_pg_table_idempotency(
         app_state::domain_types::SqlxPgPoolRef::from(&pool),
         &first_request,
     )
     .await
     .expect("c5c45332 postgresql_generated_mutation_idempotency_contract invariant must hold");
-    assert_eq!(pending, pg_table::PgTableIdempotencyBegin::InProgress);
+    assert_eq!(
+        pending,
+        pg_table::domain_types::PgTableIdempotencyBegin::InProgress
+    );
     let conflicting_request = make_request(
         StdAdminApiTestStrRef::from(constants_str::ACTOR_A),
         StdAdminApiTestStrRef::from(constants_str::ITEMS_CM),
         StdAdminApiTestStrRef::from(constants_str::KEY_A),
-        pg_table::PgTableIdempotencyBodyRef::from(br#"{"value":2}"#.as_slice()),
+        pg_table::domain_types::PgTableIdempotencyBodyRef::from(br#"{"value":2}"#.as_slice()),
     );
-    let conflict = pg_table::begin_pg_table_idempotency(
+    let conflict = pg_table::domain_types::begin_pg_table_idempotency(
         app_state::domain_types::SqlxPgPoolRef::from(&pool),
         &conflicting_request,
     )
     .await
     .expect("7f419767 postgresql_generated_mutation_idempotency_contract invariant must hold");
-    assert_eq!(conflict, pg_table::PgTableIdempotencyBegin::Conflict);
+    assert_eq!(
+        conflict,
+        pg_table::domain_types::PgTableIdempotencyBegin::Conflict
+    );
     let response_body = br#"{"desirable":{"id":1}}"#;
-    pg_table::complete_pg_table_idempotency(
+    pg_table::domain_types::complete_pg_table_idempotency(
         app_state::domain_types::SqlxPgPoolRef::from(&pool),
         &first_request,
-        pg_table::PgTableIdempotencyResponseStatus::try_from(201u16).expect(
+        pg_table::domain_types::PgTableIdempotencyResponseStatus::try_from(201u16).expect(
             "4df2dd1f postgresql_generated_mutation_idempotency_contract invariant must hold",
         ),
-        pg_table::PgTableIdempotencyBodyRef::from(response_body.as_slice()),
+        pg_table::domain_types::PgTableIdempotencyBodyRef::from(response_body.as_slice()),
     )
     .await
     .expect("9106c1e6 postgresql_generated_mutation_idempotency_contract invariant must hold");
-    let replay = pg_table::begin_pg_table_idempotency(
+    let replay = pg_table::domain_types::begin_pg_table_idempotency(
         app_state::domain_types::SqlxPgPoolRef::from(&pool),
         &first_request,
     )
     .await
     .expect("0721b23f postgresql_generated_mutation_idempotency_contract invariant must hold");
-    let pg_table::PgTableIdempotencyBegin::Replay(replay_value) = replay else {
+    let pg_table::domain_types::PgTableIdempotencyBegin::Replay(replay_value) = replay else {
         panic!("9f97fb0d");
     };
     assert_eq!(
         replay_value.into_parts(),
         (
-            pg_table::PgTableIdempotencyResponseStatus::try_from(201u16).expect(
+            pg_table::domain_types::PgTableIdempotencyResponseStatus::try_from(201u16).expect(
                 "f89d923d postgresql_generated_mutation_idempotency_contract invariant must hold"
             ),
-            pg_table::PgTableIdempotencyBody::try_from(response_body.to_vec()).expect(
+            pg_table::domain_types::PgTableIdempotencyBody::try_from(response_body.to_vec()).expect(
                 "4a01ed0e postgresql_generated_mutation_idempotency_contract invariant must hold"
             ),
         )
@@ -194,44 +206,44 @@ async fn postgresql_generated_mutation_idempotency_contract() {
         StdAdminApiTestStrRef::from(constants_str::ACTOR_B),
         StdAdminApiTestStrRef::from(constants_str::ITEMS_CM),
         StdAdminApiTestStrRef::from(constants_str::KEY_A),
-        pg_table::PgTableIdempotencyBodyRef::from(br#"{"value":1}"#.as_slice()),
+        pg_table::domain_types::PgTableIdempotencyBodyRef::from(br#"{"value":1}"#.as_slice()),
     );
     assert_eq!(
-        pg_table::begin_pg_table_idempotency(
+        pg_table::domain_types::begin_pg_table_idempotency(
             app_state::domain_types::SqlxPgPoolRef::from(&pool),
             &other_actor
         )
         .await
         .expect("e581d572 postgresql_generated_mutation_idempotency_contract invariant must hold"),
-        pg_table::PgTableIdempotencyBegin::Acquired
+        pg_table::domain_types::PgTableIdempotencyBegin::Acquired
     );
-    pg_table::release_pg_table_idempotency(
+    pg_table::domain_types::release_pg_table_idempotency(
         app_state::domain_types::SqlxPgPoolRef::from(&pool),
         &other_actor,
     )
     .await
     .expect("31e0437d postgresql_generated_mutation_idempotency_contract invariant must hold");
     assert_eq!(
-        pg_table::begin_pg_table_idempotency(
+        pg_table::domain_types::begin_pg_table_idempotency(
             app_state::domain_types::SqlxPgPoolRef::from(&pool),
             &other_actor
         )
         .await
         .expect("fe57d4dc postgresql_generated_mutation_idempotency_contract invariant must hold"),
-        pg_table::PgTableIdempotencyBegin::Acquired
+        pg_table::domain_types::PgTableIdempotencyBegin::Acquired
     );
     let concurrent = make_request(
         StdAdminApiTestStrRef::from(constants_str::ACTOR_CONCURRENT),
         StdAdminApiTestStrRef::from(constants_str::ITEMS_CM),
         StdAdminApiTestStrRef::from(constants_str::KEY_CONCURRENT),
-        pg_table::PgTableIdempotencyBodyRef::from(br#"{"value":3}"#.as_slice()),
+        pg_table::domain_types::PgTableIdempotencyBodyRef::from(br#"{"value":3}"#.as_slice()),
     );
     let (left, right) = tokio::join!(
-        pg_table::begin_pg_table_idempotency(
+        pg_table::domain_types::begin_pg_table_idempotency(
             app_state::domain_types::SqlxPgPoolRef::from(&pool),
             &concurrent
         ),
-        pg_table::begin_pg_table_idempotency(
+        pg_table::domain_types::begin_pg_table_idempotency(
             app_state::domain_types::SqlxPgPoolRef::from(&pool),
             &concurrent
         )
@@ -247,14 +259,16 @@ async fn postgresql_generated_mutation_idempotency_contract() {
     assert_eq!(
         outcomes
             .iter()
-            .filter(|outcome| **outcome == pg_table::PgTableIdempotencyBegin::Acquired)
+            .filter(|outcome| **outcome == pg_table::domain_types::PgTableIdempotencyBegin::Acquired)
             .count(),
         constants_usize::ONE
     );
     assert_eq!(
         outcomes
             .iter()
-            .filter(|outcome| **outcome == pg_table::PgTableIdempotencyBegin::InProgress)
+            .filter(
+                |outcome| **outcome == pg_table::domain_types::PgTableIdempotencyBegin::InProgress
+            )
             .count(),
         constants_usize::ONE
     );
@@ -272,16 +286,16 @@ async fn postgresql_generated_mutation_idempotency_contract() {
         StdAdminApiTestStrRef::from(constants_str::ACTOR_ATOMIC),
         StdAdminApiTestStrRef::from(constants_str::ITEMS_CO),
         StdAdminApiTestStrRef::from(constants_str::KEY_ATOMIC),
-        pg_table::PgTableIdempotencyBodyRef::from(br#"{"id":1}"#.as_slice()),
+        pg_table::domain_types::PgTableIdempotencyBodyRef::from(br#"{"id":1}"#.as_slice()),
     );
     assert_eq!(
-        pg_table::begin_pg_table_idempotency(
+        pg_table::domain_types::begin_pg_table_idempotency(
             app_state::domain_types::SqlxPgPoolRef::from(&pool),
             &atomic
         )
         .await
         .expect("925ea283 postgresql_generated_mutation_idempotency_contract invariant must hold"),
-        pg_table::PgTableIdempotencyBegin::Acquired
+        pg_table::domain_types::PgTableIdempotencyBegin::Acquired
     );
     let mut rollback_tx = pool
         .begin()
@@ -294,13 +308,13 @@ async fn postgresql_generated_mutation_idempotency_contract() {
             .expect(
                 "67503e70 postgresql_generated_mutation_idempotency_contract invariant must hold",
             );
-    pg_table::complete_pg_table_idempotency_in_connection(
-        pg_table::SqlxPgTablePgConnectionRef::from(&mut *rollback_tx),
+    pg_table::domain_types::complete_pg_table_idempotency_in_connection(
+        pg_table::domain_types::SqlxPgTablePgConnectionRef::from(&mut *rollback_tx),
         &atomic,
-        pg_table::PgTableIdempotencyResponseStatus::try_from(201u16).expect(
+        pg_table::domain_types::PgTableIdempotencyResponseStatus::try_from(201u16).expect(
             "98bb1db9 postgresql_generated_mutation_idempotency_contract invariant must hold",
         ),
-        pg_table::PgTableIdempotencyBodyRef::from(br#"{"id":1}"#.as_slice()),
+        pg_table::domain_types::PgTableIdempotencyBodyRef::from(br#"{"id":1}"#.as_slice()),
     )
     .await
     .expect("8ad86515 postgresql_generated_mutation_idempotency_contract invariant must hold");
@@ -316,15 +330,15 @@ async fn postgresql_generated_mutation_idempotency_contract() {
     .expect("84e57ab6 postgresql_generated_mutation_idempotency_contract invariant must hold");
     assert_eq!(mutation_count, constants_i64::ZERO);
     assert_eq!(
-        pg_table::begin_pg_table_idempotency(
+        pg_table::domain_types::begin_pg_table_idempotency(
             app_state::domain_types::SqlxPgPoolRef::from(&pool),
             &atomic
         )
         .await
         .expect("3903bf53 postgresql_generated_mutation_idempotency_contract invariant must hold"),
-        pg_table::PgTableIdempotencyBegin::InProgress
+        pg_table::domain_types::PgTableIdempotencyBegin::InProgress
     );
-    pg_table::release_pg_table_idempotency(
+    pg_table::domain_types::release_pg_table_idempotency(
         app_state::domain_types::SqlxPgPoolRef::from(&pool),
         &atomic,
     )
@@ -342,15 +356,17 @@ async fn postgresql_generated_mutation_idempotency_contract() {
     .fetch_one(&pool)
     .await
     .expect("2c080f6d postgresql_generated_mutation_idempotency_contract invariant must hold");
-    let cleaned = pg_table::cleanup_pg_table_idempotency(
+    let cleaned = pg_table::domain_types::cleanup_pg_table_idempotency(
         app_state::domain_types::SqlxPgPoolRef::from(&pool),
-        pg_table::PgTableIdempotencyCleanupRetentionSeconds::try_from(3_600i64).expect(
-            "52189299 postgresql_generated_mutation_idempotency_contract invariant must hold",
-        ),
-        pg_table::PgTableIdempotencyCleanupRetentionSeconds::try_from(3_600i64).expect(
-            "fa6dc1d7 postgresql_generated_mutation_idempotency_contract invariant must hold",
-        ),
-        pg_table::PgTableIdempotencyCleanupBatchSize::try_from(2i64).expect(
+        pg_table::domain_types::PgTableIdempotencyCleanupRetentionSeconds::try_from(3_600i64)
+            .expect(
+                "52189299 postgresql_generated_mutation_idempotency_contract invariant must hold",
+            ),
+        pg_table::domain_types::PgTableIdempotencyCleanupRetentionSeconds::try_from(3_600i64)
+            .expect(
+                "fa6dc1d7 postgresql_generated_mutation_idempotency_contract invariant must hold",
+            ),
+        pg_table::domain_types::PgTableIdempotencyCleanupBatchSize::try_from(2i64).expect(
             "1780d6b1 postgresql_generated_mutation_idempotency_contract invariant must hold",
         ),
     )

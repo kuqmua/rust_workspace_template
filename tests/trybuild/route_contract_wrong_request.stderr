@@ -1,13 +1,13 @@
 error[E0308]: mismatched types
-  --> trybuild/route_contract_wrong_request.rs:16:63
+  --> trybuild/route_contract_wrong_request.rs:16:77
    |
-16 |     let _request = frontend_contract::client_request::<Route>(Response);
-   |                    ------------------------------------------ ^^^^^^^^ expected `Request`, found `Response`
+16 |     let _request = frontend_contract::domain_types::client_request::<Route>(Response);
+   |                    -------------------------------------------------------- ^^^^^^^^ expected `Request`, found `Response`
    |                    |
    |                    arguments to this function are incorrect
    |
 note: function defined here
-  --> $WORKSPACE/frontend_contract/src/route.rs
+  --> $WORKSPACE/frontend_contract/src/domain_types/route.rs
    |
    | pub const fn client_request<Route>(body: Route::Request) -> RouteRequest<Route>
    |              ^^^^^^^^^^^^^^

@@ -52,11 +52,13 @@ categories = ["category"]
     let path_lib_rs = crate_path.join(constants_str::SRC_LIB_RS);
     let path_cargo_toml = crate_path.join(constants_str::CARGO_TOML);
     let workspace_manifest_path = root.join(constants_str::CARGO_TOML);
-    let workspace_cargo_toml = server_runtime_http::read_bounded_file(
-        server_runtime_http::PathRef::from(workspace_manifest_path.as_path()),
-        server_runtime_http::BoundedReadMaximumBytes::from(constants_usize::VALUE_1_048_576),
+    let workspace_cargo_toml = server_runtime_http::domain_types::read_bounded_file(
+        server_runtime_http::domain_types::PathRef::from(workspace_manifest_path.as_path()),
+        server_runtime_http::domain_types::BoundedReadMaximumBytes::from(
+            constants_usize::VALUE_1_048_576,
+        ),
     )
-    .and_then(server_runtime_http::BoundedText::try_from)
+    .and_then(server_runtime_http::domain_types::BoundedText::try_from)
     .unwrap_or_else(|error| panic!("bf40d675: {error}"));
     let root_path = root.display().to_string();
     let cargo_toml_extra = extra_cnt.lines().fold(
@@ -169,15 +171,15 @@ categories = ["category"]
     domain_types::generated_crate_steps()
         .iter()
         .fold((), |(), step| {
-            let status = macros_helpers::tool_command::ToolCommand::new(
-                macros_helpers::tool_command::ToolProgramRef::from(
+            let status = macros_helpers::domain_types::tool_command::ToolCommand::new(
+                macros_helpers::domain_types::tool_command::ToolProgramRef::from(
                     constants_str::WORKSPACE_TEST_RUNNER_CARGO,
                 ),
             )
-            .current_dir(macros_helpers::tool_command::PathRef::from(
+            .current_dir(macros_helpers::domain_types::tool_command::PathRef::from(
                 crate_path.as_path(),
             ))
-            .args(macros_helpers::tool_command::ToolArgsRef::from(step.args()))
+            .args(macros_helpers::domain_types::tool_command::ToolArgsRef::from(step.args()))
             .status()
             .unwrap_or_else(|error| {
                 panic!(

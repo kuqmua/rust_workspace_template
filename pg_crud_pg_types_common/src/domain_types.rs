@@ -36,8 +36,8 @@ pub struct PaginationStartsWithOneValue(i64);
     newtype::IntoInnerFrom,
 )]
 pub struct IsPrimaryKey(bool);
-impl From<pg_crud_common::IsPrimaryKey> for IsPrimaryKey {
-    fn from(value: pg_crud_common::IsPrimaryKey) -> Self {
+impl From<pg_crud_common::domain_types::IsPrimaryKey> for IsPrimaryKey {
+    fn from(value: pg_crud_common::domain_types::IsPrimaryKey) -> Self {
         Self::from(bool::from(value))
     }
 }
@@ -56,7 +56,7 @@ impl From<pg_crud_common::IsPrimaryKey> for IsPrimaryKey {
 )]
 #[serde(try_from = "PaginationStartsWithOneRaw")]
 #[derive(newtype::FromInner)]
-pub struct PaginationStartsWithOne(pg_crud_common::PaginationBase);
+pub struct PaginationStartsWithOne(pg_crud_common::domain_types::PaginationBase);
 
 #[location::errors_with_location]
 #[derive(
@@ -114,10 +114,12 @@ impl PaginationStartsWithOne {
                 })
             }
         } else if offset_value.get().checked_add(limit_value.get()).is_some() {
-            Ok(Self::from(pg_crud_common::PaginationBase::new_unchecked(
-                limit_value.get(),
-                offset_value.get(),
-            )))
+            Ok(Self::from(
+                pg_crud_common::domain_types::PaginationBase::new_unchecked(
+                    limit_value.get(),
+                    offset_value.get(),
+                ),
+            ))
         } else {
             Err(
                 PaginationStartsWithOneTryNewError::OffsetPlusLimitIsIntOverflow {
@@ -135,39 +137,44 @@ impl TryFrom<PaginationStartsWithOneRaw> for PaginationStartsWithOne {
         Self::try_new(v.limit, v.offset)
     }
 }
-impl<'lt> pg_crud_common::PgTypeWhereFilter<'lt> for PaginationStartsWithOne {
+impl<'lt> pg_crud_common::domain_types::PgTypeWhereFilter<'lt> for PaginationStartsWithOne {
     fn query_bind(
         self,
-        query: pg_crud_common::SqlxPostgresQuery<'lt>,
-    ) -> Result<pg_crud_common::SqlxPostgresQuery<'lt>, pg_crud_common::SqlxPostgresQueryBindError>
-    {
+        query: pg_crud_common::domain_types::SqlxPostgresQuery<'lt>,
+    ) -> Result<
+        pg_crud_common::domain_types::SqlxPostgresQuery<'lt>,
+        pg_crud_common::domain_types::SqlxPostgresQueryBindError,
+    > {
         self.0.query_bind(query)
     }
     fn query_part(
         &self,
-        increment: &mut dyn pg_crud_common::QueryPartIncrementMut,
-        column: pg_crud_common::SqlColumnRef<'_>,
-        add_operator: pg_crud_common::AddOperator,
-    ) -> Result<pg_crud_common::QueryPartFragment, pg_crud_common::QueryPartError> {
+        increment: &mut dyn pg_crud_common::domain_types::QueryPartIncrementMut,
+        column: pg_crud_common::domain_types::SqlColumnRef<'_>,
+        add_operator: pg_crud_common::domain_types::AddOperator,
+    ) -> Result<
+        pg_crud_common::domain_types::QueryPartFragment,
+        pg_crud_common::domain_types::QueryPartError,
+    > {
         self.0.query_part(increment, column, add_operator)
     }
 }
-impl pg_crud_common::DefaultSomeOneElement for PaginationStartsWithOne {
+impl pg_crud_common::domain_types::DefaultSomeOneElement for PaginationStartsWithOne {
     #[inline]
     fn default_some_one_element() -> Self {
-        Self::from(pg_crud_common::PaginationBase::new_unchecked(
-            pg_crud_common::PaginationPolicy::standard()
+        Self::from(pg_crud_common::domain_types::PaginationBase::new_unchecked(
+            pg_crud_common::domain_types::PaginationPolicy::standard()
                 .default_limit()
                 .get(),
             1,
         ))
     }
 }
-impl pg_crud_common::DefaultSomeOneElementMaxPageSize for PaginationStartsWithOne {
+impl pg_crud_common::domain_types::DefaultSomeOneElementMaxPageSize for PaginationStartsWithOne {
     #[inline]
     fn default_some_one_element_max_page_size() -> Self {
         let one: i32 = 1;
-        Self::from(pg_crud_common::PaginationBase::new_unchecked(
+        Self::from(pg_crud_common::domain_types::PaginationBase::new_unchecked(
             i32::MAX - one,
             one,
         ))
@@ -215,17 +222,17 @@ mod tests {
     #[test]
     fn pagination_defaults_start_at_one_and_use_the_expected_limits() {
         let standard =
-            <super::PaginationStartsWithOne as pg_crud_common::DefaultSomeOneElement>::default_some_one_element();
+            <super::PaginationStartsWithOne as pg_crud_common::domain_types::DefaultSomeOneElement>::default_some_one_element();
         assert_eq!(standard.start().get(), constants_i64::ONE);
         assert_eq!(
             standard.end().get(),
-            pg_crud_common::PaginationPolicy::standard()
+            pg_crud_common::domain_types::PaginationPolicy::standard()
                 .default_limit()
                 .get()
                 + constants_i64::ONE
         );
         let maximum =
-            <super::PaginationStartsWithOne as pg_crud_common::DefaultSomeOneElementMaxPageSize>::default_some_one_element_max_page_size();
+            <super::PaginationStartsWithOne as pg_crud_common::domain_types::DefaultSomeOneElementMaxPageSize>::default_some_one_element_max_page_size();
         assert_eq!(maximum.start().get(), constants_i64::ONE);
         assert_eq!(maximum.end().get(), i64::from(i32::MAX));
     }
@@ -241,7 +248,8 @@ mod tests {
             constants_str::PG_CRUD_EMPTY_SQL_SUFFIX
         );
         assert_eq!(
-            super::maybe_primary_key(pg_crud_common::IsPrimaryKey::from(true)).to_string(),
+            super::maybe_primary_key(pg_crud_common::domain_types::IsPrimaryKey::from(true))
+                .to_string(),
             constants_str::PRIMARY_KEY
         );
     }

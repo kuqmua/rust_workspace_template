@@ -1,0 +1,226 @@
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::FromInner,
+)]
+pub struct HealthProbeTimeoutDuration(std::time::Duration);
+
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
+pub struct HealthProbeSucceeded(bool);
+
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, serde::Serialize,
+)]
+#[serde(rename_all = "snake_case")]
+pub enum HealthComponentStatus {
+    Error,
+    Ok,
+}
+
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, serde::Serialize,
+)]
+pub struct HealthSnapshot {
+    database: HealthComponentStatus,
+    service: HealthComponentStatus,
+}
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
+enum HealthReadyError {
+    #[error("service is unavailable")]
+    Unavailable(HealthSnapshot),
+}
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, serde::Serialize,
+)]
+pub struct ServiceLivenessSnapshot {
+    service: HealthComponentStatus,
+}
+impl HealthSnapshot {
+    #[must_use]
+    pub const fn database(self) -> HealthComponentStatus {
+        self.database
+    }
+    #[must_use]
+    pub const fn service(self) -> HealthComponentStatus {
+        self.service
+    }
+}
+impl axum::response::IntoResponse for HealthReadyError {
+    fn into_response(self) -> axum::response::Response {
+        match self {
+            Self::Unavailable(snapshot) => axum::response::IntoResponse::into_response((
+                http::StatusCode::SERVICE_UNAVAILABLE,
+                axum::Json(snapshot),
+            )),
+        }
+    }
+}
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, newtype::FromInner)]
+struct SharedHealthReadinessArc(std::sync::Arc<std::sync::atomic::AtomicBool>);
+
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
+pub struct HealthReadiness {
+    shared: SharedHealthReadinessArc,
+}
+impl Default for HealthReadiness {
+    fn default() -> Self {
+        Self {
+            shared: SharedHealthReadinessArc::from(std::sync::Arc::from(
+                std::sync::atomic::AtomicBool::new(false),
+            )),
+        }
+    }
+}
+impl HealthReadiness {
+    #[must_use]
+    pub fn snapshot(&self) -> HealthSnapshot {
+        let database = if self.shared.0.load(std::sync::atomic::Ordering::Acquire) {
+            HealthComponentStatus::Ok
+        } else {
+            HealthComponentStatus::Error
+        };
+        HealthSnapshot {
+            database,
+            service: HealthComponentStatus::Ok,
+        }
+    }
+    pub fn store_database_probe(&self, value: HealthProbeSucceeded) {
+        self.shared
+            .0
+            .store(bool::from(value), std::sync::atomic::Ordering::Release);
+    }
+}
+
+#[must_use]
+pub fn add_health_routes(
+    router: crate::domain_types::AxumRouter,
+    readiness: &HealthReadiness,
+) -> crate::domain_types::AxumRouter {
+    let readiness_for_route = readiness.clone();
+    crate::domain_types::AxumRouter(
+        router
+            .0
+            .route(
+                constants_str::LIVE_PATH,
+                axum::routing::get(async || {
+                    axum::Json(ServiceLivenessSnapshot {
+                        service: HealthComponentStatus::Ok,
+                    })
+                }),
+            )
+            .route(
+                constants_str::READY_PATH,
+                axum::routing::get(move || {
+                    let route_readiness = readiness_for_route.clone();
+                    async move {
+                        let snapshot = route_readiness.snapshot();
+                        if snapshot.database == HealthComponentStatus::Ok {
+                            Ok(axum::Json(snapshot))
+                        } else {
+                            Err(HealthReadyError::Unavailable(snapshot))
+                        }
+                    }
+                }),
+            ),
+    )
+}
+pub async fn run_health_probe<Probe>(
+    timeout: HealthProbeTimeoutDuration,
+    probe: Probe,
+) -> HealthProbeSucceeded
+where
+    Probe: Future<Output = bool>,
+{
+    HealthProbeSucceeded::from(matches!(
+        tokio::time::timeout(timeout.0, probe).await,
+        Ok(true)
+    ))
+}
+#[cfg(test)]
+mod tests {
+    #[tokio::test(start_paused = true)]
+    async fn probe_distinguishes_success_failure_and_timeout() {
+        let timeout = super::HealthProbeTimeoutDuration::from(std::time::Duration::from_secs(1u64));
+        assert!(bool::from(
+            super::run_health_probe(timeout, async { true }).await
+        ));
+        assert!(!bool::from(
+            super::run_health_probe(timeout, async { false }).await
+        ));
+        assert!(!bool::from(
+            super::run_health_probe(timeout, std::future::pending::<bool>()).await
+        ));
+    }
+
+    #[test]
+    fn readiness_tracks_database_probe_without_affecting_liveness() {
+        let readiness = super::HealthReadiness::default();
+        assert_eq!(
+            readiness.snapshot().database(),
+            super::HealthComponentStatus::Error
+        );
+        assert_eq!(
+            readiness.snapshot().service(),
+            super::HealthComponentStatus::Ok
+        );
+        readiness.store_database_probe(super::HealthProbeSucceeded::from(true));
+        assert_eq!(
+            readiness.snapshot().database(),
+            super::HealthComponentStatus::Ok
+        );
+    }
+
+    #[tokio::test]
+    async fn health_routes_distinguish_live_and_ready_statuses() {
+        let readiness = super::HealthReadiness::default();
+        let router = super::add_health_routes(
+            crate::domain_types::AxumRouter::from(axum::Router::new()),
+            &readiness,
+        )
+        .0;
+        let live_response = tower::ServiceExt::oneshot(
+            router.clone(),
+            http::Request::get(constants_str::LIVE_PATH)
+                .body(axum::body::Body::empty())
+                .expect("a943ebaa health_routes_distinguish_live_and_ready_statuses invariant must hold"),
+        )
+        .await
+        .expect("8112486b health_routes_distinguish_live_and_ready_statuses invariant must hold");
+        assert_eq!(live_response.status(), http::StatusCode::OK);
+        let unavailable_response = tower::ServiceExt::oneshot(
+            router.clone(),
+            http::Request::get(constants_str::READY_PATH)
+                .body(axum::body::Body::empty())
+                .expect("341e303a health_routes_distinguish_live_and_ready_statuses invariant must hold"),
+        )
+        .await
+        .expect("ee4cfce6 health_routes_distinguish_live_and_ready_statuses invariant must hold");
+        assert_eq!(
+            unavailable_response.status(),
+            http::StatusCode::SERVICE_UNAVAILABLE
+        );
+        readiness.store_database_probe(super::HealthProbeSucceeded::from(true));
+        let ready_response = tower::ServiceExt::oneshot(
+            router,
+            http::Request::get(constants_str::READY_PATH)
+                .body(axum::body::Body::empty())
+                .expect("67247299 health_routes_distinguish_live_and_ready_statuses invariant must hold"),
+        )
+        .await
+        .expect("7cf14a1f health_routes_distinguish_live_and_ready_statuses invariant must hold");
+        assert_eq!(ready_response.status(), http::StatusCode::OK);
+    }
+}

@@ -423,14 +423,14 @@ fn direct_filesystem_owner_inventory_is_exact_justified_and_current() {
     );
     assert!(
         super::is_direct_fs_owner_source_path(super::types::PathRef::from(std::path::Path::new(
-            "../workspace_scaffold/src/main.rs"
+            "../workspace_scaffold/src/domain_types.rs"
         )))
         .get(),
         "b39e07d4"
     );
     assert!(
         super::is_direct_fs_owner_source_path(super::types::PathRef::from(std::path::Path::new(
-            "../workspace_scaffold/src/template_fs.rs"
+            "../workspace_scaffold/src/adapters/template_fs.rs"
         )))
         .get(),
         "5b71e44a"
@@ -608,7 +608,7 @@ fn raw_runtime_sql_identifier_inventory_matches_reviewed_baseline() {
         }
     });
     let expected = std::collections::BTreeMap::from([(
-        String::from("../notification_service/src/routes.rs"),
+        String::from("../notification_service/src/adapters/routes.rs"),
         constants_usize::ONE,
     )]);
     assert_eq!(observed, expected, "raw SQL identifier baseline changed");
@@ -757,7 +757,7 @@ enum CheckedEnum { Variant }
 #[test]
 fn unit_tests_use_deterministic_time_and_randomness_patterns() {
     let reviewed_calls = [(
-        "frontend_contract/src/auth_session_keep_alive.rs",
+        "frontend_contract/src/domain_types/auth_session_keep_alive.rs",
         constants_str::STD_PATH_TIME_PATH_INSTANT_PATH_NOW,
         "the test needs an opaque Instant identity and never observes elapsed wall time",
     )];
@@ -898,7 +898,7 @@ fn process_static_state_matches_reviewed_inventory() {
         },
         StaticStateException {
             identifier: "TEST_SEQ",
-            path_suffix: "macros_helpers/src/test_hlp.rs",
+            path_suffix: "macros_helpers/src/domain_types/test_hlp.rs",
             reason: "test-only sequence values keep generated fixture names distinct",
         },
         StaticStateException {
@@ -918,12 +918,12 @@ fn process_static_state_matches_reviewed_inventory() {
         },
         StaticStateException {
             identifier: "ADMIN_MIGRATOR",
-            path_suffix: "server_admin/src/migrations.rs",
+            path_suffix: "server_admin/src/adapters/migrations.rs",
             reason: "sqlx embeds an immutable migration catalog at compile time",
         },
         StaticStateException {
             identifier: "RUN_COUNTER",
-            path_suffix: "workspace_test_runner/src/execution.rs",
+            path_suffix: "workspace_test_runner/src/adapters/execution.rs",
             reason: "the CLI runner needs collision-free process-local artifact names",
         },
     ];
@@ -957,9 +957,9 @@ fn process_static_state_matches_reviewed_inventory() {
 fn library_print_macros_have_reviewed_terminal_owners() {
     let reviewed_path_suffixes = [
         "panic_location/src/lib.rs",
-        "config_lib/src/types.rs",
-        "workspace_test_runner/src/execution.rs",
-        "workspace_test_runner/src/reporting.rs",
+        "config_lib/src/domain_types/types.rs",
+        "workspace_test_runner/src/adapters/execution.rs",
+        "workspace_test_runner/src/adapters/reporting.rs",
     ];
     super::assert_rs_ast_ers_empty_with_ctx(
         super::types::StaticStr::from("fc684512"),
@@ -1209,27 +1209,27 @@ fn source_lint_suppressions_have_explicit_reasons() {
     let legacy = [
         LegacySuppression {
             limit: 1,
-            path_suffix: "config_lib/src/types.rs",
+            path_suffix: "config_lib/src/domain_types/types.rs",
             reason: "environment fallback output predates per-attribute reasons",
         },
         LegacySuppression {
             limit: 1,
-            path_suffix: "file_storage/src/domain_types.rs",
+            path_suffix: "file_storage/src/adapters.rs",
             reason: "iterator control flow predates per-attribute reasons",
         },
         LegacySuppression {
             limit: 7,
-            path_suffix: "location_lib/src/location.rs",
+            path_suffix: "location_lib/src/domain_types.rs",
             reason: "location macro compatibility predates per-attribute reasons",
         },
         LegacySuppression {
             limit: 1,
-            path_suffix: "macros_helpers/src/location.rs",
+            path_suffix: "macros_helpers/src/domain_types/location.rs",
             reason: "location macro compatibility predates per-attribute reasons",
         },
         LegacySuppression {
             limit: 1,
-            path_suffix: "macros_helpers/src/status_code.rs",
+            path_suffix: "macros_helpers/src/domain_types/status_code.rs",
             reason: "generated status-code shape predates per-attribute reasons",
         },
         LegacySuppression {
@@ -1239,62 +1239,62 @@ fn source_lint_suppressions_have_explicit_reasons() {
         },
         LegacySuppression {
             limit: 12,
-            path_suffix: "pg_crud_common/src/lib.rs",
+            path_suffix: "pg_crud_common/src/domain_types.rs",
             reason: "generated SQL token shapes predate per-attribute reasons",
         },
         LegacySuppression {
             limit: 1,
-            path_suffix: "pg_crud_macros_common/src/filters.rs",
+            path_suffix: "pg_crud_macros_common/src/domain_types/filters.rs",
             reason: "generated filter token shapes predate per-attribute reasons",
         },
         LegacySuppression {
             limit: 14,
-            path_suffix: "pg_crud_macros_common/src/lib.rs",
+            path_suffix: "pg_crud_macros_common/src/domain_types.rs",
             reason: "generated CRUD token shapes predate per-attribute reasons",
         },
         LegacySuppression {
             limit: 13,
-            path_suffix: "pg_crud_macros_common/src/pg_type_test_cases.rs",
+            path_suffix: "pg_crud_macros_common/src/domain_types/pg_type_test_cases.rs",
             reason: "generated database fixtures predate per-attribute reasons",
         },
         LegacySuppression {
             limit: 3,
-            path_suffix: "pg_crud_macros_common/src/token_stream_helpers.rs",
+            path_suffix: "pg_crud_macros_common/src/domain_types/token_stream_helpers.rs",
             reason: "token-stream compatibility helpers predate per-attribute reasons",
         },
         LegacySuppression {
             limit: 20,
-            path_suffix: "pg_crud_pg_table_generate_src/src/source.rs",
+            path_suffix: "pg_crud_pg_table_generate_src/src/domain_types/source.rs",
             reason: "generated table templates predate per-attribute reasons",
         },
         LegacySuppression {
             limit: 11,
-            path_suffix: "pg_crud_pg_types_generate_src/src/source.rs",
+            path_suffix: "pg_crud_pg_types_generate_src/src/domain_types/source.rs",
             reason: "generated type templates predate per-attribute reasons",
         },
         LegacySuppression {
             limit: 1,
-            path_suffix: "pg_crud_where_filters_generate_src/src/contract_tests.rs",
+            path_suffix: "pg_crud_where_filters_generate_src/src/domain_types/contract_tests.rs",
             reason: "generated contract fixtures predate per-attribute reasons",
         },
         LegacySuppression {
             limit: 2,
-            path_suffix: "pg_crud_where_filters_generate_src/src/source.rs",
+            path_suffix: "pg_crud_where_filters_generate_src/src/domain_types/source.rs",
             reason: "generated filter templates predate per-attribute reasons",
         },
         LegacySuppression {
             limit: 13,
-            path_suffix: "pg_crud_where_filters/src/lib.rs",
+            path_suffix: "pg_crud_where_filters/src/domain_types.rs",
             reason: "generated filter API shapes predate per-attribute reasons",
         },
         LegacySuppression {
             limit: 1,
-            path_suffix: "route_validators/src/test_hlp.rs",
+            path_suffix: "route_validators/src/domain_types/test_hlp.rs",
             reason: "validator test helper shape predates per-attribute reasons",
         },
         LegacySuppression {
             limit: 1,
-            path_suffix: "server_admin/src/generated_tables.rs",
+            path_suffix: "server_admin/src/domain_types/generated_tables.rs",
             reason: "generated table module predates per-attribute reasons",
         },
         LegacySuppression {
@@ -1309,7 +1309,7 @@ fn source_lint_suppressions_have_explicit_reasons() {
         },
         LegacySuppression {
             limit: 1,
-            path_suffix: "server_runtime_http/src/lifecycle.rs",
+            path_suffix: "server_runtime_http/src/domain_types/lifecycle.rs",
             reason: "lifecycle select branches predate per-attribute reasons",
         },
         LegacySuppression {
@@ -1398,7 +1398,7 @@ fn admin_route_errors_do_not_wrap_a_shared_operation_error() {
         let auth = snapshot
             .rs_files()
             .iter()
-            .find(|file| file.path().as_ref().ends_with("server_admin/src/auth.rs"))
+            .find(|file| file.path().as_ref().ends_with("server_admin/src/application/auth.rs"))
             .expect("9585d60c admin_route_errors_do_not_wrap_a_shared_operation_error invariant must hold")
             .content()
             .as_ref();
@@ -1415,7 +1415,7 @@ fn admin_route_errors_do_not_wrap_a_shared_operation_error() {
             .as_ref();
         assert!(!auth.contains("Operation(AdminError)"), "7c9f1bb0");
         assert!(
-            auth.contains("frontend_contract::api_operation_error!"),
+            auth.contains("frontend_contract::domain_types::api_operation_error!"),
             "166dc25a"
         );
         assert!(macros.contains("pub fn api_operation_error"), "259e7ebd");
@@ -1479,14 +1479,20 @@ fn project_text_files_have_stable_line_endings_and_no_trailing_whitespace() {
     let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .expect("fd1294e4 project_text_files_have_stable_line_endings_and_no_trailing_whitespace invariant must hold");
-    let mut command = macros_helpers::tool_command::ToolCommand::new(
-        macros_helpers::tool_command::ToolProgramRef::from(constants_str::GIT_PROGRAM),
+    let mut command = macros_helpers::domain_types::tool_command::ToolCommand::new(
+        macros_helpers::domain_types::tool_command::ToolProgramRef::from(
+            constants_str::GIT_PROGRAM,
+        ),
     );
     let _command = command
-        .current_dir(macros_helpers::tool_command::PathRef::from(repository_root))
-        .args(macros_helpers::tool_command::ToolArgsRef::from(
-            constants_str::GIT_LS_FILES_ARGS.as_slice(),
-        ));
+        .current_dir(macros_helpers::domain_types::tool_command::PathRef::from(
+            repository_root,
+        ))
+        .args(
+            macros_helpers::domain_types::tool_command::ToolArgsRef::from(
+                constants_str::GIT_LS_FILES_ARGS.as_slice(),
+            ),
+        );
     let output = command.output().expect("e6c52471 project_text_files_have_stable_line_endings_and_no_trailing_whitespace invariant must hold");
     assert!(output.status.success(), "9041df16");
     let tracked_paths = std::str::from_utf8(&output.stdout).expect("b9976fe8 project_text_files_have_stable_line_endings_and_no_trailing_whitespace invariant must hold");
@@ -1812,11 +1818,11 @@ fn tuple_newtypes_derive_from_inner_instead_of_implementing_passthrough_from() {
                     "a proc-macro crate cannot invoke its own derive macro",
                 ),
                 (
-                    std::path::Path::new("constants_str_macros/src/domain_types.rs"),
-                    "newtype depends transitively on constants_str_macros",
+                    std::path::Path::new("newtype/src/domain_types.rs"),
+                    "newtype domain models cannot invoke their owning proc-macro crate",
                 ),
                 (
-                    std::path::Path::new("workspace_macro_helpers/src/lib.rs"),
+                    std::path::Path::new("workspace_macro_helpers/src/domain_types.rs"),
                     "newtype depends directly on workspace_macro_helpers",
                 ),
                 (
@@ -1859,8 +1865,16 @@ fn tuple_newtypes_derive_into_inner_from_instead_of_implementing_passthrough_fro
                     "a proc-macro crate cannot invoke its own derive macro",
                 ),
                 (
-                    std::path::Path::new("workspace_macro_helpers/src/lib.rs"),
+                    std::path::Path::new("newtype/src/domain_types.rs"),
+                    "newtype domain models cannot invoke their owning proc-macro crate",
+                ),
+                (
+                    std::path::Path::new("workspace_macro_helpers/src/domain_types.rs"),
                     "newtype depends directly on workspace_macro_helpers",
+                ),
+                (
+                    std::path::Path::new("constants_str_macros/src/domain_types.rs"),
+                    "newtype depends transitively on constants_str_macros",
                 ),
             ]
             .iter()
@@ -1893,7 +1907,7 @@ fn tuple_newtypes_derive_into_iterator_instead_of_forwarding_into_iter() {
         ),
         |path, ast, ers| {
             let required_foundation_impl = (
-                std::path::Path::new("workspace_macro_helpers/src/lib.rs"),
+                std::path::Path::new("workspace_macro_helpers/src/domain_types.rs"),
                 "newtype depends directly on workspace_macro_helpers",
             );
             if !required_foundation_impl.1.is_empty() && path.ends_with(required_foundation_impl.0)
@@ -1929,7 +1943,11 @@ fn tuple_newtypes_derive_display_instead_of_implementing_forwarding_display() {
                     "a proc-macro crate cannot invoke its own derive macro",
                 ),
                 (
-                    std::path::Path::new("workspace_macro_helpers/src/lib.rs"),
+                    std::path::Path::new("newtype/src/domain_types.rs"),
+                    "newtype domain models cannot invoke their owning proc-macro crate",
+                ),
+                (
+                    std::path::Path::new("workspace_macro_helpers/src/domain_types.rs"),
                     "newtype depends directly on workspace_macro_helpers",
                 ),
             ]
@@ -2187,7 +2205,9 @@ fn tuple_newtypes_derive_not_inner_instead_of_implementing_not() {
             "manual Not implementations found; derive newtype::NotInner instead",
         ),
         |path, ast, ers| {
-            if path.ends_with(std::path::Path::new("workspace_macro_helpers/src/lib.rs")) {
+            if path.ends_with(std::path::Path::new(
+                "workspace_macro_helpers/src/domain_types.rs",
+            )) {
                 return;
             }
             let visitor = super::visit_syn_file(
@@ -2237,7 +2257,7 @@ fn tuple_newtypes_derive_deref_inner_instead_of_implementing_forwarding_deref() 
         ),
         |path, ast, ers| {
             let required_foundation_impl = (
-                std::path::Path::new("workspace_macro_helpers/src/lib.rs"),
+                std::path::Path::new("workspace_macro_helpers/src/domain_types.rs"),
                 "newtype depends directly on workspace_macro_helpers",
             );
             if !required_foundation_impl.1.is_empty() && path.ends_with(required_foundation_impl.0)
@@ -2424,15 +2444,15 @@ fn server_admin_string_constants_reuse_macro_fragments() {
 fn admin_application_modules_do_not_own_admin_sql() {
     super::snapshot::with_codebase_snapshot(|snapshot| {
         let application_module_suffixes = [
-            "server_admin/src/auth/account.rs",
-            "server_admin/src/auth/api.rs",
-            "server_admin/src/auth/authn.rs",
-            "server_admin/src/auth/data_tables.rs",
-            "server_admin/src/auth/roles.rs",
-            "server_admin/src/auth/sessions.rs",
-            "server_admin/src/auth/settings.rs",
-            "server_admin/src/auth/shared.rs",
-            "server_admin/src/auth/users.rs",
+            "server_admin/src/application/account.rs",
+            "server_admin/src/application/api.rs",
+            "server_admin/src/application/authn.rs",
+            "server_admin/src/application/data_tables.rs",
+            "server_admin/src/application/roles.rs",
+            "server_admin/src/application/sessions.rs",
+            "server_admin/src/application/settings.rs",
+            "server_admin/src/application/shared.rs",
+            "server_admin/src/application/users.rs",
         ];
         let violations = snapshot
             .rs_files()

@@ -874,14 +874,14 @@ fn allocations_inside_loops_match_reviewed_inventory() {
             ),
         ),
         (
-            "../frontend_contract_validation/src/json_snapshot.rs:String::from",
+            "../frontend_contract_validation/src/domain_types/artifact.rs:String::from",
             (
                 constants_usize::ONE,
                 "the bounded JSON parser materializes one owned map key per parsed object field",
             ),
         ),
         (
-            "../frontend_contract_validation/src/openapi_validation.rs:to_owned",
+            "../frontend_contract_validation/src/domain_types/openapi_validation.rs:to_owned",
             (
                 constants_usize::ONE,
                 "OpenAPI validation records independently owned operation identifiers",
@@ -902,14 +902,14 @@ fn allocations_inside_loops_match_reviewed_inventory() {
             ),
         ),
         (
-            "../server_runtime_http/src/http_error_diagnostic.rs:to_string",
+            "../server_runtime_http/src/domain_types/http_error_diagnostic.rs:to_string",
             (
                 constants_usize::ONE,
                 "diagnostic capture materializes each owned source in the bounded error chain",
             ),
         ),
         (
-            "../server_runtime_http/src/lib.rs:to_string",
+            "../server_runtime_http/src/domain_types.rs:to_string",
             (
                 constants_usize::ONE,
                 "request middleware materializes validated protocol values that outlive input buffers",
@@ -1090,7 +1090,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "macros_helpers/src/generate_impl_to_err_string_token_stream.rs",
+            "macros_helpers/src/domain_types/generate_impl_to_err_string_token_stream.rs",
             (
                 0,
                 0,
@@ -1099,7 +1099,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "macros_helpers/src/generate_pub_type_alias_token_stream.rs",
+            "macros_helpers/src/domain_types/generate_pub_type_alias_token_stream.rs",
             (
                 0,
                 0,
@@ -1108,7 +1108,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "macros_helpers/src/generate_if_write_is_err_token_stream.rs",
+            "macros_helpers/src/domain_types/generate_if_write_is_err_token_stream.rs",
             (
                 0,
                 0,
@@ -1117,7 +1117,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "macros_helpers/src/generate_impl_try_from_token_stream.rs",
+            "macros_helpers/src/domain_types/generate_impl_try_from_token_stream.rs",
             (
                 0,
                 0,
@@ -1126,7 +1126,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "macros_helpers/src/generate_impl_default_token_stream.rs",
+            "macros_helpers/src/domain_types/generate_impl_default_token_stream.rs",
             (
                 0,
                 0,
@@ -1135,7 +1135,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "macros_helpers/src/generate_impl_from_token_stream.rs",
+            "macros_helpers/src/domain_types/generate_impl_from_token_stream.rs",
             (
                 0,
                 0,
@@ -1144,7 +1144,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "macros_helpers/src/generate_new_or_try_new.rs",
+            "macros_helpers/src/domain_types/generate_new_or_try_new.rs",
             (
                 0,
                 0,
@@ -1153,7 +1153,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "macros_helpers/src/pagination_start_end_initialization_token_stream.rs",
+            "macros_helpers/src/domain_types/pagination_start_end_initialization_token_stream.rs",
             (
                 0,
                 0,
@@ -1162,7 +1162,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "macros_helpers/src/generate_impl_display_token_stream.rs",
+            "macros_helpers/src/domain_types/generate_impl_display_token_stream.rs",
             (
                 0,
                 0,
@@ -1198,7 +1198,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "common_routes/src/lib.rs",
+            "common_routes/src/domain_types.rs",
             (
                 3,
                 0,
@@ -1207,7 +1207,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "server/src/main.rs",
+            "server/src/domain_types.rs",
             (
                 2,
                 0,
@@ -1216,7 +1216,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "server/src/routing.rs",
+            "server/src/adapters/routing.rs",
             (
                 1,
                 0,
@@ -1225,15 +1225,15 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "server_runtime_http/src/health.rs",
+            "server_runtime_http/src/domain_types/health.rs",
             (1, 0, 0, "health state is shared across request tasks"),
         ),
         (
-            "server_runtime_http/src/limits.rs",
+            "server_runtime_http/src/domain_types/limits.rs",
             (1, 0, 0, "the semaphore is shared across request tasks"),
         ),
         (
-            "server_runtime_http/src/lib.rs",
+            "server_runtime_http/src/domain_types.rs",
             (
                 0,
                 0,
@@ -1242,7 +1242,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "server_runtime_http/src/security_headers.rs",
+            "server_runtime_http/src/domain_types/security_headers.rs",
             (
                 0,
                 0,
@@ -1251,7 +1251,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "server_runtime_http/src/http_error_diagnostic.rs",
+            "server_runtime_http/src/domain_types/http_error_diagnostic.rs",
             (
                 0,
                 0,
@@ -1260,7 +1260,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "server_runtime_http/src/request_timeout.rs",
+            "server_runtime_http/src/domain_types/request_timeout.rs",
             (
                 0,
                 0,
@@ -1269,7 +1269,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "server_runtime_core/src/resource_budget.rs",
+            "server_runtime_core/src/domain_types/resource_budget.rs",
             (
                 1,
                 0,
@@ -1278,7 +1278,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "server_runtime_core/src/single_flight.rs",
+            "server_runtime_core/src/domain_types/single_flight.rs",
             (
                 1,
                 1,
@@ -1287,11 +1287,11 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "server_runtime_http/src/bounded_read.rs",
+            "server_runtime_http/src/domain_types/bounded_read.rs",
             (1, 0, 0, "the read limiter is shared across request tasks"),
         ),
         (
-            "server_runtime_core/src/history.rs",
+            "server_runtime_core/src/domain_types/history.rs",
             (
                 1,
                 1,
@@ -1300,7 +1300,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "server_runtime_core/src/lease_registry.rs",
+            "server_runtime_core/src/domain_types/lease_registry.rs",
             (
                 1,
                 1,
@@ -1309,7 +1309,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "server_runtime_http/src/metrics_layer.rs",
+            "server_runtime_http/src/domain_types/metrics_layer.rs",
             (
                 1,
                 1,
@@ -1318,7 +1318,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "pg_crud_where_filters/src/lib.rs",
+            "pg_crud_where_filters/src/domain_types.rs",
             (
                 0,
                 0,
@@ -1327,7 +1327,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "pg_crud_where_filters_generate_src/src/source.rs",
+            "pg_crud_where_filters_generate_src/src/domain_types/source.rs",
             (
                 0,
                 0,
@@ -1336,7 +1336,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "pg_crud_macros_common/src/filters.rs",
+            "pg_crud_macros_common/src/domain_types/filters.rs",
             (
                 0,
                 0,
@@ -1345,7 +1345,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "pg_crud_macros_common/src/lib.rs",
+            "pg_crud_macros_common/src/domain_types.rs",
             (
                 0,
                 0,
@@ -1354,7 +1354,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "pg_crud_macros_common/src/pg_type_test_cases.rs",
+            "pg_crud_macros_common/src/domain_types/pg_type_test_cases.rs",
             (
                 0,
                 0,
@@ -1363,7 +1363,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "pg_crud_macros_common/src/token_stream_helpers.rs",
+            "pg_crud_macros_common/src/domain_types/token_stream_helpers.rs",
             (
                 0,
                 0,
@@ -1372,7 +1372,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "pg_crud_common/src/query_fragment.rs",
+            "pg_crud_common/src/domain_types/query_fragment.rs",
             (
                 0,
                 0,
@@ -1381,7 +1381,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "pg_crud_common/src/lib.rs",
+            "pg_crud_common/src/domain_types.rs",
             (
                 0,
                 0,
@@ -1390,7 +1390,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "pg_crud_common/src/pg_values.rs",
+            "pg_crud_common/src/domain_types/pg_values.rs",
             (
                 0,
                 0,
@@ -1399,7 +1399,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "pg_crud_common/src/query_collections.rs",
+            "pg_crud_common/src/domain_types/query_collections.rs",
             (
                 0,
                 0,
@@ -1408,11 +1408,11 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "pg_crud_common/src/query_pagination.rs",
+            "pg_crud_common/src/domain_types/query_pagination.rs",
             (0, 0, 2, "pagination composes heterogeneous query bindings"),
         ),
         (
-            "pg_crud_pg_table_generate_src/src/source.rs",
+            "pg_crud_pg_table_generate_src/src/domain_types/source.rs",
             (
                 0,
                 0,
@@ -1421,7 +1421,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "pg_crud_pg_types_generate_src/src/source.rs",
+            "pg_crud_pg_types_generate_src/src/domain_types/source.rs",
             (
                 0,
                 0,
@@ -1434,15 +1434,20 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             (0, 0, 1, "PostgreSQL query parts use dynamic dispatch"),
         ),
         (
-            "workspace_test_runner/src/main.rs",
-            (0, 0, 1, "the runner prints heterogeneous command errors"),
+            "workspace_test_runner/src/application.rs",
+            (
+                0,
+                0,
+                1,
+                "the runner application generates benchmark input from heterogeneous tokens",
+            ),
         ),
         (
-            "server_admin/src/generated_tables.rs",
+            "server_admin/src/domain_types/generated_tables.rs",
             (1, 0, 1, "generated handlers share erased application state"),
         ),
         (
-            "server_admin/src/lib.rs",
+            "server_admin/src/domain_types.rs",
             (
                 1,
                 0,
@@ -1451,7 +1456,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "server_admin/src/generated_auth.rs",
+            "server_admin/src/domain_types/generated_auth.rs",
             (
                 0,
                 0,
@@ -1460,7 +1465,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "server_admin/src/auth.rs",
+            "server_admin/src/application/auth.rs",
             (
                 1,
                 0,
@@ -1536,35 +1541,35 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             ),
         ),
         (
-            "route_validators/src/hdr_val.rs",
+            "route_validators/src/domain_types/hdr_val.rs",
             (
                 2usize,
                 "header parse details are intentionally mapped to validation errors",
             ),
         ),
         (
-            "macros_helpers/src/test_database.rs",
+            "macros_helpers/src/domain_types/test_database.rs",
             (
                 constants_usize::ONE,
                 "the test database helper maps setup failure to its fixture error",
             ),
         ),
         (
-            "macros_helpers/src/write_string_into_file.rs",
+            "macros_helpers/src/domain_types/write_string_into_file.rs",
             (
                 constants_usize::ONE,
                 "the file helper maps conversion failure to its domain error",
             ),
         ),
         (
-            "notification_service/src/main.rs",
+            "notification_service/src/domain_types.rs",
             (
                 constants_usize::ONE,
                 "service bootstrap classifies configuration failures",
             ),
         ),
         (
-            "notification_service/src/runtime.rs",
+            "notification_service/src/adapters/runtime.rs",
             (
                 constants_usize::ONE,
                 "service runtime classifies timeout configuration failures",
@@ -1578,189 +1583,189 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             ),
         ),
         (
-            "common_routes/src/lib.rs",
+            "common_routes/src/domain_types.rs",
             (
                 constants_usize::ONE,
                 "health component capacity maps to the established public contract error",
             ),
         ),
         (
-            "server_runtime_http/src/outbound_url.rs",
+            "server_runtime_http/src/domain_types/outbound_url.rs",
             (
                 constants_usize::ONE,
                 "URL parse details are intentionally hidden by the domain error",
             ),
         ),
         (
-            "server_runtime_http/src/wire_token.rs",
+            "server_runtime_http/src/domain_types/wire_token.rs",
             (
                 constants_usize::ONE,
                 "wire token part failures map to a stable public category",
             ),
         ),
         (
-            "server_runtime_http/src/origin.rs",
+            "server_runtime_http/src/domain_types/origin.rs",
             (
                 constants_usize::ONE,
                 "origin parsing maps to a stable validation error",
             ),
         ),
         (
-            "server_runtime_http/src/secure_cookie.rs",
+            "server_runtime_http/src/domain_types/secure_cookie.rs",
             (
                 constants_usize::ONE,
                 "cookie header details are intentionally redacted",
             ),
         ),
         (
-            "server_runtime_http/src/multipart.rs",
+            "server_runtime_http/src/domain_types/multipart.rs",
             (
                 constants_usize::ONE,
                 "multipart path validation exposes a stable domain error",
             ),
         ),
         (
-            "server_runtime_http/src/security_headers.rs",
+            "server_runtime_http/src/domain_types/security_headers.rs",
             (
                 constants_usize::ONE,
                 "content-security-policy parse details map to a stable configuration error",
             ),
         ),
         (
-            "server_runtime_http/src/bounded_read.rs",
+            "server_runtime_http/src/domain_types/bounded_read.rs",
             (
                 constants_usize::ONE,
                 "closed limiter state maps to a stable read error",
             ),
         ),
         (
-            "server_runtime_http/src/child_process.rs",
+            "server_runtime_http/src/domain_types/child_process.rs",
             (
                 constants_usize::ONE,
                 "elapsed timeout details map to the child timeout variant",
             ),
         ),
         (
-            "server_runtime_http/src/http_header_policy.rs",
+            "server_runtime_http/src/domain_types/http_header_policy.rs",
             (
                 3usize,
                 "header construction errors are intentionally classified",
             ),
         ),
         (
-            "server_runtime_core/src/exclusive_run.rs",
+            "server_runtime_core/src/domain_types/exclusive_run.rs",
             (
                 constants_usize::ONE,
                 "the atomic compare failure maps to already active",
             ),
         ),
         (
-            "pg_crud_common/src/read_query_plan.rs",
+            "pg_crud_common/src/domain_types/read_query_plan.rs",
             (
                 2usize,
                 "query plan validation maps to stable contract errors",
             ),
         ),
         (
-            "pg_crud_common/src/cursor.rs",
+            "pg_crud_common/src/domain_types/cursor.rs",
             (
                 9usize,
                 "cursor parsing maps low-level failures to wire categories",
             ),
         ),
         (
-            "pg_crud_common/src/bounded_btree_map.rs",
+            "pg_crud_common/src/domain_types/bounded_btree_map.rs",
             (
                 constants_usize::ONE,
                 "the compatibility wrapper maps the shared capacity error to its existing public error",
             ),
         ),
         (
-            "pg_crud_where_filters/src/lib.rs",
+            "pg_crud_where_filters/src/domain_types.rs",
             (
                 constants_usize::ONE,
                 "the exact-length compatibility wrapper preserves its location-aware public error",
             ),
         ),
         (
-            "pg_crud_common/src/date_sql_filter.rs",
+            "pg_crud_common/src/domain_types/date_sql_filter.rs",
             (
                 2usize,
                 "date filter parsing maps to contract validation errors",
             ),
         ),
         (
-            "pg_crud_common/src/advisory_lock.rs",
+            "pg_crud_common/src/domain_types/advisory_lock.rs",
             (
                 3usize,
                 "advisory lock conversion maps to its bounded domain error",
             ),
         ),
         (
-            "server_admin_contract/src/collections.rs",
+            "server_admin_contract/src/domain_types/collections.rs",
             (
                 constants_usize::ONE,
                 "administrator collections preserve their stable public capacity error",
             ),
         ),
         (
-            "pg_crud_pg_table/src/lib.rs",
+            "pg_crud_pg_table/src/domain_types.rs",
             (
                 2usize,
                 "table validation maps generated failures to a public category",
             ),
         ),
         (
-            "config_lib/src/pg_pool.rs",
+            "config_lib/src/domain_types/pg_pool.rs",
             (
                 2usize,
                 "pool configuration maps numeric parsing details to its stable public error",
             ),
         ),
         (
-            "config_lib/src/admin.rs",
+            "config_lib/src/domain_types/admin.rs",
             (
                 constants_usize::ONE,
                 "administrator token parsing maps bounded text to its stable public error",
             ),
         ),
         (
-            "config_lib/src/admin_jwt.rs",
+            "config_lib/src/domain_types/admin_jwt.rs",
             (
                 constants_usize::ONE,
                 "administrator JWT parsing maps bounded secrets to its stable public error",
             ),
         ),
         (
-            "workspace_test_runner/src/admin_fixture.rs",
+            "workspace_test_runner/src/adapters/admin_fixture.rs",
             (
                 constants_usize::ONE,
                 "fixture input conversion maps bounded text to command failure",
             ),
         ),
         (
-            "workspace_test_runner/src/execution.rs",
+            "workspace_test_runner/src/adapters/execution.rs",
             (
                 constants_usize::ONE,
                 "summary initialization maps to the runner error",
             ),
         ),
         (
-            "frontend_contract_validation/src/json_snapshot.rs",
+            "frontend_contract_validation/src/domain_types/artifact.rs",
             (
                 2usize,
                 "serialization details map to snapshot contract errors",
             ),
         ),
         (
-            "workspace_scaffold/src/main.rs",
+            "workspace_scaffold/src/domain_types.rs",
             (
                 constants_usize::ONE,
                 "projection parsing maps to a stable scaffold error",
             ),
         ),
         (
-            "workspace_scaffold/src/service_catalog.rs",
+            "workspace_scaffold/src/domain_types/service_catalog.rs",
             (8usize, "catalog parsing maps to stable scaffold errors"),
         ),
         (
@@ -1778,152 +1783,152 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             ),
         ),
         (
-            "server_admin/src/generated_tables.rs",
+            "server_admin/src/domain_types/generated_tables.rs",
             (
                 constants_usize::ONE,
                 "generated table conformance maps to its public error",
             ),
         ),
         (
-            "server_admin/src/repository/users.rs",
+            "server_admin/src/adapters/repository/users.rs",
             (
                 12usize,
                 "repository row conversions map to typed repository errors",
             ),
         ),
         (
-            "server_admin/src/repository/settings.rs",
+            "server_admin/src/adapters/repository/settings.rs",
             (
                 8usize,
                 "settings row conversions map to typed repository errors",
             ),
         ),
         (
-            "server_admin/src/repository/data_tables.rs",
+            "server_admin/src/adapters/repository/data_tables.rs",
             (
                 21usize,
                 "data table parsing maps to typed repository errors",
             ),
         ),
         (
-            "server_admin/src/repository/audit.rs",
+            "server_admin/src/adapters/repository/audit.rs",
             (
                 10usize,
                 "audit row conversions map to typed repository errors",
             ),
         ),
         (
-            "server_admin/src/repository/rate_limits.rs",
+            "server_admin/src/adapters/repository/rate_limits.rs",
             (
                 4usize,
                 "rate-limit row conversions map to typed repository errors",
             ),
         ),
         (
-            "server_admin/src/repository/sessions.rs",
+            "server_admin/src/adapters/repository/sessions.rs",
             (
                 5usize,
                 "session row conversions map to typed repository errors",
             ),
         ),
         (
-            "server_admin/src/repository/cleanup.rs",
+            "server_admin/src/adapters/repository/cleanup.rs",
             (
                 constants_usize::ONE,
                 "cleanup conversion maps to a typed repository error",
             ),
         ),
         (
-            "server_admin/src/auth/audit.rs",
+            "server_admin/src/application/audit.rs",
             (3usize, "audit request validation maps to stable API errors"),
         ),
         (
-            "server_admin/src/auth/html.rs",
+            "server_admin/src/application/html.rs",
             (
                 8usize,
                 "HTML form parsing maps details to stable API errors",
             ),
         ),
         (
-            "server_admin/src/auth/session.rs",
+            "server_admin/src/application/session.rs",
             (
                 constants_usize::ONE,
                 "system clock failure maps to the session category",
             ),
         ),
         (
-            "server_admin/src/auth/authn.rs",
+            "server_admin/src/application/authn.rs",
             (
                 5usize,
                 "authentication input failures map to stable API categories",
             ),
         ),
         (
-            "server_admin/src/auth/data_tables.rs",
+            "server_admin/src/application/data_tables.rs",
             (
                 constants_usize::ONE,
                 "data-table input failures map to stable API categories",
             ),
         ),
         (
-            "server_admin/src/auth/roles.rs",
+            "server_admin/src/application/roles.rs",
             (2usize, "role input failures map to stable API categories"),
         ),
         (
-            "server_admin/src/auth/shared.rs",
+            "server_admin/src/application/shared.rs",
             (
                 3usize,
                 "shared input validation maps to stable API categories",
             ),
         ),
         (
-            "server_admin/src/auth/users.rs",
+            "server_admin/src/application/users.rs",
             (4usize, "user input failures map to stable API categories"),
         ),
         (
-            "server_admin/src/auth.rs",
+            "server_admin/src/application/auth.rs",
             (
                 12usize,
                 "authentication failures map to stable and redacted API categories",
             ),
         ),
         (
-            "server_admin_frontend/src/app/http/fetch.rs",
+            "server_admin_frontend/src/domain_types/app/http/fetch.rs",
             (
                 5usize,
                 "browser fetch failures map to serializable UI error categories",
             ),
         ),
         (
-            "server_admin_frontend/src/app/http/mutation.rs",
+            "server_admin_frontend/src/domain_types/app/http/mutation.rs",
             (
                 9usize,
                 "browser mutation failures map to serializable UI error categories",
             ),
         ),
         (
-            "server_admin_frontend/src/app/http/url.rs",
+            "server_admin_frontend/src/domain_types/app/http/url.rs",
             (
                 2usize,
                 "browser URL failures map to a stable UI query error",
             ),
         ),
         (
-            "server_admin_frontend/src/app/loader.rs",
+            "server_admin_frontend/src/domain_types/app/loader.rs",
             (
                 constants_usize::ONE,
                 "browser page loading failures map to a stable query error",
             ),
         ),
         (
-            "server_admin_frontend/src/app/query/location.rs",
+            "server_admin_frontend/src/domain_types/app/query/location.rs",
             (
                 11usize,
                 "browser query parsing failures map to stable UI error categories",
             ),
         ),
         (
-            "server_admin_frontend/src/app/query/page.rs",
+            "server_admin_frontend/src/domain_types/app/query/page.rs",
             (
                 constants_usize::ONE,
                 "browser page-location failures map to a stable UI fetch error",
@@ -1979,7 +1984,7 @@ fn raw_vec_tuple_wrappers_match_reviewed_inventory() {
             "the shared bounded vector is the reviewed owner of raw Vec storage",
         ),
         (
-            "../common_routes/src/lib.rs:HealthComponents",
+            "../common_routes/src/domain_types.rs:HealthComponents",
             "infallible fixed-size array conversions require raw storage; Vec conversion and serde delegate to bounded_types",
         ),
         (
@@ -1987,139 +1992,139 @@ fn raw_vec_tuple_wrappers_match_reviewed_inventory() {
             "the bootstrap catalog owns validated development identities assembled in process",
         ),
         (
-            "../frontend_contract_macros/src/lib.rs:SynRouteRegistrySchemas",
+            "../frontend_contract_macros/src/domain_types.rs:SynRouteRegistrySchemas",
             "the proc-macro compiler owns a compile-time syntax collection",
         ),
         (
-            "../pg_crud_common/src/batch_validation.rs:BatchInvalidItems",
+            "../pg_crud_common/src/domain_types/batch_validation.rs:BatchInvalidItems",
             "batch validation owns its bounded invalid-item accumulator",
         ),
         (
-            "../pg_crud_common/src/bounded_unique_vec.rs:BoundedUniqueVec",
+            "../pg_crud_common/src/domain_types/bounded_unique_vec.rs:BoundedUniqueVec",
             "the compatibility collection enforces both length and uniqueness invariants",
         ),
         (
-            "../pg_crud_common/src/bounded_vec.rs:BoundedVec",
+            "../pg_crud_common/src/domain_types/bounded_vec.rs:BoundedVec",
             "the compatibility wrapper delegates validation and serde to bounded_types",
         ),
         (
-            "../pg_crud_common/src/cardinality.rs:DuplicateCandidates",
+            "../pg_crud_common/src/domain_types/cardinality.rs:DuplicateCandidates",
             "cardinality analysis owns an internal duplicate candidate collection",
         ),
         (
-            "../pg_crud_common/src/date_sql_filter.rs:ChronoUtcDateTimes",
+            "../pg_crud_common/src/domain_types/date_sql_filter.rs:ChronoUtcDateTimes",
             "the SQL bind plan owns an operational collection assembled from validated filters",
         ),
         (
-            "../pg_crud_common/src/db_schema_conformance.rs:DbColumnContractSnapshots",
+            "../pg_crud_common/src/domain_types/db_schema_conformance.rs:DbColumnContractSnapshots",
             "schema conformance owns an internal deterministic snapshot collection",
         ),
         (
-            "../pg_crud_common/src/db_schema_conformance.rs:DbColumnSnapshots",
+            "../pg_crud_common/src/domain_types/db_schema_conformance.rs:DbColumnSnapshots",
             "schema conformance owns an internal deterministic snapshot collection",
         ),
         (
-            "../pg_crud_common/src/db_schema_conformance.rs:DbColumnSpecs",
+            "../pg_crud_common/src/domain_types/db_schema_conformance.rs:DbColumnSpecs",
             "schema conformance owns an internal static specification collection",
         ),
         (
-            "../pg_crud_common/src/db_schema_conformance.rs:DbKeyContractSnapshots",
+            "../pg_crud_common/src/domain_types/db_schema_conformance.rs:DbKeyContractSnapshots",
             "schema conformance owns an internal deterministic snapshot collection",
         ),
         (
-            "../pg_crud_common/src/db_schema_conformance.rs:DbKeySpecs",
+            "../pg_crud_common/src/domain_types/db_schema_conformance.rs:DbKeySpecs",
             "schema conformance owns an internal static specification collection",
         ),
         (
-            "../pg_crud_common/src/db_schema_conformance.rs:DbObjectSnapshots",
+            "../pg_crud_common/src/domain_types/db_schema_conformance.rs:DbObjectSnapshots",
             "schema conformance owns an internal deterministic snapshot collection",
         ),
         (
-            "../pg_crud_common/src/db_schema_conformance.rs:DbObjectSpecs",
+            "../pg_crud_common/src/domain_types/db_schema_conformance.rs:DbObjectSpecs",
             "schema conformance owns an internal static specification collection",
         ),
         (
-            "../pg_crud_common/src/db_schema_conformance.rs:DbDefaultSpecs",
+            "../pg_crud_common/src/domain_types/db_schema_conformance.rs:DbDefaultSpecs",
             "schema conformance owns an internal static specification collection",
         ),
         (
-            "../pg_crud_common/src/db_schema_conformance.rs:DbSchemaTexts",
+            "../pg_crud_common/src/domain_types/db_schema_conformance.rs:DbSchemaTexts",
             "schema conformance owns an internal deterministic text collection",
         ),
         (
-            "../pg_crud_common/src/db_schema_conformance.rs:DbStaticSchemaTexts",
+            "../pg_crud_common/src/domain_types/db_schema_conformance.rs:DbStaticSchemaTexts",
             "schema conformance owns an internal static text collection",
         ),
         (
-            "../pg_crud_common/src/filter_bind_plan.rs:FilterBindPlan",
+            "../pg_crud_common/src/domain_types/filter_bind_plan.rs:FilterBindPlan",
             "the query planner owns an internal ordered bind collection",
         ),
         (
-            "../pg_crud_common/src/lib.rs:AllEnumVariants",
+            "../pg_crud_common/src/domain_types.rs:AllEnumVariants",
             "the enum helper owns a compile-time-complete variant collection",
         ),
         (
-            "../pg_crud_common/src/query_collections.rs:NotEmptyUniqueVec",
+            "../pg_crud_common/src/domain_types/query_collections.rs:NotEmptyUniqueVec",
             "the collection enforces non-empty and uniqueness invariants together",
         ),
         (
-            "../pg_crud_common/src/list_total.rs:ListItems",
+            "../pg_crud_common/src/domain_types/list_total.rs:ListItems",
             "list-total planning owns an operational result collection",
         ),
         (
-            "../pg_crud_common/src/operational_invariants.rs:PgSqlIdentifiers",
+            "../pg_crud_common/src/domain_types/operational_invariants.rs:PgSqlIdentifiers",
             "the invariant checker owns validated SQL identifier wrappers",
         ),
         (
-            "../pg_crud_common/src/order_preserving_deduplication.rs:OrderPreservingValues",
+            "../pg_crud_common/src/domain_types/order_preserving_deduplication.rs:OrderPreservingValues",
             "the deduplication helper owns its ordered working collection",
         ),
         (
-            "../pg_crud_macros_common/src/lib.rs:ParseTokenStreamStrings",
+            "../pg_crud_macros_common/src/domain_types.rs:ParseTokenStreamStrings",
             "the proc-macro compiler owns a compile-time token rendering collection",
         ),
         (
-            "../pg_crud_macros_common/src/lib.rs:ProcMacro2GeneratedRustTokenStreamVec",
+            "../pg_crud_macros_common/src/domain_types.rs:ProcMacro2GeneratedRustTokenStreamVec",
             "the proc-macro compiler owns generated token streams",
         ),
         (
-            "../pg_crud_pg_table_generate_src/src/source.rs:TableTestNames",
+            "../pg_crud_pg_table_generate_src/src/domain_types/source.rs:TableTestNames",
             "the source generator owns compile-time generated test names",
         ),
         (
-            "../pg_crud_pg_types_generate_src/src/source.rs:GeneratePgTypeRecords",
+            "../pg_crud_pg_types_generate_src/src/domain_types/source.rs:GeneratePgTypeRecords",
             "the source generator owns compile-time catalog records",
         ),
         (
-            "../pg_crud_pg_types_generate_src/src/source.rs:GeneratePgTypes",
+            "../pg_crud_pg_types_generate_src/src/domain_types/source.rs:GeneratePgTypes",
             "the source generator owns compile-time generated types",
         ),
         (
-            "../pg_crud_where_filters/src/lib.rs:BoundedVec",
+            "../pg_crud_where_filters/src/domain_types.rs:BoundedVec",
             "the exact-length compatibility wrapper delegates validation and serde to bounded_types",
         ),
         (
-            "../pg_crud_where_filters/src/lib.rs:PgTypeNotEmptyUniqueVec",
+            "../pg_crud_where_filters/src/domain_types.rs:PgTypeNotEmptyUniqueVec",
             "the generated filter collection enforces non-empty and uniqueness invariants",
         ),
         (
-            "../server_admin/src/auth.rs:JsonwebtokenAdminDecodingKeys",
+            "../server_admin/src/application/auth.rs:JsonwebtokenAdminDecodingKeys",
             "validated configuration determines the runtime key collection",
         ),
         (
-            "../server_runtime_http/src/bounded_read.rs:BoundedBytes",
+            "../server_runtime_http/src/domain_types/bounded_read.rs:BoundedBytes",
             "the byte limit is supplied dynamically and enforced by the bounded reader",
         ),
         (
-            "../server_runtime_http/src/cors.rs:HttpCorsAllowOriginHeaderValues",
+            "../server_runtime_http/src/domain_types/cors.rs:HttpCorsAllowOriginHeaderValues",
             "the parser enforces its byte and item limits before construction",
         ),
         (
-            "../server_runtime_http/src/multipart.rs:MultipartBytesParts",
+            "../server_runtime_http/src/domain_types/multipart.rs:MultipartBytesParts",
             "the multipart budget is supplied dynamically and enforced while parsing",
         ),
         (
-            "../server_runtime_http/src/multipart.rs:MultipartTextParts",
+            "../server_runtime_http/src/domain_types/multipart.rs:MultipartTextParts",
             "the multipart budget is supplied dynamically and enforced while parsing",
         ),
         (
@@ -2135,11 +2140,11 @@ fn raw_vec_tuple_wrappers_match_reviewed_inventory() {
             "the proc-macro compiler owns compile-time string fragments",
         ),
         (
-            "../workspace_macro_helpers/src/lib.rs:ProcMacro2MacroTokens",
+            "../workspace_macro_helpers/src/domain_types.rs:ProcMacro2MacroTokens",
             "the shared proc-macro helper owns compile-time tokens",
         ),
         (
-            "../workspace_macro_helpers/src/lib.rs:ProcMacro2TopLevelCommaParts",
+            "../workspace_macro_helpers/src/domain_types.rs:ProcMacro2TopLevelCommaParts",
             "the shared proc-macro helper owns compile-time token parts",
         ),
     ]);
@@ -2246,42 +2251,42 @@ fn usize_max_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "../frontend_contract/src/lib.rs",
+            "../frontend_contract/src/domain_types.rs",
             (
                 3usize,
                 "compile-time generated frontend catalogs have no wire-controlled cardinality",
             ),
         ),
         (
-            "../frontend_contract/src/route.rs",
+            "../frontend_contract/src/domain_types/route.rs",
             (
                 3usize,
                 "compile-time generated route catalogs have no wire-controlled cardinality",
             ),
         ),
         (
-            "../frontend_contract/src/route_coverage.rs",
+            "../frontend_contract/src/domain_types/route_coverage.rs",
             (
                 constants_usize::ONE,
                 "the compile-time route test category catalog has no wire-controlled cardinality",
             ),
         ),
         (
-            "../frontend_contract_validation/src/route_contract_validation.rs",
+            "../frontend_contract_validation/src/domain_types/route_contract_validation.rs",
             (
                 constants_usize::ONE,
                 "validation mismatches are bounded by the already finite route catalog",
             ),
         ),
         (
-            "../initialize_environment_files/src/main.rs",
+            "../initialize_environment_files/src/domain_types.rs",
             (
                 4usize,
                 "the local workspace initializer catalogs are bounded by files in the checked-out workspace",
             ),
         ),
         (
-            "../pg_crud_pg_table_generate_src/src/source.rs",
+            "../pg_crud_pg_table_generate_src/src/domain_types/source.rs",
             (
                 3usize,
                 "the proc-macro source generator operates on finite compile-time schema declarations",
@@ -2295,35 +2300,35 @@ fn usize_max_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "../server_runtime_core/src/lease_registry.rs",
+            "../server_runtime_core/src/domain_types/lease_registry.rs",
             (
                 3usize,
                 "the runtime-configured lease maximum is enforced at mutation sites",
             ),
         ),
         (
-            "../server_runtime_core/src/single_flight.rs",
+            "../server_runtime_core/src/domain_types/single_flight.rs",
             (
                 constants_usize::ONE,
                 "the runtime-configured single-flight maximum is enforced before insertion",
             ),
         ),
         (
-            "../server_runtime_http/src/child_process.rs",
+            "../server_runtime_http/src/domain_types/child_process.rs",
             (
                 3usize,
                 "runtime-configured process and diagnostic limits are enforced while collecting",
             ),
         ),
         (
-            "../workspace_scaffold/src/main.rs",
+            "../workspace_scaffold/src/domain_types.rs",
             (
                 constants_usize::ONE,
                 "the local service catalog is bounded by the checked-out workspace",
             ),
         ),
         (
-            "../workspace_test_runner/src/execution.rs",
+            "../workspace_test_runner/src/adapters/execution.rs",
             (
                 2usize,
                 "runner command text is derived from the finite workspace test plan",
@@ -2383,17 +2388,17 @@ fn usize_max_expression_visitor_skips_test_modules() {
 fn select_sites_match_reviewed_cancellation_inventory() {
     let reviewed = [
         (
-            "server_runtime_http/src/service.rs",
+            "server_runtime_http/src/domain_types/service.rs",
             constants_usize::ONE,
             "the pinned server future is resumed after the shutdown notification branch",
         ),
         (
-            "server_runtime_http/src/lifecycle.rs",
+            "server_runtime_http/src/domain_types/lifecycle.rs",
             constants_usize::ONE,
             "the interval tick and oneshot shutdown receiver are cancellation-safe",
         ),
         (
-            "server_runtime_http/src/service_bootstrap.rs",
+            "server_runtime_http/src/domain_types/service_bootstrap.rs",
             constants_usize::ONE,
             "the shutdown signal races two cancellation-safe signal receivers",
         ),

@@ -192,22 +192,22 @@ fn scan_generated_diagnostic_tokens(
 fn check_expect_and_panic_contain_unique_diagnostic_ids() {
     let reviewed_interpolations = [
         (
-            "pg_crud_macros_common/src/token_stream_helpers.rs",
+            "pg_crud_macros_common/src/domain_types/token_stream_helpers.rs",
             "generated `panic` uses unchecked interpolated diagnostic message `#panic_uuid_token_stream`",
             "PanicUuidRef validates the diagnostic identifier before token generation",
         ),
         (
-            "pg_crud_pg_table_generate_src/src/source.rs",
+            "pg_crud_pg_table_generate_src/src/domain_types/source.rs",
             "generated `expect` uses unchecked interpolated diagnostic message `#expect_0`",
             "the generator receives the reviewed diagnostic identifier from its fixture catalog",
         ),
         (
-            "pg_crud_pg_table_generate_src/src/source.rs",
+            "pg_crud_pg_table_generate_src/src/domain_types/source.rs",
             "generated `expect` uses unchecked interpolated diagnostic message `#expect_1`",
             "the generator receives the reviewed diagnostic identifier from its fixture catalog",
         ),
         (
-            "pg_crud_pg_types_generate_src/src/source.rs",
+            "pg_crud_pg_types_generate_src/src/domain_types/source.rs",
             "generated `expect` uses unchecked interpolated diagnostic message `#id_double_quoted_token_stream`",
             "the date-range fixture passes a reviewed diagnostic identifier into the generator",
         ),
@@ -275,12 +275,14 @@ fn lints_from_help_cmd(
     parse_only_clippy: types::AnalyzerBool,
     exp_id: types::StaticStr,
 ) -> types::SourceTextList {
-    let output = macros_helpers::tool_command::ToolCommand::new(
-        macros_helpers::tool_command::ToolProgramRef::from(tool.get()),
+    let output = macros_helpers::domain_types::tool_command::ToolCommand::new(
+        macros_helpers::domain_types::tool_command::ToolProgramRef::from(tool.get()),
     )
-    .args(macros_helpers::tool_command::ToolArgsRef::from(
-        [constants_str::W, constants_str::HELP].as_slice(),
-    ))
+    .args(
+        macros_helpers::domain_types::tool_command::ToolArgsRef::from(
+            [constants_str::W, constants_str::HELP].as_slice(),
+        ),
+    )
     .output()
     .unwrap_or_else(|_| panic!("{}", exp_id.get()));
     assert_cmd_output_ok(

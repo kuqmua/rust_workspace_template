@@ -1,1 +1,2 @@
+mod adapters;
 pub mod domain_types;

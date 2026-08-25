@@ -75,14 +75,17 @@ mod tests {
             assert_eq!(value, descriptor.example().as_ref());
             assert_eq!(
                 descriptor.requirement(),
-                config_lib::ConfigFieldRequirement::Required
+                config_lib::domain_types::ConfigFieldRequirement::Required
             );
-            if descriptor.sensitivity() == config_lib::ConfigFieldSensitivity::Public {
+            if descriptor.sensitivity() == config_lib::domain_types::ConfigFieldSensitivity::Public
+            {
                 assert_eq!(
-                    descriptor.validate_example(config_lib::StdEnvVarOk::try_from(value).expect(
-                        "51cc2fcf env_example_matches_generated_descriptor invariant must hold"
-                    )),
-                    config_lib::ConfigExampleValidity::Valid
+                    descriptor.validate_example(
+                        config_lib::domain_types::StdEnvVarOk::try_from(value).expect(
+                            "51cc2fcf env_example_matches_generated_descriptor invariant must hold"
+                        )
+                    ),
+                    config_lib::domain_types::ConfigExampleValidity::Valid
                 );
             }
         });

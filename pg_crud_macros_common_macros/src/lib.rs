@@ -1,15 +1,15 @@
 #[proc_macro]
 pub fn bool_enum_to_tokens(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let mut iter = proc_macro2::TokenStream::from(input).into_iter();
-    let Some(name) = workspace_macro_helpers::first_identifier(&mut iter) else {
-        return workspace_macro_helpers::compile_error_token_stream(
+    let Some(name) = workspace_macro_helpers::domain_types::first_identifier(&mut iter) else {
+        return workspace_macro_helpers::domain_types::compile_error_token_stream(
             constants_str::COMPILE_ERROR_CE_045,
         )
         .into_inner()
         .into();
     };
-    if !workspace_macro_helpers::strip_first_comma(&mut iter) {
-        return workspace_macro_helpers::compile_error_token_stream(
+    if !workspace_macro_helpers::domain_types::strip_first_comma(&mut iter) {
+        return workspace_macro_helpers::domain_types::compile_error_token_stream(
             constants_str::COMPILE_ERROR_CE_044,
         )
         .into_inner()
@@ -17,28 +17,28 @@ pub fn bool_enum_to_tokens(input: proc_macro::TokenStream) -> proc_macro::TokenS
     }
     let rest_text = iter.collect::<proc_macro2::TokenStream>().to_string();
     let Some(rest) = rest_text.strip_prefix(constants_str::FALSE_FAT_ARROW) else {
-        return workspace_macro_helpers::compile_error_token_stream(
+        return workspace_macro_helpers::domain_types::compile_error_token_stream(
             constants_str::COMPILE_ERROR_CE_046,
         )
         .into_inner()
         .into();
     };
     let Some((false_expr, true_part)) = rest.split_once(constants_str::TRUE_FAT_ARROW) else {
-        return workspace_macro_helpers::compile_error_token_stream(
+        return workspace_macro_helpers::domain_types::compile_error_token_stream(
             constants_str::COMPILE_ERROR_CE_047,
         )
         .into_inner()
         .into();
     };
     let Ok(false_token_stream) = false_expr.trim().parse::<proc_macro2::TokenStream>() else {
-        return workspace_macro_helpers::compile_error_token_stream(
+        return workspace_macro_helpers::domain_types::compile_error_token_stream(
             constants_str::COMPILE_ERROR_CE_048,
         )
         .into_inner()
         .into();
     };
     let Ok(true_token_stream) = true_part.trim().parse::<proc_macro2::TokenStream>() else {
-        return workspace_macro_helpers::compile_error_token_stream(
+        return workspace_macro_helpers::domain_types::compile_error_token_stream(
             constants_str::COMPILE_ERROR_CE_049,
         )
         .into_inner()

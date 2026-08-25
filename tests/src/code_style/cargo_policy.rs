@@ -484,55 +484,55 @@ fn source_modules_with_public_logic_own_unit_tests() {
             "the proc-macro is covered by location_lib expansion tests",
         ),
         (
-            "macros_helpers/src/wrap_derive.rs",
+            "macros_helpers/src/domain_types/wrap_derive.rs",
             "the token helper is covered by downstream derive expansion tests",
         ),
         (
-            "macros_helpers/src/generate_impl_to_err_string_token_stream.rs",
+            "macros_helpers/src/domain_types/generate_impl_to_err_string_token_stream.rs",
             "the token helper is covered by to_err_string expansion tests",
         ),
         (
-            "macros_helpers/src/generate_pub_type_alias_token_stream.rs",
+            "macros_helpers/src/domain_types/generate_pub_type_alias_token_stream.rs",
             "the token helper is covered by downstream compile tests",
         ),
         (
-            "macros_helpers/src/generate_field_location_new_token_stream.rs",
+            "macros_helpers/src/domain_types/generate_field_location_new_token_stream.rs",
             "the token helper is covered by location expansion tests",
         ),
         (
-            "macros_helpers/src/generate_if_write_is_err_token_stream.rs",
+            "macros_helpers/src/domain_types/generate_if_write_is_err_token_stream.rs",
             "the token helper is covered by generated source tests",
         ),
         (
-            "macros_helpers/src/location.rs",
+            "macros_helpers/src/domain_types/location.rs",
             "the syntax helper is covered by downstream macro tests",
         ),
         (
-            "macros_helpers/src/generate_impl_try_from_token_stream.rs",
+            "macros_helpers/src/domain_types/generate_impl_try_from_token_stream.rs",
             "the token helper is covered by downstream conversion tests",
         ),
         (
-            "macros_helpers/src/generate_impl_default_token_stream.rs",
+            "macros_helpers/src/domain_types/generate_impl_default_token_stream.rs",
             "the token helper is covered by downstream derive tests",
         ),
         (
-            "macros_helpers/src/generate_impl_from_token_stream.rs",
+            "macros_helpers/src/domain_types/generate_impl_from_token_stream.rs",
             "the token helper is covered by downstream conversion tests",
         ),
         (
-            "macros_helpers/src/location_syn_field.rs",
+            "macros_helpers/src/domain_types/location_syn_field.rs",
             "the syntax helper is covered by location expansion tests",
         ),
         (
-            "macros_helpers/src/status_code.rs",
+            "macros_helpers/src/domain_types/status_code.rs",
             "the status-code generator is covered by route validator tests",
         ),
         (
-            "macros_helpers/src/pagination_start_end_initialization_token_stream.rs",
+            "macros_helpers/src/domain_types/pagination_start_end_initialization_token_stream.rs",
             "the token helper is covered by generated CRUD tests",
         ),
         (
-            "macros_helpers/src/generate_impl_display_token_stream.rs",
+            "macros_helpers/src/domain_types/generate_impl_display_token_stream.rs",
             "the token helper is covered by downstream display tests",
         ),
         (
@@ -556,11 +556,11 @@ fn source_modules_with_public_logic_own_unit_tests() {
             "the proc-macro is covered by token_patterns tests",
         ),
         (
-            "server_runtime_http/src/limits.rs",
+            "server_runtime_http/src/domain_types/limits.rs",
             "the limit wrappers are exercised by server_runtime boundary tests",
         ),
         (
-            "server_runtime_core/src/resource_budget.rs",
+            "server_runtime_core/src/domain_types/resource_budget.rs",
             "the resource budget is exercised by server runtime integration paths",
         ),
         (
@@ -576,19 +576,19 @@ fn source_modules_with_public_logic_own_unit_tests() {
             "the macro surface is covered by pg_crud_common tests",
         ),
         (
-            "pg_crud_macros_common/src/lib.rs",
+            "pg_crud_macros_common/src/domain_types.rs",
             "the generator support surface is covered by generated contract tests",
         ),
         (
-            "pg_crud_macros_common/src/pg_type_test_cases.rs",
+            "pg_crud_macros_common/src/domain_types/pg_type_test_cases.rs",
             "the fixture catalog is consumed by generated PostgreSQL type tests",
         ),
         (
-            "pg_crud_macros_common/src/token_stream_helpers.rs",
+            "pg_crud_macros_common/src/domain_types/token_stream_helpers.rs",
             "the token helpers are covered by generated CRUD tests",
         ),
         (
-            "pg_crud_common/src/cardinality.rs",
+            "pg_crud_common/src/domain_types/cardinality.rs",
             "cardinality behavior is covered by generated CRUD contract tests",
         ),
         (
@@ -596,7 +596,7 @@ fn source_modules_with_public_logic_own_unit_tests() {
             "the macro surface is covered by generated CRUD tests",
         ),
         (
-            "pg_crud_pg_table_generate_src/src/pipeline.rs",
+            "pg_crud_pg_table_generate_src/src/domain_types/pipeline.rs",
             "the generation pipeline is covered by generate_pg_table tests",
         ),
         (
@@ -624,7 +624,7 @@ fn source_modules_with_public_logic_own_unit_tests() {
             "the proc-macro is covered by config_lib tests",
         ),
         (
-            "frontend_contract/src/handler_contract.rs",
+            "frontend_contract/src/domain_types/handler_contract.rs",
             "handler contracts are covered by route contract compile tests",
         ),
         (
@@ -632,11 +632,11 @@ fn source_modules_with_public_logic_own_unit_tests() {
             "the proc-macro is covered by to_err_string tests",
         ),
         (
-            "server_admin/src/rbac.rs",
+            "server_admin/src/domain_types/rbac.rs",
             "RBAC public behavior is covered by administrator API tests",
         ),
         (
-            "server_admin/src/password.rs",
+            "server_admin/src/domain_types/password.rs",
             "password public behavior is covered by authentication integration tests",
         ),
     ]);

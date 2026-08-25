@@ -89,7 +89,7 @@ fn admin_frontend_api_urls_come_from_typed_routes() {
                 file.path()
                     .as_ref()
                     .to_string_lossy()
-                    .contains("server_admin_frontend/src/app/")
+                    .contains("server_admin_frontend/src/domain_types/app/")
             })
             .map(|file| file.content().as_ref())
             .collect::<String>();
@@ -102,8 +102,8 @@ fn admin_frontend_api_urls_come_from_typed_routes() {
 fn service_route_handler_composition_uses_shared_registries() {
     super::snapshot::with_codebase_snapshot(|snapshot| {
         [
-            ("server_admin/src/auth/html.rs", 2usize),
-            ("notification_service/src/routes.rs", constants_usize::ONE),
+            ("server_admin/src/application/html.rs", 2usize),
+            ("notification_service/src/adapters/routes.rs", constants_usize::ONE),
         ]
         .iter()
         .for_each(|(path_suffix, expected_registry_count)| {
@@ -116,7 +116,7 @@ fn service_route_handler_composition_uses_shared_registries() {
                 .as_ref();
             assert_eq!(
                 source
-                    .matches("frontend_contract::handler_registry")
+                    .matches("frontend_contract::domain_types::handler_registry")
                     .count(),
                 *expected_registry_count,
                 "26aa4162"
@@ -130,8 +130,8 @@ fn service_route_handler_composition_uses_shared_registries() {
 fn typed_route_registries_own_request_bodies_and_schema_catalogs() {
     super::snapshot::with_codebase_snapshot(|snapshot| {
         [
-            "server_admin/src/auth/routes.rs",
-            "notification_service/src/routes.rs",
+            "server_admin/src/application/routes.rs",
+            "notification_service/src/adapters/routes.rs",
         ]
         .iter()
         .for_each(|path_suffix| {
@@ -145,8 +145,8 @@ fn typed_route_registries_own_request_bodies_and_schema_catalogs() {
             assert!(!source.contains("components(schemas"), "94cc9de1");
         });
         [
-            "server_admin/src/auth.rs",
-            "notification_service/src/main.rs",
+            "server_admin/src/application/auth.rs",
+            "notification_service/src/domain_types.rs",
         ]
         .iter()
         .for_each(|path_suffix| {
@@ -160,7 +160,7 @@ fn typed_route_registries_own_request_bodies_and_schema_catalogs() {
             assert!(!source.contains("request_body ="), "95cc867b");
         });
         [
-            "server_admin_contract/src/lib.rs",
+            "server_admin_contract/src/domain_types.rs",
             "notification_service_contract/src/domain_types.rs",
         ]
         .iter()
@@ -182,15 +182,15 @@ fn generated_admin_table_consumers_use_the_shared_catalog() {
     super::snapshot::with_codebase_snapshot(|snapshot| {
         [
             (
-                "server_admin/src/generated_auth.rs",
+                "server_admin/src/domain_types/generated_auth.rs",
                 "AdminRolesRouteContract",
             ),
             (
-                "server_admin/src/repository/data_tables.rs",
+                "server_admin/src/adapters/repository/data_tables.rs",
                 "AdminRoles::frontend_fields",
             ),
             (
-                "server_admin/src/repository/data_tables.rs",
+                "server_admin/src/adapters/repository/data_tables.rs",
                 "AdminRoles::frontend_filter_value",
             ),
         ]
@@ -209,7 +209,7 @@ fn generated_admin_table_consumers_use_the_shared_catalog() {
         let server_routing = snapshot
             .rs_files()
             .iter()
-            .find(|file| file.path().as_ref().ends_with("server/src/routing.rs"))
+            .find(|file| file.path().as_ref().ends_with("server/src/adapters/routing.rs"))
             .expect("148223ec generated_admin_table_consumers_use_the_shared_catalog invariant must hold")
             .content()
             .as_ref();
@@ -265,7 +265,7 @@ fn administrator_data_table_queries_come_from_the_typed_spec() {
             .find(|file| {
                 file.path()
                     .as_ref()
-                    .ends_with("server_admin/src/repository/data_tables.rs")
+                    .ends_with("server_admin/src/adapters/repository/data_tables.rs")
             })
             .expect("3ac24886 administrator_data_table_queries_come_from_the_typed_spec invariant must hold")
             .content()
@@ -305,7 +305,7 @@ fn administrator_csr_page_behavior_comes_from_the_page_catalog() {
             .find(|file| {
                 file.path()
                     .as_ref()
-                    .ends_with("server_admin_frontend/src/app/query/page.rs")
+                    .ends_with("server_admin_frontend/src/domain_types/app/query/page.rs")
             })
             .expect("58e2110e administrator_csr_page_behavior_comes_from_the_page_catalog invariant must hold")
             .content()
@@ -316,7 +316,7 @@ fn administrator_csr_page_behavior_comes_from_the_page_catalog() {
             .find(|file| {
                 file.path()
                     .as_ref()
-                    .ends_with("server_admin_frontend/src/app/loader.rs")
+                    .ends_with("server_admin_frontend/src/domain_types/app/loader.rs")
             })
             .expect("04bb78af administrator_csr_page_behavior_comes_from_the_page_catalog invariant must hold")
             .content()

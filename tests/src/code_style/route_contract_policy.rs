@@ -7,7 +7,7 @@ fn route_contract_type_mismatches_do_not_compile() {
     }
     assert_serializable::<String>();
     assert_eq!(
-        size_of::<frontend_contract::PublicTransport>(),
+        size_of::<frontend_contract::domain_types::PublicTransport>(),
         constants_usize::ZERO
     );
     let cases = trybuild::TestCases::new();

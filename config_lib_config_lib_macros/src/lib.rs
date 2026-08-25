@@ -2,25 +2,28 @@ mod domain_types;
 
 #[proc_macro]
 pub fn impl_try_from_non_empty_string(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let parts = workspace_macro_helpers::split_top_level_commas(
-        workspace_macro_helpers::ProcMacro2MacroTokens::from_into(input),
+    let parts = workspace_macro_helpers::domain_types::split_top_level_commas(
+        workspace_macro_helpers::domain_types::ProcMacro2MacroTokens::from_into(input),
     );
     if parts.len() != 2 {
-        return workspace_macro_helpers::compile_error_token_stream(
+        return workspace_macro_helpers::domain_types::compile_error_token_stream(
             constants_str::COMPILE_ERROR_CE_065,
         )
         .into_inner()
         .into();
     }
-    let Some(name_text) = workspace_macro_helpers::first_identifier_at(&parts, 0) else {
-        return workspace_macro_helpers::compile_error_token_stream(
+    let Some(name_text) = workspace_macro_helpers::domain_types::first_identifier_at(&parts, 0)
+    else {
+        return workspace_macro_helpers::domain_types::compile_error_token_stream(
             constants_str::COMPILE_ERROR_CE_064,
         )
         .into_inner()
         .into();
     };
-    let Some(error_name_text) = workspace_macro_helpers::first_identifier_at(&parts, 1) else {
-        return workspace_macro_helpers::compile_error_token_stream(
+    let Some(error_name_text) =
+        workspace_macro_helpers::domain_types::first_identifier_at(&parts, 1)
+    else {
+        return workspace_macro_helpers::domain_types::compile_error_token_stream(
             constants_str::COMPILE_ERROR_CE_063,
         )
         .into_inner()
@@ -47,25 +50,28 @@ pub fn impl_try_from_non_empty_string(input: proc_macro::TokenStream) -> proc_ma
 }
 #[proc_macro]
 pub fn impl_try_from_secret_url(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let parts = workspace_macro_helpers::split_top_level_commas(
-        workspace_macro_helpers::ProcMacro2MacroTokens::from_into(input),
+    let parts = workspace_macro_helpers::domain_types::split_top_level_commas(
+        workspace_macro_helpers::domain_types::ProcMacro2MacroTokens::from_into(input),
     );
     if parts.len() != 2 {
-        return workspace_macro_helpers::compile_error_token_stream(
+        return workspace_macro_helpers::domain_types::compile_error_token_stream(
             constants_str::COMPILE_ERROR_CE_074,
         )
         .into_inner()
         .into();
     }
-    let Some(name_text) = workspace_macro_helpers::first_identifier_at(&parts, 0) else {
-        return workspace_macro_helpers::compile_error_token_stream(
+    let Some(name_text) = workspace_macro_helpers::domain_types::first_identifier_at(&parts, 0)
+    else {
+        return workspace_macro_helpers::domain_types::compile_error_token_stream(
             constants_str::COMPILE_ERROR_CE_073,
         )
         .into_inner()
         .into();
     };
-    let Some(error_name_text) = workspace_macro_helpers::first_identifier_at(&parts, 1) else {
-        return workspace_macro_helpers::compile_error_token_stream(
+    let Some(error_name_text) =
+        workspace_macro_helpers::domain_types::first_identifier_at(&parts, 1)
+    else {
+        return workspace_macro_helpers::domain_types::compile_error_token_stream(
             constants_str::COMPILE_ERROR_CE_072,
         )
         .into_inner()
@@ -117,54 +123,62 @@ fn impl_try_from_parse_with_error_ty(
     input: domain_types::ProcMacro2TryFromParseInput,
     fixed_error_ty: domain_types::ProcMacro2TryFromParseFixedErrorTy,
 ) -> domain_types::ProcMacroTryFromParseTokenStream {
-    let parts =
-        workspace_macro_helpers::split_top_level_commas(proc_macro2::TokenStream::from(input));
+    let parts = workspace_macro_helpers::domain_types::split_top_level_commas(
+        proc_macro2::TokenStream::from(input),
+    );
     let fixed_error_ty_opt = Option::<proc_macro2::TokenStream>::from(fixed_error_ty);
     let min_len = if fixed_error_ty_opt.is_some() { 5 } else { 6 };
     if parts.len() < min_len {
         return domain_types::ProcMacroTryFromParseTokenStream::from(
             proc_macro::TokenStream::from(
-                workspace_macro_helpers::compile_error_token_stream(
+                workspace_macro_helpers::domain_types::compile_error_token_stream(
                     constants_str::COMPILE_ERROR_CE_071,
                 )
                 .into_inner(),
             ),
         );
     }
-    let Some(name_text) = workspace_macro_helpers::first_identifier_at(&parts, 0) else {
+    let Some(name_text) = workspace_macro_helpers::domain_types::first_identifier_at(&parts, 0)
+    else {
         return domain_types::ProcMacroTryFromParseTokenStream::from(
             proc_macro::TokenStream::from(
-                workspace_macro_helpers::compile_error_token_stream(
+                workspace_macro_helpers::domain_types::compile_error_token_stream(
                     constants_str::COMPILE_ERROR_CE_070,
                 )
                 .into_inner(),
             ),
         );
     };
-    let Some(error_name_text) = workspace_macro_helpers::first_identifier_at(&parts, 1) else {
+    let Some(error_name_text) =
+        workspace_macro_helpers::domain_types::first_identifier_at(&parts, 1)
+    else {
         return domain_types::ProcMacroTryFromParseTokenStream::from(
             proc_macro::TokenStream::from(
-                workspace_macro_helpers::compile_error_token_stream(
+                workspace_macro_helpers::domain_types::compile_error_token_stream(
                     constants_str::COMPILE_ERROR_CE_067,
                 )
                 .into_inner(),
             ),
         );
     };
-    let Some(error_variant_text) = workspace_macro_helpers::first_identifier_at(&parts, 3) else {
+    let Some(error_variant_text) =
+        workspace_macro_helpers::domain_types::first_identifier_at(&parts, 3)
+    else {
         return domain_types::ProcMacroTryFromParseTokenStream::from(
             proc_macro::TokenStream::from(
-                workspace_macro_helpers::compile_error_token_stream(
+                workspace_macro_helpers::domain_types::compile_error_token_stream(
                     constants_str::COMPILE_ERROR_CE_068,
                 )
                 .into_inner(),
             ),
         );
     };
-    let Some(error_field_text) = workspace_macro_helpers::first_identifier_at(&parts, 4) else {
+    let Some(error_field_text) =
+        workspace_macro_helpers::domain_types::first_identifier_at(&parts, 4)
+    else {
         return domain_types::ProcMacroTryFromParseTokenStream::from(
             proc_macro::TokenStream::from(
-                workspace_macro_helpers::compile_error_token_stream(
+                workspace_macro_helpers::domain_types::compile_error_token_stream(
                     constants_str::COMPILE_ERROR_CE_066,
                 )
                 .into_inner(),
@@ -175,10 +189,10 @@ fn impl_try_from_parse_with_error_ty(
     let error_name = quote::format_ident!("{error_name_text}");
     let error_variant = quote::format_ident!("{error_variant_text}");
     let error_field = quote::format_ident!("{error_field_text}");
-    let Some(inner) = workspace_macro_helpers::part_at(&parts, 2) else {
+    let Some(inner) = workspace_macro_helpers::domain_types::part_at(&parts, 2) else {
         return domain_types::ProcMacroTryFromParseTokenStream::from(
             proc_macro::TokenStream::from(
-                workspace_macro_helpers::compile_error_token_stream(
+                workspace_macro_helpers::domain_types::compile_error_token_stream(
                     constants_str::COMPILE_ERROR_CE_069,
                 )
                 .into_inner(),
@@ -187,7 +201,7 @@ fn impl_try_from_parse_with_error_ty(
     };
     let (error_ty, derives) = fixed_error_ty_opt.map_or_else(
         || {
-            let Some(error_ty) = workspace_macro_helpers::part_at(&parts, 5) else {
+            let Some(error_ty) = workspace_macro_helpers::domain_types::part_at(&parts, 5) else {
                 return (proc_macro2::TokenStream::new(), Vec::new());
             };
             let derives = parts.get(6..).unwrap_or(&[]).to_vec();
@@ -220,32 +234,32 @@ fn impl_try_from_parse_with_error_ty(
 }
 #[proc_macro]
 pub fn assert_parse_ok_matches(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let parts = workspace_macro_helpers::split_top_level_commas(
-        workspace_macro_helpers::ProcMacro2MacroTokens::from_into(input),
+    let parts = workspace_macro_helpers::domain_types::split_top_level_commas(
+        workspace_macro_helpers::domain_types::ProcMacro2MacroTokens::from_into(input),
     );
     if parts.len() != 3 {
-        return workspace_macro_helpers::compile_error_token_stream(
+        return workspace_macro_helpers::domain_types::compile_error_token_stream(
             constants_str::COMPILE_ERROR_CE_040,
         )
         .into_inner()
         .into();
     }
-    let Some(ty) = workspace_macro_helpers::part_at(&parts, 0) else {
-        return workspace_macro_helpers::compile_error_token_stream(
+    let Some(ty) = workspace_macro_helpers::domain_types::part_at(&parts, 0) else {
+        return workspace_macro_helpers::domain_types::compile_error_token_stream(
             constants_str::COMPILE_ERROR_CE_039,
         )
         .into_inner()
         .into();
     };
-    let Some(value) = workspace_macro_helpers::part_at(&parts, 1) else {
-        return workspace_macro_helpers::compile_error_token_stream(
+    let Some(value) = workspace_macro_helpers::domain_types::part_at(&parts, 1) else {
+        return workspace_macro_helpers::domain_types::compile_error_token_stream(
             constants_str::COMPILE_ERROR_CE_041,
         )
         .into_inner()
         .into();
     };
-    let Some(pattern) = workspace_macro_helpers::part_at(&parts, 2) else {
-        return workspace_macro_helpers::compile_error_token_stream(
+    let Some(pattern) = workspace_macro_helpers::domain_types::part_at(&parts, 2) else {
+        return workspace_macro_helpers::domain_types::compile_error_token_stream(
             constants_str::COMPILE_ERROR_CE_038,
         )
         .into_inner()
@@ -258,32 +272,32 @@ pub fn assert_parse_ok_matches(input: proc_macro::TokenStream) -> proc_macro::To
 }
 #[proc_macro]
 pub fn assert_parse_err_matches(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let parts = workspace_macro_helpers::split_top_level_commas(
-        workspace_macro_helpers::ProcMacro2MacroTokens::from_into(input),
+    let parts = workspace_macro_helpers::domain_types::split_top_level_commas(
+        workspace_macro_helpers::domain_types::ProcMacro2MacroTokens::from_into(input),
     );
     if parts.len() != 3 {
-        return workspace_macro_helpers::compile_error_token_stream(
+        return workspace_macro_helpers::domain_types::compile_error_token_stream(
             constants_str::COMPILE_ERROR_CE_036,
         )
         .into_inner()
         .into();
     }
-    let Some(ty) = workspace_macro_helpers::part_at(&parts, 0) else {
-        return workspace_macro_helpers::compile_error_token_stream(
+    let Some(ty) = workspace_macro_helpers::domain_types::part_at(&parts, 0) else {
+        return workspace_macro_helpers::domain_types::compile_error_token_stream(
             constants_str::COMPILE_ERROR_CE_035,
         )
         .into_inner()
         .into();
     };
-    let Some(value) = workspace_macro_helpers::part_at(&parts, 1) else {
-        return workspace_macro_helpers::compile_error_token_stream(
+    let Some(value) = workspace_macro_helpers::domain_types::part_at(&parts, 1) else {
+        return workspace_macro_helpers::domain_types::compile_error_token_stream(
             constants_str::COMPILE_ERROR_CE_037,
         )
         .into_inner()
         .into();
     };
-    let Some(pattern) = workspace_macro_helpers::part_at(&parts, 2) else {
-        return workspace_macro_helpers::compile_error_token_stream(
+    let Some(pattern) = workspace_macro_helpers::domain_types::part_at(&parts, 2) else {
+        return workspace_macro_helpers::domain_types::compile_error_token_stream(
             constants_str::COMPILE_ERROR_CE_034,
         )
         .into_inner()
@@ -296,25 +310,25 @@ pub fn assert_parse_err_matches(input: proc_macro::TokenStream) -> proc_macro::T
 }
 #[proc_macro]
 pub fn assert_empty_parse_err_matches(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let parts = workspace_macro_helpers::split_top_level_commas(
-        workspace_macro_helpers::ProcMacro2MacroTokens::from_into(input),
+    let parts = workspace_macro_helpers::domain_types::split_top_level_commas(
+        workspace_macro_helpers::domain_types::ProcMacro2MacroTokens::from_into(input),
     );
     if parts.len() != 2 {
-        return workspace_macro_helpers::compile_error_token_stream(
+        return workspace_macro_helpers::domain_types::compile_error_token_stream(
             constants_str::COMPILE_ERROR_CE_033,
         )
         .into_inner()
         .into();
     }
-    let Some(ty) = workspace_macro_helpers::part_at(&parts, 0) else {
-        return workspace_macro_helpers::compile_error_token_stream(
+    let Some(ty) = workspace_macro_helpers::domain_types::part_at(&parts, 0) else {
+        return workspace_macro_helpers::domain_types::compile_error_token_stream(
             constants_str::COMPILE_ERROR_CE_032,
         )
         .into_inner()
         .into();
     };
-    let Some(pattern) = workspace_macro_helpers::part_at(&parts, 1) else {
-        return workspace_macro_helpers::compile_error_token_stream(
+    let Some(pattern) = workspace_macro_helpers::domain_types::part_at(&parts, 1) else {
+        return workspace_macro_helpers::domain_types::compile_error_token_stream(
             constants_str::COMPILE_ERROR_CE_031,
         )
         .into_inner()

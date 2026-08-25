@@ -331,7 +331,7 @@ mod tests {
     fn dependency_markers(
         _: Option<proc_macro2::TokenStream>,
         _: Option<syn::Path>,
-        _: Option<workspace_macro_helpers::FirstIdentifier>,
+        _: Option<workspace_macro_helpers::domain_types::FirstIdentifier>,
     ) -> proc_macro2::TokenStream {
         quote::quote! {}
     }

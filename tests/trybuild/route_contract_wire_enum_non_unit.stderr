@@ -1,5 +1,5 @@
 error: WireEnum supports only unit variants
  --> trybuild/route_contract_wire_enum_non_unit.rs:6:5
   |
-6 |     Value(frontend_contract::ContractStr),
+6 |     Value(frontend_contract::domain_types::ContractStr),
   |     ^^^^^

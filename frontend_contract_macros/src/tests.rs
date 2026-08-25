@@ -11,9 +11,9 @@ fn contract_struct_api_attributes_are_explicit() {
             value: String,
         }
     };
-    let Ok(args) = super::parse_contract_struct_api_args(super::SynAttributesRef::from(
-        input.attrs.as_slice(),
-    )) else {
+    let Ok(args) = super::parse_contract_struct_api_args(
+        super::domain_types::SynAttributesRef::from(input.attrs.as_slice()),
+    ) else {
         panic!("edc94d17");
     };
     assert!(bool::from(args.new));
@@ -28,9 +28,9 @@ fn contract_struct_api_attributes_are_explicit() {
         .named
         .iter()
         .map(|field| {
-            super::parse_contract_struct_api_field_args(super::SynAttributesRef::from(
-                field.attrs.as_slice(),
-            ))
+            super::parse_contract_struct_api_field_args(
+                super::domain_types::SynAttributesRef::from(field.attrs.as_slice()),
+            )
             .map(|field_args| {
                 (
                     bool::from(field_args.borrow),
@@ -61,9 +61,9 @@ fn contract_struct_api_rejects_unknown_attributes() {
             value: String,
         }
     };
-    let Err(error) = super::parse_contract_struct_api_args(super::SynAttributesRef::from(
-        input.attrs.as_slice(),
-    )) else {
+    let Err(error) = super::parse_contract_struct_api_args(
+        super::domain_types::SynAttributesRef::from(input.attrs.as_slice()),
+    ) else {
         panic!("86b738e6");
     };
     assert!(
@@ -85,7 +85,9 @@ fn typed_route_args_require_exactly_one_error_source() {
     ["", "error_policy = Policy, error_statuses = Statuses,"]
         .into_iter()
         .for_each(|errors| {
-            let result = syn::parse_str::<super::TypedRouteArgs>(typed_route_args(errors).as_str());
+            let result = syn::parse_str::<super::domain_types::TypedRouteArgs>(
+                typed_route_args(errors).as_str(),
+            );
             let Err(error) = result else {
                 panic!("f58d0a31");
             };
@@ -98,9 +100,9 @@ fn typed_route_args_require_exactly_one_error_source() {
     ["error_policy = Policy,", "error_statuses = Statuses,"]
         .into_iter()
         .for_each(|errors| {
-            let Ok(_args) =
-                syn::parse_str::<super::TypedRouteArgs>(typed_route_args(errors).as_str())
-            else {
+            let Ok(_args) = syn::parse_str::<super::domain_types::TypedRouteArgs>(
+                typed_route_args(errors).as_str(),
+            ) else {
                 panic!("470bf91c");
             };
         });
@@ -108,7 +110,7 @@ fn typed_route_args_require_exactly_one_error_source() {
 
 #[test]
 fn route_registry_args_require_family_after_state() {
-    let result = syn::parse_str::<super::RouteRegistryArgs>(
+    let result = syn::parse_str::<super::domain_types::RouteRegistryArgs>(
         "state = (), wrong = Family; (\"authenticated\", \"csrf\"); schemas(); (Route, handler),",
     );
     let Err(error) = result else {
@@ -123,16 +125,16 @@ fn route_registry_args_require_family_after_state() {
 
 #[test]
 fn route_registry_args_parse_family_and_bindings() {
-    let result = syn::parse_str::<super::RouteRegistryArgs>(
+    let result = syn::parse_str::<super::domain_types::RouteRegistryArgs>(
         "state = (), family = Family; (\"authenticated\", \"csrf\"); schemas(Schema); (Route, handler),",
     );
     let Ok(args) = result else {
         panic!("6282e207");
     };
-    assert_eq!(args.bindings.0.len(), constants_usize::ONE);
-    assert_eq!(args.schemas.0.len(), constants_usize::ONE);
+    assert_eq!(args.bindings.as_ref().len(), constants_usize::ONE);
+    assert_eq!(args.schemas.as_ref().len(), constants_usize::ONE);
     assert_eq!(
-        quote::ToTokens::to_token_stream(&args.family.0).to_string(),
+        quote::ToTokens::to_token_stream(args.family.as_ref()).to_string(),
         constants_str::FAMILY_UPPER_CAMEL_CASE
     );
 }

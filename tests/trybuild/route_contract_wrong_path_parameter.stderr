@@ -1,15 +1,15 @@
 error[E0308]: mismatched types
   --> trybuild/route_contract_wrong_path_parameter.rs:30:9
    |
-29 |     let _path = frontend_contract::typed_parameterized_route_path::<ParameterizedTestRoute>(
-   |                 --------------------------------------------------------------------------- arguments to this function are incorrect
+29 |     let _path = frontend_contract::domain_types::typed_parameterized_route_path::<ParameterizedTestRoute>(
+   |                 ----------------------------------------------------------------------------------------- arguments to this function are incorrect
 30 |         &wrong_parameter,
    |         ^^^^^^^^^^^^^^^^ expected `&u64`, found `&String`
    |
    = note: expected reference `&u64`
               found reference `&String`
 note: function defined here
-  --> $WORKSPACE/frontend_contract/src/route.rs
+  --> $WORKSPACE/frontend_contract/src/domain_types/route.rs
    |
    | pub fn typed_parameterized_route_path<Route>(parameter: &Route::Parameter) -> ParameterizedRoutePath
    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

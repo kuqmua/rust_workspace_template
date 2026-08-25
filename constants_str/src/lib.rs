@@ -5,7 +5,7 @@
 //! by `server_config::domain_types::Config` fields interpreted by `TryFromEnv`, and table column names by the
 //! generated table descriptors. The remaining `ENV_NAMES_*` constants support infrastructure and
 //! conformance tests; `SQL_NAMES_ID` is a documented generic SQL-protocol token validated through
-//! `pg_crud_common::PgSqlIdentifier`, not an application-schema declaration.
+//! `pg_crud_common::domain_types::PgSqlIdentifier`, not an application-schema declaration.
 
 constants_str_macros::define_str_constants! {
     fragments {
@@ -199,6 +199,7 @@ constants_str_macros::define_str_constants! {
         WORD_DO = "DO";
         WORD_DOES = "does";
         WORD_DOMAIN = "domain";
+        WORD_DOMAIN_TYPES = "domain_types";
         WORD_DROP = "DROP";
         WORD_DUPLICATE = "duplicate";
         WORD_EC = "ec";
@@ -1126,7 +1127,7 @@ impl axum::response::IntoResponse for EnumError {
 enum LocatedEnumError {
     #[error("located failure")]
     Failure {
-        location: location_lib::location::Location,
+        location: location_lib::domain_types::Location,
     },
 }
 impl axum::response::IntoResponse for LocatedEnumError {
@@ -1161,29 +1162,29 @@ impl axum::response::IntoResponse for RawSourceError {
 }
 "#];
         pub CODE_STYLE_ROUTE_OPERATION_ERROR_FIXTURE = [r#"
-#[frontend_contract::route_openapi()]
+#[frontend_contract::domain_types::route_openapi()]
 async fn first() -> Result<(), SharedError> {
     Ok(())
 }
-#[frontend_contract::route_openapi()]
+#[frontend_contract::domain_types::route_openapi()]
 async fn second() -> Result<(), SharedError> {
     Ok(())
 }
 "#];
         pub CODE_STYLE_HANDLER_ROUTE_OPERATION_ERROR_FIXTURE = [r#"
-#[frontend_contract::route_error(HtmlSharedError)]
+#[frontend_contract::domain_types::route_error(HtmlSharedError)]
 async fn first_html() -> Response {
     response()
 }
-#[frontend_contract::route_error(HtmlSharedError)]
+#[frontend_contract::domain_types::route_error(HtmlSharedError)]
 async fn second_html() -> Response {
     response()
 }
-#[frontend_contract::route_operation]
+#[frontend_contract::domain_types::route_operation]
 async fn first_operational() -> Result<(), OperationalSharedError> {
     Ok(())
 }
-#[frontend_contract::route_operation]
+#[frontend_contract::domain_types::route_operation]
 async fn second_operational() -> Result<(), OperationalSharedError> {
     Ok(())
 }
@@ -1350,7 +1351,7 @@ define_str_constants! {
         pub TEXT_ALT_9 = ["../"];
         pub INITIALIZE_ENVIRONMENT_FILES_SRC = ["../", WORD_INITIALIZE_ENVIRONMENT_FILES, "/", WORD_SRC, "/"];
         pub PG_CRUD_PG_TABLE = ["../", WORD_PG_CRUD, "_", WORD_PG_TABLE, "/"];
-        pub PG_CRUD_PG_TABLE_SRC_LIB_RS = ["../", WORD_PG_CRUD, "_", WORD_PG_TABLE, "/", WORD_SRC, "/", WORD_LIB, ".", WORD_RS];
+        pub PG_CRUD_PG_TABLE_SRC_LIB_RS = ["../", WORD_PG_CRUD, "_", WORD_PG_TABLE, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, ".", WORD_RS];
         pub PG_CRUD_PG_TYPES = ["../", WORD_PG_CRUD, "_", WORD_PG_TYPES, "/"];
         pub PG_CRUD_WHERE_FILTERS = ["../", WORD_PG_CRUD, "_", WORD_WHERE_FILTERS, "/"];
         pub SERVER_ENV = ["../", WORD_SERVER, "/.", WORD_ENV];
@@ -1360,7 +1361,7 @@ define_str_constants! {
         pub SERVER_ADMIN_SRC_AUTH_SESSION_RS = ["../", WORD_SERVER_ADMIN, "/", WORD_SRC, "/", WORD_AUTH, "/", WORD_SESSION, ".", WORD_RS];
         pub SERVER_ADMIN_SRC_CLEANUP_RS = ["../", WORD_SERVER_ADMIN, "/", WORD_SRC, "/", WORD_CLEANUP, ".", WORD_RS];
         pub SERVER_ADMIN_SRC_MIGRATIONS_RS = ["../", WORD_SERVER_ADMIN, "/", WORD_SRC, "/migrations.", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_APP = ["../", WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_APP, "/"];
+        pub SERVER_ADMIN_FRONTEND_SRC_APP = ["../", WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/", WORD_APP, "/"];
         pub STR_CONSTANTS_SRC_LIB_RS = ["../", WORD_STR_CONSTANTS, "/", WORD_SRC, "/", WORD_LIB, ".", WORD_RS];
         pub TESTS_SRC_CODE_STYLE = ["../", WORD_TESTS, "/", WORD_SRC, "/", WORD_CODE_STYLE];
         pub WORKSPACE_TEST_RUNNER_SRC = ["../", WORD_WORKSPACE_TEST_RUNNER, "/", WORD_SRC, "/"];
@@ -2605,7 +2606,7 @@ define_str_constants! {
         pub FREE = ["free|"];
         pub FROM_ALT_4 = [WORD_FROM_3];
         pub FROM_INNER = [WORD_FROM_INNER];
-        pub FRONTEND_CONTRACT_SRC_LIB_RS = [WORD_FRONTEND_CONTRACT, "/", WORD_SRC, "/", WORD_LIB, ".", WORD_RS];
+        pub FRONTEND_CONTRACT_SRC_LIB_RS = [WORD_FRONTEND_CONTRACT, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, ".", WORD_RS];
         pub FUTURES = [WORD_FUTURES];
         pub FUZZY_PROVENANCE_CASTS = ["fuzzy_provenance_casts"];
         pub GATEWAY_TIMEOUT_504 = ["gateway_timeout_504"];
@@ -2719,6 +2720,7 @@ define_str_constants! {
         pub LOCATION_ALT = [WORD_LOCATION];
         pub LOCATION_RS = [WORD_LOCATION, ".", WORD_RS];
         pub LOCATION_LIB = [WORD_LOCATION_LIB];
+        pub DOMAIN_TYPES = [WORD_DOMAIN_TYPES];
         pub LOCATION_TO_SCHEMA = ["location_to_schema"];
         pub LOCKED_423 = ["locked_423"];
         pub LOGIN = [WORD_LOGIN];
@@ -2731,7 +2733,7 @@ define_str_constants! {
         pub MACRO_RULES_FOUND_USE_WORKSPACE_PROC_MACRO_CRATES_INSTEAD = [WORD_MACRO_RULES, " ", WORD_FOUND, "; ", WORD_USE, " ", WORD_WORKSPACE, " ", WORD_PROC, "-", WORD_MACRO, " ", WORD_CRATES, " ", WORD_INSTEAD, ":"];
         pub MACRO_RULES = [WORD_MACRO_RULES];
         pub MACROS_HELPERS_SRC_PANIC_IF_ERR_RS = [WORD_MACROS_HELPERS, "/", WORD_SRC, "/panic_if_err.", WORD_RS];
-        pub MACROS_HELPERS_SRC_TOOL_COMMAND_RS = [WORD_MACROS_HELPERS, "/", WORD_SRC, "/", WORD_TOOL_COMMAND, ".", WORD_RS];
+        pub MACROS_HELPERS_SRC_TOOL_COMMAND_RS = [WORD_MACROS_HELPERS, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/", WORD_TOOL_COMMAND, ".", WORD_RS];
         pub MACROS_HELPERS_RS_EXT_PATH = ["macros_helpers_rs_ext_path"];
         pub MACROS_HELPERS_SHOULD_WRITE_DIFF = ["macros_helpers_should_write_diff"];
         pub MACROS_HELPERS_SHOULD_WRITE_DIFF_LEN = ["macros_helpers_should_write_diff_len"];
@@ -2854,13 +2856,14 @@ define_str_constants! {
         pub PERMANENT_REDIRECT_308 = ["permanent_redirect_308"];
         pub PERMISSION = [WORD_PERMISSION];
         pub PERMISSIONS_NEWLINE_CONTENTS_READ = [WORD_PERMISSIONS_2, ":\n  contents: ", WORD_READ];
-        pub PG_CRUD_PG_CRUD_COMMON_SRC_LIB_RS = [WORD_PG_CRUD_COMMON, "/", WORD_SRC, "/", WORD_LIB, ".", WORD_RS];
-        pub PG_CRUD_PG_CRUD_COMMON_SRC_SQL_IDENTIFIER_RS = [WORD_PG_CRUD_COMMON, "/", WORD_SRC, "/sql_identifier.", WORD_RS];
+        pub PG_CRUD_PG_CRUD_COMMON_SRC_LIB_RS = [WORD_PG_CRUD_COMMON, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, ".", WORD_RS];
+        pub PG_CRUD_PG_CRUD_COMMON_SRC_SQL_IDENTIFIER_RS = [WORD_PG_CRUD_COMMON, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/sql_identifier.", WORD_RS];
         pub PG_CRUD_PG_TABLE_GENERATE_PG_TABLE_SRC_SRC_LIB_RS = [WORD_PG_CRUD, "_", WORD_PG_TABLE, "_generate_src/", WORD_SRC, "/", WORD_LIB, ".", WORD_RS];
         pub PG_CRUD_PG_TYPES_GENERATE_PG_TYPES_SRC_SRC_LIB_RS = [WORD_PG_CRUD, "_", WORD_PG_TYPES, "_generate_src/", WORD_SRC, "/", WORD_LIB, ".", WORD_RS];
         pub PG_CRUD_WHERE_FILTERS_GENERATE_WHERE_FILTERS_SRC_SRC_LIB_RS = [WORD_PG_CRUD, "_", WORD_WHERE_FILTERS, "_generate_src/", WORD_SRC, "/", WORD_LIB, ".", WORD_RS];
         pub PG_CRUD_WHERE_FILTERS_SRC_LIB_RS = [WORD_PG_CRUD, "_", WORD_WHERE_FILTERS, "/", WORD_SRC, "/", WORD_LIB, ".", WORD_RS];
         pub PG_CRUD_COMMON = [WORD_PG_CRUD_COMMON];
+        pub PG_CRUD_COMMON_DOMAIN_TYPES = [WORD_PG_CRUD_COMMON, "::", WORD_DOMAIN_TYPES];
         pub PG_CRUD_COMMON_PGTYPE_READ = [WORD_PG_CRUD_COMMON, ".", WORD_PGTYPE, ".Read"];
         pub PG_CRUD_COMMON_PGTYPE_SELECT = [WORD_PG_CRUD_COMMON, ".", WORD_PGTYPE, ".Select"];
         pub PG_CRUD_COMMON_QUERY_PART = ["pg_crud_common_query_part"];
@@ -3021,64 +3024,64 @@ define_str_constants! {
         pub VALUE_5067F83C = ["5067f83c"];
         pub SERVER_GRACEFUL_SHUTDOWN_TIMED_OUT = [WORD_SERVER, " graceful ", WORD_SHUTDOWN, " ", WORD_TIMED, " ", WORD_OUT];
         pub SERVER_RETURNED_AN_ERROR_RESPONSE = [WORD_SERVER, " returned ", WORD_AN, " ", WORD_ERROR, " ", WORD_RESPONSE];
-        pub SERVER_SRC_MAIN_RS = [WORD_SERVER, "/", WORD_SRC, "/main.", WORD_RS];
-        pub SERVER_ADMIN_SRC_LIB_RS = [WORD_SERVER_ADMIN, "/", WORD_SRC, "/", WORD_LIB, ".", WORD_RS];
-        pub SERVER_ADMIN_SRC_PASSWORD_RS = [WORD_SERVER_ADMIN, "/", WORD_SRC, "/", WORD_PASSWORD, ".", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_APP_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_APP, ".", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_SHARED_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_SHARED, ".", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_UI = ["../", WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/ui"];
-        pub SERVER_ADMIN_FRONTEND_SRC_APP_FORMS_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_APP, "/forms.", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_APP_PAGES_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_APP, "/pages.", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_APP_TABLES_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_APP, "/tables.", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_APP_DATA_GRID_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_APP, "/data_grid.", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_APP_NAVIGATION_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_APP, "/navigation.", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_APP_PAGINATION_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_APP, "/pagination.", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_APP_PERMISSIONS_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_APP, "/", WORD_PERMISSIONS_2, ".", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_APP_PROFILE_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_APP, "/profile.", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_APP_PROFILE_ACCOUNT_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_APP, "/profile/account.", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_APP_PROFILE_PASSWORD_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_APP, "/profile/password.", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_APP_ROLES_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_APP, "/roles.", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_APP_ROLES_ROW_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_APP, "/roles/row.", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_APP_SESSIONS_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_APP, "/", WORD_SESSIONS, ".", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_APP_SETTINGS_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_APP, "/", WORD_SETTINGS_2, ".", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_APP_SHELL_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_APP, "/shell.", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_APP_USERS_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_APP, "/users.", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_APP_USERS_ROW_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_APP, "/users/row.", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_SHARED_ADMIN_TABLE_CELLS_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_SHARED, "/admin_table_cells.", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_SHARED_DATA_GRID_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_SHARED, "/data_grid.", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_SHARED_DATA_GRID_COLUMN_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_SHARED, "/data_grid/column.", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_SHARED_DATA_GRID_COLUMN_FILTER_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_SHARED, "/data_grid/column/filter.", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_SHARED_DATA_GRID_COLUMN_FILTER_OPTION_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_SHARED, "/data_grid/column/filter/option.", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_SHARED_DATA_GRID_COLUMN_FILTER_OPTION_RANGE_END_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_SHARED, "/data_grid/column/filter/option/range_end.", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_SHARED_DATA_GRID_COLUMN_FILTER_OPTION_VALUE_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_SHARED, "/data_grid/column/filter/option/value.", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_SHARED_DATA_GRID_ROW_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_SHARED, "/data_grid/row.", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_SHARED_SETTINGS_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_SHARED, "/", WORD_SETTINGS_2, ".", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_SHARED_SETTINGS_INPUT_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_SHARED, "/", WORD_SETTINGS_2, "/input.", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_SHARED_SETTINGS_INPUT_TEXT_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_SHARED, "/", WORD_SETTINGS_2, "/input/text.", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_SHARED_SETTINGS_INPUT_TEXTAREA_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_SHARED, "/", WORD_SETTINGS_2, "/input/textarea.", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_SHARED_TABLE_FILTERS_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_SHARED, "/table_filters.", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_SHARED_TABLE_FILTERS_FILTER_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_SHARED, "/table_filters/filter.", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_SHARED_TABLE_FILTERS_QUERY_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_SHARED, "/table_filters/query.", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_SSR_ROLES_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/ssr/roles.", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_SSR_ROLES_ROW_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/ssr/roles/row.", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_SSR_DATA_TABLES_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/ssr/data_tables.", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_SSR_DATA_TABLES_CSR_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/ssr/data_tables/csr.", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_SSR_DATA_TABLES_SSR_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/ssr/data_tables/ssr.", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_SSR_DOCUMENT_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/ssr/document.", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_SSR_DOCUMENT_PAGE_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/ssr/document/page.", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_SSR_DOCUMENT_PAGE_NAVIGATION_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/ssr/document/page/navigation.", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_SSR_DOCUMENT_SIGN_IN_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/ssr/document/sign_in.", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_SSR_CRUD_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/ssr/crud.", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_SSR_PERMISSIONS_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/ssr/", WORD_PERMISSIONS_2, ".", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_SSR_PROFILE_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/ssr/profile.", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_SSR_SESSIONS_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/ssr/", WORD_SESSIONS, ".", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_SSR_SETTINGS_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/ssr/", WORD_SETTINGS_2, ".", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_SSR_TABLE_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/ssr/table.", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_SSR_TEXT_PAGE_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/ssr/text_page.", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_SSR_USERS_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/ssr/users.", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_SSR_USERS_ROW_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/ssr/users/row.", WORD_RS];
-        pub SERVER_ADMIN_FRONTEND_SRC_LIB_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_LIB, ".", WORD_RS];
-        pub SERVER_RUNTIME_SRC_BOUNDED_READ_RS = ["server_runtime_http", "/", WORD_SRC, "/bounded_read.", WORD_RS];
+        pub SERVER_SRC_APPLICATION_RS = [WORD_SERVER, "/", WORD_SRC, "/", WORD_APPLICATION, ".", WORD_RS];
+        pub SERVER_ADMIN_SRC_LIB_RS = [WORD_SERVER_ADMIN, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, ".", WORD_RS];
+        pub SERVER_ADMIN_SRC_PASSWORD_RS = [WORD_SERVER_ADMIN, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/", WORD_PASSWORD, ".", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_APP_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/", WORD_APP, ".", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SHARED_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/", WORD_SHARED, ".", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_UI = ["../", WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/ui"];
+        pub SERVER_ADMIN_FRONTEND_SRC_APP_FORMS_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/", WORD_APP, "/forms.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_APP_PAGES_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/", WORD_APP, "/pages.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_APP_TABLES_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/", WORD_APP, "/tables.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_APP_DATA_GRID_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/", WORD_APP, "/data_grid.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_APP_NAVIGATION_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/", WORD_APP, "/navigation.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_APP_PAGINATION_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/", WORD_APP, "/pagination.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_APP_PERMISSIONS_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/", WORD_APP, "/", WORD_PERMISSIONS_2, ".", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_APP_PROFILE_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/", WORD_APP, "/profile.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_APP_PROFILE_ACCOUNT_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/", WORD_APP, "/profile/account.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_APP_PROFILE_PASSWORD_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/", WORD_APP, "/profile/password.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_APP_ROLES_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/", WORD_APP, "/roles.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_APP_ROLES_ROW_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/", WORD_APP, "/roles/row.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_APP_SESSIONS_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/", WORD_APP, "/", WORD_SESSIONS, ".", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_APP_SETTINGS_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/", WORD_APP, "/", WORD_SETTINGS_2, ".", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_APP_SHELL_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/", WORD_APP, "/shell.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_APP_USERS_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/", WORD_APP, "/users.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_APP_USERS_ROW_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/", WORD_APP, "/users/row.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SHARED_ADMIN_TABLE_CELLS_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/", WORD_SHARED, "/admin_table_cells.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SHARED_DATA_GRID_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/", WORD_SHARED, "/data_grid.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SHARED_DATA_GRID_COLUMN_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/", WORD_SHARED, "/data_grid/column.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SHARED_DATA_GRID_COLUMN_FILTER_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/", WORD_SHARED, "/data_grid/column/filter.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SHARED_DATA_GRID_COLUMN_FILTER_OPTION_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/", WORD_SHARED, "/data_grid/column/filter/option.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SHARED_DATA_GRID_COLUMN_FILTER_OPTION_RANGE_END_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/", WORD_SHARED, "/data_grid/column/filter/option/range_end.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SHARED_DATA_GRID_COLUMN_FILTER_OPTION_VALUE_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/", WORD_SHARED, "/data_grid/column/filter/option/value.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SHARED_DATA_GRID_ROW_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/", WORD_SHARED, "/data_grid/row.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SHARED_SETTINGS_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/", WORD_SHARED, "/", WORD_SETTINGS_2, ".", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SHARED_SETTINGS_INPUT_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/", WORD_SHARED, "/", WORD_SETTINGS_2, "/input.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SHARED_SETTINGS_INPUT_TEXT_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/", WORD_SHARED, "/", WORD_SETTINGS_2, "/input/text.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SHARED_SETTINGS_INPUT_TEXTAREA_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/", WORD_SHARED, "/", WORD_SETTINGS_2, "/input/textarea.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SHARED_TABLE_FILTERS_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/", WORD_SHARED, "/table_filters.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SHARED_TABLE_FILTERS_FILTER_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/", WORD_SHARED, "/table_filters/filter.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SHARED_TABLE_FILTERS_QUERY_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/", WORD_SHARED, "/table_filters/query.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SSR_ROLES_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/ssr/roles.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SSR_ROLES_ROW_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/ssr/roles/row.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SSR_DATA_TABLES_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/ssr/data_tables.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SSR_DATA_TABLES_CSR_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/ssr/data_tables/csr.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SSR_DATA_TABLES_SSR_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/ssr/data_tables/ssr.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SSR_DOCUMENT_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/ssr/document.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SSR_DOCUMENT_PAGE_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/ssr/document/page.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SSR_DOCUMENT_PAGE_NAVIGATION_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/ssr/document/page/navigation.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SSR_DOCUMENT_SIGN_IN_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/ssr/document/sign_in.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SSR_CRUD_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/ssr/crud.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SSR_PERMISSIONS_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/ssr/", WORD_PERMISSIONS_2, ".", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SSR_PROFILE_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/ssr/profile.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SSR_SESSIONS_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/ssr/", WORD_SESSIONS, ".", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SSR_SETTINGS_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/ssr/", WORD_SETTINGS_2, ".", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SSR_TABLE_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/ssr/table.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SSR_TEXT_PAGE_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/ssr/text_page.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SSR_USERS_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/ssr/users.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SSR_USERS_ROW_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/ssr/users/row.", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_LIB_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, ".", WORD_RS];
+        pub SERVER_RUNTIME_SRC_BOUNDED_READ_RS = ["server_runtime_http", "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/bounded_read.", WORD_RS];
         pub SERVER_RUNTIME_SRC_HEALTH_RS = [WORD_SERVER_RUNTIME, "/", WORD_SRC, "/", WORD_HEALTH, ".", WORD_RS];
         pub SERVER_RUNTIME_SRC_LIB_RS = [WORD_SERVER_RUNTIME, "/", WORD_SRC, "/", WORD_LIB, ".", WORD_RS];
         pub SERVICE = [WORD_SERVICE];
@@ -3621,20 +3624,20 @@ pub const CODE_STYLE_REVIEWED_PUBLIC_FIELD_SETS: &[&[&str]] = &[
     ],
 ];
 pub const CODE_STYLE_REVIEWED_PUBLIC_FIELD_PATH_SUFFIXES: [&str; 14] = [
-    "location_lib/src/location.rs",
-    "location_lib/src/location.rs",
-    "macros_helpers/src/syn_field.rs",
+    "location_lib/src/domain_types.rs",
+    "location_lib/src/domain_types.rs",
+    "macros_helpers/src/domain_types/syn_field.rs",
     "server_app_state/src/domain_types.rs",
-    "pg_crud_common/src/lib.rs",
-    "pg_crud_common/src/lib.rs",
-    "pg_crud_common/src/query_pagination.rs",
-    "pg_crud_common/src/query_collections.rs",
+    "pg_crud_common/src/domain_types.rs",
+    "pg_crud_common/src/domain_types.rs",
+    "pg_crud_common/src/domain_types/query_pagination.rs",
+    "pg_crud_common/src/domain_types/query_collections.rs",
     "server_config/src/domain_types.rs",
-    "server_admin/src/generated_tables.rs",
-    "server_admin/src/generated_tables.rs",
-    "server_admin/src/generated_tables.rs",
-    "server_admin/src/generated_tables.rs",
-    "server_admin/src/generated_tables.rs",
+    "server_admin/src/domain_types/generated_tables.rs",
+    "server_admin/src/domain_types/generated_tables.rs",
+    "server_admin/src/domain_types/generated_tables.rs",
+    "server_admin/src/domain_types/generated_tables.rs",
+    "server_admin/src/domain_types/generated_tables.rs",
 ];
 pub const CODE_STYLE_REVIEWED_PUBLIC_FIELD_REASONS: [&str; 14] = [
     "location proc-macro output exposes occurrence coordinates as its public data contract",
@@ -3668,29 +3671,37 @@ pub const CODE_STYLE_REVIEWED_PUBLIC_FIELD_STRUCT_NAMES: [&str; 14] = [
     "AdminPermissions",
     "AdminSystemSettings",
 ];
-pub const CODE_STYLE_DIRECT_FS_OWNER_SUFFIXES: [&str; 11] = [
-    "/config_lib/src/lib.rs",
-    "/config_lib/src/types.rs",
+pub const CODE_STYLE_DIRECT_FS_OWNER_SUFFIXES: [&str; 15] = [
+    "/config_lib/src/domain_types.rs",
+    "/config_lib/src/domain_types/types.rs",
+    "/file_storage/src/adapters.rs",
     "/file_storage/src/domain_types.rs",
-    "/initialize_environment_files/src/main.rs",
+    "/initialize_environment_files/src/domain_types.rs",
+    "/initialize_environment_files/src/adapters.rs",
+    "/initialize_environment_files/src/application.rs",
     CODE_STYLE_MACRO_CLIPPY_FS_OWNER_SUFFIX,
     CODE_STYLE_MACROS_HLP_TEST_FS_OWNER_SUFFIX,
     CODE_STYLE_MACROS_HLP_WRITE_STRING_FS_OWNER_SUFFIX,
-    "/macros_helpers/src/write_token_stream_into_file.rs",
-    "/admin_bootstrap/src/main.rs",
+    "/macros_helpers/src/domain_types/write_token_stream_into_file.rs",
+    "/admin_bootstrap/src/application.rs",
+    "/workspace_scaffold/src/application.rs",
     CODE_STYLE_WORKSPACE_SCAFFOLD_FS_OWNER_SUFFIX,
     CODE_STYLE_WORKSPACE_SCAFFOLD_TEMPLATE_FS_OWNER_SUFFIX,
 ];
-pub const CODE_STYLE_DIRECT_FS_OWNER_REASONS: [&str; 11] = [
+pub const CODE_STYLE_DIRECT_FS_OWNER_REASONS: [&str; 15] = [
     "configuration loader owns process environment and configuration file access",
     "configuration domain types own environment-backed initialization",
-    "file storage owns persisted file lifecycle operations",
-    "environment initializer owns workspace manifest and environment file generation",
+    "file storage adapter owns persisted file lifecycle operations",
+    "file storage domain unit tests exercise persistence behavior with temporary directories",
+    "environment initializer domain unit tests own temporary filesystem fixtures",
+    "environment initializer adapter owns bounded reads and environment file writes",
+    "environment initializer application owns command-line mode selection",
     "macro Clippy fixture builder owns temporary crate filesystem operations",
     "macro helper test fixture owns deterministic temporary file assertions",
     "generated string writer owns generated source file comparison and updates",
     "token stream writer owns rustfmt execution for generated source files",
     "administrator bootstrap command owns its bounded command-line input",
+    "workspace scaffold application owns command-line parsing and dispatch",
     "workspace scaffold command owns generated projection and catalog writes",
     "workspace scaffold template filesystem module owns bounded template traversal and copying",
 ];
@@ -3703,9 +3714,10 @@ pub const CODE_STYLE_PG_CRUD_COMMON_BENCHES_REASON: &str =
     "benchmark-only boundaries are outside the production domain API";
 pub const CODE_STYLE_LEPTOS_CRATE: &str = "leptos";
 pub const CODE_STYLE_MACRO_CLIPPY_FS_OWNER_SUFFIX: &str = "/macro_clippy_check_common/src/lib.rs";
-pub const CODE_STYLE_MACROS_HLP_TEST_FS_OWNER_SUFFIX: &str = "/macros_helpers/src/test_hlp.rs";
+pub const CODE_STYLE_MACROS_HLP_TEST_FS_OWNER_SUFFIX: &str =
+    "/macros_helpers/src/domain_types/test_hlp.rs";
 pub const CODE_STYLE_MACROS_HLP_WRITE_STRING_FS_OWNER_SUFFIX: &str =
-    "/macros_helpers/src/write_string_into_file.rs";
+    "/macros_helpers/src/domain_types/write_string_into_file.rs";
 pub const CODE_STYLE_PRELUDE_MODULE: &str = "prelude";
 pub const CODE_STYLE_TEST_CRATE_NAMES: [&str; 6] = [
     SHARED_VALUES_GENERATE_PG_TABLE_TEST,
@@ -3725,10 +3737,12 @@ pub const CODE_STYLE_TEST_CRATE_REASONS: [&str; 6] = [
 ];
 pub const CODE_STYLE_TESTS_SRC_ROOT: &str = "../tests/src";
 pub const CODE_STYLE_UNBOUNDED_READ_OWNER_SUFFIXES: [&str; 0] = [];
-pub const CODE_STYLE_WORKSPACE_SCAFFOLD_FS_OWNER_SUFFIX: &str = "/workspace_scaffold/src/main.rs";
+pub const CODE_STYLE_WORKSPACE_SCAFFOLD_FS_OWNER_SUFFIX: &str =
+    "/workspace_scaffold/src/domain_types.rs";
 pub const CODE_STYLE_WORKSPACE_SCAFFOLD_TEMPLATE_FS_OWNER_SUFFIX: &str =
-    "/workspace_scaffold/src/template_fs.rs";
-pub const CODE_STYLE_ROUTE_VALIDATORS_TEST_HLP_SUFFIX: &str = "/route_validators/src/test_hlp.rs";
+    "/workspace_scaffold/src/adapters/template_fs.rs";
+pub const CODE_STYLE_ROUTE_VALIDATORS_TEST_HLP_SUFFIX: &str =
+    "/route_validators/src/domain_types/test_hlp.rs";
 pub const CODE_STYLE_RUNTIME_TEST_HELPER_SUFFIXES: [&str; 2] = [
     CODE_STYLE_MACROS_HLP_TEST_FS_OWNER_SUFFIX,
     CODE_STYLE_ROUTE_VALIDATORS_TEST_HLP_SUFFIX,
@@ -3738,9 +3752,9 @@ pub const CODE_STYLE_RUNTIME_TEST_HELPER_REASONS: [&str; 2] = [
     "route validator test fixtures intentionally panic on invalid local test setup",
 ];
 pub const CODE_STYLE_RUNTIME_ARC_OWNER_SUFFIXES: [&str; 6] = [
-    "notification_service/src/routes.rs",
-    "server/src/bootstrap.rs",
-    SERVER_SRC_MAIN_RS,
+    "notification_service/src/adapters/routes.rs",
+    "server/src/adapters/bootstrap.rs",
+    SERVER_SRC_APPLICATION_RS,
     SERVER_ADMIN_SRC_PASSWORD_RS,
     SERVER_RUNTIME_SRC_BOUNDED_READ_RS,
     SERVER_RUNTIME_SRC_LIMITS_RS,
@@ -3753,26 +3767,24 @@ pub const CODE_STYLE_RUNTIME_ARC_OWNER_REASONS: [&str; 6] = [
     "bounded reads share a Tokio semaphore across asynchronous readers",
     "runtime limits share immutable concurrency budgets across tasks",
 ];
-pub const CODE_STYLE_FACADE_REEXPORT_SUFFIXES: [&str; 13] = [
+pub const CODE_STYLE_FACADE_REEXPORT_SUFFIXES: [&str; 12] = [
     "bounded_types/src/lib.rs",
-    "config_lib/src/lib.rs",
+    "config_lib/src/domain_types.rs",
     FRONTEND_CONTRACT_SRC_LIB_RS,
-    "frontend_contract_validation/src/lib.rs",
     PG_CRUD_PG_CRUD_COMMON_SRC_LIB_RS,
     PG_CRUD_PG_TABLE_GENERATE_PG_TABLE_SRC_SRC_LIB_RS,
     PG_CRUD_PG_TYPES_GENERATE_PG_TYPES_SRC_SRC_LIB_RS,
     PG_CRUD_WHERE_FILTERS_GENERATE_WHERE_FILTERS_SRC_SRC_LIB_RS,
-    "server_admin_contract/src/lib.rs",
+    "server_admin_contract/src/domain_types.rs",
     SERVER_ADMIN_SRC_LIB_RS,
     "server_observability/src/lib.rs",
-    "server_runtime_core/src/lib.rs",
-    "server_runtime_http/src/lib.rs",
+    "server_runtime_core/src/domain_types.rs",
+    "server_runtime_http/src/domain_types.rs",
 ];
-pub const CODE_STYLE_FACADE_REEXPORT_REASONS: [&str; 13] = [
+pub const CODE_STYLE_FACADE_REEXPORT_REASONS: [&str; 12] = [
     "bounded types facade exports validated string and collection families",
-    "configuration facade preserves its public typed configuration API",
+    "configuration domain facade exports its public typed configuration API",
     "frontend contract facade exports its public transport API",
-    "frontend contract validation facade exports validation entrypoints",
     "PG CRUD common facade exports shared domain primitives",
     "PG table generator facade exports source pipeline entrypoints",
     "PG types generator facade exports source pipeline entrypoints",
@@ -3828,19 +3840,19 @@ pub const CODE_STYLE_LEPTOS_PRELUDE_SUFFIXES: [&str; 58] = [
     SERVER_ADMIN_FRONTEND_SRC_SSR_TEXT_PAGE_RS,
     SERVER_ADMIN_FRONTEND_SRC_SSR_USERS_RS,
     SERVER_ADMIN_FRONTEND_SRC_SSR_USERS_ROW_RS,
-    "server_admin_frontend/src/ui/alert.rs",
-    "server_admin_frontend/src/ui/alert_dialog.rs",
-    "server_admin_frontend/src/ui/badge.rs",
-    "server_admin_frontend/src/ui/button.rs",
-    "server_admin_frontend/src/ui/card.rs",
-    "server_admin_frontend/src/ui/checkbox.rs",
-    "server_admin_frontend/src/ui/empty.rs",
-    "server_admin_frontend/src/ui/field.rs",
-    "server_admin_frontend/src/ui/input.rs",
-    "server_admin_frontend/src/ui/navigation.rs",
-    "server_admin_frontend/src/ui/spinner.rs",
-    "server_admin_frontend/src/ui/table.rs",
-    "server_admin_frontend/src/ui/textarea.rs",
+    "server_admin_frontend/src/domain_types/ui/alert.rs",
+    "server_admin_frontend/src/domain_types/ui/alert_dialog.rs",
+    "server_admin_frontend/src/domain_types/ui/badge.rs",
+    "server_admin_frontend/src/domain_types/ui/button.rs",
+    "server_admin_frontend/src/domain_types/ui/card.rs",
+    "server_admin_frontend/src/domain_types/ui/checkbox.rs",
+    "server_admin_frontend/src/domain_types/ui/empty.rs",
+    "server_admin_frontend/src/domain_types/ui/field.rs",
+    "server_admin_frontend/src/domain_types/ui/input.rs",
+    "server_admin_frontend/src/domain_types/ui/navigation.rs",
+    "server_admin_frontend/src/domain_types/ui/spinner.rs",
+    "server_admin_frontend/src/domain_types/ui/table.rs",
+    "server_admin_frontend/src/domain_types/ui/textarea.rs",
     SSR_SOURCE_PATH,
 ];
 pub const CODE_STYLE_LEPTOS_PRELUDE_REASONS: [&str; 58] = [
@@ -4309,7 +4321,7 @@ pub const VALUE_5DC81FA2: &str = "5dc81fa2";
 pub const VALUE_4792B3E0: &str = "4792b3e0";
 pub const TEST_BOUNDED_UNIQUE_VEC_DUPLICATE_THEN_INVALID: &str = "[1,1,999]";
 pub const TEST_BOUNDED_UNIQUE_VEC_EXCESS_INVALID: &str = "[1,999]";
-pub const SERVER_RUNTIME_SRC_LIMITS_RS: &str = "server_runtime_http/src/limits.rs";
+pub const SERVER_RUNTIME_SRC_LIMITS_RS: &str = "server_runtime_http/src/domain_types/limits.rs";
 pub const TEST_SQL_LIKE_INPUT: &str = "alpha";
 pub const TEST_SQL_LIKE_CONTAINS_PATTERN: &str = "%alpha%";
 pub const TEST_SQL_LIKE_STARTS_WITH_PATTERN: &str = "alpha%";
@@ -4609,7 +4621,7 @@ pub const PG_SQLSTATE_PREFIX: &str = "PG_SQLSTATE_";
 pub const PG_SQLSTATE_SERIALIZATION_FAILURE: &str = "40001";
 pub const PG_SQLSTATE_STRING_DATA_RIGHT_TRUNCATION: &str = "22001";
 pub const PG_SQLSTATE_UNIQUE_VIOLATION: &str = "23505";
-pub const PG_CRUD_COMMON_SRC_PG_ERROR_RS: &str = "pg_crud_common/src/pg_error.rs";
+pub const PG_CRUD_COMMON_SRC_PG_ERROR_RS: &str = "pg_crud_common/src/domain_types/pg_error.rs";
 pub const NEWTYPE_TRY_FROM: &str = "try_from";
 pub const NEWTYPE_FROM_INNER_DERIVE_NAME: &str = "FromInner";
 pub const NEWTYPE_TRY_FROM_DERIVE_NAME: &str = "TryFrom";
@@ -4747,7 +4759,7 @@ pub const HTTP_ERROR_WITHOUT_DIAGNOSTIC_CONTEXT: &str =
 pub const HTTP_ERROR_CHAIN_SEPARATOR: &str = ": ";
 pub const HTTP_REQUEST_FAILED: &str = "http request failed";
 pub const HTTP_SPAN_UNAVAILABLE: &str = "current tracing span is unavailable";
-pub const ADMIN_API_ERROR_TYPE: &str = "server_admin::operation_error";
+pub const ADMIN_API_ERROR_TYPE: &str = "server_admin::domain_types::operation_error";
 pub const NOTIFICATION_API_ERROR_TYPE: &str = "notification_service::operation_error";
 pub const X_REQUEST_ID: &str = "x-request-id";
 pub const TRACEPARENT_W3C_VERSION_00_FORMAT: &str =
@@ -4810,7 +4822,7 @@ pub const NO_COMPLETED_CLEANUP_RECORDED: &str = "No completed cleanup recorded";
 pub const SIGN_IN_FAILED: &str = "Sign in failed";
 pub const OPENAPI_DOCUMENT: &str = "OpenAPI document";
 pub const COMMA_SPACE: &str = ", ";
-pub const SSR_SOURCE_PATH: &str = "server_admin_frontend/src/ssr.rs";
+pub const SSR_SOURCE_PATH: &str = "server_admin_frontend/src/domain_types/ssr.rs";
 pub const APPLICATION_X_WWW_FORM_URLENCODED: &str = "application/x-www-form-urlencoded";
 pub const CODE_STYLE_FROM_FN_IDENTIFIER: &str = "from";
 pub const CODE_STYLE_FROM_TRAIT_IDENTIFIER: &str = "From";

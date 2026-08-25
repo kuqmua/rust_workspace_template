@@ -10,19 +10,24 @@ libfuzzer_sys::fuzz_target!(|data: &[u8]| {
         };
         let key_len = usize::from(*key_len_byte).min(remaining.len()).min(64usize);
         let (key_bytes, cursor_bytes) = remaining.split_at(key_len);
-        let Ok(key) = pg_crud_common::CursorSigningKey::try_from(key_bytes.to_vec()) else {
+        let Ok(key) = pg_crud_common::domain_types::CursorSigningKey::try_from(key_bytes.to_vec())
+        else {
             return;
         };
-        let Ok(maximum_length) = pg_crud_common::CursorMaximumLength::try_from(4_096usize) else {
+        let Ok(maximum_length) =
+            pg_crud_common::domain_types::CursorMaximumLength::try_from(4_096usize)
+        else {
             return;
         };
         let Ok(cursor_text) = std::str::from_utf8(cursor_bytes) else {
             return;
         };
-        let Ok(cursor) = pg_crud_common::SignedCursor::try_from(cursor_text.to_owned()) else {
+        let Ok(cursor) =
+            pg_crud_common::domain_types::SignedCursor::try_from(cursor_text.to_owned())
+        else {
             return;
         };
-        let codec = pg_crud_common::CursorCodec::new(key, maximum_length);
+        let codec = pg_crud_common::domain_types::CursorCodec::new(key, maximum_length);
         drop(codec.decode(&cursor));
         return;
     }
@@ -38,11 +43,13 @@ libfuzzer_sys::fuzz_target!(|data: &[u8]| {
                 value,
             )),
         ),
-        2u8 => drop(pg_crud_common::CursorPayload::try_from(value)),
-        3u8 => drop(pg_crud_common::SignedCursor::try_from(value)),
-        4u8 => drop(pg_crud_common::SqlIdentifier::try_from(value)),
-        5u8 => drop(server_runtime_http::HttpTraceParent::try_from(value)),
-        6u8 => drop(server_runtime_http::HttpTraceState::try_from(value)),
+        2u8 => drop(pg_crud_common::domain_types::CursorPayload::try_from(value)),
+        3u8 => drop(pg_crud_common::domain_types::SignedCursor::try_from(value)),
+        4u8 => drop(pg_crud_common::domain_types::SqlIdentifier::try_from(value)),
+        5u8 => drop(server_runtime_http::domain_types::HttpTraceParent::try_from(value)),
+        6u8 => drop(server_runtime_http::domain_types::HttpTraceState::try_from(
+            value,
+        )),
         _ => {}
     }
 });

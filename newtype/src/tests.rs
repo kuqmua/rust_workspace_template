@@ -5,8 +5,9 @@ fn bounded_string_missing_max_returns_compile_error() {
         #[bounded_string(min = 1)]
         struct Value(String);
     };
-    let result =
-        super::generate_bounded_string_token_stream(super::SynDeriveInputRef::from(&input));
+    let result = super::generate_bounded_string_token_stream(
+        super::domain_types::SynDeriveInputRef::from(&input),
+    );
     assert!(result.is_err(), "29f8ddc2");
     if let Err(error) = result {
         assert_eq!(
@@ -22,8 +23,9 @@ fn bounded_string_utoipa_byte_length_returns_compile_error() {
         #[bounded_string(max = 4, utoipa)]
         struct Value(String);
     };
-    let result =
-        super::generate_bounded_string_token_stream(super::SynDeriveInputRef::from(&input));
+    let result = super::generate_bounded_string_token_stream(
+        super::domain_types::SynDeriveInputRef::from(&input),
+    );
     assert!(result.is_err(), "da6f2151");
     if let Err(error) = result {
         assert_eq!(
@@ -39,8 +41,9 @@ fn duplicate_options_preserve_attribute_diagnostic() {
         #[bounded_string(max = 4, trim, trim)]
         struct BoundedValue(String);
     };
-    let bounded_result =
-        super::generate_bounded_string_token_stream(super::SynDeriveInputRef::from(&bounded_input));
+    let bounded_result = super::generate_bounded_string_token_stream(
+        super::domain_types::SynDeriveInputRef::from(&bounded_input),
+    );
     if let Err(error) = bounded_result {
         assert_eq!(error.to_string(), "duplicate bounded_string option");
     } else {

@@ -138,12 +138,12 @@ impl ReqwestRuntimeTestClient {
     pub(crate) fn send_get(
         &self,
         url: &RuntimeTestUrl,
-    ) -> Result<ReqwestRuntimeTestResponse, server_runtime_http::ReqwestError> {
+    ) -> Result<ReqwestRuntimeTestResponse, server_runtime_http::domain_types::ReqwestError> {
         self.0
             .get(url.0.as_str())
             .send()
             .map(ReqwestRuntimeTestResponse::from)
-            .map_err(server_runtime_http::ReqwestError::from)
+            .map_err(server_runtime_http::domain_types::ReqwestError::from)
     }
 
     #[allow(
@@ -154,13 +154,13 @@ impl ReqwestRuntimeTestClient {
         &self,
         url: &RuntimeTestUrl,
         request: &notification_service_contract::domain_types::CreateNotificationReq,
-    ) -> Result<ReqwestRuntimeTestResponse, server_runtime_http::ReqwestError> {
+    ) -> Result<ReqwestRuntimeTestResponse, server_runtime_http::domain_types::ReqwestError> {
         self.0
             .post(url.0.as_str())
             .json(request)
             .send()
             .map(ReqwestRuntimeTestResponse::from)
-            .map_err(server_runtime_http::ReqwestError::from)
+            .map_err(server_runtime_http::domain_types::ReqwestError::from)
     }
 }
 
@@ -174,10 +174,13 @@ impl ReqwestRuntimeTestResponse {
     )]
     pub(crate) fn into_health_report(
         self,
-    ) -> Result<common_routes::HealthReport, server_runtime_http::ReqwestError> {
+    ) -> Result<
+        common_routes::domain_types::HealthReport,
+        server_runtime_http::domain_types::ReqwestError,
+    > {
         self.0
-            .json::<common_routes::HealthReport>()
-            .map_err(server_runtime_http::ReqwestError::from)
+            .json::<common_routes::domain_types::HealthReport>()
+            .map_err(server_runtime_http::domain_types::ReqwestError::from)
     }
 
     #[allow(
@@ -188,11 +191,11 @@ impl ReqwestRuntimeTestResponse {
         self,
     ) -> Result<
         notification_service_contract::domain_types::CreateNotificationRes,
-        server_runtime_http::ReqwestError,
+        server_runtime_http::domain_types::ReqwestError,
     > {
         self.0
             .json::<notification_service_contract::domain_types::CreateNotificationRes>()
-            .map_err(server_runtime_http::ReqwestError::from)
+            .map_err(server_runtime_http::domain_types::ReqwestError::from)
     }
 
     #[must_use]
@@ -223,7 +226,7 @@ pub enum RuntimeTestError {
     #[error("runtime service URL is invalid: {0}")]
     BaseUrl(#[from] ServiceBaseUrlError),
     #[error("runtime HTTP client could not be built: {0}")]
-    Client(#[source] server_runtime_http::ReqwestError),
+    Client(#[source] server_runtime_http::domain_types::ReqwestError),
     #[error("runtime notification test message is invalid: {0}")]
     NotificationMessage(
         #[source]
@@ -234,13 +237,13 @@ pub enum RuntimeTestError {
     #[error("{test} request failed: {source}")]
     Request {
         #[source]
-        source: server_runtime_http::ReqwestError,
+        source: server_runtime_http::domain_types::ReqwestError,
         test: RuntimeTestKind,
     },
     #[error("{test} response could not be decoded: {source}")]
     Response {
         #[source]
-        source: server_runtime_http::ReqwestError,
+        source: server_runtime_http::domain_types::ReqwestError,
         test: RuntimeTestKind,
     },
     #[error("{test} returned HTTP {actual}; expected {expected}")]

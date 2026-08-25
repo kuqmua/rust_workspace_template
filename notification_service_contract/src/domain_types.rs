@@ -82,21 +82,25 @@ pub struct NotificationMessage(String);
 pub struct UuidNotificationId(uuid::Uuid);
 
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, frontend_contract::TypedRoute,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    frontend_contract::domain_types::TypedRoute,
 )]
 #[typed_route(
-    authentication = frontend_contract::AuthenticationRequirement::Public,
-    error_policy = frontend_contract::RouteErrorPolicy::Default,
-    method = frontend_contract::RouteMethod::Post,
-    mutation = frontend_contract::RouteMutation::Mutating,
-    obligations = frontend_contract::PUBLIC_MUTATING_ROUTE_COVERAGE_OBLIGATIONS,
+    authentication = frontend_contract::domain_types::AuthenticationRequirement::Public,
+    error_policy = frontend_contract::domain_types::RouteErrorPolicy::Default,
+    method = frontend_contract::domain_types::RouteMethod::Post,
+    mutation = frontend_contract::domain_types::RouteMutation::Mutating,
+    obligations = frontend_contract::domain_types::PUBLIC_MUTATING_ROUTE_COVERAGE_OBLIGATIONS,
     openapi_operation_id = "create_notification",
     path = "/notifications",
     request = CreateNotificationReq,
-    request_body = frontend_contract::RouteRequestBody::Json,
+    request_body = frontend_contract::domain_types::RouteRequestBody::Json,
     response = CreateNotificationRes,
-    success_status = frontend_contract::SuccessStatus::Code201,
-    transport = frontend_contract::PublicTransport
+    success_status = frontend_contract::domain_types::SuccessStatus::Code201,
+    transport = frontend_contract::domain_types::PublicTransport
 )]
 pub struct CreateNotificationRoute;
 
@@ -107,7 +111,7 @@ pub struct CreateNotificationRoute;
     Debug,
     Eq,
     PartialEq,
-    frontend_contract::RouteCatalog,
+    frontend_contract::domain_types::RouteCatalog,
 )]
 #[route_catalog(
     family = NotificationRouteFamily,
@@ -125,7 +129,7 @@ pub enum NotificationRoute {
     Debug,
     Eq,
     PartialEq,
-    frontend_contract::RouteCatalog,
+    frontend_contract::domain_types::RouteCatalog,
 )]
 #[route_catalog(
     family = NotificationOperationalRouteFamily,
@@ -133,36 +137,36 @@ pub enum NotificationRoute {
 )]
 pub enum NotificationOperationalRoute {
     #[route_catalog_route(
-        contract = frontend_contract::RouteContract::new(
-            frontend_contract::AuthenticationRequirement::Public,
-            frontend_contract::HttpMethod::Get,
-            frontend_contract::MutationKind::ReadOnly,
-            frontend_contract::ContractStr::from("/metrics"),
-            frontend_contract::SuccessStatus::Code200,
+        contract = frontend_contract::domain_types::RouteContract::new(
+            frontend_contract::domain_types::AuthenticationRequirement::Public,
+            frontend_contract::domain_types::HttpMethod::Get,
+            frontend_contract::domain_types::MutationKind::ReadOnly,
+            frontend_contract::domain_types::ContractStr::from("/metrics"),
+            frontend_contract::domain_types::SuccessStatus::Code200,
         ),
         path = "/metrics",
         exclude_from_family,
     )]
     Metrics,
     #[route_catalog_route(
-        contract = frontend_contract::RouteContract::new(
-            frontend_contract::AuthenticationRequirement::Public,
-            frontend_contract::HttpMethod::Get,
-            frontend_contract::MutationKind::ReadOnly,
-            frontend_contract::ContractStr::from("/openapi.json"),
-            frontend_contract::SuccessStatus::Code200,
+        contract = frontend_contract::domain_types::RouteContract::new(
+            frontend_contract::domain_types::AuthenticationRequirement::Public,
+            frontend_contract::domain_types::HttpMethod::Get,
+            frontend_contract::domain_types::MutationKind::ReadOnly,
+            frontend_contract::domain_types::ContractStr::from("/openapi.json"),
+            frontend_contract::domain_types::SuccessStatus::Code200,
         ),
         path = "/openapi.json",
         exclude_from_family,
     )]
     OpenApi,
 }
-impl frontend_contract::HandlerContract for NotificationOperationalRoute {
-    fn method(self) -> frontend_contract::RouteMethod {
-        frontend_contract::RouteMethod::Get
+impl frontend_contract::domain_types::HandlerContract for NotificationOperationalRoute {
+    fn method(self) -> frontend_contract::domain_types::RouteMethod {
+        frontend_contract::domain_types::RouteMethod::Get
     }
-    fn path(self) -> frontend_contract::HandlerPath {
-        frontend_contract::HandlerPath::from(match self {
+    fn path(self) -> frontend_contract::domain_types::HandlerPath {
+        frontend_contract::domain_types::HandlerPath::from(match self {
             Self::Metrics => "/metrics",
             Self::OpenApi => "/openapi.json",
         })
@@ -194,23 +198,25 @@ impl TryFrom<String> for NotificationMessage {
 mod tests {
     #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
     struct ClientTransport;
-    impl frontend_contract::Transport for ClientTransport {
+    impl frontend_contract::domain_types::Transport for ClientTransport {
         fn send(
             &self,
-            _request: frontend_contract::TransportRequest,
+            _request: frontend_contract::domain_types::TransportRequest,
         ) -> impl Future<
             Output = Result<
-                frontend_contract::TransportResponse,
-                frontend_contract::TransportError,
+                frontend_contract::domain_types::TransportResponse,
+                frontend_contract::domain_types::TransportError,
             >,
         > + '_ {
-            std::future::ready(Err(frontend_contract::TransportError::default()))
+            std::future::ready(Err(
+                frontend_contract::domain_types::TransportError::default(),
+            ))
         }
     }
     #[test]
     fn every_notification_route_has_named_route_and_client_functions() {
         assert_eq!(
-            <super::NotificationRouteFamily as frontend_contract::RouteFamily>::ROUTE_COUNT,
+            <super::NotificationRouteFamily as frontend_contract::domain_types::RouteFamily>::ROUTE_COUNT,
             constants_usize::ONE
         );
         assert_eq!(
@@ -222,7 +228,7 @@ mod tests {
             constants_usize::ZERO
         );
         assert_eq!(
-            <super::NotificationOperationalRouteFamily as frontend_contract::RouteFamily>::ROUTE_COUNT,
+            <super::NotificationOperationalRouteFamily as frontend_contract::domain_types::RouteFamily>::ROUTE_COUNT,
             constants_usize::ZERO
         );
         assert_eq!(

@@ -6,12 +6,12 @@ struct Request;
 struct Response;
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct Route;
-impl frontend_contract::TypedRoute for Route {
+impl frontend_contract::domain_types::TypedRoute for Route {
     type Request = Request;
     type Response = Response;
-    type Transport = frontend_contract::PublicTransport;
-    fn metadata() -> frontend_contract::RouteMetadata { frontend_contract::RouteMetadata::new(frontend_contract::RouteMethod::Get, frontend_contract::ContractStr::from(constants_str::PG_CRUD_READ_PERMISSION_ACTION), frontend_contract::ContractStr::from(constants_str::READ)) }
+    type Transport = frontend_contract::domain_types::PublicTransport;
+    fn metadata() -> frontend_contract::domain_types::RouteMetadata { frontend_contract::domain_types::RouteMetadata::new(frontend_contract::domain_types::RouteMethod::Get, frontend_contract::domain_types::ContractStr::from(constants_str::PG_CRUD_READ_PERMISSION_ACTION), frontend_contract::domain_types::ContractStr::from(constants_str::READ)) }
 }
 fn main() {
-    let _request = frontend_contract::client_request::<Route>(Response);
+    let _request = frontend_contract::domain_types::client_request::<Route>(Response);
 }

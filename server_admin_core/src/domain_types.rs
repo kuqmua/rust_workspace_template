@@ -42,7 +42,7 @@ impl secrecy::zeroize::Zeroize for StdAdminString {
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 enum AdminResourceText {
-    PositiveI64(server_admin_contract::PositiveNonZeroI64),
+    PositiveI64(server_admin_contract::domain_types::PositiveNonZeroI64),
     SystemSettings,
     Uuid(UuidAdminValue),
 }
@@ -57,7 +57,9 @@ impl From<AdminResourceText> for StdAdminString {
 }
 impl StdAdminString {
     #[must_use]
-    pub fn from_positive_i64(value: server_admin_contract::PositiveNonZeroI64) -> Self {
+    pub fn from_positive_i64(
+        value: server_admin_contract::domain_types::PositiveNonZeroI64,
+    ) -> Self {
         Self::from(AdminResourceText::PositiveI64(value))
     }
 
@@ -163,11 +165,11 @@ pub struct AdminSocketAddr(std::net::SocketAddr);
     newtype::FromInner,
 )]
 #[serde(try_from = "i64")]
-pub struct AdminUserId(server_admin_contract::PositiveNonZeroI64);
+pub struct AdminUserId(server_admin_contract::domain_types::PositiveNonZeroI64);
 impl TryFrom<i64> for AdminUserId {
     type Error = AdminIdTryFromI64Error;
     fn try_from(value: i64) -> Result<Self, Self::Error> {
-        server_admin_contract::PositiveNonZeroI64::try_from(value)
+        server_admin_contract::domain_types::PositiveNonZeroI64::try_from(value)
             .map(Self)
             .map_err(|_error| AdminIdTryFromI64Error)
     }
@@ -178,7 +180,7 @@ impl AdminUserId {
         self.0.get()
     }
     #[must_use]
-    pub const fn value(self) -> server_admin_contract::PositiveNonZeroI64 {
+    pub const fn value(self) -> server_admin_contract::domain_types::PositiveNonZeroI64 {
         self.0
     }
 }
@@ -198,11 +200,11 @@ impl AdminUserId {
     newtype::FromInner,
 )]
 #[serde(try_from = "i64")]
-pub struct AdminRoleId(server_admin_contract::PositiveNonZeroI64);
+pub struct AdminRoleId(server_admin_contract::domain_types::PositiveNonZeroI64);
 impl TryFrom<i64> for AdminRoleId {
     type Error = AdminIdTryFromI64Error;
     fn try_from(value: i64) -> Result<Self, Self::Error> {
-        server_admin_contract::PositiveNonZeroI64::try_from(value)
+        server_admin_contract::domain_types::PositiveNonZeroI64::try_from(value)
             .map(Self)
             .map_err(|_error| AdminIdTryFromI64Error)
     }
@@ -213,7 +215,7 @@ impl AdminRoleId {
         self.0.get()
     }
     #[must_use]
-    pub const fn value(self) -> server_admin_contract::PositiveNonZeroI64 {
+    pub const fn value(self) -> server_admin_contract::domain_types::PositiveNonZeroI64 {
         self.0
     }
 }
@@ -233,11 +235,11 @@ impl AdminRoleId {
     newtype::FromInner,
 )]
 #[serde(try_from = "i64")]
-pub struct AdminPermissionId(server_admin_contract::PositiveNonZeroI64);
+pub struct AdminPermissionId(server_admin_contract::domain_types::PositiveNonZeroI64);
 impl TryFrom<i64> for AdminPermissionId {
     type Error = AdminIdTryFromI64Error;
     fn try_from(value: i64) -> Result<Self, Self::Error> {
-        server_admin_contract::PositiveNonZeroI64::try_from(value)
+        server_admin_contract::domain_types::PositiveNonZeroI64::try_from(value)
             .map(Self)
             .map_err(|_error| AdminIdTryFromI64Error)
     }
@@ -248,7 +250,7 @@ impl AdminPermissionId {
         self.0.get()
     }
     #[must_use]
-    pub const fn value(self) -> server_admin_contract::PositiveNonZeroI64 {
+    pub const fn value(self) -> server_admin_contract::domain_types::PositiveNonZeroI64 {
         self.0
     }
 }
@@ -263,11 +265,11 @@ impl AdminPermissionId {
     utoipa::ToSchema,
     newtype::FromInner,
 )]
-pub struct AdminAuditLogId(server_admin_contract::PositiveNonZeroI64);
+pub struct AdminAuditLogId(server_admin_contract::domain_types::PositiveNonZeroI64);
 impl TryFrom<i64> for AdminAuditLogId {
     type Error = AdminIdTryFromI64Error;
     fn try_from(value: i64) -> Result<Self, Self::Error> {
-        server_admin_contract::PositiveNonZeroI64::try_from(value)
+        server_admin_contract::domain_types::PositiveNonZeroI64::try_from(value)
             .map(Self)
             .map_err(|_error| AdminIdTryFromI64Error)
     }
@@ -278,7 +280,7 @@ impl AdminAuditLogId {
         self.0.get()
     }
     #[must_use]
-    pub const fn value(self) -> server_admin_contract::PositiveNonZeroI64 {
+    pub const fn value(self) -> server_admin_contract::domain_types::PositiveNonZeroI64 {
         self.0
     }
 }
@@ -296,7 +298,7 @@ pub struct AdminIdTryFromI64Error;
     Eq,
     newtype::FromInner,
 )]
-pub struct AdminPermissionName(server_admin_contract::AdminPermission);
+pub struct AdminPermissionName(server_admin_contract::domain_types::AdminPermission);
 
 #[cfg(test)]
 mod tests {
@@ -335,7 +337,7 @@ mod tests {
     }
     #[test]
     fn administrator_resource_values_are_stable() {
-        let positive = server_admin_contract::PositiveNonZeroI64::try_from(42i64)
+        let positive = server_admin_contract::domain_types::PositiveNonZeroI64::try_from(42i64)
             .expect("2570af3b administrator_resource_values_are_stable invariant must hold");
         assert_eq!(
             super::StdAdminString::from_positive_i64(positive).as_ref(),

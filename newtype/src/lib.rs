@@ -1,4 +1,5 @@
-const SNAKE_IDENT_MAX_LEN: usize = 1_048_576;
+mod domain_types;
+
 #[cfg(test)]
 #[allow(dead_code)] // dev dependencies are exercised by integration tests, not proc-macro unit code
 fn dependency_markers<Value>(
@@ -9,300 +10,20 @@ fn dependency_markers<Value>(
     Value: serde::Serialize,
 {
 }
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Default)]
-#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
-struct NewtypeAttrs {
-    options: workspace_macro_helpers::UniqueOptionBTreeSet<NewtypeOption>,
-    try_from: Option<NewtypeTryFromAttrs>,
-    to_err_string_mode: Option<ToErrStringMode>,
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
-struct NewtypeTryFromAttrs {
-    error: Option<SynType>,
-    validator: SynExpr,
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-struct BoundedStringAttrs {
-    description: Option<SynExpr>,
-    max: Option<SynExpr>,
-    min: Option<SynExpr>,
-    options: workspace_macro_helpers::UniqueOptionBTreeSet<BoundedStringOption>,
-    validator: Option<SynExpr>,
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-struct WireEnumAttrs {
-    error_message: SynExpr,
-    ref_type: SynIdentifier,
-}
-impl syn::parse::Parse for WireEnumAttrs {
-    fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
-        let mut error_message = None;
-        let mut ref_type = None;
-        while !input.is_empty() {
-            let name = input.parse::<syn::Ident>()?;
-            let _equals = input.parse::<syn::Token![=]>()?;
-            if name == constants_str::WIRE_ENUM_REF_TYPE {
-                ref_type = Some(SynIdentifier::from(input.parse::<syn::Ident>()?));
-            } else if name == constants_str::WIRE_ENUM_ERROR_MESSAGE {
-                error_message = Some(SynExpr::from(input.parse::<syn::Expr>()?));
-            } else {
-                return Err(syn::Error::new_spanned(
-                    name,
-                    constants_str::WIRE_ENUM_REQUIRES_ATTRIBUTE,
-                ));
-            }
-            if !input.is_empty() {
-                let _comma = input.parse::<syn::Token![,]>()?;
-            }
-        }
-        Ok(Self {
-            error_message: error_message
-                .ok_or_else(|| input.error(constants_str::WIRE_ENUM_REQUIRES_ATTRIBUTE))?,
-            ref_type: ref_type
-                .ok_or_else(|| input.error(constants_str::WIRE_ENUM_REQUIRES_ATTRIBUTE))?,
-        })
-    }
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord,
-)]
-enum BoundedStringOption {
-    Chars,
-    NulFree,
-    Serde,
-    Trim,
-    Utoipa,
-    WriteOnly,
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord,
-)]
-enum NewtypeOption {
-    AsMut,
-    AsRef,
-    AsRefInner,
-    AsRefOwned,
-    AsRefStr,
-    AsRefTarget,
-    AsSlice,
-    BorrowInner,
-    BorrowOwned,
-    BorrowPath,
-    BorrowStr,
-    CloneInner,
-    DebugRedacted,
-    DebugTransparent,
-    DefaultInner,
-    DerefInner,
-    DerefMutInner,
-    DerefMutTarget,
-    DerefTarget,
-    Display,
-    From,
-    GetInner,
-    Getter,
-    IntoInner,
-    IntoInnerFrom,
-    IntoIterator,
-    IntoVec,
-    NotInner,
-    PartialEqInner,
-    Secret,
-    ToTokens,
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq)]
-enum ToErrStringMode {
-    AsRefStr,
-    Debug,
-    Display,
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-struct ProcMacro2GeneratedTokenStream(proc_macro2::TokenStream);
-impl From<proc_macro2::TokenStream> for ProcMacro2GeneratedTokenStream {
-    fn from(value: proc_macro2::TokenStream) -> Self {
-        Self(value)
-    }
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-struct ProcMacroInputTokenStream(proc_macro::TokenStream);
-impl From<proc_macro::TokenStream> for ProcMacroInputTokenStream {
-    fn from(value: proc_macro::TokenStream) -> Self {
-        Self(value)
-    }
-}
-impl From<ProcMacro2GeneratedTokenStream> for proc_macro2::TokenStream {
-    fn from(value: ProcMacro2GeneratedTokenStream) -> Self {
-        value.0
-    }
-}
-impl From<ProcMacro2GeneratedTokenStream> for proc_macro::TokenStream {
-    fn from(value: ProcMacro2GeneratedTokenStream) -> Self {
-        proc_macro2::TokenStream::from(value).into()
-    }
-}
-impl quote::ToTokens for ProcMacro2GeneratedTokenStream {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        self.0.to_tokens(tokens);
-    }
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-struct NewtypeBool(bool);
-impl From<bool> for NewtypeBool {
-    fn from(value: bool) -> Self {
-        Self(value)
-    }
-}
-impl NewtypeBool {
-    const fn get(&self) -> bool {
-        self.0
-    }
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-struct SnakeIdentifier(String);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
-struct SnakeIdentifierifierLen(usize);
-impl From<usize> for SnakeIdentifierifierLen {
-    fn from(value: usize) -> Self {
-        Self(value)
-    }
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
-struct SnakeIdentifierifierTryFromStringError(SnakeIdentifierifierLen);
-impl From<SnakeIdentifierifierLen> for SnakeIdentifierifierTryFromStringError {
-    fn from(value: SnakeIdentifierifierLen) -> Self {
-        Self(value)
-    }
-}
-impl std::fmt::Display for SnakeIdentifierifierTryFromStringError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "snake identifier length {} exceeds maximum {SNAKE_IDENT_MAX_LEN}",
-            self.0.0
-        )
-    }
-}
-impl TryFrom<String> for SnakeIdentifier {
-    type Error = SnakeIdentifierifierTryFromStringError;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > SNAKE_IDENT_MAX_LEN {
-            return Err(SnakeIdentifierifierTryFromStringError(
-                SnakeIdentifierifierLen::from(value.len()),
-            ));
-        }
-        Ok(Self(value))
-    }
-}
-impl AsRef<str> for SnakeIdentifier {
-    fn as_ref(&self) -> &str {
-        &self.0
-    }
-}
-impl std::fmt::Display for SnakeIdentifier {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
-impl quote::ToTokens for SnakeIdentifier {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        self.0.to_tokens(tokens);
-    }
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
-struct SynAttrsRef<'syn_lt>(&'syn_lt [syn::Attribute]);
-impl<'syn_lt> From<&'syn_lt [syn::Attribute]> for SynAttrsRef<'syn_lt> {
-    fn from(value: &'syn_lt [syn::Attribute]) -> Self {
-        Self(value)
-    }
-}
-impl AsRef<[syn::Attribute]> for SynAttrsRef<'_> {
-    fn as_ref(&self) -> &[syn::Attribute] {
-        self.0
-    }
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
-struct SynDeriveInputRef<'syn_lt>(&'syn_lt syn::DeriveInput);
-impl<'syn_lt> From<&'syn_lt syn::DeriveInput> for SynDeriveInputRef<'syn_lt> {
-    fn from(value: &'syn_lt syn::DeriveInput) -> Self {
-        Self(value)
-    }
-}
-impl AsRef<syn::DeriveInput> for SynDeriveInputRef<'_> {
-    fn as_ref(&self) -> &syn::DeriveInput {
-        self.0
-    }
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
-struct SynIdentifierRef<'syn_lt>(&'syn_lt syn::Ident);
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-struct SynIdentifier(syn::Ident);
-impl From<syn::Ident> for SynIdentifier {
-    fn from(value: syn::Ident) -> Self {
-        Self(value)
-    }
-}
-impl<'syn_lt> From<&'syn_lt syn::Ident> for SynIdentifierRef<'syn_lt> {
-    fn from(value: &'syn_lt syn::Ident) -> Self {
-        Self(value)
-    }
-}
-impl AsRef<syn::Ident> for SynIdentifierRef<'_> {
-    fn as_ref(&self) -> &syn::Ident {
-        self.0
-    }
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
-struct SynTypeRef<'syn_lt>(&'syn_lt syn::Type);
-impl<'syn_lt> From<&'syn_lt syn::Type> for SynTypeRef<'syn_lt> {
-    fn from(value: &'syn_lt syn::Type) -> Self {
-        Self(value)
-    }
-}
-impl AsRef<syn::Type> for SynTypeRef<'_> {
-    fn as_ref(&self) -> &syn::Type {
-        self.0
-    }
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
-struct SynType(syn::Type);
-impl From<syn::Type> for SynType {
-    fn from(value: syn::Type) -> Self {
-        Self(value)
-    }
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
-struct SynExpr(syn::Expr);
-impl From<syn::Expr> for SynExpr {
-    fn from(value: syn::Expr) -> Self {
-        Self(value)
-    }
-}
-impl AsRef<syn::Expr> for SynExpr {
-    fn as_ref(&self) -> &syn::Expr {
-        &self.0
-    }
-}
-impl quote::ToTokens for SynExpr {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        self.0.to_tokens(tokens);
-    }
-}
-impl NewtypeAttrs {
-    fn contains(&self, option: NewtypeOption) -> NewtypeBool {
-        NewtypeBool::from(self.options.contains(option).get())
-    }
-}
+
 fn derive_newtype_option(
-    input_token_stream: ProcMacroInputTokenStream,
-    option: NewtypeOption,
-    to_err_string_mode: Option<ToErrStringMode>,
-) -> ProcMacro2GeneratedTokenStream {
-    let input = match syn::parse::<syn::DeriveInput>(input_token_stream.0) {
+    input_token_stream: domain_types::ProcMacroInputTokenStream,
+    option: domain_types::NewtypeOption,
+    to_err_string_mode: Option<domain_types::ToErrStringMode>,
+) -> domain_types::ProcMacro2GeneratedTokenStream {
+    let input = match syn::parse::<syn::DeriveInput>(input_token_stream.into_inner()) {
         Ok(v) => v,
-        Err(error) => return ProcMacro2GeneratedTokenStream::from(error.into_compile_error()),
+        Err(error) => {
+            return domain_types::ProcMacro2GeneratedTokenStream::from(error.into_compile_error());
+        }
     };
-    let mut attrs = NewtypeAttrs {
-        options: workspace_macro_helpers::UniqueOptionBTreeSet::default(),
+    let mut attrs = domain_types::NewtypeAttrs {
+        options: workspace_macro_helpers::domain_types::UniqueOptionBTreeSet::default(),
         to_err_string_mode,
         try_from: None,
     };
@@ -312,20 +33,27 @@ fn derive_newtype_option(
             constants_str::DUPLICATE_NEWTYPE_OPTION,
         )
     }) {
-        return ProcMacro2GeneratedTokenStream::from(error.into_compile_error());
+        return domain_types::ProcMacro2GeneratedTokenStream::from(error.into_compile_error());
     }
-    match generate_newtype_token_stream_with_attrs(SynDeriveInputRef::from(&input), &attrs) {
+    match generate_newtype_token_stream_with_attrs(
+        domain_types::SynDeriveInputRef::from(&input),
+        &attrs,
+    ) {
         Ok(v) => v,
-        Err(error) => ProcMacro2GeneratedTokenStream::from(error.into_compile_error()),
+        Err(error) => {
+            domain_types::ProcMacro2GeneratedTokenStream::from(error.into_compile_error())
+        }
     }
 }
 #[allow(clippy::single_call_fn)] // keeps TryFrom attribute parsing separate from its proc-macro entry point
 fn derive_newtype_try_from(
-    input_token_stream: ProcMacroInputTokenStream,
-) -> ProcMacro2GeneratedTokenStream {
-    let input = match syn::parse::<syn::DeriveInput>(input_token_stream.0) {
+    input_token_stream: domain_types::ProcMacroInputTokenStream,
+) -> domain_types::ProcMacro2GeneratedTokenStream {
+    let input = match syn::parse::<syn::DeriveInput>(input_token_stream.into_inner()) {
         Ok(v) => v,
-        Err(error) => return ProcMacro2GeneratedTokenStream::from(error.into_compile_error()),
+        Err(error) => {
+            return domain_types::ProcMacro2GeneratedTokenStream::from(error.into_compile_error());
+        }
     };
     let mut error_opt = None;
     let mut validator_opt = None;
@@ -339,7 +67,9 @@ fn derive_newtype_try_from(
                     if error_opt.is_some() {
                         return Err(meta.error(constants_str::NEWTYPE_TRY_FROM_ERROR_DUPLICATE));
                     }
-                    error_opt = Some(SynType::from(meta.value()?.parse::<syn::Type>()?));
+                    error_opt = Some(domain_types::SynType::from(
+                        meta.value()?.parse::<syn::Type>()?,
+                    ));
                     return Ok(());
                 }
                 if meta
@@ -349,39 +79,46 @@ fn derive_newtype_try_from(
                     if validator_opt.is_some() {
                         return Err(meta.error(constants_str::NEWTYPE_TRY_FROM_VALIDATOR_DUPLICATE));
                     }
-                    validator_opt = Some(SynExpr::from(meta.value()?.parse::<syn::Expr>()?));
+                    validator_opt = Some(domain_types::SynExpr::from(
+                        meta.value()?.parse::<syn::Expr>()?,
+                    ));
                     return Ok(());
                 }
                 Err(meta.error(constants_str::NEWTYPE_TRY_FROM_UNKNOWN_OPTION))
             })
         });
     if let Err(error) = parse_result {
-        return ProcMacro2GeneratedTokenStream::from(error.into_compile_error());
+        return domain_types::ProcMacro2GeneratedTokenStream::from(error.into_compile_error());
     }
     let Some(validator) = validator_opt else {
-        return ProcMacro2GeneratedTokenStream::from(
+        return domain_types::ProcMacro2GeneratedTokenStream::from(
             syn::Error::new_spanned(&input, constants_str::NEWTYPE_TRY_FROM_VALIDATOR_REQUIRED)
                 .into_compile_error(),
         );
     };
-    let attrs = NewtypeAttrs {
-        options: workspace_macro_helpers::UniqueOptionBTreeSet::default(),
+    let attrs = domain_types::NewtypeAttrs {
+        options: workspace_macro_helpers::domain_types::UniqueOptionBTreeSet::default(),
         to_err_string_mode: None,
-        try_from: Some(NewtypeTryFromAttrs {
+        try_from: Some(domain_types::NewtypeTryFromAttrs {
             error: error_opt,
             validator,
         }),
     };
-    match generate_newtype_token_stream_with_attrs(SynDeriveInputRef::from(&input), &attrs) {
+    match generate_newtype_token_stream_with_attrs(
+        domain_types::SynDeriveInputRef::from(&input),
+        &attrs,
+    ) {
         Ok(v) => v,
-        Err(error) => ProcMacro2GeneratedTokenStream::from(error.into_compile_error()),
+        Err(error) => {
+            domain_types::ProcMacro2GeneratedTokenStream::from(error.into_compile_error())
+        }
     }
 }
 #[proc_macro_derive(AsMut)]
 pub fn as_mut(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::AsMut,
+        domain_types::ProcMacroInputTokenStream::from(input),
+        domain_types::NewtypeOption::AsMut,
         None,
     )
     .into()
@@ -389,8 +126,8 @@ pub fn as_mut(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_derive(AsRef)]
 pub fn as_ref(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::AsRef,
+        domain_types::ProcMacroInputTokenStream::from(input),
+        domain_types::NewtypeOption::AsRef,
         None,
     )
     .into()
@@ -398,8 +135,8 @@ pub fn as_ref(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_derive(AsRefInner)]
 pub fn as_ref_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::AsRefInner,
+        domain_types::ProcMacroInputTokenStream::from(input),
+        domain_types::NewtypeOption::AsRefInner,
         None,
     )
     .into()
@@ -407,8 +144,8 @@ pub fn as_ref_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_derive(AsRefOwned)]
 pub fn as_ref_owned(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::AsRefOwned,
+        domain_types::ProcMacroInputTokenStream::from(input),
+        domain_types::NewtypeOption::AsRefOwned,
         None,
     )
     .into()
@@ -416,8 +153,8 @@ pub fn as_ref_owned(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_derive(AsRefStr)]
 pub fn as_ref_str(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::AsRefStr,
+        domain_types::ProcMacroInputTokenStream::from(input),
+        domain_types::NewtypeOption::AsRefStr,
         None,
     )
     .into()
@@ -425,8 +162,8 @@ pub fn as_ref_str(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_derive(AsRefTarget)]
 pub fn as_ref_target(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::AsRefTarget,
+        domain_types::ProcMacroInputTokenStream::from(input),
+        domain_types::NewtypeOption::AsRefTarget,
         None,
     )
     .into()
@@ -434,8 +171,8 @@ pub fn as_ref_target(input: proc_macro::TokenStream) -> proc_macro::TokenStream 
 #[proc_macro_derive(AsSlice)]
 pub fn as_slice(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::AsSlice,
+        domain_types::ProcMacroInputTokenStream::from(input),
+        domain_types::NewtypeOption::AsSlice,
         None,
     )
     .into()
@@ -443,8 +180,8 @@ pub fn as_slice(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_derive(BorrowInner)]
 pub fn borrow_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::BorrowInner,
+        domain_types::ProcMacroInputTokenStream::from(input),
+        domain_types::NewtypeOption::BorrowInner,
         None,
     )
     .into()
@@ -452,8 +189,8 @@ pub fn borrow_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_derive(BorrowOwned)]
 pub fn borrow_owned(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::BorrowOwned,
+        domain_types::ProcMacroInputTokenStream::from(input),
+        domain_types::NewtypeOption::BorrowOwned,
         None,
     )
     .into()
@@ -461,8 +198,8 @@ pub fn borrow_owned(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_derive(BorrowPath)]
 pub fn borrow_path(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::BorrowPath,
+        domain_types::ProcMacroInputTokenStream::from(input),
+        domain_types::NewtypeOption::BorrowPath,
         None,
     )
     .into()
@@ -470,8 +207,8 @@ pub fn borrow_path(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_derive(BorrowStr)]
 pub fn borrow_str(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::BorrowStr,
+        domain_types::ProcMacroInputTokenStream::from(input),
+        domain_types::NewtypeOption::BorrowStr,
         None,
     )
     .into()
@@ -479,8 +216,8 @@ pub fn borrow_str(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_derive(CloneInner)]
 pub fn clone_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::CloneInner,
+        domain_types::ProcMacroInputTokenStream::from(input),
+        domain_types::NewtypeOption::CloneInner,
         None,
     )
     .into()
@@ -537,8 +274,8 @@ pub fn clone_fields(input_token_stream: proc_macro::TokenStream) -> proc_macro::
 #[proc_macro_derive(DebugRedacted)]
 pub fn debug_redacted(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::DebugRedacted,
+        domain_types::ProcMacroInputTokenStream::from(input),
+        domain_types::NewtypeOption::DebugRedacted,
         None,
     )
     .into()
@@ -546,8 +283,8 @@ pub fn debug_redacted(input: proc_macro::TokenStream) -> proc_macro::TokenStream
 #[proc_macro_derive(DebugTransparent)]
 pub fn debug_transparent(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::DebugTransparent,
+        domain_types::ProcMacroInputTokenStream::from(input),
+        domain_types::NewtypeOption::DebugTransparent,
         None,
     )
     .into()
@@ -555,8 +292,8 @@ pub fn debug_transparent(input: proc_macro::TokenStream) -> proc_macro::TokenStr
 #[proc_macro_derive(DerefInner)]
 pub fn deref_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::DerefInner,
+        domain_types::ProcMacroInputTokenStream::from(input),
+        domain_types::NewtypeOption::DerefInner,
         None,
     )
     .into()
@@ -564,8 +301,8 @@ pub fn deref_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_derive(DerefMutInner)]
 pub fn deref_mut_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::DerefMutInner,
+        domain_types::ProcMacroInputTokenStream::from(input),
+        domain_types::NewtypeOption::DerefMutInner,
         None,
     )
     .into()
@@ -573,8 +310,8 @@ pub fn deref_mut_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStrea
 #[proc_macro_derive(DerefMutTarget)]
 pub fn deref_mut_target(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::DerefMutTarget,
+        domain_types::ProcMacroInputTokenStream::from(input),
+        domain_types::NewtypeOption::DerefMutTarget,
         None,
     )
     .into()
@@ -582,8 +319,8 @@ pub fn deref_mut_target(input: proc_macro::TokenStream) -> proc_macro::TokenStre
 #[proc_macro_derive(DerefTarget)]
 pub fn deref_target(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::DerefTarget,
+        domain_types::ProcMacroInputTokenStream::from(input),
+        domain_types::NewtypeOption::DerefTarget,
         None,
     )
     .into()
@@ -591,8 +328,8 @@ pub fn deref_target(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_derive(Display)]
 pub fn display(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::Display,
+        domain_types::ProcMacroInputTokenStream::from(input),
+        domain_types::NewtypeOption::Display,
         None,
     )
     .into()
@@ -600,8 +337,8 @@ pub fn display(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_derive(DefaultInner)]
 pub fn default_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::DefaultInner,
+        domain_types::ProcMacroInputTokenStream::from(input),
+        domain_types::NewtypeOption::DefaultInner,
         None,
     )
     .into()
@@ -674,8 +411,8 @@ pub fn display_const(input_token_stream: proc_macro::TokenStream) -> proc_macro:
 #[proc_macro_derive(FromInner)]
 pub fn from_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::From,
+        domain_types::ProcMacroInputTokenStream::from(input),
+        domain_types::NewtypeOption::From,
         None,
     )
     .into()
@@ -683,8 +420,8 @@ pub fn from_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_derive(Getter)]
 pub fn getter(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::Getter,
+        domain_types::ProcMacroInputTokenStream::from(input),
+        domain_types::NewtypeOption::Getter,
         None,
     )
     .into()
@@ -692,8 +429,8 @@ pub fn getter(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_derive(GetInner)]
 pub fn get_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::GetInner,
+        domain_types::ProcMacroInputTokenStream::from(input),
+        domain_types::NewtypeOption::GetInner,
         None,
     )
     .into()
@@ -701,8 +438,8 @@ pub fn get_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_derive(IntoInner)]
 pub fn into_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::IntoInner,
+        domain_types::ProcMacroInputTokenStream::from(input),
+        domain_types::NewtypeOption::IntoInner,
         None,
     )
     .into()
@@ -710,8 +447,8 @@ pub fn into_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_derive(IntoInnerFrom)]
 pub fn into_inner_from(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::IntoInnerFrom,
+        domain_types::ProcMacroInputTokenStream::from(input),
+        domain_types::NewtypeOption::IntoInnerFrom,
         None,
     )
     .into()
@@ -719,8 +456,8 @@ pub fn into_inner_from(input: proc_macro::TokenStream) -> proc_macro::TokenStrea
 #[proc_macro_derive(IntoIterator)]
 pub fn into_iterator(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::IntoIterator,
+        domain_types::ProcMacroInputTokenStream::from(input),
+        domain_types::NewtypeOption::IntoIterator,
         None,
     )
     .into()
@@ -728,8 +465,8 @@ pub fn into_iterator(input: proc_macro::TokenStream) -> proc_macro::TokenStream 
 #[proc_macro_derive(IntoVec)]
 pub fn into_vec(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::IntoVec,
+        domain_types::ProcMacroInputTokenStream::from(input),
+        domain_types::NewtypeOption::IntoVec,
         None,
     )
     .into()
@@ -737,8 +474,8 @@ pub fn into_vec(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_derive(NotInner)]
 pub fn not_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::NotInner,
+        domain_types::ProcMacroInputTokenStream::from(input),
+        domain_types::NewtypeOption::NotInner,
         None,
     )
     .into()
@@ -746,8 +483,8 @@ pub fn not_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_derive(PartialEqInner)]
 pub fn partial_eq_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::PartialEqInner,
+        domain_types::ProcMacroInputTokenStream::from(input),
+        domain_types::NewtypeOption::PartialEqInner,
         None,
     )
     .into()
@@ -755,8 +492,8 @@ pub fn partial_eq_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStre
 #[proc_macro_derive(ToTokens)]
 pub fn to_tokens(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::ToTokens,
+        domain_types::ProcMacroInputTokenStream::from(input),
+        domain_types::NewtypeOption::ToTokens,
         None,
     )
     .into()
@@ -764,33 +501,33 @@ pub fn to_tokens(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_derive(ToErrString)]
 pub fn to_err_string(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::Secret,
-        Some(ToErrStringMode::Display),
+        domain_types::ProcMacroInputTokenStream::from(input),
+        domain_types::NewtypeOption::Secret,
+        Some(domain_types::ToErrStringMode::Display),
     )
     .into()
 }
 #[proc_macro_derive(ToErrStringAsRefStr)]
 pub fn to_err_string_as_ref_str(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::Secret,
-        Some(ToErrStringMode::AsRefStr),
+        domain_types::ProcMacroInputTokenStream::from(input),
+        domain_types::NewtypeOption::Secret,
+        Some(domain_types::ToErrStringMode::AsRefStr),
     )
     .into()
 }
 #[proc_macro_derive(ToErrStringDebug)]
 pub fn to_err_string_debug(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::Secret,
-        Some(ToErrStringMode::Debug),
+        domain_types::ProcMacroInputTokenStream::from(input),
+        domain_types::NewtypeOption::Secret,
+        Some(domain_types::ToErrStringMode::Debug),
     )
     .into()
 }
 #[proc_macro_derive(TryFrom, attributes(try_from))]
 pub fn try_from(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    derive_newtype_try_from(ProcMacroInputTokenStream::from(input)).into()
+    derive_newtype_try_from(domain_types::ProcMacroInputTokenStream::from(input)).into()
 }
 #[proc_macro_derive(EnumFromStr)]
 pub fn enum_from_str(input_token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
@@ -798,7 +535,7 @@ pub fn enum_from_str(input_token_stream: proc_macro::TokenStream) -> proc_macro:
         Ok(v) => v,
         Err(error) => return error.into_compile_error().into(),
     };
-    match generate_enum_from_str_token_stream(SynDeriveInputRef::from(&input)) {
+    match generate_enum_from_str_token_stream(domain_types::SynDeriveInputRef::from(&input)) {
         Ok(v) => v.into(),
         Err(error) => error.into_compile_error().into(),
     }
@@ -818,7 +555,7 @@ pub fn wire_enum(input_token_stream: proc_macro::TokenStream) -> proc_macro::Tok
             .to_compile_error()
             .into();
     };
-    let attrs = match attribute.parse_args::<WireEnumAttrs>() {
+    let attrs = match attribute.parse_args::<domain_types::WireEnumAttrs>() {
         Ok(value) => value,
         Err(error) => return error.to_compile_error().into(),
     };
@@ -877,8 +614,8 @@ pub fn wire_enum(input_token_stream: proc_macro::TokenStream) -> proc_macro::Tok
         .collect::<Vec<_>>();
     let identifier = &input.ident;
     let error_identifier = quote::format_ident!("{}TryFromStrError", identifier);
-    let error_message = attrs.error_message.0;
-    let ref_type = attrs.ref_type.0;
+    let error_message = attrs.error_message.into_inner();
+    let ref_type = attrs.ref_type.into_inner();
     let variant_count = identifiers.len();
     quote::quote! {
         impl #identifier {
@@ -922,15 +659,15 @@ pub fn bounded_string(input_token_stream: proc_macro::TokenStream) -> proc_macro
         Ok(v) => v,
         Err(error) => return error.into_compile_error().into(),
     };
-    match generate_bounded_string_token_stream(SynDeriveInputRef::from(&input)) {
+    match generate_bounded_string_token_stream(domain_types::SynDeriveInputRef::from(&input)) {
         Ok(v) => v.into(),
         Err(error) => error.into_compile_error().into(),
     }
 }
 fn generate_newtype_token_stream_with_attrs(
-    input: SynDeriveInputRef<'_>,
-    attrs: &NewtypeAttrs,
-) -> syn::Result<ProcMacro2GeneratedTokenStream> {
+    input: domain_types::SynDeriveInputRef<'_>,
+    attrs: &domain_types::NewtypeAttrs,
+) -> syn::Result<domain_types::ProcMacro2GeneratedTokenStream> {
     let input_ref = input.as_ref();
     let inner_ty = tuple_struct_one_field_ty(input)?;
     validate_newtype_inner_ty_attrs(attrs, inner_ty)?;
@@ -938,7 +675,7 @@ fn generate_newtype_token_stream_with_attrs(
     let identifier = &input_ref.ident;
     let (impl_generics, ty_generics, where_clause) = input_ref.generics.split_for_impl();
     let debug_transparent_token_stream = attrs
-        .contains(NewtypeOption::DebugTransparent).get()
+        .contains(domain_types::NewtypeOption::DebugTransparent).get()
         .then(|| {
         let mut debug_generics = input_ref.generics.clone();
         debug_generics
@@ -955,8 +692,10 @@ fn generate_newtype_token_stream_with_attrs(
             }
         }
     });
-    let debug_redacted_token_stream =
-        attrs.contains(NewtypeOption::DebugRedacted).get().then(|| {
+    let debug_redacted_token_stream = attrs
+        .contains(domain_types::NewtypeOption::DebugRedacted)
+        .get()
+        .then(|| {
             let redacted = constants_str::REDACTED_ALT_3;
             quote::quote! {
                 #[allow(single_use_lifetimes)]
@@ -969,17 +708,20 @@ fn generate_newtype_token_stream_with_attrs(
                 }
             }
         });
-    let display_token_stream = attrs.contains(NewtypeOption::Display).get().then(|| {
-        quote::quote! {
-            #[allow(single_use_lifetimes)]
-            impl #impl_generics std::fmt::Display for #identifier #ty_generics #where_clause {
-                fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                    self.0.fmt(f)
+    let display_token_stream = attrs
+        .contains(domain_types::NewtypeOption::Display)
+        .get()
+        .then(|| {
+            quote::quote! {
+                #[allow(single_use_lifetimes)]
+                impl #impl_generics std::fmt::Display for #identifier #ty_generics #where_clause {
+                    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                        self.0.fmt(f)
+                    }
                 }
             }
-        }
-    });
-    let clone_inner_token_stream = attrs.contains(NewtypeOption::CloneInner).get().then(|| {
+        });
+    let clone_inner_token_stream = attrs.contains(domain_types::NewtypeOption::CloneInner).get().then(|| {
         let mut clone_generics = input_ref.generics.clone();
         clone_generics
             .make_where_clause()
@@ -995,7 +737,7 @@ fn generate_newtype_token_stream_with_attrs(
             }
         }
     });
-    let default_inner_token_stream = attrs.contains(NewtypeOption::DefaultInner).get().then(|| {
+    let default_inner_token_stream = attrs.contains(domain_types::NewtypeOption::DefaultInner).get().then(|| {
         let mut default_generics = input_ref.generics.clone();
         default_generics
             .make_where_clause()
@@ -1011,7 +753,7 @@ fn generate_newtype_token_stream_with_attrs(
             }
         }
     });
-    let not_inner_token_stream = attrs.contains(NewtypeOption::NotInner).get().then(|| {
+    let not_inner_token_stream = attrs.contains(domain_types::NewtypeOption::NotInner).get().then(|| {
         let mut not_generics = input_ref.generics.clone();
         not_generics
             .make_where_clause()
@@ -1029,7 +771,7 @@ fn generate_newtype_token_stream_with_attrs(
         }
     });
     let partial_eq_inner_token_stream = attrs
-        .contains(NewtypeOption::PartialEqInner)
+        .contains(domain_types::NewtypeOption::PartialEqInner)
         .get()
         .then(|| {
             let mut partial_eq_generics = input_ref.generics.clone();
@@ -1047,7 +789,7 @@ fn generate_newtype_token_stream_with_attrs(
                 }
             }
         });
-    let as_mut_token_stream = if attrs.contains(NewtypeOption::AsMut).get() {
+    let as_mut_token_stream = if attrs.contains(domain_types::NewtypeOption::AsMut).get() {
         let syn::Type::Reference(inner_ref_ty) = inner_ty_ref else {
             return Err(syn::Error::new_spanned(
                 inner_ty_ref,
@@ -1072,27 +814,36 @@ fn generate_newtype_token_stream_with_attrs(
     } else {
         None
     };
-    let as_ref_str_token_stream = attrs.contains(NewtypeOption::AsRefStr).get().then(|| {
-        quote::quote! {
-            #[allow(single_use_lifetimes)]
-            impl #impl_generics AsRef<str> for #identifier #ty_generics #where_clause {
-                fn as_ref(&self) -> &str {
-                    AsRef::<str>::as_ref(&self.0)
+    let as_ref_str_token_stream = attrs
+        .contains(domain_types::NewtypeOption::AsRefStr)
+        .get()
+        .then(|| {
+            quote::quote! {
+                #[allow(single_use_lifetimes)]
+                impl #impl_generics AsRef<str> for #identifier #ty_generics #where_clause {
+                    fn as_ref(&self) -> &str {
+                        AsRef::<str>::as_ref(&self.0)
+                    }
                 }
             }
-        }
-    });
-    let as_ref_token_stream = attrs.contains(NewtypeOption::AsRef).get().then(|| {
-        quote::quote! {
-            impl #impl_generics #identifier #ty_generics #where_clause {
-                #[must_use]
-                pub const fn as_ref(&self) -> &#inner_ty_ref {
-                    &self.0
+        });
+    let as_ref_token_stream = attrs
+        .contains(domain_types::NewtypeOption::AsRef)
+        .get()
+        .then(|| {
+            quote::quote! {
+                impl #impl_generics #identifier #ty_generics #where_clause {
+                    #[must_use]
+                    pub const fn as_ref(&self) -> &#inner_ty_ref {
+                        &self.0
+                    }
                 }
             }
-        }
-    });
-    let as_ref_inner_token_stream = if attrs.contains(NewtypeOption::AsRefInner).get() {
+        });
+    let as_ref_inner_token_stream = if attrs
+        .contains(domain_types::NewtypeOption::AsRefInner)
+        .get()
+    {
         let syn::Type::Reference(inner_ref_ty) = inner_ty_ref else {
             return Err(syn::Error::new_spanned(
                 inner_ty_ref,
@@ -1111,7 +862,7 @@ fn generate_newtype_token_stream_with_attrs(
     } else {
         None
     };
-    let as_ref_owned_token_stream = attrs.contains(NewtypeOption::AsRefOwned).get().then(|| {
+    let as_ref_owned_token_stream = attrs.contains(domain_types::NewtypeOption::AsRefOwned).get().then(|| {
         quote::quote! {
             impl #impl_generics AsRef<#inner_ty_ref> for #identifier #ty_generics #where_clause {
                 fn as_ref(&self) -> &#inner_ty_ref {
@@ -1120,7 +871,7 @@ fn generate_newtype_token_stream_with_attrs(
             }
         }
     });
-    let as_ref_target_token_stream = attrs.contains(NewtypeOption::AsRefTarget).get().then(|| {
+    let as_ref_target_token_stream = attrs.contains(domain_types::NewtypeOption::AsRefTarget).get().then(|| {
         quote::quote! {
             impl #impl_generics AsRef<<#inner_ty_ref as std::ops::Deref>::Target> for #identifier #ty_generics #where_clause
             where
@@ -1132,20 +883,23 @@ fn generate_newtype_token_stream_with_attrs(
             }
         }
     });
-    let as_slice_token_stream = attrs.contains(NewtypeOption::AsSlice).get().then(|| {
-        quote::quote! {
-            impl #impl_generics #identifier #ty_generics #where_clause {
-                #[must_use]
-                pub fn as_slice(&self) -> &<#inner_ty_ref as std::ops::Deref>::Target
-                where
-                    #inner_ty_ref: std::ops::Deref,
-                {
-                    std::ops::Deref::deref(&self.0)
+    let as_slice_token_stream = attrs
+        .contains(domain_types::NewtypeOption::AsSlice)
+        .get()
+        .then(|| {
+            quote::quote! {
+                impl #impl_generics #identifier #ty_generics #where_clause {
+                    #[must_use]
+                    pub fn as_slice(&self) -> &<#inner_ty_ref as std::ops::Deref>::Target
+                    where
+                        #inner_ty_ref: std::ops::Deref,
+                    {
+                        std::ops::Deref::deref(&self.0)
+                    }
                 }
             }
-        }
-    });
-    let borrow_str_token_stream = attrs.contains(NewtypeOption::BorrowStr).get().then(|| {
+        });
+    let borrow_str_token_stream = attrs.contains(domain_types::NewtypeOption::BorrowStr).get().then(|| {
         quote::quote! {
             #[allow(single_use_lifetimes)]
             impl #impl_generics std::borrow::Borrow<str> for #identifier #ty_generics #where_clause {
@@ -1155,7 +909,10 @@ fn generate_newtype_token_stream_with_attrs(
             }
         }
     });
-    let borrow_inner_token_stream = if attrs.contains(NewtypeOption::BorrowInner).get() {
+    let borrow_inner_token_stream = if attrs
+        .contains(domain_types::NewtypeOption::BorrowInner)
+        .get()
+    {
         let syn::Type::Reference(inner_ref_ty) = inner_ty_ref else {
             return Err(syn::Error::new_spanned(
                 inner_ty_ref,
@@ -1174,7 +931,7 @@ fn generate_newtype_token_stream_with_attrs(
     } else {
         None
     };
-    let borrow_owned_token_stream = attrs.contains(NewtypeOption::BorrowOwned).get().then(|| {
+    let borrow_owned_token_stream = attrs.contains(domain_types::NewtypeOption::BorrowOwned).get().then(|| {
         quote::quote! {
             #[allow(single_use_lifetimes)]
             impl #impl_generics std::borrow::Borrow<#inner_ty_ref> for #identifier #ty_generics #where_clause {
@@ -1184,7 +941,7 @@ fn generate_newtype_token_stream_with_attrs(
             }
         }
     });
-    let borrow_path_token_stream = attrs.contains(NewtypeOption::BorrowPath).get().then(|| {
+    let borrow_path_token_stream = attrs.contains(domain_types::NewtypeOption::BorrowPath).get().then(|| {
         quote::quote! {
             #[allow(single_use_lifetimes)]
             impl #impl_generics std::borrow::Borrow<std::path::Path> for #identifier #ty_generics #where_clause
@@ -1197,30 +954,38 @@ fn generate_newtype_token_stream_with_attrs(
             }
         }
     });
-    let deref_inner_token_stream = attrs.contains(NewtypeOption::DerefInner).get().then(|| {
-        quote::quote! {
-            #[allow(single_use_lifetimes)]
-            impl #impl_generics std::ops::Deref for #identifier #ty_generics #where_clause {
-                type Target = #inner_ty_ref;
-                fn deref(&self) -> &Self::Target {
-                    &self.0
+    let deref_inner_token_stream = attrs
+        .contains(domain_types::NewtypeOption::DerefInner)
+        .get()
+        .then(|| {
+            quote::quote! {
+                #[allow(single_use_lifetimes)]
+                impl #impl_generics std::ops::Deref for #identifier #ty_generics #where_clause {
+                    type Target = #inner_ty_ref;
+                    fn deref(&self) -> &Self::Target {
+                        &self.0
+                    }
                 }
             }
-        }
-    });
-    let deref_target_token_stream = attrs.contains(NewtypeOption::DerefTarget).get().then(|| {
-        quote::quote! {
-            #[allow(single_use_lifetimes)]
-            impl #impl_generics std::ops::Deref for #identifier #ty_generics #where_clause {
-                type Target = <#inner_ty_ref as std::ops::Deref>::Target;
-                fn deref(&self) -> &Self::Target {
-                    &self.0
+        });
+    let deref_target_token_stream = attrs
+        .contains(domain_types::NewtypeOption::DerefTarget)
+        .get()
+        .then(|| {
+            quote::quote! {
+                #[allow(single_use_lifetimes)]
+                impl #impl_generics std::ops::Deref for #identifier #ty_generics #where_clause {
+                    type Target = <#inner_ty_ref as std::ops::Deref>::Target;
+                    fn deref(&self) -> &Self::Target {
+                        &self.0
+                    }
                 }
             }
-        }
-    });
-    let deref_mut_inner_token_stream =
-        attrs.contains(NewtypeOption::DerefMutInner).get().then(|| {
+        });
+    let deref_mut_inner_token_stream = attrs
+        .contains(domain_types::NewtypeOption::DerefMutInner)
+        .get()
+        .then(|| {
             quote::quote! {
                 #[allow(single_use_lifetimes)]
                 impl #impl_generics std::ops::DerefMut for #identifier #ty_generics #where_clause {
@@ -1230,8 +995,10 @@ fn generate_newtype_token_stream_with_attrs(
                 }
             }
         });
-    let deref_mut_target_token_stream = attrs.contains(NewtypeOption::DerefMutTarget).get().then(
-        || {
+    let deref_mut_target_token_stream = attrs
+        .contains(domain_types::NewtypeOption::DerefMutTarget)
+        .get()
+        .then(|| {
             quote::quote! {
                 #[allow(single_use_lifetimes)]
                 impl #impl_generics std::ops::DerefMut for #identifier #ty_generics #where_clause {
@@ -1240,17 +1007,19 @@ fn generate_newtype_token_stream_with_attrs(
                     }
                 }
             }
-        },
-    );
-    let from_token_stream = attrs.contains(NewtypeOption::From).get().then(|| {
-        quote::quote! {
-            impl #impl_generics From<#inner_ty_ref> for #identifier #ty_generics #where_clause {
-                fn from(value: #inner_ty_ref) -> Self {
-                    Self(value)
+        });
+    let from_token_stream = attrs
+        .contains(domain_types::NewtypeOption::From)
+        .get()
+        .then(|| {
+            quote::quote! {
+                impl #impl_generics From<#inner_ty_ref> for #identifier #ty_generics #where_clause {
+                    fn from(value: #inner_ty_ref) -> Self {
+                        Self(value)
+                    }
                 }
             }
-        }
-    });
+        });
     let try_from_token_stream = attrs.try_from.as_ref().map(|try_from| {
         let inferred_error = syn::Type::Path(syn::TypePath {
             attrs: Vec::new(),
@@ -1260,7 +1029,7 @@ fn generate_newtype_token_stream_with_attrs(
         let error = try_from
             .error
             .as_ref()
-            .map_or(&inferred_error, |value| &value.0);
+            .map_or(&inferred_error, |value| value.as_ref());
         let validator = &try_from.validator;
         quote::quote! {
             impl #impl_generics TryFrom<#inner_ty_ref> for #identifier #ty_generics #where_clause {
@@ -1272,48 +1041,59 @@ fn generate_newtype_token_stream_with_attrs(
             }
         }
     });
-    let getter_token_stream = attrs.contains(NewtypeOption::Getter).get().then(|| {
-        let trait_identifier = quote::format_ident!("Get{identifier}");
-        let fn_name = identifier_to_snake(SynIdentifierRef::from(identifier));
-        let fn_identifier = quote::format_ident!("get_{}", fn_name.as_ref());
-        quote::quote! {
-            pub trait #trait_identifier {
-                fn #fn_identifier(&self) -> &#inner_ty_ref;
-            }
-            impl #impl_generics #trait_identifier for #identifier #ty_generics #where_clause {
-                fn #fn_identifier(&self) -> &#inner_ty_ref {
-                    &self.0
+    let getter_token_stream = attrs
+        .contains(domain_types::NewtypeOption::Getter)
+        .get()
+        .then(|| {
+            let trait_identifier = quote::format_ident!("Get{identifier}");
+            let fn_name = identifier_to_snake(domain_types::SynIdentifierRef::from(identifier));
+            let fn_identifier = quote::format_ident!("get_{}", fn_name.as_ref());
+            quote::quote! {
+                pub trait #trait_identifier {
+                    fn #fn_identifier(&self) -> &#inner_ty_ref;
+                }
+                impl #impl_generics #trait_identifier for #identifier #ty_generics #where_clause {
+                    fn #fn_identifier(&self) -> &#inner_ty_ref {
+                        &self.0
+                    }
+                }
+                impl #impl_generics #trait_identifier for &#identifier #ty_generics #where_clause {
+                    fn #fn_identifier(&self) -> &#inner_ty_ref {
+                        &self.0
+                    }
                 }
             }
-            impl #impl_generics #trait_identifier for &#identifier #ty_generics #where_clause {
-                fn #fn_identifier(&self) -> &#inner_ty_ref {
-                    &self.0
+        });
+    let get_inner_token_stream = attrs
+        .contains(domain_types::NewtypeOption::GetInner)
+        .get()
+        .then(|| {
+            quote::quote! {
+                impl #impl_generics #identifier #ty_generics #where_clause {
+                    #[must_use]
+                    pub const fn get(self) -> #inner_ty_ref {
+                        self.0
+                    }
                 }
             }
-        }
-    });
-    let get_inner_token_stream = attrs.contains(NewtypeOption::GetInner).get().then(|| {
-        quote::quote! {
-            impl #impl_generics #identifier #ty_generics #where_clause {
-                #[must_use]
-                pub const fn get(self) -> #inner_ty_ref {
-                    self.0
+        });
+    let into_inner_token_stream = attrs
+        .contains(domain_types::NewtypeOption::IntoInner)
+        .get()
+        .then(|| {
+            quote::quote! {
+                impl #impl_generics #identifier #ty_generics #where_clause {
+                    #[must_use]
+                    pub fn into_inner(self) -> #inner_ty_ref {
+                        self.0
+                    }
                 }
             }
-        }
-    });
-    let into_inner_token_stream = attrs.contains(NewtypeOption::IntoInner).get().then(|| {
-        quote::quote! {
-            impl #impl_generics #identifier #ty_generics #where_clause {
-                #[must_use]
-                pub fn into_inner(self) -> #inner_ty_ref {
-                    self.0
-                }
-            }
-        }
-    });
-    let into_inner_from_token_stream =
-        attrs.contains(NewtypeOption::IntoInnerFrom).get().then(|| {
+        });
+    let into_inner_from_token_stream = attrs
+        .contains(domain_types::NewtypeOption::IntoInnerFrom)
+        .get()
+        .then(|| {
             quote::quote! {
                 impl #impl_generics From<#identifier #ty_generics> for #inner_ty_ref #where_clause {
                     fn from(value: #identifier #ty_generics) -> Self {
@@ -1322,81 +1102,95 @@ fn generate_newtype_token_stream_with_attrs(
                 }
             }
         });
-    let into_iterator_token_stream = attrs.contains(NewtypeOption::IntoIterator).get().then(|| {
-        quote::quote! {
-            #[allow(single_use_lifetimes)]
-            impl #impl_generics IntoIterator for #identifier #ty_generics #where_clause {
-                type IntoIter = <#inner_ty_ref as IntoIterator>::IntoIter;
-                type Item = <#inner_ty_ref as IntoIterator>::Item;
-                fn into_iter(self) -> Self::IntoIter {
-                    self.0.into_iter()
+    let into_iterator_token_stream = attrs
+        .contains(domain_types::NewtypeOption::IntoIterator)
+        .get()
+        .then(|| {
+            quote::quote! {
+                #[allow(single_use_lifetimes)]
+                impl #impl_generics IntoIterator for #identifier #ty_generics #where_clause {
+                    type IntoIter = <#inner_ty_ref as IntoIterator>::IntoIter;
+                    type Item = <#inner_ty_ref as IntoIterator>::Item;
+                    fn into_iter(self) -> Self::IntoIter {
+                        self.0.into_iter()
+                    }
                 }
             }
-        }
-    });
-    let into_vec_token_stream = attrs.contains(NewtypeOption::IntoVec).get().then(|| {
-        quote::quote! {
-            impl #impl_generics #identifier #ty_generics #where_clause {
-                #[must_use]
-                pub fn into_vec(self) -> #inner_ty_ref {
-                    self.0
+        });
+    let into_vec_token_stream = attrs
+        .contains(domain_types::NewtypeOption::IntoVec)
+        .get()
+        .then(|| {
+            quote::quote! {
+                impl #impl_generics #identifier #ty_generics #where_clause {
+                    #[must_use]
+                    pub fn into_vec(self) -> #inner_ty_ref {
+                        self.0
+                    }
                 }
             }
-        }
-    });
-    let to_tokens_token_stream = attrs.contains(NewtypeOption::ToTokens).get().then(|| {
-        quote::quote! {
-            #[allow(single_use_lifetimes)]
-            impl #impl_generics quote::ToTokens for #identifier #ty_generics #where_clause {
-                fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-                    quote::ToTokens::to_tokens(&self.0, tokens);
+        });
+    let to_tokens_token_stream = attrs
+        .contains(domain_types::NewtypeOption::ToTokens)
+        .get()
+        .then(|| {
+            quote::quote! {
+                #[allow(single_use_lifetimes)]
+                impl #impl_generics quote::ToTokens for #identifier #ty_generics #where_clause {
+                    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+                        quote::ToTokens::to_tokens(&self.0, tokens);
+                    }
                 }
             }
-        }
-    });
-    let to_err_string_token_stream =
-        generate_to_err_string_token_stream(attrs, SynIdentifierRef::from(identifier));
-    Ok(ProcMacro2GeneratedTokenStream::from(quote::quote! {
-        #debug_transparent_token_stream
-        #debug_redacted_token_stream
-        #display_token_stream
-        #clone_inner_token_stream
-        #default_inner_token_stream
-        #not_inner_token_stream
-        #partial_eq_inner_token_stream
-        #as_mut_token_stream
-        #as_ref_str_token_stream
-        #as_ref_token_stream
-        #as_ref_inner_token_stream
-        #as_ref_owned_token_stream
-        #as_ref_target_token_stream
-        #as_slice_token_stream
-        #borrow_str_token_stream
-        #borrow_inner_token_stream
-        #borrow_owned_token_stream
-        #borrow_path_token_stream
-        #deref_inner_token_stream
-        #deref_target_token_stream
-        #deref_mut_inner_token_stream
-        #deref_mut_target_token_stream
-        #from_token_stream
-        #try_from_token_stream
-        #getter_token_stream
-        #get_inner_token_stream
-        #into_inner_token_stream
-        #into_inner_from_token_stream
-        #into_iterator_token_stream
-        #into_vec_token_stream
-        #to_tokens_token_stream
-        #to_err_string_token_stream
-    }))
+        });
+    let to_err_string_token_stream = generate_to_err_string_token_stream(
+        attrs,
+        domain_types::SynIdentifierRef::from(identifier),
+    );
+    Ok(domain_types::ProcMacro2GeneratedTokenStream::from(
+        quote::quote! {
+            #debug_transparent_token_stream
+            #debug_redacted_token_stream
+            #display_token_stream
+            #clone_inner_token_stream
+            #default_inner_token_stream
+            #not_inner_token_stream
+            #partial_eq_inner_token_stream
+            #as_mut_token_stream
+            #as_ref_str_token_stream
+            #as_ref_token_stream
+            #as_ref_inner_token_stream
+            #as_ref_owned_token_stream
+            #as_ref_target_token_stream
+            #as_slice_token_stream
+            #borrow_str_token_stream
+            #borrow_inner_token_stream
+            #borrow_owned_token_stream
+            #borrow_path_token_stream
+            #deref_inner_token_stream
+            #deref_target_token_stream
+            #deref_mut_inner_token_stream
+            #deref_mut_target_token_stream
+            #from_token_stream
+            #try_from_token_stream
+            #getter_token_stream
+            #get_inner_token_stream
+            #into_inner_token_stream
+            #into_inner_from_token_stream
+            #into_iterator_token_stream
+            #into_vec_token_stream
+            #to_tokens_token_stream
+            #to_err_string_token_stream
+        },
+    ))
 }
 #[allow(clippy::single_call_fn)] // checked String wrapper generation is separate from forwarding newtype impls
 fn generate_bounded_string_token_stream(
-    input: SynDeriveInputRef<'_>,
-) -> syn::Result<ProcMacro2GeneratedTokenStream> {
+    input: domain_types::SynDeriveInputRef<'_>,
+) -> syn::Result<domain_types::ProcMacro2GeneratedTokenStream> {
     let input_ref = input.as_ref();
-    let attrs = parse_bounded_string_attrs(SynAttrsRef::from(input_ref.attrs.as_slice()))?;
+    let attrs =
+        parse_bounded_string_attrs(domain_types::SynAttrsRef::from(input_ref.attrs.as_slice()))?;
     let inner_ty = tuple_struct_one_field_ty(input)?;
     if !type_path_ends_with_string_identifier(inner_ty).get() {
         return Err(syn::Error::new_spanned(
@@ -1413,7 +1207,7 @@ fn generate_bounded_string_token_stream(
     let identifier = &input_ref.ident;
     let vis = &input_ref.vis;
     let error_identifier = quote::format_ident!("{identifier}TryFromStringError");
-    let BoundedStringAttrs {
+    let domain_types::BoundedStringAttrs {
         description,
         max: max_option,
         min,
@@ -1426,13 +1220,23 @@ fn generate_bounded_string_token_stream(
             constants_str::MACRO_DIAGNOSTICS_BOUNDED_STRING_MAX_ERROR,
         )
     })?;
-    let chars = options.contains(BoundedStringOption::Chars).get();
-    let nul_free = options.contains(BoundedStringOption::NulFree).get();
-    let serde = options.contains(BoundedStringOption::Serde).get();
-    let trim = options.contains(BoundedStringOption::Trim).get();
-    let utoipa = options.contains(BoundedStringOption::Utoipa).get();
+    let chars = options
+        .contains(domain_types::BoundedStringOption::Chars)
+        .get();
+    let nul_free = options
+        .contains(domain_types::BoundedStringOption::NulFree)
+        .get();
+    let serde = options
+        .contains(domain_types::BoundedStringOption::Serde)
+        .get();
+    let trim = options
+        .contains(domain_types::BoundedStringOption::Trim)
+        .get();
+    let utoipa = options
+        .contains(domain_types::BoundedStringOption::Utoipa)
+        .get();
     let write_only = options
-        .contains(BoundedStringOption::WriteOnly)
+        .contains(domain_types::BoundedStringOption::WriteOnly)
         .get()
         .then(|| quote::quote! {.write_only(Some(true))});
     if utoipa && !chars {
@@ -1441,8 +1245,9 @@ fn generate_bounded_string_token_stream(
             constants_str::BOUNDEDSTRING_UTOIPA_REQUIRES_CHARS_SO_OPENAPI_LENGTH_SEMANTICS_MATCH_RUNTIME,
         ));
     }
-    let min_token_stream =
-        min.unwrap_or_else(|| SynExpr::from(syn::Expr::Verbatim(quote::quote! { 0usize })));
+    let min_token_stream = min.unwrap_or_else(|| {
+        domain_types::SynExpr::from(syn::Expr::Verbatim(quote::quote! { 0usize }))
+    });
     let normalize_token_stream =
         trim.then(|| quote::quote! { let value = value.trim().to_owned(); });
     let len_token_stream = if chars {
@@ -1503,74 +1308,76 @@ fn generate_bounded_string_token_stream(
     });
     let description_token_stream = description.map_or_else(
         || {
-            let value = identifier_to_snake(SynIdentifierRef::from(identifier))
+            let value = identifier_to_snake(domain_types::SynIdentifierRef::from(identifier))
                 .as_ref()
                 .replace('_', constants_str::SPACE);
             quote::quote! {#value}
         },
         |value| quote::quote! {#value},
     );
-    Ok(ProcMacro2GeneratedTokenStream::from(quote::quote! {
-        #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-        #vis enum #error_identifier {
-            InvalidBounds { min: usize, max: usize },
-            TooShort { len: usize, min: usize },
-            TooLong { len: usize, max: usize },
-            ContainsNul,
-            InvalidValue,
-        }
-        impl std::fmt::Display for #error_identifier {
-            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                match self {
-                    Self::InvalidBounds { min, max } => {
-                        write!(f, "{} minimum length {min} exceeds maximum {max}", #description_token_stream)
+    Ok(domain_types::ProcMacro2GeneratedTokenStream::from(
+        quote::quote! {
+            #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+            #vis enum #error_identifier {
+                InvalidBounds { min: usize, max: usize },
+                TooShort { len: usize, min: usize },
+                TooLong { len: usize, max: usize },
+                ContainsNul,
+                InvalidValue,
+            }
+            impl std::fmt::Display for #error_identifier {
+                fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                    match self {
+                        Self::InvalidBounds { min, max } => {
+                            write!(f, "{} minimum length {min} exceeds maximum {max}", #description_token_stream)
+                        }
+                        Self::TooShort { len, min } => {
+                            write!(f, "{} length {len} is below minimum {min}", #description_token_stream)
+                        }
+                        Self::TooLong { len, max } => {
+                            write!(f, "{} length {len} exceeds maximum {max}", #description_token_stream)
+                        }
+                        Self::ContainsNul => write!(f, "{} contains a NUL character", #description_token_stream),
+                        Self::InvalidValue => write!(f, "{} has an invalid value", #description_token_stream),
                     }
-                    Self::TooShort { len, min } => {
-                        write!(f, "{} length {len} is below minimum {min}", #description_token_stream)
-                    }
-                    Self::TooLong { len, max } => {
-                        write!(f, "{} length {len} exceeds maximum {max}", #description_token_stream)
-                    }
-                    Self::ContainsNul => write!(f, "{} contains a NUL character", #description_token_stream),
-                    Self::InvalidValue => write!(f, "{} has an invalid value", #description_token_stream),
                 }
             }
-        }
-        impl From<#error_identifier> for #identifier {
-            fn from(value: #error_identifier) -> Self {
-                Self(value.to_string())
+            impl From<#error_identifier> for #identifier {
+                fn from(value: #error_identifier) -> Self {
+                    Self(value.to_string())
+                }
             }
-        }
-        impl TryFrom<String> for #identifier {
-            type Error = #error_identifier;
-            fn try_from(value: String) -> Result<Self, Self::Error> {
-                #normalize_token_stream
-                if #min_token_stream > #max {
-                    return Err(Self::Error::InvalidBounds { min: #min_token_stream, max: #max });
+            impl TryFrom<String> for #identifier {
+                type Error = #error_identifier;
+                fn try_from(value: String) -> Result<Self, Self::Error> {
+                    #normalize_token_stream
+                    if #min_token_stream > #max {
+                        return Err(Self::Error::InvalidBounds { min: #min_token_stream, max: #max });
+                    }
+                    #nul_check_token_stream
+                    let len = #len_token_stream;
+                    if len < #min_token_stream {
+                        return Err(Self::Error::TooShort { len, min: #min_token_stream });
+                    }
+                    if len > #max {
+                        return Err(Self::Error::TooLong {
+                            len,
+                            max: #max,
+                        });
+                    }
+                    #validator_check_token_stream
+                    Ok(Self(value))
                 }
-                #nul_check_token_stream
-                let len = #len_token_stream;
-                if len < #min_token_stream {
-                    return Err(Self::Error::TooShort { len, min: #min_token_stream });
-                }
-                if len > #max {
-                    return Err(Self::Error::TooLong {
-                        len,
-                        max: #max,
-                    });
-                }
-                #validator_check_token_stream
-                Ok(Self(value))
             }
-        }
-        #serde_token_stream
-        #utoipa_token_stream
-    }))
+            #serde_token_stream
+            #utoipa_token_stream
+        },
+    ))
 }
 #[allow(clippy::single_call_fn)] // keeps enum parsing derive independent from newtype tuple-struct generation
 fn generate_enum_from_str_token_stream(
-    input: SynDeriveInputRef<'_>,
-) -> syn::Result<ProcMacro2GeneratedTokenStream> {
+    input: domain_types::SynDeriveInputRef<'_>,
+) -> syn::Result<domain_types::ProcMacro2GeneratedTokenStream> {
     let input_ref = input.as_ref();
     let identifier = &input_ref.ident;
     let data_enum = match &input_ref.data {
@@ -1594,10 +1401,10 @@ fn generate_enum_from_str_token_stream(
             }
             Ok((
                 &variant.ident,
-                identifier_to_snake(SynIdentifierRef::from(&variant.ident)),
+                identifier_to_snake(domain_types::SynIdentifierRef::from(&variant.ident)),
             ))
         })
-        .collect::<syn::Result<Vec<(&syn::Ident, SnakeIdentifier)>>>()?;
+        .collect::<syn::Result<Vec<(&syn::Ident, domain_types::SnakeIdentifier)>>>()?;
     let allowed_values_capacity = variants
         .iter()
         .map(|(_identifier, name)| name.as_ref().len())
@@ -1624,45 +1431,49 @@ fn generate_enum_from_str_token_stream(
             v if v.eq_ignore_ascii_case(#name_ref) => Ok(Self::#variant_identifier),
         }
     });
-    Ok(ProcMacro2GeneratedTokenStream::from(quote::quote! {
-        impl std::str::FromStr for #identifier {
-            type Err = String;
-            fn from_str(s: &str) -> Result<Self, Self::Err> {
-                match s {
-                    #(#arms)*
-                    _ => Err(format!("Unknown value: {s}. Allowed values: {allowed_values}", allowed_values = #allowed_values)),
+    Ok(domain_types::ProcMacro2GeneratedTokenStream::from(
+        quote::quote! {
+            impl std::str::FromStr for #identifier {
+                type Err = String;
+                fn from_str(s: &str) -> Result<Self, Self::Err> {
+                    match s {
+                        #(#arms)*
+                        _ => Err(format!("Unknown value: {s}. Allowed values: {allowed_values}", allowed_values = #allowed_values)),
+                    }
                 }
             }
-        }
-    }))
+        },
+    ))
 }
 #[allow(clippy::single_call_fn)] // required checked-string options are parsed together for focused diagnostics
-fn parse_bounded_string_attrs(attrs: SynAttrsRef<'_>) -> syn::Result<BoundedStringAttrs> {
+fn parse_bounded_string_attrs(
+    attrs: domain_types::SynAttrsRef<'_>,
+) -> syn::Result<domain_types::BoundedStringAttrs> {
     let parsed = attrs
         .as_ref()
         .iter()
         .filter(|attr| attr.path().is_ident(constants_str::BOUNDED_STRING))
         .try_fold(
-            BoundedStringAttrs {
+            domain_types::BoundedStringAttrs {
                 description: None,
                 max: None,
                 min: None,
-                options: workspace_macro_helpers::UniqueOptionBTreeSet::default(),
+                options: workspace_macro_helpers::domain_types::UniqueOptionBTreeSet::default(),
                 validator: None,
             },
             |mut parsed, attr| {
                 attr.parse_nested_meta(|meta| {
                     if meta.path.is_ident(constants_str::MAX) {
-                        parsed.max = Some(SynExpr::from(meta.value()?.parse::<syn::Expr>()?));
+                        parsed.max = Some(domain_types::SynExpr::from(meta.value()?.parse::<syn::Expr>()?));
                         return Ok(());
                     }
                     if meta.path.is_ident(constants_str::MIN) {
-                        parsed.min = Some(SynExpr::from(meta.value()?.parse::<syn::Expr>()?));
+                        parsed.min = Some(domain_types::SynExpr::from(meta.value()?.parse::<syn::Expr>()?));
                         return Ok(());
                     }
                     if meta.path.is_ident(constants_str::DESCRIPTION) {
                         parsed.description =
-                            Some(SynExpr::from(meta.value()?.parse::<syn::Expr>()?));
+                            Some(domain_types::SynExpr::from(meta.value()?.parse::<syn::Expr>()?));
                         return Ok(());
                     }
                     if meta.path.is_ident(constants_str::NEWTYPE_TRY_FROM_VALIDATOR) {
@@ -1672,54 +1483,54 @@ fn parse_bounded_string_attrs(attrs: SynAttrsRef<'_>) -> syn::Result<BoundedStri
                             ));
                         }
                         parsed.validator =
-                            Some(SynExpr::from(meta.value()?.parse::<syn::Expr>()?));
+                            Some(domain_types::SynExpr::from(meta.value()?.parse::<syn::Expr>()?));
                         return Ok(());
                     }
                     if meta.path.is_ident(constants_str::CHARS) {
                         return parsed
                             .options
-                            .try_insert_with(BoundedStringOption::Chars, || {
+                            .try_insert_with(domain_types::BoundedStringOption::Chars, || {
                                 meta.error(constants_str::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR)
                             });
                     }
                     if meta.path.is_ident(constants_str::NUL_FREE) {
                         return parsed
                             .options
-                            .try_insert_with(BoundedStringOption::NulFree, || {
+                            .try_insert_with(domain_types::BoundedStringOption::NulFree, || {
                                 meta.error(constants_str::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR)
                             });
                     }
                     if meta.path.is_ident(constants_str::SERDE) {
                         return parsed
                             .options
-                            .try_insert_with(BoundedStringOption::Serde, || {
+                            .try_insert_with(domain_types::BoundedStringOption::Serde, || {
                                 meta.error(constants_str::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR)
                             });
                     }
                     if meta.path.is_ident(constants_str::TRIM) {
                         return parsed
                             .options
-                            .try_insert_with(BoundedStringOption::Trim, || {
+                            .try_insert_with(domain_types::BoundedStringOption::Trim, || {
                                 meta.error(constants_str::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR)
                             });
                     }
                     if meta.path.is_ident(constants_str::UTOIPA) {
                         return parsed
                             .options
-                            .try_insert_with(BoundedStringOption::Utoipa, || {
+                            .try_insert_with(domain_types::BoundedStringOption::Utoipa, || {
                                 meta.error(constants_str::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR)
                             });
                     }
                     if meta.path.is_ident(constants_str::WRITE_ONLY) {
                         return parsed
                             .options
-                            .try_insert_with(BoundedStringOption::WriteOnly, || {
+                            .try_insert_with(domain_types::BoundedStringOption::WriteOnly, || {
                                 meta.error(constants_str::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR)
                             });
                     }
                     Err(meta.error(constants_str::UNKNOWN_BOUNDED_STRING_OPTION))
                 })?;
-                Ok::<BoundedStringAttrs, syn::Error>(parsed)
+                Ok::<domain_types::BoundedStringAttrs, syn::Error>(parsed)
             },
         )?;
     if parsed.max.is_none() {
@@ -1732,10 +1543,12 @@ fn parse_bounded_string_attrs(attrs: SynAttrsRef<'_>) -> syn::Result<BoundedStri
 }
 #[allow(clippy::single_call_fn)] // string wrapper policy belongs to newtype validation before From impl generation
 fn validate_newtype_inner_ty_attrs(
-    attrs: &NewtypeAttrs,
-    inner_ty: SynTypeRef<'_>,
+    attrs: &domain_types::NewtypeAttrs,
+    inner_ty: domain_types::SynTypeRef<'_>,
 ) -> syn::Result<()> {
-    if attrs.contains(NewtypeOption::AsRefInner).get()
+    if attrs
+        .contains(domain_types::NewtypeOption::AsRefInner)
+        .get()
         && !matches!(
             inner_ty.as_ref(),
             syn::Type::Reference(syn::TypeReference {
@@ -1749,7 +1562,9 @@ fn validate_newtype_inner_ty_attrs(
             constants_str::MACRO_DIAGNOSTICS_AS_REF_INNER_SHARED_REF_ERROR,
         ));
     }
-    if attrs.contains(NewtypeOption::AsRefOwned).get()
+    if attrs
+        .contains(domain_types::NewtypeOption::AsRefOwned)
+        .get()
         && matches!(inner_ty.as_ref(), syn::Type::Reference(_))
     {
         return Err(syn::Error::new_spanned(
@@ -1757,7 +1572,7 @@ fn validate_newtype_inner_ty_attrs(
             constants_str::NEWTYPE_AS_REF_OWNED_DOES_NOT_SUPPORT_REFERENCE_INNER_TYPES_USE_AS,
         ));
     }
-    if attrs.contains(NewtypeOption::From).get()
+    if attrs.contains(domain_types::NewtypeOption::From).get()
         && type_path_ends_with_string_identifier(inner_ty).get()
     {
         return Err(syn::Error::new_spanned(
@@ -1767,19 +1582,21 @@ fn validate_newtype_inner_ty_attrs(
     }
     Ok(())
 }
-fn tuple_struct_one_field_ty(input: SynDeriveInputRef<'_>) -> syn::Result<SynTypeRef<'_>> {
-    let input_ref = input.0;
-    let shape =
-        workspace_macro_helpers::SynStructShapeRef::try_from(input_ref).map_err(|_error| {
+fn tuple_struct_one_field_ty(
+    input: domain_types::SynDeriveInputRef<'_>,
+) -> syn::Result<domain_types::SynTypeRef<'_>> {
+    let input_ref = input.get();
+    let shape = workspace_macro_helpers::domain_types::SynStructShapeRef::try_from(input_ref)
+        .map_err(|_error| {
             syn::Error::new_spanned(
                 input_ref,
                 constants_str::MACRO_DIAGNOSTICS_TUPLE_STRUCT_ERROR,
             )
         })?;
     let unnamed = match shape {
-        workspace_macro_helpers::SynStructShapeRef::Tuple(v) => &v.get().unnamed,
-        workspace_macro_helpers::SynStructShapeRef::Named(_)
-        | workspace_macro_helpers::SynStructShapeRef::Unit => {
+        workspace_macro_helpers::domain_types::SynStructShapeRef::Tuple(v) => &v.get().unnamed,
+        workspace_macro_helpers::domain_types::SynStructShapeRef::Named(_)
+        | workspace_macro_helpers::domain_types::SynStructShapeRef::Unit => {
             return Err(syn::Error::new_spanned(
                 input_ref,
                 constants_str::MACRO_DIAGNOSTICS_TUPLE_STRUCT_ERROR,
@@ -1794,11 +1611,13 @@ fn tuple_struct_one_field_ty(input: SynDeriveInputRef<'_>) -> syn::Result<SynTyp
     }
     unnamed
         .first()
-        .map(|field| SynTypeRef::from(&field.ty))
+        .map(|field| domain_types::SynTypeRef::from(&field.ty))
         .ok_or_else(|| syn::Error::new_spanned(input_ref, constants_str::NEWTYPE_FIELD_NOT_FOUND))
 }
-fn type_path_ends_with_string_identifier(ty: SynTypeRef<'_>) -> NewtypeBool {
-    NewtypeBool::from(match ty.as_ref() {
+fn type_path_ends_with_string_identifier(
+    ty: domain_types::SynTypeRef<'_>,
+) -> domain_types::NewtypeBool {
+    domain_types::NewtypeBool::from(match ty.as_ref() {
         syn::Type::Path(v) if v.qself.is_none() => v
             .path
             .segments
@@ -1807,7 +1626,9 @@ fn type_path_ends_with_string_identifier(ty: SynTypeRef<'_>) -> NewtypeBool {
         syn::Type::Path(_) | _ => false,
     })
 }
-fn identifier_to_snake(identifier: SynIdentifierRef<'_>) -> SnakeIdentifier {
+fn identifier_to_snake(
+    identifier: domain_types::SynIdentifierRef<'_>,
+) -> domain_types::SnakeIdentifier {
     let (out, _) = identifier.as_ref().to_string().chars().fold(
         (String::new(), false),
         |(mut out, mut prev_lowercase), ch| {
@@ -1824,17 +1645,18 @@ fn identifier_to_snake(identifier: SynIdentifierRef<'_>) -> SnakeIdentifier {
             (out, prev_lowercase)
         },
     );
-    SnakeIdentifier::try_from(out).expect("2e7a9c4f identifier_to_snake invariant must hold")
+    domain_types::SnakeIdentifier::try_from(out)
+        .expect("2e7a9c4f identifier_to_snake invariant must hold")
 }
 #[allow(clippy::single_call_fn)] // ToErrString code generation has distinct modes from base newtype impls
 fn generate_to_err_string_token_stream(
-    attrs: &NewtypeAttrs,
-    identifier: SynIdentifierRef<'_>,
-) -> Option<ProcMacro2GeneratedTokenStream> {
+    attrs: &domain_types::NewtypeAttrs,
+    identifier: domain_types::SynIdentifierRef<'_>,
+) -> Option<domain_types::ProcMacro2GeneratedTokenStream> {
     let ident_ref = identifier.as_ref();
     attrs.to_err_string_mode.map(|mode| match mode {
-        ToErrStringMode::AsRefStr => {
-            ProcMacro2GeneratedTokenStream::from(quote::quote! {
+        domain_types::ToErrStringMode::AsRefStr => {
+            domain_types::ProcMacro2GeneratedTokenStream::from(quote::quote! {
                 impl to_err_string::domain_types::ToErrString for #ident_ref {
                     fn to_err_string(&self) -> to_err_string::domain_types::ErrorText {
                         to_err_string::domain_types::ErrorText::try_from(AsRef::<str>::as_ref(&self.0).to_owned()).unwrap_or_else(to_err_string::domain_types::ErrorText::from)
@@ -1842,8 +1664,8 @@ fn generate_to_err_string_token_stream(
                 }
             })
         }
-        ToErrStringMode::Debug => {
-            ProcMacro2GeneratedTokenStream::from(quote::quote! {
+        domain_types::ToErrStringMode::Debug => {
+            domain_types::ProcMacro2GeneratedTokenStream::from(quote::quote! {
                 impl to_err_string::domain_types::ToErrString for #ident_ref {
                     fn to_err_string(&self) -> to_err_string::domain_types::ErrorText {
                         to_err_string::domain_types::ErrorText::try_from(format!("{:?}", self.0)).unwrap_or_else(to_err_string::domain_types::ErrorText::from)
@@ -1851,8 +1673,8 @@ fn generate_to_err_string_token_stream(
                 }
             })
         }
-        ToErrStringMode::Display => {
-            ProcMacro2GeneratedTokenStream::from(quote::quote! {
+        domain_types::ToErrStringMode::Display => {
+            domain_types::ProcMacro2GeneratedTokenStream::from(quote::quote! {
                 impl to_err_string::domain_types::ToErrString for #ident_ref {
                     fn to_err_string(&self) -> to_err_string::domain_types::ErrorText {
                         to_err_string::domain_types::ErrorText::try_from(self.0.to_string()).unwrap_or_else(to_err_string::domain_types::ErrorText::from)

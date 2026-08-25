@@ -5,7 +5,7 @@ pub fn summarize_identity_bootstrap<Reports>(
     reports: Reports,
 ) -> domain_types::DevelopmentBootstrapSummary
 where
-    Reports: IntoIterator<Item = server_runtime_http::IdentityBootstrapDecision>,
+    Reports: IntoIterator<Item = server_runtime_http::domain_types::IdentityBootstrapDecision>,
 {
     reports.into_iter().fold(
         domain_types::DevelopmentBootstrapSummary::default(),
@@ -21,17 +21,17 @@ mod tests {
     #[test]
     fn summarizes_desired_state_decisions() {
         let reports = [
-            server_runtime_http::plan_identity_bootstrap(
-                server_runtime_http::IdentityPresence::Missing,
-                server_runtime_http::IdentityRolePresence::Present,
+            server_runtime_http::domain_types::plan_identity_bootstrap(
+                server_runtime_http::domain_types::IdentityPresence::Missing,
+                server_runtime_http::domain_types::IdentityRolePresence::Present,
             ),
-            server_runtime_http::plan_identity_bootstrap(
-                server_runtime_http::IdentityPresence::Present,
-                server_runtime_http::IdentityRolePresence::Present,
+            server_runtime_http::domain_types::plan_identity_bootstrap(
+                server_runtime_http::domain_types::IdentityPresence::Present,
+                server_runtime_http::domain_types::IdentityRolePresence::Present,
             ),
-            server_runtime_http::plan_identity_bootstrap(
-                server_runtime_http::IdentityPresence::Missing,
-                server_runtime_http::IdentityRolePresence::Missing,
+            server_runtime_http::domain_types::plan_identity_bootstrap(
+                server_runtime_http::domain_types::IdentityPresence::Missing,
+                server_runtime_http::domain_types::IdentityRolePresence::Missing,
             ),
         ];
         let summary = super::summarize_identity_bootstrap(reports);

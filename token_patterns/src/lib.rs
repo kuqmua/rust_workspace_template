@@ -14,7 +14,7 @@ token_patterns_macros::tp!(SerdeSerialize, serde::Serialize);
 token_patterns_macros::tp!(SerdeDeserialize, serde::Deserialize);
 token_patterns_macros::tp!(UtoipaToSchema, utoipa::ToSchema);
 token_patterns_macros::tp!(SchemarsJsonSchema, schemars::JsonSchema);
-token_patterns_macros::tp!(LocationLibLocation, location::Location);
+token_patterns_macros::tp!(LocationLibLocation, location_lib::domain_types::Location);
 token_patterns_macros::tp!(ThiserrorError, thiserror::Error);
 token_patterns_macros::tp!(Char, char);
 token_patterns_macros::tp!(RefStr, &str);
@@ -33,9 +33,9 @@ token_patterns_macros::tp!(
 token_patterns_macros::tp!(SqlxTypesTypeDatabase, sqlx::types::Type<R::Database>);
 token_patterns_macros::tp!(
     LocationLibLocationLocation,
-    location_lib::location::Location
+    location_lib::domain_types::Location
 );
-token_patterns_macros::tp!(LocationSnakeCaseDoubleDotSpaceLocationLibLocationLocation, location: location_lib::location::Location);
+token_patterns_macros::tp!(LocationSnakeCaseDoubleDotSpaceLocationLibLocationLocation, location: location_lib::domain_types::Location);
 token_patterns_macros::tp!(CoreDefault, ::core::default::Default::default());
 token_patterns_macros::tp!(SqlxTypesTimeTimeMidnight, sqlx::types::time::Time::MIDNIGHT);
 token_patterns_macros::tp!(
@@ -156,7 +156,7 @@ token_patterns_macros::ts_path_fn!(
     DefaultSomeOneElementMaxPageSize
 );
 token_patterns_macros::ts_path_fn!(crate_path_token_stream, crate::);
-token_patterns_macros::ts_path_fn!(pg_crud_common, pg_crud_common::);
+token_patterns_macros::ts_path_fn!(pg_crud_common, pg_crud_common::domain_types::);
 token_patterns_macros::ts_path_fn!(
     default_some_one_element_upper_camel_case,
     DefaultSomeOneElement
@@ -214,7 +214,10 @@ mod tests {
     }
     #[test]
     fn ts_path_fn_outputs_expected_tokens() {
-        assert_tokens_eq(super::pg_crud_common(), quote::quote! {pg_crud_common::});
+        assert_tokens_eq(
+            super::pg_crud_common(),
+            quote::quote! {pg_crud_common::domain_types::},
+        );
     }
     #[test]
     fn path_helper_outputs_expected_tokens() {

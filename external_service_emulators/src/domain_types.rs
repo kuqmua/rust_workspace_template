@@ -10,12 +10,12 @@ pub struct MockNotificationInbox {
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, newtype::FromInner)]
 struct TokioMockNotificationSender(
-    tokio::sync::mpsc::UnboundedSender<server_runtime_http::NotificationMessage>,
+    tokio::sync::mpsc::UnboundedSender<server_runtime_http::domain_types::NotificationMessage>,
 );
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
 struct TokioMockNotificationReceiver(
-    tokio::sync::mpsc::UnboundedReceiver<server_runtime_http::NotificationMessage>,
+    tokio::sync::mpsc::UnboundedReceiver<server_runtime_http::domain_types::NotificationMessage>,
 );
 
 #[derive(
@@ -25,17 +25,19 @@ struct TokioMockNotificationReceiver(
 pub struct MockNotificationProviderClosed;
 
 impl MockNotificationInbox {
-    pub async fn receive(&mut self) -> Option<server_runtime_http::NotificationMessage> {
+    pub async fn receive(
+        &mut self,
+    ) -> Option<server_runtime_http::domain_types::NotificationMessage> {
         self.receiver.0.recv().await
     }
 }
 
-impl server_runtime_http::NotificationSender for MockNotificationProvider {
+impl server_runtime_http::domain_types::NotificationSender for MockNotificationProvider {
     type Error = MockNotificationProviderClosed;
 
     fn send(
         &self,
-        message: server_runtime_http::NotificationMessage,
+        message: server_runtime_http::domain_types::NotificationMessage,
     ) -> impl Future<Output = Result<(), Self::Error>> + Send {
         std::future::ready(
             self.sender
@@ -132,11 +134,12 @@ mod tests {
     #[tokio::test]
     async fn notification_provider_records_messages_through_runtime_contract() {
         let (provider, mut inbox) = super::mock_notification_provider();
-        let message = server_runtime_http::NotificationMessage::try_from(
+        let message = server_runtime_http::domain_types::NotificationMessage::try_from(
             constants_str::TEST_NOTIFICATION_MESSAGE.to_owned(),
         )
         .expect("6ef25d4a notification_provider_records_messages_through_runtime_contract invariant must hold");
-        let result = server_runtime_http::NotificationSender::send(&provider, message).await;
+        let result =
+            server_runtime_http::domain_types::NotificationSender::send(&provider, message).await;
         assert_eq!(result, Ok(()));
         assert!(inbox.receive().await.is_some());
     }

@@ -15,7 +15,7 @@ pub fn run(
         reqwest::blocking::Client::builder()
             .redirect(reqwest::redirect::Policy::none())
             .build()
-            .map_err(server_runtime_http::ReqwestError::from)
+            .map_err(server_runtime_http::domain_types::ReqwestError::from)
             .map_err(domain_types::RuntimeTestError::Client)?,
     );
     let mut passed = Vec::with_capacity(5usize);
@@ -23,28 +23,28 @@ pub fn run(
     run_health_test(
         &client,
         config.application_base_url(),
-        common_routes::CommonRoute::HealthLive,
+        common_routes::domain_types::CommonRoute::HealthLive,
         domain_types::RuntimeTestKind::ApplicationLiveness,
     )?;
     passed.push(domain_types::RuntimeTestKind::ApplicationLiveness);
     run_health_test(
         &client,
         config.application_base_url(),
-        common_routes::CommonRoute::HealthReady,
+        common_routes::domain_types::CommonRoute::HealthReady,
         domain_types::RuntimeTestKind::ApplicationReadiness,
     )?;
     passed.push(domain_types::RuntimeTestKind::ApplicationReadiness);
     run_health_test(
         &client,
         config.notification_service_base_url(),
-        common_routes::CommonRoute::HealthLive,
+        common_routes::domain_types::CommonRoute::HealthLive,
         domain_types::RuntimeTestKind::NotificationServiceLiveness,
     )?;
     passed.push(domain_types::RuntimeTestKind::NotificationServiceLiveness);
     run_health_test(
         &client,
         config.notification_service_base_url(),
-        common_routes::CommonRoute::HealthReady,
+        common_routes::domain_types::CommonRoute::HealthReady,
         domain_types::RuntimeTestKind::NotificationServiceReadiness,
     )?;
     passed.push(domain_types::RuntimeTestKind::NotificationServiceReadiness);
@@ -77,7 +77,7 @@ pub fn run(
 fn run_health_test(
     client: &domain_types::ReqwestRuntimeTestClient,
     base_url: &domain_types::ServiceBaseUrl,
-    route: common_routes::CommonRoute,
+    route: common_routes::domain_types::CommonRoute,
     test: domain_types::RuntimeTestKind,
 ) -> Result<(), domain_types::RuntimeTestError> {
     let url = route_url(base_url, route.path())?;
@@ -92,7 +92,7 @@ fn run_health_test(
     let report = response
         .into_health_report()
         .map_err(|source| domain_types::RuntimeTestError::Response { test, source })?;
-    if report.status() != common_routes::HealthStatus::Ok {
+    if report.status() != common_routes::domain_types::HealthStatus::Ok {
         return Err(domain_types::RuntimeTestError::Unhealthy { test });
     }
     Ok(())
@@ -117,7 +117,7 @@ fn require_status(
 
 fn route_url(
     base_url: &domain_types::ServiceBaseUrl,
-    path: frontend_contract::ContractStr,
+    path: frontend_contract::domain_types::ContractStr,
 ) -> Result<domain_types::RuntimeTestUrl, domain_types::ServiceBaseUrlError> {
     domain_types::RuntimeTestUrl::try_from(format!("{}{path}", base_url.as_ref()))
 }
@@ -130,9 +130,12 @@ mod tests {
             super::domain_types::ServiceBaseUrl::try_from(String::from("http://application"))
                 .expect("6cde5062 route_url_uses_contract_path invariant must hold");
         assert_eq!(
-            super::route_url(&base_url, common_routes::CommonRoute::HealthLive.path())
-                .expect("ea911c48 route_url_uses_contract_path invariant must hold")
-                .as_ref(),
+            super::route_url(
+                &base_url,
+                common_routes::domain_types::CommonRoute::HealthLive.path()
+            )
+            .expect("ea911c48 route_url_uses_contract_path invariant must hold")
+            .as_ref(),
             "http://application/health/live"
         );
     }

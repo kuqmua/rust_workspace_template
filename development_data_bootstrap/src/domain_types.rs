@@ -13,7 +13,7 @@ const DEVELOPMENT_IDENTITY_SPECS_MAX_LEN: usize = 1_024usize;
     validator = DevelopmentIdentitySpecs::<Login, DisplayName, Role, SecretSource>::validate
 )]
 pub struct DevelopmentIdentitySpecs<Login, DisplayName, Role, SecretSource>(
-    Vec<server_runtime_http::IdentitySpec<Login, DisplayName, Role, SecretSource>>,
+    Vec<server_runtime_http::domain_types::IdentitySpec<Login, DisplayName, Role, SecretSource>>,
 );
 
 impl<Login, DisplayName, Role, SecretSource>
@@ -21,7 +21,12 @@ impl<Login, DisplayName, Role, SecretSource>
 {
     #[allow(clippy::single_call_fn)] // derive-generated TryFrom owns the single validator call
     const fn validate(
-        value: &[server_runtime_http::IdentitySpec<Login, DisplayName, Role, SecretSource>],
+        value: &[server_runtime_http::domain_types::IdentitySpec<
+            Login,
+            DisplayName,
+            Role,
+            SecretSource,
+        >],
     ) -> Result<(), DevelopmentIdentitySpecsError> {
         if value.len() > DEVELOPMENT_IDENTITY_SPECS_MAX_LEN {
             Err(DevelopmentIdentitySpecsError)
@@ -48,7 +53,8 @@ impl<Login, DisplayName, Role, SecretSource>
     #[must_use]
     pub fn identities(
         &self,
-    ) -> &[server_runtime_http::IdentitySpec<Login, DisplayName, Role, SecretSource>] {
+    ) -> &[server_runtime_http::domain_types::IdentitySpec<Login, DisplayName, Role, SecretSource>]
+    {
         self.identities.as_ref()
     }
 
@@ -100,16 +106,16 @@ impl DevelopmentBootstrapSummary {
 
     pub(crate) const fn record(
         &mut self,
-        decision: server_runtime_http::IdentityBootstrapDecision,
+        decision: server_runtime_http::domain_types::IdentityBootstrapDecision,
     ) {
         match decision {
-            server_runtime_http::IdentityBootstrapDecision::AlreadyExists => {
+            server_runtime_http::domain_types::IdentityBootstrapDecision::AlreadyExists => {
                 self.already_exists.0 = self.already_exists.0.saturating_add(constants_usize::ONE);
             }
-            server_runtime_http::IdentityBootstrapDecision::Create => {
+            server_runtime_http::domain_types::IdentityBootstrapDecision::Create => {
                 self.create.0 = self.create.0.saturating_add(constants_usize::ONE);
             }
-            server_runtime_http::IdentityBootstrapDecision::MissingRole => {
+            server_runtime_http::domain_types::IdentityBootstrapDecision::MissingRole => {
                 self.missing_role.0 = self.missing_role.0.saturating_add(constants_usize::ONE);
             }
         }
@@ -122,7 +128,7 @@ mod tests {
     fn plan_preserves_typed_identity_specs() {
         let plan = super::DevelopmentBootstrapPlan::new(
             super::DevelopmentIdentitySpecs::try_from(vec![
-                server_runtime_http::IdentitySpec::new(1u8, 2u8, 3u8, 4u8),
+                server_runtime_http::domain_types::IdentitySpec::new(1u8, 2u8, 3u8, 4u8),
             ])
             .expect("743c519b plan_preserves_typed_identity_specs invariant must hold"),
         );
@@ -135,12 +141,11 @@ mod tests {
 
     #[test]
     fn identity_specs_rejects_more_than_supported_entries() {
-        let values =
-            std::iter::repeat_with(|| server_runtime_http::IdentitySpec::new(1u8, 2u8, 3u8, 4u8))
-                .take(
-                    super::DEVELOPMENT_IDENTITY_SPECS_MAX_LEN.saturating_add(constants_usize::ONE),
-                )
-                .collect::<Vec<_>>();
+        let values = std::iter::repeat_with(|| {
+            server_runtime_http::domain_types::IdentitySpec::new(1u8, 2u8, 3u8, 4u8)
+        })
+        .take(super::DEVELOPMENT_IDENTITY_SPECS_MAX_LEN.saturating_add(constants_usize::ONE))
+        .collect::<Vec<_>>();
         assert_eq!(
             super::DevelopmentIdentitySpecs::try_from(values),
             Err(super::DevelopmentIdentitySpecsError)

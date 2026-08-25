@@ -2,55 +2,17 @@
     clippy::arbitrary_source_item_ordering,
     reason = "proc-macro parser models precede their entrypoints while related derive parsers remain adjacent"
 )]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
-struct SynExpr(syn::Expr);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
-struct SynType(syn::Type);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
-struct SynIdent(syn::Ident);
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Default,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
-)]
-struct StdBool(bool);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
-struct SynAttributesRef<'attributes_lt>(&'attributes_lt [syn::Attribute]);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
-struct ContractStructApiArgs {
-    into_parts: StdBool,
-    new: StdBool,
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
-#[allow(
-    clippy::struct_excessive_bools,
-    reason = "each flag independently opts one field into a distinct generated method"
-)]
-struct ContractStructApiFieldArgs {
-    slice: Option<SynType>,
-    borrow: StdBool,
-    copy: StdBool,
-    copy_ref: StdBool,
-    into: StdBool,
-    option_borrow: StdBool,
-}
+mod domain_types;
 #[allow(
     clippy::single_call_fn,
     reason = "a named parser keeps derive expansion focused and is exercised directly by parser tests"
 )]
 fn parse_contract_struct_api_args(
-    attributes: SynAttributesRef<'_>,
-) -> syn::Result<ContractStructApiArgs> {
-    let mut args = ContractStructApiArgs::default();
+    attributes: domain_types::SynAttributesRef<'_>,
+) -> syn::Result<domain_types::ContractStructApiArgs> {
+    let mut args = domain_types::ContractStructApiArgs::default();
     attributes
-        .0
+        .get()
         .iter()
         .filter(|attribute| {
             attribute
@@ -63,13 +25,13 @@ fn parse_contract_struct_api_args(
                     .path
                     .is_ident(constants_str::CONTRACT_STRUCT_API_NEW)
                 {
-                    args.new = StdBool::from(true);
+                    args.new = domain_types::StdBool::from(true);
                     Ok(())
                 } else if metadata
                     .path
                     .is_ident(constants_str::CONTRACT_STRUCT_API_INTO_PARTS)
                 {
-                    args.into_parts = StdBool::from(true);
+                    args.into_parts = domain_types::StdBool::from(true);
                     Ok(())
                 } else {
                     Err(metadata.error(constants_str::CONTRACT_STRUCT_API_UNSUPPORTED_ATTRIBUTE))
@@ -83,11 +45,11 @@ fn parse_contract_struct_api_args(
     reason = "a named parser keeps derive expansion focused and is exercised directly by parser tests"
 )]
 fn parse_contract_struct_api_field_args(
-    attributes: SynAttributesRef<'_>,
-) -> syn::Result<ContractStructApiFieldArgs> {
-    let mut args = ContractStructApiFieldArgs::default();
+    attributes: domain_types::SynAttributesRef<'_>,
+) -> syn::Result<domain_types::ContractStructApiFieldArgs> {
+    let mut args = domain_types::ContractStructApiFieldArgs::default();
     attributes
-        .0
+        .get()
         .iter()
         .filter(|attribute| {
             attribute
@@ -100,37 +62,39 @@ fn parse_contract_struct_api_field_args(
                     .path
                     .is_ident(constants_str::CONTRACT_STRUCT_API_BORROW)
                 {
-                    args.borrow = StdBool::from(true);
+                    args.borrow = domain_types::StdBool::from(true);
                     Ok(())
                 } else if metadata
                     .path
                     .is_ident(constants_str::CONTRACT_STRUCT_API_COPY)
                 {
-                    args.copy = StdBool::from(true);
+                    args.copy = domain_types::StdBool::from(true);
                     Ok(())
                 } else if metadata
                     .path
                     .is_ident(constants_str::CONTRACT_STRUCT_API_COPY_REF)
                 {
-                    args.copy_ref = StdBool::from(true);
+                    args.copy_ref = domain_types::StdBool::from(true);
                     Ok(())
                 } else if metadata
                     .path
                     .is_ident(constants_str::CONTRACT_STRUCT_API_INTO)
                 {
-                    args.into = StdBool::from(true);
+                    args.into = domain_types::StdBool::from(true);
                     Ok(())
                 } else if metadata
                     .path
                     .is_ident(constants_str::CONTRACT_STRUCT_API_OPTION_BORROW)
                 {
-                    args.option_borrow = StdBool::from(true);
+                    args.option_borrow = domain_types::StdBool::from(true);
                     Ok(())
                 } else if metadata
                     .path
                     .is_ident(constants_str::CONTRACT_STRUCT_API_SLICE)
                 {
-                    args.slice = Some(SynType::from(metadata.value()?.parse::<syn::Type>()?));
+                    args.slice = Some(domain_types::SynType::from(
+                        metadata.value()?.parse::<syn::Type>()?,
+                    ));
                     Ok(())
                 } else {
                     Err(metadata.error(constants_str::CONTRACT_STRUCT_API_UNSUPPORTED_ATTRIBUTE))
@@ -140,33 +104,7 @@ fn parse_contract_struct_api_field_args(
     Ok(args)
 }
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-struct RouteCatalogArgs {
-    body_limit: SynExpr,
-    family: SynIdent,
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-struct RouteCatalogRouteArgs {
-    contract: Option<SynExpr>,
-    path: Option<SynExpr>,
-    route: Option<SynType>,
-    exclude_from_family: StdBool,
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-struct PageCatalogArgs {
-    inventory: SynIdent,
-    path_ref: SynIdent,
-    spec: SynIdent,
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-struct PageCatalogPageArgs {
-    capability: SynExpr,
-    metadata: SynExpr,
-    path: SynExpr,
-    route: SynExpr,
-    title: SynExpr,
-}
-impl syn::parse::Parse for PageCatalogArgs {
+impl syn::parse::Parse for domain_types::PageCatalogArgs {
     fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
         let mut inventory = None;
         let mut path_ref = None;
@@ -175,11 +113,11 @@ impl syn::parse::Parse for PageCatalogArgs {
             let name = input.parse::<syn::Ident>()?;
             let _equals = input.parse::<syn::Token![=]>()?;
             if name == constants_str::PAGE_CATALOG_INVENTORY {
-                inventory = Some(SynIdent::from(input.parse::<syn::Ident>()?));
+                inventory = Some(domain_types::SynIdent::from(input.parse::<syn::Ident>()?));
             } else if name == constants_str::PAGE_CATALOG_PATH_REF {
-                path_ref = Some(SynIdent::from(input.parse::<syn::Ident>()?));
+                path_ref = Some(domain_types::SynIdent::from(input.parse::<syn::Ident>()?));
             } else if name == constants_str::PAGE_CATALOG_SPEC {
-                spec = Some(SynIdent::from(input.parse::<syn::Ident>()?));
+                spec = Some(domain_types::SynIdent::from(input.parse::<syn::Ident>()?));
             } else {
                 return Err(syn::Error::new_spanned(
                     name,
@@ -200,7 +138,7 @@ impl syn::parse::Parse for PageCatalogArgs {
         })
     }
 }
-impl syn::parse::Parse for PageCatalogPageArgs {
+impl syn::parse::Parse for domain_types::PageCatalogPageArgs {
     fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
         let mut capability = None;
         let mut metadata = None;
@@ -211,15 +149,15 @@ impl syn::parse::Parse for PageCatalogPageArgs {
             let name = input.parse::<syn::Ident>()?;
             let _equals = input.parse::<syn::Token![=]>()?;
             if name == constants_str::PAGE_CATALOG_CAPABILITY {
-                capability = Some(SynExpr::from(input.parse::<syn::Expr>()?));
+                capability = Some(domain_types::SynExpr::from(input.parse::<syn::Expr>()?));
             } else if name == constants_str::PAGE_CATALOG_METADATA {
-                metadata = Some(SynExpr::from(input.parse::<syn::Expr>()?));
+                metadata = Some(domain_types::SynExpr::from(input.parse::<syn::Expr>()?));
             } else if name == constants_str::ROUTE_CATALOG_PATH {
-                path = Some(SynExpr::from(input.parse::<syn::Expr>()?));
+                path = Some(domain_types::SynExpr::from(input.parse::<syn::Expr>()?));
             } else if name == constants_str::PAGE_CATALOG_ROUTE {
-                route = Some(SynExpr::from(input.parse::<syn::Expr>()?));
+                route = Some(domain_types::SynExpr::from(input.parse::<syn::Expr>()?));
             } else if name == constants_str::PAGE_CATALOG_TITLE {
-                title = Some(SynExpr::from(input.parse::<syn::Expr>()?));
+                title = Some(domain_types::SynExpr::from(input.parse::<syn::Expr>()?));
             } else {
                 return Err(syn::Error::new_spanned(
                     name,
@@ -244,7 +182,7 @@ impl syn::parse::Parse for PageCatalogPageArgs {
         })
     }
 }
-impl syn::parse::Parse for RouteCatalogArgs {
+impl syn::parse::Parse for domain_types::RouteCatalogArgs {
     fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
         let mut body_limit = None;
         let mut family = None;
@@ -252,9 +190,9 @@ impl syn::parse::Parse for RouteCatalogArgs {
             let name = input.parse::<syn::Ident>()?;
             let _equals = input.parse::<syn::Token![=]>()?;
             if name == constants_str::ROUTE_CATALOG_FAMILY {
-                family = Some(SynIdent::from(input.parse::<syn::Ident>()?));
+                family = Some(domain_types::SynIdent::from(input.parse::<syn::Ident>()?));
             } else if name == constants_str::ROUTE_CATALOG_BODY_LIMIT {
-                body_limit = Some(SynExpr::from(input.parse::<syn::Expr>()?));
+                body_limit = Some(domain_types::SynExpr::from(input.parse::<syn::Expr>()?));
             } else {
                 return Err(syn::Error::new_spanned(
                     name,
@@ -273,22 +211,22 @@ impl syn::parse::Parse for RouteCatalogArgs {
         })
     }
 }
-impl syn::parse::Parse for RouteCatalogRouteArgs {
+impl syn::parse::Parse for domain_types::RouteCatalogRouteArgs {
     fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
         if input.peek(syn::Ident) && input.peek2(syn::Token![=]) {
             let mut contract = None;
-            let mut exclude_from_family = StdBool::from(false);
+            let mut exclude_from_family = domain_types::StdBool::from(false);
             let mut path = None;
             while !input.is_empty() {
                 let name = input.parse::<syn::Ident>()?;
                 if name == constants_str::ROUTE_CATALOG_EXCLUDE_FROM_FAMILY {
-                    exclude_from_family = StdBool::from(true);
+                    exclude_from_family = domain_types::StdBool::from(true);
                 } else {
                     let _equals = input.parse::<syn::Token![=]>()?;
                     if name == constants_str::ROUTE_CATALOG_CONTRACT {
-                        contract = Some(SynExpr::from(input.parse::<syn::Expr>()?));
+                        contract = Some(domain_types::SynExpr::from(input.parse::<syn::Expr>()?));
                     } else if name == constants_str::ROUTE_CATALOG_PATH {
-                        path = Some(SynExpr::from(input.parse::<syn::Expr>()?));
+                        path = Some(domain_types::SynExpr::from(input.parse::<syn::Expr>()?));
                     } else {
                         return Err(syn::Error::new_spanned(
                             name,
@@ -314,95 +252,26 @@ impl syn::parse::Parse for RouteCatalogRouteArgs {
         } else {
             Ok(Self {
                 contract: None,
-                exclude_from_family: StdBool::from(false),
+                exclude_from_family: domain_types::StdBool::from(false),
                 path: None,
-                route: Some(SynType::from(input.parse::<syn::Type>()?)),
+                route: Some(domain_types::SynType::from(input.parse::<syn::Type>()?)),
             })
         }
     }
 }
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-struct TypedRouteArgs {
-    authentication: SynExpr,
-    error_response: Option<SynType>,
-    errors: SynTypedRouteErrors,
-    method: SynExpr,
-    mutation: Option<SynExpr>,
-    obligations: Option<SynExpr>,
-    openapi_operation_id: SynExpr,
-    path: SynExpr,
-    path_parameter: Option<SynType>,
-    request: SynType,
-    request_body: Option<SynExpr>,
-    response: SynType,
-    success_status: SynExpr,
-    transport: SynType,
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-enum SynTypedRouteErrors {
-    Policy(SynExpr),
-    Statuses(SynExpr),
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-struct RouteRegistryBinding {
-    handler: SynRouteRegistryHandler,
-    route: SynRouteRegistryRoute,
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
-struct SynRouteRegistryHandler(syn::Path);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
-struct SynRouteRegistryRoute(syn::Type);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
-struct SynRouteRegistryBindings(syn::punctuated::Punctuated<RouteRegistryBinding, syn::Token![,]>);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
-struct SynRouteRegistrySchemas(Vec<syn::Type>);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
-struct SynRouteRegistryState(syn::Type);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
-struct SynRouteRegistryFamily(syn::Type);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-struct HandlerRegistryBinding {
-    contract: SynHandlerRegistryContract,
-    handler: SynHandlerRegistryHandler,
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
-struct SynHandlerRegistryContract(syn::Expr);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
-struct SynHandlerRegistryHandler(syn::Path);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
-struct SynHandlerRegistryBindings(
-    syn::punctuated::Punctuated<HandlerRegistryBinding, syn::Token![,]>,
-);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
-struct SynHandlerRegistryState(syn::Type);
-
-impl syn::parse::Parse for HandlerRegistryBinding {
+impl syn::parse::Parse for domain_types::HandlerRegistryBinding {
     fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
         let content;
         let _parenthesis = syn::parenthesized!(content in input);
-        let contract = SynHandlerRegistryContract::from(content.parse::<syn::Expr>()?);
+        let contract =
+            domain_types::SynHandlerRegistryContract::from(content.parse::<syn::Expr>()?);
         let _contract_comma = content.parse::<syn::Token![,]>()?;
-        let handler = SynHandlerRegistryHandler::from(content.parse::<syn::Path>()?);
+        let handler = domain_types::SynHandlerRegistryHandler::from(content.parse::<syn::Path>()?);
         Ok(Self { contract, handler })
     }
 }
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-struct HandlerRegistryArgs {
-    bindings: SynHandlerRegistryBindings,
-    state: SynHandlerRegistryState,
-}
-
-impl syn::parse::Parse for HandlerRegistryArgs {
+impl syn::parse::Parse for domain_types::HandlerRegistryArgs {
     fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
         let state_name = input.parse::<syn::Ident>()?;
         if state_name != constants_str::STATE {
@@ -412,48 +281,38 @@ impl syn::parse::Parse for HandlerRegistryArgs {
             ));
         }
         let _equals = input.parse::<syn::Token![=]>()?;
-        let state = SynHandlerRegistryState::from(input.parse::<syn::Type>()?);
+        let state = domain_types::SynHandlerRegistryState::from(input.parse::<syn::Type>()?);
         let _semicolon = input.parse::<syn::Token![;]>()?;
-        let bindings =
-            syn::punctuated::Punctuated::<HandlerRegistryBinding, syn::Token![,]>::parse_terminated(
-                input,
-            )?;
+        let bindings = syn::punctuated::Punctuated::<
+            domain_types::HandlerRegistryBinding,
+            syn::Token![,],
+        >::parse_terminated(input)?;
         if bindings.is_empty() {
             return Err(input.error(constants_str::HANDLER_REGISTRY_REQUIRES_BINDING));
         }
         Ok(Self {
-            bindings: SynHandlerRegistryBindings::from(bindings),
+            bindings: domain_types::SynHandlerRegistryBindings::from(bindings),
             state,
         })
     }
 }
 
-impl syn::parse::Parse for RouteRegistryBinding {
+impl syn::parse::Parse for domain_types::RouteRegistryBinding {
     fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
         let content;
         let _parenthesis = syn::parenthesized!(content in input);
-        let route = SynRouteRegistryRoute::from(content.parse::<syn::Type>()?);
+        let route = domain_types::SynRouteRegistryRoute::from(content.parse::<syn::Type>()?);
         let _comma = content.parse::<syn::Token![,]>()?;
-        let handler = SynRouteRegistryHandler::from(content.parse::<syn::Path>()?);
+        let handler = domain_types::SynRouteRegistryHandler::from(content.parse::<syn::Path>()?);
         Ok(Self { handler, route })
     }
 }
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-struct RouteRegistryArgs {
-    authenticated_security: SynExpr,
-    bindings: SynRouteRegistryBindings,
-    csrf_security: SynExpr,
-    family: SynRouteRegistryFamily,
-    schemas: SynRouteRegistrySchemas,
-    state: SynRouteRegistryState,
-}
-
 #[proc_macro_attribute]
 pub fn handler_registry(
     attribute_args: proc_macro::TokenStream,
     input: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
-    let parsed_args = match syn::parse::<HandlerRegistryArgs>(attribute_args) {
+    let parsed_args = match syn::parse::<domain_types::HandlerRegistryArgs>(attribute_args) {
         Ok(value) => value,
         Err(error) => return error.to_compile_error().into(),
     };
@@ -462,18 +321,18 @@ pub fn handler_registry(
         Err(error) => return error.to_compile_error().into(),
     };
     let identifier = &item.ident;
-    let state = parsed_args.state.0;
+    let state = parsed_args.state.into_inner();
     let contracts = parsed_args
         .bindings
-        .0
+        .as_ref()
         .iter()
-        .map(|binding| &binding.contract.0)
+        .map(|binding| binding.contract.as_ref())
         .collect::<Vec<_>>();
     let handlers = parsed_args
         .bindings
-        .0
+        .as_ref()
         .iter()
-        .map(|binding| &binding.handler.0)
+        .map(|binding| binding.handler.as_ref())
         .collect::<Vec<_>>();
     quote::quote! {
         #item
@@ -481,9 +340,9 @@ pub fn handler_registry(
             fn router() -> axum::Router<#state> {
                 axum::Router::new()
                     #(.route(
-                        frontend_contract::HandlerContract::path(#contracts).get(),
-                        frontend_contract::handler_method_router(
-                            frontend_contract::HandlerContract::method(#contracts),
+                        frontend_contract::domain_types::HandlerContract::path(#contracts).get(),
+                        frontend_contract::domain_types::handler_method_router(
+                            frontend_contract::domain_types::HandlerContract::method(#contracts),
                             #handlers,
                         ).into(),
                     ))*
@@ -669,12 +528,12 @@ pub fn derive_contract_struct_api(
         Ok(value) => value,
         Err(error) => return error.to_compile_error().into(),
     };
-    let args =
-        match parse_contract_struct_api_args(SynAttributesRef::from(derive_input.attrs.as_slice()))
-        {
-            Ok(value) => value,
-            Err(error) => return error.to_compile_error().into(),
-        };
+    let args = match parse_contract_struct_api_args(domain_types::SynAttributesRef::from(
+        derive_input.attrs.as_slice(),
+    )) {
+        Ok(value) => value,
+        Err(error) => return error.to_compile_error().into(),
+    };
     let syn::Data::Struct(data) = &derive_input.data else {
         return syn::Error::new_spanned(
             derive_input.ident,
@@ -701,8 +560,10 @@ pub fn derive_contract_struct_api(
                     constants_str::CONTRACT_STRUCT_API_REQUIRES_NAMED_STRUCT,
                 ));
             };
-            parse_contract_struct_api_field_args(SynAttributesRef::from(field.attrs.as_slice()))
-                .map(|field_args| (identifier, &field.ty, field_args))
+            parse_contract_struct_api_field_args(domain_types::SynAttributesRef::from(
+                field.attrs.as_slice(),
+            ))
+            .map(|field_args| (identifier, &field.ty, field_args))
         })
         .collect::<syn::Result<Vec<_>>>()
     {
@@ -811,7 +672,7 @@ pub fn derive_contract_struct_api(
                 }
             });
             let slice = field_args.slice.as_ref().map(|wrapped_element_type| {
-                let element_type = &wrapped_element_type.0;
+                let element_type = &wrapped_element_type.as_ref();
                 quote::quote! {
                     #[must_use]
                     pub const fn #identifier(&self) -> &[#element_type] {
@@ -842,7 +703,7 @@ pub fn derive_contract_struct_api(
     .into()
 }
 
-impl syn::parse::Parse for RouteRegistryArgs {
+impl syn::parse::Parse for domain_types::RouteRegistryArgs {
     fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
         let state_name = input.parse::<syn::Ident>()?;
         if state_name != constants_str::STATE {
@@ -852,7 +713,7 @@ impl syn::parse::Parse for RouteRegistryArgs {
             ));
         }
         let _equals = input.parse::<syn::Token![=]>()?;
-        let state = SynRouteRegistryState::from(input.parse::<syn::Type>()?);
+        let state = domain_types::SynRouteRegistryState::from(input.parse::<syn::Type>()?);
         let _state_comma = input.parse::<syn::Token![,]>()?;
         let family_name = input.parse::<syn::Ident>()?;
         if family_name != constants_str::FAMILY {
@@ -862,13 +723,14 @@ impl syn::parse::Parse for RouteRegistryArgs {
             ));
         }
         let _family_equals = input.parse::<syn::Token![=]>()?;
-        let family = SynRouteRegistryFamily::from(input.parse::<syn::Type>()?);
+        let family = domain_types::SynRouteRegistryFamily::from(input.parse::<syn::Type>()?);
         let _family_semicolon = input.parse::<syn::Token![;]>()?;
         let security_content;
         let _security_parenthesis = syn::parenthesized!(security_content in input);
-        let authenticated_security = SynExpr::from(security_content.parse::<syn::Expr>()?);
+        let authenticated_security =
+            domain_types::SynExpr::from(security_content.parse::<syn::Expr>()?);
         let _comma = security_content.parse::<syn::Token![,]>()?;
-        let csrf_security = SynExpr::from(security_content.parse::<syn::Expr>()?);
+        let csrf_security = domain_types::SynExpr::from(security_content.parse::<syn::Expr>()?);
         let _security_semicolon = input.parse::<syn::Token![;]>()?;
         let schemas_name = input.parse::<syn::Ident>()?;
         if schemas_name != constants_str::SCHEMAS {
@@ -885,19 +747,19 @@ impl syn::parse::Parse for RouteRegistryArgs {
         .into_iter()
         .collect::<Vec<_>>();
         let _schemas_semicolon = input.parse::<syn::Token![;]>()?;
-        let bindings =
-            syn::punctuated::Punctuated::<RouteRegistryBinding, syn::Token![,]>::parse_terminated(
-                input,
-            )?;
+        let bindings = syn::punctuated::Punctuated::<
+            domain_types::RouteRegistryBinding,
+            syn::Token![,],
+        >::parse_terminated(input)?;
         if bindings.is_empty() {
             return Err(input.error(constants_str::ROUTE_REGISTRY_REQUIRES_BINDING));
         }
         Ok(Self {
             authenticated_security,
-            bindings: SynRouteRegistryBindings::from(bindings),
+            bindings: domain_types::SynRouteRegistryBindings::from(bindings),
             csrf_security,
             family,
-            schemas: SynRouteRegistrySchemas::from(schemas),
+            schemas: domain_types::SynRouteRegistrySchemas::from(schemas),
             state,
         })
     }
@@ -908,7 +770,7 @@ pub fn route_registry(
     attribute_args: proc_macro::TokenStream,
     input: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
-    let parsed_args = match syn::parse::<RouteRegistryArgs>(attribute_args) {
+    let parsed_args = match syn::parse::<domain_types::RouteRegistryArgs>(attribute_args) {
         Ok(value) => value,
         Err(error) => return error.to_compile_error().into(),
     };
@@ -943,30 +805,30 @@ pub fn route_registry(
     let identifier = &item.ident;
     let unique_route_trait_identifier = quote::format_ident!("{}UniqueRoute", identifier);
     let openapi_identifier = quote::format_ident!("{}OpenApi", identifier);
-    let state = parsed_args.state.0;
-    let family = parsed_args.family.0;
-    let authenticated_security = parsed_args.authenticated_security.0;
-    let csrf_security = parsed_args.csrf_security.0;
-    let schemas = parsed_args.schemas.0;
+    let state = parsed_args.state.into_inner();
+    let family = parsed_args.family.into_inner();
+    let authenticated_security = parsed_args.authenticated_security.into_inner();
+    let csrf_security = parsed_args.csrf_security.into_inner();
+    let schemas = parsed_args.schemas.into_inner();
     let routes = parsed_args
         .bindings
-        .0
+        .as_ref()
         .iter()
-        .map(|binding| &binding.route.0)
+        .map(|binding| binding.route.as_ref())
         .collect::<Vec<_>>();
     let handlers = parsed_args
         .bindings
-        .0
+        .as_ref()
         .iter()
-        .map(|binding| &binding.handler.0)
+        .map(|binding| binding.handler.as_ref())
         .collect::<Vec<_>>();
     let route_count = routes.len();
     let openapi_paths = parsed_args
         .bindings
-        .0
+        .as_ref()
         .iter()
         .map(|binding| {
-            let mut path = binding.handler.0.clone();
+            let mut path = binding.handler.as_ref().clone();
             if let Some(last_segment) = path.segments.last_mut() {
                 last_segment.ident = quote::format_ident!("__path_{}", last_segment.ident);
             }
@@ -977,7 +839,7 @@ pub fn route_registry(
         #item
         trait #unique_route_trait_identifier {}
         #(impl #unique_route_trait_identifier for #routes {})*
-        const _: [(); <#family as frontend_contract::RouteFamily>::ROUTE_COUNT] =
+        const _: [(); <#family as frontend_contract::domain_types::RouteFamily>::ROUTE_COUNT] =
             [(); #route_count];
         #[allow(clippy::needless_for_each)]
         #[derive(utoipa::OpenApi)]
@@ -986,7 +848,7 @@ pub fn route_registry(
         impl #identifier {
             fn assert_route_family_membership<Route>()
             where
-                Route: frontend_contract::RouteInFamily<#family> + #unique_route_trait_identifier,
+                Route: frontend_contract::domain_types::RouteInFamily<#family> + #unique_route_trait_identifier,
             {
             }
             fn open_api() -> utoipa::openapi::OpenApi {
@@ -996,40 +858,40 @@ pub fn route_registry(
                         .components
                         .get_or_insert_with(utoipa::openapi::schema::Components::new);
                     let mut schema_components =
-                        frontend_contract::UtoipaOpenApiComponentsRefMut::from(components);
-                    frontend_contract::register_openapi_schema::<#schemas>(
+                        frontend_contract::domain_types::UtoipaOpenApiComponentsRefMut::from(components);
+                    frontend_contract::domain_types::register_openapi_schema::<#schemas>(
                         &mut schema_components
                     );
                 })*
                 document.paths = utoipa::openapi::path::Paths::new();
                 #({
-                    let mut open_api = frontend_contract::UtoipaOpenApiRefMut::from(&mut document);
-                    frontend_contract::register_openapi_route_schemas::<#routes>(
+                    let mut open_api = frontend_contract::domain_types::UtoipaOpenApiRefMut::from(&mut document);
+                    frontend_contract::domain_types::register_openapi_route_schemas::<#routes>(
                         &mut open_api
                     );
-                    let metadata = <#routes as frontend_contract::TypedRoute>::metadata();
+                    let metadata = <#routes as frontend_contract::domain_types::TypedRoute>::metadata();
                     let mut operation = <#openapi_paths as utoipa::Path>::operation();
                     {
                         operation.operation_id = Some(metadata.openapi_operation_id().as_ref().to_owned());
-                        frontend_contract::apply_openapi_request_contract::<#routes>(&mut operation);
-                        frontend_contract::apply_openapi_success_contract::<#routes>(&mut operation);
-                        frontend_contract::apply_openapi_error_contract::<#routes>(&mut operation);
-                        frontend_contract::apply_openapi_path_parameter_contract::<#routes>(&mut operation);
-                        frontend_contract::apply_openapi_security_contract::<#routes>(
+                        frontend_contract::domain_types::apply_openapi_request_contract::<#routes>(&mut operation);
+                        frontend_contract::domain_types::apply_openapi_success_contract::<#routes>(&mut operation);
+                        frontend_contract::domain_types::apply_openapi_error_contract::<#routes>(&mut operation);
+                        frontend_contract::domain_types::apply_openapi_path_parameter_contract::<#routes>(&mut operation);
+                        frontend_contract::domain_types::apply_openapi_security_contract::<#routes>(
                             &mut operation,
-                            frontend_contract::OpenApiSecuritySchemeRef::from(#authenticated_security),
-                            frontend_contract::OpenApiSecuritySchemeRef::from(#csrf_security),
+                            frontend_contract::domain_types::OpenApiSecuritySchemeRef::from(#authenticated_security),
+                            frontend_contract::domain_types::OpenApiSecuritySchemeRef::from(#csrf_security),
                         );
                         let path_item_type = match metadata.route_method() {
-                            frontend_contract::RouteMethod::Connect => None,
-                            frontend_contract::RouteMethod::Delete => Some(utoipa::openapi::path::HttpMethod::Delete),
-                            frontend_contract::RouteMethod::Get => Some(utoipa::openapi::path::HttpMethod::Get),
-                            frontend_contract::RouteMethod::Head => Some(utoipa::openapi::path::HttpMethod::Head),
-                            frontend_contract::RouteMethod::Options => Some(utoipa::openapi::path::HttpMethod::Options),
-                            frontend_contract::RouteMethod::Patch => Some(utoipa::openapi::path::HttpMethod::Patch),
-                            frontend_contract::RouteMethod::Post => Some(utoipa::openapi::path::HttpMethod::Post),
-                            frontend_contract::RouteMethod::Put => Some(utoipa::openapi::path::HttpMethod::Put),
-                            frontend_contract::RouteMethod::Trace => Some(utoipa::openapi::path::HttpMethod::Trace),
+                            frontend_contract::domain_types::RouteMethod::Connect => None,
+                            frontend_contract::domain_types::RouteMethod::Delete => Some(utoipa::openapi::path::HttpMethod::Delete),
+                            frontend_contract::domain_types::RouteMethod::Get => Some(utoipa::openapi::path::HttpMethod::Get),
+                            frontend_contract::domain_types::RouteMethod::Head => Some(utoipa::openapi::path::HttpMethod::Head),
+                            frontend_contract::domain_types::RouteMethod::Options => Some(utoipa::openapi::path::HttpMethod::Options),
+                            frontend_contract::domain_types::RouteMethod::Patch => Some(utoipa::openapi::path::HttpMethod::Patch),
+                            frontend_contract::domain_types::RouteMethod::Post => Some(utoipa::openapi::path::HttpMethod::Post),
+                            frontend_contract::domain_types::RouteMethod::Put => Some(utoipa::openapi::path::HttpMethod::Put),
+                            frontend_contract::domain_types::RouteMethod::Trace => Some(utoipa::openapi::path::HttpMethod::Trace),
                         };
                         if let Some(path_item_type) = path_item_type {
                             let path_item = utoipa::openapi::path::PathItem::new(path_item_type, operation);
@@ -1048,11 +910,11 @@ pub fn route_registry(
                 #(Self::assert_route_family_membership::<#routes>();)*
                 axum::Router::new()
                     #(.route(
-                        frontend_contract::typed_route_path::<#routes>().as_ref(),
+                        frontend_contract::domain_types::typed_route_path::<#routes>().as_ref(),
                         axum::routing::on(
                             axum::routing::MethodFilter::from(
-                                frontend_contract::axum_method_filter(
-                                    <#routes as frontend_contract::TypedRoute>::metadata()
+                                frontend_contract::domain_types::axum_method_filter(
+                                    <#routes as frontend_contract::domain_types::TypedRoute>::metadata()
                                         .contract()
                                         .method()
                                 )
@@ -1066,7 +928,7 @@ pub fn route_registry(
     .into()
 }
 
-impl syn::parse::Parse for TypedRouteArgs {
+impl syn::parse::Parse for domain_types::TypedRouteArgs {
     fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
         let mut method = None;
         let mut authentication = None;
@@ -1088,49 +950,50 @@ impl syn::parse::Parse for TypedRouteArgs {
             let _equals: syn::Token![=] = input.parse()?;
             match name.to_string().as_str() {
                 constants_str::TYPED_ROUTE_FIELD_AUTHENTICATION => {
-                    authentication = Some(SynExpr::from(input.parse::<syn::Expr>()?));
+                    authentication = Some(domain_types::SynExpr::from(input.parse::<syn::Expr>()?));
                 }
                 constants_str::TYPED_ROUTE_FIELD_ERROR_STATUSES => {
-                    error_statuses = Some(SynExpr::from(input.parse::<syn::Expr>()?));
+                    error_statuses = Some(domain_types::SynExpr::from(input.parse::<syn::Expr>()?));
                 }
                 constants_str::TYPED_ROUTE_FIELD_ERROR_RESPONSE => {
-                    error_response = Some(SynType::from(input.parse::<syn::Type>()?));
+                    error_response = Some(domain_types::SynType::from(input.parse::<syn::Type>()?));
                 }
                 constants_str::TYPED_ROUTE_FIELD_ERROR_POLICY => {
-                    error_policy = Some(SynExpr::from(input.parse::<syn::Expr>()?));
+                    error_policy = Some(domain_types::SynExpr::from(input.parse::<syn::Expr>()?));
                 }
                 constants_str::METHOD => {
-                    method = Some(SynExpr::from(input.parse::<syn::Expr>()?));
+                    method = Some(domain_types::SynExpr::from(input.parse::<syn::Expr>()?));
                 }
                 constants_str::OPENAPI_OPERATION_ID => {
-                    openapi_operation_id = Some(SynExpr::from(input.parse::<syn::Expr>()?));
+                    openapi_operation_id =
+                        Some(domain_types::SynExpr::from(input.parse::<syn::Expr>()?));
                 }
                 constants_str::MUTATION => {
-                    mutation = Some(SynExpr::from(input.parse::<syn::Expr>()?));
+                    mutation = Some(domain_types::SynExpr::from(input.parse::<syn::Expr>()?));
                 }
                 constants_str::OBLIGATIONS => {
-                    obligations = Some(SynExpr::from(input.parse::<syn::Expr>()?));
+                    obligations = Some(domain_types::SynExpr::from(input.parse::<syn::Expr>()?));
                 }
                 constants_str::TYPED_ROUTE_FIELD_PATH => {
-                    path = Some(SynExpr::from(input.parse::<syn::Expr>()?));
+                    path = Some(domain_types::SynExpr::from(input.parse::<syn::Expr>()?));
                 }
                 constants_str::TYPED_ROUTE_FIELD_PATH_PARAMETER => {
-                    path_parameter = Some(SynType::from(input.parse::<syn::Type>()?));
+                    path_parameter = Some(domain_types::SynType::from(input.parse::<syn::Type>()?));
                 }
                 constants_str::REQUEST => {
-                    request = Some(SynType::from(input.parse::<syn::Type>()?));
+                    request = Some(domain_types::SynType::from(input.parse::<syn::Type>()?));
                 }
                 constants_str::TYPED_ROUTE_FIELD_REQUEST_BODY => {
-                    request_body = Some(SynExpr::from(input.parse::<syn::Expr>()?));
+                    request_body = Some(domain_types::SynExpr::from(input.parse::<syn::Expr>()?));
                 }
                 constants_str::RESPONSE => {
-                    response = Some(SynType::from(input.parse::<syn::Type>()?));
+                    response = Some(domain_types::SynType::from(input.parse::<syn::Type>()?));
                 }
                 constants_str::TYPED_ROUTE_FIELD_SUCCESS_STATUS => {
-                    success_status = Some(SynExpr::from(input.parse::<syn::Expr>()?));
+                    success_status = Some(domain_types::SynExpr::from(input.parse::<syn::Expr>()?));
                 }
                 constants_str::TRANSPORT => {
-                    transport = Some(SynType::from(input.parse::<syn::Type>()?));
+                    transport = Some(domain_types::SynType::from(input.parse::<syn::Type>()?));
                 }
                 _ => {
                     return Err(syn::Error::new_spanned(
@@ -1144,8 +1007,8 @@ impl syn::parse::Parse for TypedRouteArgs {
             }
         }
         let errors = match (error_policy, error_statuses) {
-            (Some(policy), None) => SynTypedRouteErrors::Policy(policy),
-            (None, Some(statuses)) => SynTypedRouteErrors::Statuses(statuses),
+            (Some(policy), None) => domain_types::SynTypedRouteErrors::Policy(policy),
+            (None, Some(statuses)) => domain_types::SynTypedRouteErrors::Statuses(statuses),
             (None, None) | (Some(_), Some(_)) => {
                 return Err(
                     input.error(constants_str::TYPED_ROUTE_REQUIRES_ERROR_POLICY_OR_STATUSES)
@@ -1200,13 +1063,13 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
         .to_compile_error()
         .into();
     };
-    let args = match attribute.parse_args::<TypedRouteArgs>() {
+    let args = match attribute.parse_args::<domain_types::TypedRouteArgs>() {
         Ok(value) => value,
         Err(error) => return error.to_compile_error().into(),
     };
     let visibility = derive_input.vis;
     let identifier = derive_input.ident;
-    let method = match args.method.0 {
+    let method = match args.method.into_inner() {
         syn::Expr::Path(path_expression) => {
             match path_expression
                 .path
@@ -1215,31 +1078,31 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
                 .map(|segment| segment.ident.to_string())
             {
                 Some(method_name) if method_name.eq_ignore_ascii_case(constants_str::CONNECT) => {
-                    quote::quote!(frontend_contract::RouteMethod::Connect)
+                    quote::quote!(frontend_contract::domain_types::RouteMethod::Connect)
                 }
                 Some(method_name) if method_name.eq_ignore_ascii_case(constants_str::DELETE) => {
-                    quote::quote!(frontend_contract::RouteMethod::Delete)
+                    quote::quote!(frontend_contract::domain_types::RouteMethod::Delete)
                 }
                 Some(method_name) if method_name.eq_ignore_ascii_case(constants_str::GET) => {
-                    quote::quote!(frontend_contract::RouteMethod::Get)
+                    quote::quote!(frontend_contract::domain_types::RouteMethod::Get)
                 }
                 Some(method_name) if method_name.eq_ignore_ascii_case(constants_str::HEAD) => {
-                    quote::quote!(frontend_contract::RouteMethod::Head)
+                    quote::quote!(frontend_contract::domain_types::RouteMethod::Head)
                 }
                 Some(method_name) if method_name.eq_ignore_ascii_case(constants_str::OPTIONS) => {
-                    quote::quote!(frontend_contract::RouteMethod::Options)
+                    quote::quote!(frontend_contract::domain_types::RouteMethod::Options)
                 }
                 Some(method_name) if method_name.eq_ignore_ascii_case(constants_str::PATCH) => {
-                    quote::quote!(frontend_contract::RouteMethod::Patch)
+                    quote::quote!(frontend_contract::domain_types::RouteMethod::Patch)
                 }
                 Some(method_name) if method_name.eq_ignore_ascii_case(constants_str::POST) => {
-                    quote::quote!(frontend_contract::RouteMethod::Post)
+                    quote::quote!(frontend_contract::domain_types::RouteMethod::Post)
                 }
                 Some(method_name) if method_name.eq_ignore_ascii_case(constants_str::PUT) => {
-                    quote::quote!(frontend_contract::RouteMethod::Put)
+                    quote::quote!(frontend_contract::domain_types::RouteMethod::Put)
                 }
                 Some(method_name) if method_name.eq_ignore_ascii_case(constants_str::TRACE) => {
-                    quote::quote!(frontend_contract::RouteMethod::Trace)
+                    quote::quote!(frontend_contract::domain_types::RouteMethod::Trace)
                 }
                 _ => {
                     return syn::Error::new_spanned(
@@ -1260,54 +1123,58 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
             .into();
         }
     };
-    let authentication = args.authentication.0;
+    let authentication = args.authentication.into_inner();
     let mutation = args.mutation.map_or_else(
-        || quote::quote!(frontend_contract::RouteMutation::ReadOnly),
-        |value| quote::ToTokens::into_token_stream(&value.0),
+        || quote::quote!(frontend_contract::domain_types::RouteMutation::ReadOnly),
+        |value| quote::ToTokens::into_token_stream(value.as_ref()),
     );
     let error_statuses = match args.errors {
-        SynTypedRouteErrors::Policy(value) => {
-            let policy = value.0;
+        domain_types::SynTypedRouteErrors::Policy(value) => {
+            let policy = value.into_inner();
             quote::quote!((#policy).statuses(#authentication, #mutation))
         }
-        SynTypedRouteErrors::Statuses(value) => quote::ToTokens::into_token_stream(&value.0),
+        domain_types::SynTypedRouteErrors::Statuses(value) => {
+            quote::ToTokens::into_token_stream(value.as_ref())
+        }
     };
-    let (error_response_schema, error_response_schema_registration) =
-        match args.error_response.map(|value| value.0) {
-            Some(syn::Type::Tuple(tuple)) if tuple.elems.is_empty() => (
-                quote::quote! {
-                    fn openapi_error_response_schema(
-                        _status: frontend_contract::RouteErrorStatus,
-                    ) -> Option<frontend_contract::UtoipaOpenApiRouteSchema> {
-                        None
-                    }
-                },
-                proc_macro2::TokenStream::new(),
-            ),
-            Some(response_type) => (
-                quote::quote! {
-                    fn openapi_error_response_schema(
-                        _status: frontend_contract::RouteErrorStatus,
-                    ) -> Option<frontend_contract::UtoipaOpenApiRouteSchema> {
-                        Some(frontend_contract::UtoipaOpenApiRouteSchema::from(
-                            <#response_type as utoipa::PartialSchema>::schema()
-                        ))
-                    }
-                },
-                quote::quote! {
-                    frontend_contract::register_openapi_schema::<#response_type>(components);
-                },
-            ),
-            None => (
-                proc_macro2::TokenStream::new(),
-                proc_macro2::TokenStream::new(),
-            ),
-        };
+    let (error_response_schema, error_response_schema_registration) = match args
+        .error_response
+        .map(domain_types::SynType::into_inner)
+    {
+        Some(syn::Type::Tuple(tuple)) if tuple.elems.is_empty() => (
+            quote::quote! {
+                fn openapi_error_response_schema(
+                    _status: frontend_contract::domain_types::RouteErrorStatus,
+                ) -> Option<frontend_contract::domain_types::UtoipaOpenApiRouteSchema> {
+                    None
+                }
+            },
+            proc_macro2::TokenStream::new(),
+        ),
+        Some(response_type) => (
+            quote::quote! {
+                fn openapi_error_response_schema(
+                    _status: frontend_contract::domain_types::RouteErrorStatus,
+                ) -> Option<frontend_contract::domain_types::UtoipaOpenApiRouteSchema> {
+                    Some(frontend_contract::domain_types::UtoipaOpenApiRouteSchema::from(
+                        <#response_type as utoipa::PartialSchema>::schema()
+                    ))
+                }
+            },
+            quote::quote! {
+                frontend_contract::domain_types::register_openapi_schema::<#response_type>(components);
+            },
+        ),
+        None => (
+            proc_macro2::TokenStream::new(),
+            proc_macro2::TokenStream::new(),
+        ),
+    };
     let obligations = args.obligations.map_or_else(
         || quote::quote!(&[]),
-        |value| quote::ToTokens::into_token_stream(&value.0),
+        |value| quote::ToTokens::into_token_stream(value.as_ref()),
     );
-    let literal_operation_name = match &args.openapi_operation_id.0 {
+    let literal_operation_name = match args.openapi_operation_id.as_ref() {
         syn::Expr::Lit(expression) => match &expression.lit {
             syn::Lit::Str(value) => Some(value.value()),
             _ => None,
@@ -1340,32 +1207,32 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
         quote::format_ident!("{}_route", operation_name, span = identifier.span());
     let client_function_identifier =
         quote::format_ident!("{}_client", operation_name, span = identifier.span());
-    let openapi_operation_id = args.openapi_operation_id.0;
+    let openapi_operation_id = args.openapi_operation_id.into_inner();
     let mut openapi_path_parameter = quote::quote!(None);
     let mut named_route_and_client = quote::quote! {
         #[must_use]
-        #visibility fn #route_function_identifier() -> frontend_contract::ContractStr {
-            frontend_contract::typed_route_path::<#identifier>()
+        #visibility fn #route_function_identifier() -> frontend_contract::domain_types::ContractStr {
+            frontend_contract::domain_types::typed_route_path::<#identifier>()
         }
         #[allow(clippy::future_not_send)] // Transport intentionally permits single-threaded WASM futures
         #visibility async fn #client_function_identifier<Transport>(
-            client: &frontend_contract::TypedClient<Transport>,
-            request: <#identifier as frontend_contract::TypedRoute>::Request,
+            client: &frontend_contract::domain_types::TypedClient<Transport>,
+            request: <#identifier as frontend_contract::domain_types::TypedRoute>::Request,
         ) -> Result<
-            <#identifier as frontend_contract::TypedRoute>::Response,
-            frontend_contract::ClientError,
+            <#identifier as frontend_contract::domain_types::TypedRoute>::Response,
+            frontend_contract::domain_types::ClientError,
         >
         where
-            Transport: frontend_contract::Transport,
+            Transport: frontend_contract::domain_types::Transport,
         {
             client.send::<#identifier>(request).await
         }
     };
     let parameterized_route = match args.path_parameter.as_ref() {
         Some(parameter_type) => {
-            let syn::Expr::Lit(path_expression) = &args.path.0 else {
+            let syn::Expr::Lit(path_expression) = args.path.as_ref() else {
                 return syn::Error::new_spanned(
-                    &args.path.0,
+                    args.path.as_ref(),
                     constants_str::TYPED_ROUTE_PARAMETER_PATH_MUST_BE_STRING_LITERAL,
                 )
                 .to_compile_error()
@@ -1411,31 +1278,31 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
             let prefix = syn::LitStr::new(prefix_value, path_literal.span());
             let suffix = syn::LitStr::new(suffix_value, path_literal.span());
             let parameter_name = syn::LitStr::new(placeholder, path_literal.span());
-            let parameter_path = &parameter_type.0;
+            let parameter_path = parameter_type.as_ref();
             named_route_and_client = quote::quote! {
                 #[must_use]
                 #visibility fn #route_function_identifier(
                     parameter: &#parameter_path,
-                ) -> frontend_contract::ParameterizedRoutePath {
-                    frontend_contract::typed_parameterized_route_path::<#identifier>(parameter)
+                ) -> frontend_contract::domain_types::ParameterizedRoutePath {
+                    frontend_contract::domain_types::typed_parameterized_route_path::<#identifier>(parameter)
                 }
                 #[allow(clippy::future_not_send)] // Transport intentionally permits single-threaded WASM futures
                 #visibility async fn #client_function_identifier<Transport>(
-                    client: &frontend_contract::TypedClient<Transport>,
+                    client: &frontend_contract::domain_types::TypedClient<Transport>,
                     parameter: &#parameter_path,
-                    request: <#identifier as frontend_contract::TypedRoute>::Request,
+                    request: <#identifier as frontend_contract::domain_types::TypedRoute>::Request,
                 ) -> Result<
-                    <#identifier as frontend_contract::TypedRoute>::Response,
-                    frontend_contract::ClientError,
+                    <#identifier as frontend_contract::domain_types::TypedRoute>::Response,
+                    frontend_contract::domain_types::ClientError,
                 >
                 where
-                    Transport: frontend_contract::Transport,
+                    Transport: frontend_contract::domain_types::Transport,
                 {
                     client.send_parameterized::<#identifier>(parameter, request).await
                 }
             };
             openapi_path_parameter = quote::quote! {
-                Some(frontend_contract::UtoipaOpenApiPathParameter::from(
+                Some(frontend_contract::domain_types::UtoipaOpenApiPathParameter::from(
                     utoipa::openapi::path::ParameterBuilder::new()
                         .name(#parameter_name)
                         .parameter_in(utoipa::openapi::path::ParameterIn::Path)
@@ -1445,23 +1312,23 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
                 ))
             };
             quote::quote! {
-                impl frontend_contract::ParameterizedRoute for #identifier {
+                impl frontend_contract::domain_types::ParameterizedRoute for #identifier {
                     type Parameter = #parameter_path;
-                    fn path(parameter: &Self::Parameter) -> frontend_contract::ParameterizedRoutePath {
-                        frontend_contract::ParameterizedRoutePath::try_from(format!("{}{}{}", #prefix, parameter, #suffix)).unwrap_or_default()
+                    fn path(parameter: &Self::Parameter) -> frontend_contract::domain_types::ParameterizedRoutePath {
+                        frontend_contract::domain_types::ParameterizedRoutePath::try_from(format!("{}{}{}", #prefix, parameter, #suffix)).unwrap_or_default()
                     }
                 }
             }
         }
         None => proc_macro2::TokenStream::new(),
     };
-    let path = args.path.0;
-    let request = args.request.0;
+    let path = args.path.into_inner();
+    let request = args.request.into_inner();
     let request_body = args.request_body.map_or_else(
-        || quote::quote!(frontend_contract::RouteRequestBody::Absent),
-        |value| quote::ToTokens::into_token_stream(&value.0),
+        || quote::quote!(frontend_contract::domain_types::RouteRequestBody::Absent),
+        |value| quote::ToTokens::into_token_stream(value.as_ref()),
     );
-    let response = args.response.0;
+    let response = args.response.into_inner();
     let response_schema = match &response {
         syn::Type::Path(type_path)
             if type_path
@@ -1471,11 +1338,11 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
                 .is_some_and(|segment| segment.ident == constants_str::VEC) =>
         {
             quote::quote! {
-                Some(frontend_contract::UtoipaOpenApiRouteSchema::from(<#response as utoipa::PartialSchema>::schema()))
+                Some(frontend_contract::domain_types::UtoipaOpenApiRouteSchema::from(<#response as utoipa::PartialSchema>::schema()))
             }
         }
         _ => quote::quote! {
-            Some(frontend_contract::UtoipaOpenApiRouteSchema::from(<#response as utoipa::PartialSchema>::schema()))
+            Some(frontend_contract::domain_types::UtoipaOpenApiRouteSchema::from(<#response as utoipa::PartialSchema>::schema()))
         },
     };
     let response_schema_registration = match &response {
@@ -1489,66 +1356,66 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
             proc_macro2::TokenStream::new()
         }
         _ => quote::quote! {
-            frontend_contract::register_openapi_schema::<#response>(components);
+            frontend_contract::domain_types::register_openapi_schema::<#response>(components);
         },
     };
-    let success_status = args.success_status.0;
-    let transport = args.transport.0;
+    let success_status = args.success_status.into_inner();
+    let transport = args.transport.into_inner();
     quote::quote! {
-        impl frontend_contract::TypedRoute for #identifier {
+        impl frontend_contract::domain_types::TypedRoute for #identifier {
             type Request = #request;
             type Response = #response;
             type Transport = #transport;
-            fn metadata() -> frontend_contract::RouteMetadata {
-                frontend_contract::RouteMetadata::new_with_policy(
+            fn metadata() -> frontend_contract::domain_types::RouteMetadata {
+                frontend_contract::domain_types::RouteMetadata::new_with_policy(
                     #authentication,
                     #error_statuses,
                     #method,
                     #mutation,
-                    frontend_contract::ContractStr::from(#openapi_operation_id),
-                    frontend_contract::ContractStr::from(#path),
+                    frontend_contract::domain_types::ContractStr::from(#openapi_operation_id),
+                    frontend_contract::domain_types::ContractStr::from(#path),
                     #success_status,
                 )
             }
-            fn openapi_request_schema() -> Option<frontend_contract::UtoipaOpenApiRouteSchema> {
-                Some(frontend_contract::UtoipaOpenApiRouteSchema::from(<#request as utoipa::PartialSchema>::schema()))
+            fn openapi_request_schema() -> Option<frontend_contract::domain_types::UtoipaOpenApiRouteSchema> {
+                Some(frontend_contract::domain_types::UtoipaOpenApiRouteSchema::from(<#request as utoipa::PartialSchema>::schema()))
             }
-            fn openapi_request_body_schema() -> Option<frontend_contract::UtoipaOpenApiRouteSchema> {
+            fn openapi_request_body_schema() -> Option<frontend_contract::domain_types::UtoipaOpenApiRouteSchema> {
                 let name = <#request as utoipa::ToSchema>::name();
-                Some(frontend_contract::UtoipaOpenApiRouteSchema::from(
+                Some(frontend_contract::domain_types::UtoipaOpenApiRouteSchema::from(
                     utoipa::openapi::RefOr::Ref(utoipa::openapi::Ref::from_schema_name(name.as_ref()))
                 ))
             }
-            fn request_body() -> frontend_contract::RouteRequestBody {
+            fn request_body() -> frontend_contract::domain_types::RouteRequestBody {
                 #request_body
             }
-            fn openapi_response_schema() -> Option<frontend_contract::UtoipaOpenApiRouteSchema> {
+            fn openapi_response_schema() -> Option<frontend_contract::domain_types::UtoipaOpenApiRouteSchema> {
                 #response_schema
             }
             #error_response_schema
-            fn openapi_path_parameter() -> Option<frontend_contract::UtoipaOpenApiPathParameter> {
+            fn openapi_path_parameter() -> Option<frontend_contract::domain_types::UtoipaOpenApiPathParameter> {
                 #openapi_path_parameter
             }
             fn register_openapi_schemas(
-                components: &mut frontend_contract::UtoipaOpenApiComponentsRefMut<'_>,
+                components: &mut frontend_contract::domain_types::UtoipaOpenApiComponentsRefMut<'_>,
             ) {
-                if <Self as frontend_contract::TypedRoute>::request_body()
-                    == frontend_contract::RouteRequestBody::Json
+                if <Self as frontend_contract::domain_types::TypedRoute>::request_body()
+                    == frontend_contract::domain_types::RouteRequestBody::Json
                 {
-                    frontend_contract::register_openapi_schema::<#request>(components);
+                    frontend_contract::domain_types::register_openapi_schema::<#request>(components);
                 }
                 #response_schema_registration
                 #error_response_schema_registration
             }
         }
-        impl frontend_contract::CoveredRoute for #identifier {
-            fn coverage_descriptor() -> frontend_contract::RouteCoverageDescriptor {
-                let metadata = <Self as frontend_contract::TypedRoute>::metadata();
-                frontend_contract::RouteCoverageDescriptor::new(
+        impl frontend_contract::domain_types::CoveredRoute for #identifier {
+            fn coverage_descriptor() -> frontend_contract::domain_types::RouteCoverageDescriptor {
+                let metadata = <Self as frontend_contract::domain_types::TypedRoute>::metadata();
+                frontend_contract::domain_types::RouteCoverageDescriptor::new(
                     metadata,
                     metadata.access(),
                     metadata.mutation(),
-                    frontend_contract::RouteCoverageEvidence::new(#obligations),
+                    frontend_contract::domain_types::RouteCoverageEvidence::new(#obligations),
                 )
             }
         }
@@ -1591,7 +1458,7 @@ pub fn api_operation_error(input: proc_macro::TokenStream) -> proc_macro::TokenS
             Authentication,
             #[error("administrator authentication secret text is invalid")]
             AuthenticationSecretText(
-                #[source] server_runtime_http::ObservedError<super::AdminSecretTextError>,
+                #[source] server_runtime_http::domain_types::ObservedError<super::AdminSecretTextError>,
             ),
             #[error("administrator authorization failed")]
             Authorization,
@@ -1601,33 +1468,33 @@ pub fn api_operation_error(input: proc_macro::TokenStream) -> proc_macro::TokenS
             Csrf,
             #[error("administrator CSRF secret text is invalid")]
             CsrfSecretText(
-                #[source] server_runtime_http::ObservedError<super::AdminSecretTextError>,
+                #[source] server_runtime_http::domain_types::ObservedError<super::AdminSecretTextError>,
             ),
             #[error("administrator authentication is temporarily rate limited")]
             RateLimited,
             #[error("administrator request validation failed")]
             Validation,
             #[error("administrator API database operation failed: {0:?}")]
-            Pg(#[source] server_runtime_http::ObservedError<super::SqlxAdminError>),
+            Pg(#[source] server_runtime_http::domain_types::ObservedError<super::SqlxAdminError>),
             #[error("administrator password hashing failed: {0}")]
             PasswordHash(
-                #[source] server_runtime_http::ObservedError<super::AdminPasswordHashError>,
+                #[source] server_runtime_http::domain_types::ObservedError<super::AdminPasswordHashError>,
             ),
             #[error("administrator password text is invalid")]
             PasswordText(
                 #[source]
-                server_runtime_http::ObservedError<super::AdminPasswordTryFromStringError>,
+                server_runtime_http::domain_types::ObservedError<super::AdminPasswordTryFromStringError>,
             ),
             #[error("administrator request body is too large")]
             PayloadTooLarge,
             #[error("administrator secret text is invalid")]
-            SecretText(#[source] server_runtime_http::ObservedError<super::AdminSecretTextError>),
+            SecretText(#[source] server_runtime_http::domain_types::ObservedError<super::AdminSecretTextError>),
             #[error("administrator route does not support this HTTP method")]
             MethodNotAllowed,
             #[error("administrator session operation failed: {0}")]
-            Session(#[source] server_runtime_http::ObservedError<AdminSessionError>),
+            Session(#[source] server_runtime_http::domain_types::ObservedError<AdminSessionError>),
             #[error("administrator response header is invalid: {0:?}")]
-            Header(#[source] server_runtime_http::ObservedError<HttpAdminHeaderValueError>),
+            Header(#[source] server_runtime_http::domain_types::ObservedError<HttpAdminHeaderValueError>),
         }
         impl From<AdminError> for #error {
             fn from(value: AdminError) -> Self {
@@ -1657,49 +1524,49 @@ pub fn api_operation_error(input: proc_macro::TokenStream) -> proc_macro::TokenS
             fn into_response(self) -> axum::response::Response {
                 let route_error_status = match &self {
                     Self::Authentication | Self::AuthenticationSecretText(_) => {
-                        frontend_contract::RouteErrorStatus::Authentication
+                        frontend_contract::domain_types::RouteErrorStatus::Authentication
                     }
                     Self::Authorization | Self::Csrf | Self::CsrfSecretText(_) => {
-                        frontend_contract::RouteErrorStatus::Authorization
+                        frontend_contract::domain_types::RouteErrorStatus::Authorization
                     }
-                    Self::Conflict => frontend_contract::RouteErrorStatus::Conflict,
+                    Self::Conflict => frontend_contract::domain_types::RouteErrorStatus::Conflict,
                     Self::MethodNotAllowed => {
-                        frontend_contract::RouteErrorStatus::MethodNotAllowed
+                        frontend_contract::domain_types::RouteErrorStatus::MethodNotAllowed
                     }
                     Self::PayloadTooLarge => {
-                        frontend_contract::RouteErrorStatus::PayloadTooLarge
+                        frontend_contract::domain_types::RouteErrorStatus::PayloadTooLarge
                     }
-                    Self::RateLimited => frontend_contract::RouteErrorStatus::RateLimited,
+                    Self::RateLimited => frontend_contract::domain_types::RouteErrorStatus::RateLimited,
                     Self::Validation | Self::PasswordText(_) | Self::SecretText(_) => {
-                        frontend_contract::RouteErrorStatus::Validation
+                        frontend_contract::domain_types::RouteErrorStatus::Validation
                     }
                     Self::Pg(_)
                     | Self::PasswordHash(_)
                     | Self::Session(_)
-                    | Self::Header(_) => frontend_contract::RouteErrorStatus::Internal,
+                    | Self::Header(_) => frontend_contract::domain_types::RouteErrorStatus::Internal,
                 };
                 let error_type =
-                    server_runtime_http::HttpErrorType::from(constants_str::ADMIN_API_ERROR_TYPE);
+                    server_runtime_http::domain_types::HttpErrorType::from(constants_str::ADMIN_API_ERROR_TYPE);
                 let optional_diagnostic = match &self {
                     Self::Pg(source) => Some(
-                        server_runtime_http::HttpErrorDiagnostic::from_observed(error_type, source),
+                        server_runtime_http::domain_types::HttpErrorDiagnostic::from_observed(error_type, source),
                     ),
                     Self::PasswordHash(source) => Some(
-                        server_runtime_http::HttpErrorDiagnostic::from_observed(error_type, source),
+                        server_runtime_http::domain_types::HttpErrorDiagnostic::from_observed(error_type, source),
                     ),
                     Self::Session(source) => Some(
-                        server_runtime_http::HttpErrorDiagnostic::from_observed(error_type, source),
+                        server_runtime_http::domain_types::HttpErrorDiagnostic::from_observed(error_type, source),
                     ),
                     Self::Header(source) => Some(
-                        server_runtime_http::HttpErrorDiagnostic::from_observed(error_type, source),
+                        server_runtime_http::domain_types::HttpErrorDiagnostic::from_observed(error_type, source),
                     ),
                     Self::AuthenticationSecretText(source)
                     | Self::CsrfSecretText(source)
                     | Self::SecretText(source) => Some(
-                        server_runtime_http::HttpErrorDiagnostic::from_observed(error_type, source),
+                        server_runtime_http::domain_types::HttpErrorDiagnostic::from_observed(error_type, source),
                     ),
                     Self::PasswordText(source) => Some(
-                        server_runtime_http::HttpErrorDiagnostic::from_observed(error_type, source),
+                        server_runtime_http::domain_types::HttpErrorDiagnostic::from_observed(error_type, source),
                     ),
                     Self::Authentication
                     | Self::Authorization
@@ -1910,7 +1777,7 @@ pub fn derive_route_catalog(input: proc_macro::TokenStream) -> proc_macro::Token
         .to_compile_error()
         .into();
     };
-    let args = match catalog_attribute.parse_args::<RouteCatalogArgs>() {
+    let args = match catalog_attribute.parse_args::<domain_types::RouteCatalogArgs>() {
         Ok(value) => value,
         Err(error) => return error.to_compile_error().into(),
     };
@@ -1928,8 +1795,8 @@ pub fn derive_route_catalog(input: proc_macro::TokenStream) -> proc_macro::Token
     let mut family_routes = Vec::with_capacity(variants_capacity);
     let mut path_arms = Vec::with_capacity(variants_capacity);
     let mut custom_route_functions = Vec::with_capacity(variants_capacity);
-    let snake_case_identifier = |identifier: SynIdent| {
-        let identifier_value = identifier.0.to_string();
+    let snake_case_identifier = |identifier: domain_types::SynIdent| {
+        let identifier_value = identifier.as_ref().to_string();
         let value = identifier_value.chars().enumerate().fold(
             String::with_capacity(identifier_value.len().saturating_mul(2usize)),
             |mut value, (index, character)| {
@@ -1970,20 +1837,20 @@ pub fn derive_route_catalog(input: proc_macro::TokenStream) -> proc_macro::Token
             .to_compile_error()
             .into();
         };
-        let route_args = match route_attribute.parse_args::<RouteCatalogRouteArgs>() {
+        let route_args = match route_attribute.parse_args::<domain_types::RouteCatalogRouteArgs>() {
             Ok(value) => value,
             Err(error) => return error.to_compile_error().into(),
         };
         let variant_identifier = variant.ident;
         match (route_args.route, variant.fields) {
             (Some(route), syn::Fields::Unit) => {
-                let route_type = route.0;
+                let route_type = route.into_inner();
                 contract_arms.push(quote::quote! {
-                    Self::#variant_identifier => <#route_type as frontend_contract::TypedRoute>::metadata().contract()
+                    Self::#variant_identifier => <#route_type as frontend_contract::domain_types::TypedRoute>::metadata().contract()
                 });
                 path_arms.push(quote::quote! {
-                    Self::#variant_identifier => frontend_contract::ParameterizedRoutePath::try_from(
-                        String::from(frontend_contract::typed_route_path::<#route_type>())
+                    Self::#variant_identifier => frontend_contract::domain_types::ParameterizedRoutePath::try_from(
+                        String::from(frontend_contract::domain_types::typed_route_path::<#route_type>())
                     ).unwrap_or_default()
                 });
                 family_routes.push(route_type);
@@ -1991,12 +1858,12 @@ pub fn derive_route_catalog(input: proc_macro::TokenStream) -> proc_macro::Token
             (Some(route), syn::Fields::Unnamed(fields))
                 if fields.unnamed.len() == constants_usize::ONE =>
             {
-                let route_type = route.0;
+                let route_type = route.into_inner();
                 contract_arms.push(quote::quote! {
-                    Self::#variant_identifier(_value) => <#route_type as frontend_contract::TypedRoute>::metadata().contract()
+                    Self::#variant_identifier(_value) => <#route_type as frontend_contract::domain_types::TypedRoute>::metadata().contract()
                 });
                 path_arms.push(quote::quote! {
-                    Self::#variant_identifier(value) => frontend_contract::typed_parameterized_route_path::<#route_type>(&value)
+                    Self::#variant_identifier(value) => frontend_contract::domain_types::typed_parameterized_route_path::<#route_type>(&value)
                 });
                 family_routes.push(route_type);
             }
@@ -2025,11 +1892,11 @@ pub fn derive_route_catalog(input: proc_macro::TokenStream) -> proc_macro::Token
                     .to_compile_error()
                     .into();
                 };
-                let contract_expression = contract.0;
-                let path_expression = path.0;
+                let contract_expression = contract.into_inner();
+                let path_expression = path.into_inner();
                 let (wrapped_identifier, variant_name) =
-                    snake_case_identifier(SynIdent::from(variant_identifier));
-                let custom_identifier = wrapped_identifier.0;
+                    snake_case_identifier(domain_types::SynIdent::from(variant_identifier));
+                let custom_identifier = wrapped_identifier.into_inner();
                 let route_function_identifier =
                     quote::format_ident!("{}_route", variant_name, span = custom_identifier.span());
                 let client_function_identifier = quote::format_ident!(
@@ -2039,15 +1906,15 @@ pub fn derive_route_catalog(input: proc_macro::TokenStream) -> proc_macro::Token
                 );
                 custom_route_functions.push(quote::quote! {
                     #[must_use]
-                    #visibility fn #route_function_identifier() -> frontend_contract::ContractStr {
-                        frontend_contract::ContractStr::from(#path_expression)
+                    #visibility fn #route_function_identifier() -> frontend_contract::domain_types::ContractStr {
+                        frontend_contract::domain_types::ContractStr::from(#path_expression)
                     }
                     #[allow(clippy::future_not_send)] // Transport intentionally permits single-threaded WASM futures
                     #visibility async fn #client_function_identifier<Transport>(
-                        client: &frontend_contract::TypedClient<Transport>,
-                    ) -> Result<frontend_contract::TransportBody, frontend_contract::ClientError>
+                        client: &frontend_contract::domain_types::TypedClient<Transport>,
+                    ) -> Result<frontend_contract::domain_types::TransportBody, frontend_contract::domain_types::ClientError>
                     where
-                        Transport: frontend_contract::Transport,
+                        Transport: frontend_contract::domain_types::Transport,
                     {
                         client.send_contract(#contract_expression, #route_function_identifier()).await
                     }
@@ -2056,11 +1923,11 @@ pub fn derive_route_catalog(input: proc_macro::TokenStream) -> proc_macro::Token
                     Self::#custom_identifier => #contract_expression
                 });
                 path_arms.push(quote::quote! {
-                    Self::#custom_identifier => frontend_contract::ParameterizedRoutePath::try_from(
+                    Self::#custom_identifier => frontend_contract::domain_types::ParameterizedRoutePath::try_from(
                         String::from(#path_expression)
                     ).unwrap_or_default()
                 });
-                if !route_args.exclude_from_family.0 {
+                if !route_args.exclude_from_family.get() {
                     return syn::Error::new_spanned(
                         custom_identifier,
                         constants_str::ROUTE_CATALOG_ROUTE_REQUIRES_TYPE_OR_CUSTOM_VALUES,
@@ -2080,8 +1947,8 @@ pub fn derive_route_catalog(input: proc_macro::TokenStream) -> proc_macro::Token
         }
     }
     let identifier = derive_input.ident;
-    let family = args.family.0;
-    let body_limit = args.body_limit.0;
+    let family = args.family.into_inner();
+    let body_limit = args.body_limit.into_inner();
     let route_count = family_routes.len();
     let all = if all_variants_are_unit {
         let variant_count = all_variant_identifiers.len();
@@ -2099,12 +1966,12 @@ pub fn derive_route_catalog(input: proc_macro::TokenStream) -> proc_macro::Token
             #all
 
             #[must_use]
-            pub fn contract(self) -> frontend_contract::RouteContract {
+            pub fn contract(self) -> frontend_contract::domain_types::RouteContract {
                 match self {
                     #(#contract_arms),*
                 }
             }
-            fn catalog_path(self) -> frontend_contract::ParameterizedRoutePath {
+            fn catalog_path(self) -> frontend_contract::domain_types::ParameterizedRoutePath {
                 match self {
                     #(#path_arms),*
                 }
@@ -2112,27 +1979,27 @@ pub fn derive_route_catalog(input: proc_macro::TokenStream) -> proc_macro::Token
         }
         #[derive(Clone, Copy, Debug)]
         pub struct #family;
-        impl frontend_contract::RouteFamily for #family {
+        impl frontend_contract::domain_types::RouteFamily for #family {
             const ROUTE_COUNT: usize = #route_count;
-            fn body_limit() -> Option<frontend_contract::RouteBodyLimit> {
-                Some(frontend_contract::RouteBodyLimit::from(#body_limit))
+            fn body_limit() -> Option<frontend_contract::domain_types::RouteBodyLimit> {
+                Some(frontend_contract::domain_types::RouteBodyLimit::from(#body_limit))
             }
-            fn coverage_descriptors() -> frontend_contract::RouteCoverageDescriptors {
-                frontend_contract::RouteCoverageDescriptors::from_max_iter(vec![
+            fn coverage_descriptors() -> frontend_contract::domain_types::RouteCoverageDescriptors {
+                frontend_contract::domain_types::RouteCoverageDescriptors::from_max_iter(vec![
                     #(
-                        <#family_routes as frontend_contract::CoveredRoute>::coverage_descriptor()
+                        <#family_routes as frontend_contract::domain_types::CoveredRoute>::coverage_descriptor()
                     ),*
                 ])
             }
-            fn schema_contracts() -> frontend_contract::RouteSchemaContracts {
-                frontend_contract::RouteSchemaContracts::from_max_iter(vec![
+            fn schema_contracts() -> frontend_contract::domain_types::RouteSchemaContracts {
+                frontend_contract::domain_types::RouteSchemaContracts::from_max_iter(vec![
                     #(
-                        frontend_contract::RouteSchemaContract::from_typed_route::<#family_routes>()
+                        frontend_contract::domain_types::RouteSchemaContract::from_typed_route::<#family_routes>()
                     ),*
                 ])
             }
         }
-        #(impl frontend_contract::RouteInFamily<#family> for #family_routes {})*
+        #(impl frontend_contract::domain_types::RouteInFamily<#family> for #family_routes {})*
     }
     .into()
 }
@@ -2242,7 +2109,7 @@ pub fn derive_page_catalog(input_token_stream: proc_macro::TokenStream) -> proc_
         .to_compile_error()
         .into();
     };
-    let args = match attribute.parse_args::<PageCatalogArgs>() {
+    let args = match attribute.parse_args::<domain_types::PageCatalogArgs>() {
         Ok(value) => value,
         Err(error) => return error.to_compile_error().into(),
     };
@@ -2275,7 +2142,7 @@ pub fn derive_page_catalog(input_token_stream: proc_macro::TokenStream) -> proc_
                     )
                 })?;
             page_attribute
-                .parse_args::<PageCatalogPageArgs>()
+                .parse_args::<domain_types::PageCatalogPageArgs>()
                 .map(|page| (&variant.ident, page))
         })
         .collect::<syn::Result<Vec<_>>>()
@@ -2289,28 +2156,28 @@ pub fn derive_page_catalog(input_token_stream: proc_macro::TokenStream) -> proc_
         .collect::<Vec<_>>();
     let capabilities = pages
         .iter()
-        .map(|(_identifier, page)| &page.capability.0)
+        .map(|(_identifier, page)| page.capability.as_ref())
         .collect::<Vec<_>>();
     let paths = pages
         .iter()
-        .map(|(_identifier, page)| &page.path.0)
+        .map(|(_identifier, page)| page.path.as_ref())
         .collect::<Vec<_>>();
     let metadata = pages
         .iter()
-        .map(|(_identifier, page)| &page.metadata.0)
+        .map(|(_identifier, page)| page.metadata.as_ref())
         .collect::<Vec<_>>();
     let routes = pages
         .iter()
-        .map(|(_identifier, page)| &page.route.0)
+        .map(|(_identifier, page)| page.route.as_ref())
         .collect::<Vec<_>>();
     let titles = pages
         .iter()
-        .map(|(_identifier, page)| &page.title.0)
+        .map(|(_identifier, page)| page.title.as_ref())
         .collect::<Vec<_>>();
     let identifier = &input.ident;
-    let inventory = args.inventory.0;
-    let path_ref = args.path_ref.0;
-    let spec = args.spec.0;
+    let inventory = args.inventory.into_inner();
+    let path_ref = args.path_ref.into_inner();
+    let spec = args.spec.into_inner();
     let indexes = (0..pages.len()).map(syn::Index::from);
     let count = pages.len();
     quote::quote! {
@@ -2396,8 +2263,8 @@ pub fn derive_route_family(input: proc_macro::TokenStream) -> proc_macro::TokenS
         .transpose()
     {
         Ok(Some(value)) => quote::quote! {
-            fn body_limit() -> Option<frontend_contract::RouteBodyLimit> {
-                Some(frontend_contract::RouteBodyLimit::from(#value))
+            fn body_limit() -> Option<frontend_contract::domain_types::RouteBodyLimit> {
+                Some(frontend_contract::domain_types::RouteBodyLimit::from(#value))
             }
         },
         Ok(None) => quote::quote! {},
@@ -2407,25 +2274,25 @@ pub fn derive_route_family(input: proc_macro::TokenStream) -> proc_macro::TokenS
     let route_types = routes.iter().collect::<Vec<_>>();
     let route_count = route_types.len();
     quote::quote! {
-        impl frontend_contract::RouteFamily for #identifier {
+        impl frontend_contract::domain_types::RouteFamily for #identifier {
             const ROUTE_COUNT: usize = #route_count;
             #body_limit
-            fn coverage_descriptors() -> frontend_contract::RouteCoverageDescriptors {
-                frontend_contract::RouteCoverageDescriptors::from_max_iter(vec![
+            fn coverage_descriptors() -> frontend_contract::domain_types::RouteCoverageDescriptors {
+                frontend_contract::domain_types::RouteCoverageDescriptors::from_max_iter(vec![
                     #(
-                        <#route_types as frontend_contract::CoveredRoute>::coverage_descriptor()
+                        <#route_types as frontend_contract::domain_types::CoveredRoute>::coverage_descriptor()
                     ),*
                 ])
             }
-            fn schema_contracts() -> frontend_contract::RouteSchemaContracts {
-                frontend_contract::RouteSchemaContracts::from_max_iter(vec![
+            fn schema_contracts() -> frontend_contract::domain_types::RouteSchemaContracts {
+                frontend_contract::domain_types::RouteSchemaContracts::from_max_iter(vec![
                     #(
-                        frontend_contract::RouteSchemaContract::from_typed_route::<#route_types>()
+                        frontend_contract::domain_types::RouteSchemaContract::from_typed_route::<#route_types>()
                     ),*
                 ])
             }
         }
-        #(impl frontend_contract::RouteInFamily<#identifier> for #route_types {})*
+        #(impl frontend_contract::domain_types::RouteInFamily<#identifier> for #route_types {})*
     }
     .into()
 }

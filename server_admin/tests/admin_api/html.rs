@@ -16,7 +16,9 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
     let create_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
-        StdAdminApiTestStrRef::from(server_admin_contract::AdminHtmlAction::UserCreate.get()),
+        StdAdminApiTestStrRef::from(
+            server_admin_contract::domain_types::AdminHtmlAction::UserCreate.get(),
+        ),
         StdAdminApiTestStrRef::from(create_body.0.as_str()),
     )
     .await;
@@ -34,7 +36,9 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
     let users_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::GET),
-        StdAdminApiTestStrRef::from(server_admin_contract::AdminFrontendPath::Users.get()),
+        StdAdminApiTestStrRef::from(
+            server_admin_contract::domain_types::AdminFrontendPath::Users.get(),
+        ),
         StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
     )
     .await;
@@ -50,7 +54,9 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
     let login_update_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
-        StdAdminApiTestStrRef::from(server_admin_contract::AdminHtmlAction::UserUpdate.get()),
+        StdAdminApiTestStrRef::from(
+            server_admin_contract::domain_types::AdminHtmlAction::UserUpdate.get(),
+        ),
         StdAdminApiTestStrRef::from(login_update_body.0.as_str()),
     )
     .await;
@@ -75,7 +81,9 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
     let display_update_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
-        StdAdminApiTestStrRef::from(server_admin_contract::AdminHtmlAction::UserUpdate.get()),
+        StdAdminApiTestStrRef::from(
+            server_admin_contract::domain_types::AdminHtmlAction::UserUpdate.get(),
+        ),
         StdAdminApiTestStrRef::from(display_update_body.0.as_str()),
     )
     .await;
@@ -103,7 +111,9 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
     let password_update_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
-        StdAdminApiTestStrRef::from(server_admin_contract::AdminHtmlAction::UserPassword.get()),
+        StdAdminApiTestStrRef::from(
+            server_admin_contract::domain_types::AdminHtmlAction::UserPassword.get(),
+        ),
         StdAdminApiTestStrRef::from(password_update_body.0.as_str()),
     )
     .await;
@@ -118,7 +128,7 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
         fixture.router.0.clone(),
         html_request_with_peer(
             HttpAdminApiTestMethod::from(http::Method::POST),
-            StdAdminApiTestStrRef::from(server_admin_contract::AdminHtmlAction::SignIn.get()),
+            StdAdminApiTestStrRef::from(server_admin_contract::domain_types::AdminHtmlAction::SignIn.get()),
             StdAdminApiTestStrRef::from(old_sign_in_body.0.as_str()),
             None,
         )
@@ -138,7 +148,7 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
         fixture.router.0.clone(),
         html_request_with_peer(
             HttpAdminApiTestMethod::from(http::Method::POST),
-            StdAdminApiTestStrRef::from(server_admin_contract::AdminHtmlAction::SignIn.get()),
+            StdAdminApiTestStrRef::from(server_admin_contract::domain_types::AdminHtmlAction::SignIn.get()),
             StdAdminApiTestStrRef::from(new_sign_in_body.0.as_str()),
             None,
         )
@@ -160,7 +170,9 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
     let roles_update_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
-        StdAdminApiTestStrRef::from(server_admin_contract::AdminHtmlAction::UserRoles.get()),
+        StdAdminApiTestStrRef::from(
+            server_admin_contract::domain_types::AdminHtmlAction::UserRoles.get(),
+        ),
         StdAdminApiTestStrRef::from(roles_update_body.0.as_str()),
     )
     .await;
@@ -178,7 +190,9 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
     let ban_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
-        StdAdminApiTestStrRef::from(server_admin_contract::AdminHtmlAction::UserBan.get()),
+        StdAdminApiTestStrRef::from(
+            server_admin_contract::domain_types::AdminHtmlAction::UserBan.get(),
+        ),
         StdAdminApiTestStrRef::from(ban_body.0.as_str()),
     )
     .await;
@@ -186,7 +200,9 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
     let final_users_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::GET),
-        StdAdminApiTestStrRef::from(server_admin_contract::AdminFrontendPath::Users.get()),
+        StdAdminApiTestStrRef::from(
+            server_admin_contract::domain_types::AdminFrontendPath::Users.get(),
+        ),
         StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
     )
     .await;
@@ -198,7 +214,9 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
     let unban_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
-        StdAdminApiTestStrRef::from(server_admin_contract::AdminHtmlAction::UserBan.get()),
+        StdAdminApiTestStrRef::from(
+            server_admin_contract::domain_types::AdminHtmlAction::UserBan.get(),
+        ),
         StdAdminApiTestStrRef::from(unban_body.0.as_str()),
     )
     .await;
@@ -217,7 +235,9 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
     let roles_clear_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
-        StdAdminApiTestStrRef::from(server_admin_contract::AdminHtmlAction::UserRoles.get()),
+        StdAdminApiTestStrRef::from(
+            server_admin_contract::domain_types::AdminHtmlAction::UserRoles.get(),
+        ),
         StdAdminApiTestStrRef::from(roles_clear_body.0.as_str()),
     )
     .await;
@@ -229,7 +249,9 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
     let delete_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
-        StdAdminApiTestStrRef::from(server_admin_contract::AdminHtmlAction::UserDelete.get()),
+        StdAdminApiTestStrRef::from(
+            server_admin_contract::domain_types::AdminHtmlAction::UserDelete.get(),
+        ),
         StdAdminApiTestStrRef::from(delete_body.0.as_str()),
     )
     .await;
@@ -243,7 +265,9 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
     let deleted_users_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::GET),
-        StdAdminApiTestStrRef::from(server_admin_contract::AdminFrontendPath::Users.get()),
+        StdAdminApiTestStrRef::from(
+            server_admin_contract::domain_types::AdminFrontendPath::Users.get(),
+        ),
         StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
     )
     .await;
@@ -262,7 +286,9 @@ async fn postgresql_html_roles_crud_covers_every_frontend_field_separately() {
     let create_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
-        StdAdminApiTestStrRef::from(server_admin_contract::AdminHtmlAction::RoleCreate.get()),
+        StdAdminApiTestStrRef::from(
+            server_admin_contract::domain_types::AdminHtmlAction::RoleCreate.get(),
+        ),
         StdAdminApiTestStrRef::from(create_body.0.as_str()),
     )
     .await;
@@ -279,7 +305,9 @@ async fn postgresql_html_roles_crud_covers_every_frontend_field_separately() {
     let roles_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::GET),
-        StdAdminApiTestStrRef::from(server_admin_contract::AdminFrontendPath::Roles.get()),
+        StdAdminApiTestStrRef::from(
+            server_admin_contract::domain_types::AdminFrontendPath::Roles.get(),
+        ),
         StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
     )
     .await;
@@ -293,7 +321,9 @@ async fn postgresql_html_roles_crud_covers_every_frontend_field_separately() {
     let update_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
-        StdAdminApiTestStrRef::from(server_admin_contract::AdminHtmlAction::RoleUpdate.get()),
+        StdAdminApiTestStrRef::from(
+            server_admin_contract::domain_types::AdminHtmlAction::RoleUpdate.get(),
+        ),
         StdAdminApiTestStrRef::from(update_body.0.as_str()),
     )
     .await;
@@ -318,7 +348,9 @@ async fn postgresql_html_roles_crud_covers_every_frontend_field_separately() {
     let permissions_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
-        StdAdminApiTestStrRef::from(server_admin_contract::AdminHtmlAction::RolePermissions.get()),
+        StdAdminApiTestStrRef::from(
+            server_admin_contract::domain_types::AdminHtmlAction::RolePermissions.get(),
+        ),
         StdAdminApiTestStrRef::from(permissions_body.0.as_str()),
     )
     .await;
@@ -334,7 +366,9 @@ async fn postgresql_html_roles_crud_covers_every_frontend_field_separately() {
     let final_roles_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::GET),
-        StdAdminApiTestStrRef::from(server_admin_contract::AdminFrontendPath::Roles.get()),
+        StdAdminApiTestStrRef::from(
+            server_admin_contract::domain_types::AdminFrontendPath::Roles.get(),
+        ),
         StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
     )
     .await;
@@ -347,7 +381,9 @@ async fn postgresql_html_roles_crud_covers_every_frontend_field_separately() {
     let delete_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
-        StdAdminApiTestStrRef::from(server_admin_contract::AdminHtmlAction::RoleDelete.get()),
+        StdAdminApiTestStrRef::from(
+            server_admin_contract::domain_types::AdminHtmlAction::RoleDelete.get(),
+        ),
         StdAdminApiTestStrRef::from(delete_body.0.as_str()),
     )
     .await;
@@ -361,7 +397,9 @@ async fn postgresql_html_roles_crud_covers_every_frontend_field_separately() {
     let deleted_roles_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::GET),
-        StdAdminApiTestStrRef::from(server_admin_contract::AdminFrontendPath::Roles.get()),
+        StdAdminApiTestStrRef::from(
+            server_admin_contract::domain_types::AdminFrontendPath::Roles.get(),
+        ),
         StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
     )
     .await;
@@ -375,8 +413,9 @@ async fn postgresql_html_settings_updates_and_reads_every_field_separately() {
     let fixture = admin_html_test_fixture().await;
     let site_name_a = StdAdminApiTestStrRef::from("HtmlSiteA");
     let site_name_b = StdAdminApiTestStrRef::from("HtmlSiteB");
-    let route_a =
-        StdAdminApiTestStrRef::from(server_admin_contract::AdminFrontendPath::Users.get());
+    let route_a = StdAdminApiTestStrRef::from(
+        server_admin_contract::domain_types::AdminFrontendPath::Users.get(),
+    );
     let route_b = StdAdminApiTestStrRef::from("/admin/roles");
     let tab_title_a = StdAdminApiTestStrRef::from("HtmlTabA");
     let tab_title_b = StdAdminApiTestStrRef::from("HtmlTabB");
@@ -495,7 +534,7 @@ async fn postgresql_html_settings_updates_and_reads_every_field_separately() {
             fixture_ref,
             HttpAdminApiTestMethod::from(http::Method::POST),
             StdAdminApiTestStrRef::from(
-                server_admin_contract::AdminHtmlAction::SettingsUpdate.get(),
+                server_admin_contract::domain_types::AdminHtmlAction::SettingsUpdate.get(),
             ),
             StdAdminApiTestStrRef::from(form_body.0.as_str()),
         )
@@ -504,7 +543,9 @@ async fn postgresql_html_settings_updates_and_reads_every_field_separately() {
         let read_response = admin_html_response(
             fixture_ref,
             HttpAdminApiTestMethod::from(http::Method::GET),
-            StdAdminApiTestStrRef::from(server_admin_contract::AdminFrontendPath::Settings.get()),
+            StdAdminApiTestStrRef::from(
+                server_admin_contract::domain_types::AdminFrontendPath::Settings.get(),
+            ),
             StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
         )
         .await;
@@ -629,7 +670,7 @@ async fn postgresql_html_settings_updates_and_reads_every_field_separately() {
                 fixture_ref,
                 HttpAdminApiTestMethod::from(http::Method::POST),
                 StdAdminApiTestStrRef::from(
-                    server_admin_contract::AdminHtmlAction::SettingsUpdate.get(),
+                    server_admin_contract::domain_types::AdminHtmlAction::SettingsUpdate.get(),
                 ),
                 StdAdminApiTestStrRef::from(form_body.0.as_str()),
             )
@@ -691,13 +732,16 @@ async fn postgresql_html_settings_updates_and_reads_every_field_separately() {
 #[tokio::test]
 #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
 async fn postgresql_bootstrap_password_must_change_before_admin_access() {
-    let fixture =
-        admin_html_test_fixture_with_password_change(server_admin_contract::AdminBool::from(true))
-            .await;
+    let fixture = admin_html_test_fixture_with_password_change(
+        server_admin_contract::domain_types::AdminBool::from(true),
+    )
+    .await;
     let users_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::GET),
-        StdAdminApiTestStrRef::from(server_admin_contract::AdminFrontendPath::Users.get()),
+        StdAdminApiTestStrRef::from(
+            server_admin_contract::domain_types::AdminFrontendPath::Users.get(),
+        ),
         StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
     )
     .await;
@@ -705,13 +749,15 @@ async fn postgresql_bootstrap_password_must_change_before_admin_access() {
     assert_eq!(
         users_response.headers().get(http::header::LOCATION),
         Some(&http::HeaderValue::from_static(
-            server_admin_contract::AdminFrontendPath::Profile.get(),
+            server_admin_contract::domain_types::AdminFrontendPath::Profile.get(),
         ))
     );
     let profile_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::GET),
-        StdAdminApiTestStrRef::from(server_admin_contract::AdminFrontendPath::Profile.get()),
+        StdAdminApiTestStrRef::from(
+            server_admin_contract::domain_types::AdminFrontendPath::Profile.get(),
+        ),
         StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
     )
     .await;
@@ -725,7 +771,9 @@ async fn postgresql_bootstrap_password_must_change_before_admin_access() {
     let change_password_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
-        StdAdminApiTestStrRef::from(server_admin_contract::AdminHtmlAction::ProfilePassword.get()),
+        StdAdminApiTestStrRef::from(
+            server_admin_contract::domain_types::AdminHtmlAction::ProfilePassword.get(),
+        ),
         StdAdminApiTestStrRef::from(change_password_body.0.as_str()),
     )
     .await;
@@ -743,7 +791,9 @@ async fn postgresql_bootstrap_password_must_change_before_admin_access() {
     let post_change_users_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::GET),
-        StdAdminApiTestStrRef::from(server_admin_contract::AdminFrontendPath::Users.get()),
+        StdAdminApiTestStrRef::from(
+            server_admin_contract::domain_types::AdminFrontendPath::Users.get(),
+        ),
         StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
     )
     .await;
@@ -758,7 +808,9 @@ async fn postgresql_html_profile_reads_every_field_and_changes_own_password() {
     let profile_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::GET),
-        StdAdminApiTestStrRef::from(server_admin_contract::AdminFrontendPath::Profile.get()),
+        StdAdminApiTestStrRef::from(
+            server_admin_contract::domain_types::AdminFrontendPath::Profile.get(),
+        ),
         StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
     )
     .await;
@@ -804,7 +856,9 @@ async fn postgresql_html_profile_reads_every_field_and_changes_own_password() {
     let change_password_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
-        StdAdminApiTestStrRef::from(server_admin_contract::AdminHtmlAction::ProfilePassword.get()),
+        StdAdminApiTestStrRef::from(
+            server_admin_contract::domain_types::AdminHtmlAction::ProfilePassword.get(),
+        ),
         StdAdminApiTestStrRef::from(change_password_body.0.as_str()),
     )
     .await;
@@ -845,7 +899,9 @@ async fn postgresql_html_profile_reads_every_field_and_changes_own_password() {
     let authenticated_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::GET),
-        StdAdminApiTestStrRef::from(server_admin_contract::AdminFrontendPath::Profile.get()),
+        StdAdminApiTestStrRef::from(
+            server_admin_contract::domain_types::AdminFrontendPath::Profile.get(),
+        ),
         StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
     )
     .await;
@@ -873,7 +929,9 @@ async fn postgresql_html_sessions_reads_every_field_and_revokes_session() {
     let sessions_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::GET),
-        StdAdminApiTestStrRef::from(server_admin_contract::AdminFrontendPath::Sessions.get()),
+        StdAdminApiTestStrRef::from(
+            server_admin_contract::domain_types::AdminFrontendPath::Sessions.get(),
+        ),
         StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
     )
     .await;
@@ -887,7 +945,9 @@ async fn postgresql_html_sessions_reads_every_field_and_revokes_session() {
     let revoke_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
-        StdAdminApiTestStrRef::from(server_admin_contract::AdminHtmlAction::SessionRevoke.get()),
+        StdAdminApiTestStrRef::from(
+            server_admin_contract::domain_types::AdminHtmlAction::SessionRevoke.get(),
+        ),
         StdAdminApiTestStrRef::from(revoke_body.0.as_str()),
     )
     .await;
@@ -903,7 +963,9 @@ async fn postgresql_html_sessions_reads_every_field_and_revokes_session() {
     let rejected_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::GET),
-        StdAdminApiTestStrRef::from(server_admin_contract::AdminFrontendPath::Sessions.get()),
+        StdAdminApiTestStrRef::from(
+            server_admin_contract::domain_types::AdminFrontendPath::Sessions.get(),
+        ),
         StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
     )
     .await;
@@ -917,15 +979,17 @@ async fn postgresql_html_router_registers_every_owned_page_and_action() {
     let fixture_ref = &fixture;
     futures::StreamExt::fold(
         futures::StreamExt::filter(
-            futures::stream::iter(server_admin_contract::AdminFrontendPath::all_pages()),
+            futures::stream::iter(
+                server_admin_contract::domain_types::AdminFrontendPath::all_pages(),
+            ),
             |path| {
                 std::future::ready(!matches!(
                     path,
-                    server_admin_contract::AdminFrontendPath::Metrics
-                        | server_admin_contract::AdminFrontendPath::Permissions
-                        | server_admin_contract::AdminFrontendPath::Roles
-                        | server_admin_contract::AdminFrontendPath::Tables
-                        | server_admin_contract::AdminFrontendPath::Users
+                    server_admin_contract::domain_types::AdminFrontendPath::Metrics
+                        | server_admin_contract::domain_types::AdminFrontendPath::Permissions
+                        | server_admin_contract::domain_types::AdminFrontendPath::Roles
+                        | server_admin_contract::domain_types::AdminFrontendPath::Tables
+                        | server_admin_contract::domain_types::AdminFrontendPath::Users
                 ))
             },
         ),
@@ -951,9 +1015,9 @@ async fn postgresql_html_router_registers_every_owned_page_and_action() {
             );
             if matches!(
                 path,
-                server_admin_contract::AdminFrontendPath::Profile
-                    | server_admin_contract::AdminFrontendPath::Sessions
-                    | server_admin_contract::AdminFrontendPath::Settings
+                server_admin_contract::domain_types::AdminFrontendPath::Profile
+                    | server_admin_contract::domain_types::AdminFrontendPath::Sessions
+                    | server_admin_contract::domain_types::AdminFrontendPath::Settings
             ) {
                 let html = admin_html_body(response).await;
                 assert_admin_csr_shell(&html);
@@ -962,7 +1026,7 @@ async fn postgresql_html_router_registers_every_owned_page_and_action() {
     )
     .await;
     futures::StreamExt::fold(
-        futures::stream::iter(server_admin_contract::AdminDataTable::ALL),
+        futures::stream::iter(server_admin_contract::domain_types::AdminDataTable::ALL),
         (),
         async |(), table| {
             let uri = table.frontend_path();
@@ -984,7 +1048,7 @@ async fn postgresql_html_router_registers_every_owned_page_and_action() {
     )
     .await;
     futures::StreamExt::fold(
-        futures::stream::iter(server_admin_contract::AdminHtmlAction::ALL),
+        futures::stream::iter(server_admin_contract::domain_types::AdminHtmlAction::ALL),
         (),
         async |(), action| {
             let response = tower::ServiceExt::oneshot(
@@ -1025,7 +1089,7 @@ async fn postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_fi
         fixture.router.0.clone(),
         html_request_with_peer(
             HttpAdminApiTestMethod::from(http::Method::GET),
-            StdAdminApiTestStrRef::from(server_admin_contract::AdminFrontendPath::Users.get()),
+            StdAdminApiTestStrRef::from(server_admin_contract::domain_types::AdminFrontendPath::Users.get()),
             StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
             None,
         )
@@ -1042,7 +1106,7 @@ async fn postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_fi
             .headers()
             .get(http::header::LOCATION),
         Some(&http::HeaderValue::from_static(
-            server_admin_contract::AdminFrontendPath::SignIn.get(),
+            server_admin_contract::domain_types::AdminFrontendPath::SignIn.get(),
         )),
     );
 
@@ -1055,7 +1119,7 @@ async fn postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_fi
         fixture.router.0.clone(),
         html_request_with_peer(
             HttpAdminApiTestMethod::from(http::Method::POST),
-            StdAdminApiTestStrRef::from(server_admin_contract::AdminHtmlAction::UserCreate.get()),
+            StdAdminApiTestStrRef::from(server_admin_contract::domain_types::AdminHtmlAction::UserCreate.get()),
             StdAdminApiTestStrRef::from(valid_body.0.as_str()),
             None,
         )
@@ -1070,7 +1134,9 @@ async fn postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_fi
     let unknown_field_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
-        StdAdminApiTestStrRef::from(server_admin_contract::AdminHtmlAction::UserCreate.get()),
+        StdAdminApiTestStrRef::from(
+            server_admin_contract::domain_types::AdminHtmlAction::UserCreate.get(),
+        ),
         StdAdminApiTestStrRef::from(unknown_field_body.0.as_str()),
     )
     .await;
@@ -1081,7 +1147,9 @@ async fn postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_fi
     let create_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
-        StdAdminApiTestStrRef::from(server_admin_contract::AdminHtmlAction::UserCreate.get()),
+        StdAdminApiTestStrRef::from(
+            server_admin_contract::domain_types::AdminHtmlAction::UserCreate.get(),
+        ),
         StdAdminApiTestStrRef::from(valid_body.0.as_str()),
     )
     .await;
@@ -1089,7 +1157,9 @@ async fn postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_fi
     let duplicate_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
-        StdAdminApiTestStrRef::from(server_admin_contract::AdminHtmlAction::UserCreate.get()),
+        StdAdminApiTestStrRef::from(
+            server_admin_contract::domain_types::AdminHtmlAction::UserCreate.get(),
+        ),
         StdAdminApiTestStrRef::from(valid_body.0.as_str()),
     )
     .await;
@@ -1101,7 +1171,7 @@ async fn postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_fi
         .expect("378a4e50 postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_filtering invariant must hold");
     let filtered_path = AdminHtmlTestFormBody::try_from(format!(
         "{}?search={login}",
-        server_admin_contract::AdminFrontendPath::Users.get()
+        server_admin_contract::domain_types::AdminFrontendPath::Users.get()
     ))
     .expect("60bf2c91 postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_filtering invariant must hold");
     let filtered_response = admin_html_response(
@@ -1126,7 +1196,9 @@ async fn postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_fi
     let stale_roles_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
-        StdAdminApiTestStrRef::from(server_admin_contract::AdminHtmlAction::UserRoles.get()),
+        StdAdminApiTestStrRef::from(
+            server_admin_contract::domain_types::AdminHtmlAction::UserRoles.get(),
+        ),
         StdAdminApiTestStrRef::from(stale_roles_body.0.as_str()),
     )
     .await;
@@ -1138,7 +1210,9 @@ async fn postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_fi
     let create_role_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
-        StdAdminApiTestStrRef::from(server_admin_contract::AdminHtmlAction::RoleCreate.get()),
+        StdAdminApiTestStrRef::from(
+            server_admin_contract::domain_types::AdminHtmlAction::RoleCreate.get(),
+        ),
         StdAdminApiTestStrRef::from(create_role_body.0.as_str()),
     )
     .await;
@@ -1146,7 +1220,9 @@ async fn postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_fi
     let duplicate_role_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
-        StdAdminApiTestStrRef::from(server_admin_contract::AdminHtmlAction::RoleCreate.get()),
+        StdAdminApiTestStrRef::from(
+            server_admin_contract::domain_types::AdminHtmlAction::RoleCreate.get(),
+        ),
         StdAdminApiTestStrRef::from(create_role_body.0.as_str()),
     )
     .await;
@@ -1168,7 +1244,9 @@ async fn postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_fi
     let stale_permissions_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
-        StdAdminApiTestStrRef::from(server_admin_contract::AdminHtmlAction::RolePermissions.get()),
+        StdAdminApiTestStrRef::from(
+            server_admin_contract::domain_types::AdminHtmlAction::RolePermissions.get(),
+        ),
         StdAdminApiTestStrRef::from(stale_permissions_body.0.as_str()),
     )
     .await;
@@ -1182,7 +1260,9 @@ async fn postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_fi
     let delete_role_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
-        StdAdminApiTestStrRef::from(server_admin_contract::AdminHtmlAction::RoleDelete.get()),
+        StdAdminApiTestStrRef::from(
+            server_admin_contract::domain_types::AdminHtmlAction::RoleDelete.get(),
+        ),
         StdAdminApiTestStrRef::from(delete_role_body.0.as_str()),
     )
     .await;
@@ -1195,7 +1275,9 @@ async fn postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_fi
     let unknown_delete_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
-        StdAdminApiTestStrRef::from(server_admin_contract::AdminHtmlAction::UserDelete.get()),
+        StdAdminApiTestStrRef::from(
+            server_admin_contract::domain_types::AdminHtmlAction::UserDelete.get(),
+        ),
         StdAdminApiTestStrRef::from(unknown_delete_body.0.as_str()),
     )
     .await;
@@ -1207,7 +1289,9 @@ async fn postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_fi
     let delete_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
-        StdAdminApiTestStrRef::from(server_admin_contract::AdminHtmlAction::UserDelete.get()),
+        StdAdminApiTestStrRef::from(
+            server_admin_contract::domain_types::AdminHtmlAction::UserDelete.get(),
+        ),
         StdAdminApiTestStrRef::from(delete_body.0.as_str()),
     )
     .await;
