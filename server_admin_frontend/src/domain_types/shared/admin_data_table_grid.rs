@@ -4,8 +4,8 @@
     reason = "the shared Leptos grid composes its column and row renderers once"
 )]
 
-mod column;
-mod row;
+mod admin_data_grid_column;
+mod admin_data_grid_row;
 
 pub(crate) fn admin_data_table_grid(
     view: &server_admin_contract::domain_types::AdminDataTableView,
@@ -19,7 +19,7 @@ pub(crate) fn admin_data_table_grid(
         .columns()
         .iter()
         .map(|column| {
-            column::admin_data_grid_column(
+            admin_data_grid_column::admin_data_grid_column(
                 view,
                 column,
                 active_field,
@@ -33,12 +33,12 @@ pub(crate) fn admin_data_table_grid(
     let rows = view
         .items()
         .iter()
-        .map(|item| row::admin_data_grid_row(view, item))
+        .map(|item| admin_data_grid_row::admin_data_grid_row(view, item))
         .collect::<Vec<_>>();
     leptos::view! {
-        <crate::domain_types::ui::table::TableWrapper><crate::domain_types::ui::table::Table>
-            <crate::domain_types::ui::table::TableHeader><crate::domain_types::ui::table::TableRow>{columns}</crate::domain_types::ui::table::TableRow></crate::domain_types::ui::table::TableHeader>
-            <crate::domain_types::ui::table::TableBody>{rows}</crate::domain_types::ui::table::TableBody>
-        </crate::domain_types::ui::table::Table></crate::domain_types::ui::table::TableWrapper>
+        <crate::domain_types::with_owner::table::TableWrapper><crate::domain_types::with_owner::table::Table>
+            <crate::domain_types::with_owner::table::TableHeader><crate::domain_types::with_owner::table::TableRow>{columns}</crate::domain_types::with_owner::table::TableRow></crate::domain_types::with_owner::table::TableHeader>
+            <crate::domain_types::with_owner::table::TableBody>{rows}</crate::domain_types::with_owner::table::TableBody>
+        </crate::domain_types::with_owner::table::Table></crate::domain_types::with_owner::table::TableWrapper>
     }
 }

@@ -63,7 +63,10 @@ pub fn build_generate_where_filters(
         crate::domain_types::spec::FilterSpec::within(),
     ]
     .into_iter()
-    .all(|spec| crate::domain_types::contract_tests::filter_spec_contract_is_valid(spec).get());
+    .all(|spec| {
+        crate::domain_types::filter_spec_contract_is_valid::filter_spec_contract_is_valid(spec)
+            .get()
+    });
     Ok(BuiltGenerateWhereFiltersModel {
         config: parsed,
         contract_valid: crate::domain_types::spec::FilterSpecValid::from(valid),

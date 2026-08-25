@@ -2,9 +2,9 @@
     clippy::arbitrary_source_item_ordering,
     reason = "each bounded type keeps its inherent and trait implementations adjacent"
 )]
+pub mod bounded_string;
 pub mod btree;
 pub mod hash;
-pub mod text;
 pub mod vector;
 
 pub const COLLECTION_MAX_LEN: usize = 10_000usize;

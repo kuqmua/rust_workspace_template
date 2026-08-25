@@ -62,7 +62,8 @@ pub fn generate_field_location_new_token_stream(
     file: FieldLocationFile,
     line: FieldLocationLine,
     column: FieldLocationColumn,
-) -> crate::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
+) -> crate::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream
+{
     let location_snake_case = naming::domain_types::LocationSnakeCase;
     let location_new_token_stream = {
         let file_token_stream = generate_quotes::domain_types::dq_token_stream(&file.0);
@@ -93,7 +94,7 @@ pub fn generate_field_location_new_token_stream(
             )
         }
     };
-    crate::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
+    crate::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(
         quote::quote! {#location_snake_case: #location_new_token_stream},
     )
 }

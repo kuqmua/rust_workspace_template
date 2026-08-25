@@ -114,7 +114,7 @@ where
         Ok(None)
     } else {
         Value::try_from(
-            bounded_types::domain_types::text::BoundedString::<
+            bounded_types::domain_types::bounded_string::BoundedString::<
                 0,
                 { constants_usize::VALUE_8_192 },
             >::from(value)

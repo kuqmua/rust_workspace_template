@@ -1,7 +1,7 @@
 mod adapters;
-mod application;
 mod domain_types;
+mod run;
 
 fn main() -> Result<(), domain_types::InitializeError> {
-    application::run()
+    run::run()
 }

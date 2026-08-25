@@ -5,8 +5,8 @@
     reason = "the Leptos column-filter converts borrowed query values and is composed once by its column"
 )]
 
-mod input_kind;
-mod option;
+mod admin_data_grid_filter_option;
+mod admin_data_grid_input_type;
 
 use leptos::prelude::{
     AddAnyAttr, AriaAttributes, ClassAttribute, CustomAttribute, ElementChild, GlobalAttributes,
@@ -42,7 +42,7 @@ pub(super) fn admin_data_grid_filter(
         "position-anchor:{anchor_name};inset:auto;position-area:block-end;position-try-fallbacks:flip-block"
     );
     let label = column.label().to_string();
-    let input_type = input_kind::AdminDataGridInputType::from(column.input_kind());
+    let input_type = admin_data_grid_input_type::AdminDataGridInputType::from(column.input_kind());
     let is_active_field = active_field.as_deref() == Some(field.as_str());
     let filter_label = format!("Filter {label}");
     let filter_title = format!("Filter by {label}");
@@ -70,9 +70,9 @@ pub(super) fn admin_data_grid_filter(
     let trigger_filter_id = filter_id.clone();
     let trigger_filter_label = filter_label.clone();
     {
-        supports_filter.then(|| leptos::prelude::IntoAny::into_any(crate::domain_types::ui::with_owner(move || leptos::view! {
+        supports_filter.then(|| leptos::prelude::IntoAny::into_any(crate::domain_types::with_owner::with_owner(move || leptos::view! {
                     <singlestage::Popover attr:data-name="Popover" class="table-column-filter">
-                        <crate::domain_types::ui::button::AdminButton variant=crate::domain_types::ui::button::AdminButtonVariant::Secondary kind=crate::domain_types::ui::button::AdminButtonKind::Button popover_target=trigger_filter_id aria_label=trigger_filter_label style=trigger_style>"Filter"</crate::domain_types::ui::button::AdminButton>
+                        <crate::domain_types::with_owner::button::AdminButton variant=crate::domain_types::with_owner::button::AdminButtonVariant::Secondary kind=crate::domain_types::with_owner::button::AdminButtonKind::Button popover_target=trigger_filter_id aria_label=trigger_filter_label style=trigger_style>"Filter"</crate::domain_types::with_owner::button::AdminButton>
                         <div data-name="PopoverContent" id=filter_id class="table-filter-operations relative z-50 my-[1ch] min-h-[150px] w-[250px] overflow-visible rounded-md border bg-card p-4 shadow-md" style=popover_style popover="auto" role="dialog" aria-label=filter_label>
                             <div class="table-filter-header"><h2>{filter_title}</h2></div>
                             <form class="table-filter-form" method="get" action=action.clone()>
@@ -83,7 +83,7 @@ pub(super) fn admin_data_grid_filter(
                                     {filters.into_iter().map(|filter| {
                                         let operation_key = server_admin_contract::domain_types::AdminFilterOperationKey::from(filter.operation()).to_string();
                                         let is_active = is_active_field && active_operation.as_deref() == Some(operation_key.as_str());
-                                        option::admin_data_grid_filter_option(
+                                        admin_data_grid_filter_option::admin_data_grid_filter_option(
                                             filter,
                                             is_active.then_some(active_value.as_ref()).flatten(),
                                             is_active.then_some(active_end.as_ref()).flatten(),
@@ -93,8 +93,8 @@ pub(super) fn admin_data_grid_filter(
                                     }).collect::<Vec<_>>()}
                                 </singlestage::RadioGroup>
                                 <div class="table-filter-actions [&>*]:w-full">
-                                    <crate::domain_types::ui::button::AdminButton>"Apply"</crate::domain_types::ui::button::AdminButton>
-                                    <crate::domain_types::ui::button::AdminButton variant=crate::domain_types::ui::button::AdminButtonVariant::Secondary kind=crate::domain_types::ui::button::AdminButtonKind::Button popover_target=close_filter_id popover_target_action="hide">"Close"</crate::domain_types::ui::button::AdminButton>
+                                    <crate::domain_types::with_owner::button::AdminButton>"Apply"</crate::domain_types::with_owner::button::AdminButton>
+                                    <crate::domain_types::with_owner::button::AdminButton variant=crate::domain_types::with_owner::button::AdminButtonVariant::Secondary kind=crate::domain_types::with_owner::button::AdminButtonKind::Button popover_target=close_filter_id popover_target_action="hide">"Close"</crate::domain_types::with_owner::button::AdminButton>
                                 </div>
                             </form>
                             {is_active_field.then(|| leptos::view! { <a class="table-filter-clear" href=clear_href.clone()>"Clear"</a> })}

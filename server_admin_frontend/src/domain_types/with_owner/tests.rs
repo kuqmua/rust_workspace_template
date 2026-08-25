@@ -29,15 +29,15 @@ fn primitives_render_semantic_accessible_markup() {
             <singlestage::FieldError>"Login is invalid"</singlestage::FieldError>
         </super::field::AdminField>
         <super::field::AdminField label=String::from("Owned label")>
-            <super::empty::AdminEmpty>"Owned value"</super::empty::AdminEmpty>
+            <super::admin_empty::AdminEmpty>"Owned value"</super::admin_empty::AdminEmpty>
         </super::field::AdminField>
             <super::button::AdminButton kind=super::button::AdminButtonKind::Button>"Save"</super::button::AdminButton>
             <super::badge::AdminBadge variant=super::badge::AdminBadgeVariant::Success>"Active"</super::badge::AdminBadge>
-            <super::textarea::AdminTextarea name="notes" />
-            <super::alert_dialog::AdminAlertDialog id=String::from("test-alert-dialog") title="Confirm action?" description="This action changes data." trigger="Delete" confirm="Confirm" on_confirm=leptos::prelude::Callback::new(|()| {}) />
+            <super::admin_textarea::AdminTextarea name="notes" />
+            <super::admin_alert_dialog::AdminAlertDialog id=String::from("test-alert-dialog") title="Confirm action?" description="This action changes data." trigger="Delete" confirm="Confirm" on_confirm=leptos::prelude::Callback::new(|()| {}) />
         </super::card::AdminCard>
-        <super::empty::AdminEmpty>"Nothing here"</super::empty::AdminEmpty>
-        <super::spinner::AdminSpinner />
+        <super::admin_empty::AdminEmpty>"Nothing here"</super::admin_empty::AdminEmpty>
+        <super::admin_spinner::AdminSpinner />
     });
 
     assert!(html.contains("data-name=\"Card\""));
@@ -140,8 +140,8 @@ fn form_controls_render_every_supported_kind_and_constraint() {
             max=100
         />
         <super::input::AdminInput name="url" kind=super::input::AdminInputKind::Url />
-        <super::textarea::AdminTextarea name="notes" required=true disabled=true />
-        <super::checkbox::AdminCheckbox name="confirmation" value="true" required=true />
+        <super::admin_textarea::AdminTextarea name="notes" required=true disabled=true />
+        <super::admin_checkbox::AdminCheckbox name="confirmation" value="true" required=true />
     });
 
     assert!(html.contains("name=\"login\""));
@@ -177,7 +177,7 @@ fn bound_form_controls_render_signal_values() {
         ));
         render(leptos::view! {
             <super::input::AdminInput name="bound_input" bind_value=input />
-            <super::textarea::AdminTextarea name="bound_textarea" bind_value=textarea />
+            <super::admin_textarea::AdminTextarea name="bound_textarea" bind_value=textarea />
         })
     });
 
@@ -263,7 +263,7 @@ fn table_primitives_preserve_structure_and_class_merging() {
 #[test]
 fn alert_dialog_wires_singlestage_trigger_and_dialog_forms() {
     let html = render(leptos::view! {
-        <super::alert_dialog::AdminAlertDialog
+        <super::admin_alert_dialog::AdminAlertDialog
             id=String::from("delete-dialog")
             title="Delete item?"
             description="The item will be removed."

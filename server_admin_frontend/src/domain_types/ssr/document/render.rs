@@ -27,14 +27,14 @@ pub(super) fn render(
             .unwrap_or_else(super::super::AdminSsrText::from),
         leptos::view! {
             <main class="auth-layout" style=primary_color>
-                <crate::domain_types::ui::card::AdminCard variant=crate::domain_types::ui::card::AdminCardVariant::Auth>
-                    {error.map(|message| leptos::view! { <crate::domain_types::ui::alert::AdminAlert>{message.to_string()}</crate::domain_types::ui::alert::AdminAlert> })}
+                <crate::domain_types::with_owner::card::AdminCard variant=crate::domain_types::with_owner::card::AdminCardVariant::Auth>
+                    {error.map(|message| leptos::view! { <crate::domain_types::with_owner::alert::AdminAlert>{message.to_string()}</crate::domain_types::with_owner::alert::AdminAlert> })}
                     <form method="post" action=server_admin_contract::domain_types::AdminHtmlAction::SignIn.get()>
-                        <crate::domain_types::ui::field::AdminField label="Login"><crate::domain_types::ui::input::AdminInput name="login" autocomplete="username" required=true /></crate::domain_types::ui::field::AdminField>
-                        <crate::domain_types::ui::field::AdminField label="Password"><crate::domain_types::ui::input::AdminInput name="password" kind=crate::domain_types::ui::input::AdminInputKind::Password autocomplete="current-password" required=true /></crate::domain_types::ui::field::AdminField>
-                        <crate::domain_types::ui::button::AdminButton>"Sign in"</crate::domain_types::ui::button::AdminButton>
+                        <crate::domain_types::with_owner::field::AdminField label="Login"><crate::domain_types::with_owner::input::AdminInput name="login" autocomplete="username" required=true /></crate::domain_types::with_owner::field::AdminField>
+                        <crate::domain_types::with_owner::field::AdminField label="Password"><crate::domain_types::with_owner::input::AdminInput name="password" kind=crate::domain_types::with_owner::input::AdminInputKind::Password autocomplete="current-password" required=true /></crate::domain_types::with_owner::field::AdminField>
+                        <crate::domain_types::with_owner::button::AdminButton>"Sign in"</crate::domain_types::with_owner::button::AdminButton>
                     </form>
-                </crate::domain_types::ui::card::AdminCard>
+                </crate::domain_types::with_owner::card::AdminCard>
             </main>
         },
     )

@@ -34,8 +34,9 @@ pub(super) async fn create_session_in_connection(
     .map(super::super::AdminOpaqueToken::new)
     .map_err(super::super::AdminSecretTextError::from)
     .map_err(super::AdminSessionError::SecretText)?;
-    let token_identifier_hash = super::super::hash_opaque_token(&token_identifier)
-        .map_err(super::AdminSessionError::SecretText)?;
+    let token_identifier_hash =
+        super::super::hash_opaque_token::hash_opaque_token(&token_identifier)
+            .map_err(super::AdminSessionError::SecretText)?;
     let expires_at =
         super::super::AdminUnixTokenStream::from(now.0.saturating_add(state.access_ttl.0));
     let claims = super::super::AdminAccessClaims::new(

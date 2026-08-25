@@ -27,7 +27,7 @@ fn generate_tp(
         pub struct #name_identifier;
         impl quote::ToTokens for #name_identifier {
             fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-                crate::domain_types::ProcMacro2TokensMut::from(&mut *tokens)
+                crate::proc_macro2_tokens_mut::ProcMacro2TokensMut::from(&mut *tokens)
                     .append(quote::quote! {#body});
             }
         }
@@ -67,7 +67,7 @@ pub fn tp_parts(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
         pub struct #name_identifier;
         impl quote::ToTokens for #name_identifier {
             fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-                #(crate::domain_types::ProcMacro2TokensMut::from(&mut *tokens).append(#part_streams);)*
+                #(crate::proc_macro2_tokens_mut::ProcMacro2TokensMut::from(&mut *tokens).append(#part_streams);)*
             }
         }
     }

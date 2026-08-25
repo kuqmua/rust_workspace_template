@@ -1298,7 +1298,31 @@ impl ExternalLeafWrapperNameVisitor<'_> {
                 self.external_root_segment(super::types::SynTypeRef::from(&*ty_paren.elem))
             }
             syn::Type::Path(ty_path) => {
-                self.external_root_segment_from_path(super::types::SynTypePathRef::from(ty_path))
+                let ty_path_ref = super::types::SynTypePathRef::from(ty_path).get();
+                if let Some(qself) = &ty_path_ref.qself {
+                    return self.external_root_segment(super::types::SynTypeRef::from(&*qself.ty));
+                }
+                let first_segment = ty_path_ref.path.segments.first()?;
+                let first_identifier = first_segment.ident.to_string();
+                if first_identifier == constants_str::CRATE
+                    || first_identifier == constants_str::SELF_ALT
+                    || first_identifier == constants_str::SUPER
+                    || self.repo_crates.as_ref().contains(&first_identifier)
+                {
+                    return ty_path_ref.path.segments.iter().find_map(|segment| {
+                        self.external_root_segment_from_arguments(
+                            super::types::SynPathArgumentsRef::from(&segment.arguments),
+                        )
+                    });
+                }
+                if ty_path_ref.path.segments.len() > 1 {
+                    return Some(super::types::SynPathSegmentRef::from(first_segment));
+                }
+                ty_path_ref.path.segments.iter().find_map(|segment| {
+                    self.external_root_segment_from_arguments(
+                        super::types::SynPathArgumentsRef::from(&segment.arguments),
+                    )
+                })
             }
             syn::Type::Reference(ty_reference) => {
                 self.external_root_segment(super::types::SynTypeRef::from(&*ty_reference.elem))
@@ -1320,36 +1344,6 @@ impl ExternalLeafWrapperNameVisitor<'_> {
             | syn::Type::Verbatim(_)
             | _ => None,
         }
-    }
-    fn external_root_segment_from_path<'path_lt>(
-        &self,
-        ty_path: super::types::SynTypePathRef<'path_lt>,
-    ) -> Option<super::types::SynPathSegmentRef<'path_lt>> {
-        let ty_path_ref = ty_path.get();
-        if let Some(qself) = &ty_path_ref.qself {
-            return self.external_root_segment(super::types::SynTypeRef::from(&*qself.ty));
-        }
-        let first_segment = ty_path_ref.path.segments.first()?;
-        let first_identifier = first_segment.ident.to_string();
-        if first_identifier == constants_str::CRATE
-            || first_identifier == constants_str::SELF_ALT
-            || first_identifier == constants_str::SUPER
-            || self.repo_crates.as_ref().contains(&first_identifier)
-        {
-            return ty_path_ref.path.segments.iter().find_map(|segment| {
-                self.external_root_segment_from_arguments(super::types::SynPathArgumentsRef::from(
-                    &segment.arguments,
-                ))
-            });
-        }
-        if ty_path_ref.path.segments.len() > 1 {
-            return Some(super::types::SynPathSegmentRef::from(first_segment));
-        }
-        ty_path_ref.path.segments.iter().find_map(|segment| {
-            self.external_root_segment_from_arguments(super::types::SynPathArgumentsRef::from(
-                &segment.arguments,
-            ))
-        })
     }
     fn external_root_segment_from_arguments<'args_lt>(
         &self,
@@ -1397,7 +1391,35 @@ impl ExternalLeafWrapperNameVisitor<'_> {
                 self.external_leaf_segment(super::types::SynTypeRef::from(&*ty_paren.elem))
             }
             syn::Type::Path(ty_path) => {
-                self.external_leaf_segment_from_path(super::types::SynTypePathRef::from(ty_path))
+                let ty_path_ref = super::types::SynTypePathRef::from(ty_path).get();
+                if let Some(qself) = &ty_path_ref.qself {
+                    return self.external_leaf_segment(super::types::SynTypeRef::from(&*qself.ty));
+                }
+                let first_segment = ty_path_ref.path.segments.first()?;
+                let first_identifier = first_segment.ident.to_string();
+                if first_identifier == constants_str::CRATE
+                    || first_identifier == constants_str::SELF_ALT
+                    || first_identifier == constants_str::SUPER
+                    || self.repo_crates.as_ref().contains(&first_identifier)
+                {
+                    return ty_path_ref.path.segments.iter().find_map(|segment| {
+                        self.external_leaf_segment_from_arguments(
+                            super::types::SynPathArgumentsRef::from(&segment.arguments),
+                        )
+                    });
+                }
+                if ty_path_ref.path.segments.len() > 1 {
+                    return ty_path_ref
+                        .path
+                        .segments
+                        .last()
+                        .map(super::types::SynPathSegmentRef::from);
+                }
+                ty_path_ref.path.segments.iter().find_map(|segment| {
+                    self.external_leaf_segment_from_arguments(
+                        super::types::SynPathArgumentsRef::from(&segment.arguments),
+                    )
+                })
             }
             syn::Type::Reference(ty_reference) => {
                 self.external_leaf_segment(super::types::SynTypeRef::from(&*ty_reference.elem))
@@ -1450,39 +1472,5 @@ impl ExternalLeafWrapperNameVisitor<'_> {
                 }),
             syn::PathArguments::None => None,
         }
-    }
-    fn external_leaf_segment_from_path<'path_lt>(
-        &self,
-        ty_path: super::types::SynTypePathRef<'path_lt>,
-    ) -> Option<super::types::SynPathSegmentRef<'path_lt>> {
-        let ty_path_ref = ty_path.get();
-        if let Some(qself) = &ty_path_ref.qself {
-            return self.external_leaf_segment(super::types::SynTypeRef::from(&*qself.ty));
-        }
-        let first_segment = ty_path_ref.path.segments.first()?;
-        let first_identifier = first_segment.ident.to_string();
-        if first_identifier == constants_str::CRATE
-            || first_identifier == constants_str::SELF_ALT
-            || first_identifier == constants_str::SUPER
-            || self.repo_crates.as_ref().contains(&first_identifier)
-        {
-            return ty_path_ref.path.segments.iter().find_map(|segment| {
-                self.external_leaf_segment_from_arguments(super::types::SynPathArgumentsRef::from(
-                    &segment.arguments,
-                ))
-            });
-        }
-        if ty_path_ref.path.segments.len() > 1 {
-            return ty_path_ref
-                .path
-                .segments
-                .last()
-                .map(super::types::SynPathSegmentRef::from);
-        }
-        ty_path_ref.path.segments.iter().find_map(|segment| {
-            self.external_leaf_segment_from_arguments(super::types::SynPathArgumentsRef::from(
-                &segment.arguments,
-            ))
-        })
     }
 }

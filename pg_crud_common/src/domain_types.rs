@@ -24,9 +24,9 @@ mod query_collections;
 mod query_fragment;
 mod query_pagination;
 mod read_query_plan;
-mod rollback;
 mod sql_identifier;
 mod sql_like_pattern;
+mod transaction_failure;
 pub use advisory_lock::{
     PgRelationCapacityError, PgRelationCapacityMaximum, PgRelationLockError,
     PgRelationLockNamespace, PgRelationResourceId, PgRelationResourceIds, PgRelationRowCount,
@@ -127,13 +127,13 @@ pub use query_pagination::{
 pub use read_query_plan::{
     QuerySortOrder, ReadQueryPlan, ReadQueryPlanError, build_stable_read_query_plan,
 };
-pub use rollback::TransactionFailure;
 pub use sql_identifier::{
     SqlIdentifier, SqlIdentifierError, SqlIdentifiers, SqlQualifiedIdentifier, SqlSelectBuilder,
 };
 pub use sql_like_pattern::{
     SqlLikeInputRef, SqlLikeMatchMode, SqlLikePattern, SqlLikePatternError, build_sql_like_pattern,
 };
+pub use transaction_failure::TransactionFailure;
 pub(crate) const PG_CRUD_STRING_WRAPPER_MAX_LEN: usize = 1_048_576;
 const NOT_EMPTY_UNIQUE_VEC_MAX_LEN: usize = 10_000usize;
 #[derive(

@@ -1,5 +1,5 @@
 pub(super) fn save(
-    signals: crate::domain_types::shared::settings::signals::AdminSettingsFormSignals,
+    signals: crate::domain_types::shared::settings::admin_settings_form_signals::AdminSettingsFormSignals,
 ) {
     let default_route =
         signals.get(server_admin_contract::domain_types::AdminSetting::DefaultRoute);

@@ -42,7 +42,7 @@ pub(in crate::domain_types::ssr) fn render_admin_csr(
             .unwrap_or_else(crate::domain_types::ssr::AdminSsrText::from),
         leptos::view! {
             <div id=constants_str::ADMIN_CSR_ROOT_ID style=primary_color>
-                <crate::domain_types::ui::spinner::AdminSpinner />
+                <crate::domain_types::with_owner::admin_spinner::AdminSpinner />
             </div>
             <script type="module" src="/admin/assets/csr_bootstrap.js?v=20260801-37"></script>
         },

@@ -19,7 +19,7 @@ fn typed_static_pages_render_rows_actions_roles_and_escaped_text() {
         server_admin_contract::domain_types::AdminPageTotal::from(1u64),
     );
     let permissions_html =
-        super::super::render_permissions(&permissions, &query, &admin, &branding);
+        super::super::render_admin_permissions_page(&permissions, &query, &admin, &branding);
     assert!(permissions_html.as_ref().contains("data-label=\"id\""));
     assert!(permissions_html.as_ref().contains(">7</td>"));
     assert!(permissions_html.as_ref().contains(">users.read</td>"));
@@ -88,7 +88,8 @@ fn typed_static_pages_render_rows_actions_roles_and_escaped_text() {
         .expect("bc30f861 typed_static_pages_render_rows_actions_roles_and_escaped_text invariant must hold"),
         server_admin_contract::domain_types::AdminPageTotal::from(1u64),
     );
-    let sessions_html = super::super::render_sessions(&sessions, &query, &admin, &branding);
+    let sessions_html =
+        super::super::render_admin_sessions_page(&sessions, &query, &admin, &branding);
     assert!(sessions_html.as_ref().contains("value=\"session-1\""));
     assert!(
         sessions_html
@@ -113,7 +114,7 @@ fn typed_static_pages_render_rows_actions_roles_and_escaped_text() {
             .contains(">Confirm session revocation</label>")
     );
 
-    let profile_html = super::super::render_profile(&admin, &branding);
+    let profile_html = super::super::render_admin_profile_page(&admin, &branding);
     assert!(profile_html.as_ref().contains(">operator, auditor</p>"));
     assert!(profile_html.as_ref().contains("name=\"current_password\""));
 

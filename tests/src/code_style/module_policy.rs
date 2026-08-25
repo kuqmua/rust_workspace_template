@@ -1,5 +1,115 @@
 const PRODUCTION_MODULE_MAX_LINES: usize = 2_500usize;
 const INLINE_TEST_SEPARATION_MIN_LINES: usize = 1_024usize;
+
+#[allow(
+    clippy::single_call_fn,
+    clippy::wildcard_enum_match_arm,
+    reason = "keeps named-item selection separate and ignores future unnamed syn item variants"
+)]
+fn named_item_identifier(syn_item: &syn::Item) -> Option<&syn::Ident> {
+    match syn_item {
+        syn::Item::Const(item_const) => Some(&item_const.ident),
+        syn::Item::Enum(item_enum) => Some(&item_enum.ident),
+        syn::Item::Fn(item_fn) => Some(&item_fn.sig.ident),
+        syn::Item::Static(item_static) => Some(&item_static.ident),
+        syn::Item::Struct(item_struct) => Some(&item_struct.ident),
+        syn::Item::Trait(item_trait) => Some(&item_trait.ident),
+        syn::Item::TraitAlias(item_trait_alias) => Some(&item_trait_alias.ident),
+        syn::Item::Type(item_type) => Some(&item_type.ident),
+        syn::Item::Union(item_union) => Some(&item_union.ident),
+        _ => None,
+    }
+}
+
+#[allow(
+    clippy::single_call_fn,
+    reason = "keeps case conversion separate from module traversal"
+)]
+fn identifier_snake_case(identifier: &syn::Ident) -> super::types::SourceText {
+    let characters = identifier.to_string().chars().collect::<Vec<_>>();
+    super::types::SourceText::try_from(characters.iter().enumerate().fold(
+        String::new(),
+        |mut output, (index, character)| {
+            let uppercase = character.is_ascii_uppercase();
+            let previous_is_lowercase_or_digit = index
+                .checked_sub(constants_usize::ONE)
+                .and_then(|previous_index| characters.get(previous_index))
+                .is_some_and(|previous_character| {
+                    previous_character.is_ascii_lowercase() || previous_character.is_ascii_digit()
+                });
+            let next_is_lowercase = characters
+                .get(index.saturating_add(1))
+                .is_some_and(char::is_ascii_lowercase);
+            if uppercase
+                && index != constants_usize::ZERO
+                && (previous_is_lowercase_or_digit || next_is_lowercase)
+            {
+                output.push('_');
+            }
+            output.push(character.to_ascii_lowercase());
+            output
+        },
+    ))
+    .expect("3c8a729e identifier snake case must fit the source text bound")
+}
+
+#[test]
+fn single_item_modules_match_their_item_name() {
+    super::snapshot::with_codebase_snapshot(|snapshot| {
+        let target_roots = snapshot
+            .workspace_metadata()
+            .as_ref()
+            .packages
+            .iter()
+            .flat_map(|package| package.targets.iter())
+            .filter_map(|target| target.src_path.as_std_path().canonicalize().ok())
+            .collect::<std::collections::HashSet<_>>();
+        let violations = snapshot
+            .rs_files()
+            .iter()
+            .filter(|file| !is_test_source(file.path().as_ref()))
+            .filter_map(|file| {
+                let path = file.path().as_ref();
+                let file_stem = path.file_stem()?.to_str()?;
+                if matches!(file_stem, constants_str::LIB | constants_str::MAIN)
+                    || path
+                        .canonicalize()
+                        .is_ok_and(|canonical_path| target_roots.contains(&canonical_path))
+                {
+                    return None;
+                }
+                let identifiers = file
+                    .ast()
+                    .as_ref()
+                    .items
+                    .iter()
+                    .filter_map(named_item_identifier)
+                    .collect::<Vec<_>>();
+                let [identifier] = identifiers.as_slice() else {
+                    return None;
+                };
+                let module_name = if file_stem == constants_str::MOD {
+                    path.parent()?.file_name()?.to_str()?
+                } else {
+                    file_stem
+                };
+                let expected_module_name = identifier_snake_case(identifier);
+                (module_name != expected_module_name.as_ref()).then(|| {
+                    format!(
+                        "{}: single item `{identifier}` requires module `{}`",
+                        path.display(),
+                        expected_module_name.as_ref()
+                    )
+                })
+            })
+            .collect::<Vec<_>>();
+        assert!(
+            violations.is_empty(),
+            "single-item modules must match their item name:\n{}",
+            violations.join("\n")
+        );
+    });
+}
 fn large_module_exceptions() -> [&'static str; 3] {
     [
         constants_str::VALUE_7FE2AF02,

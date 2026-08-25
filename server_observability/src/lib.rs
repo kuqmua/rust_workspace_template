@@ -1,1 +1,1 @@
-pub mod domain_types;
+pub mod service_tracing_format;

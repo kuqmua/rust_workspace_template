@@ -1,7 +1,8 @@
 pub fn generate_pub_type_alias_token_stream(
     alias_type_name_token_stream: &dyn quote::ToTokens,
     alias_actual_type_name_token_stream: &dyn quote::ToTokens,
-) -> crate::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
+) -> crate::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream
+{
     quote::quote! {pub type #alias_type_name_token_stream = #alias_actual_type_name_token_stream;}
         .into()
 }

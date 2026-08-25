@@ -8,7 +8,7 @@ async fn shutdown_signal() {
 }
 
 pub(crate) async fn run(
-    config: notification_service_config::domain_types::Config,
+    config: notification_service_config::config::Config,
 ) -> Result<(), crate::domain_types::NotificationServiceError> {
     let metrics = metrics_exporter_prometheus::PrometheusBuilder::new()
         .install_recorder()
@@ -89,7 +89,7 @@ pub(crate) async fn run(
 }
 
 pub(crate) async fn migrate_notification(
-    config: &notification_service_config::domain_types::Config,
+    config: &notification_service_config::config::Config,
 ) -> Result<(), crate::domain_types::NotificationServiceError> {
     let pool = sqlx::postgres::PgPoolOptions::new()
         .max_connections(**config.pg_pool_max_connections())

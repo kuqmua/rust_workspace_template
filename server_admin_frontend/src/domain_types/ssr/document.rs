@@ -6,7 +6,7 @@
 )]
 
 mod page;
-mod sign_in;
+mod render;
 
 use leptos::prelude::{
     AriaAttributes, ClassAttribute, CustomAttribute, ElementChild, GlobalAttributes,
@@ -30,7 +30,7 @@ pub(super) fn render_sign_in(
     error: Option<super::AdminSsrErrorMessage>,
     branding: Option<&server_admin_contract::domain_types::AdminBrandingView>,
 ) -> super::AdminSsrHtml {
-    sign_in::render(error, branding)
+    render::render(error, branding)
 }
 
 #[must_use]

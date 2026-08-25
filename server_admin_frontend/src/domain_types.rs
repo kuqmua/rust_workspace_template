@@ -1,9 +1,9 @@
-#[cfg(target_arch = "wasm32")]
-mod app;
 mod shared;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod ssr;
-mod ui;
+#[cfg(target_arch = "wasm32")]
+mod start;
+mod with_owner;
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[cfg(not(target_arch = "wasm32"))]

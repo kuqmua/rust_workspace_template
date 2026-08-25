@@ -1,11 +1,11 @@
-mod admin_api;
 pub(crate) mod bootstrap;
+mod routes;
 
 #[allow(clippy::single_call_fn)] // startup flow is grouped for separation from process/bootstrap concerns
 pub(super) async fn run_server(
     config: server_config::domain_types::Config,
 ) -> Result<(), crate::domain_types::RunServerError> {
-    let pg_pool = crate::adapters::bootstrap::mk_pg_pool(&config).await?;
+    let pg_pool = crate::adapters::mk_pg_pool::mk_pg_pool(&config).await?;
     let cleanup_cfg = crate::adapters::maintenance::cfg()?;
     let cleanup_interval = crate::adapters::maintenance::interval()?;
     let cleanup_pool = pg_pool.clone();
@@ -188,7 +188,7 @@ pub(super) async fn run_server(
         .route_layer(server_admin::domain_types::AdminGeneratedAuthLayer::from(
             admin_auth_state.clone(),
         ));
-    let api_routes = admin_api::routes(admin_auth_state, &app_state, metrics_renderer);
+    let api_routes = routes::routes(admin_auth_state, &app_state, metrics_renderer);
     let operational_routes = axum::Router::from(common_routes::adapters::common_routes(
         common_routes::domain_types::ArcCommonRoutesAppState::from(std::sync::Arc::<
             server_app_state::domain_types::ServerAppState<'static>,

@@ -3,9 +3,9 @@
 pub mod auth;
 mod generated_auth;
 pub mod generated_tables;
+mod hash_opaque_token;
 mod password;
 mod rbac;
-mod token;
 pub use generated_auth::{AdminGeneratedAuthLayer, AdminGeneratedAuthService};
 pub use pg_table::domain_types::CombinationOfAppStateLogicTraits;
 pub use server_admin_contract::domain_types::{
@@ -329,7 +329,7 @@ impl AdminGeneratedToken {
             uuid::Uuid::new_v4()
         ))
         .map(AdminOpaqueToken::new)?;
-        token::hash_opaque_token(&token).map(|hash| Self { hash, token })
+        hash_opaque_token::hash_opaque_token(&token).map(|hash| Self { hash, token })
     }
     #[must_use]
     pub const fn hash(&self) -> &AdminTokenHash {
@@ -340,8 +340,8 @@ impl AdminGeneratedToken {
         &self.token
     }
 }
-pub fn hash_opaque_token(token: &AdminOpaqueToken) -> Result<AdminTokenHash, AdminSecretTextError> {
-    token::hash_opaque_token(token)
+pub fn token(token: &AdminOpaqueToken) -> Result<AdminTokenHash, AdminSecretTextError> {
+    hash_opaque_token::hash_opaque_token(token)
 }
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,

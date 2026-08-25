@@ -20,8 +20,11 @@ mod tests {
         };
         assert!(crate::domain_types::sqlx::can_be_nullable(spec));
         assert!(!crate::domain_types::sqlx::can_be_primary_key(spec));
-        assert_eq!(crate::domain_types::filter::filter_kind(spec), 7u8);
-        assert_eq!(crate::domain_types::catalog::pg_name(spec), "int4");
-        assert_eq!(crate::domain_types::schema::wire_kind(spec), 32u8);
+        assert_eq!(crate::domain_types::filter_kind::filter_kind(spec), 7u8);
+        assert_eq!(crate::domain_types::pg_name::pg_name(spec), "int4");
+        assert_eq!(
+            crate::domain_types::schema_wire_kind::schema_wire_kind(spec),
+            32u8
+        );
     }
 }

@@ -1,4 +1,4 @@
-mod domain_types;
+mod syn_item_enum_mut_ref;
 #[proc_macro_attribute]
 pub fn errors_with_location(
     attr_token_stream: proc_macro::TokenStream,
@@ -16,13 +16,13 @@ pub fn errors_with_location(
         Ok(v) => v,
         Err(error) => return error.into_compile_error().into(),
     };
-    match add_location_fields(domain_types::SynItemEnumMutRef::from(&mut item)) {
+    match add_location_fields(syn_item_enum_mut_ref::SynItemEnumMutRef::from(&mut item)) {
         Ok(()) => quote::quote! {#item}.into(),
         Err(error) => error.into_compile_error().into(),
     }
 }
 #[allow(clippy::single_call_fn)] // isolated transformation is unit-tested independently from proc-macro parsing
-fn add_location_fields(item: domain_types::SynItemEnumMutRef<'_>) -> syn::Result<()> {
+fn add_location_fields(item: syn_item_enum_mut_ref::SynItemEnumMutRef<'_>) -> syn::Result<()> {
     let item_ref = item.into_inner();
     item_ref.variants.iter_mut().try_for_each(|variant| {
         let syn::Fields::Named(fields) = &mut variant.fields else {
@@ -558,8 +558,10 @@ mod tests {
                 Second {},
             }
         };
-        super::add_location_fields(super::domain_types::SynItemEnumMutRef::from(&mut item))
-            .expect("74c1509e adds_location_to_every_named_variant invariant must hold");
+        super::add_location_fields(super::syn_item_enum_mut_ref::SynItemEnumMutRef::from(
+            &mut item,
+        ))
+        .expect("74c1509e adds_location_to_every_named_variant invariant must hold");
         assert_eq!(
             quote::quote! {#item}.to_string(),
             quote::quote! {
@@ -576,9 +578,10 @@ mod tests {
         let mut item: syn::ItemEnum = syn::parse_quote! {
             enum SampleError { First { location: location_lib::domain_types::Location } }
         };
-        let error =
-            super::add_location_fields(super::domain_types::SynItemEnumMutRef::from(&mut item))
-                .expect_err(constants_str::VALUE_371082FA);
+        let error = super::add_location_fields(
+            super::syn_item_enum_mut_ref::SynItemEnumMutRef::from(&mut item),
+        )
+        .expect_err(constants_str::VALUE_371082FA);
         assert_eq!(
             error.to_string(),
             "errors_with_location variant already has a location field"
@@ -589,9 +592,10 @@ mod tests {
         let mut item: syn::ItemEnum = syn::parse_quote! {
             enum SampleError { First(String) }
         };
-        let error =
-            super::add_location_fields(super::domain_types::SynItemEnumMutRef::from(&mut item))
-                .expect_err(constants_str::VALUE_982F4D17);
+        let error = super::add_location_fields(
+            super::syn_item_enum_mut_ref::SynItemEnumMutRef::from(&mut item),
+        )
+        .expect_err(constants_str::VALUE_982F4D17);
         assert_eq!(
             error.to_string(),
             "errors_with_location supports only variants with named fields"

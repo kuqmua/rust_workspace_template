@@ -20,7 +20,10 @@ pub(super) fn filter_spec_contract_is_valid(
     )
 }
 #[cfg(test)]
-#[allow(clippy::needless_for_each)]
+#[allow(
+    clippy::needless_for_each,
+    reason = "the table-driven contract test applies the same invariant to every filter spec"
+)]
 mod tests {
     #[test]
     fn sql_bind_schema_and_client_read_one_filter_spec() {

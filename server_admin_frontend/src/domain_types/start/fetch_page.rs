@@ -2,7 +2,7 @@
     clippy::future_not_send,
     reason = "browser page loads run exclusively on wasm_bindgen_futures::spawn_local"
 )]
-pub(in crate::domain_types::app) async fn fetch_page(
+pub(in crate::domain_types::start) async fn fetch_page(
     page: server_admin_contract::domain_types::AdminPage,
     query: &super::query::AdminCsrQuery,
 ) -> Result<super::state::AdminLoadState, super::state::AdminTableLoadError> {

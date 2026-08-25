@@ -2,9 +2,9 @@
 
 pub(crate) mod audit;
 pub(crate) mod data_tables;
+pub(crate) mod read_settings;
 pub(crate) mod roles;
 pub(crate) mod sessions;
-pub(crate) mod settings;
 pub(crate) mod users;
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]

@@ -24,7 +24,7 @@ pub(super) fn admin_nav(
             let name = table.to_string();
             let href = table.frontend_path().to_string();
             leptos::view! {
-                <crate::domain_types::ui::navigation::AdminSidebarItem><crate::domain_types::ui::navigation::AdminNavigationLink active=active_table == Some(table) href=href>{name}</crate::domain_types::ui::navigation::AdminNavigationLink></crate::domain_types::ui::navigation::AdminSidebarItem>
+                <crate::domain_types::with_owner::navigation::AdminSidebarItem><crate::domain_types::with_owner::navigation::AdminNavigationLink active=active_table == Some(table) href=href>{name}</crate::domain_types::with_owner::navigation::AdminNavigationLink></crate::domain_types::with_owner::navigation::AdminSidebarItem>
             }
         })
         .collect::<Vec<_>>();
@@ -35,15 +35,15 @@ pub(super) fn admin_nav(
             let href = String::from(item.path());
             let label = item.route_name().as_ref().to_owned();
             leptos::view! {
-                <crate::domain_types::ui::navigation::AdminSidebarItem><crate::domain_types::ui::navigation::AdminNavigationLink active=item_page == page href=href>{label}</crate::domain_types::ui::navigation::AdminNavigationLink></crate::domain_types::ui::navigation::AdminSidebarItem>
+                <crate::domain_types::with_owner::navigation::AdminSidebarItem><crate::domain_types::with_owner::navigation::AdminNavigationLink active=item_page == page href=href>{label}</crate::domain_types::with_owner::navigation::AdminNavigationLink></crate::domain_types::with_owner::navigation::AdminSidebarItem>
             }
         })
         .collect::<Vec<_>>();
     leptos::view! {
-        <crate::domain_types::ui::navigation::AdminSidebar>
+        <crate::domain_types::with_owner::navigation::AdminSidebar>
             {tables}
             {pages}
-            <crate::domain_types::ui::navigation::AdminSidebarItem><form method="post" action=server_admin_contract::domain_types::AdminHtmlAction::SignOut.get()><crate::domain_types::ui::button::AdminButton variant=crate::domain_types::ui::button::AdminButtonVariant::Secondary>{server_admin_contract::domain_types::AdminHtmlAction::SignOut.route_name().as_ref().to_owned()}</crate::domain_types::ui::button::AdminButton></form></crate::domain_types::ui::navigation::AdminSidebarItem>
-        </crate::domain_types::ui::navigation::AdminSidebar>
+            <crate::domain_types::with_owner::navigation::AdminSidebarItem><form method="post" action=server_admin_contract::domain_types::AdminHtmlAction::SignOut.get()><crate::domain_types::with_owner::button::AdminButton variant=crate::domain_types::with_owner::button::AdminButtonVariant::Secondary>{server_admin_contract::domain_types::AdminHtmlAction::SignOut.route_name().as_ref().to_owned()}</crate::domain_types::with_owner::button::AdminButton></form></crate::domain_types::with_owner::navigation::AdminSidebarItem>
+        </crate::domain_types::with_owner::navigation::AdminSidebar>
     }
 }

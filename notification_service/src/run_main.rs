@@ -2,7 +2,7 @@
 
 #[tokio::main]
 pub(crate) async fn run_main() -> crate::domain_types::NotificationExitCode {
-    let config = match notification_service_config::domain_types::Config::try_from_env() {
+    let config = match notification_service_config::config::Config::try_from_env() {
         Ok(value) => value,
         Err(error) => {
             tracing::error!(

@@ -5,7 +5,7 @@ use leptos::prelude::{AddAnyAttr, ClassAttribute, ElementChild};
     unreachable_pub,
     reason = "Leptos component visibility is required for composition from sibling table modules"
 )]
-pub(in crate::domain_types::app) fn AdminPagination(
+pub(in crate::domain_types::start) fn AdminPagination(
     action: server_admin_contract::domain_types::AdminFrontendPath,
     query: super::query::AdminCsrQuery,
     total: server_admin_contract::domain_types::AdminPageTotal,
@@ -50,19 +50,19 @@ pub(in crate::domain_types::app) fn AdminPagination(
             <singlestage::PaginationItem class="contents"><form class="table-page-size" method="get" action=action.get()>
                 {page_size_query}
                 <input type="hidden" name="offset" value="0" />
-                <crate::domain_types::ui::input::AdminInputGroup>
-                    <crate::domain_types::ui::field::AdminField label="Rows"><crate::domain_types::ui::input::AdminInput name="limit" kind=crate::domain_types::ui::input::AdminInputKind::Number min=server_admin_contract::domain_types::AdminPageLimit::MIN max=server_admin_contract::domain_types::AdminPageLimit::MAX initial_value=limit /></crate::domain_types::ui::field::AdminField>
-                    <crate::domain_types::ui::button::AdminButton>"Apply"</crate::domain_types::ui::button::AdminButton>
-                </crate::domain_types::ui::input::AdminInputGroup>
+                <crate::domain_types::with_owner::input::AdminInputGroup>
+                    <crate::domain_types::with_owner::field::AdminField label="Rows"><crate::domain_types::with_owner::input::AdminInput name="limit" kind=crate::domain_types::with_owner::input::AdminInputKind::Number min=server_admin_contract::domain_types::AdminPageLimit::MIN max=server_admin_contract::domain_types::AdminPageLimit::MAX initial_value=limit /></crate::domain_types::with_owner::field::AdminField>
+                    <crate::domain_types::with_owner::button::AdminButton>"Apply"</crate::domain_types::with_owner::button::AdminButton>
+                </crate::domain_types::with_owner::input::AdminInputGroup>
             </form></singlestage::PaginationItem>
             <singlestage::PaginationItem class="contents"><form method="get" action=action.get()>
                 {previous_query}
-                <input type="hidden" name="offset" value=u32::from(range.previous_offset()).to_string() /><crate::domain_types::ui::button::AdminButton variant=crate::domain_types::ui::button::AdminButtonVariant::Secondary disabled=bool::from(range.previous_disabled())>"Previous"</crate::domain_types::ui::button::AdminButton>
+                <input type="hidden" name="offset" value=u32::from(range.previous_offset()).to_string() /><crate::domain_types::with_owner::button::AdminButton variant=crate::domain_types::with_owner::button::AdminButtonVariant::Secondary disabled=bool::from(range.previous_disabled())>"Previous"</crate::domain_types::with_owner::button::AdminButton>
             </form></singlestage::PaginationItem>
             <singlestage::PaginationItem class="contents"><span>{format!("{}-{} of {}", u64::from(range.start()), u64::from(range.end()), total_value)}</span></singlestage::PaginationItem>
             <singlestage::PaginationItem class="contents"><form method="get" action=action.get()>
                 {next_query}
-                <input type="hidden" name="offset" value=u32::from(range.next_offset()).to_string() /><crate::domain_types::ui::button::AdminButton variant=crate::domain_types::ui::button::AdminButtonVariant::Secondary disabled=bool::from(range.next_disabled())>"Next"</crate::domain_types::ui::button::AdminButton>
+                <input type="hidden" name="offset" value=u32::from(range.next_offset()).to_string() /><crate::domain_types::with_owner::button::AdminButton variant=crate::domain_types::with_owner::button::AdminButtonVariant::Secondary disabled=bool::from(range.next_disabled())>"Next"</crate::domain_types::with_owner::button::AdminButton>
             </form></singlestage::PaginationItem>
             </singlestage::PaginationContent>
         </singlestage::Pagination>

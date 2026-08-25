@@ -3,7 +3,7 @@
     reason = "SQLx capability projections are a physical boundary between descriptors and emitters"
 )]
 pub(super) fn can_be_nullable<CanBeNullable, CanBePrimaryKey, FilterKind, PgName, WireKind>(
-    spec: crate::domain_types::model::PgTypeSpec<
+    spec: crate::domain_types::pg_type_spec::PgTypeSpec<
         CanBeNullable,
         CanBePrimaryKey,
         FilterKind,
@@ -14,7 +14,7 @@ pub(super) fn can_be_nullable<CanBeNullable, CanBePrimaryKey, FilterKind, PgName
     spec.can_be_nullable
 }
 pub(super) fn can_be_primary_key<CanBeNullable, CanBePrimaryKey, FilterKind, PgName, WireKind>(
-    spec: crate::domain_types::model::PgTypeSpec<
+    spec: crate::domain_types::pg_type_spec::PgTypeSpec<
         CanBeNullable,
         CanBePrimaryKey,
         FilterKind,

@@ -1,11 +1,11 @@
 mod admin_contract_fixture;
+mod cargo_subcommand_available;
+mod generate_pg_table_measure_input_token_stream;
 mod measure_mode;
 mod measurement;
-mod pg_table_workload;
 mod query_part_workloads;
-mod tool_detection;
 fn run_workspace_tests() -> Result<(), ()> {
-    if tool_detection::cargo_subcommand_available(crate::domain_types::ToolName::from(
+    if cargo_subcommand_available::cargo_subcommand_available(crate::domain_types::ToolName::from(
         constants_str::NEXTEST,
     ))
     .get()
@@ -61,7 +61,7 @@ pub(crate) fn run_main() {
             }
         }
         Some(constants_str::WORKSPACE_TEST_RUNNER_GENERATE_PG_TABLE_WORKLOAD) => {
-            let input = pg_table_workload::generate_pg_table_measure_input_token_stream(
+            let input = generate_pg_table_measure_input_token_stream::generate_pg_table_measure_input_token_stream(
                 &quote::quote! {"False"},
             );
             let output_bytes = (0..crate::domain_types::DIRECT_GENERATION_REPEAT_COUNT).fold(
@@ -107,7 +107,7 @@ pub(crate) fn run_main() {
             Ok(())
         }
         Some(constants_str::WORKSPACE_TEST_RUNNER_ADMIN_CONTRACT_FIXTURE) => {
-            admin_contract_fixture::run()
+            admin_contract_fixture::admin_contract_fixture()
         }
         Some(constants_str::WORKSPACE_TEST_RUNNER_PG_CRUD_COMMON_QUERY_PART_WORKLOAD) => {
             query_part_workloads::run_pg_crud_common()
@@ -124,9 +124,9 @@ pub(crate) fn run_main() {
         }
         Some(constants_str::TESTS_ALT) => run_workspace_tests(),
         Some(constants_str::HEAVY_LOAD) => {
-            if tool_detection::cargo_subcommand_available(crate::domain_types::ToolName::from(
-                constants_str::NEXTEST,
-            ))
+            if cargo_subcommand_available::cargo_subcommand_available(
+                crate::domain_types::ToolName::from(constants_str::NEXTEST),
+            )
             .get()
             {
                 crate::adapters::execution::run_commands(
@@ -154,7 +154,7 @@ pub(crate) fn run_main() {
             .for_each(|tool| {
                 println!(
                     "release_tool={tool} available={}",
-                    tool_detection::cargo_subcommand_available(
+                    cargo_subcommand_available::cargo_subcommand_available(
                         crate::domain_types::ToolName::from(tool)
                     )
                     .get()
@@ -162,9 +162,9 @@ pub(crate) fn run_main() {
             });
             let mut commands =
                 Vec::<(&str, &[&str])>::from(constants_str::WORKSPACE_TEST_RUNNER_STATIC_COMMANDS);
-            if tool_detection::cargo_subcommand_available(crate::domain_types::ToolName::from(
-                constants_str::NEXTEST,
-            ))
+            if cargo_subcommand_available::cargo_subcommand_available(
+                crate::domain_types::ToolName::from(constants_str::NEXTEST),
+            )
             .get()
             {
                 commands.extend(constants_str::WORKSPACE_TEST_RUNNER_NEXTEST_COMMANDS);
@@ -199,9 +199,9 @@ pub(crate) fn run_main() {
             ]
             .into_iter()
             .filter(|(subcommand, _args)| {
-                tool_detection::cargo_subcommand_available(crate::domain_types::ToolName::from(
-                    *subcommand,
-                ))
+                cargo_subcommand_available::cargo_subcommand_available(
+                    crate::domain_types::ToolName::from(*subcommand),
+                )
                 .get()
             })
             .for_each(|(_subcommand, args)| {
@@ -211,7 +211,7 @@ pub(crate) fn run_main() {
                 commands.as_slice(),
             ))
         }
-        Some(constants_str::MEASURE) => measure_mode::run(),
+        Some(constants_str::MEASURE) => measure_mode::measure_mode(),
         Some(constants_str::ALL_ALT) => {
             crate::adapters::execution::run_commands(crate::adapters::execution::CommandsRef::from(
                 &constants_str::WORKSPACE_TEST_RUNNER_STATIC_COMMANDS,

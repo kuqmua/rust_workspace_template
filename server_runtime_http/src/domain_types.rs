@@ -158,9 +158,9 @@ pub use security_headers::{
     ForwardedProtoTrust, HttpContentSecurityPolicy, HttpContentSecurityPolicyError,
     SecurityHeadersLayer,
 };
-pub use server_observability::domain_types::ServiceTracingFormat;
-pub use server_observability::domain_types::bootstrap::*;
-pub use server_observability::domain_types::capture::*;
+pub use server_observability::service_tracing_format::ServiceTracingFormat;
+pub use server_observability::service_tracing_format::bootstrap::*;
+pub use server_observability::service_tracing_format::capture::*;
 pub use server_runtime_core::domain_types::*;
 pub use service::{
     ServeIoError, ServeWithGracefulShutdownError, ServiceRuntime, TokioTcpListener,

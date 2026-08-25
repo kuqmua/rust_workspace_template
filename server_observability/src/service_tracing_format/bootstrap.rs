@@ -66,7 +66,7 @@ impl Drop for ObservabilityGuard {
 }
 
 pub fn init_service_observability(
-    format: crate::domain_types::ServiceTracingFormat,
+    format: crate::service_tracing_format::ServiceTracingFormat,
     service_name: ServiceName,
 ) -> Result<ObservabilityGuard, ObservabilityInitError> {
     opentelemetry::global::set_text_map_propagator(
@@ -92,7 +92,7 @@ pub fn init_service_observability(
         tracing_subscriber::EnvFilter::new(constants_str::CONFIG_TRACING_INFO)
     });
     let init_result = match format {
-        crate::domain_types::ServiceTracingFormat::Json => {
+        crate::service_tracing_format::ServiceTracingFormat::Json => {
             tracing_subscriber::util::SubscriberInitExt::try_init(
                 tracing_subscriber::layer::SubscriberExt::with(
                     tracing_subscriber::layer::SubscriberExt::with(
@@ -106,7 +106,7 @@ pub fn init_service_observability(
                 ),
             )
         }
-        crate::domain_types::ServiceTracingFormat::Text => {
+        crate::service_tracing_format::ServiceTracingFormat::Text => {
             tracing_subscriber::util::SubscriberInitExt::try_init(
                 tracing_subscriber::layer::SubscriberExt::with(
                     tracing_subscriber::layer::SubscriberExt::with(

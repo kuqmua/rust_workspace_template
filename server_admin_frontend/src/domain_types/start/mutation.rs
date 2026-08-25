@@ -1,12 +1,12 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
-pub(in crate::domain_types::app) enum AdminMutationMethod {
+pub(in crate::domain_types::start) enum AdminMutationMethod {
     Delete,
     Patch,
     Post,
 }
 
 impl AdminMutationMethod {
-    pub(in crate::domain_types::app) const fn get(self) -> &'static str {
+    pub(in crate::domain_types::start) const fn get(self) -> &'static str {
         match self {
             Self::Delete => constants_str::DELETE,
             Self::Patch => constants_str::PATCH,
@@ -15,7 +15,7 @@ impl AdminMutationMethod {
     }
 }
 
-pub(in crate::domain_types::app) fn reload_after<RequestBody>(
+pub(in crate::domain_types::start) fn reload_after<RequestBody>(
     method: AdminMutationMethod,
     path: super::http::url::AdminCsrApiUrl,
     request_body: RequestBody,

@@ -16,7 +16,7 @@ pub mod generate_impl_try_from_token_stream;
 pub mod generate_new_or_try_new;
 pub mod generate_pub_type_alias_token_stream;
 pub mod generate_simple_syn_punct;
-pub mod proc_macro2_tokens;
+pub mod proc_macro2_generated_rust_token_stream;
 // Test-only contract fixtures.
 #[cfg(feature = "test-utils")]
 pub mod json_contract;

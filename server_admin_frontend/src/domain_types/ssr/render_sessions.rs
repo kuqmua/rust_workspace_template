@@ -27,10 +27,10 @@ pub(super) fn render_sessions(
         let is_current = bool::from(item.is_current());
         let current_text = item.is_current().to_string();
         let confirm_form_id = form_id.clone();
-        let dialog = crate::domain_types::ui::with_owner(move || {
+        let dialog = crate::domain_types::with_owner::with_owner(move || {
             leptos::view! {
                 <singlestage::Dialog alert=true id=dialog_id class="w-full max-w-lg rounded-2xl border bg-background p-6 shadow-lg" dialog_trigger=singlestage::DialogTrigger::builder().children(leptos::prelude::ToChildren::to_children(move || leptos::view! {
-                    <crate::domain_types::ui::button::AdminButton variant=crate::domain_types::ui::button::AdminButtonVariant::Danger kind=crate::domain_types::ui::button::AdminButtonKind::Button>"Revoke session"</crate::domain_types::ui::button::AdminButton>
+                    <crate::domain_types::with_owner::button::AdminButton variant=crate::domain_types::with_owner::button::AdminButtonVariant::Danger kind=crate::domain_types::with_owner::button::AdminButtonKind::Button>"Revoke session"</crate::domain_types::with_owner::button::AdminButton>
                 })).build()>
                     <singlestage::DialogContent attr:data-name="AlertDialogContent" class="flex flex-col gap-4">
                         <div data-name="AlertDialogBody" class="contents">
@@ -40,11 +40,11 @@ pub(super) fn render_sessions(
                             </singlestage::DialogHeader>
                             <form id=form_id method="post" action=server_admin_contract::domain_types::AdminHtmlAction::SessionRevoke.get()>
                                 <input type="hidden" name="session_id" value=hidden_session_id />
-                                <singlestage::Label attr:data-name="Label" class="flex items-center gap-2 text-sm leading-none font-medium select-none"><crate::domain_types::ui::checkbox::AdminCheckbox name="confirmation" value="true" required=true />"Confirm session revocation"</singlestage::Label>
+                                <singlestage::Label attr:data-name="Label" class="flex items-center gap-2 text-sm leading-none font-medium select-none"><crate::domain_types::with_owner::admin_checkbox::AdminCheckbox name="confirmation" value="true" required=true />"Confirm session revocation"</singlestage::Label>
                             </form>
                             <singlestage::DialogFooter attr:data-name="AlertDialogFooter" class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-                                <crate::domain_types::ui::button::AdminButton variant=crate::domain_types::ui::button::AdminButtonVariant::Secondary>"Cancel"</crate::domain_types::ui::button::AdminButton>
-                                <crate::domain_types::ui::button::AdminButton variant=crate::domain_types::ui::button::AdminButtonVariant::Danger form=confirm_form_id>"Revoke session"</crate::domain_types::ui::button::AdminButton>
+                                <crate::domain_types::with_owner::button::AdminButton variant=crate::domain_types::with_owner::button::AdminButtonVariant::Secondary>"Cancel"</crate::domain_types::with_owner::button::AdminButton>
+                                <crate::domain_types::with_owner::button::AdminButton variant=crate::domain_types::with_owner::button::AdminButtonVariant::Danger form=confirm_form_id>"Revoke session"</crate::domain_types::with_owner::button::AdminButton>
                             </singlestage::DialogFooter>
                         </div>
                     </singlestage::DialogContent>
@@ -52,21 +52,21 @@ pub(super) fn render_sessions(
             }
         });
         leptos::view! {
-            <crate::domain_types::ui::table::TableRow>
-                <crate::domain_types::ui::table::TableCell data_label="session">{session_id}</crate::domain_types::ui::table::TableCell>
-                <crate::domain_types::ui::table::TableCell data_label="created">{created_at}</crate::domain_types::ui::table::TableCell>
-                <crate::domain_types::ui::table::TableCell data_label="expires">{expires_at}</crate::domain_types::ui::table::TableCell>
-                <crate::domain_types::ui::table::TableCell data_label="current"><crate::domain_types::ui::badge::AdminBadge variant=if is_current { crate::domain_types::ui::badge::AdminBadgeVariant::Success } else { crate::domain_types::ui::badge::AdminBadgeVariant::Neutral }>{current_text}</crate::domain_types::ui::badge::AdminBadge></crate::domain_types::ui::table::TableCell>
-                <crate::domain_types::ui::table::TableCell data_label="actions">
+            <crate::domain_types::with_owner::table::TableRow>
+                <crate::domain_types::with_owner::table::TableCell data_label="session">{session_id}</crate::domain_types::with_owner::table::TableCell>
+                <crate::domain_types::with_owner::table::TableCell data_label="created">{created_at}</crate::domain_types::with_owner::table::TableCell>
+                <crate::domain_types::with_owner::table::TableCell data_label="expires">{expires_at}</crate::domain_types::with_owner::table::TableCell>
+                <crate::domain_types::with_owner::table::TableCell data_label="current"><crate::domain_types::with_owner::badge::AdminBadge variant=if is_current { crate::domain_types::with_owner::badge::AdminBadgeVariant::Success } else { crate::domain_types::with_owner::badge::AdminBadgeVariant::Neutral }>{current_text}</crate::domain_types::with_owner::badge::AdminBadge></crate::domain_types::with_owner::table::TableCell>
+                <crate::domain_types::with_owner::table::TableCell data_label="actions">
                     {dialog}
-                </crate::domain_types::ui::table::TableCell>
-            </crate::domain_types::ui::table::TableRow>
+                </crate::domain_types::with_owner::table::TableCell>
+            </crate::domain_types::with_owner::table::TableRow>
         }
     }).collect::<Vec<_>>();
     let content_view = leptos::view! {
         <section class="table-page">
-        <crate::domain_types::ui::table::TableWrapper><crate::domain_types::ui::table::Table><crate::domain_types::ui::table::TableHeader><crate::domain_types::ui::table::TableRow><crate::domain_types::ui::table::TableHead>"session"</crate::domain_types::ui::table::TableHead><crate::domain_types::ui::table::TableHead>"created"</crate::domain_types::ui::table::TableHead><crate::domain_types::ui::table::TableHead>"expires"</crate::domain_types::ui::table::TableHead><crate::domain_types::ui::table::TableHead>"current"</crate::domain_types::ui::table::TableHead><crate::domain_types::ui::table::TableHead>"actions"</crate::domain_types::ui::table::TableHead></crate::domain_types::ui::table::TableRow></crate::domain_types::ui::table::TableHeader>
-        <crate::domain_types::ui::table::TableBody>{rows}</crate::domain_types::ui::table::TableBody></crate::domain_types::ui::table::Table></crate::domain_types::ui::table::TableWrapper>
+        <crate::domain_types::with_owner::table::TableWrapper><crate::domain_types::with_owner::table::Table><crate::domain_types::with_owner::table::TableHeader><crate::domain_types::with_owner::table::TableRow><crate::domain_types::with_owner::table::TableHead>"session"</crate::domain_types::with_owner::table::TableHead><crate::domain_types::with_owner::table::TableHead>"created"</crate::domain_types::with_owner::table::TableHead><crate::domain_types::with_owner::table::TableHead>"expires"</crate::domain_types::with_owner::table::TableHead><crate::domain_types::with_owner::table::TableHead>"current"</crate::domain_types::with_owner::table::TableHead><crate::domain_types::with_owner::table::TableHead>"actions"</crate::domain_types::with_owner::table::TableHead></crate::domain_types::with_owner::table::TableRow></crate::domain_types::with_owner::table::TableHeader>
+        <crate::domain_types::with_owner::table::TableBody>{rows}</crate::domain_types::with_owner::table::TableBody></crate::domain_types::with_owner::table::Table></crate::domain_types::with_owner::table::TableWrapper>
         {super::table_pagination(server_admin_contract::domain_types::AdminPage::Sessions, query, page.total(), None, None)}
         </section>
     };

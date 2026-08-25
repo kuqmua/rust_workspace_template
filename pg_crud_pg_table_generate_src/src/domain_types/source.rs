@@ -11,9 +11,9 @@ struct TableTestNames<'value_lt>(Vec<&'value_lt str>);
 
 fn compile_error_token_stream(
     message: CompileErrorMessage<'_>,
-) -> macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
+) -> macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream{
     let message_value = message.0;
-    macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
+    macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(
         quote::quote! {compile_error!(#message_value);},
     )
 }
@@ -43,14 +43,14 @@ fn compile_error_token_stream(
 #[allow(unused_variables)]
 pub fn generate_pg_table(
     input: macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef<'_>,
-) -> macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
+) -> macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream{
     let validated = match crate::domain_types::pipeline::parse_generate_pg_table(input)
         .and_then(crate::domain_types::pipeline::build_generate_pg_table)
         .and_then(crate::domain_types::pipeline::validate_generate_pg_table)
     {
         Ok(validated) => validated,
         Err(error) => {
-            return macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
+            return macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(
                 match error {
                     crate::domain_types::pipeline::GeneratePgTablePipelineError::Build(
                         pipeline_error,
@@ -73,7 +73,7 @@ pub fn generate_pg_table(
 #[allow(unused_variables)]
 pub fn emit_generate_pg_table(
     validated: crate::domain_types::pipeline::SynValidatedGeneratePgTableInput,
-) -> macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
+) -> macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream{
     #[allow(clippy::arbitrary_source_item_ordering)]
     #[derive(Debug, optimal_memory_layout::OptimalMemoryLayout)]
     struct SynVariant {
@@ -731,8 +731,8 @@ pub fn emit_generate_pg_table(
         field_ref: SynGeneratePgTableFieldRef<'_>,
     ) -> Result<
         Option<macro_helpers::domain_types::location_data::LocationFieldAttr>,
-        macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
-    > {
+        macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream,
+    >{
         let field = field_ref.get();
         let Some(field_identifier) = field.ident.as_ref() else {
             return Err(compile_error_token_stream(CompileErrorMessage::from(
@@ -782,7 +782,7 @@ pub fn emit_generate_pg_table(
                         let message =
                             format!("failed to read GeneratePgTableConfig attribute: {error}");
                         return Err(
-                        macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
+                        macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(
                             quote::quote! { compile_error!(#message); },
                         ),
                     );
@@ -793,7 +793,7 @@ pub fn emit_generate_pg_table(
             Err(error) => {
                 let message = format!("failed to parse GeneratePgTableConfig: {error}");
                 return Err(
-                        macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
+                        macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(
                             quote::quote! { compile_error!(#message); },
                         ),
                     );
@@ -923,7 +923,7 @@ pub fn emit_generate_pg_table(
                                     variant_field_accumulator.push(field_model);
                                     Ok::<
                                         Vec<GeneratePgTableVariantFieldEmission>,
-                                        macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
+                                        macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream,
                                     >(variant_field_accumulator)
                                 },
                             )?;
@@ -935,7 +935,7 @@ pub fn emit_generate_pg_table(
                                 variants_accumulator.push(variant_model);
                                 Ok::<
                                     Vec<GeneratePgTableVariantEmission>,
-                                    macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
+                                    macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream,
                                 >(variants_accumulator)
                             },
                         )?;
@@ -1211,7 +1211,7 @@ pub fn emit_generate_pg_table(
     let primary_key_attr_name = GeneratePgTablePrimaryKeyAttrName::from(
         generate_pg_table_primary_key_snake_case_str.as_str(),
     );
-    let fields_model = match (|| match crate::domain_types::parse::struct_shape(
+    let fields_model = match (|| match crate::domain_types::struct_shape::struct_shape(
         workspace_macro_helpers::domain_types::SynDeriveInputRef::from(input.get()),
     ) {
         Ok(workspace_macro_helpers::domain_types::SynStructShapeRef::Named(fields_named_ref)) => {
@@ -1338,7 +1338,7 @@ pub fn emit_generate_pg_table(
                         })
                     })
                     .map_err(|error| {
-                        macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
+                        macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(
                             error.into_compile_error(),
                         )
                     })?;
@@ -1730,7 +1730,7 @@ pub fn emit_generate_pg_table(
         .collect::<Vec<_>>();
     let primary_key_field_type = &primary_key_field.type0;
     if fields_without_primary_key_idxs.is_empty() {
-        return macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
+        return macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(
             syn::Error::new_spanned(
                 &**primary_key_field_type,
                 constants_str::UPDATE_OPERATIONS_REQUIRE_AT_LEAST_ONE_NON_PRIMARY_KEY_FIELD,
@@ -1745,7 +1745,7 @@ pub fn emit_generate_pg_table(
         if primary_key_type_name.starts_with(constants_str::OPTIONAL)
             || primary_key_type_name.contains(constants_str::ASNULLABLE)
         {
-            return macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
+            return macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(
                 syn::Error::new_spanned(
                     &**primary_key_field_type,
                     constants_str::PRIMARY_KEY_TYPE_MUST_BE_NON_NULLABLE,
@@ -3517,7 +3517,7 @@ enum WrapIntoOptional {
     let identifier_update_token_stream = {
         let generate_optional_v_field_type_as_pg_type_update_token_stream: &dyn Fn(
             &dyn quote::ToTokens,
-        ) -> macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream = &|syn_type| {
+        ) -> macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream = &|syn_type| {
             let syn_type_as_pg_type_update_token_stream = generate_as_pg_type_update_token_stream(&syn_type);
             pg_crud_macro_common::domain_types::generate_optional_type_declaration_token_stream(
                 &quote::quote! {#path_v_token_stream<#syn_type_as_pg_type_update_token_stream>},
@@ -4404,7 +4404,7 @@ enum WrapIntoOptional {
         |field_ref: SynGeneratePgTableIdentifierRef<'_>,
          ty_ref: SynGeneratePgTableTypeRef<'_>,
          location_attr: GeneratePgTableVariantLocationAttr|
-         -> macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
+         -> macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {
             let field = field_ref.get();
             let ty = ty_ref.get();
             let string_token_stream = token_patterns::StringTokenStream;
@@ -4549,7 +4549,7 @@ enum WrapIntoOptional {
             };
                 quote::quote! {#field: #element_type_with_serde_token_stream}
             };
-            macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
+            macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(
                 quote::quote! {#ts,},
             )
         };
@@ -5233,7 +5233,7 @@ enum WrapIntoOptional {
                 };
                 let future_token_stream = {
                     let operation_http_method_snake_case_token_stream =
-                        naming_common::domain_types::AsRefStrToSnakeCaseTokenStream::case_or_panic(&crate::domain_types::client::http_method(operation_dsc));
+                        naming_common::domain_types::AsRefStrToSnakeCaseTokenStream::case_or_panic(&crate::domain_types::http_method::http_method(operation_dsc));
                     let commit_header_addition_token_stream = quote::quote! {
                         .header(
                             &"commit".to_owned(),
@@ -6357,12 +6357,12 @@ enum WrapIntoOptional {
                         let identifier_operation_res_variants_upper_camel_case = generate_identifier_operation_res_variants_upper_camel_case(operation);
                         quote::quote! {#identifier_operation_res_variants_upper_camel_case::#DesirableUpperCamelCase(#VSnakeCase)}
                     },
-                    &crate::domain_types::operation_status::success_status(operation_dsc).to_http_status_code_token_stream(),
+                    &crate::domain_types::success_status::success_status(operation_dsc).to_http_status_code_token_stream(),
                     &AddReturn::False,
                 );
                 let success_response_token_stream = if idempotency_enabled {
                     let desirable_status_token_stream =
-                        crate::domain_types::operation_status::success_status(operation_dsc).to_http_status_code_token_stream();
+                        crate::domain_types::success_status::success_status(operation_dsc).to_http_status_code_token_stream();
                     quote::quote! {
                         let (response_value_1a2393ae, response_body_649297c9) = #VSnakeCase;
                         let mut response = axum::response::Response::new(axum::body::Body::from(response_body_649297c9));
@@ -10302,7 +10302,7 @@ enum WrapIntoOptional {
             )
         {
             let message = format!("failed to write generated PG table common output: {error}");
-            return macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
+            return macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(
                     quote::quote! { compile_error!(#message); },
                 );
         }
@@ -10317,11 +10317,11 @@ enum WrapIntoOptional {
             )
         {
             let message = format!("failed to write generated PG table output: {error}");
-            return macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
+            return macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(
                     quote::quote! { compile_error!(#message); },
                 );
         }
-        macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
+        macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(
             whole_token_stream.into_inner(),
         )
     })()

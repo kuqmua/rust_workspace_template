@@ -3,7 +3,7 @@
     clippy::single_call_fn,
     reason = "the measurement fixture treats invalid compile-time generator inputs as diagnostic invariant failures"
 )]
-pub(super) fn run() -> Result<(), ()> {
+pub(super) fn measure_mode() -> Result<(), ()> {
     {
         let allocation_tools_printed: Result<(), std::convert::Infallible> =
             crate::domain_types::allocation_tools()
@@ -116,11 +116,11 @@ pub(super) fn run() -> Result<(), ()> {
         )
         .unwrap_or_else(|()| std::process::exit(1));
         let generate_pg_table_input_token_stream =
-            super::pg_table_workload::generate_pg_table_measure_input_token_stream(
+            super::generate_pg_table_measure_input_token_stream::generate_pg_table_measure_input_token_stream(
                 &quote::quote! {"False"},
             );
         let generate_pg_table_input_with_tests_token_stream =
-            super::pg_table_workload::generate_pg_table_measure_input_token_stream(
+            super::generate_pg_table_measure_input_token_stream::generate_pg_table_measure_input_token_stream(
                 &quote::quote! {"True"},
             );
         let parse_started = std::time::Instant::now();

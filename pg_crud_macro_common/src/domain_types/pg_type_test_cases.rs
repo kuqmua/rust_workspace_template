@@ -4,7 +4,7 @@ fn generate_read_inner_into_read_or_update_with_new_or_try_new_unwraped_token_st
     path_token_stream: &dyn quote::ToTokens,
     return_type_token_stream: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
+) -> macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream{
     let names = crate::domain_types::NamesCtx::new();
     #[allow(non_snake_case)]
     let (VSnakeCase,) = (&names.VSnakeCase,);
@@ -22,7 +22,7 @@ pub fn generate_read_ids_and_create_into_where_eq_token_stream(
     create_token_stream: &dyn quote::ToTokens,
     where_token_stream: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
+) -> macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream{
     let names = crate::domain_types::NamesCtx::new();
     #[allow(non_snake_case)]
     let (CreateSnakeCase, ReadIdsAndCreateIntoWhereEqSnakeCase, ReadIdsSnakeCase) = (
@@ -46,7 +46,7 @@ pub fn generate_read_ids_and_create_into_vec_where_eq_using_fields_token_stream(
     create_token_stream: &dyn quote::ToTokens,
     where_token_stream: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
+) -> macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream{
     let names = crate::domain_types::NamesCtx::new();
     #[allow(non_snake_case)]
     let (CreateSnakeCase, ReadIdsAndCreateIntoVecWhereEqUsingFieldsSnakeCase, ReadIdsSnakeCase) = (
@@ -88,7 +88,7 @@ pub fn generate_impl_pg_type_test_cases_for_identifier_token_stream(
     read_ids_and_table_type_into_pg_type_optional_where_greater_than_token_stream: Option<
         &dyn quote::ToTokens,
     >,
-) -> macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
+) -> macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream{
     let names = crate::domain_types::NamesCtx::new();
     #[allow(non_snake_case)]
     let (
@@ -134,7 +134,7 @@ pub fn generate_impl_pg_type_test_cases_for_identifier_token_stream(
     let identifier_select_upper_camel_case =
         naming::domain_types::parameter::SelfSelectUpperCamelCase::from_tokens(&identifier);
     let optional_vec_create_token_stream_gnrtd: Option<
-        macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
+        macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream,
     > = optional_vec_create_token_stream.map(|ts| {
         {
     let snippet_names_1 = crate::domain_types::NamesCtx::new();
@@ -151,7 +151,7 @@ pub fn generate_impl_pg_type_test_cases_for_identifier_token_stream(
         .into()
 }
     });
-    let read_ids_to_2_dimensions_vec_read_inner_token_stream_gnrtd: macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream = {
+    let read_ids_to_2_dimensions_vec_read_inner_token_stream_gnrtd: macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream = {
         let snippet_names_2 = crate::domain_types::NamesCtx::new();
         #[allow(non_snake_case)]
         let (
@@ -190,7 +190,7 @@ pub fn generate_impl_pg_type_test_cases_for_identifier_token_stream(
             &naming::domain_types::UpdateUpperCamelCase,
             &read_inner_into_update_with_new_or_try_new_unwraped_token_stream,
         );
-    let update_to_read_ids_token_stream_gnrtd: macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream = {
+    let update_to_read_ids_token_stream_gnrtd: macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream = {
         let snippet_names_3 = crate::domain_types::NamesCtx::new();
         #[allow(non_snake_case)]
         let (ReadIdsUpperCamelCaseSnippet3, UpdateToReadIdsSnakeCaseSnippet3, UpdateUpperCamelCaseSnippet3, VSnakeCaseSnippet3) = (
@@ -208,7 +208,7 @@ pub fn generate_impl_pg_type_test_cases_for_identifier_token_stream(
         }
         .into()
     };
-    let read_ids_to_optional_v_read_default_some_one_element_token_stream_gnrtd: macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream = {
+    let read_ids_to_optional_v_read_default_some_one_element_token_stream_gnrtd: macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream = {
         let snippet_names_4 = crate::domain_types::NamesCtx::new();
         #[allow(non_snake_case)]
         let (
@@ -233,7 +233,7 @@ pub fn generate_impl_pg_type_test_cases_for_identifier_token_stream(
         }
         .into()
     };
-    let previous_read_and_optional_update_into_read_token_stream_gnrtd: macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream = {
+    let previous_read_and_optional_update_into_read_token_stream_gnrtd: macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream = {
         let snippet_names_5 = crate::domain_types::NamesCtx::new();
         #[allow(non_snake_case)]
         let (
@@ -259,7 +259,7 @@ pub fn generate_impl_pg_type_test_cases_for_identifier_token_stream(
         }
         .into()
     };
-    let read_ids_and_create_into_read_token_stream_gnrtd: macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream = {
+    let read_ids_and_create_into_read_token_stream_gnrtd: macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream = {
         let snippet_names_6 = crate::domain_types::NamesCtx::new();
         #[allow(non_snake_case)]
         let (
@@ -287,7 +287,7 @@ pub fn generate_impl_pg_type_test_cases_for_identifier_token_stream(
         }
         .into()
     };
-    let read_ids_and_create_into_optional_v_read_token_stream_gnrtd: macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream = {
+    let read_ids_and_create_into_optional_v_read_token_stream_gnrtd: macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream = {
         let snippet_names_7 = crate::domain_types::NamesCtx::new();
         #[allow(non_snake_case)]
         let (
@@ -317,7 +317,7 @@ pub fn generate_impl_pg_type_test_cases_for_identifier_token_stream(
         }
         .into()
     };
-    let read_ids_and_create_into_table_type_token_stream_gnrtd: macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream = {
+    let read_ids_and_create_into_table_type_token_stream_gnrtd: macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream = {
         let snippet_names_8 = crate::domain_types::NamesCtx::new();
         #[allow(non_snake_case)]
         let (
@@ -361,7 +361,7 @@ pub fn generate_impl_pg_type_test_cases_for_identifier_token_stream(
             &read_ids_and_create_into_vec_where_eq_using_fields_token_stream,
         );
     let read_ids_and_create_into_optional_vec_where_eq_to_field_token_stream_gnrtd: Option<
-        macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
+        macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream,
     > =
         read_ids_and_create_into_optional_vec_where_eq_to_field_token_stream.map(|ts| {
             {

@@ -9,7 +9,7 @@ use leptos::prelude::{AddAnyAttr, ElementChild};
 pub(super) fn admin_filter_range_end(
     filter: server_admin_contract::domain_types::AdminDataFilter,
     active_end: Option<&server_admin_contract::domain_types::AdminFilterValue>,
-    input_type: super::super::input_kind::AdminDataGridInputType,
+    input_type: super::super::admin_data_grid_input_type::AdminDataGridInputType,
     selected_operation: super::super::LeptosAdminFilterOperationSignal,
 ) -> impl leptos::prelude::IntoView + use<> {
     let end = active_end.map(ToString::to_string).unwrap_or_default();

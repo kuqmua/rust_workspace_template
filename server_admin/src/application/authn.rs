@@ -129,7 +129,7 @@ pub(super) async fn sign_in(
         peer,
     )
     .map_err(super::AdminError::secret_text)?;
-    let session = super::session::create_session_in_connection(
+    let session = super::create_session_in_connection::create_session_in_connection(
         state.as_ref(),
         admin_user_id,
         &context_hash,
@@ -238,7 +238,7 @@ pub(super) async fn refresh(
     )
     .await
     .map_err(super::AdminError::from)?;
-    let session = super::session::create_session_in_connection(
+    let session = super::create_session_in_connection::create_session_in_connection(
         state.as_ref(),
         admin_user_id,
         &context_hash,

@@ -4,8 +4,8 @@
     reason = "each Leptos filter operation is composed once by its column filter"
 )]
 
-mod range_end;
-mod value;
+mod admin_filter_range_end;
+mod admin_filter_value;
 
 use leptos::prelude::{AddAnyAttr, ClassAttribute, ElementChild};
 
@@ -13,7 +13,7 @@ pub(super) fn admin_data_grid_filter_option(
     filter: server_admin_contract::domain_types::AdminDataFilter,
     active_value: Option<&server_admin_contract::domain_types::AdminFilterValue>,
     active_end: Option<&server_admin_contract::domain_types::AdminFilterValue>,
-    input_type: super::input_kind::AdminDataGridInputType,
+    input_type: super::admin_data_grid_input_type::AdminDataGridInputType,
     selected_operation: super::LeptosAdminFilterOperationSignal,
 ) -> impl leptos::prelude::IntoView + use<> {
     let operation = filter.operation();
@@ -30,8 +30,8 @@ pub(super) fn admin_data_grid_filter_option(
                 />
                 <span>{format!("{operation:?}")}</span>
             </singlestage::Label>
-            {value::admin_filter_value(filter, active_value, input_type, selected_operation)}
-            {range_end::admin_filter_range_end(filter, active_end, input_type, selected_operation)}
+            {admin_filter_value::admin_filter_value(filter, active_value, input_type, selected_operation)}
+            {admin_filter_range_end::admin_filter_range_end(filter, active_end, input_type, selected_operation)}
         </div>
     }
 }

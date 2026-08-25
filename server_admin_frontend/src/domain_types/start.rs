@@ -6,21 +6,21 @@
     reason = "Leptos component and entry-point macro expansion produces these patterns"
 )]
 
-mod data_grid;
+mod admin_app;
+mod admin_csr_query;
+mod admin_data_grid;
+mod admin_nav;
+mod admin_pagination;
+mod admin_permissions_view;
+mod admin_profile_view;
+mod admin_roles_view;
+mod admin_sessions_view;
+mod admin_settings_view;
+mod admin_users_view;
+mod fetch_page;
 mod http;
-mod loader;
 mod mutation;
-mod navigation;
-mod pagination;
-mod permissions;
-mod profile;
-mod query;
-mod roles;
-mod sessions;
-mod settings;
-mod shell;
 mod state;
-mod users;
 
 #[wasm_bindgen::prelude::wasm_bindgen(start)]
 pub(crate) fn start() {
@@ -37,5 +37,5 @@ pub(crate) fn start() {
         return;
     };
     root.set_inner_html(constants_str::EMPTY);
-    leptos::mount::mount_to(root, shell::AdminApp).forget();
+    leptos::mount::mount_to(root, admin_app::AdminApp).forget();
 }

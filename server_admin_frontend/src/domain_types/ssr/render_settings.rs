@@ -18,18 +18,18 @@ pub(super) fn render_settings(
 ) -> super::AdminSsrHtml {
     let values = crate::domain_types::shared::settings::values::AdminSettingsFormValues::from(view);
     let signals =
-        crate::domain_types::shared::settings::signals::AdminSettingsFormSignals::new(&values);
+        crate::domain_types::shared::settings::admin_settings_form_signals::AdminSettingsFormSignals::new(&values);
     let can_update = bool::from(admin.has_permission(
         server_admin_contract::domain_types::AdminPermission::SystemSettingsUpdate,
     ));
     let content_view = leptos::view! {
-        <section class="settings-grid"><crate::domain_types::ui::card::AdminCard variant=crate::domain_types::ui::card::AdminCardVariant::Settings>
+        <section class="settings-grid"><crate::domain_types::with_owner::card::AdminCard variant=crate::domain_types::with_owner::card::AdminCardVariant::Settings>
         {can_update.then(|| leptos::view! { <form class="settings-form" method="post" action=server_admin_contract::domain_types::AdminHtmlAction::SettingsUpdate.get()>
             {crate::domain_types::shared::settings::input::admin_setting_inputs(signals, crate::domain_types::shared::settings::input::AdminSettingDisabled::from(false))}
-            <crate::domain_types::ui::card::AdminCardFooter><crate::domain_types::ui::button::AdminButton>"Save settings"</crate::domain_types::ui::button::AdminButton></crate::domain_types::ui::card::AdminCardFooter>
+            <crate::domain_types::with_owner::card::AdminCardFooter><crate::domain_types::with_owner::button::AdminButton>"Save settings"</crate::domain_types::with_owner::button::AdminButton></crate::domain_types::with_owner::card::AdminCardFooter>
         </form> })}
-        {(!can_update).then(|| leptos::view! { <crate::domain_types::ui::alert::AdminAlert>"Settings are read-only for this account."</crate::domain_types::ui::alert::AdminAlert> })}
-        </crate::domain_types::ui::card::AdminCard></section>
+        {(!can_update).then(|| leptos::view! { <crate::domain_types::with_owner::alert::AdminAlert>"Settings are read-only for this account."</crate::domain_types::with_owner::alert::AdminAlert> })}
+        </crate::domain_types::with_owner::card::AdminCard></section>
     };
     let content = super::render_view(content_view);
     super::render_admin_page_with_access(

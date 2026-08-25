@@ -1,3 +1,3 @@
-pub(in crate::domain_types::app) mod fetch;
-pub(in crate::domain_types::app) mod mutation;
-pub(in crate::domain_types::app) mod url;
+pub(in crate::domain_types::start) mod fetch_json;
+pub(in crate::domain_types::start) mod mutation;
+pub(in crate::domain_types::start) mod url;

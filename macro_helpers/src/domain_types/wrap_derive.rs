@@ -5,7 +5,8 @@ pub struct ProcMacro2DeriveTokensRef<'tokens_lt>(
 #[must_use]
 pub fn wrap_derive(
     v: ProcMacro2DeriveTokensRef<'_>,
-) -> crate::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
+) -> crate::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream
+{
     let tokens = v.0;
     quote::quote! {#[derive(#(#tokens),*)]}.into()
 }

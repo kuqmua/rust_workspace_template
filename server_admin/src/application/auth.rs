@@ -1,11 +1,11 @@
 #![allow(clippy::needless_for_each)] // utoipa 4 generated OpenAPI registration uses iterator callbacks
 mod account;
+mod admin_observed_error_code;
 mod api;
 mod authn;
 pub(super) mod authorization;
 mod cookie_response;
 mod data_tables;
-mod error_response;
 mod extractors;
 mod html;
 mod persistence;
@@ -556,8 +556,8 @@ pub enum AdminSessionError {
     SystemClock,
 }
 mod audit;
+mod create_session_in_connection;
 mod rate_limit;
 mod routes;
-mod session;
 #[cfg(test)]
 mod tests;

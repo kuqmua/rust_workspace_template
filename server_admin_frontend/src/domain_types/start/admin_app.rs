@@ -5,7 +5,7 @@ use leptos::prelude::{ClassAttribute, ElementChild};
     unreachable_pub,
     reason = "Leptos root component visibility is required by the app entry point"
 )]
-pub(in crate::domain_types::app) fn AdminApp() -> impl leptos::prelude::IntoView {
+pub(in crate::domain_types::start) fn AdminApp() -> impl leptos::prelude::IntoView {
     let query_result = super::query::AdminCsrQuery::from_location();
     let page_result = super::query::page::csr_page_from_location();
     let initial_state = match (&page_result, &query_result) {
@@ -28,9 +28,9 @@ pub(in crate::domain_types::app) fn AdminApp() -> impl leptos::prelude::IntoView
             let current_state = leptos::prelude::Get::get(&state);
             let admin = current_state.admin().cloned();
             let content = match current_state {
-                super::state::AdminLoadState::Empty(_admin) => leptos::prelude::IntoAny::into_any(leptos::view! { <crate::domain_types::ui::empty::AdminEmpty>"Choose a table."</crate::domain_types::ui::empty::AdminEmpty> }),
-                super::state::AdminLoadState::Error(error) => leptos::prelude::IntoAny::into_any(leptos::view! { <crate::domain_types::ui::alert::AdminAlert>{error.to_string()}</crate::domain_types::ui::alert::AdminAlert> }),
-                super::state::AdminLoadState::Loading => leptos::prelude::IntoAny::into_any(leptos::view! { <crate::domain_types::ui::spinner::AdminSpinner /> }),
+                super::state::AdminLoadState::Empty(_admin) => leptos::prelude::IntoAny::into_any(leptos::view! { <crate::domain_types::with_owner::admin_empty::AdminEmpty>"Choose a table."</crate::domain_types::with_owner::admin_empty::AdminEmpty> }),
+                super::state::AdminLoadState::Error(error) => leptos::prelude::IntoAny::into_any(leptos::view! { <crate::domain_types::with_owner::alert::AdminAlert>{error.to_string()}</crate::domain_types::with_owner::alert::AdminAlert> }),
+                super::state::AdminLoadState::Loading => leptos::prelude::IntoAny::into_any(leptos::view! { <crate::domain_types::with_owner::admin_spinner::AdminSpinner /> }),
                 super::state::AdminLoadState::Permissions(_admin, page) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::permissions::AdminPermissionsView page=page query=query_result.clone().unwrap_or_default() /> }),
                 super::state::AdminLoadState::Profile(admin) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::profile::AdminProfileView admin=admin /> }),
                 super::state::AdminLoadState::Roles(admin, page) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::roles::AdminRolesView admin=admin page=page query=query_result.clone().unwrap_or_default() /> }),

@@ -50,13 +50,13 @@ pub(super) fn render_user_create(
     render_shell(
         server_admin_contract::domain_types::AdminPage::Users,
         leptos::view! {
-            <section class="crud-page"><div class="crud-heading"><div><p class="eyebrow">"Users"</p><h1>"Create user"</h1><p>"Add a user account with initial credentials."</p></div><crate::domain_types::ui::button::AdminButtonLink href=server_admin_contract::domain_types::AdminFrontendPath::Users.get() variant=crate::domain_types::ui::button::AdminButtonVariant::Secondary>"Back to users"</crate::domain_types::ui::button::AdminButtonLink></div>
-            <crate::domain_types::ui::card::AdminCard><form class="crud-form" method="post" action=server_admin_contract::domain_types::AdminHtmlAction::UserCreate.get()>
-                <crate::domain_types::ui::field::AdminField label="Login"><crate::domain_types::ui::input::AdminInput name="login" autocomplete="username" required=true /></crate::domain_types::ui::field::AdminField>
-                <crate::domain_types::ui::field::AdminField label="Display name"><crate::domain_types::ui::input::AdminInput name="display_name" required=true /></crate::domain_types::ui::field::AdminField>
-                <crate::domain_types::ui::field::AdminField label="Initial password"><crate::domain_types::ui::input::AdminInput name="password" kind=crate::domain_types::ui::input::AdminInputKind::Password autocomplete="new-password" required=true /></crate::domain_types::ui::field::AdminField>
-                <div class="crud-actions"><crate::domain_types::ui::button::AdminButton>"Create user"</crate::domain_types::ui::button::AdminButton></div>
-            </form></crate::domain_types::ui::card::AdminCard></section>
+            <section class="crud-page"><div class="crud-heading"><div><p class="eyebrow">"Users"</p><h1>"Create user"</h1><p>"Add a user account with initial credentials."</p></div><crate::domain_types::with_owner::button::AdminButtonLink href=server_admin_contract::domain_types::AdminFrontendPath::Users.get() variant=crate::domain_types::with_owner::button::AdminButtonVariant::Secondary>"Back to users"</crate::domain_types::with_owner::button::AdminButtonLink></div>
+            <crate::domain_types::with_owner::card::AdminCard><form class="crud-form" method="post" action=server_admin_contract::domain_types::AdminHtmlAction::UserCreate.get()>
+                <crate::domain_types::with_owner::field::AdminField label="Login"><crate::domain_types::with_owner::input::AdminInput name="login" autocomplete="username" required=true /></crate::domain_types::with_owner::field::AdminField>
+                <crate::domain_types::with_owner::field::AdminField label="Display name"><crate::domain_types::with_owner::input::AdminInput name="display_name" required=true /></crate::domain_types::with_owner::field::AdminField>
+                <crate::domain_types::with_owner::field::AdminField label="Initial password"><crate::domain_types::with_owner::input::AdminInput name="password" kind=crate::domain_types::with_owner::input::AdminInputKind::Password autocomplete="new-password" required=true /></crate::domain_types::with_owner::field::AdminField>
+                <div class="crud-actions"><crate::domain_types::with_owner::button::AdminButton>"Create user"</crate::domain_types::with_owner::button::AdminButton></div>
+            </form></crate::domain_types::with_owner::card::AdminCard></section>
         },
         admin,
         branding,
@@ -86,25 +86,25 @@ pub(super) fn render_user_manage(
             constants_str::VALUE_92340695
         };
         leptos::view! {
-            <crate::domain_types::ui::card::AdminCard><article class="crud-record" id=article_id>
+            <crate::domain_types::with_owner::card::AdminCard><article class="crud-record" id=article_id>
                 <div class="crud-record-heading"><h2>{title}</h2><span>{status}</span></div>
                 {can_update.then(|| leptos::view! { <form class="crud-form crud-form-compact" method="post" action=server_admin_contract::domain_types::AdminHtmlAction::UserUpdate.get()>
                     <input type="hidden" name="user_id" value=id.clone() />
-                    <crate::domain_types::ui::field::AdminField label="Login"><crate::domain_types::ui::input::AdminInput name="login" initial_value=login required=true /></crate::domain_types::ui::field::AdminField>
-                    <crate::domain_types::ui::field::AdminField label="Display name"><crate::domain_types::ui::input::AdminInput name="display_name" initial_value=display_name required=true /></crate::domain_types::ui::field::AdminField>
-                    <div class="crud-actions"><crate::domain_types::ui::button::AdminButton>"Save changes"</crate::domain_types::ui::button::AdminButton></div>
+                    <crate::domain_types::with_owner::field::AdminField label="Login"><crate::domain_types::with_owner::input::AdminInput name="login" initial_value=login required=true /></crate::domain_types::with_owner::field::AdminField>
+                    <crate::domain_types::with_owner::field::AdminField label="Display name"><crate::domain_types::with_owner::input::AdminInput name="display_name" initial_value=display_name required=true /></crate::domain_types::with_owner::field::AdminField>
+                    <div class="crud-actions"><crate::domain_types::with_owner::button::AdminButton>"Save changes"</crate::domain_types::with_owner::button::AdminButton></div>
                 </form> })}
                 {can_delete.then(|| leptos::view! { <form class="crud-delete" method="post" action=server_admin_contract::domain_types::AdminHtmlAction::UserDelete.get()>
                     <input type="hidden" name="user_id" value=id />
-                    <div><p>"Permanently remove this user and their administrator access."</p><label class="crud-confirm"><crate::domain_types::ui::checkbox::AdminCheckbox name="confirmation" value="true" required=true />"I understand this cannot be undone"</label></div><crate::domain_types::ui::button::AdminButton variant=crate::domain_types::ui::button::AdminButtonVariant::Danger>"Delete user"</crate::domain_types::ui::button::AdminButton>
+                    <div><p>"Permanently remove this user and their administrator access."</p><label class="crud-confirm"><crate::domain_types::with_owner::admin_checkbox::AdminCheckbox name="confirmation" value="true" required=true />"I understand this cannot be undone"</label></div><crate::domain_types::with_owner::button::AdminButton variant=crate::domain_types::with_owner::button::AdminButtonVariant::Danger>"Delete user"</crate::domain_types::with_owner::button::AdminButton>
                 </form> })}
-            </article></crate::domain_types::ui::card::AdminCard>
+            </article></crate::domain_types::with_owner::card::AdminCard>
         }
     }).collect::<Vec<_>>();
     render_shell(
         server_admin_contract::domain_types::AdminPage::Users,
         leptos::view! {
-            <section class="crud-page"><div class="crud-heading"><div><p class="eyebrow">"Users"</p><h1>"Manage users"</h1><p>"Update account details or permanently delete an account."</p></div><crate::domain_types::ui::button::AdminButtonLink href=server_admin_contract::domain_types::AdminFrontendPath::Users.get() variant=crate::domain_types::ui::button::AdminButtonVariant::Secondary>"Back to users"</crate::domain_types::ui::button::AdminButtonLink></div><div class="crud-list">{cards}</div></section>
+            <section class="crud-page"><div class="crud-heading"><div><p class="eyebrow">"Users"</p><h1>"Manage users"</h1><p>"Update account details or permanently delete an account."</p></div><crate::domain_types::with_owner::button::AdminButtonLink href=server_admin_contract::domain_types::AdminFrontendPath::Users.get() variant=crate::domain_types::with_owner::button::AdminButtonVariant::Secondary>"Back to users"</crate::domain_types::with_owner::button::AdminButtonLink></div><div class="crud-list">{cards}</div></section>
         },
         admin,
         branding,
@@ -118,11 +118,11 @@ pub(super) fn render_role_create(
     render_shell(
         server_admin_contract::domain_types::AdminPage::Roles,
         leptos::view! {
-            <section class="crud-page"><div class="crud-heading"><div><p class="eyebrow">"Roles"</p><h1>"Create role"</h1><p>"Create a role before assigning its permissions."</p></div><crate::domain_types::ui::button::AdminButtonLink href=server_admin_contract::domain_types::AdminFrontendPath::Roles.get() variant=crate::domain_types::ui::button::AdminButtonVariant::Secondary>"Back to roles"</crate::domain_types::ui::button::AdminButtonLink></div>
-            <crate::domain_types::ui::card::AdminCard><form class="crud-form" method="post" action=server_admin_contract::domain_types::AdminHtmlAction::RoleCreate.get()>
-                <crate::domain_types::ui::field::AdminField label="Role name"><crate::domain_types::ui::input::AdminInput name="name" required=true /></crate::domain_types::ui::field::AdminField>
-                <div class="crud-actions"><crate::domain_types::ui::button::AdminButton>"Create role"</crate::domain_types::ui::button::AdminButton></div>
-            </form></crate::domain_types::ui::card::AdminCard></section>
+            <section class="crud-page"><div class="crud-heading"><div><p class="eyebrow">"Roles"</p><h1>"Create role"</h1><p>"Create a role before assigning its permissions."</p></div><crate::domain_types::with_owner::button::AdminButtonLink href=server_admin_contract::domain_types::AdminFrontendPath::Roles.get() variant=crate::domain_types::with_owner::button::AdminButtonVariant::Secondary>"Back to roles"</crate::domain_types::with_owner::button::AdminButtonLink></div>
+            <crate::domain_types::with_owner::card::AdminCard><form class="crud-form" method="post" action=server_admin_contract::domain_types::AdminHtmlAction::RoleCreate.get()>
+                <crate::domain_types::with_owner::field::AdminField label="Role name"><crate::domain_types::with_owner::input::AdminInput name="name" required=true /></crate::domain_types::with_owner::field::AdminField>
+                <div class="crud-actions"><crate::domain_types::with_owner::button::AdminButton>"Create role"</crate::domain_types::with_owner::button::AdminButton></div>
+            </form></crate::domain_types::with_owner::card::AdminCard></section>
         },
         admin,
         branding,
@@ -152,24 +152,24 @@ pub(super) fn render_role_manage(
             constants_str::VALUE_5B58E07E
         };
         leptos::view! {
-            <crate::domain_types::ui::card::AdminCard><article class="crud-record" id=article_id>
+            <crate::domain_types::with_owner::card::AdminCard><article class="crud-record" id=article_id>
                 <div class="crud-record-heading"><h2>{title}</h2><span>{status}</span></div>
                 {can_update.then(|| leptos::view! { <form class="crud-form crud-form-compact" method="post" action=server_admin_contract::domain_types::AdminHtmlAction::RoleUpdate.get()>
                     <input type="hidden" name="role_id" value=id.clone() />
-                    <crate::domain_types::ui::field::AdminField label="Role name"><crate::domain_types::ui::input::AdminInput name="name" initial_value=name required=true disabled=is_system /></crate::domain_types::ui::field::AdminField>
-                    <div class="crud-actions"><crate::domain_types::ui::button::AdminButton disabled=is_system>"Save changes"</crate::domain_types::ui::button::AdminButton></div>
+                    <crate::domain_types::with_owner::field::AdminField label="Role name"><crate::domain_types::with_owner::input::AdminInput name="name" initial_value=name required=true disabled=is_system /></crate::domain_types::with_owner::field::AdminField>
+                    <div class="crud-actions"><crate::domain_types::with_owner::button::AdminButton disabled=is_system>"Save changes"</crate::domain_types::with_owner::button::AdminButton></div>
                 </form> })}
                 {(can_delete && !is_system).then(|| leptos::view! { <form class="crud-delete" method="post" action=server_admin_contract::domain_types::AdminHtmlAction::RoleDelete.get()>
                     <input type="hidden" name="role_id" value=id />
-                    <div><p>"Permanently remove this role and its assignments."</p><label class="crud-confirm"><crate::domain_types::ui::checkbox::AdminCheckbox name="confirmation" value="true" required=true />"I understand this cannot be undone"</label></div><crate::domain_types::ui::button::AdminButton variant=crate::domain_types::ui::button::AdminButtonVariant::Danger>"Delete role"</crate::domain_types::ui::button::AdminButton>
+                    <div><p>"Permanently remove this role and its assignments."</p><label class="crud-confirm"><crate::domain_types::with_owner::admin_checkbox::AdminCheckbox name="confirmation" value="true" required=true />"I understand this cannot be undone"</label></div><crate::domain_types::with_owner::button::AdminButton variant=crate::domain_types::with_owner::button::AdminButtonVariant::Danger>"Delete role"</crate::domain_types::with_owner::button::AdminButton>
                 </form> })}
-            </article></crate::domain_types::ui::card::AdminCard>
+            </article></crate::domain_types::with_owner::card::AdminCard>
         }
     }).collect::<Vec<_>>();
     render_shell(
         server_admin_contract::domain_types::AdminPage::Roles,
         leptos::view! {
-            <section class="crud-page"><div class="crud-heading"><div><p class="eyebrow">"Roles"</p><h1>"Manage roles"</h1><p>"Rename custom roles or remove roles that are no longer needed."</p></div><crate::domain_types::ui::button::AdminButtonLink href=server_admin_contract::domain_types::AdminFrontendPath::Roles.get() variant=crate::domain_types::ui::button::AdminButtonVariant::Secondary>"Back to roles"</crate::domain_types::ui::button::AdminButtonLink></div><div class="crud-list">{cards}</div></section>
+            <section class="crud-page"><div class="crud-heading"><div><p class="eyebrow">"Roles"</p><h1>"Manage roles"</h1><p>"Rename custom roles or remove roles that are no longer needed."</p></div><crate::domain_types::with_owner::button::AdminButtonLink href=server_admin_contract::domain_types::AdminFrontendPath::Roles.get() variant=crate::domain_types::with_owner::button::AdminButtonVariant::Secondary>"Back to roles"</crate::domain_types::with_owner::button::AdminButtonLink></div><div class="crud-list">{cards}</div></section>
         },
         admin,
         branding,

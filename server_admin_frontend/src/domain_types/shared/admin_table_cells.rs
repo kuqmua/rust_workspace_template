@@ -15,7 +15,7 @@ pub(crate) fn admin_user_roles(
             .map(server_admin_contract::domain_types::AdminRoleSummary::name)
             .map(|name| name.as_ref().as_str()),
     ));
-    leptos::view! { <crate::domain_types::ui::table::TableCell data_label="roles">{names}</crate::domain_types::ui::table::TableCell> }
+    leptos::view! { <crate::domain_types::with_owner::table::TableCell data_label="roles">{names}</crate::domain_types::with_owner::table::TableCell> }
 }
 
 pub(crate) fn admin_role_permissions(
@@ -29,7 +29,7 @@ pub(crate) fn admin_role_permissions(
             .map(server_admin_contract::domain_types::AdminPermissionSummary::name)
             .map(|name| name.as_ref().as_str()),
     ));
-    leptos::view! { <crate::domain_types::ui::table::TableCell data_label="permissions">{names}</crate::domain_types::ui::table::TableCell> }
+    leptos::view! { <crate::domain_types::with_owner::table::TableCell data_label="permissions">{names}</crate::domain_types::with_owner::table::TableCell> }
 }
 
 #[cfg(test)]

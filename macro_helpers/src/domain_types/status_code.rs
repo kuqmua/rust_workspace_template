@@ -77,7 +77,7 @@ impl StatusCode {
     #[must_use]
     pub fn to_http_status_code_token_stream(
         &self,
-    ) -> crate::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
+    ) -> crate::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream{
         let ts = match *self {
             Self::Continue100 => quote::quote! {CONTINUE},
             Self::SwitchingProtocols101 => quote::quote! {SWITCHING_PROTOCOLS},
@@ -142,21 +142,21 @@ impl StatusCode {
                 quote::quote! {NETWORK_AUTHENTICATION_REQUIRED}
             }
         };
-        crate::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
+        crate::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(
             quote::quote! {http::StatusCode::#ts},
         )
     }
     #[must_use]
     pub fn to_proc_macro_attr_view_token_stream(
         &self,
-    ) -> crate::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
+    ) -> crate::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream{
         match format!("#[{self}]").parse::<proc_macro2::TokenStream>() {
             Ok(v) => {
-                crate::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(v)
+                crate::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(v)
             }
             Err(error) => {
                 let message = error.to_string();
-                crate::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
+                crate::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(
                     quote::quote! {compile_error!(#message);},
                 )
             }
@@ -165,8 +165,8 @@ impl StatusCode {
     #[must_use]
     pub fn to_status_code_description_token_stream(
         &self,
-    ) -> crate::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
-        crate::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
+    ) -> crate::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream{
+        crate::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(
             match *self {
                 Self::Continue100 => quote::quote! {"continue"},
                 Self::SwitchingProtocols101 => quote::quote! {"switching protocols"},
@@ -246,8 +246,8 @@ impl StatusCode {
     #[must_use]
     pub fn to_status_code_token_stream(
         &self,
-    ) -> crate::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
-        crate::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
+    ) -> crate::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream{
+        crate::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(
             match *self {
                 Self::Continue100 => quote::quote! {100},
                 Self::SwitchingProtocols101 => quote::quote! {101},

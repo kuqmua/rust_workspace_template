@@ -101,7 +101,7 @@ pub(super) async fn get(
         super::super::StdAdminBool::from(false),
     )
     .await?;
-    let settings = crate::adapters::repository::settings::read_settings(
+    let settings = crate::adapters::repository::read_settings::read_settings(
         crate::adapters::repository::SqlxAdminRepositoryPoolRef::from(
             auth.state.as_ref().pool.as_ref(),
         ),
@@ -123,7 +123,7 @@ pub(super) async fn branding_view(
 pub(super) async fn branding_view_ref(
     auth: &super::AdminAuthReq,
 ) -> Result<server_admin_contract::domain_types::AdminBrandingView, super::AdminError> {
-    let settings = crate::adapters::repository::settings::read_settings(
+    let settings = crate::adapters::repository::read_settings::read_settings(
         crate::adapters::repository::SqlxAdminRepositoryPoolRef::from(
             auth.state.as_ref().pool.as_ref(),
         ),

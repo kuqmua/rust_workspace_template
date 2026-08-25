@@ -53,7 +53,7 @@ pub fn parse_generate_pg_table(
 pub fn build_generate_pg_table(
     parsed: SynParsedGeneratePgTableInput,
 ) -> Result<SynBuiltGeneratePgTableInput, GeneratePgTablePipelineError> {
-    let _shape = crate::domain_types::parse::struct_shape(
+    let _shape = crate::domain_types::struct_shape::struct_shape(
         workspace_macro_helpers::domain_types::SynDeriveInputRef::from(&parsed.0),
     )
     .map_err(|error| {

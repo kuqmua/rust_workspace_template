@@ -100,10 +100,6 @@ fn substantial_function_bodies_have_one_source_of_truth() {
             reason: constants_str::STRING_CONSTANT_MIGRATION_NORMALIZES_DISTINCT_FIXTURES,
         },
         ReviewedDuplicateGroup {
-            locations: constants_str::VALUE_0D652FF1,
-            reason: constants_str::VALUE_99A8FB72,
-        },
-        ReviewedDuplicateGroup {
             locations: constants_str::VALUE_082A5401,
             reason: constants_str::VALUE_61609B06,
         },

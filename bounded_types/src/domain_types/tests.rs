@@ -52,12 +52,13 @@ fn assert_above_max(error: super::BoundedValueError, actual: usize, max: usize) 
 
 #[test]
 fn string_bounds_are_inclusive() {
-    let value = super::text::BoundedString::<1, 3>::try_from(constants_str::ABC_ALT_3.to_owned())
-        .expect("6f09ad52 string_bounds_are_inclusive invariant must hold");
+    let value =
+        super::bounded_string::BoundedString::<1, 3>::try_from(constants_str::ABC_ALT_3.to_owned())
+            .expect("6f09ad52 string_bounds_are_inclusive invariant must hold");
     assert_eq!(value.as_ref(), constants_str::ABC_ALT_3);
     assert_eq!(value.len().get(), 3usize);
     assert_above_max(
-        super::text::BoundedString::<1, 2>::try_from(constants_str::ABC_ALT_3.to_owned())
+        super::bounded_string::BoundedString::<1, 2>::try_from(constants_str::ABC_ALT_3.to_owned())
             .expect_err(constants_str::VALUE_E4A5AF09),
         3usize,
         2usize,
@@ -67,14 +68,15 @@ fn string_bounds_are_inclusive() {
 #[test]
 fn string_rejects_below_minimum_and_invalid_bounds() {
     assert_eq!(
-        super::text::BoundedString::<1, 3>::try_from(String::new()).expect_err("0ef05b85"),
+        super::bounded_string::BoundedString::<1, 3>::try_from(String::new())
+            .expect_err("0ef05b85"),
         super::BoundedValueError::BelowMin {
             actual: super::BoundedLen::from(constants_usize::ZERO),
             min: super::BoundedLen::from(constants_usize::ONE),
         }
     );
     assert_eq!(
-        super::text::BoundedString::<2, 1>::try_from(constants_str::A.to_owned())
+        super::bounded_string::BoundedString::<2, 1>::try_from(constants_str::A.to_owned())
             .expect_err("2de961c6"),
         super::BoundedValueError::InvalidBounds {
             min: super::BoundedLen::from(2usize),
@@ -88,7 +90,7 @@ fn byte_string_bounds_count_utf8_bytes() {
     let unicode = String::from_utf8(vec![0xc3u8, 0xa9u8, 0xc3u8, 0xa9u8])
         .expect("9167aed1 byte_string_bounds_count_utf8_bytes invariant must hold");
     assert_above_max(
-        super::text::BoundedString::<0, 2>::try_from(unicode)
+        super::bounded_string::BoundedString::<0, 2>::try_from(unicode)
             .expect_err(constants_str::VALUE_311B8C86),
         4usize,
         2usize,
@@ -97,7 +99,7 @@ fn byte_string_bounds_count_utf8_bytes() {
 
 #[test]
 fn byte_string_schema_publishes_byte_extensions() {
-    let schema = <super::text::BoundedString<1, 4> as utoipa::PartialSchema>::schema();
+    let schema = <super::bounded_string::BoundedString<1, 4> as utoipa::PartialSchema>::schema();
     let utoipa::openapi::RefOr::T(utoipa::openapi::schema::Schema::Object(object)) = schema else {
         panic!("43ea6e9b");
     };
@@ -122,7 +124,9 @@ fn byte_string_schema_publishes_byte_extensions() {
 
 #[test]
 fn unbounded_byte_string_schema_omits_max_bytes_extension() {
-    let schema = <super::text::BoundedString<1, { usize::MAX }> as utoipa::PartialSchema>::schema();
+    let schema =
+        <super::bounded_string::BoundedString<1, { usize::MAX }> as utoipa::PartialSchema>::schema(
+        );
     let utoipa::openapi::RefOr::T(utoipa::openapi::schema::Schema::Object(object)) = schema else {
         panic!("43fbea64");
     };
@@ -291,9 +295,10 @@ fn serde_rejects_string_and_vec_values_outside_bounds() {
         ),
     );
     assert!(matches!(vec_result, Err(serde::de::value::Error { .. })));
-    let string_result = <super::text::BoundedString<2, 3> as serde::Deserialize>::deserialize(
-        serde::de::value::StringDeserializer::<serde::de::value::Error>::new(String::new()),
-    );
+    let string_result =
+        <super::bounded_string::BoundedString<2, 3> as serde::Deserialize>::deserialize(
+            serde::de::value::StringDeserializer::<serde::de::value::Error>::new(String::new()),
+        );
     assert!(matches!(string_result, Err(serde::de::value::Error { .. })));
 }
 

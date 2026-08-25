@@ -33,7 +33,7 @@ fn settings_page_uses_centered_layout_container() {
             .expect("d3f8287b settings_page_uses_centered_layout_container invariant must hold"),
     );
     let branding = server_admin_contract::domain_types::AdminBrandingView::from_settings(&settings);
-    let html = super::super::render_settings(&settings, &admin, &branding);
+    let html = super::super::render_admin_settings_page(&settings, &admin, &branding);
     assert!(
         html.as_ref()
             .contains("<section class=\"settings-grid\"><div data-name=\"Card\"")
@@ -97,7 +97,7 @@ fn editable_settings_render_every_input_kind_from_the_contract_catalog() {
     );
     let branding = server_admin_contract::domain_types::AdminBrandingView::from_settings(&settings);
 
-    let html = super::super::render_settings(&settings, &admin, &branding);
+    let html = super::super::render_admin_settings_page(&settings, &admin, &branding);
 
     assert!(html.as_ref().contains("name=\"site_name\""));
     assert!(html.as_ref().contains("name=\"main_logo\""));

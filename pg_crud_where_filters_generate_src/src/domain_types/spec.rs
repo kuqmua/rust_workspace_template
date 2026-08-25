@@ -129,7 +129,12 @@ mod tests {
         ]
         .into_iter()
         .for_each(|spec| {
-            assert!(crate::domain_types::contract_tests::filter_spec_contract_is_valid(spec).get());
+            assert!(
+                crate::domain_types::filter_spec_contract_is_valid::filter_spec_contract_is_valid(
+                    spec
+                )
+                .get()
+            );
         });
     }
 }

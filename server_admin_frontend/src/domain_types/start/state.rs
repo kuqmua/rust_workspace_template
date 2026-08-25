@@ -1,5 +1,5 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
-pub(in crate::domain_types::app) enum AdminLoadState {
+pub(in crate::domain_types::start) enum AdminLoadState {
     Empty(server_admin_contract::domain_types::AuthenticatedAdmin),
     Error(AdminTableLoadError),
     Loading,
@@ -31,7 +31,7 @@ pub(in crate::domain_types::app) enum AdminLoadState {
 }
 
 impl AdminLoadState {
-    pub(in crate::domain_types::app) const fn admin(
+    pub(in crate::domain_types::start) const fn admin(
         &self,
     ) -> Option<&server_admin_contract::domain_types::AuthenticatedAdmin> {
         match self {
@@ -49,7 +49,7 @@ impl AdminLoadState {
 }
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, thiserror::Error)]
-pub(in crate::domain_types::app) enum AdminTableLoadError {
+pub(in crate::domain_types::start) enum AdminTableLoadError {
     #[error("The table request failed.")]
     Fetch,
     #[error("The server returned status {0} for {1}.")]

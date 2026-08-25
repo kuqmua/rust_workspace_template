@@ -73,11 +73,11 @@
 ../server_admin_core/src/domain_types.rs:AdminIdTryFromI64Error
 ../server_admin_frontend/src/domain_types/ssr.rs:AdminSsrHtmlTryFromStringError
 ../server_admin_frontend/src/domain_types/ssr.rs:AdminSsrTextTryFromStringError
-../server_observability/src/domain_types/bootstrap.rs:OpentelemetryOtlpExporterBuildError
-../server_observability/src/domain_types/bootstrap.rs:OpentelemetrySdkObservabilityShutdownError
-../server_observability/src/domain_types/bootstrap.rs:TracingSubscriberInitError
-../server_observability/src/domain_types/capture.rs:InfrastructureTestError
-../server_observability/src/domain_types/capture.rs:ObservedError
+../server_observability/src/service_tracing_format/bootstrap.rs:OpentelemetryOtlpExporterBuildError
+../server_observability/src/service_tracing_format/bootstrap.rs:OpentelemetrySdkObservabilityShutdownError
+../server_observability/src/service_tracing_format/bootstrap.rs:TracingSubscriberInitError
+../server_observability/src/service_tracing_format/capture.rs:InfrastructureTestError
+../server_observability/src/service_tracing_format/capture.rs:ObservedError
 ../server_runtime_core/src/domain_types/exclusive_run.rs:ExclusiveRunAlreadyActive
 ../server_runtime_core/src/domain_types/history.rs:StdAsyncRunHistoryMaximumLenTryFromUsizeError
 ../server_runtime_core/src/domain_types/lease_registry.rs:StdLeaseStaleTimeoutError

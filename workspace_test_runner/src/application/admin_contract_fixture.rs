@@ -1,5 +1,5 @@
 #[allow(clippy::single_call_fn)] // the mode dispatcher owns the single fixture-generation entry point
-pub(super) fn run() -> Result<(), ()> {
+pub(super) fn admin_contract_fixture() -> Result<(), ()> {
     (|| {
         let no_body_schema = serde_json::to_value(
             <server_admin_contract::domain_types::AdminNoBody as utoipa::PartialSchema>::schema(),

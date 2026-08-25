@@ -5,7 +5,7 @@ use leptos::prelude::{ClassAttribute, CustomAttribute, ElementChild};
     unreachable_pub,
     reason = "Leptos component visibility is required for composition from the parent app module"
 )]
-pub(in crate::domain_types::app) fn AdminSessionsView(
+pub(in crate::domain_types::start) fn AdminSessionsView(
     page: server_admin_contract::domain_types::AdminSessionsPage,
 ) -> impl leptos::prelude::IntoView {
     let total = page.total();
@@ -18,23 +18,23 @@ pub(in crate::domain_types::app) fn AdminSessionsView(
         let revoke_session_id = item.id().clone();
         let dialog_id = format!("revoke-session-{revoke_session_id}");
         leptos::view! {
-            <crate::domain_types::ui::table::TableRow>
-                <crate::domain_types::ui::table::TableCell data_label="session">{session_id}</crate::domain_types::ui::table::TableCell>
-                <crate::domain_types::ui::table::TableCell data_label="created">{created_at}</crate::domain_types::ui::table::TableCell>
-                <crate::domain_types::ui::table::TableCell data_label="expires">{expires_at}</crate::domain_types::ui::table::TableCell>
-                <crate::domain_types::ui::table::TableCell data_label="current"><crate::domain_types::ui::badge::AdminBadge variant=if is_current { crate::domain_types::ui::badge::AdminBadgeVariant::Success } else { crate::domain_types::ui::badge::AdminBadgeVariant::Neutral }>{current_text}</crate::domain_types::ui::badge::AdminBadge></crate::domain_types::ui::table::TableCell>
-                <crate::domain_types::ui::table::TableCell data_label="actions"><div class="table-actions"><crate::domain_types::ui::alert_dialog::AdminAlertDialog id=dialog_id title="Revoke session?" description="This administrator session will be signed out immediately." trigger="Revoke session" confirm="Revoke" on_confirm=leptos::prelude::Callback::new(move |()| {
+            <crate::domain_types::with_owner::table::TableRow>
+                <crate::domain_types::with_owner::table::TableCell data_label="session">{session_id}</crate::domain_types::with_owner::table::TableCell>
+                <crate::domain_types::with_owner::table::TableCell data_label="created">{created_at}</crate::domain_types::with_owner::table::TableCell>
+                <crate::domain_types::with_owner::table::TableCell data_label="expires">{expires_at}</crate::domain_types::with_owner::table::TableCell>
+                <crate::domain_types::with_owner::table::TableCell data_label="current"><crate::domain_types::with_owner::badge::AdminBadge variant=if is_current { crate::domain_types::with_owner::badge::AdminBadgeVariant::Success } else { crate::domain_types::with_owner::badge::AdminBadgeVariant::Neutral }>{current_text}</crate::domain_types::with_owner::badge::AdminBadge></crate::domain_types::with_owner::table::TableCell>
+                <crate::domain_types::with_owner::table::TableCell data_label="actions"><div class="table-actions"><crate::domain_types::with_owner::admin_alert_dialog::AdminAlertDialog id=dialog_id title="Revoke session?" description="This administrator session will be signed out immediately." trigger="Revoke session" confirm="Revoke" on_confirm=leptos::prelude::Callback::new(move |()| {
                     if let Ok(path) = super::http::url::admin_route_path_url(server_admin_contract::domain_types::admin_parameterized_route_path::<server_admin_contract::domain_types::AdminRevokeSessionRoute>(&revoke_session_id)) {
                         super::mutation::reload_after(super::mutation::AdminMutationMethod::Delete, path, server_admin_contract::domain_types::AdminNoBody);
                     }
-                }) /></div></crate::domain_types::ui::table::TableCell>
-            </crate::domain_types::ui::table::TableRow>
+                }) /></div></crate::domain_types::with_owner::table::TableCell>
+            </crate::domain_types::with_owner::table::TableRow>
         }
     }).collect::<Vec<_>>();
     leptos::view! {
         <section class="table-page" data-renderer="csr">
-            <crate::domain_types::ui::table::TableWrapper><crate::domain_types::ui::table::Table><crate::domain_types::ui::table::TableHeader><crate::domain_types::ui::table::TableRow><crate::domain_types::ui::table::TableHead>"session"</crate::domain_types::ui::table::TableHead><crate::domain_types::ui::table::TableHead>"created"</crate::domain_types::ui::table::TableHead><crate::domain_types::ui::table::TableHead>"expires"</crate::domain_types::ui::table::TableHead><crate::domain_types::ui::table::TableHead>"current"</crate::domain_types::ui::table::TableHead><crate::domain_types::ui::table::TableHead>"actions"</crate::domain_types::ui::table::TableHead></crate::domain_types::ui::table::TableRow></crate::domain_types::ui::table::TableHeader>
-            <crate::domain_types::ui::table::TableBody>{rows}</crate::domain_types::ui::table::TableBody></crate::domain_types::ui::table::Table></crate::domain_types::ui::table::TableWrapper>
+            <crate::domain_types::with_owner::table::TableWrapper><crate::domain_types::with_owner::table::Table><crate::domain_types::with_owner::table::TableHeader><crate::domain_types::with_owner::table::TableRow><crate::domain_types::with_owner::table::TableHead>"session"</crate::domain_types::with_owner::table::TableHead><crate::domain_types::with_owner::table::TableHead>"created"</crate::domain_types::with_owner::table::TableHead><crate::domain_types::with_owner::table::TableHead>"expires"</crate::domain_types::with_owner::table::TableHead><crate::domain_types::with_owner::table::TableHead>"current"</crate::domain_types::with_owner::table::TableHead><crate::domain_types::with_owner::table::TableHead>"actions"</crate::domain_types::with_owner::table::TableHead></crate::domain_types::with_owner::table::TableRow></crate::domain_types::with_owner::table::TableHeader>
+            <crate::domain_types::with_owner::table::TableBody>{rows}</crate::domain_types::with_owner::table::TableBody></crate::domain_types::with_owner::table::Table></crate::domain_types::with_owner::table::TableWrapper>
             <p>{format!("{} total", total)}</p>
         </section>
     }

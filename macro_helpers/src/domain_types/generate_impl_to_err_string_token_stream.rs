@@ -3,7 +3,8 @@ pub fn generate_impl_to_err_string_token_stream(
     ident_token_stream: &dyn quote::ToTokens,
     ident_generics_token_stream: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> crate::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
+) -> crate::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream
+{
     let self_snake_case = naming::domain_types::SelfSnakeCase;
     let to_err_string_snake_case = naming::domain_types::ToErrStringSnakeCase;
     let to_err_string_upper_camel_case = naming::domain_types::ToErrStringUpperCamelCase;

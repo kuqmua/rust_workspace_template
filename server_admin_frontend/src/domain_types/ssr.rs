@@ -7,14 +7,14 @@
 mod crud;
 mod data_tables;
 mod document;
-mod permissions;
-mod profile;
-mod roles;
-mod sessions;
-mod settings;
+mod render_permissions;
+mod render_profile;
+mod render_roles;
+mod render_sessions;
+mod render_settings;
+mod render_users;
 mod table;
 mod text_page;
-mod users;
 
 #[cfg(test)]
 mod tests;
@@ -174,7 +174,7 @@ pub fn render_users(
     admin: &server_admin_contract::domain_types::AuthenticatedAdmin,
     branding: &server_admin_contract::domain_types::AdminBrandingView,
 ) -> AdminSsrHtml {
-    users::render(page, query, admin, branding)
+    render_users::render_users(page, query, admin, branding)
 }
 
 #[must_use]
@@ -184,7 +184,7 @@ pub fn render_roles(
     admin: &server_admin_contract::domain_types::AuthenticatedAdmin,
     branding: &server_admin_contract::domain_types::AdminBrandingView,
 ) -> AdminSsrHtml {
-    roles::render(page, query, admin, branding)
+    render_roles::render_roles(page, query, admin, branding)
 }
 
 #[must_use]
@@ -222,13 +222,13 @@ pub fn render_role_manage(
 }
 
 #[must_use]
-pub fn render_permissions(
+pub fn render_admin_permissions_page(
     page: &server_admin_contract::domain_types::AdminPermissionsPage,
     query: &server_admin_contract::domain_types::AdminTableQuery,
     admin: &server_admin_contract::domain_types::AuthenticatedAdmin,
     branding: &server_admin_contract::domain_types::AdminBrandingView,
 ) -> AdminSsrHtml {
-    permissions::render_permissions(page, query, admin, branding)
+    render_permissions::render_permissions(page, query, admin, branding)
 }
 
 #[must_use]
@@ -238,7 +238,7 @@ pub fn render_data_tables(
     admin: &server_admin_contract::domain_types::AuthenticatedAdmin,
     branding: &server_admin_contract::domain_types::AdminBrandingView,
 ) -> AdminSsrHtml {
-    data_tables::ssr::render_data_tables(table, query, admin, branding)
+    data_tables::render_data_tables::render_data_tables(table, query, admin, branding)
 }
 
 #[must_use]
@@ -261,30 +261,30 @@ pub fn render_admin_csr(
 }
 
 #[must_use]
-pub fn render_sessions(
+pub fn render_admin_sessions_page(
     page: &server_admin_contract::domain_types::AdminSessionsPage,
     query: &server_admin_contract::domain_types::AdminTableQuery,
     admin: &server_admin_contract::domain_types::AuthenticatedAdmin,
     branding: &server_admin_contract::domain_types::AdminBrandingView,
 ) -> AdminSsrHtml {
-    sessions::render_sessions(page, query, admin, branding)
+    render_sessions::render_sessions(page, query, admin, branding)
 }
 
 #[must_use]
-pub fn render_profile(
+pub fn render_admin_profile_page(
     admin: &server_admin_contract::domain_types::AuthenticatedAdmin,
     branding: &server_admin_contract::domain_types::AdminBrandingView,
 ) -> AdminSsrHtml {
-    profile::render_profile(admin, branding)
+    render_profile::render_profile(admin, branding)
 }
 
 #[must_use]
-pub fn render_settings(
+pub fn render_admin_settings_page(
     view: &server_admin_contract::domain_types::AdminSettingsView,
     admin: &server_admin_contract::domain_types::AuthenticatedAdmin,
     branding: &server_admin_contract::domain_types::AdminBrandingView,
 ) -> AdminSsrHtml {
-    settings::render_settings(view, admin, branding)
+    render_settings::render_settings(view, admin, branding)
 }
 
 #[must_use]

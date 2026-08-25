@@ -1,6 +1,7 @@
 pub fn pagination_start_end_initialization_token_stream(
     v: &dyn quote::ToTokens,
-) -> crate::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
+) -> crate::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream
+{
     quote::quote! {
         let start = #v.pagination.start();
         let end = #v.pagination.end();

@@ -509,7 +509,7 @@ constants_str_macros::define_str_constants! {
         SERVER_ADMIN_SRC_AUTH_SESSION_RS = ["../server_admin/src/auth/session.rs"];
         SERVER_ADMIN_SRC_CLEANUP_RS = ["../server_admin/src/cleanup.rs"];
         SERVER_ADMIN_SRC_MIGRATIONS_RS = ["../server_admin/src/migrations.rs"];
-        SERVER_ADMIN_FRONTEND_SRC_APP = ["../server_admin_frontend/src/domain_types/app/"];
+        SERVER_ADMIN_FRONTEND_SRC_APP = ["../server_admin_frontend/src/domain_types/start/"];
         STR_CONSTANTS_SRC_LIB_RS = ["../constants_str/src/lib.rs"];
         TESTS_SRC_CODE_STYLE = ["../tests/src/code_style"];
         WORKSPACE_TEST_RUNNER_SRC = ["../workspace_test_runner/src/"];
@@ -1868,6 +1868,8 @@ constants_str_macros::define_str_constants! {
         LLVM_COV = ["llvm-cov"];
         LOCATION_ALT = ["location"];
         LOCATION_RS = ["location.rs"];
+        MAIN = ["main"];
+        MOD = ["mod"];
         LOCATION_LIB = ["location_lib"];
         DOMAIN_TYPES = ["domain_types"];
         LOCATION_TO_SCHEMA = ["location_to_schema"];
@@ -2174,7 +2176,7 @@ constants_str_macros::define_str_constants! {
         SERVER_GRACEFUL_SHUTDOWN_TIMED_OUT = ["server graceful shutdown timed out"];
         SERVER_RETURNED_AN_ERROR_RESPONSE = ["server returned an error response"];
         SERVER_SRC_APPLICATION_RS = ["server/src/application.rs"];
-        SERVER_SRC_APPLICATION_ADMIN_API_RS = ["server/src/application/admin_api.rs"];
+        SERVER_SRC_APPLICATION_ADMIN_API_RS = ["server/src/application/routes.rs"];
         SERVER_ADMIN_HTML_MODULE_DIR = ["server_admin/src/application/html/"];
         SERVER_ADMIN_HTML_ASSIGNMENT_ENDPOINT_DUPLICATE_LOCATIONS = ["../server_admin/src/application/html/actions/roles.rs::role_permissions\n../server_admin/src/application/html/actions/users.rs::user_roles"];
         SERVER_ADMIN_HTML_ASSIGNMENT_ENDPOINT_DUPLICATE_REASON = ["typed route endpoints retain distinct request extractors and resource targets while delegating shared assignment logic to assignment_action"];
@@ -2191,61 +2193,61 @@ constants_str_macros::define_str_constants! {
         SERVER_ADMIN_SRC_APPLICATION_USER_MUTATIONS_RS = ["server_admin/src/application/users/mutations.rs"];
         SERVER_ADMIN_SRC_APPLICATION_USER_QUERIES_RS = ["server_admin/src/application/users/queries.rs"];
         SERVER_ADMIN_SRC_PASSWORD_RS = ["server_admin/src/domain_types/password.rs"];
-        SERVER_ADMIN_FRONTEND_SRC_APP_RS = ["server_admin_frontend/src/domain_types/app.rs"];
+        SERVER_ADMIN_FRONTEND_SRC_APP_RS = ["server_admin_frontend/src/domain_types/start.rs"];
         SERVER_ADMIN_FRONTEND_SRC_SHARED_RS = ["server_admin_frontend/src/domain_types/shared.rs"];
-        SERVER_ADMIN_FRONTEND_SRC_UI = ["../server_admin_frontend/src/domain_types/ui"];
-        SERVER_ADMIN_FRONTEND_SRC_APP_FORMS_RS = ["server_admin_frontend/src/domain_types/app/forms.rs"];
-        SERVER_ADMIN_FRONTEND_SRC_APP_PAGES_RS = ["server_admin_frontend/src/domain_types/app/pages.rs"];
-        SERVER_ADMIN_FRONTEND_SRC_APP_TABLES_RS = ["server_admin_frontend/src/domain_types/app/tables.rs"];
-        SERVER_ADMIN_FRONTEND_SRC_APP_DATA_GRID_RS = ["server_admin_frontend/src/domain_types/app/data_grid.rs"];
+        SERVER_ADMIN_FRONTEND_SRC_UI = ["../server_admin_frontend/src/domain_types/with_owner"];
+        SERVER_ADMIN_FRONTEND_SRC_APP_FORMS_RS = ["server_admin_frontend/src/domain_types/start/forms.rs"];
+        SERVER_ADMIN_FRONTEND_SRC_APP_PAGES_RS = ["server_admin_frontend/src/domain_types/start/pages.rs"];
+        SERVER_ADMIN_FRONTEND_SRC_APP_TABLES_RS = ["server_admin_frontend/src/domain_types/start/tables.rs"];
+        SERVER_ADMIN_FRONTEND_SRC_APP_DATA_GRID_RS = ["server_admin_frontend/src/domain_types/start/admin_data_grid.rs"];
         INLINED_ADMIN_OPERATIONS_DISCARD_TYPED_CONVERSION_DETAILS_AT_THE_HTTP_BOUNDARY = ["inlined administrator operations discard typed conversion details at the HTTP boundary"];
         GENERATED_ADMIN_TABLE_ROUTING_REQUIRES_SHARED_APPLICATION_STATE_DYNAMIC_DISPATCH = ["generated administrator table routing requires shared application state dynamic dispatch"];
-        SERVER_ADMIN_FRONTEND_SRC_APP_NAVIGATION_RS = ["server_admin_frontend/src/domain_types/app/navigation.rs"];
-        SERVER_ADMIN_FRONTEND_SRC_APP_PAGINATION_RS = ["server_admin_frontend/src/domain_types/app/pagination.rs"];
-        SERVER_ADMIN_FRONTEND_SRC_APP_PERMISSIONS_RS = ["server_admin_frontend/src/domain_types/app/permissions.rs"];
-        SERVER_ADMIN_FRONTEND_SRC_APP_PROFILE_RS = ["server_admin_frontend/src/domain_types/app/profile.rs"];
-        SERVER_ADMIN_FRONTEND_SRC_APP_PROFILE_ACCOUNT_RS = ["server_admin_frontend/src/domain_types/app/profile/account.rs"];
-        SERVER_ADMIN_FRONTEND_SRC_APP_PROFILE_PASSWORD_RS = ["server_admin_frontend/src/domain_types/app/profile/password.rs"];
-        SERVER_ADMIN_FRONTEND_SRC_APP_ROLES_RS = ["server_admin_frontend/src/domain_types/app/roles.rs"];
-        SERVER_ADMIN_FRONTEND_SRC_APP_ROLES_ROW_RS = ["server_admin_frontend/src/domain_types/app/roles/row.rs"];
-        SERVER_ADMIN_FRONTEND_SRC_APP_SESSIONS_RS = ["server_admin_frontend/src/domain_types/app/sessions.rs"];
-        SERVER_ADMIN_FRONTEND_SRC_APP_SETTINGS_RS = ["server_admin_frontend/src/domain_types/app/settings.rs"];
-        SERVER_ADMIN_FRONTEND_SRC_APP_SHELL_RS = ["server_admin_frontend/src/domain_types/app/shell.rs"];
-        SERVER_ADMIN_FRONTEND_SRC_APP_USERS_RS = ["server_admin_frontend/src/domain_types/app/users.rs"];
-        SERVER_ADMIN_FRONTEND_SRC_APP_USERS_ROW_RS = ["server_admin_frontend/src/domain_types/app/users/row.rs"];
+        SERVER_ADMIN_FRONTEND_SRC_APP_NAVIGATION_RS = ["server_admin_frontend/src/domain_types/start/admin_nav.rs"];
+        SERVER_ADMIN_FRONTEND_SRC_APP_PAGINATION_RS = ["server_admin_frontend/src/domain_types/start/admin_pagination.rs"];
+        SERVER_ADMIN_FRONTEND_SRC_APP_PERMISSIONS_RS = ["server_admin_frontend/src/domain_types/start/admin_permissions_view.rs"];
+        SERVER_ADMIN_FRONTEND_SRC_APP_PROFILE_RS = ["server_admin_frontend/src/domain_types/start/admin_profile_view.rs"];
+        SERVER_ADMIN_FRONTEND_SRC_APP_PROFILE_ACCOUNT_RS = ["server_admin_frontend/src/domain_types/start/admin_profile_view/admin_profile_account.rs"];
+        SERVER_ADMIN_FRONTEND_SRC_APP_PROFILE_PASSWORD_RS = ["server_admin_frontend/src/domain_types/start/admin_profile_view/admin_change_password.rs"];
+        SERVER_ADMIN_FRONTEND_SRC_APP_ROLES_RS = ["server_admin_frontend/src/domain_types/start/admin_roles_view.rs"];
+        SERVER_ADMIN_FRONTEND_SRC_APP_ROLES_ROW_RS = ["server_admin_frontend/src/domain_types/start/admin_roles_view/admin_role_row.rs"];
+        SERVER_ADMIN_FRONTEND_SRC_APP_SESSIONS_RS = ["server_admin_frontend/src/domain_types/start/admin_sessions_view.rs"];
+        SERVER_ADMIN_FRONTEND_SRC_APP_SETTINGS_RS = ["server_admin_frontend/src/domain_types/start/admin_settings_view.rs"];
+        SERVER_ADMIN_FRONTEND_SRC_APP_SHELL_RS = ["server_admin_frontend/src/domain_types/start/admin_app.rs"];
+        SERVER_ADMIN_FRONTEND_SRC_APP_USERS_RS = ["server_admin_frontend/src/domain_types/start/admin_users_view.rs"];
+        SERVER_ADMIN_FRONTEND_SRC_APP_USERS_ROW_RS = ["server_admin_frontend/src/domain_types/start/admin_users_view/admin_user_row.rs"];
         SERVER_ADMIN_FRONTEND_SRC_SHARED_ADMIN_TABLE_CELLS_RS = ["server_admin_frontend/src/domain_types/shared/admin_table_cells.rs"];
-        SERVER_ADMIN_FRONTEND_SRC_SHARED_DATA_GRID_RS = ["server_admin_frontend/src/domain_types/shared/data_grid.rs"];
-        SERVER_ADMIN_FRONTEND_SRC_SHARED_DATA_GRID_COLUMN_RS = ["server_admin_frontend/src/domain_types/shared/data_grid/column.rs"];
-        SERVER_ADMIN_FRONTEND_SRC_SHARED_DATA_GRID_COLUMN_FILTER_RS = ["server_admin_frontend/src/domain_types/shared/data_grid/column/filter.rs"];
-        SERVER_ADMIN_FRONTEND_SRC_SHARED_DATA_GRID_COLUMN_FILTER_OPTION_RS = ["server_admin_frontend/src/domain_types/shared/data_grid/column/filter/option.rs"];
-        SERVER_ADMIN_FRONTEND_SRC_SHARED_DATA_GRID_COLUMN_FILTER_OPTION_RANGE_END_RS = ["server_admin_frontend/src/domain_types/shared/data_grid/column/filter/option/range_end.rs"];
-        SERVER_ADMIN_FRONTEND_SRC_SHARED_DATA_GRID_COLUMN_FILTER_OPTION_VALUE_RS = ["server_admin_frontend/src/domain_types/shared/data_grid/column/filter/option/value.rs"];
-        SERVER_ADMIN_FRONTEND_SRC_SHARED_DATA_GRID_ROW_RS = ["server_admin_frontend/src/domain_types/shared/data_grid/row.rs"];
+        SERVER_ADMIN_FRONTEND_SRC_SHARED_DATA_GRID_RS = ["server_admin_frontend/src/domain_types/shared/admin_data_table_grid.rs"];
+        SERVER_ADMIN_FRONTEND_SRC_SHARED_DATA_GRID_COLUMN_RS = ["server_admin_frontend/src/domain_types/shared/admin_data_table_grid/admin_data_grid_column.rs"];
+        SERVER_ADMIN_FRONTEND_SRC_SHARED_DATA_GRID_COLUMN_FILTER_RS = ["server_admin_frontend/src/domain_types/shared/admin_data_table_grid/admin_data_grid_column/filter.rs"];
+        SERVER_ADMIN_FRONTEND_SRC_SHARED_DATA_GRID_COLUMN_FILTER_OPTION_RS = ["server_admin_frontend/src/domain_types/shared/admin_data_table_grid/admin_data_grid_column/filter/admin_data_grid_filter_option.rs"];
+        SERVER_ADMIN_FRONTEND_SRC_SHARED_DATA_GRID_COLUMN_FILTER_OPTION_RANGE_END_RS = ["server_admin_frontend/src/domain_types/shared/admin_data_table_grid/admin_data_grid_column/filter/admin_data_grid_filter_option/admin_filter_range_end.rs"];
+        SERVER_ADMIN_FRONTEND_SRC_SHARED_DATA_GRID_COLUMN_FILTER_OPTION_VALUE_RS = ["server_admin_frontend/src/domain_types/shared/admin_data_table_grid/admin_data_grid_column/filter/admin_data_grid_filter_option/admin_filter_value.rs"];
+        SERVER_ADMIN_FRONTEND_SRC_SHARED_DATA_GRID_ROW_RS = ["server_admin_frontend/src/domain_types/shared/admin_data_table_grid/admin_data_grid_row.rs"];
         SERVER_ADMIN_FRONTEND_SRC_SHARED_SETTINGS_RS = ["server_admin_frontend/src/domain_types/shared/settings.rs"];
         SERVER_ADMIN_FRONTEND_SRC_SHARED_SETTINGS_INPUT_RS = ["server_admin_frontend/src/domain_types/shared/settings/input.rs"];
-        SERVER_ADMIN_FRONTEND_SRC_SHARED_SETTINGS_INPUT_TEXT_RS = ["server_admin_frontend/src/domain_types/shared/settings/input/text.rs"];
-        SERVER_ADMIN_FRONTEND_SRC_SHARED_SETTINGS_INPUT_TEXTAREA_RS = ["server_admin_frontend/src/domain_types/shared/settings/input/textarea.rs"];
+        SERVER_ADMIN_FRONTEND_SRC_SHARED_SETTINGS_INPUT_TEXT_RS = ["server_admin_frontend/src/domain_types/shared/settings/input/admin_setting_text.rs"];
+        SERVER_ADMIN_FRONTEND_SRC_SHARED_SETTINGS_INPUT_TEXTAREA_RS = ["server_admin_frontend/src/domain_types/shared/settings/input/admin_setting_textarea.rs"];
         SERVER_ADMIN_FRONTEND_SRC_SHARED_TABLE_FILTERS_RS = ["server_admin_frontend/src/domain_types/shared/table_filters.rs"];
-        SERVER_ADMIN_FRONTEND_SRC_SHARED_TABLE_FILTERS_FILTER_RS = ["server_admin_frontend/src/domain_types/shared/table_filters/filter.rs"];
+        SERVER_ADMIN_FRONTEND_SRC_SHARED_TABLE_FILTERS_FILTER_RS = ["server_admin_frontend/src/domain_types/shared/table_filters/admin_filter_hidden_inputs.rs"];
         SERVER_ADMIN_FRONTEND_SRC_SHARED_TABLE_FILTERS_QUERY_RS = ["server_admin_frontend/src/domain_types/shared/table_filters/query.rs"];
-        SERVER_ADMIN_FRONTEND_SRC_SSR_ROLES_RS = ["server_admin_frontend/src/domain_types/ssr/roles.rs"];
-        SERVER_ADMIN_FRONTEND_SRC_SSR_ROLES_ROW_RS = ["server_admin_frontend/src/domain_types/ssr/roles/row.rs"];
+        SERVER_ADMIN_FRONTEND_SRC_SSR_ROLES_RS = ["server_admin_frontend/src/domain_types/ssr/render_roles.rs"];
+        SERVER_ADMIN_FRONTEND_SRC_SSR_ROLES_ROW_RS = ["server_admin_frontend/src/domain_types/ssr/render_roles/admin_role_row.rs"];
         SERVER_ADMIN_FRONTEND_SRC_SSR_DATA_TABLES_RS = ["server_admin_frontend/src/domain_types/ssr/data_tables.rs"];
         SERVER_ADMIN_FRONTEND_SRC_SSR_DATA_TABLES_CSR_RS = ["server_admin_frontend/src/domain_types/ssr/data_tables/csr.rs"];
-        SERVER_ADMIN_FRONTEND_SRC_SSR_DATA_TABLES_SSR_RS = ["server_admin_frontend/src/domain_types/ssr/data_tables/ssr.rs"];
+        SERVER_ADMIN_FRONTEND_SRC_SSR_DATA_TABLES_SSR_RS = ["server_admin_frontend/src/domain_types/ssr/data_tables/render_data_tables.rs"];
         SERVER_ADMIN_FRONTEND_SRC_SSR_DOCUMENT_RS = ["server_admin_frontend/src/domain_types/ssr/document.rs"];
         SERVER_ADMIN_FRONTEND_SRC_SSR_DOCUMENT_PAGE_RS = ["server_admin_frontend/src/domain_types/ssr/document/page.rs"];
-        SERVER_ADMIN_FRONTEND_SRC_SSR_DOCUMENT_PAGE_NAVIGATION_RS = ["server_admin_frontend/src/domain_types/ssr/document/page/navigation.rs"];
-        SERVER_ADMIN_FRONTEND_SRC_SSR_DOCUMENT_SIGN_IN_RS = ["server_admin_frontend/src/domain_types/ssr/document/sign_in.rs"];
+        SERVER_ADMIN_FRONTEND_SRC_SSR_DOCUMENT_PAGE_NAVIGATION_RS = ["server_admin_frontend/src/domain_types/ssr/document/page/admin_nav.rs"];
+        SERVER_ADMIN_FRONTEND_SRC_SSR_DOCUMENT_SIGN_IN_RS = ["server_admin_frontend/src/domain_types/ssr/document/render.rs"];
         SERVER_ADMIN_FRONTEND_SRC_SSR_CRUD_RS = ["server_admin_frontend/src/domain_types/ssr/crud.rs"];
-        SERVER_ADMIN_FRONTEND_SRC_SSR_PERMISSIONS_RS = ["server_admin_frontend/src/domain_types/ssr/permissions.rs"];
-        SERVER_ADMIN_FRONTEND_SRC_SSR_PROFILE_RS = ["server_admin_frontend/src/domain_types/ssr/profile.rs"];
-        SERVER_ADMIN_FRONTEND_SRC_SSR_SESSIONS_RS = ["server_admin_frontend/src/domain_types/ssr/sessions.rs"];
-        SERVER_ADMIN_FRONTEND_SRC_SSR_SETTINGS_RS = ["server_admin_frontend/src/domain_types/ssr/settings.rs"];
+        SERVER_ADMIN_FRONTEND_SRC_SSR_PERMISSIONS_RS = ["server_admin_frontend/src/domain_types/ssr/render_permissions.rs"];
+        SERVER_ADMIN_FRONTEND_SRC_SSR_PROFILE_RS = ["server_admin_frontend/src/domain_types/ssr/render_profile.rs"];
+        SERVER_ADMIN_FRONTEND_SRC_SSR_SESSIONS_RS = ["server_admin_frontend/src/domain_types/ssr/render_sessions.rs"];
+        SERVER_ADMIN_FRONTEND_SRC_SSR_SETTINGS_RS = ["server_admin_frontend/src/domain_types/ssr/render_settings.rs"];
         SERVER_ADMIN_FRONTEND_SRC_SSR_TABLE_RS = ["server_admin_frontend/src/domain_types/ssr/table.rs"];
         SERVER_ADMIN_FRONTEND_SRC_SSR_TEXT_PAGE_RS = ["server_admin_frontend/src/domain_types/ssr/text_page.rs"];
-        SERVER_ADMIN_FRONTEND_SRC_SSR_USERS_RS = ["server_admin_frontend/src/domain_types/ssr/users.rs"];
-        SERVER_ADMIN_FRONTEND_SRC_SSR_USERS_ROW_RS = ["server_admin_frontend/src/domain_types/ssr/users/row.rs"];
+        SERVER_ADMIN_FRONTEND_SRC_SSR_USERS_RS = ["server_admin_frontend/src/domain_types/ssr/render_users.rs"];
+        SERVER_ADMIN_FRONTEND_SRC_SSR_USERS_ROW_RS = ["server_admin_frontend/src/domain_types/ssr/render_users/admin_user_row.rs"];
         SERVER_ADMIN_FRONTEND_SRC_LIB_RS = ["server_admin_frontend/src/domain_types.rs"];
         SERVER_RUNTIME_SRC_BOUNDED_READ_RS = ["server_runtime_http/src/domain_types/bounded_read.rs"];
         SERVER_RUNTIME_SRC_HEALTH_RS = ["server_runtime/src/health.rs"];
@@ -2844,7 +2846,7 @@ pub const CODE_STYLE_DIRECT_FS_OWNER_SUFFIXES: [&str; 15] = [
     "/file_storage/src/domain_types.rs",
     "/init_env_files/src/domain_types.rs",
     "/init_env_files/src/adapters.rs",
-    "/init_env_files/src/application.rs",
+    "/init_env_files/src/run.rs",
     CODE_STYLE_MACRO_CLIPPY_FS_OWNER_SUFFIX,
     CODE_STYLE_MACROS_HLP_TEST_FS_OWNER_SUFFIX,
     CODE_STYLE_MACROS_HLP_WRITE_STRING_FS_OWNER_SUFFIX,
@@ -2919,7 +2921,7 @@ pub const CODE_STYLE_RUNTIME_TEST_HELPER_REASONS: [&str; 2] = [
 ];
 pub const CODE_STYLE_RUNTIME_ARC_OWNER_SUFFIXES: [&str; 7] = [
     "notification_service/src/adapters/routes.rs",
-    "server/src/adapters/bootstrap.rs",
+    "server/src/adapters/mk_pg_pool.rs",
     SERVER_SRC_APPLICATION_RS,
     SERVER_SRC_APPLICATION_ADMIN_API_RS,
     SERVER_ADMIN_SRC_PASSWORD_RS,
@@ -3008,19 +3010,19 @@ pub const CODE_STYLE_LEPTOS_PRELUDE_SUFFIXES: [&str; 58] = [
     SERVER_ADMIN_FRONTEND_SRC_SSR_TEXT_PAGE_RS,
     SERVER_ADMIN_FRONTEND_SRC_SSR_USERS_RS,
     SERVER_ADMIN_FRONTEND_SRC_SSR_USERS_ROW_RS,
-    "server_admin_frontend/src/domain_types/ui/alert.rs",
-    "server_admin_frontend/src/domain_types/ui/alert_dialog.rs",
-    "server_admin_frontend/src/domain_types/ui/badge.rs",
-    "server_admin_frontend/src/domain_types/ui/button.rs",
-    "server_admin_frontend/src/domain_types/ui/card.rs",
-    "server_admin_frontend/src/domain_types/ui/checkbox.rs",
-    "server_admin_frontend/src/domain_types/ui/empty.rs",
-    "server_admin_frontend/src/domain_types/ui/field.rs",
-    "server_admin_frontend/src/domain_types/ui/input.rs",
-    "server_admin_frontend/src/domain_types/ui/navigation.rs",
-    "server_admin_frontend/src/domain_types/ui/spinner.rs",
-    "server_admin_frontend/src/domain_types/ui/table.rs",
-    "server_admin_frontend/src/domain_types/ui/textarea.rs",
+    "server_admin_frontend/src/domain_types/with_owner/alert.rs",
+    "server_admin_frontend/src/domain_types/with_owner/admin_alert_dialog.rs",
+    "server_admin_frontend/src/domain_types/with_owner/badge.rs",
+    "server_admin_frontend/src/domain_types/with_owner/button.rs",
+    "server_admin_frontend/src/domain_types/with_owner/card.rs",
+    "server_admin_frontend/src/domain_types/with_owner/admin_checkbox.rs",
+    "server_admin_frontend/src/domain_types/with_owner/admin_empty.rs",
+    "server_admin_frontend/src/domain_types/with_owner/field.rs",
+    "server_admin_frontend/src/domain_types/with_owner/input.rs",
+    "server_admin_frontend/src/domain_types/with_owner/navigation.rs",
+    "server_admin_frontend/src/domain_types/with_owner/admin_spinner.rs",
+    "server_admin_frontend/src/domain_types/with_owner/table.rs",
+    "server_admin_frontend/src/domain_types/with_owner/admin_textarea.rs",
     SSR_SOURCE_PATH,
 ];
 pub const CODE_STYLE_LEPTOS_PRELUDE_REASONS: [&str; 58] = [
@@ -4089,8 +4091,8 @@ pub const VALUE_D7270E5B: &str = "#[typed_route(path = \"/projects\")]\n        
 pub const VALUE_0ACA6317: &str = "- name: ";
 pub const VALUE_B43DA2C2: &str = "--tests";
 pub const VALUE_287FCBEB: &str = "../bounded_types/src/domain_types/btree.rs::try_from\n../bounded_types/src/domain_types/hash.rs::try_from";
-pub const VALUE_08DBA674: &str = "../bounded_types/src/domain_types/text.rs";
-pub const VALUE_72A10749: &str = "../bounded_types/src/domain_types/text.rs::try_from\n../bounded_types/src/domain_types/vector.rs::try_from";
+pub const VALUE_08DBA674: &str = "../bounded_types/src/domain_types/bounded_string.rs";
+pub const VALUE_72A10749: &str = "../bounded_types/src/domain_types/bounded_string.rs::try_from\n../bounded_types/src/domain_types/vector.rs::try_from";
 pub const VALUE_2483AEA6: &str = "../bounded_types/src/domain_types/vector.rs";
 pub const VALUE_7630EBEC: &str = "../bounded_types/src/domain_types/vector.rs:BoundedVec";
 pub const VALUE_86D03626: &str = "../common_routes/src/domain_types.rs:HealthComponents";
@@ -4232,7 +4234,6 @@ pub const VALUE_2941B657: &str =
 pub const VALUE_422EC2EB: &str = "../server_runtime_http/src/domain_types/pg_rate_limit.rs::try_from\n../server_runtime_http/src/domain_types/pg_rate_limit.rs::try_from";
 pub const VALUE_FBAC771A: &str = "../tests/src/code_style/advanced_policy.rs::visit_expr_await\n../tests/src/code_style/advanced_policy.rs::visit_macro";
 pub const VALUE_0D4F3549: &str = "../tests/src/code_style/advanced_policy.rs::visit_expr_loop\n../tests/src/code_style/advanced_policy.rs::visit_expr_while\n../tests/src/code_style/runtime_analysis.rs::visit_expr_async";
-pub const VALUE_0D652FF1: &str = "../tests/src/code_style/domain_analysis.rs::external_leaf_segment\n../tests/src/code_style/domain_analysis.rs::external_root_segment";
 pub const VALUE_082A5401: &str = "../tests/src/code_style/domain_analysis.rs::external_leaf_segment_from_arguments\n../tests/src/code_style/domain_analysis.rs::external_root_segment_from_arguments";
 pub const VALUE_4793A5FE: &str = "../tests/src/code_style/domain_analysis.rs::visit_item\n../tests/src/code_style/runtime_analysis.rs::visit_item\n../tests/src/code_style/runtime_analysis.rs::visit_item\n../tests/src/code_style/runtime_analysis.rs::visit_item\n../tests/src/code_style/runtime_analysis.rs::visit_item\n../tests/src/code_style/source_analysis.rs::visit_item\n../tests/src/code_style/source_analysis.rs::visit_item\n../tests/src/code_style/source_analysis.rs::visit_item";
 pub const VALUE_224F7450: &str = "../tests/src/code_style/domain_analysis.rs::visit_item_enum\n../tests/src/code_style/domain_analysis.rs::visit_item_struct\n../tests/src/code_style/domain_analysis.rs::visit_item_trait\n../tests/src/code_style/domain_analysis.rs::visit_item_union";
@@ -5187,8 +5188,6 @@ pub const VALUE_BC1068F8: &str = "pg_crud_pg_types_generate/src/lib.rs";
 pub const VALUE_D405F3E1: &str = "pg_crud_pg_types_generate_src/src/domain_types/source.rs";
 pub const VALUE_EFE7711A: &str = "pg_crud_where_filters/src/domain_types.rs";
 pub const VALUE_566A29FB: &str = "pg_crud_where_filters_generate/src/lib.rs";
-pub const VALUE_4862C442: &str =
-    "pg_crud_where_filters_generate_src/src/domain_types/contract_tests.rs";
 pub const VALUE_471AD9D4: &str = "pg_crud_where_filters_generate_src/src/domain_types/source.rs";
 pub const VALUE_E644078E: &str = "pg_types_chrono_net";
 pub const VALUE_D13E7908: &str = "pg_types_common";
@@ -5255,7 +5254,6 @@ pub const VALUE_9A2A3063: &str =
 pub const VALUE_2D70999A: &str = "reviewer";
 pub const VALUE_0A492916: &str = "role input failures map to stable API categories";
 pub const VALUE_61609B06: &str = "root and leaf discovery recurse through the same generic argument shapes while preserving distinct segment selection";
-pub const VALUE_99A8FB72: &str = "root and leaf discovery traverse the same syn type shapes but intentionally select different path segments";
 pub const VALUE_8A84E406: &str = "route";
 pub const VALUE_F3B9B918: &str = "route composition shares application state across worker threads";
 pub const VALUE_0EA9A6EE: &str = "route endpoints are separate Axum registration targets and delegate authentication through authenticated_action";
@@ -5322,7 +5320,7 @@ pub const VALUE_FF6D4857: &str = "server_admin/src/adapters/repository/cleanup.r
 pub const VALUE_8E182ED1: &str = "server_admin/src/adapters/repository/data_tables.rs";
 pub const VALUE_8C00245E: &str = "server_admin/src/adapters/repository/rate_limits.rs";
 pub const VALUE_BFA4ECF3: &str = "server_admin/src/adapters/repository/sessions.rs";
-pub const VALUE_4C6F4532: &str = "server_admin/src/adapters/repository/settings.rs";
+pub const VALUE_4C6F4532: &str = "server_admin/src/adapters/repository/read_settings.rs";
 pub const VALUE_2996C2A6: &str = "server_admin/src/adapters/repository/users.rs";
 pub const VALUE_D67F4595: &str = "server_admin/src/application/account.rs";
 pub const VALUE_DD6C0078: &str = "server_admin/src/application/api.rs";
@@ -5333,7 +5331,7 @@ pub const VALUE_B852993C: &str = "server_admin/src/application/data_tables.rs";
 pub const VALUE_3EB7B056: &str = "server_admin/src/application/html.rs";
 pub const VALUE_3C6F88B1: &str = "server_admin/src/application/roles.rs";
 pub const VALUE_7BF90B7C: &str = "server_admin/src/application/routes.rs";
-pub const VALUE_7C2F0144: &str = "server_admin/src/application/session.rs";
+pub const VALUE_7C2F0144: &str = "server_admin/src/application/create_session_in_connection.rs";
 pub const VALUE_15C3423E: &str = "server_admin/src/application/sessions.rs";
 pub const VALUE_0D60D8DF: &str = "server_admin/src/application/settings.rs";
 pub const VALUE_6DB550C3: &str = "server_admin/src/application/shared.rs";
@@ -5352,13 +5350,15 @@ pub const VALUE_0C5CC511: &str = "server_admin_contract/src";
 pub const VALUE_AA6C3BC8: &str = "server_admin_contract/src/domain_types.rs";
 pub const VALUE_61FFCD13: &str = "server_admin_contract/src/domain_types/collections.rs";
 pub const VALUE_02A23160: &str = "server_admin_core/src/domain_types.rs";
-pub const VALUE_BC9DA9CE: &str = "server_admin_frontend/src/domain_types/app/";
-pub const VALUE_F3169686: &str = "server_admin_frontend/src/domain_types/app/http/fetch.rs";
-pub const VALUE_4715BB8A: &str = "server_admin_frontend/src/domain_types/app/http/mutation.rs";
-pub const VALUE_7177655A: &str = "server_admin_frontend/src/domain_types/app/http/url.rs";
-pub const VALUE_27AB06E9: &str = "server_admin_frontend/src/domain_types/app/loader.rs";
-pub const VALUE_9E7DB142: &str = "server_admin_frontend/src/domain_types/app/query/location.rs";
-pub const VALUE_BEBEC57E: &str = "server_admin_frontend/src/domain_types/app/query/page.rs";
+pub const VALUE_BC9DA9CE: &str = "server_admin_frontend/src/domain_types/start/";
+pub const VALUE_F3169686: &str = "server_admin_frontend/src/domain_types/start/http/fetch_json.rs";
+pub const VALUE_4715BB8A: &str = "server_admin_frontend/src/domain_types/start/http/mutation.rs";
+pub const VALUE_7177655A: &str = "server_admin_frontend/src/domain_types/start/http/url.rs";
+pub const VALUE_27AB06E9: &str = "server_admin_frontend/src/domain_types/start/fetch_page.rs";
+pub const VALUE_9E7DB142: &str =
+    "server_admin_frontend/src/domain_types/start/admin_csr_query/location.rs";
+pub const VALUE_BEBEC57E: &str =
+    "server_admin_frontend/src/domain_types/start/admin_csr_query/csr_page_from_location.rs";
 pub const VALUE_D0393EDD: &str = "server_app_state";
 pub const VALUE_25EADB03: &str = "server_app_state_macros";
 pub const VALUE_4B935405: &str = "server_app_state_server_app_state_macros/src/lib.rs";
@@ -5707,7 +5707,8 @@ pub const VALUE_5FB76CAF: &str = "workspace_scaffold/src/domain_types/service_ca
 pub const VALUE_532433A4: &str = "workspace_test_runner/src/adapters/admin_fixture.rs";
 pub const VALUE_392D41BA: &str = "workspace_test_runner/src/adapters/execution.rs";
 pub const VALUE_7841C081: &str = "workspace_test_runner/src/adapters/reporting.rs";
-pub const VALUE_9D0FC67D: &str = "workspace_test_runner/src/application/pg_table_workload.rs";
+pub const VALUE_9D0FC67D: &str =
+    "workspace_test_runner/src/application/generate_pg_table_measure_input_token_stream.rs";
 pub const VALUE_F45EC0EE: &str = "workspace_test_runner/src/domain_types.rs";
 pub const VALUE_86F7474B: &str = "write_all";
 pub const VALUE_FC58C841: &str = "write_owned";

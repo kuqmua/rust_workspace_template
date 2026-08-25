@@ -131,7 +131,7 @@ fn secrets_are_redacted_in_debug_output() {
 #[test]
 fn generated_token_hash_is_stable_and_does_not_expose_token() {
     let token = super::AdminOpaqueToken::new(secret(constants_str::FIXED_TEST_TOKEN));
-    let hash = super::hash_opaque_token(&token).expect(
+    let hash = super::hash_opaque_token::hash_opaque_token(&token).expect(
         "3af32394 generated_token_hash_is_stable_and_does_not_expose_token invariant must hold",
     );
     assert_eq!(

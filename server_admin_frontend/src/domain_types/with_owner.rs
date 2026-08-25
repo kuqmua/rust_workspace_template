@@ -1,19 +1,19 @@
-pub(crate) mod alert;
 #[cfg(any(target_arch = "wasm32", test))]
-pub(crate) mod alert_dialog;
+pub(crate) mod admin_alert_dialog;
+#[cfg(not(target_arch = "wasm32"))]
+pub(crate) mod admin_checkbox;
+#[cfg(any(target_arch = "wasm32", test))]
+pub(crate) mod admin_empty;
+pub(crate) mod admin_spinner;
+pub(crate) mod admin_textarea;
+pub(crate) mod alert;
 pub(crate) mod badge;
 pub(crate) mod button;
 pub(crate) mod card;
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) mod checkbox;
-#[cfg(any(target_arch = "wasm32", test))]
-pub(crate) mod empty;
 pub(crate) mod field;
 pub(crate) mod input;
 pub(crate) mod navigation;
-pub(crate) mod spinner;
 pub(crate) mod table;
-pub(crate) mod textarea;
 
 pub(crate) fn with_owner<View>(build: impl FnOnce() -> View) -> impl leptos::prelude::IntoView
 where

@@ -23,7 +23,7 @@ pub(super) fn session_context_hash(
     }
     let token = super::super::SecrecyAdminString::try_from(context)
         .map(super::super::AdminOpaqueToken::new)?;
-    super::super::hash_opaque_token(&token)
+    super::super::hash_opaque_token::hash_opaque_token(&token)
 }
 pub(super) fn hash_refresh_token_with_context(
     token: &super::super::AdminOpaqueToken,
@@ -37,7 +37,7 @@ pub(super) fn hash_refresh_token_with_context(
     token_with_context.push_str(context_hash_text);
     let combined_token = super::super::SecrecyAdminString::try_from(token_with_context)
         .map(super::super::AdminOpaqueToken::new)?;
-    super::super::hash_opaque_token(&combined_token)
+    super::super::hash_opaque_token::hash_opaque_token(&combined_token)
 }
 pub(super) fn origin_is_present_and_allowed(
     state: &super::AdminAuthSvcState,
@@ -110,7 +110,7 @@ pub(super) async fn validate_csrf(
         .map(super::super::AdminOpaqueToken::new)
         .map_err(super::super::AdminSecretTextError::from)
         .map_err(super::AdminError::csrf_secret_text)?;
-    let provided_hash = super::super::hash_opaque_token(&provided_token)
+    let provided_hash = super::super::hash_opaque_token::hash_opaque_token(&provided_token)
         .map_err(super::AdminError::csrf_secret_text)?;
     let expected = sqlx::query_scalar::<_, String>(constants_str::SERVER_ADMIN_READ_CSRF_HASH_SQL)
         .bind(authenticated.session_id.get().get())

@@ -9,24 +9,24 @@
 pub enum PgTypeFilter {
     Eq {
         identifier:
-            macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
+            macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream,
     },
     GreaterThan {
         identifier:
-            macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
+            macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream,
     },
     Between {
         identifier:
-            macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
+            macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream,
     },
     In {
         identifier:
-            macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
+            macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream,
     },
     Regex,
     Before {
         identifier:
-            macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
+            macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream,
     },
     CurrentDate,
     GreaterThanCurrentDate,
@@ -37,43 +37,43 @@ pub enum PgTypeFilter {
     EqToEncodedStringRepresentation,
     FindRangesWithinGivenRange {
         identifier:
-            macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
+            macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream,
     },
     FindRangesThatFullyContainTheGivenRange {
         identifier:
-            macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
+            macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream,
     },
     StrictlyToLeftOfRange {
         identifier:
-            macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
+            macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream,
     },
     StrictlyToRightOfRange {
         identifier:
-            macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
+            macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream,
     },
     IncludedLowerBound {
         identifier:
-            macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
+            macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream,
     },
     ExcludedUpperBound {
         identifier:
-            macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
+            macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream,
     },
     GreaterThanIncludedLowerBound {
         identifier:
-            macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
+            macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream,
     },
     GreaterThanExcludedUpperBound {
         identifier:
-            macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
+            macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream,
     },
     OverlapWithRange {
         identifier:
-            macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
+            macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream,
     },
     AdjacentWithRange {
         identifier:
-            macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
+            macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream,
     },
     RangeLen,
     //BitVecPositionEq,//currently deactivated
@@ -81,7 +81,7 @@ pub enum PgTypeFilter {
 impl PgFilter for PgTypeFilter {
     fn maybe_generic(
         &self,
-    ) -> Option<macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream>
+    ) -> Option<macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream>
     {
         match &self {
             Self::Eq { identifier }
@@ -112,11 +112,11 @@ impl PgFilter for PgTypeFilter {
     }
     fn prefix_where_self_upper_camel_case(
         &self,
-    ) -> macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
+    ) -> macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream{
         let v = naming::domain_types::parameter::PgTypeWhereSelfUpperCamelCase::from_display(
             &self.ucc(),
         );
-        macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
+        macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(
             quote::quote! {#v},
         )
     }
@@ -178,9 +178,9 @@ impl PgFilter for PgTypeFilter {
 pub trait PgFilter {
     fn maybe_generic(
         &self,
-    ) -> Option<macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream>;
+    ) -> Option<macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream>;
     fn prefix_where_self_upper_camel_case(
         &self,
-    ) -> macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream;
+    ) -> macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream;
     fn ucc(&self) -> &'static dyn naming::domain_types::DisplayPlusToTokens;
 }

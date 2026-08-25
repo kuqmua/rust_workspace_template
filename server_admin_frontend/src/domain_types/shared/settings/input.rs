@@ -5,8 +5,8 @@
     reason = "Leptos settings inputs convert signal values for event closures and are composed by the settings form"
 )]
 
-mod text;
-mod textarea;
+mod admin_setting_text;
+mod admin_setting_textarea;
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
@@ -26,7 +26,7 @@ pub(crate) struct AdminSettingDisabled(bool);
     newtype::IntoInnerFrom,
 )]
 struct AdminSettingRequired(bool);
-impl crate::domain_types::ui::input::LeptosAdminInputSignal {
+impl crate::domain_types::with_owner::input::LeptosAdminInputSignal {
     #[cfg(target_arch = "wasm32")]
     pub(crate) fn value(self) -> super::values::AdminSettingInputValue {
         super::values::AdminSettingInputValue::from(
@@ -37,7 +37,7 @@ impl crate::domain_types::ui::input::LeptosAdminInputSignal {
 
 pub(crate) fn admin_setting_input(
     field: server_admin_contract::domain_types::AdminSetting,
-    value: crate::domain_types::ui::input::LeptosAdminInputSignal,
+    value: crate::domain_types::with_owner::input::LeptosAdminInputSignal,
     disabled: AdminSettingDisabled,
 ) -> impl leptos::prelude::IntoView {
     let spec = field.spec();
@@ -45,12 +45,12 @@ pub(crate) fn admin_setting_input(
     match spec.input_kind() {
         server_admin_contract::domain_types::AdminSettingInputKind::Text
         | server_admin_contract::domain_types::AdminSettingInputKind::Url => {
-            leptos::prelude::IntoAny::into_any(text::admin_setting_text(
+            leptos::prelude::IntoAny::into_any(admin_setting_text::admin_setting_text(
                 field, value, disabled, required,
             ))
         }
         server_admin_contract::domain_types::AdminSettingInputKind::TextArea => {
-            leptos::prelude::IntoAny::into_any(textarea::admin_setting_textarea(
+            leptos::prelude::IntoAny::into_any(admin_setting_textarea::admin_setting_textarea(
                 field, value, disabled, required,
             ))
         }
@@ -58,7 +58,7 @@ pub(crate) fn admin_setting_input(
 }
 
 pub(crate) fn admin_setting_inputs(
-    signals: super::signals::AdminSettingsFormSignals,
+    signals: super::admin_settings_form_signals::AdminSettingsFormSignals,
     disabled: AdminSettingDisabled,
 ) -> impl leptos::prelude::IntoView {
     leptos::view! {

@@ -26,14 +26,14 @@ pub(super) fn admin_profile_account(
             .map(|permission| permission.as_ref().as_str()),
     ));
     leptos::view! {
-        <crate::domain_types::ui::card::AdminCard variant=crate::domain_types::ui::card::AdminCardVariant::Profile>
-            <crate::domain_types::ui::card::AdminCardHeader><crate::domain_types::ui::card::AdminCardTitle class="profile-card-title">"Account"</crate::domain_types::ui::card::AdminCardTitle></crate::domain_types::ui::card::AdminCardHeader>
+        <crate::domain_types::with_owner::card::AdminCard variant=crate::domain_types::with_owner::card::AdminCardVariant::Profile>
+            <crate::domain_types::with_owner::card::AdminCardHeader><crate::domain_types::with_owner::card::AdminCardTitle class="profile-card-title">"Account"</crate::domain_types::with_owner::card::AdminCardTitle></crate::domain_types::with_owner::card::AdminCardHeader>
             <dl>
                 <dt>"Login"</dt><dd>{login}</dd>
                 <dt>"Display name"</dt><dd>{display_name}</dd>
                 <dt>"Roles"</dt><dd>{roles}</dd>
                 <dt>"Permissions"</dt><dd>{permissions}</dd>
             </dl>
-        </crate::domain_types::ui::card::AdminCard>
+        </crate::domain_types::with_owner::card::AdminCard>
     }
 }

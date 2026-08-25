@@ -1224,11 +1224,6 @@ fn source_lint_suppressions_have_explicit_reasons() {
             reason: constants_str::VALUE_1ADD7AD4,
         },
         LegacySuppression {
-            limit: 1,
-            path_suffix: constants_str::VALUE_4862C442,
-            reason: constants_str::VALUE_B88C4B5C,
-        },
-        LegacySuppression {
             limit: 2,
             path_suffix: constants_str::VALUE_471AD9D4,
             reason: constants_str::VALUE_CA3EDAD3,
