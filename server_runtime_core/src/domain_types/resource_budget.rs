@@ -39,11 +39,11 @@ pub struct ResourceBudget {
     maximum: ResourceBudgetMaximum,
     reserved: SharedAtomicUsizeArc,
 }
-pub trait GetBulkItemResourceBudget {
-    fn get_bulk_item_resource_budget(&self) -> &ResourceBudget;
+pub trait BulkItemResourceBudgetProvider {
+    fn bulk_item_resource_budget(&self) -> &ResourceBudget;
 }
-pub trait GetIdempotencyResponseResourceBudget {
-    fn get_idempotency_response_resource_budget(&self) -> &ResourceBudget;
+pub trait IdempotencyResponseResourceBudgetProvider {
+    fn idempotency_response_resource_budget(&self) -> &ResourceBudget;
 }
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,

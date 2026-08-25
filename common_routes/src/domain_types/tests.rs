@@ -2,18 +2,18 @@
 struct TestState {
     commit: &'static str,
 }
-impl git_info::domain_types::GetGitCommitId for TestState {
-    fn get_git_commit_id(&self) -> git_info::domain_types::GitCommitId {
+impl git_info::domain_types::GitCommitIdProvider for TestState {
+    fn git_commit_id(&self) -> git_info::domain_types::GitCommitId {
         git_info::domain_types::GitCommitId::from(git_info::domain_types::GitCommitIdRef::from(
             self.commit,
         ))
     }
-    fn get_git_commit_id_ref(&self) -> Option<git_info::domain_types::GitCommitIdRef<'_>> {
+    fn git_commit_id_ref(&self) -> Option<git_info::domain_types::GitCommitIdRef<'_>> {
         Some(git_info::domain_types::GitCommitIdRef::from(self.commit))
     }
 }
-impl app_state::domain_types::GetSqlxPgPool for TestState {
-    fn get_sqlx_pg_pool(&self) -> app_state::domain_types::SqlxPgPoolRef<'_> {
+impl app_state::domain_types::SqlxPgPoolProvider for TestState {
+    fn sqlx_pg_pool(&self) -> app_state::domain_types::SqlxPgPoolRef<'_> {
         panic!("38f80f5f")
     }
 }
@@ -99,10 +99,7 @@ fn no_route_message_for_suffix_uses_prefix_once() {
 #[test]
 fn get_uri_suffix_prefers_path_and_query_when_query_exists() {
     let uri = axum::http::Uri::from_static(constants_str::MISSING_PATH_QUESTION_LIMIT_10);
-    assert_eq!(
-        super::get_uri_suffix(uri_ref(&uri)).0,
-        "/missing/path?limit=10"
-    );
+    assert_eq!(super::uri_suffix(uri_ref(&uri)).0, "/missing/path?limit=10");
 }
 #[test]
 fn no_route_message_keeps_query_parameters() {
@@ -127,7 +124,7 @@ fn git_info_response_contains_commit_link() {
 fn git_info_payload_from_state_contains_commit_link() {
     let state = test_state();
     let payload = super::mk_git_info_payload(
-        git_info::domain_types::GetGitCommitLink::get_git_commit_link_cow(state.as_ref()),
+        git_info::domain_types::GitCommitLinkProvider::git_commit_link_cow(state.as_ref()),
     );
     assert_git_info_commit(&payload, test_commit_link().as_str());
 }
@@ -144,7 +141,7 @@ fn not_found_payload_from_state_uses_uri_and_swagger_path() {
     let state = test_state();
     let payload = super::mk_not_found_payload(
         uri_ref(&uri),
-        git_info::domain_types::GetGitCommitLink::get_git_commit_link_cow(state.as_ref()),
+        git_info::domain_types::GitCommitLinkProvider::git_commit_link_cow(state.as_ref()),
     );
     assert_not_found_payload_with_commit(&payload, &test_commit_link(), constants_str::MISSING);
 }
@@ -175,7 +172,7 @@ fn no_route_message_capacity_is_exact_for_uri_suffix() {
 fn mk_state_payload_uses_state_trait_object() {
     let state = test_state();
     assert_eq!(
-        git_info::domain_types::GetGitCommitLink::get_git_commit_link_cow(state.as_ref()).as_ref(),
+        git_info::domain_types::GitCommitLinkProvider::git_commit_link_cow(state.as_ref()).as_ref(),
         test_commit_link()
     );
 }
@@ -191,7 +188,7 @@ fn mk_state_payload_passes_commit_link_to_mapper() {
     let state = test_state();
     let actual = format!(
         "v={}",
-        git_info::domain_types::GetGitCommitLink::get_git_commit_link_cow(state.as_ref())
+        git_info::domain_types::GitCommitLinkProvider::git_commit_link_cow(state.as_ref())
     );
     assert_eq!(actual, format!("v={}", test_commit_link()));
 }

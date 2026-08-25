@@ -32,7 +32,7 @@ pub use lease_registry::{
     StdLeaseStaleTimeoutError,
 };
 pub use resource_budget::{
-    GetBulkItemResourceBudget, GetIdempotencyResponseResourceBudget, ResourceBudget,
+    BulkItemResourceBudgetProvider, IdempotencyResponseResourceBudgetProvider, ResourceBudget,
     ResourceBudgetAmount, ResourceBudgetConfigError, ResourceBudgetMaximum,
     ResourceBudgetReservation, ResourceBudgetReserveError,
 };

@@ -182,13 +182,13 @@ fn map_err_after_status_check<T, E, R>(
     map: impl FnOnce(E, &'static str) -> R,
 ) -> R
 where
-    E: crate::domain_types::GetAxumHttpStatusCode,
+    E: crate::domain_types::AxumHttpStatusCodeProvider,
 {
     map_err(
         v,
         exp_id,
         |error| {
-            assert_eq!(error.get_axum_http_status_code(), expected);
+            assert_eq!(error.axum_http_status_code(), expected);
         },
         map,
     )
@@ -200,7 +200,7 @@ pub(crate) fn assert_err_status_code<T, E>(
     expected: crate::domain_types::AxumHttpStatusCode,
 ) -> E
 where
-    E: crate::domain_types::GetAxumHttpStatusCode,
+    E: crate::domain_types::AxumHttpStatusCodeProvider,
 {
     map_err_after_status_check(v, exp_id, expected, |error, _| error)
 }
@@ -210,7 +210,7 @@ pub(crate) fn assert_err_status_code_only<T, E>(
     exp_id: impl Into<TestExpId>,
     expected: crate::domain_types::AxumHttpStatusCode,
 ) where
-    E: crate::domain_types::GetAxumHttpStatusCode,
+    E: crate::domain_types::AxumHttpStatusCodeProvider,
 {
     drop(assert_err_status_code(v, exp_id, expected));
 }
@@ -223,7 +223,7 @@ pub(crate) fn assert_err_status_code_variant<T, E, R>(
     map: impl FnOnce(E) -> Option<R>,
 ) -> R
 where
-    E: crate::domain_types::GetAxumHttpStatusCode,
+    E: crate::domain_types::AxumHttpStatusCodeProvider,
 {
     map_err_after_status_check(v, exp_id, expected, |error, mapped_exp_id| {
         expect_variant(error, map, mapped_exp_id)
@@ -237,7 +237,7 @@ pub(crate) fn assert_err_status_code_variant_ref<T, E, R>(
     map: impl FnOnce(&E) -> Option<R>,
 ) -> R
 where
-    E: crate::domain_types::GetAxumHttpStatusCode,
+    E: crate::domain_types::AxumHttpStatusCodeProvider,
 {
     map_err_after_status_check(v, exp_id, expected, |error, mapped_exp_id| {
         expect_variant_ref(&error, map, mapped_exp_id)
@@ -251,7 +251,7 @@ pub(crate) fn expect_err_variant_ref_with_status<T, E, R>(
     map: impl FnOnce(&E) -> Option<R>,
 ) -> R
 where
-    E: crate::domain_types::GetAxumHttpStatusCode,
+    E: crate::domain_types::AxumHttpStatusCodeProvider,
 {
     let exp_id = exp_id.into();
     match expected {
@@ -419,8 +419,8 @@ mod tests {
         enum TestError {
             A,
         }
-        impl crate::domain_types::GetAxumHttpStatusCode for TestError {
-            fn get_axum_http_status_code(&self) -> crate::domain_types::AxumHttpStatusCode {
+        impl crate::domain_types::AxumHttpStatusCodeProvider for TestError {
+            fn axum_http_status_code(&self) -> crate::domain_types::AxumHttpStatusCode {
                 crate::domain_types::AxumHttpStatusCode::bad_request()
             }
         }
@@ -439,8 +439,8 @@ mod tests {
         enum TestError {
             A(u8),
         }
-        impl crate::domain_types::GetAxumHttpStatusCode for TestError {
-            fn get_axum_http_status_code(&self) -> crate::domain_types::AxumHttpStatusCode {
+        impl crate::domain_types::AxumHttpStatusCodeProvider for TestError {
+            fn axum_http_status_code(&self) -> crate::domain_types::AxumHttpStatusCode {
                 crate::domain_types::AxumHttpStatusCode::bad_request()
             }
         }
@@ -495,8 +495,8 @@ mod tests {
     fn assert_err_status_code_returns_error_after_status_check() {
         #[derive(optimal_memory_layout::OptimalMemoryLayout, std::fmt::Debug)]
         struct TestErr;
-        impl crate::domain_types::GetAxumHttpStatusCode for TestErr {
-            fn get_axum_http_status_code(&self) -> crate::domain_types::AxumHttpStatusCode {
+        impl crate::domain_types::AxumHttpStatusCodeProvider for TestErr {
+            fn axum_http_status_code(&self) -> crate::domain_types::AxumHttpStatusCode {
                 crate::domain_types::AxumHttpStatusCode::bad_request()
             }
         }

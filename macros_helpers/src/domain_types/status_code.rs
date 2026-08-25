@@ -452,7 +452,7 @@ pub enum GetOnlyOneStatusCodeError {
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
 pub struct SynStatusCodeVariantRef<'variant_lt>(&'variant_lt syn::Variant);
-pub fn get_only_one(
+pub fn only_one(
     variant_ref: SynStatusCodeVariantRef<'_>,
 ) -> Result<StatusCode, GetOnlyOneStatusCodeError> {
     let variant = variant_ref.0;
@@ -565,7 +565,7 @@ mod tests {
             Variant
         };
         assert_eq!(
-            super::get_only_one(super::SynStatusCodeVariantRef::from(&one)),
+            super::only_one(super::SynStatusCodeVariantRef::from(&one)),
             Ok(super::StatusCode::NotFound404)
         );
         let missing: syn::Variant = syn::parse_quote! {
@@ -573,7 +573,7 @@ mod tests {
             Variant
         };
         assert_eq!(
-            super::get_only_one(super::SynStatusCodeVariantRef::from(&missing)),
+            super::only_one(super::SynStatusCodeVariantRef::from(&missing)),
             Err(super::GetOnlyOneStatusCodeError::NotFound)
         );
         let multiple: syn::Variant = syn::parse_quote! {
@@ -582,7 +582,7 @@ mod tests {
             Variant
         };
         assert_eq!(
-            super::get_only_one(super::SynStatusCodeVariantRef::from(&multiple)),
+            super::only_one(super::SynStatusCodeVariantRef::from(&multiple)),
             Err(super::GetOnlyOneStatusCodeError::MoreThanOne)
         );
     }

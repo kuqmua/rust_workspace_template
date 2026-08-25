@@ -13,15 +13,15 @@ impl ServerAppState<'_> {
 }
 impl common_routes::domain_types::CommonRoutesParameters for ServerAppState<'_> {}
 impl pg_table::domain_types::CombinationOfAppStateLogicTraits for ServerAppState<'_> {}
-impl server_runtime_core::domain_types::GetBulkItemResourceBudget for ServerAppState<'_> {
-    fn get_bulk_item_resource_budget(&self) -> &server_runtime_core::domain_types::ResourceBudget {
+impl server_runtime_core::domain_types::BulkItemResourceBudgetProvider for ServerAppState<'_> {
+    fn bulk_item_resource_budget(&self) -> &server_runtime_core::domain_types::ResourceBudget {
         &self.bulk_item_budget
     }
 }
-impl server_runtime_core::domain_types::GetIdempotencyResponseResourceBudget
+impl server_runtime_core::domain_types::IdempotencyResponseResourceBudgetProvider
     for ServerAppState<'_>
 {
-    fn get_idempotency_response_resource_budget(
+    fn idempotency_response_resource_budget(
         &self,
     ) -> &server_runtime_core::domain_types::ResourceBudget {
         &self.idempotency_response_budget
@@ -82,8 +82,8 @@ server_app_state_macros::impl_cfg_getter!(
     get_admin_token_issuer,
     String
 );
-impl app_state::domain_types::GetSqlxPgPool for ServerAppState<'_> {
-    fn get_sqlx_pg_pool(&self) -> app_state::domain_types::SqlxPgPoolRef<'_> {
+impl app_state::domain_types::SqlxPgPoolProvider for ServerAppState<'_> {
+    fn sqlx_pg_pool(&self) -> app_state::domain_types::SqlxPgPoolRef<'_> {
         app_state::domain_types::SqlxPgPoolRef::from(self.pg_pool.as_ref())
     }
 }
@@ -383,7 +383,7 @@ mod tests {
         let git_info = mk_git_info();
         let structure = mk_structure(git_info);
         let lhs = std::ptr::from_ref(
-            app_state::domain_types::GetSqlxPgPool::get_sqlx_pg_pool(&structure).as_ref(),
+            app_state::domain_types::SqlxPgPoolProvider::sqlx_pg_pool(&structure).as_ref(),
         );
         let rhs = std::ptr::from_ref(structure.pg_pool.as_ref());
         assert_eq!(lhs, rhs);
@@ -398,7 +398,7 @@ mod tests {
         let structure = mk_structure(git_info);
         assert_eq!(structure.as_ref(), constants_str::TEST_VALUES_COMMIT);
         assert_eq!(
-            git_info::domain_types::GetGitCommitLink::get_git_commit_link(&structure),
+            git_info::domain_types::GitCommitLinkProvider::git_commit_link(&structure),
             git_info::domain_types::git_commit_link(constants_str::TEST_VALUES_COMMIT)
         );
     }

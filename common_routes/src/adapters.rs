@@ -3,7 +3,7 @@
 async fn database_is_ready(
     app_state: &crate::domain_types::ArcCommonRoutesAppState,
 ) -> crate::domain_types::HealthCheckSucceeded {
-    let pool = app_state::domain_types::GetSqlxPgPool::get_sqlx_pg_pool(app_state.get());
+    let pool = app_state::domain_types::SqlxPgPoolProvider::sqlx_pg_pool(app_state.get());
     let probe = async {
         sqlx::query(constants_str::COMMON_ROUTES_HEALTH_CHECK_SQL)
             .execute(pool.as_ref())
@@ -147,7 +147,7 @@ pub fn common_routes(
                 crate::domain_types::CommonNotFoundError::NotFound(
                     crate::domain_types::mk_not_found_payload(
                         crate::domain_types::AxumHttpUriRef::from(&uri),
-                        git_info::domain_types::GetGitCommitLink::get_git_commit_link_cow(
+                        git_info::domain_types::GitCommitLinkProvider::git_commit_link_cow(
                             app_state_19103bd5.get(),
                         ),
                     ),

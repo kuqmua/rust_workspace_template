@@ -176,8 +176,8 @@ impl axum::extract::FromRequestParts<NotificationState> for AxumNotificationStat
         std::future::ready(Ok(Self::from(state.clone())))
     }
 }
-impl app_state::domain_types::GetSqlxPgPool for NotificationState {
-    fn get_sqlx_pg_pool(&self) -> app_state::domain_types::SqlxPgPoolRef<'_> {
+impl app_state::domain_types::SqlxPgPoolProvider for NotificationState {
+    fn sqlx_pg_pool(&self) -> app_state::domain_types::SqlxPgPoolRef<'_> {
         app_state::domain_types::SqlxPgPoolRef::from(self.pool.as_ref())
     }
 }
@@ -333,7 +333,7 @@ mod tests {
             AsRef::<str>::as_ref(extracted.get()),
             AsRef::<str>::as_ref(&state)
         );
-        let _pool = app_state::domain_types::GetSqlxPgPool::get_sqlx_pg_pool(&state);
+        let _pool = app_state::domain_types::SqlxPgPoolProvider::sqlx_pg_pool(&state);
     }
 
     #[tokio::test]

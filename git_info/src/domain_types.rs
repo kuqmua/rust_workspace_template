@@ -260,15 +260,15 @@ impl AsRef<str> for ProjectGitInfo<'_> {
         self.commit.0
     }
 }
-pub trait GetGitCommitLink {
-    fn get_git_commit_link(&self) -> GitCommitLink {
-        self.get_git_commit_link_cow().into()
+pub trait GitCommitLinkProvider {
+    fn git_commit_link(&self) -> GitCommitLink {
+        self.git_commit_link_cow().into()
     }
-    fn get_git_commit_link_cow(&self) -> GitCommitLinkCow;
+    fn git_commit_link_cow(&self) -> GitCommitLinkCow;
 }
-pub trait GetGitCommitId {
-    fn get_git_commit_id(&self) -> GitCommitId;
-    fn get_git_commit_id_cow(&self) -> GitCommitIdCow<'_> {
+pub trait GitCommitIdProvider {
+    fn git_commit_id(&self) -> GitCommitId;
+    fn git_commit_id_cow(&self) -> GitCommitIdCow<'_> {
         with_git_commit_id_ref_or(
             self,
             |commit_id| {
@@ -276,12 +276,12 @@ pub trait GetGitCommitId {
                     .unwrap_or_else(GitCommitIdCow::from)
             },
             |src| {
-                GitCommitIdCow::try_from(std::borrow::Cow::Owned(src.get_git_commit_id().0))
+                GitCommitIdCow::try_from(std::borrow::Cow::Owned(src.git_commit_id().0))
                     .unwrap_or_else(GitCommitIdCow::from)
             },
         )
     }
-    fn get_git_commit_id_or_else<'commit_id_lt>(
+    fn git_commit_id_or_else<'commit_id_lt>(
         &'commit_id_lt self,
         fallback: &'commit_id_lt mut GitCommitIdFallback,
     ) -> GitCommitIdRef<'commit_id_lt> {
@@ -291,31 +291,31 @@ pub trait GetGitCommitId {
             |src| {
                 fallback
                     .0
-                    .get_or_insert_with(|| src.get_git_commit_id())
+                    .get_or_insert_with(|| src.git_commit_id())
                     .0
                     .as_str()
                     .into()
             },
         )
     }
-    fn get_git_commit_id_ref(&self) -> Option<GitCommitIdRef<'_>> {
+    fn git_commit_id_ref(&self) -> Option<GitCommitIdRef<'_>> {
         None
     }
     fn with_git_commit_id<R>(&self, f: impl FnOnce(GitCommitIdRef<'_>) -> R) -> R {
         let mut fallback = GitCommitIdFallback::from(None);
-        f(self.get_git_commit_id_or_else(&mut fallback))
+        f(self.git_commit_id_or_else(&mut fallback))
     }
 }
-impl<T: ?Sized + AsRef<str>> GetGitCommitId for T {
-    fn get_git_commit_id(&self) -> GitCommitId {
+impl<T: ?Sized + AsRef<str>> GitCommitIdProvider for T {
+    fn git_commit_id(&self) -> GitCommitId {
         GitCommitId::try_from(self.as_ref().to_owned()).unwrap_or_else(GitCommitId::from)
     }
-    fn get_git_commit_id_ref(&self) -> Option<GitCommitIdRef<'_>> {
+    fn git_commit_id_ref(&self) -> Option<GitCommitIdRef<'_>> {
         Some(GitCommitIdRef::from(self.as_ref()))
     }
 }
-impl<T: ?Sized + GetGitCommitId> GetGitCommitLink for T {
-    fn get_git_commit_link_cow(&self) -> GitCommitLinkCow {
+impl<T: ?Sized + GitCommitIdProvider> GitCommitLinkProvider for T {
+    fn git_commit_link_cow(&self) -> GitCommitLinkCow {
         self.with_git_commit_id(|commit_id| git_commit_link_cow(commit_id))
     }
 }
@@ -325,9 +325,9 @@ fn with_git_commit_id_ref_or<'src, T, R>(
     on_owned: impl FnOnce(&'src T) -> R,
 ) -> R
 where
-    T: ?Sized + GetGitCommitId,
+    T: ?Sized + GitCommitIdProvider,
 {
-    src.get_git_commit_id_ref()
+    src.git_commit_id_ref()
         .map_or_else(|| on_owned(src), on_ref)
 }
 #[must_use]
@@ -433,14 +433,14 @@ mod tests {
         fallback_calls: std::cell::Cell<usize>,
         borrow_commit_ref: bool,
     }
-    impl super::GetGitCommitId for TestGitCommit {
-        fn get_git_commit_id(&self) -> super::GitCommitId {
+    impl super::GitCommitIdProvider for TestGitCommit {
+        fn git_commit_id(&self) -> super::GitCommitId {
             let calls = self.fallback_calls.get().saturating_add(1);
             self.fallback_calls.set(calls);
             super::GitCommitId::try_from(self.commit.to_owned())
-                .expect("45a9c31d get_git_commit_id invariant must hold")
+                .expect("45a9c31d git_commit_id invariant must hold")
         }
-        fn get_git_commit_id_ref(&self) -> Option<super::GitCommitIdRef<'_>> {
+        fn git_commit_id_ref(&self) -> Option<super::GitCommitIdRef<'_>> {
             self.borrow_commit_ref
                 .then_some(super::GitCommitIdRef::from(self.commit))
         }
@@ -469,7 +469,7 @@ mod tests {
         exp_commit_id: &str,
         exp_fallback_calls: usize,
     ) {
-        let link = super::GetGitCommitLink::get_git_commit_link(v);
+        let link = super::GitCommitLinkProvider::git_commit_link(v);
         assert_expected_git_commit_link(&link, exp_commit_id);
         assert_fallback_calls(v, exp_fallback_calls);
     }
@@ -479,7 +479,7 @@ mod tests {
         exp_is_borrowed: bool,
         exp_fallback_calls: usize,
     ) {
-        let commit_id = super::GetGitCommitId::get_git_commit_id_cow(v);
+        let commit_id = super::GitCommitIdProvider::git_commit_id_cow(v);
         assert_eq!(commit_id.as_ref(), exp_commit_id);
         assert_eq!(
             matches!(&commit_id.0, std::borrow::Cow::Borrowed(_)),
@@ -493,7 +493,7 @@ mod tests {
         exp_fallback_calls: usize,
     ) {
         let commit_len =
-            super::GetGitCommitId::with_git_commit_id(v, |commit_id| commit_id.0.len());
+            super::GitCommitIdProvider::with_git_commit_id(v, |commit_id| commit_id.0.len());
         assert_eq!(commit_len, exp_commit_len);
         assert_fallback_calls(v, exp_fallback_calls);
     }
@@ -505,7 +505,7 @@ mod tests {
         let commit_len = super::with_git_commit_id_ref_or(
             v,
             |commit_id| commit_id.0.len(),
-            |src| super::GetGitCommitId::get_git_commit_id(src).0.len(),
+            |src| super::GitCommitIdProvider::git_commit_id(src).0.len(),
         );
         assert_eq!(commit_len, exp_commit_len);
         assert_fallback_calls(v, exp_fallback_calls);
@@ -530,7 +530,7 @@ mod tests {
         else {
             panic!("69ee1326");
         };
-        let commit = super::GetGitCommitId::get_git_commit_id(oversized.as_str());
+        let commit = super::GitCommitIdProvider::git_commit_id(oversized.as_str());
         assert!(commit.as_ref().len() <= super::GIT_INFO_STRING_MAX_LEN);
         let link = super::git_commit_link_cow(oversized.as_str());
         assert!(link.as_ref().len() <= super::GIT_INFO_STRING_MAX_LEN);
@@ -616,7 +616,7 @@ mod tests {
         let git_info = super::ProjectGitInfo {
             commit: super::GitCommitIdRef::from(constants_str::TEST_VALUES_WRONG_COMMIT),
         };
-        let link = super::GetGitCommitLink::get_git_commit_link(&git_info);
+        let link = super::GitCommitLinkProvider::git_commit_link(&git_info);
         assert_expected_git_commit_link(&link, constants_str::TEST_VALUES_WRONG_COMMIT);
     }
     #[test]
@@ -627,7 +627,7 @@ mod tests {
     #[test]
     fn get_git_commit_link_calls_allocating_fallback_once_without_ref() {
         let test_git_commit = mk_owned_test_git_commit(constants_str::F00DBABE);
-        drop(super::GetGitCommitLink::get_git_commit_link(
+        drop(super::GitCommitLinkProvider::git_commit_link(
             &test_git_commit,
         ));
         assert_fallback_calls(&test_git_commit, 1);
@@ -637,10 +637,10 @@ mod tests {
         let test_git_commit = mk_owned_test_git_commit(constants_str::F00DBABE);
         let mut fallback = super::GitCommitIdFallback::from(None);
         let first =
-            super::GetGitCommitId::get_git_commit_id_or_else(&test_git_commit, &mut fallback);
+            super::GitCommitIdProvider::git_commit_id_or_else(&test_git_commit, &mut fallback);
         assert_eq!(first, "f00dbabe");
         let second =
-            super::GetGitCommitId::get_git_commit_id_or_else(&test_git_commit, &mut fallback);
+            super::GitCommitIdProvider::git_commit_id_or_else(&test_git_commit, &mut fallback);
         assert_eq!(second, "f00dbabe");
         assert_fallback_calls(&test_git_commit, 1);
     }
@@ -649,7 +649,7 @@ mod tests {
         let test_git_commit = mk_borrowed_test_git_commit(constants_str::CAFEBABE);
         let mut fallback = super::GitCommitIdFallback::from(None);
         let commit =
-            super::GetGitCommitId::get_git_commit_id_or_else(&test_git_commit, &mut fallback);
+            super::GitCommitIdProvider::git_commit_id_or_else(&test_git_commit, &mut fallback);
         assert_eq!(commit, "cafebabe");
         assert_fallback_calls(&test_git_commit, 0);
         assert!(fallback.0.is_none());
@@ -674,7 +674,7 @@ mod tests {
         let git_info = super::ProjectGitInfo {
             commit: super::project_git_info().commit,
         };
-        let link = super::GetGitCommitLink::get_git_commit_link_cow(&git_info);
+        let link = super::GitCommitLinkProvider::git_commit_link_cow(&git_info);
         assert!(
             matches!(link.0, std::borrow::Cow::Borrowed(v) if std::ptr::eq(v, super::project_git_commit_link_ref().0))
         );
@@ -713,21 +713,21 @@ mod tests {
     #[test]
     fn get_git_commit_link_works_for_str_and_string() {
         let str_link =
-            super::GetGitCommitLink::get_git_commit_link(constants_str::TEST_VALUES_COMMIT);
+            super::GitCommitLinkProvider::git_commit_link(constants_str::TEST_VALUES_COMMIT);
         assert_expected_git_commit_link(&str_link, constants_str::TEST_VALUES_COMMIT);
         let string = String::from(constants_str::TEST_VALUES_COMMIT);
-        let string_link = super::GetGitCommitLink::get_git_commit_link(&string);
+        let string_link = super::GitCommitLinkProvider::git_commit_link(&string);
         assert_expected_git_commit_link(&string_link, constants_str::TEST_VALUES_COMMIT);
     }
     #[test]
     fn get_git_commit_link_works_for_cow_str() {
         let borrowed = std::borrow::Cow::Borrowed(constants_str::TEST_VALUES_COMMIT);
-        let borrowed_link = super::GetGitCommitLink::get_git_commit_link(&borrowed);
+        let borrowed_link = super::GitCommitLinkProvider::git_commit_link(&borrowed);
         assert_expected_git_commit_link(&borrowed_link, constants_str::TEST_VALUES_COMMIT);
         let owned =
             std::borrow::Cow::<'_, str>::Owned(constants_str::TEST_VALUES_COMMIT.to_owned());
         assert_expected_git_commit_link(
-            super::GetGitCommitLink::get_git_commit_link(&owned),
+            super::GitCommitLinkProvider::git_commit_link(&owned),
             constants_str::TEST_VALUES_COMMIT,
         );
     }

@@ -683,7 +683,7 @@ impl<T: utoipa::ToSchema> utoipa::ToSchema for PgTypeWhere<T> {
 }
 impl<T: PartialEq + Clone> PgTypeWhere<T> {
     #[must_use]
-    pub const fn get_operator(&self) -> &Operator {
+    pub const fn operator(&self) -> &Operator {
         &self.operator
     }
     #[must_use]

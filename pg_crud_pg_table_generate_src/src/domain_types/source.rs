@@ -4432,7 +4432,7 @@ enum WrapIntoOptional {
                             return axum::response::IntoResponse::into_response(http::StatusCode::INTERNAL_SERVER_ERROR);
                         }
                     };
-                    let _idempotency_response_reservation_f07d6371 = match server_runtime_http::domain_types::GetIdempotencyResponseResourceBudget::get_idempotency_response_resource_budget(#AppStateSnakeCase.as_ref()).reserve(
+                    let _idempotency_response_reservation_f07d6371 = match server_runtime_http::domain_types::IdempotencyResponseResourceBudgetProvider::idempotency_response_resource_budget(#AppStateSnakeCase.as_ref()).reserve(
                         server_runtime_http::domain_types::ResourceBudgetAmount::from(response_body_649297c9.len()),
                     ) {
                         Ok(value) => value,
@@ -5638,7 +5638,7 @@ enum WrapIntoOptional {
                 };
                 let idempotency_begin_token_stream = if idempotency_enabled {
                     quote::quote! {
-                        let idempotency_pool_193acb3c = app_state::domain_types::GetSqlxPgPool::get_sqlx_pg_pool(#AppStateSnakeCase.as_ref());
+                        let idempotency_pool_193acb3c = app_state::domain_types::SqlxPgPoolProvider::sqlx_pg_pool(#AppStateSnakeCase.as_ref());
                         match pg_table::domain_types::begin_pg_table_idempotency(app_state::domain_types::SqlxPgPoolRef::from(idempotency_pool_193acb3c.as_ref()), &idempotency_request_0a0ae019).await {
                             Ok(pg_table::domain_types::PgTableIdempotencyBegin::Acquired) => {}
                             Ok(pg_table::domain_types::PgTableIdempotencyBegin::Conflict) => return axum::response::IntoResponse::into_response(http::StatusCode::CONFLICT),
@@ -5694,7 +5694,7 @@ enum WrapIntoOptional {
                         }
                     };
                     let bulk_reservation_token_stream = quote::quote! {
-                        let _bulk_resource_reservation_6416eead = match server_runtime_http::domain_types::GetBulkItemResourceBudget::get_bulk_item_resource_budget(#AppStateSnakeCase.as_ref()).reserve(
+                        let _bulk_resource_reservation_6416eead = match server_runtime_http::domain_types::BulkItemResourceBudgetProvider::bulk_item_resource_budget(#AppStateSnakeCase.as_ref()).reserve(
                             server_runtime_http::domain_types::ResourceBudgetAmount::from(#ParametersSnakeCase.#PayloadSnakeCase.as_slice().len()),
                         ) {
                             Ok(value) => value,
@@ -6319,7 +6319,7 @@ enum WrapIntoOptional {
                             std::panic::Location::caller(),
                         );
                     let ts = generate_match_ok_err_short_token_stream(
-                        &quote::quote! {#AppStateSnakeCase.get_sqlx_pg_pool().as_ref().acquire().await},
+                        &quote::quote! {#AppStateSnakeCase.sqlx_pg_pool().as_ref().acquire().await},
                         &quote::quote! {v_4535ee48},
                         &quote::quote! {{
                             #pg_syn_variant_error_initialization_eprintln_res_creation_token_stream

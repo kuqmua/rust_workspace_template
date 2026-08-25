@@ -5,9 +5,9 @@ pub trait CombinationOfAppStateLogicTraits:
     + config_lib::domain_types::GetMaximumSizeOfHttpBodyInBytes
     + config_lib::domain_types::GetSrcPlaceType
     + config_lib::domain_types::GetChronoTimezone
-    + app_state::domain_types::GetSqlxPgPool
-    + server_runtime_http::domain_types::GetBulkItemResourceBudget
-    + server_runtime_http::domain_types::GetIdempotencyResponseResourceBudget
+    + app_state::domain_types::SqlxPgPoolProvider
+    + server_runtime_http::domain_types::BulkItemResourceBudgetProvider
+    + server_runtime_http::domain_types::IdempotencyResponseResourceBudgetProvider
     + Send
     + Sync
 {

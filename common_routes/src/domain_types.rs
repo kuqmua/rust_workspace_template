@@ -547,7 +547,10 @@ where
 }
 
 pub trait CommonRoutesParameters:
-    git_info::domain_types::GetGitCommitLink + app_state::domain_types::GetSqlxPgPool + Send + Sync
+    git_info::domain_types::GitCommitLinkProvider
+    + app_state::domain_types::SqlxPgPoolProvider
+    + Send
+    + Sync
 {
 }
 #[allow(clippy::single_call_fn)] // keeps commit-link extraction shape shared between handlers and tests
@@ -558,7 +561,7 @@ pub(crate) const fn mk_git_info_payload(
 }
 #[allow(clippy::single_call_fn)] // single source for no-route text reused by payload builder and tests
 fn mk_no_route_message(uri: AxumHttpUriRef<'_>) -> to_err_string::domain_types::ErrorText {
-    mk_no_route_message_for_suffix(get_uri_suffix(uri))
+    mk_no_route_message_for_suffix(uri_suffix(uri))
 }
 #[allow(clippy::single_call_fn)] // isolated for reuse in tests and payload builder when suffix is precomputed
 fn mk_no_route_message_for_suffix(
@@ -580,7 +583,7 @@ fn no_route_message_capacity(uri_suffix: UriSuffixRef<'_>) -> NoRouteMessageCapa
     )
 }
 #[allow(clippy::single_call_fn)] // keeps route text construction consistent for path-only and path+query URIs
-fn get_uri_suffix(uri: AxumHttpUriRef<'_>) -> UriSuffixRef<'_> {
+fn uri_suffix(uri: AxumHttpUriRef<'_>) -> UriSuffixRef<'_> {
     UriSuffixRef::from(
         uri.0
             .path_and_query()
@@ -613,10 +616,10 @@ pub(crate) fn mk_commit_json_res<S, T>(
     map: impl FnOnce(git_info::domain_types::GitCommitLinkCow) -> T,
 ) -> JsonRes<T>
 where
-    S: ?Sized + git_info::domain_types::GetGitCommitLink,
+    S: ?Sized + git_info::domain_types::GitCommitLinkProvider,
 {
     mk_json_res(map(
-        git_info::domain_types::GetGitCommitLink::get_git_commit_link_cow(commit_src),
+        git_info::domain_types::GitCommitLinkProvider::git_commit_link_cow(commit_src),
     ))
 }
 pub(crate) fn mk_json_res<T>(payload: T) -> JsonRes<T> {

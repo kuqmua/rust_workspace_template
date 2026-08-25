@@ -69,8 +69,8 @@ pub enum CommitError {
         location: location_lib::domain_types::Location,
     },
 }
-impl crate::domain_types::GetAxumHttpStatusCode for CommitError {
-    fn get_axum_http_status_code(&self) -> crate::domain_types::AxumHttpStatusCode {
+impl crate::domain_types::AxumHttpStatusCodeProvider for CommitError {
+    fn axum_http_status_code(&self) -> crate::domain_types::AxumHttpStatusCode {
         crate::domain_types::AxumHttpStatusCode::bad_request()
     }
 }
@@ -118,7 +118,7 @@ fn validate_commit_header_value(
 fn read_commit_header_str(
     headers: crate::domain_types::hdr_val::AxumHeadersRef<'_>,
 ) -> Result<crate::domain_types::hdr_val::HeaderStrRef<'_>, CommitError> {
-    crate::domain_types::hdr_val::get_required_header_str(
+    crate::domain_types::hdr_val::required_header_str(
         headers,
         COMMIT_HEADER_NAME,
         CommitError::no_commit_header,
