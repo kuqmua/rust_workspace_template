@@ -326,7 +326,7 @@ impl<'ast> syn::visit::Visit<'ast> for LostSpawnVisitor {
         };
         if discarded {
             self.ers.push(
-                constants_str::SPAWN_RESULT_IS_DISCARDED_RETAIN_AND_SUPERVISE_ITS_HANDLE.to_owned(),
+                constants_str::SPAWN_RESULT_IS_DISCARDED_RETAIN_AND_SUPERVISE_TASK.to_owned(),
             );
         }
         syn::visit::visit_stmt(self, i);
@@ -1503,7 +1503,7 @@ impl<'ast> syn::visit::Visit<'ast> for RouteOperationErrorVisitor {
             .iter()
             .filter(|attr| {
                 attr.path().segments.last().is_some_and(|segment| {
-                    segment.ident == constants_str::CODE_STYLE_HANDLER_REGISTRY_IDENTIFIER
+                    segment.ident == constants_str::CODE_STYLE_ENDPOINT_REGISTRY_IDENTIFIER
                 })
             })
             .filter_map(|attr| match &attr.meta {
@@ -1533,8 +1533,8 @@ impl<'ast> syn::visit::Visit<'ast> for RouteOperationErrorVisitor {
                 | proc_macro2::TokenTree::Literal(_)
                 | proc_macro2::TokenTree::Punct(_) => None,
             })
-            .for_each(|handler| {
-                let _: bool = self.registered.insert(handler);
+            .for_each(|endpoint| {
+                let _: bool = self.registered.insert(endpoint);
             });
         syn::visit::visit_item_struct(self, i);
     }

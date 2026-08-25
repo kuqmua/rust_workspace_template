@@ -5,7 +5,7 @@
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub(crate) struct NotificationState {
-    pub(crate) metrics: MetricsExporterPrometheusHandle,
+    pub(crate) metrics: MetricsExporterPrometheusRenderer,
     pub(crate) pool: app_state::domain_types::SqlxPgPool,
     pub(crate) project_git_info: git_info::domain_types::ProjectGitInfo<'static>,
 }
@@ -46,7 +46,7 @@ pub(crate) enum MetricsError {
     ),
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, newtype::FromInner)]
-pub(crate) struct MetricsExporterPrometheusHandle(metrics_exporter_prometheus::PrometheusHandle);
+pub(crate) struct MetricsExporterPrometheusRenderer(metrics_exporter_prometheus::PrometheusHandle);
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 pub(crate) struct NotificationBodyMaximumBytes(usize);
@@ -71,7 +71,7 @@ impl AxumNotificationRouter {
         self.0
     }
 }
-impl MetricsExporterPrometheusHandle {
+impl MetricsExporterPrometheusRenderer {
     pub(crate) fn render(
         &self,
     ) -> Result<

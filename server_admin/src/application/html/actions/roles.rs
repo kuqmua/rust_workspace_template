@@ -88,7 +88,7 @@ pub(super) async fn role_permissions(
     .await
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
-#[frontend_contract::domain_types::handler_registry(
+#[frontend_contract::domain_types::endpoint_registry(
     state = super::super::super::SharedAdminAuthSvcStateArc;
     (server_admin_contract::domain_types::AdminHtmlAction::RoleCreate, create_role),
     (server_admin_contract::domain_types::AdminHtmlAction::RoleUpdate, update_role),

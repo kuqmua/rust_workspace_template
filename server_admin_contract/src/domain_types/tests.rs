@@ -475,23 +475,29 @@ fn data_tables_round_trip_and_require_read_permissions() {
         "sign_out"
     );
     assert_eq!(
-        frontend_contract::domain_types::HandlerContract::method(super::AdminHtmlAction::SignOut),
+        frontend_contract::domain_types::RouteRegistrationContract::method(
+            super::AdminHtmlAction::SignOut
+        ),
         frontend_contract::domain_types::RouteMethod::Post
     );
     assert_eq!(
-        frontend_contract::domain_types::HandlerContract::path(super::AdminHtmlAction::SignOut)
-            .get(),
+        frontend_contract::domain_types::RouteRegistrationContract::path(
+            super::AdminHtmlAction::SignOut
+        )
+        .get(),
         super::AdminHtmlAction::SignOut.get()
     );
     assert_eq!(
-        frontend_contract::domain_types::HandlerContract::method(
+        frontend_contract::domain_types::RouteRegistrationContract::method(
             super::AdminFrontendPath::Settings
         ),
         frontend_contract::domain_types::RouteMethod::Get
     );
     assert_eq!(
-        frontend_contract::domain_types::HandlerContract::path(super::AdminFrontendPath::Settings)
-            .get(),
+        frontend_contract::domain_types::RouteRegistrationContract::path(
+            super::AdminFrontendPath::Settings
+        )
+        .get(),
         super::AdminFrontendPath::Settings.get()
     );
     assert!(super::AdminPage::navigation().all(|page| {

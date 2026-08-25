@@ -371,7 +371,7 @@ fn new_runtime_structs_keep_fields_private() {
 fn spawned_tasks_must_retain_an_owner() {
     super::assert_rs_ast_ers_empty_with_ctx(
         super::types::StaticStr::from(constants_str::VALUE_5D0D5BF0),
-        super::types::SourceTextRef::from(constants_str::SPAWNED_TASK_HANDLES_ARE_DISCARDED),
+        super::types::SourceTextRef::from(constants_str::SPAWNED_TASKS_ARE_DISCARDED),
         |path, ast, ers| {
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
@@ -1323,9 +1323,9 @@ fn source_lint_reason_policy_accepts_argument_and_comment_reasons() {
     assert_eq!(visitor.ers.len(), constants_usize::ONE);
 }
 #[test]
-fn handler_route_operation_error_policy_rejects_shared_types() {
-    let ast = syn::parse_file(constants_str::CODE_STYLE_HANDLER_ROUTE_OPERATION_ERROR_FIXTURE)
-        .expect("752fbb70 handler_route_operation_error_policy_rejects_shared_types invariant must hold");
+fn route_operation_error_policy_rejects_shared_types() {
+    let ast = syn::parse_file(constants_str::CODE_STYLE_ROUTE_ENDPOINT_OPERATION_ERROR_FIXTURE)
+        .expect("752fbb70 route_operation_error_policy_rejects_shared_types invariant must hold");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::source_analysis::RouteOperationErrorVisitor::default(),
@@ -2071,9 +2071,9 @@ fn every_fallible_typed_route_operation_has_its_own_error_type() {
             visitor
                 .registered
                 .difference(&visitor.operations)
-                .for_each(|handler| {
+                .for_each(|endpoint| {
                     ers.push(format!(
-                        "{}: registered handler `{handler}` must declare its route operation",
+                        "{}: registered endpoint `{endpoint}` must declare its route operation",
                         path.display()
                     ));
                 });
@@ -2489,4 +2489,55 @@ fn no_unwrap_in_source_code() {
             );
         },
     );
+}
+#[test]
+fn repository_identifiers_use_explicit_resource_names() {
+    #[derive(Default, optimal_memory_layout::OptimalMemoryLayout)]
+    struct ExplicitResourceNameVisitor {
+        violations: super::types::SourceTextList,
+    }
+
+    impl<'ast_lt> syn::visit::Visit<'ast_lt> for ExplicitResourceNameVisitor {
+        fn visit_ident(&mut self, i: &'ast_lt syn::Ident) {
+            let name = i.to_string();
+            let Some(vague_fragment) = stringify!(JoinHandle).strip_prefix(stringify!(Join)) else {
+                return;
+            };
+            if name.to_ascii_lowercase().contains(vague_fragment)
+                && !matches!(
+                    name.as_str(),
+                    stringify!(Handler)
+                        | stringify!(JoinHandle)
+                        | stringify!(PrometheusHandle)
+                        | stringify!(ScopedJoinHandle)
+                        | stringify!(handle)
+                        | stringify!(handler)
+                )
+            {
+                self.violations.push(name);
+            }
+            syn::visit::visit_ident(self, i);
+        }
+    }
+
+    super::snapshot::with_codebase_snapshot(|snapshot| {
+        let violations = snapshot
+            .rs_files()
+            .iter()
+            .flat_map(|file| {
+                let mut visitor = ExplicitResourceNameVisitor::default();
+                syn::visit::Visit::visit_file(&mut visitor, file.ast().as_ref());
+                visitor
+                    .violations
+                    .into_iter()
+                    .map(|identifier| format!("{}: {identifier}", file.path().as_ref().display()))
+                    .collect::<Vec<_>>()
+            })
+            .collect::<Vec<_>>();
+        assert!(
+            violations.is_empty(),
+            "repository identifiers must name their concrete resource or endpoint role:\n{}",
+            violations.join("\n")
+        );
+    });
 }

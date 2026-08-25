@@ -1,4 +1,4 @@
-#![allow(clippy::single_call_fn)] // route facade preserves utoipa inventory while private implementations own handler logic
+#![allow(clippy::single_call_fn)] // route facade preserves utoipa inventory while private implementations own endpoint logic
 pub(super) fn map_unique_violation<Error>(value: Error) -> super::AdminError
 where
     Error: Into<sqlx::Error>,

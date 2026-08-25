@@ -259,39 +259,40 @@ impl syn::parse::Parse for domain_types::RouteCatalogRouteArgs {
         }
     }
 }
-impl syn::parse::Parse for domain_types::HandlerRegistryBinding {
+impl syn::parse::Parse for domain_types::EndpointRegistryBinding {
     fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
         let content;
         let _parenthesis = syn::parenthesized!(content in input);
         let contract =
-            domain_types::SynHandlerRegistryContract::from(content.parse::<syn::Expr>()?);
+            domain_types::SynEndpointRegistryContract::from(content.parse::<syn::Expr>()?);
         let _contract_comma = content.parse::<syn::Token![,]>()?;
-        let handler = domain_types::SynHandlerRegistryHandler::from(content.parse::<syn::Path>()?);
-        Ok(Self { contract, handler })
+        let endpoint =
+            domain_types::SynEndpointRegistryEndpoint::from(content.parse::<syn::Path>()?);
+        Ok(Self { contract, endpoint })
     }
 }
 
-impl syn::parse::Parse for domain_types::HandlerRegistryArgs {
+impl syn::parse::Parse for domain_types::EndpointRegistryArgs {
     fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
         let state_name = input.parse::<syn::Ident>()?;
         if state_name != constants_str::STATE {
             return Err(syn::Error::new_spanned(
                 state_name,
-                constants_str::HANDLER_REGISTRY_REQUIRES_STATE,
+                constants_str::ENDPOINT_REGISTRY_REQUIRES_STATE,
             ));
         }
         let _equals = input.parse::<syn::Token![=]>()?;
-        let state = domain_types::SynHandlerRegistryState::from(input.parse::<syn::Type>()?);
+        let state = domain_types::SynEndpointRegistryState::from(input.parse::<syn::Type>()?);
         let _semicolon = input.parse::<syn::Token![;]>()?;
         let bindings = syn::punctuated::Punctuated::<
-            domain_types::HandlerRegistryBinding,
+            domain_types::EndpointRegistryBinding,
             syn::Token![,],
         >::parse_terminated(input)?;
         if bindings.is_empty() {
-            return Err(input.error(constants_str::HANDLER_REGISTRY_REQUIRES_BINDING));
+            return Err(input.error(constants_str::ENDPOINT_REGISTRY_REQUIRES_BINDING));
         }
         Ok(Self {
-            bindings: domain_types::SynHandlerRegistryBindings::from(bindings),
+            bindings: domain_types::SynEndpointRegistryBindings::from(bindings),
             state,
         })
     }
@@ -303,16 +304,16 @@ impl syn::parse::Parse for domain_types::RouteRegistryBinding {
         let _parenthesis = syn::parenthesized!(content in input);
         let route = domain_types::SynRouteRegistryRoute::from(content.parse::<syn::Type>()?);
         let _comma = content.parse::<syn::Token![,]>()?;
-        let handler = domain_types::SynRouteRegistryHandler::from(content.parse::<syn::Path>()?);
-        Ok(Self { handler, route })
+        let endpoint = domain_types::SynRouteRegistryEndpoint::from(content.parse::<syn::Path>()?);
+        Ok(Self { endpoint, route })
     }
 }
 #[proc_macro_attribute]
-pub fn handler_registry(
+pub fn endpoint_registry(
     attribute_args: proc_macro::TokenStream,
     input: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
-    let parsed_args = match syn::parse::<domain_types::HandlerRegistryArgs>(attribute_args) {
+    let parsed_args = match syn::parse::<domain_types::EndpointRegistryArgs>(attribute_args) {
         Ok(value) => value,
         Err(error) => return error.to_compile_error().into(),
     };
@@ -328,11 +329,11 @@ pub fn handler_registry(
         .iter()
         .map(|binding| binding.contract.as_ref())
         .collect::<Vec<_>>();
-    let handlers = parsed_args
+    let endpoints = parsed_args
         .bindings
         .as_ref()
         .iter()
-        .map(|binding| binding.handler.as_ref())
+        .map(|binding| binding.endpoint.as_ref())
         .collect::<Vec<_>>();
     quote::quote! {
         #item
@@ -340,10 +341,10 @@ pub fn handler_registry(
             fn router() -> axum::Router<#state> {
                 axum::Router::new()
                     #(.route(
-                        frontend_contract::domain_types::HandlerContract::path(#contracts).get(),
-                        frontend_contract::domain_types::handler_method_router(
-                            frontend_contract::domain_types::HandlerContract::method(#contracts),
-                            #handlers,
+                        frontend_contract::domain_types::RouteRegistrationContract::path(#contracts).get(),
+                        frontend_contract::domain_types::route_method_router(
+                            frontend_contract::domain_types::RouteRegistrationContract::method(#contracts),
+                            #endpoints,
                         ).into(),
                     ))*
             }
@@ -816,11 +817,11 @@ pub fn route_registry(
         .iter()
         .map(|binding| binding.route.as_ref())
         .collect::<Vec<_>>();
-    let handlers = parsed_args
+    let endpoints = parsed_args
         .bindings
         .as_ref()
         .iter()
-        .map(|binding| binding.handler.as_ref())
+        .map(|binding| binding.endpoint.as_ref())
         .collect::<Vec<_>>();
     let route_count = routes.len();
     let openapi_paths = parsed_args
@@ -828,7 +829,7 @@ pub fn route_registry(
         .as_ref()
         .iter()
         .map(|binding| {
-            let mut path = binding.handler.as_ref().clone();
+            let mut path = binding.endpoint.as_ref().clone();
             if let Some(last_segment) = path.segments.last_mut() {
                 last_segment.ident = quote::format_ident!("__path_{}", last_segment.ident);
             }
@@ -843,7 +844,7 @@ pub fn route_registry(
             [(); #route_count];
         #[allow(clippy::needless_for_each)]
         #[derive(utoipa::OpenApi)]
-        #[openapi(paths(#(#handlers),*), #openapi_metadata)]
+        #[openapi(paths(#(#endpoints),*), #openapi_metadata)]
         struct #openapi_identifier;
         impl #identifier {
             fn assert_route_family_membership<Route>()
@@ -919,7 +920,7 @@ pub fn route_registry(
                                         .method()
                                 )
                             ),
-                            #handlers,
+                            #endpoints,
                         ),
                     ))*
             }

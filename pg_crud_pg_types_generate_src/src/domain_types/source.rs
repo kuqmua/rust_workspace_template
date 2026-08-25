@@ -1448,11 +1448,11 @@ enum IntRangeType {
                 )
             },
         };
-        let field_type_handle_optional_token_stream = pg_crud_macro_common::domain_types::generate_optional_type_declaration_token_stream(&identifier_standard_non_null_origin_upper_camel_case);
-        let field_type_handle: &dyn quote::ToTokens = match &pg_type_pattern {
+        let optional_field_type_token_stream = pg_crud_macro_common::domain_types::generate_optional_type_declaration_token_stream(&identifier_standard_non_null_origin_upper_camel_case);
+        let field_type_tokens: &dyn quote::ToTokens = match &pg_type_pattern {
             PgTypePattern::Standard => match &is_nullable {
                 pg_crud_macro_common::domain_types::IsNullable::False => &inner_type_standard_non_null_token_stream,
-                pg_crud_macro_common::domain_types::IsNullable::True => &field_type_handle_optional_token_stream,
+                pg_crud_macro_common::domain_types::IsNullable::True => &optional_field_type_token_stream,
             },
         };
         let generate_typical_pg_query_query_bind_token_stream = |ts: &dyn quote::ToTokens| match &is_nullable {
@@ -1697,10 +1697,10 @@ enum IntRangeType {
                             generate_four_field_time_ser_token_stream(&hour_ser_field_token_stream, &minute_ser_field_token_stream, &second_ser_field_token_stream, &microsecond_ser_field_token_stream)
                         }))),
                         PgType::SqlxPgTypesPgIntervalAsInterval => pg_crud_macro_common::domain_types::DeriveOrImpl::Impl(macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(generate_impl_ser_for_identifier_standard_non_null_origin_tokens(&{
-                            let generate_ser_field_handle_token_stream = |v: &dyn naming::domain_types::DisplayPlusToTokens| generate_ser_field_token_stream(&v, &quote::quote! {&#self_dot_zero_token_stream.#v});
-                            let months_ser_field_token_stream = generate_ser_field_handle_token_stream(&months_snake_case);
-                            let days_ser_field_token_stream = generate_ser_field_handle_token_stream(&days_snake_case);
-                            let microseconds_ser_field_token_stream = generate_ser_field_handle_token_stream(&microseconds_snake_case);
+                            let generate_serialized_field_token_stream = |v: &dyn naming::domain_types::DisplayPlusToTokens| generate_ser_field_token_stream(&v, &quote::quote! {&#self_dot_zero_token_stream.#v});
+                            let months_ser_field_token_stream = generate_serialized_field_token_stream(&months_snake_case);
+                            let days_ser_field_token_stream = generate_serialized_field_token_stream(&days_snake_case);
+                            let microseconds_ser_field_token_stream = generate_serialized_field_token_stream(&microseconds_snake_case);
                             quote::quote! {
                                 #serde_state_initialization_three_fields_token_stream
                                 #months_ser_field_token_stream
@@ -2546,7 +2546,7 @@ enum IsConst {
                     },
                     &identifier_origin_upper_camel_case,
                     &proc_macro2::TokenStream::new(),
-                    &quote::quote! {(#field_type_handle);},
+                    &quote::quote! {(#field_type_tokens);},
                 );
             let generate_location_var_token_stream = |name_token_stream: &dyn quote::ToTokens, ts: &dyn quote::ToTokens|quote::quote! {
                 #name_token_stream {
@@ -3581,7 +3581,7 @@ enum IsConst {
                                 | PgType::SqlxTypesChronoNaiveDateAsDate
                                 | PgType::SqlxTypesChronoNaiveTimeAsTime
                                 | PgType::SqlxTypesMacAddressMacAddressAsMacAddr
-                                | PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg => &quote::quote! {#field_type_handle::default()},
+                                | PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg => &quote::quote! {#field_type_tokens::default()},
                                 PgType::SqlxTypesUuidUuidAsUuidInitializationByClient => &quote::quote! {#identifier_inner_type_token_stream::default()},
                                 PgType::SqlxPgTypesPgMoneyAsMoney => &quote::quote! {#inner_type_standard_non_null_token_stream(#core_default)},
                                 PgType::StdVecVecU8AsBytea => &quote::quote! {vec![#core_default]},
@@ -3614,8 +3614,8 @@ enum IsConst {
                 };
                 quote::quote! {Self(#ts)}
             });
-            let impl_sqlx_type_and_encode_for_identifier_origin_token_stream = pg_crud_macro_common::domain_types::generate_impl_sqlx_type_and_encode_for_identifier_token_stream(&identifier_origin_upper_camel_case, &field_type_handle, &sqlx_encode_self_dot_zero_token_stream);
-            let impl_sqlx_decode_sqlx_pg_for_identifier_origin_token_stream = pg_crud_macro_common::domain_types::generate_impl_sqlx_decode_sqlx_pg_for_identifier_token_stream(&identifier_origin_upper_camel_case, &field_type_handle, &{
+            let impl_sqlx_type_and_encode_for_identifier_origin_token_stream = pg_crud_macro_common::domain_types::generate_impl_sqlx_type_and_encode_for_identifier_token_stream(&identifier_origin_upper_camel_case, &field_type_tokens, &sqlx_encode_self_dot_zero_token_stream);
+            let impl_sqlx_decode_sqlx_pg_for_identifier_origin_token_stream = pg_crud_macro_common::domain_types::generate_impl_sqlx_decode_sqlx_pg_for_identifier_token_stream(&identifier_origin_upper_camel_case, &field_type_tokens, &{
                 let scopes_v_token_stream = quote::quote! {(v)};
                 let ok_self_scopes_v_token_stream = quote::quote! {Ok(Self #scopes_v_token_stream)};
                 match &pg_type_pattern {
@@ -3663,7 +3663,7 @@ enum IsConst {
                 }).into(),
             };
             let impl_as_ref_and_borrow_for_identifier_origin_token_stream =
-                generate_impl_wrapper_traits_token_stream(&identifier_origin_upper_camel_case, &field_type_handle, ShouldImplFrom::False);
+                generate_impl_wrapper_traits_token_stream(&identifier_origin_upper_camel_case, &field_type_tokens, ShouldImplFrom::False);
             quote::quote! {
                 #identifier_origin_wire_token_stream
                 #identifier_origin_token_stream
@@ -3743,8 +3743,8 @@ enum IsConst {
                 &identifier_table_type_upper_camel_case,
                 //todo
                 &{
-                    let eq_token_stream = pg_crud_macro_common::domain_types::EqOperatorHandle::Eq.to_tokens_path(&import);
-                    let is_null_token_stream = pg_crud_macro_common::domain_types::EqOperatorHandle::IsNull.to_tokens_path(&import);
+                    let eq_token_stream = pg_crud_macro_common::domain_types::EqOperatorVariant::Eq.to_tokens_path(&import);
+                    let is_null_token_stream = pg_crud_macro_common::domain_types::EqOperatorVariant::IsNull.to_tokens_path(&import);
                     let nullable_eq_operator_token_stream = quote::quote! {
                         if self.0.0.is_some() {
                             #eq_token_stream
@@ -4548,7 +4548,7 @@ enum IsNeedToUseInto {
                     as
                 #import::#pg_type_upper_camel_case>::#read_or_update_upper_camel_case:: #ts}
             };
-            let generate_standard_non_null_test_case_handle_token_stream = |is_need_to_use_into: &IsNeedToUseInto| {
+            let generate_standard_non_null_test_case_token_stream = |is_need_to_use_into: &IsNeedToUseInto| {
                 let generate_range_read_ids_to_2_dimensions_vec_read_inner_token_stream =
                     |min_token_stream: &dyn quote::ToTokens, negative_less_typical_token_stream: &dyn quote::ToTokens, negative_more_typical_token_stream: &dyn quote::ToTokens, near_zero_token_stream: &dyn quote::ToTokens, positive_less_typical_token_stream: &dyn quote::ToTokens, positive_more_typical_token_stream: &dyn quote::ToTokens, max_token_stream: &dyn quote::ToTokens| {
                         #[derive(optimal_memory_layout::OptimalMemoryLayout)]
@@ -4945,7 +4945,7 @@ enum Bnd<'lt> {
                     PgTypePattern::Standard => match &is_nullable {
                         pg_crud_macro_common::domain_types::IsNullable::False => match &can_be_primary_key {
                             CanBePrimaryKey::False => Some({
-                                let ts = generate_standard_non_null_test_case_handle_token_stream(&IsNeedToUseInto::False);
+                                let ts = generate_standard_non_null_test_case_token_stream(&IsNeedToUseInto::False);
                                 let new_or_try_new_token_stream = {
                                     let self_as_pg_type_create_token_stream = quote::quote! {#self_as_pg_type_token_stream::Create};
                                     if pg_type_initialization_try_new_try_from_pg_type.is_ok() {
@@ -4973,7 +4973,7 @@ enum Bnd<'lt> {
             let read_ids_to_2_dimensions_vec_read_inner_token_stream = {
                 match &is_nullable {
                     pg_crud_macro_common::domain_types::IsNullable::False => {
-                        let ts = generate_standard_non_null_test_case_handle_token_stream(&IsNeedToUseInto::True);
+                        let ts = generate_standard_non_null_test_case_token_stream(&IsNeedToUseInto::True);
                         quote::quote! {vec![{#ts}]}
                     }
                     pg_crud_macro_common::domain_types::IsNullable::True => quote::quote! {{

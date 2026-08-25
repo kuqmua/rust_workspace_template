@@ -129,9 +129,9 @@ pub(super) async fn run_server(
             project_git_info: git_info::domain_types::project_git_info(),
         },
     ));
-    let metrics_handle = metrics_exporter_prometheus::PrometheusBuilder::new()
+    let metrics_renderer = metrics_exporter_prometheus::PrometheusBuilder::new()
         .install_recorder()
-        .map(crate::domain_types::MetricsExporterPrometheusHandle::from)
+        .map(crate::domain_types::MetricsExporterPrometheusRenderer::from)
         .map_err(|error| {
             crate::domain_types::RunServerError::MetricsRecorder(
                 crate::domain_types::MetricsExporterPrometheusBuildError::from(error),
@@ -141,13 +141,13 @@ pub(super) async fn run_server(
         admin_auth_state.clone(),
         server_admin::domain_types::auth::AdminHtmlSwaggerEnabled::from(swagger_enabled),
     );
-    let html_metrics_handle = metrics_handle.clone();
+    let html_metrics_renderer = metrics_renderer.clone();
     let admin_metrics_routes = axum::Router::new()
         .route(
             server_admin_contract::domain_types::AdminFrontendPath::Metrics.get(),
             axum::routing::get(async move || {
                 server_runtime_http::domain_types::MetricsResponseBody::try_from(
-                    metrics_exporter_prometheus::PrometheusHandle::from(html_metrics_handle)
+                    metrics_exporter_prometheus::PrometheusHandle::from(html_metrics_renderer)
                         .render(),
                 )
                 .map_or_else(
@@ -188,7 +188,7 @@ pub(super) async fn run_server(
         .route_layer(server_admin::domain_types::AdminGeneratedAuthLayer::from(
             admin_auth_state.clone(),
         ));
-    let api_routes = admin_api::routes(admin_auth_state, &app_state, metrics_handle);
+    let api_routes = admin_api::routes(admin_auth_state, &app_state, metrics_renderer);
     let operational_routes = axum::Router::from(common_routes::adapters::common_routes(
         common_routes::domain_types::ArcCommonRoutesAppState::from(std::sync::Arc::<
             server_app_state::domain_types::ServerAppState<'static>,

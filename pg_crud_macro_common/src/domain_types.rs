@@ -509,11 +509,11 @@ pub enum EqOrEqUsingFields {
     EqUsingFields,
 }
 #[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout)]
-pub enum EqOperatorHandle {
+pub enum EqOperatorVariant {
     Eq,
     IsNull,
 }
-impl EqOperatorHandle {
+impl EqOperatorVariant {
     #[must_use]
     pub fn to_tokens_path(
         &self,

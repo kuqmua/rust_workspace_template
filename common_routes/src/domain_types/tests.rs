@@ -46,7 +46,7 @@ fn assert_git_info_commit(payload: &super::GitInfo, exp_commit: &str) {
     assert_eq!(payload.commit.as_ref(), exp_commit);
 }
 fn assert_not_found_payload_with_commit(
-    payload: &super::NotFoundHandle,
+    payload: &super::NotFoundPayload,
     exp_commit: &str,
     exp_uri_suffix: &str,
 ) {

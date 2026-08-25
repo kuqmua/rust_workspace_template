@@ -100,7 +100,7 @@ fn admin_frontend_api_urls_come_from_typed_routes() {
 }
 #[test]
 #[allow(clippy::needless_for_each)] // iterator form is required by the workspace no-for-loop policy
-fn service_route_handler_composition_uses_shared_registries() {
+fn service_route_endpoint_composition_uses_shared_registries() {
     super::snapshot::with_codebase_snapshot(|snapshot| {
         [
             (constants_str::VALUE_3EB7B056, constants_usize::EIGHT),
@@ -124,7 +124,7 @@ fn service_route_handler_composition_uses_shared_registries() {
                 .collect::<String>();
             assert_eq!(
                 source
-                    .matches("frontend_contract::domain_types::handler_registry")
+                    .matches("frontend_contract::domain_types::endpoint_registry")
                     .count(),
                 *expected_registry_count,
                 "26aa4162"

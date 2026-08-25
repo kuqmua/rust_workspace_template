@@ -2,7 +2,7 @@
 pub(super) fn routes(
     admin_auth_state: server_admin::domain_types::auth::SharedAdminAuthSvcStateArc,
     app_state: &crate::domain_types::SharedServerAppStateArc,
-    metrics_handle: crate::domain_types::MetricsExporterPrometheusHandle,
+    metrics_renderer: crate::domain_types::MetricsExporterPrometheusRenderer,
 ) -> crate::domain_types::AxumApiRoutes {
     let generated_admin_auth_state = admin_auth_state.clone();
     let generated_table_logic_state: std::sync::Arc<
@@ -48,7 +48,7 @@ pub(super) fn routes(
                 ),
                 async move || {
                     server_runtime_http::domain_types::MetricsResponseBody::try_from(
-                        metrics_exporter_prometheus::PrometheusHandle::from(metrics_handle)
+                        metrics_exporter_prometheus::PrometheusHandle::from(metrics_renderer)
                             .render(),
                     )
                     .map(|body| {

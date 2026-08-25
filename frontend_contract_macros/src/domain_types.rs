@@ -98,12 +98,12 @@ pub(crate) enum SynTypedRouteErrors {
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(crate) struct RouteRegistryBinding {
-    pub(crate) handler: SynRouteRegistryHandler,
+    pub(crate) endpoint: SynRouteRegistryEndpoint,
     pub(crate) route: SynRouteRegistryRoute,
 }
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner, newtype::AsRefOwned)]
-pub(crate) struct SynRouteRegistryHandler(syn::Path);
+pub(crate) struct SynRouteRegistryEndpoint(syn::Path);
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner, newtype::AsRefOwned)]
 pub(crate) struct SynRouteRegistryRoute(syn::Type);
@@ -123,29 +123,29 @@ pub(crate) struct SynRouteRegistryState(syn::Type);
 pub(crate) struct SynRouteRegistryFamily(syn::Type);
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
-pub(crate) struct HandlerRegistryBinding {
-    pub(crate) contract: SynHandlerRegistryContract,
-    pub(crate) handler: SynHandlerRegistryHandler,
+pub(crate) struct EndpointRegistryBinding {
+    pub(crate) contract: SynEndpointRegistryContract,
+    pub(crate) endpoint: SynEndpointRegistryEndpoint,
 }
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner, newtype::AsRefOwned)]
-pub(crate) struct SynHandlerRegistryContract(syn::Expr);
+pub(crate) struct SynEndpointRegistryContract(syn::Expr);
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner, newtype::AsRefOwned)]
-pub(crate) struct SynHandlerRegistryHandler(syn::Path);
+pub(crate) struct SynEndpointRegistryEndpoint(syn::Path);
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner, newtype::AsRefOwned)]
-pub(crate) struct SynHandlerRegistryBindings(
-    syn::punctuated::Punctuated<HandlerRegistryBinding, syn::Token![,]>,
+pub(crate) struct SynEndpointRegistryBindings(
+    syn::punctuated::Punctuated<EndpointRegistryBinding, syn::Token![,]>,
 );
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner, newtype::AsRefOwned)]
-pub(crate) struct SynHandlerRegistryState(syn::Type);
+pub(crate) struct SynEndpointRegistryState(syn::Type);
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
-pub(crate) struct HandlerRegistryArgs {
-    pub(crate) bindings: SynHandlerRegistryBindings,
-    pub(crate) state: SynHandlerRegistryState,
+pub(crate) struct EndpointRegistryArgs {
+    pub(crate) bindings: SynEndpointRegistryBindings,
+    pub(crate) state: SynEndpointRegistryState,
 }
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
@@ -195,7 +195,7 @@ impl SynRouteRegistrySchemas {
     }
 }
 
-impl SynRouteRegistryState {
+impl SynEndpointRegistryState {
     pub(crate) fn into_inner(self) -> syn::Type {
         self.0
     }
@@ -207,7 +207,7 @@ impl SynRouteRegistryFamily {
     }
 }
 
-impl SynHandlerRegistryState {
+impl SynRouteRegistryState {
     pub(crate) fn into_inner(self) -> syn::Type {
         self.0
     }

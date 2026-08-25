@@ -588,12 +588,12 @@ impl AdminHtmlAction {
         admin_path_route_name(AdminPagePathRef::from(self.get()))
     }
 }
-impl frontend_contract::domain_types::HandlerContract for AdminHtmlAction {
+impl frontend_contract::domain_types::RouteRegistrationContract for AdminHtmlAction {
     fn method(self) -> frontend_contract::domain_types::RouteMethod {
         frontend_contract::domain_types::RouteMethod::Post
     }
-    fn path(self) -> frontend_contract::domain_types::HandlerPath {
-        frontend_contract::domain_types::HandlerPath::from(self.get())
+    fn path(self) -> frontend_contract::domain_types::RegisteredRoutePath {
+        frontend_contract::domain_types::RegisteredRoutePath::from(self.get())
     }
 }
 impl AdminFrontendPath {
@@ -607,12 +607,12 @@ impl AdminFrontendPath {
         <&'static str>::from(self)
     }
 }
-impl frontend_contract::domain_types::HandlerContract for AdminFrontendPath {
+impl frontend_contract::domain_types::RouteRegistrationContract for AdminFrontendPath {
     fn method(self) -> frontend_contract::domain_types::RouteMethod {
         frontend_contract::domain_types::RouteMethod::Get
     }
-    fn path(self) -> frontend_contract::domain_types::HandlerPath {
-        frontend_contract::domain_types::HandlerPath::from(self.get())
+    fn path(self) -> frontend_contract::domain_types::RegisteredRoutePath {
+        frontend_contract::domain_types::RegisteredRoutePath::from(self.get())
     }
 }
 impl From<super::AdminDataTable> for AdminDataTableFrontendPath {

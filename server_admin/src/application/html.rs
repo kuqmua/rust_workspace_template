@@ -1,4 +1,4 @@
-#![allow(clippy::single_call_fn)] // each server-rendered HTML handler is registered once in the Axum route inventory
+#![allow(clippy::single_call_fn)] // each server-rendered HTML endpoint is registered once in the Axum route inventory
 #![allow(
     clippy::shadow_reuse,
     reason = "form adapters deliberately replace unvalidated extractor values with validated domain values"

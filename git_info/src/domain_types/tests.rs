@@ -113,7 +113,7 @@ fn git_commit_link_builds_expected_url() {
     assert_expected_git_commit_link(&link, constants_str::TEST_VALUES_COMMIT);
 }
 #[test]
-fn git_commit_link_handles_empty_commit() {
+fn git_commit_link_supports_empty_commit() {
     let link = super::git_commit_link(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX);
     assert_expected_git_commit_link(&link, constants_str::PG_CRUD_EMPTY_SQL_SUFFIX);
 }
@@ -301,7 +301,7 @@ fn project_git_info_as_ref_returns_commit() {
     assert_eq!(info.as_ref(), "abc123");
 }
 #[test]
-fn git_commit_link_capacity_handles_empty_commit() {
+fn git_commit_link_capacity_supports_empty_commit() {
     assert_eq!(
         super::git_commit_link_capacity(""),
         constants_str::NAMING_GITHUB_URL.len() + constants_str::GIT_INFO_TREE_SEGMENT.len()

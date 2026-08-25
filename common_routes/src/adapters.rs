@@ -1,4 +1,4 @@
-#![allow(clippy::arbitrary_source_item_ordering)] // generated route registry stays adjacent to its handlers
+#![allow(clippy::arbitrary_source_item_ordering)] // generated route registry stays adjacent to its endpoints
 
 async fn database_is_ready(
     app_state: &crate::domain_types::ArcCommonRoutesAppState,
@@ -67,7 +67,7 @@ pub(crate) fn open_api() -> crate::domain_types::UtoipaCommonRoutesOpenApiDocume
 #[frontend_contract::domain_types::route_openapi(tag = "service")]
 #[allow(
     clippy::single_call_fn,
-    reason = "the concrete handler is intentionally shared by Axum and OpenAPI metadata"
+    reason = "the concrete endpoint is intentionally shared by Axum and OpenAPI metadata"
 )]
 async fn health_live() -> Result<
     crate::domain_types::JsonRes<crate::domain_types::HealthReport>,
@@ -79,7 +79,7 @@ async fn health_live() -> Result<
 #[frontend_contract::domain_types::route_openapi(tag = "service")]
 #[allow(
     clippy::single_call_fn,
-    reason = "the concrete handler is intentionally owned by the generated route registry"
+    reason = "the concrete endpoint is intentionally owned by the generated route registry"
 )]
 async fn health_ready(
     app_state: crate::domain_types::ArcCommonRoutesAppState,
@@ -94,7 +94,7 @@ async fn health_ready(
 #[frontend_contract::domain_types::route_openapi(tag = "service")]
 #[allow(
     clippy::single_call_fn,
-    reason = "the concrete handler is intentionally owned by the generated route registry"
+    reason = "the concrete endpoint is intentionally owned by the generated route registry"
 )]
 async fn health(
     app_state: crate::domain_types::ArcCommonRoutesAppState,
@@ -109,7 +109,7 @@ async fn health(
 #[frontend_contract::domain_types::route_openapi(tag = "service")]
 #[allow(
     clippy::single_call_fn,
-    reason = "the concrete handler is intentionally owned by the generated route registry"
+    reason = "the concrete endpoint is intentionally owned by the generated route registry"
 )]
 async fn health_check(
     app_state: crate::domain_types::ArcCommonRoutesAppState,
@@ -124,7 +124,7 @@ async fn health_check(
 #[frontend_contract::domain_types::route_openapi(tag = "service")]
 #[allow(
     clippy::single_call_fn,
-    reason = "the concrete handler is intentionally owned by the generated route registry"
+    reason = "the concrete endpoint is intentionally owned by the generated route registry"
 )]
 async fn git_info(
     app_state: crate::domain_types::ArcCommonRoutesAppState,

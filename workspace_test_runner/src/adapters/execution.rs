@@ -319,7 +319,7 @@ pub(crate) fn run_commands(commands: CommandsRef<'_>) -> Result<(), ()> {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn failed_test_parser_handles_cargo_and_nextest_lines() {
+    fn failed_test_parser_parses_cargo_and_nextest_lines() {
         let names = super::failed_test_names(super::TextRef::from(constants_str::VALUE_E6CA5E47));
         assert_eq!(
             names
@@ -331,7 +331,7 @@ mod tests {
         );
     }
     #[test]
-    fn failed_test_parser_handles_partial_log() {
+    fn failed_test_parser_parses_partial_log() {
         assert!(
             super::failed_test_names(super::TextRef::from("test incomplete"))
                 .0

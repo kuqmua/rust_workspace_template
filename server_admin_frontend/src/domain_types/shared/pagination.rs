@@ -97,7 +97,7 @@ mod tests {
     }
 
     #[test]
-    fn page_range_handles_empty_and_first_pages() {
+    fn page_range_supports_empty_and_first_pages() {
         let empty = page_range(constants_u32::ZERO, 20u16, constants_u64::ZERO);
         assert_eq!(u64::from(empty.start()), constants_u64::ZERO);
         assert_eq!(u64::from(empty.end()), constants_u64::ZERO);
@@ -112,7 +112,7 @@ mod tests {
     }
 
     #[test]
-    fn page_range_handles_partial_out_of_range_and_overflow_pages() {
+    fn page_range_supports_partial_out_of_range_and_overflow_pages() {
         let partial = page_range(40u32, 20u16, 41u64);
         assert_eq!(u64::from(partial.start()), 41u64);
         assert_eq!(u64::from(partial.end()), 41u64);

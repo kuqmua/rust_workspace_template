@@ -1,4 +1,4 @@
-#![allow(clippy::single_call_fn)] // route handlers are registered indirectly by axum
+#![allow(clippy::single_call_fn)] // route endpoints are registered indirectly by axum
 pub(super) async fn query_log(
     auth: super::AdminAuthReq,
     query: super::AxumAdminQuery<super::AdminAuditQuery>,

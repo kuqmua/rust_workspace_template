@@ -97,7 +97,7 @@ pub(super) async fn update_settings(
     )
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
-#[frontend_contract::domain_types::handler_registry(
+#[frontend_contract::domain_types::endpoint_registry(
     state = super::super::super::SharedAdminAuthSvcStateArc;
     (server_admin_contract::domain_types::AdminHtmlAction::SettingsUpdate, update_settings),
 )]

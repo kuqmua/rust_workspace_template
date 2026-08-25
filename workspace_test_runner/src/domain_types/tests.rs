@@ -1,5 +1,5 @@
 #[test]
-fn ansi_cleanup_handles_multiple_and_unterminated_sequences() {
+fn ansi_cleanup_processes_multiple_and_unterminated_sequences() {
     let clean = super::strip_ansi_codes(super::AnsiTextRef::from(constants_str::VALUE_22233BC3));
     assert_eq!(clean.0, "plain red tail");
     assert_eq!(

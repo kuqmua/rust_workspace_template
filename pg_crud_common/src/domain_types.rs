@@ -851,22 +851,18 @@ impl<'query_lt, T: PgTypeWhereFilter<'query_lt>> PgTypeWhereFilter<'query_lt> fo
         );
         query_part.push_str(operator_query_part.as_ref());
         query_part.push('(');
-        let mut add_operator_inner_handle = AddOperator::from(false);
+        let mut element_add_operator = AddOperator::from(false);
         let mut is_first = true;
         self.v.as_slice().iter().try_for_each(|element| {
-            let v = PgTypeWhereFilter::query_part(
-                element,
-                increment,
-                column,
-                add_operator_inner_handle,
-            )?;
+            let v =
+                PgTypeWhereFilter::query_part(element, increment, column, element_add_operator)?;
             if is_first {
                 is_first = false;
             } else {
                 query_part.push(' ');
             }
             query_part.push_str(v.as_ref());
-            add_operator_inner_handle = AddOperator::from(true);
+            element_add_operator = AddOperator::from(true);
             Ok::<(), QueryPartError>(())
         })?;
         query_part.push(')');

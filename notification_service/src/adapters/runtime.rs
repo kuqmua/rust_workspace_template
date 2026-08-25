@@ -12,7 +12,7 @@ pub(crate) async fn run(
 ) -> Result<(), crate::domain_types::NotificationServiceError> {
     let metrics = metrics_exporter_prometheus::PrometheusBuilder::new()
         .install_recorder()
-        .map(crate::domain_types::MetricsExporterPrometheusHandle::from)
+        .map(crate::domain_types::MetricsExporterPrometheusRenderer::from)
         .map_err(|error| {
             crate::domain_types::NotificationServiceError::Metrics(
                 crate::domain_types::MetricsExporterPrometheusNotificationBuildError::from(error),

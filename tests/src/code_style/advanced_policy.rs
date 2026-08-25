@@ -255,7 +255,7 @@ impl<'ast> syn::visit::Visit<'ast> for SpawnLifecycleVisitor {
         });
         pending.into_iter().for_each(|identifier| {
             self.violations.push(format!(
-                "spawn handle `{identifier}` is retained but never awaited, aborted, or transferred to an owner"
+                "spawned task `{identifier}` is retained but never awaited, aborted, or transferred to an owner"
             ));
         });
         syn::visit::visit_block(self, i);
@@ -2085,7 +2085,7 @@ fn production_code_does_not_use_explicit_leak_apis() {
 }
 
 #[test]
-fn retained_spawn_handles_are_supervised() {
+fn retained_spawn_tasks_are_supervised() {
     super::snapshot::with_codebase_snapshot(|snapshot| {
         let violations = snapshot
             .rs_files()
@@ -2105,7 +2105,7 @@ fn retained_spawn_handles_are_supervised() {
 }
 
 #[test]
-fn spawn_lifecycle_policy_rejects_unconsumed_handles() {
+fn spawn_lifecycle_policy_rejects_unconsumed_tasks() {
     let ast =
         syn::parse_file(constants_str::VALUE_9F18A090).expect("834138af tasks invariant must hold");
     let visitor = super::visit_syn_file(
@@ -2115,7 +2115,7 @@ fn spawn_lifecycle_policy_rejects_unconsumed_handles() {
     assert_eq!(
         visitor.violations.as_slice(),
         [
-            "spawn handle `forgotten` is retained but never awaited, aborted, or transferred to an owner"
+            "spawned task `forgotten` is retained but never awaited, aborted, or transferred to an owner"
         ],
         "a1680c46"
     );

@@ -168,7 +168,7 @@ pub fn location(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
         SuportedEnumVariant::Named => {
             let location_snake_case_str = naming::domain_types::LocationSnakeCase.to_string();
             //todo maybe impl display was a bad idea. .to_string() casts is dangerous
-            let impl_display_handle_token_stream = {
+            let impl_display_token_stream = {
                 let vrts_token_stream = data_enum.variants.iter().map(|element| {
                     let element_identifier = &element.ident;
                     let fields = if let syn::Fields::Named(fields) = &element.fields {
@@ -361,7 +361,7 @@ pub fn location(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                     &maybe_generic_parameters_location_lib_to_err_string_anns_token_stream,
                     &identifier,
                     &maybe_generic_parameters_token_stream,
-                    &impl_display_handle_token_stream,
+                    &impl_display_token_stream,
                 );
             let impl_identifier_into_serde_version_token_stream = {
                 let vrts_token_stream = data_enum.variants.iter().map(|element| {
@@ -441,7 +441,7 @@ pub fn location(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                     &maybe_generic_parameters_location_lib_to_err_string_anns_token_stream,
                     &identifier_with_serde_upper_camel_case,
                     &maybe_generic_parameters_token_stream,
-                    &impl_display_handle_token_stream,
+                    &impl_display_token_stream,
                 );
             let impl_location_lib_to_err_string_to_err_string_for_identifier_with_serde_token_stream =
                 macro_helpers::domain_types::generate_impl_to_err_string_token_stream::generate_impl_to_err_string_token_stream(

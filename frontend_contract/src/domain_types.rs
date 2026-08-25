@@ -61,10 +61,10 @@ impl KnownHttpStatus {
 }
 mod auth_session_keep_alive;
 mod client;
-mod handler_contract;
 mod problem;
 mod route;
 mod route_coverage;
+mod route_registration_contract;
 mod url_builder;
 pub use auth_session_keep_alive::{
     AuthSessionInstant, AuthSessionKeepAlive, AuthSessionKeepAliveDecision,
@@ -74,12 +74,9 @@ pub use auth_session_keep_alive::{
 pub use client::TypedClient;
 pub use frontend_contract_macros::{
     ContractStructApi, PageCatalog, RouteCatalog, RouteFamily, TypedRoute, UnitEnumCatalog,
-    UnitEnumIndex, api_operation_error, handler_registry, route_error, route_openapi,
+    UnitEnumIndex, api_operation_error, endpoint_registry, route_error, route_openapi,
     route_operation, route_registry,
 };
-#[cfg(not(target_arch = "wasm32"))]
-pub use handler_contract::{AxumHandlerMethodRouter, handler_method_router};
-pub use handler_contract::{HandlerContract, HandlerPath};
 pub use problem::{
     ApiProblem, ApiProblemDetail, ApiProblemError, ApiProblemField, ApiProblemKind,
     ApiProblemRequestId, ApiProblemStatus, ApiProblemViolation,
@@ -108,6 +105,9 @@ pub use route_coverage::{
     RouteTestCategories, RouteTestCategory, missing_required_test_categories,
     required_test_categories, validate_route_coverage,
 };
+#[cfg(not(target_arch = "wasm32"))]
+pub use route_registration_contract::{AxumRouteMethodRouter, route_method_router};
+pub use route_registration_contract::{RegisteredRoutePath, RouteRegistrationContract};
 pub use url_builder::{ApiUrl, ApiUrlBuildError, ApiUrlPathSegmentRef, ApiUrlQueryComponentRef};
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,

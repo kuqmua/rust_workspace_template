@@ -352,11 +352,11 @@ constants_str_macros::define_str_constants! {
         ROUTE_ERROR_REQUIRES_ERROR_TYPE = ["route_error requires an error type"];
         ROUTE_ERROR_REQUIRES_EXPLICIT_RETURN_TYPE = ["route_error requires an explicit return type"];
         ROUTE_ERROR_REQUIRES_TYPED_PARAMETERS = ["route_error requires typed parameters"];
-        ROUTE_ERROR_UNUSED_ASYNC_REASON = ["route handler signatures remain uniformly asynchronous"];
+        ROUTE_ERROR_UNUSED_ASYNC_REASON = ["route endpoint signatures remain uniformly asynchronous"];
         ROUTE_ERROR_UNSUPPORTED_PARAMETER_PATTERN = ["route_error encountered an unsupported parameter pattern"];
         ROUTE_OPERATION_ACCEPTS_NO_ARGUMENTS = ["route_operation accepts no arguments"];
         CODE_STYLE_AXUM_JSON_IDENTIFIER = ["Json"];
-        CODE_STYLE_HANDLER_REGISTRY_IDENTIFIER = ["handler_registry"];
+        CODE_STYLE_ENDPOINT_REGISTRY_IDENTIFIER = ["endpoint_registry"];
         CODE_STYLE_INTO_RESPONSE_TRAIT_IDENTIFIER = ["IntoResponse"];
         CODE_STYLE_INTO_RESPONSE_METHOD_IDENTIFIER = ["into_response"];
         CODE_STYLE_OBSERVED_ERROR_IDENTIFIER = ["ObservedError"];
@@ -370,7 +370,7 @@ constants_str_macros::define_str_constants! {
         CODE_STYLE_STRING_CONSTANT_ALIAS_FIXTURE = ["const LOCAL_ALIAS: &str = constants_str::EXPORTED;\nfn runtime_value() -> &'static str { constants_str::EXPORTED }\n"];
         CODE_STYLE_JSON_API_ERROR_ENUM_FIXTURE = ["\nstruct StructError;\nimpl axum::response::IntoResponse for StructError {\n    fn into_response(self) -> axum::response::Response {\n        axum::response::IntoResponse::into_response(axum::Json(()))\n    }\n}\nstruct WrappedError {\n    status: axum::http::StatusCode,\n    payload: axum::Json<()>,\n}\nimpl axum::response::IntoResponse for WrappedError {\n    fn into_response(self) -> axum::response::Response {\n        (self.status, self.payload).into_response()\n    }\n}\n#[derive(thiserror::Error)]\nenum EnumError {\n    #[error(\"failure\")]\n    Failure,\n}\nimpl axum::response::IntoResponse for EnumError {\n    fn into_response(self) -> axum::response::Response {\n        axum::response::IntoResponse::into_response(axum::Json(()))\n    }\n}\n#[derive(thiserror::Error)]\nenum LocatedEnumError {\n    #[error(\"located failure\")]\n    Failure {\n        location: location_lib::domain_types::Location,\n    },\n}\nimpl axum::response::IntoResponse for LocatedEnumError {\n    fn into_response(self) -> axum::response::Response {\n        axum::response::IntoResponse::into_response(axum::Json(()))\n    }\n}\n#[derive(thiserror::Error, location::Location)]\nenum DerivedLocationError {\n    #[error(\"derived location failure\")]\n    Failure {\n        value: String,\n    },\n}\nimpl axum::response::IntoResponse for DerivedLocationError {\n    fn into_response(self) -> axum::response::Response {\n        axum::response::IntoResponse::into_response(axum::Json(()))\n    }\n}\n#[derive(thiserror::Error)]\nenum RawSourceError {\n    #[error(\"raw source failure\")]\n    Failure {\n        #[source]\n        source: std::io::Error,\n    },\n}\nimpl axum::response::IntoResponse for RawSourceError {\n    fn into_response(self) -> axum::response::Response {\n        axum::response::IntoResponse::into_response(axum::Json(()))\n    }\n}\n"];
         CODE_STYLE_ROUTE_OPERATION_ERROR_FIXTURE = ["\n#[frontend_contract::domain_types::route_openapi()]\nasync fn first() -> Result<(), SharedError> {\n    Ok(())\n}\n#[frontend_contract::domain_types::route_openapi()]\nasync fn second() -> Result<(), SharedError> {\n    Ok(())\n}\n"];
-        CODE_STYLE_HANDLER_ROUTE_OPERATION_ERROR_FIXTURE = ["\n#[frontend_contract::domain_types::route_error(HtmlSharedError)]\nasync fn first_html() -> Response {\n    response()\n}\n#[frontend_contract::domain_types::route_error(HtmlSharedError)]\nasync fn second_html() -> Response {\n    response()\n}\n#[frontend_contract::domain_types::route_operation]\nasync fn first_operational() -> Result<(), OperationalSharedError> {\n    Ok(())\n}\n#[frontend_contract::domain_types::route_operation]\nasync fn second_operational() -> Result<(), OperationalSharedError> {\n    Ok(())\n}\n"];
+        CODE_STYLE_ROUTE_ENDPOINT_OPERATION_ERROR_FIXTURE = ["\n#[frontend_contract::domain_types::route_error(HtmlSharedError)]\nasync fn first_html() -> Response {\n    response()\n}\n#[frontend_contract::domain_types::route_error(HtmlSharedError)]\nasync fn second_html() -> Response {\n    response()\n}\n#[frontend_contract::domain_types::route_operation]\nasync fn first_operational() -> Result<(), OperationalSharedError> {\n    Ok(())\n}\n#[frontend_contract::domain_types::route_operation]\nasync fn second_operational() -> Result<(), OperationalSharedError> {\n    Ok(())\n}\n"];
         CODE_STYLE_STRING_CONSTANT_DECLARATION_FIXTURE = ["\nfn runtime_value() -> &'static str { \"runtime-owned\" }\nconst ITEM: &str = \"item\";\nstatic STATIC_ITEM: &str = \"static\";\nstruct Example(&'static str);\nconst WRAPPED: Example = Example(\"wrapped\");\nstatic WRAPPED_STATIC: Example = Example(\"wrapped-static\");\nimpl Example {\n    const ASSOCIATED: &str = concat!(\"associated\");\n    const fn value() -> &'static str { concat!(\"const-function\") }\n}\ntrait Contract {\n    const DEFAULT: &'static str = \"trait\";\n    const REQUIRED: &'static str;\n}\nfn generated(value: &str) {\n    let _tokens = quote! { const GENERATED: &'static str = #value; };\n}\nfn anonymous() {\n    let _value = const { \"anonymous\" };\n}\n#[cfg(test)]\nmod tests {\n    const TEST_VALUE: &str = \"test-constant\";\n    #[test]\n    fn local_constant() {\n        const LOCAL_VALUE: &str = \"local-test-constant\";\n        let _runtime_value = \"runtime-test-literal\";\n    }\n}\ndefine_str_constants! {\n    fragments { VALUE = \"generated\"; }\n    values {}\n}\n"];
         CODE_STYLE_CI_WORKFLOW_PATH = [".github/workflows/ci.yml"];
         CODE_STYLE_WORKSPACE_MANIFEST_PATH = ["../Cargo.toml"];
@@ -2176,8 +2176,8 @@ constants_str_macros::define_str_constants! {
         SERVER_SRC_APPLICATION_RS = ["server/src/application.rs"];
         SERVER_SRC_APPLICATION_ADMIN_API_RS = ["server/src/application/admin_api.rs"];
         SERVER_ADMIN_HTML_MODULE_DIR = ["server_admin/src/application/html/"];
-        SERVER_ADMIN_HTML_ASSIGNMENT_HANDLER_DUPLICATE_LOCATIONS = ["../server_admin/src/application/html/actions/roles.rs::role_permissions\n../server_admin/src/application/html/actions/users.rs::user_roles"];
-        SERVER_ADMIN_HTML_ASSIGNMENT_HANDLER_DUPLICATE_REASON = ["typed route handlers retain distinct request extractors and resource targets while delegating shared assignment logic to assignment_action"];
+        SERVER_ADMIN_HTML_ASSIGNMENT_ENDPOINT_DUPLICATE_LOCATIONS = ["../server_admin/src/application/html/actions/roles.rs::role_permissions\n../server_admin/src/application/html/actions/users.rs::user_roles"];
+        SERVER_ADMIN_HTML_ASSIGNMENT_ENDPOINT_DUPLICATE_REASON = ["typed route endpoints retain distinct request extractors and resource targets while delegating shared assignment logic to assignment_action"];
         SERVER_ADMIN_SRC_LIB_RS = ["server_admin/src/domain_types.rs"];
         SERVER_ADMIN_SRC_APPLICATION_PERSISTENCE_RS = ["server_admin/src/application/persistence.rs"];
         SERVER_ADMIN_SRC_APPLICATION_AUTHORIZATION_RS = ["server_admin/src/application/authorization.rs"];
@@ -2261,8 +2261,8 @@ constants_str_macros::define_str_constants! {
         SIMPLE_CONSTANT_ALIASES_FOUND_USE_THE_SOURCE_CONSTANT_DIRECTLY = ["simple constant aliases found; use the source constant directly:"];
         SLEEP = ["sleep"];
         SORTABLE = ["sortable"];
-        SPAWN_RESULT_IS_DISCARDED_RETAIN_AND_SUPERVISE_ITS_HANDLE = ["spawn result is discarded; retain and supervise its handle"];
-        SPAWNED_TASK_HANDLES_ARE_DISCARDED = ["spawned task handles are discarded:"];
+        SPAWN_RESULT_IS_DISCARDED_RETAIN_AND_SUPERVISE_TASK = ["spawn result is discarded; retain and supervise the task"];
+        SPAWNED_TASKS_ARE_DISCARDED = ["spawned tasks are discarded:"];
         SQL_LIKE_PATTERN_RESERVED_256_BYTES = ["sql_like_pattern_reserved_256_bytes"];
         SQL_SELECT_BUILDER_1_COLUMN = ["sql_select_builder_1_column"];
         SQL_SELECT_BUILDER_16_COLUMNS = ["sql_select_builder_16_columns"];
@@ -3565,10 +3565,10 @@ pub const CONFIG_ENV_EXAMPLE_ATTRIBUTE: &str = "env_example";
 pub const CONFIG_ENV_EXAMPLE_REQUIRES_FIELD_EXAMPLE: &str =
     "config env_example generation requires an example for every field";
 pub const UNSUPPORTED_CONFIG_FIELD_ATTRIBUTE: &str = "unsupported config field attribute";
-pub const HANDLER_REGISTRY_REQUIRES_STATE: &str =
-    "handler_registry requires `state = Type;` before route bindings";
-pub const HANDLER_REGISTRY_REQUIRES_BINDING: &str =
-    "handler_registry requires at least one `(path, routing, handler)` binding";
+pub const ENDPOINT_REGISTRY_REQUIRES_STATE: &str =
+    "route_registry requires `state = Type;` before route bindings";
+pub const ENDPOINT_REGISTRY_REQUIRES_BINDING: &str =
+    "route_registry requires at least one `(path, routing, endpoint)` binding";
 pub const ROUTE_REGISTRY_REQUIRES_FAMILY: &str =
     "route_registry requires `family = Type;` after its state type";
 pub const FAMILY: &str = "family";
@@ -3854,9 +3854,9 @@ pub const ROUTE_OPENAPI_DELEGATE_REQUIRES_IDENT_PARAMETERS: &str =
 pub const ROUTE_OPENAPI_DELEGATE_REQUIRES_RESULT: &str =
     "route_openapi delegate requires a Result return type";
 pub const ROUTE_OPENAPI_DELEGATE_REQUIRES_PATH: &str =
-    "route_openapi delegate requires a handler path";
+    "route_openapi delegate requires a endpoint path";
 pub const ROUTE_OPENAPI_SINGLE_CALL_REASON: &str =
-    "Axum route handler is registered once by the route inventory";
+    "Axum route endpoint is registered once by the route inventory";
 pub const RESULT_UPPER_CAMEL_CASE: &str = "Result";
 pub const WIRE_ENUM: &str = "wire_enum";
 pub const WIRE_ENUM_WIRE: &str = "wire";
@@ -4049,7 +4049,7 @@ pub const VALUE_D1E0CA47: &str = "\nfn fixture(result: Result<(), ()>) {\n    re
 pub const VALUE_BFBFB833: &str = "\nfn fixture(result: Result<(), ()>) {\n    result.expect(\"not-an-id\");\n    result.expect(\"1a2b3c4d\");\n    panic!(\"also-not-an-id\");\n}\n";
 pub const VALUE_38F6372C: &str = "\nfn generate() {\n    quote::quote! {\n        result.expect(\"10d77b5f generated expect\");\n        panic!(\"d6826d61 generated panic\");\n    };\n    quote::quote! {\n        result.expect(\"invalid\");\n        panic!(\"invalid\");\n    };\n    quote::quote! {\n        result.expect(#unchecked_message);\n    };\n}\n";
 pub const VALUE_606F2B07: &str = "\nfn production() {\n    println!(\"production stdout\");\n    eprintln!(\"production stderr\");\n}\n#[cfg(test)]\nmod tests {\n    fn helper() {\n        test_scope::println!(\"test stdout\");\n        test_scope::eprintln!(\"test stderr\");\n    }\n}\n#[test]\nfn unit_test() {\n    unit_test_scope::println!(\"unit test stdout\");\n    unit_test_scope::eprintln!(\"unit test stderr\");\n}\n#[tokio::test]\nasync fn async_unit_test() {\n    async_test_scope::println!(\"async unit test stdout\");\n    async_test_scope::eprintln!(\"async unit test stderr\");\n}\n";
-pub const VALUE_EBB24851: &str = "\nfn spawn_tasks() {\n    tokio::spawn(async {});\n    let _ = tokio::task::spawn_blocking(|| {});\n    let _handle = std::thread::spawn(|| {});\n    std::mem::drop(tokio::task::spawn_local(async {}));\n    let handle = tokio::spawn(async {});\n    supervise(handle);\n}\n";
+pub const VALUE_EBB24851: &str = "\nfn spawn_tasks() {\n    tokio::spawn(async {});\n    let _ = tokio::task::spawn_blocking(|| {});\n    let _task = std::thread::spawn(|| {});\n    std::mem::drop(tokio::task::spawn_local(async {}));\n    let task = tokio::spawn(async {});\n    supervise(task);\n}\n";
 pub const VALUE_BF61857A: &str = "          # BEGIN GENERATED RELEASE MATRIX\n";
 pub const VALUE_48916059: &str = "          # BEGIN GENERATED SERVICE MATRIX\n";
 pub const VALUE_1BC591D5: &str = "          # END GENERATED RELEASE MATRIX\n";
@@ -4908,7 +4908,8 @@ pub const VALUE_D6EC9B66: &str = "frontend routes and proxy paths have separate 
 pub const VALUE_9A26B6D6: &str = "frontend_contract";
 pub const VALUE_C34A5FE6: &str = "frontend_contract/src";
 pub const VALUE_4B68F077: &str = "frontend_contract/src/domain_types/auth_session_keep_alive.rs";
-pub const VALUE_E7C9496D: &str = "frontend_contract/src/domain_types/handler_contract.rs";
+pub const VALUE_E7C9496D: &str =
+    "frontend_contract/src/domain_types/route_registration_contract.rs";
 pub const VALUE_00ABFB22: &str = "frontend_contract_macros/src/lib.rs";
 pub const VALUE_3DDFB937: &str = "frontend_contract_validation/src/domain_types/artifact.rs";
 pub const VALUE_4BAB9A8D: &str =
@@ -4932,7 +4933,7 @@ pub const VALUE_BAA0D85A: &str = "generated filter API shapes predate per-attrib
 pub const VALUE_CA3EDAD3: &str = "generated filter templates predate per-attribute reasons";
 pub const VALUE_1384360A: &str = "generated filter token shapes predate per-attribute reasons";
 pub const VALUE_71BBA184: &str = "generated fixtures compose heterogeneous token fragments";
-pub const VALUE_A86D0615: &str = "generated handlers share erased application state";
+pub const VALUE_A86D0615: &str = "generated endpoints share erased application state";
 pub const VALUE_920FAF03: &str =
     "generated source templates must receive deterministic fixture values";
 pub const VALUE_C0027404: &str = "generated status-code shape predates per-attribute reasons";
@@ -4948,7 +4949,7 @@ pub const VALUE_57DD48E2: &str = "get_mut";
 pub const VALUE_D665A09C: &str = "getter";
 pub const VALUE_F4853BC8: &str = "getters";
 pub const VALUE_B93D6F4A: &str = "glommio";
-pub const VALUE_4F88C226: &str = "handler contracts are covered by route contract compile tests";
+pub const VALUE_4F88C226: &str = "endpoint contracts are covered by route contract compile tests";
 pub const VALUE_0889759C: &str = "header\nBEGIN GENERATED\nstale\nEND GENERATED\n";
 pub const VALUE_98B81B2D: &str = "header construction errors are intentionally classified";
 pub const VALUE_3995FF01: &str =
@@ -5257,7 +5258,7 @@ pub const VALUE_61609B06: &str = "root and leaf discovery recurse through the sa
 pub const VALUE_99A8FB72: &str = "root and leaf discovery traverse the same syn type shapes but intentionally select different path segments";
 pub const VALUE_8A84E406: &str = "route";
 pub const VALUE_F3B9B918: &str = "route composition shares application state across worker threads";
-pub const VALUE_0EA9A6EE: &str = "route handlers are separate Axum registration targets and delegate authentication through authenticated_action";
+pub const VALUE_0EA9A6EE: &str = "route endpoints are separate Axum registration targets and delegate authentication through authenticated_action";
 pub const VALUE_128D5CF3: &str = "route state is shared across threads behind its parameter trait";
 pub const VALUE_2E84067B: &str = "route_registry(";
 pub const VALUE_84BBA14A: &str = "route_service";
@@ -5413,9 +5414,9 @@ pub const VALUE_99D94433: &str = "sqlx::query(";
 pub const VALUE_E1CEB1AF: &str = "src/example.rs";
 pub const VALUE_0E483FB8: &str = "stable public code-generation adapters already delegate implementation wrapping and modified constructors to shared helpers";
 pub const VALUE_79E09A12: &str = "stable public new-constructor adapters already delegate body generation and impl wrapping to shared helpers";
-pub const VALUE_2497DABD: &str = "state = (), family = Family; (\"authenticated\", \"csrf\"); schemas(Schema); (Route, handler),";
+pub const VALUE_2497DABD: &str = "state = (), family = Family; (\"authenticated\", \"csrf\"); schemas(Schema); (Route, endpoint),";
 pub const VALUE_A19E6154: &str =
-    "state = (), wrong = Family; (\"authenticated\", \"csrf\"); schemas(); (Route, handler),";
+    "state = (), wrong = Family; (\"authenticated\", \"csrf\"); schemas(); (Route, endpoint),";
 pub const VALUE_9EC9C4B2: &str = "static state must have an exact reviewed owner";
 pub const VALUE_6D10B254: &str = "std::boxed::Box::from_raw";
 pub const VALUE_86C84494: &str = "std::boxed::Box::into_raw";

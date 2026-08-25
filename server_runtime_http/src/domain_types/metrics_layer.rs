@@ -394,7 +394,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn layer_handles_every_standard_and_custom_http_method() {
+    async fn layer_supports_every_standard_and_custom_http_method() {
         let router = axum::Router::from(super::HttpMetricsLayer::default().apply(
             crate::domain_types::AxumRouter::from(axum::Router::new().route(
                 constants_str::VALUE_B56291E9,
@@ -402,7 +402,7 @@ mod tests {
             )),
         ));
         let custom = http::Method::from_bytes(b"CUSTOM").expect(
-            "6e90dca2 layer_handles_every_standard_and_custom_http_method invariant must hold",
+            "6e90dca2 layer_supports_every_standard_and_custom_http_method invariant must hold",
         );
         let statuses = tokio::join!(
             call_method(router.clone(), http::Method::CONNECT),

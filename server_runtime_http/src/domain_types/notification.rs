@@ -206,7 +206,7 @@ where
             .map(|axum::Json(value)| Self::from(value))
     }
 }
-#[allow(clippy::single_call_fn)] // named handler keeps axum extractor boundaries domain-typed
+#[allow(clippy::single_call_fn)] // named endpoint keeps axum extractor boundaries domain-typed
 async fn send_notification<Sender>(
     state: AxumNotificationState<Sender>,
     request: AxumNotificationJson,

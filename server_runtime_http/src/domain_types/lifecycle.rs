@@ -21,11 +21,11 @@ pub enum BackgroundTaskShutdownError {
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 #[must_use]
 pub struct BackgroundTask {
-    handle: Option<TokioBackgroundTaskJoinHandle>,
     shutdown_tx: Option<TokioBackgroundTaskShutdownSender>,
+    task_join: Option<TokioBackgroundTaskJoin>,
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
-struct TokioBackgroundTaskJoinHandle(tokio::task::JoinHandle<BackgroundTaskOutcome>);
+struct TokioBackgroundTaskJoin(tokio::task::JoinHandle<BackgroundTaskOutcome>);
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
 struct TokioBackgroundTaskShutdownSender(tokio::sync::oneshot::Sender<()>);
@@ -34,8 +34,8 @@ impl BackgroundTask {
     pub async fn join(mut self) -> Result<BackgroundTaskOutcome, BackgroundTaskShutdownError> {
         {
             let _shutdown_tx = self.shutdown_tx.take();
-            match self.handle.take() {
-                Some(handle) => handle.0.await.map_err(|error| {
+            match self.task_join.take() {
+                Some(task_join) => task_join.0.await.map_err(|error| {
                     BackgroundTaskShutdownError::Join(TokioTaskJoinError::from(error))
                 }),
                 None => Ok(BackgroundTaskOutcome::Completed),
@@ -49,16 +49,16 @@ impl BackgroundTask {
         if let Some(shutdown_tx) = self.shutdown_tx.take() {
             let _send_result = shutdown_tx.0.send(());
         }
-        let Some(mut handle) = self.handle.take().map(|value| value.0) else {
+        let Some(mut task_join) = self.task_join.take().map(|value| value.0) else {
             return Ok(BackgroundTaskOutcome::ShutdownRequested);
         };
-        match tokio::time::timeout(timeout.get(), &mut handle).await {
+        match tokio::time::timeout(timeout.get(), &mut task_join).await {
             Ok(result) => result.map_err(|error| {
                 BackgroundTaskShutdownError::Join(TokioTaskJoinError::from(error))
             }),
             Err(_elapsed) => {
-                handle.abort();
-                match handle.await {
+                task_join.abort();
+                match task_join.await {
                     Ok(_) | Err(_) => Err(BackgroundTaskShutdownError::Timeout),
                 }
             }
@@ -70,8 +70,8 @@ impl Drop for BackgroundTask {
         if let Some(shutdown_tx) = self.shutdown_tx.take() {
             let _send_result = shutdown_tx.0.send(());
         }
-        if let Some(handle) = self.handle.take() {
-            handle.0.abort();
+        if let Some(task_join) = self.task_join.take() {
+            task_join.0.abort();
         }
     }
 }
@@ -130,7 +130,7 @@ where
 {
     let interval = optional_interval?;
     let (shutdown_tx, mut shutdown_rx) = tokio::sync::oneshot::channel();
-    let handle = tokio::spawn(async move {
+    let task_join = tokio::spawn(async move {
         let mut timer = tokio::time::interval(interval.0);
         timer.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
         loop {
@@ -143,7 +143,7 @@ where
         }
     });
     Some(BackgroundTask {
-        handle: Some(TokioBackgroundTaskJoinHandle::from(handle)),
+        task_join: Some(TokioBackgroundTaskJoin::from(task_join)),
         shutdown_tx: Some(TokioBackgroundTaskShutdownSender::from(shutdown_tx)),
     })
 }
@@ -152,8 +152,8 @@ where
 mod tests {
     #[tokio::test]
     async fn aborted_task_is_awaited_and_reports_cancellation() {
-        let handle = tokio::spawn(std::future::pending::<()>());
-        let result = super::abort_and_wait_task(super::TokioAbortTask::from(handle)).await;
+        let task_join = tokio::spawn(std::future::pending::<()>());
+        let result = super::abort_and_wait_task(super::TokioAbortTask::from(task_join)).await;
         assert!(result.is_err());
     }
 }

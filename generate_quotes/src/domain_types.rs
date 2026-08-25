@@ -228,7 +228,7 @@ mod tests {
         );
     }
     #[test]
-    fn quote_helpers_handle_empty_input() {
+    fn quote_helpers_support_empty_input() {
         assert_quote_str(
             &super::single_quotes_str(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
             constants_str::TEXT_ALT_4,

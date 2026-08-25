@@ -161,12 +161,12 @@ pub enum NotificationOperationalRoute {
     )]
     OpenApi,
 }
-impl frontend_contract::domain_types::HandlerContract for NotificationOperationalRoute {
+impl frontend_contract::domain_types::RouteRegistrationContract for NotificationOperationalRoute {
     fn method(self) -> frontend_contract::domain_types::RouteMethod {
         frontend_contract::domain_types::RouteMethod::Get
     }
-    fn path(self) -> frontend_contract::domain_types::HandlerPath {
-        frontend_contract::domain_types::HandlerPath::from(match self {
+    fn path(self) -> frontend_contract::domain_types::RegisteredRoutePath {
+        frontend_contract::domain_types::RegisteredRoutePath::from(match self {
             Self::Metrics => constants_str::METRICS,
             Self::OpenApi => constants_str::OPENAPI_JSON,
         })

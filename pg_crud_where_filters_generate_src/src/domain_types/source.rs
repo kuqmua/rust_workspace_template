@@ -457,30 +457,39 @@ pub fn emit_generate_where_filters(
                             generate_pg_type_dimensions_helpers(pg_type_ptrn)
                         };
                     let generate_cmp_filter_token_stream =
-                    |pg_type_ptrn: &PgTypePtrn,
-                     generate_format_handle_str: &dyn Fn(&PgTypeKind) -> String| {
-                        let (
-                            maybe_dimensions_declaration_token_stream,
-                            maybe_dimensions_default_initialization_token_stream,
-                            maybe_dimensions_ies_initialization_token_stream,
-                            pg_type_kind,
-                            maybe_extra_parameters_token_stream,
-                            maybe_dimensions_query_bind_token_stream,
-                        ) = generate_pg_type_dimensions_helpers_pg_type(pg_type_ptrn);
-                        (
+                        |pg_type_ptrn: &PgTypePtrn,
+                         format_value: &dyn Fn(&PgTypeKind) -> String| {
+                            let (
+                                maybe_dimensions_declaration_token_stream,
+                                maybe_dimensions_default_initialization_token_stream,
+                                maybe_dimensions_ies_initialization_token_stream,
+                                pg_type_kind,
+                                maybe_extra_parameters_token_stream,
+                                maybe_dimensions_query_bind_token_stream,
+                            ) = generate_pg_type_dimensions_helpers_pg_type(pg_type_ptrn);
+                            (
                             generate_generic_true_type_encode(),
-                            generate_maybe_dimensions_declaration_pub_v_t_token_stream(&maybe_dimensions_declaration_token_stream),
-                            generate_maybe_dimensions_default_initialization_v_default_token_stream(&maybe_dimensions_default_initialization_token_stream),
+                            generate_maybe_dimensions_declaration_pub_v_t_token_stream(
+                                &maybe_dimensions_declaration_token_stream,
+                            ),
+                            generate_maybe_dimensions_default_initialization_v_default_token_stream(
+                                &maybe_dimensions_default_initialization_token_stream,
+                            ),
                             pg_crud_macro_common::domain_types::IncrementParameterUndrscr::False,
                             generate_query_part_format_with_v_token_stream(
                                 &maybe_dimensions_ies_initialization_token_stream,
-                                &generate_quotes::domain_types::dq_token_stream(&generate_format_handle_str(&pg_type_kind)),
+                                &generate_quotes::domain_types::dq_token_stream(&format_value(
+                                    &pg_type_kind,
+                                )),
                                 &maybe_extra_parameters_token_stream,
                             ),
                             is_query_bind_mut_true,
-                            generate_two_token_stream(&maybe_dimensions_query_bind_token_stream, &query_bind_one_v_token_stream),
+                            generate_two_token_stream(
+                                &maybe_dimensions_query_bind_token_stream,
+                                &query_bind_one_v_token_stream,
+                            ),
                         )
-                    };
+                        };
                     let generate_operator_cmp_filter_token_stream =
                         |pg_type_ptrn: &PgTypePtrn, operator: &dyn std::fmt::Display| {
                             generate_cmp_filter_token_stream(

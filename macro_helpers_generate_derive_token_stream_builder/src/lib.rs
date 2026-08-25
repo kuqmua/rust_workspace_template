@@ -162,7 +162,7 @@ pub fn generate_derive_token_stream_builder(
             }
             #make_pub_derive_and_derive_if_token_stream
             #derive_and_derive_if_vec_token_stream
-            fn build_handle(
+            fn build_declaration(
                 self,
                 struct_or_enum: #struct_or_enum_upper_camel_case,
                 ann: &dyn #quote_to_tokens_token_stream,
@@ -239,7 +239,7 @@ pub fn generate_derive_token_stream_builder(
                 generics_c33a0ef2: &dyn #quote_to_tokens_token_stream,
                 ts: &dyn #quote_to_tokens_token_stream,
             ) -> #ts2_token_stream {
-                self.build_handle(
+                self.build_declaration(
                     #struct_or_enum_upper_camel_case::Struct,
                     ann,
                     ident_d87c6809,
@@ -254,7 +254,7 @@ pub fn generate_derive_token_stream_builder(
                 generics_84bc3f7f: &dyn #quote_to_tokens_token_stream,
                 ts: &dyn #quote_to_tokens_token_stream,
             ) -> #ts2_token_stream {
-                self.build_handle(
+                self.build_declaration(
                     #struct_or_enum_upper_camel_case::Enum,
                     ann,
                     ident_273dd063,
@@ -269,7 +269,7 @@ pub fn generate_derive_token_stream_builder(
 #[cfg(test)]
 mod tests {
     #[test]
-    fn to_snake_case_handles_pascal_case() {
+    fn to_snake_case_converts_pascal_case() {
         assert_eq!(
             super::to_snake_case(super::domain_types::ToSnakeCaseInput::from("HelloWorld"))
                 .as_ref(),

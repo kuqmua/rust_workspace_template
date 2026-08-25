@@ -22,7 +22,7 @@ pub(crate) struct MetricsExporterPrometheusBuildError(metrics_exporter_prometheu
     newtype::FromInner,
     newtype::IntoInnerFrom,
 )]
-pub(crate) struct MetricsExporterPrometheusHandle(metrics_exporter_prometheus::PrometheusHandle);
+pub(crate) struct MetricsExporterPrometheusRenderer(metrics_exporter_prometheus::PrometheusHandle);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
 )]

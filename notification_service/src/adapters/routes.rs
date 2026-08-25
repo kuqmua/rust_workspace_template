@@ -1,5 +1,5 @@
-#![allow(clippy::single_call_fn)] // route handlers and router composition each have one registry or runtime owner
-#![allow(clippy::arbitrary_source_item_ordering)] // OpenAPI registry declarations stay beside their generated handler bindings
+#![allow(clippy::single_call_fn)] // route endpoints and router composition each have one registry or runtime owner
+#![allow(clippy::arbitrary_source_item_ordering)] // OpenAPI registry declarations stay beside their generated endpoint bindings
 #![allow(clippy::needless_for_each)] // utoipa OpenApi derive expands to an internal for_each
 
 #[frontend_contract::domain_types::route_openapi()]
@@ -91,7 +91,7 @@ pub(crate) fn open_api_document() -> utoipa::openapi::OpenApi {
 }
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
-#[frontend_contract::domain_types::handler_registry(
+#[frontend_contract::domain_types::endpoint_registry(
     state = crate::domain_types::NotificationState;
     (
         notification_service_contract::domain_types::NotificationOperationalRoute::Metrics,

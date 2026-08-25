@@ -1,7 +1,7 @@
 #![allow(
     clippy::arbitrary_source_item_ordering,
     clippy::needless_for_each,
-    reason = "generated route registries stay adjacent to their handlers and utoipa expands to an internal for_each"
+    reason = "generated route registries stay adjacent to their endpoints and utoipa expands to an internal for_each"
 )]
 pub(crate) const HEALTH_PROBE_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(2u64);
 const HEALTH_COMPONENTS_MAX_LEN: usize = 2usize;
@@ -17,7 +17,7 @@ pub struct GitInfo {
     commit: git_info::domain_types::GitCommitLinkCow,
 }
 #[derive(Debug, serde::Serialize, optimal_memory_layout::OptimalMemoryLayout)]
-pub(crate) struct NotFoundHandle {
+pub(crate) struct NotFoundPayload {
     commit: git_info::domain_types::GitCommitLinkCow,
     message: to_err_string::domain_types::ErrorText,
     open_api_specification: OpenApiSpecificationPath,
@@ -252,7 +252,7 @@ pub(crate) struct JsonRes<T> {
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub(crate) enum CommonNotFoundError {
     #[error("common route was not found")]
-    NotFound(NotFoundHandle),
+    NotFound(NotFoundPayload),
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub(crate) enum HealthCheckError {
@@ -553,7 +553,7 @@ pub trait CommonRoutesParameters:
     + Sync
 {
 }
-#[allow(clippy::single_call_fn)] // keeps commit-link extraction shape shared between handlers and tests
+#[allow(clippy::single_call_fn)] // keeps commit-link extraction shape shared between endpoints and tests
 pub(crate) const fn mk_git_info_payload(
     commit: git_info::domain_types::GitCommitLinkCow,
 ) -> GitInfo {
@@ -594,15 +594,15 @@ fn uri_suffix(uri: AxumHttpUriRef<'_>) -> UriSuffixRef<'_> {
 pub(crate) fn mk_not_found_payload(
     uri: AxumHttpUriRef<'_>,
     commit: git_info::domain_types::GitCommitLinkCow,
-) -> NotFoundHandle {
+) -> NotFoundPayload {
     mk_not_found_payload_with_message(mk_no_route_message(uri), commit)
 }
 #[allow(clippy::single_call_fn)] // shared payload constructor keeps not-found response shape centralized
 fn mk_not_found_payload_with_message(
     message: to_err_string::domain_types::ErrorText,
     commit: git_info::domain_types::GitCommitLinkCow,
-) -> NotFoundHandle {
-    NotFoundHandle {
+) -> NotFoundPayload {
+    NotFoundPayload {
         commit,
         message,
         open_api_specification: OpenApiSpecificationPath::from(
@@ -610,7 +610,7 @@ fn mk_not_found_payload_with_message(
         ),
     }
 }
-#[allow(clippy::single_call_fn)] // shared helper keeps commit-based status+json responses consistent across handlers
+#[allow(clippy::single_call_fn)] // shared helper keeps commit-based status+json responses consistent across endpoints
 pub(crate) fn mk_commit_json_res<S, T>(
     commit_src: &S,
     map: impl FnOnce(git_info::domain_types::GitCommitLinkCow) -> T,

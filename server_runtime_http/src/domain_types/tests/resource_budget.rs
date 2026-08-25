@@ -94,7 +94,7 @@ fn concurrent_reservations_never_exceed_maximum() {
         let left_start = std::sync::Arc::clone(&start);
         let left_finish = std::sync::Arc::clone(&finish);
         let left_tx = tx.clone();
-        let _left_handle = scope.spawn(move || {
+        let _left_task = scope.spawn(move || {
             let _start_result = left_start.wait();
             let reservation = left_budget.reserve(super::super::ResourceBudgetAmount::from(3usize));
             left_tx.send(reservation.is_ok()).expect(
@@ -107,7 +107,7 @@ fn concurrent_reservations_never_exceed_maximum() {
         let right_start = std::sync::Arc::clone(&start);
         let right_finish = std::sync::Arc::clone(&finish);
         let right_tx = tx.clone();
-        let _right_handle = scope.spawn(move || {
+        let _right_task = scope.spawn(move || {
             let _start_result = right_start.wait();
             let reservation =
                 right_budget.reserve(super::super::ResourceBudgetAmount::from(3usize));

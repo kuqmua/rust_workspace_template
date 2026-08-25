@@ -1,6 +1,6 @@
 fn state(pool: sqlx::PgPool) -> super::NotificationState {
     super::NotificationState {
-        metrics: super::MetricsExporterPrometheusHandle::from(
+        metrics: super::MetricsExporterPrometheusRenderer::from(
             metrics_exporter_prometheus::PrometheusBuilder::new()
                 .build_recorder()
                 .handle(),
@@ -88,7 +88,7 @@ async fn default_service_routes_return_success_statuses() {
         router.clone(),
         http::Request::builder()
             .uri(
-                frontend_contract::domain_types::HandlerContract::path(
+                frontend_contract::domain_types::RouteRegistrationContract::path(
                     notification_service_contract::domain_types::NotificationOperationalRoute::Metrics,
                 )
                 .get(),
