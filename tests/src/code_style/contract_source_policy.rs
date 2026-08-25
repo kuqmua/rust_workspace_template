@@ -5,7 +5,7 @@ fn publicly_forwards_crate_root(item: &syn::Item) -> bool {
     matches!(item_use.vis, syn::Visibility::Public(_))
         && matches!(
             &item_use.tree,
-            syn::UseTree::Path(path) if path.ident == "crate"
+            syn::UseTree::Path(path) if path.ident == constants_str::CRATE
         )
 }
 #[test]
@@ -15,7 +15,8 @@ fn private_shared_modules_do_not_forward_crate_root_exports() {
             .rs_files()
             .iter()
             .filter(|source_file| {
-                source_file.path().as_ref().file_name() == Some(std::ffi::OsStr::new("lib.rs"))
+                source_file.path().as_ref().file_name()
+                    == Some(std::ffi::OsStr::new(constants_str::VALUE_0544FC95))
             })
             .flat_map(|crate_root| {
                 crate_root
@@ -37,7 +38,7 @@ fn private_shared_modules_do_not_forward_crate_root_exports() {
                             source_directory.join(format!("{}.rs", module.ident)),
                             source_directory
                                 .join(module.ident.to_string())
-                                .join("mod.rs"),
+                                .join(constants_str::VALUE_07642C44),
                         ]
                         .into_iter()
                         .find_map(|module_path| {
@@ -67,9 +68,9 @@ fn private_shared_modules_do_not_forward_crate_root_exports() {
 }
 #[test]
 fn private_shared_module_forwarding_policy_distinguishes_public_visibility_and_owner() {
-    let public_forward = syn::parse_file("pub use crate::owner::Item;").expect("b2d1e940 private_shared_module_forwarding_policy_distinguishes_public_visibility_and_owner invariant must hold");
-    let crate_forward = syn::parse_file("pub(crate) use crate::owner::Item;").expect("53f91ac7 private_shared_module_forwarding_policy_distinguishes_public_visibility_and_owner invariant must hold");
-    let local_public = syn::parse_file("pub use self::owner::Item;").expect("9a47e2c6 private_shared_module_forwarding_policy_distinguishes_public_visibility_and_owner invariant must hold");
+    let public_forward = syn::parse_file(constants_str::VALUE_5C907704).expect("b2d1e940 private_shared_module_forwarding_policy_distinguishes_public_visibility_and_owner invariant must hold");
+    let crate_forward = syn::parse_file(constants_str::VALUE_9388C05D).expect("53f91ac7 private_shared_module_forwarding_policy_distinguishes_public_visibility_and_owner invariant must hold");
+    let local_public = syn::parse_file(constants_str::VALUE_E40DBB0F).expect("9a47e2c6 private_shared_module_forwarding_policy_distinguishes_public_visibility_and_owner invariant must hold");
     assert!(
         public_forward
             .items
@@ -89,7 +90,7 @@ fn admin_frontend_api_urls_come_from_typed_routes() {
                 file.path()
                     .as_ref()
                     .to_string_lossy()
-                    .contains("server_admin_frontend/src/domain_types/app/")
+                    .contains(constants_str::VALUE_BC9DA9CE)
             })
             .map(|file| file.content().as_ref())
             .collect::<String>();
@@ -102,8 +103,8 @@ fn admin_frontend_api_urls_come_from_typed_routes() {
 fn service_route_handler_composition_uses_shared_registries() {
     super::snapshot::with_codebase_snapshot(|snapshot| {
         [
-            ("server_admin/src/application/html.rs", 2usize),
-            ("notification_service/src/adapters/routes.rs", constants_usize::ONE),
+            (constants_str::VALUE_3EB7B056, 2usize),
+            (constants_str::VALUE_629EE5ED, constants_usize::ONE),
         ]
         .iter()
         .for_each(|(path_suffix, expected_registry_count)| {
@@ -130,8 +131,8 @@ fn service_route_handler_composition_uses_shared_registries() {
 fn typed_route_registries_own_request_bodies_and_schema_catalogs() {
     super::snapshot::with_codebase_snapshot(|snapshot| {
         [
-            "server_admin/src/application/routes.rs",
-            "notification_service/src/adapters/routes.rs",
+            constants_str::VALUE_7BF90B7C,
+            constants_str::VALUE_629EE5ED,
         ]
         .iter()
         .for_each(|path_suffix| {
@@ -145,8 +146,8 @@ fn typed_route_registries_own_request_bodies_and_schema_catalogs() {
             assert!(!source.contains("components(schemas"), "94cc9de1");
         });
         [
-            "server_admin/src/application/auth.rs",
-            "notification_service/src/domain_types.rs",
+            constants_str::VALUE_0690A45F,
+            constants_str::VALUE_8E41EC63,
         ]
         .iter()
         .for_each(|path_suffix| {
@@ -160,8 +161,8 @@ fn typed_route_registries_own_request_bodies_and_schema_catalogs() {
             assert!(!source.contains("request_body ="), "95cc867b");
         });
         [
-            "server_admin_contract/src/domain_types.rs",
-            "notification_service_contract/src/domain_types.rs",
+            constants_str::VALUE_AA6C3BC8,
+            constants_str::VALUE_4DE86380,
         ]
         .iter()
         .for_each(|path_suffix| {
@@ -182,16 +183,16 @@ fn generated_admin_table_consumers_use_the_shared_catalog() {
     super::snapshot::with_codebase_snapshot(|snapshot| {
         [
             (
-                "server_admin/src/domain_types/generated_auth.rs",
-                "AdminRolesRouteContract",
+                constants_str::VALUE_206B48D7,
+                constants_str::VALUE_41EC3410,
             ),
             (
-                "server_admin/src/adapters/repository/data_tables.rs",
-                "AdminRoles::frontend_fields",
+                constants_str::VALUE_8E182ED1,
+                constants_str::VALUE_D6BB9F39,
             ),
             (
-                "server_admin/src/adapters/repository/data_tables.rs",
-                "AdminRoles::frontend_filter_value",
+                constants_str::VALUE_8E182ED1,
+                constants_str::VALUE_78CE6024,
             ),
         ]
         .iter()
@@ -209,17 +210,17 @@ fn generated_admin_table_consumers_use_the_shared_catalog() {
         let server_routing = snapshot
             .rs_files()
             .iter()
-            .find(|file| file.path().as_ref().ends_with("server/src/adapters/routing.rs"))
+            .find(|file| file.path().as_ref().ends_with(constants_str::VALUE_D59B01F9))
             .expect("148223ec generated_admin_table_consumers_use_the_shared_catalog invariant must hold")
             .content()
             .as_ref();
         [
-            "AdminRoles::routes",
-            "AdminRolePermissions::routes",
-            "AdminUsers::routes",
-            "AdminPermissions::routes",
-            "AdminSystemSettings::routes",
-            "AdminUserRoles::routes",
+            constants_str::VALUE_D6456971,
+            constants_str::VALUE_1788D397,
+            constants_str::VALUE_F3C1108D,
+            constants_str::VALUE_1A8BCD41,
+            constants_str::VALUE_3C94AF87,
+            constants_str::VALUE_639F76CD,
         ]
         .iter()
         .for_each(|forbidden| {
@@ -234,21 +235,18 @@ fn generated_admin_table_consumers_use_the_shared_catalog() {
             .iter()
             .filter(|file| {
                 let path = file.path().as_ref().to_string_lossy();
-                path.ends_with("server_admin/tests/admin_api.rs")
-                    || path.contains("server_admin/tests/admin_api/")
+                path.ends_with(constants_str::VALUE_88607159)
+                    || path.contains(constants_str::VALUE_B51C3727)
             })
             .map(|file| file.content().as_ref())
             .collect::<Vec<&str>>()
-            .join("\n");
+            .join(constants_str::NEWLINE);
         assert!(!admin_api.is_empty(), "e26d929b");
-        [
-            "validate_generated_admin_table::<",
-            "validate_generated_admin_table_in_schema::<",
-        ]
-        .iter()
-        .for_each(|forbidden| {
-            assert!(!admin_api.contains(forbidden), "535813a1");
-        });
+        [constants_str::VALUE_CEB9FEF2, constants_str::VALUE_632E5011]
+            .iter()
+            .for_each(|forbidden| {
+                assert!(!admin_api.contains(forbidden), "535813a1");
+            });
         assert!(
             admin_api.contains("generated_tables::validate_catalog_schema"),
             "de411cae"
@@ -265,7 +263,7 @@ fn administrator_data_table_queries_come_from_the_typed_spec() {
             .find(|file| {
                 file.path()
                     .as_ref()
-                    .ends_with("server_admin/src/adapters/repository/data_tables.rs")
+                    .ends_with(constants_str::VALUE_8E182ED1)
             })
             .expect("3ac24886 administrator_data_table_queries_come_from_the_typed_spec invariant must hold")
             .content()
@@ -275,17 +273,17 @@ fn administrator_data_table_queries_come_from_the_typed_spec() {
             .iter()
             .filter(|file| {
                 let path = file.path().as_ref().to_string_lossy();
-                path.ends_with("server_admin/tests/admin_api.rs")
-                    || path.contains("server_admin/tests/admin_api/")
+                path.ends_with(constants_str::VALUE_88607159)
+                    || path.contains(constants_str::VALUE_B51C3727)
             })
             .map(|file| file.content().as_ref())
             .collect::<Vec<&str>>()
-            .join("\n");
+            .join(constants_str::NEWLINE);
         assert!(!admin_api.is_empty(), "1049d34b");
         [
-            "SERVER_ADMIN_DATA_USERS_SQL",
-            "SERVER_ADMIN_DATA_COUNT_ACCESS_SESSIONS_SQL",
-            "SERVER_ADMIN_DATA_USERS_COLUMNS",
+            constants_str::VALUE_F7BEC314,
+            constants_str::VALUE_73522C89,
+            constants_str::VALUE_01C2291C,
         ]
         .iter()
         .for_each(|legacy_source| {
@@ -305,7 +303,7 @@ fn administrator_csr_page_behavior_comes_from_the_page_catalog() {
             .find(|file| {
                 file.path()
                     .as_ref()
-                    .ends_with("server_admin_frontend/src/domain_types/app/query/page.rs")
+                    .ends_with(constants_str::VALUE_BEBEC57E)
             })
             .expect("58e2110e administrator_csr_page_behavior_comes_from_the_page_catalog invariant must hold")
             .content()
@@ -316,7 +314,7 @@ fn administrator_csr_page_behavior_comes_from_the_page_catalog() {
             .find(|file| {
                 file.path()
                     .as_ref()
-                    .ends_with("server_admin_frontend/src/domain_types/app/loader.rs")
+                    .ends_with(constants_str::VALUE_27AB06E9)
             })
             .expect("04bb78af administrator_csr_page_behavior_comes_from_the_page_catalog invariant must hold")
             .content()
@@ -368,7 +366,7 @@ fn config_reference_accessors_use_generated_forwarding() {
             .find(|file| {
                 file.path()
                     .as_ref()
-                    .ends_with("server_config/src/domain_types.rs")
+                    .ends_with(constants_str::VALUE_D31B3088)
             })
             .expect(
                 "e210ffd6 config_reference_getters_use_generated_forwarding invariant must hold",

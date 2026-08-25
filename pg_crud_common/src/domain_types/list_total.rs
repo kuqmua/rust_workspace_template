@@ -266,10 +266,10 @@ mod tests {
     fn run_list_propagates_list_and_count_errors() {
         let list_error = block_on(super::run_list_with_total(
             crate::domain_types::PaginationOffset::from(constants_i32::ZERO).into(),
-            async || Err::<super::ListRows<u8>, _>("list"),
+            async || Err::<super::ListRows<u8>, _>(constants_str::VALUE_A330395C),
             async || Ok::<_, &str>(super::ListTotal::from(constants_u32::ZERO)),
         ))
-        .expect_err("729e9c33");
+        .expect_err(constants_str::VALUE_09221460);
         assert_eq!(list_error, "list");
         let count_error = block_on(super::run_list_with_total(
             crate::domain_types::PaginationOffset::from(1i32).into(),
@@ -279,9 +279,9 @@ mod tests {
                     None,
                 ))
             },
-            async || Err::<super::ListTotal, _>("count"),
+            async || Err::<super::ListTotal, _>(constants_str::VALUE_6C35493A),
         ))
-        .expect_err("50820e0d");
+        .expect_err(constants_str::VALUE_20016253);
         assert_eq!(count_error, "count");
     }
 

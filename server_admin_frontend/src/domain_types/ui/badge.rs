@@ -27,12 +27,8 @@ pub(crate) enum AdminBadgeVariant {
 impl AdminBadgeVariant {
     fn class(self) -> &'static str {
         match self {
-            Self::Neutral => {
-                "ui-badge ui-badge-neutral inline-flex w-fit items-center rounded-md border border-transparent bg-muted px-2.5 py-0.5 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted/80 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2"
-            }
-            Self::Success => {
-                "ui-badge ui-badge-success inline-flex w-fit items-center rounded-md border border-transparent bg-success-light px-2.5 py-0.5 text-xs font-semibold text-success-dark transition-colors hover:bg-success-light/80 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2"
-            }
+            Self::Neutral => constants_str::VALUE_5386B853,
+            Self::Success => constants_str::VALUE_01AFB233,
         }
     }
 }

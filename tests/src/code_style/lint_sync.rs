@@ -76,44 +76,47 @@ fn check_if_workspace_cargo_toml_workspace_lints_rust_contains_all_rust_lints() 
     let reviewed_exceptions = [
         (
             constants_str::IMPLICIT_PROVENANCE_CASTS,
-            "rust-lang/rust#130351",
+            constants_str::VALUE_2642B498,
         ),
         (
             constants_str::MULTIPLE_SUPERTRAIT_UPCASTABLE,
-            "rust-lang/rust#150833",
+            constants_str::VALUE_5CA1A822,
         ),
-        (constants_str::MUST_NOT_SUSPEND, "rust-lang/rust#83310"),
+        (
+            constants_str::MUST_NOT_SUSPEND,
+            constants_str::VALUE_8B5456A9,
+        ),
         (
             constants_str::NON_EXHAUSTIVE_OMITTED_PATTERNS,
-            "rust-lang/rust#89554",
+            constants_str::VALUE_C14A18CA,
         ),
         (
             constants_str::DEFAULT_OVERRIDES_DEFAULT_FIELDS,
-            "rust-lang/rust#132162",
+            constants_str::VALUE_8C3E05BE,
         ),
         (
             constants_str::TEST_UNSTABLE_LINT,
-            "nightly compiler test-only lint",
+            constants_str::VALUE_25E2DA35,
         ),
         (
             constants_str::RESOLVING_TO_ITEMS_SHADOWING_SUPERTRAIT_ITEMS,
-            "rust-lang/rust#89151",
+            constants_str::VALUE_9201B73E,
         ),
         (
             constants_str::SHADOWING_SUPERTRAIT_ITEMS,
-            "rust-lang/rust#89151",
+            constants_str::VALUE_9201B73E,
         ),
         (
             constants_str::UNQUALIFIED_LOCAL_IMPORTS,
-            "rust-lang/rust#138299",
+            constants_str::VALUE_8EA48DC5,
         ),
         (
             constants_str::DEPRECATED_LLVM_INTRINSIC,
-            "rust-lang/rust#29602",
+            constants_str::VALUE_837349B6,
         ),
         (
             constants_str::TAIL_CALL_TRACK_CALLER,
-            "rust-lang/rust#112788",
+            constants_str::VALUE_94F20D79,
         ),
     ];
     let _validated_exceptions = reviewed_exceptions

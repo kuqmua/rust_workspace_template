@@ -119,9 +119,9 @@ impl ReqwestClient {
     ) -> TracingHttpClientSpan {
         let span = {
             let method = request.method();
-            let host = request
-                .host()
-                .unwrap_or_else(|| super::HttpHostRef::from(""));
+            let host = request.host().unwrap_or_else(|| {
+                super::HttpHostRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX)
+            });
             let span = tracing::info_span!(
                 "http.client",
                 otel.kind = "client",

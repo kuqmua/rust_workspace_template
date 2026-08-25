@@ -26,11 +26,11 @@ fn pagination_values_deserialize_from_url_query_strings() {
         panic!("36f08ad7");
     };
     let limit = <super::AdminPageLimit as serde::Deserialize>::deserialize(
-        serde::de::value::StrDeserializer::<serde::de::value::Error>::new("100"),
+        serde::de::value::StrDeserializer::<serde::de::value::Error>::new(constants_str::VALUE_100),
     )
     .expect("a6aa5b42 pagination_values_deserialize_from_url_query_strings invariant must hold");
     let offset = <super::AdminPageOffset as serde::Deserialize>::deserialize(
-        serde::de::value::StrDeserializer::<serde::de::value::Error>::new("42"),
+        serde::de::value::StrDeserializer::<serde::de::value::Error>::new(constants_str::VALUE_42),
     )
     .expect("799e47b0 pagination_values_deserialize_from_url_query_strings invariant must hold");
     assert_eq!(u16::from(limit), super::AdminPageLimit::MAX);

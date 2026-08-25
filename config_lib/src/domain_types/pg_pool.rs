@@ -153,12 +153,12 @@ mod tests {
     #[test]
     fn pool_limits_and_timeouts_reject_zero() {
         let max = <super::PgPoolMaxConnections as super::super::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
-            super::super::StdEnvVarOk::try_from(String::from("1")).expect("6f71a4b9 pool_limits_and_timeouts_reject_zero invariant must hold"),
+            super::super::StdEnvVarOk::try_from(String::from(constants_str::VALUE_1)).expect("6f71a4b9 pool_limits_and_timeouts_reject_zero invariant must hold"),
         )
         .expect("c8ef416d pool_limits_and_timeouts_reject_zero invariant must hold");
         assert_eq!(max.0, 1u32);
         let timeout = <super::RequestTimeoutSeconds as super::super::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
-            super::super::StdEnvVarOk::try_from(String::from("0")).expect("f02d58b1 pool_limits_and_timeouts_reject_zero invariant must hold"),
+            super::super::StdEnvVarOk::try_from(String::from(constants_str::VALUE_0)).expect("f02d58b1 pool_limits_and_timeouts_reject_zero invariant must hold"),
         );
         assert!(matches!(timeout, Err(super::PgPoolConfigParseError::Zero)));
     }

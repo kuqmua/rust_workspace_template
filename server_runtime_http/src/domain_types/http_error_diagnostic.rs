@@ -165,8 +165,8 @@ mod tests {
     #[test]
     fn fallback_diagnostic_keeps_telemetry() {
         let telemetry = super::HttpErrorTelemetry::new(
-            super::HttpErrorType::from("test.error"),
-            super::HttpErrorCode::from("test_failure"),
+            super::HttpErrorType::from(constants_str::VALUE_AF7C24A2),
+            super::HttpErrorCode::from(constants_str::VALUE_CF4DCEBB),
         );
         let diagnostic = super::capture_without_context(telemetry);
         assert_eq!(

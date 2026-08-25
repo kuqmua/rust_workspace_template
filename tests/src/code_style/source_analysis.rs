@@ -12,14 +12,14 @@ impl OptimalMemoryLayoutVisitor {
         let mut derives_optimal_memory_layout = false;
         attrs
             .iter()
-            .filter(|attr| attr.path().is_ident("derive"))
+            .filter(|attr| attr.path().is_ident(constants_str::DERIVE))
             .for_each(|attr| {
                 drop(attr.parse_nested_meta(|metadata| {
                     if metadata
                         .path
                         .segments
                         .last()
-                        .is_some_and(|segment| segment.ident == "OptimalMemoryLayout")
+                        .is_some_and(|segment| segment.ident == constants_str::VALUE_00714460)
                     {
                         derives_optimal_memory_layout = true;
                     }
@@ -35,11 +35,11 @@ impl OptimalMemoryLayoutVisitor {
 }
 impl<'ast> syn::visit::Visit<'ast> for OptimalMemoryLayoutVisitor {
     fn visit_item_enum(&mut self, i: &'ast syn::ItemEnum) {
-        self.check_attrs(&i.ident, &i.attrs, "enum");
+        self.check_attrs(&i.ident, &i.attrs, constants_str::ENUM);
         syn::visit::visit_item_enum(self, i);
     }
     fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
-        self.check_attrs(&i.ident, &i.attrs, "struct");
+        self.check_attrs(&i.ident, &i.attrs, constants_str::STRUCT);
         syn::visit::visit_item_struct(self, i);
     }
 }
@@ -416,10 +416,7 @@ impl<'ast> syn::visit::Visit<'ast> for DiagnosticIdVisitor {
                     super::types::SourceTextRef::from(constants_str::CODE_STYLE_EXPECT_METHOD_NAME),
                     super::types::SourceTextRef::from(lit_str.value().as_str()),
                 ),
-                Some(_) | None => self.ers.push(
-                    "expect message must be one string literal starting with a diagnostic ID"
-                        .to_owned(),
-                ),
+                Some(_) | None => self.ers.push(constants_str::VALUE_3C063239.to_owned()),
             }
         }
         syn::visit::visit_expr_method_call(self, i);
@@ -451,14 +448,10 @@ impl<'ast> syn::visit::Visit<'ast> for DiagnosticIdVisitor {
                                 );
                             }
                         }
-                        Err(_error) => self
-                            .ers
-                            .push("panic message must begin with a string literal".to_owned()),
+                        Err(_error) => self.ers.push(constants_str::VALUE_CCFFF72E.to_owned()),
                     }
                 }
-                Some(_) | None => self
-                    .ers
-                    .push("panic message must begin with a string literal".to_owned()),
+                Some(_) | None => self.ers.push(constants_str::VALUE_CCFFF72E.to_owned()),
             }
         }
         syn::visit::visit_macro(self, i);
@@ -473,22 +466,27 @@ impl<'ast> syn::visit::Visit<'ast> for SensitiveTextDebugDeriveVisitor {
         .get()
             && super::item_struct_wraps_text(super::types::SynItemStructRef::from(i)).get()
         {
-            ["Debug", "Display", "DebugTransparent", "DisplayTransparent"]
-                .into_iter()
-                .for_each(|derive_name| {
-                    if i.attrs.iter().any(|attr| {
-                        super::derive_attr_has_terminal(
-                            super::types::SynAttributeRef::from(attr),
-                            super::types::SourceTextRef::from(derive_name),
-                        )
-                        .get()
-                    }) {
-                        self.ers.push(format!(
-                            "sensitive text wrapper `{}` derives `{derive_name}` without redaction",
-                            i.ident
-                        ));
-                    }
-                });
+            [
+                constants_str::VALUE_1A03BD2F,
+                constants_str::VALUE_34E108C0,
+                constants_str::VALUE_4A177217,
+                constants_str::VALUE_00857394,
+            ]
+            .into_iter()
+            .for_each(|derive_name| {
+                if i.attrs.iter().any(|attr| {
+                    super::derive_attr_has_terminal(
+                        super::types::SynAttributeRef::from(attr),
+                        super::types::SourceTextRef::from(derive_name),
+                    )
+                    .get()
+                }) {
+                    self.ers.push(format!(
+                        "sensitive text wrapper `{}` derives `{derive_name}` without redaction",
+                        i.ident
+                    ));
+                }
+            });
         }
         syn::visit::visit_item_struct(self, i);
     }
@@ -497,7 +495,7 @@ impl SensitiveErrorFormatVisitor {
     fn inspect_fields(&mut self, attrs: &[syn::Attribute], fields: &syn::Fields) {
         let templates = attrs
             .iter()
-            .filter(|attr| attr.path().is_ident("error"))
+            .filter(|attr| attr.path().is_ident(constants_str::CONFIG_TRACING_ERROR))
             .filter_map(|attr| match &attr.meta {
                 syn::Meta::List(list) => Some(list.tokens.to_string()),
                 syn::Meta::Path(_) | syn::Meta::NameValue(_) => None,
@@ -585,7 +583,10 @@ impl<'ast> syn::visit::Visit<'ast> for PrintMacroVisitor {
         if i.path.segments.last().is_some_and(|segment| {
             matches!(
                 segment.ident.to_string().as_str(),
-                "print" | "println" | "eprint" | "eprintln"
+                constants_str::SHARED_VALUES_PRINT
+                    | constants_str::SHARED_VALUES_PRINTLN
+                    | constants_str::SHARED_VALUES_EPRINT
+                    | constants_str::SHARED_VALUES_EPRINTLN
             )
         }) {
             self.calls.push(
@@ -618,7 +619,10 @@ impl<'ast> syn::visit::Visit<'ast> for ProductionLinePrintMacroVisitor {
     }
     fn visit_macro(&mut self, i: &'ast syn::Macro) {
         if i.path.segments.last().is_some_and(|segment| {
-            matches!(segment.ident.to_string().as_str(), "println" | "eprintln")
+            matches!(
+                segment.ident.to_string().as_str(),
+                constants_str::SHARED_VALUES_PRINTLN | constants_str::SHARED_VALUES_EPRINTLN
+            )
         }) {
             self.calls.push(
                 super::path_to_string(super::types::SynPathRef::from(&i.path))
@@ -681,11 +685,17 @@ impl<'ast> syn::visit::Visit<'ast> for OwnedTestVisitor {
 impl<'ast> syn::visit::Visit<'ast> for AllowReasonVisitor {
     fn visit_attribute(&mut self, i: &'ast syn::Attribute) {
         let is_lint_suppression = i.path().segments.last().is_some_and(|segment| {
-            matches!(segment.ident.to_string().as_str(), "allow" | "expect")
+            matches!(
+                segment.ident.to_string().as_str(),
+                constants_str::VALUE_41008373 | constants_str::CODE_STYLE_EXPECT_METHOD_NAME
+            )
         });
         if is_lint_suppression {
             let has_reason_argument = match &i.meta {
-                syn::Meta::List(list) => list.tokens.to_string().contains("reason ="),
+                syn::Meta::List(list) => list
+                    .tokens
+                    .to_string()
+                    .contains(constants_str::VALUE_45F4C964),
                 syn::Meta::Path(_) | syn::Meta::NameValue(_) => false,
             };
             let span = syn::spanned::Spanned::span(i);
@@ -694,14 +704,17 @@ impl<'ast> syn::visit::Visit<'ast> for AllowReasonVisitor {
             let has_same_line_reason = self
                 .lines
                 .get(end_line.saturating_sub(constants_usize::ONE))
-                .and_then(|line| line.split_once("//").map(|(_attribute, reason)| reason))
+                .and_then(|line| {
+                    line.split_once(constants_str::VALUE_A2C23396)
+                        .map(|(_attribute, reason)| reason)
+                })
                 .is_some_and(|reason| !reason.trim().is_empty());
             let has_preceding_reason = start_line
                 .checked_sub(2usize)
                 .and_then(|line_index| self.lines.get(line_index))
                 .is_some_and(|line| {
                     line.trim_start()
-                        .strip_prefix("//")
+                        .strip_prefix(constants_str::VALUE_A2C23396)
                         .is_some_and(|reason| !reason.trim().is_empty())
                 });
             if !has_reason_argument && !has_same_line_reason && !has_preceding_reason {
@@ -711,7 +724,7 @@ impl<'ast> syn::visit::Visit<'ast> for AllowReasonVisitor {
                     .iter()
                     .map(|segment| segment.ident.to_string())
                     .collect::<Vec<String>>()
-                    .join("::");
+                    .join(constants_str::PATH_SEPARATOR);
                 let attribute = match &i.meta {
                     syn::Meta::List(list) => format!("#[{path}({})]", list.tokens),
                     syn::Meta::NameValue(_) => format!("#[{path} = value]"),
@@ -1882,35 +1895,6 @@ impl<'ast> syn::visit::Visit<'ast> for ProductionStringLiteralVisitor {
         }
         syn::visit::visit_expr_lit(self, i);
     }
-    fn visit_item_fn(&mut self, i: &'ast syn::ItemFn) {
-        if i.attrs.iter().any(|attribute| {
-            attribute
-                .path()
-                .segments
-                .last()
-                .is_some_and(|segment| segment.ident == constants_str::TEST_ALT_3)
-        }) {
-            return;
-        }
-        syn::visit::visit_item_fn(self, i);
-    }
-    fn visit_item_mod(&mut self, i: &'ast syn::ItemMod) {
-        if i.attrs.iter().any(|attribute| {
-            matches!(
-                &attribute.meta,
-                syn::Meta::List(list)
-                    if list.path.is_ident(constants_str::CFG_ALT)
-                        && list
-                            .tokens
-                            .to_string()
-                            .split(|symbol: char| !symbol.is_ascii_alphanumeric() && symbol != '_')
-                            .any(|condition| condition == constants_str::TEST_ALT_3)
-            )
-        }) {
-            return;
-        }
-        syn::visit::visit_item_mod(self, i);
-    }
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[allow(
@@ -1949,8 +1933,7 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantDeclarationVisitor {
         };
         syn::visit::Visit::visit_block(&mut literal_visitor, &i.block);
         if !literal_visitor.values.is_empty() {
-            self.ers
-                .push("anonymous const expression contains string literals".to_owned());
+            self.ers.push(constants_str::VALUE_FEDD2A2E.to_owned());
         }
         syn::visit::visit_expr_const(self, i);
     }
@@ -2021,7 +2004,7 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantDeclarationVisitor {
         fn group_contains_str(group: &proc_macro2::Group) -> bool {
             group.stream().into_iter().any(|token| match token {
                 proc_macro2::TokenTree::Group(nested) => group_contains_str(&nested),
-                proc_macro2::TokenTree::Ident(ident) => ident == "str",
+                proc_macro2::TokenTree::Ident(ident) => ident == constants_str::STR_ALT,
                 proc_macro2::TokenTree::Literal(_) | proc_macro2::TokenTree::Punct(_) => false,
             })
         }
@@ -2036,7 +2019,7 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantDeclarationVisitor {
                 if !matches!(
                     token,
                     proc_macro2::TokenTree::Ident(ident)
-                        if ident == "const" || ident == "static"
+                        if ident == constants_str::VALUE_F75C6596 || ident == constants_str::STATIC
                 ) {
                     return false;
                 }
@@ -2048,7 +2031,7 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantDeclarationVisitor {
                 }
                 if matches!(
                     token_trees.iter().skip(index).nth(constants_usize::ONE),
-                    Some(proc_macro2::TokenTree::Ident(ident)) if ident == "fn"
+                    Some(proc_macro2::TokenTree::Ident(ident)) if ident == constants_str::VALUE_0F1E18BB
                 ) {
                     return false;
                 }
@@ -2060,7 +2043,7 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantDeclarationVisitor {
                         proc_macro2::TokenTree::Group(group) => {
                             Ok(stores_string || group_contains_str(group))
                         }
-                        proc_macro2::TokenTree::Ident(ident) => Ok(stores_string || ident == "str"),
+                        proc_macro2::TokenTree::Ident(ident) => Ok(stores_string || ident == constants_str::STR_ALT),
                         proc_macro2::TokenTree::Punct(punct) if punct.as_char() == '=' => {
                             Err(stores_string)
                         }
@@ -2077,13 +2060,10 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantDeclarationVisitor {
         if i.path.segments.last().is_some_and(|segment| {
             segment.ident == constants_str::SHARED_VALUES_DEFINE_STR_CONSTANTS
         }) {
-            self.ers.push(
-                "define_str_constants! may only be invoked by the constants_str crate".to_owned(),
-            );
+            self.ers.push(constants_str::VALUE_23159C36.to_owned());
         }
         if !self.allow_generated_string_constants.get() && contains(i.tokens.clone()) {
-            self.ers
-                .push("macro generates a string constant outside constants_str".to_owned());
+            self.ers.push(constants_str::VALUE_BA372BD2.to_owned());
         }
         syn::visit::visit_macro(self, i);
     }
@@ -2169,97 +2149,6 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
         }
         syn::visit::visit_expr_method_call(self, i);
     }
-    fn visit_impl_item_const(&mut self, i: &'ast syn::ImplItemConst) {
-        let mut literal_visitor = TestStringLiteralVisitor {
-            values: super::types::SourceTextList::default(),
-        };
-        syn::visit::Visit::visit_expr(&mut literal_visitor, &i.expr);
-        if !literal_visitor.values.is_empty() {
-            self.ers.push(format!(
-                "associated constant `{}` contains string literals",
-                i.ident
-            ));
-        }
-        syn::visit::visit_impl_item_const(self, i);
-    }
-    fn visit_impl_item_fn(&mut self, i: &'ast syn::ImplItemFn) {
-        if i.sig.constness.is_some() {
-            let mut literal_visitor = TestStringLiteralVisitor {
-                values: super::types::SourceTextList::default(),
-            };
-            syn::visit::Visit::visit_block(&mut literal_visitor, &i.block);
-            if !literal_visitor.values.is_empty() {
-                self.ers.push(format!(
-                    "const method `{}` contains string literals",
-                    i.sig.ident
-                ));
-            }
-        }
-        syn::visit::visit_impl_item_fn(self, i);
-    }
-    fn visit_item_const(&mut self, i: &'ast syn::ItemConst) {
-        let mut literal_visitor = TestStringLiteralVisitor {
-            values: super::types::SourceTextList::default(),
-        };
-        syn::visit::Visit::visit_expr(&mut literal_visitor, i.expr.as_ref());
-        if !literal_visitor.values.is_empty() {
-            self.ers
-                .push(format!("constant `{}` contains string literals", i.ident));
-        }
-        syn::visit::visit_item_const(self, i);
-    }
-    fn visit_item_fn(&mut self, i: &'ast syn::ItemFn) {
-        if i.attrs.iter().any(|attribute| {
-            attribute
-                .path()
-                .segments
-                .last()
-                .is_some_and(|segment| segment.ident == constants_str::TEST_ALT_3)
-        }) {
-            return;
-        }
-        if i.sig.constness.is_some() {
-            let mut literal_visitor = TestStringLiteralVisitor {
-                values: super::types::SourceTextList::default(),
-            };
-            syn::visit::Visit::visit_block(&mut literal_visitor, &i.block);
-            if !literal_visitor.values.is_empty() {
-                self.ers.push(format!(
-                    "const function `{}` contains string literals",
-                    i.sig.ident
-                ));
-            }
-        }
-        syn::visit::visit_item_fn(self, i);
-    }
-    fn visit_item_mod(&mut self, i: &'ast syn::ItemMod) {
-        if i.attrs.iter().any(|attribute| {
-            matches!(
-                &attribute.meta,
-                syn::Meta::List(list)
-                    if list.path.is_ident(constants_str::CFG_ALT)
-                        && list
-                            .tokens
-                            .to_string()
-                            .split(|symbol: char| !symbol.is_ascii_alphanumeric() && symbol != '_')
-                            .any(|condition| condition == constants_str::TEST_ALT_3)
-            )
-        }) {
-            return;
-        }
-        syn::visit::visit_item_mod(self, i);
-    }
-    fn visit_item_static(&mut self, i: &'ast syn::ItemStatic) {
-        let mut literal_visitor = TestStringLiteralVisitor {
-            values: super::types::SourceTextList::default(),
-        };
-        syn::visit::Visit::visit_expr(&mut literal_visitor, i.expr.as_ref());
-        if !literal_visitor.values.is_empty() {
-            self.ers
-                .push(format!("static `{}` contains string literals", i.ident));
-        }
-        syn::visit::visit_item_static(self, i);
-    }
     fn visit_macro(&mut self, i: &'ast syn::Macro) {
         let is_syntax_boundary = i.path.segments.last().is_some_and(|segment| {
             constants_str::CODE_STYLE_STRING_LITERAL_MACRO_BOUNDARIES
@@ -2299,37 +2188,5 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
             }
         }
         syn::visit::visit_macro(self, i);
-    }
-    fn visit_trait_item_const(&mut self, i: &'ast syn::TraitItemConst) {
-        if let Some((_equals, expr)) = &i.default {
-            let mut literal_visitor = TestStringLiteralVisitor {
-                values: super::types::SourceTextList::default(),
-            };
-            syn::visit::Visit::visit_expr(&mut literal_visitor, expr);
-            if !literal_visitor.values.is_empty() {
-                self.ers.push(format!(
-                    "trait constant `{}` contains string literals",
-                    i.ident
-                ));
-            }
-        }
-        syn::visit::visit_trait_item_const(self, i);
-    }
-    fn visit_trait_item_fn(&mut self, i: &'ast syn::TraitItemFn) {
-        if i.sig.constness.is_some()
-            && let Some(block) = &i.default
-        {
-            let mut literal_visitor = TestStringLiteralVisitor {
-                values: super::types::SourceTextList::default(),
-            };
-            syn::visit::Visit::visit_block(&mut literal_visitor, block);
-            if !literal_visitor.values.is_empty() {
-                self.ers.push(format!(
-                    "const trait method `{}` contains string literals",
-                    i.sig.ident
-                ));
-            }
-        }
-        syn::visit::visit_trait_item_fn(self, i);
     }
 }

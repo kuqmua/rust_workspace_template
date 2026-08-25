@@ -59,7 +59,12 @@ fn unowned_spawn_expr(expression: &syn::Expr) -> bool {
         return false;
     };
     let text = path_to_string(path);
-    if matches!(text.as_ref(), "drop" | "std::mem::drop" | "core::mem::drop") {
+    if matches!(
+        text.as_ref(),
+        constants_str::VALUE_D90EE9CC
+            | constants_str::VALUE_AA7752E0
+            | constants_str::VALUE_F3FCC9F8
+    ) {
         return call.args.first().is_some_and(unowned_spawn_expr);
     }
     matches!(
@@ -82,10 +87,9 @@ fn diagnostic_id_prefix(value: types::SourceTextRef<'_>) -> Option<types::Source
         })
         .filter(|_| {
             value.get().len() == 8usize
-                || value
-                    .get()
-                    .get(8usize..)
-                    .is_some_and(|suffix| suffix.starts_with(": ") || suffix.starts_with(' '))
+                || value.get().get(8usize..).is_some_and(|suffix| {
+                    suffix.starts_with(constants_str::VALUE_45822F54) || suffix.starts_with(' ')
+                })
         })
         .map(types::SourceTextRef::from)
 }
@@ -93,7 +97,7 @@ fn diagnostic_id_prefix(value: types::SourceTextRef<'_>) -> Option<types::Source
 fn diagnostic_id_has_context(value: types::SourceTextRef<'_>) -> types::AnalyzerBool {
     let context = value.get().get(8usize..).and_then(|suffix| {
         suffix
-            .strip_prefix(": ")
+            .strip_prefix(constants_str::VALUE_45822F54)
             .or_else(|| suffix.strip_prefix(' '))
     });
     types::AnalyzerBool::from(
@@ -104,17 +108,17 @@ fn diagnostic_id_has_context(value: types::SourceTextRef<'_>) -> types::Analyzer
 }
 fn panic_uses_dynamic_diagnostic_id(value: types::SourceTextRef<'_>) -> types::AnalyzerBool {
     types::AnalyzerBool::from(
-        value.as_ref().starts_with("{}")
-            || value.as_ref().starts_with("{error_id}")
-            || value.as_ref().starts_with("{exp_id}")
-            || value.as_ref().starts_with("{uuid}"),
+        value.as_ref().starts_with(constants_str::TEXT_ALT_14)
+            || value.as_ref().starts_with(constants_str::VALUE_81766C62)
+            || value.as_ref().starts_with(constants_str::VALUE_D8C45567)
+            || value.as_ref().starts_with(constants_str::VALUE_9C7DD42A),
     )
 }
 fn macro_path_is_quote(path: types::SynPathRef<'_>) -> types::AnalyzerBool {
     types::AnalyzerBool::from(path.as_ref().segments.last().is_some_and(|segment| {
         matches!(
             segment.ident.to_string().as_str(),
-            "quote" | "quote_spanned"
+            constants_str::SHARED_VALUES_QUOTE | constants_str::SHARED_VALUES_QUOTE_SPANNED
         )
     }))
 }
@@ -192,24 +196,24 @@ fn scan_generated_diagnostic_tokens(
 fn check_expect_and_panic_contain_unique_diagnostic_ids() {
     let reviewed_interpolations = [
         (
-            "pg_crud_macro_common/src/domain_types/token_stream_helpers.rs",
-            "generated `panic` uses unchecked interpolated diagnostic message `#panic_uuid_token_stream`",
-            "PanicUuidRef validates the diagnostic identifier before token generation",
+            constants_str::VALUE_1F61C5FC,
+            constants_str::VALUE_A9D2959B,
+            constants_str::VALUE_40D0A05F,
         ),
         (
-            "pg_crud_pg_table_generate_src/src/domain_types/source.rs",
-            "generated `expect` uses unchecked interpolated diagnostic message `#expect_0`",
-            "the generator receives the reviewed diagnostic identifier from its fixture catalog",
+            constants_str::VALUE_7FE2AF02,
+            constants_str::VALUE_265FF5BA,
+            constants_str::VALUE_B4F7B36F,
         ),
         (
-            "pg_crud_pg_table_generate_src/src/domain_types/source.rs",
-            "generated `expect` uses unchecked interpolated diagnostic message `#expect_1`",
-            "the generator receives the reviewed diagnostic identifier from its fixture catalog",
+            constants_str::VALUE_7FE2AF02,
+            constants_str::VALUE_A5D61573,
+            constants_str::VALUE_B4F7B36F,
         ),
         (
-            "pg_crud_pg_types_generate_src/src/domain_types/source.rs",
-            "generated `expect` uses unchecked interpolated diagnostic message `#id_double_quoted_token_stream`",
-            "the date-range fixture passes a reviewed diagnostic identifier into the generator",
+            constants_str::VALUE_D405F3E1,
+            constants_str::VALUE_31DDD380,
+            constants_str::VALUE_9EB896D7,
         ),
     ];
     let mut all_ids = Vec::new();
@@ -390,7 +394,7 @@ fn unjustified_workspace_lint_allows(source: types::SourceTextRef<'_>) -> types:
                 if trimmed.starts_with('[') {
                     in_workspace_lints = matches!(
                         trimmed,
-                        "[workspace.lints.rust]" | "[workspace.lints.clippy]"
+                        constants_str::VALUE_AC763BA9 | constants_str::VALUE_EA8957C1
                     );
                     return None;
                 }
@@ -400,7 +404,7 @@ fn unjustified_workspace_lint_allows(source: types::SourceTextRef<'_>) -> types:
                 let (setting, comment) = line
                     .split_once('#')
                     .map_or((line, None), |(setting, comment)| (setting, Some(comment)));
-                (setting.trim_end().ends_with("= \"allow\"")
+                (setting.trim_end().ends_with(constants_str::VALUE_9F4AF5DD)
                     && comment.is_none_or(|reason| reason.trim().is_empty()))
                 .then(|| {
                     format!(
@@ -420,17 +424,26 @@ fn commented_debug_statements(source: types::SourceTextRef<'_>) -> types::Diagno
             .lines()
             .enumerate()
             .filter_map(|(index, line)| {
-                let comment = line.trim_start().strip_prefix("//")?.trim_start();
-                ["dbg!", "print!", "println!", "eprint!", "eprintln!"]
-                    .into_iter()
-                    .any(|macro_name| comment.starts_with(macro_name))
-                    .then(|| {
-                        format!(
-                            "line {}: {}",
-                            index.saturating_add(constants_usize::ONE),
-                            line.trim()
-                        )
-                    })
+                let comment = line
+                    .trim_start()
+                    .strip_prefix(constants_str::VALUE_A2C23396)?
+                    .trim_start();
+                [
+                    constants_str::VALUE_EB2E6B1F,
+                    constants_str::VALUE_0981EB3C,
+                    constants_str::VALUE_2FFB2CC3,
+                    constants_str::VALUE_04CB3FD5,
+                    constants_str::VALUE_2933C4F3,
+                ]
+                .into_iter()
+                .any(|macro_name| comment.starts_with(macro_name))
+                .then(|| {
+                    format!(
+                        "line {}: {}",
+                        index.saturating_add(constants_usize::ONE),
+                        line.trim()
+                    )
+                })
             })
             .collect::<Vec<String>>(),
     )
@@ -438,10 +451,10 @@ fn commented_debug_statements(source: types::SourceTextRef<'_>) -> types::Diagno
 fn text_content_hygiene_ers(source: types::SourceTextRef<'_>) -> types::DiagnosticMsgs {
     let mut ers = types::DiagnosticMsgs::default();
     if !source.as_ref().is_empty() && !source.as_ref().ends_with('\n') {
-        ers.push("missing final newline".to_owned());
+        ers.push(constants_str::VALUE_C2BE29D9.to_owned());
     }
     if source.as_ref().contains('\r') {
-        ers.push("contains carriage return".to_owned());
+        ers.push(constants_str::VALUE_A8C54D74.to_owned());
     }
     source
         .as_ref()
@@ -1478,10 +1491,10 @@ fn path_is_external_service_client(path: types::SynPathRef<'_>) -> types::Analyz
             )
             .get()
             || [
-                "reqwest::get",
-                "reqwest::Client::builder",
-                "sqlx::PgConnection::connect",
-                "sqlx::PgPool::connect",
+                constants_str::VALUE_364F9D39,
+                constants_str::VALUE_BDB563EC,
+                constants_str::VALUE_FE4D84FC,
+                constants_str::VALUE_2FCCA7C7,
             ]
             .contains(&path_text.as_ref()),
     )
@@ -1791,21 +1804,23 @@ fn type_stores_string_text(ty: types::SynTypeRef<'_>) -> types::AnalyzerBool {
             type_stores_string_text(types::SynTypeRef::from(paren.elem.as_ref())).get()
         }
         syn::Type::Path(path) => path.path.segments.iter().any(|segment| {
-            matches!(segment.ident.to_string().as_str(), "str" | "String")
-                || matches!(
-                    &segment.arguments,
-                    syn::PathArguments::AngleBracketed(arguments)
-                        if arguments.args.iter().any(|argument| {
-                            matches!(
-                                argument,
-                                syn::GenericArgument::Type(argument_type)
-                                    if type_stores_string_text(
-                                        types::SynTypeRef::from(argument_type)
-                                    )
-                                    .get()
-                            )
-                        })
-                )
+            matches!(
+                segment.ident.to_string().as_str(),
+                constants_str::STR_ALT | constants_str::STRING
+            ) || matches!(
+                &segment.arguments,
+                syn::PathArguments::AngleBracketed(arguments)
+                    if arguments.args.iter().any(|argument| {
+                        matches!(
+                            argument,
+                            syn::GenericArgument::Type(argument_type)
+                                if type_stores_string_text(
+                                    types::SynTypeRef::from(argument_type)
+                                )
+                                .get()
+                        )
+                    })
+            )
         }),
         syn::Type::Reference(reference) => {
             type_stores_string_text(types::SynTypeRef::from(reference.elem.as_ref())).get()
@@ -1941,14 +1956,24 @@ fn derive_attr_has_terminal(
 fn sensitive_text_wrapper_identifier(identifier: types::SourceTextRef<'_>) -> types::AnalyzerBool {
     let identifier_text = identifier.as_ref();
     let lowercase = identifier_text.to_ascii_lowercase();
-    let non_secret_token_metadata = ["tokenaudience", "tokenissuer", "tokenpart"]
-        .into_iter()
-        .any(|fragment| lowercase.contains(fragment));
+    let non_secret_token_metadata = [
+        constants_str::VALUE_55BFC155,
+        constants_str::VALUE_73F0D95A,
+        constants_str::VALUE_A2E10FB9,
+    ]
+    .into_iter()
+    .any(|fragment| lowercase.contains(fragment));
     types::AnalyzerBool::from(
-        ["password", "secret", "credential", "apikey", "cookievalue"]
-            .into_iter()
-            .any(|fragment| lowercase.contains(fragment))
-            || lowercase.contains("token") && !non_secret_token_metadata,
+        [
+            constants_str::PASSWORD,
+            constants_str::SECRET,
+            constants_str::VALUE_E265B6F5,
+            constants_str::VALUE_6C793695,
+            constants_str::VALUE_9032FF38,
+        ]
+        .into_iter()
+        .any(|fragment| lowercase.contains(fragment))
+            || lowercase.contains(constants_str::VALUE_3C469E9D) && !non_secret_token_metadata,
     )
 }
 #[allow(clippy::single_call_fn)] // limits the secret Debug policy to wrappers that directly contain text or bytes
@@ -1966,8 +1991,8 @@ fn type_contains_sensitive_text_or_bytes(ty: &syn::Type) -> bool {
         syn::Type::Path(path) => path.path.segments.last().is_some_and(|segment| {
             matches!(
                 segment.ident.to_string().as_str(),
-                "String" | "str" | "SecretBox"
-            ) || segment.ident == "Vec"
+                constants_str::STRING | constants_str::STR_ALT | constants_str::VALUE_DFBD6AA3
+            ) || segment.ident == constants_str::VEC
                 && matches!(
                     &segment.arguments,
                     syn::PathArguments::AngleBracketed(angle_arguments)
@@ -2002,7 +2027,7 @@ fn type_is_u8(ty: &syn::Type) -> bool {
     matches!(
         ty,
         syn::Type::Path(path)
-            if path.path.segments.last().is_some_and(|segment| segment.ident == "u8")
+            if path.path.segments.last().is_some_and(|segment| segment.ident == constants_str::CODE_STYLE_U8)
     )
 }
 fn path_to_string(path: types::SynPathRef<'_>) -> types::SourceText {

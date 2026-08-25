@@ -12,7 +12,7 @@ edition.workspace = true
 constants_usize = { workspace = true }
 constants_i32 = { workspace = true }
 optimal_memory_layout = { workspace = true }
-constants_str = { workspace = true, optional = true }
+constants_str = { workspace = true }
 macro_helpers = { workspace = true, optional = true }
 server_runtime_http = { workspace = true, optional = true }
 
@@ -23,7 +23,6 @@ newtype = { workspace = true }
 test-utils = [
   "dep:macro_helpers",
   "dep:server_runtime_http",
-  "dep:constants_str",
 ]
 
 [lints]

@@ -116,7 +116,8 @@ where
 #[test]
 fn administrator_collections_enforce_item_limit_for_construction_and_deserialization() {
     let maximum_values = vec![
-        super::AdminRoleId::try_from(constants_i64::ONE).expect("4cd8c4ef administrator_collections_enforce_item_limit_for_construction_and_deserialization invariant must hold");
+        super::AdminRoleId::try_from(constants_i64::ONE)
+            .expect(constants_str::VALUE_E535AB72);
         super::ADMIN_COLLECTION_MAX_ITEMS
     ];
     let Ok(maximum_role_ids) = super::AdminRoleIds::try_from(maximum_values) else {
@@ -127,7 +128,8 @@ fn administrator_collections_enforce_item_limit_for_construction_and_deserializa
         super::ADMIN_COLLECTION_MAX_ITEMS
     );
     let oversized = vec![
-        super::AdminRoleId::try_from(constants_i64::ONE).expect("1c1b920f administrator_collections_enforce_item_limit_for_construction_and_deserialization invariant must hold");
+        super::AdminRoleId::try_from(constants_i64::ONE)
+            .expect(constants_str::VALUE_36ED0D08);
         super::ADMIN_COLLECTION_MAX_ITEMS.saturating_add(constants_usize::ONE)
     ];
     assert!(matches!(
@@ -216,7 +218,10 @@ fn route_contract_keeps_custom_action_policy_and_path_together() {
 }
 #[test]
 fn parameterized_admin_route_path_uses_typed_route_metadata() {
-    let session_id = super::AdminSessionIdentifier::try_from(String::from("test-session")).expect(
+    let session_id = super::AdminSessionIdentifier::try_from(String::from(
+        constants_str::VALUE_4943E43B,
+    ))
+    .expect(
         "84d51132 parameterized_admin_route_path_uses_typed_route_metadata invariant must hold",
     );
     let role_id = super::AdminRoleId::try_from(7i64).expect(
@@ -295,7 +300,9 @@ fn removed_audit_log_page_is_not_a_frontend_route() {
         super::AdminPage::from_path(super::AdminPagePathRef::from("/admin/audit-log")),
         None
     );
-    let Err(_error) = super::AdminDefaultRoute::try_from(String::from("/admin/audit-log")) else {
+    let Err(_error) =
+        super::AdminDefaultRoute::try_from(String::from(constants_str::VALUE_FF160115))
+    else {
         panic!("61f0ab3e");
     };
 }
@@ -558,9 +565,12 @@ fn data_tables_round_trip_and_require_read_permissions() {
 
 #[test]
 fn administrator_identifiers_require_positive_database_values() {
-    let _user_error = super::AdminUserId::try_from(constants_i64::ZERO).expect_err("6088ff6a");
-    let _role_error = super::AdminRoleId::try_from(-constants_i64::ONE).expect_err("4406ffcc");
-    let _permission_error =
-        super::AdminPermissionId::try_from(constants_i64::ZERO).expect_err("f5d79bb8");
-    let _audit_error = super::AdminAuditLogId::try_from(-constants_i64::ONE).expect_err("3ca5fe6c");
+    let _user_error =
+        super::AdminUserId::try_from(constants_i64::ZERO).expect_err(constants_str::VALUE_C3B46626);
+    let _role_error =
+        super::AdminRoleId::try_from(-constants_i64::ONE).expect_err(constants_str::VALUE_4D8B8679);
+    let _permission_error = super::AdminPermissionId::try_from(constants_i64::ZERO)
+        .expect_err(constants_str::VALUE_4556AA65);
+    let _audit_error = super::AdminAuditLogId::try_from(-constants_i64::ONE)
+        .expect_err(constants_str::VALUE_18E48FFC);
 }

@@ -937,7 +937,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
         router_with_pool(&pool).0,
         request_with_peer(
             HttpAdminApiTestMethod::from(http::Method::GET),
-            StdAdminApiTestStrRef::from("/auth/sessions?limit=1&offset=0"),
+            StdAdminApiTestStrRef::from(constants_str::VALUE_9B6938A5),
             StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
             Some(StdAdminApiTestStrRef::from(active_cookie.as_str())),
             None,
@@ -969,7 +969,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
         router_with_pool(&pool).0,
         request_with_peer(
             HttpAdminApiTestMethod::from(http::Method::GET),
-            StdAdminApiTestStrRef::from("/tables/users?limit=1&offset=0"),
+            StdAdminApiTestStrRef::from(constants_str::VALUE_8F292E26),
             StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
             Some(StdAdminApiTestStrRef::from(active_cookie.as_str())),
             None,
@@ -1041,7 +1041,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
         router_with_pool(&pool).0,
         request_with_peer(
             HttpAdminApiTestMethod::from(http::Method::GET),
-            StdAdminApiTestStrRef::from("/tables/users?filter_field=login&filter_operation=eq&filter_value=missing_filter_user&limit=20&offset=0"),
+            StdAdminApiTestStrRef::from(constants_str::VALUE_2C93E406),
             StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
             Some(StdAdminApiTestStrRef::from(active_cookie.as_str())),
             None,
@@ -1067,7 +1067,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
         router_with_pool(&pool).0,
         request_with_peer(
             HttpAdminApiTestMethod::from(http::Method::GET),
-            StdAdminApiTestStrRef::from("/tables/users?filter_field=login&filter_operation=between&filter_value=admin&filter_end=root&limit=20&offset=0"),
+            StdAdminApiTestStrRef::from(constants_str::VALUE_946CA218),
             StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
             Some(StdAdminApiTestStrRef::from(active_cookie.as_str())),
             None,
@@ -1084,9 +1084,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
         router_with_pool(&pool).0,
         request_with_peer(
             HttpAdminApiTestMethod::from(http::Method::GET),
-            StdAdminApiTestStrRef::from(
-                "/tables/users?filter_field=login&filter_value=admin&limit=20&offset=0",
-            ),
+            StdAdminApiTestStrRef::from(constants_str::VALUE_5E6D79D4),
             StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
             Some(StdAdminApiTestStrRef::from(active_cookie.as_str())),
             None,

@@ -622,7 +622,7 @@ mod tests {
         let query = filter_query(
             constants_str::LOGIN,
             frontend_contract::domain_types::FilterOperation::Eq,
-            Some("alice"),
+            Some(constants_str::VALUE_2BD806C9),
             None,
         );
         let filter = super::data_filter(
@@ -648,8 +648,8 @@ mod tests {
         let query = filter_query(
             constants_str::LOGIN,
             frontend_contract::domain_types::FilterOperation::Between,
-            Some("alice"),
-            Some("bob"),
+            Some(constants_str::VALUE_2BD806C9),
+            Some(constants_str::VALUE_81B637D8),
         );
 
         assert!(
@@ -681,9 +681,10 @@ mod tests {
             constants_str::LOGIN.to_owned(),
         )
         .expect("f1832a34 incomplete_filter_queries_are_rejected invariant must hold");
-        let value =
-            server_admin_contract::domain_types::AdminFilterValue::try_from(String::from("alice"))
-                .expect("16849a06 incomplete_filter_queries_are_rejected invariant must hold");
+        let value = server_admin_contract::domain_types::AdminFilterValue::try_from(String::from(
+            constants_str::VALUE_2BD806C9,
+        ))
+        .expect("16849a06 incomplete_filter_queries_are_rejected invariant must hold");
         let queries = [
             server_admin_contract::domain_types::AdminDataTableFilterQuery::new(
                 Some(field),
@@ -723,9 +724,9 @@ mod tests {
     #[test]
     fn unknown_filter_field_is_rejected() {
         let query = filter_query(
-            "unknown",
+            constants_str::UNKNOWN_ALT,
             frontend_contract::domain_types::FilterOperation::Eq,
-            Some("alice"),
+            Some(constants_str::VALUE_2BD806C9),
             None,
         );
 
@@ -759,7 +760,7 @@ mod tests {
         let query = filter_query(
             constants_str::LOGIN,
             frontend_contract::domain_types::FilterOperation::Regex,
-            Some("^alice"),
+            Some(constants_str::VALUE_78C40633),
             None,
         );
         let filter = super::data_filter(
@@ -782,7 +783,7 @@ mod tests {
     #[test]
     fn filtered_sql_places_pagination_after_filter_binds() {
         let fragment = pg_crud_common::domain_types::QueryPartFragment::try_from(String::from(
-            "where login = $1",
+            constants_str::VALUE_F7A09FE1,
         ))
         .expect("45d292b8 filtered_sql_places_pagination_after_filter_binds invariant must hold");
 

@@ -81,9 +81,9 @@ pub(super) fn render_user_manage(
         let login = item.login().to_string();
         let display_name = item.display_name().to_string();
         let status = if bool::from(item.is_banned()) {
-            "Banned"
+            constants_str::VALUE_05EB2107
         } else {
-            "Active"
+            constants_str::VALUE_92340695
         };
         leptos::view! {
             <crate::domain_types::ui::card::AdminCard><article class="crud-record" id=article_id>
@@ -147,9 +147,9 @@ pub(super) fn render_role_manage(
         let name = item.name().to_string();
         let is_system = bool::from(item.is_system());
         let status = if is_system {
-            "System role"
+            constants_str::VALUE_91C86A3E
         } else {
-            "Custom role"
+            constants_str::VALUE_5B58E07E
         };
         leptos::view! {
             <crate::domain_types::ui::card::AdminCard><article class="crud-record" id=article_id>

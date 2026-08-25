@@ -28,13 +28,9 @@ pub(crate) enum AdminAlertVariant {
 impl AdminAlertVariant {
     fn class(self) -> &'static str {
         match self {
-            Self::Error => {
-                "ui-alert field-error relative w-full rounded-lg border px-4 py-3 text-sm [&>svg+div]:-translate-y-[3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground [&>svg~*]:pl-7"
-            }
+            Self::Error => constants_str::VALUE_6EFBABDA,
             #[cfg(not(target_arch = "wasm32"))]
-            Self::Success => {
-                "ui-alert flash-success relative w-full rounded-lg border px-4 py-3 text-sm [&>svg+div]:-translate-y-[3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground [&>svg~*]:pl-7"
-            }
+            Self::Success => constants_str::VALUE_A443C355,
         }
     }
 

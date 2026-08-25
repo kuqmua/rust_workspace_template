@@ -42,31 +42,31 @@ mod tests {
             "d8124a6f user_roles_render_only_matching_names_in_catalog_order invariant must hold",
         );
         let item = server_admin_contract::domain_types::AdminUserSummary::new(
-            server_admin_contract::domain_types::AdminDisplayName::try_from(String::from("Alice"))
+            server_admin_contract::domain_types::AdminDisplayName::try_from(String::from(constants_str::VALUE_3BC51062))
                 .expect("63f1b9e4 user_roles_render_only_matching_names_in_catalog_order invariant must hold"),
             server_admin_contract::domain_types::AdminUserId::try_from(constants_i64::ONE).expect("9ac2e751 user_roles_render_only_matching_names_in_catalog_order invariant must hold"),
             server_admin_contract::domain_types::AdminBool::from(false),
-            server_admin_contract::domain_types::AdminLogin::try_from(String::from("alice")).expect("4e70c31d user_roles_render_only_matching_names_in_catalog_order invariant must hold"),
+            server_admin_contract::domain_types::AdminLogin::try_from(String::from(constants_str::VALUE_2BD806C9)).expect("4e70c31d user_roles_render_only_matching_names_in_catalog_order invariant must hold"),
             server_admin_contract::domain_types::AdminRoleIds::try_from(vec![assigned_role]).expect("5b38d0a2 user_roles_render_only_matching_names_in_catalog_order invariant must hold"),
         );
         let page = server_admin_contract::domain_types::AdminUsersPage::new(
             server_admin_contract::domain_types::AdminUserSummaries::try_from(vec![item]).expect("7f294cb8 user_roles_render_only_matching_names_in_catalog_order invariant must hold"),
             server_admin_contract::domain_types::AdminRoleSummaries::try_from(vec![
                 server_admin_contract::domain_types::AdminRoleSummary::new(
-                    server_admin_contract::domain_types::AdminRoleId::try_from(constants_i64::ONE).expect("a014de95 user_roles_render_only_matching_names_in_catalog_order invariant must hold"),
+                    server_admin_contract::domain_types::AdminRoleId::try_from(constants_i64::ONE).expect(constants_str::VALUE_8B745867),
                     server_admin_contract::domain_types::AdminBool::from(false),
-                    server_admin_contract::domain_types::AdminRoleName::try_from(String::from("reader"))
-                        .expect("2d6b15c9 user_roles_render_only_matching_names_in_catalog_order invariant must hold"),
+                    server_admin_contract::domain_types::AdminRoleName::try_from(String::from(constants_str::VALUE_3D094196))
+                        .expect(constants_str::VALUE_E6FE267E),
                     server_admin_contract::domain_types::AdminPermissionIds::try_from(Vec::new())
-                        .expect("c9437f10 user_roles_render_only_matching_names_in_catalog_order invariant must hold"),
+                        .expect(constants_str::VALUE_6FA51050),
                 ),
                 server_admin_contract::domain_types::AdminRoleSummary::new(
                     assigned_role,
                     server_admin_contract::domain_types::AdminBool::from(false),
-                    server_admin_contract::domain_types::AdminRoleName::try_from(String::from("editor"))
-                        .expect("e52c7a84 user_roles_render_only_matching_names_in_catalog_order invariant must hold"),
+                    server_admin_contract::domain_types::AdminRoleName::try_from(String::from(constants_str::VALUE_1553CC62))
+                        .expect(constants_str::VALUE_591027EA),
                     server_admin_contract::domain_types::AdminPermissionIds::try_from(Vec::new())
-                        .expect("18af630d user_roles_render_only_matching_names_in_catalog_order invariant must hold"),
+                        .expect(constants_str::VALUE_EA24866B),
                 ),
             ])
             .expect("b670de23 user_roles_render_only_matching_names_in_catalog_order invariant must hold"),
@@ -88,7 +88,7 @@ mod tests {
         let item = server_admin_contract::domain_types::AdminRoleSummary::new(
             server_admin_contract::domain_types::AdminRoleId::try_from(constants_i64::ONE).expect("392bd170 role_permissions_render_matching_names_with_stable_separator invariant must hold"),
             server_admin_contract::domain_types::AdminBool::from(false),
-            server_admin_contract::domain_types::AdminRoleName::try_from(String::from("operator"))
+            server_admin_contract::domain_types::AdminRoleName::try_from(String::from(constants_str::PG_CRUD_OPERATOR_FIELD))
                 .expect("d5a91f28 role_permissions_render_matching_names_with_stable_separator invariant must hold"),
             server_admin_contract::domain_types::AdminPermissionIds::try_from(vec![
                 first_permission,
@@ -102,16 +102,16 @@ mod tests {
                 server_admin_contract::domain_types::AdminPermissionSummary::new(
                     first_permission,
                     server_admin_contract::domain_types::AdminPermissionValue::try_from(String::from(
-                        "users.read",
+                        constants_str::VALUE_C6919F81,
                     ))
-                    .expect("274cd6a9 role_permissions_render_matching_names_with_stable_separator invariant must hold"),
+                    .expect(constants_str::VALUE_286F37C4),
                 ),
                 server_admin_contract::domain_types::AdminPermissionSummary::new(
                     second_permission,
                     server_admin_contract::domain_types::AdminPermissionValue::try_from(String::from(
-                        "users.write",
+                        constants_str::VALUE_8B8674FD,
                     ))
-                    .expect("80e14fb3 role_permissions_render_matching_names_with_stable_separator invariant must hold"),
+                    .expect(constants_str::VALUE_CD09FF18),
                 ),
             ])
             .expect("349ca278 role_permissions_render_matching_names_with_stable_separator invariant must hold"),

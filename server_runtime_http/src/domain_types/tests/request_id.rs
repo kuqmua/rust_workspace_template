@@ -4,7 +4,7 @@ fn validates_string_and_header_boundaries() {
         super::super::RequestId::try_from(String::new()),
         Err(super::super::RequestIdTryFromStringError)
     );
-    let maximum = "a".repeat(128usize);
+    let maximum = constants_str::A_ALT.repeat(128usize);
     let request_id = super::super::RequestId::try_from(maximum.clone())
         .expect("3ff39236 validates_string_and_header_boundaries invariant must hold");
     assert_eq!(request_id.to_string(), maximum);

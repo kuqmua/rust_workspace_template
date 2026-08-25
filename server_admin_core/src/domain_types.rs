@@ -304,7 +304,7 @@ pub struct AdminPermissionName(server_admin_contract::domain_types::AdminPermiss
 mod tests {
     #[test]
     fn administrator_secret_text_enforces_internal_bound() {
-        let at_limit = "a".repeat(constants_usize::VALUE_8_192);
+        let at_limit = constants_str::A_ALT.repeat(constants_usize::VALUE_8_192);
         let secret = super::SecrecyAdminString::try_from(at_limit.clone()).expect(
             "6673b876 administrator_secret_text_enforces_internal_bound invariant must hold",
         );

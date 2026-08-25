@@ -268,7 +268,7 @@ mod tests {
             constants_str::MACRO_CLIPPY_CARGO_TEST_LIB_ARGS.as_slice(),
         ]
         .into_iter()
-        .all(|args| args.contains(&"--locked") && args.contains(&"--offline"))
+        .all(|args| args.contains(&constants_str::SHARED_VALUES_LOCKED) && args.contains(&constants_str::SHARED_VALUES_OFFLINE))
         .then_some(())
         .expect("3f63f262 generated_crate_compilation_is_offline_and_follow_up_steps_are_locked invariant must hold");
     }

@@ -14,8 +14,12 @@ fn server_rendered_pages_contain_forms_and_no_scripts() {
     assert!(!sign_in.as_ref().contains(".wasm"));
     let failed_sign_in = super::super::render_sign_in(
         Some(
-            super::super::AdminSsrErrorMessage::try_from(String::from("Invalid credentials"))
-                .expect("31b0d69f server_rendered_pages_contain_forms_and_no_scripts invariant must hold"),
+            super::super::AdminSsrErrorMessage::try_from(String::from(
+                constants_str::VALUE_7EC371A9,
+            ))
+            .expect(
+                "31b0d69f server_rendered_pages_contain_forms_and_no_scripts invariant must hold",
+            ),
         ),
         None,
     );
@@ -28,7 +32,7 @@ fn server_rendered_pages_contain_forms_and_no_scripts() {
 
     let page = super::super::render_admin_page(
         server_admin_contract::domain_types::AdminPage::Users,
-        super::super::AdminSsrHtml::try_from(String::from("<p>ready</p>")).expect(
+        super::super::AdminSsrHtml::try_from(String::from(constants_str::VALUE_91B66961)).expect(
             "c78bd3a1 server_rendered_pages_contain_forms_and_no_scripts invariant must hold",
         ),
     );
@@ -104,17 +108,22 @@ fn header_items_stay_stable_between_static_and_table_pages() {
     );
     let normalized_header = |html: &super::super::AdminSsrHtml| {
         html.as_ref()
-                .split_once("<header")
-                .and_then(|(_prefix, header_tail)| header_tail.split_once("</header>"))
-                .map_or_else(String::new, |(header, _suffix)| {
-                    header
-                        .replace(" aria-current=\"page\"", "")
-                        .replace(
-                            "active inline-flex items-center rounded-sm text-sm font-medium text-foreground transition-colors focus:outline-none",
-                            "inline-flex items-center rounded-sm text-sm font-medium text-foreground/70 transition-colors hover:text-foreground focus:outline-none",
-                        )
-                        .replace(" class=\"\"", "")
-                })
+            .split_once(constants_str::VALUE_75322EEF)
+            .and_then(|(_prefix, header_tail)| {
+                header_tail.split_once(constants_str::VALUE_5034F288)
+            })
+            .map_or_else(String::new, |(header, _suffix)| {
+                header
+                    .replace(
+                        constants_str::VALUE_C067F6CF,
+                        constants_str::PG_CRUD_EMPTY_SQL_SUFFIX,
+                    )
+                    .replace(constants_str::VALUE_80E35525, constants_str::VALUE_A5C068D6)
+                    .replace(
+                        constants_str::VALUE_319B0378,
+                        constants_str::PG_CRUD_EMPTY_SQL_SUFFIX,
+                    )
+            })
     };
     let metrics_header = normalized_header(&metrics);
     let cleanup_status_header = normalized_header(&cleanup_status);
@@ -152,8 +161,10 @@ fn csr_page_contains_only_bootstrap_shell() {
         None,
         None,
         None,
-        server_admin_contract::domain_types::AdminSiteName::try_from(String::from("Admin"))
-            .expect("8ba6b381 csr_page_contains_only_bootstrap_shell invariant must hold"),
+        server_admin_contract::domain_types::AdminSiteName::try_from(String::from(
+            constants_str::ADMIN,
+        ))
+        .expect("8ba6b381 csr_page_contains_only_bootstrap_shell invariant must hold"),
         None,
         None,
     );

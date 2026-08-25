@@ -55,7 +55,7 @@ fn run() -> Result<(), crate::domain_types::ScaffoldError> {
                 port,
             )
         }
-        Some("generate") => {
+        Some(constants_str::VALUE_24CACF50) => {
             let write_changes = match arguments.next().as_deref() {
                 Some(constants_str::SYNC) => crate::domain_types::ShouldWrite::from(true),
                 Some(constants_str::CHECK) => crate::domain_types::ShouldWrite::from(false),
@@ -69,7 +69,7 @@ fn run() -> Result<(), crate::domain_types::ScaffoldError> {
                 write_changes,
             )
         }
-        Some("deployment") => {
+        Some(constants_str::VALUE_AEE50B18) => {
             let write_changes = match arguments.next().as_deref() {
                 Some(constants_str::SYNC) => crate::domain_types::ShouldWrite::from(true),
                 Some(constants_str::CHECK) => crate::domain_types::ShouldWrite::from(false),

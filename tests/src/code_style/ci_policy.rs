@@ -15,7 +15,7 @@ fn active_workflow_source(source: super::types::SourceTextRef<'_>) -> super::typ
             .lines()
             .map(|line| active_yaml_line(super::types::SourceTextRef::from(line)).get())
             .collect::<Vec<&str>>()
-            .join("\n"),
+            .join(constants_str::NEWLINE),
     )
     .expect("fd9f7861 active_workflow_source invariant must hold")
 }
@@ -101,15 +101,19 @@ fn continuous_integration_uses_the_pinned_workspace_toolchain() {
     let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .expect("01d2b547 continuous_integration_uses_the_pinned_workspace_toolchain invariant must hold");
-    let toolchain_source =
-        std::fs::read_to_string(repository_root.join("rust-toolchain.toml")).expect("f6db9220 continuous_integration_uses_the_pinned_workspace_toolchain invariant must hold");
+    let toolchain_source = std::fs::read_to_string(
+        repository_root.join(constants_str::VALUE_2B1BDE2C),
+    )
+    .expect(
+        "f6db9220 continuous_integration_uses_the_pinned_workspace_toolchain invariant must hold",
+    );
     let parsed_toolchain = toolchain_source.parse::<toml::Table>().expect(
         "874dc8b2 continuous_integration_uses_the_pinned_workspace_toolchain invariant must hold",
     );
     let toolchain = parsed_toolchain
-        .get("toolchain")
+        .get(constants_str::VALUE_0DB3DE82)
         .and_then(toml::Value::as_table)
-        .and_then(|table| table.get("channel"))
+        .and_then(|table| table.get(constants_str::VALUE_69E36568))
         .and_then(toml::Value::as_str)
         .expect("a43da13b continuous_integration_uses_the_pinned_workspace_toolchain invariant must hold");
     let workflow = workflow();
@@ -127,25 +131,25 @@ fn continuous_integration_uses_the_pinned_workspace_toolchain() {
             .contains("uses: ./.github/actions/setup-rust")
     );
     let setup_action = std::fs::read_to_string(
-        repository_root.join(".github/actions/setup-rust/action.yml"),
+        repository_root.join(constants_str::VALUE_D8346474),
     )
     .expect(
         "830b79a6 continuous_integration_uses_the_pinned_workspace_toolchain invariant must hold",
     );
     assert!(setup_action.contains("rustc --version"));
-    let services = std::fs::read_to_string(repository_root.join("deploy/services.toml"))
+    let services = std::fs::read_to_string(repository_root.join(constants_str::VALUE_C1590960))
         .expect("6b2f8d41 continuous_integration_uses_the_pinned_workspace_toolchain invariant must hold")
         .parse::<toml::Table>()
         .expect("1a7c5e93 continuous_integration_uses_the_pinned_workspace_toolchain invariant must hold");
     services
-        .get("service")
+        .get(constants_str::SERVICE)
         .and_then(toml::Value::as_array)
         .expect("9d4e2b60 continuous_integration_uses_the_pinned_workspace_toolchain invariant must hold")
         .iter()
         .for_each(|service| {
             let dockerfile = service
                 .as_table()
-                .and_then(|table| table.get("dockerfile"))
+                .and_then(|table| table.get(constants_str::VALUE_254DB0FB))
                 .and_then(toml::Value::as_str)
                 .expect("3c8a1f72 continuous_integration_uses_the_pinned_workspace_toolchain invariant must hold");
             let source =
@@ -190,7 +194,7 @@ fn workflow_jobs_have_timeouts_and_marketplace_actions_use_commit_shas() {
             current_job_has_timeout = true;
         }
         if let Some(action) = line.trim().strip_prefix(constants_str::USES) {
-            if action.starts_with("./") {
+            if action.starts_with(constants_str::VALUE_C14CECEC) {
                 return;
             }
             let revision = action.rsplit_once('@').map(|(_, revision)| revision);
@@ -210,7 +214,7 @@ fn workflow_jobs_have_timeouts_and_marketplace_actions_use_commit_shas() {
 #[test]
 fn workflow_policy_ignores_commented_commands_and_actions() {
     let source = active_workflow_source(super::types::SourceTextRef::from(
-        "# cargo machete\n# uses: actions/checkout@0123456789012345678901234567890123456789\nname: \"quality # gate\"\nrun: 'printf #active'\njobs:\n  check:\n    # timeout-minutes: 10\n    runs-on: ubuntu-latest\n",
+        constants_str::VALUE_0356E8E3,
     ));
     assert!(!source.as_ref().contains(constants_str::CARGO_MACHETE));
     assert!(!source.as_ref().contains(constants_str::TIMEOUT_MINUTES));

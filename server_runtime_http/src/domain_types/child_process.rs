@@ -348,7 +348,7 @@ mod tests {
             _context: &mut std::task::Context<'_>,
             _buffer: &mut tokio::io::ReadBuf<'_>,
         ) -> std::task::Poll<std::io::Result<()>> {
-            std::task::Poll::Ready(Err(std::io::Error::other("diagnostic failure")))
+            std::task::Poll::Ready(Err(std::io::Error::other(constants_str::VALUE_0DEDD057)))
         }
     }
     fn empty_supervisor() -> super::ChildProcessSupervisor {

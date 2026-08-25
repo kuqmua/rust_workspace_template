@@ -46,7 +46,7 @@ fn bench_sql_select_builder(criterion: &mut criterion::Criterion) {
     reason = "Criterion requires a named benchmark function consumed by its registration macro"
 )]
 fn bench_sql_like_pattern(criterion: &mut criterion::Criterion) {
-    let input = "a%b_c\\d".repeat(32usize);
+    let input = constants_str::VALUE_B62637D6.repeat(32usize);
     let _criterion = criterion.bench_function(
         constants_str::SQL_LIKE_PATTERN_RESERVED_256_BYTES,
         |bencher| {

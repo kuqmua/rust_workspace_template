@@ -14,7 +14,7 @@ fn authenticated_admin_checks_owned_permissions() {
                     .get()
                     .to_owned(),
             )
-            .expect("a43e1b8d authenticated_admin_checks_owned_permissions invariant must hold"),
+            .expect(constants_str::VALUE_785335E9),
         ])
         .expect("bd2806f1 authenticated_admin_checks_owned_permissions invariant must hold"),
         crate::domain_types::AdminRoleNames::try_from(Vec::new())
@@ -40,10 +40,14 @@ fn authenticated_admin_checks_owned_permissions() {
 #[test]
 fn change_own_password_has_no_session_revocation_choice() {
     let request = crate::domain_types::AdminChangeOwnPasswordReq::new(
-        crate::domain_types::AdminPassword::try_from(String::from("Current-password1")).expect(
-            "c10e4db7 change_own_password_has_no_session_revocation_choice invariant must hold",
-        ),
-        crate::domain_types::AdminNewPassword::try_from(String::from("New-password2")).expect(
+        crate::domain_types::AdminPassword::try_from(String::from(constants_str::VALUE_A1AB879D))
+            .expect(
+                "c10e4db7 change_own_password_has_no_session_revocation_choice invariant must hold",
+            ),
+        crate::domain_types::AdminNewPassword::try_from(String::from(
+            constants_str::VALUE_05A7131F,
+        ))
+        .expect(
             "5932a1fe change_own_password_has_no_session_revocation_choice invariant must hold",
         ),
     );
@@ -59,9 +63,7 @@ fn change_own_password_has_no_session_revocation_choice() {
     );
     let Err(_unknown_field_error) = serde_json::from_str::<
         crate::domain_types::AdminChangeOwnPasswordReq,
-    >(
-        r#"{"current_password":"Current-password1","new_password":"New-password2","revoke_other_sessions":false}"#,
-    ) else {
+    >(constants_str::VALUE_4A4AAF28) else {
         panic!("abaa9cdf");
     };
 }

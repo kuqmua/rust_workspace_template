@@ -18,7 +18,7 @@ pub(super) fn admin_filter_value(
         server_admin_contract::domain_types::AdminFilterOperationKey::from(filter.operation())
             .to_string();
     bool::from(filter.requires_value()).then(|| {
-        let value_label = if needs_end { "Start" } else { "Value" };
+        let value_label = if needs_end { constants_str::VALUE_E4BB9F1E } else { constants_str::CODE_STYLE_VALUE };
         let value_placeholder = needs_end.then_some(value_label);
         leptos::prelude::IntoAny::into_any(leptos::view! {
             <singlestage::Label attr:data-name="Label" class="table-filter-input-label flex items-center gap-2 text-sm leading-none font-medium select-none">

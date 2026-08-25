@@ -17,7 +17,7 @@ mod tests {
     {
         fn first_example(schema: &serde_json::Value) -> Option<serde_json::Value> {
             if let Some(example) = schema
-                .get("examples")
+                .get(constants_str::VALUE_C590B3C9)
                 .and_then(serde_json::Value::as_array)
                 .and_then(|examples| examples.first())
             {

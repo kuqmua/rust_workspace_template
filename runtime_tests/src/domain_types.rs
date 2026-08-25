@@ -29,12 +29,15 @@ impl TryFrom<String> for ServiceBaseUrl {
         }
         let parsed = match reqwest::Url::parse(value.as_str()) {
             Ok(parsed) => parsed,
-            Err(_error) if value.starts_with("http://") || value.starts_with("https://") => {
+            Err(_error)
+                if value.starts_with(constants_str::VALUE_8C8DAC95)
+                    || value.starts_with(constants_str::VALUE_66DFEEED) =>
+            {
                 return Err(ServiceBaseUrlError::Host);
             }
             Err(_error) => return Err(ServiceBaseUrlError::Scheme),
         };
-        if parsed.scheme() != "http" && parsed.scheme() != "https" {
+        if parsed.scheme() != constants_str::HTTP && parsed.scheme() != constants_str::HTTPS {
             return Err(ServiceBaseUrlError::Scheme);
         }
         if parsed.host().is_none() {
@@ -88,11 +91,11 @@ pub enum RuntimeTestKind {
 impl std::fmt::Display for RuntimeTestKind {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(match self {
-            Self::ApplicationLiveness => "application liveness",
-            Self::ApplicationReadiness => "application readiness",
-            Self::NotificationCreation => "notification creation",
-            Self::NotificationServiceLiveness => "notification service liveness",
-            Self::NotificationServiceReadiness => "notification service readiness",
+            Self::ApplicationLiveness => constants_str::VALUE_2AE6635F,
+            Self::ApplicationReadiness => constants_str::VALUE_27B02AA0,
+            Self::NotificationCreation => constants_str::VALUE_D1712BA9,
+            Self::NotificationServiceLiveness => constants_str::VALUE_FA6BAA20,
+            Self::NotificationServiceReadiness => constants_str::VALUE_7595852C,
         })
     }
 }
@@ -260,7 +263,7 @@ pub enum RuntimeTestError {
 mod tests {
     #[test]
     fn service_base_url_normalizes_trailing_slashes() {
-        let base_url = super::ServiceBaseUrl::try_from(String::from("http://127.0.0.1:8080///"))
+        let base_url = super::ServiceBaseUrl::try_from(String::from(constants_str::VALUE_88B6A990))
             .expect("087da3f2 service_base_url_normalizes_trailing_slashes invariant must hold");
         assert_eq!(base_url.as_ref(), "http://127.0.0.1:8080");
     }

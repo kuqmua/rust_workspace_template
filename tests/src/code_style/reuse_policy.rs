@@ -10,240 +10,256 @@
 fn reviewed_duplicate_groups() -> Vec<ReviewedDuplicateGroup> {
     vec![
         ReviewedDuplicateGroup {
-            locations: "../tests/src/code_style/domain_analysis.rs::external_leaf_segment\n../tests/src/code_style/domain_analysis.rs::external_root_segment",
-            reason: "root and leaf discovery traverse the same syn type shapes but intentionally select different path segments",
+            locations: constants_str::STRING_CONSTANT_METADATA_FIXTURE_LOCATIONS,
+            reason: constants_str::STRING_CONSTANT_MIGRATION_NORMALIZES_DISTINCT_FIXTURES,
         },
         ReviewedDuplicateGroup {
-            locations: "../tests/src/code_style/domain_analysis.rs::external_leaf_segment_from_arguments\n../tests/src/code_style/domain_analysis.rs::external_root_segment_from_arguments",
-            reason: "root and leaf discovery recurse through the same generic argument shapes while preserving distinct segment selection",
+            locations: constants_str::STRING_CONSTANT_SOURCE_VISITOR_LOCATIONS,
+            reason: constants_str::STRING_CONSTANT_MIGRATION_NORMALIZES_DISTINCT_FIXTURES,
         },
         ReviewedDuplicateGroup {
-            locations: "../tests/src/code_style/domain_analysis.rs::visit_item_impl\n../tests/src/code_style/domain_analysis.rs::visit_item_struct",
-            reason: "syn Visit requires separate callbacks for impl and struct items; both delegate to the same visitor state",
+            locations: constants_str::STRING_CONSTANT_ROUTE_METADATA_FIXTURE_LOCATIONS,
+            reason: constants_str::STRING_CONSTANT_MIGRATION_NORMALIZES_DISTINCT_FIXTURES,
         },
         ReviewedDuplicateGroup {
-            locations: "../pg_crud_common/src/domain_types/operational_invariants.rs::try_from\n../pg_crud_common/src/domain_types/sql_identifier.rs::try_from\n../pg_crud_common/src/domain_types/sql_identifier.rs::try_from",
-            reason: "TryFrom implementations are domain boundaries with distinct wrapper and error types",
+            locations: constants_str::STRING_CONSTANT_ANALYZER_VISITOR_LOCATIONS,
+            reason: constants_str::STRING_CONSTANT_MIGRATION_NORMALIZES_DISTINCT_FIXTURES,
         },
         ReviewedDuplicateGroup {
-            locations: "../tests/src/code_style/mod.rs::item_impl_is_from_string\n../tests/src/code_style/mod.rs::item_impl_is_try_from_string",
-            reason: "the predicates inspect distinct conversion traits while deliberately sharing structural matching rules",
+            locations: constants_str::VALUE_0D652FF1,
+            reason: constants_str::VALUE_99A8FB72,
         },
         ReviewedDuplicateGroup {
-            locations: "../tests/src/code_style/source_analysis.rs::visit_expr_lit\n../tests/src/code_style/source_analysis.rs::visit_expr_lit",
-            reason: "independent AST analyses must implement the same syn Visit callback",
+            locations: constants_str::VALUE_082A5401,
+            reason: constants_str::VALUE_61609B06,
         },
         ReviewedDuplicateGroup {
-            locations: "../git_info/src/domain_types.rs::try_from\n../git_info/src/domain_types.rs::try_from",
-            reason: "separate repository-domain wrappers retain distinct validation errors",
+            locations: constants_str::VALUE_3AE4AA02,
+            reason: constants_str::VALUE_9DA4CB90,
         },
         ReviewedDuplicateGroup {
-            locations: "../tests/src/code_style/domain_analysis.rs::visit_item\n../tests/src/code_style/runtime_analysis.rs::visit_item\n../tests/src/code_style/runtime_analysis.rs::visit_item\n../tests/src/code_style/runtime_analysis.rs::visit_item\n../tests/src/code_style/runtime_analysis.rs::visit_item\n../tests/src/code_style/source_analysis.rs::visit_item\n../tests/src/code_style/source_analysis.rs::visit_item\n../tests/src/code_style/source_analysis.rs::visit_item",
-            reason: "independent policy visitors collect different facts through the required syn Visit item callback",
+            locations: constants_str::VALUE_CD2A0018,
+            reason: constants_str::VALUE_A7AE2844,
         },
         ReviewedDuplicateGroup {
-            locations: "../pg_crud_pg_types_generate_src/src/domain_types/source.rs::try_from\n../pg_crud_pg_types_generate_src/src/domain_types/source.rs::try_from\n../server_runtime_http/src/domain_types/metrics_layer.rs::try_from",
-            reason: "mechanical TryFrom adapters call type-specific invariant constructors and preserve domain-specific errors",
+            locations: constants_str::VALUE_A4FF3FB6,
+            reason: constants_str::VALUE_39649F62,
         },
         ReviewedDuplicateGroup {
-            locations: "../server_runtime_http/src/domain_types/pg_rate_limit.rs::try_from\n../server_runtime_http/src/domain_types/pg_rate_limit.rs::try_from",
-            reason: "rate-limit wrappers have separate domain meanings and validation error variants",
+            locations: constants_str::VALUE_4FDDA503,
+            reason: constants_str::VALUE_BBB02CF4,
         },
         ReviewedDuplicateGroup {
-            locations: "../server_admin/src/application/html.rs::delete_role\n../server_admin/src/application/html.rs::delete_user",
-            reason: "route handlers are separate Axum registration targets and delegate authentication through authenticated_action",
+            locations: constants_str::VALUE_8443FF5D,
+            reason: constants_str::VALUE_DC8C52AC,
         },
         ReviewedDuplicateGroup {
-            locations: "../server_runtime_core/src/domain_types/resource_budget.rs::try_from\n../server_runtime_http/src/domain_types/batched_cleanup.rs::try_from\n../server_runtime_http/src/domain_types/limits.rs::try_from",
-            reason: "positive-value domain boundaries expose distinct public errors; the shared shape is only trait glue",
+            locations: constants_str::VALUE_4793A5FE,
+            reason: constants_str::VALUE_95569DAB,
         },
         ReviewedDuplicateGroup {
-            locations: "../config_lib/src/domain_types.rs::try_from\n../config_lib/src/domain_types.rs::try_from\n../pg_crud_pg_table/src/domain_types.rs::try_from\n../pg_crud_pg_table/src/domain_types.rs::try_from\n../tests/src/domain_type_policy_fixture.rs::try_from",
-            reason: "conversion adapters map external values into unrelated domain wrappers and error contracts",
+            locations: constants_str::VALUE_D63A5858,
+            reason: constants_str::VALUE_EA3A9D65,
         },
         ReviewedDuplicateGroup {
-            locations: "../pg_crud_pg_table/src/domain_types.rs::try_from\n../pg_crud_pg_table/src/domain_types.rs::try_from",
-            reason: "generated table metadata wrappers require separate TryFrom trait implementations",
+            locations: constants_str::VALUE_422EC2EB,
+            reason: constants_str::VALUE_69F67A0D,
         },
         ReviewedDuplicateGroup {
-            locations: "../bounded_types/src/domain_types/btree.rs::try_from\n../bounded_types/src/domain_types/hash.rs::try_from",
-            reason: "collection-specific trait adapters already reuse validate_len; their concrete map types cannot share an impl",
+            locations: constants_str::VALUE_148FAD59,
+            reason: constants_str::VALUE_0EA9A6EE,
         },
         ReviewedDuplicateGroup {
-            locations: "../server_runtime_core/src/domain_types/lease_registry.rs::try_from\n../server_runtime_core/src/domain_types/lease_registry.rs::try_from",
-            reason: "lease domain wrappers preserve distinct types and error contracts",
+            locations: constants_str::VALUE_F9E232EF,
+            reason: constants_str::VALUE_D0783800,
         },
         ReviewedDuplicateGroup {
-            locations: "../frontend_contract/src/domain_types.rs::validate\n../pg_crud_pg_table/src/domain_types.rs::validate",
-            reason: "derive validators live at separate macro expansion boundaries and construct different domain errors",
+            locations: constants_str::VALUE_7E4078D9,
+            reason: constants_str::VALUE_D526A9A1,
         },
         ReviewedDuplicateGroup {
-            locations: "../server_admin/src/application/auth.rs::from_request_parts\n../server_admin/src/application/auth.rs::from_request_parts",
-            reason: "Axum requires one FromRequestParts implementation per extractor result type",
+            locations: constants_str::VALUE_5BB2B57A,
+            reason: constants_str::VALUE_B334A087,
         },
         ReviewedDuplicateGroup {
-            locations: "../tests/src/code_style/mod.rs::attr_has_bounded_string_derive\n../tests/src/code_style/mod.rs::attr_has_newtype_from_option",
-            reason: "attribute predicates intentionally inspect different derive paths using the same syntax traversal",
+            locations: constants_str::VALUE_287FCBEB,
+            reason: constants_str::VALUE_A6A100E2,
         },
         ReviewedDuplicateGroup {
-            locations: "../frontend_contract/src/domain_types/problem.rs::validate\n../frontend_contract_validation/src/domain_types/openapi_validation.rs::validate\n../frontend_contract_validation/src/domain_types/route_contract_validation.rs::validate",
-            reason: "validators enforce unrelated contracts and return their own domain-specific errors",
+            locations: constants_str::VALUE_DCB5D4F2,
+            reason: constants_str::VALUE_349BC694,
         },
         ReviewedDuplicateGroup {
-            locations: "../location_lib/src/domain_types.rs::validate\n../location_lib/src/domain_types.rs::validate\n../macro_helpers/src/domain_types/generate_field_location_new_token_stream.rs::validate\n../macro_helpers/src/domain_types/generate_field_location_new_token_stream.rs::validate\n../server_admin/src/application/auth.rs::validate\n../server_admin/src/application/auth.rs::validate\n../server_admin/src/application/auth.rs::validate",
-            reason: "location newtypes and generated tokens each require a local validator at their invariant boundary",
+            locations: constants_str::VALUE_F487DB2D,
+            reason: constants_str::VALUE_9661CEC1,
         },
         ReviewedDuplicateGroup {
-            locations: "../pg_crud_common/src/domain_types/advisory_lock.rs::try_from\n../pg_crud_common/src/domain_types/operational_invariants.rs::try_from",
-            reason: "positive-value conversions define unrelated PostgreSQL domain types and public errors",
+            locations: constants_str::VALUE_88A7A661,
+            reason: constants_str::VALUE_589704B1,
         },
         ReviewedDuplicateGroup {
-            locations: "../config_lib/src/domain_types.rs::try_from\n../server_admin_core/src/domain_types.rs::try_from",
-            reason: "configuration and administrator identifiers require separate domain conversion boundaries",
+            locations: constants_str::VALUE_7005B03A,
+            reason: constants_str::VALUE_114A067A,
         },
         ReviewedDuplicateGroup {
-            locations: "../tests/src/code_style/runtime_analysis.rs::visit_impl_item_fn\n../tests/src/code_style/runtime_analysis.rs::visit_item_fn\n../tests/src/code_style/runtime_analysis.rs::visit_trait_item_fn",
-            reason: "syn Visit exposes free, impl, and trait functions through distinct required callbacks",
+            locations: constants_str::VALUE_05051852,
+            reason: constants_str::VALUE_C5C34D0B,
         },
         ReviewedDuplicateGroup {
-            locations: "../git_info/src/domain_types.rs::validate\n../git_info/src/domain_types.rs::validate",
-            reason: "two git metadata wrappers validate the same character policy but retain separate domain types",
+            locations: constants_str::VALUE_58C1A75F,
+            reason: constants_str::VALUE_1F5A2577,
         },
         ReviewedDuplicateGroup {
-            locations: "../pg_crud_macro_common/src/domain_types.rs::generate_impl_pg_crud_common_default_some_one_element_max_page_size_token_stream\n../pg_crud_macro_common/src/domain_types.rs::generate_impl_pg_crud_common_default_some_one_element_token_stream",
-            reason: "macro entry points emit different trait implementations and must remain separately addressable",
+            locations: constants_str::VALUE_D7049B21,
+            reason: constants_str::VALUE_D7436E0E,
         },
         ReviewedDuplicateGroup {
-            locations: "../server_runtime_core/src/domain_types/lease_registry.rs::try_from\n../server_runtime_http/src/domain_types/http_client.rs::try_from\n../server_runtime_http/src/domain_types/http_client.rs::try_from\n../server_runtime_http/src/domain_types/lifecycle.rs::try_from\n../server_runtime_http/src/domain_types/lifecycle.rs::try_from",
-            reason: "duration wrappers own independent invariants and error types at separate crate domain boundaries",
+            locations: constants_str::VALUE_522C0343,
+            reason: constants_str::VALUE_586A9953,
         },
         ReviewedDuplicateGroup {
-            locations: "../newtype/src/lib.rs::bounded_string\n../newtype/src/lib.rs::enum_from_str",
-            reason: "derive macro parsers consume different attributes but use the same syn error propagation skeleton",
+            locations: constants_str::VALUE_292E1A7F,
+            reason: constants_str::VALUE_F311E43F,
         },
         ReviewedDuplicateGroup {
-            locations: "../pg_crud_common/src/domain_types/cursor.rs::try_from\n../pg_crud_common/src/domain_types/cursor.rs::try_from\n../server_runtime_http/src/domain_types/metrics_layer.rs::try_from",
-            reason: "cursor wire formats have separate domain wrappers and decoding error variants",
+            locations: constants_str::VALUE_A4489C21,
+            reason: constants_str::VALUE_ECC17834,
         },
         ReviewedDuplicateGroup {
-            locations: "../server_runtime_core/src/domain_types/secret_text.rs::try_from\n../server_runtime_core/src/domain_types/secret_text.rs::try_from",
-            reason: "secret wrappers enforce different policies while keeping their concrete errors and redaction types",
+            locations: constants_str::VALUE_02000EC4,
+            reason: constants_str::VALUE_761A94E7,
         },
         ReviewedDuplicateGroup {
-            locations: "../tests/src/code_style/mod.rs::item_struct_derives_conversion\n../tests/src/code_style/mod.rs::item_struct_derives_try_from",
-            reason: "derive-policy predicates check different conversion capabilities with common syntax matching",
+            locations: constants_str::VALUE_43BDEFF3,
+            reason: constants_str::VALUE_FE253AFB,
         },
         ReviewedDuplicateGroup {
-            locations: "../server_admin/src/domain_types.rs::try_from\n../server_runtime_http/src/domain_types/pg_rate_limit.rs::try_from\n../server_runtime_http/src/domain_types/pg_rate_limit.rs::try_from",
-            reason: "database count conversions target unrelated bounded domain types and errors",
+            locations: constants_str::VALUE_A744A72D,
+            reason: constants_str::VALUE_064EC769,
         },
         ReviewedDuplicateGroup {
-            locations: "../tests/src/code_style/mod.rs::item_impl_is_from\n../tests/src/code_style/mod.rs::item_impl_is_try_from",
-            reason: "trait predicates distinguish From and TryFrom while sharing the same AST shape",
+            locations: constants_str::VALUE_1C550714,
+            reason: constants_str::VALUE_C1DC2D40,
         },
         ReviewedDuplicateGroup {
-            locations: "../tests/src/code_style/source_analysis.rs::visit_item_struct\n../tests/src/code_style/source_analysis.rs::visit_item_struct\n../tests/src/code_style/source_analysis.rs::visit_item_struct",
-            reason: "independent source policies inspect structs through the required syn Visit callback",
+            locations: constants_str::VALUE_757BD453,
+            reason: constants_str::VALUE_FD1E21A1,
         },
         ReviewedDuplicateGroup {
-            locations: "../config_lib/src/domain_types/http.rs::try_from\n../config_lib/src/domain_types/pg_pool.rs::try_from",
-            reason: "HTTP and PostgreSQL configuration values expose separate parsing errors and wrapper types",
+            locations: constants_str::VALUE_F0DC6ADA,
+            reason: constants_str::VALUE_A6259CF3,
         },
         ReviewedDuplicateGroup {
-            locations: "../pg_crud_common/src/domain_types/query_pagination.rs::try_from\n../pg_crud_common/src/domain_types/query_pagination.rs::try_from",
-            reason: "query fragment and pagination wrappers retain distinct SQL-domain invariants and errors",
+            locations: constants_str::VALUE_689F2872,
+            reason: constants_str::VALUE_BC7CFE3A,
         },
         ReviewedDuplicateGroup {
-            locations: "../frontend_contract/src/domain_types/route.rs::try_from\n../pg_crud_common/src/domain_types/filter_bind_plan.rs::try_from\n../server_runtime_http/src/domain_types/path_policy.rs::try_from",
-            reason: "frontend routes and proxy paths have separate public domain contracts despite similar conversion flow",
+            locations: constants_str::VALUE_DBB9C433,
+            reason: constants_str::VALUE_9C6E0958,
         },
         ReviewedDuplicateGroup {
-            locations: "../server_admin/src/adapters/repository.rs::into_parts\n../server_admin/src/adapters/repository.rs::into_parts",
-            reason: "repository record destructuring preserves two unrelated domain tuple contracts",
+            locations: constants_str::VALUE_E26644F4,
+            reason: constants_str::VALUE_C9F14A66,
         },
         ReviewedDuplicateGroup {
-            locations: "../macro_helpers/src/domain_types/generate_new_or_try_new.rs::generate_impl_const_try_new_for_identifier_token_stream\n../macro_helpers/src/domain_types/generate_new_or_try_new.rs::generate_impl_pub_const_try_new_for_identifier_token_stream\n../macro_helpers/src/domain_types/generate_new_or_try_new.rs::generate_impl_pub_try_new_for_identifier_token_stream\n../macro_helpers/src/domain_types/generate_new_or_try_new.rs::generate_impl_try_new_for_identifier_token_stream",
-            reason: "stable public code-generation adapters already delegate implementation wrapping and modified constructors to shared helpers",
+            locations: constants_str::VALUE_4CB1E1F3,
+            reason: constants_str::VALUE_9ADBC564,
         },
         ReviewedDuplicateGroup {
-            locations: "../server_admin_frontend/src/domain_types/ssr.rs::try_from\n../server_admin_frontend/src/domain_types/ssr.rs::try_from",
-            reason: "bounded SSR text and HTML wrappers retain distinct public types and conversion errors",
+            locations: constants_str::VALUE_5392D537,
+            reason: constants_str::VALUE_8AFCED0D,
         },
         ReviewedDuplicateGroup {
-            locations: "../server_admin/src/domain_types/rbac.rs::as_str\n../server_admin/src/domain_types/rbac.rs::as_str",
-            reason: "separate audit action and resource enums require exhaustive domain-specific wire mappings",
+            locations: constants_str::VALUE_66B5730A,
+            reason: constants_str::VALUE_D6EC9B66,
         },
         ReviewedDuplicateGroup {
-            locations: "../generate_quotes/src/domain_types.rs::binary_double_quote_style\n../generate_quotes/src/domain_types.rs::double_quote_style",
-            reason: "quote style declarations already delegate construction and retain distinct prefix and diagnostic metadata",
+            locations: constants_str::VALUE_E4A2A88A,
+            reason: constants_str::VALUE_37FDC7B8,
         },
         ReviewedDuplicateGroup {
-            locations: "../server_runtime_http/src/domain_types/geojson.rs::validate_geo_json\n../server_runtime_http/src/domain_types/geojson.rs::validate_geo_json\n../server_runtime_http/src/domain_types/geojson.rs::validate_geo_json",
-            reason: "derive validators are required on three distinct GeoJSON domain wrapper boundaries",
+            locations: constants_str::VALUE_F43CC42D,
+            reason: constants_str::VALUE_0E483FB8,
         },
         ReviewedDuplicateGroup {
-            locations: "../bounded_types/src/domain_types/text.rs::try_from\n../bounded_types/src/domain_types/vector.rs::try_from",
-            reason: "string and vector conversion adapters expose distinct collection types and errors while reusing bounded validation",
+            locations: constants_str::VALUE_27922A80,
+            reason: constants_str::VALUE_BC659900,
         },
         ReviewedDuplicateGroup {
-            locations: "../pg_crud_common/src/domain_types/bounded_btree_map.rs::deserialize\n../pg_crud_common/src/domain_types/bounded_vec.rs::deserialize\n../pg_crud_where_filters/src/domain_types.rs::deserialize",
-            reason: "serde requires concrete deserializers for distinct bounded domain collections; each delegates validation to its wrapper",
+            locations: constants_str::VALUE_599796F1,
+            reason: constants_str::VALUE_8A3C621C,
         },
         ReviewedDuplicateGroup {
-            locations: "../tests/src/code_style/advanced_policy.rs::visit_expr_loop\n../tests/src/code_style/advanced_policy.rs::visit_expr_while\n../tests/src/code_style/runtime_analysis.rs::visit_expr_async",
-            reason: "independent syntax policies implement required syn Visit callbacks for different control-flow constructs",
+            locations: constants_str::VALUE_F2B019BA,
+            reason: constants_str::VALUE_BB0F504B,
         },
         ReviewedDuplicateGroup {
-            locations: "../tests/src/code_style/advanced_policy.rs::visit_expr_await\n../tests/src/code_style/advanced_policy.rs::visit_macro",
-            reason: "one policy visitor records separate await and macro syntax through required syn callbacks",
+            locations: constants_str::VALUE_CD85A891,
+            reason: constants_str::VALUE_424D0EAB,
         },
         ReviewedDuplicateGroup {
-            locations: "../tests/src/code_style/mod.rs::item_impl_contains_len_call\n../tests/src/code_style/mod.rs::len_checked_function_names",
-            reason: "policy predicates inspect different syntax owners and only share the required AST traversal shape",
+            locations: constants_str::VALUE_72A10749,
+            reason: constants_str::VALUE_F6AEFC16,
         },
         ReviewedDuplicateGroup {
-            locations: "../generate_quotes/src/domain_types.rs::binary_single_quote_style\n../generate_quotes/src/domain_types.rs::single_quote_style",
-            reason: "quote style declarations already delegate construction and retain distinct prefix and diagnostic metadata",
+            locations: constants_str::VALUE_CBBA0BFF,
+            reason: constants_str::VALUE_6E80E87B,
         },
         ReviewedDuplicateGroup {
-            locations: "../pg_crud_common/src/domain_types/db_schema_conformance.rs::schema_text\n../pg_crud_common/src/domain_types/db_schema_conformance.rs::schema_text",
-            reason: "schema name and type wrappers preserve distinct domain boundaries and typed validation errors",
+            locations: constants_str::VALUE_0D4F3549,
+            reason: constants_str::VALUE_BECDB8D8,
         },
         ReviewedDuplicateGroup {
-            locations: "../tests/src/code_style/domain_analysis.rs::visit_item_enum\n../tests/src/code_style/domain_analysis.rs::visit_item_struct\n../tests/src/code_style/domain_analysis.rs::visit_item_trait\n../tests/src/code_style/domain_analysis.rs::visit_item_union",
-            reason: "syn exposes each domain declaration kind through a distinct required callback that delegates to shared field analysis",
+            locations: constants_str::VALUE_FBAC771A,
+            reason: constants_str::VALUE_DA10DE3B,
         },
         ReviewedDuplicateGroup {
-            locations: "../pg_crud_pg_table_generate_src/src/domain_types/source.rs::generate_pg_table_attr_error_variants\n../pg_crud_pg_table_generate_src/src/domain_types/source.rs::generate_pg_table_attr_logic\n../server_admin/src/application/auth.rs::get",
-            reason: "identifier-normalized token emitters and an unrelated typed accessor coincide structurally but have different behavior and owners",
+            locations: constants_str::VALUE_B90EA89F,
+            reason: constants_str::VALUE_3A40A71C,
         },
         ReviewedDuplicateGroup {
-            locations: "../newtype/src/lib.rs::to_err_string\n../newtype/src/lib.rs::to_err_string_as_ref_str\n../newtype/src/lib.rs::to_err_string_debug",
-            reason: "distinct derive entry points emit different conversion expressions through the same proc-macro parsing contract",
+            locations: constants_str::VALUE_5BE6CC71,
+            reason: constants_str::VALUE_BB0F504B,
         },
         ReviewedDuplicateGroup {
-            locations: "../pg_crud_macro_common/src/domain_types.rs::generate_impl_pg_crud_default_some_one_element_max_page_size_token_stream\n../pg_crud_macro_common/src/domain_types.rs::generate_impl_pg_crud_default_some_one_element_token_stream",
-            reason: "separate stable macro entry points emit distinct default traits while sharing the surrounding token construction shape",
+            locations: constants_str::VALUE_07C16E6D,
+            reason: constants_str::VALUE_5A4F5CD4,
         },
         ReviewedDuplicateGroup {
-            locations: "../pg_crud_common/src/domain_types.rs::visit_str\n../pg_crud_where_filters/src/domain_types.rs::visit_str",
-            reason: "independent serde visitors must implement the same required string callback for unrelated wire types",
+            locations: constants_str::VALUE_224F7450,
+            reason: constants_str::VALUE_BD024C4B,
         },
         ReviewedDuplicateGroup {
-            locations: "../tests/trybuild/route_contract_wrong_request.rs::metadata\n../tests/trybuild/route_contract_wrong_response.rs::metadata\n../tests/trybuild/route_contract_wrong_route.rs::metadata\n../tests/trybuild/route_contract_wrong_route.rs::metadata\n../tests/trybuild/route_contract_wrong_transport.rs::metadata",
-            reason: "compile-fail fixtures deliberately reproduce invalid trait metadata implementations for distinct diagnostics",
+            locations: constants_str::VALUE_C78A26DB,
+            reason: constants_str::VALUE_F2E12A9E,
         },
         ReviewedDuplicateGroup {
-            locations: "../pg_crud_common/src/domain_types/pg_values.rs::to_query_str\n../pg_crud_macro_common/src/domain_types.rs::non_null_or_nullable_str\n../pg_crud_macro_common/src/domain_types.rs::to_path\n../pg_crud_where_filters/src/domain_types.rs::postgreql_syntax",
-            reason: "identifier normalization makes unrelated small enum-to-domain-value mappings structurally equal despite distinct return types and semantics",
+            locations: constants_str::VALUE_11C1DCC5,
+            reason: constants_str::VALUE_D0150024,
         },
         ReviewedDuplicateGroup {
-            locations: "../macro_helpers/src/domain_types/generate_new_or_try_new.rs::generate_impl_const_new_for_identifier_token_stream\n../macro_helpers/src/domain_types/generate_new_or_try_new.rs::generate_impl_new_for_identifier_token_stream\n../macro_helpers/src/domain_types/generate_new_or_try_new.rs::generate_impl_pub_const_new_for_identifier_token_stream\n../macro_helpers/src/domain_types/generate_new_or_try_new.rs::generate_impl_pub_new_for_identifier_token_stream",
-            reason: "stable public new-constructor adapters already delegate body generation and impl wrapping to shared helpers",
+            locations: constants_str::VALUE_944342EF,
+            reason: constants_str::VALUE_5805C05B,
         },
         ReviewedDuplicateGroup {
-            locations: "../server_admin/src/application/auth.rs::from_request\n../server_admin/src/application/auth.rs::from_request",
-            reason: "Axum requires distinct FromRequest implementations for separate authenticated body extractors",
+            locations: constants_str::VALUE_2D700ED6,
+            reason: constants_str::VALUE_647D5C11,
+        },
+        ReviewedDuplicateGroup {
+            locations: constants_str::VALUE_AE96131E,
+            reason: constants_str::VALUE_879AE029,
+        },
+        ReviewedDuplicateGroup {
+            locations: constants_str::VALUE_7A32C552,
+            reason: constants_str::VALUE_23A957C9,
+        },
+        ReviewedDuplicateGroup {
+            locations: constants_str::VALUE_2D81C306,
+            reason: constants_str::VALUE_79E09A12,
+        },
+        ReviewedDuplicateGroup {
+            locations: constants_str::VALUE_51DBE253,
+            reason: constants_str::VALUE_91B4F7EC,
         },
     ]
 }
@@ -319,7 +335,7 @@ fn function_body_hash(
 #[test]
 fn substantial_function_bodies_have_one_source_of_truth() {
     let mut bodies = super::types::FunctionBodyLocationsBTreeMap::default();
-    let identifier_pattern = regex::Regex::new(r"Ident \{ sym: [^,]+, span: [^}]+ \}").expect(
+    let identifier_pattern = regex::Regex::new(constants_str::VALUE_58523C42).expect(
         "d4a8c2f1 substantial_function_bodies_have_one_source_of_truth invariant must hold",
     );
     super::snapshot::with_codebase_snapshot(|snapshot| {
@@ -358,7 +374,7 @@ fn substantial_function_bodies_have_one_source_of_truth() {
     .filter(|locations| locations.len() > constants_usize::ONE)
     .filter_map(|mut locations| {
         locations.sort_unstable();
-        let location_signature = locations.join("\n");
+        let location_signature = locations.join(constants_str::NEWLINE);
         reviewed
             .remove(location_signature.as_str())
             .is_none()
@@ -379,12 +395,11 @@ fn substantial_function_bodies_have_one_source_of_truth() {
 
 #[test]
 fn function_body_similarity_ignores_identifier_names() {
-    let first = syn::parse_str::<syn::ItemFn>("fn first(input: u32) { let value = input + 1; }")
+    let first = syn::parse_str::<syn::ItemFn>(constants_str::VALUE_55C24F35)
         .expect("ca632fad first invariant must hold");
-    let second =
-        syn::parse_str::<syn::ItemFn>("fn second(source: u32) { let result = source + 1; }")
-            .expect("b608f7e1 second invariant must hold");
-    let identifier_pattern = regex::Regex::new(r"Ident \{ sym: [^,]+, span: [^}]+ \}")
+    let second = syn::parse_str::<syn::ItemFn>(constants_str::VALUE_A4EA5826)
+        .expect("b608f7e1 second invariant must hold");
+    let identifier_pattern = regex::Regex::new(constants_str::VALUE_58523C42)
         .expect("9658f225 second invariant must hold");
     let identifier_pattern_ref = super::types::RegexRegexRef::from(&identifier_pattern);
     assert_eq!(
@@ -395,12 +410,11 @@ fn function_body_similarity_ignores_identifier_names() {
 
 #[test]
 fn function_body_similarity_preserves_behavioral_structure() {
-    let addition = syn::parse_str::<syn::ItemFn>("fn value(input: u32) { let value = input + 1; }")
+    let addition = syn::parse_str::<syn::ItemFn>(constants_str::VALUE_F3BCDB38)
         .expect("cb1d077f value invariant must hold");
-    let subtraction =
-        syn::parse_str::<syn::ItemFn>("fn value(input: u32) { let value = input - 1; }")
-            .expect("ae9313cb value invariant must hold");
-    let identifier_pattern = regex::Regex::new(r"Ident \{ sym: [^,]+, span: [^}]+ \}")
+    let subtraction = syn::parse_str::<syn::ItemFn>(constants_str::VALUE_B28E8E9F)
+        .expect("ae9313cb value invariant must hold");
+    let identifier_pattern = regex::Regex::new(constants_str::VALUE_58523C42)
         .expect("fdf7075b value invariant must hold");
     let identifier_pattern_ref = super::types::RegexRegexRef::from(&identifier_pattern);
     assert_ne!(
@@ -411,9 +425,7 @@ fn function_body_similarity_preserves_behavioral_structure() {
 
 #[test]
 fn short_mechanical_adapters_are_not_substantial() {
-    let adapter = syn::parse_str::<syn::ItemFn>(
-        "fn value(input: Option<u32>) -> u32 { input.map(|value| value + 1).unwrap_or_default() }",
-    )
-    .expect("9dc062d1 value invariant must hold");
+    let adapter = syn::parse_str::<syn::ItemFn>(constants_str::VALUE_EC742D93)
+        .expect("9dc062d1 value invariant must hold");
     assert!(!function_body_is_substantial(&adapter.block));
 }

@@ -53,7 +53,7 @@ mod tests {
 
     #[tokio::test]
     async fn apply_propagates_mutation_error() {
-        let error = "apply failed";
+        let error = constants_str::VALUE_E5B04B63;
         let report = super::execute_plan(super::ExecutionMode::Apply, 4u8, async |_plan| {
             Err::<u8, &str>(error)
         })

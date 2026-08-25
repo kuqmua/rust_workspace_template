@@ -622,7 +622,7 @@ pub(crate) fn synchronize_deployment_projections(
     root: ScaffoldPathRef<'_>,
     write_changes: ShouldWrite,
 ) -> Result<(), ScaffoldError> {
-    let catalog_path = root.0.join("deploy/services.toml");
+    let catalog_path = root.0.join(constants_str::VALUE_C1590960);
     let catalog = crate::adapters::template_fs::read_bounded_text(ScaffoldPathRef::from(
         catalog_path.as_path(),
     ))?;
@@ -630,19 +630,19 @@ pub(crate) fn synchronize_deployment_projections(
     let entries_ref = ServiceCatalogEntriesRef::from(entries.0.as_slice());
     let ci = service_catalog::render_ci_matrix(entries_ref);
     let release = service_catalog::render_release_matrix(entries_ref);
-    let ci_path = root.0.join(".github/workflows/ci.yml");
+    let ci_path = root.0.join(constants_str::CODE_STYLE_CI_WORKFLOW_PATH);
     synchronize_generated_file(
         ScaffoldPathRef::from(ci_path.as_path()),
-        ScaffoldTextRef::from("          # BEGIN GENERATED SERVICE MATRIX\n"),
-        ScaffoldTextRef::from("          # END GENERATED SERVICE MATRIX\n"),
+        ScaffoldTextRef::from(constants_str::VALUE_48916059),
+        ScaffoldTextRef::from(constants_str::VALUE_37E65562),
         ScaffoldTextRef::from(ci.as_ref()),
         write_changes,
     )?;
-    let release_path = root.0.join(".github/workflows/release.yml");
+    let release_path = root.0.join(constants_str::VALUE_87DB21A9);
     synchronize_generated_file(
         ScaffoldPathRef::from(release_path.as_path()),
-        ScaffoldTextRef::from("          # BEGIN GENERATED RELEASE MATRIX\n"),
-        ScaffoldTextRef::from("          # END GENERATED RELEASE MATRIX\n"),
+        ScaffoldTextRef::from(constants_str::VALUE_BF61857A),
+        ScaffoldTextRef::from(constants_str::VALUE_1BC591D5),
         ScaffoldTextRef::from(release.as_ref()),
         write_changes,
     )?;
@@ -665,8 +665,8 @@ fn synchronize_code_style_snapshots(
             &[
                 constants_str::TEST_ALT_3,
                 constants_str::P,
-                "tests",
-                "code_style",
+                constants_str::TESTS_ALT,
+                constants_str::CODE_STYLE,
             ][..],
         ),
         UpdateEnvName::from(constants_str::UPDATE_CODE_STYLE_SNAPSHOTS),
@@ -711,10 +711,10 @@ fn synchronize_config_projections(
             &[
                 constants_str::TEST_ALT_3,
                 constants_str::P,
-                "server_config",
+                constants_str::VALUE_B2F5A0ED,
                 constants_str::P,
-                "notification_service_config",
-                "--tests",
+                constants_str::VALUE_8B9F9090,
+                constants_str::VALUE_B43DA2C2,
             ][..],
         ),
         UpdateEnvName::from(constants_str::UPDATE_CONFIG_PROJECTIONS),
@@ -880,7 +880,10 @@ pub(crate) fn scaffold_service(
         ),
     )?;
 
-    let config_example_path = root.0.join(config.as_str()).join(".env.example");
+    let config_example_path = root
+        .0
+        .join(config.as_str())
+        .join(constants_str::ENV_EXAMPLE);
     let config_example = crate::adapters::template_fs::read_bounded_text(ScaffoldPathRef::from(
         config_example_path.as_path(),
     ))?;

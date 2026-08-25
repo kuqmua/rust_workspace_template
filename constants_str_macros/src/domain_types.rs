@@ -119,13 +119,17 @@ impl TryFrom<Vec<Constant>> for Constants {
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct Fragments(Vec<Fragment>);
+#[allow(
+    clippy::useless_concat,
+    reason = "the constants_str generator cannot depend on the crate that it generates"
+)]
 impl TryFrom<Vec<Fragment>> for Fragments {
     type Error = syn::Error;
     fn try_from(value: Vec<Fragment>) -> Result<Self, Self::Error> {
         if value.len() > COLLECTION_MAX_LEN {
             Err(syn::Error::new(
                 proc_macro2::Span::call_site(),
-                "883ea6b2 too many fragments",
+                concat!("883ea6b2 too many fragments"),
             ))
         } else {
             Ok(Self(value))

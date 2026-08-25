@@ -4916,9 +4916,9 @@ enum WrapIntoOptional {
         let open_api_status = if crate::domain_types::openapi::success_status(operation_dsc)
             == macro_helpers::domain_types::status_code::StatusCode::Created201
         {
-            "201"
+            constants_str::VALUE_201
         } else {
-            "200"
+            constants_str::VALUE_200
         };
         let open_api_status_literal = proc_macro2::Literal::string(open_api_status);
         let open_api_payload_type_token_stream = generate_identifier_operation_payload_upper_camel_case(operation);

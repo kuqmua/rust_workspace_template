@@ -120,9 +120,10 @@ mod tests {
     fn deserialization_uses_bounded_try_from() {
         let _error = <super::SqlLikePattern as serde::Deserialize>::deserialize(
             serde::de::value::StringDeserializer::<serde::de::value::Error>::new(
-                "x".repeat(super::super::PG_CRUD_STRING_WRAPPER_MAX_LEN + constants_usize::ONE),
+                constants_str::X
+                    .repeat(super::super::PG_CRUD_STRING_WRAPPER_MAX_LEN + constants_usize::ONE),
             ),
         )
-        .expect_err("432eaebe");
+        .expect_err(constants_str::VALUE_9EED211B);
     }
 }

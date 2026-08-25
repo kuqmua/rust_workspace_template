@@ -82,22 +82,25 @@ fn typed_route_args(errors: &str) -> String {
 #[test]
 #[allow(clippy::needless_for_each)] // iterator form follows the workspace no-for-loop policy
 fn typed_route_args_require_exactly_one_error_source() {
-    ["", "error_policy = Policy, error_statuses = Statuses,"]
-        .into_iter()
-        .for_each(|errors| {
-            let result = syn::parse_str::<super::domain_types::TypedRouteArgs>(
-                typed_route_args(errors).as_str(),
-            );
-            let Err(error) = result else {
-                panic!("f58d0a31");
-            };
-            assert!(
-                error
-                    .to_string()
-                    .contains(constants_str::TYPED_ROUTE_REQUIRES_ERROR_POLICY_OR_STATUSES)
-            );
-        });
-    ["error_policy = Policy,", "error_statuses = Statuses,"]
+    [
+        constants_str::PG_CRUD_EMPTY_SQL_SUFFIX,
+        constants_str::VALUE_24AF98F3,
+    ]
+    .into_iter()
+    .for_each(|errors| {
+        let result = syn::parse_str::<super::domain_types::TypedRouteArgs>(
+            typed_route_args(errors).as_str(),
+        );
+        let Err(error) = result else {
+            panic!("f58d0a31");
+        };
+        assert!(
+            error
+                .to_string()
+                .contains(constants_str::TYPED_ROUTE_REQUIRES_ERROR_POLICY_OR_STATUSES)
+        );
+    });
+    [constants_str::VALUE_5D5703CD, constants_str::VALUE_240525BC]
         .into_iter()
         .for_each(|errors| {
             let Ok(_args) = syn::parse_str::<super::domain_types::TypedRouteArgs>(
@@ -110,9 +113,8 @@ fn typed_route_args_require_exactly_one_error_source() {
 
 #[test]
 fn route_registry_args_require_family_after_state() {
-    let result = syn::parse_str::<super::domain_types::RouteRegistryArgs>(
-        "state = (), wrong = Family; (\"authenticated\", \"csrf\"); schemas(); (Route, handler),",
-    );
+    let result =
+        syn::parse_str::<super::domain_types::RouteRegistryArgs>(constants_str::VALUE_A19E6154);
     let Err(error) = result else {
         panic!("da287c44");
     };
@@ -125,9 +127,8 @@ fn route_registry_args_require_family_after_state() {
 
 #[test]
 fn route_registry_args_parse_family_and_bindings() {
-    let result = syn::parse_str::<super::domain_types::RouteRegistryArgs>(
-        "state = (), family = Family; (\"authenticated\", \"csrf\"); schemas(Schema); (Route, handler),",
-    );
+    let result =
+        syn::parse_str::<super::domain_types::RouteRegistryArgs>(constants_str::VALUE_2497DABD);
     let Ok(args) = result else {
         panic!("6282e207");
     };

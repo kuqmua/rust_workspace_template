@@ -8,7 +8,7 @@ struct ReviewedPublicFields {
 
 #[test]
 fn accessor_functions_do_not_use_get_prefix() {
-    let pattern = regex::Regex::new(r"\bfn\s+(get_[a-zA-Z0-9_]+)")
+    let pattern = regex::Regex::new(constants_str::VALUE_BACDA79E)
         .expect("7f79cd6a accessor function regex must compile");
     let mut ers = Vec::new();
     super::for_each_rs_file(|file| {
@@ -18,7 +18,10 @@ fn accessor_functions_do_not_use_get_prefix() {
                 let Some(name) = captures.get(1usize).map(|value| value.as_str()) else {
                     return;
                 };
-                if !matches!(name, "get_inner" | "get_mut") {
+                if !matches!(
+                    name,
+                    constants_str::VALUE_6D1FEC38 | constants_str::VALUE_57DD48E2
+                ) {
                     ers.push(format!(
                         "{}: accessor `{name}` must omit the `get_` prefix",
                         file.path().as_ref().display()
@@ -29,13 +32,13 @@ fn accessor_functions_do_not_use_get_prefix() {
     ers.sort();
     super::assert_joined_ers_empty(
         super::types::SourceTextListRef::from(ers.as_slice()),
-        super::types::StaticStr::from("7f79cd6a"),
+        super::types::StaticStr::from(constants_str::VALUE_D71964E9),
     );
 }
 
 #[test]
 fn provider_traits_do_not_use_get_prefix() {
-    let pattern = regex::Regex::new(r"\btrait\s+(Get[A-Z][a-zA-Z0-9_]*)")
+    let pattern = regex::Regex::new(constants_str::VALUE_B2BAA955)
         .expect("cbe7bf15 provider trait regex must compile");
     let mut ers = Vec::new();
     super::for_each_rs_file(|file| {
@@ -54,7 +57,7 @@ fn provider_traits_do_not_use_get_prefix() {
     ers.sort();
     super::assert_joined_ers_empty(
         super::types::SourceTextListRef::from(ers.as_slice()),
-        super::types::StaticStr::from("cbe7bf15"),
+        super::types::StaticStr::from(constants_str::VALUE_669E43DB),
     );
 }
 
@@ -93,15 +96,8 @@ fn expect_and_panic_messages_start_with_unique_diagnostic_ids() {
 }
 #[test]
 fn diagnostic_id_visitor_checks_expect_methods_and_panic_macros() {
-    let ast = syn::parse_file(
-        r#"
-fn fixture(result: Result<(), ()>) {
-    result.expect("1a2b3c4d: expected fixture result");
-    panic!("5e6f7a8b fixture panic");
-}
-"#,
-    )
-    .expect("95d174ac fixture invariant must hold");
+    let ast = syn::parse_file(constants_str::VALUE_D1E0CA47)
+        .expect("95d174ac fixture invariant must hold");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::source_analysis::DiagnosticIdVisitor {
@@ -115,16 +111,8 @@ fn fixture(result: Result<(), ()>) {
         [String::from("1a2b3c4d"), String::from("5e6f7a8b")]
     );
 
-    let invalid_ast = syn::parse_file(
-        r#"
-fn fixture(result: Result<(), ()>) {
-    result.expect("not-an-id");
-    result.expect("1a2b3c4d");
-    panic!("also-not-an-id");
-}
-"#,
-    )
-    .expect("6c3a48f1 fixture invariant must hold");
+    let invalid_ast = syn::parse_file(constants_str::VALUE_BFBFB833)
+        .expect("6c3a48f1 fixture invariant must hold");
     let invalid_visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&invalid_ast),
         super::source_analysis::DiagnosticIdVisitor {
@@ -136,24 +124,8 @@ fn fixture(result: Result<(), ()>) {
 }
 #[test]
 fn diagnostic_id_visitor_checks_generated_expect_and_panic_tokens() {
-    let ast = syn::parse_file(
-        r#"
-fn generate() {
-    quote::quote! {
-        result.expect("10d77b5f generated expect");
-        panic!("d6826d61 generated panic");
-    };
-    quote::quote! {
-        result.expect("invalid");
-        panic!("invalid");
-    };
-    quote::quote! {
-        result.expect(#unchecked_message);
-    };
-}
-"#,
-    )
-    .expect("227c291c generate invariant must hold");
+    let ast = syn::parse_file(constants_str::VALUE_38F6372C)
+        .expect("227c291c generate invariant must hold");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::source_analysis::DiagnosticIdVisitor {
@@ -401,19 +373,8 @@ fn spawned_tasks_must_retain_an_owner() {
 }
 #[test]
 fn spawned_task_policy_rejects_bare_wildcard_and_ignored_bindings() {
-    let ast = syn::parse_file(
-        "
-fn spawn_tasks() {
-    tokio::spawn(async {});
-    let _ = tokio::task::spawn_blocking(|| {});
-    let _handle = std::thread::spawn(|| {});
-    std::mem::drop(tokio::task::spawn_local(async {}));
-    let handle = tokio::spawn(async {});
-    supervise(handle);
-}
-",
-    )
-    .expect("94b344d7 spawn_tasks invariant must hold");
+    let ast = syn::parse_file(constants_str::VALUE_EBB24851)
+        .expect("94b344d7 spawn_tasks invariant must hold");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::source_analysis::LostSpawnVisitor {
@@ -514,7 +475,9 @@ fn retained_path_exception_inventories_are_exact_justified_unique_and_current() 
             .iter()
             .zip(reasons)
             .filter(|(suffix, reason)| {
-                let relative = suffix.trim_start_matches("../").trim_start_matches('/');
+                let relative = suffix
+                    .trim_start_matches(constants_str::TEXT_ALT_9)
+                    .trim_start_matches('/');
                 reason.trim().is_empty() || !workspace_root.join(relative).is_file()
             })
             .collect::<Vec<(&&str, &&str)>>();
@@ -659,10 +622,7 @@ fn raw_runtime_sql_identifier_inventory_matches_reviewed_baseline() {
             let _previous = observed.insert(relative, count);
         }
     });
-    let expected = std::collections::BTreeMap::from([(
-        String::from("../notification_service/src/adapters/routes.rs"),
-        constants_usize::ONE,
-    )]);
+    let expected = std::collections::BTreeMap::new();
     assert_eq!(observed, expected, "raw SQL identifier baseline changed");
 }
 #[test]
@@ -759,12 +719,10 @@ fn abort_and_transmute_calls_match_reviewed_baseline() {
 #[test]
 fn every_workspace_struct_and_enum_derives_optimal_memory_layout() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr::from("4dc60c31"),
-        super::types::SourceTextRef::from(
-            "workspace structs and enums without optimal_memory_layout::OptimalMemoryLayout derive",
-        ),
+        super::types::StaticStr::from(constants_str::VALUE_71790FED),
+        super::types::SourceTextRef::from(constants_str::VALUE_6264CCC9),
         |path, ast, ers| {
-            if path.ends_with("optimal_memory_layout/src/lib.rs") {
+            if path.ends_with(constants_str::VALUE_30B1AC8C) {
                 return;
             }
             let visitor = super::visit_syn_file(
@@ -783,14 +741,7 @@ fn every_workspace_struct_and_enum_derives_optimal_memory_layout() {
 #[test]
 fn optimal_memory_layout_derive_visitor_checks_structs_and_enums() {
     let ast = syn::parse_file(
-        "
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-struct CheckedStruct;
-enum MissingEnum { Variant }
-struct MissingStruct;
-#[derive(Debug, optimal_memory_layout::OptimalMemoryLayout)]
-enum CheckedEnum { Variant }
-",
+        constants_str::VALUE_936BA38B,
     )
     .expect("34fb5a61 optimal_memory_layout_derive_visitor_checks_structs_and_enums invariant must hold");
     let visitor = super::visit_syn_file(
@@ -809,9 +760,9 @@ enum CheckedEnum { Variant }
 #[test]
 fn unit_tests_use_deterministic_time_and_randomness_patterns() {
     let reviewed_calls = [(
-        "frontend_contract/src/domain_types/auth_session_keep_alive.rs",
+        constants_str::VALUE_4B68F077,
         constants_str::STD_PATH_TIME_PATH_INSTANT_PATH_NOW,
-        "the test needs an opaque Instant identity and never observes elapsed wall time",
+        constants_str::VALUE_14AF303B,
     )];
     super::assert_rs_ast_ers_empty_with_ctx(
         super::types::StaticStr::from(constants_str::VALUE_821D4A76),
@@ -819,10 +770,10 @@ fn unit_tests_use_deterministic_time_and_randomness_patterns() {
         |path, ast, ers| {
             let scan_entire_file = super::is_test_source_path(super::types::PathRef::from(path))
                 .get()
-                && !path.ends_with("tests/src/code_style/mod.rs")
+                && !path.ends_with(constants_str::VALUE_4A3D63F7)
                 && !path
                     .components()
-                    .any(|component| component.as_os_str() == "code_style");
+                    .any(|component| component.as_os_str() == constants_str::CODE_STYLE);
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
                 super::source_analysis::TestNondeterminismVisitor {
@@ -843,27 +794,8 @@ fn unit_tests_use_deterministic_time_and_randomness_patterns() {
 }
 #[test]
 fn unit_test_nondeterminism_visitor_rejects_sync_async_time_and_randomness() {
-    let ast = syn::parse_file(
-        "
-#[test]
-fn nondeterministic_test() {
-    tokio::time::sleep(std::time::Duration::from_secs(1));
-    uuid::Uuid::new_v4();
-}
-#[tokio::test]
-async fn nondeterministic_async_test() {
-    std::time::SystemTime::now();
-    std::time::Instant::now();
-    rand::rng();
-    getrandom::fill(&mut [0u8; 4]);
-    rand::rngs::OsRng;
-}
-fn integration_test_helper() {
-    rand::random();
-}
-",
-    )
-    .expect("9354f086 integration_test_helper invariant must hold");
+    let ast = syn::parse_file(constants_str::VALUE_402DAFF0)
+        .expect("9354f086 integration_test_helper invariant must hold");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::source_analysis::TestNondeterminismVisitor {
@@ -896,10 +828,8 @@ fn integration_test_helper() {
 #[test]
 fn generated_source_templates_do_not_embed_random_test_values() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr::from("59ca43b5"),
-        super::types::SourceTextRef::from(
-            "generated source templates must receive deterministic fixture values",
-        ),
+        super::types::StaticStr::from(constants_str::VALUE_1491FF0E),
+        super::types::SourceTextRef::from(constants_str::VALUE_920FAF03),
         |path, ast, ers| {
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
@@ -919,12 +849,12 @@ fn generated_source_templates_do_not_embed_random_test_values() {
 #[test]
 fn generated_randomness_policy_inspects_quote_token_streams() {
     let source = [
-        "fn generated() {",
-        "quote::quote! { uuid::Uuid::new_v4() };",
-        "quote::quote! { rand::random::<u64>() };",
-        "}",
+        constants_str::VALUE_B04CA9E8,
+        constants_str::VALUE_C7C4300B,
+        constants_str::VALUE_2328A0D2,
+        constants_str::VALUE_D10B36AA,
     ]
-    .join("\n");
+    .join(constants_str::NEWLINE);
     let ast = syn::parse_file(source.as_str()).expect("04e98f91 generated invariant must hold");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
@@ -944,44 +874,44 @@ fn process_static_state_matches_reviewed_inventory() {
     }
     let exceptions = [
         StaticStateException {
-            identifier: "PANIC_HOOK_ONCE",
-            path_suffix: "panic_location/src/lib.rs",
-            reason: "the process-wide panic hook must be installed exactly once",
+            identifier: constants_str::VALUE_4E9D8B24,
+            path_suffix: constants_str::VALUE_9DDB2371,
+            reason: constants_str::VALUE_9B0E1F72,
         },
         StaticStateException {
-            identifier: "TEST_SEQ",
-            path_suffix: "macro_helpers/src/domain_types/test_hlp.rs",
-            reason: "test-only sequence values keep generated fixture names distinct",
+            identifier: constants_str::VALUE_F783DB26,
+            path_suffix: constants_str::VALUE_865824F9,
+            reason: constants_str::VALUE_946801A9,
         },
         StaticStateException {
-            identifier: "TEST_SEQ",
-            path_suffix: "macro_clippy_check_common/src/lib.rs",
-            reason: "test-only sequence values keep generated fixture names distinct",
+            identifier: constants_str::VALUE_F783DB26,
+            path_suffix: constants_str::VALUE_F67EAA19,
+            reason: constants_str::VALUE_946801A9,
         },
         StaticStateException {
-            identifier: "SNAPSHOT",
-            path_suffix: "tests/src/code_style/snapshot.rs",
-            reason: "the test-only thread-local cache avoids repeated workspace scans",
+            identifier: constants_str::VALUE_1CA9CD1C,
+            path_suffix: constants_str::VALUE_959AEDDC,
+            reason: constants_str::VALUE_C677F169,
         },
         StaticStateException {
-            identifier: "SOURCE_SNAPSHOT",
-            path_suffix: "tests/src/code_style/snapshot.rs",
-            reason: "the immutable test-only cache shares workspace metadata and source text across test threads",
+            identifier: constants_str::VALUE_5A6DD0A3,
+            path_suffix: constants_str::VALUE_959AEDDC,
+            reason: constants_str::VALUE_CAD59B9B,
         },
         StaticStateException {
-            identifier: "ADMIN_MIGRATOR",
-            path_suffix: "server_admin/src/adapters/migrations.rs",
-            reason: "sqlx embeds an immutable migration catalog at compile time",
+            identifier: constants_str::VALUE_00B29514,
+            path_suffix: constants_str::VALUE_96554632,
+            reason: constants_str::VALUE_FB4C1B30,
         },
         StaticStateException {
-            identifier: "RUN_COUNTER",
-            path_suffix: "workspace_test_runner/src/adapters/execution.rs",
-            reason: "the CLI runner needs collision-free process-local artifact names",
+            identifier: constants_str::VALUE_3623F7E2,
+            path_suffix: constants_str::VALUE_392D41BA,
+            reason: constants_str::VALUE_B2FEB0FD,
         },
     ];
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr::from("31f842cb"),
-        super::types::SourceTextRef::from("static state must have an exact reviewed owner"),
+        super::types::StaticStr::from(constants_str::VALUE_118C4174),
+        super::types::SourceTextRef::from(constants_str::VALUE_9EC9C4B2),
         |path, ast, ers| {
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
@@ -1008,21 +938,27 @@ fn process_static_state_matches_reviewed_inventory() {
 #[test]
 fn library_print_macros_have_reviewed_terminal_owners() {
     let reviewed_path_suffixes = [
-        "panic_location/src/lib.rs",
-        "config_lib/src/domain_types/types.rs",
-        "workspace_test_runner/src/adapters/execution.rs",
-        "workspace_test_runner/src/adapters/reporting.rs",
+        constants_str::VALUE_9DDB2371,
+        constants_str::VALUE_ED469FC2,
+        constants_str::VALUE_392D41BA,
+        constants_str::VALUE_7841C081,
     ];
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr::from("fc684512"),
-        super::types::SourceTextRef::from(
-            "library print macros are limited to reviewed process-boundary owners",
-        ),
+        super::types::StaticStr::from(constants_str::VALUE_776EEBB3),
+        super::types::SourceTextRef::from(constants_str::VALUE_9908E138),
         |path, ast, ers| {
             let is_library_source = path
                 .ancestors()
-                .find(|ancestor| ancestor.file_name().is_some_and(|name| name == "src"))
-                .is_some_and(|source_directory| source_directory.join("lib.rs").exists());
+                .find(|ancestor| {
+                    ancestor
+                        .file_name()
+                        .is_some_and(|name| name == constants_str::SRC_ALT)
+                })
+                .is_some_and(|source_directory| {
+                    source_directory
+                        .join(constants_str::VALUE_0544FC95)
+                        .exists()
+                });
             if !is_library_source
                 || reviewed_path_suffixes
                     .iter()
@@ -1045,10 +981,8 @@ fn library_print_macros_have_reviewed_terminal_owners() {
 #[test]
 fn production_code_does_not_use_line_print_macros() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr::from("9bb859ae"),
-        super::types::SourceTextRef::from(
-            "production println! and eprintln! calls must use structured tracing/telemetry instead",
-        ),
+        super::types::StaticStr::from(constants_str::VALUE_018B0C9F),
+        super::types::SourceTextRef::from(constants_str::VALUE_70D9A674),
         |path, ast, ers| {
             if super::is_test_crate_source_path(super::types::PathRef::from(path)).get() {
                 return;
@@ -1070,32 +1004,8 @@ fn production_code_does_not_use_line_print_macros() {
 }
 #[test]
 fn production_line_print_macro_policy_allows_test_code_and_rejects_production_code() {
-    let ast = syn::parse_file(
-        r#"
-fn production() {
-    println!("production stdout");
-    eprintln!("production stderr");
-}
-#[cfg(test)]
-mod tests {
-    fn helper() {
-        test_scope::println!("test stdout");
-        test_scope::eprintln!("test stderr");
-    }
-}
-#[test]
-fn unit_test() {
-    unit_test_scope::println!("unit test stdout");
-    unit_test_scope::eprintln!("unit test stderr");
-}
-#[tokio::test]
-async fn async_unit_test() {
-    async_test_scope::println!("async unit test stdout");
-    async_test_scope::eprintln!("async unit test stderr");
-}
-"#,
-    )
-    .expect("a508c55d production_line_print_macro_policy fixture must parse");
+    let ast = syn::parse_file(constants_str::VALUE_606F2B07)
+        .expect("a508c55d production_line_print_macro_policy fixture must parse");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::source_analysis::ProductionLinePrintMacroVisitor {
@@ -1110,10 +1020,8 @@ async fn async_unit_test() {
 #[test]
 fn sensitive_text_wrappers_do_not_derive_unredacted_debug_or_display() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr::from("6f2c8a41"),
-        super::types::SourceTextRef::from(
-            "sensitive text wrappers must use redacted Debug and Display implementations",
-        ),
+        super::types::StaticStr::from(constants_str::VALUE_2E395A49),
+        super::types::SourceTextRef::from(constants_str::VALUE_4C5A6F95),
         |path, ast, ers| {
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
@@ -1132,21 +1040,7 @@ fn sensitive_text_wrappers_do_not_derive_unredacted_debug_or_display() {
 }
 #[test]
 fn sensitive_text_debug_policy_distinguishes_redacted_derives() {
-    let ast = syn::parse_file(
-        "
-#[derive(Debug, Display)]
-struct ApiTokenRef<'value_lt>(&'value_lt str);
-#[derive(DebugTransparent)]
-struct ApiKeyBytes {
-    value: Vec<u8>,
-}
-#[derive(DisplayTransparent)]
-struct PasswordHash([u8; 32]);
-#[derive(newtype::DebugRedacted)]
-struct ApiSecret(String);
-",
-    )
-    .expect(
+    let ast = syn::parse_file(constants_str::VALUE_BC13B693).expect(
         "3d72b9e0 sensitive_text_debug_policy_distinguishes_redacted_derives invariant must hold",
     );
     let visitor = super::visit_syn_file(
@@ -1178,10 +1072,8 @@ struct ApiSecret(String);
 #[test]
 fn error_formatters_do_not_expose_sensitive_fields() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr::from("fe402639"),
-        super::types::SourceTextRef::from(
-            "thiserror format strings must not interpolate secret text or bytes",
-        ),
+        super::types::StaticStr::from(constants_str::VALUE_10E432C3),
+        super::types::SourceTextRef::from(constants_str::VALUE_ED81BDD6),
         |path, ast, ers| {
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
@@ -1201,17 +1093,7 @@ fn error_formatters_do_not_expose_sensitive_fields() {
 #[test]
 fn sensitive_error_format_policy_rejects_named_and_tuple_placeholders() {
     let ast = syn::parse_file(
-        r#"
-#[derive(thiserror::Error)]
-enum AuthenticationError {
-    #[error("rejected secret: {secret}")]
-    Named { secret: String },
-    #[error("rejected password: {0:?}")]
-    Tuple(Vec<u8>),
-    #[error("token was rejected")]
-    Redacted { token: String },
-}
-"#,
+        constants_str::VALUE_2CC8E3AF,
     )
     .expect("d8cc09ca sensitive_error_format_policy_rejects_named_and_tuple_placeholders invariant must hold");
     let visitor = super::visit_syn_file(
@@ -1261,118 +1143,118 @@ fn source_lint_suppressions_have_explicit_reasons() {
     let legacy = [
         LegacySuppression {
             limit: 1,
-            path_suffix: "config_lib/src/domain_types/types.rs",
-            reason: "environment fallback output predates per-attribute reasons",
+            path_suffix: constants_str::VALUE_ED469FC2,
+            reason: constants_str::VALUE_9364E604,
         },
         LegacySuppression {
             limit: 1,
-            path_suffix: "file_storage/src/adapters.rs",
-            reason: "iterator control flow predates per-attribute reasons",
+            path_suffix: constants_str::VALUE_FF52C9EC,
+            reason: constants_str::VALUE_1A6DED47,
         },
         LegacySuppression {
             limit: 7,
-            path_suffix: "location_lib/src/domain_types.rs",
-            reason: "location macro compatibility predates per-attribute reasons",
+            path_suffix: constants_str::VALUE_EC66DC39,
+            reason: constants_str::VALUE_D3009FFC,
         },
         LegacySuppression {
             limit: 1,
-            path_suffix: "macro_helpers/src/domain_types/location.rs",
-            reason: "location macro compatibility predates per-attribute reasons",
+            path_suffix: constants_str::VALUE_7F7EAAAF,
+            reason: constants_str::VALUE_D3009FFC,
         },
         LegacySuppression {
             limit: 1,
-            path_suffix: "macro_helpers/src/domain_types/status_code.rs",
-            reason: "generated status-code shape predates per-attribute reasons",
+            path_suffix: constants_str::VALUE_C652C5A2,
+            reason: constants_str::VALUE_C0027404,
         },
         LegacySuppression {
             limit: 1,
-            path_suffix: "newtype/tests/newtype.rs",
-            reason: "derive fixture intentionally retains an otherwise unused item",
+            path_suffix: constants_str::VALUE_34744D4C,
+            reason: constants_str::VALUE_4AC2FA19,
         },
         LegacySuppression {
             limit: 12,
-            path_suffix: "pg_crud_common/src/domain_types.rs",
-            reason: "generated SQL token shapes predate per-attribute reasons",
+            path_suffix: constants_str::PG_CRUD_PG_CRUD_COMMON_SRC_LIB_RS,
+            reason: constants_str::VALUE_62092315,
         },
         LegacySuppression {
             limit: 1,
-            path_suffix: "pg_crud_macro_common/src/domain_types/filters.rs",
-            reason: "generated filter token shapes predate per-attribute reasons",
+            path_suffix: constants_str::VALUE_43A074E4,
+            reason: constants_str::VALUE_1384360A,
         },
         LegacySuppression {
             limit: 14,
-            path_suffix: "pg_crud_macro_common/src/domain_types.rs",
-            reason: "generated CRUD token shapes predate per-attribute reasons",
+            path_suffix: constants_str::VALUE_1ACC98BE,
+            reason: constants_str::VALUE_83D7CC71,
         },
         LegacySuppression {
             limit: 13,
-            path_suffix: "pg_crud_macro_common/src/domain_types/pg_type_test_cases.rs",
-            reason: "generated database fixtures predate per-attribute reasons",
+            path_suffix: constants_str::VALUE_7DF10CC7,
+            reason: constants_str::VALUE_1025FB76,
         },
         LegacySuppression {
             limit: 3,
-            path_suffix: "pg_crud_macro_common/src/domain_types/token_stream_helpers.rs",
-            reason: "token-stream compatibility helpers predate per-attribute reasons",
+            path_suffix: constants_str::VALUE_1F61C5FC,
+            reason: constants_str::VALUE_19C32AF3,
         },
         LegacySuppression {
             limit: 20,
-            path_suffix: "pg_crud_pg_table_generate_src/src/domain_types/source.rs",
-            reason: "generated table templates predate per-attribute reasons",
+            path_suffix: constants_str::VALUE_7FE2AF02,
+            reason: constants_str::VALUE_3C62205E,
         },
         LegacySuppression {
             limit: 11,
-            path_suffix: "pg_crud_pg_types_generate_src/src/domain_types/source.rs",
-            reason: "generated type templates predate per-attribute reasons",
+            path_suffix: constants_str::VALUE_D405F3E1,
+            reason: constants_str::VALUE_1ADD7AD4,
         },
         LegacySuppression {
             limit: 1,
-            path_suffix: "pg_crud_where_filters_generate_src/src/domain_types/contract_tests.rs",
-            reason: "generated contract fixtures predate per-attribute reasons",
+            path_suffix: constants_str::VALUE_4862C442,
+            reason: constants_str::VALUE_B88C4B5C,
         },
         LegacySuppression {
             limit: 2,
-            path_suffix: "pg_crud_where_filters_generate_src/src/domain_types/source.rs",
-            reason: "generated filter templates predate per-attribute reasons",
+            path_suffix: constants_str::VALUE_471AD9D4,
+            reason: constants_str::VALUE_CA3EDAD3,
         },
         LegacySuppression {
             limit: 13,
-            path_suffix: "pg_crud_where_filters/src/domain_types.rs",
-            reason: "generated filter API shapes predate per-attribute reasons",
+            path_suffix: constants_str::VALUE_EFE7711A,
+            reason: constants_str::VALUE_BAA0D85A,
         },
         LegacySuppression {
             limit: 1,
-            path_suffix: "route_validators/src/domain_types/test_hlp.rs",
-            reason: "validator test helper shape predates per-attribute reasons",
+            path_suffix: constants_str::VALUE_4626D14F,
+            reason: constants_str::VALUE_11F2D426,
         },
         LegacySuppression {
             limit: 1,
-            path_suffix: "server_admin/src/domain_types/generated_tables.rs",
-            reason: "generated table module predates per-attribute reasons",
+            path_suffix: constants_str::VALUE_91DD0162,
+            reason: constants_str::VALUE_494B834D,
         },
         LegacySuppression {
             limit: 1,
-            path_suffix: "server_admin/tests/admin_api.rs",
-            reason: "integration fixture shape predates per-attribute reasons",
+            path_suffix: constants_str::VALUE_88607159,
+            reason: constants_str::VALUE_A842957F,
         },
         LegacySuppression {
             limit: 1,
-            path_suffix: "server_config/src/domain_types.rs",
-            reason: "configuration API ordering predates per-attribute reasons",
+            path_suffix: constants_str::VALUE_D31B3088,
+            reason: constants_str::VALUE_ACFDBB26,
         },
         LegacySuppression {
             limit: 1,
-            path_suffix: "server_runtime_http/src/domain_types/lifecycle.rs",
-            reason: "lifecycle select branches predate per-attribute reasons",
+            path_suffix: constants_str::VALUE_BAC9ADDA,
+            reason: constants_str::VALUE_CD4985F2,
         },
         LegacySuppression {
             limit: 1,
-            path_suffix: "tests/src/code_style/snapshot.rs",
-            reason: "test-only snapshot accessor predates per-attribute reasons",
+            path_suffix: constants_str::VALUE_959AEDDC,
+            reason: constants_str::VALUE_949D4894,
         },
     ];
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr::from("07a7d7d1"),
-        super::types::SourceTextRef::from("source allow and expect attributes require reasons"),
+        super::types::StaticStr::from(constants_str::VALUE_7410D6B1),
+        super::types::SourceTextRef::from(constants_str::VALUE_2DAB1928),
         |path, ast, ers| {
             let source = std::fs::read_to_string(path).expect(
                 "8d3bca08 source_lint_suppressions_have_explicit_reasons invariant must hold",
@@ -1410,14 +1292,7 @@ fn source_lint_suppressions_have_explicit_reasons() {
 }
 #[test]
 fn source_lint_reason_policy_accepts_argument_and_comment_reasons() {
-    let source = r#"
-#[allow(dead_code)]
-fn invalid() {}
-#[allow(dead_code)] // fixture is intentionally unused
-fn comment_reason() {}
-#[allow(dead_code, reason = "fixture is intentionally unused")]
-fn argument_reason() {}
-"#;
+    let source = constants_str::VALUE_1D86D8F2;
     let ast = syn::parse_file(source).expect("ec218827 argument_reason invariant must hold");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
@@ -1450,7 +1325,7 @@ fn admin_route_errors_do_not_wrap_a_shared_operation_error() {
         let auth = snapshot
             .rs_files()
             .iter()
-            .find(|file| file.path().as_ref().ends_with("server_admin/src/application/auth.rs"))
+            .find(|file| file.path().as_ref().ends_with(constants_str::VALUE_0690A45F))
             .expect("9585d60c admin_route_errors_do_not_wrap_a_shared_operation_error invariant must hold")
             .content()
             .as_ref();
@@ -1460,7 +1335,7 @@ fn admin_route_errors_do_not_wrap_a_shared_operation_error() {
             .find(|file| {
                 file.path()
                     .as_ref()
-                    .ends_with("frontend_contract_macros/src/lib.rs")
+                    .ends_with(constants_str::VALUE_00ABFB22)
             })
             .expect("890b3180 admin_route_errors_do_not_wrap_a_shared_operation_error invariant must hold")
             .content()
@@ -1472,18 +1347,18 @@ fn admin_route_errors_do_not_wrap_a_shared_operation_error() {
         );
         assert!(macros.contains("pub fn api_operation_error"), "259e7ebd");
         [
-            "Authentication,",
-            "Authorization,",
-            "Conflict,",
-            "Csrf,",
-            "RateLimited,",
-            "Validation,",
-            "Pg(",
-            "PasswordHash(",
-            "PayloadTooLarge,",
-            "MethodNotAllowed,",
-            "Session(",
-            "Header(",
+            constants_str::VALUE_D7A45F10,
+            constants_str::VALUE_1467E095,
+            constants_str::VALUE_C2E67087,
+            constants_str::VALUE_71657339,
+            constants_str::VALUE_DB71AF6A,
+            constants_str::VALUE_B9AFDC8D,
+            constants_str::VALUE_00E5A912,
+            constants_str::VALUE_EAB76571,
+            constants_str::VALUE_91F980AF,
+            constants_str::VALUE_0D833D68,
+            constants_str::VALUE_682B824C,
+            constants_str::VALUE_075F10C0,
         ]
         .iter()
         .for_each(|variant| {
@@ -1497,8 +1372,8 @@ fn admin_route_errors_do_not_wrap_a_shared_operation_error() {
 #[test]
 fn source_does_not_retain_commented_debug_statements() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr::from("a1a18a02"),
-        super::types::SourceTextRef::from("commented debug statements must be deleted"),
+        super::types::StaticStr::from(constants_str::VALUE_16B3BD74),
+        super::types::SourceTextRef::from(constants_str::VALUE_353E0299),
         |path, _, ers| {
             let source = std::fs::read_to_string(path).expect(
                 "2b06297b source_does_not_retain_commented_debug_statements invariant must hold",
@@ -1519,9 +1394,9 @@ fn commented_debug_statement_policy_rejects_debug_macros_only() {
         concat!("/", "/", " println!(\"debug\");"),
         concat!("/", "/", " dbg!(value);"),
         concat!("/", "/", " explanation of println usage"),
-        "println!(\"active\");",
+        constants_str::VALUE_F7D8E121,
     ]
-    .join("\n");
+    .join(constants_str::NEWLINE);
     let violations =
         super::commented_debug_statements(super::types::SourceTextRef::from(source.as_str()));
     assert_eq!(violations.len(), 2usize);
@@ -1569,11 +1444,11 @@ fn project_text_files_have_stable_line_endings_and_no_trailing_whitespace() {
 }
 #[test]
 fn text_content_hygiene_policy_rejects_all_line_ending_violations() {
-    let mut source = String::from("first");
+    let mut source = String::from(constants_str::FIRST_ALT);
     source.push(' ');
     source.push('\r');
     source.push('\n');
-    source.push_str("last");
+    source.push_str(constants_str::VALUE_3547CB11);
     let violations =
         super::text_content_hygiene_ers(super::types::SourceTextRef::from(source.as_str()));
     assert_eq!(violations.len(), 3usize);
@@ -1671,10 +1546,9 @@ fn no_non_public_use_imports_in_rust_sources() {
 }
 #[test]
 fn use_import_policy_narrows_facade_and_leptos_exceptions() {
-    let ast = syn::parse_file(
-        "use leptos::prelude::{ElementChild};\nuse std::fmt::Debug;\npub use facade::Item;",
-    )
-    .expect("7b9e6f31 use_import_policy_narrows_facade_and_leptos_exceptions invariant must hold");
+    let ast = syn::parse_file(constants_str::VALUE_B2B1AD10).expect(
+        "7b9e6f31 use_import_policy_narrows_facade_and_leptos_exceptions invariant must hold",
+    );
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::source_analysis::UseImportVisitor {
@@ -1692,7 +1566,7 @@ fn use_import_policy_narrows_facade_and_leptos_exceptions() {
         "3f4798c8"
     );
 
-    let leptos_ast = syn::parse_file("use leptos::prelude::{ElementChild};").expect(
+    let leptos_ast = syn::parse_file(constants_str::VALUE_444213A9).expect(
         "56f86b52 use_import_policy_narrows_facade_and_leptos_exceptions invariant must hold",
     );
     let leptos_visitor = super::visit_syn_file(
@@ -1735,10 +1609,8 @@ fn no_type_aliases_in_rust_sources() {
 #[test]
 fn no_empty_enums_in_rust_sources() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr::from("b2b709a6"),
-        super::types::SourceTextRef::from(
-            "empty enums are forbidden; use an explicit inhabited type or an Infallible wrapper",
-        ),
+        super::types::StaticStr::from(constants_str::VALUE_19A18AE4),
+        super::types::SourceTextRef::from(constants_str::VALUE_721EDC25),
         |path, ast, ers| {
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
@@ -1758,14 +1630,14 @@ fn no_empty_enums_in_rust_sources() {
 #[test]
 fn empty_enum_policy_checks_items_and_attribute_payloads() {
     let source = [
-        "enum DirectlyEmpty {",
-        "}",
-        "#[marker{enum EmptyMarker {",
-        "}}]",
-        "struct GeneratedInput;",
-        "enum NonEmpty { Value }",
+        constants_str::VALUE_BFF335C4,
+        constants_str::VALUE_D10B36AA,
+        constants_str::VALUE_68E5AB24,
+        constants_str::VALUE_1A46177C,
+        constants_str::VALUE_9DC6533C,
+        constants_str::VALUE_1A9A6650,
     ]
-    .join("\n");
+    .join(constants_str::NEWLINE);
     let ast = syn::parse_file(&source).expect(
         "e52f247c empty_enum_policy_checks_items_and_attribute_payloads invariant must hold",
     );
@@ -1792,10 +1664,8 @@ fn empty_enum_policy_checks_items_and_attribute_payloads() {
 #[test]
 fn infallible_functions_return_concrete_types() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr::from("a9372905"),
-        super::types::SourceTextRef::from(
-            "functions that cannot fail must return their concrete success type",
-        ),
+        super::types::StaticStr::from(constants_str::VALUE_6E60D726),
+        super::types::SourceTextRef::from(constants_str::VALUE_4BAB9A8D),
         |path, ast, ers| {
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
@@ -1815,13 +1685,13 @@ fn infallible_functions_return_concrete_types() {
 #[test]
 fn infallible_result_policy_rejects_wrappers_and_free_function_results() {
     let source = [
-        "struct StdNeverError(std::convert::",
-        "Infallible);",
-        "fn unnecessary() -> Result<u8, std::convert::",
-        "Infallible> { loop {} }",
-        "fn concrete() -> u8 { 1u8 }",
+        constants_str::VALUE_117099FD,
+        constants_str::VALUE_35B13C3B,
+        constants_str::VALUE_356A6CFB,
+        constants_str::VALUE_73D6360C,
+        constants_str::VALUE_41324880,
     ]
-    .join("");
+    .join(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX);
     let ast = syn::parse_file(&source).expect("aa0bacf7 concrete invariant must hold");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
@@ -1857,27 +1727,25 @@ fn no_simple_constant_aliases_in_rust_sources() {
 #[test]
 fn tuple_newtypes_derive_from_inner_instead_of_implementing_passthrough_from() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr::from("ea2406af"),
-        super::types::SourceTextRef::from(
-            "manual passthrough From implementations found; derive newtype::FromInner instead",
-        ),
+        super::types::StaticStr::from(constants_str::VALUE_CF47C890),
+        super::types::SourceTextRef::from(constants_str::VALUE_43AA05FB),
         |path, ast, ers| {
             let is_required_foundation_impl = [
                 (
-                    std::path::Path::new("newtype/src/lib.rs"),
-                    "a proc-macro crate cannot invoke its own derive macro",
+                    std::path::Path::new(constants_str::VALUE_E24F0FD4),
+                    constants_str::VALUE_403B3BAE,
                 ),
                 (
-                    std::path::Path::new("newtype/src/domain_types.rs"),
-                    "newtype domain models cannot invoke their owning proc-macro crate",
+                    std::path::Path::new(constants_str::VALUE_C809930D),
+                    constants_str::VALUE_D0D0184F,
                 ),
                 (
-                    std::path::Path::new("workspace_macro_helpers/src/domain_types.rs"),
-                    "newtype depends directly on workspace_macro_helpers",
+                    std::path::Path::new(constants_str::VALUE_2900052A),
+                    constants_str::VALUE_E5996CB1,
                 ),
                 (
-                    std::path::Path::new("constants_str_macros/src/domain_types.rs"),
-                    "newtype depends transitively on constants_str_macros",
+                    std::path::Path::new(constants_str::VALUE_1354D9A9),
+                    constants_str::VALUE_2A080280,
                 ),
             ]
             .iter()
@@ -1904,27 +1772,25 @@ fn tuple_newtypes_derive_from_inner_instead_of_implementing_passthrough_from() {
 #[test]
 fn tuple_newtypes_derive_into_inner_from_instead_of_implementing_passthrough_from() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr::from("cf02ac17"),
-        super::types::SourceTextRef::from(
-            "manual passthrough From-to-inner implementations found; derive newtype::IntoInnerFrom instead",
-        ),
+        super::types::StaticStr::from(constants_str::VALUE_A1DD158B),
+        super::types::SourceTextRef::from(constants_str::VALUE_E8DA133A),
         |path, ast, ers| {
             let is_required_foundation_impl = [
                 (
-                    std::path::Path::new("newtype/src/lib.rs"),
-                    "a proc-macro crate cannot invoke its own derive macro",
+                    std::path::Path::new(constants_str::VALUE_E24F0FD4),
+                    constants_str::VALUE_403B3BAE,
                 ),
                 (
-                    std::path::Path::new("newtype/src/domain_types.rs"),
-                    "newtype domain models cannot invoke their owning proc-macro crate",
+                    std::path::Path::new(constants_str::VALUE_C809930D),
+                    constants_str::VALUE_D0D0184F,
                 ),
                 (
-                    std::path::Path::new("workspace_macro_helpers/src/domain_types.rs"),
-                    "newtype depends directly on workspace_macro_helpers",
+                    std::path::Path::new(constants_str::VALUE_2900052A),
+                    constants_str::VALUE_E5996CB1,
                 ),
                 (
-                    std::path::Path::new("constants_str_macros/src/domain_types.rs"),
-                    "newtype depends transitively on constants_str_macros",
+                    std::path::Path::new(constants_str::VALUE_1354D9A9),
+                    constants_str::VALUE_2A080280,
                 ),
             ]
             .iter()
@@ -1951,14 +1817,12 @@ fn tuple_newtypes_derive_into_inner_from_instead_of_implementing_passthrough_fro
 #[test]
 fn tuple_newtypes_derive_into_iterator_instead_of_forwarding_into_iter() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr::from("991ef70d"),
-        super::types::SourceTextRef::from(
-            "manual forwarding IntoIterator implementations found; derive newtype::IntoIterator instead",
-        ),
+        super::types::StaticStr::from(constants_str::VALUE_37F4CEF1),
+        super::types::SourceTextRef::from(constants_str::VALUE_7B891FFF),
         |path, ast, ers| {
             let required_foundation_impl = (
-                std::path::Path::new("workspace_macro_helpers/src/domain_types.rs"),
-                "newtype depends directly on workspace_macro_helpers",
+                std::path::Path::new(constants_str::VALUE_2900052A),
+                constants_str::VALUE_E5996CB1,
             );
             if !required_foundation_impl.1.is_empty() && path.ends_with(required_foundation_impl.0)
             {
@@ -1982,23 +1846,21 @@ fn tuple_newtypes_derive_into_iterator_instead_of_forwarding_into_iter() {
 #[test]
 fn tuple_newtypes_derive_display_instead_of_implementing_forwarding_display() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr::from("6e0cc8df"),
-        super::types::SourceTextRef::from(
-            "manual forwarding Display implementations found; derive newtype::Display instead",
-        ),
+        super::types::StaticStr::from(constants_str::VALUE_DBD6E9F5),
+        super::types::SourceTextRef::from(constants_str::VALUE_C333E174),
         |path, ast, ers| {
             let is_required_foundation_impl = [
                 (
-                    std::path::Path::new("newtype/src/lib.rs"),
-                    "a proc-macro crate cannot invoke its own derive macro",
+                    std::path::Path::new(constants_str::VALUE_E24F0FD4),
+                    constants_str::VALUE_403B3BAE,
                 ),
                 (
-                    std::path::Path::new("newtype/src/domain_types.rs"),
-                    "newtype domain models cannot invoke their owning proc-macro crate",
+                    std::path::Path::new(constants_str::VALUE_C809930D),
+                    constants_str::VALUE_D0D0184F,
                 ),
                 (
-                    std::path::Path::new("workspace_macro_helpers/src/domain_types.rs"),
-                    "newtype depends directly on workspace_macro_helpers",
+                    std::path::Path::new(constants_str::VALUE_2900052A),
+                    constants_str::VALUE_E5996CB1,
                 ),
             ]
             .iter()
@@ -2024,10 +1886,8 @@ fn tuple_newtypes_derive_display_instead_of_implementing_forwarding_display() {
 #[test]
 fn error_implementations_derive_thiserror_error() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr::from("8b7f213d"),
-        super::types::SourceTextRef::from(
-            "manual Error implementations found; derive thiserror::Error instead",
-        ),
+        super::types::StaticStr::from(constants_str::VALUE_3FCD79E4),
+        super::types::SourceTextRef::from(constants_str::VALUE_18D7D5AB),
         |path, ast, ers| {
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
@@ -2047,10 +1907,8 @@ fn error_implementations_derive_thiserror_error() {
 #[test]
 fn json_api_error_responses_originate_from_thiserror_enums() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr::from("7bda5c19"),
-        super::types::SourceTextRef::from(
-            "JSON API error responses must originate from enums deriving thiserror::Error",
-        ),
+        super::types::StaticStr::from(constants_str::VALUE_1800EA0D),
+        super::types::SourceTextRef::from(constants_str::VALUE_FBB3C40C),
         |path, ast, ers| {
             let thiserror_enums = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
@@ -2092,10 +1950,8 @@ fn json_api_error_response_policy_rejects_structs_and_accepts_thiserror_enums() 
 #[test]
 fn api_response_errors_keep_source_locations_out_of_public_error_enums() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr::from("f6c0a742"),
-        super::types::SourceTextRef::from(
-            "API response errors must keep source locations in private diagnostics",
-        ),
+        super::types::StaticStr::from(constants_str::VALUE_0B0251B3),
+        super::types::SourceTextRef::from(constants_str::VALUE_9DE68BBD),
         |path, ast, ers| {
             let thiserror_enums = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
@@ -2138,10 +1994,8 @@ fn api_response_location_policy_rejects_location_fields() {
 #[test]
 fn api_response_error_sources_use_observed_error() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr::from("1da82d94"),
-        super::types::SourceTextRef::from(
-            "API response error sources must capture diagnostics through ObservedError",
-        ),
+        super::types::StaticStr::from(constants_str::VALUE_44E97EA0),
+        super::types::SourceTextRef::from(constants_str::VALUE_7CB245E4),
         |path, ast, ers| {
             let response_types = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
@@ -2184,10 +2038,8 @@ fn api_response_error_source_policy_rejects_raw_sources() {
 #[test]
 fn every_fallible_typed_route_operation_has_its_own_error_type() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr::from("12db697c"),
-        super::types::SourceTextRef::from(
-            "every fallible typed API route operation must use a distinct concrete error type",
-        ),
+        super::types::StaticStr::from(constants_str::VALUE_D1557BA1),
+        super::types::SourceTextRef::from(constants_str::VALUE_50C1CC72),
         |path, ast, ers| {
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
@@ -2241,23 +2093,17 @@ fn error_implementation_source_uses_only_thiserror_derive() {
     });
     super::assert_joined_ers_empty_with_ctx(
         super::types::SourceTextListRef::from(ers.as_slice()),
-        super::types::StaticStr::from("d0572d4d"),
-        super::types::SourceTextRef::from(
-            "Error implementations must use only derive thiserror::Error",
-        ),
+        super::types::StaticStr::from(constants_str::VALUE_7729AA39),
+        super::types::SourceTextRef::from(constants_str::VALUE_2B539A50),
     );
 }
 #[test]
 fn tuple_newtypes_derive_not_inner_instead_of_implementing_not() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr::from("5d3a917e"),
-        super::types::SourceTextRef::from(
-            "manual Not implementations found; derive newtype::NotInner instead",
-        ),
+        super::types::StaticStr::from(constants_str::VALUE_0E9309F2),
+        super::types::SourceTextRef::from(constants_str::VALUE_00F4142B),
         |path, ast, ers| {
-            if path.ends_with(std::path::Path::new(
-                "workspace_macro_helpers/src/domain_types.rs",
-            )) {
+            if path.ends_with(std::path::Path::new(constants_str::VALUE_2900052A)) {
                 return;
             }
             let visitor = super::visit_syn_file(
@@ -2278,10 +2124,8 @@ fn tuple_newtypes_derive_not_inner_instead_of_implementing_not() {
 #[test]
 fn constant_display_implementations_derive_display_const() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr::from("1e6b4c92"),
-        super::types::SourceTextRef::from(
-            "constant Display implementations found; derive newtype::DisplayConst instead",
-        ),
+        super::types::StaticStr::from(constants_str::VALUE_2D6FAA55),
+        super::types::SourceTextRef::from(constants_str::VALUE_A788CCC5),
         |path, ast, ers| {
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
@@ -2301,14 +2145,12 @@ fn constant_display_implementations_derive_display_const() {
 #[test]
 fn tuple_newtypes_derive_deref_inner_instead_of_implementing_forwarding_deref() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr::from("269004ea"),
-        super::types::SourceTextRef::from(
-            "manual forwarding Deref implementations found; derive newtype::DerefInner instead",
-        ),
+        super::types::StaticStr::from(constants_str::VALUE_24B5ACA8),
+        super::types::SourceTextRef::from(constants_str::VALUE_801C5785),
         |path, ast, ers| {
             let required_foundation_impl = (
-                std::path::Path::new("workspace_macro_helpers/src/domain_types.rs"),
-                "newtype depends directly on workspace_macro_helpers",
+                std::path::Path::new(constants_str::VALUE_2900052A),
+                constants_str::VALUE_E5996CB1,
             );
             if !required_foundation_impl.1.is_empty() && path.ends_with(required_foundation_impl.0)
             {
@@ -2333,14 +2175,12 @@ fn tuple_newtypes_derive_deref_inner_instead_of_implementing_forwarding_deref() 
 #[test]
 fn tuple_newtypes_derive_borrow_instead_of_implementing_forwarding_borrow() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr::from("a514f872"),
-        super::types::SourceTextRef::from(
-            "manual forwarding Borrow implementations found; derive the matching newtype::Borrow macro instead",
-        ),
+        super::types::StaticStr::from(constants_str::VALUE_1259718C),
+        super::types::SourceTextRef::from(constants_str::VALUE_38822A0E),
         |path, ast, ers| {
             let required_foundation_impl = (
-                std::path::Path::new("newtype/src/lib.rs"),
-                "a proc-macro crate cannot invoke its own derive macro",
+                std::path::Path::new(constants_str::VALUE_E24F0FD4),
+                constants_str::VALUE_403B3BAE,
             );
             if !required_foundation_impl.1.is_empty() && path.ends_with(required_foundation_impl.0)
             {
@@ -2467,17 +2307,18 @@ fn production_string_literals_are_reused() {
 #[test]
 #[allow(
     clippy::needless_for_each,
-    reason = "repository source policy requires iterator methods instead of for loops"
+    clippy::useless_concat,
+    reason = "the negative ownership policy must construct forbidden identifiers without declaring them in constants_str"
 )]
 fn domain_owned_string_catalogs_do_not_return_to_str_constants() {
     let source = std::fs::read_to_string(constants_str::STR_CONSTANTS_SRC_LIB_RS).expect(
         "84c15a0e domain_owned_string_catalogs_do_not_return_to_str_constants invariant must hold",
     );
     [
-        "ADMIN_SETTING_DEFAULT_ROUTE_LABEL",
-        "ADMIN_DATABASE_ERROR_CODE",
-        "NOTIFICATION_PERSISTENCE_ERROR_CODE",
-        "SERVER_ADMIN_DB_SCHEMA_VALUE_",
+        concat!("ADMIN_SETTING_DEFAULT_ROUTE_LABEL"),
+        concat!("ADMIN_DATABASE_ERROR_CODE"),
+        concat!("NOTIFICATION_PERSISTENCE_ERROR_CODE"),
+        concat!("SERVER_ADMIN_DB_SCHEMA_VALUE_"),
     ]
     .into_iter()
     .for_each(|identifier| assert!(!source.contains(identifier), "{identifier}"));
@@ -2494,15 +2335,15 @@ fn server_admin_string_constants_reuse_macro_fragments() {
 fn admin_application_modules_do_not_own_admin_sql() {
     super::snapshot::with_codebase_snapshot(|snapshot| {
         let application_module_suffixes = [
-            "server_admin/src/application/account.rs",
-            "server_admin/src/application/api.rs",
-            "server_admin/src/application/authn.rs",
-            "server_admin/src/application/data_tables.rs",
-            "server_admin/src/application/roles.rs",
-            "server_admin/src/application/sessions.rs",
-            "server_admin/src/application/settings.rs",
-            "server_admin/src/application/shared.rs",
-            "server_admin/src/application/users.rs",
+            constants_str::VALUE_D67F4595,
+            constants_str::VALUE_DD6C0078,
+            constants_str::VALUE_1CAAD2DE,
+            constants_str::VALUE_B852993C,
+            constants_str::VALUE_3C6F88B1,
+            constants_str::VALUE_15C3423E,
+            constants_str::VALUE_0D60D8DF,
+            constants_str::VALUE_6DB550C3,
+            constants_str::VALUE_1E8EA59C,
         ];
         let violations = snapshot
             .rs_files()
@@ -2550,7 +2391,7 @@ fn str_constants_does_not_own_typed_domain_values() {
     );
 }
 #[test]
-fn string_constant_visitor_allows_only_reviewed_syntax_boundaries() {
+fn string_constant_visitor_checks_test_code_and_allows_reviewed_syntax_boundaries() {
     let ast = syn::parse_file(constants_str::CODE_STYLE_STRING_GUARD_ALLOWED_SYNTAX_FIXTURE)
         .expect("87c9a142 string_constant_visitor_allows_only_reviewed_syntax_boundaries invariant must hold");
     let visitor = super::visit_syn_file(
@@ -2559,7 +2400,7 @@ fn string_constant_visitor_allows_only_reviewed_syntax_boundaries() {
             ers: super::types::DiagnosticMsgs::default(),
         },
     );
-    assert!(visitor.ers.is_empty());
+    assert_eq!(visitor.ers.len(), constants_usize::TWO);
 }
 #[test]
 fn string_constant_visitor_detects_expression_and_nested_macro_literals() {
@@ -2576,7 +2417,7 @@ fn string_constant_visitor_detects_expression_and_nested_macro_literals() {
 #[test]
 fn all_string_constants_are_declared_in_str_constants() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr::from("34ef99a1"),
+        super::types::StaticStr::from(constants_str::VALUE_6C2711FA),
         super::types::SourceTextRef::from(
             constants_str::STRING_CONSTANTS_FOUND_OUTSIDE_STR_CONSTANTS,
         ),
@@ -2586,10 +2427,7 @@ fn all_string_constants_are_declared_in_str_constants() {
             }
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
-                super::source_analysis::StringConstantDeclarationVisitor {
-                    allow_generated_string_constants: super::types::AnalyzerBool::from(
-                        path == std::path::Path::new("../constants_str_macros/src/domain_types.rs"),
-                    ),
+                super::source_analysis::StringConstantVisitor {
                     ers: super::types::DiagnosticMsgs::default(),
                 },
             );

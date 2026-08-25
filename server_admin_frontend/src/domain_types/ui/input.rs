@@ -59,10 +59,10 @@ pub(crate) enum AdminInputKind {
 impl AdminInputKind {
     fn value(self) -> &'static str {
         match self {
-            Self::Text => "text",
-            Self::Password => "password",
-            Self::Number => "number",
-            Self::Url => "url",
+            Self::Text => constants_str::PG_CRUD_PG_TEXT,
+            Self::Password => constants_str::PASSWORD,
+            Self::Number => constants_str::VALUE_12886F9D,
+            Self::Url => constants_str::VALUE_28E5EBAB,
         }
     }
 }

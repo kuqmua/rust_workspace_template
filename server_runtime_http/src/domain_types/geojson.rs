@@ -202,7 +202,7 @@ mod tests {
     }
     #[test]
     fn feature_and_geometry_collections_validate_children_recursively() {
-        let properties = "properties";
+        let properties = constants_str::PROPERTIES;
         let feature = serde_json::json!({
             constants_str::GEO_JSON_TYPE: constants_str::GEO_JSON_FEATURE,
             constants_str::GEO_JSON_GEOMETRY: null,

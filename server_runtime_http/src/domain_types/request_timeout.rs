@@ -115,14 +115,14 @@ mod tests {
                 .expect("b140ead4 timeout_response_contains_retry_after_without_text_round_trip invariant must hold");
         let router = axum::Router::from(super::RequestTimeoutLayer::from(timeout).apply(
             super::super::AxumRouter::from(axum::Router::new().route(
-                "/slow",
+                constants_str::VALUE_971BB40E,
                 axum::routing::get(async || std::future::pending::<http::StatusCode>().await),
             )),
         ));
         let response = tower::ServiceExt::oneshot(
             router,
             http::Request::builder()
-                .uri("/slow")
+                .uri(constants_str::VALUE_971BB40E)
                 .body(axum::body::Body::empty())
                 .expect("9a076c51 timeout_response_contains_retry_after_without_text_round_trip invariant must hold"),
         )

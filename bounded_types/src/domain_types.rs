@@ -161,7 +161,7 @@ mod tests {
         assert_eq!(value.len().get(), 3usize);
         assert_above_max(
             super::text::BoundedString::<1, 2>::try_from(constants_str::ABC_ALT_3.to_owned())
-                .expect_err("99e3065c"),
+                .expect_err(constants_str::VALUE_E4A5AF09),
             3usize,
             2usize,
         );
@@ -191,7 +191,8 @@ mod tests {
         let unicode = String::from_utf8(vec![0xc3u8, 0xa9u8, 0xc3u8, 0xa9u8])
             .expect("9167aed1 byte_string_bounds_count_utf8_bytes invariant must hold");
         assert_above_max(
-            super::text::BoundedString::<0, 2>::try_from(unicode).expect_err("9fd40773"),
+            super::text::BoundedString::<0, 2>::try_from(unicode)
+                .expect_err(constants_str::VALUE_311B8C86),
             4usize,
             2usize,
         );
@@ -247,7 +248,9 @@ mod tests {
             .expect("28f49231 vec_bounds_and_growth_are_enforced invariant must hold");
         assert_eq!(values.as_slice(), &[1u8]);
         assert_above_max(
-            values.try_push(2u8).expect_err("9a1c5ee4"),
+            values
+                .try_push(2u8)
+                .expect_err(constants_str::VALUE_F2921AC3),
             2usize,
             constants_usize::ONE,
         );
@@ -297,7 +300,9 @@ mod tests {
             Some(2u8)
         );
         assert_above_max(
-            values.try_insert(2u8, 4u8).expect_err("e14a5d23"),
+            values
+                .try_insert(2u8, 4u8)
+                .expect_err(constants_str::VALUE_0C2A598A),
             2usize,
             constants_usize::ONE,
         );
@@ -323,7 +328,9 @@ mod tests {
         );
         assert_eq!(values.get(&1u8), Some(&4u8));
         assert_above_max(
-            values.try_insert(2u8, 5u8).expect_err("3f1263eb"),
+            values
+                .try_insert(2u8, 5u8)
+                .expect_err(constants_str::VALUE_9ADBD6D0),
             2usize,
             constants_usize::ONE,
         );
@@ -368,7 +375,8 @@ mod tests {
             .into_iter()
             .collect::<std::collections::HashMap<_, _>>();
         assert_above_max(
-            super::hash::BoundedHashMap::<u8, u8, 1>::try_from(hash_values).expect_err("5c0d1871"),
+            super::hash::BoundedHashMap::<u8, u8, 1>::try_from(hash_values)
+                .expect_err(constants_str::VALUE_C531636A),
             2usize,
             constants_usize::ONE,
         );
@@ -377,7 +385,7 @@ mod tests {
             .collect::<std::collections::BTreeMap<_, _>>();
         assert_above_max(
             super::btree::BoundedBTreeMap::<u8, u8, 1>::try_from(tree_values)
-                .expect_err("8c8a9759"),
+                .expect_err(constants_str::VALUE_9FCB248E),
             2usize,
             constants_usize::ONE,
         );
@@ -404,7 +412,7 @@ mod tests {
                 std::iter::empty::<u8>(),
             ),
         )
-        .expect_err("6769c946");
+        .expect_err(constants_str::VALUE_DA49EE30);
         assert!(below_min.to_string().contains("below minimum 1"));
 
         let invalid = <super::vector::BoundedVec<u8, 2, 1> as serde::Deserialize>::deserialize(
@@ -412,7 +420,7 @@ mod tests {
                 std::iter::empty::<u8>(),
             ),
         )
-        .expect_err("a0c71f21");
+        .expect_err(constants_str::VALUE_D93AD2D2);
         assert!(invalid.to_string().contains("minimum 2 exceeds maximum 1"));
     }
 
@@ -423,7 +431,7 @@ mod tests {
                 [TestDeserializerValue::Text(constants_str::UNKNOWN)].into_iter(),
             ),
         )
-        .expect_err("c80ad225");
+        .expect_err(constants_str::VALUE_30A3CA27);
         assert!(error.to_string().contains("exceeds maximum 0"));
     }
 
@@ -436,7 +444,7 @@ mod tests {
         let result = <super::vector::BoundedVec<u8, 0, 1> as serde::Deserialize>::deserialize(
             serde::de::value::SeqDeserializer::<_, serde::de::value::Error>::new(values),
         );
-        let _error = result.expect_err("505efc76");
+        let _error = result.expect_err(constants_str::VALUE_1FA2F1E3);
         assert_eq!(consumed.get(), 2usize);
     }
 
@@ -451,7 +459,7 @@ mod tests {
                 .into_iter(),
             ),
         )
-        .expect_err("4b556495");
+        .expect_err(constants_str::VALUE_563E607E);
         assert!(error.to_string().contains("exceeds maximum 1"));
     }
 
@@ -515,7 +523,7 @@ mod tests {
             <super::btree::BoundedBTreeMap<u8, u8, 1> as serde::Deserialize>::deserialize(
                 duplicate_above_wire_limit,
             );
-        let _error = duplicate_result.expect_err("ace97816");
+        let _error = duplicate_result.expect_err(constants_str::VALUE_97CBBD88);
 
         let distinct_map = serde::de::value::MapDeserializer::<_, serde::de::value::Error>::new(
             [(1u8, 2u8), (2u8, 3u8)].into_iter(),
@@ -544,7 +552,7 @@ mod tests {
                     tree_entries.into_iter(),
                 ),
             )
-            .expect_err("159266eb");
+            .expect_err(constants_str::VALUE_575CFAD6);
         assert!(tree_error.to_string().contains("exceeds maximum 1"));
 
         let hash_entries = [
@@ -563,7 +571,7 @@ mod tests {
                     hash_entries.into_iter(),
                 ),
             )
-            .expect_err("a894f87e");
+            .expect_err(constants_str::VALUE_1DD35A8D);
         assert!(hash_error.to_string().contains("exceeds maximum 1"));
     }
 
@@ -579,7 +587,7 @@ mod tests {
                     tree_entries.into_iter(),
                 ),
             )
-            .expect_err("51d4fb77");
+            .expect_err(constants_str::VALUE_4B9C9667);
         assert!(tree_error.to_string().contains("exceeds maximum 0"));
 
         let hash_entries = [(
@@ -592,7 +600,7 @@ mod tests {
                     hash_entries.into_iter(),
                 ),
             )
-            .expect_err("cf7fb56d");
+            .expect_err(constants_str::VALUE_C189B6DC);
         assert!(hash_error.to_string().contains("exceeds maximum 0"));
     }
 

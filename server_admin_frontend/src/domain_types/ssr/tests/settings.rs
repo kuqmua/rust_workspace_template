@@ -44,45 +44,45 @@ fn settings_page_uses_centered_layout_container() {
 #[test]
 fn editable_settings_render_every_input_kind_from_the_contract_catalog() {
     let settings = server_admin_contract::domain_types::AdminSettingsView::new(
-        server_admin_contract::domain_types::AdminDefaultRoute::try_from(String::from("/admin/users"))
+        server_admin_contract::domain_types::AdminDefaultRoute::try_from(String::from(constants_str::VALUE_074B6E5E))
             .expect("be6493d0 editable_settings_render_every_input_kind_from_the_contract_catalog invariant must hold"),
         Some(
             server_admin_contract::domain_types::AdminMainLogo::try_from(String::from(
-                "https://example.test/logo.svg",
+                constants_str::VALUE_A24910BB,
             ))
             .expect("a5708cb4 editable_settings_render_every_input_kind_from_the_contract_catalog invariant must hold"),
         ),
         Some(
             server_admin_contract::domain_types::AdminOrganizationContacts::try_from(String::from(
-                "Support desk",
+                constants_str::VALUE_6F4C18D3,
             ))
             .expect("32da6e91 editable_settings_render_every_input_kind_from_the_contract_catalog invariant must hold"),
         ),
         Some(
-            server_admin_contract::domain_types::AdminOrganizationName::try_from(String::from("Example"))
+            server_admin_contract::domain_types::AdminOrganizationName::try_from(String::from(constants_str::VALUE_D029F87E))
                 .expect("f4c739a1 editable_settings_render_every_input_kind_from_the_contract_catalog invariant must hold"),
         ),
         Some(
-            server_admin_contract::domain_types::AdminPrimaryColor::try_from(String::from("#123456"))
+            server_admin_contract::domain_types::AdminPrimaryColor::try_from(String::from(constants_str::VALUE_55F98A52))
                 .expect("c86b50d7 editable_settings_render_every_input_kind_from_the_contract_catalog invariant must hold"),
         ),
-        server_admin_contract::domain_types::AdminSiteName::try_from(String::from("Example Admin"))
+        server_admin_contract::domain_types::AdminSiteName::try_from(String::from(constants_str::VALUE_AD710C1F))
             .expect("70af15dc editable_settings_render_every_input_kind_from_the_contract_catalog invariant must hold"),
         Some(
             server_admin_contract::domain_types::AdminSupportUrl::try_from(String::from(
-                "https://example.test/support",
+                constants_str::VALUE_FE4E2333,
             ))
             .expect("195d8eca editable_settings_render_every_input_kind_from_the_contract_catalog invariant must hold"),
         ),
         Some(
-            server_admin_contract::domain_types::AdminTabTitle::try_from(String::from("Control Panel"))
+            server_admin_contract::domain_types::AdminTabTitle::try_from(String::from(constants_str::VALUE_46BB10C9))
                 .expect("e317c4b8 editable_settings_render_every_input_kind_from_the_contract_catalog invariant must hold"),
         ),
     );
     let admin = server_admin_contract::domain_types::AuthenticatedAdmin::new(
-        server_admin_contract::domain_types::AdminDisplayName::try_from(String::from("Admin")).expect("6fa15bc0 editable_settings_render_every_input_kind_from_the_contract_catalog invariant must hold"),
+        server_admin_contract::domain_types::AdminDisplayName::try_from(String::from(constants_str::ADMIN)).expect("6fa15bc0 editable_settings_render_every_input_kind_from_the_contract_catalog invariant must hold"),
         server_admin_contract::domain_types::AdminUserId::try_from(constants_i64::ONE).expect("9e80d2c4 editable_settings_render_every_input_kind_from_the_contract_catalog invariant must hold"),
-        server_admin_contract::domain_types::AdminLogin::try_from(String::from("root")).expect("241b70ae editable_settings_render_every_input_kind_from_the_contract_catalog invariant must hold"),
+        server_admin_contract::domain_types::AdminLogin::try_from(String::from(constants_str::ROOT)).expect("241b70ae editable_settings_render_every_input_kind_from_the_contract_catalog invariant must hold"),
         server_admin_contract::domain_types::AdminPermissionValues::try_from(vec![
             server_admin_contract::domain_types::AdminPermissionValue::try_from(
                 server_admin_contract::domain_types::AdminPermission::SystemSettingsUpdate
@@ -90,7 +90,7 @@ fn editable_settings_render_every_input_kind_from_the_contract_catalog() {
                     .get()
                     .to_owned(),
             )
-            .expect("b73c60e9 editable_settings_render_every_input_kind_from_the_contract_catalog invariant must hold"),
+            .expect(constants_str::VALUE_414056C4),
         ])
         .expect("da8504f2 editable_settings_render_every_input_kind_from_the_contract_catalog invariant must hold"),
         server_admin_contract::domain_types::AdminRoleNames::try_from(Vec::new()).expect("480eb7c3 editable_settings_render_every_input_kind_from_the_contract_catalog invariant must hold"),

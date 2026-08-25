@@ -102,7 +102,7 @@ mod tests {
         let expected_line = line!() + 1u32;
         let observed = super::ObservedError::capture(
             InfrastructureTestError,
-            super::ObservedErrorCode::from("infrastructure_failed"),
+            super::ObservedErrorCode::from(constants_str::VALUE_D99F528C),
         );
         assert_eq!(
             observed.error_code(),

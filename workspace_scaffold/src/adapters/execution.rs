@@ -8,7 +8,9 @@ pub(crate) fn run_cargo(
     update_environment: Option<crate::domain_types::UpdateEnvName>,
 ) -> Result<crate::domain_types::ScaffoldRunOk, crate::domain_types::ScaffoldError> {
     let mut command = macro_helpers::domain_types::tool_command::ToolCommand::new(
-        macro_helpers::domain_types::tool_command::ToolProgramRef::from("cargo"),
+        macro_helpers::domain_types::tool_command::ToolProgramRef::from(
+            constants_str::WORKSPACE_TEST_RUNNER_CARGO,
+        ),
     );
     let _arguments = command
         .current_dir(macro_helpers::domain_types::tool_command::PathRef::from(
@@ -18,7 +20,9 @@ pub(crate) fn run_cargo(
     if let Some(environment) = update_environment {
         let _environment = command.env(
             macro_helpers::domain_types::tool_command::ToolEnvKeyRef::from(environment.get()),
-            macro_helpers::domain_types::tool_command::ToolEnvValueRef::from("1"),
+            macro_helpers::domain_types::tool_command::ToolEnvValueRef::from(
+                constants_str::VALUE_1,
+            ),
         );
     }
     Ok(crate::domain_types::ScaffoldRunOk::from(

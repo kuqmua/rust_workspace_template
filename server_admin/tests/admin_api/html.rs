@@ -3,12 +3,12 @@
 async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
     let fixture = admin_html_test_fixture().await;
     assert!(fixture.cookie.0.contains(fixture.csrf.0.as_str()));
-    let login = "html_crud_user";
-    let updated_login = "html_crud_user_updated";
-    let display_name = "HTML CRUD User";
-    let updated_display_name = "HTML CRUD User Updated";
-    let password = "Html-crud-pass1";
-    let updated_password = "Html-crud-pass2";
+    let login = constants_str::VALUE_2562E0C2;
+    let updated_login = constants_str::VALUE_A582339C;
+    let display_name = constants_str::VALUE_79B22AC4;
+    let updated_display_name = constants_str::VALUE_8AE21450;
+    let password = constants_str::VALUE_4EDBB68D;
+    let updated_password = constants_str::VALUE_B6F4A0C4;
     let create_body = AdminHtmlTestFormBody::try_from(format!(
         "login={login}&display_name=HTML+CRUD+User&password={password}"
     ))
@@ -24,7 +24,7 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
     .await;
     assert_eq!(create_response.status(), http::StatusCode::SEE_OTHER);
     let created = sqlx::query_as::<_, (i64, String, String, bool)>(
-        "SELECT id, login, display_name, is_banned FROM users WHERE login = $1",
+        constants_str::VALUE_1B03D1AA,
     )
     .bind(login)
     .fetch_one(&fixture.pool.0)
@@ -62,7 +62,7 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
     .await;
     assert_eq!(login_update_response.status(), http::StatusCode::SEE_OTHER);
     let login_update = sqlx::query_as::<_, (String, String)>(
-        "SELECT login, display_name FROM users WHERE id = $1",
+        constants_str::VALUE_56386809,
     )
     .bind(created.0)
     .fetch_one(&fixture.pool.0)
@@ -92,7 +92,7 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
         http::StatusCode::SEE_OTHER
     );
     let display_update = sqlx::query_as::<_, (String, String)>(
-        "SELECT login, display_name FROM users WHERE id = $1",
+        constants_str::VALUE_56386809,
     )
     .bind(created.0)
     .fetch_one(&fixture.pool.0)
@@ -178,7 +178,7 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
     .await;
     assert_eq!(roles_update_response.status(), http::StatusCode::SEE_OTHER);
     let assigned_roles =
-        sqlx::query_scalar::<_, i64>("SELECT role_id FROM user_roles WHERE user_id = $1")
+        sqlx::query_scalar::<_, i64>(constants_str::VALUE_4616DD96)
             .bind(created.0)
             .fetch_all(&fixture.pool.0)
             .await
@@ -221,7 +221,7 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
     )
     .await;
     assert_eq!(unban_response.status(), http::StatusCode::SEE_OTHER);
-    let is_banned = sqlx::query_scalar::<_, bool>("SELECT is_banned FROM users WHERE id = $1")
+    let is_banned = sqlx::query_scalar::<_, bool>(constants_str::VALUE_A65908E0)
         .bind(created.0)
         .fetch_one(&fixture.pool.0)
         .await
@@ -256,7 +256,7 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
     )
     .await;
     assert_eq!(delete_response.status(), http::StatusCode::SEE_OTHER);
-    let deleted_count = sqlx::query_scalar::<_, i64>("SELECT count(*) FROM users WHERE id = $1")
+    let deleted_count = sqlx::query_scalar::<_, i64>(constants_str::VALUE_ED81ED3A)
         .bind(created.0)
         .fetch_one(&fixture.pool.0)
         .await
@@ -279,8 +279,8 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
 #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
 async fn postgresql_html_roles_crud_covers_every_frontend_field_separately() {
     let fixture = admin_html_test_fixture().await;
-    let role_name = "html_crud_role";
-    let updated_role_name = "html_crud_role_updated";
+    let role_name = constants_str::VALUE_B20522BC;
+    let updated_role_name = constants_str::VALUE_C940BA4C;
     let create_body =
         AdminHtmlTestFormBody::try_from(format!("name={role_name}")).expect("c593e840 postgresql_html_roles_crud_covers_every_frontend_field_separately invariant must hold");
     let create_response = admin_html_response(
@@ -294,7 +294,7 @@ async fn postgresql_html_roles_crud_covers_every_frontend_field_separately() {
     .await;
     assert_eq!(create_response.status(), http::StatusCode::SEE_OTHER);
     let created = sqlx::query_as::<_, (i64, String, bool)>(
-        "SELECT id, name, is_system FROM roles WHERE name = $1",
+        constants_str::VALUE_96DFAB96,
     )
     .bind(role_name)
     .fetch_one(&fixture.pool.0)
@@ -328,7 +328,7 @@ async fn postgresql_html_roles_crud_covers_every_frontend_field_separately() {
     )
     .await;
     assert_eq!(update_response.status(), http::StatusCode::SEE_OTHER);
-    let updated = sqlx::query_scalar::<_, String>("SELECT name FROM roles WHERE id = $1")
+    let updated = sqlx::query_scalar::<_, String>(constants_str::VALUE_59A3D59A)
         .bind(created.0)
         .fetch_one(&fixture.pool.0)
         .await
@@ -336,7 +336,7 @@ async fn postgresql_html_roles_crud_covers_every_frontend_field_separately() {
     assert_eq!(updated, updated_role_name);
 
     let permission =
-        sqlx::query_as::<_, (i64, String)>("SELECT id, name FROM permissions ORDER BY id LIMIT 1")
+        sqlx::query_as::<_, (i64, String)>(constants_str::VALUE_F3C2734E)
             .fetch_one(&fixture.pool.0)
             .await
             .expect("ba920f54 postgresql_html_roles_crud_covers_every_frontend_field_separately invariant must hold");
@@ -356,7 +356,7 @@ async fn postgresql_html_roles_crud_covers_every_frontend_field_separately() {
     .await;
     assert_eq!(permissions_response.status(), http::StatusCode::SEE_OTHER);
     let assigned_permissions = sqlx::query_scalar::<_, i64>(
-        "SELECT permission_id FROM role_permissions WHERE role_id = $1",
+        constants_str::VALUE_5FE3480D,
     )
     .bind(created.0)
     .fetch_all(&fixture.pool.0)
@@ -388,7 +388,7 @@ async fn postgresql_html_roles_crud_covers_every_frontend_field_separately() {
     )
     .await;
     assert_eq!(delete_response.status(), http::StatusCode::SEE_OTHER);
-    let deleted_count = sqlx::query_scalar::<_, i64>("SELECT count(*) FROM roles WHERE id = $1")
+    let deleted_count = sqlx::query_scalar::<_, i64>(constants_str::VALUE_D4A7F1E9)
         .bind(created.0)
         .fetch_one(&fixture.pool.0)
         .await
@@ -411,24 +411,24 @@ async fn postgresql_html_roles_crud_covers_every_frontend_field_separately() {
 #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
 async fn postgresql_html_settings_updates_and_reads_every_field_separately() {
     let fixture = admin_html_test_fixture().await;
-    let site_name_a = StdAdminApiTestStrRef::from("HtmlSiteA");
-    let site_name_b = StdAdminApiTestStrRef::from("HtmlSiteB");
+    let site_name_a = StdAdminApiTestStrRef::from(constants_str::VALUE_98A13EB2);
+    let site_name_b = StdAdminApiTestStrRef::from(constants_str::VALUE_ABCC7908);
     let route_a = StdAdminApiTestStrRef::from(
         server_admin_contract::domain_types::AdminFrontendPath::Users.get(),
     );
-    let route_b = StdAdminApiTestStrRef::from("/admin/roles");
-    let tab_title_a = StdAdminApiTestStrRef::from("HtmlTabA");
-    let tab_title_b = StdAdminApiTestStrRef::from("HtmlTabB");
-    let main_logo_a = StdAdminApiTestStrRef::from("https://example.com/logo-a.png");
-    let main_logo_b = StdAdminApiTestStrRef::from("https://example.com/logo-b.png");
-    let primary_color_a = StdAdminApiTestStrRef::from("#112233");
-    let primary_color_b = StdAdminApiTestStrRef::from("#445566");
-    let organization_name_a = StdAdminApiTestStrRef::from("HtmlOrgA");
-    let organization_name_b = StdAdminApiTestStrRef::from("HtmlOrgB");
-    let organization_contacts_a = StdAdminApiTestStrRef::from("ops-a@example.com");
-    let organization_contacts_b = StdAdminApiTestStrRef::from("ops-b@example.com");
-    let support_url_a = StdAdminApiTestStrRef::from("https://example.com/support-a");
-    let support_url_b = StdAdminApiTestStrRef::from("https://example.com/support-b");
+    let route_b = StdAdminApiTestStrRef::from(constants_str::VALUE_DB2C56E6);
+    let tab_title_a = StdAdminApiTestStrRef::from(constants_str::VALUE_F7D2459A);
+    let tab_title_b = StdAdminApiTestStrRef::from(constants_str::VALUE_74AF8A89);
+    let main_logo_a = StdAdminApiTestStrRef::from(constants_str::VALUE_2C8B94AD);
+    let main_logo_b = StdAdminApiTestStrRef::from(constants_str::VALUE_91EAC748);
+    let primary_color_a = StdAdminApiTestStrRef::from(constants_str::VALUE_CD527CD2);
+    let primary_color_b = StdAdminApiTestStrRef::from(constants_str::VALUE_3CFDA7DC);
+    let organization_name_a = StdAdminApiTestStrRef::from(constants_str::VALUE_DA7C4DC3);
+    let organization_name_b = StdAdminApiTestStrRef::from(constants_str::VALUE_4918294B);
+    let organization_contacts_a = StdAdminApiTestStrRef::from(constants_str::VALUE_2AFAD82D);
+    let organization_contacts_b = StdAdminApiTestStrRef::from(constants_str::VALUE_E7FDD028);
+    let support_url_a = StdAdminApiTestStrRef::from(constants_str::VALUE_AB22006C);
+    let support_url_b = StdAdminApiTestStrRef::from(constants_str::VALUE_4D525EFD);
     let states = [
         AdminHtmlSettingsTestValues {
             default_admin_route: route_a,
@@ -567,7 +567,7 @@ async fn postgresql_html_settings_updates_and_reads_every_field_separately() {
             String,
         ),
     >(
-        "SELECT site_name, default_admin_route, tab_title, main_logo, primary_color, organization_name, organization_contacts, support_url FROM system_settings WHERE id = 1",
+        constants_str::VALUE_F1866337,
     )
     .fetch_one(&fixture.pool.0)
     .await
@@ -687,7 +687,7 @@ async fn postgresql_html_settings_updates_and_reads_every_field_separately() {
                     String,
                 ),
             >(
-                "SELECT tab_title, main_logo, primary_color, organization_name, organization_contacts, support_url FROM system_settings WHERE id = 1",
+                constants_str::VALUE_8CB85C2C,
             )
             .fetch_one(&fixture_ref.pool.0)
             .await
@@ -825,14 +825,14 @@ async fn postgresql_html_profile_reads_every_field_and_changes_own_password() {
     .await
     .expect("c09b5e4e postgresql_html_profile_reads_every_field_and_changes_own_password invariant must hold");
     let (current_session_id, user_id) = sqlx::query_as::<_, (uuid::Uuid, i64)>(
-        "SELECT id, user_id FROM access_sessions WHERE revoked_at IS NULL",
+        constants_str::VALUE_9605FF41,
     )
     .fetch_one(&fixture.pool.0)
     .await
     .expect("ae46b7c1 postgresql_html_profile_reads_every_field_and_changes_own_password invariant must hold");
     let other_session_id = uuid::Uuid::from_u128(2u128);
     let _inserted_other_session = sqlx::query(
-        "INSERT INTO access_sessions (id, user_id, token_identifier_hash, csrf_token_hash, token_context_hash, expires_at) VALUES ($1, $2, 'other-token-hash', 'other-csrf-hash', repeat('a', 64), NOW() + INTERVAL '1 hour')",
+        constants_str::VALUE_324717BB,
     )
     .bind(other_session_id)
     .bind(user_id)
@@ -840,7 +840,7 @@ async fn postgresql_html_profile_reads_every_field_and_changes_own_password() {
     .await
     .expect("3e216ecd postgresql_html_profile_reads_every_field_and_changes_own_password invariant must hold");
     let _inserted_other_refresh_token = sqlx::query(
-        "INSERT INTO refresh_tokens (id, user_id, token_hash, expires_at) VALUES ($1, $2, 'other-refresh-hash', NOW() + INTERVAL '1 hour')",
+        constants_str::VALUE_0FCC992D,
     )
     .bind(uuid::Uuid::from_u128(3u128))
     .bind(user_id)
@@ -874,7 +874,7 @@ async fn postgresql_html_profile_reads_every_field_and_changes_own_password() {
     .expect("696330ca postgresql_html_profile_reads_every_field_and_changes_own_password invariant must hold");
     assert_ne!(changed_password_hash, original_password_hash);
     let current_session_revoked = sqlx::query_scalar::<_, bool>(
-        "SELECT revoked_at IS NOT NULL FROM access_sessions WHERE id = $1",
+        constants_str::VALUE_26E35E53,
     )
     .bind(current_session_id)
     .fetch_one(&fixture.pool.0)
@@ -882,7 +882,7 @@ async fn postgresql_html_profile_reads_every_field_and_changes_own_password() {
     .expect("38923e84 postgresql_html_profile_reads_every_field_and_changes_own_password invariant must hold");
     assert!(!current_session_revoked);
     let other_session_revoked = sqlx::query_scalar::<_, bool>(
-        "SELECT revoked_at IS NOT NULL FROM access_sessions WHERE id = $1",
+        constants_str::VALUE_26E35E53,
     )
     .bind(other_session_id)
     .fetch_one(&fixture.pool.0)
@@ -890,7 +890,7 @@ async fn postgresql_html_profile_reads_every_field_and_changes_own_password() {
     .expect("f0168dc5 postgresql_html_profile_reads_every_field_and_changes_own_password invariant must hold");
     assert!(other_session_revoked);
     let active_refresh_token_count = sqlx::query_scalar::<_, i64>(
-        "SELECT COUNT(*) FROM refresh_tokens WHERE revoked_at IS NULL",
+        constants_str::VALUE_52BB5B18,
     )
     .fetch_one(&fixture.pool.0)
     .await
@@ -953,7 +953,7 @@ async fn postgresql_html_sessions_reads_every_field_and_revokes_session() {
     .await;
     assert_eq!(revoke_response.status(), http::StatusCode::SEE_OTHER);
     let revoked = sqlx::query_scalar::<_, bool>(
-        "SELECT revoked_at IS NOT NULL FROM access_sessions WHERE id = $1",
+        constants_str::VALUE_26E35E53,
     )
     .bind(session_id)
     .fetch_one(&fixture.pool.0)
@@ -1110,7 +1110,7 @@ async fn postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_fi
         )),
     );
 
-    let login = "html_form_contract_user";
+    let login = constants_str::VALUE_0E3DA187;
     let valid_body = AdminHtmlTestFormBody::try_from(format!(
         "login={login}&display_name=HTML+Form+Contract+User&password=Html-form-pass1"
     ))
@@ -1164,7 +1164,7 @@ async fn postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_fi
     )
     .await;
     assert_eq!(duplicate_response.status(), http::StatusCode::CONFLICT);
-    let created_id = sqlx::query_scalar::<_, i64>("SELECT id FROM users WHERE login = $1")
+    let created_id = sqlx::query_scalar::<_, i64>(constants_str::VALUE_A2A63B95)
         .bind(login)
         .fetch_one(&fixture.pool.0)
         .await
@@ -1204,7 +1204,7 @@ async fn postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_fi
     .await;
     assert_eq!(stale_roles_response.status(), http::StatusCode::CONFLICT);
 
-    let role_name = "html_form_contract_role";
+    let role_name = constants_str::VALUE_F9B1D97F;
     let create_role_body =
         AdminHtmlTestFormBody::try_from(format!("name={role_name}")).expect("8cf4260d postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_filtering invariant must hold");
     let create_role_response = admin_html_response(
@@ -1227,13 +1227,13 @@ async fn postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_fi
     )
     .await;
     assert_eq!(duplicate_role_response.status(), http::StatusCode::CONFLICT);
-    let created_role_id = sqlx::query_scalar::<_, i64>("SELECT id FROM roles WHERE name = $1")
+    let created_role_id = sqlx::query_scalar::<_, i64>(constants_str::VALUE_44E1D290)
         .bind(role_name)
         .fetch_one(&fixture.pool.0)
         .await
         .expect("2643be19 postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_filtering invariant must hold");
     let permission_id =
-        sqlx::query_scalar::<_, i64>("SELECT id FROM permissions ORDER BY id LIMIT 1")
+        sqlx::query_scalar::<_, i64>(constants_str::VALUE_1491D3FA)
             .fetch_one(&fixture.pool.0)
             .await
             .expect("d8134c5b postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_filtering invariant must hold");
@@ -1269,7 +1269,7 @@ async fn postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_fi
     assert_eq!(delete_role_response.status(), http::StatusCode::SEE_OTHER);
 
     let unknown_delete_body = AdminHtmlTestFormBody::try_from(String::from(
-        "user_id=9223372036854775807&confirmation=true",
+        constants_str::VALUE_8F942A25,
     ))
     .expect("d96b20e4 postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_filtering invariant must hold");
     let unknown_delete_response = admin_html_response(

@@ -42,11 +42,11 @@ fn show_mutation_error(error: &super::state::AdminTableLoadError) {
     let Some(root) = document.get_element_by_id(constants_str::ADMIN_CSR_ROOT_ID) else {
         return;
     };
-    let Ok(alert) = document.create_element("p") else {
+    let Ok(alert) = document.create_element(constants_str::VALUE_148DE9C5) else {
         return;
     };
     if alert
-        .set_attribute("role", constants_str::HTML_ALERT_ROLE)
+        .set_attribute(constants_str::ROLE, constants_str::HTML_ALERT_ROLE)
         .is_err()
     {
         return;

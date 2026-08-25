@@ -596,7 +596,9 @@ mod tests {
 
     #[test]
     fn parameterized_names_preserve_display_token_and_type_path_context() {
-        let display = super::parameter::SelfPayloadUpperCamelCase::from_display(&"table example");
+        let display = super::parameter::SelfPayloadUpperCamelCase::from_display(
+            &constants_str::VALUE_BCB2F337,
+        );
         assert_eq!(display.to_string(), "TableExamplePayload");
         let tokens =
             super::parameter::SelfPayloadSnakeCase::from_tokens(&quote::quote!(TableExample));
@@ -612,16 +614,16 @@ mod tests {
 
     #[test]
     fn swagger_path_helpers_quote_snake_case_paths() {
-        let name = String::from("TableExample");
+        let name = String::from(constants_str::VALUE_DECD817E);
         let path = super::SwaggerUrlPathSelfQuotesStr::swagger_url_path_self_quotes_str(
             &name,
-            super::SwaggerUrlPathPrefix::from("service"),
+            super::SwaggerUrlPathPrefix::from(constants_str::SERVICE),
         );
         assert_eq!(path.as_ref(), "\"/service/table_example\"");
         let tokens =
             super::SwaggerUrlPathSelfQuotesTokenStream::swagger_url_path_self_quotes_token_stream(
                 &name,
-                super::SwaggerUrlPathPrefix::from("service"),
+                super::SwaggerUrlPathPrefix::from(constants_str::SERVICE),
             );
         assert_eq!(
             quote::quote!(#tokens).to_string(),

@@ -163,7 +163,7 @@ mod tests {
         where
             Serializer: serde::Serializer,
         {
-            Err(serde::ser::Error::custom("request serialization failed"))
+            Err(serde::ser::Error::custom(constants_str::VALUE_1216B447))
         }
     }
     #[derive(
@@ -188,8 +188,8 @@ mod tests {
                 crate::domain_types::PUBLIC_MUTATING_ROUTE_ERROR_STATUSES,
                 crate::domain_types::RouteMethod::Post,
                 crate::domain_types::RouteMutation::Mutating,
-                crate::domain_types::ContractStr::from("test"),
-                crate::domain_types::ContractStr::from("/values"),
+                crate::domain_types::ContractStr::from(constants_str::TEST_ALT_3),
+                crate::domain_types::ContractStr::from(constants_str::VALUE_AFE0CD3C),
                 crate::domain_types::SuccessStatus::Code200,
             )
         }
@@ -209,8 +209,8 @@ mod tests {
                 crate::domain_types::PUBLIC_MUTATING_ROUTE_ERROR_STATUSES,
                 crate::domain_types::RouteMethod::Post,
                 crate::domain_types::RouteMutation::Mutating,
-                crate::domain_types::ContractStr::from("create_test"),
-                crate::domain_types::ContractStr::from("/values"),
+                crate::domain_types::ContractStr::from(constants_str::VALUE_CC9227E7),
+                crate::domain_types::ContractStr::from(constants_str::VALUE_AFE0CD3C),
                 crate::domain_types::SuccessStatus::Code201,
             )
         }
@@ -227,8 +227,8 @@ mod tests {
         fn metadata() -> crate::domain_types::RouteMetadata {
             crate::domain_types::RouteMetadata::new(
                 crate::domain_types::RouteMethod::Post,
-                crate::domain_types::ContractStr::from("failing_test"),
-                crate::domain_types::ContractStr::from("/values"),
+                crate::domain_types::ContractStr::from(constants_str::VALUE_4B7BC374),
+                crate::domain_types::ContractStr::from(constants_str::VALUE_AFE0CD3C),
             )
         }
         fn request_body() -> crate::domain_types::RouteRequestBody {
@@ -244,8 +244,8 @@ mod tests {
         fn metadata() -> crate::domain_types::RouteMetadata {
             crate::domain_types::RouteMetadata::new(
                 crate::domain_types::RouteMethod::Post,
-                crate::domain_types::ContractStr::from("large_test"),
-                crate::domain_types::ContractStr::from("/values"),
+                crate::domain_types::ContractStr::from(constants_str::VALUE_D06CF433),
+                crate::domain_types::ContractStr::from(constants_str::VALUE_AFE0CD3C),
             )
         }
         fn request_body() -> crate::domain_types::RouteRequestBody {
@@ -275,8 +275,8 @@ mod tests {
                 crate::domain_types::PUBLIC_MUTATING_ROUTE_ERROR_STATUSES,
                 crate::domain_types::RouteMethod::Delete,
                 crate::domain_types::RouteMutation::Mutating,
-                crate::domain_types::ContractStr::from("delete_test"),
-                crate::domain_types::ContractStr::from("/values/{value}"),
+                crate::domain_types::ContractStr::from(constants_str::VALUE_E1B628F9),
+                crate::domain_types::ContractStr::from(constants_str::VALUE_A3F72BD5),
                 crate::domain_types::SuccessStatus::Code204,
             )
         }
@@ -290,8 +290,8 @@ mod tests {
         fn metadata() -> crate::domain_types::RouteMetadata {
             crate::domain_types::RouteMetadata::new(
                 crate::domain_types::RouteMethod::Get,
-                crate::domain_types::ContractStr::from("empty_ok_test"),
-                crate::domain_types::ContractStr::from("/health_check"),
+                crate::domain_types::ContractStr::from(constants_str::VALUE_06DE0EB2),
+                crate::domain_types::ContractStr::from(constants_str::VALUE_B7407642),
             )
         }
     }
@@ -390,11 +390,12 @@ mod tests {
             Ok(value) => value,
             Err(error) => panic!("d8999336: {error}"),
         };
-        let expected_path =
-            match crate::domain_types::TransportPath::try_from("/v1/values".to_owned()) {
-                Ok(value) => value,
-                Err(error) => panic!("a805dfe8: {error:?}"),
-            };
+        let expected_path = match crate::domain_types::TransportPath::try_from(
+            constants_str::VALUE_5B762F37.to_owned(),
+        ) {
+            Ok(value) => value,
+            Err(error) => panic!("a805dfe8: {error:?}"),
+        };
         let transport = TestTransport {
             expected: ExpectedRequest::Json(expected_path, Request { value: 5u64 }),
             response: Ok(crate::domain_types::TransportResponse::new(
@@ -402,10 +403,11 @@ mod tests {
                 crate::domain_types::SuccessStatus::Code200.transport_status(),
             )),
         };
-        let prefix = match crate::domain_types::TransportPath::try_from("/v1".to_owned()) {
-            Ok(value) => value,
-            Err(error) => panic!("b4849039: {error:?}"),
-        };
+        let prefix =
+            match crate::domain_types::TransportPath::try_from(constants_str::V1.to_owned()) {
+                Ok(value) => value,
+                Err(error) => panic!("b4849039: {error:?}"),
+            };
         let client = super::TypedClient::new(transport, prefix);
         let result = futures::executor::block_on(client.send::<Route>(Request { value: 5u64 }));
         assert_eq!(result, Ok(Response { value: 7u64 }));
@@ -416,11 +418,12 @@ mod tests {
             Ok(value) => value,
             Err(error) => panic!("57ef3356: {error}"),
         };
-        let expected_path =
-            match crate::domain_types::TransportPath::try_from("/v1/values/9".to_owned()) {
-                Ok(value) => value,
-                Err(error) => panic!("16a72a46: {error:?}"),
-            };
+        let expected_path = match crate::domain_types::TransportPath::try_from(
+            constants_str::VALUE_F06110E6.to_owned(),
+        ) {
+            Ok(value) => value,
+            Err(error) => panic!("16a72a46: {error:?}"),
+        };
         let transport = TestTransport {
             expected: ExpectedRequest::Empty(expected_path),
             response: Ok(crate::domain_types::TransportResponse::new(
@@ -428,7 +431,9 @@ mod tests {
                 crate::domain_types::SuccessStatus::Code204.transport_status(),
             )),
         };
-        let prefix = match crate::domain_types::TransportPath::try_from("/v1/".to_owned()) {
+        let prefix = match crate::domain_types::TransportPath::try_from(
+            constants_str::V1_SLASH.to_owned(),
+        ) {
             Ok(value) => value,
             Err(error) => panic!("e5c1d120: {error:?}"),
         };
@@ -440,27 +445,36 @@ mod tests {
     #[test]
     fn static_absent_request_decodes_empty_ok_response() {
         let transport = TestTransport {
-            expected: ExpectedRequest::Empty(transport_path("/health_check")),
+            expected: ExpectedRequest::Empty(transport_path(constants_str::VALUE_B7407642)),
             response: Ok(response(
                 Vec::new(),
                 crate::domain_types::SuccessStatus::Code200.transport_status(),
             )),
         };
-        let client = super::TypedClient::new(transport, transport_path(""));
+        let client = super::TypedClient::new(
+            transport,
+            transport_path(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
+        );
         let result = futures::executor::block_on(client.send::<EmptyOkRoute>(NoBody));
         assert_eq!(result, Ok(NoBody));
     }
     #[test]
     fn path_prefix_variations_join_at_one_separator() {
-        assert_static_path("", "/values");
-        assert_static_path("/", "/values");
-        assert_static_path("/v1", "/v1/values");
-        assert_static_path("/v1/", "/v1/values");
+        assert_static_path(
+            constants_str::PG_CRUD_EMPTY_SQL_SUFFIX,
+            constants_str::VALUE_AFE0CD3C,
+        );
+        assert_static_path(constants_str::SLASH, constants_str::VALUE_AFE0CD3C);
+        assert_static_path(constants_str::V1, constants_str::VALUE_5B762F37);
+        assert_static_path(constants_str::V1_SLASH, constants_str::VALUE_5B762F37);
     }
     #[test]
     fn created_status_decodes_json_response() {
         let transport = TestTransport {
-            expected: ExpectedRequest::Json(transport_path("/values"), Request { value: 5u64 }),
+            expected: ExpectedRequest::Json(
+                transport_path(constants_str::VALUE_AFE0CD3C),
+                Request { value: 5u64 },
+            ),
             response: Ok(response(
                 match serde_json::to_vec(&Response { value: 7u64 }) {
                     Ok(value) => value,
@@ -469,7 +483,10 @@ mod tests {
                 crate::domain_types::SuccessStatus::Code201.transport_status(),
             )),
         };
-        let client = super::TypedClient::new(transport, transport_path(""));
+        let client = super::TypedClient::new(
+            transport,
+            transport_path(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
+        );
         let result =
             futures::executor::block_on(client.send::<CreatedRoute>(Request { value: 5u64 }));
         assert_eq!(result, Ok(Response { value: 7u64 }));
@@ -477,13 +494,16 @@ mod tests {
     #[test]
     fn request_serialization_failure_is_an_encode_error() {
         let transport = TestTransport {
-            expected: ExpectedRequest::Empty(transport_path("/unused")),
+            expected: ExpectedRequest::Empty(transport_path(constants_str::VALUE_4D1D0E01)),
             response: Ok(response(
                 Vec::new(),
                 crate::domain_types::SuccessStatus::Code200.transport_status(),
             )),
         };
-        let client = super::TypedClient::new(transport, transport_path(""));
+        let client = super::TypedClient::new(
+            transport,
+            transport_path(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
+        );
         let result =
             futures::executor::block_on(client.send::<FailingRequestRoute>(FailingRequest));
         assert!(matches!(
@@ -493,10 +513,11 @@ mod tests {
     }
     #[test]
     fn request_body_at_shared_limit_is_accepted() {
-        let value = "x".repeat(crate::domain_types::FRONTEND_CONTRACT_BODY_MAX_BYTES - 12usize);
+        let value = constants_str::X
+            .repeat(crate::domain_types::FRONTEND_CONTRACT_BODY_MAX_BYTES - 12usize);
         let transport = TestTransport {
             expected: ExpectedRequest::BodyLen(
-                transport_path("/values"),
+                transport_path(constants_str::VALUE_AFE0CD3C),
                 crate::domain_types::FRONTEND_CONTRACT_BODY_MAX_BYTES,
             ),
             response: Ok(response(
@@ -507,22 +528,29 @@ mod tests {
                 crate::domain_types::SuccessStatus::Code200.transport_status(),
             )),
         };
-        let client = super::TypedClient::new(transport, transport_path(""));
+        let client = super::TypedClient::new(
+            transport,
+            transport_path(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
+        );
         let result =
             futures::executor::block_on(client.send::<LargeRequestRoute>(LargeRequest { value }));
         assert_eq!(result, Ok(Response { value: 7u64 }));
     }
     #[test]
     fn request_body_above_shared_limit_is_an_encode_error() {
-        let value = "x".repeat(crate::domain_types::FRONTEND_CONTRACT_BODY_MAX_BYTES - 11usize);
+        let value = constants_str::X
+            .repeat(crate::domain_types::FRONTEND_CONTRACT_BODY_MAX_BYTES - 11usize);
         let transport = TestTransport {
-            expected: ExpectedRequest::Empty(transport_path("/unused")),
+            expected: ExpectedRequest::Empty(transport_path(constants_str::VALUE_4D1D0E01)),
             response: Ok(response(
                 Vec::new(),
                 crate::domain_types::SuccessStatus::Code200.transport_status(),
             )),
         };
-        let client = super::TypedClient::new(transport, transport_path(""));
+        let client = super::TypedClient::new(
+            transport,
+            transport_path(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
+        );
         let result =
             futures::executor::block_on(client.send::<LargeRequestRoute>(LargeRequest { value }));
         assert!(matches!(
@@ -533,7 +561,7 @@ mod tests {
     #[test]
     fn joined_path_above_transport_limit_is_an_encode_error() {
         let transport = TestTransport {
-            expected: ExpectedRequest::Empty(transport_path("/unused")),
+            expected: ExpectedRequest::Empty(transport_path(constants_str::VALUE_4D1D0E01)),
             response: Ok(response(
                 Vec::new(),
                 crate::domain_types::SuccessStatus::Code200.transport_status(),
@@ -550,13 +578,19 @@ mod tests {
     #[test]
     fn malformed_success_body_is_a_decode_error() {
         let transport = TestTransport {
-            expected: ExpectedRequest::Json(transport_path("/values"), Request { value: 5u64 }),
+            expected: ExpectedRequest::Json(
+                transport_path(constants_str::VALUE_AFE0CD3C),
+                Request { value: 5u64 },
+            ),
             response: Ok(response(
                 b"{".to_vec(),
                 crate::domain_types::SuccessStatus::Code200.transport_status(),
             )),
         };
-        let client = super::TypedClient::new(transport, transport_path(""));
+        let client = super::TypedClient::new(
+            transport,
+            transport_path(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
+        );
         let result = futures::executor::block_on(client.send::<Route>(Request { value: 5u64 }));
         assert!(matches!(
             result,
@@ -570,10 +604,16 @@ mod tests {
         );
         let expected = crate::domain_types::SuccessStatus::Code200.transport_status();
         let transport = TestTransport {
-            expected: ExpectedRequest::Json(transport_path("/values"), Request { value: 5u64 }),
+            expected: ExpectedRequest::Json(
+                transport_path(constants_str::VALUE_AFE0CD3C),
+                Request { value: 5u64 },
+            ),
             response: Ok(response(Vec::new(), actual)),
         };
-        let client = super::TypedClient::new(transport, transport_path(""));
+        let client = super::TypedClient::new(
+            transport,
+            transport_path(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
+        );
         let result = futures::executor::block_on(client.send::<Route>(Request { value: 5u64 }));
         assert!(matches!(
             result,
@@ -593,7 +633,10 @@ mod tests {
             Err(error) => panic!("0046cd3f: {error}"),
         };
         let transport = TestTransport {
-            expected: ExpectedRequest::Json(transport_path("/values"), Request { value: 5u64 }),
+            expected: ExpectedRequest::Json(
+                transport_path(constants_str::VALUE_AFE0CD3C),
+                Request { value: 5u64 },
+            ),
             response: Ok(response(
                 problem_body,
                 crate::domain_types::TransportStatus::from(
@@ -601,7 +644,10 @@ mod tests {
                 ),
             )),
         };
-        let client = super::TypedClient::new(transport, transport_path(""));
+        let client = super::TypedClient::new(
+            transport,
+            transport_path(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
+        );
         let result = futures::executor::block_on(client.send::<Route>(Request { value: 5u64 }));
         assert!(matches!(
             result,
@@ -611,16 +657,23 @@ mod tests {
     }
     #[test]
     fn transport_failure_is_preserved() {
-        let transport_error =
-            match crate::domain_types::TransportError::try_from("offline".to_owned()) {
-                Ok(value) => value,
-                Err(error) => panic!("6d9c63f5: {error}"),
-            };
+        let transport_error = match crate::domain_types::TransportError::try_from(
+            constants_str::VALUE_8E2C7AC5.to_owned(),
+        ) {
+            Ok(value) => value,
+            Err(error) => panic!("6d9c63f5: {error}"),
+        };
         let transport = TestTransport {
-            expected: ExpectedRequest::Json(transport_path("/values"), Request { value: 5u64 }),
+            expected: ExpectedRequest::Json(
+                transport_path(constants_str::VALUE_AFE0CD3C),
+                Request { value: 5u64 },
+            ),
             response: Err(transport_error.clone()),
         };
-        let client = super::TypedClient::new(transport, transport_path(""));
+        let client = super::TypedClient::new(
+            transport,
+            transport_path(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
+        );
         let result = futures::executor::block_on(client.send::<Route>(Request { value: 5u64 }));
         assert_eq!(
             result,

@@ -12,7 +12,7 @@ async fn create_notification(
 > {
     let id = uuid::Uuid::new_v4();
     let message = request.into_inner().into_message();
-    let insert_sql = "INSERT INTO notifications (id, message) VALUES ($1, $2)";
+    let insert_sql = constants_str::VALUE_1A78C1E1;
     let _created = sqlx::query(insert_sql)
         .bind(id)
         .bind(message.as_ref())

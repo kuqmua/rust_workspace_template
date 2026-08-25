@@ -1,8 +1,6 @@
 #[test]
 fn ansi_cleanup_handles_multiple_and_unterminated_sequences() {
-    let clean = super::strip_ansi_codes(super::AnsiTextRef::from(
-        "plain \u{1b}[31mred\u{1b}[0m tail\u{1b}[",
-    ));
+    let clean = super::strip_ansi_codes(super::AnsiTextRef::from(constants_str::VALUE_22233BC3));
     assert_eq!(clean.0, "plain red tail");
     assert_eq!(
         super::strip_ansi_codes(super::AnsiTextRef::from("plain")).0,
@@ -11,10 +9,9 @@ fn ansi_cleanup_handles_multiple_and_unterminated_sequences() {
 }
 #[test]
 fn memusage_parsers_distinguish_values_and_missing_fields() {
-    let text = super::CleanAnsiText::try_from(String::from(
-        "Heap total: 1,234 bytes\nmalloc | 7 89 0\nfree | 6 78\n",
-    ))
-    .expect("afa44055 memusage_parsers_distinguish_values_and_missing_fields invariant must hold");
+    let text = super::CleanAnsiText::try_from(String::from(constants_str::VALUE_D36CD261)).expect(
+        "afa44055 memusage_parsers_distinguish_values_and_missing_fields invariant must hold",
+    );
     assert_eq!(
         super::memusage_heap_value(&text, super::MemusageKey::from("Heap total:")).get(),
         "1"

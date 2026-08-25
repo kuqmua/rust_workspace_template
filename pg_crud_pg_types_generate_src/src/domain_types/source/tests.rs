@@ -41,5 +41,6 @@ fn generated_type_list_deserialization_rejects_too_many_entries() {
     .expect(
         "7cd2e0af generated_type_list_deserialization_rejects_too_many_entries invariant must hold",
     );
-    let _error = serde_json::from_str::<super::GeneratePgTypes>(&serialized).expect_err("40b96aa2");
+    let _error = serde_json::from_str::<super::GeneratePgTypes>(&serialized)
+        .expect_err(constants_str::VALUE_28B750CB);
 }

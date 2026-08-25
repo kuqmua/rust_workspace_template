@@ -33,26 +33,14 @@ pub(crate) enum AdminCardVariant {
 impl AdminCardVariant {
     fn class(self) -> &'static str {
         match self {
-            Self::Default => {
-                "ui-card flex flex-col gap-4 rounded-xl border bg-card py-6 text-card-foreground shadow-sm"
-            }
+            Self::Default => constants_str::VALUE_417CCDBE,
             #[cfg(not(target_arch = "wasm32"))]
-            Self::Auth => {
-                "ui-card auth-card flex flex-col gap-4 rounded-xl border bg-card py-6 text-card-foreground shadow-sm"
-            }
+            Self::Auth => constants_str::VALUE_A8036BFC,
             #[cfg(not(target_arch = "wasm32"))]
-            Self::Code => {
-                "ui-card code-card flex flex-col gap-4 rounded-xl border bg-card py-6 text-card-foreground shadow-sm"
-            }
-            Self::Profile => {
-                "ui-card profile-card flex flex-col gap-4 rounded-xl border bg-card py-6 text-card-foreground shadow-sm"
-            }
-            Self::Security => {
-                "ui-card security-card flex flex-col gap-4 rounded-xl border bg-card py-6 text-card-foreground shadow-sm"
-            }
-            Self::Settings => {
-                "ui-card settings-card flex flex-col gap-4 rounded-xl border bg-card py-6 text-card-foreground shadow-sm"
-            }
+            Self::Code => constants_str::VALUE_1FDF161B,
+            Self::Profile => constants_str::VALUE_51A2D8C6,
+            Self::Security => constants_str::VALUE_140F31FA,
+            Self::Settings => constants_str::VALUE_48A99713,
         }
     }
 }

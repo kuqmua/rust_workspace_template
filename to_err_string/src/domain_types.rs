@@ -152,12 +152,13 @@ mod tests {
             .expect("11a745a8 error_text_owns_the_shared_length_invariant invariant must hold");
         assert_eq!(valid.as_ref(), constants_str::ERROR);
 
-        let oversized = "x".repeat(super::ERROR_TEXT_MAX_LEN.saturating_add(constants_usize::ONE));
+        let oversized =
+            constants_str::X.repeat(super::ERROR_TEXT_MAX_LEN.saturating_add(constants_usize::ONE));
         let _conversion_error =
-            super::ErrorText::try_from(oversized.clone()).expect_err("06920f8a");
+            super::ErrorText::try_from(oversized.clone()).expect_err(constants_str::VALUE_DFA2D703);
         let serialized = serde_json::to_string(&oversized)
             .expect("fe92c1a6 error_text_owns_the_shared_length_invariant invariant must hold");
-        let _deserialization_error =
-            serde_json::from_str::<super::ErrorText>(serialized.as_str()).expect_err("a21a0577");
+        let _deserialization_error = serde_json::from_str::<super::ErrorText>(serialized.as_str())
+            .expect_err(constants_str::VALUE_2377E790);
     }
 }

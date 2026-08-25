@@ -341,10 +341,12 @@ mod tests {
                 super::TrustedProxyRangeParseError::MissingPrefix
             ))
         ));
-        let empty = super::parse_trusted_proxy_ranges(super::TrustedProxyRangesTextRef::from(" "))
-            .expect(
-                "639128ba trusted_proxy_ranges_text_rejects_empty_list_entries invariant must hold",
-            );
+        let empty = super::parse_trusted_proxy_ranges(super::TrustedProxyRangesTextRef::from(
+            constants_str::SPACE,
+        ))
+        .expect(
+            "639128ba trusted_proxy_ranges_text_rejects_empty_list_entries invariant must hold",
+        );
         assert_eq!(empty, super::TrustedProxyRanges::default());
     }
     #[test]

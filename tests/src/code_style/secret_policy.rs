@@ -6,8 +6,8 @@ struct SecretBoxStringVisitor {
 impl<'ast> syn::visit::Visit<'ast> for SecretBoxStringVisitor {
     fn visit_macro(&mut self, i: &'ast syn::Macro) {
         let tokens = i.tokens.to_string();
-        if tokens.contains("SecretBox < String >")
-            || tokens.contains("SecretBox < std :: string :: String >")
+        if tokens.contains(constants_str::VALUE_27E33079)
+            || tokens.contains(constants_str::VALUE_B7FC9172)
         {
             self.found_count.saturating_inc();
         }
@@ -49,10 +49,8 @@ fn type_secret_box_argument_identifier(ty: &syn::Type) -> Option<&syn::Ident> {
 #[test]
 fn secret_boxes_do_not_use_raw_string_anywhere_in_repository() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr::from("6c5a524e"),
-        super::types::SourceTextRef::from(
-            "SecretBox generic parameters must use a bounded string wrapper",
-        ),
+        super::types::StaticStr::from(constants_str::VALUE_3B1BC5FE),
+        super::types::SourceTextRef::from(constants_str::VALUE_820D50A4),
         |path, ast, errors| {
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
@@ -61,7 +59,7 @@ fn secret_boxes_do_not_use_raw_string_anywhere_in_repository() {
             super::push_repeated_file_error(
                 super::types::DiagnosticMsgsMutRef::from(errors),
                 super::types::PathRef::from(path),
-                super::types::SourceTextRef::from("SecretBox<String>"),
+                super::types::SourceTextRef::from(constants_str::VALUE_05D8F7AC),
                 visitor.found_count,
             );
         },
@@ -69,21 +67,19 @@ fn secret_boxes_do_not_use_raw_string_anywhere_in_repository() {
 }
 #[test]
 fn repository_secret_box_policy_rejects_raw_string_generic_argument() {
-    let raw = syn::parse_str::<syn::Type>("secrecy::SecretBox<String>").expect("35a98aea repository_secret_box_policy_rejects_raw_string_generic_argument invariant must hold");
+    let raw = syn::parse_str::<syn::Type>(constants_str::VALUE_02D2E24C).expect("35a98aea repository_secret_box_policy_rejects_raw_string_generic_argument invariant must hold");
     let qualified =
-        syn::parse_str::<syn::Type>("secrecy::SecretBox<std::string::String>").expect("28cd22e6 repository_secret_box_policy_rejects_raw_string_generic_argument invariant must hold");
+        syn::parse_str::<syn::Type>(constants_str::VALUE_171D86A4).expect("28cd22e6 repository_secret_box_policy_rejects_raw_string_generic_argument invariant must hold");
     let bounded =
-        syn::parse_str::<syn::Type>("secrecy::SecretBox<StdAdminString>").expect("f7fc1398 repository_secret_box_policy_rejects_raw_string_generic_argument invariant must hold");
+        syn::parse_str::<syn::Type>(constants_str::VALUE_5BF4FAD8).expect("f7fc1398 repository_secret_box_policy_rejects_raw_string_generic_argument invariant must hold");
     assert!(type_is_secret_box_string(&raw));
     assert!(type_is_secret_box_string(&qualified));
     assert!(!type_is_secret_box_string(&bounded));
 }
 #[test]
 fn repository_secret_box_policy_checks_generated_tokens() {
-    let ast = syn::parse_file(
-        "fn generated() { quote::quote! { struct Secret(secrecy::SecretBox<String>); }; }",
-    )
-    .expect("47bf1cf6 generated invariant must hold");
+    let ast = syn::parse_file(constants_str::VALUE_53E9A56F)
+        .expect("47bf1cf6 generated invariant must hold");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         SecretBoxStringVisitor::default(),

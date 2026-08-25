@@ -204,7 +204,7 @@ mod tests {
     async fn administrator_asset_route_preserves_static_file_serving() {
         let response = tower::ServiceExt::oneshot(
             axum::Router::from(server_admin_frontend::domain_types::routes()),
-            axum::http::Request::get("/admin/assets/style.css")
+            axum::http::Request::get(constants_str::VALUE_688DB289)
                 .body(axum::body::Body::empty())
                 .expect("d694b6f6 administrator_asset_route_preserves_static_file_serving invariant must hold"),
         )
@@ -225,9 +225,10 @@ mod tests {
                     )
                     .fallback(async || axum::http::StatusCode::IM_A_TEAPOT),
             ),
-            super::AxumApiRoutes::from(
-                axum::Router::new().route("/probe", axum::routing::get(async || "api")),
-            ),
+            super::AxumApiRoutes::from(axum::Router::new().route(
+                constants_str::VALUE_87D0B7F8,
+                axum::routing::get(async || constants_str::VALUE_14C2529E),
+            )),
             super::HttpBodyMaximumBytes::from(1_024usize),
         ))
         .merge(axum::Router::from(
@@ -268,7 +269,7 @@ mod tests {
         let response = tower::ServiceExt::oneshot(
             axum::Router::from(crate::adapters::routing::frontend_fallback_routes()),
             axum::http::Request::builder()
-                .uri("/missing-page")
+                .uri(constants_str::VALUE_10D40EF4)
                 .body(axum::body::Body::empty())
                 .expect("cfe228d8 missing_page_redirects_to_default_authentication_page invariant must hold"),
         )

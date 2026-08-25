@@ -190,7 +190,10 @@ pub(super) struct UnitTestExternalServiceVisitor {
 impl<'ast> syn::visit::Visit<'ast> for UnitTestExternalServiceVisitor {
     fn visit_expr_method_call(&mut self, i: &'ast syn::ExprMethodCall) {
         if self.test_depth.get() != 0
-            && matches!(i.method.to_string().as_str(), "connect" | "connect_with")
+            && matches!(
+                i.method.to_string().as_str(),
+                constants_str::CONNECT | constants_str::VALUE_3DFFA238
+            )
         {
             self.ers.push(format!(
                 "unit tests must not connect to an external service with `.{}()`",
@@ -212,7 +215,7 @@ impl<'ast> syn::visit::Visit<'ast> for UnitTestExternalServiceVisitor {
     }
     fn visit_item_fn(&mut self, i: &'ast syn::ItemFn) {
         if i.attrs.iter().any(|attribute| {
-            attribute.path().is_ident("ignore")
+            attribute.path().is_ident(constants_str::VALUE_5F0AF516)
                 && matches!(
                     &attribute.meta,
                     syn::Meta::NameValue(name_value)

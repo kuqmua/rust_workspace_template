@@ -205,9 +205,7 @@ fn tuple_wrappers_do_not_expose_inner_field() {
 fn tuple_wrapper_deserialization_uses_from_or_try_from() {
     super::assert_rs_ast_ers_empty_with_ctx(
         super::types::StaticStr::from(constants_str::B7C84E2A),
-        super::types::SourceTextRef::from(
-            "tuple wrapper Deserialize must initialize through From or TryFrom",
-        ),
+        super::types::SourceTextRef::from(constants_str::VALUE_532F14A8),
         |path, ast, ers| {
             let collector = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
@@ -328,9 +326,7 @@ fn tuple_wrapper_deserialization_policy_rejects_direct_derive() {
 fn tuple_wrappers_initialize_only_through_from_or_try_from() {
     super::assert_rs_ast_ers_empty_with_ctx(
         super::types::StaticStr::from(constants_str::B7C84E2A),
-        super::types::SourceTextRef::from(
-            "tuple wrappers must initialize only through From or TryFrom",
-        ),
+        super::types::SourceTextRef::from(constants_str::VALUE_15F71E67),
         |path, ast, ers| {
             let collector = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
@@ -632,7 +628,7 @@ fn domain_fixture_directory_exclusions_are_owner_exact() {
 }
 #[test]
 fn domain_type_policy_reports_raw_browser_external_types_natively() {
-    let ast = syn::parse_file("fn browser(response: web_sys::Response) {}")
+    let ast = syn::parse_file(constants_str::VALUE_B7CF0D16)
         .expect("d031ea92 browser invariant must hold");
     let repo_crates = std::collections::BTreeSet::new();
     let repo_types = std::collections::BTreeSet::new();
@@ -662,10 +658,8 @@ fn domain_type_policy_reports_raw_browser_external_types_natively() {
 }
 #[test]
 fn proc_macro_helpers_are_checked_while_compiler_entrypoints_are_exempt() {
-    let ast = syn::parse_file(
-        "#[proc_macro]\npub fn entry(input: proc_macro::TokenStream) -> proc_macro::TokenStream { input }\nfn helper(values: Vec<String>) {}",
-    )
-    .expect("5a1d8c34 entry invariant must hold");
+    let ast =
+        syn::parse_file(constants_str::VALUE_1FB67C5A).expect("5a1d8c34 entry invariant must hold");
     let repo_crates = std::collections::BTreeSet::new();
     let repo_types = std::collections::BTreeSet::new();
     let visitor = super::visit_syn_file(
@@ -733,10 +727,10 @@ fn domain_type_policy_allows_only_option_and_result_containers() {
     };
     let repo_crates = std::collections::BTreeSet::new();
     let repo_types = std::collections::BTreeSet::from([
-        String::from("AdminError"),
-        String::from("AdminRole"),
-        String::from("Allowed"),
-        String::from("Rejected"),
+        String::from(constants_str::VALUE_ACE3D828),
+        String::from(constants_str::VALUE_81BBD51A),
+        String::from(constants_str::VALUE_1BB201D1),
+        String::from(constants_str::VALUE_AEA4A04A),
     ]);
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),

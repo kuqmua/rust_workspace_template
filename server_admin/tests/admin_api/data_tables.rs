@@ -3,13 +3,13 @@
 async fn postgresql_data_table_api_reads_every_public_field_from_every_table() {
     let fixture = admin_html_test_fixture().await;
     let _cleanup_status = sqlx::query(
-        "INSERT INTO cleanup_status (singleton, last_success_at, last_deleted_rows) VALUES (TRUE, NOW(), 0) ON CONFLICT (singleton) DO UPDATE SET last_success_at = EXCLUDED.last_success_at, last_deleted_rows = EXCLUDED.last_deleted_rows",
+        constants_str::VALUE_6E1CBD4B,
     )
     .execute(&fixture.pool.0)
     .await
     .expect("70dfa001 postgresql_data_table_api_reads_every_public_field_from_every_table invariant must hold");
     let _rate_limit = sqlx::query(
-        "INSERT INTO rate_limits (scope, subject, request_count) VALUES ('api_field_test', 'api_field_test', 1) ON CONFLICT (scope, subject) DO UPDATE SET request_count = EXCLUDED.request_count",
+        constants_str::VALUE_91A1975C,
     )
     .execute(&fixture.pool.0)
     .await

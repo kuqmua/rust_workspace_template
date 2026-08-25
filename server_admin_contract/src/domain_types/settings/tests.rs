@@ -126,17 +126,19 @@ fn catalog_covers_read_and_update_wire_fields() {
         .map(|setting| setting.spec().name().as_ref().to_owned())
         .collect::<std::collections::BTreeSet<_>>();
     let mut expected_update_fields = setting_fields.clone();
-    let _inserted = expected_update_fields.insert(String::from("clear"));
+    let _inserted = expected_update_fields.insert(String::from(constants_str::VALUE_913A4CB9));
     assert_eq!(update_fields, expected_update_fields);
 
     let view = super::AdminSettingsView::new(
-        crate::domain_types::AdminDefaultRoute::try_from(String::from("/admin/users"))
-            .expect("b6831fd4 catalog_covers_read_and_update_wire_fields invariant must hold"),
+        crate::domain_types::AdminDefaultRoute::try_from(String::from(
+            constants_str::VALUE_074B6E5E,
+        ))
+        .expect("b6831fd4 catalog_covers_read_and_update_wire_fields invariant must hold"),
         None,
         None,
         None,
         None,
-        crate::domain_types::AdminSiteName::try_from(String::from("Admin"))
+        crate::domain_types::AdminSiteName::try_from(String::from(constants_str::ADMIN))
             .expect("e15c7a93 catalog_covers_read_and_update_wire_fields invariant must hold"),
         None,
         None,

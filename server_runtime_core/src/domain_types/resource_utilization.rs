@@ -207,7 +207,8 @@ mod tests {
     }
     #[test]
     fn percentage_rejects_values_above_one_hundred() {
-        let _error = super::ResourceUtilizationPercent::try_from(101u8).expect_err("7ba1d197");
+        let _error = super::ResourceUtilizationPercent::try_from(101u8)
+            .expect_err(constants_str::VALUE_F7C27C6F);
         assert_eq!(
             super::ResourceUtilizationPercent::try_from(100u8)
                 .expect("f17abeab percentage_rejects_values_above_one_hundred invariant must hold")

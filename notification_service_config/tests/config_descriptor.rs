@@ -14,7 +14,7 @@ mod tests {
     fn descriptor_service_port() -> u16 {
         let mut socket_addresses = descriptor_examples()
             .into_iter()
-            .filter(|(name, _value)| name.ends_with("_SERVICE_SOCKET_ADDRESS"))
+            .filter(|(name, _value)| name.ends_with(constants_str::VALUE_E0071B88))
             .map(|(_name, value)| value);
         let socket_address = socket_addresses
             .next()
@@ -41,7 +41,7 @@ mod tests {
         std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
             .file_name()
             .and_then(std::ffi::OsStr::to_str)
-            .and_then(|name| name.strip_suffix("_config"))
+            .and_then(|name| name.strip_suffix(constants_str::VALUE_C48F2769))
             .map(str::to_owned)
             .expect("f53ffbf0 service_name invariant must hold")
             .into_boxed_str()
@@ -50,7 +50,8 @@ mod tests {
     #[test]
     #[allow(clippy::needless_for_each)] // iterator form is required by the workspace no-for-loop policy
     fn env_example_matches_generated_descriptor() {
-        let example_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(".env.example");
+        let example_path =
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(constants_str::ENV_EXAMPLE);
         if std::env::var_os(constants_str::UPDATE_CONFIG_PROJECTIONS).is_some() {
             std::fs::write(
                 example_path.as_path(),
@@ -93,20 +94,20 @@ mod tests {
 
     #[test]
     fn compose_environment_keys_match_generated_descriptor() {
-        let compose_source = repository_file(std::path::Path::new("docker-compose.yml"));
+        let compose_source = repository_file(std::path::Path::new(constants_str::VALUE_E45E45BA));
         let service = compose_source
-            .split_once("  notification_service:\n")
+            .split_once(constants_str::VALUE_3D732A3D)
             .map(|(_before, service)| service)
             .and_then(|service| {
                 service
-                    .split_once("    healthcheck:\n")
+                    .split_once(constants_str::VALUE_A71DB4E8)
                     .map(|(env, _after)| env)
             })
             .expect(
                 "f30296b7 compose_environment_keys_match_generated_descriptor invariant must hold",
             );
         let environment = service
-            .split_once("    environment:\n")
+            .split_once(constants_str::VALUE_22746334)
             .map(|(_before, environment)| environment)
             .expect(
                 "0a7b014c compose_environment_keys_match_generated_descriptor invariant must hold",
@@ -130,7 +131,7 @@ mod tests {
     #[allow(clippy::needless_for_each)] // workspace source policy forbids for loops
     fn deployment_ports_match_generated_descriptor() {
         let port = descriptor_service_port();
-        let compose_source = repository_file(std::path::Path::new("docker-compose.yml"));
+        let compose_source = repository_file(std::path::Path::new(constants_str::VALUE_E45E45BA));
         [
             format!("NOTIFICATION_SERVICE_SOCKET_ADDRESS: \"0.0.0.0:{port}\""),
             format!("http://127.0.0.1:{port}/health/ready"),
@@ -139,9 +140,8 @@ mod tests {
         .into_iter()
         .for_each(|expected| assert!(compose_source.contains(expected.as_str()), "0eea7688"));
 
-        let deployment_source = repository_file(std::path::Path::new(
-            "deploy/k8s/base/notification-service.yaml",
-        ));
+        let deployment_source =
+            repository_file(std::path::Path::new(constants_str::VALUE_09101A6F));
         assert_eq!(
             deployment_source
                 .matches(format!("containerPort: {port}").as_str())
@@ -158,9 +158,8 @@ mod tests {
             "79fb8442"
         );
 
-        let network_policy_source = repository_file(std::path::Path::new(
-            "deploy/k8s/base/network-policies.yaml",
-        ));
+        let network_policy_source =
+            repository_file(std::path::Path::new(constants_str::VALUE_7C89676C));
         assert_eq!(
             network_policy_source
                 .lines()
@@ -174,7 +173,8 @@ mod tests {
     #[test]
     fn service_image_references_follow_the_config_crate_name() {
         let service_name = service_name();
-        let dockerfile = std::path::PathBuf::from(service_name.as_ref()).join("Dockerfile");
+        let dockerfile =
+            std::path::PathBuf::from(service_name.as_ref()).join(constants_str::VALUE_DD2C0EB6);
         assert!(
             std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
                 .parent()
@@ -186,17 +186,19 @@ mod tests {
         let dockerfile_text = dockerfile.to_str().expect(
             "abc73cd7 service_image_references_follow_the_config_crate_name invariant must hold",
         );
-        let compose_source = repository_file(std::path::Path::new("docker-compose.yml"));
+        let compose_source = repository_file(std::path::Path::new(constants_str::VALUE_E45E45BA));
         assert!(
             compose_source.contains(format!("dockerfile: {dockerfile_text}").as_str()),
             "639c8124"
         );
-        let ci_source = repository_file(std::path::Path::new(".github/workflows/ci.yml"));
+        let ci_source = repository_file(std::path::Path::new(
+            constants_str::CODE_STYLE_CI_WORKFLOW_PATH,
+        ));
         assert!(
             ci_source.contains(format!("dockerfile: {dockerfile_text}").as_str()),
             "22e74268"
         );
-        let release_source = repository_file(std::path::Path::new(".github/workflows/release.yml"));
+        let release_source = repository_file(std::path::Path::new(constants_str::VALUE_87DB21A9));
         assert!(
             release_source.contains(format!("dockerfile: {dockerfile_text}").as_str()),
             "f4cd7ec6"

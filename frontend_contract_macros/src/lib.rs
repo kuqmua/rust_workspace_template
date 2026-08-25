@@ -1184,7 +1184,7 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
     let operation_name = literal_operation_name.unwrap_or_else(|| {
         let identifier_value = identifier.to_string();
         identifier_value
-            .strip_suffix("Route")
+            .strip_suffix(constants_str::VALUE_ADC74704)
             .unwrap_or(identifier_value.as_str())
             .chars()
             .enumerate()

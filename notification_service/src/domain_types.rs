@@ -406,8 +406,8 @@ mod tests {
             http::Request::builder()
                 .method(create_metadata.method().as_ref())
                 .uri(create_metadata.path().as_ref())
-                .header(http::header::CONTENT_TYPE, "application/json")
-                .body(axum::body::Body::from("{"))
+                .header(http::header::CONTENT_TYPE, constants_str::APPLICATION_JSON)
+                .body(axum::body::Body::from(constants_str::TEXT_ALT_13))
                 .expect(
                     "4ac710e9 default_service_routes_return_success_statuses invariant must hold",
                 ),

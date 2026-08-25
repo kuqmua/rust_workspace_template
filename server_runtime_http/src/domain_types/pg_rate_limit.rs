@@ -159,14 +159,15 @@ mod tests {
     }
     #[test]
     fn scope_and_subject_accept_exact_limit_and_reject_excess() {
-        let exact = "a".repeat(super::PG_RATE_LIMIT_KEY_PART_MAX_LEN);
+        let exact = constants_str::A_ALT.repeat(super::PG_RATE_LIMIT_KEY_PART_MAX_LEN);
         let _scope = super::PgRateLimitScopeRef::try_from(exact.as_str()).expect(
             "1b100a47 scope_and_subject_accept_exact_limit_and_reject_excess invariant must hold",
         );
         let _subject = super::PgRateLimitSubjectRef::try_from(exact.as_str()).expect(
             "082e2933 scope_and_subject_accept_exact_limit_and_reject_excess invariant must hold",
         );
-        let excess = "a".repeat(super::PG_RATE_LIMIT_KEY_PART_MAX_LEN + constants_usize::ONE);
+        let excess = constants_str::A_ALT
+            .repeat(super::PG_RATE_LIMIT_KEY_PART_MAX_LEN + constants_usize::ONE);
         assert_eq!(
             super::PgRateLimitScopeRef::try_from(excess.as_str()),
             Err(super::PgRateLimitValidationError::KeyPartTooLong)

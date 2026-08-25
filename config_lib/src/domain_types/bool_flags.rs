@@ -99,7 +99,7 @@ mod tests {
     fn boolean_flags_share_strict_boolean_parsing() {
         let enabled =
             <super::HttpGzipEnabled as super::super::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
-                super::super::StdEnvVarOk::try_from(String::from("true")).expect(
+                super::super::StdEnvVarOk::try_from(String::from(constants_str::TRUE)).expect(
                     "ea35fb71 boolean_flags_share_strict_boolean_parsing invariant must hold",
                 ),
             )
@@ -107,7 +107,7 @@ mod tests {
         assert!(enabled.0);
         let invalid =
             <super::ProductionMode as super::super::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
-                super::super::StdEnvVarOk::try_from(String::from("1")).expect(
+                super::super::StdEnvVarOk::try_from(String::from(constants_str::VALUE_1)).expect(
                     "ab9ec621 boolean_flags_share_strict_boolean_parsing invariant must hold",
                 ),
             );

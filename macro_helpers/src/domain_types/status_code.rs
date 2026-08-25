@@ -477,33 +477,33 @@ mod tests {
         let cases = [
             (
                 super::StatusCode::Continue100,
-                "100",
-                "http :: StatusCode :: CONTINUE",
-                "\"continue\"",
+                constants_str::VALUE_100,
+                constants_str::VALUE_EC8654E0,
+                constants_str::VALUE_5638DD6B,
             ),
             (
                 super::StatusCode::Ok200,
-                "200",
-                "http :: StatusCode :: OK",
-                "\"ok\"",
+                constants_str::VALUE_200,
+                constants_str::VALUE_54DA51BC,
+                constants_str::VALUE_C48B5B1A,
             ),
             (
                 super::StatusCode::PermanentRedirect308,
-                "308",
-                "http :: StatusCode :: PERMANENT_REDIRECT",
-                "\"permanent redirect\"",
+                constants_str::VALUE_48A1706E,
+                constants_str::VALUE_E02F9F2F,
+                constants_str::VALUE_DE99DE17,
             ),
             (
                 super::StatusCode::ImATeapot418,
-                "418",
-                "http :: StatusCode :: IM_A_TEAPOT",
-                "\"im a teapot\"",
+                constants_str::VALUE_4C8D5B6C,
+                constants_str::VALUE_53E089DB,
+                constants_str::VALUE_68F422DB,
             ),
             (
                 super::StatusCode::NetworkAuthenticationRequired511,
-                "511",
-                "http :: StatusCode :: NETWORK_AUTHENTICATION_REQUIRED",
-                "\"network authentication required\"",
+                constants_str::VALUE_2C69BC9B,
+                constants_str::VALUE_4A158E80,
+                constants_str::VALUE_79DFA927,
             ),
         ];
         cases

@@ -7,16 +7,17 @@ use super::{test_admin, test_branding};
 fn generated_column_metadata_drives_data_table_markup() {
     let columns = server_admin_contract::domain_types::AdminDataColumns::try_from(vec![
         server_admin_contract::domain_types::AdminDataColumn::new(
-            server_admin_contract::domain_types::AdminDataFilters::try_from(Vec::new()).expect(
-                "2239fb0a generated_column_metadata_drives_data_table_markup invariant must hold",
-            ),
+            server_admin_contract::domain_types::AdminDataFilters::try_from(Vec::new())
+                .expect(constants_str::VALUE_D0BD1ECC),
             server_admin_contract::domain_types::AdminDataInputKind::Number,
-            server_admin_contract::domain_types::AdminText::try_from(String::from("User identifier")).expect(
-                "f707908b generated_column_metadata_drives_data_table_markup invariant must hold",
-            ),
-            server_admin_contract::domain_types::AdminText::try_from(String::from("id")).expect(
-                "694184c1 generated_column_metadata_drives_data_table_markup invariant must hold",
-            ),
+            server_admin_contract::domain_types::AdminText::try_from(String::from(
+                constants_str::VALUE_1D438D9B,
+            ))
+            .expect(constants_str::VALUE_46CE1BB0),
+            server_admin_contract::domain_types::AdminText::try_from(String::from(
+                constants_str::SQL_NAMES_ID,
+            ))
+            .expect(constants_str::VALUE_81310A83),
         ),
         server_admin_contract::domain_types::AdminDataColumn::new(
             server_admin_contract::domain_types::AdminDataFilters::try_from(vec![
@@ -30,26 +31,28 @@ fn generated_column_metadata_drives_data_table_markup() {
                     frontend_contract::domain_types::FilterOperation::Between,
                 ),
             ])
-            .expect(
-                "5ba25cf7 generated_column_metadata_drives_data_table_markup invariant must hold",
-            ),
+            .expect(constants_str::VALUE_4C7734E6),
             server_admin_contract::domain_types::AdminDataInputKind::Text,
-            server_admin_contract::domain_types::AdminText::try_from(String::from("Login name")).expect(
-                "0336b6ad generated_column_metadata_drives_data_table_markup invariant must hold",
-            ),
-            server_admin_contract::domain_types::AdminText::try_from(String::from("login")).expect(
-                "fdcaa4d2 generated_column_metadata_drives_data_table_markup invariant must hold",
-            ),
+            server_admin_contract::domain_types::AdminText::try_from(String::from(
+                constants_str::VALUE_B2D6201D,
+            ))
+            .expect(constants_str::VALUE_EC14A0FD),
+            server_admin_contract::domain_types::AdminText::try_from(String::from(
+                constants_str::LOGIN,
+            ))
+            .expect(constants_str::VALUE_6A1237E9),
         ),
     ])
     .expect("57462ad9 generated_column_metadata_drives_data_table_markup invariant must hold");
     let values = server_admin_contract::domain_types::AdminTexts::try_from(vec![
-        server_admin_contract::domain_types::AdminText::try_from(String::from("42")).expect(
-            "32862269 generated_column_metadata_drives_data_table_markup invariant must hold",
-        ),
-        server_admin_contract::domain_types::AdminText::try_from(String::from("alice")).expect(
-            "77e6370f generated_column_metadata_drives_data_table_markup invariant must hold",
-        ),
+        server_admin_contract::domain_types::AdminText::try_from(String::from(
+            constants_str::VALUE_42,
+        ))
+        .expect(constants_str::VALUE_1DF3FF47),
+        server_admin_contract::domain_types::AdminText::try_from(String::from(
+            constants_str::VALUE_2BD806C9,
+        ))
+        .expect(constants_str::VALUE_BED65ED1),
     ])
     .expect("58fed1d1 generated_column_metadata_drives_data_table_markup invariant must hold");
     let rows = server_admin_contract::domain_types::AdminDataRows::try_from(vec![
@@ -89,12 +92,12 @@ fn generated_column_metadata_drives_data_table_markup() {
     let query = server_admin_contract::domain_types::AdminDataTableQuery::new(
         server_admin_contract::domain_types::AdminDataTableFilterQuery::new(
             Some(
-                server_admin_contract::domain_types::AdminFilterField::try_from(String::from("login"))
+                server_admin_contract::domain_types::AdminFilterField::try_from(String::from(constants_str::LOGIN))
                     .expect("774bc583 generated_column_metadata_drives_data_table_markup invariant must hold"),
             ),
             Some(frontend_contract::domain_types::FilterOperation::Eq),
             Some(
-                server_admin_contract::domain_types::AdminFilterValue::try_from(String::from("alice"))
+                server_admin_contract::domain_types::AdminFilterValue::try_from(String::from(constants_str::VALUE_2BD806C9))
                     .expect("63d17f8e generated_column_metadata_drives_data_table_markup invariant must hold"),
             ),
             None,
@@ -115,10 +118,10 @@ fn generated_column_metadata_drives_data_table_markup() {
     assert!(!filters_html.as_ref().contains("table-filter-tools"));
     let (_before_login, login_tail) = filters_html
         .as_ref()
-        .split_once("data-field=\"login\"")
+        .split_once(constants_str::VALUE_3837854C)
         .expect("45b73477 generated_column_metadata_drives_data_table_markup invariant must hold");
     let (login_header, _after_login) = login_tail
-        .split_once("</th>")
+        .split_once(constants_str::VALUE_25C350AC)
         .expect("e8120a92 generated_column_metadata_drives_data_table_markup invariant must hold");
     assert!(login_header.contains("class=\"table-column-filter\""));
     assert!(login_header.contains("data-name=\"Popover\""));
@@ -126,10 +129,10 @@ fn generated_column_metadata_drives_data_table_markup() {
     assert!(login_header.contains("data-name=\"RadioButtonGroup\""));
     let (_before_id, id_tail) = filters_html
         .as_ref()
-        .split_once("data-field=\"id\"")
+        .split_once(constants_str::VALUE_469219C9)
         .expect("c8a92ef4 generated_column_metadata_drives_data_table_markup invariant must hold");
     let (id_header, _after_id) = id_tail
-        .split_once("</th>")
+        .split_once(constants_str::VALUE_25C350AC)
         .expect("58cdf783 generated_column_metadata_drives_data_table_markup invariant must hold");
     assert!(!id_header.contains("class=\"table-column-filter\""));
     assert!(
@@ -180,15 +183,15 @@ fn generated_column_metadata_drives_data_table_markup() {
     assert!(filters_html.as_ref().contains(">Clear</a>"));
     let apply_position = filters_html
         .as_ref()
-        .find(">Apply</button>")
+        .find(constants_str::VALUE_38228244)
         .expect("10c26d45 generated_column_metadata_drives_data_table_markup invariant must hold");
     let close_position = filters_html
         .as_ref()
-        .find(">Close</button>")
+        .find(constants_str::VALUE_0D4379EB)
         .expect("1542a5c3 generated_column_metadata_drives_data_table_markup invariant must hold");
     let clear_position = filters_html
         .as_ref()
-        .find(">Clear</a>")
+        .find(constants_str::VALUE_BD7A6256)
         .expect("58f35e11 generated_column_metadata_drives_data_table_markup invariant must hold");
     assert!(close_position > apply_position);
     assert!(clear_position > apply_position);

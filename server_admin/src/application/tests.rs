@@ -60,11 +60,11 @@ fn server_error_response_preserves_http_diagnostic() {
     let problem = serde_json::from_slice::<serde_json::Value>(&body)
         .expect("1e7ec09d server_error_response_preserves_http_diagnostic invariant must hold");
     [
-        "location",
-        "error_location",
-        "backtrace",
-        "error_chain",
-        "span_trace",
+        constants_str::LOCATION_ALT,
+        constants_str::VALUE_31755A3B,
+        constants_str::VALUE_265EE18A,
+        constants_str::VALUE_4C133E94,
+        constants_str::VALUE_86846B4A,
     ]
     .into_iter()
     .for_each(|private_field| {

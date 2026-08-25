@@ -6,7 +6,7 @@
 #[test]
 fn crate_names_follow_workspace_vocabulary() {
     super::assert_crate_manifest_cargo_policy(
-        super::types::StaticStr::from("4d505e93"),
+        super::types::StaticStr::from(constants_str::VALUE_4CE7AB5C),
         |path, parsed, ers| {
             let Some(name) = parsed
                 .get(constants_str::PACKAGE)
@@ -21,9 +21,13 @@ fn crate_names_follow_workspace_vocabulary() {
             let has_nonstandard_word = name.split('_').any(|part| {
                 matches!(
                     part,
-                    "development" | "environment" | "postgresql" | "getter" | "getters"
+                    constants_str::VALUE_875B9380
+                        | constants_str::VALUE_BA528516
+                        | constants_str::POSTGRESQL
+                        | constants_str::VALUE_D665A09C
+                        | constants_str::VALUE_F4853BC8
                 )
-            }) || name.contains("macros_helpers");
+            }) || name.contains(constants_str::VALUE_2C90A5F7);
             if !valid_chars || has_nonstandard_word {
                 ers.push(format!(
                     "{}: crate `{name}` must use snake_case workspace vocabulary (`dev`, `env`, `pg`, `accessor`, `macro_helpers`)",
@@ -101,13 +105,13 @@ fn all_crates_use_edition_2024() {
 #[test]
 fn all_crates_inherit_shared_package_metadata() {
     super::assert_crate_manifest_cargo_policy(
-        super::types::StaticStr::from("26bd454d"),
+        super::types::StaticStr::from(constants_str::VALUE_EF65E2D1),
         |path, parsed, ers| {
             [
-                "version",
+                constants_str::VERSION_ALT_3,
                 constants_str::PUBLISH,
-                "repository",
-                "license",
+                constants_str::VALUE_E2885F2B,
+                constants_str::VALUE_CC1D3B02,
                 constants_str::EDITION,
             ]
             .into_iter()
@@ -153,7 +157,7 @@ fn external_workspace_dependencies_disable_default_features() {
                 .get(constants_str::DEPENDENCIES)
                 .expect("9ac9fb4c external_workspace_dependencies_disable_default_features invariant must hold"),
         ),
-        super::types::StaticStr::from("2db3165f"),
+        super::types::StaticStr::from(constants_str::VALUE_5EECAACC),
     );
     let violations = dependencies
         .as_ref()
@@ -174,23 +178,15 @@ fn external_workspace_dependencies_disable_default_features() {
 #[test]
 fn workspace_dependency_default_feature_policy_rejects_missing_and_true_values() {
     let valid = toml::from_str::<toml::Value>(
-        r#"[dependency]
-version = "=1.2.3"
-default-features = false
-"#,
+        constants_str::VALUE_ED42B9D4,
     )
     .expect("227e7634 workspace_dependency_default_feature_policy_rejects_missing_and_true_values invariant must hold");
     let missing = toml::from_str::<toml::Value>(
-        r#"[dependency]
-version = "=1.2.3"
-"#,
+        constants_str::VALUE_79152E94,
     )
     .expect("0e82eab4 workspace_dependency_default_feature_policy_rejects_missing_and_true_values invariant must hold");
     let enabled = toml::from_str::<toml::Value>(
-        r#"[dependency]
-version = "=1.2.3"
-default-features = true
-"#,
+        constants_str::VALUE_4CB11A6C,
     )
     .expect("e441c429 workspace_dependency_default_feature_policy_rejects_missing_and_true_values invariant must hold");
     assert!(
@@ -215,7 +211,13 @@ default-features = true
 #[test]
 fn workspace_uses_one_async_runtime() {
     super::snapshot::with_codebase_snapshot(|snapshot| {
-        let runtime_names = ["async-std", "glommio", "monoio", "smol", "tokio"];
+        let runtime_names = [
+            constants_str::VALUE_24C2D1FB,
+            constants_str::VALUE_B93D6F4A,
+            constants_str::VALUE_43677C71,
+            constants_str::VALUE_EC2B18D8,
+            constants_str::TOKIO,
+        ];
         let workspace_names = snapshot.workspace_crate_names();
         let used = snapshot
             .workspace_metadata()
@@ -247,7 +249,7 @@ fn workspace_crates_do_not_enable_default_features() {
             .filter_map(|package| {
                 package
                     .features
-                    .get("default")
+                    .get(constants_str::VALUE_37A8EEC1)
                     .filter(|features| !features.is_empty())
                     .map(|features| format!("{}: {features:?}", package.name))
             })
@@ -264,7 +266,7 @@ fn workspace_dependency_catalog_has_no_unused_entries() {
                 "3e0ac397 workspace_dependency_catalog_has_no_unused_entries invariant must hold",
             ),
         ),
-        super::types::StaticStr::from("0c6249e6"),
+        super::types::StaticStr::from(constants_str::VALUE_5EB013E8),
     );
     super::snapshot::with_codebase_snapshot(|snapshot| {
         let workspace_names = snapshot.workspace_crate_names();
@@ -349,96 +351,96 @@ fn library_crates_with_public_logic_own_tests() {
     }
     let exceptions = [
         TestOwnershipException {
-            crate_name: "app_state",
-            reason: "the crate is a facade over generated state traits",
+            crate_name: constants_str::VALUE_CA3132B2,
+            reason: constants_str::VALUE_0936B9F6,
         },
         TestOwnershipException {
-            crate_name: "config_lib_macros",
-            reason: "the proc-macro is exercised by config_lib integration tests",
+            crate_name: constants_str::CONFIG_LIB_MACROS,
+            reason: constants_str::VALUE_266462B1,
         },
         TestOwnershipException {
-            crate_name: "generate_accessor_traits_for_struct_fields",
-            reason: "the generator is exercised by config_lib compile-time expansion",
+            crate_name: constants_str::VALUE_198286F1,
+            reason: constants_str::VALUE_EE790765,
         },
         TestOwnershipException {
-            crate_name: "try_from_env",
-            reason: "the proc-macro is exercised by config_lib integration tests",
+            crate_name: constants_str::VALUE_BC0C50B5,
+            reason: constants_str::VALUE_266462B1,
         },
         TestOwnershipException {
-            crate_name: "location_macros",
-            reason: "the proc-macro is exercised by location_lib tests",
+            crate_name: constants_str::VALUE_B797AB3D,
+            reason: constants_str::VALUE_CBD059B2,
         },
         TestOwnershipException {
-            crate_name: "naming",
-            reason: "the crate is a facade over tested naming crates",
+            crate_name: constants_str::VALUE_3BD49AF7,
+            reason: constants_str::VALUE_1F27BD33,
         },
         TestOwnershipException {
-            crate_name: "naming_common_macros",
-            reason: "the generated macro surface is exercised by naming_common tests",
+            crate_name: constants_str::VALUE_C354B535,
+            reason: constants_str::VALUE_4F0D0D6A,
         },
         TestOwnershipException {
-            crate_name: "naming_macros",
-            reason: "the proc-macro is exercised by naming tests",
+            crate_name: constants_str::VALUE_B58CD11D,
+            reason: constants_str::VALUE_32955237,
         },
         TestOwnershipException {
-            crate_name: "optimal_memory_layout",
-            reason: "the proc-macro is exercised by downstream derive users",
+            crate_name: constants_str::VALUE_49A3E4A5,
+            reason: constants_str::VALUE_FCF0F5CE,
         },
         TestOwnershipException {
-            crate_name: "pg_crud_common_macros",
-            reason: "the macro surface is exercised by pg_crud_common tests",
+            crate_name: constants_str::VALUE_11CDC13C,
+            reason: constants_str::VALUE_50445A70,
         },
         TestOwnershipException {
-            crate_name: "pg_crud_macro_common",
-            reason: "the generator support crate is exercised by generated contract tests",
+            crate_name: constants_str::VALUE_2A9F7F88,
+            reason: constants_str::VALUE_2BAE5A74,
         },
         TestOwnershipException {
-            crate_name: "pg_crud_macro_common_macros",
-            reason: "the macro surface is exercised by generated CRUD tests",
+            crate_name: constants_str::VALUE_62CE157E,
+            reason: constants_str::VALUE_DE92495B,
         },
         TestOwnershipException {
-            crate_name: "generate_pg_table",
-            reason: "the proc-macro is exercised by generate_pg_table_test",
+            crate_name: constants_str::GENERATE_PG_TABLE,
+            reason: constants_str::VALUE_5035064F,
         },
         TestOwnershipException {
-            crate_name: "generate_pg_types",
-            reason: "the proc-macro is exercised by generate_pg_types_test",
+            crate_name: constants_str::CODE_STYLE_GENERATE_PG_TYPES_MACRO_NAME,
+            reason: constants_str::VALUE_2953C66F,
         },
         TestOwnershipException {
-            crate_name: "pg_types_chrono_net",
-            reason: "the crate exports generated PostgreSQL type adapters",
+            crate_name: constants_str::VALUE_E644078E,
+            reason: constants_str::VALUE_17A89871,
         },
         TestOwnershipException {
-            crate_name: "pg_types_common",
-            reason: "the crate exports generated PostgreSQL type adapters",
+            crate_name: constants_str::VALUE_D13E7908,
+            reason: constants_str::VALUE_17A89871,
         },
         TestOwnershipException {
-            crate_name: "pg_types_numeric",
-            reason: "the crate exports generated PostgreSQL type adapters",
+            crate_name: constants_str::VALUE_174C657A,
+            reason: constants_str::VALUE_17A89871,
         },
         TestOwnershipException {
-            crate_name: "pg_types_text_misc",
-            reason: "the crate exports generated PostgreSQL type adapters",
+            crate_name: constants_str::VALUE_A2832C3A,
+            reason: constants_str::VALUE_17A89871,
         },
         TestOwnershipException {
-            crate_name: "generate_where_filters",
-            reason: "the proc-macro is exercised by generate_where_filters_test",
+            crate_name: constants_str::CODE_STYLE_GENERATE_WHERE_FILTERS_MACRO_NAME,
+            reason: constants_str::VALUE_FCB0537D,
         },
         TestOwnershipException {
-            crate_name: "server_app_state_macros",
-            reason: "the proc-macro is exercised by server_app_state tests",
+            crate_name: constants_str::VALUE_25EADB03,
+            reason: constants_str::VALUE_25894D8E,
         },
         TestOwnershipException {
-            crate_name: "constants_str_macros",
-            reason: "the proc-macro is exercised by constants_str tests",
+            crate_name: constants_str::VALUE_39C24497,
+            reason: constants_str::VALUE_5FE31A84,
         },
         TestOwnershipException {
-            crate_name: "to_err_string_macros",
-            reason: "the proc-macro is exercised by to_err_string tests",
+            crate_name: constants_str::VALUE_AEC33C7D,
+            reason: constants_str::VALUE_04D1B7A1,
         },
         TestOwnershipException {
-            crate_name: "token_patterns_macros",
-            reason: "the proc-macro is exercised by token_patterns tests",
+            crate_name: constants_str::VALUE_DF1A7C9C,
+            reason: constants_str::VALUE_9BF87B94,
         },
     ];
     super::snapshot::with_codebase_snapshot(|snapshot| {
@@ -510,165 +512,48 @@ fn library_crates_with_public_logic_own_tests() {
 #[test]
 fn source_modules_with_public_logic_own_unit_tests() {
     let reviewed_without_local_tests = std::collections::BTreeMap::from([
+        (constants_str::VALUE_FF5D5E0E, constants_str::VALUE_405E3416),
+        (constants_str::VALUE_DB7F37E1, constants_str::VALUE_F2207121),
+        (constants_str::VALUE_823EE954, constants_str::VALUE_74AEB26B),
+        (constants_str::VALUE_D11679FC, constants_str::VALUE_6161F31D),
+        (constants_str::VALUE_7AEFC966, constants_str::VALUE_857F7C2F),
+        (constants_str::VALUE_794839A7, constants_str::VALUE_DFCDB100),
+        (constants_str::VALUE_7F7EAAAF, constants_str::VALUE_BED211BE),
+        (constants_str::VALUE_642AA8AC, constants_str::VALUE_D7F0D3FB),
+        (constants_str::VALUE_31BDEFD7, constants_str::VALUE_8E47C546),
+        (constants_str::VALUE_95F11308, constants_str::VALUE_D7F0D3FB),
+        (constants_str::VALUE_02C92481, constants_str::VALUE_FB0F2679),
+        (constants_str::VALUE_C652C5A2, constants_str::VALUE_03E3C8DC),
+        (constants_str::VALUE_BDEB5C57, constants_str::VALUE_99D169EE),
+        (constants_str::VALUE_8F0CF86A, constants_str::VALUE_D3401592),
+        (constants_str::VALUE_30B1AC8C, constants_str::VALUE_0B457512),
+        (constants_str::VALUE_D6A2A64F, constants_str::VALUE_6705A1D1),
+        (constants_str::VALUE_8CD81F6A, constants_str::VALUE_0CCB452D),
+        (constants_str::VALUE_4B935405, constants_str::VALUE_E3AA090E),
+        (constants_str::VALUE_F8BC20AB, constants_str::VALUE_16B4B741),
+        (constants_str::VALUE_84D6426B, constants_str::VALUE_6BEEA909),
+        (constants_str::VALUE_EC2A2742, constants_str::VALUE_86B4ECF0),
+        (constants_str::VALUE_5288B694, constants_str::VALUE_6FD12145),
+        (constants_str::VALUE_566A29FB, constants_str::VALUE_C4ABC7DA),
+        (constants_str::VALUE_BB268B0B, constants_str::VALUE_EC45AD4A),
+        (constants_str::VALUE_1ACC98BE, constants_str::VALUE_C441A0D8),
+        (constants_str::VALUE_7DF10CC7, constants_str::VALUE_15D6492D),
+        (constants_str::VALUE_1F61C5FC, constants_str::VALUE_D6049DD6),
+        (constants_str::VALUE_A7D2D1E3, constants_str::VALUE_7D137CD7),
+        (constants_str::VALUE_1BEBF98C, constants_str::VALUE_C979C05B),
+        (constants_str::VALUE_87B73E51, constants_str::VALUE_7E9629EC),
+        (constants_str::VALUE_426047D0, constants_str::VALUE_A4D4E469),
+        (constants_str::VALUE_BC1068F8, constants_str::VALUE_FE0292DF),
+        (constants_str::VALUE_3282DD39, constants_str::VALUE_30FDB118),
+        (constants_str::VALUE_A57F952F, constants_str::VALUE_A3F70F9A),
+        (constants_str::VALUE_516D6874, constants_str::VALUE_A1299ABB),
+        (constants_str::VALUE_73F238C3, constants_str::VALUE_A3F70F9A),
+        (constants_str::VALUE_E7C9496D, constants_str::VALUE_4F88C226),
+        (constants_str::VALUE_744944F8, constants_str::VALUE_6F6BA65F),
+        (constants_str::VALUE_886BA6BB, constants_str::VALUE_F84F38AE),
         (
-            "location_lib_location_macros/src/lib.rs",
-            "the proc-macro is covered by location_lib expansion tests",
-        ),
-        (
-            "macro_helpers/src/domain_types/wrap_derive.rs",
-            "the token helper is covered by downstream derive expansion tests",
-        ),
-        (
-            "macro_helpers/src/domain_types/generate_impl_to_err_string_token_stream.rs",
-            "the token helper is covered by to_err_string expansion tests",
-        ),
-        (
-            "macro_helpers/src/domain_types/generate_pub_type_alias_token_stream.rs",
-            "the token helper is covered by downstream compile tests",
-        ),
-        (
-            "macro_helpers/src/domain_types/generate_field_location_new_token_stream.rs",
-            "the token helper is covered by location expansion tests",
-        ),
-        (
-            "macro_helpers/src/domain_types/generate_if_write_is_err_token_stream.rs",
-            "the token helper is covered by generated source tests",
-        ),
-        (
-            "macro_helpers/src/domain_types/location.rs",
-            "the syntax helper is covered by downstream macro tests",
-        ),
-        (
-            "macro_helpers/src/domain_types/generate_impl_try_from_token_stream.rs",
-            "the token helper is covered by downstream conversion tests",
-        ),
-        (
-            "macro_helpers/src/domain_types/generate_impl_default_token_stream.rs",
-            "the token helper is covered by downstream derive tests",
-        ),
-        (
-            "macro_helpers/src/domain_types/generate_impl_from_token_stream.rs",
-            "the token helper is covered by downstream conversion tests",
-        ),
-        (
-            "macro_helpers/src/domain_types/location_syn_field.rs",
-            "the syntax helper is covered by location expansion tests",
-        ),
-        (
-            "macro_helpers/src/domain_types/status_code.rs",
-            "the status-code generator is covered by route validator tests",
-        ),
-        (
-            "macro_helpers/src/domain_types/pagination_start_end_initialization_token_stream.rs",
-            "the token helper is covered by generated CRUD tests",
-        ),
-        (
-            "macro_helpers/src/domain_types/generate_impl_display_token_stream.rs",
-            "the token helper is covered by downstream display tests",
-        ),
-        (
-            "optimal_memory_layout/src/lib.rs",
-            "the proc-macro is covered by downstream derive users",
-        ),
-        (
-            "naming_naming_common_macros/src/lib.rs",
-            "the macro surface is covered by naming_common tests",
-        ),
-        (
-            "naming_naming_macros/src/lib.rs",
-            "the proc-macro is covered by naming tests",
-        ),
-        (
-            "server_app_state_server_app_state_macros/src/lib.rs",
-            "the proc-macro is covered by server_app_state tests",
-        ),
-        (
-            "token_patterns_token_patterns_macros/src/lib.rs",
-            "the proc-macro is covered by token_patterns tests",
-        ),
-        (
-            "server_runtime_http/src/domain_types/limits.rs",
-            "the limit wrappers are exercised by server_runtime boundary tests",
-        ),
-        (
-            "server_runtime_core/src/domain_types/resource_budget.rs",
-            "the resource budget is exercised by server runtime integration paths",
-        ),
-        (
-            "constants_str_macros/src/lib.rs",
-            "the proc-macro is covered by constants_str tests",
-        ),
-        (
-            "pg_crud_where_filters_generate/src/lib.rs",
-            "the proc-macro is covered by generate_where_filters_test",
-        ),
-        (
-            "pg_crud_common_macros/src/lib.rs",
-            "the macro surface is covered by pg_crud_common tests",
-        ),
-        (
-            "pg_crud_macro_common/src/domain_types.rs",
-            "the generator support surface is covered by generated contract tests",
-        ),
-        (
-            "pg_crud_macro_common/src/domain_types/pg_type_test_cases.rs",
-            "the fixture catalog is consumed by generated PostgreSQL type tests",
-        ),
-        (
-            "pg_crud_macro_common/src/domain_types/token_stream_helpers.rs",
-            "the token helpers are covered by generated CRUD tests",
-        ),
-        (
-            "pg_crud_common/src/domain_types/cardinality.rs",
-            "cardinality behavior is covered by generated CRUD contract tests",
-        ),
-        (
-            "pg_crud_macro_common_macros/src/lib.rs",
-            "the macro surface is covered by generated CRUD tests",
-        ),
-        (
-            "pg_crud_pg_table_generate_src/src/domain_types/pipeline.rs",
-            "the generation pipeline is covered by generate_pg_table tests",
-        ),
-        (
-            "pg_crud_pg_table_generate/src/lib.rs",
-            "the proc-macro is covered by generate_pg_table_test",
-        ),
-        (
-            "pg_crud_pg_types_generate/src/lib.rs",
-            "the proc-macro is covered by generate_pg_types_test",
-        ),
-        (
-            "pg_crud_pg_types_common/src/lib.rs",
-            "the generated adapter surface is covered by generated type tests",
-        ),
-        (
-            "config_lib_try_from_env/src/lib.rs",
-            "the proc-macro is covered by config_lib tests",
-        ),
-        (
-            "config_lib_generate_accessor_traits_for_struct_fields/src/lib.rs",
-            "the generator is covered by config_lib expansion tests",
-        ),
-        (
-            "config_lib_config_lib_macros/src/lib.rs",
-            "the proc-macro is covered by config_lib tests",
-        ),
-        (
-            "frontend_contract/src/domain_types/handler_contract.rs",
-            "handler contracts are covered by route contract compile tests",
-        ),
-        (
-            "to_err_string_to_err_string_macros/src/lib.rs",
-            "the proc-macro is covered by to_err_string tests",
-        ),
-        (
-            "server_admin/src/domain_types/rbac.rs",
-            "RBAC public behavior is covered by administrator API tests",
-        ),
-        (
-            "server_admin/src/domain_types/password.rs",
-            "password public behavior is covered by authentication integration tests",
+            constants_str::SERVER_ADMIN_SRC_PASSWORD_RS,
+            constants_str::VALUE_8269812F,
         ),
     ]);
     super::snapshot::with_codebase_snapshot(|snapshot| {
@@ -728,16 +613,7 @@ fn workspace_lint_allows_have_inline_reasons() {
 #[test]
 fn workspace_lint_allow_reason_policy_rejects_missing_and_empty_comments() {
     let violations = super::unjustified_workspace_lint_allows(super::types::SourceTextRef::from(
-        r#"
-[workspace.lints.rust]
-unsafe_code = "deny"
-dead_code = "allow"
-[workspace.lints.clippy]
-panic = "allow" #
-unwrap_used = "allow" # tests check unwrap failures separately
-[profile.dev]
-debug = true
-"#,
+        constants_str::VALUE_05BB0EE4,
     ));
     assert_eq!(violations.len(), 2usize);
 }
@@ -795,31 +671,20 @@ fn workspace_crates_must_use_workspace_dependencies() {
 }
 #[test]
 fn target_specific_dependencies_must_use_workspace_dependencies() {
-    let invalid_manifest = r#"
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-serde = "1"
-
-[target.'cfg(target_arch = "wasm32")'.dev-dependencies]
-serde_json = { path = "../serde_json" }
-
-[target.'cfg(target_arch = "wasm32")'.build-dependencies]
-toml = { version = "1" }
-"#
-    .parse::<toml::Table>()
-    .expect(
+    let invalid_manifest = constants_str::VALUE_DB030A59.parse::<toml::Table>().expect(
         "b49e27c1 target_specific_dependencies_must_use_workspace_dependencies invariant must hold",
     );
     let mut invalid_ers = Vec::new();
     super::collect_non_workspace_dep_ers(
-        super::types::PathRef::from(std::path::Path::new("fixture/Cargo.toml")),
+        super::types::PathRef::from(std::path::Path::new(constants_str::VALUE_EAE77D23)),
         super::types::TomlTableRef::from(&invalid_manifest),
         super::types::DiagnosticMsgsMutRef::from(&mut invalid_ers),
     );
     assert_eq!(invalid_ers.len(), 3usize);
     [
-        "target.cfg(target_arch = \"wasm32\").dependencies",
-        "target.cfg(target_arch = \"wasm32\").dev-dependencies",
-        "target.cfg(target_arch = \"wasm32\").build-dependencies",
+        constants_str::VALUE_33C3D866,
+        constants_str::VALUE_6B80EB5B,
+        constants_str::VALUE_DE87D770,
     ]
     .into_iter()
     .for_each(|section| {
@@ -831,17 +696,12 @@ toml = { version = "1" }
         );
     });
 
-    let valid_manifest = r#"
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-serde = { workspace = true }
-"#
-    .parse::<toml::Table>()
-    .expect(
+    let valid_manifest = constants_str::VALUE_98F81CDD.parse::<toml::Table>().expect(
         "8f1c3a6d target_specific_dependencies_must_use_workspace_dependencies invariant must hold",
     );
     let mut valid_ers = Vec::new();
     super::collect_non_workspace_dep_ers(
-        super::types::PathRef::from(std::path::Path::new("fixture/Cargo.toml")),
+        super::types::PathRef::from(std::path::Path::new(constants_str::VALUE_EAE77D23)),
         super::types::TomlTableRef::from(&valid_manifest),
         super::types::DiagnosticMsgsMutRef::from(&mut valid_ers),
     );
@@ -863,12 +723,12 @@ fn workspace_dependencies_use_inline_table_style() {
                 .map(|(field, _suffix)| field.trim())
                 .expect("34f5ed27 workspace_dependencies_use_inline_table_style invariant must hold");
             if [
-                "description",
+                constants_str::DESCRIPTION,
                 constants_str::EDITION,
-                "license",
+                constants_str::VALUE_CC1D3B02,
                 constants_str::PUBLISH,
-                "repository",
-                "version",
+                constants_str::VALUE_E2885F2B,
+                constants_str::VERSION_ALT_3,
             ]
             .contains(&field)
             {
@@ -923,7 +783,7 @@ fn workspace_crates_are_direct_children_of_workspace_root() {
                 && entry.file_name() != constants_str::WORKSPACE_SCAFFOLD_NODE_MODULES
         })
         .map(|entry| entry.unwrap_or_else(|error| panic!("b93c6e41 {error}")))
-        .filter(|entry| !entry.file_type().is_dir() && entry.file_name() == "Cargo.toml")
+        .filter(|entry| !entry.file_type().is_dir() && entry.file_name() == constants_str::CARGO_TOML)
         .filter_map(|entry| {
             let crate_directory = entry.path().parent().expect("3de790a4 workspace_crates_are_direct_children_of_workspace_root invariant must hold");
             let relative = crate_directory

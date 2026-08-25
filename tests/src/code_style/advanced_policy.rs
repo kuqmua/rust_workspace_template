@@ -69,7 +69,12 @@ fn expression_acquires_lock(expression: &syn::Expr) -> bool {
             call.args.is_empty()
                 && matches!(
                     call.method.to_string().as_str(),
-                    "lock" | "lock_owned" | "read" | "read_owned" | "write" | "write_owned"
+                    constants_str::VALUE_0C030586
+                        | constants_str::VALUE_DB488AC5
+                        | constants_str::PG_CRUD_READ_PERMISSION_ACTION
+                        | constants_str::VALUE_35D47C1A
+                        | constants_str::WRITE_ALT
+                        | constants_str::VALUE_FC58C841
                 )
         }
         syn::Expr::Paren(paren) => expression_acquires_lock(paren.expr.as_ref()),
@@ -92,7 +97,7 @@ fn dropped_identifier(statement: &syn::Stmt) -> Option<super::types::SourceText>
             .last()
             .map(|segment| segment.ident.to_string())
             .as_deref(),
-        Some("drop")
+        Some(constants_str::VALUE_D90EE9CC)
     ) {
         return None;
     }
@@ -122,20 +127,20 @@ impl<'ast> syn::visit::Visit<'ast> for LeakApiVisitor {
                 .iter()
                 .map(|segment| segment.ident.to_string())
                 .collect::<Vec<String>>()
-                .join("::");
+                .join(constants_str::PATH_SEPARATOR);
             if [
-                "Box::leak",
-                "std::boxed::Box::leak",
-                "std::mem::forget",
-                "core::mem::forget",
-                "Arc::into_raw",
-                "std::sync::Arc::into_raw",
-                "Box::into_raw",
-                "std::boxed::Box::into_raw",
-                "Arc::from_raw",
-                "std::sync::Arc::from_raw",
-                "Box::from_raw",
-                "std::boxed::Box::from_raw",
+                constants_str::VALUE_C26EBF7F,
+                constants_str::VALUE_5188A49C,
+                constants_str::VALUE_9C055078,
+                constants_str::VALUE_FEE41E56,
+                constants_str::VALUE_FA94FFC8,
+                constants_str::VALUE_2E8E6C33,
+                constants_str::VALUE_30F0E257,
+                constants_str::VALUE_86C84494,
+                constants_str::VALUE_58CAC57E,
+                constants_str::VALUE_36F221B5,
+                constants_str::VALUE_AF4FFF7C,
+                constants_str::VALUE_6D10B254,
             ]
             .contains(&path.as_str())
             {
@@ -148,9 +153,10 @@ impl<'ast> syn::visit::Visit<'ast> for LeakApiVisitor {
         if i.path
             .segments
             .last()
-            .is_some_and(|segment| segment.ident == "ManuallyDrop")
+            .is_some_and(|segment| segment.ident == constants_str::VALUE_6462221C)
         {
-            self.violations.push("ManuallyDrop".to_owned());
+            self.violations
+                .push(constants_str::VALUE_6462221C.to_owned());
         }
         syn::visit::visit_type_path(self, i);
     }
@@ -183,7 +189,10 @@ impl SpawnConsumptionVisitor {
                 proc_macro2::TokenTree::Ident(operation),
             ] = window
                 && dot.as_char() == '.'
-                && matches!(operation.to_string().as_str(), "abort" | "await")
+                && matches!(
+                    operation.to_string().as_str(),
+                    constants_str::VALUE_3A53DB8A | constants_str::VALUE_1AEFE47E
+                )
             {
                 let _inserted = self.consumed.insert(identifier.to_string());
             }
@@ -199,7 +208,7 @@ impl<'ast> syn::visit::Visit<'ast> for SpawnConsumptionVisitor {
         let is_drop = matches!(
             i.func.as_ref(),
             syn::Expr::Path(path)
-                if path.path.segments.last().is_some_and(|segment| segment.ident == "drop")
+                if path.path.segments.last().is_some_and(|segment| segment.ident == constants_str::VALUE_D90EE9CC)
         );
         if !is_drop {
             i.args
@@ -209,7 +218,7 @@ impl<'ast> syn::visit::Visit<'ast> for SpawnConsumptionVisitor {
         syn::visit::visit_expr_call(self, i);
     }
     fn visit_expr_method_call(&mut self, i: &'ast syn::ExprMethodCall) {
-        if i.method == "abort" {
+        if i.method == constants_str::VALUE_3A53DB8A {
             self.record_path(i.receiver.as_ref());
         }
         syn::visit::visit_expr_method_call(self, i);
@@ -264,10 +273,12 @@ struct RouteLiteralVisitor {
 impl RouteLiteralVisitor {
     fn inspect_literal(&mut self, literal: &syn::LitStr) {
         let value = literal.value();
-        if !value.starts_with('/') || value.starts_with("//") {
+        if !value.starts_with('/') || value.starts_with(constants_str::VALUE_A2C23396) {
             return;
         }
-        if value == "/api" || value.starts_with("/api/") {
+        if value == constants_str::VALUE_702ACF7C
+            || value.starts_with(constants_str::VALUE_4D3A663E)
+        {
             self.violations.push(format!(
                 "route `{value}` must not use the removed `/api` prefix"
             ));
@@ -305,7 +316,10 @@ impl RouteLiteralVisitor {
 impl<'ast> syn::visit::Visit<'ast> for RouteLiteralVisitor {
     fn visit_attribute(&mut self, i: &'ast syn::Attribute) {
         if i.path().segments.last().is_some_and(|segment| {
-            matches!(segment.ident.to_string().as_str(), "typed_route" | "strum")
+            matches!(
+                segment.ident.to_string().as_str(),
+                constants_str::VALUE_BDE31E29 | constants_str::VALUE_2466624A
+            )
         }) && let syn::Meta::List(list) = &i.meta
         {
             self.inspect_tokens(list.tokens.clone());
@@ -315,7 +329,9 @@ impl<'ast> syn::visit::Visit<'ast> for RouteLiteralVisitor {
     fn visit_expr_method_call(&mut self, i: &'ast syn::ExprMethodCall) {
         if matches!(
             i.method.to_string().as_str(),
-            "route" | "nest" | "route_service"
+            constants_str::VALUE_8A84E406
+                | constants_str::VALUE_75EF2E32
+                | constants_str::VALUE_84BBA14A
         ) && let Some(syn::Expr::Lit(syn::ExprLit {
             lit: syn::Lit::Str(literal),
             ..
@@ -341,12 +357,12 @@ impl SelectMacroVisitor {
             proc_macro2::TokenTree::Ident(identifier)
                 if matches!(
                     identifier.to_string().as_str(),
-                    "read_exact"
-                        | "read_to_end"
-                        | "read_to_string"
-                        | "reserve"
-                        | "send"
-                        | "write_all"
+                    constants_str::VALUE_574C97CF
+                        | constants_str::VALUE_EB83DC1A
+                        | constants_str::VALUE_8882BF3F
+                        | constants_str::VALUE_6DF24C37
+                        | constants_str::VALUE_27CE1D1B
+                        | constants_str::VALUE_86F7474B
                 ) =>
             {
                 self.unsafe_operations.push(format!(
@@ -365,7 +381,7 @@ impl<'ast> syn::visit::Visit<'ast> for SelectMacroVisitor {
             .path
             .segments
             .last()
-            .is_some_and(|segment| segment.ident == "select");
+            .is_some_and(|segment| segment.ident == constants_str::SELECT_ALT_3);
         if is_select {
             self.count.saturating_inc();
             self.inspect_sensitive_tokens(i.tokens.clone());
@@ -395,14 +411,14 @@ struct IgnoredMapErrBindingVisitor {
 }
 impl<'ast> syn::visit::Visit<'ast> for IgnoredMapErrBindingVisitor {
     fn visit_expr_method_call(&mut self, i: &'ast syn::ExprMethodCall) {
-        if i.method == "map_err"
+        if i.method == constants_str::CODE_STYLE_MAP_ERR
             && let Some(syn::Expr::Closure(closure)) = i.args.first()
         {
             let ignored_inputs = closure
                 .inputs
                 .iter()
                 .filter_map(|input| match input {
-                    syn::Pat::Wild(_) => Some("_".to_owned()),
+                    syn::Pat::Wild(_) => Some(constants_str::UNDERSCORE.to_owned()),
                     syn::Pat::Ident(identifier)
                         if identifier.ident.to_string().starts_with('_') =>
                     {
@@ -440,7 +456,7 @@ impl<'ast> syn::visit::Visit<'ast> for FromVecImplVisitor {
     fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
         if let Some((trait_path, _)) = &i.trait_
             && let Some(trait_segment) = trait_path.segments.last()
-            && trait_segment.ident == "From"
+            && trait_segment.ident == constants_str::FROM_ALT_3
             && let syn::PathArguments::AngleBracketed(arguments) = &trait_segment.arguments
             && let Some(syn::GenericArgument::Type(syn::Type::Path(value_type))) =
                 arguments.args.first()
@@ -448,7 +464,7 @@ impl<'ast> syn::visit::Visit<'ast> for FromVecImplVisitor {
                 .path
                 .segments
                 .last()
-                .is_some_and(|segment| segment.ident == "Vec")
+                .is_some_and(|segment| segment.ident == constants_str::VEC)
         {
             self.targets.push(format!(
                 "line {}",
@@ -468,7 +484,7 @@ impl<'ast> syn::visit::Visit<'ast> for RawVecTupleWrapperVisitor {
                 .path
                 .segments
                 .last()
-                .is_some_and(|segment| segment.ident == "Vec")
+                .is_some_and(|segment| segment.ident == constants_str::VEC)
         {
             self.identifiers.push(i.ident.to_string());
         }
@@ -485,10 +501,10 @@ impl<'ast> syn::visit::Visit<'ast> for UsizeMaxExprVisitor {
         let mut segments = i.path.segments.iter();
         if segments
             .next()
-            .is_some_and(|segment| segment.ident == "usize")
+            .is_some_and(|segment| segment.ident == constants_str::CODE_STYLE_USIZE)
             && segments
                 .next()
-                .is_some_and(|segment| segment.ident == "MAX")
+                .is_some_and(|segment| segment.ident == constants_str::VALUE_2D9C014A)
             && segments.next().is_none()
         {
             self.count.saturating_inc();
@@ -518,8 +534,10 @@ impl<'ast> syn::visit::Visit<'ast> for SharedDispatchVisitor {
     fn visit_type_path(&mut self, i: &'ast syn::TypePath) {
         if let Some(segment) = i.path.segments.last() {
             match segment.ident.to_string().as_str() {
-                "Arc" => self.arc_types.saturating_inc(),
-                "Mutex" | "RwLock" => self.lock_types.saturating_inc(),
+                constants_str::ARC => self.arc_types.saturating_inc(),
+                constants_str::MUTEX | constants_str::VALUE_02DF7EC2 => {
+                    self.lock_types.saturating_inc();
+                }
                 _ => {}
             }
         }
@@ -543,11 +561,11 @@ impl PublicApiVisitor {
         let normalized = self
             .lines
             .get(start..end)
-            .map(|lines| lines.join("\n"))
+            .map(|lines| lines.join(constants_str::NEWLINE))
             .expect("c9d73e55 source invariant must hold")
             .split_whitespace()
             .collect::<Vec<_>>()
-            .join(" ");
+            .join(constants_str::SPACE);
         super::types::SourceText::try_from(normalized).expect("31f04bb7 source invariant must hold")
     }
     fn field_type(&self, field: &syn::Field) -> super::types::SourceText {
@@ -566,7 +584,7 @@ impl PublicApiVisitor {
         let source = self
             .lines
             .get(start..end)
-            .map(|lines| lines.join("\n"))
+            .map(|lines| lines.join(constants_str::NEWLINE))
             .expect("3e180abf record invariant must hold");
         let relevant = if signature_only {
             source
@@ -575,14 +593,18 @@ impl PublicApiVisitor {
         } else {
             source.as_str()
         };
-        self.entries
-            .push(relevant.split_whitespace().collect::<Vec<&str>>().join(" "));
+        self.entries.push(
+            relevant
+                .split_whitespace()
+                .collect::<Vec<&str>>()
+                .join(constants_str::SPACE),
+        );
     }
     fn record_contract_struct_api(&mut self, item: &syn::ItemStruct) {
         let Some(attribute) = item
             .attrs
             .iter()
-            .find(|attribute| attribute.path().is_ident("contract_struct_api"))
+            .find(|attribute| attribute.path().is_ident(constants_str::VALUE_21E85007))
         else {
             return;
         };
@@ -590,10 +612,10 @@ impl PublicApiVisitor {
         let mut into_parts = false;
         attribute
             .parse_nested_meta(|metadata| {
-                if metadata.path.is_ident("new") {
+                if metadata.path.is_ident(constants_str::NEW) {
                     constructor = true;
                 }
-                if metadata.path.is_ident("into_parts") {
+                if metadata.path.is_ident(constants_str::VALUE_1E3D0F4B) {
                     into_parts = true;
                 }
                 Ok(())
@@ -618,7 +640,7 @@ impl PublicApiVisitor {
                 .zip(types.iter())
                 .map(|(identifier, field_type)| format!("{identifier}: {}", field_type.as_ref()))
                 .collect::<Vec<_>>()
-                .join(", ");
+                .join(constants_str::TEXT_ALT_6);
             self.entries.push(format!(
                 "#[must_use] pub const fn new({parameters}) -> Self"
             ));
@@ -643,36 +665,36 @@ impl PublicApiVisitor {
                 .attrs
                 .iter()
                 .filter(|field_attribute| {
-                    field_attribute.path().is_ident("contract_struct_api")
+                    field_attribute.path().is_ident(constants_str::VALUE_21E85007)
                 })
                 .for_each(|field_attribute| {
                     field_attribute
                         .parse_nested_meta(|metadata| {
-                            let signature = if metadata.path.is_ident("borrow") {
+                            let signature = if metadata.path.is_ident(constants_str::VALUE_D106CCB1) {
                                 format!(
                                     "#[must_use] pub const fn {identifier}(&self) -> &{field_type}"
                                 )
-                            } else if metadata.path.is_ident("copy") {
+                            } else if metadata.path.is_ident(constants_str::VALUE_6F5A6034) {
                                 format!(
                                     "#[must_use] pub const fn {identifier}(self) -> {field_type}"
                                 )
-                            } else if metadata.path.is_ident("copy_ref") {
+                            } else if metadata.path.is_ident(constants_str::VALUE_8972F0EE) {
                                 format!(
                                     "#[must_use] pub const fn {identifier}(&self) -> {field_type}"
                                 )
-                            } else if metadata.path.is_ident("into") {
+                            } else if metadata.path.is_ident(constants_str::VALUE_6B847A0E) {
                                 format!(
                                     "#[must_use] pub fn into_{identifier}(self) -> {field_type}"
                                 )
-                            } else if metadata.path.is_ident("option_borrow") {
+                            } else if metadata.path.is_ident(constants_str::VALUE_ECA7C4E3) {
                                 let inner_type = field_type
-                                    .strip_prefix("Option<")
+                                    .strip_prefix(constants_str::VALUE_7E0FC0D7)
                                     .and_then(|value| value.strip_suffix('>'))
                                     .expect("9ba9415c into_ invariant must hold");
                                 format!(
                                     "#[must_use] pub const fn {identifier}(&self) -> Option<&{inner_type}>"
                                 )
-                            } else if metadata.path.is_ident("slice") {
+                            } else if metadata.path.is_ident(constants_str::VALUE_03FDB065) {
                                 let parsed_element_type =
                                     metadata.value()?.parse::<syn::Type>()?;
                                 let wrapped_element_type = self
@@ -713,7 +735,7 @@ impl<'ast> syn::visit::Visit<'ast> for PublicApiVisitor {
             if i.attrs.iter().any(|attribute| {
                 super::derive_attr_has_terminal(
                     super::types::SynAttributeRef::from(attribute),
-                    super::types::SourceTextRef::from("UnitEnumIndex"),
+                    super::types::SourceTextRef::from(constants_str::VALUE_4529EB51),
                 )
                 .get()
             }) {
@@ -721,9 +743,8 @@ impl<'ast> syn::visit::Visit<'ast> for PublicApiVisitor {
                     "pub const COUNT: usize = {}usize;",
                     i.variants.len()
                 ));
-                self.entries.push(String::from(
-                    "#[must_use] pub const fn index(self) -> usize",
-                ));
+                self.entries
+                    .push(String::from(constants_str::VALUE_5F528A82));
             }
         }
         syn::visit::visit_item_enum(self, i);
@@ -764,7 +785,7 @@ impl<'ast> syn::visit::Visit<'ast> for StructErrorVisitor {
         if i.attrs.iter().any(|attribute| {
             super::derive_attr_has_terminal(
                 super::types::SynAttributeRef::from(attribute),
-                super::types::SourceTextRef::from("Error"),
+                super::types::SourceTextRef::from(constants_str::ERROR),
             )
             .get()
         }) {
@@ -791,18 +812,18 @@ impl<'ast> syn::visit::Visit<'ast> for LoopAllocationVisitor {
         if let syn::Expr::Path(function) = i.func.as_ref() {
             let path = super::path_to_string(super::types::SynPathRef::from(&function.path));
             if [
-                "Box::new",
-                "String::from",
-                "String::new",
-                "String::with_capacity",
-                "Vec::new",
-                "Vec::with_capacity",
-                "std::boxed::Box::new",
-                "std::string::String::from",
-                "std::string::String::new",
-                "std::string::String::with_capacity",
-                "std::vec::Vec::new",
-                "std::vec::Vec::with_capacity",
+                constants_str::VALUE_EDB966EE,
+                constants_str::VALUE_13D4D62E,
+                constants_str::VALUE_6D0C4109,
+                constants_str::VALUE_7879C268,
+                constants_str::VALUE_FA4D593C,
+                constants_str::VALUE_F36B8CD3,
+                constants_str::VALUE_AA9C75B0,
+                constants_str::VALUE_B07BDC6E,
+                constants_str::VALUE_16359A6F,
+                constants_str::VALUE_C0ED6D49,
+                constants_str::VALUE_58AFC68F,
+                constants_str::VALUE_568F63F0,
             ]
             .contains(&path.as_ref())
             {
@@ -819,7 +840,10 @@ impl<'ast> syn::visit::Visit<'ast> for LoopAllocationVisitor {
     fn visit_expr_method_call(&mut self, i: &'ast syn::ExprMethodCall) {
         if matches!(
             i.method.to_string().as_str(),
-            "clone" | "collect" | "to_owned" | "to_string"
+            constants_str::VALUE_B5D61DC8
+                | constants_str::VALUE_81824C90
+                | constants_str::VALUE_E132B7C0
+                | constants_str::VALUE_C5E9F49A
         ) {
             self.record(super::types::SourceTextRef::from(
                 i.method.to_string().as_str(),
@@ -834,7 +858,10 @@ impl<'ast> syn::visit::Visit<'ast> for LoopAllocationVisitor {
     }
     fn visit_macro(&mut self, i: &'ast syn::Macro) {
         if let Some(segment) = i.path.segments.last()
-            && matches!(segment.ident.to_string().as_str(), "format" | "vec")
+            && matches!(
+                segment.ident.to_string().as_str(),
+                constants_str::SHARED_VALUES_FORMAT | constants_str::VALUE_38A4FDFC
+            )
         {
             let operation = segment.ident.to_string();
             self.record(super::types::SourceTextRef::from(operation.as_str()));
@@ -867,60 +894,36 @@ fn lock_guards_are_not_held_across_await() {
 fn allocations_inside_loops_match_reviewed_inventory() {
     let reviewed = std::collections::BTreeMap::from([
         (
-            "../file_storage/src/domain_types.rs:clone",
-            (
-                constants_usize::ONE,
-                "multipart chunk assembly must retain owned buffers until the completed file is committed",
-            ),
+            constants_str::VALUE_B7558033,
+            (constants_usize::ONE, constants_str::VALUE_F3EA9A31),
         ),
         (
-            "../frontend_contract_validation/src/domain_types/artifact.rs:String::from",
-            (
-                constants_usize::ONE,
-                "the bounded JSON parser materializes one owned map key per parsed object field",
-            ),
+            constants_str::VALUE_BC495D5D,
+            (constants_usize::ONE, constants_str::VALUE_BAC5F80E),
         ),
         (
-            "../frontend_contract_validation/src/domain_types/openapi_validation.rs:to_owned",
-            (
-                constants_usize::ONE,
-                "OpenAPI validation records independently owned operation identifiers",
-            ),
+            constants_str::VALUE_E841E205,
+            (constants_usize::ONE, constants_str::VALUE_870DAE5B),
         ),
         (
-            "../frontend_contract_macros/src/lib.rs:to_string",
-            (
-                constants_usize::ONE,
-                "compile-time route generation materializes variant identifiers outside runtime hot paths",
-            ),
+            constants_str::VALUE_FD73A503,
+            (constants_usize::ONE, constants_str::VALUE_6A14D7C6),
         ),
         (
-            "../macro_clippy_check_common/src/lib.rs:String::from",
-            (
-                constants_usize::ONE,
-                "compile-time lint inspection owns diagnostic source fragments",
-            ),
+            constants_str::VALUE_BE04A453,
+            (constants_usize::ONE, constants_str::VALUE_D1CA6996),
         ),
         (
-            "../server_runtime_http/src/domain_types/http_error_diagnostic.rs:to_string",
-            (
-                constants_usize::ONE,
-                "diagnostic capture materializes each owned source in the bounded error chain",
-            ),
+            constants_str::VALUE_213316BE,
+            (constants_usize::ONE, constants_str::VALUE_33D9B29A),
         ),
         (
-            "../server_runtime_http/src/domain_types.rs:to_string",
-            (
-                constants_usize::ONE,
-                "request middleware materializes validated protocol values that outlive input buffers",
-            ),
+            constants_str::VALUE_94FCEDB7,
+            (constants_usize::ONE, constants_str::VALUE_855EA4C0),
         ),
         (
-            "../constants_str_macros/src/domain_types.rs:collect",
-            (
-                constants_usize::ONE,
-                "compile-time constant generation collects tokens outside runtime hot paths",
-            ),
+            constants_str::VALUE_63BD6017,
+            (constants_usize::ONE, constants_str::VALUE_A2531714),
         ),
     ]);
     super::snapshot::with_codebase_snapshot(|snapshot| {
@@ -989,9 +992,7 @@ fn struct_error_exceptions_match_reviewed_snapshot() {
             })
             .collect::<Vec<String>>();
         entries.sort();
-        let mut current_snapshot = String::from(
-            "# GENERATED REVIEWED SINGLE-CASE AND TRANSPARENT ERROR STRUCTS; DO NOT EDIT\n",
-        );
+        let mut current_snapshot = String::from(constants_str::VALUE_C746CC87);
         entries.into_iter().for_each(|entry| {
             current_snapshot.push_str(entry.as_str());
             current_snapshot.push('\n');
@@ -1015,13 +1016,12 @@ fn struct_error_exceptions_match_reviewed_snapshot() {
 #[test]
 fn contract_public_api_matches_reviewed_snapshot() {
     let reviewed = [
-        ("common_routes/src", "common route contract"),
-        ("frontend_contract/src", "generic frontend route contract"),
-        ("server_admin_contract/src", "administrator wire contract"),
+        (constants_str::VALUE_A766D43E, constants_str::VALUE_FE05288C),
+        (constants_str::VALUE_C34A5FE6, constants_str::VALUE_8733430F),
+        (constants_str::VALUE_0C5CC511, constants_str::VALUE_CF3D8D33),
     ];
     super::snapshot::with_codebase_snapshot(|snapshot| {
-        let mut current_snapshot =
-            String::from("# GENERATED CONTRACT PUBLIC API SNAPSHOT; DO NOT EDIT\n");
+        let mut current_snapshot = String::from(constants_str::VALUE_1F3A1C37);
         reviewed.iter().for_each(|(directory_suffix, reason)| {
             assert!(!reason.is_empty(), "505a0cf7");
             let mut entries = snapshot
@@ -1081,397 +1081,197 @@ fn contract_public_api_matches_reviewed_snapshot() {
 fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
     let reviewed = std::collections::BTreeMap::from([
         (
-            "location_lib_location/src/lib.rs",
+            constants_str::VALUE_20A65589,
             (
                 constants_usize::ZERO,
                 constants_usize::ZERO,
                 3usize,
-                "location formatting accepts heterogeneous display values",
+                constants_str::VALUE_F75AB320,
             ),
         ),
         (
-            "macro_helpers/src/domain_types/generate_impl_to_err_string_token_stream.rs",
-            (
-                0,
-                0,
-                4,
-                "token generation accepts heterogeneous ToTokens inputs",
-            ),
+            constants_str::VALUE_823EE954,
+            (0, 0, 4, constants_str::VALUE_E98F8E33),
         ),
         (
-            "macro_helpers/src/domain_types/generate_pub_type_alias_token_stream.rs",
-            (
-                0,
-                0,
-                2,
-                "token generation accepts heterogeneous ToTokens inputs",
-            ),
+            constants_str::VALUE_D11679FC,
+            (0, 0, 2, constants_str::VALUE_E98F8E33),
         ),
         (
-            "macro_helpers/src/domain_types/generate_if_write_is_err_token_stream.rs",
-            (
-                0,
-                0,
-                2,
-                "token generation accepts heterogeneous ToTokens inputs",
-            ),
+            constants_str::VALUE_794839A7,
+            (0, 0, 2, constants_str::VALUE_E98F8E33),
         ),
         (
-            "macro_helpers/src/domain_types/generate_impl_try_from_token_stream.rs",
-            (
-                0,
-                0,
-                4,
-                "token generation accepts heterogeneous ToTokens inputs",
-            ),
+            constants_str::VALUE_642AA8AC,
+            (0, 0, 4, constants_str::VALUE_E98F8E33),
         ),
         (
-            "macro_helpers/src/domain_types/generate_impl_default_token_stream.rs",
-            (
-                0,
-                0,
-                2,
-                "token generation accepts heterogeneous ToTokens inputs",
-            ),
+            constants_str::VALUE_31BDEFD7,
+            (0, 0, 2, constants_str::VALUE_E98F8E33),
         ),
         (
-            "macro_helpers/src/domain_types/generate_impl_from_token_stream.rs",
-            (
-                0,
-                0,
-                3,
-                "token generation accepts heterogeneous ToTokens inputs",
-            ),
+            constants_str::VALUE_95F11308,
+            (0, 0, 3, constants_str::VALUE_E98F8E33),
         ),
         (
-            "macro_helpers/src/domain_types/generate_new_or_try_new.rs",
-            (
-                0,
-                0,
-                77,
-                "the generator composes heterogeneous token fragments without exposing generics",
-            ),
+            constants_str::VALUE_26637EB1,
+            (0, 0, 77, constants_str::VALUE_F86AE0A7),
         ),
         (
-            "macro_helpers/src/domain_types/pagination_start_end_initialization_token_stream.rs",
-            (
-                0,
-                0,
-                1,
-                "token generation accepts a heterogeneous ToTokens input",
-            ),
+            constants_str::VALUE_BDEB5C57,
+            (0, 0, 1, constants_str::VALUE_40349028),
         ),
         (
-            "macro_helpers/src/domain_types/generate_impl_display_token_stream.rs",
-            (
-                0,
-                0,
-                4,
-                "token generation accepts heterogeneous ToTokens inputs",
-            ),
+            constants_str::VALUE_8F0CF86A,
+            (0, 0, 4, constants_str::VALUE_E98F8E33),
         ),
         (
-            "macro_helpers_generate_derive_token_stream_builder/src/lib.rs",
-            (
-                0,
-                0,
-                5,
-                "the derive builder composes heterogeneous token fragments",
-            ),
+            constants_str::VALUE_427B03A1,
+            (0, 0, 5, constants_str::VALUE_D4BDC80F),
         ),
         (
-            "optimal_memory_layout/src/lib.rs",
-            (
-                0,
-                0,
-                1,
-                "the proc-macro forwards a heterogeneous ToTokens input",
-            ),
+            constants_str::VALUE_30B1AC8C,
+            (0, 0, 1, constants_str::VALUE_DC7573CC),
         ),
         (
-            "naming_naming_macros/src/lib.rs",
-            (
-                0,
-                0,
-                10,
-                "naming generators format heterogeneous token values",
-            ),
+            constants_str::VALUE_8CD81F6A,
+            (0, 0, 10, constants_str::VALUE_AC5E426F),
         ),
         (
-            "common_routes/src/domain_types.rs",
-            (
-                3,
-                0,
-                2,
-                "route state is shared across threads behind its parameter trait",
-            ),
+            constants_str::VALUE_30296F9B,
+            (3, 0, 2, constants_str::VALUE_128D5CF3),
         ),
         (
-            "server/src/domain_types.rs",
-            (
-                2,
-                0,
-                0,
-                "the server lifecycle shares application state across worker threads",
-            ),
+            constants_str::VALUE_47325207,
+            (2, 0, 0, constants_str::VALUE_D94112EA),
         ),
         (
-            "server/src/adapters/routing.rs",
-            (
-                1,
-                0,
-                1,
-                "route composition shares application state across worker threads",
-            ),
+            constants_str::VALUE_D59B01F9,
+            (1, 0, 1, constants_str::VALUE_F3B9B918),
         ),
         (
-            "server_runtime_http/src/domain_types/health.rs",
-            (1, 0, 0, "health state is shared across request tasks"),
+            constants_str::VALUE_299CBC23,
+            (1, 0, 0, constants_str::VALUE_FFF8147A),
         ),
         (
-            "server_runtime_http/src/domain_types/limits.rs",
-            (1, 0, 0, "the semaphore is shared across request tasks"),
+            constants_str::VALUE_84D6426B,
+            (1, 0, 0, constants_str::VALUE_20AEF06E),
         ),
         (
-            "server_runtime_http/src/domain_types.rs",
-            (
-                0,
-                0,
-                1,
-                "runtime middleware shares state and erases heterogeneous service errors",
-            ),
+            constants_str::VALUE_12509C8A,
+            (0, 0, 1, constants_str::VALUE_60EE0A5C),
         ),
         (
-            "server_runtime_http/src/domain_types/security_headers.rs",
-            (
-                0,
-                0,
-                1,
-                "security middleware erases its service future behind the tower boundary",
-            ),
+            constants_str::VALUE_CF2E8B6C,
+            (0, 0, 1, constants_str::VALUE_3BE6A9B2),
         ),
         (
-            "server_runtime_http/src/domain_types/http_error_diagnostic.rs",
-            (
-                0,
-                0,
-                2,
-                "diagnostic capture accepts error sources through the standard error boundary",
-            ),
+            constants_str::VALUE_EAC3A6DC,
+            (0, 0, 2, constants_str::VALUE_0CD339A2),
         ),
         (
-            "server_runtime_http/src/domain_types/request_timeout.rs",
-            (
-                0,
-                0,
-                1,
-                "timeout middleware erases its service future behind the tower boundary",
-            ),
+            constants_str::VALUE_781D9B03,
+            (0, 0, 1, constants_str::VALUE_EDBFCF78),
         ),
         (
-            "server_runtime_core/src/domain_types/resource_budget.rs",
-            (
-                1,
-                0,
-                0,
-                "the resource budget semaphore is shared across tasks",
-            ),
+            constants_str::VALUE_EC2A2742,
+            (1, 0, 0, constants_str::VALUE_CC404E23),
         ),
         (
-            "server_runtime_core/src/domain_types/single_flight.rs",
-            (
-                1,
-                1,
-                0,
-                "single-flight ownership requires shared synchronized state",
-            ),
+            constants_str::VALUE_E56A7582,
+            (1, 1, 0, constants_str::VALUE_614D1CA5),
         ),
         (
-            "server_runtime_http/src/domain_types/bounded_read.rs",
-            (1, 0, 0, "the read limiter is shared across request tasks"),
+            constants_str::SERVER_RUNTIME_SRC_BOUNDED_READ_RS,
+            (1, 0, 0, constants_str::VALUE_6732C9B0),
         ),
         (
-            "server_runtime_core/src/domain_types/history.rs",
-            (
-                1,
-                1,
-                0,
-                "run history is shared and asynchronously synchronized",
-            ),
+            constants_str::VALUE_90208B18,
+            (1, 1, 0, constants_str::VALUE_D12133A6),
         ),
         (
-            "server_runtime_core/src/domain_types/lease_registry.rs",
-            (
-                1,
-                1,
-                0,
-                "lease state is shared and asynchronously synchronized",
-            ),
+            constants_str::VALUE_F5E788DA,
+            (1, 1, 0, constants_str::VALUE_FCD145D4),
         ),
         (
-            "server_runtime_http/src/domain_types/metrics_layer.rs",
-            (
-                1,
-                1,
-                1,
-                "the bounded metrics cache is shared across request threads",
-            ),
+            constants_str::VALUE_D9252088,
+            (1, 1, 1, constants_str::VALUE_43771A66),
         ),
         (
-            "pg_crud_where_filters/src/domain_types.rs",
-            (
-                0,
-                0,
-                4,
-                "query fragments use dynamic dispatch over heterogeneous SQL parts",
-            ),
+            constants_str::VALUE_EFE7711A,
+            (0, 0, 4, constants_str::VALUE_A48897C5),
         ),
         (
-            "pg_crud_where_filters_generate_src/src/domain_types/source.rs",
-            (
-                0,
-                0,
-                31,
-                "the generator composes heterogeneous token fragments",
-            ),
+            constants_str::VALUE_471AD9D4,
+            (0, 0, 31, constants_str::VALUE_2881252B),
         ),
         (
-            "pg_crud_macro_common/src/domain_types/filters.rs",
-            (
-                0,
-                0,
-                2,
-                "filter generation accepts heterogeneous token fragments",
-            ),
+            constants_str::VALUE_43A074E4,
+            (0, 0, 2, constants_str::VALUE_207C8F2A),
         ),
         (
-            "pg_crud_macro_common/src/domain_types.rs",
-            (
-                0,
-                0,
-                96,
-                "CRUD generation composes heterogeneous token fragments",
-            ),
+            constants_str::VALUE_1ACC98BE,
+            (0, 0, 96, constants_str::VALUE_39634CD1),
         ),
         (
-            "pg_crud_macro_common/src/domain_types/pg_type_test_cases.rs",
-            (
-                0,
-                0,
-                51,
-                "generated fixtures compose heterogeneous token fragments",
-            ),
+            constants_str::VALUE_7DF10CC7,
+            (0, 0, 51, constants_str::VALUE_71BBA184),
         ),
         (
-            "pg_crud_macro_common/src/domain_types/token_stream_helpers.rs",
-            (
-                0,
-                0,
-                11,
-                "token helpers accept heterogeneous token fragments",
-            ),
+            constants_str::VALUE_1F61C5FC,
+            (0, 0, 11, constants_str::VALUE_0E6DDA27),
         ),
         (
-            "pg_crud_common/src/domain_types/query_fragment.rs",
-            (
-                0,
-                0,
-                1,
-                "query fragments require heterogeneous SQL part dispatch",
-            ),
+            constants_str::VALUE_D0A66D2F,
+            (0, 0, 1, constants_str::VALUE_6270BA4A),
         ),
         (
-            "pg_crud_common/src/domain_types.rs",
-            (
-                0,
-                0,
-                6,
-                "CRUD contracts operate on heterogeneous query parts",
-            ),
+            constants_str::PG_CRUD_PG_CRUD_COMMON_SRC_LIB_RS,
+            (0, 0, 6, constants_str::VALUE_B5B270A8),
         ),
         (
-            "pg_crud_common/src/domain_types/pg_values.rs",
-            (
-                0,
-                0,
-                2,
-                "PostgreSQL value schemas compose heterogeneous values",
-            ),
+            constants_str::VALUE_A9465BB5,
+            (0, 0, 2, constants_str::VALUE_C8755A1C),
         ),
         (
-            "pg_crud_common/src/domain_types/query_collections.rs",
-            (
-                0,
-                0,
-                1,
-                "query collections bind heterogeneous filter values",
-            ),
+            constants_str::VALUE_5036238B,
+            (0, 0, 1, constants_str::VALUE_2CB32E6F),
         ),
         (
-            "pg_crud_common/src/domain_types/query_pagination.rs",
-            (0, 0, 2, "pagination composes heterogeneous query bindings"),
+            constants_str::VALUE_C71E84EC,
+            (0, 0, 2, constants_str::VALUE_9838A739),
         ),
         (
-            "pg_crud_pg_table_generate_src/src/domain_types/source.rs",
-            (
-                0,
-                0,
-                179,
-                "table generation composes heterogeneous token fragments",
-            ),
+            constants_str::VALUE_7FE2AF02,
+            (0, 0, 179, constants_str::VALUE_7FA1ACFA),
         ),
         (
-            "pg_crud_pg_types_generate_src/src/domain_types/source.rs",
-            (
-                0,
-                0,
-                177,
-                "type generation composes heterogeneous token fragments",
-            ),
+            constants_str::VALUE_D405F3E1,
+            (0, 0, 177, constants_str::VALUE_FB2CE6C2),
         ),
         (
-            "pg_crud_pg_types_common/src/domain_types.rs",
-            (0, 0, 1, "PostgreSQL query parts use dynamic dispatch"),
+            constants_str::VALUE_4A7BAF6A,
+            (0, 0, 1, constants_str::VALUE_674BDE12),
         ),
         (
-            "workspace_test_runner/src/application.rs",
-            (
-                0,
-                0,
-                1,
-                "the runner application generates benchmark input from heterogeneous tokens",
-            ),
+            constants_str::VALUE_9D0FC67D,
+            (0, 0, 1, constants_str::VALUE_E7909B41),
         ),
         (
-            "server_admin/src/domain_types/generated_tables.rs",
-            (1, 0, 1, "generated handlers share erased application state"),
+            constants_str::VALUE_91DD0162,
+            (1, 0, 1, constants_str::VALUE_A86D0615),
         ),
         (
-            "server_admin/src/domain_types.rs",
-            (
-                1,
-                0,
-                0,
-                "administrator state is shared across request tasks",
-            ),
+            constants_str::SERVER_ADMIN_SRC_LIB_RS,
+            (1, 0, 0, constants_str::VALUE_93F9D3B6),
         ),
         (
-            "server_admin/src/domain_types/generated_auth.rs",
-            (
-                0,
-                0,
-                1,
-                "generated authentication accepts heterogeneous service implementations",
-            ),
+            constants_str::VALUE_206B48D7,
+            (0, 0, 1, constants_str::VALUE_F5E028C2),
         ),
         (
-            "server_admin/src/application/auth.rs",
-            (
-                1,
-                0,
-                0,
-                "authentication state is shared across request tasks",
-            ),
+            constants_str::VALUE_0690A45F,
+            (1, 0, 0, constants_str::VALUE_C1254FA5),
         ),
     ]);
     super::snapshot::with_codebase_snapshot(|snapshot| {
@@ -1534,405 +1334,240 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
 fn ignored_map_err_bindings_match_reviewed_inventory() {
     let reviewed = std::collections::BTreeMap::from([
         (
-            "external_service_emulators/src/domain_types.rs",
-            (
-                constants_usize::ONE,
-                "the emulator maps channel closure to its domain error",
-            ),
+            constants_str::VALUE_2A60AE5C,
+            (constants_usize::ONE, constants_str::VALUE_6A63CC5A),
         ),
         (
-            "route_validators/src/domain_types/hdr_val.rs",
-            (
-                2usize,
-                "header parse details are intentionally mapped to validation errors",
-            ),
+            constants_str::VALUE_AC7A6F68,
+            (2usize, constants_str::VALUE_3995FF01),
         ),
         (
-            "macro_helpers/src/domain_types/test_database.rs",
-            (
-                constants_usize::ONE,
-                "the test database helper maps setup failure to its fixture error",
-            ),
+            constants_str::VALUE_3E2D4173,
+            (constants_usize::ONE, constants_str::VALUE_E5C51E0B),
         ),
         (
-            "macro_helpers/src/domain_types/write_string_into_file.rs",
-            (
-                constants_usize::ONE,
-                "the file helper maps conversion failure to its domain error",
-            ),
+            constants_str::VALUE_60D35589,
+            (constants_usize::ONE, constants_str::VALUE_21A96EB2),
         ),
         (
-            "notification_service/src/domain_types.rs",
-            (
-                constants_usize::ONE,
-                "service bootstrap classifies configuration failures",
-            ),
+            constants_str::VALUE_8E41EC63,
+            (constants_usize::ONE, constants_str::VALUE_706BFD5F),
         ),
         (
-            "notification_service/src/adapters/runtime.rs",
-            (
-                constants_usize::ONE,
-                "service runtime classifies timeout configuration failures",
-            ),
+            constants_str::VALUE_01D96FA0,
+            (constants_usize::ONE, constants_str::VALUE_DB13C058),
         ),
         (
-            "file_storage/src/domain_types.rs",
-            (
-                constants_usize::ONE,
-                "storage input failure is classified at the boundary",
-            ),
+            constants_str::VALUE_712F68AD,
+            (constants_usize::ONE, constants_str::VALUE_AE660A47),
         ),
         (
-            "common_routes/src/domain_types.rs",
-            (
-                constants_usize::ONE,
-                "health component capacity maps to the established public contract error",
-            ),
+            constants_str::VALUE_30296F9B,
+            (constants_usize::ONE, constants_str::VALUE_6247FF86),
         ),
         (
-            "server_runtime_http/src/domain_types/outbound_url.rs",
-            (
-                constants_usize::ONE,
-                "URL parse details are intentionally hidden by the domain error",
-            ),
+            constants_str::VALUE_E4D64D33,
+            (constants_usize::ONE, constants_str::VALUE_597ECFA9),
         ),
         (
-            "server_runtime_http/src/domain_types/wire_token.rs",
-            (
-                constants_usize::ONE,
-                "wire token part failures map to a stable public category",
-            ),
+            constants_str::VALUE_7B7EA9ED,
+            (constants_usize::ONE, constants_str::VALUE_9DAEB1C0),
         ),
         (
-            "server_runtime_http/src/domain_types/origin.rs",
-            (
-                constants_usize::ONE,
-                "origin parsing maps to a stable validation error",
-            ),
+            constants_str::VALUE_95516B7B,
+            (constants_usize::ONE, constants_str::VALUE_FBE4E2B3),
         ),
         (
-            "server_runtime_http/src/domain_types/secure_cookie.rs",
-            (
-                constants_usize::ONE,
-                "cookie header details are intentionally redacted",
-            ),
+            constants_str::VALUE_112F424A,
+            (constants_usize::ONE, constants_str::VALUE_73E962A6),
         ),
         (
-            "server_runtime_http/src/domain_types/multipart.rs",
-            (
-                constants_usize::ONE,
-                "multipart path validation exposes a stable domain error",
-            ),
+            constants_str::VALUE_CC18D6A2,
+            (constants_usize::ONE, constants_str::VALUE_3A3FB9CA),
         ),
         (
-            "server_runtime_http/src/domain_types/security_headers.rs",
-            (
-                constants_usize::ONE,
-                "content-security-policy parse details map to a stable configuration error",
-            ),
+            constants_str::VALUE_CF2E8B6C,
+            (constants_usize::ONE, constants_str::VALUE_657C95A1),
         ),
         (
-            "server_runtime_http/src/domain_types/bounded_read.rs",
-            (
-                constants_usize::ONE,
-                "closed limiter state maps to a stable read error",
-            ),
+            constants_str::SERVER_RUNTIME_SRC_BOUNDED_READ_RS,
+            (constants_usize::ONE, constants_str::VALUE_64B8F96D),
         ),
         (
-            "server_runtime_http/src/domain_types/child_process.rs",
-            (
-                constants_usize::ONE,
-                "elapsed timeout details map to the child timeout variant",
-            ),
+            constants_str::VALUE_871375E9,
+            (constants_usize::ONE, constants_str::VALUE_A142BD69),
         ),
         (
-            "server_runtime_http/src/domain_types/http_header_policy.rs",
-            (
-                3usize,
-                "header construction errors are intentionally classified",
-            ),
+            constants_str::VALUE_1FC40282,
+            (3usize, constants_str::VALUE_98B81B2D),
         ),
         (
-            "server_runtime_core/src/domain_types/exclusive_run.rs",
-            (
-                constants_usize::ONE,
-                "the atomic compare failure maps to already active",
-            ),
+            constants_str::VALUE_769125D7,
+            (constants_usize::ONE, constants_str::VALUE_EB67E2C6),
         ),
         (
-            "pg_crud_common/src/domain_types/read_query_plan.rs",
-            (
-                2usize,
-                "query plan validation maps to stable contract errors",
-            ),
+            constants_str::VALUE_C85E36AA,
+            (2usize, constants_str::VALUE_C98C08E2),
         ),
         (
-            "pg_crud_common/src/domain_types/cursor.rs",
-            (
-                9usize,
-                "cursor parsing maps low-level failures to wire categories",
-            ),
+            constants_str::VALUE_5549F923,
+            (9usize, constants_str::VALUE_9111728C),
         ),
         (
-            "pg_crud_common/src/domain_types/bounded_btree_map.rs",
-            (
-                constants_usize::ONE,
-                "the compatibility wrapper maps the shared capacity error to its existing public error",
-            ),
+            constants_str::VALUE_E4B07557,
+            (constants_usize::ONE, constants_str::VALUE_556EFD73),
         ),
         (
-            "pg_crud_where_filters/src/domain_types.rs",
-            (
-                constants_usize::ONE,
-                "the exact-length compatibility wrapper preserves its location-aware public error",
-            ),
+            constants_str::VALUE_EFE7711A,
+            (constants_usize::ONE, constants_str::VALUE_1134EDB5),
         ),
         (
-            "pg_crud_common/src/domain_types/date_sql_filter.rs",
-            (
-                2usize,
-                "date filter parsing maps to contract validation errors",
-            ),
+            constants_str::VALUE_3F67003B,
+            (2usize, constants_str::VALUE_C1819A84),
         ),
         (
-            "pg_crud_common/src/domain_types/advisory_lock.rs",
-            (
-                3usize,
-                "advisory lock conversion maps to its bounded domain error",
-            ),
+            constants_str::VALUE_BCE1238C,
+            (3usize, constants_str::VALUE_53588272),
         ),
         (
-            "server_admin_contract/src/domain_types/collections.rs",
-            (
-                constants_usize::ONE,
-                "administrator collections preserve their stable public capacity error",
-            ),
+            constants_str::VALUE_61FFCD13,
+            (constants_usize::ONE, constants_str::VALUE_324906E5),
         ),
         (
-            "pg_crud_pg_table/src/domain_types.rs",
-            (
-                2usize,
-                "table validation maps generated failures to a public category",
-            ),
+            constants_str::VALUE_AC77DBAA,
+            (2usize, constants_str::VALUE_099B4392),
         ),
         (
-            "config_lib/src/domain_types/pg_pool.rs",
-            (
-                2usize,
-                "pool configuration maps numeric parsing details to its stable public error",
-            ),
+            constants_str::VALUE_237F2CE7,
+            (2usize, constants_str::VALUE_5AF70CDF),
         ),
         (
-            "config_lib/src/domain_types/admin.rs",
-            (
-                constants_usize::ONE,
-                "administrator token parsing maps bounded text to its stable public error",
-            ),
+            constants_str::VALUE_3C187B4E,
+            (constants_usize::ONE, constants_str::VALUE_49479188),
         ),
         (
-            "config_lib/src/domain_types/admin_jwt.rs",
-            (
-                constants_usize::ONE,
-                "administrator JWT parsing maps bounded secrets to its stable public error",
-            ),
+            constants_str::VALUE_2E474F0E,
+            (constants_usize::ONE, constants_str::VALUE_63C3DBE6),
         ),
         (
-            "workspace_test_runner/src/adapters/admin_fixture.rs",
-            (
-                constants_usize::ONE,
-                "fixture input conversion maps bounded text to command failure",
-            ),
+            constants_str::VALUE_532433A4,
+            (constants_usize::ONE, constants_str::VALUE_7B6389D8),
         ),
         (
-            "workspace_test_runner/src/adapters/execution.rs",
-            (
-                constants_usize::ONE,
-                "summary initialization maps to the runner error",
-            ),
+            constants_str::VALUE_392D41BA,
+            (constants_usize::ONE, constants_str::VALUE_0124DA6A),
         ),
         (
-            "frontend_contract_validation/src/domain_types/artifact.rs",
-            (
-                2usize,
-                "serialization details map to snapshot contract errors",
-            ),
+            constants_str::VALUE_3DDFB937,
+            (2usize, constants_str::VALUE_0BD83EB3),
         ),
         (
-            "workspace_scaffold/src/domain_types.rs",
-            (
-                constants_usize::ONE,
-                "projection parsing maps to a stable scaffold error",
-            ),
+            constants_str::VALUE_1A456B0D,
+            (constants_usize::ONE, constants_str::VALUE_1686EBFE),
         ),
         (
-            "workspace_scaffold/src/domain_types/service_catalog.rs",
-            (8usize, "catalog parsing maps to stable scaffold errors"),
+            constants_str::VALUE_5FB76CAF,
+            (8usize, constants_str::VALUE_3DD2EF47),
         ),
         (
-            "newtype/src/lib.rs",
-            (
-                constants_usize::ONE,
-                "invalid derive input maps to the macro diagnostic",
-            ),
+            constants_str::VALUE_E24F0FD4,
+            (constants_usize::ONE, constants_str::VALUE_01371493),
         ),
         (
-            "server_admin_core/src/domain_types.rs",
-            (
-                4usize,
-                "domain conversion failures map to administrator validation errors",
-            ),
+            constants_str::VALUE_02A23160,
+            (4usize, constants_str::VALUE_C77C8514),
         ),
         (
-            "server_admin/src/domain_types/generated_tables.rs",
-            (
-                constants_usize::ONE,
-                "generated table conformance maps to its public error",
-            ),
+            constants_str::VALUE_91DD0162,
+            (constants_usize::ONE, constants_str::VALUE_7CCF2159),
         ),
         (
-            "server_admin/src/adapters/repository/users.rs",
-            (
-                12usize,
-                "repository row conversions map to typed repository errors",
-            ),
+            constants_str::VALUE_2996C2A6,
+            (12usize, constants_str::VALUE_F6BD2A1C),
         ),
         (
-            "server_admin/src/adapters/repository/settings.rs",
-            (
-                8usize,
-                "settings row conversions map to typed repository errors",
-            ),
+            constants_str::VALUE_4C6F4532,
+            (8usize, constants_str::VALUE_80247FE1),
         ),
         (
-            "server_admin/src/adapters/repository/data_tables.rs",
-            (
-                21usize,
-                "data table parsing maps to typed repository errors",
-            ),
+            constants_str::VALUE_8E182ED1,
+            (21usize, constants_str::VALUE_2459C957),
         ),
         (
-            "server_admin/src/adapters/repository/audit.rs",
-            (
-                10usize,
-                "audit row conversions map to typed repository errors",
-            ),
+            constants_str::VALUE_AF9C2B7F,
+            (10usize, constants_str::VALUE_26FEED58),
         ),
         (
-            "server_admin/src/adapters/repository/rate_limits.rs",
-            (
-                4usize,
-                "rate-limit row conversions map to typed repository errors",
-            ),
+            constants_str::VALUE_8C00245E,
+            (4usize, constants_str::VALUE_3EC967E9),
         ),
         (
-            "server_admin/src/adapters/repository/sessions.rs",
-            (
-                5usize,
-                "session row conversions map to typed repository errors",
-            ),
+            constants_str::VALUE_BFA4ECF3,
+            (5usize, constants_str::VALUE_F9FB5F7D),
         ),
         (
-            "server_admin/src/adapters/repository/cleanup.rs",
-            (
-                constants_usize::ONE,
-                "cleanup conversion maps to a typed repository error",
-            ),
+            constants_str::VALUE_FF6D4857,
+            (constants_usize::ONE, constants_str::VALUE_1FB60025),
         ),
         (
-            "server_admin/src/application/audit.rs",
-            (3usize, "audit request validation maps to stable API errors"),
+            constants_str::VALUE_20A23EAF,
+            (3usize, constants_str::VALUE_086B6B08),
         ),
         (
-            "server_admin/src/application/html.rs",
-            (
-                8usize,
-                "HTML form parsing maps details to stable API errors",
-            ),
+            constants_str::VALUE_3EB7B056,
+            (8usize, constants_str::VALUE_9E355CCC),
         ),
         (
-            "server_admin/src/application/session.rs",
-            (
-                constants_usize::ONE,
-                "system clock failure maps to the session category",
-            ),
+            constants_str::VALUE_7C2F0144,
+            (constants_usize::ONE, constants_str::VALUE_653E5015),
         ),
         (
-            "server_admin/src/application/authn.rs",
-            (
-                5usize,
-                "authentication input failures map to stable API categories",
-            ),
+            constants_str::VALUE_1CAAD2DE,
+            (5usize, constants_str::VALUE_B678E31A),
         ),
         (
-            "server_admin/src/application/data_tables.rs",
-            (
-                constants_usize::ONE,
-                "data-table input failures map to stable API categories",
-            ),
+            constants_str::VALUE_B852993C,
+            (constants_usize::ONE, constants_str::VALUE_FE0C1BD5),
         ),
         (
-            "server_admin/src/application/roles.rs",
-            (2usize, "role input failures map to stable API categories"),
+            constants_str::VALUE_3C6F88B1,
+            (2usize, constants_str::VALUE_0A492916),
         ),
         (
-            "server_admin/src/application/shared.rs",
-            (
-                3usize,
-                "shared input validation maps to stable API categories",
-            ),
+            constants_str::VALUE_6DB550C3,
+            (3usize, constants_str::VALUE_AE5F4132),
         ),
         (
-            "server_admin/src/application/users.rs",
-            (4usize, "user input failures map to stable API categories"),
+            constants_str::VALUE_1E8EA59C,
+            (4usize, constants_str::VALUE_F6A331AA),
         ),
         (
-            "server_admin/src/application/auth.rs",
-            (
-                12usize,
-                "authentication failures map to stable and redacted API categories",
-            ),
+            constants_str::VALUE_0690A45F,
+            (12usize, constants_str::VALUE_FD41C49E),
         ),
         (
-            "server_admin_frontend/src/domain_types/app/http/fetch.rs",
-            (
-                5usize,
-                "browser fetch failures map to serializable UI error categories",
-            ),
+            constants_str::VALUE_F3169686,
+            (5usize, constants_str::VALUE_FAE4D1C8),
         ),
         (
-            "server_admin_frontend/src/domain_types/app/http/mutation.rs",
-            (
-                9usize,
-                "browser mutation failures map to serializable UI error categories",
-            ),
+            constants_str::VALUE_4715BB8A,
+            (9usize, constants_str::VALUE_E66DA136),
         ),
         (
-            "server_admin_frontend/src/domain_types/app/http/url.rs",
-            (
-                2usize,
-                "browser URL failures map to a stable UI query error",
-            ),
+            constants_str::VALUE_7177655A,
+            (2usize, constants_str::VALUE_A8C9EDA6),
         ),
         (
-            "server_admin_frontend/src/domain_types/app/loader.rs",
-            (
-                constants_usize::ONE,
-                "browser page loading failures map to a stable query error",
-            ),
+            constants_str::VALUE_27AB06E9,
+            (constants_usize::ONE, constants_str::VALUE_B1E73CDD),
         ),
         (
-            "server_admin_frontend/src/domain_types/app/query/location.rs",
-            (
-                11usize,
-                "browser query parsing failures map to stable UI error categories",
-            ),
+            constants_str::VALUE_9E7DB142,
+            (11usize, constants_str::VALUE_0B70A676),
         ),
         (
-            "server_admin_frontend/src/domain_types/app/query/page.rs",
-            (
-                constants_usize::ONE,
-                "browser page-location failures map to a stable UI fetch error",
-            ),
+            constants_str::VALUE_BEBEC57E,
+            (constants_usize::ONE, constants_str::VALUE_9CA4EAEB),
         ),
     ]);
     super::snapshot::with_codebase_snapshot(|snapshot| {
@@ -1979,174 +1614,48 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
 #[test]
 fn raw_vec_tuple_wrappers_match_reviewed_inventory() {
     let reviewed = std::collections::BTreeMap::from([
-        (
-            "../bounded_types/src/domain_types/vector.rs:BoundedVec",
-            "the shared bounded vector is the reviewed owner of raw Vec storage",
-        ),
-        (
-            "../common_routes/src/domain_types.rs:HealthComponents",
-            "infallible fixed-size array conversions require raw storage; Vec conversion and serde delegate to bounded_types",
-        ),
-        (
-            "../dev_data_bootstrap/src/domain_types.rs:DevelopmentIdentitySpecs",
-            "the bootstrap catalog owns validated development identities assembled in process",
-        ),
-        (
-            "../frontend_contract_macros/src/domain_types.rs:SynRouteRegistrySchemas",
-            "the proc-macro compiler owns a compile-time syntax collection",
-        ),
-        (
-            "../pg_crud_common/src/domain_types/batch_validation.rs:BatchInvalidItems",
-            "batch validation owns its bounded invalid-item accumulator",
-        ),
-        (
-            "../pg_crud_common/src/domain_types/bounded_unique_vec.rs:BoundedUniqueVec",
-            "the compatibility collection enforces both length and uniqueness invariants",
-        ),
-        (
-            "../pg_crud_common/src/domain_types/bounded_vec.rs:BoundedVec",
-            "the compatibility wrapper delegates validation and serde to bounded_types",
-        ),
-        (
-            "../pg_crud_common/src/domain_types/cardinality.rs:DuplicateCandidates",
-            "cardinality analysis owns an internal duplicate candidate collection",
-        ),
-        (
-            "../pg_crud_common/src/domain_types/date_sql_filter.rs:ChronoUtcDateTimes",
-            "the SQL bind plan owns an operational collection assembled from validated filters",
-        ),
-        (
-            "../pg_crud_common/src/domain_types/db_schema_conformance.rs:DbColumnContractSnapshots",
-            "schema conformance owns an internal deterministic snapshot collection",
-        ),
-        (
-            "../pg_crud_common/src/domain_types/db_schema_conformance.rs:DbColumnSnapshots",
-            "schema conformance owns an internal deterministic snapshot collection",
-        ),
-        (
-            "../pg_crud_common/src/domain_types/db_schema_conformance.rs:DbColumnSpecs",
-            "schema conformance owns an internal static specification collection",
-        ),
-        (
-            "../pg_crud_common/src/domain_types/db_schema_conformance.rs:DbKeyContractSnapshots",
-            "schema conformance owns an internal deterministic snapshot collection",
-        ),
-        (
-            "../pg_crud_common/src/domain_types/db_schema_conformance.rs:DbKeySpecs",
-            "schema conformance owns an internal static specification collection",
-        ),
-        (
-            "../pg_crud_common/src/domain_types/db_schema_conformance.rs:DbObjectSnapshots",
-            "schema conformance owns an internal deterministic snapshot collection",
-        ),
-        (
-            "../pg_crud_common/src/domain_types/db_schema_conformance.rs:DbObjectSpecs",
-            "schema conformance owns an internal static specification collection",
-        ),
-        (
-            "../pg_crud_common/src/domain_types/db_schema_conformance.rs:DbDefaultSpecs",
-            "schema conformance owns an internal static specification collection",
-        ),
-        (
-            "../pg_crud_common/src/domain_types/db_schema_conformance.rs:DbSchemaTexts",
-            "schema conformance owns an internal deterministic text collection",
-        ),
-        (
-            "../pg_crud_common/src/domain_types/db_schema_conformance.rs:DbStaticSchemaTexts",
-            "schema conformance owns an internal static text collection",
-        ),
-        (
-            "../pg_crud_common/src/domain_types/filter_bind_plan.rs:FilterBindPlan",
-            "the query planner owns an internal ordered bind collection",
-        ),
-        (
-            "../pg_crud_common/src/domain_types.rs:AllEnumVariants",
-            "the enum helper owns a compile-time-complete variant collection",
-        ),
-        (
-            "../pg_crud_common/src/domain_types/query_collections.rs:NotEmptyUniqueVec",
-            "the collection enforces non-empty and uniqueness invariants together",
-        ),
-        (
-            "../pg_crud_common/src/domain_types/list_total.rs:ListItems",
-            "list-total planning owns an operational result collection",
-        ),
-        (
-            "../pg_crud_common/src/domain_types/operational_invariants.rs:PgSqlIdentifiers",
-            "the invariant checker owns validated SQL identifier wrappers",
-        ),
-        (
-            "../pg_crud_common/src/domain_types/order_preserving_deduplication.rs:OrderPreservingValues",
-            "the deduplication helper owns its ordered working collection",
-        ),
-        (
-            "../pg_crud_macro_common/src/domain_types.rs:ParseTokenStreamStrings",
-            "the proc-macro compiler owns a compile-time token rendering collection",
-        ),
-        (
-            "../pg_crud_macro_common/src/domain_types.rs:ProcMacro2GeneratedRustTokenStreamVec",
-            "the proc-macro compiler owns generated token streams",
-        ),
-        (
-            "../pg_crud_pg_table_generate_src/src/domain_types/source.rs:TableTestNames",
-            "the source generator owns compile-time generated test names",
-        ),
-        (
-            "../pg_crud_pg_types_generate_src/src/domain_types/source.rs:GeneratePgTypeRecords",
-            "the source generator owns compile-time catalog records",
-        ),
-        (
-            "../pg_crud_pg_types_generate_src/src/domain_types/source.rs:GeneratePgTypes",
-            "the source generator owns compile-time generated types",
-        ),
-        (
-            "../pg_crud_where_filters/src/domain_types.rs:BoundedVec",
-            "the exact-length compatibility wrapper delegates validation and serde to bounded_types",
-        ),
-        (
-            "../pg_crud_where_filters/src/domain_types.rs:PgTypeNotEmptyUniqueVec",
-            "the generated filter collection enforces non-empty and uniqueness invariants",
-        ),
-        (
-            "../server_admin/src/application/auth.rs:JsonwebtokenAdminDecodingKeys",
-            "validated configuration determines the runtime key collection",
-        ),
-        (
-            "../server_runtime_http/src/domain_types/bounded_read.rs:BoundedBytes",
-            "the byte limit is supplied dynamically and enforced by the bounded reader",
-        ),
-        (
-            "../server_runtime_http/src/domain_types/cors.rs:HttpCorsAllowOriginHeaderValues",
-            "the parser enforces its byte and item limits before construction",
-        ),
-        (
-            "../server_runtime_http/src/domain_types/multipart.rs:MultipartBytesParts",
-            "the multipart budget is supplied dynamically and enforced while parsing",
-        ),
-        (
-            "../server_runtime_http/src/domain_types/multipart.rs:MultipartTextParts",
-            "the multipart budget is supplied dynamically and enforced while parsing",
-        ),
-        (
-            "../constants_str_macros/src/domain_types.rs:ConstantParts",
-            "the proc-macro compiler owns compile-time constant fragments",
-        ),
-        (
-            "../constants_str_macros/src/domain_types.rs:Constants",
-            "the proc-macro compiler owns compile-time constant declarations",
-        ),
-        (
-            "../constants_str_macros/src/domain_types.rs:Fragments",
-            "the proc-macro compiler owns compile-time string fragments",
-        ),
-        (
-            "../workspace_macro_helpers/src/domain_types.rs:ProcMacro2MacroTokens",
-            "the shared proc-macro helper owns compile-time tokens",
-        ),
-        (
-            "../workspace_macro_helpers/src/domain_types.rs:ProcMacro2TopLevelCommaParts",
-            "the shared proc-macro helper owns compile-time token parts",
-        ),
+        (constants_str::VALUE_7630EBEC, constants_str::VALUE_C2C65C68),
+        (constants_str::VALUE_86D03626, constants_str::VALUE_E3D9A7E6),
+        (constants_str::VALUE_6C761A40, constants_str::VALUE_BC91BCEF),
+        (constants_str::VALUE_F68E036F, constants_str::VALUE_D17C5423),
+        (constants_str::VALUE_090096ED, constants_str::VALUE_07FFA47C),
+        (constants_str::VALUE_94E2B4FA, constants_str::VALUE_63229E70),
+        (constants_str::VALUE_D9B93146, constants_str::VALUE_FC3332AB),
+        (constants_str::VALUE_6F5D2E20, constants_str::VALUE_0901EA34),
+        (constants_str::VALUE_9DFC7A97, constants_str::VALUE_FDB078C8),
+        (constants_str::VALUE_0525E2BF, constants_str::VALUE_FBBB4FDC),
+        (constants_str::VALUE_CAE88716, constants_str::VALUE_FBBB4FDC),
+        (constants_str::VALUE_D51ADF29, constants_str::VALUE_16D85132),
+        (constants_str::VALUE_975B0C21, constants_str::VALUE_FBBB4FDC),
+        (constants_str::VALUE_AA7EE094, constants_str::VALUE_16D85132),
+        (constants_str::VALUE_5879251A, constants_str::VALUE_FBBB4FDC),
+        (constants_str::VALUE_51CC135E, constants_str::VALUE_16D85132),
+        (constants_str::VALUE_B1A7F284, constants_str::VALUE_16D85132),
+        (constants_str::VALUE_8C2154B5, constants_str::VALUE_55AE895C),
+        (constants_str::VALUE_7314D06D, constants_str::VALUE_EF8D5AF4),
+        (constants_str::VALUE_9AE03CB2, constants_str::VALUE_986BBD24),
+        (constants_str::VALUE_6BF051A2, constants_str::VALUE_A5952628),
+        (constants_str::VALUE_C7F27415, constants_str::VALUE_C3214518),
+        (constants_str::VALUE_A417488B, constants_str::VALUE_D39882F4),
+        (constants_str::VALUE_919ACACB, constants_str::VALUE_1FBF1A7A),
+        (constants_str::VALUE_9DB8F65B, constants_str::VALUE_7C37CACC),
+        (constants_str::VALUE_671231A3, constants_str::VALUE_D82FE516),
+        (constants_str::VALUE_DEB830DD, constants_str::VALUE_DCAEE23B),
+        (constants_str::VALUE_DD337AC0, constants_str::VALUE_C9221A63),
+        (constants_str::VALUE_06C235F4, constants_str::VALUE_211A1405),
+        (constants_str::VALUE_2316F647, constants_str::VALUE_0EFD8ED8),
+        (constants_str::VALUE_5D687FEA, constants_str::VALUE_0C7973A9),
+        (constants_str::VALUE_7E7B2B37, constants_str::VALUE_0F84F758),
+        (constants_str::VALUE_CB780650, constants_str::VALUE_8FEB779E),
+        (constants_str::VALUE_1D2594F2, constants_str::VALUE_5D972838),
+        (constants_str::VALUE_A48AAE67, constants_str::VALUE_2DCAD87D),
+        (constants_str::VALUE_B9937202, constants_str::VALUE_13C920C3),
+        (constants_str::VALUE_2941B657, constants_str::VALUE_13C920C3),
+        (constants_str::VALUE_FAB1545F, constants_str::VALUE_64EA6158),
+        (constants_str::VALUE_9FB992E8, constants_str::VALUE_3F51E18F),
+        (constants_str::VALUE_D200D86F, constants_str::VALUE_352F4313),
+        (constants_str::VALUE_413BDF99, constants_str::VALUE_28A55761),
+        (constants_str::VALUE_EA3B0668, constants_str::VALUE_82F6C375),
     ]);
     reviewed
         .values()
@@ -2230,109 +1739,64 @@ fn raw_vec_tuple_wrapper_visitor_detects_qualified_and_nested_types() {
 fn usize_max_usage_matches_reviewed_inventory() {
     let reviewed = std::collections::BTreeMap::from([
         (
-            "../bounded_types/src/domain_types/text.rs",
-            (
-                constants_usize::ONE,
-                "the bounded string schema represents its explicitly unbounded maximum",
-            ),
+            constants_str::VALUE_08DBA674,
+            (constants_usize::ONE, constants_str::VALUE_CEE3C893),
         ),
         (
-            "../bounded_types/src/domain_types/vector.rs",
-            (
-                3usize,
-                "the bounded vector provides its explicitly unbounded specialization, overflow boundary, and schema handling",
-            ),
+            constants_str::VALUE_2483AEA6,
+            (3usize, constants_str::VALUE_245849CA),
         ),
         (
-            "../file_storage/src/domain_types.rs",
-            (
-                constants_usize::ONE,
-                "the process-owned path catalog is assembled from already bounded storage paths",
-            ),
+            constants_str::VALUE_EEF4AEDA,
+            (constants_usize::ONE, constants_str::VALUE_491B16F9),
         ),
         (
-            "../frontend_contract/src/domain_types.rs",
-            (
-                3usize,
-                "compile-time generated frontend catalogs have no wire-controlled cardinality",
-            ),
+            constants_str::VALUE_7615091D,
+            (3usize, constants_str::VALUE_17CAA05F),
         ),
         (
-            "../frontend_contract/src/domain_types/route.rs",
-            (
-                3usize,
-                "compile-time generated route catalogs have no wire-controlled cardinality",
-            ),
+            constants_str::VALUE_B7324575,
+            (3usize, constants_str::VALUE_459ADA27),
         ),
         (
-            "../frontend_contract/src/domain_types/route_coverage.rs",
-            (
-                constants_usize::ONE,
-                "the compile-time route test category catalog has no wire-controlled cardinality",
-            ),
+            constants_str::VALUE_E66CEAFB,
+            (constants_usize::ONE, constants_str::VALUE_6FEEC711),
         ),
         (
-            "../frontend_contract_validation/src/domain_types/route_contract_validation.rs",
-            (
-                constants_usize::ONE,
-                "validation mismatches are bounded by the already finite route catalog",
-            ),
+            constants_str::VALUE_321E6445,
+            (constants_usize::ONE, constants_str::VALUE_835ED0BA),
         ),
         (
-            "../init_env_files/src/domain_types.rs",
-            (
-                4usize,
-                "the local workspace initializer catalogs are bounded by files in the checked-out workspace",
-            ),
+            constants_str::VALUE_A2FD7F33,
+            (4usize, constants_str::VALUE_E55D8523),
         ),
         (
-            "../pg_crud_pg_table_generate_src/src/domain_types/source.rs",
-            (
-                3usize,
-                "the proc-macro source generator operates on finite compile-time schema declarations",
-            ),
+            constants_str::VALUE_9DB464C8,
+            (3usize, constants_str::VALUE_FE6462D2),
         ),
         (
-            "../prepare_pg_databases/src/domain_types.rs",
-            (
-                2usize,
-                "the local process command catalog is derived from finite workspace configuration",
-            ),
+            constants_str::VALUE_4389D615,
+            (2usize, constants_str::VALUE_28A0F9A4),
         ),
         (
-            "../server_runtime_core/src/domain_types/lease_registry.rs",
-            (
-                3usize,
-                "the runtime-configured lease maximum is enforced at mutation sites",
-            ),
+            constants_str::VALUE_2EF7512D,
+            (3usize, constants_str::VALUE_2F0348B3),
         ),
         (
-            "../server_runtime_core/src/domain_types/single_flight.rs",
-            (
-                constants_usize::ONE,
-                "the runtime-configured single-flight maximum is enforced before insertion",
-            ),
+            constants_str::VALUE_57DDC4BF,
+            (constants_usize::ONE, constants_str::VALUE_845FE7CB),
         ),
         (
-            "../server_runtime_http/src/domain_types/child_process.rs",
-            (
-                3usize,
-                "runtime-configured process and diagnostic limits are enforced while collecting",
-            ),
+            constants_str::VALUE_20BD9443,
+            (3usize, constants_str::VALUE_37D955B5),
         ),
         (
-            "../workspace_scaffold/src/domain_types.rs",
-            (
-                constants_usize::ONE,
-                "the local service catalog is bounded by the checked-out workspace",
-            ),
+            constants_str::VALUE_CCA2C2FA,
+            (constants_usize::ONE, constants_str::VALUE_0BF03626),
         ),
         (
-            "../workspace_test_runner/src/adapters/execution.rs",
-            (
-                2usize,
-                "runner command text is derived from the finite workspace test plan",
-            ),
+            constants_str::VALUE_A7EBF5D2,
+            (2usize, constants_str::VALUE_ACA763E9),
         ),
     ]);
     reviewed
@@ -2388,19 +1852,19 @@ fn usize_max_expression_visitor_skips_test_modules() {
 fn select_sites_match_reviewed_cancellation_inventory() {
     let reviewed = [
         (
-            "server_runtime_http/src/domain_types/service.rs",
+            constants_str::VALUE_404ABD4C,
             constants_usize::ONE,
-            "the pinned server future is resumed after the shutdown notification branch",
+            constants_str::VALUE_D799E1E8,
         ),
         (
-            "server_runtime_http/src/domain_types/lifecycle.rs",
+            constants_str::VALUE_BAC9ADDA,
             constants_usize::ONE,
-            "the interval tick and oneshot shutdown receiver are cancellation-safe",
+            constants_str::VALUE_5337167F,
         ),
         (
-            "server_runtime_http/src/domain_types/service_bootstrap.rs",
+            constants_str::VALUE_3CE86070,
             constants_usize::ONE,
-            "the shutdown signal races two cancellation-safe signal receivers",
+            constants_str::VALUE_C8647B8D,
         ),
     ];
     super::snapshot::with_codebase_snapshot(|snapshot| {
@@ -2445,15 +1909,8 @@ fn select_sites_match_reviewed_cancellation_inventory() {
 
 #[test]
 fn select_policy_rejects_cancellation_sensitive_operations() {
-    let ast = syn::parse_file(
-        "async fn invalid(reader: &mut Reader, sender: &Sender) {
-            tokio::select! {
-                value = reader.read_exact(&mut [0u8; 8]) => drop(value),
-                value = sender.send(Message) => drop(value),
-            }
-        }",
-    )
-    .expect("714c620f invalid invariant must hold");
+    let ast = syn::parse_file(constants_str::VALUE_F6958372)
+        .expect("714c620f invalid invariant must hold");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         SelectMacroVisitor::default(),
@@ -2464,26 +1921,11 @@ fn select_policy_rejects_cancellation_sensitive_operations() {
 #[test]
 fn architectural_boundaries_reject_upward_dependencies() {
     let boundaries = [
-        (
-            "frontend_contract",
-            "the generic frontend contract must not depend on service, application, database, or runtime crates",
-        ),
-        (
-            "server_admin_contract",
-            "the administrator contract may depend downward on generic contracts and values, but not on runtime implementations",
-        ),
-        (
-            "server_observability",
-            "observability must not depend on HTTP, application, or route crates",
-        ),
-        (
-            "server_runtime_core",
-            "the runtime core must not depend on HTTP, application, or route crates",
-        ),
-        (
-            "server_runtime_http",
-            "the HTTP runtime must not depend on application or route crates",
-        ),
+        (constants_str::VALUE_9A26B6D6, constants_str::VALUE_D54C0026),
+        (constants_str::VALUE_5906FF0B, constants_str::VALUE_64313A40),
+        (constants_str::VALUE_B29A11B9, constants_str::VALUE_FB301D46),
+        (constants_str::VALUE_E1717E8B, constants_str::VALUE_72104B4E),
+        (constants_str::VALUE_B4F499E2, constants_str::VALUE_2773E6CE),
     ];
     super::snapshot::with_codebase_snapshot(|snapshot| {
         let workspace_names = snapshot.workspace_crate_names();
@@ -2506,29 +1948,29 @@ fn architectural_boundaries_reject_upward_dependencies() {
                 .iter()
                 .filter(|dependency| workspace_names.as_ref().contains(dependency.name.as_str()))
                 .filter(|dependency| match *package_name {
-                    "frontend_contract" => {
-                        dependency.name == "app_state"
-                            || dependency.name.starts_with("notification_service")
-                            || dependency.name.starts_with("pg_")
-                            || (dependency.name.starts_with("server")
-                                && dependency.name != "server_runtime_macros")
+                    constants_str::VALUE_9A26B6D6 => {
+                        dependency.name == constants_str::VALUE_CA3132B2
+                            || dependency.name.starts_with(constants_str::VALUE_AAADEE66)
+                            || dependency.name.starts_with(constants_str::VALUE_D11DB134)
+                            || (dependency.name.starts_with(constants_str::VALUE_B3EACD33)
+                                && dependency.name != constants_str::VALUE_EC36C4C9)
                     }
-                    "server_admin_contract" => {
-                        dependency.name == "app_state"
-                            || dependency.name == "server"
-                            || dependency.name == "server_admin"
-                            || dependency.name == "server_app_state"
-                            || dependency.name.ends_with("_runtime")
-                            || dependency.name.starts_with("notification_service")
-                            || dependency.name.starts_with("pg_")
+                    constants_str::VALUE_5906FF0B => {
+                        dependency.name == constants_str::VALUE_CA3132B2
+                            || dependency.name == constants_str::VALUE_B3EACD33
+                            || dependency.name == constants_str::VALUE_6D090579
+                            || dependency.name == constants_str::VALUE_D0393EDD
+                            || dependency.name.ends_with(constants_str::VALUE_93CEFD0B)
+                            || dependency.name.starts_with(constants_str::VALUE_AAADEE66)
+                            || dependency.name.starts_with(constants_str::VALUE_D11DB134)
                     }
-                    "server_observability" | "server_runtime_core" | "server_runtime_http" => {
-                        dependency.name == "app_state"
-                            || dependency.name == "server"
-                            || dependency.name.starts_with("server_admin")
-                            || dependency.name.starts_with("notification_service")
-                            || dependency.name.ends_with("_contract")
-                            || dependency.name.starts_with("pg_")
+                    constants_str::VALUE_B29A11B9 | constants_str::VALUE_E1717E8B | constants_str::VALUE_B4F499E2 => {
+                        dependency.name == constants_str::VALUE_CA3132B2
+                            || dependency.name == constants_str::VALUE_B3EACD33
+                            || dependency.name.starts_with(constants_str::VALUE_6D090579)
+                            || dependency.name.starts_with(constants_str::VALUE_AAADEE66)
+                            || dependency.name.ends_with(constants_str::VALUE_14AD1127)
+                            || dependency.name.starts_with(constants_str::VALUE_D11DB134)
                     }
                     _ => true,
                 })
@@ -2546,22 +1988,10 @@ fn architectural_boundaries_reject_upward_dependencies() {
 
 #[test]
 fn lock_across_await_policy_requires_explicit_drop() {
-    let invalid = syn::parse_file(
-        "async fn invalid(lock: &tokio::sync::Mutex<u8>) {
-            let guard = lock.lock().await;
-            operation().await;
-            drop(guard);
-        }",
-    )
-    .expect("b57df6a3 invalid invariant must hold");
-    let valid = syn::parse_file(
-        "async fn valid(lock: &tokio::sync::Mutex<u8>) {
-            let guard = lock.lock().await;
-            drop(guard);
-            operation().await;
-        }",
-    )
-    .expect("a62f1ce9 valid invariant must hold");
+    let invalid = syn::parse_file(constants_str::VALUE_6F786FC4)
+        .expect("b57df6a3 invalid invariant must hold");
+    let valid =
+        syn::parse_file(constants_str::VALUE_D481790B).expect("a62f1ce9 valid invariant must hold");
     let invalid_visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&invalid),
         LockAcrossAwaitVisitor::default(),
@@ -2584,7 +2014,12 @@ fn production_code_does_not_use_explicit_leak_apis() {
         let violations = snapshot
             .rs_files()
             .iter()
-            .filter(|source_file| !source_file.path().as_ref().starts_with("tests"))
+            .filter(|source_file| {
+                !source_file
+                    .path()
+                    .as_ref()
+                    .starts_with(constants_str::TESTS_ALT)
+            })
             .flat_map(|source_file| {
                 let visitor = super::visit_syn_file(
                     super::types::SynFileRef::from(source_file.ast().as_ref()),
@@ -2621,16 +2056,8 @@ fn retained_spawn_handles_are_supervised() {
 
 #[test]
 fn spawn_lifecycle_policy_rejects_unconsumed_handles() {
-    let ast = syn::parse_file(
-        "async fn tasks() {
-            let forgotten = tokio::spawn(async {});
-            let awaited = tokio::spawn(async {});
-            awaited.await;
-            let transferred = tokio::spawn(async {});
-            supervise(transferred);
-        }",
-    )
-    .expect("834138af tasks invariant must hold");
+    let ast =
+        syn::parse_file(constants_str::VALUE_9F18A090).expect("834138af tasks invariant must hold");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         SpawnLifecycleVisitor::default(),
@@ -2666,13 +2093,8 @@ fn route_path_segments_use_snake_case() {
 
 #[test]
 fn route_path_policy_rejects_kebab_case() {
-    let ast = syn::parse_file(
-        "#[typed_route(path = \"/admin/swagger_ui/{user_id}\")]
-         struct Valid;
-         #[typed_route(path = \"/admin/swagger-ui\")]
-         struct Invalid;",
-    )
-    .expect("9aa037dc route_path_policy_rejects_kebab_case invariant must hold");
+    let ast = syn::parse_file(constants_str::VALUE_72E2834F)
+        .expect("9aa037dc route_path_policy_rejects_kebab_case invariant must hold");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         RouteLiteralVisitor::default(),
@@ -2682,13 +2104,8 @@ fn route_path_policy_rejects_kebab_case() {
 
 #[test]
 fn route_path_policy_rejects_api_prefix() {
-    let ast = syn::parse_file(
-        "#[typed_route(path = \"/projects\")]
-         struct Valid;
-         #[typed_route(path = \"/api/projects\")]
-         struct Invalid;",
-    )
-    .expect("3eaa623d route_path_policy_rejects_api_prefix invariant must hold");
+    let ast = syn::parse_file(constants_str::VALUE_D7270E5B)
+        .expect("3eaa623d route_path_policy_rejects_api_prefix invariant must hold");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         RouteLiteralVisitor::default(),

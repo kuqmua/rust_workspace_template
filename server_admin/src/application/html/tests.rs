@@ -63,7 +63,7 @@ async fn html_form_auth_rejects_cookie_without_trusted_origin() {
     let mut headers = http::HeaderMap::new();
     let _cookie = headers.insert(
         http::header::COOKIE,
-        http::HeaderValue::from_static("admin_csrf_token=token"),
+        http::HeaderValue::from_static(constants_str::VALUE_BF7FDCFF),
     );
     assert!(matches!(
         super::form_auth(auth_with_headers(headers)),
@@ -99,7 +99,7 @@ fn assignment_id_lists_reject_empty_entries() {
     assert!(matches!(super::role_ids(&empty), Ok(_ids)));
     assert!(matches!(super::permission_ids(&empty), Ok(_ids)));
 
-    let malformed = super::AdminHtmlFormText::try_from(String::from("1,,2"))
+    let malformed = super::AdminHtmlFormText::try_from(String::from(constants_str::VALUE_A2688517))
         .expect("c2d76f19 assignment_id_lists_reject_empty_entries invariant must hold");
     assert!(matches!(
         super::role_ids(&malformed),
@@ -119,9 +119,7 @@ async fn role_assignment_form_accepts_dynamic_checkbox_fields() {
             http::header::CONTENT_TYPE,
             constants_str::APPLICATION_X_WWW_FORM_URLENCODED,
         )
-        .body(axum::body::Body::from(
-            "expected_role_ids=1%2C2&user_id=7&role_1=1&role_2=2",
-        ));
+        .body(axum::body::Body::from(constants_str::VALUE_08400B3F));
     let Ok(request) = request else {
         panic!("6f44bd85");
     };

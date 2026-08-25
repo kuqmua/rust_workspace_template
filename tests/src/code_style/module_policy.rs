@@ -2,9 +2,9 @@ const PRODUCTION_MODULE_MAX_LINES: usize = 2_500usize;
 const INLINE_TEST_SEPARATION_MIN_LINES: usize = 1_024usize;
 fn large_module_exceptions() -> [&'static str; 3] {
     [
-        "pg_crud_pg_table_generate_src/src/domain_types/source.rs",
-        "pg_crud_pg_types_generate_src/src/domain_types/source.rs",
-        "constants_str/src/lib.rs",
+        constants_str::VALUE_7FE2AF02,
+        constants_str::VALUE_D405F3E1,
+        constants_str::VALUE_B278317D,
     ]
 }
 
@@ -12,7 +12,7 @@ fn is_test_source(path: &std::path::Path) -> bool {
     super::is_test_source_path(super::types::PathRef::from(path)).get()
         || path
             .components()
-            .any(|component| component.as_os_str() == "test_fixtures")
+            .any(|component| component.as_os_str() == constants_str::VALUE_D0549AF3)
 }
 
 #[allow(
@@ -24,7 +24,7 @@ fn has_inline_test_module(ast: &syn::File) -> bool {
         let syn::Item::Mod(module) = item else {
             return false;
         };
-        module.ident == "tests"
+        module.ident == constants_str::TESTS_ALT
             && module.content.is_some()
             && module.attrs.iter().any(|attribute| {
                 super::attr_is_test_only_cfg(super::types::SynAttributeRef::from(attribute)).get()
@@ -121,23 +121,23 @@ fn notification_service_domain_types_exclude_application_and_adapter_workflows()
             .find(|file| {
                 file.path()
                     .as_ref()
-                    .ends_with("notification_service/src/domain_types.rs")
+                    .ends_with(constants_str::VALUE_8E41EC63)
             })
             .expect("2a6298c3 notification service domain types source must exist")
             .content()
             .as_ref();
         let source = source_with_tests
-            .split("#[cfg(test)]")
+            .split(constants_str::VALUE_3BA26FB4)
             .next()
             .expect("3ae48239 split always returns the production source prefix");
         [
-            "#[tokio::main]",
-            "sqlx::query(",
-            "TcpListener::bind(",
-            "serve_with_graceful_shutdown(",
-            "fn run_main(",
-            "fn migrate_notification(",
-            "fn create_notification(",
+            constants_str::VALUE_18A392BE,
+            constants_str::VALUE_99D94433,
+            constants_str::VALUE_96E8A555,
+            constants_str::VALUE_5015C549,
+            constants_str::VALUE_9B877603,
+            constants_str::VALUE_8B0F112C,
+            constants_str::VALUE_3A4EDC2D,
         ]
         .iter()
         .for_each(|forbidden| {
@@ -162,21 +162,21 @@ fn environment_initializer_domain_types_exclude_entrypoint_orchestration() {
             .find(|file| {
                 file.path()
                     .as_ref()
-                    .ends_with("init_env_files/src/domain_types.rs")
+                    .ends_with(constants_str::VALUE_E5F20F68)
             })
             .expect("1dac054f environment initializer domain types source must exist")
             .content()
             .as_ref();
         let source = source_with_tests
-            .split("#[cfg(test)]")
+            .split(constants_str::VALUE_3BA26FB4)
             .next()
             .expect("fb55c47b split always returns the production source prefix");
         [
-            "std::env::args()",
-            "std::fs::write(",
-            "read_bounded_file(",
-            "tracing::info!(",
-            "fn run()",
+            constants_str::VALUE_59CAD555,
+            constants_str::VALUE_B9D99DED,
+            constants_str::VALUE_3349907E,
+            constants_str::VALUE_7CF02D0B,
+            constants_str::VALUE_13B1C208,
         ]
             .iter()
             .for_each(|forbidden| {
@@ -201,17 +201,17 @@ fn admin_bootstrap_domain_types_exclude_application_workflows() {
             .find(|file| {
                 file.path()
                     .as_ref()
-                    .ends_with("admin_bootstrap/src/domain_types.rs")
+                    .ends_with(constants_str::VALUE_2C978AB0)
             })
             .expect("f49a25d6 administrator bootstrap domain types source must exist")
             .content()
             .as_ref();
         [
-            "std::env::args_os()",
-            "read_bounded_file(",
-            "PgPoolOptions::new()",
-            "tokio::runtime::Builder",
-            "fn run_main(",
+            constants_str::VALUE_E7118A3C,
+            constants_str::VALUE_3349907E,
+            constants_str::VALUE_FF3A4973,
+            constants_str::VALUE_EB9EA192,
+            constants_str::VALUE_9B877603,
         ]
         .iter()
         .for_each(|forbidden| {
@@ -236,21 +236,21 @@ fn common_route_domain_types_exclude_http_and_database_workflows() {
             .find(|file| {
                 file.path()
                     .as_ref()
-                    .ends_with("common_routes/src/domain_types.rs")
+                    .ends_with(constants_str::VALUE_30296F9B)
             })
             .expect("1ef73397 common route domain types source must exist")
             .content()
             .as_ref();
         let source = source_with_tests
-            .split("#[cfg(test)]")
+            .split(constants_str::VALUE_3BA26FB4)
             .next()
             .expect("90fc214f split always returns the production source prefix");
         [
-            "sqlx::query(",
-            "route_registry(",
-            "async fn health_live(",
-            "async fn health_ready(",
-            "pub fn common_routes(",
+            constants_str::VALUE_99D94433,
+            constants_str::VALUE_2E84067B,
+            constants_str::VALUE_C5EAB055,
+            constants_str::VALUE_0E48D7B1,
+            constants_str::VALUE_1812E35F,
         ]
         .iter()
         .for_each(|forbidden| {
@@ -272,21 +272,25 @@ fn server_domain_types_exclude_application_and_adapter_workflows() {
         let source_with_tests = snapshot
             .rs_files()
             .iter()
-            .find(|file| file.path().as_ref().ends_with("server/src/domain_types.rs"))
+            .find(|file| {
+                file.path()
+                    .as_ref()
+                    .ends_with(constants_str::VALUE_47325207)
+            })
             .expect("2a49fec1 server domain types source must exist")
             .content()
             .as_ref();
         let source = source_with_tests
-            .split("#[cfg(test)]")
+            .split(constants_str::VALUE_3BA26FB4)
             .next()
             .expect("82d0ffa2 split always returns the production source prefix");
         [
-            "sqlx::postgres::PgPoolOptions",
-            "tokio::net::TcpListener::bind(",
-            "axum::Router::new()",
-            "async fn run_server(",
-            "async fn migrate_server(",
-            "fn run_main(",
+            constants_str::VALUE_58D8E00E,
+            constants_str::VALUE_4BB60066,
+            constants_str::VALUE_5BE799DC,
+            constants_str::VALUE_062AEA27,
+            constants_str::VALUE_69B22E2A,
+            constants_str::VALUE_9B877603,
         ]
         .iter()
         .for_each(|forbidden| {
@@ -306,10 +310,10 @@ fn server_admin_domain_types_exclude_repository_workflows() {
             .iter()
             .filter(|file| {
                 let path = file.path().as_ref().to_string_lossy();
-                path.contains("server_admin/src/domain_types/auth")
-                    || path.contains("server_admin/src/domain_types/repository")
-                    || path.ends_with("server_admin/src/domain_types/migrations.rs")
-                    || path.ends_with("server_admin/src/domain_types/cleanup.rs")
+                path.contains(constants_str::VALUE_5A1A4545)
+                    || path.contains(constants_str::VALUE_43EF539D)
+                    || path.ends_with(constants_str::VALUE_9CAC1060)
+                    || path.ends_with(constants_str::VALUE_AAA5BED8)
             })
             .map(|file| file.path().as_ref().display().to_string())
             .collect::<Vec<_>>();
@@ -333,22 +337,22 @@ fn workspace_scaffold_domain_types_exclude_entrypoint_and_template_filesystem_wo
             .find(|file| {
                 file.path()
                     .as_ref()
-                    .ends_with("workspace_scaffold/src/domain_types.rs")
+                    .ends_with(constants_str::VALUE_1A456B0D)
             })
             .expect("3119b009 workspace scaffold domain types source must exist")
             .content()
             .as_ref();
         let source = source_with_tests
-            .split("#[cfg(test)]")
+            .split(constants_str::VALUE_3BA26FB4)
             .next()
             .expect("1e5e6186 split always returns the production source prefix");
         [
-            "std::env::args()",
-            "fn run_ok(",
-            "fn workspace_root(",
-            "std::fs::read_dir(",
-            "fn copy_template_tree(",
-            "fn rename_identity(",
+            constants_str::VALUE_59CAD555,
+            constants_str::VALUE_E72B634A,
+            constants_str::VALUE_731FDA74,
+            constants_str::VALUE_522C24E5,
+            constants_str::VALUE_C36F32EE,
+            constants_str::VALUE_BCDC0F38,
         ]
         .iter()
         .for_each(|forbidden| {
@@ -373,21 +377,21 @@ fn file_storage_domain_types_exclude_filesystem_workflows() {
             .find(|file| {
                 file.path()
                     .as_ref()
-                    .ends_with("file_storage/src/domain_types.rs")
+                    .ends_with(constants_str::VALUE_712F68AD)
             })
             .expect("a081579c file storage domain types source must exist")
             .content()
             .as_ref();
         let source = source_with_tests
-            .split("#[cfg(test)]")
+            .split(constants_str::VALUE_3BA26FB4)
             .next()
             .expect("622c12de split always returns the production source prefix");
         [
-            "tokio::fs::",
-            "AsyncWriteExt::",
-            "fn stage_upload(",
-            "fn commit_delete(",
-            "fn cleanup_stale_staging(",
+            constants_str::TOKIO_PATH_FS_PATH,
+            constants_str::VALUE_BAA7CB12,
+            constants_str::VALUE_303C9B02,
+            constants_str::VALUE_D30B72A0,
+            constants_str::VALUE_B863F79E,
         ]
         .iter()
         .for_each(|forbidden| {
@@ -412,22 +416,22 @@ fn workspace_test_runner_domain_types_exclude_application_and_adapter_workflows(
             .find(|file| {
                 file.path()
                     .as_ref()
-                    .ends_with("workspace_test_runner/src/domain_types.rs")
+                    .ends_with(constants_str::VALUE_F45EC0EE)
             })
             .expect("8b3cb235 workspace test runner domain types source must exist")
             .content()
             .as_ref();
         let source = source_with_tests
-            .split("#[cfg(test)]")
+            .split(constants_str::VALUE_3BA26FB4)
             .next()
             .expect("4c2a6281 split always returns the production source prefix");
         [
-            "std::process::exit(",
-            "std::fs::write(",
-            "ToolCommand::new(",
-            "eprintln!(",
-            "fn run_main(",
-            "fn measure_memusage_command(",
+            constants_str::VALUE_32E64619,
+            constants_str::VALUE_B9D99DED,
+            constants_str::VALUE_7C10C158,
+            constants_str::VALUE_E63A5758,
+            constants_str::VALUE_9B877603,
+            constants_str::VALUE_CC4BBDCE,
         ]
         .iter()
         .for_each(|forbidden| {

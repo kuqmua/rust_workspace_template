@@ -3,8 +3,8 @@ pub mod domain_types;
 pub fn local_config() -> Result<domain_types::RuntimeTestConfig, domain_types::ServiceBaseUrlError>
 {
     Ok(domain_types::RuntimeTestConfig::new(
-        domain_types::ServiceBaseUrl::try_from(String::from("http://127.0.0.1:8080"))?,
-        domain_types::ServiceBaseUrl::try_from(String::from("http://127.0.0.1:8081"))?,
+        domain_types::ServiceBaseUrl::try_from(String::from(constants_str::VALUE_D30A576C))?,
+        domain_types::ServiceBaseUrl::try_from(String::from(constants_str::VALUE_08D5F409))?,
     ))
 }
 
@@ -50,7 +50,7 @@ pub fn run(
     passed.push(domain_types::RuntimeTestKind::NotificationServiceReadiness);
     let test = domain_types::RuntimeTestKind::NotificationCreation;
     let message = notification_service_contract::domain_types::NotificationMessage::try_from(
-        String::from("runtime-test"),
+        String::from(constants_str::VALUE_FB13A725),
     )
     .map_err(domain_types::RuntimeTestError::NotificationMessage)?;
     let request = notification_service_contract::domain_types::CreateNotificationReq::new(message);
@@ -126,9 +126,10 @@ fn route_url(
 mod tests {
     #[test]
     fn route_url_uses_contract_path() {
-        let base_url =
-            super::domain_types::ServiceBaseUrl::try_from(String::from("http://application"))
-                .expect("6cde5062 route_url_uses_contract_path invariant must hold");
+        let base_url = super::domain_types::ServiceBaseUrl::try_from(String::from(
+            constants_str::VALUE_FF79C6DD,
+        ))
+        .expect("6cde5062 route_url_uses_contract_path invariant must hold");
         assert_eq!(
             super::route_url(
                 &base_url,

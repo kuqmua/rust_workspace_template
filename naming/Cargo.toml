@@ -17,5 +17,9 @@ naming_macros = { workspace = true }
 naming_common = { workspace = true }
 newtype = { workspace = true }
 optimal_memory_layout = { workspace = true }
+
+[dev-dependencies]
+constants_str = { workspace = true }
+
 [lints]
 workspace = true

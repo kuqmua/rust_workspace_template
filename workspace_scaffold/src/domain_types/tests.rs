@@ -13,7 +13,7 @@ fn write(path: &std::path::Path, value: &str) {
 
 #[test]
 fn validates_and_converts_project_names() {
-    let valid = super::ProjectNameRef::from("order_platform");
+    let valid = super::ProjectNameRef::from(constants_str::VALUE_F9EA74B8);
     super::naming::validate_project_name(valid)
         .expect("96de3a80 validates_and_converts_project_names invariant must hold");
     assert_eq!(super::naming::kebab_case(valid).as_ref(), "order-platform");
@@ -28,7 +28,7 @@ fn validates_and_converts_project_names() {
 #[test]
 fn requires_https_repository_url() {
     super::naming::validate_repository_url(super::RepositoryUrlRef::from(
-        "https://example.com/team/order_platform",
+        constants_str::VALUE_A680FDEF,
     ))
     .expect("28c1e7a4 requires_https_repository_url invariant must hold");
     assert!(
@@ -45,17 +45,14 @@ fn deployment_projection_check_rejects_stale_generated_content() {
         "workspace-scaffold-generated-test-{}",
         std::process::id()
     ));
-    let begin = "BEGIN GENERATED\n";
-    let end = "END GENERATED\n";
-    write(
-        path.as_path(),
-        "header\nBEGIN GENERATED\nstale\nEND GENERATED\n",
-    );
+    let begin = constants_str::VALUE_0BAD8889;
+    let end = constants_str::VALUE_79B72852;
+    write(path.as_path(), constants_str::VALUE_0889759C);
     let check = super::synchronize_generated_file(
         super::ScaffoldPathRef::from(path.as_path()),
         super::ScaffoldTextRef::from(begin),
         super::ScaffoldTextRef::from(end),
-        super::ScaffoldTextRef::from("current\n"),
+        super::ScaffoldTextRef::from(constants_str::VALUE_48AA6CAE),
         super::ShouldWrite::from(false),
     );
     assert!(matches!(
@@ -66,7 +63,7 @@ fn deployment_projection_check_rejects_stale_generated_content() {
         super::ScaffoldPathRef::from(path.as_path()),
         super::ScaffoldTextRef::from(begin),
         super::ScaffoldTextRef::from(end),
-        super::ScaffoldTextRef::from("current\n"),
+        super::ScaffoldTextRef::from(constants_str::VALUE_48AA6CAE),
         super::ShouldWrite::from(true),
     )
     .expect(
@@ -76,7 +73,7 @@ fn deployment_projection_check_rejects_stale_generated_content() {
         super::ScaffoldPathRef::from(path.as_path()),
         super::ScaffoldTextRef::from(begin),
         super::ScaffoldTextRef::from(end),
-        super::ScaffoldTextRef::from("current\n"),
+        super::ScaffoldTextRef::from(constants_str::VALUE_48AA6CAE),
         super::ShouldWrite::from(false),
     )
     .expect(
@@ -90,9 +87,9 @@ fn deployment_projection_check_rejects_stale_generated_content() {
 #[test]
 fn service_catalog_owns_ci_and_release_projection_values() {
     let entries = super::service_catalog::parse(super::ScaffoldTextRef::from(
-            "[[service]]\ncrate = \"server\"\ncompose = \"server\"\ncompose_file = \"docker-compose.yml\"\ndockerfile = \"Dockerfile\"\nimage = \"application\"\nkubernetes = \"deploy/k8s/base/application.yaml\"\nport = 8080\nrelease = true\nsocket_env = \"SERVICE_SOCKET_ADDRESS\"\n\n[[service]]\ncrate = \"worker\"\ncompose = \"worker\"\ncompose_file = \"docker-compose.worker.yml\"\ndockerfile = \"worker/Dockerfile\"\nimage = \"worker\"\nkubernetes = \"deploy/k8s/base/worker.yaml\"\nport = 8082\nrelease = false\nsocket_env = \"WORKER_SERVICE_SOCKET_ADDRESS\"\n",
-        ))
-        .expect("4e8b2d7a service_catalog_owns_ci_and_release_projection_values invariant must hold");
+        constants_str::VALUE_D4291B4A,
+    ))
+    .expect("4e8b2d7a service_catalog_owns_ci_and_release_projection_values invariant must hold");
     let entries_ref = super::ServiceCatalogEntriesRef::from(entries.0.as_slice());
     assert_eq!(
         super::service_catalog::render_ci_matrix(entries_ref).as_ref(),
@@ -139,79 +136,74 @@ fn service_scaffold_registers_all_artifacts() {
             .expect("1449608d service_scaffold_registers_all_artifacts invariant must hold");
     }
     write(
-        root.join("Cargo.toml").as_path(),
-        "[workspace]\nmembers = [\n  \"notification_service_contract\",\n]\n[workspace.dependencies]\nnotification_service_contract = { path = \"./notification_service_contract\" }\n",
+        root.join(constants_str::CARGO_TOML).as_path(),
+        constants_str::VALUE_9A836A5B,
     );
     write(
-        root.join("notification_service/src/domain_types.rs")
-            .as_path(),
-        "struct Notification; const PORT: u16 = 8081; fn insert_sql() -> &'static str { \"INSERT INTO notifications (id, message) VALUES ($1, $2)\" }",
+        root.join(constants_str::VALUE_8E41EC63).as_path(),
+        constants_str::VALUE_45AD55F9,
     );
     write(
-        root.join("notification_service_config/src/lib.rs")
-            .as_path(),
-        "struct NotificationConfig;",
+        root.join(constants_str::VALUE_F7C1AF06).as_path(),
+        constants_str::VALUE_244072F2,
     );
     write(
-        root.join("notification_service_config/.env.example")
-            .as_path(),
-        "NOTIFICATION_DATABASE_URL=postgres://notification_service:change-me@127.0.0.1:5432/notification_service\nNOTIFICATION_SERVICE_SOCKET_ADDRESS=127.0.0.1:8081\nPG_POOL_MAX_CONNECTIONS=10\nREQUEST_TIMEOUT_SECONDS=30\nTRACING_FORMAT=text\n",
+        root.join(constants_str::VALUE_0A7A2313).as_path(),
+        constants_str::VALUE_B3508161,
     );
     write(
-        root.join("notification_service_contract/src/lib.rs")
-            .as_path(),
-        "struct NotificationContract;",
+        root.join(constants_str::VALUE_4F50C4FE).as_path(),
+        constants_str::VALUE_A64251C2,
     );
     write(
-        root.join("deploy/k8s/base/notification-service.yaml")
-            .as_path(),
-        "metadata:\n  name: notification-service\ncontainerPort: 8081\n",
+        root.join(constants_str::VALUE_09101A6F).as_path(),
+        constants_str::VALUE_04354311,
     );
     write(
-        root.join("deploy/k8s/base/kustomization.yaml").as_path(),
-        "resources:\n  - notification-service.yaml\n",
+        root.join(constants_str::VALUE_13A8EB94).as_path(),
+        constants_str::VALUE_D0FC32F7,
     );
     write(
-        root.join("deploy/services.toml").as_path(),
-        "[[service]]\ncrate = \"notification_service\"\n",
+        root.join(constants_str::VALUE_C1590960).as_path(),
+        constants_str::VALUE_D4E98611,
     );
     crate::domain_types::scaffold_service(
         super::ScaffoldPathRef::from(root.as_path()),
-        super::ProjectNameRef::from("order_service"),
+        super::ProjectNameRef::from(constants_str::VALUE_E896B9AF),
         super::ServicePort::from(8082u16),
     )
     .expect("4bff1d79 insert_sql invariant must hold");
     assert_file_content(
-        root.join("Cargo.toml").as_path(),
-        "[workspace]\nmembers = [\n  \"notification_service_contract\",\n  \"order_service\",\n  \"order_service_config\",\n  \"order_service_contract\",\n]\n[workspace.dependencies]\nnotification_service_contract = { path = \"./notification_service_contract\" }\norder_service = { path = \"./order_service\" }\norder_service_config = { path = \"./order_service_config\" }\norder_service_contract = { path = \"./order_service_contract\" }\n",
+        root.join(constants_str::CARGO_TOML).as_path(),
+        constants_str::VALUE_ADF1A200,
     );
     assert_file_content(
-        root.join("order_service/src/domain_types.rs").as_path(),
-        "struct OrderService; const PORT: u16 = 8082; fn insert_sql() -> &'static str { \"INSERT INTO order_services (id, message) VALUES ($1, $2)\" }",
+        root.join(constants_str::VALUE_7654C453).as_path(),
+        constants_str::VALUE_2120BC93,
     );
     assert_file_content(
-        root.join("order_service_config/src/lib.rs").as_path(),
-        "struct OrderServiceConfig;",
+        root.join(constants_str::VALUE_D3EA3646).as_path(),
+        constants_str::VALUE_77C620D8,
     );
     assert_file_content(
-        root.join("order_service_contract/src/lib.rs").as_path(),
-        "struct OrderServiceContract;",
+        root.join(constants_str::VALUE_0626DBBE).as_path(),
+        constants_str::VALUE_6DC62C71,
     );
     assert_file_content(
-        root.join("deploy/k8s/base/order-service.yaml").as_path(),
-        "metadata:\n  name: order-service\ncontainerPort: 8082\n\n---\napiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata:\n  name: order-service-access\n  namespace: rust-workspace-template\nspec:\n  podSelector:\n    matchLabels:\n      app.kubernetes.io/name: order-service\n  ingress:\n    - from:\n        - podSelector:\n            matchLabels:\n              app.kubernetes.io/name: application\n      ports:\n        - protocol: TCP\n          port: 8082\n  egress:\n    - to:\n        - namespaceSelector:\n            matchLabels:\n              kubernetes.io/metadata.name: database\n          podSelector:\n            matchLabels:\n              app.kubernetes.io/name: order-service-postgresql\n      ports:\n        - protocol: TCP\n          port: 5432\n    - to:\n        - namespaceSelector:\n            matchLabels:\n              kubernetes.io/metadata.name: kube-system\n          podSelector:\n            matchLabels:\n              k8s-app: kube-dns\n      ports:\n        - protocol: UDP\n          port: 53\n        - protocol: TCP\n          port: 53\n  policyTypes: [\"Ingress\", \"Egress\"]\n",
+        root.join(constants_str::VALUE_83CBEECD).as_path(),
+        constants_str::VALUE_7602E17D,
     );
     assert_file_content(
-        root.join("deploy/k8s/base/kustomization.yaml").as_path(),
-        "resources:\n  - notification-service.yaml\n  - order-service.yaml\n",
+        root.join(constants_str::VALUE_13A8EB94).as_path(),
+        constants_str::VALUE_9A2A3063,
     );
     assert_file_content(
-        root.join("docker-compose.order_service.yml").as_path(),
-        "services:\n  order_service_database:\n    image: postgres:16-bookworm@sha256:92620daddcd947f8d5ab5ba66e848702fe443d87fed30c4cea8e389fd78dfc55\n    environment:\n      POSTGRES_DB: order_service\n      POSTGRES_USER: order_service\n      POSTGRES_PASSWORD: ${ORDER_SERVICE_POSTGRES_PASSWORD:?set ORDER_SERVICE_POSTGRES_PASSWORD}\n    healthcheck:\n      test: [\"CMD-SHELL\", \"pg_isready -U order_service -d order_service\"]\n      interval: 5s\n      timeout: 3s\n      retries: 20\n    networks: [application]\n    volumes: [order_service_database_data:/var/lib/postgresql/data]\n  # BEGIN GENERATED COMPOSE IDENTITY order_service\n  order_service:\n    build:\n      context: .\n      dockerfile: order_service/Dockerfile\n  # END GENERATED COMPOSE IDENTITY order_service\n    depends_on:\n      order_service_database:\n        condition: service_healthy\n    environment:\n      ORDER_SERVICE_DATABASE_URL: \"postgres://order_service:${ORDER_SERVICE_POSTGRES_PASSWORD:?set ORDER_SERVICE_POSTGRES_PASSWORD}@order_service_database:5432/order_service\"\n      # BEGIN GENERATED COMPOSE SOCKET order_service\n      ORDER_SERVICE_SERVICE_SOCKET_ADDRESS: \"0.0.0.0:8082\"\n      # END GENERATED COMPOSE SOCKET order_service\n      PG_POOL_MAX_CONNECTIONS: \"10\"\n      REQUEST_TIMEOUT_SECONDS: \"30\"\n      TRACING_FORMAT: \"text\"\n    healthcheck:\n      # BEGIN GENERATED COMPOSE HEALTH order_service\n      test: [\"CMD\", \"curl\", \"--fail\", \"--silent\", \"http://127.0.0.1:8082/health/ready\"]\n      # END GENERATED COMPOSE HEALTH order_service\n      interval: 10s\n      timeout: 5s\n      retries: 12\n      start_period: 20s\n    networks: [application]\n    # BEGIN GENERATED COMPOSE PORT order_service\n    ports:\n      - \"127.0.0.1:8082:8082\"\n    # END GENERATED COMPOSE PORT order_service\n    read_only: true\n    restart: unless-stopped\n    tmpfs: [/tmp:size=16m,mode=1777]\nvolumes:\n  order_service_database_data:\n",
+        root.join(constants_str::VALUE_7D4D7140).as_path(),
+        constants_str::VALUE_499A1FF6,
     );
     assert_file_content(
-        root.join("deploy/services.toml").as_path(),
-        "[[service]]\ncrate = \"notification_service\"\n\n[[service]]\ncrate = \"order_service\"\ncompose = \"order_service\"\ncompose_file = \"docker-compose.order_service.yml\"\ndockerfile = \"order_service/Dockerfile\"\nimage = \"order-service\"\nkubernetes = \"deploy/k8s/base/order-service.yaml\"\nport = 8082\nrelease = false\nsocket_env = \"ORDER_SERVICE_SERVICE_SOCKET_ADDRESS\"\n",
+        root.join(constants_str::VALUE_C1590960).as_path(),
+        constants_str::VALUE_142D5AD3,
     );
     std::fs::remove_dir_all(root).expect("6f608418 insert_sql invariant must hold");
 }

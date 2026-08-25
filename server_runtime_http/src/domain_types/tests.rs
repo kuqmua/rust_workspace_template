@@ -38,18 +38,18 @@ struct HttpErrorEventFieldVisitor {
 impl HttpErrorEventFieldVisitor {
     fn record_field(&mut self, field: &tracing::field::Field) {
         let bit = match field.name() {
-            "request_id" => 1u16 << constants_u16::ZERO,
-            "trace_id" => 1u16 << 1u16,
-            "service_name" => 1u16 << 2u16,
-            "http_route" => 1u16 << 3u16,
-            "http_method" => 1u16 << 4u16,
-            "http_status" => 1u16 << 5u16,
-            "error_code" => 1u16 << 6u16,
-            "error_type" => 1u16 << 7u16,
-            "error_chain" => 1u16 << 8u16,
-            "backtrace" => 1u16 << 9u16,
-            "span_trace" => 1u16 << 10u16,
-            "error_location" => 1u16 << 11u16,
+            constants_str::VALUE_734D11A1 => 1u16 << constants_u16::ZERO,
+            constants_str::VALUE_E7F3C28E => 1u16 << 1u16,
+            constants_str::VALUE_D1BC9314 => 1u16 << 2u16,
+            constants_str::VALUE_660F3845 => 1u16 << 3u16,
+            constants_str::VALUE_990DF270 => 1u16 << 4u16,
+            constants_str::VALUE_0DFCA5AC => 1u16 << 5u16,
+            constants_str::VALUE_41A7BCE3 => 1u16 << 6u16,
+            constants_str::VALUE_E5BDBA7C => 1u16 << 7u16,
+            constants_str::VALUE_4C133E94 => 1u16 << 8u16,
+            constants_str::VALUE_265EE18A => 1u16 << 9u16,
+            constants_str::VALUE_86846B4A => 1u16 << 10u16,
+            constants_str::VALUE_31755A3B => 1u16 << 11u16,
             _other => constants_u16::ZERO,
         };
         self.mask |= bit;
@@ -72,8 +72,10 @@ async fn request_span_uses_remote_parent_and_server_kind() {
     let tracer_provider = opentelemetry_sdk::trace::SdkTracerProvider::builder()
         .with_simple_exporter(exporter.clone())
         .build();
-    let tracer =
-        opentelemetry::trace::TracerProvider::tracer(&tracer_provider, "server-runtime-test");
+    let tracer = opentelemetry::trace::TracerProvider::tracer(
+        &tracer_provider,
+        constants_str::VALUE_00BCCC04,
+    );
     let subscriber = tracing_subscriber::layer::SubscriberExt::with(
         tracing_subscriber::registry(),
         tracing_opentelemetry::layer().with_tracer(tracer),
@@ -82,24 +84,24 @@ async fn request_span_uses_remote_parent_and_server_kind() {
     let _dispatch_guard = tracing::dispatcher::set_default(&dispatch);
     let trusted_proxy_ranges = super::TrustedProxyRanges::try_from(vec![
         super::TrustedProxyRange::try_from(constants_str::VALUE_127_0_0_1_32.to_owned())
-            .expect("0bb46390 request_span_uses_remote_parent_and_server_kind invariant must hold"),
+            .expect(constants_str::VALUE_3504733D),
     ])
     .expect("04cbe253 request_span_uses_remote_parent_and_server_kind invariant must hold");
     let router = axum::Router::from(
         super::RequestIdLayer::with_span_config(super::HttpRequestSpanConfig::new(
-            super::ServiceName::from("server-runtime-test"),
-            super::ClientSocketAddr::from("127.0.0.1:8080".parse::<std::net::SocketAddr>().expect(
+            super::ServiceName::from(constants_str::VALUE_00BCCC04),
+            super::ClientSocketAddr::from(constants_str::VALUE_127_0_0_1_8080.parse::<std::net::SocketAddr>().expect(
                 "773561fe request_span_uses_remote_parent_and_server_kind invariant must hold",
             )),
             trusted_proxy_ranges,
         ))
         .apply(super::AxumRouter::from(axum::Router::new().route(
-            "/users/{user_id}",
+            constants_str::VALUE_2C49C991,
             axum::routing::get(async || http::StatusCode::OK),
         ))),
     );
     let mut request = axum::extract::Request::builder()
-        .uri("/users/42")
+        .uri(constants_str::VALUE_D9F36A45)
         .header(
             constants_str::TRACEPARENT,
             constants_str::TRACEPARENT_TEST_VALUE,
@@ -111,7 +113,7 @@ async fn request_span_uses_remote_parent_and_server_kind() {
         .body(axum::body::Body::empty())
         .expect("f56d84cc request_span_uses_remote_parent_and_server_kind invariant must hold");
     let _previous_connect_info = request.extensions_mut().insert(axum::extract::ConnectInfo(
-        "127.0.0.1:45000"
+        constants_str::VALUE_30010705
             .parse::<std::net::SocketAddr>()
             .expect("0f4a8de7 request_span_uses_remote_parent_and_server_kind invariant must hold"),
     ));
@@ -128,7 +130,7 @@ async fn request_span_uses_remote_parent_and_server_kind() {
         .expect("88d108d2 request_span_uses_remote_parent_and_server_kind invariant must hold");
     let request_span = spans
         .iter()
-        .find(|span| span.name == "GET /users/{user_id}")
+        .find(|span| span.name == constants_str::VALUE_F877E121)
         .expect("fc30b586 request_span_uses_remote_parent_and_server_kind invariant must hold");
     let expected_trace_id = constants_str::TRACEPARENT_TEST_VALUE
         .get(3usize..35usize)
@@ -193,7 +195,10 @@ async fn request_span_limits_url_path_and_records_error_telemetry() {
     let tracer_provider = opentelemetry_sdk::trace::SdkTracerProvider::builder()
         .with_simple_exporter(exporter.clone())
         .build();
-    let tracer = opentelemetry::trace::TracerProvider::tracer(&tracer_provider, "http-span-test");
+    let tracer = opentelemetry::trace::TracerProvider::tracer(
+        &tracer_provider,
+        constants_str::VALUE_51FC3135,
+    );
     let subscriber = tracing_subscriber::layer::SubscriberExt::with(
         tracing_subscriber::registry(),
         tracing_opentelemetry::layer().with_tracer(tracer),
@@ -202,7 +207,7 @@ async fn request_span_limits_url_path_and_records_error_telemetry() {
     let _dispatch_guard = tracing::dispatcher::set_default(&dispatch);
     let router = axum::Router::from(super::RequestIdLayer::default().apply(
         super::AxumRouter::from(axum::Router::new().route(
-            "/status",
+            constants_str::STATUS,
             axum::routing::get(async || {
                 let mut response = axum::response::IntoResponse::into_response(
                     http::StatusCode::INTERNAL_SERVER_ERROR,
@@ -210,8 +215,8 @@ async fn request_span_limits_url_path_and_records_error_telemetry() {
                 let _previous = response
                     .extensions_mut()
                     .insert(super::HttpErrorTelemetry::new(
-                        super::HttpErrorType::from("persistence.error"),
-                        super::HttpErrorCode::from("database_unavailable"),
+                        super::HttpErrorType::from(constants_str::VALUE_E4FA4A90),
+                        super::HttpErrorCode::from(constants_str::VALUE_69C4B56B),
                     ));
                 response
             }),
@@ -220,7 +225,7 @@ async fn request_span_limits_url_path_and_records_error_telemetry() {
     let status_response = tower::ServiceExt::oneshot(
         router.clone(),
         axum::extract::Request::builder()
-            .uri("/status")
+            .uri(constants_str::STATUS)
             .body(axum::body::Body::empty())
             .expect("bd141981 request_span_limits_url_path_and_records_error_telemetry invariant must hold"),
     )
@@ -234,7 +239,7 @@ async fn request_span_limits_url_path_and_records_error_telemetry() {
     let missing_response = tower::ServiceExt::oneshot(
         router,
         axum::extract::Request::builder()
-            .uri("/missing/private-123")
+            .uri(constants_str::VALUE_3BAC991E)
             .body(axum::body::Body::empty())
             .expect("18a1dc0e request_span_limits_url_path_and_records_error_telemetry invariant must hold"),
     )
@@ -248,9 +253,12 @@ async fn request_span_limits_url_path_and_records_error_telemetry() {
     let spans = exporter.get_finished_spans().expect(
         "72d79c7e request_span_limits_url_path_and_records_error_telemetry invariant must hold",
     );
-    let status_span = spans.iter().find(|span| span.name == "GET /status").expect(
-        "6e0f3748 request_span_limits_url_path_and_records_error_telemetry invariant must hold",
-    );
+    let status_span = spans
+        .iter()
+        .find(|span| span.name == constants_str::VALUE_14E536E4)
+        .expect(
+            "6e0f3748 request_span_limits_url_path_and_records_error_telemetry invariant must hold",
+        );
     let status_attribute = |key| {
         status_span
             .attributes
@@ -272,7 +280,7 @@ async fn request_span_limits_url_path_and_records_error_telemetry() {
     );
     let unmatched_span = spans
         .iter()
-        .find(|span| span.name == "GET __unmatched__")
+        .find(|span| span.name == constants_str::VALUE_F607F8A1)
         .expect(
             "aa6097d2 request_span_limits_url_path_and_records_error_telemetry invariant must hold",
         );
@@ -330,11 +338,11 @@ async fn http_boundary_emits_one_complete_error_event_only_for_server_errors() {
     let expected_diagnostic_line = line!() + 1u32;
     let diagnostic = super::HttpErrorDiagnostic::capture(
         super::HttpErrorTelemetry::new(
-            super::HttpErrorType::from("boundary.test"),
-            super::HttpErrorCode::from("boundary_failed"),
+            super::HttpErrorType::from(constants_str::VALUE_D623C83D),
+            super::HttpErrorCode::from(constants_str::VALUE_40832A7F),
         ),
         &BoundaryTestError {
-            source: std::io::Error::other("nested source"),
+            source: std::io::Error::other(constants_str::VALUE_4332EB14),
         },
     );
     assert!(
@@ -354,9 +362,9 @@ async fn http_boundary_emits_one_complete_error_event_only_for_server_errors() {
     let server_error_diagnostic = diagnostic.clone();
     let router = axum::Router::from(
         super::RequestIdLayer::with_span_config(super::HttpRequestSpanConfig::new(
-            super::ServiceName::from("boundary-test"),
+            super::ServiceName::from(constants_str::VALUE_5F735A9A),
             super::ClientSocketAddr::from(
-                "127.0.0.1:8080"
+                constants_str::VALUE_127_0_0_1_8080
                     .parse::<std::net::SocketAddr>()
                     .expect("c74109ca http_boundary_emits_one_complete_error_event_only_for_server_errors invariant must hold"),
             ),
@@ -365,7 +373,7 @@ async fn http_boundary_emits_one_complete_error_event_only_for_server_errors() {
         .apply(super::AxumRouter::from(
             axum::Router::new()
                 .route(
-                    "/failure",
+                    constants_str::VALUE_4F613DD0,
                     axum::routing::get(move || {
                         let response_diagnostic = server_error_diagnostic.clone();
                         async move {
@@ -378,7 +386,7 @@ async fn http_boundary_emits_one_complete_error_event_only_for_server_errors() {
                     }),
                 )
                 .route(
-                    "/invalid",
+                    constants_str::VALUE_70456F90,
                     axum::routing::get(async || http::StatusCode::UNPROCESSABLE_ENTITY),
                 ),
         )),
@@ -386,7 +394,7 @@ async fn http_boundary_emits_one_complete_error_event_only_for_server_errors() {
     let server_error_response = tower::ServiceExt::oneshot(
         router.clone(),
         axum::extract::Request::builder()
-            .uri("/failure")
+            .uri(constants_str::VALUE_4F613DD0)
             .body(axum::body::Body::empty())
             .expect("2b710c82 http_boundary_emits_one_complete_error_event_only_for_server_errors invariant must hold"),
     )
@@ -408,7 +416,7 @@ async fn http_boundary_emits_one_complete_error_event_only_for_server_errors() {
     let client_error_response = tower::ServiceExt::oneshot(
         router,
         axum::extract::Request::builder()
-            .uri("/invalid")
+            .uri(constants_str::VALUE_70456F90)
             .body(axum::body::Body::empty())
             .expect("b362c5d1 http_boundary_emits_one_complete_error_event_only_for_server_errors invariant must hold"),
     )
@@ -435,7 +443,7 @@ fn observed_client_preparation_injects_context_and_creates_child_span() {
         .build();
     let tracer = opentelemetry::trace::TracerProvider::tracer(
         &tracer_provider,
-        "server-runtime-client-test",
+        constants_str::VALUE_E0C5B098,
     );
     let subscriber = tracing_subscriber::layer::SubscriberExt::with(
         tracing_subscriber::registry(),
@@ -460,11 +468,11 @@ fn observed_client_preparation_injects_context_and_creates_child_span() {
     let spans = exporter.get_finished_spans().expect("a472015a observed_client_preparation_injects_context_and_creates_child_span invariant must hold");
     let caller_span = spans
         .iter()
-        .find(|span| span.name == "caller")
+        .find(|span| span.name == constants_str::VALUE_61DE55BA)
         .expect("87c0e547 observed_client_preparation_injects_context_and_creates_child_span invariant must hold");
     let exported_client_span = spans
         .iter()
-        .find(|span| span.name == "GET example.com")
+        .find(|span| span.name == constants_str::VALUE_95E2AF51)
         .expect("5bfcb617 observed_client_preparation_injects_context_and_creates_child_span invariant must hold");
     assert_eq!(
         exported_client_span.span_context.trace_id(),

@@ -11,8 +11,8 @@ fn typed_static_pages_render_rows_actions_roles_and_escaped_text() {
         server_admin_contract::domain_types::AdminPermissionSummaries::try_from(vec![
             server_admin_contract::domain_types::AdminPermissionSummary::new(
                 permission_id,
-                server_admin_contract::domain_types::AdminPermissionValue::try_from(String::from("users.read"))
-                    .expect("9d7f0c42 typed_static_pages_render_rows_actions_roles_and_escaped_text invariant must hold"),
+                server_admin_contract::domain_types::AdminPermissionValue::try_from(String::from(constants_str::VALUE_C6919F81))
+                    .expect(constants_str::VALUE_8431554A),
             ),
         ])
         .expect("0ca582e4 typed_static_pages_render_rows_actions_roles_and_escaped_text invariant must hold"),
@@ -28,12 +28,12 @@ fn typed_static_pages_render_rows_actions_roles_and_escaped_text() {
     let users = server_admin_contract::domain_types::AdminUsersPage::new(
         server_admin_contract::domain_types::AdminUserSummaries::try_from(vec![
             server_admin_contract::domain_types::AdminUserSummary::new(
-                server_admin_contract::domain_types::AdminDisplayName::try_from(String::from("Bob User"))
-                    .expect("4ef37b81 typed_static_pages_render_rows_actions_roles_and_escaped_text invariant must hold"),
-                server_admin_contract::domain_types::AdminUserId::try_from(2i64).expect("ea691d50 typed_static_pages_render_rows_actions_roles_and_escaped_text invariant must hold"),
+                server_admin_contract::domain_types::AdminDisplayName::try_from(String::from(constants_str::VALUE_F0F7361D))
+                    .expect(constants_str::VALUE_2A7FA5B7),
+                server_admin_contract::domain_types::AdminUserId::try_from(2i64).expect(constants_str::VALUE_BE49A05A),
                 server_admin_contract::domain_types::AdminBool::from(true),
-                server_admin_contract::domain_types::AdminLogin::try_from(String::from("bob")).expect("72c54e9a typed_static_pages_render_rows_actions_roles_and_escaped_text invariant must hold"),
-                server_admin_contract::domain_types::AdminRoleIds::try_from(vec![role_id]).expect("1f84cb63 typed_static_pages_render_rows_actions_roles_and_escaped_text invariant must hold"),
+                server_admin_contract::domain_types::AdminLogin::try_from(String::from(constants_str::VALUE_81B637D8)).expect(constants_str::VALUE_51266978),
+                server_admin_contract::domain_types::AdminRoleIds::try_from(vec![role_id]).expect(constants_str::VALUE_53D69E69),
             ),
         ])
         .expect("39ad70e2 typed_static_pages_render_rows_actions_roles_and_escaped_text invariant must hold"),
@@ -41,10 +41,10 @@ fn typed_static_pages_render_rows_actions_roles_and_escaped_text() {
             server_admin_contract::domain_types::AdminRoleSummary::new(
                 role_id,
                 server_admin_contract::domain_types::AdminBool::from(false),
-                server_admin_contract::domain_types::AdminRoleName::try_from(String::from("reviewer"))
-                    .expect("d02b63f8 typed_static_pages_render_rows_actions_roles_and_escaped_text invariant must hold"),
+                server_admin_contract::domain_types::AdminRoleName::try_from(String::from(constants_str::VALUE_2D70999A))
+                    .expect(constants_str::VALUE_4DDA1CCE),
                 server_admin_contract::domain_types::AdminPermissionIds::try_from(vec![permission_id])
-                    .expect("8561ce4d typed_static_pages_render_rows_actions_roles_and_escaped_text invariant must hold"),
+                    .expect(constants_str::VALUE_A0034DA1),
             ),
         ])
         .expect("2a9f75c1 typed_static_pages_render_rows_actions_roles_and_escaped_text invariant must hold"),
@@ -73,15 +73,15 @@ fn typed_static_pages_render_rows_actions_roles_and_escaped_text() {
         server_admin_contract::domain_types::AdminSessionViews::try_from(vec![
             server_admin_contract::domain_types::AdminSessionView::new(
                 server_admin_contract::domain_types::AdminSessionTimestamp::try_from(String::from(
-                    "2026-08-01T10:00:00Z",
+                    constants_str::VALUE_27A52C1B,
                 ))
-                .expect("6a4de195 typed_static_pages_render_rows_actions_roles_and_escaped_text invariant must hold"),
+                .expect(constants_str::VALUE_BDAF3F76),
                 server_admin_contract::domain_types::AdminSessionTimestamp::try_from(String::from(
-                    "2026-08-02T10:00:00Z",
+                    constants_str::VALUE_ADCD791F,
                 ))
-                .expect("f81c2b47 typed_static_pages_render_rows_actions_roles_and_escaped_text invariant must hold"),
-                server_admin_contract::domain_types::AdminSessionIdentifier::try_from(String::from("session-1"))
-                    .expect("04b9a7d2 typed_static_pages_render_rows_actions_roles_and_escaped_text invariant must hold"),
+                .expect(constants_str::VALUE_87F569B4),
+                server_admin_contract::domain_types::AdminSessionIdentifier::try_from(String::from(constants_str::VALUE_84097828))
+                    .expect(constants_str::VALUE_B8C5ABEC),
                 server_admin_contract::domain_types::AdminBool::from(true),
             ),
         ])
@@ -119,14 +119,14 @@ fn typed_static_pages_render_rows_actions_roles_and_escaped_text() {
 
     let public_text = super::super::render_text_page(
         server_admin_contract::domain_types::AdminPage::Metrics,
-        super::super::AdminSsrText::try_from(String::from("Metrics")).expect("e5a204bd typed_static_pages_render_rows_actions_roles_and_escaped_text invariant must hold"),
-        super::super::AdminSsrText::try_from(String::from("<ready>")).expect("107cde83 typed_static_pages_render_rows_actions_roles_and_escaped_text invariant must hold"),
+        super::super::AdminSsrText::try_from(String::from(constants_str::METRICS_ALT)).expect("e5a204bd typed_static_pages_render_rows_actions_roles_and_escaped_text invariant must hold"),
+        super::super::AdminSsrText::try_from(String::from(constants_str::VALUE_242C81E4)).expect("107cde83 typed_static_pages_render_rows_actions_roles_and_escaped_text invariant must hold"),
     );
     assert!(public_text.as_ref().contains("&lt;ready&gt;"));
     let private_text = super::super::render_text_page_with_access(
         server_admin_contract::domain_types::AdminPage::OpenApi,
-        super::super::AdminSsrText::try_from(String::from("Specification")).expect("48a0fc36 typed_static_pages_render_rows_actions_roles_and_escaped_text invariant must hold"),
-        super::super::AdminSsrText::try_from(String::from("contract text")).expect("b7d3640e typed_static_pages_render_rows_actions_roles_and_escaped_text invariant must hold"),
+        super::super::AdminSsrText::try_from(String::from(constants_str::VALUE_39732416)).expect("48a0fc36 typed_static_pages_render_rows_actions_roles_and_escaped_text invariant must hold"),
+        super::super::AdminSsrText::try_from(String::from(constants_str::VALUE_95ADE925)).expect("b7d3640e typed_static_pages_render_rows_actions_roles_and_escaped_text invariant must hold"),
         &admin,
         &branding,
     );

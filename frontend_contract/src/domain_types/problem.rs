@@ -498,18 +498,18 @@ mod tests {
 
     #[test]
     fn problem_text_deserialization_uses_bounded_try_from() {
-        let detail = serde_json::to_string(&"x".repeat(1_025usize)).expect(
+        let detail = serde_json::to_string(&constants_str::X.repeat(1_025usize)).expect(
             "6e2db8a1 problem_text_deserialization_uses_bounded_try_from invariant must hold",
         );
-        let request_id = serde_json::to_string(&"x".repeat(129usize)).expect(
+        let request_id = serde_json::to_string(&constants_str::X.repeat(129usize)).expect(
             "f289a40c problem_text_deserialization_uses_bounded_try_from invariant must hold",
         );
-        let _detail_error =
-            serde_json::from_str::<super::ApiProblemDetail>(&detail).expect_err("b653c1c0");
-        let _field_error =
-            serde_json::from_str::<super::ApiProblemField>(&request_id).expect_err("0b04a860");
-        let _request_id_error =
-            serde_json::from_str::<super::ApiProblemRequestId>(&request_id).expect_err("abe1c2e7");
+        let _detail_error = serde_json::from_str::<super::ApiProblemDetail>(&detail)
+            .expect_err(constants_str::VALUE_9024021D);
+        let _field_error = serde_json::from_str::<super::ApiProblemField>(&request_id)
+            .expect_err(constants_str::VALUE_9D9ABF28);
+        let _request_id_error = serde_json::from_str::<super::ApiProblemRequestId>(&request_id)
+            .expect_err(constants_str::VALUE_4DC83C61);
     }
 
     #[test]
@@ -521,7 +521,7 @@ mod tests {
         let serialized = serde_json::to_string(&vec![item; 129usize]).expect(
             "a1010d3f problem_violation_deserialization_rejects_too_many_items invariant must hold",
         );
-        let _error =
-            serde_json::from_str::<super::ApiProblemViolations>(&serialized).expect_err("a05e84a8");
+        let _error = serde_json::from_str::<super::ApiProblemViolations>(&serialized)
+            .expect_err(constants_str::VALUE_8961C40A);
     }
 }

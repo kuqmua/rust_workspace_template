@@ -534,22 +534,23 @@ mod tests {
     }
     #[test]
     fn location_text_deserialization_uses_bounded_try_from() {
-        let oversized = "x".repeat(super::LOC_FILE_MAX_LEN + constants_usize::ONE);
+        let oversized = constants_str::X.repeat(super::LOC_FILE_MAX_LEN + constants_usize::ONE);
         let _file_error = <super::LocationFile as serde::Deserialize>::deserialize(
             serde::de::value::StringDeserializer::<serde::de::value::Error>::new(oversized.clone()),
         )
-        .expect_err("845c5b02");
+        .expect_err(constants_str::VALUE_AC9468A7);
         let _commit_error = <super::LocationCommit as serde::Deserialize>::deserialize(
             serde::de::value::StringDeserializer::<serde::de::value::Error>::new(oversized),
         )
-        .expect_err("7e50ddbb");
+        .expect_err(constants_str::VALUE_1E61B1AF);
     }
     #[test]
     fn coordinates_and_nanoseconds_reject_zero_based_or_overflowing_values() {
-        let _line_error = super::LocationLine::try_from(constants_u32::ZERO).expect_err("f4dfc0b1");
-        let _column_error =
-            super::LocationColumn::try_from(constants_u32::ZERO).expect_err("86102562");
-        let _nanos_error =
-            super::StdTimeDurationNanos::try_from(1_000_000_000u32).expect_err("c342a3f2");
+        let _line_error = super::LocationLine::try_from(constants_u32::ZERO)
+            .expect_err(constants_str::VALUE_3AF5C47B);
+        let _column_error = super::LocationColumn::try_from(constants_u32::ZERO)
+            .expect_err(constants_str::VALUE_B0E3542F);
+        let _nanos_error = super::StdTimeDurationNanos::try_from(1_000_000_000u32)
+            .expect_err(constants_str::VALUE_EB22AFCB);
     }
 }

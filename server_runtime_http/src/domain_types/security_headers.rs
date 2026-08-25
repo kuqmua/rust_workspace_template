@@ -170,9 +170,8 @@ where
 mod tests {
     #[test]
     fn content_security_policy_rejects_header_injection() {
-        let _error = super::HttpContentSecurityPolicy::try_from(
-            "default-src 'self'\r\ninvalid: value".to_owned(),
-        )
-        .expect_err("94d8f601");
+        let _error =
+            super::HttpContentSecurityPolicy::try_from(constants_str::VALUE_0E50D890.to_owned())
+                .expect_err(constants_str::VALUE_1E8BE8A1);
     }
 }

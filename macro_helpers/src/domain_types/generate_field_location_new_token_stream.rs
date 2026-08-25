@@ -102,10 +102,10 @@ pub fn generate_field_location_new_token_stream(
 mod tests {
     #[test]
     fn coordinates_reject_zero_and_accept_positive_values() {
-        let _line_error =
-            super::FieldLocationLine::try_from(constants_u32::ZERO).expect_err("c2f0b6ca");
-        let _column_error =
-            super::FieldLocationColumn::try_from(constants_u32::ZERO).expect_err("9cf06f3e");
+        let _line_error = super::FieldLocationLine::try_from(constants_u32::ZERO)
+            .expect_err(constants_str::VALUE_A7ABF9D9);
+        let _column_error = super::FieldLocationColumn::try_from(constants_u32::ZERO)
+            .expect_err(constants_str::VALUE_B430FE14);
         let _line = super::FieldLocationLine::try_from(7u32).expect(
             "070dbee8 coordinates_reject_zero_and_accept_positive_values invariant must hold",
         );
@@ -116,7 +116,7 @@ mod tests {
     #[test]
     fn first_coordinates_generate_complete_location_field() {
         let generated = super::generate_field_location_new_token_stream(
-            super::FieldLocationFile::from("src/example.rs"),
+            super::FieldLocationFile::from(constants_str::VALUE_E1CEB1AF),
             super::FieldLocationLine::first(),
             super::FieldLocationColumn::first(),
         )

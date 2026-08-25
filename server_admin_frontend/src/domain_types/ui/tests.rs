@@ -16,7 +16,8 @@ fn owned_singlestage_context_renders_without_an_external_owner() {
 
 #[test]
 fn primitives_render_semantic_accessible_markup() {
-    let owned_label = super::field::AdminFieldLabel::from(String::from("Owned label"));
+    let owned_label =
+        super::field::AdminFieldLabel::from(String::from(constants_str::VALUE_9E41A9D1));
     assert_eq!(owned_label.as_ref(), "Owned label");
     let html = render(leptos::view! {
         <super::card::AdminCard variant=super::card::AdminCardVariant::Settings>
@@ -169,10 +170,10 @@ fn bound_form_controls_render_signal_values() {
     let owner = leptos::prelude::Owner::new();
     let html = owner.with(|| {
         let input = super::input::LeptosAdminInputSignal::from(leptos::prelude::RwSignal::new(
-            String::from("bound input"),
+            String::from(constants_str::VALUE_14527724),
         ));
         let textarea = super::input::LeptosAdminInputSignal::from(leptos::prelude::RwSignal::new(
-            String::from("bound textarea"),
+            String::from(constants_str::VALUE_F013164D),
         ));
         render(leptos::view! {
             <super::input::AdminInput name="bound_input" bind_value=input />

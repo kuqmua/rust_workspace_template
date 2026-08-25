@@ -262,7 +262,8 @@ mod tests_not_empty_unique_vec {
             Err(super::NotEmptyUniqueVecTryNewError::TooLong { .. })
         ));
         let _error =
-            serde_json::from_str::<super::NotEmptyUniqueVec<u8>>("[]").expect_err("2510fe33");
+            serde_json::from_str::<super::NotEmptyUniqueVec<u8>>(constants_str::VALUE_4F53CDA1)
+                .expect_err(constants_str::VALUE_7C1A5E41);
     }
     #[test]
     fn not_empty_unique_vec_try_new_returns_is_empty_for_empty_vec() {

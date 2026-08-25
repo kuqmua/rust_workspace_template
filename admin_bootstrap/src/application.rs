@@ -11,7 +11,7 @@ fn parse_args() -> Result<crate::domain_types::AdminCommand, crate::domain_types
     let login_arg = args
         .next()
         .ok_or(crate::domain_types::BootstrapArgsError::Usage)?;
-    if login_arg == std::ffi::OsStr::new("reset") {
+    if login_arg == std::ffi::OsStr::new(constants_str::VALUE_01BE30BB) {
         let reset_login_arg = args
             .next()
             .ok_or(crate::domain_types::BootstrapArgsError::Usage)?;

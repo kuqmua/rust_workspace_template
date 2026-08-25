@@ -125,7 +125,7 @@ pub fn build_secure_strict_cookie(
         },
         |maximum_age_seconds| {
             cookie::Cookie::build((name.0.as_str(), value.0.as_str()))
-                .path("/")
+                .path(constants_str::SLASH)
                 .max_age(cookie::time::Duration::seconds(maximum_age_seconds))
                 .same_site(cookie::SameSite::Strict)
                 .http_only(matches!(access, HttpCookieAccess::HttpOnly))

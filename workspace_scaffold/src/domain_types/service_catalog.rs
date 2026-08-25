@@ -25,7 +25,7 @@ pub(super) fn parse(
     let mut current = None;
     source.0.lines().try_for_each(|raw_line| {
         let trimmed_line = raw_line.trim();
-        if trimmed_line == "[[service]]" {
+        if trimmed_line == constants_str::VALUE_484ADD83 {
             if let Some(draft) = current.take() {
                 entries.push(super::ServiceCatalogDraft::finish(draft)?);
             }
@@ -37,7 +37,7 @@ pub(super) fn parse(
         };
         if let Some(value) = string_value(
             super::ScaffoldTextRef::from(trimmed_line),
-            super::ScaffoldTextRef::from("crate"),
+            super::ScaffoldTextRef::from(constants_str::CRATE),
         )? {
             draft.crate_name = Some(
                 super::ServiceCrate::try_from(value.as_ref().to_owned())
@@ -47,7 +47,7 @@ pub(super) fn parse(
         }
         if let Some(value) = string_value(
             super::ScaffoldTextRef::from(trimmed_line),
-            super::ScaffoldTextRef::from("compose"),
+            super::ScaffoldTextRef::from(constants_str::VALUE_DB669AF6),
         )? {
             draft.compose_name = Some(
                 super::ServiceComposeName::try_from(value.as_ref().to_owned())
@@ -57,7 +57,7 @@ pub(super) fn parse(
         }
         if let Some(value) = string_value(
             super::ScaffoldTextRef::from(trimmed_line),
-            super::ScaffoldTextRef::from("compose_file"),
+            super::ScaffoldTextRef::from(constants_str::VALUE_739ED940),
         )? {
             draft.compose_file = Some(
                 super::ServiceComposeFile::try_from(value.as_ref().to_owned())
@@ -67,7 +67,7 @@ pub(super) fn parse(
         }
         if let Some(value) = string_value(
             super::ScaffoldTextRef::from(trimmed_line),
-            super::ScaffoldTextRef::from("dockerfile"),
+            super::ScaffoldTextRef::from(constants_str::VALUE_254DB0FB),
         )? {
             draft.dockerfile = Some(
                 super::ServiceDockerfile::try_from(value.as_ref().to_owned())
@@ -77,7 +77,7 @@ pub(super) fn parse(
         }
         if let Some(value) = string_value(
             super::ScaffoldTextRef::from(trimmed_line),
-            super::ScaffoldTextRef::from("image"),
+            super::ScaffoldTextRef::from(constants_str::VALUE_6105D6CC),
         )? {
             draft.image = Some(
                 super::ServiceImage::try_from(value.as_ref().to_owned())
@@ -87,7 +87,7 @@ pub(super) fn parse(
         }
         if let Some(value) = string_value(
             super::ScaffoldTextRef::from(trimmed_line),
-            super::ScaffoldTextRef::from("kubernetes"),
+            super::ScaffoldTextRef::from(constants_str::VALUE_94ABCB2D),
         )? {
             draft.kubernetes_manifest = Some(
                 super::ServiceKubernetesManifest::try_from(value.as_ref().to_owned())
@@ -96,7 +96,7 @@ pub(super) fn parse(
             return Ok(());
         }
         if let Some(port) = trimmed_line
-            .strip_prefix("port")
+            .strip_prefix(constants_str::VALUE_F8D397A3)
             .and_then(|port_text| port_text.trim().strip_prefix('='))
             .map(str::trim)
             .and_then(|port_text| port_text.parse::<u16>().ok())
@@ -106,7 +106,7 @@ pub(super) fn parse(
         }
         if let Some(value) = string_value(
             super::ScaffoldTextRef::from(trimmed_line),
-            super::ScaffoldTextRef::from("socket_env"),
+            super::ScaffoldTextRef::from(constants_str::VALUE_20E49707),
         )? {
             draft.socket_env = Some(
                 super::ServiceSocketEnv::try_from(value.as_ref().to_owned())
@@ -114,15 +114,16 @@ pub(super) fn parse(
             );
             return Ok(());
         }
-        if let Some(release) = trimmed_line
-            .strip_prefix("release")
-            .and_then(|release_text| {
-                release_text
-                    .trim()
-                    .strip_prefix('=')
-                    .map(str::trim)
-                    .and_then(|parsed_text| parsed_text.parse::<bool>().ok())
-            })
+        if let Some(release) =
+            trimmed_line
+                .strip_prefix(constants_str::RELEASE)
+                .and_then(|release_text| {
+                    release_text
+                        .trim()
+                        .strip_prefix('=')
+                        .map(str::trim)
+                        .and_then(|parsed_text| parsed_text.parse::<bool>().ok())
+                })
         {
             draft.release = Some(super::ShouldRelease::from(release));
         }
@@ -197,6 +198,9 @@ pub(super) fn render_release_matrix(
 mod tests {
     #[test]
     fn empty_catalog_is_rejected() {
-        let _error = super::parse(super::super::ScaffoldTextRef::from("")).expect_err("f8d37a21");
+        let _error = super::parse(super::super::ScaffoldTextRef::from(
+            constants_str::PG_CRUD_EMPTY_SQL_SUFFIX,
+        ))
+        .expect_err(constants_str::VALUE_5621BCEA);
     }
 }

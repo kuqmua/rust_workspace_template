@@ -344,9 +344,7 @@ pub(crate) fn run_commands(commands: CommandsRef<'_>) -> Result<(), ()> {
 mod tests {
     #[test]
     fn failed_test_parser_handles_cargo_and_nextest_lines() {
-        let names = super::failed_test_names(super::TextRef::from(
-            "test crate::domain_types::first ... FAILED\n    crate::domain_types::second --- FAILED\nnot a failure\n",
-        ));
+        let names = super::failed_test_names(super::TextRef::from(constants_str::VALUE_E6CA5E47));
         assert_eq!(
             names
                 .0

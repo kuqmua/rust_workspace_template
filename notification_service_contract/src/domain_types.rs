@@ -167,8 +167,8 @@ impl frontend_contract::domain_types::HandlerContract for NotificationOperationa
     }
     fn path(self) -> frontend_contract::domain_types::HandlerPath {
         frontend_contract::domain_types::HandlerPath::from(match self {
-            Self::Metrics => "/metrics",
-            Self::OpenApi => "/openapi.json",
+            Self::Metrics => constants_str::METRICS,
+            Self::OpenApi => constants_str::OPENAPI_JSON,
         })
     }
 }
@@ -273,12 +273,12 @@ mod tests {
         let _empty_error = <super::NotificationMessage as serde::Deserialize>::deserialize(
             serde::de::value::StringDeserializer::<serde::de::value::Error>::new(String::new()),
         )
-        .expect_err("6406611c");
+        .expect_err(constants_str::VALUE_61A01611);
         let _too_long_error = <super::NotificationMessage as serde::Deserialize>::deserialize(
             serde::de::value::StringDeserializer::<serde::de::value::Error>::new(
-                "x".repeat(super::NOTIFICATION_MESSAGE_MAX_LEN + constants_usize::ONE),
+                constants_str::X.repeat(super::NOTIFICATION_MESSAGE_MAX_LEN + constants_usize::ONE),
             ),
         )
-        .expect_err("48d2019d");
+        .expect_err(constants_str::VALUE_F2CF39E2);
     }
 }

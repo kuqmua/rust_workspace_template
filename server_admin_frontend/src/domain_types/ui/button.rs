@@ -26,15 +26,9 @@ pub(crate) enum AdminButtonVariant {
 impl AdminButtonVariant {
     fn class(self) -> &'static str {
         match self {
-            Self::Primary => {
-                "ui-button ui-button-primary inline-flex h-9 w-fit shrink-0 touch-manipulation select-none items-center justify-center gap-2 whitespace-nowrap rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-xs outline-none transition-all [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] hover:cursor-pointer hover:bg-primary/90 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:scale-[0.98] active:opacity-100 aria-invalid:border-destructive aria-invalid:ring-destructive/20 disabled:pointer-events-none disabled:opacity-50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
-            }
-            Self::Secondary => {
-                "ui-button ui-button-secondary inline-flex h-9 w-fit shrink-0 touch-manipulation select-none items-center justify-center gap-2 whitespace-nowrap rounded-md bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground shadow-xs outline-none transition-all [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] hover:cursor-pointer hover:bg-secondary/80 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:scale-[0.98] active:opacity-100 aria-invalid:border-destructive aria-invalid:ring-destructive/20 disabled:pointer-events-none disabled:opacity-50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
-            }
-            Self::Danger => {
-                "ui-button ui-button-danger danger-button inline-flex h-9 w-fit shrink-0 touch-manipulation select-none items-center justify-center gap-2 whitespace-nowrap rounded-md bg-destructive px-4 py-2 text-sm font-medium text-white shadow-xs outline-none transition-all [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] hover:cursor-pointer hover:bg-destructive/90 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-destructive/20 active:scale-[0.98] active:opacity-100 aria-invalid:border-destructive aria-invalid:ring-destructive/20 disabled:pointer-events-none disabled:opacity-50 dark:bg-destructive/60 dark:aria-invalid:ring-destructive/40 dark:focus-visible:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
-            }
+            Self::Primary => constants_str::VALUE_82FEF3B0,
+            Self::Secondary => constants_str::VALUE_D720672A,
+            Self::Danger => constants_str::VALUE_7BE8BA9D,
         }
     }
 }
@@ -64,8 +58,8 @@ pub(crate) enum AdminButtonKind {
 impl AdminButtonKind {
     fn value(self) -> &'static str {
         match self {
-            Self::Button => "button",
-            Self::Submit => "submit",
+            Self::Button => constants_str::VALUE_C3E2D78F,
+            Self::Submit => constants_str::VALUE_75490BD7,
         }
     }
 }

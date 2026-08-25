@@ -364,7 +364,7 @@ async fn admin_html_test_fixture_with_password_change(
     .execute(&pool.0)
     .await
     .expect("cf37a9e2 admin_html_test_fixture_with_password_change invariant must hold");
-    let _deleted_non_system_roles = sqlx::query("DELETE FROM roles WHERE NOT is_system")
+    let _deleted_non_system_roles = sqlx::query(constants_str::VALUE_4BCE193A)
         .execute(&pool.0)
         .await
         .expect("b267a647 admin_html_test_fixture_with_password_change invariant must hold");

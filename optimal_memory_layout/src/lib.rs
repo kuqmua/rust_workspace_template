@@ -1,4 +1,8 @@
 #[proc_macro_derive(OptimalMemoryLayout, attributes(optimal_memory_layout))]
+#[allow(
+    clippy::useless_concat,
+    reason = "the foundational proc macro cannot depend on constants_str without creating a dependency cycle"
+)]
 pub fn optimal_memory_layout(
     input_token_stream: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
@@ -12,14 +16,16 @@ pub fn optimal_memory_layout(
     let mut skip = false;
     di.attrs
         .iter()
-        .filter(|attr| attr.path().is_ident("optimal_memory_layout"))
+        .filter(|attr| attr.path().is_ident(stringify!(optimal_memory_layout)))
         .for_each(|attr| {
             attr.parse_nested_meta(|metadata| {
-                if metadata.path.is_ident("skip") {
+                if metadata.path.is_ident(stringify!(skip)) {
                     skip = true;
                     Ok(())
                 } else {
-                    Err(metadata.error("6e9230ab unsupported optimal_memory_layout attribute"))
+                    Err(metadata.error(concat!(
+                        "6e9230ab unsupported optimal_memory_layout attribute"
+                    )))
                 }
             })
             .expect("58bd65a7 optimal_memory_layout invariant must hold");
@@ -92,7 +98,7 @@ pub fn optimal_memory_layout(
             match generate_assertions_token_stream(
                 fields,
                 &quote::quote! {alignments},
-                "struct",
+                stringify!(struct),
                 None,
             ) {
                 Some(v) => v,
@@ -118,7 +124,7 @@ pub fn optimal_memory_layout(
                     generate_assertions_token_stream(
                         fields,
                         &generate_alignments_identifier_token_stream(i),
-                        "enum",
+                        stringify!(enum),
                         Some(var_identifier),
                     )
                 })

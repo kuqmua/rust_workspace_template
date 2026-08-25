@@ -271,7 +271,7 @@ fn project_source_content(path: &std::path::Path, raw_content: String) -> super:
 }
 #[test]
 fn invalid_project_source_content_fails_snapshot_loading() {
-    let oversized = "x".repeat(16_777_217usize);
+    let oversized = constants_str::X.repeat(16_777_217usize);
     assert!(
         std::panic::catch_unwind(|| {
             project_source_content(std::path::Path::new("oversized.rs"), oversized)
@@ -282,7 +282,7 @@ fn invalid_project_source_content_fails_snapshot_loading() {
 }
 #[test]
 fn missing_project_source_file_fails_snapshot_loading() {
-    let missing = std::path::PathBuf::from("code_style_snapshot_missing_source.rs");
+    let missing = std::path::PathBuf::from(constants_str::VALUE_5E88EEB9);
     assert!(
         std::panic::catch_unwind(|| project_source_file(missing)).is_err(),
         "46045b88"

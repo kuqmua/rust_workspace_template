@@ -366,7 +366,7 @@ pub fn identifier_file_storage_relative_path(
 #[cfg(test)]
 mod tests {
     fn field_name() -> super::MultipartFieldName {
-        super::MultipartFieldName::try_from(String::from("field"))
+        super::MultipartFieldName::try_from(String::from(constants_str::FIELD))
             .expect("0f4b54a3 field_name invariant must hold")
     }
     fn text_part(value: &str) -> super::MultipartTextPart {
@@ -382,8 +382,10 @@ mod tests {
             super::MultipartFieldName::try_from(String::new()),
             Err(super::MultipartValueError::EmptyFieldName)
         );
-        let _field_name = super::MultipartFieldName::try_from("a".repeat(256usize))
-            .expect("1d3de882 multipart_value_wrappers_enforce_each_boundary invariant must hold");
+        let _field_name = super::MultipartFieldName::try_from(
+            constants_str::A_ALT.repeat(256usize),
+        )
+        .expect("1d3de882 multipart_value_wrappers_enforce_each_boundary invariant must hold");
         assert_eq!(
             super::MultipartFieldName::try_from("a".repeat(257usize)),
             Err(super::MultipartValueError::TooLong {
@@ -399,7 +401,7 @@ mod tests {
             super::MultipartFileName::try_from(String::new()),
             Err(super::MultipartValueError::EmptyFileName)
         );
-        let _file_name = super::MultipartFileName::try_from("a".repeat(1024usize))
+        let _file_name = super::MultipartFileName::try_from(constants_str::A_ALT.repeat(1024usize))
             .expect("7b3ca38e multipart_value_wrappers_enforce_each_boundary invariant must hold");
         assert_eq!(
             super::MultipartFileName::try_from("a".repeat(1025usize)),
@@ -420,7 +422,7 @@ mod tests {
             Err(super::MultipartValueError::PathComponent)
         );
 
-        let _text = super::MultipartTextValue::try_from("a".repeat(65_536usize))
+        let _text = super::MultipartTextValue::try_from(constants_str::A_ALT.repeat(65_536usize))
             .expect("c2dd1657 multipart_value_wrappers_enforce_each_boundary invariant must hold");
         assert_eq!(
             super::MultipartTextValue::try_from("a".repeat(65_537usize)),
@@ -435,13 +437,14 @@ mod tests {
     }
     #[test]
     fn multipart_parts_preserve_names_values_and_file_names() {
-        let text = text_part("value");
+        let text = text_part(constants_str::VALUE_CD42404D);
         assert_eq!(text.name().as_ref(), "field");
         assert_eq!(text.value().as_ref(), "value");
 
-        let file_name = super::MultipartFileName::try_from(String::from("report.txt")).expect(
-            "b76ab3ce multipart_parts_preserve_names_values_and_file_names invariant must hold",
-        );
+        let file_name =
+            super::MultipartFileName::try_from(String::from(constants_str::VALUE_EAFB4AFF)).expect(
+                "b76ab3ce multipart_parts_preserve_names_values_and_file_names invariant must hold",
+            );
         let bytes = super::MultipartBytes::try_from(vec![1u8, 2u8, 3u8]).expect(
             "e9e23985 multipart_parts_preserve_names_values_and_file_names invariant must hold",
         );
@@ -458,7 +461,7 @@ mod tests {
     fn request_enforces_combined_payload_and_part_count() {
         let limited_request = super::MultipartUploadRequest::new()
             .with_text_part(
-                text_part("ab"),
+                text_part(constants_str::AB),
                 super::MultipartPayloadMaximum::from(3usize),
             )
             .expect(
@@ -475,7 +478,7 @@ mod tests {
         let full_request = (constants_usize::ZERO..32usize)
             .try_fold(super::MultipartUploadRequest::new(), |accumulator, _idx| {
                 accumulator.with_text_part(
-                    text_part(""),
+                    text_part(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
                     super::MultipartPayloadMaximum::from(constants_usize::ZERO),
                 )
             })
@@ -494,7 +497,7 @@ mod tests {
     #[test]
     fn storage_paths_validate_segments_and_preserve_file_extensions() {
         let _valid =
-            super::StoragePathSegment::try_from(String::from("abc-_123")).expect("20b6c6b2 storage_paths_validate_segments_and_preserve_file_extensions invariant must hold");
+            super::StoragePathSegment::try_from(String::from(constants_str::VALUE_A31BB256)).expect("20b6c6b2 storage_paths_validate_segments_and_preserve_file_extensions invariant must hold");
         assert_eq!(
             super::StoragePathSegment::try_from(String::new()),
             Err(super::StoragePathSegmentError)
@@ -509,16 +512,16 @@ mod tests {
         );
 
         let identifier =
-            super::StoragePathSegment::try_from(String::from("entity")).expect("ec2aa921 storage_paths_validate_segments_and_preserve_file_extensions invariant must hold");
-        let unique = super::StoragePathSegment::try_from(String::from("unique")).expect("51bb3e40 storage_paths_validate_segments_and_preserve_file_extensions invariant must hold");
+            super::StoragePathSegment::try_from(String::from(constants_str::VALUE_BCA3685F)).expect("ec2aa921 storage_paths_validate_segments_and_preserve_file_extensions invariant must hold");
+        let unique = super::StoragePathSegment::try_from(String::from(constants_str::VALUE_C2720445)).expect("51bb3e40 storage_paths_validate_segments_and_preserve_file_extensions invariant must hold");
         let file_name =
-            super::MultipartFileName::try_from(String::from("report.tar.gz")).expect("3ea5274e storage_paths_validate_segments_and_preserve_file_extensions invariant must hold");
+            super::MultipartFileName::try_from(String::from(constants_str::VALUE_4A1282F3)).expect("3ea5274e storage_paths_validate_segments_and_preserve_file_extensions invariant must hold");
         assert_eq!(
             super::identifier_file_storage_relative_path(&identifier, &unique, &file_name).as_ref(),
             std::path::Path::new("entity/unique.gz")
         );
         let no_extension =
-            super::MultipartFileName::try_from(String::from("README")).expect("b7a900a5 storage_paths_validate_segments_and_preserve_file_extensions invariant must hold");
+            super::MultipartFileName::try_from(String::from(constants_str::VALUE_2B7814D3)).expect("b7a900a5 storage_paths_validate_segments_and_preserve_file_extensions invariant must hold");
         assert_eq!(
             super::identifier_file_storage_relative_path(&identifier, &unique, &no_extension)
                 .as_ref(),

@@ -228,11 +228,11 @@ fn generate_update_query_string_in_list_wraps_selector_once() {
 }
 #[test]
 fn idempotency_numeric_values_enforce_protocol_and_cleanup_ranges() {
-    let _status_error =
-        super::PgTableIdempotencyResponseStatus::try_from(99u16).expect_err("822bee51");
+    let _status_error = super::PgTableIdempotencyResponseStatus::try_from(99u16)
+        .expect_err(constants_str::VALUE_454794DA);
     let _retention_error =
         super::PgTableIdempotencyCleanupRetentionSeconds::try_from(-constants_i64::ONE)
-            .expect_err("0f74cd07");
+            .expect_err(constants_str::VALUE_81BC8531);
     let _batch_error = super::PgTableIdempotencyCleanupBatchSize::try_from(constants_i64::ZERO)
-        .expect_err("92ff15a3");
+        .expect_err(constants_str::VALUE_DDCFA298);
 }

@@ -11,13 +11,11 @@ categories = ["data-structures"]
 edition.workspace = true
 
 [dependencies]
+constants_str = { workspace = true }
 constants_usize = { workspace = true }
 optimal_memory_layout = { workspace = true }
 newtype = { workspace = true }
 thiserror = { workspace = true }
-
-[dev-dependencies]
-constants_str = { workspace = true }
 
 [lints]
 workspace = true

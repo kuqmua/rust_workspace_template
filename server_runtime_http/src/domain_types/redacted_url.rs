@@ -84,7 +84,7 @@ pub fn redact_rtsp_url_userinfo(value: RedactedUrlTextRef<'_>) -> RedactedUrl {
 mod tests {
     #[test]
     fn urls_without_credentials_are_preserved() {
-        let input = "https://example.com/path?query=value#fragment";
+        let input = constants_str::VALUE_DABFAFF0;
         let redacted = super::redact_url_userinfo(input.into());
         assert_eq!(redacted.as_ref(), input);
         assert_eq!(redacted.to_string(), input);
@@ -93,15 +93,15 @@ mod tests {
 
     #[test]
     fn malformed_urls_do_not_reflect_unstructured_input() {
-        let malformed = super::redact_url_userinfo("not a url".into());
+        let malformed = super::redact_url_userinfo(constants_str::VALUE_D8B5BF9B.into());
         assert_eq!(malformed.as_ref(), constants_str::REDACTED_ALT_3);
-        let nul = super::redact_url_userinfo("\0secret".into());
+        let nul = super::redact_url_userinfo(constants_str::VALUE_7C8CC910.into());
         assert_eq!(nul.as_ref(), constants_str::REDACTED_ALT_3);
     }
 
     #[test]
     fn fallback_parser_redacts_userinfo_for_unknown_schemes() {
-        let secret = "secret";
+        let secret = constants_str::SECRET;
         let input = format!("1invalid://user:{secret}@example.com/path?query=value");
         let redacted = super::redact_url_userinfo(input.as_str().into());
         assert_eq!(

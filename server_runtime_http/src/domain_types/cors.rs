@@ -68,7 +68,7 @@ mod tests {
     fn parser_trims_valid_origins() {
         let parsed = Vec::<http::HeaderValue>::from(
             super::parse_cors_allow_origin(super::HttpCorsAllowOriginTextRef::from(
-                " https://a.example , https://b.example ",
+                constants_str::VALUE_BCE3AE6B,
             ))
             .expect("d8a0e140 parser_trims_valid_origins invariant must hold"),
         );
@@ -109,10 +109,12 @@ mod tests {
     }
     #[test]
     fn parser_rejects_too_many_origins() {
-        let value =
-            std::iter::repeat_n("https://a.example", super::CORS_ALLOW_ORIGIN_MAX_ITEMS + 1)
-                .collect::<Vec<_>>()
-                .join(",");
+        let value = std::iter::repeat_n(
+            constants_str::VALUE_38612C96,
+            super::CORS_ALLOW_ORIGIN_MAX_ITEMS + 1,
+        )
+        .collect::<Vec<_>>()
+        .join(constants_str::TEXT_ALT_7);
         assert!(matches!(
             super::parse_cors_allow_origin(
                 super::HttpCorsAllowOriginTextRef::from(value.as_str(),)

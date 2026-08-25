@@ -189,7 +189,7 @@ mod tests {
         let error = serde_json::from_str::<super::BoundedUniqueVec<u8, 0, 1>>(
             constants_str::TEST_BOUNDED_UNIQUE_VEC_EXCESS_INVALID,
         )
-        .expect_err("f551f290");
+        .expect_err(constants_str::VALUE_A37B95DF);
         assert!(
             error
                 .to_string()

@@ -79,7 +79,7 @@ pub(crate) fn validate_repository_url(
 mod tests {
     #[test]
     fn project_name_conversions_are_consistent() {
-        let value = super::super::ProjectNameRef::from("order_platform");
+        let value = super::super::ProjectNameRef::from(constants_str::VALUE_F9EA74B8);
         assert_eq!(super::kebab_case(value).as_ref(), "order-platform");
         assert_eq!(super::title_case(value).as_ref(), "Order Platform");
         assert_eq!(super::upper_camel_case(value).as_ref(), "OrderPlatform");

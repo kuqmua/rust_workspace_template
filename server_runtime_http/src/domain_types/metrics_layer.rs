@@ -294,7 +294,7 @@ mod tests {
             router,
             axum::extract::Request::builder()
                 .method(method)
-                .uri("/items/123")
+                .uri(constants_str::VALUE_C53B39B2)
                 .body(axum::body::Body::empty())
                 .expect("49ef0e86 call_method invariant must hold"),
         )
@@ -332,7 +332,10 @@ mod tests {
             super::HttpMetricsPathText::try_from(String::new()),
             Err(super::HttpMetricsPathTextError)
         );
-        let _path = super::HttpMetricsPathText::try_from("a".repeat(constants_usize::VALUE_8_192)).expect(
+        let _path = super::HttpMetricsPathText::try_from(
+            constants_str::A_ALT.repeat(constants_usize::VALUE_8_192),
+        )
+        .expect(
             "c1b07056 cache_configuration_and_path_text_validate_boundaries invariant must hold",
         );
         assert_eq!(
@@ -394,7 +397,7 @@ mod tests {
     async fn layer_handles_every_standard_and_custom_http_method() {
         let router = axum::Router::from(super::HttpMetricsLayer::default().apply(
             crate::domain_types::AxumRouter::from(axum::Router::new().route(
-                "/items/{id}",
+                constants_str::VALUE_B56291E9,
                 axum::routing::any(async || http::StatusCode::INTERNAL_SERVER_ERROR),
             )),
         ));

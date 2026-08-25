@@ -104,8 +104,8 @@ fn route_test_categories_reject_oversized_vec() {
         super::RouteTestCategory::Metadata;
         bounded_types::domain_types::COLLECTION_MAX_LEN + constants_usize::ONE
     ];
-    let _error = super::RouteTestCategories::try_from(categories)
-        .expect_err("c63ba179 route test category limit invariant must hold");
+    let _error =
+        super::RouteTestCategories::try_from(categories).expect_err(constants_str::VALUE_64271BEF);
 }
 #[test]
 fn route_contract_keeps_transport_policy_together() {
@@ -202,6 +202,8 @@ fn transport_response_preserves_retry_after() {
 }
 #[test]
 fn http_status_wrappers_reject_values_below_protocol_range() {
-    let _transport_error = super::TransportStatus::try_from(99u16).expect_err("5d7c8801");
-    let _problem_error = super::ApiProblemStatus::try_from(99u16).expect_err("e65c913c");
+    let _transport_error =
+        super::TransportStatus::try_from(99u16).expect_err(constants_str::VALUE_0A8708C8);
+    let _problem_error =
+        super::ApiProblemStatus::try_from(99u16).expect_err(constants_str::VALUE_766AAE46);
 }

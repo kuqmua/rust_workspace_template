@@ -75,7 +75,7 @@ pub(crate) fn TableCell(
     let class = class.map_or_else(
         || {
             std::borrow::Cow::Borrowed(
-                "p-4 align-middle [&:has([role=checkbox])]:pr-0 [&:has([role=checkbox])]:pl-3",
+                constants_str::VALUE_19AB4EBD,
             )
         },
         |class| {

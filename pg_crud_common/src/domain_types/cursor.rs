@@ -255,7 +255,7 @@ mod tests {
         #[test]
         #[cfg_attr(
             miri,
-            ignore = "the deterministic property suite is covered natively and is prohibitively slow under interpretation"
+            ignore = constants_str::VALUE_BF7C931C
         )]
         fn signed_cursor_round_trips_generated_payloads(payload_text in constants_str::TEST_CURSOR_PAYLOAD_PATTERN) {
             let domain_payload = super::CursorPayload::try_from(payload_text).expect(constants_str::VALUE_28167829);
@@ -266,7 +266,7 @@ mod tests {
         #[test]
         #[cfg_attr(
             miri,
-            ignore = "the deterministic property suite is covered natively and is prohibitively slow under interpretation"
+            ignore = constants_str::VALUE_BF7C931C
         )]
         fn changing_signature_is_always_rejected(payload_text in constants_str::TEST_CURSOR_PAYLOAD_PATTERN) {
             let domain_payload = super::CursorPayload::try_from(payload_text).expect(constants_str::VALUE_52BB899A);

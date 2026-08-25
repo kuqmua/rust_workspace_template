@@ -294,7 +294,7 @@ mod tests {
 
     #[test]
     fn message_deserialization_uses_length_validation() {
-        let json = serde_json::Value::String("x".repeat(65_537usize)).to_string();
+        let json = serde_json::Value::String(constants_str::X.repeat(65_537usize)).to_string();
         let Err(_error) = serde_json::from_str::<super::NotificationMessage>(&json) else {
             panic!("ecef8003");
         };
