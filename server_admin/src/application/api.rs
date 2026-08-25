@@ -63,14 +63,14 @@ pub(super) async fn revoke_all_sessions(
 ) -> Result<super::AxumAdminResponse, super::AdminRevokeAllSessionsError> {
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[frontend_contract::domain_types::route_openapi(delegate = super::users::create, tag = "admin_users")]
+#[frontend_contract::domain_types::route_openapi(delegate = super::users::mutations::create, tag = "admin_users")]
 pub(super) async fn create_user(
     auth: super::AdminAuthReq,
     request: super::AxumAdminJson<server_admin_contract::domain_types::AdminCreateUserReq>,
 ) -> Result<super::AxumAdminResponse, super::AdminCreateUserError> {
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[frontend_contract::domain_types::route_openapi(delegate = super::users::update, tag = "admin_users")]
+#[frontend_contract::domain_types::route_openapi(delegate = super::users::mutations::update, tag = "admin_users")]
 pub(super) async fn update_user(
     auth: super::AdminAuthReq,
     path: super::AxumAdminPath<super::super::AdminUserId>,
@@ -79,7 +79,7 @@ pub(super) async fn update_user(
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
 #[frontend_contract::domain_types::route_openapi(
-    delegate = super::users::set_password,
+    delegate = super::users::mutations::set_password,
     tag = "admin_users"
 )]
 pub(super) async fn set_user_password(
@@ -89,7 +89,7 @@ pub(super) async fn set_user_password(
 ) -> Result<super::AxumAdminResponse, super::AdminSetUserPasswordError> {
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[frontend_contract::domain_types::route_openapi(delegate = super::users::set_ban, tag = "admin_users")]
+#[frontend_contract::domain_types::route_openapi(delegate = super::users::mutations::set_ban, tag = "admin_users")]
 pub(super) async fn set_user_ban(
     auth: super::AdminAuthReq,
     path: super::AxumAdminPath<super::super::AdminUserId>,
@@ -97,21 +97,21 @@ pub(super) async fn set_user_ban(
 ) -> Result<super::AxumAdminResponse, super::AdminSetUserBanError> {
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[frontend_contract::domain_types::route_openapi(delegate = super::users::delete, tag = "admin_users")]
+#[frontend_contract::domain_types::route_openapi(delegate = super::users::mutations::delete, tag = "admin_users")]
 pub(super) async fn delete_user(
     auth: super::AdminAuthReq,
     path: super::AxumAdminPath<super::super::AdminUserId>,
 ) -> Result<super::AxumAdminResponse, super::AdminDeleteUserError> {
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[frontend_contract::domain_types::route_openapi(delegate = super::roles::create, tag = "admin_roles")]
+#[frontend_contract::domain_types::route_openapi(delegate = super::roles::mutations::create, tag = "admin_roles")]
 pub(super) async fn create_role(
     auth: super::AdminAuthReq,
     request: super::AxumAdminJson<server_admin_contract::domain_types::AdminCreateRoleReq>,
 ) -> Result<super::AxumAdminResponse, super::AdminCreateRoleError> {
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[frontend_contract::domain_types::route_openapi(delegate = super::roles::update, tag = "admin_roles")]
+#[frontend_contract::domain_types::route_openapi(delegate = super::roles::mutations::update, tag = "admin_roles")]
 pub(super) async fn update_role(
     auth: super::AdminAuthReq,
     path: super::AxumAdminPath<super::super::AdminRoleId>,
@@ -119,7 +119,7 @@ pub(super) async fn update_role(
 ) -> Result<super::AxumAdminResponse, super::AdminUpdateRoleError> {
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[frontend_contract::domain_types::route_openapi(delegate = super::roles::delete, tag = "admin_roles")]
+#[frontend_contract::domain_types::route_openapi(delegate = super::roles::mutations::delete, tag = "admin_roles")]
 pub(super) async fn delete_role(
     auth: super::AdminAuthReq,
     path: super::AxumAdminPath<super::super::AdminRoleId>,
@@ -127,7 +127,7 @@ pub(super) async fn delete_role(
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
 #[frontend_contract::domain_types::route_openapi(
-    delegate = super::roles::set_permissions,
+    delegate = super::roles::mutations::set_permissions,
     tag = "admin_roles"
 )]
 pub(super) async fn set_role_permissions(
@@ -137,7 +137,7 @@ pub(super) async fn set_role_permissions(
 ) -> Result<super::AxumAdminResponse, super::AdminSetRolePermissionsError> {
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[frontend_contract::domain_types::route_openapi(delegate = super::users::set_roles, tag = "admin_users")]
+#[frontend_contract::domain_types::route_openapi(delegate = super::users::mutations::set_roles, tag = "admin_users")]
 pub(super) async fn set_user_roles(
     auth: super::AdminAuthReq,
     path: super::AxumAdminPath<super::super::AdminUserId>,
@@ -202,7 +202,7 @@ pub(super) async fn update_settings(
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
 #[frontend_contract::domain_types::route_openapi(
-    delegate = super::users::list,
+    delegate = super::users::queries::list,
     params(server_admin_contract::domain_types::AdminTableQuery),
     tag = "admin_users"
 )]
@@ -213,7 +213,7 @@ pub(super) async fn list_users(
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
 #[frontend_contract::domain_types::route_openapi(
-    delegate = super::roles::list,
+    delegate = super::roles::queries::list,
     params(server_admin_contract::domain_types::AdminTableQuery),
     tag = "admin_roles"
 )]
@@ -224,7 +224,7 @@ pub(super) async fn list_roles(
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
 #[frontend_contract::domain_types::route_openapi(
-    delegate = super::roles::list_permissions,
+    delegate = super::roles::queries::list_permissions,
     params(server_admin_contract::domain_types::AdminTableQuery),
     tag = "admin_roles"
 )]

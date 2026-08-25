@@ -1,40 +1,8 @@
-fn env<Value>(value: &str) -> Value
-where
-    Value: config_lib::domain_types::TryFromStdEnvVarOk,
-    Value::Error: std::fmt::Debug,
-{
-    Value::try_from_std_env_var_ok(
-        config_lib::domain_types::StdEnvVarOk::try_from(value.to_owned())
-            .expect("82c951d4 env invariant must hold"),
-    )
-    .expect("135a22e8 env invariant must hold")
-}
-
-fn auth_state(
-    pool: sqlx::PgPool,
-    allowed_origin: &str,
-) -> Result<super::super::AdminAuthSvcState, super::super::AdminAuthSvcStateBuildError> {
-    super::super::AdminAuthSvcState::try_new(
-        app_state::domain_types::SqlxPgPool::from(pool),
-        &env(constants_str::INTEGRATION_TEST_JWT_SECRET_AT_LEAST_32_BYTES),
-        &env(constants_str::VALUE_900),
-        &env(constants_str::VALUE_3600),
-        &env(constants_str::VALUE_20),
-        &env(constants_str::VALUE_2),
-        &env(constants_str::VALUE_10),
-        &env(constants_str::VALUE_1),
-        &env(constants_str::FALSE),
-        &env(constants_str::INTEGRATION_TEST),
-        &env(constants_str::INTEGRATION_TEST_ADMIN),
-        &config_lib::domain_types::CorsAllowOrigin(allowed_origin.to_owned()),
-    )
-}
-
 fn auth_with_headers(headers: http::HeaderMap) -> super::super::AdminAuthReq {
     let pool = sqlx::postgres::PgPoolOptions::new()
         .connect_lazy(constants_str::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION)
         .expect("1c2a7f54 auth_with_headers invariant must hold");
-    let state = auth_state(pool, constants_str::HTTP_LOCALHOST)
+    let state = super::super::tests::hlp::auth_state(pool, constants_str::HTTP_LOCALHOST)
         .expect("adf9c06e auth_with_headers invariant must hold");
     super::super::AdminAuthReq {
         headers: super::super::HttpAdminHeaderMap::from(headers),
@@ -45,17 +13,6 @@ fn auth_with_headers(headers: http::HeaderMap) -> super::super::AdminAuthReq {
         )),
         state: super::super::SharedAdminAuthSvcStateArc::from(std::sync::Arc::new(state)),
     }
-}
-
-#[tokio::test]
-async fn auth_state_rejects_empty_cors_origin_entries() {
-    let pool = sqlx::postgres::PgPoolOptions::new()
-        .connect_lazy(constants_str::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION)
-        .expect("5bd94807 auth_state_rejects_empty_cors_origin_entries invariant must hold");
-    assert!(matches!(
-        auth_state(pool, "http://localhost,,https://example.com"),
-        Err(super::super::AdminAuthSvcStateBuildError::AllowedOrigin)
-    ));
 }
 
 #[tokio::test]
@@ -73,7 +30,7 @@ async fn html_form_auth_rejects_cookie_without_trusted_origin() {
 
 #[tokio::test]
 async fn admin_root_redirects_to_users() {
-    let response = super::root().await;
+    let response = super::actions::root().await;
     assert_eq!(response.status(), http::StatusCode::SEE_OTHER);
     assert_eq!(
         response.headers().get(http::header::LOCATION),
@@ -94,13 +51,14 @@ fn successful_mutation_redirects_to_visible_server_feedback() {
 
 #[test]
 fn assignment_id_lists_reject_empty_entries() {
-    let empty = super::AdminHtmlFormText::try_from(String::new())
+    let empty = super::forms::AdminHtmlFormText::try_from(String::new())
         .expect("1a37ef06 assignment_id_lists_reject_empty_entries invariant must hold");
     assert!(matches!(super::role_ids(&empty), Ok(_ids)));
     assert!(matches!(super::permission_ids(&empty), Ok(_ids)));
 
-    let malformed = super::AdminHtmlFormText::try_from(String::from(constants_str::VALUE_A2688517))
-        .expect("c2d76f19 assignment_id_lists_reject_empty_entries invariant must hold");
+    let malformed =
+        super::forms::AdminHtmlFormText::try_from(String::from(constants_str::VALUE_A2688517))
+            .expect("c2d76f19 assignment_id_lists_reject_empty_entries invariant must hold");
     assert!(matches!(
         super::role_ids(&malformed),
         Err(super::super::AdminError::Validation)
@@ -123,7 +81,8 @@ async fn role_assignment_form_accepts_dynamic_checkbox_fields() {
     let Ok(request) = request else {
         panic!("6f44bd85");
     };
-    let result = <super::super::AxumAdminForm<super::UserRolesForm> as axum::extract::FromRequest<
+    let result =
+        <super::super::AxumAdminForm<super::forms::UserRolesForm> as axum::extract::FromRequest<
             (),
         >>::from_request(request, &())
         .await;
@@ -132,25 +91,25 @@ async fn role_assignment_form_accepts_dynamic_checkbox_fields() {
     };
 
     assert_eq!(i64::from(form.user_id), 7i64);
-    assert_eq!(form.expected_role_ids.0.as_ref(), "1,2");
-    assert_eq!(form.selected.0.len().get(), 2usize);
+    assert_eq!(form.expected_role_ids.as_ref(), "1,2");
+    assert_eq!(form.selected.len().get(), 2usize);
 }
 
 #[test]
 fn selected_form_fields_reject_oversized_maps() {
-    let values = (constants_usize::ZERO..=super::ADMIN_HTML_FORM_SELECTED_MAX_ITEMS)
+    let values = (constants_usize::ZERO..=super::forms::ADMIN_HTML_FORM_SELECTED_MAX_ITEMS)
         .map(|idx| {
             (
-                super::AdminHtmlFormKey::try_from(idx.to_string()).expect(
+                super::forms::AdminHtmlFormKey::try_from(idx.to_string()).expect(
                     "763b9ec0 selected_form_fields_reject_oversized_maps invariant must hold",
                 ),
-                super::AdminHtmlFormText::try_from(String::new()).expect(
+                super::forms::AdminHtmlFormText::try_from(String::new()).expect(
                     "ef54739a selected_form_fields_reject_oversized_maps invariant must hold",
                 ),
             )
         })
         .collect::<std::collections::BTreeMap<_, _>>();
-    let Err(_error) = super::StdAdminHtmlSelected::try_from(values) else {
+    let Err(_error) = super::forms::StdAdminHtmlSelected::try_from(values) else {
         panic!("c86589e3");
     };
 }

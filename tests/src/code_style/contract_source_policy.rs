@@ -103,7 +103,7 @@ fn admin_frontend_api_urls_come_from_typed_routes() {
 fn service_route_handler_composition_uses_shared_registries() {
     super::snapshot::with_codebase_snapshot(|snapshot| {
         [
-            (constants_str::VALUE_3EB7B056, 2usize),
+            (constants_str::VALUE_3EB7B056, constants_usize::EIGHT),
             (constants_str::VALUE_629EE5ED, constants_usize::ONE),
         ]
         .iter()
@@ -111,10 +111,17 @@ fn service_route_handler_composition_uses_shared_registries() {
             let source = snapshot
                 .rs_files()
                 .iter()
-                .find(|file| file.path().as_ref().ends_with(path_suffix))
-                .expect("249edc4a service_route_handler_composition_uses_shared_registries invariant must hold")
-                .content()
-                .as_ref();
+                .filter(|file| {
+                    file.path().as_ref().ends_with(path_suffix)
+                        || (*path_suffix == constants_str::VALUE_3EB7B056
+                            && file
+                                .path()
+                                .as_ref()
+                                .to_string_lossy()
+                                .contains(constants_str::SERVER_ADMIN_HTML_MODULE_DIR))
+                })
+                .map(|file| file.content().as_ref())
+                .collect::<String>();
             assert_eq!(
                 source
                     .matches("frontend_contract::domain_types::handler_registry")
@@ -213,7 +220,7 @@ fn generated_admin_table_consumers_use_the_shared_catalog() {
             .find(|file| {
                 file.path()
                     .as_ref()
-                    .ends_with(constants_str::SERVER_SRC_APPLICATION_RS)
+                    .ends_with(constants_str::SERVER_SRC_APPLICATION_ADMIN_API_RS)
             })
             .expect("148223ec generated_admin_table_consumers_use_the_shared_catalog invariant must hold")
             .content()

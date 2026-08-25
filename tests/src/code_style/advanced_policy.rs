@@ -1266,7 +1266,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             (1, 0, 0, constants_str::VALUE_C1254FA5),
         ),
         (
-            constants_str::SERVER_SRC_APPLICATION_RS,
+            constants_str::SERVER_SRC_APPLICATION_ADMIN_API_RS,
             (
                 1,
                 0,
@@ -1503,7 +1503,7 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
         ),
         (
             constants_str::VALUE_3EB7B056,
-            (8usize, constants_str::VALUE_9E355CCC),
+            (6usize, constants_str::VALUE_9E355CCC),
         ),
         (
             constants_str::VALUE_7C2F0144,
@@ -1518,20 +1518,44 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             (constants_usize::ONE, constants_str::VALUE_FE0C1BD5),
         ),
         (
-            constants_str::VALUE_3C6F88B1,
-            (13usize, constants_str::VALUE_0A492916),
+            constants_str::SERVER_ADMIN_SRC_APPLICATION_ROLE_MUTATIONS_RS,
+            (constants_usize::TWO, constants_str::VALUE_0A492916),
+        ),
+        (
+            constants_str::SERVER_ADMIN_SRC_APPLICATION_ROLE_QUERIES_RS,
+            (constants_usize::ELEVEN, constants_str::VALUE_0A492916),
         ),
         (
             constants_str::VALUE_6DB550C3,
             (2usize, constants_str::VALUE_AE5F4132),
         ),
         (
-            constants_str::VALUE_1E8EA59C,
-            (15usize, constants_str::VALUE_F6A331AA),
+            constants_str::SERVER_ADMIN_SRC_APPLICATION_USER_MUTATIONS_RS,
+            (constants_usize::FOUR, constants_str::VALUE_F6A331AA),
+        ),
+        (
+            constants_str::SERVER_ADMIN_SRC_APPLICATION_USER_QUERIES_RS,
+            (constants_usize::ELEVEN, constants_str::VALUE_F6A331AA),
         ),
         (
             constants_str::VALUE_0690A45F,
-            (19usize, constants_str::VALUE_FD41C49E),
+            (constants_usize::SIX, constants_str::VALUE_FD41C49E),
+        ),
+        (
+            constants_str::SERVER_ADMIN_SRC_APPLICATION_STATE_RS,
+            (constants_usize::ONE, constants_str::VALUE_FD41C49E),
+        ),
+        (
+            constants_str::SERVER_ADMIN_SRC_APPLICATION_AUTHORIZATION_RS,
+            (constants_usize::TWO, constants_str::VALUE_FD41C49E),
+        ),
+        (
+            constants_str::SERVER_ADMIN_SRC_APPLICATION_EXTRACTORS_RS,
+            (constants_usize::THREE, constants_str::VALUE_FD41C49E),
+        ),
+        (
+            constants_str::SERVER_ADMIN_SRC_APPLICATION_PERSISTENCE_RS,
+            (7usize, constants_str::VALUE_FD41C49E),
         ),
         (
             constants_str::VALUE_D67F4595,

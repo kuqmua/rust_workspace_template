@@ -74,13 +74,13 @@ pub(super) async fn update(
         .get()
         .then_some(())
         .ok_or(super::AdminError::Conflict)?;
-    super::record_audit_success_in_connection(
-        super::SqlxAdminPgConnectionRef::from(&mut *tx),
-        super::AdminAuditSuccessRef {
+    super::persistence::record_audit_success_in_connection(
+        super::persistence::SqlxAdminPgConnectionRef::from(&mut *tx),
+        super::persistence::AdminAuditSuccessRef {
             action: super::super::AdminAuditAction::Update,
             login: &actor.login,
             resource: super::super::AdminAuditResource::SystemSettings,
-            resource_id: super::AdminAuditResourceId::SystemSettings,
+            resource_id: super::persistence::AdminAuditResourceId::SystemSettings,
             user_id: actor.id,
         },
     )
@@ -93,7 +93,7 @@ pub(super) async fn update(
 pub(super) async fn get(
     auth: super::AdminAuthReq,
 ) -> Result<super::AxumAdminResponse, super::AdminError> {
-    let _actor = super::authorize_generated_request(
+    let _actor = super::authorization::authorize_generated_request(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
         auth.peer,

@@ -2174,9 +2174,22 @@ constants_str_macros::define_str_constants! {
         SERVER_GRACEFUL_SHUTDOWN_TIMED_OUT = ["server graceful shutdown timed out"];
         SERVER_RETURNED_AN_ERROR_RESPONSE = ["server returned an error response"];
         SERVER_SRC_APPLICATION_RS = ["server/src/application.rs"];
+        SERVER_SRC_APPLICATION_ADMIN_API_RS = ["server/src/application/admin_api.rs"];
+        SERVER_ADMIN_HTML_MODULE_DIR = ["server_admin/src/application/html/"];
+        SERVER_ADMIN_HTML_ASSIGNMENT_HANDLER_DUPLICATE_LOCATIONS = ["../server_admin/src/application/html/actions/roles.rs::role_permissions\n../server_admin/src/application/html/actions/users.rs::user_roles"];
+        SERVER_ADMIN_HTML_ASSIGNMENT_HANDLER_DUPLICATE_REASON = ["typed route handlers retain distinct request extractors and resource targets while delegating shared assignment logic to assignment_action"];
         SERVER_ADMIN_SRC_LIB_RS = ["server_admin/src/domain_types.rs"];
+        SERVER_ADMIN_SRC_APPLICATION_PERSISTENCE_RS = ["server_admin/src/application/persistence.rs"];
+        SERVER_ADMIN_SRC_APPLICATION_AUTHORIZATION_RS = ["server_admin/src/application/authorization.rs"];
+        SERVER_ADMIN_SRC_APPLICATION_EXTRACTORS_RS = ["server_admin/src/application/extractors.rs"];
+        SERVER_ADMIN_SRC_APPLICATION_STATE_RS = ["server_admin/src/application/state.rs"];
+        TEST_CORS_ORIGINS_WITH_EMPTY_ENTRY = ["http://localhost,,https://example.com"];
+        SERVER_ADMIN_SRC_APPLICATION_ROLE_MUTATIONS_RS = ["server_admin/src/application/roles/mutations.rs"];
+        SERVER_ADMIN_SRC_APPLICATION_ROLE_QUERIES_RS = ["server_admin/src/application/roles/queries.rs"];
         SERVER_ADMIN_SRC_ADAPTERS_REPOSITORY_RS = ["server_admin/src/adapters/repository.rs"];
         SERVER_ADMIN_SRC_APPLICATION_RATE_LIMIT_RS = ["server_admin/src/application/rate_limit.rs"];
+        SERVER_ADMIN_SRC_APPLICATION_USER_MUTATIONS_RS = ["server_admin/src/application/users/mutations.rs"];
+        SERVER_ADMIN_SRC_APPLICATION_USER_QUERIES_RS = ["server_admin/src/application/users/queries.rs"];
         SERVER_ADMIN_SRC_PASSWORD_RS = ["server_admin/src/domain_types/password.rs"];
         SERVER_ADMIN_FRONTEND_SRC_APP_RS = ["server_admin_frontend/src/domain_types/app.rs"];
         SERVER_ADMIN_FRONTEND_SRC_SHARED_RS = ["server_admin_frontend/src/domain_types/shared.rs"];
@@ -2904,18 +2917,20 @@ pub const CODE_STYLE_RUNTIME_TEST_HELPER_REASONS: [&str; 2] = [
     "macro helper assertions intentionally panic on deterministic test-fixture failures",
     "route validator test fixtures intentionally panic on invalid local test setup",
 ];
-pub const CODE_STYLE_RUNTIME_ARC_OWNER_SUFFIXES: [&str; 6] = [
+pub const CODE_STYLE_RUNTIME_ARC_OWNER_SUFFIXES: [&str; 7] = [
     "notification_service/src/adapters/routes.rs",
     "server/src/adapters/bootstrap.rs",
     SERVER_SRC_APPLICATION_RS,
+    SERVER_SRC_APPLICATION_ADMIN_API_RS,
     SERVER_ADMIN_SRC_PASSWORD_RS,
     SERVER_RUNTIME_SRC_BOUNDED_READ_RS,
     SERVER_RUNTIME_SRC_LIMITS_RS,
 ];
-pub const CODE_STYLE_RUNTIME_ARC_OWNER_REASONS: [&str; 6] = [
+pub const CODE_STYLE_RUNTIME_ARC_OWNER_REASONS: [&str; 7] = [
     "notification service composition shares immutable application state across request tasks",
     "server bootstrap shares immutable application state across request tasks",
     "server lifecycle shares immutable shutdown state across tasks",
+    "administrator API composition shares immutable application state across request tasks",
     "password hashing shares the cross-thread concurrency limit",
     "bounded reads share a Tokio semaphore across asynchronous readers",
     "runtime limits share immutable concurrency budgets across tasks",
@@ -4175,7 +4190,6 @@ pub const VALUE_DEB830DD: &str =
     "../pg_crud_macro_common/src/domain_types.rs:ProcMacro2GeneratedRustTokenStreamVec";
 pub const VALUE_5BB2B57A: &str = "../pg_crud_pg_table/src/domain_types.rs::try_from\n../pg_crud_pg_table/src/domain_types.rs::try_from";
 pub const VALUE_9DB464C8: &str = "../pg_crud_pg_table_generate_src/src/domain_types/source.rs";
-pub const VALUE_C78A26DB: &str = "../pg_crud_pg_table_generate_src/src/domain_types/source.rs::generate_pg_table_attr_error_variants\n../pg_crud_pg_table_generate_src/src/domain_types/source.rs::generate_pg_table_attr_logic\n../server_admin/src/application/auth.rs::get";
 pub const VALUE_DD337AC0: &str =
     "../pg_crud_pg_table_generate_src/src/domain_types/source.rs:TableTestNames";
 pub const VALUE_D63A5858: &str = "../pg_crud_pg_types_generate_src/src/domain_types/source.rs::try_from\n../pg_crud_pg_types_generate_src/src/domain_types/source.rs::try_from\n../server_runtime_http/src/domain_types/metrics_layer.rs::try_from";
@@ -4188,11 +4202,11 @@ pub const VALUE_7E7B2B37: &str =
     "../pg_crud_where_filters/src/domain_types.rs:PgTypeNotEmptyUniqueVec";
 pub const VALUE_4389D615: &str = "../prepare_pg_databases/src/domain_types.rs";
 pub const VALUE_E4A2A88A: &str = "../server_admin/src/adapters/repository.rs::into_parts\n../server_admin/src/adapters/repository.rs::into_parts";
-pub const VALUE_51DBE253: &str = "../server_admin/src/application/auth.rs::from_request\n../server_admin/src/application/auth.rs::from_request";
-pub const VALUE_88A7A661: &str = "../server_admin/src/application/auth.rs::from_request_parts\n../server_admin/src/application/auth.rs::from_request_parts";
+pub const VALUE_51DBE253: &str = "../server_admin/src/application/extractors.rs::from_request\n../server_admin/src/application/extractors.rs::from_request";
+pub const VALUE_88A7A661: &str = "../server_admin/src/application/extractors.rs::from_request_parts\n../server_admin/src/application/extractors.rs::from_request_parts";
 pub const VALUE_CB780650: &str =
     "../server_admin/src/application/auth.rs:JsonwebtokenAdminDecodingKeys";
-pub const VALUE_148FAD59: &str = "../server_admin/src/application/html.rs::delete_role\n../server_admin/src/application/html.rs::delete_user";
+pub const VALUE_148FAD59: &str = "../server_admin/src/application/html/actions/roles.rs::delete_role\n../server_admin/src/application/html/actions/users.rs::delete_user";
 pub const VALUE_689F2872: &str = "../server_admin/src/domain_types.rs::try_from\n../server_runtime_http/src/domain_types/pg_rate_limit.rs::try_from\n../server_runtime_http/src/domain_types/pg_rate_limit.rs::try_from";
 pub const VALUE_599796F1: &str = "../server_admin/src/domain_types/rbac.rs::as_str\n../server_admin/src/domain_types/rbac.rs::as_str";
 pub const VALUE_27922A80: &str = "../server_admin_frontend/src/domain_types/ssr.rs::try_from\n../server_admin_frontend/src/domain_types/ssr.rs::try_from";
@@ -4977,7 +4991,6 @@ pub const VALUE_A680FDEF: &str = "https://example.com/team/order_platform";
 pub const VALUE_A24910BB: &str = "https://example.test/logo.svg";
 pub const VALUE_FE4E2333: &str = "https://example.test/support";
 pub const VALUE_23A957C9: &str = "identifier normalization makes unrelated small enum-to-domain-value mappings structurally equal despite distinct return types and semantics";
-pub const VALUE_F2E12A9E: &str = "identifier-normalized token emitters and an unrelated typed accessor coincide structurally but have different behavior and owners";
 pub const VALUE_5F0AF516: &str = "ignore";
 pub const VALUE_6105D6CC: &str = "image";
 pub const VALUE_A08A3033: &str = "image:";
@@ -5693,7 +5706,7 @@ pub const VALUE_5FB76CAF: &str = "workspace_scaffold/src/domain_types/service_ca
 pub const VALUE_532433A4: &str = "workspace_test_runner/src/adapters/admin_fixture.rs";
 pub const VALUE_392D41BA: &str = "workspace_test_runner/src/adapters/execution.rs";
 pub const VALUE_7841C081: &str = "workspace_test_runner/src/adapters/reporting.rs";
-pub const VALUE_9D0FC67D: &str = "workspace_test_runner/src/application.rs";
+pub const VALUE_9D0FC67D: &str = "workspace_test_runner/src/application/pg_table_workload.rs";
 pub const VALUE_F45EC0EE: &str = "workspace_test_runner/src/domain_types.rs";
 pub const VALUE_86F7474B: &str = "write_all";
 pub const VALUE_FC58C841: &str = "write_owned";

@@ -144,6 +144,10 @@ fn substantial_function_bodies_have_one_source_of_truth() {
             reason: constants_str::VALUE_0EA9A6EE,
         },
         ReviewedDuplicateGroup {
+            locations: constants_str::SERVER_ADMIN_HTML_ASSIGNMENT_HANDLER_DUPLICATE_LOCATIONS,
+            reason: constants_str::SERVER_ADMIN_HTML_ASSIGNMENT_HANDLER_DUPLICATE_REASON,
+        },
+        ReviewedDuplicateGroup {
             locations: constants_str::VALUE_F9E232EF,
             reason: constants_str::VALUE_D0783800,
         },
@@ -294,10 +298,6 @@ fn substantial_function_bodies_have_one_source_of_truth() {
         ReviewedDuplicateGroup {
             locations: constants_str::VALUE_224F7450,
             reason: constants_str::VALUE_BD024C4B,
-        },
-        ReviewedDuplicateGroup {
-            locations: constants_str::VALUE_C78A26DB,
-            reason: constants_str::VALUE_F2E12A9E,
         },
         ReviewedDuplicateGroup {
             locations: constants_str::VALUE_11C1DCC5,

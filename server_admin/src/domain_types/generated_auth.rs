@@ -118,20 +118,23 @@ where
                     crate::domain_types::auth::AdminError::Authentication,
                 ));
             };
-            let authenticated = match crate::domain_types::auth::authorize_generated_request(
-                state.as_ref(),
-                crate::domain_types::HttpAdminHeaderMapRef::from(req.headers()),
-                peer,
-                server_admin_contract::domain_types::AdminPermissionStrRef::from(permission.get()),
-                mutates,
-            )
-            .await
-            {
-                Ok(value) => value,
-                Err(error) => {
-                    return Ok(axum::response::IntoResponse::into_response(error));
-                }
-            };
+            let authenticated =
+                match crate::domain_types::auth::authorization::authorize_generated_request(
+                    state.as_ref(),
+                    crate::domain_types::HttpAdminHeaderMapRef::from(req.headers()),
+                    peer,
+                    server_admin_contract::domain_types::AdminPermissionStrRef::from(
+                        permission.get(),
+                    ),
+                    mutates,
+                )
+                .await
+                {
+                    Ok(value) => value,
+                    Err(error) => {
+                        return Ok(axum::response::IntoResponse::into_response(error));
+                    }
+                };
             let actor = match pg_table::domain_types::PgTableIdempotencyActor::try_from(
                 authenticated.id().to_string(),
             ) {

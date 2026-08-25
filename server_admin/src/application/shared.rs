@@ -58,7 +58,7 @@ pub(super) async fn authorize_custom(
     auth: &super::AdminAuthReq,
     permission: super::super::AdminPermission,
 ) -> Result<super::AuthenticatedAdmin, super::AdminError> {
-    let authenticated = super::authorize_generated_request(
+    let authenticated = super::authorization::authorize_generated_request(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
         auth.peer,

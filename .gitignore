@@ -11,6 +11,7 @@
 /target/
 /test_results/
 *.profraw
+*.profdata
 
 /scripts/target/
 /scripts/Cargo.lock

@@ -9,7 +9,7 @@ pub(super) async fn me_context_view_ref(
     ),
     super::AdminError,
 > {
-    super::authenticate(
+    super::authorization::authenticate(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
         auth.peer,
@@ -32,7 +32,7 @@ pub(super) async fn change_own_password(
     auth: super::AdminAuthReq,
     request: super::AxumAdminJson<server_admin_contract::domain_types::AdminChangeOwnPasswordReq>,
 ) -> Result<super::AxumAdminResponse, super::AdminError> {
-    let actor = super::authenticate(
+    let actor = super::authorization::authenticate(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
         auth.peer,
@@ -48,7 +48,7 @@ pub(super) async fn change_own_password(
         auth.state.as_ref().policy.mutation_window,
     )
     .await?;
-    super::validate_csrf(
+    super::authorization::validate_csrf(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
         &actor,
@@ -129,13 +129,13 @@ pub(super) async fn change_own_password(
         .map_err(crate::domain_types::SqlxAdminError::from)
         .map_err(super::AdminError::from)
         .map(drop)?;
-    super::record_audit_success_in_connection(
-        super::SqlxAdminPgConnectionRef::from(&mut *tx),
-        super::AdminAuditSuccessRef {
+    super::persistence::record_audit_success_in_connection(
+        super::persistence::SqlxAdminPgConnectionRef::from(&mut *tx),
+        super::persistence::AdminAuditSuccessRef {
             action: super::super::AdminAuditAction::Update,
             login: &actor.login,
             resource: super::super::AdminAuditResource::User,
-            resource_id: super::AdminAuditResourceId::User(actor.id),
+            resource_id: super::persistence::AdminAuditResourceId::User(actor.id),
             user_id: actor.id,
         },
     )

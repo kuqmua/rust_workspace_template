@@ -4,7 +4,7 @@ pub(super) async fn sessions(
     auth: super::AdminAuthReq,
     query: super::AxumAdminQuery<server_admin_contract::domain_types::AdminTableQuery>,
 ) -> Result<super::AxumAdminResponse, super::AdminError> {
-    let authenticated = super::authenticate(
+    let authenticated = super::authorization::authenticate(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
         auth.peer,
@@ -63,7 +63,7 @@ pub(super) async fn revoke_session(
     auth: super::AdminAuthReq,
     session: super::AdminSessionPath,
 ) -> Result<super::AxumAdminResponse, super::AdminError> {
-    let authenticated = super::authenticate(
+    let authenticated = super::authorization::authenticate(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
         auth.peer,
@@ -77,7 +77,7 @@ pub(super) async fn revoke_session(
         .begin()
         .await
         .map_err(super::AdminError::from)?;
-    super::validate_csrf(
+    super::authorization::validate_csrf(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
         &authenticated,
@@ -90,13 +90,13 @@ pub(super) async fn revoke_session(
     )
     .await
     .map_err(super::AdminError::from)?;
-    super::record_audit_success_in_connection(
-        super::SqlxAdminPgConnectionRef::from(&mut *tx),
-        super::AdminAuditSuccessRef {
+    super::persistence::record_audit_success_in_connection(
+        super::persistence::SqlxAdminPgConnectionRef::from(&mut *tx),
+        super::persistence::AdminAuditSuccessRef {
             action: super::super::AdminAuditAction::Delete,
             login: &authenticated.login,
             resource: super::super::AdminAuditResource::Session,
-            resource_id: super::AdminAuditResourceId::Session(session.0),
+            resource_id: super::persistence::AdminAuditResourceId::Session(session.0),
             user_id: authenticated.id,
         },
     )
@@ -109,13 +109,13 @@ pub(super) async fn revoke_session(
 pub(super) async fn revoke_all_sessions(
     auth: super::AdminAuthReq,
 ) -> Result<super::AxumAdminResponse, super::AdminError> {
-    let authenticated = super::authenticate(
+    let authenticated = super::authorization::authenticate(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
         auth.peer,
     )
     .await?;
-    super::validate_csrf(
+    super::authorization::validate_csrf(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
         &authenticated,
@@ -135,13 +135,15 @@ pub(super) async fn revoke_all_sessions(
     )
     .await
     .map_err(super::AdminError::from)?;
-    super::record_audit_success_in_connection(
-        super::SqlxAdminPgConnectionRef::from(&mut *tx),
-        super::AdminAuditSuccessRef {
+    super::persistence::record_audit_success_in_connection(
+        super::persistence::SqlxAdminPgConnectionRef::from(&mut *tx),
+        super::persistence::AdminAuditSuccessRef {
             action: super::super::AdminAuditAction::Delete,
             login: &authenticated.login,
             resource: super::super::AdminAuditResource::Session,
-            resource_id: super::AdminAuditResourceId::Session(authenticated.session_id),
+            resource_id: super::persistence::AdminAuditResourceId::Session(
+                authenticated.session_id,
+            ),
             user_id: authenticated.id,
         },
     )
@@ -150,6 +152,6 @@ pub(super) async fn revoke_all_sessions(
     let mut response = super::AxumAdminResponse(axum::response::IntoResponse::into_response(
         http::StatusCode::NO_CONTENT,
     ));
-    super::append_cleared_session_cookies(&mut response, auth.state.as_ref())?;
+    super::cookie_response::append_cleared_session_cookies(&mut response, auth.state.as_ref())?;
     Ok(response)
 }

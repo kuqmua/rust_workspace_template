@@ -58,9 +58,9 @@
 ../server/src/domain_types.rs:SqlxServerPgConnectError
 ../server_admin/src/application/auth.rs:AdminAuthPositiveValueError
 ../server_admin/src/application/auth.rs:HttpAdminHeaderValueError
-../server_admin/src/application/html.rs:AdminHtmlFormKeyError
-../server_admin/src/application/html.rs:AdminHtmlFormTextError
-../server_admin/src/application/html.rs:StdAdminHtmlSelectedError
+../server_admin/src/application/html/forms.rs:AdminHtmlFormKeyError
+../server_admin/src/application/html/forms.rs:AdminHtmlFormTextError
+../server_admin/src/application/html/forms.rs:StdAdminHtmlSelectedError
 ../server_admin/src/domain_types.rs:AdminAccessTokenError
 ../server_admin/src/domain_types.rs:AdminAuthCollectionError
 ../server_admin/src/domain_types.rs:AdminMigrateError

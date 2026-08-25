@@ -7,7 +7,7 @@ pub(super) async fn sign_in(
 ) -> Result<super::AxumAdminResponse, super::AdminError> {
     let state = auth.state;
     let headers = auth.headers;
-    if !super::origin_is_present_and_allowed(
+    if !super::authorization::origin_is_present_and_allowed(
         state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(headers.as_ref()),
     )
@@ -80,7 +80,7 @@ pub(super) async fn sign_in(
                 .await
                 .map_err(super::AdminError::password_hash)?,
         );
-        super::record_login_attempt(
+        super::persistence::record_login_attempt(
             state.as_ref(),
             &login,
             peer,
@@ -101,7 +101,7 @@ pub(super) async fn sign_in(
         .await
         .map_err(|_error| super::AdminError::Authentication)?;
     if !verified.get() || is_banned.get() {
-        super::record_login_attempt(
+        super::persistence::record_login_attempt(
             state.as_ref(),
             &login,
             peer,
@@ -117,46 +117,49 @@ pub(super) async fn sign_in(
         .begin()
         .await
         .map_err(super::AdminError::from)?;
-    super::record_login_attempt(
+    super::persistence::record_login_attempt(
         state.as_ref(),
         &login,
         peer,
         super::super::StdAdminBool::from(true),
     )
     .await?;
-    let context_hash = super::session_context_hash(
+    let context_hash = super::authorization::session_context_hash(
         super::super::HttpAdminHeaderMapRef::from(headers.as_ref()),
         peer,
     )
     .map_err(super::AdminError::secret_text)?;
-    let session = super::create_session_in_connection(
+    let session = super::session::create_session_in_connection(
         state.as_ref(),
         admin_user_id,
         &context_hash,
-        super::SqlxAdminPgConnectionRef::from(&mut *tx),
+        super::persistence::SqlxAdminPgConnectionRef::from(&mut *tx),
     )
     .await
     .map_err(super::AdminError::session)?;
-    super::record_audit_success_in_connection(
-        super::SqlxAdminPgConnectionRef::from(&mut *tx),
-        super::AdminAuditSuccessRef {
+    super::persistence::record_audit_success_in_connection(
+        super::persistence::SqlxAdminPgConnectionRef::from(&mut *tx),
+        super::persistence::AdminAuditSuccessRef {
             action: super::super::AdminAuditAction::SignIn,
             login: &login,
             resource: super::super::AdminAuditResource::Session,
-            resource_id: super::AdminAuditResourceId::Session(session.session_id()),
+            resource_id: super::persistence::AdminAuditResourceId::Session(session.session_id()),
             user_id: admin_user_id,
         },
     )
     .await?;
     tx.commit().await.map_err(super::AdminError::from)?;
-    let authenticated =
-        super::load_authenticated_admin(state.as_ref(), admin_user_id, session.session_id())
-            .await?;
+    let authenticated = super::persistence::load_authenticated_admin(
+        state.as_ref(),
+        admin_user_id,
+        session.session_id(),
+    )
+    .await?;
     let authenticated_contract = super::authenticated_admin_contract(&authenticated)?;
     let mut response = super::shared::json_response(
         server_admin_contract::domain_types::AdminSignInRes::new(authenticated_contract),
     );
-    super::append_session_cookies(&mut response, state.as_ref(), &session)?;
+    super::cookie_response::append_session_cookies(&mut response, state.as_ref(), &session)?;
     Ok(response)
 }
 pub(super) async fn refresh(
@@ -165,7 +168,7 @@ pub(super) async fn refresh(
 ) -> Result<super::AxumAdminResponse, super::AdminError> {
     let state = auth.state;
     let headers = auth.headers;
-    if !super::origin_is_present_and_allowed(
+    if !super::authorization::origin_is_present_and_allowed(
         state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(headers.as_ref()),
     )
@@ -195,12 +198,12 @@ pub(super) async fn refresh(
         .map(super::super::AdminOpaqueToken::new)
         .map_err(super::super::AdminSecretTextError::from)
         .map_err(super::AdminError::authentication_secret_text)?;
-    let context_hash = super::session_context_hash(
+    let context_hash = super::authorization::session_context_hash(
         super::super::HttpAdminHeaderMapRef::from(headers.as_ref()),
         peer,
     )
     .map_err(super::AdminError::authentication_secret_text)?;
-    let token_hash = super::hash_refresh_token_with_context(&token, &context_hash)
+    let token_hash = super::authorization::hash_refresh_token_with_context(&token, &context_hash)
         .map_err(super::AdminError::authentication_secret_text)?;
     let mut tx = state
         .as_ref()
@@ -235,11 +238,11 @@ pub(super) async fn refresh(
     )
     .await
     .map_err(super::AdminError::from)?;
-    let session = super::create_session_in_connection(
+    let session = super::session::create_session_in_connection(
         state.as_ref(),
         admin_user_id,
         &context_hash,
-        super::SqlxAdminPgConnectionRef::from(&mut *tx),
+        super::persistence::SqlxAdminPgConnectionRef::from(&mut *tx),
     )
     .await
     .map_err(super::AdminError::session)?;
@@ -254,19 +257,19 @@ pub(super) async fn refresh(
             .transpose()
             .map_err(|_error| super::AdminError::Validation)?
             .ok_or(super::AdminError::Authentication)?;
-    super::record_audit_success_in_connection(
-        super::SqlxAdminPgConnectionRef::from(&mut *tx),
-        super::AdminAuditSuccessRef {
+    super::persistence::record_audit_success_in_connection(
+        super::persistence::SqlxAdminPgConnectionRef::from(&mut *tx),
+        super::persistence::AdminAuditSuccessRef {
             action: super::super::AdminAuditAction::Refresh,
             login: &login,
             resource: super::super::AdminAuditResource::Session,
-            resource_id: super::AdminAuditResourceId::Session(session.session_id()),
+            resource_id: super::persistence::AdminAuditResourceId::Session(session.session_id()),
             user_id: admin_user_id,
         },
     )
     .await?;
-    let authenticated = super::load_authenticated_admin_from_db(
-        &mut super::AdminDbRef::Connection(
+    let authenticated = super::persistence::load_authenticated_admin_from_db(
+        &mut super::persistence::AdminDbRef::Connection(
             crate::adapters::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
         ),
         admin_user_id,
@@ -277,7 +280,7 @@ pub(super) async fn refresh(
     let mut response = super::shared::json_response(
         server_admin_contract::domain_types::AdminSignInRes::new(authenticated_contract),
     );
-    super::append_session_cookies(&mut response, state.as_ref(), &session)?;
+    super::cookie_response::append_session_cookies(&mut response, state.as_ref(), &session)?;
     tx.commit().await.map_err(super::AdminError::from)?;
     Ok(response)
 }
@@ -290,13 +293,13 @@ pub(super) async fn sign_out(
     let peer = auth.peer;
     let state = auth.state;
     let headers = auth.headers;
-    let authenticated = super::authenticate(
+    let authenticated = super::authorization::authenticate(
         state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(headers.as_ref()),
         peer,
     )
     .await?;
-    super::validate_csrf(
+    super::authorization::validate_csrf(
         state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(headers.as_ref()),
         &authenticated,
@@ -324,13 +327,14 @@ pub(super) async fn sign_out(
             .map(super::super::AdminOpaqueToken::new)
             .map_err(super::super::AdminSecretTextError::from)
             .map_err(super::AdminError::authentication_secret_text)?;
-        let context_hash = super::session_context_hash(
+        let context_hash = super::authorization::session_context_hash(
             super::super::HttpAdminHeaderMapRef::from(headers.as_ref()),
             peer,
         )
         .map_err(super::AdminError::authentication_secret_text)?;
-        let refresh_hash = super::hash_refresh_token_with_context(&refresh, &context_hash)
-            .map_err(super::AdminError::authentication_secret_text)?;
+        let refresh_hash =
+            super::authorization::hash_refresh_token_with_context(&refresh, &context_hash)
+                .map_err(super::AdminError::authentication_secret_text)?;
         crate::adapters::repository::users::revoke_refresh_token(
             crate::adapters::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
             &refresh_hash,
@@ -339,13 +343,15 @@ pub(super) async fn sign_out(
         .await
         .map_err(super::AdminError::from)?;
     }
-    super::record_audit_success_in_connection(
-        super::SqlxAdminPgConnectionRef::from(&mut *tx),
-        super::AdminAuditSuccessRef {
+    super::persistence::record_audit_success_in_connection(
+        super::persistence::SqlxAdminPgConnectionRef::from(&mut *tx),
+        super::persistence::AdminAuditSuccessRef {
             action: super::super::AdminAuditAction::SignOut,
             login: &authenticated.login,
             resource: super::super::AdminAuditResource::Session,
-            resource_id: super::AdminAuditResourceId::Session(authenticated.session_id),
+            resource_id: super::persistence::AdminAuditResourceId::Session(
+                authenticated.session_id,
+            ),
             user_id: authenticated.id,
         },
     )
@@ -354,6 +360,6 @@ pub(super) async fn sign_out(
     let mut response = super::AxumAdminResponse(axum::response::IntoResponse::into_response(
         http::StatusCode::NO_CONTENT,
     ));
-    super::append_cleared_session_cookies(&mut response, state.as_ref())?;
+    super::cookie_response::append_cleared_session_cookies(&mut response, state.as_ref())?;
     Ok(response)
 }

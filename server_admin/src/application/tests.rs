@@ -1,3 +1,5 @@
+pub(super) mod hlp;
+
 #[test]
 fn rate_limit_scopes_are_distinct() {
     let scopes = [
@@ -85,12 +87,12 @@ fn session_context_hash_is_bound_to_peer_and_user_agent() {
                 "f133a4ca session_context_hash_is_bound_to_peer_and_user_agent invariant must hold",
             ),
     ));
-    let same_context_hash = super::session_context_hash(
+    let same_context_hash = super::authorization::session_context_hash(
         super::super::HttpAdminHeaderMapRef::from(&first_headers),
         first_peer,
     )
     .expect("14f0aa2d session_context_hash_is_bound_to_peer_and_user_agent invariant must hold");
-    let repeated_context_hash = super::session_context_hash(
+    let repeated_context_hash = super::authorization::session_context_hash(
         super::super::HttpAdminHeaderMapRef::from(&first_headers),
         first_peer,
     )
@@ -106,7 +108,7 @@ fn session_context_hash_is_bound_to_peer_and_user_agent() {
                 "5a831a2f session_context_hash_is_bound_to_peer_and_user_agent invariant must hold",
             ),
     ));
-    let other_peer_hash = super::session_context_hash(
+    let other_peer_hash = super::authorization::session_context_hash(
         super::super::HttpAdminHeaderMapRef::from(&first_headers),
         other_peer,
     )
@@ -120,7 +122,7 @@ fn session_context_hash_is_bound_to_peer_and_user_agent() {
         http::header::USER_AGENT,
         http::HeaderValue::from_static(constants_str::ADMIN_CLIENT_2),
     );
-    let other_user_agent_hash = super::session_context_hash(
+    let other_user_agent_hash = super::authorization::session_context_hash(
         super::super::HttpAdminHeaderMapRef::from(&other_headers),
         first_peer,
     )
@@ -133,7 +135,7 @@ fn session_context_hash_is_bound_to_peer_and_user_agent() {
 #[test]
 fn audit_resource_identifier_uses_target_identifier() {
     assert_eq!(
-        super::AdminAuditResourceId::User(
+        super::persistence::AdminAuditResourceId::User(
             crate::domain_types::AdminUserId::try_from(42i64).expect(
                 "423b91b9 audit_resource_identifier_uses_target_identifier invariant must hold"
             ),
@@ -143,15 +145,19 @@ fn audit_resource_identifier_uses_target_identifier() {
         "42"
     );
     assert_eq!(
-        super::AdminAuditResourceId::Role(crate::domain_types::AdminRoleId::try_from(7i64).expect(
-            "af8df9d2 audit_resource_identifier_uses_target_identifier invariant must hold"
-        ),)
+        super::persistence::AdminAuditResourceId::Role(
+            crate::domain_types::AdminRoleId::try_from(7i64).expect(
+                "af8df9d2 audit_resource_identifier_uses_target_identifier invariant must hold"
+            ),
+        )
         .value()
         .as_ref(),
         "7"
     );
     assert_eq!(
-        super::AdminAuditResourceId::SystemSettings.value().as_ref(),
+        super::persistence::AdminAuditResourceId::SystemSettings
+            .value()
+            .as_ref(),
         "1"
     );
 }

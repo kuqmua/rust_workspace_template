@@ -127,7 +127,48 @@ pub fn emit_generate_pg_table(
         Dm,
         Dlo,
     }
+    #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+    struct OperationAttrs {
+        error_variants: GeneratePgTableAttr,
+        logic: GeneratePgTableAttr,
+    }
     impl Operation {
+        const fn attrs(self) -> OperationAttrs {
+            match self {
+                Self::Cm => OperationAttrs {
+                    error_variants: GeneratePgTableAttr::CmErrorVariants,
+                    logic: GeneratePgTableAttr::CmLogic,
+                },
+                Self::Co => OperationAttrs {
+                    error_variants: GeneratePgTableAttr::CoErrorVariants,
+                    logic: GeneratePgTableAttr::CoLogic,
+                },
+                Self::Rm => OperationAttrs {
+                    error_variants: GeneratePgTableAttr::RmErrorVariants,
+                    logic: GeneratePgTableAttr::RmLogic,
+                },
+                Self::Ro => OperationAttrs {
+                    error_variants: GeneratePgTableAttr::RoErrorVariants,
+                    logic: GeneratePgTableAttr::RoLogic,
+                },
+                Self::Um => OperationAttrs {
+                    error_variants: GeneratePgTableAttr::UmErrorVariants,
+                    logic: GeneratePgTableAttr::UmLogic,
+                },
+                Self::Uo => OperationAttrs {
+                    error_variants: GeneratePgTableAttr::UoErrorVariants,
+                    logic: GeneratePgTableAttr::UoLogic,
+                },
+                Self::Dm => OperationAttrs {
+                    error_variants: GeneratePgTableAttr::DmErrorVariants,
+                    logic: GeneratePgTableAttr::DmLogic,
+                },
+                Self::Dlo => OperationAttrs {
+                    error_variants: GeneratePgTableAttr::DloErrorVariants,
+                    logic: GeneratePgTableAttr::DloLogic,
+                },
+            }
+        }
         const fn desirable_status_code(
             self,
         ) -> macro_helpers::domain_types::status_code::StatusCode {
@@ -138,30 +179,6 @@ pub fn emit_generate_pg_table(
                 Self::Rm | Self::Ro | Self::Um | Self::Uo | Self::Dm | Self::Dlo => {
                     macro_helpers::domain_types::status_code::StatusCode::Ok200
                 }
-            }
-        }
-        const fn generate_pg_table_attr_error_variants(self) -> GeneratePgTableAttr {
-            match self {
-                Self::Cm => GeneratePgTableAttr::CmErrorVariants,
-                Self::Co => GeneratePgTableAttr::CoErrorVariants,
-                Self::Rm => GeneratePgTableAttr::RmErrorVariants,
-                Self::Ro => GeneratePgTableAttr::RoErrorVariants,
-                Self::Um => GeneratePgTableAttr::UmErrorVariants,
-                Self::Uo => GeneratePgTableAttr::UoErrorVariants,
-                Self::Dm => GeneratePgTableAttr::DmErrorVariants,
-                Self::Dlo => GeneratePgTableAttr::DloErrorVariants,
-            }
-        }
-        const fn generate_pg_table_attr_logic(self) -> GeneratePgTableAttr {
-            match self {
-                Self::Cm => GeneratePgTableAttr::CmLogic,
-                Self::Co => GeneratePgTableAttr::CoLogic,
-                Self::Rm => GeneratePgTableAttr::RmLogic,
-                Self::Ro => GeneratePgTableAttr::RoLogic,
-                Self::Um => GeneratePgTableAttr::UmLogic,
-                Self::Uo => GeneratePgTableAttr::UoLogic,
-                Self::Dm => GeneratePgTableAttr::DmLogic,
-                Self::Dlo => GeneratePgTableAttr::DloLogic,
             }
         }
         const fn http_method(self) -> OperationHttpMethod {
@@ -5072,7 +5089,7 @@ enum WrapIntoOptional {
         let type_variants_from_req_res_syn_variants = {
             let error_variants_len = generate_pg_table_input_model
                 .error_variants_by_attr
-                .get(&operation.generate_pg_table_attr_error_variants())
+                .get(&operation.attrs().error_variants)
                 .map_or(constants_usize::ZERO, Vec::len);
             let mut accumulator = Vec::with_capacity(
                 common_route_syn_variants
@@ -5097,7 +5114,7 @@ enum WrapIntoOptional {
             accumulator.push(GeneratePgTableVariantEmissionRef::Syn(try_bind_syn_variant.variant()));
             if let Some(variants) = generate_pg_table_input_model
                 .error_variants_by_attr
-                .get(&operation.generate_pg_table_attr_error_variants())
+                .get(&operation.attrs().error_variants)
             {
                 accumulator.extend(variants.iter().map(GeneratePgTableVariantEmissionRef::Model));
             }
@@ -5505,7 +5522,7 @@ enum WrapIntoOptional {
                 };
                 let extra_validators_token_stream = {
                     let common_logic_token_stream = generate_logic_token_stream(GeneratePgTableAttr::CommonLogic);
-                    let operation_logic_token_stream = generate_logic_token_stream(operation.generate_pg_table_attr_logic());
+                    let operation_logic_token_stream = generate_logic_token_stream(operation.attrs().logic);
                     quote::quote! {
                         #common_logic_token_stream
                         #operation_logic_token_stream
@@ -10312,46 +10329,4 @@ enum WrapIntoOptional {
 }
 
 #[cfg(test)]
-mod pipeline_tests {
-    #[test]
-    fn validation_rejects_non_struct_input_without_emitting_source() {
-        let input = quote::quote! { enum NotATable { Value } };
-        let parsed = crate::domain_types::pipeline::parse_generate_pg_table(
-            macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(&input),
-        )
-        .expect("5d4f86a1 validation_rejects_non_struct_input_without_emitting_source invariant must hold");
-        assert!(matches!(
-            crate::domain_types::pipeline::build_generate_pg_table(parsed),
-            Err(crate::domain_types::pipeline::GeneratePgTablePipelineError::Build(_error))
-        ));
-    }
-
-    #[test]
-    fn build_stage_exposes_typed_model_without_emitting_source() {
-        let input = quote::quote! { struct Table { id: i64, name: String } };
-        let parsed = crate::domain_types::pipeline::parse_generate_pg_table(
-            macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(&input),
-        )
-        .expect(
-            "0f8b43d2 build_stage_exposes_typed_model_without_emitting_source invariant must hold",
-        );
-        let built = crate::domain_types::pipeline::build_generate_pg_table(parsed).expect(
-            "a715e9c4 build_stage_exposes_typed_model_without_emitting_source invariant must hold",
-        );
-        assert_eq!(usize::from(built.model().field_count()), 2usize);
-    }
-
-    #[test]
-    fn validation_rejects_empty_table_model_without_emitting_source() {
-        let input = quote::quote! { struct EmptyTable; };
-        let parsed = crate::domain_types::pipeline::parse_generate_pg_table(
-            macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(&input),
-        )
-        .expect("67d029ab validation_rejects_empty_table_model_without_emitting_source invariant must hold");
-        let built = crate::domain_types::pipeline::build_generate_pg_table(parsed).expect("c15b8f34 validation_rejects_empty_table_model_without_emitting_source invariant must hold");
-        assert!(matches!(
-            crate::domain_types::pipeline::validate_generate_pg_table(built),
-            Err(crate::domain_types::pipeline::GeneratePgTablePipelineError::Validate(_error))
-        ));
-    }
-}
+mod tests;

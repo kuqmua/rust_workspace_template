@@ -6,7 +6,7 @@ pub(super) async fn query_log(
     if !query.0.cursor_is_complete().get() {
         return Err(super::AdminError::Validation);
     }
-    let _actor = super::authorize_generated_request(
+    let _actor = super::authorization::authorize_generated_request(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
         auth.peer,
@@ -38,7 +38,7 @@ pub(super) async fn export_log(
     if !query.0.cursor_is_complete().get() {
         return Err(super::AdminError::Validation);
     }
-    let actor = super::authorize_generated_request(
+    let actor = super::authorization::authorize_generated_request(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
         auth.peer,

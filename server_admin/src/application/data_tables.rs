@@ -3,7 +3,7 @@
 pub(super) async fn list(
     auth: super::AdminAuthReq,
 ) -> Result<super::AxumAdminResponse, super::AdminError> {
-    let actor = super::authorize_generated_request(
+    let actor = super::authorization::authorize_generated_request(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
         auth.peer,
@@ -32,7 +32,7 @@ pub(super) async fn get(
         server_admin_contract::domain_types::AdminDataTableQuery,
     >,
 ) -> Result<super::AxumAdminResponse, super::AdminError> {
-    let _actor = super::authorize_generated_request(
+    let _actor = super::authorization::authorize_generated_request(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
         auth.peer,
