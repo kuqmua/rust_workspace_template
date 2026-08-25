@@ -93,14 +93,6 @@ pub(crate) struct EnvKeys(
 );
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
-)]
-struct MemberSafe(bool);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Eq,
     Ord,
@@ -122,14 +114,6 @@ impl WorkspaceMember {
         }
     }
 }
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::AsRefStr, newtype::FromInner,
-)]
-struct WorkspaceMemberRef<'member_lt>(&'member_lt str);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
-struct WorkspaceMembers(
-    bounded_types::domain_types::vector::BoundedVec<WorkspaceMember, 0, { usize::MAX }>,
-);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -207,19 +191,6 @@ pub(crate) enum InitializeError {
         source: InitIoError,
     },
 }
-#[allow(
-    clippy::single_call_fn,
-    reason = "keeps lexical path validation independently testable and reviewable"
-)]
-fn member_is_safe(member: WorkspaceMemberRef<'_>) -> MemberSafe {
-    MemberSafe::from(
-        !member.as_ref().is_empty()
-            && std::path::Path::new(member.as_ref()).is_relative()
-            && std::path::Path::new(member.as_ref())
-                .components()
-                .all(|component| matches!(component, std::path::Component::Normal(_))),
-    )
-}
 fn environment_keys(content: EnvContentRef<'_>) -> Result<EnvKeys, InitStringError> {
     content
         .as_ref()
@@ -241,42 +212,12 @@ fn environment_keys(content: EnvContentRef<'_>) -> Result<EnvKeys, InitStringErr
 #[allow(
     clippy::needless_for_each,
     clippy::single_call_fn,
-    reason = "isolates the testable merge algorithm and repository policy forbids for loops"
+    reason = "provides one testable dry-run and apply entry point; repository policy forbids for loops"
 )]
-fn merge_missing_assignments(
-    current: EnvContentRef<'_>,
-    example: EnvContentRef<'_>,
-) -> Result<Option<EnvContent>, InitStringError> {
-    let current_keys = environment_keys(current)?
-        .0
-        .into_iter()
-        .collect::<std::collections::BTreeSet<EnvKey>>();
-    let missing = example
-        .as_ref()
-        .lines()
-        .filter(|line| {
-            line.split_once('=')
-                .is_some_and(|(key, _value)| !current_keys.contains(key.trim()))
-        })
-        .collect::<Vec<&str>>();
-    if missing.is_empty() {
-        return Ok(None);
-    }
-    let mut merged = current.as_ref().to_owned();
-    if !merged.is_empty() && !merged.ends_with('\n') {
-        merged.push('\n');
-    }
-    missing.into_iter().for_each(|line| {
-        merged.push_str(line);
-        merged.push('\n');
-    });
-    EnvContent::try_from(merged).map(Some)
-}
-#[allow(
-    clippy::single_call_fn,
-    reason = "separates manifest validation from filesystem mutation"
-)]
-fn workspace_members(root: WorkspaceRootPathRef<'_>) -> Result<WorkspaceMembers, InitializeError> {
+pub(crate) fn initialize(
+    root: WorkspaceRootPathRef<'_>,
+    mode: RunMode,
+) -> Result<InitEntries, InitializeError> {
     let manifest_path = root.as_ref().join(constants_str::CARGO_TOML);
     let manifest = crate::adapters::read_bounded_content(
         InitPathRef::from(manifest_path.as_path()),
@@ -292,32 +233,25 @@ fn workspace_members(root: WorkspaceRootPathRef<'_>) -> Result<WorkspaceMembers,
         .get(constants_str::WORKSPACE)
         .and_then(|workspace| workspace.get(constants_str::MEMBERS))
         .and_then(toml::Value::as_array)
-        .ok_or(InitializeError::MembersMissing)?;
-    members
+        .ok_or(InitializeError::MembersMissing)?
         .iter()
         .filter_map(toml::Value::as_str)
         .map(|raw_member| {
             let member = WorkspaceMember::try_from(raw_member.to_owned())?;
-            if bool::from(member_is_safe(WorkspaceMemberRef::from(member.as_ref()))) {
+            let member_path = std::path::Path::new(member.as_ref());
+            if !member.as_ref().is_empty()
+                && member_path.is_relative()
+                && member_path
+                    .components()
+                    .all(|component| matches!(component, std::path::Component::Normal(_)))
+            {
                 Ok(member)
             } else {
                 Err(InitializeError::InvalidMember { member })
             }
         })
-        .collect::<Result<Vec<WorkspaceMember>, InitializeError>>()
-        .map(bounded_types::domain_types::vector::BoundedVec::from_max_iter)
-        .map(WorkspaceMembers::from)
-}
-#[allow(
-    clippy::single_call_fn,
-    reason = "provides one testable dry-run and apply entry point"
-)]
-pub(crate) fn initialize(
-    root: WorkspaceRootPathRef<'_>,
-    mode: RunMode,
-) -> Result<InitEntries, InitializeError> {
-    workspace_members(root)?
-        .0
+        .collect::<Result<Vec<WorkspaceMember>, InitializeError>>()?;
+    members
         .into_iter()
         .try_fold(Vec::new(), |mut entries, member| {
             let example_path = root
@@ -343,16 +277,38 @@ pub(crate) fn initialize(
                     InitMaxBytes::from(constants_usize::VALUE_1_048_576),
                 )
                 .map_err(|source| InitializeError::ReadExample { source })?;
-                match merge_missing_assignments(
-                    EnvContentRef::from(current.as_ref()),
-                    EnvContentRef::from(content.as_ref()),
-                )? {
+                let current_keys = environment_keys(EnvContentRef::from(current.as_ref()))?
+                    .0
+                    .into_iter()
+                    .collect::<std::collections::BTreeSet<EnvKey>>();
+                let missing = content
+                    .as_ref()
+                    .lines()
+                    .filter(|line| {
+                        line.split_once('=')
+                            .is_some_and(|(key, _value)| !current_keys.contains(key.trim()))
+                    })
+                    .collect::<Vec<&str>>();
+                let merged = if missing.is_empty() {
+                    None
+                } else {
+                    let mut merged_text = current.as_ref().to_owned();
+                    if !merged_text.is_empty() && !merged_text.ends_with('\n') {
+                        merged_text.push('\n');
+                    }
+                    missing.into_iter().for_each(|line| {
+                        merged_text.push_str(line);
+                        merged_text.push('\n');
+                    });
+                    Some(EnvContent::try_from(merged_text)?)
+                };
+                match merged {
                     None => InitializationStatus::SkippedExisting,
                     Some(_merged) if mode == RunMode::DryRun => InitializationStatus::WouldUpdate,
-                    Some(merged) => {
+                    Some(merged_content) => {
                         crate::adapters::write_content(
                             InitPathRef::from(environment_path.as_path()),
-                            EnvContentRef::from(merged.as_ref()),
+                            EnvContentRef::from(merged_content.as_ref()),
                         )?;
                         InitializationStatus::Updated
                     }

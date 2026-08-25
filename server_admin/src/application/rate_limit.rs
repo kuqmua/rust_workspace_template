@@ -8,7 +8,7 @@ pub(super) enum AdminRateLimitScope {
     SignInIpLogin,
 }
 impl AdminRateLimitScope {
-    #[allow(clippy::single_call_fn)] // scope serialization is shared by persistence and exhaustive contract tests
+    #[allow(clippy::single_call_fn)] // production enforcement and the exhaustive test each use this mapping in different targets
     pub(super) fn as_str(self) -> super::super::StdAdminStrRef<'static> {
         match self {
             Self::AuditExport => super::super::StdAdminStrRef::from(
@@ -37,25 +37,33 @@ pub(super) async fn enforce_rate_limit(
     window_seconds: super::StdAdminRateLimitWindowSeconds,
 ) -> Result<(), super::AdminError> {
     let scope_text = scope.as_str();
-    let decision = crate::adapters::repository::rate_limits::enforce_rate_limit(
-        crate::adapters::repository::SqlxAdminRepositoryPoolRef::from(state.pool.as_ref()),
-        scope_text,
-        subject,
-        limit,
-        window_seconds,
+    let decision = server_runtime_http::domain_types::enforce_pg_rate_limit(
+        server_runtime_http::domain_types::SqlxPgRateLimitPoolRef::from(state.pool.as_ref()),
+        server_runtime_http::domain_types::PgRateLimitQueryRef::from(
+            constants_str::SERVER_ADMIN_ENFORCE_RATE_LIMIT_SQL,
+        ),
+        server_runtime_http::domain_types::PgRateLimitScopeRef::try_from(scope_text.as_ref())
+            .map_err(|_error| super::AdminError::Validation)?,
+        server_runtime_http::domain_types::PgRateLimitSubjectRef::try_from(
+            subject.as_ref().as_str(),
+        )
+        .map_err(|_error| super::AdminError::Validation)?,
+        server_runtime_http::domain_types::PgRateLimitMaximum::try_from(i64::from(limit))
+            .map_err(|_error| super::AdminError::Validation)?,
+        server_runtime_http::domain_types::PgRateLimitWindowSeconds::try_from(i32::from(
+            window_seconds,
+        ))
+        .map_err(|_error| super::AdminError::Validation)?,
     )
     .await
-    .map_err(|repository_error| match repository_error {
-        crate::adapters::repository::AdminRateLimitRepositoryError::InvalidPolicy => {
-            super::AdminError::Validation
-        }
-        crate::adapters::repository::AdminRateLimitRepositoryError::Sqlx(sqlx_error) => {
-            super::AdminError::pg(sqlx_error)
-        }
+    .map_err(|error| match error {
+        server_runtime_http::domain_types::PgRateLimitError::Sqlx(source) => super::AdminError::pg(
+            super::super::SqlxAdminError::from(sqlx::Error::from(source)),
+        ),
     })?;
     match decision {
-        crate::adapters::repository::AdminRateLimitOutcome::Allowed => Ok(()),
-        crate::adapters::repository::AdminRateLimitOutcome::Limited => {
+        server_runtime_http::domain_types::PgRateLimitDecision::Allowed => Ok(()),
+        server_runtime_http::domain_types::PgRateLimitDecision::Limited(_retry_after) => {
             Err(super::AdminError::RateLimited)
         }
     }

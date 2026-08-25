@@ -38,7 +38,10 @@ impl<'ast> syn::visit::Visit<'ast> for LockAcrossAwaitVisitor {
                 ));
             }
             if let syn::Stmt::Local(local) = statement
-                && local_initializer_acquires_lock(local)
+                && local
+                    .init
+                    .as_ref()
+                    .is_some_and(|initializer| expression_acquires_lock(initializer.expr.as_ref()))
                 && let syn::Pat::Ident(identifier) = &local.pat
             {
                 let _inserted = active_guards.insert(identifier.ident.to_string());
@@ -51,13 +54,6 @@ impl<'ast> syn::visit::Visit<'ast> for LockAcrossAwaitVisitor {
         });
         syn::visit::visit_block(self, i);
     }
-}
-
-fn local_initializer_acquires_lock(local: &syn::Local) -> bool {
-    local
-        .init
-        .as_ref()
-        .is_some_and(|initializer| expression_acquires_lock(initializer.expr.as_ref()))
 }
 
 fn expression_acquires_lock(expression: &syn::Expr) -> bool {
@@ -1146,10 +1142,6 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             (2, 0, 0, constants_str::VALUE_D94112EA),
         ),
         (
-            constants_str::VALUE_D59B01F9,
-            (1, 0, 1, constants_str::VALUE_F3B9B918),
-        ),
-        (
             constants_str::VALUE_299CBC23,
             (1, 0, 0, constants_str::VALUE_FFF8147A),
         ),
@@ -1215,7 +1207,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
         ),
         (
             constants_str::VALUE_7DF10CC7,
-            (0, 0, 51, constants_str::VALUE_71BBA184),
+            (0, 0, 31, constants_str::VALUE_71BBA184),
         ),
         (
             constants_str::VALUE_1F61C5FC,
@@ -1273,6 +1265,15 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             constants_str::VALUE_0690A45F,
             (1, 0, 0, constants_str::VALUE_C1254FA5),
         ),
+        (
+            constants_str::SERVER_SRC_APPLICATION_RS,
+            (
+                1,
+                0,
+                1,
+                constants_str::GENERATED_ADMIN_TABLE_ROUTING_REQUIRES_SHARED_APPLICATION_STATE_DYNAMIC_DISPATCH,
+            ),
+        ),
     ]);
     super::snapshot::with_codebase_snapshot(|snapshot| {
         let mut matched = std::collections::BTreeSet::new();
@@ -1322,9 +1323,12 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
                 }
             });
         if matched.len() != reviewed.len() {
-            violations.push(format!(
-                "stale Arc/lock/trait-object inventory: matched={matched:#?}"
-            ));
+            let stale = reviewed
+                .keys()
+                .filter(|suffix| !matched.contains(**suffix))
+                .copied()
+                .collect::<Vec<&str>>();
+            violations.push(format!("stale Arc/lock/trait-object inventory: {stale:#?}"));
         }
         assert!(violations.is_empty(), "66b91e7a {violations:#?}");
     });
@@ -1482,10 +1486,6 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             (constants_usize::ONE, constants_str::VALUE_7CCF2159),
         ),
         (
-            constants_str::VALUE_2996C2A6,
-            (12usize, constants_str::VALUE_F6BD2A1C),
-        ),
-        (
             constants_str::VALUE_4C6F4532,
             (8usize, constants_str::VALUE_80247FE1),
         ),
@@ -1498,20 +1498,8 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             (10usize, constants_str::VALUE_26FEED58),
         ),
         (
-            constants_str::VALUE_8C00245E,
-            (4usize, constants_str::VALUE_3EC967E9),
-        ),
-        (
-            constants_str::VALUE_BFA4ECF3,
-            (5usize, constants_str::VALUE_F9FB5F7D),
-        ),
-        (
-            constants_str::VALUE_FF6D4857,
-            (constants_usize::ONE, constants_str::VALUE_1FB60025),
-        ),
-        (
             constants_str::VALUE_20A23EAF,
-            (3usize, constants_str::VALUE_086B6B08),
+            (2usize, constants_str::VALUE_086B6B08),
         ),
         (
             constants_str::VALUE_3EB7B056,
@@ -1523,7 +1511,7 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
         ),
         (
             constants_str::VALUE_1CAAD2DE,
-            (5usize, constants_str::VALUE_B678E31A),
+            (6usize, constants_str::VALUE_B678E31A),
         ),
         (
             constants_str::VALUE_B852993C,
@@ -1531,19 +1519,54 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
         ),
         (
             constants_str::VALUE_3C6F88B1,
-            (2usize, constants_str::VALUE_0A492916),
+            (13usize, constants_str::VALUE_0A492916),
         ),
         (
             constants_str::VALUE_6DB550C3,
-            (3usize, constants_str::VALUE_AE5F4132),
+            (2usize, constants_str::VALUE_AE5F4132),
         ),
         (
             constants_str::VALUE_1E8EA59C,
-            (4usize, constants_str::VALUE_F6A331AA),
+            (15usize, constants_str::VALUE_F6A331AA),
         ),
         (
             constants_str::VALUE_0690A45F,
-            (12usize, constants_str::VALUE_FD41C49E),
+            (19usize, constants_str::VALUE_FD41C49E),
+        ),
+        (
+            constants_str::VALUE_D67F4595,
+            (
+                constants_usize::ONE,
+                constants_str::INLINED_ADMIN_OPERATIONS_DISCARD_TYPED_CONVERSION_DETAILS_AT_THE_HTTP_BOUNDARY,
+            ),
+        ),
+        (
+            constants_str::VALUE_15C3423E,
+            (
+                4usize,
+                constants_str::INLINED_ADMIN_OPERATIONS_DISCARD_TYPED_CONVERSION_DETAILS_AT_THE_HTTP_BOUNDARY,
+            ),
+        ),
+        (
+            constants_str::SERVER_ADMIN_SRC_APPLICATION_RATE_LIMIT_RS,
+            (
+                4usize,
+                constants_str::INLINED_ADMIN_OPERATIONS_DISCARD_TYPED_CONVERSION_DETAILS_AT_THE_HTTP_BOUNDARY,
+            ),
+        ),
+        (
+            constants_str::SERVER_ADMIN_SRC_ADAPTERS_REPOSITORY_RS,
+            (
+                constants_usize::ONE,
+                constants_str::INLINED_ADMIN_OPERATIONS_DISCARD_TYPED_CONVERSION_DETAILS_AT_THE_HTTP_BOUNDARY,
+            ),
+        ),
+        (
+            constants_str::SERVER_ADMIN_SRC_LIB_RS,
+            (
+                constants_usize::ONE,
+                constants_str::INLINED_ADMIN_OPERATIONS_DISCARD_TYPED_CONVERSION_DETAILS_AT_THE_HTTP_BOUNDARY,
+            ),
         ),
         (
             constants_str::VALUE_F3169686,
@@ -1603,9 +1626,12 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             }
         });
         if matched.len() != reviewed.len() {
-            violations.push(format!(
-                "stale ignored map_err inventory: matched={matched:#?}"
-            ));
+            let stale = reviewed
+                .keys()
+                .filter(|suffix| !matched.contains(**suffix))
+                .copied()
+                .collect::<Vec<&str>>();
+            violations.push(format!("stale ignored map_err inventory: {stale:#?}"));
         }
         assert!(violations.is_empty(), "bb0dbc1f {violations:#?}");
     });
@@ -1768,7 +1794,7 @@ fn usize_max_usage_matches_reviewed_inventory() {
         ),
         (
             constants_str::VALUE_A2FD7F33,
-            (4usize, constants_str::VALUE_E55D8523),
+            (3usize, constants_str::VALUE_E55D8523),
         ),
         (
             constants_str::VALUE_9DB464C8,

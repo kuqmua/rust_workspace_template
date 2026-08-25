@@ -207,10 +207,14 @@ fn generated_admin_table_consumers_use_the_shared_catalog() {
             assert!(!source.contains(forbidden), "8b137dd2");
             assert!(source.contains("AdminGeneratedTable"), "e1c82f79");
         });
-        let server_routing = snapshot
+        let server_application = snapshot
             .rs_files()
             .iter()
-            .find(|file| file.path().as_ref().ends_with(constants_str::VALUE_D59B01F9))
+            .find(|file| {
+                file.path()
+                    .as_ref()
+                    .ends_with(constants_str::SERVER_SRC_APPLICATION_RS)
+            })
             .expect("148223ec generated_admin_table_consumers_use_the_shared_catalog invariant must hold")
             .content()
             .as_ref();
@@ -224,10 +228,10 @@ fn generated_admin_table_consumers_use_the_shared_catalog() {
         ]
         .iter()
         .for_each(|forbidden| {
-            assert!(!server_routing.contains(forbidden), "d01c1dd0");
+            assert!(!server_application.contains(forbidden), "d01c1dd0");
         });
         assert!(
-            server_routing.contains("generated_tables::generated_routes"),
+            server_application.contains("generated_tables::generated_routes"),
             "af786d19"
         );
         let admin_api = snapshot

@@ -164,11 +164,31 @@ impl LeaseRegistry {
             {
                 return LeaseReservation::Existing(existing_id.clone());
             }
-            remove_stale_entries(&mut inner);
+            #[allow(
+                clippy::needless_collect,
+                reason = "expired lease keys must be collected before mutating the registry"
+            )]
+            // ids must be owned before mutating both registry indexes
+            let stale = inner
+                .by_id
+                .iter()
+                .filter(|(_id, entry)| entry.state == LeaseState::Stale)
+                .map(|(stale_id, _entry)| stale_id.clone())
+                .collect::<Vec<_>>();
+            stale.into_iter().fold((), |(), stale_id| {
+                if let Some(entry) = inner.by_id.remove(&stale_id) {
+                    let _removed = inner.by_key.remove(&entry.key);
+                }
+            });
             if inner.by_id.len().get() >= maximum.0.get() {
                 return LeaseReservation::LimitReached;
             }
-            remove_conflicting_entries(&mut inner, &id, &key);
+            if let Some(previous) = inner.by_id.remove(&id) {
+                let _removed = inner.by_key.remove(&previous.key);
+            }
+            if let Some(previous_id) = inner.by_key.remove(&key) {
+                let _removed = inner.by_id.remove(&previous_id);
+            }
             let id_insertion = inner.by_key.try_insert(key.clone(), id.clone());
             if id_insertion.is_err() {
                 return LeaseReservation::LimitReached;
@@ -219,32 +239,6 @@ struct TokioLeaseRegistryRwLockArc(std::sync::Arc<tokio::sync::RwLock<LeaseRegis
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 struct TokioLeaseInstant(tokio::time::Instant);
-
-#[allow(clippy::single_call_fn)] // keeps the two-index conflict update atomic and locally auditable
-fn remove_conflicting_entries(inner: &mut LeaseRegistryInner, id: &LeaseId, key: &LeaseKey) {
-    if let Some(previous) = inner.by_id.remove(id) {
-        let _removed = inner.by_key.remove(&previous.key);
-    }
-    if let Some(previous_id) = inner.by_key.remove(key) {
-        let _removed = inner.by_id.remove(&previous_id);
-    }
-}
-
-#[allow(clippy::single_call_fn)] // keeps stale eviction synchronized across both indexes
-fn remove_stale_entries(inner: &mut LeaseRegistryInner) {
-    #[allow(clippy::needless_collect)] // ids must be owned before mutating both registry indexes
-    let stale = inner
-        .by_id
-        .iter()
-        .filter(|(_id, entry)| entry.state == LeaseState::Stale)
-        .map(|(id, _entry)| id.clone())
-        .collect::<Vec<_>>();
-    stale.into_iter().fold((), |(), id| {
-        if let Some(entry) = inner.by_id.remove(&id) {
-            let _removed = inner.by_key.remove(&entry.key);
-        }
-    });
-}
 
 fn validate_lease_text(value: LeaseTextRef<'_>) -> Result<(), LeaseTextError> {
     if value.0.is_empty() {

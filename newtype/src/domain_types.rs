@@ -209,18 +209,6 @@ impl quote::ToTokens for SnakeIdentifier {
     }
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
-pub(crate) struct SynAttrsRef<'syn_lt>(&'syn_lt [syn::Attribute]);
-impl<'syn_lt> From<&'syn_lt [syn::Attribute]> for SynAttrsRef<'syn_lt> {
-    fn from(value: &'syn_lt [syn::Attribute]) -> Self {
-        Self(value)
-    }
-}
-impl AsRef<[syn::Attribute]> for SynAttrsRef<'_> {
-    fn as_ref(&self) -> &[syn::Attribute] {
-        self.0
-    }
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
 pub(crate) struct SynDeriveInputRef<'syn_lt>(&'syn_lt syn::DeriveInput);
 impl<'syn_lt> From<&'syn_lt syn::DeriveInput> for SynDeriveInputRef<'syn_lt> {
     fn from(value: &'syn_lt syn::DeriveInput) -> Self {

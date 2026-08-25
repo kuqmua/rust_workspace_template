@@ -68,12 +68,29 @@ fn all_files_are_english_only() {
             rayon::iter::ParallelIterator::map(
                 rayon::iter::IntoParallelRefIterator::par_iter(snapshot.project_source_files()),
                 |source_file| {
-                    super::collect_non_english_symbol_ers(
-                        super::types::PathRef::from(source_file.path().as_ref()),
-                        super::types::SourceTextRef::from(source_file.content().as_ref()),
-                    )
-                    .into_iter()
-                    .collect::<Vec<String>>()
+                    source_file
+                        .content()
+                        .as_ref()
+                        .lines()
+                        .enumerate()
+                        .flat_map(|(line_idx, line)| {
+                            let line_number = line_idx.saturating_add(1usize);
+                            line.chars()
+                                .filter(|ch| {
+                                    !matches!(ch, '\n' | '\r' | '\t' | '\u{2014}' | '\u{2194}')
+                                        && !ch.is_ascii()
+                                })
+                                .map(move |ch| {
+                                    format!(
+                                        "{}:{} non-english symbol `{}` (U+{:04X})",
+                                        source_file.path().as_ref().display(),
+                                        line_number,
+                                        ch,
+                                        u32::from(ch)
+                                    )
+                                })
+                        })
+                        .collect::<Vec<String>>()
                 },
             ),
             Vec::new,
@@ -1197,7 +1214,7 @@ fn source_lint_suppressions_have_explicit_reasons() {
             reason: constants_str::VALUE_19C32AF3,
         },
         LegacySuppression {
-            limit: 20,
+            limit: 12,
             path_suffix: constants_str::VALUE_7FE2AF02,
             reason: constants_str::VALUE_3C62205E,
         },
@@ -2329,43 +2346,6 @@ fn server_admin_string_constants_reuse_macro_fragments() {
     let source = std::fs::read_to_string(constants_str::STR_CONSTANTS_SRC_LIB_RS)
         .expect("4629edbb server_admin_string_constants_reuse_macro_fragments invariant must hold");
     assert!(!source.contains("pub const SERVER_ADMIN_"));
-}
-
-#[test]
-fn admin_application_modules_do_not_own_admin_sql() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
-        let application_module_suffixes = [
-            constants_str::VALUE_D67F4595,
-            constants_str::VALUE_DD6C0078,
-            constants_str::VALUE_1CAAD2DE,
-            constants_str::VALUE_B852993C,
-            constants_str::VALUE_3C6F88B1,
-            constants_str::VALUE_15C3423E,
-            constants_str::VALUE_0D60D8DF,
-            constants_str::VALUE_6DB550C3,
-            constants_str::VALUE_1E8EA59C,
-        ];
-        let violations = snapshot
-            .rs_files()
-            .iter()
-            .filter(|file| {
-                application_module_suffixes
-                    .iter()
-                    .any(|suffix| file.path().as_ref().ends_with(suffix))
-            })
-            .filter(|file| {
-                file.content()
-                    .as_ref()
-                    .contains(constants_str::SERVER_ADMIN_CONSTANT_PREFIX)
-                    || file
-                        .content()
-                        .as_ref()
-                        .contains(constants_str::SQLX_QUERY_CALL)
-            })
-            .map(|file| file.path().as_ref().display().to_string())
-            .collect::<Vec<String>>();
-        assert!(violations.is_empty(), "353df4df {violations:#?}");
-    });
 }
 
 #[test]

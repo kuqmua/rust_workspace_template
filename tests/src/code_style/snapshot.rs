@@ -51,7 +51,11 @@ impl RsSourceFile {
 impl CodebaseSnapshot {
     #[allow(clippy::single_call_fn)] // named constructor keeps snapshot initialization readable at the thread-local OnceCell call site
     fn build() -> Self {
-        let source_snapshot = codebase_source_snapshot();
+        static SOURCE_SNAPSHOT: std::sync::OnceLock<std::sync::Arc<CodebaseSourceSnapshot>> =
+            std::sync::OnceLock::new();
+        let source_snapshot = std::sync::Arc::clone(
+            SOURCE_SNAPSHOT.get_or_init(|| std::sync::Arc::new(CodebaseSourceSnapshot::build())),
+        );
         let rs_files = source_snapshot
             .project_source_files
             .iter()
@@ -137,8 +141,13 @@ impl CodebaseSourceSnapshot {
     #[allow(clippy::single_call_fn)] // named constructor keeps process-wide immutable source initialization readable
     fn build() -> Self {
         let metadata = workspace_metadata_uncached();
-        let workspace_members =
-            workspace_member_ids(super::types::CargoMetadataRef::from(metadata.as_ref()));
+        let workspace_members = super::types::CargoPackageIdRefHashSet::from(
+            metadata
+                .as_ref()
+                .workspace_members
+                .iter()
+                .collect::<std::collections::HashSet<&cargo_metadata::PackageId>>(),
+        );
         let workspace_crate_names: std::collections::BTreeSet<String> = metadata
             .as_ref()
             .packages
@@ -181,7 +190,30 @@ impl CodebaseSourceSnapshot {
                     super::types::OwnedPathBuf,
                     super::types::CargoTomlFileIdx,
                 >>();
-        let project_source_files = project_source_files_uncached().collect::<Vec<_>>();
+        let project_source_files =
+            super::types::WalkdirWalkDir::from(walkdir::WalkDir::new(constants_str::TEXT_ALT_9))
+                .into_iter()
+                .filter_entry(|element| {
+                    element.file_name() != constants_str::TARGET
+                        && element.file_name() != constants_str::GIT
+                        && element.file_name() != constants_str::WORKSPACE_SCAFFOLD_NODE_MODULES
+                        && (element.file_type().is_dir()
+                            || matches!(
+                                element.path().extension().and_then(std::ffi::OsStr::to_str),
+                                Some(
+                                    constants_str::RS
+                                        | constants_str::TOML
+                                        | constants_str::TXT
+                                        | constants_str::YML
+                                        | constants_str::YAML
+                                        | constants_str::JSON
+                                )
+                            ))
+                })
+                .map(project_walk_entry)
+                .filter(|entry| !entry.file_type().is_dir())
+                .map(|entry| project_source_file(entry.into_path()))
+                .collect::<Vec<_>>();
         Self {
             cargo_toml_by_path,
             cargo_toml_files,
@@ -195,14 +227,6 @@ impl CodebaseSourceSnapshot {
             .get(path.as_ref())
             .and_then(|idx| self.cargo_toml_files.get(idx.get()))
     }
-}
-#[allow(clippy::single_call_fn)] // isolates the process-wide source cache from thread-local parsed snapshot construction
-fn codebase_source_snapshot() -> std::sync::Arc<CodebaseSourceSnapshot> {
-    static SOURCE_SNAPSHOT: std::sync::OnceLock<std::sync::Arc<CodebaseSourceSnapshot>> =
-        std::sync::OnceLock::new();
-    std::sync::Arc::clone(
-        SOURCE_SNAPSHOT.get_or_init(|| std::sync::Arc::new(CodebaseSourceSnapshot::build())),
-    )
 }
 pub(super) fn with_codebase_snapshot<R>(f: impl FnOnce(&CodebaseSnapshot) -> R) -> R {
     std::thread_local! {
@@ -218,40 +242,6 @@ fn workspace_metadata_uncached() -> super::types::CargoMetadata {
             .exec()
             .expect("c84e9d1f workspace_metadata_uncached invariant must hold"),
     )
-}
-#[allow(clippy::single_call_fn)] // keeps workspace membership extraction named while snapshot construction reuses it twice
-fn workspace_member_ids(
-    metadata: super::types::CargoMetadataRef<'_>,
-) -> super::types::CargoPackageIdRefHashSet<'_> {
-    super::types::CargoPackageIdRefHashSet::from(
-        metadata
-            .get()
-            .workspace_members
-            .iter()
-            .collect::<std::collections::HashSet<&cargo_metadata::PackageId>>(),
-    )
-}
-#[allow(clippy::single_call_fn)] // keeps filesystem walker rules separate from snapshot materialization
-fn project_source_files_uncached() -> impl Iterator<Item = ProjectSourceFile> {
-    super::types::WalkdirWalkDir::from(walkdir::WalkDir::new(constants_str::TEXT_ALT_9))
-        .into_iter()
-        .filter_entry(|element| {
-            element.file_name() != constants_str::TARGET
-                && element.file_name() != constants_str::GIT
-                && element.file_name() != constants_str::WORKSPACE_SCAFFOLD_NODE_MODULES
-                && (element.file_type().is_dir()
-                    || super::is_allowed_english_check_ext(
-                        element
-                            .path()
-                            .extension()
-                            .and_then(std::ffi::OsStr::to_str)
-                            .map(super::types::SourceTextRef::from),
-                    )
-                    .get())
-        })
-        .map(project_walk_entry)
-        .filter(|entry| !entry.file_type().is_dir())
-        .map(|entry| project_source_file(entry.into_path()))
 }
 fn project_walk_entry(entry: walkdir::Result<walkdir::DirEntry>) -> walkdir::DirEntry {
     entry.unwrap_or_else(|error| panic!("1e4b17b0 walk failed: {error}"))

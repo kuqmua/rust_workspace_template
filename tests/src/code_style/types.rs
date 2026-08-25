@@ -33,13 +33,6 @@ impl CargoTomlFileIdx {
         self.0
     }
 }
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
-pub(super) struct AnalyzerChar(char);
-impl AnalyzerChar {
-    pub(super) const fn get(self) -> char {
-        self.0
-    }
-}
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -72,15 +65,6 @@ impl<'metadata_lt> CargoMetadataRef<'metadata_lt> {
 pub(super) struct CargoPackageIdRefHashSet<'metadata_lt>(
     std::collections::HashSet<&'metadata_lt cargo_metadata::PackageId>,
 );
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    Copy,
-    newtype::AsRefInner,
-    newtype::FromInner,
-)]
-pub(super) struct ProcessOutputRef<'output_lt>(&'output_lt std::process::Output);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
 pub(super) struct StaticStr(&'static str);
 impl StaticStr {
@@ -540,9 +524,5 @@ impl<'toml_lt> TomlValueRef<'toml_lt> {
         self.0
     }
 }
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, newtype::FromInner, newtype::IntoInner,
-)]
-pub(super) struct TomlValue(toml::Value);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner, newtype::IntoIterator)]
 pub(super) struct WalkdirWalkDir(walkdir::WalkDir);

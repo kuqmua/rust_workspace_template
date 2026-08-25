@@ -16,12 +16,16 @@ pub(super) async fn create(
         .begin()
         .await
         .map_err(super::AdminError::from)?;
-    let role_id = crate::adapters::repository::roles::insert_role(
-        crate::adapters::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
-        &name,
-    )
-    .await
-    .map_err(|error| super::shared::map_unique_violation(error.0))?;
+    let role_id = sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_INSERT_ROLE_SQL)
+        .bind(name.as_ref())
+        .fetch_one(&mut *tx)
+        .await
+        .map_err(crate::domain_types::SqlxAdminError::from)
+        .and_then(|value| {
+            crate::domain_types::AdminRoleId::try_from(value)
+                .map_err(crate::domain_types::SqlxAdminError::from)
+        })
+        .map_err(|error| super::shared::map_unique_violation(error.0))?;
     super::record_audit_success_in_connection(
         super::SqlxAdminPgConnectionRef::from(&mut *tx),
         super::AdminAuditSuccessRef {
@@ -62,16 +66,17 @@ pub(super) async fn update(
         .begin()
         .await
         .map_err(super::AdminError::from)?;
-    crate::adapters::repository::roles::update_role(
-        crate::adapters::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
-        path.0,
-        &name,
-    )
-    .await
-    .map_err(|error| super::shared::map_unique_violation(error.0))?
-    .get()
-    .then_some(())
-    .ok_or(super::AdminError::Conflict)?;
+    sqlx::query_scalar::<_, bool>(constants_str::SERVER_ADMIN_UPDATE_ROLE_SQL)
+        .bind(path.0.get())
+        .bind(name.as_ref())
+        .fetch_optional(&mut *tx)
+        .await
+        .map_err(crate::domain_types::SqlxAdminError::from)
+        .map(|value| super::super::StdAdminBool::from(value.is_some()))
+        .map_err(|error| super::shared::map_unique_violation(error.0))?
+        .get()
+        .then_some(())
+        .ok_or(super::AdminError::Conflict)?;
     super::record_audit_success_in_connection(
         super::SqlxAdminPgConnectionRef::from(&mut *tx),
         super::AdminAuditSuccessRef {
@@ -102,15 +107,16 @@ pub(super) async fn delete(
         .begin()
         .await
         .map_err(super::AdminError::from)?;
-    crate::adapters::repository::roles::delete_role(
-        crate::adapters::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
-        path.0,
-    )
-    .await
-    .map_err(super::AdminError::from)?
-    .get()
-    .then_some(())
-    .ok_or(super::AdminError::Conflict)?;
+    sqlx::query_scalar::<_, bool>(constants_str::SERVER_ADMIN_DELETE_ROLE_SQL)
+        .bind(path.0.get())
+        .fetch_optional(&mut *tx)
+        .await
+        .map_err(crate::domain_types::SqlxAdminError::from)
+        .map(|value| super::super::StdAdminBool::from(value.is_some()))
+        .map_err(super::AdminError::from)?
+        .get()
+        .then_some(())
+        .ok_or(super::AdminError::Conflict)?;
     super::record_audit_success_in_connection(
         super::SqlxAdminPgConnectionRef::from(&mut *tx),
         super::AdminAuditSuccessRef {
@@ -169,12 +175,76 @@ pub(super) async fn set_permissions(
         .begin()
         .await
         .map_err(super::AdminError::from)?;
-    let outcome = crate::adapters::repository::permissions::replace_role_permissions(
-        crate::adapters::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
-        path.0,
-        expected_permission_ids.as_ref(),
-        contract_permission_ids.as_ref(),
-    )
+    let outcome = async {
+        let inlined_role_permission_role_id = path.0;
+        let inlined_expected_permission_ids = expected_permission_ids.as_ref();
+        let inlined_permission_ids = contract_permission_ids.as_ref();
+        let optional_is_system =
+            sqlx::query_scalar::<_, bool>(constants_str::SERVER_ADMIN_LOCK_ROLE_SYSTEM_STATE_SQL)
+                .bind(inlined_role_permission_role_id.get())
+                .fetch_optional(&mut *tx)
+                .await
+                .map_err(crate::domain_types::SqlxAdminError::from)?;
+        let Some(is_system) = optional_is_system else {
+            return Ok::<_, crate::domain_types::SqlxAdminError>(
+                crate::adapters::repository::ReplaceRolePermissionsOutcome::MissingRole,
+            );
+        };
+        if is_system {
+            return Ok::<_, crate::domain_types::SqlxAdminError>(
+                crate::adapters::repository::ReplaceRolePermissionsOutcome::SystemRole,
+            );
+        }
+        let current_permission_ids =
+            sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_READ_ROLE_PERMISSION_IDS_SQL)
+                .bind(inlined_role_permission_role_id.get())
+                .fetch_all(&mut *tx)
+                .await
+                .map_err(crate::domain_types::SqlxAdminError::from)?;
+        let mut expected_raw_ids = inlined_expected_permission_ids
+            .iter()
+            .copied()
+            .map(i64::from)
+            .collect::<Vec<_>>();
+        expected_raw_ids.sort_unstable();
+        if current_permission_ids != expected_raw_ids {
+            return Ok::<_, crate::domain_types::SqlxAdminError>(
+                crate::adapters::repository::ReplaceRolePermissionsOutcome::StaleAssignment,
+            );
+        }
+        let raw_ids = inlined_permission_ids
+            .iter()
+            .copied()
+            .map(i64::from)
+            .collect::<Vec<_>>();
+        let existing_count =
+            sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_COUNT_PERMISSIONS_SQL)
+                .bind(&raw_ids)
+                .fetch_one(&mut *tx)
+                .await
+                .map_err(crate::domain_types::SqlxAdminError::from)?;
+        if usize::try_from(existing_count).ok() != Some(raw_ids.len()) {
+            return Ok::<_, crate::domain_types::SqlxAdminError>(
+                crate::adapters::repository::ReplaceRolePermissionsOutcome::UnknownPermission,
+            );
+        }
+        let _delete_result =
+            sqlx::query(constants_str::SERVER_ADMIN_REPLACE_ROLE_PERMISSIONS_DELETE_SQL)
+                .bind(inlined_role_permission_role_id.get())
+                .execute(&mut *tx)
+                .await
+                .map_err(crate::domain_types::SqlxAdminError::from)?;
+        let _insert_result =
+            sqlx::query(constants_str::SERVER_ADMIN_REPLACE_ROLE_PERMISSIONS_INSERT_SQL)
+                .bind(inlined_role_permission_role_id.get())
+                .bind(&raw_ids)
+                .execute(&mut *tx)
+                .await
+                .map_err(crate::domain_types::SqlxAdminError::from)?;
+        Ok::<_, crate::domain_types::SqlxAdminError>(
+            crate::adapters::repository::ReplaceRolePermissionsOutcome::Updated,
+        )
+    }
     .await
     .map_err(super::AdminError::from)?;
     match outcome {
@@ -220,15 +290,110 @@ pub(super) async fn roles_page(
         &query.0,
         &server_admin_contract::domain_types::AdminTableSortField::ROLE,
     )?;
-    let pool = crate::adapters::repository::SqlxAdminRepositoryPoolRef::from(
-        auth.state.as_ref().pool.as_ref(),
-    );
-    let (roles, total) = crate::adapters::repository::roles::list_roles(pool, &query.0)
+    let role_pool = auth.state.as_ref().pool.as_ref();
+    let (roles, total) = async {
+        let search = query.0.search().as_ref();
+        let total =
+            sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_COUNT_FILTERED_ROLES_SQL)
+                .bind(search)
+                .fetch_one(role_pool)
+                .await
+                .map_err(crate::domain_types::SqlxAdminError::from)?;
+        let rows =
+            sqlx::query_as::<_, (i64, String, bool)>(constants_str::SERVER_ADMIN_PAGE_ROLES_SQL)
+                .bind(search)
+                .bind(query.0.sort().as_ref())
+                .bind(query.0.direction().as_ref())
+                .bind(i64::from(u16::from(query.0.limit())))
+                .bind(i64::from(u32::from(query.0.offset())))
+                .fetch_all(role_pool)
+                .await
+                .map_err(crate::domain_types::SqlxAdminError::from)?;
+        let role_ids = rows.iter().map(|row| row.0).collect::<Vec<_>>();
+        let links = sqlx::query_as::<_, (i64, i64)>(
+            constants_str::SERVER_ADMIN_LIST_ROLE_PERMISSION_IDS_SQL,
+        )
+        .bind(role_ids.as_slice())
+        .fetch_all(role_pool)
         .await
-        .map_err(super::shared::map_repository_error)?;
-    let permissions = crate::adapters::repository::permissions::list_permission_catalog(pool)
-        .await
-        .map_err(super::shared::map_repository_error)?;
+        .map_err(crate::domain_types::SqlxAdminError::from)?;
+        let mut permission_ids_by_role = links.into_iter().try_fold(
+            std::collections::HashMap::<
+                i64,
+                Vec<server_admin_contract::domain_types::AdminPermissionId>,
+            >::with_capacity(role_ids.len()),
+            |mut values, (role_id, permission_id)| {
+                values.entry(role_id).or_default().push(
+                    server_admin_contract::domain_types::AdminPermissionId::try_from(permission_id)
+                        .map_err(|_error| {
+                            crate::adapters::repository::AdminRepositoryError::InvalidStoredValue
+                        })?,
+                );
+                Ok::<_, crate::adapters::repository::AdminRepositoryError>(values)
+            },
+        )?;
+        let items = rows
+            .into_iter()
+            .map(|(id, name, is_system)| {
+                Ok(server_admin_contract::domain_types::AdminRoleSummary::new(
+                    server_admin_contract::domain_types::AdminRoleId::try_from(id).map_err(
+                        |_error| {
+                            crate::adapters::repository::AdminRepositoryError::InvalidStoredValue
+                        },
+                    )?,
+                    server_admin_contract::domain_types::AdminBool::from(is_system),
+                    server_admin_contract::domain_types::AdminRoleName::try_from(name).map_err(
+                        |_error| {
+                            crate::adapters::repository::AdminRepositoryError::InvalidStoredValue
+                        },
+                    )?,
+                    server_admin_contract::domain_types::AdminPermissionIds::try_from(
+                        permission_ids_by_role.remove(&id).unwrap_or_default(),
+                    )
+                    .map_err(|_error| {
+                        crate::adapters::repository::AdminRepositoryError::InvalidStoredValue
+                    })?,
+                ))
+            })
+            .collect::<Result<Vec<_>, crate::adapters::repository::AdminRepositoryError>>()?;
+        Ok::<_, crate::adapters::repository::AdminRepositoryError>((
+            server_admin_contract::domain_types::AdminRoleSummaries::try_from(items).map_err(
+                |_error| crate::adapters::repository::AdminRepositoryError::InvalidStoredValue,
+            )?,
+            crate::adapters::repository::AdminPageTotalCount::from(total),
+        ))
+    }
+    .await
+    .map_err(super::shared::map_repository_error)?;
+    let permissions = async {
+        let permission_pool = auth.state.as_ref().pool.as_ref();
+        let values =
+            sqlx::query_as::<_, (i64, String)>(constants_str::SERVER_ADMIN_LIST_PERMISSIONS_SQL)
+                .fetch_all(permission_pool)
+                .await
+                .map_err(crate::domain_types::SqlxAdminError::from)?
+                .into_iter()
+                .map(|(id, name)| {
+                    Ok(
+                server_admin_contract::domain_types::AdminPermissionSummary::new(
+                    server_admin_contract::domain_types::AdminPermissionId::try_from(id).map_err(
+                        |_error| {
+                            crate::adapters::repository::AdminRepositoryError::InvalidStoredValue
+                        },
+                    )?,
+                    server_admin_contract::domain_types::AdminPermissionValue::try_from(name)
+                        .map_err(|_error| {
+                            crate::adapters::repository::AdminRepositoryError::InvalidStoredValue
+                        })?,
+                ),
+            )
+                })
+                .collect::<Result<Vec<_>, crate::adapters::repository::AdminRepositoryError>>()?;
+        server_admin_contract::domain_types::AdminPermissionSummaries::try_from(values)
+            .map_err(|_error| crate::adapters::repository::AdminRepositoryError::InvalidStoredValue)
+    }
+    .await
+    .map_err(super::shared::map_repository_error)?;
     Ok(server_admin_contract::domain_types::AdminRolesPage::new(
         roles,
         permissions,
@@ -243,10 +408,10 @@ pub(super) async fn list(
         .await
         .map(super::shared::json_response)
 }
-pub(super) async fn permissions_page(
+pub(super) async fn list_permissions(
     auth: super::AdminAuthReq,
     query: super::AxumAdminQuery<server_admin_contract::domain_types::AdminTableQuery>,
-) -> Result<server_admin_contract::domain_types::AdminPermissionsPage, super::AdminError> {
+) -> Result<super::AxumAdminResponse, super::AdminError> {
     let _actor = super::authorize_generated_request(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
@@ -259,26 +424,47 @@ pub(super) async fn permissions_page(
         &query.0,
         &server_admin_contract::domain_types::AdminTableSortField::PERMISSION,
     )?;
-    let (permissions, total) = crate::adapters::repository::permissions::list_permissions(
-        crate::adapters::repository::SqlxAdminRepositoryPoolRef::from(
-            auth.state.as_ref().pool.as_ref(),
-        ),
-        &query.0,
-    )
-    .await
-    .map_err(super::shared::map_repository_error)?;
-    Ok(
+    let permission_pool = auth.state.as_ref().pool.as_ref();
+    let search = query.0.search().as_ref();
+    let total =
+        sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_COUNT_FILTERED_PERMISSIONS_SQL)
+            .bind(search)
+            .fetch_one(permission_pool)
+            .await
+            .map_err(crate::domain_types::SqlxAdminError::from)
+            .map_err(super::AdminError::from)?;
+    let items =
+        sqlx::query_as::<_, (i64, String)>(constants_str::SERVER_ADMIN_PAGE_PERMISSIONS_SQL)
+            .bind(search)
+            .bind(query.0.sort().as_ref())
+            .bind(query.0.direction().as_ref())
+            .bind(i64::from(u16::from(query.0.limit())))
+            .bind(i64::from(u32::from(query.0.offset())))
+            .fetch_all(permission_pool)
+            .await
+            .map_err(crate::domain_types::SqlxAdminError::from)
+            .map_err(super::AdminError::from)?
+            .into_iter()
+            .map(|(id, name)| {
+                Ok(
+                    server_admin_contract::domain_types::AdminPermissionSummary::new(
+                        server_admin_contract::domain_types::AdminPermissionId::try_from(id)
+                            .map_err(|_error| super::AdminError::Validation)?,
+                        server_admin_contract::domain_types::AdminPermissionValue::try_from(name)
+                            .map_err(|_error| super::AdminError::Validation)?,
+                    ),
+                )
+            })
+            .collect::<Result<Vec<_>, super::AdminError>>()?;
+    let permissions =
+        server_admin_contract::domain_types::AdminPermissionSummaries::try_from(items)
+            .map_err(|_error| super::AdminError::Validation)?;
+    Ok(super::shared::json_response(
         server_admin_contract::domain_types::AdminPermissionsPage::new(
             permissions,
-            super::shared::page_total(total)?,
+            super::shared::page_total(crate::adapters::repository::AdminPageTotalCount::from(
+                total,
+            ))?,
         ),
-    )
-}
-pub(super) async fn list_permissions(
-    auth: super::AdminAuthReq,
-    query: super::AxumAdminQuery<server_admin_contract::domain_types::AdminTableQuery>,
-) -> Result<super::AxumAdminResponse, super::AdminError> {
-    permissions_page(auth, query)
-        .await
-        .map(super::shared::json_response)
+    ))
 }

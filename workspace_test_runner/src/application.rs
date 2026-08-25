@@ -301,118 +301,6 @@ fn generate_pg_table_measure_input_token_stream(
         },
     )
 }
-// Allocation workloads are separate process entry points dispatched by CLI mode.
-#[allow(clippy::single_call_fn)]
-fn run_alloc_workload_generate_pg_table_src() {
-    let input = generate_pg_table_measure_input_token_stream(&quote::quote! {"False"});
-    let output_bytes = (0..crate::domain_types::DIRECT_GENERATION_REPEAT_COUNT).fold(
-        constants_usize::ZERO,
-        |accumulator, _| {
-            let output = generate_pg_table_src::domain_types::source::generate_pg_table(
-                macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(
-                    input.as_ref(),
-                ),
-            );
-            accumulator.saturating_add(output.to_string().len())
-        },
-    );
-    println!(
-        "allocation_workload=generate_pg_table_src repeat_count={repeat_count} output_bytes={output_bytes}",
-        repeat_count = crate::domain_types::DIRECT_GENERATION_REPEAT_COUNT,
-    );
-}
-// Allocation workloads are separate process entry points dispatched by CLI mode.
-#[allow(clippy::single_call_fn)]
-fn run_alloc_workload_generate_pg_types_src() {
-    let input = quote::quote! {
-        {
-            "pg_table_cols_write_into_file": "False",
-            "whole_write_into_file": "False",
-            "variant": "All"
-        }
-    };
-    let output_bytes = (0..crate::domain_types::DIRECT_GENERATION_REPEAT_COUNT).fold(
-        constants_usize::ZERO,
-        |accumulator, _| {
-            let output = generate_pg_types_src::domain_types::source::generate_pg_types(
-                macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(&input),
-            );
-            accumulator.saturating_add(output.to_string().len())
-        },
-    );
-    println!(
-        "allocation_workload=generate_pg_types_src repeat_count={repeat_count} output_bytes={output_bytes}",
-        repeat_count = crate::domain_types::DIRECT_GENERATION_REPEAT_COUNT,
-    );
-}
-// Allocation workloads are separate process entry points dispatched by CLI mode.
-#[allow(clippy::single_call_fn)]
-fn run_alloc_workload_pg_crud_common_query_part() -> Result<(), ()> {
-    let output_bytes =
-        (0..crate::domain_types::SQL_BUILDER_MEASURE_SERIES_COUNT).try_fold(constants_usize::ZERO, |series_accumulator, _| {
-            (0..crate::domain_types::MEASURE_REPEAT_COUNT).try_fold(series_accumulator, |accumulator, _| {
-                let mut increment = constants_u64::ZERO;
-                match pg_crud_common::domain_types::PgTypeWhereFilter::query_part(
-                    &pg_crud_common::domain_types::PaginationBase::default(),
-                    &mut increment,
-                    pg_crud_common::domain_types::SqlColumnRef::from(&constants_str::COLUMN),
-                    pg_crud_common::domain_types::AddOperator::from(false),
-                ) {
-                    Ok(fragment) => Ok(accumulator.saturating_add(fragment.as_ref().len())),
-                    Err(error) => {
-                        eprintln!(
-                            "allocation_workload=pg_crud_common_query_part status=failed error={error:?}"
-                        );
-                        Err(())
-                    }
-                }
-            })
-        })?;
-    println!(
-        "allocation_workload=pg_crud_common_query_part series_count={series_count} repeat_count={repeat_count} output_bytes={output_bytes}",
-        series_count = crate::domain_types::SQL_BUILDER_MEASURE_SERIES_COUNT,
-        repeat_count = crate::domain_types::MEASURE_REPEAT_COUNT,
-    );
-    Ok(())
-}
-// Allocation workloads are separate process entry points dispatched by CLI mode.
-#[allow(clippy::single_call_fn)]
-fn run_alloc_workload_where_filters_query_part() -> Result<(), ()> {
-    let where_filters_values = (constants_i32::ZERO..64i32).collect::<Vec<i32>>();
-    let where_filters_bounded_vec =
-        match where_filters::domain_types::BoundedVec::<i32, 64>::try_from(where_filters_values) {
-            Ok(value) => value,
-            Err(error) => {
-                eprintln!(
-                    "allocation_workload=where_filters_query_part status=setup_failed error={error:?}"
-                );
-                return Err(());
-            }
-        };
-    let output_bytes =
-        (0..crate::domain_types::SQL_BUILDER_MEASURE_SERIES_COUNT).try_fold(constants_usize::ZERO, |series_accumulator, _| {
-            (0..crate::domain_types::MEASURE_REPEAT_COUNT).try_fold(series_accumulator, |accumulator, _| {
-                let mut increment = constants_u64::ZERO;
-                match where_filters_bounded_vec.pg_type_query_part(
-                    &mut increment,
-                    pg_crud_common::domain_types::SqlColumnRef::from(&constants_str::COLUMN),
-                    pg_crud_common::domain_types::AddOperator::from(false),
-                ) {
-                    Ok(fragment) => Ok(accumulator.saturating_add(fragment.as_ref().len())),
-                    Err(error) => {
-                        eprintln!("allocation_workload=where_filters_query_part status=failed error={error:?}");
-                        Err(())
-                    }
-                }
-            })
-        })?;
-    println!(
-        "allocation_workload=where_filters_query_part series_count={series_count} repeat_count={repeat_count} output_bytes={output_bytes}",
-        series_count = crate::domain_types::SQL_BUILDER_MEASURE_SERIES_COUNT,
-        repeat_count = crate::domain_types::MEASURE_REPEAT_COUNT,
-    );
-    Ok(())
-}
 fn cargo_subcommand_available(
     subcommand: crate::domain_types::ToolName,
 ) -> crate::domain_types::ToolAvailable {
@@ -426,77 +314,6 @@ fn cargo_subcommand_available(
     .output()
     .is_ok_and(|output| output.status.success())
     .into()
-}
-#[allow(
-    clippy::needless_for_each,
-    clippy::single_call_fn,
-    reason = "keeps release-tool reporting separate and repository policy forbids for loops"
-)]
-fn print_optional_release_tools() {
-    [
-        constants_str::WORKSPACE_TEST_RUNNER_AUDIT_SUBCOMMAND,
-        constants_str::WORKSPACE_TEST_RUNNER_DENY_SUBCOMMAND,
-        constants_str::WORKSPACE_TEST_RUNNER_HACK_SUBCOMMAND,
-        constants_str::SEMVER_CHECKS,
-        constants_str::UDEPS,
-        constants_str::MACHETE,
-        constants_str::LLVM_COV,
-    ]
-    .into_iter()
-    .for_each(|tool| {
-        println!(
-            "release_tool={tool} available={}",
-            cargo_subcommand_available(crate::domain_types::ToolName::from(tool)).get()
-        );
-    });
-}
-#[allow(clippy::single_call_fn)] // release orchestration is an explicit CLI mode boundary
-fn run_release() -> Result<(), ()> {
-    print_optional_release_tools();
-    let mut commands =
-        Vec::<(&str, &[&str])>::from(constants_str::WORKSPACE_TEST_RUNNER_STATIC_COMMANDS);
-    if cargo_subcommand_available(crate::domain_types::ToolName::from(constants_str::NEXTEST)).get()
-    {
-        commands.extend(constants_str::WORKSPACE_TEST_RUNNER_NEXTEST_COMMANDS);
-    } else {
-        commands.extend(constants_str::WORKSPACE_TEST_RUNNER_CARGO_TEST_COMMANDS);
-    }
-    [
-        (
-            constants_str::WORKSPACE_TEST_RUNNER_AUDIT_SUBCOMMAND,
-            constants_str::WORKSPACE_TEST_RUNNER_CARGO_AUDIT_ARGS.as_slice(),
-        ),
-        (
-            constants_str::WORKSPACE_TEST_RUNNER_DENY_SUBCOMMAND,
-            constants_str::WORKSPACE_TEST_RUNNER_CARGO_DENY_ARGS.as_slice(),
-        ),
-        (
-            constants_str::WORKSPACE_TEST_RUNNER_HACK_SUBCOMMAND,
-            constants_str::WORKSPACE_TEST_RUNNER_CARGO_HACK_ARGS.as_slice(),
-        ),
-        (
-            constants_str::MACHETE,
-            constants_str::WORKSPACE_TEST_RUNNER_CARGO_MACHETE_ARGS.as_slice(),
-        ),
-        (
-            constants_str::SEMVER_CHECKS,
-            constants_str::WORKSPACE_TEST_RUNNER_CARGO_SEMVER_CHECKS_ARGS.as_slice(),
-        ),
-        (
-            constants_str::UDEPS,
-            constants_str::WORKSPACE_TEST_RUNNER_CARGO_UDEPS_ARGS.as_slice(),
-        ),
-    ]
-    .into_iter()
-    .filter(|(subcommand, _args)| {
-        cargo_subcommand_available(crate::domain_types::ToolName::from(*subcommand)).get()
-    })
-    .for_each(|(_subcommand, args)| {
-        commands.push((constants_str::WORKSPACE_TEST_RUNNER_CARGO, args));
-    });
-    crate::adapters::execution::run_commands(crate::adapters::execution::CommandsRef::from(
-        commands.as_slice(),
-    ))
 }
 fn run_workspace_tests() -> Result<(), ()> {
     if cargo_subcommand_available(crate::domain_types::ToolName::from(constants_str::NEXTEST)).get()
@@ -513,8 +330,9 @@ fn run_workspace_tests() -> Result<(), ()> {
     }
 }
 #[allow(
+    clippy::needless_for_each,
     clippy::single_call_fn,
-    reason = "the executable adapter delegates test orchestration to its owned module"
+    reason = "the executable adapter delegates test orchestration to its owned module; repository policy forbids for loops"
 )]
 pub(crate) fn run_main() {
     let mode = crate::adapters::discovery::mode();
@@ -551,22 +369,461 @@ pub(crate) fn run_main() {
             }
         }
         Some(constants_str::WORKSPACE_TEST_RUNNER_GENERATE_PG_TABLE_WORKLOAD) => {
-            run_alloc_workload_generate_pg_table_src();
+            let input = generate_pg_table_measure_input_token_stream(&quote::quote! {"False"});
+            let output_bytes = (0..crate::domain_types::DIRECT_GENERATION_REPEAT_COUNT).fold(
+                constants_usize::ZERO,
+                |accumulator, _| {
+                    let output = generate_pg_table_src::domain_types::source::generate_pg_table(
+                        macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(
+                            input.as_ref(),
+                        ),
+                    );
+                    accumulator.saturating_add(output.to_string().len())
+                },
+            );
+            println!(
+                "allocation_workload=generate_pg_table_src repeat_count={repeat_count} output_bytes={output_bytes}",
+                repeat_count = crate::domain_types::DIRECT_GENERATION_REPEAT_COUNT,
+            );
             Ok(())
         }
         Some(constants_str::WORKSPACE_TEST_RUNNER_GENERATE_PG_TYPES_WORKLOAD) => {
-            run_alloc_workload_generate_pg_types_src();
+            let input = quote::quote! {
+                {
+                    "pg_table_cols_write_into_file": "False",
+                    "whole_write_into_file": "False",
+                    "variant": "All"
+                }
+            };
+            let output_bytes = (0..crate::domain_types::DIRECT_GENERATION_REPEAT_COUNT).fold(
+                constants_usize::ZERO,
+                |accumulator, _| {
+                    let output = generate_pg_types_src::domain_types::source::generate_pg_types(
+                        macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(
+                            &input,
+                        ),
+                    );
+                    accumulator.saturating_add(output.to_string().len())
+                },
+            );
+            println!(
+                "allocation_workload=generate_pg_types_src repeat_count={repeat_count} output_bytes={output_bytes}",
+                repeat_count = crate::domain_types::DIRECT_GENERATION_REPEAT_COUNT,
+            );
             Ok(())
         }
-        Some(constants_str::WORKSPACE_TEST_RUNNER_ADMIN_CONTRACT_FIXTURE) => {
-            crate::adapters::admin_fixture::write_admin_contract_fixture()
-        }
-        Some(constants_str::WORKSPACE_TEST_RUNNER_PG_CRUD_COMMON_QUERY_PART_WORKLOAD) => {
-            run_alloc_workload_pg_crud_common_query_part()
-        }
-        Some(constants_str::WORKSPACE_TEST_RUNNER_WHERE_FILTERS_QUERY_PART_WORKLOAD) => {
-            run_alloc_workload_where_filters_query_part()
-        }
+        Some(constants_str::WORKSPACE_TEST_RUNNER_ADMIN_CONTRACT_FIXTURE) => (|| {
+            let no_body_schema = serde_json::to_value(
+                <server_admin_contract::domain_types::AdminNoBody as utoipa::PartialSchema>::schema(
+                ),
+            )
+            .map_err(|error| eprintln!("{error}"))?;
+            let routes = <server_admin_contract::domain_types::AdminAuthenticationRouteFamily as frontend_contract::domain_types::RouteFamily>::schema_contracts()
+                        .as_ref()
+                        .iter()
+                        .map(|contract| {
+                            let metadata = contract.metadata();
+                            let request_schema = contract
+                                .request_schema()
+                                .cloned()
+                                .map(|schema| {
+                                    let openapi_schema: utoipa::openapi::RefOr<utoipa::openapi::Schema> = schema.into();
+                                    serde_json::to_value(openapi_schema)
+                                })
+                                .transpose()
+                                .map_err(|error| eprintln!("{error}"))?
+                                .filter(|schema| schema != &no_body_schema);
+                            let response_schema = contract
+                                .response_schema()
+                                .cloned()
+                                .map(|schema| {
+                                    let openapi_schema: utoipa::openapi::RefOr<utoipa::openapi::Schema> = schema.into();
+                                    serde_json::to_value(openapi_schema)
+                                })
+                                .transpose()
+                                .map_err(|error| eprintln!("{error}"))?
+                                .filter(|_schema| metadata.success_status() != frontend_contract::domain_types::SuccessStatus::Code204);
+                            Ok(serde_json::json!([
+                                metadata.openapi_operation_id().as_ref(),
+                                metadata.method().as_ref(),
+                                metadata.path().as_ref(),
+                                u16::from(metadata.success_status().transport_status()),
+                                request_schema,
+                                response_schema,
+                            ]))
+                        })
+                        .collect::<Result<Vec<_>, ()>>()?;
+            let permissions = server_admin_contract::domain_types::AdminPermission::ALL
+                .into_iter()
+                .map(|permission| {
+                    serde_json::Value::String(permission.as_str().as_ref().to_owned())
+                })
+                .collect::<Vec<_>>();
+            let permission_values = server_admin_contract::domain_types::AdminPermission::ALL
+                .into_iter()
+                .map(|permission| {
+                    crate::adapters::admin_fixture::admin_fixture_string::<
+                        server_admin_contract::domain_types::AdminPermissionValue,
+                    >(permission.as_str().as_ref().to_owned())
+                })
+                .collect::<Result<Vec<_>, ()>>()?;
+            let authenticated_admin = server_admin_contract::domain_types::AuthenticatedAdmin::new(
+                crate::adapters::admin_fixture::admin_fixture_string::<
+                    server_admin_contract::domain_types::AdminDisplayName,
+                >(String::from(constants_str::ADMIN))?,
+                server_admin_contract::domain_types::AdminUserId::try_from(constants_i64::ONE)
+                    .map_err(|error| eprintln!("{error}"))?,
+                crate::adapters::admin_fixture::admin_fixture_string::<
+                    server_admin_contract::domain_types::AdminLogin,
+                >(String::from(constants_str::ROOT))?,
+                server_admin_contract::domain_types::AdminPermissionValues::try_from(
+                    permission_values.clone(),
+                )
+                .map_err(|error| eprintln!("{error}"))?,
+                server_admin_contract::domain_types::AdminRoleNames::try_from(vec![
+                    crate::adapters::admin_fixture::admin_fixture_string::<
+                        server_admin_contract::domain_types::AdminRoleName,
+                    >(String::from(constants_str::ADMIN_FIXTURE_ROLE_NAME))?,
+                ])
+                .map_err(|error| eprintln!("{error}"))?,
+            );
+            let users = (constants_i64::ZERO..25i64)
+                .map(|index| {
+                    let number = index.checked_add(constants_i64::ONE).ok_or_else(|| {
+                        eprintln!("administrator fixture user identifier overflow");
+                    })?;
+                    let is_alpha = index == 24i64;
+                    let role_id = server_admin_contract::domain_types::AdminRoleId::try_from(
+                        constants_i64::ONE,
+                    )
+                    .map_err(|error| eprintln!("{error}"))?;
+                    Ok(server_admin_contract::domain_types::AdminUserSummary::new(
+                        crate::adapters::admin_fixture::admin_fixture_string::<
+                            server_admin_contract::domain_types::AdminDisplayName,
+                        >(if is_alpha {
+                            String::from(constants_str::ADMIN_FIXTURE_ALPHA_DISPLAY_NAME)
+                        } else {
+                            format!("User {number:02}")
+                        })?,
+                        server_admin_contract::domain_types::AdminUserId::try_from(number)
+                            .map_err(|error| eprintln!("{error}"))?,
+                        server_admin_contract::domain_types::AdminBool::from(
+                            index & constants_i64::ONE == constants_i64::ZERO,
+                        ),
+                        crate::adapters::admin_fixture::admin_fixture_string::<
+                            server_admin_contract::domain_types::AdminLogin,
+                        >(if is_alpha {
+                            String::from(constants_str::ADMIN_FIXTURE_ALPHA_LOGIN)
+                        } else {
+                            format!("user_{number:02}")
+                        })?,
+                        server_admin_contract::domain_types::AdminRoleIds::try_from(vec![role_id])
+                            .map_err(|error| eprintln!("{error}"))?,
+                    ))
+                })
+                .collect::<Result<Vec<_>, ()>>()?;
+            let permission_summaries = permission_values
+                .into_iter()
+                .enumerate()
+                .map(|(index, permission)| {
+                    let value = i64::try_from(index).map_err(|error| {
+                        eprintln!("{error}");
+                    })?;
+                    let identifier = value.checked_add(constants_i64::ONE).ok_or_else(|| {
+                        eprintln!("administrator fixture permission identifier overflow");
+                    })?;
+                    Ok(
+                        server_admin_contract::domain_types::AdminPermissionSummary::new(
+                            server_admin_contract::domain_types::AdminPermissionId::try_from(
+                                identifier,
+                            )
+                            .map_err(|error| eprintln!("{error}"))?,
+                            permission,
+                        ),
+                    )
+                })
+                .collect::<Result<Vec<_>, ()>>()?;
+            let role_summary = server_admin_contract::domain_types::AdminRoleSummary::new(
+                server_admin_contract::domain_types::AdminRoleId::try_from(constants_i64::ONE)
+                    .map_err(|error| eprintln!("{error}"))?,
+                server_admin_contract::domain_types::AdminBool::from(false),
+                crate::adapters::admin_fixture::admin_fixture_string::<
+                    server_admin_contract::domain_types::AdminRoleName,
+                >(String::from(constants_str::ADMIN_FIXTURE_ROLE_NAME))?,
+                server_admin_contract::domain_types::AdminPermissionIds::try_from(
+                    permission_summaries
+                        .iter()
+                        .map(server_admin_contract::domain_types::AdminPermissionSummary::id)
+                        .collect::<Vec<_>>(),
+                )
+                .map_err(|error| eprintln!("{error}"))?,
+            );
+            let role_summaries = vec![role_summary];
+            let audit_details =
+                server_admin_contract::domain_types::SerdeJsonAdminAuditDetails::try_from(
+                    serde_json::json!({
+                        constants_str::FIELD: constants_str::DISPLAY_NAME
+                    }),
+                )
+                .map_err(|error| eprintln!("{error}"))?;
+            let audit_log_id =
+                server_admin_contract::domain_types::AdminAuditLogId::try_from(constants_i64::ONE)
+                    .map_err(|error| eprintln!("{error}"))?;
+            let audit_user_id = server_admin_contract::domain_types::AdminUserId::try_from(25i64)
+                .map_err(|error| eprintln!("{error}"))?;
+            let audit = vec![server_admin_contract::domain_types::AdminAuditView::new(
+                crate::adapters::admin_fixture::admin_fixture_string::<
+                    server_admin_contract::domain_types::AdminText,
+                >(String::from(constants_str::ADMIN_FIXTURE_AUDIT_ACTION))?,
+                crate::adapters::admin_fixture::admin_fixture_string::<
+                    server_admin_contract::domain_types::AdminAuditTimestamp,
+                >(String::from(constants_str::ADMIN_FIXTURE_AUDIT_CREATED_AT))?,
+                Some(audit_details),
+                audit_log_id,
+                crate::adapters::admin_fixture::admin_fixture_string::<
+                    server_admin_contract::domain_types::AdminText,
+                >(String::from(constants_str::ADMIN_FIXTURE_AUDIT_RESOURCE))?,
+                Some(crate::adapters::admin_fixture::admin_fixture_string::<
+                    server_admin_contract::domain_types::AdminText,
+                >(String::from(
+                    constants_str::ADMIN_FIXTURE_AUDIT_RESOURCE_ID,
+                ))?),
+                server_admin_contract::domain_types::AdminBool::from(true),
+                Some(audit_user_id),
+                Some(crate::adapters::admin_fixture::admin_fixture_string::<
+                    server_admin_contract::domain_types::AdminLogin,
+                >(String::from(
+                    constants_str::ADMIN_FIXTURE_ALPHA_LOGIN,
+                ))?),
+            )];
+            let sessions = vec![
+                server_admin_contract::domain_types::AdminSessionView::new(
+                    crate::adapters::admin_fixture::admin_fixture_string::<
+                        server_admin_contract::domain_types::AdminSessionTimestamp,
+                    >(String::from(
+                        constants_str::ADMIN_FIXTURE_SESSION_CREATED_AT,
+                    ))?,
+                    crate::adapters::admin_fixture::admin_fixture_string::<
+                        server_admin_contract::domain_types::AdminSessionTimestamp,
+                    >(String::from(
+                        constants_str::ADMIN_FIXTURE_SESSION_EXPIRES_AT,
+                    ))?,
+                    crate::adapters::admin_fixture::admin_fixture_string::<
+                        server_admin_contract::domain_types::AdminSessionIdentifier,
+                    >(String::from(constants_str::ADMIN_FIXTURE_SESSION_ID))?,
+                    server_admin_contract::domain_types::AdminBool::from(true),
+                ),
+                server_admin_contract::domain_types::AdminSessionView::new(
+                    crate::adapters::admin_fixture::admin_fixture_string::<
+                        server_admin_contract::domain_types::AdminSessionTimestamp,
+                    >(String::from(
+                        constants_str::ADMIN_FIXTURE_SESSION_CREATED_AT,
+                    ))?,
+                    crate::adapters::admin_fixture::admin_fixture_string::<
+                        server_admin_contract::domain_types::AdminSessionTimestamp,
+                    >(String::from(
+                        constants_str::ADMIN_FIXTURE_SESSION_EXPIRES_AT,
+                    ))?,
+                    crate::adapters::admin_fixture::admin_fixture_string::<
+                        server_admin_contract::domain_types::AdminSessionIdentifier,
+                    >(String::from(
+                        constants_str::ADMIN_FIXTURE_SECOND_SESSION_ID,
+                    ))?,
+                    server_admin_contract::domain_types::AdminBool::from(false),
+                ),
+            ];
+            let authenticated_admin_json =
+                serde_json::to_value(&authenticated_admin).map_err(|error| {
+                    eprintln!("{error}");
+                })?;
+            let user_total = u64::try_from(users.len()).map_err(|error| eprintln!("{error}"))?;
+            let users_page = server_admin_contract::domain_types::AdminUsersPage::new(
+                server_admin_contract::domain_types::AdminUserSummaries::try_from(users)
+                    .map_err(|error| eprintln!("{error}"))?,
+                server_admin_contract::domain_types::AdminRoleSummaries::try_from(
+                    role_summaries.clone(),
+                )
+                .map_err(|error| eprintln!("{error}"))?,
+                server_admin_contract::domain_types::AdminPageTotal::from(user_total),
+            );
+            let role_total =
+                u64::try_from(role_summaries.len()).map_err(|error| eprintln!("{error}"))?;
+            let roles_page = server_admin_contract::domain_types::AdminRolesPage::new(
+                server_admin_contract::domain_types::AdminRoleSummaries::try_from(role_summaries)
+                    .map_err(|error| eprintln!("{error}"))?,
+                server_admin_contract::domain_types::AdminPermissionSummaries::try_from(
+                    permission_summaries.clone(),
+                )
+                .map_err(|error| eprintln!("{error}"))?,
+                server_admin_contract::domain_types::AdminPageTotal::from(role_total),
+            );
+            let permission_total =
+                u64::try_from(permission_summaries.len()).map_err(|error| eprintln!("{error}"))?;
+            let permissions_page = server_admin_contract::domain_types::AdminPermissionsPage::new(
+                server_admin_contract::domain_types::AdminPermissionSummaries::try_from(
+                    permission_summaries,
+                )
+                .map_err(|error| eprintln!("{error}"))?,
+                server_admin_contract::domain_types::AdminPageTotal::from(permission_total),
+            );
+            let users_json = serde_json::to_value(&users_page).map_err(|error| {
+                eprintln!("{error}");
+            })?;
+            let role_summaries_json = serde_json::to_value(&roles_page).map_err(|error| {
+                eprintln!("{error}");
+            })?;
+            let permission_summaries_json =
+                serde_json::to_value(&permissions_page).map_err(|error| {
+                    eprintln!("{error}");
+                })?;
+            let audit_cursor = server_admin_contract::domain_types::AdminAuditCursor::new(
+                crate::adapters::admin_fixture::admin_fixture_string::<
+                    server_admin_contract::domain_types::AdminAuditTimestamp,
+                >(String::from(constants_str::ADMIN_FIXTURE_AUDIT_CREATED_AT))?,
+                server_admin_contract::domain_types::AdminAuditLogId::try_from(constants_i64::ONE)
+                    .map_err(|error| eprintln!("{error}"))?,
+            );
+            let audit_page = server_admin_contract::domain_types::AdminAuditPage::new(
+                server_admin_contract::domain_types::AdminAuditViews::try_from(audit)
+                    .map_err(|error| eprintln!("{error}"))?,
+                Some(audit_cursor),
+                server_admin_contract::domain_types::AdminPageTotal::from(1u64),
+            );
+            let audit_json = serde_json::to_value(&audit_page).map_err(|error| {
+                eprintln!("{error}");
+            })?;
+            let sessions_json = serde_json::to_value(&sessions).map_err(|error| {
+                eprintln!("{error}");
+            })?;
+            let no_body_json = serde_json::to_value(
+                server_admin_contract::domain_types::AdminNoBody,
+            )
+            .map_err(|error| {
+                eprintln!("{error}");
+            })?;
+            let open_api_json = serde_json::to_value(utoipa::openapi::OpenApi::from(
+                server_admin::domain_types::generated_tables::generated_open_api(),
+            ))
+            .map_err(|error| {
+                eprintln!("{error}");
+            })?;
+            let fixture = serde_json::to_vec_pretty(&serde_json::json!([
+                        routes,
+                        permissions,
+                        authenticated_admin_json,
+                        users_json,
+                        role_summaries_json,
+                        permission_summaries_json,
+                        audit_json,
+                        sessions_json,
+                        no_body_json,
+                        <server_admin_contract::domain_types::AdminAuthenticationRouteFamily as frontend_contract::domain_types::RouteFamily>::body_limit()
+                            .map(frontend_contract::domain_types::RouteBodyLimit::get),
+                        open_api_json,
+                    ]))
+                    .map_err(|error| {
+                        eprintln!("{error}");
+                    })?;
+            let Some(workspace_root) = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).parent()
+            else {
+                return Err(());
+            };
+            let target = workspace_root.join(constants_str::TARGET);
+            std::fs::create_dir_all(target.as_path()).map_err(|error| {
+                eprintln!("{error}");
+            })?;
+            std::fs::write(
+                target.join(constants_str::WORKSPACE_TEST_RUNNER_ADMIN_CONTRACT_FIXTURE_FILE),
+                fixture,
+            )
+            .map_err(|error| {
+                eprintln!("{error}");
+            })
+        })(),
+        Some(constants_str::WORKSPACE_TEST_RUNNER_PG_CRUD_COMMON_QUERY_PART_WORKLOAD) => (|| {
+            let output_bytes = (0..crate::domain_types::SQL_BUILDER_MEASURE_SERIES_COUNT)
+                .try_fold(constants_usize::ZERO, |series_accumulator, _| {
+                    (0..crate::domain_types::MEASURE_REPEAT_COUNT).try_fold(
+                        series_accumulator,
+                        |accumulator, _| {
+                            let mut increment = constants_u64::ZERO;
+                            match pg_crud_common::domain_types::PgTypeWhereFilter::query_part(
+                                &pg_crud_common::domain_types::PaginationBase::default(),
+                                &mut increment,
+                                pg_crud_common::domain_types::SqlColumnRef::from(
+                                    &constants_str::COLUMN,
+                                ),
+                                pg_crud_common::domain_types::AddOperator::from(false),
+                            ) {
+                                Ok(fragment) => {
+                                    Ok(accumulator.saturating_add(fragment.as_ref().len()))
+                                }
+                                Err(error) => {
+                                    eprintln!(
+                                        "allocation_workload=pg_crud_common_query_part status=failed error={error:?}"
+                                    );
+                                    Err(())
+                                }
+                            }
+                        },
+                    )
+                })?;
+            println!(
+                "allocation_workload=pg_crud_common_query_part series_count={series_count} repeat_count={repeat_count} output_bytes={output_bytes}",
+                series_count = crate::domain_types::SQL_BUILDER_MEASURE_SERIES_COUNT,
+                repeat_count = crate::domain_types::MEASURE_REPEAT_COUNT,
+            );
+            Ok(())
+        })(
+        ),
+        Some(constants_str::WORKSPACE_TEST_RUNNER_WHERE_FILTERS_QUERY_PART_WORKLOAD) => (|| {
+            let where_filters_values = (constants_i32::ZERO..64i32).collect::<Vec<i32>>();
+            let where_filters_bounded_vec =
+                match where_filters::domain_types::BoundedVec::<i32, 64>::try_from(
+                    where_filters_values,
+                ) {
+                    Ok(value) => value,
+                    Err(error) => {
+                        eprintln!(
+                            "allocation_workload=where_filters_query_part status=setup_failed error={error:?}"
+                        );
+                        return Err(());
+                    }
+                };
+            let output_bytes = (0..crate::domain_types::SQL_BUILDER_MEASURE_SERIES_COUNT)
+                .try_fold(constants_usize::ZERO, |series_accumulator, _| {
+                    (0..crate::domain_types::MEASURE_REPEAT_COUNT).try_fold(
+                        series_accumulator,
+                        |accumulator, _| {
+                            let mut increment = constants_u64::ZERO;
+                            match where_filters_bounded_vec.pg_type_query_part(
+                                &mut increment,
+                                pg_crud_common::domain_types::SqlColumnRef::from(
+                                    &constants_str::COLUMN,
+                                ),
+                                pg_crud_common::domain_types::AddOperator::from(false),
+                            ) {
+                                Ok(fragment) => {
+                                    Ok(accumulator.saturating_add(fragment.as_ref().len()))
+                                }
+                                Err(error) => {
+                                    eprintln!(
+                                        "allocation_workload=where_filters_query_part status=failed error={error:?}"
+                                    );
+                                    Err(())
+                                }
+                            }
+                        },
+                    )
+                })?;
+            println!(
+                "allocation_workload=where_filters_query_part series_count={series_count} repeat_count={repeat_count} output_bytes={output_bytes}",
+                series_count = crate::domain_types::SQL_BUILDER_MEASURE_SERIES_COUNT,
+                repeat_count = crate::domain_types::MEASURE_REPEAT_COUNT,
+            );
+            Ok(())
+        })(
+        ),
         Some(constants_str::MACRO_GENERATION) => {
             crate::domain_types::macro_generation_measurements()
                 .iter()
@@ -592,17 +849,82 @@ pub(crate) fn run_main() {
                 Err(())
             }
         }
-        Some(constants_str::RELEASE) => run_release(),
+        Some(constants_str::RELEASE) => {
+            [
+                constants_str::WORKSPACE_TEST_RUNNER_AUDIT_SUBCOMMAND,
+                constants_str::WORKSPACE_TEST_RUNNER_DENY_SUBCOMMAND,
+                constants_str::WORKSPACE_TEST_RUNNER_HACK_SUBCOMMAND,
+                constants_str::SEMVER_CHECKS,
+                constants_str::UDEPS,
+                constants_str::MACHETE,
+                constants_str::LLVM_COV,
+            ]
+            .into_iter()
+            .for_each(|tool| {
+                println!(
+                    "release_tool={tool} available={}",
+                    cargo_subcommand_available(crate::domain_types::ToolName::from(tool)).get()
+                );
+            });
+            let mut commands =
+                Vec::<(&str, &[&str])>::from(constants_str::WORKSPACE_TEST_RUNNER_STATIC_COMMANDS);
+            if cargo_subcommand_available(crate::domain_types::ToolName::from(
+                constants_str::NEXTEST,
+            ))
+            .get()
+            {
+                commands.extend(constants_str::WORKSPACE_TEST_RUNNER_NEXTEST_COMMANDS);
+            } else {
+                commands.extend(constants_str::WORKSPACE_TEST_RUNNER_CARGO_TEST_COMMANDS);
+            }
+            [
+                (
+                    constants_str::WORKSPACE_TEST_RUNNER_AUDIT_SUBCOMMAND,
+                    constants_str::WORKSPACE_TEST_RUNNER_CARGO_AUDIT_ARGS.as_slice(),
+                ),
+                (
+                    constants_str::WORKSPACE_TEST_RUNNER_DENY_SUBCOMMAND,
+                    constants_str::WORKSPACE_TEST_RUNNER_CARGO_DENY_ARGS.as_slice(),
+                ),
+                (
+                    constants_str::WORKSPACE_TEST_RUNNER_HACK_SUBCOMMAND,
+                    constants_str::WORKSPACE_TEST_RUNNER_CARGO_HACK_ARGS.as_slice(),
+                ),
+                (
+                    constants_str::MACHETE,
+                    constants_str::WORKSPACE_TEST_RUNNER_CARGO_MACHETE_ARGS.as_slice(),
+                ),
+                (
+                    constants_str::SEMVER_CHECKS,
+                    constants_str::WORKSPACE_TEST_RUNNER_CARGO_SEMVER_CHECKS_ARGS.as_slice(),
+                ),
+                (
+                    constants_str::UDEPS,
+                    constants_str::WORKSPACE_TEST_RUNNER_CARGO_UDEPS_ARGS.as_slice(),
+                ),
+            ]
+            .into_iter()
+            .filter(|(subcommand, _args)| {
+                cargo_subcommand_available(crate::domain_types::ToolName::from(*subcommand)).get()
+            })
+            .for_each(|(_subcommand, args)| {
+                commands.push((constants_str::WORKSPACE_TEST_RUNNER_CARGO, args));
+            });
+            crate::adapters::execution::run_commands(crate::adapters::execution::CommandsRef::from(
+                commands.as_slice(),
+            ))
+        }
         Some(constants_str::MEASURE) => {
             let allocation_tools_printed: Result<(), std::convert::Infallible> =
                 crate::domain_types::allocation_tools()
                     .iter()
                     .try_fold((), |(), tool| {
                         let available = crate::adapters::discovery::tool_available(tool.path());
-                        crate::adapters::reporting::allocation_tool(
-                            tool.name(),
-                            tool.path(),
-                            available,
+                        println!(
+                            "measurement=allocation_tool_available tool={} path={} available={}",
+                            tool.name().get(),
+                            tool.path().get(),
+                            available.get()
                         );
                         Ok(())
                     });

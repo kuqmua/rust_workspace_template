@@ -1,7 +1,3 @@
-#![allow(
-    clippy::single_call_fn,
-    reason = "media-range classification stays isolated from fallback policy resolution"
-)]
 const MAXIMUM_ACCEPT_MEDIA_RANGE_COUNT: usize = 128usize;
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
@@ -24,12 +20,6 @@ pub struct HttpOptionalAcceptHeaderRef<'value_lt>(Option<&'value_lt http::Header
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 pub struct HttpAcceptHeaderMaximumBytes(usize);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
-struct HttpMediaRangeRef<'value_lt>(&'value_lt str);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
-struct AcceptsApplicationJson(bool);
 
 #[must_use]
 pub fn fallback_response_mode(
@@ -58,8 +48,30 @@ pub fn fallback_response_mode(
                 .take(MAXIMUM_ACCEPT_MEDIA_RANGE_COUNT.saturating_add(constants_usize::ONE))
                 .enumerate()
                 .any(|(index, range)| {
-                    index < MAXIMUM_ACCEPT_MEDIA_RANGE_COUNT
-                        && media_range_accepts_json(HttpMediaRangeRef::from(range)).0
+                    if index >= MAXIMUM_ACCEPT_MEDIA_RANGE_COUNT {
+                        return false;
+                    }
+                    let mut segments = range.split(';').map(str::trim);
+                    segments.next().is_some_and(|media_type| {
+                        media_type.eq_ignore_ascii_case(constants_str::APPLICATION_JSON)
+                    }) && !segments.any(|parameter| {
+                        parameter
+                            .split_once('=')
+                            .is_some_and(|(name, quality_value)| {
+                                name.trim().eq_ignore_ascii_case(
+                                    constants_str::HTTP_ACCEPT_QUALITY_PARAMETER,
+                                ) && quality_value
+                                    .trim()
+                                    .strip_prefix('0')
+                                    .is_some_and(|suffix| {
+                                        suffix.is_empty()
+                                            || suffix.strip_prefix('.').is_some_and(|digits| {
+                                                !digits.is_empty()
+                                                    && digits.bytes().all(|byte| byte == b'0')
+                                            })
+                                    })
+                            })
+                    })
                 })
         });
     if accepts_json {
@@ -67,26 +79,6 @@ pub fn fallback_response_mode(
     } else {
         FallbackResponseMode::HumanReadable
     }
-}
-
-fn media_range_accepts_json(range: HttpMediaRangeRef<'_>) -> AcceptsApplicationJson {
-    let mut segments = range.0.split(';').map(str::trim);
-    AcceptsApplicationJson::from(
-        segments.next().is_some_and(|media_type| {
-            media_type.eq_ignore_ascii_case(constants_str::APPLICATION_JSON)
-        }) && !segments.any(|parameter| {
-            parameter.split_once('=').is_some_and(|(name, value)| {
-                name.trim()
-                    .eq_ignore_ascii_case(constants_str::HTTP_ACCEPT_QUALITY_PARAMETER)
-                    && value.trim().strip_prefix('0').is_some_and(|suffix| {
-                        suffix.is_empty()
-                            || suffix.strip_prefix('.').is_some_and(|digits| {
-                                !digits.is_empty() && digits.bytes().all(|byte| byte == b'0')
-                            })
-                    })
-            })
-        }),
-    )
 }
 
 #[cfg(test)]

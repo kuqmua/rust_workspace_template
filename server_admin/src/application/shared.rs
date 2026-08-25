@@ -54,33 +54,6 @@ pub(super) fn validate_table_sort(
     .map(drop)
     .map_err(|_error| super::AdminError::Validation)
 }
-pub(super) async fn authenticate_mutation(
-    auth: &super::AdminAuthReq,
-) -> Result<super::AuthenticatedAdmin, super::AdminError> {
-    let actor = super::authenticate(
-        auth.state.as_ref(),
-        super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
-        auth.peer,
-    )
-    .await?;
-    let subject = super::super::StdAdminString::try_from(actor.id.get().to_string())
-        .map_err(|_error| super::AdminError::Validation)?;
-    super::rate_limit::enforce_rate_limit(
-        auth.state.as_ref(),
-        super::rate_limit::AdminRateLimitScope::Mutation,
-        &subject,
-        auth.state.as_ref().policy.mutation_limit,
-        auth.state.as_ref().policy.mutation_window,
-    )
-    .await?;
-    super::validate_csrf(
-        auth.state.as_ref(),
-        super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
-        &actor,
-    )
-    .await?;
-    Ok(actor)
-}
 pub(super) async fn authorize_custom(
     auth: &super::AdminAuthReq,
     permission: super::super::AdminPermission,

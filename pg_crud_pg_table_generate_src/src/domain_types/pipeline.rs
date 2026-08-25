@@ -59,8 +59,16 @@ pub fn build_generate_pg_table(
     .map_err(|error| {
         GeneratePgTablePipelineError::Build(SynGeneratePgTablePipelineError::from(error))
     })?;
+    let input = crate::domain_types::table::SynGeneratePgTableModelInput::from(parsed.0);
+    let field_count = match &input.data {
+        syn::Data::Struct(data) => data.fields.iter().count(),
+        syn::Data::Enum(_) | syn::Data::Union(_) => constants_usize::ZERO,
+    };
     Ok(SynBuiltGeneratePgTableInput::from(
-        crate::domain_types::table::GeneratePgTableModel::from_struct(parsed.0.into()),
+        crate::domain_types::table::GeneratePgTableModel {
+            field_count: crate::domain_types::table::GeneratePgTableFieldCount::from(field_count),
+            input,
+        },
     ))
 }
 

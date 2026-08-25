@@ -20,16 +20,6 @@ pub struct SynMacroAttrRef<'lt>(&'lt syn::Attribute);
 )]
 pub struct ProcMacro2MacroAttrMetaListTokenStreamRef<'lt>(&'lt proc_macro2::TokenStream);
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    newtype::FromInner,
-)]
-struct AttrPathMatches(bool);
-#[derive(
     optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq, thiserror::Error,
 )]
 pub enum MacroAttrError {
@@ -38,43 +28,31 @@ pub enum MacroAttrError {
     #[error("no_attr")]
     NoAttr,
 }
-#[allow(clippy::single_call_fn)] // helper keeps segment comparison logic isolated and reusable for future attr queries
-fn attr_path_matches<S>(attr: SynMacroAttrRef<'_>, attr_path: S) -> AttrPathMatches
-where
-    S: AsRef<str>,
-{
-    let mut attr_segments = attr.0.path().segments.iter();
-    let mut expected_segments = attr_path
-        .as_ref()
-        .split(constants_str::PATH_SEPARATOR)
-        .map(str::trim)
-        .filter(|element| !element.is_empty());
-    loop {
-        match (attr_segments.next(), expected_segments.next()) {
-            (Some(attr_segment), Some(expected_segment)) => {
-                if attr_segment.ident != expected_segment {
-                    return AttrPathMatches::from(false);
-                }
-            }
-            (None, None) => {
-                return AttrPathMatches::from(true);
-            }
-            (Some(_), None) | (None, Some(_)) => {
-                return AttrPathMatches::from(false);
-            }
-        }
-    }
-}
 #[must_use]
 pub fn find_macro_attr<'lt, A, S>(attrs: A, attr_path: S) -> Option<SynMacroAttrRef<'lt>>
 where
     A: IntoIterator<Item = &'lt syn::Attribute>,
     S: AsRef<str> + Copy,
 {
-    attrs
-        .into_iter()
-        .map(SynMacroAttrRef)
-        .find(|attr| attr_path_matches(*attr, attr_path).0)
+    attrs.into_iter().map(SynMacroAttrRef).find(|attr| {
+        let mut attr_segments = attr.0.path().segments.iter();
+        let mut expected_segments = attr_path
+            .as_ref()
+            .split(constants_str::PATH_SEPARATOR)
+            .map(str::trim)
+            .filter(|element| !element.is_empty());
+        loop {
+            match (attr_segments.next(), expected_segments.next()) {
+                (Some(attr_segment), Some(expected_segment)) => {
+                    if attr_segment.ident != expected_segment {
+                        break false;
+                    }
+                }
+                (None, None) => break true,
+                (Some(_), None) | (None, Some(_)) => break false,
+            }
+        }
+    })
 }
 pub fn try_get_macro_attr<'lt, A, S>(
     attrs: A,

@@ -154,17 +154,6 @@ pub(crate) fn expect_error_mapped<T, E, R>(
     map_err(v, exp_id, |_| (), map)
 }
 #[track_caller]
-#[allow(clippy::single_call_fn)] // shared helper composes result extraction with variant mapping for concise validator tests
-pub(crate) fn expect_error_variant<T, E, R>(
-    v: Result<T, E>,
-    exp_id: impl Into<TestExpId>,
-    map: impl FnOnce(E) -> Option<R>,
-) -> R {
-    expect_error_mapped(v, exp_id, |error, mapped_exp_id| {
-        expect_variant(error, map, mapped_exp_id)
-    })
-}
-#[track_caller]
 pub(crate) fn expect_error_variant_ref<T, E, R>(
     v: Result<T, E>,
     exp_id: impl Into<TestExpId>,
@@ -213,21 +202,6 @@ pub(crate) fn assert_err_status_code_only<T, E>(
     E: crate::domain_types::AxumHttpStatusCodeProvider,
 {
     drop(assert_err_status_code(v, exp_id, expected));
-}
-#[track_caller]
-#[allow(clippy::single_call_fn)] // shared helper composes status-code assertion with variant mapping to reduce repetitive test boilerplate
-pub(crate) fn assert_err_status_code_variant<T, E, R>(
-    v: Result<T, E>,
-    exp_id: impl Into<TestExpId>,
-    expected: crate::domain_types::AxumHttpStatusCode,
-    map: impl FnOnce(E) -> Option<R>,
-) -> R
-where
-    E: crate::domain_types::AxumHttpStatusCodeProvider,
-{
-    map_err_after_status_check(v, exp_id, expected, |error, mapped_exp_id| {
-        expect_variant(error, map, mapped_exp_id)
-    })
 }
 #[track_caller]
 pub(crate) fn assert_err_status_code_variant_ref<T, E, R>(
@@ -389,11 +363,17 @@ mod tests {
         enum TestError {
             A(u8),
         }
-        let v = super::expect_error_variant::<(), TestError, u8>(
+        let v = super::expect_error_mapped::<(), TestError, u8>(
             Err(TestError::A(3)),
             constants_str::VALUE_9BF4CE17,
-            |error| match error {
-                TestError::A(v) => Some(v),
+            |error, mapped_exp_id| {
+                super::expect_variant(
+                    error,
+                    |error| match error {
+                        TestError::A(v) => Some(v),
+                    },
+                    mapped_exp_id,
+                )
             },
         );
         assert_eq!(v, 3);
@@ -424,12 +404,18 @@ mod tests {
                 crate::domain_types::AxumHttpStatusCode::bad_request()
             }
         }
-        let _: () = super::assert_err_status_code_variant::<(), TestError, ()>(
+        let _: () = super::map_err_after_status_check::<(), TestError, ()>(
             Err(TestError::A),
             constants_str::C1D74A8E,
             crate::domain_types::AxumHttpStatusCode::bad_request(),
-            |error| match error {
-                TestError::A => Some(()),
+            |error, mapped_exp_id| {
+                super::expect_variant(
+                    error,
+                    |error| match error {
+                        TestError::A => Some(()),
+                    },
+                    mapped_exp_id,
+                );
             },
         );
     }

@@ -255,52 +255,50 @@ impl Location {
             }
         }
     }
-    fn fmt_github_place(&self, f: FormatterRefMut<'_, '_>) -> std::fmt::Result {
-        self.fmt_github_location(
-            FormatterRefMut::from(&mut *f.0),
-            LocationFileRef::from(self.file.as_ref()),
-            self.line,
-        )?;
-        if let Some(v) = self.occr.as_ref() {
-            f.0.write_str(constants_str::TEXT)?;
-            self.fmt_github_location(
-                FormatterRefMut::from(&mut *f.0),
-                LocationFileRef::from(v.file.as_ref()),
-                v.line,
-            )?;
-            f.0.write_str(constants_str::TEXT_ALT_5)
-        } else {
-            Ok(())
-        }
-    }
     fn fmt_place(
         &self,
         src_place_type: config_lib::domain_types::types::SrcPlaceType,
         f: FormatterRefMut<'_, '_>,
     ) -> std::fmt::Result {
         match src_place_type {
-            config_lib::domain_types::types::SrcPlaceType::Src => self.fmt_src_place(f),
-            config_lib::domain_types::types::SrcPlaceType::Github => self.fmt_github_place(f),
-        }
-    }
-    fn fmt_src_place(&self, f: FormatterRefMut<'_, '_>) -> std::fmt::Result {
-        Self::fmt_src_location(
-            FormatterRefMut::from(&mut *f.0),
-            LocationFileRef::from(self.file.as_ref()),
-            self.line,
-            self.column,
-        )?;
-        if let Some(v) = self.occr.as_ref() {
-            f.0.write_str(constants_str::TEXT)?;
-            Self::fmt_src_location(
-                FormatterRefMut::from(&mut *f.0),
-                LocationFileRef::from(v.file.as_ref()),
-                v.line,
-                v.column,
-            )?;
-            f.0.write_str(constants_str::TEXT_ALT_5)
-        } else {
-            Ok(())
+            config_lib::domain_types::types::SrcPlaceType::Src => {
+                Self::fmt_src_location(
+                    FormatterRefMut::from(&mut *f.0),
+                    LocationFileRef::from(self.file.as_ref()),
+                    self.line,
+                    self.column,
+                )?;
+                if let Some(v) = self.occr.as_ref() {
+                    f.0.write_str(constants_str::TEXT)?;
+                    Self::fmt_src_location(
+                        FormatterRefMut::from(&mut *f.0),
+                        LocationFileRef::from(v.file.as_ref()),
+                        v.line,
+                        v.column,
+                    )?;
+                    f.0.write_str(constants_str::TEXT_ALT_5)
+                } else {
+                    Ok(())
+                }
+            }
+            config_lib::domain_types::types::SrcPlaceType::Github => {
+                self.fmt_github_location(
+                    FormatterRefMut::from(&mut *f.0),
+                    LocationFileRef::from(self.file.as_ref()),
+                    self.line,
+                )?;
+                if let Some(v) = self.occr.as_ref() {
+                    f.0.write_str(constants_str::TEXT)?;
+                    self.fmt_github_location(
+                        FormatterRefMut::from(&mut *f.0),
+                        LocationFileRef::from(v.file.as_ref()),
+                        v.line,
+                    )?;
+                    f.0.write_str(constants_str::TEXT_ALT_5)
+                } else {
+                    Ok(())
+                }
+            }
         }
     }
     #[must_use]

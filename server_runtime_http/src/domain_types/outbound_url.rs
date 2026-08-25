@@ -137,7 +137,11 @@ impl OutboundUrlPolicy {
         value: OutboundUrlTextRef<'_>,
     ) -> Result<ReqwestOutboundUrl, OutboundUrlError> {
         if value.0.contains(['\0', '\r', '\n'])
-            || contains_encoded_control(value) == OutboundAddressDisposition::Forbidden
+            || value.0.as_bytes().windows(3usize).any(|window| {
+                window.eq_ignore_ascii_case(constants_str::PERCENT_ENCODED_NUL)
+                    || window.eq_ignore_ascii_case(constants_str::PERCENT_ENCODED_CR)
+                    || window.eq_ignore_ascii_case(constants_str::PERCENT_ENCODED_LF)
+            })
         {
             return Err(OutboundUrlError::ControlCharacter);
         }
@@ -216,19 +220,6 @@ pub enum OutboundUrlError {
 enum OutboundAddressDisposition {
     Allowed,
     Forbidden,
-}
-
-#[allow(clippy::single_call_fn)] // keeps percent-encoded control recognition separate from URL parsing policy
-fn contains_encoded_control(value: OutboundUrlTextRef<'_>) -> OutboundAddressDisposition {
-    if value.0.as_bytes().windows(3usize).any(|window| {
-        window.eq_ignore_ascii_case(constants_str::PERCENT_ENCODED_NUL)
-            || window.eq_ignore_ascii_case(constants_str::PERCENT_ENCODED_CR)
-            || window.eq_ignore_ascii_case(constants_str::PERCENT_ENCODED_LF)
-    }) {
-        OutboundAddressDisposition::Forbidden
-    } else {
-        OutboundAddressDisposition::Allowed
-    }
 }
 
 fn outbound_address_disposition(address: OutboundIpAddr) -> OutboundAddressDisposition {

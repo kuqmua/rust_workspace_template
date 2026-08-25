@@ -49,37 +49,6 @@ fn required_header_value<E>(
         .map(AxumHeaderValueRef::from)
         .ok_or_else(no_header_error)
 }
-#[allow(clippy::single_call_fn)] // shared helper keeps HeaderValue->str conversion and error mapping centralized for header parsers
-fn header_value_to_str<E>(
-    header_value: AxumHeaderValueRef<'_>,
-    to_str_error: impl FnOnce(axum::http::header::ToStrError) -> E,
-) -> Result<HeaderStrRef<'_>, E> {
-    header_value
-        .0
-        .to_str()
-        .map(HeaderStrRef)
-        .map_err(to_str_error)
-}
-#[allow(clippy::single_call_fn)] // core helper centralizes required-header transform flow reused by parsing helpers
-#[cfg(test)]
-pub(crate) fn required_header_mapped<'headers, E, T>(
-    headers: AxumHeadersRef<'headers>,
-    header_name: impl axum::http::header::AsHeaderName,
-    no_header_error: impl FnOnce() -> E,
-    map: impl FnOnce(AxumHeaderValueRef<'headers>) -> Result<T, E>,
-) -> Result<T, E> {
-    let header = required_header_value(headers, header_name, no_header_error)?;
-    map(header)
-}
-#[allow(clippy::single_call_fn)] // helper centralizes required-header parsing and is reusable across validators
-#[cfg(test)]
-pub(crate) fn required_header<E>(
-    headers: AxumHeadersRef<'_>,
-    header_name: impl axum::http::header::AsHeaderName,
-    no_header_error: impl FnOnce() -> E,
-) -> Result<AxumHeaderValueRef<'_>, E> {
-    required_header_value(headers, header_name, no_header_error)
-}
 #[allow(clippy::single_call_fn)] // helper centralizes required-header string parsing and is reusable across validators
 pub(crate) fn required_header_str<E>(
     headers: AxumHeadersRef<'_>,
@@ -98,7 +67,11 @@ pub(crate) fn required_header_str_parsed<'headers, E, T>(
     parse: impl FnOnce(HeaderStrRef<'headers>) -> Result<T, E>,
 ) -> Result<T, E> {
     let header_value = required_header_value(headers, header_name, no_header_error)?;
-    let header_str = header_value_to_str(header_value, to_str_error)?;
+    let header_str = header_value
+        .0
+        .to_str()
+        .map(HeaderStrRef)
+        .map_err(to_str_error)?;
     parse(header_str)
 }
 #[cfg(test)]
@@ -126,7 +99,7 @@ mod tests {
         headers: &axum::http::HeaderMap,
         name: impl axum::http::header::AsHeaderName,
     ) -> Result<super::AxumHeaderValueRef<'_>, TestError> {
-        super::required_header(super::AxumHeadersRef::from(headers), name, || {
+        super::required_header_value(super::AxumHeadersRef::from(headers), name, || {
             TestError::NoHeader
         })
     }
@@ -214,16 +187,16 @@ mod tests {
     #[test]
     fn required_header_mapped_applies_mapping_for_present_header() {
         let headers = mk_test_headers_static(constants_str::ABC_ALT_3);
-        let actual = super::required_header_mapped(
+        let actual = super::required_header_value(
             super::AxumHeadersRef::from(&headers),
             TEST_HEADER_NAME,
             || TestError::NoHeader,
-            |v| {
-                v.0.to_str()
-                    .map(str::len)
-                    .map_err(|_to_str_error| TestError::ToStr)
-            },
-        );
+        )
+        .and_then(|v| {
+            v.0.to_str()
+                .map(str::len)
+                .map_err(|_to_str_error| TestError::ToStr)
+        });
         assert_eq!(actual, Ok(3));
     }
     #[test]

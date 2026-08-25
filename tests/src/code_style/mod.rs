@@ -16,11 +16,6 @@ mod snapshot;
 mod source_analysis;
 mod source_policy;
 mod types;
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-struct ExternalLeafWrapperNameException {
-    identifier: types::StaticStr,
-    reason: types::StaticStr,
-}
 #[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout)]
 enum RustOrClippy {
     Clippy,
@@ -33,23 +28,6 @@ impl RustOrClippy {
             Self::Clippy => types::StaticStr::from(constants_str::CLIPPY),
         }
     }
-}
-#[allow(clippy::single_call_fn)] // named exception source keeps policy data separate from its validation loop
-fn external_leaf_wrapper_name_exceptions() -> [ExternalLeafWrapperNameException; 0] {
-    []
-}
-#[allow(clippy::single_call_fn)] // validates every external wrapper naming exception has an explicit reason before matching idents
-fn is_external_leaf_wrapper_name_exception(
-    identifier: types::SourceTextRef<'_>,
-) -> types::AnalyzerBool {
-    types::AnalyzerBool::from(
-        external_leaf_wrapper_name_exceptions()
-            .iter()
-            .any(|exception| {
-                assert!(!exception.reason.get().is_empty(), "c7ab0f62");
-                exception.identifier.get() == identifier.as_ref()
-            }),
-    )
 }
 fn unowned_spawn_expr(expression: &syn::Expr) -> bool {
     let syn::Expr::Call(call) = expression else {
@@ -73,37 +51,6 @@ fn unowned_spawn_expr(expression: &syn::Expr) -> bool {
             | constants_str::TOKIO_PATH_TASK_PATH_SPAWN_BLOCKING
             | constants_str::TOKIO_PATH_TASK_PATH_SPAWN_LOCAL
             | constants_str::STD_PATH_THREAD_PATH_SPAWN
-    )
-}
-#[allow(clippy::single_call_fn)] // keeps diagnostic-ID syntax validation named and fixture-tested
-fn diagnostic_id_prefix(value: types::SourceTextRef<'_>) -> Option<types::SourceTextRef<'_>> {
-    value
-        .get()
-        .get(..8usize)
-        .filter(|prefix| {
-            prefix
-                .bytes()
-                .all(|byte| byte.is_ascii_digit() || matches!(byte, b'a'..=b'f'))
-        })
-        .filter(|_| {
-            value.get().len() == 8usize
-                || value.get().get(8usize..).is_some_and(|suffix| {
-                    suffix.starts_with(constants_str::VALUE_45822F54) || suffix.starts_with(' ')
-                })
-        })
-        .map(types::SourceTextRef::from)
-}
-#[allow(clippy::single_call_fn)] // keeps expect-message context validation separate from shared diagnostic-ID syntax validation
-fn diagnostic_id_has_context(value: types::SourceTextRef<'_>) -> types::AnalyzerBool {
-    let context = value.get().get(8usize..).and_then(|suffix| {
-        suffix
-            .strip_prefix(constants_str::VALUE_45822F54)
-            .or_else(|| suffix.strip_prefix(' '))
-    });
-    types::AnalyzerBool::from(
-        context.is_some_and(|diagnostic_context| {
-            diagnostic_context.split_whitespace().count() >= 2usize
-        }),
     )
 }
 fn panic_uses_dynamic_diagnostic_id(value: types::SourceTextRef<'_>) -> types::AnalyzerBool {
@@ -251,7 +198,12 @@ fn check_expect_and_panic_contain_unique_diagnostic_ids() {
             "stale generated diagnostic interpolation inventory: matched={matched_interpolations:#?}"
         ));
     }
-    let duplicates = find_duplicate_strings(types::SourceTextListRef::from(all_ids.as_slice()));
+    let mut seen = std::collections::HashSet::new();
+    let duplicates = all_ids
+        .iter()
+        .filter(|identifier| !seen.insert(identifier.as_str()))
+        .cloned()
+        .collect::<Vec<String>>();
     if !duplicates.is_empty() {
         all_ers.push(format!("duplicate UUIDs found: {duplicates:?}"));
     }
@@ -264,14 +216,40 @@ fn assert_workspace_lints_match(
     exp_id: types::StaticStr,
     exceptions: types::StaticStrSliceRef<'_>,
 ) {
-    let lints_vec_from_cargo_toml = lints_vec_from_cargo_toml_workspace(rust_or_clippy);
-    let lints_from_cmd = lints_from_help_cmd(tool, parse_only_clippy, exp_id);
-    compare_lints_vecs(
-        rust_or_clippy,
-        types::SourceTextListRef::from(lints_vec_from_cargo_toml.as_slice()),
-        types::SourceTextListRef::from(lints_from_cmd.as_slice()),
-        exceptions,
+    let cargo_lints = lints_vec_from_cargo_toml_workspace(rust_or_clippy);
+    let command_lints = lints_from_help_cmd(tool, parse_only_clippy, exp_id);
+    let rust_or_clippy_name = rust_or_clippy.name().get();
+    let lints_vec_from_cargo_toml = types::SourceTextListRef::from(cargo_lints.as_slice());
+    let lints_from_cmd = types::SourceTextListRef::from(command_lints.as_slice());
+    let lints_from_cargo_set = str_set(lints_vec_from_cargo_toml);
+    let lints_from_cmd_set = str_set(lints_from_cmd);
+    let lints_exceptions_set = exceptions
+        .get()
+        .iter()
+        .copied()
+        .collect::<std::collections::HashSet<&str>>();
+    let stale_exceptions = exceptions
+        .get()
+        .iter()
+        .copied()
+        .filter(|lint| !lints_from_cmd_set.as_ref().contains(*lint))
+        .collect::<Vec<&str>>();
+    assert!(stale_exceptions.is_empty(), "31c5955d {stale_exceptions:?}");
+    let (_reviewed_missing_lints, lints_not_in_cargo_toml) = collect_missing_items(
+        lints_from_cmd,
+        types::SourceTextRefHashSet::from(lints_from_cargo_set.as_ref()),
+    )
+    .into_iter()
+    .partition::<Vec<String>, _>(|lint| lints_exceptions_set.contains(lint.as_str()));
+    assert!(
+        lints_not_in_cargo_toml.is_empty(),
+        "d2b7ba9f {rust_or_clippy_name} {lints_not_in_cargo_toml:?}"
     );
+    let outdated_lints_in_file = collect_missing_items(
+        lints_vec_from_cargo_toml,
+        types::SourceTextRefHashSet::from(lints_from_cmd_set.as_ref()),
+    );
+    assert!(outdated_lints_in_file.is_empty(), "93787d2d");
 }
 #[allow(clippy::single_call_fn)] // helper intentionally stays extracted so command parsing remains decoupled from lint comparison orchestration
 fn lints_from_help_cmd(
@@ -289,11 +267,9 @@ fn lints_from_help_cmd(
     )
     .output()
     .unwrap_or_else(|_| panic!("{}", exp_id.get()));
-    assert_cmd_output_ok(
-        types::ProcessOutputRef::from(output.as_ref()),
-        types::StaticStr::from(constants_str::VALUE_95D4595A),
-        types::StaticStr::from(constants_str::CC4670A2),
-    );
+    assert!(output.status.success(), "95d4595a");
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.trim().is_empty(), "cc4670a2");
     let stdout = String::from_utf8_lossy(&output.stdout);
     let regex = if parse_only_clippy.get() {
         regex::Regex::new(constants_str::QUESTION_M_S_ASTERISK_CLIPPY_PATH_A_Z0_9_A_Z0_9)
@@ -312,51 +288,10 @@ fn lints_from_help_cmd(
         .collect::<Vec<String>>()
         .into()
 }
-#[allow(clippy::single_call_fn)] // shared command-output assertions keep status/stderr checks reusable for command-driven tests
-fn assert_cmd_output_ok(
-    output: types::ProcessOutputRef<'_>,
-    status_exp_id: types::StaticStr,
-    stderr_exp_id: types::StaticStr,
-) {
-    assert!(output.as_ref().status.success(), "{}", status_exp_id.get());
-    let stderr = String::from_utf8_lossy(&output.as_ref().stderr);
-    assert!(stderr.trim().is_empty(), "{}", stderr_exp_id.get());
-}
 #[allow(clippy::single_call_fn)] // centralizes lint-name normalization used by command output parsing
 fn normalize_lint_name(v: types::SourceTextRef<'_>) -> types::SourceText {
     types::SourceText::try_from(v.as_ref().replace('-', constants_str::UNDERSCORE))
         .expect("f3d821a6 normalize_lint_name invariant must hold")
-}
-#[allow(clippy::single_call_fn)] // keeps workspace-dependency shape checks reusable and focused in one helper
-fn validate_workspace_dep_spec(v: types::TomlValueRef<'_>) {
-    let v_table = toml_val_as_table_ref(v, types::StaticStr::from(constants_str::CB693A3F));
-    if let Some(path_v) = v_table.get().get(constants_str::PATH_ALT_5) {
-        match path_v {
-            toml::Value::String(_) => {
-                match v_table.get().len() {
-                    1 => (),
-                    2 => validate_workspace_dep_default_features(v_table),
-                    _ => panic!("f6a3b9d1 {v_table:#?}"),
-                }
-                return;
-            }
-            toml::Value::Table(_)
-            | toml::Value::Integer(_)
-            | toml::Value::Float(_)
-            | toml::Value::Boolean(_)
-            | toml::Value::Datetime(_)
-            | toml::Value::Array(_) => panic!("6ca03a1f"),
-        }
-    }
-    validate_workspace_dep_version(v_table);
-    validate_workspace_dep_default_features(v_table);
-    match v_table.get().len() {
-        2 => {}
-        3 => {
-            validate_workspace_dep_features(v_table);
-        }
-        _ => panic!("f1139378 {v_table:#?}"),
-    }
 }
 fn validate_workspace_dep_default_features(v_table: types::TomlTableRef<'_>) {
     match v_table
@@ -477,11 +412,16 @@ fn validate_workspace_dep_version(v_table: types::TomlTableRef<'_>) {
         .expect("d5b2b269 validate_workspace_dep_version invariant must hold")
     {
         toml::Value::String(version_string) => {
-            assert!(
-                is_exact_three_part_version(types::SourceTextRef::from(version_string.as_str()))
-                    .get(),
-                "6640b9bf"
-            );
+            let exact_three_part_version = version_string.strip_prefix('=').is_some_and(|rest| {
+                let mut parts = rest.split('.');
+                (0usize..3usize).all(|_| {
+                    parts
+                        .next()
+                        .and_then(|part| part.parse::<u64>().ok())
+                        .is_some()
+                }) && parts.next().is_none()
+            });
+            assert!(exact_three_part_version, "6640b9bf");
         }
         toml::Value::Table(_)
         | toml::Value::Integer(_)
@@ -507,73 +447,17 @@ fn validate_workspace_dep_features(v_table: types::TomlTableRef<'_>) {
         | &toml::Value::Datetime(_) => panic!("38ba32e9"),
     }
 }
-#[allow(clippy::single_call_fn)] // isolates exact-version parsing so version-format checks are reusable and testable
-fn is_exact_three_part_version(v: types::SourceTextRef<'_>) -> types::AnalyzerBool {
-    let Some(rest) = v.as_ref().strip_prefix('=') else {
-        return types::AnalyzerBool::default();
-    };
-    let mut iter = rest.split('.');
-    types::AnalyzerBool::from(
-        (0..3).all(|_| {
-            iter.next()
-                .and_then(|part| part.parse::<u64>().ok())
-                .is_some()
-        }) && iter.next().is_none(),
-    )
-}
-#[allow(clippy::single_call_fn)] // helper intentionally stays extracted so lint diff logic remains reusable and independently readable
-fn compare_lints_vecs(
-    rust_or_clippy: RustOrClippy,
-    lints_vec_from_cargo_toml: types::SourceTextListRef<'_>,
-    lints_to_check: types::SourceTextListRef<'_>,
-    lints_not_in_cargo_toml_vec_exceptions: types::StaticStrSliceRef<'_>,
-) {
-    let rust_or_clippy_name = rust_or_clippy.name().get();
-    let lints_from_cargo_set = str_set(lints_vec_from_cargo_toml);
-    let lints_to_check_set = str_set(lints_to_check);
-    let lints_exceptions_set = lints_not_in_cargo_toml_vec_exceptions
-        .get()
-        .iter()
-        .copied()
-        .collect::<std::collections::HashSet<&str>>();
-    let stale_exceptions = lints_not_in_cargo_toml_vec_exceptions
-        .get()
-        .iter()
-        .copied()
-        .filter(|lint| !lints_to_check_set.as_ref().contains(*lint))
-        .collect::<Vec<&str>>();
-    assert!(stale_exceptions.is_empty(), "31c5955d {stale_exceptions:?}");
-    let (lints_not_in_cargo_toml, _reviewed_missing_lints) = split_lints_missing_from_cargo(
-        lints_to_check,
-        types::SourceTextRefHashSet::from(lints_from_cargo_set.as_ref()),
-        types::SourceTextRefHashSet::from(&lints_exceptions_set),
-    );
-    assert!(
-        lints_not_in_cargo_toml.is_empty(),
-        "d2b7ba9f {rust_or_clippy_name} {lints_not_in_cargo_toml:?}"
-    );
-    let outdated_lints_in_file = collect_missing_items(
-        lints_vec_from_cargo_toml,
-        types::SourceTextRefHashSet::from(lints_to_check_set.as_ref()),
-    );
-    assert!(outdated_lints_in_file.is_empty(), "93787d2d");
-}
-#[allow(clippy::single_call_fn)] // shared parser keeps .env line-to-key extraction reusable and test behavior centralized
-fn parse_env_key_line(line: types::SourceTextRef<'_>) -> Option<types::SourceTextRef<'_>> {
-    let trimmed = line.get().trim();
-    if trimmed.is_empty() || trimmed.starts_with('#') {
-        return None;
-    }
-    trimmed
-        .split_once('=')
-        .map(|(key, _)| types::SourceTextRef::from(key))
-}
 fn env_keys_from_file(path: types::StaticStr) -> types::SourceTextList {
     std::fs::read_to_string(path.get())
         .expect("b3a7c1e4 env_keys_from_file invariant must hold")
         .lines()
-        .filter_map(|line| parse_env_key_line(types::SourceTextRef::from(line)))
-        .map(|key| key.as_ref().to_owned())
+        .filter_map(|line| {
+            let trimmed = line.trim();
+            (!trimmed.is_empty() && !trimmed.starts_with('#'))
+                .then(|| trimmed.split_once('=').map(|(key, _)| key))
+                .flatten()
+        })
+        .map(str::to_owned)
         .collect::<Vec<String>>()
         .into()
 }
@@ -610,23 +494,6 @@ fn collect_missing_key_ers(
             .collect::<Vec<String>>(),
     )
 }
-#[allow(clippy::single_call_fn)] // split keeps lint exception handling explicit while reusing missing-item collection
-fn split_lints_missing_from_cargo(
-    lints_to_check: types::SourceTextListRef<'_>,
-    lints_from_cargo_set: types::SourceTextRefHashSet<'_>,
-    lints_exceptions_set: types::SourceTextRefHashSet<'_>,
-) -> (types::SourceTextList, types::SourceTextList) {
-    let (lints_missing_by_exception, lints_not_in_cargo_toml) =
-        collect_missing_items(lints_to_check, lints_from_cargo_set)
-            .into_iter()
-            .partition::<Vec<String>, _>(|lint| {
-                lints_exceptions_set.as_ref().contains(lint.as_str())
-            });
-    (
-        types::SourceTextList::from(lints_not_in_cargo_toml),
-        types::SourceTextList::from(lints_missing_by_exception),
-    )
-}
 #[allow(clippy::single_call_fn)] // helper intentionally stays extracted so workspace-lints table parsing remains separate from test driver wiring
 fn lints_vec_from_cargo_toml_workspace(rust_or_clippy: RustOrClippy) -> types::SourceTextList {
     let workspace = workspace_table_from_cargo_toml();
@@ -655,26 +522,18 @@ fn lints_vec_from_cargo_toml_workspace(rust_or_clippy: RustOrClippy) -> types::S
         .collect::<Vec<String>>()
         .into()
 }
-#[allow(clippy::single_call_fn)] // reusable collector stays split from assertion helper for callsites that need raw error vectors
-fn collect_cargo_toml_ers(
-    mut mk_ers: impl FnMut(&std::path::Path, &toml::Table, &mut Vec<String>),
-) -> types::SourceTextList {
-    let mut ers = Vec::new();
-    for_each_crate_manifest_file(|path| {
-        let Some(parsed) = read_toml_table(types::PathRef::from(path)) else {
-            return;
-        };
-        mk_ers(path, parsed.as_ref(), &mut ers);
-    });
-    types::SourceTextList::from(ers)
-}
 fn assert_cargo_toml_ers_empty(
     exp_id: types::StaticStr,
     mut mk_ers: impl FnMut(&std::path::Path, &toml::Table, &mut Vec<String>),
 ) {
-    let ers = collect_cargo_toml_ers(|path, parsed, ers| {
-        mk_ers(path, parsed, ers);
+    let mut raw_ers = Vec::new();
+    for_each_crate_manifest_file(|path| {
+        let Some(parsed) = read_toml_table(types::PathRef::from(path)) else {
+            return;
+        };
+        mk_ers(path, parsed.as_ref(), &mut raw_ers);
     });
+    let ers = types::SourceTextList::from(raw_ers);
     assert_joined_ers_empty(types::SourceTextListRef::from(ers.as_slice()), exp_id);
 }
 fn assert_crate_manifest_cargo_policy(
@@ -729,28 +588,6 @@ fn str_set(v: types::SourceTextListRef<'_>) -> types::SourceTextHashSet<'_> {
             .collect::<std::collections::HashSet<&str>>(),
     )
 }
-#[allow(clippy::single_call_fn)] // shared duplicate finder keeps uniqueness checks reusable and consistent
-fn find_duplicate_strings(v: types::SourceTextListRef<'_>) -> types::SourceTextList {
-    let mut seen = std::collections::HashSet::new();
-    types::SourceTextList::from(
-        v.get()
-            .iter()
-            .filter(|element_45f4b8bc| !seen.insert(element_45f4b8bc.as_str()))
-            .cloned()
-            .collect::<Vec<String>>(),
-    )
-}
-#[allow(clippy::single_call_fn)] // reusable collector stays available for AST-policy tests and keeps collection logic separate from assertion wrappers
-fn collect_rs_ast_ers(
-    mut mk_ers: impl FnMut(&std::path::Path, &syn::File, &mut Vec<String>),
-) -> types::SourceTextList {
-    let mut ers = Vec::new();
-    for_each_rs_file(|file| {
-        let (path, ast) = (file.path().as_ref(), file.ast().as_ref());
-        mk_ers(path, ast, &mut ers);
-    });
-    types::SourceTextList::from(ers)
-}
 fn visit_syn_file<V>(ast: types::SynFileRef<'_>, mut visitor: V) -> V
 where
     V: for<'ast> syn::visit::Visit<'ast>,
@@ -763,9 +600,11 @@ fn assert_rs_ast_ers_empty_with_ctx(
     ctx: types::SourceTextRef<'_>,
     mut mk_ers: impl FnMut(&std::path::Path, &syn::File, &mut Vec<String>),
 ) {
-    let ers = collect_rs_ast_ers(|path, ast, ers| {
-        mk_ers(path, ast, ers);
+    let mut raw_ers = Vec::new();
+    for_each_rs_file(|file| {
+        mk_ers(file.path().as_ref(), file.ast().as_ref(), &mut raw_ers);
     });
+    let ers = types::SourceTextList::from(raw_ers);
     assert_joined_ers_empty_with_ctx(types::SourceTextListRef::from(ers.as_slice()), exp_id, ctx);
 }
 fn read_toml_table(path: types::PathRef<'_>) -> Option<types::TomlTable> {
@@ -774,39 +613,6 @@ fn read_toml_table(path: types::PathRef<'_>) -> Option<types::TomlTable> {
 #[allow(clippy::single_call_fn)] // shared lookup avoids rereading crate manifests in text-based Cargo.toml style checks
 fn cargo_toml_content(path: types::PathRef<'_>) -> Option<types::SourceText> {
     snapshot::with_codebase_snapshot(|snapshot| snapshot.cargo_toml_content(path))
-}
-#[allow(clippy::single_call_fn)] // isolates non-english diagnostics so file-level test stays focused on traversal and assertion
-fn collect_non_english_symbol_ers(
-    path: types::PathRef<'_>,
-    v: types::SourceTextRef<'_>,
-) -> types::SourceTextList {
-    types::SourceTextList::from(
-        v.as_ref()
-            .lines()
-            .enumerate()
-            .flat_map(|(line_idx, line)| {
-                let line_number = line_idx.saturating_add(1);
-                line.chars()
-                    .filter(|ch| !is_allowed_english_char(types::AnalyzerChar::from(*ch)).get())
-                    .map(move |ch| {
-                        format!(
-                            "{}:{} non-english symbol `{}` (U+{:04X})",
-                            path.as_ref().display(),
-                            line_number,
-                            ch,
-                            u32::from(ch)
-                        )
-                    })
-            })
-            .collect::<Vec<String>>(),
-    )
-}
-#[allow(clippy::single_call_fn)] // shared character predicate keeps english-only symbol policy centralized
-fn is_allowed_english_char(ch: types::AnalyzerChar) -> types::AnalyzerBool {
-    let ch_value = ch.get();
-    types::AnalyzerBool::from(
-        matches!(ch_value, '\n' | '\r' | '\t' | '\u{2014}' | '\u{2194}') || ch_value.is_ascii(),
-    )
 }
 fn push_repeated_file_error(
     mut ers: types::DiagnosticMsgsMutRef<'_>,
@@ -827,20 +633,6 @@ fn for_each_crate_manifest_file(on_file: impl FnMut(&std::path::Path)) {
     snapshot::with_codebase_snapshot(|snapshot| {
         snapshot.crate_manifest_paths().for_each(on_file);
     });
-}
-#[allow(clippy::single_call_fn)] // shared extension predicate keeps source-policy file-kind checks consistent
-fn is_allowed_english_check_ext(ext: Option<types::SourceTextRef<'_>>) -> types::AnalyzerBool {
-    types::AnalyzerBool::from(matches!(
-        ext.map(types::SourceTextRef::get),
-        Some(
-            constants_str::RS
-                | constants_str::TOML
-                | constants_str::TXT
-                | constants_str::YML
-                | constants_str::YAML
-                | constants_str::JSON
-        )
-    ))
 }
 fn path_has_segment(
     path: types::SynPathRef<'_>,
@@ -939,49 +731,6 @@ fn item_struct_is_single_field_tuple_wrapper(
         matches!(&item.as_ref().fields, syn::Fields::Unnamed(fields) if fields.unnamed.len() == 1),
     )
 }
-#[allow(clippy::single_call_fn)] // isolates tuple field visibility parsing from policy diagnostics
-fn item_struct_single_field_is_non_private(
-    item: types::SynItemStructRef<'_>,
-) -> types::AnalyzerBool {
-    types::AnalyzerBool::from(match &item.as_ref().fields {
-        syn::Fields::Unnamed(fields) if fields.unnamed.len() == 1 => fields
-            .unnamed
-            .first()
-            .is_some_and(|field| !matches!(field.vis, syn::Visibility::Inherited)),
-        syn::Fields::Named(_) | syn::Fields::Unnamed(_) | syn::Fields::Unit => false,
-    })
-}
-#[allow(clippy::single_call_fn)] // isolated serde derive detection keeps the visitor condition declarative
-fn item_struct_derives_deserialize(item: types::SynItemStructRef<'_>) -> types::AnalyzerBool {
-    types::AnalyzerBool::from(item.as_ref().attrs.iter().any(|attr| {
-        attr.path().is_ident(constants_str::DERIVE)
-            && match &attr.meta {
-                syn::Meta::List(list) => list
-                    .tokens
-                    .to_string()
-                    .contains(constants_str::CODE_STYLE_DESERIALIZE_DERIVE_NAME),
-                syn::Meta::NameValue(_) | syn::Meta::Path(_) => false,
-            }
-    }))
-}
-#[allow(clippy::single_call_fn)] // isolated serde conversion detection keeps attribute parsing reusable and testable
-fn item_struct_deserialize_uses_conversion(
-    item: types::SynItemStructRef<'_>,
-) -> types::AnalyzerBool {
-    types::AnalyzerBool::from(item.as_ref().attrs.iter().any(|attr| {
-        if !attr.path().is_ident(constants_str::SERDE) {
-            return false;
-        }
-        match &attr.meta {
-            syn::Meta::List(list) => {
-                let tokens = list.tokens.to_string();
-                tokens.contains(constants_str::CODE_STYLE_SERDE_FROM_ATTR_FRAGMENT)
-                    || tokens.contains(constants_str::CODE_STYLE_SERDE_TRY_FROM_ATTR_FRAGMENT)
-            }
-            syn::Meta::NameValue(_) | syn::Meta::Path(_) => false,
-        }
-    }))
-}
 #[allow(clippy::single_call_fn)] // conversion derive recognition is kept separate from wrapper collection
 fn item_struct_derives_conversion(item: types::SynItemStructRef<'_>) -> types::AnalyzerBool {
     types::AnalyzerBool::from(item.as_ref().attrs.iter().any(|attr| {
@@ -995,21 +744,6 @@ fn item_struct_derives_conversion(item: types::SynItemStructRef<'_>) -> types::A
                     || tokens.contains(constants_str::BOUNDEDSTRING)
                     || tokens.contains(constants_str::TRYFROM)
             }
-            syn::Meta::NameValue(_) | syn::Meta::Path(_) => false,
-        }
-    }))
-}
-#[allow(clippy::single_call_fn)] // keeps FromInner derive detection reusable inside wrapper conversion collection
-fn item_struct_derives_from_inner(item: types::SynItemStructRef<'_>) -> types::AnalyzerBool {
-    types::AnalyzerBool::from(item.as_ref().attrs.iter().any(|attr| {
-        if !attr.path().is_ident(constants_str::DERIVE) {
-            return false;
-        }
-        match &attr.meta {
-            syn::Meta::List(list) => list
-                .tokens
-                .to_string()
-                .contains(constants_str::NEWTYPE_FROM_INNER_DERIVE_NAME),
             syn::Meta::NameValue(_) | syn::Meta::Path(_) => false,
         }
     }))
@@ -1073,17 +807,6 @@ fn item_impl_is_from_or_try_from(item: types::SynItemImplRef<'_>) -> types::Anal
         })
     }))
 }
-#[allow(clippy::single_call_fn)] // diagnostic conversion errors intentionally carry raw length metadata
-fn identifier_is_diagnostic_try_from_string_error(
-    identifier: types::SynIdentifierRef<'_>,
-) -> types::AnalyzerBool {
-    types::AnalyzerBool::from(
-        identifier
-            .as_ref()
-            .to_string()
-            .ends_with(constants_str::TRYFROMSTRINGERROR),
-    )
-}
 fn method_is_explicit_wrapper_accessor(
     identifier: types::SynIdentifierRef<'_>,
 ) -> types::AnalyzerBool {
@@ -1091,13 +814,6 @@ fn method_is_explicit_wrapper_accessor(
         identifier.as_ref().to_string().as_str(),
         constants_str::GET_ALT | constants_str::INTO_INNER
     ))
-}
-#[allow(clippy::single_call_fn)] // keeps the derive-validator boundary exception explicit and narrow
-fn method_is_private_newtype_validator(method: &syn::ImplItemFn) -> types::AnalyzerBool {
-    types::AnalyzerBool::from(
-        matches!(method.vis, syn::Visibility::Inherited)
-            && method.sig.ident == constants_str::VALIDATE,
-    )
 }
 fn type_path_ends_with_identifier(
     ty: types::SynTypeRef<'_>,
@@ -1150,23 +866,6 @@ fn attr_has_bounded_string_derive(attr: types::SynAttributeRef<'_>) -> types::An
             .contains(constants_str::BOUNDEDSTRING)
     }))
 }
-#[allow(clippy::single_call_fn)] // bounded string wrappers satisfy length policy only when max is explicit
-fn attr_has_bounded_string_max_bound(attr: types::SynAttributeRef<'_>) -> types::AnalyzerBool {
-    let attr_ref = attr.as_ref();
-    if !attr_ref.path().is_ident(constants_str::BOUNDED_STRING) {
-        return types::AnalyzerBool::default();
-    }
-    let mut has_max = false;
-    drop(attr_ref.parse_nested_meta(|meta| {
-        if meta.path.is_ident(constants_str::MAX) {
-            drop(meta.value()?.parse::<syn::Expr>()?);
-            has_max = true;
-            return Ok(());
-        }
-        Err(meta.error(constants_str::UNKNOWN_BOUNDED_STRING_OPTION))
-    }));
-    types::AnalyzerBool::from(has_max)
-}
 fn path_ends_with(
     path: types::SynPathRef<'_>,
     segments: types::StaticStrSliceRef<'_>,
@@ -1180,15 +879,6 @@ fn path_ends_with(
                 .rev()
                 .zip(segments.get().iter().rev())
                 .all(|(got, exp)| got.ident == *exp),
-    )
-}
-#[allow(clippy::single_call_fn)] // names Self-path handling separately from domain type path traversal
-fn path_first_segment_is_self(path: types::SynPathRef<'_>) -> types::AnalyzerBool {
-    types::AnalyzerBool::from(
-        path.as_ref()
-            .segments
-            .first()
-            .is_some_and(|segment| segment.ident == constants_str::SELF),
     )
 }
 fn expr_call_path(call: types::SynExprCallRef<'_>) -> Option<types::SynPathRef<'_>> {
@@ -1253,55 +943,6 @@ fn collect_generate_pg_types_domain_names(
             let _: bool = names.insert(format!("Optional{prefix}AsNullable{suffix}"));
         });
 }
-#[allow(clippy::single_call_fn)] // config_lib helper macros declare domain wrapper structs from their first argument
-fn config_lib_domain_type_macro_path(path: types::SynPathRef<'_>) -> types::AnalyzerBool {
-    types::AnalyzerBool::from(
-        path_ends_with(
-            path,
-            types::StaticStrSliceRef::from(
-                [
-                    constants_str::CONFIG_LIB_MACROS,
-                    constants_str::IMPL_TRY_FROM_NON_EMPTY_STRING,
-                ]
-                .as_slice(),
-            ),
-        )
-        .get()
-            || path_ends_with(
-                path,
-                types::StaticStrSliceRef::from(
-                    [
-                        constants_str::CONFIG_LIB_MACROS,
-                        constants_str::IMPL_TRY_FROM_SECRET_URL,
-                    ]
-                    .as_slice(),
-                ),
-            )
-            .get()
-            || path_ends_with(
-                path,
-                types::StaticStrSliceRef::from(
-                    [
-                        constants_str::CONFIG_LIB_MACROS,
-                        constants_str::IMPL_TRY_FROM_PARSE,
-                    ]
-                    .as_slice(),
-                ),
-            )
-            .get()
-            || path_ends_with(
-                path,
-                types::StaticStrSliceRef::from(
-                    [
-                        constants_str::CONFIG_LIB_MACROS,
-                        constants_str::IMPL_TRY_FROM_PARSE_STRING_ERROR,
-                    ]
-                    .as_slice(),
-                ),
-            )
-            .get(),
-    )
-}
 fn collect_first_macro_identifier_domain_name(
     tokens: types::SourceTextRef<'_>,
     names: &mut types::SourceTextBTreeSet,
@@ -1315,204 +956,6 @@ fn collect_first_macro_identifier_domain_name(
     {
         let _: bool = names.insert(name.to_owned());
     }
-}
-#[allow(clippy::single_call_fn)] // keeps Arc type policy readable apart from syn type matching
-fn type_contains_segment(
-    ty: types::SynTypeRef<'_>,
-    segment: types::SourceTextRef<'_>,
-) -> types::AnalyzerBool {
-    types::AnalyzerBool::from(match ty.as_ref() {
-        syn::Type::Path(path) => {
-            path_has_segment(types::SynPathRef::from(&path.path), segment).get()
-        }
-        syn::Type::Array(_)
-        | syn::Type::FnPtr(_)
-        | syn::Type::Group(_)
-        | syn::Type::ImplTrait(_)
-        | syn::Type::Infer(_)
-        | syn::Type::Macro(_)
-        | syn::Type::Never(_)
-        | syn::Type::Paren(_)
-        | syn::Type::Ptr(_)
-        | syn::Type::Reference(_)
-        | syn::Type::Slice(_)
-        | syn::Type::TraitObject(_)
-        | syn::Type::Tuple(_)
-        | syn::Type::Verbatim(_)
-        | _ => false,
-    })
-}
-#[allow(clippy::single_call_fn)] // names the async-blocking method policy separately from traversal code
-fn method_is_blocking_async_call(method: types::SourceTextRef<'_>) -> types::AnalyzerBool {
-    types::AnalyzerBool::from(matches!(
-        method.as_ref(),
-        constants_str::BLOCK_ON
-            | constants_str::BLOCK_IN_PLACE
-            | constants_str::BLOCKING_RECV
-            | constants_str::BLOCKING_SEND
-    ))
-}
-#[allow(clippy::single_call_fn)] // names the async-blocking function policy separately from traversal code
-fn path_is_blocking_async_call(path: types::SynPathRef<'_>) -> types::AnalyzerBool {
-    let path_text = path_to_string(path);
-    types::AnalyzerBool::from(
-        path_ends_with(
-            path,
-            types::StaticStrSliceRef::from(
-                [
-                    constants_str::FUTURES,
-                    constants_str::EXECUTOR,
-                    constants_str::BLOCK_ON,
-                ]
-                .as_slice(),
-            ),
-        )
-        .get()
-            || path_ends_with(
-                path,
-                types::StaticStrSliceRef::from(
-                    [
-                        constants_str::TOKIO,
-                        constants_str::TASK,
-                        constants_str::BLOCK_IN_PLACE,
-                    ]
-                    .as_slice(),
-                ),
-            )
-            .get()
-            || path_ends_with(
-                path,
-                types::StaticStrSliceRef::from(
-                    [
-                        constants_str::STD,
-                        constants_str::THREAD,
-                        constants_str::SLEEP,
-                    ]
-                    .as_slice(),
-                ),
-            )
-            .get()
-            || constants_str::BLOCKING_STD_FS_CALLS.contains(&path_text.as_ref())
-            || constants_str::BLOCKING_STD_NET_CALLS.contains(&path_text.as_ref()),
-    )
-}
-#[allow(clippy::single_call_fn)] // names the external-service unit-test policy separately from traversal code
-fn path_is_external_service_client(path: types::SynPathRef<'_>) -> types::AnalyzerBool {
-    let path_text = path_to_string(path);
-    types::AnalyzerBool::from(
-        path_ends_with(
-            path,
-            types::StaticStrSliceRef::from(
-                [
-                    constants_str::REQWEST,
-                    constants_str::CLIENT,
-                    constants_str::NEW,
-                ]
-                .as_slice(),
-            ),
-        )
-        .get()
-            || path_ends_with(
-                path,
-                types::StaticStrSliceRef::from(
-                    [
-                        constants_str::STD,
-                        constants_str::NET,
-                        constants_str::TCPSTREAM,
-                        constants_str::CONNECT,
-                    ]
-                    .as_slice(),
-                ),
-            )
-            .get()
-            || path_ends_with(
-                path,
-                types::StaticStrSliceRef::from(
-                    [
-                        constants_str::STD,
-                        constants_str::NET,
-                        constants_str::TCPLISTENER,
-                        constants_str::BIND,
-                    ]
-                    .as_slice(),
-                ),
-            )
-            .get()
-            || path_ends_with(
-                path,
-                types::StaticStrSliceRef::from(
-                    [
-                        constants_str::STD,
-                        constants_str::NET,
-                        constants_str::UDPSOCKET,
-                        constants_str::BIND,
-                    ]
-                    .as_slice(),
-                ),
-            )
-            .get()
-            || path_ends_with(
-                path,
-                types::StaticStrSliceRef::from(
-                    [
-                        constants_str::TOKIO,
-                        constants_str::NET,
-                        constants_str::TCPSTREAM,
-                        constants_str::CONNECT,
-                    ]
-                    .as_slice(),
-                ),
-            )
-            .get()
-            || path_ends_with(
-                path,
-                types::StaticStrSliceRef::from(
-                    [
-                        constants_str::TOKIO,
-                        constants_str::NET,
-                        constants_str::TCPLISTENER,
-                        constants_str::BIND,
-                    ]
-                    .as_slice(),
-                ),
-            )
-            .get()
-            || path_ends_with(
-                path,
-                types::StaticStrSliceRef::from(
-                    [
-                        constants_str::TOKIO,
-                        constants_str::NET,
-                        constants_str::UDPSOCKET,
-                        constants_str::BIND,
-                    ]
-                    .as_slice(),
-                ),
-            )
-            .get()
-            || [
-                constants_str::VALUE_364F9D39,
-                constants_str::VALUE_BDB563EC,
-                constants_str::VALUE_FE4D84FC,
-                constants_str::VALUE_2FCCA7C7,
-            ]
-            .contains(&path_text.as_ref()),
-    )
-}
-#[allow(clippy::single_call_fn)] // extracted to keep the domain policy test focused on assertion flow
-fn declared_domain_type_names() -> types::SourceTextBTreeSet {
-    let mut names = std::collections::BTreeSet::new();
-    for_each_rs_file(|file| {
-        let ast = file.ast().as_ref();
-        let visitor = visit_syn_file(
-            types::SynFileRef::from(ast),
-            domain_analysis::DeclaredDomainTypeVisitor {
-                names: types::SourceTextBTreeSet::default(),
-            },
-        );
-        names.extend(visitor.names);
-    });
-    types::SourceTextBTreeSet::from(names)
 }
 fn len_checked_function_names(file: types::SynFileRef<'_>) -> types::SourceTextBTreeSet {
     let mut visitor = domain_analysis::LenCheckedFunctionNameVisitor {
@@ -1557,17 +1000,10 @@ fn is_code_style_meta_harness_source_path(path: types::PathRef<'_>) -> types::An
             .starts_with(constants_str::TESTS_SRC_CODE_STYLE),
     )
 }
-#[allow(clippy::single_call_fn)] // keeps transparent container policy separate from path validation
-fn is_structural_generic_container(identifier: types::SourceTextRef<'_>) -> types::AnalyzerBool {
-    types::AnalyzerBool::from(matches!(
-        identifier.as_ref(),
-        constants_str::OPTION | constants_str::RESULT
-    ))
-}
 fn analyzer_state_raw_container_ty(
-    ty: types::SynTypeRef<'_>,
+    ty_ref: types::SynTypeRef<'_>,
 ) -> Option<(types::StaticStr, types::StaticStr)> {
-    match ty.get() {
+    match ty_ref.get() {
         syn::Type::Group(ty_group) => {
             analyzer_state_raw_container_ty(types::SynTypeRef::from(&*ty_group.elem))
         }
@@ -1575,7 +1011,83 @@ fn analyzer_state_raw_container_ty(
             analyzer_state_raw_container_ty(types::SynTypeRef::from(&*ty_paren.elem))
         }
         syn::Type::Path(ty_path) => {
-            analyzer_state_raw_container_ty_path(types::SynTypePathRef::from(ty_path))
+            let segment = ty_path.path.segments.last()?;
+            let identifier = segment.ident.to_string();
+            match identifier.as_str() {
+                constants_str::VEC
+                    if single_angle_type_arg(types::SynPathArgumentsRef::from(
+                        &segment.arguments,
+                    ))
+                    .is_some_and(|ty| type_is_string(types::SynTypeRef::from(ty.get())).get()) =>
+                {
+                    Some((
+                        types::StaticStr::from(constants_str::VEC_STRING),
+                        types::StaticStr::from(constants_str::TYPES_PATH_SOURCETEXTLIST),
+                    ))
+                }
+                constants_str::BTREESET
+                    if single_angle_type_arg(types::SynPathArgumentsRef::from(
+                        &segment.arguments,
+                    ))
+                    .is_some_and(|ty| type_is_string(types::SynTypeRef::from(ty.get())).get()) =>
+                {
+                    Some((
+                        types::StaticStr::from(constants_str::BTREESET_STRING),
+                        types::StaticStr::from(constants_str::TYPES_PATH_STDSOURCETEXTSET),
+                    ))
+                }
+                constants_str::HASHSET
+                    if single_angle_type_arg(types::SynPathArgumentsRef::from(
+                        &segment.arguments,
+                    ))
+                    .is_some_and(|ty| type_is_str_ref(types::SynTypeRef::from(ty.get())).get()) =>
+                {
+                    Some((
+                        types::StaticStr::from(constants_str::HASHSET_STR),
+                        types::StaticStr::from(
+                            constants_str::TYPES_PATH_STDSOURCETEXTHASHSET_OR_TYPES_PATH_STDSOURCETEXTREFSET,
+                        ),
+                    ))
+                }
+                constants_str::OPTION
+                | constants_str::RESULT
+                | constants_str::BOX
+                | constants_str::COW
+                | constants_str::ARC
+                | constants_str::RC
+                | constants_str::PIN
+                | constants_str::PHANTOMDATA
+                | constants_str::HASHMAP
+                | constants_str::BTREEMAP => match &segment.arguments {
+                    syn::PathArguments::AngleBracketed(args) => {
+                        args.args.iter().find_map(|arg| match arg {
+                            syn::GenericArgument::Type(ty) => {
+                                analyzer_state_raw_container_ty(types::SynTypeRef::from(ty))
+                            }
+                            syn::GenericArgument::AssocConst(_)
+                            | syn::GenericArgument::AssocType(_)
+                            | syn::GenericArgument::Constraint(_)
+                            | syn::GenericArgument::Const(_)
+                            | syn::GenericArgument::Lifetime(_)
+                            | _ => None,
+                        })
+                    }
+                    syn::PathArguments::Parenthesized(args) => args
+                        .inputs
+                        .iter()
+                        .find_map(|arg| {
+                            analyzer_state_raw_container_ty(types::SynTypeRef::from(&arg.ty))
+                        })
+                        .or_else(|| match &args.output {
+                            syn::ReturnType::Default => None,
+                            syn::ReturnType::Type(_, ty) => {
+                                analyzer_state_raw_container_ty(types::SynTypeRef::from(&**ty))
+                            }
+                        }),
+                    syn::PathArguments::None => None,
+                },
+                _ => None,
+            }
         }
         syn::Type::Reference(ty_reference) => {
             analyzer_state_raw_container_ty(types::SynTypeRef::from(&*ty_reference.elem))
@@ -1594,12 +1106,83 @@ fn analyzer_state_raw_container_ty(
         | _ => None,
     }
 }
-fn raw_text_return_ty(ty: types::SynTypeRef<'_>) -> Option<(types::StaticStr, types::StaticStr)> {
-    match ty.get() {
+fn raw_text_return_ty(
+    ty_ref: types::SynTypeRef<'_>,
+) -> Option<(types::StaticStr, types::StaticStr)> {
+    match ty_ref.get() {
         syn::Type::Group(ty_group) => raw_text_return_ty(types::SynTypeRef::from(&*ty_group.elem)),
         syn::Type::Paren(ty_paren) => raw_text_return_ty(types::SynTypeRef::from(&*ty_paren.elem)),
-        syn::Type::Path(ty_path) => raw_text_return_ty_path(types::SynTypePathRef::from(ty_path)),
-        syn::Type::Reference(_) if type_is_str_ref(ty).get() => Some((
+        syn::Type::Path(ty_path) => {
+            let segment = ty_path.path.segments.last()?;
+            let identifier = segment.ident.to_string();
+            match identifier.as_str() {
+                constants_str::STRING => Some((
+                    types::StaticStr::from(constants_str::STRING),
+                    types::StaticStr::from(constants_str::TYPES_PATH_SOURCETEXT),
+                )),
+                constants_str::VEC
+                    if single_angle_type_arg(types::SynPathArgumentsRef::from(
+                        &segment.arguments,
+                    ))
+                    .is_some_and(|ty| type_is_string(types::SynTypeRef::from(ty.get())).get()) =>
+                {
+                    Some((
+                        types::StaticStr::from(constants_str::VEC_STRING),
+                        types::StaticStr::from(constants_str::TYPES_PATH_SOURCETEXTLIST),
+                    ))
+                }
+                constants_str::OPTION
+                    if single_angle_type_arg(types::SynPathArgumentsRef::from(
+                        &segment.arguments,
+                    ))
+                    .is_some_and(|ty| type_is_str_ref(types::SynTypeRef::from(ty.get())).get()) =>
+                {
+                    Some((
+                        types::StaticStr::from(constants_str::OPTION_STR),
+                        types::StaticStr::from(constants_str::OPTION_TYPES_PATH_SOURCETEXTREF),
+                    ))
+                }
+                constants_str::OPTION
+                | constants_str::RESULT
+                | constants_str::BOX
+                | constants_str::COW
+                | constants_str::ARC
+                | constants_str::RC
+                | constants_str::PIN
+                | constants_str::PHANTOMDATA
+                | constants_str::HASHMAP
+                | constants_str::BTREEMAP
+                | constants_str::HASHSET
+                | constants_str::BTREESET => match &segment.arguments {
+                    syn::PathArguments::AngleBracketed(args) => {
+                        args.args.iter().find_map(|arg| match arg {
+                            syn::GenericArgument::Type(ty) => {
+                                raw_text_return_ty(types::SynTypeRef::from(ty))
+                            }
+                            syn::GenericArgument::AssocConst(_)
+                            | syn::GenericArgument::AssocType(_)
+                            | syn::GenericArgument::Constraint(_)
+                            | syn::GenericArgument::Const(_)
+                            | syn::GenericArgument::Lifetime(_)
+                            | _ => None,
+                        })
+                    }
+                    syn::PathArguments::Parenthesized(args) => args
+                        .inputs
+                        .iter()
+                        .find_map(|arg| raw_text_return_ty(types::SynTypeRef::from(&arg.ty)))
+                        .or_else(|| match &args.output {
+                            syn::ReturnType::Default => None,
+                            syn::ReturnType::Type(_, ty) => {
+                                raw_text_return_ty(types::SynTypeRef::from(&**ty))
+                            }
+                        }),
+                    syn::PathArguments::None => None,
+                },
+                _ => None,
+            }
+        }
+        syn::Type::Reference(_) if type_is_str_ref(ty_ref).get() => Some((
             types::StaticStr::from(constants_str::STR),
             types::StaticStr::from(constants_str::TYPES_PATH_SOURCETEXTREF),
         )),
@@ -1618,157 +1201,6 @@ fn raw_text_return_ty(ty: types::SynTypeRef<'_>) -> Option<(types::StaticStr, ty
         | syn::Type::Tuple(_)
         | syn::Type::Verbatim(_)
         | _ => None,
-    }
-}
-#[allow(clippy::single_call_fn)] // separates return path matching from nested raw text return traversal
-fn raw_text_return_ty_path(
-    ty_path: types::SynTypePathRef<'_>,
-) -> Option<(types::StaticStr, types::StaticStr)> {
-    let ty_path_ref = ty_path.get();
-    let segment = ty_path_ref.path.segments.last()?;
-    let identifier = segment.ident.to_string();
-    match identifier.as_str() {
-        constants_str::STRING => Some((
-            types::StaticStr::from(constants_str::STRING),
-            types::StaticStr::from(constants_str::TYPES_PATH_SOURCETEXT),
-        )),
-        constants_str::VEC
-            if single_angle_type_arg(types::SynPathArgumentsRef::from(&segment.arguments))
-                .is_some_and(|ty| type_is_string(types::SynTypeRef::from(ty.get())).get()) =>
-        {
-            Some((
-                types::StaticStr::from(constants_str::VEC_STRING),
-                types::StaticStr::from(constants_str::TYPES_PATH_SOURCETEXTLIST),
-            ))
-        }
-        constants_str::OPTION
-            if single_angle_type_arg(types::SynPathArgumentsRef::from(&segment.arguments))
-                .is_some_and(|ty| type_is_str_ref(types::SynTypeRef::from(ty.get())).get()) =>
-        {
-            Some((
-                types::StaticStr::from(constants_str::OPTION_STR),
-                types::StaticStr::from(constants_str::OPTION_TYPES_PATH_SOURCETEXTREF),
-            ))
-        }
-        constants_str::OPTION
-        | constants_str::RESULT
-        | constants_str::BOX
-        | constants_str::COW
-        | constants_str::ARC
-        | constants_str::RC
-        | constants_str::PIN
-        | constants_str::PHANTOMDATA
-        | constants_str::HASHMAP
-        | constants_str::BTREEMAP
-        | constants_str::HASHSET
-        | constants_str::BTREESET => {
-            raw_text_return_path_arguments(types::SynPathArgumentsRef::from(&segment.arguments))
-        }
-        _ => None,
-    }
-}
-#[allow(clippy::single_call_fn)] // keeps nested helper-return traversal independent from field-state diagnostics
-fn raw_text_return_path_arguments(
-    arguments: types::SynPathArgumentsRef<'_>,
-) -> Option<(types::StaticStr, types::StaticStr)> {
-    match arguments.get() {
-        syn::PathArguments::AngleBracketed(args) => args.args.iter().find_map(|arg| match arg {
-            syn::GenericArgument::Type(ty) => raw_text_return_ty(types::SynTypeRef::from(ty)),
-            syn::GenericArgument::AssocConst(_)
-            | syn::GenericArgument::AssocType(_)
-            | syn::GenericArgument::Constraint(_)
-            | syn::GenericArgument::Const(_)
-            | syn::GenericArgument::Lifetime(_)
-            | _ => None,
-        }),
-        syn::PathArguments::Parenthesized(args) => args
-            .inputs
-            .iter()
-            .find_map(|arg| raw_text_return_ty(types::SynTypeRef::from(&arg.ty)))
-            .or_else(|| match &args.output {
-                syn::ReturnType::Default => None,
-                syn::ReturnType::Type(_, ty) => raw_text_return_ty(types::SynTypeRef::from(&**ty)),
-            }),
-        syn::PathArguments::None => None,
-    }
-}
-#[allow(clippy::single_call_fn)] // separates path-shape matching from recursive wrapper/state field traversal
-fn analyzer_state_raw_container_ty_path(
-    ty_path: types::SynTypePathRef<'_>,
-) -> Option<(types::StaticStr, types::StaticStr)> {
-    let ty_path_ref = ty_path.get();
-    let segment = ty_path_ref.path.segments.last()?;
-    let identifier = segment.ident.to_string();
-    match identifier.as_str() {
-        constants_str::VEC
-            if single_angle_type_arg(types::SynPathArgumentsRef::from(&segment.arguments))
-                .is_some_and(|ty| type_is_string(types::SynTypeRef::from(ty.get())).get()) =>
-        {
-            Some((
-                types::StaticStr::from(constants_str::VEC_STRING),
-                types::StaticStr::from(constants_str::TYPES_PATH_SOURCETEXTLIST),
-            ))
-        }
-        constants_str::BTREESET
-            if single_angle_type_arg(types::SynPathArgumentsRef::from(&segment.arguments))
-                .is_some_and(|ty| type_is_string(types::SynTypeRef::from(ty.get())).get()) =>
-        {
-            Some((
-                types::StaticStr::from(constants_str::BTREESET_STRING),
-                types::StaticStr::from(constants_str::TYPES_PATH_STDSOURCETEXTSET),
-            ))
-        }
-        constants_str::HASHSET
-            if single_angle_type_arg(types::SynPathArgumentsRef::from(&segment.arguments))
-                .is_some_and(|ty| type_is_str_ref(types::SynTypeRef::from(ty.get())).get()) =>
-        {
-            Some((
-                types::StaticStr::from(constants_str::HASHSET_STR),
-                types::StaticStr::from(constants_str::TYPES_PATH_STDSOURCETEXTHASHSET_OR_TYPES_PATH_STDSOURCETEXTREFSET),
-            ))
-        }
-        constants_str::OPTION
-        | constants_str::RESULT
-        | constants_str::BOX
-        | constants_str::COW
-        | constants_str::ARC
-        | constants_str::RC
-        | constants_str::PIN
-        | constants_str::PHANTOMDATA
-        | constants_str::HASHMAP
-        | constants_str::BTREEMAP => analyzer_state_raw_container_path_arguments(
-            types::SynPathArgumentsRef::from(&segment.arguments),
-        ),
-        _ => None,
-    }
-}
-#[allow(clippy::single_call_fn)] // keeps nested container traversal readable where state fields are diagnosed
-fn analyzer_state_raw_container_path_arguments(
-    arguments: types::SynPathArgumentsRef<'_>,
-) -> Option<(types::StaticStr, types::StaticStr)> {
-    match arguments.get() {
-        syn::PathArguments::AngleBracketed(args) => args.args.iter().find_map(|arg| match arg {
-            syn::GenericArgument::Type(ty) => {
-                analyzer_state_raw_container_ty(types::SynTypeRef::from(ty))
-            }
-            syn::GenericArgument::AssocConst(_)
-            | syn::GenericArgument::AssocType(_)
-            | syn::GenericArgument::Constraint(_)
-            | syn::GenericArgument::Const(_)
-            | syn::GenericArgument::Lifetime(_)
-            | _ => None,
-        }),
-        syn::PathArguments::Parenthesized(args) => args
-            .inputs
-            .iter()
-            .find_map(|arg| analyzer_state_raw_container_ty(types::SynTypeRef::from(&arg.ty)))
-            .or_else(|| match &args.output {
-                syn::ReturnType::Default => None,
-                syn::ReturnType::Type(_, ty) => {
-                    analyzer_state_raw_container_ty(types::SynTypeRef::from(&**ty))
-                }
-            }),
-        syn::PathArguments::None => None,
     }
 }
 fn single_angle_type_arg(
@@ -1976,15 +1408,6 @@ fn sensitive_text_wrapper_identifier(identifier: types::SourceTextRef<'_>) -> ty
             || lowercase.contains(constants_str::VALUE_3C469E9D) && !non_secret_token_metadata,
     )
 }
-#[allow(clippy::single_call_fn)] // limits the secret Debug policy to wrappers that directly contain text or bytes
-fn item_struct_wraps_text(item: types::SynItemStructRef<'_>) -> types::AnalyzerBool {
-    types::AnalyzerBool::from(
-        item.as_ref()
-            .fields
-            .iter()
-            .any(|field| type_contains_sensitive_text_or_bytes(&field.ty)),
-    )
-}
 fn type_contains_sensitive_text_or_bytes(ty: &syn::Type) -> bool {
     match ty {
         syn::Type::Array(array) => type_is_u8(array.elem.as_ref()),
@@ -2088,9 +1511,14 @@ fn is_runtime_policy_source_path(path: types::PathRef<'_>) -> types::AnalyzerBoo
     let Some(parsed) = read_toml_table(types::PathRef::from(cargo_toml_path.as_ref())) else {
         return types::AnalyzerBool::default();
     };
+    let is_proc_macro = parsed
+        .as_ref()
+        .get(constants_str::LIB)
+        .and_then(toml::Value::as_table)
+        .and_then(|lib| lib.get(constants_str::PROC_MACRO))
+        == Some(&toml::Value::Boolean(true));
     types::AnalyzerBool::from(
-        !is_proc_macro_crate(types::TomlTableRef::from(parsed.as_ref())).get()
-            && !is_test_crate(types::TomlTableRef::from(parsed.as_ref())).get(),
+        !is_proc_macro && !is_test_crate(types::TomlTableRef::from(parsed.as_ref())).get(),
     )
 }
 fn nearest_cargo_toml_path(path: types::PathRef<'_>) -> Option<types::OwnedPathBuf> {
@@ -2152,17 +1580,6 @@ fn is_direct_fs_owner_source_path(path: types::PathRef<'_>) -> types::AnalyzerBo
         constants_str::CODE_STYLE_DIRECT_FS_OWNER_SUFFIXES
             .iter()
             .any(|suffix| path_text.ends_with(suffix)),
-    )
-}
-#[allow(clippy::single_call_fn)] // proc-macro crates are allowed to panic by repository policy
-fn is_proc_macro_crate(parsed: types::TomlTableRef<'_>) -> types::AnalyzerBool {
-    types::AnalyzerBool::from(
-        parsed
-            .as_ref()
-            .get(constants_str::LIB)
-            .and_then(toml::Value::as_table)
-            .and_then(|lib| lib.get(constants_str::PROC_MACRO))
-            == Some(&toml::Value::Boolean(true)),
     )
 }
 fn has_test_only_cfg_attr(i: types::SynItemRef<'_>) -> types::AnalyzerBool {
@@ -2261,25 +1678,17 @@ fn workspace_table_from_cargo_toml() -> types::TomlTable {
         .expect("39a0d238 workspace_table_from_cargo_toml invariant must hold")
         .parse::<toml::Table>()
         .expect("beb11586 workspace_table_from_cargo_toml invariant must hold");
-    toml_val_as_table(
-        types::TomlValue::from(
-            table
-                .remove(constants_str::WORKSPACE)
-                .expect("f728192d workspace_table_from_cargo_toml invariant must hold"),
-        ),
-        types::StaticStr::from(constants_str::VALUE_2BFB0B62),
-    )
-}
-#[allow(clippy::single_call_fn)] // shared owned-value table extractor keeps table-shape validation reusable where ownership is required
-fn toml_val_as_table(v: types::TomlValue, uuid: types::StaticStr) -> types::TomlTable {
-    match v.into_inner() {
+    match table
+        .remove(constants_str::WORKSPACE)
+        .expect("f728192d workspace_table_from_cargo_toml invariant must hold")
+    {
         toml::Value::Table(t) => types::TomlTable::from(t),
         toml::Value::String(_)
         | toml::Value::Integer(_)
         | toml::Value::Float(_)
         | toml::Value::Boolean(_)
         | toml::Value::Datetime(_)
-        | toml::Value::Array(_) => panic!("{}", uuid.get()),
+        | toml::Value::Array(_) => panic!("2bfb0b62"),
     }
 }
 fn toml_val_as_table_ref(
@@ -2353,67 +1762,21 @@ fn collect_non_workspace_dep_ers(
             .flat_map(|(dep_section, deps)| {
                 deps.iter()
                     .filter(move |(_, dep_value)| {
-                        !workspace_dep_entry_is_valid(types::TomlValueRef::from(*dep_value)).get()
+                        !matches!(
+                            dep_value,
+                            toml::Value::Table(dep_table)
+                                if dep_table.get(constants_str::WORKSPACE)
+                                    == Some(&toml::Value::Boolean(true))
+                        )
                     })
                     .map(move |(dep_name, _)| {
-                        String::from(workspace_dep_entry_error(
-                            path,
-                            types::SourceTextRef::from(dep_name.as_str()),
-                            types::SourceTextRef::from(dep_section.as_str()),
-                        ))
+                        format!(
+                            "{}: dependency `{dep_name}` in [{dep_section}] must use `dep = {{ workspace = true }}`",
+                            path.as_ref().display(),
+                        )
                     })
             }),
     );
-}
-#[allow(clippy::single_call_fn)] // keeps dependency-policy validation centralized for dependencies/dev-dependencies/build-dependencies checks
-fn workspace_dep_entry_is_valid(dep_value: types::TomlValueRef<'_>) -> types::AnalyzerBool {
-    types::AnalyzerBool::from(match dep_value.as_ref() {
-        toml::Value::Table(dep_table) => {
-            dep_table.get(constants_str::WORKSPACE) == Some(&toml::Value::Boolean(true))
-        }
-        toml::Value::String(_)
-        | toml::Value::Integer(_)
-        | toml::Value::Float(_)
-        | toml::Value::Boolean(_)
-        | toml::Value::Datetime(_)
-        | toml::Value::Array(_) => false,
-    })
-}
-#[allow(clippy::single_call_fn)] // shared message builder keeps dependency-policy errors identical across call sites
-fn workspace_dep_entry_error(
-    path: types::PathRef<'_>,
-    dep_name: types::SourceTextRef<'_>,
-    dep_section: types::SourceTextRef<'_>,
-) -> types::SourceText {
-    types::SourceText::try_from(format!(
-        "{}: dependency `{dep_name}` in [{dep_section}] must use `dep = {{ workspace = true }}`",
-        path.as_ref().display(),
-        dep_name = dep_name.as_ref(),
-        dep_section = dep_section.as_ref(),
-    ))
-    .expect("c836ad25 workspace_dep_entry_error invariant must hold")
-}
-#[allow(clippy::single_call_fn)] // dedicated collector keeps workspace-members existence diagnostics reusable and deterministic with caller-managed sorting
-fn collect_workspace_member_missing_cargo_toml_ers(
-    members: types::SourceTextListRef<'_>,
-) -> types::SourceTextList {
-    types::SourceTextList::from(
-        members
-            .as_ref()
-            .iter()
-            .filter_map(|member_str| {
-                let path = std::path::Path::new(constants_str::TEXT_ALT_8)
-                    .join(member_str)
-                    .join(constants_str::CARGO_TOML);
-                (!path.exists()).then(|| {
-                    format!(
-                        "member `{member_str}` Cargo.toml not found at {}",
-                        path.display()
-                    )
-                })
-            })
-            .collect::<Vec<String>>(),
-    )
 }
 fn workspace_members_as_strs(
     workspace: types::TomlTableRef<'_>,

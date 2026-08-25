@@ -1,14 +1,88 @@
-#![allow(
-    clippy::arbitrary_source_item_ordering,
-    reason = "the runtime reviewed-duplicate inventory must precede its analyzer types without becoming a forbidden string constant"
-)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Default)]
+struct FunctionBodyComplexity {
+    expression_count: usize,
+}
 
-#[allow(
-    clippy::single_call_fn,
-    reason = "the named runtime constructor isolates the exact reviewed inventory while avoiding string constants outside constants_str"
-)]
-fn reviewed_duplicate_groups() -> Vec<ReviewedDuplicateGroup> {
-    vec![
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+struct FunctionBodyVisitor<'visitor_lt> {
+    bodies: super::types::FunctionBodyLocationsBTreeMapMutRef<'visitor_lt>,
+    identifier_pattern: super::types::RegexRegexRef<'visitor_lt>,
+    path: super::types::PathRef<'visitor_lt>,
+}
+
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+struct ReviewedDuplicateGroup {
+    locations: &'static str,
+    reason: &'static str,
+}
+
+impl<'ast> syn::visit::Visit<'ast> for FunctionBodyComplexity {
+    fn visit_expr(&mut self, i: &'ast syn::Expr) {
+        self.expression_count = self.expression_count.saturating_add(constants_usize::ONE);
+        syn::visit::visit_expr(self, i);
+    }
+}
+
+impl FunctionBodyVisitor<'_> {
+    fn record(&mut self, name: &syn::Ident, block: &syn::Block) {
+        if function_body_is_substantial(block) {
+            self.bodies
+                .entry(function_body_hash(block, self.identifier_pattern))
+                .or_default()
+                .push(format!("{}::{name}", self.path.as_ref().display()));
+        }
+    }
+}
+
+impl<'ast> syn::visit::Visit<'ast> for FunctionBodyVisitor<'_> {
+    fn visit_impl_item_fn(&mut self, i: &'ast syn::ImplItemFn) {
+        self.record(&i.sig.ident, &i.block);
+        syn::visit::visit_impl_item_fn(self, i);
+    }
+
+    fn visit_item_fn(&mut self, i: &'ast syn::ItemFn) {
+        if !super::item_fn_is_unit_test(super::types::SynItemFnRef::from(i)).get() {
+            self.record(&i.sig.ident, &i.block);
+        }
+        syn::visit::visit_item_fn(self, i);
+    }
+}
+
+fn function_body_is_substantial(block: &syn::Block) -> bool {
+    let mut complexity = FunctionBodyComplexity::default();
+    syn::visit::Visit::visit_block(&mut complexity, block);
+    complexity.expression_count >= 9usize
+}
+
+fn function_body_hash(
+    block: &syn::Block,
+    identifier_pattern: super::types::RegexRegexRef<'_>,
+) -> super::types::FunctionBodyHash {
+    let body = format!("{block:?}");
+    let normalized_body =
+        identifier_pattern.replace_all(&body, constants_str::NORMALIZED_IDENTIFIER);
+    let mut hasher = std::hash::DefaultHasher::new();
+    std::hash::Hash::hash(&normalized_body, &mut hasher);
+    super::types::FunctionBodyHash::from(std::hash::Hasher::finish(&hasher))
+}
+
+#[test]
+fn substantial_function_bodies_have_one_source_of_truth() {
+    let mut bodies = super::types::FunctionBodyLocationsBTreeMap::default();
+    let identifier_pattern = regex::Regex::new(constants_str::VALUE_58523C42).expect(
+        "d4a8c2f1 substantial_function_bodies_have_one_source_of_truth invariant must hold",
+    );
+    super::snapshot::with_codebase_snapshot(|snapshot| {
+        snapshot.rs_files().iter().for_each(|file| {
+            let mut visitor = FunctionBodyVisitor {
+                bodies: super::types::FunctionBodyLocationsBTreeMapMutRef::from(&mut bodies),
+                identifier_pattern: super::types::RegexRegexRef::from(&identifier_pattern),
+                path: super::types::PathRef::from(file.path().as_ref()),
+            };
+            syn::visit::Visit::visit_file(&mut visitor, file.ast().as_ref());
+        });
+    });
+    let mut reviewed = vec![
         ReviewedDuplicateGroup {
             locations: constants_str::STRING_CONSTANT_METADATA_FIXTURE_LOCATIONS,
             reason: constants_str::STRING_CONSTANT_MIGRATION_NORMALIZES_DISTINCT_FIXTURES,
@@ -134,10 +208,6 @@ fn reviewed_duplicate_groups() -> Vec<ReviewedDuplicateGroup> {
             reason: constants_str::VALUE_FE253AFB,
         },
         ReviewedDuplicateGroup {
-            locations: constants_str::VALUE_A744A72D,
-            reason: constants_str::VALUE_064EC769,
-        },
-        ReviewedDuplicateGroup {
             locations: constants_str::VALUE_1C550714,
             reason: constants_str::VALUE_C1DC2D40,
         },
@@ -172,10 +242,6 @@ fn reviewed_duplicate_groups() -> Vec<ReviewedDuplicateGroup> {
         ReviewedDuplicateGroup {
             locations: constants_str::VALUE_66B5730A,
             reason: constants_str::VALUE_D6EC9B66,
-        },
-        ReviewedDuplicateGroup {
-            locations: constants_str::VALUE_E4A2A88A,
-            reason: constants_str::VALUE_37FDC7B8,
         },
         ReviewedDuplicateGroup {
             locations: constants_str::VALUE_F43CC42D,
@@ -262,93 +328,8 @@ fn reviewed_duplicate_groups() -> Vec<ReviewedDuplicateGroup> {
             reason: constants_str::VALUE_91B4F7EC,
         },
     ]
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Default)]
-struct FunctionBodyComplexity {
-    expression_count: usize,
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-struct FunctionBodyVisitor<'visitor_lt> {
-    bodies: super::types::FunctionBodyLocationsBTreeMapMutRef<'visitor_lt>,
-    identifier_pattern: super::types::RegexRegexRef<'visitor_lt>,
-    path: super::types::PathRef<'visitor_lt>,
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-struct ReviewedDuplicateGroup {
-    locations: &'static str,
-    reason: &'static str,
-}
-
-impl<'ast> syn::visit::Visit<'ast> for FunctionBodyComplexity {
-    fn visit_expr(&mut self, i: &'ast syn::Expr) {
-        self.expression_count = self.expression_count.saturating_add(constants_usize::ONE);
-        syn::visit::visit_expr(self, i);
-    }
-}
-
-impl FunctionBodyVisitor<'_> {
-    fn record(&mut self, name: &syn::Ident, block: &syn::Block) {
-        if function_body_is_substantial(block) {
-            self.bodies
-                .entry(function_body_hash(block, self.identifier_pattern))
-                .or_default()
-                .push(format!("{}::{name}", self.path.as_ref().display()));
-        }
-    }
-}
-
-impl<'ast> syn::visit::Visit<'ast> for FunctionBodyVisitor<'_> {
-    fn visit_impl_item_fn(&mut self, i: &'ast syn::ImplItemFn) {
-        self.record(&i.sig.ident, &i.block);
-        syn::visit::visit_impl_item_fn(self, i);
-    }
-
-    fn visit_item_fn(&mut self, i: &'ast syn::ItemFn) {
-        if !super::item_fn_is_unit_test(super::types::SynItemFnRef::from(i)).get() {
-            self.record(&i.sig.ident, &i.block);
-        }
-        syn::visit::visit_item_fn(self, i);
-    }
-}
-
-fn function_body_is_substantial(block: &syn::Block) -> bool {
-    let mut complexity = FunctionBodyComplexity::default();
-    syn::visit::Visit::visit_block(&mut complexity, block);
-    complexity.expression_count >= 9usize
-}
-
-fn function_body_hash(
-    block: &syn::Block,
-    identifier_pattern: super::types::RegexRegexRef<'_>,
-) -> super::types::FunctionBodyHash {
-    let body = format!("{block:?}");
-    let normalized_body =
-        identifier_pattern.replace_all(&body, constants_str::NORMALIZED_IDENTIFIER);
-    let mut hasher = std::hash::DefaultHasher::new();
-    std::hash::Hash::hash(&normalized_body, &mut hasher);
-    super::types::FunctionBodyHash::from(std::hash::Hasher::finish(&hasher))
-}
-
-#[test]
-fn substantial_function_bodies_have_one_source_of_truth() {
-    let mut bodies = super::types::FunctionBodyLocationsBTreeMap::default();
-    let identifier_pattern = regex::Regex::new(constants_str::VALUE_58523C42).expect(
-        "d4a8c2f1 substantial_function_bodies_have_one_source_of_truth invariant must hold",
-    );
-    super::snapshot::with_codebase_snapshot(|snapshot| {
-        snapshot.rs_files().iter().for_each(|file| {
-            let mut visitor = FunctionBodyVisitor {
-                bodies: super::types::FunctionBodyLocationsBTreeMapMutRef::from(&mut bodies),
-                identifier_pattern: super::types::RegexRegexRef::from(&identifier_pattern),
-                path: super::types::PathRef::from(file.path().as_ref()),
-            };
-            syn::visit::Visit::visit_file(&mut visitor, file.ast().as_ref());
-        });
-    });
-    let mut reviewed = reviewed_duplicate_groups().into_iter().fold(
+    .into_iter()
+    .fold(
         std::collections::BTreeMap::<&str, &str>::new(),
         |mut reviewed_groups, group| {
             assert!(

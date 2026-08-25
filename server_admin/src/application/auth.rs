@@ -164,30 +164,6 @@ pub struct AdminAuthPolicy {
     refresh_window: StdAdminRateLimitWindowSeconds,
     sign_in_window: StdAdminRateLimitWindowSeconds,
 }
-impl AdminAuthPolicy {
-    #[allow(
-        clippy::single_call_fn,
-        reason = "keeps every administrator authentication threshold in one immutable policy constructor"
-    )]
-    fn from_limits(
-        failure_threshold: StdAdminFailureThreshold,
-        sign_in_limit: StdAdminRateLimitCount,
-    ) -> Self {
-        Self {
-            audit_export_limit: StdAdminRateLimitCount::from(60i64),
-            audit_export_window: StdAdminRateLimitWindowSeconds::from(60i32),
-            failure_delay: StdAdminFailureDelayMillis::from(200u64),
-            failure_threshold,
-            mutation_limit: StdAdminRateLimitCount::from(300i64),
-            mutation_window: StdAdminRateLimitWindowSeconds::from(60i32),
-            refresh_limit: StdAdminRateLimitCount::from(60i64),
-            refresh_window: StdAdminRateLimitWindowSeconds::from(900i32),
-            sign_in_ip_limit: StdAdminRateLimitCount::from(sign_in_limit.0.saturating_mul(5i64)),
-            sign_in_limit,
-            sign_in_window: StdAdminRateLimitWindowSeconds::from(900i32),
-        }
-    }
-}
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 pub struct AdminAuthSvcState {
     access_ttl: StdAdminAccessTtlSeconds,
@@ -618,14 +594,16 @@ async fn authenticate(
         })
         .ok_or(AdminError::Authentication)?;
     let context_hash = session_context_hash(headers, peer).map_err(AdminError::secret_text)?;
-    let active = crate::adapters::repository::sessions::access_session_is_active(
-        crate::adapters::repository::SqlxAdminRepositoryPoolRef::from(state.pool.as_ref()),
-        claims.session_id(),
-        claims.user_id(),
-        &context_hash,
-    )
-    .await
-    .map_err(AdminError::pg)?;
+    let active =
+        sqlx::query_scalar::<_, bool>(constants_str::SERVER_ADMIN_ACTIVE_ACCESS_SESSION_SQL)
+            .bind(claims.session_id().get().get())
+            .bind(claims.user_id().get())
+            .bind(context_hash.expose().as_ref())
+            .fetch_one(state.pool.as_ref())
+            .await
+            .map_err(crate::domain_types::SqlxAdminError::from)
+            .map(crate::domain_types::StdAdminBool::from)
+            .map_err(AdminError::pg)?;
     if !active.get() {
         return Err(AdminError::Authentication);
     }
@@ -652,14 +630,27 @@ async fn validate_csrf(
         .map_err(AdminError::csrf_secret_text)?;
     let provided_hash =
         super::hash_opaque_token(&provided_token).map_err(AdminError::csrf_secret_text)?;
-    let expected = crate::adapters::repository::sessions::read_csrf_hash(
-        crate::adapters::repository::SqlxAdminRepositoryPoolRef::from(state.pool.as_ref()),
-        authenticated.session_id,
-        authenticated.id,
-    )
-    .await
-    .map_err(AdminError::pg)?
-    .ok_or(AdminError::Csrf)?;
+    let expected = sqlx::query_scalar::<_, String>(constants_str::SERVER_ADMIN_READ_CSRF_HASH_SQL)
+        .bind(authenticated.session_id.get().get())
+        .bind(authenticated.id.get())
+        .fetch_optional(state.pool.as_ref())
+        .await
+        .map_err(crate::domain_types::SqlxAdminError::from)
+        .and_then(|value| {
+            value
+                .map(|hash| {
+                    crate::domain_types::SecrecyAdminString::try_from(hash)
+                        .map(crate::domain_types::AdminTokenHash::new)
+                        .map_err(|error| {
+                            crate::domain_types::SqlxAdminError::from(sqlx::Error::Protocol(
+                                error.to_string(),
+                            ))
+                        })
+                })
+                .transpose()
+        })
+        .map_err(AdminError::pg)?
+        .ok_or(AdminError::Csrf)?;
     let provided_text = provided_hash.expose();
     let provided_secret =
         match server_runtime_http::domain_types::SecretTextRef::try_from(provided_text.get()) {
@@ -1003,15 +994,16 @@ async fn record_login_attempt(
     peer: AdminPeerAddr,
     succeeded: super::StdAdminBool,
 ) -> Result<(), AdminError> {
-    crate::adapters::repository::audit::record_login_attempt(
-        crate::adapters::repository::SqlxAdminRepositoryPoolRef::from(state.pool.as_ref()),
-        login,
-        peer,
-        succeeded,
-        super::UuidAdminValue::from(uuid::Uuid::new_v4()),
-    )
-    .await
-    .map_err(AdminError::pg)
+    sqlx::query(constants_str::SERVER_ADMIN_RECORD_LOGIN_ATTEMPT_SQL)
+        .bind(login.as_ref())
+        .bind(peer.socket_addr().get().ip())
+        .bind(succeeded.get())
+        .bind(uuid::Uuid::new_v4())
+        .execute(state.pool.as_ref())
+        .await
+        .map_err(super::SqlxAdminError::from)
+        .map(drop)
+        .map_err(AdminError::pg)
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy)]
 struct AdminAuditSuccessRef<'value_lt> {
@@ -1039,10 +1031,26 @@ impl AdminAuditResourceId {
     }
 }
 async fn record_audit_success_in_connection(
-    connection: SqlxAdminPgConnectionRef<'_>,
+    mut connection: SqlxAdminPgConnectionRef<'_>,
     event: AdminAuditSuccessRef<'_>,
 ) -> Result<(), AdminError> {
-    audit::record_success_in_connection(connection, event).await
+    let details = server_admin_contract::domain_types::SerdeJsonAdminAuditDetails::try_from(
+        serde_json::json!({ "operation": event.action.as_str().as_ref(), "target_id": event.resource_id.value().as_ref() }),
+    )
+    .map_err(|_error| AdminError::Validation)?;
+    let resource_id = event.resource_id.value();
+    crate::adapters::repository::audit::insert_audit_success(
+        crate::adapters::repository::SqlxAdminRepositoryConnectionMutRef::from(connection.as_mut()),
+        event.user_id,
+        event.login,
+        event.action,
+        event.resource,
+        &resource_id,
+        super::UuidAdminValue::from(uuid::Uuid::new_v4()),
+        &details,
+    )
+    .await
+    .map_err(AdminError::pg)
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::AsMut, newtype::FromInner)]
 struct SqlxAdminPgConnectionRef<'connection_lt>(&'connection_lt mut sqlx::PgConnection);
@@ -1052,28 +1060,69 @@ async fn load_authenticated_admin(
     user_id: super::AdminUserId,
     session_id: super::AdminSessionId,
 ) -> Result<AuthenticatedAdmin, AdminError> {
-    let mut db = crate::adapters::repository::AdminRepositoryDbRef::Pool(
+    let mut db = AdminDbRef::Pool(
         crate::adapters::repository::SqlxAdminRepositoryPoolRef::from(state.pool.as_ref()),
     );
     load_authenticated_admin_from_db(&mut db, user_id, session_id).await
 }
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+enum AdminDbRef<'connection_lt, 'pool_lt> {
+    Connection(crate::adapters::repository::SqlxAdminRepositoryConnectionMutRef<'connection_lt>),
+    Pool(crate::adapters::repository::SqlxAdminRepositoryPoolRef<'pool_lt>),
+}
 async fn load_authenticated_admin_from_db(
-    db: &mut crate::adapters::repository::AdminRepositoryDbRef<'_, '_>,
+    db: &mut AdminDbRef<'_, '_>,
     user_id: super::AdminUserId,
     session_id: super::AdminSessionId,
 ) -> Result<AuthenticatedAdmin, AdminError> {
-    let record = crate::adapters::repository::users::read_authenticated_record(db, user_id)
-        .await
-        .map_err(|repository_error| match repository_error {
-            crate::adapters::repository::AdminRepositoryError::InvalidStoredValue => {
-                AdminError::Authentication
-            }
-            crate::adapters::repository::AdminRepositoryError::Sqlx(sqlx_error) => {
-                AdminError::pg(sqlx_error)
-            }
-        })?
-        .ok_or(AdminError::Authentication)?;
-    let (display_name, login, password_change_required, permissions, roles) = record.into_parts();
+    let user_query =
+        sqlx::query_as::<_, (String, String, bool)>(constants_str::SERVER_ADMIN_READ_AUTH_USER_SQL)
+            .bind(user_id.get());
+    let optional_user = match db {
+        AdminDbRef::Connection(connection) => user_query.fetch_optional(&mut ***connection).await,
+        AdminDbRef::Pool(pool) => user_query.fetch_optional(&***pool).await,
+    }
+    .map_err(super::SqlxAdminError::from)
+    .map_err(AdminError::pg)?;
+    let (raw_login, raw_display_name, must_change_password) =
+        optional_user.ok_or(AdminError::Authentication)?;
+    let roles_query =
+        sqlx::query_scalar::<_, String>(constants_str::SERVER_ADMIN_READ_AUTH_ROLES_SQL)
+            .bind(user_id.get());
+    let raw_roles = match db {
+        AdminDbRef::Connection(connection) => roles_query.fetch_all(&mut ***connection).await,
+        AdminDbRef::Pool(pool) => roles_query.fetch_all(&***pool).await,
+    }
+    .map_err(super::SqlxAdminError::from)
+    .map_err(AdminError::pg)?;
+    let permissions_query =
+        sqlx::query_scalar::<_, String>(constants_str::SERVER_ADMIN_READ_AUTH_PERMISSIONS_SQL)
+            .bind(user_id.get());
+    let raw_permissions = match db {
+        AdminDbRef::Connection(connection) => permissions_query.fetch_all(&mut ***connection).await,
+        AdminDbRef::Pool(pool) => permissions_query.fetch_all(&***pool).await,
+    }
+    .map_err(super::SqlxAdminError::from)
+    .map_err(AdminError::pg)?;
+    let display_name = super::AdminDisplayName::try_from(raw_display_name)
+        .map_err(|_error| AdminError::Authentication)?;
+    let login =
+        super::AdminLogin::try_from(raw_login).map_err(|_error| AdminError::Authentication)?;
+    let password_change_required = super::AdminPasswordChangeRequired::from(must_change_password);
+    let permissions = raw_permissions
+        .into_iter()
+        .map(|permission| super::AdminPermission::try_from(permission.as_str()))
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|_error| AdminError::Authentication)?
+        .try_into()
+        .map_err(|_error| AdminError::Authentication)?;
+    let roles = raw_roles
+        .into_iter()
+        .map(super::AdminRoleName::try_from)
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|_error| AdminError::Authentication)?
+        .try_into()
+        .map_err(|_error| AdminError::Authentication)?;
     Ok(AuthenticatedAdmin {
         display_name,
         id: user_id,
@@ -1254,15 +1303,30 @@ impl AdminAuthSvcState {
                 .map_err(AdminAuthSvcStateBuildError::PositiveValue)?,
             session_limit: StdAdminSessionLimit::try_from(session_limit.get())
                 .map_err(AdminAuthSvcStateBuildError::PositiveValue)?,
-            policy: AdminAuthPolicy::from_limits(
-                StdAdminFailureThreshold::try_from(
+            policy: {
+                let failure_threshold = StdAdminFailureThreshold::try_from(
                     i64::try_from(login_failure_limit.get()).unwrap_or(i64::MAX),
                 )
-                .map_err(AdminAuthSvcStateBuildError::PositiveValue)?,
-                StdAdminRateLimitCount::from(
+                .map_err(AdminAuthSvcStateBuildError::PositiveValue)?;
+                let sign_in_limit = StdAdminRateLimitCount::from(
                     i64::try_from(sign_in_rate_limit.get()).unwrap_or(i64::MAX),
-                ),
-            ),
+                );
+                AdminAuthPolicy {
+                    audit_export_limit: StdAdminRateLimitCount::from(60i64),
+                    audit_export_window: StdAdminRateLimitWindowSeconds::from(60i32),
+                    failure_delay: StdAdminFailureDelayMillis::from(200u64),
+                    failure_threshold,
+                    mutation_limit: StdAdminRateLimitCount::from(300i64),
+                    mutation_window: StdAdminRateLimitWindowSeconds::from(60i32),
+                    refresh_limit: StdAdminRateLimitCount::from(60i64),
+                    refresh_window: StdAdminRateLimitWindowSeconds::from(900i32),
+                    sign_in_ip_limit: StdAdminRateLimitCount::from(
+                        sign_in_limit.0.saturating_mul(5i64),
+                    ),
+                    sign_in_limit,
+                    sign_in_window: StdAdminRateLimitWindowSeconds::from(900i32),
+                }
+            },
         })
     }
 }

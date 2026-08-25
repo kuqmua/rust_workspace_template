@@ -149,35 +149,29 @@ struct ParsedHttpOriginRef<'text> {
 )]
 pub struct RequestOriginAllowed(bool);
 
-#[allow(clippy::single_call_fn)] // parsing is independently testable through origin resolution
-fn parse_request_origin(
-    value: HttpOriginTextRef<'_>,
-    allow_suffix: AllowOriginSuffix,
-) -> Option<ParsedHttpOriginRef<'_>> {
-    let (scheme, remainder) = value.0.trim().split_once(constants_str::TEXT_ALT_10)?;
-    if !scheme.eq_ignore_ascii_case(constants_str::HTTP)
-        && !scheme.eq_ignore_ascii_case(constants_str::HTTPS)
-    {
-        return None;
-    }
-    let authority_end = remainder.find(['/', '?', '#']).unwrap_or(remainder.len());
-    let authority = remainder.get(..authority_end)?;
-    if authority.is_empty() || (!allow_suffix.0 && authority_end != remainder.len()) {
-        None
-    } else {
-        Some(ParsedHttpOriginRef {
-            authority: HttpOriginTextRef::from(authority),
-            scheme: HttpOriginTextRef::from(scheme),
-        })
-    }
-}
-
 fn request_origin_value_is_allowed(
     value: HttpOriginTextRef<'_>,
     allow_suffix: AllowOriginSuffix,
     allowed_origins: &AllowedOrigins,
 ) -> RequestOriginAllowed {
-    let Some(parsed) = parse_request_origin(value, allow_suffix) else {
+    let Some(parsed) = (|| {
+        let (scheme, remainder) = value.0.trim().split_once(constants_str::TEXT_ALT_10)?;
+        if !scheme.eq_ignore_ascii_case(constants_str::HTTP)
+            && !scheme.eq_ignore_ascii_case(constants_str::HTTPS)
+        {
+            return None;
+        }
+        let authority_end = remainder.find(['/', '?', '#']).unwrap_or(remainder.len());
+        let authority = remainder.get(..authority_end)?;
+        if authority.is_empty() || (!allow_suffix.0 && authority_end != remainder.len()) {
+            None
+        } else {
+            Some(ParsedHttpOriginRef {
+                authority: HttpOriginTextRef::from(authority),
+                scheme: HttpOriginTextRef::from(scheme),
+            })
+        }
+    })() else {
         return RequestOriginAllowed::from(false);
     };
     RequestOriginAllowed::from(allowed_origins.0.iter().any(|allowed_origin| {

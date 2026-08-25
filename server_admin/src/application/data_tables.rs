@@ -3,13 +3,6 @@
 pub(super) async fn list(
     auth: super::AdminAuthReq,
 ) -> Result<super::AxumAdminResponse, super::AdminError> {
-    data_table_catalog(auth)
-        .await
-        .map(super::shared::json_response)
-}
-pub(super) async fn data_table_catalog(
-    auth: super::AdminAuthReq,
-) -> Result<server_admin_contract::domain_types::AdminDataTableCatalog, super::AdminError> {
     let actor = super::authorize_generated_request(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
@@ -23,18 +16,22 @@ pub(super) async fn data_table_catalog(
         .into_iter()
         .filter(|table| bool::from(admin.has_permission(table.permission())))
         .collect::<Vec<_>>();
-    Ok(
+    Ok(super::shared::json_response(
         server_admin_contract::domain_types::AdminDataTableCatalog::new(
             server_admin_contract::domain_types::AdminDataTables::try_from(items)
                 .map_err(|_error| super::AdminError::Validation)?,
         ),
-    )
+    ))
 }
-pub(super) async fn data_table_view(
+pub(super) async fn get(
     auth: super::AdminAuthReq,
-    table: server_admin_contract::domain_types::AdminDataTable,
-    query: &server_admin_contract::domain_types::AdminDataTableQuery,
-) -> Result<server_admin_contract::domain_types::AdminDataTableView, super::AdminError> {
+    super::AxumAdminPath(table): super::AxumAdminPath<
+        server_admin_contract::domain_types::AdminDataTable,
+    >,
+    super::AxumAdminQuery(query): super::AxumAdminQuery<
+        server_admin_contract::domain_types::AdminDataTableQuery,
+    >,
+) -> Result<super::AxumAdminResponse, super::AdminError> {
     let _actor = super::authorize_generated_request(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
@@ -48,21 +45,9 @@ pub(super) async fn data_table_view(
             auth.state.as_ref().pool.as_ref(),
         ),
         table,
-        query,
+        &query,
     )
     .await
     .map_err(super::shared::map_repository_error)
-}
-pub(super) async fn get(
-    auth: super::AdminAuthReq,
-    super::AxumAdminPath(table): super::AxumAdminPath<
-        server_admin_contract::domain_types::AdminDataTable,
-    >,
-    super::AxumAdminQuery(query): super::AxumAdminQuery<
-        server_admin_contract::domain_types::AdminDataTableQuery,
-    >,
-) -> Result<super::AxumAdminResponse, super::AdminError> {
-    data_table_view(auth, table, &query)
-        .await
-        .map(super::shared::json_response)
+    .map(super::shared::json_response)
 }

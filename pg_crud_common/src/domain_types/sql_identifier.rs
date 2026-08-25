@@ -115,11 +115,6 @@ impl SqlQualifiedIdentifier {
     pub const fn new(schema: SqlIdentifier, table: SqlIdentifier) -> Self {
         Self { schema, table }
     }
-    fn push_to(&self, output: &mut SqlQueryText) {
-        output.0.push_str(self.schema.as_ref());
-        output.0.push('.');
-        output.0.push_str(self.table.as_ref());
-    }
 }
 impl std::fmt::Display for SqlQualifiedIdentifier {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -149,7 +144,9 @@ impl SqlSelectBuilder {
         query.0.push_str(constants_str::SELECT);
         query.0.push_str(columns);
         query.0.push_str(constants_str::FROM);
-        self.table.push_to(&mut query);
+        query.0.push_str(self.table.schema.as_ref());
+        query.0.push('.');
+        query.0.push_str(self.table.table.as_ref());
         crate::domain_types::QueryPartFragment::try_from(query.0)
             .unwrap_or_else(crate::domain_types::QueryPartFragment::from)
     }

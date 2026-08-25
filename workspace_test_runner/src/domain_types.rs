@@ -120,20 +120,6 @@ impl ToolAvailable {
         self.0
     }
 }
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
-pub(crate) struct RunnerIoErrorRef<'error_lt>(&'error_lt std::io::Error);
-impl<'error_lt> RunnerIoErrorRef<'error_lt> {
-    pub(crate) const fn get(self) -> &'error_lt std::io::Error {
-        self.0
-    }
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
-pub(crate) struct RunnerPathRef<'path_lt>(&'path_lt std::path::Path);
-impl<'path_lt> RunnerPathRef<'path_lt> {
-    pub(crate) const fn get(self) -> &'path_lt std::path::Path {
-        self.0
-    }
-}
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::AsRefStr, newtype::BoundedString,
 )]

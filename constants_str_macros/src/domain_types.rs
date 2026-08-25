@@ -5,37 +5,7 @@ mod keyword {
 const COLLECTION_MAX_LEN: usize = 10_000usize;
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
-pub(crate) struct ProcMacroDefineStrConstantsInput(proc_macro::TokenStream);
-
-impl From<proc_macro::TokenStream> for ProcMacroDefineStrConstantsInput {
-    fn from(value: proc_macro::TokenStream) -> Self {
-        Self(value)
-    }
-}
-
-impl From<ProcMacroDefineStrConstantsInput> for proc_macro::TokenStream {
-    fn from(value: ProcMacroDefineStrConstantsInput) -> Self {
-        value.0
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-pub(crate) struct ProcMacroDefineStrConstantsOutput(proc_macro::TokenStream);
-
-impl From<proc_macro::TokenStream> for ProcMacroDefineStrConstantsOutput {
-    fn from(value: proc_macro::TokenStream) -> Self {
-        Self(value)
-    }
-}
-
-impl From<ProcMacroDefineStrConstantsOutput> for proc_macro::TokenStream {
-    fn from(value: ProcMacroDefineStrConstantsOutput) -> Self {
-        value.0
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-struct SynIdent(syn::Ident);
+pub(crate) struct SynIdent(syn::Ident);
 impl From<syn::Ident> for SynIdent {
     fn from(value: syn::Ident) -> Self {
         Self(value)
@@ -49,7 +19,7 @@ impl syn::parse::Parse for SynIdent {
 }
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
-struct SynLitStr(syn::LitStr);
+pub(crate) struct SynLitStr(syn::LitStr);
 impl From<syn::LitStr> for SynLitStr {
     fn from(value: syn::LitStr) -> Self {
         Self(value)
@@ -63,7 +33,7 @@ impl syn::parse::Parse for SynLitStr {
 }
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
-struct SynVisibility(syn::Visibility);
+pub(crate) struct SynVisibility(syn::Visibility);
 impl From<syn::Visibility> for SynVisibility {
     fn from(value: syn::Visibility) -> Self {
         Self(value)
@@ -77,18 +47,18 @@ impl syn::parse::Parse for SynVisibility {
 }
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
-struct Fragment {
+pub(crate) struct Fragment {
     name: SynIdent,
     value: SynLitStr,
 }
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
-enum ConstantPart {
+pub(crate) enum ConstantPart {
     Fragment(SynIdent),
     Literal(SynLitStr),
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
-struct ConstantParts(Vec<ConstantPart>);
+pub(crate) struct ConstantParts(Vec<ConstantPart>);
 impl TryFrom<Vec<ConstantPart>> for ConstantParts {
     type Error = syn::Error;
     fn try_from(value: Vec<ConstantPart>) -> Result<Self, Self::Error> {
@@ -103,7 +73,7 @@ impl TryFrom<Vec<ConstantPart>> for ConstantParts {
     }
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
-struct Constants(Vec<Constant>);
+pub(crate) struct Constants(Vec<Constant>);
 impl TryFrom<Vec<Constant>> for Constants {
     type Error = syn::Error;
     fn try_from(value: Vec<Constant>) -> Result<Self, Self::Error> {
@@ -118,7 +88,7 @@ impl TryFrom<Vec<Constant>> for Constants {
     }
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
-struct Fragments(Vec<Fragment>);
+pub(crate) struct Fragments(Vec<Fragment>);
 #[allow(
     clippy::useless_concat,
     reason = "the constants_str generator cannot depend on the crate that it generates"
@@ -138,14 +108,14 @@ impl TryFrom<Vec<Fragment>> for Fragments {
 }
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
-struct Constant {
+pub(crate) struct Constant {
     name: SynIdent,
     parts: ConstantParts,
     visibility: Option<SynVisibility>,
 }
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
-struct DefineStrConstantsInput {
+pub(crate) struct DefineStrConstantsInput {
     constants: Constants,
     fragments: Fragments,
 }
@@ -214,31 +184,26 @@ impl syn::parse::Parse for DefineStrConstantsInput {
     }
 }
 
-#[allow(
-    clippy::single_call_fn,
-    reason = "the proc-macro entrypoint delegates parsing and expansion to the private domain model"
-)]
-pub(crate) fn expand(input: ProcMacroDefineStrConstantsInput) -> ProcMacroDefineStrConstantsOutput {
-    let expand = |parsed: DefineStrConstantsInput| {
-        let fragment_count = parsed.fragments.0.len();
-        let fragments = parsed.fragments.0.into_iter().try_fold(
-            std::collections::HashMap::with_capacity(fragment_count),
-            |mut fragments, fragment| {
-                let name = fragment.name.0.to_string();
-                if fragments.insert(name, fragment.value.0.value()).is_some() {
-                    Err(syn::Error::new(
-                        fragment.name.0.span(),
-                        stringify!(5bbbde57 duplicate string fragment),
-                    ))
-                } else {
-                    Ok(fragments)
-                }
-            },
-        )?;
-
-        let constant_count = parsed.constants.0.len();
-        let (_, _, generated) =
-            parsed.constants.0.into_iter().try_fold(
+impl From<DefineStrConstantsInput> for proc_macro2::TokenStream {
+    fn from(parsed: DefineStrConstantsInput) -> Self {
+        let generated = (|| {
+            let fragment_count = parsed.fragments.0.len();
+            let fragments = parsed.fragments.0.into_iter().try_fold(
+                std::collections::HashMap::with_capacity(fragment_count),
+                |mut fragments, fragment| {
+                    let name = fragment.name.0.to_string();
+                    if fragments.insert(name, fragment.value.0.value()).is_some() {
+                        Err(syn::Error::new(
+                            fragment.name.0.span(),
+                            stringify!(5bbbde57 duplicate string fragment),
+                        ))
+                    } else {
+                        Ok(fragments)
+                    }
+                },
+            )?;
+            let constant_count = parsed.constants.0.len();
+            let (_, _, generated) = parsed.constants.0.into_iter().try_fold(
                 (
                     std::collections::HashSet::with_capacity(constant_count),
                     std::collections::HashMap::with_capacity(constant_count),
@@ -294,13 +259,11 @@ pub(crate) fn expand(input: ProcMacroDefineStrConstantsInput) -> ProcMacroDefine
                     Ok((names, values, generated))
                 },
             )?;
-        Ok(quote::quote! { #(#generated)* })
-    };
-    let output = match syn::parse::<DefineStrConstantsInput>(proc_macro::TokenStream::from(input))
-        .and_then(expand)
-    {
-        Ok(generated) => proc_macro::TokenStream::from(generated),
-        Err(error) => proc_macro::TokenStream::from(error.into_compile_error()),
-    };
-    ProcMacroDefineStrConstantsOutput::from(output)
+            Ok::<Self, syn::Error>(quote::quote! { #(#generated)* })
+        })();
+        match generated {
+            Ok(tokens) => tokens,
+            Err(error) => error.into_compile_error(),
+        }
+    }
 }

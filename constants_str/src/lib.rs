@@ -2175,6 +2175,8 @@ constants_str_macros::define_str_constants! {
         SERVER_RETURNED_AN_ERROR_RESPONSE = ["server returned an error response"];
         SERVER_SRC_APPLICATION_RS = ["server/src/application.rs"];
         SERVER_ADMIN_SRC_LIB_RS = ["server_admin/src/domain_types.rs"];
+        SERVER_ADMIN_SRC_ADAPTERS_REPOSITORY_RS = ["server_admin/src/adapters/repository.rs"];
+        SERVER_ADMIN_SRC_APPLICATION_RATE_LIMIT_RS = ["server_admin/src/application/rate_limit.rs"];
         SERVER_ADMIN_SRC_PASSWORD_RS = ["server_admin/src/domain_types/password.rs"];
         SERVER_ADMIN_FRONTEND_SRC_APP_RS = ["server_admin_frontend/src/domain_types/app.rs"];
         SERVER_ADMIN_FRONTEND_SRC_SHARED_RS = ["server_admin_frontend/src/domain_types/shared.rs"];
@@ -2183,6 +2185,8 @@ constants_str_macros::define_str_constants! {
         SERVER_ADMIN_FRONTEND_SRC_APP_PAGES_RS = ["server_admin_frontend/src/domain_types/app/pages.rs"];
         SERVER_ADMIN_FRONTEND_SRC_APP_TABLES_RS = ["server_admin_frontend/src/domain_types/app/tables.rs"];
         SERVER_ADMIN_FRONTEND_SRC_APP_DATA_GRID_RS = ["server_admin_frontend/src/domain_types/app/data_grid.rs"];
+        INLINED_ADMIN_OPERATIONS_DISCARD_TYPED_CONVERSION_DETAILS_AT_THE_HTTP_BOUNDARY = ["inlined administrator operations discard typed conversion details at the HTTP boundary"];
+        GENERATED_ADMIN_TABLE_ROUTING_REQUIRES_SHARED_APPLICATION_STATE_DYNAMIC_DISPATCH = ["generated administrator table routing requires shared application state dynamic dispatch"];
         SERVER_ADMIN_FRONTEND_SRC_APP_NAVIGATION_RS = ["server_admin_frontend/src/domain_types/app/navigation.rs"];
         SERVER_ADMIN_FRONTEND_SRC_APP_PAGINATION_RS = ["server_admin_frontend/src/domain_types/app/pagination.rs"];
         SERVER_ADMIN_FRONTEND_SRC_APP_PERMISSIONS_RS = ["server_admin_frontend/src/domain_types/app/permissions.rs"];
@@ -2833,7 +2837,7 @@ pub const CODE_STYLE_DIRECT_FS_OWNER_SUFFIXES: [&str; 15] = [
     CODE_STYLE_MACROS_HLP_WRITE_STRING_FS_OWNER_SUFFIX,
     "/macro_helpers/src/domain_types/write_token_stream_into_file.rs",
     "/admin_bootstrap/src/application.rs",
-    "/workspace_scaffold/src/application.rs",
+    "/workspace_scaffold/src/main.rs",
     CODE_STYLE_WORKSPACE_SCAFFOLD_FS_OWNER_SUFFIX,
     CODE_STYLE_WORKSPACE_SCAFFOLD_TEMPLATE_FS_OWNER_SUFFIX,
 ];
@@ -2850,7 +2854,7 @@ pub const CODE_STYLE_DIRECT_FS_OWNER_REASONS: [&str; 15] = [
     "generated string writer owns generated source file comparison and updates",
     "token stream writer owns rustfmt execution for generated source files",
     "administrator bootstrap command owns its bounded command-line input",
-    "workspace scaffold application owns command-line parsing and dispatch",
+    "workspace scaffold entry point owns command-line parsing and dispatch",
     "workspace scaffold command owns generated projection and catalog writes",
     "workspace scaffold template filesystem module owns bounded template traversal and copying",
 ];

@@ -1,33 +1,4 @@
 #![allow(clippy::single_call_fn)] // reporting stays independent from command execution so diagnostics have one owner
-pub(crate) fn allocation_tool(
-    name: crate::domain_types::ToolName,
-    path: crate::domain_types::ToolPath,
-    available: crate::domain_types::ToolAvailable,
-) {
-    println!(
-        "measurement=allocation_tool_available tool={} path={} available={}",
-        name.get(),
-        path.get(),
-        available.get()
-    );
-}
-pub(crate) fn result_directory_failed(error: crate::domain_types::RunnerIoErrorRef<'_>) {
-    eprintln!("failed to create test result directory: {}", error.get());
-}
-pub(crate) fn result_log_failed(
-    path: crate::domain_types::RunnerPathRef<'_>,
-    error: crate::domain_types::RunnerIoErrorRef<'_>,
-) {
-    eprintln!(
-        "failed to write test result log {}: {}",
-        path.get().display(),
-        error.get()
-    );
-}
-pub(crate) fn result_summary_failed(error: crate::domain_types::RunnerIoErrorRef<'_>) {
-    eprintln!("failed to write test result summary: {}", error.get());
-}
-
 pub(crate) fn print_without_measurement_footer(stderr: crate::domain_types::StderrTextRef<'_>) {
     stderr
         .get()

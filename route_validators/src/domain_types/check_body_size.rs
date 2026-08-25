@@ -58,21 +58,6 @@ impl crate::domain_types::AxumHttpStatusCodeProvider for BodySizeError {
         crate::domain_types::AxumHttpStatusCode::payload_too_large()
     }
 }
-impl BodySizeError {
-    #[allow(clippy::single_call_fn)] // keeps body-size error construction reusable and testable in one place
-    fn reached_maximum_size_of_body(
-        error: AxumBodySizeError,
-        maximum_size_of_body_limit_in_bytes: BodySizeLimitBytes,
-        size_hint: HttpBodySizeHint,
-    ) -> Self {
-        Self::ReachedMaximumSizeOfBody {
-            error,
-            maximum_size_of_body_limit_in_bytes,
-            size_hint,
-            location: location_macros::location!(),
-        }
-    }
-}
 pub async fn check_body_size<BodyTy, LimitTy>(
     body: BodyTy,
     limit: LimitTy,
@@ -87,12 +72,11 @@ where
     axum::body::to_bytes(body_value.0, limit_value.0)
         .await
         .map(BytesBodyBytes)
-        .map_err(|error| {
-            BodySizeError::reached_maximum_size_of_body(
-                AxumBodySizeError::from(error),
-                limit_value,
-                HttpBodySizeHint::from(size_hint),
-            )
+        .map_err(|error| BodySizeError::ReachedMaximumSizeOfBody {
+            error: AxumBodySizeError::from(error),
+            maximum_size_of_body_limit_in_bytes: limit_value,
+            size_hint: HttpBodySizeHint::from(size_hint),
+            location: location_macros::location!(),
         })
 }
 #[cfg(test)]
@@ -106,18 +90,16 @@ mod tests {
             crate::domain_types::test_hlp::block_on(super::check_body_size(body, limit)),
             exp_id,
             crate::domain_types::AxumHttpStatusCode::payload_too_large(),
-            |v| Some(reached_max_size_fields(v)),
+            |v| {
+                Some(match v {
+                    super::BodySizeError::ReachedMaximumSizeOfBody {
+                        maximum_size_of_body_limit_in_bytes,
+                        size_hint,
+                        ..
+                    } => (maximum_size_of_body_limit_in_bytes.0, size_hint.0.upper()),
+                })
+            },
         )
-    }
-    #[allow(clippy::single_call_fn)] // shared extractor keeps reached-max-size assertions reusable across tests
-    fn reached_max_size_fields(v: &super::BodySizeError) -> (usize, Option<u64>) {
-        match v {
-            super::BodySizeError::ReachedMaximumSizeOfBody {
-                maximum_size_of_body_limit_in_bytes,
-                size_hint,
-                ..
-            } => (maximum_size_of_body_limit_in_bytes.0, size_hint.0.upper()),
-        }
     }
     fn assert_reached_max_size_limit(body: axum::body::Body, limit: usize, exp_id: &'static str) {
         let (maximum_size_of_body_limit_in_bytes, _) = expect_reached_max_size(body, limit, exp_id);

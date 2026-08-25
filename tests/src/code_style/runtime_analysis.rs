@@ -84,12 +84,29 @@ impl<'ast> syn::visit::Visit<'ast> for RuntimeArcVisitor {
         syn::visit::visit_item(self, i);
     }
     fn visit_item_type(&mut self, i: &'ast syn::ItemType) {
-        if super::type_contains_segment(
-            super::types::SynTypeRef::from(&*i.ty),
-            super::types::SourceTextRef::from(constants_str::ARC),
-        )
-        .get()
-        {
+        let contains_arc = match i.ty.as_ref() {
+            syn::Type::Path(path) => super::path_has_segment(
+                super::types::SynPathRef::from(&path.path),
+                super::types::SourceTextRef::from(constants_str::ARC),
+            )
+            .get(),
+            syn::Type::Array(_)
+            | syn::Type::FnPtr(_)
+            | syn::Type::Group(_)
+            | syn::Type::ImplTrait(_)
+            | syn::Type::Infer(_)
+            | syn::Type::Macro(_)
+            | syn::Type::Never(_)
+            | syn::Type::Paren(_)
+            | syn::Type::Ptr(_)
+            | syn::Type::Reference(_)
+            | syn::Type::Slice(_)
+            | syn::Type::TraitObject(_)
+            | syn::Type::Tuple(_)
+            | syn::Type::Verbatim(_)
+            | _ => false,
+        };
+        if contains_arc {
             let name = i.ident.to_string();
             if !name.contains(constants_str::SHARED) && !name.contains(constants_str::DYNARC) {
                 self.ers.push(format!(
@@ -113,8 +130,47 @@ impl<'ast> syn::visit::Visit<'ast> for AsyncBlockingCallVisitor {
     }
     fn visit_expr_call(&mut self, i: &'ast syn::ExprCall) {
         if self.async_fn_depth.get() != 0
-            && super::expr_call_path(super::types::SynExprCallRef::from(i))
-                .is_some_and(|path| super::path_is_blocking_async_call(path).get())
+            && super::expr_call_path(super::types::SynExprCallRef::from(i)).is_some_and(|path| {
+                let path_text = super::path_to_string(path);
+                super::path_ends_with(
+                    path,
+                    super::types::StaticStrSliceRef::from(
+                        [
+                            constants_str::FUTURES,
+                            constants_str::EXECUTOR,
+                            constants_str::BLOCK_ON,
+                        ]
+                        .as_slice(),
+                    ),
+                )
+                .get()
+                    || super::path_ends_with(
+                        path,
+                        super::types::StaticStrSliceRef::from(
+                            [
+                                constants_str::TOKIO,
+                                constants_str::TASK,
+                                constants_str::BLOCK_IN_PLACE,
+                            ]
+                            .as_slice(),
+                        ),
+                    )
+                    .get()
+                    || super::path_ends_with(
+                        path,
+                        super::types::StaticStrSliceRef::from(
+                            [
+                                constants_str::STD,
+                                constants_str::THREAD,
+                                constants_str::SLEEP,
+                            ]
+                            .as_slice(),
+                        ),
+                    )
+                    .get()
+                    || constants_str::BLOCKING_STD_FS_CALLS.contains(&path_text.as_ref())
+                    || constants_str::BLOCKING_STD_NET_CALLS.contains(&path_text.as_ref())
+            })
         {
             self.ers
                 .push(constants_str::BLOCKING_CALL_INSIDE_ASYNC_FUNCTION.to_owned());
@@ -132,11 +188,15 @@ impl<'ast> syn::visit::Visit<'ast> for AsyncBlockingCallVisitor {
         }
     }
     fn visit_expr_method_call(&mut self, i: &'ast syn::ExprMethodCall) {
+        let method = i.method.to_string();
         if self.async_fn_depth.get() != 0
-            && super::method_is_blocking_async_call(super::types::SourceTextRef::from(
-                i.method.to_string().as_str(),
-            ))
-            .get()
+            && matches!(
+                method.as_str(),
+                constants_str::BLOCK_ON
+                    | constants_str::BLOCK_IN_PLACE
+                    | constants_str::BLOCKING_RECV
+                    | constants_str::BLOCKING_SEND
+            )
         {
             self.ers.push(format!(
                 ".{}() blocking method call inside async function",
@@ -203,9 +263,69 @@ impl<'ast> syn::visit::Visit<'ast> for UnitTestExternalServiceVisitor {
         syn::visit::visit_expr_method_call(self, i);
     }
     fn visit_expr_path(&mut self, i: &'ast syn::ExprPath) {
-        if self.test_depth.get() != 0
-            && super::path_is_external_service_client(super::types::SynPathRef::from(&i.path)).get()
-        {
+        let path = super::types::SynPathRef::from(&i.path);
+        let path_text = super::path_to_string(path);
+        let is_external_service_client = [
+            [
+                constants_str::REQWEST,
+                constants_str::CLIENT,
+                constants_str::NEW,
+            ]
+            .as_slice(),
+            [
+                constants_str::STD,
+                constants_str::NET,
+                constants_str::TCPSTREAM,
+                constants_str::CONNECT,
+            ]
+            .as_slice(),
+            [
+                constants_str::STD,
+                constants_str::NET,
+                constants_str::TCPLISTENER,
+                constants_str::BIND,
+            ]
+            .as_slice(),
+            [
+                constants_str::STD,
+                constants_str::NET,
+                constants_str::UDPSOCKET,
+                constants_str::BIND,
+            ]
+            .as_slice(),
+            [
+                constants_str::TOKIO,
+                constants_str::NET,
+                constants_str::TCPSTREAM,
+                constants_str::CONNECT,
+            ]
+            .as_slice(),
+            [
+                constants_str::TOKIO,
+                constants_str::NET,
+                constants_str::TCPLISTENER,
+                constants_str::BIND,
+            ]
+            .as_slice(),
+            [
+                constants_str::TOKIO,
+                constants_str::NET,
+                constants_str::UDPSOCKET,
+                constants_str::BIND,
+            ]
+            .as_slice(),
+        ]
+        .into_iter()
+        .any(|segments| {
+            super::path_ends_with(path, super::types::StaticStrSliceRef::from(segments)).get()
+        }) || [
+            constants_str::VALUE_364F9D39,
+            constants_str::VALUE_BDB563EC,
+            constants_str::VALUE_FE4D84FC,
+            constants_str::VALUE_2FCCA7C7,
+        ]
+        .contains(&path_text.as_ref());
+        if self.test_depth.get() != 0 && is_external_service_client {
             self.ers.push(format!(
                 "unit tests must not depend on external service client `{}`",
                 super::path_to_string(super::types::SynPathRef::from(&i.path)).as_ref()

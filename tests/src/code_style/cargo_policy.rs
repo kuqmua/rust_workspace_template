@@ -145,7 +145,37 @@ fn check_workspace_dependencies_having_exact_version() {
     )
     .as_ref()
     .values()
-    .for_each(|dep| super::validate_workspace_dep_spec(super::types::TomlValueRef::from(dep)));
+    .for_each(|dep| {
+        let v_table = super::toml_val_as_table_ref(
+            super::types::TomlValueRef::from(dep),
+            super::types::StaticStr::from(constants_str::CB693A3F),
+        );
+        if let Some(path_v) = v_table.get().get(constants_str::PATH_ALT_5) {
+            match path_v {
+                toml::Value::String(_) => {
+                    match v_table.get().len() {
+                        1 => (),
+                        2 => super::validate_workspace_dep_default_features(v_table),
+                        _ => panic!("f6a3b9d1 {v_table:#?}"),
+                    }
+                    return;
+                }
+                toml::Value::Table(_)
+                | toml::Value::Integer(_)
+                | toml::Value::Float(_)
+                | toml::Value::Boolean(_)
+                | toml::Value::Datetime(_)
+                | toml::Value::Array(_) => panic!("6ca03a1f"),
+            }
+        }
+        super::validate_workspace_dep_version(v_table);
+        super::validate_workspace_dep_default_features(v_table);
+        match v_table.get().len() {
+            2 => {}
+            3 => super::validate_workspace_dep_features(v_table),
+            _ => panic!("f1139378 {v_table:#?}"),
+        }
+    });
 }
 #[test]
 fn external_workspace_dependencies_disable_default_features() {
@@ -760,8 +790,22 @@ fn workspace_members_exist_on_disk() {
         super::types::TomlTableRef::from(workspace.as_ref()),
         super::types::StaticStr::from(constants_str::VALUE_7F3A1C4E),
     );
-    let mut ers = super::collect_workspace_member_missing_cargo_toml_ers(
-        super::types::SourceTextListRef::from(members.as_slice()),
+    let mut ers = super::types::SourceTextList::from(
+        members
+            .as_slice()
+            .iter()
+            .filter_map(|member_str| {
+                let path = std::path::Path::new(constants_str::TEXT_ALT_8)
+                    .join(member_str)
+                    .join(constants_str::CARGO_TOML);
+                (!path.exists()).then(|| {
+                    format!(
+                        "member `{member_str}` Cargo.toml not found at {}",
+                        path.display()
+                    )
+                })
+            })
+            .collect::<Vec<String>>(),
     );
     super::assert_joined_ers_empty_sorted(
         super::types::DiagnosticMsgsMutRef::from(&mut ers),

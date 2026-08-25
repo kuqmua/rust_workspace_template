@@ -168,7 +168,7 @@ categories = ["category"]
         crate_path.join(constants_str::CARGO_LOCK),
     )
     .unwrap_or_else(|error| panic!("1dda80f9: {error}"));
-    domain_types::generated_crate_steps()
+    domain_types::GENERATED_CRATE_STEPS
         .iter()
         .fold((), |(), step| {
             let status = macro_helpers::domain_types::tool_command::ToolCommand::new(

@@ -69,9 +69,8 @@ fn unknown_permission_is_rejected() {
 }
 #[test]
 fn migration_inventory_is_not_empty() {
-    let migrations = crate::adapters::migrations::migrator()
-        .iter()
-        .collect::<Vec<_>>();
+    let migrator = crate::adapters::migrations::migrator();
+    let migrations = migrator.iter().collect::<Vec<_>>();
     assert_eq!(migrations.len(), 13usize);
     assert!(
         migrations

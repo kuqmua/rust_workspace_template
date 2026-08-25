@@ -123,15 +123,6 @@ struct ServiceCatalogEntry {
     newtype::IntoInnerFrom,
 )]
 struct ShouldRelease(bool);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
-)]
-struct IsCatalogPathSafe(bool);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 #[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
 struct ServiceCatalogDraft {
@@ -217,7 +208,7 @@ pub(crate) struct CargoArgsRef<'args_lt>(&'args_lt [&'args_lt str]);
 )]
 pub(crate) struct UpdateEnvName(&'static str);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
-enum GeneratedProjection {
+pub(crate) enum GeneratedProjection {
     CodeStyle,
     Config,
 }
@@ -278,28 +269,272 @@ impl From<std::io::Error> for ScaffoldError {
     }
 }
 
-#[allow(
-    clippy::single_call_fn,
-    reason = "catalog validation keeps path traversal checks explicit and typed"
-)]
-fn catalog_path_is_safe(path: ScaffoldPathRef<'_>) -> IsCatalogPathSafe {
-    IsCatalogPathSafe::from(
-        path.0.is_relative()
-            && path
-                .0
-                .components()
-                .all(|component| matches!(component, std::path::Component::Normal(_))),
-    )
+fn synchronize_generated_file(
+    path: ScaffoldPathRef<'_>,
+    begin: ScaffoldTextRef<'_>,
+    end: ScaffoldTextRef<'_>,
+    generated: ScaffoldTextRef<'_>,
+    write_changes: ShouldWrite,
+) -> Result<(), ScaffoldError> {
+    let source = crate::adapters::template_fs::read_bounded_text(path)?;
+    let (prefix, after_begin) = source
+        .as_ref()
+        .split_once(begin.0)
+        .ok_or(ScaffoldError::Marker)?;
+    let (_previous, suffix) = after_begin.split_once(end.0).ok_or(ScaffoldError::Marker)?;
+    let expected = ScaffoldText::try_from(format!(
+        "{prefix}{}{generated}{}{suffix}",
+        begin.0,
+        end.0,
+        generated = generated.0
+    ))
+    .map_err(|_error| ScaffoldError::Catalog)?;
+    if expected.as_ref() == source.as_ref() {
+        return Ok(());
+    }
+    if bool::from(write_changes) {
+        crate::adapters::template_fs::write_text(path, ScaffoldTextRef::from(expected.as_ref()))
+    } else {
+        Err(ScaffoldError::GeneratedDeployment)
+    }
 }
 #[allow(
     clippy::single_call_fn,
-    reason = "deployment synchronization validates every non-generated catalog consumer"
+    reason = "the deployment command owns all generated projections"
 )]
-fn validate_deployment_representations(
+pub(crate) fn synchronize_deployment_projections(
     root: ScaffoldPathRef<'_>,
-    entries: ServiceCatalogEntriesRef<'_>,
+    write_changes: ShouldWrite,
 ) -> Result<(), ScaffoldError> {
-    entries.0.iter().try_for_each(|entry| {
+    let catalog_path = root.0.join(constants_str::VALUE_C1590960);
+    let catalog = crate::adapters::template_fs::read_bounded_text(ScaffoldPathRef::from(
+        catalog_path.as_path(),
+    ))?;
+    let entries = service_catalog::parse(ScaffoldTextRef::from(catalog.as_ref()))?;
+    let entries_ref = ServiceCatalogEntriesRef::from(entries.0.as_slice());
+    let ci = service_catalog::render_ci_matrix(entries_ref);
+    let release = service_catalog::render_release_matrix(entries_ref);
+    let ci_path = root.0.join(constants_str::CODE_STYLE_CI_WORKFLOW_PATH);
+    synchronize_generated_file(
+        ScaffoldPathRef::from(ci_path.as_path()),
+        ScaffoldTextRef::from(constants_str::VALUE_48916059),
+        ScaffoldTextRef::from(constants_str::VALUE_37E65562),
+        ScaffoldTextRef::from(ci.as_ref()),
+        write_changes,
+    )?;
+    let release_path = root.0.join(constants_str::VALUE_87DB21A9);
+    synchronize_generated_file(
+        ScaffoldPathRef::from(release_path.as_path()),
+        ScaffoldTextRef::from(constants_str::VALUE_BF61857A),
+        ScaffoldTextRef::from(constants_str::VALUE_1BC591D5),
+        ScaffoldTextRef::from(release.as_ref()),
+        write_changes,
+    )?;
+    entries_ref.0.iter().try_for_each(|entry| {
+        let compose_path = root.0.join(entry.compose_file.as_ref());
+        let compose_identity_begin = format!(
+            "  # BEGIN GENERATED COMPOSE IDENTITY {}\n",
+            entry.compose_name.as_ref()
+        );
+        let compose_identity_end = format!(
+            "  # END GENERATED COMPOSE IDENTITY {}\n",
+            entry.compose_name.as_ref()
+        );
+        let compose_identity = format!(
+            "  {}:\n    build:\n      context: .\n      dockerfile: {}\n",
+            entry.compose_name.as_ref(),
+            entry.dockerfile.as_ref()
+        );
+        synchronize_generated_file(
+            ScaffoldPathRef::from(compose_path.as_path()),
+            ScaffoldTextRef::from(compose_identity_begin.as_str()),
+            ScaffoldTextRef::from(compose_identity_end.as_str()),
+            ScaffoldTextRef::from(compose_identity.as_str()),
+            write_changes,
+        )?;
+        let compose_socket_begin = format!(
+            "      # BEGIN GENERATED COMPOSE SOCKET {}\n",
+            entry.compose_name.as_ref()
+        );
+        let compose_socket_end = format!(
+            "      # END GENERATED COMPOSE SOCKET {}\n",
+            entry.compose_name.as_ref()
+        );
+        let compose_socket = format!(
+            "      {}: \"0.0.0.0:{}\"\n",
+            entry.socket_env.as_ref(),
+            entry.port.0
+        );
+        synchronize_generated_file(
+            ScaffoldPathRef::from(compose_path.as_path()),
+            ScaffoldTextRef::from(compose_socket_begin.as_str()),
+            ScaffoldTextRef::from(compose_socket_end.as_str()),
+            ScaffoldTextRef::from(compose_socket.as_str()),
+            write_changes,
+        )?;
+        let ready_path =
+            <common_routes::domain_types::HealthReadyRoute as frontend_contract::domain_types::TypedRoute>::metadata(
+            )
+            .path();
+        let compose_health_begin = format!(
+            "      # BEGIN GENERATED COMPOSE HEALTH {}\n",
+            entry.compose_name.as_ref()
+        );
+        let compose_health_end = format!(
+            "      # END GENERATED COMPOSE HEALTH {}\n",
+            entry.compose_name.as_ref()
+        );
+        let compose_health = format!(
+            "      test: [\"CMD\", \"curl\", \"--fail\", \"--silent\", \"http://127.0.0.1:{}{}\"]\n",
+            entry.port.0,
+            ready_path.as_ref()
+        );
+        synchronize_generated_file(
+            ScaffoldPathRef::from(compose_path.as_path()),
+            ScaffoldTextRef::from(compose_health_begin.as_str()),
+            ScaffoldTextRef::from(compose_health_end.as_str()),
+            ScaffoldTextRef::from(compose_health.as_str()),
+            write_changes,
+        )?;
+        let compose_port_begin = format!(
+            "    # BEGIN GENERATED COMPOSE PORT {}\n",
+            entry.compose_name.as_ref()
+        );
+        let compose_port_end = format!(
+            "    # END GENERATED COMPOSE PORT {}\n",
+            entry.compose_name.as_ref()
+        );
+        let compose_port = format!("    ports:\n      - \"127.0.0.1:{0}:{0}\"\n", entry.port.0);
+        synchronize_generated_file(
+            ScaffoldPathRef::from(compose_path.as_path()),
+            ScaffoldTextRef::from(compose_port_begin.as_str()),
+            ScaffoldTextRef::from(compose_port_end.as_str()),
+            ScaffoldTextRef::from(compose_port.as_str()),
+            write_changes,
+        )?;
+
+        let kubernetes_path = root.0.join(entry.kubernetes_manifest.as_ref());
+        let kubernetes_metadata_begin = format!(
+            "# BEGIN GENERATED KUBERNETES METADATA {}\n",
+            entry.image.as_ref()
+        );
+        let kubernetes_metadata_end = format!(
+            "# END GENERATED KUBERNETES METADATA {}\n",
+            entry.image.as_ref()
+        );
+        let kubernetes_metadata = format!(
+            "metadata:\n  name: {0}\n  namespace: rust-workspace-template\n",
+            entry.image.as_ref()
+        );
+        synchronize_generated_file(
+            ScaffoldPathRef::from(kubernetes_path.as_path()),
+            ScaffoldTextRef::from(kubernetes_metadata_begin.as_str()),
+            ScaffoldTextRef::from(kubernetes_metadata_end.as_str()),
+            ScaffoldTextRef::from(kubernetes_metadata.as_str()),
+            write_changes,
+        )?;
+        let kubernetes_workload_identity_begin = format!(
+            "  # BEGIN GENERATED KUBERNETES WORKLOAD IDENTITY {}\n",
+            entry.image.as_ref()
+        );
+        let kubernetes_workload_identity_end = format!(
+            "  # END GENERATED KUBERNETES WORKLOAD IDENTITY {}\n",
+            entry.image.as_ref()
+        );
+        let kubernetes_workload_identity = format!(
+            "  selector:\n    matchLabels:\n      app.kubernetes.io/name: {0}\n  template:\n    metadata:\n      labels:\n        app.kubernetes.io/name: {0}\n    spec:\n",
+            entry.image.as_ref()
+        );
+        synchronize_generated_file(
+            ScaffoldPathRef::from(kubernetes_path.as_path()),
+            ScaffoldTextRef::from(kubernetes_workload_identity_begin.as_str()),
+            ScaffoldTextRef::from(kubernetes_workload_identity_end.as_str()),
+            ScaffoldTextRef::from(kubernetes_workload_identity.as_str()),
+            write_changes,
+        )?;
+        let kubernetes_container_begin = format!(
+            "      # BEGIN GENERATED KUBERNETES CONTAINER {}\n",
+            entry.image.as_ref()
+        );
+        let kubernetes_container_end = format!(
+            "      # END GENERATED KUBERNETES CONTAINER {}\n",
+            entry.image.as_ref()
+        );
+        let kubernetes_container = format!(
+            "      containers:\n        - name: {0}\n          image: {0}:replace-with-immutable-tag\n          envFrom:\n            - configMapRef:\n                name: {0}-config\n            - secretRef:\n                name: {0}-secrets\n          ports:\n            - containerPort: {1}\n              name: http\n",
+            entry.image.as_ref(),
+            entry.port.0
+        );
+        synchronize_generated_file(
+            ScaffoldPathRef::from(kubernetes_path.as_path()),
+            ScaffoldTextRef::from(kubernetes_container_begin.as_str()),
+            ScaffoldTextRef::from(kubernetes_container_end.as_str()),
+            ScaffoldTextRef::from(kubernetes_container.as_str()),
+            write_changes,
+        )?;
+        let live_path =
+            <common_routes::domain_types::HealthLiveRoute as frontend_contract::domain_types::TypedRoute>::metadata()
+                .path();
+        let kubernetes_probe_begin = format!(
+            "          # BEGIN GENERATED KUBERNETES PROBES {}\n",
+            entry.image.as_ref()
+        );
+        let kubernetes_probe_end = format!(
+            "          # END GENERATED KUBERNETES PROBES {}\n",
+            entry.image.as_ref()
+        );
+        let kubernetes_probe = format!(
+            "          startupProbe:\n            httpGet:\n              path: {ready}\n              port: http\n            failureThreshold: 30\n            periodSeconds: 2\n          readinessProbe:\n            httpGet:\n              path: {ready}\n              port: http\n            periodSeconds: 5\n          livenessProbe:\n            httpGet:\n              path: {live}\n              port: http\n            periodSeconds: 10\n",
+            ready = ready_path.as_ref(),
+            live = live_path.as_ref()
+        );
+        synchronize_generated_file(
+            ScaffoldPathRef::from(kubernetes_path.as_path()),
+            ScaffoldTextRef::from(kubernetes_probe_begin.as_str()),
+            ScaffoldTextRef::from(kubernetes_probe_end.as_str()),
+            ScaffoldTextRef::from(kubernetes_probe.as_str()),
+            write_changes,
+        )?;
+        let kubernetes_service_identity_begin = format!(
+            "# BEGIN GENERATED KUBERNETES SERVICE IDENTITY {}\n",
+            entry.image.as_ref()
+        );
+        let kubernetes_service_identity_end = format!(
+            "# END GENERATED KUBERNETES SERVICE IDENTITY {}\n",
+            entry.image.as_ref()
+        );
+        let kubernetes_service_identity = format!(
+            "metadata:\n  name: {0}\n  namespace: rust-workspace-template\n  labels:\n    app.kubernetes.io/name: {0}\nspec:\n  selector:\n    app.kubernetes.io/name: {0}\n",
+            entry.image.as_ref()
+        );
+        synchronize_generated_file(
+            ScaffoldPathRef::from(kubernetes_path.as_path()),
+            ScaffoldTextRef::from(kubernetes_service_identity_begin.as_str()),
+            ScaffoldTextRef::from(kubernetes_service_identity_end.as_str()),
+            ScaffoldTextRef::from(kubernetes_service_identity.as_str()),
+            write_changes,
+        )?;
+        let kubernetes_service_port_begin = format!(
+            "  # BEGIN GENERATED KUBERNETES SERVICE PORT {}\n",
+            entry.image.as_ref()
+        );
+        let kubernetes_service_port_end = format!(
+            "  # END GENERATED KUBERNETES SERVICE PORT {}\n",
+            entry.image.as_ref()
+        );
+        let kubernetes_service_port = format!(
+            "  ports:\n    - name: http\n      port: {}\n      targetPort: http\n",
+            entry.port.0
+        );
+        synchronize_generated_file(
+            ScaffoldPathRef::from(kubernetes_path.as_path()),
+            ScaffoldTextRef::from(kubernetes_service_port_begin.as_str()),
+            ScaffoldTextRef::from(kubernetes_service_port_end.as_str()),
+            ScaffoldTextRef::from(kubernetes_service_port.as_str()),
+            write_changes,
+        )
+    })?;
+    entries_ref.0.iter().try_for_each(|entry| {
         if ![
             entry.crate_name.as_ref(),
             entry.compose_file.as_ref(),
@@ -308,9 +543,11 @@ fn validate_deployment_representations(
         ]
         .into_iter()
         .all(|path| {
-            bool::from(catalog_path_is_safe(ScaffoldPathRef::from(
-                std::path::Path::new(path),
-            )))
+            let entry_path = std::path::Path::new(path);
+            entry_path.is_relative()
+                && entry_path
+                    .components()
+                    .all(|component| matches!(component, std::path::Component::Normal(_)))
         }) {
             return Err(ScaffoldError::Catalog);
         }
@@ -359,334 +596,34 @@ fn validate_deployment_representations(
         Ok(())
     })
 }
-#[allow(
-    clippy::single_call_fn,
-    reason = "deployment synchronization owns all per-service generated sections"
-)]
-fn synchronize_service_deployment_sections(
-    root: ScaffoldPathRef<'_>,
-    entry: &ServiceCatalogEntry,
-    write_changes: ShouldWrite,
-) -> Result<(), ScaffoldError> {
-    let compose_path = root.0.join(entry.compose_file.as_ref());
-    let compose_identity_begin = format!(
-        "  # BEGIN GENERATED COMPOSE IDENTITY {}\n",
-        entry.compose_name.as_ref()
-    );
-    let compose_identity_end = format!(
-        "  # END GENERATED COMPOSE IDENTITY {}\n",
-        entry.compose_name.as_ref()
-    );
-    let compose_identity = format!(
-        "  {}:\n    build:\n      context: .\n      dockerfile: {}\n",
-        entry.compose_name.as_ref(),
-        entry.dockerfile.as_ref()
-    );
-    synchronize_generated_file(
-        ScaffoldPathRef::from(compose_path.as_path()),
-        ScaffoldTextRef::from(compose_identity_begin.as_str()),
-        ScaffoldTextRef::from(compose_identity_end.as_str()),
-        ScaffoldTextRef::from(compose_identity.as_str()),
-        write_changes,
-    )?;
-    let compose_socket_begin = format!(
-        "      # BEGIN GENERATED COMPOSE SOCKET {}\n",
-        entry.compose_name.as_ref()
-    );
-    let compose_socket_end = format!(
-        "      # END GENERATED COMPOSE SOCKET {}\n",
-        entry.compose_name.as_ref()
-    );
-    let compose_socket = format!(
-        "      {}: \"0.0.0.0:{}\"\n",
-        entry.socket_env.as_ref(),
-        entry.port.0
-    );
-    synchronize_generated_file(
-        ScaffoldPathRef::from(compose_path.as_path()),
-        ScaffoldTextRef::from(compose_socket_begin.as_str()),
-        ScaffoldTextRef::from(compose_socket_end.as_str()),
-        ScaffoldTextRef::from(compose_socket.as_str()),
-        write_changes,
-    )?;
-    let ready_path =
-        <common_routes::domain_types::HealthReadyRoute as frontend_contract::domain_types::TypedRoute>::metadata(
-        )
-        .path();
-    let compose_health_begin = format!(
-        "      # BEGIN GENERATED COMPOSE HEALTH {}\n",
-        entry.compose_name.as_ref()
-    );
-    let compose_health_end = format!(
-        "      # END GENERATED COMPOSE HEALTH {}\n",
-        entry.compose_name.as_ref()
-    );
-    let compose_health = format!(
-        "      test: [\"CMD\", \"curl\", \"--fail\", \"--silent\", \"http://127.0.0.1:{}{}\"]\n",
-        entry.port.0,
-        ready_path.as_ref()
-    );
-    synchronize_generated_file(
-        ScaffoldPathRef::from(compose_path.as_path()),
-        ScaffoldTextRef::from(compose_health_begin.as_str()),
-        ScaffoldTextRef::from(compose_health_end.as_str()),
-        ScaffoldTextRef::from(compose_health.as_str()),
-        write_changes,
-    )?;
-    let compose_port_begin = format!(
-        "    # BEGIN GENERATED COMPOSE PORT {}\n",
-        entry.compose_name.as_ref()
-    );
-    let compose_port_end = format!(
-        "    # END GENERATED COMPOSE PORT {}\n",
-        entry.compose_name.as_ref()
-    );
-    let compose_port = format!("    ports:\n      - \"127.0.0.1:{0}:{0}\"\n", entry.port.0);
-    synchronize_generated_file(
-        ScaffoldPathRef::from(compose_path.as_path()),
-        ScaffoldTextRef::from(compose_port_begin.as_str()),
-        ScaffoldTextRef::from(compose_port_end.as_str()),
-        ScaffoldTextRef::from(compose_port.as_str()),
-        write_changes,
-    )?;
-
-    let kubernetes_path = root.0.join(entry.kubernetes_manifest.as_ref());
-    let kubernetes_metadata_begin = format!(
-        "# BEGIN GENERATED KUBERNETES METADATA {}\n",
-        entry.image.as_ref()
-    );
-    let kubernetes_metadata_end = format!(
-        "# END GENERATED KUBERNETES METADATA {}\n",
-        entry.image.as_ref()
-    );
-    let kubernetes_metadata = format!(
-        "metadata:\n  name: {0}\n  namespace: rust-workspace-template\n",
-        entry.image.as_ref()
-    );
-    synchronize_generated_file(
-        ScaffoldPathRef::from(kubernetes_path.as_path()),
-        ScaffoldTextRef::from(kubernetes_metadata_begin.as_str()),
-        ScaffoldTextRef::from(kubernetes_metadata_end.as_str()),
-        ScaffoldTextRef::from(kubernetes_metadata.as_str()),
-        write_changes,
-    )?;
-    let kubernetes_workload_identity_begin = format!(
-        "  # BEGIN GENERATED KUBERNETES WORKLOAD IDENTITY {}\n",
-        entry.image.as_ref()
-    );
-    let kubernetes_workload_identity_end = format!(
-        "  # END GENERATED KUBERNETES WORKLOAD IDENTITY {}\n",
-        entry.image.as_ref()
-    );
-    let kubernetes_workload_identity = format!(
-        "  selector:\n    matchLabels:\n      app.kubernetes.io/name: {0}\n  template:\n    metadata:\n      labels:\n        app.kubernetes.io/name: {0}\n    spec:\n",
-        entry.image.as_ref()
-    );
-    synchronize_generated_file(
-        ScaffoldPathRef::from(kubernetes_path.as_path()),
-        ScaffoldTextRef::from(kubernetes_workload_identity_begin.as_str()),
-        ScaffoldTextRef::from(kubernetes_workload_identity_end.as_str()),
-        ScaffoldTextRef::from(kubernetes_workload_identity.as_str()),
-        write_changes,
-    )?;
-    let kubernetes_container_begin = format!(
-        "      # BEGIN GENERATED KUBERNETES CONTAINER {}\n",
-        entry.image.as_ref()
-    );
-    let kubernetes_container_end = format!(
-        "      # END GENERATED KUBERNETES CONTAINER {}\n",
-        entry.image.as_ref()
-    );
-    let kubernetes_container = format!(
-        "      containers:\n        - name: {0}\n          image: {0}:replace-with-immutable-tag\n          envFrom:\n            - configMapRef:\n                name: {0}-config\n            - secretRef:\n                name: {0}-secrets\n          ports:\n            - containerPort: {1}\n              name: http\n",
-        entry.image.as_ref(),
-        entry.port.0
-    );
-    synchronize_generated_file(
-        ScaffoldPathRef::from(kubernetes_path.as_path()),
-        ScaffoldTextRef::from(kubernetes_container_begin.as_str()),
-        ScaffoldTextRef::from(kubernetes_container_end.as_str()),
-        ScaffoldTextRef::from(kubernetes_container.as_str()),
-        write_changes,
-    )?;
-    let live_path =
-        <common_routes::domain_types::HealthLiveRoute as frontend_contract::domain_types::TypedRoute>::metadata()
-            .path();
-    let kubernetes_probe_begin = format!(
-        "          # BEGIN GENERATED KUBERNETES PROBES {}\n",
-        entry.image.as_ref()
-    );
-    let kubernetes_probe_end = format!(
-        "          # END GENERATED KUBERNETES PROBES {}\n",
-        entry.image.as_ref()
-    );
-    let kubernetes_probe = format!(
-        "          startupProbe:\n            httpGet:\n              path: {ready}\n              port: http\n            failureThreshold: 30\n            periodSeconds: 2\n          readinessProbe:\n            httpGet:\n              path: {ready}\n              port: http\n            periodSeconds: 5\n          livenessProbe:\n            httpGet:\n              path: {live}\n              port: http\n            periodSeconds: 10\n",
-        ready = ready_path.as_ref(),
-        live = live_path.as_ref()
-    );
-    synchronize_generated_file(
-        ScaffoldPathRef::from(kubernetes_path.as_path()),
-        ScaffoldTextRef::from(kubernetes_probe_begin.as_str()),
-        ScaffoldTextRef::from(kubernetes_probe_end.as_str()),
-        ScaffoldTextRef::from(kubernetes_probe.as_str()),
-        write_changes,
-    )?;
-    let kubernetes_service_identity_begin = format!(
-        "# BEGIN GENERATED KUBERNETES SERVICE IDENTITY {}\n",
-        entry.image.as_ref()
-    );
-    let kubernetes_service_identity_end = format!(
-        "# END GENERATED KUBERNETES SERVICE IDENTITY {}\n",
-        entry.image.as_ref()
-    );
-    let kubernetes_service_identity = format!(
-        "metadata:\n  name: {0}\n  namespace: rust-workspace-template\n  labels:\n    app.kubernetes.io/name: {0}\nspec:\n  selector:\n    app.kubernetes.io/name: {0}\n",
-        entry.image.as_ref()
-    );
-    synchronize_generated_file(
-        ScaffoldPathRef::from(kubernetes_path.as_path()),
-        ScaffoldTextRef::from(kubernetes_service_identity_begin.as_str()),
-        ScaffoldTextRef::from(kubernetes_service_identity_end.as_str()),
-        ScaffoldTextRef::from(kubernetes_service_identity.as_str()),
-        write_changes,
-    )?;
-    let kubernetes_service_port_begin = format!(
-        "  # BEGIN GENERATED KUBERNETES SERVICE PORT {}\n",
-        entry.image.as_ref()
-    );
-    let kubernetes_service_port_end = format!(
-        "  # END GENERATED KUBERNETES SERVICE PORT {}\n",
-        entry.image.as_ref()
-    );
-    let kubernetes_service_port = format!(
-        "  ports:\n    - name: http\n      port: {}\n      targetPort: http\n",
-        entry.port.0
-    );
-    synchronize_generated_file(
-        ScaffoldPathRef::from(kubernetes_path.as_path()),
-        ScaffoldTextRef::from(kubernetes_service_port_begin.as_str()),
-        ScaffoldTextRef::from(kubernetes_service_port_end.as_str()),
-        ScaffoldTextRef::from(kubernetes_service_port.as_str()),
-        write_changes,
-    )
-}
-#[allow(
-    clippy::single_call_fn,
-    reason = "generated file synchronization owns marker replacement"
-)]
-fn replace_generated_section(
-    source: ScaffoldTextRef<'_>,
-    begin: ScaffoldTextRef<'_>,
-    end: ScaffoldTextRef<'_>,
-    generated: ScaffoldTextRef<'_>,
-) -> Result<ScaffoldText, ScaffoldError> {
-    let (prefix, after_begin) = source.0.split_once(begin.0).ok_or(ScaffoldError::Marker)?;
-    let (_previous, suffix) = after_begin.split_once(end.0).ok_or(ScaffoldError::Marker)?;
-    ScaffoldText::try_from(format!(
-        "{prefix}{}{generated}{}{suffix}",
-        begin.0,
-        end.0,
-        generated = generated.0
-    ))
-    .map_err(|_error| ScaffoldError::Catalog)
-}
-fn synchronize_generated_file(
-    path: ScaffoldPathRef<'_>,
-    begin: ScaffoldTextRef<'_>,
-    end: ScaffoldTextRef<'_>,
-    generated: ScaffoldTextRef<'_>,
-    write_changes: ShouldWrite,
-) -> Result<(), ScaffoldError> {
-    let source = crate::adapters::template_fs::read_bounded_text(path)?;
-    let expected = replace_generated_section(
-        ScaffoldTextRef::from(source.as_ref()),
-        begin,
-        end,
-        generated,
-    )?;
-    if expected.as_ref() == source.as_ref() {
-        return Ok(());
-    }
-    if bool::from(write_changes) {
-        crate::adapters::template_fs::write_text(path, ScaffoldTextRef::from(expected.as_ref()))
-    } else {
-        Err(ScaffoldError::GeneratedDeployment)
-    }
-}
-#[allow(
-    clippy::single_call_fn,
-    reason = "the deployment command owns all generated projections"
-)]
-pub(crate) fn synchronize_deployment_projections(
-    root: ScaffoldPathRef<'_>,
-    write_changes: ShouldWrite,
-) -> Result<(), ScaffoldError> {
-    let catalog_path = root.0.join(constants_str::VALUE_C1590960);
-    let catalog = crate::adapters::template_fs::read_bounded_text(ScaffoldPathRef::from(
-        catalog_path.as_path(),
-    ))?;
-    let entries = service_catalog::parse(ScaffoldTextRef::from(catalog.as_ref()))?;
-    let entries_ref = ServiceCatalogEntriesRef::from(entries.0.as_slice());
-    let ci = service_catalog::render_ci_matrix(entries_ref);
-    let release = service_catalog::render_release_matrix(entries_ref);
-    let ci_path = root.0.join(constants_str::CODE_STYLE_CI_WORKFLOW_PATH);
-    synchronize_generated_file(
-        ScaffoldPathRef::from(ci_path.as_path()),
-        ScaffoldTextRef::from(constants_str::VALUE_48916059),
-        ScaffoldTextRef::from(constants_str::VALUE_37E65562),
-        ScaffoldTextRef::from(ci.as_ref()),
-        write_changes,
-    )?;
-    let release_path = root.0.join(constants_str::VALUE_87DB21A9);
-    synchronize_generated_file(
-        ScaffoldPathRef::from(release_path.as_path()),
-        ScaffoldTextRef::from(constants_str::VALUE_BF61857A),
-        ScaffoldTextRef::from(constants_str::VALUE_1BC591D5),
-        ScaffoldTextRef::from(release.as_ref()),
-        write_changes,
-    )?;
-    entries_ref.0.iter().try_for_each(|entry| {
-        synchronize_service_deployment_sections(root, entry, write_changes)
-    })?;
-    validate_deployment_representations(root, entries_ref)
-}
-#[allow(
-    clippy::single_call_fn,
-    reason = "the aggregate generation command delegates snapshot ownership to code-style tests"
-)]
-fn synchronize_code_style_snapshots(
-    root: ScaffoldPathRef<'_>,
-    write_changes: ShouldWrite,
-) -> Result<(), ScaffoldError> {
-    synchronize_cargo_owned_projection(
-        root,
-        CargoArgsRef::from(
-            &[
-                constants_str::TEST_ALT_3,
-                constants_str::P,
-                constants_str::TESTS_ALT,
-                constants_str::CODE_STYLE,
-            ][..],
-        ),
-        UpdateEnvName::from(constants_str::UPDATE_CODE_STYLE_SNAPSHOTS),
-        GeneratedProjection::CodeStyle,
-        write_changes,
-    )
-}
-
-fn synchronize_cargo_owned_projection(
+pub(crate) fn synchronize_cargo_owned_projection(
     root: ScaffoldPathRef<'_>,
     arguments: CargoArgsRef<'_>,
     update_environment: UpdateEnvName,
     projection: GeneratedProjection,
     write_changes: ShouldWrite,
 ) -> Result<(), ScaffoldError> {
-    let run_ok = crate::adapters::execution::run_cargo(
-        root,
-        arguments,
-        bool::from(write_changes).then_some(update_environment),
-    )?;
+    let mut command = macro_helpers::domain_types::tool_command::ToolCommand::new(
+        macro_helpers::domain_types::tool_command::ToolProgramRef::from(
+            constants_str::WORKSPACE_TEST_RUNNER_CARGO,
+        ),
+    );
+    let _arguments = command
+        .current_dir(macro_helpers::domain_types::tool_command::PathRef::from(
+            root.get(),
+        ))
+        .args(macro_helpers::domain_types::tool_command::ToolArgsRef::from(arguments.get()));
+    if bool::from(write_changes) {
+        let _environment = command.env(
+            macro_helpers::domain_types::tool_command::ToolEnvKeyRef::from(
+                update_environment.get(),
+            ),
+            macro_helpers::domain_types::tool_command::ToolEnvValueRef::from(
+                constants_str::VALUE_1,
+            ),
+        );
+    }
+    let run_ok = ScaffoldRunOk::from(command.status()?.success());
     if run_ok.get() {
         Ok(())
     } else {
@@ -695,45 +632,6 @@ fn synchronize_cargo_owned_projection(
             GeneratedProjection::Config => ScaffoldError::GeneratedConfig,
         })
     }
-}
-
-#[allow(
-    clippy::single_call_fn,
-    reason = "the aggregate generation command delegates environment projection ownership to config crates"
-)]
-fn synchronize_config_projections(
-    root: ScaffoldPathRef<'_>,
-    write_changes: ShouldWrite,
-) -> Result<(), ScaffoldError> {
-    synchronize_cargo_owned_projection(
-        root,
-        CargoArgsRef::from(
-            &[
-                constants_str::TEST_ALT_3,
-                constants_str::P,
-                constants_str::VALUE_B2F5A0ED,
-                constants_str::P,
-                constants_str::VALUE_8B9F9090,
-                constants_str::VALUE_B43DA2C2,
-            ][..],
-        ),
-        UpdateEnvName::from(constants_str::UPDATE_CONFIG_PROJECTIONS),
-        GeneratedProjection::Config,
-        write_changes,
-    )
-}
-
-#[allow(
-    clippy::single_call_fn,
-    reason = "the generate command exposes one aggregate synchronization boundary"
-)]
-pub(crate) fn synchronize_all_generated_artifacts(
-    root: ScaffoldPathRef<'_>,
-    write_changes: ShouldWrite,
-) -> Result<(), ScaffoldError> {
-    synchronize_deployment_projections(root, write_changes)?;
-    synchronize_config_projections(root, write_changes)?;
-    synchronize_code_style_snapshots(root, write_changes)
 }
 
 #[allow(
@@ -845,10 +743,7 @@ pub(crate) fn scaffold_service(
         .0
         .join(constants_str::WORKSPACE_SCAFFOLD_K8S_BASE_PATH)
         .join(k8s_file_name.as_str());
-    crate::adapters::template_fs::copy_file(
-        ScaffoldPathRef::from(k8s_source.as_path()),
-        ScaffoldPathRef::from(k8s_destination.as_path()),
-    )?;
+    let _copied_bytes = std::fs::copy(k8s_source.as_path(), k8s_destination.as_path())?;
     crate::adapters::template_fs::replace_file(
         ScaffoldPathRef::from(k8s_destination.as_path()),
         ReplacementsRef::from(replacements.as_slice()),

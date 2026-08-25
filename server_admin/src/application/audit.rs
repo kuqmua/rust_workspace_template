@@ -1,30 +1,8 @@
-#![allow(clippy::single_call_fn)] // audit boundaries isolate append/query SQL from route and transaction facades
-pub(super) async fn record_success_in_connection(
-    mut connection: super::SqlxAdminPgConnectionRef<'_>,
-    event: super::AdminAuditSuccessRef<'_>,
-) -> Result<(), super::AdminError> {
-    let details = server_admin_contract::domain_types::SerdeJsonAdminAuditDetails::try_from(
-        serde_json::json!({ "operation": event.action.as_str().as_ref(), "target_id": event.resource_id.value().as_ref() }),
-    )
-    .map_err(|_error| super::AdminError::Validation)?;
-    let resource_id = event.resource_id.value();
-    crate::adapters::repository::audit::insert_audit_success(
-        crate::adapters::repository::SqlxAdminRepositoryConnectionMutRef::from(connection.as_mut()),
-        event.user_id,
-        event.login,
-        event.action,
-        event.resource,
-        &resource_id,
-        super::super::UuidAdminValue::from(uuid::Uuid::new_v4()),
-        &details,
-    )
-    .await
-    .map_err(super::AdminError::pg)
-}
-pub(super) async fn query_page(
+#![allow(clippy::single_call_fn)] // route handlers are registered indirectly by axum
+pub(super) async fn query_log(
     auth: super::AdminAuthReq,
     query: super::AxumAdminQuery<super::AdminAuditQuery>,
-) -> Result<server_admin_contract::domain_types::AdminAuditPage, super::AdminError> {
+) -> Result<super::AxumAdminResponse, super::AdminError> {
     if !query.0.cursor_is_complete().get() {
         return Err(super::AdminError::Validation);
     }
@@ -51,15 +29,7 @@ pub(super) async fn query_page(
             super::AdminError::pg(sqlx_error)
         }
     })?;
-    Ok(page)
-}
-pub(super) async fn query_log(
-    auth: super::AdminAuthReq,
-    query: super::AxumAdminQuery<super::AdminAuditQuery>,
-) -> Result<super::AxumAdminResponse, super::AdminError> {
-    query_page(auth, query)
-        .await
-        .map(super::shared::json_response)
+    Ok(super::shared::json_response(page))
 }
 pub(super) async fn export_log(
     auth: super::AdminAuthReq,

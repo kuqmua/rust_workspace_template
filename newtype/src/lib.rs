@@ -45,75 +45,6 @@ fn derive_newtype_option(
         }
     }
 }
-#[allow(clippy::single_call_fn)] // keeps TryFrom attribute parsing separate from its proc-macro entry point
-fn derive_newtype_try_from(
-    input_token_stream: domain_types::ProcMacroInputTokenStream,
-) -> domain_types::ProcMacro2GeneratedTokenStream {
-    let input = match syn::parse::<syn::DeriveInput>(input_token_stream.into_inner()) {
-        Ok(v) => v,
-        Err(error) => {
-            return domain_types::ProcMacro2GeneratedTokenStream::from(error.into_compile_error());
-        }
-    };
-    let mut error_opt = None;
-    let mut validator_opt = None;
-    let parse_result = input
-        .attrs
-        .iter()
-        .filter(|attr| attr.path().is_ident(constants_str::NEWTYPE_TRY_FROM))
-        .try_for_each(|attr| {
-            attr.parse_nested_meta(|meta| {
-                if meta.path.is_ident(constants_str::NEWTYPE_TRY_FROM_ERROR) {
-                    if error_opt.is_some() {
-                        return Err(meta.error(constants_str::NEWTYPE_TRY_FROM_ERROR_DUPLICATE));
-                    }
-                    error_opt = Some(domain_types::SynType::from(
-                        meta.value()?.parse::<syn::Type>()?,
-                    ));
-                    return Ok(());
-                }
-                if meta
-                    .path
-                    .is_ident(constants_str::NEWTYPE_TRY_FROM_VALIDATOR)
-                {
-                    if validator_opt.is_some() {
-                        return Err(meta.error(constants_str::NEWTYPE_TRY_FROM_VALIDATOR_DUPLICATE));
-                    }
-                    validator_opt = Some(domain_types::SynExpr::from(
-                        meta.value()?.parse::<syn::Expr>()?,
-                    ));
-                    return Ok(());
-                }
-                Err(meta.error(constants_str::NEWTYPE_TRY_FROM_UNKNOWN_OPTION))
-            })
-        });
-    if let Err(error) = parse_result {
-        return domain_types::ProcMacro2GeneratedTokenStream::from(error.into_compile_error());
-    }
-    let Some(validator) = validator_opt else {
-        return domain_types::ProcMacro2GeneratedTokenStream::from(
-            syn::Error::new_spanned(&input, constants_str::NEWTYPE_TRY_FROM_VALIDATOR_REQUIRED)
-                .into_compile_error(),
-        );
-    };
-    let attrs = domain_types::NewtypeAttrs {
-        options: workspace_macro_helpers::domain_types::UniqueOptionBTreeSet::default(),
-        to_err_string_mode: None,
-        try_from: Some(domain_types::NewtypeTryFromAttrs {
-            error: error_opt,
-            validator,
-        }),
-    };
-    match generate_newtype_token_stream_with_attrs(
-        domain_types::SynDeriveInputRef::from(&input),
-        &attrs,
-    ) {
-        Ok(v) => v,
-        Err(error) => {
-            domain_types::ProcMacro2GeneratedTokenStream::from(error.into_compile_error())
-        }
-    }
-}
 #[proc_macro_derive(AsMut)]
 pub fn as_mut(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
@@ -526,8 +457,78 @@ pub fn to_err_string_debug(input: proc_macro::TokenStream) -> proc_macro::TokenS
     .into()
 }
 #[proc_macro_derive(TryFrom, attributes(try_from))]
-pub fn try_from(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    derive_newtype_try_from(domain_types::ProcMacroInputTokenStream::from(input)).into()
+pub fn try_from(input_token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    (|| {
+        let input = match syn::parse::<syn::DeriveInput>(input_token_stream) {
+            Ok(value) => value,
+            Err(error) => {
+                return domain_types::ProcMacro2GeneratedTokenStream::from(
+                    error.into_compile_error(),
+                );
+            }
+        };
+        let mut error_opt = None;
+        let mut validator_opt = None;
+        let parse_result = input
+            .attrs
+            .iter()
+            .filter(|attr| attr.path().is_ident(constants_str::NEWTYPE_TRY_FROM))
+            .try_for_each(|attr| {
+                attr.parse_nested_meta(|meta| {
+                    if meta.path.is_ident(constants_str::NEWTYPE_TRY_FROM_ERROR) {
+                        if error_opt.is_some() {
+                            return Err(meta.error(constants_str::NEWTYPE_TRY_FROM_ERROR_DUPLICATE));
+                        }
+                        error_opt = Some(domain_types::SynType::from(
+                            meta.value()?.parse::<syn::Type>()?,
+                        ));
+                        return Ok(());
+                    }
+                    if meta
+                        .path
+                        .is_ident(constants_str::NEWTYPE_TRY_FROM_VALIDATOR)
+                    {
+                        if validator_opt.is_some() {
+                            return Err(
+                                meta.error(constants_str::NEWTYPE_TRY_FROM_VALIDATOR_DUPLICATE)
+                            );
+                        }
+                        validator_opt = Some(domain_types::SynExpr::from(
+                            meta.value()?.parse::<syn::Expr>()?,
+                        ));
+                        return Ok(());
+                    }
+                    Err(meta.error(constants_str::NEWTYPE_TRY_FROM_UNKNOWN_OPTION))
+                })
+            });
+        if let Err(error) = parse_result {
+            return domain_types::ProcMacro2GeneratedTokenStream::from(error.into_compile_error());
+        }
+        let Some(validator) = validator_opt else {
+            return domain_types::ProcMacro2GeneratedTokenStream::from(
+                syn::Error::new_spanned(&input, constants_str::NEWTYPE_TRY_FROM_VALIDATOR_REQUIRED)
+                    .into_compile_error(),
+            );
+        };
+        let attrs = domain_types::NewtypeAttrs {
+            options: workspace_macro_helpers::domain_types::UniqueOptionBTreeSet::default(),
+            to_err_string_mode: None,
+            try_from: Some(domain_types::NewtypeTryFromAttrs {
+                error: error_opt,
+                validator,
+            }),
+        };
+        match generate_newtype_token_stream_with_attrs(
+            domain_types::SynDeriveInputRef::from(&input),
+            &attrs,
+        ) {
+            Ok(value) => value,
+            Err(error) => {
+                domain_types::ProcMacro2GeneratedTokenStream::from(error.into_compile_error())
+            }
+        }
+    })()
+    .into()
 }
 #[proc_macro_derive(EnumFromStr)]
 pub fn enum_from_str(input_token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
@@ -535,7 +536,75 @@ pub fn enum_from_str(input_token_stream: proc_macro::TokenStream) -> proc_macro:
         Ok(v) => v,
         Err(error) => return error.into_compile_error().into(),
     };
-    match generate_enum_from_str_token_stream(domain_types::SynDeriveInputRef::from(&input)) {
+    let generated = (|| {
+        let input_ref = &input;
+        let identifier = &input_ref.ident;
+        let data_enum = match &input_ref.data {
+            syn::Data::Enum(value) => value,
+            syn::Data::Struct(_) | syn::Data::Union(_) => {
+                return Err(syn::Error::new_spanned(
+                    input_ref,
+                    constants_str::ENUMFROMSTR_SUPPORTS_ONLY_ENUMS,
+                ));
+            }
+        };
+        let variants = data_enum
+            .variants
+            .iter()
+            .map(|variant| {
+                if !matches!(variant.fields, syn::Fields::Unit) {
+                    return Err(syn::Error::new_spanned(
+                        variant,
+                        constants_str::ENUMFROMSTR_SUPPORTS_ONLY_UNIT_VARIANTS,
+                    ));
+                }
+                Ok((
+                    &variant.ident,
+                    identifier_to_snake(domain_types::SynIdentifierRef::from(&variant.ident)),
+                ))
+            })
+            .collect::<syn::Result<Vec<(&syn::Ident, domain_types::SnakeIdentifier)>>>()?;
+        let allowed_values_capacity = variants
+            .iter()
+            .map(|(_identifier, name)| name.as_ref().len())
+            .sum::<usize>()
+            .saturating_add(
+                variants
+                    .len()
+                    .saturating_sub(constants_usize::ONE)
+                    .saturating_mul(constants_str::TEXT_ALT_6.len()),
+            );
+        let allowed_values = variants.iter().enumerate().fold(
+            String::with_capacity(allowed_values_capacity),
+            |mut values, (index, (_identifier, name))| {
+                if index > constants_usize::ZERO {
+                    values.push_str(constants_str::TEXT_ALT_6);
+                }
+                values.push_str(name.as_ref());
+                values
+            },
+        );
+        let arms = variants.iter().map(|(variant_identifier, name)| {
+            let name_ref = name.as_ref();
+            quote::quote! {
+                v if v.eq_ignore_ascii_case(#name_ref) => Ok(Self::#variant_identifier),
+            }
+        });
+        Ok::<_, syn::Error>(domain_types::ProcMacro2GeneratedTokenStream::from(
+            quote::quote! {
+                impl std::str::FromStr for #identifier {
+                    type Err = String;
+                    fn from_str(s: &str) -> Result<Self, Self::Err> {
+                        match s {
+                            #(#arms)*
+                            _ => Err(format!("Unknown value: {s}. Allowed values: {allowed_values}", allowed_values = #allowed_values)),
+                        }
+                    }
+                }
+            },
+        ))
+    })();
+    match generated {
         Ok(v) => v.into(),
         Err(error) => error.into_compile_error().into(),
     }
@@ -670,7 +739,40 @@ fn generate_newtype_token_stream_with_attrs(
 ) -> syn::Result<domain_types::ProcMacro2GeneratedTokenStream> {
     let input_ref = input.as_ref();
     let inner_ty = tuple_struct_one_field_ty(input)?;
-    validate_newtype_inner_ty_attrs(attrs, inner_ty)?;
+    if attrs
+        .contains(domain_types::NewtypeOption::AsRefInner)
+        .get()
+        && !matches!(
+            inner_ty.as_ref(),
+            syn::Type::Reference(syn::TypeReference {
+                mutability: None,
+                ..
+            })
+        )
+    {
+        return Err(syn::Error::new_spanned(
+            inner_ty.as_ref(),
+            constants_str::MACRO_DIAGNOSTICS_AS_REF_INNER_SHARED_REF_ERROR,
+        ));
+    }
+    if attrs
+        .contains(domain_types::NewtypeOption::AsRefOwned)
+        .get()
+        && matches!(inner_ty.as_ref(), syn::Type::Reference(_))
+    {
+        return Err(syn::Error::new_spanned(
+            inner_ty.as_ref(),
+            constants_str::NEWTYPE_AS_REF_OWNED_DOES_NOT_SUPPORT_REFERENCE_INNER_TYPES_USE_AS,
+        ));
+    }
+    if attrs.contains(domain_types::NewtypeOption::From).get()
+        && type_path_ends_with_string_identifier(inner_ty).get()
+    {
+        return Err(syn::Error::new_spanned(
+            inner_ty.as_ref(),
+            constants_str::NEWTYPE_FROM_INNER_CANNOT_BE_USED_FOR_STRING_WRAPPERS_IMPLEMENT_TRYFROM_STRING,
+        ));
+    }
     let inner_ty_ref = inner_ty.as_ref();
     let identifier = &input_ref.ident;
     let (impl_generics, ty_generics, where_clause) = input_ref.generics.split_for_impl();
@@ -1143,10 +1245,35 @@ fn generate_newtype_token_stream_with_attrs(
                 }
             }
         });
-    let to_err_string_token_stream = generate_to_err_string_token_stream(
-        attrs,
-        domain_types::SynIdentifierRef::from(identifier),
-    );
+    let to_err_string_token_stream = attrs.to_err_string_mode.map(|mode| match mode {
+        domain_types::ToErrStringMode::AsRefStr => {
+            domain_types::ProcMacro2GeneratedTokenStream::from(quote::quote! {
+                impl to_err_string::domain_types::ToErrString for #identifier {
+                    fn to_err_string(&self) -> to_err_string::domain_types::ErrorText {
+                        to_err_string::domain_types::ErrorText::try_from(AsRef::<str>::as_ref(&self.0).to_owned()).unwrap_or_else(to_err_string::domain_types::ErrorText::from)
+                    }
+                }
+            })
+        }
+        domain_types::ToErrStringMode::Debug => {
+            domain_types::ProcMacro2GeneratedTokenStream::from(quote::quote! {
+                impl to_err_string::domain_types::ToErrString for #identifier {
+                    fn to_err_string(&self) -> to_err_string::domain_types::ErrorText {
+                        to_err_string::domain_types::ErrorText::try_from(format!("{:?}", self.0)).unwrap_or_else(to_err_string::domain_types::ErrorText::from)
+                    }
+                }
+            })
+        }
+        domain_types::ToErrStringMode::Display => {
+            domain_types::ProcMacro2GeneratedTokenStream::from(quote::quote! {
+                impl to_err_string::domain_types::ToErrString for #identifier {
+                    fn to_err_string(&self) -> to_err_string::domain_types::ErrorText {
+                        to_err_string::domain_types::ErrorText::try_from(self.0.to_string()).unwrap_or_else(to_err_string::domain_types::ErrorText::from)
+                    }
+                }
+            })
+        }
+    });
     Ok(domain_types::ProcMacro2GeneratedTokenStream::from(
         quote::quote! {
             #debug_transparent_token_stream
@@ -1189,8 +1316,96 @@ fn generate_bounded_string_token_stream(
     input: domain_types::SynDeriveInputRef<'_>,
 ) -> syn::Result<domain_types::ProcMacro2GeneratedTokenStream> {
     let input_ref = input.as_ref();
-    let attrs =
-        parse_bounded_string_attrs(domain_types::SynAttrsRef::from(input_ref.attrs.as_slice()))?;
+    let attrs = input_ref
+        .attrs
+        .iter()
+        .filter(|attr| attr.path().is_ident(constants_str::BOUNDED_STRING))
+        .try_fold(
+            domain_types::BoundedStringAttrs {
+                description: None,
+                max: None,
+                min: None,
+                options: workspace_macro_helpers::domain_types::UniqueOptionBTreeSet::default(),
+                validator: None,
+            },
+            |mut parsed, attr| {
+                attr.parse_nested_meta(|meta| {
+                    if meta.path.is_ident(constants_str::MAX) {
+                        parsed.max = Some(domain_types::SynExpr::from(
+                            meta.value()?.parse::<syn::Expr>()?,
+                        ));
+                        return Ok(());
+                    }
+                    if meta.path.is_ident(constants_str::MIN) {
+                        parsed.min = Some(domain_types::SynExpr::from(
+                            meta.value()?.parse::<syn::Expr>()?,
+                        ));
+                        return Ok(());
+                    }
+                    if meta.path.is_ident(constants_str::DESCRIPTION) {
+                        parsed.description = Some(domain_types::SynExpr::from(
+                            meta.value()?.parse::<syn::Expr>()?,
+                        ));
+                        return Ok(());
+                    }
+                    if meta.path.is_ident(constants_str::NEWTYPE_TRY_FROM_VALIDATOR) {
+                        if parsed.validator.is_some() {
+                            return Err(
+                                meta.error(constants_str::NEWTYPE_TRY_FROM_VALIDATOR_DUPLICATE)
+                            );
+                        }
+                        parsed.validator = Some(domain_types::SynExpr::from(
+                            meta.value()?.parse::<syn::Expr>()?,
+                        ));
+                        return Ok(());
+                    }
+                    if meta.path.is_ident(constants_str::CHARS) {
+                        return parsed.options.try_insert_with(
+                            domain_types::BoundedStringOption::Chars,
+                            || meta.error(constants_str::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR),
+                        );
+                    }
+                    if meta.path.is_ident(constants_str::NUL_FREE) {
+                        return parsed.options.try_insert_with(
+                            domain_types::BoundedStringOption::NulFree,
+                            || meta.error(constants_str::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR),
+                        );
+                    }
+                    if meta.path.is_ident(constants_str::SERDE) {
+                        return parsed.options.try_insert_with(
+                            domain_types::BoundedStringOption::Serde,
+                            || meta.error(constants_str::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR),
+                        );
+                    }
+                    if meta.path.is_ident(constants_str::TRIM) {
+                        return parsed.options.try_insert_with(
+                            domain_types::BoundedStringOption::Trim,
+                            || meta.error(constants_str::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR),
+                        );
+                    }
+                    if meta.path.is_ident(constants_str::UTOIPA) {
+                        return parsed.options.try_insert_with(
+                            domain_types::BoundedStringOption::Utoipa,
+                            || meta.error(constants_str::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR),
+                        );
+                    }
+                    if meta.path.is_ident(constants_str::WRITE_ONLY) {
+                        return parsed.options.try_insert_with(
+                            domain_types::BoundedStringOption::WriteOnly,
+                            || meta.error(constants_str::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR),
+                        );
+                    }
+                    Err(meta.error(constants_str::UNKNOWN_BOUNDED_STRING_OPTION))
+                })?;
+                Ok::<domain_types::BoundedStringAttrs, syn::Error>(parsed)
+            },
+        )?;
+    if attrs.max.is_none() {
+        return Err(syn::Error::new(
+            proc_macro2::Span::call_site(),
+            constants_str::MACRO_DIAGNOSTICS_BOUNDED_STRING_MAX_ERROR,
+        ));
+    }
     let inner_ty = tuple_struct_one_field_ty(input)?;
     if !type_path_ends_with_string_identifier(inner_ty).get() {
         return Err(syn::Error::new_spanned(
@@ -1374,214 +1589,6 @@ fn generate_bounded_string_token_stream(
         },
     ))
 }
-#[allow(clippy::single_call_fn)] // keeps enum parsing derive independent from newtype tuple-struct generation
-fn generate_enum_from_str_token_stream(
-    input: domain_types::SynDeriveInputRef<'_>,
-) -> syn::Result<domain_types::ProcMacro2GeneratedTokenStream> {
-    let input_ref = input.as_ref();
-    let identifier = &input_ref.ident;
-    let data_enum = match &input_ref.data {
-        syn::Data::Enum(v) => v,
-        syn::Data::Struct(_) | syn::Data::Union(_) => {
-            return Err(syn::Error::new_spanned(
-                input_ref,
-                constants_str::ENUMFROMSTR_SUPPORTS_ONLY_ENUMS,
-            ));
-        }
-    };
-    let variants = data_enum
-        .variants
-        .iter()
-        .map(|variant| {
-            if !matches!(variant.fields, syn::Fields::Unit) {
-                return Err(syn::Error::new_spanned(
-                    variant,
-                    constants_str::ENUMFROMSTR_SUPPORTS_ONLY_UNIT_VARIANTS,
-                ));
-            }
-            Ok((
-                &variant.ident,
-                identifier_to_snake(domain_types::SynIdentifierRef::from(&variant.ident)),
-            ))
-        })
-        .collect::<syn::Result<Vec<(&syn::Ident, domain_types::SnakeIdentifier)>>>()?;
-    let allowed_values_capacity = variants
-        .iter()
-        .map(|(_identifier, name)| name.as_ref().len())
-        .sum::<usize>()
-        .saturating_add(
-            variants
-                .len()
-                .saturating_sub(constants_usize::ONE)
-                .saturating_mul(constants_str::TEXT_ALT_6.len()),
-        );
-    let allowed_values = variants.iter().enumerate().fold(
-        String::with_capacity(allowed_values_capacity),
-        |mut values, (index, (_identifier, name))| {
-            if index > constants_usize::ZERO {
-                values.push_str(constants_str::TEXT_ALT_6);
-            }
-            values.push_str(name.as_ref());
-            values
-        },
-    );
-    let arms = variants.iter().map(|(variant_identifier, name)| {
-        let name_ref = name.as_ref();
-        quote::quote! {
-            v if v.eq_ignore_ascii_case(#name_ref) => Ok(Self::#variant_identifier),
-        }
-    });
-    Ok(domain_types::ProcMacro2GeneratedTokenStream::from(
-        quote::quote! {
-            impl std::str::FromStr for #identifier {
-                type Err = String;
-                fn from_str(s: &str) -> Result<Self, Self::Err> {
-                    match s {
-                        #(#arms)*
-                        _ => Err(format!("Unknown value: {s}. Allowed values: {allowed_values}", allowed_values = #allowed_values)),
-                    }
-                }
-            }
-        },
-    ))
-}
-#[allow(clippy::single_call_fn)] // required checked-string options are parsed together for focused diagnostics
-fn parse_bounded_string_attrs(
-    attrs: domain_types::SynAttrsRef<'_>,
-) -> syn::Result<domain_types::BoundedStringAttrs> {
-    let parsed = attrs
-        .as_ref()
-        .iter()
-        .filter(|attr| attr.path().is_ident(constants_str::BOUNDED_STRING))
-        .try_fold(
-            domain_types::BoundedStringAttrs {
-                description: None,
-                max: None,
-                min: None,
-                options: workspace_macro_helpers::domain_types::UniqueOptionBTreeSet::default(),
-                validator: None,
-            },
-            |mut parsed, attr| {
-                attr.parse_nested_meta(|meta| {
-                    if meta.path.is_ident(constants_str::MAX) {
-                        parsed.max = Some(domain_types::SynExpr::from(meta.value()?.parse::<syn::Expr>()?));
-                        return Ok(());
-                    }
-                    if meta.path.is_ident(constants_str::MIN) {
-                        parsed.min = Some(domain_types::SynExpr::from(meta.value()?.parse::<syn::Expr>()?));
-                        return Ok(());
-                    }
-                    if meta.path.is_ident(constants_str::DESCRIPTION) {
-                        parsed.description =
-                            Some(domain_types::SynExpr::from(meta.value()?.parse::<syn::Expr>()?));
-                        return Ok(());
-                    }
-                    if meta.path.is_ident(constants_str::NEWTYPE_TRY_FROM_VALIDATOR) {
-                        if parsed.validator.is_some() {
-                            return Err(meta.error(
-                                constants_str::NEWTYPE_TRY_FROM_VALIDATOR_DUPLICATE,
-                            ));
-                        }
-                        parsed.validator =
-                            Some(domain_types::SynExpr::from(meta.value()?.parse::<syn::Expr>()?));
-                        return Ok(());
-                    }
-                    if meta.path.is_ident(constants_str::CHARS) {
-                        return parsed
-                            .options
-                            .try_insert_with(domain_types::BoundedStringOption::Chars, || {
-                                meta.error(constants_str::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR)
-                            });
-                    }
-                    if meta.path.is_ident(constants_str::NUL_FREE) {
-                        return parsed
-                            .options
-                            .try_insert_with(domain_types::BoundedStringOption::NulFree, || {
-                                meta.error(constants_str::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR)
-                            });
-                    }
-                    if meta.path.is_ident(constants_str::SERDE) {
-                        return parsed
-                            .options
-                            .try_insert_with(domain_types::BoundedStringOption::Serde, || {
-                                meta.error(constants_str::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR)
-                            });
-                    }
-                    if meta.path.is_ident(constants_str::TRIM) {
-                        return parsed
-                            .options
-                            .try_insert_with(domain_types::BoundedStringOption::Trim, || {
-                                meta.error(constants_str::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR)
-                            });
-                    }
-                    if meta.path.is_ident(constants_str::UTOIPA) {
-                        return parsed
-                            .options
-                            .try_insert_with(domain_types::BoundedStringOption::Utoipa, || {
-                                meta.error(constants_str::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR)
-                            });
-                    }
-                    if meta.path.is_ident(constants_str::WRITE_ONLY) {
-                        return parsed
-                            .options
-                            .try_insert_with(domain_types::BoundedStringOption::WriteOnly, || {
-                                meta.error(constants_str::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR)
-                            });
-                    }
-                    Err(meta.error(constants_str::UNKNOWN_BOUNDED_STRING_OPTION))
-                })?;
-                Ok::<domain_types::BoundedStringAttrs, syn::Error>(parsed)
-            },
-        )?;
-    if parsed.max.is_none() {
-        return Err(syn::Error::new(
-            proc_macro2::Span::call_site(),
-            constants_str::MACRO_DIAGNOSTICS_BOUNDED_STRING_MAX_ERROR,
-        ));
-    }
-    Ok(parsed)
-}
-#[allow(clippy::single_call_fn)] // string wrapper policy belongs to newtype validation before From impl generation
-fn validate_newtype_inner_ty_attrs(
-    attrs: &domain_types::NewtypeAttrs,
-    inner_ty: domain_types::SynTypeRef<'_>,
-) -> syn::Result<()> {
-    if attrs
-        .contains(domain_types::NewtypeOption::AsRefInner)
-        .get()
-        && !matches!(
-            inner_ty.as_ref(),
-            syn::Type::Reference(syn::TypeReference {
-                mutability: None,
-                ..
-            })
-        )
-    {
-        return Err(syn::Error::new_spanned(
-            inner_ty.as_ref(),
-            constants_str::MACRO_DIAGNOSTICS_AS_REF_INNER_SHARED_REF_ERROR,
-        ));
-    }
-    if attrs
-        .contains(domain_types::NewtypeOption::AsRefOwned)
-        .get()
-        && matches!(inner_ty.as_ref(), syn::Type::Reference(_))
-    {
-        return Err(syn::Error::new_spanned(
-            inner_ty.as_ref(),
-            constants_str::NEWTYPE_AS_REF_OWNED_DOES_NOT_SUPPORT_REFERENCE_INNER_TYPES_USE_AS,
-        ));
-    }
-    if attrs.contains(domain_types::NewtypeOption::From).get()
-        && type_path_ends_with_string_identifier(inner_ty).get()
-    {
-        return Err(syn::Error::new_spanned(
-            inner_ty.as_ref(),
-            constants_str::NEWTYPE_FROM_INNER_CANNOT_BE_USED_FOR_STRING_WRAPPERS_IMPLEMENT_TRYFROM_STRING,
-        ));
-    }
-    Ok(())
-}
 fn tuple_struct_one_field_ty(
     input: domain_types::SynDeriveInputRef<'_>,
 ) -> syn::Result<domain_types::SynTypeRef<'_>> {
@@ -1647,42 +1654,6 @@ fn identifier_to_snake(
     );
     domain_types::SnakeIdentifier::try_from(out)
         .expect("2e7a9c4f identifier_to_snake invariant must hold")
-}
-#[allow(clippy::single_call_fn)] // ToErrString code generation has distinct modes from base newtype impls
-fn generate_to_err_string_token_stream(
-    attrs: &domain_types::NewtypeAttrs,
-    identifier: domain_types::SynIdentifierRef<'_>,
-) -> Option<domain_types::ProcMacro2GeneratedTokenStream> {
-    let ident_ref = identifier.as_ref();
-    attrs.to_err_string_mode.map(|mode| match mode {
-        domain_types::ToErrStringMode::AsRefStr => {
-            domain_types::ProcMacro2GeneratedTokenStream::from(quote::quote! {
-                impl to_err_string::domain_types::ToErrString for #ident_ref {
-                    fn to_err_string(&self) -> to_err_string::domain_types::ErrorText {
-                        to_err_string::domain_types::ErrorText::try_from(AsRef::<str>::as_ref(&self.0).to_owned()).unwrap_or_else(to_err_string::domain_types::ErrorText::from)
-                    }
-                }
-            })
-        }
-        domain_types::ToErrStringMode::Debug => {
-            domain_types::ProcMacro2GeneratedTokenStream::from(quote::quote! {
-                impl to_err_string::domain_types::ToErrString for #ident_ref {
-                    fn to_err_string(&self) -> to_err_string::domain_types::ErrorText {
-                        to_err_string::domain_types::ErrorText::try_from(format!("{:?}", self.0)).unwrap_or_else(to_err_string::domain_types::ErrorText::from)
-                    }
-                }
-            })
-        }
-        domain_types::ToErrStringMode::Display => {
-            domain_types::ProcMacro2GeneratedTokenStream::from(quote::quote! {
-                impl to_err_string::domain_types::ToErrString for #ident_ref {
-                    fn to_err_string(&self) -> to_err_string::domain_types::ErrorText {
-                        to_err_string::domain_types::ErrorText::try_from(self.0.to_string()).unwrap_or_else(to_err_string::domain_types::ErrorText::from)
-                    }
-                }
-            })
-        }
-    })
 }
 #[cfg(test)]
 mod tests;

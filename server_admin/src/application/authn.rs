@@ -45,24 +45,32 @@ pub(super) async fn sign_in(
         state.as_ref().policy.sign_in_window,
     )
     .await?;
-    let recent_failures = crate::adapters::repository::users::recent_login_failure_count(
-        crate::adapters::repository::SqlxAdminRepositoryPoolRef::from(state.as_ref().pool.as_ref()),
-        &login,
-    )
-    .await
-    .map_err(super::AdminError::from)?;
+    let recent_failures =
+        sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_RECENT_LOGIN_FAILURE_COUNT_SQL)
+            .bind(login.as_ref())
+            .fetch_one(state.as_ref().pool.as_ref())
+            .await
+            .map_err(crate::domain_types::SqlxAdminError::from)
+            .map(crate::adapters::repository::AdminRecentLoginFailureCount::from)
+            .map_err(super::AdminError::from)?;
     if recent_failures
         .reached(state.as_ref().policy.failure_threshold)
         .get()
     {
         return Err(super::AdminError::RateLimited);
     }
-    let optional_user = crate::adapters::repository::users::find_sign_in_user(
-        crate::adapters::repository::SqlxAdminRepositoryPoolRef::from(state.as_ref().pool.as_ref()),
-        &login,
-    )
-    .await
-    .map_err(super::AdminError::from)?;
+    let optional_user =
+        sqlx::query_as::<_, (i64, String, bool)>(constants_str::SERVER_ADMIN_SIGN_IN_USER_SQL)
+            .bind(login.as_ref())
+            .fetch_optional(state.as_ref().pool.as_ref())
+            .await
+            .map_err(crate::domain_types::SqlxAdminError::from)
+            .and_then(|value| {
+                value
+                    .map(crate::adapters::repository::AdminSignInUser::try_from)
+                    .transpose()
+            })
+            .map_err(super::AdminError::from)?;
     let Some(sign_in_user) = optional_user else {
         drop(
             state
@@ -81,7 +89,11 @@ pub(super) async fn sign_in(
         .await?;
         return Err(super::AdminError::Authentication);
     };
-    let (admin_user_id, password_hash, is_banned) = sign_in_user.into_parts();
+    let (admin_user_id, password_hash, is_banned) = <(
+        super::super::AdminUserId,
+        super::super::AdminPasswordHash,
+        super::super::StdAdminBool,
+    )>::from(sign_in_user);
     let verified = state
         .as_ref()
         .password_hasher
@@ -197,12 +209,19 @@ pub(super) async fn refresh(
         .begin()
         .await
         .map_err(super::AdminError::from)?;
-    let optional_user_id = crate::adapters::repository::users::lock_refresh_token_user(
-        crate::adapters::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
-        &token_hash,
-    )
-    .await
-    .map_err(super::AdminError::from)?;
+    let optional_user_id =
+        sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_LOCK_REFRESH_TOKEN_USER_SQL)
+            .bind(token_hash.expose().as_ref())
+            .fetch_optional(&mut *tx)
+            .await
+            .map_err(crate::domain_types::SqlxAdminError::from)
+            .and_then(|value| {
+                value
+                    .map(super::super::AdminUserId::try_from)
+                    .transpose()
+                    .map_err(crate::domain_types::SqlxAdminError::from)
+            })
+            .map_err(super::AdminError::from)?;
     let Some(user_id) = optional_user_id else {
         tx.commit().await.map_err(super::AdminError::from)?;
         apply_refresh_failure_delay(state.as_ref().policy.failure_delay).await;
@@ -224,13 +243,17 @@ pub(super) async fn refresh(
     )
     .await
     .map_err(super::AdminError::session)?;
-    let login = crate::adapters::repository::sessions::read_active_user_login(
-        crate::adapters::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
-        admin_user_id,
-    )
-    .await
-    .map_err(super::shared::map_repository_error)?
-    .ok_or(super::AdminError::Authentication)?;
+    let login =
+        sqlx::query_scalar::<_, String>(constants_str::SERVER_ADMIN_READ_ACTIVE_USER_LOGIN_SQL)
+            .bind(admin_user_id.get())
+            .fetch_optional(&mut *tx)
+            .await
+            .map_err(crate::domain_types::SqlxAdminError::from)
+            .map_err(super::AdminError::from)?
+            .map(server_admin_contract::domain_types::AdminLogin::try_from)
+            .transpose()
+            .map_err(|_error| super::AdminError::Validation)?
+            .ok_or(super::AdminError::Authentication)?;
     super::record_audit_success_in_connection(
         super::SqlxAdminPgConnectionRef::from(&mut *tx),
         super::AdminAuditSuccessRef {
@@ -243,7 +266,7 @@ pub(super) async fn refresh(
     )
     .await?;
     let authenticated = super::load_authenticated_admin_from_db(
-        &mut crate::adapters::repository::AdminRepositoryDbRef::Connection(
+        &mut super::AdminDbRef::Connection(
             crate::adapters::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
         ),
         admin_user_id,

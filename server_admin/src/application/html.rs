@@ -244,24 +244,6 @@ fn form_auth(mut auth: super::AdminAuthReq) -> Result<super::AdminAuthReq, super
     Ok(auth)
 }
 
-fn redirect_with_headers(
-    path: server_admin_contract::domain_types::AdminFrontendPath,
-    source: &super::AxumAdminResponse,
-) -> axum::response::Response {
-    let mut target =
-        axum::response::IntoResponse::into_response(axum::response::Redirect::to(path.get()));
-    source
-        .0
-        .headers()
-        .get_all(http::header::SET_COOKIE)
-        .iter()
-        .cloned()
-        .for_each(|value| {
-            let _appended = target.headers_mut().append(http::header::SET_COOKIE, value);
-        });
-    target
-}
-
 fn success_redirect(
     path: server_admin_contract::domain_types::AdminFrontendPath,
 ) -> axum::response::Response {
@@ -369,9 +351,17 @@ fn permission_ids(
         .map_err(|_error| super::AdminError::Validation)
 }
 
-fn selected_form_text(
+fn authenticated_selected_form<Ids, Parse>(
+    auth: super::AdminAuthReq,
+    expected: &AdminHtmlFormText,
     selected: StdAdminHtmlSelected,
-) -> Result<AdminHtmlFormText, AdminHtmlFormTextError> {
+    parse: Parse,
+) -> Result<(super::AdminAuthReq, Ids, Ids), super::AdminError>
+where
+    Parse: Fn(&AdminHtmlFormText) -> Result<Ids, super::AdminError>,
+{
+    let auth = form_auth(auth)?;
+    let expected = parse(expected)?;
     let separator = constants_str::COMMA_SPACE.trim();
     let capacity = selected
         .0
@@ -396,24 +386,10 @@ fn selected_form_text(
             text
         },
     );
-    AdminHtmlFormText::try_from(text)
-}
-
-fn authenticated_selected_form<Ids, Parse>(
-    auth: super::AdminAuthReq,
-    expected: &AdminHtmlFormText,
-    selected: StdAdminHtmlSelected,
-    parse: Parse,
-) -> Result<(super::AdminAuthReq, Ids, Ids), super::AdminError>
-where
-    Parse: Fn(&AdminHtmlFormText) -> Result<Ids, super::AdminError>,
-{
-    let auth = form_auth(auth)?;
-    let expected = parse(expected)?;
-    let selected = selected_form_text(selected)
+    let selected_ids = AdminHtmlFormText::try_from(text)
         .map_err(|_error| super::AdminError::Validation)
         .and_then(|value| parse(&value))?;
-    Ok((auth, expected, selected))
+    Ok((auth, expected, selected_ids))
 }
 
 #[frontend_contract::domain_types::route_error(AdminSignInPageError)]
@@ -762,10 +738,23 @@ async fn root() -> axum::response::Response {
 async fn sign_out(auth: super::AdminAuthReq) -> axum::response::Response {
     match form_auth(auth) {
         Ok(auth) => match super::authn::sign_out(auth).await {
-            Ok(response) => redirect_with_headers(
-                server_admin_contract::domain_types::AdminFrontendPath::SignIn,
-                &response,
-            ),
+            Ok(response) => {
+                let mut target =
+                    axum::response::IntoResponse::into_response(axum::response::Redirect::to(
+                        server_admin_contract::domain_types::AdminFrontendPath::SignIn.get(),
+                    ));
+                response
+                    .0
+                    .headers()
+                    .get_all(http::header::SET_COOKIE)
+                    .iter()
+                    .cloned()
+                    .for_each(|value| {
+                        let _appended =
+                            target.headers_mut().append(http::header::SET_COOKIE, value);
+                    });
+                target
+            }
             Err(error) => axum::response::IntoResponse::into_response(error),
         },
         Err(error) => axum::response::IntoResponse::into_response(error),
@@ -1119,13 +1108,23 @@ async fn update_settings(
     )
 }
 
-async fn finish_sign_in(
+#[frontend_contract::domain_types::route_error(AdminHtmlSignInError)]
+async fn sign_in(
     auth: super::AdminAuthReq,
     peer: super::AdminPeerAddr,
-    request: server_admin_contract::domain_types::AdminSignInReq,
+    super::AxumAdminForm(form): super::AxumAdminForm<SignInForm>,
 ) -> axum::response::Response {
     let branding = super::settings::branding_view_ref(&auth).await.ok();
-    match super::authn::sign_in(auth, peer, super::AdminSignInJson(request)).await {
+    match super::authn::sign_in(
+        auth,
+        peer,
+        super::AdminSignInJson(server_admin_contract::domain_types::AdminSignInReq::new(
+            form.login,
+            form.password,
+        )),
+    )
+    .await
+    {
         Ok(response) => {
             let source = response.0;
             let mut target =
@@ -1163,20 +1162,6 @@ async fn finish_sign_in(
             }
         }
     }
-}
-
-#[frontend_contract::domain_types::route_error(AdminHtmlSignInError)]
-async fn sign_in(
-    auth: super::AdminAuthReq,
-    peer: super::AdminPeerAddr,
-    super::AxumAdminForm(form): super::AxumAdminForm<SignInForm>,
-) -> axum::response::Response {
-    finish_sign_in(
-        auth,
-        peer,
-        server_admin_contract::domain_types::AdminSignInReq::new(form.login, form.password),
-    )
-    .await
 }
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]

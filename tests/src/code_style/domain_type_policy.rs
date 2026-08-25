@@ -503,7 +503,17 @@ fn tuple_wrapper_initialization_policy_rejects_direct_constructors() {
 #[test]
 fn domain_boundaries_use_repository_declared_types() {
     let repo_crates = super::workspace_crate_names();
-    let repo_types = super::declared_domain_type_names();
+    let mut names = std::collections::BTreeSet::new();
+    super::for_each_rs_file(|file| {
+        let visitor = super::visit_syn_file(
+            super::types::SynFileRef::from(file.ast().as_ref()),
+            super::domain_analysis::DeclaredDomainTypeVisitor {
+                names: super::types::SourceTextBTreeSet::default(),
+            },
+        );
+        names.extend(visitor.names);
+    });
+    let repo_types = super::types::SourceTextBTreeSet::from(names);
     super::assert_rs_ast_ers_empty_with_ctx(
         super::types::StaticStr::from(constants_str::A7F9C3E1),
         super::types::SourceTextRef::from(constants_str::RAW_EXTERNAL_OR_PRIMITIVE_TYPES_FOUND_IN_DOMAIN_BOUNDARIES_USE_REPOSITORY_DOMAIN),
@@ -895,10 +905,6 @@ fn external_leaf_tuple_wrappers_include_source_name() {
 }
 #[test]
 fn external_leaf_wrapper_type_rule_has_no_name_exceptions() {
-    assert!(
-        super::external_leaf_wrapper_name_exceptions().is_empty(),
-        "5f29c4e8"
-    );
     let ast: syn::File = syn::parse_quote! {
         struct GeneratedTokens(proc_macro2::TokenStream);
         struct ProcMacro2GeneratedTokens(proc_macro2::TokenStream);

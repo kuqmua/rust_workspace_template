@@ -385,16 +385,37 @@ impl DiagnosticIdVisitor {
         kind: super::types::SourceTextRef<'_>,
         value: super::types::SourceTextRef<'_>,
     ) {
-        if let Some(prefix) = super::diagnostic_id_prefix(value) {
-            if kind.as_ref() == constants_str::CODE_STYLE_EXPECT_METHOD_NAME
-                && !super::diagnostic_id_has_context(value).get()
-            {
+        let optional_prefix = value
+            .get()
+            .get(..8usize)
+            .filter(|prefix| {
+                prefix
+                    .bytes()
+                    .all(|byte| byte.is_ascii_digit() || matches!(byte, b'a'..=b'f'))
+            })
+            .filter(|_| {
+                value.get().len() == 8usize
+                    || value.get().get(8usize..).is_some_and(|suffix| {
+                        suffix.starts_with(constants_str::VALUE_45822F54) || suffix.starts_with(' ')
+                    })
+            });
+        if let Some(prefix) = optional_prefix {
+            let has_context = value
+                .get()
+                .get(8usize..)
+                .and_then(|suffix| {
+                    suffix
+                        .strip_prefix(constants_str::VALUE_45822F54)
+                        .or_else(|| suffix.strip_prefix(' '))
+                })
+                .is_some_and(|context| context.split_whitespace().count() >= 2usize);
+            if kind.as_ref() == constants_str::CODE_STYLE_EXPECT_METHOD_NAME && !has_context {
                 self.ers.push(format!(
                     "expect message diagnostic ID must be followed by at least two context words: {value:?}",
                     value = value.as_ref(),
                 ));
             } else {
-                self.ids.push(prefix.as_ref().to_owned());
+                self.ids.push(prefix.to_owned());
             }
         } else {
             self.ers.push(format!(
@@ -464,7 +485,9 @@ impl<'ast> syn::visit::Visit<'ast> for SensitiveTextDebugDeriveVisitor {
             i.ident.to_string().as_str(),
         ))
         .get()
-            && super::item_struct_wraps_text(super::types::SynItemStructRef::from(i)).get()
+            && i.fields
+                .iter()
+                .any(|field| super::type_contains_sensitive_text_or_bytes(&field.ty))
         {
             [
                 constants_str::VALUE_1A03BD2F,
@@ -1020,36 +1043,6 @@ pub(super) struct ForwardingDerefVisitor {
 pub(super) struct ForwardingBorrowVisitor {
     pub ers: super::types::DiagnosticMsgs,
 }
-impl ForwardingBorrowVisitor {
-    #[allow(
-        clippy::single_call_fn,
-        reason = "the expression-shape predicate keeps the visitor branch readable"
-    )]
-    fn is_inner_borrow_expr(expr: &syn::Expr) -> bool {
-        if Self::is_inner_field(expr) {
-            return true;
-        }
-        if let syn::Expr::Reference(reference) = expr {
-            return Self::is_inner_field(reference.expr.as_ref());
-        }
-        if let syn::Expr::MethodCall(call) = expr {
-            return Self::is_inner_field(call.receiver.as_ref());
-        }
-        false
-    }
-    fn is_inner_field(expr: &syn::Expr) -> bool {
-        let syn::Expr::Field(field) = expr else {
-            return false;
-        };
-        let syn::Expr::Path(receiver) = field.base.as_ref() else {
-            return false;
-        };
-        receiver
-            .path
-            .is_ident(constants_str::CODE_STYLE_SELF_VALUE_IDENTIFIER)
-            && matches!(&field.member, syn::Member::Unnamed(index) if index.index == constants_u32::ZERO)
-    }
-}
 impl<'ast> syn::visit::Visit<'ast> for ForwardingBorrowVisitor {
     fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
         let is_borrow_impl = i.trait_.as_ref().is_some_and(|(path, _)| {
@@ -1067,7 +1060,21 @@ impl<'ast> syn::visit::Visit<'ast> for ForwardingBorrowVisitor {
                     let syn::Stmt::Expr(expression, None) = statement else {
                         return false;
                     };
-                    Self::is_inner_borrow_expr(expression)
+                    let is_inner_field = |expr: &syn::Expr| {
+                        let syn::Expr::Field(field) = expr else {
+                            return false;
+                        };
+                        let syn::Expr::Path(receiver) = field.base.as_ref() else {
+                            return false;
+                        };
+                        receiver
+                            .path
+                            .is_ident(constants_str::CODE_STYLE_SELF_VALUE_IDENTIFIER)
+                            && matches!(&field.member, syn::Member::Unnamed(index) if index.index == constants_u32::ZERO)
+                    };
+                    is_inner_field(expression)
+                        || matches!(expression, syn::Expr::Reference(reference) if is_inner_field(reference.expr.as_ref()))
+                        || matches!(expression, syn::Expr::MethodCall(call) if is_inner_field(call.receiver.as_ref()))
                 })
         });
         if is_borrow_impl && forwards_inner {
@@ -1075,27 +1082,6 @@ impl<'ast> syn::visit::Visit<'ast> for ForwardingBorrowVisitor {
                 .push(constants_str::CODE_STYLE_MANUAL_FORWARDING_BORROW.to_owned());
         }
         syn::visit::visit_item_impl(self, i);
-    }
-}
-impl ForwardingDerefVisitor {
-    #[allow(
-        clippy::single_call_fn,
-        reason = "the expression-shape predicate keeps the visitor branch readable"
-    )]
-    fn is_inner_ref_expr(expr: &syn::Expr) -> bool {
-        let syn::Expr::Reference(reference) = expr else {
-            return false;
-        };
-        let syn::Expr::Field(field) = reference.expr.as_ref() else {
-            return false;
-        };
-        let syn::Expr::Path(receiver) = field.base.as_ref() else {
-            return false;
-        };
-        receiver
-            .path
-            .is_ident(constants_str::CODE_STYLE_SELF_VALUE_IDENTIFIER)
-            && matches!(&field.member, syn::Member::Unnamed(index) if index.index == constants_u32::ZERO)
     }
 }
 impl<'ast> syn::visit::Visit<'ast> for ForwardingDerefVisitor {
@@ -1135,7 +1121,19 @@ impl<'ast> syn::visit::Visit<'ast> for ForwardingDerefVisitor {
                     let syn::Stmt::Expr(expression, None) = statement else {
                         return false;
                     };
-                    Self::is_inner_ref_expr(expression)
+                    let syn::Expr::Reference(reference) = expression else {
+                        return false;
+                    };
+                    let syn::Expr::Field(field) = reference.expr.as_ref() else {
+                        return false;
+                    };
+                    let syn::Expr::Path(receiver) = field.base.as_ref() else {
+                        return false;
+                    };
+                    receiver
+                        .path
+                        .is_ident(constants_str::CODE_STYLE_SELF_VALUE_IDENTIFIER)
+                        && matches!(&field.member, syn::Member::Unnamed(index) if index.index == constants_u32::ZERO)
                 })
         });
         if is_deref_impl && targets_inner && forwards_inner {
@@ -1592,37 +1590,6 @@ impl<'ast> syn::visit::Visit<'ast> for ApiErrorLocationVisitor<'_> {
         syn::visit::visit_item_impl(self, i);
     }
 }
-impl ForwardingDisplayVisitor {
-    #[allow(
-        clippy::single_call_fn,
-        reason = "the expression-shape predicate keeps the visitor branch readable"
-    )]
-    fn is_inner_fmt_expr(expr: &syn::Expr) -> bool {
-        let syn::Expr::MethodCall(call) = expr else {
-            return false;
-        };
-        let syn::Expr::Field(field) = call.receiver.as_ref() else {
-            return false;
-        };
-        let syn::Expr::Path(receiver) = field.base.as_ref() else {
-            return false;
-        };
-        receiver
-            .path
-            .is_ident(constants_str::CODE_STYLE_SELF_VALUE_IDENTIFIER)
-            && matches!(&field.member, syn::Member::Unnamed(index) if index.index == constants_u32::ZERO)
-            && call.method == constants_str::CODE_STYLE_FMT_FN_IDENTIFIER
-            && call.args.len() == constants_usize::ONE
-            && call.args.first().is_some_and(|argument| {
-                let syn::Expr::Path(formatter) = argument else {
-                    return false;
-                };
-                formatter
-                    .path
-                    .is_ident(constants_str::CODE_STYLE_FMT_ARGUMENT_IDENTIFIER)
-            })
-    }
-}
 impl<'ast> syn::visit::Visit<'ast> for ForwardingDisplayVisitor {
     fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
         let is_display_impl = i.trait_.as_ref().is_some_and(|(path, _)| {
@@ -1641,7 +1608,29 @@ impl<'ast> syn::visit::Visit<'ast> for ForwardingDisplayVisitor {
                         let syn::Stmt::Expr(expression, None) = statement else {
                             return false;
                         };
-                        Self::is_inner_fmt_expr(expression)
+                        let syn::Expr::MethodCall(call) = expression else {
+                            return false;
+                        };
+                        let syn::Expr::Field(field) = call.receiver.as_ref() else {
+                            return false;
+                        };
+                        let syn::Expr::Path(receiver) = field.base.as_ref() else {
+                            return false;
+                        };
+                        receiver
+                            .path
+                            .is_ident(constants_str::CODE_STYLE_SELF_VALUE_IDENTIFIER)
+                            && matches!(&field.member, syn::Member::Unnamed(index) if index.index == constants_u32::ZERO)
+                            && call.method == constants_str::CODE_STYLE_FMT_FN_IDENTIFIER
+                            && call.args.len() == constants_usize::ONE
+                            && call.args.first().is_some_and(|argument| {
+                                let syn::Expr::Path(formatter) = argument else {
+                                    return false;
+                                };
+                                formatter
+                                    .path
+                                    .is_ident(constants_str::CODE_STYLE_FMT_ARGUMENT_IDENTIFIER)
+                            })
                     })
             });
         if is_display_impl && is_forwarding {
@@ -1770,32 +1759,6 @@ pub(super) struct PassthroughFromVisitor {
     pub ers: super::types::DiagnosticMsgs,
     pub inner_types: std::collections::BTreeMap<String, syn::Type>,
 }
-impl PassthroughFromVisitor {
-    #[allow(
-        clippy::single_call_fn,
-        reason = "the expression-shape predicate keeps the visitor branch readable"
-    )]
-    fn is_self_value_expr(expr: &syn::Expr) -> bool {
-        let syn::Expr::Call(call) = expr else {
-            return false;
-        };
-        let syn::Expr::Path(constructor) = call.func.as_ref() else {
-            return false;
-        };
-        constructor
-            .path
-            .is_ident(constants_str::CODE_STYLE_SELF_CONSTRUCTOR_IDENTIFIER)
-            && call.args.len() == constants_usize::ONE
-            && call.args.first().is_some_and(|argument| {
-                let syn::Expr::Path(value) = argument else {
-                    return false;
-                };
-                value
-                    .path
-                    .is_ident(constants_str::CODE_STYLE_VALUE_IDENTIFIER)
-            })
-    }
-}
 impl<'ast> syn::visit::Visit<'ast> for PassthroughFromVisitor {
     fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
         let from_type = i.trait_.as_ref().and_then(|(path, _)| {
@@ -1836,7 +1799,24 @@ impl<'ast> syn::visit::Visit<'ast> for PassthroughFromVisitor {
                         let syn::Stmt::Expr(expression, None) = statement else {
                             return false;
                         };
-                        Self::is_self_value_expr(expression)
+                        let syn::Expr::Call(call) = expression else {
+                            return false;
+                        };
+                        let syn::Expr::Path(constructor) = call.func.as_ref() else {
+                            return false;
+                        };
+                        constructor
+                            .path
+                            .is_ident(constants_str::CODE_STYLE_SELF_CONSTRUCTOR_IDENTIFIER)
+                            && call.args.len() == constants_usize::ONE
+                            && call.args.first().is_some_and(|argument| {
+                                let syn::Expr::Path(value) = argument else {
+                                    return false;
+                                };
+                                value
+                                    .path
+                                    .is_ident(constants_str::CODE_STYLE_VALUE_IDENTIFIER)
+                            })
                     })
             });
         if wraps_from_type && is_passthrough {

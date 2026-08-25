@@ -1,5 +1,5 @@
 #[cfg(feature = "test-utils")]
-const GENERATED_CRATE_STEPS: [GeneratedCrateStep; 4] = [
+pub(crate) const GENERATED_CRATE_STEPS: [GeneratedCrateStep; 4] = [
     GeneratedCrateStep::new(
         &constants_str::MACRO_CLIPPY_CARGO_FMT_ARGS,
         GeneratedCratePhase::Formatting,
@@ -70,13 +70,4 @@ impl GeneratedCrateStep {
 #[cfg(feature = "test-utils")]
 pub(crate) struct RemoveDirOnDrop {
     pub(crate) path: std::path::PathBuf,
-}
-
-#[cfg(feature = "test-utils")]
-#[allow(
-    clippy::single_call_fn,
-    reason = "the accessor keeps the reviewed generated-crate phase catalog immutable"
-)]
-pub(crate) const fn generated_crate_steps() -> &'static [GeneratedCrateStep] {
-    &GENERATED_CRATE_STEPS
 }

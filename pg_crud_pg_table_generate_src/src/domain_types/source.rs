@@ -128,40 +128,6 @@ pub fn emit_generate_pg_table(
         Dlo,
     }
     impl Operation {
-        const fn derive_clone_and_copy(
-            self,
-        ) -> (
-            macro_helpers::domain_types::derive_token_stream_builder::DClone,
-            macro_helpers::domain_types::derive_token_stream_builder::DCopy,
-        ) {
-            match self {
-                Self::Cm | Self::Co | Self::Rm | Self::Ro | Self::Um | Self::Uo | Self::Dm => (
-                    macro_helpers::domain_types::derive_token_stream_builder::DClone::False,
-                    macro_helpers::domain_types::derive_token_stream_builder::DCopy::False,
-                ),
-                Self::Dlo => (
-                    macro_helpers::domain_types::derive_token_stream_builder::DClone::True,
-                    macro_helpers::domain_types::derive_token_stream_builder::DCopy::False,
-                ),
-            }
-        }
-        const fn derive_parameters_clone_and_copy(
-            self,
-        ) -> (
-            macro_helpers::domain_types::derive_token_stream_builder::DClone,
-            macro_helpers::domain_types::derive_token_stream_builder::DCopy,
-        ) {
-            match self {
-                Self::Co | Self::Dlo => (
-                    macro_helpers::domain_types::derive_token_stream_builder::DClone::True,
-                    macro_helpers::domain_types::derive_token_stream_builder::DCopy::False,
-                ),
-                Self::Cm | Self::Rm | Self::Ro | Self::Um | Self::Uo | Self::Dm => (
-                    macro_helpers::domain_types::derive_token_stream_builder::DClone::False,
-                    macro_helpers::domain_types::derive_token_stream_builder::DCopy::False,
-                ),
-            }
-        }
         const fn desirable_status_code(
             self,
         ) -> macro_helpers::domain_types::status_code::StatusCode {
@@ -215,12 +181,6 @@ pub fn emit_generate_pg_table(
         ) -> impl naming::domain_types::DisplayPlusToTokens {
             naming::domain_types::parameter::SelfPayloadExampleSnakeCase::from_display(&self)
         }
-        fn self_handle_snake_case_token_stream(self) -> proc_macro2::TokenStream {
-            let v = naming::domain_types::parameter::SelfHSnakeCase::from_tokens(
-                &self.self_snake_case_token_stream(),
-            );
-            quote::quote! {#v}
-        }
         fn self_snake_case_str(self) -> String {
             naming_common::domain_types::AsRefStrToSnakeCaseStr::case(&self)
         }
@@ -233,21 +193,6 @@ pub fn emit_generate_pg_table(
                 self,
                 Self::Cm | Self::Co | Self::Um | Self::Uo | Self::Dm | Self::Dlo
             )
-        }
-        const fn supports_optimistic_concurrency(self) -> bool {
-            matches!(self, Self::Uo)
-        }
-        fn try_self_handle_snake_case_token_stream(self) -> proc_macro2::TokenStream {
-            let v = naming::domain_types::parameter::TrySelfHSnakeCase::from_tokens(
-                &self.self_snake_case_token_stream(),
-            );
-            quote::quote! {#v}
-        }
-        fn try_self_snake_case_token_stream(self) -> proc_macro2::TokenStream {
-            let v = naming::domain_types::parameter::TrySelfSnakeCase::from_tokens(
-                &self.self_snake_case_token_stream(),
-            );
-            quote::quote! {#v}
         }
     }
     impl std::fmt::Display for Operation {
@@ -359,7 +304,7 @@ pub fn emit_generate_pg_table(
                     Operation::Um => OperationKind::UpdateMany,
                     Operation::Uo => OperationKind::UpdateOne,
                 },
-                optimistic_concurrency_capable: operation.supports_optimistic_concurrency(),
+                optimistic_concurrency_capable: matches!(operation, Operation::Uo),
                 permission_action: match operation {
                     Operation::Cm | Operation::Co => {
                         constants_str::PG_CRUD_CREATE_PERMISSION_ACTION
@@ -765,185 +710,6 @@ pub fn emit_generate_pg_table(
             self.0
         }
     }
-    #[allow(clippy::single_call_fn)]
-    fn generate_pg_table_field_model_stage(
-        field_ref: SynGeneratePgTableFieldRef<'_>,
-        primary_key_attr_name: GeneratePgTablePrimaryKeyAttrName<'_>,
-    ) -> Result<
-        GeneratePgTableFieldEmissionModel,
-        macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
-    > {
-        let syn_field = field_ref.get();
-        let Some(field_identifier) = syn_field.ident.clone() else {
-            return Err(compile_error_token_stream(CompileErrorMessage::from(
-                constants_str::COMPILE_ERROR_CE_026,
-            )));
-        };
-        let field_len = field_identifier.to_string().len();
-        let max_pg_column_len = 63;
-        if field_len > max_pg_column_len {
-            return Err(compile_error_token_stream(CompileErrorMessage::from(
-                constants_str::COMPILE_ERROR_CE_002,
-            )));
-        }
-        let field = macro_helpers::domain_types::field_data::SynField {
-            vis: macro_helpers::domain_types::field_data::SynFieldVis::from(syn_field.vis.clone()),
-            type0: macro_helpers::domain_types::field_data::SynFieldType::from(
-                syn_field.ty.clone(),
-            ),
-            identifier: macro_helpers::domain_types::field_data::SynFieldIdentifier::from(
-                field_identifier,
-            ),
-        };
-        let has_db_default = syn_field.attrs.iter().any(|attribute| {
-            attribute
-                .path()
-                .is_ident(constants_str::GENERATE_PG_TABLE_DB_DEFAULT)
-        });
-        let mut frontend = GeneratePgTableFrontendFieldEmission::default();
-        let mut frontend_flags =
-            workspace_macro_helpers::domain_types::UniqueOptionBTreeSet::default();
-        let mut frontend_attr_count = constants_usize::ZERO;
-        syn_field
-            .attrs
-            .iter()
-            .filter(|attr| {
-                attr.path()
-                    .is_ident(constants_str::GENERATE_PG_TABLE_FRONTEND)
-            })
-            .try_for_each(|attr| {
-                frontend_attr_count = frontend_attr_count.saturating_add(constants_usize::ONE);
-                if frontend_attr_count > constants_usize::ONE {
-                    return Err(syn::Error::new_spanned(
-                        attr,
-                        constants_str::DUPLICATE_GENERATE_PG_TABLE_FRONTEND_ATTRIBUTE,
-                    ));
-                }
-                attr.parse_nested_meta(|meta| {
-                    if meta.path.is_ident(constants_str::FILTERABLE) {
-                        frontend_flags
-                            .try_insert_with(GeneratePgTableFrontendFlag::Filterable, || {
-                                meta.error(constants_str::DUPLICATE_FILTERABLE_OPTION)
-                            })?;
-                        frontend.filterable = true;
-                        return Ok(());
-                    }
-                    if meta.path.is_ident(constants_str::HIDDEN) {
-                        frontend_flags
-                            .try_insert_with(GeneratePgTableFrontendFlag::Hidden, || {
-                                meta.error(constants_str::DUPLICATE_HIDDEN_OPTION)
-                            })?;
-                        frontend.hidden = true;
-                        return Ok(());
-                    }
-                    if meta.path.is_ident(constants_str::LABEL) {
-                        if frontend.label.is_some() {
-                            return Err(meta.error(constants_str::DUPLICATE_LABEL_OPTION));
-                        }
-                        let value = meta.value()?.parse::<syn::LitStr>()?.value();
-                        if value.trim().is_empty() {
-                            return Err(meta.error(constants_str::FRONTEND_LABEL_MUST_NOT_BE_EMPTY));
-                        }
-                        frontend.label = Some(value);
-                        return Ok(());
-                    }
-                    if meta.path.is_ident(constants_str::ORDER) {
-                        if frontend.order.is_some() {
-                            return Err(meta.error(constants_str::DUPLICATE_ORDER_OPTION));
-                        }
-                        frontend.order = Some(
-                            meta.value()?
-                                .parse::<syn::LitInt>()?
-                                .base10_parse::<usize>()?,
-                        );
-                        return Ok(());
-                    }
-                    if meta.path.is_ident(constants_str::PLACEHOLDER) {
-                        if frontend.placeholder.is_some() {
-                            return Err(meta.error(constants_str::DUPLICATE_PLACEHOLDER_OPTION));
-                        }
-                        frontend.placeholder = Some(meta.value()?.parse::<syn::LitStr>()?.value());
-                        return Ok(());
-                    }
-                    if meta.path.is_ident(constants_str::SORTABLE) {
-                        frontend_flags
-                            .try_insert_with(GeneratePgTableFrontendFlag::Sortable, || {
-                                meta.error(constants_str::DUPLICATE_SORTABLE_OPTION)
-                            })?;
-                        frontend.sortable = true;
-                        return Ok(());
-                    }
-                    Err(meta.error(constants_str::UNSUPPORTED_GENERATE_PG_TABLE_FRONTEND_OPTION))
-                })
-            })
-            .map_err(|error| {
-                macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
-                    error.into_compile_error(),
-                )
-            })?;
-        let is_primary_key = syn_field
-            .attrs
-            .iter()
-            .filter(|el0| el0.path().segments.len() == 1)
-            .any(|el0| {
-                el0.path()
-                    .segments
-                    .first()
-                    .is_some_and(|first_segment| first_segment.ident == primary_key_attr_name.get())
-            });
-        Ok(GeneratePgTableFieldEmissionModel {
-            field,
-            frontend,
-            has_db_default,
-            is_primary_key,
-        })
-    }
-    #[allow(clippy::single_call_fn)]
-    fn generate_pg_table_variant_field_model_stage(
-        syn_field: syn::Field,
-    ) -> Result<
-        GeneratePgTableVariantFieldEmission,
-        macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
-    > {
-        let Some(identifier) = syn_field.ident else {
-            return Err(compile_error_token_stream(CompileErrorMessage::from(
-                constants_str::COMPILE_ERROR_CE_030,
-            )));
-        };
-        let parsed_location_attr = if identifier
-            == naming::domain_types::LocationSnakeCase.to_string()
-        {
-            None
-        } else {
-            let mut location_attrs = syn_field.attrs.iter().filter_map(|element| {
-                if element.path().segments.len() != 1 {
-                    return None;
-                }
-                let segment = element.path().segments.first()?;
-                <macro_helpers::domain_types::location_data::LocationFieldAttr as std::str::FromStr>::from_str(
-                    &segment.ident.to_string(),
-                )
-                .ok()
-            });
-            let location_attr = location_attrs.next();
-            if location_attrs.next().is_some() {
-                return Err(compile_error_token_stream(CompileErrorMessage::from(
-                    constants_str::COMPILE_ERROR_CE_029,
-                )));
-            }
-            let Some(parsed_location_attr) = location_attr else {
-                return Err(compile_error_token_stream(CompileErrorMessage::from(
-                    constants_str::COMPILE_ERROR_CE_023,
-                )));
-            };
-            Some(parsed_location_attr)
-        };
-        Ok(GeneratePgTableVariantFieldEmission {
-            identifier,
-            location_attr: parsed_location_attr,
-            type0: syn_field.ty,
-        })
-    }
     fn generate_pg_table_syn_field_location_attr_stage(
         field_ref: SynGeneratePgTableFieldRef<'_>,
     ) -> Result<
@@ -977,158 +743,43 @@ pub fn emit_generate_pg_table(
         }
         Ok(location_attr)
     }
-    #[allow(clippy::single_call_fn)]
-    fn generate_pg_table_variant_model_stage(
-        syn_variant: syn::Variant,
-    ) -> Result<
-        GeneratePgTableVariantEmission,
-        macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
-    > {
-        let syn::Fields::Named(fields_named) = syn_variant.fields else {
-            return Err(compile_error_token_stream(CompileErrorMessage::from(
-                constants_str::COMPILE_ERROR_CE_004,
-            )));
-        };
-        let fields_len = fields_named.named.len();
-        let fields = fields_named.named.into_iter().try_fold(
-            Vec::with_capacity(fields_len),
-            |mut accumulator, field| {
-                accumulator.push(generate_pg_table_variant_field_model_stage(field)?);
-                Ok::<
-                    Vec<GeneratePgTableVariantFieldEmission>,
-                    macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
-                >(accumulator)
-            },
-        )?;
-        Ok(GeneratePgTableVariantEmission {
-            fields,
-            identifier: syn_variant.ident,
-        })
-    }
-    #[allow(clippy::single_call_fn)]
-    fn build_generate_pg_table_fields_model_stage(
-        input: &SynGeneratePgTableDeriveInput,
-        primary_key_attr_name: GeneratePgTablePrimaryKeyAttrName<'_>,
-    ) -> Result<
-        GeneratePgTableFieldsEmissionModel,
-        macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
-    > {
-        match crate::domain_types::parse::struct_shape(
-            workspace_macro_helpers::domain_types::SynDeriveInputRef::from(input.get()),
-        ) {
-            Ok(workspace_macro_helpers::domain_types::SynStructShapeRef::Named(
-                fields_named_ref,
-            )) => {
-                let fields_named = fields_named_ref.get();
-                let fields_accumulator = fields_named.named.iter().try_fold(
-                    (
-                        Vec::with_capacity(fields_named.named.len()),
-                        None,
-                        Vec::with_capacity(fields_named.named.len()),
-                        Vec::with_capacity(fields_named.named.len()),
-                        Vec::with_capacity(fields_named.named.len()),
-                    ),
-                    |(
-                        mut db_default_fields,
-                        mut optional_primary_key_field,
-                        mut fields,
-                        mut fields_without_primary_key,
-                        mut frontend_fields,
-                    ),
-                     element| {
-                        let field_model = generate_pg_table_field_model_stage(
-                            SynGeneratePgTableFieldRef::from(element),
-                            primary_key_attr_name,
-                        )?;
-                        let field_idx = GeneratePgTableFieldIdx::from(fields.len());
-                        if field_model.has_db_default {
-                            db_default_fields.push(field_idx);
-                        }
-                        if field_model.is_primary_key {
-                            if optional_primary_key_field.is_some() {
-                                return Err(compile_error_token_stream(CompileErrorMessage::from(
-                                    constants_str::COMPILE_ERROR_CE_003,
-                                )));
-                            }
-                            optional_primary_key_field = Some(field_idx);
-                        } else {
-                            fields_without_primary_key.push(field_idx);
-                        }
-                        fields.push(field_model.field);
-                        frontend_fields.push(field_model.frontend);
-                        Ok((
-                            db_default_fields,
-                            optional_primary_key_field,
-                            fields,
-                            fields_without_primary_key,
-                            frontend_fields,
-                        ))
-                    },
-                );
-                let (
-                    db_default_field_idxs,
-                    optional_primary_key_field,
-                    fields,
-                    fields_without_primary_key_idxs,
-                    frontend_fields,
-                ) = fields_accumulator?;
-                let Some(primary_key_field_idx) = optional_primary_key_field else {
-                    return Err(compile_error_token_stream(CompileErrorMessage::from(
-                        constants_str::COMPILE_ERROR_CE_015,
-                    )));
-                };
-                Ok(GeneratePgTableFieldsEmissionModel {
-                    db_default_field_idxs,
-                    fields,
-                    fields_without_primary_key_idxs,
-                    frontend_fields,
-                    primary_key_field_idx,
-                })
-            }
-            Ok(
-                workspace_macro_helpers::domain_types::SynStructShapeRef::Tuple(_)
-                | workspace_macro_helpers::domain_types::SynStructShapeRef::Unit,
-            ) => Err(compile_error_token_stream(CompileErrorMessage::from(
-                constants_str::COMPILE_ERROR_CE_018,
-            ))),
-            Err(_error) => Err(compile_error_token_stream(CompileErrorMessage::from(
-                constants_str::COMPILE_ERROR_CE_043,
-            ))),
-        }
-    }
-    #[allow(clippy::single_call_fn)]
-    fn build_generate_pg_table_input_model_stage(
-        input: &SynGeneratePgTableDeriveInput,
-    ) -> Result<
-        GeneratePgTableEmissionModel,
-        macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
-    > {
-        let di = input.get();
+    panic_location::panic_location();
+    let import = pg_crud_macro_common::domain_types::Import::PgCrudCommon;
+    let import_token_stream = quote::quote! {#import::};
+    let return_err_query_part_error_write_into_buffer_token_stream =
+        pg_crud_macro_common::domain_types::generate_return_err_query_part_error_write_into_buffer_token_stream(
+            import,
+        );
+    let parsed_input = SynGeneratePgTableDeriveInput::from(syn::DeriveInput::from(
+        validated.into_model().into_input(),
+    ));
+    let di = parsed_input.get();
+    let generate_pg_table_input_model = match (|| {
         let config_attr =
-            match macro_helpers::domain_types::attr_reader::try_get_macro_attr_meta_list_token_stream(
-                &di.attrs,
-                constants_str::PG_CRUD_GENERATE_PG_TABLE_CONFIG_PATH,
-            ) {
-                Ok(config_attr) => config_attr,
-                Err(error) => {
-                    let message =
-                        format!("failed to read GeneratePgTableConfig attribute: {error}");
-                    return Err(
-                    macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
-                        quote::quote! { compile_error!(#message); },
-                    ),
-                );
-                }
-            };
+                match macro_helpers::domain_types::attr_reader::try_get_macro_attr_meta_list_token_stream(
+                    &di.attrs,
+                    constants_str::PG_CRUD_GENERATE_PG_TABLE_CONFIG_PATH,
+                ) {
+                    Ok(config_attr) => config_attr,
+                    Err(error) => {
+                        let message =
+                            format!("failed to read GeneratePgTableConfig attribute: {error}");
+                        return Err(
+                        macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
+                            quote::quote! { compile_error!(#message); },
+                        ),
+                    );
+                    }
+                };
         let config = match serde_json::from_str::<GeneratePgTableConfig>(&config_attr.to_string()) {
             Ok(v) => v,
             Err(error) => {
                 let message = format!("failed to parse GeneratePgTableConfig: {error}");
                 return Err(
-                    macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
-                        quote::quote! { compile_error!(#message); },
-                    ),
-                );
+                        macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
+                            quote::quote! { compile_error!(#message); },
+                        ),
+                    );
             }
         };
         if config
@@ -1162,204 +813,154 @@ pub fn emit_generate_pg_table(
             )));
         }
         let error_variants_by_attr = [
-            GeneratePgTableAttr::CmErrorVariants,
-            GeneratePgTableAttr::CoErrorVariants,
-            GeneratePgTableAttr::RmErrorVariants,
-            GeneratePgTableAttr::RoErrorVariants,
-            GeneratePgTableAttr::UmErrorVariants,
-            GeneratePgTableAttr::UoErrorVariants,
-            GeneratePgTableAttr::DmErrorVariants,
-            GeneratePgTableAttr::DloErrorVariants,
-            GeneratePgTableAttr::CommonErrorVariants,
-        ]
-        .into_iter()
-        .try_fold(
-            std::collections::BTreeMap::new(),
-            |mut accumulator, generate_pg_table_attr| {
-                let generate_pg_table_attr_str = generate_pg_table_attr.to_string();
-                let Ok(common_error_variants_attr_token_stream) =
+                GeneratePgTableAttr::CmErrorVariants,
+                GeneratePgTableAttr::CoErrorVariants,
+                GeneratePgTableAttr::RmErrorVariants,
+                GeneratePgTableAttr::RoErrorVariants,
+                GeneratePgTableAttr::UmErrorVariants,
+                GeneratePgTableAttr::UoErrorVariants,
+                GeneratePgTableAttr::DmErrorVariants,
+                GeneratePgTableAttr::DloErrorVariants,
+                GeneratePgTableAttr::CommonErrorVariants,
+            ]
+            .into_iter()
+            .try_fold(
+                std::collections::BTreeMap::new(),
+                |mut accumulator, generate_pg_table_attr| {
+                    let generate_pg_table_attr_str = generate_pg_table_attr.to_string();
+                    let Ok(common_error_variants_attr_token_stream) =
+                        macro_helpers::domain_types::attr_reader::try_get_macro_attr_meta_list_token_stream(
+                            &di.attrs,
+                            &generate_pg_table_attr.generate_path_to_attr(),
+                        )
+                    else {
+                        return Ok(accumulator);
+                    };
+                    let Ok(parsed_di): Result<syn::DeriveInput, _> =
+                        syn::parse2((*common_error_variants_attr_token_stream).clone())
+                    else {
+                        return Ok(accumulator);
+                    };
+                    if parsed_di.ident != generate_pg_table_attr_str {
+                        return Err(compile_error_token_stream(CompileErrorMessage::from(
+                            constants_str::COMPILE_ERROR_CE_022,
+                        )));
+                    }
+                    if let syn::Data::Enum(data_enum) = parsed_di.data {
+                        let variants_len = data_enum.variants.len();
+                        let variants = data_enum.variants.into_iter().try_fold(
+                            Vec::with_capacity(variants_len),
+                            |mut variants_accumulator, variant| {
+                                let syn_variant = variant;
+                                let variant_model = (|| {
+                            let syn::Fields::Named(fields_named) = syn_variant.fields else {
+                                return Err(compile_error_token_stream(CompileErrorMessage::from(
+                                    constants_str::COMPILE_ERROR_CE_004,
+                                )));
+                            };
+                            let fields_len = fields_named.named.len();
+                            let fields = fields_named.named.into_iter().try_fold(
+                                Vec::with_capacity(fields_len),
+                                |mut variant_field_accumulator, field| {
+                                    let syn_field = field;
+                                    let field_model = (|| {
+                                    let Some(identifier) = syn_field.ident else {
+                                        return Err(compile_error_token_stream(CompileErrorMessage::from(
+                                            constants_str::COMPILE_ERROR_CE_030,
+                                        )));
+                                    };
+                                    let parsed_location_attr = if identifier
+                                        == naming::domain_types::LocationSnakeCase.to_string()
+                                    {
+                                        None
+                                    } else {
+                                        let mut location_attrs = syn_field.attrs.iter().filter_map(|element| {
+                                            if element.path().segments.len() != 1 {
+                                                return None;
+                                            }
+                                            let segment = element.path().segments.first()?;
+                                            <macro_helpers::domain_types::location_data::LocationFieldAttr as std::str::FromStr>::from_str(
+                                                &segment.ident.to_string(),
+                                            )
+                                            .ok()
+                                        });
+                                        let location_attr = location_attrs.next();
+                                        if location_attrs.next().is_some() {
+                                            return Err(compile_error_token_stream(CompileErrorMessage::from(
+                                                constants_str::COMPILE_ERROR_CE_029,
+                                            )));
+                                        }
+                                        let Some(parsed_location_attr) = location_attr else {
+                                            return Err(compile_error_token_stream(CompileErrorMessage::from(
+                                                constants_str::COMPILE_ERROR_CE_023,
+                                            )));
+                                        };
+                                        Some(parsed_location_attr)
+                                    };
+                                    Ok(GeneratePgTableVariantFieldEmission {
+                                        identifier,
+                                        location_attr: parsed_location_attr,
+                                        type0: syn_field.ty,
+                                    })
+                                    })()?;
+                                    variant_field_accumulator.push(field_model);
+                                    Ok::<
+                                        Vec<GeneratePgTableVariantFieldEmission>,
+                                        macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
+                                    >(variant_field_accumulator)
+                                },
+                            )?;
+                            Ok(GeneratePgTableVariantEmission {
+                                fields,
+                                identifier: syn_variant.ident,
+                            })
+                                })()?;
+                                variants_accumulator.push(variant_model);
+                                Ok::<
+                                    Vec<GeneratePgTableVariantEmission>,
+                                    macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
+                                >(variants_accumulator)
+                            },
+                        )?;
+                        drop(accumulator.insert(generate_pg_table_attr, variants));
+                    }
+                    Ok(accumulator)
+                },
+            )?;
+        let logic_token_stream_by_attr = [
+                GeneratePgTableAttr::CmLogic,
+                GeneratePgTableAttr::CoLogic,
+                GeneratePgTableAttr::RmLogic,
+                GeneratePgTableAttr::RoLogic,
+                GeneratePgTableAttr::UmLogic,
+                GeneratePgTableAttr::UoLogic,
+                GeneratePgTableAttr::DmLogic,
+                GeneratePgTableAttr::DloLogic,
+                GeneratePgTableAttr::CommonLogic,
+            ]
+            .into_iter()
+            .map(|generate_pg_table_attr| {
+                let logic_token_stream =
                     macro_helpers::domain_types::attr_reader::try_get_macro_attr_meta_list_token_stream(
                         &di.attrs,
                         &generate_pg_table_attr.generate_path_to_attr(),
                     )
-                else {
-                    return Ok(accumulator);
-                };
-                let Ok(parsed_di): Result<syn::DeriveInput, _> =
-                    syn::parse2((*common_error_variants_attr_token_stream).clone())
-                else {
-                    return Ok(accumulator);
-                };
-                if parsed_di.ident != generate_pg_table_attr_str {
-                    return Err(compile_error_token_stream(CompileErrorMessage::from(
-                        constants_str::COMPILE_ERROR_CE_022,
-                    )));
-                }
-                if let syn::Data::Enum(data_enum) = parsed_di.data {
-                    let variants_len = data_enum.variants.len();
-                    let variants = data_enum.variants.into_iter().try_fold(
-                        Vec::with_capacity(variants_len),
-                        |mut variants_accumulator, variant| {
-                            variants_accumulator.push(generate_pg_table_variant_model_stage(variant)?);
-                            Ok::<
-                                Vec<GeneratePgTableVariantEmission>,
-                                macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
-                            >(variants_accumulator)
-                        },
-                    )?;
-                    drop(accumulator.insert(generate_pg_table_attr, variants));
-                }
-                Ok(accumulator)
-            },
-        )?;
-        let logic_token_stream_by_attr = [
-            GeneratePgTableAttr::CmLogic,
-            GeneratePgTableAttr::CoLogic,
-            GeneratePgTableAttr::RmLogic,
-            GeneratePgTableAttr::RoLogic,
-            GeneratePgTableAttr::UmLogic,
-            GeneratePgTableAttr::UoLogic,
-            GeneratePgTableAttr::DmLogic,
-            GeneratePgTableAttr::DloLogic,
-            GeneratePgTableAttr::CommonLogic,
-        ]
-        .into_iter()
-        .map(|generate_pg_table_attr| {
-            let logic_token_stream =
-                macro_helpers::domain_types::attr_reader::try_get_macro_attr_meta_list_token_stream(
-                    &di.attrs,
-                    &generate_pg_table_attr.generate_path_to_attr(),
-                )
-                .map_or_else(
-                    |_error| proc_macro2::TokenStream::new(),
-                    |value| (*value).clone(),
-                );
-            (generate_pg_table_attr, logic_token_stream)
-        })
-        .collect::<std::collections::BTreeMap<GeneratePgTableAttr, proc_macro2::TokenStream>>();
+                    .map_or_else(
+                        |_error| proc_macro2::TokenStream::new(),
+                        |value| (*value).clone(),
+                    );
+                (generate_pg_table_attr, logic_token_stream)
+            })
+            .collect::<std::collections::BTreeMap<GeneratePgTableAttr, proc_macro2::TokenStream>>();
         Ok(GeneratePgTableEmissionModel {
             config,
             error_variants_by_attr,
             logic_token_stream_by_attr,
         })
-    }
-    #[allow(clippy::single_call_fn)]
-    fn validate_generate_pg_table_fields_model_stage(
-        model: GeneratePgTableFieldsEmissionModel,
-    ) -> Result<
-        GeneratePgTableFieldsEmissionModel,
-        macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream,
-    > {
-        if model
-            .fields
-            .get(model.primary_key_field_idx.get())
-            .is_none()
-        {
-            return Err(compile_error_token_stream(CompileErrorMessage::from(
-                constants_str::MACRO_DIAGNOSTICS_PRIMARY_KEY_FIELD_INDEX_ERROR,
-            )));
-        }
-        if model
-            .fields_without_primary_key_idxs
-            .iter()
-            .any(|idx| model.fields.get(idx.get()).is_none())
-        {
-            return Err(compile_error_token_stream(CompileErrorMessage::from(
-                constants_str::COMPILE_ERROR_CE_006,
-            )));
-        }
-        if model.fields.len() != model.frontend_fields.len() {
-            return Err(compile_error_token_stream(CompileErrorMessage::from(
-                constants_str::COMPILE_ERROR_CE_021,
-            )));
-        }
-        Ok(model)
-    }
-    #[allow(clippy::single_call_fn)]
-    fn emit_generate_pg_table_tests_stage(
-        config: &GeneratePgTableConfig,
-        tests_token_stream: ProcMacro2GeneratePgTableTestsTokenStream,
-    ) -> ProcMacro2GeneratePgTableTestsTokenStream {
-        if let Err(error) =
-            macro_helpers::domain_types::ts_writer::try_maybe_write_token_stream_into_file(
-                config.tests_write_into_file,
-                constants_str::GENERATE_PG_TABLE_TESTS,
-                macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(
-                    tests_token_stream.as_ref(),
-                ),
-                &macro_helpers::domain_types::ts_writer::FormatWithCargofmt::True,
-            )
-        {
-            let message = format!("failed to write generated PG table tests: {error}");
-            return ProcMacro2GeneratePgTableTestsTokenStream::from(
-                quote::quote! { compile_error!(#message); },
-            );
-        }
-        match config.tests_write_into_file {
-            macro_helpers::domain_types::ts_writer::ShouldWriteTokenStreamIntoFile::False => {
-                ProcMacro2GeneratePgTableTestsTokenStream::from(proc_macro2::TokenStream::new())
-            }
-            macro_helpers::domain_types::ts_writer::ShouldWriteTokenStreamIntoFile::True => {
-                tests_token_stream
-            }
-        }
-    }
-    #[allow(clippy::single_call_fn)]
-    fn emit_generate_pg_table_final_stage(
-        config: &GeneratePgTableConfig,
-        common_token_stream: &ProcMacro2GeneratePgTableCommonTokenStream,
-        whole_token_stream: ProcMacro2GeneratePgTableWholeTokenStream,
-    ) -> macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
-        if let Err(error) =
-            macro_helpers::domain_types::ts_writer::try_maybe_write_token_stream_into_file(
-                config.common_write_into_file,
-                constants_str::GENERATE_PG_TABLE_COMMON,
-                macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(
-                    common_token_stream.as_ref(),
-                ),
-                &macro_helpers::domain_types::ts_writer::FormatWithCargofmt::True,
-            )
-        {
-            let message = format!("failed to write generated PG table common output: {error}");
-            return macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
-                quote::quote! { compile_error!(#message); },
-            );
-        }
-        if let Err(error) =
-            macro_helpers::domain_types::ts_writer::try_maybe_write_token_stream_into_file(
-                config.whole_write_into_file,
-                constants_str::GENERATE_PG_TABLE,
-                macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(
-                    whole_token_stream.as_ref(),
-                ),
-                &macro_helpers::domain_types::ts_writer::FormatWithCargofmt::True,
-            )
-        {
-            let message = format!("failed to write generated PG table output: {error}");
-            return macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
-                quote::quote! { compile_error!(#message); },
-            );
-        }
-        macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
-            whole_token_stream.into_inner(),
-        )
-    }
-    panic_location::panic_location();
-    let import = pg_crud_macro_common::domain_types::Import::PgCrudCommon;
-    let import_token_stream = quote::quote! {#import::};
-    let return_err_query_part_error_write_into_buffer_token_stream =
-        pg_crud_macro_common::domain_types::generate_return_err_query_part_error_write_into_buffer_token_stream(
-            import,
-        );
-    let parsed_input = SynGeneratePgTableDeriveInput::from(syn::DeriveInput::from(
-        validated.into_model().into_input(),
-    ));
-    let di = parsed_input.get();
-    let generate_pg_table_input_model =
-        match build_generate_pg_table_input_model_stage(&parsed_input) {
-            Ok(v) => v,
-            Err(error) => return error,
-        };
+    })() {
+        Ok(v) => v,
+        Err(error) => return error,
+    };
     let AllowClippyArbitrarySrcItemOrdering = token_patterns::AllowClippyArbitrarySrcItemOrdering;
     let AppStateSnakeCase = naming::domain_types::AppStateSnakeCase;
     let BeginSnakeCase = naming::domain_types::BeginSnakeCase;
@@ -1589,16 +1190,243 @@ pub fn emit_generate_pg_table(
     let db_table_snake_case = quote::format_ident!("db_table");
     let generate_pg_table_primary_key_snake_case_str =
         GeneratePgTablePrimaryKeySnakeCase.to_string();
-    let fields_model = match build_generate_pg_table_fields_model_stage(
-        &parsed_input,
-        GeneratePgTablePrimaryKeyAttrName::from(
-            generate_pg_table_primary_key_snake_case_str.as_str(),
-        ),
+    let input = &parsed_input;
+    let primary_key_attr_name = GeneratePgTablePrimaryKeyAttrName::from(
+        generate_pg_table_primary_key_snake_case_str.as_str(),
+    );
+    let fields_model = match (|| match crate::domain_types::parse::struct_shape(
+        workspace_macro_helpers::domain_types::SynDeriveInputRef::from(input.get()),
     ) {
+        Ok(workspace_macro_helpers::domain_types::SynStructShapeRef::Named(fields_named_ref)) => {
+            let fields_named = fields_named_ref.get();
+            let fields_accumulator = fields_named.named.iter().try_fold(
+                (
+                    Vec::with_capacity(fields_named.named.len()),
+                    None,
+                    Vec::with_capacity(fields_named.named.len()),
+                    Vec::with_capacity(fields_named.named.len()),
+                    Vec::with_capacity(fields_named.named.len()),
+                ),
+                |(
+                    mut db_default_fields,
+                    mut optional_primary_key_field,
+                    mut fields,
+                    mut fields_without_primary_key,
+                    mut frontend_fields,
+                ),
+                 element| {
+                    let field_ref = SynGeneratePgTableFieldRef::from(element);
+                    let field_model = (|| {
+                let syn_field = field_ref.get();
+                let Some(field_identifier) = syn_field.ident.clone() else {
+                    return Err(compile_error_token_stream(CompileErrorMessage::from(
+                        constants_str::COMPILE_ERROR_CE_026,
+                    )));
+                };
+                let field_len = field_identifier.to_string().len();
+                let max_pg_column_len = 63;
+                if field_len > max_pg_column_len {
+                    return Err(compile_error_token_stream(CompileErrorMessage::from(
+                        constants_str::COMPILE_ERROR_CE_002,
+                    )));
+                }
+                let field = macro_helpers::domain_types::field_data::SynField {
+                    vis: macro_helpers::domain_types::field_data::SynFieldVis::from(syn_field.vis.clone()),
+                    type0: macro_helpers::domain_types::field_data::SynFieldType::from(
+                        syn_field.ty.clone(),
+                    ),
+                    identifier: macro_helpers::domain_types::field_data::SynFieldIdentifier::from(
+                        field_identifier,
+                    ),
+                };
+                let has_db_default = syn_field.attrs.iter().any(|attribute| {
+                    attribute
+                        .path()
+                        .is_ident(constants_str::GENERATE_PG_TABLE_DB_DEFAULT)
+                });
+                let mut frontend = GeneratePgTableFrontendFieldEmission::default();
+                let mut frontend_flags =
+                    workspace_macro_helpers::domain_types::UniqueOptionBTreeSet::default();
+                let mut frontend_attr_count = constants_usize::ZERO;
+                syn_field
+                    .attrs
+                    .iter()
+                    .filter(|attr| {
+                        attr.path()
+                            .is_ident(constants_str::GENERATE_PG_TABLE_FRONTEND)
+                    })
+                    .try_for_each(|attr| {
+                        frontend_attr_count = frontend_attr_count.saturating_add(constants_usize::ONE);
+                        if frontend_attr_count > constants_usize::ONE {
+                            return Err(syn::Error::new_spanned(
+                                attr,
+                                constants_str::DUPLICATE_GENERATE_PG_TABLE_FRONTEND_ATTRIBUTE,
+                            ));
+                        }
+                        attr.parse_nested_meta(|meta| {
+                            if meta.path.is_ident(constants_str::FILTERABLE) {
+                                frontend_flags
+                                    .try_insert_with(GeneratePgTableFrontendFlag::Filterable, || {
+                                        meta.error(constants_str::DUPLICATE_FILTERABLE_OPTION)
+                                    })?;
+                                frontend.filterable = true;
+                                return Ok(());
+                            }
+                            if meta.path.is_ident(constants_str::HIDDEN) {
+                                frontend_flags
+                                    .try_insert_with(GeneratePgTableFrontendFlag::Hidden, || {
+                                        meta.error(constants_str::DUPLICATE_HIDDEN_OPTION)
+                                    })?;
+                                frontend.hidden = true;
+                                return Ok(());
+                            }
+                            if meta.path.is_ident(constants_str::LABEL) {
+                                if frontend.label.is_some() {
+                                    return Err(meta.error(constants_str::DUPLICATE_LABEL_OPTION));
+                                }
+                                let value = meta.value()?.parse::<syn::LitStr>()?.value();
+                                if value.trim().is_empty() {
+                                    return Err(meta.error(constants_str::FRONTEND_LABEL_MUST_NOT_BE_EMPTY));
+                                }
+                                frontend.label = Some(value);
+                                return Ok(());
+                            }
+                            if meta.path.is_ident(constants_str::ORDER) {
+                                if frontend.order.is_some() {
+                                    return Err(meta.error(constants_str::DUPLICATE_ORDER_OPTION));
+                                }
+                                frontend.order = Some(
+                                    meta.value()?
+                                        .parse::<syn::LitInt>()?
+                                        .base10_parse::<usize>()?,
+                                );
+                                return Ok(());
+                            }
+                            if meta.path.is_ident(constants_str::PLACEHOLDER) {
+                                if frontend.placeholder.is_some() {
+                                    return Err(meta.error(constants_str::DUPLICATE_PLACEHOLDER_OPTION));
+                                }
+                                frontend.placeholder = Some(meta.value()?.parse::<syn::LitStr>()?.value());
+                                return Ok(());
+                            }
+                            if meta.path.is_ident(constants_str::SORTABLE) {
+                                frontend_flags
+                                    .try_insert_with(GeneratePgTableFrontendFlag::Sortable, || {
+                                        meta.error(constants_str::DUPLICATE_SORTABLE_OPTION)
+                                    })?;
+                                frontend.sortable = true;
+                                return Ok(());
+                            }
+                            Err(meta.error(constants_str::UNSUPPORTED_GENERATE_PG_TABLE_FRONTEND_OPTION))
+                        })
+                    })
+                    .map_err(|error| {
+                        macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
+                            error.into_compile_error(),
+                        )
+                    })?;
+                let is_primary_key = syn_field
+                    .attrs
+                    .iter()
+                    .filter(|el0| el0.path().segments.len() == 1)
+                    .any(|el0| {
+                        el0.path()
+                            .segments
+                            .first()
+                            .is_some_and(|first_segment| first_segment.ident == primary_key_attr_name.get())
+                    });
+                Ok(GeneratePgTableFieldEmissionModel {
+                    field,
+                    frontend,
+                    has_db_default,
+                    is_primary_key,
+                })
+                    })()?;
+                    let field_idx = GeneratePgTableFieldIdx::from(fields.len());
+                    if field_model.has_db_default {
+                        db_default_fields.push(field_idx);
+                    }
+                    if field_model.is_primary_key {
+                        if optional_primary_key_field.is_some() {
+                            return Err(compile_error_token_stream(CompileErrorMessage::from(
+                                constants_str::COMPILE_ERROR_CE_003,
+                            )));
+                        }
+                        optional_primary_key_field = Some(field_idx);
+                    } else {
+                        fields_without_primary_key.push(field_idx);
+                    }
+                    fields.push(field_model.field);
+                    frontend_fields.push(field_model.frontend);
+                    Ok((
+                        db_default_fields,
+                        optional_primary_key_field,
+                        fields,
+                        fields_without_primary_key,
+                        frontend_fields,
+                    ))
+                },
+            );
+            let (
+                db_default_field_idxs,
+                optional_primary_key_field,
+                fields,
+                fields_without_primary_key_idxs,
+                frontend_fields,
+            ) = fields_accumulator?;
+            let Some(primary_key_field_idx) = optional_primary_key_field else {
+                return Err(compile_error_token_stream(CompileErrorMessage::from(
+                    constants_str::COMPILE_ERROR_CE_015,
+                )));
+            };
+            Ok(GeneratePgTableFieldsEmissionModel {
+                db_default_field_idxs,
+                fields,
+                fields_without_primary_key_idxs,
+                frontend_fields,
+                primary_key_field_idx,
+            })
+        }
+        Ok(
+            workspace_macro_helpers::domain_types::SynStructShapeRef::Tuple(_)
+            | workspace_macro_helpers::domain_types::SynStructShapeRef::Unit,
+        ) => Err(compile_error_token_stream(CompileErrorMessage::from(
+            constants_str::COMPILE_ERROR_CE_018,
+        ))),
+        Err(_error) => Err(compile_error_token_stream(CompileErrorMessage::from(
+            constants_str::COMPILE_ERROR_CE_043,
+        ))),
+    })() {
         Ok(v) => v,
         Err(error) => return error,
     };
-    let validated_fields_model = match validate_generate_pg_table_fields_model_stage(fields_model) {
+    let validated_fields_model = match (|| {
+        let model = fields_model;
+        if model
+            .fields
+            .get(model.primary_key_field_idx.get())
+            .is_none()
+        {
+            return Err(compile_error_token_stream(CompileErrorMessage::from(
+                constants_str::MACRO_DIAGNOSTICS_PRIMARY_KEY_FIELD_INDEX_ERROR,
+            )));
+        }
+        if model
+            .fields_without_primary_key_idxs
+            .iter()
+            .any(|idx| model.fields.get(idx.get()).is_none())
+        {
+            return Err(compile_error_token_stream(CompileErrorMessage::from(
+                constants_str::COMPILE_ERROR_CE_006,
+            )));
+        }
+        if model.fields.len() != model.frontend_fields.len() {
+            return Err(compile_error_token_stream(CompileErrorMessage::from(
+                constants_str::COMPILE_ERROR_CE_021,
+            )));
+        }
+        Ok(model)
+    })() {
         Ok(v) => v,
         Err(error) => return error,
     };
@@ -4889,7 +4717,12 @@ enum WrapIntoOptional {
             && crate::domain_types::sql::idempotency_capable(operation_dsc);
         let optimistic_concurrency_enabled = optimistic_revision_field_idx.is_some()
             && crate::domain_types::sql::optimistic_concurrency_capable(operation_dsc);
-        let operation_handle_snake_case_token_stream = operation.self_handle_snake_case_token_stream();
+        let operation_handle_snake_case_token_stream = {
+            let value = naming::domain_types::parameter::SelfHSnakeCase::from_tokens(
+                &operation.self_snake_case_token_stream(),
+            );
+            quote::quote! {#value}
+        };
         let operation_snake_case_token_stream = operation.self_snake_case_token_stream();
         let operation_snake_case_string = operation.self_snake_case_str();
         let open_api_path_fn_identifier = quote::format_ident!(
@@ -5017,7 +4850,12 @@ enum WrapIntoOptional {
         let identifier_operation_parameters_upper_camel_case = generate_identifier_operation_parameters_upper_camel_case(operation);
         let identifier_try_operation_error_upper_camel_case = generate_identifier_try_operation_error_upper_camel_case(operation);
         let result_ok_type_token_stream = generate_operation_result_type_token_stream(operation);
-        let try_operation_handle_snake_case_token_stream = operation.try_self_handle_snake_case_token_stream();
+        let try_operation_handle_snake_case_token_stream = {
+            let value = naming::domain_types::parameter::TrySelfHSnakeCase::from_tokens(
+                &operation.self_snake_case_token_stream(),
+            );
+            quote::quote! {#value}
+        };
         let operation_client_method_snake_case_token_stream = operation.self_snake_case_token_stream();
         let frontend_idempotency_request_token_stream = if idempotency_enabled {
             quote::quote! {
@@ -5347,7 +5185,12 @@ enum WrapIntoOptional {
         }
         impl_identifier_vec_token_stream.push({
             let try_operation_token_stream = {
-                let try_operation_snake_case_token_stream = operation.try_self_snake_case_token_stream();
+                let try_operation_snake_case_token_stream = {
+                    let value = naming::domain_types::parameter::TrySelfSnakeCase::from_tokens(
+                        &operation.self_snake_case_token_stream(),
+                    );
+                    quote::quote! {#value}
+                };
                 let payload_token_stream = {
                     let ts = generate_match_ok_err_short_token_stream(
                         &quote::quote! {serde_json::to_string(&#ParametersSnakeCase.#PayloadSnakeCase)},
@@ -6602,7 +6445,22 @@ enum WrapIntoOptional {
                     |declaration_token_stream: &dyn quote::ToTokens, default_initialization_token_stream: &dyn quote::ToTokens| {
                         let identifier_operation_payload_upper_camel_case = generate_identifier_operation_payload_upper_camel_case(operation);
                         let identifier_operation_payload_token_stream = {
-                            let (derive_clone, derive_copy) = operation.derive_clone_and_copy();
+                            let (derive_clone, derive_copy) = match operation {
+                                Operation::Cm
+                                | Operation::Co
+                                | Operation::Rm
+                                | Operation::Ro
+                                | Operation::Um
+                                | Operation::Uo
+                                | Operation::Dm => (
+                                    macro_helpers::domain_types::derive_token_stream_builder::DClone::False,
+                                    macro_helpers::domain_types::derive_token_stream_builder::DCopy::False,
+                                ),
+                                Operation::Dlo => (
+                                    macro_helpers::domain_types::derive_token_stream_builder::DClone::True,
+                                    macro_helpers::domain_types::derive_token_stream_builder::DCopy::False,
+                                ),
+                            };
                             let payload_builder_without_deserialize = macro_helpers::domain_types::derive_token_stream_builder::DTokenStreamBuilder::new()
                                 .make_pub()
                                 .d_debug()
@@ -6849,7 +6707,21 @@ enum WrapIntoOptional {
                 }
             };
             let parameters_token_stream = {
-                let (derive_clone, derive_copy) = operation.derive_parameters_clone_and_copy();
+                let (derive_clone, derive_copy) = match operation {
+                    Operation::Co | Operation::Dlo => (
+                        macro_helpers::domain_types::derive_token_stream_builder::DClone::True,
+                        macro_helpers::domain_types::derive_token_stream_builder::DCopy::False,
+                    ),
+                    Operation::Cm
+                    | Operation::Rm
+                    | Operation::Ro
+                    | Operation::Um
+                    | Operation::Uo
+                    | Operation::Dm => (
+                        macro_helpers::domain_types::derive_token_stream_builder::DClone::False,
+                        macro_helpers::domain_types::derive_token_stream_builder::DCopy::False,
+                    ),
+                };
                 let identifier_operation_parameters_struct_token_stream = macro_helpers::domain_types::derive_token_stream_builder::DTokenStreamBuilder::new()
                     .make_pub()
                     .d_debug()
@@ -10118,10 +9990,35 @@ enum WrapIntoOptional {
             }
         }
     };
-    let identifier_tests_token_stream = emit_generate_pg_table_tests_stage(
-        &generate_pg_table_input_model.config,
-        ProcMacro2GeneratePgTableTestsTokenStream::from(generated_identifier_tests_token_stream),
-    )
+    let identifier_tests_token_stream = (|| {
+        let config = &generate_pg_table_input_model.config;
+        let tests_token_stream = ProcMacro2GeneratePgTableTestsTokenStream::from(
+            generated_identifier_tests_token_stream,
+        );
+        if let Err(error) =
+            macro_helpers::domain_types::ts_writer::try_maybe_write_token_stream_into_file(
+                config.tests_write_into_file,
+                constants_str::GENERATE_PG_TABLE_TESTS,
+                macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(
+                    tests_token_stream.as_ref(),
+                ),
+                &macro_helpers::domain_types::ts_writer::FormatWithCargofmt::True,
+            )
+        {
+            let message = format!("failed to write generated PG table tests: {error}");
+            return ProcMacro2GeneratePgTableTestsTokenStream::from(
+                quote::quote! { compile_error!(#message); },
+            );
+        }
+        match config.tests_write_into_file {
+            macro_helpers::domain_types::ts_writer::ShouldWriteTokenStreamIntoFile::False => {
+                ProcMacro2GeneratePgTableTestsTokenStream::from(proc_macro2::TokenStream::new())
+            }
+            macro_helpers::domain_types::ts_writer::ShouldWriteTokenStreamIntoFile::True => {
+                tests_token_stream
+            }
+        }
+    })()
     .into_inner();
     let identifier_create_form_upper_camel_case = quote::format_ident!("{}CreateForm", identifier);
     let identifier_update_form_upper_camel_case = quote::format_ident!("{}UpdateForm", identifier);
@@ -10373,11 +10270,45 @@ enum WrapIntoOptional {
             pub use #identifier_generate_pg_table_mod_snake_case::*;
         }
     };
-    emit_generate_pg_table_final_stage(
-        &generate_pg_table_input_model.config,
-        &ProcMacro2GeneratePgTableCommonTokenStream::from(common_token_stream),
-        ProcMacro2GeneratePgTableWholeTokenStream::from(gend),
-    )
+    (|| {
+        let config = &generate_pg_table_input_model.config;
+        let wrapped_common_token_stream =
+            ProcMacro2GeneratePgTableCommonTokenStream::from(common_token_stream);
+        let whole_token_stream = ProcMacro2GeneratePgTableWholeTokenStream::from(gend);
+        if let Err(error) =
+            macro_helpers::domain_types::ts_writer::try_maybe_write_token_stream_into_file(
+                config.common_write_into_file,
+                constants_str::GENERATE_PG_TABLE_COMMON,
+                macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(
+                    wrapped_common_token_stream.as_ref(),
+                ),
+                &macro_helpers::domain_types::ts_writer::FormatWithCargofmt::True,
+            )
+        {
+            let message = format!("failed to write generated PG table common output: {error}");
+            return macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
+                    quote::quote! { compile_error!(#message); },
+                );
+        }
+        if let Err(error) =
+            macro_helpers::domain_types::ts_writer::try_maybe_write_token_stream_into_file(
+                config.whole_write_into_file,
+                constants_str::GENERATE_PG_TABLE,
+                macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(
+                    whole_token_stream.as_ref(),
+                ),
+                &macro_helpers::domain_types::ts_writer::FormatWithCargofmt::True,
+            )
+        {
+            let message = format!("failed to write generated PG table output: {error}");
+            return macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
+                    quote::quote! { compile_error!(#message); },
+                );
+        }
+        macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream::from(
+            whole_token_stream.into_inner(),
+        )
+    })()
 }
 
 #[cfg(test)]

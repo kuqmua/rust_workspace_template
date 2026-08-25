@@ -1,34 +1,16 @@
 #![allow(clippy::single_call_fn)] // stable root migration/bootstrap API delegates to the private persistence module
 static ADMIN_MIGRATOR: sqlx::migrate::Migrator = sqlx::migrate!("./migrations");
-#[cfg(test)]
-pub(crate) const fn migrator() -> &'static sqlx::migrate::Migrator {
-    &ADMIN_MIGRATOR
-}
-pub(crate) async fn prep_pg(
-    pool: app_state::domain_types::SqlxPgPoolRef<'_>,
-) -> Result<(), crate::domain_types::AdminMigrateError> {
-    ADMIN_MIGRATOR
-        .run(pool.as_ref())
-        .await
-        .map_err(crate::domain_types::SqlxAdminMigrateError::from)
-        .map_err(crate::domain_types::AdminMigrateError::from)?;
-    let permission_names = server_admin_contract::domain_types::AdminPermission::ALL
-        .into_iter()
-        .map(|permission| permission.as_str().as_ref().to_owned())
-        .collect::<Vec<_>>();
-    let _permission_result = sqlx::query(constants_str::SERVER_ADMIN_RECONCILE_PERMISSIONS_SQL)
-        .bind(permission_names)
-        .execute(pool.as_ref())
-        .await
-        .map_err(crate::domain_types::SqlxAdminError::from)
-        .map_err(crate::domain_types::AdminMigrateError::from)?;
-    let _role_permission_result =
-        sqlx::query(constants_str::SERVER_ADMIN_RECONCILE_ROLE_PERMISSIONS_SQL)
-            .execute(pool.as_ref())
-            .await
-            .map_err(crate::domain_types::SqlxAdminError::from)
-            .map_err(crate::domain_types::AdminMigrateError::from)?;
-    Ok(())
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    newtype::DerefInner,
+    newtype::FromInner,
+)]
+pub(crate) struct SqlxAdminMigratorRef(&'static sqlx::migrate::Migrator);
+pub(crate) fn migrator() -> SqlxAdminMigratorRef {
+    SqlxAdminMigratorRef::from(&ADMIN_MIGRATOR)
 }
 pub(crate) async fn bootstrap_admin(
     pool: app_state::domain_types::SqlxPgPoolRef<'_>,

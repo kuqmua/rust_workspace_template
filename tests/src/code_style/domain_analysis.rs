@@ -30,8 +30,19 @@ impl StringWrapperFromVisitor<'_> {
             super::attr_has_bounded_string_derive(super::types::SynAttributeRef::from(attr)).get()
         });
         let has_max_bound = item_ref.attrs.iter().any(|attr| {
-            super::attr_has_bounded_string_max_bound(super::types::SynAttributeRef::from(attr))
-                .get()
+            if !attr.path().is_ident(constants_str::BOUNDED_STRING) {
+                return false;
+            }
+            let mut has_max = false;
+            drop(attr.parse_nested_meta(|meta| {
+                if meta.path.is_ident(constants_str::MAX) {
+                    drop(meta.value()?.parse::<syn::Expr>()?);
+                    has_max = true;
+                    return Ok(());
+                }
+                Err(meta.error(constants_str::UNKNOWN_BOUNDED_STRING_OPTION))
+            }));
+            has_max
         });
         if has_derive && has_max_bound {
             let identifier = item_ref.ident.to_string();
@@ -278,12 +289,16 @@ pub(super) struct DirectTupleWrapperConstructorVisitor<'names> {
 }
 impl<'ast> syn::visit::Visit<'ast> for PublicTupleWrapperFieldVisitor {
     fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
+        let inner_field_is_non_private = match &i.fields {
+            syn::Fields::Unnamed(fields) if fields.unnamed.len() == 1usize => fields
+                .unnamed
+                .first()
+                .is_some_and(|field| !matches!(field.vis, syn::Visibility::Inherited)),
+            syn::Fields::Named(_) | syn::Fields::Unnamed(_) | syn::Fields::Unit => false,
+        };
         if super::item_struct_is_single_field_tuple_wrapper(super::types::SynItemStructRef::from(i))
             .get()
-            && super::item_struct_single_field_is_non_private(super::types::SynItemStructRef::from(
-                i,
-            ))
-            .get()
+            && inner_field_is_non_private
         {
             self.ers.push(format!(
                 "tuple wrapper `{}` exposes its inner field; make the field private and initialize through From/TryFrom",
@@ -295,13 +310,33 @@ impl<'ast> syn::visit::Visit<'ast> for PublicTupleWrapperFieldVisitor {
 }
 impl<'ast> syn::visit::Visit<'ast> for DirectDeserializeTupleWrapperVisitor {
     fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
+        let derives_deserialize = i.attrs.iter().any(|attr| {
+            attr.path().is_ident(constants_str::DERIVE)
+                && match &attr.meta {
+                    syn::Meta::List(list) => list
+                        .tokens
+                        .to_string()
+                        .contains(constants_str::CODE_STYLE_DESERIALIZE_DERIVE_NAME),
+                    syn::Meta::NameValue(_) | syn::Meta::Path(_) => false,
+                }
+        });
+        let deserialize_uses_conversion = i.attrs.iter().any(|attr| {
+            if !attr.path().is_ident(constants_str::SERDE) {
+                return false;
+            }
+            match &attr.meta {
+                syn::Meta::List(list) => {
+                    let tokens = list.tokens.to_string();
+                    tokens.contains(constants_str::CODE_STYLE_SERDE_FROM_ATTR_FRAGMENT)
+                        || tokens.contains(constants_str::CODE_STYLE_SERDE_TRY_FROM_ATTR_FRAGMENT)
+                }
+                syn::Meta::NameValue(_) | syn::Meta::Path(_) => false,
+            }
+        });
         if super::item_struct_is_single_field_tuple_wrapper(super::types::SynItemStructRef::from(i))
             .get()
-            && super::item_struct_derives_deserialize(super::types::SynItemStructRef::from(i)).get()
-            && !super::item_struct_deserialize_uses_conversion(
-                super::types::SynItemStructRef::from(i),
-            )
-            .get()
+            && derives_deserialize
+            && !deserialize_uses_conversion
         {
             let start = syn::spanned::Spanned::span(i).start();
             self.ers.push(format!(
@@ -394,7 +429,19 @@ impl<'ast> syn::visit::Visit<'ast> for TupleWrapperConversionCollector {
                 drop(self.inner_types.insert(name.clone(), field.ty.clone()));
             }
             let item_ref = super::types::SynItemStructRef::from(i);
-            if super::item_struct_derives_from_inner(item_ref).get() {
+            let derives_from_inner = i.attrs.iter().any(|attr| {
+                if !attr.path().is_ident(constants_str::DERIVE) {
+                    return false;
+                }
+                match &attr.meta {
+                    syn::Meta::List(list) => list
+                        .tokens
+                        .to_string()
+                        .contains(constants_str::NEWTYPE_FROM_INNER_DERIVE_NAME),
+                    syn::Meta::NameValue(_) | syn::Meta::Path(_) => false,
+                }
+            });
+            if derives_from_inner {
                 let _: bool = self.from_names.insert(name.clone());
                 let _: bool = self.from_inner_names.insert(name.clone());
             }
@@ -491,7 +538,52 @@ impl<'ast> syn::visit::Visit<'ast> for DeclaredDomainTypeVisitor {
                 &mut self.names,
             );
         }
-        if super::config_lib_domain_type_macro_path(super::types::SynPathRef::from(&i.path)).get() {
+        let path = super::types::SynPathRef::from(&i.path);
+        let config_lib_domain_type_macro = super::path_ends_with(
+            path,
+            super::types::StaticStrSliceRef::from(
+                [
+                    constants_str::CONFIG_LIB_MACROS,
+                    constants_str::IMPL_TRY_FROM_NON_EMPTY_STRING,
+                ]
+                .as_slice(),
+            ),
+        )
+        .get()
+            || super::path_ends_with(
+                path,
+                super::types::StaticStrSliceRef::from(
+                    [
+                        constants_str::CONFIG_LIB_MACROS,
+                        constants_str::IMPL_TRY_FROM_SECRET_URL,
+                    ]
+                    .as_slice(),
+                ),
+            )
+            .get()
+            || super::path_ends_with(
+                path,
+                super::types::StaticStrSliceRef::from(
+                    [
+                        constants_str::CONFIG_LIB_MACROS,
+                        constants_str::IMPL_TRY_FROM_PARSE,
+                    ]
+                    .as_slice(),
+                ),
+            )
+            .get()
+            || super::path_ends_with(
+                path,
+                super::types::StaticStrSliceRef::from(
+                    [
+                        constants_str::CONFIG_LIB_MACROS,
+                        constants_str::IMPL_TRY_FROM_PARSE_STRING_ERROR,
+                    ]
+                    .as_slice(),
+                ),
+            )
+            .get();
+        if config_lib_domain_type_macro {
             super::collect_first_macro_identifier_domain_name(
                 super::types::SourceTextRef::from(i.tokens.to_string().as_str()),
                 &mut self.names,
@@ -704,8 +796,11 @@ impl DomainTypePolicyVisitor<'_> {
             return;
         };
         let identifier = segment.ident.to_string();
-        if super::path_first_segment_is_self(super::types::SynPathRef::from(&ty_path_ref.path))
-            .get()
+        if ty_path_ref
+            .path
+            .segments
+            .first()
+            .is_some_and(|first_segment| first_segment.ident == constants_str::SELF)
         {
             self.check_path_arguments(
                 super::types::SynPathArgumentsRef::from(&segment.arguments),
@@ -713,11 +808,10 @@ impl DomainTypePolicyVisitor<'_> {
             );
             return;
         }
-        if super::is_structural_generic_container(super::types::SourceTextRef::from(
+        if matches!(
             identifier.as_str(),
-        ))
-        .get()
-        {
+            constants_str::OPTION | constants_str::RESULT
+        ) {
             self.check_path_arguments(
                 super::types::SynPathArgumentsRef::from(&segment.arguments),
                 ctx,
@@ -899,10 +993,9 @@ impl<'ast> syn::visit::Visit<'ast> for DomainTypePolicyVisitor<'_> {
         syn::visit::visit_item(self, i);
     }
     fn visit_item_enum(&mut self, i: &'ast syn::ItemEnum) {
-        if super::identifier_is_diagnostic_try_from_string_error(
-            super::types::SynIdentifierRef::from(&i.ident),
-        )
-        .get()
+        if i.ident
+            .to_string()
+            .ends_with(constants_str::TRYFROMSTRINGERROR)
         {
             return;
         }
@@ -944,7 +1037,8 @@ impl<'ast> syn::visit::Visit<'ast> for DomainTypePolicyVisitor<'_> {
                         super::types::SynIdentifierRef::from(&item_fn.sig.ident),
                     )
                     .get()
-                        || super::method_is_private_newtype_validator(item_fn).get()
+                        || (matches!(item_fn.vis, syn::Visibility::Inherited)
+                            && item_fn.sig.ident == constants_str::VALIDATE)
                     {
                         None
                     } else {
@@ -1178,13 +1272,6 @@ impl ExternalLeafWrapperNameVisitor<'_> {
             super::types::SynIdentifierRef::from(&required_segment.ident),
         );
         let identifier = item_ref.ident.to_string();
-        if super::is_external_leaf_wrapper_name_exception(super::types::SourceTextRef::from(
-            identifier.as_str(),
-        ))
-        .get()
-        {
-            return;
-        }
         if identifier.contains(expected_fragment.as_ref()) {
             return;
         }

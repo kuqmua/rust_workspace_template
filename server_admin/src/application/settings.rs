@@ -18,15 +18,62 @@ pub(super) async fn update(
         .begin()
         .await
         .map_err(super::AdminError::from)?;
-    crate::adapters::repository::settings::update_settings(
-        crate::adapters::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
-        request.0,
-    )
-    .await
-    .map_err(super::AdminError::from)?
-    .get()
-    .then_some(())
-    .ok_or(super::AdminError::Conflict)?;
+    let (
+        default_admin_route,
+        main_logo,
+        organization_contacts,
+        organization_name,
+        primary_color,
+        site_name,
+        support_url,
+        tab_title,
+        clear,
+    ) = request.0.into_parts();
+    sqlx::query_scalar::<_, bool>(constants_str::SERVER_ADMIN_UPDATE_SETTINGS_SQL)
+        .bind(site_name.as_ref().map(AsRef::<str>::as_ref))
+        .bind(tab_title.as_ref().map(AsRef::<str>::as_ref))
+        .bind(main_logo.as_ref().map(AsRef::<str>::as_ref))
+        .bind(primary_color.as_ref().map(AsRef::<str>::as_ref))
+        .bind(default_admin_route.as_ref().map(AsRef::<str>::as_ref))
+        .bind(organization_name.as_ref().map(AsRef::<str>::as_ref))
+        .bind(organization_contacts.as_ref().map(AsRef::<str>::as_ref))
+        .bind(support_url.as_ref().map(AsRef::<str>::as_ref))
+        .bind(
+            clear
+                .as_ref()
+                .contains(&server_admin_contract::domain_types::AdminOptionalSetting::TabTitle),
+        )
+        .bind(
+            clear
+                .as_ref()
+                .contains(&server_admin_contract::domain_types::AdminOptionalSetting::MainLogo),
+        )
+        .bind(
+            clear
+                .as_ref()
+                .contains(&server_admin_contract::domain_types::AdminOptionalSetting::PrimaryColor),
+        )
+        .bind(
+            clear.as_ref().contains(
+                &server_admin_contract::domain_types::AdminOptionalSetting::OrganizationName,
+            ),
+        )
+        .bind(clear.as_ref().contains(
+            &server_admin_contract::domain_types::AdminOptionalSetting::OrganizationContacts,
+        ))
+        .bind(
+            clear
+                .as_ref()
+                .contains(&server_admin_contract::domain_types::AdminOptionalSetting::SupportUrl),
+        )
+        .fetch_optional(&mut *tx)
+        .await
+        .map_err(crate::domain_types::SqlxAdminError::from)
+        .map(|value| super::super::StdAdminBool::from(value.is_some()))
+        .map_err(super::AdminError::from)?
+        .get()
+        .then_some(())
+        .ok_or(super::AdminError::Conflict)?;
     super::record_audit_success_in_connection(
         super::SqlxAdminPgConnectionRef::from(&mut *tx),
         super::AdminAuditSuccessRef {
@@ -43,9 +90,9 @@ pub(super) async fn update(
         axum::response::IntoResponse::into_response(http::StatusCode::NO_CONTENT),
     ))
 }
-pub(super) async fn settings_view(
+pub(super) async fn get(
     auth: super::AdminAuthReq,
-) -> Result<server_admin_contract::domain_types::AdminSettingsView, super::AdminError> {
+) -> Result<super::AxumAdminResponse, super::AdminError> {
     let _actor = super::authorize_generated_request(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
@@ -54,18 +101,14 @@ pub(super) async fn settings_view(
         super::super::StdAdminBool::from(false),
     )
     .await?;
-    crate::adapters::repository::settings::read_settings(
+    let settings = crate::adapters::repository::settings::read_settings(
         crate::adapters::repository::SqlxAdminRepositoryPoolRef::from(
             auth.state.as_ref().pool.as_ref(),
         ),
     )
     .await
-    .map_err(super::shared::map_repository_error)
-}
-pub(super) async fn get(
-    auth: super::AdminAuthReq,
-) -> Result<super::AxumAdminResponse, super::AdminError> {
-    settings_view(auth).await.map(super::shared::json_response)
+    .map_err(super::shared::map_repository_error)?;
+    Ok(super::shared::json_response(settings))
 }
 pub(super) async fn branding(
     auth: super::AdminAuthReq,

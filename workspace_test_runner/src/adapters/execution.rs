@@ -52,10 +52,6 @@ impl<'commands_lt, const N: usize>
     }
 }
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-struct CommandProgramRef<'program_lt>(&'program_lt str);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-struct CommandArgsRef<'args_lt>(&'args_lt [&'args_lt str]);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::AsRefStr, newtype::BoundedString,
 )]
@@ -77,8 +73,6 @@ impl<'text_lt> TextRef<'text_lt> {
         self.0
     }
 }
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
-struct RunDirPathBuf(std::path::PathBuf);
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::BoundedString, newtype::AsRefStr,
 )]
@@ -125,58 +119,6 @@ fn strip_ansi(value: TextRef<'_>) -> CommandText {
         .0;
     CommandText::try_from(output).unwrap_or_else(CommandText::from)
 }
-#[allow(clippy::single_call_fn)] // bounded artifact naming stays isolated from process execution
-fn command_log_name(
-    idx: CommandIdx,
-    program: CommandProgramRef<'_>,
-    args: CommandArgsRef<'_>,
-) -> CommandText {
-    let parts = std::iter::once(program.0)
-        .chain(args.0.iter().copied())
-        .take(3usize);
-    let raw_capacity = parts
-        .clone()
-        .map(str::len)
-        .sum::<usize>()
-        .saturating_add(parts.clone().count().saturating_sub(constants_usize::ONE));
-    let raw = parts.enumerate().fold(
-        String::with_capacity(raw_capacity),
-        |mut raw, (index, part)| {
-            if index > constants_usize::ZERO {
-                raw.push_str(constants_str::HYPHEN);
-            }
-            raw.push_str(part);
-            raw
-        },
-    );
-    let sanitized = raw
-        .chars()
-        .map(|character| {
-            if character.is_ascii_alphanumeric() {
-                character
-            } else {
-                '-'
-            }
-        })
-        .collect::<String>();
-    CommandText::try_from(format!("{:02}-{sanitized}.log", idx.get()))
-        .unwrap_or_else(CommandText::from)
-}
-#[allow(clippy::single_call_fn)] // unique run-directory construction has one filesystem owner
-fn create_run_dir() -> Result<RunDirPathBuf, ExecutionIoError> {
-    let timestamp = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_nanos();
-    let path =
-        std::path::Path::new(constants_str::WORKSPACE_TEST_RUNNER_RESULT_ROOT).join(format!(
-            "{timestamp}-{}-{}",
-            std::process::id(),
-            RUN_COUNTER.fetch_add(1u64, std::sync::atomic::Ordering::Relaxed)
-        ));
-    std::fs::create_dir_all(path.as_path()).map_err(ExecutionIoError::from)?;
-    Ok(RunDirPathBuf::from(path))
-}
 #[allow(clippy::single_call_fn)] // log parsing stays independently unit-testable
 fn failed_test_names(log_text: TextRef<'_>) -> CommandTexts {
     let mut names = log_text
@@ -198,20 +140,22 @@ fn failed_test_names(log_text: TextRef<'_>) -> CommandTexts {
     names.dedup_by(|left, right| left.as_ref() == right.as_ref());
     CommandTexts::from(bounded_types::domain_types::vector::BoundedVec::from_max_iter(names))
 }
-#[allow(clippy::single_call_fn)] // summary persistence remains separate from command orchestration
-fn write_summary(run_dir: &RunDirPathBuf, summary: &SummaryText) -> Result<(), ExecutionIoError> {
-    std::fs::write(
-        run_dir.0.join(constants_str::SUMMARY_TXT),
-        strip_ansi(TextRef::from(summary.0.as_str())).as_ref(),
-    )
-    .map_err(ExecutionIoError::from)
-}
 pub(crate) fn run_commands(commands: CommandsRef<'_>) -> Result<(), ()> {
-    let run_dir = create_run_dir().map_err(|error| {
-        crate::adapters::reporting::result_directory_failed(
-            crate::domain_types::RunnerIoErrorRef::from(&error.0),
-        );
-    })?;
+    let timestamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_nanos();
+    let run_dir =
+        std::path::Path::new(constants_str::WORKSPACE_TEST_RUNNER_RESULT_ROOT).join(format!(
+            "{timestamp}-{}-{}",
+            std::process::id(),
+            RUN_COUNTER.fetch_add(1u64, std::sync::atomic::Ordering::Relaxed)
+        ));
+    std::fs::create_dir_all(run_dir.as_path())
+        .map_err(ExecutionIoError::from)
+        .map_err(|error| {
+            eprintln!("failed to create test result directory: {}", error.0);
+        })?;
     let mut command_runs = std::thread::scope(|scope| {
         commands
             .0
@@ -280,16 +224,45 @@ pub(crate) fn run_commands(commands: CommandsRef<'_>) -> Result<(), ()> {
             .get(command_run.idx.get())
             .copied()
             .ok_or(())?;
-        let log_name = command_log_name(
-            command_run.idx,
-            CommandProgramRef::from(program),
-            CommandArgsRef::from(args),
+        let parts = std::iter::once(program)
+            .chain(args.iter().copied())
+            .take(3usize);
+        let raw_capacity = parts
+            .clone()
+            .map(str::len)
+            .sum::<usize>()
+            .saturating_add(parts.clone().count().saturating_sub(constants_usize::ONE));
+        let raw = parts.enumerate().fold(
+            String::with_capacity(raw_capacity),
+            |mut raw, (index, part)| {
+                if index > constants_usize::ZERO {
+                    raw.push_str(constants_str::HYPHEN);
+                }
+                raw.push_str(part);
+                raw
+            },
         );
-        let log_path = run_dir.0.join(log_name.as_ref());
+        let sanitized = raw
+            .chars()
+            .map(|character| {
+                if character.is_ascii_alphanumeric() {
+                    character
+                } else {
+                    '-'
+                }
+            })
+            .collect::<String>();
+        let log_name = CommandText::try_from(format!(
+            "{:02}-{sanitized}.log",
+            command_run.idx.get()
+        ))
+        .unwrap_or_else(CommandText::from);
+        let log_path = run_dir.join(log_name.as_ref());
         if let Err(error) = std::fs::write(log_path.as_path(), command_run.log_text.as_ref()) {
-            crate::adapters::reporting::result_log_failed(
-                crate::domain_types::RunnerPathRef::from(log_path.as_path()),
-                crate::domain_types::RunnerIoErrorRef::from(&error),
+            eprintln!(
+                "failed to write test result log {}: {}",
+                log_path.display(),
+                error
             );
             return Err(());
         }
@@ -333,10 +306,13 @@ pub(crate) fn run_commands(commands: CommandsRef<'_>) -> Result<(), ()> {
         }
         Ok(())
     })?;
-    write_summary(&run_dir, &summary).map_err(|error| {
-        crate::adapters::reporting::result_summary_failed(
-            crate::domain_types::RunnerIoErrorRef::from(&error.0),
-        );
+    std::fs::write(
+        run_dir.join(constants_str::SUMMARY_TXT),
+        strip_ansi(TextRef::from(summary.0.as_str())).as_ref(),
+    )
+    .map_err(ExecutionIoError::from)
+    .map_err(|error| {
+        eprintln!("failed to write test result summary: {}", error.0);
     })?;
     if succeeded { Ok(()) } else { Err(()) }
 }

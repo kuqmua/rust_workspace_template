@@ -40,18 +40,6 @@ pub(crate) fn write_text(
     Ok(())
 }
 
-#[allow(
-    clippy::single_call_fn,
-    reason = "filesystem adapter owns the raw single-file copy operation"
-)]
-pub(crate) fn copy_file(
-    source: crate::domain_types::ScaffoldPathRef<'_>,
-    destination: crate::domain_types::ScaffoldPathRef<'_>,
-) -> Result<(), crate::domain_types::ScaffoldError> {
-    let _copied_bytes = std::fs::copy(source.get(), destination.get())?;
-    Ok(())
-}
-
 pub(crate) fn replace_file(
     path: crate::domain_types::ScaffoldPathRef<'_>,
     replacements: crate::domain_types::ReplacementsRef<'_>,

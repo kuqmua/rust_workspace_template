@@ -183,29 +183,6 @@ const fn ensure_size_within_limit(
         Ok(())
     }
 }
-#[cfg(test)]
-#[allow(
-    clippy::single_call_fn,
-    reason = "test seam simulates file growth between metadata and content reads"
-)]
-fn read_bounded_file_with_after_metadata(
-    path: PathRef<'_>,
-    maximum_bytes: BoundedReadMaximumBytes,
-    after_metadata: impl FnOnce(),
-) -> Result<BoundedBytes, BoundedReadError> {
-    let metadata = std::fs::metadata(path.0).map_err(|source| BoundedReadError::Io {
-        source: BoundedReadIoError::from(source),
-    })?;
-    if metadata.len() > u64::try_from(maximum_bytes.0).unwrap_or(u64::MAX) {
-        return Err(BoundedReadError::ExceedsMaximum { maximum_bytes });
-    }
-    after_metadata();
-    let bytes = std::fs::read(path.0).map_err(|source| BoundedReadError::Io {
-        source: BoundedReadIoError::from(source),
-    })?;
-    ensure_size_within_limit(BoundedReadObservedBytes::from(bytes.len()), maximum_bytes)?;
-    Ok(BoundedBytes::from(bytes))
-}
 pub fn read_bounded_file(
     path: PathRef<'_>,
     maximum_bytes: BoundedReadMaximumBytes,
@@ -344,14 +321,28 @@ mod tests {
         let path = unique_path(constants_str::GROWTH);
         std::fs::write(&path, b"a")
             .expect("c0745b58 file_growth_after_metadata_is_rechecked invariant must hold");
-        let result = super::read_bounded_file_with_after_metadata(
-            super::PathRef::from(path.as_path()),
-            super::BoundedReadMaximumBytes::from(constants_usize::ONE),
-            || {
-                std::fs::write(&path, b"ab")
-                    .expect("d34a7bc1 file_growth_after_metadata_is_rechecked invariant must hold");
-            },
-        );
+        let maximum_bytes = super::BoundedReadMaximumBytes::from(constants_usize::ONE);
+        let result = (|| {
+            let metadata = std::fs::metadata(path.as_path()).map_err(|source| {
+                super::BoundedReadError::Io {
+                    source: super::BoundedReadIoError::from(source),
+                }
+            })?;
+            if metadata.len() > u64::try_from(maximum_bytes.0).unwrap_or(u64::MAX) {
+                return Err(super::BoundedReadError::ExceedsMaximum { maximum_bytes });
+            }
+            std::fs::write(&path, b"ab")
+                .expect("d34a7bc1 file_growth_after_metadata_is_rechecked invariant must hold");
+            let bytes =
+                std::fs::read(path.as_path()).map_err(|source| super::BoundedReadError::Io {
+                    source: super::BoundedReadIoError::from(source),
+                })?;
+            super::ensure_size_within_limit(
+                super::BoundedReadObservedBytes::from(bytes.len()),
+                maximum_bytes,
+            )?;
+            Ok(super::BoundedBytes::from(bytes))
+        })();
         assert!(matches!(
             result,
             Err(super::BoundedReadError::ExceedsMaximum {

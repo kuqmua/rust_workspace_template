@@ -170,8 +170,16 @@ impl crate::domain_types::SafeFileStorage {
         source: &crate::domain_types::StorageRelativePathBuf,
     ) -> Result<(), crate::domain_types::FileStorageError> {
         let source_path = self.root().get().join(source.as_ref());
-        self.ensure_regular_file(source_path.as_path().into())
-            .await?;
+        let metadata = tokio::fs::symlink_metadata(source_path.as_path())
+            .await
+            .map_err(|error| crate::domain_types::FileStorageError::Io(error.into()))?;
+        if !metadata.is_file() || metadata.file_type().is_symlink() {
+            return Err(if metadata.file_type().is_symlink() {
+                crate::domain_types::FileStorageError::Symlink
+            } else {
+                crate::domain_types::FileStorageError::SourceNotRegular
+            });
+        }
         tokio::fs::rename(
             source_path,
             self.root()
@@ -230,8 +238,16 @@ impl crate::domain_types::SafeFileStorage {
     ) -> Result<(), crate::domain_types::FileStorageError> {
         let destination_path = self.root().get().join(destination.as_ref());
         self.ensure_destination_parent(destination).await?;
-        self.ensure_destination_absent(destination_path.as_path().into())
-            .await?;
+        match tokio::fs::symlink_metadata(destination_path.as_path()).await {
+            Ok(metadata) if metadata.file_type().is_symlink() => {
+                return Err(crate::domain_types::FileStorageError::Symlink);
+            }
+            Ok(_metadata) => {
+                return Err(crate::domain_types::FileStorageError::DestinationExists);
+            }
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+            Err(error) => return Err(crate::domain_types::FileStorageError::Io(error.into())),
+        }
         tokio::fs::rename(
             self.root()
                 .get()
@@ -269,20 +285,6 @@ impl crate::domain_types::SafeFileStorage {
         }
     }
 
-    async fn ensure_destination_absent(
-        &self,
-        path: crate::domain_types::StoragePathRef<'_>,
-    ) -> Result<(), crate::domain_types::FileStorageError> {
-        match tokio::fs::symlink_metadata(path.get()).await {
-            Ok(metadata) if metadata.file_type().is_symlink() => {
-                Err(crate::domain_types::FileStorageError::Symlink)
-            }
-            Ok(_metadata) => Err(crate::domain_types::FileStorageError::DestinationExists),
-            Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
-            Err(error) => Err(crate::domain_types::FileStorageError::Io(error.into())),
-        }
-    }
-
     async fn ensure_destination_parent(
         &self,
         relative_path: &crate::domain_types::StorageRelativePathBuf,
@@ -313,22 +315,6 @@ impl crate::domain_types::SafeFileStorage {
             }
         }
         Ok(())
-    }
-
-    async fn ensure_regular_file(
-        &self,
-        path: crate::domain_types::StoragePathRef<'_>,
-    ) -> Result<(), crate::domain_types::FileStorageError> {
-        let metadata = tokio::fs::symlink_metadata(path.get())
-            .await
-            .map_err(|error| crate::domain_types::FileStorageError::Io(error.into()))?;
-        if metadata.is_file() && !metadata.file_type().is_symlink() {
-            Ok(())
-        } else if metadata.file_type().is_symlink() {
-            Err(crate::domain_types::FileStorageError::Symlink)
-        } else {
-            Err(crate::domain_types::FileStorageError::SourceNotRegular)
-        }
     }
 }
 

@@ -13,11 +13,15 @@ pub struct GeneratePgTableFieldCount(usize);
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 pub struct GeneratePgTableModel {
-    field_count: GeneratePgTableFieldCount,
-    input: SynGeneratePgTableModelInput,
+    pub(super) field_count: GeneratePgTableFieldCount,
+    pub(super) input: SynGeneratePgTableModelInput,
 }
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner, newtype::IntoInnerFrom,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    newtype::DerefInner,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
 )]
 pub(super) struct SynGeneratePgTableModelInput(syn::DeriveInput);
 #[derive(
@@ -28,17 +32,6 @@ impl GeneratePgTableModel {
     #[must_use]
     pub const fn field_count(&self) -> GeneratePgTableFieldCount {
         self.field_count
-    }
-    #[allow(clippy::single_call_fn)] // construction is isolated as the typed build-stage boundary
-    pub(super) fn from_struct(input: SynGeneratePgTableModelInput) -> Self {
-        let field_count = match &input.0.data {
-            syn::Data::Struct(data) => data.fields.iter().count(),
-            syn::Data::Enum(_) | syn::Data::Union(_) => constants_usize::ZERO,
-        };
-        Self {
-            field_count: GeneratePgTableFieldCount::from(field_count),
-            input,
-        }
     }
     pub(super) fn into_input(self) -> SynGeneratePgTableModelInput {
         self.input
