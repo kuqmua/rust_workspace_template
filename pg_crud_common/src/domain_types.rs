@@ -41,8 +41,8 @@ pub use bind_index::{
     QueryPartIncrement, QueryPartIncrementMut, increment_checked_add_one_returning_increment,
 };
 pub use cardinality::{
-    DuplicateCandidates, DuplicateIdx, first_duplicate_idx, first_duplicate_idx_by_hash,
-    take_fst_dup, take_fst_dup_by_hash,
+    DuplicateCandidates, DuplicateIdx, fst_dup_idx, fst_dup_idx_by_hash, take_fst_dup,
+    take_fst_dup_by_hash,
 };
 pub use cursor::{
     CursorCodec, CursorCodecBuildError, CursorDecodeError, CursorEncodeError, CursorMaximumLength,
@@ -683,12 +683,12 @@ impl<T: utoipa::ToSchema> utoipa::ToSchema for PgTypeWhere<T> {
 }
 impl<T: PartialEq + Clone> PgTypeWhere<T> {
     #[must_use]
-    pub const fn operator(&self) -> &Operator {
-        &self.operator
-    }
-    #[must_use]
     pub const fn new(operator: Operator, v: NotEmptyUniqueVec<T>) -> Self {
         Self { v, operator }
+    }
+    #[must_use]
+    pub const fn operator(&self) -> &Operator {
+        &self.operator
     }
     pub fn try_new(
         operator: Operator,

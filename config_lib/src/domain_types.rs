@@ -6,30 +6,33 @@ mod http;
 mod pg_pool;
 pub mod types;
 pub use admin::{
-    AdminAccessTokenTtlSeconds, AdminLoginFailureLimit, AdminPasswordHashConcurrency,
-    AdminPositiveU64ParsingError, AdminPositiveUsizeParsingError, AdminRefreshTokenTtlSeconds,
-    AdminSessionLimit, AdminSignInRateLimit, AdminTokenAudience,
-    AdminTokenAudienceTryFromStringError, AdminTokenIssuer, AdminTokenIssuerTryFromStringError,
-    GetAdminAccessTokenTtlSeconds, GetAdminLoginFailureLimit, GetAdminPasswordHashConcurrency,
-    GetAdminRefreshTokenTtlSeconds, GetAdminSessionLimit, GetAdminSignInRateLimit,
-    GetAdminTokenAudience, GetAdminTokenIssuer,
+    AdminAccessTokenTtlSeconds, AdminAccessTokenTtlSecondsProvider, AdminLoginFailureLimit,
+    AdminLoginFailureLimitProvider, AdminPasswordHashConcurrency,
+    AdminPasswordHashConcurrencyProvider, AdminPositiveU64ParsingError,
+    AdminPositiveUsizeParsingError, AdminRefreshTokenTtlSeconds,
+    AdminRefreshTokenTtlSecondsProvider, AdminSessionLimit, AdminSessionLimitProvider,
+    AdminSignInRateLimit, AdminSignInRateLimitProvider, AdminTokenAudience,
+    AdminTokenAudienceProvider, AdminTokenAudienceTryFromStringError, AdminTokenIssuer,
+    AdminTokenIssuerProvider, AdminTokenIssuerTryFromStringError,
     TryFromStdEnvVarOkAdminPasswordHashConcurrencyError, TryFromStdEnvVarOkAdminPositiveU64Error,
     TryFromStdEnvVarOkAdminTokenTextError,
 };
-pub use admin_jwt::{AdminJwtSecret, GetAdminJwtSecret, TryFromStdEnvVarOkAdminJwtSecretError};
+pub use admin_jwt::{
+    AdminJwtSecret, AdminJwtSecretProvider, TryFromStdEnvVarOkAdminJwtSecretError,
+};
 pub use bool_flags::{
-    AdminBoolParsingError, AdminCookieSecure, AdminSwaggerEnabled, GetAdminCookieSecure,
-    GetAdminSwaggerEnabled, HttpGzipEnabled, ProductionMode,
+    AdminBoolParsingError, AdminCookieSecure, AdminCookieSecureProvider, AdminSwaggerEnabled,
+    AdminSwaggerEnabledProvider, HttpGzipEnabled, ProductionMode,
     TryFromStdEnvVarOkAdminCookieSecureError,
 };
 pub use http::{
-    ContentSecurityPolicy, ContentSecurityPolicyError, GetMaximumSizeOfHttpBodyInBytes,
-    MaximumSizeOfHttpBodyInBytes, MaximumSizeOfHttpBodyInBytesTryFromUsizeError,
+    ContentSecurityPolicy, ContentSecurityPolicyError, MaximumSizeOfHttpBodyInBytes,
+    MaximumSizeOfHttpBodyInBytesProvider, MaximumSizeOfHttpBodyInBytesTryFromUsizeError,
     TryFromStdEnvVarOkMaximumSizeOfHttpBodyInBytesError,
 };
 pub use pg_pool::{
-    GetPgPoolMaxConnections, PgPoolAcquireTimeoutSeconds, PgPoolConfigParseError,
-    PgPoolIdleTimeoutSeconds, PgPoolMaxConnections, PgPoolMaxConnectionsTryFromU32Error,
+    PgPoolAcquireTimeoutSeconds, PgPoolConfigParseError, PgPoolIdleTimeoutSeconds,
+    PgPoolMaxConnections, PgPoolMaxConnectionsProvider, PgPoolMaxConnectionsTryFromU32Error,
     PgPoolMaxLifetimeSeconds, PgPoolMinConnections, RequestTimeoutSeconds,
     TryFromStdEnvVarOkPgPoolMaxConnectionsError,
 };
@@ -342,7 +345,7 @@ config_lib_macros::impl_try_from_non_empty_string!(
     Debug,
     Clone,
     Copy,
-    generate_getter_traits_for_struct_fields::GenerateGetterTrait,
+    generate_accessor_traits_for_struct_fields::GenerateAccessorTrait,
     optimal_memory_layout::OptimalMemoryLayout,
     newtype::DerefInner,
 )]

@@ -274,35 +274,35 @@ mod tests_not_empty_unique_vec {
         ));
     }
     #[test]
-    fn first_duplicate_idx_returns_none_for_unique_input() {
+    fn fst_dup_idx_returns_none_for_unique_input() {
         let values = vec![1u8, 2u8, 3u8];
-        assert!(crate::domain_types::first_duplicate_idx(&values).is_none());
+        assert!(crate::domain_types::fst_dup_idx(&values).is_none());
     }
     #[test]
-    fn first_duplicate_idx_returns_none_for_empty_and_single_input() {
-        assert!(crate::domain_types::first_duplicate_idx::<u8>(&[]).is_none());
-        assert!(crate::domain_types::first_duplicate_idx(&[1u8]).is_none());
+    fn fst_dup_idx_returns_none_for_empty_and_single_input() {
+        assert!(crate::domain_types::fst_dup_idx::<u8>(&[]).is_none());
+        assert!(crate::domain_types::fst_dup_idx(&[1u8]).is_none());
     }
     #[test]
-    fn first_duplicate_idx_returns_first_repeated_value_index() {
+    fn fst_dup_idx_returns_fst_repeated_value_idx() {
         let values = vec![7u8, 8u8, 8u8, 7u8];
         assert_eq!(
-            crate::domain_types::first_duplicate_idx(&values),
+            crate::domain_types::fst_dup_idx(&values),
             Some(crate::domain_types::DuplicateIdx::from(2))
         );
     }
     #[test]
-    fn first_duplicate_idx_by_hash_returns_first_repeated_value_index() {
+    fn fst_dup_idx_by_hash_returns_fst_repeated_value_idx() {
         let values = vec![7u8, 8u8, 8u8, 7u8];
         assert_eq!(
-            crate::domain_types::first_duplicate_idx_by_hash(&values),
+            crate::domain_types::fst_dup_idx_by_hash(&values),
             Some(crate::domain_types::DuplicateIdx::from(2))
         );
     }
     #[test]
-    fn first_duplicate_idx_by_hash_returns_none_for_empty_and_single_input() {
-        assert!(crate::domain_types::first_duplicate_idx_by_hash::<u8>(&[]).is_none());
-        assert!(crate::domain_types::first_duplicate_idx_by_hash(&[1u8]).is_none());
+    fn fst_dup_idx_by_hash_returns_none_for_empty_and_single_input() {
+        assert!(crate::domain_types::fst_dup_idx_by_hash::<u8>(&[]).is_none());
+        assert!(crate::domain_types::fst_dup_idx_by_hash(&[1u8]).is_none());
     }
     #[test]
     fn take_fst_dup_returns_none_for_unique_input() {

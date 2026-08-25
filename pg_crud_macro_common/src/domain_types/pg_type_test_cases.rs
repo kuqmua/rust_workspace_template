@@ -5,7 +5,7 @@
 fn generate_optional_vec_create_token_stream(
     path_token_stream: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> macros_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
+) -> macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     let names = crate::domain_types::NamesCtx::new();
     #[allow(non_snake_case)]
     let (CreateUpperCamelCase, OptionalVecCreateSnakeCase) = (
@@ -26,7 +26,7 @@ fn generate_optional_vec_create_token_stream(
 fn generate_read_ids_to_2_dimensions_vec_read_inner_token_stream(
     path_token_stream: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> macros_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
+) -> macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     let names = crate::domain_types::NamesCtx::new();
     #[allow(non_snake_case)]
     let (
@@ -55,7 +55,7 @@ fn generate_read_inner_into_read_or_update_with_new_or_try_new_unwraped_token_st
     path_token_stream: &dyn quote::ToTokens,
     return_type_token_stream: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> macros_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
+) -> macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     let names = crate::domain_types::NamesCtx::new();
     #[allow(non_snake_case)]
     let (VSnakeCase,) = (&names.VSnakeCase,);
@@ -75,7 +75,7 @@ fn generate_read_inner_into_read_or_update_with_new_or_try_new_unwraped_token_st
 fn generate_update_to_read_ids_token_stream(
     path_token_stream: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> macros_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
+) -> macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     let names = crate::domain_types::NamesCtx::new();
     #[allow(non_snake_case)]
     let (ReadIdsUpperCamelCase, UpdateToReadIdsSnakeCase, UpdateUpperCamelCase, VSnakeCase) = (
@@ -101,7 +101,7 @@ fn generate_read_ids_to_optional_v_read_default_some_one_element_token_stream(
     import: crate::domain_types::Import,
     path_token_stream: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> macros_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
+) -> macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     let names = crate::domain_types::NamesCtx::new();
     #[allow(non_snake_case)]
     let (
@@ -133,7 +133,7 @@ fn generate_read_ids_to_optional_v_read_default_some_one_element_token_stream(
 fn generate_previous_read_and_optional_update_into_read_token_stream(
     path_token_stream: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> macros_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
+) -> macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     let names = crate::domain_types::NamesCtx::new();
     #[allow(non_snake_case)]
     let (
@@ -166,7 +166,7 @@ fn generate_previous_read_and_optional_update_into_read_token_stream(
 fn generate_read_ids_and_create_into_read_token_stream(
     path_token_stream: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> macros_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
+) -> macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     let names = crate::domain_types::NamesCtx::new();
     #[allow(non_snake_case)]
     let (
@@ -202,7 +202,7 @@ fn generate_read_ids_and_create_into_optional_v_read_token_stream(
     import: crate::domain_types::Import,
     path_token_stream: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> macros_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
+) -> macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     let names = crate::domain_types::NamesCtx::new();
     #[allow(non_snake_case)]
     let (
@@ -239,7 +239,7 @@ fn generate_read_ids_and_create_into_optional_v_read_token_stream(
 fn generate_read_ids_and_create_into_table_type_token_stream(
     path_token_stream: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> macros_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
+) -> macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     let names = crate::domain_types::NamesCtx::new();
     #[allow(non_snake_case)]
     let (
@@ -272,7 +272,7 @@ pub fn generate_read_ids_and_create_into_where_eq_token_stream(
     create_token_stream: &dyn quote::ToTokens,
     where_token_stream: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> macros_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
+) -> macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     let names = crate::domain_types::NamesCtx::new();
     #[allow(non_snake_case)]
     let (CreateSnakeCase, ReadIdsAndCreateIntoWhereEqSnakeCase, ReadIdsSnakeCase) = (
@@ -296,7 +296,7 @@ pub fn generate_read_ids_and_create_into_vec_where_eq_using_fields_token_stream(
     create_token_stream: &dyn quote::ToTokens,
     where_token_stream: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> macros_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
+) -> macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     let names = crate::domain_types::NamesCtx::new();
     #[allow(non_snake_case)]
     let (CreateSnakeCase, ReadIdsAndCreateIntoVecWhereEqUsingFieldsSnakeCase, ReadIdsSnakeCase) = (
@@ -324,7 +324,7 @@ fn generate_read_ids_and_create_into_optional_vec_where_eq_to_field_token_stream
     create_token_stream: &dyn quote::ToTokens,
     where_token_stream: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> macros_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
+) -> macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     let names = crate::domain_types::NamesCtx::new();
     #[allow(non_snake_case)]
     let (CreateSnakeCase, ReadIdsAndCreateIntoOptionalVecWhereEqToFieldSnakeCase, ReadIdsSnakeCase) = (
@@ -370,7 +370,7 @@ pub fn generate_impl_pg_type_test_cases_for_identifier_token_stream(
     read_ids_and_table_type_into_pg_type_optional_where_greater_than_token_stream: Option<
         &dyn quote::ToTokens,
     >,
-) -> macros_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
+) -> macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     let names = crate::domain_types::NamesCtx::new();
     #[allow(non_snake_case)]
     let (

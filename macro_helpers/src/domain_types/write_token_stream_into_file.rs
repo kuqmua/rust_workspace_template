@@ -79,57 +79,41 @@ where
     }
     Ok(())
 }
-pub fn maybe_write_token_stream_into_file<P>(
-    should_write_token_stream_into_file: ShouldWriteTokenStreamIntoFile,
-    file_name: P,
-    ts: ProcMacro2TokenStreamRef<'_>,
-    format_with_cargofmt: &FormatWithCargofmt,
-) -> std::io::Result<()>
-where
-    P: AsRef<std::path::Path>,
-{
-    try_maybe_write_token_stream_into_file(
-        should_write_token_stream_into_file,
-        file_name,
-        ts,
-        format_with_cargofmt,
-    )
-}
 #[cfg(test)]
 mod tests {
     #[test]
-    fn maybe_write_token_stream_into_file_skips_when_flag_is_false() {
+    fn try_maybe_write_token_stream_into_file_skips_when_flag_is_false() {
         let base = crate::domain_types::test_hlp::test_path(
-            crate::domain_types::test_hlp::TestPathStem::new(constants_str::MACROS_HELPERS_SKIP),
+            crate::domain_types::test_hlp::TestPathStem::new(constants_str::MACRO_HELPERS_SKIP),
         );
         let path = crate::domain_types::rs_file_path::rs_file_path(&base);
         let ts: proc_macro2::TokenStream =
-            constants_str::STRUCT_SKIPWRITE.parse().expect("5994e7e2 maybe_write_token_stream_into_file_skips_when_flag_is_false invariant must hold");
-        super::maybe_write_token_stream_into_file(
+            constants_str::STRUCT_SKIPWRITE.parse().expect("5994e7e2 try_maybe_write_token_stream_into_file_skips_when_flag_is_false invariant must hold");
+        super::try_maybe_write_token_stream_into_file(
             super::ShouldWriteTokenStreamIntoFile::False,
             &base,
             super::ProcMacro2TokenStreamRef::from(&ts),
             &super::FormatWithCargofmt::False,
         )
-        .expect("5ecc3880 maybe_write_token_stream_into_file_skips_when_flag_is_false invariant must hold");
+        .expect("5ecc3880 try_maybe_write_token_stream_into_file_skips_when_flag_is_false invariant must hold");
         let _error = std::fs::metadata(&path).expect_err(constants_str::VALUE_7BE5F201);
     }
     #[test]
-    fn maybe_write_token_stream_into_file_writes_tokens_when_flag_is_true() {
+    fn try_maybe_write_token_stream_into_file_writes_tokens_when_flag_is_true() {
         let base = crate::domain_types::test_hlp::test_path(
-            crate::domain_types::test_hlp::TestPathStem::new(constants_str::MACROS_HELPERS_WRITE),
+            crate::domain_types::test_hlp::TestPathStem::new(constants_str::MACRO_HELPERS_WRITE),
         );
         let path = crate::domain_types::rs_file_path::rs_file_path(&base);
         let ts: proc_macro2::TokenStream =
-            constants_str::STRUCT_DIDWRITE.parse().expect("6c20f49a maybe_write_token_stream_into_file_writes_tokens_when_flag_is_true invariant must hold");
+            constants_str::STRUCT_DIDWRITE.parse().expect("6c20f49a try_maybe_write_token_stream_into_file_writes_tokens_when_flag_is_true invariant must hold");
         let expected = ts.to_string();
-        super::maybe_write_token_stream_into_file(
+        super::try_maybe_write_token_stream_into_file(
             super::ShouldWriteTokenStreamIntoFile::True,
             &base,
             super::ProcMacro2TokenStreamRef::from(&ts),
             &super::FormatWithCargofmt::False,
         )
-        .expect("04f83dc1 maybe_write_token_stream_into_file_writes_tokens_when_flag_is_true invariant must hold");
+        .expect("04f83dc1 try_maybe_write_token_stream_into_file_writes_tokens_when_flag_is_true invariant must hold");
         crate::domain_types::test_hlp::assert_file_content(
             crate::domain_types::test_hlp::StdAssertFilePath::new(path.as_ref()),
             crate::domain_types::test_hlp::ExpectedFileContent::new(&expected),
@@ -149,7 +133,7 @@ mod tests {
     fn try_maybe_write_token_stream_into_file_writes_tokens_when_enabled() {
         let base = crate::domain_types::test_hlp::test_path(
             crate::domain_types::test_hlp::TestPathStem::new(
-                constants_str::MACROS_HELPERS_TRY_WRITE,
+                constants_str::MACRO_HELPERS_TRY_WRITE,
             ),
         );
         let path = crate::domain_types::rs_file_path::rs_file_path(&base);
@@ -173,7 +157,7 @@ mod tests {
     fn try_maybe_write_token_stream_into_file_accepts_path_input() {
         let base = crate::domain_types::test_hlp::test_path(
             crate::domain_types::test_hlp::TestPathStem::new(
-                constants_str::MACROS_HELPERS_TRY_WRITE_PATH,
+                constants_str::MACRO_HELPERS_TRY_WRITE_PATH,
             ),
         );
         let path = crate::domain_types::rs_file_path::rs_file_path(&base);
@@ -198,7 +182,7 @@ mod tests {
     fn try_maybe_write_token_stream_into_file_formats_when_rustfmt_enabled() {
         let base = crate::domain_types::test_hlp::test_path(
             crate::domain_types::test_hlp::TestPathStem::new(
-                constants_str::MACROS_HELPERS_TRY_RUN_RUSTFMT,
+                constants_str::MACRO_HELPERS_TRY_RUN_RUSTFMT,
             ),
         );
         let path = crate::domain_types::rs_file_path::rs_file_path(&base);

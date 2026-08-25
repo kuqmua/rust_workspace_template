@@ -142,9 +142,7 @@ pub fn common_logic(
 pub fn generate_pg_table(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input_token_stream = input.into();
     generate_pg_table_src::domain_types::source::generate_pg_table(
-        macros_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(
-            &input_token_stream,
-        ),
+        macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(&input_token_stream),
     )
     .to_string()
     .parse::<proc_macro::TokenStream>()

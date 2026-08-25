@@ -16,7 +16,7 @@ quote = { workspace = true }
 frontend_contract = { workspace = true }
 macro_clippy_check_common = { workspace = true, features = ["test-utils"] }
 generate_pg_types_src = { workspace = true }
-macros_helpers = { workspace = true, features = ["test-utils"] }
+macro_helpers = { workspace = true, features = ["test-utils"] }
 chrono = { workspace = true }
 pg_types_chrono_net = { workspace = true }
 pg_types_numeric = { workspace = true }

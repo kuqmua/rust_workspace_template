@@ -1,5 +1,5 @@
 [package]
-name = "initialize_environment_files"
+name = "init_env_files"
 version.workspace = true
 publish.workspace = true
 description = "Safely initialize workspace environment files from examples"

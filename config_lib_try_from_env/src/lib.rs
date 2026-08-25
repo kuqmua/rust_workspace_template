@@ -30,7 +30,7 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
     };
     let config_field_attributes = |field: &syn::Field| {
         let mut example = None;
-        let mut getter = false;
+        let mut accessor = false;
         let mut secret = false;
         field
             .attrs
@@ -41,8 +41,8 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
                     if meta.path.is_ident(constants_str::EXAMPLE) {
                         example = Some(meta.value()?.parse::<syn::LitStr>()?);
                         Ok(())
-                    } else if meta.path.is_ident(constants_str::GETTER) {
-                        getter = true;
+                    } else if meta.path.is_ident(constants_str::ACCESSOR) {
+                        accessor = true;
                         Ok(())
                     } else if meta.path.is_ident(constants_str::SECRET) {
                         secret = true;
@@ -52,7 +52,7 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
                     }
                 })
             })?;
-        Ok((example, getter, secret))
+        Ok((example, accessor, secret))
     };
     let field_attributes = match fields_named
         .iter()
@@ -182,7 +182,7 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
                 Self::#element_identifier_upper_camel_case_token_stream { #element_identifier } => write!(f, "{}", #element_identifier)
             }
         });
-        macros_helpers::domain_types::generate_impl_display_token_stream::generate_impl_display_token_stream(
+        macro_helpers::domain_types::generate_impl_display_token_stream::generate_impl_display_token_stream(
             &proc_macro2::TokenStream::new(),
             &identifier_try_from_env_error_upper_camel_case,
             &proc_macro2::TokenStream::new(),
@@ -225,24 +225,24 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
             }
         });
         let fields_token_stream = fields_named.iter().map(|element| &element.ident);
-        let getters_token_stream = fields_named
+        let accessors_token_stream = fields_named
             .iter()
             .zip(field_attributes.iter())
             .filter(|(_field, attributes)| attributes.1)
             .map(|(field, _attributes)| {
-                let getter_identifier = field_identifier(field, constants_str::VALUE_8B79A379);
+                let accessor_identifier = field_identifier(field, constants_str::VALUE_8B79A379);
                 let field_type = &field.ty;
                 quote::quote! {
                     #[must_use]
-                    pub const fn #getter_identifier(&self) -> &#field_type {
-                        &self.#getter_identifier
+                    pub const fn #accessor_identifier(&self) -> &#field_type {
+                        &self.#accessor_identifier
                     }
                 }
             });
         quote::quote! {
             impl #identifier {
                 #env_example
-                #(#getters_token_stream)*
+                #(#accessors_token_stream)*
                 pub fn field_descriptors() -> Vec<config_lib::domain_types::ConfigFieldDescriptor> {
                     vec![#(#config_descriptors),*]
                 }

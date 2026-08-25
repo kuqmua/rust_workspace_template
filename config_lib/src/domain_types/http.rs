@@ -2,7 +2,7 @@
     Debug,
     Clone,
     Copy,
-    generate_getter_traits_for_struct_fields::GenerateGetterTrait,
+    generate_accessor_traits_for_struct_fields::GenerateAccessorTrait,
     optimal_memory_layout::OptimalMemoryLayout,
     newtype::DerefInner,
 )]

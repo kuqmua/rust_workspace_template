@@ -73,6 +73,7 @@ pub(crate) enum BoundedStringOption {
     optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord,
 )]
 pub(crate) enum NewtypeOption {
+    Accessor,
     AsMut,
     AsRef,
     AsRefInner,
@@ -95,7 +96,6 @@ pub(crate) enum NewtypeOption {
     Display,
     From,
     GetInner,
-    Getter,
     IntoInner,
     IntoInnerFrom,
     IntoIterator,

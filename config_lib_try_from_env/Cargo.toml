@@ -19,6 +19,6 @@ syn = { workspace = true }
 panic_location = { workspace = true }
 naming = { workspace = true }
 naming_common = { workspace = true }
-macros_helpers = { workspace = true }
+macro_helpers = { workspace = true }
 [lints]
 workspace = true

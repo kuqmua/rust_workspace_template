@@ -336,7 +336,7 @@ naming_macros::generate_upper_camel_case_and_snake_case_str_and_token_stream!([
     ["generate", "select", "query", "part"],
     ["update", "query", "part", "primary", "key"],
     [
-        "generate", "column", "queals", "v", "comma", "uo", "query", "part"
+        "generate", "column", "eq", "v", "comma", "uo", "query", "part"
     ],
     ["primary", "key", "query", "part"],
     ["cols"],

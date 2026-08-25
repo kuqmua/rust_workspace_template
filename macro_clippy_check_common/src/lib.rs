@@ -171,15 +171,15 @@ categories = ["category"]
     domain_types::generated_crate_steps()
         .iter()
         .fold((), |(), step| {
-            let status = macros_helpers::domain_types::tool_command::ToolCommand::new(
-                macros_helpers::domain_types::tool_command::ToolProgramRef::from(
+            let status = macro_helpers::domain_types::tool_command::ToolCommand::new(
+                macro_helpers::domain_types::tool_command::ToolProgramRef::from(
                     constants_str::WORKSPACE_TEST_RUNNER_CARGO,
                 ),
             )
-            .current_dir(macros_helpers::domain_types::tool_command::PathRef::from(
+            .current_dir(macro_helpers::domain_types::tool_command::PathRef::from(
                 crate_path.as_path(),
             ))
-            .args(macros_helpers::domain_types::tool_command::ToolArgsRef::from(step.args()))
+            .args(macro_helpers::domain_types::tool_command::ToolArgsRef::from(step.args()))
             .status()
             .unwrap_or_else(|error| {
                 panic!(

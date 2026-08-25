@@ -22,7 +22,7 @@ pub struct DuplicateIdx(usize);
 )]
 pub struct DuplicateCandidates<T>(Vec<T>);
 #[must_use]
-pub fn first_duplicate_idx<T>(values: &[T]) -> Option<DuplicateIdx>
+pub fn fst_dup_idx<T>(values: &[T]) -> Option<DuplicateIdx>
 where
     T: PartialEq,
 {
@@ -36,7 +36,7 @@ where
         .map(|(idx, _)| DuplicateIdx::from(idx))
 }
 #[must_use]
-pub fn first_duplicate_idx_by_hash<T>(values: &[T]) -> Option<DuplicateIdx>
+pub fn fst_dup_idx_by_hash<T>(values: &[T]) -> Option<DuplicateIdx>
 where
     T: Eq + std::hash::Hash,
 {
@@ -55,7 +55,7 @@ pub fn take_fst_dup<T>(values: &mut DuplicateCandidates<T>) -> Option<T>
 where
     T: PartialEq,
 {
-    let duplicate_idx = first_duplicate_idx(values.0.as_slice())?;
+    let duplicate_idx = fst_dup_idx(values.0.as_slice())?;
     Some(values.0.swap_remove(duplicate_idx.get()))
 }
 #[must_use]
@@ -63,6 +63,6 @@ pub fn take_fst_dup_by_hash<T>(values: &mut DuplicateCandidates<T>) -> Option<T>
 where
     T: Eq + std::hash::Hash,
 {
-    let duplicate_idx = first_duplicate_idx_by_hash(values.0.as_slice())?;
+    let duplicate_idx = fst_dup_idx_by_hash(values.0.as_slice())?;
     Some(values.0.swap_remove(duplicate_idx.get()))
 }

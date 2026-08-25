@@ -444,7 +444,7 @@ impl TryFrom<&String> for StatusCode {
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq, thiserror::Error,
 )]
-pub enum GetOnlyOneStatusCodeError {
+pub enum OnlyOneStatusCodeError {
     #[error("07286cf0: two or more supported status code attrs")]
     MoreThanOne,
     #[error("19fc6512: supported status code attr not found")]
@@ -454,7 +454,7 @@ pub enum GetOnlyOneStatusCodeError {
 pub struct SynStatusCodeVariantRef<'variant_lt>(&'variant_lt syn::Variant);
 pub fn only_one(
     variant_ref: SynStatusCodeVariantRef<'_>,
-) -> Result<StatusCode, GetOnlyOneStatusCodeError> {
+) -> Result<StatusCode, OnlyOneStatusCodeError> {
     let variant = variant_ref.0;
     let mut supported_attrs = variant.attrs.iter().filter_map(|attr| {
         if attr.path().segments.len() != 1 {
@@ -465,9 +465,9 @@ pub fn only_one(
     });
     let optional_self = supported_attrs.next();
     if supported_attrs.next().is_some() {
-        return Err(GetOnlyOneStatusCodeError::MoreThanOne);
+        return Err(OnlyOneStatusCodeError::MoreThanOne);
     }
-    optional_self.ok_or(GetOnlyOneStatusCodeError::NotFound)
+    optional_self.ok_or(OnlyOneStatusCodeError::NotFound)
 }
 
 #[cfg(test)]
@@ -574,7 +574,7 @@ mod tests {
         };
         assert_eq!(
             super::only_one(super::SynStatusCodeVariantRef::from(&missing)),
-            Err(super::GetOnlyOneStatusCodeError::NotFound)
+            Err(super::OnlyOneStatusCodeError::NotFound)
         );
         let multiple: syn::Variant = syn::parse_quote! {
             #[not_found_404]
@@ -583,7 +583,7 @@ mod tests {
         };
         assert_eq!(
             super::only_one(super::SynStatusCodeVariantRef::from(&multiple)),
-            Err(super::GetOnlyOneStatusCodeError::MoreThanOne)
+            Err(super::OnlyOneStatusCodeError::MoreThanOne)
         );
     }
 }

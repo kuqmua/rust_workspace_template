@@ -27,59 +27,59 @@ impl server_runtime_core::domain_types::IdempotencyResponseResourceBudgetProvide
         &self.idempotency_response_budget
     }
 }
-server_app_state_macros::impl_cfg_getter!(
-    config_lib::domain_types::GetEnableApiGitCommitCheck,
-    get_enable_api_git_commit_check,
+server_app_state_macros::impl_cfg_accessor!(
+    config_lib::domain_types::EnableApiGitCommitCheckProvider,
+    enable_api_git_commit_check,
     bool
 );
-server_app_state_macros::impl_cfg_getter!(
-    config_lib::domain_types::GetSrcPlaceType,
-    get_src_place_type,
+server_app_state_macros::impl_cfg_accessor!(
+    config_lib::domain_types::SrcPlaceTypeProvider,
+    src_place_type,
     config_lib::domain_types::types::SrcPlaceType
 );
-server_app_state_macros::impl_cfg_getter!(
-    config_lib::domain_types::GetChronoTimezone,
-    get_chrono_timezone,
+server_app_state_macros::impl_cfg_accessor!(
+    config_lib::domain_types::ChronoTimezoneProvider,
+    chrono_timezone,
     chrono::FixedOffset
 );
-server_app_state_macros::impl_cfg_getter!(
-    config_lib::domain_types::GetMaximumSizeOfHttpBodyInBytes,
-    get_maximum_size_of_http_body_in_bytes,
+server_app_state_macros::impl_cfg_accessor!(
+    config_lib::domain_types::MaximumSizeOfHttpBodyInBytesProvider,
+    maximum_size_of_http_body_in_bytes,
     usize
 );
-server_app_state_macros::impl_cfg_getter!(
-    config_lib::domain_types::GetAdminAccessTokenTtlSeconds,
-    get_admin_access_token_ttl_seconds,
+server_app_state_macros::impl_cfg_accessor!(
+    config_lib::domain_types::AdminAccessTokenTtlSecondsProvider,
+    admin_access_token_ttl_seconds,
     config_lib::domain_types::ConfigNonZeroU64
 );
-server_app_state_macros::impl_cfg_getter!(
-    config_lib::domain_types::GetAdminCookieSecure,
-    get_admin_cookie_secure,
+server_app_state_macros::impl_cfg_accessor!(
+    config_lib::domain_types::AdminCookieSecureProvider,
+    admin_cookie_secure,
     bool
 );
-server_app_state_macros::impl_cfg_getter!(
-    config_lib::domain_types::GetAdminJwtSecret,
-    get_admin_jwt_secret,
+server_app_state_macros::impl_cfg_accessor!(
+    config_lib::domain_types::AdminJwtSecretProvider,
+    admin_jwt_secret,
     bounded_types::domain_types::vector::BoundedVec<config_lib::domain_types::SecrecySecretBoxString, 1, 8>
 );
-server_app_state_macros::impl_cfg_getter!(
-    config_lib::domain_types::GetAdminPasswordHashConcurrency,
-    get_admin_password_hash_concurrency,
+server_app_state_macros::impl_cfg_accessor!(
+    config_lib::domain_types::AdminPasswordHashConcurrencyProvider,
+    admin_password_hash_concurrency,
     config_lib::domain_types::ConfigNonZeroUsize
 );
-server_app_state_macros::impl_cfg_getter!(
-    config_lib::domain_types::GetAdminRefreshTokenTtlSeconds,
-    get_admin_refresh_token_ttl_seconds,
+server_app_state_macros::impl_cfg_accessor!(
+    config_lib::domain_types::AdminRefreshTokenTtlSecondsProvider,
+    admin_refresh_token_ttl_seconds,
     config_lib::domain_types::ConfigNonZeroU64
 );
-server_app_state_macros::impl_cfg_getter!(
-    config_lib::domain_types::GetAdminTokenAudience,
-    get_admin_token_audience,
+server_app_state_macros::impl_cfg_accessor!(
+    config_lib::domain_types::AdminTokenAudienceProvider,
+    admin_token_audience,
     String
 );
-server_app_state_macros::impl_cfg_getter!(
-    config_lib::domain_types::GetAdminTokenIssuer,
-    get_admin_token_issuer,
+server_app_state_macros::impl_cfg_accessor!(
+    config_lib::domain_types::AdminTokenIssuerProvider,
+    admin_token_issuer,
     String
 );
 impl app_state::domain_types::SqlxPgPoolProvider for ServerAppState<'_> {
@@ -350,26 +350,26 @@ mod tests {
         miri,
         ignore = "SQLx account discovery calls getpwuid_r, which Miri does not support"
     )]
-    async fn cfg_getters_forward_to_inner_config() {
+    async fn cfg_accessors_forward_to_inner_config() {
         let git_info = mk_git_info();
         let structure = mk_structure(git_info);
         assert_eq!(
-            config_lib::domain_types::GetSrcPlaceType::get_src_place_type(&structure),
+            config_lib::domain_types::SrcPlaceTypeProvider::src_place_type(&structure),
             &config_lib::domain_types::types::SrcPlaceType::Github
         );
         assert_eq!(
-            config_lib::domain_types::GetChronoTimezone::get_chrono_timezone(&structure)
+            config_lib::domain_types::ChronoTimezoneProvider::chrono_timezone(&structure)
                 .local_minus_utc(),
             3i32 * 3_600i32
         );
         assert_eq!(
-            config_lib::domain_types::GetMaximumSizeOfHttpBodyInBytes::get_maximum_size_of_http_body_in_bytes(
+            config_lib::domain_types::MaximumSizeOfHttpBodyInBytesProvider::maximum_size_of_http_body_in_bytes(
                 &structure
             ),
             &16_384
         );
         assert!(
-            config_lib::domain_types::GetEnableApiGitCommitCheck::get_enable_api_git_commit_check(
+            config_lib::domain_types::EnableApiGitCommitCheckProvider::enable_api_git_commit_check(
                 &structure
             )
         );
@@ -379,7 +379,7 @@ mod tests {
         miri,
         ignore = "SQLx account discovery calls getpwuid_r, which Miri does not support"
     )]
-    async fn get_pg_pool_returns_same_pool_ref() {
+    async fn sqlx_pg_pool_returns_same_pool_ref() {
         let git_info = mk_git_info();
         let structure = mk_structure(git_info);
         let lhs = std::ptr::from_ref(

@@ -32,7 +32,7 @@ pub fn impl_try_from_non_empty_string(input: proc_macro::TokenStream) -> proc_ma
     let name = quote::format_ident!("{name_text}");
     let error_name = quote::format_ident!("{error_name_text}");
     quote::quote! {
-        #[derive(Debug, Clone, generate_getter_traits_for_struct_fields::GenerateGetterTrait, optimal_memory_layout::OptimalMemoryLayout)]
+        #[derive(Debug, Clone, generate_accessor_traits_for_struct_fields::GenerateAccessorTrait, optimal_memory_layout::OptimalMemoryLayout)]
         pub struct #name(pub String);
         #[derive(Debug, Clone, Copy, thiserror::Error, optimal_memory_layout::OptimalMemoryLayout)]
         pub enum #error_name {
@@ -80,7 +80,7 @@ pub fn impl_try_from_secret_url(input: proc_macro::TokenStream) -> proc_macro::T
     let name = quote::format_ident!("{name_text}");
     let error_name = quote::format_ident!("{error_name_text}");
     quote::quote! {
-        #[derive(Debug, generate_getter_traits_for_struct_fields::GenerateGetterTrait, optimal_memory_layout::OptimalMemoryLayout)]
+        #[derive(Debug, generate_accessor_traits_for_struct_fields::GenerateAccessorTrait, optimal_memory_layout::OptimalMemoryLayout)]
         pub struct #name(pub secrecy::SecretBox<StdConfigSecretString>);
         #[derive(Debug, Clone, Copy, thiserror::Error, optimal_memory_layout::OptimalMemoryLayout)]
         pub enum #error_name {
@@ -216,7 +216,7 @@ fn impl_try_from_parse_with_error_ty(
     );
     domain_types::ProcMacroTryFromParseTokenStream::from(proc_macro::TokenStream::from(
         quote::quote! {
-            #[derive(Debug, #(#derives,)* generate_getter_traits_for_struct_fields::GenerateGetterTrait, optimal_memory_layout::OptimalMemoryLayout)]
+            #[derive(Debug, #(#derives,)* generate_accessor_traits_for_struct_fields::GenerateAccessorTrait, optimal_memory_layout::OptimalMemoryLayout)]
             pub struct #name(pub #inner);
             #[derive(Debug, thiserror::Error, optimal_memory_layout::OptimalMemoryLayout)]
             pub enum #error_name {

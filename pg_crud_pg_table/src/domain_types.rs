@@ -1,10 +1,10 @@
 #![allow(clippy::arbitrary_source_item_ordering)] // SQL helpers stay grouped by generated CRUD concern rather than alphabetically
 const PG_TBL_STRING_WRAPPER_MAX_LEN: usize = 1_048_576;
 pub trait CombinationOfAppStateLogicTraits:
-    config_lib::domain_types::GetEnableApiGitCommitCheck
-    + config_lib::domain_types::GetMaximumSizeOfHttpBodyInBytes
-    + config_lib::domain_types::GetSrcPlaceType
-    + config_lib::domain_types::GetChronoTimezone
+    config_lib::domain_types::EnableApiGitCommitCheckProvider
+    + config_lib::domain_types::MaximumSizeOfHttpBodyInBytesProvider
+    + config_lib::domain_types::SrcPlaceTypeProvider
+    + config_lib::domain_types::ChronoTimezoneProvider
     + app_state::domain_types::SqlxPgPoolProvider
     + server_runtime_http::domain_types::BulkItemResourceBudgetProvider
     + server_runtime_http::domain_types::IdempotencyResponseResourceBudgetProvider
@@ -912,7 +912,7 @@ pub fn generate_ro_query_string(
     generate_select_query_string(table, select_string, where_string, SelectWhereFmt::Where)
 }
 #[must_use]
-pub fn generate_column_queals_v_comma_uo_query_part(
+pub fn generate_column_eq_v_comma_uo_query_part(
     column: PgTableSqlFragmentRef<'_>,
     value: PgTableSqlFragmentRef<'_>,
 ) -> PgTableQueryPartFragment {

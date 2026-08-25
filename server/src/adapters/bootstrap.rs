@@ -44,13 +44,15 @@ pub(crate) async fn mk_pg_pool(
     config: &server_config::domain_types::Config,
 ) -> Result<app_state::domain_types::SqlxPgPool, crate::domain_types::RunServerError> {
     if *config.pg_pool_min_connections
-        > *config_lib::domain_types::GetPgPoolMaxConnections::get_pg_pool_max_connections(config)
+        > *config_lib::domain_types::PgPoolMaxConnectionsProvider::pg_pool_max_connections(config)
     {
         return Err(crate::domain_types::RunServerError::PgPoolConfiguration);
     }
     sqlx::postgres::PgPoolOptions::new()
         .max_connections(
-            *config_lib::domain_types::GetPgPoolMaxConnections::get_pg_pool_max_connections(config),
+            *config_lib::domain_types::PgPoolMaxConnectionsProvider::pg_pool_max_connections(
+                config,
+            ),
         )
         .min_connections(*config.pg_pool_min_connections)
         .acquire_timeout(std::time::Duration::from_secs(
@@ -73,7 +75,7 @@ pub(crate) async fn mk_pg_pool(
             })
         })
         .connect(secrecy::ExposeSecret::expose_secret(
-            config_lib::domain_types::GetDatabaseUrl::get_database_url(config),
+            config_lib::domain_types::DatabaseUrlProvider::database_url(config),
         ))
         .await
         .map(app_state::domain_types::SqlxPgPool::from)

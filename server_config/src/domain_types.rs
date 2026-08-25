@@ -119,65 +119,63 @@ impl Config {
         Ok(())
     }
 }
-impl config_lib::domain_types::GetCorsAllowOrigin for Config {
-    fn get_cors_allow_origin(&self) -> &String {
+impl config_lib::domain_types::CorsAllowOriginProvider for Config {
+    fn cors_allow_origin(&self) -> &String {
         &self.cors_allow_origin.0
     }
 }
-impl config_lib::domain_types::GetDatabaseUrl for Config {
-    fn get_database_url(
-        &self,
-    ) -> &secrecy::SecretBox<config_lib::domain_types::StdConfigSecretString> {
+impl config_lib::domain_types::DatabaseUrlProvider for Config {
+    fn database_url(&self) -> &secrecy::SecretBox<config_lib::domain_types::StdConfigSecretString> {
         &self.database_url.0
     }
 }
-impl config_lib::domain_types::GetMaximumSizeOfHttpBodyInBytes for Config {
-    fn get_maximum_size_of_http_body_in_bytes(&self) -> &usize {
+impl config_lib::domain_types::MaximumSizeOfHttpBodyInBytesProvider for Config {
+    fn maximum_size_of_http_body_in_bytes(&self) -> &usize {
         &self.maximum_size_of_http_body_in_bytes
     }
 }
-impl config_lib::domain_types::GetServiceSocketAddress for Config {
-    fn get_service_socket_address(&self) -> &std::net::SocketAddr {
+impl config_lib::domain_types::ServiceSocketAddressProvider for Config {
+    fn service_socket_address(&self) -> &std::net::SocketAddr {
         &self.service_socket_address.0
     }
 }
-impl config_lib::domain_types::GetPgPoolMaxConnections for Config {
-    fn get_pg_pool_max_connections(&self) -> &u32 {
+impl config_lib::domain_types::PgPoolMaxConnectionsProvider for Config {
+    fn pg_pool_max_connections(&self) -> &u32 {
         &self.pg_pool_max_connections
     }
 }
-impl config_lib::domain_types::GetChronoTimezone for Config {
-    fn get_chrono_timezone(&self) -> &chrono::FixedOffset {
+impl config_lib::domain_types::ChronoTimezoneProvider for Config {
+    fn chrono_timezone(&self) -> &chrono::FixedOffset {
         &self.timezone
     }
 }
-impl config_lib::domain_types::GetSrcPlaceType for Config {
-    fn get_src_place_type(&self) -> &config_lib::domain_types::types::SrcPlaceType {
+impl config_lib::domain_types::SrcPlaceTypeProvider for Config {
+    fn src_place_type(&self) -> &config_lib::domain_types::types::SrcPlaceType {
         &self.src_place_type.0
     }
 }
-impl config_lib::domain_types::GetTracingLevel for Config {
-    fn get_tracing_level(&self) -> &config_lib::domain_types::types::TracingLevel {
+impl config_lib::domain_types::TracingLevelProvider for Config {
+    fn tracing_level(&self) -> &config_lib::domain_types::types::TracingLevel {
         &self.tracing_level.0
     }
 }
-impl config_lib::domain_types::GetEnableApiGitCommitCheck for Config {
-    fn get_enable_api_git_commit_check(&self) -> &bool {
+impl config_lib::domain_types::EnableApiGitCommitCheckProvider for Config {
+    fn enable_api_git_commit_check(&self) -> &bool {
         &self.enable_api_git_commit_check.0
     }
 }
-impl config_lib::domain_types::GetAdminAccessTokenTtlSeconds for Config {
-    fn get_admin_access_token_ttl_seconds(&self) -> &config_lib::domain_types::ConfigNonZeroU64 {
+impl config_lib::domain_types::AdminAccessTokenTtlSecondsProvider for Config {
+    fn admin_access_token_ttl_seconds(&self) -> &config_lib::domain_types::ConfigNonZeroU64 {
         &self.admin_access_token_ttl_seconds
     }
 }
-impl config_lib::domain_types::GetAdminCookieSecure for Config {
-    fn get_admin_cookie_secure(&self) -> &bool {
+impl config_lib::domain_types::AdminCookieSecureProvider for Config {
+    fn admin_cookie_secure(&self) -> &bool {
         &self.admin_cookie_secure
     }
 }
-impl config_lib::domain_types::GetAdminJwtSecret for Config {
-    fn get_admin_jwt_secret(
+impl config_lib::domain_types::AdminJwtSecretProvider for Config {
+    fn admin_jwt_secret(
         &self,
     ) -> &bounded_types::domain_types::vector::BoundedVec<
         config_lib::domain_types::SecrecySecretBoxString,
@@ -187,23 +185,23 @@ impl config_lib::domain_types::GetAdminJwtSecret for Config {
         self.admin_jwt_secret.as_ref()
     }
 }
-impl config_lib::domain_types::GetAdminPasswordHashConcurrency for Config {
-    fn get_admin_password_hash_concurrency(&self) -> &config_lib::domain_types::ConfigNonZeroUsize {
+impl config_lib::domain_types::AdminPasswordHashConcurrencyProvider for Config {
+    fn admin_password_hash_concurrency(&self) -> &config_lib::domain_types::ConfigNonZeroUsize {
         &self.admin_password_hash_concurrency
     }
 }
-impl config_lib::domain_types::GetAdminRefreshTokenTtlSeconds for Config {
-    fn get_admin_refresh_token_ttl_seconds(&self) -> &config_lib::domain_types::ConfigNonZeroU64 {
+impl config_lib::domain_types::AdminRefreshTokenTtlSecondsProvider for Config {
+    fn admin_refresh_token_ttl_seconds(&self) -> &config_lib::domain_types::ConfigNonZeroU64 {
         &self.admin_refresh_token_ttl_seconds
     }
 }
-impl config_lib::domain_types::GetAdminTokenAudience for Config {
-    fn get_admin_token_audience(&self) -> &String {
+impl config_lib::domain_types::AdminTokenAudienceProvider for Config {
+    fn admin_token_audience(&self) -> &String {
         self.admin_token_audience.as_ref()
     }
 }
-impl config_lib::domain_types::GetAdminTokenIssuer for Config {
-    fn get_admin_token_issuer(&self) -> &String {
+impl config_lib::domain_types::AdminTokenIssuerProvider for Config {
+    fn admin_token_issuer(&self) -> &String {
         self.admin_token_issuer.as_ref()
     }
 }
@@ -221,7 +219,7 @@ mod tests {
         .expect("741e5201 env invariant must hold")
     }
     #[test]
-    fn generated_getters_return_expected_refs_and_values() {
+    fn generated_accessors_return_expected_refs_and_values() {
         let mut cfg =
             super::Config {
                 cors_allow_origin: config_lib::domain_types::CorsAllowOrigin(constants_str::ASTERISK.to_owned()),
@@ -268,46 +266,46 @@ mod tests {
                 svc_mode: config_lib::domain_types::types::SvcMode::Serve,
             };
         assert_eq!(
-            config_lib::domain_types::GetCorsAllowOrigin::get_cors_allow_origin(&cfg),
+            config_lib::domain_types::CorsAllowOriginProvider::cors_allow_origin(&cfg),
             "*"
         );
         assert_eq!(
             secrecy::ExposeSecret::expose_secret(
-                config_lib::domain_types::GetDatabaseUrl::get_database_url(&cfg)
+                config_lib::domain_types::DatabaseUrlProvider::database_url(&cfg)
             )
             .as_ref(),
             "postgres://db"
         );
         assert_eq!(
-            config_lib::domain_types::GetMaximumSizeOfHttpBodyInBytes::get_maximum_size_of_http_body_in_bytes(
+            config_lib::domain_types::MaximumSizeOfHttpBodyInBytesProvider::maximum_size_of_http_body_in_bytes(
                 &cfg
             ),
             &16_384
         );
         assert_eq!(
-            config_lib::domain_types::GetServiceSocketAddress::get_service_socket_address(&cfg)
+            config_lib::domain_types::ServiceSocketAddressProvider::service_socket_address(&cfg)
                 .port(),
             8080
         );
         assert_eq!(
-            config_lib::domain_types::GetPgPoolMaxConnections::get_pg_pool_max_connections(&cfg),
+            config_lib::domain_types::PgPoolMaxConnectionsProvider::pg_pool_max_connections(&cfg),
             &8
         );
         assert_eq!(
-            config_lib::domain_types::GetChronoTimezone::get_chrono_timezone(&cfg)
+            config_lib::domain_types::ChronoTimezoneProvider::chrono_timezone(&cfg)
                 .local_minus_utc(),
             3i32 * 3_600i32
         );
         assert_eq!(
-            config_lib::domain_types::GetSrcPlaceType::get_src_place_type(&cfg),
+            config_lib::domain_types::SrcPlaceTypeProvider::src_place_type(&cfg),
             &config_lib::domain_types::types::SrcPlaceType::Github
         );
         assert_eq!(
-            config_lib::domain_types::GetTracingLevel::get_tracing_level(&cfg),
+            config_lib::domain_types::TracingLevelProvider::tracing_level(&cfg),
             &config_lib::domain_types::types::TracingLevel::Info
         );
         assert!(
-            config_lib::domain_types::GetEnableApiGitCommitCheck::get_enable_api_git_commit_check(
+            config_lib::domain_types::EnableApiGitCommitCheckProvider::enable_api_git_commit_check(
                 &cfg
             )
         );

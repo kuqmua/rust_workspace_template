@@ -25,7 +25,7 @@ pub(super) fn bind_count_matches(
 }
 pub(super) fn text_search_token_stream(
     spec: crate::domain_types::spec::FilterSpec,
-) -> macros_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
+) -> macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     if !bind_count_matches(spec, FilterPlaceholderCount::one()).get() {
         return quote::quote! {compile_error!("text search bind count must match one placeholder");}.into();
     }

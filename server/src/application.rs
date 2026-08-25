@@ -35,7 +35,7 @@ async fn run_server(
         ));
     };
     let tcp_listener = tokio::net::TcpListener::bind(
-        config_lib::domain_types::GetServiceSocketAddress::get_service_socket_address(&config),
+        config_lib::domain_types::ServiceSocketAddressProvider::service_socket_address(&config),
     )
     .await
     .map_err(|error| {
@@ -62,7 +62,7 @@ async fn run_server(
     let cors_origins = Vec::<axum::http::HeaderValue>::from(
         server_runtime_http::domain_types::parse_cors_allow_origin(
             server_runtime_http::domain_types::HttpCorsAllowOriginTextRef::from(
-                config_lib::domain_types::GetCorsAllowOrigin::get_cors_allow_origin(&config)
+                config_lib::domain_types::CorsAllowOriginProvider::cors_allow_origin(&config)
                     .as_str(),
             ),
         )
@@ -101,7 +101,7 @@ async fn run_server(
             )
         })?;
     let maximum_http_body_bytes =
-        *config_lib::domain_types::GetMaximumSizeOfHttpBodyInBytes::get_maximum_size_of_http_body_in_bytes(
+        *config_lib::domain_types::MaximumSizeOfHttpBodyInBytesProvider::maximum_size_of_http_body_in_bytes(
             &config,
         );
     let http_gzip_enabled = *config.http_gzip_enabled;
@@ -331,7 +331,7 @@ pub(crate) fn run_main() -> crate::domain_types::ServerExitCode {
         } else {
             server_runtime_http::domain_types::ServiceTracingFormat::Text
         };
-    let observability = match server_runtime_http::domain_types::initialize_service_observability(
+    let observability = match server_runtime_http::domain_types::init_service_observability(
         tracing_format,
         server_runtime_http::domain_types::ServiceName::from(env!("CARGO_PKG_NAME")),
     ) {

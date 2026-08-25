@@ -309,7 +309,7 @@ constants_str_macros::define_str_constants! {
         WORD_IF = "IF";
         WORD_IGNORED = "ignored";
         WORD_IMPL = "impl";
-        WORD_IMPL_CFG_GETTER = "impl_cfg_getter";
+        WORD_IMPL_CFG_ACCESSOR = "impl_cfg_accessor";
         WORD_IMPL_TO_ERR_STRING_WITH = "impl_to_err_string_with";
         WORD_IMPL_TRY_FROM_NON_EMPTY_STRING = "impl_try_from_non_empty_string";
         WORD_IMPL_TRY_FROM_PARSE = "impl_try_from_parse";
@@ -318,7 +318,7 @@ constants_str_macros::define_str_constants! {
         WORD_INCLUDE_BYTES = "include_bytes";
         WORD_INCLUDE_STR = "include_str";
         WORD_INDEX = "index";
-        WORD_INITIALIZE_ENVIRONMENT_FILES = "initialize_environment_files";
+        WORD_INIT_ENV_FILES = "init_env_files";
         WORD_INNER = "inner";
         WORD_INSERT = "INSERT";
         WORD_INSERT_2 = "insert";
@@ -380,7 +380,7 @@ constants_str_macros::define_str_constants! {
         WORD_M = "m";
         WORD_MACHETE = "machete";
         WORD_MACRO = "macro";
-        WORD_MACROS_HELPERS = "macros_helpers";
+        WORD_MACRO_HELPERS = "macro_helpers";
         WORD_MACRO_RULES = "macro_rules";
         WORD_MAIN_LOGO = "main_logo";
         WORD_MAKE_INTERVAL = "make_interval";
@@ -959,10 +959,10 @@ constants_str_macros::define_str_constants! {
         pub COMPILE_ERROR_CE_053 = ["e9b33787: ", WORD_EXPECTED, " ", WORD_FIRST, " generic ", WORD_ARG];
         pub COMPILE_ERROR_CE_054 = ["edbbd08a: ", WORD_EXPECTED, " ", WORD_NAMED, " ", WORD_FIELD, " ", WORD_IDENTIFIER];
         pub COMPILE_ERROR_CE_055 = ["f7ea4b19: ", WORD_OPTIMISTIC_REVISION_FIELD, " ", WORD_MUST, " ", WORD_NAME_2, " ", WORD_AN, " ", WORD_EXISTING, " ", WORD_FIELD];
-        pub COMPILE_ERROR_CE_056 = [WORD_IMPL_CFG_GETTER, " ", WORD_EXPECTS, " ", WORD_FN, " ", WORD_NAME_2];
-        pub COMPILE_ERROR_CE_057 = [WORD_IMPL_CFG_GETTER, " ", WORD_EXPECTS, " ", WORD_RETURN, " ", WORD_TYPE_2];
-        pub COMPILE_ERROR_CE_058 = [WORD_IMPL_CFG_GETTER, " ", WORD_EXPECTS, " ", WORD_TRAIT, " ", WORD_NAME_2];
-        pub COMPILE_ERROR_CE_059 = [WORD_IMPL_CFG_GETTER, " ", WORD_EXPECTS, " ", WORD_TRAIT, ", ", WORD_FN, ", ret_ty"];
+        pub COMPILE_ERROR_CE_056 = [WORD_IMPL_CFG_ACCESSOR, " ", WORD_EXPECTS, " ", WORD_FN, " ", WORD_NAME_2];
+        pub COMPILE_ERROR_CE_057 = [WORD_IMPL_CFG_ACCESSOR, " ", WORD_EXPECTS, " ", WORD_RETURN, " ", WORD_TYPE_2];
+        pub COMPILE_ERROR_CE_058 = [WORD_IMPL_CFG_ACCESSOR, " ", WORD_EXPECTS, " ", WORD_TRAIT, " ", WORD_NAME_2];
+        pub COMPILE_ERROR_CE_059 = [WORD_IMPL_CFG_ACCESSOR, " ", WORD_EXPECTS, " ", WORD_TRAIT, ", ", WORD_FN, ", ret_ty"];
         pub COMPILE_ERROR_CE_060 = ["impl_to_err_string_const ", WORD_EXPECTS, " ", WORD_TYPE_2, " => message"];
         pub COMPILE_ERROR_CE_061 = [WORD_IMPL_TO_ERR_STRING_WITH, " ", WORD_EXPECTS, " ", WORD_CLOSURE];
         pub COMPILE_ERROR_CE_062 = [WORD_IMPL_TO_ERR_STRING_WITH, " ", WORD_EXPECTS, " ", WORD_TYPES, " => |", WORD_VALUE, "| ", WORD_BODY];
@@ -1349,7 +1349,7 @@ define_str_constants! {
         pub DOT = ["."];
         pub TEXT_ALT_8 = [".."];
         pub TEXT_ALT_9 = ["../"];
-        pub INITIALIZE_ENVIRONMENT_FILES_SRC = ["../", WORD_INITIALIZE_ENVIRONMENT_FILES, "/", WORD_SRC, "/"];
+        pub INITIALIZE_ENVIRONMENT_FILES_SRC = ["../", WORD_INIT_ENV_FILES, "/", WORD_SRC, "/"];
         pub PG_CRUD_PG_TABLE = ["../", WORD_PG_CRUD, "_", WORD_PG_TABLE, "/"];
         pub PG_CRUD_PG_TABLE_SRC_LIB_RS = ["../", WORD_PG_CRUD, "_", WORD_PG_TABLE, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, ".", WORD_RS];
         pub PG_CRUD_PG_TYPES = ["../", WORD_PG_CRUD, "_", WORD_PG_TYPES, "/"];
@@ -1382,11 +1382,11 @@ define_str_constants! {
         pub COMPONENTS_SCHEMAS_ALT = ["/", WORD_COMPONENTS, "/", WORD_SCHEMAS];
         pub CONFIG_LIB = ["/config_lib/"];
         pub FIRST = ["/", WORD_FIRST];
-        pub INITIALIZE_ENVIRONMENT_FILES = ["/", WORD_INITIALIZE_ENVIRONMENT_FILES, "/"];
+        pub INITIALIZE_ENVIRONMENT_FILES = ["/", WORD_INIT_ENV_FILES, "/"];
         pub ITEMS_CM = ["/", WORD_ITEMS, "/", WORD_CM];
         pub ITEMS_CO = ["/", WORD_ITEMS, "/", WORD_CO];
         pub MACRO_CLIPPY_CHECK_COMMON = ["/macro_clippy_check_common/"];
-        pub MACROS_HELPERS = ["/", WORD_MACROS_HELPERS, "/"];
+        pub MACRO_HELPERS = ["/", WORD_MACRO_HELPERS, "/"];
         pub METRICS = ["/", WORD_METRICS_2];
         pub HTTP_METRICS_ERRORS_TOTAL = [WORD_HTTP_ERRORS_TOTAL];
         pub HTTP_METRICS_LABEL_METHOD = [WORD_METHOD];
@@ -2111,9 +2111,9 @@ define_str_constants! {
         pub X_CSRF_TOKEN = ["X-", WORD_CSRF, "-Token"];
         pub REDACTED_ALT_3 = ["[", WORD_REDACTED, "]"];
         pub A_Z_PLUS = ["[", WORD_A_2, "-", WORD_Z, "]+"];
-        pub DEPENDENCIES_NEWLINE_APP_STATE_WORKSPACE_TRUE_NEWLINE_AXUM_WORKSPACE_TRUE_NEWLINE_FUTURES = ["[", WORD_DEPENDENCIES, "]\napp_state = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\naxum = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_FUTURES, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_FRONTEND_CONTRACT, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_HTTP, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_SQLX, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_REQWEST, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_SERDE, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_SERDE_JSON, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_THISERROR, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_UTOIPA, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_TRACING, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_WHERE_FILTERS, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_GIT_INFO, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_LOCATION_LIB, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_LOCATION_MACROS, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_METRICS_2, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_LOCATION, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_PG_CRUD_COMMON, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_PG_TABLE, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\npg_types_numeric = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\npg_types_text_misc = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_GENERATE_PG_TABLE, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_OPTML, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_ROUTE_VALIDATORS, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_SERVER_RUNTIME_HTTP, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_TO_ERR_STRING, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n"];
+        pub DEPENDENCIES_NEWLINE_APP_STATE_WORKSPACE_TRUE_NEWLINE_AXUM_WORKSPACE_TRUE_NEWLINE_FUTURES = ["[", WORD_DEPENDENCIES, "]\napp_state = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\naxum = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", "constants_usize = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_FUTURES, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_FRONTEND_CONTRACT, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_HTTP, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_SQLX, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_REQWEST, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_SERDE, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_SERDE_JSON, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_THISERROR, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_UTOIPA, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_TRACING, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_WHERE_FILTERS, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_GIT_INFO, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_LOCATION_LIB, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_LOCATION_MACROS, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_METRICS_2, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_LOCATION, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_PG_CRUD_COMMON, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_PG_TABLE, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\npg_types_numeric = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\npg_types_text_misc = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_GENERATE_PG_TABLE, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_OPTML, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_ROUTE_VALIDATORS, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_SERVER_RUNTIME_HTTP, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_TO_ERR_STRING, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n"];
         pub DEPENDENCIES_NEWLINE_CHRONO_WORKSPACE_TRUE_NEWLINE_UUID_WORKSPACE_TRUE_NEWLINE_SQLX_WORKSPACE = ["[", WORD_DEPENDENCIES, "]\nchrono = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_UUID, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_SQLX, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_SERDE, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_SERDE_JSON, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_FRONTEND_CONTRACT, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_THISERROR, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_LOCATION_LIB, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_LOCATION_MACROS, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_LOCATION, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_PG_CRUD_COMMON, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\npg_types_common = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_WHERE_FILTERS, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_OPTML, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_SCHEMARS, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_TO_ERR_STRING, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_UTOIPA, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n[", WORD_FEATURES, "]\n", WORD_TEST, "-", WORD_UTILS, " = []"];
-        pub DEPENDENCIES_NEWLINE_SQLX_WORKSPACE_TRUE_NEWLINE_SERDE_WORKSPACE_TRUE_NEWLINE_SCHEMARS_WORKSPACE = ["[", WORD_DEPENDENCIES, "]\n", WORD_SQLX, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_SERDE, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_SCHEMARS, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_THISERROR, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_UTOIPA, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_LOCATION_LIB, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_LOCATION_MACROS, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_LOCATION, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_NEWTYPE_2, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_PG_CRUD_COMMON, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_WHERE_FILTERS, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_TO_ERR_STRING, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n[", WORD_FEATURES, "]\n", WORD_TEST, "-", WORD_UTILS, " = []"];
+        pub DEPENDENCIES_NEWLINE_SQLX_WORKSPACE_TRUE_NEWLINE_SERDE_WORKSPACE_TRUE_NEWLINE_SCHEMARS_WORKSPACE = ["[", WORD_DEPENDENCIES, "]\n", WORD_SQLX, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_SERDE, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_SCHEMARS, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_THISERROR, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_UTOIPA, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_LOCATION_LIB, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_LOCATION_MACROS, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_LOCATION, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_NEWTYPE_2, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_PG_CRUD_COMMON, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_WHERE_FILTERS, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\nconstants_usize = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n", WORD_TO_ERR_STRING, " = { ", WORD_WORKSPACE, " = ", WORD_TRUE_2, " }\n[", WORD_FEATURES, "]\n", WORD_TEST, "-", WORD_UTILS, " = []"];
         pub WORKSPACE_DEPENDENCIES = ["[", WORD_WORKSPACE, ".", WORD_DEPENDENCIES, "]"];
         pub WORKSPACE_NEWLINE_MEMBERS_OUTSIDE_NEWLINE = ["[", WORD_WORKSPACE, "]\n", WORD_MEMBERS, " = [\"../", WORD_OUTSIDE, "\"]\n"];
         pub WORKSPACE_NEWLINE_MEMBERS_SERVICE_NEWLINE = ["[", WORD_WORKSPACE, "]\n", WORD_MEMBERS, " = [\"", WORD_SERVICE, "\"]\n"];
@@ -2463,7 +2463,7 @@ define_str_constants! {
         pub DF43C793 = ["df43c793"];
         pub DF91B04D = ["df91b04d"];
         pub DFF79E9D = ["dff79e9d"];
-        pub DIRECT_COMMAND_PATH_NEW_USAGE_EXISTS_OUTSIDE_MACROS_HELPERS_PATH_TOOL_COMMAND = [WORD_DIRECT, " ", WORD_COMMAND, "::", WORD_NEW, " ", WORD_USAGE, " ", WORD_EXISTS_2, " ", WORD_OUTSIDE, " ", WORD_MACROS_HELPERS, "::", WORD_TOOL_COMMAND, ":"];
+        pub DIRECT_COMMAND_PATH_NEW_USAGE_EXISTS_OUTSIDE_MACRO_HELPERS_PATH_TOOL_COMMAND = [WORD_DIRECT, " ", WORD_COMMAND, "::", WORD_NEW, " ", WORD_USAGE, " ", WORD_EXISTS_2, " ", WORD_OUTSIDE, " ", WORD_MACRO_HELPERS, "::", WORD_TOOL_COMMAND, ":"];
         pub DIRECT_ENVIRONMENT_OR_FILESYSTEM_ACCESS_EXISTS_OUTSIDE_APPROVED_CONFIGURATION_TOOLING_TEST_AND = [WORD_DIRECT, " ", WORD_ENVIRONMENT, " ", WORD_OR_2, " filesystem ", WORD_ACCESS, " ", WORD_EXISTS_2, " ", WORD_OUTSIDE, " ", WORD_APPROVED, " ", WORD_CONFIGURATION, ", tooling, ", WORD_TEST, ", ", WORD_AND_2, " persistence ", WORD_BOUNDARIES, ":"];
         pub DISPLAY = ["display"];
         pub DISPLAY_NAME = [WORD_DISPLAY_NAME];
@@ -2642,7 +2642,7 @@ define_str_constants! {
         pub GENERATE_WHERE_FLTS_TEST_CNT = ["generate_where_flts_test_cnt"];
         pub GET_ALT = [WORD_GET];
         pub GET_MACRO_ATTR_RS = ["get_macro_attr.", WORD_RS];
-        pub GETTER = ["getter"];
+        pub ACCESSOR = ["accessor"];
         pub GONE_410 = ["gone_410"];
         pub GROWTH = ["growth"];
         pub HEAP_PEAK = [WORD_HEAP, " ", WORD_PEAK, ":"];
@@ -2732,35 +2732,35 @@ define_str_constants! {
         pub MACRO_GENERATION = [WORD_MACRO, "-generation"];
         pub MACRO_RULES_FOUND_USE_WORKSPACE_PROC_MACRO_CRATES_INSTEAD = [WORD_MACRO_RULES, " ", WORD_FOUND, "; ", WORD_USE, " ", WORD_WORKSPACE, " ", WORD_PROC, "-", WORD_MACRO, " ", WORD_CRATES, " ", WORD_INSTEAD, ":"];
         pub MACRO_RULES = [WORD_MACRO_RULES];
-        pub MACROS_HELPERS_SRC_PANIC_IF_ERR_RS = [WORD_MACROS_HELPERS, "/", WORD_SRC, "/panic_if_err.", WORD_RS];
-        pub MACROS_HELPERS_SRC_TOOL_COMMAND_RS = [WORD_MACROS_HELPERS, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/", WORD_TOOL_COMMAND, ".", WORD_RS];
-        pub MACROS_HELPERS_RS_EXT_PATH = ["macros_helpers_rs_ext_path"];
-        pub MACROS_HELPERS_SHOULD_WRITE_DIFF = ["macros_helpers_should_write_diff"];
-        pub MACROS_HELPERS_SHOULD_WRITE_DIFF_LEN = ["macros_helpers_should_write_diff_len"];
-        pub MACROS_HELPERS_SHOULD_WRITE_LARGE_DIFF = ["macros_helpers_should_write_large_diff"];
-        pub MACROS_HELPERS_SHOULD_WRITE_LARGE_SAME = ["macros_helpers_should_write_large_same"];
-        pub MACROS_HELPERS_SHOULD_WRITE_MISSING = ["macros_helpers_should_write_missing"];
-        pub MACROS_HELPERS_SHOULD_WRITE_SAME = ["macros_helpers_should_write_same"];
-        pub MACROS_HELPERS_SHOULD_WRITE_SAME_LEN_DIFF = ["macros_helpers_should_write_same_len_diff"];
-        pub MACROS_HELPERS_SKIP = ["macros_helpers_skip"];
-        pub MACROS_HELPERS_TRY_RUN_RUSTFMT = ["macros_helpers_try_run_rustfmt"];
-        pub MACROS_HELPERS_TRY_WRITE = ["macros_helpers_try_write"];
-        pub MACROS_HELPERS_TRY_WRITE_FILE = ["macros_helpers_try_write_file"];
-        pub MACROS_HELPERS_TRY_WRITE_PATH = ["macros_helpers_try_write_path"];
-        pub MACROS_HELPERS_TRY_WRITE_PATH_PASSTHROUGH = ["macros_helpers_try_write_path_passthrough"];
-        pub MACROS_HELPERS_WRITE = ["macros_helpers_write"];
-        pub MACROS_HELPERS_WRITE_FILE = ["macros_helpers_write_file"];
-        pub MACROS_HELPERS_WRITE_FILE_OUTCOME_CHANGED = ["macros_helpers_write_file_outcome_changed"];
-        pub MACROS_HELPERS_WRITE_FILE_OUTCOME_UNCHANGED = ["macros_helpers_write_file_outcome_unchanged"];
-        pub MACROS_HELPERS_WRITE_IF_CHANGED = ["macros_helpers_write_if_changed"];
-        pub MACROS_HELPERS_WRITE_IF_CHANGED_DIFF = ["macros_helpers_write_if_changed_diff"];
-        pub MACROS_HELPERS_WRITE_IF_NEEDED_DIFF = ["macros_helpers_write_if_needed_diff"];
-        pub MACROS_HELPERS_WRITE_IF_NEEDED_EQ = ["macros_helpers_write_if_needed_eq"];
-        pub MACROS_HELPERS_WRITE_OUTCOME_CHANGED = ["macros_helpers_write_outcome_changed"];
-        pub MACROS_HELPERS_WRITE_OUTCOME_INTO_PATH_CHANGED = ["macros_helpers_write_outcome_into_path_changed"];
-        pub MACROS_HELPERS_WRITE_OUTCOME_INTO_PATH_UNCHANGED = ["macros_helpers_write_outcome_into_path_unchanged"];
-        pub MACROS_HELPERS_WRITE_OUTCOME_UNCHANGED = ["macros_helpers_write_outcome_unchanged"];
-        pub MACROS_HELPERS_WRITE_PATH = ["macros_helpers_write_path"];
+        pub MACRO_HELPERS_SRC_PANIC_IF_ERR_RS = [WORD_MACRO_HELPERS, "/", WORD_SRC, "/panic_if_err.", WORD_RS];
+        pub MACRO_HELPERS_SRC_TOOL_COMMAND_RS = [WORD_MACRO_HELPERS, "/", WORD_SRC, "/", WORD_DOMAIN_TYPES, "/", WORD_TOOL_COMMAND, ".", WORD_RS];
+        pub MACRO_HELPERS_RS_EXT_PATH = ["macro_helpers_rs_ext_path"];
+        pub MACRO_HELPERS_SHOULD_WRITE_DIFF = ["macro_helpers_should_write_diff"];
+        pub MACRO_HELPERS_SHOULD_WRITE_DIFF_LEN = ["macro_helpers_should_write_diff_len"];
+        pub MACRO_HELPERS_SHOULD_WRITE_LARGE_DIFF = ["macro_helpers_should_write_large_diff"];
+        pub MACRO_HELPERS_SHOULD_WRITE_LARGE_SAME = ["macro_helpers_should_write_large_same"];
+        pub MACRO_HELPERS_SHOULD_WRITE_MISSING = ["macro_helpers_should_write_missing"];
+        pub MACRO_HELPERS_SHOULD_WRITE_SAME = ["macro_helpers_should_write_same"];
+        pub MACRO_HELPERS_SHOULD_WRITE_SAME_LEN_DIFF = ["macro_helpers_should_write_same_len_diff"];
+        pub MACRO_HELPERS_SKIP = ["macro_helpers_skip"];
+        pub MACRO_HELPERS_TRY_RUN_RUSTFMT = ["macro_helpers_try_run_rustfmt"];
+        pub MACRO_HELPERS_TRY_WRITE = ["macro_helpers_try_write"];
+        pub MACRO_HELPERS_TRY_WRITE_FILE = ["macro_helpers_try_write_file"];
+        pub MACRO_HELPERS_TRY_WRITE_PATH = ["macro_helpers_try_write_path"];
+        pub MACRO_HELPERS_TRY_WRITE_PATH_PASSTHROUGH = ["macro_helpers_try_write_path_passthrough"];
+        pub MACRO_HELPERS_WRITE = ["macro_helpers_write"];
+        pub MACRO_HELPERS_WRITE_FILE = ["macro_helpers_write_file"];
+        pub MACRO_HELPERS_WRITE_FILE_OUTCOME_CHANGED = ["macro_helpers_write_file_outcome_changed"];
+        pub MACRO_HELPERS_WRITE_FILE_OUTCOME_UNCHANGED = ["macro_helpers_write_file_outcome_unchanged"];
+        pub MACRO_HELPERS_WRITE_IF_CHANGED = ["macro_helpers_write_if_changed"];
+        pub MACRO_HELPERS_WRITE_IF_CHANGED_DIFF = ["macro_helpers_write_if_changed_diff"];
+        pub MACRO_HELPERS_WRITE_IF_NEEDED_DIFF = ["macro_helpers_write_if_needed_diff"];
+        pub MACRO_HELPERS_WRITE_IF_NEEDED_EQ = ["macro_helpers_write_if_needed_eq"];
+        pub MACRO_HELPERS_WRITE_OUTCOME_CHANGED = ["macro_helpers_write_outcome_changed"];
+        pub MACRO_HELPERS_WRITE_OUTCOME_INTO_PATH_CHANGED = ["macro_helpers_write_outcome_into_path_changed"];
+        pub MACRO_HELPERS_WRITE_OUTCOME_INTO_PATH_UNCHANGED = ["macro_helpers_write_outcome_into_path_unchanged"];
+        pub MACRO_HELPERS_WRITE_OUTCOME_UNCHANGED = ["macro_helpers_write_outcome_unchanged"];
+        pub MACRO_HELPERS_WRITE_PATH = ["macro_helpers_write_path"];
         pub MALLOC = ["malloc|"];
         pub MATCHING_REQUEST_IS_STILL_IN_PROGRESS = ["matching ", WORD_REQUEST, " ", WORD_IS_2, " still ", WORD_IN_2, " progress"];
         pub MAX = [WORD_MAX_2];
@@ -3626,7 +3626,7 @@ pub const CODE_STYLE_REVIEWED_PUBLIC_FIELD_SETS: &[&[&str]] = &[
 pub const CODE_STYLE_REVIEWED_PUBLIC_FIELD_PATH_SUFFIXES: [&str; 14] = [
     "location_lib/src/domain_types.rs",
     "location_lib/src/domain_types.rs",
-    "macros_helpers/src/domain_types/syn_field.rs",
+    "macro_helpers/src/domain_types/syn_field.rs",
     "server_app_state/src/domain_types.rs",
     "pg_crud_common/src/domain_types.rs",
     "pg_crud_common/src/domain_types.rs",
@@ -3676,13 +3676,13 @@ pub const CODE_STYLE_DIRECT_FS_OWNER_SUFFIXES: [&str; 15] = [
     "/config_lib/src/domain_types/types.rs",
     "/file_storage/src/adapters.rs",
     "/file_storage/src/domain_types.rs",
-    "/initialize_environment_files/src/domain_types.rs",
-    "/initialize_environment_files/src/adapters.rs",
-    "/initialize_environment_files/src/application.rs",
+    "/init_env_files/src/domain_types.rs",
+    "/init_env_files/src/adapters.rs",
+    "/init_env_files/src/application.rs",
     CODE_STYLE_MACRO_CLIPPY_FS_OWNER_SUFFIX,
     CODE_STYLE_MACROS_HLP_TEST_FS_OWNER_SUFFIX,
     CODE_STYLE_MACROS_HLP_WRITE_STRING_FS_OWNER_SUFFIX,
-    "/macros_helpers/src/domain_types/write_token_stream_into_file.rs",
+    "/macro_helpers/src/domain_types/write_token_stream_into_file.rs",
     "/admin_bootstrap/src/application.rs",
     "/workspace_scaffold/src/application.rs",
     CODE_STYLE_WORKSPACE_SCAFFOLD_FS_OWNER_SUFFIX,
@@ -3715,9 +3715,9 @@ pub const CODE_STYLE_PG_CRUD_COMMON_BENCHES_REASON: &str =
 pub const CODE_STYLE_LEPTOS_CRATE: &str = "leptos";
 pub const CODE_STYLE_MACRO_CLIPPY_FS_OWNER_SUFFIX: &str = "/macro_clippy_check_common/src/lib.rs";
 pub const CODE_STYLE_MACROS_HLP_TEST_FS_OWNER_SUFFIX: &str =
-    "/macros_helpers/src/domain_types/test_hlp.rs";
+    "/macro_helpers/src/domain_types/test_hlp.rs";
 pub const CODE_STYLE_MACROS_HLP_WRITE_STRING_FS_OWNER_SUFFIX: &str =
-    "/macros_helpers/src/domain_types/write_string_into_file.rs";
+    "/macro_helpers/src/domain_types/write_string_into_file.rs";
 pub const CODE_STYLE_PRELUDE_MODULE: &str = "prelude";
 pub const CODE_STYLE_TEST_CRATE_NAMES: [&str; 6] = [
     SHARED_VALUES_GENERATE_PG_TABLE_TEST,
@@ -3919,7 +3919,7 @@ pub const CODE_STYLE_SINGLE_SOURCE_OWNER_SUFFIXES: [&str; 6] = [
     SERVER_RUNTIME_SRC_BOUNDED_READ_RS,
     PG_CRUD_PG_CRUD_COMMON_SRC_SQL_IDENTIFIER_RS,
     PG_CRUD_COMMON_SRC_PG_ERROR_RS,
-    MACROS_HELPERS_SRC_TOOL_COMMAND_RS,
+    MACRO_HELPERS_SRC_TOOL_COMMAND_RS,
     STR_CONSTANTS_SRC_LIB_RS,
     CODE_STYLE_WORKSPACE_SCAFFOLD_FS_OWNER_SUFFIX,
 ];

@@ -41,7 +41,7 @@ pub enum GeneratePgTablePipelineError {
 }
 
 pub fn parse_generate_pg_table(
-    input: macros_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef<'_>,
+    input: macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef<'_>,
 ) -> Result<SynParsedGeneratePgTableInput, GeneratePgTablePipelineError> {
     syn::parse2(input.as_ref().clone())
         .map(SynParsedGeneratePgTableInput)

@@ -1,5 +1,5 @@
 [package]
-name = "development_data_bootstrap"
+name = "dev_data_bootstrap"
 version.workspace = true
 publish.workspace = true
 description = "Desired-state planning for development identities and sample data"

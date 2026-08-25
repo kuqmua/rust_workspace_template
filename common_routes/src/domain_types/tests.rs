@@ -97,7 +97,7 @@ fn no_route_message_for_suffix_uses_prefix_once() {
     );
 }
 #[test]
-fn get_uri_suffix_prefers_path_and_query_when_query_exists() {
+fn uri_suffix_prefers_path_and_query_when_query_exists() {
     let uri = axum::http::Uri::from_static(constants_str::MISSING_PATH_QUESTION_LIMIT_10);
     assert_eq!(super::uri_suffix(uri_ref(&uri)).0, "/missing/path?limit=10");
 }

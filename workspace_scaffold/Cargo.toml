@@ -19,7 +19,7 @@ optimal_memory_layout = { workspace = true }
 bounded_types = { workspace = true }
 common_routes = { workspace = true }
 frontend_contract = { workspace = true }
-macros_helpers = { workspace = true }
+macro_helpers = { workspace = true }
 newtype = { workspace = true }
 server_runtime_http = { workspace = true }
 constants_str = { workspace = true }

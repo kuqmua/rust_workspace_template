@@ -6,24 +6,24 @@
 #[config(env_example)]
 pub struct Config {
     #[config(secret)]
-    #[config(getter)]
+    #[config(accessor)]
     #[config(
         example = "postgres://notification_service:change-me@127.0.0.1:5432/notification_service"
     )]
     notification_database_url: config_lib::domain_types::DatabaseUrl,
-    #[config(getter)]
+    #[config(accessor)]
     #[config(example = "30")]
     request_timeout_seconds: config_lib::domain_types::RequestTimeoutSeconds,
-    #[config(getter)]
+    #[config(accessor)]
     #[config(example = "127.0.0.1:8081")]
     notification_service_socket_address: config_lib::domain_types::ServiceSocketAddress,
-    #[config(getter)]
+    #[config(accessor)]
     #[config(example = "10")]
     pg_pool_max_connections: config_lib::domain_types::PgPoolMaxConnections,
-    #[config(getter)]
+    #[config(accessor)]
     #[config(example = "text")]
     tracing_format: config_lib::domain_types::types::TracingFormat,
-    #[config(getter)]
+    #[config(accessor)]
     #[config(example = "serve")]
     svc_mode: config_lib::domain_types::types::SvcMode,
 }
@@ -31,8 +31,8 @@ pub struct Config {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn derive_generates_typed_getters() {
-        fn is_typed_getter<Value>(_getter: fn(&super::Config) -> &Value) -> bool {
+    fn derive_generates_typed_accessors() {
+        fn is_typed_accessor<Value>(_accessor: fn(&super::Config) -> &Value) -> bool {
             true
         }
 
@@ -40,19 +40,19 @@ mod tests {
             !constants_str::UPDATE_CONFIG_PROJECTIONS.is_empty(),
             "4b913df2"
         );
-        assert!(is_typed_getter::<config_lib::domain_types::DatabaseUrl>(
+        assert!(is_typed_accessor::<config_lib::domain_types::DatabaseUrl>(
             super::Config::notification_database_url
         ));
-        assert!(is_typed_getter::<
+        assert!(is_typed_accessor::<
             config_lib::domain_types::ServiceSocketAddress,
         >(super::Config::notification_service_socket_address));
-        assert!(is_typed_getter::<
+        assert!(is_typed_accessor::<
             config_lib::domain_types::types::TracingFormat,
         >(super::Config::tracing_format));
-        assert!(is_typed_getter::<
+        assert!(is_typed_accessor::<
             config_lib::domain_types::PgPoolMaxConnections,
         >(super::Config::pg_pool_max_connections));
-        assert!(is_typed_getter::<
+        assert!(is_typed_accessor::<
             config_lib::domain_types::RequestTimeoutSeconds,
         >(super::Config::request_timeout_seconds));
     }

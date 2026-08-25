@@ -1090,7 +1090,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "macros_helpers/src/domain_types/generate_impl_to_err_string_token_stream.rs",
+            "macro_helpers/src/domain_types/generate_impl_to_err_string_token_stream.rs",
             (
                 0,
                 0,
@@ -1099,7 +1099,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "macros_helpers/src/domain_types/generate_pub_type_alias_token_stream.rs",
+            "macro_helpers/src/domain_types/generate_pub_type_alias_token_stream.rs",
             (
                 0,
                 0,
@@ -1108,7 +1108,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "macros_helpers/src/domain_types/generate_if_write_is_err_token_stream.rs",
+            "macro_helpers/src/domain_types/generate_if_write_is_err_token_stream.rs",
             (
                 0,
                 0,
@@ -1117,7 +1117,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "macros_helpers/src/domain_types/generate_impl_try_from_token_stream.rs",
+            "macro_helpers/src/domain_types/generate_impl_try_from_token_stream.rs",
             (
                 0,
                 0,
@@ -1126,7 +1126,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "macros_helpers/src/domain_types/generate_impl_default_token_stream.rs",
+            "macro_helpers/src/domain_types/generate_impl_default_token_stream.rs",
             (
                 0,
                 0,
@@ -1135,7 +1135,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "macros_helpers/src/domain_types/generate_impl_from_token_stream.rs",
+            "macro_helpers/src/domain_types/generate_impl_from_token_stream.rs",
             (
                 0,
                 0,
@@ -1144,7 +1144,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "macros_helpers/src/domain_types/generate_new_or_try_new.rs",
+            "macro_helpers/src/domain_types/generate_new_or_try_new.rs",
             (
                 0,
                 0,
@@ -1153,7 +1153,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "macros_helpers/src/domain_types/pagination_start_end_initialization_token_stream.rs",
+            "macro_helpers/src/domain_types/pagination_start_end_initialization_token_stream.rs",
             (
                 0,
                 0,
@@ -1162,7 +1162,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "macros_helpers/src/domain_types/generate_impl_display_token_stream.rs",
+            "macro_helpers/src/domain_types/generate_impl_display_token_stream.rs",
             (
                 0,
                 0,
@@ -1171,7 +1171,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "macros_helpers_generate_derive_token_stream_builder/src/lib.rs",
+            "macro_helpers_generate_derive_token_stream_builder/src/lib.rs",
             (
                 0,
                 0,
@@ -1336,7 +1336,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "pg_crud_macros_common/src/domain_types/filters.rs",
+            "pg_crud_macro_common/src/domain_types/filters.rs",
             (
                 0,
                 0,
@@ -1345,7 +1345,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "pg_crud_macros_common/src/domain_types.rs",
+            "pg_crud_macro_common/src/domain_types.rs",
             (
                 0,
                 0,
@@ -1354,7 +1354,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "pg_crud_macros_common/src/domain_types/pg_type_test_cases.rs",
+            "pg_crud_macro_common/src/domain_types/pg_type_test_cases.rs",
             (
                 0,
                 0,
@@ -1363,7 +1363,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "pg_crud_macros_common/src/domain_types/token_stream_helpers.rs",
+            "pg_crud_macro_common/src/domain_types/token_stream_helpers.rs",
             (
                 0,
                 0,
@@ -1548,14 +1548,14 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             ),
         ),
         (
-            "macros_helpers/src/domain_types/test_database.rs",
+            "macro_helpers/src/domain_types/test_database.rs",
             (
                 constants_usize::ONE,
                 "the test database helper maps setup failure to its fixture error",
             ),
         ),
         (
-            "macros_helpers/src/domain_types/write_string_into_file.rs",
+            "macro_helpers/src/domain_types/write_string_into_file.rs",
             (
                 constants_usize::ONE,
                 "the file helper maps conversion failure to its domain error",
@@ -1988,7 +1988,7 @@ fn raw_vec_tuple_wrappers_match_reviewed_inventory() {
             "infallible fixed-size array conversions require raw storage; Vec conversion and serde delegate to bounded_types",
         ),
         (
-            "../development_data_bootstrap/src/domain_types.rs:DevelopmentIdentitySpecs",
+            "../dev_data_bootstrap/src/domain_types.rs:DevelopmentIdentitySpecs",
             "the bootstrap catalog owns validated development identities assembled in process",
         ),
         (
@@ -2080,11 +2080,11 @@ fn raw_vec_tuple_wrappers_match_reviewed_inventory() {
             "the deduplication helper owns its ordered working collection",
         ),
         (
-            "../pg_crud_macros_common/src/domain_types.rs:ParseTokenStreamStrings",
+            "../pg_crud_macro_common/src/domain_types.rs:ParseTokenStreamStrings",
             "the proc-macro compiler owns a compile-time token rendering collection",
         ),
         (
-            "../pg_crud_macros_common/src/domain_types.rs:ProcMacro2GeneratedRustTokenStreamVec",
+            "../pg_crud_macro_common/src/domain_types.rs:ProcMacro2GeneratedRustTokenStreamVec",
             "the proc-macro compiler owns generated token streams",
         ),
         (
@@ -2279,7 +2279,7 @@ fn usize_max_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "../initialize_environment_files/src/domain_types.rs",
+            "../init_env_files/src/domain_types.rs",
             (
                 4usize,
                 "the local workspace initializer catalogs are bounded by files in the checked-out workspace",
@@ -2293,7 +2293,7 @@ fn usize_max_usage_matches_reviewed_inventory() {
             ),
         ),
         (
-            "../prepare_postgresql_databases/src/domain_types.rs",
+            "../prepare_pg_databases/src/domain_types.rs",
             (
                 2usize,
                 "the local process command catalog is derived from finite workspace configuration",

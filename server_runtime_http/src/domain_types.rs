@@ -159,8 +159,8 @@ pub use security_headers::{
     SecurityHeadersLayer,
 };
 pub use server_observability::domain_types::ServiceTracingFormat;
+pub use server_observability::domain_types::bootstrap::*;
 pub use server_observability::domain_types::capture::*;
-pub use server_observability::domain_types::init::*;
 pub use server_runtime_core::domain_types::*;
 pub use service::{
     ServeIoError, ServeWithGracefulShutdownError, ServiceRuntime, TokioTcpListener,

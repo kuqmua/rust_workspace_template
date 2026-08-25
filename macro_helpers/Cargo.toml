@@ -1,6 +1,6 @@
 [package]
 edition.workspace = true
-name = "macros_helpers"
+name = "macro_helpers"
 version.workspace = true
 publish.workspace = true
 description.workspace = true

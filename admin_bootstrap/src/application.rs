@@ -117,7 +117,7 @@ async fn run()
     let pool = sqlx::postgres::PgPoolOptions::new()
         .max_connections(1u32)
         .connect(secrecy::ExposeSecret::expose_secret(
-            config_lib::domain_types::GetDatabaseUrl::get_database_url(&config),
+            config_lib::domain_types::DatabaseUrlProvider::database_url(&config),
         ))
         .await
         .map_err(|error| {

@@ -111,7 +111,7 @@ mod tests {
         ParseBool,
         ToStr,
     }
-    fn get_header(
+    fn header(
         headers: &axum::http::HeaderMap,
         name: impl axum::http::header::AsHeaderName,
     ) -> Result<super::HeaderStrRef<'_>, TestError> {
@@ -122,7 +122,7 @@ mod tests {
             |_| TestError::ToStr,
         )
     }
-    fn get_raw_header(
+    fn raw_header(
         headers: &axum::http::HeaderMap,
         name: impl axum::http::header::AsHeaderName,
     ) -> Result<super::AxumHeaderValueRef<'_>, TestError> {
@@ -130,7 +130,7 @@ mod tests {
             TestError::NoHeader
         })
     }
-    fn get_bool_header(
+    fn bool_header(
         headers: &axum::http::HeaderMap,
         name: impl axum::http::header::AsHeaderName,
     ) -> Result<bool, TestError> {
@@ -162,60 +162,57 @@ mod tests {
         assert!(matches!(actual, Err(v) if &v == exp));
     }
     #[test]
-    fn get_required_header_str_returns_header_when_present_and_utf8() {
+    fn required_header_str_returns_header_when_present_and_utf8() {
         let headers = mk_test_headers_static(constants_str::ABC_ALT_3);
-        let actual = get_header(&headers, TEST_HEADER_NAME);
+        let actual = header(&headers, TEST_HEADER_NAME);
         assert_eq!(actual.map(|v| v.0), Ok("abc"));
     }
     #[test]
-    fn get_required_header_str_returns_no_header_error_when_absent() {
+    fn required_header_str_returns_no_header_error_when_absent() {
         let headers = axum::http::HeaderMap::new();
-        assert_header_err(get_header(&headers, TEST_HEADER_NAME), &TestError::NoHeader);
+        assert_header_err(header(&headers, TEST_HEADER_NAME), &TestError::NoHeader);
     }
     #[test]
-    fn get_required_header_str_returns_to_str_error_for_non_utf8_header() {
+    fn required_header_str_returns_to_str_error_for_non_utf8_header() {
         let headers = mk_test_headers(crate::domain_types::test_hlp::non_utf8_header_value());
-        assert_header_err(get_header(&headers, TEST_HEADER_NAME), &TestError::ToStr);
+        assert_header_err(header(&headers, TEST_HEADER_NAME), &TestError::ToStr);
     }
     #[test]
-    fn get_required_header_str_accepts_str_header_name() {
+    fn required_header_str_accepts_str_header_name() {
         let headers = mk_test_headers_static(constants_str::ABC_ALT_3);
-        let actual = get_header(&headers, constants_str::ROUTE_VALIDATORS_TEST_HEADER_NAME);
+        let actual = header(&headers, constants_str::ROUTE_VALIDATORS_TEST_HEADER_NAME);
         assert_eq!(actual.map(|v| v.0), Ok("abc"));
     }
     #[test]
-    fn get_required_header_returns_header_value_when_present() {
+    fn required_header_returns_header_value_when_present() {
         let headers = mk_test_headers_static(constants_str::ABC_ALT_3);
-        let actual = get_raw_header(&headers, TEST_HEADER_NAME);
+        let actual = raw_header(&headers, TEST_HEADER_NAME);
         assert_eq!(
             actual.map(|v| v.0),
             Ok(&axum::http::HeaderValue::from_static("abc"))
         );
     }
     #[test]
-    fn get_required_header_returns_no_header_error_when_absent() {
+    fn required_header_returns_no_header_error_when_absent() {
         let headers = axum::http::HeaderMap::new();
-        assert_header_err(
-            get_raw_header(&headers, TEST_HEADER_NAME),
-            &TestError::NoHeader,
-        );
+        assert_header_err(raw_header(&headers, TEST_HEADER_NAME), &TestError::NoHeader);
     }
     #[test]
-    fn get_required_header_parsed_returns_parsed_value_for_valid_header() {
+    fn required_header_parsed_returns_parsed_value_for_valid_header() {
         let headers = mk_test_headers_static(constants_str::TRUE);
-        let actual = get_bool_header(&headers, TEST_HEADER_NAME);
+        let actual = bool_header(&headers, TEST_HEADER_NAME);
         assert_eq!(actual, Ok(true));
     }
     #[test]
-    fn get_required_header_parsed_returns_parse_error_for_invalid_header_value() {
+    fn required_header_parsed_returns_parse_error_for_invalid_header_value() {
         let headers = mk_test_headers_static(constants_str::NOPE);
         assert_header_err(
-            get_bool_header(&headers, TEST_HEADER_NAME),
+            bool_header(&headers, TEST_HEADER_NAME),
             &TestError::ParseBool,
         );
     }
     #[test]
-    fn get_required_header_mapped_applies_mapping_for_present_header() {
+    fn required_header_mapped_applies_mapping_for_present_header() {
         let headers = mk_test_headers_static(constants_str::ABC_ALT_3);
         let actual = super::required_header_mapped(
             super::AxumHeadersRef::from(&headers),
@@ -230,7 +227,7 @@ mod tests {
         assert_eq!(actual, Ok(3));
     }
     #[test]
-    fn get_required_header_str_parsed_does_not_call_parse_when_header_absent() {
+    fn required_header_str_parsed_does_not_call_parse_when_header_absent() {
         let headers = axum::http::HeaderMap::new();
         let mut parse_called = false;
         let actual = super::required_header_str_parsed(
@@ -247,7 +244,7 @@ mod tests {
         assert!(!parse_called);
     }
     #[test]
-    fn get_required_header_str_parsed_does_not_call_parse_for_non_utf8_header() {
+    fn required_header_str_parsed_does_not_call_parse_for_non_utf8_header() {
         let headers = mk_test_headers(crate::domain_types::test_hlp::non_utf8_header_value());
         let mut parse_called = false;
         let actual = super::required_header_str_parsed(

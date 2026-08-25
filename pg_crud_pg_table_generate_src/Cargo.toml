@@ -20,14 +20,14 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 generate_quotes = { workspace = true }
 panic_location = { workspace = true }
-macros_helpers = { workspace = true }
+macro_helpers = { workspace = true }
 pg_crud_common = { workspace = true }
 naming = { workspace = true }
 naming_common = { workspace = true }
 naming_macros = { workspace = true }
 token_patterns = { workspace = true }
 workspace_macro_helpers = { workspace = true }
-pg_crud_macros_common = { workspace = true }
+pg_crud_macro_common = { workspace = true }
 optimal_memory_layout = { workspace = true }
 thiserror = { workspace = true }
 [lints]

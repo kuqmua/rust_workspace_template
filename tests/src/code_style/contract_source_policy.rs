@@ -360,7 +360,7 @@ fn administrator_csr_page_behavior_comes_from_the_page_catalog() {
     });
 }
 #[test]
-fn config_reference_getters_use_generated_forwarding() {
+fn config_reference_accessors_use_generated_forwarding() {
     super::snapshot::with_codebase_snapshot(|snapshot| {
         let source = snapshot
             .rs_files()

@@ -63,9 +63,9 @@ fn generate_ro_query_string_is_expected() {
     );
 }
 #[test]
-fn generate_column_queals_v_comma_uo_query_part_is_expected() {
+fn generate_column_eq_v_comma_uo_query_part_is_expected() {
     assert_q(
-        &super::generate_column_queals_v_comma_uo_query_part(
+        &super::generate_column_eq_v_comma_uo_query_part(
             sql(constants_str::NAME),
             sql(constants_str::DOLLAR_2),
         ),

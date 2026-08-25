@@ -13,10 +13,10 @@ mod tests {
     }
     #[test]
     fn shared_json_contract_helper_round_trips_filter_fixture() {
-        macros_helpers::domain_types::json_contract::ensure_json_contract_round_trip::<
+        macro_helpers::domain_types::json_contract::ensure_json_contract_round_trip::<
             JsonContractValue,
         >(
-            macros_helpers::domain_types::json_contract::JsonFixtureRef::from(
+            macro_helpers::domain_types::json_contract::JsonFixtureRef::from(
                 constants_str::VALUE_1_2,
             ),
         )

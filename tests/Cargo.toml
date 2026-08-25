@@ -21,7 +21,7 @@ walkdir = { workspace = true }
 optimal_memory_layout = { workspace = true }
 rayon = { workspace = true }
 cargo_metadata = { workspace = true }
-macros_helpers = { workspace = true }
+macro_helpers = { workspace = true }
 newtype = { workspace = true }
 frontend_contract = { workspace = true }
 common_routes = { workspace = true }

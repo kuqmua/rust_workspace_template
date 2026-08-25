@@ -42,7 +42,7 @@ mod tests {
         }
     }
     #[test]
-    fn get_axum_http_status_code_default_method_returns_associated_const() {
+    fn axum_http_status_code_default_method_returns_associated_const() {
         let error = TestError;
         assert_eq!(
             super::AxumHttpStatusCodeProvider::axum_http_status_code(&error).get(),

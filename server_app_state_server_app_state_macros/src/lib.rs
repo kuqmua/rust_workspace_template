@@ -1,5 +1,5 @@
 #[proc_macro]
-pub fn impl_cfg_getter(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn impl_cfg_accessor(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let parts = workspace_macro_helpers::domain_types::split_top_level_commas(
         workspace_macro_helpers::domain_types::ProcMacro2MacroTokens::from_into(input),
     );

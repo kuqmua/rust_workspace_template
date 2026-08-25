@@ -59,10 +59,10 @@ mod tests {
     }
     #[test]
     fn shared_json_contract_helper_round_trips_pg_type_fixture() {
-        macros_helpers::domain_types::json_contract::ensure_json_contract_round_trip::<
+        macro_helpers::domain_types::json_contract::ensure_json_contract_round_trip::<
             JsonContractValue,
         >(
-            macros_helpers::domain_types::json_contract::JsonFixtureRef::from(
+            macro_helpers::domain_types::json_contract::JsonFixtureRef::from(
                 constants_str::VALUE_7,
             ),
         )
@@ -83,10 +83,10 @@ mod tests {
             "variant": "All"
         }};
         let first = generate_pg_types_src::domain_types::source::generate_pg_types(
-            macros_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(&config),
+            macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(&config),
         );
         let second = generate_pg_types_src::domain_types::source::generate_pg_types(
-            macros_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(&config),
+            macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(&config),
         );
         assert_eq!(first.to_string(), second.to_string());
     }
@@ -101,7 +101,7 @@ mod tests {
             constants_str::PG_CRUD_PG_TYPES,
             constants_str::DEPENDENCIES_NEWLINE_CHRONO_WORKSPACE_TRUE_NEWLINE_UUID_WORKSPACE_TRUE_NEWLINE_SQLX_WORKSPACE,
             &generate_pg_types_src::domain_types::source::generate_pg_types(
-                macros_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(&quote::quote! {
+                macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(&quote::quote! {
                     {
                         "pg_table_cols_write_into_file": "False",
                         "whole_write_into_file": "False",

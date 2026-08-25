@@ -295,7 +295,7 @@ mod tests {
         expect_commit_to_str_conversion_err(&headers, constants_str::VALUE_7B9AC2E3);
     }
     #[test]
-    fn get_commit_header_str_returns_header_value_when_present() {
+    fn commit_header_str_returns_header_value_when_present() {
         let headers = mk_headers_with_project_commit();
         crate::domain_types::test_hlp::assert_ok_eq(
             super::read_commit_header_str(crate::domain_types::hdr_val::AxumHeadersRef::from(
@@ -332,7 +332,7 @@ mod tests {
         );
     }
     #[test]
-    fn get_commit_header_str_returns_error_when_header_is_absent() {
+    fn commit_header_str_returns_error_when_header_is_absent() {
         let headers = axum::http::HeaderMap::new();
         let no_commit_header = expect_get_commit_header_str_err_variant(
             &headers,
@@ -345,7 +345,7 @@ mod tests {
         );
     }
     #[test]
-    fn get_commit_header_str_returns_error_for_non_utf8_header() {
+    fn commit_header_str_returns_error_for_non_utf8_header() {
         let headers = mk_headers_with_non_utf8_commit();
         expect_get_commit_header_str_err_variant(
             &headers,

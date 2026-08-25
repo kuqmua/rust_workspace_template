@@ -102,7 +102,7 @@ fn runtime_test_crate_detection_uses_exact_package_names() {
 fn runtime_test_helper_exclusion_is_file_exact() {
     assert!(
         !super::is_runtime_policy_source_path(super::types::PathRef::from(std::path::Path::new(
-            "../macros_helpers/src/domain_types/test_hlp.rs"
+            "../macro_helpers/src/domain_types/test_hlp.rs"
         )))
         .get(),
         "2e8a5d90"
@@ -119,7 +119,7 @@ fn runtime_test_helper_exclusion_is_file_exact() {
 fn environment_initializer_is_in_runtime_policy_scope() {
     assert!(
         super::is_runtime_policy_source_path(super::types::PathRef::from(std::path::Path::new(
-            "../initialize_environment_files/src/domain_types.rs"
+            "../init_env_files/src/domain_types.rs"
         )))
         .get(),
         "86c8a1dd"

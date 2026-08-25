@@ -12,21 +12,21 @@ fn measure_memusage_command(
         );
         return Ok(());
     }
-    let command_output = macros_helpers::domain_types::tool_command::ToolCommand::new(
-        macros_helpers::domain_types::tool_command::ToolProgramRef::from(program.get()),
+    let command_output = macro_helpers::domain_types::tool_command::ToolCommand::new(
+        macro_helpers::domain_types::tool_command::ToolProgramRef::from(program.get()),
     )
-    .args(macros_helpers::domain_types::tool_command::ToolArgsRef::from(args.get()))
+    .args(macro_helpers::domain_types::tool_command::ToolArgsRef::from(args.get()))
     .env(
-        macros_helpers::domain_types::tool_command::ToolEnvKeyRef::from(constants_str::LD_PRELOAD),
-        macros_helpers::domain_types::tool_command::ToolEnvValueRef::from(
+        macro_helpers::domain_types::tool_command::ToolEnvKeyRef::from(constants_str::LD_PRELOAD),
+        macro_helpers::domain_types::tool_command::ToolEnvValueRef::from(
             constants_str::WORKSPACE_TEST_RUNNER_MEMUSAGE_PATH,
         ),
     )
     .env(
-        macros_helpers::domain_types::tool_command::ToolEnvKeyRef::from(
+        macro_helpers::domain_types::tool_command::ToolEnvKeyRef::from(
             constants_str::MEMUSAGE_PROG_NAME,
         ),
-        macros_helpers::domain_types::tool_command::ToolEnvValueRef::from(memusage_prog_name.get()),
+        macro_helpers::domain_types::tool_command::ToolEnvValueRef::from(memusage_prog_name.get()),
     )
     .output();
     match command_output {
@@ -168,23 +168,21 @@ fn measure_cargo_command(
             constants_str::WORKSPACE_TEST_RUNNER_MINOR_PAGE_FAULTS_PREFIX,
             constants_str::WORKSPACE_TEST_RUNNER_MAJOR_PAGE_FAULTS_PREFIX,
         );
-        macros_helpers::domain_types::tool_command::ToolCommand::new(
-            macros_helpers::domain_types::tool_command::ToolProgramRef::from(
+        macro_helpers::domain_types::tool_command::ToolCommand::new(
+            macro_helpers::domain_types::tool_command::ToolProgramRef::from(
                 constants_str::WORKSPACE_TEST_RUNNER_TIME_PATH,
             ),
         )
-        .arg(macros_helpers::domain_types::tool_command::ToolArgRef::from(constants_str::F))
-        .arg(
-            macros_helpers::domain_types::tool_command::ToolArgRef::from(
-                measurement_format.as_str(),
-            ),
-        )
-        .arg(
-            macros_helpers::domain_types::tool_command::ToolArgRef::from(
-                constants_str::WORKSPACE_TEST_RUNNER_CARGO,
-            ),
-        )
-        .args(macros_helpers::domain_types::tool_command::ToolArgsRef::from(args.get()))
+        .arg(macro_helpers::domain_types::tool_command::ToolArgRef::from(
+            constants_str::F,
+        ))
+        .arg(macro_helpers::domain_types::tool_command::ToolArgRef::from(
+            measurement_format.as_str(),
+        ))
+        .arg(macro_helpers::domain_types::tool_command::ToolArgRef::from(
+            constants_str::WORKSPACE_TEST_RUNNER_CARGO,
+        ))
+        .args(macro_helpers::domain_types::tool_command::ToolArgsRef::from(args.get()))
         .output()
     };
     let duration = started.elapsed();
@@ -311,7 +309,7 @@ fn run_alloc_workload_generate_pg_table_src() {
         constants_usize::ZERO,
         |accumulator, _| {
             let output = generate_pg_table_src::domain_types::source::generate_pg_table(
-                macros_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(
+                macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(
                     input.as_ref(),
                 ),
             );
@@ -337,7 +335,7 @@ fn run_alloc_workload_generate_pg_types_src() {
         constants_usize::ZERO,
         |accumulator, _| {
             let output = generate_pg_types_src::domain_types::source::generate_pg_types(
-                macros_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(&input),
+                macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(&input),
             );
             accumulator.saturating_add(output.to_string().len())
         },
@@ -419,12 +417,12 @@ fn cargo_subcommand_available(
     subcommand: crate::domain_types::ToolName,
 ) -> crate::domain_types::ToolAvailable {
     let args = [subcommand.get(), constants_str::VERSION];
-    macros_helpers::domain_types::tool_command::ToolCommand::new(
-        macros_helpers::domain_types::tool_command::ToolProgramRef::from(
+    macro_helpers::domain_types::tool_command::ToolCommand::new(
+        macro_helpers::domain_types::tool_command::ToolProgramRef::from(
             constants_str::WORKSPACE_TEST_RUNNER_CARGO,
         ),
     )
-    .args(macros_helpers::domain_types::tool_command::ToolArgsRef::from(args.as_slice()))
+    .args(macro_helpers::domain_types::tool_command::ToolArgsRef::from(args.as_slice()))
     .output()
     .is_ok_and(|output| output.status.success())
     .into()
@@ -529,8 +527,8 @@ pub(crate) fn run_main() {
         Some(constants_str::DATABASE) => {
             match std::env::var(constants_str::ENV_NAMES_DATABASE_URL) {
                 Ok(database_url) => {
-                    match macros_helpers::domain_types::test_database::validate_test_database_url(
-                        macros_helpers::domain_types::test_database::UrlRef::from(
+                    match macro_helpers::domain_types::test_database::validate_test_database_url(
+                        macro_helpers::domain_types::test_database::UrlRef::from(
                             database_url.as_str(),
                         ),
                     ) {
@@ -711,7 +709,7 @@ pub(crate) fn run_main() {
                 generate_pg_table_measure_input_token_stream(&quote::quote! {"True"});
             let parse_started = std::time::Instant::now();
             let parsed = generate_pg_table_src::domain_types::pipeline::parse_generate_pg_table(
-                macros_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(
+                macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(
                     generate_pg_table_input_token_stream.as_ref(),
                 ),
             )
@@ -747,7 +745,7 @@ pub(crate) fn run_main() {
                     |(min_wall_us, max_wall_us, total_wall_us, _, _), _| {
                         let started = std::time::Instant::now();
                         let output = generate_pg_table_src::domain_types::source::generate_pg_table(
-                            macros_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(
+                            macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(
                                 generate_pg_table_input_token_stream.as_ref(),
                             ),
                         );
@@ -814,7 +812,7 @@ pub(crate) fn run_main() {
                     |(min_wall_us, max_wall_us, total_wall_us, _, _), _| {
                         let started = std::time::Instant::now();
                         let output = generate_pg_table_src::domain_types::source::generate_pg_table(
-                            macros_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(
+                            macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(
                                 generate_pg_table_input_with_tests_token_stream.as_ref(),
                             ),
                         );
@@ -894,7 +892,7 @@ pub(crate) fn run_main() {
             let pg_types_parse_started = std::time::Instant::now();
             let parsed_pg_types =
                 generate_pg_types_src::domain_types::source::parse_generate_pg_types(
-                    macros_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(
+                    macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(
                         &generate_pg_types_input_token_stream,
                     ),
                 )
@@ -936,7 +934,7 @@ pub(crate) fn run_main() {
                     |(min_wall_us, max_wall_us, total_wall_us, _, _), _| {
                         let started = std::time::Instant::now();
                         let output = generate_pg_types_src::domain_types::source::generate_pg_types(
-                            macros_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(
+                            macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(
                                 &generate_pg_types_input_token_stream,
                             ),
                         );

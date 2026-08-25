@@ -90,7 +90,7 @@ fn reviewed_duplicate_groups() -> Vec<ReviewedDuplicateGroup> {
             reason: "validators enforce unrelated contracts and return their own domain-specific errors",
         },
         ReviewedDuplicateGroup {
-            locations: "../location_lib/src/domain_types.rs::validate\n../location_lib/src/domain_types.rs::validate\n../macros_helpers/src/domain_types/generate_field_location_new_token_stream.rs::validate\n../macros_helpers/src/domain_types/generate_field_location_new_token_stream.rs::validate\n../server_admin/src/application/auth.rs::validate\n../server_admin/src/application/auth.rs::validate\n../server_admin/src/application/auth.rs::validate",
+            locations: "../location_lib/src/domain_types.rs::validate\n../location_lib/src/domain_types.rs::validate\n../macro_helpers/src/domain_types/generate_field_location_new_token_stream.rs::validate\n../macro_helpers/src/domain_types/generate_field_location_new_token_stream.rs::validate\n../server_admin/src/application/auth.rs::validate\n../server_admin/src/application/auth.rs::validate\n../server_admin/src/application/auth.rs::validate",
             reason: "location newtypes and generated tokens each require a local validator at their invariant boundary",
         },
         ReviewedDuplicateGroup {
@@ -110,7 +110,7 @@ fn reviewed_duplicate_groups() -> Vec<ReviewedDuplicateGroup> {
             reason: "two git metadata wrappers validate the same character policy but retain separate domain types",
         },
         ReviewedDuplicateGroup {
-            locations: "../pg_crud_macros_common/src/domain_types.rs::generate_impl_pg_crud_common_default_some_one_element_max_page_size_token_stream\n../pg_crud_macros_common/src/domain_types.rs::generate_impl_pg_crud_common_default_some_one_element_token_stream",
+            locations: "../pg_crud_macro_common/src/domain_types.rs::generate_impl_pg_crud_common_default_some_one_element_max_page_size_token_stream\n../pg_crud_macro_common/src/domain_types.rs::generate_impl_pg_crud_common_default_some_one_element_token_stream",
             reason: "macro entry points emit different trait implementations and must remain separately addressable",
         },
         ReviewedDuplicateGroup {
@@ -162,7 +162,7 @@ fn reviewed_duplicate_groups() -> Vec<ReviewedDuplicateGroup> {
             reason: "repository record destructuring preserves two unrelated domain tuple contracts",
         },
         ReviewedDuplicateGroup {
-            locations: "../macros_helpers/src/domain_types/generate_new_or_try_new.rs::generate_impl_const_try_new_for_identifier_token_stream\n../macros_helpers/src/domain_types/generate_new_or_try_new.rs::generate_impl_pub_const_try_new_for_identifier_token_stream\n../macros_helpers/src/domain_types/generate_new_or_try_new.rs::generate_impl_pub_try_new_for_identifier_token_stream\n../macros_helpers/src/domain_types/generate_new_or_try_new.rs::generate_impl_try_new_for_identifier_token_stream",
+            locations: "../macro_helpers/src/domain_types/generate_new_or_try_new.rs::generate_impl_const_try_new_for_identifier_token_stream\n../macro_helpers/src/domain_types/generate_new_or_try_new.rs::generate_impl_pub_const_try_new_for_identifier_token_stream\n../macro_helpers/src/domain_types/generate_new_or_try_new.rs::generate_impl_pub_try_new_for_identifier_token_stream\n../macro_helpers/src/domain_types/generate_new_or_try_new.rs::generate_impl_try_new_for_identifier_token_stream",
             reason: "stable public code-generation adapters already delegate implementation wrapping and modified constructors to shared helpers",
         },
         ReviewedDuplicateGroup {
@@ -222,7 +222,7 @@ fn reviewed_duplicate_groups() -> Vec<ReviewedDuplicateGroup> {
             reason: "distinct derive entry points emit different conversion expressions through the same proc-macro parsing contract",
         },
         ReviewedDuplicateGroup {
-            locations: "../pg_crud_macros_common/src/domain_types.rs::generate_impl_pg_crud_default_some_one_element_max_page_size_token_stream\n../pg_crud_macros_common/src/domain_types.rs::generate_impl_pg_crud_default_some_one_element_token_stream",
+            locations: "../pg_crud_macro_common/src/domain_types.rs::generate_impl_pg_crud_default_some_one_element_max_page_size_token_stream\n../pg_crud_macro_common/src/domain_types.rs::generate_impl_pg_crud_default_some_one_element_token_stream",
             reason: "separate stable macro entry points emit distinct default traits while sharing the surrounding token construction shape",
         },
         ReviewedDuplicateGroup {
@@ -234,11 +234,11 @@ fn reviewed_duplicate_groups() -> Vec<ReviewedDuplicateGroup> {
             reason: "compile-fail fixtures deliberately reproduce invalid trait metadata implementations for distinct diagnostics",
         },
         ReviewedDuplicateGroup {
-            locations: "../pg_crud_common/src/domain_types/pg_values.rs::to_query_str\n../pg_crud_macros_common/src/domain_types.rs::non_null_or_nullable_str\n../pg_crud_macros_common/src/domain_types.rs::to_path\n../pg_crud_where_filters/src/domain_types.rs::postgreql_syntax",
+            locations: "../pg_crud_common/src/domain_types/pg_values.rs::to_query_str\n../pg_crud_macro_common/src/domain_types.rs::non_null_or_nullable_str\n../pg_crud_macro_common/src/domain_types.rs::to_path\n../pg_crud_where_filters/src/domain_types.rs::postgreql_syntax",
             reason: "identifier normalization makes unrelated small enum-to-domain-value mappings structurally equal despite distinct return types and semantics",
         },
         ReviewedDuplicateGroup {
-            locations: "../macros_helpers/src/domain_types/generate_new_or_try_new.rs::generate_impl_const_new_for_identifier_token_stream\n../macros_helpers/src/domain_types/generate_new_or_try_new.rs::generate_impl_new_for_identifier_token_stream\n../macros_helpers/src/domain_types/generate_new_or_try_new.rs::generate_impl_pub_const_new_for_identifier_token_stream\n../macros_helpers/src/domain_types/generate_new_or_try_new.rs::generate_impl_pub_new_for_identifier_token_stream",
+            locations: "../macro_helpers/src/domain_types/generate_new_or_try_new.rs::generate_impl_const_new_for_identifier_token_stream\n../macro_helpers/src/domain_types/generate_new_or_try_new.rs::generate_impl_new_for_identifier_token_stream\n../macro_helpers/src/domain_types/generate_new_or_try_new.rs::generate_impl_pub_const_new_for_identifier_token_stream\n../macro_helpers/src/domain_types/generate_new_or_try_new.rs::generate_impl_pub_new_for_identifier_token_stream",
             reason: "stable public new-constructor adapters already delegate body generation and impl wrapping to shared helpers",
         },
         ReviewedDuplicateGroup {

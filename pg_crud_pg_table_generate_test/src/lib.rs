@@ -36,10 +36,10 @@ mod tests {
     }
     #[test]
     fn shared_json_contract_helper_round_trips_table_fixture() {
-        macros_helpers::domain_types::json_contract::ensure_json_contract_round_trip::<
+        macro_helpers::domain_types::json_contract::ensure_json_contract_round_trip::<
             JsonContractValue,
         >(
-            macros_helpers::domain_types::json_contract::JsonFixtureRef::from(
+            macro_helpers::domain_types::json_contract::JsonFixtureRef::from(
                 constants_str::OPERATION_RM,
             ),
         )
@@ -56,7 +56,7 @@ mod tests {
             pub column_1: pg_types_numeric::I32AsNonNullInt4,
         });
         let generated = generate_pg_table_src::domain_types::source::generate_pg_table(
-            macros_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(&input),
+            macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(&input),
         );
         assert!(generated.to_string().contains("35d30bd7"));
     }
@@ -67,7 +67,7 @@ mod tests {
             pub column_0: pg_types_numeric::I16AsNonNullInt2,
         });
         let generated = generate_pg_table_src::domain_types::source::generate_pg_table(
-            macros_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(&input),
+            macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(&input),
         );
         assert!(generated.to_string().contains("bc1d3b08"));
     }
@@ -81,7 +81,7 @@ mod tests {
             pub column_0: pg_types_numeric::I16AsNonNullInt2,
         });
         let generated = generate_pg_table_src::domain_types::source::generate_pg_table(
-            macros_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(&input),
+            macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(&input),
         )
         .to_string();
         assert!(generated.contains("pg_table_requests_total"));
@@ -161,10 +161,10 @@ mod tests {
                 };
                 let generate_pg_table_input_token_stream = generate_table_example_token_stream(AddGeneratePgTablePrimaryKey::True);
                 let ts = generate_pg_table_src::domain_types::source::generate_pg_table(
-                    macros_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(&generate_pg_table_input_token_stream),
+                    macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(&generate_pg_table_input_token_stream),
                 );
                 let repeated_token_stream = generate_pg_table_src::domain_types::source::generate_pg_table(
-                    macros_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(&generate_pg_table_input_token_stream),
+                    macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(&generate_pg_table_input_token_stream),
                 );
                 assert_eq!(ts.to_string(), repeated_token_stream.to_string());
                 let table_struct_token_stream = generate_table_example_token_stream(AddGeneratePgTablePrimaryKey::False);

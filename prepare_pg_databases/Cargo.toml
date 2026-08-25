@@ -1,5 +1,5 @@
 [package]
-name = "prepare_postgresql_databases"
+name = "prepare_pg_databases"
 version.workspace = true
 publish.workspace = true
 description = "PostgreSQL database preparation command planner"

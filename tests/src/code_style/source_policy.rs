@@ -7,6 +7,58 @@ struct ReviewedPublicFields {
 }
 
 #[test]
+fn accessor_functions_do_not_use_get_prefix() {
+    let pattern = regex::Regex::new(r"\bfn\s+(get_[a-zA-Z0-9_]+)")
+        .expect("7f79cd6a accessor function regex must compile");
+    let mut ers = Vec::new();
+    super::for_each_rs_file(|file| {
+        pattern
+            .captures_iter(file.content().as_ref())
+            .for_each(|captures| {
+                let Some(name) = captures.get(1usize).map(|value| value.as_str()) else {
+                    return;
+                };
+                if !matches!(name, "get_inner" | "get_mut") {
+                    ers.push(format!(
+                        "{}: accessor `{name}` must omit the `get_` prefix",
+                        file.path().as_ref().display()
+                    ));
+                }
+            });
+    });
+    ers.sort();
+    super::assert_joined_ers_empty(
+        super::types::SourceTextListRef::from(ers.as_slice()),
+        super::types::StaticStr::from("7f79cd6a"),
+    );
+}
+
+#[test]
+fn provider_traits_do_not_use_get_prefix() {
+    let pattern = regex::Regex::new(r"\btrait\s+(Get[A-Z][a-zA-Z0-9_]*)")
+        .expect("cbe7bf15 provider trait regex must compile");
+    let mut ers = Vec::new();
+    super::for_each_rs_file(|file| {
+        pattern
+            .captures_iter(file.content().as_ref())
+            .for_each(|captures| {
+                let Some(name) = captures.get(1usize).map(|value| value.as_str()) else {
+                    return;
+                };
+                ers.push(format!(
+                    "{}: provider trait `{name}` must use the `Provider` suffix",
+                    file.path().as_ref().display()
+                ));
+            });
+    });
+    ers.sort();
+    super::assert_joined_ers_empty(
+        super::types::SourceTextListRef::from(ers.as_slice()),
+        super::types::StaticStr::from("cbe7bf15"),
+    );
+}
+
+#[test]
 fn all_files_are_english_only() {
     let mut ers = super::snapshot::with_codebase_snapshot(|snapshot| {
         rayon::iter::ParallelIterator::reduce(
@@ -650,9 +702,9 @@ fn production_pg_error_classification_is_centralized() {
 fn direct_process_command_creation_stays_in_shared_tooling() {
     super::assert_rs_ast_ers_empty_with_ctx(
         super::types::StaticStr::from(constants_str::F170AA14),
-        super::types::SourceTextRef::from(constants_str::DIRECT_COMMAND_PATH_NEW_USAGE_EXISTS_OUTSIDE_MACROS_HELPERS_PATH_TOOL_COMMAND),
+        super::types::SourceTextRef::from(constants_str::DIRECT_COMMAND_PATH_NEW_USAGE_EXISTS_OUTSIDE_MACRO_HELPERS_PATH_TOOL_COMMAND),
         |path, ast, ers| {
-            if path.ends_with(constants_str::MACROS_HELPERS_SRC_TOOL_COMMAND_RS) {
+            if path.ends_with(constants_str::MACRO_HELPERS_SRC_TOOL_COMMAND_RS) {
                 return;
             }
             let visitor = super::visit_syn_file(
@@ -898,7 +950,7 @@ fn process_static_state_matches_reviewed_inventory() {
         },
         StaticStateException {
             identifier: "TEST_SEQ",
-            path_suffix: "macros_helpers/src/domain_types/test_hlp.rs",
+            path_suffix: "macro_helpers/src/domain_types/test_hlp.rs",
             reason: "test-only sequence values keep generated fixture names distinct",
         },
         StaticStateException {
@@ -1224,12 +1276,12 @@ fn source_lint_suppressions_have_explicit_reasons() {
         },
         LegacySuppression {
             limit: 1,
-            path_suffix: "macros_helpers/src/domain_types/location.rs",
+            path_suffix: "macro_helpers/src/domain_types/location.rs",
             reason: "location macro compatibility predates per-attribute reasons",
         },
         LegacySuppression {
             limit: 1,
-            path_suffix: "macros_helpers/src/domain_types/status_code.rs",
+            path_suffix: "macro_helpers/src/domain_types/status_code.rs",
             reason: "generated status-code shape predates per-attribute reasons",
         },
         LegacySuppression {
@@ -1244,22 +1296,22 @@ fn source_lint_suppressions_have_explicit_reasons() {
         },
         LegacySuppression {
             limit: 1,
-            path_suffix: "pg_crud_macros_common/src/domain_types/filters.rs",
+            path_suffix: "pg_crud_macro_common/src/domain_types/filters.rs",
             reason: "generated filter token shapes predate per-attribute reasons",
         },
         LegacySuppression {
             limit: 14,
-            path_suffix: "pg_crud_macros_common/src/domain_types.rs",
+            path_suffix: "pg_crud_macro_common/src/domain_types.rs",
             reason: "generated CRUD token shapes predate per-attribute reasons",
         },
         LegacySuppression {
             limit: 13,
-            path_suffix: "pg_crud_macros_common/src/domain_types/pg_type_test_cases.rs",
+            path_suffix: "pg_crud_macro_common/src/domain_types/pg_type_test_cases.rs",
             reason: "generated database fixtures predate per-attribute reasons",
         },
         LegacySuppression {
             limit: 3,
-            path_suffix: "pg_crud_macros_common/src/domain_types/token_stream_helpers.rs",
+            path_suffix: "pg_crud_macro_common/src/domain_types/token_stream_helpers.rs",
             reason: "token-stream compatibility helpers predate per-attribute reasons",
         },
         LegacySuppression {
@@ -1479,17 +1531,15 @@ fn project_text_files_have_stable_line_endings_and_no_trailing_whitespace() {
     let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .expect("fd1294e4 project_text_files_have_stable_line_endings_and_no_trailing_whitespace invariant must hold");
-    let mut command = macros_helpers::domain_types::tool_command::ToolCommand::new(
-        macros_helpers::domain_types::tool_command::ToolProgramRef::from(
-            constants_str::GIT_PROGRAM,
-        ),
+    let mut command = macro_helpers::domain_types::tool_command::ToolCommand::new(
+        macro_helpers::domain_types::tool_command::ToolProgramRef::from(constants_str::GIT_PROGRAM),
     );
     let _command = command
-        .current_dir(macros_helpers::domain_types::tool_command::PathRef::from(
+        .current_dir(macro_helpers::domain_types::tool_command::PathRef::from(
             repository_root,
         ))
         .args(
-            macros_helpers::domain_types::tool_command::ToolArgsRef::from(
+            macro_helpers::domain_types::tool_command::ToolArgsRef::from(
                 constants_str::GIT_LS_FILES_ARGS.as_slice(),
             ),
         );

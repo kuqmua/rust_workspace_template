@@ -30,7 +30,7 @@ cargo run -p workspace_scaffold -- \
 ## 2. Create local configuration
 
 ```bash
-cargo run -p initialize_environment_files
+cargo run -p init_env_files
 ```
 
 The generated `server/.env` is for local development. Before a production deployment, replace

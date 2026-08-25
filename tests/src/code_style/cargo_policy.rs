@@ -4,6 +4,37 @@
 )]
 
 #[test]
+fn crate_names_follow_workspace_vocabulary() {
+    super::assert_crate_manifest_cargo_policy(
+        super::types::StaticStr::from("4d505e93"),
+        |path, parsed, ers| {
+            let Some(name) = parsed
+                .get(constants_str::PACKAGE)
+                .and_then(|package| package.get(constants_str::NAME))
+                .and_then(toml::Value::as_str)
+            else {
+                return;
+            };
+            let valid_chars = name
+                .bytes()
+                .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'_');
+            let has_nonstandard_word = name.split('_').any(|part| {
+                matches!(
+                    part,
+                    "development" | "environment" | "postgresql" | "getter" | "getters"
+                )
+            }) || name.contains("macros_helpers");
+            if !valid_chars || has_nonstandard_word {
+                ers.push(format!(
+                    "{}: crate `{name}` must use snake_case workspace vocabulary (`dev`, `env`, `pg`, `accessor`, `macro_helpers`)",
+                    path.display()
+                ));
+            }
+        },
+    );
+}
+
+#[test]
 fn all_crates_have_publish_false() {
     super::assert_crate_manifest_cargo_policy(
         super::types::StaticStr::from(constants_str::F2A8C5D3),
@@ -326,7 +357,7 @@ fn library_crates_with_public_logic_own_tests() {
             reason: "the proc-macro is exercised by config_lib integration tests",
         },
         TestOwnershipException {
-            crate_name: "generate_getter_traits_for_struct_fields",
+            crate_name: "generate_accessor_traits_for_struct_fields",
             reason: "the generator is exercised by config_lib compile-time expansion",
         },
         TestOwnershipException {
@@ -358,11 +389,11 @@ fn library_crates_with_public_logic_own_tests() {
             reason: "the macro surface is exercised by pg_crud_common tests",
         },
         TestOwnershipException {
-            crate_name: "pg_crud_macros_common",
+            crate_name: "pg_crud_macro_common",
             reason: "the generator support crate is exercised by generated contract tests",
         },
         TestOwnershipException {
-            crate_name: "pg_crud_macros_common_macros",
+            crate_name: "pg_crud_macro_common_macros",
             reason: "the macro surface is exercised by generated CRUD tests",
         },
         TestOwnershipException {
@@ -484,55 +515,55 @@ fn source_modules_with_public_logic_own_unit_tests() {
             "the proc-macro is covered by location_lib expansion tests",
         ),
         (
-            "macros_helpers/src/domain_types/wrap_derive.rs",
+            "macro_helpers/src/domain_types/wrap_derive.rs",
             "the token helper is covered by downstream derive expansion tests",
         ),
         (
-            "macros_helpers/src/domain_types/generate_impl_to_err_string_token_stream.rs",
+            "macro_helpers/src/domain_types/generate_impl_to_err_string_token_stream.rs",
             "the token helper is covered by to_err_string expansion tests",
         ),
         (
-            "macros_helpers/src/domain_types/generate_pub_type_alias_token_stream.rs",
+            "macro_helpers/src/domain_types/generate_pub_type_alias_token_stream.rs",
             "the token helper is covered by downstream compile tests",
         ),
         (
-            "macros_helpers/src/domain_types/generate_field_location_new_token_stream.rs",
+            "macro_helpers/src/domain_types/generate_field_location_new_token_stream.rs",
             "the token helper is covered by location expansion tests",
         ),
         (
-            "macros_helpers/src/domain_types/generate_if_write_is_err_token_stream.rs",
+            "macro_helpers/src/domain_types/generate_if_write_is_err_token_stream.rs",
             "the token helper is covered by generated source tests",
         ),
         (
-            "macros_helpers/src/domain_types/location.rs",
+            "macro_helpers/src/domain_types/location.rs",
             "the syntax helper is covered by downstream macro tests",
         ),
         (
-            "macros_helpers/src/domain_types/generate_impl_try_from_token_stream.rs",
+            "macro_helpers/src/domain_types/generate_impl_try_from_token_stream.rs",
             "the token helper is covered by downstream conversion tests",
         ),
         (
-            "macros_helpers/src/domain_types/generate_impl_default_token_stream.rs",
+            "macro_helpers/src/domain_types/generate_impl_default_token_stream.rs",
             "the token helper is covered by downstream derive tests",
         ),
         (
-            "macros_helpers/src/domain_types/generate_impl_from_token_stream.rs",
+            "macro_helpers/src/domain_types/generate_impl_from_token_stream.rs",
             "the token helper is covered by downstream conversion tests",
         ),
         (
-            "macros_helpers/src/domain_types/location_syn_field.rs",
+            "macro_helpers/src/domain_types/location_syn_field.rs",
             "the syntax helper is covered by location expansion tests",
         ),
         (
-            "macros_helpers/src/domain_types/status_code.rs",
+            "macro_helpers/src/domain_types/status_code.rs",
             "the status-code generator is covered by route validator tests",
         ),
         (
-            "macros_helpers/src/domain_types/pagination_start_end_initialization_token_stream.rs",
+            "macro_helpers/src/domain_types/pagination_start_end_initialization_token_stream.rs",
             "the token helper is covered by generated CRUD tests",
         ),
         (
-            "macros_helpers/src/domain_types/generate_impl_display_token_stream.rs",
+            "macro_helpers/src/domain_types/generate_impl_display_token_stream.rs",
             "the token helper is covered by downstream display tests",
         ),
         (
@@ -576,15 +607,15 @@ fn source_modules_with_public_logic_own_unit_tests() {
             "the macro surface is covered by pg_crud_common tests",
         ),
         (
-            "pg_crud_macros_common/src/domain_types.rs",
+            "pg_crud_macro_common/src/domain_types.rs",
             "the generator support surface is covered by generated contract tests",
         ),
         (
-            "pg_crud_macros_common/src/domain_types/pg_type_test_cases.rs",
+            "pg_crud_macro_common/src/domain_types/pg_type_test_cases.rs",
             "the fixture catalog is consumed by generated PostgreSQL type tests",
         ),
         (
-            "pg_crud_macros_common/src/domain_types/token_stream_helpers.rs",
+            "pg_crud_macro_common/src/domain_types/token_stream_helpers.rs",
             "the token helpers are covered by generated CRUD tests",
         ),
         (
@@ -592,7 +623,7 @@ fn source_modules_with_public_logic_own_unit_tests() {
             "cardinality behavior is covered by generated CRUD contract tests",
         ),
         (
-            "pg_crud_macros_common_macros/src/lib.rs",
+            "pg_crud_macro_common_macros/src/lib.rs",
             "the macro surface is covered by generated CRUD tests",
         ),
         (
@@ -616,7 +647,7 @@ fn source_modules_with_public_logic_own_unit_tests() {
             "the proc-macro is covered by config_lib tests",
         ),
         (
-            "config_lib_generate_getter_traits_for_struct_fields/src/lib.rs",
+            "config_lib_generate_accessor_traits_for_struct_fields/src/lib.rs",
             "the generator is covered by config_lib expansion tests",
         ),
         (

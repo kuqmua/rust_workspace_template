@@ -1,5 +1,5 @@
 [package]
-name = "pg_crud_macros_common"
+name = "pg_crud_macro_common"
 version.workspace = true
 publish.workspace = true
 description.workspace = true
@@ -20,8 +20,8 @@ naming = { workspace = true }
 newtype = { workspace = true }
 token_patterns = { workspace = true }
 generate_quotes = { workspace = true }
-macros_helpers = { workspace = true }
+macro_helpers = { workspace = true }
 optimal_memory_layout = { workspace = true }
-pg_crud_macros_common_macros = { workspace = true }
+pg_crud_macro_common_macros = { workspace = true }
 [lints]
 workspace = true

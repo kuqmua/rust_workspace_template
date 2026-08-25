@@ -20,7 +20,7 @@ thiserror = { workspace = true }
 tracing = { workspace = true }
 to_err_string = { workspace = true }
 dotenv = { workspace = true }
-generate_getter_traits_for_struct_fields = { workspace = true }
+generate_accessor_traits_for_struct_fields = { workspace = true }
 optimal_memory_layout = { workspace = true }
 config_lib_macros = { workspace = true }
 constants_str = { workspace = true }

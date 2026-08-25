@@ -5,7 +5,7 @@
     Copy,
     PartialEq,
     Eq,
-    generate_getter_traits_for_struct_fields::GenerateGetterTrait,
+    generate_accessor_traits_for_struct_fields::GenerateAccessorTrait,
     newtype::DerefInner,
     newtype::FromInner,
 )]
@@ -17,7 +17,7 @@ pub struct AdminAccessTokenTtlSeconds(super::ConfigNonZeroU64);
     Copy,
     PartialEq,
     Eq,
-    generate_getter_traits_for_struct_fields::GenerateGetterTrait,
+    generate_accessor_traits_for_struct_fields::GenerateAccessorTrait,
     newtype::DerefInner,
     newtype::FromInner,
 )]
@@ -29,7 +29,7 @@ pub struct AdminRefreshTokenTtlSeconds(super::ConfigNonZeroU64);
     Copy,
     PartialEq,
     Eq,
-    generate_getter_traits_for_struct_fields::GenerateGetterTrait,
+    generate_accessor_traits_for_struct_fields::GenerateAccessorTrait,
     newtype::DerefInner,
     newtype::FromInner,
 )]
@@ -41,7 +41,7 @@ pub struct AdminLoginFailureLimit(super::ConfigNonZeroU64);
     Copy,
     PartialEq,
     Eq,
-    generate_getter_traits_for_struct_fields::GenerateGetterTrait,
+    generate_accessor_traits_for_struct_fields::GenerateAccessorTrait,
     newtype::DerefInner,
     newtype::FromInner,
 )]
@@ -53,7 +53,7 @@ pub struct AdminSignInRateLimit(super::ConfigNonZeroU64);
     Copy,
     PartialEq,
     Eq,
-    generate_getter_traits_for_struct_fields::GenerateGetterTrait,
+    generate_accessor_traits_for_struct_fields::GenerateAccessorTrait,
     newtype::DerefInner,
     newtype::FromInner,
 )]
@@ -128,7 +128,7 @@ impl super::TryFromStdEnvVarOk for AdminSessionLimit {
     Copy,
     PartialEq,
     Eq,
-    generate_getter_traits_for_struct_fields::GenerateGetterTrait,
+    generate_accessor_traits_for_struct_fields::GenerateAccessorTrait,
     newtype::DerefInner,
     newtype::FromInner,
 )]
@@ -168,7 +168,7 @@ impl super::TryFromStdEnvVarOk for AdminPasswordHashConcurrency {
     Clone,
     PartialEq,
     Eq,
-    generate_getter_traits_for_struct_fields::GenerateGetterTrait,
+    generate_accessor_traits_for_struct_fields::GenerateAccessorTrait,
     serde::Deserialize,
     serde::Serialize,
     newtype::BoundedString,
@@ -183,7 +183,7 @@ pub struct AdminTokenIssuer(String);
     Clone,
     PartialEq,
     Eq,
-    generate_getter_traits_for_struct_fields::GenerateGetterTrait,
+    generate_accessor_traits_for_struct_fields::GenerateAccessorTrait,
     serde::Deserialize,
     serde::Serialize,
     newtype::BoundedString,

@@ -57,7 +57,7 @@ mod tests {
         newtype::BorrowStr,
         newtype::DerefTarget,
         newtype::Display,
-        newtype::Getter,
+        newtype::Accessor,
         newtype::ToErrStringAsRefStr,
     )]
     #[bounded_string(max = STRING_VALUE_MAX_LEN)]
@@ -342,7 +342,7 @@ mod tests {
         assert_eq!(v.to_string(), "abc");
         assert_eq!(v.as_ref(), "abc");
         assert_eq!(&*v, "abc");
-        assert_eq!(GetStringValue::get_string_value(&v), "abc");
+        assert_eq!(StringValueProvider::string_value(&v), "abc");
         assert_eq!(
             to_err_string::domain_types::ToErrString::to_err_string(&v).as_ref(),
             "abc"
@@ -398,7 +398,7 @@ mod tests {
         assert_eq!(v.into_inner(), 7);
     }
     #[test]
-    fn direct_inner_getters_are_generated() {
+    fn direct_inner_accessors_are_generated() {
         let text = GetInnerValueRef::from(constants_str::ABC_ALT_3).get();
         let flag = GetInnerBool::from(true).get();
         assert_eq!(text, constants_str::ABC_ALT_3);

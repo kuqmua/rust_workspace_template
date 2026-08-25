@@ -14,7 +14,7 @@ optimal_memory_layout = { workspace = true }
 generate_where_filters_src = { workspace = true }
 macro_clippy_check_common = { workspace = true, features = ["test-utils"] }
 quote = { workspace = true }
-macros_helpers = { workspace = true, features = ["test-utils"] }
+macro_helpers = { workspace = true, features = ["test-utils"] }
 serde = { workspace = true }
 pg_crud_common = { workspace = true }
 where_filters = { workspace = true }

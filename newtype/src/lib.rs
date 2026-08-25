@@ -417,11 +417,11 @@ pub fn from_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     )
     .into()
 }
-#[proc_macro_derive(Getter)]
-pub fn getter(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+#[proc_macro_derive(Accessor)]
+pub fn accessor(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
         domain_types::ProcMacroInputTokenStream::from(input),
-        domain_types::NewtypeOption::Getter,
+        domain_types::NewtypeOption::Accessor,
         None,
     )
     .into()
@@ -1041,13 +1041,13 @@ fn generate_newtype_token_stream_with_attrs(
             }
         }
     });
-    let getter_token_stream = attrs
-        .contains(domain_types::NewtypeOption::Getter)
+    let accessor_token_stream = attrs
+        .contains(domain_types::NewtypeOption::Accessor)
         .get()
         .then(|| {
-            let trait_identifier = quote::format_ident!("Get{identifier}");
+            let trait_identifier = quote::format_ident!("{identifier}Provider");
             let fn_name = identifier_to_snake(domain_types::SynIdentifierRef::from(identifier));
-            let fn_identifier = quote::format_ident!("get_{}", fn_name.as_ref());
+            let fn_identifier = quote::format_ident!("{}", fn_name.as_ref());
             quote::quote! {
                 pub trait #trait_identifier {
                     fn #fn_identifier(&self) -> &#inner_ty_ref;
@@ -1173,7 +1173,7 @@ fn generate_newtype_token_stream_with_attrs(
             #deref_mut_target_token_stream
             #from_token_stream
             #try_from_token_stream
-            #getter_token_stream
+            #accessor_token_stream
             #get_inner_token_stream
             #into_inner_token_stream
             #into_inner_from_token_stream

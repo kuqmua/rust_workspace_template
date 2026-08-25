@@ -224,13 +224,13 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`struct Constant`](../constants_str_macros/src/domain_types.rs#L137)
 - [`struct DefineStrConstantsInput`](../constants_str_macros/src/domain_types.rs#L144)
 
-## `development_data_bootstrap/src/domain_types.rs`
+## `dev_data_bootstrap/src/domain_types.rs`
 
-- [`struct DevelopmentIdentitySpecs`](../development_data_bootstrap/src/domain_types.rs#L15)
-- [`struct DevelopmentIdentitySpecsError`](../development_data_bootstrap/src/domain_types.rs#L43)
-- [`struct DevelopmentBootstrapPlan`](../development_data_bootstrap/src/domain_types.rs#L46)
-- [`struct DevelopmentBootstrapSummary`](../development_data_bootstrap/src/domain_types.rs#L72)
-- [`struct DevelopmentIdentityCount`](../development_data_bootstrap/src/domain_types.rs#L89)
+- [`struct DevelopmentIdentitySpecs`](../dev_data_bootstrap/src/domain_types.rs#L15)
+- [`struct DevelopmentIdentitySpecsError`](../dev_data_bootstrap/src/domain_types.rs#L43)
+- [`struct DevelopmentBootstrapPlan`](../dev_data_bootstrap/src/domain_types.rs#L46)
+- [`struct DevelopmentBootstrapSummary`](../dev_data_bootstrap/src/domain_types.rs#L72)
+- [`struct DevelopmentIdentityCount`](../dev_data_bootstrap/src/domain_types.rs#L89)
 
 ## `external_service_emulators/src/domain_types.rs`
 
@@ -501,28 +501,28 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`trait GetGitCommitLink`](../git_info/src/domain_types.rs#L263)
 - [`trait GetGitCommitId`](../git_info/src/domain_types.rs#L269)
 
-## `initialize_environment_files/src/domain_types.rs`
+## `init_env_files/src/domain_types.rs`
 
-- [`enum RunMode`](../initialize_environment_files/src/domain_types.rs#L2)
-- [`enum InitializationStatus`](../initialize_environment_files/src/domain_types.rs#L7)
-- [`struct InitializationEntry`](../initialize_environment_files/src/domain_types.rs#L15)
-- [`struct EnvContent`](../initialize_environment_files/src/domain_types.rs#L40)
-- [`struct EnvContentRef`](../initialize_environment_files/src/domain_types.rs#L59)
-- [`struct EnvKey`](../initialize_environment_files/src/domain_types.rs#L72)
-- [`struct EnvKeys`](../initialize_environment_files/src/domain_types.rs#L91)
-- [`struct MemberSafe`](../initialize_environment_files/src/domain_types.rs#L101)
-- [`struct WorkspaceMember`](../initialize_environment_files/src/domain_types.rs#L114)
-- [`struct WorkspaceMemberRef`](../initialize_environment_files/src/domain_types.rs#L128)
-- [`struct WorkspaceMembers`](../initialize_environment_files/src/domain_types.rs#L130)
-- [`struct WorkspaceRootPathRef`](../initialize_environment_files/src/domain_types.rs#L140)
-- [`struct InitPathRef`](../initialize_environment_files/src/domain_types.rs#L142)
-- [`struct InitMaxBytes`](../initialize_environment_files/src/domain_types.rs#L144)
-- [`struct InitEntries`](../initialize_environment_files/src/domain_types.rs#L146)
-- [`struct InitIoError`](../initialize_environment_files/src/domain_types.rs#L153)
-- [`struct ServerRuntimeBoundedReadError`](../initialize_environment_files/src/domain_types.rs#L158)
-- [`struct TomlInitError`](../initialize_environment_files/src/domain_types.rs#L165)
-- [`struct InitStringError`](../initialize_environment_files/src/domain_types.rs#L168)
-- [`enum InitializeError`](../initialize_environment_files/src/domain_types.rs#L170)
+- [`enum RunMode`](../init_env_files/src/domain_types.rs#L2)
+- [`enum InitializationStatus`](../init_env_files/src/domain_types.rs#L7)
+- [`struct InitializationEntry`](../init_env_files/src/domain_types.rs#L15)
+- [`struct EnvContent`](../init_env_files/src/domain_types.rs#L40)
+- [`struct EnvContentRef`](../init_env_files/src/domain_types.rs#L59)
+- [`struct EnvKey`](../init_env_files/src/domain_types.rs#L72)
+- [`struct EnvKeys`](../init_env_files/src/domain_types.rs#L91)
+- [`struct MemberSafe`](../init_env_files/src/domain_types.rs#L101)
+- [`struct WorkspaceMember`](../init_env_files/src/domain_types.rs#L114)
+- [`struct WorkspaceMemberRef`](../init_env_files/src/domain_types.rs#L128)
+- [`struct WorkspaceMembers`](../init_env_files/src/domain_types.rs#L130)
+- [`struct WorkspaceRootPathRef`](../init_env_files/src/domain_types.rs#L140)
+- [`struct InitPathRef`](../init_env_files/src/domain_types.rs#L142)
+- [`struct InitMaxBytes`](../init_env_files/src/domain_types.rs#L144)
+- [`struct InitEntries`](../init_env_files/src/domain_types.rs#L146)
+- [`struct InitIoError`](../init_env_files/src/domain_types.rs#L153)
+- [`struct ServerRuntimeBoundedReadError`](../init_env_files/src/domain_types.rs#L158)
+- [`struct TomlInitError`](../init_env_files/src/domain_types.rs#L165)
+- [`struct InitStringError`](../init_env_files/src/domain_types.rs#L168)
+- [`enum InitializeError`](../init_env_files/src/domain_types.rs#L170)
 
 ## `location_lib/src/domain_types.rs`
 
@@ -562,133 +562,133 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`struct DisplayStruct`](../location_lib_location_test/src/domain_types.rs#L104)
 - [`struct SerdeStruct`](../location_lib_location_test/src/domain_types.rs#L120)
 
-## `macros_helpers/src/domain_types/attr_identifier_str.rs`
+## `macro_helpers/src/domain_types/attr_identifier_str.rs`
 
-- [`struct AttrIdentifierName`](../macros_helpers/src/domain_types/attr_identifier_str.rs#L4)
-- [`trait AttrIdentifierStr`](../macros_helpers/src/domain_types/attr_identifier_str.rs#L5)
+- [`struct AttrIdentifierName`](../macro_helpers/src/domain_types/attr_identifier_str.rs#L4)
+- [`trait AttrIdentifierStr`](../macro_helpers/src/domain_types/attr_identifier_str.rs#L5)
 
-## `macros_helpers/src/domain_types/derive_token_stream_builder.rs`
+## `macro_helpers/src/domain_types/derive_token_stream_builder.rs`
 
-- [`macro-generated struct DTokenStreamBuilder`](../macros_helpers/src/domain_types/derive_token_stream_builder.rs#L1)
+- [`macro-generated struct DTokenStreamBuilder`](../macro_helpers/src/domain_types/derive_token_stream_builder.rs#L1)
 
-## `macros_helpers/src/domain_types/generate_field_location_new_token_stream.rs`
+## `macro_helpers/src/domain_types/generate_field_location_new_token_stream.rs`
 
-- [`struct FieldLocationFile`](../macros_helpers/src/domain_types/generate_field_location_new_token_stream.rs#L4)
-- [`struct FieldLocationLine`](../macros_helpers/src/domain_types/generate_field_location_new_token_stream.rs#L10)
-- [`struct FieldLocationColumn`](../macros_helpers/src/domain_types/generate_field_location_new_token_stream.rs#L35)
-- [`struct FieldLocationCoordinateTryFromU32Error`](../macros_helpers/src/domain_types/generate_field_location_new_token_stream.rs#L59)
+- [`struct FieldLocationFile`](../macro_helpers/src/domain_types/generate_field_location_new_token_stream.rs#L4)
+- [`struct FieldLocationLine`](../macro_helpers/src/domain_types/generate_field_location_new_token_stream.rs#L10)
+- [`struct FieldLocationColumn`](../macro_helpers/src/domain_types/generate_field_location_new_token_stream.rs#L35)
+- [`struct FieldLocationCoordinateTryFromU32Error`](../macro_helpers/src/domain_types/generate_field_location_new_token_stream.rs#L59)
 
-## `macros_helpers/src/domain_types/generate_if_write_is_err_token_stream.rs`
+## `macro_helpers/src/domain_types/generate_if_write_is_err_token_stream.rs`
 
-- [`struct ProcMacro2IfWriteIsErrTokenStream`](../macros_helpers/src/domain_types/generate_if_write_is_err_token_stream.rs#L4)
+- [`struct ProcMacro2IfWriteIsErrTokenStream`](../macro_helpers/src/domain_types/generate_if_write_is_err_token_stream.rs#L4)
 
-## `macros_helpers/src/domain_types/generate_simple_syn_punct.rs`
+## `macro_helpers/src/domain_types/generate_simple_syn_punct.rs`
 
-- [`struct SynPathSegment`](../macros_helpers/src/domain_types/generate_simple_syn_punct.rs#L8)
-- [`struct SynPathSegments`](../macros_helpers/src/domain_types/generate_simple_syn_punct.rs#L17)
+- [`struct SynPathSegment`](../macro_helpers/src/domain_types/generate_simple_syn_punct.rs#L8)
+- [`struct SynPathSegments`](../macro_helpers/src/domain_types/generate_simple_syn_punct.rs#L17)
 
-## `macros_helpers/src/domain_types/get_macro_attr.rs`
+## `macro_helpers/src/domain_types/get_macro_attr.rs`
 
-- [`struct SynMacroAttrRef`](../macros_helpers/src/domain_types/get_macro_attr.rs#L11)
-- [`struct ProcMacro2MacroAttrMetaListTokenStreamRef`](../macros_helpers/src/domain_types/get_macro_attr.rs#L21)
-- [`struct AttrPathMatches`](../macros_helpers/src/domain_types/get_macro_attr.rs#L31)
-- [`enum MacroAttrError`](../macros_helpers/src/domain_types/get_macro_attr.rs#L35)
+- [`struct SynMacroAttrRef`](../macro_helpers/src/domain_types/get_macro_attr.rs#L11)
+- [`struct ProcMacro2MacroAttrMetaListTokenStreamRef`](../macro_helpers/src/domain_types/get_macro_attr.rs#L21)
+- [`struct AttrPathMatches`](../macro_helpers/src/domain_types/get_macro_attr.rs#L31)
+- [`enum MacroAttrError`](../macro_helpers/src/domain_types/get_macro_attr.rs#L35)
 
-## `macros_helpers/src/domain_types/json_contract.rs`
+## `macro_helpers/src/domain_types/json_contract.rs`
 
-- [`struct JsonFixtureRef`](../macros_helpers/src/domain_types/json_contract.rs#L2)
-- [`struct SerdeJsonError`](../macros_helpers/src/domain_types/json_contract.rs#L7)
-- [`enum ContractError`](../macros_helpers/src/domain_types/json_contract.rs#L9)
+- [`struct JsonFixtureRef`](../macro_helpers/src/domain_types/json_contract.rs#L2)
+- [`struct SerdeJsonError`](../macro_helpers/src/domain_types/json_contract.rs#L7)
+- [`enum ContractError`](../macro_helpers/src/domain_types/json_contract.rs#L9)
 
-## `macros_helpers/src/domain_types/location.rs`
+## `macro_helpers/src/domain_types/location.rs`
 
-- [`enum LocationFieldAttr`](../macros_helpers/src/domain_types/location.rs#L3)
-- [`struct CompileErrorMessage`](../macros_helpers/src/domain_types/location.rs#L98)
-- [`struct SynVariantRef`](../macros_helpers/src/domain_types/location.rs#L105)
+- [`enum LocationFieldAttr`](../macro_helpers/src/domain_types/location.rs#L3)
+- [`struct CompileErrorMessage`](../macro_helpers/src/domain_types/location.rs#L98)
+- [`struct SynVariantRef`](../macro_helpers/src/domain_types/location.rs#L105)
 
-## `macros_helpers/src/domain_types/location_syn_field.rs`
+## `macro_helpers/src/domain_types/location_syn_field.rs`
 
-- [`struct SynLocationField`](../macros_helpers/src/domain_types/location_syn_field.rs#L4)
+- [`struct SynLocationField`](../macro_helpers/src/domain_types/location_syn_field.rs#L4)
 
-## `macros_helpers/src/domain_types/proc_macro2_tokens.rs`
+## `macro_helpers/src/domain_types/proc_macro2_tokens.rs`
 
-- [`struct ProcMacro2GeneratedRustTokenStream`](../macros_helpers/src/domain_types/proc_macro2_tokens.rs#L13)
+- [`struct ProcMacro2GeneratedRustTokenStream`](../macro_helpers/src/domain_types/proc_macro2_tokens.rs#L13)
 
-## `macros_helpers/src/domain_types/rs_file_path.rs`
+## `macro_helpers/src/domain_types/rs_file_path.rs`
 
-- [`struct RsFilePathBuf`](../macros_helpers/src/domain_types/rs_file_path.rs#L10)
+- [`struct RsFilePathBuf`](../macro_helpers/src/domain_types/rs_file_path.rs#L10)
 
-## `macros_helpers/src/domain_types/status_code.rs`
+## `macro_helpers/src/domain_types/status_code.rs`
 
-- [`enum StatusCode`](../macros_helpers/src/domain_types/status_code.rs#L14)
-- [`enum GetOnlyOneStatusCodeError`](../macros_helpers/src/domain_types/status_code.rs#L447)
-- [`struct SynStatusCodeVariantRef`](../macros_helpers/src/domain_types/status_code.rs#L454)
+- [`enum StatusCode`](../macro_helpers/src/domain_types/status_code.rs#L14)
+- [`enum GetOnlyOneStatusCodeError`](../macro_helpers/src/domain_types/status_code.rs#L447)
+- [`struct SynStatusCodeVariantRef`](../macro_helpers/src/domain_types/status_code.rs#L454)
 
-## `macros_helpers/src/domain_types/syn_field.rs`
+## `macro_helpers/src/domain_types/syn_field.rs`
 
-- [`struct SynField`](../macros_helpers/src/domain_types/syn_field.rs#L2)
-- [`struct SynFieldIdentifier`](../macros_helpers/src/domain_types/syn_field.rs#L18)
-- [`struct SynFieldType`](../macros_helpers/src/domain_types/syn_field.rs#L28)
-- [`struct SynFieldVis`](../macros_helpers/src/domain_types/syn_field.rs#L38)
+- [`struct SynField`](../macro_helpers/src/domain_types/syn_field.rs#L2)
+- [`struct SynFieldIdentifier`](../macro_helpers/src/domain_types/syn_field.rs#L18)
+- [`struct SynFieldType`](../macro_helpers/src/domain_types/syn_field.rs#L28)
+- [`struct SynFieldVis`](../macro_helpers/src/domain_types/syn_field.rs#L38)
 
-## `macros_helpers/src/domain_types/test_database.rs`
+## `macro_helpers/src/domain_types/test_database.rs`
 
-- [`struct UrlRef`](../macros_helpers/src/domain_types/test_database.rs#L3)
-- [`struct SanitizedDatabaseTarget`](../macros_helpers/src/domain_types/test_database.rs#L14)
-- [`enum UrlError`](../macros_helpers/src/domain_types/test_database.rs#L18)
+- [`struct UrlRef`](../macro_helpers/src/domain_types/test_database.rs#L3)
+- [`struct SanitizedDatabaseTarget`](../macro_helpers/src/domain_types/test_database.rs#L14)
+- [`enum UrlError`](../macro_helpers/src/domain_types/test_database.rs#L18)
 
-## `macros_helpers/src/domain_types/test_hlp.rs`
+## `macro_helpers/src/domain_types/test_hlp.rs`
 
-- [`struct TestPathStemRef`](../macros_helpers/src/domain_types/test_hlp.rs#L3)
-- [`struct TestPathStem`](../macros_helpers/src/domain_types/test_hlp.rs#L5)
-- [`struct AssertFilePathRef`](../macros_helpers/src/domain_types/test_hlp.rs#L15)
-- [`struct StdAssertFilePath`](../macros_helpers/src/domain_types/test_hlp.rs#L22)
-- [`struct ExpectedFileContentRef`](../macros_helpers/src/domain_types/test_hlp.rs#L32)
-- [`struct ExpectedFileContent`](../macros_helpers/src/domain_types/test_hlp.rs#L39)
+- [`struct TestPathStemRef`](../macro_helpers/src/domain_types/test_hlp.rs#L3)
+- [`struct TestPathStem`](../macro_helpers/src/domain_types/test_hlp.rs#L5)
+- [`struct AssertFilePathRef`](../macro_helpers/src/domain_types/test_hlp.rs#L15)
+- [`struct StdAssertFilePath`](../macro_helpers/src/domain_types/test_hlp.rs#L22)
+- [`struct ExpectedFileContentRef`](../macro_helpers/src/domain_types/test_hlp.rs#L32)
+- [`struct ExpectedFileContent`](../macro_helpers/src/domain_types/test_hlp.rs#L39)
 
-## `macros_helpers/src/domain_types/tool_command.rs`
+## `macro_helpers/src/domain_types/tool_command.rs`
 
-- [`struct PathRef`](../macros_helpers/src/domain_types/tool_command.rs#L2)
-- [`struct ProcessCommand`](../macros_helpers/src/domain_types/tool_command.rs#L4)
-- [`struct OsStringValue`](../macros_helpers/src/domain_types/tool_command.rs#L6)
-- [`struct ToolProgramRef`](../macros_helpers/src/domain_types/tool_command.rs#L13)
-- [`struct ToolArgRef`](../macros_helpers/src/domain_types/tool_command.rs#L15)
-- [`struct ToolArgsRef`](../macros_helpers/src/domain_types/tool_command.rs#L17)
-- [`struct ToolEnvKeyRef`](../macros_helpers/src/domain_types/tool_command.rs#L19)
-- [`struct ToolEnvValueRef`](../macros_helpers/src/domain_types/tool_command.rs#L21)
-- [`struct ProcessExitStatus`](../macros_helpers/src/domain_types/tool_command.rs#L31)
-- [`struct ProcessOutput`](../macros_helpers/src/domain_types/tool_command.rs#L39)
-- [`struct ToolCommand`](../macros_helpers/src/domain_types/tool_command.rs#L41)
+- [`struct PathRef`](../macro_helpers/src/domain_types/tool_command.rs#L2)
+- [`struct ProcessCommand`](../macro_helpers/src/domain_types/tool_command.rs#L4)
+- [`struct OsStringValue`](../macro_helpers/src/domain_types/tool_command.rs#L6)
+- [`struct ToolProgramRef`](../macro_helpers/src/domain_types/tool_command.rs#L13)
+- [`struct ToolArgRef`](../macro_helpers/src/domain_types/tool_command.rs#L15)
+- [`struct ToolArgsRef`](../macro_helpers/src/domain_types/tool_command.rs#L17)
+- [`struct ToolEnvKeyRef`](../macro_helpers/src/domain_types/tool_command.rs#L19)
+- [`struct ToolEnvValueRef`](../macro_helpers/src/domain_types/tool_command.rs#L21)
+- [`struct ProcessExitStatus`](../macro_helpers/src/domain_types/tool_command.rs#L31)
+- [`struct ProcessOutput`](../macro_helpers/src/domain_types/tool_command.rs#L39)
+- [`struct ToolCommand`](../macro_helpers/src/domain_types/tool_command.rs#L41)
 
-## `macros_helpers/src/domain_types/wrap_derive.rs`
+## `macro_helpers/src/domain_types/wrap_derive.rs`
 
-- [`struct ProcMacro2DeriveTokensRef`](../macros_helpers/src/domain_types/wrap_derive.rs#L2)
+- [`struct ProcMacro2DeriveTokensRef`](../macro_helpers/src/domain_types/wrap_derive.rs#L2)
 
-## `macros_helpers/src/domain_types/write_string_into_file.rs`
+## `macro_helpers/src/domain_types/write_string_into_file.rs`
 
-- [`struct WrittenFilePathBuf`](../macros_helpers/src/domain_types/write_string_into_file.rs#L10)
-- [`struct WrittenFilePathRef`](../macros_helpers/src/domain_types/write_string_into_file.rs#L19)
-- [`struct StringFileContentRef`](../macros_helpers/src/domain_types/write_string_into_file.rs#L28)
-- [`struct GeneratedFileMaximumBytes`](../macros_helpers/src/domain_types/write_string_into_file.rs#L38)
-- [`struct ShouldWriteString`](../macros_helpers/src/domain_types/write_string_into_file.rs#L50)
-- [`enum WritePathOutcome`](../macros_helpers/src/domain_types/write_string_into_file.rs#L52)
+- [`struct WrittenFilePathBuf`](../macro_helpers/src/domain_types/write_string_into_file.rs#L10)
+- [`struct WrittenFilePathRef`](../macro_helpers/src/domain_types/write_string_into_file.rs#L19)
+- [`struct StringFileContentRef`](../macro_helpers/src/domain_types/write_string_into_file.rs#L28)
+- [`struct GeneratedFileMaximumBytes`](../macro_helpers/src/domain_types/write_string_into_file.rs#L38)
+- [`struct ShouldWriteString`](../macro_helpers/src/domain_types/write_string_into_file.rs#L50)
+- [`enum WritePathOutcome`](../macro_helpers/src/domain_types/write_string_into_file.rs#L52)
 
-## `macros_helpers/src/domain_types/write_token_stream_into_file.rs`
+## `macro_helpers/src/domain_types/write_token_stream_into_file.rs`
 
-- [`enum FormatWithCargofmt`](../macros_helpers/src/domain_types/write_token_stream_into_file.rs#L2)
-- [`enum ShouldWriteTokenStreamIntoFile`](../macros_helpers/src/domain_types/write_token_stream_into_file.rs#L7)
-- [`struct ProcMacro2TokenStreamRef`](../macros_helpers/src/domain_types/write_token_stream_into_file.rs#L19)
-- [`struct StdRustfmtPath`](../macros_helpers/src/domain_types/write_token_stream_into_file.rs#L21)
-- [`struct ShouldWriteTokenStreamFlag`](../macros_helpers/src/domain_types/write_token_stream_into_file.rs#L23)
+- [`enum FormatWithCargofmt`](../macro_helpers/src/domain_types/write_token_stream_into_file.rs#L2)
+- [`enum ShouldWriteTokenStreamIntoFile`](../macro_helpers/src/domain_types/write_token_stream_into_file.rs#L7)
+- [`struct ProcMacro2TokenStreamRef`](../macro_helpers/src/domain_types/write_token_stream_into_file.rs#L19)
+- [`struct StdRustfmtPath`](../macro_helpers/src/domain_types/write_token_stream_into_file.rs#L21)
+- [`struct ShouldWriteTokenStreamFlag`](../macro_helpers/src/domain_types/write_token_stream_into_file.rs#L23)
 
-## `macros_helpers_generate_derive_token_stream_builder/src/domain_types.rs`
+## `macro_helpers_generate_derive_token_stream_builder/src/domain_types.rs`
 
-- [`struct ToSnakeCaseInput`](../macros_helpers_generate_derive_token_stream_builder/src/domain_types.rs#L6)
-- [`struct SnakeCaseString`](../macros_helpers_generate_derive_token_stream_builder/src/domain_types.rs#L10)
+- [`struct ToSnakeCaseInput`](../macro_helpers_generate_derive_token_stream_builder/src/domain_types.rs#L6)
+- [`struct SnakeCaseString`](../macro_helpers_generate_derive_token_stream_builder/src/domain_types.rs#L10)
 
-## `macros_helpers_generate_derive_token_stream_builder/src/lib.rs`
+## `macro_helpers_generate_derive_token_stream_builder/src/lib.rs`
 
-- [`struct Element`](../macros_helpers_generate_derive_token_stream_builder/src/lib.rs#L30)
+- [`struct Element`](../macro_helpers_generate_derive_token_stream_builder/src/lib.rs#L30)
 
 ## `naming/src/domain_types.rs`
 
@@ -1078,61 +1078,61 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`struct SqlLikePattern`](../pg_crud_common/src/domain_types/sql_like_pattern.rs#L24)
 - [`struct SqlLikePatternError`](../pg_crud_common/src/domain_types/sql_like_pattern.rs#L39)
 
-## `pg_crud_macros_common/src/domain_types.rs`
+## `pg_crud_macro_common/src/domain_types.rs`
 
-- [`struct NamesCtx`](../pg_crud_macros_common/src/domain_types.rs#L7)
-- [`enum DeriveOrImpl`](../pg_crud_macros_common/src/domain_types.rs#L181)
-- [`struct ProcMacro2GeneratedRustTokenStreamVec`](../pg_crud_macros_common/src/domain_types.rs#L186)
-- [`struct NonNullOrNullableStr`](../pg_crud_macros_common/src/domain_types.rs#L218)
-- [`struct IsNullablePrefixStr`](../pg_crud_macros_common/src/domain_types.rs#L227)
-- [`struct ImportSnakeCaseStr`](../pg_crud_macros_common/src/domain_types.rs#L237)
-- [`struct ImportPathStr`](../pg_crud_macros_common/src/domain_types.rs#L246)
-- [`struct DimensionNumber`](../pg_crud_macros_common/src/domain_types.rs#L255)
-- [`struct StructElsLen`](../pg_crud_macros_common/src/domain_types.rs#L264)
-- [`struct DeLen`](../pg_crud_macros_common/src/domain_types.rs#L273)
-- [`struct WrapIntoBraces`](../pg_crud_macros_common/src/domain_types.rs#L282)
-- [`struct ParseTokenStreamStrings`](../pg_crud_macros_common/src/domain_types.rs#L284)
-- [`struct ParseErrorIdRef`](../pg_crud_macros_common/src/domain_types.rs#L313)
-- [`struct PanicUuidRef`](../pg_crud_macros_common/src/domain_types.rs#L322)
-- [`struct SynIdentifierTypeRefs`](../pg_crud_macros_common/src/domain_types.rs#L324)
-- [`struct SynFieldRefs`](../pg_crud_macros_common/src/domain_types.rs#L326)
-- [`enum IsStandardNonNull`](../pg_crud_macros_common/src/domain_types.rs#L328)
-- [`enum IsNullable`](../pg_crud_macros_common/src/domain_types.rs#L346)
-- [`enum Import`](../pg_crud_macros_common/src/domain_types.rs#L399)
-- [`macro-generated type AddOperatorUndrscr`](../pg_crud_macros_common/src/domain_types.rs#L472)
-- [`macro-generated type ColumnParameterUndrscr`](../pg_crud_macros_common/src/domain_types.rs#L473)
-- [`macro-generated type IncrementParameterUndrscr`](../pg_crud_macros_common/src/domain_types.rs#L474)
-- [`macro-generated type IsCreateQueryBindMut`](../pg_crud_macros_common/src/domain_types.rs#L475)
-- [`macro-generated type IsQueryBindMut`](../pg_crud_macros_common/src/domain_types.rs#L476)
-- [`macro-generated type IsSelectOnlyCreatedIdsQueryBindMut`](../pg_crud_macros_common/src/domain_types.rs#L477)
-- [`macro-generated type IsSelectOnlyUpdatedIdsQueryBindMut`](../pg_crud_macros_common/src/domain_types.rs#L478)
-- [`macro-generated type IsSelectQueryPartColumnFieldForErrorMessageUsed`](../pg_crud_macros_common/src/domain_types.rs#L479)
-- [`macro-generated type IsSelectQueryPartIsPgTypeUsed`](../pg_crud_macros_common/src/domain_types.rs#L480)
-- [`macro-generated type IsSelectQueryPartSelfSelectUsed`](../pg_crud_macros_common/src/domain_types.rs#L481)
-- [`macro-generated type IsUpdateQueryBindMut`](../pg_crud_macros_common/src/domain_types.rs#L482)
-- [`macro-generated type IsUpdateQueryPartSelfUpdateUsed`](../pg_crud_macros_common/src/domain_types.rs#L483)
-- [`macro-generated type ShouldDSchemarsJsonSchema`](../pg_crud_macros_common/src/domain_types.rs#L484)
-- [`macro-generated type ShouldDeriveUtoipaToSchema`](../pg_crud_macros_common/src/domain_types.rs#L485)
-- [`enum ReadOrUpdate`](../pg_crud_macros_common/src/domain_types.rs#L487)
-- [`macro-generated type IsPrimaryKeyUndrscr`](../pg_crud_macros_common/src/domain_types.rs#L500)
-- [`enum DefaultSomeOneOrDefaultSomeOneWithMaxPageSize`](../pg_crud_macros_common/src/domain_types.rs#L502)
-- [`enum EqOrEqUsingFields`](../pg_crud_macros_common/src/domain_types.rs#L507)
-- [`enum EqOperatorHandle`](../pg_crud_macros_common/src/domain_types.rs#L512)
-- [`enum Dimension`](../pg_crud_macros_common/src/domain_types.rs#L535)
-- [`enum DimensionIndexNumber`](../pg_crud_macros_common/src/domain_types.rs#L543)
-- [`macro-generated type CreateQueryBindValueUndrscr`](../pg_crud_macros_common/src/domain_types.rs#L559)
-- [`macro-generated type CreateQueryPartIncrementUndrscr`](../pg_crud_macros_common/src/domain_types.rs#L560)
-- [`macro-generated type CreateQueryPartValueUndrscr`](../pg_crud_macros_common/src/domain_types.rs#L561)
-- [`macro-generated type SelectQueryPartValueUndrscr`](../pg_crud_macros_common/src/domain_types.rs#L562)
-- [`macro-generated type UpdateQueryPartAccumulatorUndrscr`](../pg_crud_macros_common/src/domain_types.rs#L563)
-- [`macro-generated type UpdateQueryPartPathUndrscr`](../pg_crud_macros_common/src/domain_types.rs#L564)
-- [`macro-generated type UpdateQueryPartTargetUndrscr`](../pg_crud_macros_common/src/domain_types.rs#L565)
-- [`macro-generated type UpdateQueryPartValueUndrscr`](../pg_crud_macros_common/src/domain_types.rs#L566)
+- [`struct NamesCtx`](../pg_crud_macro_common/src/domain_types.rs#L7)
+- [`enum DeriveOrImpl`](../pg_crud_macro_common/src/domain_types.rs#L181)
+- [`struct ProcMacro2GeneratedRustTokenStreamVec`](../pg_crud_macro_common/src/domain_types.rs#L186)
+- [`struct NonNullOrNullableStr`](../pg_crud_macro_common/src/domain_types.rs#L218)
+- [`struct IsNullablePrefixStr`](../pg_crud_macro_common/src/domain_types.rs#L227)
+- [`struct ImportSnakeCaseStr`](../pg_crud_macro_common/src/domain_types.rs#L237)
+- [`struct ImportPathStr`](../pg_crud_macro_common/src/domain_types.rs#L246)
+- [`struct DimensionNumber`](../pg_crud_macro_common/src/domain_types.rs#L255)
+- [`struct StructElsLen`](../pg_crud_macro_common/src/domain_types.rs#L264)
+- [`struct DeLen`](../pg_crud_macro_common/src/domain_types.rs#L273)
+- [`struct WrapIntoBraces`](../pg_crud_macro_common/src/domain_types.rs#L282)
+- [`struct ParseTokenStreamStrings`](../pg_crud_macro_common/src/domain_types.rs#L284)
+- [`struct ParseErrorIdRef`](../pg_crud_macro_common/src/domain_types.rs#L313)
+- [`struct PanicUuidRef`](../pg_crud_macro_common/src/domain_types.rs#L322)
+- [`struct SynIdentifierTypeRefs`](../pg_crud_macro_common/src/domain_types.rs#L324)
+- [`struct SynFieldRefs`](../pg_crud_macro_common/src/domain_types.rs#L326)
+- [`enum IsStandardNonNull`](../pg_crud_macro_common/src/domain_types.rs#L328)
+- [`enum IsNullable`](../pg_crud_macro_common/src/domain_types.rs#L346)
+- [`enum Import`](../pg_crud_macro_common/src/domain_types.rs#L399)
+- [`macro-generated type AddOperatorUndrscr`](../pg_crud_macro_common/src/domain_types.rs#L472)
+- [`macro-generated type ColumnParameterUndrscr`](../pg_crud_macro_common/src/domain_types.rs#L473)
+- [`macro-generated type IncrementParameterUndrscr`](../pg_crud_macro_common/src/domain_types.rs#L474)
+- [`macro-generated type IsCreateQueryBindMut`](../pg_crud_macro_common/src/domain_types.rs#L475)
+- [`macro-generated type IsQueryBindMut`](../pg_crud_macro_common/src/domain_types.rs#L476)
+- [`macro-generated type IsSelectOnlyCreatedIdsQueryBindMut`](../pg_crud_macro_common/src/domain_types.rs#L477)
+- [`macro-generated type IsSelectOnlyUpdatedIdsQueryBindMut`](../pg_crud_macro_common/src/domain_types.rs#L478)
+- [`macro-generated type IsSelectQueryPartColumnFieldForErrorMessageUsed`](../pg_crud_macro_common/src/domain_types.rs#L479)
+- [`macro-generated type IsSelectQueryPartIsPgTypeUsed`](../pg_crud_macro_common/src/domain_types.rs#L480)
+- [`macro-generated type IsSelectQueryPartSelfSelectUsed`](../pg_crud_macro_common/src/domain_types.rs#L481)
+- [`macro-generated type IsUpdateQueryBindMut`](../pg_crud_macro_common/src/domain_types.rs#L482)
+- [`macro-generated type IsUpdateQueryPartSelfUpdateUsed`](../pg_crud_macro_common/src/domain_types.rs#L483)
+- [`macro-generated type ShouldDSchemarsJsonSchema`](../pg_crud_macro_common/src/domain_types.rs#L484)
+- [`macro-generated type ShouldDeriveUtoipaToSchema`](../pg_crud_macro_common/src/domain_types.rs#L485)
+- [`enum ReadOrUpdate`](../pg_crud_macro_common/src/domain_types.rs#L487)
+- [`macro-generated type IsPrimaryKeyUndrscr`](../pg_crud_macro_common/src/domain_types.rs#L500)
+- [`enum DefaultSomeOneOrDefaultSomeOneWithMaxPageSize`](../pg_crud_macro_common/src/domain_types.rs#L502)
+- [`enum EqOrEqUsingFields`](../pg_crud_macro_common/src/domain_types.rs#L507)
+- [`enum EqOperatorHandle`](../pg_crud_macro_common/src/domain_types.rs#L512)
+- [`enum Dimension`](../pg_crud_macro_common/src/domain_types.rs#L535)
+- [`enum DimensionIndexNumber`](../pg_crud_macro_common/src/domain_types.rs#L543)
+- [`macro-generated type CreateQueryBindValueUndrscr`](../pg_crud_macro_common/src/domain_types.rs#L559)
+- [`macro-generated type CreateQueryPartIncrementUndrscr`](../pg_crud_macro_common/src/domain_types.rs#L560)
+- [`macro-generated type CreateQueryPartValueUndrscr`](../pg_crud_macro_common/src/domain_types.rs#L561)
+- [`macro-generated type SelectQueryPartValueUndrscr`](../pg_crud_macro_common/src/domain_types.rs#L562)
+- [`macro-generated type UpdateQueryPartAccumulatorUndrscr`](../pg_crud_macro_common/src/domain_types.rs#L563)
+- [`macro-generated type UpdateQueryPartPathUndrscr`](../pg_crud_macro_common/src/domain_types.rs#L564)
+- [`macro-generated type UpdateQueryPartTargetUndrscr`](../pg_crud_macro_common/src/domain_types.rs#L565)
+- [`macro-generated type UpdateQueryPartValueUndrscr`](../pg_crud_macro_common/src/domain_types.rs#L566)
 
-## `pg_crud_macros_common/src/domain_types/filters.rs`
+## `pg_crud_macro_common/src/domain_types/filters.rs`
 
-- [`enum PgTypeFilter`](../pg_crud_macros_common/src/domain_types/filters.rs#L9)
-- [`trait PgFilter`](../pg_crud_macros_common/src/domain_types/filters.rs#L178)
+- [`enum PgTypeFilter`](../pg_crud_macro_common/src/domain_types/filters.rs#L9)
+- [`trait PgFilter`](../pg_crud_macro_common/src/domain_types/filters.rs#L178)
 
 ## `pg_crud_pg_table/src/domain_types.rs`
 
@@ -1400,19 +1400,19 @@ Source files remain authoritative. Regenerate this catalog whenever domain decla
 - [`enum FilterValueShape`](../pg_crud_where_filters_generate_src/src/domain_types/spec.rs#L30)
 - [`struct FilterSpec`](../pg_crud_where_filters_generate_src/src/domain_types/spec.rs#L35)
 
-## `prepare_postgresql_databases/src/domain_types.rs`
+## `prepare_pg_databases/src/domain_types.rs`
 
-- [`struct DatabaseUrl`](../prepare_postgresql_databases/src/domain_types.rs#L11)
-- [`enum DatabaseUrlError`](../prepare_postgresql_databases/src/domain_types.rs#L16)
-- [`struct MigrationsSource`](../prepare_postgresql_databases/src/domain_types.rs#L33)
-- [`enum MigrationsSourceError`](../prepare_postgresql_databases/src/domain_types.rs#L38)
-- [`struct DatabasePreparationSpec`](../prepare_postgresql_databases/src/domain_types.rs#L44)
-- [`struct ProcessCommand`](../prepare_postgresql_databases/src/domain_types.rs#L60)
-- [`enum ProcessArgument`](../prepare_postgresql_databases/src/domain_types.rs#L66)
-- [`struct ProcessStaticArgument`](../prepare_postgresql_databases/src/domain_types.rs#L81)
-- [`struct ProcessArguments`](../prepare_postgresql_databases/src/domain_types.rs#L120)
-- [`struct ProcessCommands`](../prepare_postgresql_databases/src/domain_types.rs#L132)
-- [`struct ProcessProgram`](../prepare_postgresql_databases/src/domain_types.rs#L146)
+- [`struct DatabaseUrl`](../prepare_pg_databases/src/domain_types.rs#L11)
+- [`enum DatabaseUrlError`](../prepare_pg_databases/src/domain_types.rs#L16)
+- [`struct MigrationsSource`](../prepare_pg_databases/src/domain_types.rs#L33)
+- [`enum MigrationsSourceError`](../prepare_pg_databases/src/domain_types.rs#L38)
+- [`struct DatabasePreparationSpec`](../prepare_pg_databases/src/domain_types.rs#L44)
+- [`struct ProcessCommand`](../prepare_pg_databases/src/domain_types.rs#L60)
+- [`enum ProcessArgument`](../prepare_pg_databases/src/domain_types.rs#L66)
+- [`struct ProcessStaticArgument`](../prepare_pg_databases/src/domain_types.rs#L81)
+- [`struct ProcessArguments`](../prepare_pg_databases/src/domain_types.rs#L120)
+- [`struct ProcessCommands`](../prepare_pg_databases/src/domain_types.rs#L132)
+- [`struct ProcessProgram`](../prepare_pg_databases/src/domain_types.rs#L146)
 
 ## `route_validators/src/domain_types.rs`
 

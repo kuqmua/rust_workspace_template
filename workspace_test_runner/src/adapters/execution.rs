@@ -220,10 +220,10 @@ pub(crate) fn run_commands(commands: CommandsRef<'_>) -> Result<(), ()> {
             .map(|(idx, (program, args))| {
                 scope.spawn(move || {
                     let started_at = CommandStartedAtInstant::from(std::time::Instant::now());
-                    let output = macros_helpers::domain_types::tool_command::ToolCommand::new(
-                        macros_helpers::domain_types::tool_command::ToolProgramRef::from(*program),
+                    let output = macro_helpers::domain_types::tool_command::ToolCommand::new(
+                        macro_helpers::domain_types::tool_command::ToolProgramRef::from(*program),
                     )
-                    .args(macros_helpers::domain_types::tool_command::ToolArgsRef::from(*args))
+                    .args(macro_helpers::domain_types::tool_command::ToolArgsRef::from(*args))
                     .output();
                     let (status_text, log_text, succeeded) = match output {
                         Ok(command_output) => {

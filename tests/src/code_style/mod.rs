@@ -192,7 +192,7 @@ fn scan_generated_diagnostic_tokens(
 fn check_expect_and_panic_contain_unique_diagnostic_ids() {
     let reviewed_interpolations = [
         (
-            "pg_crud_macros_common/src/domain_types/token_stream_helpers.rs",
+            "pg_crud_macro_common/src/domain_types/token_stream_helpers.rs",
             "generated `panic` uses unchecked interpolated diagnostic message `#panic_uuid_token_stream`",
             "PanicUuidRef validates the diagnostic identifier before token generation",
         ),
@@ -275,11 +275,11 @@ fn lints_from_help_cmd(
     parse_only_clippy: types::AnalyzerBool,
     exp_id: types::StaticStr,
 ) -> types::SourceTextList {
-    let output = macros_helpers::domain_types::tool_command::ToolCommand::new(
-        macros_helpers::domain_types::tool_command::ToolProgramRef::from(tool.get()),
+    let output = macro_helpers::domain_types::tool_command::ToolCommand::new(
+        macro_helpers::domain_types::tool_command::ToolProgramRef::from(tool.get()),
     )
     .args(
-        macros_helpers::domain_types::tool_command::ToolArgsRef::from(
+        macro_helpers::domain_types::tool_command::ToolArgsRef::from(
             [constants_str::W, constants_str::HELP].as_slice(),
         ),
     )

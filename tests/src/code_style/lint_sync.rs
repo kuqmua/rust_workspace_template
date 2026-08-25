@@ -33,10 +33,10 @@ fn probe_lint(tool: &str, lint: &str) -> LintProbeDisposition {
         lint_arg.as_str(),
         constants_str::CODE_STYLE_LINT_PROBE_INPUT_PATH,
     ];
-    let output = macros_helpers::domain_types::tool_command::ToolCommand::new(
-        macros_helpers::domain_types::tool_command::ToolProgramRef::from(tool),
+    let output = macro_helpers::domain_types::tool_command::ToolCommand::new(
+        macro_helpers::domain_types::tool_command::ToolProgramRef::from(tool),
     )
-    .args(macros_helpers::domain_types::tool_command::ToolArgsRef::from(args.as_slice()))
+    .args(macro_helpers::domain_types::tool_command::ToolArgsRef::from(args.as_slice()))
     .output()
     .expect("3a17d9c2 probe_lint invariant must hold");
     if let Err(error) = std::fs::remove_file(output_path.as_path())

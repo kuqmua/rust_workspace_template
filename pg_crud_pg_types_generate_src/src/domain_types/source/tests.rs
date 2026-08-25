@@ -6,7 +6,7 @@ fn model_can_be_parsed_and_validated_without_emitting_source() {
         "variant": {"Subset": ["I16AsInt2", "StringAsText"]}
     }};
     let parsed = super::parse_generate_pg_types(
-        macros_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(&input),
+        macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(&input),
     )
     .expect(
         "35a0f719 model_can_be_parsed_and_validated_without_emitting_source invariant must hold",
@@ -25,7 +25,7 @@ fn malformed_config_is_a_typed_parse_error() {
     let input = quote::quote! {{"variant": "MissingFields"}};
     assert!(matches!(
         super::parse_generate_pg_types(
-            macros_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(&input),
+            macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(&input),
         ),
         Err(super::GeneratePgTypesPipelineError::Parse(_error))
     ));

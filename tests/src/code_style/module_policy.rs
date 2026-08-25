@@ -162,7 +162,7 @@ fn environment_initializer_domain_types_exclude_entrypoint_orchestration() {
             .find(|file| {
                 file.path()
                     .as_ref()
-                    .ends_with("initialize_environment_files/src/domain_types.rs")
+                    .ends_with("init_env_files/src/domain_types.rs")
             })
             .expect("1dac054f environment initializer domain types source must exist")
             .content()

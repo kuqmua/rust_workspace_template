@@ -9,7 +9,7 @@ pub(super) fn schema_uses_text_value(
 }
 pub(super) fn text_search_token_stream(
     spec: crate::domain_types::spec::FilterSpec,
-) -> macros_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
+) -> macro_helpers::domain_types::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
     if !schema_uses_text_value(spec).get() {
         return quote::quote! {compile_error!("text search schema requires text value shape");}
             .into();

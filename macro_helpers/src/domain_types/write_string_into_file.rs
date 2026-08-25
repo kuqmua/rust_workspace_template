@@ -238,29 +238,29 @@ mod tests {
     }
     #[test]
     fn try_write_string_into_path_writes_exact_content() {
-        let path = txt_path(constants_str::MACROS_HELPERS_WRITE_PATH);
+        let path = txt_path(constants_str::MACRO_HELPERS_WRITE_PATH);
         let result_path = super::try_write_string_into_path(&path, cnt(constants_str::ABC_ALT_3))
             .expect("dcb22948 try_write_string_into_path_writes_exact_content invariant must hold");
         assert_eq!(result_path, written_path(path.clone()));
         assert_content_and_cleanup(path.as_path(), constants_str::ABC_ALT_3);
     }
     #[test]
-    fn write_string_into_file_adds_rs_extension() {
+    fn try_write_string_into_file_adds_rs_extension() {
         let base = crate::domain_types::test_hlp::test_path(
             crate::domain_types::test_hlp::TestPathStem::new(
-                constants_str::MACROS_HELPERS_WRITE_FILE,
+                constants_str::MACRO_HELPERS_WRITE_FILE,
             ),
         );
         let path = crate::domain_types::rs_file_path::rs_file_path(&base);
         let _path = super::try_write_string_into_file(&base, cnt(constants_str::XYZ))
-            .expect("4f3094e1 write_string_into_file_adds_rs_extension invariant must hold");
+            .expect("4f3094e1 try_write_string_into_file_adds_rs_extension invariant must hold");
         assert_content_and_cleanup(path.as_ref(), constants_str::XYZ);
     }
     #[test]
     fn try_write_string_into_file_returns_path() {
         let base = crate::domain_types::test_hlp::test_path(
             crate::domain_types::test_hlp::TestPathStem::new(
-                constants_str::MACROS_HELPERS_TRY_WRITE_FILE,
+                constants_str::MACRO_HELPERS_TRY_WRITE_FILE,
             ),
         );
         let path = super::try_write_string_into_file(&base, cnt(constants_str::QWE))
@@ -269,7 +269,7 @@ mod tests {
     }
     #[test]
     fn try_write_string_into_path_writes_exact_path_without_extension_rewrite() {
-        let path = txt_path(constants_str::MACROS_HELPERS_TRY_WRITE_PATH_PASSTHROUGH);
+        let path = txt_path(constants_str::MACRO_HELPERS_TRY_WRITE_PATH_PASSTHROUGH);
         let result_path = super::try_write_string_into_path(&path, cnt(constants_str::ABC_ALT_3))
             .expect("b6b47a2c try_write_string_into_path_writes_exact_path_without_extension_rewrite invariant must hold");
         assert_eq!(result_path, written_path(path.clone()));
@@ -277,7 +277,7 @@ mod tests {
     }
     #[test]
     fn should_write_string_into_file_returns_true_for_missing_file() {
-        let path = txt_path(constants_str::MACROS_HELPERS_SHOULD_WRITE_MISSING);
+        let path = txt_path(constants_str::MACRO_HELPERS_SHOULD_WRITE_MISSING);
         let should_write =
             super::should_write_string_into_file(path_ref(&path), cnt(constants_str::ABC_ALT_3))
                 .expect("f5d2cb68 should_write_string_into_file_returns_true_for_missing_file invariant must hold");
@@ -285,7 +285,7 @@ mod tests {
     }
     #[test]
     fn should_write_string_into_file_returns_false_when_content_is_eq() {
-        let path = txt_path(constants_str::MACROS_HELPERS_SHOULD_WRITE_SAME);
+        let path = txt_path(constants_str::MACRO_HELPERS_SHOULD_WRITE_SAME);
         std::fs::write(&path, constants_str::SAME).expect("68e4f52d should_write_string_into_file_returns_false_when_content_is_eq invariant must hold");
         let should_write =
             super::should_write_string_into_file(path_ref(&path), cnt(constants_str::SAME))
@@ -295,7 +295,7 @@ mod tests {
     }
     #[test]
     fn should_write_string_into_file_compares_equal_content_in_chunks() {
-        let path = txt_path(constants_str::MACROS_HELPERS_SHOULD_WRITE_LARGE_SAME);
+        let path = txt_path(constants_str::MACRO_HELPERS_SHOULD_WRITE_LARGE_SAME);
         let content = constants_str::ABCD_ALT.repeat(4097usize);
         std::fs::write(&path, &content).expect("1d706d27 should_write_string_into_file_compares_equal_content_in_chunks invariant must hold");
         let should_write =
@@ -305,7 +305,7 @@ mod tests {
     }
     #[test]
     fn should_write_string_into_file_finds_diff_after_first_chunk() {
-        let path = txt_path(constants_str::MACROS_HELPERS_SHOULD_WRITE_LARGE_DIFF);
+        let path = txt_path(constants_str::MACRO_HELPERS_SHOULD_WRITE_LARGE_DIFF);
         let old_content = constants_str::A_ALT.repeat(16_388usize);
         let mut new_content = old_content.clone();
         new_content.replace_range(16_387usize.., constants_str::B);
@@ -317,7 +317,7 @@ mod tests {
     }
     #[test]
     fn should_write_string_into_file_returns_true_when_content_differs() {
-        let path = txt_path(constants_str::MACROS_HELPERS_SHOULD_WRITE_DIFF);
+        let path = txt_path(constants_str::MACRO_HELPERS_SHOULD_WRITE_DIFF);
         std::fs::write(&path, constants_str::OLD).expect("a2fd8473 should_write_string_into_file_returns_true_when_content_differs invariant must hold");
         let should_write =
             super::should_write_string_into_file(path_ref(&path), cnt(constants_str::NEW))
@@ -327,7 +327,7 @@ mod tests {
     }
     #[test]
     fn should_write_string_into_file_returns_true_for_same_len_diff_content() {
-        let path = txt_path(constants_str::MACROS_HELPERS_SHOULD_WRITE_SAME_LEN_DIFF);
+        let path = txt_path(constants_str::MACRO_HELPERS_SHOULD_WRITE_SAME_LEN_DIFF);
         std::fs::write(&path, constants_str::ABC_ALT_3).expect("517fd0c9 should_write_string_into_file_returns_true_for_same_len_diff_content invariant must hold");
         let should_write =
             super::should_write_string_into_file(path_ref(&path), cnt(constants_str::XYZ))
@@ -337,7 +337,7 @@ mod tests {
     }
     #[test]
     fn should_write_string_into_file_returns_true_for_diff_len_content() {
-        let path = txt_path(constants_str::MACROS_HELPERS_SHOULD_WRITE_DIFF_LEN);
+        let path = txt_path(constants_str::MACRO_HELPERS_SHOULD_WRITE_DIFF_LEN);
         std::fs::write(&path, constants_str::ABCD_ALT).expect("e2d99b73 should_write_string_into_file_returns_true_for_diff_len_content invariant must hold");
         let should_write =
             super::should_write_string_into_file(path_ref(&path), cnt(constants_str::A_ALT))
@@ -347,7 +347,7 @@ mod tests {
     }
     #[test]
     fn write_string_if_needed_returns_false_without_rewrite_for_eq_content() {
-        let path = txt_path(constants_str::MACROS_HELPERS_WRITE_IF_NEEDED_EQ);
+        let path = txt_path(constants_str::MACRO_HELPERS_WRITE_IF_NEEDED_EQ);
         std::fs::write(&path, constants_str::SAME).expect("924bdc58 write_string_if_needed_returns_false_without_rewrite_for_eq_content invariant must hold");
         let wrote = super::write_string_if_needed(path_ref(&path), cnt(constants_str::SAME))
             .expect("9f27b9cb write_string_if_needed_returns_false_without_rewrite_for_eq_content invariant must hold");
@@ -356,7 +356,7 @@ mod tests {
     }
     #[test]
     fn write_string_if_needed_returns_true_and_writes_for_diff_content() {
-        let path = txt_path(constants_str::MACROS_HELPERS_WRITE_IF_NEEDED_DIFF);
+        let path = txt_path(constants_str::MACRO_HELPERS_WRITE_IF_NEEDED_DIFF);
         std::fs::write(&path, constants_str::OLD).expect("9b4ab8ad write_string_if_needed_returns_true_and_writes_for_diff_content invariant must hold");
         let wrote = super::write_string_if_needed(path_ref(&path), cnt(constants_str::NEW))
             .expect("4e4ce16d write_string_if_needed_returns_true_and_writes_for_diff_content invariant must hold");
@@ -368,7 +368,7 @@ mod tests {
         let path = crate::domain_types::rs_file_path::rs_file_path(
             crate::domain_types::test_hlp::test_path(
                 crate::domain_types::test_hlp::TestPathStem::new(
-                    constants_str::MACROS_HELPERS_RS_EXT_PATH,
+                    constants_str::MACRO_HELPERS_RS_EXT_PATH,
                 ),
             ),
         );
@@ -381,7 +381,7 @@ mod tests {
     fn try_write_string_into_file_skips_rewrite_when_cnt_is_unchanged() {
         let base = crate::domain_types::test_hlp::test_path(
             crate::domain_types::test_hlp::TestPathStem::new(
-                constants_str::MACROS_HELPERS_WRITE_IF_CHANGED,
+                constants_str::MACRO_HELPERS_WRITE_IF_CHANGED,
             ),
         );
         let path = crate::domain_types::rs_file_path::rs_file_path(&base);
@@ -397,7 +397,7 @@ mod tests {
     fn try_write_string_into_file_writes_when_cnt_differs() {
         let base = crate::domain_types::test_hlp::test_path(
             crate::domain_types::test_hlp::TestPathStem::new(
-                constants_str::MACROS_HELPERS_WRITE_IF_CHANGED_DIFF,
+                constants_str::MACRO_HELPERS_WRITE_IF_CHANGED_DIFF,
             ),
         );
         let path = crate::domain_types::rs_file_path::rs_file_path(&base);
@@ -411,7 +411,7 @@ mod tests {
     }
     #[test]
     fn try_write_string_into_path_with_outcome_returns_changed_for_new_content() {
-        let path = txt_path(constants_str::MACROS_HELPERS_WRITE_OUTCOME_CHANGED);
+        let path = txt_path(constants_str::MACRO_HELPERS_WRITE_OUTCOME_CHANGED);
         let outcome =
             super::try_write_string_into_path_with_outcome(&path, cnt(constants_str::ABC_ALT_3))
                 .expect("947faed1 try_write_string_into_path_with_outcome_returns_changed_for_new_content invariant must hold");
@@ -423,7 +423,7 @@ mod tests {
     }
     #[test]
     fn try_write_string_into_path_with_outcome_returns_unchanged_for_same_content() {
-        let path = txt_path(constants_str::MACROS_HELPERS_WRITE_OUTCOME_UNCHANGED);
+        let path = txt_path(constants_str::MACRO_HELPERS_WRITE_OUTCOME_UNCHANGED);
         std::fs::write(&path, constants_str::ABC_ALT_3).expect("d293f783 try_write_string_into_path_with_outcome_returns_unchanged_for_same_content invariant must hold");
         let outcome =
             super::try_write_string_into_path_with_outcome(&path, cnt(constants_str::ABC_ALT_3))
@@ -434,7 +434,7 @@ mod tests {
     fn try_write_string_into_file_with_outcome_returns_changed_and_rs_path() {
         let base = crate::domain_types::test_hlp::test_path(
             crate::domain_types::test_hlp::TestPathStem::new(
-                constants_str::MACROS_HELPERS_WRITE_FILE_OUTCOME_CHANGED,
+                constants_str::MACRO_HELPERS_WRITE_FILE_OUTCOME_CHANGED,
             ),
         );
         let path = crate::domain_types::rs_file_path::rs_file_path(&base);
@@ -449,7 +449,7 @@ mod tests {
     fn try_write_string_into_file_with_outcome_returns_unchanged_for_same_content() {
         let base = crate::domain_types::test_hlp::test_path(
             crate::domain_types::test_hlp::TestPathStem::new(
-                constants_str::MACROS_HELPERS_WRITE_FILE_OUTCOME_UNCHANGED,
+                constants_str::MACRO_HELPERS_WRITE_FILE_OUTCOME_UNCHANGED,
             ),
         );
         let path = crate::domain_types::rs_file_path::rs_file_path(&base);
@@ -463,11 +463,11 @@ mod tests {
     }
     #[test]
     fn write_path_outcome_into_path_returns_owned_path() {
-        let changed_path = txt_path(constants_str::MACROS_HELPERS_WRITE_OUTCOME_INTO_PATH_CHANGED);
+        let changed_path = txt_path(constants_str::MACRO_HELPERS_WRITE_OUTCOME_INTO_PATH_CHANGED);
         let changed = super::WritePathOutcome::Changed(written_path(changed_path.clone()));
         assert_eq!(changed.into_path(), written_path(changed_path));
         let unchanged_path =
-            txt_path(constants_str::MACROS_HELPERS_WRITE_OUTCOME_INTO_PATH_UNCHANGED);
+            txt_path(constants_str::MACRO_HELPERS_WRITE_OUTCOME_INTO_PATH_UNCHANGED);
         let unchanged = super::WritePathOutcome::Unchanged(written_path(unchanged_path.clone()));
         assert_eq!(unchanged.into_path(), written_path(unchanged_path));
     }

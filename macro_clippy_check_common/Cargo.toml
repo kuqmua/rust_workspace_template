@@ -13,7 +13,7 @@ constants_usize = { workspace = true }
 constants_i32 = { workspace = true }
 optimal_memory_layout = { workspace = true }
 constants_str = { workspace = true, optional = true }
-macros_helpers = { workspace = true, optional = true }
+macro_helpers = { workspace = true, optional = true }
 server_runtime_http = { workspace = true, optional = true }
 
 [dev-dependencies]
@@ -21,7 +21,7 @@ newtype = { workspace = true }
 
 [features]
 test-utils = [
-  "dep:macros_helpers",
+  "dep:macro_helpers",
   "dep:server_runtime_http",
   "dep:constants_str",
 ]

@@ -110,7 +110,7 @@ mod tests {
         ]
     }
     #[test]
-    fn get_macro_attr_ignores_spaces_in_lookup_path() {
+    fn macro_attr_ignores_spaces_in_lookup_path() {
         let attrs = attrs();
         let attr = super::try_get_macro_attr(&attrs, constants_str::SQLX_PATH_TYPE_NAME)
             .expect("193fa8d2 get_macro_attr_ignores_spaces_in_lookup_path invariant must hold");
@@ -121,7 +121,7 @@ mod tests {
         );
     }
     #[test]
-    fn get_macro_attr_meta_list_token_stream_returns_list_tokens() {
+    fn macro_attr_meta_list_token_stream_returns_list_tokens() {
         let attrs = attrs();
         let ts = super::try_get_macro_attr_meta_list_token_stream(&attrs, constants_str::SERDE)
             .expect("647b0c3e get_macro_attr_meta_list_token_stream_returns_list_tokens invariant must hold");

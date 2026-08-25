@@ -26,7 +26,7 @@
 #[must_use] pub fn open_api() -> UtoipaCommonRoutesOpenApiDocument
 #[must_use] pub fn path(self) -> frontend_contract::domain_types::ContractStr
 #[must_use] pub fn readiness(database_available: HealthDatabaseAvailable) -> Self
-pub trait CommonRoutesParameters: git_info::domain_types::GetGitCommitLink + app_state::domain_types::GetSqlxPgPool + Send + Sync { }
+pub trait CommonRoutesParameters: git_info::domain_types::GitCommitLinkProvider + app_state::domain_types::SqlxPgPoolProvider + Send + Sync { }
 
 [frontend_contract/src] # generic frontend route contract
 #[allow(clippy::future_not_send)] // Transport intentionally permits single-threaded WASM futures pub async fn send<Route>( &self, body: Route::Request, ) -> Result<Route::Response, crate::domain_types::ClientError> where Route: crate::domain_types::TypedRoute,

@@ -3,7 +3,7 @@ const ADMIN_JWT_SECRET_MAX_COUNT: usize = 8;
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
-    generate_getter_traits_for_struct_fields::GenerateGetterTrait,
+    generate_accessor_traits_for_struct_fields::GenerateAccessorTrait,
     newtype::AsRefOwned,
     newtype::DebugRedacted,
     newtype::FromInner,

@@ -68,7 +68,7 @@ are covered by the [versioning policy](docs/release-versioning.md),
 Initialize environment files and start both services with isolated databases:
 
 ```bash
-cargo run -p initialize_environment_files
+cargo run -p init_env_files
 POSTGRES_PASSWORD=development-only \
 NOTIFICATION_POSTGRES_PASSWORD=development-only \
 docker compose up --build
@@ -159,7 +159,7 @@ cargo miri test --all-features \
   -p config_lib \
   -p file_storage \
   -p frontend_contract \
-  -p macros_helpers \
+  -p macro_helpers \
   -p newtype \
   -p pg_crud_common \
   -p server_runtime_core \

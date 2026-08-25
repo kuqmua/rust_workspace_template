@@ -22,7 +22,7 @@ pub(crate) async fn run_main() -> crate::domain_types::NotificationExitCode {
         } else {
             server_runtime_http::domain_types::ServiceTracingFormat::Text
         };
-    let observability = match server_runtime_http::domain_types::initialize_service_observability(
+    let observability = match server_runtime_http::domain_types::init_service_observability(
         tracing_format,
         server_runtime_http::domain_types::ServiceName::from(env!("CARGO_PKG_NAME")),
     ) {

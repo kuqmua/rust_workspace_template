@@ -5,7 +5,7 @@
     Copy,
     PartialEq,
     Eq,
-    generate_getter_traits_for_struct_fields::GenerateGetterTrait,
+    generate_accessor_traits_for_struct_fields::GenerateAccessorTrait,
     newtype::DerefInner,
     newtype::FromInner,
 )]
@@ -17,7 +17,7 @@ pub struct AdminCookieSecure(bool);
     Copy,
     PartialEq,
     Eq,
-    generate_getter_traits_for_struct_fields::GenerateGetterTrait,
+    generate_accessor_traits_for_struct_fields::GenerateAccessorTrait,
     newtype::DerefInner,
     newtype::FromInner,
 )]

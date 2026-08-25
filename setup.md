@@ -7,7 +7,7 @@ The repository uses the nightly toolchain pinned in `rust-toolchain.toml`.
 Create the untracked service environment files:
 
 ```bash
-cargo run -p initialize_environment_files
+cargo run -p init_env_files
 ```
 
 Start both services and their isolated PostgreSQL databases:

@@ -65,7 +65,7 @@ impl Drop for ObservabilityGuard {
     }
 }
 
-pub fn initialize_service_observability(
+pub fn init_service_observability(
     format: crate::domain_types::ServiceTracingFormat,
     service_name: ServiceName,
 ) -> Result<ObservabilityGuard, ObservabilityInitError> {
