@@ -1015,8 +1015,9 @@ fn production_code_does_not_use_line_print_macros() {
             );
             visitor.calls.into_iter().for_each(|call| {
                 ers.push(format!(
-                    "{}: production `{call}!` is forbidden; use structured tracing/telemetry instead",
-                    path.display()
+                    "{}: `{call}!`: {}",
+                    path.display(),
+                    constants_str::VALUE_70D9A674
                 ));
             });
         },
@@ -1035,6 +1036,10 @@ fn production_line_print_macro_policy_allows_test_code_and_rejects_production_co
     assert_eq!(
         visitor.calls.as_slice(),
         ["println".to_owned(), "eprintln".to_owned()]
+    );
+    assert_eq!(
+        constants_str::VALUE_70D9A674,
+        "instead of using println! and eprintln!, use tracing/telemetry"
     );
 }
 #[test]

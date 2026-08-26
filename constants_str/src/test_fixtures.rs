@@ -1810,8 +1810,7 @@ pub const VALUE_EAFDE0B2: &str = "primary_color";
 pub const VALUE_0981EB3C: &str = "print!";
 pub const VALUE_2FFB2CC3: &str = "println!";
 pub const VALUE_F7D8E121: &str = "println!(\"active\");";
-pub const VALUE_70D9A674: &str =
-    "production println! and eprintln! calls must use structured tracing/telemetry instead";
+pub const VALUE_70D9A674: &str = "instead of using println! and eprintln!, use tracing/telemetry";
 pub const VALUE_1686EBFE: &str = "projection parsing maps to a stable scaffold error";
 pub const VALUE_1812E35F: &str = "pub fn common_routes(";
 pub const VALUE_5C907704: &str = "pub use crate::owner::Item;";
