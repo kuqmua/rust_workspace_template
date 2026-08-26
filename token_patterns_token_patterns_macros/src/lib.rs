@@ -1,11 +1,11 @@
 mod domain_types;
 
 fn generate_tp(
-    input: domain_types::ProcMacro2GenerateTpInput,
-) -> domain_types::ProcMacro2GenerateTpOutput {
+    input: domain_types::proc_macro2_generate_tp_input::ProcMacro2GenerateTpInput,
+) -> domain_types::proc_macro2_generate_tp_output::ProcMacro2GenerateTpOutput {
     let mut iter = proc_macro2::TokenStream::from(input).into_iter();
     let Some(name) = workspace_macro_helpers::domain_types::first_identifier(&mut iter) else {
-        return domain_types::ProcMacro2GenerateTpOutput::from(
+        return domain_types::proc_macro2_generate_tp_output::ProcMacro2GenerateTpOutput::from(
             workspace_macro_helpers::domain_types::compile_error_token_stream(
                 constants_str::COMPILE_ERROR_CE_076,
             )
@@ -13,7 +13,7 @@ fn generate_tp(
         );
     };
     if !workspace_macro_helpers::domain_types::strip_first_comma(&mut iter) {
-        return domain_types::ProcMacro2GenerateTpOutput::from(
+        return domain_types::proc_macro2_generate_tp_output::ProcMacro2GenerateTpOutput::from(
             workspace_macro_helpers::domain_types::compile_error_token_stream(
                 constants_str::COMPILE_ERROR_CE_075,
             )
@@ -22,7 +22,7 @@ fn generate_tp(
     }
     let body = iter.collect::<proc_macro2::TokenStream>();
     let name_identifier = quote::format_ident!("{name}");
-    domain_types::ProcMacro2GenerateTpOutput::from(quote::quote! {
+    domain_types::proc_macro2_generate_tp_output::ProcMacro2GenerateTpOutput::from(quote::quote! {
         #[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout)]
         pub struct #name_identifier;
         impl quote::ToTokens for #name_identifier {
@@ -35,9 +35,11 @@ fn generate_tp(
 }
 #[proc_macro]
 pub fn tp(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    proc_macro2::TokenStream::from(generate_tp(domain_types::ProcMacro2GenerateTpInput::from(
-        proc_macro2::TokenStream::from(input),
-    )))
+    proc_macro2::TokenStream::from(generate_tp(
+        domain_types::proc_macro2_generate_tp_input::ProcMacro2GenerateTpInput::from(
+            proc_macro2::TokenStream::from(input),
+        ),
+    ))
     .into()
 }
 #[proc_macro]
@@ -108,7 +110,9 @@ pub fn tp_batch(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                 if group.delimiter() == proc_macro2::Delimiter::Parenthesis =>
             {
                 Some(proc_macro2::TokenStream::from(generate_tp(
-                    domain_types::ProcMacro2GenerateTpInput::from(group.stream()),
+                    domain_types::proc_macro2_generate_tp_input::ProcMacro2GenerateTpInput::from(
+                        group.stream(),
+                    ),
                 )))
             }
             proc_macro2::TokenTree::Group(_)

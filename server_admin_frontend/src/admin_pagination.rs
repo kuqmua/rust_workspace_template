@@ -10,7 +10,7 @@ pub(in crate::domain_types::start) fn AdminPagination(
     query: super::query::AdminCsrQuery,
     total: server_admin_contract::domain_types::AdminPageTotal,
 ) -> impl leptos::prelude::IntoView {
-    let range = crate::domain_types::shared::pagination::AdminPageRange::new(
+    let range = crate::domain_types::shared::pagination::admin_page_range::AdminPageRange::new(
         query.offset,
         query.limit,
         total,

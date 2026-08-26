@@ -108,28 +108,28 @@ pub fn impl_try_from_secret_url(input: proc_macro::TokenStream) -> proc_macro::T
 #[proc_macro]
 pub fn impl_try_from_parse(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     proc_macro::TokenStream::from(impl_try_from_parse_with_error_ty(
-        domain_types::ProcMacro2TryFromParseInput::from(proc_macro2::TokenStream::from(input)),
-        domain_types::ProcMacro2TryFromParseFixedErrorTy::from(None),
+        domain_types::proc_macro2_try_from_parse_input::ProcMacro2TryFromParseInput::from(proc_macro2::TokenStream::from(input)),
+        domain_types::proc_macro2_try_from_parse_fixed_error_ty::ProcMacro2TryFromParseFixedErrorTy::from(None),
     ))
 }
 #[proc_macro]
 pub fn impl_try_from_parse_string_error(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     proc_macro::TokenStream::from(impl_try_from_parse_with_error_ty(
-        domain_types::ProcMacro2TryFromParseInput::from(proc_macro2::TokenStream::from(input)),
-        domain_types::ProcMacro2TryFromParseFixedErrorTy::from(Some(quote::quote! {String})),
+        domain_types::proc_macro2_try_from_parse_input::ProcMacro2TryFromParseInput::from(proc_macro2::TokenStream::from(input)),
+        domain_types::proc_macro2_try_from_parse_fixed_error_ty::ProcMacro2TryFromParseFixedErrorTy::from(Some(quote::quote! {String})),
     ))
 }
 fn impl_try_from_parse_with_error_ty(
-    input: domain_types::ProcMacro2TryFromParseInput,
-    fixed_error_ty: domain_types::ProcMacro2TryFromParseFixedErrorTy,
-) -> domain_types::ProcMacroTryFromParseTokenStream {
+    input: domain_types::proc_macro2_try_from_parse_input::ProcMacro2TryFromParseInput,
+    fixed_error_ty: domain_types::proc_macro2_try_from_parse_fixed_error_ty::ProcMacro2TryFromParseFixedErrorTy,
+) -> domain_types::proc_macro_try_from_parse_token_stream::ProcMacroTryFromParseTokenStream {
     let parts = workspace_macro_helpers::domain_types::split_top_level_commas(
         proc_macro2::TokenStream::from(input),
     );
     let fixed_error_ty_opt = Option::<proc_macro2::TokenStream>::from(fixed_error_ty);
     let min_len = if fixed_error_ty_opt.is_some() { 5 } else { 6 };
     if parts.len() < min_len {
-        return domain_types::ProcMacroTryFromParseTokenStream::from(
+        return domain_types::proc_macro_try_from_parse_token_stream::ProcMacroTryFromParseTokenStream::from(
             proc_macro::TokenStream::from(
                 workspace_macro_helpers::domain_types::compile_error_token_stream(
                     constants_str::COMPILE_ERROR_CE_071,
@@ -140,7 +140,7 @@ fn impl_try_from_parse_with_error_ty(
     }
     let Some(name_text) = workspace_macro_helpers::domain_types::first_identifier_at(&parts, 0)
     else {
-        return domain_types::ProcMacroTryFromParseTokenStream::from(
+        return domain_types::proc_macro_try_from_parse_token_stream::ProcMacroTryFromParseTokenStream::from(
             proc_macro::TokenStream::from(
                 workspace_macro_helpers::domain_types::compile_error_token_stream(
                     constants_str::COMPILE_ERROR_CE_070,
@@ -152,7 +152,7 @@ fn impl_try_from_parse_with_error_ty(
     let Some(error_name_text) =
         workspace_macro_helpers::domain_types::first_identifier_at(&parts, 1)
     else {
-        return domain_types::ProcMacroTryFromParseTokenStream::from(
+        return domain_types::proc_macro_try_from_parse_token_stream::ProcMacroTryFromParseTokenStream::from(
             proc_macro::TokenStream::from(
                 workspace_macro_helpers::domain_types::compile_error_token_stream(
                     constants_str::COMPILE_ERROR_CE_067,
@@ -164,7 +164,7 @@ fn impl_try_from_parse_with_error_ty(
     let Some(error_variant_text) =
         workspace_macro_helpers::domain_types::first_identifier_at(&parts, 3)
     else {
-        return domain_types::ProcMacroTryFromParseTokenStream::from(
+        return domain_types::proc_macro_try_from_parse_token_stream::ProcMacroTryFromParseTokenStream::from(
             proc_macro::TokenStream::from(
                 workspace_macro_helpers::domain_types::compile_error_token_stream(
                     constants_str::COMPILE_ERROR_CE_068,
@@ -176,7 +176,7 @@ fn impl_try_from_parse_with_error_ty(
     let Some(error_field_text) =
         workspace_macro_helpers::domain_types::first_identifier_at(&parts, 4)
     else {
-        return domain_types::ProcMacroTryFromParseTokenStream::from(
+        return domain_types::proc_macro_try_from_parse_token_stream::ProcMacroTryFromParseTokenStream::from(
             proc_macro::TokenStream::from(
                 workspace_macro_helpers::domain_types::compile_error_token_stream(
                     constants_str::COMPILE_ERROR_CE_066,
@@ -190,7 +190,7 @@ fn impl_try_from_parse_with_error_ty(
     let error_variant = quote::format_ident!("{error_variant_text}");
     let error_field = quote::format_ident!("{error_field_text}");
     let Some(inner) = workspace_macro_helpers::domain_types::part_at(&parts, 2) else {
-        return domain_types::ProcMacroTryFromParseTokenStream::from(
+        return domain_types::proc_macro_try_from_parse_token_stream::ProcMacroTryFromParseTokenStream::from(
             proc_macro::TokenStream::from(
                 workspace_macro_helpers::domain_types::compile_error_token_stream(
                     constants_str::COMPILE_ERROR_CE_069,
@@ -214,8 +214,8 @@ fn impl_try_from_parse_with_error_ty(
             )
         },
     );
-    domain_types::ProcMacroTryFromParseTokenStream::from(proc_macro::TokenStream::from(
-        quote::quote! {
+    domain_types::proc_macro_try_from_parse_token_stream::ProcMacroTryFromParseTokenStream::from(
+        proc_macro::TokenStream::from(quote::quote! {
             #[derive(Debug, #(#derives,)* generate_accessor_traits_for_struct_fields::GenerateAccessorTrait, optimal_memory_layout::OptimalMemoryLayout)]
             pub struct #name(pub #inner);
             #[derive(Debug, thiserror::Error, optimal_memory_layout::OptimalMemoryLayout)]
@@ -229,8 +229,8 @@ fn impl_try_from_parse_with_error_ty(
                     parse_from_str_with_error(StdEnvVarOkRef(v.0.as_str()), |#error_field| Self::Error::#error_variant { #error_field }).map(Self)
                 }
             }
-        },
-    ))
+        }),
+    )
 }
 #[proc_macro]
 pub fn assert_parse_ok_matches(input: proc_macro::TokenStream) -> proc_macro::TokenStream {

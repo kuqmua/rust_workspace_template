@@ -31,21 +31,32 @@ pub(in crate::domain_types::start) struct AdminCsrApiUrlSuffixRef<'suffix_lt>(&'
 
 pub(in crate::domain_types::start) fn admin_api_url(
     route: server_admin_contract::domain_types::AdminRoute,
-) -> Result<AdminCsrApiUrl, crate::domain_types::start::state::AdminTableLoadError> {
+) -> Result<
+    AdminCsrApiUrl,
+    crate::domain_types::start::state::admin_table_load_error::AdminTableLoadError,
+> {
     admin_route_path_url(route.path())
 }
 
 pub(in crate::domain_types::start) fn admin_route_path_url(
     path: server_admin_contract::domain_types::AdminRoutePath,
-) -> Result<AdminCsrApiUrl, crate::domain_types::start::state::AdminTableLoadError> {
-    AdminCsrApiUrl::try_from(path.to_string())
-        .map_err(|_error| crate::domain_types::start::state::AdminTableLoadError::Query)
+) -> Result<
+    AdminCsrApiUrl,
+    crate::domain_types::start::state::admin_table_load_error::AdminTableLoadError,
+> {
+    AdminCsrApiUrl::try_from(path.to_string()).map_err(|_error| {
+        crate::domain_types::start::state::admin_table_load_error::AdminTableLoadError::Query
+    })
 }
 
 pub(in crate::domain_types::start) fn admin_api_url_with_suffix(
     route: server_admin_contract::domain_types::AdminRoute,
     suffix: AdminCsrApiUrlSuffixRef<'_>,
-) -> Result<AdminCsrApiUrl, crate::domain_types::start::state::AdminTableLoadError> {
-    AdminCsrApiUrl::try_from(format!("{}{}", route.path(), suffix.as_ref()))
-        .map_err(|_error| crate::domain_types::start::state::AdminTableLoadError::Query)
+) -> Result<
+    AdminCsrApiUrl,
+    crate::domain_types::start::state::admin_table_load_error::AdminTableLoadError,
+> {
+    AdminCsrApiUrl::try_from(format!("{}{}", route.path(), suffix.as_ref())).map_err(|_error| {
+        crate::domain_types::start::state::admin_table_load_error::AdminTableLoadError::Query
+    })
 }

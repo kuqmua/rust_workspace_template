@@ -33,7 +33,9 @@ impl axum::response::IntoResponse for RequestTimeoutError {
 impl RequestTimeoutLayer {
     #[must_use]
     pub fn apply(self, router: super::AxumRouter) -> super::AxumRouter {
-        super::AxumRouter::from(router.0.layer(RequestTimeoutTowerLayer::from(self.0)))
+        super::AxumRouter::from(
+            axum::Router::from(router).layer(RequestTimeoutTowerLayer::from(self.0)),
+        )
     }
 }
 

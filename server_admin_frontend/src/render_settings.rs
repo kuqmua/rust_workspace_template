@@ -16,7 +16,7 @@ pub(super) fn render_settings(
     admin: &server_admin_contract::domain_types::AuthenticatedAdmin,
     branding: &server_admin_contract::domain_types::AdminBrandingView,
 ) -> super::AdminSsrHtml {
-    let values = crate::domain_types::shared::settings::values::AdminSettingsFormValues::from(view);
+    let values = crate::domain_types::shared::settings::values::admin_settings_form_values::AdminSettingsFormValues::from(view);
     let signals =
         crate::domain_types::shared::settings::admin_settings_form_signals::AdminSettingsFormSignals::new(&values);
     let can_update = bool::from(admin.has_permission(

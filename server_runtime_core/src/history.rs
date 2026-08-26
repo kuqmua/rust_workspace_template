@@ -1,102 +1,20 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
-struct RunReportsVecDeque<RunReport>(std::collections::VecDeque<RunReport>);
+#[path = "history_async_run_history.rs"]
+mod async_run_history;
+#[path = "history_async_run_history_maximum_len_non_zero_usize.rs"]
+mod async_run_history_maximum_len_non_zero_usize;
+#[path = "history_async_run_history_snapshot.rs"]
+mod async_run_history_snapshot;
+#[path = "history_run_reports_vec_deque.rs"]
+mod run_reports_vec_deque;
+#[path = "history_shared_run_reports_arc.rs"]
+mod shared_run_reports_arc;
+#[path = "history_std_async_run_history_maximum_len_try_from_usize_error.rs"]
+mod std_async_run_history_maximum_len_try_from_usize_error;
+#[path = "history_std_async_run_history_report_count.rs"]
+mod std_async_run_history_report_count;
 
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::CloneInner, newtype::FromInner,
-)]
-struct SharedRunReportsArc<RunReport>(
-    std::sync::Arc<tokio::sync::RwLock<RunReportsVecDeque<RunReport>>>,
-);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::CloneFields)]
-pub struct AsyncRunHistory<RunReport> {
-    maximum_len: AsyncRunHistoryMaximumLenNonZeroUsize,
-    reports: SharedRunReportsArc<RunReport>,
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub struct AsyncRunHistoryMaximumLenNonZeroUsize(std::num::NonZeroUsize);
-impl TryFrom<usize> for AsyncRunHistoryMaximumLenNonZeroUsize {
-    type Error = StdAsyncRunHistoryMaximumLenTryFromUsizeError;
-    fn try_from(value: usize) -> Result<Self, Self::Error> {
-        std::num::NonZeroUsize::new(value)
-            .map(Self)
-            .ok_or(StdAsyncRunHistoryMaximumLenTryFromUsizeError)
-    }
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
-)]
-#[error(
-    "{}",
-    constants_str::RUN_HISTORY_MAXIMUM_LENGTH_MUST_BE_GREATER_THAN_ZERO
-)]
-pub struct StdAsyncRunHistoryMaximumLenTryFromUsizeError;
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
-)]
-pub struct StdAsyncRunHistoryReportCount(usize);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
-pub struct AsyncRunHistorySnapshot<RunReport> {
-    latest_report: Option<RunReport>,
-    report_count: StdAsyncRunHistoryReportCount,
-}
-impl<RunReport> AsyncRunHistorySnapshot<RunReport> {
-    #[must_use]
-    pub const fn latest_report(&self) -> Option<&RunReport> {
-        self.latest_report.as_ref()
-    }
-    #[must_use]
-    pub const fn report_count(&self) -> StdAsyncRunHistoryReportCount {
-        self.report_count
-    }
-}
-impl<RunReport: Send + Sync> AsyncRunHistory<RunReport> {
-    #[must_use]
-    pub fn new(maximum_len: AsyncRunHistoryMaximumLenNonZeroUsize) -> Self {
-        let reports = RunReportsVecDeque::from(std::collections::VecDeque::with_capacity(
-            maximum_len.0.get(),
-        ));
-        Self {
-            maximum_len,
-            reports: SharedRunReportsArc::from(std::sync::Arc::from(tokio::sync::RwLock::new(
-                reports,
-            ))),
-        }
-    }
-    pub async fn push(&self, report: RunReport) {
-        let mut reports = self.reports.0.write().await;
-        if reports.0.len() == self.maximum_len.0.get() {
-            let _removed = reports.0.pop_front();
-        }
-        reports.0.push_back(report);
-    }
-}
-impl<RunReport: Clone + Send + Sync> AsyncRunHistory<RunReport> {
-    pub async fn snapshot(&self) -> AsyncRunHistorySnapshot<RunReport> {
-        let reports = self.reports.0.read().await;
-        AsyncRunHistorySnapshot {
-            latest_report: reports.0.back().cloned(),
-            report_count: StdAsyncRunHistoryReportCount::from(reports.0.len()),
-        }
-    }
-}
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn history_clone_does_not_require_report_clone() {
-        #[derive(optimal_memory_layout::OptimalMemoryLayout)]
-        struct NotClone;
-        let maximum = super::AsyncRunHistoryMaximumLenNonZeroUsize::try_from(constants_usize::ONE)
-            .expect("91f5d3a8 history_clone_does_not_require_report_clone invariant must hold");
-        let history = super::AsyncRunHistory::<NotClone>::new(maximum);
-        let cloned = history.clone();
-        assert_eq!(history.maximum_len, cloned.maximum_len, "f1c763a4");
-    }
-}
+pub use async_run_history::AsyncRunHistory;
+pub use async_run_history_maximum_len_non_zero_usize::AsyncRunHistoryMaximumLenNonZeroUsize;
+pub use async_run_history_snapshot::AsyncRunHistorySnapshot;
+pub use std_async_run_history_maximum_len_try_from_usize_error::StdAsyncRunHistoryMaximumLenTryFromUsizeError;
+pub use std_async_run_history_report_count::StdAsyncRunHistoryReportCount;

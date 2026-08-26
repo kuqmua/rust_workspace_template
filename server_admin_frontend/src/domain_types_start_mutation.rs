@@ -27,7 +27,9 @@ pub(in crate::domain_types::start) fn reload_after<RequestBody>(
             Ok(()) => match web_sys::window() {
                 Some(window) if window.location().reload().is_ok() => {}
                 Some(_) | None => {
-                    show_mutation_error(&super::state::AdminTableLoadError::Fetch);
+                    show_mutation_error(
+                        &super::state::admin_table_load_error::AdminTableLoadError::Fetch,
+                    );
                 }
             },
             Err(error) => show_mutation_error(&error),
@@ -35,7 +37,7 @@ pub(in crate::domain_types::start) fn reload_after<RequestBody>(
     });
 }
 
-fn show_mutation_error(error: &super::state::AdminTableLoadError) {
+fn show_mutation_error(error: &super::state::admin_table_load_error::AdminTableLoadError) {
     let Some(document) = web_sys::window().and_then(|window| window.document()) else {
         return;
     };

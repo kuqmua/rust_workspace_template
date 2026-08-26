@@ -11,7 +11,8 @@ mod hash_opaque_token;
 mod password;
 #[path = "rbac.rs"]
 mod rbac;
-pub use generated_auth::{AdminGeneratedAuthLayer, AdminGeneratedAuthService};
+pub use generated_auth::admin_generated_auth_layer::AdminGeneratedAuthLayer;
+pub use generated_auth::admin_generated_auth_service::AdminGeneratedAuthService;
 pub use pg_table::domain_types::CombinationOfAppStateLogicTraits;
 pub use server_admin_contract::domain_types::{
     AdminDisplayName, AdminLogin, AdminPermission, AdminPermissionTryFromStrError, AdminRoleName,

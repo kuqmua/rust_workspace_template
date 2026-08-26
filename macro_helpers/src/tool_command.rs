@@ -1,96 +1,36 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct PathRef<'lt>(&'lt std::path::Path);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
-struct ProcessCommand(std::process::Command);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
-struct OsStringValue(std::ffi::OsString);
-impl From<&str> for OsStringValue {
-    fn from(value: &str) -> Self {
-        Self(std::ffi::OsString::from(value))
-    }
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct ToolProgramRef<'lt>(&'lt str);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct ToolArgRef<'lt>(&'lt str);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct ToolArgsRef<'lt>(&'lt [&'lt str]);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct ToolEnvKeyRef<'lt>(&'lt str);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct ToolEnvValueRef<'lt>(&'lt str);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    newtype::DerefInner,
-    newtype::Display,
-    newtype::FromInner,
+#[path = "tool_command_os_string_value.rs"]
+mod os_string_value;
+#[path = "tool_command_path_ref.rs"]
+mod path_ref;
+#[path = "tool_command_process_command.rs"]
+mod process_command;
+#[path = "tool_command_process_exit_status.rs"]
+mod process_exit_status;
+#[path = "tool_command_process_output.rs"]
+mod process_output;
+#[path = "tool_command_tool_arg_ref.rs"]
+mod tool_arg_ref;
+#[path = "tool_command_tool_args_ref.rs"]
+mod tool_args_ref;
+#[path = "tool_command_tool_command.rs"]
+#[allow(
+    clippy::module_inception,
+    reason = "the compatibility facade retains its public path while the same-named owner receives a dedicated module"
 )]
-pub struct ProcessExitStatus(std::process::ExitStatus);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    newtype::AsRefOwned,
-    newtype::DerefInner,
-    newtype::FromInner,
-)]
-pub struct ProcessOutput(std::process::Output);
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-pub struct ToolCommand {
-    inner: ProcessCommand,
-    program: OsStringValue,
-}
-impl std::fmt::Debug for ToolCommand {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct(constants_str::TOOLCOMMAND)
-            .field(constants_str::PROGRAM, &self.program.0)
-            .field(constants_str::ARGUMENTS, &constants_str::REDACTED)
-            .finish_non_exhaustive()
-    }
-}
-impl ToolCommand {
-    pub fn arg(&mut self, value: ToolArgRef<'_>) -> &mut Self {
-        let _command = self.inner.0.arg(value.0);
-        self
-    }
-    pub fn args(&mut self, values: ToolArgsRef<'_>) -> &mut Self {
-        let _command = self.inner.0.args(values.0);
-        self
-    }
-    pub fn current_dir(&mut self, value: PathRef<'_>) -> &mut Self {
-        let _command = self.inner.0.current_dir(value.0);
-        self
-    }
-    pub fn env(&mut self, key: ToolEnvKeyRef<'_>, value: ToolEnvValueRef<'_>) -> &mut Self {
-        let _command = self.inner.0.env(key.0, value.0);
-        self
-    }
-    #[must_use]
-    pub fn new(program: ToolProgramRef<'_>) -> Self {
-        Self {
-            inner: ProcessCommand::from(std::process::Command::new(program.0)),
-            program: OsStringValue::from(program.0),
-        }
-    }
-    pub fn output(&mut self) -> std::io::Result<ProcessOutput> {
-        self.inner.0.output().map(ProcessOutput)
-    }
-    pub fn status(&mut self) -> std::io::Result<ProcessExitStatus> {
-        self.inner.0.status().map(ProcessExitStatus)
-    }
-}
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn debug_redacts_arguments() {
-        let mut command =
-            super::ToolCommand::new(super::ToolProgramRef::from(constants_str::PRINTF));
-        let _command = command.arg(super::ToolArgRef::from(constants_str::SECRET_VALUE));
-        let debug = format!("{command:?}");
-        assert!(debug.contains("printf"));
-        assert!(debug.contains("<redacted>"));
-        assert!(!debug.contains("secret-value"));
-    }
-}
+mod tool_command;
+#[path = "tool_command_tool_env_key_ref.rs"]
+mod tool_env_key_ref;
+#[path = "tool_command_tool_env_value_ref.rs"]
+mod tool_env_value_ref;
+#[path = "tool_command_tool_program_ref.rs"]
+mod tool_program_ref;
+
+pub use path_ref::PathRef;
+pub use process_exit_status::ProcessExitStatus;
+pub use process_output::ProcessOutput;
+pub use tool_arg_ref::ToolArgRef;
+pub use tool_args_ref::ToolArgsRef;
+pub use tool_command::ToolCommand;
+pub use tool_env_key_ref::ToolEnvKeyRef;
+pub use tool_env_value_ref::ToolEnvValueRef;
+pub use tool_program_ref::ToolProgramRef;

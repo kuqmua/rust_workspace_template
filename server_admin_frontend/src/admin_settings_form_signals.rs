@@ -10,7 +10,9 @@ pub(crate) struct AdminSettingsFormSignals(
         server_admin_contract::domain_types::AdminSetting::COUNT],
 );
 impl AdminSettingsFormSignals {
-    pub(crate) fn new(values: &super::values::AdminSettingsFormValues) -> Self {
+    pub(crate) fn new(
+        values: &super::values::admin_settings_form_values::AdminSettingsFormValues,
+    ) -> Self {
         Self::from(
             server_admin_contract::domain_types::AdminSetting::ALL.map(|setting| {
                 crate::domain_types::with_owner::input::LeptosAdminInputSignal::from(

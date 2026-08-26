@@ -1,12 +1,16 @@
 pub(in crate::domain_types::start) fn csr_page_from_location() -> Result<
     server_admin_contract::domain_types::AdminPage,
-    crate::domain_types::start::state::AdminTableLoadError,
+    crate::domain_types::start::state::admin_table_load_error::AdminTableLoadError,
 > {
     let pathname = web_sys::window()
-        .ok_or(crate::domain_types::start::state::AdminTableLoadError::Fetch)?
+        .ok_or(
+            crate::domain_types::start::state::admin_table_load_error::AdminTableLoadError::Fetch,
+        )?
         .location()
         .pathname()
-        .map_err(|_error| crate::domain_types::start::state::AdminTableLoadError::Fetch)?;
+        .map_err(|_error| {
+            crate::domain_types::start::state::admin_table_load_error::AdminTableLoadError::Fetch
+        })?;
     let path = server_admin_contract::domain_types::AdminPagePathRef::from(pathname.as_str());
     let page = match server_admin_contract::domain_types::AdminPage::from_path(path) {
         Some(page) => page,
@@ -15,11 +19,13 @@ pub(in crate::domain_types::start) fn csr_page_from_location() -> Result<
         {
             server_admin_contract::domain_types::AdminPage::Tables
         }
-        None => return Err(crate::domain_types::start::state::AdminTableLoadError::Query),
+        None => return Err(
+            crate::domain_types::start::state::admin_table_load_error::AdminTableLoadError::Query,
+        ),
     };
     if bool::from(page.supports_csr()) {
         Ok(page)
     } else {
-        Err(crate::domain_types::start::state::AdminTableLoadError::Query)
+        Err(crate::domain_types::start::state::admin_table_load_error::AdminTableLoadError::Query)
     }
 }

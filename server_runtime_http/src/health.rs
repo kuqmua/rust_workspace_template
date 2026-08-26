@@ -110,9 +110,8 @@ pub fn add_health_routes(
     readiness: &HealthReadiness,
 ) -> crate::domain_types::AxumRouter {
     let readiness_for_route = readiness.clone();
-    crate::domain_types::AxumRouter(
-        router
-            .0
+    crate::domain_types::AxumRouter::from(
+        axum::Router::from(router)
             .route(
                 constants_str::LIVE_PATH,
                 axum::routing::get(async || {
@@ -186,11 +185,10 @@ mod tests {
     #[tokio::test]
     async fn health_routes_distinguish_live_and_ready_statuses() {
         let readiness = super::HealthReadiness::default();
-        let router = super::add_health_routes(
+        let router = axum::Router::from(super::add_health_routes(
             crate::domain_types::AxumRouter::from(axum::Router::new()),
             &readiness,
-        )
-        .0;
+        ));
         let live_response = tower::ServiceExt::oneshot(
             router.clone(),
             http::Request::get(constants_str::LIVE_PATH)

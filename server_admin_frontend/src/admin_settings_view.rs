@@ -18,7 +18,7 @@ pub(in crate::domain_types::start) fn AdminSettingsView(
         server_admin_contract::domain_types::AdminPermission::SystemSettingsUpdate,
     ));
     let values =
-        crate::domain_types::shared::settings::values::AdminSettingsFormValues::from(&page);
+        crate::domain_types::shared::settings::values::admin_settings_form_values::AdminSettingsFormValues::from(&page);
     let signals =
         crate::domain_types::shared::settings::admin_settings_form_signals::AdminSettingsFormSignals::new(&values);
     leptos::view! {

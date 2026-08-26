@@ -41,7 +41,7 @@ pub enum ServeWithGracefulShutdownError {
 
 #[must_use]
 pub fn add_status_route(router: super::AxumRouter) -> super::AxumRouter {
-    super::AxumRouter::from(router.0.route(
+    super::AxumRouter::from(axum::Router::from(router).route(
         constants_str::STATUS,
         axum::routing::get(async || http::StatusCode::OK),
     ))
@@ -61,8 +61,7 @@ where
     let server = IntoFuture::into_future(
         axum::serve(
             listener.0,
-            router
-                .0
+            axum::Router::from(router)
                 .into_make_service_with_connect_info::<std::net::SocketAddr>(),
         )
         .with_graceful_shutdown(async move {

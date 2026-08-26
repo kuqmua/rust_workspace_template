@@ -1878,7 +1878,7 @@ constants_str_macros::define_str_constants! {
         MACRO_RULES_FOUND_USE_WORKSPACE_PROC_MACRO_CRATES_INSTEAD = ["macro_rules found; use workspace proc-macro crates instead:"];
         MACRO_RULES = ["macro_rules"];
         MACRO_HELPERS_SRC_PANIC_IF_ERR_RS = ["macro_helpers/src/panic_if_err.rs"];
-        MACRO_HELPERS_SRC_TOOL_COMMAND_RS = ["macro_helpers/src/tool_command.rs"];
+        MACRO_HELPERS_SRC_TOOL_COMMAND_RS = ["macro_helpers/src/tool_command_tool_command.rs"];
         MACRO_HELPERS_RS_EXT_PATH = ["macro_helpers_rs_ext_path"];
         MACRO_HELPERS_SHOULD_WRITE_DIFF = ["macro_helpers_should_write_diff"];
         MACRO_HELPERS_SHOULD_WRITE_DIFF_LEN = ["macro_helpers_should_write_diff_len"];

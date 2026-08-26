@@ -6,7 +6,7 @@ pub(in crate::domain_types) const fn idempotency_capable<
     PermissionAction,
     StatusCode,
 >(
-    dsc: &crate::domain_types::table::OperationDsc<
+    dsc: &crate::domain_types::table::operation_dsc::OperationDsc<
         Capability,
         HttpMethod,
         Operation,
@@ -25,8 +25,8 @@ mod tests {
     fn descriptor(
         idempotency_capable: bool,
         optimistic_concurrency_capable: bool,
-    ) -> crate::domain_types::table::OperationDsc<bool, (), (), (), (), ()> {
-        crate::domain_types::table::OperationDsc {
+    ) -> crate::domain_types::table::operation_dsc::OperationDsc<bool, (), (), (), (), ()> {
+        crate::domain_types::table::operation_dsc::OperationDsc {
             http_method: (),
             idempotency_capable,
             operation: (),

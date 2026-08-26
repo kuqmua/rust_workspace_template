@@ -30,8 +30,8 @@ pub(crate) struct AdminSettingDisabled(bool);
 struct AdminSettingRequired(bool);
 impl crate::domain_types::with_owner::input::LeptosAdminInputSignal {
     #[cfg(target_arch = "wasm32")]
-    pub(crate) fn value(self) -> super::values::AdminSettingInputValue {
-        super::values::AdminSettingInputValue::from(
+    pub(crate) fn value(self) -> super::values::admin_setting_input_value::AdminSettingInputValue {
+        super::values::admin_setting_input_value::AdminSettingInputValue::from(
             leptos::prelude::Get::get(&self.signal()).into_boxed_str(),
         )
     }

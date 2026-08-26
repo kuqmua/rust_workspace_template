@@ -174,7 +174,9 @@ impl Default for HttpMetricsLayer {
 impl HttpMetricsLayer {
     #[must_use]
     pub fn apply(self, router: crate::domain_types::AxumRouter) -> crate::domain_types::AxumRouter {
-        crate::domain_types::AxumRouter(router.0.layer(HttpMetricsTowerLayer { paths: self.paths }))
+        crate::domain_types::AxumRouter::from(
+            axum::Router::from(router).layer(HttpMetricsTowerLayer { paths: self.paths }),
+        )
     }
 
     #[must_use]

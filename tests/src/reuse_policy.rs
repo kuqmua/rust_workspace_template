@@ -204,6 +204,10 @@ fn substantial_function_bodies_have_one_source_of_truth() {
             reason: constants_str::VALUE_FE253AFB,
         },
         ReviewedDuplicateGroup {
+            locations: constants_str::HTTP_CLIENT_TIMEOUT_TRY_FROM_LOCATIONS,
+            reason: constants_str::VALUE_FE253AFB,
+        },
+        ReviewedDuplicateGroup {
             locations: constants_str::VALUE_1C550714,
             reason: constants_str::VALUE_C1DC2D40,
         },
@@ -254,10 +258,6 @@ fn substantial_function_bodies_have_one_source_of_truth() {
         ReviewedDuplicateGroup {
             locations: constants_str::VALUE_CD85A891,
             reason: constants_str::VALUE_424D0EAB,
-        },
-        ReviewedDuplicateGroup {
-            locations: constants_str::VALUE_72A10749,
-            reason: constants_str::VALUE_F6AEFC16,
         },
         ReviewedDuplicateGroup {
             locations: constants_str::VALUE_CBBA0BFF,

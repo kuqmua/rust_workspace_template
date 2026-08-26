@@ -14,7 +14,7 @@ pub(in crate::domain_types::start) fn AdminDataGrid(
     let total = view.total();
     let limit = u16::from(query.limit);
     let limit_text = limit.to_string();
-    let range = crate::domain_types::shared::pagination::AdminPageRange::new(
+    let range = crate::domain_types::shared::pagination::admin_page_range::AdminPageRange::new(
         query.offset,
         query.limit,
         total,

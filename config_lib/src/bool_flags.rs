@@ -1,119 +1,19 @@
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    generate_accessor_traits_for_struct_fields::GenerateAccessorTrait,
-    newtype::DerefInner,
-    newtype::FromInner,
-)]
-pub struct AdminCookieSecure(bool);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    generate_accessor_traits_for_struct_fields::GenerateAccessorTrait,
-    newtype::DerefInner,
-    newtype::FromInner,
-)]
-pub struct AdminSwaggerEnabled(bool);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    newtype::DerefInner,
-    newtype::FromInner,
-)]
-pub struct HttpGzipEnabled(bool);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    newtype::DerefInner,
-    newtype::FromInner,
-)]
-pub struct ProductionMode(bool);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, newtype::DebugTransparent, newtype::FromInner,
-)]
-pub struct AdminBoolParsingError(super::ParseBoolError);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
-#[error("{0:?}")]
-#[derive(newtype::FromInner)]
-pub struct TryFromStdEnvVarOkAdminCookieSecureError(AdminBoolParsingError);
-impl super::TryFromStdEnvVarOk for AdminCookieSecure {
-    type Error = TryFromStdEnvVarOkAdminCookieSecureError;
-    fn try_from_std_env_var_ok(v: super::StdEnvVarOk) -> Result<Self, Self::Error> {
-        v.0.parse::<bool>().map(Self).map_err(|admin_bool_parsing| {
-            TryFromStdEnvVarOkAdminCookieSecureError::from(AdminBoolParsingError::from(
-                super::ParseBoolError::from(admin_bool_parsing),
-            ))
-        })
-    }
-}
-impl super::TryFromStdEnvVarOk for AdminSwaggerEnabled {
-    type Error = TryFromStdEnvVarOkAdminCookieSecureError;
-    fn try_from_std_env_var_ok(v: super::StdEnvVarOk) -> Result<Self, Self::Error> {
-        v.0.parse::<bool>().map(Self).map_err(|admin_bool_parsing| {
-            TryFromStdEnvVarOkAdminCookieSecureError::from(AdminBoolParsingError::from(
-                super::ParseBoolError::from(admin_bool_parsing),
-            ))
-        })
-    }
-}
-impl super::TryFromStdEnvVarOk for HttpGzipEnabled {
-    type Error = TryFromStdEnvVarOkAdminCookieSecureError;
-    fn try_from_std_env_var_ok(v: super::StdEnvVarOk) -> Result<Self, Self::Error> {
-        v.0.parse::<bool>().map(Self).map_err(|admin_bool_parsing| {
-            TryFromStdEnvVarOkAdminCookieSecureError::from(AdminBoolParsingError::from(
-                super::ParseBoolError::from(admin_bool_parsing),
-            ))
-        })
-    }
-}
-impl super::TryFromStdEnvVarOk for ProductionMode {
-    type Error = TryFromStdEnvVarOkAdminCookieSecureError;
-    fn try_from_std_env_var_ok(v: super::StdEnvVarOk) -> Result<Self, Self::Error> {
-        v.0.parse::<bool>().map(Self).map_err(|admin_bool_parsing| {
-            TryFromStdEnvVarOkAdminCookieSecureError::from(AdminBoolParsingError::from(
-                super::ParseBoolError::from(admin_bool_parsing),
-            ))
-        })
-    }
-}
+#[path = "bool_flags_admin_bool_parsing_error.rs"]
+mod admin_bool_parsing_error;
+#[path = "bool_flags_admin_cookie_secure.rs"]
+mod admin_cookie_secure;
+#[path = "bool_flags_admin_swagger_enabled.rs"]
+mod admin_swagger_enabled;
+#[path = "bool_flags_http_gzip_enabled.rs"]
+mod http_gzip_enabled;
+#[path = "bool_flags_production_mode.rs"]
+mod production_mode;
+#[path = "bool_flags_try_from_std_env_var_ok_admin_cookie_secure_error.rs"]
+mod try_from_std_env_var_ok_admin_cookie_secure_error;
 
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn boolean_flags_share_strict_boolean_parsing() {
-        let enabled =
-            <super::HttpGzipEnabled as super::super::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
-                super::super::StdEnvVarOk::try_from(String::from(constants_str::TRUE)).expect(
-                    "ea35fb71 boolean_flags_share_strict_boolean_parsing invariant must hold",
-                ),
-            )
-            .expect("864d1f90 boolean_flags_share_strict_boolean_parsing invariant must hold");
-        assert!(enabled.0);
-        let invalid =
-            <super::ProductionMode as super::super::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
-                super::super::StdEnvVarOk::try_from(String::from(constants_str::VALUE_1)).expect(
-                    "ab9ec621 boolean_flags_share_strict_boolean_parsing invariant must hold",
-                ),
-            );
-        assert!(matches!(
-            invalid,
-            Err(super::TryFromStdEnvVarOkAdminCookieSecureError(_))
-        ));
-    }
-}
+pub use admin_bool_parsing_error::AdminBoolParsingError;
+pub use admin_cookie_secure::{AdminCookieSecure, AdminCookieSecureProvider};
+pub use admin_swagger_enabled::{AdminSwaggerEnabled, AdminSwaggerEnabledProvider};
+pub use http_gzip_enabled::HttpGzipEnabled;
+pub use production_mode::ProductionMode;
+pub use try_from_std_env_var_ok_admin_cookie_secure_error::TryFromStdEnvVarOkAdminCookieSecureError;

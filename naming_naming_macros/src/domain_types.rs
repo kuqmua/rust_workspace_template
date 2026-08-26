@@ -1,23 +1,6 @@
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
-    newtype::ToTokens,
-)]
-pub(crate) struct ProcMacro2GeneratedNamingTokenStream(proc_macro2::TokenStream);
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::AsRefInner, newtype::FromInner,
-)]
-pub(crate) struct SynEnumIdentifierRef<'identifier_lt>(&'identifier_lt syn::Ident);
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    newtype::AsRefTarget,
-    newtype::FromInner,
-)]
-pub(crate) struct ProcMacro2VariantMatchingTokensRef<'tokens_lt>(
-    &'tokens_lt [proc_macro2::TokenStream],
-);
+#[path = "domain_types_proc_macro2_generated_naming_token_stream.rs"]
+pub(crate) mod proc_macro2_generated_naming_token_stream;
+#[path = "domain_types_proc_macro2_variant_matching_tokens_ref.rs"]
+pub(crate) mod proc_macro2_variant_matching_tokens_ref;
+#[path = "domain_types_syn_enum_identifier_ref.rs"]
+pub(crate) mod syn_enum_identifier_ref;

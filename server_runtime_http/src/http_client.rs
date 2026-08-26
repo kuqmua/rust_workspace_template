@@ -1,164 +1,24 @@
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Debug,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
-)]
-pub struct ReqwestClient(reqwest::Client);
+#[path = "http_client_reqwest_client.rs"]
+mod reqwest_client;
+#[path = "http_client_reqwest_client_build_error.rs"]
+mod reqwest_client_build_error;
+#[path = "http_client_reqwest_client_policy.rs"]
+mod reqwest_client_policy;
+#[path = "http_client_reqwest_connect_timeout_duration.rs"]
+mod reqwest_connect_timeout_duration;
+#[path = "http_client_reqwest_request_timeout_duration.rs"]
+mod reqwest_request_timeout_duration;
+#[path = "http_client_std_reqwest_timeout_error.rs"]
+mod std_reqwest_timeout_error;
+#[path = "http_client_tracing_http_client_span.rs"]
+mod tracing_http_client_span;
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
-pub struct ReqwestConnectTimeoutDuration(std::time::Duration);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
-pub struct ReqwestRequestTimeoutDuration(std::time::Duration);
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
-)]
-#[error("HTTP client timeout must be greater than zero")]
-pub struct StdReqwestTimeoutError;
-
-impl TryFrom<std::time::Duration> for ReqwestConnectTimeoutDuration {
-    type Error = StdReqwestTimeoutError;
-
-    fn try_from(value: std::time::Duration) -> Result<Self, Self::Error> {
-        if value.is_zero() {
-            Err(StdReqwestTimeoutError)
-        } else {
-            Ok(Self(value))
-        }
-    }
-}
-
-impl TryFrom<std::time::Duration> for ReqwestRequestTimeoutDuration {
-    type Error = StdReqwestTimeoutError;
-
-    fn try_from(value: std::time::Duration) -> Result<Self, Self::Error> {
-        if value.is_zero() {
-            Err(StdReqwestTimeoutError)
-        } else {
-            Ok(Self(value))
-        }
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
-pub struct ReqwestClientPolicy {
-    connect_timeout: ReqwestConnectTimeoutDuration,
-    request_timeout: ReqwestRequestTimeoutDuration,
-}
-
-impl ReqwestClientPolicy {
-    #[must_use]
-    pub const fn new(
-        connect_timeout: ReqwestConnectTimeoutDuration,
-        request_timeout: ReqwestRequestTimeoutDuration,
-    ) -> Self {
-        Self {
-            connect_timeout,
-            request_timeout,
-        }
-    }
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
-)]
-#[error(transparent)]
-pub struct ReqwestClientBuildError(reqwest::Error);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
-pub(super) struct TracingHttpClientSpan(tracing::Span);
-
-impl TracingHttpClientSpan {
-    fn into_inner(self) -> tracing::Span {
-        self.0
-    }
-}
-
-impl ReqwestClient {
-    pub async fn execute(
-        &self,
-        mut request: super::ReqwestRequest,
-    ) -> Result<super::ReqwestResponse, super::ReqwestError> {
-        let span = Self::prepare_observed_http_request(&mut request);
-        tracing::Instrument::instrument(
-            async {
-                match self.0.execute(request.into_inner()).await {
-                    Ok(response) => {
-                        let _client_status_record = tracing::Span::current().record(
-                            constants_str::OTEL_HTTP_RESPONSE_STATUS_CODE,
-                            response.status().as_u16(),
-                        );
-                        if response.status().is_server_error() {
-                            let _client_error_record = tracing::Span::current().record(
-                                constants_str::OTEL_STATUS_CODE,
-                                constants_str::OTEL_ERROR_STATUS,
-                            );
-                        }
-                        Ok(super::ReqwestResponse::from(response))
-                    }
-                    Err(error) => {
-                        let _client_error_record = tracing::Span::current().record(
-                            constants_str::OTEL_STATUS_CODE,
-                            constants_str::OTEL_ERROR_STATUS,
-                        );
-                        Err(super::ReqwestError::from(error))
-                    }
-                }
-            },
-            span.into_inner(),
-        )
-        .await
-    }
-
-    #[allow(clippy::single_call_fn)] // shared preparation keeps production execution and deterministic propagation tests on the same implementation
-    pub(super) fn prepare_observed_http_request(
-        request: &mut super::ReqwestRequest,
-    ) -> TracingHttpClientSpan {
-        let span = {
-            let method = request.method();
-            let host = request.host().unwrap_or_else(|| {
-                super::HttpHostRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX)
-            });
-            let span = tracing::info_span!(
-                "http.client",
-                otel.kind = "client",
-                otel.name = tracing::field::Empty,
-                otel.status_code = tracing::field::Empty,
-                "http.request.method" = %method,
-                "server.address" = %host,
-                "http.response.status_code" = tracing::field::Empty,
-            );
-            let _client_name_record =
-                span.record(constants_str::OTEL_NAME, format_args!("{method} {host}"));
-            span
-        };
-        super::inject_trace_context(
-            &super::OpentelemetryContext::from(
-                tracing_opentelemetry::OpenTelemetrySpanExt::context(&span),
-            ),
-            request.headers_mut(),
-        );
-        TracingHttpClientSpan::from(span)
-    }
-
-    pub fn try_new(policy: ReqwestClientPolicy) -> Result<Self, ReqwestClientBuildError> {
-        reqwest::Client::builder()
-            .connect_timeout(policy.connect_timeout.0)
-            .timeout(policy.request_timeout.0)
-            .redirect(reqwest::redirect::Policy::none())
-            .user_agent(concat!(
-                env!("CARGO_PKG_NAME"),
-                "/",
-                env!("CARGO_PKG_VERSION")
-            ))
-            .build()
-            .map(Self)
-            .map_err(ReqwestClientBuildError)
-    }
-}
+pub use reqwest_client::ReqwestClient;
+pub use reqwest_client_build_error::ReqwestClientBuildError;
+pub use reqwest_client_policy::ReqwestClientPolicy;
+pub use reqwest_connect_timeout_duration::ReqwestConnectTimeoutDuration;
+pub use reqwest_request_timeout_duration::ReqwestRequestTimeoutDuration;
+pub use std_reqwest_timeout_error::StdReqwestTimeoutError;
 
 #[cfg(test)]
 mod tests {

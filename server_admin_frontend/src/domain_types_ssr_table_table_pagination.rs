@@ -21,7 +21,7 @@ pub(super) fn table_pagination(
         |value| value.frontend_path().to_string(),
     );
     let limit = u16::from(query.limit());
-    let range = crate::domain_types::shared::pagination::AdminPageRange::new(
+    let range = crate::domain_types::shared::pagination::admin_page_range::AdminPageRange::new(
         query.offset(),
         query.limit(),
         total,

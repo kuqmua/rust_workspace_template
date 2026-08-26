@@ -288,7 +288,7 @@ pub fn emit_generate_pg_table(
         UpdateOne,
     }
     impl
-        crate::domain_types::table::OperationDsc<
+        crate::domain_types::table::operation_dsc::OperationDsc<
             bool,
             OperationHttpMethod,
             Operation,
@@ -4725,7 +4725,7 @@ enum WrapIntoOptional {
         quote::quote! {where_filters::domain_types::RegexRegex},
         quote::quote! {pg_crud_common::domain_types::NotZeroUnsignedPartOfI32},
     ]);
-    crate::domain_types::table::OperationDsc::ALL
+    crate::domain_types::table::operation_dsc::OperationDsc::ALL
     .iter()
     .fold((), |(), operation_dsc| {
         let operation = &operation_dsc.operation;
@@ -7003,11 +7003,11 @@ enum WrapIntoOptional {
             #(#frontend_api_client_methods_token_stream)*
         }
     };
-    let enabled_operation_count = crate::domain_types::table::OperationDsc::ALL
+    let enabled_operation_count = crate::domain_types::table::operation_dsc::OperationDsc::ALL
         .iter()
         .filter(|operation_dsc| operation_is_enabled(&operation_dsc.operation))
         .count();
-    let route_contract_items_token_stream = crate::domain_types::table::OperationDsc::ALL
+    let route_contract_items_token_stream = crate::domain_types::table::operation_dsc::OperationDsc::ALL
         .iter()
         .filter(|operation_dsc| operation_is_enabled(&operation_dsc.operation))
         .map(|operation_dsc| {
@@ -7056,19 +7056,20 @@ enum WrapIntoOptional {
                 )
             }
         });
-    let route_contract_path_arms_token_stream = crate::domain_types::table::OperationDsc::ALL
-        .iter()
-        .map(|operation_dsc| {
-            let operation = quote::format_ident!("{}", operation_dsc.operation.to_string());
-            let path = format!(
-                "/{}/{}",
-                identifier_snake_case_string,
-                operation_dsc.operation.self_snake_case_str()
-            );
-            quote::quote! {#identifier_operation_upper_camel_case::#operation => #path}
-        });
+    let route_contract_path_arms_token_stream =
+        crate::domain_types::table::operation_dsc::OperationDsc::ALL
+            .iter()
+            .map(|operation_dsc| {
+                let operation = quote::format_ident!("{}", operation_dsc.operation.to_string());
+                let path = format!(
+                    "/{}/{}",
+                    identifier_snake_case_string,
+                    operation_dsc.operation.self_snake_case_str()
+                );
+                quote::quote! {#identifier_operation_upper_camel_case::#operation => #path}
+            });
     let route_contract_payload_example_path_arms_token_stream =
-        crate::domain_types::table::OperationDsc::ALL
+        crate::domain_types::table::operation_dsc::OperationDsc::ALL
             .iter()
             .map(|operation_dsc| {
                 let operation = quote::format_ident!("{}", operation_dsc.operation.to_string());
@@ -7081,7 +7082,7 @@ enum WrapIntoOptional {
                 );
                 quote::quote! {#identifier_operation_upper_camel_case::#operation => #path}
             });
-    let route_contract_operation_kind_arms_token_stream = crate::domain_types::table::OperationDsc::ALL.iter().map(|operation_dsc| {
+    let route_contract_operation_kind_arms_token_stream = crate::domain_types::table::operation_dsc::OperationDsc::ALL.iter().map(|operation_dsc| {
         let operation = quote::format_ident!("{}", operation_dsc.operation.to_string());
         let operation_kind =
             match crate::domain_types::frontend_operation_kind::operation_kind(operation_dsc) {
@@ -7577,7 +7578,7 @@ enum WrapIntoOptional {
                 assert!(#identifier_route_contract_upper_camel_case::ALL.into_iter().all(|contract| matches!(contract.operation(), #identifier_operation_upper_camel_case::Rm | #identifier_operation_upper_camel_case::Ro | #identifier_operation_upper_camel_case::Um | #identifier_operation_upper_camel_case::Uo)));
             },
         };
-        let round_trip_tests_token_stream = crate::domain_types::table::OperationDsc::ALL.iter().map(|operation_dsc| {
+        let round_trip_tests_token_stream = crate::domain_types::table::operation_dsc::OperationDsc::ALL.iter().map(|operation_dsc| {
             let operation = &operation_dsc.operation;
             let payload_type_token_stream = generate_identifier_operation_payload_upper_camel_case(operation);
             let test_identifier = quote::format_ident!(
@@ -7642,7 +7643,7 @@ enum WrapIntoOptional {
             quote::format_ident!("{}_route_open_api_parity", identifier_snake_case_string);
         let identifier_rm_payload_upper_camel_case =
             generate_identifier_operation_payload_upper_camel_case(&Operation::Rm);
-        let route_open_api_parity_assertions_token_stream = crate::domain_types::table::OperationDsc::ALL
+        let route_open_api_parity_assertions_token_stream = crate::domain_types::table::operation_dsc::OperationDsc::ALL
             .iter()
             .filter(|operation_dsc| operation_is_enabled(&operation_dsc.operation))
             .map(|operation_dsc| {

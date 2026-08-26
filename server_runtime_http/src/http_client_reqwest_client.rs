@@ -1,0 +1,92 @@
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
+pub struct ReqwestClient(reqwest::Client);
+impl ReqwestClient {
+    pub async fn execute(
+        &self,
+        mut request: super::super::ReqwestRequest,
+    ) -> Result<super::super::ReqwestResponse, super::super::ReqwestError> {
+        let span = Self::prepare_observed_http_request(&mut request);
+        tracing::Instrument::instrument(
+            async {
+                match self.0.execute(request.into_inner()).await {
+                    Ok(response) => {
+                        let _client_status_record = tracing::Span::current().record(
+                            constants_str::OTEL_HTTP_RESPONSE_STATUS_CODE,
+                            response.status().as_u16(),
+                        );
+                        if response.status().is_server_error() {
+                            let _client_error_record = tracing::Span::current().record(
+                                constants_str::OTEL_STATUS_CODE,
+                                constants_str::OTEL_ERROR_STATUS,
+                            );
+                        }
+                        Ok(super::super::ReqwestResponse::from(response))
+                    }
+                    Err(error) => {
+                        let _client_error_record = tracing::Span::current().record(
+                            constants_str::OTEL_STATUS_CODE,
+                            constants_str::OTEL_ERROR_STATUS,
+                        );
+                        Err(super::super::ReqwestError::from(error))
+                    }
+                }
+            },
+            span.into_inner(),
+        )
+        .await
+    }
+
+    #[allow(clippy::single_call_fn)] // shared preparation keeps production execution and deterministic propagation tests on the same implementation
+    pub(in super::super) fn prepare_observed_http_request(
+        request: &mut super::super::ReqwestRequest,
+    ) -> super::tracing_http_client_span::TracingHttpClientSpan {
+        let span = {
+            let method = request.method();
+            let host = request.host().unwrap_or_else(|| {
+                super::super::HttpHostRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX)
+            });
+            let span = tracing::info_span!(
+                "http.client",
+                otel.kind = "client",
+                otel.name = tracing::field::Empty,
+                otel.status_code = tracing::field::Empty,
+                "http.request.method" = %method,
+                "server.address" = %host,
+                "http.response.status_code" = tracing::field::Empty,
+            );
+            let _client_name_record =
+                span.record(constants_str::OTEL_NAME, format_args!("{method} {host}"));
+            span
+        };
+        super::super::inject_trace_context(
+            &super::super::OpentelemetryContext::from(
+                tracing_opentelemetry::OpenTelemetrySpanExt::context(&span),
+            ),
+            request.headers_mut(),
+        );
+        super::tracing_http_client_span::TracingHttpClientSpan::from(span)
+    }
+
+    pub fn try_new(
+        policy: super::reqwest_client_policy::ReqwestClientPolicy,
+    ) -> Result<Self, super::reqwest_client_build_error::ReqwestClientBuildError> {
+        reqwest::Client::builder()
+            .connect_timeout(*policy.connect_timeout)
+            .timeout(*policy.request_timeout)
+            .redirect(reqwest::redirect::Policy::none())
+            .user_agent(concat!(
+                env!("CARGO_PKG_NAME"),
+                "/",
+                env!("CARGO_PKG_VERSION")
+            ))
+            .build()
+            .map(Self)
+            .map_err(super::reqwest_client_build_error::ReqwestClientBuildError::from)
+    }
+}

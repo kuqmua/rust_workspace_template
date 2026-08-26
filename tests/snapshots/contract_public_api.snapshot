@@ -324,9 +324,9 @@ pub trait TypedRoute: Sized { type Request: serde::Serialize + serde::de::Deseri
 #[derive( optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error, )] pub enum AdminCollectionError { #[error( "{}", constants_str::ADMINISTRATOR_COLLECTION_EXCEEDS_MAXIMUM_ITEM_COUNT )] TooLong, }
 #[derive( optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error, newtype::FromInner, )] #[error( "administrator audit details contain {} bytes, maximum is {} bytes", .0.0, ADMIN_AUDIT_DETAILS_MAX_BYTES )] pub struct AdminAuditDetailsTooLarge(AdminAuditDetailsBytes);
 #[derive( optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord, serde::Serialize, newtype::Display, newtype::FromInner, )] pub struct PositiveNonZeroI64(std::num::NonZeroI64);
-#[derive( optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Hash, PartialEq, Eq, serde::Serialize, serde::Deserialize, utoipa::ToSchema, newtype::Display, newtype::FromInner, )] #[serde(try_from = "i64")] #[schema(value_type = i64)] pub struct AdminPermissionId(super::PositiveNonZeroI64);
-#[derive( optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Hash, PartialEq, Eq, serde::Serialize, serde::Deserialize, utoipa::ToSchema, newtype::Display, newtype::FromInner, )] #[serde(try_from = "i64")] #[schema(value_type = i64)] pub struct AdminRoleId(super::PositiveNonZeroI64);
-#[derive( optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Hash, PartialEq, Eq, serde::Serialize, serde::Deserialize, utoipa::ToSchema, newtype::Display, newtype::FromInner, )] #[serde(try_from = "i64")] #[schema(value_type = i64)] pub struct AdminUserId(super::PositiveNonZeroI64);
+#[derive( optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Hash, PartialEq, Eq, serde::Serialize, serde::Deserialize, utoipa::ToSchema, newtype::Display, newtype::FromInner, )] #[serde(try_from = "i64")] #[schema(value_type = i64)] pub struct AdminPermissionId(super::super::PositiveNonZeroI64);
+#[derive( optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Hash, PartialEq, Eq, serde::Serialize, serde::Deserialize, utoipa::ToSchema, newtype::Display, newtype::FromInner, )] #[serde(try_from = "i64")] #[schema(value_type = i64)] pub struct AdminRoleId(super::super::PositiveNonZeroI64);
+#[derive( optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Hash, PartialEq, Eq, serde::Serialize, serde::Deserialize, utoipa::ToSchema, newtype::Display, newtype::FromInner, )] #[serde(try_from = "i64")] #[schema(value_type = i64)] pub struct AdminUserId(super::super::PositiveNonZeroI64);
 #[derive( optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize, utoipa::ToSchema, frontend_contract::domain_types::UnitEnumCatalog, )] #[serde(rename_all = "snake_case")] pub enum AdminOptionalSetting { TabTitle, OrganizationName, OrganizationContacts, SupportUrl, PrimaryColor, MainLogo, }
 #[derive( optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq, frontend_contract::domain_types::RouteCatalog, )] #[route_catalog( family = AdminAuthenticationRouteFamily, body_limit = super::ADMIN_API_BODY_MAX_BYTES_VALUE, )] pub enum AdminRoute { #[route_catalog_route(AdminAuditLogRoute)] Audit, #[route_catalog_route(AdminAuditExportRoute)] AuditExport, #[route_catalog_route(AdminBrandingRoute)] Branding, #[route_catalog_route(AdminDataTableRoute)] DataTable(super::AdminDataTable), #[route_catalog_route(AdminDataTablesRoute)] DataTables, #[route_catalog_route(AdminChangeOwnPasswordRoute)] ChangeOwnPassword, #[route_catalog_route(AdminCreateRoleRoute)] CreateRole, #[route_catalog_route(AdminCreateUserRoute)] CreateUser, #[route_catalog_route(AdminDeleteRoleRoute)] DeleteRole(super::AdminRoleId), #[route_catalog_route(AdminDeleteUserRoute)] DeleteUser(super::AdminUserId), #[route_catalog_route(AdminMeRoute)] Me, #[route_catalog_route( contract = frontend_contract::domain_types::RouteContract::new( admin_permission_requirement(super::AdminPermission::MetricsRead), frontend_contract::domain_types::HttpMethod::Get, frontend_contract::domain_types::MutationKind::ReadOnly, frontend_contract::domain_types::ContractStr::from(constants_str::METRICS), frontend_contract::domain_types::SuccessStatus::Code200, ), path = constants_str::METRICS, exclude_from_family, )] Metrics, #[route_catalog_route( contract = frontend_contract::domain_types::RouteContract::new( admin_permission_requirement(super::AdminPermission::OpenApiRead), frontend_contract::domain_types::HttpMethod::Get, frontend_contract::domain_types::MutationKind::ReadOnly, frontend_contract::domain_types::ContractStr::from(constants_str::OPENAPI_JSON), frontend_contract::domain_types::SuccessStatus::Code200, ), path = constants_str::OPENAPI_JSON, exclude_from_family, )] OpenApi, #[route_catalog_route(AdminListPermissionsRoute)] Permissions, #[route_catalog_route(AdminRefreshRoute)] Refresh, #[route_catalog_route(AdminRevokeAllSessionsRoute)] RevokeAllSessions, #[route_catalog_route(AdminRevokeSessionRoute)] RevokeSession, #[route_catalog_route(AdminListRolesRoute)] Roles, #[route_catalog_route(AdminSetRolePermissionsRoute)] SetRolePermissions(super::AdminRoleId), #[route_catalog_route(AdminSetUserBanRoute)] SetUserBan(super::AdminUserId), #[route_catalog_route(AdminSetUserPasswordRoute)] SetUserPassword(super::AdminUserId), #[route_catalog_route(AdminSetUserRolesRoute)] SetUserRoles(super::AdminUserId), #[route_catalog_route(AdminSettingsRoute)] Settings, #[route_catalog_route(AdminSignInRoute)] SignIn, #[route_catalog_route(AdminSignOutRoute)] SignOut, #[route_catalog_route(AdminSessionsRoute)] Sessions, #[route_catalog_route(AdminUpdateRoleRoute)] UpdateRole(super::AdminRoleId), #[route_catalog_route(AdminUpdateSettingsRoute)] UpdateSettings, #[route_catalog_route(AdminUpdateUserRoute)] UpdateUser(super::AdminUserId), #[route_catalog_route(AdminListUsersRoute)] Users, #[route_catalog_route( contract = frontend_contract::domain_types::RouteContract::new( frontend_contract::domain_types::AuthenticationRequirement::Public, frontend_contract::domain_types::HttpMethod::Get, frontend_contract::domain_types::MutationKind::ReadOnly, frontend_contract::domain_types::ContractStr::from(constants_str::COMMON_ROUTES_GIT_INFO), frontend_contract::domain_types::SuccessStatus::Code200, ), path = constants_str::COMMON_ROUTES_GIT_INFO, exclude_from_family, )] Version, }
 #[derive( optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq, frontend_contract::domain_types::UnitEnumCatalog, frontend_contract::domain_types::UnitEnumIndex, )] pub enum AdminSetting { DefaultRoute, SiteName, TabTitle, OrganizationName, OrganizationContacts, SupportUrl, PrimaryColor, MainLogo, }
@@ -335,7 +335,7 @@ pub trait TypedRoute: Sized { type Request: serde::Serialize + serde::de::Deseri
 #[derive( optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq, newtype::FromInner, )] pub struct AdminPagePathRef<'path_lt>(&'path_lt str);
 #[derive( optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq, newtype::FromInner, )] pub struct AdminTableSortKeyRef<'value_lt>(&'value_lt str);
 #[derive( optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq, newtype::IntoInnerFrom, serde::Serialize, utoipa::ToSchema, )] pub struct AdminPageLimit(u16);
-#[derive( optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize, utoipa::ToSchema, newtype::Display, newtype::FromInner, )] #[serde(try_from = "i64")] #[schema(value_type = i64)] pub struct AdminAuditLogId(super::PositiveNonZeroI64);
+#[derive( optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize, utoipa::ToSchema, newtype::Display, newtype::FromInner, )] #[serde(try_from = "i64")] #[schema(value_type = i64)] pub struct AdminAuditLogId(super::super::PositiveNonZeroI64);
 #[derive( optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq, thiserror::Error, )] #[error( "administrator page limit must be between {min} and {max}", min = AdminPageLimit::MIN, max = AdminPageLimit::MAX )] pub struct AdminPageLimitError;
 #[derive( optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq, thiserror::Error, )] #[error("{}", constants_str::UNKNOWN_ADMIN_TABLE_SORT_FIELD)] pub struct AdminTableSortFieldTryFromKeyError;
 #[derive( optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, frontend_contract::domain_types::ContractStructApi, serde::Serialize, serde::Deserialize, utoipa::ToSchema, )] #[contract_struct_api(new)] #[serde(deny_unknown_fields)] pub struct AdminSetUserBanReq { #[contract_struct_api(copy)] is_banned: super::AdminBool, }
@@ -419,8 +419,8 @@ pub trait TypedRoute: Sized { type Request: serde::Serialize + serde::de::Deseri
 #[derive( optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, newtype::BoundedString, newtype::AsRefStr, newtype::Display, )] #[bounded_string( max = 262_144usize, chars, serde, utoipa, description = "bounded administrator audit CSV export" )] pub struct AdminAuditExportCsv(String);
 #[derive( optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, newtype::BoundedString, newtype::Display, )] #[bounded_string( max = 64, chars, serde, utoipa, description = "administrator session identifier" )] pub struct AdminSessionIdentifier(String);
 #[derive( optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, newtype::BoundedString, newtype::Display, )] #[bounded_string( max = 64, chars, serde, utoipa, description = "administrator session timestamp" )] pub struct AdminSessionTimestamp(String);
-#[derive( optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema, )] pub struct AdminSessionView { created_at: AdminSessionTimestamp, expires_at: AdminSessionTimestamp, id: AdminSessionIdentifier, #[serde(default)] is_current: super::AdminBool, }
-#[derive( optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema, )] pub struct AdminSessionsPage { items: super::AdminSessionViews, #[schema(value_type = u64)] total: super::AdminPageTotal, }
+#[derive( optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema, )] pub struct AdminSessionView { created_at: super::admin_session_timestamp::AdminSessionTimestamp, expires_at: super::admin_session_timestamp::AdminSessionTimestamp, id: super::admin_session_identifier::AdminSessionIdentifier, #[serde(default)] is_current: super::super::AdminBool, }
+#[derive( optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema, )] pub struct AdminSessionsPage { items: super::super::AdminSessionViews, #[schema(value_type = u64)] total: super::super::AdminPageTotal, }
 #[derive( optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema, newtype::AsRefTarget, newtype::FromInner, )] #[serde(from = "AdminBoundedVec<super::AdminAuditView>")] #[schema(value_type = AdminOpenApiVec<super::AdminAuditView, 10_000>)] pub struct AdminAuditViews(AdminBoundedVec<super::AdminAuditView>);
 #[derive( optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema, newtype::AsRefTarget, newtype::FromInner, )] #[serde(from = "AdminBoundedVec<super::AdminDataRow>")] #[schema(value_type = AdminOpenApiVec<super::AdminDataRow, 10_000>)] pub struct AdminDataRows(AdminBoundedVec<super::AdminDataRow>);
 #[derive( optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema, newtype::AsRefTarget, newtype::FromInner, )] #[serde(from = "AdminBoundedVec<super::AdminDataTable>")] #[schema(value_type = AdminOpenApiVec<super::AdminDataTable, 10_000>)] pub struct AdminDataTables(AdminBoundedVec<super::AdminDataTable>);
@@ -476,9 +476,9 @@ pub trait TypedRoute: Sized { type Request: serde::Serialize + serde::de::Deseri
 #[must_use] pub const fn client_mode(self) -> AdminPageClientMode
 #[must_use] pub const fn columns(&self) -> &[#[contract_struct_api(slice = AdminDataColumn)]]
 #[must_use] pub const fn columns(self) -> AdminDataColumnsCsvRef<'static>
-#[must_use] pub const fn created_at(&self) -> &AdminSessionTimestamp
 #[must_use] pub const fn created_at(&self) -> &super::AdminAuditTimestamp
 #[must_use] pub const fn created_at(&self) -> &super::AdminAuditTimestamp
+#[must_use] pub const fn created_at(&self) -> &super::admin_session_timestamp::AdminSessionTimestamp
 #[must_use] pub const fn csv(&self) -> &AdminAuditExportCsv
 #[must_use] pub const fn default_admin_route(&self) -> &super::AdminDefaultRoute
 #[must_use] pub const fn default_admin_route(&self) -> &super::AdminDefaultRoute
@@ -487,13 +487,13 @@ pub trait TypedRoute: Sized { type Request: serde::Serialize + serde::de::Deseri
 #[must_use] pub const fn display_name(&self) -> &super::AdminDisplayName
 #[must_use] pub const fn display_name(&self) -> &super::AdminDisplayName
 #[must_use] pub const fn end(&self) -> Option<&AdminFilterValue>
-#[must_use] pub const fn expires_at(&self) -> &AdminSessionTimestamp
+#[must_use] pub const fn expires_at(&self) -> &super::admin_session_timestamp::AdminSessionTimestamp
 #[must_use] pub const fn field(&self) -> Option<&AdminFilterField>
 #[must_use] pub const fn filter(&self) -> &AdminDataTableFilterQuery
 #[must_use] pub const fn filters(&self) -> &[AdminDataFilter]
 #[must_use] pub const fn frontend_path(self) -> AdminFrontendPath
 #[must_use] pub const fn get(self) -> i64
-#[must_use] pub const fn id(&self) -> &AdminSessionIdentifier
+#[must_use] pub const fn id(&self) -> &super::admin_session_identifier::AdminSessionIdentifier
 #[must_use] pub const fn id(&self) -> super::AdminAuditLogId
 #[must_use] pub const fn id(&self) -> super::AdminAuditLogId
 #[must_use] pub const fn id(&self) -> super::AdminPermissionId
@@ -504,7 +504,7 @@ pub trait TypedRoute: Sized { type Request: serde::Serialize + serde::de::Deseri
 #[must_use] pub const fn input_kind(self) -> AdminSettingInputKind
 #[must_use] pub const fn is_banned(&self) -> super::AdminBool
 #[must_use] pub const fn is_banned(self) -> super::AdminBool
-#[must_use] pub const fn is_current(&self) -> super::AdminBool
+#[must_use] pub const fn is_current(&self) -> super::super::AdminBool
 #[must_use] pub const fn is_system(&self) -> super::AdminBool
 #[must_use] pub const fn items(&self) -> &[#[contract_struct_api(into, slice = AdminPermissionSummary)]]
 #[must_use] pub const fn items(&self) -> &[#[contract_struct_api(into, slice = AdminRoleSummary)]]
@@ -512,7 +512,7 @@ pub trait TypedRoute: Sized { type Request: serde::Serialize + serde::de::Deseri
 #[must_use] pub const fn items(&self) -> &[#[contract_struct_api(slice = AdminAuditView)]]
 #[must_use] pub const fn items(&self) -> &[#[contract_struct_api(slice = AdminDataRow)]]
 #[must_use] pub const fn items(&self) -> &[#[contract_struct_api(slice = super::AdminDataTable)]]
-#[must_use] pub const fn items(&self) -> &[AdminSessionView]
+#[must_use] pub const fn items(&self) -> &[super::admin_session_view::AdminSessionView]
 #[must_use] pub const fn label(&self) -> &super::AdminText
 #[must_use] pub const fn label(self) -> AdminSettingLabel
 #[must_use] pub const fn limit(&self) -> AdminPageLimit
@@ -523,11 +523,12 @@ pub trait TypedRoute: Sized { type Request: serde::Serialize + serde::de::Deseri
 #[must_use] pub const fn main_logo(&self) -> Option<&super::AdminMainLogo>
 #[must_use] pub const fn name(self) -> AdminSettingName
 #[must_use] pub const fn navigation(self) -> Option<AdminPageNavigation>
-#[must_use] pub const fn new( created_at: AdminSessionTimestamp, expires_at: AdminSessionTimestamp, id: AdminSessionIdentifier, is_current: super::AdminBool, ) -> Self
+#[must_use] pub const fn new( created_at: super::admin_session_timestamp::AdminSessionTimestamp, expires_at: super::admin_session_timestamp::AdminSessionTimestamp, id: super::admin_session_identifier::AdminSessionIdentifier, is_current: super::super::AdminBool, ) -> Self
 #[must_use] pub const fn new( default_admin_route: Option<super::AdminDefaultRoute>, main_logo: Option<super::AdminMainLogo>, organization_contacts: Option<super::AdminOrganizationContacts>, organization_name: Option<super::AdminOrganizationName>, primary_color: Option<super::AdminPrimaryColor>, site_name: Option<super::AdminSiteName>, support_url: Option<super::AdminSupportUrl>, tab_title: Option<super::AdminTabTitle>, clear: super::AdminOptionalSettings, ) -> Self
 #[must_use] pub const fn new( display_name: super::AdminDisplayName, id: super::AdminUserId, login: super::AdminLogin, permissions: super::AdminPermissionValues, roles: super::AdminRoleNames, ) -> Self
 #[must_use] pub const fn new( filter_field: Option<AdminFilterField>, filter_operation: Option<frontend_contract::domain_types::FilterOperation>, filter_value: Option<AdminFilterValue>, filter_end: Option<AdminFilterValue>, ) -> Self
 #[must_use] pub const fn new( filters: AdminDataFilters, input_kind: AdminDataInputKind, label: super::AdminText, name: super::AdminText, ) -> Self
+#[must_use] pub const fn new( items: super::super::AdminSessionViews, total: super::super::AdminPageTotal, ) -> Self
 #[must_use] pub const fn new(action: super::AdminText, created_at: super::AdminAuditTimestamp, details: Option<super::SerdeJsonAdminAuditDetails>, id: super::AdminAuditLogId, resource: super::AdminText, resource_id: Option<super::AdminText>, succeeded: super::AdminBool, user_id: Option<super::AdminUserId>, user_login: Option<super::AdminLogin>) -> Self
 #[must_use] pub const fn new(columns: AdminDataColumns, items: super::AdminDataRows, table: super::AdminDataTable, total: super::AdminPageTotal) -> Self
 #[must_use] pub const fn new(created_at: super::AdminAuditTimestamp, id: super::AdminAuditLogId) -> Self
@@ -549,7 +550,6 @@ pub trait TypedRoute: Sized { type Request: serde::Serialize + serde::de::Deseri
 #[must_use] pub const fn new(items: super::AdminAuditViews, next_cursor: Option<AdminAuditCursor>, total: super::AdminPageTotal) -> Self
 #[must_use] pub const fn new(items: super::AdminPermissionSummaries, total: super::AdminPageTotal) -> Self
 #[must_use] pub const fn new(items: super::AdminRoleSummaries, permissions: super::AdminPermissionSummaries, total: super::AdminPageTotal) -> Self
-#[must_use] pub const fn new(items: super::AdminSessionViews, total: super::AdminPageTotal) -> Self
 #[must_use] pub const fn new(items: super::AdminUserSummaries, roles: super::AdminRoleSummaries, total: super::AdminPageTotal) -> Self
 #[must_use] pub const fn new(login: super::AdminLogin, password: super::AdminPassword) -> Self
 #[must_use] pub const fn new(name: super::AdminRoleName) -> Self
@@ -596,15 +596,15 @@ pub trait TypedRoute: Sized { type Request: serde::Serialize + serde::de::Deseri
 #[must_use] pub const fn total(&self) -> super::AdminPageTotal
 #[must_use] pub const fn total(&self) -> super::AdminPageTotal
 #[must_use] pub const fn total(&self) -> super::AdminPageTotal
-#[must_use] pub const fn total(&self) -> super::AdminPageTotal
+#[must_use] pub const fn total(&self) -> super::super::AdminPageTotal
 #[must_use] pub const fn user(&self) -> &AuthenticatedAdmin
 #[must_use] pub const fn user_id(&self) -> Option<super::AdminUserId>
 #[must_use] pub const fn user_login(&self) -> Option<&super::AdminLogin>
 #[must_use] pub const fn value(&self) -> Option<&AdminFilterValue>
-#[must_use] pub const fn value(self) -> super::PositiveNonZeroI64
-#[must_use] pub const fn value(self) -> super::PositiveNonZeroI64
-#[must_use] pub const fn value(self) -> super::PositiveNonZeroI64
-#[must_use] pub const fn value(self) -> super::PositiveNonZeroI64
+#[must_use] pub const fn value(self) -> super::super::PositiveNonZeroI64
+#[must_use] pub const fn value(self) -> super::super::PositiveNonZeroI64
+#[must_use] pub const fn value(self) -> super::super::PositiveNonZeroI64
+#[must_use] pub const fn value(self) -> super::super::PositiveNonZeroI64
 #[must_use] pub const fn value_shape(&self) -> frontend_contract::domain_types::FilterValueShape
 #[must_use] pub const fn values(&self) -> &[#[contract_struct_api(slice = super::AdminText)]]
 #[must_use] pub fn admin_api_body_max_bytes() -> AdminApiBodyMaxBytes

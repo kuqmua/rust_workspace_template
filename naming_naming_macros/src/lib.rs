@@ -3,8 +3,8 @@ mod domain_types;
 fn generate_impl_to_tokens_token_stream(
     ts0: &dyn quote::ToTokens,
     ts1: &dyn quote::ToTokens,
-) -> domain_types::ProcMacro2GeneratedNamingTokenStream {
-    domain_types::ProcMacro2GeneratedNamingTokenStream::from(quote::quote! {
+) -> domain_types::proc_macro2_generated_naming_token_stream::ProcMacro2GeneratedNamingTokenStream {
+    domain_types::proc_macro2_generated_naming_token_stream::ProcMacro2GeneratedNamingTokenStream::from(quote::quote! {
         impl quote::ToTokens for #ts0 {
             fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
                 #ts1
@@ -264,13 +264,13 @@ pub fn generate_self_upper_camel_case_and_snake_case_str_and_token_stream(
 }
 fn generate_impl_trait_for_identifier_token_stream(
     name_token_stream: &dyn quote::ToTokens,
-    identifier: domain_types::SynEnumIdentifierRef<'_>,
-    vrts_matching_token_stream: domain_types::ProcMacro2VariantMatchingTokensRef<'_>,
-) -> domain_types::ProcMacro2GeneratedNamingTokenStream {
+    identifier: domain_types::syn_enum_identifier_ref::SynEnumIdentifierRef<'_>,
+    vrts_matching_token_stream: domain_types::proc_macro2_variant_matching_tokens_ref::ProcMacro2VariantMatchingTokensRef<'_>,
+) -> domain_types::proc_macro2_generated_naming_token_stream::ProcMacro2GeneratedNamingTokenStream {
     let string_token_stream = token_patterns::StringTokenStream;
     let identifier_ref = identifier.as_ref();
     let variant_tokens = vrts_matching_token_stream.as_ref();
-    domain_types::ProcMacro2GeneratedNamingTokenStream::from(quote::quote! {
+    domain_types::proc_macro2_generated_naming_token_stream::ProcMacro2GeneratedNamingTokenStream::from(quote::quote! {
         impl naming_common::domain_types::#name_token_stream for #identifier_ref {
             fn case(&self) -> #string_token_stream {//todo maybe write duplicate Trait with &str instead of String
                 match self {#(#variant_tokens),*}
@@ -293,8 +293,8 @@ pub fn as_ref_str_enum_with_unit_fields_to_upper_camel_case_str(
     let string_token_stream = token_patterns::StringTokenStream;
     let generated = generate_impl_trait_for_identifier_token_stream(
         &quote::quote! {AsRefStrToUpperCamelCaseStr},
-        domain_types::SynEnumIdentifierRef::from(identifier),
-        domain_types::ProcMacro2VariantMatchingTokensRef::from(
+        domain_types::syn_enum_identifier_ref::SynEnumIdentifierRef::from(identifier),
+        domain_types::proc_macro2_variant_matching_tokens_ref::ProcMacro2VariantMatchingTokensRef::from(
             data_enum
                 .variants
                 .iter()
@@ -329,8 +329,8 @@ pub fn as_ref_str_enum_with_unit_fields_to_snake_case_str(
     let string_token_stream = token_patterns::StringTokenStream;
     let generated = generate_impl_trait_for_identifier_token_stream(
         &quote::quote! {AsRefStrToSnakeCaseStr},
-        domain_types::SynEnumIdentifierRef::from(identifier),
-        domain_types::ProcMacro2VariantMatchingTokensRef::from(
+        domain_types::syn_enum_identifier_ref::SynEnumIdentifierRef::from(identifier),
+        domain_types::proc_macro2_variant_matching_tokens_ref::ProcMacro2VariantMatchingTokensRef::from(
             data_enum
                 .variants
                 .iter()
@@ -366,8 +366,8 @@ pub fn as_ref_str_enum_with_unit_fields_to_upper_snake_case_str(
     let string_token_stream = token_patterns::StringTokenStream;
     let generated = generate_impl_trait_for_identifier_token_stream(
         &quote::quote! {AsRefStrToUpperSnakeCaseStr},
-        domain_types::SynEnumIdentifierRef::from(identifier),
-        domain_types::ProcMacro2VariantMatchingTokensRef::from(
+        domain_types::syn_enum_identifier_ref::SynEnumIdentifierRef::from(identifier),
+        domain_types::proc_macro2_variant_matching_tokens_ref::ProcMacro2VariantMatchingTokensRef::from(
             data_enum
                 .variants
                 .iter()

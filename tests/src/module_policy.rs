@@ -53,31 +53,51 @@ fn identifier_snake_case(identifier: &syn::Ident) -> super::types::SourceText {
     .expect("3c8a729e identifier snake case must fit the source text bound")
 }
 
+fn external_module_path(
+    parent_path: &std::path::Path,
+    item_mod: &syn::ItemMod,
+) -> Option<std::path::PathBuf> {
+    let explicit_path = item_mod.attrs.iter().find_map(|attribute| {
+        if !attribute.path().is_ident("path") {
+            return None;
+        }
+        let syn::Meta::NameValue(name_value) = &attribute.meta else {
+            return None;
+        };
+        let syn::Expr::Lit(expression_literal) = &name_value.value else {
+            return None;
+        };
+        let syn::Lit::Str(path_literal) = &expression_literal.lit else {
+            return None;
+        };
+        Some(path_literal.value())
+    });
+    let parent_directory = parent_path.parent()?;
+    if let Some(explicit_path) = explicit_path {
+        return Some(parent_directory.join(explicit_path));
+    }
+    let parent_stem = parent_path.file_stem()?.to_str()?;
+    let module_directory = if matches!(parent_stem, "lib" | "main" | "mod") {
+        parent_directory.to_path_buf()
+    } else {
+        parent_directory.join(parent_stem)
+    };
+    let module_name = item_mod.ident.to_string();
+    let flat_path = module_directory.join(format!("{module_name}.rs"));
+    flat_path
+        .is_file()
+        .then_some(flat_path)
+        .or_else(|| Some(module_directory.join(module_name).join("mod.rs")))
+}
+
 #[test]
 fn single_item_modules_match_their_item_name() {
     super::snapshot::with_codebase_snapshot(|snapshot| {
-        let target_roots = snapshot
-            .workspace_metadata()
-            .as_ref()
-            .packages
-            .iter()
-            .flat_map(|package| package.targets.iter())
-            .filter_map(|target| target.src_path.as_std_path().canonicalize().ok())
-            .collect::<std::collections::HashSet<_>>();
-        let violations = snapshot
+        let owners_by_path = snapshot
             .rs_files()
             .iter()
             .filter(|file| !is_test_source(file.path().as_ref()))
             .filter_map(|file| {
-                let path = file.path().as_ref();
-                let file_stem = path.file_stem()?.to_str()?;
-                if matches!(file_stem, constants_str::LIB | constants_str::MAIN)
-                    || path
-                        .canonicalize()
-                        .is_ok_and(|canonical_path| target_roots.contains(&canonical_path))
-                {
-                    return None;
-                }
                 let identifiers = file
                     .ast()
                     .as_ref()
@@ -88,25 +108,45 @@ fn single_item_modules_match_their_item_name() {
                 let [identifier] = identifiers.as_slice() else {
                     return None;
                 };
-                let module_name = if file_stem == constants_str::MOD {
-                    path.parent()?.file_name()?.to_str()?
-                } else {
-                    file_stem
-                        .rsplit(constants_str::FLAT_MODULE_SEPARATOR)
-                        .next()?
-                };
-                let expected_module_name = identifier_snake_case(identifier);
-                let matches_flattened_module_suffix = module_name
-                    .strip_suffix(expected_module_name.as_ref())
-                    .is_some_and(|prefix| prefix.ends_with('_'));
-                (module_name != expected_module_name.as_ref() && !matches_flattened_module_suffix)
-                    .then(|| {
-                        format!(
-                            "{}: single item `{identifier}` requires module `{}`",
-                            path.display(),
-                            expected_module_name.as_ref()
-                        )
+                file.path()
+                    .as_ref()
+                    .canonicalize()
+                    .ok()
+                    .map(|path| (path, identifier.to_string()))
+            })
+            .collect::<std::collections::HashMap<_, _>>();
+        let violations = snapshot
+            .rs_files()
+            .iter()
+            .filter(|file| !is_test_source(file.path().as_ref()))
+            .flat_map(|file| {
+                file.ast()
+                    .as_ref()
+                    .items
+                    .iter()
+                    .filter_map(|item| match item {
+                        syn::Item::Mod(item_mod) if item_mod.content.is_none() => Some(item_mod),
+                        _ => None,
                     })
+                    .filter_map(|item_mod| {
+                        let module_path = external_module_path(file.path().as_ref(), item_mod)?
+                            .canonicalize()
+                            .ok()?;
+                        let owner = owners_by_path.get(&module_path)?;
+                        let expected_module_name = identifier_snake_case(&syn::Ident::new(
+                            owner,
+                            proc_macro2::Span::call_site(),
+                        ));
+                        (item_mod.ident != expected_module_name.as_ref()).then(|| {
+                            format!(
+                                "{}: module `{}` contains single item `{owner}` and must be `{}`",
+                                file.path().as_ref().display(),
+                                item_mod.ident,
+                                expected_module_name.as_ref()
+                            )
+                        })
+                    })
+                    .collect::<Vec<_>>()
             })
             .collect::<Vec<_>>();
         assert!(
@@ -178,12 +218,120 @@ fn function_only_modules_contain_at_most_one_function() {
         );
     });
 }
+
+#[test]
+fn homogeneous_named_owner_modules_contain_at_most_one_owner() {
+    super::snapshot::with_codebase_snapshot(|snapshot| {
+        let target_roots = snapshot
+            .workspace_metadata()
+            .as_ref()
+            .packages
+            .iter()
+            .flat_map(|package| package.targets.iter())
+            .filter_map(|target| target.src_path.as_std_path().canonicalize().ok())
+            .collect::<std::collections::HashSet<_>>();
+        let violations = snapshot
+            .rs_files()
+            .iter()
+            .filter(|file| !is_test_source(file.path().as_ref()))
+            .filter(|file| {
+                file.path()
+                    .as_ref()
+                    .canonicalize()
+                    .is_ok_and(|path| !target_roots.contains(&path))
+            })
+            .filter_map(|file| {
+                let owner = |item: &syn::Item| match item {
+                    syn::Item::Const(item_const) => {
+                        Some((constants_str::ITEM_KIND_CONST, item_const.ident.to_string()))
+                    }
+                    syn::Item::Enum(item_enum) => {
+                        Some((constants_str::ITEM_KIND_ENUM, item_enum.ident.to_string()))
+                    }
+                    syn::Item::Static(item_static) => Some((
+                        constants_str::ITEM_KIND_STATIC,
+                        item_static.ident.to_string(),
+                    )),
+                    syn::Item::Struct(item_struct) => Some((
+                        constants_str::ITEM_KIND_STRUCT,
+                        item_struct.ident.to_string(),
+                    )),
+                    syn::Item::Trait(item_trait) => {
+                        Some((constants_str::ITEM_KIND_TRAIT, item_trait.ident.to_string()))
+                    }
+                    syn::Item::TraitAlias(item_trait_alias) => Some((
+                        constants_str::ITEM_KIND_TRAIT_ALIAS,
+                        item_trait_alias.ident.to_string(),
+                    )),
+                    syn::Item::Type(item_type) => {
+                        Some((constants_str::ITEM_KIND_TYPE, item_type.ident.to_string()))
+                    }
+                    syn::Item::Union(item_union) => {
+                        Some((constants_str::ITEM_KIND_UNION, item_union.ident.to_string()))
+                    }
+                    syn::Item::ExternCrate(_)
+                    | syn::Item::Fn(_)
+                    | syn::Item::ForeignMod(_)
+                    | syn::Item::Impl(_)
+                    | syn::Item::Macro(_)
+                    | syn::Item::Mod(_)
+                    | syn::Item::Use(_)
+                    | syn::Item::Verbatim(_)
+                    | _ => None,
+                };
+                let owners = file
+                    .ast()
+                    .as_ref()
+                    .items
+                    .iter()
+                    .filter_map(owner)
+                    .collect::<Vec<_>>();
+                let owner_kind = &owners.first()?.0;
+                let homogeneous = owners
+                    .iter()
+                    .all(|(kind, _ignored_identifier)| kind == owner_kind)
+                    && file.ast().as_ref().items.iter().all(|item| {
+                        owner(item).map_or_else(
+                            || {
+                                matches!(
+                                    item,
+                                    syn::Item::Impl(_) | syn::Item::Mod(_) | syn::Item::Use(_)
+                                )
+                            },
+                            |(kind, _ignored_owner_identifier)| kind == *owner_kind,
+                        )
+                    });
+                (homogeneous && owners.len() > constants_usize::ONE).then(|| {
+                    format!(
+                        "{} ({owner_kind}): {}",
+                        file.path().as_ref().display(),
+                        owners
+                            .iter()
+                            .map(|(_kind, identifier)| identifier.as_str())
+                            .collect::<Vec<_>>()
+                            .join(", ")
+                    )
+                })
+            })
+            .collect::<Vec<_>>();
+        assert!(
+            violations.is_empty(),
+            "homogeneous production Rust modules must place each top-level named owner in its own same-named module:\n{}",
+            violations.join("\n")
+        );
+    });
+}
 fn large_module_exceptions() -> [&'static str; 2] {
     [constants_str::VALUE_7FE2AF02, constants_str::VALUE_D405F3E1]
 }
 
 fn is_test_source(path: &std::path::Path) -> bool {
     super::is_test_source_path(super::types::PathRef::from(path)).get()
+        || path.file_stem().is_some_and(|file_stem| {
+            file_stem
+                .to_string_lossy()
+                .ends_with(constants_str::TEST_FIXTURES_MODULE_SUFFIX)
+        })
         || path
             .components()
             .any(|component| component.as_os_str() == constants_str::VALUE_D0549AF3)
