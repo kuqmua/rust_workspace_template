@@ -1,5 +1,5 @@
 #![allow(clippy::single_call_fn)] // stable root migration and initial-administrator-creation API delegates to the private persistence module
-static ADMIN_MIGRATOR: sqlx::migrate::Migrator = sqlx::migrate!("./migrations");
+static ADMIN_MIGRATOR: sqlx::migrate::Migrator = sqlx::migrate!("../server_admin_migrations");
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,

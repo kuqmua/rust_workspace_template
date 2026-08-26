@@ -184,7 +184,7 @@ async fn postgresql_migration_creates_complete_schema() {
     let fresh_pool = connect(StdAdminApiTestStrRef::from(
         constants_str::ADMIN_MIGRATION_FRESH_TEST,
     ));
-    let full = sqlx::migrate!("./migrations");
+    let full = sqlx::migrate!("../server_admin_migrations");
     full.run(&fresh_pool)
         .await
         .expect("4b6c3bd6 postgresql_migration_creates_complete_schema invariant must hold");

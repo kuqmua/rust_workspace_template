@@ -102,7 +102,7 @@ pub(crate) async fn migrate_notification(
                 crate::domain_types::SqlxNotificationDatabaseError::from(error),
             )
         })?;
-    sqlx::migrate!("./migrations")
+    sqlx::migrate!("../notification_service_migrations")
         .run(&pool)
         .await
         .map_err(|error| {

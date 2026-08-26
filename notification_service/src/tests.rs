@@ -269,7 +269,7 @@ async fn create_notification_persists_through_http_route() {
         .connect_with(connect_options)
         .await
         .expect("5344bc9e create_notification_persists_through_http_route invariant must hold");
-    sqlx::migrate!("./migrations")
+    sqlx::migrate!("../notification_service_migrations")
         .run(&pool)
         .await
         .expect("128c46f1 create_notification_persists_through_http_route invariant must hold");

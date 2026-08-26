@@ -35,8 +35,9 @@ configured socket. Find it with `ss -ltnp | grep ':8080'`, stop that process, or
 
 ## Database migrations
 
-Both service binaries apply their own embedded migrations during startup. To create a migration,
-add it to the owning service’s `migrations` directory; do not access another service’s tables.
+Both service binaries apply their own embedded migrations during startup. Add administrator
+migrations to `server_admin_migrations/` and notification migrations to
+`notification_service_migrations/`; do not access another service’s tables.
 
 ## Quality gates
 
