@@ -21,7 +21,18 @@ pub(super) fn save(
     let site_name_value = site_name.value().as_ref().to_owned();
     let support_url_value = support_url.value().as_ref().to_owned();
     let tab_title_value = tab_title.value().as_ref().to_owned();
-    let clear = signals.optional_settings_to_clear();
+    let clear = server_admin_contract::domain_types::AdminOptionalSettings::try_from(
+        server_admin_contract::domain_types::AdminSetting::ALL
+            .into_iter()
+            .filter_map(|setting| match setting.spec().optionality() {
+                server_admin_contract::domain_types::AdminSettingOptionality::Clearable(
+                    optional,
+                ) if signals.get(setting).value().as_ref().is_empty() => Some(optional),
+                server_admin_contract::domain_types::AdminSettingOptionality::Clearable(_)
+                | server_admin_contract::domain_types::AdminSettingOptionality::Required => None,
+            })
+            .collect::<Vec<_>>(),
+    );
     let values = (
         server_admin_contract::domain_types::AdminDefaultRoute::try_from(default_route_value),
         (!main_logo_value.is_empty())

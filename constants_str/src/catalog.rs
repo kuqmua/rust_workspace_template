@@ -2169,7 +2169,7 @@ constants_str_macros::define_str_constants! {
         VALUE_5067F83C = ["5067f83c"];
         SERVER_GRACEFUL_SHUTDOWN_TIMED_OUT = ["server graceful shutdown timed out"];
         SERVER_RETURNED_AN_ERROR_RESPONSE = ["server returned an error response"];
-        SERVER_SRC_APPLICATION_RS = ["server/src/application.rs"];
+        SERVER_SRC_RUN_SERVER_RS = ["server/src/run_server.rs"];
         SERVER_SRC_APPLICATION_ADMIN_API_RS = ["server/src/routes.rs"];
         SERVER_ADMIN_HTML_MODULE_DIR = ["server_admin/src/application_html_"];
         SERVER_ADMIN_HTML_ASSIGNMENT_ENDPOINT_DUPLICATE_LOCATIONS = ["../server_admin/src/application_html_actions_roles.rs::role_permissions\n../server_admin/src/application_html_actions_users.rs::user_roles"];

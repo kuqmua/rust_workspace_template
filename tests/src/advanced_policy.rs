@@ -1610,11 +1610,11 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
         ),
         (
             constants_str::VALUE_27AB06E9,
-            (constants_usize::ONE, constants_str::VALUE_B1E73CDD),
+            (2usize, constants_str::VALUE_B1E73CDD),
         ),
         (
             constants_str::VALUE_9E7DB142,
-            (11usize, constants_str::VALUE_0B70A676),
+            (10usize, constants_str::VALUE_0B70A676),
         ),
         (
             constants_str::VALUE_BEBEC57E,

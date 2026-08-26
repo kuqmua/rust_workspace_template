@@ -10,22 +10,6 @@ mod tests {
             .collect()
     }
 
-    #[allow(clippy::single_call_fn)] // isolates descriptor-derived port resolution from deployment assertions
-    fn descriptor_service_port() -> u16 {
-        let mut socket_addresses = descriptor_examples()
-            .into_iter()
-            .filter(|(name, _value)| name.ends_with(constants_str::VALUE_E0071B88))
-            .map(|(_name, value)| value);
-        let socket_address = socket_addresses
-            .next()
-            .expect("6ff25e0d descriptor_service_port invariant must hold");
-        assert!(socket_addresses.next().is_none(), "d11594d2");
-        socket_address
-            .parse::<std::net::SocketAddr>()
-            .expect("323370cc descriptor_service_port invariant must hold")
-            .port()
-    }
-
     fn repository_file(path: &std::path::Path) -> String {
         std::fs::read_to_string(
             std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -130,7 +114,18 @@ mod tests {
     #[test]
     #[allow(clippy::needless_for_each)] // workspace source policy forbids for loops
     fn deployment_ports_match_generated_descriptor() {
-        let port = descriptor_service_port();
+        let mut socket_addresses = descriptor_examples()
+            .into_iter()
+            .filter(|(name, _value)| name.ends_with(constants_str::VALUE_E0071B88))
+            .map(|(_name, value)| value);
+        let socket_address = socket_addresses
+            .next()
+            .expect("6ff25e0d deployment port descriptor must exist");
+        assert!(socket_addresses.next().is_none(), "d11594d2");
+        let port = socket_address
+            .parse::<std::net::SocketAddr>()
+            .expect("323370cc deployment port descriptor must contain a socket address")
+            .port();
         let compose_source = repository_file(std::path::Path::new(constants_str::VALUE_E45E45BA));
         [
             format!("NOTIFICATION_SERVICE_SOCKET_ADDRESS: \"0.0.0.0:{port}\""),

@@ -22,9 +22,18 @@ pub(in crate::domain_types::start) async fn fetch_page(
             return Ok(super::state::AdminLoadState::Profile(admin));
         }
         server_admin_contract::domain_types::AdminPage::Tables => {
-            let Some(url) = query.api_url()? else {
+            let Some(table) = query.table else {
                 return Ok(super::state::AdminLoadState::Empty(admin));
             };
+            let table_search = web_sys::window()
+                .ok_or(super::state::AdminTableLoadError::Fetch)?
+                .location()
+                .search()
+                .map_err(|_error| super::state::AdminTableLoadError::Fetch)?;
+            let url = super::http::url::admin_api_url_with_suffix(
+                server_admin_contract::domain_types::AdminRoute::DataTable(table),
+                super::http::url::AdminCsrApiUrlSuffixRef::from(table_search.as_str()),
+            )?;
             return super::http::fetch::fetch_json(&url)
                 .await
                 .map(|value| super::state::AdminLoadState::Table(admin, value));

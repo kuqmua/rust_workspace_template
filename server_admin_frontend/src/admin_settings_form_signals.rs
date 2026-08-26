@@ -29,23 +29,4 @@ impl AdminSettingsFormSignals {
         )]
         self.0[setting.index()]
     }
-    #[cfg(target_arch = "wasm32")]
-    pub(crate) fn optional_settings_to_clear(
-        self,
-    ) -> Result<
-        server_admin_contract::domain_types::AdminOptionalSettings,
-        server_admin_contract::domain_types::AdminCollectionError,
-    > {
-        let values = server_admin_contract::domain_types::AdminSetting::ALL
-            .into_iter()
-            .filter_map(|setting| match setting.spec().optionality() {
-                server_admin_contract::domain_types::AdminSettingOptionality::Clearable(
-                    optional,
-                ) if self.get(setting).value().as_ref().is_empty() => Some(optional),
-                server_admin_contract::domain_types::AdminSettingOptionality::Clearable(_)
-                | server_admin_contract::domain_types::AdminSettingOptionality::Required => None,
-            })
-            .collect::<Vec<_>>();
-        server_admin_contract::domain_types::AdminOptionalSettings::try_from(values)
-    }
 }

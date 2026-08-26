@@ -279,7 +279,13 @@ pub(super) async fn run_server(
     let serve_result = server_runtime_http::domain_types::serve_with_graceful_shutdown(
         server_runtime_http::domain_types::TokioTcpListener::from(tcp_listener),
         router,
-        shutdown_signal(),
+        async {
+            if let Err(error) =
+                server_runtime_http::domain_types::wait_for_service_shutdown_signal().await
+            {
+                tracing::error!(error = %error, "failed to wait for shutdown signal");
+            }
+        },
         request_timeout,
     )
     .await;
@@ -297,14 +303,4 @@ pub(super) async fn run_server(
         )
     })?;
     Ok(())
-}
-#[allow(
-    clippy::single_call_fn,
-    reason = "the service boundary owns logging for shared signal-installation failures"
-)]
-async fn shutdown_signal() {
-    if let Err(error) = server_runtime_http::domain_types::wait_for_service_shutdown_signal().await
-    {
-        tracing::error!(error = %error, "failed to wait for shutdown signal");
-    }
 }

@@ -17,12 +17,6 @@ pub enum ShouldWriteTokenStreamIntoFile {
     newtype::FromInner,
 )]
 pub struct ProcMacro2TokenStreamRef<'ts_lt>(&'ts_lt proc_macro2::TokenStream);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
-struct ShouldWriteTokenStreamFlag(bool);
-#[allow(clippy::single_call_fn)] // production call plus direct unit-test calls make this a multi-call helper across the repository
-fn should_write_token_stream_flag(v: ShouldWriteTokenStreamIntoFile) -> ShouldWriteTokenStreamFlag {
-    ShouldWriteTokenStreamFlag::from(matches!(v, ShouldWriteTokenStreamIntoFile::True))
-}
 pub fn try_maybe_write_token_stream_into_file<P>(
     should_write_token_stream_into_file: ShouldWriteTokenStreamIntoFile,
     file_name: P,
@@ -32,7 +26,10 @@ pub fn try_maybe_write_token_stream_into_file<P>(
 where
     P: AsRef<std::path::Path>,
 {
-    if !should_write_token_stream_flag(should_write_token_stream_into_file).0 {
+    if !matches!(
+        should_write_token_stream_into_file,
+        ShouldWriteTokenStreamIntoFile::True
+    ) {
         return Ok(());
     }
     let string_cnt = ts.as_ref().to_string();
@@ -102,15 +99,6 @@ mod tests {
             crate::domain_types::test_helper::ExpectedFileContent::new(&expected),
         );
         crate::domain_types::test_helper::cleanup_test_file(path);
-    }
-    #[test]
-    fn should_write_token_stream_flag_maps_true_and_false_flags() {
-        assert!(
-            !super::should_write_token_stream_flag(super::ShouldWriteTokenStreamIntoFile::False).0
-        );
-        assert!(
-            super::should_write_token_stream_flag(super::ShouldWriteTokenStreamIntoFile::True).0
-        );
     }
     #[test]
     fn try_maybe_write_token_stream_into_file_writes_tokens_when_enabled() {

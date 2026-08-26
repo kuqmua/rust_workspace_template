@@ -261,7 +261,7 @@ pub const CODE_STYLE_RUNTIME_TEST_HELPER_REASONS: [&str; 2] = [
 pub const CODE_STYLE_RUNTIME_ARC_OWNER_SUFFIXES: [&str; 7] = [
     "notification_service/src/routes.rs",
     "server/src/make_postgresql_pool.rs",
-    SERVER_SRC_APPLICATION_RS,
+    SERVER_SRC_RUN_SERVER_RS,
     SERVER_SRC_APPLICATION_ADMIN_API_RS,
     SERVER_ADMIN_SRC_PASSWORD_RS,
     SERVER_RUNTIME_SRC_BOUNDED_READ_RS,

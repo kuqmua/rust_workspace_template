@@ -1,25 +1,4 @@
 impl super::AdminCsrQuery {
-    pub(in crate::domain_types::start) fn api_url(
-        &self,
-    ) -> Result<
-        Option<crate::domain_types::start::http::url::AdminCsrApiUrl>,
-        crate::domain_types::start::state::AdminTableLoadError,
-    > {
-        let Some(table) = self.table else {
-            return Ok(None);
-        };
-        let search = web_sys::window()
-            .ok_or(crate::domain_types::start::state::AdminTableLoadError::Fetch)?
-            .location()
-            .search()
-            .map_err(|_error| crate::domain_types::start::state::AdminTableLoadError::Fetch)?;
-        crate::domain_types::start::http::url::admin_api_url_with_suffix(
-            server_admin_contract::domain_types::AdminRoute::DataTable(table),
-            crate::domain_types::start::http::url::AdminCsrApiUrlSuffixRef::from(search.as_str()),
-        )
-        .map(Some)
-    }
-
     pub(in crate::domain_types::start) fn from_location()
     -> Result<Self, crate::domain_types::start::state::AdminTableLoadError> {
         let window = web_sys::window()

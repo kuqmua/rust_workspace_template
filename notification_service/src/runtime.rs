@@ -1,12 +1,5 @@
 #![allow(clippy::single_call_fn)] // runtime adapter operations each have one application composition owner
 
-async fn shutdown_signal() {
-    if let Err(error) = server_runtime_http::domain_types::wait_for_service_shutdown_signal().await
-    {
-        tracing::error!(error = %error, "notification shutdown signal failed");
-    }
-}
-
 pub(crate) async fn run(
     config: notification_service_config::config::Config,
 ) -> Result<(), crate::domain_types::NotificationServiceError> {
@@ -77,7 +70,13 @@ pub(crate) async fn run(
     server_runtime_http::domain_types::serve_with_graceful_shutdown(
         server_runtime_http::domain_types::TokioTcpListener::from(listener),
         service_router,
-        shutdown_signal(),
+        async {
+            if let Err(error) =
+                server_runtime_http::domain_types::wait_for_service_shutdown_signal().await
+            {
+                tracing::error!(error = %error, "notification shutdown signal failed");
+            }
+        },
         timeout,
     )
     .await

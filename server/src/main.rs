@@ -1,6 +1,6 @@
 mod adapters;
-mod application;
 mod domain_types;
+mod run_server;
 
 fn main() -> domain_types::ServerExitCode {
     let config = match server_config::domain_types::Config::try_from_env() {
@@ -50,10 +50,10 @@ fn main() -> domain_types::ServerExitCode {
         .and_then(|runtime| match config.svc_mode {
             config_lib::domain_types::types::SvcMode::Migrate => {
                 tokio::runtime::Runtime::from(runtime)
-                    .block_on(application::migrate_server::migrate_server(&config))
+                    .block_on(run_server::migrate_server::migrate_server(&config))
             }
             config_lib::domain_types::types::SvcMode::Serve => {
-                tokio::runtime::Runtime::from(runtime).block_on(application::run_server(config))
+                tokio::runtime::Runtime::from(runtime).block_on(run_server::run_server(config))
             }
         });
     if let Err(error) = run_result.as_ref() {

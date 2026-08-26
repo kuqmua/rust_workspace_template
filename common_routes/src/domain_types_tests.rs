@@ -162,13 +162,6 @@ fn no_route_prefix_stays_stable() {
     );
 }
 #[test]
-fn no_route_message_capacity_is_exact_for_uri_suffix() {
-    assert_eq!(
-        super::no_route_message_capacity(suffix_ref("/abc?x=1")).0,
-        "No route for /abc?x=1".len()
-    );
-}
-#[test]
 fn make_state_payload_uses_state_trait_object() {
     let state = test_state();
     assert_eq!(
