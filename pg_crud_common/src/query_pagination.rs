@@ -345,5 +345,5 @@ impl super::DefaultSomeOneElementMaxPageSize for PaginationStartsWithZero {
     }
 }
 #[cfg(test)]
-#[path = "domain_types__query_pagination__tests.rs"]
+#[path = "domain_types_query_pagination_tests.rs"]
 mod tests;

@@ -1024,6 +1024,39 @@ fn production_code_does_not_use_line_print_macros() {
     );
 }
 #[test]
+fn module_and_function_names_use_single_underscores() {
+    super::assert_rs_ast_ers_empty_with_ctx(
+        super::types::StaticStr::from(constants_str::VALUE_AE652DDA),
+        super::types::SourceTextRef::from(constants_str::VALUE_63194000),
+        |path, ast, ers| {
+            if path
+                .file_name()
+                .and_then(std::ffi::OsStr::to_str)
+                .is_some_and(|name| {
+                    name.contains(constants_str::WORKSPACE_SCAFFOLD_DOUBLE_UNDERSCORE)
+                })
+            {
+                ers.push(format!(
+                    "{}: module filename contains a double underscore",
+                    path.display()
+                ));
+            }
+            let visitor = super::visit_syn_file(
+                super::types::SynFileRef::from(ast),
+                super::source_analysis::DoubleUnderscoreNamingVisitor {
+                    identifiers: super::types::DiagnosticMsgs::default(),
+                },
+            );
+            visitor.identifiers.into_iter().for_each(|identifier| {
+                ers.push(format!(
+                    "{}: `{identifier}` contains a double underscore",
+                    path.display()
+                ));
+            });
+        },
+    );
+}
+#[test]
 fn production_line_print_macro_policy_allows_test_code_and_rejects_production_code() {
     let ast = syn::parse_file(constants_str::VALUE_606F2B07)
         .expect("a508c55d production_line_print_macro_policy fixture must parse");

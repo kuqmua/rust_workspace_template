@@ -5,7 +5,7 @@
     reason = "the administrator page shell requires its local set of document attribute traits"
 )]
 
-#[path = "domain_types__ssr__document__page__admin_nav.rs"]
+#[path = "domain_types_ssr_document_page_admin_nav.rs"]
 mod admin_nav;
 
 use leptos::prelude::{

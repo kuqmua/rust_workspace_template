@@ -1,16 +1,16 @@
 #![allow(clippy::single_call_fn)] // shared repository boundary types support thematic SQL owner modules
 
-#[path = "adapters__repository__audit.rs"]
+#[path = "adapters_repository_audit.rs"]
 pub(crate) mod audit;
-#[path = "adapters__repository__data_tables.rs"]
+#[path = "adapters_repository_data_tables.rs"]
 pub(crate) mod data_tables;
 #[path = "read_settings.rs"]
 pub(crate) mod read_settings;
-#[path = "adapters__repository__roles.rs"]
+#[path = "adapters_repository_roles.rs"]
 pub(crate) mod roles;
-#[path = "adapters__repository__sessions.rs"]
+#[path = "adapters_repository_sessions.rs"]
 pub(crate) mod sessions;
-#[path = "adapters__repository__users.rs"]
+#[path = "adapters_repository_users.rs"]
 pub(crate) mod users;
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]

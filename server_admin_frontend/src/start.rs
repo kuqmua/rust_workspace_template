@@ -12,7 +12,7 @@ mod admin_app;
 mod admin_csr_query;
 #[path = "admin_data_grid.rs"]
 mod admin_data_grid;
-#[path = "domain_types__start__admin_nav.rs"]
+#[path = "domain_types_start_admin_nav.rs"]
 mod admin_nav;
 #[path = "admin_pagination.rs"]
 mod admin_pagination;
@@ -32,7 +32,7 @@ mod admin_users_view;
 mod fetch_page;
 #[path = "http.rs"]
 mod http;
-#[path = "domain_types__start__mutation.rs"]
+#[path = "domain_types_start_mutation.rs"]
 mod mutation;
 #[path = "state.rs"]
 mod state;

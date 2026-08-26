@@ -1,12 +1,12 @@
-#[path = "application__html__actions__auth.rs"]
+#[path = "application_html_actions_auth.rs"]
 mod auth;
-#[path = "application__html__actions__roles.rs"]
+#[path = "application_html_actions_roles.rs"]
 mod roles;
-#[path = "application__html__actions__sessions.rs"]
+#[path = "application_html_actions_sessions.rs"]
 mod sessions;
-#[path = "application__html__actions__settings.rs"]
+#[path = "application_html_actions_settings.rs"]
 mod settings;
-#[path = "application__html__actions__users.rs"]
+#[path = "application_html_actions_users.rs"]
 mod users;
 
 #[frontend_contract::domain_types::route_operation]

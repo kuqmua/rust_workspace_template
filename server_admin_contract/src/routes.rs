@@ -6,7 +6,7 @@ fn admin_permission_requirement(
     )
 }
 #[cfg(test)]
-#[path = "domain_types__routes__tests.rs"]
+#[path = "domain_types_routes_tests.rs"]
 mod tests;
 
 #[derive(

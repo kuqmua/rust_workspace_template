@@ -1,10 +1,10 @@
-#[path = "domain_types__tests__request_id.rs"]
+#[path = "domain_types_tests_request_id.rs"]
 mod request_id;
-#[path = "domain_types__tests__resource_budget.rs"]
+#[path = "domain_types_tests_resource_budget.rs"]
 mod resource_budget;
-#[path = "domain_types__tests__security_headers.rs"]
+#[path = "domain_types_tests_security_headers.rs"]
 mod security_headers;
-#[path = "domain_types__tests__service_runtime.rs"]
+#[path = "domain_types_tests_service_runtime.rs"]
 mod service_runtime;
 
 const HTTP_ERROR_EVENT_REQUIRED_FIELD_MASK: u16 = (1u16 << 12u16) - 1u16;

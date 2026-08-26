@@ -11,7 +11,7 @@ mod authn;
 pub(super) mod authorization;
 #[path = "cookie_response.rs"]
 mod cookie_response;
-#[path = "application__data_tables.rs"]
+#[path = "application_data_tables.rs"]
 mod data_tables;
 #[path = "extractors.rs"]
 mod extractors;
@@ -19,17 +19,17 @@ mod extractors;
 mod html;
 #[path = "persistence.rs"]
 mod persistence;
-#[path = "application__roles.rs"]
+#[path = "application_roles.rs"]
 mod roles;
-#[path = "application__sessions.rs"]
+#[path = "application_sessions.rs"]
 mod sessions;
-#[path = "application__settings.rs"]
+#[path = "application_settings.rs"]
 mod settings;
 #[path = "shared.rs"]
 mod shared;
 #[path = "state.rs"]
 mod state;
-#[path = "application__users.rs"]
+#[path = "application_users.rs"]
 mod users;
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, newtype::DebugTransparent, newtype::FromInner,
@@ -571,7 +571,7 @@ pub enum AdminSessionError {
     #[error("system clock is before the Unix epoch")]
     SystemClock,
 }
-#[path = "application__audit.rs"]
+#[path = "application_audit.rs"]
 mod audit;
 #[path = "create_session_in_connection.rs"]
 mod create_session_in_connection;
@@ -580,5 +580,5 @@ mod rate_limit;
 #[path = "routes.rs"]
 mod routes;
 #[cfg(test)]
-#[path = "application__tests.rs"]
+#[path = "application_tests.rs"]
 mod tests;

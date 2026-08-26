@@ -592,9 +592,7 @@ fn server_admin_frontend_is_in_domain_boundary_policy_scope() {
 fn server_admin_frontend_ui_is_an_explicit_framework_adapter_boundary() {
     assert!(
         !super::domain_type_policy_should_check_path(super::types::PathRef::from(
-            std::path::Path::new(
-                "../server_admin_frontend/src/domain_types__with_owner__button.rs"
-            )
+            std::path::Path::new("../server_admin_frontend/src/domain_types_with_owner_button.rs")
         ))
         .get(),
         "e33b8472"

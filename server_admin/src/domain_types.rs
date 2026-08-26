@@ -1,5 +1,5 @@
 #![allow(clippy::arbitrary_source_item_ordering)] // domain declarations are grouped by authentication and authorization responsibility
-#[path = "application__auth.rs"]
+#[path = "application_auth.rs"]
 pub mod auth;
 #[path = "generated_auth.rs"]
 mod generated_auth;
@@ -34,5 +34,5 @@ pub use security::*;
     clippy::single_call_fn,
     reason = "repository policy forbids for loops and compact fixtures keep secret setup deterministic"
 )]
-#[path = "domain_types__tests.rs"]
+#[path = "domain_types_tests.rs"]
 mod tests;

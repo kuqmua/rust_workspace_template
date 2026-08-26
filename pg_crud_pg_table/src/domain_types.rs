@@ -565,7 +565,7 @@ pub async fn cleanup_pg_table_idempotency(
     Ok(PgTableIdempotencyCleanupRows::from(result.rows_affected()))
 }
 #[cfg(test)]
-#[path = "domain_types__tests__idempotency.rs"]
+#[path = "domain_types_tests_idempotency.rs"]
 mod idempotency_tests;
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
 enum InsertValuesFmt {

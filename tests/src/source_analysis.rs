@@ -361,6 +361,10 @@ pub(super) struct PrintMacroVisitor {
 pub(super) struct ProductionLinePrintMacroVisitor {
     pub calls: super::types::DiagnosticMsgs,
 }
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+pub(super) struct DoubleUnderscoreNamingVisitor {
+    pub identifiers: super::types::DiagnosticMsgs,
+}
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 pub(super) struct PublicLogicVisitor {
     pub found: super::types::AnalyzerBool,
@@ -654,6 +658,22 @@ impl<'ast> syn::visit::Visit<'ast> for ProductionLinePrintMacroVisitor {
             );
         }
         syn::visit::visit_macro(self, i);
+    }
+}
+impl<'ast> syn::visit::Visit<'ast> for DoubleUnderscoreNamingVisitor {
+    fn visit_item_fn(&mut self, i: &'ast syn::ItemFn) {
+        let identifier = i.sig.ident.to_string();
+        if identifier.contains(constants_str::WORKSPACE_SCAFFOLD_DOUBLE_UNDERSCORE) {
+            self.identifiers.push(identifier);
+        }
+        syn::visit::visit_item_fn(self, i);
+    }
+    fn visit_item_mod(&mut self, i: &'ast syn::ItemMod) {
+        let identifier = i.ident.to_string();
+        if identifier.contains(constants_str::WORKSPACE_SCAFFOLD_DOUBLE_UNDERSCORE) {
+            self.identifiers.push(identifier);
+        }
+        syn::visit::visit_item_mod(self, i);
     }
 }
 impl<'ast> syn::visit::Visit<'ast> for PublicLogicVisitor {

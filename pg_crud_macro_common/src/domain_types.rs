@@ -13,5 +13,5 @@ pub use emission_types::*;
 pub use token_emission::*;
 
 #[cfg(test)]
-#[path = "domain_types__tests.rs"]
+#[path = "domain_types_tests.rs"]
 mod tests;

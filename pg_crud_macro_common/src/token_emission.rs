@@ -1105,5 +1105,5 @@ pub fn generate_return_err_query_part_error_write_into_buffer_token_stream(
 }
 
 #[cfg(test)]
-#[path = "domain_types__token_emission__tests.rs"]
+#[path = "domain_types_token_emission_tests.rs"]
 mod tests;

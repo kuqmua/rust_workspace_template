@@ -585,5 +585,5 @@ pub fn generated_open_api() -> UtoipaAdminOpenApi {
     UtoipaAdminOpenApi::from(document)
 }
 #[cfg(test)]
-#[path = "domain_types__generated_tables__tests.rs"]
+#[path = "domain_types_generated_tables_tests.rs"]
 mod tests;

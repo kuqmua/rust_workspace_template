@@ -1,14 +1,14 @@
-#[path = "domain_types__ssr__tests__crud.rs"]
+#[path = "domain_types_ssr_tests_crud.rs"]
 mod crud;
-#[path = "domain_types__ssr__tests__data_grid.rs"]
+#[path = "domain_types_ssr_tests_data_grid.rs"]
 mod data_grid;
-#[path = "domain_types__ssr__tests__document.rs"]
+#[path = "domain_types_ssr_tests_document.rs"]
 mod document;
-#[path = "domain_types__ssr__tests__navigation.rs"]
+#[path = "domain_types_ssr_tests_navigation.rs"]
 mod navigation;
-#[path = "domain_types__ssr__tests__settings.rs"]
+#[path = "domain_types_ssr_tests_settings.rs"]
 mod settings;
-#[path = "domain_types__ssr__tests__static_pages.rs"]
+#[path = "domain_types_ssr_tests_static_pages.rs"]
 mod static_pages;
 
 fn test_admin() -> server_admin_contract::domain_types::AuthenticatedAdmin {

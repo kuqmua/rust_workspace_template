@@ -636,5 +636,5 @@ pub(crate) fn map_health_check_status(is_ok: HealthCheckSucceeded) -> AxumHealth
     }
 }
 #[cfg(test)]
-#[path = "domain_types__tests.rs"]
+#[path = "domain_types_tests.rs"]
 mod tests;

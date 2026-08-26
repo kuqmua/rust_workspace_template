@@ -1,4 +1,4 @@
-#[path = "application__tests__hlp.rs"]
+#[path = "application_tests_hlp.rs"]
 pub(super) mod hlp;
 
 #[test]

@@ -4,7 +4,7 @@ pub(crate) mod admin_data_table_grid;
 pub(crate) mod admin_table_cells;
 #[path = "pagination.rs"]
 pub(crate) mod pagination;
-#[path = "domain_types__shared__settings.rs"]
+#[path = "domain_types_shared_settings.rs"]
 pub(crate) mod settings;
 #[path = "table_filters.rs"]
 pub(crate) mod table_filters;

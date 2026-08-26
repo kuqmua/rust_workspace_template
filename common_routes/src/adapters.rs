@@ -158,5 +158,5 @@ pub fn common_routes(
 }
 
 #[cfg(test)]
-#[path = "adapters__tests.rs"]
+#[path = "adapters_tests.rs"]
 mod tests;

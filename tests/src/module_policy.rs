@@ -96,13 +96,17 @@ fn single_item_modules_match_their_item_name() {
                         .next()?
                 };
                 let expected_module_name = identifier_snake_case(identifier);
-                (module_name != expected_module_name.as_ref()).then(|| {
-                    format!(
-                        "{}: single item `{identifier}` requires module `{}`",
-                        path.display(),
-                        expected_module_name.as_ref()
-                    )
-                })
+                let matches_flattened_module_suffix = module_name
+                    .strip_suffix(expected_module_name.as_ref())
+                    .is_some_and(|prefix| prefix.ends_with('_'));
+                (module_name != expected_module_name.as_ref() && !matches_flattened_module_suffix)
+                    .then(|| {
+                        format!(
+                            "{}: single item `{identifier}` requires module `{}`",
+                            path.display(),
+                            expected_module_name.as_ref()
+                        )
+                    })
             })
             .collect::<Vec<_>>();
         assert!(

@@ -4,11 +4,11 @@
     reason = "form adapters deliberately replace unvalidated extractor values with validated domain values"
 )]
 
-#[path = "application__html__actions.rs"]
+#[path = "application_html_actions.rs"]
 mod actions;
-#[path = "application__html__forms.rs"]
+#[path = "application_html_forms.rs"]
 mod forms;
-#[path = "application__html__pages.rs"]
+#[path = "application_html_pages.rs"]
 mod pages;
 
 fn html_response(
@@ -229,5 +229,5 @@ pub(super) fn routes(
     super::AxumAdminAuthRouter(router.with_state(state))
 }
 #[cfg(test)]
-#[path = "application__html__tests.rs"]
+#[path = "application_html_tests.rs"]
 mod tests;

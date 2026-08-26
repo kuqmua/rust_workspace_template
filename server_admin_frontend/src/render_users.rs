@@ -1,4 +1,4 @@
-#[path = "domain_types__ssr__render_users__admin_user_row.rs"]
+#[path = "domain_types_ssr_render_users_admin_user_row.rs"]
 mod admin_user_row;
 
 use leptos::prelude::{ClassAttribute, ElementChild};

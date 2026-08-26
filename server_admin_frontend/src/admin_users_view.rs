@@ -1,6 +1,6 @@
 use leptos::prelude::{ClassAttribute, CustomAttribute, ElementChild};
 
-#[path = "domain_types__start__admin_users_view__admin_user_row.rs"]
+#[path = "domain_types_start_admin_users_view_admin_user_row.rs"]
 mod admin_user_row;
 
 #[leptos::component]

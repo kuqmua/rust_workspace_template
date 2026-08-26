@@ -27,7 +27,7 @@ pub struct AdminSettingsView {
     tab_title: Option<super::AdminTabTitle>,
 }
 #[cfg(test)]
-#[path = "domain_types__settings__tests.rs"]
+#[path = "domain_types_settings_tests.rs"]
 mod tests;
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,

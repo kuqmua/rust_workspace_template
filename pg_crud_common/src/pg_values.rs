@@ -421,5 +421,5 @@ pub fn uuid_uuid_test_cases_vec() -> UuidUuidTestCases {
     )])
 }
 #[cfg(test)]
-#[path = "domain_types__pg_values__tests.rs"]
+#[path = "domain_types_pg_values_tests.rs"]
 mod tests;

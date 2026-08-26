@@ -14,7 +14,7 @@ pub struct AuthenticatedAdmin {
     roles: super::AdminRoleNames,
 }
 #[cfg(test)]
-#[path = "domain_types__dto__tests.rs"]
+#[path = "domain_types_dto_tests.rs"]
 mod tests;
 impl AuthenticatedAdmin {
     #[must_use]

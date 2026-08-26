@@ -94,5 +94,5 @@ pub use routes::{
     update_settings_route, update_user_client, update_user_route, version_client, version_route,
 };
 #[cfg(test)]
-#[path = "domain_types__tests.rs"]
+#[path = "domain_types_tests.rs"]
 mod tests;

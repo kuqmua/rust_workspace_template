@@ -1,31 +1,31 @@
 #[cfg(any(target_arch = "wasm32", test))]
-#[path = "domain_types__with_owner__admin_alert_dialog.rs"]
+#[path = "domain_types_with_owner_admin_alert_dialog.rs"]
 pub(crate) mod admin_alert_dialog;
 #[cfg(not(target_arch = "wasm32"))]
-#[path = "domain_types__with_owner__admin_checkbox.rs"]
+#[path = "domain_types_with_owner_admin_checkbox.rs"]
 pub(crate) mod admin_checkbox;
 #[cfg(any(target_arch = "wasm32", test))]
-#[path = "domain_types__with_owner__admin_empty.rs"]
+#[path = "domain_types_with_owner_admin_empty.rs"]
 pub(crate) mod admin_empty;
-#[path = "domain_types__with_owner__admin_spinner.rs"]
+#[path = "domain_types_with_owner_admin_spinner.rs"]
 pub(crate) mod admin_spinner;
-#[path = "domain_types__with_owner__admin_textarea.rs"]
+#[path = "domain_types_with_owner_admin_textarea.rs"]
 pub(crate) mod admin_textarea;
-#[path = "domain_types__with_owner__alert.rs"]
+#[path = "domain_types_with_owner_alert.rs"]
 pub(crate) mod alert;
-#[path = "domain_types__with_owner__badge.rs"]
+#[path = "domain_types_with_owner_badge.rs"]
 pub(crate) mod badge;
-#[path = "domain_types__with_owner__button.rs"]
+#[path = "domain_types_with_owner_button.rs"]
 pub(crate) mod button;
-#[path = "domain_types__with_owner__card.rs"]
+#[path = "domain_types_with_owner_card.rs"]
 pub(crate) mod card;
-#[path = "domain_types__with_owner__field.rs"]
+#[path = "domain_types_with_owner_field.rs"]
 pub(crate) mod field;
-#[path = "domain_types__with_owner__input.rs"]
+#[path = "domain_types_with_owner_input.rs"]
 pub(crate) mod input;
-#[path = "domain_types__with_owner__navigation.rs"]
+#[path = "domain_types_with_owner_navigation.rs"]
 pub(crate) mod navigation;
-#[path = "domain_types__with_owner__table.rs"]
+#[path = "domain_types_with_owner_table.rs"]
 pub(crate) mod table;
 
 pub(crate) fn with_owner<View>(build: impl FnOnce() -> View) -> impl leptos::prelude::IntoView
@@ -38,5 +38,5 @@ where
 }
 
 #[cfg(test)]
-#[path = "domain_types__with_owner__tests.rs"]
+#[path = "domain_types_with_owner_tests.rs"]
 mod tests;

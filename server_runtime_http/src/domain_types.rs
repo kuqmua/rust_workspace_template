@@ -48,17 +48,17 @@ mod path_policy;
 mod pg_rate_limit;
 #[path = "redacted_url.rs"]
 mod redacted_url;
-#[path = "domain_types__request_id.rs"]
+#[path = "domain_types_request_id.rs"]
 mod request_id;
 #[path = "request_timeout.rs"]
 mod request_timeout;
 #[path = "secure_cookie.rs"]
 mod secure_cookie;
-#[path = "domain_types__security_headers.rs"]
+#[path = "domain_types_security_headers.rs"]
 mod security_headers;
 #[path = "service.rs"]
 mod service;
-#[path = "domain_types__service_runtime.rs"]
+#[path = "domain_types_service_runtime.rs"]
 mod service_runtime;
 #[path = "trace_context.rs"]
 mod trace_context;

@@ -56,7 +56,7 @@ impl serde::de::Visitor<'_> for AdminPageOffsetVisitor {
     }
 }
 #[cfg(test)]
-#[path = "domain_types__query__tests.rs"]
+#[path = "domain_types_query_tests.rs"]
 mod tests;
 impl<'de> serde::Deserialize<'de> for AdminPageOffset {
     fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>

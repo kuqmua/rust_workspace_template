@@ -4,11 +4,11 @@
     reason = "the stable SSR facade delegates to screen, document, and table modules; test view rendering requires the named extension trait"
 )]
 
-#[path = "domain_types__ssr__crud.rs"]
+#[path = "domain_types_ssr_crud.rs"]
 mod crud;
 #[path = "data_tables.rs"]
 mod data_tables;
-#[path = "domain_types__ssr__document.rs"]
+#[path = "domain_types_ssr_document.rs"]
 mod document;
 #[path = "render_permissions.rs"]
 mod render_permissions;
@@ -22,13 +22,13 @@ mod render_sessions;
 mod render_settings;
 #[path = "render_users.rs"]
 mod render_users;
-#[path = "domain_types__ssr__table.rs"]
+#[path = "domain_types_ssr_table.rs"]
 mod table;
 #[path = "text_page.rs"]
 mod text_page;
 
 #[cfg(test)]
-#[path = "domain_types__ssr__tests.rs"]
+#[path = "domain_types_ssr_tests.rs"]
 mod tests;
 #[cfg(test)]
 trait AdminSsrViewExt {

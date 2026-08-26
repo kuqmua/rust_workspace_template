@@ -536,5 +536,5 @@ pub(crate) async fn read(
 }
 
 #[cfg(test)]
-#[path = "adapters__repository__data_tables__tests.rs"]
+#[path = "adapters_repository_data_tables_tests.rs"]
 mod tests;

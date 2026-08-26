@@ -1083,5 +1083,5 @@ pub async fn inspect_postgres_table(
 }
 
 #[cfg(test)]
-#[path = "domain_types__db_schema_conformance__tests.rs"]
+#[path = "domain_types_db_schema_conformance_tests.rs"]
 mod tests;

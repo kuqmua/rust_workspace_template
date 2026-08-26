@@ -236,7 +236,7 @@ impl Operator {
     }
 }
 #[cfg(test)]
-#[path = "domain_types__tests__operator_to_query_part.rs"]
+#[path = "domain_types_tests_operator_to_query_part.rs"]
 mod tests;
 #[derive(Debug, Clone, Copy, PartialEq, optimal_memory_layout::OptimalMemoryLayout)]
 pub enum PgTypeGreaterThanVariant {

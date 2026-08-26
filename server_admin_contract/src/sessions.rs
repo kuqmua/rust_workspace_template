@@ -57,7 +57,7 @@ pub struct AdminSessionView {
     is_current: super::AdminBool,
 }
 #[cfg(test)]
-#[path = "domain_types__sessions__tests.rs"]
+#[path = "domain_types_sessions_tests.rs"]
 mod tests;
 
 #[derive(
