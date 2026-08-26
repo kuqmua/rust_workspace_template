@@ -99,7 +99,7 @@ impl super::AdminError {
     }
 
     #[track_caller]
-    pub(super) fn pg(source: super::super::SqlxAdminError) -> Self {
+    pub(super) fn postgresql(source: super::super::SqlxAdminError) -> Self {
         Self::Pg(Self::observed(source, AdminObservedErrorCode::Database))
     }
 
@@ -115,12 +115,12 @@ impl super::AdminError {
 }
 impl From<sqlx::Error> for super::AdminError {
     fn from(value: sqlx::Error) -> Self {
-        Self::pg(super::super::SqlxAdminError::from(value))
+        Self::postgresql(super::super::SqlxAdminError::from(value))
     }
 }
 impl From<super::super::SqlxAdminError> for super::AdminError {
     fn from(value: super::super::SqlxAdminError) -> Self {
-        Self::pg(value)
+        Self::postgresql(value)
     }
 }
 impl axum::response::IntoResponse for super::AdminError {

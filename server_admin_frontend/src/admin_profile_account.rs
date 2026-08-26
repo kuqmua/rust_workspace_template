@@ -16,10 +16,10 @@ pub(super) fn admin_profile_account(
 ) -> impl leptos::prelude::IntoView + use<> {
     let login = admin.login().to_string();
     let display_name = admin.display_name().to_string();
-    let roles = String::from(crate::domain_types::shared::text::join_txt(
+    let roles = String::from(crate::domain_types::shared::text::join_text(
         admin.roles().iter().map(|name| name.as_ref().as_str()),
     ));
-    let permissions = String::from(crate::domain_types::shared::text::join_txt(
+    let permissions = String::from(crate::domain_types::shared::text::join_text(
         admin
             .permissions()
             .iter()

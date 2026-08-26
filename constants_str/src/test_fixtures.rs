@@ -580,6 +580,8 @@ pub const CODE_STYLE_LINT_PROBE_UNKNOWN_LINTS: &str = "unknown-lints";
 pub const CODE_STYLE_LINT_PROBE_INPUT_PATH: &str = "/dev/null";
 pub const CODE_STYLE_LINT_PROBE_UNSTABLE_DIAGNOSTIC: &str = "lint is unstable";
 pub const WORKSPACE_SCAFFOLD_DOUBLE_UNDERSCORE: &str = "__";
+pub const WORKSPACE_SHORT_MAKE_PREFIX: &str = "mk_";
+pub const WORKSPACE_SHORT_HELPER_TOKEN: &str = "hlp";
 pub const WORKSPACE_SCAFFOLD_NODE_MODULES: &str = "node_modules";
 pub const WORKSPACE_SCAFFOLD_TEMPLATE_REPOSITORY_URL: &str =
     "https://github.com/kuqmua/rust_workspace_template";
@@ -1655,7 +1657,7 @@ pub const VALUE_761A94E7: &str = "macro entry points emit different trait implem
 pub const VALUE_BA372BD2: &str = "macro generates a string constant outside constants_str";
 pub const VALUE_F67EAA19: &str = "macro_clippy_check_common/src/lib.rs";
 pub const VALUE_7AEFC966: &str = "macro_helpers/src/generate_field_location_new_token_stream.rs";
-pub const VALUE_794839A7: &str = "macro_helpers/src/generate_if_write_is_err_token_stream.rs";
+pub const VALUE_794839A7: &str = "macro_helpers/src/generate_if_write_is_error_token_stream.rs";
 pub const VALUE_31BDEFD7: &str = "macro_helpers/src/generate_impl_default_token_stream.rs";
 pub const VALUE_8F0CF86A: &str = "macro_helpers/src/generate_impl_display_token_stream.rs";
 pub const VALUE_95F11308: &str = "macro_helpers/src/generate_impl_from_token_stream.rs";
@@ -1669,7 +1671,7 @@ pub const VALUE_BDEB5C57: &str =
     "macro_helpers/src/pagination_start_end_initialization_token_stream.rs";
 pub const VALUE_C652C5A2: &str = "macro_helpers/src/status_code.rs";
 pub const VALUE_3E2D4173: &str = "macro_helpers/src/test_database.rs";
-pub const VALUE_865824F9: &str = "macro_helpers/src/test_hlp.rs";
+pub const VALUE_865824F9: &str = "macro_helpers/src/test_helper.rs";
 pub const VALUE_DB7F37E1: &str = "macro_helpers/src/wrap_derive.rs";
 pub const VALUE_60D35589: &str = "macro_helpers/src/write_string_into_file.rs";
 pub const VALUE_427B03A1: &str = "macro_helpers_generate_derive_token_stream_builder/src/lib.rs";
@@ -1866,8 +1868,8 @@ pub const VALUE_0EA9A6EE: &str = "route endpoints are separate Axum registration
 pub const VALUE_128D5CF3: &str = "route state is shared across threads behind its parameter trait";
 pub const VALUE_2E84067B: &str = "route_registry(";
 pub const VALUE_84BBA14A: &str = "route_service";
-pub const VALUE_AC7A6F68: &str = "route_validators/src/hdr_val.rs";
-pub const VALUE_4626D14F: &str = "route_validators/src/test_hlp.rs";
+pub const VALUE_AC7A6F68: &str = "route_validators/src/header_value.rs";
+pub const VALUE_4626D14F: &str = "route_validators/src/test_helper.rs";
 pub const VALUE_D12133A6: &str = "run history is shared and asynchronously synchronized";
 pub const VALUE_ACA763E9: &str =
     "runner command text is derived from the finite workspace test plan";

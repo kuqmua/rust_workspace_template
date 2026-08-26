@@ -17,18 +17,18 @@ impl super::GitCommitIdProvider for TestGitCommit {
             .then_some(super::GitCommitIdRef::from(self.commit))
     }
 }
-fn mk_test_git_commit(commit: &'static str, borrow_commit_ref: bool) -> TestGitCommit {
+fn make_test_git_commit(commit: &'static str, borrow_commit_ref: bool) -> TestGitCommit {
     TestGitCommit {
         commit,
         borrow_commit_ref,
         fallback_calls: std::cell::Cell::new(0),
     }
 }
-fn mk_owned_test_git_commit(commit: &'static str) -> TestGitCommit {
-    mk_test_git_commit(commit, false)
+fn make_owned_test_git_commit(commit: &'static str) -> TestGitCommit {
+    make_test_git_commit(commit, false)
 }
-fn mk_borrowed_test_git_commit(commit: &'static str) -> TestGitCommit {
-    mk_test_git_commit(commit, true)
+fn make_borrowed_test_git_commit(commit: &'static str) -> TestGitCommit {
+    make_test_git_commit(commit, true)
 }
 fn assert_fallback_calls(v: &TestGitCommit, exp: usize) {
     assert_eq!(v.fallback_calls.get(), exp);
@@ -193,12 +193,12 @@ fn project_git_info_returns_commit_link() {
 }
 #[test]
 fn git_commit_link_uses_trait_based_commit_id() {
-    let test_git_commit = mk_owned_test_git_commit(constants_str::F00DBABE);
+    let test_git_commit = make_owned_test_git_commit(constants_str::F00DBABE);
     assert_commit_link_and_fallback_calls(&test_git_commit, constants_str::F00DBABE, 1);
 }
 #[test]
 fn git_commit_link_calls_allocating_fallback_once_without_ref() {
-    let test_git_commit = mk_owned_test_git_commit(constants_str::F00DBABE);
+    let test_git_commit = make_owned_test_git_commit(constants_str::F00DBABE);
     drop(super::GitCommitLinkProvider::git_commit_link(
         &test_git_commit,
     ));
@@ -206,7 +206,7 @@ fn git_commit_link_calls_allocating_fallback_once_without_ref() {
 }
 #[test]
 fn git_commit_id_or_else_computes_fallback_once() {
-    let test_git_commit = mk_owned_test_git_commit(constants_str::F00DBABE);
+    let test_git_commit = make_owned_test_git_commit(constants_str::F00DBABE);
     let mut fallback = super::GitCommitIdFallback::from(None);
     let first = super::GitCommitIdProvider::git_commit_id_or_else(&test_git_commit, &mut fallback);
     assert_eq!(first, "f00dbabe");
@@ -216,7 +216,7 @@ fn git_commit_id_or_else_computes_fallback_once() {
 }
 #[test]
 fn git_commit_id_or_else_prefers_borrowed_ref_without_fallback() {
-    let test_git_commit = mk_borrowed_test_git_commit(constants_str::CAFEBABE);
+    let test_git_commit = make_borrowed_test_git_commit(constants_str::CAFEBABE);
     let mut fallback = super::GitCommitIdFallback::from(None);
     let commit = super::GitCommitIdProvider::git_commit_id_or_else(&test_git_commit, &mut fallback);
     assert_eq!(commit, "cafebabe");
@@ -225,12 +225,12 @@ fn git_commit_id_or_else_prefers_borrowed_ref_without_fallback() {
 }
 #[test]
 fn git_commit_id_cow_returns_owned_without_ref() {
-    let test_git_commit = mk_owned_test_git_commit(constants_str::CAFEBABE);
+    let test_git_commit = make_owned_test_git_commit(constants_str::CAFEBABE);
     assert_commit_id_cow_and_fallback_calls(&test_git_commit, constants_str::CAFEBABE, false, 1);
 }
 #[test]
 fn git_commit_link_prefers_borrowed_commit_id() {
-    let test_git_commit = mk_borrowed_test_git_commit(constants_str::CAFEBABE);
+    let test_git_commit = make_borrowed_test_git_commit(constants_str::CAFEBABE);
     assert_commit_link_and_fallback_calls(&test_git_commit, constants_str::CAFEBABE, 0);
 }
 #[test]
@@ -245,27 +245,27 @@ fn git_commit_link_cow_borrows_project_link_for_project_commit() {
 }
 #[test]
 fn git_commit_id_cow_returns_borrowed_when_ref_is_available() {
-    let test_git_commit = mk_borrowed_test_git_commit(constants_str::CAFEBABE);
+    let test_git_commit = make_borrowed_test_git_commit(constants_str::CAFEBABE);
     assert_commit_id_cow_and_fallback_calls(&test_git_commit, constants_str::CAFEBABE, true, 0);
 }
 #[test]
 fn with_git_commit_id_uses_allocating_fallback_once_without_ref() {
-    let test_git_commit = mk_owned_test_git_commit(constants_str::CAFEBABE);
+    let test_git_commit = make_owned_test_git_commit(constants_str::CAFEBABE);
     assert_commit_len_and_fallback_calls(&test_git_commit, constants_str::CAFEBABE.len(), 1);
 }
 #[test]
 fn with_git_commit_id_prefers_borrowed_ref_when_available() {
-    let test_git_commit = mk_borrowed_test_git_commit(constants_str::CAFEBABE);
+    let test_git_commit = make_borrowed_test_git_commit(constants_str::CAFEBABE);
     assert_commit_len_and_fallback_calls(&test_git_commit, constants_str::CAFEBABE.len(), 0);
 }
 #[test]
 fn with_git_commit_id_ref_or_prefers_borrowed_ref_when_available() {
-    let test_git_commit = mk_borrowed_test_git_commit(constants_str::CAFEBABE);
+    let test_git_commit = make_borrowed_test_git_commit(constants_str::CAFEBABE);
     assert_with_git_commit_id_ref_or(&test_git_commit, constants_str::CAFEBABE.len(), 0);
 }
 #[test]
 fn with_git_commit_id_ref_or_uses_fallback_without_ref() {
-    let test_git_commit = mk_owned_test_git_commit(constants_str::CAFEBABE);
+    let test_git_commit = make_owned_test_git_commit(constants_str::CAFEBABE);
     assert_with_git_commit_id_ref_or(&test_git_commit, constants_str::CAFEBABE.len(), 1);
 }
 #[test]

@@ -29,7 +29,7 @@ pub enum MacroAttrError {
     NoAttr,
 }
 #[must_use]
-pub fn find_macro_attr<'lt, A, S>(attrs: A, attr_path: S) -> Option<SynMacroAttrRef<'lt>>
+pub fn find_macro_attribute<'lt, A, S>(attrs: A, attr_path: S) -> Option<SynMacroAttrRef<'lt>>
 where
     A: IntoIterator<Item = &'lt syn::Attribute>,
     S: AsRef<str> + Copy,
@@ -54,7 +54,7 @@ where
         }
     })
 }
-pub fn try_get_macro_attr<'lt, A, S>(
+pub fn try_get_macro_attribute<'lt, A, S>(
     attrs: A,
     attr_path: S,
 ) -> Result<SynMacroAttrRef<'lt>, MacroAttrError>
@@ -62,7 +62,7 @@ where
     A: IntoIterator<Item = &'lt syn::Attribute>,
     S: AsRef<str> + Copy,
 {
-    find_macro_attr(attrs, attr_path).ok_or(MacroAttrError::NoAttr)
+    find_macro_attribute(attrs, attr_path).ok_or(MacroAttrError::NoAttr)
 }
 pub fn try_get_macro_attr_meta_list_token_stream<'lt, A, S>(
     attrs: A,
@@ -72,7 +72,7 @@ where
     A: IntoIterator<Item = &'lt syn::Attribute>,
     S: AsRef<str> + Copy,
 {
-    let attr = try_get_macro_attr(attrs, attr_path)?;
+    let attr = try_get_macro_attribute(attrs, attr_path)?;
     if let syn::Meta::List(v) = &attr.0.meta {
         Ok(ProcMacro2MacroAttrMetaListTokenStreamRef::from(&v.tokens))
     } else {
@@ -90,7 +90,7 @@ mod tests {
     #[test]
     fn macro_attr_ignores_spaces_in_lookup_path() {
         let attrs = attrs();
-        let attr = super::try_get_macro_attr(&attrs, constants_str::SQLX_PATH_TYPE_NAME)
+        let attr = super::try_get_macro_attribute(&attrs, constants_str::SQLX_PATH_TYPE_NAME)
             .expect("193fa8d2 get_macro_attr_ignores_spaces_in_lookup_path invariant must hold");
         assert!(
             quote::quote! {#attr}
@@ -108,13 +108,13 @@ mod tests {
     #[test]
     fn find_macro_attr_returns_none_when_path_not_present() {
         let attrs = attrs();
-        assert!(super::find_macro_attr(&attrs, "missing::attr").is_none());
+        assert!(super::find_macro_attribute(&attrs, "missing::attr").is_none());
     }
     #[test]
     fn try_get_macro_attr_returns_error_when_attr_not_found() {
         let attrs = attrs();
         assert_eq!(
-            super::try_get_macro_attr(&attrs, "missing::attr"),
+            super::try_get_macro_attribute(&attrs, "missing::attr"),
             Err(super::MacroAttrError::NoAttr)
         );
     }
@@ -129,31 +129,31 @@ mod tests {
     #[test]
     fn find_macro_attr_ignores_spaces_in_lookup_path() {
         let attrs = attrs();
-        let attr = super::find_macro_attr(&attrs, constants_str::SQLX_PATH_TYPE_NAME);
+        let attr = super::find_macro_attribute(&attrs, constants_str::SQLX_PATH_TYPE_NAME);
         assert!(attr.is_some());
     }
     #[test]
     fn find_macro_attr_accepts_leading_colons_in_lookup_path() {
         let attrs = attrs();
-        let attr = super::find_macro_attr(&attrs, constants_str::PATH_SQLX_PATH_TYPE_NAME);
+        let attr = super::find_macro_attribute(&attrs, constants_str::PATH_SQLX_PATH_TYPE_NAME);
         assert!(attr.is_some());
     }
     #[test]
     fn find_macro_attr_returns_none_for_empty_lookup_path() {
         let attrs = attrs();
-        let attr = super::find_macro_attr(&attrs, constants_str::PATH);
+        let attr = super::find_macro_attribute(&attrs, constants_str::PATH);
         assert!(attr.is_none());
     }
     #[test]
     fn find_macro_attr_ignores_empty_segments_between_path_separators() {
         let attrs = attrs();
-        let attr = super::find_macro_attr(&attrs, constants_str::SQLX_PATH_PATH_TYPE_NAME);
+        let attr = super::find_macro_attribute(&attrs, constants_str::SQLX_PATH_PATH_TYPE_NAME);
         assert!(attr.is_some());
     }
     #[test]
     fn find_macro_attr_returns_none_for_partial_path_match() {
         let attrs = attrs();
-        let attr = super::find_macro_attr(&attrs, constants_str::SQLX);
+        let attr = super::find_macro_attribute(&attrs, constants_str::SQLX);
         assert!(attr.is_none());
     }
 }

@@ -538,11 +538,9 @@ where
         &self,
         v: SwaggerUrlPathPrefix<'_>,
     ) -> SwaggerUrlPathSelfQuotesStrValue {
-        SwaggerUrlPathSelfQuotesStrValue::from(generate_quotes::domain_types::dq_str(&format!(
-            "/{}/{}",
-            v.as_ref(),
-            self.case(),
-        )))
+        SwaggerUrlPathSelfQuotesStrValue::from(generate_quotes::domain_types::double_quoted_string(
+            &format!("/{}/{}", v.as_ref(), self.case()),
+        ))
     }
 }
 pub trait SwaggerUrlPathSelfQuotesTokenStream {

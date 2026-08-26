@@ -2,11 +2,11 @@
 pub mod check_body_size;
 #[path = "check_commit.rs"]
 pub mod check_commit;
-#[path = "hdr_val.rs"]
-pub mod hdr_val;
+#[path = "header_value.rs"]
+pub mod header_value;
 #[cfg(test)]
-#[path = "test_hlp.rs"]
-pub(crate) mod test_hlp;
+#[path = "test_helper.rs"]
+pub(crate) mod test_helper;
 //todo request per second middleware
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,

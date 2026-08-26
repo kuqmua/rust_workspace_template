@@ -7,8 +7,8 @@ mod routes;
 pub(super) async fn run_server(
     config: server_config::domain_types::Config,
 ) -> Result<(), crate::domain_types::RunServerError> {
-    let pg_pool = crate::adapters::mk_pg_pool::mk_pg_pool(&config).await?;
-    let cleanup_cfg = crate::adapters::maintenance::cfg()?;
+    let pg_pool = crate::adapters::make_postgresql_pool::make_postgresql_pool(&config).await?;
+    let cleanup_cfg = crate::adapters::maintenance::configuration()?;
     let cleanup_interval = crate::adapters::maintenance::interval()?;
     let cleanup_pool = pg_pool.clone();
     let Some(cleanup_task) = server_runtime_http::domain_types::spawn_interval_task(

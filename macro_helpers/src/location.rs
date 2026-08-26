@@ -17,7 +17,7 @@ impl std::str::FromStr for LocationFieldAttr {
         Self::ALL
             .into_iter()
             .find(|item| {
-                crate::domain_types::attr_identifier_str::AttrIdentifierStr::attr_identifier_str(
+                crate::domain_types::attribute_identifier_string::AttrIdentifierStr::attribute_identifier_string(
                     item,
                 )
                 .as_ref()
@@ -43,11 +43,11 @@ impl TryFrom<&syn::Field> for LocationFieldAttr {
         optional_attr.map_or_else(|| Err(constants_str::OPT_ATTR_IS_NONE.to_owned()), Ok)
     }
 }
-impl crate::domain_types::attr_identifier_str::AttrIdentifierStr for LocationFieldAttr {
-    fn attr_identifier_str(
+impl crate::domain_types::attribute_identifier_string::AttrIdentifierStr for LocationFieldAttr {
+    fn attribute_identifier_string(
         &self,
-    ) -> crate::domain_types::attr_identifier_str::AttrIdentifierName<'_> {
-        crate::domain_types::attr_identifier_str::AttrIdentifierName::from(match *self {
+    ) -> crate::domain_types::attribute_identifier_string::AttrIdentifierName<'_> {
+        crate::domain_types::attribute_identifier_string::AttrIdentifierName::from(match *self {
             Self::EoToErrString => constants_str::EO_TO_ERR_STRING,
             Self::EoToErrStringSerde => constants_str::EO_TO_ERR_STRING_SERDE,
             Self::EoLocation => constants_str::EO_LOCATION,
@@ -82,7 +82,7 @@ impl LocationFieldAttr {
     ) -> crate::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream{
         match format!(
             "#[{}]",
-            crate::domain_types::attr_identifier_str::AttrIdentifierStr::attr_identifier_str(self)
+            crate::domain_types::attribute_identifier_string::AttrIdentifierStr::attribute_identifier_string(self)
                 .as_ref()
         )
         .parse::<proc_macro2::TokenStream>()

@@ -20,12 +20,16 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
         .execute(&mut *admin_db_test_lock)
         .await
         .expect("693b147f postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
-    server_admin::domain_types::prep_pg(app_state::domain_types::SqlxPgPoolRef::from(&pool.0))
-        .await
-        .expect("0ea8d516 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
-    server_admin::domain_types::prep_pg(app_state::domain_types::SqlxPgPoolRef::from(&pool.0))
-        .await
-        .expect("676c00f1 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
+    server_admin::domain_types::prepare_postgresql(app_state::domain_types::SqlxPgPoolRef::from(
+        &pool.0,
+    ))
+    .await
+    .expect("0ea8d516 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
+    server_admin::domain_types::prepare_postgresql(app_state::domain_types::SqlxPgPoolRef::from(
+        &pool.0,
+    ))
+    .await
+    .expect("676c00f1 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
     server_admin::domain_types::generated_tables::validate_catalog_schema(
         pg_crud_common::domain_types::SqlxPgPoolRef::from(&pool.0),
         pg_crud_common::domain_types::DbSchemaNameRef::from(constants_str::PUBLIC),
@@ -56,9 +60,11 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
         .execute(&pool.0)
         .await
         .expect("9d762f8c postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
-    server_admin::domain_types::prep_pg(app_state::domain_types::SqlxPgPoolRef::from(&pool.0))
-        .await
-        .expect("ea3f641d postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
+    server_admin::domain_types::prepare_postgresql(app_state::domain_types::SqlxPgPoolRef::from(
+        &pool.0,
+    ))
+    .await
+    .expect("ea3f641d postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
     let reconciled_permissions = sqlx::query_scalar::<_, String>(
         constants_str::SELECT_NAME_FROM_ADMIN_PERMISSIONS_ORDER_BY_NAME,
     )

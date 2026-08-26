@@ -47,7 +47,7 @@ enum DomainEvent {
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[derive(newtype::FromInner)]
 struct DomainEvents(Vec<DomainEvent>);
-fn mk_domain_entity(id: DomainId, name: DomainName) -> DomainEntity {
+fn make_domain_entity(id: DomainId, name: DomainName) -> DomainEntity {
     DomainEntity { id, name }
 }
 fn domain_events(entity: DomainEntity) -> DomainEvents {

@@ -8,7 +8,7 @@ pub(crate) fn admin_user_roles(
     item: &server_admin_contract::domain_types::AdminUserSummary,
     page: &server_admin_contract::domain_types::AdminUsersPage,
 ) -> impl leptos::prelude::IntoView + use<> {
-    let names = String::from(super::text::join_txt(
+    let names = String::from(super::text::join_text(
         page.roles()
             .iter()
             .filter(|role| item.role_ids().contains(&role.id()))
@@ -22,7 +22,7 @@ pub(crate) fn admin_role_permissions(
     item: &server_admin_contract::domain_types::AdminRoleSummary,
     page: &server_admin_contract::domain_types::AdminRolesPage,
 ) -> impl leptos::prelude::IntoView + use<> {
-    let names = String::from(super::text::join_txt(
+    let names = String::from(super::text::join_text(
         page.permissions()
             .iter()
             .filter(|permission| item.permission_ids().contains(&permission.id()))

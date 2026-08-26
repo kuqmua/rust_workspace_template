@@ -240,7 +240,7 @@ The infallible Git information handler has no error declaration:
 
 ```rust
 async fn git_info(app_state: ArcCommonRoutesAppState) -> JsonRes<GitInfo> {
-    mk_commit_json_res(app_state.0.as_ref(), mk_git_info_payload)
+    make_commit_json_response(app_state.0.as_ref(), make_git_info_payload)
 }
 ```
 

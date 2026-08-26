@@ -2,7 +2,7 @@ fn auth_with_headers(headers: http::HeaderMap) -> super::super::AdminAuthReq {
     let pool = sqlx::postgres::PgPoolOptions::new()
         .connect_lazy(constants_str::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION)
         .expect("1c2a7f54 auth_with_headers invariant must hold");
-    let state = super::super::tests::hlp::auth_state(pool, constants_str::HTTP_LOCALHOST)
+    let state = super::super::tests::helper::auth_state(pool, constants_str::HTTP_LOCALHOST)
         .expect("adf9c06e auth_with_headers invariant must hold");
     super::super::AdminAuthReq {
         headers: super::super::HttpAdminHeaderMap::from(headers),

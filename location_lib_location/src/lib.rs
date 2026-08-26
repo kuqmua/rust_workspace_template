@@ -217,7 +217,7 @@ pub fn location(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                                 }
                             }
                             macro_helpers::domain_types::location_data::LocationFieldAttr::EoLocation => {
-                                let if_write_is_err_token_stream = macro_helpers::domain_types::generate_if_write_is_err_token_stream::generate_if_write_is_err_token_stream(&quote::quote! {accumulator_52e70d22, "\n {element}"}, &quote::quote! {panic!("c751d54a");});
+                                let if_write_is_err_token_stream = macro_helpers::domain_types::generate_if_write_is_error_token_stream::generate_if_write_is_error_token_stream(&quote::quote! {accumulator_52e70d22, "\n {element}"}, &quote::quote! {panic!("c751d54a");});
                                 quote::quote! {
                                     #el0_identifier.to_string().lines().fold(
                                         #string_token_stream::new(),
@@ -229,7 +229,7 @@ pub fn location(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                                 }
                             }
                             macro_helpers::domain_types::location_data::LocationFieldAttr::EoVecToErrString | macro_helpers::domain_types::location_data::LocationFieldAttr::EoVecToErrStringSerde => {
-                                let if_write_is_err_token_stream = macro_helpers::domain_types::generate_if_write_is_err_token_stream::generate_if_write_is_err_token_stream(&quote::quote! {accumulator_a9ba7521, "\n {element_6e4f53ad}"}, &quote::quote! {panic!("b35ed9f5");});
+                                let if_write_is_err_token_stream = macro_helpers::domain_types::generate_if_write_is_error_token_stream::generate_if_write_is_error_token_stream(&quote::quote! {accumulator_a9ba7521, "\n {element_6e4f53ad}"}, &quote::quote! {panic!("b35ed9f5");});
                                 quote::quote! {
                                     #el0_identifier.iter().fold(
                                         #string_token_stream::new(),
@@ -251,7 +251,7 @@ pub fn location(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                                 }
                             }
                             macro_helpers::domain_types::location_data::LocationFieldAttr::EoVecLocation => {
-                                let if_write_is_err_token_stream = macro_helpers::domain_types::generate_if_write_is_err_token_stream::generate_if_write_is_err_token_stream(&quote::quote! {accumulator_1bbd5ef3, "\n {element_3f2fe01d}"}, &quote::quote! {panic!("4dfdd18d");});
+                                let if_write_is_err_token_stream = macro_helpers::domain_types::generate_if_write_is_error_token_stream::generate_if_write_is_error_token_stream(&quote::quote! {accumulator_1bbd5ef3, "\n {element_3f2fe01d}"}, &quote::quote! {panic!("4dfdd18d");});
                                 quote::quote! {
                                     #el0_identifier.iter().fold(
                                         #string_token_stream::new(),
@@ -269,7 +269,7 @@ pub fn location(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                                 }
                             }
                             macro_helpers::domain_types::location_data::LocationFieldAttr::EoHashMapKStringVToErrString | macro_helpers::domain_types::location_data::LocationFieldAttr::EoHashMapKStringVToErrStringSerde => {
-                                let if_write_is_err_token_stream = macro_helpers::domain_types::generate_if_write_is_err_token_stream::generate_if_write_is_err_token_stream(&quote::quote! {accumulator_06473093, "\n {}: {}", &to_err_string::domain_types::ToErrString::to_err_string(k), &to_err_string::domain_types::ToErrString::to_err_string(#v_snake_case)}, &quote::quote! {panic!("d030580a");});
+                                let if_write_is_err_token_stream = macro_helpers::domain_types::generate_if_write_is_error_token_stream::generate_if_write_is_error_token_stream(&quote::quote! {accumulator_06473093, "\n {}: {}", &to_err_string::domain_types::ToErrString::to_err_string(k), &to_err_string::domain_types::ToErrString::to_err_string(#v_snake_case)}, &quote::quote! {panic!("d030580a");});
                                 quote::quote! {
                                     #el0_identifier.iter().fold(
                                         #string_token_stream::new(),
@@ -281,9 +281,9 @@ pub fn location(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                                 }
                             }
                             macro_helpers::domain_types::location_data::LocationFieldAttr::EoHashMapKStringVLocation => {
-                                let if_write_is_err_token_stream = macro_helpers::domain_types::generate_if_write_is_err_token_stream::generate_if_write_is_err_token_stream(
+                                let if_write_is_err_token_stream = macro_helpers::domain_types::generate_if_write_is_error_token_stream::generate_if_write_is_error_token_stream(
                                     &{
-                                        let if_write_is_err_token_stream = macro_helpers::domain_types::generate_if_write_is_err_token_stream::generate_if_write_is_err_token_stream(&quote::quote! {accumulator_addfc699, "\n  {element_8b8f577e}"}, &quote::quote! {panic!("d0492fbf");});
+                                        let if_write_is_err_token_stream = macro_helpers::domain_types::generate_if_write_is_error_token_stream::generate_if_write_is_error_token_stream(&quote::quote! {accumulator_addfc699, "\n  {element_8b8f577e}"}, &quote::quote! {panic!("d0492fbf");});
                                         quote::quote! {
                                             accumulator_a47e1ba7,
                                             "\n {}: {}",

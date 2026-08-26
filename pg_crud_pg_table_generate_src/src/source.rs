@@ -2470,7 +2470,7 @@ pub fn emit_generate_pg_table(
                                                 let mut acc0 = syn::punctuated::Punctuated::new();
                                                 acc0.push(syn::PathSegment {
                                                     ident: syn::Ident::new(
-                                                        macro_helpers::domain_types::attr_identifier_str::AttrIdentifierStr::attr_identifier_str(&element.0).as_ref(),
+                                                        macro_helpers::domain_types::attribute_identifier_string::AttrIdentifierStr::attribute_identifier_string(&element.0).as_ref(),
                                                         proc_macro2::Span::call_site(),
                                                     ),
                                                     arguments: syn::PathArguments::None,
@@ -2646,7 +2646,7 @@ pub fn emit_generate_pg_table(
                             },
                             &quote::quote! {v_c3f0b59a},
                             &{
-                                let if_write_is_err_token_stream = macro_helpers::domain_types::generate_if_write_is_err_token_stream::generate_if_write_is_err_token_stream(
+                                let if_write_is_err_token_stream = macro_helpers::domain_types::generate_if_write_is_error_token_stream::generate_if_write_is_error_token_stream(
                                     &quote::quote! {accumulator, "{v_c3f0b59a},"},
                                     &return_err_query_part_error_write_into_buffer_token_stream,
                                 );
@@ -5636,7 +5636,7 @@ enum WrapIntoOptional {
                         quote::quote! {{#ts0}}
                     };
                     let generate_if_write_is_err_short_token_stream = |ts: &dyn quote::ToTokens| {
-                        macro_helpers::domain_types::generate_if_write_is_err_token_stream::generate_if_write_is_err_token_stream(
+                        macro_helpers::domain_types::generate_if_write_is_error_token_stream::generate_if_write_is_error_token_stream(
                             &ts,
                             &write_into_buffer_query_part_syn_variant_error_initialization_eprintln_res_creation_token_stream,
                         )
@@ -5707,7 +5707,7 @@ enum WrapIntoOptional {
                                 });
                             let (if_write_is_err_curly_braces_0_token_stream, if_write_is_err_curly_braces_1_token_stream) = {
                                 let generate_if_write_is_err_curly_braces_short_token_stream = |ts: &dyn quote::ToTokens| {
-                                    macro_helpers::domain_types::generate_if_write_is_err_token_stream::generate_if_write_is_err_token_stream(
+                                    macro_helpers::domain_types::generate_if_write_is_error_token_stream::generate_if_write_is_error_token_stream(
                                     &ts,
                                     &write_into_buffer_query_part_syn_variant_error_initialization_eprintln_res_creation_token_stream
                                 )
@@ -5740,7 +5740,7 @@ enum WrapIntoOptional {
                                     }),
                                 )
                             };
-                            let if_write_is_err_order_tie_token_stream = macro_helpers::domain_types::generate_if_write_is_err_token_stream::generate_if_write_is_err_token_stream(
+                            let if_write_is_err_order_tie_token_stream = macro_helpers::domain_types::generate_if_write_is_error_token_stream::generate_if_write_is_error_token_stream(
                                 &quote::quote! {
                                     #ExtraParametersSnakeCase,
                                     ", {} {}",

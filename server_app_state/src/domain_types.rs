@@ -102,11 +102,11 @@ where
 }
 #[cfg(feature = "test-utils")]
 #[must_use]
-pub fn mk_test_server_app_state() -> ServerAppState<'static> {
+pub fn make_test_server_app_state() -> ServerAppState<'static> {
     ServerAppState {
         bulk_item_budget: server_runtime_core::domain_types::ResourceBudget::new(
             server_runtime_core::domain_types::ResourceBudgetMaximum::try_from(8usize)
-                .expect("86d3d452 mk_test_server_app_state invariant must hold"),
+                .expect("86d3d452 make_test_server_app_state invariant must hold"),
         ),
         config: server_config::domain_types::Config {
             svc_mode: config_lib::domain_types::types::SvcMode::Serve,
@@ -117,112 +117,112 @@ pub fn mk_test_server_app_state() -> ServerAppState<'static> {
                 config_lib::domain_types::StdEnvVarOk::try_from(
                     constants_str::TEST_CONTENT_SECURITY_POLICY.to_owned(),
                 )
-                .expect("957dc3b8 mk_test_server_app_state invariant must hold"),
+                .expect("957dc3b8 make_test_server_app_state invariant must hold"),
             ),
             database_url: test_env(
                 config_lib::domain_types::StdEnvVarOk::try_from(
                     constants_str::TEST_VALUES_UNREACHABLE_DATABASE_URL.to_owned(),
                 )
-                .expect("3e33c100 mk_test_server_app_state invariant must hold"),
+                .expect("3e33c100 make_test_server_app_state invariant must hold"),
             ),
             admin_jwt_secret: test_env(
                 config_lib::domain_types::StdEnvVarOk::try_from(
                     constants_str::TEST_ONLY_ADMIN_JWT_SECRET_WITH_32_BYTES.to_owned(),
                 )
-                .expect("f29cc79a mk_test_server_app_state invariant must hold"),
+                .expect("f29cc79a make_test_server_app_state invariant must hold"),
             ),
             admin_token_audience: test_env(
                 config_lib::domain_types::StdEnvVarOk::try_from(
                     constants_str::TEST_AUDIENCE.to_owned(),
                 )
-                .expect("5b218444 mk_test_server_app_state invariant must hold"),
+                .expect("5b218444 make_test_server_app_state invariant must hold"),
             ),
             admin_token_issuer: test_env(
                 config_lib::domain_types::StdEnvVarOk::try_from(
                     constants_str::TEST_ISSUER.to_owned(),
                 )
-                .expect("8357484d mk_test_server_app_state invariant must hold"),
+                .expect("8357484d make_test_server_app_state invariant must hold"),
             ),
             admin_access_token_ttl_seconds: test_env(
                 config_lib::domain_types::StdEnvVarOk::try_from(
                     constants_str::VALUE_900.to_owned(),
                 )
-                .expect("4e1b2430 mk_test_server_app_state invariant must hold"),
+                .expect("4e1b2430 make_test_server_app_state invariant must hold"),
             ),
             admin_password_hash_concurrency: test_env(
                 config_lib::domain_types::StdEnvVarOk::try_from(constants_str::VALUE_1.to_owned())
-                    .expect("763e1bd9 mk_test_server_app_state invariant must hold"),
+                    .expect("763e1bd9 make_test_server_app_state invariant must hold"),
             ),
             admin_login_failure_limit: test_env(
                 config_lib::domain_types::StdEnvVarOk::try_from(constants_str::VALUE_10.to_owned())
-                    .expect("fb8d620e mk_test_server_app_state invariant must hold"),
+                    .expect("fb8d620e make_test_server_app_state invariant must hold"),
             ),
             admin_refresh_token_ttl_seconds: test_env(
                 config_lib::domain_types::StdEnvVarOk::try_from(
                     constants_str::VALUE_3600.to_owned(),
                 )
-                .expect("467a6513 mk_test_server_app_state invariant must hold"),
+                .expect("467a6513 make_test_server_app_state invariant must hold"),
             ),
             admin_session_limit: test_env(
                 config_lib::domain_types::StdEnvVarOk::try_from(constants_str::VALUE_20.to_owned())
-                    .expect("b26f4a08 mk_test_server_app_state invariant must hold"),
+                    .expect("b26f4a08 make_test_server_app_state invariant must hold"),
             ),
             admin_sign_in_rate_limit: test_env(
                 config_lib::domain_types::StdEnvVarOk::try_from(constants_str::VALUE_10.to_owned())
-                    .expect("53224f39 mk_test_server_app_state invariant must hold"),
+                    .expect("53224f39 make_test_server_app_state invariant must hold"),
             ),
             admin_swagger_enabled: test_env(
                 config_lib::domain_types::StdEnvVarOk::try_from(constants_str::TRUE.to_owned())
-                    .expect("818b46e8 mk_test_server_app_state invariant must hold"),
+                    .expect("818b46e8 make_test_server_app_state invariant must hold"),
             ),
             http_gzip_enabled: test_env(
                 config_lib::domain_types::StdEnvVarOk::try_from(constants_str::TRUE.to_owned())
-                    .expect("7c36108e mk_test_server_app_state invariant must hold"),
+                    .expect("7c36108e make_test_server_app_state invariant must hold"),
             ),
             production_mode: config_lib::domain_types::ProductionMode::from(false),
             maximum_size_of_http_body_in_bytes:
                 config_lib::domain_types::MaximumSizeOfHttpBodyInBytes::try_from(1_024usize)
-                    .expect("d7a590e3 mk_test_server_app_state invariant must hold"),
+                    .expect("d7a590e3 make_test_server_app_state invariant must hold"),
             service_socket_address: config_lib::domain_types::ServiceSocketAddress(
                 constants_str::VALUE_127_0_0_1_3000
                     .parse()
-                    .expect("9cba6537 mk_test_server_app_state invariant must hold"),
+                    .expect("9cba6537 make_test_server_app_state invariant must hold"),
             ),
             pg_pool_max_connections: config_lib::domain_types::PgPoolMaxConnections::try_from(1u32)
-                .expect("58530f0e mk_test_server_app_state invariant must hold"),
+                .expect("58530f0e make_test_server_app_state invariant must hold"),
             pg_pool_min_connections: test_env(
                 config_lib::domain_types::StdEnvVarOk::try_from(constants_str::VALUE_0.to_owned())
-                    .expect("d816fc9a mk_test_server_app_state invariant must hold"),
+                    .expect("d816fc9a make_test_server_app_state invariant must hold"),
             ),
             pg_pool_acquire_timeout_seconds: test_env(
                 config_lib::domain_types::StdEnvVarOk::try_from(
                     constants_str::TEST_VALUE_30.to_owned(),
                 )
-                .expect("48634ca9 mk_test_server_app_state invariant must hold"),
+                .expect("48634ca9 make_test_server_app_state invariant must hold"),
             ),
             pg_pool_idle_timeout_seconds: test_env(
                 config_lib::domain_types::StdEnvVarOk::try_from(
                     constants_str::TEST_VALUE_30.to_owned(),
                 )
-                .expect("4d68545f mk_test_server_app_state invariant must hold"),
+                .expect("4d68545f make_test_server_app_state invariant must hold"),
             ),
             pg_pool_max_lifetime_seconds: test_env(
                 config_lib::domain_types::StdEnvVarOk::try_from(
                     constants_str::TEST_VALUE_30.to_owned(),
                 )
-                .expect("8b271546 mk_test_server_app_state invariant must hold"),
+                .expect("8b271546 make_test_server_app_state invariant must hold"),
             ),
             request_timeout_seconds: test_env(
                 config_lib::domain_types::StdEnvVarOk::try_from(
                     constants_str::TEST_VALUE_30.to_owned(),
                 )
-                .expect("1e6a4c92 mk_test_server_app_state invariant must hold"),
+                .expect("1e6a4c92 make_test_server_app_state invariant must hold"),
             ),
             timezone: config_lib::domain_types::ChronoTimezone::try_from(
                 chrono::FixedOffset::east_opt(10_800i32)
-                    .expect("695a2c2a mk_test_server_app_state invariant must hold"),
+                    .expect("695a2c2a make_test_server_app_state invariant must hold"),
             )
-            .expect("e3e42aa5 mk_test_server_app_state invariant must hold"),
+            .expect("e3e42aa5 make_test_server_app_state invariant must hold"),
             src_place_type: config_lib::domain_types::SrcPlaceType(
                 config_lib::domain_types::types::SrcPlaceType::Github,
             ),
@@ -236,23 +236,23 @@ pub fn mk_test_server_app_state() -> ServerAppState<'static> {
             enable_api_git_commit_check: config_lib::domain_types::EnableApiGitCommitCheck(false),
             admin_cookie_secure: test_env(
                 config_lib::domain_types::StdEnvVarOk::try_from(constants_str::FALSE.to_owned())
-                    .expect("dbe97ef3 mk_test_server_app_state invariant must hold"),
+                    .expect("dbe97ef3 make_test_server_app_state invariant must hold"),
             ),
         },
         idempotency_response_budget: server_runtime_core::domain_types::ResourceBudget::new(
             server_runtime_core::domain_types::ResourceBudgetMaximum::try_from(4_096usize)
-                .expect("799dc227 mk_test_server_app_state invariant must hold"),
+                .expect("799dc227 make_test_server_app_state invariant must hold"),
         ),
         pg_pool: app_state::domain_types::SqlxPgPool::from(
             sqlx::PgPool::connect_lazy(constants_str::TEST_VALUES_UNREACHABLE_DATABASE_URL)
-                .expect("d53d8ff0 mk_test_server_app_state invariant must hold"),
+                .expect("d53d8ff0 make_test_server_app_state invariant must hold"),
         ),
         project_git_info: git_info::domain_types::project_git_info(),
     }
 }
 #[cfg(test)]
 mod tests {
-    fn mk_git_info() -> git_info::domain_types::ProjectGitInfo<'static> {
+    fn make_git_info() -> git_info::domain_types::ProjectGitInfo<'static> {
         git_info::domain_types::ProjectGitInfo::from(git_info::domain_types::GitCommitIdRef::from(
             constants_str::TEST_VALUES_COMMIT,
         ))
@@ -268,13 +268,13 @@ mod tests {
         )
         .expect("3879e38d env invariant must hold")
     }
-    fn mk_structure(
+    fn make_structure(
         project_git_info: git_info::domain_types::ProjectGitInfo<'_>,
     ) -> super::ServerAppState<'_> {
         super::ServerAppState {
             bulk_item_budget: server_runtime_core::domain_types::ResourceBudget::new(
                 server_runtime_core::domain_types::ResourceBudgetMaximum::try_from(128usize)
-                    .expect("837f89a0 mk_structure invariant must hold"),
+                    .expect("837f89a0 make_structure invariant must hold"),
             ),
             config: server_config::domain_types::Config {
                 svc_mode: config_lib::domain_types::types::SvcMode::Serve,
@@ -297,16 +297,16 @@ mod tests {
                 production_mode: config_lib::domain_types::ProductionMode::from(false),
                 maximum_size_of_http_body_in_bytes:
                     config_lib::domain_types::MaximumSizeOfHttpBodyInBytes::try_from(16_384)
-                        .expect("d81f6a42 mk_structure invariant must hold"),
+                        .expect("d81f6a42 make_structure invariant must hold"),
                 service_socket_address: config_lib::domain_types::ServiceSocketAddress(
                     constants_str::VALUE_127_0_0_1_3000
                         .parse()
-                        .expect("73f8bc91 mk_structure invariant must hold"),
+                        .expect("73f8bc91 make_structure invariant must hold"),
                 ),
                 pg_pool_max_connections: config_lib::domain_types::PgPoolMaxConnections::try_from(
                     7,
                 )
-                .expect("f20c4a91 mk_structure invariant must hold"),
+                .expect("f20c4a91 make_structure invariant must hold"),
                 pg_pool_min_connections: env(constants_str::VALUE_0),
                 pg_pool_acquire_timeout_seconds: env(constants_str::TEST_VALUE_30),
                 pg_pool_idle_timeout_seconds: env(constants_str::TEST_VALUE_30),
@@ -314,9 +314,9 @@ mod tests {
                 request_timeout_seconds: env(constants_str::TEST_VALUE_30),
                 timezone: config_lib::domain_types::ChronoTimezone::try_from(
                     chrono::FixedOffset::east_opt(3i32 * 3_600i32)
-                        .expect("a95d3c17 mk_structure invariant must hold"),
+                        .expect("a95d3c17 make_structure invariant must hold"),
                 )
-                .expect("e8714250 mk_structure invariant must hold"),
+                .expect("e8714250 make_structure invariant must hold"),
                 src_place_type: config_lib::domain_types::SrcPlaceType(
                     config_lib::domain_types::types::SrcPlaceType::Github,
                 ),
@@ -334,13 +334,13 @@ mod tests {
             },
             pg_pool: app_state::domain_types::SqlxPgPool::from(
                 sqlx::PgPool::connect_lazy(constants_str::POSTGRES_USR_PWD_LOCALHOST_5432_DB)
-                    .expect("4bd3f0a1 mk_structure invariant must hold"),
+                    .expect("4bd3f0a1 make_structure invariant must hold"),
             ),
             idempotency_response_budget: server_runtime_core::domain_types::ResourceBudget::new(
                 server_runtime_core::domain_types::ResourceBudgetMaximum::try_from(
                     constants_usize::VALUE_1_048_576,
                 )
-                .expect("926ce310 mk_structure invariant must hold"),
+                .expect("926ce310 make_structure invariant must hold"),
             ),
             project_git_info,
         }
@@ -351,8 +351,8 @@ mod tests {
         ignore = "SQLx account discovery calls getpwuid_r, which Miri does not support"
     )]
     async fn cfg_accessors_forward_to_inner_config() {
-        let git_info = mk_git_info();
-        let structure = mk_structure(git_info);
+        let git_info = make_git_info();
+        let structure = make_structure(git_info);
         assert_eq!(
             config_lib::domain_types::SrcPlaceTypeProvider::src_place_type(&structure),
             &config_lib::domain_types::types::SrcPlaceType::Github
@@ -380,8 +380,8 @@ mod tests {
         ignore = "SQLx account discovery calls getpwuid_r, which Miri does not support"
     )]
     async fn sqlx_pg_pool_returns_same_pool_ref() {
-        let git_info = mk_git_info();
-        let structure = mk_structure(git_info);
+        let git_info = make_git_info();
+        let structure = make_structure(git_info);
         let lhs = std::ptr::from_ref(
             app_state::domain_types::SqlxPgPoolProvider::sqlx_pg_pool(&structure).as_ref(),
         );
@@ -394,8 +394,8 @@ mod tests {
         ignore = "SQLx account discovery calls getpwuid_r, which Miri does not support"
     )]
     async fn as_ref_and_git_commit_link_are_consistent() {
-        let git_info = mk_git_info();
-        let structure = mk_structure(git_info);
+        let git_info = make_git_info();
+        let structure = make_structure(git_info);
         assert_eq!(structure.as_ref(), constants_str::TEST_VALUES_COMMIT);
         assert_eq!(
             git_info::domain_types::GitCommitLinkProvider::git_commit_link(&structure),

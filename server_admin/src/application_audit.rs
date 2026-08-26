@@ -26,7 +26,7 @@ pub(super) async fn query_log(
             super::AdminError::Validation
         }
         crate::adapters::repository::AdminRepositoryError::Sqlx(sqlx_error) => {
-            super::AdminError::pg(sqlx_error)
+            super::AdminError::postgresql(sqlx_error)
         }
     })?;
     Ok(super::shared::json_response(page))
@@ -68,7 +68,7 @@ pub(super) async fn export_log(
             super::AdminError::Validation
         }
         crate::adapters::repository::AdminRepositoryError::Sqlx(sqlx_error) => {
-            super::AdminError::pg(sqlx_error)
+            super::AdminError::postgresql(sqlx_error)
         }
     })?;
     let mut csv = String::from(constants_str::AUDIT_CSV_HEADER);

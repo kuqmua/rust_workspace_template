@@ -89,7 +89,7 @@ pub(super) async fn authenticate(
             .await
             .map_err(crate::domain_types::SqlxAdminError::from)
             .map(crate::domain_types::StdAdminBool::from)
-            .map_err(super::AdminError::pg)?;
+            .map_err(super::AdminError::postgresql)?;
     if !active.get() {
         return Err(super::AdminError::Authentication);
     }
@@ -135,7 +135,7 @@ pub(super) async fn validate_csrf(
                 })
                 .transpose()
         })
-        .map_err(super::AdminError::pg)?
+        .map_err(super::AdminError::postgresql)?
         .ok_or(super::AdminError::Csrf)?;
     let provided_text = provided_hash.expose();
     let provided_secret =

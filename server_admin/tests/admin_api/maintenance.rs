@@ -101,7 +101,7 @@ async fn postgresql_cleanup_is_batched_and_preserves_append_only_policy() {
     )
     .await
     .expect("fab61374 postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
-    server_admin::domain_types::prep_pg(app_state::domain_types::SqlxPgPoolRef::from(&pool))
+    server_admin::domain_types::prepare_postgresql(app_state::domain_types::SqlxPgPoolRef::from(&pool))
         .await
         .expect("029cb682 postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
     pg_table::domain_types::ensure_pg_table_idempotency_schema(app_state::domain_types::SqlxPgPoolRef::from(&pool))

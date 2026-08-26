@@ -554,17 +554,17 @@ pub trait CommonRoutesParameters:
 {
 }
 #[allow(clippy::single_call_fn)] // keeps commit-link extraction shape shared between endpoints and tests
-pub(crate) const fn mk_git_info_payload(
+pub(crate) const fn make_git_info_payload(
     commit: git_info::domain_types::GitCommitLinkCow,
 ) -> GitInfo {
     GitInfo { commit }
 }
 #[allow(clippy::single_call_fn)] // single source for no-route text reused by payload builder and tests
-fn mk_no_route_message(uri: AxumHttpUriRef<'_>) -> to_err_string::domain_types::ErrorText {
-    mk_no_route_message_for_suffix(uri_suffix(uri))
+fn make_no_route_message(uri: AxumHttpUriRef<'_>) -> to_err_string::domain_types::ErrorText {
+    make_no_route_message_for_suffix(uri_suffix(uri))
 }
 #[allow(clippy::single_call_fn)] // isolated for reuse in tests and payload builder when suffix is precomputed
-fn mk_no_route_message_for_suffix(
+fn make_no_route_message_for_suffix(
     uri_suffix: UriSuffixRef<'_>,
 ) -> to_err_string::domain_types::ErrorText {
     let cap = no_route_message_capacity(uri_suffix);
@@ -591,14 +591,14 @@ fn uri_suffix(uri: AxumHttpUriRef<'_>) -> UriSuffixRef<'_> {
     )
 }
 #[allow(clippy::single_call_fn)] // keeps fallback payload assembly in one place
-pub(crate) fn mk_not_found_payload(
+pub(crate) fn make_not_found_payload(
     uri: AxumHttpUriRef<'_>,
     commit: git_info::domain_types::GitCommitLinkCow,
 ) -> NotFoundPayload {
-    mk_not_found_payload_with_message(mk_no_route_message(uri), commit)
+    make_not_found_payload_with_message(make_no_route_message(uri), commit)
 }
 #[allow(clippy::single_call_fn)] // shared payload constructor keeps not-found response shape centralized
-fn mk_not_found_payload_with_message(
+fn make_not_found_payload_with_message(
     message: to_err_string::domain_types::ErrorText,
     commit: git_info::domain_types::GitCommitLinkCow,
 ) -> NotFoundPayload {
@@ -611,18 +611,18 @@ fn mk_not_found_payload_with_message(
     }
 }
 #[allow(clippy::single_call_fn)] // shared helper keeps commit-based status+json responses consistent across endpoints
-pub(crate) fn mk_commit_json_res<S, T>(
+pub(crate) fn make_commit_json_response<S, T>(
     commit_src: &S,
     map: impl FnOnce(git_info::domain_types::GitCommitLinkCow) -> T,
 ) -> JsonRes<T>
 where
     S: ?Sized + git_info::domain_types::GitCommitLinkProvider,
 {
-    mk_json_res(map(
+    make_json_response(map(
         git_info::domain_types::GitCommitLinkProvider::git_commit_link_cow(commit_src),
     ))
 }
-pub(crate) fn mk_json_res<T>(payload: T) -> JsonRes<T> {
+pub(crate) fn make_json_response<T>(payload: T) -> JsonRes<T> {
     JsonRes {
         payload: AxumJsonPayload::from(axum::Json(payload)),
     }

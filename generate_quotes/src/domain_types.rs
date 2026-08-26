@@ -124,7 +124,7 @@ where
     quote_token_stream(single_quote_style(), v)
 }
 #[must_use]
-pub fn dq_str<Dsp>(v: &Dsp) -> QuotedLiteral
+pub fn double_quoted_string<Dsp>(v: &Dsp) -> QuotedLiteral
 where
     Dsp: std::fmt::Display + ?Sized,
 {
@@ -183,7 +183,7 @@ mod tests {
             constants_str::ABC,
         );
         assert_quote_str(
-            &super::dq_str(&constants_str::ABC_ALT_3),
+            &super::double_quoted_string(&constants_str::ABC_ALT_3),
             constants_str::ABC_ALT,
         );
         assert_quote_str(
@@ -216,7 +216,10 @@ mod tests {
     }
     #[test]
     fn quote_helpers_support_non_string_display_inputs() {
-        assert_quote_str(&super::dq_str(&42i32), constants_str::VALUE_42_ALT);
+        assert_quote_str(
+            &super::double_quoted_string(&42i32),
+            constants_str::VALUE_42_ALT,
+        );
         assert_quote_str(
             &super::binary_double_quoted_str(&42i32),
             constants_str::B_42,
@@ -234,7 +237,7 @@ mod tests {
             constants_str::TEXT_ALT_4,
         );
         assert_quote_str(
-            &super::dq_str(&constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
+            &super::double_quoted_string(&constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
             constants_str::TEXT_ALT_12,
         );
         assert_quote_str(

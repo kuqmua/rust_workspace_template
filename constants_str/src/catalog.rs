@@ -1784,7 +1784,7 @@ constants_str_macros::define_str_constants! {
         GENERATE_WHERE_FILTERS_PG_TYPES = ["generate_where_filters_pg_types"];
         GENERATE_WHERE_FLTS_TEST_CNT = ["generate_where_flts_test_cnt"];
         GET_ALT = ["get"];
-        GET_MACRO_ATTR_RS = ["get_macro_attr.rs"];
+        GET_MACRO_ATTR_RS = ["get_macro_attribute.rs"];
         ACCESSOR = ["accessor"];
         GONE_410 = ["gone_410"];
         GROWTH = ["growth"];
@@ -2327,7 +2327,7 @@ constants_str_macros::define_str_constants! {
         TEST_ONLY_SECRET_WITH_SUFFICIENT_ENTROPY = ["test-only-secret-with-sufficient-entropy"];
         TEST_UTILS = ["test-utils"];
         TEST_ALT_4 = ["test_"];
-        TEST_HLP_RS = ["test_hlp.rs"];
+        TEST_HELPER_RS = ["test_helper.rs"];
         TEST_UNSTABLE_LINT = ["test_unstable_lint"];
         TESTS_ALT = ["tests"];
         TEXT_PLAIN = ["text/plain"];

@@ -1,6 +1,6 @@
 #![allow(clippy::single_call_fn)] // database pool construction helpers each own one validated construction responsibility
 
-pub(crate) async fn mk_pg_pool(
+pub(crate) async fn make_postgresql_pool(
     config: &server_config::domain_types::Config,
 ) -> Result<app_state::domain_types::SqlxPgPool, crate::domain_types::RunServerError> {
     if *config.pg_pool_min_connections

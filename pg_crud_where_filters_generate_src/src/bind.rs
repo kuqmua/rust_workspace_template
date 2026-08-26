@@ -34,7 +34,7 @@ pub(super) fn text_search_token_stream(
     quote::quote! {
         impl<'query_lt> pg_crud_common::domain_types::PgTypeWhereFilter<'query_lt> for PgTypeWhereTextSearch {
             fn query_bind(self, mut query: pg_crud_common::domain_types::SqlxPostgresQuery<'query_lt>) -> Result<pg_crud_common::domain_types::SqlxPostgresQuery<'query_lt>, pg_crud_common::domain_types::SqlxPostgresQueryBindError> {
-                let pattern = self.pattern().map_err(pg_crud_common::domain_types::mk_query_bind_err)?;
+                let pattern = self.pattern().map_err(pg_crud_common::domain_types::make_query_bind_error)?;
                 if let Err(error) = query.as_mut().try_bind(String::from(pattern)) {
                     return Err(pg_crud_common::domain_types::SqlxPostgresQueryBindError::from(error));
                 }

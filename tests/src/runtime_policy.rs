@@ -98,14 +98,14 @@ fn runtime_test_crate_detection_uses_exact_package_names() {
 fn runtime_test_helper_exclusion_is_file_exact() {
     assert!(
         !super::is_runtime_policy_source_path(super::types::PathRef::from(std::path::Path::new(
-            "../macro_helpers/src/test_hlp.rs"
+            "../macro_helpers/src/test_helper.rs"
         )))
         .get(),
         "2e8a5d90"
     );
     assert!(
         super::is_runtime_policy_source_path(super::types::PathRef::from(std::path::Path::new(
-            "../server/src/test_hlp.rs"
+            "../server/src/test_helper.rs"
         )))
         .get(),
         "76c1f4b3"

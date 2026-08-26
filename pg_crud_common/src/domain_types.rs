@@ -70,8 +70,8 @@ pub use bind_index::{
     QueryPartIncrement, QueryPartIncrementMut, increment_checked_add_one_returning_increment,
 };
 pub use cardinality::{
-    DuplicateCandidates, DuplicateIdx, fst_dup_idx, fst_dup_idx_by_hash, take_fst_dup,
-    take_fst_dup_by_hash,
+    DuplicateCandidates, DuplicateIdx, first_duplicate_index, first_duplicate_index_by_hash,
+    take_fst_dup, take_fst_dup_by_hash,
 };
 pub use cursor::{
     CursorCodec, CursorCodecBuildError, CursorDecodeError, CursorEncodeError, CursorMaximumLength,
@@ -97,7 +97,7 @@ pub use db_schema_conformance::{
 };
 pub use errors::{
     PgCrudStringWrapperTryFromStringError, QueryPartError, QueryPartErrorWithSerde,
-    SqlxPostgresQueryBindError, mk_query_bind_err,
+    SqlxPostgresQueryBindError, make_query_bind_error,
 };
 pub use filter_bind_plan::{
     FilterBindPlan, PgFilterBindValue, PgFilterBool, PgFilterI64, PgFilterText, PgFilterTextError,

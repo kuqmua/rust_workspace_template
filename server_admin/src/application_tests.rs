@@ -1,5 +1,5 @@
-#[path = "application_tests_hlp.rs"]
-pub(super) mod hlp;
+#[path = "application_tests_helper.rs"]
+pub(super) mod helper;
 
 #[test]
 fn rate_limit_scopes_are_distinct() {
@@ -35,7 +35,7 @@ fn rate_limited_error_includes_retry_after_header() {
 }
 #[test]
 fn server_error_response_preserves_http_diagnostic() {
-    let response = axum::response::IntoResponse::into_response(super::AdminError::pg(
+    let response = axum::response::IntoResponse::into_response(super::AdminError::postgresql(
         super::super::SqlxAdminError::from(sqlx::Error::RowNotFound),
     ));
     assert_eq!(response.status(), http::StatusCode::INTERNAL_SERVER_ERROR);

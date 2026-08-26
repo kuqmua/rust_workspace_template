@@ -24,7 +24,9 @@ fn health_report_response(
     report: crate::domain_types::HealthReport,
 ) -> Option<crate::domain_types::JsonRes<crate::domain_types::HealthReport>> {
     match report.status() {
-        crate::domain_types::HealthStatus::Ok => Some(crate::domain_types::mk_json_res(report)),
+        crate::domain_types::HealthStatus::Ok => {
+            Some(crate::domain_types::make_json_response(report))
+        }
         crate::domain_types::HealthStatus::Degraded | crate::domain_types::HealthStatus::Error => {
             None
         }
@@ -129,9 +131,9 @@ async fn health_check(
 async fn git_info(
     app_state: crate::domain_types::ArcCommonRoutesAppState,
 ) -> crate::domain_types::JsonRes<crate::domain_types::GitInfo> {
-    crate::domain_types::mk_commit_json_res(
+    crate::domain_types::make_commit_json_response(
         app_state.get(),
-        crate::domain_types::mk_git_info_payload,
+        crate::domain_types::make_git_info_payload,
     )
 }
 
@@ -145,7 +147,7 @@ pub fn common_routes(
                 let app_state_19103bd5: crate::domain_types::ArcCommonRoutesAppState =
                     app_state_19103bd5_raw;
                 crate::domain_types::CommonNotFoundError::NotFound(
-                    crate::domain_types::mk_not_found_payload(
+                    crate::domain_types::make_not_found_payload(
                         crate::domain_types::AxumHttpUriRef::from(&uri),
                         git_info::domain_types::GitCommitLinkProvider::git_commit_link_cow(
                             app_state_19103bd5.get(),

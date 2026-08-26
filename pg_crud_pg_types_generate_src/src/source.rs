@@ -1553,7 +1553,7 @@ enum IntRangeType {
                 Four,
             }
             impl ParameterNumber {
-                const fn idx(&self) -> usize {
+                const fn index(&self) -> usize {
                     match &self {
                         Self::Two => 1,
                         Self::Three => 2,
@@ -1593,7 +1593,7 @@ enum IntRangeType {
                     let generate_serde_state_initialization_token_stream = |parameter_number: &ParameterNumber| {
                         let parameter_number_token_stream = {
                             let ts = std::iter::repeat_with(|| quote::quote! {+ 1})
-                                .take(parameter_number.idx().saturating_add(1));
+                                .take(parameter_number.index().saturating_add(1));
                             quote::quote! {#(#ts)*}
                         };
                         quote::quote! {
@@ -4142,7 +4142,7 @@ enum IsConst {
             let ok_string_from_default_token_stream = generate_ok_string_from_tokens_token_stream(&quote::quote! {"default"});
             let ok_string_from_uuid_generate_v4_token_stream = generate_ok_string_from_tokens_token_stream(&quote::quote! {"uuid_generate_v4()"});
             let typical_query_part_token_stream = {
-                let if_write_is_err_token_stream = macro_helpers::domain_types::generate_if_write_is_err_token_stream::generate_if_write_is_err_token_stream(
+                let if_write_is_err_token_stream = macro_helpers::domain_types::generate_if_write_is_error_token_stream::generate_if_write_is_error_token_stream(
                     &quote::quote! {accumulator_c7df00f5, "${v_ba581e0f}"},
                     &pg_crud_macro_common::domain_types::generate_return_err_query_part_error_write_into_buffer_token_stream(import)
                 );

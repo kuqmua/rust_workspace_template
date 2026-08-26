@@ -30,7 +30,7 @@ impl From<AdminJoinedTextTryFromStringError> for AdminJoinedText {
     }
 }
 
-pub(crate) fn join_txt<'value_lt, Values>(values: Values) -> AdminJoinedText
+pub(crate) fn join_text<'value_lt, Values>(values: Values) -> AdminJoinedText
 where
     Values: IntoIterator<Item = &'value_lt str>,
 {
@@ -50,11 +50,11 @@ mod tests {
     #[test]
     fn joins_borrowed_text_without_an_intermediate_collection() {
         assert_eq!(
-            super::join_txt(["reader", "editor"]).as_ref(),
+            super::join_text(["reader", "editor"]).as_ref(),
             "reader, editor"
         );
         assert!(
-            super::join_txt(std::iter::empty::<&str>())
+            super::join_text(std::iter::empty::<&str>())
                 .as_ref()
                 .is_empty()
         );

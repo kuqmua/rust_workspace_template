@@ -65,7 +65,7 @@ impl From<super::SqlxAdminError> for AdminMigrateError {
         Self(AdminMigrateErrorInner::Reconciliation(error))
     }
 }
-pub async fn prep_pg(
+pub async fn prepare_postgresql(
     pool: app_state::domain_types::SqlxPgPoolRef<'_>,
 ) -> Result<(), AdminMigrateError> {
     crate::adapters::migrations::migrator()

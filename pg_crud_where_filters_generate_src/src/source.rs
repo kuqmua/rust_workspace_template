@@ -596,7 +596,7 @@ pub fn emit_generate_where_filters(
                                         pg_type_kind.format_argument()
                                     ));
                                 let if_write_is_err_token_stream =
-                                macro_helpers::domain_types::generate_if_write_is_err_token_stream::generate_if_write_is_err_token_stream(
+                                macro_helpers::domain_types::generate_if_write_is_error_token_stream::generate_if_write_is_error_token_stream(
                                     &quote::quote! {query_part_bce8c9ae, "${v_daedba9c},"},
                                     &quote::quote! {return Err(#import::QueryPartError::WriteIntoBuffer { location: location_macros::location!() });},
                                 );

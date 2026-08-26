@@ -355,9 +355,11 @@ async fn admin_html_test_fixture_with_password_change(
         .execute(&mut *lock)
         .await
         .expect("a6b7c8d9 admin_html_test_fixture_with_password_change invariant must hold");
-    server_admin::domain_types::prep_pg(app_state::domain_types::SqlxPgPoolRef::from(&pool.0))
-        .await
-        .expect("45de3a61 admin_html_test_fixture_with_password_change invariant must hold");
+    server_admin::domain_types::prepare_postgresql(app_state::domain_types::SqlxPgPoolRef::from(
+        &pool.0,
+    ))
+    .await
+    .expect("45de3a61 admin_html_test_fixture_with_password_change invariant must hold");
     let _truncated = sqlx::query(
         constants_str::TRUNCATE_ADMIN_RATE_LIMITS_ADMIN_AUDIT_LOG_ADMIN_LOGIN_ATTEMPTS_ADMIN_ACCESS,
     )

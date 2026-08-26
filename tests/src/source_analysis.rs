@@ -365,6 +365,18 @@ pub(super) struct ProductionLinePrintMacroVisitor {
 pub(super) struct DoubleUnderscoreNamingVisitor {
     pub identifiers: super::types::DiagnosticMsgs,
 }
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+pub(super) struct ShortFunctionNamingVisitor {
+    pub identifiers: super::types::DiagnosticMsgs,
+}
+impl ShortFunctionNamingVisitor {
+    fn check_identifier(&mut self, identifier: &syn::Ident) {
+        let identifier_text = identifier.to_string();
+        if identifier_text.starts_with(constants_str::WORKSPACE_SHORT_MAKE_PREFIX) {
+            self.identifiers.push(identifier_text);
+        }
+    }
+}
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 pub(super) struct PublicLogicVisitor {
     pub found: super::types::AnalyzerBool,
@@ -674,6 +686,20 @@ impl<'ast> syn::visit::Visit<'ast> for DoubleUnderscoreNamingVisitor {
             self.identifiers.push(identifier);
         }
         syn::visit::visit_item_mod(self, i);
+    }
+}
+impl<'ast> syn::visit::Visit<'ast> for ShortFunctionNamingVisitor {
+    fn visit_item_fn(&mut self, i: &'ast syn::ItemFn) {
+        self.check_identifier(&i.sig.ident);
+        syn::visit::visit_item_fn(self, i);
+    }
+    fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
+        i.items.iter().for_each(|item| {
+            if let syn::ImplItem::Fn(function) = item {
+                self.check_identifier(&function.sig.ident);
+            }
+        });
+        syn::visit::visit_item_impl(self, i);
     }
 }
 impl<'ast> syn::visit::Visit<'ast> for PublicLogicVisitor {

@@ -18,7 +18,7 @@ pub(super) async fn record_login_attempt(
         .await
         .map_err(super::super::SqlxAdminError::from)
         .map(drop)
-        .map_err(super::AdminError::pg)
+        .map_err(super::AdminError::postgresql)
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy)]
 pub(super) struct AdminAuditSuccessRef<'value_lt> {
@@ -65,7 +65,7 @@ pub(super) async fn record_audit_success_in_connection(
         &details,
     )
     .await
-    .map_err(super::AdminError::pg)
+    .map_err(super::AdminError::postgresql)
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::AsMut, newtype::FromInner)]
 pub(super) struct SqlxAdminPgConnectionRef<'connection_lt>(&'connection_lt mut sqlx::PgConnection);
@@ -98,7 +98,7 @@ pub(super) async fn load_authenticated_admin_from_db(
         AdminDbRef::Pool(pool) => user_query.fetch_optional(&***pool).await,
     }
     .map_err(super::super::SqlxAdminError::from)
-    .map_err(super::AdminError::pg)?;
+    .map_err(super::AdminError::postgresql)?;
     let (raw_login, raw_display_name, must_change_password) =
         optional_user.ok_or(super::AdminError::Authentication)?;
     let roles_query =
@@ -109,7 +109,7 @@ pub(super) async fn load_authenticated_admin_from_db(
         AdminDbRef::Pool(pool) => roles_query.fetch_all(&***pool).await,
     }
     .map_err(super::super::SqlxAdminError::from)
-    .map_err(super::AdminError::pg)?;
+    .map_err(super::AdminError::postgresql)?;
     let permissions_query =
         sqlx::query_scalar::<_, String>(constants_str::SERVER_ADMIN_READ_AUTH_PERMISSIONS_SQL)
             .bind(user_id.get());
@@ -118,7 +118,7 @@ pub(super) async fn load_authenticated_admin_from_db(
         AdminDbRef::Pool(pool) => permissions_query.fetch_all(&***pool).await,
     }
     .map_err(super::super::SqlxAdminError::from)
-    .map_err(super::AdminError::pg)?;
+    .map_err(super::AdminError::postgresql)?;
     let display_name = super::super::AdminDisplayName::try_from(raw_display_name)
         .map_err(|_error| super::AdminError::Authentication)?;
     let login = super::super::AdminLogin::try_from(raw_login)

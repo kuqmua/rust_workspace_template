@@ -57,9 +57,11 @@ pub(super) async fn enforce_rate_limit(
     )
     .await
     .map_err(|error| match error {
-        server_runtime_http::domain_types::PgRateLimitError::Sqlx(source) => super::AdminError::pg(
-            super::super::SqlxAdminError::from(sqlx::Error::from(source)),
-        ),
+        server_runtime_http::domain_types::PgRateLimitError::Sqlx(source) => {
+            super::AdminError::postgresql(super::super::SqlxAdminError::from(sqlx::Error::from(
+                source,
+            )))
+        }
     })?;
     match decision {
         server_runtime_http::domain_types::PgRateLimitDecision::Allowed => Ok(()),

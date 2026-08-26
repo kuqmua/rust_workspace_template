@@ -71,7 +71,7 @@ impl From<PgCrudStringWrapperTryFromStringError> for QueryPartError {
         }
     }
 }
-pub fn mk_query_bind_err<Source>(source: Source) -> SqlxPostgresQueryBindError
+pub fn make_query_bind_error<Source>(source: Source) -> SqlxPostgresQueryBindError
 where
     Source: std::error::Error + Send + Sync + 'static,
 {
@@ -82,7 +82,7 @@ where
 mod tests {
     #[test]
     fn query_bind_error_preserves_its_source() {
-        let error = super::mk_query_bind_err(std::io::Error::other(constants_str::ERROR));
+        let error = super::make_query_bind_error(std::io::Error::other(constants_str::ERROR));
         let source = std::error::Error::source(&error)
             .expect("c9d460e5 query_bind_error_preserves_its_source invariant must hold");
 

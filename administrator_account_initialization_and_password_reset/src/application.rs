@@ -132,9 +132,11 @@ pub(crate) async fn run() -> Result<
                 crate::domain_types::SqlxAdministratorDatabaseConnectionError::from(error),
             )
         })?;
-    server_admin::domain_types::prep_pg(app_state::domain_types::SqlxPgPoolRef::from(&pool))
-        .await
-        .map_err(crate::domain_types::AdministratorAccountCommandError::Migrate)?;
+    server_admin::domain_types::prepare_postgresql(app_state::domain_types::SqlxPgPoolRef::from(
+        &pool,
+    ))
+    .await
+    .map_err(crate::domain_types::AdministratorAccountCommandError::Migrate)?;
     let concurrency = std::num::NonZeroUsize::new(config.admin_password_hash_concurrency.get())
         .ok_or(crate::domain_types::AdministratorAccountCommandError::PasswordFileValue)?;
     let password_hasher = server_admin::domain_types::AdminPasswordHasher::new(

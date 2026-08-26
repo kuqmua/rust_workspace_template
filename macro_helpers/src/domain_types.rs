@@ -1,8 +1,8 @@
 // AST inspection and attribute parsing.
-#[path = "attr_identifier_str.rs"]
-pub mod attr_identifier_str;
-#[path = "get_macro_attr.rs"]
+#[path = "get_macro_attribute.rs"]
 pub mod attr_reader;
+#[path = "attribute_identifier_string.rs"]
+pub mod attribute_identifier_string;
 #[path = "derive_token_stream_builder.rs"]
 pub mod derive_token_stream_builder;
 #[path = "syn_field.rs"]
@@ -10,8 +10,8 @@ pub mod field_data;
 // Typed token construction.
 #[path = "generate_field_location_new_token_stream.rs"]
 pub mod generate_field_location_new_token_stream;
-#[path = "generate_if_write_is_err_token_stream.rs"]
-pub mod generate_if_write_is_err_token_stream;
+#[path = "generate_if_write_is_error_token_stream.rs"]
+pub mod generate_if_write_is_error_token_stream;
 #[path = "generate_impl_default_token_stream.rs"]
 pub mod generate_impl_default_token_stream;
 #[path = "generate_impl_display_token_stream.rs"]
@@ -54,8 +54,8 @@ pub mod string_writer;
 #[path = "test_database.rs"]
 pub mod test_database;
 #[cfg(test)]
-#[path = "test_hlp.rs"]
-mod test_hlp;
+#[path = "test_helper.rs"]
+mod test_helper;
 #[path = "write_token_stream_into_file.rs"]
 pub mod ts_writer;
 // Derive assembly.

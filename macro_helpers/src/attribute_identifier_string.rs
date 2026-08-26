@@ -3,5 +3,5 @@
 )]
 pub struct AttrIdentifierName<'name_lt>(&'name_lt str);
 pub trait AttrIdentifierStr {
-    fn attr_identifier_str(&self) -> AttrIdentifierName<'_>;
+    fn attribute_identifier_string(&self) -> AttrIdentifierName<'_>;
 }

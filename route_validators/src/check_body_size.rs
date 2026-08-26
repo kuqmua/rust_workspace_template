@@ -86,8 +86,8 @@ mod tests {
         limit: usize,
         exp_id: &'static str,
     ) -> (usize, Option<u64>) {
-        crate::domain_types::test_hlp::assert_err_status_code_variant_ref(
-            crate::domain_types::test_hlp::block_on(super::check_body_size(body, limit)),
+        crate::domain_types::test_helper::assert_err_status_code_variant_ref(
+            crate::domain_types::test_helper::block_on(super::check_body_size(body, limit)),
             exp_id,
             crate::domain_types::AxumHttpStatusCode::payload_too_large(),
             |v| {
@@ -111,8 +111,8 @@ mod tests {
         exp_id: &'static str,
         exp: &'static [u8],
     ) {
-        let actual = crate::domain_types::test_hlp::expect_ok(
-            crate::domain_types::test_hlp::block_on(super::check_body_size(body, limit)),
+        let actual = crate::domain_types::test_helper::expect_ok(
+            crate::domain_types::test_helper::block_on(super::check_body_size(body, limit)),
             exp_id,
         );
         assert_eq!(actual.0, bytes::Bytes::from_static(exp));
@@ -172,8 +172,8 @@ mod tests {
     }
     #[test]
     fn body_size_error_maps_to_payload_too_large() {
-        crate::domain_types::test_hlp::assert_err_status_code_only(
-            crate::domain_types::test_hlp::block_on(super::check_body_size(
+        crate::domain_types::test_helper::assert_err_status_code_only(
+            crate::domain_types::test_helper::block_on(super::check_body_size(
                 axum::body::Body::from(constants_str::TOO_BIG),
                 1,
             )),

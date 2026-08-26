@@ -188,8 +188,8 @@ pub const CODE_STYLE_DIRECT_FS_OWNER_SUFFIXES: [&str; 15] = [
     "/init_env_files/src/adapters.rs",
     "/init_env_files/src/run.rs",
     CODE_STYLE_MACRO_CLIPPY_FS_OWNER_SUFFIX,
-    CODE_STYLE_MACROS_HLP_TEST_FS_OWNER_SUFFIX,
-    CODE_STYLE_MACROS_HLP_WRITE_STRING_FS_OWNER_SUFFIX,
+    CODE_STYLE_MACROS_HELPER_TEST_FS_OWNER_SUFFIX,
+    CODE_STYLE_MACROS_HELPER_WRITE_STRING_FS_OWNER_SUFFIX,
     "/macro_helpers/src/write_token_stream_into_file.rs",
     "/administrator_account_initialization_and_password_reset/src/application.rs",
     "/workspace_scaffold/src/main.rs",
@@ -222,8 +222,8 @@ pub const CODE_STYLE_PG_CRUD_COMMON_BENCHES_REASON: &str =
     "benchmark-only boundaries are outside the production domain API";
 pub const CODE_STYLE_LEPTOS_CRATE: &str = "leptos";
 pub const CODE_STYLE_MACRO_CLIPPY_FS_OWNER_SUFFIX: &str = "/macro_clippy_check_common/src/lib.rs";
-pub const CODE_STYLE_MACROS_HLP_TEST_FS_OWNER_SUFFIX: &str = "/macro_helpers/src/test_hlp.rs";
-pub const CODE_STYLE_MACROS_HLP_WRITE_STRING_FS_OWNER_SUFFIX: &str =
+pub const CODE_STYLE_MACROS_HELPER_TEST_FS_OWNER_SUFFIX: &str = "/macro_helpers/src/test_helper.rs";
+pub const CODE_STYLE_MACROS_HELPER_WRITE_STRING_FS_OWNER_SUFFIX: &str =
     "/macro_helpers/src/write_string_into_file.rs";
 pub const CODE_STYLE_PRELUDE_MODULE: &str = "prelude";
 pub const CODE_STYLE_TEST_CRATE_NAMES: [&str; 6] = [
@@ -248,10 +248,11 @@ pub const CODE_STYLE_WORKSPACE_SCAFFOLD_FS_OWNER_SUFFIX: &str =
     "/workspace_scaffold/src/domain_types.rs";
 pub const CODE_STYLE_WORKSPACE_SCAFFOLD_TEMPLATE_FS_OWNER_SUFFIX: &str =
     "/workspace_scaffold/src/template_fs.rs";
-pub const CODE_STYLE_ROUTE_VALIDATORS_TEST_HLP_SUFFIX: &str = "/route_validators/src/test_hlp.rs";
+pub const CODE_STYLE_ROUTE_VALIDATORS_TEST_HELPER_SUFFIX: &str =
+    "/route_validators/src/test_helper.rs";
 pub const CODE_STYLE_RUNTIME_TEST_HELPER_SUFFIXES: [&str; 2] = [
-    CODE_STYLE_MACROS_HLP_TEST_FS_OWNER_SUFFIX,
-    CODE_STYLE_ROUTE_VALIDATORS_TEST_HLP_SUFFIX,
+    CODE_STYLE_MACROS_HELPER_TEST_FS_OWNER_SUFFIX,
+    CODE_STYLE_ROUTE_VALIDATORS_TEST_HELPER_SUFFIX,
 ];
 pub const CODE_STYLE_RUNTIME_TEST_HELPER_REASONS: [&str; 2] = [
     "macro helper assertions intentionally panic on deterministic test-fixture failures",
@@ -259,7 +260,7 @@ pub const CODE_STYLE_RUNTIME_TEST_HELPER_REASONS: [&str; 2] = [
 ];
 pub const CODE_STYLE_RUNTIME_ARC_OWNER_SUFFIXES: [&str; 7] = [
     "notification_service/src/routes.rs",
-    "server/src/mk_pg_pool.rs",
+    "server/src/make_postgresql_pool.rs",
     SERVER_SRC_APPLICATION_RS,
     SERVER_SRC_APPLICATION_ADMIN_API_RS,
     SERVER_ADMIN_SRC_PASSWORD_RS,

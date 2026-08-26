@@ -66,8 +66,8 @@ where
 mod tests {
     #[test]
     fn try_maybe_write_token_stream_into_file_skips_when_flag_is_false() {
-        let base = crate::domain_types::test_hlp::test_path(
-            crate::domain_types::test_hlp::TestPathStem::new(constants_str::MACRO_HELPERS_SKIP),
+        let base = crate::domain_types::test_helper::test_path(
+            crate::domain_types::test_helper::TestPathStem::new(constants_str::MACRO_HELPERS_SKIP),
         );
         let path = crate::domain_types::rs_file_path::rs_file_path(&base);
         let ts: proc_macro2::TokenStream =
@@ -83,8 +83,8 @@ mod tests {
     }
     #[test]
     fn try_maybe_write_token_stream_into_file_writes_tokens_when_flag_is_true() {
-        let base = crate::domain_types::test_hlp::test_path(
-            crate::domain_types::test_hlp::TestPathStem::new(constants_str::MACRO_HELPERS_WRITE),
+        let base = crate::domain_types::test_helper::test_path(
+            crate::domain_types::test_helper::TestPathStem::new(constants_str::MACRO_HELPERS_WRITE),
         );
         let path = crate::domain_types::rs_file_path::rs_file_path(&base);
         let ts: proc_macro2::TokenStream =
@@ -97,11 +97,11 @@ mod tests {
             &super::FormatWithCargofmt::False,
         )
         .expect("04f83dc1 try_maybe_write_token_stream_into_file_writes_tokens_when_flag_is_true invariant must hold");
-        crate::domain_types::test_hlp::assert_file_content(
-            crate::domain_types::test_hlp::StdAssertFilePath::new(path.as_ref()),
-            crate::domain_types::test_hlp::ExpectedFileContent::new(&expected),
+        crate::domain_types::test_helper::assert_file_content(
+            crate::domain_types::test_helper::StdAssertFilePath::new(path.as_ref()),
+            crate::domain_types::test_helper::ExpectedFileContent::new(&expected),
         );
-        crate::domain_types::test_hlp::cleanup_test_file(path);
+        crate::domain_types::test_helper::cleanup_test_file(path);
     }
     #[test]
     fn should_write_token_stream_flag_maps_true_and_false_flags() {
@@ -114,8 +114,8 @@ mod tests {
     }
     #[test]
     fn try_maybe_write_token_stream_into_file_writes_tokens_when_enabled() {
-        let base = crate::domain_types::test_hlp::test_path(
-            crate::domain_types::test_hlp::TestPathStem::new(
+        let base = crate::domain_types::test_helper::test_path(
+            crate::domain_types::test_helper::TestPathStem::new(
                 constants_str::MACRO_HELPERS_TRY_WRITE,
             ),
         );
@@ -130,16 +130,16 @@ mod tests {
             &super::FormatWithCargofmt::False,
         )
         .expect("6fee9f6f try_maybe_write_token_stream_into_file_writes_tokens_when_enabled invariant must hold");
-        crate::domain_types::test_hlp::assert_file_content(
-            crate::domain_types::test_hlp::StdAssertFilePath::new(path.as_ref()),
-            crate::domain_types::test_hlp::ExpectedFileContent::new(&expected),
+        crate::domain_types::test_helper::assert_file_content(
+            crate::domain_types::test_helper::StdAssertFilePath::new(path.as_ref()),
+            crate::domain_types::test_helper::ExpectedFileContent::new(&expected),
         );
-        crate::domain_types::test_hlp::cleanup_test_file(path);
+        crate::domain_types::test_helper::cleanup_test_file(path);
     }
     #[test]
     fn try_maybe_write_token_stream_into_file_accepts_path_input() {
-        let base = crate::domain_types::test_hlp::test_path(
-            crate::domain_types::test_hlp::TestPathStem::new(
+        let base = crate::domain_types::test_helper::test_path(
+            crate::domain_types::test_helper::TestPathStem::new(
                 constants_str::MACRO_HELPERS_TRY_WRITE_PATH,
             ),
         );
@@ -154,17 +154,17 @@ mod tests {
             &super::FormatWithCargofmt::False,
         )
         .expect("f341cde7 try_maybe_write_token_stream_into_file_accepts_path_input invariant must hold");
-        crate::domain_types::test_hlp::assert_file_content(
-            crate::domain_types::test_hlp::StdAssertFilePath::new(path.as_ref()),
-            crate::domain_types::test_hlp::ExpectedFileContent::new(&expected),
+        crate::domain_types::test_helper::assert_file_content(
+            crate::domain_types::test_helper::StdAssertFilePath::new(path.as_ref()),
+            crate::domain_types::test_helper::ExpectedFileContent::new(&expected),
         );
-        crate::domain_types::test_hlp::cleanup_test_file(path);
+        crate::domain_types::test_helper::cleanup_test_file(path);
     }
     #[test]
     #[cfg_attr(miri, ignore = "Miri does not support spawning the rustfmt subprocess")]
     fn try_maybe_write_token_stream_into_file_formats_when_rustfmt_enabled() {
-        let base = crate::domain_types::test_hlp::test_path(
-            crate::domain_types::test_hlp::TestPathStem::new(
+        let base = crate::domain_types::test_helper::test_path(
+            crate::domain_types::test_helper::TestPathStem::new(
                 constants_str::MACRO_HELPERS_TRY_RUN_RUSTFMT,
             ),
         );
@@ -178,12 +178,12 @@ mod tests {
             &super::FormatWithCargofmt::True,
         )
         .expect("00a995a4 try_maybe_write_token_stream_into_file_formats_when_rustfmt_enabled invariant must hold");
-        crate::domain_types::test_hlp::assert_file_content(
-            crate::domain_types::test_hlp::StdAssertFilePath::new(path.as_ref()),
-            crate::domain_types::test_hlp::ExpectedFileContent::new(
+        crate::domain_types::test_helper::assert_file_content(
+            crate::domain_types::test_helper::StdAssertFilePath::new(path.as_ref()),
+            crate::domain_types::test_helper::ExpectedFileContent::new(
                 constants_str::STRUCT_A_NEWLINE,
             ),
         );
-        crate::domain_types::test_hlp::cleanup_test_file(path);
+        crate::domain_types::test_helper::cleanup_test_file(path);
     }
 }

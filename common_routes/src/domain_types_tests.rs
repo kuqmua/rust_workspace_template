@@ -60,18 +60,18 @@ fn assert_not_found_payload_with_commit(
 fn assert_no_route_message(actual: &to_err_string::domain_types::ErrorText, uri_suffix: &str) {
     assert_eq!(
         actual.as_ref(),
-        super::mk_no_route_message_for_suffix(suffix_ref(uri_suffix)).as_ref()
+        super::make_no_route_message_for_suffix(suffix_ref(uri_suffix)).as_ref()
     );
 }
 #[test]
 fn git_info_response_shape_stays_stable() {
-    let git_info = super::mk_git_info_payload(b_cow(constants_str::TEST_VALUES_COMMIT));
+    let git_info = super::make_git_info_payload(b_cow(constants_str::TEST_VALUES_COMMIT));
     assert_git_info_commit(&git_info, constants_str::TEST_VALUES_COMMIT);
 }
 #[test]
 fn not_found_response_shape_stays_stable() {
     let uri = axum::http::Uri::from_static(constants_str::UNKNOWN);
-    let not_found = super::mk_not_found_payload(
+    let not_found = super::make_not_found_payload(
         uri_ref(&uri),
         b_cow(constants_str::TEST_VALUES_WRONG_COMMIT),
     );
@@ -85,14 +85,14 @@ fn not_found_response_shape_stays_stable() {
 fn no_route_message_includes_uri() {
     let uri = axum::http::Uri::from_static(constants_str::MISSING_PATH);
     assert_no_route_message(
-        &super::mk_no_route_message(uri_ref(&uri)),
+        &super::make_no_route_message(uri_ref(&uri)),
         constants_str::MISSING_PATH,
     );
 }
 #[test]
 fn no_route_message_for_suffix_uses_prefix_once() {
     assert_no_route_message(
-        &super::mk_no_route_message_for_suffix(suffix_ref(constants_str::MISSING_PATH)),
+        &super::make_no_route_message_for_suffix(suffix_ref(constants_str::MISSING_PATH)),
         constants_str::MISSING_PATH,
     );
 }
@@ -105,7 +105,7 @@ fn uri_suffix_prefers_path_and_query_when_query_exists() {
 fn no_route_message_keeps_query_parameters() {
     let uri = axum::http::Uri::from_static(constants_str::MISSING_PATH_QUESTION_LIMIT_10);
     assert_no_route_message(
-        &super::mk_no_route_message(uri_ref(&uri)),
+        &super::make_no_route_message(uri_ref(&uri)),
         constants_str::MISSING_PATH_QUESTION_LIMIT_10,
     );
 }
@@ -117,13 +117,13 @@ fn status_code_constants_are_stable_for_common_routes() {
 #[test]
 fn git_info_response_contains_commit_link() {
     let exp_commit = test_commit_link();
-    let payload = super::mk_git_info_payload(test_commit_link_cow());
+    let payload = super::make_git_info_payload(test_commit_link_cow());
     assert_git_info_commit(&payload, &exp_commit);
 }
 #[test]
 fn git_info_payload_from_state_contains_commit_link() {
     let state = test_state();
-    let payload = super::mk_git_info_payload(
+    let payload = super::make_git_info_payload(
         git_info::domain_types::GitCommitLinkProvider::git_commit_link_cow(state.as_ref()),
     );
     assert_git_info_commit(&payload, test_commit_link().as_str());
@@ -132,14 +132,14 @@ fn git_info_payload_from_state_contains_commit_link() {
 fn not_found_response_uses_uri_and_swagger_path() {
     let uri = axum::http::Uri::from_static(constants_str::MISSING);
     let commit_link = test_commit_link();
-    let payload = super::mk_not_found_payload(uri_ref(&uri), test_commit_link_cow());
+    let payload = super::make_not_found_payload(uri_ref(&uri), test_commit_link_cow());
     assert_not_found_payload_with_commit(&payload, &commit_link, constants_str::MISSING);
 }
 #[test]
 fn not_found_payload_from_state_uses_uri_and_swagger_path() {
     let uri = axum::http::Uri::from_static(constants_str::MISSING);
     let state = test_state();
-    let payload = super::mk_not_found_payload(
+    let payload = super::make_not_found_payload(
         uri_ref(&uri),
         git_info::domain_types::GitCommitLinkProvider::git_commit_link_cow(state.as_ref()),
     );
@@ -148,8 +148,8 @@ fn not_found_payload_from_state_uses_uri_and_swagger_path() {
 #[test]
 fn not_found_payload_for_suffix_uses_given_suffix_and_swagger_path() {
     let commit_link = test_commit_link();
-    let payload = super::mk_not_found_payload_with_message(
-        super::mk_no_route_message_for_suffix(suffix_ref(constants_str::MISSING)),
+    let payload = super::make_not_found_payload_with_message(
+        super::make_no_route_message_for_suffix(suffix_ref(constants_str::MISSING)),
         test_commit_link_cow(),
     );
     assert_not_found_payload_with_commit(&payload, &commit_link, constants_str::MISSING);
@@ -169,7 +169,7 @@ fn no_route_message_capacity_is_exact_for_uri_suffix() {
     );
 }
 #[test]
-fn mk_state_payload_uses_state_trait_object() {
+fn make_state_payload_uses_state_trait_object() {
     let state = test_state();
     assert_eq!(
         git_info::domain_types::GitCommitLinkProvider::git_commit_link_cow(state.as_ref()).as_ref(),
@@ -177,14 +177,14 @@ fn mk_state_payload_uses_state_trait_object() {
     );
 }
 #[test]
-fn mk_json_res_wraps_success_payload() {
-    let response = super::mk_json_res(super::mk_git_info_payload(b_cow(
+fn make_json_response_wraps_success_payload() {
+    let response = super::make_json_response(super::make_git_info_payload(b_cow(
         constants_str::TEST_VALUES_COMMIT,
     )));
     assert_git_info_commit(&response.payload.0, constants_str::TEST_VALUES_COMMIT);
 }
 #[test]
-fn mk_state_payload_passes_commit_link_to_mapper() {
+fn make_state_payload_passes_commit_link_to_mapper() {
     let state = test_state();
     let actual = format!(
         "v={}",
@@ -193,8 +193,9 @@ fn mk_state_payload_passes_commit_link_to_mapper() {
     assert_eq!(actual, format!("v={}", test_commit_link()));
 }
 #[test]
-fn mk_commit_json_res_combines_status_and_commit_payload() {
-    let response = super::mk_commit_json_res(test_state().as_ref(), super::mk_git_info_payload);
+fn make_commit_json_response_combines_status_and_commit_payload() {
+    let response =
+        super::make_commit_json_response(test_state().as_ref(), super::make_git_info_payload);
     assert_git_info_commit(&response.payload.0, test_commit_link().as_str());
 }
 #[tokio::test]

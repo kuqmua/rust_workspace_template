@@ -233,7 +233,7 @@ where
         None => expect_error_variant_ref(v, exp_id.0, map),
     }
 }
-pub(crate) fn mk_headers_with_entry<ValueTy>(
+pub(crate) fn make_headers_with_entry<ValueTy>(
     name: impl axum::http::header::IntoHeaderName,
     value: ValueTy,
 ) -> AxumTestHeaders
@@ -441,8 +441,8 @@ mod tests {
         assert_eq!(v, 7);
     }
     #[test]
-    fn mk_headers_with_entry_inserts_value_for_case_insensitive_name() {
-        let headers = super::mk_headers_with_entry(
+    fn make_headers_with_entry_inserts_value_for_case_insensitive_name() {
+        let headers = super::make_headers_with_entry(
             constants_str::COMMIT,
             axum::http::HeaderValue::from_static(constants_str::TEST_VALUES_WRONG_COMMIT),
         );
@@ -454,7 +454,7 @@ mod tests {
     }
     #[test]
     fn replace_header_name_moves_value_to_new_key() {
-        let mut headers = super::mk_headers_with_entry(
+        let mut headers = super::make_headers_with_entry(
             constants_str::X_COMMIT,
             axum::http::HeaderValue::from_static(constants_str::TEST_VALUES_WRONG_COMMIT),
         );

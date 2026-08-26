@@ -1,10 +1,10 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
 pub struct AxumHeadersRef<'headers_lt>(&'headers_lt axum::http::HeaderMap);
 #[cfg(test)]
-impl<'headers_lt> From<&'headers_lt crate::domain_types::test_hlp::AxumTestHeaders>
+impl<'headers_lt> From<&'headers_lt crate::domain_types::test_helper::AxumTestHeaders>
     for AxumHeadersRef<'headers_lt>
 {
-    fn from(value: &'headers_lt crate::domain_types::test_hlp::AxumTestHeaders) -> Self {
+    fn from(value: &'headers_lt crate::domain_types::test_helper::AxumTestHeaders) -> Self {
         Self(value.as_ref())
     }
 }
@@ -120,23 +120,25 @@ mod tests {
             },
         )
     }
-    fn mk_test_headers<ValueTy>(value: ValueTy) -> crate::domain_types::test_hlp::AxumTestHeaders
+    fn make_test_headers<ValueTy>(
+        value: ValueTy,
+    ) -> crate::domain_types::test_helper::AxumTestHeaders
     where
-        ValueTy: Into<crate::domain_types::test_hlp::AxumTestHeaderValue>,
+        ValueTy: Into<crate::domain_types::test_helper::AxumTestHeaderValue>,
     {
-        crate::domain_types::test_hlp::mk_headers_with_entry(TEST_HEADER_NAME, value)
+        crate::domain_types::test_helper::make_headers_with_entry(TEST_HEADER_NAME, value)
     }
-    fn mk_test_headers_static(
+    fn make_test_headers_static(
         value: &'static str,
-    ) -> crate::domain_types::test_hlp::AxumTestHeaders {
-        mk_test_headers(axum::http::HeaderValue::from_static(value))
+    ) -> crate::domain_types::test_helper::AxumTestHeaders {
+        make_test_headers(axum::http::HeaderValue::from_static(value))
     }
     fn assert_header_err<T>(actual: Result<T, TestError>, exp: &TestError) {
         assert!(matches!(actual, Err(v) if &v == exp));
     }
     #[test]
     fn required_header_str_returns_header_when_present_and_utf8() {
-        let headers = mk_test_headers_static(constants_str::ABC_ALT_3);
+        let headers = make_test_headers_static(constants_str::ABC_ALT_3);
         let actual = header(&headers, TEST_HEADER_NAME);
         assert_eq!(actual.map(|v| v.0), Ok("abc"));
     }
@@ -147,18 +149,18 @@ mod tests {
     }
     #[test]
     fn required_header_str_returns_to_str_error_for_non_utf8_header() {
-        let headers = mk_test_headers(crate::domain_types::test_hlp::non_utf8_header_value());
+        let headers = make_test_headers(crate::domain_types::test_helper::non_utf8_header_value());
         assert_header_err(header(&headers, TEST_HEADER_NAME), &TestError::ToStr);
     }
     #[test]
     fn required_header_str_accepts_str_header_name() {
-        let headers = mk_test_headers_static(constants_str::ABC_ALT_3);
+        let headers = make_test_headers_static(constants_str::ABC_ALT_3);
         let actual = header(&headers, constants_str::ROUTE_VALIDATORS_TEST_HEADER_NAME);
         assert_eq!(actual.map(|v| v.0), Ok("abc"));
     }
     #[test]
     fn required_header_returns_header_value_when_present() {
-        let headers = mk_test_headers_static(constants_str::ABC_ALT_3);
+        let headers = make_test_headers_static(constants_str::ABC_ALT_3);
         let actual = raw_header(&headers, TEST_HEADER_NAME);
         assert_eq!(
             actual.map(|v| v.0),
@@ -172,13 +174,13 @@ mod tests {
     }
     #[test]
     fn required_header_parsed_returns_parsed_value_for_valid_header() {
-        let headers = mk_test_headers_static(constants_str::TRUE);
+        let headers = make_test_headers_static(constants_str::TRUE);
         let actual = bool_header(&headers, TEST_HEADER_NAME);
         assert_eq!(actual, Ok(true));
     }
     #[test]
     fn required_header_parsed_returns_parse_error_for_invalid_header_value() {
-        let headers = mk_test_headers_static(constants_str::NOPE);
+        let headers = make_test_headers_static(constants_str::NOPE);
         assert_header_err(
             bool_header(&headers, TEST_HEADER_NAME),
             &TestError::ParseBool,
@@ -186,7 +188,7 @@ mod tests {
     }
     #[test]
     fn required_header_mapped_applies_mapping_for_present_header() {
-        let headers = mk_test_headers_static(constants_str::ABC_ALT_3);
+        let headers = make_test_headers_static(constants_str::ABC_ALT_3);
         let actual = super::required_header_value(
             super::AxumHeadersRef::from(&headers),
             TEST_HEADER_NAME,
@@ -218,7 +220,7 @@ mod tests {
     }
     #[test]
     fn required_header_str_parsed_does_not_call_parse_for_non_utf8_header() {
-        let headers = mk_test_headers(crate::domain_types::test_hlp::non_utf8_header_value());
+        let headers = make_test_headers(crate::domain_types::test_helper::non_utf8_header_value());
         let mut parse_called = false;
         let actual = super::required_header_str_parsed(
             super::AxumHeadersRef::from(&headers),

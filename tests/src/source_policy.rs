@@ -1057,6 +1057,40 @@ fn module_and_function_names_use_single_underscores() {
     );
 }
 #[test]
+fn module_and_function_names_do_not_use_unclear_short_forms() {
+    super::assert_rs_ast_ers_empty_with_ctx(
+        super::types::StaticStr::from(constants_str::VALUE_AE652DDA),
+        super::types::SourceTextRef::from(constants_str::VALUE_63194000),
+        |path, ast, ers| {
+            if path
+                .file_stem()
+                .and_then(std::ffi::OsStr::to_str)
+                .is_some_and(|name| {
+                    name.split('_')
+                        .any(|part| part == constants_str::WORKSPACE_SHORT_HELPER_TOKEN)
+                })
+            {
+                ers.push(format!(
+                    "{}: module filename abbreviates helper as hlp",
+                    path.display()
+                ));
+            }
+            let visitor = super::visit_syn_file(
+                super::types::SynFileRef::from(ast),
+                super::source_analysis::ShortFunctionNamingVisitor {
+                    identifiers: super::types::DiagnosticMsgs::default(),
+                },
+            );
+            visitor.identifiers.into_iter().for_each(|identifier| {
+                ers.push(format!(
+                    "{}: `{identifier}` abbreviates make as mk",
+                    path.display()
+                ));
+            });
+        },
+    );
+}
+#[test]
 fn production_line_print_macro_policy_allows_test_code_and_rejects_production_code() {
     let ast = syn::parse_file(constants_str::VALUE_606F2B07)
         .expect("a508c55d production_line_print_macro_policy fixture must parse");

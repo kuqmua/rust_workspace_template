@@ -15,7 +15,7 @@ pub(super) fn render_profile(
     admin: &server_admin_contract::domain_types::AuthenticatedAdmin,
     branding: &server_admin_contract::domain_types::AdminBrandingView,
 ) -> super::AdminSsrHtml {
-    let roles = String::from(crate::domain_types::shared::text::join_txt(
+    let roles = String::from(crate::domain_types::shared::text::join_text(
         admin.roles().iter().map(|name| name.as_ref().as_str()),
     ));
     let display_name = admin.display_name().to_string();
