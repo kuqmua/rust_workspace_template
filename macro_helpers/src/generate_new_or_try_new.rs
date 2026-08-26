@@ -1,44 +1,44 @@
-#[path = "generate_new_or_try_new_generate_const_new_token_stream.rs"]
+#[path = "generate_new_or_try_new_generate_const_new_token_stream_impl.rs"]
 mod generate_const_new_token_stream_impl;
-#[path = "generate_new_or_try_new_generate_const_try_new_token_stream.rs"]
+#[path = "generate_new_or_try_new_generate_const_try_new_token_stream_impl.rs"]
 mod generate_const_try_new_token_stream_impl;
-#[path = "generate_new_or_try_new_generate_impl_const_new_for_identifier_token_stream.rs"]
+#[path = "generate_new_or_try_new_generate_impl_const_new_for_identifier_token_stream_impl.rs"]
 mod generate_impl_const_new_for_identifier_token_stream_impl;
-#[path = "generate_new_or_try_new_generate_impl_modified_new_for_identifier_token_stream.rs"]
+#[path = "generate_new_or_try_new_generate_impl_modified_new_for_identifier_token_stream_impl.rs"]
 mod generate_impl_modified_new_for_identifier_token_stream_impl;
-#[path = "generate_new_or_try_new_generate_impl_modified_try_new_for_identifier_token_stream.rs"]
+#[path = "generate_new_or_try_new_generate_impl_modified_try_new_for_identifier_token_stream_impl.rs"]
 mod generate_impl_modified_try_new_for_identifier_token_stream_impl;
-#[path = "generate_new_or_try_new_generate_impl_new_for_identifier_token_stream.rs"]
+#[path = "generate_new_or_try_new_generate_impl_new_for_identifier_token_stream_impl.rs"]
 mod generate_impl_new_for_identifier_token_stream_impl;
-#[path = "generate_new_or_try_new_generate_impl_pub_const_new_for_identifier_token_stream.rs"]
+#[path = "generate_new_or_try_new_generate_impl_pub_const_new_for_identifier_token_stream_impl.rs"]
 mod generate_impl_pub_const_new_for_identifier_token_stream_impl;
-#[path = "generate_new_or_try_new_generate_impl_pub_const_try_new_for_identifier_token_stream.rs"]
+#[path = "generate_new_or_try_new_generate_impl_pub_const_try_new_for_identifier_token_stream_impl.rs"]
 mod generate_impl_pub_const_try_new_for_identifier_token_stream_impl;
-#[path = "generate_new_or_try_new_generate_impl_pub_new_for_identifier_token_stream.rs"]
+#[path = "generate_new_or_try_new_generate_impl_pub_new_for_identifier_token_stream_impl.rs"]
 mod generate_impl_pub_new_for_identifier_token_stream_impl;
-#[path = "generate_new_or_try_new_generate_impl_pub_try_new_for_identifier_token_stream.rs"]
+#[path = "generate_new_or_try_new_generate_impl_pub_try_new_for_identifier_token_stream_impl.rs"]
 mod generate_impl_pub_try_new_for_identifier_token_stream_impl;
-#[path = "generate_new_or_try_new_generate_impl_try_new_for_identifier_token_stream.rs"]
+#[path = "generate_new_or_try_new_generate_impl_try_new_for_identifier_token_stream_impl.rs"]
 mod generate_impl_try_new_for_identifier_token_stream_impl;
-#[path = "generate_new_or_try_new_generate_modified_new_token_stream.rs"]
+#[path = "generate_new_or_try_new_generate_modified_new_token_stream_impl.rs"]
 mod generate_modified_new_token_stream_impl;
-#[path = "generate_new_or_try_new_generate_modified_try_new_token_stream.rs"]
+#[path = "generate_new_or_try_new_generate_modified_try_new_token_stream_impl.rs"]
 mod generate_modified_try_new_token_stream_impl;
-#[path = "generate_new_or_try_new_generate_new_token_stream.rs"]
+#[path = "generate_new_or_try_new_generate_new_token_stream_impl.rs"]
 mod generate_new_token_stream_impl;
-#[path = "generate_new_or_try_new_generate_pub_const_new_token_stream.rs"]
+#[path = "generate_new_or_try_new_generate_pub_const_new_token_stream_impl.rs"]
 mod generate_pub_const_new_token_stream_impl;
-#[path = "generate_new_or_try_new_generate_pub_const_try_new_token_stream.rs"]
+#[path = "generate_new_or_try_new_generate_pub_const_try_new_token_stream_impl.rs"]
 mod generate_pub_const_try_new_token_stream_impl;
-#[path = "generate_new_or_try_new_generate_pub_new_token_stream.rs"]
+#[path = "generate_new_or_try_new_generate_pub_new_token_stream_impl.rs"]
 mod generate_pub_new_token_stream_impl;
-#[path = "generate_new_or_try_new_generate_pub_try_new_token_stream.rs"]
+#[path = "generate_new_or_try_new_generate_pub_try_new_token_stream_impl.rs"]
 mod generate_pub_try_new_token_stream_impl;
-#[path = "generate_new_or_try_new_generate_try_new_token_stream.rs"]
+#[path = "generate_new_or_try_new_generate_try_new_token_stream_impl.rs"]
 mod generate_try_new_token_stream_impl;
-#[path = "generate_new_or_try_new_impl_identifier_token_stream.rs"]
+#[path = "generate_new_or_try_new_impl_identifier_token_stream_impl.rs"]
 mod impl_identifier_token_stream_impl;
-#[path = "generate_new_or_try_new_with_attr_token_stream.rs"]
+#[path = "generate_new_or_try_new_with_attr_token_stream_impl.rs"]
 mod with_attr_token_stream_impl;
 
 pub use generate_const_new_token_stream_impl::generate_const_new_token_stream_impl;
