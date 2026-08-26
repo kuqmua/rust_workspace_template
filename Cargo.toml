@@ -270,7 +270,7 @@ jsonwebtoken = { version = "=11.0.0", default-features = false, features = [
 strum = { version = "=0.28.0", default-features = false }
 strum_macros = { version = "=0.28.0", default-features = false }
 dotenv = { version = "=0.15.0", default-features = false }
-time = { version = "=0.3.54", default-features = false, features = [
+time = { version = "=0.3.55", default-features = false, features = [
   "std",
   "serde",
 ] }
