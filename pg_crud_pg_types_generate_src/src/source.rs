@@ -1876,7 +1876,7 @@ enum DateNaiveOrTime {
         };
         let generate_pub_const_new_or_pub_try_new_token_stream = |ts: &dyn quote::ToTokens| {
             let pub_fn_new_or_try_new_token_stream = if pg_type_initialization_try_new_try_from_pg_type.is_ok() {
-                &macro_helpers::domain_types::generate_new_or_try_new::generate_pub_try_new_token_stream(
+                &macro_helpers::domain_types::generate_new_or_try_new::generate_pub_try_new_token_stream_impl(
                     &proc_macro2::TokenStream::new(),
                     &v_identifier_inner_type_token_stream,
                     &identifier_standard_non_null_origin_try_new_error_upper_camel_case,
@@ -1893,13 +1893,13 @@ enum DateNaiveOrTime {
                     if matches!(&pg_type_pattern, PgTypePattern::Standard)
                         && matches!(&is_nullable, pg_crud_macro_common::domain_types::IsNullable::False)
                     {
-                        macro_helpers::domain_types::generate_new_or_try_new::generate_pub_const_new_token_stream(
+                        macro_helpers::domain_types::generate_new_or_try_new::generate_pub_const_new_token_stream_impl(
                             &must_use,
                             &v_identifier_inner_type_token_stream,
                             &self_identifier_origin_new_v_token_stream
                         )
                     } else {
-                        macro_helpers::domain_types::generate_new_or_try_new::generate_pub_new_token_stream(
+                        macro_helpers::domain_types::generate_new_or_try_new::generate_pub_new_token_stream_impl(
                             &must_use,
                             &v_identifier_inner_type_token_stream,
                             &self_identifier_origin_new_v_token_stream
@@ -2861,12 +2861,12 @@ enum IsConst {
                     };
                     match &pg_type_pattern {
                         PgTypePattern::Standard => match &is_nullable {
-                            pg_crud_macro_common::domain_types::IsNullable::False => macro_helpers::domain_types::generate_new_or_try_new::generate_const_new_token_stream(
+                            pg_crud_macro_common::domain_types::IsNullable::False => macro_helpers::domain_types::generate_new_or_try_new::generate_const_new_token_stream_impl(
                                 &must_use,
                                 &v_identifier_inner_type_token_stream,
                                 &ts
                             ),
-                            pg_crud_macro_common::domain_types::IsNullable::True => macro_helpers::domain_types::generate_new_or_try_new::generate_new_token_stream(
+                            pg_crud_macro_common::domain_types::IsNullable::True => macro_helpers::domain_types::generate_new_or_try_new::generate_new_token_stream_impl(
                                 &must_use,
                                 &v_identifier_inner_type_token_stream,
                                 &ts

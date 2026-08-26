@@ -1864,6 +1864,7 @@ constants_str_macros::define_str_constants! {
         LOCATION_RS = ["location.rs"];
         MAIN = ["main"];
         MOD = ["mod"];
+        MOD_RS = ["mod.rs"];
         LOCATION_LIB = ["location_lib"];
         DOMAIN_TYPES = ["domain_types"];
         LOCATION_TO_SCHEMA = ["location_to_schema"];

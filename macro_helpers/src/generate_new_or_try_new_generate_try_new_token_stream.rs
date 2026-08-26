@@ -1,4 +1,4 @@
-pub fn generate_try_new_token_stream(
+pub fn generate_try_new_token_stream_impl(
     attr_token_stream: &dyn quote::ToTokens,
     parameters_token_stream: &dyn quote::ToTokens,
     err_type_token_stream: &dyn quote::ToTokens,

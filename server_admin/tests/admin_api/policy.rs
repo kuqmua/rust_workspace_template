@@ -1,5 +1,5 @@
 #[test]
-fn generated_admin_users_descriptor_keeps_sensitive_and_server_owned_fields_excluded() {
+fn policy() {
     let read_excluded = <server_admin::domain_types::generated_tables::AdminUsers as pg_crud_common::domain_types::DbTableSchema>::read_excluded_columns();
     assert!(
         read_excluded

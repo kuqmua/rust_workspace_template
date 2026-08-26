@@ -1,15 +1,15 @@
 #![allow(clippy::single_call_fn)] // route inventory registers this session operation once
 
-pub(super) async fn revoke_all_sessions(
+pub(super) async fn sessions_revoke_all_sessions(
     auth: super::AdminAuthReq,
 ) -> Result<super::AxumAdminResponse, super::AdminError> {
-    let authenticated = super::authorization_authenticate::authenticate(
+    let authenticated = super::authorization_authenticate::authorization_authenticate(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
         auth.peer,
     )
     .await?;
-    super::authorization_validate_csrf::validate_csrf(
+    super::authorization_validate_csrf::authorization_validate_csrf(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
         &authenticated,

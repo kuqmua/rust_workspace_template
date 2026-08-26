@@ -1,6 +1,6 @@
 #![allow(clippy::single_call_fn)] // route inventory registers this role operation once
 
-pub(in crate::domain_types::auth) async fn update(
+pub(in crate::domain_types::auth) async fn mutations_update(
     auth: super::super::AdminAuthReq,
     path: super::super::AxumAdminPath<super::super::super::AdminRoleId>,
     request: super::super::AxumAdminJson<server_admin_contract::domain_types::AdminUpdateRoleReq>,

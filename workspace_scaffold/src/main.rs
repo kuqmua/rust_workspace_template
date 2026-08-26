@@ -26,11 +26,13 @@ fn main() {
                     let name_ref = domain_types::ProjectNameRef::from(name.as_str());
                     let repository_url_ref =
                         domain_types::RepositoryUrlRef::from(repository_url.as_str());
-                    domain_types::naming_validate_project_name::validate_project_name(name_ref)?;
-                    domain_types::naming_validate_repository_url::validate_repository_url(
+                    domain_types::naming_validate_project_name::naming_validate_project_name(
+                        name_ref,
+                    )?;
+                    domain_types::naming_validate_repository_url::naming_validate_repository_url(
                         repository_url_ref,
                     )?;
-                    adapters::template_fs_rename_identity::rename_identity(
+                    adapters::template_fs_rename_identity::template_fs_rename_identity(
                         workspace_root()?,
                         name_ref,
                         repository_url_ref,

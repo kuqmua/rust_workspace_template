@@ -1111,7 +1111,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
         ),
         (
             constants_str::VALUE_26637EB1,
-            (0, 0, 88, constants_str::VALUE_F86AE0A7),
+            (0, 0, 83, constants_str::VALUE_F86AE0A7),
         ),
         (
             constants_str::VALUE_BDEB5C57,

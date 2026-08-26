@@ -18,5 +18,5 @@ pub(super) const fn success_status<
 where
     StatusCode: Copy,
 {
-    crate::domain_types::route_success_status::success_status(dsc)
+    crate::domain_types::route_success_status::route_success_status(dsc)
 }

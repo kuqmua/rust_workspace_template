@@ -1,9 +1,9 @@
 #![allow(clippy::single_call_fn)] // route inventory registers this settings operation once
 
-pub(super) async fn get(
+pub(super) async fn settings_get(
     auth: super::AdminAuthReq,
 ) -> Result<super::AxumAdminResponse, super::AdminError> {
-    let _actor = super::authorization_authorize_generated_request::authorize_generated_request(
+    let _actor = super::authorization_authorize_generated_request::authorization_authorize_generated_request(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
         auth.peer,

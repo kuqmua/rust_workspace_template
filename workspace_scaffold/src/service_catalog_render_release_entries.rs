@@ -1,4 +1,4 @@
-pub(super) fn render_release_entries(
+pub(super) fn service_catalog_render_release_entries(
     entries: super::ServiceCatalogEntriesRef<'_>,
 ) -> super::ScaffoldText {
     let output_capacity = entries

@@ -1,5 +1,5 @@
 #[tokio::test]
-async fn auth_state_rejects_empty_cors_origin_entries() {
+async fn tests() {
     let pool = sqlx::postgres::PgPoolOptions::new()
         .connect_lazy(constants_str::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION)
         .expect("5bd94807 auth_state_rejects_empty_cors_origin_entries invariant must hold");

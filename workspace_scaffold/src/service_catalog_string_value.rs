@@ -1,4 +1,4 @@
-pub(super) fn string_value(
+pub(super) fn service_catalog_string_value(
     line: super::ScaffoldTextRef<'_>,
     key: super::ScaffoldTextRef<'_>,
 ) -> Result<Option<super::ScaffoldText>, super::ScaffoldError> {

@@ -1,4 +1,4 @@
-pub(crate) fn read_bounded_text(
+pub(crate) fn template_fs_read_bounded_text(
     path: crate::domain_types::ScaffoldPathRef<'_>,
 ) -> Result<crate::domain_types::ScaffoldText, crate::domain_types::ServerRuntimeBoundedReadError> {
     let bytes = server_runtime_http::domain_types::read_bounded_file(

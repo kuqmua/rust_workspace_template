@@ -1,18 +1,18 @@
 #![allow(clippy::single_call_fn)] // route inventory registers this authentication operation once
 
-pub(super) async fn sign_out(
+pub(super) async fn authn_sign_out(
     auth: super::AdminAuthReq,
 ) -> Result<super::AxumAdminResponse, super::AdminError> {
     let peer = auth.peer;
     let state = auth.state;
     let headers = auth.headers;
-    let authenticated = super::authorization_authenticate::authenticate(
+    let authenticated = super::authorization_authenticate::authorization_authenticate(
         state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(headers.as_ref()),
         peer,
     )
     .await?;
-    super::authorization_validate_csrf::validate_csrf(
+    super::authorization_validate_csrf::authorization_validate_csrf(
         state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(headers.as_ref()),
         &authenticated,
@@ -40,13 +40,14 @@ pub(super) async fn sign_out(
             .map(super::super::AdminOpaqueToken::new)
             .map_err(super::super::AdminSecretTextError::from)
             .map_err(super::AdminError::authentication_secret_text)?;
-        let context_hash = super::authorization_session_context_hash::session_context_hash(
-            super::super::HttpAdminHeaderMapRef::from(headers.as_ref()),
-            peer,
-        )
-        .map_err(super::AdminError::authentication_secret_text)?;
+        let context_hash =
+            super::authorization_session_context_hash::authorization_session_context_hash(
+                super::super::HttpAdminHeaderMapRef::from(headers.as_ref()),
+                peer,
+            )
+            .map_err(super::AdminError::authentication_secret_text)?;
         let refresh_hash =
-            super::authorization_hash_refresh_token_with_context::hash_refresh_token_with_context(
+            super::authorization_hash_refresh_token_with_context::authorization_hash_refresh_token_with_context(
                 &refresh,
                 &context_hash,
             )

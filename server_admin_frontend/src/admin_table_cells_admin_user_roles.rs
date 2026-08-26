@@ -15,7 +15,7 @@ pub(crate) fn admin_user_roles(
             .map(server_admin_contract::domain_types::AdminRoleSummary::name)
             .map(|name| name.as_ref().as_str()),
     ));
-    leptos::view! { <crate::domain_types::with_owner::table::table_cell::TableCell data_label="roles">{names}</crate::domain_types::with_owner::table::table_cell::TableCell> }
+    leptos::view! { <crate::domain_types::with_owner::tables::table_cell::TableCell data_label="roles">{names}</crate::domain_types::with_owner::tables::table_cell::TableCell> }
 }
 
 #[cfg(test)]

@@ -1,4 +1,4 @@
-pub(super) fn assignment_ids<Id, IdError, Ids, IdsError>(
+pub(super) fn assignment_ids_impl<Id, IdError, Ids, IdsError>(
     value: &super::forms::AdminHtmlFormText,
 ) -> Result<Ids, super::super::AdminError>
 where

@@ -7,7 +7,7 @@ pub(in crate::domain_types::ssr) fn render_admin_page_with_table_access(
     branding: Option<&server_admin_contract::domain_types::AdminBrandingView>,
     active_table: Option<server_admin_contract::domain_types::AdminDataTable>,
 ) -> super::super::AdminSsrHtml {
-    super::page_render_with_table_access::render_with_table_access(
+    super::page_render_with_table_access::page_render_with_table_access(
         page,
         content,
         admin,

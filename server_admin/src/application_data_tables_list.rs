@@ -1,9 +1,9 @@
 #![allow(clippy::single_call_fn)] // route inventory registers focused data-table operations once
 
-pub(super) async fn list(
+pub(super) async fn data_tables_list(
     auth: super::AdminAuthReq,
 ) -> Result<super::AxumAdminResponse, super::AdminError> {
-    let actor = super::authorization_authorize_generated_request::authorize_generated_request(
+    let actor = super::authorization_authorize_generated_request::authorization_authorize_generated_request(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
         auth.peer,

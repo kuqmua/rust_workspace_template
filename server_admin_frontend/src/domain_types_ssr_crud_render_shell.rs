@@ -12,7 +12,7 @@
 #[rustfmt::skip]
 use leptos::prelude::{ClassAttribute, CustomAttribute, ElementChild, GlobalAttributes};
 
-pub(super) fn render_shell(
+pub(super) fn crud_render_shell(
     page: server_admin_contract::domain_types::AdminPage,
     content: impl leptos::prelude::IntoAny,
     admin: &server_admin_contract::domain_types::AuthenticatedAdmin,

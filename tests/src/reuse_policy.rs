@@ -311,10 +311,6 @@ fn substantial_function_bodies_have_one_source_of_truth() {
             locations: constants_str::VALUE_51DBE253,
             reason: constants_str::VALUE_91B4F7EC,
         },
-        ReviewedDuplicateGroup {
-            locations: constants_str::GENERATE_IMPL_TRY_NEW_MODIFIER_WRAPPER_LOCATIONS,
-            reason: constants_str::GENERATE_IMPL_TRY_NEW_MODIFIER_WRAPPER_REASON,
-        },
     ]
     .into_iter()
     .fold(

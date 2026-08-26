@@ -230,24 +230,24 @@ fn navigation_distinguishes_current_and_inactive_destinations() {
 #[test]
 fn table_primitives_preserve_structure_and_class_merging() {
     let html = render(leptos::view! {
-        <super::table::table_wrapper::TableWrapper>
-            <super::table::table_impl::Table>
-                <super::table::table_caption::TableCaption>"Identifiers"</super::table::table_caption::TableCaption>
-                <super::table::table_header::TableHeader>
-                    <super::table::table_row::TableRow>
-                        <super::table::table_head::TableHead>"Identifier"</super::table::table_head::TableHead>
-                    </super::table::table_row::TableRow>
-                </super::table::table_header::TableHeader>
-                <super::table::table_body::TableBody>
-                    <super::table::table_row::TableRow>
-                        <super::table::table_cell::TableCell class="numeric-cell">"42"</super::table::table_cell::TableCell>
-                    </super::table::table_row::TableRow>
-                </super::table::table_body::TableBody>
-                <super::table::table_footer::TableFooter>
-                    <super::table::table_row::TableRow><super::table::table_cell::TableCell>"1"</super::table::table_cell::TableCell></super::table::table_row::TableRow>
-                </super::table::table_footer::TableFooter>
-            </super::table::table_impl::Table>
-        </super::table::table_wrapper::TableWrapper>
+        <super::tables::table_wrapper::TableWrapper>
+            <super::tables::table::Table>
+                <super::tables::table_caption::TableCaption>"Identifiers"</super::tables::table_caption::TableCaption>
+                <super::tables::table_header::TableHeader>
+                    <super::tables::table_row::TableRow>
+                        <super::tables::table_head::TableHead>"Identifier"</super::tables::table_head::TableHead>
+                    </super::tables::table_row::TableRow>
+                </super::tables::table_header::TableHeader>
+                <super::tables::table_body::TableBody>
+                    <super::tables::table_row::TableRow>
+                        <super::tables::table_cell::TableCell class="numeric-cell">"42"</super::tables::table_cell::TableCell>
+                    </super::tables::table_row::TableRow>
+                </super::tables::table_body::TableBody>
+                <super::tables::table_footer::TableFooter>
+                    <super::tables::table_row::TableRow><super::tables::table_cell::TableCell>"1"</super::tables::table_cell::TableCell></super::tables::table_row::TableRow>
+                </super::tables::table_footer::TableFooter>
+            </super::tables::table::Table>
+        </super::tables::table_wrapper::TableWrapper>
     });
 
     assert!(html.contains("data-name=\"TableWrapper\""));

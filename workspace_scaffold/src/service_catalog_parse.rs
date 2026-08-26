@@ -2,7 +2,7 @@
     clippy::single_call_fn,
     reason = "deployment synchronization owns catalog parsing"
 )]
-pub(super) fn parse(
+pub(super) fn service_catalog_parse(
     source: super::ScaffoldTextRef<'_>,
 ) -> Result<super::ServiceCatalogEntries, super::ScaffoldError> {
     let mut entries = Vec::new();
@@ -19,7 +19,7 @@ pub(super) fn parse(
         let Some(draft) = current.as_mut() else {
             return Ok(());
         };
-        if let Some(value) = super::service_catalog_string_value::string_value(
+        if let Some(value) = super::service_catalog_string_value::service_catalog_string_value(
             super::ScaffoldTextRef::from(trimmed_line),
             super::ScaffoldTextRef::from(constants_str::CRATE),
         )? {
@@ -29,7 +29,7 @@ pub(super) fn parse(
             );
             return Ok(());
         }
-        if let Some(value) = super::service_catalog_string_value::string_value(
+        if let Some(value) = super::service_catalog_string_value::service_catalog_string_value(
             super::ScaffoldTextRef::from(trimmed_line),
             super::ScaffoldTextRef::from(constants_str::VALUE_DB669AF6),
         )? {
@@ -39,7 +39,7 @@ pub(super) fn parse(
             );
             return Ok(());
         }
-        if let Some(value) = super::service_catalog_string_value::string_value(
+        if let Some(value) = super::service_catalog_string_value::service_catalog_string_value(
             super::ScaffoldTextRef::from(trimmed_line),
             super::ScaffoldTextRef::from(constants_str::VALUE_739ED940),
         )? {
@@ -49,7 +49,7 @@ pub(super) fn parse(
             );
             return Ok(());
         }
-        if let Some(value) = super::service_catalog_string_value::string_value(
+        if let Some(value) = super::service_catalog_string_value::service_catalog_string_value(
             super::ScaffoldTextRef::from(trimmed_line),
             super::ScaffoldTextRef::from(constants_str::VALUE_254DB0FB),
         )? {
@@ -59,7 +59,7 @@ pub(super) fn parse(
             );
             return Ok(());
         }
-        if let Some(value) = super::service_catalog_string_value::string_value(
+        if let Some(value) = super::service_catalog_string_value::service_catalog_string_value(
             super::ScaffoldTextRef::from(trimmed_line),
             super::ScaffoldTextRef::from(constants_str::VALUE_6105D6CC),
         )? {
@@ -69,7 +69,7 @@ pub(super) fn parse(
             );
             return Ok(());
         }
-        if let Some(value) = super::service_catalog_string_value::string_value(
+        if let Some(value) = super::service_catalog_string_value::service_catalog_string_value(
             super::ScaffoldTextRef::from(trimmed_line),
             super::ScaffoldTextRef::from(constants_str::VALUE_94ABCB2D),
         )? {
@@ -88,7 +88,7 @@ pub(super) fn parse(
             draft.port = Some(super::ServicePort::from(port));
             return Ok(());
         }
-        if let Some(value) = super::service_catalog_string_value::string_value(
+        if let Some(value) = super::service_catalog_string_value::service_catalog_string_value(
             super::ScaffoldTextRef::from(trimmed_line),
             super::ScaffoldTextRef::from(constants_str::VALUE_20E49707),
         )? {
@@ -128,7 +128,7 @@ pub(super) fn parse(
 mod tests {
     #[test]
     fn empty_catalog_is_rejected() {
-        let _error = super::parse(super::super::ScaffoldTextRef::from(
+        let _error = super::service_catalog_parse(super::super::ScaffoldTextRef::from(
             constants_str::PG_CRUD_EMPTY_SQL_SUFFIX,
         ))
         .expect_err(constants_str::VALUE_5621BCEA);

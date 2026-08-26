@@ -1,6 +1,6 @@
 #![allow(clippy::single_call_fn)] // route inventory registers this user operation once
 
-pub(in crate::domain_types::auth) async fn set_ban(
+pub(in crate::domain_types::auth) async fn mutations_set_ban(
     auth: super::super::AdminAuthReq,
     path: super::super::AxumAdminPath<super::super::super::AdminUserId>,
     request: super::super::AxumAdminJson<server_admin_contract::domain_types::AdminSetUserBanReq>,

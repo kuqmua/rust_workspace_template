@@ -31,11 +31,11 @@ pub(super) fn admin_data_grid_column(
         limit,
     );
     leptos::view! {
-        <crate::domain_types::with_owner::table::table_head::TableHead data_field=field data_filter_count=filter_count>
+        <crate::domain_types::with_owner::tables::table_head::TableHead data_field=field data_filter_count=filter_count>
             <div class="table-column-heading">
                 <span>{label}</span>
                 {filter}
             </div>
-        </crate::domain_types::with_owner::table::table_head::TableHead>
+        </crate::domain_types::with_owner::tables::table_head::TableHead>
     }
 }

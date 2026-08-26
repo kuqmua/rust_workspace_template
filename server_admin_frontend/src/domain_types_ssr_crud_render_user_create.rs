@@ -12,11 +12,11 @@
 #[rustfmt::skip]
 use leptos::prelude::{ClassAttribute, CustomAttribute, ElementChild, GlobalAttributes};
 
-pub(super) fn render_user_create(
+pub(super) fn crud_render_user_create(
     admin: &server_admin_contract::domain_types::AuthenticatedAdmin,
     branding: &server_admin_contract::domain_types::AdminBrandingView,
 ) -> super::AdminSsrHtml {
-    super::crud_render_shell::render_shell(
+    super::crud_render_shell::crud_render_shell(
         server_admin_contract::domain_types::AdminPage::Users,
         leptos::view! {
             <section class="crud-page"><div class="crud-heading"><div><p class="eyebrow">"Users"</p><h1>"Create user"</h1><p>"Add a user account with initial credentials."</p></div><crate::domain_types::with_owner::button::AdminButtonLink href=server_admin_contract::domain_types::AdminFrontendPath::Users.get() variant=crate::domain_types::with_owner::button::AdminButtonVariant::Secondary>"Back to users"</crate::domain_types::with_owner::button::AdminButtonLink></div>

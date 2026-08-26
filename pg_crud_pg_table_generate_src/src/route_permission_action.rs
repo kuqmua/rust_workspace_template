@@ -1,6 +1,6 @@
 #![allow(clippy::single_call_fn)] // route projection is a private physical emitter boundary
 
-pub(super) const fn permission_action<
+pub(super) const fn route_permission_action<
     Capability,
     HttpMethod,
     Operation,

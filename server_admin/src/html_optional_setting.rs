@@ -1,4 +1,4 @@
-pub(super) fn optional_setting<Value, Error>(
+pub(super) fn optional_setting_impl<Value, Error>(
     value: super::forms::AdminHtmlFormText,
 ) -> Result<Option<Value>, super::super::AdminError>
 where

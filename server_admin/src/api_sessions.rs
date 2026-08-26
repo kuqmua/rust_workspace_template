@@ -4,7 +4,7 @@
     params(server_admin_contract::domain_types::AdminTableQuery),
     tag = "admin_auth"
 )]
-pub(super) async fn sessions(
+pub(super) async fn api_sessions(
     auth: super::AdminAuthReq,
     query: super::AxumAdminQuery<server_admin_contract::domain_types::AdminTableQuery>,
 ) -> Result<super::AxumAdminResponse, super::AdminSessionsError> {

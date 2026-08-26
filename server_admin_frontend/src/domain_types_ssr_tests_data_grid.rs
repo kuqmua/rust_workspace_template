@@ -4,7 +4,7 @@ use super::super::AdminSsrViewExt;
 use super::{test_admin, test_branding};
 
 #[test]
-fn generated_column_metadata_drives_data_table_markup() {
+fn data_grid() {
     let columns = server_admin_contract::domain_types::AdminDataColumns::try_from(vec![
         server_admin_contract::domain_types::AdminDataColumn::new(
             server_admin_contract::domain_types::AdminDataFilters::try_from(Vec::new())

@@ -1,4 +1,4 @@
-pub(super) fn session_context_hash(
+pub(super) fn authorization_session_context_hash(
     headers: super::super::HttpAdminHeaderMapRef<'_>,
     peer: super::AdminPeerAddr,
 ) -> Result<super::super::AdminTokenHash, super::super::AdminSecretTextError> {

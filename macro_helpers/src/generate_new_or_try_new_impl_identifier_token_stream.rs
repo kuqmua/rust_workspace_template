@@ -1,4 +1,4 @@
-pub(super) fn impl_identifier_token_stream(
+pub(super) fn impl_identifier_token_stream_impl(
     identifier_token_stream: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
 ) -> crate::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream

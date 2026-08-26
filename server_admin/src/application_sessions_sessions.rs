@@ -4,7 +4,7 @@ pub(super) async fn sessions(
     auth: super::AdminAuthReq,
     query: super::AxumAdminQuery<server_admin_contract::domain_types::AdminTableQuery>,
 ) -> Result<super::AxumAdminResponse, super::AdminError> {
-    let authenticated = super::authorization_authenticate::authenticate(
+    let authenticated = super::authorization_authenticate::authorization_authenticate(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
         auth.peer,

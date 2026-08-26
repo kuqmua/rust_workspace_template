@@ -2,7 +2,7 @@
     clippy::single_call_fn,
     reason = "route projections are private physical boundaries shared by transport emitters"
 )]
-pub(super) const fn http_method<
+pub(super) const fn route_http_method<
     Capability,
     HttpMethod,
     Operation,

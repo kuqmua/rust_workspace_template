@@ -1,6 +1,6 @@
 #![allow(clippy::single_call_fn)] // route inventory registers focused role operations once
 
-pub(in crate::domain_types::auth) async fn create(
+pub(in crate::domain_types::auth) async fn mutations_create(
     auth: super::super::AdminAuthReq,
     request: super::super::AxumAdminJson<server_admin_contract::domain_types::AdminCreateRoleReq>,
 ) -> Result<super::super::AxumAdminResponse, super::super::AdminError> {

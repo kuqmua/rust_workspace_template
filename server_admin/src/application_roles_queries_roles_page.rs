@@ -1,9 +1,9 @@
-pub(in crate::domain_types::auth) async fn roles_page(
+pub(in crate::domain_types::auth) async fn queries_roles_page(
     auth: super::super::AdminAuthReq,
     query: super::super::AxumAdminQuery<server_admin_contract::domain_types::AdminTableQuery>,
 ) -> Result<server_admin_contract::domain_types::AdminRolesPage, super::super::AdminError> {
     let _actor =
-        super::super::authorization_authorize_generated_request::authorize_generated_request(
+        super::super::authorization_authorize_generated_request::authorization_authorize_generated_request(
             auth.state.as_ref(),
             super::super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
             auth.peer,

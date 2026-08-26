@@ -1,6 +1,6 @@
 #![allow(clippy::single_call_fn)] // frontend projection is a private physical emitter boundary
 
-pub(super) const fn success_status<
+pub(super) const fn frontend_success_status<
     Capability,
     HttpMethod,
     Operation,
@@ -20,5 +20,5 @@ pub(super) const fn success_status<
 where
     StatusCode: Copy,
 {
-    crate::domain_types::route_success_status::success_status(dsc)
+    crate::domain_types::route_success_status::route_success_status(dsc)
 }

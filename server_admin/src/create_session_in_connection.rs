@@ -15,7 +15,7 @@ pub(super) async fn create_session_in_connection(
     let refresh_generated = super::super::AdminGeneratedToken::generate()
         .map_err(super::AdminSessionError::SecretText)?;
     let refresh_hash =
-        super::authorization_hash_refresh_token_with_context::hash_refresh_token_with_context(
+        super::authorization_hash_refresh_token_with_context::authorization_hash_refresh_token_with_context(
             refresh_generated.token(),
             context_hash,
         )

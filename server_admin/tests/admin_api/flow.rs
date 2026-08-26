@@ -1,6 +1,6 @@
 #[tokio::test]
 #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
-async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
+async fn flow() {
     let database_url = std::env::var(constants_str::ENV_NAMES_DATABASE_URL)
         .expect("ac0cb9e3 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
     let pool = SqlxAdminApiTestPool::from(

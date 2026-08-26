@@ -5,31 +5,31 @@ pub(super) async fn update_settings(
         super::super::forms::SettingsForm,
     >,
 ) -> axum::response::Response {
-    let Ok(auth) = super::super::form_auth_impl::form_auth(auth) else {
+    let Ok(auth) = super::super::form_auth_impl::form_auth_impl(auth) else {
         return axum::response::IntoResponse::into_response(super::super::super::AdminError::Csrf);
     };
     let parsed = (
-        super::super::optional_setting_impl::optional_setting::<
+        super::super::optional_setting_impl::optional_setting_impl::<
             server_admin_contract::domain_types::AdminMainLogo,
             _,
         >(form.main_logo),
-        super::super::optional_setting_impl::optional_setting::<
+        super::super::optional_setting_impl::optional_setting_impl::<
             server_admin_contract::domain_types::AdminOrganizationContacts,
             _,
         >(form.organization_contacts),
-        super::super::optional_setting_impl::optional_setting::<
+        super::super::optional_setting_impl::optional_setting_impl::<
             server_admin_contract::domain_types::AdminOrganizationName,
             _,
         >(form.organization_name),
-        super::super::optional_setting_impl::optional_setting::<
+        super::super::optional_setting_impl::optional_setting_impl::<
             server_admin_contract::domain_types::AdminPrimaryColor,
             _,
         >(form.primary_color),
-        super::super::optional_setting_impl::optional_setting::<
+        super::super::optional_setting_impl::optional_setting_impl::<
             server_admin_contract::domain_types::AdminSupportUrl,
             _,
         >(form.support_url),
-        super::super::optional_setting_impl::optional_setting::<
+        super::super::optional_setting_impl::optional_setting_impl::<
             server_admin_contract::domain_types::AdminTabTitle,
             _,
         >(form.tab_title),
@@ -94,8 +94,8 @@ pub(super) async fn update_settings(
         tab_title,
         clear,
     );
-    super::super::action_result_impl::action_result(
-        super::super::super::settings_update::update(
+    super::super::action_result_impl::action_result_impl(
+        super::super::super::settings_update::settings_update(
             auth,
             super::super::super::AxumAdminJson(request),
         )

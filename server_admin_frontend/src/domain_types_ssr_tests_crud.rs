@@ -1,5 +1,5 @@
 #[test]
-fn crud_pages_render_dedicated_forms_and_navigation() {
+fn crud() {
     let permissions = [
         server_admin_contract::domain_types::AdminPermission::UsersUpdate,
         server_admin_contract::domain_types::AdminPermission::UsersDelete,

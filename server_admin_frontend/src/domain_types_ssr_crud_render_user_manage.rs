@@ -12,7 +12,7 @@
 #[rustfmt::skip]
 use leptos::prelude::{ClassAttribute, CustomAttribute, ElementChild, GlobalAttributes};
 
-pub(super) fn render_user_manage(
+pub(super) fn crud_render_user_manage(
     page: &server_admin_contract::domain_types::AdminUsersPage,
     admin: &server_admin_contract::domain_types::AuthenticatedAdmin,
     branding: &server_admin_contract::domain_types::AdminBrandingView,
@@ -50,7 +50,7 @@ pub(super) fn render_user_manage(
             </article></crate::domain_types::with_owner::card::AdminCard>
         }
     }).collect::<Vec<_>>();
-    super::crud_render_shell::render_shell(
+    super::crud_render_shell::crud_render_shell(
         server_admin_contract::domain_types::AdminPage::Users,
         leptos::view! {
             <section class="crud-page"><div class="crud-heading"><div><p class="eyebrow">"Users"</p><h1>"Manage users"</h1><p>"Update account details or permanently delete an account."</p></div><crate::domain_types::with_owner::button::AdminButtonLink href=server_admin_contract::domain_types::AdminFrontendPath::Users.get() variant=crate::domain_types::with_owner::button::AdminButtonVariant::Secondary>"Back to users"</crate::domain_types::with_owner::button::AdminButtonLink></div><div class="crud-list">{cards}</div></section>

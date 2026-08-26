@@ -13,7 +13,7 @@ use leptos::prelude::{
     InnerHtmlAttribute, StyleAttribute,
 };
 
-pub(super) fn render_with_table_access(
+pub(super) fn page_render_with_table_access(
     page: server_admin_contract::domain_types::AdminPage,
     content: super::super::AdminSsrHtml,
     admin: Option<&server_admin_contract::domain_types::AuthenticatedAdmin>,

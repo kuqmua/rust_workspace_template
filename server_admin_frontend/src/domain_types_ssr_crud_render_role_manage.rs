@@ -12,7 +12,7 @@
 #[rustfmt::skip]
 use leptos::prelude::{ClassAttribute, CustomAttribute, ElementChild, GlobalAttributes};
 
-pub(super) fn render_role_manage(
+pub(super) fn crud_render_role_manage(
     page: &server_admin_contract::domain_types::AdminRolesPage,
     admin: &server_admin_contract::domain_types::AuthenticatedAdmin,
     branding: &server_admin_contract::domain_types::AdminBrandingView,
@@ -49,7 +49,7 @@ pub(super) fn render_role_manage(
             </article></crate::domain_types::with_owner::card::AdminCard>
         }
     }).collect::<Vec<_>>();
-    super::crud_render_shell::render_shell(
+    super::crud_render_shell::crud_render_shell(
         server_admin_contract::domain_types::AdminPage::Roles,
         leptos::view! {
             <section class="crud-page"><div class="crud-heading"><div><p class="eyebrow">"Roles"</p><h1>"Manage roles"</h1><p>"Rename custom roles or remove roles that are no longer needed."</p></div><crate::domain_types::with_owner::button::AdminButtonLink href=server_admin_contract::domain_types::AdminFrontendPath::Roles.get() variant=crate::domain_types::with_owner::button::AdminButtonVariant::Secondary>"Back to roles"</crate::domain_types::with_owner::button::AdminButtonLink></div><div class="crud-list">{cards}</div></section>

@@ -1,6 +1,6 @@
 #![allow(clippy::single_call_fn)] // route inventory registers this user operation once
 
-pub(in crate::domain_types::auth) async fn set_password(
+pub(in crate::domain_types::auth) async fn mutations_set_password(
     auth: super::super::AdminAuthReq,
     path: super::super::AxumAdminPath<super::super::super::AdminUserId>,
     request: super::super::AxumAdminJson<

@@ -52,21 +52,21 @@ pub(super) fn render_sessions(
             }
         });
         leptos::view! {
-            <crate::domain_types::with_owner::table::table_row::TableRow>
-                <crate::domain_types::with_owner::table::table_cell::TableCell data_label="session">{session_id}</crate::domain_types::with_owner::table::table_cell::TableCell>
-                <crate::domain_types::with_owner::table::table_cell::TableCell data_label="created">{created_at}</crate::domain_types::with_owner::table::table_cell::TableCell>
-                <crate::domain_types::with_owner::table::table_cell::TableCell data_label="expires">{expires_at}</crate::domain_types::with_owner::table::table_cell::TableCell>
-                <crate::domain_types::with_owner::table::table_cell::TableCell data_label="current"><crate::domain_types::with_owner::badge::AdminBadge variant=if is_current { crate::domain_types::with_owner::badge::AdminBadgeVariant::Success } else { crate::domain_types::with_owner::badge::AdminBadgeVariant::Neutral }>{current_text}</crate::domain_types::with_owner::badge::AdminBadge></crate::domain_types::with_owner::table::table_cell::TableCell>
-                <crate::domain_types::with_owner::table::table_cell::TableCell data_label="actions">
+            <crate::domain_types::with_owner::tables::table_row::TableRow>
+                <crate::domain_types::with_owner::tables::table_cell::TableCell data_label="session">{session_id}</crate::domain_types::with_owner::tables::table_cell::TableCell>
+                <crate::domain_types::with_owner::tables::table_cell::TableCell data_label="created">{created_at}</crate::domain_types::with_owner::tables::table_cell::TableCell>
+                <crate::domain_types::with_owner::tables::table_cell::TableCell data_label="expires">{expires_at}</crate::domain_types::with_owner::tables::table_cell::TableCell>
+                <crate::domain_types::with_owner::tables::table_cell::TableCell data_label="current"><crate::domain_types::with_owner::badge::AdminBadge variant=if is_current { crate::domain_types::with_owner::badge::AdminBadgeVariant::Success } else { crate::domain_types::with_owner::badge::AdminBadgeVariant::Neutral }>{current_text}</crate::domain_types::with_owner::badge::AdminBadge></crate::domain_types::with_owner::tables::table_cell::TableCell>
+                <crate::domain_types::with_owner::tables::table_cell::TableCell data_label="actions">
                     {dialog}
-                </crate::domain_types::with_owner::table::table_cell::TableCell>
-            </crate::domain_types::with_owner::table::table_row::TableRow>
+                </crate::domain_types::with_owner::tables::table_cell::TableCell>
+            </crate::domain_types::with_owner::tables::table_row::TableRow>
         }
     }).collect::<Vec<_>>();
     let content_view = leptos::view! {
         <section class="table-page">
-        <crate::domain_types::with_owner::table::table_wrapper::TableWrapper><crate::domain_types::with_owner::table::table_impl::Table><crate::domain_types::with_owner::table::table_header::TableHeader><crate::domain_types::with_owner::table::table_row::TableRow><crate::domain_types::with_owner::table::table_head::TableHead>"session"</crate::domain_types::with_owner::table::table_head::TableHead><crate::domain_types::with_owner::table::table_head::TableHead>"created"</crate::domain_types::with_owner::table::table_head::TableHead><crate::domain_types::with_owner::table::table_head::TableHead>"expires"</crate::domain_types::with_owner::table::table_head::TableHead><crate::domain_types::with_owner::table::table_head::TableHead>"current"</crate::domain_types::with_owner::table::table_head::TableHead><crate::domain_types::with_owner::table::table_head::TableHead>"actions"</crate::domain_types::with_owner::table::table_head::TableHead></crate::domain_types::with_owner::table::table_row::TableRow></crate::domain_types::with_owner::table::table_header::TableHeader>
-        <crate::domain_types::with_owner::table::table_body::TableBody>{rows}</crate::domain_types::with_owner::table::table_body::TableBody></crate::domain_types::with_owner::table::table_impl::Table></crate::domain_types::with_owner::table::table_wrapper::TableWrapper>
+        <crate::domain_types::with_owner::tables::table_wrapper::TableWrapper><crate::domain_types::with_owner::tables::table::Table><crate::domain_types::with_owner::tables::table_header::TableHeader><crate::domain_types::with_owner::tables::table_row::TableRow><crate::domain_types::with_owner::tables::table_head::TableHead>"session"</crate::domain_types::with_owner::tables::table_head::TableHead><crate::domain_types::with_owner::tables::table_head::TableHead>"created"</crate::domain_types::with_owner::tables::table_head::TableHead><crate::domain_types::with_owner::tables::table_head::TableHead>"expires"</crate::domain_types::with_owner::tables::table_head::TableHead><crate::domain_types::with_owner::tables::table_head::TableHead>"current"</crate::domain_types::with_owner::tables::table_head::TableHead><crate::domain_types::with_owner::tables::table_head::TableHead>"actions"</crate::domain_types::with_owner::tables::table_head::TableHead></crate::domain_types::with_owner::tables::table_row::TableRow></crate::domain_types::with_owner::tables::table_header::TableHeader>
+        <crate::domain_types::with_owner::tables::table_body::TableBody>{rows}</crate::domain_types::with_owner::tables::table_body::TableBody></crate::domain_types::with_owner::tables::table::Table></crate::domain_types::with_owner::tables::table_wrapper::TableWrapper>
         {super::table_pagination(server_admin_contract::domain_types::AdminPage::Sessions, query, page.total(), None, None)}
         </section>
     };

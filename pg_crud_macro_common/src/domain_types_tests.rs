@@ -1,4 +1,4 @@
 #[test]
-fn facade_exposes_emission_types() {
+fn tests() {
     assert_eq!(super::Import::Crate.sc_str().as_ref(), constants_str::CRATE);
 }

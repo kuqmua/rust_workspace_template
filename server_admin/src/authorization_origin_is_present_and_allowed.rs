@@ -1,4 +1,4 @@
-pub(super) fn origin_is_present_and_allowed(
+pub(super) fn authorization_origin_is_present_and_allowed(
     state: &super::AdminAuthSvcState,
     headers: super::super::HttpAdminHeaderMapRef<'_>,
 ) -> super::super::StdAdminBool {

@@ -1,5 +1,5 @@
 #[test]
-fn sign_in_route_keeps_public_authentication_and_path() {
+fn tests() {
     let metadata =
         <super::AdminSignInRoute as frontend_contract::domain_types::TypedRoute>::metadata();
     assert_eq!(

@@ -2845,7 +2845,7 @@ pub fn emit_generate_pg_table(
                 &identifier_where_try_new_error_upper_camel_case,
             );
         let impl_pub_try_new_for_identifier_where_token_stream =
-            macro_helpers::domain_types::generate_new_or_try_new::generate_impl_pub_try_new_for_identifier_token_stream(
+            macro_helpers::domain_types::generate_new_or_try_new::generate_impl_pub_try_new_for_identifier_token_stream_impl(
                 &proc_macro2::TokenStream::new(),
                 &identifier_where_upper_camel_case,
                 &fields_declaration_token_stream,
@@ -3591,7 +3591,7 @@ enum WrapIntoOptional {
                 &identifier_update_try_new_error_upper_camel_case,
             );
         let impl_pub_try_new_for_identifier_update_token_stream =
-            macro_helpers::domain_types::generate_new_or_try_new::generate_impl_pub_try_new_for_identifier_token_stream(
+            macro_helpers::domain_types::generate_new_or_try_new::generate_impl_pub_try_new_for_identifier_token_stream_impl(
                 &proc_macro2::TokenStream::new(),
                 &identifier_update_upper_camel_case,
                 &fields_declaration_token_stream,
@@ -5122,7 +5122,7 @@ enum WrapIntoOptional {
         if operation_is_enabled(operation) {
         operation_routes_token_stream.push({
             let method_token_stream =
-                match crate::domain_types::route_http_method::http_method(operation_dsc) {
+                match crate::domain_types::route_http_method::route_http_method(operation_dsc) {
                 OperationHttpMethod::Post => quote::quote! {post},
                 OperationHttpMethod::Patch => quote::quote! {patch},
                 OperationHttpMethod::Delete => quote::quote! {delete},
@@ -7013,12 +7013,12 @@ enum WrapIntoOptional {
         .map(|operation_dsc| {
             let operation = quote::format_ident!("{}", operation_dsc.operation.to_string());
             let http_method =
-                match crate::domain_types::frontend_http_method::http_method(operation_dsc) {
+                match crate::domain_types::frontend_http_method::frontend_http_method(operation_dsc) {
                 OperationHttpMethod::Post => quote::format_ident!("Post"),
                 OperationHttpMethod::Patch => quote::format_ident!("Patch"),
                 OperationHttpMethod::Delete => quote::format_ident!("Delete"),
             };
-            let success_status = if crate::domain_types::frontend_success_status::success_status(operation_dsc)
+            let success_status = if crate::domain_types::frontend_success_status::frontend_success_status(operation_dsc)
                 == macro_helpers::domain_types::status_code::StatusCode::Created201
             {
                 quote::format_ident!("Code201")
@@ -7038,7 +7038,7 @@ enum WrapIntoOptional {
                     |permission_prefix| {
                         let permission = format!(
                             "{permission_prefix}:{}",
-                            crate::domain_types::frontend_permission_action::permission_action(
+                            crate::domain_types::frontend_permission_action::frontend_permission_action(
                                 operation_dsc,
                             )
                         );
@@ -7085,7 +7085,7 @@ enum WrapIntoOptional {
     let route_contract_operation_kind_arms_token_stream = crate::domain_types::table::operation_dsc::OperationDsc::ALL.iter().map(|operation_dsc| {
         let operation = quote::format_ident!("{}", operation_dsc.operation.to_string());
         let operation_kind =
-            match crate::domain_types::frontend_operation_kind::operation_kind(operation_dsc) {
+            match crate::domain_types::frontend_operation_kind::frontend_operation_kind(operation_dsc) {
             OperationKind::CreateMany => quote::format_ident!("CreateMany"),
             OperationKind::CreateOne => quote::format_ident!("CreateOne"),
             OperationKind::DeleteMany => quote::format_ident!("DeleteMany"),

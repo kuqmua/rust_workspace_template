@@ -2,7 +2,7 @@
 use super::{test_admin, test_branding};
 
 #[test]
-fn typed_static_pages_render_rows_actions_roles_and_escaped_text() {
+fn static_pages() {
     let admin = test_admin();
     let branding = test_branding();
     let query = server_admin_contract::domain_types::AdminTableQuery::default();

@@ -1,4 +1,4 @@
-pub(super) fn generate_modified_try_new_token_stream(
+pub(super) fn generate_modified_try_new_token_stream_impl(
     attr_token_stream: &dyn quote::ToTokens,
     modifier_token_stream: &dyn quote::ToTokens,
     parameters_token_stream: &dyn quote::ToTokens,
@@ -6,13 +6,13 @@ pub(super) fn generate_modified_try_new_token_stream(
     ts: &dyn quote::ToTokens,
 ) -> crate::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream
 {
-    let try_new_token_stream = super::generate_try_new_token_stream(
+    let try_new_token_stream = super::generate_try_new_token_stream_impl(
         &proc_macro2::TokenStream::new(),
         parameters_token_stream,
         err_type_token_stream,
         ts,
     );
-    super::with_attr_token_stream_impl::with_attr_token_stream(
+    super::with_attr_token_stream_impl::with_attr_token_stream_impl(
         attr_token_stream,
         &quote::quote! {#modifier_token_stream #try_new_token_stream},
     )

@@ -1,5 +1,5 @@
 #[test]
-fn route_contract_type_mismatches_do_not_compile() {
+fn route_contract_policy() {
     fn assert_serializable<Value>()
     where
         Value: serde::Serialize,

@@ -1,10 +1,10 @@
 #[allow(clippy::single_call_fn)] // typed-route delegate owns permissions query transport workflow
-pub(in crate::domain_types::auth) async fn list_permissions(
+pub(in crate::domain_types::auth) async fn queries_list_permissions(
     auth: super::super::AdminAuthReq,
     query: super::super::AxumAdminQuery<server_admin_contract::domain_types::AdminTableQuery>,
 ) -> Result<super::super::AxumAdminResponse, super::super::AdminError> {
     let _actor =
-        super::super::authorization_authorize_generated_request::authorize_generated_request(
+        super::super::authorization_authorize_generated_request::authorization_authorize_generated_request(
             auth.state.as_ref(),
             super::super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
             auth.peer,

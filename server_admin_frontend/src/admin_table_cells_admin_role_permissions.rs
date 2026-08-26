@@ -15,5 +15,5 @@ pub(crate) fn admin_role_permissions(
             .map(server_admin_contract::domain_types::AdminPermissionSummary::name)
             .map(|name| name.as_ref().as_str()),
     ));
-    leptos::view! { <crate::domain_types::with_owner::table::table_cell::TableCell data_label="permissions">{names}</crate::domain_types::with_owner::table::table_cell::TableCell> }
+    leptos::view! { <crate::domain_types::with_owner::tables::table_cell::TableCell data_label="permissions">{names}</crate::domain_types::with_owner::tables::table_cell::TableCell> }
 }

@@ -1,6 +1,6 @@
 #![allow(clippy::single_call_fn)] // route inventory and HTML composition each register focused settings operations once
 
-pub(super) async fn update(
+pub(super) async fn settings_update(
     auth: super::AdminAuthReq,
     request: super::AxumAdminJson<server_admin_contract::domain_types::AdminUpdateSettingsReq>,
 ) -> Result<super::AxumAdminResponse, super::AdminError> {

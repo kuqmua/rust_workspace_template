@@ -1,7 +1,7 @@
-pub(super) fn form_auth(
+pub(super) fn form_auth_impl(
     mut auth: super::super::AdminAuthReq,
 ) -> Result<super::super::AdminAuthReq, super::super::AdminError> {
-    if !super::super::authorization_origin_is_present_and_allowed::origin_is_present_and_allowed(
+    if !super::super::authorization_origin_is_present_and_allowed::authorization_origin_is_present_and_allowed(
         auth.state.as_ref(),
         super::super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
     )

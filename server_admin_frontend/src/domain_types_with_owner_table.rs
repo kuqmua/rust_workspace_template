@@ -1,3 +1,5 @@
+#[path = "domain_types_with_owner_table_table.rs"]
+pub(crate) mod table;
 #[path = "domain_types_with_owner_table_table_body.rs"]
 pub(crate) mod table_body;
 #[path = "domain_types_with_owner_table_table_caption.rs"]
@@ -10,8 +12,6 @@ pub(crate) mod table_footer;
 pub(crate) mod table_head;
 #[path = "domain_types_with_owner_table_table_header.rs"]
 pub(crate) mod table_header;
-#[path = "domain_types_with_owner_table_table.rs"]
-pub(crate) mod table_impl;
 #[path = "domain_types_with_owner_table_table_row.rs"]
 pub(crate) mod table_row;
 #[path = "domain_types_with_owner_table_table_wrapper.rs"]

@@ -1,4 +1,4 @@
-pub(super) async fn authenticate(
+pub(super) async fn authorization_authenticate(
     state: &super::AdminAuthSvcState,
     headers: super::super::HttpAdminHeaderMapRef<'_>,
     peer: super::AdminPeerAddr,
@@ -23,8 +23,10 @@ pub(super) async fn authenticate(
         })
         .ok_or(super::AdminError::Authentication)?;
     let context_hash =
-        super::authorization_session_context_hash::session_context_hash(headers, peer)
-            .map_err(super::AdminError::secret_text)?;
+        super::authorization_session_context_hash::authorization_session_context_hash(
+            headers, peer,
+        )
+        .map_err(super::AdminError::secret_text)?;
     let active =
         sqlx::query_scalar::<_, bool>(constants_str::SERVER_ADMIN_ACTIVE_ACCESS_SESSION_SQL)
             .bind(claims.session_id().get().get())

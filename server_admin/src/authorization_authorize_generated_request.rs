@@ -1,4 +1,4 @@
-pub(crate) async fn authorize_generated_request(
+pub(crate) async fn authorization_authorize_generated_request(
     state: &super::AdminAuthSvcState,
     headers: super::super::HttpAdminHeaderMapRef<'_>,
     peer: super::AdminPeerAddr,
@@ -6,7 +6,7 @@ pub(crate) async fn authorize_generated_request(
     mutates: super::super::StdAdminBool,
 ) -> Result<super::AuthenticatedAdmin, super::AdminError> {
     let authenticated =
-        super::authorization_authenticate::authenticate(state, headers, peer).await?;
+        super::authorization_authenticate::authorization_authenticate(state, headers, peer).await?;
     if *authenticated.password_change_required {
         return Err(super::AdminError::Authorization);
     }
@@ -30,7 +30,12 @@ pub(crate) async fn authorize_generated_request(
             state.policy.mutation_window,
         )
         .await?;
-        super::authorization_validate_csrf::validate_csrf(state, headers, &authenticated).await?;
+        super::authorization_validate_csrf::authorization_validate_csrf(
+            state,
+            headers,
+            &authenticated,
+        )
+        .await?;
     }
     Ok(authenticated)
 }

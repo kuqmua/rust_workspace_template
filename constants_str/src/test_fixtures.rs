@@ -2334,5 +2334,3 @@ pub const VALUE_1A46177C: &str = "}}]";
 pub const RS_EXTENSION: &str = ".rs";
 pub const TEST_MODULE_SUFFIX: &str = "_tests.rs";
 pub const TEST_FIXTURES_MODULE_SUFFIX: &str = "_fixtures";
-pub const GENERATE_IMPL_TRY_NEW_MODIFIER_WRAPPER_LOCATIONS: &str = "../macro_helpers/src/generate_new_or_try_new_generate_impl_const_try_new_for_identifier_token_stream.rs::generate_impl_const_try_new_for_identifier_token_stream\n../macro_helpers/src/generate_new_or_try_new_generate_impl_pub_try_new_for_identifier_token_stream.rs::generate_impl_pub_try_new_for_identifier_token_stream";
-pub const GENERATE_IMPL_TRY_NEW_MODIFIER_WRAPPER_REASON: &str = "const and public try-new wrappers delegate to the shared modifier-aware implementation and intentionally differ only by the emitted Rust modifier token";

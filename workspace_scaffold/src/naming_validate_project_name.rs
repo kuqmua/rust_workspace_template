@@ -1,4 +1,4 @@
-pub(crate) fn validate_project_name(
+pub(crate) fn naming_validate_project_name(
     value: super::ProjectNameRef<'_>,
 ) -> Result<(), super::ScaffoldError> {
     let text = value.0;

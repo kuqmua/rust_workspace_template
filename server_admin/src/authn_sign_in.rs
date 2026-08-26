@@ -1,13 +1,13 @@
 #![allow(clippy::single_call_fn)] // route inventory and HTML composition each register focused authentication operations once
 
-pub(super) async fn sign_in(
+pub(super) async fn authn_sign_in(
     auth: super::AdminAuthReq,
     peer: super::AdminPeerAddr,
     request_json: super::AdminSignInJson,
 ) -> Result<super::AxumAdminResponse, super::AdminError> {
     let state = auth.state;
     let headers = auth.headers;
-    if !super::authorization_origin_is_present_and_allowed::origin_is_present_and_allowed(
+    if !super::authorization_origin_is_present_and_allowed::authorization_origin_is_present_and_allowed(
         state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(headers.as_ref()),
     )
@@ -124,11 +124,12 @@ pub(super) async fn sign_in(
         super::super::StdAdminBool::from(true),
     )
     .await?;
-    let context_hash = super::authorization_session_context_hash::session_context_hash(
-        super::super::HttpAdminHeaderMapRef::from(headers.as_ref()),
-        peer,
-    )
-    .map_err(super::AdminError::secret_text)?;
+    let context_hash =
+        super::authorization_session_context_hash::authorization_session_context_hash(
+            super::super::HttpAdminHeaderMapRef::from(headers.as_ref()),
+            peer,
+        )
+        .map_err(super::AdminError::secret_text)?;
     let session = super::create_session_in_connection::create_session_in_connection(
         state.as_ref(),
         admin_user_id,

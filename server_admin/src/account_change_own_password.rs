@@ -1,10 +1,10 @@
 #![allow(clippy::single_call_fn)] // route inventory and HTML composition each register focused account operations once
 
-pub(super) async fn change_own_password(
+pub(super) async fn account_change_own_password(
     auth: super::AdminAuthReq,
     request: super::AxumAdminJson<server_admin_contract::domain_types::AdminChangeOwnPasswordReq>,
 ) -> Result<super::AxumAdminResponse, super::AdminError> {
-    let actor = super::authorization_authenticate::authenticate(
+    let actor = super::authorization_authenticate::authorization_authenticate(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
         auth.peer,
@@ -20,7 +20,7 @@ pub(super) async fn change_own_password(
         auth.state.as_ref().policy.mutation_window,
     )
     .await?;
-    super::authorization_validate_csrf::validate_csrf(
+    super::authorization_validate_csrf::authorization_validate_csrf(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
         &actor,

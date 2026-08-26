@@ -1,18 +1,18 @@
 #![allow(clippy::single_call_fn)] // route inventory registers this authentication operation once
 
-pub(super) async fn refresh(
+pub(super) async fn authn_refresh(
     auth: super::AdminAuthReq,
     peer: super::AdminPeerAddr,
 ) -> Result<super::AxumAdminResponse, super::AdminError> {
     let state = auth.state;
     let headers = auth.headers;
-    if !super::authorization_origin_is_present_and_allowed::origin_is_present_and_allowed(
+    if !super::authorization_origin_is_present_and_allowed::authorization_origin_is_present_and_allowed(
         state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(headers.as_ref()),
     )
     .get()
     {
-        super::authn_apply_refresh_failure_delay::apply_refresh_failure_delay(
+        super::authn_apply_refresh_failure_delay::authn_apply_refresh_failure_delay(
             state.as_ref().policy.failure_delay,
         )
         .await;
@@ -32,7 +32,7 @@ pub(super) async fn refresh(
         super::super::HttpAdminHeaderMapRef::from(headers.as_ref()),
         super::super::AdminCookieKind::Refresh,
     ) else {
-        super::authn_apply_refresh_failure_delay::apply_refresh_failure_delay(
+        super::authn_apply_refresh_failure_delay::authn_apply_refresh_failure_delay(
             state.as_ref().policy.failure_delay,
         )
         .await;
@@ -42,13 +42,14 @@ pub(super) async fn refresh(
         .map(super::super::AdminOpaqueToken::new)
         .map_err(super::super::AdminSecretTextError::from)
         .map_err(super::AdminError::authentication_secret_text)?;
-    let context_hash = super::authorization_session_context_hash::session_context_hash(
-        super::super::HttpAdminHeaderMapRef::from(headers.as_ref()),
-        peer,
-    )
-    .map_err(super::AdminError::authentication_secret_text)?;
+    let context_hash =
+        super::authorization_session_context_hash::authorization_session_context_hash(
+            super::super::HttpAdminHeaderMapRef::from(headers.as_ref()),
+            peer,
+        )
+        .map_err(super::AdminError::authentication_secret_text)?;
     let token_hash =
-        super::authorization_hash_refresh_token_with_context::hash_refresh_token_with_context(
+        super::authorization_hash_refresh_token_with_context::authorization_hash_refresh_token_with_context(
             &token,
             &context_hash,
         )
@@ -75,7 +76,7 @@ pub(super) async fn refresh(
             .map_err(super::AdminError::from)?;
     let Some(user_id) = optional_user_id else {
         tx.commit().await.map_err(super::AdminError::from)?;
-        super::authn_apply_refresh_failure_delay::apply_refresh_failure_delay(
+        super::authn_apply_refresh_failure_delay::authn_apply_refresh_failure_delay(
             state.as_ref().policy.failure_delay,
         )
         .await;

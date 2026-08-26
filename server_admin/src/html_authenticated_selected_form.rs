@@ -1,4 +1,4 @@
-pub(super) fn authenticated_selected_form<Ids, Parse>(
+pub(super) fn authenticated_selected_form_impl<Ids, Parse>(
     auth: super::super::AdminAuthReq,
     expected: &super::forms::AdminHtmlFormText,
     selected: super::forms::StdAdminHtmlSelected,
@@ -7,7 +7,7 @@ pub(super) fn authenticated_selected_form<Ids, Parse>(
 where
     Parse: Fn(&super::forms::AdminHtmlFormText) -> Result<Ids, super::super::AdminError>,
 {
-    let auth = super::form_auth_impl::form_auth(auth)?;
+    let auth = super::form_auth_impl::form_auth_impl(auth)?;
     let expected = parse(expected)?;
     let separator = constants_str::COMMA_SPACE.trim();
     let selected = bounded_types::domain_types::btree::BoundedBTreeMap::<

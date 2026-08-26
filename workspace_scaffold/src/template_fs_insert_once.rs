@@ -1,9 +1,9 @@
-pub(crate) fn insert_once(
+pub(crate) fn template_fs_insert_once(
     path: crate::domain_types::ScaffoldPathRef<'_>,
     marker: crate::domain_types::ScaffoldTextRef<'_>,
     replacement: crate::domain_types::ScaffoldTextRef<'_>,
 ) -> Result<(), crate::domain_types::ScaffoldError> {
-    let contents = super::template_fs_read_bounded_text::read_bounded_text(path)?;
+    let contents = super::template_fs_read_bounded_text::template_fs_read_bounded_text(path)?;
     if contents.as_ref().contains(replacement.get()) {
         return Ok(());
     }

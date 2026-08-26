@@ -5,11 +5,11 @@ pub(super) async fn create_role(
         super::super::forms::CreateRoleForm,
     >,
 ) -> axum::response::Response {
-    let Ok(auth) = super::super::form_auth_impl::form_auth(auth) else {
+    let Ok(auth) = super::super::form_auth_impl::form_auth_impl(auth) else {
         return axum::response::IntoResponse::into_response(super::super::super::AdminError::Csrf);
     };
-    super::super::action_result_impl::action_result(
-        super::super::super::roles::mutations_create::create(
+    super::super::action_result_impl::action_result_impl(
+        super::super::super::roles::mutations_create::mutations_create(
             auth,
             super::super::super::AxumAdminJson(
                 server_admin_contract::domain_types::AdminCreateRoleReq::new(form.name),
@@ -27,13 +27,13 @@ pub(super) async fn update_role(
         super::super::forms::UpdateRoleForm,
     >,
 ) -> axum::response::Response {
-    let Ok(auth) = super::super::form_auth_impl::form_auth(auth) else {
+    let Ok(auth) = super::super::form_auth_impl::form_auth_impl(auth) else {
         return axum::response::IntoResponse::into_response(super::super::super::AdminError::Csrf);
     };
-    super::super::action_result_impl::action_result(
-        super::super::super::roles::mutations_update::update(
+    super::super::action_result_impl::action_result_impl(
+        super::super::super::roles::mutations_update::mutations_update(
             auth,
-            super::super::super::AxumAdminPath(super::super::role_path_impl::role_path(
+            super::super::super::AxumAdminPath(super::super::role_path_impl::role_path_impl(
                 form.role_id,
             )),
             super::super::super::AxumAdminJson(
@@ -57,13 +57,13 @@ pub(super) async fn delete_role(
             super::super::super::AdminError::Validation,
         );
     }
-    super::super::authenticated_action_impl::authenticated_action(
+    super::super::authenticated_action_impl::authenticated_action_impl(
         auth,
         server_admin_contract::domain_types::AdminFrontendPath::Roles,
         |auth| {
-            super::super::super::roles::mutations_delete::delete(
+            super::super::super::roles::mutations_delete::mutations_delete(
                 auth,
-                super::super::super::AxumAdminPath(super::super::role_path_impl::role_path(
+                super::super::super::AxumAdminPath(super::super::role_path_impl::role_path_impl(
                     form.role_id,
                 )),
             )
@@ -83,11 +83,13 @@ pub(super) async fn role_permissions(
         auth,
         &form.expected_permission_ids,
         form.selected,
-        super::super::permission_ids_impl::permission_ids,
+        super::super::permission_ids_impl::permission_ids_impl,
         server_admin_contract::domain_types::AdminFrontendPath::Roles,
         server_admin_contract::domain_types::AdminSetRolePermissionsReq::new,
-        super::super::super::AxumAdminPath(super::super::role_path_impl::role_path(form.role_id)),
-        super::super::super::roles::mutations_set_permissions::set_permissions,
+        super::super::super::AxumAdminPath(super::super::role_path_impl::role_path_impl(
+            form.role_id,
+        )),
+        super::super::super::roles::mutations_set_permissions::mutations_set_permissions,
     )
     .await
 }

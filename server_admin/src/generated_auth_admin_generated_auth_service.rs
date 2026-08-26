@@ -105,7 +105,7 @@ where
                 ));
             };
             let authenticated =
-                match crate::domain_types::auth::authorization_authorize_generated_request::authorize_generated_request(
+                match crate::domain_types::auth::authorization_authorize_generated_request::authorization_authorize_generated_request(
                     state.as_ref(),
                     crate::domain_types::HttpAdminHeaderMapRef::from(req.headers()),
                     peer,

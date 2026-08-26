@@ -1,4 +1,4 @@
-pub(super) fn success_redirect(
+pub(super) fn success_redirect_impl(
     path: server_admin_contract::domain_types::AdminFrontendPath,
 ) -> axum::response::Response {
     axum::response::IntoResponse::into_response(axum::response::Redirect::to(

@@ -1,9 +1,9 @@
-pub(super) async fn validate_csrf(
+pub(super) async fn authorization_validate_csrf(
     state: &super::AdminAuthSvcState,
     headers: super::super::HttpAdminHeaderMapRef<'_>,
     authenticated: &super::AuthenticatedAdmin,
 ) -> Result<(), super::AdminError> {
-    if !super::authorization_origin_is_present_and_allowed::origin_is_present_and_allowed(
+    if !super::authorization_origin_is_present_and_allowed::authorization_origin_is_present_and_allowed(
         state, headers,
     )
     .get()

@@ -1,6 +1,6 @@
 #![allow(clippy::single_call_fn)] // frontend projection is a private physical emitter boundary
 
-pub(super) const fn permission_action<
+pub(super) const fn frontend_permission_action<
     Capability,
     HttpMethod,
     Operation,
@@ -20,5 +20,5 @@ pub(super) const fn permission_action<
 where
     PermissionAction: Copy,
 {
-    crate::domain_types::route_permission_action::permission_action(dsc)
+    crate::domain_types::route_permission_action::route_permission_action(dsc)
 }

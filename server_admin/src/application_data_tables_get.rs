@@ -1,6 +1,6 @@
 #![allow(clippy::single_call_fn)] // route inventory registers the data-table read operation once
 
-pub(super) async fn get(
+pub(super) async fn data_tables_get(
     auth: super::AdminAuthReq,
     super::AxumAdminPath(table): super::AxumAdminPath<
         server_admin_contract::domain_types::AdminDataTable,
@@ -9,7 +9,7 @@ pub(super) async fn get(
         server_admin_contract::domain_types::AdminDataTableQuery,
     >,
 ) -> Result<super::AxumAdminResponse, super::AdminError> {
-    let _actor = super::authorization_authorize_generated_request::authorize_generated_request(
+    let _actor = super::authorization_authorize_generated_request::authorization_authorize_generated_request(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
         auth.peer,

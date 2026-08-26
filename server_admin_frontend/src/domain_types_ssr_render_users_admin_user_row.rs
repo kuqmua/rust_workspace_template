@@ -14,12 +14,12 @@ pub(super) fn admin_user_row(
     let banned = item.is_banned().to_string();
     let roles = crate::domain_types::shared::admin_user_roles::admin_user_roles(item, page);
     leptos::view! {
-        <crate::domain_types::with_owner::table::table_row::TableRow>
-            <crate::domain_types::with_owner::table::table_cell::TableCell data_label="id">{id}</crate::domain_types::with_owner::table::table_cell::TableCell>
-            <crate::domain_types::with_owner::table::table_cell::TableCell data_label="login">{login}</crate::domain_types::with_owner::table::table_cell::TableCell>
-            <crate::domain_types::with_owner::table::table_cell::TableCell data_label="display_name">{display_name}</crate::domain_types::with_owner::table::table_cell::TableCell>
-            <crate::domain_types::with_owner::table::table_cell::TableCell data_label="banned">{banned}</crate::domain_types::with_owner::table::table_cell::TableCell>
+        <crate::domain_types::with_owner::tables::table_row::TableRow>
+            <crate::domain_types::with_owner::tables::table_cell::TableCell data_label="id">{id}</crate::domain_types::with_owner::tables::table_cell::TableCell>
+            <crate::domain_types::with_owner::tables::table_cell::TableCell data_label="login">{login}</crate::domain_types::with_owner::tables::table_cell::TableCell>
+            <crate::domain_types::with_owner::tables::table_cell::TableCell data_label="display_name">{display_name}</crate::domain_types::with_owner::tables::table_cell::TableCell>
+            <crate::domain_types::with_owner::tables::table_cell::TableCell data_label="banned">{banned}</crate::domain_types::with_owner::tables::table_cell::TableCell>
             {roles}
-        </crate::domain_types::with_owner::table::table_row::TableRow>
+        </crate::domain_types::with_owner::tables::table_row::TableRow>
     }
 }

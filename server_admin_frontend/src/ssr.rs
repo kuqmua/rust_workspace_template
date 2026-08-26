@@ -222,7 +222,7 @@ pub fn render_user_create(
     admin: &server_admin_contract::domain_types::AuthenticatedAdmin,
     branding: &server_admin_contract::domain_types::AdminBrandingView,
 ) -> AdminSsrHtml {
-    crud_render_user_create::render_user_create(admin, branding)
+    crud_render_user_create::crud_render_user_create(admin, branding)
 }
 
 #[must_use]
@@ -231,7 +231,7 @@ pub fn render_user_manage(
     admin: &server_admin_contract::domain_types::AuthenticatedAdmin,
     branding: &server_admin_contract::domain_types::AdminBrandingView,
 ) -> AdminSsrHtml {
-    crud_render_user_manage::render_user_manage(page, admin, branding)
+    crud_render_user_manage::crud_render_user_manage(page, admin, branding)
 }
 
 #[must_use]
@@ -239,7 +239,7 @@ pub fn render_role_create(
     admin: &server_admin_contract::domain_types::AuthenticatedAdmin,
     branding: &server_admin_contract::domain_types::AdminBrandingView,
 ) -> AdminSsrHtml {
-    crud_render_role_create::render_role_create(admin, branding)
+    crud_render_role_create::crud_render_role_create(admin, branding)
 }
 
 #[must_use]
@@ -248,7 +248,7 @@ pub fn render_role_manage(
     admin: &server_admin_contract::domain_types::AuthenticatedAdmin,
     branding: &server_admin_contract::domain_types::AdminBrandingView,
 ) -> AdminSsrHtml {
-    crud_render_role_manage::render_role_manage(page, admin, branding)
+    crud_render_role_manage::crud_render_role_manage(page, admin, branding)
 }
 
 #[must_use]

@@ -1,4 +1,4 @@
-pub(super) fn capitalized_parts(
+pub(super) fn naming_capitalized_parts(
     value: super::ProjectNameRef<'_>,
     separator: super::ScaffoldTextRef<'_>,
 ) -> super::ScaffoldText {

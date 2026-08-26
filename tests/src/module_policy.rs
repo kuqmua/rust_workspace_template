@@ -53,46 +53,52 @@ fn identifier_snake_case(identifier: &syn::Ident) -> super::types::SourceText {
     .expect("3c8a729e identifier snake case must fit the source text bound")
 }
 
-fn external_module_path(
-    parent_path: &std::path::Path,
-    item_mod: &syn::ItemMod,
-) -> Option<std::path::PathBuf> {
-    let explicit_path = item_mod.attrs.iter().find_map(|attribute| {
-        if !attribute.path().is_ident("path") {
-            return None;
-        }
-        let syn::Meta::NameValue(name_value) = &attribute.meta else {
-            return None;
-        };
-        let syn::Expr::Lit(expression_literal) = &name_value.value else {
-            return None;
-        };
-        let syn::Lit::Str(path_literal) = &expression_literal.lit else {
-            return None;
-        };
-        Some(path_literal.value())
-    });
-    let parent_directory = parent_path.parent()?;
-    if let Some(explicit_path) = explicit_path {
-        return Some(parent_directory.join(explicit_path));
-    }
-    let parent_stem = parent_path.file_stem()?.to_str()?;
-    let module_directory = if matches!(parent_stem, "lib" | "main" | "mod") {
-        parent_directory.to_path_buf()
-    } else {
-        parent_directory.join(parent_stem)
-    };
-    let module_name = item_mod.ident.to_string();
-    let flat_path = module_directory.join(format!("{module_name}.rs"));
-    flat_path
-        .is_file()
-        .then_some(flat_path)
-        .or_else(|| Some(module_directory.join(module_name).join("mod.rs")))
-}
-
 #[test]
+#[allow(
+    clippy::wildcard_enum_match_arm,
+    reason = "the policy ignores current and future non-module syn items"
+)]
 fn single_item_modules_match_their_item_name() {
     super::snapshot::with_codebase_snapshot(|snapshot| {
+        let external_module_path = |parent_path: &std::path::Path, item_mod: &syn::ItemMod| {
+            let optional_explicit_path = item_mod.attrs.iter().find_map(|attribute| {
+                if !attribute.path().is_ident(constants_str::PATH_ALT_5) {
+                    return None;
+                }
+                let syn::Meta::NameValue(name_value) = &attribute.meta else {
+                    return None;
+                };
+                let syn::Expr::Lit(expression_literal) = &name_value.value else {
+                    return None;
+                };
+                let syn::Lit::Str(path_literal) = &expression_literal.lit else {
+                    return None;
+                };
+                Some(path_literal.value())
+            });
+            let parent_directory = parent_path.parent()?;
+            if let Some(explicit_path) = optional_explicit_path {
+                return Some(parent_directory.join(explicit_path));
+            }
+            let parent_stem = parent_path.file_stem()?.to_str()?;
+            let module_directory = if matches!(
+                parent_stem,
+                constants_str::LIB | constants_str::MAIN | constants_str::MOD
+            ) {
+                parent_directory.to_path_buf()
+            } else {
+                parent_directory.join(parent_stem)
+            };
+            let module_name = item_mod.ident.to_string();
+            let flat_path = module_directory.join(format!("{module_name}.rs"));
+            flat_path.is_file().then_some(flat_path).or_else(|| {
+                Some(
+                    module_directory
+                        .join(module_name)
+                        .join(constants_str::MOD_RS),
+                )
+            })
+        };
         let owners_by_path = snapshot
             .rs_files()
             .iter()

@@ -26,7 +26,7 @@ pub(crate) mod input;
 #[path = "domain_types_with_owner_navigation.rs"]
 pub(crate) mod navigation;
 #[path = "domain_types_with_owner_table.rs"]
-pub(crate) mod table;
+pub(crate) mod tables;
 
 pub(crate) fn with_owner<View>(build: impl FnOnce() -> View) -> impl leptos::prelude::IntoView
 where

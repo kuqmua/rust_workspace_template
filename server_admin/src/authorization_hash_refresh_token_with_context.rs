@@ -1,4 +1,4 @@
-pub(super) fn hash_refresh_token_with_context(
+pub(super) fn authorization_hash_refresh_token_with_context(
     token: &super::super::AdminOpaqueToken,
     context_hash: &super::super::AdminTokenHash,
 ) -> Result<super::super::AdminTokenHash, super::super::AdminSecretTextError> {
