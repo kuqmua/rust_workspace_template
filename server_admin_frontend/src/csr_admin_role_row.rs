@@ -1,4 +1,4 @@
-pub(super) fn admin_role_row(
+pub(super) fn csr_admin_role_row(
     item: &server_admin_contract::domain_types::AdminRoleSummary,
     page: &server_admin_contract::domain_types::AdminRolesPage,
 ) -> impl leptos::prelude::IntoView + use<> {

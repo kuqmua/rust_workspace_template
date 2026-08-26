@@ -134,7 +134,7 @@ pub const CODE_STYLE_REVIEWED_PUBLIC_FIELD_SETS: &[&[&str]] = &[
 pub const CODE_STYLE_REVIEWED_PUBLIC_FIELD_PATH_SUFFIXES: [&str; 14] = [
     "location_lib/src/domain_types.rs",
     "location_lib/src/domain_types.rs",
-    "macro_helpers/src/syn_field_syn_field.rs",
+    "macro_helpers/src/syn_field.rs",
     "server_app_state/src/domain_types.rs",
     "pg_crud_common/src/domain_types.rs",
     "pg_crud_common/src/domain_types.rs",
@@ -258,13 +258,19 @@ pub const CODE_STYLE_WORKSPACE_SCAFFOLD_FS_OWNER_SUFFIX: &str =
     "/workspace_scaffold/src/domain_types.rs";
 pub const CODE_STYLE_ROUTE_VALIDATORS_TEST_HELPER_SUFFIX: &str =
     "/route_validators/src/test_helper.rs";
-pub const CODE_STYLE_RUNTIME_TEST_HELPER_SUFFIXES: [&str; 2] = [
+pub const CODE_STYLE_RUNTIME_TEST_HELPER_SUFFIXES: [&str; 5] = [
     CODE_STYLE_MACROS_HELPER_TEST_FS_OWNER_SUFFIX,
     CODE_STYLE_ROUTE_VALIDATORS_TEST_HELPER_SUFFIX,
+    "server_admin_frontend/src/crud.rs",
+    "server_admin_frontend/src/data_grid.rs",
+    "server_admin_frontend/src/static_pages.rs",
 ];
-pub const CODE_STYLE_RUNTIME_TEST_HELPER_REASONS: [&str; 2] = [
+pub const CODE_STYLE_RUNTIME_TEST_HELPER_REASONS: [&str; 5] = [
     "macro helper assertions intentionally panic on deterministic test-fixture failures",
     "route validator test fixtures intentionally panic on invalid local test setup",
+    "administrator CRUD rendering tests intentionally expect deterministic fixture construction",
+    "administrator data-grid tests intentionally expect deterministic fixture construction",
+    "administrator static-page tests intentionally expect deterministic fixture construction",
 ];
 pub const CODE_STYLE_RUNTIME_ARC_OWNER_SUFFIXES: [&str; 7] = [
     "notification_service/src/routes.rs",
@@ -356,7 +362,7 @@ pub const CODE_STYLE_FACADE_REEXPORT_REASONS: [&str; 34] = [
     "server HTTP runtime facade exports HTTP and integration primitives",
     "HTTP client facade preserves client policy and timeout types across owner modules",
 ];
-pub const CODE_STYLE_LEPTOS_PRELUDE_SUFFIXES: [&str; 58] = [
+pub const CODE_STYLE_LEPTOS_PRELUDE_SUFFIXES: [&str; 55] = [
     SERVER_ADMIN_FRONTEND_SRC_APP_RS,
     SERVER_ADMIN_FRONTEND_SRC_APP_DATA_GRID_RS,
     SERVER_ADMIN_FRONTEND_SRC_APP_NAVIGATION_RS,
@@ -372,7 +378,6 @@ pub const CODE_STYLE_LEPTOS_PRELUDE_SUFFIXES: [&str; 58] = [
     SERVER_ADMIN_FRONTEND_SRC_APP_SHELL_RS,
     SERVER_ADMIN_FRONTEND_SRC_APP_USERS_RS,
     SERVER_ADMIN_FRONTEND_SRC_APP_USERS_ROW_RS,
-    SERVER_ADMIN_FRONTEND_SRC_SHARED_ADMIN_TABLE_CELLS_RS,
     SERVER_ADMIN_FRONTEND_SRC_SHARED_DATA_GRID_RS,
     SERVER_ADMIN_FRONTEND_SRC_SHARED_DATA_GRID_COLUMN_RS,
     SERVER_ADMIN_FRONTEND_SRC_SHARED_DATA_GRID_COLUMN_FILTER_RS,
@@ -390,33 +395,31 @@ pub const CODE_STYLE_LEPTOS_PRELUDE_SUFFIXES: [&str; 58] = [
     SERVER_ADMIN_FRONTEND_SRC_SSR_DOCUMENT_PAGE_RS,
     SERVER_ADMIN_FRONTEND_SRC_SSR_DOCUMENT_PAGE_NAVIGATION_RS,
     SERVER_ADMIN_FRONTEND_SRC_SSR_DOCUMENT_SIGN_IN_RS,
-    SERVER_ADMIN_FRONTEND_SRC_SSR_CRUD_RS,
     SERVER_ADMIN_FRONTEND_SRC_SSR_PERMISSIONS_RS,
     SERVER_ADMIN_FRONTEND_SRC_SSR_PROFILE_RS,
     SERVER_ADMIN_FRONTEND_SRC_SSR_ROLES_RS,
     SERVER_ADMIN_FRONTEND_SRC_SSR_ROLES_ROW_RS,
     SERVER_ADMIN_FRONTEND_SRC_SSR_SESSIONS_RS,
     SERVER_ADMIN_FRONTEND_SRC_SSR_SETTINGS_RS,
-    SERVER_ADMIN_FRONTEND_SRC_SSR_TABLE_RS,
     SERVER_ADMIN_FRONTEND_SRC_SSR_TEXT_PAGE_RS,
     SERVER_ADMIN_FRONTEND_SRC_SSR_USERS_RS,
     SERVER_ADMIN_FRONTEND_SRC_SSR_USERS_ROW_RS,
     "server_admin_frontend/src/domain_types_with_owner_alert.rs",
-    "server_admin_frontend/src/domain_types_with_owner_admin_alert_dialog.rs",
+    "server_admin_frontend/src/admin_alert_dialog.rs",
     "server_admin_frontend/src/domain_types_with_owner_badge.rs",
     "server_admin_frontend/src/domain_types_with_owner_button.rs",
     "server_admin_frontend/src/domain_types_with_owner_card.rs",
-    "server_admin_frontend/src/domain_types_with_owner_admin_checkbox.rs",
-    "server_admin_frontend/src/domain_types_with_owner_admin_empty.rs",
+    "server_admin_frontend/src/admin_checkbox.rs",
+    "server_admin_frontend/src/admin_empty.rs",
     "server_admin_frontend/src/domain_types_with_owner_field.rs",
     "server_admin_frontend/src/domain_types_with_owner_input.rs",
     "server_admin_frontend/src/domain_types_with_owner_navigation.rs",
-    "server_admin_frontend/src/domain_types_with_owner_admin_spinner.rs",
+    "server_admin_frontend/src/admin_spinner.rs",
     "server_admin_frontend/src/domain_types_with_owner_table.rs",
-    "server_admin_frontend/src/domain_types_with_owner_admin_textarea.rs",
+    "server_admin_frontend/src/admin_textarea.rs",
     SSR_SOURCE_PATH,
 ];
-pub const CODE_STYLE_LEPTOS_PRELUDE_REASONS: [&str; 58] = [
+pub const CODE_STYLE_LEPTOS_PRELUDE_REASONS: [&str; 55] = [
     "Leptos CSR view macro expansion requires attribute traits in lexical scope",
     "Leptos CSR data-grid component requires attribute traits in lexical scope",
     "Leptos CSR navigation component requires attribute traits in lexical scope",
@@ -432,7 +435,6 @@ pub const CODE_STYLE_LEPTOS_PRELUDE_REASONS: [&str; 58] = [
     "Leptos CSR shell component requires attribute traits in lexical scope",
     "Leptos CSR users component requires attribute traits in lexical scope",
     "Leptos CSR user-row rendering requires attribute traits in lexical scope",
-    "shared administrator table value cells require attribute traits in lexical scope",
     "shared Leptos data-grid rendering requires attribute traits in lexical scope",
     "shared Leptos data-grid column rendering requires attribute traits in lexical scope",
     "shared Leptos data-grid column filter requires attribute traits in lexical scope",
@@ -450,14 +452,12 @@ pub const CODE_STYLE_LEPTOS_PRELUDE_REASONS: [&str; 58] = [
     "Leptos SSR administrator page rendering requires attribute traits in lexical scope",
     "Leptos SSR administrator navigation requires attribute traits in lexical scope",
     "Leptos SSR sign-in rendering requires attribute traits in lexical scope",
-    "Leptos SSR CRUD rendering requires attribute traits in lexical scope",
     "Leptos SSR permissions rendering requires attribute traits in lexical scope",
     "Leptos SSR profile rendering requires attribute traits in lexical scope",
     "Leptos SSR roles rendering requires attribute traits in lexical scope",
     "Leptos SSR role-row rendering requires attribute traits in lexical scope",
     "Leptos SSR sessions rendering requires attribute traits in lexical scope",
     "Leptos SSR settings rendering requires attribute traits in lexical scope",
-    "Leptos SSR table rendering requires attribute traits in lexical scope",
     "Leptos SSR text-page rendering requires attribute traits in lexical scope",
     "Leptos SSR users rendering requires attribute traits in lexical scope",
     "Leptos SSR user-row rendering requires attribute traits in lexical scope",

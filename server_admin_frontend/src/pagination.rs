@@ -5,7 +5,7 @@
     reason = "pagination accessors follow calculation order, the deterministic test helper converts raw inputs in place, and the shared constructor has one SSR production caller plus focused unit tests"
 )]
 
-#[path = "pagination_admin_page_nav_disabled.rs"]
+#[path = "admin_page_nav_disabled.rs"]
 pub(crate) mod admin_page_nav_disabled;
-#[path = "pagination_admin_page_range.rs"]
+#[path = "admin_page_range.rs"]
 pub(crate) mod admin_page_range;

@@ -144,19 +144,12 @@ fn single_item_modules_match_their_item_name() {
                             proc_macro2::Span::call_site(),
                         ));
                         let module_file_stem = module_path.file_stem()?.to_str()?;
-                        let flattened_suffix = format!(
-                            "{}{}",
-                            constants_str::UNDERSCORE,
-                            expected_module_name.as_ref()
-                        );
-                        let module_file_matches =
-                            module_file_stem == expected_module_name.as_ref()
-                                || module_file_stem.ends_with(flattened_suffix.as_str());
+                        let module_file_matches = module_file_stem == expected_module_name.as_ref();
                         (item_mod.ident != expected_module_name.as_ref()
                             || !module_file_matches)
                             .then(|| {
                             format!(
-                                "{}: module `{}` in file `{}` contains single item `{owner}` and both module and final flattened file segment must be `{}`",
+                                "{}: module `{}` in file `{}` contains single item `{owner}` and both module and complete file stem must be `{}`",
                                 file.path().as_ref().display(),
                                 item_mod.ident,
                                 module_path.display(),

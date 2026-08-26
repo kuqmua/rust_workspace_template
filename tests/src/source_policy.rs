@@ -943,6 +943,12 @@ fn process_static_state_matches_reviewed_inventory() {
             path_suffix: constants_str::VALUE_392D41BA,
             reason: constants_str::VALUE_B2FEB0FD,
         },
+        StaticStateException {
+            identifier: constants_str::DECLARED_CHILDREN,
+            path_suffix: constants_str::VALUE_4A3D63F7,
+            reason:
+                constants_str::MODULE_DECLARATION_GRAPH_IS_CACHED_FOR_REPOSITORY_POLICY_MATCHING,
+        },
     ];
     super::assert_rs_ast_ers_empty_with_ctx(
         super::types::StaticStr::from(constants_str::VALUE_118C4174),
@@ -1606,6 +1612,7 @@ fn no_non_public_use_imports_in_rust_sources() {
                     .iter()
                     .any(|suffix| {
                         path_text.ends_with(suffix)
+                            || super::declared_child_matches(path_text.as_ref(), suffix)
                             || suffix.strip_suffix(constants_str::RS_EXTENSION).is_some_and(
                                 |owner_stem| {
                                     path_text

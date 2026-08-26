@@ -1,14 +1,14 @@
-#[path = "shared_authorize_custom.rs"]
+#[path = "authorize_custom.rs"]
 pub(in crate::domain_types::auth) mod authorize_custom;
-#[path = "shared_json_response.rs"]
+#[path = "json_response.rs"]
 pub(in crate::domain_types::auth) mod json_response;
-#[path = "shared_map_repository_error.rs"]
+#[path = "map_repository_error.rs"]
 pub(in crate::domain_types::auth) mod map_repository_error;
-#[path = "shared_map_unique_violation.rs"]
+#[path = "map_unique_violation.rs"]
 pub(in crate::domain_types::auth) mod map_unique_violation;
-#[path = "shared_page_total.rs"]
+#[path = "page_total.rs"]
 pub(in crate::domain_types::auth) mod page_total;
-#[path = "shared_validate_table_sort.rs"]
+#[path = "validate_table_sort.rs"]
 pub(in crate::domain_types::auth) mod validate_table_sort;
 
 #[cfg(test)]

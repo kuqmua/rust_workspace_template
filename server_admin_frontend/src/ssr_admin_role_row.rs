@@ -4,7 +4,7 @@
     reason = "the SSR role-row view is composed once by the roles screen"
 )]
 
-pub(super) fn admin_role_row(
+pub(super) fn ssr_admin_role_row(
     item: &server_admin_contract::domain_types::AdminRoleSummary,
     page: &server_admin_contract::domain_types::AdminRolesPage,
 ) -> impl leptos::prelude::IntoView + use<> {

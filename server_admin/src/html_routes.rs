@@ -1,4 +1,4 @@
-pub(in super::super) fn routes(
+pub(in super::super) fn html_routes(
     state: super::super::SharedAdminAuthSvcStateArc,
     swagger_enabled: super::super::AdminHtmlSwaggerEnabled,
 ) -> super::super::AxumAdminAuthRouter {

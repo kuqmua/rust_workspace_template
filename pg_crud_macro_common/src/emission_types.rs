@@ -159,7 +159,7 @@ pub struct SynIdentifierTypeRefs<'lt>(&'lt [(&'lt syn::Ident, &'lt syn::Type)]);
     newtype::FromInner,
     newtype::IntoInnerFrom,
 )]
-pub struct SynFieldRefs<'lt>(&'lt [macro_helpers::domain_types::field_data::SynField]);
+pub struct SynFieldRefs<'lt>(&'lt [macro_helpers::domain_types::syn_field::SynField]);
 #[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout)]
 pub enum IsStandardNonNull {
     False,

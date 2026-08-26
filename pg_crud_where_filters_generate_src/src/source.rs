@@ -1035,11 +1035,11 @@ pub fn emit_generate_where_filters(
     };
     let text_search_spec = crate::domain_types::spec::FilterSpec::text_search();
     let text_search_schema_token_stream =
-        crate::domain_types::schema::text_search_token_stream::text_search_token_stream(
+        crate::domain_types::schema::schema_text_search_token_stream::schema_text_search_token_stream(
             text_search_spec,
         );
     let text_search_client_token_stream =
-        crate::domain_types::client::text_search_token_stream::text_search_token_stream(
+        crate::domain_types::client::client_text_search_token_stream::client_text_search_token_stream(
             text_search_spec,
         );
     let text_search_bind_token_stream =

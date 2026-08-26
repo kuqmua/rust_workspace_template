@@ -5,8 +5,8 @@
     reason = "the administrator page shell requires its local set of document attribute traits"
 )]
 
-#[path = "domain_types_ssr_document_page_admin_nav.rs"]
-mod admin_nav;
+#[path = "ssr_admin_nav.rs"]
+mod ssr_admin_nav;
 
 use leptos::prelude::{
     AriaAttributes, ClassAttribute, CustomAttribute, ElementChild, GlobalAttributes,
@@ -37,7 +37,7 @@ pub(super) fn page_render_with_table_access(
         leptos::view! {
             <div class="app-shell" style=primary_color>
                 <header class="topbar">
-                    {admin_nav::admin_nav(page, admin, active_table)}
+                    {ssr_admin_nav::ssr_admin_nav(page, admin, active_table)}
                 </header>
                 <main class="main-content"><div class="page-frame"><crate::domain_types::with_owner::alert::AdminAlert variant=crate::domain_types::with_owner::alert::AdminAlertVariant::Success id="saved">"Changes saved."</crate::domain_types::with_owner::alert::AdminAlert><div inner_html=String::from(content)></div></div></main>
             </div>

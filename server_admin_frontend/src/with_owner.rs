@@ -1,15 +1,15 @@
 #[cfg(any(target_arch = "wasm32", test))]
-#[path = "domain_types_with_owner_admin_alert_dialog.rs"]
+#[path = "admin_alert_dialog.rs"]
 pub(crate) mod admin_alert_dialog;
 #[cfg(not(target_arch = "wasm32"))]
-#[path = "domain_types_with_owner_admin_checkbox.rs"]
+#[path = "admin_checkbox.rs"]
 pub(crate) mod admin_checkbox;
 #[cfg(any(target_arch = "wasm32", test))]
-#[path = "domain_types_with_owner_admin_empty.rs"]
+#[path = "admin_empty.rs"]
 pub(crate) mod admin_empty;
-#[path = "domain_types_with_owner_admin_spinner.rs"]
+#[path = "admin_spinner.rs"]
 pub(crate) mod admin_spinner;
-#[path = "domain_types_with_owner_admin_textarea.rs"]
+#[path = "admin_textarea.rs"]
 pub(crate) mod admin_textarea;
 #[path = "domain_types_with_owner_alert.rs"]
 pub(crate) mod alert;

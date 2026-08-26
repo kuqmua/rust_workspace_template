@@ -2,23 +2,23 @@
 
 #[path = "adapters_repository_data_tables.rs"]
 pub(crate) mod data_tables;
-#[path = "adapters_repository_audit_insert_audit_success.rs"]
+#[path = "insert_audit_success.rs"]
 pub(crate) mod insert_audit_success;
-#[path = "adapters_repository_users_insert_user.rs"]
+#[path = "insert_user.rs"]
 pub(crate) mod insert_user;
-#[path = "adapters_repository_audit_query_audit_log.rs"]
+#[path = "query_audit_log.rs"]
 pub(crate) mod query_audit_log;
 #[path = "read_settings.rs"]
 pub(crate) mod read_settings;
-#[path = "adapters_repository_sessions_revoke_access_session.rs"]
+#[path = "revoke_access_session.rs"]
 pub(crate) mod revoke_access_session;
-#[path = "adapters_repository_users_revoke_refresh_token.rs"]
+#[path = "revoke_refresh_token.rs"]
 pub(crate) mod revoke_refresh_token;
-#[path = "adapters_repository_sessions_revoke_user_sessions.rs"]
+#[path = "revoke_user_sessions.rs"]
 pub(crate) mod revoke_user_sessions;
 #[path = "adapters_repository_roles.rs"]
 pub(crate) mod roles;
-#[path = "adapters_repository_users_update_user_password.rs"]
+#[path = "update_user_password.rs"]
 pub(crate) mod update_user_password;
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]

@@ -41,7 +41,7 @@ pub(in crate::domain_types::start) fn AdminApp() -> impl leptos::prelude::IntoVi
                 super::state::admin_load_state::AdminLoadState::Table(_admin, view) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::data_grid::AdminDataGrid view=view query=query_result.clone().unwrap_or_default() /> }),
                 super::state::admin_load_state::AdminLoadState::Users(admin, page) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::users::AdminUsersView admin=admin page=page query=query_result.clone().unwrap_or_default() /> }),
             };
-            leptos::view! { <super::navigation::AdminNav admin=admin /><main class="main-content"><div class="page-frame">{content}</div></main> }
+            leptos::view! { <super::csr_admin_nav::CsrAdminNav admin=admin /><main class="main-content"><div class="page-frame">{content}</div></main> }
         }}</div>
     }
 }

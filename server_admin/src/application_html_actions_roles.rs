@@ -9,7 +9,7 @@ pub(super) async fn create_role(
         return axum::response::IntoResponse::into_response(super::super::super::AdminError::Csrf);
     };
     super::super::action_result_impl::action_result_impl(
-        super::super::super::roles::mutations_create::mutations_create(
+        super::super::super::roles::role_mutations_create::role_mutations_create(
             auth,
             super::super::super::AxumAdminJson(
                 server_admin_contract::domain_types::AdminCreateRoleReq::new(form.name),
@@ -31,7 +31,7 @@ pub(super) async fn update_role(
         return axum::response::IntoResponse::into_response(super::super::super::AdminError::Csrf);
     };
     super::super::action_result_impl::action_result_impl(
-        super::super::super::roles::mutations_update::mutations_update(
+        super::super::super::roles::role_mutations_update::role_mutations_update(
             auth,
             super::super::super::AxumAdminPath(super::super::role_path_impl::role_path_impl(
                 form.role_id,
@@ -61,7 +61,7 @@ pub(super) async fn delete_role(
         auth,
         server_admin_contract::domain_types::AdminFrontendPath::Roles,
         |auth| {
-            super::super::super::roles::mutations_delete::mutations_delete(
+            super::super::super::roles::role_mutations_delete::role_mutations_delete(
                 auth,
                 super::super::super::AxumAdminPath(super::super::role_path_impl::role_path_impl(
                     form.role_id,

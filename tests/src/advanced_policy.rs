@@ -1142,16 +1142,8 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             (2, 0, 0, constants_str::VALUE_D94112EA),
         ),
         (
-            constants_str::VALUE_299CBC23,
-            (1, 0, 0, constants_str::VALUE_FFF8147A),
-        ),
-        (
-            constants_str::VALUE_84D6426B,
-            (1, 0, 0, constants_str::VALUE_20AEF06E),
-        ),
-        (
             constants_str::VALUE_12509C8A,
-            (0, 0, 1, constants_str::VALUE_60EE0A5C),
+            (3, 0, 1, constants_str::VALUE_60EE0A5C),
         ),
         (
             constants_str::VALUE_CF2E8B6C,
@@ -1172,10 +1164,6 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
         (
             constants_str::VALUE_E56A7582,
             (1, 1, 0, constants_str::VALUE_614D1CA5),
-        ),
-        (
-            constants_str::SERVER_RUNTIME_SRC_BOUNDED_READ_RS,
-            (1, 0, 0, constants_str::VALUE_6732C9B0),
         ),
         (
             constants_str::VALUE_90208B18,
@@ -1223,11 +1211,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
         ),
         (
             constants_str::PG_CRUD_PG_CRUD_COMMON_SRC_LIB_RS,
-            (0, 0, 6, constants_str::VALUE_B5B270A8),
-        ),
-        (
-            constants_str::VALUE_A9465BB5,
-            (0, 0, 2, constants_str::VALUE_C8755A1C),
+            (0, 0, 8, constants_str::VALUE_B5B270A8),
         ),
         (
             constants_str::VALUE_5036238B,
@@ -1280,17 +1264,6 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
         ),
     ]);
     super::snapshot::with_codebase_snapshot(|snapshot| {
-        let split_owner_matches = |path: &str, owner: &str| {
-            owner
-                .strip_suffix(constants_str::RS_EXTENSION)
-                .and_then(|owner_stem| {
-                    path.trim_start_matches(constants_str::TEXT_ALT_9)
-                        .strip_prefix(owner_stem)
-                })
-                .is_some_and(|remainder| {
-                    remainder.starts_with('_') && remainder.ends_with(constants_str::RS_EXTENSION)
-                })
-        };
         let mut observed_by_owner = std::collections::BTreeMap::new();
         let mut violations = Vec::new();
         snapshot
@@ -1327,7 +1300,8 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
                 let reviewed_entry = reviewed
                     .iter()
                     .filter(|(suffix, (_arc, _lock, _traits, reason))| {
-                        (path.ends_with(**suffix) || split_owner_matches(path.as_str(), suffix))
+                        (path.ends_with(**suffix)
+                            || super::declared_child_matches(path.as_str(), suffix))
                             && !reason.is_empty()
                     })
                     .max_by_key(|(suffix, _expected)| suffix.len());
@@ -1489,11 +1463,7 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
         ),
         (
             constants_str::VALUE_1A456B0D,
-            (constants_usize::ONE, constants_str::VALUE_1686EBFE),
-        ),
-        (
-            constants_str::VALUE_5FB76CAF,
-            (8usize, constants_str::VALUE_3DD2EF47),
+            (9usize, constants_str::VALUE_1686EBFE),
         ),
         (
             constants_str::VALUE_E24F0FD4,
@@ -1516,94 +1486,29 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             (21usize, constants_str::VALUE_2459C957),
         ),
         (
-            constants_str::VALUE_AF9C2B7F,
-            (10usize, constants_str::VALUE_26FEED58),
-        ),
-        (
-            constants_str::VALUE_20A23EAF,
-            (2usize, constants_str::VALUE_086B6B08),
-        ),
-        (
             constants_str::VALUE_3EB7B056,
             (6usize, constants_str::VALUE_9E355CCC),
         ),
         (
-            constants_str::VALUE_7C2F0144,
-            (constants_usize::ONE, constants_str::VALUE_653E5015),
-        ),
-        (
-            constants_str::VALUE_1CAAD2DE,
-            (6usize, constants_str::VALUE_B678E31A),
-        ),
-        (
-            constants_str::VALUE_B852993C,
-            (constants_usize::ONE, constants_str::VALUE_FE0C1BD5),
-        ),
-        (
-            constants_str::SERVER_ADMIN_SRC_APPLICATION_ROLE_MUTATIONS_RS,
-            (constants_usize::TWO, constants_str::VALUE_0A492916),
-        ),
-        (
-            constants_str::SERVER_ADMIN_SRC_APPLICATION_ROLE_QUERIES_RS,
-            (constants_usize::ELEVEN, constants_str::VALUE_0A492916),
+            constants_str::VALUE_3C6F88B1,
+            (13usize, constants_str::VALUE_0A492916),
         ),
         (
             constants_str::VALUE_6DB550C3,
             (2usize, constants_str::VALUE_AE5F4132),
         ),
         (
-            constants_str::SERVER_ADMIN_SRC_APPLICATION_USER_MUTATIONS_RS,
-            (constants_usize::FOUR, constants_str::VALUE_F6A331AA),
-        ),
-        (
-            constants_str::SERVER_ADMIN_SRC_APPLICATION_USER_QUERIES_RS,
-            (constants_usize::ELEVEN, constants_str::VALUE_F6A331AA),
+            constants_str::VALUE_1E8EA59C,
+            (15usize, constants_str::VALUE_F6A331AA),
         ),
         (
             constants_str::VALUE_0690A45F,
-            (constants_usize::SIX, constants_str::VALUE_FD41C49E),
-        ),
-        (
-            constants_str::SERVER_ADMIN_SRC_APPLICATION_STATE_RS,
-            (constants_usize::ONE, constants_str::VALUE_FD41C49E),
-        ),
-        (
-            constants_str::SERVER_ADMIN_SRC_APPLICATION_AUTHORIZATION_RS,
-            (constants_usize::TWO, constants_str::VALUE_FD41C49E),
-        ),
-        (
-            constants_str::SERVER_ADMIN_SRC_APPLICATION_EXTRACTORS_RS,
-            (constants_usize::THREE, constants_str::VALUE_FD41C49E),
-        ),
-        (
-            constants_str::SERVER_ADMIN_SRC_APPLICATION_PERSISTENCE_RS,
-            (7usize, constants_str::VALUE_FD41C49E),
-        ),
-        (
-            constants_str::VALUE_D67F4595,
-            (
-                constants_usize::ONE,
-                constants_str::INLINED_ADMIN_OPERATIONS_DISCARD_TYPED_CONVERSION_DETAILS_AT_THE_HTTP_BOUNDARY,
-            ),
-        ),
-        (
-            constants_str::VALUE_15C3423E,
-            (
-                4usize,
-                constants_str::INLINED_ADMIN_OPERATIONS_DISCARD_TYPED_CONVERSION_DETAILS_AT_THE_HTTP_BOUNDARY,
-            ),
-        ),
-        (
-            constants_str::SERVER_ADMIN_SRC_APPLICATION_RATE_LIMIT_RS,
-            (
-                4usize,
-                constants_str::INLINED_ADMIN_OPERATIONS_DISCARD_TYPED_CONVERSION_DETAILS_AT_THE_HTTP_BOUNDARY,
-            ),
+            (38usize, constants_str::VALUE_FD41C49E),
         ),
         (
             constants_str::SERVER_ADMIN_SRC_ADAPTERS_REPOSITORY_RS,
             (
-                constants_usize::ONE,
+                11usize,
                 constants_str::INLINED_ADMIN_OPERATIONS_DISCARD_TYPED_CONVERSION_DETAILS_AT_THE_HTTP_BOUNDARY,
             ),
         ),
@@ -1640,17 +1545,6 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
         ),
     ]);
     super::snapshot::with_codebase_snapshot(|snapshot| {
-        let split_owner_matches = |path: &str, owner: &str| {
-            owner
-                .strip_suffix(constants_str::RS_EXTENSION)
-                .and_then(|owner_stem| {
-                    path.trim_start_matches(constants_str::TEXT_ALT_9)
-                        .strip_prefix(owner_stem)
-                })
-                .is_some_and(|remainder| {
-                    remainder.starts_with('_') && remainder.ends_with(constants_str::RS_EXTENSION)
-                })
-        };
         let mut observed_by_owner = std::collections::BTreeMap::new();
         let mut violations = Vec::new();
         snapshot.rs_files().iter().for_each(|source_file| {
@@ -1665,7 +1559,8 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             let reviewed_entry = reviewed
                 .iter()
                 .filter(|(suffix, (_count, reason))| {
-                    (path.ends_with(**suffix) || split_owner_matches(path.as_str(), suffix))
+                    (path.ends_with(**suffix)
+                        || super::declared_child_matches(path.as_str(), suffix))
                         && !reason.is_empty()
                 })
                 .max_by_key(|(suffix, _expected)| suffix.len());

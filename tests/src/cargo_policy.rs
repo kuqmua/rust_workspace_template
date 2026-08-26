@@ -581,23 +581,19 @@ fn source_modules_with_public_logic_own_unit_tests() {
         (constants_str::VALUE_744944F8, constants_str::VALUE_6F6BA65F),
         (constants_str::VALUE_886BA6BB, constants_str::VALUE_F84F38AE),
         (
+            constants_str::SERVER_RUNTIME_CORE_SRC_ASYNC_RUN_HISTORY_SNAPSHOT_RS,
+            constants_str::OWNER_DERIVED_MODULE_IS_COVERED_BY_ITS_FACADE_LEVEL_TESTS,
+        ),
+        (
+            constants_str::VALUE_02C92481,
+            constants_str::OWNER_DERIVED_MODULE_IS_COVERED_BY_ITS_FACADE_LEVEL_TESTS,
+        ),
+        (
             constants_str::SERVER_ADMIN_SRC_PASSWORD_RS,
             constants_str::VALUE_8269812F,
         ),
     ]);
     super::snapshot::with_codebase_snapshot(|snapshot| {
-        let split_owner_matches = |path: &str, owner: &str| {
-            owner
-                .trim_start_matches(constants_str::TEXT_ALT_9)
-                .strip_suffix(constants_str::RS_EXTENSION)
-                .and_then(|owner_stem| {
-                    path.trim_start_matches(constants_str::TEXT_ALT_9)
-                        .strip_prefix(owner_stem)
-                })
-                .is_some_and(|remainder| {
-                    remainder.starts_with('_') && remainder.ends_with(constants_str::RS_EXTENSION)
-                })
-        };
         let tested_module_owners = snapshot
             .rs_files()
             .iter()
@@ -647,10 +643,10 @@ fn source_modules_with_public_logic_own_unit_tests() {
                 let owns_test = owns_local_test
                     || tested_module_owners
                         .iter()
-                        .any(|owner| split_owner_matches(path.as_str(), owner.as_str()));
+                        .any(|owner| super::declared_child_matches(path.as_str(), owner));
                 let reviewed = reviewed_without_local_tests.iter().any(|(suffix, reason)| {
                     let matches = (path.ends_with(*suffix)
-                        || split_owner_matches(path.as_str(), suffix))
+                        || super::declared_child_matches(path.as_str(), suffix))
                         && !reason.is_empty();
                     if matches {
                         let _inserted = matched.insert((*suffix).to_owned());

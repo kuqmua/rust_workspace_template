@@ -1,5 +1,5 @@
-#[path = "domain_types_ssr_render_users_admin_user_row.rs"]
-mod admin_user_row;
+#[path = "ssr_admin_user_row.rs"]
+mod ssr_admin_user_row;
 
 use leptos::prelude::{ClassAttribute, ElementChild};
 
@@ -24,7 +24,7 @@ pub(super) fn render_users(
     let rows = page
         .items()
         .iter()
-        .map(|item| admin_user_row::admin_user_row(item, page))
+        .map(|item| ssr_admin_user_row::ssr_admin_user_row(item, page))
         .collect::<Vec<_>>();
     let content_view = leptos::view! {
         <section class="table-page">

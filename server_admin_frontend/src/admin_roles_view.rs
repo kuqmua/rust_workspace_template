@@ -1,7 +1,7 @@
 use leptos::prelude::{ClassAttribute, CustomAttribute, ElementChild};
 
-#[path = "domain_types_start_admin_roles_view_admin_role_row.rs"]
-mod admin_role_row;
+#[path = "csr_admin_role_row.rs"]
+mod csr_admin_role_row;
 
 #[leptos::component]
 #[allow(
@@ -25,7 +25,7 @@ pub(in crate::domain_types::start) fn AdminRolesView(
     let rows = page
         .items()
         .iter()
-        .map(|item| admin_role_row::admin_role_row(item, &page))
+        .map(|item| csr_admin_role_row::csr_admin_role_row(item, &page))
         .collect::<Vec<_>>();
     leptos::view! {
         <section class="table-page" data-renderer="csr">

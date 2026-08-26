@@ -1,6 +1,6 @@
-#[path = "domain_types_ssr_tests_crud.rs"]
+#[path = "crud.rs"]
 mod crud;
-#[path = "domain_types_ssr_tests_data_grid.rs"]
+#[path = "data_grid.rs"]
 mod data_grid;
 #[path = "domain_types_ssr_tests_document.rs"]
 mod document;
@@ -8,7 +8,7 @@ mod document;
 mod navigation;
 #[path = "domain_types_ssr_tests_settings.rs"]
 mod settings;
-#[path = "domain_types_ssr_tests_static_pages.rs"]
+#[path = "static_pages.rs"]
 mod static_pages;
 
 fn test_admin() -> server_admin_contract::domain_types::AuthenticatedAdmin {

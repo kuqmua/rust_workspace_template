@@ -1,4 +1,4 @@
-#[path = "domain_types_axum_router.rs"]
+#[path = "axum_router.rs"]
 mod axum_router;
 #[path = "batched_cleanup.rs"]
 mod batched_cleanup;
@@ -28,7 +28,7 @@ mod http_error_diagnostic;
 mod http_header_policy;
 #[path = "http_policy.rs"]
 mod http_policy;
-#[path = "domain_types_http_request_span_config.rs"]
+#[path = "http_request_span_config.rs"]
 mod http_request_span_config;
 #[path = "http_status_error.rs"]
 mod http_status_error;
@@ -54,11 +54,11 @@ mod pg_rate_limit;
 mod redacted_url;
 #[path = "domain_types_request_id.rs"]
 mod request_id;
-#[path = "domain_types_request_id_layer.rs"]
+#[path = "request_id_layer.rs"]
 mod request_id_layer;
-#[path = "domain_types_request_id_service.rs"]
+#[path = "request_id_service.rs"]
 mod request_id_service;
-#[path = "domain_types_request_id_tower_layer.rs"]
+#[path = "request_id_tower_layer.rs"]
 mod request_id_tower_layer;
 #[path = "request_timeout.rs"]
 mod request_timeout;

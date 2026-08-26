@@ -34,6 +34,7 @@ mod source_analysis;
 mod source_policy;
 #[path = "types.rs"]
 mod types;
+
 #[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout)]
 enum RustOrClippy {
     Clippy,
@@ -46,6 +47,89 @@ impl RustOrClippy {
             Self::Clippy => types::StaticStr::from(constants_str::CLIPPY),
         }
     }
+}
+fn declared_child_matches(path: &str, owner: &str) -> bool {
+    static DECLARED_CHILDREN: std::sync::OnceLock<std::collections::BTreeSet<(String, String)>> =
+        std::sync::OnceLock::new();
+    let declared_children = DECLARED_CHILDREN.get_or_init(|| {
+        fn collect_rs_paths(directory: &std::path::Path, paths: &mut Vec<std::path::PathBuf>) {
+            let Ok(entries) = std::fs::read_dir(directory) else {
+                return;
+            };
+            entries.filter_map(Result::ok).for_each(|entry| {
+                let path = entry.path();
+                match path.is_dir() {
+                    true => collect_rs_paths(path.as_path(), paths),
+                    false
+                        if path.extension().and_then(std::ffi::OsStr::to_str)
+                            == Some(constants_str::RS) =>
+                    {
+                        paths.push(path);
+                    }
+                    false => {}
+                }
+            });
+        }
+        let workspace_root = std::path::Path::new(constants_str::TEXT_ALT_9);
+        let mut paths = Vec::new();
+        if let Ok(entries) = std::fs::read_dir(workspace_root) {
+            entries.filter_map(Result::ok).for_each(|entry| {
+                let crate_root = entry.path();
+                if crate_root.join(constants_str::CARGO_TOML).is_file() {
+                    collect_rs_paths(
+                        crate_root.join(constants_str::SRC_ALT).as_path(),
+                        &mut paths,
+                    );
+                }
+            });
+        }
+        let mut declarations = std::collections::BTreeSet::new();
+        while let Some(owner_path) = paths.pop() {
+            let Ok(content) = std::fs::read_to_string(owner_path.as_path()) else {
+                continue;
+            };
+            let Ok(ast) = syn::parse_file(content.as_str()) else {
+                continue;
+            };
+            let Ok(owner_rel) = owner_path.strip_prefix(workspace_root) else {
+                continue;
+            };
+            let Some(parent) = owner_rel.parent() else {
+                continue;
+            };
+            ast.items.iter().for_each(|item| {
+                let syn::Item::Mod(item_mod) = item else {
+                    return;
+                };
+                item_mod.attrs.iter().for_each(|attr| {
+                    if !attr.path().is_ident(constants_str::PATH_ALT_5) {
+                        return;
+                    }
+                    let syn::Meta::NameValue(name_value) = &attr.meta else {
+                        return;
+                    };
+                    let syn::Expr::Lit(expr_lit) = &name_value.value else {
+                        return;
+                    };
+                    let syn::Lit::Str(path_lit) = &expr_lit.lit else {
+                        return;
+                    };
+                    let _inserted = declarations.insert((
+                        owner_rel.to_string_lossy().into_owned(),
+                        parent.join(path_lit.value()).to_string_lossy().into_owned(),
+                    ));
+                });
+            });
+        }
+        declarations
+    });
+    declared_children.contains(&(
+        owner
+            .trim_start_matches(constants_str::TEXT_ALT_9)
+            .to_owned(),
+        path.trim_start_matches(constants_str::TEXT_ALT_9)
+            .to_owned(),
+    ))
 }
 fn unowned_spawn_expr(expression: &syn::Expr) -> bool {
     let syn::Expr::Call(call) = expression else {
@@ -211,7 +295,9 @@ fn check_expect_and_panic_contain_unique_diagnostic_ids() {
                                 remainder.starts_with('_')
                                     && remainder.ends_with(constants_str::RS_EXTENSION)
                             });
-                        (path.ends_with(path_suffix) || split_owner_matches)
+                        (path.ends_with(path_suffix)
+                            || declared_child_matches(path_text.as_ref(), path_suffix)
+                            || split_owner_matches)
                             && error == *reviewed_error
                             && !reason.is_empty()
                     });
@@ -1017,6 +1103,13 @@ fn domain_type_policy_should_check_path(path: types::PathRef<'_>) -> types::Anal
             .as_ref()
             .to_string_lossy()
             .starts_with(constants_str::SERVER_ADMIN_FRONTEND_SRC_UI)
+        || [
+            constants_str::SERVER_ADMIN_FRONTEND_SRC_DOMAIN_TYPES_WITH_OWNER_NAVIGATION_RS,
+            constants_str::SERVER_ADMIN_FRONTEND_SRC_DOMAIN_TYPES_WITH_OWNER_TABLE_RS,
+            constants_str::SERVER_ADMIN_FRONTEND_SRC_WITH_OWNER_RS,
+        ]
+        .iter()
+        .any(|owner| declared_child_matches(path.as_ref().to_string_lossy().as_ref(), owner))
     {
         return types::AnalyzerBool::default();
     }

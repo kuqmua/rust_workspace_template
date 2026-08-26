@@ -1,13 +1,18 @@
-#[path = "syn_field_syn_field.rs"]
-mod syn_field;
-#[path = "syn_field_syn_field_identifier.rs"]
-mod syn_field_identifier;
-#[path = "syn_field_syn_field_type.rs"]
-mod syn_field_type;
-#[path = "syn_field_syn_field_vis.rs"]
-mod syn_field_vis;
+#![allow(
+    clippy::module_name_repetitions,
+    reason = "nested modules and wrapper types retain exact owner-derived names required by the module naming policy"
+)]
 
-pub use syn_field::SynField;
-pub use syn_field_identifier::SynFieldIdentifier;
-pub use syn_field_type::SynFieldType;
-pub use syn_field_vis::SynFieldVis;
+#[path = "syn_field_identifier.rs"]
+pub mod syn_field_identifier;
+#[path = "syn_field_type.rs"]
+pub mod syn_field_type;
+#[path = "syn_field_vis.rs"]
+pub mod syn_field_vis;
+
+#[derive(Debug, Clone, optimal_memory_layout::OptimalMemoryLayout)]
+pub struct SynField {
+    pub identifier: syn_field_identifier::SynFieldIdentifier,
+    pub type0: syn_field_type::SynFieldType,
+    pub vis: syn_field_vis::SynFieldVis,
+}

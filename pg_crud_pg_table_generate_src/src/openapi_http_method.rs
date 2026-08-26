@@ -2,7 +2,7 @@
     clippy::single_call_fn,
     reason = "OpenAPI emission has a private physical boundary from route metadata"
 )]
-pub(in crate::domain_types) const fn http_method<
+pub(in crate::domain_types) const fn openapi_http_method<
     Capability,
     HttpMethod,
     Operation,

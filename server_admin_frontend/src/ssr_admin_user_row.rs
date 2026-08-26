@@ -4,7 +4,7 @@
     reason = "the SSR user-row view is composed once by the users screen"
 )]
 
-pub(super) fn admin_user_row(
+pub(super) fn ssr_admin_user_row(
     item: &server_admin_contract::domain_types::AdminUserSummary,
     page: &server_admin_contract::domain_types::AdminUsersPage,
 ) -> impl leptos::prelude::IntoView + use<> {

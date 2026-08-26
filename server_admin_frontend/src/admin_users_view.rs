@@ -1,7 +1,7 @@
 use leptos::prelude::{ClassAttribute, CustomAttribute, ElementChild};
 
-#[path = "domain_types_start_admin_users_view_admin_user_row.rs"]
-mod admin_user_row;
+#[path = "csr_admin_user_row.rs"]
+mod csr_admin_user_row;
 
 #[leptos::component]
 #[allow(
@@ -25,7 +25,7 @@ pub(in crate::domain_types::start) fn AdminUsersView(
     let rows = page
         .items()
         .iter()
-        .map(|item| admin_user_row::admin_user_row(item, &page))
+        .map(|item| csr_admin_user_row::csr_admin_user_row(item, &page))
         .collect::<Vec<_>>();
     leptos::view! {
         <section class="table-page" data-renderer="csr">

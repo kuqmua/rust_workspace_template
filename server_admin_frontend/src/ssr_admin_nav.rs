@@ -6,7 +6,7 @@
 
 use leptos::prelude::{AriaAttributes, ClassAttribute, CustomAttribute, ElementChild};
 
-pub(super) fn admin_nav(
+pub(super) fn ssr_admin_nav(
     page: server_admin_contract::domain_types::AdminPage,
     admin: Option<&server_admin_contract::domain_types::AuthenticatedAdmin>,
     active_table: Option<server_admin_contract::domain_types::AdminDataTable>,

@@ -4,17 +4,17 @@
     reason = "the stable SSR facade delegates to screen, document, and table modules; test view rendering requires the named extension trait"
 )]
 
-#[path = "domain_types_ssr_crud_render_role_create.rs"]
+#[path = "crud_render_role_create.rs"]
 mod crud_render_role_create;
-#[path = "domain_types_ssr_crud_render_role_manage.rs"]
+#[path = "crud_render_role_manage.rs"]
 mod crud_render_role_manage;
-#[path = "domain_types_ssr_crud_render_shell.rs"]
+#[path = "crud_render_shell.rs"]
 mod crud_render_shell;
-#[path = "domain_types_ssr_crud_render_user_create.rs"]
+#[path = "crud_render_user_create.rs"]
 mod crud_render_user_create;
-#[path = "domain_types_ssr_crud_render_user_manage.rs"]
+#[path = "crud_render_user_manage.rs"]
 mod crud_render_user_manage;
-#[path = "domain_types_ssr_table_data_table_grid.rs"]
+#[path = "data_table_grid.rs"]
 mod data_table_grid;
 #[path = "data_tables.rs"]
 mod data_tables;
@@ -32,7 +32,7 @@ mod render_sessions;
 mod render_settings;
 #[path = "render_users.rs"]
 mod render_users;
-#[path = "domain_types_ssr_table_table_pagination.rs"]
+#[path = "table_pagination.rs"]
 mod table_pagination;
 #[path = "text_page.rs"]
 mod text_page;

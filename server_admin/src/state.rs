@@ -91,5 +91,5 @@ impl super::AdminAuthSvcState {
 }
 
 #[cfg(test)]
-#[path = "application_state_tests.rs"]
+#[path = "tests.rs"]
 mod tests;

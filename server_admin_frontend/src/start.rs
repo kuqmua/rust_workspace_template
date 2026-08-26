@@ -12,8 +12,6 @@ mod admin_app;
 mod admin_csr_query;
 #[path = "admin_data_grid.rs"]
 mod admin_data_grid;
-#[path = "domain_types_start_admin_nav.rs"]
-mod admin_nav;
 #[path = "admin_pagination.rs"]
 mod admin_pagination;
 #[path = "admin_permissions_view.rs"]
@@ -28,6 +26,8 @@ mod admin_sessions_view;
 mod admin_settings_view;
 #[path = "admin_users_view.rs"]
 mod admin_users_view;
+#[path = "csr_admin_nav.rs"]
+mod csr_admin_nav;
 #[path = "fetch_page.rs"]
 mod fetch_page;
 #[path = "http.rs"]

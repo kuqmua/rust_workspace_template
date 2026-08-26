@@ -1,14 +1,14 @@
-#[path = "bool_flags_admin_bool_parsing_error.rs"]
+#[path = "admin_bool_parsing_error.rs"]
 mod admin_bool_parsing_error;
-#[path = "bool_flags_admin_cookie_secure.rs"]
+#[path = "admin_cookie_secure.rs"]
 mod admin_cookie_secure;
-#[path = "bool_flags_admin_swagger_enabled.rs"]
+#[path = "admin_swagger_enabled.rs"]
 mod admin_swagger_enabled;
-#[path = "bool_flags_http_gzip_enabled.rs"]
+#[path = "http_gzip_enabled.rs"]
 mod http_gzip_enabled;
-#[path = "bool_flags_production_mode.rs"]
+#[path = "production_mode.rs"]
 mod production_mode;
-#[path = "bool_flags_try_from_std_env_var_ok_admin_cookie_secure_error.rs"]
+#[path = "try_from_std_env_var_ok_admin_cookie_secure_error.rs"]
 mod try_from_std_env_var_ok_admin_cookie_secure_error;
 
 pub use admin_bool_parsing_error::AdminBoolParsingError;

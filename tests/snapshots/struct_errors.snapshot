@@ -1,7 +1,7 @@
 # GENERATED REVIEWED SINGLE-CASE AND TRANSPARENT ERROR STRUCTS; DO NOT EDIT
 ../administrator_account_initialization_and_password_reset/src/domain_types.rs:SqlxAdministratorDatabaseConnectionError
 ../common_routes/src/domain_types.rs:HealthComponentsError
-../config_lib/src/bool_flags_try_from_std_env_var_ok_admin_cookie_secure_error.rs:TryFromStdEnvVarOkAdminCookieSecureError
+../config_lib/src/try_from_std_env_var_ok_admin_cookie_secure_error.rs:TryFromStdEnvVarOkAdminCookieSecureError
 ../config_lib/src/types.rs:EnvVarError
 ../dev_identity_creation_planner/src/domain_types.rs:DevelopmentIdentitySpecsError
 ../external_service_emulators/src/domain_types.rs:MockNotificationProviderClosed
@@ -20,7 +20,7 @@
 ../macro_helpers/src/json_contract.rs:SerdeJsonError
 ../notification_service/src/domain_types.rs:SqlxNotificationDatabaseError
 ../pg_crud_common/src/advisory_lock.rs:SqlxPgRelationLockError
-../pg_crud_common/src/bounded_btree_map_bounded_b_tree_map_error.rs:BoundedBTreeMapError
+../pg_crud_common/src/bounded_b_tree_map_error.rs:BoundedBTreeMapError
 ../pg_crud_common/src/cursor.rs:CursorPayloadError
 ../pg_crud_common/src/cursor.rs:CursorSigningKeyError
 ../pg_crud_common/src/cursor.rs:SignedCursorError
@@ -66,25 +66,25 @@
 ../server_admin/src/security.rs:AdminAccessTokenError
 ../server_admin/src/security.rs:AdminAuthCollectionError
 ../server_admin/src/security.rs:SqlxAdminError
+../server_admin_contract/src/admin_id_try_from_i64_error.rs:AdminIdTryFromI64Error
 ../server_admin_contract/src/audit_branding.rs:AdminAuditDetailsTooLarge
-../server_admin_contract/src/identifier_admin_id_try_from_i64_error.rs:AdminIdTryFromI64Error
 ../server_admin_contract/src/query.rs:AdminPageLimitError
 ../server_admin_contract/src/table_sort.rs:AdminTableSortFieldTryFromKeyError
 ../server_admin_core/src/domain_types.rs:AdminIdTryFromI64Error
 ../server_admin_frontend/src/ssr.rs:AdminSsrHtmlTryFromStringError
 ../server_admin_frontend/src/ssr.rs:AdminSsrTextTryFromStringError
-../server_observability/src/capture_observed_error.rs:InfrastructureTestError
-../server_observability/src/capture_observed_error.rs:ObservedError
 ../server_observability/src/initialization.rs:OpentelemetryOtlpExporterBuildError
 ../server_observability/src/initialization.rs:OpentelemetrySdkObservabilityShutdownError
 ../server_observability/src/initialization.rs:TracingSubscriberInitError
-../server_runtime_core/src/exclusive_run_exclusive_run_already_active.rs:ExclusiveRunAlreadyActive
-../server_runtime_core/src/history_std_async_run_history_maximum_len_try_from_usize_error.rs:StdAsyncRunHistoryMaximumLenTryFromUsizeError
+../server_observability/src/observed_error.rs:InfrastructureTestError
+../server_observability/src/observed_error.rs:ObservedError
+../server_runtime_core/src/exclusive_run_already_active.rs:ExclusiveRunAlreadyActive
 ../server_runtime_core/src/lease_registry.rs:StdLeaseStaleTimeoutError
 ../server_runtime_core/src/resource_budget.rs:ResourceBudgetConfigError
 ../server_runtime_core/src/resource_utilization.rs:ResourceUtilizationPercentTryFromU8Error
 ../server_runtime_core/src/retry.rs:StdRetryAttemptsError
 ../server_runtime_core/src/source_selection.rs:SourceSelectionError
+../server_runtime_core/src/std_async_run_history_maximum_len_try_from_usize_error.rs:StdAsyncRunHistoryMaximumLenTryFromUsizeError
 ../server_runtime_http/src/batched_cleanup.rs:CleanupBatchSizeError
 ../server_runtime_http/src/bounded_read.rs:BoundedReadFromUtf8Error
 ../server_runtime_http/src/bounded_read.rs:BoundedReadIoError
@@ -102,8 +102,6 @@
 ../server_runtime_http/src/domain_types_service_runtime.rs:ServiceRuntimeIoError
 ../server_runtime_http/src/geojson.rs:SerdeJsonGeoJsonError
 ../server_runtime_http/src/header_text.rs:HttpHeaderTextMaximumBytesError
-../server_runtime_http/src/http_client_reqwest_client_build_error.rs:ReqwestClientBuildError
-../server_runtime_http/src/http_client_std_reqwest_timeout_error.rs:StdReqwestTimeoutError
 ../server_runtime_http/src/http_error_diagnostic.rs:HttpErrorWithoutDiagnosticContext
 ../server_runtime_http/src/lifecycle.rs:StdRequestTimeoutTryFromDurationError
 ../server_runtime_http/src/lifecycle.rs:StdRunIntervalTryFromDurationError
@@ -117,7 +115,9 @@
 ../server_runtime_http/src/origin.rs:AllowedOriginsError
 ../server_runtime_http/src/path_policy.rs:HttpNormalizedPathError
 ../server_runtime_http/src/pg_rate_limit.rs:SqlxPgRateLimitError
+../server_runtime_http/src/reqwest_client_build_error.rs:ReqwestClientBuildError
 ../server_runtime_http/src/service.rs:ServeIoError
+../server_runtime_http/src/std_reqwest_timeout_error.rs:StdReqwestTimeoutError
 ../server_runtime_http/src/tests.rs:BoundaryTestError
 ../server_runtime_http/src/trace_context.rs:HttpTraceStateError
 ../synchronization_service_runtime/src/domain_types.rs:SynchronizationPayloadTooLarge

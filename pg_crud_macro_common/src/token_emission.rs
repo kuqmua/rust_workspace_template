@@ -998,7 +998,7 @@ pub fn generate_impl_de_for_struct_by_fields_token_stream(
     let allow_clippy_arbitrary_src_item_ordering =
         token_patterns::AllowClippyArbitrarySrcItemOrdering;
     let raw_identifier_token_stream = quote::format_ident!("{}Raw", identifier.to_string());
-    let syn_fields: &[macro_helpers::domain_types::field_data::SynField] = fields.into();
+    let syn_fields: &[macro_helpers::domain_types::syn_field::SynField] = fields.into();
     let raw_fields_token_stream = syn_fields.iter().map(|field| {
         let ty = field.type0.as_ref();
         let field_identifier = field.identifier.as_ref();

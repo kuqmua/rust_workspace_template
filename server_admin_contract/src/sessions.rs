@@ -1,12 +1,12 @@
-#[path = "sessions_admin_no_body.rs"]
+#[path = "admin_no_body.rs"]
 mod admin_no_body;
-#[path = "sessions_admin_session_identifier.rs"]
+#[path = "admin_session_identifier.rs"]
 mod admin_session_identifier;
-#[path = "sessions_admin_session_timestamp.rs"]
+#[path = "admin_session_timestamp.rs"]
 mod admin_session_timestamp;
-#[path = "sessions_admin_session_view.rs"]
+#[path = "admin_session_view.rs"]
 mod admin_session_view;
-#[path = "sessions_admin_sessions_page.rs"]
+#[path = "admin_sessions_page.rs"]
 mod admin_sessions_page;
 
 pub use admin_no_body::AdminNoBody;

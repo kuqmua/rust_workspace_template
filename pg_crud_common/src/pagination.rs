@@ -1,12 +1,12 @@
-#[path = "pagination_pagination_end.rs"]
+#[path = "pagination_end.rs"]
 mod pagination_end;
-#[path = "pagination_pagination_limit.rs"]
+#[path = "pagination_limit.rs"]
 mod pagination_limit;
-#[path = "pagination_pagination_offset.rs"]
+#[path = "pagination_offset.rs"]
 mod pagination_offset;
-#[path = "pagination_pagination_policy.rs"]
+#[path = "pagination_policy.rs"]
 mod pagination_policy;
-#[path = "pagination_pagination_start.rs"]
+#[path = "pagination_start.rs"]
 mod pagination_start;
 
 pub use pagination_end::PaginationEnd;

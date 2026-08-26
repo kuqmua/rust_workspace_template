@@ -14,7 +14,7 @@ pub(super) async fn create_user(
         form.password,
     );
     super::super::action_result_impl::action_result_impl(
-        super::super::super::users::mutations_create::mutations_create(
+        super::super::super::users::user_mutations_create::user_mutations_create(
             auth,
             super::super::super::AxumAdminJson(request),
         )
@@ -38,7 +38,7 @@ pub(super) async fn update_user(
         Some(form.login),
     );
     super::super::action_result_impl::action_result_impl(
-        super::super::super::users::mutations_update::mutations_update(
+        super::super::super::users::user_mutations_update::user_mutations_update(
             auth,
             super::super::super::AxumAdminPath(super::super::user_path_impl::user_path_impl(
                 form.user_id,
@@ -118,7 +118,7 @@ pub(super) async fn delete_user(
         auth,
         server_admin_contract::domain_types::AdminFrontendPath::Users,
         |auth| {
-            super::super::super::users::mutations_delete::mutations_delete(
+            super::super::super::users::user_mutations_delete::user_mutations_delete(
                 auth,
                 super::super::super::AxumAdminPath(super::super::user_path_impl::user_path_impl(
                     form.user_id,

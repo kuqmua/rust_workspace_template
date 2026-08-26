@@ -1,20 +1,20 @@
-#[path = "token_stream_helpers_common_d_token_stream_builder.rs"]
+#[path = "common_d_token_stream_builder.rs"]
 mod common_d_token_stream_builder;
-#[path = "token_stream_helpers_error_enum_d_token_stream_builder.rs"]
+#[path = "error_enum_d_token_stream_builder.rs"]
 mod error_enum_d_token_stream_builder;
-#[path = "token_stream_helpers_generate_if_let_some_match_ok_assign_query_or_return_err_token_stream.rs"]
+#[path = "generate_if_let_some_match_ok_assign_query_or_return_err_token_stream.rs"]
 mod generate_if_let_some_match_ok_assign_query_or_return_err_token_stream;
-#[path = "token_stream_helpers_generate_match_not_empty_unique_vec_try_new_some_or_none_token_stream.rs"]
+#[path = "generate_match_not_empty_unique_vec_try_new_some_or_none_token_stream.rs"]
 mod generate_match_not_empty_unique_vec_try_new_some_or_none_token_stream;
-#[path = "token_stream_helpers_generate_match_ok_assign_or_return_err_token_stream.rs"]
+#[path = "generate_match_ok_assign_or_return_err_token_stream.rs"]
 mod generate_match_ok_assign_or_return_err_token_stream;
-#[path = "token_stream_helpers_generate_match_ok_or_return_err_token_stream.rs"]
+#[path = "generate_match_ok_or_return_err_token_stream.rs"]
 mod generate_match_ok_or_return_err_token_stream;
-#[path = "token_stream_helpers_generate_mod_with_pub_use_token_stream.rs"]
+#[path = "generate_mod_with_pub_use_token_stream.rs"]
 mod generate_mod_with_pub_use_token_stream;
-#[path = "token_stream_helpers_parse_strs_to_ts2_vec.rs"]
+#[path = "parse_strs_to_ts2_vec.rs"]
 mod parse_strs_to_ts2_vec;
-#[path = "token_stream_helpers_serde_error_enum_d_token_stream_builder.rs"]
+#[path = "serde_error_enum_d_token_stream_builder.rs"]
 mod serde_error_enum_d_token_stream_builder;
 
 pub use common_d_token_stream_builder::common_d_token_stream_builder;

@@ -1,5 +1,5 @@
-#[path = "domain_types_ssr_render_roles_admin_role_row.rs"]
-mod admin_role_row;
+#[path = "ssr_admin_role_row.rs"]
+mod ssr_admin_role_row;
 
 use leptos::prelude::{ClassAttribute, ElementChild};
 
@@ -24,7 +24,7 @@ pub(super) fn render_roles(
     let rows = page
         .items()
         .iter()
-        .map(|item| admin_role_row::admin_role_row(item, page))
+        .map(|item| ssr_admin_role_row::ssr_admin_role_row(item, page))
         .collect::<Vec<_>>();
     let content_view = leptos::view! {
         <section class="table-page">

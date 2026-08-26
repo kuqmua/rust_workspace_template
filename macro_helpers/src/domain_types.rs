@@ -6,7 +6,7 @@ pub mod attribute_identifier_string;
 #[path = "derive_token_stream_builder.rs"]
 pub mod derive_token_stream_builder;
 #[path = "syn_field.rs"]
-pub mod field_data;
+pub mod syn_field;
 // Typed token construction.
 #[path = "generate_field_location_new_token_stream.rs"]
 pub mod generate_field_location_new_token_stream;

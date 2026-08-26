@@ -1,16 +1,16 @@
-#[path = "http_client_reqwest_client.rs"]
+#[path = "reqwest_client.rs"]
 mod reqwest_client;
-#[path = "http_client_reqwest_client_build_error.rs"]
+#[path = "reqwest_client_build_error.rs"]
 mod reqwest_client_build_error;
-#[path = "http_client_reqwest_client_policy.rs"]
+#[path = "reqwest_client_policy.rs"]
 mod reqwest_client_policy;
-#[path = "http_client_reqwest_connect_timeout_duration.rs"]
+#[path = "reqwest_connect_timeout_duration.rs"]
 mod reqwest_connect_timeout_duration;
-#[path = "http_client_reqwest_request_timeout_duration.rs"]
+#[path = "reqwest_request_timeout_duration.rs"]
 mod reqwest_request_timeout_duration;
-#[path = "http_client_std_reqwest_timeout_error.rs"]
+#[path = "std_reqwest_timeout_error.rs"]
 mod std_reqwest_timeout_error;
-#[path = "http_client_tracing_http_client_span.rs"]
+#[path = "tracing_http_client_span.rs"]
 mod tracing_http_client_span;
 
 pub use reqwest_client::ReqwestClient;

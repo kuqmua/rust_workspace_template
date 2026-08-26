@@ -63,9 +63,9 @@ mod api_update_role;
 mod api_update_settings;
 #[path = "api_update_user.rs"]
 mod api_update_user;
-#[path = "cookie_response_append_cleared_session_cookies.rs"]
+#[path = "append_cleared_session_cookies.rs"]
 mod append_cleared_session_cookies;
-#[path = "cookie_response_append_session_cookies.rs"]
+#[path = "append_session_cookies.rs"]
 mod append_session_cookies;
 #[path = "authn_apply_refresh_failure_delay.rs"]
 mod authn_apply_refresh_failure_delay;
@@ -87,9 +87,9 @@ pub(super) mod authorization_origin_is_present_and_allowed;
 pub(super) mod authorization_session_context_hash;
 #[path = "authorization_validate_csrf.rs"]
 pub(super) mod authorization_validate_csrf;
-#[path = "application_data_tables_get.rs"]
+#[path = "data_tables_get.rs"]
 mod data_tables_get;
-#[path = "application_data_tables_list.rs"]
+#[path = "data_tables_list.rs"]
 mod data_tables_list;
 #[path = "extractors.rs"]
 mod extractors;
@@ -99,21 +99,21 @@ mod html;
 mod persistence;
 #[path = "application_roles.rs"]
 mod roles;
-#[path = "application_sessions_sessions.rs"]
+#[path = "sessions.rs"]
 mod sessions;
-#[path = "application_sessions_revoke_all_sessions.rs"]
+#[path = "sessions_revoke_all_sessions.rs"]
 mod sessions_revoke_all_sessions;
-#[path = "application_sessions_revoke_session.rs"]
+#[path = "sessions_revoke_session.rs"]
 mod sessions_revoke_session;
-#[path = "application_settings_branding.rs"]
+#[path = "settings_branding.rs"]
 mod settings_branding;
-#[path = "application_settings_branding_view.rs"]
+#[path = "settings_branding_view.rs"]
 mod settings_branding_view;
-#[path = "application_settings_branding_view_ref.rs"]
+#[path = "settings_branding_view_ref.rs"]
 mod settings_branding_view_ref;
-#[path = "application_settings_get.rs"]
+#[path = "settings_get.rs"]
 mod settings_get;
-#[path = "application_settings_update.rs"]
+#[path = "settings_update.rs"]
 mod settings_update;
 #[path = "shared.rs"]
 mod shared;
@@ -614,7 +614,7 @@ pub fn routes(state: SharedAdminAuthSvcStateArc) -> AxumAdminAuthRouter {
 }
 #[must_use]
 pub fn html_routes(state: SharedAdminAuthSvcStateArc) -> AxumAdminAuthRouter {
-    html::routes::routes(state, AdminHtmlSwaggerEnabled::from(true))
+    html::html_routes::html_routes(state, AdminHtmlSwaggerEnabled::from(true))
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 pub struct AdminHtmlSwaggerEnabled(bool);
@@ -623,7 +623,7 @@ pub fn html_routes_with_swagger(
     state: SharedAdminAuthSvcStateArc,
     swagger_enabled: AdminHtmlSwaggerEnabled,
 ) -> AxumAdminAuthRouter {
-    html::routes::routes(state, swagger_enabled)
+    html::html_routes::html_routes(state, swagger_enabled)
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 pub struct AdminSessionBundle {
@@ -661,9 +661,9 @@ pub enum AdminSessionError {
     #[error("system clock is before the Unix epoch")]
     SystemClock,
 }
-#[path = "application_audit_export_log.rs"]
+#[path = "audit_export_log.rs"]
 mod audit_export_log;
-#[path = "application_audit_query_log.rs"]
+#[path = "audit_query_log.rs"]
 mod audit_query_log;
 #[path = "create_session_in_connection.rs"]
 mod create_session_in_connection;

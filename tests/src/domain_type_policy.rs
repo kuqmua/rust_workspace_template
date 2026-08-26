@@ -599,7 +599,7 @@ fn server_admin_frontend_ui_is_an_explicit_framework_adapter_boundary() {
     );
     assert!(
         super::domain_type_policy_should_check_path(super::types::PathRef::from(
-            std::path::Path::new("server_admin_frontend/src/admin_settings_view.rs")
+            std::path::Path::new("server_admin_frontend/src/csr_admin_nav.rs")
         ))
         .get(),
         "29bc703d"
