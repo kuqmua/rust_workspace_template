@@ -1,7 +1,7 @@
-pub(crate) mod bootstrap;
 mod routes;
+pub(crate) mod startup;
 
-#[allow(clippy::single_call_fn)] // startup flow is grouped for separation from process/bootstrap concerns
+#[allow(clippy::single_call_fn)] // startup flow is grouped for separation from process initialization concerns
 pub(super) async fn run_server(
     config: server_config::domain_types::Config,
 ) -> Result<(), crate::domain_types::RunServerError> {

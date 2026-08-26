@@ -8,7 +8,7 @@ pub(super) fn session_context_hash(
     context.extend(client_address.chars().take(256usize));
     context.push_str(constants_str::USER_AGENT);
     let user_agent = headers
-        .0
+        .get()
         .get(http::header::USER_AGENT)
         .and_then(|value| value.to_str().ok())
         .map(str::trim)
@@ -29,12 +29,16 @@ pub(super) fn hash_refresh_token_with_context(
     token: &super::super::AdminOpaqueToken,
     context_hash: &super::super::AdminTokenHash,
 ) -> Result<super::super::AdminTokenHash, super::super::AdminSecretTextError> {
-    let token_text = secrecy::ExposeSecret::expose_secret(token.0.as_ref());
-    let context_hash_text = secrecy::ExposeSecret::expose_secret(context_hash.0.as_ref());
-    let mut token_with_context =
-        String::with_capacity(token_text.len().saturating_add(context_hash_text.len()));
-    token_with_context.push_str(token_text);
-    token_with_context.push_str(context_hash_text);
+    let token_text = token.expose();
+    let context_hash_text = context_hash.expose();
+    let mut token_with_context = String::with_capacity(
+        token_text
+            .as_ref()
+            .len()
+            .saturating_add(context_hash_text.as_ref().len()),
+    );
+    token_with_context.push_str(token_text.as_ref());
+    token_with_context.push_str(context_hash_text.as_ref());
     let combined_token = super::super::SecrecyAdminString::try_from(token_with_context)
         .map(super::super::AdminOpaqueToken::new)?;
     super::super::hash_opaque_token::hash_opaque_token(&combined_token)
@@ -45,7 +49,7 @@ pub(super) fn origin_is_present_and_allowed(
 ) -> super::super::StdAdminBool {
     super::super::StdAdminBool::from(bool::from(
         server_runtime_http::domain_types::request_origin_allowed(
-            server_runtime_http::domain_types::HttpOriginHeadersRef::from(headers.0),
+            server_runtime_http::domain_types::HttpOriginHeadersRef::from(headers.get()),
             &state.allowed_origins,
         ),
     ))
@@ -100,7 +104,7 @@ pub(super) async fn validate_csrf(
         return Err(super::AdminError::Csrf);
     }
     let provided = headers
-        .0
+        .get()
         .get(http::HeaderName::from_static(
             constants_str::X_CSRF_TOKEN_ALT,
         ))

@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { bootstrapAdministrator } from "./support/admin.js";
+import { createInitialAdministrator } from "./support/admin.js";
 import { adminPages, dataTables } from "./support/pages.js";
 
 test.skip(
@@ -13,7 +13,7 @@ test("capture administrator documentation screenshots", async ({ page }) => {
     fullPage: true,
     path: "../docs/images/admin/sign-in.png"
   });
-  await bootstrapAdministrator(page);
+  await createInitialAdministrator(page);
 
   for (const [name, path] of [
     ["users", adminPages.users.path],

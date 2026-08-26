@@ -1,7 +1,7 @@
 [workspace]
 resolver = "2"
 members = [
-  "admin_bootstrap",
+  "administrator_account_initialization_and_password_reset",
   "app_state",
   "bounded_types",
   "common_routes",
@@ -19,7 +19,7 @@ members = [
   "constants_u64",
   "constants_u8",
   "constants_usize",
-  "dev_data_bootstrap",
+  "dev_identity_creation_planner",
   "external_service_emulators",
   "file_storage",
   "frontend_contract",
@@ -369,7 +369,7 @@ server_runtime_core = { path = "./server_runtime_core" }
 server_runtime_http = { path = "./server_runtime_http" }
 synchronization_service_runtime = { path = "./synchronization_service_runtime" }
 text_policy = { path = "./text_policy" }
-dev_data_bootstrap = { path = "./dev_data_bootstrap" }
+dev_identity_creation_planner = { path = "./dev_identity_creation_planner" }
 prepare_pg_databases = { path = "./prepare_pg_databases" }
 external_service_emulators = { path = "./external_service_emulators" }
 constants_str = { path = "./constants_str" }

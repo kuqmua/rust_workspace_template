@@ -615,7 +615,7 @@ fn raw_runtime_sql_identifier_inventory_matches_reviewed_baseline() {
         if super::is_test_crate_source_path(super::types::PathRef::from(path)).get()
             || path_text.ends_with(constants_str::CODE_STYLE_WORKSPACE_SCAFFOLD_FS_OWNER_SUFFIX)
             || path_text.ends_with(constants_str::PG_CRUD_PG_CRUD_COMMON_SRC_SQL_IDENTIFIER_RS)
-            || path_text.ends_with(constants_str::STR_CONSTANTS_SRC_LIB_RS)
+            || super::is_str_constants_source_path(super::types::PathRef::from(path)).get()
         {
             return;
         }
@@ -655,7 +655,10 @@ fn production_pg_error_classification_is_centralized() {
                 ))
                 .get()
                     && !path.ends_with(constants_str::PG_CRUD_COMMON_SRC_PG_ERROR_RS)
-                    && !path.ends_with(constants_str::STR_CONSTANTS_SRC_LIB_RS)
+                    && !super::is_str_constants_source_path(super::types::PathRef::from(
+                        source_file.path().as_ref(),
+                    ))
+                    .get()
                     && (source_file
                         .content()
                         .as_ref()
@@ -1199,8 +1202,13 @@ fn source_lint_suppressions_have_explicit_reasons() {
             reason: constants_str::VALUE_1384360A,
         },
         LegacySuppression {
-            limit: 14,
-            path_suffix: constants_str::VALUE_1ACC98BE,
+            limit: 2,
+            path_suffix: constants_str::VALUE_4F121480,
+            reason: constants_str::VALUE_83D7CC71,
+        },
+        LegacySuppression {
+            limit: 11,
+            path_suffix: constants_str::VALUE_5C56EDC0,
             reason: constants_str::VALUE_83D7CC71,
         },
         LegacySuppression {
@@ -2416,7 +2424,7 @@ fn all_string_constants_are_declared_in_str_constants() {
     );
 }
 #[test]
-fn string_constant_policy_has_only_one_exact_source_exception() {
+fn string_constant_policy_has_only_the_constants_crate_source_directory_exception() {
     assert!(
         super::is_str_constants_source_path(super::types::PathRef::from(std::path::Path::new(
             constants_str::STR_CONSTANTS_SRC_LIB_RS,
@@ -2427,7 +2435,6 @@ fn string_constant_policy_has_only_one_exact_source_exception() {
         [
             "../copy/constants_str/src/lib.rs",
             "constants_str/src/lib.rs",
-            "../constants_str/src/other.rs",
         ]
         .into_iter()
         .all(|path| {
@@ -2436,6 +2443,12 @@ fn string_constant_policy_has_only_one_exact_source_exception() {
             )))
             .get()
         })
+    );
+    assert!(
+        super::is_str_constants_source_path(super::types::PathRef::from(std::path::Path::new(
+            "../constants_str/src/catalog.rs",
+        )))
+        .get()
     );
 }
 #[test]

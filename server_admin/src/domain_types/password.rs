@@ -2,24 +2,15 @@ impl super::AdminPasswordHasher {
     #[must_use]
     #[allow(clippy::missing_const_for_fn)] // Tokio semaphore and Arc constructors are not const
     pub fn new(max_concurrent_hashes: super::AdminPasswordHashConcurrency) -> Self {
-        Self {
-            semaphore: super::AdminSharedSemaphoreArc(std::sync::Arc::new(
-                tokio::sync::Semaphore::new(max_concurrent_hashes.0.get().get()),
-            )),
-        }
+        Self::from_semaphore(super::AdminSharedSemaphoreArc::from(std::sync::Arc::new(
+            tokio::sync::Semaphore::new(max_concurrent_hashes.get().get().get()),
+        )))
     }
     pub async fn hash(
         &self,
         password: super::AdminPassword,
     ) -> Result<super::AdminPasswordHash, super::AdminPasswordHashError> {
-        let permit = std::sync::Arc::<tokio::sync::Semaphore>::clone(&self.semaphore.0)
-            .acquire_owned()
-            .await
-            .map_err(|error| {
-                super::AdminPasswordHashError::SemaphoreClosed(super::TokioAdminAcquireError::from(
-                    error,
-                ))
-            })?;
+        let permit = self.acquire().await?;
         tokio::task::spawn_blocking(move || {
             let result = {
                 let password_secret = password.into_inner();
@@ -55,19 +46,13 @@ impl super::AdminPasswordHasher {
         password: super::AdminPassword,
         expected_hash: super::AdminPasswordHash,
     ) -> Result<super::StdAdminBool, super::AdminPasswordHashError> {
-        let permit = std::sync::Arc::<tokio::sync::Semaphore>::clone(&self.semaphore.0)
-            .acquire_owned()
-            .await
-            .map_err(|error| {
-                super::AdminPasswordHashError::SemaphoreClosed(super::TokioAdminAcquireError::from(
-                    error,
-                ))
-            })?;
+        let permit = self.acquire().await?;
         tokio::task::spawn_blocking(move || {
             let result = {
                 let password_secret = password.into_inner();
+                let expected_hash_text = expected_hash.expose();
                 let parsed_hash =
-                    argon2::PasswordHash::new(expected_hash.0.as_ref()).map_err(|error| {
+                    argon2::PasswordHash::new(expected_hash_text.as_ref()).map_err(|error| {
                         super::AdminPasswordHashError::PasswordHash(
                             super::Argon2AdminPasswordHashError::from(error),
                         )

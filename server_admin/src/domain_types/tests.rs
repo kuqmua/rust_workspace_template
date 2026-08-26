@@ -13,12 +13,12 @@ fn cleanup_configuration_enforces_positive_bounded_values() {
         Err(super::AdminCleanupCfgError::RetentionMustBePositive)
     );
     assert_eq!(
-        super::AdminCleanupBatchSize::try_from(1_000i64),
-        Ok(super::AdminCleanupBatchSize(1_000i64))
+        super::AdminCleanupBatchSize::try_from(1_000i64).map(|_value| ()),
+        Ok(())
     );
     assert_eq!(
-        super::AdminCleanupRetentionSeconds::try_from(3_600i64),
-        Ok(super::AdminCleanupRetentionSeconds(3_600i64))
+        super::AdminCleanupRetentionSeconds::try_from(3_600i64).map(|_value| ()),
+        Ok(())
     );
 }
 fn secret(value: &str) -> super::SecrecyAdminString {
@@ -178,9 +178,9 @@ fn cookie_parser_matches_complete_cookie_name() {
     );
 }
 #[test]
-fn bootstrap_login_format_accepts_only_database_compatible_values() {
+fn administrator_login_format_accepts_only_database_compatible_values() {
     let valid =
-        super::AdminLogin::try_from(constants_str::ADMIN_USER_1.to_owned()).expect("078c759d bootstrap_login_format_accepts_only_database_compatible_values invariant must hold");
+        super::AdminLogin::try_from(constants_str::ADMIN_USER_1.to_owned()).expect("078c759d administrator_login_format_accepts_only_database_compatible_values invariant must hold");
     assert_eq!(valid.as_ref(), constants_str::ADMIN_USER_1);
     let _uppercase_error = super::AdminLogin::try_from(constants_str::ADMIN.to_owned())
         .expect_err(constants_str::VALUE_5FA1C6E2);

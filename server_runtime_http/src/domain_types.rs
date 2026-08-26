@@ -28,7 +28,7 @@ mod request_timeout;
 mod secure_cookie;
 mod security_headers;
 mod service;
-mod service_bootstrap;
+mod service_runtime;
 mod trace_context;
 mod wire_token;
 pub use batched_cleanup::{
@@ -159,14 +159,14 @@ pub use security_headers::{
     SecurityHeadersLayer,
 };
 pub use server_observability::service_tracing_format::ServiceTracingFormat;
-pub use server_observability::service_tracing_format::bootstrap::*;
 pub use server_observability::service_tracing_format::capture::*;
+pub use server_observability::service_tracing_format::initialization::*;
 pub use server_runtime_core::domain_types::*;
 pub use service::{
     ServeIoError, ServeWithGracefulShutdownError, ServiceRuntime, TokioTcpListener,
     add_status_route, serve_with_graceful_shutdown,
 };
-pub use service_bootstrap::{
+pub use service_runtime::{
     ServiceRuntimeIoError, TokioServiceRuntime, build_service_runtime,
     wait_for_service_shutdown_signal,
 };

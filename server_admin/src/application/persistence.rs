@@ -40,7 +40,7 @@ impl AdminAuditResourceId {
         match self {
             Self::User(value) => super::super::StdAdminString::from_positive_i64(value.value()),
             Self::Role(value) => super::super::StdAdminString::from_positive_i64(value.value()),
-            Self::Session(value) => super::super::StdAdminString::from_uuid(value.0),
+            Self::Session(value) => super::super::StdAdminString::from_uuid(value.get()),
             Self::SystemSettings => super::super::StdAdminString::system_settings_resource(),
         }
     }

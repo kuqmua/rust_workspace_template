@@ -10,7 +10,7 @@ The project follows semantic versioning after its first stable release. Until th
 ### Added
 
 - Administrator-template readiness roadmap and supported-feature matrix.
-- Safe one-time `admin_bootstrap` command using a bounded password file.
+- Safe one-time `administrator_account_initialization_and_password_reset` command using a bounded password file.
 - Clean-clone administrator quickstart.
 - Administrator resource extension guide.
 - Private vulnerability-reporting policy.

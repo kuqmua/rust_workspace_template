@@ -56,27 +56,27 @@ pub enum IdentityRolePresence {
 }
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum IdentityBootstrapDecision {
+pub enum IdentityCreationDecision {
     AlreadyExists,
     Create,
     MissingRole,
 }
 
 #[must_use]
-pub const fn plan_identity_bootstrap(
+pub const fn plan_identity_creation(
     identity: IdentityPresence,
     role: IdentityRolePresence,
-) -> IdentityBootstrapDecision {
+) -> IdentityCreationDecision {
     match (identity, role) {
         (
             IdentityPresence::Present,
             IdentityRolePresence::Missing | IdentityRolePresence::Present,
-        ) => IdentityBootstrapDecision::AlreadyExists,
+        ) => IdentityCreationDecision::AlreadyExists,
         (IdentityPresence::Missing, IdentityRolePresence::Missing) => {
-            IdentityBootstrapDecision::MissingRole
+            IdentityCreationDecision::MissingRole
         }
         (IdentityPresence::Missing, IdentityRolePresence::Present) => {
-            IdentityBootstrapDecision::Create
+            IdentityCreationDecision::Create
         }
     }
 }
@@ -86,25 +86,25 @@ mod tests {
     #[test]
     fn desired_state_planning_is_idempotent_and_requires_role() {
         assert_eq!(
-            super::plan_identity_bootstrap(
+            super::plan_identity_creation(
                 super::IdentityPresence::Present,
                 super::IdentityRolePresence::Present,
             ),
-            super::IdentityBootstrapDecision::AlreadyExists
+            super::IdentityCreationDecision::AlreadyExists
         );
         assert_eq!(
-            super::plan_identity_bootstrap(
+            super::plan_identity_creation(
                 super::IdentityPresence::Missing,
                 super::IdentityRolePresence::Missing,
             ),
-            super::IdentityBootstrapDecision::MissingRole
+            super::IdentityCreationDecision::MissingRole
         );
         assert_eq!(
-            super::plan_identity_bootstrap(
+            super::plan_identity_creation(
                 super::IdentityPresence::Missing,
                 super::IdentityRolePresence::Present,
             ),
-            super::IdentityBootstrapDecision::Create
+            super::IdentityCreationDecision::Create
         );
     }
 

@@ -1,8 +1,8 @@
 [package]
-name = "admin_bootstrap"
+name = "administrator_account_initialization_and_password_reset"
 version.workspace = true
 publish.workspace = true
-description = "One-time administrator bootstrap command"
+description = "One-time initial administrator creation command"
 repository.workspace = true
 
 license.workspace = true

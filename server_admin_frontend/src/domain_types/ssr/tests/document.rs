@@ -135,20 +135,20 @@ fn header_items_stay_stable_between_static_and_table_pages() {
 }
 
 #[test]
-fn csr_page_contains_only_bootstrap_shell() {
+fn csr_page_contains_only_csr_application_shell() {
     let admin = server_admin_contract::domain_types::AuthenticatedAdmin::new(
         server_admin_contract::domain_types::AdminDisplayName::try_from(
             constants_str::ADMIN.to_owned(),
         )
-        .expect("642357a8 csr_page_contains_only_bootstrap_shell invariant must hold"),
+        .expect("642357a8 csr_page_contains_only_csr_application_shell invariant must hold"),
         server_admin_contract::domain_types::AdminUserId::try_from(constants_i64::ONE)
-            .expect("41856438 csr_page_contains_only_bootstrap_shell invariant must hold"),
+            .expect("41856438 csr_page_contains_only_csr_application_shell invariant must hold"),
         server_admin_contract::domain_types::AdminLogin::try_from(constants_str::ROOT.to_owned())
-            .expect("71a3b6e5 csr_page_contains_only_bootstrap_shell invariant must hold"),
+            .expect("71a3b6e5 csr_page_contains_only_csr_application_shell invariant must hold"),
         server_admin_contract::domain_types::AdminPermissionValues::try_from(Vec::new())
-            .expect("8e3cf81f csr_page_contains_only_bootstrap_shell invariant must hold"),
+            .expect("8e3cf81f csr_page_contains_only_csr_application_shell invariant must hold"),
         server_admin_contract::domain_types::AdminRoleNames::try_from(Vec::new())
-            .expect("a5677f33 csr_page_contains_only_bootstrap_shell invariant must hold"),
+            .expect("a5677f33 csr_page_contains_only_csr_application_shell invariant must hold"),
     );
     let settings = server_admin_contract::domain_types::AdminSettingsView::new(
         server_admin_contract::domain_types::AdminDefaultRoute::try_from(
@@ -156,7 +156,7 @@ fn csr_page_contains_only_bootstrap_shell() {
                 .get()
                 .to_owned(),
         )
-        .expect("44758b19 csr_page_contains_only_bootstrap_shell invariant must hold"),
+        .expect("44758b19 csr_page_contains_only_csr_application_shell invariant must hold"),
         None,
         None,
         None,
@@ -164,7 +164,7 @@ fn csr_page_contains_only_bootstrap_shell() {
         server_admin_contract::domain_types::AdminSiteName::try_from(String::from(
             constants_str::ADMIN,
         ))
-        .expect("8ba6b381 csr_page_contains_only_bootstrap_shell invariant must hold"),
+        .expect("8ba6b381 csr_page_contains_only_csr_application_shell invariant must hold"),
         None,
         None,
     );
@@ -181,7 +181,7 @@ fn csr_page_contains_only_bootstrap_shell() {
     assert!(html.as_ref().contains("aria-live=\"polite\""));
     assert!(
         html.as_ref()
-            .contains("src=\"/admin/assets/csr_bootstrap.js?v=20260801-37\"")
+            .contains("src=\"/admin/assets/admin_csr_application.js?v=20260801-37\"")
     );
     assert!(!html.as_ref().contains("<nav"));
     assert!(!html.as_ref().contains("<table"));
@@ -196,6 +196,6 @@ fn csr_page_contains_only_bootstrap_shell() {
     assert!(
         table_html
             .as_ref()
-            .contains("src=\"/admin/assets/csr_bootstrap.js?v=20260801-37\"")
+            .contains("src=\"/admin/assets/admin_csr_application.js?v=20260801-37\"")
     );
 }

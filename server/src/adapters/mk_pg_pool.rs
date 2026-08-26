@@ -1,4 +1,4 @@
-#![allow(clippy::single_call_fn)] // bootstrap helpers each own one validated construction responsibility
+#![allow(clippy::single_call_fn)] // database pool construction helpers each own one validated construction responsibility
 
 pub(crate) async fn mk_pg_pool(
     config: &server_config::domain_types::Config,

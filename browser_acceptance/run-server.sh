@@ -63,7 +63,7 @@ printf '%s\n' "Initial-password1!" > "${password_file}"
 
 cd "server"
 
-cargo run --package admin_bootstrap -- \
+cargo run --package administrator_account_initialization_and_password_reset -- \
   administrator "Initial Administrator" "${password_file}"
 
 rm -f "${password_file}"

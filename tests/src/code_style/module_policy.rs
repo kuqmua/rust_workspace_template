@@ -110,12 +110,8 @@ fn single_item_modules_match_their_item_name() {
         );
     });
 }
-fn large_module_exceptions() -> [&'static str; 3] {
-    [
-        constants_str::VALUE_7FE2AF02,
-        constants_str::VALUE_D405F3E1,
-        constants_str::VALUE_B278317D,
-    ]
+fn large_module_exceptions() -> [&'static str; 2] {
+    [constants_str::VALUE_7FE2AF02, constants_str::VALUE_D405F3E1]
 }
 
 fn is_test_source(path: &std::path::Path) -> bool {
@@ -292,7 +288,8 @@ fn environment_initializer_domain_types_exclude_entrypoint_orchestration() {
     clippy::needless_for_each,
     reason = "the iterator form follows the workspace no-for-loop policy"
 )]
-fn admin_bootstrap_domain_types_exclude_application_workflows() {
+fn administrator_account_initialization_and_password_reset_domain_types_exclude_application_workflows()
+ {
     super::snapshot::with_codebase_snapshot(|snapshot| {
         let source = snapshot
             .rs_files()
@@ -302,7 +299,7 @@ fn admin_bootstrap_domain_types_exclude_application_workflows() {
                     .as_ref()
                     .ends_with(constants_str::VALUE_2C978AB0)
             })
-            .expect("f49a25d6 administrator bootstrap domain types source must exist")
+            .expect("f49a25d6 initial administrator creation domain types source must exist")
             .content()
             .as_ref();
         [
@@ -316,7 +313,7 @@ fn admin_bootstrap_domain_types_exclude_application_workflows() {
         .for_each(|forbidden| {
             assert!(
                 !source.contains(forbidden),
-                "2f5b1520 administrator bootstrap domain_types contains application workflow `{forbidden}`"
+                "2f5b1520 initial administrator creation domain_types contains application workflow `{forbidden}`"
             );
         });
     });

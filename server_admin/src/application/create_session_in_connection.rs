@@ -20,9 +20,7 @@ pub(super) async fn create_session_in_connection(
     )
     .map_err(super::AdminSessionError::SecretText)?;
     let refresh_token = super::super::AdminRefreshToken::new(super::super::AdminOpaqueToken::new(
-        super::super::SecrecyAdminString::from(secrecy::SecretBox::new(Box::new(
-            secrecy::ExposeSecret::expose_secret(refresh_generated.token().0.as_ref()).clone(),
-        ))),
+        refresh_generated.token().clone_secret(),
     ));
     let csrf_generated = super::super::AdminGeneratedToken::generate()
         .map_err(super::AdminSessionError::SecretText)?;
@@ -38,7 +36,7 @@ pub(super) async fn create_session_in_connection(
         super::super::hash_opaque_token::hash_opaque_token(&token_identifier)
             .map_err(super::AdminSessionError::SecretText)?;
     let expires_at =
-        super::super::AdminUnixTokenStream::from(now.0.saturating_add(state.access_ttl.0));
+        super::super::AdminUnixTokenStream::from(now.get().saturating_add(state.access_ttl.0));
     let claims = super::super::AdminAccessClaims::new(
         user_id,
         session_id,
@@ -52,10 +50,14 @@ pub(super) async fn create_session_in_connection(
         &claims,
         &state.encoding_key.0,
     )
-    .map(super::super::StdAdminAccessToken)
     .map_err(super::super::JsonwebtokenAdminError::from)
     .map_err(super::super::AdminAccessTokenError::from)
-    .map_err(super::AdminSessionError::AccessToken)?;
+    .map_err(super::AdminSessionError::AccessToken)
+    .and_then(|value| {
+        super::super::StdAdminAccessToken::try_from(value)
+            .map_err(super::super::AdminSecretTextError::from)
+            .map_err(super::AdminSessionError::SecretText)
+    })?;
     let session_offset =
         i64::try_from(usize::from(state.session_limit).saturating_sub(constants_usize::ONE))
             .unwrap_or(i64::MAX);
@@ -97,11 +99,7 @@ pub(super) async fn create_session_in_connection(
         .map(drop)?;
     Ok(super::AdminSessionBundle {
         access_token,
-        csrf_token: super::super::AdminOpaqueToken::new(super::super::SecrecyAdminString::from(
-            secrecy::SecretBox::new(Box::new(
-                secrecy::ExposeSecret::expose_secret(csrf_generated.token().0.as_ref()).clone(),
-            )),
-        )),
+        csrf_token: super::super::AdminOpaqueToken::new(csrf_generated.token().clone_secret()),
         refresh_token,
         session_id,
     })

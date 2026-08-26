@@ -198,7 +198,7 @@ SVG as the `query-builders-flamegraph` workflow artifact.
   budgets and default-deny networking.
 - Environment-specific overlays must supply ConfigMaps, Secrets, ingress, immutable images and
   database endpoints.
-- Administrator bootstrap, recovery, rotation and retention procedures are documented in
+- Initial administrator creation, recovery, rotation and retention procedures are documented in
 [the operations runbook](docs/admin-production-operations.md).
 
 ## Adding a service

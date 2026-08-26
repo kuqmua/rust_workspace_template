@@ -6,6 +6,6 @@
 mod application;
 mod domain_types;
 
-fn main() -> domain_types::BootstrapExitCode {
+fn main() -> domain_types::AdministratorAccountCommandExitCode {
     application::run_main()
 }

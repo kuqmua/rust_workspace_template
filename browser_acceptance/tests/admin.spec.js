@@ -22,7 +22,7 @@ async function firstCellStyle(page) {
   });
 }
 
-test("bootstrap sign-in forces a password change before administrator access", async ({
+test("initial administrator sign-in forces a password change before administrator access", async ({
   page
 }) => {
   const signInResponse = await page.goto("/admin/sign_in");

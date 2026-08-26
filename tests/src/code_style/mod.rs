@@ -1529,9 +1529,10 @@ fn nearest_cargo_toml_path(path: types::PathRef<'_>) -> Option<types::OwnedPathB
         .map(types::OwnedPathBuf::from)
 }
 fn is_str_constants_source_path(path: types::PathRef<'_>) -> types::AnalyzerBool {
-    types::AnalyzerBool::from(
-        path.as_ref() == std::path::Path::new(constants_str::STR_CONSTANTS_SRC_LIB_RS),
-    )
+    let constants_source_directory = std::path::Path::new(constants_str::STR_CONSTANTS_SRC_LIB_RS)
+        .parent()
+        .expect("77e3ab42 constants string source path must have a parent directory");
+    types::AnalyzerBool::from(path.as_ref().parent() == Some(constants_source_directory))
 }
 fn is_test_crate(parsed: types::TomlTableRef<'_>) -> types::AnalyzerBool {
     types::AnalyzerBool::from(

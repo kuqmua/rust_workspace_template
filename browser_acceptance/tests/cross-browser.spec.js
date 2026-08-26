@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import {
   observeBrowserErrors,
-  signInBootstrappedAdministrator
+  signInInitialAdministrator
 } from "./support/admin.js";
 import { primaryAdminPaths } from "./support/pages.js";
 
@@ -14,7 +14,7 @@ test.skip(
 test("administrator shell works across production browser engines", async ({ page }) => {
   const { consoleErrors, pageErrors } = observeBrowserErrors(page);
 
-  await signInBootstrappedAdministrator(page);
+  await signInInitialAdministrator(page);
 
   for (const path of primaryAdminPaths) {
     const response = await page.goto(path);

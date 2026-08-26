@@ -164,10 +164,6 @@ fn substantial_function_bodies_have_one_source_of_truth() {
             reason: constants_str::VALUE_349BC694,
         },
         ReviewedDuplicateGroup {
-            locations: constants_str::VALUE_F487DB2D,
-            reason: constants_str::VALUE_9661CEC1,
-        },
-        ReviewedDuplicateGroup {
             locations: constants_str::VALUE_88A7A661,
             reason: constants_str::VALUE_589704B1,
         },

@@ -1,12 +1,12 @@
 [package]
-name = "dev_data_bootstrap"
+name = "dev_identity_creation_planner"
 version.workspace = true
 publish.workspace = true
 description = "Desired-state planning for development identities and sample data"
 repository.workspace = true
 
 license.workspace = true
-keywords = ["development", "bootstrap"]
+keywords = ["development", "identity-creation"]
 categories = ["development-tools"]
 edition.workspace = true
 

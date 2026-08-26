@@ -373,7 +373,7 @@ fn audit_details_enforce_serialized_byte_limit() {
     ));
     assert_eq!(
         oversized.err(),
-        Some(super::AdminAuditDetailsTooLarge(
+        Some(super::AdminAuditDetailsTooLarge::from(
             super::AdminAuditDetailsBytes::from(
                 super::ADMIN_AUDIT_DETAILS_MAX_BYTES.saturating_add(2usize),
             ),

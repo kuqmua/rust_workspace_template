@@ -33,16 +33,16 @@ export async function changePassword(page, currentPassword, newPassword) {
   await passwordChanged;
 }
 
-export async function bootstrapAdministrator(page) {
+export async function createInitialAdministrator(page) {
   await signIn(page, "administrator", initialAdminPassword);
   await expect(page).toHaveURL(/\/admin\/profile$/);
   await changePassword(page, initialAdminPassword, changedAdminPassword);
 }
 
-export async function signInBootstrappedAdministrator(page) {
+export async function signInInitialAdministrator(page) {
   await signIn(page);
   if (page.url().endsWith("/admin/actions/sign_in")) {
-    await bootstrapAdministrator(page);
+    await createInitialAdministrator(page);
     await page.goto("/admin/users");
   }
   await expect(page).toHaveURL(/\/admin\/users$/);

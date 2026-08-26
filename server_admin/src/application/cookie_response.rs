@@ -12,9 +12,7 @@ pub(super) fn append_session_cookies(
     );
     let csrf = super::super::build_admin_cookie(
         super::super::AdminCookieKind::Csrf,
-        super::super::StdAdminStrRef::from(
-            secrecy::ExposeSecret::expose_secret(session.csrf_token.0.as_ref()).as_str(),
-        ),
+        super::super::StdAdminStrRef::from(session.csrf_token.expose().as_ref()),
         super::super::AdminCookieMaxAgeSeconds::from(state.access_ttl.0),
         state.cookie_secure,
     );

@@ -44,7 +44,7 @@ pub(in crate::domain_types::ssr) fn render_admin_csr(
             <div id=constants_str::ADMIN_CSR_ROOT_ID style=primary_color>
                 <crate::domain_types::with_owner::admin_spinner::AdminSpinner />
             </div>
-            <script type="module" src="/admin/assets/csr_bootstrap.js?v=20260801-37"></script>
+            <script type="module" src="/admin/assets/admin_csr_application.js?v=20260801-37"></script>
         },
     )
 }

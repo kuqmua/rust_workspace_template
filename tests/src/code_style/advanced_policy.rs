@@ -1202,8 +1202,12 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             (0, 0, 2, constants_str::VALUE_207C8F2A),
         ),
         (
-            constants_str::VALUE_1ACC98BE,
-            (0, 0, 96, constants_str::VALUE_39634CD1),
+            constants_str::VALUE_4F121480,
+            (0, 0, 6, constants_str::VALUE_39634CD1),
+        ),
+        (
+            constants_str::VALUE_5C56EDC0,
+            (0, 0, 90, constants_str::VALUE_39634CD1),
         ),
         (
             constants_str::VALUE_7DF10CC7,
@@ -1254,7 +1258,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             (1, 0, 1, constants_str::VALUE_A86D0615),
         ),
         (
-            constants_str::SERVER_ADMIN_SRC_LIB_RS,
+            constants_str::CODE_STYLE_SERVER_ADMIN_AUTH_SECURITY_PATH,
             (1, 0, 0, constants_str::VALUE_93F9D3B6),
         ),
         (
@@ -1586,7 +1590,7 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             ),
         ),
         (
-            constants_str::SERVER_ADMIN_SRC_LIB_RS,
+            constants_str::CODE_STYLE_SERVER_ADMIN_MAINTENANCE_PATH,
             (
                 constants_usize::ONE,
                 constants_str::INLINED_ADMIN_OPERATIONS_DISCARD_TYPED_CONVERSION_DETAILS_AT_THE_HTTP_BOUNDARY,
@@ -1802,7 +1806,11 @@ fn usize_max_usage_matches_reviewed_inventory() {
         ),
         (
             constants_str::VALUE_7615091D,
-            (3usize, constants_str::VALUE_17CAA05F),
+            (constants_usize::ONE, constants_str::VALUE_17CAA05F),
+        ),
+        (
+            constants_str::CODE_STYLE_FRONTEND_ROUTE_CONTRACT_PATH,
+            (2usize, constants_str::VALUE_17CAA05F),
         ),
         (
             constants_str::VALUE_B7324575,

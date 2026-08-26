@@ -3,5 +3,5 @@ mod application;
 mod domain_types;
 
 fn main() -> domain_types::ServerExitCode {
-    application::bootstrap::run_main()
+    application::startup::run_main()
 }

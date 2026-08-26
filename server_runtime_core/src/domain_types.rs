@@ -4,7 +4,7 @@ mod exclusive_run;
 mod execution_plan;
 mod generation_gate;
 mod history;
-mod identity_bootstrap;
+mod identity_creation_plan;
 mod lease_registry;
 mod resource_budget;
 mod resource_utilization;
@@ -22,9 +22,9 @@ pub use history::{
     AsyncRunHistory, AsyncRunHistoryMaximumLenNonZeroUsize, AsyncRunHistorySnapshot,
     StdAsyncRunHistoryMaximumLenTryFromUsizeError, StdAsyncRunHistoryReportCount,
 };
-pub use identity_bootstrap::{
-    IdentityBootstrapDecision, IdentityPresence, IdentityRolePresence, IdentitySpec,
-    plan_identity_bootstrap,
+pub use identity_creation_plan::{
+    IdentityCreationDecision, IdentityPresence, IdentityRolePresence, IdentitySpec,
+    plan_identity_creation,
 };
 pub use lease_registry::{
     LeaseHeartbeat, LeaseId, LeaseIds, LeaseKey, LeaseRegistry, LeaseRegistryMaximumNonZeroUsize,

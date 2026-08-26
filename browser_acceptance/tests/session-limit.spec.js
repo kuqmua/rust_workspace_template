@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import {
   adminOrigin,
-  bootstrapAdministrator,
+  createInitialAdministrator,
   signIn
 } from "./support/admin.js";
 
@@ -16,7 +16,7 @@ test("the third sign-in evicts only the oldest session when the limit is two", a
 }) => {
   const firstContext = await browser.newContext({ baseURL: adminOrigin });
   const firstPage = await firstContext.newPage();
-  await bootstrapAdministrator(firstPage);
+  await createInitialAdministrator(firstPage);
 
   const secondContext = await browser.newContext({ baseURL: adminOrigin });
   const secondPage = await secondContext.newPage();

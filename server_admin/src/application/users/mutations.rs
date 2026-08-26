@@ -39,7 +39,7 @@ pub(in crate::domain_types::auth) async fn create(
         &password_hash,
     )
     .await
-    .map_err(|error| super::super::shared::map_unique_violation(error.0))?;
+    .map_err(|error| super::super::shared::map_unique_violation(error.into_inner()))?;
     super::super::persistence::record_audit_success_in_connection(
         super::super::persistence::SqlxAdminPgConnectionRef::from(&mut *tx),
         super::super::persistence::AdminAuditSuccessRef {
@@ -103,7 +103,7 @@ pub(in crate::domain_types::auth) async fn update(
         .await
         .map_err(crate::domain_types::SqlxAdminError::from)
         .map(|value| super::super::super::StdAdminBool::from(value.is_some()))
-        .map_err(|error| super::super::shared::map_unique_violation(error.0))?
+        .map_err(|error| super::super::shared::map_unique_violation(error.into_inner()))?
         .get()
         .then_some(())
         .ok_or(super::super::AdminError::Conflict)?;

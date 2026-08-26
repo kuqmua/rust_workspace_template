@@ -1,7 +1,7 @@
 import { devices, expect, test } from "@playwright/test";
 import {
   adminOrigin,
-  signInBootstrappedAdministrator
+  signInInitialAdministrator
 } from "./support/admin.js";
 import {
   adminPages,
@@ -15,7 +15,7 @@ const authenticatedTest = test.extend({
       ...devices["Desktop Chrome"],
       baseURL: adminOrigin
     });
-    await signInBootstrappedAdministrator(page);
+    await signInInitialAdministrator(page);
     await use(page);
     await page.close();
   }, { scope: "worker" }],

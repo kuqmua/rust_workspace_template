@@ -731,7 +731,7 @@ async fn postgresql_html_settings_updates_and_reads_every_field_separately() {
 }
 #[tokio::test]
 #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
-async fn postgresql_bootstrap_password_must_change_before_admin_access() {
+async fn postgresql_initial_administrator_password_must_change_before_admin_access() {
     let fixture = admin_html_test_fixture_with_password_change(
         server_admin_contract::domain_types::AdminBool::from(true),
     )
@@ -763,11 +763,11 @@ async fn postgresql_bootstrap_password_must_change_before_admin_access() {
     .await;
     assert_eq!(profile_response.status(), http::StatusCode::OK);
     let correct_password =
-        serde_json::from_str::<String>(constants_str::CORRECT_PASSWORD).expect("e20a72a8 postgresql_bootstrap_password_must_change_before_admin_access invariant must hold");
+        serde_json::from_str::<String>(constants_str::CORRECT_PASSWORD).expect("e20a72a8 postgresql_initial_administrator_password_must_change_before_admin_access invariant must hold");
     let change_password_body = AdminHtmlTestFormBody::try_from(format!(
-        "current_password={correct_password}&new_password=Bootstrap-changed-pass2",
+        "current_password={correct_password}&new_password=Initial-administrator-changed-pass2",
     ))
-    .expect("b42a390d postgresql_bootstrap_password_must_change_before_admin_access invariant must hold");
+    .expect("b42a390d postgresql_initial_administrator_password_must_change_before_admin_access invariant must hold");
     let change_password_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod::from(http::Method::POST),
@@ -786,7 +786,7 @@ async fn postgresql_bootstrap_password_must_change_before_admin_access() {
     )
     .fetch_one(&fixture.pool.0)
     .await
-    .expect("ea57fc2d postgresql_bootstrap_password_must_change_before_admin_access invariant must hold");
+    .expect("ea57fc2d postgresql_initial_administrator_password_must_change_before_admin_access invariant must hold");
     assert!(!password_change_required);
     let post_change_users_response = admin_html_response(
         &fixture,
@@ -798,7 +798,7 @@ async fn postgresql_bootstrap_password_must_change_before_admin_access() {
     )
     .await;
     assert_eq!(post_change_users_response.status(), http::StatusCode::OK);
-    fixture.lock.0.rollback().await.expect("6a8ce0f3 postgresql_bootstrap_password_must_change_before_admin_access invariant must hold");
+    fixture.lock.0.rollback().await.expect("6a8ce0f3 postgresql_initial_administrator_password_must_change_before_admin_access invariant must hold");
 }
 
 #[tokio::test]

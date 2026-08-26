@@ -2,8 +2,8 @@
 
 | Current package | Observed responsibility | Proposed package name |
 |---|---|---|
-| `admin_bootstrap` | One-time administrator bootstrap executable | `administrator_account_bootstrap_cli` |
-| `dev_data_bootstrap` | Plans desired development identities and sample data | `development_sample_data_bootstrap_planner` |
+| `administrator_account_initialization_and_password_reset` | One-time initial administrator creation executable | `administrator_account_initialization_and_password_reset_cli` |
+| `dev_identity_creation_planner` | Plans desired development identities and sample data | `development_sample_data_creation_planner` |
 | `external_service_emulators` | Deterministic integration-test substitutes for external services | `integration_test_external_service_emulators` |
 | `file_storage` | Symlink-resistant staged filesystem storage | `secure_staged_file_storage` |
 | `init_env_files` | Initializes environment files from examples | `workspace_environment_file_initializer_cli` |
@@ -11,13 +11,13 @@
 | `notification_service_config` | Validated notification-service environment configuration | `notification_service_configuration` |
 | `notification_service_contract` | Notification transport DTOs and API contract | `notification_service_transport_contract` |
 | `prepare_pg_databases` | Plans PostgreSQL database preparation commands | `postgres_database_preparation_planner` |
-| `server` | Main application server bootstrap, routing, and maintenance executable | `application_server` |
+| `server` | Main application server startup, routing, and maintenance executable | `application_server` |
 | `server_admin` | Reusable administrator API, persistence, authentication, and UI application logic | `administrator_service` |
 | `server_admin_contract` | Shared administrator HTTP DTOs, queries, routes, and sessions | `administrator_http_contract` |
 | `server_admin_core` | Administrator domain wrapper types and invariants | `administrator_domain_types` |
 | `server_admin_frontend` | Reusable Rust/Leptos administrator frontend and SSR UI | `administrator_web_frontend` |
 | `server_config` | Aggregated validated configuration used by the server | `application_server_configuration` |
-| `server_observability` | Shared tracing, diagnostics, bootstrap, and capture primitives | `service_observability_runtime` |
+| `server_observability` | Shared tracing, diagnostics, initialization, and capture primitives | `service_observability_runtime` |
 | `server_runtime_core` | Dependency-light jobs, queues, leases, retry, budgets, and execution primitives | `service_runtime_core` |
 | `server_runtime_http` | HTTP server, middleware, health, security, and client primitives | `http_service_runtime` |
 | `synchronization_service_runtime` | Facade over shared synchronization-service runtime capabilities | `data_synchronization_service_runtime` |

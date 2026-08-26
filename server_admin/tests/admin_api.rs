@@ -324,8 +324,8 @@ fn assert_admin_csr_shell(body: &AdminHtmlTestBody) {
     );
     assert!(
         body.0
-            .contains("src=\"/admin/assets/csr_bootstrap.js?v=20260801-37\""),
-        "CSR bootstrap script is missing"
+            .contains("src=\"/admin/assets/admin_csr_application.js?v=20260801-37\""),
+        "CSR application script is missing"
     );
     assert!(!body.0.contains("<table"), "server rendered a data table");
     assert!(!body.0.contains("<form"), "server rendered a data form");
@@ -381,7 +381,7 @@ async fn admin_html_test_fixture_with_password_change(
             ),
         ),
     );
-    let _created_admin_id = server_admin::domain_types::bootstrap_admin(
+    let _created_admin_id = server_admin::domain_types::create_initial_administrator(
         app_state::domain_types::SqlxPgPoolRef::from(&pool.0),
         server_admin::domain_types::AdminLogin::try_from(constants_str::ADMIN_ALT.to_owned())
             .expect("6a417bde admin_html_test_fixture_with_password_change invariant must hold"),

@@ -98,8 +98,8 @@ fn session_context_hash_is_bound_to_peer_and_user_agent() {
     )
     .expect("998805c8 session_context_hash_is_bound_to_peer_and_user_agent invariant must hold");
     assert_eq!(
-        secrecy::ExposeSecret::expose_secret(same_context_hash.0.as_ref()),
-        secrecy::ExposeSecret::expose_secret(repeated_context_hash.0.as_ref()),
+        same_context_hash.expose().as_ref(),
+        repeated_context_hash.expose().as_ref(),
     );
     let other_peer = super::AdminPeerAddr::from(super::super::AdminSocketAddr::from(
         constants_str::VALUE_192_0_2_11_443
@@ -114,8 +114,8 @@ fn session_context_hash_is_bound_to_peer_and_user_agent() {
     )
     .expect("0803469a session_context_hash_is_bound_to_peer_and_user_agent invariant must hold");
     assert_ne!(
-        secrecy::ExposeSecret::expose_secret(same_context_hash.0.as_ref()),
-        secrecy::ExposeSecret::expose_secret(other_peer_hash.0.as_ref()),
+        same_context_hash.expose().as_ref(),
+        other_peer_hash.expose().as_ref(),
     );
     let mut other_headers = http::HeaderMap::new();
     let _previous_other_user_agent = other_headers.insert(
@@ -128,8 +128,8 @@ fn session_context_hash_is_bound_to_peer_and_user_agent() {
     )
     .expect("90ce47ee session_context_hash_is_bound_to_peer_and_user_agent invariant must hold");
     assert_ne!(
-        secrecy::ExposeSecret::expose_secret(same_context_hash.0.as_ref()),
-        secrecy::ExposeSecret::expose_secret(other_user_agent_hash.0.as_ref()),
+        same_context_hash.expose().as_ref(),
+        other_user_agent_hash.expose().as_ref(),
     );
 }
 #[test]

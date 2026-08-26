@@ -85,7 +85,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
             ),
         ),
     );
-    let _admin_id = server_admin::domain_types::bootstrap_admin(
+    let _admin_id = server_admin::domain_types::create_initial_administrator(
         app_state::domain_types::SqlxPgPoolRef::from(&pool.0),
         server_admin::domain_types::AdminLogin::try_from(constants_str::ADMIN_ALT.to_owned())
             .expect(
@@ -118,7 +118,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     >(constants_str::DIFFERENT_PASSWORD)
     .expect("e411f376 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
     assert!(matches!(
-        server_admin::domain_types::bootstrap_admin(
+        server_admin::domain_types::create_initial_administrator(
             app_state::domain_types::SqlxPgPoolRef::from(&pool.0),
             server_admin::domain_types::AdminLogin::try_from("other_admin".to_owned()).expect(
                 "8359ca1a postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold"
@@ -131,7 +131,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
             &hasher,
         )
         .await,
-        Err(server_admin::domain_types::AdminBootstrapError::AlreadyInitialized)
+        Err(server_admin::domain_types::InitialAdministratorCreationError::AlreadyInitialized)
     ));
     let preserved_password_hash = sqlx::query_scalar::<_, String>(
         constants_str::SELECT_PASSWORD_HASH_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN,
