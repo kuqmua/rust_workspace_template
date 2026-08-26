@@ -1,26 +1,4 @@
-#![allow(
-    clippy::single_call_fn,
-    reason = "SQLx capability projections are a physical boundary between descriptors and emitters"
-)]
-pub(super) fn can_be_nullable<CanBeNullable, CanBePrimaryKey, FilterKind, PgName, WireKind>(
-    spec: crate::domain_types::pg_type_spec::PgTypeSpec<
-        CanBeNullable,
-        CanBePrimaryKey,
-        FilterKind,
-        PgName,
-        WireKind,
-    >,
-) -> CanBeNullable {
-    spec.can_be_nullable
-}
-pub(super) fn can_be_primary_key<CanBeNullable, CanBePrimaryKey, FilterKind, PgName, WireKind>(
-    spec: crate::domain_types::pg_type_spec::PgTypeSpec<
-        CanBeNullable,
-        CanBePrimaryKey,
-        FilterKind,
-        PgName,
-        WireKind,
-    >,
-) -> CanBePrimaryKey {
-    spec.can_be_primary_key
-}
+#[path = "sqlx_can_be_nullable.rs"]
+pub(in crate::domain_types) mod can_be_nullable;
+#[path = "sqlx_can_be_primary_key.rs"]
+pub(in crate::domain_types) mod can_be_primary_key;

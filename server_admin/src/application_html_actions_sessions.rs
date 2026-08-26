@@ -21,15 +21,15 @@ pub(super) async fn revoke_session(
             super::super::super::AdminError::Validation,
         );
     };
-    match super::super::form_auth(auth) {
+    match super::super::form_auth_impl::form_auth(auth) {
         Ok(auth) => {
-            match super::super::super::sessions::revoke_session(
+            match super::super::super::sessions_revoke_session::revoke_session(
                 auth,
                 super::super::super::AdminSessionPath(session_id),
             )
             .await
             {
-                Ok(_response) => super::super::success_redirect(
+                Ok(_response) => super::super::success_redirect_impl::success_redirect(
                     server_admin_contract::domain_types::AdminFrontendPath::Sessions,
                 ),
                 Err(error) => axum::response::IntoResponse::into_response(error),

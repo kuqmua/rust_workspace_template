@@ -23,7 +23,7 @@ async fn html_form_auth_rejects_cookie_without_trusted_origin() {
         http::HeaderValue::from_static(constants_str::VALUE_BF7FDCFF),
     );
     assert!(matches!(
-        super::form_auth(auth_with_headers(headers)),
+        super::form_auth_impl::form_auth(auth_with_headers(headers)),
         Err(super::super::AdminError::Csrf)
     ));
 }
@@ -40,8 +40,9 @@ async fn admin_root_redirects_to_users() {
 
 #[test]
 fn successful_mutation_redirects_to_visible_server_feedback() {
-    let response =
-        super::success_redirect(server_admin_contract::domain_types::AdminFrontendPath::Users);
+    let response = super::success_redirect_impl::success_redirect(
+        server_admin_contract::domain_types::AdminFrontendPath::Users,
+    );
     assert_eq!(response.status(), http::StatusCode::SEE_OTHER);
     assert_eq!(
         response.headers().get(http::header::LOCATION),
@@ -53,18 +54,21 @@ fn successful_mutation_redirects_to_visible_server_feedback() {
 fn assignment_id_lists_reject_empty_entries() {
     let empty = super::forms::AdminHtmlFormText::try_from(String::new())
         .expect("1a37ef06 assignment_id_lists_reject_empty_entries invariant must hold");
-    assert!(matches!(super::role_ids(&empty), Ok(_ids)));
-    assert!(matches!(super::permission_ids(&empty), Ok(_ids)));
+    assert!(matches!(super::role_ids_impl::role_ids(&empty), Ok(_ids)));
+    assert!(matches!(
+        super::permission_ids_impl::permission_ids(&empty),
+        Ok(_ids)
+    ));
 
     let malformed =
         super::forms::AdminHtmlFormText::try_from(String::from(constants_str::VALUE_A2688517))
             .expect("c2d76f19 assignment_id_lists_reject_empty_entries invariant must hold");
     assert!(matches!(
-        super::role_ids(&malformed),
+        super::role_ids_impl::role_ids(&malformed),
         Err(super::super::AdminError::Validation)
     ));
     assert!(matches!(
-        super::permission_ids(&malformed),
+        super::permission_ids_impl::permission_ids(&malformed),
         Err(super::super::AdminError::Validation)
     ));
 }

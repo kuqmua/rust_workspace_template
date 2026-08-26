@@ -37,11 +37,13 @@ where
     RunFuture: Future<Output = Result<super::super::AxumAdminResponse, super::super::AdminError>>,
 {
     let (auth, expected, selected) =
-        match super::authenticated_selected_form(auth, expected, selected, parse) {
+        match super::authenticated_selected_form_impl::authenticated_selected_form(
+            auth, expected, selected, parse,
+        ) {
             Ok(values) => values,
             Err(error) => return axum::response::IntoResponse::into_response(error),
         };
-    super::action_result(
+    super::action_result_impl::action_result(
         run(
             auth,
             target,

@@ -38,9 +38,9 @@ async fn main() -> domain_types::NotificationExitCode {
     };
     let run_result = match config.svc_mode() {
         config_lib::domain_types::types::SvcMode::Migrate => {
-            adapters::runtime::migrate_notification(&config).await
+            adapters::migrate_notification::migrate_notification(&config).await
         }
-        config_lib::domain_types::types::SvcMode::Serve => adapters::runtime::run(config).await,
+        config_lib::domain_types::types::SvcMode::Serve => adapters::run::run(config).await,
     };
     if let Err(error) = run_result.as_ref() {
         tracing::error!(error = %error, "notification service terminated with an error");

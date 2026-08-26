@@ -1111,7 +1111,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
         ),
         (
             constants_str::VALUE_26637EB1,
-            (0, 0, 77, constants_str::VALUE_F86AE0A7),
+            (0, 0, 88, constants_str::VALUE_F86AE0A7),
         ),
         (
             constants_str::VALUE_BDEB5C57,
@@ -1280,16 +1280,29 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
         ),
     ]);
     super::snapshot::with_codebase_snapshot(|snapshot| {
-        let mut matched = std::collections::BTreeSet::new();
+        let split_owner_matches = |path: &str, owner: &str| {
+            owner
+                .strip_suffix(constants_str::RS_EXTENSION)
+                .and_then(|owner_stem| {
+                    path.trim_start_matches(constants_str::TEXT_ALT_9)
+                        .strip_prefix(owner_stem)
+                })
+                .is_some_and(|remainder| {
+                    remainder.starts_with('_') && remainder.ends_with(constants_str::RS_EXTENSION)
+                })
+        };
+        let mut observed_by_owner = std::collections::BTreeMap::new();
         let mut violations = Vec::new();
         snapshot
             .rs_files()
             .iter()
             .filter(|source_file| {
-                !super::is_test_source_path(super::types::PathRef::from(
-                    std::borrow::Borrow::<std::path::Path>::borrow(source_file.path()),
-                ))
-                    .get()
+                !super::is_test_source_path(super::types::PathRef::from(std::borrow::Borrow::<
+                    std::path::Path,
+                >::borrow(
+                    source_file.path()
+                )))
+                .get()
             })
             .for_each(|source_file| {
                 let visitor = super::visit_syn_file(
@@ -1301,39 +1314,44 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
                     visitor.lock_types.get(),
                     visitor.trait_objects.get(),
                 );
-                if observed == (constants_usize::ZERO, constants_usize::ZERO, constants_usize::ZERO) {
+                if observed
+                    == (
+                        constants_usize::ZERO,
+                        constants_usize::ZERO,
+                        constants_usize::ZERO,
+                    )
+                {
                     return;
                 }
                 let path = source_file.path().as_ref().display().to_string();
-                let reviewed_entry =
-                    reviewed
-                        .iter()
-                        .find(|(suffix, (_arc, _lock, _traits, reason))| {
-                            path.ends_with(**suffix) && !reason.is_empty()
-                        });
+                let reviewed_entry = reviewed
+                    .iter()
+                    .filter(|(suffix, (_arc, _lock, _traits, reason))| {
+                        (path.ends_with(**suffix) || split_owner_matches(path.as_str(), suffix))
+                            && !reason.is_empty()
+                    })
+                    .max_by_key(|(suffix, _expected)| suffix.len());
                 match reviewed_entry {
-                    Some((suffix, (arc, lock, traits, _reason)))
-                        if observed == (*arc, *lock, *traits) =>
-                    {
-                        let _inserted = matched.insert((*suffix).to_owned());
+                    Some((suffix, _expected)) => {
+                        let entry = observed_by_owner.entry(*suffix).or_insert((0, 0, 0));
+                        entry.0 += observed.0;
+                        entry.1 += observed.1;
+                        entry.2 += observed.2;
                     }
-                    Some((suffix, expected)) => violations.push(format!(
-                        "{path}: shared-dispatch inventory changed for {suffix}: expected={:?}, observed={observed:?}",
-                        (expected.0, expected.1, expected.2)
-                    )),
                     None => violations.push(format!(
                         "{path}: unreviewed Arc/lock/trait-object usage {observed:?}"
                     )),
                 }
             });
-        if matched.len() != reviewed.len() {
-            let stale = reviewed
-                .keys()
-                .filter(|suffix| !matched.contains(**suffix))
-                .copied()
-                .collect::<Vec<&str>>();
-            violations.push(format!("stale Arc/lock/trait-object inventory: {stale:#?}"));
-        }
+        reviewed.iter().for_each(|(suffix, expected)| {
+            let observed = observed_by_owner.get(suffix).copied().unwrap_or((0, 0, 0));
+            if observed != (expected.0, expected.1, expected.2) {
+                violations.push(format!(
+                    "shared-dispatch inventory changed for {suffix}: expected={:?}, observed={observed:?}",
+                    (expected.0, expected.1, expected.2)
+                ));
+            }
+        });
         assert!(violations.is_empty(), "66b91e7a {violations:#?}");
     });
 }
@@ -1622,7 +1640,18 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
         ),
     ]);
     super::snapshot::with_codebase_snapshot(|snapshot| {
-        let mut matched = std::collections::BTreeSet::new();
+        let split_owner_matches = |path: &str, owner: &str| {
+            owner
+                .strip_suffix(constants_str::RS_EXTENSION)
+                .and_then(|owner_stem| {
+                    path.trim_start_matches(constants_str::TEXT_ALT_9)
+                        .strip_prefix(owner_stem)
+                })
+                .is_some_and(|remainder| {
+                    remainder.starts_with('_') && remainder.ends_with(constants_str::RS_EXTENSION)
+                })
+        };
+        let mut observed_by_owner = std::collections::BTreeMap::new();
         let mut violations = Vec::new();
         snapshot.rs_files().iter().for_each(|source_file| {
             let visitor = super::visit_syn_file(
@@ -1633,19 +1662,16 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
                 return;
             }
             let path = source_file.path().as_ref().display().to_string();
-            let reviewed_entry = reviewed.iter().find(|(suffix, (_count, reason))| {
-                path.ends_with(**suffix) && !reason.is_empty()
-            });
+            let reviewed_entry = reviewed
+                .iter()
+                .filter(|(suffix, (_count, reason))| {
+                    (path.ends_with(**suffix) || split_owner_matches(path.as_str(), suffix))
+                        && !reason.is_empty()
+                })
+                .max_by_key(|(suffix, _expected)| suffix.len());
             match reviewed_entry {
-                Some((suffix, (count, _reason)))
-                    if *count == visitor.entries.len() => {
-                    let _inserted = matched.insert((*suffix).to_owned());
-                }
-                Some((suffix, (count, _reason))) => {
-                    violations.push(format!(
-                        "{path}: ignored map_err inventory changed for {suffix}: expected count={count}; observed count={}",
-                        visitor.entries.len()
-                    ));
+                Some((suffix, _expected)) => {
+                    *observed_by_owner.entry(*suffix).or_insert(0usize) += visitor.entries.len();
                 }
                 None => violations.push(format!(
                     "{path}: unreviewed ignored map_err bindings: count={}",
@@ -1653,14 +1679,14 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
                 )),
             }
         });
-        if matched.len() != reviewed.len() {
-            let stale = reviewed
-                .keys()
-                .filter(|suffix| !matched.contains(**suffix))
-                .copied()
-                .collect::<Vec<&str>>();
-            violations.push(format!("stale ignored map_err inventory: {stale:#?}"));
-        }
+        reviewed.iter().for_each(|(suffix, (expected, _reason))| {
+            let observed = observed_by_owner.get(suffix).copied().unwrap_or(0usize);
+            if observed != *expected {
+                violations.push(format!(
+                    "ignored map_err inventory changed for {suffix}: expected count={expected}; observed count={observed}"
+                ));
+            }
+        });
         assert!(violations.is_empty(), "bb0dbc1f {violations:#?}");
     });
 }

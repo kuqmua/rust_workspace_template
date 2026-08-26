@@ -220,7 +220,7 @@ enum CanBePrimaryKey {
 struct PgSqlName(&'static str);
 impl PgType {
     fn can_be_nullable(self) -> CanBeNullable {
-        crate::domain_types::sqlx::can_be_nullable(self.spec())
+        crate::domain_types::sqlx::can_be_nullable::can_be_nullable(self.spec())
     }
     fn spec(
         self,
@@ -986,7 +986,7 @@ pub fn emit_generate_pg_types(
                 <PgType as strum::IntoEnumIterator>::iter().filter(|element| should_include(element));
             let capacity = pg_type_iter.size_hint().1.unwrap_or_default().saturating_mul(2);
             pg_type_iter.fold(Vec::with_capacity(capacity), |mut acc0, element| {
-                match &crate::domain_types::sqlx::can_be_nullable(element.spec()) {
+                match &crate::domain_types::sqlx::can_be_nullable::can_be_nullable(element.spec()) {
                     CanBeNullable::False => {
                         acc0.push(PgTypeRecord {
                             pg_type: element,
@@ -1489,7 +1489,8 @@ enum IntRangeType {
                 pg_crud_macro_common::domain_types::IsNullable::True => &identifier_inner_type_optional_token_stream,
             },
         };
-        let can_be_primary_key = crate::domain_types::sqlx::can_be_primary_key(pg_type.spec());
+        let can_be_primary_key =
+            crate::domain_types::sqlx::can_be_primary_key::can_be_primary_key(pg_type.spec());
         let is_standard_non_null = if matches!((&pg_type_pattern, &is_nullable), (PgTypePattern::Standard, pg_crud_macro_common::domain_types::IsNullable::False)) {
             pg_crud_macro_common::domain_types::IsStandardNonNull::True
         } else {

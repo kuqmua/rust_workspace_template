@@ -21,13 +21,13 @@ pub(super) fn render_permissions(
         let id = item.id().to_string();
         let permission = item.name().to_string();
         leptos::view! {
-            <crate::domain_types::with_owner::table::TableRow><crate::domain_types::with_owner::table::TableCell data_label="id">{id}</crate::domain_types::with_owner::table::TableCell><crate::domain_types::with_owner::table::TableCell data_label="permission">{permission}</crate::domain_types::with_owner::table::TableCell></crate::domain_types::with_owner::table::TableRow>
+            <crate::domain_types::with_owner::table::table_row::TableRow><crate::domain_types::with_owner::table::table_cell::TableCell data_label="id">{id}</crate::domain_types::with_owner::table::table_cell::TableCell><crate::domain_types::with_owner::table::table_cell::TableCell data_label="permission">{permission}</crate::domain_types::with_owner::table::table_cell::TableCell></crate::domain_types::with_owner::table::table_row::TableRow>
         }
     }).collect::<Vec<_>>();
     let content_view = leptos::view! {
         <section class="table-page">
-        <crate::domain_types::with_owner::table::TableWrapper><crate::domain_types::with_owner::table::Table><crate::domain_types::with_owner::table::TableHeader><crate::domain_types::with_owner::table::TableRow><crate::domain_types::with_owner::table::TableHead>"id"</crate::domain_types::with_owner::table::TableHead><crate::domain_types::with_owner::table::TableHead>"permission"</crate::domain_types::with_owner::table::TableHead></crate::domain_types::with_owner::table::TableRow></crate::domain_types::with_owner::table::TableHeader>
-        <crate::domain_types::with_owner::table::TableBody>{rows}</crate::domain_types::with_owner::table::TableBody></crate::domain_types::with_owner::table::Table></crate::domain_types::with_owner::table::TableWrapper>
+        <crate::domain_types::with_owner::table::table_wrapper::TableWrapper><crate::domain_types::with_owner::table::table_impl::Table><crate::domain_types::with_owner::table::table_header::TableHeader><crate::domain_types::with_owner::table::table_row::TableRow><crate::domain_types::with_owner::table::table_head::TableHead>"id"</crate::domain_types::with_owner::table::table_head::TableHead><crate::domain_types::with_owner::table::table_head::TableHead>"permission"</crate::domain_types::with_owner::table::table_head::TableHead></crate::domain_types::with_owner::table::table_row::TableRow></crate::domain_types::with_owner::table::table_header::TableHeader>
+        <crate::domain_types::with_owner::table::table_body::TableBody>{rows}</crate::domain_types::with_owner::table::table_body::TableBody></crate::domain_types::with_owner::table::table_impl::Table></crate::domain_types::with_owner::table::table_wrapper::TableWrapper>
         {super::table_pagination(server_admin_contract::domain_types::AdminPage::Permissions, query, page.total(), None, None)}
         </section>
     };

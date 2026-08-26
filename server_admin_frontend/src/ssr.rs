@@ -4,8 +4,18 @@
     reason = "the stable SSR facade delegates to screen, document, and table modules; test view rendering requires the named extension trait"
 )]
 
-#[path = "domain_types_ssr_crud.rs"]
-mod crud;
+#[path = "domain_types_ssr_crud_render_role_create.rs"]
+mod crud_render_role_create;
+#[path = "domain_types_ssr_crud_render_role_manage.rs"]
+mod crud_render_role_manage;
+#[path = "domain_types_ssr_crud_render_shell.rs"]
+mod crud_render_shell;
+#[path = "domain_types_ssr_crud_render_user_create.rs"]
+mod crud_render_user_create;
+#[path = "domain_types_ssr_crud_render_user_manage.rs"]
+mod crud_render_user_manage;
+#[path = "domain_types_ssr_table_data_table_grid.rs"]
+mod data_table_grid;
 #[path = "data_tables.rs"]
 mod data_tables;
 #[path = "domain_types_ssr_document.rs"]
@@ -22,8 +32,8 @@ mod render_sessions;
 mod render_settings;
 #[path = "render_users.rs"]
 mod render_users;
-#[path = "domain_types_ssr_table.rs"]
-mod table;
+#[path = "domain_types_ssr_table_table_pagination.rs"]
+mod table_pagination;
 #[path = "text_page.rs"]
 mod text_page;
 
@@ -123,7 +133,7 @@ fn render_view(view: impl leptos::prelude::IntoAny) -> AdminSsrHtml {
 }
 
 fn render_document(title: &AdminSsrText, body: impl leptos::prelude::IntoAny) -> AdminSsrHtml {
-    document::render_document(title, body)
+    document::render_document::render_document(title, body)
 }
 
 #[must_use]
@@ -131,7 +141,7 @@ pub fn render_sign_in(
     error: Option<AdminSsrErrorMessage>,
     branding: Option<&server_admin_contract::domain_types::AdminBrandingView>,
 ) -> AdminSsrHtml {
-    document::render_sign_in(error, branding)
+    document::render_sign_in::render_sign_in(error, branding)
 }
 
 #[must_use]
@@ -139,7 +149,7 @@ fn render_admin_page(
     page: server_admin_contract::domain_types::AdminPage,
     content: AdminSsrHtml,
 ) -> AdminSsrHtml {
-    document::render_admin_page(page, content)
+    document::render_admin_page::render_admin_page(page, content)
 }
 
 fn render_admin_page_with_access(
@@ -148,7 +158,9 @@ fn render_admin_page_with_access(
     admin: Option<&server_admin_contract::domain_types::AuthenticatedAdmin>,
     branding: Option<&server_admin_contract::domain_types::AdminBrandingView>,
 ) -> AdminSsrHtml {
-    document::render_admin_page_with_access(page, content, admin, branding)
+    document::render_admin_page_with_access::render_admin_page_with_access(
+        page, content, admin, branding,
+    )
 }
 
 fn render_admin_page_with_table_access(
@@ -158,7 +170,13 @@ fn render_admin_page_with_table_access(
     branding: Option<&server_admin_contract::domain_types::AdminBrandingView>,
     active_table: Option<server_admin_contract::domain_types::AdminDataTable>,
 ) -> AdminSsrHtml {
-    document::render_admin_page_with_table_access(page, content, admin, branding, active_table)
+    document::render_admin_page_with_table_access::render_admin_page_with_table_access(
+        page,
+        content,
+        admin,
+        branding,
+        active_table,
+    )
 }
 
 fn table_pagination(
@@ -168,14 +186,14 @@ fn table_pagination(
     table: Option<server_admin_contract::domain_types::AdminDataTable>,
     table_filter: Option<&server_admin_contract::domain_types::AdminDataTableFilterQuery>,
 ) -> impl leptos::prelude::IntoView {
-    table::table_pagination(page, query, total, table, table_filter)
+    table_pagination::table_pagination(page, query, total, table, table_filter)
 }
 
 fn data_table_grid(
     view: &server_admin_contract::domain_types::AdminDataTableView,
     query: &server_admin_contract::domain_types::AdminDataTableQuery,
 ) -> impl leptos::prelude::IntoView {
-    table::data_table_grid(view, query)
+    data_table_grid::data_table_grid(view, query)
 }
 
 #[allow(clippy::single_call_fn)] // isolates the metadata-driven grid for focused SSR contract testing
@@ -204,7 +222,7 @@ pub fn render_user_create(
     admin: &server_admin_contract::domain_types::AuthenticatedAdmin,
     branding: &server_admin_contract::domain_types::AdminBrandingView,
 ) -> AdminSsrHtml {
-    crud::render_user_create(admin, branding)
+    crud_render_user_create::render_user_create(admin, branding)
 }
 
 #[must_use]
@@ -213,7 +231,7 @@ pub fn render_user_manage(
     admin: &server_admin_contract::domain_types::AuthenticatedAdmin,
     branding: &server_admin_contract::domain_types::AdminBrandingView,
 ) -> AdminSsrHtml {
-    crud::render_user_manage(page, admin, branding)
+    crud_render_user_manage::render_user_manage(page, admin, branding)
 }
 
 #[must_use]
@@ -221,7 +239,7 @@ pub fn render_role_create(
     admin: &server_admin_contract::domain_types::AuthenticatedAdmin,
     branding: &server_admin_contract::domain_types::AdminBrandingView,
 ) -> AdminSsrHtml {
-    crud::render_role_create(admin, branding)
+    crud_render_role_create::render_role_create(admin, branding)
 }
 
 #[must_use]
@@ -230,7 +248,7 @@ pub fn render_role_manage(
     admin: &server_admin_contract::domain_types::AuthenticatedAdmin,
     branding: &server_admin_contract::domain_types::AdminBrandingView,
 ) -> AdminSsrHtml {
-    crud::render_role_manage(page, admin, branding)
+    crud_render_role_manage::render_role_manage(page, admin, branding)
 }
 
 #[must_use]
@@ -259,7 +277,7 @@ pub fn render_data_tables_csr(
     admin: &server_admin_contract::domain_types::AuthenticatedAdmin,
     branding: &server_admin_contract::domain_types::AdminBrandingView,
 ) -> AdminSsrHtml {
-    data_tables::csr::render_data_tables_csr(active_table, admin, branding)
+    data_tables::render_data_tables_csr::render_data_tables_csr(active_table, admin, branding)
 }
 
 #[must_use]
@@ -269,7 +287,7 @@ pub fn render_admin_csr(
     admin: &server_admin_contract::domain_types::AuthenticatedAdmin,
     branding: &server_admin_contract::domain_types::AdminBrandingView,
 ) -> AdminSsrHtml {
-    data_tables::csr::render_admin_csr(page, active_table, admin, branding)
+    data_tables::render_admin_csr::render_admin_csr(page, active_table, admin, branding)
 }
 
 #[must_use]
@@ -305,7 +323,7 @@ pub fn render_text_page(
     title: AdminSsrText,
     text: AdminSsrText,
 ) -> AdminSsrHtml {
-    text_page::render_text_page(page, title, text)
+    text_page::render_text_page::render_text_page(page, title, text)
 }
 
 #[must_use]
@@ -316,5 +334,7 @@ pub fn render_text_page_with_access(
     admin: &server_admin_contract::domain_types::AuthenticatedAdmin,
     branding: &server_admin_contract::domain_types::AdminBrandingView,
 ) -> AdminSsrHtml {
-    text_page::render_text_page_with_access(page, title, text, admin, branding)
+    text_page::render_text_page_with_access::render_text_page_with_access(
+        page, title, text, admin, branding,
+    )
 }

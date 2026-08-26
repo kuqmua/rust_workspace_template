@@ -240,10 +240,6 @@ fn substantial_function_bodies_have_one_source_of_truth() {
             reason: constants_str::VALUE_D6EC9B66,
         },
         ReviewedDuplicateGroup {
-            locations: constants_str::VALUE_F43CC42D,
-            reason: constants_str::VALUE_0E483FB8,
-        },
-        ReviewedDuplicateGroup {
             locations: constants_str::VALUE_27922A80,
             reason: constants_str::VALUE_BC659900,
         },
@@ -312,12 +308,12 @@ fn substantial_function_bodies_have_one_source_of_truth() {
             reason: constants_str::VALUE_23A957C9,
         },
         ReviewedDuplicateGroup {
-            locations: constants_str::VALUE_2D81C306,
-            reason: constants_str::VALUE_79E09A12,
-        },
-        ReviewedDuplicateGroup {
             locations: constants_str::VALUE_51DBE253,
             reason: constants_str::VALUE_91B4F7EC,
+        },
+        ReviewedDuplicateGroup {
+            locations: constants_str::GENERATE_IMPL_TRY_NEW_MODIFIER_WRAPPER_LOCATIONS,
+            reason: constants_str::GENERATE_IMPL_TRY_NEW_MODIFIER_WRAPPER_REASON,
         },
     ]
     .into_iter()

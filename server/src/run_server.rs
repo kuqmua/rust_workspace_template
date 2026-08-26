@@ -224,20 +224,24 @@ pub(super) async fn run_server(
             .apply(
                 server_runtime_http::domain_types::RequestTimeoutLayer::from(request_timeout)
                     .apply(server_runtime_http::domain_types::AxumRouter::from(
-                        axum::Router::from(crate::adapters::routing::mount_service_routes(
-                            server_runtime_http::domain_types::AxumRouter::from(operational_routes),
-                            api_routes,
-                            crate::domain_types::HttpBodyMaximumBytes::from(
-                                maximum_http_body_bytes,
+                        axum::Router::from(
+                            crate::adapters::mount_service_routes::mount_service_routes(
+                                server_runtime_http::domain_types::AxumRouter::from(
+                                    operational_routes,
+                                ),
+                                api_routes,
+                                crate::domain_types::HttpBodyMaximumBytes::from(
+                                    maximum_http_body_bytes,
+                                ),
                             ),
-                        ))
+                        )
                         .merge(axum::Router::from(
                             server_admin_frontend::domain_types::routes(),
                         ))
                         .merge(axum::Router::from(admin_html_routes))
                         .merge(admin_metrics_routes)
                         .merge(axum::Router::from(
-                            crate::adapters::routing::frontend_fallback_routes(),
+                            crate::adapters::frontend_fallback_routes::frontend_fallback_routes(),
                         ))
                         .layer(
                             tower_http::compression::CompressionLayer::new()

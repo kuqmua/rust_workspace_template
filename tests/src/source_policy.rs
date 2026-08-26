@@ -460,7 +460,7 @@ fn direct_filesystem_owner_inventory_is_exact_justified_and_current() {
     );
     assert!(
         super::is_direct_fs_owner_source_path(super::types::PathRef::from(std::path::Path::new(
-            "../workspace_scaffold/src/template_fs.rs"
+            "../workspace_scaffold/src/template_fs_copy_template_tree.rs"
         )))
         .get(),
         "5b71e44a"
@@ -495,7 +495,22 @@ fn retained_path_exception_inventories_are_exact_justified_unique_and_current() 
                 let relative = suffix
                     .trim_start_matches(constants_str::TEXT_ALT_9)
                     .trim_start_matches('/');
-                reason.trim().is_empty() || !workspace_root.join(relative).is_file()
+                let reviewed_path = workspace_root.join(relative);
+                let split_owner_exists = reviewed_path
+                    .file_stem()
+                    .and_then(std::ffi::OsStr::to_str)
+                    .zip(reviewed_path.parent())
+                    .is_some_and(|(stem, parent)| {
+                        std::fs::read_dir(parent).is_ok_and(|entries| {
+                            entries.filter_map(Result::ok).any(|entry| {
+                                entry.file_name().to_str().is_some_and(|file_name| {
+                                    file_name.starts_with(format!("{stem}_").as_str())
+                                        && file_name.ends_with(constants_str::RS_EXTENSION)
+                                })
+                            })
+                        })
+                    });
+                reason.trim().is_empty() || (!reviewed_path.is_file() && !split_owner_exists)
             })
             .collect::<Vec<(&&str, &&str)>>();
         assert!(invalid.is_empty(), "e91b2d7c {invalid:?}");
@@ -962,6 +977,7 @@ fn library_print_macros_have_reviewed_terminal_owners() {
         constants_str::VALUE_ED469FC2,
         constants_str::VALUE_392D41BA,
         constants_str::VALUE_7841C081,
+        constants_str::VALUE_53C49EA1,
     ];
     super::assert_rs_ast_ers_empty_with_ctx(
         super::types::StaticStr::from(constants_str::VALUE_776EEBB3),
@@ -1284,16 +1300,6 @@ fn source_lint_suppressions_have_explicit_reasons() {
             reason: constants_str::VALUE_83D7CC71,
         },
         LegacySuppression {
-            limit: 13,
-            path_suffix: constants_str::VALUE_7DF10CC7,
-            reason: constants_str::VALUE_1025FB76,
-        },
-        LegacySuppression {
-            limit: 3,
-            path_suffix: constants_str::VALUE_1F61C5FC,
-            reason: constants_str::VALUE_19C32AF3,
-        },
-        LegacySuppression {
             limit: 12,
             path_suffix: constants_str::VALUE_7FE2AF02,
             reason: constants_str::VALUE_3C62205E,
@@ -1598,7 +1604,20 @@ fn no_non_public_use_imports_in_rust_sources() {
             let allows_leptos_prelude_import =
                 constants_str::CODE_STYLE_LEPTOS_PRELUDE_SUFFIXES
                     .iter()
-                    .any(|suffix| path_text.ends_with(suffix));
+                    .any(|suffix| {
+                        path_text.ends_with(suffix)
+                            || suffix.strip_suffix(constants_str::RS_EXTENSION).is_some_and(
+                                |owner_stem| {
+                                    path_text
+                                        .trim_start_matches(constants_str::TEXT_ALT_9)
+                                        .strip_prefix(owner_stem)
+                                        .is_some_and(|remainder| {
+                                            remainder.starts_with('_')
+                                                && remainder.ends_with(constants_str::RS_EXTENSION)
+                                        })
+                                },
+                            )
+                    });
             let allows_public_reexports = constants_str::CODE_STYLE_FACADE_REEXPORT_SUFFIXES
                 .iter()
                 .any(|suffix| path_text.ends_with(suffix));

@@ -219,7 +219,7 @@ pub(crate) fn initialize(
     mode: RunMode,
 ) -> Result<InitEntries, InitializeError> {
     let manifest_path = root.as_ref().join(constants_str::CARGO_TOML);
-    let manifest = crate::adapters::read_bounded_content(
+    let manifest = crate::adapters::read_bounded_content::read_bounded_content(
         InitPathRef::from(manifest_path.as_path()),
         InitMaxBytes::from(constants_usize::VALUE_1_048_576),
     )
@@ -258,21 +258,21 @@ pub(crate) fn initialize(
                 .as_ref()
                 .join(member.as_ref())
                 .join(constants_str::ENV_EXAMPLE);
-            if !bool::from(crate::adapters::path_exists(InitPathRef::from(
-                example_path.as_path(),
-            ))) {
+            if !bool::from(crate::adapters::path_exists::path_exists(
+                InitPathRef::from(example_path.as_path()),
+            )) {
                 return Ok(entries);
             }
-            let content = crate::adapters::read_bounded_content(
+            let content = crate::adapters::read_bounded_content::read_bounded_content(
                 InitPathRef::from(example_path.as_path()),
                 InitMaxBytes::from(constants_usize::VALUE_1_048_576),
             )
             .map_err(|source| InitializeError::ReadExample { source })?;
             let environment_path = root.as_ref().join(member.as_ref()).join(constants_str::ENV);
-            let status = if bool::from(crate::adapters::path_exists(InitPathRef::from(
-                environment_path.as_path(),
-            ))) {
-                let current = crate::adapters::read_bounded_content(
+            let status = if bool::from(crate::adapters::path_exists::path_exists(
+                InitPathRef::from(environment_path.as_path()),
+            )) {
+                let current = crate::adapters::read_bounded_content::read_bounded_content(
                     InitPathRef::from(environment_path.as_path()),
                     InitMaxBytes::from(constants_usize::VALUE_1_048_576),
                 )
@@ -306,7 +306,7 @@ pub(crate) fn initialize(
                     None => InitializationStatus::SkippedExisting,
                     Some(_merged) if mode == RunMode::DryRun => InitializationStatus::WouldUpdate,
                     Some(merged_content) => {
-                        crate::adapters::write_content(
+                        crate::adapters::write_content::write_content(
                             InitPathRef::from(environment_path.as_path()),
                             EnvContentRef::from(merged_content.as_ref()),
                         )?;
@@ -316,7 +316,7 @@ pub(crate) fn initialize(
             } else if mode == RunMode::DryRun {
                 InitializationStatus::WouldCreate
             } else {
-                crate::adapters::write_content(
+                crate::adapters::write_content::write_content(
                     InitPathRef::from(environment_path.as_path()),
                     EnvContentRef::from(content.as_ref()),
                 )?;

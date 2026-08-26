@@ -1,0 +1,43 @@
+pub(super) fn authenticated_selected_form<Ids, Parse>(
+    auth: super::super::AdminAuthReq,
+    expected: &super::forms::AdminHtmlFormText,
+    selected: super::forms::StdAdminHtmlSelected,
+    parse: Parse,
+) -> Result<(super::super::AdminAuthReq, Ids, Ids), super::super::AdminError>
+where
+    Parse: Fn(&super::forms::AdminHtmlFormText) -> Result<Ids, super::super::AdminError>,
+{
+    let auth = super::form_auth_impl::form_auth(auth)?;
+    let expected = parse(expected)?;
+    let separator = constants_str::COMMA_SPACE.trim();
+    let selected = bounded_types::domain_types::btree::BoundedBTreeMap::<
+        super::forms::AdminHtmlFormKey,
+        super::forms::AdminHtmlFormText,
+        { super::forms::ADMIN_HTML_FORM_SELECTED_MAX_ITEMS },
+    >::from(selected);
+    let capacity = selected
+        .iter()
+        .map(|(_key, value)| value.len().get())
+        .sum::<usize>()
+        .saturating_add(
+            selected
+                .len()
+                .get()
+                .saturating_sub(constants_usize::ONE)
+                .saturating_mul(separator.len()),
+        );
+    let text = selected.into_values().enumerate().fold(
+        String::with_capacity(capacity),
+        |mut text, (index, value)| {
+            if index > constants_usize::ZERO {
+                text.push_str(separator);
+            }
+            text.push_str(value.as_ref());
+            text
+        },
+    );
+    let selected_ids = super::forms::AdminHtmlFormText::try_from(text)
+        .map_err(|_error| super::super::AdminError::Validation)
+        .and_then(|value| parse(&value))?;
+    Ok((auth, expected, selected_ids))
+}

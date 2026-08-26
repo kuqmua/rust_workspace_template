@@ -14,25 +14,36 @@ fn write(path: &std::path::Path, value: &str) {
 #[test]
 fn validates_and_converts_project_names() {
     let valid = super::ProjectNameRef::from(constants_str::VALUE_F9EA74B8);
-    super::naming::validate_project_name(valid)
+    super::naming_validate_project_name::validate_project_name(valid)
         .expect("96de3a80 validates_and_converts_project_names invariant must hold");
-    assert_eq!(super::naming::kebab_case(valid).as_ref(), "order-platform");
-    assert_eq!(super::naming::title_case(valid).as_ref(), "Order Platform");
     assert_eq!(
-        super::naming::upper_camel_case(valid).as_ref(),
+        super::naming_kebab_case::kebab_case(valid).as_ref(),
+        "order-platform"
+    );
+    assert_eq!(
+        super::naming_title_case::title_case(valid).as_ref(),
+        "Order Platform"
+    );
+    assert_eq!(
+        super::naming_upper_camel_case::upper_camel_case(valid).as_ref(),
         "OrderPlatform"
     );
-    assert!(super::naming::validate_project_name(super::ProjectNameRef("Order-Platform")).is_err());
+    assert!(
+        super::naming_validate_project_name::validate_project_name(super::ProjectNameRef(
+            "Order-Platform"
+        ))
+        .is_err()
+    );
 }
 
 #[test]
 fn requires_https_repository_url() {
-    super::naming::validate_repository_url(super::RepositoryUrlRef::from(
+    super::naming_validate_repository_url::validate_repository_url(super::RepositoryUrlRef::from(
         constants_str::VALUE_A680FDEF,
     ))
     .expect("28c1e7a4 requires_https_repository_url invariant must hold");
     assert!(
-        super::naming::validate_repository_url(super::RepositoryUrlRef(
+        super::naming_validate_repository_url::validate_repository_url(super::RepositoryUrlRef(
             "http://example.com/team/order_platform"
         ))
         .is_err()
@@ -86,17 +97,17 @@ fn deployment_projection_check_rejects_stale_generated_content() {
 
 #[test]
 fn service_catalog_owns_ci_and_release_projection_values() {
-    let entries = super::service_catalog::parse(super::ScaffoldTextRef::from(
+    let entries = super::service_catalog_parse::parse(super::ScaffoldTextRef::from(
         constants_str::VALUE_D4291B4A,
     ))
     .expect("4e8b2d7a service_catalog_owns_ci_and_release_projection_values invariant must hold");
     let entries_ref = super::ServiceCatalogEntriesRef::from(entries.0.as_slice());
     assert_eq!(
-        super::service_catalog::render_ci_matrix(entries_ref).as_ref(),
+        super::service_catalog_render_ci_matrix::render_ci_matrix(entries_ref).as_ref(),
         "          - name: application\n            dockerfile: Dockerfile\n"
     );
     assert_eq!(
-        super::service_catalog::render_release_matrix(entries_ref).as_ref(),
+        super::service_catalog_render_release_matrix::render_release_matrix(entries_ref).as_ref(),
         "          - name: application\n            dockerfile: Dockerfile\n"
     );
 }
@@ -112,9 +123,9 @@ fn rejects_scaffold_text_over_size_limit() {
         vec![b'x'; constants_usize::VALUE_16_777_216.saturating_add(constants_usize::ONE)],
     )
     .expect("d97e30ac rejects_scaffold_text_over_size_limit invariant must hold");
-    let result = crate::adapters::template_fs::read_bounded_text(super::ScaffoldPathRef::from(
-        path.as_path(),
-    ));
+    let result = crate::adapters::template_fs_read_bounded_text::read_bounded_text(
+        super::ScaffoldPathRef::from(path.as_path()),
+    );
     assert!(
         matches!(
             result,

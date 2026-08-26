@@ -78,7 +78,7 @@ The remaining entries require individual review. They include public APIs, trait
 - `macro_helpers_generate_derive_token_stream_builder/src/lib.rs` — `to_snake_case` → `macro_helpers_generate_derive_token_stream_builder/src/lib.rs`
 - `naming/src/domain_types.rs` — `swagger_url_path_self_quotes_token_stream` → `naming/src/domain_types.rs`
 - `naming_naming_common/src/domain_types.rs` — `str_case` → `naming_naming_common/src/domain_types.rs`
-- `notification_service/src/runtime.rs` — `migrate_notification` → `notification_service/src/main.rs`
+- `notification_service/src/migrate_notification.rs` — `migrate_notification` → `notification_service/src/main.rs`
 - `notification_service_contract/src/domain_types.rs` — `into_message` → `notification_service/src/routes.rs`
 - `pg_crud_common/src/cardinality.rs` — `first_duplicate_index` → `pg_crud_common/src/cardinality.rs`
 - `pg_crud_common/src/cardinality.rs` — `first_duplicate_index_by_hash` → `pg_crud_common/src/cardinality.rs`
@@ -294,7 +294,7 @@ The remaining entries require individual review. They include public APIs, trait
 - `workspace_scaffold/src/template_fs.rs` — `rename_identity` → `workspace_scaffold/src/main.rs`
 - `workspace_scaffold/src/template_fs.rs` — `should_skip` → `workspace_scaffold/src/template_fs.rs`
 - `workspace_test_runner/src/admin_contract_fixture.rs` — `admin_contract_fixture` → `workspace_test_runner/src/main.rs`
-- `workspace_test_runner/src/discovery.rs` — `tool_available` → `workspace_test_runner/src/measure_mode.rs`
+- `workspace_test_runner/src/tool_available.rs` — `tool_available` → `workspace_test_runner/src/measure_mode.rs`
 - `workspace_test_runner/src/execution.rs` — `as_millis` → `workspace_test_runner/src/execution.rs`
 - `workspace_test_runner/src/execution.rs` — `strip_ansi` → `workspace_test_runner/src/execution.rs`
 - `workspace_test_runner/src/measure_mode.rs` — `measure_mode` → `workspace_test_runner/src/main.rs`

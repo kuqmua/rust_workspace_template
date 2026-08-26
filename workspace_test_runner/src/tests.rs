@@ -71,13 +71,13 @@ fn measurement_catalogs_are_complete_and_ordered() {
 #[test]
 fn tool_discovery_checks_the_exact_path() {
     assert!(
-        crate::adapters::discovery::tool_available(super::ToolPath::from(env!(
+        crate::adapters::tool_available::tool_available(super::ToolPath::from(env!(
             "CARGO_MANIFEST_DIR"
         )))
         .get()
     );
     assert!(
-        !crate::adapters::discovery::tool_available(super::ToolPath::from(
+        !crate::adapters::tool_available::tool_available(super::ToolPath::from(
             "/definitely/not/a/workspace/tool"
         ))
         .get()

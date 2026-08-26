@@ -23,7 +23,9 @@ mod tests {
             crate::domain_types::serde_wire_kind::serde_wire_kind(spec),
             32u8
         );
-        assert!(crate::domain_types::sqlx::can_be_nullable(spec));
-        assert!(!crate::domain_types::sqlx::can_be_primary_key(spec));
+        assert!(crate::domain_types::sqlx::can_be_nullable::can_be_nullable(
+            spec
+        ));
+        assert!(!crate::domain_types::sqlx::can_be_primary_key::can_be_primary_key(spec));
     }
 }

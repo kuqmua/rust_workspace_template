@@ -1,7 +1,9 @@
 #[path = "admin_data_table_grid.rs"]
 pub(crate) mod admin_data_table_grid;
-#[path = "admin_table_cells.rs"]
-pub(crate) mod admin_table_cells;
+#[path = "admin_table_cells_admin_role_permissions.rs"]
+pub(crate) mod admin_role_permissions;
+#[path = "admin_table_cells_admin_user_roles.rs"]
+pub(crate) mod admin_user_roles;
 #[path = "pagination.rs"]
 pub(crate) mod pagination;
 #[path = "domain_types_shared_settings.rs"]

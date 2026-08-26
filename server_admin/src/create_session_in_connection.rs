@@ -14,11 +14,12 @@ pub(super) async fn create_session_in_connection(
         super::super::AdminSessionId::from(super::super::UuidAdminValue::from(session_uuid));
     let refresh_generated = super::super::AdminGeneratedToken::generate()
         .map_err(super::AdminSessionError::SecretText)?;
-    let refresh_hash = super::authorization::hash_refresh_token_with_context(
-        refresh_generated.token(),
-        context_hash,
-    )
-    .map_err(super::AdminSessionError::SecretText)?;
+    let refresh_hash =
+        super::authorization_hash_refresh_token_with_context::hash_refresh_token_with_context(
+            refresh_generated.token(),
+            context_hash,
+        )
+        .map_err(super::AdminSessionError::SecretText)?;
     let refresh_token = super::super::AdminRefreshToken::new(super::super::AdminOpaqueToken::new(
         refresh_generated.token().clone_secret(),
     ));

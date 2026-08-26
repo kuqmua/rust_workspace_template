@@ -88,12 +88,12 @@ fn session_context_hash_is_bound_to_peer_and_user_agent() {
                 "f133a4ca session_context_hash_is_bound_to_peer_and_user_agent invariant must hold",
             ),
     ));
-    let same_context_hash = super::authorization::session_context_hash(
+    let same_context_hash = super::authorization_session_context_hash::session_context_hash(
         super::super::HttpAdminHeaderMapRef::from(&first_headers),
         first_peer,
     )
     .expect("14f0aa2d session_context_hash_is_bound_to_peer_and_user_agent invariant must hold");
-    let repeated_context_hash = super::authorization::session_context_hash(
+    let repeated_context_hash = super::authorization_session_context_hash::session_context_hash(
         super::super::HttpAdminHeaderMapRef::from(&first_headers),
         first_peer,
     )
@@ -109,7 +109,7 @@ fn session_context_hash_is_bound_to_peer_and_user_agent() {
                 "5a831a2f session_context_hash_is_bound_to_peer_and_user_agent invariant must hold",
             ),
     ));
-    let other_peer_hash = super::authorization::session_context_hash(
+    let other_peer_hash = super::authorization_session_context_hash::session_context_hash(
         super::super::HttpAdminHeaderMapRef::from(&first_headers),
         other_peer,
     )
@@ -123,7 +123,7 @@ fn session_context_hash_is_bound_to_peer_and_user_agent() {
         http::header::USER_AGENT,
         http::HeaderValue::from_static(constants_str::ADMIN_CLIENT_2),
     );
-    let other_user_agent_hash = super::authorization::session_context_hash(
+    let other_user_agent_hash = super::authorization_session_context_hash::session_context_hash(
         super::super::HttpAdminHeaderMapRef::from(&other_headers),
         first_peer,
     )

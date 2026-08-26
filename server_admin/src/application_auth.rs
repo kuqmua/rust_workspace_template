@@ -1,18 +1,96 @@
 #![allow(clippy::needless_for_each)] // utoipa 4 generated OpenAPI registration uses iterator callbacks
-#[path = "account.rs"]
-mod account;
+#[path = "account_change_own_password.rs"]
+mod account_change_own_password;
+#[path = "account_me.rs"]
+mod account_me;
+#[path = "account_me_context_view_ref.rs"]
+mod account_me_context_view_ref;
 #[path = "admin_observed_error_code.rs"]
 mod admin_observed_error_code;
-#[path = "api.rs"]
-mod api;
-#[path = "authn.rs"]
-mod authn;
-#[path = "authorization.rs"]
-pub(super) mod authorization;
-#[path = "cookie_response.rs"]
-mod cookie_response;
-#[path = "application_data_tables.rs"]
-mod data_tables;
+#[path = "api_audit_log.rs"]
+mod api_audit_log;
+#[path = "api_branding.rs"]
+mod api_branding;
+#[path = "api_change_own_password.rs"]
+mod api_change_own_password;
+#[path = "api_create_role.rs"]
+mod api_create_role;
+#[path = "api_create_user.rs"]
+mod api_create_user;
+#[path = "api_data_table.rs"]
+mod api_data_table;
+#[path = "api_data_tables.rs"]
+mod api_data_tables;
+#[path = "api_delete_role.rs"]
+mod api_delete_role;
+#[path = "api_delete_user.rs"]
+mod api_delete_user;
+#[path = "api_export_audit_log.rs"]
+mod api_export_audit_log;
+#[path = "api_list_permissions.rs"]
+mod api_list_permissions;
+#[path = "api_list_roles.rs"]
+mod api_list_roles;
+#[path = "api_list_users.rs"]
+mod api_list_users;
+#[path = "api_me.rs"]
+mod api_me;
+#[path = "api_refresh.rs"]
+mod api_refresh;
+#[path = "api_revoke_all_sessions.rs"]
+mod api_revoke_all_sessions;
+#[path = "api_revoke_session.rs"]
+mod api_revoke_session;
+#[path = "api_sessions.rs"]
+mod api_sessions;
+#[path = "api_set_role_permissions.rs"]
+mod api_set_role_permissions;
+#[path = "api_set_user_ban.rs"]
+mod api_set_user_ban;
+#[path = "api_set_user_password.rs"]
+mod api_set_user_password;
+#[path = "api_set_user_roles.rs"]
+mod api_set_user_roles;
+#[path = "api_settings.rs"]
+mod api_settings;
+#[path = "api_sign_in.rs"]
+mod api_sign_in;
+#[path = "api_sign_out.rs"]
+mod api_sign_out;
+#[path = "api_update_role.rs"]
+mod api_update_role;
+#[path = "api_update_settings.rs"]
+mod api_update_settings;
+#[path = "api_update_user.rs"]
+mod api_update_user;
+#[path = "cookie_response_append_cleared_session_cookies.rs"]
+mod append_cleared_session_cookies;
+#[path = "cookie_response_append_session_cookies.rs"]
+mod append_session_cookies;
+#[path = "authn_apply_refresh_failure_delay.rs"]
+mod authn_apply_refresh_failure_delay;
+#[path = "authn_refresh.rs"]
+mod authn_refresh;
+#[path = "authn_sign_in.rs"]
+mod authn_sign_in;
+#[path = "authn_sign_out.rs"]
+mod authn_sign_out;
+#[path = "authorization_authenticate.rs"]
+pub(super) mod authorization_authenticate;
+#[path = "authorization_authorize_generated_request.rs"]
+pub(crate) mod authorization_authorize_generated_request;
+#[path = "authorization_hash_refresh_token_with_context.rs"]
+pub(super) mod authorization_hash_refresh_token_with_context;
+#[path = "authorization_origin_is_present_and_allowed.rs"]
+pub(super) mod authorization_origin_is_present_and_allowed;
+#[path = "authorization_session_context_hash.rs"]
+pub(super) mod authorization_session_context_hash;
+#[path = "authorization_validate_csrf.rs"]
+pub(super) mod authorization_validate_csrf;
+#[path = "application_data_tables_get.rs"]
+mod data_tables_get;
+#[path = "application_data_tables_list.rs"]
+mod data_tables_list;
 #[path = "extractors.rs"]
 mod extractors;
 #[path = "html.rs"]
@@ -21,10 +99,22 @@ mod html;
 mod persistence;
 #[path = "application_roles.rs"]
 mod roles;
-#[path = "application_sessions.rs"]
+#[path = "application_sessions_sessions.rs"]
 mod sessions;
-#[path = "application_settings.rs"]
-mod settings;
+#[path = "application_sessions_revoke_all_sessions.rs"]
+mod sessions_revoke_all_sessions;
+#[path = "application_sessions_revoke_session.rs"]
+mod sessions_revoke_session;
+#[path = "application_settings_branding.rs"]
+mod settings_branding;
+#[path = "application_settings_branding_view.rs"]
+mod settings_branding_view;
+#[path = "application_settings_branding_view_ref.rs"]
+mod settings_branding_view_ref;
+#[path = "application_settings_get.rs"]
+mod settings_get;
+#[path = "application_settings_update.rs"]
+mod settings_update;
 #[path = "shared.rs"]
 mod shared;
 #[path = "state.rs"]
@@ -524,7 +614,7 @@ pub fn routes(state: SharedAdminAuthSvcStateArc) -> AxumAdminAuthRouter {
 }
 #[must_use]
 pub fn html_routes(state: SharedAdminAuthSvcStateArc) -> AxumAdminAuthRouter {
-    html::routes(state, AdminHtmlSwaggerEnabled::from(true))
+    html::routes::routes(state, AdminHtmlSwaggerEnabled::from(true))
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
 pub struct AdminHtmlSwaggerEnabled(bool);
@@ -533,7 +623,7 @@ pub fn html_routes_with_swagger(
     state: SharedAdminAuthSvcStateArc,
     swagger_enabled: AdminHtmlSwaggerEnabled,
 ) -> AxumAdminAuthRouter {
-    html::routes(state, swagger_enabled)
+    html::routes::routes(state, swagger_enabled)
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 pub struct AdminSessionBundle {
@@ -571,8 +661,10 @@ pub enum AdminSessionError {
     #[error("system clock is before the Unix epoch")]
     SystemClock,
 }
-#[path = "application_audit.rs"]
-mod audit;
+#[path = "application_audit_export_log.rs"]
+mod audit_export_log;
+#[path = "application_audit_query_log.rs"]
+mod audit_query_log;
 #[path = "create_session_in_connection.rs"]
 mod create_session_in_connection;
 #[path = "rate_limit.rs"]

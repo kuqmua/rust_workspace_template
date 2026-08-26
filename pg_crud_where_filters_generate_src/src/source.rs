@@ -829,9 +829,10 @@ pub fn emit_generate_where_filters(
                             },
                         )
                     };
-                    let equality_sql_operator = crate::domain_types::sql::filter_sql_operator(
-                        crate::domain_types::spec::FilterSpec::equality(),
-                    );
+                    let equality_sql_operator =
+                        crate::domain_types::sql::filter_sql_operator::filter_sql_operator(
+                            crate::domain_types::spec::FilterSpec::equality(),
+                        );
                     let generate_eq_operator_query_part_token_stream =
                         |maybe_dimensions_ies_initialization_token_stream: &dyn quote::ToTokens| {
                             quote::quote! {
@@ -1034,9 +1035,13 @@ pub fn emit_generate_where_filters(
     };
     let text_search_spec = crate::domain_types::spec::FilterSpec::text_search();
     let text_search_schema_token_stream =
-        crate::domain_types::schema::text_search_token_stream(text_search_spec);
+        crate::domain_types::schema::text_search_token_stream::text_search_token_stream(
+            text_search_spec,
+        );
     let text_search_client_token_stream =
-        crate::domain_types::client::text_search_token_stream(text_search_spec);
+        crate::domain_types::client::text_search_token_stream::text_search_token_stream(
+            text_search_spec,
+        );
     let text_search_bind_token_stream =
         crate::domain_types::bind::text_search_token_stream(text_search_spec);
     let text_search_token_stream = quote::quote! {

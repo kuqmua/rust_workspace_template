@@ -55,7 +55,7 @@ pub(crate) async fn create_initial_administrator(
     if user_exists {
         return Err(crate::domain_types::InitialAdministratorCreationError::AlreadyInitialized);
     }
-    let user_id = crate::adapters::repository::users::insert_user(
+    let user_id = crate::adapters::repository::insert_user::insert_user(
         crate::adapters::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
         &login,
         &display_name,
@@ -90,7 +90,7 @@ pub(crate) async fn create_initial_administrator(
         let _error_text = format!("{error:?}");
         crate::domain_types::InitialAdministratorCreationError::AuditDetails
     })?;
-    crate::adapters::repository::audit::insert_audit_success(
+    crate::adapters::repository::insert_audit_success::insert_audit_success(
         crate::adapters::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
         user_id,
         &contract_login,
@@ -164,7 +164,7 @@ pub(crate) async fn reset_admin_password(
             error,
         ))
     })?;
-    crate::adapters::repository::users::update_user_password(
+    crate::adapters::repository::update_user_password::update_user_password(
         crate::adapters::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
         user_id,
         &password_hash,
@@ -175,7 +175,7 @@ pub(crate) async fn reset_admin_password(
     .get()
     .then_some(())
     .ok_or(crate::domain_types::AdminPasswordResetError::UnknownLogin)?;
-    crate::adapters::repository::sessions::revoke_user_sessions(
+    crate::adapters::repository::revoke_user_sessions::revoke_user_sessions(
         crate::adapters::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
         user_id,
     )
@@ -193,7 +193,7 @@ pub(crate) async fn reset_admin_password(
         let _error_text = format!("{error:?}");
         crate::domain_types::AdminPasswordResetError::AuditDetails
     })?;
-    crate::adapters::repository::audit::insert_audit_success(
+    crate::adapters::repository::insert_audit_success::insert_audit_success(
         crate::adapters::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
         user_id,
         &contract_login,

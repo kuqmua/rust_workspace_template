@@ -1,0 +1,38 @@
+#[allow(clippy::single_call_fn)] // the mode dispatcher owns each allocation workload entry point
+pub(crate) fn run_pg_crud_common() -> Result<(), ()> {
+    (|| {
+        let output_bytes = (0..crate::domain_types::SQL_BUILDER_MEASURE_SERIES_COUNT)
+                    .try_fold(constants_usize::ZERO, |series_accumulator, _| {
+                        (0..crate::domain_types::MEASURE_REPEAT_COUNT).try_fold(
+                            series_accumulator,
+                            |accumulator, _| {
+                                let mut increment = constants_u64::ZERO;
+                                match pg_crud_common::domain_types::PgTypeWhereFilter::query_part(
+                                    &pg_crud_common::domain_types::PaginationBase::default(),
+                                    &mut increment,
+                                    pg_crud_common::domain_types::SqlColumnRef::from(
+                                        &constants_str::COLUMN,
+                                    ),
+                                    pg_crud_common::domain_types::AddOperator::from(false),
+                                ) {
+                                    Ok(fragment) => {
+                                        Ok(accumulator.saturating_add(fragment.as_ref().len()))
+                                    }
+                                    Err(error) => {
+                                        eprintln!(
+                                            "allocation_workload=pg_crud_common_query_part status=failed error={error:?}"
+                                        );
+                                        Err(())
+                                    }
+                                }
+                            },
+                        )
+                    })?;
+        println!(
+            "allocation_workload=pg_crud_common_query_part series_count={series_count} repeat_count={repeat_count} output_bytes={output_bytes}",
+            series_count = crate::domain_types::SQL_BUILDER_MEASURE_SERIES_COUNT,
+            repeat_count = crate::domain_types::MEASURE_REPEAT_COUNT,
+        );
+        Ok(())
+    })()
+}

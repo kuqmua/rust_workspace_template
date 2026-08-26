@@ -18,8 +18,10 @@ mod tests {
             pg_name: constants_str::PG_CRUD_PG_INT4,
             wire_kind: 32u8,
         };
-        assert!(crate::domain_types::sqlx::can_be_nullable(spec));
-        assert!(!crate::domain_types::sqlx::can_be_primary_key(spec));
+        assert!(crate::domain_types::sqlx::can_be_nullable::can_be_nullable(
+            spec
+        ));
+        assert!(!crate::domain_types::sqlx::can_be_primary_key::can_be_primary_key(spec));
         assert_eq!(crate::domain_types::filter_kind::filter_kind(spec), 7u8);
         assert_eq!(crate::domain_types::pg_name::pg_name(spec), "int4");
         assert_eq!(

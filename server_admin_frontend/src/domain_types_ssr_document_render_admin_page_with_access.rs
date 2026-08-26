@@ -1,0 +1,10 @@
+#![allow(clippy::single_call_fn)] // SSR facade has one authenticated page renderer owner
+
+pub(in crate::domain_types::ssr) fn render_admin_page_with_access(
+    page: server_admin_contract::domain_types::AdminPage,
+    content: super::super::AdminSsrHtml,
+    admin: Option<&server_admin_contract::domain_types::AuthenticatedAdmin>,
+    branding: Option<&server_admin_contract::domain_types::AdminBrandingView>,
+) -> super::super::AdminSsrHtml {
+    super::page_render_with_access::render_with_access(page, content, admin, branding)
+}

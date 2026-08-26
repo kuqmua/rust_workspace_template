@@ -12,7 +12,7 @@ mod domain_types;
 mod run_workspace_tests;
 
 fn main() {
-    let mode = adapters::discovery::mode();
+    let mode = adapters::mode::mode();
     let result = match mode.as_ref().map(domain_types::RunnerMode::as_ref) {
         None | Some(constants_str::STATIC) => {
             adapters::execution::run_commands(adapters::execution::CommandsRef::from(
@@ -95,15 +95,18 @@ fn main() {
             run_workspace_tests::admin_contract_fixture::admin_contract_fixture()
         }
         Some(constants_str::WORKSPACE_TEST_RUNNER_PG_CRUD_COMMON_QUERY_PART_WORKLOAD) => {
-            run_workspace_tests::query_part_workloads::run_pg_crud_common()
+            run_workspace_tests::run_pg_crud_common::run_pg_crud_common()
         }
         Some(constants_str::WORKSPACE_TEST_RUNNER_WHERE_FILTERS_QUERY_PART_WORKLOAD) => {
-            run_workspace_tests::query_part_workloads::run_where_filters()
+            run_workspace_tests::run_where_filters::run_where_filters()
         }
         Some(constants_str::MACRO_GENERATION) => domain_types::macro_generation_measurements()
             .iter()
             .try_fold((), |(), (measurement_name, args)| {
-                run_workspace_tests::measurement::measure_cargo_command(*measurement_name, *args)
+                run_workspace_tests::measure_cargo_command::measure_cargo_command(
+                    *measurement_name,
+                    *args,
+                )
             }),
         Some(constants_str::TESTS_ALT) => run_workspace_tests::run_workspace_tests(),
         Some(constants_str::HEAVY_LOAD) => {
@@ -202,7 +205,7 @@ fn main() {
                 domain_types::macro_generation_measurements()
                     .iter()
                     .try_fold((), |(), (measurement_name, args)| {
-                        run_workspace_tests::measurement::measure_cargo_command(
+                        run_workspace_tests::measure_cargo_command::measure_cargo_command(
                             *measurement_name,
                             *args,
                         )

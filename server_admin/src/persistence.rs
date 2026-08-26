@@ -54,7 +54,7 @@ pub(super) async fn record_audit_success_in_connection(
     )
     .map_err(|_error| super::AdminError::Validation)?;
     let resource_id = event.resource_id.value();
-    crate::adapters::repository::audit::insert_audit_success(
+    crate::adapters::repository::insert_audit_success::insert_audit_success(
         crate::adapters::repository::SqlxAdminRepositoryConnectionMutRef::from(connection.as_mut()),
         event.user_id,
         event.login,

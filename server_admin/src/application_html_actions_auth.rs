@@ -1,7 +1,7 @@
 #[frontend_contract::domain_types::route_error(AdminHtmlSignOutError)]
 pub(super) async fn sign_out(auth: super::super::super::AdminAuthReq) -> axum::response::Response {
-    match super::super::form_auth(auth) {
-        Ok(auth) => match super::super::super::authn::sign_out(auth).await {
+    match super::super::form_auth_impl::form_auth(auth) {
+        Ok(auth) => match super::super::super::authn_sign_out::sign_out(auth).await {
             Ok(response) => {
                 let mut target =
                     axum::response::IntoResponse::into_response(axum::response::Redirect::to(
@@ -32,19 +32,19 @@ pub(super) async fn change_password(
         super::super::forms::ChangePasswordForm,
     >,
 ) -> axum::response::Response {
-    match super::super::form_auth(auth) {
+    match super::super::form_auth_impl::form_auth(auth) {
         Ok(auth) => {
             let request = server_admin_contract::domain_types::AdminChangeOwnPasswordReq::new(
                 form.current_password,
                 form.new_password,
             );
-            match super::super::super::account::change_own_password(
+            match super::super::super::account_change_own_password::change_own_password(
                 auth,
                 super::super::super::AxumAdminJson(request),
             )
             .await
             {
-                Ok(_response) => super::super::success_redirect(
+                Ok(_response) => super::super::success_redirect_impl::success_redirect(
                     server_admin_contract::domain_types::AdminFrontendPath::Profile,
                 ),
                 Err(error) => axum::response::IntoResponse::into_response(error),
@@ -62,10 +62,10 @@ pub(super) async fn sign_in(
         super::super::forms::SignInForm,
     >,
 ) -> axum::response::Response {
-    let branding = super::super::super::settings::branding_view_ref(&auth)
+    let branding = super::super::super::settings_branding_view_ref::branding_view_ref(&auth)
         .await
         .ok();
-    match super::super::super::authn::sign_in(
+    match super::super::super::authn_sign_in::sign_in(
         auth,
         peer,
         super::super::super::AdminSignInJson(

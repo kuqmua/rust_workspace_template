@@ -1,0 +1,7 @@
+#![allow(clippy::single_call_fn)] // tool discovery has one mode-composition owner
+
+pub(crate) fn tool_available(
+    path: crate::domain_types::ToolPath,
+) -> crate::domain_types::ToolAvailable {
+    crate::domain_types::ToolAvailable::from(std::path::Path::new(path.get()).exists())
+}

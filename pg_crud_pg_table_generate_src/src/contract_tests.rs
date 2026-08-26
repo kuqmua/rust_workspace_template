@@ -22,7 +22,7 @@ pub(super) const fn http_method<
 where
     HttpMethod: Copy,
 {
-    crate::domain_types::route::http_method(dsc)
+    crate::domain_types::route_http_method::http_method(dsc)
 }
 pub(super) const fn success_status<
     Capability,
@@ -44,5 +44,5 @@ pub(super) const fn success_status<
 where
     StatusCode: Copy,
 {
-    crate::domain_types::route::success_status(dsc)
+    crate::domain_types::route_success_status::success_status(dsc)
 }

@@ -1,10 +1,10 @@
 #[frontend_contract::domain_types::route_error(AdminSignInPageError)]
 pub(super) async fn sign_in_page(auth: super::super::AdminAuthReq) -> axum::response::Response {
-    match super::super::settings::branding_view(auth).await {
-        Ok(branding) => super::html_response(
+    match super::super::settings_branding_view::branding_view(auth).await {
+        Ok(branding) => super::html_response_impl::html_response(
             server_admin_frontend::domain_types::ssr::render_sign_in(None, Some(&branding)),
         ),
-        Err(error) => super::html_page_error(error),
+        Err(error) => super::html_page_error_impl::html_page_error(error),
     }
 }
 
@@ -13,7 +13,7 @@ async fn csr_page(
     page: server_admin_contract::domain_types::AdminPage,
     active_table: Option<server_admin_contract::domain_types::AdminDataTable>,
 ) -> axum::response::Response {
-    match super::page_context(&auth).await {
+    match super::page_context_impl::page_context(&auth).await {
         Ok((_admin, _branding, password_change_required))
             if *password_change_required
                 && page != server_admin_contract::domain_types::AdminPage::Profile =>
@@ -27,15 +27,19 @@ async fn csr_page(
                 && active_table
                     .is_none_or(|table| bool::from(admin.has_permission(table.permission()))) =>
         {
-            super::html_response(server_admin_frontend::domain_types::ssr::render_admin_csr(
-                page,
-                active_table,
-                &admin,
-                &branding,
-            ))
+            super::html_response_impl::html_response(
+                server_admin_frontend::domain_types::ssr::render_admin_csr(
+                    page,
+                    active_table,
+                    &admin,
+                    &branding,
+                ),
+            )
         }
-        Ok(_context) => super::html_page_error(super::super::AdminError::Authorization),
-        Err(error) => super::html_page_error(error),
+        Ok(_context) => {
+            super::html_page_error_impl::html_page_error(super::super::AdminError::Authorization)
+        }
+        Err(error) => super::html_page_error_impl::html_page_error(error),
     }
 }
 
@@ -54,7 +58,7 @@ where
         &server_admin_contract::domain_types::AdminBrandingView,
     ) -> server_admin_frontend::domain_types::ssr::AdminSsrHtml,
 {
-    match super::page_context(&auth).await {
+    match super::page_context_impl::page_context(&auth).await {
         Ok((_admin, _branding, password_change_required)) if *password_change_required => {
             axum::response::IntoResponse::into_response(axum::response::Redirect::to(
                 server_admin_contract::domain_types::AdminFrontendPath::Profile.get(),
@@ -66,12 +70,16 @@ where
                 .any(|permission| bool::from(admin.has_permission(*permission))) =>
         {
             match load(auth).await {
-                Ok(view) => super::html_response(render(&view, &admin, &branding)),
-                Err(error) => super::html_page_error(error),
+                Ok(view) => {
+                    super::html_response_impl::html_response(render(&view, &admin, &branding))
+                }
+                Err(error) => super::html_page_error_impl::html_page_error(error),
             }
         }
-        Ok(_context) => super::html_page_error(super::super::AdminError::Authorization),
-        Err(error) => super::html_page_error(error),
+        Ok(_context) => {
+            super::html_page_error_impl::html_page_error(super::super::AdminError::Authorization)
+        }
+        Err(error) => super::html_page_error_impl::html_page_error(error),
     }
 }
 
@@ -107,7 +115,7 @@ async fn crud_resource_page(
                     server_admin_contract::domain_types::AdminPermission::UsersDelete,
                 ],
                 |auth| {
-                    super::super::users::queries::users_page(
+                    super::super::users::queries_users_page::users_page(
                         auth,
                         super::super::AxumAdminQuery(
                             server_admin_contract::domain_types::AdminTableQuery::default(),
@@ -137,7 +145,7 @@ async fn crud_resource_page(
                     server_admin_contract::domain_types::AdminPermission::RolesDelete,
                 ],
                 |auth| {
-                    super::super::roles::queries::roles_page(
+                    super::super::roles::queries_roles_page::roles_page(
                         auth,
                         super::super::AxumAdminQuery(
                             server_admin_contract::domain_types::AdminTableQuery::default(),
@@ -256,7 +264,7 @@ pub(super) async fn settings(auth: super::super::AdminAuthReq) -> axum::response
 
 #[frontend_contract::domain_types::route_error(AdminVersionPageError)]
 pub(super) async fn version(auth: super::super::AdminAuthReq) -> axum::response::Response {
-    match super::page_context(&auth).await {
+    match super::page_context_impl::page_context(&auth).await {
         Ok((_admin, _branding, password_change_required)) if *password_change_required => {
             axum::response::IntoResponse::into_response(axum::response::Redirect::to(
                 server_admin_contract::domain_types::AdminFrontendPath::Profile.get(),
@@ -272,7 +280,7 @@ pub(super) async fn version(auth: super::super::AdminAuthReq) -> axum::response:
                     .to_string(),
             ),
         ) {
-            (Ok(title), Ok(text)) => super::html_response(
+            (Ok(title), Ok(text)) => super::html_response_impl::html_response(
                 server_admin_frontend::domain_types::ssr::render_text_page_with_access(
                     server_admin_contract::domain_types::AdminPage::Version,
                     title,
@@ -285,26 +293,27 @@ pub(super) async fn version(auth: super::super::AdminAuthReq) -> axum::response:
                 axum::response::IntoResponse::into_response(http::StatusCode::INTERNAL_SERVER_ERROR)
             }
         },
-        Err(error) => super::html_page_error(error),
+        Err(error) => super::html_page_error_impl::html_page_error(error),
     }
 }
 
 #[frontend_contract::domain_types::route_error(AdminOpenApiPageError)]
 pub(super) async fn open_api(auth: super::super::AdminAuthReq) -> axum::response::Response {
-    let branding_result = super::super::settings::branding_view_ref(&auth).await;
-    let authorized = super::super::authorization::authorize_generated_request(
-        auth.state.as_ref(),
-        super::super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
-        auth.peer,
-        super::super::super::AdminPermission::OpenApiRead.as_str(),
-        super::super::super::StdAdminBool::from(false),
-    )
-    .await;
+    let branding_result = super::super::settings_branding_view_ref::branding_view_ref(&auth).await;
+    let authorized =
+        super::super::authorization_authorize_generated_request::authorize_generated_request(
+            auth.state.as_ref(),
+            super::super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
+            auth.peer,
+            super::super::super::AdminPermission::OpenApiRead.as_str(),
+            super::super::super::StdAdminBool::from(false),
+        )
+        .await;
     match (authorized, branding_result) {
         (Ok(admin), Ok(branding)) => {
             let admin = match super::super::authenticated_admin_contract(&admin) {
                 Ok(value) => value,
-                Err(error) => return super::html_page_error(error),
+                Err(error) => return super::html_page_error_impl::html_page_error(error),
             };
             let document = utoipa::openapi::OpenApi::from(
                 super::super::super::generated_tables::generated_open_api(),
@@ -316,7 +325,7 @@ pub(super) async fn open_api(auth: super::super::AdminAuthReq) -> axum::response
                     ),
                     server_admin_frontend::domain_types::ssr::AdminSsrText::try_from(text),
                 ) {
-                    (Ok(title), Ok(text)) => super::html_response(
+                    (Ok(title), Ok(text)) => super::html_response_impl::html_response(
                         server_admin_frontend::domain_types::ssr::render_text_page_with_access(
                             server_admin_contract::domain_types::AdminPage::OpenApi,
                             title,
@@ -336,7 +345,7 @@ pub(super) async fn open_api(auth: super::super::AdminAuthReq) -> axum::response
                 ),
             }
         }
-        (Err(error), _) | (_, Err(error)) => super::html_page_error(error),
+        (Err(error), _) | (_, Err(error)) => super::html_page_error_impl::html_page_error(error),
     }
 }
 

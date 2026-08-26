@@ -179,13 +179,14 @@ pub const CODE_STYLE_REVIEWED_PUBLIC_FIELD_STRUCT_NAMES: [&str; 14] = [
     "AdminPermissions",
     "AdminSystemSettings",
 ];
-pub const CODE_STYLE_DIRECT_FS_OWNER_SUFFIXES: [&str; 15] = [
+pub const CODE_STYLE_DIRECT_FS_OWNER_SUFFIXES: [&str; 20] = [
     "/config_lib/src/domain_types.rs",
     "/config_lib/src/types.rs",
     "/file_storage/src/adapters.rs",
     "/file_storage/src/domain_types.rs",
     "/init_env_files/src/domain_types.rs",
-    "/init_env_files/src/adapters.rs",
+    "/init_env_files/src/path_exists.rs",
+    "/init_env_files/src/write_content.rs",
     "/init_env_files/src/run.rs",
     CODE_STYLE_MACRO_CLIPPY_FS_OWNER_SUFFIX,
     CODE_STYLE_MACROS_HELPER_TEST_FS_OWNER_SUFFIX,
@@ -194,15 +195,20 @@ pub const CODE_STYLE_DIRECT_FS_OWNER_SUFFIXES: [&str; 15] = [
     "/administrator_account_initialization_and_password_reset/src/application.rs",
     "/workspace_scaffold/src/main.rs",
     CODE_STYLE_WORKSPACE_SCAFFOLD_FS_OWNER_SUFFIX,
-    CODE_STYLE_WORKSPACE_SCAFFOLD_TEMPLATE_FS_OWNER_SUFFIX,
+    "/workspace_scaffold/src/template_fs_copy_template_tree.rs",
+    "/workspace_scaffold/src/template_fs_insert_once.rs",
+    "/workspace_scaffold/src/template_fs_rename_identity.rs",
+    "/workspace_scaffold/src/template_fs_replace_file.rs",
+    "/workspace_scaffold/src/template_fs_write_text.rs",
 ];
-pub const CODE_STYLE_DIRECT_FS_OWNER_REASONS: [&str; 15] = [
+pub const CODE_STYLE_DIRECT_FS_OWNER_REASONS: [&str; 20] = [
     "configuration loader owns process environment and configuration file access",
     "configuration domain types own environment-backed initialization",
     "file storage adapter owns persisted file lifecycle operations",
     "file storage domain unit tests exercise persistence behavior with temporary directories",
     "environment initializer domain unit tests own temporary filesystem fixtures",
-    "environment initializer adapter owns bounded reads and environment file writes",
+    "environment initializer path adapter owns environment-file existence checks",
+    "environment initializer write adapter owns environment-file writes",
     "environment initializer application owns command-line mode selection",
     "macro Clippy fixture builder owns temporary crate filesystem operations",
     "macro helper test fixture owns deterministic temporary file assertions",
@@ -211,7 +217,11 @@ pub const CODE_STYLE_DIRECT_FS_OWNER_REASONS: [&str; 15] = [
     "initial administrator creation command owns its bounded command-line input",
     "workspace scaffold entry point owns command-line parsing and dispatch",
     "workspace scaffold command owns generated projection and catalog writes",
-    "workspace scaffold template filesystem module owns bounded template traversal and copying",
+    "workspace scaffold copy adapter owns bounded template traversal and copying",
+    "workspace scaffold insertion adapter owns generated file updates",
+    "workspace scaffold identity adapter owns bounded template traversal",
+    "workspace scaffold replacement adapter owns generated file updates",
+    "workspace scaffold write adapter owns generated file updates",
 ];
 pub const CODE_STYLE_DOMAIN_FIXTURE_PATH: &str = "../tests/src/domain_type_policy_fixture.rs";
 pub const CODE_STYLE_BOUNDED_TYPES_SRC: &str = "../bounded_types/src";
@@ -246,8 +256,6 @@ pub const CODE_STYLE_TESTS_SRC_ROOT: &str = "../tests/src";
 pub const CODE_STYLE_UNBOUNDED_READ_OWNER_SUFFIXES: [&str; 0] = [];
 pub const CODE_STYLE_WORKSPACE_SCAFFOLD_FS_OWNER_SUFFIX: &str =
     "/workspace_scaffold/src/domain_types.rs";
-pub const CODE_STYLE_WORKSPACE_SCAFFOLD_TEMPLATE_FS_OWNER_SUFFIX: &str =
-    "/workspace_scaffold/src/template_fs.rs";
 pub const CODE_STYLE_ROUTE_VALIDATORS_TEST_HELPER_SUFFIX: &str =
     "/route_validators/src/test_helper.rs";
 pub const CODE_STYLE_RUNTIME_TEST_HELPER_SUFFIXES: [&str; 2] = [
@@ -276,33 +284,41 @@ pub const CODE_STYLE_RUNTIME_ARC_OWNER_REASONS: [&str; 7] = [
     "bounded reads share a Tokio semaphore across asynchronous readers",
     "runtime limits share immutable concurrency budgets across tasks",
 ];
-pub const CODE_STYLE_FACADE_REEXPORT_SUFFIXES: [&str; 14] = [
+pub const CODE_STYLE_FACADE_REEXPORT_SUFFIXES: [&str; 18] = [
     "bounded_types/src/lib.rs",
     "config_lib/src/domain_types.rs",
     "constants_str/src/lib.rs",
     FRONTEND_CONTRACT_SRC_LIB_RS,
+    "macro_helpers/src/generate_new_or_try_new.rs",
     PG_CRUD_PG_CRUD_COMMON_SRC_LIB_RS,
     VALUE_1ACC98BE,
+    "pg_crud_macro_common/src/pg_type_test_cases.rs",
+    "pg_crud_macro_common/src/token_stream_helpers.rs",
     PG_CRUD_PG_TABLE_GENERATE_PG_TABLE_SRC_SRC_LIB_RS,
     PG_CRUD_PG_TYPES_GENERATE_PG_TYPES_SRC_SRC_LIB_RS,
     PG_CRUD_WHERE_FILTERS_GENERATE_WHERE_FILTERS_SRC_SRC_LIB_RS,
     "server_admin_contract/src/domain_types.rs",
+    "server_admin_frontend/src/domain_types_with_owner_table.rs",
     SERVER_ADMIN_SRC_LIB_RS,
     "server_observability/src/lib.rs",
     "server_runtime_core/src/domain_types.rs",
     "server_runtime_http/src/domain_types.rs",
 ];
-pub const CODE_STYLE_FACADE_REEXPORT_REASONS: [&str; 14] = [
+pub const CODE_STYLE_FACADE_REEXPORT_REASONS: [&str; 18] = [
     "bounded types facade exports validated string and collection families",
     "configuration domain facade exports its public typed configuration API",
     "string constants facade preserves the workspace-wide constant paths across responsibility modules",
     "frontend contract facade exports its public transport API",
+    "constructor token facade preserves the public macro-helper API across one-function modules",
     "PG CRUD common facade exports shared domain primitives",
     "PG CRUD macro common facade preserves its public token-generation API across responsibility modules",
+    "PG type test-case facade preserves its public generators across one-function modules",
+    "token-stream helper facade preserves its public generators across one-function modules",
     "PG table generator facade exports source pipeline entrypoints",
     "PG types generator facade exports source pipeline entrypoints",
     "where-filter generator facade exports source pipeline entrypoints",
     "server administrator contract facade preserves its public typed API",
+    "administrator table facade preserves component paths across one-function modules",
     "server administrator facade exports its public service API",
     "server observability facade exports tracing and diagnostic primitives",
     "server runtime core facade exports dependency-light runtime primitives",

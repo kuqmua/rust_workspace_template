@@ -4730,9 +4730,9 @@ enum WrapIntoOptional {
     .fold((), |(), operation_dsc| {
         let operation = &operation_dsc.operation;
         let idempotency_enabled = generate_pg_table_input_model.config.idempotent_mutations
-            && crate::domain_types::sql::idempotency_capable(operation_dsc);
+            && crate::domain_types::sql::idempotency_capable::idempotency_capable(operation_dsc);
         let optimistic_concurrency_enabled = optimistic_revision_field_idx.is_some()
-            && crate::domain_types::sql::optimistic_concurrency_capable(operation_dsc);
+            && crate::domain_types::sql::optimistic_concurrency_capable::optimistic_concurrency_capable(operation_dsc);
         let operation_execute_snake_case_token_stream = {
             let value = naming::domain_types::parameter::SelfHSnakeCase::from_tokens(
                 &operation.self_snake_case_token_stream(),
@@ -4753,7 +4753,7 @@ enum WrapIntoOptional {
             format!("{identifier_snake_case_string}_{operation_snake_case_string}");
         let open_api_path_double_quoted_token_stream = generate_quotes::domain_types::dq_token_stream(&open_api_path);
         let open_api_tag_double_quoted_token_stream = generate_quotes::domain_types::dq_token_stream(&identifier_snake_case_string);
-        let open_api_http_method_token_stream = match crate::domain_types::openapi::http_method(operation_dsc) {
+        let open_api_http_method_token_stream = match crate::domain_types::openapi::http_method::http_method(operation_dsc) {
             OperationHttpMethod::Post => quote::quote! {utoipa::openapi::path::HttpMethod::Post},
             OperationHttpMethod::Patch => {
                 quote::quote! {utoipa::openapi::path::HttpMethod::Patch}
@@ -4762,7 +4762,7 @@ enum WrapIntoOptional {
                 quote::quote! {utoipa::openapi::path::HttpMethod::Delete}
             }
         };
-        let open_api_status = if crate::domain_types::openapi::success_status(operation_dsc)
+        let open_api_status = if crate::domain_types::openapi::success_status::success_status(operation_dsc)
             == macro_helpers::domain_types::status_code::StatusCode::Created201
         {
             constants_str::VALUE_201
@@ -5121,7 +5121,8 @@ enum WrapIntoOptional {
         };
         if operation_is_enabled(operation) {
         operation_routes_token_stream.push({
-            let method_token_stream = match crate::domain_types::route::http_method(operation_dsc) {
+            let method_token_stream =
+                match crate::domain_types::route_http_method::http_method(operation_dsc) {
                 OperationHttpMethod::Post => quote::quote! {post},
                 OperationHttpMethod::Patch => quote::quote! {patch},
                 OperationHttpMethod::Delete => quote::quote! {delete},
@@ -7011,12 +7012,13 @@ enum WrapIntoOptional {
         .filter(|operation_dsc| operation_is_enabled(&operation_dsc.operation))
         .map(|operation_dsc| {
             let operation = quote::format_ident!("{}", operation_dsc.operation.to_string());
-            let http_method = match crate::domain_types::frontend::http_method(operation_dsc) {
+            let http_method =
+                match crate::domain_types::frontend_http_method::http_method(operation_dsc) {
                 OperationHttpMethod::Post => quote::format_ident!("Post"),
                 OperationHttpMethod::Patch => quote::format_ident!("Patch"),
                 OperationHttpMethod::Delete => quote::format_ident!("Delete"),
             };
-            let success_status = if crate::domain_types::frontend::success_status(operation_dsc)
+            let success_status = if crate::domain_types::frontend_success_status::success_status(operation_dsc)
                 == macro_helpers::domain_types::status_code::StatusCode::Created201
             {
                 quote::format_ident!("Code201")
@@ -7024,9 +7026,9 @@ enum WrapIntoOptional {
                 quote::format_ident!("Code200")
             };
             let idempotency_required = generate_pg_table_input_model.config.idempotent_mutations
-                && crate::domain_types::sql::idempotency_capable(operation_dsc);
+                && crate::domain_types::sql::idempotency_capable::idempotency_capable(operation_dsc);
             let optimistic_revision_required = optimistic_revision_field_idx.is_some()
-                && crate::domain_types::sql::optimistic_concurrency_capable(operation_dsc);
+                && crate::domain_types::sql::optimistic_concurrency_capable::optimistic_concurrency_capable(operation_dsc);
             let authentication = generate_pg_table_input_model
                 .config
                 .permission_prefix
@@ -7036,7 +7038,9 @@ enum WrapIntoOptional {
                     |permission_prefix| {
                         let permission = format!(
                             "{permission_prefix}:{}",
-                            crate::domain_types::frontend::permission_action(operation_dsc)
+                            crate::domain_types::frontend_permission_action::permission_action(
+                                operation_dsc,
+                            )
                         );
                         quote::quote! {#identifier_auth_requirement_upper_camel_case::Permission(#permission)}
                     },
@@ -7079,7 +7083,8 @@ enum WrapIntoOptional {
             });
     let route_contract_operation_kind_arms_token_stream = crate::domain_types::table::OperationDsc::ALL.iter().map(|operation_dsc| {
         let operation = quote::format_ident!("{}", operation_dsc.operation.to_string());
-        let operation_kind = match crate::domain_types::frontend::operation_kind(operation_dsc) {
+        let operation_kind =
+            match crate::domain_types::frontend_operation_kind::operation_kind(operation_dsc) {
             OperationKind::CreateMany => quote::format_ident!("CreateMany"),
             OperationKind::CreateOne => quote::format_ident!("CreateOne"),
             OperationKind::DeleteMany => quote::format_ident!("DeleteMany"),
@@ -7657,9 +7662,9 @@ enum WrapIntoOptional {
                 constants_str::VALUE_200
             };
             let idempotency_required = generate_pg_table_input_model.config.idempotent_mutations
-                && crate::domain_types::sql::idempotency_capable(operation_dsc);
+                && crate::domain_types::sql::idempotency_capable::idempotency_capable(operation_dsc);
             let optimistic_revision_required = optimistic_revision_field_idx.is_some()
-                && crate::domain_types::sql::optimistic_concurrency_capable(operation_dsc);
+                && crate::domain_types::sql::optimistic_concurrency_capable::optimistic_concurrency_capable(operation_dsc);
             quote::quote! {
                 let route_contract = #identifier_route_contract_upper_camel_case::for_path(#path).expect("80dc7c11 collect_refs invariant must hold");
                 assert_eq!(route_contract.idempotency_required(), #idempotency_required);

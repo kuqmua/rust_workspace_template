@@ -22,5 +22,5 @@ pub(super) const fn http_method<
 where
     HttpMethod: Copy,
 {
-    crate::domain_types::route::http_method(dsc)
+    crate::domain_types::route_http_method::http_method(dsc)
 }

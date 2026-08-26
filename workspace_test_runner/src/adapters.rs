@@ -1,8 +1,12 @@
 #[path = "admin_fixture.rs"]
 pub(crate) mod admin_fixture;
-#[path = "discovery.rs"]
-pub(crate) mod discovery;
 #[path = "execution.rs"]
 pub(crate) mod execution;
-#[path = "reporting.rs"]
-pub(crate) mod reporting;
+#[path = "mode.rs"]
+pub(crate) mod mode;
+#[path = "print_without_measurement_footer.rs"]
+pub(crate) mod print_without_measurement_footer;
+#[path = "print_without_memusage_footer.rs"]
+pub(crate) mod print_without_memusage_footer;
+#[path = "tool_available.rs"]
+pub(crate) mod tool_available;

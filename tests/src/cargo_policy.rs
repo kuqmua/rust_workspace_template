@@ -552,7 +552,6 @@ fn source_modules_with_public_logic_own_unit_tests() {
         (constants_str::VALUE_642AA8AC, constants_str::VALUE_D7F0D3FB),
         (constants_str::VALUE_31BDEFD7, constants_str::VALUE_8E47C546),
         (constants_str::VALUE_95F11308, constants_str::VALUE_D7F0D3FB),
-        (constants_str::VALUE_02C92481, constants_str::VALUE_FB0F2679),
         (constants_str::VALUE_C652C5A2, constants_str::VALUE_03E3C8DC),
         (constants_str::VALUE_BDEB5C57, constants_str::VALUE_99D169EE),
         (constants_str::VALUE_8F0CF86A, constants_str::VALUE_D3401592),
@@ -587,6 +586,38 @@ fn source_modules_with_public_logic_own_unit_tests() {
         ),
     ]);
     super::snapshot::with_codebase_snapshot(|snapshot| {
+        let split_owner_matches = |path: &str, owner: &str| {
+            owner
+                .trim_start_matches(constants_str::TEXT_ALT_9)
+                .strip_suffix(constants_str::RS_EXTENSION)
+                .and_then(|owner_stem| {
+                    path.trim_start_matches(constants_str::TEXT_ALT_9)
+                        .strip_prefix(owner_stem)
+                })
+                .is_some_and(|remainder| {
+                    remainder.starts_with('_') && remainder.ends_with(constants_str::RS_EXTENSION)
+                })
+        };
+        let tested_module_owners = snapshot
+            .rs_files()
+            .iter()
+            .filter(|source_file| {
+                super::visit_syn_file(
+                    super::types::SynFileRef::from(source_file.ast().as_ref()),
+                    super::source_analysis::OwnedTestVisitor::default(),
+                )
+                .found
+                .get()
+            })
+            .map(|source_file| {
+                let path = source_file.path().as_ref().display().to_string();
+                path.strip_suffix(constants_str::TEST_MODULE_SUFFIX)
+                    .map_or_else(
+                        || path.clone(),
+                        |owner_stem| format!("{owner_stem}{}", constants_str::RS_EXTENSION),
+                    )
+            })
+            .collect::<Vec<_>>();
         let mut matched = std::collections::BTreeSet::new();
         let mut violations = snapshot
             .rs_files()
@@ -606,15 +637,21 @@ fn source_modules_with_public_logic_own_unit_tests() {
                 )
                 .found
                 .get();
-                let owns_test = super::visit_syn_file(
+                let owns_local_test = super::visit_syn_file(
                     super::types::SynFileRef::from(source_file.ast().as_ref()),
                     super::source_analysis::OwnedTestVisitor::default(),
                 )
                 .found
                 .get();
                 let path = source_file.path().as_ref().display().to_string();
+                let owns_test = owns_local_test
+                    || tested_module_owners
+                        .iter()
+                        .any(|owner| split_owner_matches(path.as_str(), owner.as_str()));
                 let reviewed = reviewed_without_local_tests.iter().any(|(suffix, reason)| {
-                    let matches = path.ends_with(*suffix) && !reason.is_empty();
+                    let matches = (path.ends_with(*suffix)
+                        || split_owner_matches(path.as_str(), suffix))
+                        && !reason.is_empty();
                     if matches {
                         let _inserted = matched.insert((*suffix).to_owned());
                     }
@@ -624,9 +661,11 @@ fn source_modules_with_public_logic_own_unit_tests() {
             })
             .collect::<Vec<String>>();
         if matched.len() != reviewed_without_local_tests.len() {
-            violations.push(format!(
-                "stale public-logic test exceptions: matched={matched:#?}"
-            ));
+            let stale = reviewed_without_local_tests
+                .keys()
+                .filter(|suffix| !matched.contains(**suffix))
+                .collect::<Vec<_>>();
+            violations.push(format!("stale public-logic test exceptions: {stale:#?}"));
         }
         assert!(violations.is_empty(), "c73f7bd4 {violations:#?}");
     });

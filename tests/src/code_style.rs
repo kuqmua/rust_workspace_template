@@ -199,7 +199,19 @@ fn check_expect_and_panic_contain_unique_diagnostic_ids() {
                 reviewed_interpolations
                     .iter()
                     .find(|(path_suffix, reviewed_error, reason)| {
-                        path.ends_with(path_suffix)
+                        let path_text = path.to_string_lossy();
+                        let split_owner_matches = path_suffix
+                            .strip_suffix(constants_str::RS_EXTENSION)
+                            .and_then(|owner_stem| {
+                                path_text
+                                    .trim_start_matches(constants_str::TEXT_ALT_9)
+                                    .strip_prefix(owner_stem)
+                            })
+                            .is_some_and(|remainder| {
+                                remainder.starts_with('_')
+                                    && remainder.ends_with(constants_str::RS_EXTENSION)
+                            });
+                        (path.ends_with(path_suffix) || split_owner_matches)
                             && error == *reviewed_error
                             && !reason.is_empty()
                     });

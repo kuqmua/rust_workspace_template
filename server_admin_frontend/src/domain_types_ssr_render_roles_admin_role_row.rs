@@ -12,13 +12,13 @@ pub(super) fn admin_role_row(
     let name = item.name().to_string();
     let system = item.is_system().to_string();
     let permissions =
-        crate::domain_types::shared::admin_table_cells::admin_role_permissions(item, page);
+        crate::domain_types::shared::admin_role_permissions::admin_role_permissions(item, page);
     leptos::view! {
-        <crate::domain_types::with_owner::table::TableRow>
-            <crate::domain_types::with_owner::table::TableCell data_label="id">{id}</crate::domain_types::with_owner::table::TableCell>
-            <crate::domain_types::with_owner::table::TableCell data_label="name">{name}</crate::domain_types::with_owner::table::TableCell>
-            <crate::domain_types::with_owner::table::TableCell data_label="system">{system}</crate::domain_types::with_owner::table::TableCell>
+        <crate::domain_types::with_owner::table::table_row::TableRow>
+            <crate::domain_types::with_owner::table::table_cell::TableCell data_label="id">{id}</crate::domain_types::with_owner::table::table_cell::TableCell>
+            <crate::domain_types::with_owner::table::table_cell::TableCell data_label="name">{name}</crate::domain_types::with_owner::table::table_cell::TableCell>
+            <crate::domain_types::with_owner::table::table_cell::TableCell data_label="system">{system}</crate::domain_types::with_owner::table::table_cell::TableCell>
             {permissions}
-        </crate::domain_types::with_owner::table::TableRow>
+        </crate::domain_types::with_owner::table::table_row::TableRow>
     }
 }

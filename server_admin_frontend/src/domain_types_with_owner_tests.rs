@@ -214,8 +214,8 @@ fn visual_variants_keep_their_rust_ui_contracts() {
 #[test]
 fn navigation_distinguishes_current_and_inactive_destinations() {
     let html = render(leptos::view! {
-        <super::navigation::AdminNavigationLink href=String::from("/admin/users") active=true>"Users"</super::navigation::AdminNavigationLink>
-        <super::navigation::AdminNavigationLink href=String::from("/admin/roles") active=false>"Roles"</super::navigation::AdminNavigationLink>
+        <super::navigation::admin_navigation_link::AdminNavigationLink href=String::from("/admin/users") active=true>"Users"</super::navigation::admin_navigation_link::AdminNavigationLink>
+        <super::navigation::admin_navigation_link::AdminNavigationLink href=String::from("/admin/roles") active=false>"Roles"</super::navigation::admin_navigation_link::AdminNavigationLink>
     });
 
     assert!(html.contains("data-name=\"NavigationMenuLink\""));
@@ -230,24 +230,24 @@ fn navigation_distinguishes_current_and_inactive_destinations() {
 #[test]
 fn table_primitives_preserve_structure_and_class_merging() {
     let html = render(leptos::view! {
-        <super::table::TableWrapper>
-            <super::table::Table>
-                <super::table::TableCaption>"Identifiers"</super::table::TableCaption>
-                <super::table::TableHeader>
-                    <super::table::TableRow>
-                        <super::table::TableHead>"Identifier"</super::table::TableHead>
-                    </super::table::TableRow>
-                </super::table::TableHeader>
-                <super::table::TableBody>
-                    <super::table::TableRow>
-                        <super::table::TableCell class="numeric-cell">"42"</super::table::TableCell>
-                    </super::table::TableRow>
-                </super::table::TableBody>
-                <super::table::TableFooter>
-                    <super::table::TableRow><super::table::TableCell>"1"</super::table::TableCell></super::table::TableRow>
-                </super::table::TableFooter>
-            </super::table::Table>
-        </super::table::TableWrapper>
+        <super::table::table_wrapper::TableWrapper>
+            <super::table::table_impl::Table>
+                <super::table::table_caption::TableCaption>"Identifiers"</super::table::table_caption::TableCaption>
+                <super::table::table_header::TableHeader>
+                    <super::table::table_row::TableRow>
+                        <super::table::table_head::TableHead>"Identifier"</super::table::table_head::TableHead>
+                    </super::table::table_row::TableRow>
+                </super::table::table_header::TableHeader>
+                <super::table::table_body::TableBody>
+                    <super::table::table_row::TableRow>
+                        <super::table::table_cell::TableCell class="numeric-cell">"42"</super::table::table_cell::TableCell>
+                    </super::table::table_row::TableRow>
+                </super::table::table_body::TableBody>
+                <super::table::table_footer::TableFooter>
+                    <super::table::table_row::TableRow><super::table::table_cell::TableCell>"1"</super::table::table_cell::TableCell></super::table::table_row::TableRow>
+                </super::table::table_footer::TableFooter>
+            </super::table::table_impl::Table>
+        </super::table::table_wrapper::TableWrapper>
     });
 
     assert!(html.contains("data-name=\"TableWrapper\""));

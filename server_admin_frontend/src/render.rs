@@ -22,7 +22,7 @@ pub(super) fn render(
     let primary_color = branding
         .and_then(server_admin_contract::domain_types::AdminBrandingView::primary_color)
         .map(|value| format!("--accent:{}", AsRef::<str>::as_ref(value)));
-    super::render_document(
+    super::render_document::render_document(
         &super::super::AdminSsrText::try_from(tab_title)
             .unwrap_or_else(super::super::AdminSsrText::from),
         leptos::view! {

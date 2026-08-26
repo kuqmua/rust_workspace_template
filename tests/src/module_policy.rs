@@ -116,6 +116,68 @@ fn single_item_modules_match_their_item_name() {
         );
     });
 }
+
+#[test]
+#[allow(
+    clippy::wildcard_enum_match_arm,
+    reason = "the policy intentionally ignores every current and future non-function syn item"
+)]
+fn function_only_modules_contain_at_most_one_function() {
+    super::snapshot::with_codebase_snapshot(|snapshot| {
+        let target_roots = snapshot
+            .workspace_metadata()
+            .as_ref()
+            .packages
+            .iter()
+            .flat_map(|package| package.targets.iter())
+            .filter_map(|target| target.src_path.as_std_path().canonicalize().ok())
+            .collect::<std::collections::HashSet<_>>();
+        let violations = snapshot
+            .rs_files()
+            .iter()
+            .filter(|file| !is_test_source(file.path().as_ref()))
+            .filter(|file| {
+                file.path()
+                    .as_ref()
+                    .canonicalize()
+                    .is_ok_and(|path| !target_roots.contains(&path))
+            })
+            .filter_map(|file| {
+                let functions = file
+                    .ast()
+                    .as_ref()
+                    .items
+                    .iter()
+                    .filter_map(|item| match item {
+                        syn::Item::Fn(item_fn) => Some(item_fn.sig.ident.to_string()),
+                        _ => None,
+                    })
+                    .collect::<Vec<_>>();
+                let contains_only_functions_and_module_plumbing =
+                    file.ast().as_ref().items.iter().all(|item| {
+                        matches!(
+                            item,
+                            syn::Item::Fn(_) | syn::Item::Mod(_) | syn::Item::Use(_)
+                        )
+                    });
+                (contains_only_functions_and_module_plumbing
+                    && functions.len() > constants_usize::ONE)
+                    .then(|| {
+                        format!(
+                            "{}: {}",
+                            file.path().as_ref().display(),
+                            functions.join(", ")
+                        )
+                    })
+            })
+            .collect::<Vec<_>>();
+        assert!(
+            violations.is_empty(),
+            "function-only Rust modules must place each function in its own same-named module:\n{}",
+            violations.join("\n")
+        );
+    });
+}
 fn large_module_exceptions() -> [&'static str; 2] {
     [constants_str::VALUE_7FE2AF02, constants_str::VALUE_D405F3E1]
 }

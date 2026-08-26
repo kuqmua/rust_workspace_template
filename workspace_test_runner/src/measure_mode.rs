@@ -9,7 +9,7 @@ pub(crate) fn measure_mode() -> Result<(), ()> {
             crate::domain_types::allocation_tools()
                 .iter()
                 .try_fold((), |(), tool| {
-                    let available = crate::adapters::discovery::tool_available(tool.path());
+                    let available = crate::adapters::tool_available::tool_available(tool.path());
                     println!(
                         "measurement=allocation_tool_available tool={} path={} available={}",
                         tool.name().get(),
@@ -27,7 +27,7 @@ pub(crate) fn measure_mode() -> Result<(), ()> {
                 "measurement=exact_allocations status=available tool=libmemusage path={}",
                 constants_str::WORKSPACE_TEST_RUNNER_MEMUSAGE_PATH
             );
-            super::measurement::measure_memusage_command(
+            super::measure_memusage_command::measure_memusage_command(
                 crate::domain_types::MeasurementName::from(constants_str::CODE_STYLE),
                 crate::domain_types::ProgramPathRef::from(
                     constants_str::WORKSPACE_TEST_RUNNER_CARGO,
@@ -85,7 +85,7 @@ pub(crate) fn measure_mode() -> Result<(), ()> {
             ]
             .into_iter()
             .try_fold((), |(), (measurement_name, workload_mode)| {
-                super::measurement::measure_memusage_command(
+                super::measure_memusage_command::measure_memusage_command(
                     measurement_name,
                     crate::domain_types::ProgramPathRef::from(current_exe_string.as_str()),
                     crate::domain_types::ProgramArgsRef::from(&[workload_mode]),
@@ -98,7 +98,7 @@ pub(crate) fn measure_mode() -> Result<(), ()> {
                 "measurement=exact_allocations status=unavailable reason=no_safe_allocator_counter_or_external_allocation_profiler memory_proxy_fields=memory_proxy_peak_rss_kb,memory_proxy_minor_page_faults,memory_proxy_major_page_faults"
             );
         }
-        super::measurement::measure_cargo_command(
+        super::measure_cargo_command::measure_cargo_command(
             crate::domain_types::MeasurementName::from(constants_str::CODE_STYLE),
             crate::domain_types::CargoArgs::from(&[
                 constants_str::TEST_ALT_3,
@@ -108,7 +108,7 @@ pub(crate) fn measure_mode() -> Result<(), ()> {
             ]),
         )
         .unwrap_or_else(|()| std::process::exit(1));
-        super::measurement::measure_cargo_command(
+        super::measure_cargo_command::measure_cargo_command(
             crate::domain_types::MeasurementName::from(constants_str::CLIPPY),
             crate::domain_types::CargoArgs::from(
                 &constants_str::WORKSPACE_TEST_RUNNER_CARGO_CLIPPY_ARGS,

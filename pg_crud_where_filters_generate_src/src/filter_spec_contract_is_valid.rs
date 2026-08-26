@@ -8,13 +8,18 @@ pub(super) fn filter_spec_contract_is_valid(
             crate::domain_types::bind::FilterPlaceholderCount::one(),
         )
         .get()
-            && crate::domain_types::schema::schema_uses_text_value(spec).get()
-                == crate::domain_types::client::client_uses_text_value(spec).get()
-            && crate::domain_types::schema::schema_uses_text_value(spec).get()
-                != crate::domain_types::sql::filter_sql_suffix(spec)
+            && crate::domain_types::schema::schema_uses_text_value::schema_uses_text_value(spec)
+                .get()
+                == crate::domain_types::client::client_uses_text_value::client_uses_text_value(
+                    spec,
+                )
+                .get()
+            && crate::domain_types::schema::schema_uses_text_value::schema_uses_text_value(spec)
+                .get()
+                != crate::domain_types::sql::filter_sql_suffix::filter_sql_suffix(spec)
                     .as_ref()
                     .is_empty()
-            && !crate::domain_types::sql::filter_sql_operator(spec)
+            && !crate::domain_types::sql::filter_sql_operator::filter_sql_operator(spec)
                 .as_ref()
                 .is_empty(),
     )
@@ -48,11 +53,13 @@ mod tests {
                 .get()
             );
             assert_eq!(
-                crate::domain_types::schema::schema_uses_text_value(spec).get(),
-                crate::domain_types::client::client_uses_text_value(spec).get()
+                crate::domain_types::schema::schema_uses_text_value::schema_uses_text_value(spec)
+                    .get(),
+                crate::domain_types::client::client_uses_text_value::client_uses_text_value(spec)
+                    .get()
             );
             assert!(
-                !crate::domain_types::sql::filter_sql_operator(spec)
+                !crate::domain_types::sql::filter_sql_operator::filter_sql_operator(spec)
                     .as_ref()
                     .is_empty()
             );

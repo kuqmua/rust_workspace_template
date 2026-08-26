@@ -29,8 +29,8 @@ pub(super) fn text_search_token_stream(
     if !bind_count_matches(spec, FilterPlaceholderCount::one()).get() {
         return quote::quote! {compile_error!("text search bind count must match one placeholder");}.into();
     }
-    let sql_operator = crate::domain_types::sql::filter_sql_operator(spec);
-    let sql_suffix = crate::domain_types::sql::filter_sql_suffix(spec);
+    let sql_operator = crate::domain_types::sql::filter_sql_operator::filter_sql_operator(spec);
+    let sql_suffix = crate::domain_types::sql::filter_sql_suffix::filter_sql_suffix(spec);
     quote::quote! {
         impl<'query_lt> pg_crud_common::domain_types::PgTypeWhereFilter<'query_lt> for PgTypeWhereTextSearch {
             fn query_bind(self, mut query: pg_crud_common::domain_types::SqlxPostgresQuery<'query_lt>) -> Result<pg_crud_common::domain_types::SqlxPostgresQuery<'query_lt>, pg_crud_common::domain_types::SqlxPostgresQueryBindError> {
