@@ -3,10 +3,15 @@
     reason = "DTO implementations keep constructors adjacent to their accessors and route metadata grouped by concern"
 )]
 
+#[path = "audit_branding.rs"]
 mod audit_branding;
+#[path = "authorization_catalog.rs"]
 mod authorization_catalog;
+#[path = "identifier.rs"]
 mod identifier;
+#[path = "identity.rs"]
 mod identity;
+#[path = "table_sort.rs"]
 mod table_sort;
 
 pub use audit_branding::*;
@@ -14,6 +19,7 @@ pub use authorization_catalog::*;
 pub use identifier::*;
 pub use identity::*;
 pub use table_sort::*;
+#[path = "query.rs"]
 mod query;
 pub use query::{
     AdminBool, AdminDataTableFilterQuery, AdminDataTableQuery, AdminFilterField,
@@ -22,6 +28,7 @@ pub use query::{
     AdminTableSortKey,
 };
 
+#[path = "collections.rs"]
 mod collections;
 #[cfg(test)]
 use collections::ADMIN_COLLECTION_MAX_ITEMS;
@@ -30,6 +37,7 @@ pub use collections::{
     AdminPermissionIds, AdminPermissionSummaries, AdminPermissionValues, AdminRoleIds,
     AdminRoleNames, AdminRoleSummaries, AdminSessionViews, AdminTexts, AdminUserSummaries,
 };
+#[path = "dto.rs"]
 mod dto;
 pub use dto::{
     AdminAuditCursor, AdminAuditExport, AdminAuditExportCsv, AdminAuditPage, AdminAuditView,
@@ -42,6 +50,7 @@ pub use dto::{
     AdminUsersPage, AuthenticatedAdmin,
 };
 
+#[path = "settings.rs"]
 mod settings;
 pub use settings::{
     AdminBrandingView, AdminOptionalSetting, AdminSetting, AdminSettingInputKind,
@@ -49,11 +58,13 @@ pub use settings::{
     AdminSettingsView, AdminUpdateSettingsReq,
 };
 
+#[path = "sessions.rs"]
 mod sessions;
 pub use sessions::{
     AdminNoBody, AdminSessionIdentifier, AdminSessionTimestamp, AdminSessionView, AdminSessionsPage,
 };
 
+#[path = "routes.rs"]
 mod routes;
 pub use routes::{
     AdminAuditExportRoute, AdminAuditLogRoute, AdminAuthenticationRouteFamily, AdminBrandingRoute,
@@ -83,4 +94,5 @@ pub use routes::{
     update_settings_route, update_user_client, update_user_route, version_client, version_route,
 };
 #[cfg(test)]
+#[path = "domain_types__tests.rs"]
 mod tests;

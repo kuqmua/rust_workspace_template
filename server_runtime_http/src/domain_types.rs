@@ -1,35 +1,68 @@
+#[path = "batched_cleanup.rs"]
 mod batched_cleanup;
+#[path = "bounded_read.rs"]
 mod bounded_read;
+#[path = "child_process.rs"]
 mod child_process;
+#[path = "client_ip.rs"]
 mod client_ip;
+#[path = "cors.rs"]
 mod cors;
+#[path = "csp.rs"]
 mod csp;
+#[path = "fallback.rs"]
 mod fallback;
+#[path = "geojson.rs"]
 mod geojson;
+#[path = "header_text.rs"]
 mod header_text;
+#[path = "health.rs"]
 mod health;
+#[path = "http_client.rs"]
 mod http_client;
+#[path = "http_error_diagnostic.rs"]
 mod http_error_diagnostic;
+#[path = "http_header_policy.rs"]
 mod http_header_policy;
+#[path = "http_policy.rs"]
 mod http_policy;
+#[path = "http_status_error.rs"]
 mod http_status_error;
+#[path = "lifecycle.rs"]
 mod lifecycle;
+#[path = "limits.rs"]
 mod limits;
+#[path = "metrics_layer.rs"]
 mod metrics_layer;
+#[path = "multipart.rs"]
 mod multipart;
+#[path = "notification.rs"]
 mod notification;
+#[path = "origin.rs"]
 mod origin;
+#[path = "outbound_url.rs"]
 mod outbound_url;
+#[path = "path_policy.rs"]
 mod path_policy;
+#[path = "pg_rate_limit.rs"]
 mod pg_rate_limit;
+#[path = "redacted_url.rs"]
 mod redacted_url;
+#[path = "domain_types__request_id.rs"]
 mod request_id;
+#[path = "request_timeout.rs"]
 mod request_timeout;
+#[path = "secure_cookie.rs"]
 mod secure_cookie;
+#[path = "domain_types__security_headers.rs"]
 mod security_headers;
+#[path = "service.rs"]
 mod service;
+#[path = "domain_types__service_runtime.rs"]
 mod service_runtime;
+#[path = "trace_context.rs"]
 mod trace_context;
+#[path = "wire_token.rs"]
 mod wire_token;
 pub use batched_cleanup::{
     CleanupBatchCount, CleanupBatchSize, CleanupBatchSizeError, CleanupCompletion,
@@ -465,4 +498,5 @@ where
     }
 }
 #[cfg(test)]
+#[path = "tests.rs"]
 mod tests;

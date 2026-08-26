@@ -112,7 +112,7 @@ pub const VALUE_5DC81FA2: &str = "5dc81fa2";
 pub const VALUE_4792B3E0: &str = "4792b3e0";
 pub const TEST_BOUNDED_UNIQUE_VEC_DUPLICATE_THEN_INVALID: &str = "[1,1,999]";
 pub const TEST_BOUNDED_UNIQUE_VEC_EXCESS_INVALID: &str = "[1,999]";
-pub const SERVER_RUNTIME_SRC_LIMITS_RS: &str = "server_runtime_http/src/domain_types/limits.rs";
+pub const SERVER_RUNTIME_SRC_LIMITS_RS: &str = "server_runtime_http/src/limits.rs";
 pub const TEST_SQL_LIKE_INPUT: &str = "alpha";
 pub const TEST_SQL_LIKE_CONTAINS_PATTERN: &str = "%alpha%";
 pub const TEST_SQL_LIKE_STARTS_WITH_PATTERN: &str = "alpha%";
@@ -412,7 +412,7 @@ pub const PG_SQLSTATE_PREFIX: &str = "PG_SQLSTATE_";
 pub const PG_SQLSTATE_SERIALIZATION_FAILURE: &str = "40001";
 pub const PG_SQLSTATE_STRING_DATA_RIGHT_TRUNCATION: &str = "22001";
 pub const PG_SQLSTATE_UNIQUE_VIOLATION: &str = "23505";
-pub const PG_CRUD_COMMON_SRC_PG_ERROR_RS: &str = "pg_crud_common/src/domain_types/pg_error.rs";
+pub const PG_CRUD_COMMON_SRC_PG_ERROR_RS: &str = "pg_crud_common/src/pg_error.rs";
 pub const NEWTYPE_TRY_FROM: &str = "try_from";
 pub const NEWTYPE_FROM_INNER_DERIVE_NAME: &str = "FromInner";
 pub const NEWTYPE_TRY_FROM_DERIVE_NAME: &str = "TryFrom";
@@ -613,7 +613,7 @@ pub const NO_COMPLETED_CLEANUP_RECORDED: &str = "No completed cleanup recorded";
 pub const SIGN_IN_FAILED: &str = "Sign in failed";
 pub const OPENAPI_DOCUMENT: &str = "OpenAPI document";
 pub const COMMA_SPACE: &str = ", ";
-pub const SSR_SOURCE_PATH: &str = "server_admin_frontend/src/domain_types/ssr.rs";
+pub const SSR_SOURCE_PATH: &str = "server_admin_frontend/src/ssr.rs";
 pub const APPLICATION_X_WWW_FORM_URLENCODED: &str = "application/x-www-form-urlencoded";
 pub const CODE_STYLE_FROM_FN_IDENTIFIER: &str = "from";
 pub const CODE_STYLE_FROM_TRAIT_IDENTIFIER: &str = "From";
@@ -652,10 +652,10 @@ pub const CODE_STYLE_SELF_VALUE_IDENTIFIER: &str = "self";
 pub const CODE_STYLE_SELF_CONSTRUCTOR_IDENTIFIER: &str = "Self";
 pub const CODE_STYLE_VALUE_IDENTIFIER: &str = "value";
 pub const CODE_STYLE_TARGET_ASSOCIATED_TYPE_IDENTIFIER: &str = "Target";
-pub const STRING_CONSTANT_METADATA_FIXTURE_LOCATIONS: &str = "../frontend_contract/src/domain_types/client.rs::metadata\n../frontend_contract/src/domain_types/client.rs::metadata\n../frontend_contract/src/domain_types/client.rs::metadata";
-pub const STRING_CONSTANT_SOURCE_VISITOR_LOCATIONS: &str = "../tests/src/code_style/source_analysis.rs::visit_item_enum\n../tests/src/code_style/source_analysis.rs::visit_item_struct";
-pub const STRING_CONSTANT_ROUTE_METADATA_FIXTURE_LOCATIONS: &str = "../frontend_contract/src/domain_types/client.rs::metadata\n../frontend_contract/src/domain_types/client.rs::metadata\n../frontend_contract/src/domain_types/client.rs::metadata\n../tests/trybuild/route_contract_wrong_path_parameter.rs::metadata";
-pub const STRING_CONSTANT_ANALYZER_VISITOR_LOCATIONS: &str = "../tests/src/code_style/advanced_policy.rs::visit_type_path\n../tests/src/code_style/runtime_analysis.rs::visit_macro";
+pub const STRING_CONSTANT_METADATA_FIXTURE_LOCATIONS: &str = "../frontend_contract/src/client.rs::metadata\n../frontend_contract/src/client.rs::metadata\n../frontend_contract/src/client.rs::metadata";
+pub const STRING_CONSTANT_SOURCE_VISITOR_LOCATIONS: &str = "../tests/src/source_analysis.rs::visit_item_enum\n../tests/src/source_analysis.rs::visit_item_struct";
+pub const STRING_CONSTANT_ROUTE_METADATA_FIXTURE_LOCATIONS: &str = "../frontend_contract/src/client.rs::metadata\n../frontend_contract/src/client.rs::metadata\n../frontend_contract/src/client.rs::metadata\n../tests/trybuild/route_contract_wrong_path_parameter.rs::metadata";
+pub const STRING_CONSTANT_ANALYZER_VISITOR_LOCATIONS: &str = "../tests/src/advanced_policy.rs::visit_type_path\n../tests/src/runtime_analysis.rs::visit_macro";
 pub const STRING_CONSTANT_MIGRATION_NORMALIZES_DISTINCT_FIXTURES: &str =
     "centralized string constants make otherwise distinct fixtures structurally equivalent";
 
@@ -713,15 +713,18 @@ pub const VALUE_72E2834F: &str = "#[typed_route(path = \"/admin/swagger_ui/{user
 pub const VALUE_D7270E5B: &str = "#[typed_route(path = \"/projects\")]\n         struct Valid;\n         #[typed_route(path = \"/api/projects\")]\n         struct Invalid;";
 pub const VALUE_0ACA6317: &str = "- name: ";
 pub const VALUE_B43DA2C2: &str = "--tests";
-pub const VALUE_287FCBEB: &str = "../bounded_types/src/domain_types/btree.rs::try_from\n../bounded_types/src/domain_types/hash.rs::try_from";
-pub const VALUE_08DBA674: &str = "../bounded_types/src/domain_types/bounded_string.rs";
-pub const VALUE_72A10749: &str = "../bounded_types/src/domain_types/bounded_string.rs::try_from\n../bounded_types/src/domain_types/vector.rs::try_from";
-pub const VALUE_2483AEA6: &str = "../bounded_types/src/domain_types/vector.rs";
-pub const VALUE_7630EBEC: &str = "../bounded_types/src/domain_types/vector.rs:BoundedVec";
+pub const VALUE_287FCBEB: &str =
+    "../bounded_types/src/btree.rs::try_from\n../bounded_types/src/hash.rs::try_from";
+pub const VALUE_08DBA674: &str = "../bounded_types/src/bounded_string.rs";
+pub const VALUE_72A10749: &str =
+    "../bounded_types/src/bounded_string.rs::try_from\n../bounded_types/src/vector.rs::try_from";
+pub const VALUE_2483AEA6: &str = "../bounded_types/src/vector.rs";
+pub const VALUE_7630EBEC: &str = "../bounded_types/src/vector.rs:BoundedVec";
 pub const VALUE_86D03626: &str = "../common_routes/src/domain_types.rs:HealthComponents";
 pub const VALUE_7E4078D9: &str = "../config_lib/src/domain_types.rs::try_from\n../config_lib/src/domain_types.rs::try_from\n../pg_crud_pg_table/src/domain_types.rs::try_from\n../pg_crud_pg_table/src/domain_types.rs::try_from\n../tests/src/domain_type_policy_fixture.rs::try_from";
 pub const VALUE_522C0343: &str = "../config_lib/src/domain_types.rs::try_from\n../server_admin_core/src/domain_types.rs::try_from";
-pub const VALUE_4CB1E1F3: &str = "../config_lib/src/domain_types/http.rs::try_from\n../config_lib/src/domain_types/pg_pool.rs::try_from";
+pub const VALUE_4CB1E1F3: &str =
+    "../config_lib/src/http.rs::try_from\n../config_lib/src/pg_pool.rs::try_from";
 pub const VALUE_FAB1545F: &str = "../constants_str_macros/src/domain_types.rs:ConstantParts";
 pub const VALUE_9FB992E8: &str = "../constants_str_macros/src/domain_types.rs:Constants";
 pub const VALUE_D200D86F: &str = "../constants_str_macros/src/domain_types.rs:Fragments";
@@ -730,23 +733,21 @@ pub const VALUE_6C761A40: &str =
     "../dev_identity_creation_planner/src/domain_types.rs:DevelopmentIdentitySpecs";
 pub const VALUE_EEF4AEDA: &str = "../file_storage/src/domain_types.rs";
 pub const VALUE_B7558033: &str = "../file_storage/src/domain_types.rs:clone";
-pub const VALUE_7615091D: &str = "../frontend_contract/src/domain_types/field_contract.rs";
+pub const VALUE_7615091D: &str = "../frontend_contract/src/field_contract.rs";
 pub const CODE_STYLE_FRONTEND_ROUTE_CONTRACT_PATH: &str =
-    "../frontend_contract/src/domain_types/route_contract.rs";
-pub const VALUE_F487DB2D: &str = "../frontend_contract/src/domain_types/page_transport.rs::validate\n../pg_crud_pg_table/src/domain_types.rs::validate";
-pub const VALUE_05051852: &str = "../frontend_contract/src/domain_types/problem.rs::validate\n../frontend_contract_validation/src/domain_types/openapi_validation.rs::validate\n../frontend_contract_validation/src/domain_types/route_contract_validation.rs::validate";
-pub const VALUE_B7324575: &str = "../frontend_contract/src/domain_types/route.rs";
-pub const VALUE_66B5730A: &str = "../frontend_contract/src/domain_types/route.rs::try_from\n../pg_crud_common/src/domain_types/filter_bind_plan.rs::try_from\n../server_runtime_http/src/domain_types/path_policy.rs::try_from";
-pub const VALUE_E66CEAFB: &str = "../frontend_contract/src/domain_types/route_coverage.rs";
+    "../frontend_contract/src/route_contract.rs";
+pub const VALUE_F487DB2D: &str = "../frontend_contract/src/page_transport.rs::validate\n../pg_crud_pg_table/src/domain_types.rs::validate";
+pub const VALUE_05051852: &str = "../frontend_contract/src/problem.rs::validate\n../frontend_contract_validation/src/openapi_validation.rs::validate\n../frontend_contract_validation/src/route_contract_validation.rs::validate";
+pub const VALUE_B7324575: &str = "../frontend_contract/src/route.rs";
+pub const VALUE_66B5730A: &str = "../frontend_contract/src/route.rs::try_from\n../pg_crud_common/src/filter_bind_plan.rs::try_from\n../server_runtime_http/src/path_policy.rs::try_from";
+pub const VALUE_E66CEAFB: &str = "../frontend_contract/src/route_coverage.rs";
 pub const VALUE_F68E036F: &str =
     "../frontend_contract_macros/src/domain_types.rs:SynRouteRegistrySchemas";
 pub const VALUE_FD73A503: &str = "../frontend_contract_macros/src/lib.rs:to_string";
-pub const VALUE_BC495D5D: &str =
-    "../frontend_contract_validation/src/domain_types/artifact.rs:String::from";
+pub const VALUE_BC495D5D: &str = "../frontend_contract_validation/src/artifact.rs:String::from";
 pub const VALUE_E841E205: &str =
-    "../frontend_contract_validation/src/domain_types/openapi_validation.rs:to_owned";
-pub const VALUE_321E6445: &str =
-    "../frontend_contract_validation/src/domain_types/route_contract_validation.rs";
+    "../frontend_contract_validation/src/openapi_validation.rs:to_owned";
+pub const VALUE_321E6445: &str = "../frontend_contract_validation/src/route_contract_validation.rs";
 pub const VALUE_F2B019BA: &str = "../generate_quotes/src/domain_types.rs::binary_double_quote_style\n../generate_quotes/src/domain_types.rs::double_quote_style";
 pub const VALUE_5BE6CC71: &str = "../generate_quotes/src/domain_types.rs::binary_single_quote_style\n../generate_quotes/src/domain_types.rs::single_quote_style";
 pub const VALUE_8443FF5D: &str =
@@ -754,133 +755,115 @@ pub const VALUE_8443FF5D: &str =
 pub const VALUE_A4489C21: &str =
     "../git_info/src/domain_types.rs::validate\n../git_info/src/domain_types.rs::validate";
 pub const VALUE_A2FD7F33: &str = "../init_env_files/src/domain_types.rs";
-pub const VALUE_58C1A75F: &str = "../location_lib/src/domain_types.rs::validate\n../location_lib/src/domain_types.rs::validate\n../macro_helpers/src/domain_types/generate_field_location_new_token_stream.rs::validate\n../macro_helpers/src/domain_types/generate_field_location_new_token_stream.rs::validate\n../server_admin/src/application/auth.rs::validate\n../server_admin/src/application/auth.rs::validate\n../server_admin/src/application/auth.rs::validate";
+pub const VALUE_58C1A75F: &str = "../location_lib/src/domain_types.rs::validate\n../location_lib/src/domain_types.rs::validate\n../macro_helpers/src/generate_field_location_new_token_stream.rs::validate\n../macro_helpers/src/generate_field_location_new_token_stream.rs::validate\n../server_admin/src/application__auth.rs::validate\n../server_admin/src/application__auth.rs::validate\n../server_admin/src/application__auth.rs::validate";
 pub const VALUE_BE04A453: &str = "../macro_clippy_check_common/src/lib.rs:String::from";
-pub const VALUE_2D81C306: &str = "../macro_helpers/src/domain_types/generate_new_or_try_new.rs::generate_impl_const_new_for_identifier_token_stream\n../macro_helpers/src/domain_types/generate_new_or_try_new.rs::generate_impl_new_for_identifier_token_stream\n../macro_helpers/src/domain_types/generate_new_or_try_new.rs::generate_impl_pub_const_new_for_identifier_token_stream\n../macro_helpers/src/domain_types/generate_new_or_try_new.rs::generate_impl_pub_new_for_identifier_token_stream";
-pub const VALUE_F43CC42D: &str = "../macro_helpers/src/domain_types/generate_new_or_try_new.rs::generate_impl_const_try_new_for_identifier_token_stream\n../macro_helpers/src/domain_types/generate_new_or_try_new.rs::generate_impl_pub_const_try_new_for_identifier_token_stream\n../macro_helpers/src/domain_types/generate_new_or_try_new.rs::generate_impl_pub_try_new_for_identifier_token_stream\n../macro_helpers/src/domain_types/generate_new_or_try_new.rs::generate_impl_try_new_for_identifier_token_stream";
+pub const VALUE_2D81C306: &str = "../macro_helpers/src/generate_new_or_try_new.rs::generate_impl_const_new_for_identifier_token_stream\n../macro_helpers/src/generate_new_or_try_new.rs::generate_impl_new_for_identifier_token_stream\n../macro_helpers/src/generate_new_or_try_new.rs::generate_impl_pub_const_new_for_identifier_token_stream\n../macro_helpers/src/generate_new_or_try_new.rs::generate_impl_pub_new_for_identifier_token_stream";
+pub const VALUE_F43CC42D: &str = "../macro_helpers/src/generate_new_or_try_new.rs::generate_impl_const_try_new_for_identifier_token_stream\n../macro_helpers/src/generate_new_or_try_new.rs::generate_impl_pub_const_try_new_for_identifier_token_stream\n../macro_helpers/src/generate_new_or_try_new.rs::generate_impl_pub_try_new_for_identifier_token_stream\n../macro_helpers/src/generate_new_or_try_new.rs::generate_impl_try_new_for_identifier_token_stream";
 pub const VALUE_A744A72D: &str =
     "../newtype/src/lib.rs::bounded_string\n../newtype/src/lib.rs::enum_from_str";
 pub const VALUE_11C1DCC5: &str = "../newtype/src/lib.rs::to_err_string\n../newtype/src/lib.rs::to_err_string_as_ref_str\n../newtype/src/lib.rs::to_err_string_debug";
-pub const VALUE_8E6C7109: &str = "../notification_service/src/adapters/routes.rs";
+pub const VALUE_8E6C7109: &str = "../notification_service/src/routes.rs";
 pub const VALUE_2D700ED6: &str = "../pg_crud_common/src/domain_types.rs::visit_str\n../pg_crud_where_filters/src/domain_types.rs::visit_str";
 pub const VALUE_6BF051A2: &str = "../pg_crud_common/src/domain_types.rs:AllEnumVariants";
-pub const VALUE_D7049B21: &str = "../pg_crud_common/src/domain_types/advisory_lock.rs::try_from\n../pg_crud_common/src/domain_types/operational_invariants.rs::try_from";
-pub const VALUE_090096ED: &str =
-    "../pg_crud_common/src/domain_types/batch_validation.rs:BatchInvalidItems";
-pub const VALUE_CBBA0BFF: &str = "../pg_crud_common/src/domain_types/bounded_btree_map.rs::deserialize\n../pg_crud_common/src/domain_types/bounded_vec.rs::deserialize\n../pg_crud_where_filters/src/domain_types.rs::deserialize";
-pub const VALUE_94E2B4FA: &str =
-    "../pg_crud_common/src/domain_types/bounded_unique_vec.rs:BoundedUniqueVec";
-pub const VALUE_D9B93146: &str = "../pg_crud_common/src/domain_types/bounded_vec.rs:BoundedVec";
-pub const VALUE_6F5D2E20: &str =
-    "../pg_crud_common/src/domain_types/cardinality.rs:DuplicateCandidates";
-pub const VALUE_1C550714: &str = "../pg_crud_common/src/domain_types/cursor.rs::try_from\n../pg_crud_common/src/domain_types/cursor.rs::try_from\n../server_runtime_http/src/domain_types/metrics_layer.rs::try_from";
-pub const VALUE_9DFC7A97: &str =
-    "../pg_crud_common/src/domain_types/date_sql_filter.rs:ChronoUtcDateTimes";
-pub const VALUE_07C16E6D: &str = "../pg_crud_common/src/domain_types/db_schema_conformance.rs::schema_text\n../pg_crud_common/src/domain_types/db_schema_conformance.rs::schema_text";
+pub const VALUE_D7049B21: &str = "../pg_crud_common/src/advisory_lock.rs::try_from\n../pg_crud_common/src/operational_invariants.rs::try_from";
+pub const VALUE_090096ED: &str = "../pg_crud_common/src/batch_validation.rs:BatchInvalidItems";
+pub const VALUE_CBBA0BFF: &str = "../pg_crud_common/src/bounded_btree_map.rs::deserialize\n../pg_crud_common/src/bounded_vec.rs::deserialize\n../pg_crud_where_filters/src/domain_types.rs::deserialize";
+pub const VALUE_94E2B4FA: &str = "../pg_crud_common/src/bounded_unique_vec.rs:BoundedUniqueVec";
+pub const VALUE_D9B93146: &str = "../pg_crud_common/src/bounded_vec.rs:BoundedVec";
+pub const VALUE_6F5D2E20: &str = "../pg_crud_common/src/cardinality.rs:DuplicateCandidates";
+pub const VALUE_1C550714: &str = "../pg_crud_common/src/cursor.rs::try_from\n../pg_crud_common/src/cursor.rs::try_from\n../server_runtime_http/src/metrics_layer.rs::try_from";
+pub const VALUE_9DFC7A97: &str = "../pg_crud_common/src/date_sql_filter.rs:ChronoUtcDateTimes";
+pub const VALUE_07C16E6D: &str = "../pg_crud_common/src/db_schema_conformance.rs::schema_text\n../pg_crud_common/src/db_schema_conformance.rs::schema_text";
 pub const VALUE_0525E2BF: &str =
-    "../pg_crud_common/src/domain_types/db_schema_conformance.rs:DbColumnContractSnapshots";
-pub const VALUE_CAE88716: &str =
-    "../pg_crud_common/src/domain_types/db_schema_conformance.rs:DbColumnSnapshots";
-pub const VALUE_D51ADF29: &str =
-    "../pg_crud_common/src/domain_types/db_schema_conformance.rs:DbColumnSpecs";
-pub const VALUE_B1A7F284: &str =
-    "../pg_crud_common/src/domain_types/db_schema_conformance.rs:DbDefaultSpecs";
+    "../pg_crud_common/src/db_schema_conformance.rs:DbColumnContractSnapshots";
+pub const VALUE_CAE88716: &str = "../pg_crud_common/src/db_schema_conformance.rs:DbColumnSnapshots";
+pub const VALUE_D51ADF29: &str = "../pg_crud_common/src/db_schema_conformance.rs:DbColumnSpecs";
+pub const VALUE_B1A7F284: &str = "../pg_crud_common/src/db_schema_conformance.rs:DbDefaultSpecs";
 pub const VALUE_975B0C21: &str =
-    "../pg_crud_common/src/domain_types/db_schema_conformance.rs:DbKeyContractSnapshots";
-pub const VALUE_AA7EE094: &str =
-    "../pg_crud_common/src/domain_types/db_schema_conformance.rs:DbKeySpecs";
-pub const VALUE_5879251A: &str =
-    "../pg_crud_common/src/domain_types/db_schema_conformance.rs:DbObjectSnapshots";
-pub const VALUE_51CC135E: &str =
-    "../pg_crud_common/src/domain_types/db_schema_conformance.rs:DbObjectSpecs";
-pub const VALUE_8C2154B5: &str =
-    "../pg_crud_common/src/domain_types/db_schema_conformance.rs:DbSchemaTexts";
+    "../pg_crud_common/src/db_schema_conformance.rs:DbKeyContractSnapshots";
+pub const VALUE_AA7EE094: &str = "../pg_crud_common/src/db_schema_conformance.rs:DbKeySpecs";
+pub const VALUE_5879251A: &str = "../pg_crud_common/src/db_schema_conformance.rs:DbObjectSnapshots";
+pub const VALUE_51CC135E: &str = "../pg_crud_common/src/db_schema_conformance.rs:DbObjectSpecs";
+pub const VALUE_8C2154B5: &str = "../pg_crud_common/src/db_schema_conformance.rs:DbSchemaTexts";
 pub const VALUE_7314D06D: &str =
-    "../pg_crud_common/src/domain_types/db_schema_conformance.rs:DbStaticSchemaTexts";
-pub const VALUE_9AE03CB2: &str =
-    "../pg_crud_common/src/domain_types/filter_bind_plan.rs:FilterBindPlan";
-pub const VALUE_A417488B: &str = "../pg_crud_common/src/domain_types/list_total.rs:ListItems";
-pub const VALUE_CD2A0018: &str = "../pg_crud_common/src/domain_types/operational_invariants.rs::try_from\n../pg_crud_common/src/domain_types/sql_identifier.rs::try_from\n../pg_crud_common/src/domain_types/sql_identifier.rs::try_from";
-pub const VALUE_919ACACB: &str =
-    "../pg_crud_common/src/domain_types/operational_invariants.rs:PgSqlIdentifiers";
+    "../pg_crud_common/src/db_schema_conformance.rs:DbStaticSchemaTexts";
+pub const VALUE_9AE03CB2: &str = "../pg_crud_common/src/filter_bind_plan.rs:FilterBindPlan";
+pub const VALUE_A417488B: &str = "../pg_crud_common/src/list_total.rs:ListItems";
+pub const VALUE_CD2A0018: &str = "../pg_crud_common/src/operational_invariants.rs::try_from\n../pg_crud_common/src/sql_identifier.rs::try_from\n../pg_crud_common/src/sql_identifier.rs::try_from";
+pub const VALUE_919ACACB: &str = "../pg_crud_common/src/operational_invariants.rs:PgSqlIdentifiers";
 pub const VALUE_9DB8F65B: &str =
-    "../pg_crud_common/src/domain_types/order_preserving_deduplication.rs:OrderPreservingValues";
-pub const VALUE_7A32C552: &str = "../pg_crud_common/src/domain_types/pg_values.rs::to_query_str\n../pg_crud_macro_common/src/domain_types/emission_types.rs::non_null_or_nullable_str\n../pg_crud_macro_common/src/domain_types/emission_types.rs::to_path\n../pg_crud_where_filters/src/domain_types.rs::postgreql_syntax";
-pub const VALUE_C7F27415: &str =
-    "../pg_crud_common/src/domain_types/query_collections.rs:NotEmptyUniqueVec";
-pub const VALUE_5392D537: &str = "../pg_crud_common/src/domain_types/query_pagination.rs::try_from\n../pg_crud_common/src/domain_types/query_pagination.rs::try_from";
-pub const VALUE_02000EC4: &str = "../pg_crud_macro_common/src/domain_types/token_emission.rs::generate_impl_pg_crud_common_default_some_one_element_max_page_size_token_stream\n../pg_crud_macro_common/src/domain_types/token_emission.rs::generate_impl_pg_crud_common_default_some_one_element_token_stream";
-pub const VALUE_944342EF: &str = "../pg_crud_macro_common/src/domain_types/token_emission.rs::generate_impl_pg_crud_default_some_one_element_max_page_size_token_stream\n../pg_crud_macro_common/src/domain_types/token_emission.rs::generate_impl_pg_crud_default_some_one_element_token_stream";
+    "../pg_crud_common/src/order_preserving_deduplication.rs:OrderPreservingValues";
+pub const VALUE_7A32C552: &str = "../pg_crud_common/src/pg_values.rs::to_query_str\n../pg_crud_macro_common/src/emission_types.rs::non_null_or_nullable_str\n../pg_crud_macro_common/src/emission_types.rs::to_path\n../pg_crud_where_filters/src/domain_types.rs::postgreql_syntax";
+pub const VALUE_C7F27415: &str = "../pg_crud_common/src/query_collections.rs:NotEmptyUniqueVec";
+pub const VALUE_5392D537: &str = "../pg_crud_common/src/query_pagination.rs::try_from\n../pg_crud_common/src/query_pagination.rs::try_from";
+pub const VALUE_02000EC4: &str = "../pg_crud_macro_common/src/token_emission.rs::generate_impl_pg_crud_common_default_some_one_element_max_page_size_token_stream\n../pg_crud_macro_common/src/token_emission.rs::generate_impl_pg_crud_common_default_some_one_element_token_stream";
+pub const VALUE_944342EF: &str = "../pg_crud_macro_common/src/token_emission.rs::generate_impl_pg_crud_default_some_one_element_max_page_size_token_stream\n../pg_crud_macro_common/src/token_emission.rs::generate_impl_pg_crud_default_some_one_element_token_stream";
 pub const VALUE_671231A3: &str =
-    "../pg_crud_macro_common/src/domain_types/emission_types.rs:ParseTokenStreamStrings";
-pub const VALUE_DEB830DD: &str = "../pg_crud_macro_common/src/domain_types/emission_types.rs:ProcMacro2GeneratedRustTokenStreamVec";
+    "../pg_crud_macro_common/src/emission_types.rs:ParseTokenStreamStrings";
+pub const VALUE_DEB830DD: &str =
+    "../pg_crud_macro_common/src/emission_types.rs:ProcMacro2GeneratedRustTokenStreamVec";
 pub const VALUE_5BB2B57A: &str = "../pg_crud_pg_table/src/domain_types.rs::try_from\n../pg_crud_pg_table/src/domain_types.rs::try_from";
-pub const VALUE_9DB464C8: &str = "../pg_crud_pg_table_generate_src/src/domain_types/source.rs";
-pub const VALUE_DD337AC0: &str =
-    "../pg_crud_pg_table_generate_src/src/domain_types/source.rs:TableTestNames";
-pub const VALUE_D63A5858: &str = "../pg_crud_pg_types_generate_src/src/domain_types/source.rs::try_from\n../pg_crud_pg_types_generate_src/src/domain_types/source.rs::try_from\n../server_runtime_http/src/domain_types/metrics_layer.rs::try_from";
+pub const VALUE_9DB464C8: &str = "../pg_crud_pg_table_generate_src/src/source.rs";
+pub const VALUE_DD337AC0: &str = "../pg_crud_pg_table_generate_src/src/source.rs:TableTestNames";
+pub const VALUE_D63A5858: &str = "../pg_crud_pg_types_generate_src/src/source.rs::try_from\n../pg_crud_pg_types_generate_src/src/source.rs::try_from\n../server_runtime_http/src/metrics_layer.rs::try_from";
 pub const VALUE_06C235F4: &str =
-    "../pg_crud_pg_types_generate_src/src/domain_types/source.rs:GeneratePgTypeRecords";
-pub const VALUE_2316F647: &str =
-    "../pg_crud_pg_types_generate_src/src/domain_types/source.rs:GeneratePgTypes";
+    "../pg_crud_pg_types_generate_src/src/source.rs:GeneratePgTypeRecords";
+pub const VALUE_2316F647: &str = "../pg_crud_pg_types_generate_src/src/source.rs:GeneratePgTypes";
 pub const VALUE_5D687FEA: &str = "../pg_crud_where_filters/src/domain_types.rs:BoundedVec";
 pub const VALUE_7E7B2B37: &str =
     "../pg_crud_where_filters/src/domain_types.rs:PgTypeNotEmptyUniqueVec";
 pub const VALUE_4389D615: &str = "../prepare_pg_databases/src/domain_types.rs";
-pub const VALUE_E4A2A88A: &str = "../server_admin/src/adapters/repository.rs::into_parts\n../server_admin/src/adapters/repository.rs::into_parts";
-pub const VALUE_51DBE253: &str = "../server_admin/src/application/extractors.rs::from_request\n../server_admin/src/application/extractors.rs::from_request";
-pub const VALUE_88A7A661: &str = "../server_admin/src/application/extractors.rs::from_request_parts\n../server_admin/src/application/extractors.rs::from_request_parts";
+pub const VALUE_E4A2A88A: &str =
+    "../server_admin/src/repository.rs::into_parts\n../server_admin/src/repository.rs::into_parts";
+pub const VALUE_51DBE253: &str = "../server_admin/src/extractors.rs::from_request\n../server_admin/src/extractors.rs::from_request";
+pub const VALUE_88A7A661: &str = "../server_admin/src/extractors.rs::from_request_parts\n../server_admin/src/extractors.rs::from_request_parts";
 pub const VALUE_CB780650: &str =
-    "../server_admin/src/application/auth.rs:JsonwebtokenAdminDecodingKeys";
-pub const VALUE_148FAD59: &str = "../server_admin/src/application/html/actions/roles.rs::delete_role\n../server_admin/src/application/html/actions/users.rs::delete_user";
-pub const VALUE_689F2872: &str = "../server_admin/src/domain_types/maintenance.rs::try_from\n../server_runtime_http/src/domain_types/pg_rate_limit.rs::try_from\n../server_runtime_http/src/domain_types/pg_rate_limit.rs::try_from";
-pub const CODE_STYLE_SERVER_ADMIN_AUTH_SECURITY_PATH: &str =
-    "server_admin/src/domain_types/security.rs";
-pub const CODE_STYLE_SERVER_ADMIN_MAINTENANCE_PATH: &str =
-    "server_admin/src/domain_types/maintenance.rs";
-pub const VALUE_599796F1: &str = "../server_admin/src/domain_types/rbac.rs::as_str\n../server_admin/src/domain_types/rbac.rs::as_str";
-pub const VALUE_27922A80: &str = "../server_admin_frontend/src/domain_types/ssr.rs::try_from\n../server_admin_frontend/src/domain_types/ssr.rs::try_from";
-pub const VALUE_2EF7512D: &str = "../server_runtime_core/src/domain_types/lease_registry.rs";
-pub const VALUE_DCB5D4F2: &str = "../server_runtime_core/src/domain_types/lease_registry.rs::try_from\n../server_runtime_core/src/domain_types/lease_registry.rs::try_from";
-pub const VALUE_43BDEFF3: &str = "../server_runtime_core/src/domain_types/lease_registry.rs::try_from\n../server_runtime_http/src/domain_types/http_client.rs::try_from\n../server_runtime_http/src/domain_types/http_client.rs::try_from\n../server_runtime_http/src/domain_types/lifecycle.rs::try_from\n../server_runtime_http/src/domain_types/lifecycle.rs::try_from";
-pub const VALUE_F9E232EF: &str = "../server_runtime_core/src/domain_types/resource_budget.rs::try_from\n../server_runtime_http/src/domain_types/batched_cleanup.rs::try_from\n../server_runtime_http/src/domain_types/limits.rs::try_from";
-pub const VALUE_757BD453: &str = "../server_runtime_core/src/domain_types/secret_text.rs::try_from\n../server_runtime_core/src/domain_types/secret_text.rs::try_from";
-pub const VALUE_57DDC4BF: &str = "../server_runtime_core/src/domain_types/single_flight.rs";
+    "../server_admin/src/application__auth.rs:JsonwebtokenAdminDecodingKeys";
+pub const VALUE_148FAD59: &str = "../server_admin/src/application__html__actions__roles.rs::delete_role\n../server_admin/src/application__html__actions__users.rs::delete_user";
+pub const VALUE_689F2872: &str = "../server_admin/src/maintenance.rs::try_from\n../server_runtime_http/src/pg_rate_limit.rs::try_from\n../server_runtime_http/src/pg_rate_limit.rs::try_from";
+pub const CODE_STYLE_SERVER_ADMIN_AUTH_SECURITY_PATH: &str = "server_admin/src/security.rs";
+pub const CODE_STYLE_SERVER_ADMIN_MAINTENANCE_PATH: &str = "server_admin/src/maintenance.rs";
+pub const VALUE_599796F1: &str =
+    "../server_admin/src/rbac.rs::as_str\n../server_admin/src/rbac.rs::as_str";
+pub const VALUE_27922A80: &str =
+    "../server_admin_frontend/src/ssr.rs::try_from\n../server_admin_frontend/src/ssr.rs::try_from";
+pub const VALUE_2EF7512D: &str = "../server_runtime_core/src/lease_registry.rs";
+pub const VALUE_DCB5D4F2: &str = "../server_runtime_core/src/lease_registry.rs::try_from\n../server_runtime_core/src/lease_registry.rs::try_from";
+pub const VALUE_43BDEFF3: &str = "../server_runtime_core/src/lease_registry.rs::try_from\n../server_runtime_http/src/http_client.rs::try_from\n../server_runtime_http/src/http_client.rs::try_from\n../server_runtime_http/src/lifecycle.rs::try_from\n../server_runtime_http/src/lifecycle.rs::try_from";
+pub const VALUE_F9E232EF: &str = "../server_runtime_core/src/resource_budget.rs::try_from\n../server_runtime_http/src/batched_cleanup.rs::try_from\n../server_runtime_http/src/limits.rs::try_from";
+pub const VALUE_757BD453: &str = "../server_runtime_core/src/secret_text.rs::try_from\n../server_runtime_core/src/secret_text.rs::try_from";
+pub const VALUE_57DDC4BF: &str = "../server_runtime_core/src/single_flight.rs";
 pub const VALUE_94FCEDB7: &str = "../server_runtime_http/src/domain_types.rs:to_string";
-pub const VALUE_1D2594F2: &str =
-    "../server_runtime_http/src/domain_types/bounded_read.rs:BoundedBytes";
-pub const VALUE_20BD9443: &str = "../server_runtime_http/src/domain_types/child_process.rs";
+pub const VALUE_1D2594F2: &str = "../server_runtime_http/src/bounded_read.rs:BoundedBytes";
+pub const VALUE_20BD9443: &str = "../server_runtime_http/src/child_process.rs";
 pub const VALUE_A48AAE67: &str =
-    "../server_runtime_http/src/domain_types/cors.rs:HttpCorsAllowOriginHeaderValues";
-pub const VALUE_CD85A891: &str = "../server_runtime_http/src/domain_types/geojson.rs::validate_geo_json\n../server_runtime_http/src/domain_types/geojson.rs::validate_geo_json\n../server_runtime_http/src/domain_types/geojson.rs::validate_geo_json";
-pub const VALUE_213316BE: &str =
-    "../server_runtime_http/src/domain_types/http_error_diagnostic.rs:to_string";
-pub const VALUE_B9937202: &str =
-    "../server_runtime_http/src/domain_types/multipart.rs:MultipartBytesParts";
-pub const VALUE_2941B657: &str =
-    "../server_runtime_http/src/domain_types/multipart.rs:MultipartTextParts";
-pub const VALUE_422EC2EB: &str = "../server_runtime_http/src/domain_types/pg_rate_limit.rs::try_from\n../server_runtime_http/src/domain_types/pg_rate_limit.rs::try_from";
-pub const VALUE_FBAC771A: &str = "../tests/src/code_style/advanced_policy.rs::visit_expr_await\n../tests/src/code_style/advanced_policy.rs::visit_macro";
-pub const VALUE_0D4F3549: &str = "../tests/src/code_style/advanced_policy.rs::visit_expr_loop\n../tests/src/code_style/advanced_policy.rs::visit_expr_while\n../tests/src/code_style/runtime_analysis.rs::visit_expr_async";
-pub const VALUE_082A5401: &str = "../tests/src/code_style/domain_analysis.rs::external_leaf_segment_from_arguments\n../tests/src/code_style/domain_analysis.rs::external_root_segment_from_arguments";
-pub const VALUE_4793A5FE: &str = "../tests/src/code_style/domain_analysis.rs::visit_item\n../tests/src/code_style/runtime_analysis.rs::visit_item\n../tests/src/code_style/runtime_analysis.rs::visit_item\n../tests/src/code_style/runtime_analysis.rs::visit_item\n../tests/src/code_style/runtime_analysis.rs::visit_item\n../tests/src/code_style/source_analysis.rs::visit_item\n../tests/src/code_style/source_analysis.rs::visit_item\n../tests/src/code_style/source_analysis.rs::visit_item";
-pub const VALUE_224F7450: &str = "../tests/src/code_style/domain_analysis.rs::visit_item_enum\n../tests/src/code_style/domain_analysis.rs::visit_item_struct\n../tests/src/code_style/domain_analysis.rs::visit_item_trait\n../tests/src/code_style/domain_analysis.rs::visit_item_union";
-pub const VALUE_3AE4AA02: &str = "../tests/src/code_style/domain_analysis.rs::visit_item_impl\n../tests/src/code_style/domain_analysis.rs::visit_item_struct";
-pub const VALUE_7005B03A: &str = "../tests/src/code_style/mod.rs::attr_has_bounded_string_derive\n../tests/src/code_style/mod.rs::attr_has_newtype_from_option";
-pub const VALUE_B90EA89F: &str = "../tests/src/code_style/mod.rs::item_impl_contains_len_call\n../tests/src/code_style/mod.rs::len_checked_function_names";
-pub const VALUE_DBB9C433: &str = "../tests/src/code_style/mod.rs::item_impl_is_from\n../tests/src/code_style/mod.rs::item_impl_is_try_from";
-pub const VALUE_A4FF3FB6: &str = "../tests/src/code_style/mod.rs::item_impl_is_from_string\n../tests/src/code_style/mod.rs::item_impl_is_try_from_string";
-pub const VALUE_F0DC6ADA: &str = "../tests/src/code_style/mod.rs::item_struct_derives_conversion\n../tests/src/code_style/mod.rs::item_struct_derives_try_from";
-pub const VALUE_292E1A7F: &str = "../tests/src/code_style/runtime_analysis.rs::visit_impl_item_fn\n../tests/src/code_style/runtime_analysis.rs::visit_item_fn\n../tests/src/code_style/runtime_analysis.rs::visit_trait_item_fn";
-pub const VALUE_4FDDA503: &str = "../tests/src/code_style/source_analysis.rs::visit_expr_lit\n../tests/src/code_style/source_analysis.rs::visit_expr_lit";
-pub const VALUE_E26644F4: &str = "../tests/src/code_style/source_analysis.rs::visit_item_struct\n../tests/src/code_style/source_analysis.rs::visit_item_struct\n../tests/src/code_style/source_analysis.rs::visit_item_struct";
+    "../server_runtime_http/src/cors.rs:HttpCorsAllowOriginHeaderValues";
+pub const VALUE_CD85A891: &str = "../server_runtime_http/src/geojson.rs::validate_geo_json\n../server_runtime_http/src/geojson.rs::validate_geo_json\n../server_runtime_http/src/geojson.rs::validate_geo_json";
+pub const VALUE_213316BE: &str = "../server_runtime_http/src/http_error_diagnostic.rs:to_string";
+pub const VALUE_B9937202: &str = "../server_runtime_http/src/multipart.rs:MultipartBytesParts";
+pub const VALUE_2941B657: &str = "../server_runtime_http/src/multipart.rs:MultipartTextParts";
+pub const VALUE_422EC2EB: &str = "../server_runtime_http/src/pg_rate_limit.rs::try_from\n../server_runtime_http/src/pg_rate_limit.rs::try_from";
+pub const VALUE_FBAC771A: &str = "../tests/src/advanced_policy.rs::visit_expr_await\n../tests/src/advanced_policy.rs::visit_macro";
+pub const VALUE_0D4F3549: &str = "../tests/src/advanced_policy.rs::visit_expr_loop\n../tests/src/advanced_policy.rs::visit_expr_while\n../tests/src/runtime_analysis.rs::visit_expr_async";
+pub const VALUE_082A5401: &str = "../tests/src/domain_analysis.rs::external_leaf_segment_from_arguments\n../tests/src/domain_analysis.rs::external_root_segment_from_arguments";
+pub const VALUE_4793A5FE: &str = "../tests/src/domain_analysis.rs::visit_item\n../tests/src/runtime_analysis.rs::visit_item\n../tests/src/runtime_analysis.rs::visit_item\n../tests/src/runtime_analysis.rs::visit_item\n../tests/src/runtime_analysis.rs::visit_item\n../tests/src/source_analysis.rs::visit_item\n../tests/src/source_analysis.rs::visit_item\n../tests/src/source_analysis.rs::visit_item";
+pub const VALUE_224F7450: &str = "../tests/src/domain_analysis.rs::visit_item_enum\n../tests/src/domain_analysis.rs::visit_item_struct\n../tests/src/domain_analysis.rs::visit_item_trait\n../tests/src/domain_analysis.rs::visit_item_union";
+pub const VALUE_3AE4AA02: &str = "../tests/src/domain_analysis.rs::visit_item_impl\n../tests/src/domain_analysis.rs::visit_item_struct";
+pub const VALUE_7005B03A: &str = "../tests/src/code_style.rs::attr_has_bounded_string_derive\n../tests/src/code_style.rs::attr_has_newtype_from_option";
+pub const VALUE_B90EA89F: &str = "../tests/src/code_style.rs::item_impl_contains_len_call\n../tests/src/code_style.rs::len_checked_function_names";
+pub const VALUE_DBB9C433: &str = "../tests/src/code_style.rs::item_impl_is_from\n../tests/src/code_style.rs::item_impl_is_try_from";
+pub const VALUE_A4FF3FB6: &str = "../tests/src/code_style.rs::item_impl_is_from_string\n../tests/src/code_style.rs::item_impl_is_try_from_string";
+pub const VALUE_F0DC6ADA: &str = "../tests/src/code_style.rs::item_struct_derives_conversion\n../tests/src/code_style.rs::item_struct_derives_try_from";
+pub const VALUE_292E1A7F: &str = "../tests/src/runtime_analysis.rs::visit_impl_item_fn\n../tests/src/runtime_analysis.rs::visit_item_fn\n../tests/src/runtime_analysis.rs::visit_trait_item_fn";
+pub const VALUE_4FDDA503: &str = "../tests/src/source_analysis.rs::visit_expr_lit\n../tests/src/source_analysis.rs::visit_expr_lit";
+pub const VALUE_E26644F4: &str = "../tests/src/source_analysis.rs::visit_item_struct\n../tests/src/source_analysis.rs::visit_item_struct\n../tests/src/source_analysis.rs::visit_item_struct";
 pub const VALUE_AE96131E: &str = "../tests/trybuild/route_contract_wrong_request.rs::metadata\n../tests/trybuild/route_contract_wrong_response.rs::metadata\n../tests/trybuild/route_contract_wrong_route.rs::metadata\n../tests/trybuild/route_contract_wrong_route.rs::metadata\n../tests/trybuild/route_contract_wrong_transport.rs::metadata";
 pub const VALUE_413BDF99: &str =
     "../workspace_macro_helpers/src/domain_types.rs:ProcMacro2MacroTokens";
 pub const VALUE_EA3B0668: &str =
     "../workspace_macro_helpers/src/domain_types.rs:ProcMacro2TopLevelCommaParts";
 pub const VALUE_CCA2C2FA: &str = "../workspace_scaffold/src/domain_types.rs";
-pub const VALUE_A7EBF5D2: &str = "../workspace_test_runner/src/adapters/execution.rs";
+pub const VALUE_A7EBF5D2: &str = "../workspace_test_runner/src/execution.rs";
 pub const VALUE_C14CECEC: &str = "./";
 pub const VALUE_D8346474: &str = ".github/actions/setup-rust/action.yml";
 pub const VALUE_87DB21A9: &str = ".github/workflows/release.yml";
@@ -1362,10 +1345,10 @@ pub const VALUE_6A14D7C6: &str =
     "compile-time route generation materializes variant identifiers outside runtime hot paths";
 pub const VALUE_DB669AF6: &str = "compose";
 pub const VALUE_739ED940: &str = "compose_file";
-pub const VALUE_3C187B4E: &str = "config_lib/src/domain_types/admin.rs";
-pub const VALUE_2E474F0E: &str = "config_lib/src/domain_types/admin_jwt.rs";
-pub const VALUE_237F2CE7: &str = "config_lib/src/domain_types/pg_pool.rs";
-pub const VALUE_ED469FC2: &str = "config_lib/src/domain_types/types.rs";
+pub const VALUE_3C187B4E: &str = "config_lib/src/admin.rs";
+pub const VALUE_2E474F0E: &str = "config_lib/src/admin_jwt.rs";
+pub const VALUE_237F2CE7: &str = "config_lib/src/pg_pool.rs";
+pub const VALUE_ED469FC2: &str = "config_lib/src/types.rs";
 pub const VALUE_73F238C3: &str = "config_lib_config_lib_macros/src/lib.rs";
 pub const VALUE_516D6874: &str = "config_lib_generate_accessor_traits_for_struct_fields/src/lib.rs";
 pub const VALUE_A57F952F: &str = "config_lib_try_from_env/src/lib.rs";
@@ -1537,11 +1520,10 @@ pub const VALUE_43F5436D: &str = "from --platform=$BUILDPLATFORM rust:latest as 
 pub const VALUE_D6EC9B66: &str = "frontend routes and proxy paths have separate public domain contracts despite similar conversion flow";
 pub const VALUE_9A26B6D6: &str = "frontend_contract";
 pub const VALUE_C34A5FE6: &str = "frontend_contract/src";
-pub const VALUE_4B68F077: &str = "frontend_contract/src/domain_types/auth_session_keep_alive.rs";
-pub const VALUE_E7C9496D: &str =
-    "frontend_contract/src/domain_types/route_registration_contract.rs";
+pub const VALUE_4B68F077: &str = "frontend_contract/src/auth_session_keep_alive.rs";
+pub const VALUE_E7C9496D: &str = "frontend_contract/src/route_registration_contract.rs";
 pub const VALUE_00ABFB22: &str = "frontend_contract_macros/src/lib.rs";
-pub const VALUE_3DDFB937: &str = "frontend_contract_validation/src/domain_types/artifact.rs";
+pub const VALUE_3DDFB937: &str = "frontend_contract_validation/src/artifact.rs";
 pub const VALUE_4BAB9A8D: &str =
     "functions that cannot fail must return their concrete success type";
 pub const VALUE_24CACF50: &str = "generate";
@@ -1672,32 +1654,24 @@ pub const VALUE_DB488AC5: &str = "lock_owned";
 pub const VALUE_761A94E7: &str = "macro entry points emit different trait implementations and must remain separately addressable";
 pub const VALUE_BA372BD2: &str = "macro generates a string constant outside constants_str";
 pub const VALUE_F67EAA19: &str = "macro_clippy_check_common/src/lib.rs";
-pub const VALUE_7AEFC966: &str =
-    "macro_helpers/src/domain_types/generate_field_location_new_token_stream.rs";
-pub const VALUE_794839A7: &str =
-    "macro_helpers/src/domain_types/generate_if_write_is_err_token_stream.rs";
-pub const VALUE_31BDEFD7: &str =
-    "macro_helpers/src/domain_types/generate_impl_default_token_stream.rs";
-pub const VALUE_8F0CF86A: &str =
-    "macro_helpers/src/domain_types/generate_impl_display_token_stream.rs";
-pub const VALUE_95F11308: &str =
-    "macro_helpers/src/domain_types/generate_impl_from_token_stream.rs";
-pub const VALUE_823EE954: &str =
-    "macro_helpers/src/domain_types/generate_impl_to_err_string_token_stream.rs";
-pub const VALUE_642AA8AC: &str =
-    "macro_helpers/src/domain_types/generate_impl_try_from_token_stream.rs";
-pub const VALUE_26637EB1: &str = "macro_helpers/src/domain_types/generate_new_or_try_new.rs";
-pub const VALUE_D11679FC: &str =
-    "macro_helpers/src/domain_types/generate_pub_type_alias_token_stream.rs";
-pub const VALUE_7F7EAAAF: &str = "macro_helpers/src/domain_types/location.rs";
-pub const VALUE_02C92481: &str = "macro_helpers/src/domain_types/location_syn_field.rs";
+pub const VALUE_7AEFC966: &str = "macro_helpers/src/generate_field_location_new_token_stream.rs";
+pub const VALUE_794839A7: &str = "macro_helpers/src/generate_if_write_is_err_token_stream.rs";
+pub const VALUE_31BDEFD7: &str = "macro_helpers/src/generate_impl_default_token_stream.rs";
+pub const VALUE_8F0CF86A: &str = "macro_helpers/src/generate_impl_display_token_stream.rs";
+pub const VALUE_95F11308: &str = "macro_helpers/src/generate_impl_from_token_stream.rs";
+pub const VALUE_823EE954: &str = "macro_helpers/src/generate_impl_to_err_string_token_stream.rs";
+pub const VALUE_642AA8AC: &str = "macro_helpers/src/generate_impl_try_from_token_stream.rs";
+pub const VALUE_26637EB1: &str = "macro_helpers/src/generate_new_or_try_new.rs";
+pub const VALUE_D11679FC: &str = "macro_helpers/src/generate_pub_type_alias_token_stream.rs";
+pub const VALUE_7F7EAAAF: &str = "macro_helpers/src/location.rs";
+pub const VALUE_02C92481: &str = "macro_helpers/src/location_syn_field.rs";
 pub const VALUE_BDEB5C57: &str =
-    "macro_helpers/src/domain_types/pagination_start_end_initialization_token_stream.rs";
-pub const VALUE_C652C5A2: &str = "macro_helpers/src/domain_types/status_code.rs";
-pub const VALUE_3E2D4173: &str = "macro_helpers/src/domain_types/test_database.rs";
-pub const VALUE_865824F9: &str = "macro_helpers/src/domain_types/test_hlp.rs";
-pub const VALUE_DB7F37E1: &str = "macro_helpers/src/domain_types/wrap_derive.rs";
-pub const VALUE_60D35589: &str = "macro_helpers/src/domain_types/write_string_into_file.rs";
+    "macro_helpers/src/pagination_start_end_initialization_token_stream.rs";
+pub const VALUE_C652C5A2: &str = "macro_helpers/src/status_code.rs";
+pub const VALUE_3E2D4173: &str = "macro_helpers/src/test_database.rs";
+pub const VALUE_865824F9: &str = "macro_helpers/src/test_hlp.rs";
+pub const VALUE_DB7F37E1: &str = "macro_helpers/src/wrap_derive.rs";
+pub const VALUE_60D35589: &str = "macro_helpers/src/write_string_into_file.rs";
 pub const VALUE_427B03A1: &str = "macro_helpers_generate_derive_token_stream_builder/src/lib.rs";
 pub const VALUE_2C90A5F7: &str = "macros_helpers";
 pub const VALUE_304B098A: &str = "main_logo";
@@ -1748,8 +1722,8 @@ pub const VALUE_D1712BA9: &str = "notification creation";
 pub const VALUE_FA6BAA20: &str = "notification service liveness";
 pub const VALUE_7595852C: &str = "notification service readiness";
 pub const VALUE_AAADEE66: &str = "notification_service";
-pub const VALUE_629EE5ED: &str = "notification_service/src/adapters/routes.rs";
-pub const VALUE_01D96FA0: &str = "notification_service/src/adapters/runtime.rs";
+pub const VALUE_629EE5ED: &str = "notification_service/src/routes.rs";
+pub const VALUE_01D96FA0: &str = "notification_service/src/runtime.rs";
 pub const VALUE_8E41EC63: &str = "notification_service/src/domain_types.rs";
 pub const VALUE_8B9F9090: &str = "notification_service_config";
 pub const VALUE_0A7A2313: &str = "notification_service_config/.env.example";
@@ -1788,38 +1762,38 @@ pub const VALUE_8269812F: &str =
     "password public behavior is covered by authentication integration tests";
 pub const VALUE_E4FA4A90: &str = "persistence.error";
 pub const VALUE_D11DB134: &str = "pg_";
-pub const VALUE_BCE1238C: &str = "pg_crud_common/src/domain_types/advisory_lock.rs";
-pub const VALUE_E4B07557: &str = "pg_crud_common/src/domain_types/bounded_btree_map.rs";
-pub const VALUE_A7D2D1E3: &str = "pg_crud_common/src/domain_types/cardinality.rs";
-pub const VALUE_5549F923: &str = "pg_crud_common/src/domain_types/cursor.rs";
-pub const VALUE_3F67003B: &str = "pg_crud_common/src/domain_types/date_sql_filter.rs";
-pub const VALUE_A9465BB5: &str = "pg_crud_common/src/domain_types/pg_values.rs";
-pub const VALUE_5036238B: &str = "pg_crud_common/src/domain_types/query_collections.rs";
-pub const VALUE_D0A66D2F: &str = "pg_crud_common/src/domain_types/query_fragment.rs";
-pub const VALUE_C71E84EC: &str = "pg_crud_common/src/domain_types/query_pagination.rs";
-pub const VALUE_C85E36AA: &str = "pg_crud_common/src/domain_types/read_query_plan.rs";
+pub const VALUE_BCE1238C: &str = "pg_crud_common/src/advisory_lock.rs";
+pub const VALUE_E4B07557: &str = "pg_crud_common/src/bounded_btree_map.rs";
+pub const VALUE_A7D2D1E3: &str = "pg_crud_common/src/cardinality.rs";
+pub const VALUE_5549F923: &str = "pg_crud_common/src/cursor.rs";
+pub const VALUE_3F67003B: &str = "pg_crud_common/src/date_sql_filter.rs";
+pub const VALUE_A9465BB5: &str = "pg_crud_common/src/pg_values.rs";
+pub const VALUE_5036238B: &str = "pg_crud_common/src/query_collections.rs";
+pub const VALUE_D0A66D2F: &str = "pg_crud_common/src/query_fragment.rs";
+pub const VALUE_C71E84EC: &str = "pg_crud_common/src/query_pagination.rs";
+pub const VALUE_C85E36AA: &str = "pg_crud_common/src/read_query_plan.rs";
 pub const VALUE_11CDC13C: &str = "pg_crud_common_macros";
 pub const VALUE_BB268B0B: &str = "pg_crud_common_macros/src/lib.rs";
 pub const VALUE_2A9F7F88: &str = "pg_crud_macro_common";
 pub const VALUE_1ACC98BE: &str = "pg_crud_macro_common/src/domain_types.rs";
-pub const VALUE_4F121480: &str = "pg_crud_macro_common/src/domain_types/emission_types.rs";
-pub const VALUE_5C56EDC0: &str = "pg_crud_macro_common/src/domain_types/token_emission.rs";
-pub const VALUE_43A074E4: &str = "pg_crud_macro_common/src/domain_types/filters.rs";
-pub const VALUE_7DF10CC7: &str = "pg_crud_macro_common/src/domain_types/pg_type_test_cases.rs";
-pub const VALUE_1F61C5FC: &str = "pg_crud_macro_common/src/domain_types/token_stream_helpers.rs";
+pub const VALUE_4F121480: &str = "pg_crud_macro_common/src/emission_types.rs";
+pub const VALUE_5C56EDC0: &str = "pg_crud_macro_common/src/token_emission.rs";
+pub const VALUE_43A074E4: &str = "pg_crud_macro_common/src/filters.rs";
+pub const VALUE_7DF10CC7: &str = "pg_crud_macro_common/src/pg_type_test_cases.rs";
+pub const VALUE_1F61C5FC: &str = "pg_crud_macro_common/src/token_stream_helpers.rs";
 pub const VALUE_62CE157E: &str = "pg_crud_macro_common_macros";
 pub const VALUE_1BEBF98C: &str = "pg_crud_macro_common_macros/src/lib.rs";
 pub const VALUE_AC77DBAA: &str = "pg_crud_pg_table/src/domain_types.rs";
 pub const VALUE_426047D0: &str = "pg_crud_pg_table_generate/src/lib.rs";
-pub const VALUE_87B73E51: &str = "pg_crud_pg_table_generate_src/src/domain_types/pipeline.rs";
-pub const VALUE_7FE2AF02: &str = "pg_crud_pg_table_generate_src/src/domain_types/source.rs";
+pub const VALUE_87B73E51: &str = "pg_crud_pg_table_generate_src/src/pipeline.rs";
+pub const VALUE_7FE2AF02: &str = "pg_crud_pg_table_generate_src/src/source.rs";
 pub const VALUE_4A7BAF6A: &str = "pg_crud_pg_types_common/src/domain_types.rs";
 pub const VALUE_3282DD39: &str = "pg_crud_pg_types_common/src/lib.rs";
 pub const VALUE_BC1068F8: &str = "pg_crud_pg_types_generate/src/lib.rs";
-pub const VALUE_D405F3E1: &str = "pg_crud_pg_types_generate_src/src/domain_types/source.rs";
+pub const VALUE_D405F3E1: &str = "pg_crud_pg_types_generate_src/src/source.rs";
 pub const VALUE_EFE7711A: &str = "pg_crud_where_filters/src/domain_types.rs";
 pub const VALUE_566A29FB: &str = "pg_crud_where_filters_generate/src/lib.rs";
-pub const VALUE_471AD9D4: &str = "pg_crud_where_filters_generate_src/src/domain_types/source.rs";
+pub const VALUE_471AD9D4: &str = "pg_crud_where_filters_generate_src/src/source.rs";
 pub const VALUE_E644078E: &str = "pg_types_chrono_net";
 pub const VALUE_D13E7908: &str = "pg_types_common";
 pub const VALUE_174C657A: &str = "pg_types_numeric";
@@ -1891,8 +1865,8 @@ pub const VALUE_0EA9A6EE: &str = "route endpoints are separate Axum registration
 pub const VALUE_128D5CF3: &str = "route state is shared across threads behind its parameter trait";
 pub const VALUE_2E84067B: &str = "route_registry(";
 pub const VALUE_84BBA14A: &str = "route_service";
-pub const VALUE_AC7A6F68: &str = "route_validators/src/domain_types/hdr_val.rs";
-pub const VALUE_4626D14F: &str = "route_validators/src/domain_types/test_hlp.rs";
+pub const VALUE_AC7A6F68: &str = "route_validators/src/hdr_val.rs";
+pub const VALUE_4626D14F: &str = "route_validators/src/test_hlp.rs";
 pub const VALUE_D12133A6: &str = "run history is shared and asynchronously synchronized";
 pub const VALUE_ACA763E9: &str =
     "runner command text is derived from the finite workspace test plan";
@@ -1942,54 +1916,52 @@ pub const VALUE_5015C549: &str = "serve_with_graceful_shutdown(";
 pub const VALUE_B3EACD33: &str = "server";
 pub const VALUE_E0C5B098: &str = "server-runtime-client-test";
 pub const VALUE_00BCCC04: &str = "server-runtime-test";
-pub const VALUE_D59B01F9: &str = "server/src/adapters/routing.rs";
+pub const VALUE_D59B01F9: &str = "server/src/routing.rs";
 pub const VALUE_47325207: &str = "server/src/domain_types.rs";
 pub const VALUE_6D090579: &str = "server_admin";
-pub const VALUE_96554632: &str = "server_admin/src/adapters/migrations.rs";
-pub const VALUE_AF9C2B7F: &str = "server_admin/src/adapters/repository/audit.rs";
+pub const VALUE_96554632: &str = "server_admin/src/migrations.rs";
+pub const VALUE_AF9C2B7F: &str = "server_admin/src/adapters__repository__audit.rs";
 pub const VALUE_FF6D4857: &str = "server_admin/src/adapters/repository/cleanup.rs";
-pub const VALUE_8E182ED1: &str = "server_admin/src/adapters/repository/data_tables.rs";
+pub const VALUE_8E182ED1: &str = "server_admin/src/adapters__repository__data_tables.rs";
 pub const VALUE_8C00245E: &str = "server_admin/src/adapters/repository/rate_limits.rs";
-pub const VALUE_BFA4ECF3: &str = "server_admin/src/adapters/repository/sessions.rs";
-pub const VALUE_4C6F4532: &str = "server_admin/src/adapters/repository/read_settings.rs";
-pub const VALUE_2996C2A6: &str = "server_admin/src/adapters/repository/users.rs";
-pub const VALUE_D67F4595: &str = "server_admin/src/application/account.rs";
-pub const VALUE_DD6C0078: &str = "server_admin/src/application/api.rs";
-pub const VALUE_20A23EAF: &str = "server_admin/src/application/audit.rs";
-pub const VALUE_0690A45F: &str = "server_admin/src/application/auth.rs";
-pub const VALUE_1CAAD2DE: &str = "server_admin/src/application/authn.rs";
-pub const VALUE_B852993C: &str = "server_admin/src/application/data_tables.rs";
-pub const VALUE_3EB7B056: &str = "server_admin/src/application/html.rs";
-pub const VALUE_3C6F88B1: &str = "server_admin/src/application/roles.rs";
-pub const VALUE_7BF90B7C: &str = "server_admin/src/application/routes.rs";
-pub const VALUE_7C2F0144: &str = "server_admin/src/application/create_session_in_connection.rs";
-pub const VALUE_15C3423E: &str = "server_admin/src/application/sessions.rs";
-pub const VALUE_0D60D8DF: &str = "server_admin/src/application/settings.rs";
-pub const VALUE_6DB550C3: &str = "server_admin/src/application/shared.rs";
-pub const VALUE_1E8EA59C: &str = "server_admin/src/application/users.rs";
+pub const VALUE_BFA4ECF3: &str = "server_admin/src/adapters__repository__sessions.rs";
+pub const VALUE_4C6F4532: &str = "server_admin/src/read_settings.rs";
+pub const VALUE_2996C2A6: &str = "server_admin/src/adapters__repository__users.rs";
+pub const VALUE_D67F4595: &str = "server_admin/src/account.rs";
+pub const VALUE_DD6C0078: &str = "server_admin/src/api.rs";
+pub const VALUE_20A23EAF: &str = "server_admin/src/application__audit.rs";
+pub const VALUE_0690A45F: &str = "server_admin/src/application__auth.rs";
+pub const VALUE_1CAAD2DE: &str = "server_admin/src/authn.rs";
+pub const VALUE_B852993C: &str = "server_admin/src/application__data_tables.rs";
+pub const VALUE_3EB7B056: &str = "server_admin/src/html.rs";
+pub const VALUE_3C6F88B1: &str = "server_admin/src/application__roles.rs";
+pub const VALUE_7BF90B7C: &str = "server_admin/src/routes.rs";
+pub const VALUE_7C2F0144: &str = "server_admin/src/create_session_in_connection.rs";
+pub const VALUE_15C3423E: &str = "server_admin/src/application__sessions.rs";
+pub const VALUE_0D60D8DF: &str = "server_admin/src/application__settings.rs";
+pub const VALUE_6DB550C3: &str = "server_admin/src/shared.rs";
+pub const VALUE_1E8EA59C: &str = "server_admin/src/application__users.rs";
 pub const VALUE_5A1A4545: &str = "server_admin/src/domain_types/auth";
 pub const VALUE_AAA5BED8: &str = "server_admin/src/domain_types/cleanup.rs";
-pub const VALUE_206B48D7: &str = "server_admin/src/domain_types/generated_auth.rs";
-pub const VALUE_91DD0162: &str = "server_admin/src/domain_types/generated_tables.rs";
+pub const VALUE_206B48D7: &str = "server_admin/src/generated_auth.rs";
+pub const VALUE_91DD0162: &str = "server_admin/src/generated_tables.rs";
 pub const VALUE_9CAC1060: &str = "server_admin/src/domain_types/migrations.rs";
-pub const VALUE_886BA6BB: &str = "server_admin/src/domain_types/rbac.rs";
+pub const VALUE_886BA6BB: &str = "server_admin/src/rbac.rs";
 pub const VALUE_43EF539D: &str = "server_admin/src/domain_types/repository";
 pub const VALUE_88607159: &str = "server_admin/tests/admin_api.rs";
 pub const VALUE_B51C3727: &str = "server_admin/tests/admin_api/";
 pub const VALUE_5906FF0B: &str = "server_admin_contract";
 pub const VALUE_0C5CC511: &str = "server_admin_contract/src";
 pub const VALUE_AA6C3BC8: &str = "server_admin_contract/src/domain_types.rs";
-pub const VALUE_61FFCD13: &str = "server_admin_contract/src/domain_types/collections.rs";
+pub const VALUE_61FFCD13: &str = "server_admin_contract/src/collections.rs";
 pub const VALUE_02A23160: &str = "server_admin_core/src/domain_types.rs";
 pub const VALUE_BC9DA9CE: &str = "server_admin_frontend/src/domain_types/start/";
-pub const VALUE_F3169686: &str = "server_admin_frontend/src/domain_types/start/http/fetch_json.rs";
-pub const VALUE_4715BB8A: &str = "server_admin_frontend/src/domain_types/start/http/mutation.rs";
-pub const VALUE_7177655A: &str = "server_admin_frontend/src/domain_types/start/http/url.rs";
-pub const VALUE_27AB06E9: &str = "server_admin_frontend/src/domain_types/start/fetch_page.rs";
-pub const VALUE_9E7DB142: &str =
-    "server_admin_frontend/src/domain_types/start/admin_csr_query/location.rs";
-pub const VALUE_BEBEC57E: &str =
-    "server_admin_frontend/src/domain_types/start/admin_csr_query/csr_page_from_location.rs";
+pub const VALUE_F3169686: &str = "server_admin_frontend/src/fetch_json.rs";
+pub const VALUE_4715BB8A: &str = "server_admin_frontend/src/domain_types__start__http__mutation.rs";
+pub const VALUE_7177655A: &str = "server_admin_frontend/src/url.rs";
+pub const VALUE_27AB06E9: &str = "server_admin_frontend/src/fetch_page.rs";
+pub const VALUE_9E7DB142: &str = "server_admin_frontend/src/location.rs";
+pub const VALUE_BEBEC57E: &str = "server_admin_frontend/src/csr_page_from_location.rs";
 pub const VALUE_D0393EDD: &str = "server_app_state";
 pub const VALUE_25EADB03: &str = "server_app_state_macros";
 pub const VALUE_4B935405: &str = "server_app_state_server_app_state_macros/src/lib.rs";
@@ -1997,29 +1969,29 @@ pub const VALUE_B2F5A0ED: &str = "server_config";
 pub const VALUE_D31B3088: &str = "server_config/src/domain_types.rs";
 pub const VALUE_B29A11B9: &str = "server_observability";
 pub const VALUE_E1717E8B: &str = "server_runtime_core";
-pub const VALUE_769125D7: &str = "server_runtime_core/src/domain_types/exclusive_run.rs";
-pub const VALUE_90208B18: &str = "server_runtime_core/src/domain_types/history.rs";
-pub const VALUE_F5E788DA: &str = "server_runtime_core/src/domain_types/lease_registry.rs";
-pub const VALUE_EC2A2742: &str = "server_runtime_core/src/domain_types/resource_budget.rs";
-pub const VALUE_E56A7582: &str = "server_runtime_core/src/domain_types/single_flight.rs";
+pub const VALUE_769125D7: &str = "server_runtime_core/src/exclusive_run.rs";
+pub const VALUE_90208B18: &str = "server_runtime_core/src/history.rs";
+pub const VALUE_F5E788DA: &str = "server_runtime_core/src/lease_registry.rs";
+pub const VALUE_EC2A2742: &str = "server_runtime_core/src/resource_budget.rs";
+pub const VALUE_E56A7582: &str = "server_runtime_core/src/single_flight.rs";
 pub const VALUE_B4F499E2: &str = "server_runtime_http";
 pub const VALUE_12509C8A: &str = "server_runtime_http/src/domain_types.rs";
-pub const VALUE_871375E9: &str = "server_runtime_http/src/domain_types/child_process.rs";
-pub const VALUE_299CBC23: &str = "server_runtime_http/src/domain_types/health.rs";
-pub const VALUE_EAC3A6DC: &str = "server_runtime_http/src/domain_types/http_error_diagnostic.rs";
-pub const VALUE_1FC40282: &str = "server_runtime_http/src/domain_types/http_header_policy.rs";
-pub const VALUE_BAC9ADDA: &str = "server_runtime_http/src/domain_types/lifecycle.rs";
-pub const VALUE_84D6426B: &str = "server_runtime_http/src/domain_types/limits.rs";
-pub const VALUE_D9252088: &str = "server_runtime_http/src/domain_types/metrics_layer.rs";
-pub const VALUE_CC18D6A2: &str = "server_runtime_http/src/domain_types/multipart.rs";
-pub const VALUE_95516B7B: &str = "server_runtime_http/src/domain_types/origin.rs";
-pub const VALUE_E4D64D33: &str = "server_runtime_http/src/domain_types/outbound_url.rs";
-pub const VALUE_781D9B03: &str = "server_runtime_http/src/domain_types/request_timeout.rs";
-pub const VALUE_112F424A: &str = "server_runtime_http/src/domain_types/secure_cookie.rs";
-pub const VALUE_CF2E8B6C: &str = "server_runtime_http/src/domain_types/security_headers.rs";
-pub const VALUE_404ABD4C: &str = "server_runtime_http/src/domain_types/service.rs";
-pub const VALUE_3CE86070: &str = "server_runtime_http/src/domain_types/service_runtime.rs";
-pub const VALUE_7B7EA9ED: &str = "server_runtime_http/src/domain_types/wire_token.rs";
+pub const VALUE_871375E9: &str = "server_runtime_http/src/child_process.rs";
+pub const VALUE_299CBC23: &str = "server_runtime_http/src/health.rs";
+pub const VALUE_EAC3A6DC: &str = "server_runtime_http/src/http_error_diagnostic.rs";
+pub const VALUE_1FC40282: &str = "server_runtime_http/src/http_header_policy.rs";
+pub const VALUE_BAC9ADDA: &str = "server_runtime_http/src/lifecycle.rs";
+pub const VALUE_84D6426B: &str = "server_runtime_http/src/limits.rs";
+pub const VALUE_D9252088: &str = "server_runtime_http/src/metrics_layer.rs";
+pub const VALUE_CC18D6A2: &str = "server_runtime_http/src/multipart.rs";
+pub const VALUE_95516B7B: &str = "server_runtime_http/src/origin.rs";
+pub const VALUE_E4D64D33: &str = "server_runtime_http/src/outbound_url.rs";
+pub const VALUE_781D9B03: &str = "server_runtime_http/src/request_timeout.rs";
+pub const VALUE_112F424A: &str = "server_runtime_http/src/secure_cookie.rs";
+pub const VALUE_CF2E8B6C: &str = "server_runtime_http/src/domain_types__security_headers.rs";
+pub const VALUE_404ABD4C: &str = "server_runtime_http/src/service.rs";
+pub const VALUE_3CE86070: &str = "server_runtime_http/src/domain_types__service_runtime.rs";
+pub const VALUE_7B7EA9ED: &str = "server_runtime_http/src/wire_token.rs";
 pub const VALUE_EC36C4C9: &str = "server_runtime_macros";
 pub const VALUE_706BFD5F: &str = "service runtime construction classifies configuration failures";
 pub const VALUE_DB13C058: &str = "service runtime classifies timeout configuration failures";
@@ -2100,8 +2072,8 @@ pub const VALUE_4943E43B: &str = "test-session";
 pub const VALUE_AF7C24A2: &str = "test.error";
 pub const VALUE_CF4DCEBB: &str = "test_failure";
 pub const VALUE_D0549AF3: &str = "test_fixtures";
-pub const VALUE_4A3D63F7: &str = "tests/src/code_style/mod.rs";
-pub const VALUE_959AEDDC: &str = "tests/src/code_style/snapshot.rs";
+pub const VALUE_4A3D63F7: &str = "tests/src/code_style.rs";
+pub const VALUE_959AEDDC: &str = "tests/src/snapshot.rs";
 pub const VALUE_B2FEB0FD: &str = "the CLI runner needs collision-free process-local artifact names";
 pub const VALUE_2773E6CE: &str = "the HTTP runtime must not depend on application or route crates";
 pub const VALUE_FDB078C8: &str =
@@ -2333,12 +2305,12 @@ pub const VALUE_6264CCC9: &str =
     "workspace structs and enums without optimal_memory_layout::OptimalMemoryLayout derive";
 pub const VALUE_2900052A: &str = "workspace_macro_helpers/src/domain_types.rs";
 pub const VALUE_1A456B0D: &str = "workspace_scaffold/src/domain_types.rs";
-pub const VALUE_5FB76CAF: &str = "workspace_scaffold/src/domain_types/service_catalog.rs";
-pub const VALUE_532433A4: &str = "workspace_test_runner/src/adapters/admin_fixture.rs";
-pub const VALUE_392D41BA: &str = "workspace_test_runner/src/adapters/execution.rs";
-pub const VALUE_7841C081: &str = "workspace_test_runner/src/adapters/reporting.rs";
+pub const VALUE_5FB76CAF: &str = "workspace_scaffold/src/service_catalog.rs";
+pub const VALUE_532433A4: &str = "workspace_test_runner/src/admin_fixture.rs";
+pub const VALUE_392D41BA: &str = "workspace_test_runner/src/execution.rs";
+pub const VALUE_7841C081: &str = "workspace_test_runner/src/reporting.rs";
 pub const VALUE_9D0FC67D: &str =
-    "workspace_test_runner/src/application/generate_pg_table_measure_input_token_stream.rs";
+    "workspace_test_runner/src/generate_pg_table_measure_input_token_stream.rs";
 pub const VALUE_F45EC0EE: &str = "workspace_test_runner/src/domain_types.rs";
 pub const VALUE_86F7474B: &str = "write_all";
 pub const VALUE_FC58C841: &str = "write_owned";

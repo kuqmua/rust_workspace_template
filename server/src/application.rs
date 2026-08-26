@@ -1,5 +1,7 @@
+#[path = "migrate_server.rs"]
+pub(crate) mod migrate_server;
+#[path = "routes.rs"]
 mod routes;
-pub(crate) mod startup;
 
 #[allow(clippy::single_call_fn)] // startup flow is grouped for separation from process initialization concerns
 pub(super) async fn run_server(

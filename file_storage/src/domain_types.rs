@@ -405,4 +405,5 @@ pub fn plan_disk_cache_eviction(
 }
 
 #[cfg(test)]
+#[path = "tests.rs"]
 mod tests;

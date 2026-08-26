@@ -1,16 +1,30 @@
+#[path = "background_job.rs"]
 mod background_job;
+#[path = "deduplicating_queue.rs"]
 mod deduplicating_queue;
+#[path = "exclusive_run.rs"]
 mod exclusive_run;
+#[path = "execution_plan.rs"]
 mod execution_plan;
+#[path = "generation_gate.rs"]
 mod generation_gate;
+#[path = "history.rs"]
 mod history;
+#[path = "identity_creation_plan.rs"]
 mod identity_creation_plan;
+#[path = "lease_registry.rs"]
 mod lease_registry;
+#[path = "resource_budget.rs"]
 mod resource_budget;
+#[path = "resource_utilization.rs"]
 mod resource_utilization;
+#[path = "retry.rs"]
 mod retry;
+#[path = "secret_text.rs"]
 mod secret_text;
+#[path = "single_flight.rs"]
 mod single_flight;
+#[path = "source_selection.rs"]
 mod source_selection;
 
 pub use background_job::BackgroundJob;

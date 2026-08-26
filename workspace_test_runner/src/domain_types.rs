@@ -236,4 +236,5 @@ pub(crate) fn memusage_table_value(
         )
 }
 #[cfg(test)]
+#[path = "tests.rs"]
 mod tests;

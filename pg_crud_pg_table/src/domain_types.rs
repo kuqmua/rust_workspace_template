@@ -565,7 +565,7 @@ pub async fn cleanup_pg_table_idempotency(
     Ok(PgTableIdempotencyCleanupRows::from(result.rows_affected()))
 }
 #[cfg(test)]
-#[path = "domain_types/tests/idempotency.rs"]
+#[path = "domain_types__tests__idempotency.rs"]
 mod idempotency_tests;
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
 enum InsertValuesFmt {
@@ -990,4 +990,5 @@ pub fn generate_dlo_query_string(
     generate_delete_query_string(table, primary_key_field_name, None)
 }
 #[cfg(test)]
+#[path = "tests.rs"]
 mod tests;

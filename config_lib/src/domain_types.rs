@@ -1,9 +1,15 @@
 #![allow(clippy::arbitrary_source_item_ordering)] // configuration declarations stay grouped with their parse errors and TryFromStdEnvVarOk implementations
+#[path = "admin.rs"]
 mod admin;
+#[path = "admin_jwt.rs"]
 mod admin_jwt;
+#[path = "bool_flags.rs"]
 mod bool_flags;
+#[path = "http.rs"]
 mod http;
+#[path = "pg_pool.rs"]
 mod pg_pool;
+#[path = "types.rs"]
 pub mod types;
 pub use admin::{
     AdminAccessTokenTtlSeconds, AdminAccessTokenTtlSecondsProvider, AdminLoginFailureLimit,
@@ -466,4 +472,5 @@ fn parse_east_fixed_offset(
         .ok_or_else(|| ChronoFixedOffsetError::from(constants_str::CONFIG_TIMEZONE_NOT_EAST_MSG))
 }
 #[cfg(test)]
+#[path = "tests.rs"]
 mod tests;

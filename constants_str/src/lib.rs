@@ -134,18 +134,18 @@ pub const CODE_STYLE_REVIEWED_PUBLIC_FIELD_SETS: &[&[&str]] = &[
 pub const CODE_STYLE_REVIEWED_PUBLIC_FIELD_PATH_SUFFIXES: [&str; 14] = [
     "location_lib/src/domain_types.rs",
     "location_lib/src/domain_types.rs",
-    "macro_helpers/src/domain_types/syn_field.rs",
+    "macro_helpers/src/syn_field.rs",
     "server_app_state/src/domain_types.rs",
     "pg_crud_common/src/domain_types.rs",
     "pg_crud_common/src/domain_types.rs",
-    "pg_crud_common/src/domain_types/query_pagination.rs",
-    "pg_crud_common/src/domain_types/query_collections.rs",
+    "pg_crud_common/src/query_pagination.rs",
+    "pg_crud_common/src/query_collections.rs",
     "server_config/src/domain_types.rs",
-    "server_admin/src/domain_types/generated_tables.rs",
-    "server_admin/src/domain_types/generated_tables.rs",
-    "server_admin/src/domain_types/generated_tables.rs",
-    "server_admin/src/domain_types/generated_tables.rs",
-    "server_admin/src/domain_types/generated_tables.rs",
+    "server_admin/src/generated_tables.rs",
+    "server_admin/src/generated_tables.rs",
+    "server_admin/src/generated_tables.rs",
+    "server_admin/src/generated_tables.rs",
+    "server_admin/src/generated_tables.rs",
 ];
 pub const CODE_STYLE_REVIEWED_PUBLIC_FIELD_REASONS: [&str; 14] = [
     "location proc-macro output exposes occurrence coordinates as its public data contract",
@@ -181,7 +181,7 @@ pub const CODE_STYLE_REVIEWED_PUBLIC_FIELD_STRUCT_NAMES: [&str; 14] = [
 ];
 pub const CODE_STYLE_DIRECT_FS_OWNER_SUFFIXES: [&str; 15] = [
     "/config_lib/src/domain_types.rs",
-    "/config_lib/src/domain_types/types.rs",
+    "/config_lib/src/types.rs",
     "/file_storage/src/adapters.rs",
     "/file_storage/src/domain_types.rs",
     "/init_env_files/src/domain_types.rs",
@@ -190,7 +190,7 @@ pub const CODE_STYLE_DIRECT_FS_OWNER_SUFFIXES: [&str; 15] = [
     CODE_STYLE_MACRO_CLIPPY_FS_OWNER_SUFFIX,
     CODE_STYLE_MACROS_HLP_TEST_FS_OWNER_SUFFIX,
     CODE_STYLE_MACROS_HLP_WRITE_STRING_FS_OWNER_SUFFIX,
-    "/macro_helpers/src/domain_types/write_token_stream_into_file.rs",
+    "/macro_helpers/src/write_token_stream_into_file.rs",
     "/administrator_account_initialization_and_password_reset/src/application.rs",
     "/workspace_scaffold/src/main.rs",
     CODE_STYLE_WORKSPACE_SCAFFOLD_FS_OWNER_SUFFIX,
@@ -222,10 +222,9 @@ pub const CODE_STYLE_PG_CRUD_COMMON_BENCHES_REASON: &str =
     "benchmark-only boundaries are outside the production domain API";
 pub const CODE_STYLE_LEPTOS_CRATE: &str = "leptos";
 pub const CODE_STYLE_MACRO_CLIPPY_FS_OWNER_SUFFIX: &str = "/macro_clippy_check_common/src/lib.rs";
-pub const CODE_STYLE_MACROS_HLP_TEST_FS_OWNER_SUFFIX: &str =
-    "/macro_helpers/src/domain_types/test_hlp.rs";
+pub const CODE_STYLE_MACROS_HLP_TEST_FS_OWNER_SUFFIX: &str = "/macro_helpers/src/test_hlp.rs";
 pub const CODE_STYLE_MACROS_HLP_WRITE_STRING_FS_OWNER_SUFFIX: &str =
-    "/macro_helpers/src/domain_types/write_string_into_file.rs";
+    "/macro_helpers/src/write_string_into_file.rs";
 pub const CODE_STYLE_PRELUDE_MODULE: &str = "prelude";
 pub const CODE_STYLE_TEST_CRATE_NAMES: [&str; 6] = [
     SHARED_VALUES_GENERATE_PG_TABLE_TEST,
@@ -248,9 +247,8 @@ pub const CODE_STYLE_UNBOUNDED_READ_OWNER_SUFFIXES: [&str; 0] = [];
 pub const CODE_STYLE_WORKSPACE_SCAFFOLD_FS_OWNER_SUFFIX: &str =
     "/workspace_scaffold/src/domain_types.rs";
 pub const CODE_STYLE_WORKSPACE_SCAFFOLD_TEMPLATE_FS_OWNER_SUFFIX: &str =
-    "/workspace_scaffold/src/adapters/template_fs.rs";
-pub const CODE_STYLE_ROUTE_VALIDATORS_TEST_HLP_SUFFIX: &str =
-    "/route_validators/src/domain_types/test_hlp.rs";
+    "/workspace_scaffold/src/template_fs.rs";
+pub const CODE_STYLE_ROUTE_VALIDATORS_TEST_HLP_SUFFIX: &str = "/route_validators/src/test_hlp.rs";
 pub const CODE_STYLE_RUNTIME_TEST_HELPER_SUFFIXES: [&str; 2] = [
     CODE_STYLE_MACROS_HLP_TEST_FS_OWNER_SUFFIX,
     CODE_STYLE_ROUTE_VALIDATORS_TEST_HLP_SUFFIX,
@@ -260,8 +258,8 @@ pub const CODE_STYLE_RUNTIME_TEST_HELPER_REASONS: [&str; 2] = [
     "route validator test fixtures intentionally panic on invalid local test setup",
 ];
 pub const CODE_STYLE_RUNTIME_ARC_OWNER_SUFFIXES: [&str; 7] = [
-    "notification_service/src/adapters/routes.rs",
-    "server/src/adapters/mk_pg_pool.rs",
+    "notification_service/src/routes.rs",
+    "server/src/mk_pg_pool.rs",
     SERVER_SRC_APPLICATION_RS,
     SERVER_SRC_APPLICATION_ADMIN_API_RS,
     SERVER_ADMIN_SRC_PASSWORD_RS,
@@ -354,19 +352,19 @@ pub const CODE_STYLE_LEPTOS_PRELUDE_SUFFIXES: [&str; 58] = [
     SERVER_ADMIN_FRONTEND_SRC_SSR_TEXT_PAGE_RS,
     SERVER_ADMIN_FRONTEND_SRC_SSR_USERS_RS,
     SERVER_ADMIN_FRONTEND_SRC_SSR_USERS_ROW_RS,
-    "server_admin_frontend/src/domain_types/with_owner/alert.rs",
-    "server_admin_frontend/src/domain_types/with_owner/admin_alert_dialog.rs",
-    "server_admin_frontend/src/domain_types/with_owner/badge.rs",
-    "server_admin_frontend/src/domain_types/with_owner/button.rs",
-    "server_admin_frontend/src/domain_types/with_owner/card.rs",
-    "server_admin_frontend/src/domain_types/with_owner/admin_checkbox.rs",
-    "server_admin_frontend/src/domain_types/with_owner/admin_empty.rs",
-    "server_admin_frontend/src/domain_types/with_owner/field.rs",
-    "server_admin_frontend/src/domain_types/with_owner/input.rs",
-    "server_admin_frontend/src/domain_types/with_owner/navigation.rs",
-    "server_admin_frontend/src/domain_types/with_owner/admin_spinner.rs",
-    "server_admin_frontend/src/domain_types/with_owner/table.rs",
-    "server_admin_frontend/src/domain_types/with_owner/admin_textarea.rs",
+    "server_admin_frontend/src/domain_types__with_owner__alert.rs",
+    "server_admin_frontend/src/domain_types__with_owner__admin_alert_dialog.rs",
+    "server_admin_frontend/src/domain_types__with_owner__badge.rs",
+    "server_admin_frontend/src/domain_types__with_owner__button.rs",
+    "server_admin_frontend/src/domain_types__with_owner__card.rs",
+    "server_admin_frontend/src/domain_types__with_owner__admin_checkbox.rs",
+    "server_admin_frontend/src/domain_types__with_owner__admin_empty.rs",
+    "server_admin_frontend/src/domain_types__with_owner__field.rs",
+    "server_admin_frontend/src/domain_types__with_owner__input.rs",
+    "server_admin_frontend/src/domain_types__with_owner__navigation.rs",
+    "server_admin_frontend/src/domain_types__with_owner__admin_spinner.rs",
+    "server_admin_frontend/src/domain_types__with_owner__table.rs",
+    "server_admin_frontend/src/domain_types__with_owner__admin_textarea.rs",
     SSR_SOURCE_PATH,
 ];
 pub const CODE_STYLE_LEPTOS_PRELUDE_REASONS: [&str; 58] = [

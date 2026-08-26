@@ -389,4 +389,5 @@ impl std::fmt::Display for Location {
 }
 #[cfg(test)]
 #[allow(clippy::arbitrary_source_item_ordering)]
+#[path = "tests.rs"]
 mod tests;

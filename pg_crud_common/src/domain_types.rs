@@ -1,31 +1,60 @@
+#[path = "advisory_lock.rs"]
 mod advisory_lock;
+#[path = "batch_validation.rs"]
 mod batch_validation;
+#[path = "bind_index.rs"]
 mod bind_index;
+#[path = "bounded_btree_map.rs"]
 pub mod bounded_btree_map;
+#[path = "bounded_unique_vec.rs"]
 pub mod bounded_unique_vec;
+#[path = "bounded_vec.rs"]
 pub mod bounded_vec;
+#[path = "cardinality.rs"]
 mod cardinality;
+#[path = "cursor.rs"]
 mod cursor;
+#[path = "date_sql_filter.rs"]
 mod date_sql_filter;
+#[path = "db_schema_conformance.rs"]
 mod db_schema_conformance;
+#[path = "errors.rs"]
 mod errors;
+#[path = "filter_bind_plan.rs"]
 mod filter_bind_plan;
+#[path = "finite_f64.rs"]
 mod finite_f64;
+#[path = "invariants.rs"]
 mod invariants;
+#[path = "list_total.rs"]
 mod list_total;
+#[path = "operation_budget.rs"]
 mod operation_budget;
+#[path = "operational_invariants.rs"]
 mod operational_invariants;
+#[path = "order_preserving_deduplication.rs"]
 mod order_preserving_deduplication;
+#[path = "pagination.rs"]
 mod pagination;
+#[path = "patch_field.rs"]
 mod patch_field;
+#[path = "pg_error.rs"]
 mod pg_error;
+#[path = "pg_values.rs"]
 mod pg_values;
+#[path = "query_collections.rs"]
 mod query_collections;
+#[path = "query_fragment.rs"]
 mod query_fragment;
+#[path = "query_pagination.rs"]
 mod query_pagination;
+#[path = "read_query_plan.rs"]
 mod read_query_plan;
+#[path = "sql_identifier.rs"]
 mod sql_identifier;
+#[path = "sql_like_pattern.rs"]
 mod sql_like_pattern;
+#[path = "transaction_failure.rs"]
 mod transaction_failure;
 pub use advisory_lock::{
     PgRelationCapacityError, PgRelationCapacityMaximum, PgRelationLockError,
@@ -207,7 +236,7 @@ impl Operator {
     }
 }
 #[cfg(test)]
-#[path = "domain_types/tests/operator_to_query_part.rs"]
+#[path = "domain_types__tests__operator_to_query_part.rs"]
 mod tests;
 #[derive(Debug, Clone, Copy, PartialEq, optimal_memory_layout::OptimalMemoryLayout)]
 pub enum PgTypeGreaterThanVariant {

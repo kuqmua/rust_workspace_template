@@ -1,4 +1,6 @@
+#[path = "naming.rs"]
 pub(crate) mod naming;
+#[path = "service_catalog.rs"]
 mod service_catalog;
 
 #[derive(
@@ -846,4 +848,5 @@ pub(crate) fn scaffold_service(
 }
 
 #[cfg(test)]
+#[path = "tests.rs"]
 mod tests;

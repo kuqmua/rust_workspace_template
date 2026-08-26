@@ -7,7 +7,7 @@ error[E0308]: mismatched types
    |                     arguments to this function are incorrect
    |
 note: function defined here
-  --> $WORKSPACE/frontend_contract/src/domain_types/route.rs
+  --> $WORKSPACE/frontend_contract/src/route.rs
    |
    | pub const fn server_response<Route>(body: Route::Response) -> RouteResponse<Route>
    |              ^^^^^^^^^^^^^^^

@@ -425,4 +425,5 @@ where
     GitCommitLinkCapacity::from(BASE_GIT_COMMIT_LINK_LEN.saturating_add(commit_id_ref.0.len()))
 }
 #[cfg(test)]
+#[path = "tests.rs"]
 mod tests;

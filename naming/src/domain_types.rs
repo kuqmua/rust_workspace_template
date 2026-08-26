@@ -1,3 +1,4 @@
+#[path = "parameter.rs"]
 pub mod parameter;
 naming_macros::generate_upper_camel_case_and_snake_case_str_and_token_stream!([
     ["primary", "key"],

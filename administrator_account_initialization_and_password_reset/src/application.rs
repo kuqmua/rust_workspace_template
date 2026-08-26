@@ -110,7 +110,7 @@ fn password_from_bytes(
     })
 }
 
-async fn run() -> Result<
+pub(crate) async fn run() -> Result<
     server_admin::domain_types::AdminUserId,
     crate::domain_types::AdministratorAccountCommandError,
 > {
@@ -177,7 +177,7 @@ async fn run() -> Result<
     clippy::missing_const_for_fn,
     reason = "repository wrappers initialize through the non-const From trait"
 )]
-fn error_status(
+pub(crate) fn error_status(
     error: &crate::domain_types::AdministratorAccountCommandError,
 ) -> crate::domain_types::AdministratorAccountCommandStatus {
     crate::domain_types::AdministratorAccountCommandStatus::from(match error {
@@ -196,35 +196,6 @@ fn error_status(
             1u8
         }
     })
-}
-
-pub(crate) fn run_main() -> crate::domain_types::AdministratorAccountCommandExitCode {
-    let runtime = match tokio::runtime::Builder::new_current_thread()
-        .enable_all()
-        .build()
-    {
-        Ok(runtime) => runtime,
-        Err(error) => {
-            tracing::error!(error = %error, "failed to create initial administrator creation runtime");
-            return crate::domain_types::AdministratorAccountCommandExitCode::from(
-                std::process::ExitCode::FAILURE,
-            );
-        }
-    };
-    match runtime.block_on(run()) {
-        Ok(user_id) => {
-            tracing::info!(user_id = %user_id, "administrator operation completed");
-            crate::domain_types::AdministratorAccountCommandExitCode::from(
-                std::process::ExitCode::SUCCESS,
-            )
-        }
-        Err(error) => {
-            tracing::error!(error = %error, "administrator operation failed");
-            crate::domain_types::AdministratorAccountCommandExitCode::from(
-                std::process::ExitCode::from(u8::from(error_status(&error))),
-            )
-        }
-    }
 }
 
 #[cfg(test)]

@@ -848,4 +848,5 @@ impl<T: Clone + pg_crud_common::domain_types::DefaultSomeOneElement, const LENGT
     }
 }
 #[cfg(test)]
+#[path = "tests.rs"]
 mod tests;

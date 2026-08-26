@@ -2,9 +2,13 @@
     clippy::arbitrary_source_item_ordering,
     reason = "each bounded type keeps its inherent and trait implementations adjacent"
 )]
+#[path = "bounded_string.rs"]
 pub mod bounded_string;
+#[path = "btree.rs"]
 pub mod btree;
+#[path = "hash.rs"]
 pub mod hash;
+#[path = "vector.rs"]
 pub mod vector;
 
 pub const COLLECTION_MAX_LEN: usize = 10_000usize;
@@ -99,4 +103,5 @@ where
 const SERDE_PREALLOC_MAX_ITEMS: usize = 1024usize;
 
 #[cfg(test)]
+#[path = "tests.rs"]
 mod tests;

@@ -1,0 +1,12 @@
+#[path = "admin_data_table_grid.rs"]
+pub(crate) mod admin_data_table_grid;
+#[path = "admin_table_cells.rs"]
+pub(crate) mod admin_table_cells;
+#[path = "pagination.rs"]
+pub(crate) mod pagination;
+#[path = "domain_types__shared__settings.rs"]
+pub(crate) mod settings;
+#[path = "table_filters.rs"]
+pub(crate) mod table_filters;
+#[path = "text.rs"]
+pub(crate) mod text;

@@ -1,7 +1,11 @@
+#[path = "check_body_size.rs"]
 pub mod check_body_size;
+#[path = "check_commit.rs"]
 pub mod check_commit;
+#[path = "hdr_val.rs"]
 pub mod hdr_val;
 #[cfg(test)]
+#[path = "test_hlp.rs"]
 pub(crate) mod test_hlp;
 //todo request per second middleware
 #[derive(
